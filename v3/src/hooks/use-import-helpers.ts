@@ -96,8 +96,11 @@ export function useImportHelpers({ cfmRef, onCloseUserEntry }: IProps) {
         }
         break
       default:
-        // Unsupported file type
-        cfmRef.current?.client.alert(`Unsupported file type: ${file?.name}`, "Drop File")
+        if (file) {
+          cfmRef.current?.client.alert("Sorry, this type of file cannot be imported into CODAP", "Drop File")
+        } else if (url) {
+          loadWebView(url)
+        }
         break
     }
     onCloseUserEntry()
