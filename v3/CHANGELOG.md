@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 3.0.0-beta.2550 - October 31, 2025
+## Version 3.0.0-beta.2551 - October 31, 2025
 
 ### ✨ Features & Improvements:
 - **CODAP-54:** Counts and percents in graphs respond correctly to Show Measures for Selection
