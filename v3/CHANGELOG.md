@@ -40,7 +40,7 @@
 - **CODAP-945:** Filter formulas are not round tripped through the v2 format
 - **CODAP-947:** Fix v2 import/export of computed bar chart
 - **CODAP-951:** Dot chart not taking full advantage of bin width
-- **CODAP-954:** Map grid is not restored**
+- **CODAP-954:** Map grid is not restored
 - **CODAP-955:** An attribute typed as numeric displays large numbers with comma separation
 - **CODAP-956:** Cannot get Systolic blood pressure data in NHANES plugin
 - **CODAP-957:** The map image that appears in the Draw Tool when user selects "Open in Draw Tool" is not complete
