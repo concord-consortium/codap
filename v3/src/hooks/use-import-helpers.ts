@@ -84,9 +84,6 @@ export function useImportHelpers({ cfmRef, onCloseUserEntry }: IProps) {
         // no file option for Google Sheets
         initiateGenericImport({ url, contentType: "application/vnd.google-apps.spreadsheet" })
         break
-      case "html":
-        initiateGenericImport({ file, url, contentType: "text/html" })
-        break
       case "image":
         objectUrl = file ? URL.createObjectURL(file) : undefined
         if (objectUrl) {
