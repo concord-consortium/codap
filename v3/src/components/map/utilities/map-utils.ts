@@ -29,7 +29,8 @@ export const datasetHasLatLongData = (dataset: IDataSet) => {
 
 export const isBoundaryAttribute = (attribute: IAttribute) => {
   return attribute.type === "boundary" ||
-          kPolygonNames.includes(attribute.name.toLowerCase())
+          kPolygonNames.includes(attribute.name.toLowerCase()) ||
+          kPolygonNames.includes(attribute.title.toLowerCase())
 }
 
 export const datasetHasBoundaryData = (dataset: IDataSet) => {
