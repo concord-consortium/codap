@@ -1,6 +1,7 @@
 import {LatLngBounds, latLngBounds} from 'leaflet'
 import {singular} from "pluralize"
 import {kPolygonNames} from "../../../models/boundaries/boundary-types"
+import { IAttribute } from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
 import {isFiniteNumber} from "../../../utilities/math-utils"
 import {translate} from "../../../utilities/translation/translate"
@@ -26,18 +27,14 @@ export const datasetHasLatLongData = (dataset: IDataSet) => {
   return hasLatAttribute && hasLngAttribute
 }
 
+export const isBoundaryAttribute = (attribute: IAttribute) => {
+  return attribute.type === "boundary" ||
+          kPolygonNames.includes(attribute.name.toLowerCase()) ||
+          kPolygonNames.includes(attribute.title.toLowerCase())
+}
+
 export const datasetHasBoundaryData = (dataset: IDataSet) => {
-  const attrNames = dataset.attributes.map(attr => attr.name.toLowerCase())
-  let hasBoundaryAttribute = false
-  while (attrNames.length > 0 && !hasBoundaryAttribute) {
-    const attrName = attrNames.pop()
-    if (attrName) {
-      if (kPolygonNames.includes(attrName)) {
-        hasBoundaryAttribute = true
-      }
-    }
-  }
-  return hasBoundaryAttribute
+  return dataset.attributes.some(isBoundaryAttribute)
 }
 
 export const datasetHasPinData = (dataset: IDataSet) => {
@@ -73,8 +70,7 @@ export const latLongAttributesFromDataSet = (dataSet: IDataSet) => {
 }
 
 export const boundaryAttributeFromDataSet = (dataSet: IDataSet) => {
-  const attributes = dataSet.attributes,
-    polygonAttr = attributes.find(attr => kPolygonNames.includes(attr.name.toLowerCase()))
+  const polygonAttr = dataSet.attributes.find(isBoundaryAttribute)
   if (!polygonAttr) {
     throw new Error(`Unable to find boundary attribute in dataset ${dataSet.name}`)
   }
