@@ -151,7 +151,7 @@ export class CodapV2DataSetImporter {
       const {
         cid: _cid, guid, description: v2Description, name = "", title: v2Title, type: v2Type, formula: v2Formula,
         editable: v2Editable, unit: v2Unit, precision: v2Precision, decimals, defaultMin, defaultMax,
-        renameable, deleteable, deletedFormula
+        renameable, deleteable, deletedFormula, _categoryMap
       } = v2Attr
       if (!v2Formula) {
         v2CaseIdInfo.groupAttrNames.push(name)
@@ -167,6 +167,9 @@ export class CodapV2DataSetImporter {
                             ? +decimals
                             : undefined
       const units = v2Unit ?? undefined
+      const color = _categoryMap && _categoryMap["attribute-color"]
+      const lowColor = _categoryMap && _categoryMap["low-attribute-color"]
+      const highColor = _categoryMap && _categoryMap["high-attribute-color"]
       const attribute = data.addAttribute({
         id: toV3AttrId(guid), _cid, name, description, formula, _title, userType, units, precision
       })
@@ -188,6 +191,15 @@ export class CodapV2DataSetImporter {
         }
         if (deletedFormula) {
           metadata.setDeletedFormula(attribute.id, deletedFormula)
+        }
+        if (color) {
+          metadata.setAttributeColor(attribute.id, color, "base")
+        }
+        if (lowColor) {
+          metadata.setAttributeColor(attribute.id, lowColor, "low")
+        }
+        if (highColor) {
+          metadata.setAttributeColor(attribute.id, highColor, "high")
         }
       }
     })

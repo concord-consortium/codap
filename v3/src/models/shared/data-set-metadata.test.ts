@@ -191,12 +191,12 @@ describe("DataSetMetadata", () => {
 
   it("stores other attribute properties", () => {
     const defaultColors = { low: kDefaultLowAttributeColor, high: kDefaultHighAttributeColor }
-    expect(tree.metadata.getAttributeColorRange("aId")).toEqual(defaultColors)
+    expect(tree.metadata.getAttributeColorRange("aId")).toEqual({low: "#f5e9e0", high: "#FF6800"})
     expect(tree.metadata.getAttributeDefaultRange("aId")).toBeUndefined()
     expect(tree.metadata.getAttributeBinningType("aId")).toBe("quantile")
 
     tree.metadata.setAttributeColor("aId", "#000000", "low")
-    expect(tree.metadata.getAttributeColorRange("aId")).toEqual({ low: "#000000", high: defaultColors.high })
+    expect(tree.metadata.getAttributeColorRange("aId")).toEqual({ low: "#000000", high: "#FF6800" })
     tree.metadata.setAttributeColor("aId", "#ffffff", "high")
     expect(tree.metadata.getAttributeColorRange("aId")).toEqual({ low: "#000000", high: "#ffffff" })
 
@@ -312,10 +312,15 @@ describe("DataSetMetadata", () => {
   })
 
   it("supports CategorySets", () => {
-    expect(tree.metadata.attributes.size).toBe(0)
-    expect(tree.metadata.attributes.get("aId")).toBeUndefined()
+    expect(tree.metadata.attributes.size).toBe(3)
+    expect(tree.metadata.attributes.get("aId")).toEqual(
+      {"categories": undefined, "color": "#FF6800",
+        "colorRange": {"highColor": "#FF6800", "lowColor": "#f5e9e0"},
+        "defaultMax": undefined, "defaultMin": undefined, "deleteProtected": undefined,
+        "deletedFormula": undefined, "editProtected": undefined, "hidden": undefined,
+        "renameProtected": undefined, "scale": undefined})
     const set1 = tree.metadata.getCategorySet("aId")
-    expect(tree.metadata.attributes.size).toBe(0)
+    expect(tree.metadata.attributes.size).toBe(3)
     expect(tree.metadata.provisionalCategories.size).toBe(1)
     expect(tree.metadata.provisionalCategories.get("aId")).toBe(set1)
     const set2 = tree.metadata.getCategorySet("aId")
@@ -324,20 +329,20 @@ describe("DataSetMetadata", () => {
     expect(set1).toBe(set2)
     const noSet = tree.metadata.getCategorySet("zId")
     expect(noSet).toBeUndefined()
-    expect(tree.metadata.attributes.size).toBe(0)
+    expect(tree.metadata.attributes.size).toBe(3)
     expect(tree.metadata.provisionalCategories.size).toBe(1)
     expect(tree.metadata.attributes.get("zId")).toBeUndefined()
     expect(tree.metadata.provisionalCategories.get("zId")).toBeUndefined()
 
     const bSet = tree.metadata.getCategorySet("bId")
-    expect(tree.metadata.attributes.size).toBe(0)
+    expect(tree.metadata.attributes.size).toBe(3)
     expect(tree.metadata.provisionalCategories.size).toBe(2)
     expect(tree.metadata.provisionalCategories.get("bId")).toBe(bSet)
 
     // promotes provisional category sets when modified
     set1!.setColorForCategory("1", "red")
     expect(set1!.colorForCategory("1")).toBe("red")
-    expect(tree.metadata.attributes.size).toBe(1)
+    expect(tree.metadata.attributes.size).toBe(3)
     expect(tree.metadata.provisionalCategories.size).toBe(1)
     expect(tree.metadata.getCategorySet("aId")?.colorForCategory("1")).toBe("red")
 
@@ -350,44 +355,44 @@ describe("DataSetMetadata", () => {
 
     // removes set from map when its attribute is invalidated
     tree.data.removeAttribute("aId")
-    expect(tree.metadata.attributes.size).toBe(0)
+    expect(tree.metadata.attributes.size).toBe(2)
     expect(tree.metadata.provisionalCategories.size).toBe(1)
     tree.data.removeAttribute("bId")
-    expect(tree.metadata.attributes.size).toBe(0)
+    expect(tree.metadata.attributes.size).toBe(1)
     expect(tree.metadata.provisionalCategories.size).toBe(0)
   })
 
   it("supports attribute color range models", () => {
-    expect(tree.metadata.attributes.size).toBe(0)
+    expect(tree.metadata.attributes.size).toBe(3)
 
     // Set color range
     tree.metadata.setAttributeColor("aId", "#000000", "low")
-    expect(tree.metadata.attributes.size).toBe(1)
+    expect(tree.metadata.attributes.size).toBe(3)
     expect(tree.metadata.getAttributeColorRange("aId").low).toBe("#000000")
     tree.metadata.setAttributeColor("aId", "#ffffff", "high")
-    expect(tree.metadata.attributes.size).toBe(1)
+    expect(tree.metadata.attributes.size).toBe(3)
     expect(tree.metadata.getAttributeColorRange("aId").high).toBe("#ffffff")
 
     // Remove attribute and check color range is removed
     tree.data.removeAttribute("aId")
-    expect(tree.metadata.attributes.size).toBe(0)
+    expect(tree.metadata.attributes.size).toBe(2)
   })
 
   it("supports attribute binning types", () => {
-    expect(tree.metadata.attributes.size).toBe(0)
+    expect(tree.metadata.attributes.size).toBe(3)
 
     // Set binning types
     tree.metadata.setAttributeBinningType("aId", "quantize")
-    expect(tree.metadata.attributes.size).toBe(1)
+    expect(tree.metadata.attributes.size).toBe(3)
     expect(tree.metadata.getAttributeBinningType("aId")).toBe("quantize")
 
     tree.metadata.setAttributeBinningType("aId", "quantile")
-    expect(tree.metadata.attributes.size).toBe(1)
+    expect(tree.metadata.attributes.size).toBe(3)
     expect(tree.metadata.getAttributeBinningType("aId")).toBe("quantile")
 
     // Remove attribute and check binning type is removed
     tree.data.removeAttribute("aId")
-    expect(tree.metadata.attributes.size).toBe(0)
+    expect(tree.metadata.attributes.size).toBe(2)
   })
 
   it("supports case table and case card id management", () => {

@@ -5,6 +5,7 @@ import {
 } from "mobx-state-tree"
 import { hashStringSet } from "../../utilities/js-utils"
 import { typeOptionalBoolean } from "../../utilities/mst-utils"
+import { kellyColors, lowColorFromBase } from "../../utilities/color-utils"
 import { IAttribute } from "../data/attribute"
 import { CategorySet, createProvisionalCategorySet, ICategorySet, ICategorySetSnapshot } from "../data/category-set"
 import { DataSet, IDataSet } from "../data/data-set"
@@ -115,6 +116,7 @@ export const AttributeMetadata = types.model("AttributeMetadata", {
   renameProtected: typeOptionalBoolean(), // cannot be renamed
   // model properties
   categories: types.maybe(CategorySet),
+  color: types.maybe(types.string),
   colorRange: types.maybe(ColorRangeModel),
   defaultMin: types.maybe(types.number),
   defaultMax: types.maybe(types.number),
@@ -258,6 +260,9 @@ export const DataSetMetadata = SharedModel
     // true if the attribute is protected from renaming
     isRenameProtected(attrId: string) {
       return self.attributes.get(attrId)?.renameProtected ?? false
+    },
+    getAttributeColor(attrId: string) {
+      return self.attributes.get(attrId)?.color
     },
     getAttributeColorRange(attrId: string) {
       const colorRange = self.attributes.get(attrId)?.colorRange
@@ -436,8 +441,12 @@ export const DataSetMetadata = SharedModel
         attrMetadata.defaultMax = max
       }
     },
-    setAttributeColor(attrId: string, color: string, selector: "low" | "high") {
+    setAttributeColor(attrId: string, color: string, selector: "base" | "low" | "high") {
       const attrMetadata = self.requireAttributeMetadata(attrId)
+      if (selector === "base") {
+        attrMetadata.color = color
+        return
+      }
       let colorRange = attrMetadata.colorRange
       if (!colorRange) {
         colorRange = ColorRangeModel.create({})
@@ -554,16 +563,49 @@ export const DataSetMetadata = SharedModel
         }) ?? [],
         (collections) => {
           collections.forEach(collection => {
-            if (collection.length > 0 && collection.every(({ isHidden }) => isHidden)) {
-              collection.forEach(({ attrId }) => attrId && self.setIsHidden(attrId, false))
+            if (collection.length > 0 && collection.every(({isHidden}) => isHidden)) {
+              collection.forEach(({attrId}) => attrId && self.setIsHidden(attrId, false))
             }
           })
         },
-        { name: "DataSetMetadata.afterCreate.reaction [show remaining hidden attributes in a collection]",
+        {
+          name: "DataSetMetadata.afterCreate.reaction [show remaining hidden attributes in a collection]",
           fireImmediately: true,
           equals: comparer.structural
         }
       ))
+      // Assign base colors and color ranges to attributes that don't have one yet, based on position in collection
+      addDisposer(self, reaction(
+        () => self.data?.collections.map(coll =>
+          coll.attributes.map(a => a?.id)
+        ) ?? [],
+        (collectionsAttrIds) => {
+          collectionsAttrIds.forEach(attrIds => {
+            attrIds.forEach((attrId, indexInCollection) => {
+              if (!attrId) return
+              const meta = self.attributes.get(attrId)
+              if (!meta?.color) {
+                const color = kellyColors[indexInCollection % kellyColors.length]
+                self.setAttributeColor(attrId, color, "base")
+              }
+              if (!meta?.colorRange) {
+                const baseColor = self.getAttributeColor(attrId) || kDefaultHighAttributeColor
+                const lowColor = lowColorFromBase(baseColor)
+                const highColor = self.getAttributeColor(attrId) ||
+                  kellyColors[indexInCollection % kellyColors.length]
+                self.setAttributeColor(attrId, lowColor, "low")
+                self.setAttributeColor(attrId, highColor, "high")
+              }
+            })
+          })
+        },
+        {
+          name: "DataSetMetadata.afterCreate.reaction [assign default attribute colors]",
+          fireImmediately: true,
+          equals: comparer.structural
+        }
+      ))
+
     }
   }))
   .actions(applyModelChange)

@@ -145,6 +145,24 @@ export function interpolateColors(color1: string, color2: string, percentage: nu
   return colord({ r, g, b }).toHex()
 }
 
+// Create a very light, low-saturation version of a base color. The defaults are used for default color ranges.
+export function lowColorFromBase(baseColor: string, lightness = 0.92, satScale = 0.5) {
+  const c = colord(baseColor)
+  if (!c.isValid()) return "#f0f4f8"
+
+  const hsl = c.toHsl()
+  const newHsl = {
+    h: hsl.h,
+    s: Math.min(100, hsl.s * satScale),
+    l: lightness * 100
+  }
+
+  const tinted = colord(newHsl)
+  const hex = tinted.toHex()
+  // Avoid pure white fallback
+  return hex.toLowerCase() === "#ffffff" ? "#f7f9fb" : hex
+}
+
 // Returns an array of five colors transitioning between color1 and color2
 export function getChoroplethColors(color1: string, color2: string) {
   const midColor = (percentage: number) => interpolateColors(color1, color2, percentage)
