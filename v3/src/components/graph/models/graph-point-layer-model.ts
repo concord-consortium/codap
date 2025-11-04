@@ -15,6 +15,11 @@ export const GraphPointLayerModel = DataDisplayLayerModel
     type: types.optional(types.literal(kGraphPointLayerType), kGraphPointLayerType),
     dataConfiguration: types.optional(GraphDataConfigurationModel, () => GraphDataConfigurationModel.create({})),
   })
+  .views(self => ({
+    get isVisible() {
+      return true
+    }
+  }))
 
 export interface IGraphPointLayerModel extends Instance<typeof GraphPointLayerModel> {}
 

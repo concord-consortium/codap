@@ -1,18 +1,16 @@
+import {Active} from "@dnd-kit/core"
 import {observer} from "mobx-react-lite"
 import React, {createRef, RefObject, useCallback, useRef} from "react"
-import {Active} from "@dnd-kit/core"
-import {DroppableSvg} from "../droppable-svg"
-import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 import {useBaseDataDisplayModelContext} from "../../hooks/use-base-data-display-model"
 import {getDragAttributeInfo, useDropHandler} from "../../../../hooks/use-drag-drop"
 import {useDropHintString} from "../../../../hooks/use-drop-hint-string"
+import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 import {IDataSet} from "../../../../models/data/data-set"
-import { IMapLayerModel, isMapLayerModel } from "../../../map/models/map-layer-model"
 import {GraphPlace} from "../../../axis-graph-shared"
+import {GraphAttrRole} from "../../data-display-types"
 import {DataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {useDataDisplayLayout} from "../../hooks/use-data-display-layout"
-import {GraphAttrRole} from "../../data-display-types"
-import { IDataDisplayLayerModel } from "../../models/data-display-layer-model"
+import {DroppableSvg} from "../droppable-svg"
 import {Legend} from "./legend"
 
 interface IMultiLegendProps {
@@ -37,8 +35,7 @@ export const MultiLegend = observer(function MultiLegend({divElt, onDropAttribut
   // Graphs have only one layer and it's always visible. Maps have multiple layers and we only want to display legends
   // for map layers that are visible.
   const layersWithLegendsArray = Array.from(dataDisplayModel.layers).filter(layer =>
-    layer.dataConfiguration.attributeID('legend') &&
-    (!isMapLayerModel(layer as IDataDisplayLayerModel) || (layer as IMapLayerModel).isVisible)
+    layer.dataConfiguration.attributeID('legend') && layer.isVisible
   )
   const handleIsActive = (active: Active) => {
       const {dataSet, attributeId: droppedAttrId} = getDragAttributeInfo(active) || {}
