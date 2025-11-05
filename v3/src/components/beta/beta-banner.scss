@@ -1,0 +1,16 @@
+@use "../vars";
+
+.beta-banner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: vars.$beta-banner-height;
+  background: rgb(251,229,179);
+  border: 1px solid gray;
+  padding: 4px 8px;
+
+  .beta-message {
+    width: calc(100% - 175px);
+  }
+}
