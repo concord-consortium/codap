@@ -4,7 +4,6 @@ import { getMetadataFromDataSet } from "../../../models/shared/shared-data-utils
 import { computePointRadius } from "../../data-display/data-display-utils"
 import { IDataDisplayLayerModel } from "../../data-display/models/data-display-layer-model"
 import { kMapPinLayerType } from "../map-types"
-import { pinAttributesFromDataSet } from "../utilities/map-utils"
 import { MapGridModel } from "./map-grid-model"
 import { MapLayerModel } from "./map-layer-model"
 
@@ -22,8 +21,7 @@ export const MapPinLayerModel = MapLayerModel
     afterCreate() {
       self.gridModel.setDataConfiguration(self.dataConfiguration)
     },
-    setDataset(dataSet:IDataSet) {
-      const { pinLatId, pinLongId } = pinAttributesFromDataSet(dataSet)
+    setPinAttributes(dataSet: IDataSet, pinLatId: string, pinLongId: string) {
       self.dataConfiguration.setDataset(dataSet, getMetadataFromDataSet(dataSet))
       self.dataConfiguration.setAttribute('pinLat', { attributeID: pinLatId })
       self.dataConfiguration.setAttribute('pinLong', { attributeID: pinLongId })
@@ -36,6 +34,11 @@ export const MapPinLayerModel = MapLayerModel
     }
   }))
   .views(self => ({
+    get pinAttributes() {
+      const latId = self.dataConfiguration.attributeID('pinLat')
+      const longId = self.dataConfiguration.attributeID('pinLong')
+      return latId && longId ? { latId, longId } : undefined
+    },
     getPointRadius(use: 'normal' | 'hover-drag' | 'select' = 'normal') {
       return computePointRadius(self.dataConfiguration.getCaseDataArray(0).length,
         self.displayItemDescription.pointSizeMultiplier, use)

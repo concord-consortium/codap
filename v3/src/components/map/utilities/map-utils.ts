@@ -6,88 +6,11 @@ import {IDataSet} from "../../../models/data/data-set"
 import {isFiniteNumber} from "../../../utilities/math-utils"
 import {translate} from "../../../utilities/translation/translate"
 import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
-import {kLatNames, kLongNames, kPinLatNames, kPinLongNames} from "../map-types"
-
-// A dataset has point data if it has both a latitude and longitude attribute; i.e. an attribute whose name
-// is in kLatNames and an attribute whose name is in kLongNames
-export const datasetHasLatLongData = (dataset: IDataSet) => {
-  const attrNames = dataset.attributes.map(attr => attr.name.toLowerCase())
-  let hasLatAttribute = false,
-    hasLngAttribute = false
-  while (attrNames.length > 0 && (!hasLatAttribute || !hasLngAttribute)) {
-    const attrName = attrNames.pop()
-    if (attrName) {
-      if (kLatNames.includes(attrName)) {
-        hasLatAttribute = true
-      } else if (kLongNames.includes(attrName)) {
-        hasLngAttribute = true
-      }
-    }
-  }
-  return hasLatAttribute && hasLngAttribute
-}
 
 export const isBoundaryAttribute = (attribute: IAttribute) => {
   return attribute.type === "boundary" ||
           kPolygonNames.includes(attribute.name.toLowerCase()) ||
           kPolygonNames.includes(attribute.title.toLowerCase())
-}
-
-export const datasetHasBoundaryData = (dataset: IDataSet) => {
-  return dataset.attributes.some(isBoundaryAttribute)
-}
-
-export const datasetHasPinData = (dataset: IDataSet) => {
-  const attrNames = dataset.attributes.map(attr => attr.name.toLowerCase())
-  let hasPinLatAttribute = false,
-    hasPinLngAttribute = false
-  while (attrNames.length > 0 && (!hasPinLatAttribute || !hasPinLngAttribute)) {
-    const attrName = attrNames.pop()
-    if (attrName) {
-      if (kPinLatNames.includes(attrName)) {
-        hasPinLatAttribute = true
-      } else if (kPinLongNames.includes(attrName)) {
-        hasPinLngAttribute = true
-      }
-    }
-  }
-  return hasPinLatAttribute && hasPinLngAttribute
-}
-
-// Returns the attribute IDs for the latitude and longitude attributes in the given dataset
-// Throws an error if the dataset does not have both latitude and longitude attributes
-export const latLongAttributesFromDataSet = (dataSet: IDataSet) => {
-  const attributes = dataSet.attributes,
-    latAttr = attributes.find(attr => kLatNames.includes(attr.name.toLowerCase())),
-    longAttr = attributes.find(attr => kLongNames.includes(attr.name.toLowerCase()))
-  if (!latAttr || !longAttr) {
-    throw new Error(`Unable to find both latitude and longitude attributes in dataset ${dataSet.name}`)
-  }
-  return {
-    latId: latAttr.id,
-    longId: longAttr.id,
-  }
-}
-
-export const boundaryAttributeFromDataSet = (dataSet: IDataSet) => {
-  const polygonAttr = dataSet.attributes.find(isBoundaryAttribute)
-  if (!polygonAttr) {
-    throw new Error(`Unable to find boundary attribute in dataset ${dataSet.name}`)
-  }
-  return polygonAttr.id
-}
-
-export const pinAttributesFromDataSet = (dataSet: IDataSet) => {
-  const attributes = dataSet.attributes,
-    pinLatAttr = attributes.find(attr => kPinLatNames.includes(attr.name.toLowerCase())),
-    pinLongAttr = attributes.find(attr => kPinLongNames.includes(attr.name.toLowerCase()))
-  if (!pinLatAttr || !pinLongAttr) {
-    throw new Error(`Unable to find both pin latitude and longitude attributes in dataset ${dataSet.name}`)
-  }
-  return {
-    pinLatId: pinLatAttr.id,
-    pinLongId: pinLongAttr.id,
-  }
 }
 
 /**

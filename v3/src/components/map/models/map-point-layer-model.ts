@@ -5,7 +5,6 @@ import {MapLayerModel} from "./map-layer-model"
 import {IDataSet} from "../../../models/data/data-set"
 import {getMetadataFromDataSet} from "../../../models/shared/shared-data-utils"
 import {computePointRadius} from "../../data-display/data-display-utils"
-import {latLongAttributesFromDataSet} from "../utilities/map-utils"
 import {MapGridModel} from "./map-grid-model"
 
 export const MapPointDisplayTypes = ["points", "heatmap"] as const
@@ -27,11 +26,10 @@ export const MapPointLayerModel = MapLayerModel
     afterCreate() {
       self.gridModel.setDataConfiguration(self.dataConfiguration)
     },
-    setDataset(dataSet:IDataSet) {
-      const {latId, longId} = latLongAttributesFromDataSet(dataSet)
+    setPointAttributes(dataSet: IDataSet, latAttrId: string, longAttrId: string) {
       self.dataConfiguration.setDataset(dataSet, getMetadataFromDataSet(dataSet))
-      self.dataConfiguration.setAttribute('lat', {attributeID: latId})
-      self.dataConfiguration.setAttribute('long', {attributeID: longId})
+      self.dataConfiguration.setAttribute('lat', {attributeID: latAttrId})
+      self.dataConfiguration.setAttribute('long', {attributeID: longAttrId})
     },
     setPointsAreVisible(isVisible: boolean) {
       self.pointsAreVisible = isVisible
@@ -44,6 +42,11 @@ export const MapPointLayerModel = MapLayerModel
     }
   }))
   .views(self => ({
+    get pointAttributes() {
+      const latId = self.dataConfiguration.attributeID('lat')
+      const longId = self.dataConfiguration.attributeID('long')
+      return latId && longId ? { latId, longId } : undefined
+    },
     getPointRadius(use: 'normal' | 'hover-drag' | 'select' = 'normal') {
       return computePointRadius(self.dataConfiguration.getCaseDataArray(0).length,
         self.displayItemDescription.pointSizeMultiplier, use)

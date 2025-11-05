@@ -24,8 +24,12 @@ export const kMapUrls: Record<BaseMapKey, string> = {
 export const kMapPolygonLayerType = "mapPolygonLayer"
 export const kMapPointLayerType = "mapPointLayer"
 export const kMapPinLayerType = "mapPinLayer"
-export const kMapLayerTypes = [kMapPolygonLayerType, kMapPointLayerType, kMapPinLayerType]
-export const kMapLayerTypeIndices = new Map<string, number>(kMapLayerTypes.map((type, index) => [type, index]))
+export const MapLayerTypes = [kMapPolygonLayerType, kMapPointLayerType, kMapPinLayerType] as const
+export type MapLayerType = typeof MapLayerTypes[number]
+export const kMapLayerTypeIndices = new Map<string, number>(MapLayerTypes.map((type, index) => [type, index]))
+export const isMapLayerType = (type?: string): type is MapLayerType => {
+  return !!type && (MapLayerTypes as readonly string[]).includes(type)
+}
 
 export const kMapClass = "codap-map"
 export const kMapClassSelector = `.${kMapClass}`

@@ -14,8 +14,8 @@ import PlacedLocationMarker from "../assets/placed-location-marker.svg"
 import { useMapModelContext } from "../hooks/use-map-model-context"
 import { kPinColors, kPinCursors } from "../map-types"
 import { IMapPinLayerModel } from "../models/map-pin-layer-model"
-import { datasetHasPinData, pinAttributesFromDataSet } from "../utilities/map-utils"
 import { PinControls } from "./pin-controls"
+
 import "./map-pin-layer.scss"
 
 const mapPinHeight = 35
@@ -87,9 +87,10 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
   const { center: _center, zoom: _zoom } = mapModel.leafletMapState
 
   // Bail if the dataset doesn't have the data we need
-  if (!dataset || !datasetHasPinData(dataset)) return
+  if (!dataset) return
 
-  const { pinLatId, pinLongId } = pinAttributesFromDataSet(dataset)
+  const { latId: pinLatId, longId: pinLongId } = mapLayerModel.pinAttributes || {}
+  if (!pinLatId || !pinLongId) return
   const colorId = dataset.attributes.find(attr => attr.type === "color")?.id
   const colorIndex = (dataset.items.length ?? 0) % kPinColors.length
 

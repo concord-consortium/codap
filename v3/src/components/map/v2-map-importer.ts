@@ -12,11 +12,11 @@ import { v2DataDisplayPostImportSnapshotProcessor } from "../data-display/v2-dat
 import {IAttributeDescriptionSnapshot, kDataConfigurationType} from "../data-display/models/data-configuration-model"
 import {IMapModelContentSnapshot} from "./models/map-content-model"
 import {kMapIdPrefix, kMapTileType} from "./map-defs"
-import {boundaryAttributeFromDataSet, latLongAttributesFromDataSet} from "./utilities/map-utils"
 import {IMapPointLayerModelSnapshot} from "./models/map-point-layer-model"
 import {BaseMapKey, kMapPointLayerType, kMapPolygonLayerType} from "./map-types"
 import {IMapBaseLayerModelSnapshot} from "./models/map-base-layer-model"
 import {IMapPolygonLayerModelSnapshot} from "./models/map-polygon-layer-model"
+import { DataSetMapAttributes } from "./utilities/data-set-map-attributes"
 
 
 export function v2MapImporter({v2Component, v2Document, getCaseData, insertTile}: V2TileImportArgs) {
@@ -60,15 +60,23 @@ export function v2MapImporter({v2Component, v2Document, getCaseData, insertTile}
 
     const hiddenCases = hiddenCaseIds.map(id => `CASE${id}`)
 
+    // V2 point layers don't store their lat/long attributes, so we need to find them in the dataset
+    const mapAttrs = new DataSetMapAttributes(sharedData.dataSet)
+
     if (isV2MapPointLayerStorage(v2LayerModel)) {
       const {
         pointColor, strokeColor, pointSizeMultiplier,
         grid, pointsShouldBeVisible, connectingLines, transparency, strokeTransparency,
       } = v2LayerModel
-      // V2 point layers don't store their lat/long attributes, so we need to find them in the dataset
-      const {latId, longId} = latLongAttributesFromDataSet(sharedData.dataSet)
-      _attributeDescriptions.lat = {attributeID: latId, type: 'numeric'}
-      _attributeDescriptions.long = {attributeID: longId, type: 'numeric'}
+      const {latId, longId} = mapAttrs.assignFirstUnassignedPointAttributes() || {}
+      if (latId && longId) {
+        _attributeDescriptions.lat = { attributeID: latId, type: 'numeric' }
+        _attributeDescriptions.long = { attributeID: longId, type: 'numeric' }
+      }
+      else {
+        console.warn("v2MapImporter: Could not find lat/long attributes for point layer in dataset",
+                    sharedData.dataSet.name)
+      }
 
       const pointLayerSnapshot: IMapPointLayerModelSnapshot = {
         type: kMapPointLayerType,
@@ -103,7 +111,14 @@ export function v2MapImporter({v2Component, v2Document, getCaseData, insertTile}
         areaColor, areaStrokeColor, areaTransparency, areaStrokeTransparency
       } = v2LayerModel
       // V2 polygon layers don't store their boundary attribute, so we need to find it in the dataset
-      _attributeDescriptions.polygon = {attributeID: boundaryAttributeFromDataSet(sharedData.dataSet)}
+      const boundaryAttributeId = mapAttrs.assignFirstUnassignedBoundaryAttribute()
+      if (boundaryAttributeId) {
+        _attributeDescriptions.polygon = {attributeID: boundaryAttributeId}
+      }
+      else {
+        console.warn("v2MapImporter: Could not find boundary attribute for polygon layer in dataset",
+                    sharedData.dataSet.name)
+      }
       const polygonLayerSnapshot: IMapPolygonLayerModelSnapshot = {
         type: kMapPolygonLayerType,
         layerIndex,
