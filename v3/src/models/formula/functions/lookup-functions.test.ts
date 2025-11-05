@@ -39,6 +39,7 @@ describe("lookupBoundary", () => {
 
   it("returns boundary data", () => {
     expect(JSON.parse(evaluate(`lookupBoundary(US_state_boundaries, "Alaska")`, 1)).geometry).toBeDefined()
+    expect(JSON.parse(evaluate(`lookupBoundary(US_state_boundaries, "Ala" + "ska")`, 1)).geometry).toBeDefined()
     // TODO Test a symbol for the second argument. There is no state attribute in the test-doc, making this difficult.
   })
 })

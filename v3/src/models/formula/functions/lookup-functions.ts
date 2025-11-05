@@ -58,6 +58,9 @@ export const lookupFunctions = {
           boundaryKey = attribute?.strValues[caseIndex ?? -1] ?? ""
         }
       }
+      else {
+        boundaryKey = evaluateNode(boundaryKeyArg, scope)
+      }
 
       if (boundaryManager.isBoundaryDataPending(boundarySet)) {
         return t("DG.Formula.PendingBoundaries.message")
