@@ -17,7 +17,7 @@ export const DataDisplayLayerModel = types.model("DataDisplayLayerModel", {
     },
     get metadata() {
       return self.dataConfiguration.metadata
-    },
+    }
   }))
   .actions(applyModelChange)
 

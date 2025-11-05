@@ -1,16 +1,16 @@
+import {Active} from "@dnd-kit/core"
 import {observer} from "mobx-react-lite"
 import React, {createRef, RefObject, useCallback, useRef} from "react"
-import {Active} from "@dnd-kit/core"
-import {DroppableSvg} from "../droppable-svg"
-import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 import {useBaseDataDisplayModelContext} from "../../hooks/use-base-data-display-model"
 import {getDragAttributeInfo, useDropHandler} from "../../../../hooks/use-drag-drop"
 import {useDropHintString} from "../../../../hooks/use-drop-hint-string"
+import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 import {IDataSet} from "../../../../models/data/data-set"
+import {GraphPlace} from "../../../axis-graph-shared"
+import {GraphAttrRole} from "../../data-display-types"
 import {DataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {useDataDisplayLayout} from "../../hooks/use-data-display-layout"
-import {GraphAttrRole} from "../../data-display-types"
-import {GraphPlace} from "../../../axis-graph-shared"
+import {DroppableSvg} from "../droppable-svg"
 import {Legend} from "./legend"
 
 interface IMultiLegendProps {
@@ -32,8 +32,11 @@ export const MultiLegend = observer(function MultiLegend({divElt, onDropAttribut
     extentsRef = useRef([] as number[])
 
   const legendBoundsTop = layout?.computedBounds?.legend?.top ?? 0
-  const legendsArray = Array.from(dataDisplayModel.layers)
-                          .filter(aLayer => !!aLayer.dataConfiguration.attributeID('legend'))
+  // Graphs have only one layer and it's always visible. Maps have multiple layers and we only want to display legends
+  // for map layers that are visible.
+  const layersWithLegendsArray = Array.from(dataDisplayModel.layers).filter(layer =>
+    layer.dataConfiguration.attributeID('legend') && layer.isVisible
+  )
   const handleIsActive = (active: Active) => {
       const {dataSet, attributeId: droppedAttrId} = getDragAttributeInfo(active) || {}
         return isDropAllowed('legend', dataSet, droppedAttrId)
@@ -41,7 +44,8 @@ export const MultiLegend = observer(function MultiLegend({divElt, onDropAttribut
 
     setDesiredExtent = useCallback((layerIndex: number, extent: number) => {
       extentsRef.current[layerIndex] = extent
-      layout.setDesiredExtent('legend', extentsRef.current.reduce((a, b) => a + b, 0))
+      const totalDesiredExtent = extentsRef.current.reduce((a, b) => a + b, 0)
+      layout.setDesiredExtent('legend', totalDesiredExtent)
       const theDivElt = Array.from(divRefs.current)[layerIndex].current
       if (theDivElt) {
         theDivElt.style.height = `${extent}px`
@@ -56,7 +60,7 @@ export const MultiLegend = observer(function MultiLegend({divElt, onDropAttribut
 
   const renderLegends = () => {
     return (
-      legendsArray
+      layersWithLegendsArray
         .map(layer => {
             const
               index = layer.layerIndex,
@@ -80,7 +84,7 @@ export const MultiLegend = observer(function MultiLegend({divElt, onDropAttribut
     <div ref={legendRef} className='multi-legend'
          style={{top: legendBoundsTop}}>
       {renderLegends()}
-      {legendsArray.length > 0 &&
+      {layersWithLegendsArray.length > 0 &&
         <DroppableSvg
           className="droppable-legend"
           portal={divElt}

@@ -4,9 +4,10 @@ import { GraphPlace } from "../../axis-graph-shared"
 import { IDataConfigurationModel } from "./data-configuration-model"
 
 export interface IBaseLayerModel {
-  layerIndex: number,
-  id: string,
+  layerIndex: number
+  id: string
   dataConfiguration: IDataConfigurationModel
+  isVisible: boolean
 };
 
 export interface IBaseDataDisplayModel extends IAnyStateTreeNode {
