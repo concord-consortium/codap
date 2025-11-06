@@ -10,7 +10,7 @@ export function BetaButton() {
 
   const handleClick = () => {
     const link = document.createElement("a")
-    link.href = "https://forms.gle/QV9HTopKHC5C5tvq9"
+    link.href = "https://forms.gle/CSdkkszzLkrWY4ka8"
     link.target = "_blank"
     link.rel = "noopener noreferrer"
     link.click()
