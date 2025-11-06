@@ -10,7 +10,6 @@ import { isMosaicTileRow } from "../../models/document/mosaic-tile-row"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { deleteTileNotification } from "../../models/tiles/tile-notifications"
 import { urlParams } from "../../utilities/url-params"
-import { BetaButton } from "../beta/beta-button"
 import { EditAttributeFormulaModal } from "../common/edit-attribute-formula-modal"
 import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
 import { PluginAttributeDrag } from "../drag-drop/plugin-attribute-drag"
@@ -62,7 +61,6 @@ export const Container: React.FC = observer(function Container() {
           yOffset={dataInteractiveState.draggingYOffset}
         />
         <EditAttributeFormulaModal />
-        <BetaButton />
       </div>
     </DocumentContainerContext.Provider>
   )

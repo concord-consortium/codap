@@ -31,6 +31,8 @@ import { registerTileTypes } from "../register-tile-types"
 import { importSample, sampleData } from "../sample-data"
 import { t } from "../utilities/translation/translate"
 import { urlParams } from "../utilities/url-params"
+import { isBeta } from "../utilities/version-utils"
+import { BetaBanner } from "./beta/beta-banner"
 import { kCodapAppElementId, kUserEntryDropOverlay } from "./constants"
 import { Container } from "./container/container"
 import { MenuBar, kMenuBarElementId } from "./menu-bar/menu-bar"
@@ -188,7 +190,8 @@ export const App = observer(function App() {
       <DocumentContentContext.Provider value={appState.document.content}>
         <CfmContext.Provider value={cfm}>
           <ProgressContext.Provider value={progressContextValue}>
-            <div className="codap-app" data-testid="codap-app">
+            {isBeta() && <BetaBanner />}
+            <div className={clsx("codap-app", { beta: isBeta() })} data-testid="codap-app">
               <MenuBar/>
               <ErrorBoundary fallbackRender={fallbackRender}>
                 <div className={toolbarContainerClassName}>
@@ -199,7 +202,7 @@ export const App = observer(function App() {
             </div>
             {isOpenUserEntry &&
               <div id={`${kUserEntryDropOverlay}`}
-                className={`${isOpenUserEntry && isDragOver ? "show-highlight" : ""}`}
+                className={clsx({ "show-highlight": isOpenUserEntry && isDragOver, beta: isBeta() })}
               >
                 <UserEntryModal
                   isOpen={isOpenUserEntry}
