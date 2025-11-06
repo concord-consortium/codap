@@ -202,7 +202,7 @@ export const App = observer(function App() {
             </div>
             {isOpenUserEntry &&
               <div id={`${kUserEntryDropOverlay}`}
-                className={`${isOpenUserEntry && isDragOver ? "show-highlight" : ""}`}
+                className={clsx({ "show-highlight": isOpenUserEntry && isDragOver, beta: isBeta() })}
               >
                 <UserEntryModal
                   isOpen={isOpenUserEntry}

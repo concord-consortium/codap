@@ -59,6 +59,10 @@
   pointer-events: auto;
   background-color: #77777780;
   z-index: 200;
+  &.beta {
+    top: vars.$beta-banner-height;
+    height: calc(100vh - vars.$beta-banner-height);
+  }
   &.show-highlight {
     border: 3px solid yellow;
   }
