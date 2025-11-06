@@ -104,6 +104,7 @@ registerV2TileImporter("DG.CaseCard", ({ v2Component, v2Document, getCaseData, i
     id: toV3Id(kCaseCardIdPrefix, guid), name, _title: title, userSetTitle, content, cannotClose
   }
   const transform: LayoutTransformFn = (options: IFreeTileInRowOptions) => {
+    // Leaving this in for now in case we decide to reintroduce the width adjustment
     // const { width, ...others } = options
     // // v3 case card is wider than v2
     // return width != null && width < kCaseCardDefaultWidth ? { width: kCaseCardDefaultWidth, ...others } : options
