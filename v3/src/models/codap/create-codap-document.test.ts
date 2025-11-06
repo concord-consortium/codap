@@ -115,9 +115,9 @@ describe("createCodapDocument", () => {
             collections: {},
             attributes: {
               "test-8": {
-                "color": "#FF6800",
+                "color": "#ff6800",
                 "colorRange": {
-                  "highColor": "#FF6800",
+                  "highColor": "#ff6800",
                   "lowColor": "#f5e9e0",
                 },
               },

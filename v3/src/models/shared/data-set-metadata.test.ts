@@ -7,7 +7,6 @@ import {
   createDataSetMetadata, DataSetMetadata, ICollectionLabelsSnapshot, isDataSetMetadata,
   isNonEmptyCollectionLabels, isSetIsCollapsedAction
 } from "./data-set-metadata"
-import { kDefaultHighAttributeColor, kDefaultLowAttributeColor } from "./data-set-metadata-constants"
 import { SharedModel } from "./shared-model"
 
 let mockNodeIdCount = 0
@@ -190,13 +189,12 @@ describe("DataSetMetadata", () => {
   })
 
   it("stores other attribute properties", () => {
-    const defaultColors = { low: kDefaultLowAttributeColor, high: kDefaultHighAttributeColor }
-    expect(tree.metadata.getAttributeColorRange("aId")).toEqual({low: "#f5e9e0", high: "#FF6800"})
+    expect(tree.metadata.getAttributeColorRange("aId")).toEqual({low: "#f5e9e0", high: "#ff6800"})
     expect(tree.metadata.getAttributeDefaultRange("aId")).toBeUndefined()
     expect(tree.metadata.getAttributeBinningType("aId")).toBe("quantile")
 
     tree.metadata.setAttributeColor("aId", "#000000", "low")
-    expect(tree.metadata.getAttributeColorRange("aId")).toEqual({ low: "#000000", high: "#FF6800" })
+    expect(tree.metadata.getAttributeColorRange("aId")).toEqual({ low: "#000000", high: "#ff6800" })
     tree.metadata.setAttributeColor("aId", "#ffffff", "high")
     expect(tree.metadata.getAttributeColorRange("aId")).toEqual({ low: "#000000", high: "#ffffff" })
 
@@ -314,11 +312,7 @@ describe("DataSetMetadata", () => {
   it("supports CategorySets", () => {
     expect(tree.metadata.attributes.size).toBe(3)
     expect(tree.metadata.attributes.get("aId")).toEqual(
-      {"categories": undefined, "color": "#FF6800",
-        "colorRange": {"highColor": "#FF6800", "lowColor": "#f5e9e0"},
-        "defaultMax": undefined, "defaultMin": undefined, "deleteProtected": undefined,
-        "deletedFormula": undefined, "editProtected": undefined, "hidden": undefined,
-        "renameProtected": undefined, "scale": undefined})
+      { "color": "#ff6800", "colorRange": {"highColor": "#ff6800", "lowColor": "#f5e9e0"} })
     const set1 = tree.metadata.getCategorySet("aId")
     expect(tree.metadata.attributes.size).toBe(3)
     expect(tree.metadata.provisionalCategories.size).toBe(1)

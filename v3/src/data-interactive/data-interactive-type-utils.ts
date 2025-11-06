@@ -114,7 +114,9 @@ export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataS
   const _categoryMap = {
     ...colorMap,
     __order: categorySet?.valuesArray ?? [],
-    ...{"attribute-color": color, "low-attribute-color": low, "high-attribute-color": high}
+    ...(color ? { "attribute-color": color } : {}),
+    ...(low ? { "low-attribute-color": low } : {}),
+    ...(high ? { "high-attribute-color": high } : {})
   } as ICodapV2CategoryMap
   const categoryMap = categorySet ? { _categoryMap } : undefined
 

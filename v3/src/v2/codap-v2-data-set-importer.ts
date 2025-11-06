@@ -167,9 +167,9 @@ export class CodapV2DataSetImporter {
                             ? +decimals
                             : undefined
       const units = v2Unit ?? undefined
-      const color = _categoryMap && _categoryMap["attribute-color"]
-      const lowColor = _categoryMap && _categoryMap["low-attribute-color"]
-      const highColor = _categoryMap && _categoryMap["high-attribute-color"]
+      const color = _categoryMap?.["attribute-color"]
+      const lowColor = _categoryMap?.["low-attribute-color"]
+      const highColor = _categoryMap?.["high-attribute-color"]
       const attribute = data.addAttribute({
         id: toV3AttrId(guid), _cid, name, description, formula, _title, userType, units, precision
       })

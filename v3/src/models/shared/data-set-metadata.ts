@@ -3,9 +3,9 @@ import {
   addDisposer, applySnapshot, getEnv, getSnapshot, getType, hasEnv, IAnyStateTreeNode, Instance,
   ISerializedActionCall, resolveIdentifier, SnapshotIn, types
 } from "mobx-state-tree"
+import { kellyColors, lowColorFromBase } from "../../utilities/color-utils"
 import { hashStringSet } from "../../utilities/js-utils"
 import { typeOptionalBoolean } from "../../utilities/mst-utils"
-import { kellyColors, lowColorFromBase } from "../../utilities/color-utils"
 import { IAttribute } from "../data/attribute"
 import { CategorySet, createProvisionalCategorySet, ICategorySet, ICategorySetSnapshot } from "../data/category-set"
 import { DataSet, IDataSet } from "../data/data-set"
@@ -563,12 +563,11 @@ export const DataSetMetadata = SharedModel
         }) ?? [],
         (collections) => {
           collections.forEach(collection => {
-            if (collection.length > 0 && collection.every(({isHidden}) => isHidden)) {
-              collection.forEach(({attrId}) => attrId && self.setIsHidden(attrId, false))
+            if (collection.length > 0 && collection.every(({ isHidden }) => isHidden)) {
+              collection.forEach(({ attrId }) => attrId && self.setIsHidden(attrId, false))
             }
           })
-        },
-        {
+        }, {
           name: "DataSetMetadata.afterCreate.reaction [show remaining hidden attributes in a collection]",
           fireImmediately: true,
           equals: comparer.structural
@@ -598,14 +597,12 @@ export const DataSetMetadata = SharedModel
               }
             })
           })
-        },
-        {
+        }, {
           name: "DataSetMetadata.afterCreate.reaction [assign default attribute colors]",
           fireImmediately: true,
           equals: comparer.structural
         }
       ))
-
     }
   }))
   .actions(applyModelChange)
