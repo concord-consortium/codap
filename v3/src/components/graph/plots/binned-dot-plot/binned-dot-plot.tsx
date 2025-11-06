@@ -193,16 +193,16 @@ export const BinnedDotPlot = observer(function BinnedDotPlot({pixiPoints, aboveP
       },
       ({ width, alignment }) => {
         const { totalNumberOfBins, minBinEdge } = binnedPlot?.binDetails() || {}
-        const newDomain =
-          (isFiniteNumber(width) && isFiniteNumber(minBinEdge) && isFiniteNumber(totalNumberOfBins))
-        ? [minBinEdge, minBinEdge + width * totalNumberOfBins]
-        : primaryAxisScale.domain()
+        if (!isFiniteNumber(width) || !isFiniteNumber(minBinEdge) || !isFiniteNumber(totalNumberOfBins)) {
+          return
+        }
+        const newDomain = [minBinEdge, minBinEdge + width * totalNumberOfBins]
         // Because the axis model and numeric scale get out of sync easily, we force them both to use the new domain
         const axisModel = graphModel.getNumericAxis(primaryPlace)
         axisModel?.setAllowRangeToShrink(true)  // Because it gets reset to false in setDomain
         axisModel?.setDomain(newDomain[0], newDomain[1])
         primaryAxisScale.domain(newDomain)
-      }, {name: "enforceMinBinPixelWidth", equals: comparer.structural}, binnedPlot
+      }, {name: "respondToBinChange", equals: comparer.structural}, binnedPlot
     )
   }, [binnedPlot, graphModel, primaryAxisScale, primaryPlace])
 
