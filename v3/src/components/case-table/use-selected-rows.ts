@@ -72,6 +72,7 @@ export const useSelectedRows = (props: UseSelectedRows) => {
 
   // synchronize initial selection on mount
   useEffect(() => {
+    let timeoutId: number | undefined
     const selectedCaseIds = Array.from(syncRowSelectionToRdg())
     if (selectedCaseIds.length) {
       const caseIndices = selectedCaseIds
@@ -79,7 +80,15 @@ export const useSelectedRows = (props: UseSelectedRows) => {
                             .filter(index => index != null)
       if (caseIndices.length) {
         // delay required before scrolling to allow RDG to render its contents
-        setTimeout(() => onScrollClosestRowIntoView(collectionId, caseIndices), 50)
+        timeoutId = window.setTimeout(() => {
+          onScrollClosestRowIntoView(collectionId, caseIndices)
+          timeoutId = undefined
+        }, 50)
+      }
+    }
+    return () => {
+      if (timeoutId) {
+        window.clearTimeout(timeoutId)
       }
     }
   }, [collectionId, data, onScrollClosestRowIntoView, syncRowSelectionToRdg])
