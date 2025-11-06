@@ -56,8 +56,8 @@ export type OnScrollRowRangeIntoViewFn = (collectionId: string, rowIndices: numb
 export const kInputRowKey = "__input__"
 
 export const kDropzoneWidth = 30
-export const kIndexColumnWidth = DEBUG_CASE_IDS ? 150 : 52
-export const kDefaultColumnWidth = 80
+export const kIndexColumnWidth = DEBUG_CASE_IDS ? 150 : 35
+export const kDefaultColumnWidth = 60
 export const kMinAutoColumnWidth = 50
 export const kMaxAutoColumnWidth = 600
 export const kCellPadding = 11
