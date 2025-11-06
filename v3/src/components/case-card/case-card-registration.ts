@@ -104,9 +104,10 @@ registerV2TileImporter("DG.CaseCard", ({ v2Component, v2Document, getCaseData, i
     id: toV3Id(kCaseCardIdPrefix, guid), name, _title: title, userSetTitle, content, cannotClose
   }
   const transform: LayoutTransformFn = (options: IFreeTileInRowOptions) => {
-    const { width, ...others } = options
-    // v3 case card is wider than v2
-    return width != null && width < kCaseCardDefaultWidth ? { width: kCaseCardDefaultWidth, ...others } : options
+    // const { width, ...others } = options
+    // // v3 case card is wider than v2
+    // return width != null && width < kCaseCardDefaultWidth ? { width: kCaseCardDefaultWidth, ...others } : options
+    return options
   }
   const cardTile = insertTile(cardTileSnap, transform)
 
