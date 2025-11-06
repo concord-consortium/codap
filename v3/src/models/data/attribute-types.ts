@@ -33,5 +33,5 @@ export function isCategoricalAttributeType(type?: AttributeType): boolean {
   return type != null && ["categorical", "checkbox", "color"].includes(type)
 }
 export function isNumericAttributeType(type?: AttributeType): boolean {
-  return type === "numeric" || type === "date"
+  return ["numeric", "date", "qualitative"].includes(type || "")
 }

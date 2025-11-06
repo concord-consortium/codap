@@ -114,7 +114,7 @@ export const BarChartModel = DotChartModel
     },
     getValidFormulaAxis(axisModel?: IAxisModel): IAxisModel {
       const secondaryPlace = self.dataConfiguration?.secondaryRole === "x" ? "bottom" : "left"
-      const resultAxisModel = self.getValidNumericOrDateAxis(secondaryPlace, undefined, axisModel)
+      const resultAxisModel = self.getValidNumericDateOrQualitativeAxis(secondaryPlace, undefined, axisModel)
       const domain = this.getMinMaxOfFormulaValues()
       isNumericAxisModel(resultAxisModel) &&
         setNiceDomain(domain, resultAxisModel, { clampPosMinAtZero: true })
@@ -129,7 +129,7 @@ export const BarChartModel = DotChartModel
         case "formula":
           return this.getValidFormulaAxis(axisModel)
         default:
-          return self.getValidNumericOrDateAxis(place, attrType, axisModel)
+          return self.getValidNumericDateOrQualitativeAxis(place, attrType, axisModel)
       }
     },
     get showZeroLine() {

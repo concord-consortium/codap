@@ -16,10 +16,10 @@ export const ScatterPlotModel = PlotModel
       return true
     },
     getValidPrimaryAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
-      return self.getValidNumericOrDateAxis(place, attrType, axisModel)
+      return self.getValidNumericDateOrQualitativeAxis(place, attrType, axisModel)
     },
     getValidSecondaryAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
-      return self.getValidNumericOrDateAxis(place, attrType, axisModel)
+      return self.getValidNumericDateOrQualitativeAxis(place, attrType, axisModel)
     },
     get showGridLines() {
       return true

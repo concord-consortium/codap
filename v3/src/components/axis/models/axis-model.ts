@@ -2,7 +2,8 @@ import {Instance, SnapshotIn, types} from "mobx-state-tree"
 import {applyModelChange} from "../../../models/history/apply-model-change"
 import {AxisOrientation, AxisPlaces, IScaleType, ScaleTypes} from "../axis-types"
 
-export const AxisModelTypes = ["empty", "categorical", "color", "numeric", "percent", "count", "date"] as const
+export const AxisModelTypes =
+  ["empty", "categorical", "color", "numeric", "percent", "count", "date", "qualitative"] as const
 export type AxisModelType = typeof AxisModelTypes[number]
 
 export const axisModelType = (type: AxisModelType) => types.optional(types.literal(type), type)

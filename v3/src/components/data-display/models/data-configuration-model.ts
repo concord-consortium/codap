@@ -292,7 +292,8 @@ export const DataConfigurationModel = types
           return {role, attributeID: self.attributeID(role) || ''}
         })
         .filter(pair => {
-          return ((pair.role !== 'legend' && pair.role !== 'caption') ||
+          return self.attributeType(pair.role) !== 'qualitative' &&
+            ((pair.role !== 'legend' && pair.role !== 'caption') ||
             self.isAttributeAllowedForNonAxisRole(pair.attributeID)) && !!pair.attributeID
         })
     },

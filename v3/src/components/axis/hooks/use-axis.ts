@@ -8,7 +8,7 @@ import { maxWidthOfStringsD3 } from "../../data-display/data-display-utils"
 import { useDataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
 import { useDataDisplayModelContextMaybe } from "../../data-display/hooks/use-data-display-model"
 import { IDataDisplayContentModel } from "../../data-display/models/data-display-content-model"
-import { kColorAxisExtent } from "../axis-constants"
+import { kColorAxisExtent, kQualitativeAxisExtent } from "../axis-constants"
 import { AxisPlace, AxisScaleType, axisGap, axisPlaceToAxisFn } from "../axis-types"
 import {
   collisionExists, computeBestNumberOfTicks,
@@ -93,6 +93,10 @@ export const useAxis = (axisPlace: AxisPlace) => {
         desiredExtent += isVertical || _axisModel?.labelsAreRotated
           ? Math.max(...ticks.map(tick => getStringBounds(tick).width)) + axisGap
           : numbersHeight + axisGap
+        break
+      }
+      case 'qualitative': {
+        desiredExtent += kQualitativeAxisExtent
         break
       }
       case 'categorical':

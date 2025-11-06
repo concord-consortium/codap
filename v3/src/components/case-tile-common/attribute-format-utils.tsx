@@ -4,7 +4,7 @@ import { measureText } from "../../hooks/use-measure-text"
 import { getBoundaryValueFromString, hasBoundaryThumbnail } from "../../models/boundaries/boundary-types"
 import { IAttribute } from "../../models/data/attribute"
 import { kDefaultNumPrecision } from "../../models/data/attribute-types"
-import { parseColor } from "../../utilities/color-utils"
+import { defaultPointColor, parseColor } from "../../utilities/color-utils"
 import { isStdISODateString } from "../../utilities/date-iso-utils"
 import { parseDate } from "../../utilities/date-parser"
 import { formatDate } from "../../utilities/date-utils"
@@ -86,8 +86,21 @@ export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, opt
     }
   }
 
+  if (type === "qualitative") {
+    if (str) {
+      const pctStr = num >= 0 ? str : "0"
+      return {
+        value: str,
+        content: <span className="cell-qualitative-backing" key={key}>
+                  <span className='cell-qualitative-bar'
+                        style={{background: defaultPointColor, width: `${pctStr}%`}}/>
+                 </span>
+      }
+    }
+  }
+
   // colors
-  const color = type === "color" || !userType ? parseColor(str, { colorNames: type === "color" }) : ""
+  const color = type === "color" || !userType ? parseColor(str, {colorNames: type === "color" }) : ""
   if (color) {
     return {
       value: color,

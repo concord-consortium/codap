@@ -9,9 +9,8 @@ import { EmptyAxisModel, IAxisModel, isEmptyAxisModel } from "../../axis/models/
 import { IAxisProviderBase } from "../../axis/models/axis-provider"
 import { CategoricalAxisModel, ColorAxisModel, isCategoricalAxisModel, isColorAxisModel
   } from "../../axis/models/categorical-axis-models"
-import {
-  CountAxisModel, DateAxisModel, isCountAxisModel, isDateAxisModel,
-  isNumericAxisModel, isPercentAxisModel, NumericAxisModel, PercentAxisModel
+import {CountAxisModel, DateAxisModel, isCountAxisModel, isDateAxisModel, isNumericAxisModel, isPercentAxisModel,
+  isQualitativeAxisModel, NumericAxisModel, PercentAxisModel, QualitativeAxisModel
   } from "../../axis/models/numeric-axis-models"
 import { GraphAttrRole, PointDisplayType } from "../../data-display/data-display-types"
 import { PlotType } from "../graphing-types"
@@ -203,14 +202,19 @@ export const PlotModel = types
       setNiceDomain([0, maxCellCasePercent], percentAxis, { clampPosMinAtZero: true })
       return percentAxis
     },
-    getValidNumericOrDateAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
+    getValidNumericDateOrQualitativeAxis(place: AxisPlace,
+                                         attrType?: AttributeType,
+                                         axisModel?: IAxisModel): IAxisModel {
       if (attrType === "date" && isDateAxisModel(axisModel) ||
-          attrType === "numeric" && isNumericAxisModel(axisModel)) {
+          attrType === "numeric" && isNumericAxisModel(axisModel) ||
+          attrType === "qualitative" && isQualitativeAxisModel(axisModel)) {
         return axisModel
       }
       return attrType === "date"
-              ? DateAxisModel.create({ place, min: 0, max: 1 })
-              : NumericAxisModel.create({ place, min: 0, max: 1 })
+        ? DateAxisModel.create({place, min: 0, max: 1})
+        : attrType === "qualitative"
+          ? QualitativeAxisModel.create({place, min: 0, max: 100})
+          : NumericAxisModel.create({place, min: 0, max: 1})
     },
   }))
   .views(self => ({
