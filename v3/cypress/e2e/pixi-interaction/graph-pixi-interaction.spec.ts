@@ -400,7 +400,7 @@ context("Graph UI with Pixi interaction", () => {
         gch.getPixiPointFillColors(tileId).then((colors) => {
           cy.log(`Extracted Fill Colors: ${colors}`)
           expect(colors).to.have.length(3) // There should be exactly one color
-          expect(colors).to.deep.equal(["#803E75", "#A6BDD7", "#FF6800"]) // The colors expected
+          expect(colors).to.deep.equal(["#803e75", "#a6bdd7", "#ff6800"]) // The colors expected
         })
       })
       toolbar.getUndoTool().click()
@@ -484,7 +484,7 @@ context("Graph UI with Pixi interaction", () => {
         gch.getPixiPointFillColors(tileId).then((colors) => {
           cy.log(`Extracted Fill Colors: ${colors}`)
           expect(colors).to.have.length(2) // Verify there are exactly 2 colors
-          expect(colors).to.deep.equal(["#4682B4", "#E6805B"]) // Verify the colors are as expected
+          expect(colors).to.deep.equal(["#4682b4", "#e6805b"]) // Verify the colors are as expected
         })
       })
     })
@@ -514,7 +514,7 @@ context("Graph UI with Pixi interaction", () => {
           gch.getPixiPointFillColors(tileId).then((colors) => {
             cy.log(`Extracted Fill Colors: ${colors}`)
             expect(colors).to.have.length(2) // Verify there are exactly 2 colors
-            expect(colors).to.deep.equal(["#E6805B", "#803E75"]) // Verify the colors are as expected
+            expect(colors).to.deep.equal(["#e6805b", "#803e75"]) // Verify the colors are as expected
           })
         })
       })
