@@ -591,7 +591,7 @@ export const DataSetMetadata = SharedModel
           equals: comparer.structural
         }
       ))
-     }
+    }
   }))
   .actions(applyModelChange)
 

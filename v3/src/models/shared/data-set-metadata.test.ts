@@ -311,7 +311,7 @@ describe("DataSetMetadata", () => {
 
   it("supports CategorySets", () => {
     expect(tree.metadata.attributes.size).toBe(0)
-    expect(tree.metadata.attributes.get("aId")).toEqual(undefined)
+    expect(tree.metadata.attributes.get("aId")).toBeUndefined()
     const set1 = tree.metadata.getCategorySet("aId")
     expect(tree.metadata.attributes.size).toBe(0)
     expect(tree.metadata.provisionalCategories.size).toBe(1)
