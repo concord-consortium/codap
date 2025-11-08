@@ -1,5 +1,25 @@
 # Changelog
 
+## Version 3.0.0-beta.2561 - November 7, 2025
+
+### ✨ Features & Improvements:
+- **CODAP-989:** Beta banner for public beta release
+
+### 🐞 Bug Fixes:
+- **CODAP-117**: The default case table column width does not match that of V2
+- **CODAP-937:** Can't color boundaries and points at the same time in map
+- **CODAP-959:** Numeric legend color assignment not preserved from V2 to V3
+- **CODAP-960:** Case card from V2 document doesn't retain its narrow width
+- **CODAP-967:** Binned dot plot doesn't display correctly when alignment is changed
+- **CODAP-986:** Map doesn't recognize attributes of type "boundary" without special name
+- **CODAP-988:** lookupBoundary() function fails if key arg requires evaluation
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  208955 bytes |                           <0.01% |
+|  index.js | 6959230 bytes |                           <0.01% |
+
 ## Version 3.0.0-beta.2551 - October 31, 2025
 
 ### ✨ Features & Improvements:
