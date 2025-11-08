@@ -5,6 +5,12 @@ import { IV2CollectionDefaults } from "../models/shared/data-set-metadata"
 type ColorString = string // e.g. "#ff5586" or "rgb(85,85,255)"
 type ICodapV2CategoryOrder = { __order: string[] }
 
+interface ICodapV2NumericAttributeColors {
+  "attribute-color"?: string
+  "low-attribute-color"?: string
+  "high-attribute-color"?: string
+}
+
 interface ICodapV2CategoryColor {
   colorString: ColorString
 }
@@ -17,7 +23,7 @@ type CodapV2CategoryColor = ICodapV2HSBCategoryColor | ICodapV2CategoryColor | C
 
 export type CodapV2ColorMap = Record<string, CodapV2CategoryColor>
 
-export type ICodapV2CategoryMap = CodapV2ColorMap & ICodapV2CategoryOrder
+export type ICodapV2CategoryMap = CodapV2ColorMap & ICodapV2CategoryOrder & ICodapV2NumericAttributeColors
 
 export function isV2CategoryMap(obj: unknown): obj is ICodapV2CategoryMap {
   return !!obj && typeof obj === "object" && "__order" in obj

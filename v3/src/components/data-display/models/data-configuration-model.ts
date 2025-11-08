@@ -500,11 +500,11 @@ export const DataConfigurationModel = types
     },
     get lowColor() {
       const attrId = self.attributeID("legend")
-      return self.metadata?.getAttributeColorRange(attrId).low
+      return self.metadata?.getAttributeColorRange(attrId)?.low ?? kDefaultLowAttributeColor
     },
     get highColor() {
       const attrId = self.attributeID("legend")
-      return self.metadata?.getAttributeColorRange(attrId).high
+      return self.metadata?.getAttributeColorRange(attrId)?.high ?? kDefaultHighAttributeColor
     }
   }))
   .views(self => ({
@@ -514,8 +514,8 @@ export const DataConfigurationModel = types
     },
     get choroplethColors() {
       return getChoroplethColors(
-        self.lowColor ?? kDefaultLowAttributeColor,
-        self.highColor ?? kDefaultHighAttributeColor
+        self.lowColor,
+        self.highColor
       )
     }
   }))

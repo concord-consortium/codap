@@ -109,9 +109,14 @@ export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataS
   const defaultRange = _defaultRange ? { defaultMin: _defaultRange[0], defaultMax: _defaultRange[1] } : undefined
   const categorySet = metadata?.getCategorySet(attribute.id, false)
   const colorMap = categorySet?.colorMap ?? {}
+  const color = metadata?.getAttributeColor(attribute.id)
+  const { low, high } = metadata?.getAttributeColorRange(attribute.id) || {}
   const _categoryMap = {
     ...colorMap,
-    __order: categorySet?.valuesArray ?? []
+    __order: categorySet?.valuesArray ?? [],
+    ...(color ? { "attribute-color": color } : {}),
+    ...(low ? { "low-attribute-color": low } : {}),
+    ...(high ? { "high-attribute-color": high } : {})
   } as ICodapV2CategoryMap
   const categoryMap = categorySet ? { _categoryMap } : undefined
 

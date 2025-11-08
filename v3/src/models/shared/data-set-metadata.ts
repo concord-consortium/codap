@@ -3,6 +3,7 @@ import {
   addDisposer, applySnapshot, getEnv, getSnapshot, getType, hasEnv, IAnyStateTreeNode, Instance,
   ISerializedActionCall, resolveIdentifier, SnapshotIn, types
 } from "mobx-state-tree"
+import { kellyColors, lowColorFromBase } from "../../utilities/color-utils"
 import { hashStringSet } from "../../utilities/js-utils"
 import { typeOptionalBoolean } from "../../utilities/mst-utils"
 import { IAttribute } from "../data/attribute"
@@ -82,8 +83,8 @@ export const CollectionMetadata = types.model("CollectionMetadata", {
 })
 
 const ColorRangeModel = types.model("ColorRangeModel", {
-  lowColor: kDefaultLowAttributeColor,
-  highColor: kDefaultHighAttributeColor
+  lowColor: types.maybe(types.string),
+  highColor: types.maybe(types.string)
 })
 .actions(self => ({
   setLowColor(color: string) {
@@ -115,6 +116,7 @@ export const AttributeMetadata = types.model("AttributeMetadata", {
   renameProtected: typeOptionalBoolean(), // cannot be renamed
   // model properties
   categories: types.maybe(CategorySet),
+  color: types.maybe(types.string),
   colorRange: types.maybe(ColorRangeModel),
   defaultMin: types.maybe(types.number),
   defaultMax: types.maybe(types.number),
@@ -259,11 +261,32 @@ export const DataSetMetadata = SharedModel
     isRenameProtected(attrId: string) {
       return self.attributes.get(attrId)?.renameProtected ?? false
     },
+    // If no color has been set, compute a color based on the attribute's position in its collection, but leave
+    // the metadata unchanged.
+    getAttributeColor(attrId: string) {
+      const assignedColor = self.attributes.get(attrId)?.color
+      if (assignedColor) {
+        return assignedColor
+      }
+      const collection = self.data?.getCollectionForAttribute(attrId)
+      if (collection) {
+        const attrIndex = collection.attributes.findIndex(attr => attr?.id === attrId)
+        if (attrIndex >= 0) {
+          // Pick a color from the Kelly color set based on the attribute's index in the collection
+          return kellyColors[attrIndex % kellyColors.length]
+        }
+      }
+      return undefined
+    },
     getAttributeColorRange(attrId: string) {
+      const baseColor = this.getAttributeColor(attrId)
       const colorRange = self.attributes.get(attrId)?.colorRange
+      if (!colorRange && !baseColor) {
+        return undefined
+      }
       return {
-        low: colorRange?.lowColor ?? kDefaultLowAttributeColor,
-        high: colorRange?.highColor ?? kDefaultHighAttributeColor
+        low: colorRange?.lowColor ?? (baseColor ? lowColorFromBase(baseColor) : kDefaultLowAttributeColor),
+        high: colorRange?.highColor ?? (baseColor ? baseColor : kDefaultHighAttributeColor)
       }
     },
     getAttributeDefaultRange(attrId: string) {
@@ -436,8 +459,12 @@ export const DataSetMetadata = SharedModel
         attrMetadata.defaultMax = max
       }
     },
-    setAttributeColor(attrId: string, color: string, selector: "low" | "high") {
+    setAttributeColor(attrId: string, color: string, selector: "base" | "low" | "high") {
       const attrMetadata = self.requireAttributeMetadata(attrId)
+      if (selector === "base") {
+        attrMetadata.color = color
+        return
+      }
       let colorRange = attrMetadata.colorRange
       if (!colorRange) {
         colorRange = ColorRangeModel.create({})
@@ -558,8 +585,8 @@ export const DataSetMetadata = SharedModel
               collection.forEach(({ attrId }) => attrId && self.setIsHidden(attrId, false))
             }
           })
-        },
-        { name: "DataSetMetadata.afterCreate.reaction [show remaining hidden attributes in a collection]",
+        }, {
+          name: "DataSetMetadata.afterCreate.reaction [show remaining hidden attributes in a collection]",
           fireImmediately: true,
           equals: comparer.structural
         }

@@ -7,7 +7,6 @@ import {
   createDataSetMetadata, DataSetMetadata, ICollectionLabelsSnapshot, isDataSetMetadata,
   isNonEmptyCollectionLabels, isSetIsCollapsedAction
 } from "./data-set-metadata"
-import { kDefaultHighAttributeColor, kDefaultLowAttributeColor } from "./data-set-metadata-constants"
 import { SharedModel } from "./shared-model"
 
 let mockNodeIdCount = 0
@@ -190,13 +189,12 @@ describe("DataSetMetadata", () => {
   })
 
   it("stores other attribute properties", () => {
-    const defaultColors = { low: kDefaultLowAttributeColor, high: kDefaultHighAttributeColor }
-    expect(tree.metadata.getAttributeColorRange("aId")).toEqual(defaultColors)
+    expect(tree.metadata.getAttributeColorRange("aId")).toEqual({low: "#f5e9e0", high: "#ff6800"})
     expect(tree.metadata.getAttributeDefaultRange("aId")).toBeUndefined()
     expect(tree.metadata.getAttributeBinningType("aId")).toBe("quantile")
 
     tree.metadata.setAttributeColor("aId", "#000000", "low")
-    expect(tree.metadata.getAttributeColorRange("aId")).toEqual({ low: "#000000", high: defaultColors.high })
+    expect(tree.metadata.getAttributeColorRange("aId")).toEqual({ low: "#000000", high: "#ff6800" })
     tree.metadata.setAttributeColor("aId", "#ffffff", "high")
     expect(tree.metadata.getAttributeColorRange("aId")).toEqual({ low: "#000000", high: "#ffffff" })
 
@@ -363,10 +361,10 @@ describe("DataSetMetadata", () => {
     // Set color range
     tree.metadata.setAttributeColor("aId", "#000000", "low")
     expect(tree.metadata.attributes.size).toBe(1)
-    expect(tree.metadata.getAttributeColorRange("aId").low).toBe("#000000")
+    expect(tree.metadata.getAttributeColorRange("aId")?.low).toBe("#000000")
     tree.metadata.setAttributeColor("aId", "#ffffff", "high")
     expect(tree.metadata.attributes.size).toBe(1)
-    expect(tree.metadata.getAttributeColorRange("aId").high).toBe("#ffffff")
+    expect(tree.metadata.getAttributeColorRange("aId")?.high).toBe("#ffffff")
 
     // Remove attribute and check color range is removed
     tree.data.removeAttribute("aId")

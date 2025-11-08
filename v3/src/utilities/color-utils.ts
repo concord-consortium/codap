@@ -10,24 +10,24 @@ import type { Parsers, RgbaColor } from "colord/types"
   The first seven are also visually distinct for people with defective color vision
    */
 export const kellyColors = [
-  '#FF6800', '#803E75', '#A6BDD7', '#FFB300',
-  '#C10020', '#CEA262', '#817066', '#007D34',
-  '#00538A', '#F13A13', '#53377A', '#FF8E00',
-  '#B32851', '#F4C800', '#7F180D', '#93AA00',
-  '#593315', '#232C16', '#FF7A5C', '#F6768E'
+  '#ff6800', '#803e75', '#a6bdd7', '#ffb300',
+  '#c10020', '#cea262', '#817066', '#007d34',
+  '#00538a', '#f13a13', '#53377a', '#ff8e00',
+  '#b32851', '#f4c800', '#7f180d', '#93aa00',
+  '#593315', '#232c16', '#ff7a5c', '#f6768e'
 ]
 
-export const defaultPointColor = '#E6805B',
-  defaultSelectedColor = '#4682B4',
+export const defaultPointColor = '#e6805b',
+  defaultSelectedColor = '#4682b4',
   defaultStrokeWidth = 1,
   defaultStrokeOpacity = 0.4,
   missingColor = '#888888',
-  transparentColor = '#FFFFFF00',
-  defaultStrokeColor = '#FFFFFF',
-  defaultSelectedStroke = '#FF0000',
+  transparentColor = '#ffffff00',
+  defaultStrokeColor = '#ffffff',
+  defaultSelectedStroke = '#ff0000',
   defaultSelectedStrokeWidth = 2,
   defaultSelectedStrokeOpacity = 1,
-  defaultBackgroundColor = '#FFFFFF'
+  defaultBackgroundColor = '#ffffff'
 
 /*
   The colord library maintains a single global list of parsers, so there's no built-in
@@ -143,6 +143,24 @@ export function interpolateColors(color1: string, color2: string, percentage: nu
   const g = rgb1.g + percentage * gRange
   const b = rgb1.b + percentage * bRange
   return colord({ r, g, b }).toHex()
+}
+
+// Create a very light, low-saturation version of a base color. The defaults are used for default color ranges.
+export function lowColorFromBase(baseColor: string, lightness = 0.92, satScale = 0.5) {
+  const c = colord(baseColor)
+  if (!c.isValid()) return "#f0f4f8"
+
+  const hsl = c.toHsl()
+  const newHsl = {
+    h: hsl.h,
+    s: Math.min(100, hsl.s * satScale),
+    l: lightness * 100
+  }
+
+  const tinted = colord(newHsl)
+  const hex = tinted.toHex()
+  // Avoid pure white fallback
+  return hex.toLowerCase() === "#ffffff" ? "#f7f9fb" : hex
 }
 
 // Returns an array of five colors transitioning between color1 and color2

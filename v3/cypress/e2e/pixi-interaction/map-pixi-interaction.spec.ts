@@ -82,10 +82,10 @@ context("Graph UI with Pixi interaction", () => {
 
       mch.getMapTileId().then((tileId: string) => {
         mch.getPixiPointFillColors(tileId).then((colors) => {
-          const upperCaseColors = colors.map(color => color.toUpperCase()) // Convert all colors to uppercase
-          cy.log(`Extracted Fill Colors (Uppercase): ${upperCaseColors}`)
-          expect(upperCaseColors).to.have.length(2) // Verify there are exactly 2 colors
-          expect(upperCaseColors).to.deep.equal(["#E6805B", "#4682B4"]) // Verify the colors are as expected
+          const lowerCaseColors = colors.map(color => color.toLowerCase()) // Convert all colors to lowercase
+          cy.log(`Extracted Fill Colors (Lowercase): ${lowerCaseColors}`)
+          expect(lowerCaseColors).to.have.length(2) // Verify there are exactly 2 colors
+          expect(lowerCaseColors).to.deep.equal(["#e6805b", "#4682b4"]) // Verify the colors are as expected
         })
       })
     })
@@ -102,10 +102,10 @@ context("Graph UI with Pixi interaction", () => {
 
     //   mch.getMapTileId().then((tileId: string) => {
     //     mch.getPixiPointFillColors(tileId).then((colors) => {
-    //       const upperCaseColors = colors.map(color => color.toUpperCase()) // Convert all colors to uppercase
-    //       cy.log(`Extracted Fill Colors (Uppercase): ${upperCaseColors}`)
-    //       expect(upperCaseColors).to.have.length(2) // Verify there are exactly 2 colors
-    //       expect(upperCaseColors).to.deep.equal(["#E6805B", "#4682B4"]) // Verify the colors are as expected
+    //       const lowerCaseColors = colors.map(color => color.toLowerCase()) // Convert all colors to lowercase
+    //       cy.log(`Extracted Fill Colors (Lowercase): ${lowerCaseColors}`)
+    //       expect(lowerCaseColors).to.have.length(2) // Verify there are exactly 2 colors
+    //       expect(lowerCaseColors).to.deep.equal(["#e6805b", "#4682b4"]) // Verify the colors are as expected
     //     })
     //   })
     // })
