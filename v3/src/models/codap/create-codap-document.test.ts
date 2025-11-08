@@ -113,15 +113,7 @@ describe("createCodapDocument", () => {
         [sharedMetadata.id]: {
           sharedModel: {
             collections: {},
-            attributes: {
-              "test-8": {
-                "color": "#ff6800",
-                "colorRange": {
-                  "highColor": "#ff6800",
-                  "lowColor": "#f5e9e0",
-                },
-              },
-            },
+            attributes: {},
             data: "test-5",
             id: sharedMetadata.id,
             type: "SharedCaseMetadata"

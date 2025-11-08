@@ -83,8 +83,8 @@ export const CollectionMetadata = types.model("CollectionMetadata", {
 })
 
 const ColorRangeModel = types.model("ColorRangeModel", {
-  lowColor: kDefaultLowAttributeColor,
-  highColor: kDefaultHighAttributeColor
+  lowColor: types.maybe(types.string),
+  highColor: types.maybe(types.string)
 })
 .actions(self => ({
   setLowColor(color: string) {
@@ -261,14 +261,32 @@ export const DataSetMetadata = SharedModel
     isRenameProtected(attrId: string) {
       return self.attributes.get(attrId)?.renameProtected ?? false
     },
+    // If no color has been set, compute a color based on the attribute's position in its collection, but leave
+    // the metadata unchanged.
     getAttributeColor(attrId: string) {
-      return self.attributes.get(attrId)?.color
+      const assignedColor = self.attributes.get(attrId)?.color
+      if (assignedColor) {
+        return assignedColor
+      }
+      const collection = self.data?.getCollectionForAttribute(attrId)
+      if (collection) {
+        const attrIndex = collection.attributes.findIndex(attr => attr?.id === attrId)
+        if (attrIndex >= 0) {
+          // Pick a color from the Kelly color set based on the attribute's index in the collection
+          return kellyColors[attrIndex % kellyColors.length]
+        }
+      }
+      return undefined
     },
     getAttributeColorRange(attrId: string) {
+      const baseColor = this.getAttributeColor(attrId)
       const colorRange = self.attributes.get(attrId)?.colorRange
+      if (!colorRange && !baseColor) {
+        return undefined
+      }
       return {
-        low: colorRange?.lowColor ?? kDefaultLowAttributeColor,
-        high: colorRange?.highColor ?? kDefaultHighAttributeColor
+        low: colorRange?.lowColor ?? (baseColor ? lowColorFromBase(baseColor) : kDefaultLowAttributeColor),
+        high: colorRange?.highColor ?? (baseColor ? baseColor : kDefaultHighAttributeColor)
       }
     },
     getAttributeDefaultRange(attrId: string) {
@@ -573,37 +591,7 @@ export const DataSetMetadata = SharedModel
           equals: comparer.structural
         }
       ))
-      // Assign base colors and color ranges to attributes that don't have one yet, based on position in collection
-      addDisposer(self, reaction(
-        () => self.data?.collections.map(coll =>
-          coll.attributes.map(a => a?.id)
-        ) ?? [],
-        (collectionsAttrIds) => {
-          collectionsAttrIds.forEach(attrIds => {
-            attrIds.forEach((attrId, indexInCollection) => {
-              if (!attrId) return
-              const meta = self.attributes.get(attrId)
-              if (!meta?.color) {
-                const color = kellyColors[indexInCollection % kellyColors.length]
-                self.setAttributeColor(attrId, color, "base")
-              }
-              if (!meta?.colorRange) {
-                const baseColor = self.getAttributeColor(attrId) || kDefaultHighAttributeColor
-                const lowColor = lowColorFromBase(baseColor)
-                const highColor = self.getAttributeColor(attrId) ||
-                  kellyColors[indexInCollection % kellyColors.length]
-                self.setAttributeColor(attrId, lowColor, "low")
-                self.setAttributeColor(attrId, highColor, "high")
-              }
-            })
-          })
-        }, {
-          name: "DataSetMetadata.afterCreate.reaction [assign default attribute colors]",
-          fireImmediately: true,
-          equals: comparer.structural
-        }
-      ))
-    }
+     }
   }))
   .actions(applyModelChange)
 
