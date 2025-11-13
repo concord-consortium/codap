@@ -103,6 +103,14 @@ describe("customizeDisplayFormula", () => {
     expect(customizeDisplayFormula("a % -1")).toEqual("a  mod  -1")
     expect(customizeDisplayFormula("a%-1")).toEqual("a mod -1")
   })
+  it("replaces & with and", () => {
+    expect(customizeDisplayFormula("a & b")).toEqual("a  and  b")
+    expect(customizeDisplayFormula("a&b")).toEqual("a and b")
+  })
+  it("replaces | with or", () => {
+    expect(customizeDisplayFormula("a | b")).toEqual("a  or  b")
+    expect(customizeDisplayFormula("a|b")).toEqual("a or b")
+  })
   it("replaces comments with spaces", () => {
     expect(customizeDisplayFormula("a + /* comment */ b")).toEqual("a +   b")
     expect(customizeDisplayFormula("a + b // comment")).toEqual("a + b  ")

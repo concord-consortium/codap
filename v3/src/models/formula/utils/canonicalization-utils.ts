@@ -96,9 +96,9 @@ const customizations: Record<string, CustomizationFn> = {
   LogicOp: (formula, cursor) => {
     const nodeText = formula.substring(cursor.from, cursor.to)
     const replaceMap: Record<string, string> = {
-      "&": "and",
+      "&": " and ",
       "AND": "and",
-      "|": "or",
+      "|": " or ",
       "OR": "or"
     }
     const replacement = replaceMap[nodeText]
