@@ -6,7 +6,7 @@ import {IDataSet} from "../../../models/data/data-set"
 import {applyModelChange} from "../../../models/history/apply-model-change"
 import {withoutUndo} from "../../../models/history/without-undo"
 import {ISharedDataSet, kSharedDataSetType, SharedDataSet} from "../../../models/shared/shared-data-set"
-import { getDataSetFromId, getMetadataFromDataSet } from "../../../models/shared/shared-data-utils"
+import { getDataSetFromId } from "../../../models/shared/shared-data-utils"
 import {ITileContentModel, ITileContentSnapshot} from "../../../models/tiles/tile-content"
 import { getFormulaManager } from "../../../models/tiles/tile-environment"
 import { getCollectionAttrs } from "../../../models/data/data-set-utils"
@@ -211,10 +211,7 @@ export const MapContentModel = DataDisplayContentModel
     addPointLayer(dataSet: IDataSet, latAttrId: string, longAttrId: string) {
       const newPointLayer = MapPointLayerModel.create({layerIndex: self.layers.length})
       self.layers.push(newPointLayer) // We have to do this first so safe references will work
-      const dataConfiguration = newPointLayer.dataConfiguration
-      dataConfiguration.setDataset(dataSet, getMetadataFromDataSet(dataSet))
-      dataConfiguration.setAttribute('lat', {attributeID: latAttrId})
-      dataConfiguration.setAttribute('long', {attributeID: longAttrId})
+      newPointLayer.setPointAttributes(dataSet, latAttrId, longAttrId)
       return newPointLayer
     },
     addPolygonLayer(dataSet: IDataSet, polygonAttrId: string) {
@@ -226,10 +223,7 @@ export const MapContentModel = DataDisplayContentModel
     addPinLayer(dataSet: IDataSet, pinLatAttrId: string, pinLongAttrId: string) {
       const newPinLayer = MapPinLayerModel.create()
       self.layers.push(newPinLayer) // We have to do this first so safe references will work
-      const dataConfiguration = newPinLayer.dataConfiguration
-      dataConfiguration.setDataset(dataSet, getMetadataFromDataSet(dataSet))
-      dataConfiguration.setAttribute('pinLat', {attributeID: pinLatAttrId})
-      dataConfiguration.setAttribute('pinLong', {attributeID: pinLongAttrId})
+      newPinLayer.setPinAttributes(dataSet, pinLatAttrId, pinLongAttrId)
       return newPinLayer
     }
   }))

@@ -1,5 +1,4 @@
 import { DataSet } from "../../../models/data/data-set"
-import { MapPolygonLayer } from "../components/map-polygon-layer"
 import { MapBaseLayerModel } from "../models/map-base-layer-model"
 import { MapPinLayerModel } from "../models/map-pin-layer-model"
 import { MapPointLayerModel } from "../models/map-point-layer-model"
