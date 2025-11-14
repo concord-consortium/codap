@@ -121,12 +121,17 @@ context("CloudFileManager", () => {
     cy.log("Shows errors with invalid documents")
     for (const docFileName of erroringDocuments) {
       cfm.openLocalDoc(`${invalidDocsFolder}${docFileName}.codap`)
-      cfm.getModalDialog().contains(".modal-dialog-title", "Error")
-      cfm.getModalDialog()
-        .contains("button", "Close")
-        .click()
-
-      cy.title().should("equal", "Untitled Document - CODAP")
+      // version is overridden, so it no longer generates an error
+      if (!docFileName.includes("numeric-version")) {
+        cfm.getModalDialog().contains(".modal-dialog-title", "Error")
+        cfm.getModalDialog()
+          .contains("button", "Close")
+          .click()
+        cy.title().should("equal", "Untitled Document - CODAP")
+      }
+      else {
+        cy.title().should("include", docFileName)
+      }
     }
   })
   it("verify language menu is present", () => {

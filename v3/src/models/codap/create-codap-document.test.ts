@@ -1,7 +1,10 @@
 import { getSnapshot, types } from "mobx-state-tree"
+import pkg from "../../../package.json"
 import { omitUndefined } from "../../test/test-utils"
 import { toCanonical } from "../data/data-set"
 import { createCodapDocument } from "./create-codap-document"
+const { version } = pkg
+
 import "../shared/data-set-metadata-registration"
 import "../shared/shared-data-set-registration"
 
@@ -54,6 +57,11 @@ describe("createCodapDocument", () => {
       },
       tileMap: {}
     })
+  })
+
+  it("updates the version number of documents created with older version", () => {
+    const doc = createCodapDocument({ version: "2.0.0" })
+    expect(doc.version).toBe(version)
   })
 
   it("createDataSet adds a DataSet to the document as a shared model", () => {
