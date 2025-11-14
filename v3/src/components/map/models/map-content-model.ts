@@ -366,22 +366,24 @@ export const MapContentModel = DataDisplayContentModel
           })
           // add new layers for any remaining unassigned attributes
           allDSMapAttrs.forEach(dsMapAttrs => {
-            if (dsMapAttrs.hasUnassignedPointAttributes) {
-              const latLongAttrs = dsMapAttrs.assignFirstUnassignedPointAttributes()
-              if (latLongAttrs) {
-                self.addPointLayer(dsMapAttrs.dataSet, latLongAttrs.latId, latLongAttrs.longId)
+            while (dsMapAttrs.hasUnassignedMapAttributes) {
+              if (dsMapAttrs.hasUnassignedPointAttributes) {
+                const latLongAttrs = dsMapAttrs.assignFirstUnassignedPointAttributes()
+                if (latLongAttrs) {
+                  self.addPointLayer(dsMapAttrs.dataSet, latLongAttrs.latId, latLongAttrs.longId)
+                }
               }
-            }
-            if (dsMapAttrs.hasUnassignedBoundaryAttributes) {
-              const boundaryAttrId = dsMapAttrs.assignFirstUnassignedBoundaryAttribute()
-              if (boundaryAttrId) {
-                self.addPolygonLayer(dsMapAttrs.dataSet, boundaryAttrId)
+              if (dsMapAttrs.hasUnassignedBoundaryAttributes) {
+                const boundaryAttrId = dsMapAttrs.assignFirstUnassignedBoundaryAttribute()
+                if (boundaryAttrId) {
+                  self.addPolygonLayer(dsMapAttrs.dataSet, boundaryAttrId)
+                }
               }
-            }
-            if (dsMapAttrs.hasUnassignedPinAttributes) {
-              const latLongAttrs = dsMapAttrs.assignFirstUnassignedPinAttributes()
-              if (latLongAttrs) {
-                self.addPinLayer(dsMapAttrs.dataSet, latLongAttrs.latId, latLongAttrs.longId)
+              if (dsMapAttrs.hasUnassignedPinAttributes) {
+                const latLongAttrs = dsMapAttrs.assignFirstUnassignedPinAttributes()
+                if (latLongAttrs) {
+                  self.addPinLayer(dsMapAttrs.dataSet, latLongAttrs.latId, latLongAttrs.longId)
+                }
               }
             }
           })
