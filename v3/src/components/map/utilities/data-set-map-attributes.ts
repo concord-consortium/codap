@@ -31,7 +31,7 @@ export function getMapAttributesForCollection(collection: ICollectionModel): May
   let hasMapAttributes = false
   collection.attributes.forEach(attr => {
     if (!attr) return
-    const attrName = attr?.name.toLowerCase() ?? ""
+    const attrName = attr.name.toLowerCase()
     if (isBoundaryAttribute(attr)) {
       mapAttributes.boundaries = { attrId: attr.id }
       hasMapAttributes = true
