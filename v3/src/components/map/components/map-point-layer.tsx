@@ -21,7 +21,6 @@ import {
 import { IConnectingLineDescription } from "../../data-display/data-display-types"
 import {isDisplayItemVisualPropsAction} from "../../data-display/models/display-model-actions"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
-import {latLongAttributesFromDataSet} from "../utilities/map-utils"
 import {IPixiPointMetadata, PixiPoints} from "../../data-display/pixi/pixi-points"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {IMapPointLayerModel} from "../models/map-point-layer-model"
@@ -52,8 +51,9 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     simpleheatRef = useRef<simpleheat.Instance>()
 
   const connectingLine = useCallback((caseID: string) => {
-    if (!dataset) return
-    const {latId, longId} = latLongAttributesFromDataSet(dataset)
+    const {latId, longId} = mapLayerModel.pointAttributes || {}
+    if (!dataset || !latId || !longId) return
+
     const getCoords = (anID: string) => {
       const long = dataset.getNumeric(anID, longId) || 0,
         lat = dataset?.getNumeric(anID, latId) || 0
@@ -76,7 +76,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
         return { caseData, lineCoords }
       }
     }
-  }, [dataset, leafletMap])
+  }, [dataset, leafletMap, mapLayerModel])
 
   const connectingLinesForCases = useCallback(() => {
     const lineDescriptions: IConnectingLineDescription[] = []
@@ -142,7 +142,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
   const { isVisible: layerIsVisible, pointsAreVisible, displayType } = mapLayerModel
   const displayHeatmap = displayType === "heatmap" && pointsAreVisible && layerIsVisible && legendAttributeId
   // Since the canvas is only rendered when the heatmap is visible,
-  // we need to initizlize simpleheat with it whenever displayHeatmap becomes true.
+  // we need to initialize simpleheat with it whenever displayHeatmap becomes true.
   useEffect(() => {
     if (displayHeatmap && heatmapCanvasRef.current) {
       simpleheatRef.current = simpleheat(heatmapCanvasRef.current)
@@ -199,7 +199,8 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
       })
 
       // Add the data to the heatmap
-      const { latId, longId } = latLongAttributesFromDataSet(dataset)
+      const { latId, longId } = mapLayerModel.pointAttributes || {}
+      if (!latId || !longId) return
       dataConfiguration.joinedCaseDataArrays.forEach(c => {
         const { caseID } = c
         const value = dataset.getNumeric(caseID, legendAttributeId) || minValue
@@ -288,8 +289,8 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
   const refreshPoints = useDebouncedCallback(async (selectedOnly: boolean) => {
     const {pointSizeMultiplier, pointStrokeColor} = pointDescription,
       getCoords = (anID: string) => {
-        const long = dataset?.getNumeric(anID, longId) || 0,
-          lat = dataset?.getNumeric(anID, latId) || 0
+        const long = longId ? dataset?.getNumeric(anID, longId) || 0 : 0,
+          lat = latId ? dataset?.getNumeric(anID, latId) || 0 : 0
         return leafletMap.latLngToContainerPoint([lat, long])
       },
       getScreenX = (anID: string) => {
@@ -313,7 +314,8 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     const pointRadius = computePointRadius(dataConfiguration.getCaseDataArray(0).length, pointSizeMultiplier)
     const selectedPointRadius = computePointRadius(dataConfiguration.getCaseDataArray(0).length,
         pointSizeMultiplier, 'select')
-    const {latId, longId} = latLongAttributesFromDataSet(dataset)
+    const {latId, longId} = mapLayerModel.pointAttributes || {}
+    if (!latId || !longId) return
 
     pixiPoints.forEachPoint((point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
       const {caseID} = metadata

@@ -1,5 +1,5 @@
-import { SetRequired } from "type-fest"
 import { getSnapshot } from "mobx-state-tree"
+import { SetRequired } from "type-fest"
 import { V2Map } from "../../data-interactive/data-interactive-component-types"
 import { DIValues } from "../../data-interactive/data-interactive-types"
 import { DIComponentHandler } from "../../data-interactive/handlers/component-handler"
@@ -12,14 +12,19 @@ import {
   AttributeDescriptionsMapSnapshot, kDataConfigurationType
 } from "../data-display/models/data-configuration-model"
 import { kMapTileType } from "./map-defs"
-import { kMapPointLayerType, kMapPolygonLayerType } from "./map-types"
+import { kMapPinLayerType, kMapPointLayerType, kMapPolygonLayerType, MapLayerType } from "./map-types"
 import { IMapBaseLayerModelSnapshot } from "./models/map-base-layer-model"
 import { GeoRasterModel, IMapModelContentSnapshot, isMapContentModel } from "./models/map-content-model"
+import { IMapPinLayerModelSnapshot } from "./models/map-pin-layer-model"
 import { IMapPointLayerModelSnapshot } from "./models/map-point-layer-model"
 import { IMapPolygonLayerModelSnapshot } from "./models/map-polygon-layer-model"
-import {
-  boundaryAttributeFromDataSet, datasetHasBoundaryData, datasetHasLatLongData, latLongAttributesFromDataSet
-} from "./utilities/map-utils"
+import { DataSetMapAttributes } from "./utilities/data-set-map-attributes"
+
+type IMapLayerModelSnapshot =
+  IMapBaseLayerModelSnapshot |
+  IMapPolygonLayerModelSnapshot |
+  IMapPointLayerModelSnapshot |
+  IMapPinLayerModelSnapshot
 
 export const mapComponentHandler: DIComponentHandler = {
   create({ values }) {
@@ -28,17 +33,13 @@ export const mapComponentHandler: DIComponentHandler = {
     const dataContext = getDataSetByNameOrId(document, _dataContext)
     const legendAttributeId = legendAttributeName
       ? dataContext?.getAttributeByName(legendAttributeName)?.id : undefined
-    const layers:
-      Array<IMapBaseLayerModelSnapshot | IMapPolygonLayerModelSnapshot | IMapPointLayerModelSnapshot> = []
+    const layers: Array<IMapLayerModelSnapshot> = []
     let layerIndex = 0
     getSharedDataSets(document).forEach(sharedDataSet => {
       const dataset = sharedDataSet.dataSet
       const metadata = getMetadataFromDataSet(dataset)
       if (metadata) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const LayerTypes = [kMapPointLayerType, kMapPolygonLayerType] as const
-        type LayerType = typeof LayerTypes[number]
-        const addLayer = (_type: LayerType, _attributeDescriptions: AttributeDescriptionsMapSnapshot) => {
+        const addLayer = (_type: MapLayerType, _attributeDescriptions: AttributeDescriptionsMapSnapshot) => {
           layers.push({
             dataConfiguration: {
               _attributeDescriptions,
@@ -51,25 +52,37 @@ export const mapComponentHandler: DIComponentHandler = {
           })
         }
 
-        // Point Layer
-        if (datasetHasLatLongData(dataset)) {
-          const { latId, longId } = latLongAttributesFromDataSet(dataset)
-          const _attributeDescriptions: AttributeDescriptionsMapSnapshot = {
-            lat: { attributeID: latId },
-            long: { attributeID: longId }
+        const dsMapAttrs = new DataSetMapAttributes(dataset)
+        dsMapAttrs.collections.forEach(mapAttrs => {
+          // points
+          if (mapAttrs.points?.latAttrId && mapAttrs.points?.longAttrId) {
+            const _attributeDescriptions: AttributeDescriptionsMapSnapshot = {
+              lat: { attributeID: mapAttrs.points.latAttrId },
+              long: { attributeID: mapAttrs.points.longAttrId }
+            }
+            if (dataset.id === dataContext?.id && legendAttributeId) {
+              _attributeDescriptions.legend = { attributeID: legendAttributeId }
+            }
+            addLayer(kMapPointLayerType, _attributeDescriptions)
           }
-          if (dataset.id === dataContext?.id && legendAttributeId) {
-            _attributeDescriptions.legend = { attributeID: legendAttributeId }
+          // boundaries
+          if (mapAttrs.boundaries) {
+            addLayer(kMapPolygonLayerType, {
+              polygon: { attributeID: mapAttrs.boundaries.attrId }
+            })
           }
-          addLayer(kMapPointLayerType, _attributeDescriptions)
-
-        // Polygon Layer
-        } else if (datasetHasBoundaryData(dataset)) {
-          const _attributeDescriptions: AttributeDescriptionsMapSnapshot = {
-            polygon: { attributeID: boundaryAttributeFromDataSet(dataset) }
+          // pins
+          if (mapAttrs.pins?.latAttrId && mapAttrs.pins?.longAttrId) {
+            const _attributeDescriptions: AttributeDescriptionsMapSnapshot = {
+              lat: { attributeID: mapAttrs.pins.latAttrId },
+              long: { attributeID: mapAttrs.pins.longAttrId }
+            }
+            if (dataset.id === dataContext?.id && legendAttributeId) {
+              _attributeDescriptions.legend = { attributeID: legendAttributeId }
+            }
+            addLayer(kMapPinLayerType, _attributeDescriptions)
           }
-          addLayer(kMapPolygonLayerType, _attributeDescriptions)
-        }
+        })
       }
     })
 

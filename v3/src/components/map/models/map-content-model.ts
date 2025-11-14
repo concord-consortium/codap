@@ -6,7 +6,7 @@ import {IDataSet} from "../../../models/data/data-set"
 import {applyModelChange} from "../../../models/history/apply-model-change"
 import {withoutUndo} from "../../../models/history/without-undo"
 import {ISharedDataSet, kSharedDataSetType, SharedDataSet} from "../../../models/shared/shared-data-set"
-import { getDataSetFromId, getMetadataFromDataSet } from "../../../models/shared/shared-data-utils"
+import { getDataSetFromId } from "../../../models/shared/shared-data-utils"
 import {ITileContentModel, ITileContentSnapshot} from "../../../models/tiles/tile-content"
 import { getFormulaManager } from "../../../models/tiles/tile-environment"
 import { getCollectionAttrs } from "../../../models/data/data-set-utils"
@@ -16,10 +16,10 @@ import {IDataConfigurationModel} from "../../data-display/models/data-configurat
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
 import { IDataDisplayLayerModel } from "../../data-display/models/data-display-layer-model"
 import {kMapModelName, kMapTileType} from "../map-defs"
-import {BaseMapKey, BaseMapKeys, kMapBoundsExtensionFactor} from "../map-types"
-import { datasetHasBoundaryData, datasetHasLatLongData, datasetHasPinData, expandLatLngBounds, getLatLongBounds,
-  latLongAttributesFromDataSet, pinAttributesFromDataSet } from "../utilities/map-utils"
 import {ILatLngSnapshot, LatLngModel} from "../map-model-types"
+import {BaseMapKey, BaseMapKeys, kMapBoundsExtensionFactor} from "../map-types"
+import { DataSetMapAttributes } from "../utilities/data-set-map-attributes"
+import { expandLatLngBounds, getLatLongBounds } from "../utilities/map-utils"
 import {LeafletMapState} from "./leaflet-map-state"
 import { IMapLayerModel, isMapLayerModel } from "./map-layer-model"
 import { isMapPinLayerModel, MapPinLayerModel } from "./map-pin-layer-model"
@@ -208,32 +208,26 @@ export const MapContentModel = DataDisplayContentModel
     }
   }))
   .actions(self => ({
-    addPointLayer(dataSet: IDataSet) {
+    addPointLayer(dataSet: IDataSet, latAttrId: string, longAttrId: string) {
       const newPointLayer = MapPointLayerModel.create({layerIndex: self.layers.length})
       self.layers.push(newPointLayer) // We have to do this first so safe references will work
-      const dataConfiguration = newPointLayer.dataConfiguration,
-        {latId, longId} = latLongAttributesFromDataSet(dataSet)
-      dataConfiguration.setDataset(dataSet, getMetadataFromDataSet(dataSet))
-      dataConfiguration.setAttribute('lat', {attributeID: latId})
-      dataConfiguration.setAttribute('long', {attributeID: longId})
+      newPointLayer.setPointAttributes(dataSet, latAttrId, longAttrId)
       return newPointLayer
     },
-    addPolygonLayer(dataSet: IDataSet) {
+    addPolygonLayer(dataSet: IDataSet, polygonAttrId: string) {
       const newPolygonLayer = MapPolygonLayerModel.create({layerIndex: self.layers.length})
       self.layers.push(newPolygonLayer) // We have to do this first so safe references will work
-      newPolygonLayer.setDataset(dataSet)
+      newPolygonLayer.setBoundaryAttribute(dataSet, polygonAttrId)
       return newPolygonLayer
     },
-    addPinLayer(dataSet: IDataSet) {
+    addPinLayer(dataSet: IDataSet, pinLatAttrId: string, pinLongAttrId: string) {
       const newPinLayer = MapPinLayerModel.create()
       self.layers.push(newPinLayer) // We have to do this first so safe references will work
-      const dataConfiguration = newPinLayer.dataConfiguration,
-        { pinLatId, pinLongId } = pinAttributesFromDataSet(dataSet)
-      dataConfiguration.setDataset(dataSet, getMetadataFromDataSet(dataSet))
-      dataConfiguration.setAttribute('pinLat', {attributeID: pinLatId})
-      dataConfiguration.setAttribute('pinLong', {attributeID: pinLongId})
+      newPinLayer.setPinAttributes(dataSet, pinLatAttrId, pinLongAttrId)
       return newPinLayer
-    },
+    }
+  }))
+  .actions(self => ({
     afterCreate() {
       addDisposer(self, () => self.leafletMapState.destroy())
 
@@ -327,50 +321,71 @@ export const MapContentModel = DataDisplayContentModel
             // We aren't added to a document yet, so we can't do anything yet
             return
           }
-          // We make a copy of the layers array and remove any layers that are still in the shared model
-          // If there are any layers left in the copy, they are no longer in any shared dataset and should be removed
-          const layersToCheck = Array.from(self.layers)
-          sharedDataSets.forEach(sharedDataSet => {
-            if (datasetHasLatLongData(sharedDataSet.dataSet)) {
-              const pointLayer = layersToCheck.find(layer => {
-                return layer.data === sharedDataSet.dataSet && isMapPointLayerModel(layer)
-              })
-              if (isMapPointLayerModel(pointLayer)) {
-                pointLayer.setDataset(sharedDataSet.dataSet)
-                layersToCheck.splice(layersToCheck.indexOf(pointLayer), 1)
-              } else {
-                // Add a new layer for this dataset
-                this.addPointLayer(sharedDataSet.dataSet)
+          const allDSMapAttrs = sharedDataSets.map(sharedDataSet => new DataSetMapAttributes(sharedDataSet.dataSet))
+          const matchedLayers = self.layers.filter(layer => {
+            return allDSMapAttrs.some(dsMapAttrs => isMapLayerModel(layer) && dsMapAttrs.matchMapLayer(layer))
+          })
+          const unmatchedLayers = self.layers.filter(layer => {
+            return !matchedLayers.includes(layer)
+          })
+          // reassign any unmatched layers to datasets with unassigned attributes
+          unmatchedLayers.forEach(layer => {
+            if (isMapPolygonLayerModel(layer)) {
+              const dsWithBoundaryAttr = allDSMapAttrs.find(dsMapAttrs => dsMapAttrs.hasUnassignedBoundaryAttributes)
+              const boundaryAttribute = dsWithBoundaryAttr?.assignFirstUnassignedBoundaryAttribute()
+              if (dsWithBoundaryAttr && boundaryAttribute) {
+                layer.setBoundaryAttribute(dsWithBoundaryAttr.dataSet, boundaryAttribute)
+              }
+              else {
+                // No available boundary attribute; remove the layer
+                self.layers.splice(self.layers.indexOf(layer), 1)
               }
             }
-            if (datasetHasBoundaryData(sharedDataSet.dataSet)) {
-              const polygonLayer = layersToCheck.find(layer => {
-                return layer.data === sharedDataSet.dataSet && isMapPolygonLayerModel(layer)
-              })
-              if (isMapPolygonLayerModel(polygonLayer)) {
-                polygonLayer.setDataset(sharedDataSet.dataSet)
-                layersToCheck.splice(layersToCheck.indexOf(polygonLayer), 1)
-              } else {
-                // Add a new layer for this dataset
-                this.addPolygonLayer(sharedDataSet.dataSet)
+            if (isMapPointLayerModel(layer)) {
+              const dsWithPointAttrs = allDSMapAttrs.find(dsMapAttrs => dsMapAttrs.hasUnassignedPointAttributes)
+              const latLongAttrs = dsWithPointAttrs?.assignFirstUnassignedPointAttributes()
+              if (dsWithPointAttrs && latLongAttrs) {
+                layer.setPointAttributes(dsWithPointAttrs.dataSet, latLongAttrs.latId, latLongAttrs.longId)
+              }
+              else {
+                // No available point attributes; remove the layer
+                self.layers.splice(self.layers.indexOf(layer), 1)
               }
             }
-            if (datasetHasPinData(sharedDataSet.dataSet)) {
-              const pinLayer = layersToCheck.find(layer => {
-                return layer.data === sharedDataSet.dataSet && isMapPinLayerModel(layer)
-              })
-              if (isMapPinLayerModel(pinLayer)) {
-                pinLayer.setDataset(sharedDataSet.dataSet)
-                layersToCheck.splice(layersToCheck.indexOf(pinLayer), 1)
-              } else {
-                // Add a new layer for this dataset
-                this.addPinLayer(sharedDataSet.dataSet)
+            if (isMapPinLayerModel(layer)) {
+              const dsWithPinAttrs = allDSMapAttrs.find(dsMapAttrs => dsMapAttrs.hasUnassignedPinAttributes)
+              const latLongAttrs = dsWithPinAttrs?.assignFirstUnassignedPinAttributes()
+              if (dsWithPinAttrs && latLongAttrs) {
+                layer.setPinAttributes(dsWithPinAttrs.dataSet, latLongAttrs.latId, latLongAttrs.longId)
+              }
+              else {
+                // No available pin attributes; remove the layer
+                self.layers.splice(self.layers.indexOf(layer), 1)
               }
             }
           })
-          // Remove any remaining layers in layersToCheck since they are no longer in any shared dataset
-          layersToCheck.forEach(layer => {
-            self.layers.splice(self.layers.indexOf(layer), 1)
+          // add new layers for any remaining unassigned attributes
+          allDSMapAttrs.forEach(dsMapAttrs => {
+            while (dsMapAttrs.hasUnassignedMapAttributes) {
+              if (dsMapAttrs.hasUnassignedPointAttributes) {
+                const latLongAttrs = dsMapAttrs.assignFirstUnassignedPointAttributes()
+                if (latLongAttrs) {
+                  self.addPointLayer(dsMapAttrs.dataSet, latLongAttrs.latId, latLongAttrs.longId)
+                }
+              }
+              if (dsMapAttrs.hasUnassignedBoundaryAttributes) {
+                const boundaryAttrId = dsMapAttrs.assignFirstUnassignedBoundaryAttribute()
+                if (boundaryAttrId) {
+                  self.addPolygonLayer(dsMapAttrs.dataSet, boundaryAttrId)
+                }
+              }
+              if (dsMapAttrs.hasUnassignedPinAttributes) {
+                const latLongAttrs = dsMapAttrs.assignFirstUnassignedPinAttributes()
+                if (latLongAttrs) {
+                  self.addPinLayer(dsMapAttrs.dataSet, latLongAttrs.latId, latLongAttrs.longId)
+                }
+              }
+            }
           })
           self.isSharedDataInitialized = true
         },

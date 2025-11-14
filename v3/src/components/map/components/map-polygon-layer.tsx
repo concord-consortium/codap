@@ -21,7 +21,6 @@ import {
   kMapAreaWithLegendSelectedBorderColor, PolygonLayerOptions
 } from "../map-types"
 import {IMapPolygonLayerModel} from "../models/map-polygon-layer-model"
-import {boundaryAttributeFromDataSet} from "../utilities/map-utils"
 
 export const MapPolygonLayer = function MapPolygonLayer(props: {
   mapLayerModel: IMapPolygonLayerModel
@@ -131,7 +130,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
       }
 
     const
-      polygonId = boundaryAttributeFromDataSet(dataset),
+      polygonId = mapLayerModel.boundaryAttributeId,
       // Keep track of which features are already on the map so that we can delete ones that no longer have
       // corresponding cases in the dataset
       featuresToRemove = Object.keys(mapLayerModel.features)

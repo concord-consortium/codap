@@ -7,7 +7,6 @@ import {IDataSet} from "../../../models/data/data-set"
 import {getMetadataFromDataSet} from "../../../models/shared/shared-data-utils"
 import {IDataDisplayLayerModel} from "../../data-display/models/data-display-layer-model"
 import {kMapPolygonLayerType} from "../map-types"
-import {boundaryAttributeFromDataSet} from "../utilities/map-utils"
 import {MapLayerModel} from "./map-layer-model"
 
 export const MapPolygonLayerModel = MapLayerModel
@@ -24,14 +23,16 @@ export const MapPolygonLayerModel = MapLayerModel
       // Set pointSizeMultiplier to -1 so that DisplayItemFormatControlPanel knows it's a polygon
       self.displayItemDescription.setPointSizeMultiplier(-1)
     },
-    setDataset(dataSet: IDataSet) {
-      const boundaryId = boundaryAttributeFromDataSet(dataSet)
+    setBoundaryAttribute(dataSet: IDataSet, boundaryAttrId: string) {
       self.dataConfiguration.setDataset(dataSet, getMetadataFromDataSet(dataSet))
-      self.dataConfiguration.setAttribute('polygon', {attributeID: boundaryId})
+      self.dataConfiguration.setAttribute('polygon', {attributeID: boundaryAttrId})
     }
 
   }))
   .views(self => ({
+    get boundaryAttributeId() {
+      return self.dataConfiguration.attributeID('polygon')
+    },
     get polygonDescription() {
       return self.displayItemDescription
     }
