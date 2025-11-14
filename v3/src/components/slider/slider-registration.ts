@@ -16,8 +16,9 @@ import {
   guidLink, ICodapV2BaseComponentStorage, ICodapV2SliderStorage, isV2SliderComponent
 } from "../../v2/codap-v2-types"
 import { SliderComponent } from "./slider-component"
-import { SliderInspector } from "./slider-inspector"
+import { sliderComponentHandler } from "./slider-component-handler"
 import { kSliderTileType, kSliderTileClass, kV2SliderType } from "./slider-defs"
+import { SliderInspector } from "./slider-inspector"
 import { ISliderSnapshot, SliderModel, isSliderModel } from "./slider-model"
 import { SliderTitleBar } from "./slider-title-bar"
 import {
@@ -25,7 +26,6 @@ import {
   kDefaultAnimationDirection, kDefaultAnimationMode, kDefaultSliderAxisMax, kDefaultSliderAxisMin
 } from "./slider-types"
 import { kDefaultSliderName, kDefaultSliderValue } from "./slider-utils"
-import { sliderComponentHandler } from "./slider-component-handler"
 
 export const kSliderIdPrefix = "SLID"
 
@@ -147,7 +147,8 @@ registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, getGlobalVal
     return AnimationModes[mode] || kDefaultAnimationMode
   }
 
-  const axisType = v3?.scaleType ?? "numeric"
+  const scaleType = v3?.scaleType ?? "numeric"
+  const axisType = scaleType  // scale types correspond to axis types
   const axisMin = lowerBound ?? kDefaultSliderAxisMin
   const axisMax = upperBound ?? kDefaultSliderAxisMax
 
@@ -160,6 +161,7 @@ registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, getGlobalVal
     animationDirection: getAnimationDirectionStr(animationDirection),
     animationMode: getAnimationModeStr(animationMode),
     _animationRate: maxPerSecond ?? undefined,
+    scaleType,
     axis: { type: axisType, place: "bottom", min: axisMin, max: axisMax }
   }
   const sliderTileSnap: ITileModelSnapshotIn = {
