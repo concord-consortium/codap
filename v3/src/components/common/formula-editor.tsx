@@ -9,7 +9,7 @@ import CodeMirror, {
   drawSelection, EditorState, EditorView, Extension, KeyBinding, Prec, RangeSet, RangeSetBuilder, RangeValue,
   ReactCodeMirrorRef, StateEffect, StateField, ViewUpdate
 } from "@uiw/react-codemirror"
-import React, { useCallback, useRef } from "react"
+import React, { useCallback, useEffect, useRef } from "react"
 import { useMemo } from "use-memo-one"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { boundaryManager } from "../../models/boundaries/boundary-manager"
@@ -39,6 +39,7 @@ interface IProps {
   // options default to true if not specified
   options?: Partial<ICompletionOptions>
   editorHeight?: number
+  isAutoCompleteMenuOpen: React.MutableRefObject<boolean>
 }
 
 /*
@@ -259,13 +260,48 @@ function cmExtensionsSetup() {
   return extensions.filter(Boolean)
 }
 
-export function FormulaEditor({ options: _options, editorHeight = +styles.editFormulaModalMinHeight }: IProps) {
+export function FormulaEditor({
+  options: _options, editorHeight = +styles.editFormulaModalMinHeight, isAutoCompleteMenuOpen
+}: IProps) {
   const dataSet = useDataSetContext()
   const jsonOptions = JSON.stringify(_options ?? {})
   const options = useMemo(() => JSON.parse(jsonOptions), [jsonOptions])
   const cmRef = useRef<ReactCodeMirrorRef>(null)
   const extensions = useMemo(() => cmExtensionsSetup(), [])
   const { formula, setFormula, setEditorApi } = useFormulaEditorContext()
+
+  useEffect(() => {
+    const editorElt = cmRef.current?.editor
+    if (!editorElt) return
+
+    const kAutocompleteMenuClass = "cm-tooltip-autocomplete"
+
+    // Observe for dynamically added autocomplete menu
+    const mutationObserver = new MutationObserver((mutations) => {
+      mutations.forEach(mutation => {
+        mutation.addedNodes.forEach(node => {
+          if (node.nodeType === 1) { // ELEMENT_NODE
+            const element = node as HTMLElement
+            if (element.className.includes(kAutocompleteMenuClass)) {
+              isAutoCompleteMenuOpen.current = true
+            }
+          }
+        })
+        mutation.removedNodes.forEach(node => {
+          if (node.nodeType === 1) { // ELEMENT_NODE
+            const element = node as HTMLElement
+            if (element.className.includes(kAutocompleteMenuClass)) {
+              // delay close notification until event has been fully processed
+              setTimeout(() => { isAutoCompleteMenuOpen.current = false })
+            }
+          }
+        })
+      })
+    })
+
+    mutationObserver.observe(editorElt, { childList: true, subtree: true })
+    return () => mutationObserver.disconnect()
+  }, [cmRef, isAutoCompleteMenuOpen])
 
   // update the editor state field with the appropriate data set
   const handleCreateEditor = useCallback((view: EditorView, state: EditorState) => {
