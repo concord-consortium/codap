@@ -43,6 +43,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
   const [dimensions, setDimensions] = useState({ width: minWidth, height: minHeight })
   const editorHeight = dimensions.height - headerHeight - footerHeight - insertButtonsHeight
   const attrInputRef = useRef("")
+  const isAutoCompleteMenuOpen = useRef(false)
 
   useEffect(() => {
     setFormula(value || "")
@@ -94,7 +95,9 @@ export const EditFormulaModal = observer(function EditFormulaModal({
       applyAndClose()
     }
     if (event.key === "Escape") {
-      closeModal()
+      if (!isAutoCompleteMenuOpen.current) {
+        closeModal()
+      }
     }
     event.stopPropagation()
   }
@@ -156,7 +159,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
             </FormLabel>
             <FormLabel className="formula-editor-container">
               {formulaPrompt ?? t("DG.AttrFormView.formulaPrompt")}
-              <FormulaEditor editorHeight={editorHeight}/>
+              <FormulaEditor editorHeight={editorHeight} isAutoCompleteMenuOpen={isAutoCompleteMenuOpen}/>
             </FormLabel>
           </FormControl>
           <Flex className="formula-insert-buttons-container" flexDirection="row" justifyContent="flex-start">
