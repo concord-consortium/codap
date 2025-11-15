@@ -53,6 +53,7 @@ describe("Slider registration", () => {
     expect(slider).toBeDefined()
     expect(mockGlobalValueManager.addValueSnapshot).toHaveBeenCalledTimes(1)
   })
+
   it("imports/exports v2 slider components", () => {
     const file = path.join(__dirname, "../../test/v2", "slider.codap")
     const sliderJson = fs.readFileSync(file, "utf8")
@@ -86,6 +87,7 @@ describe("Slider registration", () => {
     expect(sliderModel).toBeDefined()
     expect(sliderModel?.name).toBe(globalValue.name)
     expect(sliderModel?.value).toBeCloseTo(globalValue._value)
+    expect(sliderModel?.scaleType).toBe("numeric")
     expect(sliderModel?.animationDirection).toBe("lowToHigh")
     expect(sliderModel?.animationMode).toBe("onceOnly")
     expect(sliderModel?._animationRate).toBeUndefined()
@@ -136,5 +138,82 @@ describe("Slider registration", () => {
     expect(dateSliderStorage.restrictToMultiplesOf).toBeNull()
     expect(dateSliderStorage.v3?.scaleType).toBe("date")
     expect(dateSliderStorage.v3?.dateMultipleOfUnit).toBe("day")
+  })
+
+  it("imports/exports v3 date-time slider components", () => {
+    const file = path.join(__dirname, "../../test/v3-as-v2", "date-time-slider.codap")
+    const sliderJson = fs.readFileSync(file, "utf8")
+    const sliderDoc = JSON.parse(sliderJson) as ICodapV2DocumentJson
+    const v2Document = new CodapV2Document(sliderDoc)
+    const codapDoc = createCodapDocument()
+    const docContent = codapDoc.content!
+    docContent.setRowCreator(() => FreeTileRow.create())
+    const sharedModelManager = getSharedModelManager(docContent)
+    const globalValueManager = getGlobalValueManager(sharedModelManager)
+    const mockInsertTile = jest.fn((tileSnap: ITileModelSnapshotIn) => {
+      return docContent?.insertTileSnapshotInDefaultRow(tileSnap)
+    })
+
+    const [sliderComponent] = v2Document.components
+    expect(sliderComponent.type).toBe("DG.SliderView")
+
+    const tile = importV2Component({
+      v2Component: sliderComponent,
+      v2Document,
+      insertTile: mockInsertTile,
+      ...mockImportArgs,
+      getGlobalValues: () => globalValueManager
+    })!
+    expect(tile).toBeDefined()
+    expect(mockInsertTile).toHaveBeenCalledTimes(1)
+    expect(globalValueManager?.globals.size).toBe(1)
+    const globalValue = Object.values(getSnapshot(globalValueManager!.globals))[0]
+
+    const sliderModel = isSliderModel(tile.content) ? tile.content : undefined
+    expect(sliderModel).toBeDefined()
+    expect(sliderModel?.name).toBe(globalValue.name)
+    expect(sliderModel?.value).toBeCloseTo(globalValue._value)
+    expect(sliderModel?.scaleType).toBe("date")
+    expect(sliderModel?.animationDirection).toBe("lowToHigh")
+    expect(sliderModel?.animationMode).toBe("onceOnly")
+    expect(sliderModel?._animationRate).toBeUndefined()
+    expect(sliderModel?.multipleOf).toBe(1)
+    expect(sliderModel?.dateMultipleOfUnit).toBe("day")
+
+    const tileWithInvalidDocument = importV2Component({
+      v2Component: {} as any,
+      v2Document,
+      insertTile: mockInsertTile,
+      ...mockImportArgs,
+      getGlobalValues: () => globalValueManager
+    })
+    expect(tileWithInvalidDocument).toBeUndefined()
+
+    const tileWithNoSharedModel = importV2Component({
+      v2Component: sliderComponent,
+      v2Document,
+      insertTile: mockInsertTile,
+      ...mockImportArgs
+    })
+    expect(tileWithNoSharedModel).toBeUndefined()
+
+    // export numeric slider in v2 format
+    const row = docContent.getRowByIndex(0) as IFreeTileRow
+    const sliderExport = exportV2Component({ tile, row, sharedModelManager })
+    expect(sliderExport?.type).toBe("DG.SliderView")
+    const sliderStorage = sliderExport!.componentStorage as ICodapV2SliderStorage
+    expect(sliderStorage._links_?.model).toEqual({
+      type: "DG.GlobalValue",
+      id: toV2Id(globalValue.id)
+    })
+    expect(sliderStorage.name).toBe(globalValue.name)
+    expect(sliderStorage.animationDirection).toBe(1)
+    expect(sliderStorage.animationMode).toBe(1)
+    expect(sliderStorage.maxPerSecond).toBeNull()
+    expect(sliderStorage.restrictToMultiplesOf).toBe(86400)
+
+    expect(sliderStorage._links_?.model).toBeDefined()
+    expect(sliderStorage.v3?.scaleType).toBe("date")
+    expect(sliderStorage.v3?.dateMultipleOfUnit).toBe("day")
   })
 })
