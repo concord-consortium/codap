@@ -6,10 +6,10 @@ import { IDataSet } from "../data/data-set"
 import { SetCaseValuesAction } from "../data/data-set-actions"
 import { ICase } from "../data/data-set-types"
 import { IGlobalValueManager } from "../global/global-value-manager"
-import {
-  IFormulaDependency, ILocalAttributeDependency, ILookupDependency
-} from "./formula-types"
 import { CaseList } from "./formula-manager-types"
+import {
+  IFormulaDependency, ILocalAttributeDependency, ILookupDependency, isGlobalValueDependency
+} from "./formula-types"
 
 export const isAttrDefined = (dataSetCase: ICase, attributeId?: string) =>
   !!attributeId && Object.prototype.hasOwnProperty.call(dataSetCase, attributeId)
@@ -127,16 +127,13 @@ export const observeBoundaries = (formulaDependencies: IFormulaDependency[],
 
 export const observeGlobalValues = (formulaDependencies: IFormulaDependency[],
   globalValueManager: IGlobalValueManager | undefined, recalculateCallback: (casesToRecalculate: CaseList) => void) => {
-  const globalValueDependencies = formulaDependencies.filter(d => d.type === "globalValue")
-  const disposeGlobalValueObserver = globalValueDependencies.map(dependency =>
-    // Recalculate formula when global value dependency is updated.
-    reaction(
-      () => globalValueManager?.getValueById(dependency.globalId)?.value,
-      () => recalculateCallback("ALL_CASES"),
-      { name: "observeGlobalValues reaction"  }
-    )
+  const globalValueDependencies = formulaDependencies.filter(isGlobalValueDependency)
+  if (globalValueDependencies.length === 0) return () => {}
+  return reaction(
+    () => globalValueDependencies.map(dependency => globalValueManager?.getValueById(dependency.globalId)?.value),
+    () => recalculateCallback("ALL_CASES"),
+    { name: "observeGlobalValues reaction", equals: comparer.structural }
   )
-  return () => disposeGlobalValueObserver.forEach(dispose => dispose())
 }
 
 export const observeSymbolNameChanges = (dataSets: Map<string, IDataSet>,

@@ -1,5 +1,5 @@
 import { parse, MathNode, isFunctionNode } from "mathjs"
-import { IFormulaDependency } from "../formula-types"
+import { IFormulaDependency, isLocalAttributeDependency } from "../formula-types"
 import { typedFnRegistry } from "../functions/math"
 import { basicCanonicalNameToDependency } from "./name-mapping-utils"
 import { isNonFunctionSymbolNode } from "./mathjs-utils"
@@ -40,15 +40,17 @@ export const getFormulaDependencies = (formulaCanonical: string, formulaAttribut
     const isSelfReferenceAllowed = !!node.isSelfReferenceAllowed
     if (isNonFunctionSymbolNode(node, parent)) {
       const dependency = basicCanonicalNameToDependency(node.name)
-      if (dependency?.type === "localAttribute" && isDescendantOfAggregateFunc) {
+      if (isLocalAttributeDependency(dependency) && isDescendantOfAggregateFunc) {
         dependency.aggregate = true
       }
       const isSelfReference = ifSelfReference(dependency, formulaAttributeId)
       // Note that when self reference is allowed, we should NOT add the attribute to the dependency list.
       // This would create cycle in observers and trigger an error even earlier, when we check for this scenario.
-      // Todo: Fix this TS error
-      // @ts-expect-error does-not-exist
-      const isPresent = result.some((dep) => dep.attrId === dependency?.attrId)
+      const isPresent = result.some((dep) => {
+        return isLocalAttributeDependency(dep) &&
+                isLocalAttributeDependency(dependency) &&
+                dep.attrId === dependency.attrId
+      })
       if (dependency && (!isSelfReference || !isSelfReferenceAllowed) && !isPresent) {
         result.push(dependency)
       }
