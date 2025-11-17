@@ -1,5 +1,25 @@
 # Changelog
 
+## Version 3.0.0-beta.2568 - November 17, 2025
+
+### ✨ Features & Improvements:
+
+### 🐞 Bug Fixes:
+- **CODAP-990:** Map doesn't recognize second boundary attribute
+- **CODAP-994:** Fix logical operator (`&`, `|`) canonicalization in formulas
+- **CODAP-998:** Formulas driven by sliders don't always update when slider value changes
+- **CODAP-1002:** Escape key should dismiss autocomplete menu without dismissing formula editor
+- **CODAP-1003:** Fix date-time slider round-trip through v2 export/import
+
+### 🛠️ Under the Hood:
+- **CODAP-367:** Serialized documents contain version of app that saved (not created) them
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  208955 bytes |                            0.00% |
+|  index.js | 6965390 bytes |                           <0.01% |
+
 ## Version 3.0.0-beta.2561 - November 7, 2025
 
 ### ✨ Features & Improvements:
