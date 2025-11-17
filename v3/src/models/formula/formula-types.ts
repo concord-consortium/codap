@@ -19,15 +19,24 @@ export interface ILocalAttributeDependency {
   attrId: string
   aggregate?: boolean
 }
+export function isLocalAttributeDependency(dep?: IFormulaDependency): dep is ILocalAttributeDependency {
+  return dep?.type === "localAttribute"
+}
 
 export interface IBoundaryDependency {
   type: "boundary"
   boundarySet: string
 }
+export function isBoundaryDependency(dep?: IFormulaDependency): dep is IBoundaryDependency {
+  return dep?.type === "boundary"
+}
 
 export interface IGlobalValueDependency {
   type: "globalValue"
   globalId: string
+}
+export function isGlobalValueDependency(dep?: IFormulaDependency): dep is IGlobalValueDependency {
+  return dep?.type === "globalValue"
 }
 
 export interface ILookupDependency {
@@ -35,6 +44,9 @@ export interface ILookupDependency {
   dataSetId: string
   attrId: string
   otherAttrId?: string
+}
+export function isLookupDependency(dep?: IFormulaDependency): dep is ILookupDependency {
+  return dep?.type === "lookup"
 }
 
 export type IFormulaDependency = ILocalAttributeDependency | IBoundaryDependency |
