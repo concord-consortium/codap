@@ -27,6 +27,7 @@ export const useDotPlotDragDrop = () => {
   const currPos = useRef(0)
   const didDrag = useRef(false)
   const draggingAllowed = !dataset?.getAttribute(primaryAttrID)?.hasFormula
+  const numExtraPrimaryBands = dataConfig?.numRepetitionsForPlace('bottom') ?? 1
 
   /*
    * Drag handling. Dots in a dot plot can be dragged to change their position along
@@ -59,7 +60,8 @@ export const useDotPlotDragDrop = () => {
       currPos.current = newPos
       if (deltaPixels !== 0) {
         didDrag.current = true
-        const delta = Number(primaryAxisScale.invert(deltaPixels)) - Number(primaryAxisScale.invert(0))
+        const delta = numExtraPrimaryBands *
+          (Number(primaryAxisScale.invert(deltaPixels)) - Number(primaryAxisScale.invert(0)))
         const caseValues: ICase[] = []
         const {selection} = dataConfig || {}
         selection?.forEach(anID => {

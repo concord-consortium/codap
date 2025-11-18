@@ -382,12 +382,6 @@ export const lsrlEquationString = (props: ILsrlEquationString) => {
   return `${equationPart}${rSquaredPart}${seSlopePart}${squaresPart}`
 }
 
-export function getScreenCoord(dataSet: IDataSet | undefined, id: string,
-                               attrID: string, scale: ScaleNumericBaseType) {
-  const value = dataSet?.getNumeric(id, attrID)
-  return value != null && !isNaN(value) ? scale(value) : null
-}
-
 interface IUpdateCellMasks {
   dataConfig: IGraphDataConfigurationModel
   layout: GraphLayout
