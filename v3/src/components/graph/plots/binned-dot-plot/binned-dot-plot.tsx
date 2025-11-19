@@ -9,6 +9,7 @@ import { LogMessageFn, logModelChangeFn } from "../../../../lib/log-message"
 import { isFiniteNumber } from "../../../../utilities/math-utils"
 import { mstReaction } from "../../../../utilities/mst-reaction"
 import { t } from "../../../../utilities/translation/translate"
+import { getDomainExtentForPixelWidth } from "../../../axis/axis-utils"
 import {circleAnchor} from "../../../data-display/pixi/pixi-points"
 import {IPlotProps} from "../../graphing-types"
 import { useBinnedPlotResponders } from "../../hooks/use-binned-plot-responders"
@@ -19,7 +20,7 @@ import { setPointCoordinates } from "../../utilities/graph-utils"
 import { isBinnedDotPlotModel } from "./binned-dot-plot-model"
 
 const screenWidthToWorldWidth = (scale: ScaleLinear<number, number>, screenWidth: number) => {
-  return Math.abs(scale.invert(screenWidth) - scale.invert(0))
+  return Math.abs(getDomainExtentForPixelWidth(screenWidth, scale))
 }
 
 const worldWidthToScreenWidth = (scale: ScaleLinear<number, number>, worldWidth: number) => {

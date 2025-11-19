@@ -8,6 +8,7 @@ import { t } from "../../../utilities/translation/translate"
 import {isVertical} from "../../axis-graph-shared"
 import { useDataDisplayModelContextMaybe } from "../../data-display/hooks/use-data-display-model"
 import {RectIndices, selectDragRects} from "../axis-types"
+import { getDomainExtentForPixelWidth } from "../axis-utils"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import { updateAxisNotification } from "../models/axis-notifications"
 import {MultiScale} from "../models/multi-scale"
@@ -97,8 +98,7 @@ export const NumericAxisDragRects = observer(
         onDragTranslate = (event: { dx: number; dy: number }) => {
           const delta = -(place === 'bottom' ? event.dx : event.dy)
           if (delta !== 0) {
-            const worldDelta = Number(d3Scale.invert(delta)) -
-              Number(d3Scale.invert(0))
+            const worldDelta = getDomainExtentForPixelWidth(delta, d3Scale)
             lower += worldDelta
             upper += worldDelta
             axisModel.setDynamicDomain(lower, upper)
