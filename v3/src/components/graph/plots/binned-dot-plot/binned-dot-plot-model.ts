@@ -86,7 +86,8 @@ export const BinnedDotPlotModel = DotPlotModel
       }
 
       const binAlignment = initialize || self.binAlignment == null
-        ? Math.floor(minValue / binWidth) * binWidth
+        // Floating point arithmetic correction to avoid precision issues
+        ? Math.floor(Math.floor(minValue / binWidth) * binWidth * 1e10) / 1e10
         : self.binAlignment
       const minBinEdge = binAlignment - Math.ceil((binAlignment - minValue) / binWidth) * binWidth
       // Calculate the total number of bins needed to cover the range from the minimum data value
