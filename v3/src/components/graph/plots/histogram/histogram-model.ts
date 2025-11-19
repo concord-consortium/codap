@@ -8,6 +8,7 @@ import { GraphAttrRole, PointDisplayType } from "../../../data-display/data-disp
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
 import { BinnedDotPlotModel, IBinnedDotPlotModel } from "../binned-dot-plot/binned-dot-plot-model"
 import { float1, IBarTipTextProps, IPlotModel, typesPlotType } from "../plot-model"
+import { isFiniteNumber } from "../../../../utilities/math-utils";
 
 export const HistogramModel = BinnedDotPlotModel
   .named("HistogramModel")
@@ -60,11 +61,20 @@ export const HistogramModel = BinnedDotPlotModel
       return []
     },
     barTipText(props: IBarTipTextProps) {
+
+      const roundToPrecision = (num: number, p: number) => {
+        const factor = 10 ** p
+        return Math.round(num * factor) / factor
+      }
+
       const {
         primaryMatches, casesInSubPlot, casePrimaryValue, topSplitAttrID: topSplitAttrId, caseTopSplitValue,
         rightSplitAttrID: rightSplitAttrId, caseRightSplitValue
       } = props
       const dataset = self.dataConfiguration?.dataset
+      const primaryAttributeID = self.dataConfiguration?.primaryAttributeID || ""
+      const primaryAttribute = dataset?.getAttribute(primaryAttributeID)
+      const precision = isFiniteNumber(primaryAttribute?.precision) ? primaryAttribute?.precision : 2
       const allMatchingCases = primaryMatches.filter(aCaseID => {
         if (topSplitAttrId) {
           const topSplitVal = dataset?.getStrValue(aCaseID.__id__, topSplitAttrId)
@@ -82,8 +92,8 @@ export const HistogramModel = BinnedDotPlotModel
         const firstCount = allMatchingCases.length
         const secondCount = casesInSubPlot.length
         const percent = float1(100 * firstCount / secondCount)
-        const minBinValue = minBinEdge + binIndex * binWidth
-        const maxBinValue = minBinEdge + (binIndex + 1) * binWidth
+        const minBinValue = roundToPrecision(minBinEdge + binIndex * binWidth, precision)
+        const maxBinValue = roundToPrecision(minBinEdge + (binIndex + 1) * binWidth, precision)
         // "<n> of <total> (<p>%) are ≥ L and < U"
         const attrArray = [firstCount, secondCount, percent, minBinValue, maxBinValue]
         const translationKey = firstCount === 1
