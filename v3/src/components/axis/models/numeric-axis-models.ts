@@ -43,6 +43,8 @@ export const BaseNumericAxisModel = AxisModel
       self.dynamicMin = min
       self.dynamicMax = max
     },
+    // Note that if a subclass (such as QualitativeAxisModel) has a fixed domain, it can override setDomain,
+    // setMinimum, and setMaximum to do nothing.
     setDomain(min: number, max: number) {
       // If we're close enough to zero on either end, we snap to it
       const snapFactor = 100
