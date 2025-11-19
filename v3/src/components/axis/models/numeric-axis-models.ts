@@ -43,6 +43,8 @@ export const BaseNumericAxisModel = AxisModel
       self.dynamicMin = min
       self.dynamicMax = max
     },
+    // Note that if a subclass (such as QualitativeAxisModel) has a fixed domain, it can override setDomain,
+    // setMinimum, and setMaximum to do nothing.
     setDomain(min: number, max: number) {
       // If we're close enough to zero on either end, we snap to it
       const snapFactor = 100
@@ -110,6 +112,34 @@ export function isNumericAxisModel(axisModel?: IAxisModel): axisModel is INumeri
 }
 
 registerAxisModel("numeric", NumericAxisModel)
+
+/*
+ * QualitativeAxisModel
+ */
+export const QualitativeAxisModel = BaseNumericAxisModel
+  .named("QualitativeAxisModel")
+  .props({
+    type: axisModelType("qualitative")
+  })
+  .actions(self => ({
+    setDomain() {
+      // Domain of a qualitative axis cannot be changed
+    },
+    setMinimum() {
+      // min of a qualitative axis cannot be changed
+    },
+    setMaximum() {
+      // max of a qualitative axis cannot be changed
+    }
+  }))
+export interface IQualitativeAxisModel extends Instance<typeof QualitativeAxisModel> {}
+export interface IQualitativeAxisModelSnapshot extends SnapshotIn<typeof QualitativeAxisModel> {}
+
+export function isQualitativeAxisModel(axisModel?: IAxisModel): axisModel is IQualitativeAxisModel {
+  return axisModel?.type === "qualitative"
+}
+
+registerAxisModel("qualitative", QualitativeAxisModel)
 
 /*
  * ZeroLockedAxisModel (abstract)
@@ -202,5 +232,5 @@ export function isNonDateNumericAxisModel(axisModel?: IAxisModel): axisModel is 
 
 export type IAnyNumericAxisModel = INumericAxisModel | ICountAxisModel | IPercentAxisModel | IDateAxisModel
 export function isAnyNumericAxisModel(axisModel?: IAxisModel): axisModel is IAnyNumericAxisModel {
-  return !!axisModel && ["numeric", "count", "percent", "date"].includes(axisModel.type)
+  return !!axisModel && ["numeric", "count", "percent", "date", "qualitative"].includes(axisModel.type)
 }

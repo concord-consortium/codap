@@ -1,3 +1,4 @@
+import { AxisModelType } from "../components/axis/models/axis-model"
 import { IFormula } from "../models/formula/formula"
 
 interface IBaseLegendQuantileProps {
@@ -19,7 +20,11 @@ interface IExportV3Properties extends IExportLegendQuantileProps {
   filterFormula?: IFormula
 }
 
+// key is v2 place, e.g. "x" or "y", but typing it more specifically here requires casting elsewhere
+export type V2PlaceToV3AxisTypeMap = Partial<Record<string, AxisModelType>>
+
 interface IImportV3Properties extends IImportLegendQuantileProps {
+  axisTypes?: V2PlaceToV3AxisTypeMap
   filterFormula?: string
 }
 
@@ -67,20 +72,35 @@ export function importLegendQuantileProps(props?: IImportLegendQuantileProps) {
 
 // In v2, graphs save/restore legend quantile properties, but maps do not.
 // Therefore, we provide an option to include legend quantiles when exporting v3 extension properties.
-export function exportV3Properties(props: IExportV3Properties, options?: { includeLegendQuantiles?: boolean }) {
+interface IExportV3PropsOptions {
+  axisTypes?: V2PlaceToV3AxisTypeMap
+  includeLegendQuantiles?: boolean
+}
+export function exportV3Properties(props: IExportV3Properties, options?: IExportV3PropsOptions) {
+  const { axisTypes, includeLegendQuantiles } = options || {}
   const _hasFilter = hasFilterFormula(props)
-  const _hasLegendQuantiles = options?.includeLegendQuantiles && hasLegendQuantiles(props)
-  return _hasFilter || _hasLegendQuantiles
+  const _hasLegendQuantiles = includeLegendQuantiles && hasLegendQuantiles(props)
+  const _hasAxisTypes = axisTypes && (Object.keys(axisTypes).length > 0)
+  return _hasFilter || _hasLegendQuantiles || _hasAxisTypes
           ? {
               v3: {
                 ...(_hasFilter ? { filterFormula: props.filterFormula?.display } : {}),
-                ...exportLegendQuantileProps(props)
+                ...exportLegendQuantileProps(props),
+                ...(axisTypes ? { axisTypes } : {})
               }
             }
           : {}
 }
 
-export function importV3Properties(props?: IImportV3Properties) {
+interface IImportV3PropsOptions {
+  axisTypes?: V2PlaceToV3AxisTypeMap
+}
+export function importV3Properties(props?: IImportV3Properties, options?: IImportV3PropsOptions) {
+  const { axisTypes } = options || {}
+  if (axisTypes && props?.axisTypes) {
+    axisTypes.x = props.axisTypes.x
+    axisTypes.y = props.axisTypes.y
+  }
   return props?.filterFormula || hasLegendQuantiles(props)
           ? {
               ...(props?.filterFormula ? { filterFormula: { display: props.filterFormula } } : {}),

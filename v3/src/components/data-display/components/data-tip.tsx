@@ -82,6 +82,10 @@ export const DataTip = (props: IDataTipProps) => {
     event.stopPropagation()
     // Get the text to display in the data tip
     const tipTextString = tipText({dataset, caseID, plotNum, getTipAttrs, legendAttrID, dataConfiguration, getTipText})
+    if (!tipTextString) {
+      // Can happen when there are no attributes and when only attribute is qualitative
+      return
+    }
     tipTextLines.current = tipTextString.split("<br>")
     // Create the virtual element to use as a reference for positioning the data tip
     const virtualElement = createVirtualElement(event)

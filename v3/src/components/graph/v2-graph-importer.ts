@@ -1,17 +1,18 @@
+import { AxisModelType } from "../axis/models/axis-model"
+import {IAxisModelSnapshotUnion} from "../axis/models/axis-model-union"
+import {AxisPlace} from "../axis/axis-types"
 import { ITileModel, ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import {toV3AttrId, toV3Id} from "../../utilities/codap-utils"
 import {defaultBackgroundColor, parseColorToHex} from "../../utilities/color-utils"
+import {v3TypeFromV2TypeIndex} from "../../v2/codap-v2-data-context-types"
 import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
 import { IGuidLink, isV2GraphComponent } from "../../v2/codap-v2-types"
-import { importLegendQuantileProps, importV3Properties } from "../../v2/codap-v2-type-utils"
-import {v3TypeFromV2TypeIndex} from "../../v2/codap-v2-data-context-types"
+import { importLegendQuantileProps, importV3Properties, V2PlaceToV3AxisTypeMap } from "../../v2/codap-v2-type-utils"
 import {GraphAttrRole, PrimaryAttrRole, axisPlaceToAttrRole} from "../data-display/data-display-types"
-import { v2DataDisplayPostImportSnapshotProcessor } from "../data-display/v2-data-display-import-utils"
 import {
   GraphAttributeDescriptionsMapSnapshot, IAttributeDescriptionSnapshot
 } from "../data-display/models/data-configuration-model"
-import {AxisPlace} from "../axis/axis-types"
-import {IAxisModelSnapshotUnion} from "../axis/models/axis-model-union"
+import { v2DataDisplayPostImportSnapshotProcessor } from "../data-display/v2-data-display-import-utils"
 import {IAdornmentImporterProps, v2AdornmentImporter} from "./adornments/v2-adornment-importer"
 import {kGraphIdPrefix, kGraphTileType} from "./graph-defs"
 import { IGraphContentModelSnapshot } from "./models/graph-content-model"
@@ -43,15 +44,15 @@ export function v2GraphImporter({v2Component, v2Document, getCaseData, insertTil
   if (!isV2GraphComponent(v2Component)) return
 
   const {
-    guid,
-
-    componentStorage: {
+    guid, componentStorage: {
       name, title, userSetTitle, _links_: links, plotModels, hiddenCases: _hiddenCaseIds, cannotClose,
       pointColor, transparency, strokeColor, strokeTransparency, pointSizeMultiplier,
       strokeSameAsFill, isTransparent, displayOnlySelected, enableMeasuresForSelection,
       enableNumberToggle, numberToggleLastMode, plotBackgroundImage, plotBackgroundImageLockInfo, v3
     }
   } = v2Component
+  const v3AxisTypes: V2PlaceToV3AxisTypeMap = {}
+  const v3Properties = importV3Properties(v3, { axisTypes: v3AxisTypes })
   const plotBackgroundOpacity = v2Component.componentStorage.plotBackgroundOpacity ?? 1
   const plotBackgroundColor =
             (v2Component.componentStorage.plotBackgroundColor &&
@@ -73,6 +74,7 @@ export function v2GraphImporter({v2Component, v2Document, getCaseData, insertTil
   let primaryRole: PrimaryAttrRole | undefined
   const _attributeDescriptions: GraphAttributeDescriptionsMapSnapshot = {}
   const _yAttributeDescriptions: IAttributeDescriptionSnapshot[] = []
+  const v2AttrIdsForPlaces: Partial<Record<string, number>> = {}
 
     // configure attributes
   ;(Object.keys(links) as TLinksKey[]).forEach((linksKey) => {
@@ -89,6 +91,7 @@ export function v2GraphImporter({v2Component, v2Document, getCaseData, insertTil
         v3AttrId = v2AttrId ? toV3AttrId(v2AttrId) : undefined,
         v2Role = v2Component.componentStorage[`${attrKey}Role`],
         v2Type = v2Component.componentStorage[`${attrKey}AttributeType`]
+      v2AttrIdsForPlaces[attrKey] = v2AttrId
       if (v2Type != null && v3AttrRole && v3AttrId) {
         const v3Type = v3TypeFromV2TypeIndex[v2Type]
         const v2PrimaryNumeric = 1
@@ -122,6 +125,25 @@ export function v2GraphImporter({v2Component, v2Document, getCaseData, insertTil
     return v3Place === "left" ? !!_yAttributeDescriptions[0] : !!_attributeDescriptions[role]
   }
 
+  function inferV3NumericAxisType(v2Place: V2GraphPlace, axisClass?: string): AxisModelType {
+    // if V3 exported the type, then use it
+    if (v3AxisTypes[v2Place]) return v3AxisTypes[v2Place]
+
+    // otherwise, we have to infer it from what V2 exported
+    const v3Place = v3PlaceFromV2Place[v2Place]
+    const attrDescType = _attributeDescriptions[axisPlaceToAttrRole[v3Place]]?.type
+    const attrId = v2AttrIdsForPlaces[v2Place]
+    const attrType = attrId ? v2Document.getV2Attribute(attrId)?.type : undefined
+    return axisClass === "DG.CountAxisModel"
+            ? "count"
+            : attrDescType === "date"
+              ? "date"
+              // V2 doesn't export qualitative axes properly, so we have to infer them from attribute type
+              : [attrDescType, attrType].includes("qualitative")
+                ? "qualitative"
+                : "numeric"
+  }
+
   v2GraphPlaces.forEach(v2Place => {
     const v3Place = v3PlaceFromV2Place[v2Place]
     const axisClass = v2Component.componentStorage[`${v2Place}AxisClass`]
@@ -137,11 +159,7 @@ export function v2GraphImporter({v2Component, v2Document, getCaseData, insertTil
         case "DG.CellLinearAxisModel":
         case "DG.CountAxisModel":
         case "DG.FormulaAxisModel": {
-          const type = axisClass === "DG.CountAxisModel"
-                        ? "count"
-                        : _attributeDescriptions[axisPlaceToAttrRole[v3Place]]?.type === "date"
-                          ? "date"
-                          : "numeric"
+          const type = inferV3NumericAxisType(v2Place, axisClass)
           // V2 lowerBound or upperBound can be undefined or null, which will cause an MST exception and
           // failure to load. So we assign a default value of lowerBound = 0 and upperBound = 10 if they are undefined.
           axes[v3Place] = {place: v3Place, type, min: lowerBound ?? 0, max: upperBound ?? 10}
@@ -203,7 +221,7 @@ export function v2GraphImporter({v2Component, v2Document, getCaseData, insertTil
         displayOnlySelectedCases: displayOnlySelected,
         showMeasuresForSelection: enableMeasuresForSelection || undefined,
         ...importLegendQuantileProps(v2Component.componentStorage),
-        ...importV3Properties(v3)
+        ...v3Properties
       }
     }]
   }

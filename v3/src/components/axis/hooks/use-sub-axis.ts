@@ -18,6 +18,7 @@ import { AxisHelper, EmptyAxisHelper, IAxisHelperArgs } from "../helper-models/a
 import { CatObject, CategoricalAxisHelper } from "../helper-models/categorical-axis-helper"
 import { DateAxisHelper } from "../helper-models/date-axis-helper"
 import { NumericAxisHelper } from "../helper-models/numeric-axis-helper"
+import { QualitativeAxisHelper } from "../helper-models/qualitative-axis-helper"
 import { useAxisLayoutContext } from "../models/axis-layout-context"
 import {IAxisModel} from "../models/axis-model"
 import { isAnyCategoricalAxisModel, isColorAxisModel } from "../models/categorical-axis-models"
@@ -281,6 +282,9 @@ export const useSubAxis = ({
         case 'numeric':
           helper = new NumericAxisHelper(
             { ...helperProps, showScatterPlotGridLines, showZeroAxisLine })
+          break
+        case 'qualitative':
+          helper = new QualitativeAxisHelper(helperProps)
           break
         case 'categorical':
         case 'color':
