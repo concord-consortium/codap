@@ -7,11 +7,13 @@ import { setNiceDomain } from "../../axis/axis-domain-utils"
 import { AxisPlace, IAxisDomainOptions, IAxisTicks, TickFormatter } from "../../axis/axis-types"
 import { EmptyAxisModel, IAxisModel, isEmptyAxisModel } from "../../axis/models/axis-model"
 import { IAxisProviderBase } from "../../axis/models/axis-provider"
-import { CategoricalAxisModel, ColorAxisModel, isCategoricalAxisModel, isColorAxisModel
-  } from "../../axis/models/categorical-axis-models"
-import {CountAxisModel, DateAxisModel, isCountAxisModel, isDateAxisModel, isNumericAxisModel, isPercentAxisModel,
+import {
+  CategoricalAxisModel, ColorAxisModel, isCategoricalAxisModel, isColorAxisModel
+} from "../../axis/models/categorical-axis-models"
+import {
+  CountAxisModel, DateAxisModel, isCountAxisModel, isDateAxisModel, isNumericAxisModel, isPercentAxisModel,
   isQualitativeAxisModel, NumericAxisModel, PercentAxisModel, QualitativeAxisModel
-  } from "../../axis/models/numeric-axis-models"
+} from "../../axis/models/numeric-axis-models"
 import { GraphAttrRole, PointDisplayType } from "../../data-display/data-display-types"
 import { PlotType } from "../graphing-types"
 import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"

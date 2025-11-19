@@ -135,13 +135,13 @@ export function v2GraphImporter({v2Component, v2Document, getCaseData, insertTil
     const attrId = v2AttrIdsForPlaces[v2Place]
     const attrType = attrId ? v2Document.getV2Attribute(attrId)?.type : undefined
     return axisClass === "DG.CountAxisModel"
-                  ? "count"
-                  : attrDescType === "date"
-                    ? "date"
-                    // V2 doesn't export qualitative axes properly, so we have to infer them from attribute type
-                    : [attrDescType, attrType].includes("qualitative")
-                      ? "qualitative"
-                      : "numeric"
+            ? "count"
+            : attrDescType === "date"
+              ? "date"
+              // V2 doesn't export qualitative axes properly, so we have to infer them from attribute type
+              : [attrDescType, attrType].includes("qualitative")
+                ? "qualitative"
+                : "numeric"
   }
 
   v2GraphPlaces.forEach(v2Place => {
