@@ -111,6 +111,8 @@ describe("V2GraphImporter", () => {
   const kIgnoreProps = [
     // standard properties handled externally
     "cannotClose", "name", "title", "userSetTitle",
+    // v3 extensions aren't expected to round-trip
+    "v3",
     ...kNotImplementedProps
   ]
 

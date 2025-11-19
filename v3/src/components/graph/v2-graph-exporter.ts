@@ -5,8 +5,8 @@ import { toV2Id } from "../../utilities/codap-utils"
 import { defaultBackgroundColor, removeAlphaFromColor } from "../../utilities/color-utils"
 import { V2TileExportFn } from "../../v2/codap-v2-tile-exporters"
 import { CodapV2PlotType, guidLink, ICodapV2Adornment, ICodapV2GraphStorage, IGuidLink } from "../../v2/codap-v2-types"
-import { exportLegendQuantileProps, exportV3Properties } from "../../v2/codap-v2-type-utils"
-import { IAxisModel } from "../axis/models/axis-model"
+import { exportLegendQuantileProps, exportV3Properties, V2PlaceToV3AxisTypeMap } from "../../v2/codap-v2-type-utils"
+import { AxisModelType, IAxisModel } from "../axis/models/axis-model"
 import { isAnyCategoricalAxisModel } from "../axis/models/categorical-axis-models"
 import { isAnyNumericAxisModel, isCountAxisModel } from "../axis/models/numeric-axis-models"
 import { GraphAttrRole } from "../data-display/data-display-types"
@@ -23,13 +23,14 @@ import { isBinnedPlotModel } from "./plots/histogram/histogram-model"
 
 type V2GraphDimension = "x" | "y" | "y2" | "top" | "right" | "legend"
 
-// map from v3 attribute type to v2 numeric attribute type
+// map from v3 attribute type to v2 attribute type
 const v2TypesMap: Partial<Record<AttributeType, number>> = {
   numeric: 1,
   categorical: 2,
   date: 3,
   boundary: 4,
-  color: 5
+  color: 5,
+  qualitative: 1  // v2 writes out qualitative as numeric
 }
 
 // v2 role constants
@@ -86,7 +87,7 @@ function getAttrRoleAndType(
         }
         else {
           // note: v2 writes out all secondary axis roles as eSecondaryCategorical, even with no attribute
-          v2Role = type === "numeric" || type === "date"
+          v2Role = ["numeric", "date", "qualitative"].includes(type || "")
                     ? isPrimary ? v2Roles.ePrimaryNumeric : v2Roles.eSecondaryCategorical
                     : isPrimary ? v2Roles.ePrimaryCategorical : v2Roles.eSecondaryCategorical
         }
@@ -151,6 +152,13 @@ function getLinks(graph: IGraphContentModel): ICodapV2GraphStorage["_links_"] {
 }
 
 type AxisClassAndBounds = Partial<ICodapV2GraphStorage>
+
+function getV3AxisTypes(graph: IGraphContentModel): V2PlaceToV3AxisTypeMap {
+  return {
+    x: (graph.axes.get("bottom")?.type || "empty") as AxisModelType,
+    y: (graph.axes.get("left")?.type || "empty") as AxisModelType
+  }
+}
 
 function getAxisClassAndBounds(
   graph: IGraphContentModel, dim: V2GraphDimension, axis?: IAxisModel, isPrimary = false
@@ -327,7 +335,7 @@ export const v2GraphExporter: V2TileExportFn = ({ tile }) => {
     // plot models
     ...getPlotModels(graph),
     // v3 extensions
-    ...exportV3Properties(graph.dataConfiguration, { includeLegendQuantiles: false })
+    ...exportV3Properties(graph.dataConfiguration, { axisTypes: getV3AxisTypes(graph) })
   }
 
   return { type: "DG.GraphView", componentStorage }

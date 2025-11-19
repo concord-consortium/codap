@@ -86,13 +86,14 @@ export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, opt
     }
   }
 
+  // qualitative bars
   if (type === "qualitative") {
     if (str) {
       const pctStr = num >= 0 ? str : "0"
       return {
         value: str,
         content: <span className="cell-qualitative-backing" key={key}>
-                  <span className='cell-qualitative-bar'
+                  <span className="cell-qualitative-bar"
                         style={{background: defaultPointColor, width: `${pctStr}%`}}/>
                  </span>
       }
@@ -100,7 +101,7 @@ export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, opt
   }
 
   // colors
-  const color = type === "color" || !userType ? parseColor(str, {colorNames: type === "color" }) : ""
+  const color = type === "color" || !userType ? parseColor(str, { colorNames: type === "color" }) : ""
   if (color) {
     return {
       value: color,
