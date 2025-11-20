@@ -95,7 +95,11 @@ export const EditFormulaModal = observer(function EditFormulaModal({
       applyAndClose()
     }
     if (event.key === "Escape") {
-      if (!isAutoCompleteMenuOpen.current) {
+      if (showValuesMenu) {
+        setShowValuesMenu(false)
+      } else if (showFunctionMenu) {
+        setShowFunctionMenu(false)
+      } else if (!isAutoCompleteMenuOpen.current) {
         closeModal()
       }
     }
