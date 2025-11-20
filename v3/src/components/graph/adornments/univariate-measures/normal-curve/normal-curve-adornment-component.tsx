@@ -6,6 +6,7 @@ import { t } from "../../../../../utilities/translation/translate"
 import { getDocumentContentPropertyFromNode } from "../../../../../utilities/mst-utils"
 import { measureText } from "../../../../../hooks/use-measure-text"
 import { fitGaussianGradientDescent, normal, sqrtTwoPi } from "../../../../../utilities/math-utils"
+import { getDomainExtentForPixelWidth } from "../../../../axis/axis-utils"
 import { useGraphContentModelContext } from "../../../hooks/use-graph-content-model-context"
 import { isBinnedPlotModel } from "../../../plots/histogram/histogram-model"
 import { curveBasis } from "../../../utilities/graph-utils"
@@ -13,14 +14,15 @@ import { IAdornmentComponentProps } from "../../adornment-component-info"
 import { UnivariateMeasureAdornmentHelper } from "../univariate-measure-adornment-helper"
 import { useAdornmentAttributes } from "../../../hooks/use-adornment-attributes"
 import { useAdornmentCells } from "../../../hooks/use-adornment-cells"
-import { ILabel } from "../univariate-measure-adornment-types"
-import { IMeasureInstance } from "../univariate-measure-adornment-model"
-import { UnivariateMeasureAdornmentBaseComponent } from "../univariate-measure-adornment-base-component"
-import { kGaussianFitLabelKey, kNormalCurveClass, kNormalCurveMeanValueTitleKey, kNormalCurveStdDevValueTitleKey }
-  from "./normal-curve-adornment-types"
-import { kStandardErrorType } from "../standard-error/standard-error-adornment-types"
-import { INormalCurveAdornmentModel } from "./normal-curve-adornment-model"
 import { isStandardErrorAdornment } from "../standard-error/standard-error-adornment-model"
+import { kStandardErrorType } from "../standard-error/standard-error-adornment-types"
+import { UnivariateMeasureAdornmentBaseComponent } from "../univariate-measure-adornment-base-component"
+import { IMeasureInstance } from "../univariate-measure-adornment-model"
+import { ILabel } from "../univariate-measure-adornment-types"
+import { INormalCurveAdornmentModel } from "./normal-curve-adornment-model"
+import {
+  kGaussianFitLabelKey, kNormalCurveClass, kNormalCurveMeanValueTitleKey, kNormalCurveStdDevValueTitleKey
+} from "./normal-curve-adornment-types"
 
 interface INormalCurveSelections {
   normalCurve?: Selection<SVGPathElement, unknown, null, undefined>
@@ -219,7 +221,7 @@ export const NormalCurveAdornmentComponent = observer(
           pointRadius = graphModel.getPointRadius(),
           numCellsNumeric = isVerticalRef.current ? cellCounts.x : cellCounts.y,
           overlap = graphModel.pointOverlap,
-          binWidth = binnedPlot?.binWidth ?? Math.abs(numericScale.invert(pointRadius * 2) - numericScale.invert(0))
+          binWidth = binnedPlot?.binWidth ?? Math.abs(getDomainExtentForPixelWidth(pointRadius * 2, numericScale))
 
         if (!countAxisFunc || binWidth === undefined) return ""
 

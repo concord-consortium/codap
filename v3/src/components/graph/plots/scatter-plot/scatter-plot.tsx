@@ -3,24 +3,21 @@ import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
 import * as PIXI from "pixi.js"
 import React, {useCallback, useEffect, useRef, useState} from "react"
+import {useDataSetContext} from "../../../../hooks/use-data-set-context"
+import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 import {appState} from "../../../../models/app-state"
+import {ICase} from "../../../../models/data/data-set-types"
 import {
   firstVisibleParentAttribute, idOfChildmostCollectionForAttributes
 } from "../../../../models/data/data-set-utils"
 import {ScaleNumericBaseType} from "../../../axis/axis-types"
+import { getDomainExtentForPixelWidth } from "../../../axis/axis-utils"
 import { CaseData } from "../../../data-display/d3-types"
-import {IPlotProps} from "../../graphing-types"
 import { handleClickOnCase, setPointSelection } from "../../../data-display/data-display-utils"
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
+import { useConnectingLines } from "../../../data-display/hooks/use-connecting-lines"
 import {useDataDisplayAnimation} from "../../../data-display/hooks/use-data-display-animation"
-import { getScreenCoord, setPointCoordinates } from "../../utilities/graph-utils"
-import {useGraphContentModelContext} from "../../hooks/use-graph-content-model-context"
-import {useGraphDataConfigurationContext} from "../../hooks/use-graph-data-configuration-context"
-import {useGraphLayoutContext} from "../../hooks/use-graph-layout-context"
-import {usePixiDragHandlers, usePlotResponders} from "../../hooks/use-plot"
-import {useDataSetContext} from "../../../../hooks/use-data-set-context"
-import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
-import {ICase} from "../../../../models/data/data-set-types"
+import { IPixiPointMetadata } from "../../../data-display/pixi/pixi-points"
 import { ILSRLAdornmentModel } from "../../adornments/lsrl/lsrl-adornment-model"
 import { IMovableLineAdornmentModel } from "../../adornments/movable-line/movable-line-adornment-model"
 import { IPlottedFunctionAdornmentModel } from "../../adornments/plotted-function/plotted-function-adornment-model"
@@ -28,8 +25,12 @@ import {ISquareOfResidual} from "../../adornments/shared-adornment-types"
 import { kLSRLType } from "../../adornments/lsrl/lsrl-adornment-types"
 import { kMovableLineType } from "../../adornments/movable-line/movable-line-adornment-types"
 import { kPlottedFunctionType } from "../../adornments/plotted-function/plotted-function-adornment-types"
-import { IPixiPointMetadata } from "../../../data-display/pixi/pixi-points"
-import { useConnectingLines } from "../../../data-display/hooks/use-connecting-lines"
+import {IPlotProps} from "../../graphing-types"
+import {useGraphContentModelContext} from "../../hooks/use-graph-content-model-context"
+import {useGraphDataConfigurationContext} from "../../hooks/use-graph-data-configuration-context"
+import {useGraphLayoutContext} from "../../hooks/use-graph-layout-context"
+import {usePixiDragHandlers, usePlotResponders} from "../../hooks/use-plot"
+import { setPointCoordinates } from "../../utilities/graph-utils"
 import { scatterPlotFuncs } from "./scatter-plot-utils"
 
 export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotProps) {
@@ -48,7 +49,9 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
     currPos = useRef({x: 0, y: 0}),
     didDrag = useRef(false),
     selectedDataObjects = useRef<Record<string, { x: number, y: number }>>({}),
-    plotNumRef = useRef(0)
+    plotNumRef = useRef(0),
+    numExtraPrimaryBands = dataConfiguration?.numRepetitionsForPlace('bottom') ?? 1,
+    numExtraSecondaryBands = dataConfiguration?.numRepetitionsForPlace('left') ?? 1
 
   // The Squares of Residuals option is controlled by the AdornmentsStore, so we need to watch for changes to that store
   // and call refreshSquares when the option changes. The squares are rendered in connection with the Movable Line and
@@ -118,8 +121,8 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
       currPos.current = newPos
       if (dx !== 0 || dy !== 0) {
         didDrag.current = true
-        const deltaX = Number(xAxisScale.invert(dx)) - Number(xAxisScale.invert(0)),
-          deltaY = Number(yScaleRef.current?.invert(dy)) - Number(yScaleRef.current?.invert(0)),
+        const deltaX = numExtraPrimaryBands * getDomainExtentForPixelWidth(dx, xAxisScale),
+          deltaY = numExtraSecondaryBands * getDomainExtentForPixelWidth(dy, yScaleRef.current),
           caseValues: ICase[] = [],
           { selection } = dataConfiguration || {}
         selection?.forEach((anID: string) => {
@@ -138,9 +141,12 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
             [xAttrID, secondaryAttrIDsRef.current[plotNumRef.current]])
       }
     }
-  }, [layout, dataConfiguration, dataset, dragID])
+  }, [layout, dataConfiguration, dataset, dragID, numExtraPrimaryBands, numExtraSecondaryBands])
 
   const onDragEnd = useCallback(() => {
+    // We turn these off first so that transitions will work properly when we update the data values
+    dataset?.endCaching()
+    appState.endPerformance()
     if (dragID !== '') {
       setDragID(() => '')
       if (didDrag.current) {
@@ -160,10 +166,6 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
         didDrag.current = false
       }
     }
-    // These calls are moved to the end to ensure that transitions are not broken by all the points being
-    // repositioned (default behavior when caching and perf mode is disabled).
-    dataset?.endCaching()
-    appState.endPerformance()
   }, [dataConfiguration, dataset, dragID, startAnimation])
 
   usePixiDragHandlers(pixiPoints, {start: onDragStart, drag: onDrag, end: onDragEnd})
@@ -276,15 +278,13 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
     if (!pixiPoints) {
       return
     }
-    const xAttrID = dataConfiguration?.attributeID('x') ?? '',
-      {joinedCaseDataArrays, selection} = dataConfiguration || {},
-      primaryAxisScale = layout.getAxisScale('bottom') as ScaleLinear<number, number>,
+    const {joinedCaseDataArrays, selection} = dataConfiguration || {},
       numberOfPlots = dataConfiguration?.numberOfPlots || 1
+    const {getXCoord: getScreenX, getYCoord: getScreenY} = scatterPlotFuncs(layout, dataConfiguration)
     const updateDot = (aCaseData: CaseData) => {
       const caseId = aCaseData.caseID
-      const x = primaryAxisScale && getScreenCoord(dataset, caseId, xAttrID, primaryAxisScale)
-      const y = yScaleRef.current &&
-        getScreenCoord(dataset, caseId, secondaryAttrIDsRef.current[aCaseData.plotNum], yScaleRef.current)
+      const x = getScreenX(caseId)
+      const y = getScreenY(caseId)
       if (x != null && isFinite(x) && y != null && isFinite(y)) {
         const point = pixiPoints.getPointForCaseData(aCaseData)
         point && pixiPoints.setPointPosition(point, x, y)
@@ -299,7 +299,7 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
     } else {
       joinedCaseDataArrays?.forEach((aCaseData) => updateDot(aCaseData))
     }
-  }, [pixiPoints, dataConfiguration, layout, dataset])
+  }, [pixiPoints, dataConfiguration, layout])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     refreshConnectingLines()
@@ -338,7 +338,7 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
           <rect width={layout.plotWidth} height={layout.plotHeight} />
         </clipPath>
       </defs>
-      <g 
+      <g
         className="connecting-lines"
         clipPath={`url(#plot-clip-${instanceId})`}
         data-testid={`connecting-lines-${instanceId}`}

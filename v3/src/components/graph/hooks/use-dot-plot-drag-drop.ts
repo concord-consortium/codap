@@ -5,6 +5,7 @@ import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { appState } from "../../../models/app-state"
 import { ICase } from "../../../models/data/data-set-types"
 import { toNonEmptyValue } from "../../../utilities/math-utils"
+import { getDomainExtentForPixelWidth } from "../../axis/axis-utils"
 import { handleClickOnCase } from "../../data-display/data-display-utils"
 import { dataDisplayGetNumericValue } from "../../data-display/data-display-value-utils"
 import { useDataDisplayAnimation } from "../../data-display/hooks/use-data-display-animation"
@@ -27,6 +28,7 @@ export const useDotPlotDragDrop = () => {
   const currPos = useRef(0)
   const didDrag = useRef(false)
   const draggingAllowed = !dataset?.getAttribute(primaryAttrID)?.hasFormula
+  const numExtraPrimaryBands = dataConfig?.numRepetitionsForPlace('bottom') ?? 1
 
   /*
    * Drag handling. Dots in a dot plot can be dragged to change their position along
@@ -59,7 +61,7 @@ export const useDotPlotDragDrop = () => {
       currPos.current = newPos
       if (deltaPixels !== 0) {
         didDrag.current = true
-        const delta = Number(primaryAxisScale.invert(deltaPixels)) - Number(primaryAxisScale.invert(0))
+        const delta = numExtraPrimaryBands * getDomainExtentForPixelWidth(deltaPixels, primaryAxisScale)
         const caseValues: ICase[] = []
         const {selection} = dataConfig || {}
         selection?.forEach(anID => {

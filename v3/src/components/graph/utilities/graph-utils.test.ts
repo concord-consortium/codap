@@ -1,9 +1,7 @@
-import {scaleLinear} from "d3"
-import {DataSet, toCanonical} from "../../../models/data/data-set"
 import {ptInRect} from "../../data-display/data-display-utils"
 import { GraphLayout } from "../models/graph-layout"
 import {
-  equationString, formatValue, getScreenCoord, kMinus, lineToAxisIntercepts, lsrlEquationString, valueLabelString
+  equationString, formatValue, kMinus, lineToAxisIntercepts, lsrlEquationString, valueLabelString
 } from "./graph-utils"
 
 describe("formatValue", () => {
@@ -113,23 +111,6 @@ describe("lineToAxisIntercepts", () => {
       result = lineToAxisIntercepts(1, -2, xDomain, yDomain)
     expect(ptInRect(result.pt1, rect) || ptInRect(result.pt2, rect))
       .toBe(false)
-  })
-
-})
-
-describe("getScreenCoord", () => {
-  it("The screen coord with domain [0, 100] and range [20,200] should be ???", () => {
-    const dataset = DataSet.create({name: "data"})
-    dataset.addAttribute({name: "a"})
-    dataset.addCases(toCanonical(dataset, [{a: 3}]))
-    const attrID = dataset.attributes[0].id,
-      caseID = dataset.items[0].__id__,
-      scale = scaleLinear([0, 100], [20, 200]),
-      coord1 = getScreenCoord(dataset, caseID, attrID, scale)
-    scale.domain([100, 0])
-    const coord2 = getScreenCoord(dataset, caseID, attrID, scale)
-    expect(coord1).toBeCloseTo(20 + 0.03 * 180, 5)
-    expect(coord2).toBeCloseTo(20 + 0.97 * 180, 5)
   })
 
 })

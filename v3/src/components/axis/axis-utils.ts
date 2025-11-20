@@ -1,13 +1,14 @@
-import {ScaleLinear} from "d3"
+import {ScaleContinuousNumeric, ScaleLinear} from "d3"
 import {MutableRefObject} from "react"
-import { determineLevels } from "../../utilities/date-utils"
-import vars from "../vars.scss"
-import {measureText, measureTextExtent} from "../../hooks/use-measure-text"
-import { kAxisGap, kAxisTickLength, kDefaultFontHeight } from "./axis-constants"
-import { axisPlaceToAttrRole, kDataDisplayFont } from "../data-display/data-display-types"
 import { IDataConfigurationModel } from "../data-display/models/data-configuration-model"
-import {AxisPlace} from "./axis-types"
+import { axisPlaceToAttrRole, kDataDisplayFont } from "../data-display/data-display-types"
+import {measureText, measureTextExtent} from "../../hooks/use-measure-text"
+import { determineLevels } from "../../utilities/date-utils"
 import { GraphLayout } from "../graph/models/graph-layout"
+import { kAxisGap, kAxisTickLength, kDefaultFontHeight } from "./axis-constants"
+import {AxisPlace} from "./axis-types"
+
+import vars from "../vars.scss"
 
 export const getStringBounds = (s = 'Wy', font = kDataDisplayFont) => {
   return measureTextExtent(s, font)
@@ -212,6 +213,17 @@ export const getCoordFunctions = (props: IGetCoordFunctionsProps): ICoordFunctio
       getLabelY: () => (isTop ? -1 : 1) * (kAxisTickLength + kAxisGap) + labelYOffset
     }
   }
+}
+
+/**
+ * Compute the real world width for a given pixel width on the specified scale.
+ *
+ * @param {number} pixels - The pixel width for which to compute the domain extent.
+ * @param {ScaleContinuousNumeric<number, number>} scale - The D3 scale for which to compute the extent.
+ * @returns {number} - The computed domain extent for the given pixel width on the given scale.
+ */
+export function getDomainExtentForPixelWidth(pixels: number, scale: Maybe<ScaleContinuousNumeric<number, number>>) {
+  return scale ? scale.invert(pixels) - scale.invert(0) : 0
 }
 
 /**
