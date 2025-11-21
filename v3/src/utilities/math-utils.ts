@@ -10,6 +10,36 @@ export function between(num: number, min: number, max: number) {
   return min < max ? (min <= num && num <= max) : (max <= num && num <= min)
 }
 
+// precision >= 0 is decimal places; precision < 0 is places to left of decimal, e.g., -2 rounds to hundreds place
+export function roundToPrecision(num: number, precision: number) {
+  const factor = Math.pow(10, precision)
+  return Math.round(num * factor) / factor
+}
+
+  // Determines the number of significant digits/decimal places necessary to represent the specified value.
+  // Converts to exponential notation and combines significant digits in mantissa and exponent.
+  export function getPrecisionForValue(value?: number): number {
+    if (!value) return 0
+
+    // Convert to exponential notation to count significant digits
+    const expStr = value.toExponential()
+    // Format: "1.5e-1" or "2e+0" or "1.23e-2"
+
+    // Extract mantissa and exponent
+    const [mantissaStr, expStr2] = expStr.split('e')
+    const exponent = parseInt(expStr2, 10)
+
+    // Count decimal places in mantissa (e.g., "1.5" has 1, "1.23" has 2)
+    const decimalIndex = mantissaStr.indexOf('.')
+    const mantissaDecimals = decimalIndex === -1 ? 0 : mantissaStr.length - decimalIndex - 1
+
+    // Precision = mantissa decimals - exponent
+    // For 0.15: mantissa "1.5" (1 decimal), exponent -1 → 1 - (-1) = 2 ✓
+    // For 0.2: mantissa "2" (0 decimals), exponent -1 → 0 - (-1) = 1 ✓
+    // For 1000: mantissa "1" (0 decimals), exponent 3 → 0 - 3 = -3 ✓
+    return mantissaDecimals - exponent
+  }
+
 /* Given two numbers, determine the least number of significant figures needed for their display to distinguish
 * between them. */
 export function neededSignificantDigits(num1: number, num2: number) {

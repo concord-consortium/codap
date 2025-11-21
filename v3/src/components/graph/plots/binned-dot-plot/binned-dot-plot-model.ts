@@ -3,8 +3,10 @@ import { isFiniteNumber } from "../../../../utilities/math-utils"
 import { IAxisTicks, TickFormatter } from "../../../axis/axis-types"
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
 import { DotPlotModel } from "../dot-plot/dot-plot-model"
-import {ICountAdornmentValuesProps, INumDenom, IPlotModel, IRespondToPlotChangeOptions, typesPlotType}
-  from "../plot-model"
+import {
+  ICountAdornmentValuesProps, INumDenom, IPlotModel, IRespondToPlotChangeOptions, typesPlotType
+} from "../plot-model"
+import { BinDetails } from "./bin-details"
 
 export const BinnedDotPlotModel = DotPlotModel
   .named("BinnedDotPlotModel")
@@ -62,6 +64,14 @@ export const BinnedDotPlotModel = DotPlotModel
     }
   }))
   .views(self => ({
+    binDetailsFromValues(minValue: number, maxValue: number, options?: { initialize?: boolean }) {
+      const { initialize = false } = options ?? {}
+      const binWidth = initialize || !self.binWidth ? undefined : self.binWidth
+      const binAlignment = initialize || self.binAlignment == null ? undefined : self.binAlignment
+      return new BinDetails(minValue, maxValue, binWidth, binAlignment)
+    }
+  }))
+  .views(self => ({
     binDetails(options?: { initialize?: boolean }) {
       const { initialize = false } = options ?? {}
       const { dataset, primaryAttributeID } = self.dataConfiguration ?? {}
@@ -78,25 +88,9 @@ export const BinnedDotPlotModel = DotPlotModel
                         : max
         return isFiniteNumber(value) ? Math.max(max, value ?? max) : max
       }, -Infinity)
-      const binWidth = initialize || !self.binWidth
-        ? self.binWidthFromData(minValue, maxValue) : self.binWidth
-      if (!isFinite(minValue) || !isFinite(maxValue) || binWidth == null) {
-        return { binAlignment: self.binAlignment, binWidth: self.binWidth,
-                  minBinEdge: 0, maxBinEdge: 0, minValue: 0, maxValue: 0, totalNumberOfBins: 0 }
-      }
 
-      const binAlignment = initialize || self.binAlignment == null
-        // Floating point arithmetic correction to avoid precision issues
-        ? Math.floor(Math.floor(minValue / binWidth) * binWidth * 1e10) / 1e10
-        : self.binAlignment
-      const minBinEdge = binAlignment - Math.ceil((binAlignment - minValue) / binWidth) * binWidth
-      // Calculate the total number of bins needed to cover the range from the minimum data value
-      // to the maximum data value, adding a small constant to ensure the max value is contained.
-      const totalNumberOfBins = Math.ceil((maxValue - minBinEdge) / binWidth + 0.000001)
-      const maxBinEdge = minBinEdge + (totalNumberOfBins * binWidth)
-
-      return { binAlignment, binWidth, minBinEdge, maxBinEdge, minValue, maxValue, totalNumberOfBins }
-    },
+      return self.binDetailsFromValues(minValue, maxValue, { initialize })
+    }
   }))
   .views(self => {
     const baseMaxCellCaseCount = self.maxCellCaseCount

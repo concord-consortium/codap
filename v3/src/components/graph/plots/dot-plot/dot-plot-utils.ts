@@ -11,15 +11,15 @@ import { dataDisplayGetNumericValue } from "../../../data-display/data-display-v
 import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
 import { GraphLayout } from "../../models/graph-layout"
 import { SubPlotCells } from "../../models/sub-plot-cells"
+import { BinDetails } from "../binned-dot-plot/bin-details"
 
 export interface IComputeBinPlacements {
-  binWidth?: number
+  binDetails?: BinDetails
   dataConfig?: IGraphDataConfigurationModel
   dataset?: IDataSet
   extraPrimaryAttrID: string
   extraSecondaryAttrID: string
   layout: GraphLayout
-  minBinEdge?: number
   numExtraPrimaryBands: number
   pointDiameter: number
   primaryAttrID: string
@@ -27,7 +27,6 @@ export interface IComputeBinPlacements {
   primaryPlace: AxisPlace
   secondaryAttrID: string
   secondaryBandwidth: number
-  totalNumberOfBins?: number
 }
 
 export type BinMap = {
@@ -39,12 +38,10 @@ export type BinMap = {
 
 export interface IComputePrimaryCoord {
   anID: string
-  binWidth?: number
+  binDetails?: BinDetails
   dataset?: IDataSet
   extraPrimaryAttrID: string
   extraPrimaryAxisScale: ScaleBand<string>
-  isBinned?: boolean
-  minBinEdge?: number
   numExtraPrimaryBands: number
   primaryAttrID: string
   primaryAxisScale: ScaleLinear<number, number>
@@ -96,14 +93,13 @@ const computeRowAndColumn = (indexInBin: number, numPointsInRow: number) => {
  * account the primary and extra primary axis scales, the extra primary bandwidth, and the number of bins (if any).
  */
 export const computePrimaryCoord = (props: IComputePrimaryCoord) => {
-  const { anID, binWidth = 0, dataset, extraPrimaryAttrID, extraPrimaryAxisScale, isBinned = false,
-          minBinEdge = 0, numExtraPrimaryBands, primaryAttrID, primaryAxisScale } = props
+  const { anID, binDetails, dataset, extraPrimaryAttrID, extraPrimaryAxisScale,
+          numExtraPrimaryBands, primaryAttrID, primaryAxisScale } = props
   const caseValue = dataDisplayGetNumericValue(dataset, anID, primaryAttrID) ?? NaN
-  const binNumber = determineBinForCase(caseValue, binWidth, minBinEdge) ?? 0
-  const binMidpoint = ((minBinEdge + binNumber * binWidth) - binWidth / 2)
-  const primaryCoord = isBinned
-    ? primaryAxisScale(binMidpoint) / numExtraPrimaryBands
-    : primaryAxisScale(caseValue) / numExtraPrimaryBands
+  const binNumber = binDetails?.getBinForValue(caseValue)
+  const binMidpoint = binDetails?.getBinMidpoint(binNumber)
+  const primaryValue = binMidpoint ?? caseValue
+  const primaryCoord = primaryAxisScale(primaryValue) / numExtraPrimaryBands
   const extraPrimaryValue = dataset?.getStrValue(anID, extraPrimaryAttrID)
   const extraPrimaryCoord = extraPrimaryValue ? extraPrimaryAxisScale(extraPrimaryValue ?? kMain) ?? 0 : 0
   return { primaryCoord, extraPrimaryCoord }
@@ -148,12 +144,12 @@ export const computeSecondaryCoord = (props: IComputeSecondaryCoord) => {
  * Returns bins, binMap, overlap and numPointsPerRow values.
  */
 export const computeBinPlacements = (props: IComputeBinPlacements) => {
-  const { binWidth: _binWidth, dataConfig, dataset, extraPrimaryAttrID, extraSecondaryAttrID, layout, minBinEdge = 0,
+  const { binDetails, dataConfig, dataset, extraPrimaryAttrID, extraSecondaryAttrID, layout,
           numExtraPrimaryBands, pointDiameter, primaryAttrID, primaryAxisScale, primaryPlace, secondaryAttrID,
-          secondaryBandwidth, totalNumberOfBins } = props
+          secondaryBandwidth } = props
   const primaryLength = layout.getAxisLength(primaryPlace) / numExtraPrimaryBands
-  const numBins = totalNumberOfBins ? totalNumberOfBins : Math.ceil(primaryLength / pointDiameter) + 1
-  const binWidth = _binWidth ? _binWidth : primaryLength / (numBins - 1)
+  const numBins = binDetails?.totalNumberOfBins || Math.ceil(primaryLength / pointDiameter) + 1
+  const binWidth = binDetails?.binWidth || primaryLength / (numBins - 1)
   const primaryBandwidth = primaryLength / numBins
   const kPrimaryGap = 6
   const kSecondaryGap = 5
@@ -169,8 +165,8 @@ export const computeBinPlacements = (props: IComputeBinPlacements) => {
       const anID = aCaseData.caseID
       const caseValue = dataDisplayGetNumericValue(dataset, anID, primaryAttrID) ?? -1
       const numerator = primaryAxisScale(caseValue) / numExtraPrimaryBands
-      const bin = totalNumberOfBins
-        ? determineBinForCase(caseValue, binWidth, minBinEdge)
+      const bin = binDetails?.totalNumberOfBins
+        ? binDetails.getBinForValue(caseValue) ?? 0
         : Math.ceil((numerator ?? 0) / binWidth)
       const category = dataset?.getStrValue(anID, secondaryAttrID) ?? kMain
       const extraCategory = dataset?.getStrValue(anID, extraSecondaryAttrID) ?? kMain
@@ -214,14 +210,6 @@ export const computeBinPlacements = (props: IComputeBinPlacements) => {
   }
 
   return { bins, binMap, overlap, numPointsInRow }
-}
-
-/*
- * Returns the bin number for a given case value in a binned dot plot.
- */
-export const determineBinForCase = (caseValue: number, binWidth: number, minBinEdge = 0) => {
-  // Deal with floating point stuff
-  return Math.floor(Math.round((caseValue - minBinEdge) / binWidth * 1e10) / 1e10) + 1
 }
 
 /*
