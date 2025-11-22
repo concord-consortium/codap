@@ -11,7 +11,9 @@ import { useDotPlot } from "../../hooks/use-dot-plot"
 import { useDotPlotDragDrop } from "../../hooks/use-dot-plot-drag-drop"
 import { usePixiDragHandlers, usePlotResponders } from "../../hooks/use-plot"
 import { setPointCoordinates } from "../../utilities/graph-utils"
-import { computeBinPlacements, computePrimaryCoord, computeSecondaryCoord } from "./dot-plot-utils"
+import {
+  computeBinPlacements, computePrimaryCoord, computeSecondaryCoord, IComputePrimaryCoord
+} from "./dot-plot-utils"
 
 export const DotLinePlot = observer(function DotLinePlot({ pixiPoints }: IPlotProps) {
   const { dataset, dataConfig, graphModel, isAnimating, layout,
@@ -91,8 +93,8 @@ export const DotLinePlot = observer(function DotLinePlot({ pixiPoints }: IPlotPr
       }
 
       const getBarValueDimension = (anID: string) => {
-        const computePrimaryCoordProps = {
-          anID, dataConfig, dataset, extraPrimaryAttrID, extraPrimaryAxisScale, isBinned: false,
+        const computePrimaryCoordProps: IComputePrimaryCoord = {
+          anID, dataset, extraPrimaryAttrID, extraPrimaryAxisScale,
           numExtraPrimaryBands, primaryAttrID, primaryAxisScale
         }
         const {primaryCoord} = computePrimaryCoord(computePrimaryCoordProps)
@@ -117,8 +119,8 @@ export const DotLinePlot = observer(function DotLinePlot({ pixiPoints }: IPlotPr
       }
 
       const getPrimaryScreenCoord = (anID: string) => {
-        const computePrimaryCoordProps = {
-          anID, dataConfig, dataset, extraPrimaryAttrID, extraPrimaryAxisScale, isBinned: false,
+        const computePrimaryCoordProps: IComputePrimaryCoord = {
+          anID, dataset, extraPrimaryAttrID, extraPrimaryAxisScale,
           numExtraPrimaryBands, primaryAttrID, primaryAxisScale
         }
         let {primaryCoord, extraPrimaryCoord} = computePrimaryCoord(computePrimaryCoordProps)

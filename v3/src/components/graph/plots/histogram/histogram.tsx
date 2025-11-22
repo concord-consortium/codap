@@ -11,6 +11,7 @@ import { isBinnedPlotModel } from "./histogram-model"
 import { SubPlotCells } from "../../models/sub-plot-cells"
 import { setPointCoordinates } from "../../utilities/graph-utils"
 import { renderBarCovers } from "../bar-utils"
+import { kEmptyBinDetails } from "../binned-dot-plot/bin-details"
 import { computeBinPlacements } from "../dot-plot/dot-plot-utils"
 
 export const Histogram = observer(function Histogram({ abovePointsGroupRef, pixiPoints }: IPlotProps) {
@@ -41,19 +42,18 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, pixi
       fullSecondaryBandwidth = secondaryAxisScale.bandwidth?.() ?? secondaryAxisExtent,
       numExtraSecondaryBands = Math.max(1, extraSecondaryAxisScale?.domain().length ?? 1),
       secondaryBandwidth = fullSecondaryBandwidth / numExtraSecondaryBands,
-      { binWidth, minBinEdge, totalNumberOfBins } = binnedPlot?.binDetails() || {},
+      binDetails = binnedPlot?.binDetails() ?? kEmptyBinDetails,
       subPlotCells = new SubPlotCells(layout, dataConfig),
       { secondaryNumericUnitLength } = subPlotCells
 
     const binPlacementProps = {
-      binWidth, dataConfig, dataset, extraPrimaryAttrID, extraSecondaryAttrID, layout, minBinEdge,
-      numExtraPrimaryBands, pointDiameter, primaryAttrID, primaryAxisScale, primaryPlace, secondaryAttrID,
-      secondaryBandwidth, totalNumberOfBins
+      binDetails, dataConfig, dataset, extraPrimaryAttrID, extraSecondaryAttrID, layout, numExtraPrimaryBands,
+      pointDiameter, primaryAttrID, primaryAxisScale, primaryPlace, secondaryAttrID, secondaryBandwidth
     }
-    if (binWidth === undefined) return
+    if (!binDetails?.binWidth) return
 
     const { bins } = computeBinPlacements(binPlacementProps)
-    const primaryScaleDiff = primaryAxisScale(binWidth) - primaryAxisScale(0)
+    const primaryScaleDiff = primaryAxisScale(binDetails.binWidth) - primaryAxisScale(0)
     const getWidth = () => primaryIsBottom ? primaryScaleDiff / numExtraPrimaryBands : secondaryNumericUnitLength
     const getHeight = () => primaryIsBottom ? secondaryNumericUnitLength : -primaryScaleDiff / numExtraPrimaryBands
     const getScreenX = primaryIsBottom ? getPrimaryScreenCoord : getSecondaryScreenCoord

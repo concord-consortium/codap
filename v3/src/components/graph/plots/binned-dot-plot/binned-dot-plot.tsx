@@ -6,7 +6,7 @@ import { createPortal } from "react-dom"
 import { clsx } from "clsx"
 import { useInstanceIdContext } from "../../../../hooks/use-instance-id-context"
 import { LogMessageFn, logModelChangeFn } from "../../../../lib/log-message"
-import { isFiniteNumber } from "../../../../utilities/math-utils"
+import { isFiniteNumber, roundToPrecision } from "../../../../utilities/math-utils"
 import { mstReaction } from "../../../../utilities/mst-reaction"
 import { t } from "../../../../utilities/translation/translate"
 import { getDomainExtentForPixelWidth } from "../../../axis/axis-utils"
@@ -38,6 +38,7 @@ export const BinnedDotPlot = observer(function BinnedDotPlot({pixiPoints, aboveP
   const binBoundariesRef = useRef<SVGGElement>(null)
   const primaryAxisScaleCopy = useRef<ScaleLinear<number, number>>(primaryAxisScale.copy())
   const lowerBoundaryRef = useRef<number>(0)
+  const binWidthDragPrecision = useRef<number>(2)
   const logFn = useRef<Maybe<LogMessageFn>>()
   const handleDragBinBoundaryEndFn = useRef<() => void>(() => {})
 
@@ -94,10 +95,20 @@ export const BinnedDotPlot = observer(function BinnedDotPlot({pixiPoints, aboveP
       () => ({ alignment: binnedPlot.binAlignment, width: binnedPlot.binWidth }))
     primaryAxisScaleCopy.current = primaryAxisScale.copy()
     binnedPlot.setDragBinIndex(binIndex)
-    const { binWidth, minBinEdge } = binnedPlot.binDetails()
-    if (binWidth !== undefined) {
-      const newBinAlignment = minBinEdge + binIndex * binWidth
-      lowerBoundaryRef.current = primaryAxisScale(newBinAlignment)
+    const binDetails = binnedPlot.binDetails()
+    if (binDetails.binWidth) {
+      const newBinAlignment = binDetails.getBinEdge(binIndex) ?? 0
+      // Store the screen coordinate of the boundary being dragged to pixel precision
+      lowerBoundaryRef.current = Math.round(primaryAxisScale(newBinAlignment))
+      // During drag, bin widths are rounded based on the world precision of a single pixel
+      const worldPixelWidth = screenWidthToWorldWidth(primaryAxisScaleCopy.current, 1)
+      const worldPixelWidthStr = worldPixelWidth.toExponential()
+      // Extract mantissa and exponent
+      const [_, expStr2] = worldPixelWidthStr.split('e')
+      const exponent = parseInt(expStr2, 10)
+      // Precision = one mantissa decimal - exponent
+      // For 0.15: mantissa "1.5" (1 decimal), exponent -1 → 1 - (-1) = 2 ✓
+      binWidthDragPrecision.current = 1 - exponent
       binnedPlot.setActiveBinAlignment(newBinAlignment)
     }
   }, [binnedPlot, dataConfig, primaryAxisScale])
@@ -107,7 +118,7 @@ export const BinnedDotPlot = observer(function BinnedDotPlot({pixiPoints, aboveP
     const dragValue = primaryIsBottom ? event.x : event.y
     const screenBinWidth = Math.max(kMinBinScreenWidth, Math.abs(dragValue - lowerBoundaryRef.current))
     const worldBinWidth = screenWidthToWorldWidth(primaryAxisScaleCopy.current, screenBinWidth)
-    binnedPlot.setActiveBinWidth(worldBinWidth)
+    binnedPlot.setActiveBinWidth(roundToPrecision(worldBinWidth, binWidthDragPrecision.current))
   }, [binnedPlot, dataConfig, primaryIsBottom])
 
   const addBinBoundaryDragHandlers = useCallback(() => {
