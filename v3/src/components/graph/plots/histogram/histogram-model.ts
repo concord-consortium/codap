@@ -2,13 +2,13 @@ import { Instance } from "mobx-state-tree"
 import { AttributeType } from "../../../../models/data/attribute-types"
 import { ICase } from "../../../../models/data/data-set-types"
 import { t } from "../../../../utilities/translation/translate"
+import { isFiniteNumber } from "../../../../utilities/math-utils"
 import { AxisPlace } from "../../../axis/axis-types"
 import { IAxisModel } from "../../../axis/models/axis-model"
 import { GraphAttrRole, PointDisplayType } from "../../../data-display/data-display-types"
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
 import { BinnedDotPlotModel, IBinnedDotPlotModel } from "../binned-dot-plot/binned-dot-plot-model"
 import { float1, IBarTipTextProps, IPlotModel, typesPlotType } from "../plot-model"
-import { isFiniteNumber } from "../../../../utilities/math-utils";
 
 export const HistogramModel = BinnedDotPlotModel
   .named("HistogramModel")
