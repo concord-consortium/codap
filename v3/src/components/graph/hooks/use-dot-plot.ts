@@ -13,7 +13,7 @@ import { isBinnedPlotModel } from "../plots/histogram/histogram-model"
 import { SubPlotCells } from "../models/sub-plot-cells"
 import { kEmptyBinDetails } from "../plots/binned-dot-plot/bin-details"
 import {
-  computePrimaryCoord, adjustCoordForStacks, computeBinPlacements, computeSecondaryCoord
+  computePrimaryCoord, adjustCoordForStacks, computeBinPlacements, computeSecondaryCoord, IComputePrimaryCoord
 } from "../plots/dot-plot/dot-plot-utils"
 import { useGraphContentModelContext } from "./use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "./use-graph-data-configuration-context"
@@ -83,8 +83,8 @@ export const useDotPlot = (pixiPoints?: PixiPoints) => {
   }, [dataConfig, graphModel, pixiPoints, pointColor, pointStrokeColor, pointDisplayType])
 
   const getPrimaryScreenCoord = useCallback((anID: string) => {
-    const computePrimaryCoordProps = {
-      anID, binDetails, dataset, extraPrimaryAttrID, extraPrimaryAxisScale, isBinned: true,
+    const computePrimaryCoordProps: IComputePrimaryCoord = {
+      anID, binDetails, dataset, extraPrimaryAttrID, extraPrimaryAxisScale,
       numExtraPrimaryBands, primaryAttrID, primaryAxisScale
     }
     const { primaryCoord, extraPrimaryCoord } = computePrimaryCoord(computePrimaryCoordProps)
