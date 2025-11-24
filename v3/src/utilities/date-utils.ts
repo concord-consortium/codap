@@ -269,3 +269,11 @@ export function stringValuesToDateSeconds(values: string[]): number[] {
     return date ? date.getTime() / 1000 : NaN
   }).filter(isFiniteNumber)
 }
+
+// Utility function to format a date for an input of type="date"
+export const formatDateForInput = (date: Date | number | null | undefined): string => {
+  if (!date) return "" // Return empty string for null/undefined
+  const dateObj = typeof date === "number" ? new Date(date * 1000) : date // Convert timestamp to Date if needed
+  if (isNaN(dateObj.getTime())) return "" // Check for invalid date
+  return dateObj.toISOString().split("T")[0] // Extract YYYY-MM-DD
+}
