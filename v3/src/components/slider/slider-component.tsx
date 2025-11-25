@@ -69,7 +69,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
     <InstanceIdContext.Provider value={instanceId}>
       <AxisProviderContext.Provider value={sliderModel}>
         <AxisLayoutContext.Provider value={layout}>
-          <div className={clsx(kSliderClass, {date: sliderModel.axisRequiresTwoLevels()})} ref={sliderRef}>
+          <div className={clsx(kSliderClass, {twoLevel: sliderModel.axisRequiresTwoLevels()})} ref={sliderRef}>
             <Flex className="slider-control">
               <Button className={`play-pause ${running ? "running" : "paused"}`} onClick={toggleRunning}
                       data-testid="slider-play-pause">
