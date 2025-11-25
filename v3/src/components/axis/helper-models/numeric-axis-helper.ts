@@ -62,8 +62,7 @@ export class NumericAxisHelper extends AxisHelper {
     if (!isNonDateNumericAxisModel(this.axisModel) || !numericScale || !this.subAxisElt) return
 
     const subAxisSelection = select(this.subAxisElt)
-    // Simplest if we remove everything and start again. Without this, #188523090 caused trouble
-    subAxisSelection.selectAll('*').remove()
+
     this.renderAxisLine()
 
     const hasDraggableNumericAxis = this.axisProvider.hasDraggableNumericAxis(this.axisModel)
