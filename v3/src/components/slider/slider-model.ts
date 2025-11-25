@@ -6,10 +6,10 @@ import { applyModelChange } from "../../models/history/apply-model-change"
 import { ISharedModel } from "../../models/shared/shared-model"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
-import { DateUnit, dateUnits, unitsStringToMilliseconds } from "../../utilities/date-utils"
+import { DateUnit, dateUnits, determineLevels, unitsStringToMilliseconds } from "../../utilities/date-utils"
 import { IAxisModel } from "../axis/models/axis-model"
 import {
-  DateAxisModel, IBaseNumericAxisModel, isAnyNumericAxisModel, NumericAxisModel
+  DateAxisModel, IBaseNumericAxisModel, isAnyNumericAxisModel, isDateAxisModel, NumericAxisModel
 } from "../axis/models/numeric-axis-models"
 import { kSliderTileType } from "./slider-defs"
 import {
@@ -99,6 +99,15 @@ export const SliderModel = TileContentModel
       // derived models should override
       return {tickValues: [], tickLabels: []}
     },
+    // For date sliders, the axis may require two "levels"
+    axisRequiresTwoLevels() {
+      if (self.scaleType === "date" && isDateAxisModel(self.axis)) {
+        const [min, max] = self.axis.domain
+        const levels = determineLevels(min * 1000, max * 1000)
+        return levels.innerLevel !== levels.outerLevel
+      }
+      return false
+    }
   }))
   .actions(self => ({
     setDynamicValue(value: number) {

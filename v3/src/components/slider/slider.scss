@@ -1,6 +1,7 @@
 @use "./../vars";
 
 $slider-component-height: 98px;
+$date-slider-component-height: 110px;
 
 .codap-component.codap-slider.minimized {
   .slider-wrapper {
@@ -15,6 +16,10 @@ $slider-component-height: 98px;
   transition: vars.$minimize-transition;
   background: #fff;
   border-radius: vars.$border-radius-bottom-corners;
+
+  &.twoLevel {
+    height: calc($date-slider-component-height - vars.$title-bar-height);
+  }
 
   .slider {
     position: absolute;
@@ -37,7 +42,7 @@ $slider-component-height: 98px;
       flex-direction: row;
       bottom: 12px;
       left: 0;
-      height: 17px;
+      height: 19px;
 
       .axis {
         font-size: 11px;

@@ -69,34 +69,34 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
     <InstanceIdContext.Provider value={instanceId}>
       <AxisProviderContext.Provider value={sliderModel}>
         <AxisLayoutContext.Provider value={layout}>
-          <div className={kSliderClass} ref={sliderRef}>
+          <div className={clsx(kSliderClass, {twoLevel: sliderModel.axisRequiresTwoLevels()})} ref={sliderRef}>
             <Flex className="slider-control">
-              <Button className={`play-pause ${ running ? "running" : "paused"}`} onClick={toggleRunning}
-                data-testid="slider-play-pause">
-                { running ? <PauseIcon /> : <PlayIcon /> }
+              <Button className={`play-pause ${running ? "running" : "paused"}`} onClick={toggleRunning}
+                      data-testid="slider-play-pause">
+                {running ? <PauseIcon/> : <PlayIcon/>}
               </Button>
               <Flex className="slider-inputs">
                 <Editable value={sliderModel.name} className="name-input" submitOnBlur={true}
-                    onChange={handleSliderNameInput} data-testid="slider-variable-name">
+                          onChange={handleSliderNameInput} data-testid="slider-variable-name">
                   <EditablePreview className="name-text" data-testid="slider-variable-name-text"/>
                   <EditableInput className="name-text-input text-input" data-testid="slider-variable-name-text-input"/>
                 </Editable>
                 <span className="equals-sign">&nbsp;=&nbsp;</span>
-                <EditableSliderValue sliderModel={sliderModel} multiScale={multiScale} />
+                <EditableSliderValue sliderModel={sliderModel} multiScale={multiScale}/>
               </Flex>
             </Flex>
             <div className="slider">
               <CodapSliderThumb sliderContainer={sliderRef.current} sliderModel={sliderModel}
-                running={running} setRunning={setRunning}
+                                running={running} setRunning={setRunning}
               />
               <div className={axisClasses()} style={axisStyle}>
-                <div className="axis-end min" />
+                <div className="axis-end min"/>
                 <svg className="slider-axis" data-testid="slider-axis">
                   <Axis
                     axisPlace={"bottom"}
                   />
                 </svg>
-                <div className="axis-end max" />
+                <div className="axis-end max"/>
               </div>
             </div>
           </div>
