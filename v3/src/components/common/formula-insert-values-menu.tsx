@@ -90,6 +90,7 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape" || e.key === "Tab") {
       setShowValuesMenu(false)
+      e.preventDefault()
       e.stopPropagation()
     }
   }

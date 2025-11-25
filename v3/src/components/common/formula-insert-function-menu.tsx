@@ -67,6 +67,7 @@ export const InsertFunctionMenu = ({setShowFunctionMenu}: IProps) => {
     if (e.key === "Escape" || e.key === "Tab") {
       setFunctionMenuView(undefined)
       setShowFunctionMenu(false)
+      e.preventDefault()
       e.stopPropagation()
     }
   }
