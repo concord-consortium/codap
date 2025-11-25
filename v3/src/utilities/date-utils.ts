@@ -160,7 +160,7 @@ export function checkDate(value: any): [false] | [true, Date] {
 
 /**
  * Default formatting for Date objects.
- * @param date {Date | number | string | null }
+ * @param x
  * @param precision {number}
  * @return {string}
  */
@@ -176,6 +176,14 @@ export function formatDate(x: Date | number | string | null, precision: DatePrec
       second: 'numeric' },
     millisecond: { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric',
       minute: 'numeric', second: 'numeric', fractionalSecondDigits: 3 } as Intl.DateTimeFormatOptions
+  }
+
+  // If precision is 'year' and  x is a string that can be converted to a number representing a year, return it.
+  if (typeof x === "string") {
+    const num = Number(x)
+    if (isFiniteNumber(num) && Math.round(num) === num && num >= 0 && num <= 9999 && precision === 'year') {
+      return x
+    }
   }
 
   if (!(x && (isDate(x) || isDateString(x) || isFiniteNumber(x)))) {
