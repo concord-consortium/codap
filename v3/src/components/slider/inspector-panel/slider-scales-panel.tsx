@@ -2,7 +2,7 @@ import { Flex, FormControl, FormLabel, Input, Menu, MenuButton, MenuList, MenuIt
 import { observer } from "mobx-react-lite"
 import React, { useEffect, useState } from "react"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
-import { convertToDate, formatDateForInput } from "../../../utilities/date-utils"
+import { convertToDate, createDateFromEpochSeconds, formatDateForInput } from "../../../utilities/date-utils"
 import { t } from "../../../utilities/translation/translate"
 import { InspectorPalette } from "../../inspector-panel"
 import { ISliderModel } from "../slider-model"
@@ -99,7 +99,7 @@ export const SliderScalesPalette =
       const parsedValue = value ? parseValue(value) : null
       return scaleType === "date"
           ? parsedValue !== null
-            ? formatDateForInput(new Date(parsedValue * 1000))
+            ? formatDateForInput(createDateFromEpochSeconds(parsedValue))
             : ""
           : value
     }

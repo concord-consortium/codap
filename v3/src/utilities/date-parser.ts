@@ -278,7 +278,7 @@ export function parseDateV3(value: any) {
   if (isValueEmpty(value)) return null
 
   // Check for "month/year" format
-  const monthYearRegex = /^(\d{1,2})\/(\d{1,4})$/
+  const monthYearRegex = /^(\d{1,2})\/(\d{4})$/
   const match = value.match(monthYearRegex)
   if (match) {
     const month = Number(match[1])

@@ -216,6 +216,11 @@ export function formatDate(x: Date | number | string | null, precision: DatePrec
   return Math.abs(iValue) >= 5000
 }
 
+export function createDateFromEpochSeconds(epochSeconds: number): Date | null {
+  const date = new Date(epochSeconds * 1000)
+  return isFinite(date.valueOf()) ? date : null
+}
+
 export function createDate(...args: (string | number)[]): Date | null {
   if (args.length === 0) {
     return new Date()
@@ -226,8 +231,7 @@ export function createDate(...args: (string | number)[]): Date | null {
   if (args.length === 1 && yearOrSeconds != null && defaultToEpochSecs(yearOrSeconds)) {
     // Only one argument and it's a number that should be treated as epoch seconds.
     // Convert from seconds to milliseconds.
-    const dateFromEpoch = new Date(yearOrSeconds * 1000)
-    return isNaN(dateFromEpoch.valueOf()) ? null : dateFromEpoch
+    return createDateFromEpochSeconds(yearOrSeconds)
   }
 
   let year = yearOrSeconds // at this point, yearOrSeconds is always interpreted as a year
@@ -273,7 +277,8 @@ export function stringValuesToDateSeconds(values: string[]): number[] {
 // Utility function to format a date for an input of type="date"
 export const formatDateForInput = (date: Date | number | null | undefined): string => {
   if (!date) return "" // Return empty string for null/undefined
-  const dateObj = typeof date === "number" ? new Date(date * 1000) : date // Convert timestamp to Date if needed
-  if (isNaN(dateObj.getTime())) return "" // Check for invalid date
+  // Convert timestamp to Date if needed
+  const dateObj = typeof date === "number" ? createDateFromEpochSeconds(date) : date
+  if (!dateObj) return "" // Check for invalid date
   return dateObj.toISOString().split("T")[0] // Extract YYYY-MM-DD
 }
