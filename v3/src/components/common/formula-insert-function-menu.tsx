@@ -1,5 +1,5 @@
 import {Divider, Flex, List, ListItem,} from "@chakra-ui/react"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 
 import { functionCategoryInfoArray, FunctionInfo } from "../../lib/functions"
 import { useFormulaEditorContext } from "./formula-editor-context"
@@ -18,9 +18,10 @@ export const InsertFunctionMenu = ({setShowFunctionMenu}: IProps) => {
   const [selectedCategory, setSelectedCategory] = useState("")
   const [selectedFunction, setSelectedFunction] = useState("")
   const [menuPosition, setMenuPosition] = useState({})
+  const containerRef = useRef<HTMLDivElement>(null)
 
   const getFunctionMenuPosition = () => {
-    const menuEl = document.querySelector(".formula-function-menu-container") as HTMLElement
+    const menuEl = containerRef.current
     const buttonEl = document.querySelector(".formula-editor-button.insert-value")
     const viewableTop = window.scrollY
     let menuTopPosition = 0
@@ -48,6 +49,8 @@ export const InsertFunctionMenu = ({setShowFunctionMenu}: IProps) => {
 
   useEffect(() => {
     setMenuPosition(getFunctionMenuPosition())
+    // focus the menu on mount so it gets key events
+    containerRef.current?.focus()
   }, [])
 
   const insertFunctionString = (functionInfo?: FunctionInfo) => {
@@ -58,6 +61,15 @@ export const InsertFunctionMenu = ({setShowFunctionMenu}: IProps) => {
     editorApi?.insertFunctionString(functionStr)
     setFunctionMenuView(undefined)
     setShowFunctionMenu(false)
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape" || e.key === "Tab") {
+      setFunctionMenuView(undefined)
+      setShowFunctionMenu(false)
+      e.preventDefault()
+      e.stopPropagation()
+    }
   }
 
   const handleShowFunctionCategoryList = (e: React.MouseEvent, categoryName?: string) => {
@@ -181,7 +193,8 @@ export const InsertFunctionMenu = ({setShowFunctionMenu}: IProps) => {
   }
 
   return (
-    <Flex className="formula-function-menu-container" style={menuPosition}>
+    <Flex ref={containerRef} className="formula-function-menu-container" style={menuPosition} tabIndex={-1}
+          onKeyDown={handleKeyDown}>
       { functionMenuView === "info"
           ? renderFunctionInfo()
           : functionMenuView === "list"
