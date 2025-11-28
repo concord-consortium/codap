@@ -277,6 +277,18 @@ export function parseDateV2Compatible(iValue: any, iLoose?: boolean) {
 export function parseDateV3(value: any) {
   if (isValueEmpty(value)) return null
 
+  // Check for "month/year" format
+  const monthYearRegex = /^(\d{1,2})\/(\d{4})$/
+  const match = value.match(monthYearRegex)
+  if (match) {
+    const month = Number(match[1])
+    const year = Number(match[2])
+    // Validate month and year
+    if (month >= 1 && month <= 12 && year > 0) {
+      return new Date(year, month - 1, 1) // Create date with day defaulted to 1
+    }
+  }
+
   // Built-in date parser might not be the best, but it likely supports more formats than we do currently and
   // it's only used in the loose mode.
   const date = new Date(value)

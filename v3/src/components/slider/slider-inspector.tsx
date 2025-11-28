@@ -7,7 +7,7 @@ import { isSliderModel } from "./slider-model"
 import { SliderScalesPalette } from "./inspector-panel/slider-scales-panel"
 
 import TimerIcon from "../../assets/icons/inspector-panel/playback-settings-icon.svg"
-import ScaleIcon from "../../assets/icons/inspector-panel/timeline-scale-icon.svg"
+import MeasureIcon from "../../assets/icons/inspector-panel/data-icon.svg"
 
 export const SliderInspector = ({ tile, show }: ITileInspectorPanelProps) => {
   const sliderModel = tile?.content
@@ -62,13 +62,13 @@ export const SliderInspector = ({ tile, show }: ITileInspectorPanelProps) => {
       </InspectorButton>
       <InspectorButton
         bottom={true}
-        label={t("V3.Slider.Inspector.Timeline")}
+        label={t("V3.Slider.Inspector.Scale")}
         onButtonClick={handleScaleButton}
         setButtonRef={setButtonRef}
         testId={"slider-scale-button"}
         tooltip={t("V3.Inspector.sliderScales.toolTip")}
       >
-        <ScaleIcon />
+        <MeasureIcon />
       </InspectorButton>
       {renderPaletteIfAny()}
     </InspectorPanel>

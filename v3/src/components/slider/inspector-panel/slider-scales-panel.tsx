@@ -2,7 +2,7 @@ import { Flex, FormControl, FormLabel, Input, Menu, MenuButton, MenuList, MenuIt
 import { observer } from "mobx-react-lite"
 import React, { useEffect, useState } from "react"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
-import { convertToDate } from "../../../utilities/date-utils"
+import { convertToDate, createDateFromEpochSeconds, formatDateForInput } from "../../../utilities/date-utils"
 import { t } from "../../../utilities/translation/translate"
 import { InspectorPalette } from "../../inspector-panel"
 import { ISliderModel } from "../slider-model"
@@ -34,7 +34,8 @@ export const SliderScalesPalette =
         return parseFloat(value)
       }
       const dateValue = convertToDate(value)
-      return (dateValue?.valueOf() ?? 0) / 1000
+      return dateValue == null ? null
+        : (dateValue?.valueOf() ?? 0) / 1000
     }
 
     const handleScaleTypeChange = (value: string) => {
@@ -50,6 +51,7 @@ export const SliderScalesPalette =
 
     const handleAcceptMinValue = (minValue: string) => {
       const value = parseValue(minValue)
+      if (value == null) return
       sliderModel.axis.applyModelChange(() => {
         sliderModel.axis.setMinimum(value)
       }, {
@@ -72,6 +74,7 @@ export const SliderScalesPalette =
 
     const handleAcceptMaxValue = (maxValue: string) => {
       const value = parseValue(maxValue)
+      if (value == null) return
       sliderModel.axis.applyModelChange(() => {
         sliderModel.axis.setMaximum(value)
       }, {
@@ -90,6 +93,29 @@ export const SliderScalesPalette =
       if (event.key === 'Enter') {
         handleAcceptMaxValue(maxInputValue)
       }
+    }
+
+    const getValueForInput = (value: string) => {
+      const parsedValue = value ? parseValue(value) : null
+      return scaleType === "date"
+          ? parsedValue !== null
+            ? formatDateForInput(createDateFromEpochSeconds(parsedValue))
+            : ""
+          : value
+    }
+
+    const minimumInput = () => {
+      return <Input className="slider-input minimum" size="xs" value={getValueForInput(minInputValue)}
+             type = { scaleType === 'date' ? 'date' : 'text' }
+             onChange={(e) => setMinInputValue(e.target.value)}
+             onBlur={handleMinimumBlur} onKeyDown={handleMinimumKeyDown} data-testid="slider-minimum" flex="1"/>
+    }
+
+    const maximumInput = () => {
+      return <Input className="slider-input maximum" size="xs" value={getValueForInput(maxInputValue)}
+             type = { scaleType === 'date' ? 'date' : 'text' }
+             onChange={(e) => setMaxInputValue(e.target.value)}
+             onBlur={handleMaximumBlur} onKeyDown={handleMaximumKeyDown} data-testid="slider-maximum" flex="1"/>
     }
 
     return (
@@ -124,17 +150,13 @@ export const SliderScalesPalette =
           <FormControl size="xs">
             <Flex className="palette-row" width="100%">
               <FormLabel className="form-label" flex="0 0 auto">{t("V3.Slider.minimum")}</FormLabel>
-              <Input className="slider-input minimum" size="xs" value={minInputValue}
-                     onChange={(e) => setMinInputValue(e.target.value)}
-                     onBlur={handleMinimumBlur} onKeyDown={handleMinimumKeyDown} data-testid="slider-minimum" flex="1"/>
+              { minimumInput() }
             </Flex>
           </FormControl>
           <FormControl size="xs">
             <Flex className="palette-row" width="100%">
               <FormLabel className="form-label" flex="0 0 auto">{t("V3.Slider.maximum")}</FormLabel>
-              <Input className="slider-input maximum" size="xs" value={maxInputValue}
-                     onChange={(e) => setMaxInputValue(e.target.value)}
-                     onBlur={handleMaximumBlur} onKeyDown={handleMaximumKeyDown} data-testid="slider-maximum" flex="1"/>
+              { maximumInput() }
             </Flex>
           </FormControl>
         </Flex>
