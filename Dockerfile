@@ -4,7 +4,7 @@
 # ruby 2.7 / node 16 이 설치되어야 합니다.
 # node 의 설치가 더 편하므로, ruby image를 가져와서 node를 설치합니다.
 # nginx 이미지가 debian을 사용하고 있기에 통일합니다.
-FROM bitnami/ruby:2.7-debian-11 as builder
+FROM bitnamilegacy/ruby:2.7-debian-11 as builder
 
 # 필요한 패키지 설치
 RUN apt-get update && apt-get install -y --no-install-recommends \
