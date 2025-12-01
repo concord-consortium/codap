@@ -33,6 +33,7 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
   )
   const attributeNames = dataSet?.attributes.map(attr => attr.name)
   const constants = ["e", "false", "true", "π"]
+  const containerRef = useRef<HTMLDivElement>(null)
   const scrollableContainerRef = useRef<HTMLUListElement>(null)
   const [, setScrollPosition] = useState(0)
 
@@ -86,6 +87,14 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
     return {}
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape" || e.key === "Tab") {
+      setShowValuesMenu(false)
+      e.preventDefault()
+      e.stopPropagation()
+    }
+  }
+
   const handleScroll = (direction: "up" | "down") => {
     const container = scrollableContainerRef.current
     if (container) {
@@ -104,6 +113,9 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
       }
     }
 
+    // focus the menu on mount so it gets key events
+    containerRef.current?.focus()
+
     const container = scrollableContainerRef.current
     container?.addEventListener("scroll", handleScrollPosition)
 
@@ -118,14 +130,14 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
           (scrollableContainerRef.current.scrollHeight - scrollableContainerRef.current.scrollTop + 20 > kMaxHeight)
 
   return (
-    <Flex className="formula-operand-list-container" data-testid="formula-value-list"
-        style={getListContainerStyle()} >
+    <Flex ref={containerRef} className="formula-operand-list-container" data-testid="formula-value-list" tabIndex={-1}
+        style={getListContainerStyle()} onKeyDown={handleKeyDown}>
       { isScrollable && canScrollUp &&
       <div className="scroll-arrow" onPointerOver={()=>handleScroll("up")}>
         <TriangleUpIcon />
       </div>
       }
-      <List className="formula-operand-scrollable-container"  ref={scrollableContainerRef}>
+      <List className="formula-operand-scrollable-container" ref={scrollableContainerRef}>
         <List className="formula-operand-list">
           { collections?.map((collection, index) => {
             return (
