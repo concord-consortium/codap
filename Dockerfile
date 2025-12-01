@@ -4,7 +4,7 @@
 # ruby 2.7 / node 16 이 설치되어야 합니다.
 # node 의 설치가 더 편하므로, ruby image를 가져와서 node를 설치합니다.
 # nginx 이미지가 debian을 사용하고 있기에 통일합니다.
-FROM bitnami/ruby:2.7-debian-11 as builder
+FROM bitnamilegacy/ruby:2.7-debian-11 as builder
 
 # 필요한 패키지 설치
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -106,7 +106,7 @@ RUN mv /codap/dist/$BUILD_NUMBER/* /codap/dist/
 # Nginx 이미지로 전환하여 정적 파일 서빙
 
 # bitnami/nginx 20.1.3 버전에서 사용하는 image tag
-FROM bitnami/nginx:1.28.0-debian-12-r3 as dev
+FROM bitnamilegacy/nginx:1.28.0-debian-12-r3 as dev
 
 # 빌드된 정적 파일 복사
 COPY --from=builder-dev /codap/dist /app/codap
@@ -116,7 +116,7 @@ EXPOSE 80
 
 
 # bitnami/nginx 20.1.3 버전에서 사용하는 image tag
-FROM bitnami/nginx:1.28.0-debian-12-r3 as prd
+FROM bitnamilegacy/nginx:1.28.0-debian-12-r3 as prd
 
 # 빌드된 정적 파일 복사
 COPY --from=builder-prd /codap/dist /app/codap
