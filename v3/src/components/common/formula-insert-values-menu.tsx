@@ -40,8 +40,8 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
   const maxItemLength = useRef(0)
 
   const insertValueToFormula = (value: string) => {
-    // if the attribute name has any non-alphanumeric chars, wrap it in backticks
-    if (/[^\w]/.test(value)) value = `\`${value}\``
+    // if the name begins with a digit or has any non-alphanumeric chars, wrap it in backticks
+    if (/^\d|[^\w]/.test(value)) value = `\`${value}\``
     editorApi?.insertVariableString(value)
     setShowValuesMenu(false)
   }
