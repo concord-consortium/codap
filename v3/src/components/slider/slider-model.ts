@@ -7,10 +7,11 @@ import { ISharedModel } from "../../models/shared/shared-model"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { DateUnit, dateUnits, determineLevels, unitsStringToMilliseconds } from "../../utilities/date-utils"
+import { AxisPlace } from "../axis/axis-types"
 import { IAxisModel } from "../axis/models/axis-model"
-import {
-  DateAxisModel, IBaseNumericAxisModel, isAnyNumericAxisModel, isDateAxisModel, NumericAxisModel
-} from "../axis/models/numeric-axis-models"
+import { IBaseNumericAxisModel } from "../axis/models/base-numeric-axis-models"
+import { DateAxisModel, isAnyNumericAxisModel, isDateAxisModel, NumericAxisModel } from "../axis/models/numeric-axis-models"
+import { AxisHelper } from "../axis/helper-models/axis-helper"
 import { kSliderTileType } from "./slider-defs"
 import {
   AnimationDirection, AnimationDirections, AnimationMode, AnimationModes, FixValueFn, ISliderScaleType,
@@ -33,6 +34,9 @@ export const SliderModel = TileContentModel
     axis: types.optional(types.union(NumericAxisModel, DateAxisModel),
       () => NumericAxisModel.create({ place: 'bottom', min: kDefaultSliderAxisMin, max: kDefaultSliderAxisMax }))
   })
+  .volatile(() => ({
+    axisHelper: undefined as Maybe<AxisHelper>
+   }))
   .views(self => ({
     get name() {
       return self.globalValue.name
@@ -107,6 +111,9 @@ export const SliderModel = TileContentModel
         return levels.innerLevel !== levels.outerLevel
       }
       return false
+    },
+    getAxisHelper(place: AxisPlace, subAxisIndex: number) {
+      return self.axisHelper
     }
   }))
   .actions(self => ({
@@ -130,6 +137,9 @@ export const SliderModel = TileContentModel
         self.setValue(value)
       }
     },
+    setAxisHelper(place: AxisPlace, subAxisIndex: number, helper: AxisHelper) {
+      self.axisHelper = helper
+    }
   }))
   .actions(self => ({
     afterCreate() {
@@ -216,6 +226,7 @@ export const SliderModel = TileContentModel
             break
         }
         self.scaleType = scaleType
+        self.axisHelper = undefined
       }
     },
     setAxisMin(n: number) {

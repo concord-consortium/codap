@@ -33,6 +33,7 @@ import {
 } from "../../data-display/data-display-types"
 import { computePointRadius } from "../../data-display/data-display-utils"
 import { IGetTipTextProps } from "../../data-display/data-tip-types"
+import { AxisHelper } from "../../axis/helper-models/axis-helper"
 import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment-models"
 import {AdornmentsStore} from "../adornments/store/adornments-store"
 import { isUnivariateMeasureAdornment } from "../adornments/univariate-measures/univariate-measure-adornment-model"
@@ -71,7 +72,8 @@ export const GraphContentModel = DataDisplayContentModel
     changeCount: 0, // used to notify observers when something has changed that may require a re-computation/redraw
     prevDataSetId: "",
     pointOverlap: 0,  // Set by plots so that it is accessible to adornments,
-    plotGraphApi: undefined as Maybe<IPlotGraphApi>
+    plotGraphApi: undefined as Maybe<IPlotGraphApi>,
+    axisHelpers: new Map<AxisPlace, AxisHelper[]>()
   }))
   // cast required to avoid self-reference in model definition error
   .preProcessSnapshot(preProcessSnapshot as any)
@@ -164,11 +166,29 @@ export const GraphContentModel = DataDisplayContentModel
         xScale,
         yScale
       }
+    },
+    getAxisHelper(place: AxisPlace, subAxisIndex: number) {
+      return self.axisHelpers.get(place)?.[subAxisIndex]
     }
   }))
   .actions(self => ({
+    setAxisHelper(place: AxisPlace, subAxisIndex: number, axisHelper: AxisHelper) {
+      let helpers = self.axisHelpers.get(place)
+      if (!helpers) {
+        helpers = []
+        self.axisHelpers.set(place, helpers)
+      }
+      helpers[subAxisIndex] = axisHelper
+    },
+    deleteAxisHelpersForPlace(place: AxisPlace) {
+      const helpers = self.axisHelpers.get(place)
+      if (helpers) {
+        self.axisHelpers.delete(place)
+      }
+    },
     setAxis(place: AxisPlace, axis: IAxisModel) {
       if (isAxisModelInUnion(axis)) {
+        this.deleteAxisHelpersForPlace(place)
         self.axes.set(place, axis)
       }
     },
@@ -227,7 +247,7 @@ export const GraphContentModel = DataDisplayContentModel
         },
         { name: "GraphContentModel.afterAttachToDocument.reactToVisibilityChange", equals: comparer.structural }
       ))
-    }
+    },
   }))
   .actions(self => ({
     afterCreate() {

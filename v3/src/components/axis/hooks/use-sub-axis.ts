@@ -20,7 +20,6 @@ import { DateAxisHelper } from "../helper-models/date-axis-helper"
 import { NumericAxisHelper } from "../helper-models/numeric-axis-helper"
 import { QualitativeAxisHelper } from "../helper-models/qualitative-axis-helper"
 import { useAxisLayoutContext } from "../models/axis-layout-context"
-import {IAxisModel} from "../models/axis-model"
 import { isAnyCategoricalAxisModel, isColorAxisModel } from "../models/categorical-axis-models"
 import { isAnyNumericAxisModel } from "../models/numeric-axis-models"
 import { useAxisProviderContext } from "./use-axis-provider-context"
@@ -32,25 +31,6 @@ export interface IUseSubAxis {
   showScatterPlotGridLines: boolean
   showZeroAxisLine: boolean
   centerCategoryLabels: boolean
-}
-
-// associate axis helpers with axis models
-const sAxisHelpers = new WeakMap<IAxisModel, AxisHelper[]>()
-
-function getAxisHelper(axisModel: IAxisModel, subAxisIndex: number) {
-  return sAxisHelpers.get(axisModel)?.[subAxisIndex]
-}
-
-function setAxisHelper(axisModel: IAxisModel, subAxisIndex: number, axisHelper: AxisHelper) {
-  let axisHelpers = sAxisHelpers.get(axisModel)
-  if (axisHelpers) {
-    axisHelpers[subAxisIndex] = axisHelper
-  }
-  else {
-    axisHelpers = []
-    axisHelpers[subAxisIndex] = axisHelper
-    sAxisHelpers.set(axisModel, axisHelpers)
-  }
 }
 
 export const useSubAxis = ({
@@ -65,10 +45,10 @@ export const useSubAxis = ({
     axisAttributeType = axisAttribute?.type,
     {isAnimating, stopAnimation} = useDataDisplayAnimation(),
     axisProvider = useAxisProviderContext(),
-    axisModel = axisProvider.getAxis(axisPlace),
-    isCategorical = isAnyCategoricalAxisModel(axisModel),
-    isColorAxis = isColorAxisModel(axisModel) || (axisModel?.type === "categorical" && axisAttributeType === "color"),
-    multiScaleChangeCount = layout.getAxisMultiScale(axisModel?.place ?? 'bottom')?.changeCount ?? 0,
+    _axisModel = axisProvider.getAxis(axisPlace),
+    isCategorical = isAnyCategoricalAxisModel(_axisModel),
+    isColorAxis = isColorAxisModel(_axisModel) || (_axisModel?.type === "categorical" && axisAttributeType === "color"),
+    multiScaleChangeCount = layout.getAxisMultiScale(_axisModel?.place ?? 'bottom')?.changeCount ?? 0,
     dragInfo = useRef<DragInfo>({
       initialIndexOfCategory: -1,
       indexOfCategory: -1,
@@ -97,15 +77,15 @@ export const useSubAxis = ({
     }, [axisPlace, dataConfig]),
 
     renderSubAxis = useCallback(() => {
-      const _axisModel = axisProvider.getAxis?.(axisPlace)
-      if (!isAliveSafe(_axisModel)) {
+      const axisModel = axisProvider.getAxis?.(axisPlace)
+      if (!isAliveSafe(axisModel)) {
         console.warn("useSubAxis.renderSubAxis skipping rendering of defunct axis model:", axisPlace)
         return
       }
       const multiScale = layout.getAxisMultiScale(axisPlace)
       if (!multiScale) return // no scale, no axis (But this shouldn't happen)
 
-      _axisModel && getAxisHelper(_axisModel, subAxisIndex)?.render()
+      axisModel && axisProvider.getAxisHelper(axisModel.place, subAxisIndex)?.render()
     }, [axisPlace, axisProvider, layout, subAxisIndex]),
 
     onDragStart = useCallback((event: any) => {
@@ -266,58 +246,67 @@ export const useSubAxis = ({
 
   // update axis helper
   useEffect(() => {
-    let helper: Maybe<AxisHelper>
-    let shouldRenderSubAxis = true
-    const subAxisElt = subAxisEltRef.current
-    if (axisModel) {
-      const helperProps: IAxisHelperArgs =
-        {displayModel, axisProvider, subAxisIndex, subAxisElt, axisModel, layout, isAnimating}
+    return mstReaction(() => {
+        return axisProvider.getAxis?.(axisPlace)
+      },
+      (axisModel) => {
+        let helper: Maybe<AxisHelper>
+        let shouldRenderSubAxis = true
+        const subAxisElt = subAxisEltRef.current
+        if (axisModel) {
+          const helperProps: IAxisHelperArgs =
+            {displayModel, subAxisIndex, subAxisElt, axisModel, layout, isAnimating}
 
-      switch (axisModel.type) {
-        case 'empty':
-          helper = new EmptyAxisHelper(helperProps)
-          break
-        case 'count':
-        case 'percent':
-        case 'numeric':
-          helper = new NumericAxisHelper(
-            { ...helperProps, showScatterPlotGridLines, showZeroAxisLine })
-          break
-        case 'qualitative':
-          helper = new QualitativeAxisHelper(helperProps)
-          break
-        case 'categorical':
-        case 'color':
-          // It is necessary to call renderSubAxis in most cases, but doing so for a categorical axis causes
-          // a crash on redo. So we only do it for non-categorical axes.
-          shouldRenderSubAxis = false
-          helper = new CategoricalAxisHelper(
-            { ...helperProps, centerCategoryLabels, dragInfo,
-              subAxisSelectionRef, categoriesSelectionRef, categoriesRef, swapInProgress, isColorAxis })
-          break
-        case 'date':
-          subAxisSelectionRef.current = subAxisElt ? select(subAxisElt) : undefined
-          helper = new DateAxisHelper({ ...helperProps, showScatterPlotGridLines, subAxisSelectionRef })
-      }
-      if (helper) {
-        setAxisHelper(axisModel, subAxisIndex, helper)
-        shouldRenderSubAxis && renderSubAxis()
-      }
-    }
-  }, [axisModel, axisProvider, centerCategoryLabels, displayModel, isAnimating, isColorAxis, layout,
-      renderSubAxis, showScatterPlotGridLines, showZeroAxisLine, subAxisEltRef, subAxisIndex])
+          switch (axisModel.type) {
+            case 'empty':
+              helper = new EmptyAxisHelper(helperProps)
+              break
+            case 'count':
+            case 'percent':
+            case 'numeric':
+              helper = new NumericAxisHelper(
+                {...helperProps, axisProvider, showScatterPlotGridLines, showZeroAxisLine})
+              break
+            case 'qualitative':
+              helper = new QualitativeAxisHelper(helperProps)
+              break
+            case 'categorical':
+            case 'color':
+              // It is necessary to call renderSubAxis in most cases, but doing so for a categorical axis causes
+              // a crash on redo. So we only do it for non-categorical axes.
+              shouldRenderSubAxis = false
+              helper = new CategoricalAxisHelper(
+                {
+                  ...helperProps, centerCategoryLabels, dragInfo,
+                  subAxisSelectionRef, categoriesSelectionRef, categoriesRef, swapInProgress, isColorAxis
+                })
+              break
+            case 'date':
+              subAxisSelectionRef.current = subAxisElt ? select(subAxisElt) : undefined
+              helper = new DateAxisHelper({...helperProps, showScatterPlotGridLines, subAxisSelectionRef})
+          }
+          if (helper) {
+            axisProvider.setAxisHelper(axisModel.place, subAxisIndex, helper)
+            shouldRenderSubAxis && renderSubAxis()
+          }
+        }
+      },
+      {name: "useSubAxis [axisModelChange]", fireImmediately: true }, [axisProvider]
+    )
+  }, [axisPlace, axisProvider, centerCategoryLabels, displayModel, isAnimating, isColorAxis, layout,
+    renderSubAxis, showScatterPlotGridLines, showZeroAxisLine, subAxisEltRef, subAxisIndex])
 
   // update d3 scale and axis when scale type changes
   useEffect(() => {
     const disposer = reaction(
-      () => axisModel?.scale,
+      () => axisProvider.getAxis?.(axisPlace)?.scale,
       (scaleType) => {
         scaleType && layout.getAxisMultiScale(axisPlace)?.setScaleType(scaleType)
         renderSubAxis()
       }, {name: "useSubAxis [scaleType]"}
     )
     return () => disposer()
-  }, [axisModel, axisPlace, layout, renderSubAxis])
+  }, [axisPlace, axisProvider, layout, renderSubAxis])
 
   // Install reaction to bring about rerender when layout's computedBounds changes
   useEffect(() => {
@@ -335,10 +324,10 @@ export const useSubAxis = ({
   // update d3 scale and axis when axis domain changes
   useEffect(function installDomainSync() {
     return mstAutorun(() => {
-      const _axisModel = axisProvider?.getAxis?.(axisPlace)
-      if (isAliveSafe(_axisModel)) {
-        if (isAnyNumericAxisModel(_axisModel)) {
-          const {domain} = _axisModel || {},
+      const axisModel = axisProvider?.getAxis?.(axisPlace)
+      if (isAliveSafe(axisModel)) {
+        if (isAnyNumericAxisModel(axisModel)) {
+          const {domain} = axisModel || {},
             multiScale = layout.getAxisMultiScale(axisPlace)
           multiScale?.setScaleType('linear')  // Make sure it's linear
           if (JSON.stringify(domain) !== JSON.stringify(multiScale?.numericScale?.domain())) {
@@ -347,7 +336,7 @@ export const useSubAxis = ({
           // Render regardless because otherwise only the "master" subAxis renders
           renderSubAxis()
         }
-      } else if (_axisModel) {
+      } else if (axisModel) {
         console.warn("useSubAxis.installDomainSync skipping sync of defunct axis model")
       }
     }, {name: "useSubAxis.installDomainSync"}, axisProvider)
@@ -369,6 +358,7 @@ export const useSubAxis = ({
   }, [renderSubAxis, isCategorical, setupCategories, dataConfig, axisPlace])
 
   const updateDomainAndRenderSubAxis = useCallback(() => {
+    const axisModel = axisProvider?.getAxis?.(axisPlace)
     const role = axisPlaceToAttrRole[axisPlace],
       attrID = dataConfig?.attributeID(role)
     if (!attrID) {
@@ -404,17 +394,18 @@ export const useSubAxis = ({
         renderSubAxis()
       }
     }
-  }, [axisModel, axisPlace, dataConfig, layout, renderSubAxis, setupCategories])
+  }, [axisPlace, axisProvider, dataConfig, layout, renderSubAxis, setupCategories])
 
   useEffect(function respondToHiddenCasesChange() {
     if (dataConfig) {
+      const axisModel = axisProvider?.getAxis?.(axisPlace)
       return mstReaction(
         () => dataConfig.caseDataHash,
         () => updateDomainAndRenderSubAxis(),
         {name: "useSubAxis.respondToHiddenCasesChange"}, [axisModel, dataConfig]
       )
     }
-  }, [axisModel, dataConfig, updateDomainAndRenderSubAxis])
+  }, [axisPlace, axisProvider, dataConfig, updateDomainAndRenderSubAxis])
 
   useEffect(function respondToAttributeTypeChange() {
     return mstReaction(

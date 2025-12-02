@@ -1,5 +1,5 @@
 import { t } from "../../../../utilities/translation/translate"
-import { IBaseNumericAxisModel } from "../../../axis/models/numeric-axis-models"
+import { IBaseNumericAxisModel } from "../../../axis/models/base-numeric-axis-models"
 import { kOther } from "../../../data-display/data-display-types"
 
 export function getAxisDomains(xAxis?: IBaseNumericAxisModel, yAxis?: IBaseNumericAxisModel) {

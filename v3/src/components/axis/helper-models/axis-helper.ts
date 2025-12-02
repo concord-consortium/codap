@@ -4,12 +4,10 @@ import { IDataDisplayContentModel } from "../../data-display/models/data-display
 import { axisPlaceToAxisFn } from "../axis-types"
 import { IAxisLayout } from "../models/axis-layout-context"
 import { IAxisModel } from "../models/axis-model"
-import { IAxisProvider } from "../models/axis-provider"
 import { MultiScale } from "../models/multi-scale"
 
 export interface IAxisHelperArgs {
   displayModel?: IDataDisplayContentModel
-  axisProvider: IAxisProvider
   subAxisIndex: number
   subAxisElt: SVGGElement | null
   axisModel: IAxisModel
@@ -19,7 +17,6 @@ export interface IAxisHelperArgs {
 
 export class AxisHelper {
   displayModel?: IDataDisplayContentModel
-  axisProvider: IAxisProvider
   subAxisIndex: number
   subAxisElt: SVGGElement | null
   axisModel: IAxisModel
@@ -29,13 +26,13 @@ export class AxisHelper {
 
   constructor(props: IAxisHelperArgs) {
     this.displayModel = props.displayModel
-    this.axisProvider = props.axisProvider
     this.subAxisIndex = props.subAxisIndex
     this.subAxisElt = props.subAxisElt
     this.axisModel = props.axisModel
     this.layout = props.layout
     this.isAnimating = props.isAnimating
     this.multiScale = this.layout.getAxisMultiScale(this.axisPlace)
+    select(this.subAxisElt).selectAll('*').remove() // clear any existing content
   }
 
   get axisPlace() {
@@ -94,6 +91,7 @@ export class AxisHelper {
     /* istanbul ignore next */
     throw new Error("Subclass should override")
   }
+
 }
 
 export class EmptyAxisHelper extends AxisHelper {

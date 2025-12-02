@@ -1,6 +1,7 @@
 import { format, ScaleLinear, select } from "d3"
 import { between } from "../../../utilities/math-utils"
 import { transitionDuration } from "../../data-display/data-display-types"
+import { IAxisProvider } from "../models/axis-provider"
 import { computeBestNumberOfTicks, computeBestNumberOfVerticalAxisTicks, getStringBounds } from "../axis-utils"
 import { AxisScaleType, otherPlace } from "../axis-types"
 import { isNonDateNumericAxisModel } from "../models/numeric-axis-models"
@@ -9,16 +10,19 @@ import { AxisHelper, IAxisHelperArgs } from "./axis-helper"
 export interface INumericAxisHelperArgs extends IAxisHelperArgs {
   showScatterPlotGridLines: boolean
   showZeroAxisLine?: boolean
+  axisProvider: IAxisProvider
 }
 
 export class NumericAxisHelper extends AxisHelper {
   showScatterPlotGridLines: boolean
   showZeroAxisLine?: boolean
+  axisProvider: IAxisProvider
 
   constructor(props: INumericAxisHelperArgs) {
     super(props)
     this.showScatterPlotGridLines = props.showScatterPlotGridLines
     this.showZeroAxisLine = props.showZeroAxisLine
+    this.axisProvider = props.axisProvider
   }
 
   get newRange() {

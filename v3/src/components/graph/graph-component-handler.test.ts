@@ -8,7 +8,7 @@ import { setupTestDataset, testCases } from "../../test/dataset-test-utils"
 import { testGetComponent } from "../../data-interactive/handlers/component-handler-test-utils"
 import { appState } from "../../models/app-state"
 import { toV2Id, toV3Id } from "../../utilities/codap-utils"
-import { IBaseNumericAxisModel } from "../axis/models/numeric-axis-models"
+import { IBaseNumericAxisModel } from "../axis/models/base-numeric-axis-models"
 import { kGraphIdPrefix } from "./graph-defs"
 import { IGraphContentModel, isGraphContentModel } from "./models/graph-content-model"
 

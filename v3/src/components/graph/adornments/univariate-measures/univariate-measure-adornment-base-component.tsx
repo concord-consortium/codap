@@ -1,7 +1,7 @@
 import { observer } from "mobx-react-lite"
 import React, { useEffect } from "react"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
-import { IBaseNumericAxisModel } from "../../../axis/models/numeric-axis-models"
+import { IBaseNumericAxisModel } from "../../../axis/models/base-numeric-axis-models"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
 import { getAxisDomains } from "../utilities/adornment-utils"
 import { IUnivariateMeasureAdornmentModel } from "./univariate-measure-adornment-model"
