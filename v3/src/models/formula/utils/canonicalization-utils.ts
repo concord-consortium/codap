@@ -134,16 +134,13 @@ const parseFormulaForReplacements = (formula: string) => {
 
 export const customizeDisplayFormula = (formula: string) => {
   let [expressionReplacements, symbolReplacements] = parseFormulaForReplacements(formula)
-  // For expression-level replacements, e.g., ternary operators, apply replacements large-to-small
-  // iteratively until no more replacements remain. We have to re-parse the formula after each replacement
-  // because the indices will change.
+  // Expression-level replacements, e.g., ternary operators, are applied iteratively until no more replacements
+  // remain. We have to re-parse the formula after each replacement because the indices will change.
   while (expressionReplacements.length > 0) {
-    let maxReplacement = expressionReplacements[0]
-    expressionReplacements.forEach(exprReplacement => {
-      if (exprReplacement.to - exprReplacement.from > maxReplacement.to - maxReplacement.from) {
-        maxReplacement = exprReplacement
-      }
-    })
+    // apply replacements large-to-small, to handle nested ternary operators correctly
+    const maxReplacement = expressionReplacements.reduce((max, curr) => {
+      return (curr.to - curr.from > max.to - max.from ? curr : max)
+    }, expressionReplacements[0])
 
     const { from, to, replacement } = maxReplacement
     formula = formula.substring(0, from) + replacement + formula.substring(to)
@@ -151,11 +148,8 @@ export const customizeDisplayFormula = (formula: string) => {
     ;[expressionReplacements, symbolReplacements] = parseFormulaForReplacements(formula)
   }
 
-  // sort symbol replacements so they are applied back-to-front
-  symbolReplacements.sort((a, b) => {
-    if (a.to !== b.to) return b.to - a.to
-    return b.from - a.from
-  })
+  // sort symbol replacements so they are applied back-to-front (they should not overlap)
+  symbolReplacements.sort((a, b) => b.to - a.to)
   // apply replacements
   symbolReplacements.forEach(({ from, to, replacement }) => {
     formula = formula.substring(0, from) + replacement + formula.substring(to)
