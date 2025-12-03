@@ -117,6 +117,11 @@ describe("customizeDisplayFormula", () => {
   })
   it("replaces ternary operator with if() function", () => {
     expect(customizeDisplayFormula("a ? b : c")).toEqual("if(a, b, c)")
+    // test other substitutions within ternary operator
+    expect(customizeDisplayFormula("a = b ? c % 2 : d & e")).toEqual("if(a == b, c  mod  2, d  and  e)")
+    // test nested ternary operators
+    expect(customizeDisplayFormula("a ? b ? c : d : e")).toEqual("if(a, if(b, c, d), e)")
+    expect(customizeDisplayFormula("a ? b : c ? d : e")).toEqual("if(a, b, if(c, d, e))")
   })
 })
 
