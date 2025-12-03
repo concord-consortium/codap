@@ -22,6 +22,7 @@ export const makeDisplayNamesSafe = (formula: string) => {
 }
 
 interface IReplacement {
+  level?: "symbol" | "expression"
   from: number
   to: number
   replacement: string
@@ -84,6 +85,7 @@ const customizations: Record<string, CustomizationFn> = {
 
     // Replace the entire ternary with if(condition, trueValue, falseValue)
     return {
+      level: "expression",
       from: cursor.from,
       to: cursor.to,
       replacement: `if(${conditionText}, ${trueText}, ${falseText})`
@@ -115,20 +117,47 @@ const customizations: Record<string, CustomizationFn> = {
   }
 }
 
-export const customizeDisplayFormula = (formula: string) => {
+const parseFormulaForReplacements = (formula: string) => {
+  const expressionReplacements: IReplacement[] = []
+  const symbolReplacements: IReplacement[] = []
   // use lezer parser to parse the formula for canonicalization
   const tree = parser.parse(formula)
-  const replacements: IReplacement[] = []
   let hasNext = tree != null
   // identify required string replacements
   for (let cursor = tree.cursor(); hasNext; hasNext = cursor.next()) {
     const replacement = customizations[cursor.type.name]?.(formula, cursor)
-    if (replacement) replacements.push(replacement)
+    if (replacement?.level === "expression") expressionReplacements.push(replacement)
+    else if (replacement) symbolReplacements.push(replacement)
   }
-  // sort replacements so they are applied back-to-front
-  replacements.sort((a, b) => b.from - a.from)
+  return [expressionReplacements, symbolReplacements]
+}
+
+export const customizeDisplayFormula = (formula: string) => {
+  let [expressionReplacements, symbolReplacements] = parseFormulaForReplacements(formula)
+  // For expression-level replacements, e.g., ternary operators, apply replacements large-to-small
+  // iteratively until no more replacements remain. We have to re-parse the formula after each replacement
+  // because the indices will change.
+  while (expressionReplacements.length > 0) {
+    let maxReplacement = expressionReplacements[0]
+    expressionReplacements.forEach(exprReplacement => {
+      if (exprReplacement.to - exprReplacement.from > maxReplacement.to - maxReplacement.from) {
+        maxReplacement = exprReplacement
+      }
+    })
+
+    const { from, to, replacement } = maxReplacement
+    formula = formula.substring(0, from) + replacement + formula.substring(to)
+    // re-parse after replacing the expression
+    ;[expressionReplacements, symbolReplacements] = parseFormulaForReplacements(formula)
+  }
+
+  // sort symbol replacements so they are applied back-to-front
+  symbolReplacements.sort((a, b) => {
+    if (a.to !== b.to) return b.to - a.to
+    return b.from - a.from
+  })
   // apply replacements
-  replacements.forEach(({ from, to, replacement }) => {
+  symbolReplacements.forEach(({ from, to, replacement }) => {
     formula = formula.substring(0, from) + replacement + formula.substring(to)
   })
   // replace EOL chars with spaces
