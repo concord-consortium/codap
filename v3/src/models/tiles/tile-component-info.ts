@@ -14,20 +14,25 @@ export interface IToolShelfOptions {
   afterCreate?: (tile: ITileContentModel) => void
 }
 
+interface IDimensions {
+  width?: number
+  height?: number
+}
+
 export interface ITileComponentInfo {
-  type: string;
-  TitleBar: React.ComponentType<ITileTitleBarProps>;
-  Component: React.ComponentType<ITileBaseProps>;
-  InspectorPanel?: React.ComponentType<ITileInspectorPanelProps>;
+  type: string
+  TitleBar: React.ComponentType<ITileTitleBarProps>
+  Component: React.ComponentType<ITileBaseProps>
+  InspectorPanel?: React.ComponentType<ITileInspectorPanelProps>
   hideInspector?: (tile: ITileModel) => boolean
-  tileEltClass: string;
-  Icon?: React.FC<SVGProps<SVGSVGElement>>;
-  shelf?: IToolShelfOptions;
+  tileEltClass: string
+  Icon?: React.FC<SVGProps<SVGSVGElement>>
+  shelf?: IToolShelfOptions
   /*
    * If true, hidden tiles will be rendered in the DOM (but not visible).
    * Otherwise, hidden tiles will be removed from the DOM.
    */
-  renderWhenHidden?: boolean;
+  renderWhenHidden?: boolean
   /**
    * By default the tool tile wrapper TileComponent will handle the selection of the
    * the tile when it gets a mouse down or touch start.
@@ -36,15 +41,17 @@ export interface ITileComponentInfo {
    * it should set tileHandlesOwnSelection to true. This will prevent TileComponent
    * from trying to set the selection.
    */
-  tileHandlesOwnSelection?: boolean;
+  tileHandlesOwnSelection?: boolean
   /**
    * Resizable components should have a default width and height. Plugins will specify their own height and width
    */
-  defaultWidth?: number;
-  defaultHeight?: number;
+  defaultWidth?: number
+  defaultHeight?: number
+  /* provides mechanism for overriding plugin behavior */
+  constrainApiDimensions?: (tile: ITileModel, dimensions: IDimensions) => IDimensions
   /* Tool shelf specific properties */
-  isFixedWidth?: boolean;
-  isFixedHeight?: boolean;
+  isFixedWidth?: boolean
+  isFixedHeight?: boolean
 }
 
 const gTileComponentInfoMap = new Map<string, ITileComponentInfo>()

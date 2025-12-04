@@ -15,8 +15,10 @@ import {
   guidLink, ICodapV2GameViewComponent, ICodapV2GuideViewComponent, ICodapV2WebViewComponent,
   isV2GameViewComponent, isV2GuideViewComponent, isV2ImageViewComponent, isV2WebViewComponent
 } from "../../v2/codap-v2-types"
-import { kV2GameType, kV2GuideViewType, kV2ImageComponentViewType, kV2WebViewType, kWebViewTileType,
-          WebViewSubType } from "./web-view-defs"
+import {
+  kImporterPluginHeight, kV2GameType, kV2GuideViewType, kV2ImageComponentViewType, kV2WebViewType,
+  kWebViewTileType, WebViewSubType
+} from "./web-view-defs"
 import { isWebViewModel, IWebViewSnapshot, WebViewModel } from "./web-view-model"
 import { WebViewComponent } from "./web-view"
 import { WebViewInspector } from "./web-view-inspector"
@@ -60,6 +62,18 @@ registerTileComponentInfo({
   InspectorPanel: WebViewInspector,
   hideInspector: isInspectorHidden,
   tileEltClass: "codap-web-view",
+  constrainApiDimensions: (tile, dimensions) => {
+    if (isWebViewModel(tile.content)) {
+      // constrain height of Importer plugin to address plugin misbehavior
+      if (tile.content.url.includes("Importer")) {
+        return {
+          ...dimensions,
+          ...(dimensions.height ? { height: Math.min(dimensions.height, kImporterPluginHeight) } : {})
+        }
+      }
+    }
+    return dimensions
+  },
   defaultWidth: kDefaultWebViewWidth,
   defaultHeight: kDefaultWebViewHeight,
   // plugins must still be able to communicate when hidden

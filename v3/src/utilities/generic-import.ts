@@ -1,4 +1,4 @@
-import { kWebViewTileType } from "../components/web-view/web-view-defs"
+import { kImporterPluginInsertOptions, kWebViewTileType } from "../components/web-view/web-view-defs"
 import { IWebViewSnapshot } from "../components/web-view/web-view-model"
 import { getImporterPluginUrl } from "../constants"
 import { appState } from "../models/app-state"
@@ -21,5 +21,5 @@ export function initiateGenericImport(options: IGenericImportArgs) {
   appState.document.content?.insertTileSnapshotInDefaultRow({
     _title: "Importer",
     content: webViewModelSnap
-  })
+  }, kImporterPluginInsertOptions)
 }
