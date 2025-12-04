@@ -15,6 +15,7 @@ import {
   DINotifyAttribute, DINotifyDataContext, DIResultAttributes, DIUpdateAdornment, DIUpdateCase, DIUpdateItemResult
 } from "./data-interactive-data-set-types"
 import { DIAdornmentValues } from "./data-interactive-adornment-types"
+import { CloudFileManager } from "@concord-consortium/cloud-file-manager"
 
 export type DIDocument = ICodapV2DocumentJson
 
@@ -94,6 +95,10 @@ export interface DIDataDisplay {
   exportDataUri?: string
 }
 
+export interface DIInteractiveApi {
+  initInteractive?: object
+}
+
 export interface DIResources {
   adornment?: IAdornmentModel
   adornmentList?: IAdornmentModel[]
@@ -120,6 +125,7 @@ export interface DIResources {
   itemByID?: ICase
   itemCount?: number
   itemSearch?: ICaseID[]
+  cfm?: Maybe<CloudFileManager>
 }
 
 // types for values accepted as inputs by the API
@@ -130,7 +136,7 @@ export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
 // types returned as outputs by the API
 export type DIResultSingleValues = DICase | DIComponentInfo |  DIDataDisplay | DIDocument | DIGetCaseResult | DIGlobal
-  | DIInteractiveFrame | DIFunctionCategories
+  | DIInteractiveFrame | DIFunctionCategories | DIInteractiveApi
 
 export type DIResultValues = DIResultSingleValues | DIResultSingleValues[] |
   DIAllCases | DIDeleteCollectionResult | DIUpdateItemResult | DIResultAttributes | number | number[] |
@@ -214,6 +220,7 @@ export interface DIResourceSelector {
   itemByID?: string
   itemSearch?: string
   logMessage?: string
+  interactiveApi?: string
   type?: string
 }
 
