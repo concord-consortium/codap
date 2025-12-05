@@ -20,11 +20,12 @@ import "./tool-shelf.scss"
 export const TilesListShelfButton = observer(function TilesListShelfButton() {
   const documentContent = useDocumentContent()
   const tilesArr = documentContent?.tileMap ? Array.from(documentContent.tileMap.values()) : []
+  // assume the tile is in the first row, since CODAP currently only supports one row
   const container = documentContent?.rowMap.get(documentContent?.rowOrder[0])
   const freeTileContainer = isFreeTileRow(container) ? container : undefined
   const isTileHidden = (tile: ITileModel) => {
     const tileLayout = freeTileContainer?.getTileLayout(tile.id)
-    return isFreeTileLayout(tileLayout) ? tileLayout?.isHidden : false
+    return isFreeTileLayout(tileLayout) ? tileLayout.isHidden : false
   }
   const langClass = getSpecialLangFontClassName()
   const {isOpen, onOpen, onClose} = useDisclosure()
