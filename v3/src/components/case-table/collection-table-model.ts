@@ -311,7 +311,7 @@ export class CollectionTableModel {
     }
   }
 
-  scrollClosestRowIntoView(rowIndices: number[]) {
+  scrollClosestRowIntoView(rowIndices: number[], options?: IScrollOptions) {
     if (!this.element) return
     const viewTop = this.scrollTop
     const viewBottom = viewTop + this.gridBodyHeight
@@ -337,7 +337,7 @@ export class CollectionTableModel {
       }
     }
     if (closestRow >= 0) {
-      this.scrollRowIntoView(closestRow)
+      this.scrollRowIntoView(closestRow, options)
     }
   }
 

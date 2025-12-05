@@ -76,13 +76,14 @@ export const CaseTable = observer(function CaseTable() {
 
   const { handleTableScroll, syncTableScroll } = useSyncScrolling()
 
-  const handleScrollClosestRowIntoView = useCallback((collectionId: string, rowIndices: number[]) => {
-    const collectionTableModel = tableModel?.getCollectionTableModel(collectionId)
-    if (collectionTableModel) {
-      collectionTableModel.scrollClosestRowIntoView(rowIndices)
-      syncTableScroll(collectionId)
-    }
-  }, [syncTableScroll, tableModel])
+  const handleScrollClosestRowIntoView = useCallback(
+    function(collectionId: string, rowIndices: number[], options?: IScrollOptions) {
+      const collectionTableModel = tableModel?.getCollectionTableModel(collectionId)
+      if (collectionTableModel) {
+        collectionTableModel.scrollClosestRowIntoView(rowIndices, options)
+        syncTableScroll(collectionId)
+      }
+    }, [syncTableScroll, tableModel])
 
   const handleScrollRowRangeIntoView = useCallback(
     function(collectionId: string, rowIndices: number[], options?: IScrollOptions) {

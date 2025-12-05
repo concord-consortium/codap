@@ -24,8 +24,8 @@ import { t } from "../../utilities/translation/translate"
 import { CollectionTitle } from "../case-tile-common/collection-title"
 import { kCollectionTableBodyDropZoneBaseId } from "./case-table-drag-drop"
 import {
-  kDefaultRowHeight, kIndexColumnWidth, kInputRowKey, OnScrollClosestRowIntoViewFn,
-  OnScrollRowRangeIntoViewFn, OnTableScrollFn, TCellKeyDownArgs, TRenderers, TRow
+  kDefaultRowHeight, kIndexColumnWidth, kInputRowKey, OnScrollRowsIntoViewFn, OnTableScrollFn,
+  TCellKeyDownArgs, TRenderers, TRow
 } from "./case-table-types"
 import { CollectionTableSpacer } from "./collection-table-spacer"
 import { customRenderRow } from "./custom-row"
@@ -76,8 +76,8 @@ interface IProps {
   onMount: (collectionId: string) => void
   onNewCollectionDrop: OnNewCollectionDropFn
   onTableScroll: OnTableScrollFn
-  onScrollClosestRowIntoView: OnScrollClosestRowIntoViewFn
-  onScrollRowRangeIntoView: OnScrollRowRangeIntoViewFn
+  onScrollClosestRowIntoView: OnScrollRowsIntoViewFn
+  onScrollRowRangeIntoView: OnScrollRowsIntoViewFn
 }
 export const CollectionTable = observer(function CollectionTable(props: IProps) {
   const {
