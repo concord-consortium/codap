@@ -65,7 +65,7 @@ registerTileComponentInfo({
   constrainApiDimensions: (tile, dimensions) => {
     if (isWebViewModel(tile.content)) {
       // constrain height of Importer plugin to address plugin misbehavior
-      if (tile.content.url.includes("Importer")) {
+      if (/\/Importer(\/|$)/.test(tile.content.url)) {
         return {
           ...dimensions,
           ...(dimensions.height ? { height: Math.min(dimensions.height, kImporterPluginHeight) } : {})
