@@ -1,13 +1,15 @@
+import { CloudFileManager } from "@concord-consortium/cloud-file-manager"
 import { getSnapshot } from "mobx-state-tree"
 import { kWebViewTileType } from "../components/web-view/web-view-defs"
-import "../components/web-view/web-view-registration"
 import { appState } from "../models/app-state"
+import { getGlobalValueManager } from "../models/global/global-value-manager"
 import { SharedDataSet } from "../models/shared/shared-data-set"
 import { getSharedModelManager } from "../models/tiles/tile-environment"
-import { getGlobalValueManager } from "../models/global/global-value-manager"
-import { toV2Id } from "../utilities/codap-utils"
 import { setupTestDataset, testCases } from "../test/dataset-test-utils"
+import { toV2Id } from "../utilities/codap-utils"
 import { resolveResources } from "./resource-parser"
+
+import "../components/web-view/web-view-registration"
 
 describe("DataInteractive ResourceParser", () => {
   const { content } = appState.document
@@ -22,7 +24,8 @@ describe("DataInteractive ResourceParser", () => {
   const a2 = dataset.getAttributeByName("a2")!
   const a3 = dataset.getAttributeByName("a3")!
   const tile = content!.createOrShowTile(kWebViewTileType)!
-  const resolve = (resource: string) => resolveResources(resource, "get", tile)
+  const cfm = {} as unknown as CloudFileManager
+  const resolve = (resource: string) => resolveResources(resource, "get", tile, cfm)
 
   it("finds dataContext", () => {
     expect(resolve("").dataContext?.id).toBe(dataset.id)
@@ -203,5 +206,10 @@ describe("DataInteractive ResourceParser", () => {
     const caseId = Array.from(dataset.caseInfoMap.values())[0].groupedCase.__id__
     const itemId = dataset.getItemAtIndex(0)!.__id__
     expect(resolve(`dataContext[data].itemByCaseID[${toV2Id(caseId)}]`).itemByCaseID?.__id__).toBe(itemId)
+  })
+
+  it("finds interactiveApi", () => {
+    const resources = resolve("interactiveApi")
+    expect(resources.cfm).toBeDefined()
   })
 })

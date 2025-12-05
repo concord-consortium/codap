@@ -1,3 +1,4 @@
+import { CloudFileManager } from "@concord-consortium/cloud-file-manager"
 import { getAdornmentContentInfo } from "../components/graph/adornments/adornment-content-info"
 import { IAdornmentModel } from "../components/graph/adornments/adornment-models"
 import { isCountAdornment } from "../components/graph/adornments/count/count-adornment-model"
@@ -63,10 +64,14 @@ export function parseResourceSelector(iResource: string) {
  * @param {DIResourceSelector} resourceSelector  ResourceSelector returned by parseResourceSelector
  * @param {string} action                        Action name: get, create, update, delete, notify
  * @param {ITileModel} interactiveFrame          Model of web view tile communicating with plugin
+ * @param {CloudFileManager | null} cfm          Cloud file manager, if available
  * @returns {{interactiveFrame: DG.DataInteractivePhoneHandler}}
  */
 export function resolveResources(
-  _resourceSelector: DIResourceSelector | string, action: ActionName, interactiveFrame: ITileModel
+  _resourceSelector: DIResourceSelector | string,
+  action: ActionName,
+  interactiveFrame: ITileModel,
+  cfm: Maybe<CloudFileManager>
 ) {
   const resourceSelector = typeof _resourceSelector === "string"
     ? parseResourceSelector(_resourceSelector) : _resourceSelector
@@ -84,9 +89,15 @@ export function resolveResources(
 
   const result: DIResources = { interactiveFrame }
 
+  if (resourceSelector.type === 'interactiveApi') {
+    // interactiveApi resource always gets the cfm to use in the handler
+    result.cfm = cfm
+  }
+
   if (!resourceSelector.type || [
     'component', 'componentList', 'dataContextList', 'dataDisplay', 'document', 'formulaEngine', 'global', 'globalList',
-    'interactiveFrame', 'logMessage', 'logMessageMonitor', 'undoableActionPerformed', 'undoChangeNotice'
+    'interactiveApi', 'interactiveFrame', 'logMessage', 'logMessageMonitor', 'undoableActionPerformed',
+    'undoChangeNotice'
   ].indexOf(resourceSelector.type) < 0) {
     // if no data context provided, and we are not creating one, the
     // default data context is implied

@@ -8,6 +8,7 @@ import {
   DIAction, DIHandler, DIRequest, DIRequestCallback, DIRequestResponse
 } from "../../data-interactive/data-interactive-types"
 import { parseResourceSelector, resolveResources } from "../../data-interactive/resource-parser"
+import { useCfmContext } from "../../hooks/use-cfm-context"
 import { DEBUG_PLUGINS, debugLog } from "../../lib/debug"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { uiState } from "../../models/ui-state"
@@ -31,6 +32,7 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
   const tileContentModel = tile?.content
   const webViewModel = isWebViewModel(tileContentModel) ? tileContentModel : undefined
   const url = webViewModel?.url
+  const cfm = useCfmContext()
 
   useEffect(() => {
     debugLog(DEBUG_PLUGINS, `Establishing connection to ${iframeRef.current}`)
@@ -88,7 +90,7 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
             }
 
             const resourceSelector = parseResourceSelector(action.resource)
-            const resources = resolveResources(resourceSelector, action.action, tile)
+            const resources = resolveResources(resourceSelector, action.action, tile, cfm)
             const type = resourceSelector.type ?? ""
             const a = action.action
             const func = getDIHandler(type)?.[a as keyof DIHandler]
@@ -130,5 +132,5 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
         phone.disconnect()
       }
     }
-  }, [iframeRef, tile, url, webViewModel])
+  }, [cfm, iframeRef, tile, url, webViewModel])
 }
