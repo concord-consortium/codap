@@ -1,14 +1,15 @@
+import { CloudFileManager } from "@concord-consortium/cloud-file-manager"
 import { getSnapshot } from "mobx-state-tree"
 import { kWebViewTileType } from "../components/web-view/web-view-defs"
-import "../components/web-view/web-view-registration"
 import { appState } from "../models/app-state"
+import { getGlobalValueManager } from "../models/global/global-value-manager"
 import { SharedDataSet } from "../models/shared/shared-data-set"
 import { getSharedModelManager } from "../models/tiles/tile-environment"
-import { getGlobalValueManager } from "../models/global/global-value-manager"
-import { toV2Id } from "../utilities/codap-utils"
 import { setupTestDataset, testCases } from "../test/dataset-test-utils"
+import { toV2Id } from "../utilities/codap-utils"
 import { resolveResources } from "./resource-parser"
-import { CloudFileManager } from "@concord-consortium/cloud-file-manager"
+
+import "../components/web-view/web-view-registration"
 
 describe("DataInteractive ResourceParser", () => {
   const { content } = appState.document

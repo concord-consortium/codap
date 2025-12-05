@@ -1,3 +1,4 @@
+import { CloudFileManager } from "@concord-consortium/cloud-file-manager"
 import { RequireAtLeastOne } from "type-fest"
 import { LoggableValue } from "../lib/log-message"
 import { ICodapV2DocumentJson } from "../v2/codap-v2-types"
@@ -15,7 +16,6 @@ import {
   DINotifyAttribute, DINotifyDataContext, DIResultAttributes, DIUpdateAdornment, DIUpdateCase, DIUpdateItemResult
 } from "./data-interactive-data-set-types"
 import { DIAdornmentValues } from "./data-interactive-adornment-types"
-import { CloudFileManager } from "@concord-consortium/cloud-file-manager"
 
 export type DIDocument = ICodapV2DocumentJson
 
@@ -125,7 +125,7 @@ export interface DIResources {
   itemByID?: ICase
   itemCount?: number
   itemSearch?: ICaseID[]
-  cfm?: Maybe<CloudFileManager>
+  cfm?: CloudFileManager
 }
 
 // types for values accepted as inputs by the API
@@ -135,8 +135,8 @@ export type DISingleValues = DIAttribute | DINotifyAttribute | DIAttributeLocati
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
 // types returned as outputs by the API
-export type DIResultSingleValues = DICase | DIComponentInfo |  DIDataDisplay | DIDocument | DIGetCaseResult | DIGlobal
-  | DIInteractiveFrame | DIFunctionCategories | DIInteractiveApi
+export type DIResultSingleValues = DICase | DIComponentInfo |  DIDataDisplay | DIDocument | DIFunctionCategories |
+  DIGetCaseResult | DIGlobal | DIInteractiveApi | DIInteractiveFrame
 
 export type DIResultValues = DIResultSingleValues | DIResultSingleValues[] |
   DIAllCases | DIDeleteCollectionResult | DIUpdateItemResult | DIResultAttributes | number | number[] |

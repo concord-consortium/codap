@@ -96,8 +96,8 @@ export function resolveResources(
 
   if (!resourceSelector.type || [
     'component', 'componentList', 'dataContextList', 'dataDisplay', 'document', 'formulaEngine', 'global', 'globalList',
-    'interactiveFrame', 'logMessage', 'logMessageMonitor', 'undoableActionPerformed', 'undoChangeNotice',
-    'interactiveApi'
+    'interactiveApi', 'interactiveFrame', 'logMessage', 'logMessageMonitor', 'undoableActionPerformed',
+    'undoChangeNotice'
   ].indexOf(resourceSelector.type) < 0) {
     // if no data context provided, and we are not creating one, the
     // default data context is implied

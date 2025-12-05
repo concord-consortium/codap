@@ -8,13 +8,13 @@ import {
   DIAction, DIHandler, DIRequest, DIRequestCallback, DIRequestResponse
 } from "../../data-interactive/data-interactive-types"
 import { parseResourceSelector, resolveResources } from "../../data-interactive/resource-parser"
+import { useCfmContext } from "../../hooks/use-cfm-context"
 import { DEBUG_PLUGINS, debugLog } from "../../lib/debug"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { uiState } from "../../models/ui-state"
 import { t } from "../../utilities/translation/translate"
 import { RequestQueue } from "./request-queue"
 import { isWebViewModel } from "./web-view-model"
-import { useCfmContext } from "../../hooks/use-cfm-context"
 
 import "../../data-interactive/register-handlers"
 
@@ -132,5 +132,5 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
         phone.disconnect()
       }
     }
-  }, [iframeRef, tile, url, webViewModel, cfm])
+  }, [cfm, iframeRef, tile, url, webViewModel])
 }
