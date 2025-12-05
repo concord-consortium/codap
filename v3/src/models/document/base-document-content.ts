@@ -1,13 +1,14 @@
 import {
   applySnapshot, clone, getEnv, getSnapshot, getType, hasEnv, Instance, SnapshotIn, types
 } from "mobx-state-tree"
+import { toV2Id } from "../../utilities/codap-utils"
 import { ISharedModel, SharedModel } from "../shared/shared-model"
 import { isPlaceholderTile } from "../tiles/placeholder/placeholder-content"
+import { getTileComponentInfo } from "../tiles/tile-component-info"
 import { ITileModel, ITileModelSnapshotIn, TileModel } from "../tiles/tile-model"
+import { SharedModelEntry, SharedModelMap } from "./shared-model-entry"
 import { ITileInRowOptions } from "./tile-row"
 import { ITileLayoutUnion, ITileRowModelUnion, TileRowModelUnion } from "./tile-row-union"
-import { SharedModelEntry, SharedModelMap } from "./shared-model-entry"
-import { toV2Id } from "../../utilities/codap-utils"
 
 export const BaseDocumentContentModel = types
   .model("BaseDocumentContent", {
@@ -148,8 +149,19 @@ export const BaseDocumentContentModel = types
     insertTileSnapshotInRow(
       tileSnap: ITileModelSnapshotIn, row: ITileRowModelUnion, options?: ITileInRowOptions
     ): ITileModel | undefined {
+      let _options = { ...options }
+      const tileType = tileSnap.content?.type
+      if (!tileType) return undefined
+      const tileComponentInfo = getTileComponentInfo(tileType)
+      if (tileComponentInfo) {
+        const defaultExtents = {
+          defaultWidth: tileComponentInfo.defaultWidth,
+          defaultHeight: tileComponentInfo.defaultHeight
+        }
+        _options = { ...defaultExtents, ..._options }
+      }
       const tile = self.tileMap.put(tileSnap)
-      row.insertTile(tile.id, options)
+      row.insertTile(tile.id, _options)
       return tile
     },
     setVisibleRows(rows: string[]) {

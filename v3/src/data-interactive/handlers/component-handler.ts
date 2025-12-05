@@ -3,6 +3,7 @@ import { appState } from "../../models/app-state"
 import { INewTileOptions } from "../../models/codap/create-tile"
 import { isFreeTileRow } from "../../models/document/free-tile-row"
 import { getTileInfo } from "../../models/document/tile-utils"
+import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { ITileContentModel, ITileContentSnapshotWithType } from "../../models/tiles/tile-content"
 import { getTileContentInfo } from "../../models/tiles/tile-content-info"
 import { ITileModel } from "../../models/tiles/tile-model"
@@ -175,21 +176,30 @@ export const diComponentHandler: DIHandler = {
     let result: DIHandlerFnResult | undefined
     component.applyModelChange(() => {
       // Handle updating generic component features
-      const { cannotClose, dimensions, position, title } = values as Partial<V2Component>
+      const { cannotClose, dimensions, isVisible, position, title } = values as Partial<V2Component>
       if (cannotClose != null) component.setCannotClose(cannotClose)
       if (title) component.setTitle(title)
       // TODO Handle string positions?
       const _position = position && typeof position !== "string" ? position : undefined
-      if (dimensions || _position) {
+      if (dimensions || _position || isVisible != null) {
         const row = appState.document.content?.findRowContainingTile(component.id)
         const freeTileRow = row && isFreeTileRow(row) ? row : undefined
-        
-        const currentDimensions = freeTileRow?.getTileDimensions(component.id) ?? {}
-        if (dimensions) freeTileRow?.setTileDimensions(component.id, { ...currentDimensions, ...dimensions })
+
+        if (dimensions) {
+          const currentDimensions = freeTileRow?.getTileDimensions(component.id) ?? {}
+          const tileType = component.content.type
+          const { constrainApiDimensions } = getTileComponentInfo(tileType) || {}
+          const newDimensions = constrainApiDimensions?.(component, dimensions) ?? dimensions
+          freeTileRow?.setTileDimensions(component.id, { ...currentDimensions, ...newDimensions })
+        }
 
         const currentPosition = freeTileRow?.getTilePosition(component.id) ?? {}
         const newPosition = { ...currentPosition, ..._position }
         if (_position) freeTileRow?.setTilePosition(component.id, { x: newPosition.left, y: newPosition.top })
+
+        if (isVisible != null) {
+          freeTileRow?.setTileHidden(component.id, !isVisible)
+        }
       }
 
       // Handle updating type specific features

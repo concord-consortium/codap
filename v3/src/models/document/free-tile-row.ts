@@ -72,6 +72,8 @@ export function isFreeTileLayout(layout?: any): layout is IFreeTileLayout {
 
 export type IFreeTileInRowOptions = ITileInRowOptions & Omit<IFreeTileLayoutSnapshot, "tileId"> & {
   animateCreation?: boolean
+  defaultWidth?: number
+  defaultHeight?: number
 }
 export const isFreeTileInRowOptions = (options?: ITileInRowOptions): options is IFreeTileInRowOptions =>
               !!options &&
@@ -149,8 +151,12 @@ export const FreeTileRow = TileRowModel
     },
     insertTile(tileId: string, options?: ITileInRowOptions) {
       const {
-        x = 50, y = 50, width = undefined, height = undefined, zIndex = this.nextZIndex(),
-        isHidden = undefined, isMinimized = undefined, animateCreation = false
+        x = 50, y = 50,
+        defaultWidth = undefined, width = defaultWidth,
+        defaultHeight = undefined, height = defaultHeight,
+        zIndex = this.nextZIndex(),
+        isHidden = undefined, isMinimized = undefined,
+        animateCreation = false
       } = isFreeTileInRowOptions(options) ? options : {}
       self.tiles.set(tileId, { tileId, x, y, width, height, zIndex, isHidden, isMinimized })
       animateCreation && self.animateCreationTiles.add(tileId)
@@ -174,6 +180,10 @@ export const FreeTileRow = TileRowModel
         const { x = freeTileLayout.x, y = freeTileLayout.y } = position
         freeTileLayout?.setPosition(x, y)
       }
+    },
+    setTileHidden(tileId: string, isHidden: boolean = false) {
+      const freeTileLayout = self.getNode(tileId)
+      freeTileLayout?.setHidden(isHidden)
     },
     setTileMinimized(tileId: string, isMinimized: boolean = false) {
       const freeTileLayout = self.getNode(tileId)
