@@ -11,15 +11,13 @@ import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { prf } from "../../utilities/profiler"
 import { kIndexColumnKey } from "../case-tile-common/case-tile-types"
-import {
-  kInputRowKey, OnScrollClosestRowIntoViewFn, OnScrollRowRangeIntoViewFn, TCellClickArgs
-} from "./case-table-types"
+import { kInputRowKey, OnScrollRowsIntoViewFn, TCellClickArgs } from "./case-table-types"
 import { useCollectionTableModel } from "./use-collection-table-model"
 
 interface UseSelectedRows {
   gridRef: React.RefObject<DataGridHandle | null>
-  onScrollClosestRowIntoView: OnScrollClosestRowIntoViewFn
-  onScrollRowRangeIntoView: OnScrollRowRangeIntoViewFn
+  onScrollClosestRowIntoView: OnScrollRowsIntoViewFn
+  onScrollRowRangeIntoView: OnScrollRowsIntoViewFn
 }
 
 export const useSelectedRows = (props: UseSelectedRows) => {
@@ -81,7 +79,7 @@ export const useSelectedRows = (props: UseSelectedRows) => {
       if (caseIndices.length) {
         // delay required before scrolling to allow RDG to render its contents
         timeoutId = window.setTimeout(() => {
-          onScrollClosestRowIntoView(collectionId, caseIndices)
+          onScrollClosestRowIntoView(collectionId, caseIndices, { scrollBehavior: "auto" })
           timeoutId = undefined
         }, 50)
       }

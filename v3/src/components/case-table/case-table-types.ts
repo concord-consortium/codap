@@ -50,8 +50,7 @@ export type ScrollRowIntoViewFn = (rowIndex: number) => void
 export type SetScrollInfoFn = (scrollInfo: ISetTableScrollInfo) => void
 export type TableScrollEvent = React.UIEvent<HTMLDivElement, UIEvent>
 export type OnTableScrollFn = (event: TableScrollEvent, collectionId: string, element: HTMLDivElement) => void
-export type OnScrollClosestRowIntoViewFn = (collectionId: string, rowIndices: number[]) => void
-export type OnScrollRowRangeIntoViewFn = (collectionId: string, rowIndices: number[], options?: IScrollOptions) => void
+export type OnScrollRowsIntoViewFn = (collectionId: string, rowIndices: number[], options?: IScrollOptions) => void
 
 export const kInputRowKey = "__input__"
 
