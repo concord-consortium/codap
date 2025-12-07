@@ -11,15 +11,13 @@ import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { prf } from "../../utilities/profiler"
 import { kIndexColumnKey } from "../case-tile-common/case-tile-types"
-import {
-  kInputRowKey, OnScrollClosestRowIntoViewFn, OnScrollRowRangeIntoViewFn, TCellClickArgs
-} from "./case-table-types"
+import { kInputRowKey, OnScrollRowsIntoViewFn, TCellClickArgs } from "./case-table-types"
 import { useCollectionTableModel } from "./use-collection-table-model"
 
 interface UseSelectedRows {
   gridRef: React.RefObject<DataGridHandle | null>
-  onScrollClosestRowIntoView: OnScrollClosestRowIntoViewFn
-  onScrollRowRangeIntoView: OnScrollRowRangeIntoViewFn
+  onScrollClosestRowIntoView: OnScrollRowsIntoViewFn
+  onScrollRowRangeIntoView: OnScrollRowsIntoViewFn
 }
 
 export const useSelectedRows = (props: UseSelectedRows) => {
@@ -40,7 +38,7 @@ export const useSelectedRows = (props: UseSelectedRows) => {
   }, [data])
 
   const syncRowSelectionToRdg = useCallback(() => {
-    prf.measure("Table.syncRowSelectionToRdg", () => {
+    return prf.measure("Table.syncRowSelectionToRdg", () => {
       const newSelection = prf.measure("Table.syncRowSelectionToRdg[reaction-copy]", () => {
         const selection = new Set<string>()
         const cases = data?.getCasesForCollection(collectionId) || []
@@ -50,6 +48,7 @@ export const useSelectedRows = (props: UseSelectedRows) => {
       prf.measure("Table.syncRowSelectionToRdg[reaction-set]", () => {
         _setSelectedRows(newSelection)
       })
+      return newSelection
     })
   }, [collectionId, data])
 
@@ -63,11 +62,34 @@ export const useSelectedRows = (props: UseSelectedRows) => {
         const isSelected = row.getAttribute("aria-selected")
         const shouldBeSelected = caseId && data?.isCaseSelected(caseId)
         if (caseId && (isSelected !== shouldBeSelected)) {
-          row.setAttribute("aria-selected", String(shouldBeSelected))
+          row.setAttribute("aria-selected", String(!!shouldBeSelected))
         }
       })
     })
   }, [collectionId, data])
+
+  // synchronize initial selection on mount
+  useEffect(() => {
+    let timeoutId: number | undefined
+    const selectedCaseIds = Array.from(syncRowSelectionToRdg())
+    if (selectedCaseIds.length) {
+      const caseIndices = selectedCaseIds
+                            .map(id => collectionCaseIndexFromId(id, data, collectionId))
+                            .filter(index => index != null)
+      if (caseIndices.length) {
+        // delay required before scrolling to allow RDG to render its contents
+        timeoutId = window.setTimeout(() => {
+          onScrollClosestRowIntoView(collectionId, caseIndices, { scrollBehavior: "auto" })
+          timeoutId = undefined
+        }, 50)
+      }
+    }
+    return () => {
+      if (timeoutId) {
+        window.clearTimeout(timeoutId)
+      }
+    }
+  }, [collectionId, data, onScrollClosestRowIntoView, syncRowSelectionToRdg])
 
   useEffect(() => {
     const disposer = reaction(() => appState.appMode, mode => {
