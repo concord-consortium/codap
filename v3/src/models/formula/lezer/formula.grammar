@@ -151,8 +151,6 @@ plusMin { ArithOp<"+" | "-"> }
 
   LessThan[@name=CompareOp] { "<" }
 
-  "="[@name=Equals]
-
   "(" ")"
 }
 
