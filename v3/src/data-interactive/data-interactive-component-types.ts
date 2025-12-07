@@ -38,6 +38,7 @@ export interface V2Component {
     height: number
   }
   id?: number
+  isVisible?: boolean
   name?: string
   position?: string | {
     left: number
