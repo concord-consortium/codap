@@ -1,4 +1,4 @@
-import {action, computed, makeObservable, observable, override} from "mobx"
+import { action, computed, makeObservable, observable, override, reaction } from "mobx"
 import { measureTextExtent } from "../../../hooks/use-measure-text"
 import vars from "../../vars.scss"
 import {AxisPlace, AxisPlaces, AxisBounds, IScaleType} from "../../axis/axis-types"
@@ -11,6 +11,8 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
   // actual measured sizes of axis elements
   @observable axisBounds: Map<AxisPlace, AxisBounds> = new Map()
   axisScales: Map<AxisPlace, MultiScale> = new Map()
+  desiredExtentsFromComponents: Map<GraphExtentsPlace, number> = new Map() // not necessarily the extent they get
+  private disposer?: () => void
 
   constructor() {
     super()
@@ -18,11 +20,29 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
       new MultiScale({scaleType: "ordinal",
         orientation: isVertical(place) ? "vertical" : "horizontal"})))
     makeObservable(this)
+
+    // When the graph changes size, any categorical axes may get a different extent based on the constraint
+    // that the axis cannot be larger than 2/5 of the graph height/width.
+    this.disposer = reaction(
+      () => [this.tileWidth, this.tileHeight],
+      () => {
+        AxisPlaces.forEach(place => {
+          const desiredExtentFromComponent = this.desiredExtentsFromComponents.get(place)
+          if (desiredExtentFromComponent) {
+            this.setDesiredExtent(place, desiredExtentFromComponent) // trigger recompute}
+          }
+        })
+      }
+    )
   }
 
   cleanup() {
     for (const scale of this.axisScales.values()) {
       scale.cleanup()
+    }
+    if (this.disposer) {
+      this.disposer()
+      this.disposer = undefined
     }
   }
 
@@ -89,17 +109,18 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
   }
 
   @override setDesiredExtent(place: GraphExtentsPlace, extent: number) {
+    this.desiredExtentsFromComponents.set(place, extent)
     const labelHeight = measureTextExtent('Xy', vars.labelFont).height
     switch (place) {
       case 'left':
       case 'rightNumeric':
       case 'rightCat': {
-        extent = Math.min(extent, labelHeight + this.tileWidth / 3) // Maximum width for axis
+        extent = Math.max(50, Math.min(extent, labelHeight + 2 * this.tileWidth / 5))
         break
       }
       case 'top':
       case 'bottom': {
-        extent = Math.min(extent, labelHeight + this.tileHeight / 3) // Maximum height for axis
+        extent = Math.max(50, Math.min(extent, labelHeight + 2 * this.tileHeight / 5))
         break
       }
     }
