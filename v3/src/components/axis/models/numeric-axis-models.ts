@@ -2,7 +2,7 @@ import { Instance, SnapshotIn } from "mobx-state-tree"
 import { determineLevels, formatDate, mapLevelToPrecision } from "../../../utilities/date-utils"
 import { chooseDecimalPlaces } from "../../../utilities/math-utils"
 import { axisModelType, IAxisModel, registerAxisModel } from "./axis-model"
-import { BaseNumericAxisModel } from "./base-numeric-axis-models"
+import { BaseNumericAxisModel } from "./base-numeric-axis-model"
 
 /*
  * NumericAxisModel

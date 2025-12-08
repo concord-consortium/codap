@@ -8,10 +8,12 @@ import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-con
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { DateUnit, dateUnits, determineLevels, unitsStringToMilliseconds } from "../../utilities/date-utils"
 import { AxisPlace } from "../axis/axis-types"
-import { IAxisModel } from "../axis/models/axis-model"
-import { IBaseNumericAxisModel } from "../axis/models/base-numeric-axis-models"
-import { DateAxisModel, isAnyNumericAxisModel, isDateAxisModel, NumericAxisModel } from "../axis/models/numeric-axis-models"
 import { AxisHelper } from "../axis/helper-models/axis-helper"
+import { IAxisModel } from "../axis/models/axis-model"
+import { IBaseNumericAxisModel } from "../axis/models/base-numeric-axis-model"
+import {
+  DateAxisModel, isAnyNumericAxisModel, isDateAxisModel, NumericAxisModel
+} from "../axis/models/numeric-axis-models"
 import { kSliderTileType } from "./slider-defs"
 import {
   AnimationDirection, AnimationDirections, AnimationMode, AnimationModes, FixValueFn, ISliderScaleType,

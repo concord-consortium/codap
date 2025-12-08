@@ -1,9 +1,9 @@
 import { format, ScaleLinear, select } from "d3"
 import { between } from "../../../utilities/math-utils"
 import { transitionDuration } from "../../data-display/data-display-types"
-import { IAxisProvider } from "../models/axis-provider"
 import { computeBestNumberOfTicks, computeBestNumberOfVerticalAxisTicks, getStringBounds } from "../axis-utils"
 import { AxisScaleType, otherPlace } from "../axis-types"
+import { IAxisProvider } from "../models/axis-provider"
 import { isNonDateNumericAxisModel } from "../models/numeric-axis-models"
 import { AxisHelper, IAxisHelperArgs } from "./axis-helper"
 

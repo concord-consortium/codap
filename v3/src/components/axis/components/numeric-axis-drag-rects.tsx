@@ -11,8 +11,8 @@ import {RectIndices, selectDragRects} from "../axis-types"
 import { getDomainExtentForPixelWidth } from "../axis-utils"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import { updateAxisNotification } from "../models/axis-notifications"
+import { IBaseNumericAxisModel } from "../models/base-numeric-axis-model"
 import {MultiScale} from "../models/multi-scale"
-import { IBaseNumericAxisModel } from "../models/base-numeric-axis-models"
 
 import "./axis.scss"
 

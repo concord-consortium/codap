@@ -5,18 +5,18 @@ import React from "react"
 import { SliderAxisLayout } from "../../slider/slider-layout"
 import { IDataDisplayContentModel } from "../../data-display/models/data-display-content-model"
 import { DataDisplayModelContext } from "../../data-display/hooks/use-data-display-model"
+import { AxisPlace } from "../axis-types"
+import { AxisHelper } from "../helper-models/axis-helper"
 import { AxisLayoutContext } from "../models/axis-layout-context"
 import { IAxisModel } from "../models/axis-model"
-import { IBaseNumericAxisModel } from "../models/base-numeric-axis-models"
+import { IBaseNumericAxisModel } from "../models/base-numeric-axis-model"
 import { isAnyNumericAxisModel, NumericAxisModel } from "../models/numeric-axis-models"
 import { useAxis } from "./use-axis"
 import { AxisProviderContext } from "./use-axis-provider-context"
-import { AxisHelper } from "../helper-models/axis-helper"
-import { AxisPlace } from "../axis-types"
 
 const TestAxisProvider = types
   .model("TestAxisProvider", {
-  axis: NumericAxisModel,
+    axis: NumericAxisModel
   })
   .actions(self => ({
     getAxisHelper: jest.fn<AxisHelper | undefined, [AxisPlace, subAxisIndex: number]>(), // Mock correct return type

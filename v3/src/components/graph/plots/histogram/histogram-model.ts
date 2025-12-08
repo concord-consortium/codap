@@ -1,7 +1,7 @@
 import { Instance } from "mobx-state-tree"
-import { isFiniteNumber } from "../../../../utilities/math-utils"
 import { AttributeType } from "../../../../models/data/attribute-types"
 import { ICase } from "../../../../models/data/data-set-types"
+import { isFiniteNumber } from "../../../../utilities/math-utils"
 import { t } from "../../../../utilities/translation/translate"
 import { AxisPlace } from "../../../axis/axis-types"
 import { IAxisModel } from "../../../axis/models/axis-model"

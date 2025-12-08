@@ -1,7 +1,7 @@
 import { AxisPlace } from "../axis-types"
 import { AxisHelper } from "../helper-models/axis-helper"
 import { IAxisModel } from "./axis-model"
-import { IBaseNumericAxisModel } from "./base-numeric-axis-models"
+import { IBaseNumericAxisModel } from "./base-numeric-axis-model"
 
 export interface IAxisProviderBase {
   getAxis: (place: AxisPlace) => IAxisModel | undefined

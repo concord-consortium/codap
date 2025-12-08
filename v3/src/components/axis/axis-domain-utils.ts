@@ -2,7 +2,7 @@ import { extent } from "d3"
 import { isInteger } from "lodash"
 import { goodTickValue } from "../../utilities/math-utils"
 import { IAxisDomainOptions } from "./axis-types"
-import { IBaseNumericAxisModel } from "./models/base-numeric-axis-models"
+import { IBaseNumericAxisModel } from "./models/base-numeric-axis-model"
 import { isAnyNumericAxisModel, isDateAxisModel } from "./models/numeric-axis-models"
 
 /**

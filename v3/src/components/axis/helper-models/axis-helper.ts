@@ -91,7 +91,6 @@ export class AxisHelper {
     /* istanbul ignore next */
     throw new Error("Subclass should override")
   }
-
 }
 
 export class EmptyAxisHelper extends AxisHelper {
