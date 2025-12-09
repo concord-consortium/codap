@@ -29,7 +29,7 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
         AxisPlaces.forEach(place => {
           const desiredExtentFromComponent = this.desiredExtentsFromComponents.get(place)
           if (desiredExtentFromComponent) {
-            this.setDesiredExtent(place, desiredExtentFromComponent) // trigger recompute}
+            this.setDesiredExtent(place, desiredExtentFromComponent) // trigger recompute
           }
         })
       }
