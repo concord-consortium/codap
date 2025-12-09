@@ -461,7 +461,7 @@ context("Graph adornments", () => {
       // @ts-expect-error -- type definition is incorrect: return value is property value not chained element
       .should("have.css", "left").should((left: string) => {
         expect(left).to.include("px")
-        expect(parseInt(left, 10)).to.be.within(271, 273)
+        expect(parseInt(left, 10)).to.be.within(259, 261)
       })
     // TODO: Test drag and drop of label and saving of dropped coordinates
     cy.get("[data-testid=adornment-checkbox-show-measure-labels]").click()

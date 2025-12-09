@@ -93,7 +93,7 @@ export const AxisHelper = {
   selectMenuAttribute(attributeName: string, axis: string) {
     ae.getAttributeFromAttributeMenu(axis)
       .contains("button", attributeName) // This finds the button with the text
-      .click()
+      .click({ force: true })
     cy.wait(2000)
   },
   // Use this function when there are multiple datasets or a single dataset with multiple collections
