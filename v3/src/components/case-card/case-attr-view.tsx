@@ -30,7 +30,7 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
   const { id, units } = attr || {}
   const caseId = groupedCase?.__id__ ?? ""
   const cardModel = useCaseCardModel()
-  const data = cardModel?.data
+  const { data, metadata } = cardModel || {}
   const cellValue = isCollectionSummarized
     ? cardModel?.summarizedValues(attr, collection)
     : data?.getValue(caseId, id)
@@ -40,7 +40,7 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
   const { value, content } = renderAttributeValue(displayStrValue, displayNumValue, attr, { caseId, showUnits })
   const [isEditing, setIsEditing] = useState(false)
   const [editingValue, setEditingValue] = useState(data?.getStrValue(caseId, id) ?? "")
-  const isEditable = !!groupedCase
+  const isEditable = !!groupedCase && (!metadata || metadata.isEditable(id))
 
   const handleChangeValue = (newValue: string) => {
     setEditingValue(newValue)
