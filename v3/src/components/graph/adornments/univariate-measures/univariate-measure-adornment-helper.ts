@@ -17,6 +17,8 @@ import { kErrorBarStrokeColor, kStandardErrorValueTitleKey } from "./standard-er
 import { IUnivariateMeasureAdornmentModel } from "./univariate-measure-adornment-model"
 import { ILineCoords, ILineSpecs, IRange, IRangeSpecs, IRectSpecs, IValue } from "./univariate-measure-adornment-types"
 
+import "./univariate-measure-adornment-base-component.scss"
+
 interface IBlocksOtherMeasure {
   adornmentsStore: IAdornmentsStore
   attrId: string
