@@ -1,6 +1,13 @@
 .measure-container {
+  height: 100%;
+  width: 100%;
 
   .measure-line {
+    fill: none;
+    pointer-events: all;
+    position: relative;
+    stroke: #000;
+    stroke-width: 1px;
 
     &.mean-line {
       stroke: #00f;

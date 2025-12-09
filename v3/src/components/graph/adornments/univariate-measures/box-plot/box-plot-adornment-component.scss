@@ -1,13 +1,6 @@
 .measure-container {
-  height: 100%;
-  width: 100%;
 
   .measure-line {
-    fill: none;
-    pointer-events: all;
-    position: relative;
-    stroke: #000;
-    stroke-width: 1px;
 
     &.box-plot-line {
       stroke: #ff3300;
