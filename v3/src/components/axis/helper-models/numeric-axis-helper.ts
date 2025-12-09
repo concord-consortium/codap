@@ -93,51 +93,61 @@ export class NumericAxisHelper extends AxisHelper {
         return Number.isInteger(d) ? d.toString() : ""
       })
     }
-    subAxisSelection
-      .attr("class", "numeric-axis")
-      .attr("transform", this.initialTransform)
-      .transition().duration(duration)
-      .call(axisScale).selectAll("line,path")
-      .style("stroke", "lightgrey")
-      .style("stroke-opacity", "0.7")
 
-    this.showZeroAxisLine && this.renderZeroAxisLine()
-    this.showScatterPlotGridLines && this.renderScatterPlotGridLines()
+    try {
+      subAxisSelection
+        .attr("class", "numeric-axis")
+        .attr("transform", this.initialTransform)
+        .transition().duration(duration)
+        .call(axisScale).selectAll("line,path")
+        .style("stroke", "lightgrey")
+        .style("stroke-opacity", "0.7")
 
-    if (this.axisModel.place === 'bottom' && !hasDraggableNumericAxis && this.multiScale && this.displayModel) {
-      const formatter = (value: number) => this.multiScale?.formatValueForScale(value) || ""
-      const {tickLabels} = this.displayModel.nonDraggableAxisTicks(formatter)
-      // Detect overlapping tick labels
-      const tickLabelsSelection = subAxisSelection.selectAll(".tick text")
-      let hasOverlap = false
-      let previousEnd = 0
-      let detectedNonZeroTextLength = false
+      this.showZeroAxisLine && this.renderZeroAxisLine()
+      this.showScatterPlotGridLines && this.renderScatterPlotGridLines()
 
-      tickLabelsSelection.each(function (_, i) {
-        const textWidth = getStringBounds(tickLabels[i]).width
-        const currentNode = this as SVGTextElement
-        const currentStart = currentNode.getBoundingClientRect().left
-        const currentEnd = currentStart + textWidth
-        detectedNonZeroTextLength ||= textWidth > 0
+      if (this.axisModel.place === 'bottom' && !hasDraggableNumericAxis && this.multiScale && this.displayModel) {
+        const formatter = (value: number) => this.multiScale?.formatValueForScale(value) || ""
+        const {tickLabels} = this.displayModel.nonDraggableAxisTicks(formatter)
+        // Detect overlapping tick labels
+        const tickLabelsSelection = subAxisSelection.selectAll(".tick text")
+        let hasOverlap = false
+        let previousEnd = 0
+        let detectedNonZeroTextLength = false
 
-        if (i > 0 && currentStart < previousEnd) {
-          hasOverlap = true
+        tickLabelsSelection.each(function (_, i) {
+          const textWidth = getStringBounds(tickLabels[i]).width
+          const currentNode = this as SVGTextElement
+          const currentStart = currentNode.getBoundingClientRect().left
+          const currentEnd = currentStart + textWidth
+          detectedNonZeroTextLength ||= textWidth > 0
+
+          if (i > 0 && currentStart < previousEnd) {
+            hasOverlap = true
+          }
+          previousEnd = currentEnd
+        })
+
+        if (detectedNonZeroTextLength) {
+          // Rotate labels if overlap is detected
+          if (hasOverlap) {
+            tickLabelsSelection
+              .attr("transform", "rotate(-90)")
+              .transition().duration(duration)
+              .style("text-anchor", "end")
+              .attr("x", -8)
+              .attr("y", -6)
+          }
+          this.axisModel.setLabelsAreRotated(hasOverlap)
         }
-        previousEnd = currentEnd
-      })
-
-      if (detectedNonZeroTextLength) {
-        // Rotate labels if overlap is detected
-        if (hasOverlap) {
-          tickLabelsSelection
-            .attr("transform", "rotate(-90)")
-            .transition().duration(duration)
-            .style("text-anchor", "end")
-            .attr("x", -8)
-            .attr("y", -6)
-        }
-        this.axisModel.setLabelsAreRotated(hasOverlap)
       }
+    }
+    catch (error) {
+      // todo: Figure out how to prevent errors from d3 axis rendering
+      // This error occurs when a graph has a numeric axis and all the cases in the dataset are deleted
+      // We're using this temporary hack to be able to move on past CDOAP-1016
+      console.error("Error rendering numeric axis:", error)
+      select(this.subAxisElt).selectAll('*').remove() // clear any existing content
     }
   }
 }
