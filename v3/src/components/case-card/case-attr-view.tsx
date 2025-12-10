@@ -1,7 +1,7 @@
-import React, { useState } from "react"
-import { observer } from "mobx-react-lite"
-import { Editable, EditablePreview, EditableInput } from "@chakra-ui/react"
+import { Editable, EditablePreview, EditableInput, useEditableControls } from "@chakra-ui/react"
 import { clsx } from "clsx"
+import { observer } from "mobx-react-lite"
+import React, { useState } from "react"
 import { IAttribute } from "../../models/data/attribute"
 import { ICollectionModel } from "../../models/data/collection"
 import { ICase, IGroupedCase } from "../../models/data/data-set-types"
@@ -22,24 +22,29 @@ interface ICaseAttrViewProps {
   getDividerBounds?: GetDividerBoundsFn
   groupedCase?: IGroupedCase
   isCollectionSummarized: boolean
+  onAttrKeyDown?: (event: React.KeyboardEvent, attrId: string) => void
   onSetContentElt?: (contentElt: HTMLDivElement | null) => HTMLElement | null
+  onSetBeginEditingFn?: (attrId: string, beginEditingFn: () => void) => void
 }
 
 export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrViewProps) {
-  const { attr, collection, getDividerBounds, groupedCase, isCollectionSummarized, onSetContentElt } = props
+  const {
+    attr, collection, getDividerBounds, groupedCase, isCollectionSummarized,
+    onAttrKeyDown, onSetContentElt, onSetBeginEditingFn
+  } = props
   const { id, units } = attr || {}
   const caseId = groupedCase?.__id__ ?? ""
   const cardModel = useCaseCardModel()
   const { data, metadata } = cardModel || {}
-  const cellValue = isCollectionSummarized
-    ? cardModel?.summarizedValues(attr, collection)
-    : data?.getValue(caseId, id)
-  const displayStrValue = cellValue ? String(cellValue) : ""
-  const displayNumValue = cellValue ? Number(cellValue) : NaN
+  const cellStrValue = isCollectionSummarized
+                        ? cardModel?.summarizedValues(attr, collection)
+                        : data?.getStrValue(caseId, id)
+  const displayStrValue = cellStrValue ?? ""
+  const displayNumValue = cellStrValue ? Number(cellStrValue) : NaN
   const showUnits = isFiniteNumber(displayNumValue) && !!units
   const { value, content } = renderAttributeValue(displayStrValue, displayNumValue, attr, { caseId, showUnits })
   const [isEditing, setIsEditing] = useState(false)
-  const [editingValue, setEditingValue] = useState(data?.getStrValue(caseId, id) ?? "")
+  const [editingValue, setEditingValue] = useState(displayStrValue)
   const isEditable = !!groupedCase && (!metadata || metadata.isEditable(id))
 
   const handleChangeValue = (newValue: string) => {
@@ -48,12 +53,12 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
 
   const handleCancel = (_previousName?: string) => {
     setIsEditing(false)
-    setEditingValue(_previousName ?? value)
+    setEditingValue(_previousName ?? displayStrValue)
   }
 
   const handleSubmit = (newValue?: string) => {
     setIsEditing(false)
-    if (newValue) {
+    if (newValue != null && newValue !== displayStrValue) {
       const casesToUpdate: ICase[] = [{ __id__: caseId, [id]: newValue }]
 
       if (data) {
@@ -63,7 +68,7 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
 
       setEditingValue(newValue)
     } else {
-      setEditingValue(value)
+      setEditingValue(displayStrValue)
     }
   }
 
@@ -85,15 +90,15 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
 
       return (
         isEditing
-        ? <ColorTextEditor
-            attributeId={attr?.id ?? ""}
-            caseId={caseId}
-            acceptValue={handleSubmit}
-            updateValue={handleChangeValue}
-            cancelChanges={handleCancel}
-            value={isEditing ? editingValue : displayStrValue}
-          />
-        : <div className="case-card-attr-value-color" onClick={handleClick}>{ content }</div>
+          ? <ColorTextEditor
+              attributeId={attr?.id ?? ""}
+              caseId={caseId}
+              acceptValue={handleSubmit}
+              updateValue={handleChangeValue}
+              cancelChanges={handleCancel}
+              value={editingValue}
+            />
+          : <div className="case-card-attr-value-color" onClick={handleClick}>{ content }</div>
         )
     }
 
@@ -117,12 +122,14 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
         submitOnBlur={true}
         value={isEditing ? editingValue : value}
       >
+        <EditableControls onSetBeginEditingFn={(setFn: () => void) => onSetBeginEditingFn?.(id, setFn)} />
         <EditablePreview paddingY={0} />
         <EditableInput
           className="case-card-attr-value-text-editor"
           data-testid="case-card-attr-value-text-editor"
           paddingY={0}
           value={editingValue}
+          onKeyDown={event => onAttrKeyDown?.(event, id)}
         />
       </Editable>
     )
@@ -159,3 +166,15 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
     </tr>
   )
 })
+
+interface IEditableControlsProps {
+  onSetBeginEditingFn?: (beginEditingFn: () => void) => void
+}
+
+const EditableControls = ({ onSetBeginEditingFn }: IEditableControlsProps) => {
+  const { getEditButtonProps } = useEditableControls()
+
+  onSetBeginEditingFn?.(() => getEditButtonProps()?.onClick?.(new MouseEvent("click") as any))
+
+  return null
+}
