@@ -1,13 +1,6 @@
 .measure-container {
-  height: 100%;
-  width: 100%;
 
   .measure-line {
-    fill: none;
-    pointer-events: all;
-    position: relative;
-    stroke: #000;
-    stroke-width: 1px;
 
     &.box-plot-line {
       stroke: #ff3300;
@@ -38,12 +31,6 @@
   }
 
   .measure-cover {
-    fill: none;
-    opacity: 0;
-    pointer-events: all;
-    position: relative;
-    stroke: #000;
-    stroke-width: 5px;
 
     &.box-plot-cover {
       cursor: pointer;
@@ -55,12 +42,9 @@
   }
 
   .measure-range {
-    fill-opacity: .5;
-    pointer-events: none;
-    stroke: none;
-    stroke-width: 0;
 
     &.box-plot-range {
+      fill-opacity: .5;
       cursor: pointer;
       fill: #ffb280;
       stroke: #ff3300;
@@ -71,10 +55,6 @@
 }
 
 .measure-labels {
-  position: absolute;
-  height: 100%;
-  top: 0;
-  width: 100%;
 
   .box-plot-label {
     background: #ffc;
