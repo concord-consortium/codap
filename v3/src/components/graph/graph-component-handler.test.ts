@@ -1,5 +1,3 @@
-// TODO Rename this file after the PR is approved
-
 import { getSnapshot } from "mobx-state-tree"
 import { V2GetGraph, V2Graph } from "../../data-interactive/data-interactive-component-types"
 import { DIComponentInfo } from "../../data-interactive/data-interactive-types"
@@ -8,7 +6,7 @@ import { setupTestDataset, testCases } from "../../test/dataset-test-utils"
 import { testGetComponent } from "../../data-interactive/handlers/component-handler-test-utils"
 import { appState } from "../../models/app-state"
 import { toV2Id, toV3Id } from "../../utilities/codap-utils"
-import { IBaseNumericAxisModel } from "../axis/models/numeric-axis-models"
+import { IBaseNumericAxisModel } from "../axis/models/base-numeric-axis-model"
 import { kGraphIdPrefix } from "./graph-defs"
 import { IGraphContentModel, isGraphContentModel } from "./models/graph-content-model"
 

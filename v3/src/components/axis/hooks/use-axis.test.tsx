@@ -5,32 +5,40 @@ import React from "react"
 import { SliderAxisLayout } from "../../slider/slider-layout"
 import { IDataDisplayContentModel } from "../../data-display/models/data-display-content-model"
 import { DataDisplayModelContext } from "../../data-display/hooks/use-data-display-model"
+import { AxisPlace } from "../axis-types"
+import { AxisHelper } from "../helper-models/axis-helper"
 import { AxisLayoutContext } from "../models/axis-layout-context"
 import { IAxisModel } from "../models/axis-model"
-import { IBaseNumericAxisModel, isAnyNumericAxisModel, NumericAxisModel } from "../models/numeric-axis-models"
+import { IBaseNumericAxisModel } from "../models/base-numeric-axis-model"
+import { isAnyNumericAxisModel, NumericAxisModel } from "../models/numeric-axis-models"
 import { useAxis } from "./use-axis"
 import { AxisProviderContext } from "./use-axis-provider-context"
 
-const TestAxisProvider = types.model("TestAxisProvider", {
-  axis: NumericAxisModel
-})
-.views(self => ({
-  getAxis() {
-    return self.axis
-  },
-  getNumericAxis() {
-    return self.axis
-  },
-  hasBinnedNumericAxis(axisModel: IAxisModel) {
-    return false
-  },
-  hasDraggableNumericAxis(axisModel: IAxisModel) {
-    return isAnyNumericAxisModel(axisModel)
-  },
-  nonDraggableAxisTicks(formatter: (value: number) => string) {
-    return {tickValues: [], tickLabels: []}
-  }
-}))
+const TestAxisProvider = types
+  .model("TestAxisProvider", {
+    axis: NumericAxisModel
+  })
+  .actions(self => ({
+    getAxisHelper: jest.fn<AxisHelper | undefined, [AxisPlace, subAxisIndex: number]>(), // Mock correct return type
+    setAxisHelper: jest.fn<void, [AxisPlace, subAxisIndex: number, AxisHelper]>() // Mock with correct argument types
+  }))
+  .views(self => ({
+    getAxis() {
+      return self.axis
+    },
+    getNumericAxis() {
+      return self.axis
+    },
+    hasBinnedNumericAxis(axisModel: IAxisModel) {
+      return false
+    },
+    hasDraggableNumericAxis(axisModel: IAxisModel) {
+      return isAnyNumericAxisModel(axisModel)
+    },
+    nonDraggableAxisTicks(formatter: (value: number) => string) {
+      return { tickValues: [], tickLabels: [] }
+    }
+  }))
 interface ITestAxisProvider extends Instance<typeof TestAxisProvider> {}
 
 describe("useAxis", () => {

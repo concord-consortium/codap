@@ -1,5 +1,5 @@
 import React from "react"
-import { IBaseNumericAxisModel } from "../../axis/models/numeric-axis-models"
+import { IBaseNumericAxisModel } from "../../axis/models/base-numeric-axis-model"
 import { AdornmentModel, IAdornmentModel } from "./adornment-models"
 
 export interface IAdornmentComponentProps {

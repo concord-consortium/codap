@@ -1,6 +1,6 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { allAxisModels, AxisModel, AxisModelType, AxisModelTypes, IAxisModel } from "./axis-model"
-import { IBaseNumericAxisModel, IBaseNumericAxisModelSnapshot } from "./numeric-axis-models"
+import { IBaseNumericAxisModel, IBaseNumericAxisModelSnapshot } from "./base-numeric-axis-model"
 
 /**
  * A dynamic union of axis models. Its typescript type is `AxisModel`.

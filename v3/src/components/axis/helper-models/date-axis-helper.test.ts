@@ -2,7 +2,6 @@ import { select, Selection } from "d3"
 import { MutableRefObject } from "react"
 import { IDataDisplayContentModel } from "../../data-display/models/data-display-content-model"
 import { IAxisLayout } from "../models/axis-layout-context"
-import { IAxisProvider } from "../models/axis-provider"
 import { IDateAxisModel } from "../models/numeric-axis-models"
 import { DateAxisHelper, IDateAxisHelperArgs } from "./date-axis-helper"
 
@@ -31,7 +30,6 @@ describe("DateAxisHelper", () => {
           "g")) } as MutableRefObject<Selection<SVGGElement, any, any, any> | undefined>
     props = {
       displayModel: {} as IDataDisplayContentModel,
-      axisProvider: {} as IAxisProvider,
       subAxisIndex: 0,
       subAxisElt: document.createElementNS("http://www.w3.org/2000/svg", "g"),
       axisModel: {

@@ -2,7 +2,7 @@ import {useEffect} from "react"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import { setNiceDomain } from "../../axis/axis-domain-utils"
-import {IBaseNumericAxisModel} from "../../axis/models/numeric-axis-models"
+import {IBaseNumericAxisModel} from "../../axis/models/base-numeric-axis-model"
 import { dataDisplayGetNumericValue } from "../../data-display/data-display-value-utils"
 import {IGraphContentModel} from "../models/graph-content-model"
 
