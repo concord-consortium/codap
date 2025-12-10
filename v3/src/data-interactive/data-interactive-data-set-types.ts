@@ -93,6 +93,7 @@ export interface DIUpdateDataContext extends DIDataContext {
     attr?: string
     isDescending?: boolean
   }
+  rerandomize?: boolean
 }
 
 // types returned as outputs by the API
