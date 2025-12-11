@@ -73,11 +73,7 @@ export const RulerMenuList = observer(function RulerMenuList() {
     {
       itemKey: "DG.Inspector.randomizeAllAttributes",
       isEnabled: () => !!data?.attributes.some(attr => attr.formula?.isRandomFunctionPresent),
-      handleClick: () => {
-        data?.applyModelChange(() => {
-          rerandomizeAllAttributes(data)
-        })
-      }
+      handleClick: () => rerandomizeAllAttributes(data)
     },
     {
       itemKey: "DG.Inspector.exportCaseData",

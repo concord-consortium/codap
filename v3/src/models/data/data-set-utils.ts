@@ -135,10 +135,12 @@ export function moveAttribute({
 // DataSet helper functions
 
 export function rerandomizeAllAttributes(data?: IDataSet) {
-  data?.attributes.forEach(attr => {
-    if (attr.formula?.isRandomFunctionPresent) {
-      attr.formula.rerandomize()
-    }
+  data?.applyModelChange(() => {
+    data.attributes.forEach(attr => {
+      if (attr.formula?.isRandomFunctionPresent) {
+        attr.formula.rerandomize()
+      }
+    })
   })
 }
 
