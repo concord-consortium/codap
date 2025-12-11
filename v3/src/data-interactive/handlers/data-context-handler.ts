@@ -5,7 +5,9 @@ import {
   dataContextCountChangedNotification, dataContextDeletedNotification
 } from "../../models/data/data-set-notifications"
 import { sortItemsWithCustomUndoRedo } from "../../models/data/data-set-undo"
-import { addSetAsideCases, replaceSetAsideCases, restoreSetAsideCases } from "../../models/data/data-set-utils"
+import {
+  addSetAsideCases, replaceSetAsideCases, rerandomizeAllAttributes, restoreSetAsideCases
+} from "../../models/data/data-set-utils"
 import { getMetadataFromDataSet } from "../../models/shared/shared-data-utils"
 import { getFormulaManager } from "../../models/tiles/tile-environment"
 import { toV3CaseId } from "../../utilities/codap-utils"
@@ -127,7 +129,7 @@ export const diDataContextHandler: DIHandler = {
 
     const values = _values as DIUpdateDataContext
     if (values) {
-      const { managingController, metadata, sort, title } = values
+      const { managingController, metadata, rerandomize, sort, title } = values
       dataContext.applyModelChange(() => {
         if (metadata && hasOwnProperty(metadata, "description")) {
           v3Metadata?.setDescription(metadata.description)
@@ -151,6 +153,10 @@ export const diDataContextHandler: DIHandler = {
           const direction = isDescending ? "descending" : "ascending"
           sortItemsWithCustomUndoRedo(dataContext, attribute.id, direction)
         })
+      }
+
+      if (rerandomize) {
+        rerandomizeAllAttributes(dataContext)
       }
     }
 

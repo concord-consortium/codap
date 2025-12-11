@@ -14,6 +14,7 @@ import { initiateImportFromClipboard } from "../../../utilities/csv-import"
 import { uniqueName } from "../../../utilities/js-utils"
 import { preventCollectionReorg } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
+import { rerandomizeAllAttributes } from "../../../models/data/data-set-utils"
 import { CopiedCasesAlert } from "../copied-cases-alert"
 import { ExportDataModal } from "../export-data-modal"
 import { IMenuItem, StdMenuList } from "../std-menu-list"
@@ -72,15 +73,7 @@ export const RulerMenuList = observer(function RulerMenuList() {
     {
       itemKey: "DG.Inspector.randomizeAllAttributes",
       isEnabled: () => !!data?.attributes.some(attr => attr.formula?.isRandomFunctionPresent),
-      handleClick: () => {
-        data?.applyModelChange(() => {
-          data.attributes.forEach(attr => {
-            if (attr.formula?.isRandomFunctionPresent) {
-              attr.formula.rerandomize()
-            }
-          })
-        })
-      }
+      handleClick: () => rerandomizeAllAttributes(data)
     },
     {
       itemKey: "DG.Inspector.exportCaseData",

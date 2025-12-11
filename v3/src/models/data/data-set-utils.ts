@@ -132,6 +132,18 @@ export function moveAttribute({
   }
 }
 
+// DataSet helper functions
+
+export function rerandomizeAllAttributes(data?: IDataSet) {
+  data?.applyModelChange(() => {
+    data.attributes.forEach(attr => {
+      if (attr.formula?.isRandomFunctionPresent) {
+        attr.formula.rerandomize()
+      }
+    })
+  })
+}
+
 // Selection helper functions
 
 function selectWithNotification(func: () => void, data?: IDataSet, extend?: boolean) {

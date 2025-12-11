@@ -4,7 +4,21 @@ import { DataSetMetadata } from "../shared/data-set-metadata"
 import { IAttribute } from "./attribute"
 import { CollectionModel, ICollectionModel } from "./collection"
 import { DataSet, IDataSet } from "./data-set"
-import { getCaseNameForCount, getCollectionAttrs, getNextCase, getPreviousCase, moveAttribute } from "./data-set-utils"
+import {
+  getCaseNameForCount, getCollectionAttrs, getNextCase, getPreviousCase, moveAttribute, rerandomizeAllAttributes
+} from "./data-set-utils"
+
+jest.mock("../tiles/tile-environment", () => {
+  const originalModule = jest.requireActual("../tiles/tile-environment")
+  return {
+    __esModule: true,
+    ...originalModule,
+    getFormulaManager: () => ({
+      isRandomFunctionPresent: (_canonical: string) => _canonical.includes("random"),
+      rerandomize: jest.fn()
+    })
+  }
+})
 
 function names(attrs: IAttribute[]) {
   return attrs.map(({ name }) => name)
@@ -85,6 +99,17 @@ describe("DataSetUtils", () => {
     moveAttribute({ attrId: "bAttr", dataset: data, targetCollection: parentCollection })
     expect(getCollectionAttrNames(parentCollection)).toEqual(["b", "a"])
     expect(data.collections.length).toBe(1)
+  })
+
+  it("rerandomizeAllAttributes works as expected", () => {
+    const { dataset } = setupTestDataset()
+    const attr5 = dataset.addAttribute({ name: "a5", formula: { display: "random()" }})
+    attr5.formula!.setCanonicalExpression(attr5.formula!.display)
+    const rerandomizeSpy = jest.spyOn(attr5.formula!, "rerandomize")
+    expect(rerandomizeSpy).not.toHaveBeenCalled()
+    rerandomizeAllAttributes(dataset)
+    expect(rerandomizeSpy).toHaveBeenCalledTimes(1)
+    rerandomizeSpy.mockRestore()
   })
 
   it("getNextCase and getPreviousCase work as expected", () => {
