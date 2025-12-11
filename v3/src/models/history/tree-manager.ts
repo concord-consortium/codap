@@ -176,7 +176,7 @@ export const TreeManager = types
         self.undoStore.addHistoryEntry(entry)
       }
 
-      if (!entry.noDirty)  {
+      if (!entry.noDirty) {
         // Store the most recent history id; this has the effect of dirtying the document.
         self.revisionId = entry.id
       }
