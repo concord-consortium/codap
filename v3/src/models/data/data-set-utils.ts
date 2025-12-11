@@ -132,7 +132,7 @@ export function moveAttribute({
   }
 }
 
-// Dataset helper functions
+// DataSet helper functions
 
 export function rerandomizeAllAttributes(data?: IDataSet) {
   data?.attributes.forEach(attr => {
