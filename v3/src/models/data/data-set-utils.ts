@@ -141,7 +141,7 @@ export function rerandomizeAllAttributes(data?: IDataSet) {
         attr.formula.rerandomize()
       }
     })
-  })
+  }, { noDirty: true })
 }
 
 // Selection helper functions
