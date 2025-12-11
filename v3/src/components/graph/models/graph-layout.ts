@@ -110,17 +110,21 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
 
   @override setDesiredExtent(place: GraphExtentsPlace, extent: number) {
     this.desiredExtentsFromComponents.set(place, extent)
+    // If the request is for a "large" extent, we set the minimum to 50px. But otherwise we don't require
+    // a minimum so that we can honor small extents from empty axes or categorical axes where the categories
+    // are parallel to the axis.
+    const minimumExtent = extent > 50 ? 50 : 0
     const labelHeight = measureTextExtent('Xy', vars.labelFont).height
     switch (place) {
       case 'left':
       case 'rightNumeric':
       case 'rightCat': {
-        extent = Math.max(50, Math.min(extent, labelHeight + 2 * this.tileWidth / 5))
+        extent = Math.max(minimumExtent, Math.min(extent, labelHeight + 2 * this.tileWidth / 5))
         break
       }
       case 'top':
       case 'bottom': {
-        extent = Math.max(50, Math.min(extent, labelHeight + 2 * this.tileHeight / 5))
+        extent = Math.max(minimumExtent, Math.min(extent, labelHeight + 2 * this.tileHeight / 5))
         break
       }
     }
