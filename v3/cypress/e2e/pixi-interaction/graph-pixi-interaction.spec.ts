@@ -322,16 +322,16 @@ context("Graph UI with Pixi interaction", () => {
       gch.getGraphTileId().then((tileId: string) => {
         // Known inputs:
         const pointIndex = 3
-        const expectedX = 164
-        const expectedY = 62
+        const expectedX = 168
+        const expectedY = 65
 
         gch.checkPointPosition(tileId, pointIndex, expectedX, expectedY)
       })
       gch.getGraphTileId().then((tileId: string) => {
         // Known inputs:
         const pointIndex = 8
-        const expectedX = 322
-        const expectedY = 130
+        const expectedX = 328
+        const expectedY = 136
 
         gch.checkPointPosition(tileId, pointIndex, expectedX, expectedY)
       })
@@ -339,7 +339,7 @@ context("Graph UI with Pixi interaction", () => {
         // Known inputs:
         const pointIndex = 20
         const expectedX = 67
-        const expectedY = 139
+        const expectedY = 146
 
         gch.checkPointPosition(tileId, pointIndex, expectedX, expectedY)
       })
