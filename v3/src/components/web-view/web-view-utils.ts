@@ -16,8 +16,10 @@ const kFullyReplacedUrls: Array<[RegExp, string]> = [
 
 const kReplaceToken = "_$@_"
 const kPartiallyReplacedUrls: Array<[RegExp, string]> = [
-  // onboarding plugins are proxied so that drag/drop works, so we use the proxied url
-  [/\/plugins\/onboarding\/(.+)$/, `${kCodap3RootPluginsUrl}/onboarding/${kReplaceToken}`],
+  // [V2] weather plugin url was mapped in V2 code
+  [/\/plugins\/NOAA-weather\/(.+)$/, `${kCodap3RootPluginsUrl}/noaa-codap-plugin/${kReplaceToken}`],
+  // onboarding plugins are proxied so that drag/drop works, so we used the proxied url
+  [/\/plugins\/onboarding\/(.+)$/, `${kCodap3RootPluginsUrl}/onboarding/${kReplaceToken}`]
 ]
 
 export function processWebViewUrl(url: string) {
