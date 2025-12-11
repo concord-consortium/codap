@@ -27,10 +27,25 @@ export interface UrlParams {
    */
   dashboard?: string | null
   /*
-   * [v2] Loads the specified url as a data interactive/plugin tile.
+   * [V2] Loads the specified url as a data interactive/plugin tile.
+   * When combined with `di-override`, the specified url is used instead of the url
+   * that matches the `di-override` value. This allows the `di` parameter to override
+   * the default location of a plugin that is stored in a document.
    * value: url string
    */
   di?: string | null
+  /*
+   * [V2] Used in conjunction with the `di` parameter to override the default url of a plugin.
+   * If the url of a plugin to be loaded matches this value, the url specified in the `di` parameter
+   * (or `di-override-url` parameter) is used instead.
+   * value: substring match for a plugin url
+   */
+  "di-override"?: string | null
+  /*
+   * [V2] Same as `di`, but can be used to override the `di` value as well.
+   * value: url string
+   */
+  "di-override-url"?: string | null
   /*
    * When present enables the error tester component.
    * value: which type of error the tester should throw.
@@ -41,12 +56,12 @@ export interface UrlParams {
    */
   errorTester?: string | null
   /*
-   * [v2] When present enables the gaussian fit feature of the normal curve adornment.
+   * [V2] When present enables the gaussian fit feature of the normal curve adornment.
    * value: ignored
    */
   gaussianFit?: string | null
   /*
-   * [v2] When present enables the informal confidence interval on the box plot adornment.
+   * [V2] When present enables the informal confidence interval on the box plot adornment.
    * value: ignored
    */
   ICI?: string | null
@@ -57,13 +72,13 @@ export interface UrlParams {
    */
   interactiveApi?: string | null
   /*
-   * [v2] Specifies the default locale, overriding the browser default.
+   * [V2] Specifies the default locale, overriding the browser default.
    * value: locale string, e.g. `en-US` or `es`
    */
   lang?: string | null
   /*
-   * [v2] Alternate means to specify default locale.
-   * v2 comment: "Allow override of lang query param"(?)
+   * [V2] Alternate means to specify default locale.
+   * V2 comment: "Allow override of lang query param"(?)
    * value: locale string, e.g. `en-US` or `es`
    */
   "lang-override"?: string | null
@@ -102,7 +117,7 @@ export interface UrlParams {
   */
   noEntryModal?: string | null
   /*
-   * [v2/v3] Specifies the url of the folder from which to load plugins.
+   * [V2/V3] Specifies the url of the folder from which to load plugins.
    * Useful for testing/debugging plugins from alternate locations.
    * value: url string
    */
@@ -136,7 +151,7 @@ export interface UrlParams {
    */
   tableOnly?: string | null
   /*
-   * [v2] Specifies the url of a document to load on application launch.
+   * [V2] Specifies the url of a document to load on application launch.
    * value: url string
    */
   url?: string | null
@@ -149,4 +164,18 @@ export const setUrlParams = (search: string) => urlParams = queryString.parse(se
 // remove developer-convenience url params
 export function removeDevUrlParams() {
   removeSearchParams(["dashboard", "sample", "tableOnly"])
+}
+
+export function getDataInteractiveUrl(url: string) {
+  const diUrl = urlParams["di-override-url"] || urlParams.di
+  const diOverride = urlParams["di-override"]
+
+  if (diUrl && diOverride) {
+    const hashIndex = url.indexOf('#')
+    const urlNoHash = hashIndex >= 0 ? url.slice(0, hashIndex) : url
+    const hash = hashIndex >= 0 ? url.slice(hashIndex) : ""
+    return urlNoHash.includes(diOverride) ? diUrl + hash : url
+  }
+
+  return url
 }
