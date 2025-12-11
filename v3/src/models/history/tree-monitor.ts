@@ -155,7 +155,7 @@ export class TreeMonitor {
           historyEntryId,
           exchangeId,
           // by default, actions dirty the document and are undoable
-          // withoutUndo() and withoutDirtyingDocument() can be used to alter these defaults
+          // withoutUndo() can be used to alter these defaults
           undoable: true
         }
       },
