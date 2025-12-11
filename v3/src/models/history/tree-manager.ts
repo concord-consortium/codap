@@ -174,8 +174,10 @@ export const TreeManager = types
       // stack will have incomplete entries in sometimes.
       if (entry.undoable) {
         self.undoStore.addHistoryEntry(entry)
+      }
 
-        // Store the most recent undo-able history id.
+      if (!entry.noDirty) {
+        // Store the most recent history id; this has the effect of dirtying the document.
         self.revisionId = entry.id
       }
     }

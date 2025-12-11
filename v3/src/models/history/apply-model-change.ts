@@ -6,6 +6,9 @@ export interface IApplyModelChangeOptions {
   log?: string | ILogMessage | (() => Maybe<string | ILogMessage>)
   notify?: INotify
   notifyTileId?: string
+  // all changes dirty the document by default; specify noDirty to disable dirtying the document
+  noDirty?: boolean
+  // undo/redo strings indicate undo-ability; if not provided, the action is not undoable
   undoStringKey?: string
   redoStringKey?: string
 }

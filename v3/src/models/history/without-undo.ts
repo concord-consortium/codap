@@ -1,6 +1,6 @@
 import { getRoot, getRunningActionContext } from "mobx-state-tree"
 import { DEBUG_UNDO } from "../../lib/debug"
-import { getHistoryServiceMaybe } from "./history-service"
+import { getHistoryServiceMaybe, IWithoutUndoOptions } from "./history-service"
 
 /**
  * When added to the body of a MST action, this will prevent any changes
@@ -12,13 +12,13 @@ import { getHistoryServiceMaybe } from "./history-service"
  * has a withoutUndo. Because this can lead to unexpected behavior a warning
  * is printed when withoutUndo is called from a child action.
  *
- * There is is an option so you can stop this warning. You can use this option 
+ * There is an option so you can stop this warning. You can use this option
  * if you are OK with the behavior described above.
  *
  *   `withoutUndo({ suppressWarning: true })`
  *
 */
-export function withoutUndo(options?: { suppressWarning?: boolean }) {
+export function withoutUndo(options?: IWithoutUndoOptions) {
   const actionCall = getRunningActionContext()
   if (!actionCall) {
     throw new Error("withoutUndo called outside of an MST action")
@@ -45,7 +45,7 @@ export function withoutUndo(options?: { suppressWarning?: boolean }) {
     const root = getRoot(context)
     // Use duck typing to figure out if the root is a tree
     if ((root as any).treeMonitor) {
-      console.warn("history service has not been added to the MST tree")
+      console.warn("withoutUndo: history service has not been added to the MST tree")
     }
   }
   historyService?.withoutUndo(actionCall, options)

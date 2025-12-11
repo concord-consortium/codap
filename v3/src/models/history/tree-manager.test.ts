@@ -1,7 +1,6 @@
 import { nanoid } from "nanoid"
 import { cloneDeep } from "lodash"
 import { getSnapshot, getType, Instance, types } from "mobx-state-tree"
-// import { ITileProps } from "src/components/tiles/tile-component"
 import { SharedModel, ISharedModel } from "../shared/shared-model"
 import { registerSharedModelInfo } from "../shared/shared-model-registry"
 import { TileContentModel } from "../tiles/tile-content"

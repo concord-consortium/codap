@@ -1014,7 +1014,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       // should be called before retrieving snapshot (pre-serialization)
       prepareSnapshot() {
         // move volatile data into serializable properties
-        withoutUndo({ suppressWarning: true })
+        withoutUndo({ noDirty: true, suppressWarning: true })
         self.collections.forEach(collection => collection.prepareSnapshot())
         self.attributes.forEach(attr => attr.prepareSnapshot())
         self.snapSelection.replace(Array.from(self.selection))
@@ -1022,7 +1022,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       // should be called after retrieving snapshot (post-serialization)
       completeSnapshot() {
         // move data back into volatile storage for efficiency
-        withoutUndo({ suppressWarning: true })
+        withoutUndo({ noDirty: true, suppressWarning: true })
         self.collections.forEach(collection => collection.completeSnapshot())
         self.attributes.forEach(attr => attr.completeSnapshot())
       },

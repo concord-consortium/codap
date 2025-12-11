@@ -53,7 +53,7 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({
       if (sliderValue != null && sliderModel) {
         sliderModel.applyModelChange(
           () => sliderModel.setDynamicValue(sliderValue),
-          { notify: () => valueChangeNotification(sliderModel.value, sliderModel.name) }
+          { noDirty: true, notify: () => valueChangeNotification(sliderModel.value, sliderModel.name) }
         )
       }
       e.preventDefault()

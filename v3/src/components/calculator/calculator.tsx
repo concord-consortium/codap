@@ -18,6 +18,7 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
     setCalcValue("")
     setJustEvaled(false)
     calculatorModel?.applyModelChange(() => {}, {
+      noDirty: true,  // calculator value isn't currently serialized
       log: {message: "Calculator value cleared", args: {}, category: "calculator"}
     })
   }
@@ -44,6 +45,7 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
         const solution = evaluate(calcValue)
         !isNaN(solution) && setCalcValue(solution)
         calculatorModel?.applyModelChange(() => {}, {
+          noDirty: true,  // calculator value isn't currently serialized
           log: logMessageWithReplacement("Calculation done: %@ = %@", {calcValue, solution}, "calculator")
         })
       } catch  (error) {

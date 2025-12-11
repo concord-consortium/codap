@@ -392,13 +392,13 @@ export const MapContentModel = DataDisplayContentModel
         {name: "MapContentModel.respondToSharedDatasetsChanges", fireImmediately: true}))
     },
     setLeafletMap(leafletMap: LeafletMap) {
-      withoutUndo()
+      withoutUndo({ noDirty: true })
       self.leafletMap = leafletMap
       self.leafletMapState.setLeafletMap(leafletMap)
     },
     setHasBeenInitialized() {
       // TODO: withoutUndo should be unnecessary since isLeafletMapInitialized is volatile
-      withoutUndo()
+      withoutUndo({ noDirty: true })
       self.isLeafletMapInitialized = true
     },
     beforeDestroy() {

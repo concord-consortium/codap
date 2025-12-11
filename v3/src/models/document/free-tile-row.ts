@@ -167,7 +167,7 @@ export const FreeTileRow = TileRowModel
     moveTileToTop(tileId: string, allowBringToFront = true) {
       if (!allowBringToFront) return
 
-      withoutUndo({ suppressWarning: true })
+      withoutUndo({ noDirty: true, suppressWarning: true })
       self.getNode(tileId)?.setZIndex(this.nextZIndex())
     },
     setTileDimensions(tileId: string, dimensions: { width?: number, height?: number }) {

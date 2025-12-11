@@ -11,13 +11,19 @@ export interface IApplyModelChangeOptions {
   log?: string | ILogMessage | (() => Maybe<string | ILogMessage>)
   notify?: INotify
   notifyTileId?: string
+  noDirty?: boolean
   undoStringKey?: string
   redoStringKey?: string
 }
 
+export interface IWithoutUndoOptions {
+  noDirty?: boolean
+  suppressWarning?: boolean
+}
+
 export interface IHistoryService {
   handleApplyModelChange: (options?: IApplyModelChangeOptions) => void
-  withoutUndo: (actionCall: IActionContext, options?: { suppressWarning?: boolean }) => void
+  withoutUndo: (actionCall: IActionContext, options?: IWithoutUndoOptions) => void
 }
 
 // This should be used when adding the history service to the MST Env

@@ -141,7 +141,7 @@ export function rerandomizeAllAttributes(data?: IDataSet) {
         attr.formula.rerandomize()
       }
     })
-  })
+  }, { noDirty: true })
 }
 
 // Selection helper functions
@@ -150,6 +150,7 @@ function selectWithNotification(func: () => void, data?: IDataSet, extend?: bool
   data?.applyModelChange(() => {
     func()
   }, {
+    noDirty: true,
     notify: selectCasesNotification(data, extend)
   })
 }

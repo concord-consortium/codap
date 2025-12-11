@@ -17,7 +17,7 @@ export const diLogMessageHandler: DIHandler = {
         args[index.toString()] = value
       })
       webviewModel?.applyModelChange(()=>{},
-        { log: logMessageWithReplacement(message, args) }
+        { noDirty: true, log: logMessageWithReplacement(message, args) }
       )
       return {success: true}
     } else {

@@ -30,7 +30,7 @@ describe("DataInteractive LogMessageHandler", () => {
     notify(resources, values)
     expect(webViewContent.applyModelChange).toHaveBeenCalled()
     expect(webViewContent.applyModelChange).toHaveBeenCalledWith(expect.any(Function), {
-      log: {message: "This is a log message with replacement", args: {0: "replacement"}}
+      noDirty: true, log: {message: "This is a log message with replacement", args: {0: "replacement"}}
     })
   })
 })
