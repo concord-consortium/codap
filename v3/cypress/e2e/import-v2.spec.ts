@@ -14,7 +14,7 @@ context("import codap v2 documents", () => {
     //   "Save Madeline the dog by winning at Rock Paper Scissors.")
     cfm.openExampleDocument("Parachute Model")
     webView.getTitle().should("contain.text", "Terminal Velocity")
-    cfm.openExampleDocument("Getting started with CODAP")
+    cfm.openExampleDocument("Getting started with CODAP", { discardChanges: true })
     cy.wait(1000)
     webView.getIFrame().find(".App-list").should("contain.text",
       "Drag this data file into CODAP")
