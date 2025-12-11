@@ -1,4 +1,5 @@
 import { kCodap3RootPluginsUrl, kRootDataGamesPluginUrl, kRootGuideUrl, kRootPluginsUrl } from "../../constants"
+import { getDataInteractiveUrl } from "../../utilities/url-params"
 
 export const kRelativePluginRoot = "../../../../extn/plugins"
 export const kRelativeGuideRoot = "../../../../extn/example-documents/guides"
@@ -15,12 +16,13 @@ const kFullyReplacedUrls: Array<[RegExp, string]> = [
 
 const kReplaceToken = "_$@_"
 const kPartiallyReplacedUrls: Array<[RegExp, string]> = [
-  // onboarding plugins are proxied so that drag/drop works, so we used the proxied url
+  // onboarding plugins are proxied so that drag/drop works, so we use the proxied url
   [/\/plugins\/onboarding\/(.+)$/, `${kCodap3RootPluginsUrl}/onboarding/${kReplaceToken}`],
 ]
 
 export function processWebViewUrl(url: string) {
-  let updatedUrl = url
+  // First, allow any URL modifications from url params
+  let updatedUrl = getDataInteractiveUrl(url)
 
   // Many plugins were hosted on GitHub pages at http://concord-consortium.github.io/codap-data-interactives/
   // or other sites but are now hosted on s3, so we have to change the URL to point to the new location.
