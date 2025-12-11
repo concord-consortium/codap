@@ -67,7 +67,7 @@ describe("urlParams", () => {
     pluginUrl = getDataInteractiveUrl(pluginUrl)
     expect(pluginUrl).toBe("some-other-plugin-url")
 
-    //di-override-url takes precedence over di
+    // di-override-url takes precedence over di
     setUrlParams("?di-override=old-plugin-url&di=new-plugin-url&di-override-url=final-plugin-url")
     pluginUrl = "old-plugin-url"
     pluginUrl = getDataInteractiveUrl(pluginUrl)
@@ -76,7 +76,7 @@ describe("urlParams", () => {
     pluginUrl = getDataInteractiveUrl(pluginUrl)
     expect(pluginUrl).toBe("some-other-plugin-url")
 
-    //di-override alone does nothing
+    // di-override alone does nothing
     setUrlParams("?di-override=old-plugin-url")
     pluginUrl = "old-plugin-url"
     pluginUrl = getDataInteractiveUrl(pluginUrl)
@@ -85,7 +85,7 @@ describe("urlParams", () => {
     pluginUrl = getDataInteractiveUrl(pluginUrl)
     expect(pluginUrl).toBe("some-other-plugin-url")
 
-    //di-override-url alone does nothing
+    // di-override-url alone does nothing
     setUrlParams("?di-override-url=new-plugin-url")
     pluginUrl = "old-plugin-url"
     pluginUrl = getDataInteractiveUrl(pluginUrl)
