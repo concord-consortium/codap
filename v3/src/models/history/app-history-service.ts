@@ -1,6 +1,6 @@
 import { getRoot, IActionContext } from "mobx-state-tree"
 import { withUndoRedoStrings } from "./codap-undo-types"
-import { IApplyModelChangeOptions, IHistoryService } from "./history-service"
+import { IApplyModelChangeOptions, IHistoryService, IWithoutUndoOptions } from "./history-service"
 import { ILogFunctionEnv } from "../../lib/log-message"
 import { DEBUG_UNDO } from "../../lib/debug"
 import { ICoreNotifyFunctionEnv } from "../../data-interactive/notification-core-types"
@@ -19,13 +19,13 @@ export class AppHistoryService implements IHistoryService {
   }
 
   handleApplyModelChange(options?: IApplyModelChangeOptions) {
-    const { log, notify, notifyTileId, undoStringKey, redoStringKey } = options || {}
+    const { log, notify, notifyTileId, noDirty, undoStringKey, redoStringKey } = options || {}
 
     // Add strings to undoable action or keep out of the undo stack
     if (undoStringKey != null && redoStringKey != null) {
       withUndoRedoStrings(undoStringKey, redoStringKey)
     } else {
-      withoutUndo()
+      withoutUndo({ noDirty })
     }
 
     // Send log message to logger
@@ -56,7 +56,7 @@ export class AppHistoryService implements IHistoryService {
     }
   }
 
-  withoutUndo(actionCall: IActionContext, options?: { suppressWarning?: boolean }) {
+  withoutUndo(actionCall: IActionContext, options?: IWithoutUndoOptions) {
     if (actionCall.parentActionEvent) {
       if (!isChildOfUndoRedo(actionCall) && !options?.suppressWarning) {
         // It is a little weird to print all this, but it seems like a good way to leave
@@ -106,8 +106,10 @@ export class AppHistoryService implements IHistoryService {
     }
 
     if (!call.env) {
-      throw new Error("environment is not setup on action tracking middleware call")
+      throw new Error("AppHistoryService.withoutUndo: " +
+                      "environment is not setup on action tracking middleware call")
     }
+    if (options?.noDirty) call.env.noDirty = true
     call.env.undoable = false
   }
 }

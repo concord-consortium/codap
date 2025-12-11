@@ -246,13 +246,13 @@ export const Attribute = V2Model.named("Attribute").props({
       if (isDevelopment() && self.shouldSerializeValues) {
         // In development, values is undefined (see .afterCreate()). If the attribute values should be serialized
         // (no formula), we need to temporarily update it to the current values.
-        withoutUndo({suppressWarning: true})
+        withoutUndo({ noDirty: true, suppressWarning: true })
         self.values = [...self.strValues]
       }
       if (isProduction() && !self.shouldSerializeValues) {
         // In development, values is set to the volatile strValues (see .afterCreate()). If the attribute values should
         // NOT be serialized (non-empty formula) we need to temporarily set it to undefined.
-        withoutUndo({suppressWarning: true})
+        withoutUndo({ noDirty: true, suppressWarning: true })
         self.values = undefined
       }
     },
@@ -260,12 +260,12 @@ export const Attribute = V2Model.named("Attribute").props({
     completeSnapshot() {
       if (isDevelopment() && self.shouldSerializeValues) {
         // values should be set back to undefined in development mode.
-        withoutUndo({suppressWarning: true})
+        withoutUndo({ noDirty: true, suppressWarning: true })
         self.values = undefined
       }
       if (isProduction() && !self.shouldSerializeValues) {
         // values should be set back to the volatile strValues in production mode.
-        withoutUndo({suppressWarning: true})
+        withoutUndo({ noDirty: true, suppressWarning: true })
         self.values = self.strValues
       }
     },

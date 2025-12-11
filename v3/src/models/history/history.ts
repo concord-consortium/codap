@@ -26,6 +26,7 @@ export interface ICreateHistoryEntry {
   tree: string
   model: string
   action: string
+  noDirty?: boolean
   undoable: boolean
   customPatches?: ICustomPatch[]
   clientData?: IClientUndoData
@@ -36,9 +37,11 @@ export const HistoryEntry = types.model("HistoryEntry", {
   tree: types.maybe(types.string),
   model: types.maybe(types.string),   // name of model
   action: types.maybe(types.string),  // name of action
-  // This doesn't need to be recorded in the state, but putting it here is
+  // These don't need to be recorded in the state, but putting them here is
   // the easiest place for now.
+  noDirty: types.maybe(types.boolean),
   undoable: types.maybe(types.boolean),
+  // other standard properties
   created: types.optional(types.Date, () => new Date()),
   records: types.array(TreePatchRecord),
   customPatches: types.maybe(types.frozen<ReadonlyArray<ICustomPatch>>()),

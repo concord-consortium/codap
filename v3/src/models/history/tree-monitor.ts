@@ -154,6 +154,8 @@ export class TreeMonitor {
           sharedModelModifications,
           historyEntryId,
           exchangeId,
+          // by default, actions dirty the document and are undoable
+          // withoutUndo() and withoutDirtyingDocument() can be used to alter these defaults
           undoable: true
         }
       },
@@ -222,7 +224,7 @@ export class TreeMonitor {
   // stored in the recorder.
   async recordAction(call: IActionTrackingMiddleware3Call<CallEnv>, env: CallEnv) {
     const { recorder, initialSharedModelMap, sharedModelModifications, historyEntryId,
-      exchangeId, undoable, customPatches, clientData } = env
+      exchangeId, noDirty, undoable, customPatches, clientData } = env
     if (!isActionFromManager(call)) {
       // We record the start of the action even if it doesn't have any
       // patches. This is useful when an action only modifies the shared
@@ -237,6 +239,7 @@ export class TreeMonitor {
         tree: this.tree.treeId,
         model: getActionModelName(call),
         action: getActionPath(call),
+        noDirty,
         undoable,
         customPatches,
         clientData

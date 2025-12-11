@@ -55,8 +55,10 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
       rpcEndpoint.call({message: "codap-present"},
         reply => debugLog(DEBUG_PLUGINS, `Reply to codap-present: `, JSON.stringify(reply)))
       webViewModel?.setDataInteractiveController(rpcEndpoint)
-      webViewModel?.applyModelChange(() => {},
-                                    {log: {message: "WebView initialized", args:{ url }, category: "plugin"}})
+      webViewModel?.applyModelChange(() => {}, {
+                                      log: {message: "WebView initialized", args:{ url }, category: "plugin"},
+                                      noDirty: true
+                                    })
 
       // A reaction is used here instead of an autorun so properties accessed by each handler are not
       // observed. We only want to run the loop when a new request comes in, not when something changes

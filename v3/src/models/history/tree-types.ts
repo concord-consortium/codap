@@ -17,6 +17,7 @@ export interface CallEnv {
   sharedModelModifications: SharedModelModifications
   historyEntryId: string
   exchangeId: string
+  noDirty?: boolean
   undoable: boolean
   customPatches?: ICustomPatch[]
   clientData?: IClientUndoData

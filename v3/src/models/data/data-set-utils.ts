@@ -150,6 +150,7 @@ function selectWithNotification(func: () => void, data?: IDataSet, extend?: bool
   data?.applyModelChange(() => {
     func()
   }, {
+    noDirty: true,
     notify: selectCasesNotification(data, extend)
   })
 }

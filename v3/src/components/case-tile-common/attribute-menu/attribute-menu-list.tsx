@@ -141,7 +141,7 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
       handleClick: () => {
         data?.applyModelChange(() => {
           attribute?.formula?.rerandomize()
-        })
+        }, { noDirty: true })
       }
     },
     {

@@ -86,6 +86,9 @@ export interface TreeManagerAPI {
      * @param entryInfo.actionName name of the action that caused this history entry to be
      * added.
      *
+     * @param entryInfo.noDirty true if this action should _not_ dirty the document.
+     * Most actions should dirty the document, but some (like selection changes) don't.
+     *
      * @param entryInfo.undoable true if this action should be saved to the undo stack.
      * Changes that result from `applyPatchesFromManager` should not be undo-able.
      *
