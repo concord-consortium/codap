@@ -61,6 +61,12 @@ export interface UrlParams {
    */
   gaussianFit?: string | null
   /*
+   * [V2] When present, disables the loading message displayed in web views while waiting for
+   * a plugin to load or communicate.
+   * value: ignored
+   */
+  hideWebViewLoading?: string | null
+  /*
    * [V2] When present enables the informal confidence interval on the box plot adornment.
    * value: ignored
    */
@@ -160,6 +166,15 @@ export interface UrlParams {
 export let urlParams: UrlParams = queryString.parse(getSearchParams())
 
 export const setUrlParams = (search: string) => urlParams = queryString.parse(search)
+
+export function booleanParam(param?: string | null): boolean {
+  // undefined => param is absent, which is treated as false
+  if (param === undefined) return false
+  // null => param is present without argument, which is treated as true
+  if (param === null) return true
+  // treat "false", "no", and "0" as false, everything else as true
+  return !["false", "no", "0"].includes(param.toLowerCase())
+}
 
 // remove developer-convenience url params
 export function removeDevUrlParams() {

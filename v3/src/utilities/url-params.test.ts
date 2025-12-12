@@ -35,6 +35,25 @@ describe("urlParams", () => {
     expect(mockPushState).toHaveBeenCalledWith({ path: newUrl }, "", newUrl)
   })
 
+  it("booleanParam works as expected", () => {
+    const { booleanParam } = require("./url-params")
+
+    expect(booleanParam(undefined)).toBe(false) // param absent
+    expect(booleanParam(null)).toBe(true)       // param present without value
+    expect(booleanParam("")).toBe(true)         // param present with empty value
+    expect(booleanParam("true")).toBe(true)
+    expect(booleanParam("false")).toBe(false)
+    expect(booleanParam("TRUE")).toBe(true)
+    expect(booleanParam("FALSE")).toBe(false)
+    expect(booleanParam("yes")).toBe(true)
+    expect(booleanParam("no")).toBe(false)
+    expect(booleanParam("YES")).toBe(true)
+    expect(booleanParam("NO")).toBe(false)
+    expect(booleanParam("1")).toBe(true)
+    expect(booleanParam("0")).toBe(false)
+    expect(booleanParam("unexpected")).toBe(true)
+  })
+
   it("removeDevUrlParams strips appropriate dev-only params", () => {
     setLocation("https://concord.org?sample=mammals&dashboard")
     removeDevUrlParams()
