@@ -53,7 +53,8 @@ export const WebViewModel = TileContentModel
     dataInteractiveController: undefined as iframePhone.IframePhoneRpcEndpoint | undefined,
     version: kDefaultWebViewVersion,
     autoOpenUrlDialog: false,
-    isPluginCandidate: false
+    isPluginCandidate: false,
+    isPluginCommunicating: false
   }))
   .views(self => ({
     get allowBringToFront() {
@@ -77,10 +78,16 @@ export const WebViewModel = TileContentModel
       self.dataInteractiveController = controller
     },
     setSubType(subType?: WebViewSubType) {
-      withoutUndo()
       self.subType = subType
       if (subType) {
         self.isPluginCandidate = false
+      }
+    },
+    setPluginIsCommunicating() {
+      self.isPluginCommunicating = true
+      if (!self.isPlugin) {
+        withoutUndo()
+        this.setSubType("plugin")
       }
     },
     setSavedState(state: unknown) {
