@@ -1,6 +1,7 @@
 import { observer } from "mobx-react-lite"
 import React, { useRef } from "react"
 import { t } from "../../utilities/translation/translate"
+import { booleanParam, urlParams } from "../../utilities/url-params"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { useDataInteractiveController } from "./use-data-interactive-controller"
 import { kWebViewBodyClass } from "./web-view-defs"
@@ -17,9 +18,11 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
 
   if (!isWebViewModel(webViewModel)) return null
 
+  const hideWebViewLoading = booleanParam(urlParams.hideWebViewLoading)
+
   return (
     <div className={kWebViewBodyClass} data-testid="codap-web-view">
-      {!webViewModel.isPlugin && (
+      {!webViewModel.isPluginCommunicating && !hideWebViewLoading && (
         <div className="codap-web-view-backdrop">
           <div className="codap-web-view-url">{webViewModel.url}</div>
           <div className="codap-web-view-message">{t("DG.GameView.loadError")}</div>
