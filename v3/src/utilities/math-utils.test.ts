@@ -1,6 +1,13 @@
 import {FormatLocaleDefinition, format, formatLocale} from "d3-format"
 import {
-  between, checkNumber, chooseDecimalPlaces, extractNumeric, isFiniteNumber, isNumber, isValueNonEmpty
+  between,
+  checkNumber,
+  chooseDecimalPlaces,
+  extractNumeric,
+  fitGaussianLM,
+  isFiniteNumber,
+  isNumber,
+  isValueNonEmpty, normal
 } from "./math-utils"
 
 // default formatting except uses ASCII minus sign
@@ -160,5 +167,26 @@ describe("math-utils", () => {
       expect(chooseDecimalPlaces(0.91234, 0, 1)).toBe("0.912")
     })
 
+  })
+})
+
+describe("fitGaussianLM", () => {
+  test("recovers mu and sigma from exact Gaussian points", () => {
+    const amp = 10
+    const mu = 5
+    const sigma = 2
+
+    const points = [
+      { x: mu - 2 * sigma, y: normal(mu - 2 * sigma, amp, mu, sigma) },
+      { x: mu - sigma,     y: normal(mu - sigma,     amp, mu, sigma) },
+      { x: mu,             y: normal(mu,             amp, mu, sigma) },
+      { x: mu + sigma,     y: normal(mu + sigma,     amp, mu, sigma) },
+      { x: mu + 2 * sigma, y: normal(mu + 2 * sigma, amp, mu, sigma) }
+    ]
+
+    const result = fitGaussianLM(points, amp, mu + 1, sigma * 1.5)
+
+    expect(result.mu).toBeCloseTo(mu, 6)
+    expect(result.sigma).toBeCloseTo(sigma, 6)
   })
 })

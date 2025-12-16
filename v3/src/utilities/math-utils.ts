@@ -270,70 +270,124 @@ export function quantileOfSortedArray (sortedArray:number[], quantile:number) {
   }
 }
 
-type XYToNumberFunction = (x: number, y: number) => number
-
 /**
- * Gradient descent algorithm that fits a gaussian to points that are typically the top-middles of
- * a histogram by least squares optimizing mu and sigma. The amplitude is assumed to be fixed.
+ * Fits a gaussian to points by least squares using Levenberg–Marquardt.
+ * Optimizes mu and sigma (sigma is constrained positive via logSigma).
+ * The amplitude is assumed fixed.
  */
-export function fitGaussianGradientDescent(points: {x:number, y:number}[], amp:number, mu0:number, sigma0:number) {
+export function fitGaussianLM(points: {x:number, y:number}[], amp:number, mu0:number, sigma0:number) {
+  if (!points.length) {
+    return { mu: mu0, sigma: sigma0 }
+  }
 
-  function sumOfSquares(points1: {x:number, y:number}[], amp1:number, mu1:number, sigma1:number) {
-    return points1.reduce(function(sum, p) {
-      return sum + Math.pow(p.y - normal(p.x, amp1, mu1, sigma1), 2)
+  // Normalize x for conditioning, and normalize y by amp (amp assumed fixed)
+  const meanX = points.reduce((s, p) => s + p.x, 0) / points.length
+  const varX = points.reduce((s, p) => {
+    const dx = p.x - meanX
+    return s + dx * dx
+  }, 0) / points.length
+  const scaleX = Math.sqrt(varX) || 1
+
+  const normalizedPoints = points.map(p => ({
+    x: (p.x - meanX) / scaleX,
+    y: p.y / amp
+  }))
+
+  // Initial parameters in normalized space
+  let mu = (mu0 - meanX) / scaleX
+  let sigma = (sigma0 / scaleX)
+  if (!Number.isFinite(sigma) || sigma <= 0) sigma = 1
+  let logSigma = Math.log(sigma)
+
+  const maxIterations = 50
+  const tol = 1e-12
+  let lambda = 1e-3
+
+  function sse(mu1:number, logSigma1:number) {
+    const sigma1 = Math.exp(logSigma1)
+    return normalizedPoints.reduce((sum, p) => {
+      const yhat = normal(p.x, 1, mu1, sigma1)
+      const r = p.y - yhat
+      return sum + r * r
     }, 0)
   }
 
-  // Function to compute the gradient of f at (x, y)
-  function gradient(f:XYToNumberFunction, x:number, y:number, h?:number) {
-    h = h || 1e-3
-    const fxPlus = f(x + h, y),
-      fxMinus = f(x - h, y),
-      dfdx = (fxPlus - fxMinus) / (2 * h),
-      fyPlus = f(x, y + h),
-      fyMinus = f(x, y - h),
-      dfdy = (fyPlus - fyMinus) / (2 * h)
-    return [dfdx, dfdy]
-  }
+  let prevSSE = sse(mu, logSigma)
 
-  // Gradient Descent function to find local minimum of f(x, y)
-  function gradientDescent(f:XYToNumberFunction, x0:number, y0:number, numericRange:number) {
+  for (let iter = 0; iter < maxIterations; iter++) {
+    const sigma1 = Math.exp(logSigma)
 
-    const learningRate = 0.001,
-      iterations = 1000,
-      tolerance = 1e-5
-    let x = x0, y = y0, prevValue = f(x, y)/*,
-         logInterval = iterations / 10*/
+    // Build normal equations for 2 parameters: [mu, logSigma]
+    let a11 = 0, a12 = 0, a22 = 0
+    let b1 = 0, b2 = 0
 
-    for (let i = 0; i < iterations; i++) {
-      const gradient_ = gradient(f, x, y, numericRange / 100),
-        dfdx = gradient_[0],
-        dfdy = gradient_[1]
+    for (const p of normalizedPoints) {
+      const dx = p.x - mu
+      const invSigma2 = 1 / (sigma1 * sigma1)
+      const g = Math.exp(-0.5 * dx * dx * invSigma2)
+      const yhat = g // amp normalized to 1
+      const r = p.y - yhat
 
-      // Update x and y
-      x -= learningRate * dfdx
-      y -= learningRate * dfdy
+      // df/dmu and df/dlogSigma (analytic)
+      const df_dmu = yhat * (dx * invSigma2)
+      const df_dlogSigma = yhat * (dx * dx * invSigma2)
 
-      const newValue = f(x, y)
-      if (Math.abs(newValue - prevValue) < tolerance) {
-        break
-      }
-      prevValue = newValue
+      // Jacobian of residual is negative of df/dtheta
+      const j1 = -df_dmu
+      const j2 = -df_dlogSigma
+
+      a11 += j1 * j1
+      a12 += j1 * j2
+      a22 += j2 * j2
+
+      b1 += -j1 * r
+      b2 += -j2 * r
     }
 
-    return [x, y]
+    // Levenberg–Marquardt damping
+    const d11 = a11 + lambda
+    const d22 = a22 + lambda
+    const det = d11 * d22 - a12 * a12
+
+    if (!Number.isFinite(det) || Math.abs(det) < 1e-18) {
+      lambda *= 10
+      continue
+    }
+
+    // Solve 2x2: [d11 a12; a12 d22] * [dMu; dLogSigma] = [b1; b2]
+    const dMu = (b1 * d22 - b2 * a12) / det
+    const dLogSigma = (d11 * b2 - a12 * b1) / det
+
+    if (!Number.isFinite(dMu) || !Number.isFinite(dLogSigma)) {
+      lambda *= 10
+      continue
+    }
+
+    const trialMu = mu + dMu
+    const trialLogSigma = logSigma + dLogSigma
+    const trialSSE = sse(trialMu, trialLogSigma)
+
+    if (trialSSE < prevSSE) {
+      mu = trialMu
+      logSigma = trialLogSigma
+
+      const improvement = prevSSE - trialSSE
+      prevSSE = trialSSE
+
+      lambda = Math.max(lambda / 10, 1e-12)
+
+      if (Math.abs(dMu) + Math.abs(dLogSigma) < tol || improvement < tol) {
+        break
+      }
+    }
+    else {
+      lambda *= 10
+    }
   }
 
-  /**
-   * We define this function to pass to gradientDescent, which expects a function of two variables.
-   */
-  function fToMinimize(mu:number, sigma:number) {
-    return sumOfSquares(normalizedPoints, 1, mu, sigma)
-  }
+  const sigmaOut = Math.exp(logSigma) * scaleX
+  const muOut = mu * scaleX + meanX
 
-  const normalizedPoints = points.map(p => ({ x: (p.x - mu0) / sigma0, y: p.y / amp }))
-
-  const muSigma = gradientDescent(fToMinimize, 0, 1, 1)
-
-  return { mu: muSigma[0] * sigma0 + mu0, sigma: muSigma[1] * sigma0 }
+  return { mu: muOut, sigma: sigmaOut }
 }
+

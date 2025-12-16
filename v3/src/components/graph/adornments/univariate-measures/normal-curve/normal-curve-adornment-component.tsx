@@ -5,7 +5,7 @@ import { clsx } from "clsx"
 import { t } from "../../../../../utilities/translation/translate"
 import { getDocumentContentPropertyFromNode } from "../../../../../utilities/mst-utils"
 import { measureText } from "../../../../../hooks/use-measure-text"
-import { fitGaussianGradientDescent, normal, sqrtTwoPi } from "../../../../../utilities/math-utils"
+import { fitGaussianLM, normal, sqrtTwoPi } from "../../../../../utilities/math-utils"
 import { getDomainExtentForPixelWidth } from "../../../../axis/axis-utils"
 import { useGraphContentModelContext } from "../../../hooks/use-graph-content-model-context"
 import { isBinnedPlotModel } from "../../../plots/histogram/histogram-model"
@@ -75,7 +75,7 @@ export const NormalCurveAdornmentComponent = observer(
             amp = (1 / (sampleStdDev * sqrtTwoPi)) * count * binWidth,
             points = dataConfig
               ? model.computeHistogram(binAlignment, binWidth, numericAttrId, cellKey, dataConfig) : [],
-            {mu, sigma} = fitGaussianGradientDescent(points, amp, sampleMean, sampleStdDev),
+            {mu, sigma} = fitGaussianLM(points, amp, sampleMean, sampleStdDev),
             numStandardErrs = isStandardErrorAdornment(stdErrorAdorn) ? stdErrorAdorn?.numStErrs : 1
           return {mean: mu, stdDev: sigma, numStdErrs: numStandardErrs,
             stdError: displayStdErr ? sigma / Math.sqrt(caseCount) : undefined}
