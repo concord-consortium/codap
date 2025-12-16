@@ -1,5 +1,12 @@
 @use "../vars";
 
+.codap-standalone-component {
+  .codap-web-view-body {
+    // no title bar in standalone mode
+    height: 100%;
+  }
+}
+
 .codap-web-view-body {
   background-color: white;
   height: calc(100% - vars.$title-bar-height);

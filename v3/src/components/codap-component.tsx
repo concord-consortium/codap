@@ -60,7 +60,7 @@ class TileSelectionHandler implements ITileSelection {
 }
 
 export const CodapComponent = observer(function CodapComponent(props: IProps) {
-  const { tile, isMinimized, onMinimizeTile, onCloseTile, onMoveTilePointerDown } = props
+  const { tile, hideTitleBar, isMinimized, onMinimizeTile, onCloseTile, onMoveTilePointerDown } = props
   const info = getTileComponentInfo(tile.content.type)
   const codapComponentRef = useRef<HTMLDivElement | null>(null)
   const focused = uiState.isFocusedTile(tile.id) || uiState.isHoveredTile(tile.id)
@@ -88,8 +88,10 @@ export const CodapComponent = observer(function CodapComponent(props: IProps) {
               onPointerDownCapture={handleFocusEvent}
               ref={codapComponentRef}
             >
-              <TitleBar tile={tile} onMinimizeTile={onMinimizeTile} onCloseTile={onCloseTile}
-                  onMoveTilePointerDown={onMoveTilePointerDown}/>
+              {!hideTitleBar && (
+                <TitleBar tile={tile} onMinimizeTile={onMinimizeTile} onCloseTile={onCloseTile}
+                    onMoveTilePointerDown={onMoveTilePointerDown}/>
+              )}
               <Component tile={tile} isMinimized={isMinimized} />
             </div>
             <InspectorPanelWrapper tile={tile} isMinimized={isMinimized} />

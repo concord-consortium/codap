@@ -8,6 +8,11 @@ import { RulerState, RulerStateKey } from "./ui-state-types"
   It can be manually saved by copying it into the document during pre-serialization if desired.
  */
 export class UIState {
+  // support for standalone mode for data interactives/plugins
+  @observable
+  private _standaloneMode: boolean = false
+  @observable
+  private _standalonePlugin: string = ""
   // the focused tile is a singleton; in theory there can be multiple selected tiles
   @observable
   private focusTileId = ""
@@ -52,6 +57,23 @@ export class UIState {
 
   constructor() {
     makeObservable(this)
+  }
+
+  // support for standalone mode for data interactives/plugins
+  isStandaloneComponent(componentName?: string, componentType?: string): boolean {
+    const standalonePlugin = this._standalonePlugin.toLowerCase()
+    const componentNameLower = (componentName || '').toLowerCase()
+
+    return this._standaloneMode &&
+          componentType === 'CodapWebView' && // V3 equivalent of DG.GameView
+          (!standalonePlugin || componentNameLower === standalonePlugin)
+  }
+
+  @action
+  setStandaloneMode(standaloneParam?: string | null) {
+    // TODO: use booleanParam() once PR #2258 is merged
+    this._standaloneMode = standaloneParam === null || (!!standaloneParam && standaloneParam !== 'false')
+    this._standalonePlugin = standaloneParam || ""
   }
 
   get focusedTile() {

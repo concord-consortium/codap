@@ -20,5 +20,15 @@
     &.minimized {
       height: vars.$title-bar-height;
     }
+
+    &.codap-standalone-component {
+      left: 0;
+      top: 0;
+      width: 100%;
+      // no title bar in standalone mode
+      height: 100%;
+      z-index: 0;
+      border: none;
+    }
   }
 }

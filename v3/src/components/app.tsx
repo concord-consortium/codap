@@ -13,6 +13,7 @@ import { useImportHelpers } from "../hooks/use-import-helpers"
 import { useKeyStates } from "../hooks/use-key-states"
 import { useKeyboardShortcuts } from "../hooks/use-keyboard-shortcuts"
 import { ProgressContext, useProgressContextProviderValue } from "../hooks/use-progress"
+import { useUIState } from "../hooks/use-ui-state"
 import { useUncaughtErrorHandler } from "../hooks/use-uncaught-error-handler"
 import { IUseCloudFileManagerHookOptions, useCloudFileManager } from "../lib/cfm/use-cloud-file-manager"
 import { CodapDndContext } from "../lib/dnd-kit/codap-dnd-context"
@@ -70,6 +71,9 @@ export const App = observer(function App() {
     = useDisclosure({defaultIsOpen: true})
   const [isDragOver, setIsDragOver] = useState(false)
   const cfmRef = useRef<CloudFileManager | null>(null)
+
+  // initialize uiState from url params
+  useUIState()
 
   const progressContextValue = useProgressContextProviderValue()
 

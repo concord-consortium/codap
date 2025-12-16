@@ -1,0 +1,166 @@
+The code in the `v3` folder is the code for a web app named CODAP (Common Online Data Analysis Platform). We are in the process of rewriting CODAP using modern technologies like TypeScript, React, etc. (V2 was written in JavaScript using the defunct SproutCore framework.) A somewhat out-of-date version of the V2 code for the CODAP application is in the `apps/dg` folder. (The current version of the V2 code is in the same folder on the `master` branch, but I doubt the relevant code has changed much in the interim.) The task at hand is to implement support for the `standalone` url parameter in V3 that matches the implementation in V2. I have enclosed below a copy/pasted analysis of the use of the `standalone` url parameter in V2 code that you (Copilot/Claude Sonnet 4.5) performed in another chat window. For the V3 implementation I think that `standaloneMode` and `standalonePlugin` should be properties of the `UIState` class (ui-state.ts). Individual component rendering and resizing is handled by the `FreeTileComponent` (free-tile-component.tsx), which makes use of a `TileModel` (tile-model.ts). The container component which manages the set of tiles/components is the `FreeTileRowComponent` (free-tile-row.tsx), which makes use of the `FreeTileRow` model (free-tile-row.ts). Implementation of the plugin API is in the `data-interactive` folder, with individual request handlers in the `data-interactive/handlers` folder. I would like you to develop an implementation plan for supporting the `standalone` url parameter in V3 that matches the features of the same url parameter in the V2 code.
+
+Here is the analysis that you (Copilot/Claude Sonnet 4.5) developed from the V2 implementation:
+
+Standalone Mode Analysis for CODAP Rewrite
+URL Parameter
+    • Parameter name: standalone
+    • Values:
+        ◦ 'true' - enables full standalone mode
+        ◦ 'false' - disables standalone mode (default)
+        ◦ <plugin-name> - enables standalone mode only for a specific plugin/component
+Core Properties & Functions
+    1. STANDALONE_MODE (boolean)
+        ◦ Enabled when standalone URL param exists and is not 'false'
+        ◦ Global flag controlling various UI and behavioral features
+    2. STANDALONE_PLUGIN (string)
+        ◦ The raw value of the standalone URL parameter
+        ◦ Can be 'true' or a specific plugin/component name
+    3. isStandaloneComponent(componentName, componentType) (function)
+        ◦ Determines if a specific component should be treated as standalone
+        ◦ Returns true when:
+            ▪ STANDALONE_MODE is enabled AND
+            ▪ Component type is 'DG.GameView' AND
+            ▪ Either STANDALONE_PLUGIN === 'true' OR the component name (lowercased) matches STANDALONE_PLUGIN (lowercased)
+
+Features/Behaviors Affected by Standalone Mode
+1. Component View Appearance & Layout
+When a component is marked as standalone:
+    • No title bar - Title bar height is set to 0
+    • No borders - All drag borders (left, right, bottom, bottom-left, bottom-right) are hidden
+    • No resize handles - Component cannot be resized by user
+    • Component sent to back - Positioned as lowest in view hierarchy
+    • Layout binds to parent - Component dimensions match parent container
+    • No in-bounds enforcement - Component is exempt from view bounds calculations
+Implementation in original code:
+```
+makeStandalone: function () {
+  this.set('isStandaloneComponent', true);
+  this.hideBorders();
+  this.getPath('containerView.titlebar').adjust('height', 0);
+  this.getPath('containerView.contentView').adjust('top', 0);
+  this.parentView.sendToBack(this);
+  this.layout = {};
+}
+```
+2. Container View Frame Management
+Behavior:
+    • In standalone mode, the container view's frame is independent of child views
+    • The updateFrame() method exits early when STANDALONE_MODE is true
+    • Container adjusts width to match parent frame when parent resizes
+Code location: container_view.js
+```
+parentViewDidResize: function(iParentFrame) {
+  if(DG.STANDALONE_MODE) {
+    // Needed for SageModeler so inspector pane doesn't disappear
+    this.adjust({width: iParentFrame.width});
+  }
+}
+
+updateFrame: function() {
+  if(DG.STANDALONE_MODE) // Frame is independent of child views
+    return;
+  // ... normal frame calculation
+}
+```
+3. Component View Filtering
+Behavior:
+    • componentViews property filters out GameView components in standalone mode
+    • allComponentViews provides access to all views (temporarily disables standalone mode)
+Code location: container_view.js
+```
+componentViews: function() {
+  return this.get('childViews').filter(function (iChildView) {
+    return (iChildView instanceof DG.ComponentView) &&
+        !(DG.STANDALONE_MODE && iChildView.contentIsInstanceOf(DG.GameView));
+  });
+}.property('childViews')
+```
+4. View Bounds Enforcement
+Behavior:
+    • Standalone components are exempt from view bounds constraints
+    • They are not repositioned or scaled when parent container resizes
+    • Multiple locations check !isStandaloneComponent before enforcing bounds
+Code locations:
+    • component_view.js:696 - showAndSelect() method
+    • component_view.js:835 - restoreComponent() function
+    • document_controller.js:645 - enforceViewBounds() method
+5. Component Creation & Restoration
+Behavior when creating/restoring components:
+    • Standalone components use layout from parameters (not calculated position)
+    • showTitleBar is set to false
+    • isResizable is set to false
+    • Empty layout object is used ({})
+Code location: document_controller.js
+```
+if (DG.isStandaloneComponent(iComponent.get('name') || iComponent.get('title'),
+                              iComponent.get('type'))) {
+  tParams.useLayout = true;
+  tParams.layout = {};
+  tParams.isStandaloneComponent = true;
+}
+```
+6. GameView Size Handling
+Behavior:
+    • In non-standalone mode: GameView gets default width/height if not specified in layout
+    • In standalone mode: GameView dimensions are NOT auto-set from game parameters
+Code location: document_controller.js:927
+```
+if (!DG.STANDALONE_MODE && iComponent.get('type') === 'DG.GameView'
+    && iComponent.layout && !iComponent.layout.width) {
+  iComponent.layout.width = tGameParams.width;
+  iComponent.layout.height = tGameParams.height;
+}
+```
+7. Component Creation via Data Interactive API
+Behavior:
+    • When createComponent is called from a data interactive:
+        ◦ In standalone mode: allowMoreThanOne is set to true (allows multiple instances of same component type)
+        ◦ In non-standalone mode: Default restriction applies (typically one of each component type)
+Code location: game_phone_handler.js:236
+```
+case 'createComponent':
+  tCmdObj.args.initiatedViaCommand = true;
+  tRet = this.handleCreateComponent(tCmdObj.args, DG.STANDALONE_MODE);
+  break;
+```
+1. Undo/Redo Communication
+Behavior:
+    • Plugins are notified differently about undo availability:
+        ◦ Standalone mode: Send "standaloneUndoModeAvailable" notification
+        ◦ Embedded mode: Send "externalUndoAvailable" notification
+Code locations:
+    • game_phone_handler.js:525
+    • data_interactive_phone_handler.js:571
+```
+if (DG.STANDALONE_MODE) {
+  this.rpcEndpoint.call({operation: "standaloneUndoModeAvailable"});
+} else {
+  this.rpcEndpoint.call({operation: "externalUndoAvailable"});
+}
+```
+1. Interactive Frame Updates
+Behavior:
+    • When a data interactive updates its frame (title, dimensions, etc.):
+        ◦ If in standalone mode AND title matches the standalone plugin name
+        ◦ The component view's makeStandalone() method is called dynamically
+Code location: data_interactive_phone_handler.js:543
+```
+if (DG.STANDALONE_MODE && title && DG.isStandaloneComponent(title, diComponent.get('type'))) {
+  DG.log('isStandalone component: ' + title);
+  diView.makeStandalone();
+}
+```
+
+Summary for Rewrite Implementation
+The standalone mode feature needs to be implemented with the following key behaviors:
+    1. Parse URL parameter - Extract standalone value and determine mode
+    2. Component UI stripping - Remove title bar, borders, resize handles for standalone components
+    3. Layout independence - Standalone components fill parent container, ignore normal positioning
+    4. View filtering - Exclude GameView from normal component lists in standalone mode
+    5. Bounds exemption - Skip bounds enforcement for standalone components
+    6. Size handling - Don't auto-set GameView dimensions in standalone mode
+    7. Multi-instance support - Allow multiple components of same type in standalone mode
+    8. API notifications - Send appropriate undo mode messages to plugins
+    9. Dynamic standalone conversion - Support making components standalone after creation
+This is primarily used for embedding single data interactives (like SageModeler) in a minimal CODAP shell without the full application chrome.

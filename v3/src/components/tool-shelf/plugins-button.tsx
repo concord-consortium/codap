@@ -69,6 +69,7 @@ function PluginItem({ onClose, pluginData }: IPluginItemProps) {
         const options = { height, width }
         const tile = documentContent?.createOrShowTile?.(kWebViewTileType, options)
         if (isWebViewModel(tile?.content)) {
+          title && tile.setName(title)
           tile.content.setUrl(url)
           tile.content.setPluginCandidate(true)
         }

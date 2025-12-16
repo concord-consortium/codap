@@ -7,6 +7,9 @@ export const defaultItalicFont = `italic ${defaultFont}`
 
 export const defaultTileTitleFont = defaultItalicFont
 
+// Send to back (use 0 instead of negative to maintain click handling)
+export const kStandaloneZIndex = 0
+
 export const kTitleBarHeight = 34
 export const kResizeBorderOverlap = 2
 export const kResizeBorderSize = 8
