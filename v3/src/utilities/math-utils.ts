@@ -328,10 +328,12 @@ export function fitGaussianGradientDescent(points: {x:number, y:number}[], amp:n
    * We define this function to pass to gradientDescent, which expects a function of two variables.
    */
   function fToMinimize(mu:number, sigma:number) {
-    return sumOfSquares(points, amp, mu, sigma)
+    return sumOfSquares(normalizedPoints, 1, mu, sigma)
   }
 
-  const muSigma = gradientDescent(fToMinimize, mu0, sigma0, sigma0)
+  const normalizedPoints = points.map(p => ({ x: (p.x - mu0) / sigma0, y: p.y / amp }))
 
-  return { mu: muSigma[0], sigma: muSigma[1] }
+  const muSigma = gradientDescent(fToMinimize, 0, 1, 1)
+
+  return { mu: muSigma[0] * sigma0 + mu0, sigma: muSigma[1] * sigma0 }
 }
