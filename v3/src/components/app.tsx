@@ -109,7 +109,7 @@ export const App = observer(function App() {
     }
 
     async function initialize() {
-      const {sample, dashboard, di, noEntryModal} = urlParams
+      const {sample, dashboard, di, "di-override": diOverride, noEntryModal} = urlParams
       const _sample = sampleData.find(name => sample === name.toLowerCase())
       const isDashboard = dashboard !== undefined
       const hideUserEntryModal = () => {
@@ -139,7 +139,7 @@ export const App = observer(function App() {
         }
       }
 
-      if (typeof di === "string") {
+      if (typeof di === "string" && !diOverride) {
         // wait for CFM to complete its initialization
         await cfmReadyPromise
 

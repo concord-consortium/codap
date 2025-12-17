@@ -1,8 +1,9 @@
 import iframePhone from "iframe-phone"
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { DIMessage } from "../../data-interactive/iframe-phone-types"
-import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
 import { withoutUndo } from "../../models/history/without-undo"
+import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
+import { getDataInteractiveUrl } from "../../utilities/url-params"
 import { kWebViewTileType, WebViewSubType, webViewSubTypes } from "./web-view-defs"
 
 export const kDefaultAllowEmptyAttributeDeletion = true
@@ -56,6 +57,12 @@ export const WebViewModel = TileContentModel
     isPluginCandidate: false,
     isPluginCommunicating: false
   }))
+  .preProcessSnapshot(snap => {
+    const { url, ...others } = snap
+    // support url param processing for urls in saved documents
+    const processedUrl = url ? getDataInteractiveUrl(url) : undefined
+    return url !== processedUrl ? { ...others, url: processedUrl } : snap
+  })
   .views(self => ({
     get allowBringToFront() {
       return !self.preventBringToFront
