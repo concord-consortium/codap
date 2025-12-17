@@ -95,6 +95,11 @@ export class NumericAxisHelper extends AxisHelper {
     }
 
     try {
+      const mainAxisTickCount = subAxisSelection.selectAll(":scope > .tick").size()
+      const mainAxisTextCount = subAxisSelection.selectAll(":scope > .tick > text").size()
+      if (mainAxisTickCount !== mainAxisTextCount) {
+        subAxisSelection.selectAll("*").remove()
+      }
       subAxisSelection
         .attr("class", "numeric-axis")
         .attr("transform", this.initialTransform)
