@@ -89,6 +89,6 @@ export function getNameFromURL(iUrl: string | URL | null | undefined): string {
   // Return the last part of the path or empty string (if there are no meaningful path segments)
   const lastPart = parts.pop() ?? ""
 
-  // Strip extension (everything after first dot)
+  // Strip extension (first dot and everything after)
   return lastPart.split(".")[0]
 }
