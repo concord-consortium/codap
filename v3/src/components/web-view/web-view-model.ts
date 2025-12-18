@@ -1,13 +1,13 @@
 import iframePhone from "iframe-phone"
 import { reaction } from "mobx"
 import { addDisposer, getParent, Instance, SnapshotIn, types } from "mobx-state-tree"
-import { t } from "../../utilities/translation/translate"
 import { DIMessage } from "../../data-interactive/iframe-phone-types"
 import { withoutUndo } from "../../models/history/without-undo"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
+import { ITileModel } from "../../models/tiles/tile-model"
+import { t } from "../../utilities/translation/translate"
 import { getDataInteractiveUrl } from "../../utilities/url-params"
 import { kWebViewTileType, WebViewSubType, webViewSubTypes } from "./web-view-defs"
-import { ITileModel } from "../../models/tiles/tile-model"
 import { getNameFromURL } from "./web-view-utils"
 
 export const kDefaultAllowEmptyAttributeDeletion = true

@@ -136,7 +136,7 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
                       : isMinimized
                         ? { left, top, width, zIndex }
                         : tileStyle)
-  // don't impose a width and height for fixed size or standalone components
+  // don't impose a width and height for fixed size components
   if (info?.isFixedWidth) delete style?.width
   if (info?.isFixedHeight) delete style?.height
   const disableAnimation = urlParams.noComponentAnimation !== undefined
