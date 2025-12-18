@@ -1,5 +1,6 @@
 import { action, makeObservable, observable } from "mobx"
 import { scrollTileIntoView } from "../utilities/dom-utils"
+import { booleanParam } from "../utilities/url-params"
 import { ITileModel } from "./tiles/tile-model"
 import { RulerState, RulerStateKey } from "./ui-state-types"
 
@@ -78,15 +79,13 @@ export class UIState {
 
   @action
   setStandaloneMode(standaloneParam?: string | null) {
-    // TODO: use booleanParam() once PR #2258 is merged
+    this._standaloneMode = booleanParam(standaloneParam)
     const standaloneParamLower = (standaloneParam || "").toLowerCase()
     const kTrueStrings = ["true", "yes", "1"]
-    const kFalseStrings = ["false", "no", "0"]
-    this._standaloneMode = standaloneParam === null || standaloneParam === "" ||
-                            (!!standaloneParam && !kFalseStrings.includes(standaloneParamLower))
-    this._standalonePlugin = !!standaloneParam && [...kTrueStrings, ...kFalseStrings].includes(standaloneParamLower)
-                              ? ""
-                              : standaloneParam || ""
+    // if standaloneParam is a plugin name, then only that plugin is standalone
+    this._standalonePlugin = standaloneParam && this._standaloneMode && !kTrueStrings.includes(standaloneParamLower)
+                              ? standaloneParam
+                              : ""
   }
 
   get focusedTile() {
