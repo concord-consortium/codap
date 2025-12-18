@@ -462,90 +462,141 @@ DG.MathUtilities = {
   },
 
   /**
-   * Gradient descent algorithm that fits a gaussian to points that are typically the top-middles of
-   * a histogram by least squares optimizing mu and sigma. The amplitude is assumed to be fixed.
-   * @param points {{x: number, y: number}[]}
-   * @param amp {number}  // a fixed value for the amplitude
-   * @param mu0 {number}  // initial guess for mu
-   * @param sigma0 {number}  // initial guess for sigma
-   * @returns {{mu: number, sigma: number}}
+   * Fits a gaussian to points by least squares using Levenberg–Marquardt.
+   * Optimizes mu and sigma (sigma is constrained positive via logSigma).
+   * The amplitude is assumed fixed.
    */
-  fitGaussianGradientDescent: function(points, amp, mu0, sigma0) {
-
-    function sumOfSquares(points1, amp1, mu1, sigma1) {
-      return points1.reduce(function(sum, p) {
-        return sum + Math.pow(p.y - DG.MathUtilities.normal(p.x, amp1, mu1, sigma1), 2);
-      }, 0);
+  fitGaussianLM: function(points, amp, mu0, sigma0) {
+    if (!points || points.length === 0) {
+      return { mu: mu0, sigma: sigma0 };
     }
 
-    // Function to compute the gradient of f at (x, y)
-    function gradient(f, x, y, h) {
-      h = h || 1e-3;
-      var fxPlus = f(x + h, y),
-        fxMinus = f(x - h, y),
-        dfdx = (fxPlus - fxMinus) / (2 * h),
-        fyPlus = f(x, y + h),
-        fyMinus = f(x, y - h),
-        dfdy = (fyPlus - fyMinus) / (2 * h);
-      return [dfdx, dfdy];
+    var i;
+    var n = points.length;
+
+    // Normalize x for conditioning
+    var sumX = 0;
+    for (i = 0; i < n; i++) {
+      sumX += points[i].x;
+    }
+    var meanX = sumX / n;
+
+    var sumDx2 = 0;
+    for (i = 0; i < n; i++) {
+      var dx0 = points[i].x - meanX;
+      sumDx2 += dx0 * dx0;
+    }
+    var varX = sumDx2 / n;
+    var scaleX = Math.sqrt(varX) || 1;
+
+    // Normalize points
+    var normalizedPoints = new Array(n);
+    for (i = 0; i < n; i++) {
+      normalizedPoints[i] = {
+        x: (points[i].x - meanX) / scaleX,
+        y: points[i].y / amp
+      };
     }
 
-    // Gradient Descent function to find local minimum of f(x, y)
-    function gradientDescent(f, x0, y0, numericRange) {
+    // Initial parameters in normalized space
+    var mu = (mu0 - meanX) / scaleX;
+    var sigma = sigma0 / scaleX;
+    if (!Number.isFinite(sigma) || sigma <= 0) {
+      sigma = 1;
+    }
+    var logSigma = Math.log(sigma);
 
-/*
-      function logIt() {
-        var log = '%@: x = %@, y = %@, dfdx = %@, dfdy = %@, prevValue = %@, newValue = %@'
-           .loc(i, x.toFixed(6), y.toFixed(6),
-              dfdx.toFixed(6), dfdy.toFixed(6), prevValue.toFixed(6), newValue.toFixed(6));
-        console.log(log);
+    var maxIterations = 50;
+    var tol = 1e-12;
+    var lambda = 1e-3;
+
+    function sse(mu1, logSigma1) {
+      var sigma1 = Math.exp(logSigma1);
+      var sum = 0;
+      for (var k = 0; k < n; k++) {
+        var p = normalizedPoints[k];
+        var yhat = this.normal(p.x, 1, mu1, sigma1);
+        var r = p.y - yhat;
+        sum += r * r;
       }
-*/
+      return sum;
+    }
 
-      var learningRate = 0.001,
-         iterations = 1000,
-         tolerance = 1e-5,
-         x = x0, y = y0, prevValue = f(x, y)/*,
-         logInterval = iterations / 10*/;
+    var prevSSE = sse(mu, logSigma);
 
-      for (var i = 0; i < iterations; i++) {
-        var gradient_ = gradient(f, x, y, numericRange / 100),
-            dfdx = gradient_[0],
-            dfdy = gradient_[1];
+    for (var iter = 0; iter < maxIterations; iter++) {
+      var sigma1 = Math.exp(logSigma);
 
-        // Update x and y
-        x -= learningRate * dfdx;
-        y -= learningRate * dfdy;
+      var a11 = 0;
+      var a12 = 0;
+      var a22 = 0;
+      var b1 = 0;
+      var b2 = 0;
 
-        var newValue = f(x, y);
-/*
-        if (i % logInterval <= 1) {
-          logIt();
-        }
-*/
-        if (Math.abs(newValue - prevValue) < tolerance) {
-          // logIt();
+      for (i = 0; i < n; i++) {
+        var p2 = normalizedPoints[i];
+        var dx = p2.x - mu;
+        var invSigma2 = 1 / (sigma1 * sigma1);
+        var g = Math.exp(-0.5 * dx * dx * invSigma2);
+        var yhat2 = g;
+        var r2 = p2.y - yhat2;
+
+        var df_dmu = yhat2 * (dx * invSigma2);
+        var df_dlogSigma = yhat2 * (dx * dx * invSigma2);
+
+        var j1 = -df_dmu;
+        var j2 = -df_dlogSigma;
+
+        a11 += j1 * j1;
+        a12 += j1 * j2;
+        a22 += j2 * j2;
+
+        b1 += -j1 * r2;
+        b2 += -j2 * r2;
+      }
+
+      var d11 = a11 + lambda;
+      var d22 = a22 + lambda;
+      var det = d11 * d22 - a12 * a12;
+
+      if (!Number.isFinite(det) || Math.abs(det) < 1e-18) {
+        lambda *= 10;
+        continue;
+      }
+
+      var dMu = (b1 * d22 - b2 * a12) / det;
+      var dLogSigma = (d11 * b2 - a12 * b1) / det;
+
+      if (!Number.isFinite(dMu) || !Number.isFinite(dLogSigma)) {
+        lambda *= 10;
+        continue;
+      }
+
+      var trialMu = mu + dMu;
+      var trialLogSigma = logSigma + dLogSigma;
+      var trialSSE = sse(trialMu, trialLogSigma);
+
+      if (trialSSE < prevSSE) {
+        mu = trialMu;
+        logSigma = trialLogSigma;
+
+        var improvement = prevSSE - trialSSE;
+        prevSSE = trialSSE;
+
+        lambda = Math.max(lambda / 10, 1e-12);
+
+        if (Math.abs(dMu) + Math.abs(dLogSigma) < tol || improvement < tol) {
           break;
         }
-        prevValue = newValue;
+      } else {
+        lambda *= 10;
       }
-
-      return [x, y];
     }
 
-    /**
-     * We define this function to pass to gradientDescent, which expects a function of two variables.
-     * @param mu
-     * @param sigma
-     * @returns {*}
-     */
-    function fToMinimize(mu, sigma) {
-      return sumOfSquares(points, amp, mu, sigma);
-    }
+    var sigmaOut = Math.exp(logSigma) * scaleX;
+    var muOut = mu * scaleX + meanX;
 
-    var muSigma = gradientDescent(fToMinimize, mu0, sigma0, sigma0);
-
-    return { mu: muSigma[0], sigma: muSigma[1] };
+    return { mu: muOut, sigma: sigmaOut };
   },
 
   /**
