@@ -12,7 +12,9 @@ import { updateTileNotification } from "../../models/tiles/tile-notifications"
 import { uiState } from "../../models/ui-state"
 import { urlParams } from "../../utilities/url-params"
 import { CodapComponent } from "../codap-component"
-import { IChangingTileStyle, kStandaloneZIndex, kTitleBarHeight } from "../constants"
+import {
+  IChangingTileStyle, kCodapTileClass, kStandaloneTileClass, kStandaloneZIndex, kTitleBarHeight
+} from "../constants"
 import { ComponentResizeWidgets } from "./component-resize-widgets"
 import { useTileDrag } from "./use-tile-drag"
 
@@ -121,7 +123,7 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
   }, [row, tile, tileId])
 
   const info = getTileComponentInfo(tileType)
-  const isStandalone = uiState.isStandaloneComponent(tile.name || tile.title, tile.content.type)
+  const isStandalone = uiState.isStandaloneTile(tile)
 
   // Calculate style - standalone components are styled in CSS
   const standaloneStyle: React.CSSProperties = {}
@@ -138,11 +140,11 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
   if (info?.isFixedWidth) delete style?.width
   if (info?.isFixedHeight) delete style?.height
   const disableAnimation = urlParams.noComponentAnimation !== undefined
-  const classes = clsx("free-tile-component", {
-    minimized: isMinimized,
-    "disable-animation": disableAnimation,
-    "codap-standalone-component": isStandalone
-  })
+  const classes = clsx(kCodapTileClass, {
+                        minimized: isMinimized,
+                        "disable-animation": disableAnimation,
+                        [kStandaloneTileClass]: isStandalone
+                      })
 
   // The CSS transition used to animate the tile can cause child components to prematurely apply effects that depend on
   // the tile's dimensions. To prevent this, we add a transitionend handler that sets a flag on the tile model when the

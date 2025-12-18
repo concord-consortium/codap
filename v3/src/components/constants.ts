@@ -20,6 +20,9 @@ export const kDefaultTileWidth = 250
 export const kDefaultTileHeight = 250
 
 export const kCodapAppElementId = "codap-app-id"
+export const kCodapTileContainerClass = "free-tile-container"
+export const kCodapTileClass = "free-tile-component"
+export const kStandaloneTileClass = "codap-standalone-component"
 export const kUserEntryDropOverlay = "user-entry-drop-overlay"
 
 export interface IChangingTileStyle {

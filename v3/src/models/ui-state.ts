@@ -1,5 +1,6 @@
 import { action, makeObservable, observable } from "mobx"
 import { scrollTileIntoView } from "../utilities/dom-utils"
+import { ITileModel } from "./tiles/tile-model"
 import { RulerState, RulerStateKey } from "./ui-state-types"
 
 /*
@@ -59,21 +60,33 @@ export class UIState {
     makeObservable(this)
   }
 
+  get standaloneMode() {
+    return this._standaloneMode
+  }
+
   // support for standalone mode for data interactives/plugins
-  isStandaloneComponent(componentName?: string, componentType?: string): boolean {
+  isStandaloneTile(tile?: ITileModel): boolean {
     const standalonePlugin = this._standalonePlugin.toLowerCase()
-    const componentNameLower = (componentName || '').toLowerCase()
+    const tileNameLower = (tile?.name || '').toLowerCase()
+    const tileTitleLower = (tile?.title || '').toLowerCase()
+    const tileType = tile?.content.type
 
     return this._standaloneMode &&
-          componentType === 'CodapWebView' && // V3 equivalent of DG.GameView
-          (!standalonePlugin || componentNameLower === standalonePlugin)
+          tileType === 'CodapWebView' && // V3 equivalent of DG.GameView
+          (!standalonePlugin || [tileNameLower, tileTitleLower].includes(standalonePlugin))
   }
 
   @action
   setStandaloneMode(standaloneParam?: string | null) {
     // TODO: use booleanParam() once PR #2258 is merged
-    this._standaloneMode = standaloneParam === null || (!!standaloneParam && standaloneParam !== 'false')
-    this._standalonePlugin = standaloneParam || ""
+    const standaloneParamLower = (standaloneParam || "").toLowerCase()
+    const kTrueStrings = ["true", "yes", "1"]
+    const kFalseStrings = ["false", "no", "0"]
+    this._standaloneMode = standaloneParam === null || standaloneParam === "" ||
+                            (!!standaloneParam && !kFalseStrings.includes(standaloneParamLower))
+    this._standalonePlugin = !!standaloneParam && [...kTrueStrings, ...kFalseStrings].includes(standaloneParamLower)
+                              ? ""
+                              : standaloneParam || ""
   }
 
   get focusedTile() {

@@ -6,6 +6,7 @@ import { IFreeTileRow } from "../../models/document/free-tile-row"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { uiState } from "../../models/ui-state"
 import { mstReaction } from "../../utilities/mst-reaction"
+import { kCodapTileContainerClass } from "../constants"
 import { kDragContainerClass } from "./container-constants"
 import { FreeTileComponent } from "./free-tile-component"
 
@@ -49,7 +50,7 @@ export const FreeTileRowComponent = observer(function FreeTileRowComponent(
     }
   }
 
-  const classes = clsx("free-tile-row", "free-tile-container", "tile-row", kDragContainerClass)
+  const classes = clsx("free-tile-row", kCodapTileContainerClass, "tile-row", kDragContainerClass)
 
   return (
     <TileContainerContext.Provider value={rowRef}>
