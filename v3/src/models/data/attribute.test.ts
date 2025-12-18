@@ -2,7 +2,7 @@ import { cloneDeep } from "lodash"
 import { reaction } from "mobx"
 import { getSnapshot } from "mobx-state-tree"
 import { FormulaManager } from "../formula/formula-manager"
-import { Attribute, IAttributeSnapshot, isFormulaAttr, isValidFormulaAttr } from "./attribute"
+import { Attribute, IAttributeSnapshot, isFormulaAttr, isValidFormulaAttr, kHashMapSizeThreshold } from "./attribute"
 import { isAttributeType, importValueToString } from "./attribute-types"
 
 describe("Attribute", () => {
@@ -416,6 +416,107 @@ describe("Attribute", () => {
     a.prepareSnapshot()
     expect(a.values).toEqual(["c", "b", "a"])
     a.completeSnapshot()
+  })
+
+  describe("string hashing for serialization", () => {
+    const shortValue = "a".repeat(kHashMapSizeThreshold - 1) // 63 chars, below threshold
+    const longValue = "b".repeat(kHashMapSizeThreshold) // 64 chars, at threshold
+    const longValue2 = "c".repeat(kHashMapSizeThreshold + 10) // 74 chars, above threshold
+
+    test("short values (< 64 chars) are not hashed", () => {
+      const attr = Attribute.create({ name: "test", values: [shortValue, shortValue, shortValue] })
+      attr.prepareSnapshot()
+      const snapshot = getSnapshot(attr)
+      attr.completeSnapshot()
+
+      // hashMap should not exist for short values
+      expect(snapshot.hashMap).toBeUndefined()
+      expect(snapshot.values).toEqual([shortValue, shortValue, shortValue])
+    })
+
+    test("long values (>= 64 chars) are hashed when duplicated", () => {
+      // Create attribute with duplicate long values
+      const attr = Attribute.create({ name: "test", values: [longValue, longValue, longValue] })
+      attr.prepareSnapshot()
+      const snapshot = getSnapshot(attr)
+      attr.completeSnapshot()
+
+      // hashMap should exist and contain the long value
+      expect(snapshot.hashMap).toBeDefined()
+      expect(Object.values(snapshot.hashMap!)).toContain(longValue)
+
+      // values should be replaced with hash keys
+      expect(snapshot.values).toBeDefined()
+      snapshot.values!.forEach(value => {
+        expect(value).toMatch(/^__hash__.+__$/)
+      })
+    })
+
+    test("hashMap is only included when it saves space", () => {
+      // Single long value - no duplicates, so no space saved
+      const attr = Attribute.create({ name: "test", values: [longValue] })
+      attr.prepareSnapshot()
+      const snapshot = getSnapshot(attr)
+      attr.completeSnapshot()
+
+      // hashMap should not be included since there's no space savings with just one value
+      expect(snapshot.hashMap).toBeUndefined()
+      expect(snapshot.values).toEqual([longValue])
+    })
+
+    test("deserialization correctly restores hashed values", () => {
+      // Create and serialize an attribute with duplicate long values
+      const attr = Attribute.create({ name: "test", values: [longValue, longValue2, longValue, longValue2] })
+      attr.prepareSnapshot()
+      const snapshot = getSnapshot(attr)
+      attr.completeSnapshot()
+
+      // Create a new attribute from the snapshot
+      const restored = Attribute.create(snapshot)
+
+      // Values should be fully restored
+      expect(restored.strValues).toEqual([longValue, longValue2, longValue, longValue2])
+    })
+
+    test("mixed short and long values are handled correctly", () => {
+      const values = [shortValue, longValue, "short", longValue, longValue2, longValue2]
+      const attr = Attribute.create({ name: "test", values })
+      attr.prepareSnapshot()
+      const snapshot = getSnapshot(attr)
+      attr.completeSnapshot()
+
+      // Restore and verify
+      const restored = Attribute.create(snapshot)
+      expect(restored.strValues).toEqual(values)
+    })
+
+    test("hash keys in values are correctly identified and restored", () => {
+      // Manually create a snapshot with hashMap (simulating loading from serialized data)
+      const hashKey = "64:12345678"
+      const hashKeyString = `__hash__${hashKey}__`
+      const snapshotWithHash = {
+        name: "test",
+        values: [hashKeyString, "normal", hashKeyString],
+        hashMap: { [hashKey]: longValue }
+      }
+
+      const attr = Attribute.create(snapshotWithHash)
+      expect(attr.strValues).toEqual([longValue, "normal", longValue])
+    })
+
+    test("values that look like hash keys but aren't in hashMap are preserved", () => {
+      // Edge case: value looks like a hash key but isn't in the hashMap
+      const fakeHashKey = "__hash__99:fakehash__"
+      const snapshot = {
+        name: "test",
+        values: [fakeHashKey, "normal"],
+        hashMap: {} // empty hashMap
+      }
+
+      const attr = Attribute.create(snapshot)
+      // The fake hash key should be preserved as-is since it's not in the hashMap
+      expect(attr.strValues).toEqual([fakeHashKey, "normal"])
+    })
   })
 
   test("Attribute derivation", () => {

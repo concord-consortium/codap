@@ -31,6 +31,7 @@ import { kAttrIdPrefix, typeV3Id } from "../../utilities/codap-utils"
 import { parseColor } from "../../utilities/color-utils"
 import { isDateString } from "../../utilities/date-parser"
 import { DatePrecision, datePrecisions } from "../../utilities/date-utils"
+import { hashString } from "../../utilities/js-utils"
 import { extractNumeric } from "../../utilities/math-utils"
 import { cachedFnFactory } from "../../utilities/mst-utils"
 import { isDevelopment, isProduction } from "../../utilities/environment-utils"
@@ -45,6 +46,18 @@ import { V2Model } from "./v2-model"
 
 export interface ISetValueOptions {
   noInvalidate?: boolean
+}
+
+export const kHashMapSizeThreshold = 64
+function hashKey(value: string): string {
+  return `${value.length}:${hashString(value)}`
+}
+function hashKeyString(key: string): string {
+  return `__hash__${key}__`
+}
+function hashKeyFromString(value: string) {
+  const result = /^__hash__(.+:.+)__$/.exec(value)
+  return result?.[1]
 }
 
 export const Attribute = V2Model.named("Attribute").props({
@@ -62,17 +75,52 @@ export const Attribute = V2Model.named("Attribute").props({
   // due to its frozen nature, clients should _not_ use `values` directly
   // volatile `strValues` and `numValues` can be accessed directly, but
   // should not be modified directly.
-  values: types.maybe(types.frozen<string[]>())
+  values: types.maybe(types.frozen<string[]>()),
+  // for serialization, large values are stored in a hash map to eliminate redundancy
+  hashMap: types.maybe(types.frozen<Record<string, string>>())
 })
   .preProcessSnapshot(snapshot => {
-    const {formula: inFormula, values: inValues, ...others} = snapshot
+    const {formula: inFormula, values: inValues, hashMap, ...others} = snapshot
     // early development versions of v3 had a `title` property
     const _title = snapshot._title ?? ((snapshot as any).title || undefined)
     // don't import empty formulas
     const formula = inFormula?.display?.length ? inFormula : undefined
     // map all non-string values to strings
-    const values = (inValues || []).map(v => importValueToString(v))
+    let values = (inValues || []).map(v => importValueToString(v))
+    // reconstruct large values from hash map
+    if (hashMap) {
+      values = values.map(value => {
+        const key = hashKeyFromString(value)
+        return key ? hashMap[key] || value : value
+      })
+    }
     return {formula, values, ...others, _title}
+  })
+  .postProcessSnapshot(snapshot => {
+    const {values: inValues = [], hashMap = {}, ...others} = snapshot
+    let charsSaved = 0
+    const values = inValues.map(value => {
+      if (value.length >= kHashMapSizeThreshold) {
+        const key = hashKey(value)
+        if (!hashMap[key]) {
+          hashMap[key] = value
+        }
+        else if (hashMap[key] !== value) {
+          /* istanbul ignore next */
+          console.error(`Hash collision detected for attribute value: "${value}"`)
+        }
+        else {
+          charsSaved += value.length
+        }
+        return hashKeyString(key)
+      }
+      return value
+    })
+    // only include the hash map if it actually saves space
+    const hashMapSize = Object.keys(hashMap).length
+    return hashMapSize > 0 && charsSaved > hashMapSize * 20
+            ? {...others, values, hashMap}
+            : snapshot
   })
   .volatile(self => ({
     strValues: [] as string[],
