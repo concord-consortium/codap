@@ -275,10 +275,10 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
   }, [renderBackground, dataDisplayModel])
 
   useEffect(function respondToChangeInImage() {
-    mstReaction(() => dataDisplayModel?.plotBackgroundImage,
+    mstReaction(() => [dataDisplayModel?.plotBackgroundImage, dataDisplayModel?.plotBackgroundColor],
       () => {
         renderBackground()
-      }, {name: "renderBackground", fireImmediately: true}, dataDisplayModel
+      }, {name: "renderBackground", equals: comparer.structural, fireImmediately: true}, dataDisplayModel
     )
   }, [dataDisplayModel, renderBackground])
 
