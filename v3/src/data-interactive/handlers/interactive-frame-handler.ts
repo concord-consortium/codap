@@ -1,5 +1,6 @@
 import { isWebViewModel } from "../../components/web-view/web-view-model"
 import { appState } from "../../models/app-state"
+import { uiState } from "../../models/ui-state"
 import { toV2Id } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
@@ -24,7 +25,7 @@ export const diInteractiveFrameHandler: DIHandler = {
       blockAPIRequestsWhileEditing,
       codapVersion: appState.getVersion(),
       dimensions,
-      externalUndoAvailable: true, // TODO Fix hard coded value
+      externalUndoAvailable: !uiState.standaloneMode,
       id: toV2Id(interactiveFrame.id),
       name: interactiveFrame.title,
       preventAttributeDeletion,
@@ -33,7 +34,7 @@ export const diInteractiveFrameHandler: DIHandler = {
       preventTopLevelReorg,
       respectEditableItemAttribute,
       savedState,
-      standaloneUndoModeAvailable: false, // TODO Fix hard coded value
+      standaloneUndoModeAvailable: uiState.standaloneMode,
       subscribeToDocuments,
       title: interactiveFrame.title,
       version,

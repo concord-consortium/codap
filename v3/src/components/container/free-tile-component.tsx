@@ -12,7 +12,9 @@ import { updateTileNotification } from "../../models/tiles/tile-notifications"
 import { uiState } from "../../models/ui-state"
 import { urlParams } from "../../utilities/url-params"
 import { CodapComponent } from "../codap-component"
-import { IChangingTileStyle, kTitleBarHeight } from "../constants"
+import {
+  IChangingTileStyle, kCodapTileClass, kStandaloneTileClass, kStandaloneZIndex, kTitleBarHeight
+} from "../constants"
 import { ComponentResizeWidgets } from "./component-resize-widgets"
 import { useTileDrag } from "./use-tile-drag"
 
@@ -121,17 +123,28 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
   }, [row, tile, tileId])
 
   const info = getTileComponentInfo(tileType)
+  const isStandalone = uiState.isStandaloneTile(tile)
+
+  // Calculate style - standalone components are styled in CSS
+  const standaloneStyle: React.CSSProperties = {}
+
   const style = changingTileStyle ??
                   (isHidden && info?.renderWhenHidden
                     ? { left: -9999, top: -9999, width: 0, height: 0 }
-                    : isMinimized
-                      ? { left, top, width, zIndex }
-                      : tileStyle)
+                    : isStandalone
+                      ? standaloneStyle
+                      : isMinimized
+                        ? { left, top, width, zIndex }
+                        : tileStyle)
   // don't impose a width and height for fixed size components
   if (info?.isFixedWidth) delete style?.width
   if (info?.isFixedHeight) delete style?.height
   const disableAnimation = urlParams.noComponentAnimation !== undefined
-  const classes = clsx("free-tile-component", { minimized: isMinimized, "disable-animation": disableAnimation })
+  const classes = clsx(kCodapTileClass, {
+                        minimized: isMinimized,
+                        "disable-animation": disableAnimation,
+                        [kStandaloneTileClass]: isStandalone
+                      })
 
   // The CSS transition used to animate the tile can cause child components to prematurely apply effects that depend on
   // the tile's dimensions. To prevent this, we add a transitionend handler that sets a flag on the tile model when the
@@ -186,16 +199,17 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
     <ComponentWrapperContext.Provider value={componentRef}>
       <FreeTileLayoutContext.Provider value={tileLayout}>
         <div id={tileId} className={classes} style={style} key={tileId} ref={componentRef}
-            data-tile-z-index={zIndex}>
+            data-tile-z-index={isStandalone ? kStandaloneZIndex : zIndex}>
           {tile && tileLayout &&
             <>
               <CodapComponent tile={tile}
+                hideTitleBar={isStandalone}
                 isMinimized={isMinimized}
                 onMinimizeTile={handleMinimizeTile}
                 onCloseTile={onCloseTile}
                 onMoveTilePointerDown={handleMoveTilePointerDown}
               />
-              {!isMinimized &&
+              {!isMinimized && !isStandalone &&
                 <ComponentResizeWidgets tile={tile} componentRef={componentRef}
                   isFixedWidth={isFixedWidth} isFixedHeight={isFixedHeight}
                   handleResizePointerDown={handleResizePointerDown} />

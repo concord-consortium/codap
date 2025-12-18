@@ -1,11 +1,14 @@
-import { kDefaultTileHeight, kDefaultTileWidth, kTitleBarHeight } from "../components/constants"
+import {
+  kCodapTileClass, kCodapTileContainerClass, kDefaultTileHeight, kDefaultTileWidth,
+  kStandaloneTileClass, kTitleBarHeight
+} from "../components/constants"
 
 const kCodapAppHeader = 120
 const kGap = 5 // Also used to increment during search
 
 export const getPositionOfNewComponent = (componentSize: { width?: number, height?: number }, iPosition = "top") => {
   // note that this will only work when the document content is a single FreeTileRow
-  const parentEl = document.getElementsByClassName("free-tile-row")
+  const parentEl = document.getElementsByClassName(kCodapTileContainerClass)
   if (!parentEl?.[0]) return { x: 100, y: 100 }
   const viewportLeft = parentEl[0].scrollLeft
   const viewportTop = parentEl[0].scrollTop
@@ -13,7 +16,7 @@ export const getPositionOfNewComponent = (componentSize: { width?: number, heigh
   const viewportHeight = parentEl[0].clientHeight
   const viewportBottom = viewportTop + viewportHeight
   const viewportRight = viewportLeft + viewportWidth
-  const existingEls = document.getElementsByClassName("free-tile-component")
+  const existingEls = document.querySelectorAll(`.${kCodapTileClass}:not(.${kStandaloneTileClass})`)
   const existingRects = Array.from(existingEls).map(el => el.getBoundingClientRect())
     .map(rect => ({ height: rect.height, width: rect.width, x: rect.x + viewportLeft, y: rect.y + viewportTop }))
   const componentWidth = componentSize.width || kDefaultTileWidth

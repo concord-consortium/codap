@@ -1,5 +1,7 @@
 import { action, makeObservable, observable } from "mobx"
 import { scrollTileIntoView } from "../utilities/dom-utils"
+import { booleanParam } from "../utilities/url-params"
+import { ITileModel } from "./tiles/tile-model"
 import { RulerState, RulerStateKey } from "./ui-state-types"
 
 /*
@@ -8,6 +10,11 @@ import { RulerState, RulerStateKey } from "./ui-state-types"
   It can be manually saved by copying it into the document during pre-serialization if desired.
  */
 export class UIState {
+  // support for standalone mode for data interactives/plugins
+  @observable
+  private _standaloneMode: boolean = false
+  @observable
+  private _standalonePlugin: string = ""
   // the focused tile is a singleton; in theory there can be multiple selected tiles
   @observable
   private focusTileId = ""
@@ -52,6 +59,33 @@ export class UIState {
 
   constructor() {
     makeObservable(this)
+  }
+
+  get standaloneMode() {
+    return this._standaloneMode
+  }
+
+  // support for standalone mode for data interactives/plugins
+  isStandaloneTile(tile?: ITileModel): boolean {
+    const standalonePlugin = this._standalonePlugin.toLowerCase()
+    const tileNameLower = (tile?.name || '').toLowerCase()
+    const tileTitleLower = (tile?.title || '').toLowerCase()
+    const tileType = tile?.content.type
+
+    return this._standaloneMode &&
+          tileType === 'CodapWebView' && // V3 equivalent of DG.GameView
+          (!standalonePlugin || [tileNameLower, tileTitleLower].includes(standalonePlugin))
+  }
+
+  @action
+  setStandaloneMode(standaloneParam?: string | null) {
+    this._standaloneMode = booleanParam(standaloneParam)
+    const standaloneParamLower = (standaloneParam || "").toLowerCase()
+    const kTrueStrings = ["true", "yes", "1"]
+    // if standaloneParam is a plugin name, then only that plugin is standalone
+    this._standalonePlugin = standaloneParam && this._standaloneMode && !kTrueStrings.includes(standaloneParamLower)
+                              ? standaloneParam
+                              : ""
   }
 
   get focusedTile() {

@@ -67,3 +67,28 @@ export function processWebViewUrl(url: string) {
 
   return updatedUrl
 }
+
+export function getNameFromURL(iUrl: string | URL | null | undefined): string {
+  if (!iUrl) return ""
+
+  // Allow either a string or a URL instance
+  const url = iUrl instanceof URL
+                ? iUrl
+                : new URL(iUrl, window.location.origin)
+
+  // Split pathname into parts and filter out empty parts
+  const parts = url.pathname.split("/").filter(Boolean)
+
+  if (parts.length === 0) {
+    // No path → return first part of the hostname
+    // Example: sampler.concord.org → ["sampler", "concord", "org"]
+    const hostParts = url.hostname.split(".")
+    return hostParts[0] ?? ""
+  }
+
+  // Return the last part of the path or empty string (if there are no meaningful path segments)
+  const lastPart = parts.pop() ?? ""
+
+  // Strip extension (first dot and everything after)
+  return lastPart.split(".")[0]
+}

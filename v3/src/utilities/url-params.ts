@@ -146,6 +146,14 @@ export interface UrlParams {
    */
   scrollBehavior?: string | null
   /*
+   * [V2] Enables standalone mode for data interactives/plugins.
+   * When set to 'true', enables full standalone mode.
+   * When set to 'false', disables standalone mode (default).
+   * When set to a plugin name, enables standalone mode only for that specific plugin.
+   * value: 'true' | 'false' | plugin-name
+   */
+  standalone?: string | null
+  /*
    * If a string value, the warning dialog triggered by reloading or navigating away from a document
    * with unsaved changes will not be shown.
    * Primarily used for cypress tests.

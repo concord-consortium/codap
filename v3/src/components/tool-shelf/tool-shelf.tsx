@@ -15,6 +15,7 @@ import { logMessageWithReplacement } from "../../lib/log-message"
 import { IDocumentModel } from "../../models/document/document"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { createTileNotification } from "../../models/tiles/tile-notifications"
+import { uiState } from "../../models/ui-state"
 import { t } from "../../utilities/translation/translate"
 import { kWebViewTileType } from "../web-view/web-view-defs"
 import { isWebViewModel } from "../web-view/web-view-model"
@@ -51,6 +52,8 @@ interface IProps {
   document: IDocumentModel
 }
 export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
+  if (uiState.standaloneMode) return null
+
   const undoManager = document?.treeManagerAPI?.undoManager
   const guideTileId = getGuideTileId(document)
   const rightButtons: IRightButtonEntry[] = [

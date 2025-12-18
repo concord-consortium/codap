@@ -1,10 +1,14 @@
 import iframePhone from "iframe-phone"
-import { Instance, SnapshotIn, types } from "mobx-state-tree"
+import { reaction } from "mobx"
+import { addDisposer, getParent, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { DIMessage } from "../../data-interactive/iframe-phone-types"
 import { withoutUndo } from "../../models/history/without-undo"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
+import { ITileModel } from "../../models/tiles/tile-model"
+import { t } from "../../utilities/translation/translate"
 import { getDataInteractiveUrl } from "../../utilities/url-params"
 import { kWebViewTileType, WebViewSubType, webViewSubTypes } from "./web-view-defs"
+import { getNameFromURL } from "./web-view-utils"
 
 export const kDefaultAllowEmptyAttributeDeletion = true
 export const kDefaultBlockAPIRequestsWhileEditing = false
@@ -138,6 +142,20 @@ export const WebViewModel = TileContentModel
     }
   }))
   .actions(self => ({
+    afterCreate() {
+      // If the tile has no name, set it from the URL when the URL changes
+      addDisposer(self, reaction(
+        () => self.url,
+        (url: string) => {
+          const defaultTileName = t("DG.WebView.defaultTitle")
+          const tileModel = getParent<ITileModel>(self)
+          if ((!tileModel.name || tileModel.name === defaultTileName) && url) {
+            const name = getNameFromURL(url)
+            if (name) tileModel.setName(name)
+          }
+        }, { name: "WebViewModel.afterCreate [setNameFromURL]", fireImmediately: true }
+      ))
+    },
     prepareSnapshot() {
       return new Promise<void>((resolve) => {
         if (self.dataInteractiveController) {

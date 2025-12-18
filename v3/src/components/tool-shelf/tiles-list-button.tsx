@@ -24,6 +24,7 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
   const container = documentContent?.rowMap.get(documentContent?.rowOrder[0])
   const freeTileContainer = isFreeTileRow(container) ? container : undefined
   const isTileHidden = (tile: ITileModel) => {
+    if (uiState.isStandaloneTile(tile)) return true
     const tileLayout = freeTileContainer?.getTileLayout(tile.id)
     return isFreeTileLayout(tileLayout) ? tileLayout.isHidden : false
   }
