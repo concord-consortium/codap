@@ -49,6 +49,8 @@ export interface ISetValueOptions {
 }
 
 export const kHashMapSizeThreshold = 64
+const kHashMapEntryOverhead = 20 // estimated overhead per hash map entry in chars
+
 function hashKey(value: string): string {
   return `${value.length}:${hashString(value)}`
 }
@@ -118,7 +120,7 @@ export const Attribute = V2Model.named("Attribute").props({
     })
     // only include the hash map if it actually saves space
     const hashMapSize = Object.keys(hashMap).length
-    return hashMapSize > 0 && charsSaved > hashMapSize * 20
+    return hashMapSize > 0 && charsSaved > hashMapSize * kHashMapEntryOverhead
             ? {...others, values, hashMap}
             : snapshot
   })
