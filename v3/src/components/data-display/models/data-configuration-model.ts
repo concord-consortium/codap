@@ -1029,6 +1029,8 @@ export const DataConfigurationModel = types
     setDataset(dataset: IDataSet | undefined, metadata: IDataSetMetadata | undefined) {
       self.dataset = dataset
       self.metadata = metadata
+      // Call the following immediately rather than as a reaction because of timing issues
+      self.handleDataSetChange(dataset)
     },
     clearAttributes() {
       self._attributeDescriptions.clear()
