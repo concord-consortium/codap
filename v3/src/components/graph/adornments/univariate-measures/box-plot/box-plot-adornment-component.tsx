@@ -411,14 +411,21 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
     const translationVars = [ minWhiskerValue, lowerQuartile, median, upperQuartile, maxWhiskerValue, iqr ]
       .map(v => helper.formatValueForScale(v))
     let textContent = `${t(model.labelTitle, { vars: translationVars })}`
-    // Special case in which median equals lower or upper quartile
-    // We combine the labels for those two measures so the user sees both
+    // Special case in which median equals lower and/or upper quartile
+    // We combine the labels for those two or three measures so the user sees all info
+    // Todo: We're not handling the situation in which the measures are very close to each other.
+    // Consider basing equality on the threshold of one pixel difference
+    // Todo: We're also not handling equality of min/max whisker with quartiles or median. (Not a common case.)
     if (lowerQuartile === median || median === upperQuartile) {
       const contentArray = textContent.split("\n")
-      if (lowerQuartile === median) {
+      if (lowerQuartile === median && median === upperQuartile) {
+        // It turns out the third array element is the one that displays in this situation
+        contentArray[3] = `${contentArray[1]}; ${contentArray[2]}; ${contentArray[3]}`
+      }
+      else if (lowerQuartile === median) {
         contentArray[1] = `${contentArray[1]}; ${contentArray[2]}`
       }
-      if (median === upperQuartile) {
+      else if (median === upperQuartile) {
         contentArray[3] = `${contentArray[2]}; ${contentArray[3]}`
       }
       textContent = contentArray.join("\n")
