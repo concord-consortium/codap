@@ -411,6 +411,18 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
     const translationVars = [ minWhiskerValue, lowerQuartile, median, upperQuartile, maxWhiskerValue, iqr ]
       .map(v => helper.formatValueForScale(v))
     let textContent = `${t(model.labelTitle, { vars: translationVars })}`
+    // Special case in which median equals lower or upper quartile
+    // We combine the labels for those two measures so the user sees both
+    if (lowerQuartile === median || median === upperQuartile) {
+      const contentArray = textContent.split("\n")
+      if (lowerQuartile === median) {
+        contentArray[1] = `${contentArray[1]}; ${contentArray[2]}`
+      }
+      if (median === upperQuartile) {
+        contentArray[3] = `${contentArray[2]}; ${contentArray[3]}`
+      }
+      textContent = contentArray.join("\n")
+    }
 
     if ((measureRange?.min || measureRange?.min === 0) && (measureRange?.max || measureRange?.max === 0)) {
       const rangeSpecs = {
