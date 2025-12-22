@@ -216,7 +216,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   const _isValidCases = observable.box<boolean>(false)
   // cached filtered item IDs (excludes hidden/filtered items)
   let _cachedItemIds: string[] = []
-  let _cachedItems: readonly IItem[] = []
+  let _cachedItems: IItem[] = []
   const _isValidItemIds = observable.box<boolean>(false)
   return {
     views: {
@@ -261,6 +261,19 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
           this.validateItemIds()
         }
         return _cachedItems
+      },
+      // Efficiently append new item IDs to the cache when items are appended
+      // (newly added items are not hidden, so they can be added directly)
+      appendItemIdsToCache(itemIds: string[]) {
+        if (_isValidItemIds.get()) {
+          // Filter out any that might be hidden (e.g., due to filter formula)
+          const visibleIds = itemIds.filter(itemId =>
+            !self.setAsideItemIdsSet.has(itemId) && !self.filteredOutItemIds.has(itemId)
+          )
+          _cachedItemIds.push(...visibleIds)
+          _cachedItems.push(...visibleIds.map(id => ({ __id__: id })))
+        }
+        // If cache is invalid, do nothing - next access will rebuild it
       }
     }
   }
@@ -663,6 +676,9 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     }
   },
   validateCasesForNewItems(itemIds: string[]) {
+    // Append new items to the itemIds/items cache
+    self.appendItemIdsToCache(itemIds)
+
     const newCaseIdsForCollections = new Map<string, string[]>()
     self.collections.forEach((collection, index) => {
       // update the cases
