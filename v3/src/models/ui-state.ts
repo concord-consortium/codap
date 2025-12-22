@@ -61,6 +61,10 @@ export class UIState {
     makeObservable(this)
   }
 
+  get hideAppToolbar() {
+    return this._standaloneMode
+  }
+
   get standaloneMode() {
     return this._standaloneMode
   }
