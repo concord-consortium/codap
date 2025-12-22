@@ -4,7 +4,22 @@ import {
   IOnActionOptions, onAction, hasParent, types, getSnapshot
 } from "mobx-state-tree"
 
+/**
+ * Returns the parent of a node (if any), or undefined if there is no parent.
+ *
+ * @param target the MST node whose parent is to be retrieved
+ * @returns the parent node, or undefined if there is no parent
+ */
+export function safeGetParent<T extends IAnyStateTreeNode>(target?: IAnyStateTreeNode) {
+  return target && hasParent(target) ? getParent<T>(target) : undefined
+}
 
+/**
+ * Returns the snapshot of a node, or undefined if the target is undefined.
+ *
+ * @param target the MST node whose snapshot is to be retrieved
+ * @returns the snapshot of the node, or undefined if the target is undefined
+ */
 export function safeGetSnapshot<S>(target?: IAnyStateTreeNode): S | undefined {
   return target ? getSnapshot(target) : undefined
 }
@@ -15,7 +30,7 @@ export function safeGetSnapshot<S>(target?: IAnyStateTreeNode): S | undefined {
  * an instance.
  *
  * @param typeName the type
- * @returns
+ * @returns the MST type definition
  */
 export function typeField(typeName: string) {
   return types.optional(types.literal(typeName), typeName)
@@ -26,7 +41,7 @@ export function typeField(typeName: string) {
  * The valid values for the property are `true` or `undefined`, which
  * means that the property is not serialized unless it is true.
  *
- * @returns
+ * @returns the MST type definition
  */
 export function typeOptionalBoolean() {
   return types.maybe(types.literal(true))

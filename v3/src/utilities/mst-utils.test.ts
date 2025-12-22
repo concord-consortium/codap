@@ -1,9 +1,42 @@
-import { destroy, getSnapshot, types } from "mobx-state-tree"
+import { destroy, getSnapshot, Instance, types } from "mobx-state-tree"
 import {
-  cachedFnFactory, cachedFnWithArgsFactory, isAliveSafe, safeGetSnapshot, typeField, typeOptionalBoolean
+  cachedFnFactory, cachedFnWithArgsFactory, isAliveSafe, safeGetParent, safeGetSnapshot,
+  typeField, typeOptionalBoolean
 } from "./mst-utils"
 
 describe("MST utilities", () => {
+  it("safeGetParent works as expected", () => {
+    const ParentModel = types.model("ParentModel", {
+      child: types.maybe(types.late(() => ChildModel))
+    })
+    .actions(self => ({
+      setChild(_child: Maybe<Instance<typeof ChildModel>>) {
+        self.child = _child
+      }
+    }))
+    interface IParentModel extends Instance<typeof ParentModel> {}
+    const ChildModel = types.model("ChildModel", {
+      value: types.string
+    })
+    .views(self => ({
+      get parent(): Maybe<IParentModel> {
+        return safeGetParent<IParentModel>(self)
+      }
+    }))
+    const parent = ParentModel.create({})
+    expect(parent.child).toBeUndefined()
+    expect(safeGetParent<IParentModel>(parent)).toBeUndefined()
+
+    const child = ChildModel.create({ value: "test" })
+    parent.setChild(child)
+
+    expect(parent.child).toBe(child)
+    expect(child.parent).toBe(parent)
+
+    parent.setChild(undefined)
+    expect(child.parent).toBeUndefined()
+  })
+
   it("safeGetSnapshot, typeField, isAliveSafe work as expected", () => {
     const Model = types.model("Model", {
       foo: typeField("bar"),

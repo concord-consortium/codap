@@ -1,10 +1,11 @@
 import iframePhone from "iframe-phone"
 import { reaction } from "mobx"
-import { addDisposer, getParent, Instance, SnapshotIn, types } from "mobx-state-tree"
+import { addDisposer, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { DIMessage } from "../../data-interactive/iframe-phone-types"
 import { withoutUndo } from "../../models/history/without-undo"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
 import { ITileModel } from "../../models/tiles/tile-model"
+import { safeGetParent } from "../../utilities/mst-utils"
 import { t } from "../../utilities/translation/translate"
 import { getDataInteractiveUrl } from "../../utilities/url-params"
 import { kWebViewTileType, WebViewSubType, webViewSubTypes } from "./web-view-defs"
@@ -148,8 +149,8 @@ export const WebViewModel = TileContentModel
         () => self.url,
         (url: string) => {
           const defaultTileName = t("DG.WebView.defaultTitle")
-          const tileModel = getParent<ITileModel>(self)
-          if ((!tileModel.name || tileModel.name === defaultTileName) && url) {
+          const tileModel = safeGetParent<ITileModel>(self)
+          if (tileModel && (!tileModel.name || tileModel.name === defaultTileName) && url) {
             const name = getNameFromURL(url)
             if (name) tileModel.setName(name)
           }
