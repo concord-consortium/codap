@@ -216,6 +216,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   const _isValidCases = observable.box<boolean>(false)
   // cached filtered item IDs (excludes hidden/filtered items)
   let _cachedItemIds: string[] = []
+  let _cachedItems: readonly IItem[] = []
   const _isValidItemIds = observable.box<boolean>(false)
   return {
     views: {
@@ -250,9 +251,16 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
           _cachedItemIds = self._itemIds.filter(itemId =>
             !self.setAsideItemIdsSet.has(itemId) && !self.filteredOutItemIds.has(itemId)
           )
+          _cachedItems = _cachedItemIds.map(id => ({ __id__: id }))
           runInAction(() => _isValidItemIds.set(true))
         }
         return _cachedItemIds
+      },
+      validateItems() {
+        if (!_isValidItemIds.get()) {
+          this.validateItemIds()
+        }
+        return _cachedItems
       }
     }
   }
@@ -396,7 +404,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     return hashOrderedStringSet(self.itemIds)
   },
   get items(): readonly IItem[] {
-    return self.itemIds.map(id => ({ __id__: id }))
+    return self.validateItems()
   },
   get hasFilterFormula() {
     return !!self.filterFormula && !self.filterFormula.empty
