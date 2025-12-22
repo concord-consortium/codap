@@ -214,6 +214,9 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
 .extend(self => {
   const _validationCount = observable.box<number>(0)
   const _isValidCases = observable.box<boolean>(false)
+  // cached filtered item IDs (excludes hidden/filtered items)
+  let _cachedItemIds: string[] = []
+  const _isValidItemIds = observable.box<boolean>(false)
   return {
     views: {
       get validationCount() {
@@ -223,7 +226,10 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
         return _isValidCases.get()
       },
       invalidateCases() {
-        runInAction(() => _isValidCases.set(false))
+        runInAction(() => {
+          _isValidCases.set(false)
+          _isValidItemIds.set(false)
+        })
       },
       setValidCases() {
         if (!_isValidCases.get()) {
@@ -232,6 +238,21 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
             _isValidCases.set(true)
           })
         }
+      },
+      get isValidItemIds() {
+        return _isValidItemIds.get()
+      },
+      invalidateItemIds() {
+        runInAction(() => _isValidItemIds.set(false))
+      },
+      validateItemIds() {
+        if (!_isValidItemIds.get()) {
+          _cachedItemIds = self._itemIds.filter(itemId =>
+            !self.setAsideItemIdsSet.has(itemId) && !self.filteredOutItemIds.has(itemId)
+          )
+          runInAction(() => _isValidItemIds.set(true))
+        }
+        return _cachedItemIds
       }
     }
   }
@@ -353,7 +374,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
    * ids of items that have not been hidden (set aside) or filtered by user
    */
   get itemIds() {
-    return self._itemIds.filter(itemId => !self.isItemHidden(itemId))
+    return self.validateItemIds()
   }
 }))
 .views(self => ({
