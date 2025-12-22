@@ -8,6 +8,10 @@
   background: url("../../assets/bg-grid-grey.png");
   position: relative;
 
+  &.hide-toolbar {
+    height: 100%;
+  }
+
   .component-placeholder {
     width: 100%;
     height: 100%;

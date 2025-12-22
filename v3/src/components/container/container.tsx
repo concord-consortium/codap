@@ -9,6 +9,7 @@ import { isFreeTileRow } from "../../models/document/free-tile-row"
 import { isMosaicTileRow } from "../../models/document/mosaic-tile-row"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { deleteTileNotification } from "../../models/tiles/tile-notifications"
+import { uiState } from "../../models/ui-state"
 import { urlParams } from "../../utilities/url-params"
 import { EditAttributeFormulaModal } from "../common/edit-attribute-formula-modal"
 import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
@@ -44,7 +45,9 @@ export const Container: React.FC = observer(function Container() {
     })
   }, [documentContent, getTile])
 
-  const classes = clsx(kContainerClass, { "scroll-behavior-auto": isScrollBehaviorAuto })
+  const classes = clsx(kContainerClass, {
+                        "hide-toolbar": uiState.hideAppToolbar,
+                        "scroll-behavior-auto": isScrollBehaviorAuto })
   return (
     <DocumentContainerContext.Provider value={containerRef}>
       <div className={classes} ref={containerRef}>
