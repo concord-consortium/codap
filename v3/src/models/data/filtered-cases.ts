@@ -91,12 +91,6 @@ export class FilteredCases {
   }
 
   @action
-  setCaseFilter(caseFilter?: (data: IDataSet, caseId: string) => boolean) {
-    this.filter = caseFilter
-    this._isValidCaseIds = false
-  }
-
-  @action
   setCasesArrayNumber(casesArrayNumber: number) {
     if (this.casesArrayNumber === casesArrayNumber) return
     this.casesArrayNumber = casesArrayNumber

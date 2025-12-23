@@ -13,16 +13,16 @@ import {FilteredCases, IFilteredChangedCases} from "../../../models/data/filtere
 import {Formula, IFormula} from "../../../models/formula/formula"
 import {applyModelChange} from "../../../models/history/apply-model-change"
 import {IDataSetMetadata, DataSetMetadata} from "../../../models/shared/data-set-metadata"
+import { getMetadataFromDataSet } from "../../../models/shared/shared-data-utils"
 import {
   kDefaultHighAttributeColor, kDefaultLowAttributeColor
 } from "../../../models/shared/data-set-metadata-constants"
 import {getChoroplethColors, missingColor, parseColor} from "../../../utilities/color-utils"
+import { numericSortComparator } from "../../../utilities/data-utils"
 import { stringValuesToDateSeconds } from "../../../utilities/date-utils"
 import {hashStringSets, typedId, uniqueId} from "../../../utilities/js-utils"
 import { isFiniteNumber } from "../../../utilities/math-utils"
-import {cachedFnWithArgsFactory} from "../../../utilities/mst-utils"
-import { numericSortComparator } from "../../../utilities/data-utils"
-import { getMetadataFromDataSet } from "../../../models/shared/shared-data-utils"
+import { cachedFnWithArgsFactory, onAnyAction } from "../../../utilities/mst-utils"
 import { AxisPlace } from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import { getScaleThresholds } from "../components/legend/choropleth-legend/choropleth-legend"
@@ -866,7 +866,7 @@ export const DataConfigurationModel = types
     handleDataSetAction(actionCall: ISerializedActionCall) {
       const cacheClearingActions = ["setCaseValues", "addCases", "removeCases", "removeAttribute"]
       if (cacheClearingActions.includes(actionCall.name)) {
-        self.clearCasesCache()
+        this._invalidateCases()
       }
       // forward all actions from dataset except "setCaseValues" which requires intervention
       if (actionCall.name === "setCaseValues") return
@@ -956,7 +956,7 @@ export const DataConfigurationModel = types
   .actions(self => ({
     handleDataSetChange(data?: IDataSet) {
       self.actionHandlerDisposer?.()
-      self.actionHandlerDisposer = undefined
+      self.actionHandlerDisposer = data ? onAnyAction(data, self.handleDataSetAction) : undefined
       self._clearFilteredCases(data)
     }
   }))
@@ -971,6 +971,7 @@ export const DataConfigurationModel = types
         data => self.handleDataSetChange(data),
         {name: "DataConfigurationModel.afterCreate.reaction [dataset]", fireImmediately: true }
       ))
+      // respond to change of allCategoriesForRoles
       addDisposer(self, reaction(
         () => self.allCategoriesForRoles,
         () => self.clearCasesCache(),
@@ -1038,6 +1039,7 @@ export const DataConfigurationModel = types
     setAttribute(role: AttrRole, desc?: IAttributeDescriptionSnapshot) {
       self._setAttributeDescription(role, desc)
       self.setPointsNeedUpdating(true)
+      self._invalidateCases()
       // No harm in invalidating even if not numeric
       self.numericValuesForAttribute.invalidate(role, self.attributeType(role))
     },

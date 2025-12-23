@@ -4,7 +4,7 @@ import { AttributeType, isCategoricalAttributeType } from "../../../models/data/
 import {IDataSet} from "../../../models/data/data-set"
 import {typedId} from "../../../utilities/js-utils"
 import { isFiniteNumber } from "../../../utilities/math-utils"
-import { cachedFnFactory, cachedFnWithArgsFactory, safeGetSnapshot } from "../../../utilities/mst-utils"
+import { cachedFnFactory, cachedFnWithArgsFactory, onAnyAction, safeGetSnapshot } from "../../../utilities/mst-utils"
 import {GraphPlace} from "../../axis-graph-shared"
 import {AxisPlace} from "../../axis/axis-types"
 import { CaseData, CaseDataWithSubPlot } from "../../data-display/d3-types"
@@ -830,6 +830,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         self._setAttributeDescription(role, desc)
       }
       // No harm in invalidating even if not numeric
+      self._invalidateCases()
       self.numericValuesForAttribute.invalidate(role, self.attributeType(role))
       self.cellMap.invalidateAll()
     },
@@ -895,7 +896,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     },
     handleDataSetChange(data?: IDataSet) {
       self.actionHandlerDisposer?.()
-      self.actionHandlerDisposer = undefined
+      self.actionHandlerDisposer = data ? onAnyAction(data, self.handleDataSetAction) : undefined
       self._clearFilteredCases(data)
       self.synchronizeFilteredCases()
     }

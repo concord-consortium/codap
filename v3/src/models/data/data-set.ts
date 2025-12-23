@@ -217,6 +217,8 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   // cached filtered item IDs (excludes hidden/filtered items)
   let _cachedItemIds: string[] = []
   let _cachedItems: IItem[] = []
+  let _cachedItemIdsHash = 0
+  let _cachedItemIdsOrderedHash = 0
   const _isValidItemIds = observable.box<boolean>(false)
   return {
     views: {
@@ -252,6 +254,8 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
             !self.setAsideItemIdsSet.has(itemId) && !self.filteredOutItemIds.has(itemId)
           )
           _cachedItems = _cachedItemIds.map(id => ({ __id__: id }))
+          _cachedItemIdsHash = hashStringSet(_cachedItemIds)
+          _cachedItemIdsOrderedHash = hashOrderedStringSet(_cachedItemIds)
           runInAction(() => _isValidItemIds.set(true))
         }
         return _cachedItemIds
@@ -261,6 +265,18 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
           this.validateItemIds()
         }
         return _cachedItems
+      },
+      validateItemIdsHash() {
+        if (!_isValidItemIds.get()) {
+          this.validateItemIds()
+        }
+        return _cachedItemIdsHash
+      },
+      validateItemIdsOrderedHash() {
+        if (!_isValidItemIds.get()) {
+          this.validateItemIds()
+        }
+        return _cachedItemIdsOrderedHash
       },
       // Efficiently append new item IDs to the cache when items are appended
       // (newly added items are not hidden, so they can be added directly)
@@ -272,6 +288,9 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
           )
           _cachedItemIds.push(...visibleIds)
           _cachedItems.push(...visibleIds.map(id => ({ __id__: id })))
+          // Update hashes incrementally
+          _cachedItemIdsHash = hashStringSet(_cachedItemIds)
+          _cachedItemIdsOrderedHash = hashOrderedStringSet(_cachedItemIds)
         }
         // If cache is invalid, do nothing - next access will rebuild it
       }
@@ -410,11 +429,11 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   },
   get itemIdsHash() {
     // observable order-independent hash of visible (not set aside, not filtered out) item ids
-    return hashStringSet(self.itemIds)
+    return self.validateItemIdsHash()
   },
   get itemIdsOrderedHash() {
     // observable order-dependent hash of visible (not set aside, not filtered out) item ids
-    return hashOrderedStringSet(self.itemIds)
+    return self.validateItemIdsOrderedHash()
   },
   get items(): readonly IItem[] {
     return self.validateItems()
