@@ -2,14 +2,19 @@ import { Button, Flex, Input } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, { useEffect, useRef, useState } from "react"
+import CloseIcon from "../assets/icons/close-tile-icon.svg"
+import UndoIcon from "../assets/icons/icon-undo.svg"
+import RedoIcon from "../assets/icons/icon-redo.svg"
+import MinimizeIcon from "../assets/icons/minimize-tile-icon.svg"
+import { logMessageWithReplacement } from "../lib/log-message"
+import { appState } from "../models/app-state"
+import { getRedoStringKey, getUndoStringKey } from "../models/history/codap-undo-types"
 import { getTitle } from "../models/tiles/tile-content-info"
 import { updateTileNotification } from "../models/tiles/tile-notifications"
 import { uiState } from "../models/ui-state"
-import CloseIcon from "../assets/icons/close-tile-icon.svg"
-import MinimizeIcon from "../assets/icons/minimize-tile-icon.svg"
-import { ITileTitleBarProps } from "./tiles/tile-base-props"
 import { t } from "../utilities/translation/translate"
-import { logMessageWithReplacement } from "../lib/log-message"
+import { If } from "./common/if"
+import { ITileTitleBarProps } from "./tiles/tile-base-props"
 
 import "./component-title-bar.scss"
 
@@ -127,11 +132,13 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
     }
   }, [isEditing, editingTitle])
 
+  const titleBarClasses = clsx("title-bar", { "not-draggable": !uiState.allowComponentMove })
+
   return (
     <Flex className={classes} onMouseOver={()=>setIsHovering(true)} onMouseOut={()=>setIsHovering(false)}
           onPointerDown={onMoveTilePointerDown}>
       {children}
-      <div className="title-bar" data-testid="component-title-bar">
+      <div className={titleBarClasses} data-testid="component-title-bar">
         <span className="title-text-measure" ref={measureRef} />
         {isEditing && !preventTitleChange
           ? (
@@ -162,27 +169,57 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
           )
         }
       </div>
+      <If condition={uiState.shouldShowUndoRedoInComponentTitleBar}>
+        <Flex className="title-bar-undo-redo" gap={1}>
+          <Button
+            className="component-title-bar-button title-bar-undo-button"
+            data-testid="title-bar-undo-button"
+            disabled={!appState.document?.canUndo}
+            onClick={() => appState.document?.undoLastAction()}
+            onPointerDown={(e) => e.stopPropagation()}
+            title={t(getUndoStringKey(appState.document?.treeManagerAPI?.undoManager))}
+            aria-label={t("DG.mainPage.mainPane.undoButton.title")}
+          >
+            <UndoIcon className="icon-undo"/>
+          </Button>
+          <Button
+            className="component-title-bar-button title-bar-redo-button"
+            data-testid="title-bar-redo-button"
+            disabled={!appState.document?.canRedo}
+            onClick={() => appState.document?.redoLastAction()}
+            onPointerDown={(e) => e.stopPropagation()}
+            title={t(getRedoStringKey(appState.document?.treeManagerAPI?.undoManager))}
+            aria-label={t("DG.mainPage.mainPane.redoButton.title")}
+          >
+            <RedoIcon className="icon-redo"/>
+          </Button>
+        </Flex>
+      </If>
       <Flex className={clsx("header-right", { disabled: isEditing })}>
-        <Button
-          className="component-title-bar-button component-minimize-button"
-          data-testid="component-minimize-button"
-          onClick={onMinimizeTile}
-          onPointerDown={(e) => e.stopPropagation()}
-          title={t("DG.Component.minimizeComponent.toolTip")}
-        >
-          <MinimizeIcon className="component-minimize-icon"/>
-        </Button>
-        {!tile?.cannotClose &&
+        <If condition={uiState.allowComponentMinimize}>
+          <Button
+            className="component-title-bar-button component-minimize-button"
+            data-testid="component-minimize-button"
+            onClick={onMinimizeTile}
+            onPointerDown={(e) => e.stopPropagation()}
+            title={t("DG.Component.minimizeComponent.toolTip")}
+            aria-label={t("DG.Component.minimizeComponent.toolTip")}
+          >
+            <MinimizeIcon className="component-minimize-icon"/>
+          </Button>
+        </If>
+        <If condition={uiState.allowComponentClose && !tile?.cannotClose}>
           <Button
             className="component-title-bar-button component-close-button"
             data-testid="component-close-button"
             onClick={() => onCloseTile?.(tileId)}
             onPointerDown={(e) => e.stopPropagation()}
             title={t("DG.Component.closeComponent.toolTip")}
+            aria-label={t("DG.Component.closeComponent.toolTip")}
           >
             <CloseIcon className="component-close-icon"/>
           </Button>
-        }
+        </If>
       </Flex>
     </Flex>
   )

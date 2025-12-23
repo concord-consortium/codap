@@ -6,6 +6,10 @@
   height: 100%;
   overflow: auto;
 
+  .codap-app.minimal-chrome & {
+    overflow: hidden;
+  }
+
   .free-tile-component {
     position: absolute;
     background: transparent;

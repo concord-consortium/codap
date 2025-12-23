@@ -44,6 +44,15 @@ export const FreeTileRowComponent = observer(function FreeTileRowComponent(
       }, { name: "FreeTileRowComponent.useEffect.autorun [row.last => uiState.focusedTile]" }, row)
   }, [row])
 
+  // In component mode, auto-select the component after initial render
+  useEffect(() => {
+    if (uiState.shouldAutoFocusInitialTile && !uiState.focusedTile && row.tileIds.length > 0) {
+      const tileToFocus = row.last || row.tileIds[0]
+      uiState.setFocusedTile(tileToFocus)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [row.tileIds.length])
+
   function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
     if (e.target === rowRef.current) {
       uiState.setFocusedTile()

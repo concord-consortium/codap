@@ -30,6 +30,13 @@ export interface UrlParams {
    */
   app?: string | null
   /*
+   * [V2] Enables "component-only" / minimal-chrome mode.
+   * V3 semantics: parsed via booleanParam(); absent defaults to false.
+   * The values "false", "no", and "0" explicitly disable it; other values (including "yes") enable it.
+   * value: boolean-like string
+   */
+  componentMode?: string | null
+  /*
    * For testing -- when present brings up a default set of tiles (table, graph, calculator, slider, text).
    * value: ignored
    */
@@ -81,6 +88,12 @@ export interface UrlParams {
    * value: ignored
    */
   hideSplashScreen?: string | null
+  /*
+   * [V2] When present in component mode or embedded mode, hides the undo/redo buttons
+   * that would otherwise appear in the component title bar.
+   * value: boolean-like string (parsed via booleanParam)
+   */
+  hideUndoRedoInComponent?: string | null
   /*
    * [V2] When present, disables the loading message displayed in web views while waiting for
    * a plugin to load or communicate.

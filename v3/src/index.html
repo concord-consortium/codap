@@ -29,14 +29,20 @@
     </script>
     <script>
       // Don't display the splash screen if the URL parameter "hideSplashScreen" is present
+      // or if "componentMode" is enabled
       (function() {
         try {
           var params = new URLSearchParams(window.location.search);
-          if (!params.has('hideSplashScreen')) return;
-          var raw = params.get('hideSplashScreen');
-          var val = raw == null ? '' : String(raw).trim().toLowerCase();
-          var isFalse = (val === 'false' || val === 'no' || val === '0');
-          var shouldHide = !isFalse; // presence-only or any non-falsy value
+
+          function booleanParam(paramName) {
+            if (!params.has(paramName)) return false;
+            var raw = params.get(paramName);
+            var val = raw == null ? '' : String(raw).trim().toLowerCase();
+            var isFalse = (val === 'false' || val === 'no' || val === '0');
+            return !isFalse; // presence-only or any non-falsy value
+          }
+
+          var shouldHide = booleanParam('hideSplashScreen') || booleanParam('componentMode');
           if (shouldHide) {
             var style = document.createElement('style');
             style.textContent = '#splash-screen { display: none !important; }';

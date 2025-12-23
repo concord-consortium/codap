@@ -24,6 +24,7 @@ import {
 import { TreeManagerType } from "./history/tree-manager"
 import { ISharedDataSet, kSharedDataSetType, SharedDataSet } from "./shared/shared-data-set"
 import { getSharedModelManager } from "./tiles/tile-environment"
+import { uiState } from "./ui-state"
 
 const kAppName = "CODAP"
 
@@ -177,13 +178,11 @@ class AppState {
     // the title
     if (!this.titleMonitorDisposer) {
       this.titleMonitorDisposer = autorun(() => {
+        if (!uiState.shouldUpdateBrowserTitleFromDocument) {
+          return
+        }
+
         const { title } = this.currentDocument
-
-        // TODO: handle componentMode and embeddedMode
-        // if ((DG.get('componentMode') === 'yes') || (DG.get('embeddedMode') === 'yes')) {
-        //   return;
-        // }
-
         const titleString = t("DG.main.page.title", {vars: [title, kAppName]})
         window.document.title = titleString
       })
