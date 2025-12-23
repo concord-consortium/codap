@@ -2236,7 +2236,7 @@ DG.DataContext = SC.Object.extend((function () // closure
      which require recalculation in a simple (non-aggregate) sense and then in
      a separate notification that set of attributes in each affected collection
      which require recalculation in an aggregate sense (i.e. all cases affected).
-     The format of the 'depdentCases' notifications is described below.
+     The format of the 'dependentCases' notifications is described below.
      @param  {object[]}  iNodes
      {string}    .type (e.g. DG.DEP_TYPE_ATTRIBUTE|DG.DEP_TYPE_GLOBAL)
      {string}    .id
