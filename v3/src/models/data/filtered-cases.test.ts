@@ -46,6 +46,8 @@ describe("DerivedDataSet", () => {
     expect(filtered.hasCaseId("c4")).toBe(true)
 
     data.removeCases(["c1"])
+    // without a DataConfigurationModel, we have to invalidate manually
+    filtered.invalidateCases()
     expect(filtered.caseIds.length).toBe(1)
     expect(filtered.caseIds).toEqual(["c4"])
     expect(filtered.hasCaseId("c1")).toBe(false)

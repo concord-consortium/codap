@@ -214,6 +214,12 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
 .extend(self => {
   const _validationCount = observable.box<number>(0)
   const _isValidCases = observable.box<boolean>(false)
+  // cached filtered item IDs (excludes hidden/filtered items)
+  let _cachedItemIds: string[] = []
+  let _cachedItems: IItem[] = []
+  let _cachedItemIdsHash = 0
+  let _cachedItemIdsOrderedHash = 0
+  const _isValidItemIds = observable.box<boolean>(false)
   return {
     views: {
       get validationCount() {
@@ -223,7 +229,10 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
         return _isValidCases.get()
       },
       invalidateCases() {
-        runInAction(() => _isValidCases.set(false))
+        runInAction(() => {
+          _isValidCases.set(false)
+          _isValidItemIds.set(false)
+        })
       },
       setValidCases() {
         if (!_isValidCases.get()) {
@@ -232,6 +241,58 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
             _isValidCases.set(true)
           })
         }
+      },
+      get isValidItemIds() {
+        return _isValidItemIds.get()
+      },
+      invalidateItemIds() {
+        runInAction(() => _isValidItemIds.set(false))
+      },
+      validateItemIds() {
+        if (!_isValidItemIds.get()) {
+          _cachedItemIds = self._itemIds.filter(itemId =>
+            !self.setAsideItemIdsSet.has(itemId) && !self.filteredOutItemIds.has(itemId)
+          )
+          _cachedItems = _cachedItemIds.map(id => ({ __id__: id }))
+          _cachedItemIdsHash = hashStringSet(_cachedItemIds)
+          _cachedItemIdsOrderedHash = hashOrderedStringSet(_cachedItemIds)
+          runInAction(() => _isValidItemIds.set(true))
+        }
+        return _cachedItemIds
+      },
+      validateItems() {
+        if (!_isValidItemIds.get()) {
+          this.validateItemIds()
+        }
+        return _cachedItems
+      },
+      validateItemIdsHash() {
+        if (!_isValidItemIds.get()) {
+          this.validateItemIds()
+        }
+        return _cachedItemIdsHash
+      },
+      validateItemIdsOrderedHash() {
+        if (!_isValidItemIds.get()) {
+          this.validateItemIds()
+        }
+        return _cachedItemIdsOrderedHash
+      },
+      // Efficiently append new item IDs to the cache when items are appended
+      // (newly added items are not hidden, so they can be added directly)
+      appendItemIdsToCache(itemIds: string[]) {
+        if (_isValidItemIds.get()) {
+          // Filter out any that might be hidden (e.g., due to filter formula)
+          const visibleIds = itemIds.filter(itemId =>
+            !self.setAsideItemIdsSet.has(itemId) && !self.filteredOutItemIds.has(itemId)
+          )
+          _cachedItemIds.push(...visibleIds)
+          _cachedItems.push(...visibleIds.map(id => ({ __id__: id })))
+          // Update hashes incrementally
+          _cachedItemIdsHash = hashStringSet(_cachedItemIds)
+          _cachedItemIdsOrderedHash = hashOrderedStringSet(_cachedItemIds)
+        }
+        // If cache is invalid, do nothing - next access will rebuild it
       }
     }
   }
@@ -353,7 +414,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
    * ids of items that have not been hidden (set aside) or filtered by user
    */
   get itemIds() {
-    return self._itemIds.filter(itemId => !self.isItemHidden(itemId))
+    return self.validateItemIds()
   }
 }))
 .views(self => ({
@@ -368,14 +429,14 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   },
   get itemIdsHash() {
     // observable order-independent hash of visible (not set aside, not filtered out) item ids
-    return hashStringSet(self.itemIds)
+    return self.validateItemIdsHash()
   },
   get itemIdsOrderedHash() {
     // observable order-dependent hash of visible (not set aside, not filtered out) item ids
-    return hashOrderedStringSet(self.itemIds)
+    return self.validateItemIdsOrderedHash()
   },
   get items(): readonly IItem[] {
-    return self.itemIds.map(id => ({ __id__: id }))
+    return self.validateItems()
   },
   get hasFilterFormula() {
     return !!self.filterFormula && !self.filterFormula.empty
@@ -634,6 +695,9 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     }
   },
   validateCasesForNewItems(itemIds: string[]) {
+    // Append new items to the itemIds/items cache
+    self.appendItemIdsToCache(itemIds)
+
     const newCaseIdsForCollections = new Map<string, string[]>()
     self.collections.forEach((collection, index) => {
       // update the cases

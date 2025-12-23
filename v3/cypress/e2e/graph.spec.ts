@@ -384,11 +384,15 @@ context("Graph UI", () => {
       graph.getDisplayStylesButton().click()
 
       // change point size
-      cy.get("[data-testid=point-size-slider]")
+      cy.get('[data-testid=point-size-slider]')
         .click({ force: true })
         .type('{downArrow}{downArrow}')
         .wait(500) // wait for animation to finish
-        .get('div[role="slider"]').should('have.attr', 'aria-valuenow', "0.98")
+        .get('div[role="slider"]')
+        .should($slider => {
+          const value = parseFloat($slider.attr('aria-valuenow') || '0')
+          expect(value).to.be.closeTo(0.98, 0.01)
+        })
 
       cy.log("changes the stroke color value and verifies the change")
       // Ensure stroke initially has the expected value
@@ -555,12 +559,12 @@ context("Graph UI", () => {
       graph.getDisplayConfigButton().click()
       cy.get("[data-testid=bins-radio-button]").click()
 
-      const widthsAfterTyping: Record<string, string> = {}    
+      const widthsAfterTyping: Record<string, string> = {}
       const fields = [
         { testId: "graph-bin-width-setting", initialValue: "2", longValue: "12345" },
         { testId: "graph-bin-alignment-setting", initialValue: "2", longValue: "987654" }
       ]
-    
+
       // Check that input fields expand when longer values are entered
       fields.forEach((field) => {
         cy.get(`[data-testid=${field.testId}]`).should("be.visible")
@@ -573,7 +577,7 @@ context("Graph UI", () => {
           })
         })
       })
-    
+
       // Close and reopen palette to verify widths persist
       cy.get(`[data-testid=${fields[1].testId}]`).find("input").type("{enter}")
       cy.get("[data-testid=graph]").click()

@@ -81,9 +81,9 @@ describe("getLookupCasesToRecalculate", () => {
 })
 
 describe("observeLocalAttributes", () => {
-  const dataSet = DataSet.create({ id: "ds1" })
-
   describe("when there's no aggregate dependency", () => {
+    const dataSet = DataSet.create({ id: "ds1" })
+
     const formulaDependenciesWithoutAggregate: ILocalAttributeDependency[] = [
       { type: "localAttribute", attrId: "attr1", aggregate: false },
       { type: "localAttribute", attrId: "attr2", aggregate: false },
@@ -125,6 +125,8 @@ describe("observeLocalAttributes", () => {
   })
 
   describe("when there is aggregate dependency", () => {
+    const dataSet = DataSet.create({ id: "ds1" })
+
     const formulaDependenciesWithAggregate: ILocalAttributeDependency[] = [
       { type: "localAttribute", attrId: "attr1", aggregate: false },
       { type: "localAttribute", attrId: "attr2", aggregate: false },
@@ -133,26 +135,29 @@ describe("observeLocalAttributes", () => {
 
     it("should call recalculateCallback with ALL_CASES when new case is added", () => {
       const recalculateCallback = jest.fn()
-      observeLocalAttributes(formulaDependenciesWithAggregate, dataSet, recalculateCallback)
+      const disposer = observeLocalAttributes(formulaDependenciesWithAggregate, dataSet, recalculateCallback)
       const newCases = [{ __id__: "case1" }, { __id__: "case2" }]
       dataSet.addCases(newCases)
       expect(recalculateCallback).toHaveBeenCalledWith("ALL_CASES")
+      disposer()
     })
 
     it("should call recalculateCallback with updated cases when no aggregate dependency attribute is updated", () => {
       const recalculateCallback = jest.fn()
-      observeLocalAttributes(formulaDependenciesWithAggregate, dataSet, recalculateCallback)
+      const disposer = observeLocalAttributes(formulaDependenciesWithAggregate, dataSet, recalculateCallback)
       const caseUpdates = [{ __id__: "case1", attr1: 1 }, { __id__: "case2", attr321: 2 }]
       dataSet.setCaseValues(caseUpdates)
       expect(recalculateCallback).toHaveBeenCalledWith([caseUpdates[0]])
+      disposer()
     })
 
     it("should call recalculateCallback with ALL_CASES when aggregate dependency attribute is updated", () => {
       const recalculateCallback = jest.fn()
-      observeLocalAttributes(formulaDependenciesWithAggregate, dataSet, recalculateCallback)
+      const disposer = observeLocalAttributes(formulaDependenciesWithAggregate, dataSet, recalculateCallback)
       const caseUpdates = [{ __id__: "case1", attr1: 1 }, { __id__: "case2", attr2: 2 }]
       dataSet.setCaseValues(caseUpdates)
       expect(recalculateCallback).toHaveBeenCalledWith("ALL_CASES")
+      disposer()
     })
   })
 })
