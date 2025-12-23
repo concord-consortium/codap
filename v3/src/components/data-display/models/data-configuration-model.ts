@@ -1049,16 +1049,19 @@ export const DataConfigurationModel = types
     },
     addNewHiddenCases(hiddenCases: string[]) {
       self.hiddenCases.push(...hiddenCases)
+      self._invalidateCases()
     },
     clearHiddenCases() {
       self.hiddenCases.replace([])
+      self._invalidateCases()
     },
     setHiddenCases(hiddenCases: string[]) {
       self.hiddenCases.replace(hiddenCases)
+      self._invalidateCases()
     },
     setDisplayOnlySelectedCases(displayOnlySelectedCases: boolean) {
       self.displayOnlySelectedCases = displayOnlySelectedCases || undefined
-      self.clearCasesCache()
+      self._invalidateCases()
     }
   }))
   .actions(self => ({
