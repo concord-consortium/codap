@@ -515,7 +515,7 @@ DG.MathUtilities = {
       var sum = 0;
       for (var k = 0; k < n; k++) {
         var p = normalizedPoints[k];
-        var yhat = this.normal(p.x, 1, mu1, sigma1);
+        var yhat = DG.MathUtilities.normal(p.x, 1, mu1, sigma1);
         var r = p.y - yhat;
         sum += r * r;
       }
