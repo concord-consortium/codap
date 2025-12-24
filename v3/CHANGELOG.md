@@ -1,5 +1,52 @@
 # Changelog
 
+## Version 3.0.0-beta.2607 - December 24, 2025
+
+### ✨ Features & Improvements:
+- **CODAP-161:** Attributes can be of type **qualitative** and display as an orange bar in the case table
+- **CODAP-196:** CaseCard: Enter key should edit next/previous cell
+- **CODAP-271:** Label improvements for measures of spread
+- **CODAP-730:** Formula editor should enclose attribute names that begin with digits in back ticks
+- **CODAP-798:** Show Sonify plugin in default Plugins menu
+- **CODAP-1019:** Sharing dialog: Update "Interactive API" tab label to "Activity Player"
+- **CODAP-1022:** Support `di-override` and `di-override-url` parameters
+- **CODAP-1028:** Support `standalone` url parameter
+- **CODAP-1040:** Change the display of the standard deviation on graphs to have greater transparency
+- **CODAP-1042:** The CODAP plugin API responds to "rerandomize" when the resource is a dataContext
+- **CODAP-1034:** Support `hideWebViewLoading` url parameter
+- **CODAP-1044:** Changes made by plugins should dirty the document
+
+### 🐞 Bug Fixes:
+- **CODAP-186:** Dragging points in split numeric plots computes wrong screen and world values
+- **CODAP-195:** Case Card: disable editing for non-editable values
+- **CODAP-286:** Fix categorical axis label truncation
+- **CODAP-866:** Don't show hidden tiles in Tiles menu
+- **CODAP-899:** Box plot median is hidden when equal to Q1
+- **CODAP-913:** Fix bloated file size with redundant string values
+- **CODAP-981:** Case table should scroll to selected case (if any) on restoring document
+- **CODAP-987:** Histogram hover tips are using appropriate precision for bin boundary values
+- **CODAP-992:** Problems choosing binned dot plot bin alignment and in assigning values to bins
+- **CODAP-997:** Date slider layout problem
+- **CODAP-1004:** Dot Plot: Null hover tips for date-time attribute
+- **CODAP-1005:** Enhance slider inspector to handle dates
+- **CODAP-1006:** Formula Editor: Escape key should close function/value popups without closing editor
+- **CODAP-1010:** Graph should respond immediately to change in background color
+- **CODAP-1016:** Numeric axis numbers disappear as cases are added
+- **CODAP-1017:** Fix Importer plugin behavior
+- **CODAP-1036:** Fix problem making graph in presence of 2 datasets
+- **CODAP-1037:** Fix evaluation of formulas with ternary operator and symbol replacements
+- **CODAP-1047:** A gaussian fit normal curve is not being drawn when it should
+- **CODAP-1052:** Graph numeric axis does not show all desired number labels
+
+### 🛠️ Under the Hood:
+- **CODAP-1011:** Added "interactiveApi" resource to data interactive api
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  209063 bytes |                           <0.01% |
+|  index.js | 6987996 bytes |                           <0.01% |
+
 ## Version 3.0.0-beta.2568 - November 17, 2025
 
 ### ✨ Features & Improvements:
