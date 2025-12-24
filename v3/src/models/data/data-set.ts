@@ -812,6 +812,10 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     self.validateCases()
     return self.getCollection(collectionId)?.cases ?? []
   },
+  getNonEmptyCasesForCollection(collectionId?: string): readonly ICase[] {
+    self.validateCases()
+    return self.getCollection(collectionId)?.nonEmptyCases ?? []
+  },
   getParentCaseId(caseId: string) {
     self.validateCases()
     const caseInfo = self.caseInfoMap.get(caseId)

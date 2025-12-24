@@ -71,6 +71,7 @@ describe("CollectionModel", () => {
 
     expect(c1.getCaseGroup("foo")).toBeUndefined()
     c1.completeCaseGroups([{} as any])
+    expect(c1.nonEmptyCases).toEqual([])
   })
 
   it("handles undefined attribute references", () => {
@@ -189,6 +190,12 @@ describe("CollectionModel", () => {
     expect(c1.allParentDataAttrs.map(attr => attr.id)).toEqual([])
     expect(c2.allParentDataAttrs.map(attr => attr.id)).toEqual(["a1"])
     expect(c3.allParentDataAttrs.map(attr => attr.id)).toEqual(["a1", "a2", "a3"])
+
+    c1.afterApplySnapshot()
+    expect(c1.parent).toBeUndefined()
+    expect(c1.child).toBeUndefined()
+    expect(c1.cases).toEqual([])
+    expect(c1.nonEmptyCases).toEqual([])
   })
 
   it("can group cases appropriately", () => {
@@ -246,7 +253,7 @@ describe("CollectionModel", () => {
     }
     syncCollectionLinks(root.collections, itemData)
 
-    function validateCases() {
+    function validateCases(newCaseIds?: string[]) {
       itemIdToCaseIdsMap.clear()
 
       root.collections.forEach((collection, index) => {
@@ -257,7 +264,7 @@ describe("CollectionModel", () => {
       root.collections.forEach((collection, index) => {
         // sort child collection cases into groups
         const parentCaseGroups = index > 0 ? root.collections[index - 1].caseGroups : undefined
-        collection.completeCaseGroups(parentCaseGroups)
+        collection.completeCaseGroups(parentCaseGroups, newCaseIds)
       })
     }
     validateCases()
@@ -377,11 +384,23 @@ describe("CollectionModel", () => {
     // when i0 & i2 are hidden, first parent case is odds, second is evens (except i0, i2)
     expect(c1.caseIds.length).toBe(2)
     expect(c1.cases.length).toBe(2)
+    expect(c1.nonEmptyCases.length).toBe(2)
     expect(c2.caseIds).toEqual(caseIdsForItems(["i1", "i3", "i5", "i4"], 1))
+    expect(c2.nonEmptyCases.length).toBe(4)
     expect(c1.caseGroups[0].childCaseIds).toEqual(caseIdsForItems(["i1", "i3", "i5"], 1))
     expect(c1.caseGroups[0].childItemIds).toEqual(["i1", "i3", "i5"])
     expect(c1.caseGroups[1].childCaseIds).toEqual(caseIdsForItems(["i4"], 1))
     expect(c1.caseGroups[1].childItemIds).toEqual(["i4"])
+
+    // adding items incrementally works as expected
+    itemData.itemIds = () => ["0", "1", "2", "3", "4", "5", "6"].map(id => `i${id}`)
+    itemData.isHidden = () => false
+    validateCases(["6"])
+    expect(c1.caseIds.length).toBe(2)
+    expect(c1.cases.length).toBe(2)
+    expect(c1.nonEmptyCases.length).toBe(2)
+    expect(c2.caseIds.length).toBe(4)
+    expect(c2.nonEmptyCases.length).toBe(4)
   })
 
   it("converts legacy group keys in snapshots", () => {

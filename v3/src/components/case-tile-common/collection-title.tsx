@@ -1,10 +1,10 @@
-import React, { useEffect, useRef, useState } from "react"
-import { useDndContext } from "@dnd-kit/core"
 import { Button, Editable, EditableInput, EditablePreview } from "@chakra-ui/react"
-import throttle from "lodash/throttle"
-import {useResizeDetector} from "react-resize-detector"
-import { observer } from "mobx-react-lite"
+import { useDndContext } from "@dnd-kit/core"
 import { clsx } from "clsx"
+import throttle from "lodash/throttle"
+import { observer } from "mobx-react-lite"
+import React, { useEffect, useRef, useState } from "react"
+import {useResizeDetector} from "react-resize-detector"
 import AddIcon from "../../assets/icons/icon-add-circle.svg"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
@@ -29,7 +29,10 @@ export const CollectionTitle =
   const collection = data?.getCollection(collectionId)
   const collectionName = collection?.name || t("DG.AppController.createDataSet.collectionName")
   const { isTileSelected } = useTileSelectionContext()
-  const caseCount = data?.getCasesForCollection(collection?.id).length ?? 0
+  const visibleCaseCount = collection?.cases.length ?? 0
+  const nonEmptyCaseCount = collection?.nonEmptyCases.length ?? 0
+  const hasEmptyCases = visibleCaseCount - nonEmptyCaseCount > 0
+  const hiddenCaseCount = (collection?.allCaseIds.size ?? 0) - visibleCaseCount
   const tileRef = useRef<HTMLDivElement | null>(null)
   const contentRef = useRef<HTMLDivElement | null>(null)
   const titleRef = useRef<HTMLDivElement>(null)
@@ -108,8 +111,14 @@ export const CollectionTitle =
     setIsEditing(false)
   }
 
-  const casesStr = t(caseCount === 1 ? "DG.DataContext.singleCaseName" : "DG.DataContext.pluralCaseName")
-  const displayName = `${collectionName}${ showCount ? ` (${caseCount} ${casesStr})` : "" }`
+  const titleTextStr = hasEmptyCases
+                        ? hiddenCaseCount > 0
+                          ? "V3.CaseTable.collectionTitleTextWithEmptyAndHidden"
+                          : "V3.CaseTable.collectionTitleTextWithEmpty"
+                        : hiddenCaseCount > 0
+                          ? "V3.CaseTable.collectionTitleTextWithHidden"
+                          : "V3.CaseTable.collectionTitleText"
+  const displayName = t(titleTextStr, { vars: [collectionName, nonEmptyCaseCount, hiddenCaseCount] })
   const addIconClass = clsx("add-icon", { focused: isTileInFocus })
 
   return (
@@ -118,7 +127,7 @@ export const CollectionTitle =
         <Editable value={isEditing ? editingName : displayName}
             onEdit={() => setIsEditing(true)} onSubmit={handleSubmit} onCancel={handleCancel}
             isPreviewFocusable={!dragging} submitOnBlur={true} onChange={handleChangeName}>
-          <EditablePreview paddingY={0} />
+          <EditablePreview width="100%" paddingY={0} overflow="hidden" whiteSpace="nowrap" textOverflow="ellipsis" />
           <EditableInput value={editingName} paddingY={0} className="collection-title-input" />
         </Editable>
       </div>

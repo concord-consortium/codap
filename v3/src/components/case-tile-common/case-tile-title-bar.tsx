@@ -52,7 +52,7 @@ function getTileInfo(tileType?: string) {
 }
 
 export const CaseTileTitleBar =
-  observer(function CaseTableTitleBar({tile, onCloseTile, ...others}: ITileTitleBarProps) {
+  observer(function CaseTileTitleBar({tile, onCloseTile, ...others}: ITileTitleBarProps) {
     const tileInfo = getTileInfo(tile?.content.type)
     const data = tile?.content && getTileDataSet(tile?.content)
     const [showSwitchMessage, setShowSwitchMessage] = useState(false)

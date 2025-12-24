@@ -2,6 +2,7 @@ import { comparer, observable, reaction, runInAction } from "mobx"
 import { addDisposer, getType, IAnyStateTreeNode, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { kCaseIdPrefix, kCollectionIdPrefix, typeV3Id, v3Id } from "../../utilities/codap-utils"
 import { hashStringSet, hashOrderedStringSet, safeJsonParse } from "../../utilities/js-utils"
+import { isValueNonEmpty } from "../../utilities/math-utils"
 import { Attribute, IAttribute } from "./attribute"
 import {
   CaseInfo, IGroupedCase, IMoveAttributeOptions, symIndex, symParent
@@ -45,6 +46,8 @@ export function makeGroupKey(values: string[]) {
 function preProcessBetaGroupKey(snapGroupKey: string): string {
   const result = /\[(.+)\]/.exec(snapGroupKey)
   if (result?.[1]) return `${kGroupKeyDelimiter}${result[1]}${kGroupKeyDelimiter}`
+  // shouldn't ever happen, since we check for [ and ] before calling this function
+  /* istanbul ignore next */
   return snapGroupKey
 }
 
@@ -99,7 +102,9 @@ export const CollectionModel = V2Model
   // NOTE: after an applySnapshot these structures are explicitly cleared, this forces
   // them to be rebuilt and prevents any residual values being left over.
 
-  // case ids in case table/render order
+  // all case ids (including hidden cases)
+  allCaseIds: new Set<string>(),
+  // visible case ids in case table/render order
   caseIds: [] as string[],
   // map from case id to case index
   caseIdToIndexMap: new Map<string, number>(),
@@ -232,6 +237,7 @@ export const CollectionModel = V2Model
 }))
 .actions(self => ({
   clearCases() {
+    self.allCaseIds.clear()
     if (!self.prevCaseIds) self.prevCaseIds = self.caseIds
     self.caseIds = []
 
@@ -318,6 +324,7 @@ export const CollectionModel = V2Model
       if (groupKey && caseId) {
         let caseGroup = self.caseGroupMap.get(groupKey)
         if (!caseGroup) {
+          self.allCaseIds.add(caseId)
           // cases with only hidden items aren't in caseIds and don't get indices
           const newCaseIndex = isItemHidden ? -1 : self.caseIds.length
           !isItemHidden && self.caseIds.push(caseId)
@@ -440,6 +447,21 @@ export const CollectionModel = V2Model
     const groupKey = self.caseIdToGroupKeyMap.get(caseId)
     return groupKey ? self.caseGroupMap.get(groupKey) : undefined
   },
+  isNonEmptyCaseGroup(caseGroup: CaseInfo) {
+    // parent cases are always considered non-empty
+    if (self.child) return true
+    // cases with no child items are considered empty
+    if (!caseGroup?.childItemIds.length) return false
+    // cases with multiple child items are non-empty (shouldn't happen for child collections)
+    if (caseGroup.childItemIds.length > 1)  return true
+    // for child collections, determine non-empty status by checking child item values
+    const childItemId = caseGroup.childItemIds[0]
+    const childItemHasNonEmptyValue = self.allDataAttributes.some(attr => {
+      const value = self.itemData.getValue(childItemId, attr.id)
+      return isValueNonEmpty(value)
+    })
+    return childItemHasNonEmptyValue
+  },
   addChildCase(parentCaseId: string, childCaseId: string) {
     const groupKey = self.caseIdToGroupKeyMap.get(parentCaseId)
     const caseGroup = groupKey && self.caseGroupMap.get(groupKey)
@@ -459,6 +481,7 @@ export const CollectionModel = V2Model
 .extend(self => {
   const _caseGroups = observable.box<CaseInfo[]>([], { deep: false })
   const _cases = observable.box<IGroupedCase[]>([], { deep: false })
+  const _nonEmptyCases = observable.box<IGroupedCase[]>([], { deep: false })
   const _caseIdsHash = observable.box<number>(0)
   const _caseIdsOrderedHash = observable.box<number>(0)
   return {
@@ -468,6 +491,9 @@ export const CollectionModel = V2Model
       },
       get cases() {
         return _cases.get()
+      },
+      get nonEmptyCases() {
+        return _nonEmptyCases.get()
       },
       get caseIdsHash() {
         return _caseIdsHash.get()
@@ -498,14 +524,19 @@ export const CollectionModel = V2Model
 
         let caseGroups = _caseGroups.get()
         let cases = _cases.get()
-
+        let nonEmptyCases = _nonEmptyCases.get()
         // append new cases to existing arrays
         if (!parentCases && newCaseIds) {
           const newCaseGroups = newCaseIds.map(caseId => self.getCaseGroup(caseId))
           caseGroups.push(...newCaseGroups.filter(group => !!group))
 
-          const newCases = newCaseIds.map(caseId => self.getCaseGroup(caseId)?.groupedCase)
+          const newCases = newCaseGroups.map(caseGroup => caseGroup?.groupedCase)
           cases.push(...newCases.filter(aCase => !!aCase))
+
+          const newNonEmptyCases = newCaseGroups.map(group => {
+            return group && self.isNonEmptyCaseGroup(group) ? group.groupedCase : undefined
+          }).filter(aCase => !!aCase)
+          nonEmptyCases.push(...newNonEmptyCases)
         }
         // rebuild arrays from scratch
         else {
@@ -513,14 +544,19 @@ export const CollectionModel = V2Model
                         .map(caseId => self.getCaseGroup(caseId))
                         .filter(group => !!group)
 
-          cases = self.caseIds
-                    .map(caseId => self.getCaseGroup(caseId)?.groupedCase)
+          cases = caseGroups
+                    .map(group => group?.groupedCase)
                     .filter(groupedCase => !!groupedCase)
+
+          nonEmptyCases = caseGroups.map(group => {
+            return group && self.isNonEmptyCaseGroup(group) ? group.groupedCase : undefined
+          }).filter(aCase => !!aCase)
         }
 
         runInAction(() => {
           _caseGroups.set(caseGroups)
           _cases.set(cases)
+          _nonEmptyCases.set(nonEmptyCases)
           _caseIdsHash.set(hashStringSet(self.caseIds))
           _caseIdsOrderedHash.set(hashOrderedStringSet(self.caseIds))
         })
