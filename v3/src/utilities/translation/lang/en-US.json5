@@ -77,9 +77,9 @@
     "DG.CaseTable.attribute.type.color": "color", // used dynamically (`DG.CaseTable.attribute.type.${type}`)
     // the next four strings replace their V2 counterparts
     "V3.CaseTable.collectionTitleText": "%@1 (%@2 cases)", /* %@1 replaced with case table title, %@2 replaced with case count */
-    "V3.CaseTable.collectionTitleTextWithHidden": "%@1 (%@2 cases, %@3 hidden)", /* %@1 replaced with case table title, %@2 replaced with case count, %@3 with set-aside count */
+    "V3.CaseTable.collectionTitleTextWithHidden": "%@1 (%@2 cases, %@3 hidden)", /* %@1 replaced with case table title, %@2 replaced with case count, %@3 with hidden count */
     "V3.CaseTable.collectionTitleTextWithEmpty": "%@1 (%@2 nonempty cases)", /* %@1 replaced with case table title, %@2 replaced with case count */
-    "V3.CaseTable.collectionTitleTextWithEmptyAndHidden": "%@1 (%@2 nonempty cases, %@3 hidden)", /* %@1 replaced with case table title, %@2 replaced with case count, %@3 with set-aside count */
+    "V3.CaseTable.collectionTitleTextWithEmptyAndHidden": "%@1 (%@2 nonempty cases, %@3 hidden)", /* %@1 replaced with case table title, %@2 replaced with case count, %@3 with hidden count */
     "V3.CaseTable.colorPalette.setColor": "Set Color",
     "V3.CaseTable.colorPalette.cancel": "Cancel",
     "V3.CaseTable.formulaFilterBar.label": "Show cases only if",
