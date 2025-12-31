@@ -453,7 +453,7 @@ export const CollectionModel = V2Model
     // cases with no child items are considered empty
     if (!caseGroup?.childItemIds.length) return false
     // cases with multiple child items are non-empty (shouldn't happen for child collections)
-    if (caseGroup.childItemIds.length > 1)  return true
+    if (caseGroup.childItemIds.length > 1) return true
     // for child collections, determine non-empty status by checking child item values
     const childItemId = caseGroup.childItemIds[0]
     const childItemHasNonEmptyValue = self.allDataAttributes.some(attr => {
