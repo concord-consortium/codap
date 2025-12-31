@@ -118,7 +118,9 @@ export const CollectionTitle =
                         : hiddenCaseCount > 0
                           ? "V3.CaseTable.collectionTitleTextWithHidden"
                           : "V3.CaseTable.collectionTitleText"
-  const displayName = t(titleTextStr, { vars: [collectionName, nonEmptyCaseCount, hiddenCaseCount] })
+  const displayName = showCount
+                        ? t(titleTextStr, { vars: [collectionName, nonEmptyCaseCount, hiddenCaseCount] })
+                        : collectionName
   const addIconClass = clsx("add-icon", { focused: isTileInFocus })
 
   return (
