@@ -32,9 +32,13 @@ $date-slider-component-height: 110px;
       cursor: grab;
 
       &.dragging {
-        filter: drop-shadow(3px 1px 1px #555);
         cursor: grabbing;
       }
+      &.dragging path {
+        stroke: #555;
+        stroke-width: 1px;
+      }
+
     }
     .slider-axis-wrapper {
       position: relative;
