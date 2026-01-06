@@ -1,6 +1,6 @@
 import { action, makeObservable, observable } from "mobx"
 import { scrollTileIntoView } from "../utilities/dom-utils"
-import { booleanParam } from "../utilities/url-params"
+import { booleanParam, urlParams } from "../utilities/url-params"
 import { ITileModel } from "./tiles/tile-model"
 import { RulerState, RulerStateKey } from "./ui-state-types"
 
@@ -12,9 +12,11 @@ import { RulerState, RulerStateKey } from "./ui-state-types"
 export class UIState {
   // support for standalone mode for data interactives/plugins
   @observable
-  private _standaloneMode: boolean = false
+  private _standaloneMode = false
   @observable
   private _standalonePlugin: string = ""
+  @observable
+  private _hideUserEntryModal = false
   // the focused tile is a singleton; in theory there can be multiple selected tiles
   @observable
   private focusTileId = ""
@@ -58,6 +60,9 @@ export class UIState {
   @observable private _editFormulaAttributeId = ""
 
   constructor() {
+    const { sample, dashboard, di, noEntryModal } = urlParams
+    this._hideUserEntryModal = !!sample || dashboard !== undefined || !!di || noEntryModal !== undefined
+
     makeObservable(this)
   }
 
@@ -90,6 +95,15 @@ export class UIState {
     this._standalonePlugin = standaloneParam && this._standaloneMode && !kTrueStrings.includes(standaloneParamLower)
                               ? standaloneParam
                               : ""
+  }
+
+  get hideUserEntryModal() {
+    return this._hideUserEntryModal
+  }
+
+  @action
+  setHideUserEntryModal() {
+    this._hideUserEntryModal = true
   }
 
   get focusedTile() {
