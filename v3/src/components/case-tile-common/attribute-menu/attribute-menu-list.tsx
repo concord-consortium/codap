@@ -5,7 +5,7 @@ import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { useDataSetMetadata } from "../../../hooks/use-data-set-metadata"
 import { logMessageWithReplacement, logStringifiedObjectMessage } from "../../../lib/log-message"
 import {
-  deleteCollectionNotification, hideAttributeNotification, removeAttributesNotification
+  deleteCollectionNotification, dependentCasesNotification, hideAttributeNotification, removeAttributesNotification
 } from "../../../models/data/data-set-notifications"
 import { IAttributeChangeResult } from "../../../models/data/data-set-types"
 import { sortItemsWithCustomUndoRedo } from "../../../models/data/data-set-undo"
@@ -141,7 +141,10 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
       handleClick: () => {
         data?.applyModelChange(() => {
           attribute?.formula?.rerandomize()
-        }, { noDirty: true })
+        }, {
+          noDirty: true,
+          notify: dependentCasesNotification(data),
+        })
       }
     },
     {

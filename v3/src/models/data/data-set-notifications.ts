@@ -129,6 +129,13 @@ export function updateCasesNotification(data: IDataSet, cases?: ICase[]) {
   return dataSetNotification("updateCases", result, data)
 }
 
+export function dependentCasesNotification(data: IDataSet) {
+  const result = {
+    success: true,
+  }
+  return dataSetNotification("dependentCases", result, data)
+}
+
 export function updateCasesNotificationFromIds(data: IDataSet, caseIds?: string[]) {
   data.validateCases()
   const cases = caseIds?.map(caseId => data.caseInfoMap.get(caseId))

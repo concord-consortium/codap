@@ -9,7 +9,7 @@ import { IAttribute } from "./attribute"
 import { ICollectionModel } from "./collection"
 import { IDataSet } from "./data-set"
 import {
-  createCasesNotification, deleteCasesNotification, deleteCollectionNotification,
+  createCasesNotification, deleteCasesNotification, deleteCollectionNotification, dependentCasesNotification,
   moveAttributeNotification, selectCasesNotification
 } from "./data-set-notifications"
 import { IAttributeChangeResult, IMoveAttributeOptions } from "./data-set-types"
@@ -141,7 +141,10 @@ export function rerandomizeAllAttributes(data?: IDataSet) {
         attr.formula.rerandomize()
       }
     })
-  }, { noDirty: true })
+  }, {
+    noDirty: true,
+    notify: dependentCasesNotification(data),
+  })
 }
 
 // Selection helper functions
