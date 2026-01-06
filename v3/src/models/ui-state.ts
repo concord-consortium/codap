@@ -14,7 +14,7 @@ export class UIState {
   @observable
   private _standaloneMode = false
   @observable
-  private _standalonePlugin: string = ""
+  private _standalonePlugin = ""
   @observable
   private _hideUserEntryModal = false
   // the focused tile is a singleton; in theory there can be multiple selected tiles
