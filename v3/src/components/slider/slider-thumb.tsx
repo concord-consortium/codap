@@ -1,15 +1,16 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, {CSSProperties, useEffect, useState, useRef} from "react"
-import ThumbIcon from "../../assets/icons/icon-thumb.svg"
+import { logMessageWithReplacement } from "../../lib/log-message"
 import { isAliveSafe } from "../../utilities/mst-utils"
+import { t } from "../../utilities/translation/translate"
 import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
 import { ISliderModel } from "./slider-model"
 import { valueChangeNotification } from "./slider-utils"
+import { ThumbIcon } from "./thumb-icon"
 import { useSliderAnimation } from "./use-slider-animation"
-import { logMessageWithReplacement } from "../../lib/log-message"
 
-import './slider.scss'
+import "./slider.scss"
 
 interface IProps {
   sliderContainer: HTMLDivElement
@@ -106,6 +107,7 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({
       onPointerDown={handlePointerDown}
       style={thumbStyle}
       data-testid="slider-thumb-icon"
+      title={t("DG.SliderView.thumbView.toolTip")}
     />
   )
 })
