@@ -1,5 +1,21 @@
 # Changelog
 
+## Version 3.0.0-beta.2613 - January 6, 2025
+
+### ✨ Features & Improvements:
+- **CODAP-219:** Case table collection header indicates number of non-empty and hidden cases
+
+### 🐞 Bug Fixes:
+- **CODAP-188:** Slider thumb in Safari leaves gunk behind when dragging the thumb from right to left
+- **CODAP-1054:** Fix: Google drive authentication dialog appears behind splash screen
+- **CODAP-1062:** When attribute values are re-randomized, plugins should receive notification
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  209112 bytes |                           <0.01% |
+|  index.js | 6991303 bytes |                           <0.01% |
+
 ## Version 3.0.0-beta.2607 - December 24, 2025
 
 ### ✨ Features & Improvements:
