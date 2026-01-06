@@ -3,6 +3,7 @@ import { cloneDeep } from "lodash"
 import build from "../../../build_number.json"
 import pkg from "../../../package.json"
 import { appState } from "../../models/app-state"
+import { uiState } from "../../models/ui-state"
 import { t } from "../../utilities/translation/translate"
 import { removeDevUrlParams, urlParams } from "../../utilities/url-params"
 import { isCodapV2Document } from "../../v2/codap-v2-types"
@@ -42,6 +43,8 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
       }
       break
     case "requiresUserInteraction":
+      uiState.setHideUserEntryModal()
+      // fallthrough intentional
     case "ready":
       hideSplashScreen()
       break

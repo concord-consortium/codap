@@ -26,8 +26,9 @@ import { V2DataSetNotificationAdapter } from "../models/data/data-set-notificati
 import { IImportDataSetOptions } from "../models/document/document-content"
 import { AttributeFormulaAdapter } from "../models/formula/attribute-formula-adapter"
 import { FilterFormulaAdapter } from "../models/formula/filter-formula-adapter"
-import { getSharedModelManager } from "../models/tiles/tile-environment"
 import { persistentState } from "../models/persistent-state"
+import { getSharedModelManager } from "../models/tiles/tile-environment"
+import { uiState } from "../models/ui-state"
 import { registerTileTypes } from "../register-tile-types"
 import { importSample, sampleData } from "../sample-data"
 import { t } from "../utilities/translation/translate"
@@ -113,12 +114,9 @@ export const App = observer(function App() {
     }
 
     async function initialize() {
-      const {sample, dashboard, di, "di-override": diOverride, noEntryModal} = urlParams
+      const {sample, dashboard, di, "di-override": diOverride} = urlParams
       const _sample = sampleData.find(name => sample === name.toLowerCase())
       const isDashboard = dashboard !== undefined
-      const hideUserEntryModal = () => {
-        return (sample || dashboard || di || noEntryModal !== undefined)
-      }
       // create the initial sample data (if specified) or a new data set
       if (gDataBroker.dataSets.size === 0) {
         if (_sample) {
@@ -168,7 +166,7 @@ export const App = observer(function App() {
         })
       }
 
-      if (hideUserEntryModal()) {
+      if (uiState.hideUserEntryModal) {
         onCloseUserEntry()
       }
 
