@@ -11,7 +11,6 @@ import { DEBUG_CFM_EVENTS, DEBUG_CFM_NO_AUTO_SAVE } from "../debug"
 import { Logger } from "../logger"
 import { wrapCfmCallback } from "./cfm-utils"
 import { resolveDocument } from "./resolve-document"
-import { hideSplashScreen } from "./splash-screen"
 
 // -1 is used to disable autosave because the CFM's client.autoSave function only takes
 // numbers and -1 it is more clear than 0. Also if the autoSaveInterval is falsy, then
@@ -46,7 +45,7 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
       uiState.setHideUserEntryModal()
       // fallthrough intentional
     case "ready":
-      hideSplashScreen()
+      uiState.setHideSplashScreen()
       break
     // case "closedFile":
     //   break

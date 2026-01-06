@@ -61,6 +61,11 @@ export interface UrlParams {
    */
   gaussianFit?: string | null
   /*
+   * [V2] When present, disables the splash screen displayed on application startup.
+   * value: ignored
+   */
+  hideSplashScreen?: string | null
+  /*
    * [V2] When present, disables the loading message displayed in web views while waiting for
    * a plugin to load or communicate.
    * value: ignored
