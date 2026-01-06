@@ -16,6 +16,8 @@ export class UIState {
   @observable
   private _standalonePlugin = ""
   @observable
+  private _hideSplashScreen = false
+  @observable
   private _hideUserEntryModal = false
   // the focused tile is a singleton; in theory there can be multiple selected tiles
   @observable
@@ -60,8 +62,9 @@ export class UIState {
   @observable private _editFormulaAttributeId = ""
 
   constructor() {
-    const { sample, dashboard, di, noEntryModal } = urlParams
-    this._hideUserEntryModal = !!sample || dashboard !== undefined || !!di || noEntryModal !== undefined
+    const { sample, dashboard, di, hideSplashScreen, noEntryModal } = urlParams
+    this._hideSplashScreen = booleanParam(hideSplashScreen)
+    this._hideUserEntryModal = !!sample || booleanParam(dashboard) || !!di || booleanParam(noEntryModal)
 
     makeObservable(this)
   }
@@ -95,6 +98,15 @@ export class UIState {
     this._standalonePlugin = standaloneParam && this._standaloneMode && !kTrueStrings.includes(standaloneParamLower)
                               ? standaloneParam
                               : ""
+  }
+
+  get hideSplashScreen() {
+    return this._hideSplashScreen
+  }
+
+  @action
+  setHideSplashScreen() {
+    this._hideSplashScreen = true
   }
 
   get hideUserEntryModal() {

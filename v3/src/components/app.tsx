@@ -1,8 +1,9 @@
 import { useDisclosure } from "@chakra-ui/react"
 import { CloudFileManager } from "@concord-consortium/cloud-file-manager"
 import { clsx } from "clsx"
+import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
-import React, { useCallback, useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import { ErrorBoundary } from "react-error-boundary"
 import { useMemo } from "use-memo-one"
 // import { setLivelinessChecking } from "mobx-state-tree"
@@ -15,6 +16,7 @@ import { useKeyboardShortcuts } from "../hooks/use-keyboard-shortcuts"
 import { ProgressContext, useProgressContextProviderValue } from "../hooks/use-progress"
 import { useUIState } from "../hooks/use-ui-state"
 import { useUncaughtErrorHandler } from "../hooks/use-uncaught-error-handler"
+import { hideSplashScreen } from "../lib/cfm/splash-screen"
 import { IUseCloudFileManagerHookOptions, useCloudFileManager } from "../lib/cfm/use-cloud-file-manager"
 import { CodapDndContext } from "../lib/dnd-kit/codap-dnd-context"
 import { Logger } from "../lib/logger"
@@ -75,6 +77,14 @@ export const App = observer(function App() {
 
   // initialize uiState from url params
   useUIState()
+
+  useLayoutEffect(() => {
+    return autorun(() => {
+      if (uiState.hideSplashScreen) {
+        hideSplashScreen()
+      }
+    })
+  }, [])
 
   const progressContextValue = useProgressContextProviderValue()
 
