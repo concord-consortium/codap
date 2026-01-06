@@ -593,6 +593,7 @@ test("DataSet case hiding/showing (set aside)", () => {
   expect(data.caseInfoMap.size).toBe(8)
   // hide/show cases
   const evenCase = data.getCasesForCollection(parentCollection.id)[0]
+  expect(data.getNonEmptyCasesForCollection(parentCollection.id).length).toBe(2)
   data.hideCasesOrItems([evenCase.__id__])
   data.validateCases()
   expect(data._itemIds.length).toBe(6)

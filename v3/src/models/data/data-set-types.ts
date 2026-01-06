@@ -104,9 +104,9 @@ export interface CaseInfo {
   collectionId: string
   // object that represents the case
   groupedCase: IGroupedCase
-  // ids of child cases in the group (if any)
+  // ids of visible child cases in the group (if any)
   childCaseIds?: string[]
-  // ids of leaf child items in the group
+  // ids of visible leaf child items in the group
   childItemIds: string[]
   // ids of hidden leaf child items in the group
   hiddenChildItemIds: string[]
