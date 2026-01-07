@@ -1,9 +1,10 @@
 # Changelog
 
-## Version 3.0.0-beta.2613 - January 6, 2025
+## Version 3.0.0-beta.2614 - January 6, 2025
 
 ### ✨ Features & Improvements:
 - **CODAP-219:** Case table collection header indicates number of non-empty and hidden cases
+- **CODAP-1032:** Support `hideSplashScreen` URL parameter
 
 ### 🐞 Bug Fixes:
 - **CODAP-188:** Slider thumb in Safari leaves gunk behind when dragging the thumb from right to left
