@@ -1,4 +1,4 @@
-import { action, computed, makeObservable, observable } from "mobx"
+import { action, computed, makeObservable, observable, runInAction } from "mobx"
 import { addDisposer, ISerializedActionCall } from "mobx-state-tree"
 import { typedId } from "../../utilities/js-utils"
 import { onAnyAction } from "../../utilities/mst-utils"
@@ -34,6 +34,11 @@ export class FilteredCases {
   private prevCaseIdSet = new Set<string>()
   private disposers: Array<() => void>
 
+  // Manual caching for caseIds and caseIdSet to avoid recomputation outside reactive context
+  private _cachedCaseIds: string[] = []
+  private _cachedCaseIdSet: Set<string> = new Set()
+  @observable private _isValidCaseIds = false
+
   constructor({ source, collectionID, casesArrayNumber = 0, filter, onSetCaseValues }: IProps) {
     this.source = source
     this.collectionID = collectionID
@@ -62,21 +67,23 @@ export class FilteredCases {
     return rawCases.map(aCase => aCase.__id__)
   }
 
-  @computed
-  get caseIds(): string[] {
-    // MobX will cache the resulting array until either the source's `cases` array changes or the
-    // filter function changes, at which point it will run the filter function over all the cases.
-    // We could be more efficient if we handled the caching ourselves, e.g. by only filtering new
-    // cases when cases are inserted, but that would be more code to write/maintain and running
-    // the filter function over an array of cases should be quick so rather than succumb to the
-    // temptation of premature optimization, let's wait to see whether it becomes a bottleneck.
-    return this.rawCaseIds
-          .filter(id => !this.filter || (this.source && this.filter(this.source, id, this.casesArrayNumber)))
+  private validateCaseIds() {
+    if (!this._isValidCaseIds) {
+      this._cachedCaseIds = this.rawCaseIds
+            .filter(id => !this.filter || (this.source && this.filter(this.source, id, this.casesArrayNumber)))
+      this._cachedCaseIdSet = new Set(this._cachedCaseIds)
+      runInAction(() => { this._isValidCaseIds = true })
+    }
   }
 
-  @computed
+  get caseIds(): string[] {
+    this.validateCaseIds()
+    return this._cachedCaseIds
+  }
+
   get caseIdSet(): Set<string> {
-    return new Set(this.caseIds)
+    this.validateCaseIds()
+    return this._cachedCaseIdSet
   }
 
   hasCaseId = (caseId: string) => {
@@ -84,14 +91,10 @@ export class FilteredCases {
   }
 
   @action
-  setCaseFilter(caseFilter?: (data: IDataSet, caseId: string) => boolean) {
-    this.filter = caseFilter
-  }
-
-  @action
   setCasesArrayNumber(casesArrayNumber: number) {
     if (this.casesArrayNumber === casesArrayNumber) return
     this.casesArrayNumber = casesArrayNumber
+    this._isValidCaseIds = false
   }
 
   @action
@@ -103,10 +106,7 @@ export class FilteredCases {
 
   @action
   invalidateCases() {
-    // invalidate the case caches
-    const _caseFilter = this.filter
-    this.setCaseFilter()
-    this.setCaseFilter(_caseFilter)
+    this._isValidCaseIds = false
   }
 
   private handleBeforeAction = (actionCall: ISerializedActionCall) => {
