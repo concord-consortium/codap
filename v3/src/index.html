@@ -27,6 +27,26 @@
       gtag('js', new Date());
       gtag('config', 'G-ZYRHG9RN3K');
     </script>
+    <script>
+      // Don't display the splash screen if the URL parameter "hideSplashScreen" is present
+      (function() {
+        try {
+          var params = new URLSearchParams(window.location.search);
+          if (!params.has('hideSplashScreen')) return;
+          var raw = params.get('hideSplashScreen');
+          var val = raw == null ? '' : String(raw).trim().toLowerCase();
+          var isFalse = (val === 'false' || val === 'no' || val === '0');
+          var shouldHide = !isFalse; // presence-only or any non-falsy value
+          if (shouldHide) {
+            var style = document.createElement('style');
+            style.textContent = '#splash-screen { display: none !important; }';
+            document.head.appendChild(style);
+          }
+        } catch (e) {
+          // ignore
+        }
+      })();
+    </script>
   </head>
   <body>
     <%
