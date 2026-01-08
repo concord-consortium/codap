@@ -20,8 +20,9 @@ import { uiState } from "../../models/ui-state"
 import { getPositionOfNewComponent } from "../../utilities/view-utils"
 import { kCaseTableTileType } from "../case-table/case-table-defs"
 import {
-  kCaseTableDefaultWidth, kDefaultColumnWidth, kDropzoneWidth, kIndexColumnWidth
+  kCaseTableDefaultWidth, kDefaultColumnWidth, kDropzoneWidth, kIndexColumnWidth, kNewCaseTableDefaultWidth
 } from "../case-table/case-table-types"
+import { ICaseTableModel } from "../case-table/case-table-model"
 import { kTitleBarHeight } from "../constants"
 
 export type kCardOrTableTileType = typeof kCaseTableTileType | typeof kCaseCardTileType
@@ -65,8 +66,21 @@ export function createTableOrCardForDataset (
   sharedMetadata.setLastShownTableOrCardTileId(tile.id)
 
   const numAttributes = sharedDataSet.dataSet.attributes.length
-  const width = options?.width ?? Math.min(kCaseTableDefaultWidth,
-                          (numAttributes * kDefaultColumnWidth) + kDropzoneWidth + kIndexColumnWidth)
+  let width = kCaseTableDefaultWidth
+  if (options?.markNewlyCreated && numAttributes === 1) {
+    width = kNewCaseTableDefaultWidth
+    // If the table is newly created for a new dataset with one attribute, make the single column wider
+    // so that the user can more easily see it and edit it.
+    const caseTableModel = tile.content as ICaseTableModel
+    const firstAttrId = sharedDataSet.dataSet.attributes[0]?.id
+    if (firstAttrId) {
+      caseTableModel.setColumnWidth(firstAttrId, kDefaultColumnWidth * 2)
+    }
+  }
+  else {
+    width = options?.width ??
+      Math.min(kCaseTableDefaultWidth, (numAttributes * kDefaultColumnWidth) + kDropzoneWidth + kIndexColumnWidth)
+  }
 
   const height = options?.height ?? (caseTableComponentInfo.defaultHeight || 0)
   let {x, y} = getPositionOfNewComponent({width, height})
