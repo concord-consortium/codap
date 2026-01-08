@@ -16,6 +16,7 @@ import { getFormulaManager } from "../../../models/tiles/tile-environment"
 import { typeV3Id } from "../../../utilities/codap-utils"
 import {mstAutorun} from "../../../utilities/mst-autorun"
 import { mstReaction } from "../../../utilities/mst-reaction"
+import { isInquirySpaceMode } from "../../../utilities/url-params"
 import { setNiceDomain } from "../../axis/axis-domain-utils"
 import {GraphPlace} from "../../axis-graph-shared"
 import {AxisPlace, AxisPlaces, IAxisTicks, ScaleNumericBaseType, TickFormatter} from "../../axis/axis-types"
@@ -799,6 +800,11 @@ function preProcessSnapshot(
       newAxes.bottom = { ...axes.bottom, type: "count" }
     }
     newSnap.axes = { ...axes, ...newAxes }
+  }
+  // auto-enable parent toggles for all graphs in Inquiry Space mode
+  if (isInquirySpaceMode() && !newSnap.showParentToggles) {
+    const { showParentToggles, ...others } = newSnap
+    newSnap = { ...others, showParentToggles: true }
   }
   return newSnap
 }
