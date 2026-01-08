@@ -803,8 +803,7 @@ function preProcessSnapshot(
   }
   // auto-enable parent toggles for all graphs in Inquiry Space mode
   if (isInquirySpaceMode() && !newSnap.showParentToggles) {
-    const { showParentToggles, ...others } = newSnap
-    newSnap = { ...others, showParentToggles: true }
+    newSnap = { ...newSnap, showParentToggles: true }
   }
   return newSnap
 }
