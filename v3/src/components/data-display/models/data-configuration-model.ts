@@ -825,7 +825,7 @@ export const DataConfigurationModel = types
         aFilteredCases.setCollectionID(childmostCollectionID)
       })
     },
-    _invalidateCases() {
+    invalidateCases() {
       self.filteredCases.forEach((aFilteredCases) => {
         aFilteredCases.invalidateCases()
       })
@@ -866,13 +866,13 @@ export const DataConfigurationModel = types
     handleDataSetAction(actionCall: ISerializedActionCall) {
       const cacheClearingActions = ["setCaseValues", "addCases", "removeCases", "removeAttribute"]
       if (cacheClearingActions.includes(actionCall.name)) {
-        this._invalidateCases()
+        this.invalidateCases()
       }
       // forward all actions from dataset except "setCaseValues" which requires intervention
       if (actionCall.name === "setCaseValues") return
       if (actionCall.name === "invalidateCollectionGroups") {
         this._updateFilteredCasesCollectionID()
-        this._invalidateCases()
+        this.invalidateCases()
       }
       self.handlers.forEach(handler => handler(actionCall))
     },
@@ -919,7 +919,7 @@ export const DataConfigurationModel = types
       self.filterFormula = undefined
       self.filteredOutCaseIds.clear()
       self.filterFormulaError = ""
-      self._invalidateCases()
+      self.invalidateCases()
     }
   }))
   .actions(self => ({
@@ -947,7 +947,7 @@ export const DataConfigurationModel = types
           self.filteredOutCaseIds.delete(itemId)
         }
       })
-      self._invalidateCases()
+      self.invalidateCases()
     },
     setFilterFormulaError(error: string) {
       self.filterFormulaError = error
@@ -974,7 +974,7 @@ export const DataConfigurationModel = types
       // respond to change of allCategoriesForRoles
       addDisposer(self, reaction(
         () => self.allCategoriesForRoles,
-        () => self.clearCasesCache(),
+        () => self.invalidateCases(),
         {
           name: "DataConfigurationModel.afterCreate.reaction [allCategoriesForRoles]",
           equals: comparer.structural
@@ -985,7 +985,7 @@ export const DataConfigurationModel = types
           const legendCategorySet = self.categorySetForAttrRole("legend")
           return legendCategorySet?.valuesArray
         },
-        () => self.clearCasesCache(),
+        () => self.invalidateCases(),
         {
           name: "DataConfigurationModel.afterCreate.reaction [allCategoriesForRoles]",
           equals: comparer.structural
@@ -995,14 +995,14 @@ export const DataConfigurationModel = types
       addDisposer(self, reaction(
         () => JSON.stringify(self.attributeDescriptionForRole("legend")),
         () => {
-          self.clearCasesCache()
+          self.invalidateCases()
         },
         {name: "DataConfigurationModel.afterCreate.reaction [legend attribute]"}
       ))
       // Invalidate cases when items change in data set.
       addDisposer(self, reaction(
         () => self.dataset?.itemIds,
-        () => self._invalidateCases(), {
+        () => self.invalidateCases(), {
           // note that we don't use comparer.structural here -- the entire array changes when its contents change
           name: "DataConfigurationModel.afterCreate.reaction [self.dataset?.itemIds]"
         }
@@ -1012,7 +1012,7 @@ export const DataConfigurationModel = types
         () => self.dataset?.selection.values(),
         () => {
           if (self.displayOnlySelectedCases) {
-            self.clearCasesCache()
+            self.invalidateCases()
           } else {
             self.allCasesForCategoryAreSelected.invalidateAll()
           }
@@ -1025,7 +1025,7 @@ export const DataConfigurationModel = types
       // invalidate caches when set of visible cases changes
       addDisposer(self, reaction(
         () => [self.hiddenCases.length, self.caseDataHash],
-        () => self._invalidateCases(),
+        () => self.invalidateCases(),
         { name: "DataConfigurationModel.afterCreate.reaction [hiddenCases,caseDataHash]", equals: comparer.structural }
       ))
       // invalidate filtered cases when childmost collection changes
@@ -1047,7 +1047,7 @@ export const DataConfigurationModel = types
     setAttribute(role: AttrRole, desc?: IAttributeDescriptionSnapshot) {
       self._setAttributeDescription(role, desc)
       self.setPointsNeedUpdating(true)
-      self._invalidateCases()
+      self.invalidateCases()
       // No harm in invalidating even if not numeric
       self.numericValuesForAttribute.invalidate(role, self.attributeType(role))
     },
@@ -1057,19 +1057,19 @@ export const DataConfigurationModel = types
     },
     addNewHiddenCases(hiddenCases: string[]) {
       self.hiddenCases.push(...hiddenCases)
-      self._invalidateCases()
+      self.invalidateCases()
     },
     clearHiddenCases() {
       self.hiddenCases.replace([])
-      self._invalidateCases()
+      self.invalidateCases()
     },
     setHiddenCases(hiddenCases: string[]) {
       self.hiddenCases.replace(hiddenCases)
-      self._invalidateCases()
+      self.invalidateCases()
     },
     setDisplayOnlySelectedCases(displayOnlySelectedCases: boolean) {
       self.displayOnlySelectedCases = displayOnlySelectedCases || undefined
-      self._invalidateCases()
+      self.invalidateCases()
     }
   }))
   .actions(self => ({

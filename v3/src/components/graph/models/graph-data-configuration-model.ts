@@ -830,7 +830,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         self._setAttributeDescription(role, desc)
       }
       // No harm in invalidating even if not numeric
-      self._invalidateCases()
+      self.invalidateCases()
       self.numericValuesForAttribute.invalidate(role, self.attributeType(role))
       self.cellMap.invalidateAll()
     },
