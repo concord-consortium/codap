@@ -999,7 +999,15 @@ export const DataConfigurationModel = types
         },
         {name: "DataConfigurationModel.afterCreate.reaction [legend attribute]"}
       ))
-      // Invalidate cache when selection changes.
+      // Invalidate cases when items change in data set.
+      addDisposer(self, reaction(
+        () => self.dataset?.itemIds,
+        () => self._invalidateCases(), {
+          // note that we don't use comparer.structural here -- the entire array changes when its contents change
+          name: "DataConfigurationModel.afterCreate.reaction [self.dataset?.itemIds]"
+        }
+      ))
+      // Invalidate cases when selection changes.
       addDisposer(self, reaction(
         () => self.dataset?.selection.values(),
         () => {
@@ -1016,9 +1024,9 @@ export const DataConfigurationModel = types
       ))
       // invalidate caches when set of visible cases changes
       addDisposer(self, reaction(
-        () => self.caseDataHash,
+        () => [self.hiddenCases.length, self.caseDataHash],
         () => self._invalidateCases(),
-        { name: "DataConfigurationModel.afterCreate.reaction [add/remove/hide cases]" }
+        { name: "DataConfigurationModel.afterCreate.reaction [hiddenCases,caseDataHash]", equals: comparer.structural }
       ))
       // invalidate filtered cases when childmost collection changes
       addDisposer(self, reaction(
