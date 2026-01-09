@@ -1,7 +1,7 @@
 import { Button, Flex, Input } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import React, { useRef, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { getTitle } from "../models/tiles/tile-content-info"
 import { updateTileNotification } from "../models/tiles/tile-notifications"
 import { uiState } from "../models/ui-state"
@@ -120,6 +120,12 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
   const handleInput = () => {
     if (inputRef.current) resizeInput(inputRef.current.value)
   }
+
+  useEffect(() => {
+    if (isEditing && measureRef.current) {
+      resizeInput(editingTitle)
+    }
+  }, [isEditing, editingTitle])
 
   return (
     <Flex className={classes} onMouseOver={()=>setIsHovering(true)} onMouseOut={()=>setIsHovering(false)}

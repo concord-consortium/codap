@@ -16,7 +16,7 @@ declare global {
       containsText(selector: string, text: string): Chainable<JQuery<HTMLElement>>,
       checkDragAttributeHighlights(source: string, attribute: string, target: string, exists?: boolean): void
       dragAttributeToTarget(source: string, attribute: string, target: string, targetNumber?: number): void
-      mouseMoveBy(subject: JQuery<HTMLElement>, targetRect: DOMRect, options?: { delay: number }): void
+      mouseMoveTo(subject: JQuery<HTMLElement>, targetRect: DOMRect, options?: { delay: number }): void
       pointerMoveBy(subject: JQuery<HTMLElement>, targetRect: DOMRect, options?: { delay: number }): void
     }
   }

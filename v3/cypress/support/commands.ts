@@ -170,7 +170,7 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, target
       .then($targetRect => {
         cy.log("targetRect", stringifyDOMRect($targetRect))
         cy.containsText(source_el, attribute).then($subject => {
-          cy.mouseMoveBy($subject, $targetRect, { delay: 100 })
+          cy.mouseMoveTo($subject, $targetRect, { delay: 100 })
         })
       })
     })
@@ -188,10 +188,11 @@ Cypress.Commands.add("clickToUnselect", (subject, options?: { delay: number }) =
     .wait(options?.delay || 0, { log: Boolean(options?.delay) })
 })
 
-Cypress.Commands.add("mouseMoveBy",
+Cypress.Commands.add("mouseMoveTo",
   (subject, targetRect, options?: { delay: number }) => {
     const clientX = Math.floor(targetRect.x + targetRect.width / 2)
     const clientY = Math.floor(targetRect.y + targetRect.height / 2)
+    cy.log(`mouseMoveTo: {clientX: ${clientX}, clientY: ${clientY}}`)
     cy.wrap(subject)
       .trigger("mousedown", { force: true })
       .wait(options?.delay || 0, { log: Boolean(options?.delay) })
@@ -201,7 +202,7 @@ Cypress.Commands.add("mouseMoveBy",
       .wait(options?.delay || 0, { log: Boolean(options?.delay) })
   })
 
-// analogous to mouseMoveBy but doesn't seem to trigger the PointerSensor as expected
+// analogous to mouseMoveTo but doesn't seem to trigger the PointerSensor as expected
 Cypress.Commands.add("pointerMoveBy",
   (subject, targetRect, options?: { delay: number }) => {
     cy.wrap(subject)
