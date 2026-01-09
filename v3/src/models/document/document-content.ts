@@ -1,7 +1,9 @@
 import { Instance, SnapshotIn } from "mobx-state-tree"
 import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
+import { kWebViewTileType } from "../../components/web-view/web-view-defs"
+import { isWebViewModel } from "../../components/web-view/web-view-model"
 import { t } from "../../utilities/translation/translate"
-import { urlParams } from "../../utilities/url-params"
+import { getGuideIndex, urlParams } from "../../utilities/url-params"
 import { getPositionOfNewComponent } from "../../utilities/view-utils"
 import { createTileSnapshotOfType, INewTileOptions } from "../codap/create-tile"
 import { DataSet, IDataSet, IDataSetSnapshot } from "../data/data-set"
@@ -54,6 +56,20 @@ export const DocumentContentModel = BaseDocumentContentModel
   // performs the specified action so that response actions are included and undo/redo strings assigned
   .actions(applyModelChange)
   .actions(self => ({
+    afterCreate() {
+      // if the `guideIndex` url param is present, make sure any guide tiles are visible
+      const guideIndex = getGuideIndex()
+      const container = isFreeTileRow(self.firstRow) ? self.firstRow : undefined
+      if (guideIndex != null && container) {
+        self.getTilesOfType(kWebViewTileType).forEach(tile => {
+          const tileLayout = container.getNode(tile.id)
+          const webViewContent = isWebViewModel(tile.content) ? tile.content : undefined
+          if (webViewContent?.subType === "guide" && tileLayout?.isHidden) {
+            tileLayout.setHidden(false)
+          }
+        })
+      }
+    },
     async prepareSnapshot() {
       // prepare each row for serialization
       self.rowMap.forEach(row => row.prepareSnapshot())

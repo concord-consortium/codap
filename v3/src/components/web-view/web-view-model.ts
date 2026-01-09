@@ -7,7 +7,7 @@ import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-con
 import { ITileModel } from "../../models/tiles/tile-model"
 import { safeGetParent } from "../../utilities/mst-utils"
 import { t } from "../../utilities/translation/translate"
-import { getDataInteractiveUrl } from "../../utilities/url-params"
+import { getDataInteractiveUrl, getGuideIndex } from "../../utilities/url-params"
 import { kWebViewTileType, WebViewSubType, webViewSubTypes } from "./web-view-defs"
 import { getNameFromURL } from "./web-view-utils"
 
@@ -63,10 +63,21 @@ export const WebViewModel = TileContentModel
     isPluginCommunicating: false
   }))
   .preProcessSnapshot(snap => {
+    let newSnap = snap
     const { url, ...others } = snap
     // support url param processing for urls in saved documents
     const processedUrl = url ? getDataInteractiveUrl(url) : undefined
-    return url !== processedUrl ? { ...others, url: processedUrl } : snap
+    if (processedUrl && url !== processedUrl) {
+      newSnap = { ...others, url: processedUrl }
+    }
+    const guideIndex = getGuideIndex()
+    if (guideIndex != null && (newSnap.subType === "guide" && newSnap.pageIndex !== guideIndex)) {
+      const maxPageIndex = Math.max(0, (newSnap.pages?.length ?? 1) - 1)
+      const pageIndex = Math.max(0, Math.min(guideIndex, maxPageIndex))
+      const _url = newSnap.pages?.[pageIndex]?.url ? newSnap.pages[pageIndex].url : newSnap.url
+      newSnap = { ...newSnap, pageIndex, url: _url }
+    }
+    return newSnap
   })
   .views(self => ({
     get allowBringToFront() {
@@ -137,6 +148,15 @@ export const WebViewModel = TileContentModel
     },
     setVersion(version: string) {
       self.version = version
+    },
+    setGuidePageIndex(index: number) {
+      if (self.subType === "guide") {
+        const maxIndex = Math.max(0, self.pages.length - 1)
+        self.pageIndex = Math.max(0, Math.min(index, maxIndex))
+        if (self.pages[self.pageIndex]?.url) {
+          self.url = self.pages[self.pageIndex].url || ""
+        }
+      }
     },
     setPluginCandidate(isPlugin: boolean) {
       self.isPluginCandidate = isPlugin

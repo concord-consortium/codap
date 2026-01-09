@@ -69,6 +69,14 @@ export interface UrlParams {
    */
   gaussianFit?: string | null
   /*
+   * [V2] Returns the index of a guide page, if set as a query parameter. This
+   * is taken to designate the guide page that should be present when CODAP opens
+   * the document. This value should override whichever guide page is current
+   * in the document and if the parameter is present and the guide is closed
+   * in the document, the guide should be opened.
+   */
+  guideIndex?: string | null
+  /*
    * [V2] When present, disables the splash screen displayed on application startup.
    * value: ignored
    */
@@ -202,6 +210,10 @@ export function removeDevUrlParams() {
   removeSearchParams(["dashboard", "sample", "tableOnly"])
 }
 
+export function isInquirySpaceMode() {
+  return urlParams.app === "is"
+}
+
 export function getDataInteractiveUrl(url: string) {
   const diUrl = urlParams["di-override-url"] || urlParams.di
   const diOverride = urlParams["di-override"]
@@ -216,6 +228,7 @@ export function getDataInteractiveUrl(url: string) {
   return url
 }
 
-export function isInquirySpaceMode() {
-  return urlParams.app === "is"
+export function getGuideIndex(): number | undefined {
+  const index = urlParams.guideIndex
+  return index != null ? parseInt(index, 10) : undefined
 }
