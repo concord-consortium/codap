@@ -13,6 +13,47 @@ describe("WebViewContentModel", () => {
     // URL should be replaced by data interactive URL from URL params
     expect(webView.url).toBe(dataInteractiveUrl)
   })
+  it("respects guideIndex url parameter in preProcessSnapshot", () => {
+    const originalUrl = "http://example.com/guide"
+    setUrlParams(`?guideIndex=2`)
+    const pages = [
+      { title: "Page 1", url: "http://example.com/page1" },
+      { title: "Page 2", url: "http://example.com/page2" },
+      { title: "Page 3", url: "http://example.com/page3" }
+    ]
+    const webView = WebViewModel.create({ url: originalUrl, subType: "guide", pageIndex: 0, pages })
+    // pageIndex should be replaced by guideIndex from URL params
+    expect(webView.pageIndex).toBe(2)
+
+    // not if there aren't enough pages
+    setUrlParams(`?guideIndex=5`)
+    const webView2 = WebViewModel.create({ url: originalUrl, subType: "guide", pageIndex: 0, pages })
+    expect(webView2.pageIndex).toBe(2) // max index
+
+    // only for guides
+    const nonGuideWebView = WebViewModel.create({ url: originalUrl, subType: "plugin", pageIndex: 0 })
+    expect(nonGuideWebView.pageIndex).toBe(0)
+  })
+  it("setGuidePageIndex sets pageIndex and url correctly", () => {
+    const pages = [
+      { title: "Page 1", url: "http://example.com/page1" },
+      { title: "Page 2", url: "http://example.com/page2" },
+      { title: "Page 3", url: "http://example.com/page3" }
+    ]
+    const webView = WebViewModel.create({ subType: "guide", pageIndex: 0, pages })
+    webView.setGuidePageIndex(1)
+    expect(webView.pageIndex).toBe(1)
+    expect(webView.url).toBe("http://example.com/page2")
+
+    // Test out-of-bounds index
+    webView.setGuidePageIndex(10)
+    expect(webView.pageIndex).toBe(2) // max index
+    expect(webView.url).toBe("http://example.com/page3")
+
+    webView.setGuidePageIndex(-5)
+    expect(webView.pageIndex).toBe(0) // min index
+    expect(webView.url).toBe("http://example.com/page1")
+  })
   it("prepareSnapshot works correctly", async () => {
     const state = { status: "Looking good" }
     const dataInteractiveController = {

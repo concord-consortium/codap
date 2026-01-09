@@ -7,7 +7,7 @@ import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-con
 import { ITileModel } from "../../models/tiles/tile-model"
 import { safeGetParent } from "../../utilities/mst-utils"
 import { t } from "../../utilities/translation/translate"
-import { getDataInteractiveUrl } from "../../utilities/url-params"
+import { getDataInteractiveUrl, getGuideIndex } from "../../utilities/url-params"
 import { kWebViewTileType, WebViewSubType, webViewSubTypes } from "./web-view-defs"
 import { getNameFromURL } from "./web-view-utils"
 
@@ -25,6 +25,11 @@ export const WebPageModel = types.model("WebPageModel", {
   title: types.maybe(types.string),
   url: types.maybe(types.string)
 })
+
+function clampPageIndex(index: number, pageCount = 0): number {
+  const maxIndex = Math.max(0, pageCount - 1)
+  return Math.max(0, Math.min(index, maxIndex))
+}
 
 export const WebViewModel = TileContentModel
   .named("WebViewModel")
@@ -63,10 +68,20 @@ export const WebViewModel = TileContentModel
     isPluginCommunicating: false
   }))
   .preProcessSnapshot(snap => {
+    let newSnap = snap
     const { url, ...others } = snap
     // support url param processing for urls in saved documents
     const processedUrl = url ? getDataInteractiveUrl(url) : undefined
-    return url !== processedUrl ? { ...others, url: processedUrl } : snap
+    if (processedUrl && url !== processedUrl) {
+      newSnap = { ...others, url: processedUrl }
+    }
+    const guideIndex = getGuideIndex()
+    if (guideIndex != null && newSnap.subType === "guide" && newSnap.pageIndex !== guideIndex) {
+      const pageIndex = clampPageIndex(guideIndex, newSnap.pages?.length)
+      const pageUrl = newSnap.pages?.[pageIndex]?.url
+      newSnap = { ...newSnap, pageIndex, url: pageUrl ?? newSnap.url }
+    }
+    return newSnap
   })
   .views(self => ({
     get allowBringToFront() {
@@ -137,6 +152,14 @@ export const WebViewModel = TileContentModel
     },
     setVersion(version: string) {
       self.version = version
+    },
+    setGuidePageIndex(index: number) {
+      if (self.subType === "guide") {
+        self.pageIndex = clampPageIndex(index, self.pages.length)
+        if (self.pages[self.pageIndex]?.url) {
+          self.url = self.pages[self.pageIndex].url || ""
+        }
+      }
     },
     setPluginCandidate(isPlugin: boolean) {
       self.isPluginCandidate = isPlugin
