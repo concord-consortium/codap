@@ -24,6 +24,7 @@ export const diConfigurationHandler: DIHandler = {
     }
     return {
       success: true,
+      // The type case is necessary to satisfy the return type
       values: { value: (value ? "yes" : "") as any }
     }
   },

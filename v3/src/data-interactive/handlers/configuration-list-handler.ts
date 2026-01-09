@@ -2,7 +2,7 @@ import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources } from "../data-interactive-types"
 import { getDocumentContentPropertyFromNode } from "../../utilities/mst-utils"
 
-export const diConfigurationHandler: DIHandler = {
+export const diConfigurationListHandler: DIHandler = {
   get(_resources: DIResources) {
     const isEnabled = getDocumentContentPropertyFromNode(_resources.interactiveFrame, 'gaussianFitEnabled')
     return { success: true,
@@ -13,8 +13,7 @@ export const diConfigurationHandler: DIHandler = {
         }
       ]
     }
-  }
-  ,
+  },
 }
 
-registerDIHandler("configurationList", diConfigurationHandler)
+registerDIHandler("configurationList", diConfigurationListHandler)
