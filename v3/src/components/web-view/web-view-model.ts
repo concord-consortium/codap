@@ -26,6 +26,11 @@ export const WebPageModel = types.model("WebPageModel", {
   url: types.maybe(types.string)
 })
 
+function clampPageIndex(index: number, pageCount = 0): number {
+  const maxIndex = Math.max(0, pageCount - 1)
+  return Math.max(0, Math.min(index, maxIndex))
+}
+
 export const WebViewModel = TileContentModel
   .named("WebViewModel")
   .props({
@@ -72,8 +77,7 @@ export const WebViewModel = TileContentModel
     }
     const guideIndex = getGuideIndex()
     if (guideIndex != null && newSnap.subType === "guide" && newSnap.pageIndex !== guideIndex) {
-      const maxPageIndex = Math.max(0, (newSnap.pages?.length ?? 1) - 1)
-      const pageIndex = Math.max(0, Math.min(guideIndex, maxPageIndex))
+      const pageIndex = clampPageIndex(guideIndex, newSnap.pages?.length)
       const pageUrl = newSnap.pages?.[pageIndex]?.url
       newSnap = { ...newSnap, pageIndex, url: pageUrl ?? newSnap.url }
     }
@@ -151,8 +155,7 @@ export const WebViewModel = TileContentModel
     },
     setGuidePageIndex(index: number) {
       if (self.subType === "guide") {
-        const maxIndex = Math.max(0, self.pages.length - 1)
-        self.pageIndex = Math.max(0, Math.min(index, maxIndex))
+        self.pageIndex = clampPageIndex(index, self.pages.length)
         if (self.pages[self.pageIndex]?.url) {
           self.url = self.pages[self.pageIndex].url || ""
         }
