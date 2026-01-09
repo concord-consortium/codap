@@ -22,6 +22,14 @@ export function removeSearchParams(paramsToRemove: string[]) {
 
 export interface UrlParams {
   /*
+   * [V2] Specifies the application mode.
+   * Possible values:
+   * - "dg": Data Games mode
+   * - "is": Inquiry Space mode (auto-enables parent visibility toggles in graphs)
+   * value: app mode string
+   */
+  app?: string | null
+  /*
    * For testing -- when present brings up a default set of tiles (table, graph, calculator, slider, text).
    * value: ignored
    */
@@ -206,4 +214,8 @@ export function getDataInteractiveUrl(url: string) {
   }
 
   return url
+}
+
+export function isInquirySpaceMode() {
+  return urlParams.app === "is"
 }
