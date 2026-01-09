@@ -149,7 +149,7 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
       () => dataset.syncCollectionLinksCount,
       () => {
         graphModel.dataConfiguration._updateFilteredCasesCollectionID()
-        graphModel.dataConfiguration._invalidateCases()
+        graphModel.dataConfiguration.invalidateCases()
         graphController.callMatchCirclesToData()
       }, { name: "Graph.mstReaction [syncCollectionLinksCount]" }, [dataset, graphModel.dataConfiguration])
   }, [dataset, graphController, graphModel.dataConfiguration])
@@ -186,7 +186,7 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
           else if (attrCollections[attrId] !== collectionId) { // attribute was moved to a different collection
             // todo: Make sure this works once PT Story https://www.pivotaltracker.com/story/show/188117637 is fixed
             graphModel.dataConfiguration._updateFilteredCasesCollectionID()
-            graphModel.dataConfiguration._invalidateCases()
+            graphModel.dataConfiguration.invalidateCases()
             graphController.callMatchCirclesToData()
           }
         })
