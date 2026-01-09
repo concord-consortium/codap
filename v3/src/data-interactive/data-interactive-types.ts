@@ -112,6 +112,7 @@ export interface DIResources {
   collection?: ICollectionModel
   collectionList?: ICollectionModel[]
   component?: DIComponent
+  configuration?: string
   dataContext?: IDataSet
   dataContextList?: IDataSet[]
   dataDisplay?: DIDataDisplay
@@ -132,7 +133,7 @@ export interface DIResources {
 export type DISingleValues = DIAttribute | DINotifyAttribute | DIAttributeLocationValues | DICase | DIDataContext |
   DIDocument | DINotifyDataContext | DIGlobal | DIInteractiveFrame | DIItemValues | DICreateCollection | DINewCase |
   DIUpdateCase | DINotification | DIItemSearchNotify | DILogMessage | DIUrl | V2SpecificComponent | DIAdornmentValues
-export type DIValues = DISingleValues | DISingleValues[] | number | string[]
+export type DIValues = DISingleValues | DISingleValues[] | number | string | string[]
 
 // types returned as outputs by the API
 export type DIResultSingleValues = DICase | DIComponentInfo |  DIDataDisplay | DIDocument | DIFunctionCategories |
@@ -210,6 +211,7 @@ export interface DIResourceSelector {
   caseSearch?: string
   collection?: string
   component?: string
+  configuration?: string
   dataContext?: string
   dataContextList?: string
   dataDisplay?: string
