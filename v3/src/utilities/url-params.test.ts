@@ -114,4 +114,26 @@ describe("urlParams", () => {
     expect(pluginUrl).toBe("some-other-plugin-url")
   })
 
+  it("getGuideIndex parses guideIndex param correctly", () => {
+    const { getGuideIndex } = require("./url-params")
+
+    setUrlParams("?guideIndex=2")
+    expect(getGuideIndex()).toBe(2)
+
+    setUrlParams("?guideIndex=0")
+    expect(getGuideIndex()).toBe(0)
+
+    setUrlParams("?guideIndex=-1")
+    expect(getGuideIndex()).toBeUndefined()
+
+    setUrlParams("?guideIndex=2.5")
+    expect(getGuideIndex()).toBeUndefined()
+
+    setUrlParams("?guideIndex=not-a-number")
+    expect(getGuideIndex()).toBeUndefined()
+
+    setUrlParams("?otherParam=5")
+    expect(getGuideIndex()).toBeUndefined()
+  })
+
 })

@@ -71,11 +71,11 @@ export const WebViewModel = TileContentModel
       newSnap = { ...others, url: processedUrl }
     }
     const guideIndex = getGuideIndex()
-    if (guideIndex != null && (newSnap.subType === "guide" && newSnap.pageIndex !== guideIndex)) {
+    if (guideIndex != null && newSnap.subType === "guide" && newSnap.pageIndex !== guideIndex) {
       const maxPageIndex = Math.max(0, (newSnap.pages?.length ?? 1) - 1)
       const pageIndex = Math.max(0, Math.min(guideIndex, maxPageIndex))
-      const _url = newSnap.pages?.[pageIndex]?.url ? newSnap.pages[pageIndex].url : newSnap.url
-      newSnap = { ...newSnap, pageIndex, url: _url }
+      const pageUrl = newSnap.pages?.[pageIndex]?.url
+      newSnap = { ...newSnap, pageIndex, url: pageUrl ?? newSnap.url }
     }
     return newSnap
   })

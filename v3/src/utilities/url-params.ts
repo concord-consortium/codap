@@ -230,5 +230,10 @@ export function getDataInteractiveUrl(url: string) {
 
 export function getGuideIndex(): number | undefined {
   const index = urlParams.guideIndex
-  return index != null ? parseInt(index, 10) : undefined
+  if (index == null || index === "") return undefined
+  const parsed = Number(index)
+  if (isNaN(parsed)) return undefined
+  if (parsed !== Math.floor(parsed)) return undefined
+  if (parsed < 0) return undefined
+  return parsed
 }
