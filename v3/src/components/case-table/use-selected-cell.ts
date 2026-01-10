@@ -47,6 +47,27 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
     }
   }, [collectionTableModel, columns, gridRef])
 
+  const navigateByTabToNextCell = useCallback((back = false) => {
+    if (selectedCell.current?.columnId) {
+      const currentIdx = columns.findIndex(column => column.key === selectedCell.current?.columnId)
+      const rightmost = currentIdx === columns.length - 1
+      const first = currentIdx === 1
+      const idx = back
+        ? first ? Math.max(1, columns.length - 1) : currentIdx - 1
+        : rightmost ? 1 : currentIdx + 1
+      const currentRowIdx = selectedCell.current.rowIdx
+      const rowIdx = back
+        ? first ? Math.max(0, currentRowIdx - 1) : currentRowIdx
+        : rightmost ? currentRowIdx + 1 : currentRowIdx
+      const position = { idx, rowIdx }
+      // setTimeout so it occurs after handling of current event completes
+      setTimeout(() => {
+        collectionTableModel?.scrollRowIntoView(currentRowIdx)
+        gridRef.current?.selectCell(position, true)
+      })
+    }
+  }, [collectionTableModel, columns, gridRef])
+
   const refreshSelectedCell = useCallback(() => {
     if (selectedCell.current) {
       const { columnId, rowId } = selectedCell.current
@@ -79,5 +100,5 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
     }
   }, [blockingDataset, refreshSelectedCellDebounced])
 
-  return { selectedCell: selectedCell.current, handleSelectedCellChange, navigateToNextRow }
+  return { selectedCell: selectedCell.current, handleSelectedCellChange, navigateToNextRow, navigateByTabToNextCell }
 }

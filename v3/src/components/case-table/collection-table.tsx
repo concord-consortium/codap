@@ -226,7 +226,8 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     }
   }, [collectionTableModel?.rows, collectionTableModel?.inputRowIndex, showInputRow])
 
-  const { handleSelectedCellChange, navigateToNextRow } = useSelectedCell(gridRef, columns, rows)
+  const { handleSelectedCellChange, navigateToNextRow,
+    navigateByTabToNextCell } = useSelectedCell(gridRef, columns, rows)
 
   const handleCellKeyDown = useCallback((args: TCellKeyDownArgs, event: CellKeyboardEvent) => {
     // By default in RDG, the enter/return key simply enters/exits edit mode without moving the
@@ -234,12 +235,18 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     // next row. To achieve this in RDG, we provide this callback, which is called before RDG
     // handles the event internally. If we get an enter/return key while in edit mode, we handle
     // it ourselves and call `preventGridDefault()` to prevent RDG from handling the event itself.
-    if (args.mode === "EDIT" && event.key === "Enter") {
+    if (args.mode === "EDIT" && ["Enter", "Tab", "ArrowUp", "ArrowDown"].includes(event.key)) {
       // complete the cell edit
       args.onClose(true)
       // prevent RDG from handling the event
       event.preventGridDefault()
-      navigateToNextRow(event.shiftKey)
+      if (["Enter", "ArrowUp", "ArrowDown"].includes(event.key)) {
+        const reverse = event.shiftKey || event.key === "ArrowUp"
+        navigateToNextRow(reverse)
+      }
+      if (event.key === "Tab") {
+        navigateByTabToNextCell(event.shiftKey)
+      }
     }
     if ((event.key === "ArrowDown" || event.key === "ArrowUp")) {
       const caseId = args.row.__id__
@@ -286,7 +293,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         }
       }
     }
-  }, [collection, collectionId, data, navigateToNextRow, onScrollRowRangeIntoView])
+  }, [collection?.child, collectionId, data, navigateByTabToNextCell, navigateToNextRow, onScrollRowRangeIntoView])
 
   const handleClick = (event: React.PointerEvent<HTMLDivElement>) => {
     // See if mouse has moved beyond kMouseMovementThreshold since initial mousedown
