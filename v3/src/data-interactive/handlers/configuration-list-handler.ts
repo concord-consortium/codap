@@ -4,12 +4,13 @@ import { getDocumentContentPropertyFromNode } from "../../utilities/mst-utils"
 
 export const diConfigurationListHandler: DIHandler = {
   get(_resources: DIResources) {
-    const isEnabled = getDocumentContentPropertyFromNode(_resources.interactiveFrame, 'gaussianFitEnabled')
-    return { success: true,
+    const gaussianFitEnabled = getDocumentContentPropertyFromNode(_resources.interactiveFrame, "gaussianFitEnabled")
+    return {
+      success: true,
       values: [
         {
-          name: 'gaussianFitEnabled',
-          value: isEnabled ? "yes" : ""
+          name: "gaussianFitEnabled",
+          value: gaussianFitEnabled ? "yes" : undefined
         }
       ]
     }
