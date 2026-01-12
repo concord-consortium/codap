@@ -1,6 +1,7 @@
 import { autoUpdate, offset, size, useFloating } from "@floating-ui/react"
 import { clsx } from "clsx"
 import React, { useEffect } from "react"
+import { useFreeTileLayoutContext } from "../hooks/use-free-tile-layout-context"
 import { kResizeBorderOverlap } from "./constants"
 
 interface IProps {
@@ -12,6 +13,8 @@ interface IProps {
 
 export function ComponentResizeBorder({ componentRef, edge, tileId, onPointerDown }: IProps) {
 
+  const tileLayout = useFreeTileLayoutContext()
+  const { zIndex } = tileLayout || { zIndex: 1 }  // So that borders are selectable when overlapping other components
   // Use floating-ui for positioning
   const { elements: { reference }, refs: { setFloating, setReference }, floatingStyles, update } = useFloating({
     placement: edge,
@@ -54,7 +57,7 @@ export function ComponentResizeBorder({ componentRef, edge, tileId, onPointerDow
     <div
       ref={setFloating}
       className={classes}
-      style={floatingStyles}
+      style={{ ...floatingStyles, zIndex }}
       onPointerDown={onPointerDown}
       data-testid={tileId ? `resize-border-${tileId}-${edge}` : `resize-border-${edge}`}
     />
