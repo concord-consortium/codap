@@ -69,8 +69,10 @@ export class UIState {
   @observable private _editFormulaAttributeId = ""
 
   constructor() {
-    const { sample, dashboard, di, hideSplashScreen, noEntryModal, standalone, componentMode,
-            hideUndoRedoInComponent, suppressUnsavedWarning } = urlParams
+    const {
+      componentMode, dashboard, di, hideSplashScreen, hideUndoRedoInComponent, noEntryModal,
+      sample, standalone, suppressUnsavedWarning
+    } = urlParams
     this._hideSplashScreen = booleanParam(hideSplashScreen)
     this._hideUserEntryModal = !!sample || booleanParam(dashboard) || !!di || booleanParam(noEntryModal)
 

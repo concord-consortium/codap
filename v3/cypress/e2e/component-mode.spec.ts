@@ -9,7 +9,7 @@ context("componentMode URL parameter", () => {
     })
 
     it("should hide the menu bar in component mode", () => {
-      cy.get("[data-testid=menu-bar]").should("not.exist")
+      cy.get("[data-testid=codap-menu-bar]").should("not.exist")
     })
 
     it("should hide the tool shelf in component mode", () => {
