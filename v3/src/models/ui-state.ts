@@ -15,6 +15,13 @@ export class UIState {
   private _standaloneMode = false
   @observable
   private _standalonePlugin = ""
+  // support for component mode (minimal chrome for embedding)
+  @observable
+  private _componentMode = false
+  @observable
+  private _hideUndoRedoInComponent = false
+  @observable
+  private _suppressUnsavedWarning = false
   @observable
   private _hideSplashScreen = false
   @observable
@@ -62,9 +69,26 @@ export class UIState {
   @observable private _editFormulaAttributeId = ""
 
   constructor() {
-    const { sample, dashboard, di, hideSplashScreen, noEntryModal } = urlParams
+    const {
+      componentMode, dashboard, di, hideSplashScreen, hideUndoRedoInComponent, noEntryModal,
+      sample, standalone, suppressUnsavedWarning
+    } = urlParams
     this._hideSplashScreen = booleanParam(hideSplashScreen)
     this._hideUserEntryModal = !!sample || booleanParam(dashboard) || !!di || booleanParam(noEntryModal)
+
+    // Initialize standalone mode
+    this._standaloneMode = booleanParam(standalone)
+    const standaloneParamLower = (standalone || "").toLowerCase()
+    const kTrueStrings = ["true", "yes", "1"]
+    // if standalone is a plugin name, then only that plugin is standalone
+    this._standalonePlugin = standalone && this._standaloneMode && !kTrueStrings.includes(standaloneParamLower)
+                              ? standalone
+                              : ""
+
+    // Initialize component mode
+    this._componentMode = booleanParam(componentMode)
+    this._hideUndoRedoInComponent = booleanParam(hideUndoRedoInComponent)
+    this._suppressUnsavedWarning = booleanParam(suppressUnsavedWarning)
 
     makeObservable(this)
   }
@@ -89,15 +113,57 @@ export class UIState {
           (!standalonePlugin || [tileNameLower, tileTitleLower].includes(standalonePlugin))
   }
 
-  @action
-  setStandaloneMode(standaloneParam?: string | null) {
-    this._standaloneMode = booleanParam(standaloneParam)
-    const standaloneParamLower = (standaloneParam || "").toLowerCase()
-    const kTrueStrings = ["true", "yes", "1"]
-    // if standaloneParam is a plugin name, then only that plugin is standalone
-    this._standalonePlugin = standaloneParam && this._standaloneMode && !kTrueStrings.includes(standaloneParamLower)
-                              ? standaloneParam
-                              : ""
+  // Component mode getters
+  get componentMode() {
+    return this._componentMode
+  }
+
+  get shouldRenderMenuBar() {
+    return !this._componentMode
+  }
+
+  get shouldRenderToolShelf() {
+    return !this._componentMode && !this.standaloneMode
+  }
+
+  get shouldRenderBetaBanner() {
+    return !this._componentMode
+  }
+
+  get allowComponentMove() {
+    return !this._componentMode
+  }
+
+  get allowComponentResize() {
+    return !this._componentMode
+  }
+
+  get allowComponentClose() {
+    return !this._componentMode
+  }
+
+  get allowComponentMinimize() {
+    return !this._componentMode
+  }
+
+  get shouldShowUndoRedoInComponentTitleBar() {
+    return this._componentMode && !this._hideUndoRedoInComponent
+  }
+
+  get shouldSuppressUnsavedWarning() {
+    return this._suppressUnsavedWarning || this._componentMode
+  }
+
+  get shouldUpdateBrowserTitleFromDocument() {
+    return !this._componentMode
+  }
+
+  get shouldShowSplashScreen() {
+    return !this._componentMode
+  }
+
+  get shouldAutoFocusInitialTile() {
+    return this._componentMode
   }
 
   get hideSplashScreen() {

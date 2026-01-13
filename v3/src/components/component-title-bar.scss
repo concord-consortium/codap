@@ -100,6 +100,10 @@ $button-width: 34px;
   touch-action: none;
   width: 100%;
 
+  &.not-draggable {
+    cursor: default;
+  }
+
   .title-text, .title-text-input {
     border-radius: vars.$border-radius-four-corners;
     cursor: text;
@@ -141,6 +145,40 @@ $button-width: 34px;
     overflow: hidden;
     position: absolute;
     white-space: pre;
+  }
+}
+
+.title-bar-undo-redo {
+  align-items: center;
+  margin: 0 auto 0 8px;
+
+  .component-title-bar-button {
+    align-items: center;
+    background-color: transparent;
+    border-radius: 0;
+    display: flex;
+    height: vars.$title-bar-height;
+    justify-content: center;
+    min-width: 24px;
+    padding: 0;
+
+    &:hover {
+      background-color: vars.$title-bar-focus-color;
+    }
+
+    &:active {
+      background-color: #d3f4ff;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    svg {
+      height: 16px;
+      width: 16px;
+    }
   }
 }
 

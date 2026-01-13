@@ -14,7 +14,6 @@ import { useImportHelpers } from "../hooks/use-import-helpers"
 import { useKeyStates } from "../hooks/use-key-states"
 import { useKeyboardShortcuts } from "../hooks/use-keyboard-shortcuts"
 import { ProgressContext, useProgressContextProviderValue } from "../hooks/use-progress"
-import { useUIState } from "../hooks/use-ui-state"
 import { useUncaughtErrorHandler } from "../hooks/use-uncaught-error-handler"
 import { hideSplashScreen } from "../lib/cfm/splash-screen"
 import { IUseCloudFileManagerHookOptions, useCloudFileManager } from "../lib/cfm/use-cloud-file-manager"
@@ -37,6 +36,7 @@ import { t } from "../utilities/translation/translate"
 import { urlParams } from "../utilities/url-params"
 import { isBeta } from "../utilities/version-utils"
 import { BetaBanner } from "./beta/beta-banner"
+import { If } from "./common/if"
 import { kCodapAppElementId, kUserEntryDropOverlay } from "./constants"
 import { Container } from "./container/container"
 import { MenuBar, kMenuBarElementId } from "./menu-bar/menu-bar"
@@ -74,9 +74,6 @@ export const App = observer(function App() {
     = useDisclosure({defaultIsOpen: true})
   const [isDragOver, setIsDragOver] = useState(false)
   const cfmRef = useRef<CloudFileManager | null>(null)
-
-  // initialize uiState from url params
-  useUIState()
 
   useLayoutEffect(() => {
     return autorun(() => {
@@ -184,7 +181,7 @@ export const App = observer(function App() {
       Logger.initializeLogger(appState.document)
 
       window.onbeforeunload = function() {
-        if (urlParams.suppressUnsavedWarning === undefined && cfm.client.state.dirty) {
+        if (!uiState.shouldSuppressUnsavedWarning && cfm.client.state.dirty) {
           return t("V3.general.unsavedChangesWarning")
         }
       }
@@ -197,17 +194,24 @@ export const App = observer(function App() {
 
   const toolbarContainerClassName =
     clsx("toolbar-container", { "vertical-toolbar-container": persistentState.toolbarPosition === "Left" })
+  const appClasses = clsx("codap-app", { "minimal-chrome": uiState.componentMode, beta: isBeta() })
   return (
     <CodapDndContext>
       <DocumentContentContext.Provider value={appState.document.content}>
         <CfmContext.Provider value={cfm}>
           <ProgressContext.Provider value={progressContextValue}>
-            {isBeta() && <BetaBanner />}
-            <div className={clsx("codap-app", { beta: isBeta() })} data-testid="codap-app">
-              <MenuBar/>
+            <If condition={isBeta() && uiState.shouldRenderBetaBanner}>
+              <BetaBanner />
+            </If>
+            <div className={appClasses} data-testid="codap-app">
+              <If condition={uiState.shouldRenderMenuBar}>
+                <MenuBar/>
+              </If>
               <ErrorBoundary fallbackRender={fallbackRender}>
                 <div className={toolbarContainerClassName}>
-                  <ToolShelf document={appState.document}/>
+                  <If condition={uiState.shouldRenderToolShelf}>
+                    <ToolShelf document={appState.document}/>
+                  </If>
                   <Container/>
                 </div>
               </ErrorBoundary>

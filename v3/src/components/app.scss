@@ -38,6 +38,12 @@
         flex-direction: row;
       }
     }
+
+    &.minimal-chrome {
+      .toolbar-container {
+        height: 100%;
+      }
+    }
   }
 }
 

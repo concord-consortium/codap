@@ -12,6 +12,7 @@ import { updateTileNotification } from "../../models/tiles/tile-notifications"
 import { uiState } from "../../models/ui-state"
 import { urlParams } from "../../utilities/url-params"
 import { CodapComponent } from "../codap-component"
+import { If } from "../common/if"
 import {
   IChangingTileStyle, kCodapTileClass, kStandaloneTileClass, kStandaloneZIndex, kTitleBarHeight
 } from "../constants"
@@ -207,13 +208,13 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
                 isMinimized={isMinimized}
                 onMinimizeTile={handleMinimizeTile}
                 onCloseTile={onCloseTile}
-                onMoveTilePointerDown={handleMoveTilePointerDown}
+                onMoveTilePointerDown={uiState.allowComponentMove ? handleMoveTilePointerDown : undefined}
               />
-              {!isMinimized && !isStandalone &&
+              <If condition={!isMinimized && !isStandalone && uiState.allowComponentResize}>
                 <ComponentResizeWidgets tile={tile} componentRef={componentRef}
                   isFixedWidth={isFixedWidth} isFixedHeight={isFixedHeight}
                   handleResizePointerDown={handleResizePointerDown} />
-              }
+              </If>
             </>
           }
         </div>
