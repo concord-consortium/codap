@@ -3,8 +3,8 @@ import { DIHandler, DIResources } from "../data-interactive-types"
 import { getDocumentContentPropertyFromNode } from "../../utilities/mst-utils"
 
 export const diConfigurationListHandler: DIHandler = {
-  get(_resources: DIResources) {
-    const gaussianFitEnabled = getDocumentContentPropertyFromNode(_resources.interactiveFrame, "gaussianFitEnabled")
+  get(resources: DIResources) {
+    const gaussianFitEnabled = getDocumentContentPropertyFromNode(resources.interactiveFrame, "gaussianFitEnabled")
     return {
       success: true,
       values: [
@@ -14,7 +14,7 @@ export const diConfigurationListHandler: DIHandler = {
         }
       ]
     }
-  },
+  }
 }
 
 registerDIHandler("configurationList", diConfigurationListHandler)
