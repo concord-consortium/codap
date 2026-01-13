@@ -2,16 +2,14 @@ import { isWebViewModel } from "../../components/web-view/web-view-model"
 import { appState } from "../../models/app-state"
 import { uiState } from "../../models/ui-state"
 import { toV2Id } from "../../utilities/codap-utils"
-import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources, diNotImplementedYet, DIValues, DIInteractiveFrame } from "../data-interactive-types"
-
-const noIFResult = {success: false, values: {error: t("V3.DI.Error.interactiveFrameNotFound")}} as const
+import { noInteractiveFrameResult } from "./di-results"
 
 export const diInteractiveFrameHandler: DIHandler = {
   get(resources: DIResources) {
     const { interactiveFrame } = resources
-    if (!interactiveFrame) return noIFResult
+    if (!interactiveFrame) return noInteractiveFrameResult
 
     const dimensions = appState.document.content?.getTileDimensions(interactiveFrame.id)
     const webViewContent = isWebViewModel(interactiveFrame.content) ? interactiveFrame.content : undefined
@@ -49,7 +47,7 @@ export const diInteractiveFrameHandler: DIHandler = {
   notify: diNotImplementedYet,
   update(resources: DIResources, values?: DIValues) {
     const { interactiveFrame } = resources
-    if (!interactiveFrame) return noIFResult
+    if (!interactiveFrame) return noInteractiveFrameResult
     const webViewContent = isWebViewModel(interactiveFrame.content) ? interactiveFrame.content : undefined
     // CODAP v2 seems to ignore interactiveFrame updates when an array is passed for values
     if (Array.isArray(values)) return { success: true }
