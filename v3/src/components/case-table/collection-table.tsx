@@ -226,8 +226,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     }
   }, [collectionTableModel?.rows, collectionTableModel?.inputRowIndex, showInputRow])
 
-  const { handleSelectedCellChange, navigateToNextRow,
-    navigateByTabToNextCell } = useSelectedCell(gridRef, columns, rows)
+  const { handleSelectedCellChange, navigateToNextCell, navigateToNextRow } = useSelectedCell(gridRef, columns, rows)
 
   const handleCellKeyDown = useCallback((args: TCellKeyDownArgs, event: CellKeyboardEvent) => {
     // By default in RDG, the enter/return key simply enters/exits edit mode without moving the
@@ -245,7 +244,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         navigateToNextRow(reverse)
       }
       if (event.key === "Tab") {
-        navigateByTabToNextCell(event.shiftKey)
+        navigateToNextCell(event.shiftKey)
       }
     }
     if ((event.key === "ArrowDown" || event.key === "ArrowUp")) {
@@ -293,7 +292,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         }
       }
     }
-  }, [collection?.child, collectionId, data, navigateByTabToNextCell, navigateToNextRow, onScrollRowRangeIntoView])
+  }, [collection, collectionId, data, navigateToNextCell, navigateToNextRow, onScrollRowRangeIntoView])
 
   const handleClick = (event: React.PointerEvent<HTMLDivElement>) => {
     // See if mouse has moved beyond kMouseMovementThreshold since initial mousedown

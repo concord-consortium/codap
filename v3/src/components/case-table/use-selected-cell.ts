@@ -47,22 +47,28 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
     }
   }, [collectionTableModel, columns, gridRef])
 
-  const navigateByTabToNextCell = useCallback((back = false) => {
+  const navigateToNextCell = useCallback((back = false) => {
     if (selectedCell.current?.columnId) {
+      // column index
+      const currentRowIdx = selectedCell.current.rowIdx
       const currentIdx = columns.findIndex(column => column.key === selectedCell.current?.columnId)
       const rightmost = currentIdx === columns.length - 1
       const first = currentIdx === 1
+      if (first && currentRowIdx === 0 && back) {
+        // don't navigate left from the first cell
+        return
+      }
       const idx = back
         ? first ? Math.max(1, columns.length - 1) : currentIdx - 1
         : rightmost ? 1 : currentIdx + 1
-      const currentRowIdx = selectedCell.current.rowIdx
+      // row index
       const rowIdx = back
         ? first ? Math.max(0, currentRowIdx - 1) : currentRowIdx
         : rightmost ? currentRowIdx + 1 : currentRowIdx
       const position = { idx, rowIdx }
       // setTimeout so it occurs after handling of current event completes
       setTimeout(() => {
-        collectionTableModel?.scrollRowIntoView(currentRowIdx)
+        collectionTableModel?.scrollRowIntoView(rowIdx)
         gridRef.current?.selectCell(position, true)
       })
     }
@@ -100,5 +106,5 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
     }
   }, [blockingDataset, refreshSelectedCellDebounced])
 
-  return { selectedCell: selectedCell.current, handleSelectedCellChange, navigateToNextRow, navigateByTabToNextCell }
+  return { selectedCell: selectedCell.current, handleSelectedCellChange, navigateToNextCell, navigateToNextRow }
 }
