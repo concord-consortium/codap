@@ -47,6 +47,13 @@ interface DIFunction {
 export type DIFunctionCategory = Record<string, DIFunction>
 export type DIFunctionCategories = Record<string, DIFunctionCategory>
 
+export interface DIUpdateConfigurationValue {
+  value: string | undefined
+}
+export interface DIGetConfigurationValue extends DIUpdateConfigurationValue {
+  name: string
+}
+
 export interface DIGlobal {
   name?: string
   value?: number
@@ -112,6 +119,7 @@ export interface DIResources {
   collection?: ICollectionModel
   collectionList?: ICollectionModel[]
   component?: DIComponent
+  configuration?: string
   dataContext?: IDataSet
   dataContextList?: IDataSet[]
   dataDisplay?: DIDataDisplay
@@ -131,12 +139,13 @@ export interface DIResources {
 // types for values accepted as inputs by the API
 export type DISingleValues = DIAttribute | DINotifyAttribute | DIAttributeLocationValues | DICase | DIDataContext |
   DIDocument | DINotifyDataContext | DIGlobal | DIInteractiveFrame | DIItemValues | DICreateCollection | DINewCase |
-  DIUpdateCase | DINotification | DIItemSearchNotify | DILogMessage | DIUrl | V2SpecificComponent | DIAdornmentValues
+  DIUpdateCase | DINotification | DIItemSearchNotify | DILogMessage | DIUpdateConfigurationValue | DIUrl |
+  V2SpecificComponent | DIAdornmentValues
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
 // types returned as outputs by the API
 export type DIResultSingleValues = DICase | DIComponentInfo |  DIDataDisplay | DIDocument | DIFunctionCategories |
-  DIGetCaseResult | DIGlobal | DIInteractiveApi | DIInteractiveFrame
+  DIGetCaseResult | DIGetConfigurationValue | DIGlobal | DIInteractiveApi | DIInteractiveFrame
 
 export type DIResultValues = DIResultSingleValues | DIResultSingleValues[] |
   DIAllCases | DIDeleteCollectionResult | DIUpdateItemResult | DIResultAttributes | number | number[] |
@@ -210,6 +219,7 @@ export interface DIResourceSelector {
   caseSearch?: string
   collection?: string
   component?: string
+  configuration?: string
   dataContext?: string
   dataContextList?: string
   dataDisplay?: string

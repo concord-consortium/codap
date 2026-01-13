@@ -12,10 +12,11 @@ export const componentNotFoundResult = errorResult(t("V3.DI.Error.componentNotFo
 export const couldNotParseQueryResult = errorResult(t("V3.DI.Error.couldNotParseQuery"))
 export const dataContextNotFoundResult = errorResult(t("V3.DI.Error.dataContextNotFound"))
 export const dataDisplayNotFoundResult = errorResult(t("V3.DI.Error.dataDisplayNotFound"))
+export const invalidValuesProvidedResult = errorResult(t("V3.DI.Error.invalidValuesProvided"))
 export const itemNotFoundResult = errorResult(t("V3.DI.Error.itemNotFound"))
 export const noColorMapAccessResult = errorResult(t("V3.DI.Error.colorMapAccess"))
+export const noInteractiveFrameResult = errorResult(t("V3.DI.Error.interactiveFrameNotFound"))
 export const valuesRequiredResult = errorResult(t("V3.DI.Error.valuesRequired"))
-export const invalidValuesProvidedeResult = errorResult(t("V3.DI.Error.invalidValuesProvided"))
 
 export function fieldRequiredResult(action: string, resource: string, field: string) {
   return errorResult(t("V3.DI.Error.fieldRequired", { vars: [action, resource, field] }))

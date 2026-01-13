@@ -287,6 +287,10 @@ export function resolveResources(
     if (itemId) result.itemByCaseID = dataContext?.getItem(itemId)
   }
 
+  if (resourceSelector.configuration) {
+    result.configuration = resourceSelector.configuration
+  }
+
   // DG.ObjectMap.forEach(resourceSelector, function (key, value) {
   //   // Make sure we got values for every non-terminal selector.
   //   if (SC.none(result[key]) && (key !== 'type') && (key !== resourceSelector.type)) {
