@@ -1007,6 +1007,12 @@ export const DataConfigurationModel = types
           name: "DataConfigurationModel.afterCreate.reaction [self.dataset?.itemIds]"
         }
       ))
+      // Invalidate cases when displayOnlySelectedCases changes.
+      addDisposer(self, reaction(
+        () => self.displayOnlySelectedCases,
+        () => self.invalidateCases(),
+        { name: "DataConfigurationModel.afterCreate.reaction [displayOnlySelectedCases invalidate cache]" }
+      ))
       // Invalidate cases when selection changes.
       addDisposer(self, reaction(
         () => self.dataset?.selection.values(),
