@@ -37,7 +37,7 @@ jest.mock("../../utilities/color-utils", () => ({
 }))
 
 jest.mock("../../utilities/date-iso-utils", () => ({
-  isStdISODateString: jest.fn((str: string) => /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/.test(str))
+  isStdISODateString: jest.fn((str: string) => /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(str))
 }))
 
 jest.mock("../../utilities/date-parser", () => ({
