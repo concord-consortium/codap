@@ -72,7 +72,6 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
     backgroundSvgRef = useRef<SVGGElement>(null),
     // Temporary HTML host to avoid <foreignObject> issues in Safari
     pixiHostRef = useRef<HTMLDivElement>(null),
-    pixiContainerRef = useRef<SVGForeignObjectElement>(null),
     prevAttrCollectionsMapRef = useRef<Record<string, string>>({}),
     graphRef = useRef<HTMLDivElement | null>(null)
 
@@ -374,7 +373,8 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
 
   return (
     <GraphDataConfigurationContext.Provider value={graphModel.dataConfiguration}>
-      <div className={clsx(kGraphClass, kPortalClass)} ref={mySetGraphRef} data-testid="graph" style={{ position: "relative" }}>
+      <div className={clsx(kGraphClass, kPortalClass)} ref={mySetGraphRef}
+           data-testid="graph" style={{ position: "relative" }}>
         {graphModel.showParentToggles && <ParentToggles/>}
         <svg className='graph-svg' ref={svgRef}>
           <Background
