@@ -23,9 +23,10 @@ export function AttributeValueCell({ column, row }: TRenderCellProps) {
                               ? { value: "", content: null }
                               : renderAttributeValue(strValue, numValue, data?.attrFromID(column.key),
                                                       { key, rowHeight, caseId })
+  const dataTestId = `case-table-tooltip-${row.__id__}-${column.key}`
   return (
-    <Tooltip label={value} h="20px" fontSize="12px" color="white" data-testid="case-table-data-tip"
-      openDelay={1000} placement="bottom" bottom="10px" left="15px">
+    <Tooltip label={value} fontSize="12px" color="white" data-testid={dataTestId}
+      openDelay={1000} placement="bottom" whiteSpace="pre-wrap" maxW="400px">
       {content}
     </Tooltip>
   )
