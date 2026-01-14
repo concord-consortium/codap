@@ -211,9 +211,10 @@ export const TableTileElements = {
   getGridCell(row: number, column: number, collection = 1) {
     return this.getCollection(collection).find(`[aria-rowindex="${row}"] [aria-colindex="${column}"]`)
   },
-  // returns the .cell-span within the cell
+  // returns the .cell-content within the cell
   getCell(column: number | string, row: number | string, collectionIndex = 1) {
-    return this.getCollection(collectionIndex).find(`[aria-rowindex="${row}"] [aria-colindex="${column}"] .cell-span`)
+    return this.getCollection(collectionIndex)
+               .find(`[aria-rowindex="${row}"] [aria-colindex="${column}"] .cell-content`)
   },
   typeInCell(column: number, row: number, text: string, collectionIndex = 1) {
     this.getGridCell(row, column, collectionIndex).dblclick()
