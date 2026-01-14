@@ -1,10 +1,12 @@
 import { CloudFileManager } from "@concord-consortium/cloud-file-manager"
 import { useCallback } from "react"
-import { kWebViewTileType } from "../components/web-view/web-view-defs"
+import { kTitleBarHeight } from "../components/constants"
+import { kWebViewTileType, WebViewSubType } from "../components/web-view/web-view-defs"
 import { isWebViewModel } from "../components/web-view/web-view-model"
 import { IImportedFile } from "../lib/cfm/use-cloud-file-manager"
 import { logStringifiedObjectMessage } from "../lib/log-message"
 import { appState } from "../models/app-state"
+import { INewTileOptions } from "../models/codap/create-tile"
 import { IDataSet } from "../models/data/data-set"
 import { dataContextCountChangedNotification } from "../models/data/data-set-notifications"
 import { IImportDataSetOptions } from "../models/document/document-content"
@@ -20,15 +22,51 @@ import {
 
 const USE_IMPORTER_PLUGIN_FOR_CSV_FILE = true
 
+// Maximum dimensions for initially-loaded images (in pixels)
+const MAX_IMAGE_WIDTH = 800
+const MAX_IMAGE_HEIGHT = 600
+
+/**
+ * Load an image from a URL and extract its natural dimensions.
+ * Returns { width, height } scaled to fit within MAX dimensions while preserving aspect ratio.
+ */
+function getImageDimensions(imageUrl: string): Promise<{ width: number; height: number }> {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      let { naturalWidth: width, naturalHeight: height } = img
+
+      // Scale down if image exceeds maximum dimensions while preserving aspect ratio
+      if (width > MAX_IMAGE_WIDTH || height > MAX_IMAGE_HEIGHT) {
+        const widthScale = MAX_IMAGE_WIDTH / width
+        const heightScale = MAX_IMAGE_HEIGHT / height
+        const scale = Math.min(widthScale, heightScale)
+        width = Math.round(width * scale)
+        height = Math.round(height * scale)
+      }
+
+      resolve({ width, height })
+    }
+    img.onerror = () => {
+      // If image fails to load, use default dimensions (half the max)
+      resolve({ width: MAX_IMAGE_WIDTH / 2, height: MAX_IMAGE_HEIGHT / 2 })
+    }
+    img.src = imageUrl
+  })
+}
+
 interface IProps {
   cfmRef: React.MutableRefObject<CloudFileManager | null>
   onCloseUserEntry: () => void
 }
 
 export function useImportHelpers({ cfmRef, onCloseUserEntry }: IProps) {
-  const loadWebView = useCallback((url: string) => {
-    const tile = appState.document.content?.createOrShowTile(kWebViewTileType)
-    isWebViewModel(tile?.content) && tile?.content.setUrl(url)
+  const loadWebView = useCallback((url: string, subType?: WebViewSubType, tileOptions?: INewTileOptions) => {
+    const tile = appState.document.content?.createOrShowTile(kWebViewTileType, tileOptions)
+    if (isWebViewModel(tile?.content)) {
+      subType && tile.content.setSubType(subType)
+      tile.content.setUrl(url)
+    }
   }, [])
 
   const importDataSet = useCallback(
@@ -84,14 +122,16 @@ export function useImportHelpers({ cfmRef, onCloseUserEntry }: IProps) {
         // no file option for Google Sheets
         initiateGenericImport({ url, contentType: "application/vnd.google-apps.spreadsheet" })
         break
-      case "image":
+      case "image": {
         objectUrl = file ? URL.createObjectURL(file) : undefined
-        if (objectUrl) {
-          loadWebView(objectUrl)
-        } else if (url) {
-          loadWebView(url)
+        const imageUrl = objectUrl || url
+        if (imageUrl) {
+          getImageDimensions(imageUrl).then(({ width, height }) => {
+            loadWebView(imageUrl, "image", { width, height: height + kTitleBarHeight })
+          })
         }
         break
+      }
       default:
         if (file) {
           cfmRef.current?.client.alert("Sorry, this type of file cannot be imported into CODAP", "Drop File")
