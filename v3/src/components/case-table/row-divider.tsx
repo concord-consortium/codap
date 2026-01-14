@@ -5,9 +5,7 @@ import { createPortal } from "react-dom"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useTileDroppable } from "../../hooks/use-drag-drop"
 import { kRowDividerDropZoneBaseId } from "./case-table-drag-drop"
-import {
-  kDefaultRowHeaderHeight, kDefaultRowHeight, kInputRowKey, kSnapToLineHeight
-} from "./case-table-types"
+import { kDefaultRowHeaderHeight, kDefaultRowHeight, kInputRowKey, roundToRowHeight } from "./case-table-types"
 import { useCaseTableModel } from "./use-case-table-model"
 import { useCollectionTableModel } from "./use-collection-table-model"
 
@@ -64,7 +62,7 @@ export const RowDivider = observer(function RowDivider({ rowId, before }: IRowDi
     if (isResizing.current) {
       const deltaY = e.clientY - startY.current
       const tempNewHeight = Math.max(kDefaultRowHeight, initialHeight.current + deltaY)
-      const newHeight = kSnapToLineHeight * Math.round((tempNewHeight - 4) / kSnapToLineHeight) + 4
+      const newHeight = roundToRowHeight(tempNewHeight)
       collectionTableModel?.setRowHeight(newHeight)
     }
   }

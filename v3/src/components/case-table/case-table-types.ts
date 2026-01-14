@@ -70,6 +70,14 @@ export const kCaseTableDefaultWidth = 580
 export const kNewCaseTableDefaultWidth = 186
 export const kCaseTableDefaultHeight = 200
 export const kDefaultRowHeaderHeight = 30
-export const kDefaultRowHeight = 18
 // used for row resizing
+export const kRowHeightPadding = 4
 export const kSnapToLineHeight = 14
+export const kDefaultRowHeight = kSnapToLineHeight + kRowHeightPadding
+
+export function roundToRowHeight(height: number) {
+  return kSnapToLineHeight * Math.round((height - kRowHeightPadding) / kSnapToLineHeight) + kRowHeightPadding
+}
+export function lineCountFromRowHeight(height: number) {
+  return Math.ceil((height - kRowHeightPadding) / kSnapToLineHeight)
+}

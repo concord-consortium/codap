@@ -386,22 +386,44 @@ $collection-title-font-color: black;
         background-color: var(--rdg-row-selected-background-color);
       }
 
+      .cell-content {
+        width: 100%;
+        height: 100%;
+        font-weight: 600;
+        overflow: hidden;
+
+        &.numeric-format {
+          width: 100%;
+          font-family: 'Noto Sans Mono', monospace;
+          font-size: $table-body-font-size;
+          margin-top: 2px;
+          text-align: right;
+          color: black;
+        }
+      }
+
+      // For single-line cells, use text-overflow ellipsis
+      &:not(.multi-line) div.cell-content {
+        text-overflow: ellipsis;
+      }
+
       &.codap-data-cell.multi-line {
         white-space: normal;
         overflow-wrap: break-word;
 
-        .cell-span, .rdg-text-editor {
+        div.cell-content, .rdg-text-editor {
           // https://css-tricks.com/almanac/properties/l/line-clamp/
           line-height: 14.5px;
-          overflow: hidden;
-          text-overflow: ellipsis;
           display: -webkit-box;
           -webkit-box-orient: vertical;
           font-family: "Noto Sans", sans-serif;
           font-size: $table-body-font-size;
           font-weight: 600;
+          // For multi-line, -webkit-line-clamp handles the ellipsis display
+          // text-overflow: ellipsis interferes with -webkit-line-clamp, so we don't set it
         }
       }
+
       &.codap-data-cell.rowId-__input__ {
         cursor: text;
       }
@@ -411,21 +433,6 @@ $collection-title-font-color: black;
 
         .cell-boundary-thumb-interior {
           height: 14px;
-        }
-      }
-
-      .cell-span {
-        width: 100%;
-        height: 100%;
-        font-weight: 600;
-
-        &.numeric-format {
-          width: 100%;
-          font-family: 'Noto Sans Mono', monospace;
-          font-size: $table-body-font-size;
-          margin-top: 2px;
-          text-align: right;
-          color: black;
         }
       }
 
@@ -448,10 +455,15 @@ $collection-title-font-color: black;
         font-size: $table-body-font-size;
         font-weight: 600;
         height: 100%;
+        overflow: hidden;
         &.numeric-format {
           font-family: 'Noto Sans Mono', monospace;
           text-align: right;
         }
+      }
+
+      &:not(.multi-line) .cell-text-editor {
+        text-overflow: ellipsis;
       }
 
       .color-cell-text-editor {
