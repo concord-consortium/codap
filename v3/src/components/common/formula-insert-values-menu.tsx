@@ -147,7 +147,7 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
                     return (
                       <ListItem className="formula-operand-list-item" key={attrName}
                           onClick={() => insertValueToFormula(attrName)} data-testid="formula-value-item">
-                        {attrName}
+                        <span>{attrName}</span>
                       </ListItem>
                     )
                   })}
@@ -159,7 +159,7 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
         </List>
         <List className="formula-operand-subset">
           <ListItem className="formula-operand-list-item" onClick={() => insertValueToFormula("caseIndex")}>
-            caseIndex
+            <span>caseIndex</span>
           </ListItem>
         </List>
         <Divider className="list-divider"/>
@@ -168,7 +168,7 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
             return (
               <ListItem key={boundary} className="formula-operand-list-item"
                     onClick={() => insertValueToFormula(boundary)}>
-                {boundary}
+                <span>{boundary}</span>
               </ListItem>
             )
           })}
@@ -176,7 +176,7 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
             return (
               <ListItem key={globalName} className="formula-operand-list-item"
                     onClick={() => insertValueToFormula(globalName)}>
-                {globalName}
+                <span>{globalName}</span>
               </ListItem>
             )
           })}
@@ -186,7 +186,7 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
           {constants.map(constant => (
             <ListItem className="formula-operand-list-item" key={constant}
                       onClick={() => insertValueToFormula(constant)}>
-              {constant}
+              <span>{constant}</span>
             </ListItem>
           ))}
         </List>

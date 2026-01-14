@@ -113,7 +113,7 @@
 }
 
 .formula-operand-list-container {
-  max-width: 310px;
+  max-width: 480px;
   position: absolute;
   z-index: 1005;
   display: flex;
@@ -161,6 +161,16 @@
       font-size: 12px;
       margin: 0 20px;
       height: 18px;
+      min-width: 0;
+      overflow: hidden;
+
+      span {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
       &:hover, &:active {
         color: vars.$codap-teal-light;
         text-decoration: underline;
