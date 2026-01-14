@@ -13,7 +13,7 @@ export const diConfigurationHandler: DIHandler = {
     // facilitate future expansion.
     switch (configuration) {
       case "gaussianFitEnabled":
-        value = documentContent?.gaussianFitEnabled ? "yes" : undefined
+        value = documentContent?.gaussianFitEnabled ? "yes" : ''
         break
       default:
         return {
