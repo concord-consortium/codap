@@ -11,7 +11,7 @@ import { formatDate } from "../../utilities/date-utils"
 import { gLocale } from "../../utilities/translation/locale"
 import {
   kCaseTableBodyFont, kCaseTableHeaderFont, kDefaultRowHeight,
-  kMaxAutoColumnWidth, kMinAutoColumnWidth, kSnapToLineHeight
+  kMaxAutoColumnWidth, kMinAutoColumnWidth, lineCountFromRowHeight
 } from "../case-table/case-table-types"
 import {CheckboxCell, isBoolean} from "./checkbox-cell"
 
@@ -64,8 +64,12 @@ export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, opt
   let formatClass = ""
   // https://css-tricks.com/almanac/properties/l/line-clamp/
   const lineClamp = rowHeight > kDefaultRowHeight
-                      ? Math.ceil(rowHeight / (kSnapToLineHeight + 1))
+                      ? lineCountFromRowHeight(rowHeight)
                       : 0
+  const textCellStyle: React.CSSProperties = { WebkitLineClamp: lineClamp }
+  if (lineClamp === 0) {
+    textCellStyle.whiteSpace = "nowrap"
+  }
 
   // boundary thumbnails
   let boundary: Maybe<object>
@@ -144,9 +148,9 @@ export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, opt
       const formattedDate = formatDate(date, datePrecision)
       return {
         value: formattedDate || str,
-        content:  <span className="cell-span" key={key} style={{ WebkitLineClamp: lineClamp }}>
+        content:  <div className="cell-content" key={key} style={textCellStyle}>
                     {formattedDate || `"${str}"`}
-                  </span>
+                  </div>
       }
     } else {
       // If the date is not valid, wrap it in quotes (CODAP V2 behavior).
@@ -156,9 +160,9 @@ export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, opt
 
   return {
     value: str,
-    content:  <span className={clsx("cell-span", formatClass)} key={key} style={{ WebkitLineClamp: lineClamp }}>
+    content:  <div className={clsx("cell-content", formatClass)} key={key} style={textCellStyle}>
                 {str}
-              </span>
+              </div>
   }
 }
 

@@ -86,12 +86,12 @@ export const useRows = (gridElement: HTMLDivElement | null) => {
         cells.forEach(cell => {
           const colIndex = Number(cell.getAttribute("aria-colindex")) - 2
           const attr = collection?.attributes[colIndex]
-          const cellSpan = cell.querySelector(".cell-span")
-          if (data && caseId && attr && cellSpan) {
+          const cellContent = cell.querySelector(".cell-content")
+          if (data && caseId && attr && cellContent) {
             const strValue = data.getStrValue(caseId, attr.id)
             const numValue = data.getNumeric(caseId, attr.id)
             const { value } = renderAttributeValue(strValue, numValue, attr, { caseId, rowHeight })
-            cellSpan.textContent = value
+            cellContent.textContent = value
             setCachedDomAttr(caseId, attr.id)
           }
         })
