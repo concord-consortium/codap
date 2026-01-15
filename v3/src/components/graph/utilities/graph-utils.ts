@@ -349,37 +349,40 @@ interface ILsrlEquationString extends IEquationString {
   interceptLocked?: boolean
   rSquared?: number
   showConfidenceBands?: boolean
+  seSlope?: number
+  seIntercept?: number
 }
 
 export const lsrlEquationString = (props: ILsrlEquationString) => {
-  const { slope, intercept, attrNames, units, caseValues, showConfidenceBands, rSquared, interceptLocked=false,
+  const { slope, intercept, attrNames, units, showConfidenceBands,
+    rSquared, seSlope, seIntercept, interceptLocked=false,
           sumOfSquares, layout } = props
   const slopeUnits = units.x && units.y
                       ? `${units.y}/${units.x}`
                       : units.y || (units.x ? `/${units.x}` : "")
   const interceptUnits = units.y || ""
-  const linearRegression = leastSquaresLinearRegression(caseValues, interceptLocked)
-  const { count=0, sse=0, xSumSquaredDeviations=0 } = linearRegression
-  const seSlope = Math.sqrt((sse / (count - 2)) / xSumSquaredDeviations)
   const slopeIsFinite = isFinite(slope) && slope !== 0
   const neededFractionDigits = findNeededFractionDigits(slopeIsFinite ? slope : 0, intercept, layout)
   const formattedIntercept = formatEquationValue(intercept, neededFractionDigits.interceptDigits, interceptUnits)
   const formattedSlope = formatEquationValue(slope, neededFractionDigits.slopeDigits, slopeUnits, true)
   const formattedSumOfSquares = formatEquationValue(sumOfSquares || 0, sumOfSquares && sumOfSquares > 100 ? 0 : 3)
   const formattedRSquared = formatEquationValue(rSquared || 0, 3)
-  const formattedSeSlope = formatEquationValue(seSlope, 3)
+  const formattedSeSlope = seSlope !== undefined ? formatEquationValue(seSlope, 3) : ""
+  const formattedSeIntercept = seIntercept !== undefined ? formatEquationValue(seIntercept, 3) : ""
   const xAttrString = attrNames.x.length > 1 ? `(<em>${attrNames.x}</em>)` : `<em>${attrNames.x}</em>`
   const interceptString = intercept !== 0 ? ` ${intercept > 0 ? "+" : ""} ${formattedIntercept}` : ""
   const equationPart = slopeIsFinite
     ? `<em>${attrNames.y}</em> = ${formattedSlope} ${xAttrString}${interceptString}`
     : `<em>${slope === 0 ? attrNames.y : attrNames.x}</em> = ${formattedIntercept}`
-  const seSlopePart = showConfidenceBands && !interceptLocked ? `<br />SE<sub>slope</sub> = ${formattedSeSlope}` : ""
+  const seSlopePart = showConfidenceBands && !interceptLocked ? `<br />σ<sub>slope</sub> = ${formattedSeSlope}` : ""
+  const seInterceptPart = showConfidenceBands && !interceptLocked
+    ? `<br />σ<sub>intercept</sub> = ${formattedSeIntercept}` : ""
   const squaresPart = isFiniteNumber(sumOfSquares)
     ? `<br />${t("DG.ScatterPlotModel.sumSquares")} = ${formattedSumOfSquares}`
     : ""
   const rSquaredPart = rSquared == null ? "" : `<br />r<sup>2</sup> = ${formattedRSquared}`
 
-  return `${equationPart}${rSquaredPart}${seSlopePart}${squaresPart}`
+  return `${equationPart}${rSquaredPart}${seSlopePart}${squaresPart}${seInterceptPart}`
 }
 
 interface IUpdateCellMasks {

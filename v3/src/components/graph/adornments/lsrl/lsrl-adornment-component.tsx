@@ -155,7 +155,8 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
       const label = model.labels.get(key)?.get(category)
       const caseValues = model.getCaseValues(xAttrId, yAttrId, cellKey, dataConfig, category)
       const color = category && category !== kMain ? dataConfig?.getLegendColorForCategory(category) : undefined
-      const { slope, intercept, rSquared } = line
+      const { slope, intercept, rSquared,
+              seSlope, seIntercept } = line
       if (slope == null || intercept == null) return
       const sumOfSquares = dataConfig && showSumSquares
         ? calculateSumOfSquares({ cellKey, dataConfig, computeY: (x) => intercept + slope * x })
@@ -166,7 +167,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
       const units = {x: xUnits, y: yUnits}
       const string = lsrlEquationString({
         attrNames, units, caseValues, intercept, interceptLocked, rSquared,
-        showConfidenceBands, slope, sumOfSquares, layout
+        showConfidenceBands, slope, sumOfSquares, seSlope, seIntercept, layout
       })
       const equationSelector = `#lsrl-equation-${model.classNameFromKey(cellKey)}-${linesIndex}`
       const equation = equationDiv.select<HTMLDivElement>(equationSelector)
@@ -195,9 +196,9 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
       }
       ++linesIndex
     })
-  }, [cellKey, dataConfig, equationContainerSelector, getLines, adornmentsStore, layout, model,
-      plotHeight, plotWidth, showConfidenceBands, showSumSquares, xAttrId, xAttrName, xScale, xSubAxesCount, yAttrId,
-      yAttrName, yScale, ySubAxesCount])
+  }, [getLines, cellKey, dataConfig, xAttrId, yAttrId, equationContainerSelector,
+    adornmentsStore?.interceptLocked, plotWidth, plotHeight, model, showSumSquares,
+    xScale, xSubAxesCount, yScale, ySubAxesCount, xAttrName, yAttrName, showConfidenceBands, layout])
 
   const confidenceBandPaths = useCallback((caseValues: Point[], category = kMain) => {
     const xMin = xScale.domain()[0]
@@ -236,6 +237,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
     const caseValues = model.getCaseValues(xAttrId, yAttrId, cellKey, dataConfig, line.category)
     const { upperPath, lowerPath, combinedPath } = confidenceBandPaths(caseValues, line.category)
     lineObj?.confidenceBandCurve?.attr("d", `${upperPath}${lowerPath}`)
+      .style("stroke-dasharray", "4,3")
     lineObj?.confidenceBandCover?.attr("d", `${upperPath}${lowerPath}`)
     lineObj?.confidenceBandShading?.attr("d", combinedPath)
 
@@ -389,6 +391,16 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
   useEffect(function refreshInterceptLockChange() {
     return mstReaction(
       () => adornmentsStore?.interceptLocked,
+      () => {
+        model.updateCategories(graphModel.getUpdateCategoriesOptions())
+        buildElements()
+      }, { name: "LSRLAdornmentComponent.refreshInterceptLockChange" }, model)
+  }, [buildElements, dataConfig, graphModel, adornmentsStore, model, updateLSRL, xAxis, yAxis])
+
+  // Refresh values on interceptLocked change
+  useEffect(function refreshShowConfidenceBandsChange() {
+    return mstReaction(
+      () => model.showConfidenceBands,
       () => {
         model.updateCategories(graphModel.getUpdateCategoriesOptions())
         buildElements()

@@ -1,5 +1,6 @@
 import { getSnapshot, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { isFiniteNumber } from "../../../../utilities/math-utils"
+import { linRegrStdErrSlopeAndIntercept } from "../../../../utilities/stats-utils"
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
 import { kMain, Point } from "../../../data-display/data-display-types"
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
@@ -16,6 +17,8 @@ interface ILSRLineSnap extends ILSRLInstanceSnapshot {
   rSquared?: number
   slope?: number
   sdResiduals?: number
+  seSlope?: number
+  seIntercept?: number
 }
 
 export const LSRLInstance = types.model("LSRLInstance", {})
@@ -24,7 +27,9 @@ export const LSRLInstance = types.model("LSRLInstance", {})
   intercept: undefined as Maybe<number>,
   rSquared: undefined as Maybe<number>,
   slope: undefined as Maybe<number>,
-  sdResiduals: undefined as Maybe<number>
+  sdResiduals: undefined as Maybe<number>,
+  seSlope: undefined as Maybe<number>,
+  seIntercept: undefined as Maybe<number>
 }))
 .views(self => ({
   get isValid() {
@@ -37,6 +42,11 @@ export const LSRLInstance = types.model("LSRLInstance", {})
     const intercept = self.intercept
     const slope = self.slope
     return {intercept, slope}
+  },
+  get seSlopeAndSeIntercept() {
+    const seSlope = self.seSlope
+    const seIntercept = self.seIntercept
+    return {seSlope, seIntercept}
   }
 }))
 .actions(self => ({
@@ -54,6 +64,12 @@ export const LSRLInstance = types.model("LSRLInstance", {})
   },
   setSdResiduals(sdResiduals?: number) {
     self.sdResiduals = sdResiduals
+  },
+  setSeSlope(seSlope?: number) {
+    self.seSlope = seSlope
+  },
+  setSeIntercept(seIntercept?: number) {
+    self.seIntercept = seIntercept
   }
 }))
 
@@ -64,6 +80,8 @@ function createLSRLInstance(line: ILSRLineSnap) {
   instance.setSlope(line.slope)
   instance.setRSquared(line.rSquared)
   instance.setSdResiduals(line.sdResiduals)
+  instance.setSeSlope(line.seSlope)
+  instance.setSeIntercept(line.seIntercept)
   return instance
 }
 
@@ -180,7 +198,10 @@ export const LSRLAdornmentModel = AdornmentModel
   ) {
     const caseValues = self.getCaseValues(xAttrId, yAttrId, cellKey, dataConfig, cat)
     const { intercept, rSquared, slope, sdResiduals } = leastSquaresLinearRegression(caseValues, isInterceptLocked)
-    return { intercept, rSquared, slope, sdResiduals }
+    const { stdErrSlope, stdErrIntercept } = self.showConfidenceBands
+      ? linRegrStdErrSlopeAndIntercept(caseValues) : { stdErrSlope: undefined, stdErrIntercept: undefined }
+
+    return { intercept, rSquared, slope, sdResiduals, stdErrSlope, stdErrIntercept }
   },
   incrementChangeCount() {
     self.changeCount++
@@ -197,10 +218,12 @@ export const LSRLAdornmentModel = AdornmentModel
       legendCats.forEach(legendCat => {
         const existingLine = lines ? lines.get(legendCat) : undefined
         const existingLineProps = existingLine ? getSnapshot(existingLine) : undefined
-        const { intercept, rSquared, slope, sdResiduals } = self.computeValues(
+        const { intercept, rSquared, slope, sdResiduals,
+                stdErrSlope, stdErrIntercept } = self.computeValues(
           xAttrId, yAttrId, cellKey, dataConfig, interceptLocked, legendCat
         )
-        const lineProps = { ...existingLineProps, category: legendCat, intercept, rSquared, slope, sdResiduals }
+        const lineProps = { ...existingLineProps, category: legendCat, intercept, rSquared, slope, sdResiduals,
+          seSlope: stdErrSlope, seIntercept: stdErrIntercept }
         self.updateLines(lineProps, instanceKey, legendCat)
       })
     })
@@ -240,16 +263,17 @@ export const LSRLAdornmentModel = AdornmentModel
     legendCats.forEach(legendCat => {
       const existingLine = linesInCell ? linesInCell.get(legendCat) : undefined
       if (!existingLine?.isValid) {
-        const { intercept, rSquared, slope, sdResiduals } = self.computeValues(
-          xAttrId, yAttrId, cellKey, dataConfig, interceptLocked, legendCat
-        )
+        const { intercept, rSquared, slope, sdResiduals,
+                stdErrSlope, stdErrIntercept} =
+          self.computeValues(xAttrId, yAttrId, cellKey, dataConfig, interceptLocked, legendCat)
         if (
           !Number.isFinite(intercept) ||
           !Number.isFinite(rSquared) ||
           !Number.isFinite(slope) ||
           !Number.isFinite(sdResiduals)
         ) return
-        self.updateLines({category: legendCat, intercept, rSquared, slope, sdResiduals}, key, legendCat)
+        self.updateLines({category: legendCat, intercept, rSquared, slope, sdResiduals,
+          seSlope: stdErrSlope, seIntercept: stdErrIntercept }, key, legendCat)
       }
     })
     return linesInCell
