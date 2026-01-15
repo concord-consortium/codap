@@ -285,15 +285,348 @@ describe("image-utils", () => {
   })
 
   describe("downscaleImageFile", () => {
-    it("handles image files and produces a data URL", async () => {
-      const blob = new Blob(["test image data"], { type: "image/png" })
+    let originalFileReader: typeof FileReader
+
+    beforeEach(() => {
+      originalFileReader = global.FileReader
+
+      // @ts-expect-error - testing
+      global.FileReader = class MockFileReader {
+        readAsDataURL(file: any) {
+          // Simulate async file reading
+          setTimeout(() => {
+            this.result = "data:image/png;base64,mockdata"
+            this.onload?.()
+          }, 0)
+        }
+        result: string | ArrayBuffer | null = null
+        onload: (() => void) | null = null
+        onerror: (() => void) | null = null
+      }
+    })
+
+    afterEach(() => {
+      global.FileReader = originalFileReader
+    })
+
+    it("returns original data URL for small images", async () => {
+      const blob = new Blob(["small image"], { type: "image/png" })
+      const file = new File([blob], "small.png", { type: "image/png" })
+
+      const promise = downscaleImageFile(file)
+
+      // Simulate Image loading with small dimensions
+      setTimeout(() => {
+        if (mockImageInstance) {
+          mockImageInstance.naturalWidth = 200
+          mockImageInstance.naturalHeight = 200
+          mockImageInstance.triggerLoad()
+        }
+      }, 0)
+
+      const result = await promise
+      expect(result).toMatch(/^data:/)
+    })
+
+    it("Down-scales images larger than MAX_IMAGE_FILE_DIMENSION", async () => {
+      const blob = new Blob(["large image"], { type: "image/jpeg" })
+      const file = new File([blob], "large.jpg", { type: "image/jpeg" })
+
+      // Mock canvas
+      const mockCanvas = {
+        width: 0,
+        height: 0,
+        getContext: jest.fn(() => ({
+          drawImage: jest.fn()
+        })),
+        toBlob: jest.fn((callback: BlobCallback) => {
+          setTimeout(() => {
+            callback(new Blob(["downscaled"], { type: "image/png" }))
+          }, 0)
+        })
+      }
+
+      const originalCreateElement = document.createElement
+      document.createElement = jest.fn((tag: string) => {
+        if (tag === "canvas") return mockCanvas as any
+        return originalCreateElement.call(document, tag)
+      })
+
+      try {
+        const promise = downscaleImageFile(file)
+
+        // Simulate Image loading with large dimensions
+        setTimeout(() => {
+          if (mockImageInstance) {
+            mockImageInstance.naturalWidth = 1024
+            mockImageInstance.naturalHeight = 1024
+            mockImageInstance.triggerLoad()
+          }
+        }, 0)
+
+        const result = await promise
+        expect(result).toMatch(/^data:/)
+        expect(mockCanvas.toBlob).toHaveBeenCalled()
+        // Verify canvas was sized to fit within MAX_IMAGE_FILE_DIMENSION
+        expect(mockCanvas.width).toBeLessThanOrEqual(MAX_IMAGE_FILE_DIMENSION)
+        expect(mockCanvas.height).toBeLessThanOrEqual(MAX_IMAGE_FILE_DIMENSION)
+      } finally {
+        document.createElement = originalCreateElement
+      }
+    })
+
+    it("maintains aspect ratio when downscaling", async () => {
+      const blob = new Blob(["wide image"], { type: "image/png" })
+      const file = new File([blob], "wide.png", { type: "image/png" })
+
+      const mockCanvas = {
+        width: 0,
+        height: 0,
+        getContext: jest.fn(() => ({
+          drawImage: jest.fn()
+        })),
+        toBlob: jest.fn((callback: BlobCallback) => {
+          setTimeout(() => {
+            callback(new Blob(["downscaled"], { type: "image/png" }))
+          }, 0)
+        })
+      }
+
+      const originalCreateElement = document.createElement
+      document.createElement = jest.fn((tag: string) => {
+        if (tag === "canvas") return mockCanvas as any
+        return originalCreateElement.call(document, tag)
+      })
+
+      try {
+        const promise = downscaleImageFile(file)
+
+        // Simulate Image loading with 2:1 aspect ratio (wide image)
+        setTimeout(() => {
+          if (mockImageInstance) {
+            mockImageInstance.naturalWidth = 1024
+            mockImageInstance.naturalHeight = 512
+            mockImageInstance.triggerLoad()
+          }
+        }, 0)
+
+        await promise
+        // With 2:1 ratio and max dimension 512, should be 512x256
+        expect(mockCanvas.width).toBe(512)
+        expect(mockCanvas.height).toBe(256)
+      } finally {
+        document.createElement = originalCreateElement
+      }
+    })
+
+    it("chooses smaller of original vs downscaled versions", async () => {
+      const blob = new Blob(["test"], { type: "image/jpeg" })
+      const file = new File([blob], "test.jpg", { type: "image/jpeg" })
+
+      // Create a custom FileReader mock that tracks calls
+      let fileReaderCallCount = 0
+      // @ts-expect-error - testing
+      global.FileReader = class MockFileReader {
+        readAsDataURL(fileOrBlob: any) {
+          fileReaderCallCount++
+          setTimeout(() => {
+            // First call returns original, second call returns downscaled
+            if (fileReaderCallCount === 1) {
+              this.result = `data:image/jpeg;base64,${'x'.repeat(1000)}` // Simulate larger original
+            } else {
+              this.result = `data:image/png;base64,${'y'.repeat(500)}` // Simulate smaller downscaled
+            }
+            this.onload?.()
+          }, 0)
+        }
+        result: string | ArrayBuffer | null = null
+        onload: (() => void) | null = null
+        onerror: (() => void) | null = null
+      }
+
+      const mockCanvas = {
+        width: 0,
+        height: 0,
+        getContext: jest.fn(() => ({
+          drawImage: jest.fn()
+        })),
+        toBlob: jest.fn((callback: BlobCallback) => {
+          setTimeout(() => {
+            callback(new Blob(["downscaled"], { type: "image/png" }))
+          }, 0)
+        })
+      }
+
+      const originalCreateElement = document.createElement
+      document.createElement = jest.fn((tag: string) => {
+        if (tag === "canvas") return mockCanvas as any
+        return originalCreateElement.call(document, tag)
+      })
+
+      try {
+        const promise = downscaleImageFile(file)
+
+        // Simulate Image loading with dimensions requiring downscaling
+        setTimeout(() => {
+          if (mockImageInstance) {
+            mockImageInstance.naturalWidth = 2000
+            mockImageInstance.naturalHeight = 2000
+            mockImageInstance.triggerLoad()
+          }
+        }, 0)
+
+        const result = await promise
+        // Should return the smaller downscaled version
+        expect(result).toContain("y".repeat(500))
+        expect(result).not.toContain("x".repeat(1000))
+      } finally {
+        global.FileReader = originalFileReader
+        document.createElement = originalCreateElement
+      }
+    })
+
+    it("prefers original if it's smaller than downscaled", async () => {
+      const blob = new Blob(["test"], { type: "image/jpeg" })
+      const file = new File([blob], "test.jpg", { type: "image/jpeg" })
+
+      let fileReaderCallCount = 0
+      // @ts-expect-error - testing
+      global.FileReader = class MockFileReader {
+        readAsDataURL(fileOrBlob: any) {
+          fileReaderCallCount++
+          setTimeout(() => {
+            // First call returns original (smaller), second call returns downscaled (larger)
+            if (fileReaderCallCount === 1) {
+              this.result = `data:image/jpeg;base64,${'x'.repeat(300)}` // Smaller original
+            } else {
+              this.result = `data:image/png;base64,${'y'.repeat(800)}` // Larger downscaled
+            }
+            this.onload?.()
+          }, 0)
+        }
+        result: string | ArrayBuffer | null = null
+        onload: (() => void) | null = null
+        onerror: (() => void) | null = null
+      }
+
+      const mockCanvas = {
+        width: 0,
+        height: 0,
+        getContext: jest.fn(() => ({
+          drawImage: jest.fn()
+        })),
+        toBlob: jest.fn((callback: BlobCallback) => {
+          setTimeout(() => {
+            callback(new Blob(["downscaled"], { type: "image/png" }))
+          }, 0)
+        })
+      }
+
+      const originalCreateElement = document.createElement
+      document.createElement = jest.fn((tag: string) => {
+        if (tag === "canvas") return mockCanvas as any
+        return originalCreateElement.call(document, tag)
+      })
+
+      try {
+        const promise = downscaleImageFile(file)
+
+        // Simulate Image loading with dimensions requiring downscaling
+        setTimeout(() => {
+          if (mockImageInstance) {
+            mockImageInstance.naturalWidth = 2000
+            mockImageInstance.naturalHeight = 2000
+            mockImageInstance.triggerLoad()
+          }
+        }, 0)
+
+        const result = await promise
+        // Should return the smaller original version
+        expect(result).toContain("x".repeat(300))
+        expect(result).not.toContain("y".repeat(800))
+      } finally {
+        global.FileReader = originalFileReader
+        document.createElement = originalCreateElement
+      }
+    })
+
+    it("rejects promise when FileReader fails", async () => {
+      const blob = new Blob(["test"], { type: "image/png" })
       const file = new File([blob], "test.png", { type: "image/png" })
 
-      // This test verifies the function exists and works with the mocked FileReader
-      // We can't easily test the canvas resizing without a full DOM, but we can
-      // verify the function signature and that it returns a promise that resolves
+      // @ts-expect-error - testing
+      global.FileReader = class MockFileReader {
+        readAsDataURL() {
+          setTimeout(() => {
+            this.onerror?.()
+          }, 0)
+        }
+        result: string | ArrayBuffer | null = null
+        onload: (() => void) | null = null
+        onerror: (() => void) | null = null
+      }
+
+      await expect(downscaleImageFile(file)).rejects.toThrow("Failed to read file")
+    })
+
+    it("rejects promise when Image fails to load", async () => {
+      const blob = new Blob(["test"], { type: "image/png" })
+      const file = new File([blob], "test.png", { type: "image/png" })
+
       const promise = downscaleImageFile(file)
-      expect(promise).toBeInstanceOf(Promise)
+
+      // Simulate Image load failure
+      setTimeout(() => {
+        if (mockImageInstance) {
+          mockImageInstance.triggerError()
+        }
+      }, 0)
+
+      await expect(promise).rejects.toThrow("Failed to load image")
+    })
+
+    it("uses PNG format for downscaled images", async () => {
+      const blob = new Blob(["test"], { type: "image/jpeg" })
+      const file = new File([blob], "test.jpg", { type: "image/jpeg" })
+
+      const mockCanvas = {
+        width: 0,
+        height: 0,
+        getContext: jest.fn(() => ({
+          drawImage: jest.fn()
+        })),
+        toBlob: jest.fn((callback: BlobCallback, type?: string, quality?: number) => {
+          // Verify PNG format is requested
+          expect(type).toBe("image/png")
+          expect(quality).toBe(1)
+          setTimeout(() => {
+            callback(new Blob(["downscaled"], { type: "image/png" }))
+          }, 0)
+        })
+      }
+
+      const originalCreateElement = document.createElement
+      document.createElement = jest.fn((tag: string) => {
+        if (tag === "canvas") return mockCanvas as any
+        return originalCreateElement.call(document, tag)
+      })
+
+      try {
+        const promise = downscaleImageFile(file)
+
+        setTimeout(() => {
+          if (mockImageInstance) {
+            mockImageInstance.naturalWidth = 1024
+            mockImageInstance.naturalHeight = 1024
+            mockImageInstance.triggerLoad()
+          }
+        }, 0)
+
+        await promise
+        expect(mockCanvas.toBlob).toHaveBeenCalledWith(expect.any(Function), "image/png", 1)
+      } finally {
+        document.createElement = originalCreateElement
+      }
     })
 
     it("MAX_IMAGE_FILE_DIMENSION is set to 512", () => {
