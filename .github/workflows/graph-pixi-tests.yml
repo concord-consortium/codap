@@ -25,9 +25,10 @@ jobs:
       - name: Install Dependencies
         working-directory: v3
         run: npm ci
-      - uses: browser-actions/setup-chrome@v1
+      - uses: browser-actions/setup-chrome@v2
         with:
           chrome-version: stable
+          install-dependencies: true
       - name: Restore Webpack Cache
         id: restore-webpack-cache
         uses: actions/cache/restore@v4

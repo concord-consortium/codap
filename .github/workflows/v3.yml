@@ -129,9 +129,10 @@ jobs:
       # https://github.com/cypress-io/github-action/issues/48
       fail-fast: false
     steps:
-      - uses: browser-actions/setup-chrome@v1
+      - uses: browser-actions/setup-chrome@v2
         with:
           chrome-version: stable
+          install-dependencies: true
       - uses: snow-actions/sparse-checkout@v1.2.0
         with:
           patterns: v3
