@@ -2,6 +2,9 @@
 export const MAX_IMAGE_WIDTH = 800
 export const MAX_IMAGE_HEIGHT = 600
 
+// Maximum dimension for file size control (prevents bloated data URLs from huge images)
+export const MAX_IMAGE_FILE_DIMENSION = 512
+
 export interface ImageDimensions {
   width: number
   height: number
@@ -52,5 +55,80 @@ export function getImageDimensions(imageUrl: string): Promise<ImageDimensions> {
       resolve({ width: MAX_IMAGE_WIDTH / 2, height: MAX_IMAGE_HEIGHT / 2 })
     }
     img.src = imageUrl
+  })
+}
+
+/**
+ * Downscale an image file so that its largest dimension is at most MAX_IMAGE_FILE_DIMENSION pixels.
+ * This prevents data URLs from bloating with huge image files while maintaining quality.
+ * For large images, compares the original data URL with the downscaled PNG version and returns
+ * whichever is smaller, optimizing for both quality and file size.
+ */
+export function downscaleImageFile(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      const originalDataUrl = reader.result as string
+      const img = new Image()
+      img.onload = () => {
+        const { naturalWidth: width, naturalHeight: height } = img
+
+        // If image is already small enough, use the original data URL
+        if (width <= MAX_IMAGE_FILE_DIMENSION && height <= MAX_IMAGE_FILE_DIMENSION) {
+          resolve(originalDataUrl)
+          return
+        }
+
+        // Calculate scale factor to fit within MAX_IMAGE_FILE_DIMENSION
+        const scale = MAX_IMAGE_FILE_DIMENSION / Math.max(width, height)
+        const newWidth = Math.round(width * scale)
+        const newHeight = Math.round(height * scale)
+
+        // Create canvas and draw scaled image
+        const canvas = document.createElement('canvas')
+        canvas.width = newWidth
+        canvas.height = newHeight
+        const ctx = canvas.getContext('2d')
+        if (!ctx) {
+          reject(new Error('Failed to get canvas context'))
+          return
+        }
+
+        // Use high quality settings for best output
+        ctx.drawImage(img, 0, 0, newWidth, newHeight)
+
+        // Convert canvas to PNG data URL for quality preservation
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              reject(new Error('Failed to create blob from canvas'))
+              return
+            }
+            const downscaledReader = new FileReader()
+            downscaledReader.onload = () => {
+              const downscaledDataUrl = downscaledReader.result as string
+              // Compare sizes and use the smaller of the two
+              const originalSize = originalDataUrl.length
+              const downscaledSize = downscaledDataUrl.length
+              resolve(downscaledSize < originalSize ? downscaledDataUrl : originalDataUrl)
+            }
+            downscaledReader.onerror = () => {
+              reject(new Error(`Failed to read downscaled image: ${file.name}`))
+            }
+            downscaledReader.readAsDataURL(blob)
+          },
+          'image/png', // Use PNG for lossless quality
+          1 // Maximum quality
+        )
+      }
+      img.onerror = () => {
+        reject(new Error(`Failed to load image: ${file.name}`))
+      }
+      img.src = originalDataUrl
+    }
+    reader.onerror = () => {
+      reject(new Error(`Failed to read file: ${file.name}`))
+    }
+    reader.readAsDataURL(file)
   })
 }

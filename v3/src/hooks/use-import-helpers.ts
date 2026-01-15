@@ -15,7 +15,7 @@ import {
   convertParsedCsvToDataSet, CsvParseResult, importCsvFile, initiateImportFromCsv
 } from "../utilities/csv-import"
 import { initiateGenericImport } from "../utilities/generic-import"
-import { fileToDataUrl, getImageDimensions } from "../utilities/image-utils"
+import { downscaleImageFile, getImageDimensions } from "../utilities/image-utils"
 import {
   getImportableFileTypeFromDataTransferFile, getImportableFileTypeFromFile, getImportableFileTypeFromUrl,
   ImportableFileType, stripExtensionFromFilename
@@ -91,7 +91,8 @@ export function useImportHelpers({ cfmRef, onCloseUserEntry }: IProps) {
         break
       case "image": {
         // Convert file to data URL if provided, otherwise use the URL directly
-        const imageUrlPromise = file ? fileToDataUrl(file) : Promise.resolve(url)
+        // Downscale large images to 512px max dimension to prevent data URL bloat
+        const imageUrlPromise = file ? downscaleImageFile(file) : Promise.resolve(url)
         // Use filename as title for dropped files, removing the extension
         const imageTitle = file?.name ? stripExtensionFromFilename(file.name) : undefined
         imageUrlPromise.then(imageUrl => {
