@@ -78,7 +78,7 @@ describe("image-utils", () => {
 
       setTimeout(() => {
         if (mockImageInstance) {
-          // 1600x1200 should scale to 800x600 (1:1 aspect ratio)
+          // 1600x1200 should scale to 800x600 (4:3 aspect ratio)
           mockImageInstance.naturalWidth = 1600
           mockImageInstance.naturalHeight = 1200
           mockImageInstance.triggerLoad()
