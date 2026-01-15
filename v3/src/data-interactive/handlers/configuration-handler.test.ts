@@ -60,7 +60,7 @@ describe("DataInteractive ConfigurationHandler", () => {
         configuration: "gaussianFitEnabled"
       }
       const result = handler.get?.(resources)
-      expect(result).toEqual({ success: true, values: { name: "gaussianFitEnabled", value: undefined } })
+      expect(result).toEqual({ success: true, values: { name: "gaussianFitEnabled", value: "" } })
     })
 
     it("returns name in the result values", () => {
@@ -164,7 +164,7 @@ describe("DataInteractive ConfigurationHandler", () => {
       // Initially disabled
       mockDocumentContent.gaussianFitEnabled = false
       let result = handler.get?.(resources)
-      expect(result).toEqual({ success: true, values: { name: "gaussianFitEnabled", value: undefined } })
+      expect(result).toEqual({ success: true, values: { name: "gaussianFitEnabled", value: "" } })
 
       // Update to enabled
       let updateResult = handler.update?.(resources, { value: "yes" })
@@ -184,7 +184,7 @@ describe("DataInteractive ConfigurationHandler", () => {
       // Verify state change
       mockDocumentContent.gaussianFitEnabled = false
       result = handler.get?.(resources)
-      expect(result).toEqual({ success: true, values: { name: "gaussianFitEnabled", value: undefined } })
+      expect(result).toEqual({ success: true, values: { name: "gaussianFitEnabled", value: "" } })
     })
   })
 })

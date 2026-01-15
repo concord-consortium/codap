@@ -10,7 +10,7 @@ export const diConfigurationListHandler: DIHandler = {
       values: [
         {
           name: "gaussianFitEnabled",
-          value: gaussianFitEnabled ? "yes" : undefined
+          value: gaussianFitEnabled ? "yes" : ''
         }
       ]
     }

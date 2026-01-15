@@ -33,7 +33,7 @@ describe("DataInteractive ConfigurationListHandler", () => {
       )
     })
 
-    it("returns list with gaussianFitEnabled as undefined when disabled", () => {
+    it("returns list with gaussianFitEnabled as empty string when disabled", () => {
       ;(mstUtils.getDocumentContentPropertyFromNode as jest.Mock).mockReturnValue(false)
 
       const resources: DIResources = { interactiveFrame: {} as any }
@@ -44,7 +44,7 @@ describe("DataInteractive ConfigurationListHandler", () => {
         values: [
           {
             name: "gaussianFitEnabled",
-            value: undefined
+            value: ""
           }
         ]
       })
@@ -54,7 +54,7 @@ describe("DataInteractive ConfigurationListHandler", () => {
       )
     })
 
-    it("returns list with gaussianFitEnabled as undefined when property is undefined", () => {
+    it("returns list with gaussianFitEnabled as empty string when property is undefined", () => {
       ;(mstUtils.getDocumentContentPropertyFromNode as jest.Mock).mockReturnValue(undefined)
 
       const resources: DIResources = { interactiveFrame: {} as any }
@@ -65,13 +65,13 @@ describe("DataInteractive ConfigurationListHandler", () => {
         values: [
           {
             name: "gaussianFitEnabled",
-            value: undefined
+            value: ""
           }
         ]
       })
     })
 
-    it("returns list with gaussianFitEnabled as undefined when property is null", () => {
+    it("returns list with gaussianFitEnabled as empty string when property is null", () => {
       ;(mstUtils.getDocumentContentPropertyFromNode as jest.Mock).mockReturnValue(null)
 
       const resources: DIResources = { interactiveFrame: {} as any }
@@ -82,7 +82,7 @@ describe("DataInteractive ConfigurationListHandler", () => {
         values: [
           {
             name: "gaussianFitEnabled",
-            value: undefined
+            value: ""
           }
         ]
       })
@@ -99,7 +99,7 @@ describe("DataInteractive ConfigurationListHandler", () => {
         values: [
           {
             name: "gaussianFitEnabled",
-            value: undefined
+            value: ""
           }
         ]
       })
