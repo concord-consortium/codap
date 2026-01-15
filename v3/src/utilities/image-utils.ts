@@ -8,6 +8,24 @@ export interface ImageDimensions {
 }
 
 /**
+ * Convert a File object to a data URL.
+ * Data URLs contain the encoded image data and can be safely serialized,
+ * unlike object URLs which are ephemeral browser references.
+ */
+export function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      resolve(reader.result as string)
+    }
+    reader.onerror = () => {
+      reject(new Error(`Failed to read file: ${file.name}`))
+    }
+    reader.readAsDataURL(file)
+  })
+}
+
+/**
  * Load an image from a URL and extract its natural dimensions.
  * Returns { width, height } scaled to fit within MAX dimensions while preserving aspect ratio.
  * If the image fails to load, returns half of the maximum dimensions as fallback.

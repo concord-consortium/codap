@@ -1,4 +1,4 @@
-import { getImageDimensions, MAX_IMAGE_HEIGHT, MAX_IMAGE_WIDTH } from "./image-utils"
+import { fileToDataUrl, getImageDimensions, MAX_IMAGE_HEIGHT, MAX_IMAGE_WIDTH } from "./image-utils"
 
 // Mock the Image constructor
 class MockImage {
@@ -38,6 +38,72 @@ describe("image-utils", () => {
 
   afterEach(() => {
     window.Image = originalImage
+  })
+
+  describe("fileToDataUrl", () => {
+    it("converts a File object to a data URL", async () => {
+      const blob = new Blob(["test image data"], { type: "image/png" })
+      const file = new File([blob], "test-image.png", { type: "image/png" })
+
+      const dataUrl = await fileToDataUrl(file)
+
+      expect(dataUrl).toMatch(/^data:image\/png;base64,/)
+      expect(typeof dataUrl).toBe("string")
+    })
+
+    it("preserves the file's MIME type in the data URL", async () => {
+      const jpegBlob = new Blob(["jpeg data"], { type: "image/jpeg" })
+      const jpegFile = new File([jpegBlob], "test.jpg", { type: "image/jpeg" })
+
+      const dataUrl = await fileToDataUrl(jpegFile)
+
+      expect(dataUrl).toMatch(/^data:image\/jpeg;base64,/)
+    })
+
+    it("rejects the promise when file reading fails", async () => {
+      const file = new File(["test"], "test.png", { type: "image/png" })
+
+      // Mock FileReader to simulate error
+      const originalFileReader = global.FileReader
+      const mockFileReader = jest.fn().mockImplementation(() => {
+        const instance = {
+          readAsDataURL: jest.fn(function(this: any) {
+            setTimeout(() => this.onerror?.(), 0)
+          }),
+          onerror: null as any,
+          onload: null as any,
+          result: null
+        }
+        return instance
+      })
+
+      // @ts-expect-error - testing error condition
+      global.FileReader = mockFileReader
+
+      try {
+        await expect(fileToDataUrl(file)).rejects.toThrow("Failed to read file: test.png")
+      } finally {
+        global.FileReader = originalFileReader
+      }
+    })
+
+    it("handles different image formats", async () => {
+      const formats = [
+        { type: "image/png", mime: "image/png" },
+        { type: "image/jpeg", mime: "image/jpeg" },
+        { type: "image/gif", mime: "image/gif" },
+        { type: "image/webp", mime: "image/webp" }
+      ]
+
+      for (const format of formats) {
+        const blob = new Blob(["data"], { type: format.type })
+        const file = new File([blob], "test", { type: format.type })
+
+        const dataUrl = await fileToDataUrl(file)
+
+        expect(dataUrl).toMatch(new RegExp(`^data:${format.mime};base64,`))
+      }
+    })
   })
 
   describe("getImageDimensions", () => {
