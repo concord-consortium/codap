@@ -54,7 +54,8 @@ context("codap single smoke test", () => {
       table.getColumnHeader(1).click({ force: true })
     })
     table.getAttribute("Order").should('be.visible').and("have.text", "Order")
-    table.getAttribute("LifeSpan").should('be.visible').and('have.text', 'LifeSpan(years)')
+    // use regex to avoid failing when text is displayed on two lines with an ellipsis
+    table.getAttribute("LifeSpan").should('be.visible').invoke('text').should('match', /^LifeSpan/)
 
     cy.log("verify grid cells exist")
     table.getGridCell(2, 2).should('be.visible').and("contain", "African Elephant")
