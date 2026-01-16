@@ -74,14 +74,14 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
     abovePointsGroupRef = useRef<SVGGElement>(null),
     backgroundSvgRef = useRef<SVGGElement>(null),
     // Temporary HTML host to avoid <foreignObject> issues in Safari
-    pixiHostRef = useRef<HTMLDivElement>(null),
+    pixiContainerRef = useRef<HTMLDivElement>(null),
     prevAttrCollectionsMapRef = useRef<Record<string, string>>({}),
     graphRef = useRef<HTMLDivElement | null>(null)
 
-  if (pixiPoints?.canvas && pixiHostRef.current && pixiHostRef.current.children.length === 0) {
-    pixiHostRef.current.appendChild(pixiPoints.canvas)
+  if (pixiPoints?.canvas && pixiContainerRef.current && pixiContainerRef.current.children.length === 0) {
+    pixiContainerRef.current.appendChild(pixiPoints.canvas)
     pixiPoints.setupBackgroundEventDistribution({
-      elementToHide: pixiHostRef.current
+      elementToHide: pixiContainerRef.current
     })
   }
 
@@ -120,7 +120,7 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
       select(belowPointsGroupRef.current).attr("transform", translate)
       select(abovePointsGroupRef.current).attr("transform", translate)
       // Position the HTML host (absolute) to overlay the plot area
-      const host = pixiHostRef.current
+      const host = pixiContainerRef.current
       if (host) {
         const w = Math.max(0, layout.plotWidth)
         const h = Math.max(0, layout.plotHeight)
@@ -413,7 +413,7 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
           </g>
         </svg>
         {/* HTML host for Pixi canvas to avoid Safari foreignObject issues */}
-        <div ref={pixiHostRef} className="pixi-points-host" />
+        <div ref={pixiContainerRef} className="pixi-points-host" />
         <svg className="overlay-svg">
           <g className="above-points-group" ref={abovePointsGroupRef}>
             {/* Components rendered on top of the dots/points should be added to this group. */}
