@@ -7,11 +7,18 @@ import {IAxisLayout} from "../../axis/models/axis-layout-context"
 import {MultiScale} from "../../axis/models/multi-scale"
 import {Bounds, DataDisplayLayout, GraphExtentsPlace} from "../../data-display/models/data-display-layout"
 
+interface BannerRegistration {
+  height: number
+  order: number
+}
+
 export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
   // actual measured sizes of axis elements
   @observable axisBounds: Map<AxisPlace, AxisBounds> = new Map()
   axisScales: Map<AxisPlace, MultiScale> = new Map()
   desiredExtentsFromComponents: Map<GraphExtentsPlace, number> = new Map() // not necessarily the extent they get
+  // Dynamic banner registration - allows any client to register a banner with a height and order
+  @observable bannerHeights: Map<string, BannerRegistration> = new Map()
   private disposer?: () => void
 
   constructor() {
@@ -108,6 +115,38 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
     multiScale.setRepetitions(1)
   }
 
+  /**
+   * Register a banner with the layout. Banners are rendered above the plot area and
+   * reduce the available plot height. Lower order values are rendered higher (closer to top).
+   * @param id - Unique identifier for the banner
+   * @param height - Height in pixels
+   * @param order - Order value (lower = higher position)
+   */
+  @action registerBanner(id: string, height: number, order: number) {
+    this.bannerHeights.set(id, { height, order })
+    this.updateScaleRanges(this.plotWidth, this.plotHeight)
+  }
+
+  /**
+   * Unregister a previously registered banner.
+   * @param id - Unique identifier for the banner to remove
+   */
+  @action unregisterBanner(id: string) {
+    this.bannerHeights.delete(id)
+    this.updateScaleRanges(this.plotWidth, this.plotHeight)
+  }
+
+  /**
+   * Computed total height of all registered banners.
+   */
+  @computed get totalBannersHeight(): number {
+    let total = 0
+    for (const { height } of this.bannerHeights.values()) {
+      total += height
+    }
+    return total
+  }
+
   @override setDesiredExtent(place: GraphExtentsPlace, extent: number) {
     this.desiredExtentsFromComponents.set(place, extent)
     // If the request is for a "large" extent, we set the minimum to 50px. But otherwise we don't require
@@ -154,7 +193,7 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
   @override get computedBounds() {
     const {desiredExtents, tileWidth, tileHeight} = this,
       topAxisHeight = desiredExtents.get('top') ?? 0,
-      bannersHeight = desiredExtents.get('banners') ?? 0,
+      bannersHeight = this.totalBannersHeight,
       leftAxisWidth = desiredExtents.get('left') ?? 20,
       bottomAxisHeight = desiredExtents.get('bottom') ?? 20,
       legendHeight = desiredExtents.get('legend') ?? 0,

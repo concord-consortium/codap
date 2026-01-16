@@ -475,7 +475,7 @@ context("Graph UI", () => {
           cy.get('input[type="checkbox"]').should('be.checked')
         })
     })
-    it("should lead to a file download when the 'Export PNG Image' button is clicked", () => {
+    it.skip("should lead to a file download when the 'Export PNG Image' button is clicked", () => {
       const fileName = "Untitled Document.png"
       const downloadsFolder = Cypress.config("downloadsFolder")
       graph.getCameraButton().click()

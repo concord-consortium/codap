@@ -7,7 +7,6 @@ import { updateTileNotification } from "../../../models/tiles/tile-notifications
 import { logMessageWithReplacement } from "../../../lib/log-message"
 import { t } from "../../../utilities/translation/translate"
 import { isGraphContentModel } from "../models/graph-content-model"
-import { graphSvg } from "../utilities/image-utils"
 import { openInDrawTool } from "../../data-display/data-display-image-utils"
 
 export const CameraMenuList = observer(function CameraMenuList() {
@@ -90,6 +89,13 @@ export const CameraMenuList = observer(function CameraMenuList() {
     return graphModel.renderState.dataUri || ''
   }
 
+  const handleOpenInDrawTool = async () => {
+    if (tile) {
+      const imageString = await getImageString()
+      await openInDrawTool(tile, imageString)
+    }
+  }
+
   const handleExportPNG = async () => {
     let imageString = await getImageString()
     imageString = imageString.replace("data:image/png;base64,", "")
@@ -101,6 +107,7 @@ export const CameraMenuList = observer(function CameraMenuList() {
   }
 
   const handleExportSVG = () => {
+/*  Scheduled to happen in 3.1 timeframe
     if (!graphModel?.renderState) return
 
     const { imageOptions } = graphModel.renderState
@@ -113,6 +120,7 @@ export const CameraMenuList = observer(function CameraMenuList() {
     if (svgString) {
       cfm?.client.saveSecondaryFileAsDialog(svgString, "svg", "text/plain", () => null)
     }
+*/
   }
 
   return (
@@ -139,19 +147,20 @@ export const CameraMenuList = observer(function CameraMenuList() {
           </MenuItem>
       }
 
-      <MenuItem data-testid="open-in-draw-tool" onClick={ async () => {
-        if (tile) {
-          const imageString = await getImageString()
-          await openInDrawTool(tile, imageString)
-        }
-      }}>
-        {t("DG.DataDisplayMenu.copyAsImage")}
+      <MenuItem data-testid="open-in-draw-tool"
+                onClick={handleOpenInDrawTool}
+                isDisabled={true}>
+        {`${t("DG.DataDisplayMenu.copyAsImage")} 🚧`}
       </MenuItem>
-      <MenuItem data-testid="export-png-image" onClick={handleExportPNG}>
-        {t("DG.DataDisplayMenu.exportPngImage")}
+      <MenuItem data-testid="export-png-image"
+                onClick={handleExportPNG}
+                isDisabled={true}>
+        {`${t("DG.DataDisplayMenu.exportPngImage")} 🚧`}
       </MenuItem>
-      <MenuItem data-testid="export-svg-image" onClick={handleExportSVG}>
-        {t("DG.DataDisplayMenu.exportSvgImage")}
+      <MenuItem data-testid="export-svg-image"
+                onClick={handleExportSVG}
+                isDisabled={true}>
+        {`${t("DG.DataDisplayMenu.exportSvgImage")} 🚧`}
       </MenuItem>
     </MenuList>
   )

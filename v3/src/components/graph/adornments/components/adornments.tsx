@@ -32,12 +32,23 @@ export const Adornments = observer(function Adornments() {
 
   useEffect(function handleAdornmentBannerCountChange() {
     return mstAutorun(() => {
-      let bannerCount = dataConfig?.showMeasuresForSelection ? 1 : 0
-      bannerCount += graphModel.adornmentsStore.activeBannerCount
-      const bannersHeight = bannerCount * kGraphAdornmentsBannerHeight
-      layout.setDesiredExtent("banners", bannersHeight)
-      }, { name: "Graph.handleAdornmentBannerCountChange" }, graphModel
-    )
+      // Register measures for selection banner
+      const measuresBannerId = "measuresForSelection"
+      if (dataConfig?.showMeasuresForSelection) {
+        layout.registerBanner(measuresBannerId, kGraphAdornmentsBannerHeight, 10)
+      } else {
+        layout.unregisterBanner(measuresBannerId)
+      }
+
+      // Register adornment banners (collectively, since they're managed by the store)
+      const adornmentBannersId = "adornmentBanners"
+      const adornmentBannersHeight = graphModel.adornmentsStore.activeBannerCount * kGraphAdornmentsBannerHeight
+      if (adornmentBannersHeight > 0) {
+        layout.registerBanner(adornmentBannersId, adornmentBannersHeight, 20)
+      } else {
+        layout.unregisterBanner(adornmentBannersId)
+      }
+    }, { name: "Graph.handleAdornmentBannerCountChange" }, graphModel)
   }, [dataConfig, graphModel, layout])
 
   if (!adornments?.length && !dataConfig?.showMeasuresForSelection) return null
