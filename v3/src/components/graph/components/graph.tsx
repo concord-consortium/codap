@@ -11,6 +11,7 @@ import {IDataSet} from "../../../models/data/data-set"
 import {isUndoingOrRedoing} from "../../../models/history/tree-types"
 import { getTileModel } from "../../../models/tiles/tile-model"
 import { updateTileNotification } from "../../../models/tiles/tile-notifications"
+import {mstAutorun} from "../../../utilities/mst-autorun"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import { t } from "../../../utilities/translation/translate"
@@ -50,6 +51,8 @@ import {GraphAxis} from "./graph-axis"
 import { ParentToggles } from "./parent-toggles"
 
 import "./graph.scss"
+
+const kParentTogglesHeight = 20
 
 interface IProps {
   graphController: GraphController
@@ -150,6 +153,17 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
       () => graphController.syncAxisScalesWithModel(),
       {name: "Graph.handleAttributeConfigurationChange"}, graphModel)
   }, [graphController, graphModel])
+
+  // Register parent toggles with the layout when they are shown
+  useEffect(function handleParentTogglesChange() {
+    return mstAutorun(() => {
+      if (graphModel.showParentToggles) {
+        layout.registerBanner("parentToggles", kParentTogglesHeight, 0)
+      } else {
+        layout.unregisterBanner("parentToggles")
+      }
+    }, { name: "Graph.handleParentTogglesChange" }, graphModel)
+  }, [graphModel, layout])
 
   // Respond to collection addition/removal. Note that this can fire in addition to the collection
   // map changes reaction below, but that fires too early, so this gives the graph another chance.
@@ -400,7 +414,7 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
         </svg>
         {/* HTML host for Pixi canvas to avoid Safari foreignObject issues */}
         <div ref={pixiHostRef} className="pixi-points-host" />
-        <svg>
+        <svg className="overlay-svg">
           <g className="above-points-group" ref={abovePointsGroupRef}>
             {/* Components rendered on top of the dots/points should be added to this group. */}
             <Marquee marqueeState={marqueeState}/>
