@@ -125,4 +125,8 @@ export class NullPointRenderer extends PointRendererBase {
   ): void {
     // No canvas to set up event distribution on
   }
+
+  protected doSetupResizeObserver(_resizeTo: HTMLElement): void {
+    // No canvas to resize
+  }
 }

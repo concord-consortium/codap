@@ -3,7 +3,6 @@ import React, {useEffect} from "react"
 import { useMemo } from "use-memo-one"
 import { mstAutorun } from "../../../utilities/mst-autorun"
 import { DataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
-import { PointRendererBase } from "../../data-display/renderer"
 import { LeafletMapLayersContext } from "../hooks/use-leaflet-map-layers"
 import {useMapModel} from "../hooks/use-map-model"
 import {useMapModelContext} from "../hooks/use-map-model-context"
@@ -17,11 +16,7 @@ import { MapPinLayer } from "./map-pin-layer"
 import {MapPointLayer} from "./map-point-layer"
 import {MapPolygonLayer} from "./map-polygon-layer"
 
-interface IProps {
-  setRendererLayer: (renderer: PointRendererBase, layerIndex: number) => void
-}
-
-export const MapInterior = observer(function MapInterior({setRendererLayer}: IProps) {
+export const MapInterior = observer(function MapInterior() {
   const mapModel = useMapModelContext()
   const leafletMapLayers = useMemo(() => new LeafletMapLayers(mapModel), [mapModel])
 
@@ -55,7 +50,7 @@ export const MapInterior = observer(function MapInterior({setRendererLayer}: IPr
           >
             <MapPointLayer
               mapLayerModel={layerModel}
-              setRendererLayer={setRendererLayer}
+              layerIndex={index}
             />
           </DataConfigurationContext.Provider>
         )

@@ -10,7 +10,7 @@ import {useMapModelContext} from "../hooks/use-map-model-context"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
 import {useRendererPointerDownDeselect} from "../../data-display/hooks/use-renderer-pointer-down-deselect"
 import {MultiLegend} from "../../data-display/components/legend/multi-legend"
-import {useRendererArray} from "../../data-display/hooks/use-renderer-array"
+import { PointRendererArray } from "../../data-display/renderer"
 import { DEBUG_PIXI_POINTS } from "../../../lib/debug"
 import {logStringifiedObjectMessage} from "../../../lib/log-message"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
@@ -26,17 +26,17 @@ import "leaflet/dist/leaflet.css"
 import "./map.scss"
 interface IProps {
   setMapRef: (ref: HTMLDivElement | null) => void
+  rendererArray: PointRendererArray
 }
 
-export const CodapMap = observer(function CodapMap({setMapRef}: IProps) {
+export const CodapMap = observer(function CodapMap({setMapRef, rendererArray}: IProps) {
   const mapModel = useMapModelContext(),
     layout = useDataDisplayLayout(),
     mapHeight = layout.contentHeight,
     interiorDivRef = useRef<HTMLDivElement>(null),
     prevMapSize = useRef<{ width: number, height: number, legend: number }>({width: 0, height: 0, legend: 0}),
     forceUpdate = useForceUpdate(),
-    mapRef = useRef<HTMLDivElement | null>(null),
-    {rendererArray, setRendererLayer} = useRendererArray()
+    mapRef = useRef<HTMLDivElement | null>(null)
 
   const mySetMapRef = (ref: HTMLDivElement | null) => {
     mapRef.current = ref
@@ -136,7 +136,7 @@ export const CodapMap = observer(function CodapMap({setMapRef}: IProps) {
               })
             }
           </>
-          <MapInterior setRendererLayer={setRendererLayer}/>
+          <MapInterior/>
         </MapContainer>
         <MapBackground mapModel={mapModel} rendererArray={rendererArray}/>
       </div>

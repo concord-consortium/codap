@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { NullPointRenderer } from "./null-point-renderer"
 import { PixiPointRenderer } from "./pixi-point-renderer"
 import { PointRendererBase } from "./point-renderer-base"
+import { IPointRendererOptions } from "./point-renderer-types"
 import { PointsState } from "./points-state"
 import { IContextConsumer, webGLContextManager } from "./webgl-context-manager"
 
@@ -35,6 +36,12 @@ export interface IUsePointRendererOptions {
    * Callback when the renderer type changes (e.g., null -> webgl)
    */
   onRendererChange?: (renderer: PointRendererBase) => void
+
+  /**
+   * Options to pass to the renderer's init() method.
+   * Used for map-specific options like backgroundEventDistribution.
+   */
+  rendererOptions?: IPointRendererOptions
 }
 
 /**
@@ -99,7 +106,7 @@ export interface IUsePointRendererResult {
  * ```
  */
 export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRendererResult {
-  const { id, isMinimized = false, priority = 0, containerRef, onRendererChange } = options
+  const { id, isMinimized = false, priority = 0, containerRef, onRendererChange, rendererOptions } = options
 
   // Shared state that survives renderer switches
   const stateRef = useRef<PointsState>(new PointsState())
@@ -227,7 +234,7 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
         newRenderer = new NullPointRenderer(stateRef.current)
       }
 
-      await newRenderer.init()
+      await newRenderer.init(rendererOptions)
       setRenderer(newRenderer)
       setIsReady(true)
 
@@ -235,8 +242,8 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
     }
 
     switchRenderer()
-    // Note: We intentionally don't include `renderer` in dependencies
-    // as it would cause infinite loops
+    // Note: We intentionally don't include `renderer` or `rendererOptions` in dependencies
+    // as it would cause infinite loops or unnecessary re-renders
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasWebGLContext, onRendererChange])
 

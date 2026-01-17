@@ -286,8 +286,7 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
       const y = getScreenY(caseId)
       if (x != null && isFinite(x) && y != null && isFinite(y)) {
         const point = renderer.getPointForCaseData(aCaseData)
-        // Cast to any for compatibility during migration (works with both Sprite and IPoint)
-        point && renderer.setPointPosition(point as any, x, y)
+        point && renderer.setPointPosition(point, x, y)
       }
     }
     if (selectedOnly) {

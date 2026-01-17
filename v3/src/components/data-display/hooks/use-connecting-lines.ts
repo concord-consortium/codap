@@ -4,8 +4,7 @@ import { useCallback } from "react"
 import { selectCases, setSelectedCases } from "../../../models/data/data-set-utils"
 import { t } from "../../../utilities/translation/translate"
 import { IConnectingLineDescription, transitionDuration } from "../data-display-types"
-import { PixiBackgroundPassThroughEvent } from "../pixi/pixi-points"
-import { PointRendererBase } from "../renderer"
+import { BackgroundPassThroughEvent, PointRendererBase } from "../renderer"
 import { useDataConfigurationContext } from "./use-data-configuration-context"
 
 interface IMouseOverProps {
@@ -114,11 +113,11 @@ export const useConnectingLines = (props: IProps) => {
         .attr("d", (d: any) => curve(d))
         .classed(`interactive-${clientType}-element`, true) // for dots canvas event passing
         .classed("selected", allCasesSelected)
-        .on(PixiBackgroundPassThroughEvent.Click, (e) => handleConnectingLinesClick(e, lineCaseIds))
-        .on(PixiBackgroundPassThroughEvent.MouseOver, (e) =>
+        .on(BackgroundPassThroughEvent.Click, (e) => handleConnectingLinesClick(e, lineCaseIds))
+        .on(BackgroundPassThroughEvent.MouseOver, (e) =>
           handleConnectingLinesMouseOver({ event: e, caseIDs: lineCaseIds, parentAttrName, primaryAttrValue })
         )
-        .on(PixiBackgroundPassThroughEvent.MouseOut, handleConnectingLinesMouseOut)
+        .on(BackgroundPassThroughEvent.MouseOut, handleConnectingLinesMouseOut)
         .call(dataTip)
         .attr("fill", "none")
         .attr("stroke", color)

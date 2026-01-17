@@ -10,6 +10,7 @@ export type {
   PointEventHandler,
   RendererCapability
 } from "./point-renderer-types"
+export { BackgroundPassThroughEvent } from "./point-renderer-types"
 
 // State
 export { PointsState, caseDataKey, generatePointId } from "./points-state"
@@ -22,7 +23,7 @@ export type { PointRendererArray } from "./point-renderer-base"
 
 // Renderers
 export { NullPointRenderer } from "./null-point-renderer"
-export { PixiPointRenderer, isPixiPointRenderer } from "./pixi-point-renderer"
+export { PixiPointRenderer } from "./pixi-point-renderer"
 
 // Context management
 export { webGLContextManager } from "./webgl-context-manager"
@@ -34,5 +35,10 @@ export {
 } from "./point-renderer-context"
 export { usePointRenderer } from "./use-point-renderer"
 export type { IUsePointRendererOptions, IUsePointRendererResult } from "./use-point-renderer"
-export { usePointRendererArray } from "./use-point-renderer-array"
-export type { IUsePointRendererArrayOptions, IUsePointRendererArrayResult } from "./use-point-renderer-array"
+export {
+  usePointRendererArray, PointRendererArrayContext, usePointRendererArrayContext, useLayerRenderer
+} from "./use-point-renderer-array"
+export type {
+  IUsePointRendererArrayOptions, IUsePointRendererArrayResult,
+  IPointRendererArrayContextValue, IUseLayerRendererOptions, IUseLayerRendererResult
+} from "./use-point-renderer-array"

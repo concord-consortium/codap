@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from "react"
+import React, {useCallback, useEffect, useRef} from "react"
 import {comparer, reaction} from "mobx"
 import { observer } from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
@@ -20,7 +20,7 @@ import {
 import { IConnectingLineDescription } from "../../data-display/data-display-types"
 import {isDisplayItemVisualPropsAction} from "../../data-display/models/display-model-actions"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
-import { IPoint, IPointMetadata, PixiPointRenderer, PointRendererBase } from "../../data-display/renderer"
+import { IPoint, IPointMetadata, PixiPointRenderer, useLayerRenderer } from "../../data-display/renderer"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {IMapPointLayerModel} from "../models/map-point-layer-model"
 import {MapPointGrid} from "./map-point-grid"
@@ -31,10 +31,10 @@ import "./map-point-layer.scss"
 
 interface IProps {
   mapLayerModel: IMapPointLayerModel
-  setRendererLayer: (renderer: PointRendererBase, layerIndex: number) => void
+  layerIndex: number
 }
 
-export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, setRendererLayer}: IProps) {
+export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, layerIndex}: IProps) {
   const {dataConfiguration, pointDescription} = mapLayerModel,
     dataset = isAlive(dataConfiguration) ? dataConfiguration?.dataset : undefined,
     mapModel = useMapModelContext(),
@@ -42,12 +42,16 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     layout = useDataDisplayLayout(),
     instanceId = useInstanceIdContext(),
     pixiContainerRef = useRef<HTMLDivElement>(null),
-    [renderer, setRenderer] = useState<PixiPointRenderer>(),
     showConnectingLines = mapLayerModel.connectingLinesAreVisible,
     connectingLinesRef = useRef<SVGGElement>(null),
     connectingLinesActivatedRef = useRef(false),
     heatmapCanvasRef = useRef<HTMLCanvasElement|null>(null),
     simpleheatRef = useRef<simpleheat.Instance>()
+
+  // Use context-managed renderer with WebGL context management
+  const { renderer: layerRenderer } = useLayerRenderer(layerIndex)
+  // Cast to PixiPointRenderer for access to pixi-specific methods
+  const renderer = layerRenderer as PixiPointRenderer | undefined
 
   const connectingLine = useCallback((caseID: string) => {
     const {latId, longId} = mapLayerModel.pointAttributes || {}
@@ -102,31 +106,18 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     connectingLinesActivatedRef, onConnectingLinesClick: handleConnectingLinesClick
   })
 
-  useEffect(function createPointRenderer() {
-    let _renderer: PixiPointRenderer
-
-    async function initRenderer() {
-      if (!pixiContainerRef.current) {
-        return
-      }
-      _renderer = new PixiPointRenderer()
-      await _renderer.init({
-        resizeTo: pixiContainerRef.current,
-        // Renderer background should redistribute events to the geoJSON polygons that lie underneath.
-        backgroundEventDistribution: {
-          // Element that needs to be "hidden" to obtain another element at the current cursor position.
-          elementToHide: pixiContainerRef.current
-        }
-      })
-      setRenderer(_renderer)
-      setRendererLayer(_renderer, mapLayerModel.layerIndex)
+  // Configure renderer with map-specific options when it becomes available
+  useEffect(function configureRenderer() {
+    if (!renderer || !pixiContainerRef.current) {
+      return
     }
-    initRenderer()
-
-    return () => {
-      _renderer?.dispose()
-    }
-  }, [mapLayerModel.layerIndex, setRendererLayer])
+    // Set up resize observer for the pixi container
+    renderer.setupResizeObserver(pixiContainerRef.current)
+    // Set up background event distribution for forwarding events to geoJSON polygons underneath
+    renderer.setupBackgroundEventDistribution({
+      elementToHide: pixiContainerRef.current
+    })
+  }, [renderer])
 
   // TODO: Deleted attributes should be removed from the DataConfiguration, in
   // which case the additional validation via the DataSet would be unnecessary.

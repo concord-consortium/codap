@@ -6,19 +6,23 @@ import {ITileBaseProps} from '../../tiles/tile-base-props'
 import {DataDisplayLayoutContext} from "../../data-display/hooks/use-data-display-layout"
 import {AttributeDragOverlay} from "../../drag-drop/attribute-drag-overlay"
 import { DataDisplayRenderState } from "../../data-display/models/data-display-render-state"
-import { useRendererArray } from "../../data-display/hooks/use-renderer-array"
+import { PointRendererArrayContext, usePointRendererArray } from "../../data-display/renderer"
 import {isMapContentModel} from "../models/map-content-model"
 import {MapModelContext} from "../hooks/use-map-model-context"
 import {useInitMapLayout} from "../hooks/use-init-map-layout"
 import {CodapMap} from "./codap-map"
 
-export const MapComponent = observer(function MapComponent({tile}: ITileBaseProps) {
+export const MapComponent = observer(function MapComponent({tile, isMinimized}: ITileBaseProps) {
   const mapModel = isMapContentModel(tile?.content) ? tile?.content : undefined
 
   const instanceId = useNextInstanceId("map")
   const layout = useInitMapLayout(mapModel)
   const mapRef = useRef<HTMLDivElement | null>(null)
-  const {rendererArray} = useRendererArray({ addInitialRenderer: true })
+  const { rendererArray, contextValue } = usePointRendererArray({
+    baseId: tile?.id ?? instanceId,
+    isMinimized,
+    containerRef: mapRef
+  })
 
   // used to determine when a dragged attribute is over the map component
   const dropId = `${instanceId}-component-drop-overlay`
@@ -41,8 +45,10 @@ export const MapComponent = observer(function MapComponent({tile}: ITileBaseProp
     <InstanceIdContext.Provider value={instanceId}>
       <DataDisplayLayoutContext.Provider value={layout}>
         <MapModelContext.Provider value={mapModel}>
-          <CodapMap setMapRef={setMapRef}/>
-          <AttributeDragOverlay dragIdPrefix={instanceId}/>
+          <PointRendererArrayContext.Provider value={contextValue}>
+            <CodapMap setMapRef={setMapRef} rendererArray={rendererArray}/>
+            <AttributeDragOverlay dragIdPrefix={instanceId}/>
+          </PointRendererArrayContext.Provider>
         </MapModelContext.Provider>
       </DataDisplayLayoutContext.Provider>
     </InstanceIdContext.Provider>

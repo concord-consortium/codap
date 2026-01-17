@@ -16,8 +16,7 @@ import {useDataDisplayLayout} from "../hooks/use-data-display-layout"
 import {useDataDisplayModelContext} from "../hooks/use-data-display-model"
 import {useRendererPointerDownDeselect} from "../hooks/use-renderer-pointer-down-deselect"
 import {MarqueeState} from "../models/marquee-state"
-import { PixiBackgroundPassThroughEvent } from "../pixi/pixi-points"
-import { PointRendererArray } from "../renderer"
+import { BackgroundPassThroughEvent, PointRendererArray } from "../renderer"
 
 interface IProps {
   marqueeState: MarqueeState
@@ -226,7 +225,7 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
       .attr('y', d => cellHeight * row(d))
       .style('fill', d => (row(d) + col(d)) % 2 === 0 ? bgColor : darkBgColor)
       .style('fill-opacity', fillOpacity)
-      .on(PixiBackgroundPassThroughEvent.PointerDown, pointerDownEvent => {
+      .on(BackgroundPassThroughEvent.PointerDown, pointerDownEvent => {
         // Custom dragging implementation to avoid D3. Unfortunately, since we need to deal with events manually
         // dispatched from PixiJS canvas, we need to be very careful about the event handling. This implementation
         // allows us just to deal with pointerdown event being passed from canvas. pointermove and pointerup events

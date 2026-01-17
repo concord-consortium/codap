@@ -26,15 +26,6 @@ const MAX_SPRITE_SCALE = 2
 const strokeColor = "#ffffff"
 const strokeColorHover = "#a35b3a"
 
-// Anything lying beneath the PixiJS canvas, expecting events to be passed through, must utilize only these specified
-// events. Others are currently not supported.
-export enum PixiBackgroundPassThroughEvent {
-  Click = "click",
-  MouseOver = "mouseover",
-  MouseOut = "mouseout",
-  PointerDown = "pointerdown",
-}
-
 // without this cast using TypeScript 5.7, we get the following error:
 // "Type 'FederatedPointerEvent' is missing the following properties
 // from type 'PointerEvent': altitudeAngle, azimuthAngle"
@@ -825,13 +816,19 @@ export class PixiPointRenderer extends PointRendererBase {
     })
   }
 
-  // ===== Public utility methods for compatibility =====
+  // ===== Protected implementation of resize observer setup =====
 
-  /**
-   * Get the PIXI sprite for a point (for backwards compatibility during migration).
-   */
-  getSpriteForPoint(point: IPoint): PIXI.Sprite | undefined {
-    return this.sprites.get(point.id)
+  protected doSetupResizeObserver(resizeTo: HTMLElement): void {
+    // Clean up existing observer if any
+    this.resizeObserver?.disconnect()
+
+    this.resizeObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect
+        this.doResize(width, height, 1, 1, 1, 1)
+      }
+    })
+    this.resizeObserver.observe(resizeTo)
   }
 }
 

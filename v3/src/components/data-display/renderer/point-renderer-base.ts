@@ -177,6 +177,11 @@ export abstract class PointRendererBase {
     options: IBackgroundEventDistributionOptions
   ): void
 
+  /**
+   * Setup resize observer for the renderer
+   */
+  protected abstract doSetupResizeObserver(resizeTo: HTMLElement): void
+
   // ===== Concrete properties =====
 
   get isReady(): boolean {
@@ -402,6 +407,14 @@ export abstract class PointRendererBase {
    */
   setupBackgroundEventDistribution(options: IBackgroundEventDistributionOptions): void {
     this.doSetupBackgroundEventDistribution(options)
+  }
+
+  /**
+   * Setup resize observer for the renderer.
+   * The observer will automatically resize the renderer when the target element changes size.
+   */
+  setupResizeObserver(resizeTo: HTMLElement): void {
+    this.doSetupResizeObserver(resizeTo)
   }
 
   // ===== Animation frame management =====

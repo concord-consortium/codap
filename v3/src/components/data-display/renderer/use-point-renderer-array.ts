@@ -1,6 +1,30 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import React, { useCallback, useContext, useEffect, useMemo, useState } from "react"
 import { PointRendererBase } from "./point-renderer-base"
+import { IPointRendererOptions } from "./point-renderer-types"
 import { usePointRenderer } from "./use-point-renderer"
+
+/**
+ * Context for sharing renderer settings with child layers.
+ * This allows layers to create their own context-managed renderers
+ * while sharing the parent's visibility and priority settings.
+ */
+export interface IPointRendererArrayContextValue {
+  baseId: string
+  isMinimized?: boolean
+  priority?: number
+  containerRef?: React.RefObject<HTMLElement>
+  setRendererLayer: (renderer: PointRendererBase, layerIndex: number) => void
+}
+
+export const PointRendererArrayContext = React.createContext<IPointRendererArrayContextValue | null>(null)
+
+/**
+ * Hook to access the renderer array context.
+ * Returns null if not within a PointRendererArrayContext provider.
+ */
+export function usePointRendererArrayContext(): IPointRendererArrayContextValue | null {
+  return useContext(PointRendererArrayContext)
+}
 
 /**
  * Options for the usePointRendererArray hook
@@ -64,6 +88,12 @@ export interface IUsePointRendererArrayResult {
    * Call this when user interacts with a graph that doesn't have a context.
    */
   requestContextWithHighPriority: () => void
+
+  /**
+   * Context value for child layers to use.
+   * Wrap child components in PointRendererArrayContext.Provider with this value.
+   */
+  contextValue: IPointRendererArrayContextValue
 }
 
 /**
@@ -101,12 +131,88 @@ export function usePointRendererArray(options: IUsePointRendererArrayOptions): I
     return rendererArray.some(r => r?.capability === "webgl")
   }, [rendererArray])
 
+  // Context value for child layers
+  const contextValue = useMemo<IPointRendererArrayContextValue>(() => ({
+    baseId,
+    isMinimized,
+    priority,
+    containerRef,
+    setRendererLayer
+  }), [baseId, isMinimized, priority, containerRef, setRendererLayer])
+
   return {
     rendererArray,
     setRendererLayer,
     hasAnyWebGLContext,
     contextWasDenied: primaryResult.contextWasDenied,
     isVisible: primaryResult.isVisible,
-    requestContextWithHighPriority: primaryResult.requestContextWithHighPriority
+    requestContextWithHighPriority: primaryResult.requestContextWithHighPriority,
+    contextValue
   }
+}
+
+/**
+ * Options for the useLayerRenderer hook
+ */
+export interface IUseLayerRendererOptions {
+  /**
+   * Optional priority override for this specific layer
+   */
+  layerPriority?: number
+
+  /**
+   * Options to pass to the renderer's init() method.
+   * Used for layer-specific options like backgroundEventDistribution for maps.
+   */
+  rendererOptions?: IPointRendererOptions
+}
+
+/**
+ * Result from useLayerRenderer hook
+ */
+export interface IUseLayerRendererResult {
+  renderer: PointRendererBase | undefined
+  isReady: boolean
+  hasWebGLContext: boolean
+}
+
+/**
+ * Hook for child layers to get a context-managed renderer.
+ * Must be used within a PointRendererArrayContext.Provider.
+ *
+ * This hook:
+ * - Creates a renderer using usePointRenderer with shared settings from context
+ * - Automatically registers the renderer with the parent via setRendererLayer
+ * - Participates in WebGL context management
+ *
+ * @param layerIndex - The index of this layer in the renderer array
+ * @param options - Optional configuration for this layer's renderer
+ */
+export function useLayerRenderer(layerIndex: number, options?: IUseLayerRendererOptions): IUseLayerRendererResult {
+  const context = useContext(PointRendererArrayContext)
+
+  if (!context) {
+    throw new Error("useLayerRenderer must be used within a PointRendererArrayContext.Provider")
+  }
+
+  const { baseId, isMinimized, priority, containerRef, setRendererLayer } = context
+  const { layerPriority, rendererOptions } = options ?? {}
+
+  // Create a context-managed renderer for this layer
+  const { renderer, isReady, hasWebGLContext } = usePointRenderer({
+    id: `${baseId}-layer-${layerIndex}`,
+    isMinimized,
+    priority: layerPriority ?? priority,
+    containerRef,
+    rendererOptions
+  })
+
+  // Register the renderer with the parent when it changes
+  useEffect(() => {
+    if (renderer) {
+      setRendererLayer(renderer, layerIndex)
+    }
+  }, [renderer, layerIndex, setRendererLayer])
+
+  return { renderer, isReady, hasWebGLContext }
 }

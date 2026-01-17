@@ -63,6 +63,18 @@ export interface IBackgroundEventDistributionOptions {
 }
 
 /**
+ * Event names for background pass-through events.
+ * Used by D3/SVG elements that need to receive events forwarded from the renderer's background.
+ * The values match standard DOM event names since the renderer dispatches standard events.
+ */
+export enum BackgroundPassThroughEvent {
+  Click = "click",
+  PointerDown = "pointerdown",
+  MouseOver = "mouseover",
+  MouseOut = "mouseout"
+}
+
+/**
  * State for an individual point (used by PointsState)
  */
 export interface IPointState {
