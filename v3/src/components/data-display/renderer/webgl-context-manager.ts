@@ -33,7 +33,7 @@ export interface IContextConsumer {
  * })
  * ```
  */
-class WebGLContextManager {
+export class WebGLContextManager {
   private static instance: WebGLContextManager | null = null
 
   /** Maximum number of contexts to allocate (conservative to leave room for system use) */
