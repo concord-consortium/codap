@@ -212,7 +212,7 @@ The hook:
 
 ### usePointRendererArray Hook
 
-For components that need multiple renderers (e.g., graphs with multiple Y attributes):
+For components that need multiple renderers (e.g., maps with multiple data sets):
 
 ```typescript
 function usePointRendererArray(options: IUsePointRendererArrayOptions): IUsePointRendererArrayResult
@@ -225,7 +225,7 @@ When a graph cannot get a WebGL context, it displays a placeholder message inste
 - Instructs the user to close/minimize other graphs or click to prioritize
 - Is clickable to request a high-priority context
 
-The placeholder is only shown when `contextWasDenied` is true (not just when `hasWebGLContext` is false), which prevents flashing during initial render before the first context request completes.
+The placeholder is only shown when `contextWasDenied` is true, which prevents flashing during initial render before the first context request completes.
 
 ## Usage Examples
 
@@ -250,7 +250,6 @@ const {
 // Pass to child components
 <Graph
   rendererArray={rendererArray}
-  hasWebGLContext={hasAnyWebGLContext}
   contextWasDenied={contextWasDenied}
   isRendererVisible={isVisible}
   onRequestContext={requestContextWithHighPriority}
@@ -342,4 +341,6 @@ if (isPixiPointRenderer(renderer)) {
 
 2. **Performance Monitoring**: The `WebGLContextManager` could be extended to track context usage statistics for debugging.
 
-3. **Context Recovery**: Currently, when a browser loses a WebGL context (e.g., due to GPU reset), the renderer may need to be recreated. This is handled by the hook's renderer switching logic.
+3. **Context Recovery**: The current system handles context switching when the `WebGLContextManager` revokes/grants contexts (priority-based pooling). However, browser-level context loss events (e.g., GPU reset, system-wide WebGL resource pressure) are not explicitly handled. A future enhancement could listen for `webglcontextlost` events and automatically recreate the renderer.
+
+4. **Dynamic Context Limit**: The current implementation assumes browsers support ~16 WebGL contexts and sets a conservative limit of 14. However, some browsers or devices may support fewer contexts. A future enhancement could listen for `webglcontextlost` events to detect when the actual browser limit has been exceeded and dynamically reduce `maxContexts` accordingly.

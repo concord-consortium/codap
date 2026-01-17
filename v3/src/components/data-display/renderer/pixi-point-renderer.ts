@@ -43,13 +43,6 @@ const toFederatedPointerEvent = (event: PointerEvent) => event as unknown as PIX
 
 const hoverRadiusFactor = 1.5
 
-// map from dispatched event to the PixiPointRenderer instance that dispatched it
-const pixiDispatchedEventsMap = new WeakMap<Event | PIXI.FederatedEvent, PixiPointRenderer>()
-
-export function getPixiPointRendererDispatcher(event: Event) {
-  return pixiDispatchedEventsMap.get(event)
-}
-
 interface IDisplayTypeTransitionState {
   isActive: boolean
 }
@@ -621,10 +614,9 @@ export class PixiPointRenderer extends PointRendererBase {
     }
   }
 
-  private dispatchEvent(targetElement: Element | null, event: Event, pixiEvent: PIXI.FederatedEvent): void {
+  private dispatchEvent(targetElement: Element | null, event: Event, _pixiEvent: PIXI.FederatedEvent): void {
     if (targetElement) {
-      pixiDispatchedEventsMap.set(event, this)
-      pixiDispatchedEventsMap.set(pixiEvent, this)
+      this.registerDispatchedEvent(event)
       targetElement.dispatchEvent(event)
     }
   }

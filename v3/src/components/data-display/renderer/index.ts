@@ -16,11 +16,11 @@ export type {
 export { PointsState, caseDataKey, generatePointId } from "./points-state"
 
 // Base class
-export { PointRendererBase, circleAnchor, hBarAnchor, vBarAnchor } from "./point-renderer-base"
+export { PointRendererBase, circleAnchor, hBarAnchor, vBarAnchor, getRendererForEvent } from "./point-renderer-base"
 
 // Renderers
 export { NullPointRenderer } from "./null-point-renderer"
-export { PixiPointRenderer, getPixiPointRendererDispatcher, isPixiPointRenderer } from "./pixi-point-renderer"
+export { PixiPointRenderer, isPixiPointRenderer } from "./pixi-point-renderer"
 
 // Context management
 export { webGLContextManager } from "./webgl-context-manager"

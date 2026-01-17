@@ -15,7 +15,7 @@ import {
 } from "./data-display-types"
 import {IDataConfigurationModel } from "./models/data-configuration-model"
 import {CaseDataWithSubPlot} from "./d3-types"
-import { getPixiPointRendererDispatcher, IPointStyle, PointRendererBase } from "./renderer"
+import { getRendererForEvent, IPointStyle, PointRendererBase } from "./renderer"
 
 export const maxWidthOfStringsD3 = (strings: Iterable<string>) => {
   let maxWidth = 0
@@ -52,8 +52,8 @@ export const computePointRadius = (numPoints: number, pointSizeMultiplier: numbe
 
 export function handleClickOnCase(event: PointerEvent, caseID: string, dataset?: IDataSet) {
   // click occurred on a point, so don't deselect
-  const dispatcher = getPixiPointRendererDispatcher(event)
-  dispatcher?.cancelAnimationFrame("deselectAll")
+  const renderer = getRendererForEvent(event)
+  renderer?.cancelAnimationFrame("deselectAll")
 
   const extendSelection = event.shiftKey,
     caseIsSelected = dataset?.isCaseSelected(caseID)

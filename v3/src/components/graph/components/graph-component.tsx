@@ -115,7 +115,6 @@ export const GraphComponent = observer(function GraphComponent({tile, isMinimize
                   graphController={graphController}
                   setGraphRef={setGraphRef}
                   rendererArray={rendererArray}
-                  hasWebGLContext={hasAnyWebGLContext}
                   contextWasDenied={contextWasDenied}
                   isRendererVisible={isVisible}
                   onRequestContext={requestContextWithHighPriority}

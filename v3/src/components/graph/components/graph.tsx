@@ -60,8 +60,6 @@ interface IProps {
   graphController: GraphController
   setGraphRef: (ref: HTMLDivElement | null) => void
   rendererArray: PointRendererArray
-  /** Whether the renderer has a WebGL context */
-  hasWebGLContext?: boolean
   /** Whether a context was requested and denied (for showing placeholder) */
   contextWasDenied?: boolean
   /** Whether the renderer is visible (not minimized or off-screen) */
@@ -74,7 +72,6 @@ export const Graph = observer(function Graph({
   graphController,
   setGraphRef,
   rendererArray,
-  hasWebGLContext = true,
   contextWasDenied = false,
   isRendererVisible = true,
   onRequestContext

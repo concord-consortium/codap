@@ -28,6 +28,20 @@ export const vBarAnchor = { x: 0, y: 0 }
  */
 export type AnimationFrameRequestId = "deselectAll" | "transition" | string
 
+/**
+ * WeakMap from dispatched events to the renderer that dispatched them.
+ * Used to look up which renderer dispatched an event (e.g., to cancel pending operations).
+ */
+const dispatchedEventsMap = new WeakMap<Event, PointRendererBase>()
+
+/**
+ * Look up the renderer that dispatched a given event.
+ * Returns undefined if the event was not dispatched by a renderer.
+ */
+export function getRendererForEvent(event: Event): PointRendererBase | undefined {
+  return dispatchedEventsMap.get(event)
+}
+
 export abstract class PointRendererBase {
   protected state: PointsState
   protected _isReady = false
@@ -39,6 +53,15 @@ export abstract class PointRendererBase {
 
   constructor(state?: PointsState) {
     this.state = state ?? new PointsState()
+  }
+
+  /**
+   * Register that this renderer dispatched the given event.
+   * Subclasses should call this when dispatching events so that
+   * handlers can look up the originating renderer.
+   */
+  protected registerDispatchedEvent(event: Event): void {
+    dispatchedEventsMap.set(event, this)
   }
 
   // ===== Abstract properties (subclasses must implement) =====
