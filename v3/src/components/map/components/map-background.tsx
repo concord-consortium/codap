@@ -4,13 +4,13 @@ import { useMemo } from "use-memo-one"
 import { Background } from "../../data-display/components/background"
 import { Marquee } from "../../data-display/components/marquee"
 import { MarqueeState } from "../../data-display/models/marquee-state"
-import { PixiPointsArray } from "../../data-display/pixi/pixi-points"
+import { PixiPointsCompatibleArray } from "../../data-display/renderer"
 import { IMapContentModel } from "../models/map-content-model"
 import { mstReaction } from "../../../utilities/mst-reaction"
 
 interface IProps {
   mapModel: IMapContentModel
-  pixiPointsArray: PixiPointsArray
+  pixiPointsArray: PixiPointsCompatibleArray
 }
 
 export const MapBackground = observer(function MapBackground({ mapModel, pixiPointsArray }: IProps) {

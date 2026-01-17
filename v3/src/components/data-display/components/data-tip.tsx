@@ -1,9 +1,8 @@
 import React, { Fragment, useCallback, useRef, useState } from "react"
-import * as PIXI from "pixi.js"
 import { computePosition, flip, offset, shift, useFloating } from "@floating-ui/react"
 import { useDataDisplayModelContext } from "../hooks/use-data-display-model"
 import { IDataSet } from "../../../models/data/data-set"
-import {IPixiPointMetadata, PixiPoints} from "../pixi/pixi-points"
+import { PixiPointsCompatible } from "../renderer"
 import { urlParams } from "../../../utilities/url-params"
 import { IDataConfigurationModel } from "../models/data-configuration-model"
 import { IGetTipTextProps, IShowDataTipProps } from "../data-tip-types"
@@ -24,7 +23,7 @@ interface IDataTipHelperProps extends IDataTipBaseProps {
 }
 
 export interface IDataTipProps extends IDataTipBaseProps {
-  pixiPoints?: PixiPoints
+  pixiPoints?: PixiPointsCompatible
 }
 
 const createVirtualElement = (event: PointerEvent) => {
@@ -98,7 +97,9 @@ export const DataTip = (props: IDataTipProps) => {
     }, 0)
   }
 
-  const showPixiDataTip = (event: PointerEvent, sprite: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+  // This callback works with both old API (PIXI.Sprite, IPixiPointMetadata) and new API (IPoint, IPointMetadata)
+  // Both APIs provide metadata with caseID and plotNum properties
+  const showPixiDataTip = (event: PointerEvent, _point: any, metadata: any) => {
     showDataTip({event, caseID: metadata.caseID, plotNum: metadata.plotNum})
   }
 
@@ -109,8 +110,9 @@ export const DataTip = (props: IDataTipProps) => {
 
   // support disabling data tips via url parameter for jest tests
   if (urlParams.noDataTips === undefined && pixiPoints && dataDisplayModel) {
-    pixiPoints.onPointOver = showPixiDataTip
-    pixiPoints.onPointLeave = hideDataTip
+    // Both PixiPoints and PointRendererBase have onPointOver/onPointLeave with compatible signatures
+    pixiPoints.onPointOver = showPixiDataTip as any
+    pixiPoints.onPointLeave = hideDataTip as any
     dataDisplayModel.setShowDataTip(showDataTip)
     dataDisplayModel.setHideDataTip(hideDataTip)
   }

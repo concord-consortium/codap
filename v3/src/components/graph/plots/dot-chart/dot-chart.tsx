@@ -1,9 +1,8 @@
 import { observer } from "mobx-react-lite"
-import * as PIXI from "pixi.js"
 import React, { useCallback, useEffect } from "react"
 import { mstReaction } from "../../../../utilities/mst-reaction"
 import { handleClickOnCase } from "../../../data-display/data-display-utils"
-import { circleAnchor, IPixiPointMetadata, PixiPointEventHandler } from "../../../data-display/pixi/pixi-points"
+import { circleAnchor, IPointMetadata } from "../../../data-display/renderer"
 import { IPlotProps } from "../../graphing-types"
 import { useChartDots } from "../../hooks/use-chart-dots"
 import { usePlotResponders } from "../../hooks/use-plot"
@@ -36,8 +35,9 @@ export const DotChart = observer(function DotChart({ pixiPoints }: IPlotProps) {
 
   usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
 
-  const onPointClick: PixiPointEventHandler = useCallback(
-    (event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+  // Use any for point since it can be either PIXI.Sprite (old API) or IPoint (new API)
+  const onPointClick = useCallback(
+    (event: PointerEvent, point: any, metadata: IPointMetadata) => {
       handleClickOnCase(event, metadata.caseID, dataset)
   }, [dataset])
 

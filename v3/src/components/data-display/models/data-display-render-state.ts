@@ -1,13 +1,13 @@
 import { graphSnapshot, IGraphSvgOptions } from "../../graph/utilities/image-utils"
-import { PixiPointsArray } from "../pixi/pixi-points"
+import { PixiPointsCompatibleArray } from "../renderer"
 
 export class DataDisplayRenderState {
-  pixiPointsArray: PixiPointsArray
+  pixiPointsArray: PixiPointsCompatibleArray
   displayElement: HTMLElement
   dataUri?: string
 
   constructor(
-    pixiPointsArray: PixiPointsArray,
+    pixiPointsArray: PixiPointsCompatibleArray,
     displayElement: HTMLElement,
     dataUri?: string
   ) {

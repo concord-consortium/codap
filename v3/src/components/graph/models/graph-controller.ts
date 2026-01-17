@@ -5,7 +5,7 @@ import { isAnyCategoricalAxisModel } from "../../axis/models/categorical-axis-mo
 import { isAnyNumericAxisModel } from "../../axis/models/numeric-axis-models"
 import { axisPlaceToAttrRole } from "../../data-display/data-display-types"
 import {matchCirclesToData} from "../../data-display/data-display-utils"
-import {PixiPoints} from "../../data-display/pixi/pixi-points"
+import { PixiPointsCompatible } from "../../data-display/renderer"
 import {IGraphContentModel} from "./graph-content-model"
 import {GraphLayout} from "./graph-layout"
 import { syncModelWithAttributeConfiguration } from "./graph-model-utils"
@@ -17,7 +17,7 @@ interface IGraphControllerProps {
 
 export class GraphController {
   graphModel?: IGraphContentModel
-  pixiPoints?: PixiPoints
+  pixiPoints?: PixiPointsCompatible
   layout: GraphLayout
   instanceId: string
   axisReactionDisposer?: () => void
@@ -31,7 +31,7 @@ export class GraphController {
     this.axisReactionDisposer?.()
   }
 
-  setProperties(graphModel: IGraphContentModel, pixiPoints?: PixiPoints) {
+  setProperties(graphModel: IGraphContentModel, pixiPoints?: PixiPointsCompatible) {
     this.graphModel = graphModel
     this.pixiPoints = pixiPoints
 

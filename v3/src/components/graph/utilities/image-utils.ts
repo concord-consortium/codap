@@ -1,4 +1,4 @@
-import { PixiPoints } from "../../data-display/pixi/pixi-points"
+import { PixiPointsCompatible } from "../../data-display/renderer"
 
 const disallowedElementClasses = new Set([
   "axis-legend-attribute-menu",
@@ -18,7 +18,7 @@ export interface IGraphSvgOptions {
   rootEl: HTMLElement
   graphWidth: number
   graphHeight: number
-  pixiPoints: PixiPoints
+  pixiPoints: PixiPointsCompatible
 }
 
 export function graphSvg({ rootEl, graphWidth, graphHeight, pixiPoints }: IGraphSvgOptions): string {
@@ -70,7 +70,10 @@ export function graphSvg({ rootEl, graphWidth, graphHeight, pixiPoints }: IGraph
    * @returns {SVGImageElement | undefined} An SVG image element representing the PixiJS canvas, or undefined.
    */
   const imageFromPixiCanvas = (_foreignObject: SVGForeignObjectElement): SVGImageElement | undefined => {
-    const extractedCanvas = pixiPoints.renderer?.extract.canvas(pixiPoints.stage)
+    // Access PIXI-specific properties - both PixiPoints and PixiPointRenderer have these
+    const pixiRenderer = (pixiPoints as any).renderer
+    const pixiStage = (pixiPoints as any).stage
+    const extractedCanvas = pixiRenderer?.extract.canvas(pixiStage)
     if (!extractedCanvas?.toDataURL) return
 
     const _width = _foreignObject.getAttribute("width") ?? extractedCanvas.width.toString()

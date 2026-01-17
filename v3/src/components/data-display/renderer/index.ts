@@ -1,0 +1,50 @@
+// Types
+export type {
+  IPoint,
+  IPointMetadata,
+  IPointRendererOptions,
+  IPointState,
+  IPointStyle,
+  IBackgroundEventDistributionOptions,
+  ITransitionOptions,
+  PointEventHandler,
+  PointRendererArray,
+  RendererCapability
+} from "./point-renderer-types"
+
+// State
+export { PointsState, caseDataKey, generatePointId } from "./points-state"
+
+// Base class
+export { PointRendererBase, circleAnchor, hBarAnchor, vBarAnchor } from "./point-renderer-base"
+
+// Renderers
+export { NullPointRenderer } from "./null-point-renderer"
+export { PixiPointRenderer, getPixiPointRendererDispatcher } from "./pixi-point-renderer"
+
+// Backward compatibility
+export type { PixiPointsCompatible, PixiPointsCompatibleArray, IPointWithSprite } from "./point-renderer-compat"
+export {
+  isPixiPoints,
+  isPointRenderer,
+  isPixiPointRenderer,
+  getCanvas,
+  hasWebGLCapability,
+  toPixiPointsArray
+} from "./point-renderer-compat"
+
+// Context management
+export { webGLContextManager } from "./webgl-context-manager"
+export type { IContextConsumer } from "./webgl-context-manager"
+
+// React integration
+export {
+  PointRendererContext, usePointRendererContext, useOptionalPointRendererContext
+} from "./point-renderer-context"
+export { usePointRenderer, usePointRendererArray } from "./use-point-renderer"
+export type {
+  IUsePointRendererOptions,
+  IUsePointRendererResult,
+  IUsePointRendererArrayOptions,
+  IUsePointRendererArrayResult
+} from "./use-point-renderer"

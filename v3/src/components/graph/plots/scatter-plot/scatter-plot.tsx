@@ -1,7 +1,6 @@
 import {ScaleLinear, select} from "d3"
 import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
-import * as PIXI from "pixi.js"
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {useDataSetContext} from "../../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
@@ -17,7 +16,7 @@ import { handleClickOnCase, setPointSelection } from "../../../data-display/data
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
 import { useConnectingLines } from "../../../data-display/hooks/use-connecting-lines"
 import {useDataDisplayAnimation} from "../../../data-display/hooks/use-data-display-animation"
-import { IPixiPointMetadata } from "../../../data-display/pixi/pixi-points"
+import { IPointMetadata } from "../../../data-display/renderer"
 import { ILSRLAdornmentModel } from "../../adornments/lsrl/lsrl-adornment-model"
 import { IMovableLineAdornmentModel } from "../../adornments/movable-line/movable-line-adornment-model"
 import { IPlottedFunctionAdornmentModel } from "../../adornments/plotted-function/plotted-function-adornment-model"
@@ -86,7 +85,8 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
   dragPointRadiusRef.current = graphModel.getPointRadius('hover-drag')
   yScaleRef.current = layout.getAxisScale("left") as ScaleNumericBaseType
 
-  const onDragStart = useCallback((event: PointerEvent, _point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+  // Use any for point since it can be either PIXI.Sprite (old API) or IPoint (new API)
+  const onDragStart = useCallback((event: PointerEvent, _point: any, metadata: IPointMetadata) => {
     dataset?.beginCaching()
     secondaryAttrIDsRef.current = dataConfiguration?.yAttributeIDs || []
     stopAnimation() // We don't want to animate points until end of drag
@@ -287,7 +287,8 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
       const y = getScreenY(caseId)
       if (x != null && isFinite(x) && y != null && isFinite(y)) {
         const point = pixiPoints.getPointForCaseData(aCaseData)
-        point && pixiPoints.setPointPosition(point, x, y)
+        // Cast to any for compatibility during migration (works with both Sprite and IPoint)
+        point && pixiPoints.setPointPosition(point as any, x, y)
       }
     }
     if (selectedOnly) {

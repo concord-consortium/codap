@@ -10,24 +10,31 @@ import {onAnyAction} from "../../../utilities/mst-utils"
 import {IAxisModel} from "../../axis/models/axis-model"
 import {GraphAttrRoles} from "../../data-display/data-display-types"
 import {matchCirclesToData} from "../../data-display/data-display-utils"
-import { PixiPointEventHandler, PixiPoints } from "../../data-display/pixi/pixi-points"
+import { PixiPointsCompatible } from "../../data-display/renderer"
 import { syncModelWithAttributeConfiguration } from "../models/graph-model-utils"
 import { updateCellMasks } from "../utilities/graph-utils"
 import {useGraphContentModelContext} from "./use-graph-content-model-context"
 import {useGraphLayoutContext} from "./use-graph-layout-context"
 
+// Generic event handler type that works with both old and new APIs
+// In old API: (event, PIXI.Sprite, IPixiPointMetadata) => void
+// In new API: (event, IPoint, IPointMetadata) => void
+export type CompatiblePointEventHandler = (event: PointerEvent, point: any, metadata: any) => void
+
 export interface IPixiDragHandlers {
-  start: PixiPointEventHandler
-  drag: PixiPointEventHandler
-  end: PixiPointEventHandler
+  start: CompatiblePointEventHandler
+  drag: CompatiblePointEventHandler
+  end: CompatiblePointEventHandler
 }
 
-export const usePixiDragHandlers = (pixiPoints: PixiPoints | undefined, {start, drag, end}: IPixiDragHandlers) => {
+export const usePixiDragHandlers = (
+  pixiPoints: PixiPointsCompatible | undefined, {start, drag, end}: IPixiDragHandlers
+) => {
   useEffect(() => {
     if (pixiPoints) {
-      pixiPoints.onPointDragStart = start
-      pixiPoints.onPointDrag = drag
-      pixiPoints.onPointDragEnd = end
+      pixiPoints.onPointDragStart = start as any
+      pixiPoints.onPointDrag = drag as any
+      pixiPoints.onPointDragEnd = end as any
       // On cleanup, remove event listeners
       return () => {
         pixiPoints.onPointDragStart = undefined
@@ -41,7 +48,7 @@ export const usePixiDragHandlers = (pixiPoints: PixiPoints | undefined, {start, 
 export interface IPlotResponderProps {
   refreshPointPositions: (selectedOnly: boolean) => void
   refreshPointSelection: () => void
-  pixiPoints?: PixiPoints
+  pixiPoints?: PixiPointsCompatible
 }
 
 function isDefunctAxisModel(axisModel?: IAxisModel) {
@@ -85,15 +92,25 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     }
   }, [dataConfiguration, graphModel, instanceId, pixiPoints, startAnimation])
 
-  // Refresh point positions when pixiPoints become available to fix this bug:
-  // https://www.pivotaltracker.com/story/show/188333898
-  // This might be a workaround for the fact that useDebouncedCallback may not be updated when pixiPoints
-  // (a dependency of refreshPointPositions) are updated. useDebouncedCallback doesn't seem to declare any
-  // dependencies, and I'd imagine it returns a stable result (?).
+  // Refresh point positions and selection when pixiPoints become available or change.
+  // This handles both initial availability and renderer switches (e.g., when WebGL context is
+  // granted after being yielded). We call refreshPointPositions and refreshPointSelection directly
+  // (not via debounced callbacks) to ensure they use the new renderer, since useDebouncedCallback
+  // may have a stale closure capturing the old pixiPoints reference.
+  // See: https://www.pivotaltracker.com/story/show/188333898
   useEffect(() => {
     callMatchCirclesToData()
-    callRefreshPointPositions({ updateMasks: true })
-  }, [callMatchCirclesToData, callRefreshPointPositions, pixiPoints])
+    // Update masks with new renderer
+    updateCellMasks({ dataConfig: dataConfiguration, layout, pixiPoints })
+    // Call refreshPointPositions directly to ensure it uses the new pixiPoints
+    refreshPointPositions(false)
+    // Defer refreshPointSelection to run after any other synchronous matchCirclesToData calls
+    // (e.g., from useGraphController's setProperties). This ensures legend colors are applied
+    // after all points are created.
+    Promise.resolve().then(() => {
+      refreshPointSelection()
+    })
+  }, [callMatchCirclesToData, dataConfiguration, layout, pixiPoints, refreshPointPositions, refreshPointSelection])
 
   // respond to numeric axis domain changes (e.g. axis dragging)
   useEffect(() => {

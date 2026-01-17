@@ -1,12 +1,11 @@
 import {randomUniform} from "d3"
-import * as PIXI from "pixi.js"
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {useDataSetContext} from "../../../../hooks/use-data-set-context"
 import {mstReaction} from "../../../../utilities/mst-reaction"
 import { CaseData } from "../../../data-display/d3-types"
 import {handleClickOnCase, setPointSelection} from "../../../data-display/data-display-utils"
 import {useDataDisplayAnimation} from "../../../data-display/hooks/use-data-display-animation"
-import {IPixiPointMetadata} from "../../../data-display/pixi/pixi-points"
+import { IPointMetadata } from "../../../data-display/renderer"
 import { IPlotProps } from "../../graphing-types"
 import {useGraphContentModelContext} from "../../hooks/use-graph-content-model-context"
 import {useGraphDataConfigurationContext} from "../../hooks/use-graph-data-configuration-context"
@@ -34,21 +33,24 @@ export const CasePlot = function CasePlot({ pixiPoints }: IPlotProps) {
       })
   }, [])
 
-  const onDragStart = useCallback((event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+  // Use any for point since it can be either PIXI.Sprite (old API) or IPoint (new API)
+  const onDragStart = useCallback((event: PointerEvent, point: any, metadata: IPointMetadata) => {
     stopAnimation() // We don't want to animate points until end of drag
     setDragID(metadata.caseID)
     currPos.current = { x: event.clientX, y: event.clientY }
     handleClickOnCase(event, metadata.caseID, dataset)
   }, [stopAnimation, dataset])
 
-  const onDrag = useCallback((event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+  // Use any for point since it can be either PIXI.Sprite (old API) or IPoint (new API)
+  const onDrag = useCallback((event: PointerEvent, point: any, metadata: IPointMetadata) => {
     if (pixiPoints && dragID !== '') {
       const newPos = { x: event.clientX, y: event.clientY }
       const dx = newPos.x - currPos.current.x
       const dy = newPos.y - currPos.current.y
       currPos.current = newPos
       if (dx !== 0 || dy !== 0) {
-        pixiPoints.forEachSelectedPoint((selectedPoint) => {
+        // forEachSelectedPoint returns points with x/y properties (both Sprite and IPoint have them)
+        pixiPoints.forEachSelectedPoint((selectedPoint: any) => {
           selectedPoint.x += dx
           selectedPoint.y += dy
         })
@@ -56,7 +58,7 @@ export const CasePlot = function CasePlot({ pixiPoints }: IPlotProps) {
     }
   }, [pixiPoints, dragID])
 
-  const onDragEnd = useCallback((event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+  const onDragEnd = useCallback((event: PointerEvent, point: any, metadata: IPointMetadata) => {
     if (dragID !== '') {
       setDragID(() => '')
     }

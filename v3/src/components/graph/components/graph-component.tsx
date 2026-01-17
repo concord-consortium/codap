@@ -8,10 +8,11 @@ import { registerTileCollisionDetection } from "../../../lib/dnd-kit/dnd-detect-
 import { useDataSet } from '../../../hooks/use-data-set'
 import { DataSetContext } from '../../../hooks/use-data-set-context'
 import { InstanceIdContext, useNextInstanceId } from "../../../hooks/use-instance-id-context"
+import { useTileSelectionContext } from '../../../hooks/use-tile-selection-context'
 import { AxisProviderContext } from '../../axis/hooks/use-axis-provider-context'
 import { AxisLayoutContext } from "../../axis/models/axis-layout-context"
 import { kTitleBarHeight } from "../../constants"
-import { usePixiPointsArray } from '../../data-display/hooks/use-pixi-points-array'
+import { usePointRendererArray, toPixiPointsArray } from '../../data-display/renderer'
 import { DataDisplayRenderState } from '../../data-display/models/data-display-render-state'
 import { AttributeDragOverlay } from "../../drag-drop/attribute-drag-overlay"
 import { ITileBaseProps } from '../../tiles/tile-base-props'
@@ -28,14 +29,32 @@ import "../register-adornment-types"
 
 registerTileCollisionDetection(kGraphIdBase, graphCollisionDetection)
 
-export const GraphComponent = observer(function GraphComponent({tile}: ITileBaseProps) {
+export const GraphComponent = observer(function GraphComponent({tile, isMinimized}: ITileBaseProps) {
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
   const instanceId = useNextInstanceId("graph")
   const {data} = useDataSet(graphModel?.dataset)
   const layout = useInitGraphLayout(graphModel)
   const graphRef = useRef<HTMLDivElement | null>(null)
   const {width, height} = useResizeDetector<HTMLDivElement>({targetRef: graphRef})
-  const {pixiPointsArray} = usePixiPointsArray({ addInitialPixiPoints: true })
+
+  // Use the new point renderer hook with WebGL context management
+  const {
+    rendererArray,
+    hasAnyWebGLContext,
+    contextWasDenied,
+    isVisible,
+    requestContextWithHighPriority
+  } = usePointRendererArray({
+    baseId: tile?.id ?? instanceId,
+    isMinimized,
+    priority: graphModel?.dataConfiguration?.filteredCases[0]?.caseIds.length ?? 0,
+    containerRef: graphRef,
+    addInitialRenderer: true
+  })
+
+  // Convert to old API for backward compatibility during migration
+  const pixiPointsArray = toPixiPointsArray(rendererArray)
+
   const graphController = useMemo(
     () => new GraphController({layout, instanceId}),
     [layout, instanceId]
@@ -70,6 +89,17 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
     }
   }, [layout])
 
+  // Request a WebGL context when the tile is selected but doesn't have one
+  // This allows users to click on a graph to bump it to the top of the priority queue
+  const { isTileSelected } = useTileSelectionContext()
+  const isSelected = isTileSelected()
+
+  useEffect(function requestContextOnSelection() {
+    if (isSelected && !hasAnyWebGLContext) {
+      requestContextWithHighPriority()
+    }
+  }, [isSelected, hasAnyWebGLContext, requestContextWithHighPriority])
+
   // used to determine when a dragged attribute is over the graph component
   const dropId = `${instanceId}-component-drop-overlay`
   const {setNodeRef} = useDroppable({id: dropId})
@@ -88,6 +118,10 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
                   graphController={graphController}
                   setGraphRef={setGraphRef}
                   pixiPointsArray={pixiPointsArray}
+                  hasWebGLContext={hasAnyWebGLContext}
+                  contextWasDenied={contextWasDenied}
+                  isRendererVisible={isVisible}
+                  onRequestContext={requestContextWithHighPriority}
                 />
               </AxisProviderContext.Provider>
               <AttributeDragOverlay dragIdPrefix={instanceId}/>

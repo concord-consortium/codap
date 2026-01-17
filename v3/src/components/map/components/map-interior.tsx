@@ -3,7 +3,7 @@ import React, {useEffect} from "react"
 import { useMemo } from "use-memo-one"
 import { mstAutorun } from "../../../utilities/mst-autorun"
 import { DataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
-import {PixiPoints} from "../../data-display/pixi/pixi-points"
+import { PixiPointsCompatible } from "../../data-display/renderer"
 import { LeafletMapLayersContext } from "../hooks/use-leaflet-map-layers"
 import {useMapModel} from "../hooks/use-map-model"
 import {useMapModelContext} from "../hooks/use-map-model-context"
@@ -18,7 +18,7 @@ import {MapPointLayer} from "./map-point-layer"
 import {MapPolygonLayer} from "./map-polygon-layer"
 
 interface IProps {
-  setPixiPointsLayer: (pixiPoints: PixiPoints, layerIndex: number) => void
+  setPixiPointsLayer: (pixiPoints: PixiPointsCompatible, layerIndex: number) => void
 }
 
 export const MapInterior = observer(function MapInterior({setPixiPointsLayer}: IProps) {

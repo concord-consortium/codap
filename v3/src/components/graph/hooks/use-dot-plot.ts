@@ -8,7 +8,7 @@ import { GraphAttrRole } from "../../data-display/data-display-types"
 import { setPointSelection } from "../../data-display/data-display-utils"
 import { dataDisplayGetNumericValue } from "../../data-display/data-display-value-utils"
 import { useDataDisplayAnimation } from "../../data-display/hooks/use-data-display-animation"
-import { PixiPoints } from "../../data-display/pixi/pixi-points"
+import { PixiPointsCompatible } from "../../data-display/renderer"
 import { isBinnedPlotModel } from "../plots/histogram/histogram-model"
 import { SubPlotCells } from "../models/sub-plot-cells"
 import { kEmptyBinDetails } from "../plots/binned-dot-plot/bin-details"
@@ -19,7 +19,7 @@ import { useGraphContentModelContext } from "./use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "./use-graph-data-configuration-context"
 import { useGraphLayoutContext } from "./use-graph-layout-context"
 
-export const useDotPlot = (pixiPoints?: PixiPoints) => {
+export const useDotPlot = (pixiPoints?: PixiPointsCompatible) => {
   const graphModel = useGraphContentModelContext()
   const isHistogram = graphModel.plotType === "histogram"
   const dataConfig = useGraphDataConfigurationContext()

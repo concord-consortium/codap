@@ -10,7 +10,7 @@ import { isFiniteNumber, roundToPrecision } from "../../../../utilities/math-uti
 import { mstReaction } from "../../../../utilities/mst-reaction"
 import { t } from "../../../../utilities/translation/translate"
 import { getDomainExtentForPixelWidth } from "../../../axis/axis-utils"
-import {circleAnchor} from "../../../data-display/pixi/pixi-points"
+import { circleAnchor } from "../../../data-display/renderer"
 import {IPlotProps} from "../../graphing-types"
 import { useBinnedPlotResponders } from "../../hooks/use-binned-plot-responders"
 import { useDotPlot } from "../../hooks/use-dot-plot"

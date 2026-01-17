@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
-import { PixiPoints, PixiPointsArray } from "../pixi/pixi-points"
+import { PixiPoints } from "../pixi/pixi-points"
+import { PixiPointsCompatible, PixiPointsCompatibleArray } from "../renderer"
 
 interface IProps {
   addInitialPixiPoints?: boolean
@@ -7,7 +8,7 @@ interface IProps {
 
 export function usePixiPointsArray(props?: IProps) {
   const { addInitialPixiPoints = false } = props || {}
-  const [ pixiPointsArray, setPixiPointsArray ] = useState<PixiPointsArray>([])
+  const [ pixiPointsArray, setPixiPointsArray ] = useState<PixiPointsCompatibleArray>([])
 
   useEffect(() => {
     const initialPixiPoints = addInitialPixiPoints ? new PixiPoints() : undefined
@@ -27,7 +28,7 @@ export function usePixiPointsArray(props?: IProps) {
     }
   }, [addInitialPixiPoints])
 
-  const setPixiPointsLayer = useCallback((pixiPoints: PixiPoints, layerIndex: number) => {
+  const setPixiPointsLayer = useCallback((pixiPoints: PixiPointsCompatible, layerIndex: number) => {
     setPixiPointsArray((prev) => {
       const newPixiPointsArray = [...prev]
       newPixiPointsArray[layerIndex] = pixiPoints

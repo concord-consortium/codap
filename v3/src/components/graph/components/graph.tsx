@@ -19,11 +19,13 @@ import { setNiceDomain } from "../../axis/axis-domain-utils"
 import {GraphPlace} from "../../axis-graph-shared"
 import { AxisPlace, AxisPlaces, isAxisPlace } from "../../axis/axis-types"
 import { IBaseNumericAxisModel } from "../../axis/models/base-numeric-axis-model"
-import {PixiPointsArray} from "../../data-display/pixi/pixi-points"
+import { If } from "../../common/if"
+import { PixiPointsCompatibleArray } from "../../data-display/renderer"
 import {Background} from "../../data-display/components/background"
 import {DataTip} from "../../data-display/components/data-tip"
 import {MultiLegend} from "../../data-display/components/legend/multi-legend"
 import {Marquee} from "../../data-display/components/marquee"
+import { NoWebGLContextPlaceholder } from "../../data-display/components/no-webgl-context-placeholder"
 import {GraphAttrRole, graphPlaceToAttrRole, kPortalClass} from "../../data-display/data-display-types"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {isSetAttributeIDAction} from "../../data-display/models/display-model-actions"
@@ -57,10 +59,26 @@ const kParentTogglesHeight = 20
 interface IProps {
   graphController: GraphController
   setGraphRef: (ref: HTMLDivElement | null) => void
-  pixiPointsArray: PixiPointsArray
+  pixiPointsArray: PixiPointsCompatibleArray
+  /** Whether the renderer has a WebGL context */
+  hasWebGLContext?: boolean
+  /** Whether a context was requested and denied (for showing placeholder) */
+  contextWasDenied?: boolean
+  /** Whether the renderer is visible (not minimized or off-screen) */
+  isRendererVisible?: boolean
+  /** Callback to request a WebGL context with high priority (for user interaction) */
+  onRequestContext?: () => void
 }
 
-export const Graph = observer(function Graph({graphController, setGraphRef, pixiPointsArray}: IProps) {
+export const Graph = observer(function Graph({
+  graphController,
+  setGraphRef,
+  pixiPointsArray,
+  hasWebGLContext = true,
+  contextWasDenied = false,
+  isRendererVisible = true,
+  onRequestContext
+}: IProps) {
   const graphModel = useGraphContentModelContext(),
     {plotType} = graphModel,
     pixiPoints = pixiPointsArray[0],
@@ -78,12 +96,25 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
     prevAttrCollectionsMapRef = useRef<Record<string, string>>({}),
     graphRef = useRef<HTMLDivElement | null>(null)
 
-  if (pixiPoints?.canvas && pixiContainerRef.current && pixiContainerRef.current.children.length === 0) {
-    pixiContainerRef.current.appendChild(pixiPoints.canvas)
-    pixiPoints.setupBackgroundEventDistribution({
-      elementToHide: pixiContainerRef.current
-    })
-  }
+  // Mount/update the pixi canvas when the renderer changes
+  // This is in an effect to ensure it runs after the DOM is ready
+  useEffect(() => {
+    if (pixiPoints?.canvas && pixiContainerRef.current) {
+      const container = pixiContainerRef.current
+      const currentCanvas = pixiPoints.canvas
+      // Check if the current canvas is already mounted
+      if (!container.contains(currentCanvas)) {
+        // Remove any old canvases (from previous renderers that were disposed)
+        while (container.firstChild) {
+          container.removeChild(container.firstChild)
+        }
+        container.appendChild(currentCanvas)
+        pixiPoints.setupBackgroundEventDistribution({
+          elementToHide: container
+        })
+      }
+    }
+  }, [pixiPoints])
 
   const mySetGraphRef = (ref: HTMLDivElement | null) => {
     graphRef.current = ref
@@ -414,6 +445,16 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
         </svg>
         {/* HTML host for Pixi canvas to avoid Safari foreignObject issues */}
         <div ref={pixiContainerRef} className="pixi-points-host" />
+        {/* Show placeholder when a context was requested but denied */}
+        <If condition={contextWasDenied && isRendererVisible}>
+          <NoWebGLContextPlaceholder
+            width={layout.plotWidth}
+            height={layout.plotHeight}
+            left={layout.getComputedBounds('plot')?.left ?? 0}
+            top={layout.getComputedBounds('plot')?.top ?? 0}
+            onClick={onRequestContext}
+          />
+        </If>
         <svg className="overlay-svg">
           <g className="above-points-group" ref={abovePointsGroupRef}>
             {/* Components rendered on top of the dots/points should be added to this group. */}

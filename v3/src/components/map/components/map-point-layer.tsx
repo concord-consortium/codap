@@ -2,7 +2,6 @@ import React, {useCallback, useEffect, useRef, useState} from "react"
 import {comparer, reaction} from "mobx"
 import { observer } from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
-import * as PIXI from "pixi.js"
 import {useMap} from "react-leaflet"
 import simpleheat from "simpleheat"
 import {useDebouncedCallback} from "use-debounce"
@@ -21,7 +20,8 @@ import {
 import { IConnectingLineDescription } from "../../data-display/data-display-types"
 import {isDisplayItemVisualPropsAction} from "../../data-display/models/display-model-actions"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
-import {IPixiPointMetadata, PixiPoints} from "../../data-display/pixi/pixi-points"
+import { PixiPoints } from "../../data-display/pixi/pixi-points"
+import { IPointMetadata, PixiPointsCompatible } from "../../data-display/renderer"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {IMapPointLayerModel} from "../models/map-point-layer-model"
 import {MapPointGrid} from "./map-point-grid"
@@ -32,7 +32,7 @@ import "./map-point-layer.scss"
 
 interface IProps {
   mapLayerModel: IMapPointLayerModel
-  setPixiPointsLayer: (pixiPoints: PixiPoints, layerIndex: number) => void
+  setPixiPointsLayer: (pixiPoints: PixiPointsCompatible, layerIndex: number) => void
 }
 
 export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, setPixiPointsLayer}: IProps) {
@@ -220,7 +220,8 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     if (!pixiPoints) {
       return
     }
-    pixiPoints.onPointClick = (event: PointerEvent, sprite: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+    // Use any for point since it can be either PIXI.Sprite (old API) or IPoint (new API)
+    pixiPoints.onPointClick = (event: PointerEvent, point: any, metadata: IPointMetadata) => {
       handleClickOnCase(event, metadata.caseID, dataConfiguration.dataset)
       // TODO PIXI: this doesn't seem to work in pixi. Note that this click will be propagated to the map container
       // and handled by its click handler (which will deselect the point). The current workaround is to disable
@@ -317,7 +318,8 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     const {latId, longId} = mapLayerModel.pointAttributes || {}
     if (!latId || !longId) return
 
-    pixiPoints.forEachPoint((point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+    // Use any for point since it can be either PIXI.Sprite (old API) or IPoint (new API)
+    pixiPoints.forEachPoint((point: any, metadata: any) => {
       const {caseID} = metadata
       pixiPoints.setPointPosition(point, getScreenX(caseID), getScreenY(caseID))
       pixiPoints.setPointStyle(point, {

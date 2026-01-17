@@ -3,7 +3,6 @@ import { comparer } from "mobx"
 import {useMemo} from "use-memo-one"
 import {select, color, range} from "d3"
 import RTreeLib from 'rtree'
-import * as PIXI from "pixi.js"
 import { mstReaction } from "../../../utilities/mst-reaction"
 import {appState} from "../../../models/app-state"
 import {IDataSet} from "../../../models/data/data-set"
@@ -17,11 +16,12 @@ import {useDataDisplayLayout} from "../hooks/use-data-display-layout"
 import {useDataDisplayModelContext} from "../hooks/use-data-display-model"
 import {usePixiPointerDownDeselect} from "../hooks/use-pixi-pointer-down-deselect"
 import {MarqueeState} from "../models/marquee-state"
-import {IPixiPointMetadata, PixiBackgroundPassThroughEvent, PixiPointsArray} from "../pixi/pixi-points"
+import { PixiBackgroundPassThroughEvent } from "../pixi/pixi-points"
+import { PixiPointsCompatibleArray } from "../renderer"
 
 interface IProps {
   marqueeState: MarqueeState
-  pixiPointsArray: PixiPointsArray
+  pixiPointsArray: PixiPointsCompatibleArray
 }
 
 type RTree = ReturnType<typeof RTreeLib>
@@ -41,10 +41,12 @@ interface SelectionMap {
   [key: string]: SelectionSpec
 }
 
-const prepareTree = (pixiPointsArray: PixiPointsArray): RTree => {
+const prepareTree = (pixiPointsArray: PixiPointsCompatibleArray): RTree => {
   const selectionTree = RTreeLib(10)
   pixiPointsArray.forEach(pixiPoints => {
-    pixiPoints?.forEachPoint((point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+    // forEachPoint works with both old PixiPoints (PIXI.Sprite) and new PointRendererBase (IPoint)
+    // Use any for point since we just need x/y coordinates which both have
+    pixiPoints?.forEachPoint((point: any, metadata: any) => {
       const rect = {
         x: point.x,
         y: point.y,

@@ -1,10 +1,10 @@
 import { useEffect } from "react"
 import { useTileSelectionContext } from "../../../hooks/use-tile-selection-context"
-import { PixiPoints, PixiPointsArray } from "../pixi/pixi-points"
+import { PixiPointsCompatible, PixiPointsCompatibleArray } from "../renderer"
 
-type OnPointerDownCallback = (event: PointerEvent, pixiPoints: PixiPoints) => void
+type OnPointerDownCallback = (event: PointerEvent, pixiPoints: PixiPointsCompatible) => void
 
-export function usePixiPointerDown(pixiPointsArray: PixiPointsArray, onPointerDown: OnPointerDownCallback) {
+export function usePixiPointerDown(pixiPointsArray: PixiPointsCompatibleArray, onPointerDown: OnPointerDownCallback) {
   const { isTileSelected } = useTileSelectionContext()
 
   useEffect(() => {
@@ -13,8 +13,9 @@ export function usePixiPointerDown(pixiPointsArray: PixiPointsArray, onPointerDo
       // Re-dispatched events are dispatched to elements behind the PIXI canvas.
       const pixiPointsIndex = pixiPointsArray.findIndex(pixiPoints => event.target === pixiPoints?.canvas)
       // first click selects tile; deselection only occurs once the tile is already selected
-      if (pixiPointsIndex >= 0 && pixiPointsArray[pixiPointsIndex] && isTileSelected()) {
-        onPointerDown(event, pixiPointsArray[pixiPointsIndex])
+      const foundPixiPoints = pixiPointsArray[pixiPointsIndex]
+      if (pixiPointsIndex >= 0 && foundPixiPoints && isTileSelected()) {
+        onPointerDown(event, foundPixiPoints)
       }
     }
     window.addEventListener("pointerdown", handlePointerDownCapture, { capture: true })

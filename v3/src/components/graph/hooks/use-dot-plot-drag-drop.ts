@@ -1,5 +1,4 @@
 import { ScaleLinear } from "d3"
-import * as PIXI from "pixi.js"
 import { useRef, useState } from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { appState } from "../../../models/app-state"
@@ -9,7 +8,7 @@ import { getDomainExtentForPixelWidth } from "../../axis/axis-utils"
 import { handleClickOnCase } from "../../data-display/data-display-utils"
 import { dataDisplayGetNumericValue } from "../../data-display/data-display-value-utils"
 import { useDataDisplayAnimation } from "../../data-display/hooks/use-data-display-animation"
-import { IPixiPointMetadata } from "../../data-display/pixi/pixi-points"
+import { IPointMetadata } from "../../data-display/renderer"
 import { useGraphDataConfigurationContext } from "./use-graph-data-configuration-context"
 import { useGraphLayoutContext } from "./use-graph-layout-context"
 
@@ -35,7 +34,8 @@ export const useDotPlotDragDrop = () => {
    * the primary axis. Note: this does not permanently change their value. When they are
    * dropped, they return to their original value and position.
    */
-  const onDragStart = (event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+  // Use any for point since it can be either PIXI.Sprite (old API) or IPoint (new API)
+  const onDragStart = (event: PointerEvent, point: any, metadata: IPointMetadata) => {
     dataset?.beginCaching()
     didDrag.current = false
     const tItsID: string = metadata.caseID
@@ -75,7 +75,7 @@ export const useDotPlotDragDrop = () => {
     }
   }
 
-  const onDragEnd = (event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+  const onDragEnd = (event: PointerEvent, point: any, metadata: IPointMetadata) => {
     dataset?.endCaching()
     appState.endPerformance()
 

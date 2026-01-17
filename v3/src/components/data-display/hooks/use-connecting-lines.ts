@@ -4,7 +4,8 @@ import { useCallback } from "react"
 import { selectCases, setSelectedCases } from "../../../models/data/data-set-utils"
 import { t } from "../../../utilities/translation/translate"
 import { IConnectingLineDescription, transitionDuration } from "../data-display-types"
-import { PixiBackgroundPassThroughEvent, PixiPoints } from "../pixi/pixi-points"
+import { PixiBackgroundPassThroughEvent } from "../pixi/pixi-points"
+import { PixiPointsCompatible } from "../renderer"
 import { useDataConfigurationContext } from "./use-data-configuration-context"
 
 interface IMouseOverProps {
@@ -36,7 +37,7 @@ interface IProps {
   clientType: "graph" | "map"
   connectingLinesActivatedRef: React.MutableRefObject<boolean>
   connectingLinesSvg: SVGGElement | null
-  pixiPoints?: PixiPoints
+  pixiPoints?: PixiPointsCompatible
   yAttrCount?: number
   isCaseInSubPlot?: (cellKey: Record<string, string>, caseData: Record<string, any>) => void
   onConnectingLinesClick?: (event: MouseEvent) => void
