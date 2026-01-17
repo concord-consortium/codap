@@ -1,0 +1,325 @@
+# Point Rendering Architecture
+
+This document describes the point rendering system used by graphs and maps in CODAP v3. The system provides an abstraction layer over PIXI.js (WebGL) rendering with automatic context pooling to handle browser limitations.
+
+## Motivation
+
+Browsers limit the number of WebGL contexts to approximately 16. When a CODAP document contains more than 16 graphs, some graphs would fail to render silently because they couldn't acquire a WebGL context. Additionally, minimized or off-screen graphs were holding onto contexts unnecessarily.
+
+The refactoring addresses these issues by:
+1. Pooling WebGL contexts with a configurable maximum (default 14, leaving headroom)
+2. Providing priority-based context allocation (graphs with more points get priority)
+3. Supporting user interaction priority (clicking a graph bumps it to the top)
+4. Gracefully degrading when contexts are unavailable (showing a placeholder message)
+5. Preserving point state across renderer switches (so graphs restore correctly when contexts become available)
+
+## Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    WebGLContextManager (singleton)               │
+│   - Tracks active contexts (max ~14)                            │
+│   - Priority queue for context requests                         │
+│   - Notifies consumers when context granted/revoked             │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      usePointRenderer hook                       │
+│   - Observes visibility (IntersectionObserver)                  │
+│   - Observes minimized state                                    │
+│   - Requests/releases context from manager                      │
+│   - Creates appropriate renderer based on context availability  │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                ┌─────────────┴─────────────┐
+                ▼                           ▼
+┌───────────────────────────┐ ┌───────────────────────────────────┐
+│   NullPointRenderer       │ │     PixiPointRenderer             │
+│   - Tracks state          │ │     - Full PIXI.js rendering      │
+│   - No actual rendering   │ │     - WebGL context consumer      │
+│   - Instant transitions   │ │     - Syncs from shared state     │
+└───────────────────────────┘ └───────────────────────────────────┘
+                │                           │
+                └─────────────┬─────────────┘
+                              ▼
+                ┌─────────────────────────────┐
+                │         PointsState         │
+                │    - Canonical point data   │
+                │    - Survives renderer swap │
+                └─────────────────────────────┘
+```
+
+## Key Components
+
+### File Locations
+
+All renderer-related code is in `src/components/data-display/renderer/`:
+
+| File | Purpose |
+|------|---------|
+| `point-renderer-types.ts` | Core type definitions (`IPoint`, `IPointStyle`, `IPointMetadata`, etc.) |
+| `points-state.ts` | `PointsState` class - canonical point data that survives renderer switches |
+| `point-renderer-base.ts` | `PointRendererBase` abstract class with shared logic |
+| `null-point-renderer.ts` | `NullPointRenderer` - no-op renderer for context-starved graphs |
+| `pixi-point-renderer.ts` | `PixiPointRenderer` - full PIXI.js/WebGL rendering |
+| `webgl-context-manager.ts` | `WebGLContextManager` singleton managing context pool |
+| `use-point-renderer.ts` | React hooks: `usePointRenderer`, `usePointRendererArray` |
+| `point-renderer-context.tsx` | React context for renderer access |
+| `point-renderer-compat.ts` | Backward compatibility utilities for migration |
+| `index.ts` | Public API exports |
+
+### PointRendererBase
+
+Abstract base class that defines the renderer interface. Uses the Template Method pattern:
+- Base class manages `PointsState` and provides concrete implementations for state operations
+- Subclasses implement `do*` methods for renderer-specific behavior
+
+```typescript
+abstract class PointRendererBase {
+  // Shared state
+  protected state: PointsState
+
+  // Abstract methods subclasses must implement
+  protected abstract doInit(options?: IPointRendererOptions): Promise<void>
+  protected abstract doDispose(): void
+  protected abstract doSetPointPosition(pointId: string, x: number, y: number): void
+  protected abstract doSetPointStyle(pointId: string, style: Partial<IPointStyle>): void
+  // ... etc
+
+  // Template methods that update state then delegate
+  setPointPosition(point: IPoint, x: number, y: number): void {
+    this.state.updatePointPosition(point.id, x, y)
+    this.doSetPointPosition(point.id, x, y)
+  }
+}
+```
+
+### IPoint (Opaque Handle)
+
+Points are represented by opaque handles to avoid exposing PIXI.js internals:
+
+```typescript
+interface IPoint {
+  readonly id: string
+}
+```
+
+Consumers work with `IPoint` handles and pass them to renderer methods. The renderer looks up the actual sprite/graphics object internally.
+
+### PointsState
+
+Canonical storage for point data that survives renderer switches:
+
+```typescript
+class PointsState {
+  // Maps point ID to state
+  private points: Map<string, IPointState>
+  // Maps case data key to point ID
+  private caseDataToPointId: Map<string, string>
+
+  // State includes position, style, selection, subplot assignment
+  interface IPointState {
+    id: string
+    x: number
+    y: number
+    scale: number
+    style: IPointStyle
+    isRaised: boolean  // selected points are "raised" for z-ordering
+    subPlotIndex: number
+    metadata: IPointMetadata
+  }
+}
+```
+
+When switching from `PixiPointRenderer` to `NullPointRenderer` (context revoked) or vice versa (context granted), the new renderer inherits the same `PointsState` instance. This allows the graph to continue tracking point positions even without rendering, and restore correctly when a context becomes available.
+
+### WebGLContextManager
+
+Singleton that manages the pool of WebGL contexts:
+
+```typescript
+class WebGLContextManager {
+  readonly maxContexts = 14  // Leave headroom below browser limit
+
+  // Request a context for a consumer
+  requestContext(consumer: IContextConsumer): boolean
+
+  // Yield context (still registered, but available for others)
+  yieldContext(consumerId: string): void
+
+  // Fully release (unregister) a consumer
+  releaseContext(consumerId: string): void
+
+  // Update priority (for dynamic priority changes)
+  updatePriority(consumerId: string, priority: number): void
+
+  // Get next user interaction priority (incrementing counter)
+  getNextUserInteractionPriority(): number
+}
+
+interface IContextConsumer {
+  readonly id: string
+  readonly priority: number
+  onContextGranted(): void
+  onContextRevoked(): void
+}
+```
+
+**Priority System:**
+- Base priority is typically the point count (graphs with more data get priority)
+- User interaction (clicking/selecting a graph) assigns a very high priority (1 billion+, incrementing)
+- When the pool is full and a higher-priority consumer requests a context, the lowest-priority active consumer is evicted
+
+### usePointRenderer Hook
+
+React hook that integrates visibility observation, context management, and renderer lifecycle:
+
+```typescript
+function usePointRenderer(options: IUsePointRendererOptions): IUsePointRendererResult
+
+interface IUsePointRendererOptions {
+  id: string                                    // Unique identifier (tile ID)
+  isMinimized?: boolean                         // Whether component is minimized
+  priority?: number                             // Priority for context allocation
+  containerRef?: React.RefObject<HTMLElement>   // For visibility observation
+  onRendererChange?: (renderer: PointRendererBase) => void
+}
+
+interface IUsePointRendererResult {
+  renderer: PointRendererBase      // Current renderer (Pixi or Null)
+  hasWebGLContext: boolean         // Whether we have a WebGL context
+  contextWasDenied: boolean        // Whether a request was denied (for placeholder)
+  isVisible: boolean               // Whether component is visible
+  isReady: boolean                 // Whether renderer is initialized
+  state: PointsState               // Shared state
+  requestContextWithHighPriority: () => void  // For user interaction
+}
+```
+
+The hook:
+1. Sets up an `IntersectionObserver` to track visibility
+2. Requests/yields contexts based on visibility and minimized state
+3. Creates the appropriate renderer (`PixiPointRenderer` or `NullPointRenderer`)
+4. Handles renderer switching when context availability changes
+
+### usePointRendererArray Hook
+
+For components that need multiple renderers (e.g., graphs with multiple Y attributes):
+
+```typescript
+function usePointRendererArray(options: IUsePointRendererArrayOptions): IUsePointRendererArrayResult
+```
+
+## Placeholder UI
+
+When a graph cannot get a WebGL context, it displays a placeholder message instead of rendering nothing. The placeholder:
+- Explains that rendering is paused due to too many graphs
+- Instructs the user to close/minimize other graphs or click to prioritize
+- Is clickable to request a high-priority context
+
+The placeholder is only shown when `contextWasDenied` is true (not just when `hasWebGLContext` is false), which prevents flashing during initial render before the first context request completes.
+
+## Backward Compatibility
+
+During migration, both old (`PixiPoints`) and new (`PointRendererBase`) APIs coexist. The `point-renderer-compat.ts` file provides:
+
+```typescript
+// Type that accepts either old or new API
+type PixiPointsCompatible = PixiPoints | PointRendererBase
+
+// Type guards
+function isPixiPoints(obj: any): obj is PixiPoints
+function isPointRenderer(obj: any): obj is PointRendererBase
+function isPixiPointRenderer(obj: any): obj is PixiPointRenderer
+
+// Conversion utilities
+function toPixiPointsArray(renderers: Array<PointRendererBase | undefined>): PixiPointsCompatibleArray
+```
+
+## Usage Example
+
+```typescript
+// In a graph component
+const {
+  rendererArray,
+  hasAnyWebGLContext,
+  contextWasDenied,
+  isVisible,
+  requestContextWithHighPriority
+} = usePointRendererArray({
+  baseId: tileId,
+  isMinimized,
+  priority: dataConfiguration.filteredCases[0]?.caseIds.length ?? 0,
+  containerRef: graphRef,
+  addInitialRenderer: true
+})
+
+// Convert to compatible array for existing code
+const pixiPointsArray = toPixiPointsArray(rendererArray)
+
+// Pass to child components
+<Graph
+  pixiPointsArray={pixiPointsArray}
+  hasWebGLContext={hasAnyWebGLContext}
+  contextWasDenied={contextWasDenied}
+  isRendererVisible={isVisible}
+  onRequestContext={requestContextWithHighPriority}
+/>
+```
+
+## Event Handling
+
+Point renderers support the following event callbacks:
+
+```typescript
+// Optional event handlers (assign to renderer instance)
+renderer.onPointOver = (event, point, metadata) => { ... }
+renderer.onPointLeave = (event, point, metadata) => { ... }
+renderer.onPointClick = (event, point, metadata) => { ... }
+renderer.onPointDragStart = (event, point, metadata) => { ... }
+renderer.onPointDrag = (event, point, metadata) => { ... }
+renderer.onPointDragEnd = (event, point, metadata) => { ... }
+```
+
+Event handlers receive:
+- `event`: The browser `PointerEvent`
+- `point`: An `IPoint` handle (use with renderer methods)
+- `metadata`: `IPointMetadata` with `caseID`, `plotNum`, `datasetID`
+
+## Animation and Transitions
+
+The renderer supports animated transitions:
+
+```typescript
+renderer.transition(() => {
+  // Update point positions/styles inside callback
+  renderer.forEachPoint((point, metadata) => {
+    renderer.setPositionOrTransition(point, style, x, y)
+  })
+}, { duration: 500 })
+```
+
+The `NullPointRenderer` completes transitions instantly since there's nothing to animate.
+
+## Subplot Masking
+
+For graphs with categorical splits, points are assigned to subplots and masked:
+
+```typescript
+// Resize creates subplot masks
+renderer.resize(width, height, xCats, yCats, topCats, rightCats)
+
+// Each point is assigned to a subplot
+renderer.setPointSubPlot(point, subPlotIndex)
+```
+
+## Future Considerations
+
+1. **SVG Fallback**: The architecture supports adding an `SvgPointRenderer` for environments without WebGL, though this is not currently implemented.
+
+2. **Map Integration**: Maps use the same renderer system. The `MapPointLayer` component uses `PixiPoints` directly (not yet migrated to the new hooks), but the underlying renderer classes are shared.
+
+3. **Performance Monitoring**: The `WebGLContextManager` could be extended to track context usage statistics for debugging.
+
+4. **Context Recovery**: Currently, when a browser loses a WebGL context (e.g., due to GPU reset), the renderer may need to be recreated. This is handled by the hook's renderer switching logic.
