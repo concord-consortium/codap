@@ -13,7 +13,7 @@ import {useGraphLayoutContext} from "../../hooks/use-graph-layout-context"
 import {usePixiDragHandlers, usePlotResponders} from "../../hooks/use-plot"
 import { setPointCoordinates } from "../../utilities/graph-utils"
 
-export const CasePlot = function CasePlot({ pixiPoints }: IPlotProps) {
+export const CasePlot = function CasePlot({ renderer }: IPlotProps) {
   const graphModel = useGraphContentModelContext(),
     {isAnimating, startAnimation, stopAnimation} = useDataDisplayAnimation(),
     dataset = useDataSetContext(),
@@ -43,20 +43,20 @@ export const CasePlot = function CasePlot({ pixiPoints }: IPlotProps) {
 
   // Use any for point since it can be either PIXI.Sprite (old API) or IPoint (new API)
   const onDrag = useCallback((event: PointerEvent, point: any, metadata: IPointMetadata) => {
-    if (pixiPoints && dragID !== '') {
+    if (renderer && dragID !== '') {
       const newPos = { x: event.clientX, y: event.clientY }
       const dx = newPos.x - currPos.current.x
       const dy = newPos.y - currPos.current.y
       currPos.current = newPos
       if (dx !== 0 || dy !== 0) {
         // forEachSelectedPoint returns points with x/y properties (both Sprite and IPoint have them)
-        pixiPoints.forEachSelectedPoint((selectedPoint: any) => {
+        renderer.forEachSelectedPoint((selectedPoint: any) => {
           selectedPoint.x += dx
           selectedPoint.y += dy
         })
       }
     }
-  }, [pixiPoints, dragID])
+  }, [renderer, dragID])
 
   const onDragEnd = useCallback((event: PointerEvent, point: any, metadata: IPointMetadata) => {
     if (dragID !== '') {
@@ -64,16 +64,16 @@ export const CasePlot = function CasePlot({ pixiPoints }: IPlotProps) {
     }
   }, [dragID])
 
-  usePixiDragHandlers(pixiPoints, { start: onDragStart, drag: onDrag, end: onDragEnd })
+  usePixiDragHandlers(renderer, { start: onDragStart, drag: onDrag, end: onDragEnd })
 
   const refreshPointSelection = useCallback(() => {
     const {pointColor, pointStrokeColor} = graphModel.pointDescription,
       selectedPointRadius = graphModel.getPointRadius('select')
       dataConfiguration && setPointSelection({
-        pixiPoints, dataConfiguration, pointRadius: graphModel.getPointRadius(), selectedPointRadius,
+        renderer, dataConfiguration, pointRadius: graphModel.getPointRadius(), selectedPointRadius,
         pointColor, pointStrokeColor
       })
-  }, [graphModel, dataConfiguration, pixiPoints])
+  }, [graphModel, dataConfiguration, renderer])
 
   const refreshPointPositions = useCallback((selectedOnly = false) => {
     const
@@ -92,10 +92,10 @@ export const CasePlot = function CasePlot({ pixiPoints }: IPlotProps) {
         ? dataConfiguration?.getLegendColorForCase : undefined
 
     setPointCoordinates({
-      dataset, pointRadius, selectedPointRadius, pixiPoints, selectedOnly,
+      dataset, pointRadius, selectedPointRadius, renderer, selectedOnly,
       pointColor, pointStrokeColor, getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating
     })
-  }, [pixiPoints, graphModel, layout, dataConfiguration, dataset, isAnimating])
+  }, [renderer, graphModel, layout, dataConfiguration, dataset, isAnimating])
 
   useEffect(function respondToModelChangeCount() {
     return mstReaction(
@@ -121,7 +121,7 @@ export const CasePlot = function CasePlot({ pixiPoints }: IPlotProps) {
       { name: "CaseDots.respondToCasesCountChange" }, dataConfiguration)
   }, [dataConfiguration, randomlyDistributePoints, refreshPointPositions, startAnimation])
 
-  usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
+  usePlotResponders({renderer, refreshPointPositions, refreshPointSelection})
 
   useEffect(function initDistribution() {
     randomlyDistributePoints(dataConfiguration?.getCaseDataArray(0))

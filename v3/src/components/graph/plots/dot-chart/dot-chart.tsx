@@ -8,9 +8,9 @@ import { useChartDots } from "../../hooks/use-chart-dots"
 import { usePlotResponders } from "../../hooks/use-plot"
 import { setPointCoordinates } from "../../utilities/graph-utils"
 
-export const DotChart = observer(function DotChart({ pixiPoints }: IPlotProps) {
+export const DotChart = observer(function DotChart({ renderer }: IPlotProps) {
   const { dataset, graphModel, isAnimating, primaryScreenCoord, secondaryScreenCoord,
-          refreshPointSelection, subPlotCells } = useChartDots(pixiPoints)
+          refreshPointSelection, subPlotCells } = useChartDots(renderer)
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     const { dataConfig, primaryCellWidth, primaryCellHeight, primaryIsBottom } = subPlotCells
@@ -28,12 +28,12 @@ export const DotChart = observer(function DotChart({ pixiPoints }: IPlotProps) {
 
     const anchor = circleAnchor
     setPointCoordinates({
-      anchor, dataset, pointRadius, selectedPointRadius: graphModel.getPointRadius('select'), pixiPoints, selectedOnly,
+      anchor, dataset, pointRadius, selectedPointRadius: graphModel.getPointRadius('select'), renderer, selectedOnly,
       pointColor, pointStrokeColor, getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating
     })
-  }, [dataset, graphModel, isAnimating, pixiPoints, primaryScreenCoord, secondaryScreenCoord, subPlotCells])
+  }, [dataset, graphModel, isAnimating, renderer, primaryScreenCoord, secondaryScreenCoord, subPlotCells])
 
-  usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
+  usePlotResponders({renderer, refreshPointPositions, refreshPointSelection})
 
   // Use any for point since it can be either PIXI.Sprite (old API) or IPoint (new API)
   const onPointClick = useCallback(
@@ -42,10 +42,10 @@ export const DotChart = observer(function DotChart({ pixiPoints }: IPlotProps) {
   }, [dataset])
 
   useEffect(() => {
-    if (pixiPoints) {
-      pixiPoints.onPointClick = onPointClick
+    if (renderer) {
+      renderer.onPointClick = onPointClick
     }
-  }, [pixiPoints, onPointClick])
+  }, [renderer, onPointClick])
 
   // respond to point size change because we have to change the stacking
   useEffect(function respondToGraphPointVisualAction() {

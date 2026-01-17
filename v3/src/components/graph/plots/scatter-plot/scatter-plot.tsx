@@ -32,7 +32,7 @@ import {usePixiDragHandlers, usePlotResponders} from "../../hooks/use-plot"
 import { setPointCoordinates } from "../../utilities/graph-utils"
 import { scatterPlotFuncs } from "./scatter-plot-utils"
 
-export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotProps) {
+export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProps) {
   const graphModel = useGraphContentModelContext(),
     instanceId = useInstanceIdContext(),
     dataConfiguration = useGraphDataConfigurationContext(),
@@ -76,7 +76,7 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
   }, [dataConfiguration])
 
   const { renderConnectingLines } = useConnectingLines({
-    clientType: "graph", pixiPoints, connectingLinesSvg: connectingLinesRef.current, connectingLinesActivatedRef,
+    clientType: "graph", renderer, connectingLinesSvg: connectingLinesRef.current, connectingLinesActivatedRef,
     yAttrCount: dataConfiguration?.yAttributeIDs?.length, isCaseInSubPlot
   })
 
@@ -168,17 +168,17 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
     }
   }, [dataConfiguration, dataset, dragID, startAnimation])
 
-  usePixiDragHandlers(pixiPoints, {start: onDragStart, drag: onDrag, end: onDragEnd})
+  usePixiDragHandlers(renderer, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointSelection = useCallback(() => {
     const {pointColor, pointStrokeColor} = graphModel.pointDescription
     dataConfiguration && setPointSelection(
       {
-        pixiPoints, dataConfiguration, pointRadius: graphModel.getPointRadius(),
+        renderer, dataConfiguration, pointRadius: graphModel.getPointRadius(),
         selectedPointRadius: selectedPointRadiusRef.current,
         pointColor, pointStrokeColor, getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex
       })
-  }, [dataConfiguration, graphModel, pixiPoints])
+  }, [dataConfiguration, graphModel, renderer])
 
   const refreshConnectingLines = useCallback(async () => {
     if (!showConnectingLines && !connectingLinesActivatedRef.current) return
@@ -266,16 +266,16 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
       getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
 
     setPointCoordinates({
-      dataset, pixiPoints, pointRadius: graphModel.getPointRadius(),
+      dataset, renderer, pointRadius: graphModel.getPointRadius(),
       selectedPointRadius: selectedPointRadiusRef.current,
       selectedOnly, getScreenX, getScreenY, getLegendColor,
       getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex,
       pointColor, pointStrokeColor, getAnimationEnabled: isAnimating
     })
-  }, [dataConfiguration, graphModel, layout, legendAttrID, dataset, pixiPoints, isAnimating])
+  }, [dataConfiguration, graphModel, layout, legendAttrID, dataset, renderer, isAnimating])
 
   const refreshPointPositionsPerfMode = useCallback((selectedOnly: boolean) => {
-    if (!pixiPoints) {
+    if (!renderer) {
       return
     }
     const {joinedCaseDataArrays, selection} = dataConfiguration || {},
@@ -286,9 +286,9 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
       const x = getScreenX(caseId)
       const y = getScreenY(caseId)
       if (x != null && isFinite(x) && y != null && isFinite(y)) {
-        const point = pixiPoints.getPointForCaseData(aCaseData)
+        const point = renderer.getPointForCaseData(aCaseData)
         // Cast to any for compatibility during migration (works with both Sprite and IPoint)
-        point && pixiPoints.setPointPosition(point as any, x, y)
+        point && renderer.setPointPosition(point as any, x, y)
       }
     }
     if (selectedOnly) {
@@ -300,7 +300,7 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
     } else {
       joinedCaseDataArrays?.forEach((aCaseData) => updateDot(aCaseData))
     }
-  }, [pixiPoints, dataConfiguration, layout])
+  }, [renderer, dataConfiguration, layout])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     refreshConnectingLines()
@@ -330,7 +330,7 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
     }, { name: "ScatterDots.updateConnectingLines" })
   }, [dataConfiguration?.selection, refreshConnectingLines, showConnectingLines])
 
-  usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
+  usePlotResponders({renderer, refreshPointPositions, refreshPointSelection})
 
   return (
     <>

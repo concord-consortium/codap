@@ -2,7 +2,7 @@ import React, { Fragment, useCallback, useRef, useState } from "react"
 import { computePosition, flip, offset, shift, useFloating } from "@floating-ui/react"
 import { useDataDisplayModelContext } from "../hooks/use-data-display-model"
 import { IDataSet } from "../../../models/data/data-set"
-import { PixiPointsCompatible } from "../renderer"
+import { PointRendererBase } from "../renderer"
 import { urlParams } from "../../../utilities/url-params"
 import { IDataConfigurationModel } from "../models/data-configuration-model"
 import { IGetTipTextProps, IShowDataTipProps } from "../data-tip-types"
@@ -23,7 +23,7 @@ interface IDataTipHelperProps extends IDataTipBaseProps {
 }
 
 export interface IDataTipProps extends IDataTipBaseProps {
-  pixiPoints?: PixiPointsCompatible
+  renderer?: PointRendererBase
 }
 
 const createVirtualElement = (event: PointerEvent) => {
@@ -52,7 +52,7 @@ const tipText = (props: IDataTipHelperProps) => {
 }
 
 export const DataTip = (props: IDataTipProps) => {
-  const { dataConfiguration, dataset, getTipAttrs, pixiPoints, getTipText } = props
+  const { dataConfiguration, dataset, getTipAttrs, renderer, getTipText } = props
   const dataDisplayModel = useDataDisplayModelContext()
   const legendAttrID = dataConfiguration?.attributeID("legend")
   const tipTextLines = useRef<string[]>([])
@@ -109,10 +109,9 @@ export const DataTip = (props: IDataTipProps) => {
   }
 
   // support disabling data tips via url parameter for jest tests
-  if (urlParams.noDataTips === undefined && pixiPoints && dataDisplayModel) {
-    // Both PixiPoints and PointRendererBase have onPointOver/onPointLeave with compatible signatures
-    pixiPoints.onPointOver = showPixiDataTip as any
-    pixiPoints.onPointLeave = hideDataTip as any
+  if (urlParams.noDataTips === undefined && renderer && dataDisplayModel) {
+    renderer.onPointOver = showPixiDataTip as any
+    renderer.onPointLeave = hideDataTip as any
     dataDisplayModel.setShowDataTip(showDataTip)
     dataDisplayModel.setHideDataTip(hideDataTip)
   }

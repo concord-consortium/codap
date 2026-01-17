@@ -10,10 +10,10 @@ import { mstReaction } from "../../../utilities/mst-reaction"
 
 interface IProps {
   mapModel: IMapContentModel
-  pixiPointsArray: PointRendererArray
+  rendererArray: PointRendererArray
 }
 
-export const MapBackground = observer(function MapBackground({ mapModel, pixiPointsArray }: IProps) {
+export const MapBackground = observer(function MapBackground({ mapModel, rendererArray }: IProps) {
   const backgroundSvgRef = useRef<SVGGElement>(null)
   const marqueeState = useMemo<MarqueeState>(() => new MarqueeState(), [])
 
@@ -42,7 +42,7 @@ export const MapBackground = observer(function MapBackground({ mapModel, pixiPoi
         <Background
           ref={backgroundSvgRef}
           marqueeState={marqueeState}
-          pixiPointsArray={pixiPointsArray}
+          rendererArray={rendererArray}
         />
         <Marquee marqueeState={marqueeState}/>
       </svg>

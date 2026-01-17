@@ -12,7 +12,7 @@ import { useTileSelectionContext } from '../../../hooks/use-tile-selection-conte
 import { AxisProviderContext } from '../../axis/hooks/use-axis-provider-context'
 import { AxisLayoutContext } from "../../axis/models/axis-layout-context"
 import { kTitleBarHeight } from "../../constants"
-import { usePointRendererArray, PointRendererArray } from '../../data-display/renderer'
+import { usePointRendererArray } from '../../data-display/renderer'
 import { DataDisplayRenderState } from '../../data-display/models/data-display-render-state'
 import { AttributeDragOverlay } from "../../drag-drop/attribute-drag-overlay"
 import { ITileBaseProps } from '../../tiles/tile-base-props'
@@ -52,31 +52,28 @@ export const GraphComponent = observer(function GraphComponent({tile, isMinimize
     addInitialRenderer: true
   })
 
-  // Alias for consistency with existing code
-  const pixiPointsArray: PointRendererArray = rendererArray
-
   const graphController = useMemo(
     () => new GraphController({layout, instanceId}),
     [layout, instanceId]
   )
 
   if (((window as any).Cypress || DEBUG_PIXI_POINTS) && tile?.id) {
-    const pixiPointsMap: any = (window as any).pixiPointsMap  || ({} as Record<string, any>)
-    ;(window as any).pixiPointsMap = pixiPointsMap
-    pixiPointsMap[tile.id] = pixiPointsArray
+    const rendererArrayMap: any = (window as any).rendererArrayMap  || ({} as Record<string, any>)
+    ;(window as any).rendererArrayMap = rendererArrayMap
+    rendererArrayMap[tile.id] = rendererArray
   }
 
-  useGraphController({graphController, graphModel, pixiPointsArray})
+  useGraphController({graphController, graphModel, rendererArray})
 
   const setGraphRef = useCallback((ref: HTMLDivElement | null) => {
     graphRef.current = ref
     const elementParent = ref?.parentElement
     const dataUri = graphModel?.renderState?.dataUri
     if (elementParent) {
-      const renderState = new DataDisplayRenderState(pixiPointsArray, elementParent, dataUri)
+      const renderState = new DataDisplayRenderState(rendererArray, elementParent, dataUri)
       graphModel?.setRenderState(renderState)
     }
-  }, [graphModel, pixiPointsArray])
+  }, [graphModel, rendererArray])
 
   useEffect(() => {
     (width != null) && width >= 0 && (height != null) &&
@@ -117,7 +114,7 @@ export const GraphComponent = observer(function GraphComponent({tile, isMinimize
                 <Graph
                   graphController={graphController}
                   setGraphRef={setGraphRef}
-                  pixiPointsArray={pixiPointsArray}
+                  rendererArray={rendererArray}
                   hasWebGLContext={hasAnyWebGLContext}
                   contextWasDenied={contextWasDenied}
                   isRendererVisible={isVisible}

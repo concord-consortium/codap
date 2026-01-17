@@ -842,3 +842,10 @@ export class PixiPointRenderer extends PointRendererBase {
     return this.sprites.get(point.id)
   }
 }
+
+/**
+ * Type guard to check if a renderer is a PixiPointRenderer (WebGL renderer)
+ */
+export function isPixiPointRenderer(renderer: PointRendererBase | undefined): renderer is PixiPointRenderer {
+  return renderer instanceof PixiPointRenderer
+}

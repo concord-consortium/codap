@@ -417,7 +417,7 @@ describe("WebGLContextManager", () => {
       // Request with high priority - should evict consumer1 (priority 100)
       manager.requestContext(createConsumer("highPriority", 5000))
 
-      expect(revokedCallbacks["consumer1"]).toHaveBeenCalled()
+      expect(revokedCallbacks.consumer1).toHaveBeenCalled()
       expect(manager.hasContext("consumer1")).toBe(false)
       expect(manager.hasContext("highPriority")).toBe(true)
     })

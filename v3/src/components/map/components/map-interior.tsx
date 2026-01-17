@@ -18,10 +18,10 @@ import {MapPointLayer} from "./map-point-layer"
 import {MapPolygonLayer} from "./map-polygon-layer"
 
 interface IProps {
-  setPixiPointsLayer: (renderer: PointRendererBase, layerIndex: number) => void
+  setRendererLayer: (renderer: PointRendererBase, layerIndex: number) => void
 }
 
-export const MapInterior = observer(function MapInterior({setPixiPointsLayer}: IProps) {
+export const MapInterior = observer(function MapInterior({setRendererLayer}: IProps) {
   const mapModel = useMapModelContext()
   const leafletMapLayers = useMemo(() => new LeafletMapLayers(mapModel), [mapModel])
 
@@ -55,7 +55,7 @@ export const MapInterior = observer(function MapInterior({setPixiPointsLayer}: I
           >
             <MapPointLayer
               mapLayerModel={layerModel}
-              setPixiPointsLayer={setPixiPointsLayer}
+              setRendererLayer={setRendererLayer}
             />
           </DataConfigurationContext.Provider>
         )

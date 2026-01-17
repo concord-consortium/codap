@@ -17,7 +17,7 @@ The refactoring addresses these issues by:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    WebGLContextManager (singleton)               │
+│                   WebGLContextManager (singleton)               │
 │   - Tracks active contexts (max ~14)                            │
 │   - Priority queue for context requests                         │
 │   - Notifies consumers when context granted/revoked             │
@@ -25,7 +25,7 @@ The refactoring addresses these issues by:
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                      usePointRenderer hook                       │
+│                     usePointRenderer hook                       │
 │   - Observes visibility (IntersectionObserver)                  │
 │   - Observes minimized state                                    │
 │   - Requests/releases context from manager                      │
@@ -54,7 +54,7 @@ The refactoring addresses these issues by:
 
 ### File Locations
 
-All renderer-related code is in `src/components/data-display/renderer/`:
+Renderer core classes are in `src/components/data-display/renderer/`:
 
 | File | Purpose |
 |------|---------|
@@ -66,8 +66,15 @@ All renderer-related code is in `src/components/data-display/renderer/`:
 | `webgl-context-manager.ts` | `WebGLContextManager` singleton managing context pool |
 | `use-point-renderer.ts` | React hooks: `usePointRenderer`, `usePointRendererArray` |
 | `point-renderer-context.tsx` | React context for renderer access |
-| `point-renderer-compat.ts` | Backward compatibility utilities for migration |
 | `index.ts` | Public API exports |
+
+Additional hooks are in `src/components/data-display/hooks/`:
+
+| File | Purpose |
+|------|---------|
+| `use-renderer-array.ts` | `useRendererArray` - manages array of renderers for maps |
+| `use-renderer-pointer-down.ts` | `useRendererPointerDown` - handles pointer down events on renderer canvas |
+| `use-renderer-pointer-down-deselect.ts` | `useRendererPointerDownDeselect` - deselection behavior on background click |
 
 ### PointRendererBase
 
@@ -220,27 +227,12 @@ When a graph cannot get a WebGL context, it displays a placeholder message inste
 
 The placeholder is only shown when `contextWasDenied` is true (not just when `hasWebGLContext` is false), which prevents flashing during initial render before the first context request completes.
 
-## Backward Compatibility
+## Usage Examples
 
-During migration, both old (`PixiPoints`) and new (`PointRendererBase`) APIs coexist. The `point-renderer-compat.ts` file provides:
-
-```typescript
-// Type that accepts either old or new API
-type PixiPointsCompatible = PixiPoints | PointRendererBase
-
-// Type guards
-function isPixiPoints(obj: any): obj is PixiPoints
-function isPointRenderer(obj: any): obj is PointRendererBase
-function isPixiPointRenderer(obj: any): obj is PixiPointRenderer
-
-// Conversion utilities
-function toPixiPointsArray(renderers: Array<PointRendererBase | undefined>): PixiPointsCompatibleArray
-```
-
-## Usage Example
+### Graph Component
 
 ```typescript
-// In a graph component
+// In graph-component.tsx
 const {
   rendererArray,
   hasAnyWebGLContext,
@@ -255,17 +247,35 @@ const {
   addInitialRenderer: true
 })
 
-// Convert to compatible array for existing code
-const pixiPointsArray = toPixiPointsArray(rendererArray)
-
 // Pass to child components
 <Graph
-  pixiPointsArray={pixiPointsArray}
+  rendererArray={rendererArray}
   hasWebGLContext={hasAnyWebGLContext}
   contextWasDenied={contextWasDenied}
   isRendererVisible={isVisible}
   onRequestContext={requestContextWithHighPriority}
 />
+```
+
+### Map Component
+
+Maps use the `useRendererArray` hook for managing multiple point layers:
+
+```typescript
+// In codap-map.tsx
+const { rendererArray, setRendererLayer } = useRendererArray()
+
+// Each MapPointLayer creates its own PixiPointRenderer and registers it
+<MapInterior setRendererLayer={setRendererLayer} />
+
+// In map-point-layer.tsx
+useEffect(function createPointRenderer() {
+  const _renderer = new PixiPointRenderer()
+  await _renderer.init({ resizeTo: containerRef.current })
+  setRenderer(_renderer)
+  setRendererLayer(_renderer, mapLayerModel.layerIndex)
+  // ...
+}, [mapLayerModel.layerIndex, setRendererLayer])
 ```
 
 ## Event Handling
@@ -285,7 +295,7 @@ renderer.onPointDragEnd = (event, point, metadata) => { ... }
 Event handlers receive:
 - `event`: The browser `PointerEvent`
 - `point`: An `IPoint` handle (use with renderer methods)
-- `metadata`: `IPointMetadata` with `caseID`, `plotNum`, `datasetID`
+- `metadata`: `IPointMetadata` with `caseID`, `plotNum`, `datasetID`, `x`, `y`
 
 ## Animation and Transitions
 
@@ -314,12 +324,22 @@ renderer.resize(width, height, xCats, yCats, topCats, rightCats)
 renderer.setPointSubPlot(point, subPlotIndex)
 ```
 
+## Type Guards
+
+For code that needs to check renderer types:
+
+```typescript
+import { isPixiPointRenderer } from "./renderer"
+
+if (isPixiPointRenderer(renderer)) {
+  // Access PixiPointRenderer-specific functionality
+}
+```
+
 ## Future Considerations
 
 1. **SVG Fallback**: The architecture supports adding an `SvgPointRenderer` for environments without WebGL, though this is not currently implemented.
 
-2. **Map Integration**: Maps use the same renderer system. The `MapPointLayer` component uses `PixiPoints` directly (not yet migrated to the new hooks), but the underlying renderer classes are shared.
+2. **Performance Monitoring**: The `WebGLContextManager` could be extended to track context usage statistics for debugging.
 
-3. **Performance Monitoring**: The `WebGLContextManager` could be extended to track context usage statistics for debugging.
-
-4. **Context Recovery**: Currently, when a browser loses a WebGL context (e.g., due to GPU reset), the renderer may need to be recreated. This is handled by the hook's renderer switching logic.
+3. **Context Recovery**: Currently, when a browser loses a WebGL context (e.g., due to GPU reset), the renderer may need to be recreated. This is handled by the hook's renderer switching logic.

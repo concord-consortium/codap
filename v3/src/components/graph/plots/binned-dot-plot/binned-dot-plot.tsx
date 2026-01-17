@@ -27,10 +27,10 @@ const worldWidthToScreenWidth = (scale: ScaleLinear<number, number>, worldWidth:
   return Math.abs(scale(worldWidth) - scale(0))
 }
 
-export const BinnedDotPlot = observer(function BinnedDotPlot({pixiPoints, abovePointsGroupRef}: IPlotProps) {
+export const BinnedDotPlot = observer(function BinnedDotPlot({renderer, abovePointsGroupRef}: IPlotProps) {
   const { dataset, dataConfig, getPrimaryScreenCoord, getSecondaryScreenCoord, graphModel, isAnimating, layout,
           pointColor, pointDisplayType, pointStrokeColor, primaryAxisScale, primaryIsBottom, primaryPlace,
-          refreshPointSelection } = useDotPlot(pixiPoints)
+          refreshPointSelection } = useDotPlot(renderer)
   const binnedPlot = isBinnedDotPlotModel(graphModel.plot) ? graphModel.plot : undefined
   const instanceId = useInstanceIdContext()
   const kMinBinScreenWidth = 20
@@ -43,7 +43,7 @@ export const BinnedDotPlot = observer(function BinnedDotPlot({pixiPoints, aboveP
   const handleDragBinBoundaryEndFn = useRef<() => void>(() => {})
 
   const { onDrag, onDragEnd, onDragStart } = useDotPlotDragDrop()
-  usePixiDragHandlers(pixiPoints, {start: onDragStart, drag: onDrag, end: onDragEnd})
+  usePixiDragHandlers(renderer, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const drawBinBoundaries = useCallback(() => {
     if (!dataConfig || !isFiniteNumber(binnedPlot?.binAlignment) || !isFiniteNumber(binnedPlot?.binWidth)) return
@@ -171,15 +171,15 @@ export const BinnedDotPlot = observer(function BinnedDotPlot({pixiPoints, aboveP
     setPointCoordinates({
       pointRadius: graphModel.getPointRadius(),
       selectedPointRadius: graphModel.getPointRadius("select"),
-      pixiPoints, selectedOnly, pointColor, pointStrokeColor,
+      renderer, selectedOnly, pointColor, pointStrokeColor,
       getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating,
       pointDisplayType, anchor: circleAnchor, dataset
     })
   }, [addBinBoundaryDragHandlers, binnedPlot, dataConfig, dataset, drawBinBoundaries,
       getPrimaryScreenCoord, getSecondaryScreenCoord, graphModel, isAnimating,
-      pixiPoints, pointColor, pointDisplayType, pointStrokeColor, primaryIsBottom])
+      renderer, pointColor, pointDisplayType, pointStrokeColor, primaryIsBottom])
 
-  usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
+  usePlotResponders({renderer, refreshPointPositions, refreshPointSelection})
   useBinnedPlotResponders(refreshPointPositions)
 
   // If the pixel width of graphModel.binWidth would be less than kMinBinPixelWidth, set it to kMinBinPixelWidth.

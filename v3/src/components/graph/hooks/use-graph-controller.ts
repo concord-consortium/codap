@@ -1,17 +1,17 @@
 import {useEffect} from "react"
 import {GraphController} from "../models/graph-controller"
 import {IGraphContentModel} from "../models/graph-content-model"
-import { PixiPointsCompatibleArray } from "../../data-display/renderer"
+import { PointRendererArray } from "../../data-display/renderer"
 
 export interface IUseGraphControllerProps {
   graphController: GraphController,
   graphModel?: IGraphContentModel,
-  pixiPointsArray: PixiPointsCompatibleArray
+  rendererArray: PointRendererArray
 }
 
-export const useGraphController = ({graphController, graphModel, pixiPointsArray}: IUseGraphControllerProps) => {
+export const useGraphController = ({graphController, graphModel, rendererArray}: IUseGraphControllerProps) => {
   useEffect(() => {
-    const pixiPoints = pixiPointsArray[0]
-    graphModel && pixiPoints && graphController.setProperties(graphModel, pixiPoints)
-  }, [graphController, graphModel, pixiPointsArray])
+    const renderer = rendererArray[0]
+    graphModel && renderer && graphController.setProperties(graphModel, renderer)
+  }, [graphController, graphModel, rendererArray])
 }

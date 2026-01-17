@@ -14,10 +14,8 @@ import {
   pointRadiusSelectionAddend, Rect, rTreeRect
 } from "./data-display-types"
 import {IDataConfigurationModel } from "./models/data-configuration-model"
-import {getPixiPointsDispatcher, IPixiPointStyle} from "./pixi/pixi-points"
 import {CaseDataWithSubPlot} from "./d3-types"
-import { PixiPointsCompatible } from "./renderer"
-import { getPixiPointRendererDispatcher } from "./renderer/pixi-point-renderer"
+import { getPixiPointRendererDispatcher, IPointStyle, PointRendererBase } from "./renderer"
 
 export const maxWidthOfStringsD3 = (strings: Iterable<string>) => {
   let maxWidth = 0
@@ -54,15 +52,8 @@ export const computePointRadius = (numPoints: number, pointSizeMultiplier: numbe
 
 export function handleClickOnCase(event: PointerEvent, caseID: string, dataset?: IDataSet) {
   // click occurred on a point, so don't deselect
-  // Try both old and new dispatchers for compatibility during migration
-  const oldDispatcher = getPixiPointsDispatcher(event)
-  if (oldDispatcher) {
-    oldDispatcher.cancelAnimationFrame("deselectAll")
-  } else {
-    // Try new renderer dispatcher
-    const newDispatcher = getPixiPointRendererDispatcher(event)
-    newDispatcher?.cancelAnimationFrame("deselectAll")
-  }
+  const dispatcher = getPixiPointRendererDispatcher(event)
+  dispatcher?.cancelAnimationFrame("deselectAll")
 
   const extendSelection = event.shiftKey,
     caseIsSelected = dataset?.isCaseSelected(caseID)
@@ -94,11 +85,11 @@ export interface IMatchCirclesProps {
   pointStrokeColor: string
   startAnimation: () => void
   instanceId: string | undefined
-  pixiPoints: PixiPointsCompatible
+  renderer: PointRendererBase
 }
 
 export function matchCirclesToData(props: IMatchCirclesProps) {
-  const { dataConfiguration, pixiPoints, startAnimation, pointRadius, pointColor, pointStrokeColor,
+  const { dataConfiguration, renderer, startAnimation, pointRadius, pointColor, pointStrokeColor,
           pointDisplayType = "points" } = props
   // TODO: eliminate dependence on GraphDataConfigurationModel
   const allCaseData: CaseDataWithSubPlot[] = isGraphDataConfigurationModel(dataConfiguration)
@@ -107,8 +98,7 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
 
   startAnimation()
 
-  // Both PixiPoints and PointRendererBase have matchPointsToData with compatible signatures
-  pixiPoints?.matchPointsToData(dataConfiguration.dataset?.id ?? '', allCaseData, pointDisplayType, {
+  renderer?.matchPointsToData(dataConfiguration.dataset?.id ?? '', allCaseData, pointDisplayType, {
     radius: pointRadius,
     fill: pointColor,
     stroke: pointStrokeColor,
@@ -119,17 +109,14 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
 }
 
 export function setPointSelection(props: ISetPointSelection) {
-  const { pixiPoints, dataConfiguration, pointRadius, selectedPointRadius,
+  const { renderer, dataConfiguration, pointRadius, selectedPointRadius,
     pointColor, pointStrokeColor, getPointColorAtIndex, pointsFusedIntoBars } = props
   const dataset = dataConfiguration.dataset
   const legendID = dataConfiguration.attributeID('legend')
-  if (!pixiPoints) {
+  if (!renderer) {
     return
   }
-  // forEachPoint works with both old PixiPoints (PIXI.Sprite) and new PointRendererBase (IPoint)
-  // The callback receives the point handle and metadata, and passes them to setPointStyle/setPointRaised
-  // which are compatible between both APIs
-  pixiPoints.forEachPoint((point: any, metadata: any) => {
+  renderer.forEachPoint((point, metadata) => {
     const { caseID, plotNum } = metadata
     const isSelected = !!dataset?.isCaseSelected(caseID)
     const isSelectedAndLegendIsPresent = isSelected && legendID
@@ -143,7 +130,7 @@ export function setPointSelection(props: ISetPointSelection) {
     } else {
       fill = plotNum && getPointColorAtIndex ? getPointColorAtIndex(plotNum) : pointColor
     }
-    const style: Partial<IPixiPointStyle> = {
+    const style: Partial<IPointStyle> = {
       fill,
       radius: isSelected ? selectedPointRadius : pointRadius,
       stroke: isSelectedAndLegendIsPresent
@@ -154,8 +141,8 @@ export function setPointSelection(props: ISetPointSelection) {
       strokeWidth: isSelectedAndLegendIsPresent ? defaultSelectedStrokeWidth : defaultStrokeWidth,
       strokeOpacity: isSelectedAndLegendIsPresent ? defaultSelectedStrokeOpacity : defaultStrokeOpacity
     }
-    pixiPoints.setPointStyle(point, style)
-    pixiPoints.setPointRaised(point, isSelected)
+    renderer.setPointStyle(point, style)
+    renderer.setPointRaised(point, isSelected)
   })
 }
 

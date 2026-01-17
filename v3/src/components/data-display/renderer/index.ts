@@ -20,18 +20,7 @@ export { PointRendererBase, circleAnchor, hBarAnchor, vBarAnchor } from "./point
 
 // Renderers
 export { NullPointRenderer } from "./null-point-renderer"
-export { PixiPointRenderer, getPixiPointRendererDispatcher } from "./pixi-point-renderer"
-
-// Backward compatibility
-export type { PixiPointsCompatible, PixiPointsCompatibleArray, IPointWithSprite } from "./point-renderer-compat"
-export {
-  isPixiPoints,
-  isPointRenderer,
-  isPixiPointRenderer,
-  getCanvas,
-  hasWebGLCapability,
-  toPixiPointsArray
-} from "./point-renderer-compat"
+export { PixiPointRenderer, getPixiPointRendererDispatcher, isPixiPointRenderer } from "./pixi-point-renderer"
 
 // Context management
 export { webGLContextManager } from "./webgl-context-manager"

@@ -18,9 +18,9 @@ import { setPointCoordinates } from "../../utilities/graph-utils"
 import { barCompressionFactorForCase, barCoverDimensions, renderBarCovers } from "../bar-utils"
 import { isBarChartModel } from "./bar-chart-model"
 
-export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPoints }: IPlotProps) {
+export const BarChart = observer(function BarChart({ abovePointsGroupRef, renderer }: IPlotProps) {
   const { dataset, graphModel, isAnimating, layout, primaryScreenCoord, secondaryScreenCoord,
-          refreshPointSelection, subPlotCells } = useChartDots(pixiPoints)
+          refreshPointSelection, subPlotCells } = useChartDots(renderer)
   const graphLayout = useGraphLayoutContext()
   const { tile } = useTileModelContext()
   const barChartModel = graphModel.plot
@@ -177,20 +177,20 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
     const anchor = circleAnchor
     setPointCoordinates({
       anchor, dataset, pointRadius, selectedPointRadius: graphModel.getPointRadius('select'),
-      pixiPoints, selectedOnly, pointColor, pointStrokeColor, pointDisplayType,
+      renderer, selectedOnly, pointColor, pointStrokeColor, pointDisplayType,
       getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating, getWidth, getHeight,
       pointsFusedIntoBars: graphModel?.pointsFusedIntoBars
     })
   }, [abovePointsGroupRef, barChartModel, dataset, graphLayout, graphModel, isAnimating, layout,
-    pixiPoints, primaryScreenCoord, secondaryScreenCoord, subPlotCells])
+    renderer, primaryScreenCoord, secondaryScreenCoord, subPlotCells])
 
-  usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
+  usePlotResponders({renderer, refreshPointPositions, refreshPointSelection})
 
   useEffect(() => {
-    if (pixiPoints) {
-      pixiPoints.pointsFusedIntoBars = graphModel.pointsFusedIntoBars
+    if (renderer) {
+      renderer.pointsFusedIntoBars = graphModel.pointsFusedIntoBars
     }
-  }, [pixiPoints, graphModel.pointsFusedIntoBars])
+  }, [renderer, graphModel.pointsFusedIntoBars])
 
   if (!isBarChartModel(barChartModel))  return null
 

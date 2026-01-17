@@ -8,9 +8,9 @@ import {GraphPlace} from "../../axis-graph-shared"
 import {useForceUpdate} from "../../../hooks/use-force-update"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
-import {usePixiPointerDownDeselect} from "../../data-display/hooks/use-pixi-pointer-down-deselect"
+import {useRendererPointerDownDeselect} from "../../data-display/hooks/use-renderer-pointer-down-deselect"
 import {MultiLegend} from "../../data-display/components/legend/multi-legend"
-import {usePixiPointsArray} from "../../data-display/hooks/use-pixi-points-array"
+import {useRendererArray} from "../../data-display/hooks/use-renderer-array"
 import { DEBUG_PIXI_POINTS } from "../../../lib/debug"
 import {logStringifiedObjectMessage} from "../../../lib/log-message"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
@@ -36,7 +36,7 @@ export const CodapMap = observer(function CodapMap({setMapRef}: IProps) {
     prevMapSize = useRef<{ width: number, height: number, legend: number }>({width: 0, height: 0, legend: 0}),
     forceUpdate = useForceUpdate(),
     mapRef = useRef<HTMLDivElement | null>(null),
-    {pixiPointsArray, setPixiPointsLayer} = usePixiPointsArray()
+    {rendererArray, setRendererLayer} = useRendererArray()
 
   const mySetMapRef = (ref: HTMLDivElement | null) => {
     mapRef.current = ref
@@ -49,12 +49,12 @@ export const CodapMap = observer(function CodapMap({setMapRef}: IProps) {
 
    // weak map?
    if (((window as any).Cypress || DEBUG_PIXI_POINTS) && tile?.id) {
-    const pixiPointsMap: any = (window as any).pixiPointsMap  || ({} as Record<string, any>)
-    ;(window as any).pixiPointsMap = pixiPointsMap
-    pixiPointsMap[tile.id] = pixiPointsArray
+    const rendererArrayMap: any = (window as any).rendererArrayMap  || ({} as Record<string, any>)
+    ;(window as any).rendererArrayMap = rendererArrayMap
+    rendererArrayMap[tile.id] = rendererArray
   }
 
-  usePixiPointerDownDeselect(pixiPointsArray, mapModel)
+  useRendererPointerDownDeselect(rendererArray, mapModel)
 
   const handleChangeLegendAttribute = useCallback((dataSet: IDataSet, attrId: string) => {
     const attrType = dataSet.attrFromID(attrId)?.type
@@ -136,9 +136,9 @@ export const CodapMap = observer(function CodapMap({setMapRef}: IProps) {
               })
             }
           </>
-          <MapInterior setPixiPointsLayer={setPixiPointsLayer}/>
+          <MapInterior setRendererLayer={setRendererLayer}/>
         </MapContainer>
-        <MapBackground mapModel={mapModel} pixiPointsArray={pixiPointsArray}/>
+        <MapBackground mapModel={mapModel} rendererArray={rendererArray}/>
       </div>
       {renderSliderIfAppropriate()}
       <DroppableMapArea

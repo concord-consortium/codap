@@ -1,17 +1,17 @@
 import { graphSnapshot, IGraphSvgOptions } from "../../graph/utilities/image-utils"
-import { PixiPointsCompatibleArray } from "../renderer"
+import { PointRendererArray } from "../renderer"
 
 export class DataDisplayRenderState {
-  pixiPointsArray: PixiPointsCompatibleArray
+  rendererArray: PointRendererArray
   displayElement: HTMLElement
   dataUri?: string
 
   constructor(
-    pixiPointsArray: PixiPointsCompatibleArray,
+    rendererArray: PointRendererArray,
     displayElement: HTMLElement,
     dataUri?: string
   ) {
-    this.pixiPointsArray = pixiPointsArray
+    this.rendererArray = rendererArray
     this.displayElement = displayElement
     this.dataUri = dataUri
   }
@@ -21,8 +21,8 @@ export class DataDisplayRenderState {
   }
 
   get imageOptions(): IGraphSvgOptions | undefined {
-    const pixiPoints = this.pixiPointsArray?.[0]
-    if (!this.displayElement || !pixiPoints) return
+    const renderer = this.rendererArray?.[0]
+    if (!this.displayElement || !renderer) return
 
     const width = this.displayElement.getBoundingClientRect().width ?? 0
     const height = this.displayElement.getBoundingClientRect().height ?? 0
@@ -30,7 +30,7 @@ export class DataDisplayRenderState {
       rootEl: this.displayElement,
       graphWidth: width,
       graphHeight: height,
-      pixiPoints
+      renderer
     }
   }
 

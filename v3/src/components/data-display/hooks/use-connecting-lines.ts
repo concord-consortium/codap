@@ -5,7 +5,7 @@ import { selectCases, setSelectedCases } from "../../../models/data/data-set-uti
 import { t } from "../../../utilities/translation/translate"
 import { IConnectingLineDescription, transitionDuration } from "../data-display-types"
 import { PixiBackgroundPassThroughEvent } from "../pixi/pixi-points"
-import { PixiPointsCompatible } from "../renderer"
+import { PointRendererBase } from "../renderer"
 import { useDataConfigurationContext } from "./use-data-configuration-context"
 
 interface IMouseOverProps {
@@ -37,7 +37,7 @@ interface IProps {
   clientType: "graph" | "map"
   connectingLinesActivatedRef: React.MutableRefObject<boolean>
   connectingLinesSvg: SVGGElement | null
-  pixiPoints?: PixiPointsCompatible
+  renderer?: PointRendererBase
   yAttrCount?: number
   isCaseInSubPlot?: (cellKey: Record<string, string>, caseData: Record<string, any>) => void
   onConnectingLinesClick?: (event: MouseEvent) => void
@@ -45,7 +45,7 @@ interface IProps {
 
 export const useConnectingLines = (props: IProps) => {
   const {
-    clientType, connectingLinesSvg, connectingLinesActivatedRef, pixiPoints, yAttrCount = 0,
+    clientType, connectingLinesSvg, connectingLinesActivatedRef, renderer, yAttrCount = 0,
     isCaseInSubPlot, onConnectingLinesClick
   } = props
   const dataConfig = useDataConfigurationContext()
@@ -74,7 +74,7 @@ export const useConnectingLines = (props: IProps) => {
 
   const handleConnectingLinesMouseOver = useCallback((mouseOverProps: IMouseOverProps) => {
     const { caseIDs, event, parentAttrName, primaryAttrValue } = mouseOverProps
-    if (pixiPoints?.canvas) pixiPoints.canvas.style.cursor = "pointer"
+    if (renderer?.canvas) renderer.canvas.style.cursor = "pointer"
     // TODO: In V2, the tool tip is only shown when there is a parent attribute. V3 should always show the tool tip,
     // but the text needs to be different when there is no parent attribute. We'll need to work out how to handle the
     // localization for this. When a parent attribute is present, the tool tip should look like:
@@ -88,12 +88,12 @@ export const useConnectingLines = (props: IProps) => {
     const vars = [parentAttrName, primaryAttrValue, caseIdCount, datasetName]
     const dataTipContent = t("DG.DataTip.connectingLine", {vars})
     dataTip.show(dataTipContent, event.target)
-  }, [dataTip, dataset?.name, pixiPoints])
+  }, [dataTip, dataset?.name, renderer])
 
   const handleConnectingLinesMouseOut = useCallback(() => {
-    if (pixiPoints?.canvas) pixiPoints.canvas.style.cursor = ""
+    if (renderer?.canvas) renderer.canvas.style.cursor = ""
     dataTip.hide()
-  }, [dataTip, pixiPoints])
+  }, [dataTip, renderer])
 
   const drawConnectingLines = useCallback((drawLinesProps: IDrawLines) => {
     if (!connectingLinesSvg) return

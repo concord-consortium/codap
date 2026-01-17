@@ -13,7 +13,7 @@ interface IProps {
  * For proper WebGL context management, each layer should create its own
  * PixiPointRenderer and register it via setRendererLayer.
  */
-export function usePixiPointsArray(props?: IProps) {
+export function useRendererArray(props?: IProps) {
   const { addInitialRenderer = false } = props || {}
   const [rendererArray, setRendererArray] = useState<PointRendererArray>([])
 
@@ -37,7 +37,7 @@ export function usePixiPointsArray(props?: IProps) {
     }
   }, [addInitialRenderer])
 
-  const setPixiPointsLayer = useCallback((renderer: PointRendererBase, layerIndex: number) => {
+  const setRendererLayer = useCallback((renderer: PointRendererBase, layerIndex: number) => {
     setRendererArray((prev) => {
       const newArray = [...prev]
       newArray[layerIndex] = renderer
@@ -45,6 +45,5 @@ export function usePixiPointsArray(props?: IProps) {
     })
   }, [])
 
-  // Return with legacy naming for compatibility
-  return { pixiPointsArray: rendererArray, setPixiPointsLayer }
+  return { rendererArray, setRendererLayer }
 }

@@ -1,7 +1,7 @@
-import { PixiPointsCompatible } from "../data-display/renderer"
+import { PointRendererBase } from "../data-display/renderer"
 
 export interface IPlotProps {
-  pixiPoints?: PixiPointsCompatible
+  renderer?: PointRendererBase
   abovePointsGroupRef: React.RefObject<SVGGElement>
 }
 

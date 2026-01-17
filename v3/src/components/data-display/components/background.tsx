@@ -14,14 +14,14 @@ import {rTreeRect} from "../data-display-types"
 import {rectangleSubtract, rectNormalize} from "../data-display-utils"
 import {useDataDisplayLayout} from "../hooks/use-data-display-layout"
 import {useDataDisplayModelContext} from "../hooks/use-data-display-model"
-import {usePixiPointerDownDeselect} from "../hooks/use-pixi-pointer-down-deselect"
+import {useRendererPointerDownDeselect} from "../hooks/use-renderer-pointer-down-deselect"
 import {MarqueeState} from "../models/marquee-state"
 import { PixiBackgroundPassThroughEvent } from "../pixi/pixi-points"
 import { PointRendererArray } from "../renderer"
 
 interface IProps {
   marqueeState: MarqueeState
-  pixiPointsArray: PointRendererArray
+  rendererArray: PointRendererArray
 }
 
 type RTree = ReturnType<typeof RTreeLib>
@@ -41,9 +41,9 @@ interface SelectionMap {
   [key: string]: SelectionSpec
 }
 
-const prepareTree = (pixiPointsArray: PointRendererArray): RTree => {
+const prepareTree = (rendererArray: PointRendererArray): RTree => {
   const selectionTree = RTreeLib(10)
-  pixiPointsArray.forEach(renderer => {
+  rendererArray.forEach(renderer => {
     // forEachPoint provides point metadata which includes x/y coordinates
     renderer?.forEachPoint((_point, metadata) => {
       const rect = {
@@ -70,7 +70,7 @@ const getCasesForDelta = (tree: RTree | null, newRect: rTreeRect, prevRect: rTre
 }
 
 export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((props, ref) => {
-  const { marqueeState, pixiPointsArray } = props,
+  const { marqueeState, rendererArray } = props,
     dataDisplayModel = useDataDisplayModelContext(),
     datasetsArray = dataDisplayModel.datasetsArray,
     datasetsMap: SelectionMap = useMemo(() => {
@@ -100,7 +100,7 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
 
   const onDragStart = useCallback((event: PointerEvent) => {
     appState.beginPerformance()
-    selectionTree.current = prepareTree(pixiPointsArray)
+    selectionTree.current = prepareTree(rendererArray)
     // Event coordinates are window coordinates. To convert them to SVG coordinates, we need to subtract the
     // bounding rect of the SVG element.
     const bgRect = (bgRef.current as SVGGElement).getBoundingClientRect()
@@ -110,7 +110,7 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
     height.current = 0
     marqueeState.setMarqueeRect({x: startX.current, y: startY.current, width: 0, height: 0})
     needsToClearSelection.current = !event.shiftKey
-  }, [bgRef, marqueeState, pixiPointsArray])
+  }, [bgRef, marqueeState, rendererArray])
 
   const onDrag = useCallback((event: { dx: number; dy: number }) => {
     if ((event.dx === 0 && event.dy === 0) || datasetsArray.length === 0) return
@@ -162,7 +162,7 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
     appState.endPerformance()
   }, [dataDisplayModel, marqueeState])
 
-  usePixiPointerDownDeselect(pixiPointsArray, dataDisplayModel)
+  useRendererPointerDownDeselect(rendererArray, dataDisplayModel)
 
   const renderBackground = useCallback(() => {
     if (!layout.computedBounds.plot) {

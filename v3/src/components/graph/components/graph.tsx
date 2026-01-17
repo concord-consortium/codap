@@ -59,7 +59,7 @@ const kParentTogglesHeight = 20
 interface IProps {
   graphController: GraphController
   setGraphRef: (ref: HTMLDivElement | null) => void
-  pixiPointsArray: PointRendererArray
+  rendererArray: PointRendererArray
   /** Whether the renderer has a WebGL context */
   hasWebGLContext?: boolean
   /** Whether a context was requested and denied (for showing placeholder) */
@@ -73,7 +73,7 @@ interface IProps {
 export const Graph = observer(function Graph({
   graphController,
   setGraphRef,
-  pixiPointsArray,
+  rendererArray,
   hasWebGLContext = true,
   contextWasDenied = false,
   isRendererVisible = true,
@@ -81,7 +81,7 @@ export const Graph = observer(function Graph({
 }: IProps) {
   const graphModel = useGraphContentModelContext(),
     {plotType} = graphModel,
-    pixiPoints = pixiPointsArray[0],
+    renderer = rendererArray[0],
     {startAnimation} = useDataDisplayAnimation(),
     marqueeState = useMemo<MarqueeState>(() => new MarqueeState(), []),
     dataset = useDataSetContext(),
@@ -99,9 +99,9 @@ export const Graph = observer(function Graph({
   // Mount/update the pixi canvas when the renderer changes
   // This is in an effect to ensure it runs after the DOM is ready
   useEffect(() => {
-    if (pixiPoints?.canvas && pixiContainerRef.current) {
+    if (renderer?.canvas && pixiContainerRef.current) {
       const container = pixiContainerRef.current
-      const currentCanvas = pixiPoints.canvas
+      const currentCanvas = renderer.canvas
       // Check if the current canvas is already mounted
       if (!container.contains(currentCanvas)) {
         // Remove any old canvases (from previous renderers that were disposed)
@@ -109,12 +109,12 @@ export const Graph = observer(function Graph({
           container.removeChild(container.firstChild)
         }
         container.appendChild(currentCanvas)
-        pixiPoints.setupBackgroundEventDistribution({
+        renderer.setupBackgroundEventDistribution({
           elementToHide: container
         })
       }
     }
-  }, [pixiPoints])
+  }, [renderer])
 
   const mySetGraphRef = (ref: HTMLDivElement | null) => {
     graphRef.current = ref
@@ -163,18 +163,18 @@ export const Graph = observer(function Graph({
         host.style.pointerEvents = "auto"
       }
 
-      updateCellMasks({ dataConfig: graphModel.dataConfiguration, layout, pixiPoints })
+      updateCellMasks({ dataConfig: graphModel.dataConfiguration, layout, renderer })
     }
-  }, [dataset, graphModel.dataConfiguration, layout, layout.plotHeight, layout.plotWidth, pixiPoints, xScale])
+  }, [dataset, graphModel.dataConfiguration, layout, layout.plotHeight, layout.plotWidth, renderer, xScale])
 
   useEffect(function handleSubPlotsUpdate() {
     return mstReaction(
       () => graphModel.dataConfiguration.categoricalAttrsWithChangeCounts,
       () => {
-        updateCellMasks({ dataConfig: graphModel.dataConfiguration, layout, pixiPoints })
+        updateCellMasks({ dataConfig: graphModel.dataConfiguration, layout, renderer })
       }, {name: "Graph.handleSubPlotsUpdate", equals: comparer.structural}, graphModel
     )
-  }, [graphModel, layout, pixiPoints])
+  }, [graphModel, layout, renderer])
 
   useEffect(function handleAttributeConfigurationChange() {
     // Handles attribute configuration changes from undo/redo, for instance, among others.
@@ -328,7 +328,7 @@ export const Graph = observer(function Graph({
   }, [graphController, layout, graphModel, startAnimation])
 
   const renderPlotComponent = () => {
-    const props: IPlotProps = {pixiPoints, abovePointsGroupRef},
+    const props: IPlotProps = {renderer, abovePointsGroupRef},
       typeToPlotComponentMap: Record<PlotType, React.JSX.Element> = {
         casePlot: <CasePlot {...props}/>,
         dotChart: <DotChart {...props}/>,
@@ -424,7 +424,7 @@ export const Graph = observer(function Graph({
           <Background
             ref={backgroundSvgRef}
             marqueeState={marqueeState}
-            pixiPointsArray={pixiPointsArray}
+            rendererArray={rendererArray}
           />
 
           {renderGraphAxes()}
@@ -477,7 +477,7 @@ export const Graph = observer(function Graph({
           dataConfiguration={graphModel.dataConfiguration}
           dataset={dataset}
           getTipAttrs={getTipAttrs}
-          pixiPoints={pixiPoints}
+          renderer={renderer}
           getTipText={graphModel.getTipText}
         />
       </div>

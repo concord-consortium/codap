@@ -8,7 +8,7 @@ import { GraphAttrRole } from "../../data-display/data-display-types"
 import { setPointSelection } from "../../data-display/data-display-utils"
 import { dataDisplayGetNumericValue } from "../../data-display/data-display-value-utils"
 import { useDataDisplayAnimation } from "../../data-display/hooks/use-data-display-animation"
-import { PixiPointsCompatible } from "../../data-display/renderer"
+import { PointRendererBase } from "../../data-display/renderer"
 import { isBinnedPlotModel } from "../plots/histogram/histogram-model"
 import { SubPlotCells } from "../models/sub-plot-cells"
 import { kEmptyBinDetails } from "../plots/binned-dot-plot/bin-details"
@@ -19,7 +19,7 @@ import { useGraphContentModelContext } from "./use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "./use-graph-data-configuration-context"
 import { useGraphLayoutContext } from "./use-graph-layout-context"
 
-export const useDotPlot = (pixiPoints?: PixiPointsCompatible) => {
+export const useDotPlot = (renderer?: PointRendererBase) => {
   const graphModel = useGraphContentModelContext()
   const isHistogram = graphModel.plotType === "histogram"
   const dataConfig = useGraphDataConfigurationContext()
@@ -77,10 +77,10 @@ export const useDotPlot = (pixiPoints?: PixiPointsCompatible) => {
     const selectedPointRadius = graphModel.getPointRadius('select')
     const pointsFusedIntoBars = graphModel.pointsFusedIntoBars
     dataConfig && setPointSelection({
-      pixiPoints, dataConfiguration: dataConfig, pointRadius, pointColor, pointStrokeColor, selectedPointRadius,
+      renderer, dataConfiguration: dataConfig, pointRadius, pointColor, pointStrokeColor, selectedPointRadius,
       pointDisplayType, pointsFusedIntoBars
     })
-  }, [dataConfig, graphModel, pixiPoints, pointColor, pointStrokeColor, pointDisplayType])
+  }, [dataConfig, graphModel, renderer, pointColor, pointStrokeColor, pointDisplayType])
 
   const getPrimaryScreenCoord = useCallback((anID: string) => {
     const computePrimaryCoordProps: IComputePrimaryCoord = {

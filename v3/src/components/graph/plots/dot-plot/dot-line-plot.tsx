@@ -15,13 +15,13 @@ import {
   computeBinPlacements, computePrimaryCoord, computeSecondaryCoord, IComputePrimaryCoord
 } from "./dot-plot-utils"
 
-export const DotLinePlot = observer(function DotLinePlot({ pixiPoints }: IPlotProps) {
+export const DotLinePlot = observer(function DotLinePlot({ renderer }: IPlotProps) {
   const { dataset, dataConfig, graphModel, isAnimating, layout,
           pointColor, pointDisplayType, pointStrokeColor,
           primaryAttrRole, primaryIsBottom,
-          secondaryAttrRole, refreshPointSelection } = useDotPlot(pixiPoints)
+          secondaryAttrRole, refreshPointSelection } = useDotPlot(renderer)
   const { onDrag, onDragEnd, onDragStart } = useDotPlotDragDrop()
-  usePixiDragHandlers(pixiPoints, {start: onDragStart, drag: onDrag, end: onDragEnd})
+  usePixiDragHandlers(renderer, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
       const primaryPlace: AxisPlace = primaryIsBottom ? 'bottom' : 'left',
@@ -162,15 +162,15 @@ export const DotLinePlot = observer(function DotLinePlot({ pixiPoints }: IPlotPr
       setPointCoordinates({
         pointRadius: graphModel.getPointRadius(),
         selectedPointRadius: graphModel.getPointRadius('select'),
-        pixiPoints, selectedOnly, pointColor, pointStrokeColor,
+        renderer, selectedOnly, pointColor, pointStrokeColor,
         getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating,
         pointDisplayType, getWidth, getHeight, anchor, dataset
       })
     },
     [primaryIsBottom, layout, dataConfig, primaryAttrRole, graphModel, secondaryAttrRole, dataset,
-      pointDisplayType, pixiPoints, pointColor, pointStrokeColor, isAnimating])
+      pointDisplayType, renderer, pointColor, pointStrokeColor, isAnimating])
 
-  usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
+  usePlotResponders({renderer, refreshPointPositions, refreshPointSelection})
 
   useEffect(function respondToPlotDisplayType() {
     return mstReaction(() => graphModel.plot.displayType,
