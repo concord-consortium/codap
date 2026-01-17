@@ -104,12 +104,16 @@ export function usePointRendererArray(options: IUsePointRendererArrayOptions): I
 
   const [rendererArray, setRendererArray] = useState<Array<PointRendererBase | undefined>>([])
 
-  // Use single renderer hook for the initial/primary renderer
+  // Use single renderer hook for the initial/primary renderer (only when addInitialRenderer is true)
+  // When addInitialRenderer is false (e.g., for maps), child components create their own renderers
+  // via useLayerRenderer, so we don't want to consume a WebGL context slot for an unused renderer.
   const primaryResult = usePointRenderer({
     id: `${baseId}-0`,
     isMinimized,
     priority,
-    containerRef
+    containerRef,
+    // Skip registration with context manager when we won't use this renderer
+    skipContextRegistration: !addInitialRenderer
   })
 
   // Initialize with primary renderer if requested

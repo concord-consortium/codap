@@ -227,7 +227,11 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
   }, [dataConfiguration.dataset, mapModel, renderer])
 
   useEffect(() => {
-    if (renderer?.canvas && pixiContainerRef.current && pixiContainerRef.current.children.length === 0) {
+    if (renderer?.canvas && pixiContainerRef.current) {
+      // Clear any existing canvas (e.g., from a previous renderer before context was lost)
+      while (pixiContainerRef.current.firstChild) {
+        pixiContainerRef.current.removeChild(pixiContainerRef.current.firstChild)
+      }
       pixiContainerRef.current.appendChild(renderer.canvas)
       renderer.resize(layout.contentWidth, layout.contentHeight)
     }
@@ -341,6 +345,14 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
       return () => disposer()
     }
   }, [dataset, refreshPoints, refreshHeatmap, refreshPointSelection])
+
+  // Refresh points when the renderer changes (e.g., after reacquiring a WebGL context)
+  useEffect(function refreshPointsOnRendererChange() {
+    if (renderer) {
+      callMatchCirclesToData()
+      refreshPoints(false)
+    }
+  }, [renderer, callMatchCirclesToData, refreshPoints])
 
   useEffect(() => {
     return mstReaction(

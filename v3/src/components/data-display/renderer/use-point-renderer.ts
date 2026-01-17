@@ -42,6 +42,13 @@ export interface IUsePointRendererOptions {
    * Used for map-specific options like backgroundEventDistribution.
    */
   rendererOptions?: IPointRendererOptions
+
+  /**
+   * Skip registration with the WebGL context manager.
+   * Use this when the renderer will not actually be used (e.g., the primary
+   * renderer in usePointRendererArray when addInitialRenderer is false).
+   */
+  skipContextRegistration?: boolean
 }
 
 /**
@@ -106,7 +113,10 @@ export interface IUsePointRendererResult {
  * ```
  */
 export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRendererResult {
-  const { id, isMinimized = false, priority = 0, containerRef, onRendererChange, rendererOptions } = options
+  const {
+    id, isMinimized = false, priority = 0, containerRef, onRendererChange, rendererOptions,
+    skipContextRegistration = false
+  } = options
 
   // Shared state that survives renderer switches
   const stateRef = useRef<PointsState>(new PointsState())
@@ -155,8 +165,10 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
 
   // Update priority when it changes
   useEffect(() => {
-    webGLContextManager.updatePriority(id, priority)
-  }, [id, priority])
+    if (!skipContextRegistration) {
+      webGLContextManager.updatePriority(id, priority)
+    }
+  }, [id, priority, skipContextRegistration])
 
   // Set up IntersectionObserver for visibility
   useEffect(() => {
@@ -184,6 +196,11 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
 
   // Request/yield WebGL context based on visibility
   useEffect(() => {
+    // Skip context management if this renderer won't be used
+    if (skipContextRegistration) {
+      return
+    }
+
     if (isVisible) {
       // Try to get a context when becoming visible
       const granted = webGLContextManager.requestContext(contextConsumer)
@@ -200,15 +217,17 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
       setHasWebGLContext(false)
       // Don't set contextWasDenied when yielding - we're not visible anyway
     }
-  }, [isVisible, contextConsumer, id])
+  }, [isVisible, contextConsumer, id, skipContextRegistration])
 
   // Clean up on unmount
   useEffect(() => {
     return () => {
-      webGLContextManager.releaseContext(id)
+      if (!skipContextRegistration) {
+        webGLContextManager.releaseContext(id)
+      }
       renderer.dispose()
     }
-  // Note: We intentionally don't include `renderer` in dependencies
+  // Note: We intentionally don't include `renderer` or `skipContextRegistration` in dependencies
   // because we want to dispose whatever renderer exists at unmount time
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
@@ -249,8 +268,8 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
 
   // Request a context with boosted priority (for user interaction)
   const requestContextWithHighPriority = useCallback(() => {
-    if (hasWebGLContext) {
-      // Already have a context, nothing to do
+    if (skipContextRegistration || hasWebGLContext) {
+      // Already have a context or not participating in context management
       return
     }
     // Get the next user interaction priority - each click gets a higher value
@@ -268,7 +287,7 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
       setContextWasDenied(false)
     }
     // If not granted even with high priority, contextWasDenied should already be true
-  }, [hasWebGLContext, id, contextConsumer])
+  }, [skipContextRegistration, hasWebGLContext, id, contextConsumer])
 
   return {
     renderer,

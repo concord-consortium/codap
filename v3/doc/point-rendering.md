@@ -73,7 +73,6 @@ Additional hooks are in `src/components/data-display/hooks/`:
 
 | File | Purpose |
 |------|---------|
-| `use-renderer-array.ts` | `useRendererArray` - manages array of renderers for maps |
 | `use-renderer-pointer-down.ts` | `useRendererPointerDown` - handles pointer down events on renderer canvas |
 | `use-renderer-pointer-down-deselect.ts` | `useRendererPointerDownDeselect` - deselection behavior on background click |
 
@@ -100,6 +99,10 @@ abstract class PointRendererBase {
     this.state.updatePointPosition(point.id, x, y)
     this.doSetPointPosition(point.id, x, y)
   }
+
+  // Post-init configuration (used by maps)
+  setupResizeObserver(resizeTo: HTMLElement): void
+  setupBackgroundEventDistribution(options: IBackgroundEventDistributionOptions): void
 }
 ```
 
@@ -192,6 +195,8 @@ interface IUsePointRendererOptions {
   priority?: number                             // Priority for context allocation
   containerRef?: React.RefObject<HTMLElement>   // For visibility observation
   onRendererChange?: (renderer: PointRendererBase) => void
+  rendererOptions?: IPointRendererOptions       // Options for renderer init
+  skipContextRegistration?: boolean             // Skip WebGL context management
 }
 
 interface IUsePointRendererResult {
@@ -217,7 +222,51 @@ For components that need multiple renderers (e.g., maps with multiple data sets)
 
 ```typescript
 function usePointRendererArray(options: IUsePointRendererArrayOptions): IUsePointRendererArrayResult
+
+interface IUsePointRendererArrayOptions {
+  baseId: string                                // Base ID for renderers (suffixed with layer index)
+  isMinimized?: boolean                         // Whether component is minimized
+  priority?: number                             // Priority for context allocation
+  containerRef?: React.RefObject<HTMLElement>   // For visibility observation
+  addInitialRenderer?: boolean                  // Whether to create a primary renderer (graphs: true, maps: false)
+}
+
+interface IUsePointRendererArrayResult {
+  rendererArray: Array<PointRendererBase | undefined>
+  setRendererLayer: (renderer: PointRendererBase, layerIndex: number) => void
+  hasAnyWebGLContext: boolean
+  contextWasDenied: boolean
+  isVisible: boolean
+  requestContextWithHighPriority: () => void
+  contextValue: IPointRendererArrayContextValue  // For PointRendererArrayContext.Provider
+}
 ```
+
+The hook returns a `contextValue` that should be passed to `PointRendererArrayContext.Provider` to enable child components to use `useLayerRenderer`.
+
+### useLayerRenderer Hook
+
+For child components (e.g., map point layers) that need their own context-managed renderer:
+
+```typescript
+function useLayerRenderer(layerIndex: number, options?: IUseLayerRendererOptions): IUseLayerRendererResult
+
+interface IUseLayerRendererOptions {
+  layerPriority?: number                        // Optional priority override for this layer
+  rendererOptions?: IPointRendererOptions       // Options for renderer init
+}
+
+interface IUseLayerRendererResult {
+  renderer: PointRendererBase | undefined
+  isReady: boolean
+  hasWebGLContext: boolean
+}
+```
+
+This hook must be used within a `PointRendererArrayContext.Provider`. It:
+1. Creates a context-managed renderer using settings from the parent context
+2. Automatically registers the renderer with the parent via `setRendererLayer`
+3. Participates in WebGL context pooling
 
 ## Placeholder UI
 
@@ -259,24 +308,36 @@ const {
 
 ### Map Component
 
-Maps use the `useRendererArray` hook for managing multiple point layers:
+Maps use `usePointRendererArray` with `addInitialRenderer: false` and provide context for child layers:
 
 ```typescript
-// In codap-map.tsx
-const { rendererArray, setRendererLayer } = useRendererArray()
+// In map-component.tsx
+const { rendererArray, contextValue } = usePointRendererArray({
+  baseId: tileId,
+  isMinimized,
+  containerRef: mapRef
+  // Note: addInitialRenderer defaults to false for maps
+})
 
-// Each MapPointLayer creates its own PixiPointRenderer and registers it
-<MapInterior setRendererLayer={setRendererLayer} />
+// Wrap children in context provider
+<PointRendererArrayContext.Provider value={contextValue}>
+  <CodapMap rendererArray={rendererArray} />
+</PointRendererArrayContext.Provider>
 
-// In map-point-layer.tsx
-useEffect(function createPointRenderer() {
-  const _renderer = new PixiPointRenderer()
-  await _renderer.init({ resizeTo: containerRef.current })
-  setRenderer(_renderer)
-  setRendererLayer(_renderer, mapLayerModel.layerIndex)
-  // ...
-}, [mapLayerModel.layerIndex, setRendererLayer])
+// In map-point-layer.tsx - each layer gets its own context-managed renderer
+const { renderer } = useLayerRenderer(layerIndex)
+
+// Configure renderer after it's available
+useEffect(function configureRenderer() {
+  if (!renderer || !containerRef.current) return
+  renderer.setupResizeObserver(containerRef.current)
+  renderer.setupBackgroundEventDistribution({
+    elementToHide: containerRef.current
+  })
+}, [renderer])
 ```
+
+This approach ensures map point layers participate in WebGL context pooling, allowing them to gracefully yield and reacquire contexts as graphs are created/closed.
 
 ## Event Handling
 
