@@ -28,6 +28,8 @@ export interface IPointStyle {
 export interface IPointMetadata extends CaseData {
   datasetID: string
   style: IPointStyle
+  x: number
+  y: number
 }
 
 /**

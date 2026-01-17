@@ -329,12 +329,17 @@ describe("PointsState", () => {
       const caseData = createCaseData(2, "case1")
       const pointId = state.addPoint(caseData, defaultStyle)
 
+      // Update position to verify x/y are included
+      state.updatePointPosition(pointId, 50, 100)
+
       const metadata = state.getMetadata(pointId)
       expect(metadata).toBeDefined()
       expect(metadata?.caseID).toBe("case1")
       expect(metadata?.plotNum).toBe(2)
       expect(metadata?.datasetID).toBe("ds1")
       expect(metadata?.style).toEqual(defaultStyle)
+      expect(metadata?.x).toBe(50)
+      expect(metadata?.y).toBe(100)
     })
 
     it("returns a copy of the style in metadata", () => {

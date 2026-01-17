@@ -1,40 +1,50 @@
 import { useCallback, useEffect, useState } from "react"
-import { PixiPoints } from "../pixi/pixi-points"
-import { PixiPointsCompatible, PixiPointsCompatibleArray } from "../renderer"
+import { NullPointRenderer, PointRendererBase, PointRendererArray } from "../renderer"
 
 interface IProps {
-  addInitialPixiPoints?: boolean
+  addInitialRenderer?: boolean
 }
 
+/**
+ * Hook for managing an array of point renderers.
+ * Used by maps where each layer creates its own renderer.
+ *
+ * Note: This hook creates NullPointRenderer instances as placeholders.
+ * For proper WebGL context management, each layer should create its own
+ * PixiPointRenderer and register it via setRendererLayer.
+ */
 export function usePixiPointsArray(props?: IProps) {
-  const { addInitialPixiPoints = false } = props || {}
-  const [ pixiPointsArray, setPixiPointsArray ] = useState<PixiPointsCompatibleArray>([])
+  const { addInitialRenderer = false } = props || {}
+  const [rendererArray, setRendererArray] = useState<PointRendererArray>([])
 
   useEffect(() => {
-    const initialPixiPoints = addInitialPixiPoints ? new PixiPoints() : undefined
+    let initialRenderer: PointRendererBase | undefined
 
-    async function initPixiPoints() {
-      if (initialPixiPoints) {
-        await initialPixiPoints.init()
-        setPixiPointsArray([initialPixiPoints])
+    async function initRenderer() {
+      if (addInitialRenderer) {
+        // Create a NullPointRenderer as placeholder - actual rendering happens in layers
+        initialRenderer = new NullPointRenderer()
+        await initialRenderer.init()
+        setRendererArray([initialRenderer])
       }
     }
-    initPixiPoints()
+    initRenderer()
 
     return () => {
       // if we created it, we destroy it
-      initialPixiPoints?.dispose()
-      setPixiPointsArray([])
+      initialRenderer?.dispose()
+      setRendererArray([])
     }
-  }, [addInitialPixiPoints])
+  }, [addInitialRenderer])
 
-  const setPixiPointsLayer = useCallback((pixiPoints: PixiPointsCompatible, layerIndex: number) => {
-    setPixiPointsArray((prev) => {
-      const newPixiPointsArray = [...prev]
-      newPixiPointsArray[layerIndex] = pixiPoints
-      return newPixiPointsArray
+  const setPixiPointsLayer = useCallback((renderer: PointRendererBase, layerIndex: number) => {
+    setRendererArray((prev) => {
+      const newArray = [...prev]
+      newArray[layerIndex] = renderer
+      return newArray
     })
   }, [])
 
-  return {pixiPointsArray, setPixiPointsLayer}
+  // Return with legacy naming for compatibility
+  return { pixiPointsArray: rendererArray, setPixiPointsLayer }
 }

@@ -725,7 +725,9 @@ export class PixiPointRenderer extends PointRendererBase {
           caseID: pointState.caseID,
           plotNum: pointState.plotNum,
           datasetID: pointState.datasetID,
-          style: { ...pointState.style }
+          style: { ...pointState.style },
+          x: pointState.x,
+          y: pointState.y
         }
       }
     }

@@ -205,7 +205,9 @@ export class PointsState {
       caseID: point.caseID,
       plotNum: point.plotNum,
       datasetID: point.datasetID,
-      style: { ...point.style }
+      style: { ...point.style },
+      x: point.x,
+      y: point.y
     }
   }
 

@@ -18,7 +18,7 @@ export const MapComponent = observer(function MapComponent({tile}: ITileBaseProp
   const instanceId = useNextInstanceId("map")
   const layout = useInitMapLayout(mapModel)
   const mapRef = useRef<HTMLDivElement | null>(null)
-  const {pixiPointsArray} = usePixiPointsArray({ addInitialPixiPoints: true })
+  const {pixiPointsArray} = usePixiPointsArray({ addInitialRenderer: true })
 
   // used to determine when a dragged attribute is over the map component
   const dropId = `${instanceId}-component-drop-overlay`

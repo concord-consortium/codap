@@ -20,7 +20,7 @@ import {GraphPlace} from "../../axis-graph-shared"
 import { AxisPlace, AxisPlaces, isAxisPlace } from "../../axis/axis-types"
 import { IBaseNumericAxisModel } from "../../axis/models/base-numeric-axis-model"
 import { If } from "../../common/if"
-import { PixiPointsCompatibleArray } from "../../data-display/renderer"
+import { PointRendererArray } from "../../data-display/renderer"
 import {Background} from "../../data-display/components/background"
 import {DataTip} from "../../data-display/components/data-tip"
 import {MultiLegend} from "../../data-display/components/legend/multi-legend"
@@ -59,7 +59,7 @@ const kParentTogglesHeight = 20
 interface IProps {
   graphController: GraphController
   setGraphRef: (ref: HTMLDivElement | null) => void
-  pixiPointsArray: PixiPointsCompatibleArray
+  pixiPointsArray: PointRendererArray
   /** Whether the renderer has a WebGL context */
   hasWebGLContext?: boolean
   /** Whether a context was requested and denied (for showing placeholder) */

@@ -20,8 +20,7 @@ import {
 import { IConnectingLineDescription } from "../../data-display/data-display-types"
 import {isDisplayItemVisualPropsAction} from "../../data-display/models/display-model-actions"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
-import { PixiPoints } from "../../data-display/pixi/pixi-points"
-import { IPointMetadata, PixiPointsCompatible } from "../../data-display/renderer"
+import { IPointMetadata, PixiPointRenderer, PointRendererBase } from "../../data-display/renderer"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {IMapPointLayerModel} from "../models/map-point-layer-model"
 import {MapPointGrid} from "./map-point-grid"
@@ -32,7 +31,7 @@ import "./map-point-layer.scss"
 
 interface IProps {
   mapLayerModel: IMapPointLayerModel
-  setPixiPointsLayer: (pixiPoints: PixiPointsCompatible, layerIndex: number) => void
+  setPixiPointsLayer: (renderer: PointRendererBase, layerIndex: number) => void
 }
 
 export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, setPixiPointsLayer}: IProps) {
@@ -43,7 +42,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     layout = useDataDisplayLayout(),
     instanceId = useInstanceIdContext(),
     pixiContainerRef = useRef<HTMLDivElement>(null),
-    [pixiPoints, setPixiPoints] = useState<PixiPoints>(),
+    [pixiPoints, setPixiPoints] = useState<PixiPointRenderer>(),
     showConnectingLines = mapLayerModel.connectingLinesAreVisible,
     connectingLinesRef = useRef<SVGGElement>(null),
     connectingLinesActivatedRef = useRef(false),
@@ -103,29 +102,29 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     connectingLinesActivatedRef, onConnectingLinesClick: handleConnectingLinesClick
   })
 
-  useEffect(function createPixiPoints() {
-    let _pixiPoints: PixiPoints
+  useEffect(function createPointRenderer() {
+    let _renderer: PixiPointRenderer
 
-    async function initPixiPoints() {
+    async function initRenderer() {
       if (!pixiContainerRef.current) {
         return
       }
-      _pixiPoints = new PixiPoints()
-      await _pixiPoints.init({
+      _renderer = new PixiPointRenderer()
+      await _renderer.init({
         resizeTo: pixiContainerRef.current,
-        // PixiPoints background should redistribute events to the geoJSON polygons that lie underneath.
+        // Renderer background should redistribute events to the geoJSON polygons that lie underneath.
         backgroundEventDistribution: {
           // Element that needs to be "hidden" to obtain another element at the current cursor position.
           elementToHide: pixiContainerRef.current
         }
       })
-      setPixiPoints(_pixiPoints)
-      setPixiPointsLayer(_pixiPoints, mapLayerModel.layerIndex)
+      setPixiPoints(_renderer)
+      setPixiPointsLayer(_renderer, mapLayerModel.layerIndex)
     }
-    initPixiPoints()
+    initRenderer()
 
     return () => {
-      _pixiPoints?.dispose()
+      _renderer?.dispose()
     }
   }, [mapLayerModel.layerIndex, setPixiPointsLayer])
 

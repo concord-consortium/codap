@@ -17,11 +17,11 @@ import {useDataDisplayModelContext} from "../hooks/use-data-display-model"
 import {usePixiPointerDownDeselect} from "../hooks/use-pixi-pointer-down-deselect"
 import {MarqueeState} from "../models/marquee-state"
 import { PixiBackgroundPassThroughEvent } from "../pixi/pixi-points"
-import { PixiPointsCompatibleArray } from "../renderer"
+import { PointRendererArray } from "../renderer"
 
 interface IProps {
   marqueeState: MarqueeState
-  pixiPointsArray: PixiPointsCompatibleArray
+  pixiPointsArray: PointRendererArray
 }
 
 type RTree = ReturnType<typeof RTreeLib>
@@ -41,15 +41,14 @@ interface SelectionMap {
   [key: string]: SelectionSpec
 }
 
-const prepareTree = (pixiPointsArray: PixiPointsCompatibleArray): RTree => {
+const prepareTree = (pixiPointsArray: PointRendererArray): RTree => {
   const selectionTree = RTreeLib(10)
-  pixiPointsArray.forEach(pixiPoints => {
-    // forEachPoint works with both old PixiPoints (PIXI.Sprite) and new PointRendererBase (IPoint)
-    // Use any for point since we just need x/y coordinates which both have
-    pixiPoints?.forEachPoint((point: any, metadata: any) => {
+  pixiPointsArray.forEach(renderer => {
+    // forEachPoint provides point metadata which includes x/y coordinates
+    renderer?.forEachPoint((_point, metadata) => {
       const rect = {
-        x: point.x,
-        y: point.y,
+        x: metadata.x,
+        y: metadata.y,
         w: 1, h: 1
       }
       selectionTree.insert(rect, { datasetID: metadata.datasetID, caseID: metadata.caseID })

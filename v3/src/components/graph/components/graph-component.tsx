@@ -12,7 +12,7 @@ import { useTileSelectionContext } from '../../../hooks/use-tile-selection-conte
 import { AxisProviderContext } from '../../axis/hooks/use-axis-provider-context'
 import { AxisLayoutContext } from "../../axis/models/axis-layout-context"
 import { kTitleBarHeight } from "../../constants"
-import { usePointRendererArray, toPixiPointsArray } from '../../data-display/renderer'
+import { usePointRendererArray, PointRendererArray } from '../../data-display/renderer'
 import { DataDisplayRenderState } from '../../data-display/models/data-display-render-state'
 import { AttributeDragOverlay } from "../../drag-drop/attribute-drag-overlay"
 import { ITileBaseProps } from '../../tiles/tile-base-props'
@@ -52,8 +52,8 @@ export const GraphComponent = observer(function GraphComponent({tile, isMinimize
     addInitialRenderer: true
   })
 
-  // Convert to old API for backward compatibility during migration
-  const pixiPointsArray = toPixiPointsArray(rendererArray)
+  // Alias for consistency with existing code
+  const pixiPointsArray: PointRendererArray = rendererArray
 
   const graphController = useMemo(
     () => new GraphController({layout, instanceId}),
