@@ -748,9 +748,9 @@ export class PixiPointRenderer extends PointRendererBase {
       }
 
       if (!draggingActive) {
-        !this._pointsFusedIntoBars && this.onPointOver?.(toPointerEvent(pointerEvent), data.point, data.metadata)
+        !this._pointsFusedIntoBars && this.onPointerOver?.(toPointerEvent(pointerEvent), data.point, data.metadata)
       } else {
-        this.onPointLeave?.(toPointerEvent(pointerEvent), data.point, data.metadata)
+        this.onPointerLeave?.(toPointerEvent(pointerEvent), data.point, data.metadata)
       }
     }
 
@@ -771,7 +771,7 @@ export class PixiPointRenderer extends PointRendererBase {
         }, transitionDuration)
       }
 
-      !this._pointsFusedIntoBars && this.onPointLeave?.(toPointerEvent(pointerEvent), data.point, data.metadata)
+      !this._pointsFusedIntoBars && this.onPointerLeave?.(toPointerEvent(pointerEvent), data.point, data.metadata)
     }
 
     sprite.on("pointerover", (pointerEvent: PIXI.FederatedPointerEvent) => {
@@ -791,7 +791,7 @@ export class PixiPointRenderer extends PointRendererBase {
       if (this._displayType === "bars" && this._pointsFusedIntoBars && this.isSafari) {
         this.dispatchForSafari(clickEvent, "click")
       } else {
-        this.onPointClick?.(toPointerEvent(clickEvent), data.point, data.metadata)
+        this.onPointerClick?.(toPointerEvent(clickEvent), data.point, data.metadata)
       }
     })
 
@@ -800,12 +800,12 @@ export class PixiPointRenderer extends PointRendererBase {
       if (!data) return
 
       draggingActive = true
-      this.onPointDragStart?.(toPointerEvent(pointerDownEvent), data.point, data.metadata)
+      this.onPointerDragStart?.(toPointerEvent(pointerDownEvent), data.point, data.metadata)
 
       const onDrag = (onDragEvent: PointerEvent) => {
         if (draggingActive && this._displayType !== "bars") {
           const currentData = getPointAndMetadata()
-          currentData && this.onPointDrag?.(onDragEvent, currentData.point, currentData.metadata)
+          currentData && this.onPointerDrag?.(onDragEvent, currentData.point, currentData.metadata)
         }
       }
 
@@ -813,7 +813,7 @@ export class PixiPointRenderer extends PointRendererBase {
         if (draggingActive) {
           draggingActive = false
           const currentData = getPointAndMetadata()
-          currentData && this.onPointDragEnd?.(pointerUpEvent, currentData.point, currentData.metadata)
+          currentData && this.onPointerDragEnd?.(pointerUpEvent, currentData.point, currentData.metadata)
           handlePointerLeave(toFederatedPointerEvent(pointerUpEvent))
           window.removeEventListener("pointermove", onDrag)
           window.removeEventListener("pointerup", onDragEnd)

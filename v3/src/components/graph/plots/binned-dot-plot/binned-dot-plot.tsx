@@ -15,7 +15,7 @@ import {IPlotProps} from "../../graphing-types"
 import { useBinnedPlotResponders } from "../../hooks/use-binned-plot-responders"
 import { useDotPlot } from "../../hooks/use-dot-plot"
 import { useDotPlotDragDrop } from "../../hooks/use-dot-plot-drag-drop"
-import {usePixiDragHandlers, usePlotResponders} from "../../hooks/use-plot"
+import {useRendererDragHandlers, usePlotResponders} from "../../hooks/use-plot"
 import { setPointCoordinates } from "../../utilities/graph-utils"
 import { isBinnedDotPlotModel } from "./binned-dot-plot-model"
 
@@ -43,7 +43,7 @@ export const BinnedDotPlot = observer(function BinnedDotPlot({renderer, abovePoi
   const handleDragBinBoundaryEndFn = useRef<() => void>(() => {})
 
   const { onDrag, onDragEnd, onDragStart } = useDotPlotDragDrop()
-  usePixiDragHandlers(renderer, {start: onDragStart, drag: onDrag, end: onDragEnd})
+  useRendererDragHandlers(renderer, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const drawBinBoundaries = useCallback(() => {
     if (!dataConfig || !isFiniteNumber(binnedPlot?.binAlignment) || !isFiniteNumber(binnedPlot?.binWidth)) return

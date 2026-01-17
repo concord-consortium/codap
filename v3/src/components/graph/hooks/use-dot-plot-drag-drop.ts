@@ -8,7 +8,7 @@ import { getDomainExtentForPixelWidth } from "../../axis/axis-utils"
 import { handleClickOnCase } from "../../data-display/data-display-utils"
 import { dataDisplayGetNumericValue } from "../../data-display/data-display-value-utils"
 import { useDataDisplayAnimation } from "../../data-display/hooks/use-data-display-animation"
-import { IPointMetadata } from "../../data-display/renderer"
+import { IPoint, IPointMetadata } from "../../data-display/renderer"
 import { useGraphDataConfigurationContext } from "./use-graph-data-configuration-context"
 import { useGraphLayoutContext } from "./use-graph-layout-context"
 
@@ -34,8 +34,7 @@ export const useDotPlotDragDrop = () => {
    * the primary axis. Note: this does not permanently change their value. When they are
    * dropped, they return to their original value and position.
    */
-  // Use any for point since it can be either PIXI.Sprite (old API) or IPoint (new API)
-  const onDragStart = (event: PointerEvent, point: any, metadata: IPointMetadata) => {
+  const onDragStart = (event: PointerEvent, _point: IPoint, metadata: IPointMetadata) => {
     dataset?.beginCaching()
     didDrag.current = false
     const tItsID: string = metadata.caseID
@@ -75,7 +74,7 @@ export const useDotPlotDragDrop = () => {
     }
   }
 
-  const onDragEnd = (event: PointerEvent, point: any, metadata: IPointMetadata) => {
+  const onDragEnd = (event: PointerEvent, _point: IPoint, _metadata: IPointMetadata) => {
     dataset?.endCaching()
     appState.endPerformance()
 

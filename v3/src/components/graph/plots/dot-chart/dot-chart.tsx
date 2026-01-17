@@ -2,7 +2,7 @@ import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect } from "react"
 import { mstReaction } from "../../../../utilities/mst-reaction"
 import { handleClickOnCase } from "../../../data-display/data-display-utils"
-import { circleAnchor, IPointMetadata } from "../../../data-display/renderer"
+import { circleAnchor, IPoint, IPointMetadata } from "../../../data-display/renderer"
 import { IPlotProps } from "../../graphing-types"
 import { useChartDots } from "../../hooks/use-chart-dots"
 import { usePlotResponders } from "../../hooks/use-plot"
@@ -35,17 +35,16 @@ export const DotChart = observer(function DotChart({ renderer }: IPlotProps) {
 
   usePlotResponders({renderer, refreshPointPositions, refreshPointSelection})
 
-  // Use any for point since it can be either PIXI.Sprite (old API) or IPoint (new API)
-  const onPointClick = useCallback(
-    (event: PointerEvent, point: any, metadata: IPointMetadata) => {
+  const onPointerClick = useCallback(
+    (event: PointerEvent, _point: IPoint, metadata: IPointMetadata) => {
       handleClickOnCase(event, metadata.caseID, dataset)
   }, [dataset])
 
   useEffect(() => {
     if (renderer) {
-      renderer.onPointClick = onPointClick
+      renderer.onPointerClick = onPointerClick
     }
-  }, [renderer, onPointClick])
+  }, [renderer, onPointerClick])
 
   // respond to point size change because we have to change the stacking
   useEffect(function respondToGraphPointVisualAction() {

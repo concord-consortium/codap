@@ -125,12 +125,12 @@ export class PixiPoints {
   targetProp: TransitionPropMap = {}
   startProp: TransitionPropMap = {}
 
-  onPointOver?: PixiPointEventHandler
-  onPointLeave?: PixiPointEventHandler
-  onPointClick?: PixiPointEventHandler
-  onPointDragStart?: PixiPointEventHandler
-  onPointDrag?: PixiPointEventHandler
-  onPointDragEnd?: PixiPointEventHandler
+  onPointerOver?: PixiPointEventHandler
+  onPointerLeave?: PixiPointEventHandler
+  onPointerClick?: PixiPointEventHandler
+  onPointerDragStart?: PixiPointEventHandler
+  onPointerDrag?: PixiPointEventHandler
+  onPointerDragEnd?: PixiPointEventHandler
 
   // map from id string to requestAnimationFrame id number
   animationFrames = new Map<PixiPointsAnimationFrameRequestId, number>()
@@ -715,9 +715,11 @@ export class PixiPoints {
         }, { duration: transitionDuration })
       }
       if (!draggingActive) {
-        !this.pointsFusedIntoBars && this.onPointOver?.(toPointerEvent(pointerEvent), sprite, this.getMetadata(sprite))
+        if (!this.pointsFusedIntoBars) {
+          this.onPointerOver?.(toPointerEvent(pointerEvent), sprite, this.getMetadata(sprite))
+        }
       } else {
-        this.onPointLeave?.(toPointerEvent(pointerEvent), sprite, this.getMetadata(sprite))
+        this.onPointerLeave?.(toPointerEvent(pointerEvent), sprite, this.getMetadata(sprite))
       }
     }
     const handlePointerLeave = (pointerEvent: PIXI.FederatedPointerEvent) => {
@@ -734,7 +736,7 @@ export class PixiPoints {
           this.setPointScale(sprite, 1)
         }, { duration: transitionDuration })
       }
-      !this.pointsFusedIntoBars && this.onPointLeave?.(toPointerEvent(pointerEvent), sprite, this.getMetadata(sprite))
+      !this.pointsFusedIntoBars && this.onPointerLeave?.(toPointerEvent(pointerEvent), sprite, this.getMetadata(sprite))
     }
 
     // Hover effect
@@ -752,21 +754,21 @@ export class PixiPoints {
         this.dispatchForSafari(clickEvent, 'click')
       }
       else {
-        this.onPointClick?.(toPointerEvent(clickEvent), sprite, this.getMetadata(sprite))
+        this.onPointerClick?.(toPointerEvent(clickEvent), sprite, this.getMetadata(sprite))
       }
     })
 
     // Dragging
     sprite.on("pointerdown", (pointerDownEvent: PIXI.FederatedPointerEvent) => {
       draggingActive = true
-      this.onPointDragStart?.(toPointerEvent(pointerDownEvent), sprite, this.getMetadata(sprite))
+      this.onPointerDragStart?.(toPointerEvent(pointerDownEvent), sprite, this.getMetadata(sprite))
 
       const onDrag = (onDragEvent: PointerEvent) => {
         // bars cannot be dragged
         if (draggingActive && this.displayType !== "bars") {
           // Note that we don't call getMetadata here because the point can be removed by a click
           const metadata = this.pointMetadata.get(sprite)
-          metadata && this.onPointDrag?.(onDragEvent, sprite, metadata)
+          metadata && this.onPointerDrag?.(onDragEvent, sprite, metadata)
         }
       }
 
@@ -775,7 +777,7 @@ export class PixiPoints {
           draggingActive = false
           // Note that we don't call getMetadata here because the point can be removed by a click
           const metadata = this.pointMetadata.get(sprite)
-          metadata && this.onPointDragEnd?.(pointerUpEvent, sprite, metadata)
+          metadata && this.onPointerDragEnd?.(pointerUpEvent, sprite, metadata)
           handlePointerLeave(toFederatedPointerEvent(pointerUpEvent))
           window.removeEventListener("pointermove", onDrag)
           window.removeEventListener("pointerup", onDragEnd)

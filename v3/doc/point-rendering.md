@@ -64,7 +64,8 @@ Renderer core classes are in `src/components/data-display/renderer/`:
 | `null-point-renderer.ts` | `NullPointRenderer` - no-op renderer for context-starved graphs |
 | `pixi-point-renderer.ts` | `PixiPointRenderer` - full PIXI.js/WebGL rendering |
 | `webgl-context-manager.ts` | `WebGLContextManager` singleton managing context pool |
-| `use-point-renderer.ts` | React hooks: `usePointRenderer`, `usePointRendererArray` |
+| `use-point-renderer.ts` | React hook: `usePointRenderer` |
+| `use-point-renderer-array.ts` | React hook: `usePointRendererArray` for multi-layer support |
 | `point-renderer-context.tsx` | React context for renderer access |
 | `index.ts` | Public API exports |
 
@@ -283,12 +284,12 @@ Point renderers support the following event callbacks:
 
 ```typescript
 // Optional event handlers (assign to renderer instance)
-renderer.onPointOver = (event, point, metadata) => { ... }
-renderer.onPointLeave = (event, point, metadata) => { ... }
-renderer.onPointClick = (event, point, metadata) => { ... }
-renderer.onPointDragStart = (event, point, metadata) => { ... }
-renderer.onPointDrag = (event, point, metadata) => { ... }
-renderer.onPointDragEnd = (event, point, metadata) => { ... }
+renderer.onPointerOver = (event, point, metadata) => { ... }
+renderer.onPointerLeave = (event, point, metadata) => { ... }
+renderer.onPointerClick = (event, point, metadata) => { ... }
+renderer.onPointerDragStart = (event, point, metadata) => { ... }
+renderer.onPointerDrag = (event, point, metadata) => { ... }
+renderer.onPointerDragEnd = (event, point, metadata) => { ... }
 ```
 
 Event handlers receive:

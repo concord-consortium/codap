@@ -9,7 +9,7 @@ import { circleAnchor, hBarAnchor, vBarAnchor } from "../../../data-display/rend
 import {IPlotProps} from "../../graphing-types"
 import { useDotPlot } from "../../hooks/use-dot-plot"
 import { useDotPlotDragDrop } from "../../hooks/use-dot-plot-drag-drop"
-import { usePixiDragHandlers, usePlotResponders } from "../../hooks/use-plot"
+import { useRendererDragHandlers, usePlotResponders } from "../../hooks/use-plot"
 import { setPointCoordinates } from "../../utilities/graph-utils"
 import {
   computeBinPlacements, computePrimaryCoord, computeSecondaryCoord, IComputePrimaryCoord
@@ -21,7 +21,7 @@ export const DotLinePlot = observer(function DotLinePlot({ renderer }: IPlotProp
           primaryAttrRole, primaryIsBottom,
           secondaryAttrRole, refreshPointSelection } = useDotPlot(renderer)
   const { onDrag, onDragEnd, onDragStart } = useDotPlotDragDrop()
-  usePixiDragHandlers(renderer, {start: onDragStart, drag: onDrag, end: onDragEnd})
+  useRendererDragHandlers(renderer, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
       const primaryPlace: AxisPlace = primaryIsBottom ? 'bottom' : 'left',

@@ -16,7 +16,7 @@ import { handleClickOnCase, setPointSelection } from "../../../data-display/data
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
 import { useConnectingLines } from "../../../data-display/hooks/use-connecting-lines"
 import {useDataDisplayAnimation} from "../../../data-display/hooks/use-data-display-animation"
-import { IPointMetadata } from "../../../data-display/renderer"
+import { IPoint, IPointMetadata } from "../../../data-display/renderer"
 import { ILSRLAdornmentModel } from "../../adornments/lsrl/lsrl-adornment-model"
 import { IMovableLineAdornmentModel } from "../../adornments/movable-line/movable-line-adornment-model"
 import { IPlottedFunctionAdornmentModel } from "../../adornments/plotted-function/plotted-function-adornment-model"
@@ -28,7 +28,7 @@ import {IPlotProps} from "../../graphing-types"
 import {useGraphContentModelContext} from "../../hooks/use-graph-content-model-context"
 import {useGraphDataConfigurationContext} from "../../hooks/use-graph-data-configuration-context"
 import {useGraphLayoutContext} from "../../hooks/use-graph-layout-context"
-import {usePixiDragHandlers, usePlotResponders} from "../../hooks/use-plot"
+import {useRendererDragHandlers, usePlotResponders} from "../../hooks/use-plot"
 import { setPointCoordinates } from "../../utilities/graph-utils"
 import { scatterPlotFuncs } from "./scatter-plot-utils"
 
@@ -85,8 +85,7 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
   dragPointRadiusRef.current = graphModel.getPointRadius('hover-drag')
   yScaleRef.current = layout.getAxisScale("left") as ScaleNumericBaseType
 
-  // Use any for point since it can be either PIXI.Sprite (old API) or IPoint (new API)
-  const onDragStart = useCallback((event: PointerEvent, _point: any, metadata: IPointMetadata) => {
+  const onDragStart = useCallback((event: PointerEvent, _point: IPoint, metadata: IPointMetadata) => {
     dataset?.beginCaching()
     secondaryAttrIDsRef.current = dataConfiguration?.yAttributeIDs || []
     stopAnimation() // We don't want to animate points until end of drag
@@ -168,7 +167,7 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
     }
   }, [dataConfiguration, dataset, dragID, startAnimation])
 
-  usePixiDragHandlers(renderer, {start: onDragStart, drag: onDrag, end: onDragEnd})
+  useRendererDragHandlers(renderer, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointSelection = useCallback(() => {
     const {pointColor, pointStrokeColor} = graphModel.pointDescription

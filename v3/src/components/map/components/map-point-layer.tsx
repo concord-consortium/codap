@@ -20,7 +20,7 @@ import {
 import { IConnectingLineDescription } from "../../data-display/data-display-types"
 import {isDisplayItemVisualPropsAction} from "../../data-display/models/display-model-actions"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
-import { IPointMetadata, PixiPointRenderer, PointRendererBase } from "../../data-display/renderer"
+import { IPoint, IPointMetadata, PixiPointRenderer, PointRendererBase } from "../../data-display/renderer"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {IMapPointLayerModel} from "../models/map-point-layer-model"
 import {MapPointGrid} from "./map-point-grid"
@@ -219,8 +219,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     if (!renderer) {
       return
     }
-    // Use any for point since it can be either PIXI.Sprite (old API) or IPoint (new API)
-    renderer.onPointClick = (event: PointerEvent, point: any, metadata: IPointMetadata) => {
+    renderer.onPointerClick = (event: PointerEvent, _point: IPoint, metadata: IPointMetadata) => {
       handleClickOnCase(event, metadata.caseID, dataConfiguration.dataset)
       // TODO PIXI: this doesn't seem to work in pixi. Note that this click will be propagated to the map container
       // and handled by its click handler (which will deselect the point). The current workaround is to disable
@@ -317,8 +316,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     const {latId, longId} = mapLayerModel.pointAttributes || {}
     if (!latId || !longId) return
 
-    // Use any for point since it can be either PIXI.Sprite (old API) or IPoint (new API)
-    renderer.forEachPoint((point: any, metadata: any) => {
+    renderer.forEachPoint((point: IPoint, metadata: IPointMetadata) => {
       const {caseID} = metadata
       renderer.setPointPosition(point, getScreenX(caseID), getScreenY(caseID))
       renderer.setPointStyle(point, {

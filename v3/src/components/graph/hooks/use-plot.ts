@@ -10,36 +10,31 @@ import {onAnyAction} from "../../../utilities/mst-utils"
 import {IAxisModel} from "../../axis/models/axis-model"
 import {GraphAttrRoles} from "../../data-display/data-display-types"
 import {matchCirclesToData} from "../../data-display/data-display-utils"
-import { PointRendererBase } from "../../data-display/renderer"
+import { PointEventHandler, PointRendererBase } from "../../data-display/renderer"
 import { syncModelWithAttributeConfiguration } from "../models/graph-model-utils"
 import { updateCellMasks } from "../utilities/graph-utils"
 import {useGraphContentModelContext} from "./use-graph-content-model-context"
 import {useGraphLayoutContext} from "./use-graph-layout-context"
 
-// Generic event handler type that works with both old and new APIs
-// In old API: (event, PIXI.Sprite, IPixiPointMetadata) => void
-// In new API: (event, IPoint, IPointMetadata) => void
-export type CompatiblePointEventHandler = (event: PointerEvent, point: any, metadata: any) => void
-
-export interface IPixiDragHandlers {
-  start: CompatiblePointEventHandler
-  drag: CompatiblePointEventHandler
-  end: CompatiblePointEventHandler
+export interface IRendererDragHandlers {
+  start: PointEventHandler
+  drag: PointEventHandler
+  end: PointEventHandler
 }
 
-export const usePixiDragHandlers = (
-  renderer: PointRendererBase | undefined, {start, drag, end}: IPixiDragHandlers
+export const useRendererDragHandlers = (
+  renderer: PointRendererBase | undefined, {start, drag, end}: IRendererDragHandlers
 ) => {
   useEffect(() => {
     if (renderer) {
-      renderer.onPointDragStart = start as any
-      renderer.onPointDrag = drag as any
-      renderer.onPointDragEnd = end as any
+      renderer.onPointerDragStart = start
+      renderer.onPointerDrag = drag
+      renderer.onPointerDragEnd = end
       // On cleanup, remove event listeners
       return () => {
-        renderer.onPointDragStart = undefined
-        renderer.onPointDrag = undefined
-        renderer.onPointDragEnd = undefined
+        renderer.onPointerDragStart = undefined
+        renderer.onPointerDrag = undefined
+        renderer.onPointerDragEnd = undefined
       }
     }
   }, [renderer, start, drag, end])

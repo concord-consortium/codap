@@ -434,15 +434,20 @@ export abstract class PointRendererBase {
   // ===== Event handlers (default no-op implementations) =====
   // Subclasses can override these to provide actual event handling
 
-  onPointOver?(event: PointerEvent, point: IPoint, metadata: IPointMetadata): void
+  onPointerOver?(event: PointerEvent, point: IPoint, metadata: IPointMetadata): void
 
-  onPointLeave?(event: PointerEvent, point: IPoint, metadata: IPointMetadata): void
+  onPointerLeave?(event: PointerEvent, point: IPoint, metadata: IPointMetadata): void
 
-  onPointClick?(event: PointerEvent, point: IPoint, metadata: IPointMetadata): void
+  onPointerClick?(event: PointerEvent, point: IPoint, metadata: IPointMetadata): void
 
-  onPointDragStart?(event: PointerEvent, point: IPoint, metadata: IPointMetadata): void
+  onPointerDragStart?(event: PointerEvent, point: IPoint, metadata: IPointMetadata): void
 
-  onPointDrag?(event: PointerEvent, point: IPoint, metadata: IPointMetadata): void
+  onPointerDrag?(event: PointerEvent, point: IPoint, metadata: IPointMetadata): void
 
-  onPointDragEnd?(event: PointerEvent, point: IPoint, metadata: IPointMetadata): void
+  onPointerDragEnd?(event: PointerEvent, point: IPoint, metadata: IPointMetadata): void
 }
+
+/**
+ * Array of point renderers (for multi-layer support)
+ */
+export type PointRendererArray = Array<Maybe<PointRendererBase>>

@@ -8,7 +8,6 @@ export type {
   IBackgroundEventDistributionOptions,
   ITransitionOptions,
   PointEventHandler,
-  PointRendererArray,
   RendererCapability
 } from "./point-renderer-types"
 
@@ -16,7 +15,10 @@ export type {
 export { PointsState, caseDataKey, generatePointId } from "./points-state"
 
 // Base class
-export { PointRendererBase, circleAnchor, hBarAnchor, vBarAnchor, getRendererForEvent } from "./point-renderer-base"
+export {
+  PointRendererBase, circleAnchor, hBarAnchor, vBarAnchor, getRendererForEvent
+} from "./point-renderer-base"
+export type { PointRendererArray } from "./point-renderer-base"
 
 // Renderers
 export { NullPointRenderer } from "./null-point-renderer"
@@ -30,10 +32,7 @@ export type { IContextConsumer } from "./webgl-context-manager"
 export {
   PointRendererContext, usePointRendererContext, useOptionalPointRendererContext
 } from "./point-renderer-context"
-export { usePointRenderer, usePointRendererArray } from "./use-point-renderer"
-export type {
-  IUsePointRendererOptions,
-  IUsePointRendererResult,
-  IUsePointRendererArrayOptions,
-  IUsePointRendererArrayResult
-} from "./use-point-renderer"
+export { usePointRenderer } from "./use-point-renderer"
+export type { IUsePointRendererOptions, IUsePointRendererResult } from "./use-point-renderer"
+export { usePointRendererArray } from "./use-point-renderer-array"
+export type { IUsePointRendererArrayOptions, IUsePointRendererArrayResult } from "./use-point-renderer-array"

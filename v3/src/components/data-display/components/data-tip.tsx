@@ -2,7 +2,7 @@ import React, { Fragment, useCallback, useRef, useState } from "react"
 import { computePosition, flip, offset, shift, useFloating } from "@floating-ui/react"
 import { useDataDisplayModelContext } from "../hooks/use-data-display-model"
 import { IDataSet } from "../../../models/data/data-set"
-import { PointRendererBase } from "../renderer"
+import { IPoint, IPointMetadata, PointRendererBase } from "../renderer"
 import { urlParams } from "../../../utilities/url-params"
 import { IDataConfigurationModel } from "../models/data-configuration-model"
 import { IGetTipTextProps, IShowDataTipProps } from "../data-tip-types"
@@ -97,23 +97,21 @@ export const DataTip = (props: IDataTipProps) => {
     }, 0)
   }
 
-  // This callback works with both old API (PIXI.Sprite, IPixiPointMetadata) and new API (IPoint, IPointMetadata)
-  // Both APIs provide metadata with caseID and plotNum properties
-  const showPixiDataTip = (event: PointerEvent, _point: any, metadata: any) => {
+  const handlePointerOver = (event: PointerEvent, _point: IPoint, metadata: IPointMetadata) => {
     showDataTip({event, caseID: metadata.caseID, plotNum: metadata.plotNum})
   }
 
-  const hideDataTip = (event: MouseEvent) => {
+  const handlePointerLeave = (event: PointerEvent) => {
     event.stopPropagation()
     context.onOpenChange(false)
   }
 
   // support disabling data tips via url parameter for jest tests
   if (urlParams.noDataTips === undefined && renderer && dataDisplayModel) {
-    renderer.onPointOver = showPixiDataTip as any
-    renderer.onPointLeave = hideDataTip as any
+    renderer.onPointerOver = handlePointerOver
+    renderer.onPointerLeave = handlePointerLeave
     dataDisplayModel.setShowDataTip(showDataTip)
-    dataDisplayModel.setHideDataTip(hideDataTip)
+    dataDisplayModel.setHideDataTip(handlePointerLeave)
   }
 
   return (

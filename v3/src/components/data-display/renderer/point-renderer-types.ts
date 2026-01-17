@@ -86,10 +86,5 @@ export interface ITransitionOptions {
   duration: number
 }
 
-/**
- * Array of point renderers (for multi-layer support)
- */
-export type PointRendererArray = Array<Maybe<import("./point-renderer-base").PointRendererBase>>
-
 // Re-export types used by consumers
 export type { CaseData, CaseDataWithSubPlot, PointDisplayType }
