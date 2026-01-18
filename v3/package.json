@@ -57,6 +57,7 @@
     "build": "npm-run-all lint:build build:cypress build:webpack",
     "build:ci": "npm-run-all build:cypress build:webpack",
     "build:cypress": "tsc -p ./cypress/tsconfig.json",
+    "build:tsc": "tsc --noEmit --skipLibCheck",
     "build:webpack": "webpack --mode production",
     "clean:all": "npm run clean:cache && npm run clean:patches && npm install",
     "clean:cache": "rimraf .cache",

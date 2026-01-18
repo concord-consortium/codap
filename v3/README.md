@@ -54,8 +54,10 @@ Alternately, you can run secure without certificates in Chrome:
 
 ### Building
 
-If you want to build a local version run `npm build`, it will create the files in the `dist` folder.
+If you want to build a local version run `npm run build`, it will create the files in the `dist` folder.
 You *do not* need to build to deploy the code, that is automatic.  See more info in the Deployment section below.
+
+To run just the TypeScript compiler for a quick type check without a full webpack build, run `npm run build:tsc`.
 
 ### Notes
 
@@ -108,6 +110,7 @@ To deploy a new release:
 - run `npm run test -- a-particular.test` to run a particular test
 - run `npm run test:coverage` to run the jest tests and print out coverage statistics for the tested files
 - run `npm run test:coverage -- a-particular.test` to run a particular test and print out coverage statistics just for the specified tests
+- run `npm run test:watch` to run the jest tests in watch mode, re-running when files change
 - run `npm start` in one terminal and `npm run test:cypress` to run the cypress tests locally against a headless browser
 - run `npm start` in one terminal and `npm run test:cypress -- --spec cypress/e2e/a-particular.spec.ts` to run a particular cypress test locally
 - run `npm start` in one terminal and `npm run test:cypress:open` to run the cypress tests against an actual browser with the ability to debug, etc.
