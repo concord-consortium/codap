@@ -98,6 +98,14 @@ export class PixiPointRenderer extends PointRendererBase {
     return PixiTransition.anyTransitionActive(this.targetProp)
   }
 
+  /**
+   * Get the textures map (for testing/debugging purposes).
+   * Keys are JSON-stringified style objects, values are PIXI.Texture instances.
+   */
+  get texturesMap(): Map<string, PIXI.Texture> {
+    return this.textures
+  }
+
   // ===== Abstract method implementations =====
 
   protected async doInit(options?: IPointRendererOptions): Promise<void> {
@@ -116,7 +124,7 @@ export class PixiPointRenderer extends PointRendererBase {
         }
       })
     } catch (e) {
-      console.error("PixiPointRenderer failed to initialize renderer", e)
+      console.error("[PixiPointRenderer] PIXI.autoDetectRenderer FAILED", e)
       return
     }
 

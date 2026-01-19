@@ -146,8 +146,11 @@ context("Map UI", () => {
   it("checks show/hide selected/unselected/all map points", () => {
     cfm.openLocalDoc(filename1)
     c.getIconFromToolShelf("map").click()
+    cy.wait(1000)  // Wait for map to be created
     c.selectTile("map", 0)
-
+    cy.wait(500)  // Wait for inspector panel to update after tile selection
+    // Verify inspector panel shows map buttons before interacting
+    map.getHideShowButton().should("exist")
     map.selectHideShowButton()
     map.getHideSelectedCases().should("have.text", "Hide Selected Cases")
     map.getHideUnselectedCases().should("have.text", "Hide Unselected Cases")
@@ -171,11 +174,13 @@ context("Map UI", () => {
   it("checks heatmap", () => {
     cfm.openLocalDoc(filename1)
     c.getIconFromToolShelf("map").click()
+    cy.wait(1000)  // Wait for map to be created
     c.selectTile("map", 0)
+    cy.wait(500)  // Wait for inspector panel to update after tile selection
 
     // Can't show heatmap without a legend attribute
     map.getHeatmapCanvas().should("not.exist")
-    map.getDisplayConfigButton().click()
+    map.getDisplayConfigButton().should("exist").click()
     map.getHeatmapBullet().should("not.exist")
 
     // Turn on heatmap
@@ -226,6 +231,7 @@ context("Map UI", () => {
 
     c.getIconFromToolShelf("map").click()
     map.getMapTile().should("exist")
+    cy.wait(1000)  // Wait for map to initialize and detect pin attributes
     map.getPinLayer().should("exist")
     map.getAddPinButton().should("exist")
     map.getRemovePinButton().should("exist").should("be.disabled")
@@ -413,9 +419,10 @@ context("Map UI", () => {
     cfm.openLocalDoc(filename1)
     c.getIconFromToolShelf("map").click()
     c.selectTile("map", 0)
-    cy.wait(2000)
+    cy.wait(2000)  // Wait for map renderer to initialize
     cy.get("[data-testid=connecting-lines-map-1").find("path").should("have.length", 0)
-    cy.get("[data-testid=map-display-values-button]").click()
+    // Verify map is selected by checking for map-specific inspector button
+    map.getDisplayValuesButton().should("exist").click()
     cy.get("[data-testid=map-values-lines-checkbox]").should("be.visible")
     cy.get("[data-testid=map-values-lines-checkbox]").click()
     cy.wait(2000)

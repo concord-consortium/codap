@@ -100,10 +100,10 @@ export const AxisHelper = {
   selectSubmenuAttribute(attributeName: string, collectionName: string, axis: string) {
     ae.getAttributeFromAttributeMenu(axis)
       .contains(".collection-menu-item", collectionName)
-      .click()
+      .click({ force: true })
     ae.getAttributeFromAttributeMenu(axis)
       .contains("button", attributeName)
-      .click()
+      .click({ force: true })
     cy.wait(2000)
   },
   removeAttributeFromAxis(name: string, axis: string) {

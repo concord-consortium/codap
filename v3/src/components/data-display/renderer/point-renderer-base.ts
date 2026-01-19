@@ -196,6 +196,18 @@ export abstract class PointRendererBase {
     return this.state.size
   }
 
+  /**
+   * Get all points as an array (for testing/debugging purposes).
+   * Each point has a `position` property with `x` and `y` coordinates.
+   */
+  get points(): Array<{ position: { x: number; y: number } }> {
+    const result: Array<{ position: { x: number; y: number } }> = []
+    this.state.forEach(point => {
+      result.push({ position: { x: point.x, y: point.y } })
+    })
+    return result
+  }
+
   get displayType(): PointDisplayType {
     return this._displayType
   }

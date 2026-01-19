@@ -64,10 +64,6 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
   const lsrlSquaresRef = useRef<SVGGElement>(null)
   const functionSquaresRef = useRef<SVGGElement>(null)
 
-  // The Connecting Lines option is controlled by the AdornmentsStore, so we need to watch for changes to that store
-  // and call refreshConnectingLines when the option changes. Unlike the Squares of Residuals, the lines are not
-  // rendered in connection with any other adornments.
-  const showConnectingLines = adornmentsStore.showConnectingLines
   const connectingLinesRef = useRef<SVGGElement>(null)
   const connectingLinesActivatedRef = useRef(false)
 
@@ -179,8 +175,9 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
       })
   }, [dataConfiguration, graphModel, renderer])
 
-  const refreshConnectingLines = useCallback(async () => {
-    if (!showConnectingLines && !connectingLinesActivatedRef.current) return
+  // Accept showLines parameter to avoid stale closure issues during rapid state changes
+  const refreshConnectingLines = useCallback(async (showLines: boolean) => {
+    if (!showLines && !connectingLinesActivatedRef.current) return
     const { connectingLinesForCases } = scatterPlotFuncs(layout, dataConfiguration)
     const connectingLines = connectingLinesForCases()
     const childmostCollectionId = idOfChildmostCollectionForAttributes(dataConfiguration?.attributes ?? [], dataset)
@@ -202,20 +199,20 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
 
     cellKeys?.forEach((cellKey) => {
       renderConnectingLines({
-        cellKey, connectingLines, parentAttrID, parentAttrName, pointColorAtIndex, showConnectingLines
+        cellKey, connectingLines, parentAttrID, parentAttrName, pointColorAtIndex, showConnectingLines: showLines
       })
     })
 
     // Decrease point size when Connecting Lines are first activated so the lines are easier to see, and
     // revert to original point size when Connecting Lines are deactivated.
-    if (!connectingLinesActivatedRef.current && showConnectingLines && !pointsHaveBeenReduced) {
+    if (!connectingLinesActivatedRef.current && showLines && !pointsHaveBeenReduced) {
       pointDescription.setPointSizeMultiplier(pointSizeMultiplier * kPointSizeReductionFactor)
       pointDescription.setPointsHaveBeenReduced(true)
-    } else if (!showConnectingLines && pointsHaveBeenReduced) {
+    } else if (!showLines && pointsHaveBeenReduced) {
       pointDescription.setPointSizeMultiplier(pointSizeMultiplier / kPointSizeReductionFactor)
       pointDescription.setPointsHaveBeenReduced(false)
     }
-  }, [showConnectingLines, layout, dataConfiguration, dataset, renderConnectingLines, graphModel])
+  }, [layout, dataConfiguration, dataset, renderConnectingLines, graphModel])
 
   const refreshSquares = useCallback(() => {
 
@@ -301,14 +298,16 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
   }, [renderer, dataConfiguration, layout])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
-    refreshConnectingLines()
+    // Read showConnectingLines directly from store to avoid stale closure issues
+    refreshConnectingLines(adornmentsStore.showConnectingLines)
     if (appState.isPerformanceMode) {
       refreshPointPositionsPerfMode(selectedOnly)
     } else {
       refreshAllPointPositions(selectedOnly)
     }
     showSquares && refreshSquares()
-  }, [showSquares, refreshConnectingLines, refreshSquares, refreshPointPositionsPerfMode, refreshAllPointPositions])
+  }, [adornmentsStore, showSquares, refreshConnectingLines, refreshSquares, refreshPointPositionsPerfMode,
+      refreshAllPointPositions])
 
   // Call refreshSquares when Squares of Residuals option is switched on and when a
   // Movable Line adornment is being dragged.
@@ -322,11 +321,16 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
 
   // Call refreshConnectingLines when Connecting Lines option is switched on and when all
   // points are selected.
+  // NOTE: We observe adornmentsStore.showConnectingLines directly inside the autorun to ensure
+  // we always get the current value, rather than relying on closures which can become stale
+  // during rapid state changes (e.g., during undo when renderer is also changing).
   useEffect(function updateConnectingLines() {
     return autorun(() => {
-      refreshConnectingLines()
+      // Read showConnectingLines directly from store inside autorun to create a reactive dependency
+      const currentShowConnectingLines = adornmentsStore.showConnectingLines
+      refreshConnectingLines(currentShowConnectingLines)
     }, { name: "ScatterDots.updateConnectingLines" })
-  }, [dataConfiguration?.selection, refreshConnectingLines, showConnectingLines])
+  }, [adornmentsStore, dataConfiguration?.selection, refreshConnectingLines])
 
   usePlotResponders({renderer, refreshPointPositions, refreshPointSelection})
 

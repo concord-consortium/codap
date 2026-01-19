@@ -253,7 +253,11 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
         newRenderer = new NullPointRenderer(stateRef.current)
       }
 
-      await newRenderer.init(rendererOptions)
+      try {
+        await newRenderer.init(rendererOptions)
+      } catch (e) {
+        console.error(`[usePointRenderer:${id}] renderer init FAILED`, e)
+      }
       setRenderer(newRenderer)
       setIsReady(true)
 

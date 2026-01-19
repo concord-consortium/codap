@@ -100,6 +100,13 @@ export const useConnectingLines = (props: IProps) => {
     const { allLineCaseIds, lineGroups, parentAttrName, pointColorAtIndex,
             showConnectingLines } = drawLinesProps
     const curve = line().curve(curveLinear)
+
+    // Interrupt any running transitions to prevent race conditions where an old transition's
+    // "end" callback could interfere with state when rapid updates occur (e.g., during undo/redo).
+    // Note: We only interrupt here; path removal is handled in the transition "end" callback
+    // for each path when hiding connecting lines.
+    connectingLinesArea.selectAll("path").interrupt()
+
     // For each group of lines, draw a path using the lines' coordinates
     for (const [_linesIndex, [primaryAttrValue, cases]] of Object.entries(lineGroups).entries()) {
       const allLineCoords = cases.map((l: IConnectingLineDescription) => l.lineCoords)
@@ -128,9 +135,14 @@ export const useConnectingLines = (props: IProps) => {
         .transition()
         .duration(transitionDuration)
         .style("opacity", showConnectingLines ? 1 : 0)
-        .on("end", () => {
+        // Use regular function to access `this` (the path element that finished transitioning)
+        .on("end", function() {
           connectingLinesActivatedRef.current = showConnectingLines
-          !showConnectingLines && connectingLinesArea.selectAll("path").remove()
+          // Remove only this specific path when hiding (not all paths) to avoid race conditions
+          // where a stale "hide" transition callback could remove paths from a newer "show" transition
+          if (!showConnectingLines) {
+            select(this).remove()
+          }
         })
     }
   }, [clientType, connectingLinesActivatedRef, connectingLinesArea, connectingLinesSvg,
