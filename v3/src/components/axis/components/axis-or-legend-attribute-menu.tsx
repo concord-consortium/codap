@@ -1,7 +1,8 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import { Menu, MenuItem, MenuList, MenuButton, MenuDivider } from "@chakra-ui/react"
+import { Menu, MenuItem, MenuList, MenuButton, MenuDivider, Portal } from "@chakra-ui/react"
 import React, { CSSProperties, useRef, useState } from "react"
+import { useDocumentContainerContext } from "../../../hooks/use-document-container-context"
 import { IUseDraggableAttribute, useDraggableAttribute } from "../../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import { useOutsidePointerDown } from "../../../hooks/use-outside-pointer-down"
@@ -104,6 +105,7 @@ interface IProps {
 export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttributeMenu({
   place, target, portal, layoutBounds, onChangeAttribute, onRemoveAttribute, onTreatAttributeAs
 }: IProps) {
+  const containerRef = useDocumentContainerContext()
   const dataConfiguration = useDataConfigurationContext()
   const dataSet = dataConfiguration?.dataset
   const dataSets = dataConfiguration ? getDataSets(dataConfiguration) : []
@@ -210,7 +212,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
 
   return (
     <div className={clsx("axis-legend-attribute-menu", place)} ref={menuRef} title={description + clickLabel}>
-      <Menu boundary="scrollParent" onOpen={handleOpenMenu}>
+      <Menu placement="auto" onOpen={handleOpenMenu}>
         {({ isOpen, onClose }) => {
           if (isOpen !== isMenuOpen) {
             setIsMenuOpen(isOpen)
@@ -223,33 +225,33 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
               <MenuButton style={buttonStyle} data-testid={`axis-legend-attribute-button-${place}`}>
                 {attribute?.name}
               </MenuButton>
-              <MenuList>
-                {renderMenuItems()}
-                { attribute &&
-                  <>
-                    <MenuDivider />
-                    <MenuItem
-                      onClick={() => onRemoveAttribute(place, attrId)}
-                      onPointerOver={() => setOpenCollectionId(null)}
-                    >
-                      {removeAttrItemLabel}
-                    </MenuItem>
-                    {attribute.type !== "color" &&
+              <Portal containerRef={containerRef}>
+                <MenuList maxH="min(50vh, 400px)" overflowY="auto"
+                          data-testid={`axis-legend-attribute-menu-list-${place}`}>
+                  {renderMenuItems()}
+                  { attribute &&
+                    <>
+                      <MenuDivider />
                       <MenuItem
-                        onClick={() => onTreatAttributeAs(place, attribute?.id, treatAs)}
+                        onClick={() => onRemoveAttribute(place, attrId)}
                         onPointerOver={() => setOpenCollectionId(null)}
                       >
-                        {treatAs === "categorical" && t("DG.DataDisplayMenu.treatAsCategorical")}
-                        {treatAs === "numeric" && t("DG.DataDisplayMenu.treatAsNumeric")}
-                        {treatAs === "date" && t("V3.DataDisplayMenu.treatAsDate")}
+                        {removeAttrItemLabel}
                       </MenuItem>
-                    }
-                    { /** We add a spacer to prevent a ChakraUI problem whereby the bottom item disappears **/
-                      place === 'bottom' && <MenuItem onPointerOver={() => setOpenCollectionId(null)}>&nbsp;</MenuItem>
-                    }
-                  </>
-                }
-              </MenuList>
+                      {attribute.type !== "color" &&
+                        <MenuItem
+                          onClick={() => onTreatAttributeAs(place, attribute?.id, treatAs)}
+                          onPointerOver={() => setOpenCollectionId(null)}
+                        >
+                          {treatAs === "categorical" && t("DG.DataDisplayMenu.treatAsCategorical")}
+                          {treatAs === "numeric" && t("DG.DataDisplayMenu.treatAsNumeric")}
+                          {treatAs === "date" && t("V3.DataDisplayMenu.treatAsDate")}
+                        </MenuItem>
+                      }
+                    </>
+                  }
+                </MenuList>
+              </Portal>
             </div>
           )
         }}

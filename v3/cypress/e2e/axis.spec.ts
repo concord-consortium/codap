@@ -382,14 +382,14 @@ context("Test graph axes attribute menu", () => {
     ah.openAxisAttributeMenu("bottom")
     ah.verifyRemoveAttributeDoesNotExist("bottom")
     ah.verifyTreatAsOptionDoesNotExist("bottom")
-    ah.openAxisAttributeMenu("bottom")
+    ah.closeAxisAttributeMenu("bottom")
     ah.verifyAxisMenuIsClosed("bottom")
   })
   it("will open and close y axis attribute menu when clicked on default axis label", () => {
     ah.openAxisAttributeMenu("left")
     ah.verifyRemoveAttributeDoesNotExist("left")
     ah.verifyTreatAsOptionDoesNotExist("left")
-    ah.openAxisAttributeMenu("left")
+    ah.closeAxisAttributeMenu("left")
     ah.verifyAxisMenuIsClosed("left")
   })
   it("will add and remove categorical attribute to x axis from attribute menu with undo/redo", () => {
