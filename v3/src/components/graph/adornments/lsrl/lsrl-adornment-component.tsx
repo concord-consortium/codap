@@ -155,8 +155,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
       const label = model.labels.get(key)?.get(category)
       const caseValues = model.getCaseValues(xAttrId, yAttrId, cellKey, dataConfig, category)
       const color = category && category !== kMain ? dataConfig?.getLegendColorForCategory(category) : undefined
-      const { slope, intercept, rSquared,
-              seSlope, seIntercept } = line
+      const { slope, intercept, rSquared, seSlope, seIntercept } = line
       if (slope == null || intercept == null) return
       const sumOfSquares = dataConfig && showSumSquares
         ? calculateSumOfSquares({ cellKey, dataConfig, computeY: (x) => intercept + slope * x })
@@ -196,9 +195,9 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
       }
       ++linesIndex
     })
-  }, [getLines, cellKey, dataConfig, xAttrId, yAttrId, equationContainerSelector,
-    adornmentsStore?.interceptLocked, plotWidth, plotHeight, model, showSumSquares,
-    xScale, xSubAxesCount, yScale, ySubAxesCount, xAttrName, yAttrName, showConfidenceBands, layout])
+  }, [adornmentsStore, cellKey, dataConfig, equationContainerSelector, getLines, layout, model,
+      plotHeight, plotWidth, showConfidenceBands, showSumSquares, xAttrId, xAttrName, xScale, xSubAxesCount,
+      yAttrId, yAttrName, yScale, ySubAxesCount])
 
   const confidenceBandPaths = useCallback((caseValues: Point[], category = kMain) => {
     const xMin = xScale.domain()[0]
@@ -387,24 +386,15 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
       }, { name: "LSRLAdornmentComponent.refreshInterceptLockChange" }, model)
   }, [buildElements, model, model.changeCount])
 
-  // Refresh values on interceptLocked change
-  useEffect(function refreshInterceptLockChange() {
+  // Refresh values on configuration changes
+  useEffect(function refreshConfigurationChange() {
     return mstReaction(
-      () => adornmentsStore?.interceptLocked,
+      // `equals: comparer.structural` is not needed because array will only update when its contents change
+      () => [adornmentsStore?.interceptLocked, model.showConfidenceBands],
       () => {
         model.updateCategories(graphModel.getUpdateCategoriesOptions())
         buildElements()
-      }, { name: "LSRLAdornmentComponent.refreshInterceptLockChange" }, model)
-  }, [buildElements, dataConfig, graphModel, adornmentsStore, model, updateLSRL, xAxis, yAxis])
-
-  // Refresh values on interceptLocked change
-  useEffect(function refreshShowConfidenceBandsChange() {
-    return mstReaction(
-      () => model.showConfidenceBands,
-      () => {
-        model.updateCategories(graphModel.getUpdateCategoriesOptions())
-        buildElements()
-      }, { name: "LSRLAdornmentComponent.refreshInterceptLockChange" }, model)
+      }, { name: "LSRLAdornmentComponent.refreshConfigurationChange" }, model)
   }, [buildElements, dataConfig, graphModel, adornmentsStore, model, updateLSRL, xAxis, yAxis])
 
   // Refresh values on changes to axes

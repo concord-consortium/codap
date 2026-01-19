@@ -198,8 +198,7 @@ export const LSRLAdornmentModel = AdornmentModel
   ) {
     const caseValues = self.getCaseValues(xAttrId, yAttrId, cellKey, dataConfig, cat)
     const { intercept, rSquared, slope, sdResiduals } = leastSquaresLinearRegression(caseValues, isInterceptLocked)
-    const { stdErrSlope, stdErrIntercept } = self.showConfidenceBands
-      ? linRegrStdErrSlopeAndIntercept(caseValues) : { stdErrSlope: undefined, stdErrIntercept: undefined }
+    const { stdErrSlope, stdErrIntercept } = self.showConfidenceBands ? linRegrStdErrSlopeAndIntercept(caseValues) : {}
 
     return { intercept, rSquared, slope, sdResiduals, stdErrSlope, stdErrIntercept }
   },
@@ -218,8 +217,7 @@ export const LSRLAdornmentModel = AdornmentModel
       legendCats.forEach(legendCat => {
         const existingLine = lines ? lines.get(legendCat) : undefined
         const existingLineProps = existingLine ? getSnapshot(existingLine) : undefined
-        const { intercept, rSquared, slope, sdResiduals,
-                stdErrSlope, stdErrIntercept } = self.computeValues(
+        const { intercept, rSquared, slope, sdResiduals, stdErrSlope, stdErrIntercept } = self.computeValues(
           xAttrId, yAttrId, cellKey, dataConfig, interceptLocked, legendCat
         )
         const lineProps = { ...existingLineProps, category: legendCat, intercept, rSquared, slope, sdResiduals,
@@ -263,8 +261,7 @@ export const LSRLAdornmentModel = AdornmentModel
     legendCats.forEach(legendCat => {
       const existingLine = linesInCell ? linesInCell.get(legendCat) : undefined
       if (!existingLine?.isValid) {
-        const { intercept, rSquared, slope, sdResiduals,
-                stdErrSlope, stdErrIntercept} =
+        const { intercept, rSquared, slope, sdResiduals, stdErrSlope, stdErrIntercept } =
           self.computeValues(xAttrId, yAttrId, cellKey, dataConfig, interceptLocked, legendCat)
         if (
           !Number.isFinite(intercept) ||

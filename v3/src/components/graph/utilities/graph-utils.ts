@@ -355,8 +355,7 @@ interface ILsrlEquationString extends IEquationString {
 
 export const lsrlEquationString = (props: ILsrlEquationString) => {
   const { slope, intercept, attrNames, units, showConfidenceBands,
-    rSquared, seSlope, seIntercept, interceptLocked=false,
-          sumOfSquares, layout } = props
+    rSquared, seSlope, seIntercept, interceptLocked = false, sumOfSquares, layout } = props
   const slopeUnits = units.x && units.y
                       ? `${units.y}/${units.x}`
                       : units.y || (units.x ? `/${units.x}` : "")
@@ -367,8 +366,8 @@ export const lsrlEquationString = (props: ILsrlEquationString) => {
   const formattedSlope = formatEquationValue(slope, neededFractionDigits.slopeDigits, slopeUnits, true)
   const formattedSumOfSquares = formatEquationValue(sumOfSquares || 0, sumOfSquares && sumOfSquares > 100 ? 0 : 3)
   const formattedRSquared = formatEquationValue(rSquared || 0, 3)
-  const formattedSeSlope = seSlope !== undefined ? formatEquationValue(seSlope, 3) : ""
-  const formattedSeIntercept = seIntercept !== undefined ? formatEquationValue(seIntercept, 3) : ""
+  const formattedSeSlope = seSlope != null ? formatEquationValue(seSlope, 3) : ""
+  const formattedSeIntercept = seIntercept != null ? formatEquationValue(seIntercept, 3) : ""
   const xAttrString = attrNames.x.length > 1 ? `(<em>${attrNames.x}</em>)` : `<em>${attrNames.x}</em>`
   const interceptString = intercept !== 0 ? ` ${intercept > 0 ? "+" : ""} ${formattedIntercept}` : ""
   const equationPart = slopeIsFinite
@@ -382,7 +381,7 @@ export const lsrlEquationString = (props: ILsrlEquationString) => {
     : ""
   const rSquaredPart = rSquared == null ? "" : `<br />r<sup>2</sup> = ${formattedRSquared}`
 
-  return `${equationPart}${rSquaredPart}${seSlopePart}${squaresPart}${seInterceptPart}`
+  return `${equationPart}${rSquaredPart}${seSlopePart}${seInterceptPart}${squaresPart}`
 }
 
 interface IUpdateCellMasks {
