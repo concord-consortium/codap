@@ -224,7 +224,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
                 {attribute?.name}
               </MenuButton>
               <Portal>
-                <MenuList>
+                <MenuList data-testid={`axis-legend-attribute-menu-list-${place}`}>
                   {renderMenuItems()}
                   { attribute &&
                     <>

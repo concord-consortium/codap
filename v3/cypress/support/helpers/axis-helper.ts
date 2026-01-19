@@ -81,10 +81,15 @@ export const AxisHelper = {
     ae.getAttributeFromAttributeMenu(axis).contains(`Treat as`).should("not.exist")
   },
   verifyAxisMenuIsClosed(axis: string) {
-    ae.getAttributeFromAttributeMenu(axis).find("div>div").should("not.be.visible")
+    // When the menu is closed, the portalled MenuList may still be in the DOM but not visible
+    cy.get(`[data-testid="axis-legend-attribute-menu-list-${axis}"]`).should("not.be.visible")
   },
   openAxisAttributeMenu(axis: string) {
     ae.getAxisAttributeMenu(axis).click()
+  },
+  closeAxisAttributeMenu(_axis: string) {
+    // Close the menu by pressing Escape on the body
+    cy.get("body").type("{esc}")
   },
   addAttributeToAxis(name: string, axis: string) {
     ae.getAttributeFromAttributeMenu(axis).contains(name).click()
