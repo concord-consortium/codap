@@ -1,5 +1,5 @@
 import { IDataSet } from "../data/data-set"
-// eslint-disable-next-line import/no-cycle
+// eslint-disable-next-line import-x/no-cycle
 import { DGDataContextAPI } from "./dg-data-context-api"
 import { SCObject } from "../../v2/sc-compat"
 
