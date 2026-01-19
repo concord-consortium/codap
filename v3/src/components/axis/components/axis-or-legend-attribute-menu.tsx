@@ -2,6 +2,7 @@ import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { Menu, MenuItem, MenuList, MenuButton, MenuDivider, Portal } from "@chakra-ui/react"
 import React, { CSSProperties, useRef, useState } from "react"
+import { useDocumentContainerContext } from "../../../hooks/use-document-container-context"
 import { IUseDraggableAttribute, useDraggableAttribute } from "../../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import { useOutsidePointerDown } from "../../../hooks/use-outside-pointer-down"
@@ -104,6 +105,7 @@ interface IProps {
 export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttributeMenu({
   place, target, portal, layoutBounds, onChangeAttribute, onRemoveAttribute, onTreatAttributeAs
 }: IProps) {
+  const containerRef = useDocumentContainerContext()
   const dataConfiguration = useDataConfigurationContext()
   const dataSet = dataConfiguration?.dataset
   const dataSets = dataConfiguration ? getDataSets(dataConfiguration) : []
@@ -223,8 +225,9 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
               <MenuButton style={buttonStyle} data-testid={`axis-legend-attribute-button-${place}`}>
                 {attribute?.name}
               </MenuButton>
-              <Portal>
-                <MenuList data-testid={`axis-legend-attribute-menu-list-${place}`}>
+              <Portal containerRef={containerRef}>
+                <MenuList maxH="min(50vh, 400px)" overflowY="auto"
+                          data-testid={`axis-legend-attribute-menu-list-${place}`}>
                   {renderMenuItems()}
                   { attribute &&
                     <>
