@@ -27,12 +27,7 @@ export default [
   importX.flatConfigs.typescript,
   react.configs.flat.recommended,
   react.configs.flat["jsx-runtime"],
-  {
-    plugins: {
-      "react-hooks": reactHooks,
-    },
-    rules: reactHooks.configs.recommended.rules,
-  },
+  ...reactHooks.configs.recommended,
   {
     files: ["**/*.json"],
     plugins: { json },
@@ -196,14 +191,14 @@ export default [
     languageOptions: {
       globals: {
         ...globals.node,
-        ...cypress.environments.globals.globals
+        ...cypress.configs.globals.languageOptions.globals
       }
     },
     rules: {
       // Cypress recommended rules
       ...cypress.configs.recommended.rules,
       // Mocha recommended rules
-      ...mocha.configs.flat.recommended.rules,
+      ...mocha.configs.recommended.rules,
       // rules specific to Cypress tests
       "@typescript-eslint/no-require-imports": "off",
       "@typescript-eslint/no-non-null-assertion": "off",
@@ -214,6 +209,7 @@ export default [
       "mocha/max-top-level-suites": "off",
       "mocha/no-exclusive-tests": "warn", // error in .eslintrc.build.js
       "mocha/no-mocha-arrows": "off",
+      "mocha/no-pending-tests": "off",
       "mocha/no-setup-in-describe": "off",
       "mocha/no-skipped-tests": "off"
     },
