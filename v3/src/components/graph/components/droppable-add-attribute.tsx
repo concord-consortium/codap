@@ -1,4 +1,3 @@
-import React from "react"
 import {clsx} from "clsx"
 import {Active, useDroppable} from "@dnd-kit/core"
 import {useDropHintString} from "../../../hooks/use-drop-hint-string"

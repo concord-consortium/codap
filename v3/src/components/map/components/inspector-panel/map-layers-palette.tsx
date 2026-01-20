@@ -1,4 +1,3 @@
-import React from "react"
 import {observer} from "mobx-react-lite"
 import {Checkbox} from "@chakra-ui/react"
 import LayersIcon from "../../../../assets/icons/icon-layers.svg"

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from "react"
+import { useCallback, useMemo, useRef } from "react"
 import { select, Selection } from "d3"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"

@@ -1,4 +1,3 @@
-import React from "react"
 import { registerAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
 import { registerAdornmentComponentInfo } from "../../adornment-component-info"
 import { registerAdornmentContentInfo } from "../../adornment-content-info"

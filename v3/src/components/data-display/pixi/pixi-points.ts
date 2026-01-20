@@ -676,7 +676,7 @@ export class PixiPoints {
       canvasStyle.visibility = 'hidden'
       const svgElement = (eventType === 'mouseout') ? this.mostRecentSvgElement : document.elementFromPoint(x, y)
       canvasStyle.visibility = 'visible'
-      if (svgElement && svgElement.tagName === 'rect') {
+      if (svgElement?.tagName === 'rect') {
         const mouseEvent = new MouseEvent(eventType, {
           bubbles: true,
           cancelable: true,

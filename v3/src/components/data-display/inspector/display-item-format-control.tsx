@@ -2,7 +2,7 @@ import {
   Checkbox, Flex, FormControl, FormLabel, Radio, RadioGroup, Select, Slider, SliderThumb, SliderTrack, Stack
 } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
-import React, { useRef } from "react"
+import { useRef } from "react"
 import { AttributeBinningTypes, AttributeBinningType } from "../../../models/shared/data-set-metadata"
 import {
   kDefaultHighAttributeColor, kDefaultLowAttributeColor

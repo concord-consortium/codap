@@ -690,7 +690,7 @@ export const DataConfigurationModel = types
       placeCanAcceptAttributeIDDrop(place: GraphPlace, dataSet?: IDataSet, idToDrop?: string) {
         if (idToDrop) {
           const desc = self.attributeDescriptionForRole('legend')
-          return !desc || desc.attributeID !== idToDrop
+          return desc?.attributeID !== idToDrop
         }
         return false
       },

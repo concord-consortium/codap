@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import { Button, Menu, MenuButton, MenuItem, MenuList, ModalBody, ModalFooter,
     Tooltip, useDisclosure } from "@chakra-ui/react"
 import { clsx } from "clsx"

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from "react"
+import { useCallback, useEffect } from "react"
 import { FallbackProps } from "react-error-boundary"
 import { CloudFileManager } from "@concord-consortium/cloud-file-manager"
 import { appState } from "../models/app-state"

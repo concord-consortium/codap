@@ -1,6 +1,6 @@
 import {comparer, reaction} from "mobx"
 import {geoJSON, LeafletMouseEvent, point, Popup, popup} from "leaflet"
-import React, {useCallback, useEffect} from "react"
+import {useCallback, useEffect} from "react"
 import {useMap} from "react-leaflet"
 import {DEBUG_MAP, debugLog} from "../../../lib/debug"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"

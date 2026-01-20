@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite"
-import React, {useRef} from "react"
+import {useRef} from "react"
 import {AxisPlace} from "../axis-types"
 import {useAxisProviderContext} from "../hooks/use-axis-provider-context"
 import {useSubAxis} from "../hooks/use-sub-axis"

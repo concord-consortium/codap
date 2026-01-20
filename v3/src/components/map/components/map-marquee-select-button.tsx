@@ -1,6 +1,6 @@
 import {clsx} from "clsx"
 import {observer} from "mobx-react-lite"
-import React, {MutableRefObject} from "react"
+import {MutableRefObject} from "react"
 import {Button, Portal, Tooltip} from "@chakra-ui/react"
 import {translate} from "../../../utilities/translation/translate"
 import {IMapContentModel} from "../models/map-content-model"

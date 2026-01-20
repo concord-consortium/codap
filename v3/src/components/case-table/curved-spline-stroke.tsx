@@ -1,4 +1,3 @@
-import React from "react"
 import { buildPathStr } from "./curved-spline-utils"
 
 interface IProps {

@@ -107,6 +107,7 @@ export default [
       "eqeqeq": ["error", "smart"],
       "import-x/no-cycle": ["warn", { ignoreExternal: true }],
       "import-x/no-extraneous-dependencies": "warn",
+      "import-x/no-named-as-default-member": "off",
       "import-x/no-useless-path-segments": "warn",
       "no-bitwise": "error",
       "no-constant-binary-expression": "error",

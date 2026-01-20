@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite"
-import React, { useRef } from "react"
+import { useRef } from "react"
 import { t } from "../../utilities/translation/translate"
 import { booleanParam, urlParams } from "../../utilities/url-params"
 import { ITileBaseProps } from "../tiles/tile-base-props"

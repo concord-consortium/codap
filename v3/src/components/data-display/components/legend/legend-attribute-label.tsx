@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef} from "react"
+import {useCallback, useEffect, useRef} from "react"
 import {select} from "d3"
 import {AttributeType} from "../../../../models/data/attribute-types"
 import {IDataSet} from "../../../../models/data/data-set"

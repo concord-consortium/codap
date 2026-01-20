@@ -487,14 +487,14 @@ export class GeoRasterLayerClass extends L.GridLayer {
           console.error(e)
           error = e
         }
-        done && done(error, tile)
+        done?.(error, tile)
       }, 0)
 
       // return the tile so it can be rendered on screen
       return tile
     } catch (error: any) {
       console.error(error)
-      done && done(error, tile)
+      done?.(error, tile)
     }
   }
 

@@ -1,6 +1,6 @@
 import {randomUniform} from "d3"
 import * as PIXI from "pixi.js"
-import React, {useCallback, useEffect, useRef, useState} from "react"
+import {useCallback, useEffect, useRef, useState} from "react"
 import {useDataSetContext} from "../../../../hooks/use-data-set-context"
 import {mstReaction} from "../../../../utilities/mst-reaction"
 import { CaseData } from "../../../data-display/d3-types"

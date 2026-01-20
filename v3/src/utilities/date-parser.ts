@@ -191,7 +191,7 @@ export function fixHour(hr: string, amPm?: string) {
   let newHr = Number(hr)
   if (amPm != null && (0 < newHr && newHr <= 12)) {
     newHr = newHr % 12
-    if (amPm && amPm.toLowerCase() === 'pm') {
+    if (amPm?.toLowerCase() === 'pm') {
       newHr += 12
     }
   }

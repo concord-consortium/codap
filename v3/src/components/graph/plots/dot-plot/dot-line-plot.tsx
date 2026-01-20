@@ -1,6 +1,6 @@
 import {ScaleBand, ScaleLinear} from "d3"
 import {observer} from "mobx-react-lite"
-import React, {useCallback, useEffect} from "react"
+import {useCallback, useEffect} from "react"
 import {mstReaction} from "../../../../utilities/mst-reaction"
 import { setNiceDomain } from "../../../axis/axis-domain-utils"
 import { AxisPlace } from "../../../axis/axis-types"

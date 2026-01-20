@@ -1,6 +1,6 @@
 import { observer } from "mobx-react-lite"
 import * as PIXI from "pixi.js"
-import React, { useCallback, useEffect } from "react"
+import { useCallback, useEffect } from "react"
 import { mstReaction } from "../../../../utilities/mst-reaction"
 import { handleClickOnCase } from "../../../data-display/data-display-utils"
 import { circleAnchor, IPixiPointMetadata, PixiPointEventHandler } from "../../../data-display/pixi/pixi-points"
