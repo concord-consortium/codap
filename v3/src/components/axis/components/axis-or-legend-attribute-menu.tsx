@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite"
 import { Menu, MenuItem, MenuList, MenuButton, MenuDivider, Portal } from "@chakra-ui/react"
 import React, { CSSProperties, useRef, useState } from "react"
 import { useDocumentContainerContext } from "../../../hooks/use-document-container-context"
+import { useFreeTileLayoutContext } from "../../../hooks/use-free-tile-layout-context"
 import { IUseDraggableAttribute, useDraggableAttribute } from "../../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import { useOutsidePointerDown } from "../../../hooks/use-outside-pointer-down"
@@ -49,19 +50,21 @@ function MenuItemsForCollection({ collectionInfo, onChangeAttribute, place }: IM
 interface ICollectionMenuProps {
   collectionInfo: ICollectionInfo
   isOpen: boolean
+  maxMenuHeight: string
   onChangeAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
   onPointerOver?: React.PointerEventHandler<HTMLButtonElement>
   place: GraphPlace
 }
 const CollectionMenu = observer(function CollectionMenu({
-  collectionInfo, isOpen, onChangeAttribute, onPointerOver, place
+  collectionInfo, isOpen, maxMenuHeight, onChangeAttribute, onPointerOver, place
 }: ICollectionMenuProps) {
   const { collection } = collectionInfo
   return (
     <>
-      <Menu isOpen={isOpen} placement="right-start">
+      <Menu isOpen={isOpen} placement="auto">
         <MenuButton as="div" className="collection-menu-button" />
-        <MenuList>
+        <MenuList className="axis-legend-submenu" maxH={maxMenuHeight} overflowY="auto"
+                  data-testid={`axis-legend-attribute-menu-list-${place}-${collection.id}`}>
           <MenuItemsForCollection
             collectionInfo={collectionInfo}
             onChangeAttribute={onChangeAttribute}
@@ -74,6 +77,7 @@ const CollectionMenu = observer(function CollectionMenu({
         className="collection-menu-item"
         closeOnSelect={false}
         key={collection.id}
+        onClick={onPointerOver}
         onPointerOver={onPointerOver}
       >
         <span>{collection.name}</span>
@@ -106,6 +110,8 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   place, target, portal, layoutBounds, onChangeAttribute, onRemoveAttribute, onTreatAttributeAs
 }: IProps) {
   const containerRef = useDocumentContainerContext()
+  const layout = useFreeTileLayoutContext()
+  const maxMenuHeight = `min(${layout?.height ?? 300}px, 50vh)`
   const dataConfiguration = useDataConfigurationContext()
   const dataSet = dataConfiguration?.dataset
   const dataSets = dataConfiguration ? getDataSets(dataConfiguration) : []
@@ -200,6 +206,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
               collectionInfo={collectionInfo}
               isOpen={openCollectionId === collection.id}
               key={collection.id}
+              maxMenuHeight={maxMenuHeight}
               onChangeAttribute={handleChangeAttribute}
               onPointerOver={() => setOpenCollectionId(collection.id)}
               place={place}
@@ -226,7 +233,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
                 {attribute?.name}
               </MenuButton>
               <Portal containerRef={containerRef}>
-                <MenuList maxH="min(50vh, 400px)" overflowY="auto"
+                <MenuList className="axis-legend-menu" maxH={maxMenuHeight} overflowY="auto"
                           data-testid={`axis-legend-attribute-menu-list-${place}`}>
                   {renderMenuItems()}
                   { attribute &&
