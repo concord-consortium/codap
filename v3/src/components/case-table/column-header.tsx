@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from "react"
+import { useCallback, useRef, useState } from "react"
 import { AttributeHeader } from "../case-tile-common/attribute-header"
 import { TRenderHeaderCellProps } from "./case-table-types"
 

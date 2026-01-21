@@ -1,4 +1,3 @@
-import React from "react"
 import { ITileModel } from "../../../models/tiles/tile-model"
 
 import "./placeholder-tile.scss"

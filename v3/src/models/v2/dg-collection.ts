@@ -1,7 +1,7 @@
 import { ICollectionModel, isCollectionModel } from "../data/collection"
 import { IDataSet } from "../data/data-set"
 import { mstAutorun } from "../../utilities/mst-autorun"
-// eslint-disable-next-line import/no-cycle
+// eslint-disable-next-line import-x/no-cycle
 import { DGAttribute } from "./dg-attribute"
 import { DGCase } from "./dg-case"
 import { DGDataContextAPI } from "./dg-data-context-api"

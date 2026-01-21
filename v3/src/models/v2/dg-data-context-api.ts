@@ -1,4 +1,4 @@
-// eslint-disable-next-line import/no-cycle
+// eslint-disable-next-line import-x/no-cycle
 import { DGCollection } from "./dg-collection"
 
 export interface DGDataContextAPI {

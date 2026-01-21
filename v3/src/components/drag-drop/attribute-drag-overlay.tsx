@@ -1,5 +1,5 @@
 import { Active, DragOverlay, Modifier, Modifiers, useDndContext } from "@dnd-kit/core"
-import React, { CSSProperties, useMemo } from "react"
+import { CSSProperties, useMemo } from "react"
 import { getDragAttributeInfo } from "../../hooks/use-drag-drop"
 
 import "./attribute-drag-overlay.scss"

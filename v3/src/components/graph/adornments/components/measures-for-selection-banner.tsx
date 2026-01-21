@@ -1,4 +1,3 @@
-import React from "react"
 import { observer } from "mobx-react-lite"
 import { t } from "../../../../utilities/translation/translate"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"

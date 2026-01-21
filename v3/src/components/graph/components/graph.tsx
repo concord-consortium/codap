@@ -78,7 +78,7 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
     prevAttrCollectionsMapRef = useRef<Record<string, string>>({}),
     graphRef = useRef<HTMLDivElement | null>(null)
 
-  if (pixiPoints?.canvas && pixiContainerRef.current && pixiContainerRef.current.children.length === 0) {
+  if (pixiPoints?.canvas && pixiContainerRef.current?.children.length === 0) {
     pixiContainerRef.current.appendChild(pixiPoints.canvas)
     pixiPoints.setupBackgroundEventDistribution({
       elementToHide: pixiContainerRef.current

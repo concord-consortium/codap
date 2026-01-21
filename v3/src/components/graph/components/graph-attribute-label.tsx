@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from "react"
+import { useCallback, useRef } from "react"
 import { observer } from "mobx-react-lite"
 import { select } from "d3"
 import { t } from "../../../utilities/translation/translate"

@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef} from "react"
+import {useCallback, useEffect, useRef} from "react"
 import {observer} from "mobx-react-lite"
 import {clsx} from "clsx"
 import {MapContainer, TileLayer} from "react-leaflet"

@@ -1,5 +1,5 @@
 import { comparer } from "mobx"
-import React, {useCallback, useEffect, useRef} from "react"
+import {useCallback, useEffect, useRef} from "react"
 import {DomEvent, LeafletMouseEvent, point, popup, Rectangle, rectangle} from "leaflet"
 import {useMap} from "react-leaflet"
 import {useMemo} from "use-memo-one"

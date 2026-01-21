@@ -1,4 +1,4 @@
-import React, {forwardRef, MutableRefObject, useCallback, useEffect, useRef} from "react"
+import {forwardRef, MutableRefObject, useCallback, useEffect, useRef} from "react"
 import { comparer } from "mobx"
 import {useMemo} from "use-memo-one"
 import {select, color, range} from "d3"

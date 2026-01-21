@@ -1,6 +1,6 @@
 import { act, render, renderHook, screen, waitFor } from "@testing-library/react"
 import { CloudFileManager, CloudFileManagerClientEvent } from "@concord-consortium/cloud-file-manager"
-import React, { ReactNode } from "react"
+import { ReactNode } from "react"
 import { Root } from "react-dom/client"
 import { useCloudFileManager } from "./use-cloud-file-manager"
 

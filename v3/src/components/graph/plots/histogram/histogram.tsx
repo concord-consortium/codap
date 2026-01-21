@@ -1,6 +1,6 @@
 import { ScaleBand } from "d3"
 import { observer } from "mobx-react-lite"
-import React, { useCallback, useEffect, useRef } from "react"
+import { useCallback, useEffect, useRef } from "react"
 import { createPortal } from "react-dom"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { IBarCover, IPlotProps } from "../../graphing-types"

@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from "react"
+import {useCallback, useEffect, useRef, useState} from "react"
 import {comparer, reaction} from "mobx"
 import { observer } from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
@@ -237,7 +237,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
   }, [dataConfiguration.dataset, mapModel, pixiPoints])
 
   useEffect(() => {
-    if (pixiPoints?.canvas && pixiContainerRef.current && pixiContainerRef.current.children.length === 0) {
+    if (pixiPoints?.canvas && pixiContainerRef.current?.children.length === 0) {
       pixiContainerRef.current.appendChild(pixiPoints.canvas)
       pixiPoints.resize(layout.contentWidth, layout.contentHeight)
     }

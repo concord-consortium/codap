@@ -1,4 +1,4 @@
-import React, { useCallback } from "react"
+import { useCallback } from "react"
 import { observer } from "mobx-react-lite"
 import { ComponentTitleBar } from "../component-title-bar"
 import { useDocumentContent } from "../../hooks/use-document-content"

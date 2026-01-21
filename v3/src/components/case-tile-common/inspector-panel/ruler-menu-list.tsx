@@ -1,6 +1,6 @@
 import { useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
-import React, { useState } from "react"
+import { useState } from "react"
 import { useCfmContext } from "../../../hooks/use-cfm-context"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
