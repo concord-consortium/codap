@@ -3,23 +3,22 @@ import { diInteractiveApiHandler } from "./interactive-api-handler"
 
 describe("DataInteractive InteractiveApiHandler", () => {
   const handler = diInteractiveApiHandler
-  const originalLocation = window.location
+  const originalHref = window.location.href
 
-  const mockWindowLocation = (newLocation: Location | URL) => {
-    delete (window as any).location
-    window.location = newLocation as any
-  }
-
+  // In Jest 30+ with jsdom 25+, window.location is non-configurable
+  // Use history.replaceState to change the URL
   const setLocation = (url: string) => {
-    mockWindowLocation(new URL(url))
+    const urlObj = new URL(url)
+    window.history.replaceState(null, "", urlObj.pathname + urlObj.search + urlObj.hash)
   }
 
   afterEach(() => {
-    mockWindowLocation(originalLocation)
+    // Restore original location
+    window.history.replaceState(null, "", new URL(originalHref).pathname)
   })
 
   it("get returns unavailable when interactiveApi parameter is not present", async () => {
-    setLocation("https://example.com")
+    setLocation("http://localhost/")
 
     const resources: DIResources = {}
     const result = await handler.get!(resources)
@@ -32,7 +31,7 @@ describe("DataInteractive InteractiveApiHandler", () => {
   })
 
   it("get returns unavailable when initInteractivePromise is not defined", async () => {
-    setLocation("https://example.com?interactiveApi=")
+    setLocation("http://localhost/?interactiveApi=")
 
     const mockCfm = {
       client: {
@@ -52,7 +51,7 @@ describe("DataInteractive InteractiveApiHandler", () => {
   })
 
   it("get returns available with initInteractive data when interactiveApi is properly configured", async () => {
-    setLocation("https://example.com?interactiveApi=")
+    setLocation("http://localhost/?interactiveApi=")
 
     const mockInitInteractiveData = {
       version: "1.0",
@@ -83,7 +82,7 @@ describe("DataInteractive InteractiveApiHandler", () => {
   })
 
   it("get handles interactiveApi parameter with a value", async () => {
-    setLocation("https://example.com?interactiveApi=some-value")
+    setLocation("http://localhost/?interactiveApi=some-value")
 
     const mockInitInteractiveData = {
       version: "2.0",
@@ -111,7 +110,7 @@ describe("DataInteractive InteractiveApiHandler", () => {
   })
 
   it("get returns unavailable when cfm is not provided in resources", async () => {
-    setLocation("https://example.com?interactiveApi=")
+    setLocation("http://localhost/?interactiveApi=")
 
     const resources: DIResources = {}
     const result = await handler.get!(resources)
@@ -124,7 +123,7 @@ describe("DataInteractive InteractiveApiHandler", () => {
   })
 
   it("get handles rejected initInteractivePromise", async () => {
-    setLocation("https://example.com?interactiveApi=")
+    setLocation("http://localhost/?interactiveApi=")
 
     const mockCfm = {
       client: {

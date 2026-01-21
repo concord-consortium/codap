@@ -6,15 +6,12 @@ Notes on dependencies, particularly reasons for not updating to their latest ver
 
 |Dependency                            |Current Version|Latest Version|Notes                                                              |
 |--------------------------------------|---------------|--------------|-------------------------------------------------------------------|
-|@types/jest                           |29.5.14        |30.0.0        |Issues with mocking `window.location`.                             |
 |@types/react                          |18.3.12        |19.1.18       |React 19                                                           |
 |@types/react-dom                      |18.3.1         |19.1.6        |React 19                                                           |
 |@welldone-software/why-did-you-render |8.0.3          |10.0.1        |React 19                                                           |
 |eslint-plugin-cypress                 |4.3.0          |5.1.0         |Errors -- probably related to flat config format/compatibility.    |
 |eslint-plugin-json                    |3.1.0          |4.0.1         |Errors -- probably related to flat config format/compatibility.    |
 |eslint-plugin-mocha                   |10.5.0         |11.1.0        |Errors -- probably related to flat config format/compatibility.    |
-|jest                                  |29.7.0         |30.0.4        |Issues with mocking `window.location`.                             |
-|jest-environment-jsdom                |29.7.0         |30.0.4        |Issues with mocking `window.location`.                             |
 
 ## Runtime Dependencies
 
