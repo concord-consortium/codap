@@ -110,9 +110,14 @@ module.exports = (env, argv) => {
                 parser: {
                   syntax: "typescript",
                   decorators: true,
-                  tsx: false,
+                  tsx: true,
                   dynamicImport: false,
                 },
+                transform: {
+                  react: {
+                    runtime: "automatic"
+                  }
+                }
               },
             },
           },
