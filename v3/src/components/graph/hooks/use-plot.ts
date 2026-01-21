@@ -1,6 +1,6 @@
 import { comparer, reaction } from "mobx"
 import {isAlive} from "mobx-state-tree"
-import { useCallback, useEffect } from "react"
+import { useCallback, useEffect, useRef } from "react"
 import {useDebouncedCallback} from "use-debounce"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {isSetCaseValuesAction} from "../../../models/data/data-set-actions"
@@ -87,6 +87,9 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     }
   }, [dataConfiguration, graphModel, instanceId, renderer, startAnimation])
 
+  // Track the previous renderer to detect actual renderer changes
+  const prevRendererRef = useRef<typeof renderer>(undefined)
+
   // Refresh point positions and selection when renderer becomes available or changes.
   // This handles both initial availability and renderer switches (e.g., when WebGL context is
   // granted after being yielded). We call refreshPointPositions and refreshPointSelection directly
@@ -94,7 +97,14 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   // may have a stale closure capturing the old renderer reference.
   // See: https://www.pivotaltracker.com/story/show/188333898
   useEffect(() => {
-    callMatchCirclesToData()
+    // Only call matchCirclesToData when the renderer actually changes (not when callbacks change)
+    // This prevents startAnimation from being called during axis dragging when callbacks are recreated
+    const rendererChanged = renderer !== prevRendererRef.current
+    prevRendererRef.current = renderer
+
+    if (rendererChanged) {
+      callMatchCirclesToData()
+    }
     // Update masks with new renderer
     updateCellMasks({ dataConfig: dataConfiguration, layout, renderer })
     // Call refreshPointPositions directly to ensure it uses the new renderer
@@ -133,9 +143,11 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     return mstReaction(() => {
       return [dataConfiguration.allCategoriesForRoles, dataConfiguration.categoricalAttrsWithChangeCounts]
     }, () => {
-
       const updateMasksCallback = () => {
         if (!renderer) return
+        // Update subPlotNum values in state before updating masks
+        // This ensures sprites get assigned to the correct masks after category reordering
+        renderer.updateSubPlotNums(dataConfiguration.caseDataWithSubPlot)
         updateCellMasks({ dataConfig: dataConfiguration, layout, renderer })
       }
       renderer?.removeMasks()

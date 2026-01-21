@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef } from "react"
 import { createPortal } from "react-dom"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
+import { circleAnchor } from "../../../data-display/renderer"
 import { IBarCover, IPlotProps } from "../../graphing-types"
 import { useBinnedPlotResponders } from "../../hooks/use-binned-plot-responders"
 import { useDotPlot } from "../../hooks/use-dot-plot"
@@ -102,6 +103,7 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, rend
     }
 
     setPointCoordinates({
+      anchor: circleAnchor,
       pointRadius: graphModel.getPointRadius(),
       selectedPointRadius: graphModel.getPointRadius("select"),
       renderer, selectedOnly, pointColor, pointStrokeColor, getWidth, getHeight,

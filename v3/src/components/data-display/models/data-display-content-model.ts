@@ -140,13 +140,22 @@ export const DataDisplayContentModel = TileContentModel
       }
     },
     startAnimation(onComplete?: () => void) {
-      if (self.animationTimerId) clearTimeout(self.animationTimerId)
-      self.animationTimerId = window.setTimeout(() => {
-        this.stopAnimation()
-        onComplete?.()
+      if (self.animationTimerId) {
+        clearTimeout(self.animationTimerId)
+      }
+      const timerId = window.setTimeout(() => {
+        // Only run callback if this timer is still the active one
+        if (self.animationTimerId === timerId) {
+          this.stopAnimation()
+          onComplete?.()
+        }
       }, 2000)
+      self.animationTimerId = timerId
     },
     stopAnimation() {
+      if (self.animationTimerId) {
+        clearTimeout(self.animationTimerId)
+      }
       self.animationTimerId = 0
     },
     installSharedModelManagerSync() {

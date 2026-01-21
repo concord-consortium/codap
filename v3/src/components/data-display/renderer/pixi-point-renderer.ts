@@ -162,6 +162,9 @@ export class PixiPointRenderer extends PointRendererBase {
     this.ticker.destroy()
     this.renderer?.destroy()
     this.renderer = undefined
+    // Destroy masks before stage
+    this.subPlotMasks.forEach(mask => mask.destroy())
+    this.subPlotMasks = []
     this.stage.destroy()
     this.textures.forEach(texture => texture.destroy())
     this.textures.clear()
@@ -187,29 +190,46 @@ export class PixiPointRenderer extends PointRendererBase {
     const maskWidth = width / (xCats * topCats)
     const maskHeight = height / (yCats * rightCats)
 
+    // Clear sprite mask references before destroying old masks
+    this.sprites.forEach(sprite => {
+      sprite.mask = null
+    })
+    // Defer destruction of old masks
+    const oldMasks = this.subPlotMasks
     this.subPlotMasks = []
+    requestAnimationFrame(() => {
+      oldMasks.forEach(mask => mask.destroy())
+    })
+
+    // Create new masks
     for (let top = 0; top < topCats; ++top) {
       for (let right = rightCats - 1; right >= 0; --right) {
         for (let left = yCats - 1; left >= 0; --left) {
           for (let bottom = 0; bottom < xCats; ++bottom) {
             const r = right * yCats + left
             const c = top * xCats + bottom
+            const x = c * maskWidth
+            const y = r * maskHeight
             const mask = new PIXI.Graphics()
-              .rect(c * maskWidth, r * maskHeight, maskWidth, maskHeight)
+              .rect(x, y, maskWidth, maskHeight)
               .fill(0xffffff)
+            // Set explicit bounds for the mask (required in PIXI v8 for masks not in display list)
+            mask.boundsArea = new PIXI.Rectangle(x, y, maskWidth, maskHeight)
             this.subPlotMasks.push(mask)
           }
         }
       }
     }
 
-    // Re-apply masks to existing sprites based on their subPlotNum from state
+    // Re-apply masks to existing sprites based on their subPlotNum in state
     this.reapplyMasksFromState()
+    // Trigger a render after masks are reapplied
+    this.doStartRendering()
   }
 
   /**
    * Re-apply masks to all sprites based on their subPlotNum stored in state.
-   * Called after resize when new masks are created.
+   * Called after resize when new masks are created, after state has been updated.
    */
   private reapplyMasksFromState(): void {
     this.sprites.forEach((sprite, pointId) => {
@@ -367,11 +387,18 @@ export class PixiPointRenderer extends PointRendererBase {
   }
 
   protected doRemoveMasks(): void {
-    this.subPlotMasks.forEach(mask => mask.destroy())
-    this.subPlotMasks = []
+    // Clear sprite mask references
     this.sprites.forEach(sprite => {
       sprite.mask = null
     })
+    // Defer destruction of old masks
+    const oldMasks = this.subPlotMasks
+    this.subPlotMasks = []
+    requestAnimationFrame(() => {
+      oldMasks.forEach(mask => mask.destroy())
+    })
+    // Trigger a render to show sprites without masks
+    this.doStartRendering()
   }
 
   protected doSetVisibility(isVisible: boolean): void {
@@ -784,6 +811,10 @@ export class PixiPointRenderer extends PointRendererBase {
     })
 
     sprite.on("click", (clickEvent: PIXI.FederatedPointerEvent) => {
+      // Stop propagation to prevent the click from bubbling to the background,
+      // which would trigger deselection of the point we just selected
+      clickEvent.stopPropagation()
+
       const data = getPointAndMetadata()
       if (!data) return
 
@@ -795,6 +826,14 @@ export class PixiPointRenderer extends PointRendererBase {
     })
 
     sprite.on("pointerdown", (pointerDownEvent: PIXI.FederatedPointerEvent) => {
+      // Stop propagation to prevent the pointerdown from bubbling to the background
+      pointerDownEvent.stopPropagation()
+
+      // Cancel any pending deselection. The window capture listener in useRendererPointerDown
+      // fires before PIXI sees the event and schedules "deselectAll". We need to cancel it here
+      // since we're clicking on a point, not the background.
+      this.cancelAnimationFrame("deselectAll")
+
       const data = getPointAndMetadata()
       if (!data) return
 

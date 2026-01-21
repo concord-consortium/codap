@@ -173,6 +173,22 @@ export class PointsState {
   }
 
   /**
+   * Update subPlotNum values from case data without modifying points otherwise.
+   * This is a lightweight operation that only updates subplot assignments.
+   */
+  updateSubPlotNumsFromCaseData(caseData: CaseDataWithSubPlot[]): void {
+    caseData.forEach(data => {
+      const pointId = this.getPointIdForCaseData(data)
+      if (pointId && data.subPlotNum !== undefined) {
+        const point = this.points.get(pointId)
+        if (point) {
+          point.subPlotNum = data.subPlotNum
+        }
+      }
+    })
+  }
+
+  /**
    * Iterate over all points
    */
   forEach(callback: (point: IPointState) => void): void {

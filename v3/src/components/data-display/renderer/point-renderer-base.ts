@@ -265,6 +265,15 @@ export abstract class PointRendererBase {
   }
 
   /**
+   * Update subPlotNum values in state from fresh case data.
+   * This is a lightweight operation that only updates subplot assignments
+   * without recreating sprites or changing their visual properties.
+   */
+  updateSubPlotNums(caseData: CaseDataWithSubPlot[]): void {
+    this.state.updateSubPlotNumsFromCaseData(caseData)
+  }
+
+  /**
    * Set visibility of points
    */
   setVisibility(isVisible: boolean): void {
