@@ -29,3 +29,29 @@ import "cypress-real-events"
 Cypress.on("uncaught:exception", err => !err.message.includes("ResizeObserver"))
 
 Cypress.on("uncaught:exception", err => !err.message.includes("not a function"))
+
+// Capture console.log/warn/error from the application and display in Cypress command log
+// This is useful for debugging CI-specific test failures
+Cypress.on("window:before:load", (win) => {
+  const originalConsoleLog = win.console.log
+  const originalConsoleWarn = win.console.warn
+  const originalConsoleError = win.console.error
+
+  win.console.log = (...args) => {
+    originalConsoleLog.apply(win.console, args)
+    const message = args.map(arg => typeof arg === "object" ? JSON.stringify(arg) : String(arg)).join(" ")
+    Cypress.log({ name: "console.log", message })
+  }
+
+  win.console.warn = (...args) => {
+    originalConsoleWarn.apply(win.console, args)
+    const message = args.map(arg => typeof arg === "object" ? JSON.stringify(arg) : String(arg)).join(" ")
+    Cypress.log({ name: "console.warn", message })
+  }
+
+  win.console.error = (...args) => {
+    originalConsoleError.apply(win.console, args)
+    const message = args.map(arg => typeof arg === "object" ? JSON.stringify(arg) : String(arg)).join(" ")
+    Cypress.log({ name: "console.error", message })
+  }
+})

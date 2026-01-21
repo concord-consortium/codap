@@ -602,8 +602,21 @@ context("Graph UI", () => {
       cy.get("[data-testid=graph-bin-width-setting]").find("input").clear().type("5")
       cy.get("[data-testid=graph-bin-alignment-setting]").find("input").clear().type("3")
       cy.get("[data-testid=graph-bin-alignment-setting]").find("input").type("{enter}")
+      // Close the config panel by clicking elsewhere before changing attributes
+      cy.get(".codap-container").click({ force: true })
+      cy.wait(500)
+      // Select the graph before dragging to ensure it can receive the drop
+      c.selectTile("graph", 0)
+      cy.wait(500)
       cy.dragAttributeToTarget("table", "Speed", "bottom")
-      graph.getDisplayConfigButton().click()
+      cy.wait(2000)  // Wait longer for graph to fully process attribute change and reset bin settings
+      // Verify the attribute actually changed
+      cy.get('[data-testid="axis-legend-attribute-button-bottom"]').should("have.text", "Speed")
+      c.selectTile("graph", 0)  // Re-select graph to ensure inspector panel is for graph
+      cy.wait(1000)  // Wait for inspector panel to fully update after tile selection
+      // Open config panel fresh to get updated bin settings for new attribute
+      graph.getDisplayConfigButton().should("exist").click()
+      cy.wait(1000)  // Wait for config panel values to fully update
       cy.get("[data-testid=graph-bin-width-setting]").find("input").should("have.value", "20")
       cy.get("[data-testid=graph-bin-alignment-setting]").find("input").should("have.value", "0")
     })
@@ -677,6 +690,7 @@ context("Graph UI", () => {
       // cy.get("[data-testid=bar-cover]").should("exist").and("have.length", 3)
       cy.get("[data-testid=bar-cover]").should("exist")
       cy.dragAttributeToTarget("table", "Sleep", "left")
+      cy.wait(1000)  // Wait for graph to process attribute change after drag from table
       cy.get(".axis-wrapper.left").find("[data-testid=attribute-label]").should("exist").and("have.text", "Sleep")
       cy.get("[data-testid=bar-cover]").should("not.exist")
     })

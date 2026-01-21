@@ -56,7 +56,7 @@ export const DataDisplayContentModel = TileContentModel
     marqueeMode: 'unclicked' as MarqueeMode,
     renderState: undefined as DataDisplayRenderState | undefined,
     showDataTip: (props: IShowDataTipProps) => {},
-    hideDataTip: (event: MouseEvent) => {}
+    hideDataTip: (event: PointerEvent) => {}
   }))
   .views(self => ({
     placeCanAcceptAttributeIDDrop(place: GraphPlace,
@@ -204,7 +204,7 @@ export const DataDisplayContentModel = TileContentModel
     setShowDataTip: (showDataTip: (props: IShowDataTipProps) => void) => {
       self.showDataTip = showDataTip
     },
-    setHideDataTip: (hideDataTip: (event: MouseEvent) => void) => {
+    setHideDataTip: (hideDataTip: (event: PointerEvent) => void) => {
       self.hideDataTip = hideDataTip
     }
   }))

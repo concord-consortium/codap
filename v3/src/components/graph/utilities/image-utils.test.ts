@@ -1,7 +1,8 @@
-import { PixiPoints } from "../../data-display/pixi/pixi-points"
+import { PointRendererBase } from "../../data-display/renderer"
 import { graphSnapshot } from "./image-utils"
 
-const mockPixiPoints: Partial<PixiPoints> = {
+// Mock renderer with PIXI-specific properties accessed via (renderer as any) in image-utils.ts
+const mockRenderer = {
   renderer: {
     extract: {
       canvas: jest.fn(() => {
@@ -11,10 +12,10 @@ const mockPixiPoints: Partial<PixiPoints> = {
         canvas.height = 100
         return canvas
       })
-    } as any,
-  } as any,
-  stage: {} as any
-}
+    }
+  },
+  stage: {}
+} as unknown as PointRendererBase
 
 beforeAll(() => {
   const mockImage = jest.fn(() => {
@@ -67,7 +68,7 @@ describe("graphSnaphsot", () => {
       graphHeight: 100,
       graphTitle: "Empty Test Graph",
       asDataURL: true,
-      pixiPoints: mockPixiPoints as PixiPoints
+      renderer: mockRenderer
     }
     const result = await graphSnapshot(svgElementsToImageOptions)
     expect(typeof result).toBe("string")
@@ -80,7 +81,7 @@ describe("graphSnaphsot", () => {
       graphHeight: 100,
       graphTitle: "Empty Test Graph",
       asDataURL: false,
-      pixiPoints: mockPixiPoints as PixiPoints
+      renderer: mockRenderer
     }
     const result = await graphSnapshot(svgElementsToImageOptions)
     expect(typeof result).toBe("object")

@@ -5,7 +5,7 @@ import { isAnyCategoricalAxisModel } from "../../axis/models/categorical-axis-mo
 import { isAnyNumericAxisModel } from "../../axis/models/numeric-axis-models"
 import { axisPlaceToAttrRole } from "../../data-display/data-display-types"
 import {matchCirclesToData} from "../../data-display/data-display-utils"
-import {PixiPoints} from "../../data-display/pixi/pixi-points"
+import { PointRendererBase } from "../../data-display/renderer"
 import {IGraphContentModel} from "./graph-content-model"
 import {GraphLayout} from "./graph-layout"
 import { syncModelWithAttributeConfiguration } from "./graph-model-utils"
@@ -17,7 +17,7 @@ interface IGraphControllerProps {
 
 export class GraphController {
   graphModel?: IGraphContentModel
-  pixiPoints?: PixiPoints
+  renderer?: PointRendererBase
   layout: GraphLayout
   instanceId: string
   axisReactionDisposer?: () => void
@@ -31,9 +31,9 @@ export class GraphController {
     this.axisReactionDisposer?.()
   }
 
-  setProperties(graphModel: IGraphContentModel, pixiPoints?: PixiPoints) {
+  setProperties(graphModel: IGraphContentModel, renderer?: PointRendererBase) {
     this.graphModel = graphModel
-    this.pixiPoints = pixiPoints
+    this.renderer = renderer
 
     const { dataset, metadata } = graphModel
     if (this.graphModel.dataConfiguration.dataset !== dataset) {
@@ -63,15 +63,15 @@ export class GraphController {
   }
 
   callMatchCirclesToData() {
-    const {graphModel, pixiPoints, instanceId} = this
-    if (graphModel && pixiPoints) {
+    const {graphModel, renderer, instanceId} = this
+    if (graphModel && renderer) {
       const { dataConfiguration } = graphModel,
         {pointColor, pointStrokeColor} = graphModel.pointDescription,
         pointRadius = graphModel.getPointRadius(),
         pointDisplayType = graphModel.plot.displayType,
         startAnimation = graphModel.startAnimation
       dataConfiguration && matchCirclesToData({
-        dataConfiguration, pixiPoints, pointDisplayType,
+        dataConfiguration, renderer, pointDisplayType,
         pointRadius, startAnimation, instanceId, pointColor, pointStrokeColor
       })
     }

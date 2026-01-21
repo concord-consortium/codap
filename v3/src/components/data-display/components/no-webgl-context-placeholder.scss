@@ -1,0 +1,30 @@
+.no-webgl-context-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(240, 240, 240, 0.9);
+  border: 1px dashed #999;
+  border-radius: 4px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+
+  .placeholder-content {
+    text-align: center;
+    color: #666;
+    padding: 16px;
+  }
+
+  .placeholder-title {
+    font-weight: 600;
+    font-size: 14px;
+    margin: 0 0 8px 0;
+  }
+
+  .placeholder-message {
+    font-size: 12px;
+    margin: 0;
+    color: #888;
+  }
+}

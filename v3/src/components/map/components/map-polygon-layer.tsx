@@ -11,7 +11,7 @@ import {mstReaction} from "../../../utilities/mst-reaction"
 import {transitionDuration} from "../../data-display/data-display-types"
 import {handleClickOnCase} from "../../data-display/data-display-utils"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
-import { PixiBackgroundPassThroughEvent } from "../../data-display/pixi/pixi-points"
+import { BackgroundPassThroughEvent } from "../../data-display/renderer"
 import { useLeafletMapLayers } from "../hooks/use-leaflet-map-layers"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {
@@ -123,9 +123,9 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
           },
           caseID // Stashes reference in features[caseID].options.caseID
         } as PolygonLayerOptions)
-          .on(PixiBackgroundPassThroughEvent.Click, handleClick)
-          .on(PixiBackgroundPassThroughEvent.MouseOver, handleMouseover)
-          .on(PixiBackgroundPassThroughEvent.MouseOut, handleMouseout)
+          .on(BackgroundPassThroughEvent.Click, handleClick)
+          .on(BackgroundPassThroughEvent.MouseOver, handleMouseover)
+          .on(BackgroundPassThroughEvent.MouseOut, handleMouseout)
           .addTo(leafletMap)
       }
 

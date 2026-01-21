@@ -21,7 +21,7 @@ export const MapCanvasHelper = {
 
     cy.log('Get the pixi metadata')
     cy.window().then((win: any) => {
-      const pixiPoints = win.pixiPointsMap[tileId] // Access pixiPoints using the graph ID
+      const pixiPoints = win.rendererArrayMap[tileId] // Access pixiPoints using the tile ID
       cy.log('PixiPoints Object:', pixiPoints) // Log the pixiPoints object for verification
 
       // Assert that pixiPoints exist
@@ -42,8 +42,8 @@ export const MapCanvasHelper = {
   getPixiPointFillColors(tileId: string): Cypress.Chainable<string[]> {
     cy.log("Get all PixiPoint fill colors from textures")
     return cy.window().then((win: any) => {
-      const pixiPoints = win.pixiPointsMap[tileId]
-      const textures = pixiPoints[0].textures // Access textures directly from PixiPoints
+      const pixiPoints = win.rendererArrayMap[tileId]
+      const textures = pixiPoints[0].texturesMap // Access textures directly from PixiPoints
 
       if (!textures) {
         throw new Error("Textures object is undefined.")

@@ -3,7 +3,6 @@ import { comparer } from "mobx"
 import {useMemo} from "use-memo-one"
 import {select, color, range} from "d3"
 import RTreeLib from 'rtree'
-import * as PIXI from "pixi.js"
 import { mstReaction } from "../../../utilities/mst-reaction"
 import {appState} from "../../../models/app-state"
 import {IDataSet} from "../../../models/data/data-set"
@@ -15,13 +14,13 @@ import {rTreeRect} from "../data-display-types"
 import {rectangleSubtract, rectNormalize} from "../data-display-utils"
 import {useDataDisplayLayout} from "../hooks/use-data-display-layout"
 import {useDataDisplayModelContext} from "../hooks/use-data-display-model"
-import {usePixiPointerDownDeselect} from "../hooks/use-pixi-pointer-down-deselect"
+import {useRendererPointerDownDeselect} from "../hooks/use-renderer-pointer-down-deselect"
 import {MarqueeState} from "../models/marquee-state"
-import {IPixiPointMetadata, PixiBackgroundPassThroughEvent, PixiPointsArray} from "../pixi/pixi-points"
+import { BackgroundPassThroughEvent, PointRendererArray } from "../renderer"
 
 interface IProps {
   marqueeState: MarqueeState
-  pixiPointsArray: PixiPointsArray
+  rendererArray: PointRendererArray
 }
 
 type RTree = ReturnType<typeof RTreeLib>
@@ -41,13 +40,14 @@ interface SelectionMap {
   [key: string]: SelectionSpec
 }
 
-const prepareTree = (pixiPointsArray: PixiPointsArray): RTree => {
+const prepareTree = (rendererArray: PointRendererArray): RTree => {
   const selectionTree = RTreeLib(10)
-  pixiPointsArray.forEach(pixiPoints => {
-    pixiPoints?.forEachPoint((point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+  rendererArray.forEach(renderer => {
+    // forEachPoint provides point metadata which includes x/y coordinates
+    renderer?.forEachPoint((_point, metadata) => {
       const rect = {
-        x: point.x,
-        y: point.y,
+        x: metadata.x,
+        y: metadata.y,
         w: 1, h: 1
       }
       selectionTree.insert(rect, { datasetID: metadata.datasetID, caseID: metadata.caseID })
@@ -69,7 +69,7 @@ const getCasesForDelta = (tree: RTree | null, newRect: rTreeRect, prevRect: rTre
 }
 
 export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((props, ref) => {
-  const { marqueeState, pixiPointsArray } = props,
+  const { marqueeState, rendererArray } = props,
     dataDisplayModel = useDataDisplayModelContext(),
     datasetsArray = dataDisplayModel.datasetsArray,
     datasetsMap: SelectionMap = useMemo(() => {
@@ -99,7 +99,7 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
 
   const onDragStart = useCallback((event: PointerEvent) => {
     appState.beginPerformance()
-    selectionTree.current = prepareTree(pixiPointsArray)
+    selectionTree.current = prepareTree(rendererArray)
     // Event coordinates are window coordinates. To convert them to SVG coordinates, we need to subtract the
     // bounding rect of the SVG element.
     const bgRect = (bgRef.current as SVGGElement).getBoundingClientRect()
@@ -109,7 +109,7 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
     height.current = 0
     marqueeState.setMarqueeRect({x: startX.current, y: startY.current, width: 0, height: 0})
     needsToClearSelection.current = !event.shiftKey
-  }, [bgRef, marqueeState, pixiPointsArray])
+  }, [bgRef, marqueeState, rendererArray])
 
   const onDrag = useCallback((event: { dx: number; dy: number }) => {
     if ((event.dx === 0 && event.dy === 0) || datasetsArray.length === 0) return
@@ -161,7 +161,7 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
     appState.endPerformance()
   }, [dataDisplayModel, marqueeState])
 
-  usePixiPointerDownDeselect(pixiPointsArray, dataDisplayModel)
+  useRendererPointerDownDeselect(rendererArray, dataDisplayModel)
 
   const renderBackground = useCallback(() => {
     if (!layout.computedBounds.plot) {
@@ -225,7 +225,7 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
       .attr('y', d => cellHeight * row(d))
       .style('fill', d => (row(d) + col(d)) % 2 === 0 ? bgColor : darkBgColor)
       .style('fill-opacity', fillOpacity)
-      .on(PixiBackgroundPassThroughEvent.PointerDown, pointerDownEvent => {
+      .on(BackgroundPassThroughEvent.PointerDown, pointerDownEvent => {
         // Custom dragging implementation to avoid D3. Unfortunately, since we need to deal with events manually
         // dispatched from PixiJS canvas, we need to be very careful about the event handling. This implementation
         // allows us just to deal with pointerdown event being passed from canvas. pointermove and pointerup events
