@@ -71,6 +71,12 @@ export function processWebViewUrl(url: string) {
 export function getNameFromURL(iUrl: string | URL | null | undefined): string {
   if (!iUrl) return ""
 
+  // Skip processing for data URLs - they don't have meaningful names
+  const urlString = iUrl instanceof URL ? iUrl.href : iUrl
+  if (urlString.startsWith("data:")) {
+    return ""
+  }
+
   // Allow either a string or a URL instance
   const url = iUrl instanceof URL
                 ? iUrl

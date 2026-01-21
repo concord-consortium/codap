@@ -1,5 +1,6 @@
 import {
-  downscaleImageFile, fileToDataUrl, getImageDimensions, MAX_IMAGE_FILE_DIMENSION, MAX_IMAGE_HEIGHT, MAX_IMAGE_WIDTH
+  detectDataUrlImageBug, downscaleImageFile, fileToDataUrl, getImageDimensions, hasDataUrlImageBug,
+  MAX_IMAGE_FILE_DIMENSION, MAX_IMAGE_HEIGHT, MAX_IMAGE_WIDTH
 } from "./image-utils"
 
 // Mock the Image constructor
@@ -631,6 +632,183 @@ describe("image-utils", () => {
 
     it("MAX_IMAGE_FILE_DIMENSION is set to 512", () => {
       expect(MAX_IMAGE_FILE_DIMENSION).toBe(512)
+    })
+  })
+
+  describe("detectDataUrlImageBug", () => {
+    let mockCanvas: any
+    let originalCreateElement: typeof document.createElement
+    let originalWindowImage: typeof Image
+
+    beforeEach(() => {
+      jest.resetModules()
+      originalCreateElement = document.createElement
+      originalWindowImage = window.Image
+
+      // Default mock canvas that works correctly
+      mockCanvas = {
+        width: 0,
+        height: 0,
+        getContext: jest.fn(() => ({
+          fillStyle: "",
+          fillRect: jest.fn(),
+          drawImage: jest.fn(),
+          getImageData: jest.fn(() => ({
+            data: new Uint8ClampedArray([255, 0, 0, 255]) // Red pixel
+          }))
+        }))
+      }
+
+      document.createElement = jest.fn((tag: string) => {
+        if (tag === "canvas") return mockCanvas
+        return originalCreateElement.call(document, tag)
+      })
+
+      // Mock Image that auto-triggers onload when src is set
+      // @ts-expect-error - intentionally replacing Image for testing
+      window.Image = class MockImageAutoLoad {
+        private _src = ""
+        onload: (() => void) | null = null
+        onerror: (() => void) | null = null
+        naturalWidth = 8
+        naturalHeight = 8
+
+        get src() { return this._src }
+        set src(value: string) {
+          this._src = value
+          // Auto-trigger onload in next microtask
+          Promise.resolve().then(() => this.onload?.())
+        }
+      }
+    })
+
+    afterEach(() => {
+      document.createElement = originalCreateElement
+      window.Image = originalWindowImage
+    })
+
+    it("returns false when image renders correctly (red pixel detected)", async () => {
+      const { detectDataUrlImageBug: detect } = await import("./image-utils")
+
+      const result = await detect()
+      expect(result).toBe(false)
+    })
+
+    it("returns true when pixel is not red (bug detected)", async () => {
+      // Mock canvas that returns black pixel (simulating the bug)
+      mockCanvas.getContext = jest.fn(() => ({
+        fillStyle: "",
+        fillRect: jest.fn(),
+        drawImage: jest.fn(),
+        getImageData: jest.fn(() => ({
+          data: new Uint8ClampedArray([0, 0, 0, 255]) // Black pixel - bug!
+        }))
+      }))
+
+      const { detectDataUrlImageBug: detect } = await import("./image-utils")
+
+      const result = await detect()
+      expect(result).toBe(true)
+    })
+
+    it("returns true when getImageData throws (Safari security restriction)", async () => {
+      // Mock canvas that throws on getImageData (simulating Safari)
+      mockCanvas.getContext = jest.fn(() => ({
+        fillStyle: "",
+        fillRect: jest.fn(),
+        drawImage: jest.fn(),
+        getImageData: jest.fn(() => {
+          throw new Error("SecurityError: The operation is insecure")
+        })
+      }))
+
+      const { detectDataUrlImageBug: detect } = await import("./image-utils")
+
+      const result = await detect()
+      expect(result).toBe(true)
+    })
+
+    it("returns false when canvas context is not available", async () => {
+      mockCanvas.getContext = jest.fn(() => null)
+
+      const { detectDataUrlImageBug: detect } = await import("./image-utils")
+
+      const result = await detect()
+      expect(result).toBe(false)
+    })
+
+    it("caches result after first detection", async () => {
+      const { detectDataUrlImageBug: detect, hasDataUrlImageBug: hasBug } = await import("./image-utils")
+
+      expect(hasBug()).toBe(null) // Not yet detected
+
+      const result1 = await detect()
+      expect(hasBug()).toBe(result1) // Now cached
+
+      const result2 = await detect()
+      expect(result1).toBe(result2)
+    })
+  })
+
+  describe("hasDataUrlImageBug", () => {
+    let originalWindowImage: typeof Image
+    let originalCreateElement: typeof document.createElement
+
+    beforeEach(() => {
+      jest.resetModules()
+      originalWindowImage = window.Image
+      originalCreateElement = document.createElement
+
+      // Mock Image that auto-triggers onload when src is set
+      // @ts-expect-error - intentionally replacing Image for testing
+      window.Image = class MockImageAutoLoad {
+        private _src = ""
+        onload: (() => void) | null = null
+        onerror: (() => void) | null = null
+        naturalWidth = 8
+        naturalHeight = 8
+
+        get src() { return this._src }
+        set src(value: string) {
+          this._src = value
+          Promise.resolve().then(() => this.onload?.())
+        }
+      }
+    })
+
+    afterEach(() => {
+      window.Image = originalWindowImage
+      document.createElement = originalCreateElement
+    })
+
+    it("returns null before detection has run", async () => {
+      const { hasDataUrlImageBug: hasBug } = await import("./image-utils")
+      expect(hasBug()).toBe(null)
+    })
+
+    it("returns cached value after detection", async () => {
+      document.createElement = jest.fn((tag: string) => {
+        if (tag === "canvas") {
+          return {
+            width: 0,
+            height: 0,
+            getContext: jest.fn(() => ({
+              fillStyle: "",
+              fillRect: jest.fn(),
+              drawImage: jest.fn(),
+              getImageData: jest.fn(() => ({
+                data: new Uint8ClampedArray([255, 0, 0, 255])
+              }))
+            }))
+          }
+        }
+        return originalCreateElement.call(document, tag)
+      }) as typeof document.createElement
+
+      const { detectDataUrlImageBug: detect, hasDataUrlImageBug: hasBug } = await import("./image-utils")
+
+      await detect()
+      expect(hasBug()).toBe(false)
     })
   })
 })
