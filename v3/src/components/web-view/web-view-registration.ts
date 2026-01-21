@@ -12,8 +12,9 @@ import { isCodapV2GameContext } from "../../v2/codap-v2-data-context-types"
 import { registerV2TileImporter, V2TileImportArgs } from "../../v2/codap-v2-tile-importers"
 import { registerV2TileExporter, V2ExportedComponent, V2TileExportFn } from "../../v2/codap-v2-tile-exporters"
 import {
-  guidLink, ICodapV2GameViewComponent, ICodapV2GuideViewComponent, ICodapV2WebViewComponent,
-  isV2GameViewComponent, isV2GuideViewComponent, isV2ImageViewComponent, isV2WebViewComponent
+  guidLink, ICodapV2GameViewComponent, ICodapV2GuideViewComponent, ICodapV2ImageViewComponent,
+  ICodapV2WebViewComponent, isV2GameViewComponent, isV2GuideViewComponent, isV2ImageViewComponent,
+  isV2WebViewComponent
 } from "../../v2/codap-v2-types"
 import {
   kImporterPluginHeight, kV2GameType, kV2GuideViewType, kV2ImageComponentViewType, kV2WebViewType,
@@ -140,6 +141,16 @@ const exportFn: V2TileExportFn = ({ tile, row, gameContextMetadataMap }) => {
       }
     }
     return v2GuideView
+  } else if (webViewContent?.isImage) {
+    const v2ImageView: V2ExportedComponent<ICodapV2ImageViewComponent> = {
+      type: "DG.ImageComponentView",
+      componentStorage: {
+        name: tile.name,
+        title: tile._title || "",
+        URL: url
+      }
+    }
+    return v2ImageView
   } else {
     const v2WebView: V2ExportedComponent<ICodapV2WebViewComponent> = {
       type: "DG.WebView",
