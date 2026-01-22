@@ -1,4 +1,5 @@
 import { action, comparer, makeObservable, observable, ObservableMap } from "mobx"
+import { isAlive } from "mobx-state-tree"
 import { mstReaction } from "../../../utilities/mst-reaction"
 import { IMapContentModel } from "./map-content-model"
 import { IMapLayerModel } from "./map-layer-model"
@@ -42,7 +43,9 @@ export class LeafletMapLayers {
     this.mapContent = mapContent
 
     this.disposer = mstReaction(
-      () => Array.from(this.layers.values()).map(layer => ({ id: layer.model.id, invalid: layer.invalid })),
+      () => Array.from(this.layers.values())
+        .filter(layer => isAlive(layer.model))
+        .map(layer => ({ id: layer.model.id, invalid: layer.invalid })),
       _layers => {
         if (this.isValidating || !_layers.some(layer => layer.invalid)) return
         if (this.timerId) {
@@ -66,6 +69,9 @@ export class LeafletMapLayers {
 
   @action
   updateLayer(model: IMapLayerModel, refresh: () => void) {
+    // Don't update if the model is no longer part of the tree
+    if (!isAlive(model)) return
+
     const existingEntry = this.layers.get(model.id)
     if (existingEntry) {
       existingEntry.invalidate(refresh)
@@ -82,12 +88,32 @@ export class LeafletMapLayers {
   }
 
   @action
+  removeDeadLayers() {
+    // Remove layers that are no longer part of the tree
+    const deadLayerIds: string[] = []
+    this.layers.forEach((entry, id) => {
+      if (!isAlive(entry.model)) {
+        deadLayerIds.push(id)
+      }
+    })
+    deadLayerIds.forEach(id => this.layers.delete(id))
+  }
+
+  @action
   refresh() {
+    // First, clean up any layers that have been removed from the tree
+    this.removeDeadLayers()
+
     const layers = Array.from(this.layers.values())
     // assign indices based on current mapContent layer order
-    layers.forEach(layer => layer.index = this.mapContent.layerIndexMap.get(layer.model.id) ?? layer.index)
+    layers.forEach(layer => {
+      if (isAlive(layer.model)) {
+        layer.index = this.mapContent.layerIndexMap.get(layer.model.id) ?? layer.index
+      }
+    })
     // sort layers so that polygons are rendered before grids
     layers.sort((a, b) => {
+      if (!isAlive(a.model) || !isAlive(b.model)) return 0
       const aTypeIndex = kMapLayerTypeIndices.get(a.model.type) ?? -1
       const bTypeIndex = kMapLayerTypeIndices.get(b.model.type) ?? -1
       if (aTypeIndex >= 0 && bTypeIndex >= 0 && aTypeIndex !== bTypeIndex) {
@@ -98,6 +124,7 @@ export class LeafletMapLayers {
     // render layers starting with the first invalid layer
     let isInvalid = false
     for (const layer of layers) {
+      if (!isAlive(layer.model)) continue
       if (isInvalid || layer.invalid) {
         isInvalid = true
         layer.refresh()
