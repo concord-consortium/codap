@@ -160,8 +160,8 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
   }, [dataConfiguration, dataset, leafletMap, mapLayerModel, mapModel, refreshPolygonStyles])
 
   const refreshPolygonLayer = useCallback(() => {
-    leafletMapLayers?.updateLayer(mapLayerModel, refreshPolygons)
-  }, [leafletMapLayers, mapLayerModel, refreshPolygons])
+    leafletMapLayers?.updateLayer(mapLayerModel.id, refreshPolygons)
+  }, [leafletMapLayers, mapLayerModel.id, refreshPolygons])
 
   // Actions in the dataset can trigger need to update polygons
   useEffect(function setupResponsesToDatasetActions() {
