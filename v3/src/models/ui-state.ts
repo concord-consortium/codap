@@ -18,6 +18,12 @@ export class UIState {
   // support for component mode (minimal chrome for embedding)
   @observable
   private _componentMode = false
+  // support for embedded mode (like component mode, but with iframePhone communication)
+  @observable
+  private _embeddedMode = false
+  // support for embedded server (iframePhone communication without UI changes)
+  @observable
+  private _embeddedServer = false
   @observable
   private _hideUndoRedoInComponent = false
   @observable
@@ -70,8 +76,8 @@ export class UIState {
 
   constructor() {
     const {
-      componentMode, dashboard, di, hideSplashScreen, hideUndoRedoInComponent, noEntryModal,
-      sample, standalone, suppressUnsavedWarning
+      componentMode, dashboard, di, embeddedMode, embeddedServer, hideSplashScreen,
+      hideUndoRedoInComponent, noEntryModal, sample, standalone, suppressUnsavedWarning
     } = urlParams
     this._hideSplashScreen = booleanParam(hideSplashScreen)
     this._hideUserEntryModal = !!sample || booleanParam(dashboard) || !!di || booleanParam(noEntryModal)
@@ -89,6 +95,11 @@ export class UIState {
     this._componentMode = booleanParam(componentMode)
     this._hideUndoRedoInComponent = booleanParam(hideUndoRedoInComponent)
     this._suppressUnsavedWarning = booleanParam(suppressUnsavedWarning)
+
+    // Initialize embedded mode
+    this._embeddedMode = booleanParam(embeddedMode)
+    // embeddedServer is active in embedded mode OR when explicitly enabled
+    this._embeddedServer = this._embeddedMode || booleanParam(embeddedServer)
 
     makeObservable(this)
   }
@@ -118,52 +129,61 @@ export class UIState {
     return this._componentMode
   }
 
+  // Embedded mode getters
+  get embeddedMode() {
+    return this._embeddedMode
+  }
+
+  get embeddedServer() {
+    return this._embeddedServer
+  }
+
   get shouldRenderMenuBar() {
-    return !this._componentMode
+    return !this._componentMode && !this._embeddedMode
   }
 
   get shouldRenderToolShelf() {
-    return !this._componentMode && !this.standaloneMode
+    return !this._componentMode && !this._embeddedMode && !this.standaloneMode
   }
 
   get shouldRenderBetaBanner() {
-    return !this._componentMode
+    return !this._componentMode && !this._embeddedMode
   }
 
   get allowComponentMove() {
-    return !this._componentMode
+    return !this._componentMode && !this._embeddedMode
   }
 
   get allowComponentResize() {
-    return !this._componentMode
+    return !this._componentMode && !this._embeddedMode
   }
 
   get allowComponentClose() {
-    return !this._componentMode
+    return !this._componentMode && !this._embeddedMode
   }
 
   get allowComponentMinimize() {
-    return !this._componentMode
+    return !this._componentMode && !this._embeddedMode
   }
 
   get shouldShowUndoRedoInComponentTitleBar() {
-    return this._componentMode && !this._hideUndoRedoInComponent
+    return (this._componentMode || this._embeddedMode) && !this._hideUndoRedoInComponent
   }
 
   get shouldSuppressUnsavedWarning() {
-    return this._suppressUnsavedWarning || this._componentMode
+    return this._suppressUnsavedWarning || this._componentMode || this._embeddedMode
   }
 
   get shouldUpdateBrowserTitleFromDocument() {
-    return !this._componentMode
+    return !this._componentMode && !this._embeddedMode
   }
 
   get shouldShowSplashScreen() {
-    return !this._componentMode
+    return !this._componentMode && !this._embeddedMode
   }
 
   get shouldAutoFocusInitialTile() {
-    return this._componentMode
+    return this._componentMode || this._embeddedMode
   }
 
   get hideSplashScreen() {

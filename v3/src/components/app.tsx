@@ -16,6 +16,7 @@ import { useKeyboardShortcuts } from "../hooks/use-keyboard-shortcuts"
 import { ProgressContext, useProgressContextProviderValue } from "../hooks/use-progress"
 import { useUncaughtErrorHandler } from "../hooks/use-uncaught-error-handler"
 import { hideSplashScreen } from "../lib/cfm/splash-screen"
+import { useEmbeddedMode } from "../lib/embedded-mode/use-embedded-mode"
 import { IUseCloudFileManagerHookOptions, useCloudFileManager } from "../lib/cfm/use-cloud-file-manager"
 import { CodapDndContext } from "../lib/dnd-kit/codap-dnd-context"
 import { Logger } from "../lib/logger"
@@ -67,6 +68,7 @@ registerTileTypes([])
 
 export const App = observer(function App() {
   useKeyStates()
+  useEmbeddedMode()
   // default behavior is to show the user entry modal when CODAP is loaded
   // We close the modal if user imports, drags a document, opens a document
   // or plugin using url params
