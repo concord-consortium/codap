@@ -113,6 +113,8 @@ export interface V2Graph extends V2Component {
   y2LowerBound?: number
   y2UpperBound?: number
   pointsAreFusedIntoBars?: boolean
+  barChartScale?: string
+  barChartFormula?: string
 }
 export interface V2GetGraph extends V2Graph {
   xLowerBound?: number

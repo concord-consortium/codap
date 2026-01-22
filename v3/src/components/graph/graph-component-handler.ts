@@ -17,7 +17,9 @@ import { isAnyNumericAxisModel } from "../axis/models/numeric-axis-models"
 import { attrRoleToGraphPlace, GraphAttrRole } from "../data-display/data-display-types"
 import { IAttributeDescriptionSnapshot } from "../data-display/models/data-configuration-model"
 import { kGraphTileType } from "./graph-defs"
+import { BreakdownType, BreakdownTypes } from "./graphing-types"
 import { GraphContentModel, IGraphContentModelSnapshot, isGraphContentModel } from "./models/graph-content-model"
+import { isBarChartModel } from "./plots/bar-chart/bar-chart-model"
 import { IGraphDataConfigurationModel, kGraphDataConfigurationType } from "./models/graph-data-configuration-model"
 import { GraphLayout } from "./models/graph-layout"
 import { syncModelWithAttributeConfiguration } from "./models/graph-model-utils"
@@ -310,9 +312,12 @@ export const graphComponentHandler: DIComponentHandler = {
       const backgroundColor = content.plotBackgroundColor
       const transparent = content.isTransparent
       const showConnectingLines = content.adornmentsStore.showConnectingLines
+      const barChartScale = isBarChartModel(content.plot) ? content.plot.breakdownType : undefined
+      const barChartFormula = isBarChartModel(content.plot) ? content.plot.formula?.display : undefined
 
       return {
-        backgroundColor, dataContext, displayOnlySelectedCases, enableNumberToggle, filterFormula, hiddenCases,
+        barChartFormula, barChartScale, backgroundColor, dataContext, displayOnlySelectedCases, enableNumberToggle,
+        filterFormula, hiddenCases,
         numberToggleLastMode, plotType, pointColor, pointSize, primaryAxis, showConnectingLines,
         showMeasuresForSelection, strokeColor, strokeSameAsFill, transparent, captionAttributeID, captionAttributeName,
         legendAttributeID, legendAttributeName, rightSplitAttributeID, rightSplitAttributeName,
@@ -328,11 +333,11 @@ export const graphComponentHandler: DIComponentHandler = {
     if (!isGraphContentModel(content)) return { success: false }
 
     const {
-      backgroundColor, dataContext: _dataContext, displayOnlySelectedCases, enableNumberToggle: showParentToggles,
-      filterFormula, hiddenCases, numberToggleLastMode: showOnlyLastCase, pointColor,
-      pointSize, showConnectingLines, showMeasuresForSelection, strokeColor, strokeSameAsFill, transparent,
-      xAttributeType, xLowerBound, xUpperBound, yAttributeID, yAttributeIDs, yAttributeName, yAttributeNames,
-      yAttributeType, yLowerBound, yUpperBound, y2AttributeType, y2LowerBound, y2UpperBound,
+      backgroundColor, barChartFormula, barChartScale, dataContext: _dataContext, displayOnlySelectedCases,
+      enableNumberToggle: showParentToggles, filterFormula, hiddenCases, numberToggleLastMode: showOnlyLastCase,
+      pointColor, pointSize, showConnectingLines, showMeasuresForSelection, strokeColor, strokeSameAsFill,
+      transparent, xAttributeType, xLowerBound, xUpperBound, yAttributeID, yAttributeIDs, yAttributeName,
+      yAttributeNames, yAttributeType, yLowerBound, yUpperBound, y2AttributeType, y2LowerBound, y2UpperBound,
       pointsAreFusedIntoBars
     } = values as V2GetGraph
     const attributeInfo = getAttributeInfo(values)
@@ -468,6 +473,31 @@ export const graphComponentHandler: DIComponentHandler = {
         return errorResult(t("V3.DI.Error.cannotFusePointsIntoBars"))
       }
       content.fusePointsIntoBars(pointsAreFusedIntoBars)
+    }
+
+    // Handle bar chart scale and formula
+    if (barChartScale != null || barChartFormula != null) {
+      // Check if graph is a bar chart
+      if (!isBarChartModel(content.plot)) {
+        return errorResult(t("V3.DI.Error.barChartScaleRequiresBarChart"))
+      }
+
+      const plot = content.plot
+
+      // Validate scale type if provided
+      if (barChartScale != null && !BreakdownTypes.includes(barChartScale as BreakdownType)) {
+        return errorResult(t("V3.DI.Error.invalidBarChartScale", { vars: [barChartScale] }))
+      }
+
+      // Handle formula - must be set before scale if both are provided and scale is "formula"
+      if (barChartFormula != null) {
+        plot.setExpression(barChartFormula)
+      }
+
+      // Handle scale type
+      if (barChartScale != null) {
+        plot.setBreakdownType(barChartScale as BreakdownType)
+      }
     }
 
     return { success: true }

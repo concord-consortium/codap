@@ -181,6 +181,8 @@
     "V3.DI.Error.downloadCSV": "Failed to download and import CSV: %{url}",
     "V3.DI.Error.illegalAttributeAssignment": "Cannot assign %@1 to %@2",
     "V3.DI.Error.cannotFusePointsIntoBars": "Current plot type does not support fusing points into bars",
+    "V3.DI.Error.barChartScaleRequiresBarChart": "barChartScale can only be set for bar charts",
+    "V3.DI.Error.invalidBarChartScale": "Invalid bar chart scale: %@",
     "V3.DI.Error.componentNotFound": "Component not found",
     "V3.DI.Error.unsupportedComponent": "Unsupported component type %@",
     "V3.DI.Error.globalCreation": "error creating global value",
