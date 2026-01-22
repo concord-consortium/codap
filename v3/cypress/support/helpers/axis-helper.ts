@@ -103,10 +103,13 @@ export const AxisHelper = {
   },
   // Use this function when there are multiple datasets or a single dataset with multiple collections
   selectSubmenuAttribute(attributeName: string, collectionName: string, axis: string) {
+    // Click on collection menu item to open submenu (onClick handler opens it)
     ae.getAttributeFromAttributeMenu(axis)
       .contains(".collection-menu-item", collectionName)
       .click()
-    ae.getAttributeFromAttributeMenu(axis)
+    // There may be multiple submenus in the DOM (one per collection); filter to find the visible one
+    cy.get(".axis-legend-submenu")
+      .filter(":visible")
       .contains("button", attributeName)
       .click()
     cy.wait(2000)

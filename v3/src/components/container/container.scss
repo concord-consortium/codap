@@ -21,7 +21,7 @@
   }
 
   // Chakra Menu popper wrapper rendered via Portal into .codap-container needs high z-index to appear above tiles
-  > .chakra-portal > div {
+  > .chakra-portal > div:has(.axis-legend-menu) {
     z-index: 10000;
   }
 }

@@ -1,10 +1,12 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { Menu, MenuItem, MenuList, MenuButton, MenuDivider, Portal } from "@chakra-ui/react"
-import React, { CSSProperties, useRef, useState } from "react"
+import React, { CSSProperties, useCallback, useRef, useState } from "react"
 import { useDocumentContainerContext } from "../../../hooks/use-document-container-context"
+import { useFreeTileLayoutContext } from "../../../hooks/use-free-tile-layout-context"
 import { IUseDraggableAttribute, useDraggableAttribute } from "../../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
+import { useMenuHeightAdjustment } from "../../../hooks/use-menu-height-adjustment"
 import { useOutsidePointerDown } from "../../../hooks/use-outside-pointer-down"
 import { useOverlayBounds } from "../../../hooks/use-overlay-bounds"
 import { AttributeType } from "../../../models/data/attribute-types"
@@ -48,20 +50,34 @@ function MenuItemsForCollection({ collectionInfo, onChangeAttribute, place }: IM
 // A MenuItem for a collection, which contains a submenu of the collection's attributes
 interface ICollectionMenuProps {
   collectionInfo: ICollectionInfo
+  containerRef: React.RefObject<HTMLDivElement | null>
   isOpen: boolean
+  maxMenuHeight: string
+  onCancelPendingHover?: () => void
   onChangeAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
   onPointerOver?: React.PointerEventHandler<HTMLButtonElement>
   place: GraphPlace
 }
 const CollectionMenu = observer(function CollectionMenu({
-  collectionInfo, isOpen, onChangeAttribute, onPointerOver, place
+  collectionInfo, containerRef, isOpen, maxMenuHeight, onCancelPendingHover,
+  onChangeAttribute, onPointerOver, place
 }: ICollectionMenuProps) {
   const { collection } = collectionInfo
+  const submenuRef = useRef<HTMLDivElement>(null)
+  const adjustedMaxHeight = useMenuHeightAdjustment({ menuRef: submenuRef, containerRef, isOpen })
+
+  const handleSubmenuPointerEnter = () => {
+    onCancelPendingHover?.()
+  }
+
   return (
     <>
-      <Menu isOpen={isOpen} placement="right-start">
+      <Menu isOpen={isOpen} placement="auto">
         <MenuButton as="div" className="collection-menu-button" />
-        <MenuList>
+        <MenuList ref={submenuRef} className="axis-legend-submenu"
+                  maxH={adjustedMaxHeight ?? maxMenuHeight} overflowY="auto"
+                  onPointerEnter={handleSubmenuPointerEnter}
+                  data-testid={`axis-legend-attribute-menu-list-${place}-${collection.id}`}>
           <MenuItemsForCollection
             collectionInfo={collectionInfo}
             onChangeAttribute={onChangeAttribute}
@@ -74,6 +90,7 @@ const CollectionMenu = observer(function CollectionMenu({
         className="collection-menu-item"
         closeOnSelect={false}
         key={collection.id}
+        onClick={onPointerOver}
         onPointerOver={onPointerOver}
       >
         <span>{collection.name}</span>
@@ -106,6 +123,8 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   place, target, portal, layoutBounds, onChangeAttribute, onRemoveAttribute, onTreatAttributeAs
 }: IProps) {
   const containerRef = useDocumentContainerContext()
+  const layout = useFreeTileLayoutContext()
+  const maxMenuHeight = `min(${layout?.height ?? 300}px, 50vh)`
   const dataConfiguration = useDataConfigurationContext()
   const dataSet = dataConfiguration?.dataset
   const dataSets = dataConfiguration ? getDataSets(dataConfiguration) : []
@@ -133,9 +152,41 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   const overlayStyle: CSSProperties = { position: "absolute", ...useOverlayBounds({target, portal}) }
   const buttonStyle: CSSProperties = { position: "absolute", width: "100%", height: "100%", color: "transparent" }
   const menuRef = useRef<HTMLDivElement>(null)
+  const mainMenuListRef = useRef<HTMLDivElement>(null)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const onCloseMenuRef = useRef<() => void>()
   const [openCollectionId, setOpenCollectionId] = React.useState<string | null>(null)
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const adjustedMainMenuHeight = useMenuHeightAdjustment({
+    menuRef: mainMenuListRef, containerRef, isOpen: isMenuOpen
+  })
+
+  // Delayed submenu switching to prevent accidental switches when moving to a submenu
+  // that appears above/below the trigger item
+  const handleCollectionHover = useCallback((collectionId: string | null) => {
+    // Clear any pending timer
+    if (hoverTimerRef.current) {
+      clearTimeout(hoverTimerRef.current)
+      hoverTimerRef.current = null
+    }
+
+    // If hovering over the already-open collection, no delay needed
+    if (collectionId === openCollectionId) return
+
+    // Add a short delay before switching submenus
+    hoverTimerRef.current = setTimeout(() => {
+      setOpenCollectionId(collectionId)
+      hoverTimerRef.current = null
+    }, 150)
+  }, [openCollectionId])
+
+  // Cancel any pending hover timer (called when mouse enters the open submenu)
+  const cancelPendingHover = useCallback(() => {
+    if (hoverTimerRef.current) {
+      clearTimeout(hoverTimerRef.current)
+      hoverTimerRef.current = null
+    }
+  }, [])
 
   const draggableOptions: IUseDraggableAttribute = {
     prefix: instanceId, dataSet, attributeId: attrId, disabled: !!openCollectionId || isMenuOpen
@@ -198,10 +249,13 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
           return (
             <CollectionMenu
               collectionInfo={collectionInfo}
+              containerRef={containerRef}
               isOpen={openCollectionId === collection.id}
               key={collection.id}
+              maxMenuHeight={maxMenuHeight}
+              onCancelPendingHover={cancelPendingHover}
               onChangeAttribute={handleChangeAttribute}
-              onPointerOver={() => setOpenCollectionId(collection.id)}
+              onPointerOver={() => handleCollectionHover(collection.id)}
               place={place}
             />
           )
@@ -226,7 +280,8 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
                 {attribute?.name}
               </MenuButton>
               <Portal containerRef={containerRef}>
-                <MenuList maxH="min(50vh, 400px)" overflowY="auto"
+                <MenuList ref={mainMenuListRef} className="axis-legend-menu"
+                          maxH={adjustedMainMenuHeight ?? maxMenuHeight} overflowY="auto"
                           data-testid={`axis-legend-attribute-menu-list-${place}`}>
                   {renderMenuItems()}
                   { attribute &&
@@ -234,14 +289,14 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
                       <MenuDivider />
                       <MenuItem
                         onClick={() => onRemoveAttribute(place, attrId)}
-                        onPointerOver={() => setOpenCollectionId(null)}
+                        onPointerOver={() => handleCollectionHover(null)}
                       >
                         {removeAttrItemLabel}
                       </MenuItem>
                       {attribute.type !== "color" &&
                         <MenuItem
                           onClick={() => onTreatAttributeAs(place, attribute?.id, treatAs)}
-                          onPointerOver={() => setOpenCollectionId(null)}
+                          onPointerOver={() => handleCollectionHover(null)}
                         >
                           {treatAs === "categorical" && t("DG.DataDisplayMenu.treatAsCategorical")}
                           {treatAs === "numeric" && t("DG.DataDisplayMenu.treatAsNumeric")}
