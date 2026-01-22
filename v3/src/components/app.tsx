@@ -218,7 +218,7 @@ export const App = observer(function App() {
                 </div>
               </ErrorBoundary>
             </div>
-            {isOpenUserEntry &&
+            <If condition={isOpenUserEntry}>
               <div id={`${kUserEntryDropOverlay}`}
                 className={clsx({ "show-highlight": isOpenUserEntry && isDragOver, beta: isBeta() })}
               >
@@ -227,7 +227,7 @@ export const App = observer(function App() {
                   onClose={onCloseUserEntry}
                 />
               </div>
-            }
+            </If>
             <Progress />
           </ProgressContext.Provider>
         </CfmContext.Provider>

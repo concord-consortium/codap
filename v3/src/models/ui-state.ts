@@ -196,7 +196,7 @@ export class UIState {
   }
 
   get hideUserEntryModal() {
-    return this._hideUserEntryModal
+    return this._hideUserEntryModal || this._componentMode || this._embeddedMode
   }
 
   @action

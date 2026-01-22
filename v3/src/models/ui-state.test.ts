@@ -303,4 +303,41 @@ describe("UIState", () => {
       expect(uiState.allowComponentMinimize).toBe(true)
     })
   })
+
+  describe("hideUserEntryModal", () => {
+    it("should be false by default", () => {
+      const uiState = new UIState()
+      expect(uiState.hideUserEntryModal).toBe(false)
+    })
+
+    it("should be true when noEntryModal=yes", () => {
+      setUrlParams("?noEntryModal=yes")
+      const uiState = new UIState()
+      expect(uiState.hideUserEntryModal).toBe(true)
+    })
+
+    it("should be true when componentMode=yes", () => {
+      setUrlParams("?componentMode=yes")
+      const uiState = new UIState()
+      expect(uiState.hideUserEntryModal).toBe(true)
+    })
+
+    it("should be true when embeddedMode=yes", () => {
+      setUrlParams("?embeddedMode=yes")
+      const uiState = new UIState()
+      expect(uiState.hideUserEntryModal).toBe(true)
+    })
+
+    it("should be true when sample is specified", () => {
+      setUrlParams("?sample=mammals")
+      const uiState = new UIState()
+      expect(uiState.hideUserEntryModal).toBe(true)
+    })
+
+    it("should be true when dashboard is specified", () => {
+      setUrlParams("?dashboard")
+      const uiState = new UIState()
+      expect(uiState.hideUserEntryModal).toBe(true)
+    })
+  })
 })

@@ -36,6 +36,12 @@ module.exports = (env, argv) => {
       favicon: "src/public/favicon.ico",
       publicPath: DEPLOY_PATH
     })] : []),
+    // Test harness for embedded mode - only included in dev builds
+    ...(devMode ? [new HtmlWebpackPlugin({
+      filename: 'embedded-mode-harness.html',
+      template: 'src/test-harness/embedded-mode-harness.html',
+      inject: false,  // Don't inject the main CODAP bundle
+    })] : []),
     new CleanWebpackPlugin(),
   ]
   if (devMode && !process.env.SKIP_ESLINT) {

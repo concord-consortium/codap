@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Embedded Mode Test Harness</title>
+  <script src="https://unpkg.com/iframe-phone@1.4.0/dist/iframe-phone.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f0f0f0;
+    }
+    .container {
+      display: flex;
+      gap: 20px;
+      height: calc(100vh - 40px);
+    }
+    .control-panel {
+      width: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .status-section, .command-section, .response-section {
+      background: white;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .status-section h3, .command-section h3, .response-section h3 {
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      color: #666;
+    }
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 5px 0;
+    }
+    .status-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #ccc;
+    }
+    .status-indicator.success {
+      background: #4caf50;
+    }
+    .status-indicator.waiting {
+      background: #ff9800;
+    }
+    .status-indicator.error {
+      background: #f44336;
+    }
+    .iframe-container {
+      flex: 1;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    #codap-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    textarea {
+      width: 100%;
+      font-family: monospace;
+      font-size: 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 8px;
+      resize: vertical;
+    }
+    #command-input {
+      height: 120px;
+    }
+    #response-output {
+      height: 200px;
+      background: #f8f8f8;
+    }
+    button {
+      background: #2196f3;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover {
+      background: #1976d2;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .button-row {
+      display: flex;
+      gap: 10px;
+    }
+    .preset-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+    .preset-buttons button {
+      font-size: 12px;
+      padding: 5px 10px;
+      background: #607d8b;
+    }
+    .preset-buttons button:hover {
+      background: #455a64;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="control-panel">
+      <div class="status-section">
+        <h3>Connection Status</h3>
+        <div class="status-item">
+          <div class="status-indicator waiting" data-testid="codap-present-indicator" id="codap-present-indicator"></div>
+          <span data-testid="codap-present-status" id="codap-present-status">Waiting for codap-present...</span>
+        </div>
+        <div class="status-item">
+          <div class="status-indicator" data-testid="phone-in-use-indicator" id="phone-in-use-indicator"></div>
+          <span data-testid="phone-in-use-status" id="phone-in-use-status">Phone not yet in use</span>
+        </div>
+      </div>
+
+      <div class="command-section">
+        <h3>Send Command</h3>
+        <div class="preset-buttons">
+          <button onclick="loadPreset('dataContextList')" data-testid="preset-dataContextList">dataContextList</button>
+          <button onclick="loadPreset('componentList')" data-testid="preset-componentList">componentList</button>
+          <button onclick="loadPreset('createDataContext')" data-testid="preset-createDataContext">create dataContext</button>
+        </div>
+        <textarea id="command-input" data-testid="command-input" placeholder="Enter JSON command...">{
+  "action": "get",
+  "resource": "dataContextList"
+}</textarea>
+        <div class="button-row">
+          <button onclick="sendCommand()" data-testid="send-command-button" id="send-command-button" disabled>Send Command</button>
+          <button onclick="clearResponse()" data-testid="clear-response-button">Clear</button>
+        </div>
+      </div>
+
+      <div class="response-section">
+        <h3>Response</h3>
+        <textarea id="response-output" data-testid="response-output" readonly></textarea>
+      </div>
+    </div>
+
+    <div class="iframe-container">
+      <iframe
+        id="codap-iframe"
+        data-testid="codap-iframe"
+      ></iframe>
+    </div>
+  </div>
+
+  <script>
+    // Build the iframe URL, forwarding any URL parameters from the harness
+    function buildCodapUrl() {
+      const baseParams = new URLSearchParams({
+        embeddedMode: 'yes',
+        embeddedServer: 'yes'
+      });
+
+      // Get any additional parameters from the harness URL
+      const harnessParams = new URLSearchParams(window.location.search);
+      harnessParams.forEach((value, key) => {
+        // Don't override the embedded mode params unless explicitly set
+        if (key !== 'embeddedMode' && key !== 'embeddedServer') {
+          baseParams.set(key, value);
+        }
+      });
+
+      // Build the final URL with hash if present
+      let url = 'index.html?' + baseParams.toString();
+      if (window.location.hash) {
+        url += window.location.hash;
+      }
+
+      return url;
+    }
+
+    // Set the iframe src
+    document.getElementById('codap-iframe').src = buildCodapUrl();
+
+    // Global state - exposed on window for Cypress testing
+    window.harnessState = {
+      rpcEndpoint: null,
+      codapPresent: false,
+      lastResponse: null,
+      lastError: null,
+      messageLog: []
+    };
+
+    // Legacy references for internal use
+    let rpcEndpoint = null;
+    let codapPresent = false;
+
+    // Preset commands
+    const presets = {
+      dataContextList: {
+        action: "get",
+        resource: "dataContextList"
+      },
+      componentList: {
+        action: "get",
+        resource: "componentList"
+      },
+      createDataContext: {
+        action: "create",
+        resource: "dataContext",
+        values: {
+          name: "TestData",
+          collections: [{
+            name: "Cases",
+            attrs: [{ name: "x" }, { name: "y" }]
+          }]
+        }
+      }
+    };
+
+    function loadPreset(name) {
+      document.getElementById('command-input').value = JSON.stringify(presets[name], null, 2);
+    }
+
+    function updateStatus(elementId, indicatorId, message, status) {
+      document.getElementById(elementId).textContent = message;
+      const indicator = document.getElementById(indicatorId);
+      indicator.className = 'status-indicator ' + status;
+    }
+
+    function appendResponse(text) {
+      const output = document.getElementById('response-output');
+      const timestamp = new Date().toLocaleTimeString();
+      const logEntry = `[${timestamp}] ${text}`;
+      output.value += logEntry + '\n';
+      output.scrollTop = output.scrollHeight;
+      // Also log to console and state for debugging
+      console.log('[Harness]', text);
+      window.harnessState.messageLog.push({ timestamp: Date.now(), message: text });
+    }
+
+    function clearResponse() {
+      document.getElementById('response-output').value = '';
+    }
+
+    function sendCommand() {
+      if (!rpcEndpoint || !codapPresent) {
+        appendResponse('ERROR: CODAP not connected');
+        return;
+      }
+
+      const input = document.getElementById('command-input').value;
+      let command;
+      try {
+        command = JSON.parse(input);
+      } catch (e) {
+        appendResponse('ERROR: Invalid JSON - ' + e.message);
+        return;
+      }
+
+      appendResponse('SENT: ' + JSON.stringify(command));
+
+      rpcEndpoint.call(command, function(response) {
+        window.harnessState.lastResponse = response;
+        appendResponse('RECEIVED: ' + JSON.stringify(response, null, 2));
+      });
+    }
+
+    // Expose sendCommand for Cypress to call directly
+    window.sendTestCommand = function(command) {
+      return new Promise((resolve, reject) => {
+        if (!rpcEndpoint || !codapPresent) {
+          const error = new Error('CODAP not connected');
+          window.harnessState.lastError = error.message;
+          reject(error);
+          return;
+        }
+        rpcEndpoint.call(command, function(response) {
+          window.harnessState.lastResponse = response;
+          appendResponse('RECEIVED: ' + JSON.stringify(response, null, 2));
+          resolve(response);
+        });
+      });
+    };
+
+    // Initialize iframe-phone connection
+    function initializeConnection() {
+      const iframe = document.getElementById('codap-iframe');
+
+      // Handler for incoming messages from CODAP
+      const handler = function(command, callback) {
+        appendResponse('NOTIFICATION: ' + JSON.stringify(command, null, 2));
+
+        // Check for codap-present message
+        if (command && command.message === 'codap-present') {
+          codapPresent = true;
+          window.harnessState.codapPresent = true;
+          updateStatus('codap-present-status', 'codap-present-indicator', 'codap-present received', 'success');
+          document.getElementById('send-command-button').disabled = false;
+          callback({ success: true });
+          return;
+        }
+
+        // Update phone-in-use status
+        updateStatus('phone-in-use-status', 'phone-in-use-indicator', 'Phone in use', 'success');
+
+        // Acknowledge other notifications
+        if (callback) {
+          callback({ success: true });
+        }
+      };
+
+      // Create the RPC endpoint
+      const origin = iframe.src.startsWith('http') ? new URL(iframe.src).origin : window.location.origin;
+      appendResponse('Creating RPC endpoint with origin: ' + origin);
+
+      try {
+        rpcEndpoint = new iframePhone.IframePhoneRpcEndpoint(
+          handler,
+          'data-interactive',
+          iframe,
+          origin
+        );
+        window.harnessState.rpcEndpoint = rpcEndpoint;
+        appendResponse('Harness initialized, waiting for CODAP...');
+      } catch (e) {
+        window.harnessState.lastError = e.message;
+        appendResponse('ERROR creating RPC endpoint: ' + e.message);
+      }
+    }
+
+    // Debug: Listen for raw postMessage events
+    window.addEventListener('message', function(event) {
+      console.log('[Harness raw message]', event.origin, event.data);
+      window.harnessState.messageLog.push({
+        timestamp: Date.now(),
+        type: 'raw',
+        origin: event.origin,
+        data: event.data
+      });
+    });
+
+    // Initialize when the page loads
+    window.addEventListener('load', initializeConnection);
+  </script>
+</body>
+</html>
