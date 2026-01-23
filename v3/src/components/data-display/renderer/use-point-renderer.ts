@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { CanvasPointRenderer } from "./canvas-point-renderer"
 import { NullPointRenderer } from "./null-point-renderer"
 import { PixiPointRenderer } from "./pixi-point-renderer"
 import { PointRendererBase } from "./point-renderer-base"
+
+// TODO: TEMPORARY - Remove this flag and restore normal renderer selection logic
+// when Canvas renderer testing is complete. See the useEffect that switches renderers.
+const FORCE_CANVAS_RENDERER = true
 import { IPointRendererOptions } from "./point-renderer-types"
 import { PointsState } from "./points-state"
 import { IContextConsumer, webGLContextManager } from "./webgl-context-manager"
@@ -247,7 +252,16 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
 
       let newRenderer: PointRendererBase
 
-      if (hasWebGLContext) {
+      // TODO: TEMPORARY - Always use Canvas renderer for testing
+      // Restore the original logic below when testing is complete:
+      //   if (hasWebGLContext) {
+      //     newRenderer = new PixiPointRenderer(stateRef.current)
+      //   } else {
+      //     newRenderer = new NullPointRenderer(stateRef.current)
+      //   }
+      if (FORCE_CANVAS_RENDERER) {
+        newRenderer = new CanvasPointRenderer(stateRef.current)
+      } else if (hasWebGLContext) {
         newRenderer = new PixiPointRenderer(stateRef.current)
       } else {
         newRenderer = new NullPointRenderer(stateRef.current)
