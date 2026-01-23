@@ -18,6 +18,42 @@ context("Embedded Mode", () => {
     })
   }
 
+  describe("PostMessage communication via DOM", () => {
+    // Helper to wait for connection via DOM
+    const waitForConnectionViaDOM = () => {
+      cy.get('[data-testid="codap-present-status"]', { timeout: 30000 })
+        .should("contain.text", "codap-present received")
+    }
+
+    // Helper to send command via DOM and check response
+    const sendCommandViaDOM = (presetButton: string, expectedInResponse: string) => {
+      cy.get('[data-testid="clear-response-button"]').click()
+      cy.get(`[data-testid="${presetButton}"]`).click()
+      cy.get('[data-testid="send-command-button"]').click()
+      cy.get('[data-testid="response-output"]', { timeout: 15000 })
+        .should("contain.value", "RECEIVED:")
+        .should("contain.value", expectedInResponse)
+    }
+
+    it("should handle get dataContextList via postMessage", () => {
+      waitForConnectionViaDOM()
+      sendCommandViaDOM("preset-dataContextList", '"success": true')
+    })
+
+    it("should handle get componentList via postMessage", () => {
+      waitForConnectionViaDOM()
+      sendCommandViaDOM("preset-componentList", '"success": true')
+    })
+
+    it("should handle create dataContext via postMessage", () => {
+      waitForConnectionViaDOM()
+      sendCommandViaDOM("preset-createDataContext", '"success": true')
+
+      // Verify by getting dataContextList
+      sendCommandViaDOM("preset-dataContextList", "TestData")
+    })
+  })
+
   describe("Parent-child communication", () => {
     it("should receive codap-present message when CODAP loads in embedded mode", () => {
       // Wait for the codap-present message to be received via DOM
