@@ -244,8 +244,8 @@ export const graphComponentHandler: DIComponentHandler = {
     if (isGraphContentModel(content)) {
       const dataset = content.dataset
       const dataContext = dataset?.name
-      const { dataConfiguration } = content.graphPointLayerModel
-      const { showParentToggles: enableNumberToggle, showOnlyLastCase: numberToggleLastMode } = content
+      const {dataConfiguration} = content.graphPointLayerModel
+      const {showParentToggles: enableNumberToggle, showOnlyLastCase: numberToggleLastMode} = content
 
       const _captionAttributeID = dataConfiguration.attributeDescriptionForRole("caption")?.attributeID
       const captionAttributeID = maybeToV2Id(_captionAttributeID)
@@ -300,25 +300,26 @@ export const graphComponentHandler: DIComponentHandler = {
       const yAttributeNames = dataConfiguration._yAttributeDescriptions
         .map(description => dataset?.getAttribute(description.attributeID)?.name).filter(name => name != null)
 
-      const { pointDescription } = content
-      const { displayOnlySelectedCases, showMeasuresForSelection, primaryRole: primaryAxis } = dataConfiguration
+      const {pointDescription} = content
+      const {displayOnlySelectedCases, showMeasuresForSelection, primaryRole: primaryAxis} = dataConfiguration
       const filterFormula = dataConfiguration.filterFormula?.display
       const hiddenCases = dataConfiguration.hiddenCases.map(id => toV2Id(id))
       const plotType = content.plotType
       const pointSize = pointDescription.pointSizeMultiplier
       const strokeColor = pointDescription.pointStrokeColor
-      const { pointColor } = pointDescription
+      const {pointColor} = pointDescription
       const strokeSameAsFill = pointDescription.pointStrokeSameAsFill
       const backgroundColor = content.plotBackgroundColor
       const transparent = content.isTransparent
       const showConnectingLines = content.adornmentsStore.showConnectingLines
-      const barChartScale = isBarChartModel(content.plot) ? content.plot.breakdownType : undefined
-      const barChartFormula = isBarChartModel(content.plot) ? content.plot.formula?.display : undefined
-
-      return {
-        barChartFormula, barChartScale, backgroundColor, dataContext, displayOnlySelectedCases, enableNumberToggle,
-        filterFormula, hiddenCases,
-        numberToggleLastMode, plotType, pointColor, pointSize, primaryAxis, showConnectingLines,
+      const pointsAreFusedIntoBars = content.plot.hasPointsFusedIntoBars
+      const barChartProps = isBarChartModel(content.plot)
+        ? { barChartScale: content.plot.breakdownType, barChartFormula: content.plot.formula?.display }
+        : {}
+      const result = {
+        backgroundColor, dataContext, displayOnlySelectedCases,
+        enableNumberToggle, filterFormula, hiddenCases,
+        numberToggleLastMode, plotType, pointColor, pointSize, pointsAreFusedIntoBars, primaryAxis, showConnectingLines,
         showMeasuresForSelection, strokeColor, strokeSameAsFill, transparent, captionAttributeID, captionAttributeName,
         legendAttributeID, legendAttributeName, rightSplitAttributeID, rightSplitAttributeName,
         topSplitAttributeID, topSplitAttributeName, type: "graph",
@@ -326,6 +327,7 @@ export const graphComponentHandler: DIComponentHandler = {
         yAttributeID, yAttributeIDs, yAttributeName, yAttributeNames, yAttributeType, yLowerBound, yUpperBound,
         y2AttributeID, y2AttributeName, y2AttributeType, y2LowerBound, y2UpperBound
       }
+      return { ...result, ...barChartProps } as unknown as V2Graph
     }
   },
 
