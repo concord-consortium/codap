@@ -3,11 +3,7 @@ import { CanvasPointRenderer } from "./canvas-point-renderer"
 import { NullPointRenderer } from "./null-point-renderer"
 import { PixiPointRenderer } from "./pixi-point-renderer"
 import { PointRendererBase } from "./point-renderer-base"
-
-// TODO: TEMPORARY - Remove this flag and restore normal renderer selection logic
-// when Canvas renderer testing is complete. See the useEffect that switches renderers.
-const FORCE_CANVAS_RENDERER = true
-import { IPointRendererOptions } from "./point-renderer-types"
+import { IPointRendererOptions, RendererCapability } from "./point-renderer-types"
 import { PointsState } from "./points-state"
 import { IContextConsumer, webGLContextManager } from "./webgl-context-manager"
 
@@ -91,6 +87,11 @@ export interface IUsePointRendererResult {
    * The shared state that survives renderer switches
    */
   state: PointsState
+
+  /**
+   * The type of renderer currently in use ("webgl", "canvas", or "null")
+   */
+  rendererType: RendererCapability
 
   /**
    * Request a WebGL context with boosted priority.
@@ -230,6 +231,11 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
       if (!skipContextRegistration) {
         webGLContextManager.releaseContext(id)
       }
+      // Dispose any outgoing renderer that's pending disposal
+      if (outgoingRendererRef.current) {
+        outgoingRendererRef.current.dispose()
+        outgoingRendererRef.current = null
+      }
       renderer.dispose()
     }
   // Note: We intentionally don't include `renderer` or `skipContextRegistration` in dependencies
@@ -240,30 +246,29 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
   // Track if this is the first render to avoid disposing the initial renderer
   const isFirstRender = useRef(true)
 
+  // Track the outgoing renderer during transitions to avoid flash
+  const outgoingRendererRef = useRef<PointRendererBase | null>(null)
+
   // Switch renderer based on WebGL context availability
   useEffect(() => {
     const switchRenderer = async () => {
-      // Only dispose on subsequent renders, not on the first render
-      // (because the initial renderer hasn't been init'd yet)
+      // Store the current renderer as "outgoing" - we'll dispose it after the new one renders
+      // On first render, there's no outgoing renderer to preserve
       if (!isFirstRender.current) {
-        renderer.dispose()
+        outgoingRendererRef.current = renderer
       }
       isFirstRender.current = false
 
       let newRenderer: PointRendererBase
 
-      // TODO: TEMPORARY - Always use Canvas renderer for testing
-      // Restore the original logic below when testing is complete:
-      //   if (hasWebGLContext) {
-      //     newRenderer = new PixiPointRenderer(stateRef.current)
-      //   } else {
-      //     newRenderer = new NullPointRenderer(stateRef.current)
-      //   }
-      if (FORCE_CANVAS_RENDERER) {
-        newRenderer = new CanvasPointRenderer(stateRef.current)
-      } else if (hasWebGLContext) {
+      if (hasWebGLContext) {
+        // Use WebGL (Pixi) renderer when context is available
         newRenderer = new PixiPointRenderer(stateRef.current)
+      } else if (contextWasDenied) {
+        // Fall back to Canvas 2D renderer when WebGL context was denied
+        newRenderer = new CanvasPointRenderer(stateRef.current)
       } else {
+        // Use null renderer while waiting for context decision
         newRenderer = new NullPointRenderer(stateRef.current)
       }
 
@@ -276,13 +281,24 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
       setIsReady(true)
 
       onRendererChange?.(newRenderer)
+
+      // Wait for the new renderer to paint before disposing the old one.
+      // Use two animation frames: first to queue the render, second to ensure it's painted.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (outgoingRendererRef.current) {
+            outgoingRendererRef.current.dispose()
+            outgoingRendererRef.current = null
+          }
+        })
+      })
     }
 
     switchRenderer()
     // Note: We intentionally don't include `renderer` or `rendererOptions` in dependencies
     // as it would cause infinite loops or unnecessary re-renders
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasWebGLContext, onRendererChange])
+  }, [hasWebGLContext, contextWasDenied, onRendererChange])
 
   // Request a context with boosted priority (for user interaction)
   const requestContextWithHighPriority = useCallback(() => {
@@ -314,6 +330,7 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
     isVisible,
     isReady,
     state: stateRef.current,
+    rendererType: renderer.capability,
     requestContextWithHighPriority
   }
 }

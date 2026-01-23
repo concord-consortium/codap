@@ -20,7 +20,7 @@ import {GraphPlace} from "../../axis-graph-shared"
 import { AxisPlace, AxisPlaces, isAxisPlace } from "../../axis/axis-types"
 import { IBaseNumericAxisModel } from "../../axis/models/base-numeric-axis-model"
 import { If } from "../../common/if"
-import { PointRendererArray } from "../../data-display/renderer"
+import { PointRendererArray, RendererCapability } from "../../data-display/renderer"
 import {Background} from "../../data-display/components/background"
 import {DataTip} from "../../data-display/components/data-tip"
 import {MultiLegend} from "../../data-display/components/legend/multi-legend"
@@ -60,21 +60,18 @@ interface IProps {
   graphController: GraphController
   setGraphRef: (ref: HTMLDivElement | null) => void
   rendererArray: PointRendererArray
-  /** Whether a context was requested and denied (for showing placeholder) */
-  contextWasDenied?: boolean
   /** Whether the renderer is visible (not minimized or off-screen) */
   isRendererVisible?: boolean
-  /** Callback to request a WebGL context with high priority (for user interaction) */
-  onRequestContext?: () => void
+  /** The type of renderer in use */
+  rendererType?: RendererCapability
 }
 
 export const Graph = observer(function Graph({
   graphController,
   setGraphRef,
   rendererArray,
-  contextWasDenied = false,
   isRendererVisible = true,
-  onRequestContext
+  rendererType
 }: IProps) {
   const graphModel = useGraphContentModelContext(),
     {plotType} = graphModel,
@@ -442,14 +439,22 @@ export const Graph = observer(function Graph({
         </svg>
         {/* HTML host for Pixi canvas to avoid Safari foreignObject issues */}
         <div ref={pixiContainerRef} className="pixi-points-host" />
-        {/* Show placeholder when a context was requested but denied */}
-        <If condition={contextWasDenied && isRendererVisible}>
+        {/* Renderer type indicator */}
+        {rendererType && rendererType !== "null" && (
+          <div
+            className="renderer-type-indicator"
+            title={rendererType === "webgl" ? "WebGL renderer" : "Canvas 2D renderer"}
+          >
+            {rendererType === "webgl" ? "GL" : "2D"}
+          </div>
+        )}
+        {/* Show placeholder only when using null renderer (no rendering at all) */}
+        <If condition={rendererType === "null" && isRendererVisible}>
           <NoWebGLContextPlaceholder
             width={layout.plotWidth}
             height={layout.plotHeight}
             left={layout.getComputedBounds('plot')?.left ?? 0}
             top={layout.getComputedBounds('plot')?.top ?? 0}
-            onClick={onRequestContext}
           />
         </If>
         <svg className="overlay-svg">

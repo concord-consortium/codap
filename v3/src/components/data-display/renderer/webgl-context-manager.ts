@@ -36,7 +36,7 @@ export interface IContextConsumer {
 export class WebGLContextManager {
   private static instance: WebGLContextManager | null = null
 
-  /** Maximum number of contexts to allocate (conservative to leave room for system use) */
+  /** Maximum number of contexts to allocate (browser limit is typically 16) */
   readonly maxContexts = 14
 
   /** All registered consumers (both active and waiting) */
