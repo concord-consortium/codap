@@ -10,6 +10,11 @@ This provides a middle ground between full WebGL rendering (`PixiPointRenderer`)
 
 ---
 
+## Remaining To Do
+- [ ] Hover cursor change on point hover in Canvas mode
+- [ ] Brief appearance on refresh document of some kind of rendering indication in graph before points display
+- [ ] Hover animation when mouse goes over a point is different (missing?) in Canvas mode vs WebGL mode
+
 ## Files to Create
 
 | File | Purpose |
