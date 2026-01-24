@@ -211,9 +211,36 @@ export const LSRLAdornmentModel = AdornmentModel
     const { dataConfig, interceptLocked } = options
     const { xAttrId, yAttrId } = dataConfig.getCategoriesOptions()
     const legendCats = self.getLegendCategories(dataConfig)
+    const legendCatsSet = new Set(legendCats)
+    const validCellKeys = new Set<string>()
+
     dataConfig.getAllCellKeys().forEach(cellKey => {
       const instanceKey = self.instanceKey(cellKey)
+      validCellKeys.add(instanceKey)
       const lines = self.lines.get(instanceKey)
+      const labels = self.labels.get(instanceKey)
+
+      // Remove lines and labels for categories that are no longer valid
+      if (lines) {
+        const keysToRemove: string[] = []
+        lines.forEach((_, category) => {
+          if (!legendCatsSet.has(category)) {
+            keysToRemove.push(category)
+          }
+        })
+        keysToRemove.forEach(key => lines.delete(key))
+      }
+      if (labels) {
+        const keysToRemove: string[] = []
+        labels.forEach((_, category) => {
+          const categoryKey = String(category)
+          if (!legendCatsSet.has(categoryKey)) {
+            keysToRemove.push(categoryKey)
+          }
+        })
+        keysToRemove.forEach(key => labels.delete(key))
+      }
+
       legendCats.forEach(legendCat => {
         const existingLine = lines ? lines.get(legendCat) : undefined
         const existingLineProps = existingLine ? getSnapshot(existingLine) : undefined
@@ -225,6 +252,24 @@ export const LSRLAdornmentModel = AdornmentModel
         self.updateLines(lineProps, instanceKey, legendCat)
       })
     })
+
+    // Remove lines and labels for cell keys that are no longer valid
+    const cellKeysToRemove: string[] = []
+    self.lines.forEach((_, cellKey) => {
+      if (!validCellKeys.has(cellKey)) {
+        cellKeysToRemove.push(cellKey)
+      }
+    })
+    cellKeysToRemove.forEach(key => self.lines.delete(key))
+    const labelKeysToRemove: string[] = []
+    self.labels.forEach((_, cellKey) => {
+      const key = String(cellKey)
+      if (!validCellKeys.has(key)) {
+        labelKeysToRemove.push(key)
+      }
+    })
+    labelKeysToRemove.forEach(key => self.labels.delete(key))
+
     self.incrementChangeCount()
   },
   setLabel(cellKey: Record<string, string>, category: string, label: ILineLabelInstance) {
