@@ -29,9 +29,13 @@ interface IProps {
   rendererArray: PointRendererArray
   /** The type of renderer in use */
   rendererType?: RendererCapability
+  /** Toggle between WebGL and Canvas renderers (for testing) */
+  onToggleRendererType?: () => void
 }
 
-export const CodapMap = observer(function CodapMap({setMapRef, rendererArray, rendererType}: IProps) {
+export const CodapMap = observer(function CodapMap({
+  setMapRef, rendererArray, rendererType, onToggleRendererType
+}: IProps) {
   const mapModel = useMapModelContext(),
     layout = useDataDisplayLayout(),
     mapHeight = layout.contentHeight,
@@ -157,7 +161,8 @@ export const CodapMap = observer(function CodapMap({setMapRef, rendererArray, re
       {rendererType && rendererType !== "null" && (
         <div
           className="renderer-type-indicator"
-          title={rendererType === "webgl" ? "WebGL renderer" : "Canvas 2D renderer"}
+          title={rendererType === "webgl" ? "WebGL renderer (click to switch)" : "Canvas 2D renderer (click to switch)"}
+          onClick={onToggleRendererType}
         >
           {rendererType === "webgl" ? "GL" : "2D"}
         </div>

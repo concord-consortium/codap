@@ -64,6 +64,10 @@ interface IProps {
   isRendererVisible?: boolean
   /** The type of renderer in use */
   rendererType?: RendererCapability
+  /** Toggle between WebGL and Canvas renderers (for testing) */
+  onToggleRendererType?: () => void
+  /** Whether a WebGL context was requested and denied */
+  contextWasDenied?: boolean
 }
 
 export const Graph = observer(function Graph({
@@ -71,7 +75,9 @@ export const Graph = observer(function Graph({
   setGraphRef,
   rendererArray,
   isRendererVisible = true,
-  rendererType
+  rendererType,
+  onToggleRendererType,
+  contextWasDenied = false
 }: IProps) {
   const graphModel = useGraphContentModelContext(),
     {plotType} = graphModel,
@@ -443,13 +449,16 @@ export const Graph = observer(function Graph({
         {rendererType && rendererType !== "null" && (
           <div
             className="renderer-type-indicator"
-            title={rendererType === "webgl" ? "WebGL renderer" : "Canvas 2D renderer"}
+            title={rendererType === "webgl"
+              ? "WebGL renderer (click to switch)"
+              : "Canvas 2D renderer (click to switch)"}
+            onClick={onToggleRendererType}
           >
             {rendererType === "webgl" ? "GL" : "2D"}
           </div>
         )}
-        {/* Show placeholder only when using null renderer (no rendering at all) */}
-        <If condition={rendererType === "null" && isRendererVisible}>
+        {/* Show placeholder only when context was denied and using null renderer */}
+        <If condition={contextWasDenied && rendererType === "null" && isRendererVisible}>
           <NoWebGLContextPlaceholder
             width={layout.plotWidth}
             height={layout.plotHeight}

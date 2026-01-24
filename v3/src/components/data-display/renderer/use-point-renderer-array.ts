@@ -95,6 +95,11 @@ export interface IUsePointRendererArrayResult {
   primaryRendererType: RendererCapability
 
   /**
+   * Toggle between WebGL and Canvas renderers (for testing purposes).
+   */
+  toggleRendererType: () => void
+
+  /**
    * Context value for child layers to use.
    * Wrap child components in PointRendererArrayContext.Provider with this value.
    */
@@ -157,6 +162,7 @@ export function usePointRendererArray(options: IUsePointRendererArrayOptions): I
     isVisible: primaryResult.isVisible,
     requestContextWithHighPriority: primaryResult.requestContextWithHighPriority,
     primaryRendererType: primaryResult.rendererType,
+    toggleRendererType: primaryResult.toggleRendererType,
     contextValue
   }
 }

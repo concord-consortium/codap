@@ -40,7 +40,9 @@ export const GraphComponent = observer(function GraphComponent({tile, isMinimize
   const {
     rendererArray,
     isVisible,
-    primaryRendererType
+    primaryRendererType,
+    toggleRendererType,
+    contextWasDenied
   } = usePointRendererArray({
     baseId: tile?.id ?? instanceId,
     isMinimized,
@@ -103,6 +105,8 @@ export const GraphComponent = observer(function GraphComponent({tile, isMinimize
                   rendererArray={rendererArray}
                   isRendererVisible={isVisible}
                   rendererType={primaryRendererType}
+                  onToggleRendererType={toggleRendererType}
+                  contextWasDenied={contextWasDenied}
                 />
               </AxisProviderContext.Provider>
               <AttributeDragOverlay dragIdPrefix={instanceId}/>

@@ -103,7 +103,9 @@ export class CanvasPointRenderer extends PointRendererBase {
    */
   setPositionOrTransition(point: IPoint, style: Partial<IPointStyle>, x: number, y: number): void {
     // Capture old position before state is updated (only during transition setup)
-    if (this.transitionManager?.isSettingUpTransition()) {
+    // Important: don't overwrite if we already have an entry (e.g., from doInit pre-population
+    // during renderer switch, which preserves positions to prevent animation)
+    if (this.transitionManager?.isSettingUpTransition() && !this.pendingTransitionStarts.has(point.id)) {
       const pointState = this.state.getPoint(point.id)
       if (pointState) {
         this.pendingTransitionStarts.set(point.id, {
@@ -170,6 +172,17 @@ export class CanvasPointRenderer extends PointRendererBase {
 
     // Sync from existing state (if switching from another renderer)
     this.syncFromState()
+
+    // Pre-populate pendingTransitionStarts with existing points to prevent animation
+    // on first transition after renderer switch. Truly new points won't be in this map.
+    // The state's scale is now correctly maintained (setPositionOrTransition updates it to 1).
+    this.state.forEach(point => {
+      this.pendingTransitionStarts.set(point.id, {
+        x: point.x,
+        y: point.y,
+        scale: point.scale
+      })
+    })
   }
 
   protected doDispose(): void {
@@ -356,8 +369,9 @@ export class CanvasPointRenderer extends PointRendererBase {
     if (!point || !this.transitionManager) return
 
     if (this.transitionManager.isSettingUpTransition()) {
-      // Use stored old positions (captured before state was updated)
-      // or fall back to current point position (which is now the target)
+      // Use stored old positions (captured before state was updated or at init)
+      // For existing points: oldPos exists (from init or previous transition)
+      // For truly new points: oldPos is undefined, so they animate from (x, y, scale=0)
       const oldPos = this.pendingTransitionStarts.get(pointId)
       const startX = oldPos?.x ?? x
       const startY = oldPos?.y ?? y
@@ -366,7 +380,7 @@ export class CanvasPointRenderer extends PointRendererBase {
       // Set transition targets for position and scale
       this.transitionManager.setTarget(pointId, "x", startX, x)
       this.transitionManager.setTarget(pointId, "y", startY, y)
-      // Also transition scale to 1 (points start at scale 0 for animation effect)
+      // New points animate scale from 0 to 1; existing points stay at their current scale
       this.transitionManager.setTarget(pointId, "scale", startScale, 1)
     } else {
       // No transition active - set scale to 1 immediately
