@@ -85,6 +85,23 @@ function createLSRLInstance(line: ILSRLineSnap) {
   return instance
 }
 
+// Removes keys from a map that are not in the validKeys set.
+// String() is needed because MST types.map keys are typed as `string | number`.
+function removeStaleMapKeys(
+  map: { forEach: (fn: (v: unknown, k: string | number) => void) => void, delete: (k: string) => boolean } | undefined,
+  validKeys: Set<string>
+) {
+  if (!map) return
+  const keysToRemove: string[] = []
+  map.forEach((_, key) => {
+    const keyStr = String(key)
+    if (!validKeys.has(keyStr)) {
+      keysToRemove.push(keyStr)
+    }
+  })
+  keysToRemove.forEach(key => map.delete(key))
+}
+
 export const LSRLAdornmentModel = AdornmentModel
 .named("LSRLAdornmentModel")
 .props({
@@ -221,19 +238,8 @@ export const LSRLAdornmentModel = AdornmentModel
       const labels = self.labels.get(instanceKey)
 
       // Remove lines and labels for categories that are no longer valid
-      for (const map of [lines, labels]) {
-        if (map) {
-          const keysToRemove: string[] = []
-          // String() is needed because MST types.map keys are typed as `string | number`
-          map.forEach((_, category) => {
-            const key = String(category)
-            if (!legendCatsSet.has(key)) {
-              keysToRemove.push(key)
-            }
-          })
-          keysToRemove.forEach(key => map.delete(key))
-        }
-      }
+      removeStaleMapKeys(lines, legendCatsSet)
+      removeStaleMapKeys(labels, legendCatsSet)
 
       legendCats.forEach(legendCat => {
         const existingLine = lines ? lines.get(legendCat) : undefined
@@ -248,22 +254,8 @@ export const LSRLAdornmentModel = AdornmentModel
     })
 
     // Remove lines and labels for cell keys that are no longer valid
-    const cellKeysToRemove: string[] = []
-    self.lines.forEach((_, cellKey) => {
-      if (!validCellKeys.has(cellKey)) {
-        cellKeysToRemove.push(cellKey)
-      }
-    })
-    cellKeysToRemove.forEach(key => self.lines.delete(key))
-    const labelKeysToRemove: string[] = []
-    // MST types.map forEach types keys as `string | number`, but keys are always strings
-    self.labels.forEach((_, cellKey) => {
-      const key = String(cellKey)
-      if (!validCellKeys.has(key)) {
-        labelKeysToRemove.push(key)
-      }
-    })
-    labelKeysToRemove.forEach(key => self.labels.delete(key))
+    removeStaleMapKeys(self.lines, validCellKeys)
+    removeStaleMapKeys(self.labels, validCellKeys)
 
     self.incrementChangeCount()
   },
