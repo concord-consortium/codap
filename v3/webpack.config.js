@@ -8,6 +8,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const ESLintPlugin = require('eslint-webpack-plugin')
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
+const CopyWebpackPlugin = require('copy-webpack-plugin')
 
 // DEPLOY_PATH is set by the s3-deploy-action its value will be:
 // `branch/[branch-name]/` or `version/[tag-name]/`
@@ -37,6 +38,11 @@ module.exports = (env, argv) => {
       publicPath: DEPLOY_PATH
     })] : []),
     new CleanWebpackPlugin(),
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: 'src/public/browser-check.js', to: 'browser-check.js' }
+      ]
+    }),
   ]
   if (devMode && !process.env.SKIP_ESLINT) {
     // `build` script runs eslint independently in production mode,

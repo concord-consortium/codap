@@ -136,6 +136,7 @@
     "autoprefixer": "^10.4.21",
     "caniuse-lite": "^1.0.30001726",
     "clean-webpack-plugin": "^4.0.0",
+    "copy-webpack-plugin": "^13.0.1",
     "css-loader": "^7.1.2",
     "cypress": "^14.5.1",
     "cypress-real-events": "^1.14.0",
