@@ -85,6 +85,23 @@ function createLSRLInstance(line: ILSRLineSnap) {
   return instance
 }
 
+// Removes keys from a map that are not in the validKeys set.
+// String() is needed because MST types.map keys are typed as `string | number`.
+function removeStaleMapKeys(
+  map: { forEach: (fn: (v: unknown, k: string | number) => void) => void, delete: (k: string) => boolean } | undefined,
+  validKeys: Set<string>
+) {
+  if (!map) return
+  const keysToRemove: string[] = []
+  map.forEach((_, key) => {
+    const keyStr = String(key)
+    if (!validKeys.has(keyStr)) {
+      keysToRemove.push(keyStr)
+    }
+  })
+  keysToRemove.forEach(key => map.delete(key))
+}
+
 export const LSRLAdornmentModel = AdornmentModel
 .named("LSRLAdornmentModel")
 .props({
@@ -211,9 +228,19 @@ export const LSRLAdornmentModel = AdornmentModel
     const { dataConfig, interceptLocked } = options
     const { xAttrId, yAttrId } = dataConfig.getCategoriesOptions()
     const legendCats = self.getLegendCategories(dataConfig)
+    const legendCatsSet = new Set(legendCats)
+    const validCellKeys = new Set<string>()
+
     dataConfig.getAllCellKeys().forEach(cellKey => {
       const instanceKey = self.instanceKey(cellKey)
+      validCellKeys.add(instanceKey)
       const lines = self.lines.get(instanceKey)
+      const labels = self.labels.get(instanceKey)
+
+      // Remove lines and labels for categories that are no longer valid
+      removeStaleMapKeys(lines, legendCatsSet)
+      removeStaleMapKeys(labels, legendCatsSet)
+
       legendCats.forEach(legendCat => {
         const existingLine = lines ? lines.get(legendCat) : undefined
         const existingLineProps = existingLine ? getSnapshot(existingLine) : undefined
@@ -225,6 +252,11 @@ export const LSRLAdornmentModel = AdornmentModel
         self.updateLines(lineProps, instanceKey, legendCat)
       })
     })
+
+    // Remove lines and labels for cell keys that are no longer valid
+    removeStaleMapKeys(self.lines, validCellKeys)
+    removeStaleMapKeys(self.labels, validCellKeys)
+
     self.incrementChangeCount()
   },
   setLabel(cellKey: Record<string, string>, category: string, label: ILineLabelInstance) {
