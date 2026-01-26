@@ -148,6 +148,10 @@ export class PixiPoints {
         antialias: true,
         // `passive` is more performant and will be used by default in the future Pixi.JS versions
         eventMode: "passive",
+        // Allow software rendering fallback for CI/headless environments where hardware
+        // acceleration may not be available. Without this, renderer initialization can
+        // silently fail in GitHub Actions or other headless Chrome environments.
+        failIfMajorPerformanceCaveat: false,
         eventFeatures: {
           move: true,
           click: true,
@@ -157,7 +161,12 @@ export class PixiPoints {
         }
       })
     } catch (e) {
-      console.error("PixiPoints failed to initialize renderer")
+      console.error("PixiPoints failed to initialize renderer:", e)
+      return
+    }
+
+    if (!this.renderer) {
+      console.error("PixiPoints renderer is null after initialization - WebGL may not be supported")
       return
     }
 
@@ -791,6 +800,7 @@ export class PixiPoints {
     datasetID:string, caseData: CaseDataWithSubPlot[], displayType: "points" | "bars", style: IPixiPointStyle
   ) {
     if (!this.renderer) {
+      console.warn("PixiPoints.matchPointsToData called but renderer is not initialized - points will not be rendered")
       return
     }
     // If the display type has changed, we need to prepare for the transition between types
