@@ -167,7 +167,6 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
   useEffect(function setupResponsesToDatasetActions() {
     if (dataset) {
       const disposer = onAnyAction(dataset, action => {
-        if (!isAlive(mapLayerModel)) return
         if (isSelectionAction(action)) {
           refreshPolygonStyles()
         } else if (isSetCaseValuesAction(action) || ["addCases", "removeCases"].includes(action.name)) {
@@ -194,21 +193,20 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
 
   // Changes in legend attribute require repositioning polygons
   useEffect(function setupResponsesToLegendAttribute() {
-    const disposer = reaction(
-      () => isAlive(mapLayerModel) ? [dataConfiguration.attributeID('legend')] : [],
+    return mstReaction(
+      () => dataConfiguration.attributeID('legend'),
       () => {
         refreshPolygonLayer()
-      }, {name: "MapPolygonLayer.setupResponsesToLegendAttribute", equals: comparer.structural}
+      }, {name: "MapPolygonLayer.setupResponsesToLegendAttribute"}, mapLayerModel
     )
-    return () => disposer()
   }, [dataConfiguration, mapLayerModel, refreshPolygonLayer])
 
   useEffect(function setupResponseToChangeInNumberOfCases() {
     return mstReaction(
-      () => isAlive(mapLayerModel) ? dataConfiguration?.getCaseDataArray(0).length : 0,
+      () => dataConfiguration?.getCaseDataArray(0).length ?? 0,
       () => {
         refreshPolygonLayer()
-      }, {name: "MapPolygonLayer.setupResponseToChangeInNumberOfCases"}, dataConfiguration
+      }, {name: "MapPolygonLayer.setupResponseToChangeInNumberOfCases"}, [mapLayerModel, dataConfiguration]
     )
   }, [dataConfiguration, mapLayerModel, refreshPolygonLayer])
 
