@@ -221,24 +221,18 @@ export const LSRLAdornmentModel = AdornmentModel
       const labels = self.labels.get(instanceKey)
 
       // Remove lines and labels for categories that are no longer valid
-      if (lines) {
-        const keysToRemove: string[] = []
-        lines.forEach((_, category) => {
-          if (!legendCatsSet.has(category)) {
-            keysToRemove.push(category)
-          }
-        })
-        keysToRemove.forEach(key => lines.delete(key))
-      }
-      if (labels) {
-        const keysToRemove: string[] = []
-        labels.forEach((_, category) => {
-          const categoryKey = String(category)
-          if (!legendCatsSet.has(categoryKey)) {
-            keysToRemove.push(categoryKey)
-          }
-        })
-        keysToRemove.forEach(key => labels.delete(key))
+      for (const map of [lines, labels]) {
+        if (map) {
+          const keysToRemove: string[] = []
+          // String() is needed because MST types.map keys are typed as `string | number`
+          map.forEach((_, category) => {
+            const key = String(category)
+            if (!legendCatsSet.has(key)) {
+              keysToRemove.push(key)
+            }
+          })
+          keysToRemove.forEach(key => map.delete(key))
+        }
       }
 
       legendCats.forEach(legendCat => {
