@@ -118,7 +118,6 @@ export function setPointSelection(props: ISetPointSelection) {
   pixiPoints.forEachPoint((point, metadata) => {
     const { caseID, plotNum } = metadata
     const isSelected = !!dataset?.isCaseSelected(caseID)
-    const isSelectedAndPointsFusedIntoBars = isSelected && pointsFusedIntoBars
     // Determine fill color based on legend or plotNum, preserving original color when selected
     let fill: string
     if (legendID) {
@@ -130,7 +129,7 @@ export function setPointSelection(props: ISetPointSelection) {
       fill,
       radius: isSelected ? selectedPointRadius : pointRadius,
       stroke: isSelected
-        ? (isSelectedAndPointsFusedIntoBars ? defaultSelectedColor : defaultSelectedStroke)
+        ? (pointsFusedIntoBars ? defaultSelectedColor : defaultSelectedStroke)
         : pointStrokeColor,
       strokeWidth: isSelected ? defaultSelectedStrokeWidth : defaultStrokeWidth,
       strokeOpacity: isSelected ? defaultSelectedStrokeOpacity : defaultStrokeOpacity
