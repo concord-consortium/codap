@@ -262,6 +262,7 @@ export const LSRLAdornmentModel = AdornmentModel
     })
     cellKeysToRemove.forEach(key => self.lines.delete(key))
     const labelKeysToRemove: string[] = []
+    // MST types.map forEach types keys as `string | number`, but keys are always strings
     self.labels.forEach((_, cellKey) => {
       const key = String(cellKey)
       if (!validCellKeys.has(key)) {
