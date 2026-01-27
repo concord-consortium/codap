@@ -194,6 +194,7 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
     const pointSizeMultiplier = pointDescription.pointSizeMultiplier
     const pointsHaveBeenReduced = pointDescription.pointsHaveBeenReduced
     const kPointSizeReductionFactor = 0.5
+    const getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
 
     // Remove all existing connecting lines before rendering new ones to prevent duplicates
     if (connectingLinesRef.current) {
@@ -203,7 +204,7 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
 
     cellKeys?.forEach((cellKey) => {
       renderConnectingLines({
-        cellKey, connectingLines, parentAttrID, parentAttrName, pointColorAtIndex, showConnectingLines
+        cellKey, connectingLines, getLegendColor, parentAttrID, parentAttrName, pointColorAtIndex, showConnectingLines
       })
     })
 
@@ -216,7 +217,7 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
       pointDescription.setPointSizeMultiplier(pointSizeMultiplier / kPointSizeReductionFactor)
       pointDescription.setPointsHaveBeenReduced(false)
     }
-  }, [showConnectingLines, layout, dataConfiguration, dataset, renderConnectingLines, graphModel])
+  }, [showConnectingLines, layout, dataConfiguration, dataset, legendAttrID, renderConnectingLines, graphModel])
 
   const refreshSquares = useCallback(() => {
 

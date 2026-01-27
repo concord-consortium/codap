@@ -16,6 +16,7 @@ interface IMouseOverProps {
 
 interface IDrawLines {
   allLineCaseIds: Record<string, string[]>
+  getLegendColor?: (caseID: string) => string | undefined
   lineGroups: Record<string, IConnectingLineDescription[]>
   parentAttrID?: string
   parentAttrName?: string
@@ -26,6 +27,7 @@ interface IDrawLines {
 interface IPrepareLineProps {
   cellKey?: Record<string, string>
   connectingLines: IConnectingLineDescription[]
+  getLegendColor?: (caseID: string) => string | undefined
   parentAttrID?: string
   parentAttrName?: string
   pointColorAtIndex: (index: number) => string
@@ -97,7 +99,7 @@ export const useConnectingLines = (props: IProps) => {
   const drawConnectingLines = useCallback((drawLinesProps: IDrawLines) => {
     if (!connectingLinesSvg) return
 
-    const { allLineCaseIds, lineGroups, parentAttrName, pointColorAtIndex,
+    const { allLineCaseIds, getLegendColor, lineGroups, parentAttrName, pointColorAtIndex,
             showConnectingLines } = drawLinesProps
     const curve = line().curve(curveLinear)
     // For each group of lines, draw a path using the lines' coordinates
@@ -105,7 +107,10 @@ export const useConnectingLines = (props: IProps) => {
       const allLineCoords = cases.map((l: IConnectingLineDescription) => l.lineCoords)
       const lineCaseIds = allLineCaseIds[primaryAttrValue]
       const allCasesSelected = lineCaseIds?.every((caseID: string) => dataset?.isCaseSelected(caseID))
-       const color = pointColorAtIndex(cases[0].plotNum || 0)
+      // Use legend color if available (based on first case in the group), otherwise fall back to plot color
+      const firstCaseId = cases[0]?.caseData?.__id__
+      const legendColor = firstCaseId ? getLegendColor?.(firstCaseId) : undefined
+      const color = legendColor ?? pointColorAtIndex(cases[0].plotNum || 0)
 
       connectingLinesArea
         .append("path")
@@ -173,9 +178,9 @@ export const useConnectingLines = (props: IProps) => {
   }, [dataConfig, isCaseInSubPlot, yAttrCount])
 
   const renderConnectingLines = useCallback((renderLineProps: IPrepareLineProps) => {
-    const { pointColorAtIndex } = renderLineProps
+    const { getLegendColor, pointColorAtIndex } = renderLineProps
     const lineData = prepareConnectingLines(renderLineProps)
-    lineData && drawConnectingLines({...lineData, pointColorAtIndex})
+    lineData && drawConnectingLines({...lineData, getLegendColor, pointColorAtIndex})
   }, [drawConnectingLines, prepareConnectingLines])
 
   return { renderConnectingLines }
