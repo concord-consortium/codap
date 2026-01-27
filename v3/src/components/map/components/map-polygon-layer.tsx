@@ -1,5 +1,5 @@
 import {comparer, reaction} from "mobx"
-import {isAlive} from "mobx-state-tree"
+import {addDisposer, isAlive} from "mobx-state-tree"
 import {geoJSON, LeafletMouseEvent, point, Popup, popup} from "leaflet"
 import {useCallback, useEffect} from "react"
 import {useMap} from "react-leaflet"
@@ -231,14 +231,18 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
     )
   }, [refreshPolygonStyles, mapLayerModel])
 
-  // Clean up Leaflet features when component unmounts (e.g., when layer is deleted)
+  // Clean up Leaflet features when model is destroyed or component unmounts
   useEffect(function cleanupOnUnmount() {
-    return () => {
+    const cleanup = () => {
+      // Guard against being called twice (once on model destroy, once on unmount)
+      if (!isAlive(mapLayerModel)) return
       // Remove all polygon features from the Leaflet map
       Object.values(mapLayerModel.features).forEach(feature => {
         leafletMap.removeLayer(feature)
       })
     }
+    addDisposer(mapLayerModel, cleanup)
+    return cleanup
   }, [leafletMap, mapLayerModel])
 
   return (
