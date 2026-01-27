@@ -216,7 +216,7 @@
     "iframe-phone": "^1.4.0",
     "leaflet": "^1.9.4",
     "lodash": "^4.17.23",
-    "mathjs": "^14.9.1",
+    "mathjs": "^15.1.0",
     "mime": "^4.1.0",
     "mobx": "^6.15.0",
     "mobx-react-lite": "^4.1.1",
