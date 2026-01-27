@@ -32,7 +32,7 @@ export function useUncaughtErrorHandler(cfm: CloudFileManager) {
           ]}
         </p>
         <h2>{t("V3.app.documentDisplayError.detailsTitle")}</h2>
-        <p>{error.message}</p>
+        <p>{error instanceof Error ? error.message : String(error)}</p>
       </div>
     )
   }, [userCanSaveCopy])
