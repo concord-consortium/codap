@@ -278,6 +278,8 @@
       rpcEndpoint.call(command, function(response) {
         window.harnessState.lastResponse = response;
         appendResponse('RECEIVED: ' + JSON.stringify(response, null, 2));
+        // Update phone-in-use status when we successfully send/receive
+        updateStatus('phone-in-use-status', 'phone-in-use-indicator', 'Phone in use', 'success');
       });
     }
 
@@ -293,6 +295,8 @@
         rpcEndpoint.call(command, function(response) {
           window.harnessState.lastResponse = response;
           appendResponse('RECEIVED: ' + JSON.stringify(response, null, 2));
+          // Update phone-in-use status when we successfully send/receive
+          updateStatus('phone-in-use-status', 'phone-in-use-indicator', 'Phone in use', 'success');
           resolve(response);
         });
       });
