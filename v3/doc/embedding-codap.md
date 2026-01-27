@@ -104,6 +104,8 @@ When `embeddedMode=yes`:
 
 When running in embedded mode (or with `embeddedServer=yes`), CODAP establishes an iframe-phone RPC endpoint for communication with the parent window.
 
+**Note:** V3 currently only supports iframe-based communication where CODAP runs in an iframe and communicates with the parent window. V2 also supported same-context communication via a local `IFramePhoneEmulator`, which allowed JavaScript running in the same context as CODAP to use the Data Interactive API without iframes. This feature has not yet been ported to V3.
+
 ### Setup
 
 The parent page should set up an iframe-phone endpoint:
