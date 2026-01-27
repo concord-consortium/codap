@@ -1,5 +1,5 @@
 import {
-  detectDataUrlImageBug, downscaleImageFile, fileToDataUrl, getImageDimensions, hasDataUrlImageBug,
+  downscaleImageFile, fileToDataUrl, getImageDimensions,
   MAX_IMAGE_FILE_DIMENSION, MAX_IMAGE_HEIGHT, MAX_IMAGE_WIDTH
 } from "./image-utils"
 
