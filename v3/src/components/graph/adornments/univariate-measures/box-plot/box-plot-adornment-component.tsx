@@ -79,14 +79,13 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
       .append("path")
       .attr("class", `measure-outlier ${helper.measureSlug}-outlier ${arg1}-outlier`)
       .attr("d", "M0, -3 V3 M-3, 0 H3")
-      .attr("transform", (d: number) => {
-        const index = outliers.indexOf(d)
+      .attr("transform", (d: number, i: number) => {
         const x = isVerticalRef.current
-          ? helper.xScale(outliers[index]) / cellCounts.x
+          ? helper.xScale(outliers[i]) / cellCounts.x
           : secondaryAxisX
         const y = isVerticalRef.current
           ? secondaryAxisY
-          : helper.yScale(outliers[index]) / cellCounts.y
+          : helper.yScale(outliers[i]) / cellCounts.y
         return `translate(${x}, ${y})`
       })
   }, [cellCounts, helper, secondaryAxisX, secondaryAxisY])
@@ -100,23 +99,21 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
       .enter()
       .append("rect")
         .attr("class", "measure-outlier-cover")
-        .attr("id", (d: number) => `${textId}-${outlierType}-${outliers.indexOf(d)}`)
-        .attr("data-testid", (d: number) => `${textId}-${outliers.indexOf(d)}`)
+        .attr("id", (d: number, i: number) => `${textId}-${outlierType}-${i}`)
+        .attr("data-testid", (d: number, i: number) => `${textId}-${i}`)
         .attr("width", 6)
         .attr("height", 6)
         .attr("rx", 3)
         .attr("ry", 3)
-        .attr("x", (d: number) => {
-          const index = outliers.indexOf(d)
+        .attr("x", (d: number, i: number) => {
           return isVerticalRef.current
-            ? helper.xScale(outliers[index]) / cellCounts.x - outlierOffset
+            ? helper.xScale(outliers[i]) / cellCounts.x - outlierOffset
             : secondaryAxisX - outlierOffset
         })
-        .attr("y", (d: number) => {
-          const index = outliers.indexOf(d)
+        .attr("y", (d: number, i: number) => {
           return isVerticalRef.current
             ? secondaryAxisY - outlierOffset
-            : helper.yScale(outliers[index]) / cellCounts.y - outlierOffset
+            : helper.yScale(outliers[i]) / cellCounts.y - outlierOffset
         })
   }, [cellCounts, helper, secondaryAxisX, secondaryAxisY])
 
