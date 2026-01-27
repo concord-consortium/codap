@@ -40,7 +40,10 @@ export async function processAction(
   }
 
   const resourceSelector = parseResourceSelector(action.resource)
-  const resources = resolveResources(resourceSelector, action.action, tile as ITileModel, cfm)
+  if (!tile) {
+    return errorResult(t("V3.DI.Error.noTile"))
+  }
+  const resources = resolveResources(resourceSelector, action.action, tile, cfm)
   const type = resourceSelector.type ?? ""
   const a = action.action
   const func = getDIHandler(type)?.[a as keyof DIHandler]
