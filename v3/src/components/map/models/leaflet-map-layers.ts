@@ -91,21 +91,21 @@ export class LeafletMapLayers {
   }
 
   @action
-  removeDeadLayers() {
+  removeStaleLayers() {
     // Remove entries for layers that are no longer in the map
-    const deadLayerIds: string[] = []
+    const staleLayerIds: string[] = []
     this.layers.forEach((entry, id) => {
       if (!this.getLayerModel(entry.modelId)) {
-        deadLayerIds.push(id)
+        staleLayerIds.push(id)
       }
     })
-    deadLayerIds.forEach(id => this.layers.delete(id))
+    staleLayerIds.forEach(id => this.layers.delete(id))
   }
 
   @action
   refresh() {
     // First, clean up any layers that have been removed from the map
-    this.removeDeadLayers()
+    this.removeStaleLayers()
 
     const entries = Array.from(this.layers.values())
     // assign indices based on current mapContent layer order
