@@ -20,7 +20,7 @@
     },
     "transformIgnorePatterns": [
       "/comments/ESM-only (https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c) modules that should not be transformed by ts-jest",
-      "/node_modules/(?!(d3|d3-(.+)|decode-uri-component|delaunator|escape-string-regexp|filter-obj|internmap|mime|nanoid|query-string|random|@?react-leaflet|react-error-boundary|react-resize-detector|robust-predicates|split-on-first)/)"
+      "/node_modules/(?!(d3|d3-(.+)|decode-uri-component|delaunator|earcut|escape-string-regexp|filter-obj|internmap|mime|nanoid|query-string|random|@?react-leaflet|react-error-boundary|react-resize-detector|robust-predicates|split-on-first)/)"
     ],
     "setupFilesAfterEnv": [
       "<rootDir>/src/test/setupTests.ts"
@@ -223,7 +223,7 @@
     "mobx-react-lite": "^4.1.1",
     "nanoid": "^5.1.6",
     "papaparse": "^5.5.3",
-    "pixi.js": "~8.8.1",
+    "pixi.js": "~8.15.0",
     "pluralize": "^8.0.0",
     "prop-types": "^15.8.1",
     "query-string": "^9.3.1",
