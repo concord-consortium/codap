@@ -8,7 +8,6 @@ import { LeafletMapLayersContext } from "../hooks/use-leaflet-map-layers"
 import {useMapModel} from "../hooks/use-map-model"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import { LeafletMapLayers } from "../models/leaflet-map-layers"
-import {kMapPinLayerType, kMapPointLayerType, kMapPolygonLayerType} from "../map-types"
 import { isMapPinLayerModel } from "../models/map-pin-layer-model"
 import {isMapPointLayerModel} from "../models/map-point-layer-model"
 import {isMapPolygonLayerModel} from "../models/map-polygon-layer-model"
@@ -46,11 +45,11 @@ export const MapInterior = observer(function MapInterior({setPixiPointsLayer}: I
    * Note that we don't have to worry about layer order because polygons will be sent to the back
    */
   const renderMapLayerComponents = () => {
-    return mapModel?.layers.map((layerModel, index) => {
+    return mapModel?.layers.map((layerModel) => {
       if (isMapPointLayerModel(layerModel)) {
         return (
           <DataConfigurationContext.Provider
-            key={`${kMapPointLayerType}-${index}`}
+            key={layerModel.id}
             value={layerModel.dataConfiguration}
           >
             <MapPointLayer
@@ -62,13 +61,13 @@ export const MapInterior = observer(function MapInterior({setPixiPointsLayer}: I
       }
       else if (isMapPolygonLayerModel(layerModel)) {
         return <MapPolygonLayer
-          key ={`${kMapPolygonLayerType}-${index}`}
+          key={layerModel.id}
           mapLayerModel={layerModel}
         />
       }
       else if (isMapPinLayerModel(layerModel)) {
         return <MapPinLayer
-          key={`${kMapPinLayerType}-${index}`}
+          key={layerModel.id}
           mapLayerModel={layerModel}
         />
       }

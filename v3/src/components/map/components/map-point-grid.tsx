@@ -92,8 +92,8 @@ export const MapPointGrid = function MapPointGrid(props: IMapPointGridProps) {
   }, [leafletMap, leafletPopup, mapGridModel, mapLayerModel, refreshGridSelection])
 
   const refreshGridLayer = useCallback(() => {
-    leafletMapLayers?.updateLayer(mapLayerModel, refreshLeafletRects)
-  }, [leafletMapLayers, mapLayerModel, refreshLeafletRects])
+    leafletMapLayers?.updateLayer(mapLayerModel.id, refreshLeafletRects)
+  }, [leafletMapLayers, mapLayerModel.id, refreshLeafletRects])
 
   useEffect(function syncMapGridModel() {
     return mstReaction(
