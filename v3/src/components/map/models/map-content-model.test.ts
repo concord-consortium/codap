@@ -10,6 +10,7 @@ import { DataSetMetadata } from "../../../models/shared/data-set-metadata"
 import { kMapTileType } from "../map-defs"
 import "../map-registration"
 import { isMapContentModel, IMapContentModel } from "./map-content-model"
+import { isMapPinLayerModel } from "./map-pin-layer-model"
 import { isMapPointLayerModel } from "./map-point-layer-model"
 import { isMapPolygonLayerModel } from "./map-polygon-layer-model"
 
@@ -168,6 +169,111 @@ describe("MapContentModel", () => {
       expect(isMapPointLayerModel(remainingLayer)).toBe(true)
       // At this point we've verified it's a point layer, so we can safely check its dataset
       expect(remainingLayer.dataConfiguration.dataset?.id).toBe(dataSet2.id)
+    })
+
+    it("removes pin layers when their dataset is deleted", async () => {
+      // Create a dataset with pin attributes (detected by name pattern)
+      const dataSet = DataSet.create({ name: "pins" })
+      dataSet.addAttribute({ id: "pinLat", name: "PinLat" })
+      dataSet.addAttribute({ id: "pinLong", name: "PinLong" })
+
+      // Add dataset to shared model manager
+      const sharedDataSet = SharedDataSet.create()
+      sharedDataSet.setDataSet(dataSet)
+      const metadata = DataSetMetadata.create({ data: dataSet.id })
+      sharedModelManager.addSharedModel(sharedDataSet)
+      sharedModelManager.addSharedModel(metadata)
+
+      // Wait for the map's reaction to add layers
+      await new Promise(resolve => setTimeout(resolve, 0))
+
+      // Verify the pin layer was created
+      expect(mapContent.layers.length).toBe(1)
+      expect(isMapPinLayerModel(mapContent.layers[0])).toBe(true)
+
+      // Remove the dataset
+      sharedModelManager.removeSharedModel(dataSet.id)
+
+      // Wait for the map's reaction to remove layers
+      await new Promise(resolve => setTimeout(resolve, 0))
+
+      // Verify the layer was removed
+      expect(mapContent.layers.length).toBe(0)
+    })
+
+    it("removes all layer types from the same dataset when it is deleted", async () => {
+      // Create a dataset with both point and polygon attributes
+      const dataSet = DataSet.create({ name: "mixed" })
+      dataSet.addAttribute({ id: "lat", name: "Latitude" })
+      dataSet.addAttribute({ id: "long", name: "Longitude" })
+      dataSet.addAttribute({ id: "boundary", name: "Boundary", userType: "boundary" })
+
+      // Add dataset to shared model manager
+      const sharedDataSet = SharedDataSet.create()
+      sharedDataSet.setDataSet(dataSet)
+      const metadata = DataSetMetadata.create({ data: dataSet.id })
+      sharedModelManager.addSharedModel(sharedDataSet)
+      sharedModelManager.addSharedModel(metadata)
+
+      // Wait for the map's reaction to add layers
+      await new Promise(resolve => setTimeout(resolve, 0))
+
+      // Verify both point and polygon layers were created
+      expect(mapContent.layers.length).toBe(2)
+      expect(mapContent.layers.some(layer => isMapPointLayerModel(layer))).toBe(true)
+      expect(mapContent.layers.some(layer => isMapPolygonLayerModel(layer))).toBe(true)
+
+      // Remove the dataset
+      sharedModelManager.removeSharedModel(dataSet.id)
+
+      // Wait for the map's reaction to remove layers
+      await new Promise(resolve => setTimeout(resolve, 0))
+
+      // Verify all layers were removed
+      expect(mapContent.layers.length).toBe(0)
+    })
+
+    it("handles deleting one of multiple datasets correctly", async () => {
+      // Create first dataset with point attributes
+      const dataSet1 = DataSet.create({ name: "points" })
+      dataSet1.addAttribute({ id: "lat1", name: "Latitude" })
+      dataSet1.addAttribute({ id: "long1", name: "Longitude" })
+
+      // Create second dataset with polygon attributes
+      const dataSet2 = DataSet.create({ name: "boundaries" })
+      dataSet2.addAttribute({ id: "boundary", name: "Boundary", userType: "boundary" })
+
+      // Add both datasets
+      const sharedDataSet1 = SharedDataSet.create()
+      sharedDataSet1.setDataSet(dataSet1)
+      const metadata1 = DataSetMetadata.create({ data: dataSet1.id })
+      sharedModelManager.addSharedModel(sharedDataSet1)
+      sharedModelManager.addSharedModel(metadata1)
+
+      const sharedDataSet2 = SharedDataSet.create()
+      sharedDataSet2.setDataSet(dataSet2)
+      const metadata2 = DataSetMetadata.create({ data: dataSet2.id })
+      sharedModelManager.addSharedModel(sharedDataSet2)
+      sharedModelManager.addSharedModel(metadata2)
+
+      await new Promise(resolve => setTimeout(resolve, 0))
+
+      // Verify both layers were created
+      expect(mapContent.layers.length).toBe(2)
+      const pointLayer = mapContent.layers.find(layer => isMapPointLayerModel(layer))
+      const polygonLayer = mapContent.layers.find(layer => isMapPolygonLayerModel(layer))
+      expect(pointLayer).toBeDefined()
+      expect(polygonLayer).toBeDefined()
+
+      // Remove the first dataset (points)
+      sharedModelManager.removeSharedModel(dataSet1.id)
+
+      await new Promise(resolve => setTimeout(resolve, 0))
+
+      // Verify only the polygon layer remains
+      expect(mapContent.layers.length).toBe(1)
+      expect(isMapPolygonLayerModel(mapContent.layers[0])).toBe(true)
+      expect(mapContent.layers[0].dataConfiguration.dataset?.id).toBe(dataSet2.id)
     })
   })
 })
