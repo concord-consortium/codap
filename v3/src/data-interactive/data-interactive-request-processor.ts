@@ -40,9 +40,6 @@ export async function processAction(
   }
 
   const resourceSelector = parseResourceSelector(action.resource)
-  if (!tile) {
-    return errorResult(t("V3.DI.Error.noTile"))
-  }
   const resources = resolveResources(resourceSelector, action.action, tile, cfm)
   const type = resourceSelector.type ?? ""
   const a = action.action
