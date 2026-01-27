@@ -138,52 +138,58 @@ export class UIState {
     return this._embeddedServer
   }
 
+  // Minimal chrome mode: true when either componentMode or embeddedMode is active
+  // Used for UI chrome hiding, scrollbar disabling, and layout adjustments
+  get minimalChrome() {
+    return this._componentMode || this._embeddedMode
+  }
+
   get shouldRenderMenuBar() {
-    return !this._componentMode && !this._embeddedMode
+    return !this.minimalChrome
   }
 
   get shouldRenderToolShelf() {
-    return !this._componentMode && !this._embeddedMode && !this.standaloneMode
+    return !this.minimalChrome && !this.standaloneMode
   }
 
   get shouldRenderBetaBanner() {
-    return !this._componentMode && !this._embeddedMode
+    return !this.minimalChrome
   }
 
   get allowComponentMove() {
-    return !this._componentMode && !this._embeddedMode
+    return !this.minimalChrome
   }
 
   get allowComponentResize() {
-    return !this._componentMode && !this._embeddedMode
+    return !this.minimalChrome
   }
 
   get allowComponentClose() {
-    return !this._componentMode && !this._embeddedMode
+    return !this.minimalChrome
   }
 
   get allowComponentMinimize() {
-    return !this._componentMode && !this._embeddedMode
+    return !this.minimalChrome
   }
 
   get shouldShowUndoRedoInComponentTitleBar() {
-    return (this._componentMode || this._embeddedMode) && !this._hideUndoRedoInComponent
+    return this.minimalChrome && !this._hideUndoRedoInComponent
   }
 
   get shouldSuppressUnsavedWarning() {
-    return this._suppressUnsavedWarning || this._componentMode || this._embeddedMode
+    return this._suppressUnsavedWarning || this.minimalChrome
   }
 
   get shouldUpdateBrowserTitleFromDocument() {
-    return !this._componentMode && !this._embeddedMode
+    return !this.minimalChrome
   }
 
   get shouldShowSplashScreen() {
-    return !this._componentMode && !this._embeddedMode
+    return !this.minimalChrome
   }
 
   get shouldAutoFocusInitialTile() {
-    return this._componentMode || this._embeddedMode
+    return this.minimalChrome
   }
 
   get hideSplashScreen() {
@@ -196,7 +202,7 @@ export class UIState {
   }
 
   get hideUserEntryModal() {
-    return this._hideUserEntryModal || this._componentMode || this._embeddedMode
+    return this._hideUserEntryModal || this.minimalChrome
   }
 
   @action

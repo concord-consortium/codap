@@ -56,6 +56,37 @@ describe("UIState", () => {
     })
   })
 
+  describe("minimalChrome", () => {
+    it("should be false by default", () => {
+      const uiState = new UIState()
+      expect(uiState.minimalChrome).toBe(false)
+    })
+
+    it("should be true when componentMode=yes", () => {
+      setUrlParams("?componentMode=yes")
+      const uiState = new UIState()
+      expect(uiState.minimalChrome).toBe(true)
+    })
+
+    it("should be true when embeddedMode=yes", () => {
+      setUrlParams("?embeddedMode=yes")
+      const uiState = new UIState()
+      expect(uiState.minimalChrome).toBe(true)
+    })
+
+    it("should be true when both componentMode and embeddedMode are set", () => {
+      setUrlParams("?componentMode=yes&embeddedMode=yes")
+      const uiState = new UIState()
+      expect(uiState.minimalChrome).toBe(true)
+    })
+
+    it("should be false when only embeddedServer=yes", () => {
+      setUrlParams("?embeddedServer=yes")
+      const uiState = new UIState()
+      expect(uiState.minimalChrome).toBe(false)
+    })
+  })
+
   describe("hideUndoRedoInComponent", () => {
     it("should be false by default", () => {
       const uiState = new UIState()

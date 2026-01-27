@@ -196,7 +196,7 @@ export const App = observer(function App() {
 
   const toolbarContainerClassName =
     clsx("toolbar-container", { "vertical-toolbar-container": persistentState.toolbarPosition === "Left" })
-  const appClasses = clsx("codap-app", { "minimal-chrome": uiState.componentMode, beta: isBeta() })
+  const appClasses = clsx("codap-app", { "minimal-chrome": uiState.minimalChrome, beta: isBeta() })
   return (
     <CodapDndContext>
       <DocumentContentContext.Provider value={appState.document.content}>
