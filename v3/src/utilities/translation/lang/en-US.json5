@@ -97,6 +97,8 @@
     "V3.Redo.caseCard.hide": "Redo hiding case card",
     "V3.caseCard.summaryButton.showIndividualCases": "Browse Individual Cases",
     "V3.caseCard.summaryButton.showSummary": "Summarize Dataset",
+    "V3.caseCard.addCaseDisabledBecauseFilter": "Cases cannot be added when there is a filter formula",
+    "V3.caseCard.addAttributeTooltip": "Add a new attribute to this collection",
     "V3.Undo.hideShowMenu.setAsideCases": "Undo setting aside cases",
     "V3.Redo.hideShowMenu.setAsideCases": "Redo setting aside cases",
     "V3.Undo.hideShowMenu.restoreSetAsideCases": "Undo restoring set aside cases",

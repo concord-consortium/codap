@@ -91,7 +91,14 @@ export const CaseCardHeader = observer(function CaseCardHeader(props: ICaseHeade
         displayedCaseIndex={displayedCaseIndex}
       />
       <div className="add-case">
-        <button onClick={handleAddNewCase} data-testid="add-case-button">
+        <button
+          onClick={handleAddNewCase}
+          data-testid="add-case-button"
+          disabled={data?.hasFilterFormula}
+          title={data?.hasFilterFormula
+            ? t("V3.caseCard.addCaseDisabledBecauseFilter")
+            : t("DG.CaseCard.newCaseToolTip")}
+        >
           <AddIcon />
         </button>
       </div>
