@@ -69,6 +69,8 @@ export interface V2Game extends V2Component {
 }
 export interface V2Graph extends V2Component {
   backgroundColor?: string
+  barChartFormula?: string
+  barChartScale?: string
   captionAttributeID?: number | null
   captionAttributeName?: string | null
   dataContext?: string
@@ -82,6 +84,7 @@ export interface V2Graph extends V2Component {
   plotType?: string
   pointColor?: string
   pointSize?: number
+  pointsAreFusedIntoBars?: boolean
   primaryAxis?: string
   rightNumericAttributeID?: number | null
   rightNumericAttributeName?: string | null
@@ -112,9 +115,6 @@ export interface V2Graph extends V2Component {
   y2AttributeType?: string
   y2LowerBound?: number
   y2UpperBound?: number
-  pointsAreFusedIntoBars?: boolean
-  barChartScale?: string
-  barChartFormula?: string
 }
 export interface V2GetGraph extends V2Graph {
   xLowerBound?: number

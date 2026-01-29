@@ -17,9 +17,7 @@ import { isAnyNumericAxisModel } from "../axis/models/numeric-axis-models"
 import { attrRoleToGraphPlace, GraphAttrRole } from "../data-display/data-display-types"
 import { IAttributeDescriptionSnapshot } from "../data-display/models/data-configuration-model"
 import { kGraphTileType } from "./graph-defs"
-import { BreakdownType, BreakdownTypes } from "./graphing-types"
 import { GraphContentModel, IGraphContentModelSnapshot, isGraphContentModel } from "./models/graph-content-model"
-import { isBarChartModel } from "./plots/bar-chart/bar-chart-model"
 import { IGraphDataConfigurationModel, kGraphDataConfigurationType } from "./models/graph-data-configuration-model"
 import { GraphLayout } from "./models/graph-layout"
 import { syncModelWithAttributeConfiguration } from "./models/graph-model-utils"
@@ -244,8 +242,8 @@ export const graphComponentHandler: DIComponentHandler = {
     if (isGraphContentModel(content)) {
       const dataset = content.dataset
       const dataContext = dataset?.name
-      const {dataConfiguration} = content.graphPointLayerModel
-      const {showParentToggles: enableNumberToggle, showOnlyLastCase: numberToggleLastMode} = content
+      const { dataConfiguration } = content.graphPointLayerModel
+      const { showParentToggles: enableNumberToggle, showOnlyLastCase: numberToggleLastMode } = content
 
       const _captionAttributeID = dataConfiguration.attributeDescriptionForRole("caption")?.attributeID
       const captionAttributeID = maybeToV2Id(_captionAttributeID)
@@ -300,34 +298,31 @@ export const graphComponentHandler: DIComponentHandler = {
       const yAttributeNames = dataConfiguration._yAttributeDescriptions
         .map(description => dataset?.getAttribute(description.attributeID)?.name).filter(name => name != null)
 
-      const {pointDescription} = content
-      const {displayOnlySelectedCases, showMeasuresForSelection, primaryRole: primaryAxis} = dataConfiguration
+      const { pointDescription } = content
+      const { displayOnlySelectedCases, showMeasuresForSelection, primaryRole: primaryAxis } = dataConfiguration
       const filterFormula = dataConfiguration.filterFormula?.display
       const hiddenCases = dataConfiguration.hiddenCases.map(id => toV2Id(id))
       const plotType = content.plotType
       const pointSize = pointDescription.pointSizeMultiplier
       const strokeColor = pointDescription.pointStrokeColor
-      const {pointColor} = pointDescription
+      const { pointColor } = pointDescription
       const strokeSameAsFill = pointDescription.pointStrokeSameAsFill
       const backgroundColor = content.plotBackgroundColor
       const transparent = content.isTransparent
       const showConnectingLines = content.adornmentsStore.showConnectingLines
-      const pointsAreFusedIntoBars = content.plot.hasPointsFusedIntoBars
-      const barChartProps = isBarChartModel(content.plot)
-        ? { barChartScale: content.plot.breakdownType, barChartFormula: content.plot.formula?.display }
-        : {}
-      const result = {
-        backgroundColor, dataContext, displayOnlySelectedCases,
-        enableNumberToggle, filterFormula, hiddenCases,
-        numberToggleLastMode, plotType, pointColor, pointSize, pointsAreFusedIntoBars, primaryAxis, showConnectingLines,
+      const result: V2Graph = {
+        backgroundColor, dataContext, displayOnlySelectedCases, enableNumberToggle, filterFormula, hiddenCases,
+        numberToggleLastMode, plotType, pointColor, pointSize, primaryAxis, showConnectingLines,
         showMeasuresForSelection, strokeColor, strokeSameAsFill, transparent, captionAttributeID, captionAttributeName,
         legendAttributeID, legendAttributeName, rightSplitAttributeID, rightSplitAttributeName,
         topSplitAttributeID, topSplitAttributeName, type: "graph",
         xAttributeID, xAttributeName, xAttributeType, xLowerBound, xUpperBound,
         yAttributeID, yAttributeIDs, yAttributeName, yAttributeNames, yAttributeType, yLowerBound, yUpperBound,
-        y2AttributeID, y2AttributeName, y2AttributeType, y2LowerBound, y2UpperBound
+        y2AttributeID, y2AttributeName, y2AttributeType, y2LowerBound, y2UpperBound,
+        // retrieve plot-specific properties
+        ...content.plot.getApiProps()
       }
-      return { ...result, ...barChartProps } as unknown as V2Graph
+      return result
     }
   },
 
@@ -335,12 +330,11 @@ export const graphComponentHandler: DIComponentHandler = {
     if (!isGraphContentModel(content)) return { success: false }
 
     const {
-      backgroundColor, barChartFormula, barChartScale, dataContext: _dataContext, displayOnlySelectedCases,
-      enableNumberToggle: showParentToggles, filterFormula, hiddenCases, numberToggleLastMode: showOnlyLastCase,
-      pointColor, pointSize, showConnectingLines, showMeasuresForSelection, strokeColor, strokeSameAsFill,
-      transparent, xAttributeType, xLowerBound, xUpperBound, yAttributeID, yAttributeIDs, yAttributeName,
-      yAttributeNames, yAttributeType, yLowerBound, yUpperBound, y2AttributeType, y2LowerBound, y2UpperBound,
-      pointsAreFusedIntoBars
+      backgroundColor, dataContext: _dataContext, displayOnlySelectedCases, enableNumberToggle: showParentToggles,
+      filterFormula, hiddenCases, numberToggleLastMode: showOnlyLastCase, pointColor, pointSize, pointsAreFusedIntoBars,
+      showConnectingLines, showMeasuresForSelection, strokeColor, strokeSameAsFill, transparent,
+      xAttributeType, xLowerBound, xUpperBound, yAttributeID, yAttributeIDs, yAttributeName, yAttributeNames,
+      yAttributeType, yLowerBound, yUpperBound, y2AttributeType, y2LowerBound, y2UpperBound
     } = values as V2GetGraph
     const attributeInfo = getAttributeInfo(values)
     const { dataConfiguration, pointDescription } = content
@@ -477,29 +471,10 @@ export const graphComponentHandler: DIComponentHandler = {
       content.fusePointsIntoBars(pointsAreFusedIntoBars)
     }
 
-    // Handle bar chart scale and formula
-    if (barChartScale != null || barChartFormula != null) {
-      // Check if graph is a bar chart
-      if (!isBarChartModel(content.plot)) {
-        return errorResult(t("V3.DI.Error.barChartScaleRequiresBarChart"))
-      }
-
-      const plot = content.plot
-
-      // Validate scale type if provided
-      if (barChartScale != null && !BreakdownTypes.includes(barChartScale as BreakdownType)) {
-        return errorResult(t("V3.DI.Error.invalidBarChartScale", { vars: [barChartScale] }))
-      }
-
-      // Handle formula - must be set before scale if both are provided and scale is "formula"
-      if (barChartFormula != null) {
-        plot.setExpression(barChartFormula)
-      }
-
-      // Handle scale type
-      if (barChartScale != null) {
-        plot.setBreakdownType(barChartScale as BreakdownType)
-      }
+    // delegate to plot to update plot-specific properties
+    if (typeof values === "object" && !Array.isArray(values)) {
+      const error = content.plot.updateApiProps(values as Record<string, unknown>)
+      if (error) return error
     }
 
     return { success: true }
