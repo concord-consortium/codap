@@ -1,4 +1,4 @@
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { GraphAttrRole, attrRoleToAxisPlace } from "../../data-display/data-display-types"
 import { IGraphDataConfigurationModel } from "./graph-data-configuration-model"
 import { GraphLayout } from "./graph-layout"
@@ -10,6 +10,7 @@ export class SubPlotCells {
   constructor(layout: GraphLayout, dataConfig?: IGraphDataConfigurationModel) {
     this.dataConfig = dataConfig
     this.layout = layout
+    makeObservable(this)
   }
 
   /*
@@ -121,6 +122,8 @@ export class SubPlotCells {
 
   @computed
   get numPrimarySplitBands() {
+    // Access changeCount to establish MobX dependency on scale domain changes
+    void this.layout.getAxisMultiScale(this.primarySplitAxisPlace)?.changeCount
     return Math.max(1, this.primarySplitScale?.domain().length ?? 1)
   }
 
@@ -131,6 +134,8 @@ export class SubPlotCells {
 
   @computed
   get numSecondarySplitBands() {
+    // Access changeCount to establish MobX dependency on scale domain changes
+    void this.layout.getAxisMultiScale(this.secondarySplitAxisPlace)?.changeCount
     return Math.max(1, this.secondarySplitScale?.domain().length ?? 1)
   }
 
@@ -141,6 +146,8 @@ export class SubPlotCells {
   @computed
   get primaryCellHeight() {
     const secondaryAxisPlace = this.secondaryAxisPlace
+    // Access changeCount to establish MobX dependency on scale domain changes
+    void this.layout.getAxisMultiScale(secondaryAxisPlace)?.changeCount
     const secondaryAxisLength = secondaryAxisPlace ? this.layout.getAxisLength(secondaryAxisPlace) : 0
     return (this.secondaryBandScale?.bandwidth?.() ?? secondaryAxisLength) /
           (this.dataConfig?.numRepetitionsForPlace(secondaryAxisPlace) ?? 1)
@@ -148,8 +155,11 @@ export class SubPlotCells {
 
   @computed
   get primaryCellWidth() {
-    return (this.primaryScale?.bandwidth?.() ?? 0) /
-           (this.dataConfig?.numRepetitionsForPlace(this.primaryAxisPlace) ?? 1)
+    // Access changeCount to establish MobX dependency on scale domain changes
+    void this.layout.getAxisMultiScale(this.primaryAxisPlace)?.changeCount
+    const bandwidth = this.primaryScale?.bandwidth?.() ?? 0
+    const numReps = this.dataConfig?.numRepetitionsForPlace(this.primaryAxisPlace) ?? 1
+    return bandwidth / numReps
   }
 
   @computed
@@ -159,11 +169,15 @@ export class SubPlotCells {
 
   @computed
   get primarySplitCellWidth() {
+    // Access changeCount to establish MobX dependency on scale domain changes
+    void this.layout.getAxisMultiScale(this.primarySplitAxisPlace)?.changeCount
     return this.primarySplitScale?.bandwidth?.() ?? 0
   }
 
   @computed
   get secondarySplitCellWidth() {
+    // Access changeCount to establish MobX dependency on scale domain changes
+    void this.layout.getAxisMultiScale(this.secondarySplitAxisPlace)?.changeCount
     return this.secondarySplitScale?.bandwidth?.() ?? 0
   }
 }

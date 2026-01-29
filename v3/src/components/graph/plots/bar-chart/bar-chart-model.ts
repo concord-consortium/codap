@@ -56,6 +56,12 @@ export const BarChartModel = DotChartModel
     },
     setBarSpec(key: GraphCellKey, value: number, numCases: number) {
       self.barSpecs.set(JSON.stringify(key), { value, numCases })
+    },
+    clearBarSpecs() {
+      self.barSpecs.clear()
+    },
+    replaceBarSpecs(newSpecs: Map<string, IBarSpec>) {
+      self.barSpecs.replace(newSpecs)
     }
   }))
   .views(self => {
@@ -102,7 +108,11 @@ export const BarChartModel = DotChartModel
       }
       let min = Number.MAX_VALUE
       let max = -Number.MAX_VALUE
-      barSpecs.forEach(({ value}) => {
+      barSpecs.forEach(({ value, numCases }) => {
+        // Skip cells with no visible cases (e.g., all cases hidden)
+        if (numCases === 0) return
+        // Skip invalid values (e.g., NaN from formulas with no cases)
+        if (!isFinite(value)) return
         if (value < min) {
           min = value
         }
@@ -110,6 +120,10 @@ export const BarChartModel = DotChartModel
           max = value
         }
       })
+      // If no valid values found, return default range
+      if (min === Number.MAX_VALUE) {
+        return [0, 100]
+      }
       return [min, max]
     },
     getValidFormulaAxis(axisModel?: IAxisModel): IAxisModel {

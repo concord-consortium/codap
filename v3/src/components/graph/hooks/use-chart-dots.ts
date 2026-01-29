@@ -22,7 +22,15 @@ export const useChartDots = (pixiPoints?: PixiPoints) => {
     dataConfig = useGraphDataConfigurationContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
-    subPlotCells = useMemo(() => new SubPlotCells(layout, dataConfig), [dataConfig, layout]),
+    // Include scale changeCounts to recreate SubPlotCells when categorical axis domains change
+    // (e.g., when categories are hidden). This ensures fresh bandwidth calculations.
+    bottomScaleChangeCount = layout.getAxisMultiScale('bottom')?.changeCount,
+    leftScaleChangeCount = layout.getAxisMultiScale('left')?.changeCount,
+    subPlotCells = useMemo(
+      () => new SubPlotCells(layout, dataConfig),
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [dataConfig, layout, bottomScaleChangeCount, leftScaleChangeCount]
+    ),
     baselineOffset = 0.5
 
   const refreshPointSelection = useCallback(() => {
