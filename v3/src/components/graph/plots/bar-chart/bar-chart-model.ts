@@ -1,17 +1,18 @@
 import { format } from "d3-format"
 import { comparer, observable, reaction } from "mobx"
 import { addDisposer, Instance, SnapshotIn, types } from "mobx-state-tree"
+import { errorResult } from "../../../../data-interactive/handlers/di-results"
 import { AttributeType } from "../../../../models/data/attribute-types"
 import { Formula } from "../../../../models/formula/formula"
 import { t } from "../../../../utilities/translation/translate"
 import { AxisPlace } from "../../../axis/axis-types"
-import { IAxisModel } from "../../../axis/models/axis-model"
-import { GraphAttrRole, PointDisplayType } from "../../../data-display/data-display-types"
 import { setNiceDomain } from "../../../axis/axis-domain-utils"
-import { BreakdownType, BreakdownTypes, GraphCellKey } from "../../graphing-types"
+import { IAxisModel } from "../../../axis/models/axis-model"
+import { isAnyNumericAxisModel, isNumericAxisModel } from "../../../axis/models/numeric-axis-models"
+import { GraphAttrRole, PointDisplayType } from "../../../data-display/data-display-types"
+import { BreakdownType, BreakdownTypes, GraphCellKey, isBreakdownType } from "../../graphing-types"
 import { DotChartModel } from "../dot-chart/dot-chart-model"
 import { IBarTipTextProps, IPlotModel, typesPlotType } from "../plot-model"
-import { isAnyNumericAxisModel, isNumericAxisModel } from "../../../axis/models/numeric-axis-models"
 
 export interface IBarSpec {
   value: number
@@ -66,10 +67,19 @@ export const BarChartModel = DotChartModel
   }))
   .views(self => {
     const baseMaxCellPercent = self.maxCellPercent
+    const baseGetApiProps = self.getApiProps
     return {
       maxCellPercent(): number {
         // Override base class to handle situation in which there is a legend
         return self.dataConfiguration?.attributeID("legend") ? 100 : baseMaxCellPercent()
+      },
+      getApiProps(): Record<string, unknown> {
+        const barChartFormula = self.formula?.display
+        return {
+          ...baseGetApiProps(),
+          barChartScale: self.breakdownType,
+          ...(barChartFormula ? { barChartFormula } : {})
+        }
       }
     }
   })
@@ -248,6 +258,28 @@ export const BarChartModel = DotChartModel
       self.barSpecs.clear()
     }
   }))
+  .actions(self => {
+    const baseUpdateApiProps = self.updateApiProps
+    return {
+      updateApiProps(values: Record<string, unknown>) {
+        const baseError = baseUpdateApiProps(values)
+        if (baseError) return baseError
+        // Handle formula - must be set before scale if both are provided and scale is "formula"
+        if (values.barChartFormula && typeof values.barChartFormula === "string") {
+          self.setExpression(values.barChartFormula)
+        }
+        // Handle scale type
+        if (values.barChartScale != null) {
+          if (isBreakdownType(values.barChartScale)) {
+            self.setBreakdownType(values.barChartScale)
+          }
+          else {
+            return errorResult(t("V3.DI.Error.invalidBarChartScale", { vars: [String(values.barChartScale)] }))
+          }
+        }
+      }
+    }
+  })
 export interface IBarChartModel extends Instance<typeof BarChartModel> {}
 export interface IBarChartSnapshot extends SnapshotIn<typeof BarChartModel> {}
 export function isBarChartModel(model?: IPlotModel): model is IBarChartModel {

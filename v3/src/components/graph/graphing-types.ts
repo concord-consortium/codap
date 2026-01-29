@@ -57,6 +57,9 @@ export function isUnivariateNumericPlotType(plotType: PlotType): boolean {
 
 export const BreakdownTypes = ["count", "percent", "formula"] as const
 export type BreakdownType = typeof BreakdownTypes[number]
+export function isBreakdownType(value: unknown): value is BreakdownType {
+  return typeof value === "string" && (BreakdownTypes as readonly string[]).includes(value)
+}
 
 export const kGraphClass = "graph-plot"
 export const kGraphClassSelector = `.${kGraphClass}`
