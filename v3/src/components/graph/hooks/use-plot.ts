@@ -169,6 +169,29 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     )
   }, [layout, callRefreshPointPositions])
 
+  // respond to categorical axis scale domain changes (e.g. when categories are hidden)
+  // This ensures the plot re-renders after the axis scale domain is updated
+  // We call updateCellMasks directly here (not via debounced callback) because when category
+  // domains change, the cell masks need to be recreated immediately before other reactions
+  // might override the debounced arguments
+  useEffect(() => {
+    return reaction(
+      () => [
+        layout.getAxisMultiScale('bottom')?.changeCount,
+        layout.getAxisMultiScale('left')?.changeCount,
+        layout.getAxisMultiScale('top')?.changeCount,
+        layout.getAxisMultiScale('rightCat')?.changeCount
+      ],
+      () => {
+        // Call updateCellMasks directly to ensure masks are recreated with new category dimensions
+        if (pixiPoints) {
+          updateCellMasks({ dataConfig: dataConfiguration, layout, pixiPoints })
+        }
+        callRefreshPointPositions()
+      }, {name: "usePlot [axis scale domain]", equals: comparer.structural}
+    )
+  }, [layout, callRefreshPointPositions, dataConfiguration, pixiPoints])
+
   // respond to selection changes
   useEffect(function respondToSelectionChanges() {
     if (dataset) {
