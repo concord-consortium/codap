@@ -24,6 +24,9 @@ export class UIState {
   // support for embedded server (iframePhone communication without UI changes)
   @observable
   private _embeddedServer = false
+  // support for inbounds mode (components constrained to visible container with scaling)
+  @observable
+  private _inboundsMode = false
   @observable
   private _hideUndoRedoInComponent = false
   @observable
@@ -77,7 +80,7 @@ export class UIState {
   constructor() {
     const {
       componentMode, dashboard, di, embeddedMode, embeddedServer, hideSplashScreen,
-      hideUndoRedoInComponent, noEntryModal, sample, standalone, suppressUnsavedWarning
+      hideUndoRedoInComponent, inbounds, noEntryModal, sample, standalone, suppressUnsavedWarning
     } = urlParams
     this._hideSplashScreen = booleanParam(hideSplashScreen)
     this._hideUserEntryModal = !!sample || booleanParam(dashboard) || !!di || booleanParam(noEntryModal)
@@ -100,6 +103,9 @@ export class UIState {
     this._embeddedMode = booleanParam(embeddedMode)
     // embeddedServer is active in embedded mode OR when explicitly enabled
     this._embeddedServer = this._embeddedMode || booleanParam(embeddedServer)
+
+    // Initialize inbounds mode
+    this._inboundsMode = booleanParam(inbounds)
 
     makeObservable(this)
   }
@@ -136,6 +142,11 @@ export class UIState {
 
   get embeddedServer() {
     return this._embeddedServer
+  }
+
+  // Inbounds mode getter
+  get inboundsMode() {
+    return this._inboundsMode
   }
 
   // Minimal chrome mode: true when either componentMode or embeddedMode is active

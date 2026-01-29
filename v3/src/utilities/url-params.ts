@@ -119,6 +119,15 @@ export interface UrlParams {
    */
   ICI?: string | null
   /*
+   * [V2] Enables "in bounds" mode where components are constrained to the visible container.
+   * When enabled:
+   * - Scrollbars are hidden on the container
+   * - Components cannot be dragged/resized outside container boundaries
+   * - When container is too small to fit all components, they scale down uniformly
+   * value: boolean-like string (parsed via booleanParam)
+   */
+  inbounds?: string | null
+  /*
    * Indicates CODAP is running in the Activity Player. Used by the CFM and to configure
    * the CFM.
    * value: ignored
