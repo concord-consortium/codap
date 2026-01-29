@@ -218,12 +218,8 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   // This ensures the plot re-renders after the axis scale domain is updated
   useEffect(() => {
     return reaction(
-      () => [
-        layout.getAxisMultiScale('bottom')?.changeCount,
-        layout.getAxisMultiScale('left')?.changeCount,
-        layout.getAxisMultiScale('top')?.changeCount,
-        layout.getAxisMultiScale('rightCat')?.changeCount
-      ],
+      () => (["bottom", "left", "top", "rightCat"] as const)
+              .map((place) => layout.getAxisMultiScale(place)?.changeCount),
       () => {
         callRefreshPointPositions({ updateMasks: true })
       }, {name: "usePlot [axis scale domain]", equals: comparer.structural}
