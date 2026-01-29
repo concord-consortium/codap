@@ -118,9 +118,11 @@ interface IProps {
   onChangeAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
   onRemoveAttribute: (place: GraphPlace, attrId: string) => void
   onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: AttributeType) => void
+  // Optional override for attribute ID - used when rendering separate labels for multiple y-attributes
+  attrIdOverride?: string
 }
 export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttributeMenu({
-  place, target, portal, layoutBounds, onChangeAttribute, onRemoveAttribute, onTreatAttributeAs
+  place, target, portal, layoutBounds, onChangeAttribute, onRemoveAttribute, onTreatAttributeAs, attrIdOverride
 }: IProps) {
   const containerRef = useDocumentContainerContext()
   const layout = useFreeTileLayoutContext()
@@ -141,7 +143,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
     }
   })
   const role = graphPlaceToAttrRole[place]
-  const attrId = dataConfiguration?.attributeID(role) || ''
+  const attrId = attrIdOverride || dataConfiguration?.attributeID(role) || ''
   const instanceId = useInstanceIdContext()
   const attribute = attrId ? dataSet?.attrFromID(attrId) : null
   const nativeType = attribute?.type || ''

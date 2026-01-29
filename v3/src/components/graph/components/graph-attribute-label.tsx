@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react"
+import { useCallback, useMemo, useRef } from "react"
 import { observer } from "mobx-react-lite"
 import { select } from "d3"
 import { t } from "../../../utilities/translation/translate"
@@ -23,6 +23,105 @@ interface IAttributeLabelProps {
   onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: AttributeType) => void
 }
 
+// Component for rendering a single y-attribute label when there are multiple y-attributes
+interface ISingleYAttributeLabelProps extends IAttributeLabelProps {
+  attrId: string
+  labelIndex: number
+  totalLabels: number
+}
+
+const SingleYAttributeLabel = observer(function SingleYAttributeLabel({
+  place, attrId, labelIndex, totalLabels, onChangeAttribute, onRemoveAttribute, onTreatAttributeAs
+}: ISingleYAttributeLabelProps) {
+  const graphModel = useGraphContentModelContext()
+  const dataConfiguration = useGraphDataConfigurationContext()
+  const layout = useGraphLayoutContext()
+  const dataset = dataConfiguration?.dataset
+  const labelRef = useRef<SVGGElement>(null)
+
+  const getLabel = useCallback(() => {
+    const attr = dataset?.attrFromID(attrId)
+    if (!attr?.name) return ''
+    return `${attr.name}${attr.units ? ` (${attr.units})` : ""}`.trim()
+  }, [attrId, dataset])
+
+  const refreshAxisTitle = useCallback(() => {
+    if (!labelRef.current) return
+
+    const bounds = layout.getComputedBounds(place)
+    const label = getLabel()
+    const labelFont = vars.labelFont
+    const labelBounds = getStringBounds(label, labelFont)
+    const color = graphModel.pointDescription.pointColorAtIndex(labelIndex)
+
+    // Calculate position for this label in the stack
+    // Labels are stacked vertically on the left axis, with the first at the bottom
+    const totalHeight = bounds.height
+    const labelSpacing = totalHeight / totalLabels
+    const centerY = totalHeight - (labelIndex + 0.5) * labelSpacing
+
+    const labelTransform = `translate(${bounds.left}, ${bounds.top})`
+    const tX = labelBounds.height
+    const tY = centerY
+    const tRotation = ` rotate(-90,${tX},${tY})`
+
+    // Radius of the colored circle indicator
+    const circleRadius = 5
+
+    const gSelection = select(labelRef.current)
+
+    // Update or create the text element
+    gSelection.selectAll('text.y-attribute-label')
+      .data([1])
+      .join(
+        (enter) =>
+          enter.append('text')
+            .attr('class', 'y-attribute-label')
+            .attr('text-anchor', 'middle')
+            .attr('data-testid', 'y-attribute-label'),
+        (update) => update,
+        (exit) => exit.remove()
+      )
+      .attr("transform", labelTransform + tRotation)
+      .style('fill', color)
+      .attr('x', tX)
+      .attr('y', tY)
+      .text(label)
+
+    // Update or create the circle element
+    // Position the circle as a bullet point before the rotated text
+    // The circle should NOT be rotated - just positioned in screen coordinates
+    // Circle x: to the left of the text
+    // Circle y: just below the text end (start in reading order)
+    const circleX = tX - 4  // centered horizontally with text
+    const circleY = tY + labelBounds.width / 2 + circleRadius + 2
+    gSelection.selectAll('circle.attribute-label-circle')
+      .data([1])
+      .join(
+        (enter) => enter.append('circle').attr('class', 'attribute-label-circle'),
+        (update) => update,
+        (exit) => exit.remove()
+      )
+      .attr("transform", labelTransform)  // only translate, no rotation
+      .attr('cx', circleX)
+      .attr('cy', circleY)
+      .attr('r', circleRadius)
+      .style('fill', color)
+  }, [getLabel, graphModel.pointDescription, labelIndex, layout, place, totalLabels])
+
+  return (
+    <AttributeLabel
+      ref={labelRef}
+      place={place}
+      refreshLabel={refreshAxisTitle}
+      onChangeAttribute={onChangeAttribute}
+      onRemoveAttribute={onRemoveAttribute}
+      onTreatAttributeAs={onTreatAttributeAs}
+      attrIdOverride={attrId}
+    />
+  )
+})
+
 export const GraphAttributeLabel =
   observer(function GraphAttributeLabel({
                                  place, onTreatAttributeAs, onRemoveAttribute,
@@ -35,15 +134,27 @@ export const GraphAttributeLabel =
       dataset = dataConfiguration?.dataset,
       labelRef = useRef<SVGGElement>(null)
 
+    // Check if we should render multiple separate labels for y-attributes
+    const yAttributeDescriptions = useMemo(() => {
+      return dataConfiguration?.yAttributeDescriptionsExcludingY2 || []
+    }, [dataConfiguration?.yAttributeDescriptionsExcludingY2])
+
+    const hasMultipleYAttributes = place === 'left' &&
+      graphModel.plotType === 'scatterPlot' &&
+      yAttributeDescriptions.length > 1
+
+    const yAttributeIds = useMemo(() => {
+      return yAttributeDescriptions.map(desc => desc.attributeID)
+    }, [yAttributeDescriptions])
+
     const getAttributeIDs = useCallback(() => {
       const isScatterPlot = graphModel.plotType === 'scatterPlot',
-        yAttributeDescriptions = dataConfiguration?.yAttributeDescriptionsExcludingY2 || [],
         role = graphPlaceToAttrRole[place],
         attrID = dataConfiguration?.attributeID(role) || ''
       return place === 'left' && isScatterPlot
         ? yAttributeDescriptions.map((desc) => desc.attributeID)
         : [attrID]
-    }, [dataConfiguration, graphModel.plotType, place])
+    }, [dataConfiguration, graphModel.plotType, place, yAttributeDescriptions])
 
     const getClickHereCue = useCallback(() => {
       const useClickHereCue =
@@ -138,6 +249,26 @@ export const GraphAttributeLabel =
           onRemoveAttribute={onRemoveAttribute}
           onTreatAttributeAs={onTreatAttributeAs}
         />
+    }
+
+    // Render multiple separate labels for multiple y-attributes
+    if (hasMultipleYAttributes) {
+      return (
+        <g>
+          {yAttributeIds.map((attrId, index) => (
+            <SingleYAttributeLabel
+              key={attrId}
+              place={place}
+              attrId={attrId}
+              labelIndex={index}
+              totalLabels={yAttributeIds.length}
+              onChangeAttribute={onChangeAttribute}
+              onRemoveAttribute={onRemoveAttribute}
+              onTreatAttributeAs={onTreatAttributeAs}
+            />
+          ))}
+        </g>
+      )
     }
 
     return (
