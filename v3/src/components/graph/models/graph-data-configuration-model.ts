@@ -15,6 +15,7 @@ import {
   AttributeDescription, DataConfigurationModel, IAttributeDescriptionSnapshot, IDataConfigurationModel
 } from "../../data-display/models/data-configuration-model"
 import {updateCellKey} from "../adornments/utilities/adornment-utils"
+import {cellKeyToString} from "../utilities/cell-key-utils"
 
 export const kGraphDataConfigurationType = "graphDataConfigurationType"
 
@@ -557,7 +558,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       return key
     },
     subPlotCases: cachedFnWithArgsFactory({
-      key: (cellKey: Record<string, string>) => JSON.stringify(cellKey),
+      key: (cellKey: Record<string, string>) => cellKeyToString(cellKey),
       calculate: (cellKey: Record<string, string>) => {
         // Find attributes with value 'other' and add them to the list of attributes to filter by
         const copyOfCellKey = {...cellKey}
@@ -630,7 +631,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       return cellMap[cellSpec.extraPrimary]?.[cellSpec.extraSecondary]?.[cellSpec.primary]?.[cellSpec.secondary] ?? 0
     },
     cellCases: cachedFnWithArgsFactory({
-      key: (cellKey: Record<string, string>) => JSON.stringify(cellKey),
+      key: (cellKey: Record<string, string>) => cellKeyToString(cellKey),
       calculate: (cellKey: Record<string, string>) => {
         const rightAttrID = self.attributeID("rightSplit")
         const rightValue = rightAttrID ? cellKey[rightAttrID] : ""
@@ -651,7 +652,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       name: "cellCases"
     }),
     rowCases: cachedFnWithArgsFactory({
-      key: (cellKey: Record<string, string>) => JSON.stringify(cellKey),
+      key: (cellKey: Record<string, string>) => cellKeyToString(cellKey),
       calculate: (cellKey: Record<string, string>) => {
         const leftAttrID = self.attributeID("y")
         const leftAttrType = self.attributeType("y")
@@ -676,7 +677,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       name: "rowCases"
     }),
     columnCases: cachedFnWithArgsFactory({
-      key: (cellKey: Record<string, string>) => JSON.stringify(cellKey),
+      key: (cellKey: Record<string, string>) => cellKeyToString(cellKey),
       calculate: (cellKey: Record<string, string>) => {
         const bottomAttrID = self.attributeID("x")
         const bottomAttrType = self.attributeType("x")
