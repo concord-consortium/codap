@@ -290,7 +290,11 @@ context("Test graph axes with various attribute types", () => {
     // checks for multiple y-axis labels
     ah.verifyXAxisTickMarksDisplayed()
     ah.verifyYAxisTickMarksDisplayed()
-    cy.get("[data-testid=graph]").find("[data-testid=attribute-label]").should("have.text", "LifeSpanHeight, Sleep")
+    // With multiple y-attributes, each gets its own separate label
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label]").should("have.text", "LifeSpan")
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").should("have.length", 2)
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").eq(0).should("have.text", "Height")
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").eq(1).should("have.text", "Sleep")
     ah.verifyAxisTickLabel("left", "0", 0)
     cy.get("[data-testid=graph]")
       .find("[data-testid=axis-bottom]")
@@ -301,18 +305,22 @@ context("Test graph axes with various attribute types", () => {
     cy.log("test for undo/redo graph with numeric x-axis and two numeric y-attributes")
     toolbar.getUndoTool().click()
     cy.wait(500)
+    // After undo, only one y-attribute remains, so it uses the standard attribute-label
     cy.get("[data-testid=graph]")
       .find("[data-testid=attribute-label]")
       .should("have.text", "LifeSpanHeight")
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").should("have.length", 0)
     ah.verifyYAxisTickMarksDisplayed()
     ah.verifyAxisTickLabel("left", "0", 0)
 
     // Redo the last change (Sleep => left split)
     toolbar.getRedoTool().click()
     cy.wait(500)
-    cy.get("[data-testid=graph]")
-      .find("[data-testid=attribute-label]")
-      .should("have.text", "LifeSpanHeight, Sleep")
+    // After redo, multiple y-attributes restored, each gets its own label
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label]").should("have.text", "LifeSpan")
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").should("have.length", 2)
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").eq(0).should("have.text", "Height")
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").eq(1).should("have.text", "Sleep")
     ah.verifyYAxisTickMarksDisplayed()
     ah.verifyAxisTickLabel("left", "0", 0)
 
@@ -565,9 +573,11 @@ context("Test date axes with multiple y-axes", () => {
     // Add temperature to second y-axis
     cy.dragAttributeToTarget("table", "temperature", "yplus")
 
-    // Verify multiple y-axes
-    cy.get("[data-testid=graph]").find("[data-testid=attribute-label]").invoke("text")
-      .should("contain", "datechlorophyll, temperature")
+    // Verify multiple y-axes - each y-attribute gets its own separate label
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label]").should("have.text", "date")
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").should("have.length", 2)
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").eq(0).should("have.text", "chlorophyll")
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").eq(1).should("have.text", "temperature")
 
     // Explicitly check for the year label on the x-axis
     cy.get('[data-testid="axis-bottom"]').find('text').contains('2005').should('exist')
