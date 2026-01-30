@@ -9,10 +9,10 @@ export function getWebViewSnapshotState({file, url, contentType}: IGenericImport
   const rawName = file ? file.name : url ? decodeURIComponent(url.trim().split("/").pop() ?? "") : undefined
   const datasetName = rawName && rawName.length > 0 ? rawName.split(".")[0].trim() : undefined
   const isGoogleSheets = contentType === "application/vnd.google-apps.spreadsheet"
-  // Include showCaseTable and apiKey for Google Sheets (as per V2 API)
+  // Include showCaseTable and googleApiKey for Google Sheets (as per V2 API)
   const showCaseTable = isGoogleSheets ? true : undefined
-  const apiKey = isGoogleSheets ? process.env.GOOGLE_SHEETS_API_KEY : undefined
-  return { contentType, name: "Importer", datasetName, file, url, showCaseTable, apiKey }
+  const googleApiKey = isGoogleSheets ? process.env.GOOGLE_SHEETS_API_KEY : undefined
+  return { contentType, name: "Importer", datasetName, file, url, showCaseTable, googleApiKey }
 }
 
 export function initiateGenericImport(options: IGenericImportArgs) {

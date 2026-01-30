@@ -290,7 +290,7 @@ export function resolveDocument(iDocContents: any, iMetadata: IDocumentMetadata)
         contentType: 'application/vnd.google-apps.spreadsheet',
         url: urlString,
         showCaseTable: true,
-        apiKey: process.env.GOOGLE_SHEETS_API_KEY
+        googleApiKey: process.env.GOOGLE_SHEETS_API_KEY
       }
       resolve(makePluginDocument(gameState, 'Import Google Sheet', kImporterPluginUrl))
     }
