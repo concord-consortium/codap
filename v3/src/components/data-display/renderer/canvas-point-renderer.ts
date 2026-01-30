@@ -103,9 +103,9 @@ export class CanvasPointRenderer extends PointRendererBase {
    */
   setPositionOrTransition(point: IPoint, style: Partial<IPointStyle>, x: number, y: number): void {
     // Capture old position before state is updated (only during transition setup)
-    // Important: don't overwrite if we already have an entry (e.g., from doInit pre-population
-    // during renderer switch, which preserves positions to prevent animation)
-    if (this.transitionManager?.isSettingUpTransition() && !this.pendingTransitionStarts.has(point.id)) {
+    // Always capture the current position to ensure animations start from the correct location
+    // (e.g., after dragging points, we want to animate from the dragged position)
+    if (this.transitionManager?.isSettingUpTransition()) {
       const pointState = this.state.getPoint(point.id)
       if (pointState) {
         this.pendingTransitionStarts.set(point.id, {
@@ -172,17 +172,6 @@ export class CanvasPointRenderer extends PointRendererBase {
 
     // Sync from existing state (if switching from another renderer)
     this.syncFromState()
-
-    // Pre-populate pendingTransitionStarts with existing points to prevent animation
-    // on first transition after renderer switch. Truly new points won't be in this map.
-    // The state's scale is now correctly maintained (setPositionOrTransition updates it to 1).
-    this.state.forEach(point => {
-      this.pendingTransitionStarts.set(point.id, {
-        x: point.x,
-        y: point.y,
-        scale: point.scale
-      })
-    })
   }
 
   protected doDispose(): void {

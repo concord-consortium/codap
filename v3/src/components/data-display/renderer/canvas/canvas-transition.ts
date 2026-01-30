@@ -105,15 +105,24 @@ export class CanvasTransitionManager {
   /**
    * Set a target value for a property. Must be called between
    * beginTransition and endTransition.
+   *
+   * If there's already an active transition for this point/property,
+   * preserves the original start value to ensure smooth animation
+   * continuation even when multiple setPointCoordinates calls occur.
    */
   setTarget(pointId: string, prop: CanvasTransitionProp, startValue: number, targetValue: number): void {
     if (!this.currentTransition) return
 
     const key = `${pointId}:${prop}`
+    const existing = this.activeTransitions.get(key)
+    // If there's already an active transition, preserve its start value
+    // This ensures animation starts from the original position even if
+    // non-animated calls have updated the state to the final position
+    const effectiveStartValue = existing ? existing.startValue : startValue
     this.activeTransitions.set(key, {
       pointId,
       prop,
-      startValue,
+      startValue: effectiveStartValue,
       targetValue,
       transition: this.currentTransition
     })
