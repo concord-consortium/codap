@@ -292,9 +292,9 @@ context("Test graph axes with various attribute types", () => {
     ah.verifyYAxisTickMarksDisplayed()
     // With multiple y-attributes, each gets its own separate label
     cy.get("[data-testid=graph]").find("[data-testid=attribute-label]").should("have.text", "LifeSpan")
-    cy.get("[data-testid=graph]").find("[data-testid=y-attribute-label]").should("have.length", 2)
-    cy.get("[data-testid=graph]").find("[data-testid=y-attribute-label]").eq(0).should("have.text", "Height")
-    cy.get("[data-testid=graph]").find("[data-testid=y-attribute-label]").eq(1).should("have.text", "Sleep")
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").should("have.length", 2)
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").eq(0).should("have.text", "Height")
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").eq(1).should("have.text", "Sleep")
     ah.verifyAxisTickLabel("left", "0", 0)
     cy.get("[data-testid=graph]")
       .find("[data-testid=axis-bottom]")
@@ -309,7 +309,7 @@ context("Test graph axes with various attribute types", () => {
     cy.get("[data-testid=graph]")
       .find("[data-testid=attribute-label]")
       .should("have.text", "LifeSpanHeight")
-    cy.get("[data-testid=graph]").find("[data-testid=y-attribute-label]").should("have.length", 0)
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").should("have.length", 0)
     ah.verifyYAxisTickMarksDisplayed()
     ah.verifyAxisTickLabel("left", "0", 0)
 
@@ -318,9 +318,9 @@ context("Test graph axes with various attribute types", () => {
     cy.wait(500)
     // After redo, multiple y-attributes restored, each gets its own label
     cy.get("[data-testid=graph]").find("[data-testid=attribute-label]").should("have.text", "LifeSpan")
-    cy.get("[data-testid=graph]").find("[data-testid=y-attribute-label]").should("have.length", 2)
-    cy.get("[data-testid=graph]").find("[data-testid=y-attribute-label]").eq(0).should("have.text", "Height")
-    cy.get("[data-testid=graph]").find("[data-testid=y-attribute-label]").eq(1).should("have.text", "Sleep")
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").should("have.length", 2)
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").eq(0).should("have.text", "Height")
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").eq(1).should("have.text", "Sleep")
     ah.verifyYAxisTickMarksDisplayed()
     ah.verifyAxisTickLabel("left", "0", 0)
 
@@ -575,9 +575,9 @@ context("Test date axes with multiple y-axes", () => {
 
     // Verify multiple y-axes - each y-attribute gets its own separate label
     cy.get("[data-testid=graph]").find("[data-testid=attribute-label]").should("have.text", "date")
-    cy.get("[data-testid=graph]").find("[data-testid=y-attribute-label]").should("have.length", 2)
-    cy.get("[data-testid=graph]").find("[data-testid=y-attribute-label]").eq(0).should("have.text", "chlorophyll")
-    cy.get("[data-testid=graph]").find("[data-testid=y-attribute-label]").eq(1).should("have.text", "temperature")
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").should("have.length", 2)
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").eq(0).should("have.text", "chlorophyll")
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").eq(1).should("have.text", "temperature")
 
     // Explicitly check for the year label on the x-axis
     cy.get('[data-testid="axis-bottom"]').find('text').contains('2005').should('exist')
