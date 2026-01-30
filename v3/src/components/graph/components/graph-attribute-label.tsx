@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from "react"
+import { useCallback, useRef } from "react"
 import { observer } from "mobx-react-lite"
 import { select } from "d3"
 import { t } from "../../../utilities/translation/translate"
@@ -135,26 +135,24 @@ export const GraphAttributeLabel =
       labelRef = useRef<SVGGElement>(null)
 
     // Check if we should render multiple separate labels for y-attributes
-    const yAttributeDescriptions = useMemo(() => {
-      return dataConfiguration?.yAttributeDescriptionsExcludingY2 || []
-    }, [dataConfiguration?.yAttributeDescriptionsExcludingY2])
+    // Note: Don't use useMemo here - let MobX observer handle reactivity for these computed values
+    const yAttributeDescriptions = dataConfiguration?.yAttributeDescriptionsExcludingY2 || []
 
     const hasMultipleYAttributes = place === 'left' &&
       graphModel.plotType === 'scatterPlot' &&
       yAttributeDescriptions.length > 1
 
-    const yAttributeIds = useMemo(() => {
-      return yAttributeDescriptions.map(desc => desc.attributeID)
-    }, [yAttributeDescriptions])
+    const yAttributeIds = yAttributeDescriptions.map(desc => desc.attributeID)
 
     const getAttributeIDs = useCallback(() => {
       const isScatterPlot = graphModel.plotType === 'scatterPlot',
+        yAttrDescriptions = dataConfiguration?.yAttributeDescriptionsExcludingY2 || [],
         role = graphPlaceToAttrRole[place],
         attrID = dataConfiguration?.attributeID(role) || ''
       return place === 'left' && isScatterPlot
-        ? yAttributeDescriptions.map((desc) => desc.attributeID)
+        ? yAttrDescriptions.map((desc) => desc.attributeID)
         : [attrID]
-    }, [dataConfiguration, graphModel.plotType, place, yAttributeDescriptions])
+    }, [dataConfiguration, graphModel.plotType, place])
 
     const getClickHereCue = useCallback(() => {
       const useClickHereCue =
