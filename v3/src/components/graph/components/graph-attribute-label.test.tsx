@@ -1,4 +1,4 @@
-/* eslint-disable testing-library/no-node-access */
+/* eslint-disable testing-library/no-node-access, testing-library/no-container */
 import { render } from "@testing-library/react"
 import React from "react"
 import { DataSet } from "../../../models/data/data-set"
@@ -55,7 +55,9 @@ describe("GraphAttributeLabel", () => {
   })
 
   const mockTileSelectionContext = {
-    isTileSelected: () => false
+    isTileSelected: () => false,
+    selectTile: () => undefined,
+    addFocusIgnoreFn: () => () => undefined
   }
 
   const renderWithProviders = (
@@ -186,4 +188,4 @@ describe("GraphAttributeLabel", () => {
     })
   })
 })
-/* eslint-enable testing-library/no-node-access */
+/* eslint-enable testing-library/no-node-access, testing-library/no-container */
