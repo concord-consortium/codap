@@ -19,13 +19,11 @@ import { setNiceDomain } from "../../axis/axis-domain-utils"
 import {GraphPlace} from "../../axis-graph-shared"
 import { AxisPlace, AxisPlaces, isAxisPlace } from "../../axis/axis-types"
 import { IBaseNumericAxisModel } from "../../axis/models/base-numeric-axis-model"
-import { If } from "../../common/if"
 import { PointRendererArray, RendererCapability } from "../../data-display/renderer"
 import {Background} from "../../data-display/components/background"
 import {DataTip} from "../../data-display/components/data-tip"
 import {MultiLegend} from "../../data-display/components/legend/multi-legend"
 import {Marquee} from "../../data-display/components/marquee"
-import { NoWebGLContextPlaceholder } from "../../data-display/components/no-webgl-context-placeholder"
 import {GraphAttrRole, graphPlaceToAttrRole, kPortalClass} from "../../data-display/data-display-types"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {isSetAttributeIDAction} from "../../data-display/models/display-model-actions"
@@ -66,8 +64,6 @@ interface IProps {
   rendererType?: RendererCapability
   /** Toggle between WebGL and Canvas renderers (for testing) */
   onToggleRendererType?: () => void
-  /** Whether a WebGL context was requested and denied */
-  contextWasDenied?: boolean
 }
 
 export const Graph = observer(function Graph({
@@ -76,8 +72,7 @@ export const Graph = observer(function Graph({
   rendererArray,
   isRendererVisible = true,
   rendererType,
-  onToggleRendererType,
-  contextWasDenied = false
+  onToggleRendererType
 }: IProps) {
   const graphModel = useGraphContentModelContext(),
     {plotType} = graphModel,
@@ -457,15 +452,6 @@ export const Graph = observer(function Graph({
             {rendererType === "webgl" ? "GL" : "2D"}
           </div>
         )}
-        {/* Show placeholder only when context was denied and using null renderer */}
-        <If condition={contextWasDenied && rendererType === "null" && isRendererVisible}>
-          <NoWebGLContextPlaceholder
-            width={layout.plotWidth}
-            height={layout.plotHeight}
-            left={layout.getComputedBounds('plot')?.left ?? 0}
-            top={layout.getComputedBounds('plot')?.top ?? 0}
-          />
-        </If>
         <svg className="overlay-svg">
           <g className="above-points-group" ref={abovePointsGroupRef}>
             {/* Components rendered on top of the dots/points should be added to this group. */}

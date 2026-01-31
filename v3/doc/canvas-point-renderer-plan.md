@@ -11,12 +11,12 @@ This provides a middle ground between full WebGL rendering (`PixiPointRenderer`)
 ---
 
 ## Remaining To Do (Bugs)
-- [ ] Hover cursor change on point hover in Canvas mode
-- [ ] Brief appearance on refresh document of some kind of rendering indication in graph before points display
-- [ ] Hover animation when mouse goes over a point is different (missing?) in Canvas mode vs WebGL mode
-- [ ] Some plots (perhaps dots with top/right splits) don't animate when swapping axes or other changes
-- [ ] In case plot (2D) select some points and drag them to new positions. Switch to GL. Note that the points animate back to their previous positions. They shouldn't.
-- [ ] Make a bar chart in GL mode and switch to 2D. The bars become offset from their correct positions, restoring to correct position if the graph is slightly resized.
+- [x] Hover cursor change on point hover in Canvas mode
+- [x] Brief appearance on refresh document of some kind of rendering indication in graph before points display (removed NoWebGLContextPlaceholder - no longer needed with Canvas fallback)
+- [x] Hover animation when mouse goes over a point is different (missing?) in Canvas mode vs WebGL mode
+- [x] Some plots (perhaps dots with top/right splits) don't animate when swapping axes or other changes (not reproducible)
+- [x] In case plot (2D) select some points and drag them to new positions. Switch to GL. Note that the points animate back to their previous positions. They shouldn't. (Fixed by updating randomPointsRef during drag)
+- [x] Make a bar chart in GL mode and switch to 2D. The bars become offset from their correct positions, restoring to correct position if the graph is slightly resized. (Fixed: Canvas doMatchPointsToData no longer overrides anchor for bars - bar-chart.tsx uses circleAnchor for position calculations)
 
 ## Files to Create
 
