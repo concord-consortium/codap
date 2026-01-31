@@ -40,7 +40,7 @@ export const MapInterior = observer(function MapInterior() {
    * Note that we don't have to worry about layer order because polygons will be sent to the back
    */
   const renderMapLayerComponents = () => {
-    return mapModel?.layers.map((layerModel) => {
+    return mapModel?.layers.map((layerModel, index) => {
       if (isMapPointLayerModel(layerModel)) {
         return (
           <DataConfigurationContext.Provider

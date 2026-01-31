@@ -510,7 +510,7 @@ export class CanvasPointRenderer extends PointRendererBase {
     // Apply animated hover effect for points
     const isHovered = point.id === this.hoveredPointId
     const hoverScale = this.getHoverScale(point.id)
-    let effectiveScale = scale * hoverScale
+    const effectiveScale = scale * hoverScale
     let effectiveStroke = stroke
 
     // For bars, apply hover stroke color (instant, not animated)
@@ -638,7 +638,7 @@ export class CanvasPointRenderer extends PointRendererBase {
     // Remove completed animations (but keep them if target was hoverRadiusFactor so we remember the hover state)
     for (const pointId of completedPointIds) {
       const anim = this.hoverAnimations.get(pointId)
-      if (anim && anim.targetScale === 1) {
+      if (anim?.targetScale === 1) {
         // Animation back to normal is complete, remove tracking
         this.hoverAnimations.delete(pointId)
       }

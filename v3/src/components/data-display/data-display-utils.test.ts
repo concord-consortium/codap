@@ -6,7 +6,7 @@ import {
   defaultStrokeOpacity, defaultStrokeWidth
 } from "../../utilities/color-utils"
 import { GraphDataConfigurationModel } from "../graph/models/graph-data-configuration-model"
-import { IPixiPointStyle, PixiPoints } from "./pixi/pixi-points"
+import { IPointStyle, PointRendererBase } from "./renderer"
 import { setPointSelection } from "./data-display-utils"
 
 const TreeModel = types.model("Tree", {
@@ -17,8 +17,8 @@ const TreeModel = types.model("Tree", {
 
 describe("setPointSelection", () => {
   let tree: Instance<typeof TreeModel>
-  let mockPixiPoints: Partial<PixiPoints>
-  let styleUpdates: Map<unknown, Partial<IPixiPointStyle>>
+  let mockRenderer: Partial<PointRendererBase>
+  let styleUpdates: Map<unknown, Partial<IPointStyle>>
   let raisedPoints: Map<unknown, boolean>
 
   beforeEach(() => {
@@ -51,11 +51,11 @@ describe("setPointSelection", () => {
       { point: { id: 3 }, metadata: { caseID: caseIdFromItemId("c3"), plotNum: 0 } }
     ]
 
-    mockPixiPoints = {
+    mockRenderer = {
       forEachPoint: jest.fn((callback: (point: unknown, metadata: { caseID: string, plotNum: number }) => void) => {
         mockPoints.forEach(({ point, metadata }) => callback(point, metadata))
       }),
-      setPointStyle: jest.fn((point: unknown, style: Partial<IPixiPointStyle>) => {
+      setPointStyle: jest.fn((point: unknown, style: Partial<IPointStyle>) => {
         styleUpdates.set(point, style)
       }),
       setPointRaised: jest.fn((point: unknown, raised: boolean) => {
@@ -70,7 +70,7 @@ describe("setPointSelection", () => {
     tree.data.setSelectedCases([caseIdFromItemId("c1")!])
 
     setPointSelection({
-      pixiPoints: mockPixiPoints as PixiPoints,
+      renderer: mockRenderer as PointRendererBase,
       dataConfiguration: tree.config,
       pointRadius: 5,
       selectedPointRadius: 7,
@@ -107,7 +107,7 @@ describe("setPointSelection", () => {
     tree.data.setSelectedCases([caseIdFromItemId("c1")!])
 
     setPointSelection({
-      pixiPoints: mockPixiPoints as PixiPoints,
+      renderer: mockRenderer as PointRendererBase,
       dataConfiguration: tree.config,
       pointRadius: 5,
       selectedPointRadius: 7,
@@ -133,7 +133,7 @@ describe("setPointSelection", () => {
     tree.data.setSelectedCases([caseIdFromItemId("c1")!])
 
     setPointSelection({
-      pixiPoints: mockPixiPoints as PixiPoints,
+      renderer: mockRenderer as PointRendererBase,
       dataConfiguration: tree.config,
       pointRadius: 5,
       selectedPointRadius: 7,
@@ -149,9 +149,9 @@ describe("setPointSelection", () => {
     expect(raisedValues[2]).toBe(false)
   })
 
-  it("does nothing when pixiPoints is undefined", () => {
+  it("does nothing when renderer is undefined", () => {
     setPointSelection({
-      pixiPoints: undefined,
+      renderer: undefined,
       dataConfiguration: tree.config,
       pointRadius: 5,
       selectedPointRadius: 7,
@@ -180,7 +180,7 @@ describe("setPointSelection", () => {
     const getLegendColorSpy = jest.spyOn(tree.config, "getLegendColorForCase")
 
     setPointSelection({
-      pixiPoints: mockPixiPoints as PixiPoints,
+      renderer: mockRenderer as PointRendererBase,
       dataConfiguration: tree.config,
       pointRadius: 5,
       selectedPointRadius: 7,
@@ -207,7 +207,7 @@ describe("setPointSelection", () => {
     const getLegendColorSpy = jest.spyOn(tree.config, "getLegendColorForCase")
 
     setPointSelection({
-      pixiPoints: mockPixiPoints as PixiPoints,
+      renderer: mockRenderer as PointRendererBase,
       dataConfiguration: tree.config,
       pointRadius: 5,
       selectedPointRadius: 7,

@@ -63,8 +63,7 @@ describe("CanvasPointRenderer", () => {
     const originalCreateElement = document.createElement.bind(document)
     jest.spyOn(document, "createElement").mockImplementation((tagName: string) => {
       if (tagName === "canvas") {
-        const canvas = originalCreateElement("canvas") as HTMLCanvasElement
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const canvas = originalCreateElement("canvas")
         jest.spyOn(canvas, "getContext").mockReturnValue(mockContext as any)
         return canvas
       }
@@ -412,13 +411,13 @@ describe("CanvasPointRenderer", () => {
         // Set up some targets
         const caseData = createCaseData(0, "case1")
         renderer.matchPointsToData("dataset1", [caseData], "points", defaultStyle)
-        renderer.getPointForCaseData(caseData)!
-        // Position is set by setPositionOrTransition in parent
+        const point = renderer.getPointForCaseData(caseData)!
+        // Set a position target to trigger transition tracking
+        renderer.setPositionOrTransition(point, defaultStyle, 100, 100)
       }, { duration: 1000 })
 
-      // With duration > 0, transitions should be active
-      // Note: anyTransitionActive depends on whether targets were set
-      // The transition manager tracks this
+      // With duration > 0 and position targets set, transitions should be active
+      expect(renderer.anyTransitionActive).toBe(true)
     })
   })
 
