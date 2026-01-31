@@ -3,6 +3,7 @@ import {
   getImportableFileTypeFromFile,
   getImportableFileTypeFromUrl,
   getImportableFileTypeFromDataTransferFile,
+  isGoogleSheetsUrl,
   stripExtensionFromFilename,
 } from './importable-files'
 
@@ -64,6 +65,32 @@ describe('getImportableFileTypeFromFile', () => {
   })
 })
 
+describe('isGoogleSheetsUrl', () => {
+  it('should return true for standard Google Sheets URL', () => {
+    expect(isGoogleSheetsUrl('https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit')).toBe(true)
+  })
+
+  it('should return true for Google Sheets URL with gid parameter', () => {
+    expect(isGoogleSheetsUrl('https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit#gid=0')).toBe(true)
+  })
+
+  it('should return true for Google Sheets URL with query parameters', () => {
+    expect(isGoogleSheetsUrl('https://docs.google.com/spreadsheets/d/1abc123/edit?usp=sharing')).toBe(true)
+  })
+
+  it('should return false for non-Google Sheets URL', () => {
+    expect(isGoogleSheetsUrl('https://example.com/data.csv')).toBe(false)
+  })
+
+  it('should return false for Google Docs URL (not Sheets)', () => {
+    expect(isGoogleSheetsUrl('https://docs.google.com/document/d/1abc123/edit')).toBe(false)
+  })
+
+  it('should return false for Google Slides URL', () => {
+    expect(isGoogleSheetsUrl('https://docs.google.com/presentation/d/1abc123/edit')).toBe(false)
+  })
+})
+
 describe('getImportableFileTypeFromUrl', () => {
   it('should return correct type for geojson url', () => {
     expect(getImportableFileTypeFromUrl('https://example.com/map.geojson')).toBe('geojson')
@@ -79,6 +106,14 @@ describe('getImportableFileTypeFromUrl', () => {
 
   it('should return correct type for uppercase extension', () => {
     expect(getImportableFileTypeFromUrl('https://example.com/image.JPG')).toBe('image')
+  })
+
+  it('should return google-sheets for Google Sheets URL', () => {
+    expect(getImportableFileTypeFromUrl('https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit')).toBe('google-sheets')
+  })
+
+  it('should return google-sheets for Google Sheets URL regardless of case', () => {
+    expect(getImportableFileTypeFromUrl('https://DOCS.GOOGLE.COM/Spreadsheets/d/1abc/edit')).toBe('google-sheets')
   })
 })
 

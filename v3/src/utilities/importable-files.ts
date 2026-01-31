@@ -1,5 +1,7 @@
 import { IImportedFile } from "../lib/cfm/use-cloud-file-manager"
-import { getExtensionFromUrl } from "./urls"
+import { getExtensionFromUrl, isGoogleSheetsUrl } from "./urls"
+
+export { isGoogleSheetsUrl }
 
 export interface IImportableFileTypeInfo {
   extensions: string[]
@@ -50,6 +52,12 @@ export function getImportableFileTypeFromFile(file: File | IImportedFile | null)
 }
 
 export function getImportableFileTypeFromUrl(url: string): ImportableFileType | undefined {
+  // Check for Google Sheets URL pattern (doesn't have a file extension)
+  if (isGoogleSheetsUrl(url)) {
+    return "google-sheets"
+  }
+
+  // Extension-based detection
   const extension = getExtensionFromUrl(url)
   if (extension) {
     for (const ft of importableFileTypes) {

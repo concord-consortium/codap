@@ -70,6 +70,7 @@ jobs:
           GOOGLE_DRIVE_CLIENT_ID="${{ secrets.GOOGLE_DRIVE_CLIENT_ID }}"
           GOOGLE_DRIVE_API_KEY="${{ secrets.GOOGLE_DRIVE_API_KEY }}"
           GOOGLE_DRIVE_APP_ID="${{ secrets.GOOGLE_DRIVE_APP_ID }}"
+          GOOGLE_SHEETS_API_KEY="${{ secrets.GOOGLE_SHEETS_API_KEY }}"
           EOF
       - name: Build
         working-directory: v3
