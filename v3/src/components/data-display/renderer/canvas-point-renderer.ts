@@ -16,7 +16,6 @@ import { CanvasHitTester, CanvasTransitionManager } from "./canvas"
 import {
   circleAnchor,
   getRendererForEvent,
-  hBarAnchor,
   PointRendererBase
 } from "./point-renderer-base"
 import { PointsState } from "./points-state"
@@ -262,9 +261,15 @@ export class CanvasPointRenderer extends PointRendererBase {
   ): void {
     if (this.isDisposed) return
 
-    // Update anchor based on display type
-    this._anchor = displayType === "points" ? circleAnchor :
-                   displayType === "bars" ? hBarAnchor : circleAnchor
+    // NOTE: Unlike Pixi, we do NOT change _anchor here for bars.
+    // bar-chart.tsx explicitly sets renderer.anchor = circleAnchor via setPointCoordinates,
+    // and positions are calculated assuming circleAnchor (center-based coordinates).
+    // Pixi captures the anchor per-sprite at position-set time, so overwriting _anchor here
+    // doesn't affect existing sprites. But Canvas uses _anchor at draw time, so we must
+    // respect what setPointCoordinates set. Only reset to circleAnchor for points display.
+    if (displayType === "points") {
+      this._anchor = circleAnchor
+    }
 
     // Sync state with case data
     this.state.syncWithCaseData(caseData, style)
