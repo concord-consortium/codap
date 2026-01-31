@@ -11,7 +11,7 @@
  */
 
 import { CaseDataWithSubPlot } from "../d3-types"
-import { PointDisplayType } from "../data-display-types"
+import { PointDisplayType, transitionDuration } from "../data-display-types"
 import { CanvasHitTester, CanvasTransitionManager } from "./canvas"
 import {
   circleAnchor,
@@ -73,6 +73,14 @@ export class CanvasPointRenderer extends PointRendererBase {
 
   // Hover state for interactivity
   private hoveredPointId: string | null = null
+
+  // Animated hover scale per point (for smooth hover transitions)
+  // Maps pointId -> { currentScale: number, targetScale: number, startTime: number }
+  private hoverAnimations = new Map<string, {
+    currentScale: number
+    targetScale: number
+    startTime: number
+  }>()
 
   // Drag state
   private draggingPointId: string | null = null
@@ -426,14 +434,20 @@ export class CanvasPointRenderer extends PointRendererBase {
       this.needsRedraw = true
     }
 
+    // Process hover animations
+    const hoverAnimationsActive = this.stepHoverAnimations()
+    if (hoverAnimationsActive) {
+      this.needsRedraw = true
+    }
+
     // Render if needed
     if (this.needsRedraw) {
       this.drawAllPoints()
       this.needsRedraw = false
     }
 
-    // Continue loop if transitions active
-    if (this.transitionManager?.hasActiveTransitions()) {
+    // Continue loop if transitions or hover animations are active
+    if (this.transitionManager?.hasActiveTransitions() || hoverAnimationsActive) {
       this.animationFrameId = requestAnimationFrame(this.renderFrame)
     } else {
       this.renderLoopActive = false
@@ -488,14 +502,14 @@ export class CanvasPointRenderer extends PointRendererBase {
     const { x, y, scale, style } = point
     const { radius, fill, stroke, strokeWidth, strokeOpacity, width, height } = style
 
-    // Apply hover effect
+    // Apply animated hover effect for points
     const isHovered = point.id === this.hoveredPointId
-    let effectiveScale = scale
+    const hoverScale = this.getHoverScale(point.id)
+    let effectiveScale = scale * hoverScale
     let effectiveStroke = stroke
 
-    if (isHovered && this._displayType === "points") {
-      effectiveScale = scale * hoverRadiusFactor
-    } else if (isHovered && this._displayType === "bars" && !this._pointsFusedIntoBars) {
+    // For bars, apply hover stroke color (instant, not animated)
+    if (isHovered && this._displayType === "bars" && !this._pointsFusedIntoBars) {
       effectiveStroke = strokeColorHover
     }
 
@@ -570,6 +584,76 @@ export class CanvasPointRenderer extends PointRendererBase {
     }
   }
 
+  // ===== Hover animation methods =====
+
+  /**
+   * Start a hover animation for a point (scale up or down)
+   */
+  private startHoverAnimation(pointId: string, targetScale: number): void {
+    const existing = this.hoverAnimations.get(pointId)
+    const currentScale = existing?.currentScale ?? 1
+
+    this.hoverAnimations.set(pointId, {
+      currentScale,
+      targetScale,
+      startTime: performance.now()
+    })
+
+    this.doStartRendering()
+  }
+
+  /**
+   * Process one step of all hover animations.
+   * Returns true if any animations are still active.
+   */
+  private stepHoverAnimations(): boolean {
+    if (this.hoverAnimations.size === 0) return false
+
+    const now = performance.now()
+    const completedPointIds: string[] = []
+
+    for (const [pointId, anim] of this.hoverAnimations) {
+      const elapsed = now - anim.startTime
+      const progress = Math.min(1, elapsed / transitionDuration)
+
+      // Use smoother interpolation (same as PixiTransition)
+      const smoothProgress = progress * progress * progress * (progress * (progress * 6 - 15) + 10)
+
+      // Interpolate from current animated scale toward target
+      // When starting a new animation, we capture the current scale and animate from there
+      const startScale = anim.targetScale > 1 ? 1 : hoverRadiusFactor
+      const newScale = startScale + smoothProgress * (anim.targetScale - startScale)
+      anim.currentScale = newScale
+
+      if (progress >= 1) {
+        completedPointIds.push(pointId)
+      }
+    }
+
+    // Remove completed animations (but keep them if target was hoverRadiusFactor so we remember the hover state)
+    for (const pointId of completedPointIds) {
+      const anim = this.hoverAnimations.get(pointId)
+      if (anim && anim.targetScale === 1) {
+        // Animation back to normal is complete, remove tracking
+        this.hoverAnimations.delete(pointId)
+      }
+    }
+
+    return this.hoverAnimations.size > 0 &&
+      Array.from(this.hoverAnimations.values()).some(a => {
+        const elapsed = now - a.startTime
+        return elapsed < transitionDuration
+      })
+  }
+
+  /**
+   * Get the current hover scale for a point (1.0 if not being hovered/animated)
+   */
+  private getHoverScale(pointId: string): number {
+    const anim = this.hoverAnimations.get(pointId)
+    return anim?.currentScale ?? 1
+  }
+
   // ===== Event handling =====
 
   private setupCanvasEventListeners(): void {
@@ -610,22 +694,35 @@ export class CanvasPointRenderer extends PointRendererBase {
       const hitPointId = this.hitTester?.hitTest(x, y)
 
       if (hitPointId !== this.hoveredPointId) {
-        // Leave old point
+        // Leave old point - start scale-down animation for points
         if (this.hoveredPointId) {
           const oldData = getPointAndMetadata(this.hoveredPointId)
           if (oldData) {
             this.onPointerLeave?.(event, oldData.point, oldData.metadata)
           }
+          // Start scale-down animation for points (not bars)
+          if (this._displayType === "points") {
+            this.startHoverAnimation(this.hoveredPointId, 1)
+          }
         }
 
         this.hoveredPointId = hitPointId ?? null
 
-        // Enter new point
+        // Enter new point - start scale-up animation for points
         if (hitPointId) {
           const newData = getPointAndMetadata(hitPointId)
           if (newData) {
             this.onPointerOver?.(event, newData.point, newData.metadata)
           }
+          // Start scale-up animation for points (not bars)
+          if (this._displayType === "points") {
+            this.startHoverAnimation(hitPointId, hoverRadiusFactor)
+          }
+        }
+
+        // Update cursor style
+        if (this._canvas) {
+          this._canvas.style.cursor = hitPointId ? "pointer" : "default"
         }
 
         this.needsRedraw = true
@@ -640,9 +737,17 @@ export class CanvasPointRenderer extends PointRendererBase {
         if (data) {
           this.onPointerLeave?.(event, data.point, data.metadata)
         }
+        // Start scale-down animation for points (not bars)
+        if (this._displayType === "points") {
+          this.startHoverAnimation(this.hoveredPointId, 1)
+        }
         this.hoveredPointId = null
         this.needsRedraw = true
         this.doStartRendering()
+      }
+      // Reset cursor when leaving canvas
+      if (this._canvas) {
+        this._canvas.style.cursor = "default"
       }
     })
 
