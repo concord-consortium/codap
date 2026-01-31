@@ -102,6 +102,7 @@ export const DotLinePlot = observer(function DotLinePlot({ renderer }: IPlotProp
       }
 
       const getBarPositionInSubPlot = (anID: string) => {
+        if (!binMap[anID]) return null
         const {caseIndex, casesInCategory} = getSubPlotDetails(anID)
         const barDimension = getBarStaticDimension()
         const {category, extraCategory} = binMap[anID]
