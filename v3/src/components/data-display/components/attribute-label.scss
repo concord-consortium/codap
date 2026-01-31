@@ -3,7 +3,7 @@
 .attribute-label {
   text-decoration: underline;
   font: vars.$label-font !important;
-  fill: blue !important; // default fill for single-attribute labels
+  fill: blue; // default fill for single-attribute labels
 
   // Multi-y-attribute labels: D3 sets fill color dynamically to match point color
   &.multi-y {
