@@ -119,13 +119,9 @@ export function setPointSelection(props: ISetPointSelection) {
   renderer.forEachPoint((point, metadata) => {
     const { caseID, plotNum } = metadata
     const isSelected = !!dataset?.isCaseSelected(caseID)
-    const isSelectedAndLegendIsPresent = isSelected && legendID
-    const isSelectedAndPointsFusedIntoBars = isSelected && pointsFusedIntoBars
-    // This `fill` logic is directly translated from the old D3 code.
+    // Determine fill color based on legend or plotNum, preserving original color when selected
     let fill: string
-    if (isSelected && !legendID) {
-      fill = defaultSelectedColor
-    } else if (legendID) {
+    if (legendID) {
       fill = dataConfiguration?.getLegendColorForCase(caseID)
     } else {
       fill = plotNum && getPointColorAtIndex ? getPointColorAtIndex(plotNum) : pointColor
@@ -133,13 +129,11 @@ export function setPointSelection(props: ISetPointSelection) {
     const style: Partial<IPointStyle> = {
       fill,
       radius: isSelected ? selectedPointRadius : pointRadius,
-      stroke: isSelectedAndLegendIsPresent
-        ? defaultSelectedStroke
-        : isSelectedAndPointsFusedIntoBars
-          ? defaultSelectedColor
-          : pointStrokeColor,
-      strokeWidth: isSelectedAndLegendIsPresent ? defaultSelectedStrokeWidth : defaultStrokeWidth,
-      strokeOpacity: isSelectedAndLegendIsPresent ? defaultSelectedStrokeOpacity : defaultStrokeOpacity
+      stroke: isSelected
+        ? (pointsFusedIntoBars ? defaultSelectedColor : defaultSelectedStroke)
+        : pointStrokeColor,
+      strokeWidth: isSelected ? defaultSelectedStrokeWidth : defaultStrokeWidth,
+      strokeOpacity: isSelected ? defaultSelectedStrokeOpacity : defaultStrokeOpacity
     }
     renderer.setPointStyle(point, style)
     renderer.setPointRaised(point, isSelected)

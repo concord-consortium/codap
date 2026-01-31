@@ -3,7 +3,7 @@ import { CloudFileManager } from "@concord-consortium/cloud-file-manager"
 import { clsx } from "clsx"
 import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import { ErrorBoundary } from "react-error-boundary"
 import { useMemo } from "use-memo-one"
 // import { setLivelinessChecking } from "mobx-state-tree"
@@ -16,6 +16,7 @@ import { useKeyboardShortcuts } from "../hooks/use-keyboard-shortcuts"
 import { ProgressContext, useProgressContextProviderValue } from "../hooks/use-progress"
 import { useUncaughtErrorHandler } from "../hooks/use-uncaught-error-handler"
 import { hideSplashScreen } from "../lib/cfm/splash-screen"
+import { useEmbeddedMode } from "../lib/embedded-mode/use-embedded-mode"
 import { IUseCloudFileManagerHookOptions, useCloudFileManager } from "../lib/cfm/use-cloud-file-manager"
 import { CodapDndContext } from "../lib/dnd-kit/codap-dnd-context"
 import { Logger } from "../lib/logger"
@@ -67,6 +68,7 @@ registerTileTypes([])
 
 export const App = observer(function App() {
   useKeyStates()
+  useEmbeddedMode()
   // default behavior is to show the user entry modal when CODAP is loaded
   // We close the modal if user imports, drags a document, opens a document
   // or plugin using url params
@@ -194,7 +196,11 @@ export const App = observer(function App() {
 
   const toolbarContainerClassName =
     clsx("toolbar-container", { "vertical-toolbar-container": persistentState.toolbarPosition === "Left" })
-  const appClasses = clsx("codap-app", { "minimal-chrome": uiState.componentMode, beta: isBeta() })
+  const appClasses = clsx("codap-app", {
+    "minimal-chrome": uiState.minimalChrome,
+    "inbounds-mode": uiState.inboundsMode,
+    beta: isBeta()
+  })
   return (
     <CodapDndContext>
       <DocumentContentContext.Provider value={appState.document.content}>
@@ -216,7 +222,7 @@ export const App = observer(function App() {
                 </div>
               </ErrorBoundary>
             </div>
-            {isOpenUserEntry &&
+            <If condition={isOpenUserEntry}>
               <div id={`${kUserEntryDropOverlay}`}
                 className={clsx({ "show-highlight": isOpenUserEntry && isDragOver, beta: isBeta() })}
               >
@@ -225,7 +231,7 @@ export const App = observer(function App() {
                   onClose={onCloseUserEntry}
                 />
               </div>
-            }
+            </If>
             <Progress />
           </ProgressContext.Provider>
         </CfmContext.Provider>

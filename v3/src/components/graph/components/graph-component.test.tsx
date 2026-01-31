@@ -1,6 +1,5 @@
 import { render, screen } from "@testing-library/react"
 import { userEvent } from '@testing-library/user-event'
-import React from "react"
 import { DataBroker } from "../../../models/data/data-broker"
 import { DataSet, toCanonical } from "../../../models/data/data-set"
 import { GraphComponent } from "./graph-component"

@@ -121,7 +121,7 @@ export const CaseCardModel = TileContentModel
     },
     addNewCase(level: number) {
       const selectedParentCaseIds = self.data?.partiallySelectedCaseIdsByCollection[level - 1]
-      const selectedParentCaseId = selectedParentCaseIds && selectedParentCaseIds.size === 1
+      const selectedParentCaseId = selectedParentCaseIds?.size === 1
         ? Array.from(selectedParentCaseIds)[0] : undefined
       const newCase: ICaseCreation = selectedParentCaseId != null ?
         self.data?.getParentValues(selectedParentCaseId) ?? {} : {}

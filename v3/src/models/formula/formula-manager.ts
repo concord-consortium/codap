@@ -182,7 +182,7 @@ export class FormulaManager implements IFormulaManager {
           // Formula is considered to be updated by user when its display form changes, or when its extra metadata
           // is updated (e.g. default argument might have changed and the formula needs to be re-registered and
           // re-calculated).
-          const isFormulaUpdated = !metadata || metadata.registeredDisplay !== formula.display ||
+          const isFormulaUpdated = metadata?.registeredDisplay !== formula.display ||
             !comparer.structural(prevExtraMetadata, extraMetadata)
           if (isFormulaUpdated) {
             this.unregisterFormula(formula.id)

@@ -82,7 +82,7 @@ export const Attribute = V2Model.named("Attribute").props({
   hashMap: types.maybe(types.frozen<Record<string, string>>())
 })
   .preProcessSnapshot(snapshot => {
-    const {formula: inFormula, values: inValues, hashMap, ...others} = snapshot
+    const {formula: inFormula, values: inValues, hashMap, precision: inPrecision, ...others} = snapshot
     // early development versions of v3 had a `title` property
     const _title = snapshot._title ?? ((snapshot as any).title || undefined)
     // don't import empty formulas
@@ -96,7 +96,9 @@ export const Attribute = V2Model.named("Attribute").props({
         return key ? hashMap[key] || value : value
       })
     }
-    return {formula, values, ...others, _title}
+    // convert null precision to undefined (null can occur from JSON serialization)
+    const precision = inPrecision === null ? undefined : inPrecision
+    return {formula, values, precision, ...others, _title}
   })
   .postProcessSnapshot(snapshot => {
     const {values: inValues = [], hashMap = {}, ...others} = snapshot

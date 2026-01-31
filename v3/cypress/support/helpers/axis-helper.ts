@@ -81,10 +81,15 @@ export const AxisHelper = {
     ae.getAttributeFromAttributeMenu(axis).contains(`Treat as`).should("not.exist")
   },
   verifyAxisMenuIsClosed(axis: string) {
-    ae.getAttributeFromAttributeMenu(axis).find("div>div").should("not.be.visible")
+    // When the menu is closed, the portalled MenuList may still be in the DOM but not visible
+    cy.get(`[data-testid="axis-legend-attribute-menu-list-${axis}"]`).should("not.be.visible")
   },
   openAxisAttributeMenu(axis: string) {
     ae.getAxisAttributeMenu(axis).click()
+  },
+  closeAxisAttributeMenu(_axis: string) {
+    // Close the menu by pressing Escape on the body
+    cy.get("body").type("{esc}")
   },
   addAttributeToAxis(name: string, axis: string) {
     ae.getAttributeFromAttributeMenu(axis).contains(name).click()
@@ -98,12 +103,15 @@ export const AxisHelper = {
   },
   // Use this function when there are multiple datasets or a single dataset with multiple collections
   selectSubmenuAttribute(attributeName: string, collectionName: string, axis: string) {
+    // Click on collection menu item to open submenu (onClick handler opens it)
     ae.getAttributeFromAttributeMenu(axis)
       .contains(".collection-menu-item", collectionName)
-      .click({ force: true })
-    ae.getAttributeFromAttributeMenu(axis)
+      .click()
+    // There may be multiple submenus in the DOM (one per collection); filter to find the visible one
+    cy.get(".axis-legend-submenu")
+      .filter(":visible")
       .contains("button", attributeName)
-      .click({ force: true })
+      .click()
     cy.wait(2000)
   },
   removeAttributeFromAxis(name: string, axis: string) {

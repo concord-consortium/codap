@@ -1,5 +1,4 @@
 import { observer } from "mobx-react-lite"
-import React from "react"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { createCasesNotification } from "../../models/data/data-set-notifications"
 import { IGroupedCase } from "../../models/data/data-set-types"
@@ -92,7 +91,14 @@ export const CaseCardHeader = observer(function CaseCardHeader(props: ICaseHeade
         displayedCaseIndex={displayedCaseIndex}
       />
       <div className="add-case">
-        <button onClick={handleAddNewCase} data-testid="add-case-button">
+        <button
+          onClick={handleAddNewCase}
+          data-testid="add-case-button"
+          disabled={data?.hasFilterFormula}
+          title={data?.hasFilterFormula
+            ? t("V3.caseCard.addCaseDisabledBecauseFilter")
+            : t("DG.CaseCard.newCaseToolTip")}
+        >
           <AddIcon />
         </button>
       </div>

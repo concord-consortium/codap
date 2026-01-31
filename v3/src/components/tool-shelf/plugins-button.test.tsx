@@ -1,6 +1,5 @@
 import { render, screen } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
-import React from "react"
 import { PluginsButton } from "./plugins-button"
 
 describe("PluginsButtons", () => {
@@ -10,9 +9,9 @@ describe("PluginsButtons", () => {
     render(<PluginsButton/>)
     expect(await screen.findByTestId("tool-shelf-button-plugins")).toBeInTheDocument()
     // click the button
-    user.click(screen.getByTestId("tool-shelf-button-plugins"))
+    await user.click(screen.getByTestId("tool-shelf-button-plugins"))
     expect(await screen.findByText("Simulation")).toBeInTheDocument()
-    user.click(await screen.findByText("Simulation"))
+    await user.click(await screen.findByText("Simulation"))
     expect(await screen.findByText("Sampler")).toBeInTheDocument()
   })
 })

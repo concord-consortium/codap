@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef} from "react"
+import {useCallback, useEffect, useRef} from "react"
 import {comparer, reaction} from "mobx"
 import { observer } from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
@@ -252,8 +252,10 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
       connectingLinesArea.selectAll("path").remove()
     }
 
-    renderConnectingLines({ connectingLines, parentAttrID, parentAttrName, pointColorAtIndex, showConnectingLines })
-  }, [connectingLinesForCases, dataConfiguration, dataset, mapModel.pointDescription.pointColorAtIndex,
+    renderConnectingLines({
+      connectingLines, getLegendColor, parentAttrID, parentAttrName, pointColorAtIndex, showConnectingLines
+    })
+  }, [connectingLinesForCases, dataConfiguration, dataset, getLegendColor, mapModel.pointDescription.pointColorAtIndex,
       renderConnectingLines, showConnectingLines])
 
   const callMatchCirclesToData = useCallback(() => {

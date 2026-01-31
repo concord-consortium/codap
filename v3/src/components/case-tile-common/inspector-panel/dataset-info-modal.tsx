@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import { Button, FormControl, FormLabel, Input, ModalBody, ModalCloseButton, ModalFooter, ModalHeader, Textarea,
   Tooltip } from "@chakra-ui/react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"

@@ -1,5 +1,5 @@
 import { Active, useDroppable } from "@dnd-kit/core"
-import React, { CSSProperties } from "react"
+import { CSSProperties } from "react"
 import { createPortal } from "react-dom"
 import { useOverlayBounds } from "../../../hooks/use-overlay-bounds"
 import { DropHint } from "./drop-hint"

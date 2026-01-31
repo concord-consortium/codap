@@ -1,7 +1,7 @@
 import {
   AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogOverlay, Button
 } from "@chakra-ui/react"
-import React, { useRef } from "react"
+import { useRef } from "react"
 import { t } from "../../utilities/translation/translate"
 
 import "./copied-cases-alert.scss"

@@ -219,7 +219,12 @@ const SingleCaseView = observer(function SingleCaseView({
             </CollectionContext.Provider>
           </ParentCollectionContext.Provider>
         )}
-        <button className="add-attribute" onClick={onAddNewAttribute} data-testid="add-attribute-button">
+        <button
+          className="add-attribute"
+          onClick={onAddNewAttribute}
+          data-testid="add-attribute-button"
+          title={t("V3.caseCard.addAttributeTooltip")}
+        >
           <AddIcon />
         </button>
       </div>

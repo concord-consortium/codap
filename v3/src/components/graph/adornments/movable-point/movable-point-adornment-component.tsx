@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import {drag, select, Selection} from "d3"
 import {tip as d3tip} from "d3-v6-tip"
 import { autorun } from "mobx"

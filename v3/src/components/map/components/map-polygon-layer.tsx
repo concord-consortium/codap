@@ -1,6 +1,7 @@
 import {comparer, reaction} from "mobx"
+import {addDisposer, isAlive} from "mobx-state-tree"
 import {geoJSON, LeafletMouseEvent, point, Popup, popup} from "leaflet"
-import React, {useCallback, useEffect} from "react"
+import {useCallback, useEffect} from "react"
 import {useMap} from "react-leaflet"
 import {DEBUG_MAP, debugLog} from "../../../lib/debug"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
@@ -36,7 +37,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
   // useDataTips({dotsRef, dataset, displayModel: mapLayerModel})
 
   const refreshPolygonStyles = useCallback(() => {
-    if (!dataset) return
+    if (!dataset || !isAlive(mapLayerModel)) return
 
     const selectedCases = dataConfiguration.selection,
       hasLegend = !!dataConfiguration.attributeID('legend')
@@ -67,7 +68,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
   }, [dataset, dataConfiguration, mapLayerModel, displayItemDescription])
 
   const refreshPolygons = useCallback(() => {
-    if (!dataset) return
+    if (!dataset || !isAlive(mapLayerModel)) return
     const
       stashFeature = (caseID: string, jsonObject: GeoJsonObject, error: string) => {
 
@@ -159,8 +160,8 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
   }, [dataConfiguration, dataset, leafletMap, mapLayerModel, mapModel, refreshPolygonStyles])
 
   const refreshPolygonLayer = useCallback(() => {
-    leafletMapLayers?.updateLayer(mapLayerModel, refreshPolygons)
-  }, [leafletMapLayers, mapLayerModel, refreshPolygons])
+    leafletMapLayers?.updateLayer(mapLayerModel.id, refreshPolygons)
+  }, [leafletMapLayers, mapLayerModel.id, refreshPolygons])
 
   // Actions in the dataset can trigger need to update polygons
   useEffect(function setupResponsesToDatasetActions() {
@@ -174,7 +175,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
       })
       return () => disposer()
     }
-  }, [dataset, refreshPolygonLayer, refreshPolygonStyles])
+  }, [dataset, mapLayerModel, refreshPolygonLayer, refreshPolygonStyles])
 
   // Changes in layout or map pan/zoom require repositioning points
   useEffect(function setupResponsesToLayoutChanges() {
@@ -192,23 +193,22 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
 
   // Changes in legend attribute require repositioning polygons
   useEffect(function setupResponsesToLegendAttribute() {
-    const disposer = reaction(
-      () => [dataConfiguration.attributeID('legend')],
+    return mstReaction(
+      () => dataConfiguration.attributeID('legend'),
       () => {
         refreshPolygonLayer()
-      }, {name: "MapPolygonLayer.setupResponsesToLegendAttribute", equals: comparer.structural}
+      }, {name: "MapPolygonLayer.setupResponsesToLegendAttribute"}, mapLayerModel
     )
-    return () => disposer()
-  }, [dataConfiguration, refreshPolygonLayer])
+  }, [dataConfiguration, mapLayerModel, refreshPolygonLayer])
 
   useEffect(function setupResponseToChangeInNumberOfCases() {
     return mstReaction(
-      () => dataConfiguration?.getCaseDataArray(0).length,
+      () => dataConfiguration?.getCaseDataArray(0).length ?? 0,
       () => {
         refreshPolygonLayer()
-      }, {name: "MapPolygonLayer.setupResponseToChangeInNumberOfCases"}, dataConfiguration
+      }, {name: "MapPolygonLayer.setupResponseToChangeInNumberOfCases"}, [mapLayerModel, dataConfiguration]
     )
-  }, [dataConfiguration, refreshPolygonLayer])
+  }, [dataConfiguration, mapLayerModel, refreshPolygonLayer])
 
   useEffect(function setupResponseToChangeInVisibility() {
     return mstReaction(
@@ -230,6 +230,20 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
       {name: "MapPolygonLayer.respondToItemVisualChange", equals: comparer.structural}, mapLayerModel
     )
   }, [refreshPolygonStyles, mapLayerModel])
+
+  // Clean up Leaflet features when model is destroyed or component unmounts
+  useEffect(function cleanupOnUnmount() {
+    const cleanup = () => {
+      // Guard against being called twice (once on model destroy, once on unmount)
+      if (!isAlive(mapLayerModel)) return
+      // Remove all polygon features from the Leaflet map
+      Object.values(mapLayerModel.features).forEach(feature => {
+        leafletMap.removeLayer(feature)
+      })
+    }
+    addDisposer(mapLayerModel, cleanup)
+    return cleanup
+  }, [leafletMap, mapLayerModel])
 
   return (
     <></>

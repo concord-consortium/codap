@@ -62,6 +62,19 @@ export interface UrlParams {
    */
   "di-override-url"?: string | null
   /*
+   * [V2] Enables full embedded mode for running CODAP inside another application.
+   * Hides UI chrome (like componentMode) AND establishes iframePhone communication
+   * with the parent window.
+   * value: boolean-like string (parsed via booleanParam)
+   */
+  embeddedMode?: string | null
+  /*
+   * [V2] Enables iframePhone communication with parent window without hiding UI.
+   * When embeddedMode is enabled, embeddedServer is automatically enabled as well.
+   * value: boolean-like string (parsed via booleanParam)
+   */
+  embeddedServer?: string | null
+  /*
    * When present enables the error tester component.
    * value: which type of error the tester should throw.
    * Possible values:
@@ -105,6 +118,15 @@ export interface UrlParams {
    * value: ignored
    */
   ICI?: string | null
+  /*
+   * [V2] Enables "in bounds" mode where components are constrained to the visible container.
+   * When enabled:
+   * - Scrollbars are hidden on the container
+   * - Components cannot be dragged/resized outside container boundaries
+   * - When container is too small to fit all components, they scale down uniformly
+   * value: boolean-like string (parsed via booleanParam)
+   */
+  inbounds?: string | null
   /*
    * Indicates CODAP is running in the Activity Player. Used by the CFM and to configure
    * the CFM.
