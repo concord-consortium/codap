@@ -5,6 +5,7 @@ import {observer} from "mobx-react-lite"
 import {IDisposer, isAlive} from "mobx-state-tree"
 import React, {useCallback, useEffect, useMemo, useRef} from "react"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
+import { DEBUG_RENDERERS } from "../../../lib/debug"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import { AttributeType, isCategoricalAttributeType } from "../../../models/data/attribute-types"
 import {IDataSet} from "../../../models/data/data-set"
@@ -19,6 +20,7 @@ import { setNiceDomain } from "../../axis/axis-domain-utils"
 import {GraphPlace} from "../../axis-graph-shared"
 import { AxisPlace, AxisPlaces, isAxisPlace } from "../../axis/axis-types"
 import { IBaseNumericAxisModel } from "../../axis/models/base-numeric-axis-model"
+import { If } from "../../common/if"
 import { PointRendererArray, RendererCapability } from "../../data-display/renderer"
 import {Background} from "../../data-display/components/background"
 import {DataTip} from "../../data-display/components/data-tip"
@@ -440,8 +442,8 @@ export const Graph = observer(function Graph({
         </svg>
         {/* HTML host for Pixi canvas to avoid Safari foreignObject issues */}
         <div ref={pixiContainerRef} className="pixi-points-host" />
-        {/* Renderer type indicator */}
-        {rendererType && rendererType !== "null" && (
+        {/* Renderer type indicator (developer only - enable with localStorage debug="renderers") */}
+        <If condition={DEBUG_RENDERERS && !!rendererType && rendererType !== "null"}>
           <div
             className="renderer-type-indicator"
             title={rendererType === "webgl"
@@ -451,7 +453,7 @@ export const Graph = observer(function Graph({
           >
             {rendererType === "webgl" ? "GL" : "2D"}
           </div>
-        )}
+        </If>
         <svg className="overlay-svg">
           <g className="above-points-group" ref={abovePointsGroupRef}>
             {/* Components rendered on top of the dots/points should be added to this group. */}
