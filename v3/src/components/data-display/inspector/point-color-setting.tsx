@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from "react"
+import { useCallback, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { Popover, PopoverTrigger, Portal } from "@chakra-ui/react"
 import { useOutsidePointerDown } from "../../../hooks/use-outside-pointer-down"

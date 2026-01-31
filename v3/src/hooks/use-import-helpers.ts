@@ -15,10 +15,10 @@ import {
   convertParsedCsvToDataSet, CsvParseResult, importCsvFile, initiateImportFromCsv
 } from "../utilities/csv-import"
 import { initiateGenericImport } from "../utilities/generic-import"
-import { getImageDimensions } from "../utilities/image-utils"
+import { downscaleImageFile, getImageDimensions } from "../utilities/image-utils"
 import {
   getImportableFileTypeFromDataTransferFile, getImportableFileTypeFromFile, getImportableFileTypeFromUrl,
-  ImportableFileType
+  ImportableFileType, stripExtensionFromFilename
 } from "../utilities/importable-files"
 
 const USE_IMPORTER_PLUGIN_FOR_CSV_FILE = true
@@ -56,7 +56,6 @@ export function useImportHelpers({ cfmRef, onCloseUserEntry }: IProps) {
 
   const importFile = useCallback((type?: ImportableFileType, options?: {file?: File|null, url?: string|null}) => {
     const {file, url} = options || {}
-    let objectUrl: string | undefined
 
     switch (type) {
       case "codap":
@@ -91,13 +90,20 @@ export function useImportHelpers({ cfmRef, onCloseUserEntry }: IProps) {
         initiateGenericImport({ url, contentType: "application/vnd.google-apps.spreadsheet" })
         break
       case "image": {
-        objectUrl = file ? URL.createObjectURL(file) : undefined
-        const imageUrl = objectUrl || url
-        if (imageUrl) {
-          getImageDimensions(imageUrl).then(({ width, height }) => {
-            loadWebView(imageUrl, "image", { width, height: height + kTitleBarHeight })
-          })
-        }
+        // Convert file to data URL if provided, otherwise use the URL directly
+        // Downscale large images to 512px max dimension to prevent data URL bloat
+        const imageUrlPromise = file ? downscaleImageFile(file) : Promise.resolve(url)
+        // Use filename as title for dropped files, removing the extension
+        const imageTitle = file?.name ? stripExtensionFromFilename(file.name) : undefined
+        imageUrlPromise.then(imageUrl => {
+          if (imageUrl) {
+            getImageDimensions(imageUrl).then(({ width, height }) => {
+              loadWebView(imageUrl, "image", { width, height: height + kTitleBarHeight, title: imageTitle })
+            })
+          }
+        }).catch(error => {
+          console.error("Failed to process image:", error)
+        })
         break
       }
       default:

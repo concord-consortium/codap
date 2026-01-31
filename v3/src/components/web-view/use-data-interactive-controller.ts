@@ -1,22 +1,12 @@
 import iframePhone from "iframe-phone"
-import { reaction } from "mobx"
 import React, { useEffect } from "react"
-import { isV2CaseTableComponent } from "../../data-interactive/data-interactive-component-types"
-import { getDIHandler } from "../../data-interactive/data-interactive-handler"
-import { errorResult } from "../../data-interactive/handlers/di-results"
-import {
-  DIAction, DIHandler, DIRequest, DIRequestCallback, DIRequestResponse
-} from "../../data-interactive/data-interactive-types"
-import { parseResourceSelector, resolveResources } from "../../data-interactive/resource-parser"
+import { setupRequestQueueProcessor } from "../../data-interactive/data-interactive-request-processor"
+import { DIRequest, DIRequestCallback } from "../../data-interactive/data-interactive-types"
 import { useCfmContext } from "../../hooks/use-cfm-context"
 import { DEBUG_PLUGINS, debugLog } from "../../lib/debug"
 import { ITileModel } from "../../models/tiles/tile-model"
-import { uiState } from "../../models/ui-state"
-import { t } from "../../utilities/translation/translate"
 import { RequestQueue } from "./request-queue"
 import { isWebViewModel } from "./web-view-model"
-
-import "../../data-interactive/register-handlers"
 
 function extractOrigin(url?: string) {
   if (!url) return
@@ -60,73 +50,12 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
                                       noDirty: true
                                     })
 
-      // A reaction is used here instead of an autorun so properties accessed by each handler are not
-      // observed. We only want to run the loop when a new request comes in, not when something changes
-      // that a handler accessed.
-      const disposer = reaction(() => {
-        return {
-          canProcessRequest: !uiState.isEditingBlockingCell,
-          queueLength: requestQueue.length
-        }
-      },
-      ({ canProcessRequest, queueLength }) => {
-        if (!canProcessRequest || queueLength === 0) return
-
-        uiState.captureEditingStateBeforeInterruption()
-        let tableModified = false
-
-        requestQueue.processItems(async ({ request, callback }) => {
-          debugLog(DEBUG_PLUGINS, `Processing data-interactive: ${JSON.stringify(request)}`)
-          let result: DIRequestResponse = { success: false }
-
-          const processAction = async (action: DIAction) => {
-            if (!action) return errorResult(t("V3.DI.Error.noAction"))
-            if (!tile) return errorResult(t("V3.DI.Error.noTile"))
-
-            const { action: _action, values } = action
-
-            // We handle a special case for V2 compatibility: Request is for creating a caseTable
-            // but there is no specified dataContext though there is a specified name.
-            if (_action === "create" && isV2CaseTableComponent(values) && !values.dataContext && values.name) {
-              values.dataContext = values.name
-            }
-
-            const resourceSelector = parseResourceSelector(action.resource)
-            const resources = resolveResources(resourceSelector, action.action, tile, cfm)
-            const type = resourceSelector.type ?? ""
-            const a = action.action
-            const func = getDIHandler(type)?.[a as keyof DIHandler]
-            if (!func) return errorResult(t("V3.DI.Error.unsupportedAction", {vars: [a, type]}))
-
-            const actionResult = await func?.(resources, action.values)
-            if (actionResult &&
-              ["create", "delete", "notify"].includes(a) &&
-              !["component", "global", "interactiveFrame"].includes(type)
-            ) {
-              // Increment request batches processed if a table may have been modified
-              tableModified = true
-            }
-            return actionResult ?? errorResult(t("V3.DI.Error.undefinedResponse"))
-          }
-          if (Array.isArray(request)) {
-            result = []
-            for (const action of request) {
-              result.push(await processAction(action))
-            }
-          } else {
-            result = await processAction(request)
-          }
-
-          debugLog(DEBUG_PLUGINS, `Responding with`, result)
-          callback(result)
-        })
-
-        // TODO Only increment if a table may have changed
-        // - many actions and resources could be ignored
-        // - could specify which dataContext has been updated
-        if (tableModified) uiState.incrementInterruptionCount()
-
-      }, { name: "DataInteractiveController request processor autorun" })
+      // Set up request queue processor using shared module
+      const disposer = setupRequestQueueProcessor(requestQueue, {
+        tile,
+        cfm,
+        name: "DataInteractiveController request processor"
+      })
 
       return () => {
         disposer()

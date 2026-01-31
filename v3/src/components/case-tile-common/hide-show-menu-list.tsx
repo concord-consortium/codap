@@ -1,7 +1,7 @@
 import { useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
-import React, { useMemo } from "react"
+import { useMemo } from "react"
 import { useDataSetMetadata } from "../../hooks/use-data-set-metadata"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { hideAttributeNotification } from "../../models/data/data-set-notifications"

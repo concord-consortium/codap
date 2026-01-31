@@ -1,6 +1,6 @@
 import {ScaleBand, ScaleLinear} from "d3"
 import {observer} from "mobx-react-lite"
-import React, {useCallback, useEffect} from "react"
+import {useCallback, useEffect} from "react"
 import {mstReaction} from "../../../../utilities/mst-reaction"
 import { setNiceDomain } from "../../../axis/axis-domain-utils"
 import { AxisPlace } from "../../../axis/axis-types"
@@ -102,6 +102,7 @@ export const DotLinePlot = observer(function DotLinePlot({ renderer }: IPlotProp
       }
 
       const getBarPositionInSubPlot = (anID: string) => {
+        if (!binMap[anID]) return null
         const {caseIndex, casesInCategory} = getSubPlotDetails(anID)
         const barDimension = getBarStaticDimension()
         const {category, extraCategory} = binMap[anID]

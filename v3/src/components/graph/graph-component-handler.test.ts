@@ -401,4 +401,69 @@ describe("DataInteractive ComponentHandler Graph", () => {
     // y2 and rightNumeric both set rightNumeric, so it's not possible to test them on the same graph
     expect(tile2Content.dataConfiguration.attributeDescriptionForRole("rightNumeric")?.attributeID).toBe(a3.id)
   })
+
+  it("getApiProps and updateApiProps work for bar charts", () => {
+    // Create a graph with a categorical x-axis (required for bar chart)
+    const createResult = create({}, {
+      type: "graph", dataContext: "data", xAttributeName: "a1"
+    })
+    expect(createResult.success).toBe(true)
+    const createValues = createResult.values as DIComponentInfo
+    const tile = documentContent.tileMap.get(toV3Id(kGraphIdPrefix, createValues.id!))!
+    const content = tile.content as IGraphContentModel
+
+    // Initially it's a dot chart, not a bar chart
+    expect(content.plotType).toBe("dotChart")
+    const initialGetResult = handler.get!({ component: tile }) as { success: boolean, values: V2GetGraph }
+    expect(initialGetResult.success).toBe(true)
+    expect(initialGetResult.values.pointsAreFusedIntoBars).toBe(false)
+    expect(initialGetResult.values.barChartScale).toBeUndefined()
+    expect(initialGetResult.values.barChartFormula).toBeUndefined()
+
+    // Fuse points into bars to create a bar chart
+    const fuseResult = update({ component: tile }, { pointsAreFusedIntoBars: true })
+    expect(fuseResult.success).toBe(true)
+    expect(content.plotType).toBe("barChart")
+
+    // Now getApiProps should return bar chart properties
+    const barChartGetResult = handler.get!({ component: tile }) as { success: boolean, values: V2GetGraph }
+    expect(barChartGetResult.success).toBe(true)
+    expect(barChartGetResult.values.pointsAreFusedIntoBars).toBe(true)
+    expect(barChartGetResult.values.barChartScale).toBe("count")
+    expect(barChartGetResult.values.barChartFormula).toBeUndefined()
+
+    // Update barChartScale to percent
+    const updateScaleResult = update({ component: tile }, { barChartScale: "percent" })
+    expect(updateScaleResult.success).toBe(true)
+    const percentGetResult = handler.get!({ component: tile }) as { success: boolean, values: V2GetGraph }
+    expect(percentGetResult.values.barChartScale).toBe("percent")
+
+    // Update barChartFormula (which also sets scale to "formula")
+    const testFormula = "mean(a3)"
+    const updateFormulaResult = update({ component: tile }, { barChartFormula: testFormula })
+    expect(updateFormulaResult.success).toBe(true)
+    const formulaGetResult = handler.get!({ component: tile }) as { success: boolean, values: V2GetGraph }
+    expect(formulaGetResult.values.barChartScale).toBe("formula")
+    expect(formulaGetResult.values.barChartFormula).toBe(testFormula)
+
+    // Update barChartScale back to count (formula should remain but scale changes)
+    const updateBackToCountResult = update({ component: tile }, { barChartScale: "count" })
+    expect(updateBackToCountResult.success).toBe(true)
+    const countGetResult = handler.get!({ component: tile }) as { success: boolean, values: V2GetGraph }
+    expect(countGetResult.values.barChartScale).toBe("count")
+
+    // Test invalid barChartScale
+    const invalidScaleResult = update({ component: tile }, { barChartScale: "invalid" })
+    expect(invalidScaleResult.success).toBe(false)
+
+    // Test that barChartScale is ignored on non-bar chart (unrecognized properties are silently ignored)
+    const unfuseResult = update({ component: tile }, { pointsAreFusedIntoBars: false })
+    expect(unfuseResult.success).toBe(true)
+    expect(content.plotType).toBe("dotChart")
+    const nonBarChartScaleResult = update({ component: tile }, { barChartScale: "percent" })
+    expect(nonBarChartScaleResult.success).toBe(true) // succeeds but has no effect
+
+    // Clean up
+    handler.delete!({ component: tile })
+  })
 })

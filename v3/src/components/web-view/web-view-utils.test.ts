@@ -102,4 +102,8 @@ describe("getNameFromURL", () => {
   it("works with absolute URLs as strings", () => {
     expect(getNameFromURL("https://example.com/datagame/game.html?param=abc.123")).toBe("game")
   })
+  it("returns empty string for data URLs", () => {
+    expect(getNameFromURL("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJ")).toBe("")
+    expect(getNameFromURL("data:text/plain;charset=utf-8,Hello%20World")).toBe("")
+  })
 })

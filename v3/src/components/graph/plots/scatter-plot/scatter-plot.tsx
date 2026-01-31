@@ -1,7 +1,7 @@
 import {ScaleLinear, select} from "d3"
 import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
-import React, {useCallback, useEffect, useRef, useState} from "react"
+import {useCallback, useEffect, useRef, useState} from "react"
 import {useDataSetContext} from "../../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 import {appState} from "../../../../models/app-state"
@@ -190,6 +190,7 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
     const pointSizeMultiplier = pointDescription.pointSizeMultiplier
     const pointsHaveBeenReduced = pointDescription.pointsHaveBeenReduced
     const kPointSizeReductionFactor = 0.5
+    const getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
 
     // Remove all existing connecting lines before rendering new ones to prevent duplicates
     if (connectingLinesRef.current) {
@@ -199,7 +200,8 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
 
     cellKeys?.forEach((cellKey) => {
       renderConnectingLines({
-        cellKey, connectingLines, parentAttrID, parentAttrName, pointColorAtIndex, showConnectingLines: showLines
+        cellKey, connectingLines, getLegendColor, parentAttrID, parentAttrName,
+        pointColorAtIndex, showConnectingLines: showLines
       })
     })
 
@@ -212,7 +214,7 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
       pointDescription.setPointSizeMultiplier(pointSizeMultiplier / kPointSizeReductionFactor)
       pointDescription.setPointsHaveBeenReduced(false)
     }
-  }, [layout, dataConfiguration, dataset, renderConnectingLines, graphModel])
+  }, [dataConfiguration, dataset, graphModel, layout, legendAttrID, renderConnectingLines])
 
   const refreshSquares = useCallback(() => {
 
@@ -280,7 +282,7 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
     const updateDot = (aCaseData: CaseData) => {
       const caseId = aCaseData.caseID
       const x = getScreenX(caseId)
-      const y = getScreenY(caseId)
+      const y = getScreenY(caseId, aCaseData.plotNum)
       if (x != null && isFinite(x) && y != null && isFinite(y)) {
         const point = renderer.getPointForCaseData(aCaseData)
         point && renderer.setPointPosition(point, x, y)

@@ -1,6 +1,6 @@
 import { useDndContext } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
-import React, { useRef, useEffect, useState } from "react"
+import { useRef, useEffect, useState } from "react"
 import { InspectorButton, InspectorMenu, InspectorPanel } from "../../inspector-panel"
 import { t } from "../../../utilities/translation/translate"
 import { ITileInspectorPanelProps } from "../../tiles/tile-base-props"

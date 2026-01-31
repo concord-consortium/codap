@@ -1,6 +1,5 @@
 import { Box, Checkbox, Flex, FormControl } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
-import React from "react"
 import ValuesIcon from "../../../../assets/icons/icon-values.svg"
 import { ITileModel } from "../../../../models/tiles/tile-model"
 import { getDocumentContentPropertyFromNode } from "../../../../utilities/mst-utils"

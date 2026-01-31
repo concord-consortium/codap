@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## About CODAP
+
+CODAP (Common Online Data Analysis Platform) is an educational technology tool designed to help teach and learn data analysis and graphing. It is primarily used in classroom environments with students ranging from middle school through college. UI/UX recommendations and security considerations should account for this educational context and age range.
+
 ## Repository Structure
 
 This repository contains two versions of CODAP (Common Online Data Analysis Platform):
@@ -9,6 +13,83 @@ This repository contains two versions of CODAP (Common Online Data Analysis Plat
 - **v3 (active development)**: Located in `/v3`, React/TypeScript/MobX-State-Tree, uses `main` branch
 
 **Active development is in v3.** Most work should be done in the `/v3` directory.
+
+## Development Workflow
+
+### Starting Work on a Jira Story
+
+When the user says "Let's start work on CODAP-XXX" (or similar):
+
+1. **Ask about the base branch**: Usually `main`, but occasionally work builds on a previous PR branch. Confirm before creating the branch.
+
+2. **Create a feature branch**:
+   - Branch name format: `{JIRA-ID}-{short-description}`
+   - Example: `CODAP-1027-inbounds-url-param`
+   - Use lowercase kebab-case for the description
+   - Keep it concise but descriptive
+
+3. **Update Jira status**: Transition the story to "In Progress"
+
+### Creating a Pull Request
+
+When the work is ready for initial CI validation:
+
+1. **Create a draft PR**:
+   - Title format: `{JIRA-ID}: {description}` (e.g., `CODAP-1027: add inbounds URL parameter`)
+   - Description should include:
+     - Summary of the changes
+     - Reference to the Jira story (e.g., `Fixes CODAP-1027` or link to the story) so Jira links it automatically
+   - Apply the `v3` label
+
+2. **Initial CI validation**:
+   - CI runs automatically on PRs (lint, build, limited Cypress tests)
+   - Review CI results and fix any issues
+
+3. **Finalize the PR**:
+   - Request Copilot review
+   - When PR is nearly ready for human review, apply the `run regression` label
+   - The `run regression` label triggers the full Cypress test suite (we don't run it automatically to conserve our Cypress quota)
+
+4. **Ready for review**:
+   - Once full Cypress tests pass on CI:
+     - Mark PR as "Ready for Review" (no longer draft)
+     - Assign to another developer for review
+     - Transition the Jira story to "In Code Review"
+   - Ensure Jira story has approvers specified:
+     - **Developer Approver**: The code reviewer
+     - **Project Team Approver**: Someone to verify the fix/feature
+   - If approvers aren't specified, ask the user about them
+
+5. **After code review approval**:
+   - Mark PR as approved
+   - Transition Jira story to "Ready for Merge"
+
+6. **After merge**:
+   - Once the PR is merged and builds successfully on `main`
+   - Transition Jira story to "In Project Team Review"
+
+7. **Project team review**:
+   - Project Team Approver verifies the fix/feature
+   - If approved: Transition Jira story to "Done"
+   - If rejected: Either stay in current status (for discussion) or transition back to "In Progress" if more work is required
+
+8. **Rejection at any review stage**:
+   - If Developer Approver or Project Team Approver rejects:
+     - Stay in current review status if there's ongoing discussion
+     - Transition back to "In Progress" if more work is needed
+
+### Jira Integration
+
+- The project uses Jira for issue tracking at `concord-consortium.atlassian.net`
+- Stories are typically in the CODAP project (e.g., CODAP-1027)
+- Use the Atlassian MCP tools to read/update Jira issues
+- Jira status transitions:
+  - **To Do** → **In Progress**: When starting work on a story
+  - **In Progress** → **In Code Review**: When PR is ready for human review
+  - **In Code Review** → **Ready for Merge**: When code review is approved
+  - **Ready for Merge** → **In Project Team Review**: After merge and successful build on `main`
+  - **In Project Team Review** → **Done**: When Project Team Approver approves
+  - **Any review status** → **In Progress**: If more work is required after rejection
 
 ## Build and Development Commands (v3)
 

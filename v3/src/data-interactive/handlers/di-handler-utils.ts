@@ -7,6 +7,7 @@ import { v2NameTitleToV3Title } from "../../models/data/v2-model"
 import { IDataSetMetadata, isNonEmptyCollectionLabels } from "../../models/shared/data-set-metadata"
 import { getMetadataFromDataSet } from "../../models/shared/shared-data-utils"
 import { hasOwnProperty } from "../../utilities/js-utils"
+import { isFiniteNumber } from "../../utilities/math-utils"
 import { CodapV2ColorMap } from "../../v2/codap-v2-data-context-types"
 import { DIAttribute, DICollection } from "../data-interactive-data-set-types"
 import { convertValuesToAttributeSnapshot } from "../data-interactive-type-utils"
@@ -75,7 +76,12 @@ export function updateAttribute(attribute: IAttribute, value: DIAttribute, dataC
   if (value?.formula != null) attribute.setDisplayExpression(value.formula)
   if (value?.name != null) dataContext?.setAttributeName(attribute.id, value.name)
   if (hasOwnProperty(value, "precision")) {
-    attribute.setPrecision(value.precision == null || value.precision === "" ? undefined : +value.precision)
+    if (value.precision == null || value.precision === "") {
+      attribute.setPrecision(undefined)
+    } else {
+      const numPrecision = +value.precision
+      attribute.setPrecision(isFiniteNumber(numPrecision) ? numPrecision : undefined)
+    }
   }
   if (value?.title != null) attribute.setTitle(value.title)
   if (isAttributeType(value?.type)) attribute.setUserType(value.type)

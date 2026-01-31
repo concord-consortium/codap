@@ -1,5 +1,4 @@
 import { MenuItem, MenuList, useDisclosure } from "@chakra-ui/react"
-import React from "react"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { insertCasesWithCustomUndoRedo, removeCasesWithCustomUndoRedo } from "../../models/data/data-set-undo"

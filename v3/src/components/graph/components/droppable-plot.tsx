@@ -1,5 +1,5 @@
 import {Active} from "@dnd-kit/core"
-import React, {memo} from "react"
+import {memo} from "react"
 import {getDragAttributeInfo, useDropHandler} from "../../../hooks/use-drag-drop"
 import {useDropHintString} from "../../../hooks/use-drop-hint-string"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"

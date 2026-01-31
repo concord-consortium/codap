@@ -1,6 +1,5 @@
 import { closestCenter, CollisionDetection, rectIntersection } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
-import React from "react"
 import { DataSetMetadataContext } from "../../hooks/use-data-set-metadata"
 import { useDataSet } from "../../hooks/use-data-set"
 import { DataSetContext } from "../../hooks/use-data-set-context"

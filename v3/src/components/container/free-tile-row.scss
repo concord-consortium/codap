@@ -6,7 +6,8 @@
   height: 100%;
   overflow: auto;
 
-  .codap-app.minimal-chrome & {
+  .codap-app.minimal-chrome &,
+  .codap-app.inbounds-mode & {
     overflow: hidden;
   }
 

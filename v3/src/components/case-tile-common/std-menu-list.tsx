@@ -1,6 +1,5 @@
 import { MenuItem, MenuList } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
-import React from "react"
 import { t } from "../../utilities/translation/translate"
 
 export interface IMenuItem {

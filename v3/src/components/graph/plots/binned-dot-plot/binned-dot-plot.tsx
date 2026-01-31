@@ -1,7 +1,7 @@
 import {ScaleBand, ScaleLinear, drag, select} from "d3"
 import {observer} from "mobx-react-lite"
 import { comparer } from "mobx"
-import React, {useCallback, useEffect, useRef} from "react"
+import {useCallback, useEffect, useRef} from "react"
 import { createPortal } from "react-dom"
 import { clsx } from "clsx"
 import { useInstanceIdContext } from "../../../../hooks/use-instance-id-context"

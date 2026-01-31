@@ -1,5 +1,4 @@
 import { MenuItem, MenuList } from "@chakra-ui/react"
-import React from "react"
 import { observer } from "mobx-react-lite"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { removeCasesWithCustomUndoRedo } from "../../../models/data/data-set-undo"

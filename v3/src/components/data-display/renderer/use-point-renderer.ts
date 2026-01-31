@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { CanvasPointRenderer } from "./canvas-point-renderer"
 import { NullPointRenderer } from "./null-point-renderer"
 import { PixiPointRenderer } from "./pixi-point-renderer"
 import { PointRendererBase } from "./point-renderer-base"
-import { IPointRendererOptions } from "./point-renderer-types"
+import { IPointRendererOptions, RendererCapability } from "./point-renderer-types"
 import { PointsState } from "./points-state"
 import { IContextConsumer, webGLContextManager } from "./webgl-context-manager"
 
@@ -88,11 +89,22 @@ export interface IUsePointRendererResult {
   state: PointsState
 
   /**
+   * The type of renderer currently in use ("webgl", "canvas", or "null")
+   */
+  rendererType: RendererCapability
+
+  /**
    * Request a WebGL context with boosted priority.
    * Call this when user interacts with a graph that doesn't have a context.
    * This will bump the graph to the top of the priority queue.
    */
   requestContextWithHighPriority: () => void
+
+  /**
+   * Toggle between WebGL and Canvas renderers (for testing purposes).
+   * This overrides the normal context-based renderer selection.
+   */
+  toggleRendererType: () => void
 }
 
 /**
@@ -129,6 +141,9 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
 
   // Track whether a context request was denied (for showing placeholder without flashing)
   const [contextWasDenied, setContextWasDenied] = useState(false)
+
+  // Forced renderer type override (for testing - null means use normal logic)
+  const [forcedRendererType, setForcedRendererType] = useState<"webgl" | "canvas" | null>(null)
 
   // Current renderer instance
   const [renderer, setRenderer] = useState<PointRendererBase>(() =>
@@ -225,6 +240,11 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
       if (!skipContextRegistration) {
         webGLContextManager.releaseContext(id)
       }
+      // Dispose any outgoing renderer that's pending disposal
+      if (outgoingRendererRef.current) {
+        outgoingRendererRef.current.dispose()
+        outgoingRendererRef.current = null
+      }
       renderer.dispose()
     }
   // Note: We intentionally don't include `renderer` or `skipContextRegistration` in dependencies
@@ -232,24 +252,66 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
+  // Manage WebGL context when forced renderer type changes
+  useEffect(() => {
+    if (skipContextRegistration) return
+
+    if (forcedRendererType === "canvas" && hasWebGLContext) {
+      // Forcing Canvas mode - release the WebGL context back to the pool
+      webGLContextManager.yieldContext(id)
+      setHasWebGLContext(false)
+    } else if (forcedRendererType === "webgl" && !hasWebGLContext) {
+      // Forcing WebGL mode - request a high-priority context (user-initiated action)
+      const highPriority = webGLContextManager.getNextUserInteractionPriority()
+      webGLContextManager.updatePriority(id, highPriority)
+      const granted = webGLContextManager.requestContext({
+        ...contextConsumer,
+        priority: highPriority
+      })
+      if (granted) {
+        setHasWebGLContext(true)
+        setContextWasDenied(false)
+      }
+    }
+  }, [forcedRendererType, hasWebGLContext, id, skipContextRegistration, contextConsumer])
+
   // Track if this is the first render to avoid disposing the initial renderer
   const isFirstRender = useRef(true)
 
-  // Switch renderer based on WebGL context availability
+  // Track the outgoing renderer during transitions to avoid flash
+  const outgoingRendererRef = useRef<PointRendererBase | null>(null)
+
+  // Switch renderer based on WebGL context availability or forced type
   useEffect(() => {
     const switchRenderer = async () => {
-      // Only dispose on subsequent renders, not on the first render
-      // (because the initial renderer hasn't been init'd yet)
+
+      // Store the current renderer as "outgoing" - we'll dispose it after the new one renders
+      // On first render, there's no outgoing renderer to preserve
       if (!isFirstRender.current) {
-        renderer.dispose()
+        outgoingRendererRef.current = renderer
       }
       isFirstRender.current = false
 
       let newRenderer: PointRendererBase
 
-      if (hasWebGLContext) {
+      if (forcedRendererType === "webgl" && hasWebGLContext) {
+        // Forced WebGL mode AND we have a context
         newRenderer = new PixiPointRenderer(stateRef.current)
+      } else if (forcedRendererType === "canvas") {
+        // Forced Canvas mode (for testing)
+        newRenderer = new CanvasPointRenderer(stateRef.current)
+      } else if (forcedRendererType === "webgl" && !hasWebGLContext) {
+        // Forced WebGL but waiting for context - skip this intermediate state
+        // The context management effect will grant us a context and trigger another render
+        return
+      } else if (hasWebGLContext) {
+        // Use WebGL (Pixi) renderer when context is available
+        newRenderer = new PixiPointRenderer(stateRef.current)
+      } else if (contextWasDenied) {
+        // Fall back to Canvas 2D renderer when WebGL context was denied
+        newRenderer = new CanvasPointRenderer(stateRef.current)
       } else {
+        // Use null renderer while waiting for context decision
         newRenderer = new NullPointRenderer(stateRef.current)
       }
 
@@ -262,13 +324,35 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
       setIsReady(true)
 
       onRendererChange?.(newRenderer)
+
+      // Dispose the old renderer
+      if (outgoingRendererRef.current) {
+        const outgoing = outgoingRendererRef.current
+        // If outgoing is a WebGL renderer, dispose immediately to free the context
+        // For other renderers, wait for new one to paint to avoid flash
+        if (outgoing.capability === "webgl") {
+          outgoing.dispose()
+          outgoingRendererRef.current = null
+        } else {
+          // Wait for the new renderer to paint before disposing the old one.
+          // Use two animation frames: first to queue the render, second to ensure it's painted.
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              if (outgoingRendererRef.current) {
+                outgoingRendererRef.current.dispose()
+                outgoingRendererRef.current = null
+              }
+            })
+          })
+        }
+      }
     }
 
     switchRenderer()
     // Note: We intentionally don't include `renderer` or `rendererOptions` in dependencies
     // as it would cause infinite loops or unnecessary re-renders
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasWebGLContext, onRendererChange])
+  }, [hasWebGLContext, contextWasDenied, forcedRendererType, onRendererChange])
 
   // Request a context with boosted priority (for user interaction)
   const requestContextWithHighPriority = useCallback(() => {
@@ -293,6 +377,13 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
     // If not granted even with high priority, contextWasDenied should already be true
   }, [skipContextRegistration, hasWebGLContext, id, contextConsumer])
 
+  // Toggle between WebGL and Canvas renderers (for testing)
+  const toggleRendererType = useCallback(() => {
+    const currentType = renderer.capability
+    const newForcedType = currentType === "webgl" ? "canvas" : "webgl"
+    setForcedRendererType(newForcedType)
+  }, [renderer.capability])
+
   return {
     renderer,
     hasWebGLContext,
@@ -300,6 +391,8 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
     isVisible,
     isReady,
     state: stateRef.current,
-    requestContextWithHighPriority
+    rendererType: renderer.capability,
+    requestContextWithHighPriority,
+    toggleRendererType
   }
 }

@@ -1,5 +1,5 @@
 import {observer} from "mobx-react-lite"
-import React, {useEffect} from "react"
+import {useEffect} from "react"
 import { useMemo } from "use-memo-one"
 import { mstAutorun } from "../../../utilities/mst-autorun"
 import { DataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
@@ -7,7 +7,6 @@ import { LeafletMapLayersContext } from "../hooks/use-leaflet-map-layers"
 import {useMapModel} from "../hooks/use-map-model"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import { LeafletMapLayers } from "../models/leaflet-map-layers"
-import {kMapPinLayerType, kMapPointLayerType, kMapPolygonLayerType} from "../map-types"
 import { isMapPinLayerModel } from "../models/map-pin-layer-model"
 import {isMapPointLayerModel} from "../models/map-point-layer-model"
 import {isMapPolygonLayerModel} from "../models/map-polygon-layer-model"
@@ -45,7 +44,7 @@ export const MapInterior = observer(function MapInterior() {
       if (isMapPointLayerModel(layerModel)) {
         return (
           <DataConfigurationContext.Provider
-            key={`${kMapPointLayerType}-${index}`}
+            key={layerModel.id}
             value={layerModel.dataConfiguration}
           >
             <MapPointLayer
@@ -57,13 +56,13 @@ export const MapInterior = observer(function MapInterior() {
       }
       else if (isMapPolygonLayerModel(layerModel)) {
         return <MapPolygonLayer
-          key ={`${kMapPolygonLayerType}-${index}`}
+          key={layerModel.id}
           mapLayerModel={layerModel}
         />
       }
       else if (isMapPinLayerModel(layerModel)) {
         return <MapPinLayer
-          key={`${kMapPinLayerType}-${index}`}
+          key={layerModel.id}
           mapLayerModel={layerModel}
         />
       }

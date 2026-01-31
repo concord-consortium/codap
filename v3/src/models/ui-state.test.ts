@@ -56,6 +56,37 @@ describe("UIState", () => {
     })
   })
 
+  describe("minimalChrome", () => {
+    it("should be false by default", () => {
+      const uiState = new UIState()
+      expect(uiState.minimalChrome).toBe(false)
+    })
+
+    it("should be true when componentMode=yes", () => {
+      setUrlParams("?componentMode=yes")
+      const uiState = new UIState()
+      expect(uiState.minimalChrome).toBe(true)
+    })
+
+    it("should be true when embeddedMode=yes", () => {
+      setUrlParams("?embeddedMode=yes")
+      const uiState = new UIState()
+      expect(uiState.minimalChrome).toBe(true)
+    })
+
+    it("should be true when both componentMode and embeddedMode are set", () => {
+      setUrlParams("?componentMode=yes&embeddedMode=yes")
+      const uiState = new UIState()
+      expect(uiState.minimalChrome).toBe(true)
+    })
+
+    it("should be false when only embeddedServer=yes", () => {
+      setUrlParams("?embeddedServer=yes")
+      const uiState = new UIState()
+      expect(uiState.minimalChrome).toBe(false)
+    })
+  })
+
   describe("hideUndoRedoInComponent", () => {
     it("should be false by default", () => {
       const uiState = new UIState()
@@ -187,6 +218,157 @@ describe("UIState", () => {
       setUrlParams("?componentMode=yes")
       const uiState = new UIState()
       expect(uiState.shouldAutoFocusInitialTile).toBe(true)
+    })
+  })
+
+  describe("embeddedMode", () => {
+    it("should be false by default", () => {
+      const uiState = new UIState()
+      expect(uiState.embeddedMode).toBe(false)
+    })
+
+    it("should be true when embeddedMode=yes", () => {
+      setUrlParams("?embeddedMode=yes")
+      const uiState = new UIState()
+      expect(uiState.embeddedMode).toBe(true)
+    })
+
+    it("should be true when embeddedMode=true", () => {
+      setUrlParams("?embeddedMode=true")
+      const uiState = new UIState()
+      expect(uiState.embeddedMode).toBe(true)
+    })
+
+    it("should be false when embeddedMode=no", () => {
+      setUrlParams("?embeddedMode=no")
+      const uiState = new UIState()
+      expect(uiState.embeddedMode).toBe(false)
+    })
+
+    it("should be true when embeddedMode is present without value", () => {
+      setUrlParams("?embeddedMode")
+      const uiState = new UIState()
+      expect(uiState.embeddedMode).toBe(true)
+    })
+
+    it("should hide chrome when embeddedMode=yes", () => {
+      setUrlParams("?embeddedMode=yes")
+      const uiState = new UIState()
+      expect(uiState.shouldRenderMenuBar).toBe(false)
+      expect(uiState.shouldRenderToolShelf).toBe(false)
+      expect(uiState.shouldRenderBetaBanner).toBe(false)
+    })
+
+    it("should disallow component interactions when embeddedMode=yes", () => {
+      setUrlParams("?embeddedMode=yes")
+      const uiState = new UIState()
+      expect(uiState.allowComponentMove).toBe(false)
+      expect(uiState.allowComponentResize).toBe(false)
+      expect(uiState.allowComponentClose).toBe(false)
+      expect(uiState.allowComponentMinimize).toBe(false)
+    })
+
+    it("should suppress unsaved warning when embeddedMode=yes", () => {
+      setUrlParams("?embeddedMode=yes")
+      const uiState = new UIState()
+      expect(uiState.shouldSuppressUnsavedWarning).toBe(true)
+    })
+
+    it("should not update browser title when embeddedMode=yes", () => {
+      setUrlParams("?embeddedMode=yes")
+      const uiState = new UIState()
+      expect(uiState.shouldUpdateBrowserTitleFromDocument).toBe(false)
+    })
+
+    it("should auto-focus when embeddedMode=yes", () => {
+      setUrlParams("?embeddedMode=yes")
+      const uiState = new UIState()
+      expect(uiState.shouldAutoFocusInitialTile).toBe(true)
+    })
+
+    it("should show undo/redo in title bar when embeddedMode=yes", () => {
+      setUrlParams("?embeddedMode=yes")
+      const uiState = new UIState()
+      expect(uiState.shouldShowUndoRedoInComponentTitleBar).toBe(true)
+    })
+
+    it("should hide undo/redo in title bar when embeddedMode=yes and hideUndoRedoInComponent=yes", () => {
+      setUrlParams("?embeddedMode=yes&hideUndoRedoInComponent=yes")
+      const uiState = new UIState()
+      expect(uiState.shouldShowUndoRedoInComponentTitleBar).toBe(false)
+    })
+  })
+
+  describe("embeddedServer", () => {
+    it("should be false by default", () => {
+      const uiState = new UIState()
+      expect(uiState.embeddedServer).toBe(false)
+    })
+
+    it("should be true when embeddedServer=yes", () => {
+      setUrlParams("?embeddedServer=yes")
+      const uiState = new UIState()
+      expect(uiState.embeddedServer).toBe(true)
+    })
+
+    it("should be true when embeddedMode=yes (embeddedServer is implicitly enabled)", () => {
+      setUrlParams("?embeddedMode=yes")
+      const uiState = new UIState()
+      expect(uiState.embeddedServer).toBe(true)
+    })
+
+    it("should not hide chrome when only embeddedServer=yes", () => {
+      setUrlParams("?embeddedServer=yes")
+      const uiState = new UIState()
+      expect(uiState.shouldRenderMenuBar).toBe(true)
+      expect(uiState.shouldRenderToolShelf).toBe(true)
+      expect(uiState.shouldRenderBetaBanner).toBe(true)
+    })
+
+    it("should allow component interactions when only embeddedServer=yes", () => {
+      setUrlParams("?embeddedServer=yes")
+      const uiState = new UIState()
+      expect(uiState.allowComponentMove).toBe(true)
+      expect(uiState.allowComponentResize).toBe(true)
+      expect(uiState.allowComponentClose).toBe(true)
+      expect(uiState.allowComponentMinimize).toBe(true)
+    })
+  })
+
+  describe("hideUserEntryModal", () => {
+    it("should be false by default", () => {
+      const uiState = new UIState()
+      expect(uiState.hideUserEntryModal).toBe(false)
+    })
+
+    it("should be true when noEntryModal=yes", () => {
+      setUrlParams("?noEntryModal=yes")
+      const uiState = new UIState()
+      expect(uiState.hideUserEntryModal).toBe(true)
+    })
+
+    it("should be true when componentMode=yes", () => {
+      setUrlParams("?componentMode=yes")
+      const uiState = new UIState()
+      expect(uiState.hideUserEntryModal).toBe(true)
+    })
+
+    it("should be true when embeddedMode=yes", () => {
+      setUrlParams("?embeddedMode=yes")
+      const uiState = new UIState()
+      expect(uiState.hideUserEntryModal).toBe(true)
+    })
+
+    it("should be true when sample is specified", () => {
+      setUrlParams("?sample=mammals")
+      const uiState = new UIState()
+      expect(uiState.hideUserEntryModal).toBe(true)
+    })
+
+    it("should be true when dashboard is specified", () => {
+      setUrlParams("?dashboard")
+      const uiState = new UIState()
+      expect(uiState.hideUserEntryModal).toBe(true)
     })
   })
 })

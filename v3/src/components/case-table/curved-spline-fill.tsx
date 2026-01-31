@@ -1,5 +1,4 @@
 import { Colord } from "colord"
-import React from "react"
 import { buildFillPathStr } from "./curved-spline-utils"
 
 interface IProps {

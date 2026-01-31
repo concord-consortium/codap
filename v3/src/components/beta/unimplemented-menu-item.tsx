@@ -1,5 +1,4 @@
 import { MenuItem } from "@chakra-ui/react"
-import React from "react"
 
 interface IUnimplementedMenuItemProps {
   label: string

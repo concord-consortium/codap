@@ -1,7 +1,6 @@
 import {MenuItem, MenuList, useDisclosure} from "@chakra-ui/react"
 import {observer} from "mobx-react-lite"
 import {isAlive} from "mobx-state-tree"
-import React from "react"
 import { DataSetContext } from "../../../../hooks/use-data-set-context"
 import { useInspectorFormulaString } from "../../../../hooks/use-inspector-formula-string"
 import { logMessageWithReplacement } from "../../../../lib/log-message"

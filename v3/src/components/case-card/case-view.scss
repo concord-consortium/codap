@@ -2,12 +2,17 @@
 @use "../case-tile-common/case-tile-vars" as cardVars;
 
 @mixin buttonSvgStyles {
-  &:hover {
+  &:hover:not(:disabled) {
     svg {
       .shaded {
         fill: #0481a0;
       }
     }
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
   }
 
   svg {

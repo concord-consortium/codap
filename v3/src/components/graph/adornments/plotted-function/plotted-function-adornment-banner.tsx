@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import { observer } from "mobx-react-lite"
 import { Button, useDisclosure } from "@chakra-ui/react"
 import { t } from "../../../../utilities/translation/translate"

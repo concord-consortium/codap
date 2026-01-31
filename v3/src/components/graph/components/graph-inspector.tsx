@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react"
+import { useRef, useEffect, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
 import { InspectorButton, InspectorMenu, InspectorPanel } from "../../inspector-panel"

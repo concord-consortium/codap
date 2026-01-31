@@ -1,4 +1,3 @@
-import React from 'react'
 import { useCollectionContext } from '../../hooks/use-collection-context'
 import { IDataSet } from "../../models/data/data-set"
 import { IGroupedCase } from '../../models/data/data-set-types'

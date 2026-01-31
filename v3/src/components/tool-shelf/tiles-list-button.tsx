@@ -1,7 +1,6 @@
 import { Menu, MenuButton, MenuItem, MenuList, useDisclosure } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import React from "react"
 import WebViewIcon from "../../assets/icons/icon-media-tool.svg"
 import TileListIcon from "../../assets/icons/icon-tile-list.svg"
 import { useDocumentContent } from "../../hooks/use-document-content"

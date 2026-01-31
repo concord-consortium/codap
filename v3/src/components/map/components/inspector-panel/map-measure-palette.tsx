@@ -1,4 +1,3 @@
-import React from "react"
 import {Box, Checkbox, Flex} from "@chakra-ui/react"
 import {t} from "../../../../utilities/translation/translate"
 import {ITileModel} from "../../../../models/tiles/tile-model"

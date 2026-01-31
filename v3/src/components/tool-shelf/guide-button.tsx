@@ -1,4 +1,3 @@
-import React from "react"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
 import { Menu, MenuButton, MenuItem, MenuList, useDisclosure } from "@chakra-ui/react"

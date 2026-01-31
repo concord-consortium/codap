@@ -86,3 +86,29 @@ export function getExtensionFromFile(file: File | IImportedFile | null): string 
   return pathParts.length > 1 ? pathParts[pathParts.length - 1] : undefined
 }
 
+export function stripExtensionFromFilename(filename: string): string {
+  // Handle filenames starting with a dot (e.g., ".gitignore")
+  if (filename.startsWith(".")) {
+    const withoutLeadingDot = filename.slice(1)
+    const _lastDotIndex = withoutLeadingDot.lastIndexOf(".")
+
+    // If no dot after the leading dot, return original (e.g., ".gitignore")
+    if (_lastDotIndex === -1) {
+      return filename
+    }
+
+    // Otherwise, strip the extension after the leading dot (e.g., ".hidden.jpg" -> ".hidden")
+    return `.${withoutLeadingDot.slice(0, _lastDotIndex)}`
+  }
+
+  // For regular filenames, find the last dot
+  const lastDotIndex = filename.lastIndexOf(".")
+
+  // If no dot found, return the original filename
+  if (lastDotIndex === -1) {
+    return filename
+  }
+
+  // Strip everything from the last dot onwards
+  return filename.slice(0, lastDotIndex)
+}

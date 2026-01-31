@@ -8,6 +8,7 @@ import { IGlobalValue } from "../models/global/global-value"
 import { IV2CollectionDefaults } from "../models/shared/data-set-metadata"
 import { getMetadataFromDataSet } from "../models/shared/shared-data-utils"
 import { kAttrIdPrefix, maybeToV2Id, toV2Id, toV2ItemId, toV3AttrId } from "../utilities/codap-utils"
+import { isFiniteNumber } from "../utilities/math-utils"
 import {
   ICodapV2Attribute, ICodapV2Case, ICodapV2CategoryMap, ICodapV2CollectionV3,
   ICodapV2DataContextSelectedCase, v3TypeFromV2TypeString
@@ -29,7 +30,9 @@ export function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttr
       userType: v3TypeFromV2TypeString(values.type),
       description: values.description ?? undefined,
       formula: values.formula ? { display: values.formula } : undefined,
-      precision: values.precision == null || values.precision === "" ? undefined : +values.precision,
+      precision: values.precision == null || values.precision === ""
+                    ? undefined
+                    : isFiniteNumber(+values.precision) ? +values.precision : undefined,
       units: values.unit ?? undefined
     }
   }

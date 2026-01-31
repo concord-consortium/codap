@@ -38,7 +38,7 @@ export const CaseTable = observer(function CaseTable() {
   useEffect(() => {
     // disable vertical auto-scroll of table (column headers can't scroll out of view)
     return registerCanAutoScrollCallback((element, direction) => {
-      return element !== contentRef.current || (direction && direction.y === 0)
+      return element !== contentRef.current || (direction?.y === 0)
     })
   }, [])
 

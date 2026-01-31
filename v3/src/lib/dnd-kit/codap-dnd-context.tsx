@@ -2,7 +2,7 @@ import {
   AutoScrollOptions, DndContext, KeyboardCoordinateGetter, KeyboardSensor,
   MouseSensor, PointerSensor, TraversalOrder, useSensor, useSensors
 } from "@dnd-kit/core"
-import React, { ReactNode } from "react"
+import { ReactNode } from "react"
 import { dataInteractiveState } from "../../data-interactive/data-interactive-state"
 import { urlParams } from "../../utilities/url-params"
 import { canAutoScroll } from "./dnd-can-auto-scroll"

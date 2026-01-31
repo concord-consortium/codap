@@ -363,7 +363,7 @@ describe("WebView registration", () =>  {
 
     const row = docContent.getRowByIndex(0) as IFreeTileRow
     const componentExport = exportV2Component({ tile, row, sharedModelManager })
-    expect(componentExport?.type).toBe("DG.WebView")
+    expect(componentExport?.type).toBe("DG.ImageComponentView")
     const contentStorage = componentExport?.componentStorage as ICodapV2ImageComponentStorage
 
     expect(hasOwnProperty(contentStorage, "name")).toBe(true)
@@ -401,12 +401,40 @@ describe("WebView registration", () =>  {
 
     const row = docContent.getRowByIndex(0) as IFreeTileRow
     const componentExport = exportV2Component({ tile, row, sharedModelManager })
-    expect(componentExport?.type).toBe("DG.WebView")
+    expect(componentExport?.type).toBe("DG.ImageComponentView")
     const contentStorage = componentExport?.componentStorage as ICodapV2ImageComponentStorage
 
     expect(hasOwnProperty(contentStorage, "name")).toBe(true)
     expect(contentStorage.name).toBe("forest fire slider.png")
     expect(contentStorage.URL).toContain("data:image/png;base64")
+  })
+
+  it("exports image tiles with correct type and component storage", () => {
+    const codapDoc = createCodapDocument()
+    const docContent = codapDoc.content!
+    docContent.setRowCreator(() => FreeTileRow.create())
+    const sharedModelManager = getSharedModelManager(docContent)
+    const tile = docContent.createTile(kWebViewTileType)!
+    const content = tile.content as IWebViewModel
+
+    // Set up an image tile with a data URL
+    const dataUrl = "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
+    content.setUrl(dataUrl)
+    content.setSubType("image")
+    tile.setName("sample-image")
+    tile.setTitle("Sample Image")
+
+    const row = docContent.getRowByIndex(0) as IFreeTileRow
+    const componentExport = exportV2Component({ tile, row, sharedModelManager })
+
+    // Verify it exports as DG.ImageComponentView
+    expect(componentExport?.type).toBe("DG.ImageComponentView")
+
+    // Verify the component storage includes name, title, and URL
+    const contentStorage = componentExport?.componentStorage as ICodapV2ImageComponentStorage
+    expect(contentStorage.name).toBe("sample-image")
+    expect(contentStorage.title).toBe("Sample Image")
+    expect(contentStorage.URL).toBe(dataUrl)
   })
 
   it("imports/exports v2 game view components with custom title", () => {

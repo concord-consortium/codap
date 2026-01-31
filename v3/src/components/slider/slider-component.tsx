@@ -1,7 +1,7 @@
 import { Flex, Editable, EditablePreview, EditableInput, Button } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import React, { CSSProperties, useEffect, useMemo, useRef, useState } from "react"
+import { CSSProperties, useEffect, useMemo, useRef, useState } from "react"
 import { useResizeDetector } from "react-resize-detector"
 import PlayIcon from "../../assets/icons/icon-play.svg"
 import PauseIcon from "../../assets/icons/icon-pause.svg"

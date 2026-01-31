@@ -1,6 +1,6 @@
 import { useMergeRefs } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
-import React, { useCallback, useRef } from "react"
+import { useCallback, useRef } from "react"
 // import { useResizeDetector } from "react-resize-detector"
 import { useDataSet } from "../../hooks/use-data-set"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"

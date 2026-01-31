@@ -92,6 +92,39 @@ describe("DataInteractive AttributeHandler", () => {
     expect(resultAttr2?.type).toBe(type)
   })
 
+  it("update handles invalid precision values correctly", () => {
+    const { dataset: dataContext, a1 } = setupTestDataset()
+
+    // Set a valid precision first
+    handler.update?.({ attribute: a1, dataContext }, { precision: 5 })
+    expect(a1.precision).toBe(5)
+
+    // Update with null precision should set it to undefined
+    handler.update?.({ attribute: a1, dataContext }, { precision: null })
+    expect(a1.precision).toBeUndefined()
+
+    // Set precision again
+    handler.update?.({ attribute: a1, dataContext }, { precision: 3 })
+    expect(a1.precision).toBe(3)
+
+    // Update with empty string precision should set it to undefined
+    handler.update?.({ attribute: a1, dataContext }, { precision: "" })
+    expect(a1.precision).toBeUndefined()
+
+    // Set precision again
+    handler.update?.({ attribute: a1, dataContext }, { precision: 2 })
+    expect(a1.precision).toBe(2)
+
+    // Update with invalid string should set it to undefined (not NaN)
+    // This prevents NaN from being stored, which would become null in JSON
+    handler.update?.({ attribute: a1, dataContext }, { precision: "invalid" })
+    expect(a1.precision).toBeUndefined()
+
+    // Verify that string numbers work
+    handler.update?.({ attribute: a1, dataContext }, { precision: "4" })
+    expect(a1.precision).toBe(4)
+  })
+
   it("delete works as expected", () => {
     const attribute = Attribute.create({ name: "name" })
     const dataContext = DataSet.create({}, {historyService: new AppHistoryService()})

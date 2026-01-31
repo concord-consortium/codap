@@ -1,4 +1,3 @@
-import React from "react"
 import { CaseTileInspector } from "../case-tile-common/inspector-panel/case-tile-inspector"
 import { ITileInspectorPanelProps } from "../tiles/tile-base-props"
 

@@ -16,6 +16,55 @@ import { updateCellMasks } from "../utilities/graph-utils"
 import {useGraphContentModelContext} from "./use-graph-content-model-context"
 import {useGraphLayoutContext} from "./use-graph-layout-context"
 
+/**
+ * A debounced callback that accumulates boolean options across multiple calls.
+ * When multiple calls occur within the debounce window:
+ * - `updateMasks`: Uses OR logic (true if ANY call sets true)
+ * - `selectedOnly`: Uses AND logic (true only if ALL calls set true)
+ *
+ * This ensures that if any caller needs masks updated or a full refresh,
+ * the final debounced call will honor that requirement.
+ */
+interface IRefreshProps {
+  selectedOnly?: boolean
+  updateMasks?: boolean
+}
+
+export function useAccumulatingDebouncedCallback(
+  callback: (props: IRefreshProps) => void,
+  wait?: number
+) {
+  // Start with selectedOnly=true (AND identity) and updateMasks=false (OR identity)
+  const accumulatedRef = useRef<IRefreshProps>({ selectedOnly: true, updateMasks: false })
+
+  const debouncedCallback = useDebouncedCallback(() => {
+    callback(accumulatedRef.current)
+    // Reset to initial values after execution
+    accumulatedRef.current = { selectedOnly: true, updateMasks: false }
+  }, wait)
+
+  return useCallback((props?: IRefreshProps) => {
+    if (props) {
+      // Accumulate updateMasks with OR: if any call wants masks updated, update them
+      if (props.updateMasks != null) {
+        accumulatedRef.current.updateMasks = accumulatedRef.current.updateMasks || props.updateMasks
+      }
+      // Accumulate selectedOnly with AND: only true if all calls want selectedOnly
+      // A call with selectedOnly=false (or undefined, which defaults to false) means full refresh needed
+      if (props.selectedOnly != null) {
+        accumulatedRef.current.selectedOnly = accumulatedRef.current.selectedOnly && props.selectedOnly
+      } else {
+        // undefined means "refresh all" (selectedOnly defaults to false), so AND with false
+        accumulatedRef.current.selectedOnly = false
+      }
+    } else {
+      // No props means default behavior: refresh all (selectedOnly=false)
+      accumulatedRef.current.selectedOnly = false
+    }
+    debouncedCallback()
+  }, [debouncedCallback])
+}
+
 export interface IRendererDragHandlers {
   start: PointEventHandler
   drag: PointEventHandler
@@ -61,12 +110,8 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     metadata = dataConfiguration?.metadata,
     instanceId = useInstanceIdContext()
 
-  interface IRefreshProps {
-    selectedOnly?: boolean
-    updateMasks?: boolean
-  }
-  const callRefreshPointPositions = useDebouncedCallback((_props?: IRefreshProps) => {
-    const { selectedOnly = false, updateMasks = false } = _props || {}
+  const callRefreshPointPositions = useAccumulatingDebouncedCallback((_props: IRefreshProps) => {
+    const { selectedOnly = false, updateMasks = false } = _props
     if (updateMasks) {
       updateCellMasks({ dataConfig: dataConfiguration, layout, renderer })
     }
@@ -190,6 +235,18 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       () => {
         callRefreshPointPositions()
       }, {name: "usePlot [axis range]"}
+    )
+  }, [layout, callRefreshPointPositions])
+
+  // respond to categorical axis scale domain changes (e.g. when categories are hidden)
+  // This ensures the plot re-renders after the axis scale domain is updated
+  useEffect(() => {
+    return reaction(
+      () => (["bottom", "left", "top", "rightCat"] as const)
+              .map((place) => layout.getAxisMultiScale(place)?.changeCount),
+      () => {
+        callRefreshPointPositions({ updateMasks: true })
+      }, {name: "usePlot [axis scale domain]", equals: comparer.structural}
     )
   }, [layout, callRefreshPointPositions])
 

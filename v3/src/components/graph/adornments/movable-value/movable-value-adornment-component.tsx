@@ -1,7 +1,7 @@
 import {drag, select, Selection} from "d3"
 import {autorun} from "mobx"
 import { observer } from "mobx-react-lite"
-import React, {useCallback, useEffect, useRef} from "react"
+import {useCallback, useEffect, useRef} from "react"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 import {useAxisLayoutContext} from "../../../axis/models/axis-layout-context"
 import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"

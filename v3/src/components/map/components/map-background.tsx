@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite"
-import React, { useEffect, useRef } from "react"
+import { useEffect, useRef } from "react"
 import { useMemo } from "use-memo-one"
 import { Background } from "../../data-display/components/background"
 import { Marquee } from "../../data-display/components/marquee"

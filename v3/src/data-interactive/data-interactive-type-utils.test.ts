@@ -1,8 +1,55 @@
 import { DataSet } from "../models/data/data-set"
 import { toV2Id } from "../utilities/codap-utils"
-import { convertDataSetToV2 } from "./data-interactive-type-utils"
+import { convertDataSetToV2, convertValuesToAttributeSnapshot } from "./data-interactive-type-utils"
 
 describe("DataInteractiveTypeUtils", () => {
+
+  describe("convertValuesToAttributeSnapshot", () => {
+    it("returns undefined for values without name", () => {
+      expect(convertValuesToAttributeSnapshot({})).toBeUndefined()
+      expect(convertValuesToAttributeSnapshot({ precision: 2 })).toBeUndefined()
+    })
+
+    it("handles valid numeric precision values", () => {
+      const result = convertValuesToAttributeSnapshot({ name: "test", precision: 2 })
+      expect(result?.precision).toBe(2)
+
+      const result2 = convertValuesToAttributeSnapshot({ name: "test", precision: "3" })
+      expect(result2?.precision).toBe(3)
+
+      const result3 = convertValuesToAttributeSnapshot({ name: "test", precision: 0 })
+      expect(result3?.precision).toBe(0)
+    })
+
+    it("converts null or empty precision to undefined", () => {
+      const result = convertValuesToAttributeSnapshot({ name: "test", precision: null })
+      expect(result?.precision).toBeUndefined()
+
+      const result2 = convertValuesToAttributeSnapshot({ name: "test", precision: "" })
+      expect(result2?.precision).toBeUndefined()
+
+      const result3 = convertValuesToAttributeSnapshot({ name: "test" })
+      expect(result3?.precision).toBeUndefined()
+    })
+
+    it("converts invalid precision values to undefined instead of NaN", () => {
+      // Invalid string that would produce NaN when converted with +
+      const result = convertValuesToAttributeSnapshot({ name: "test", precision: "invalid" })
+      expect(result?.precision).toBeUndefined()
+
+      const result2 = convertValuesToAttributeSnapshot({ name: "test", precision: "foo" })
+      expect(result2?.precision).toBeUndefined()
+
+      // NaN itself should become undefined
+      const result3 = convertValuesToAttributeSnapshot({ name: "test", precision: NaN })
+      expect(result3?.precision).toBeUndefined()
+
+      // Infinity should become undefined (not a finite number)
+      const result4 = convertValuesToAttributeSnapshot({ name: "test", precision: Infinity })
+      expect(result4?.precision).toBeUndefined()
+    })
+  })
+
   it("can convert a hierarchical DataSet to v2", () => {
     const data = DataSet.create({
       id: "DATA2",

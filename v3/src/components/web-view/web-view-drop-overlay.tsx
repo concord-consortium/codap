@@ -1,6 +1,6 @@
 import { Active, DragEndEvent, DragStartEvent, useDndMonitor, useDroppable } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
-import React, { MouseEventHandler, useRef } from "react"
+import { MouseEventHandler, useRef } from "react"
 import { IFullNotification } from "../../data-interactive/notification-full-types"
 import { getDragAttributeInfo, useDropHandler } from "../../hooks/use-drag-drop"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"

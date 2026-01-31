@@ -1,37 +1,43 @@
 import { getDataInteractiveUrl, removeDevUrlParams, removeSearchParams, setUrlParams } from "./url-params"
 
 describe("urlParams", () => {
-  const originalLocation = window.location
-
-  const mockWindowLocation = (newLocation: Location | URL) => {
-    delete (window as any).location
-    window.location = newLocation as any
-  }
+  // In Jest 30+ with jsdom 25+, window.location is non-configurable
+  // Use history.replaceState to change the URL, then track pushState calls
+  const originalHref = window.location.href
+  let pushedUrls: string[]
 
   const setLocation = (url: string) => {
-    mockWindowLocation(new URL(url))
+    // Use replaceState to change the URL without triggering navigation
+    const urlObj = new URL(url)
+    window.history.replaceState(null, "", urlObj.pathname + urlObj.search + urlObj.hash)
   }
 
   let mockPushState: jest.SpyInstance
 
   beforeEach(() => {
-    mockPushState = jest.spyOn(window.history, "pushState").mockImplementation(() => null)
+    pushedUrls = []
+    mockPushState = jest.spyOn(window.history, "pushState").mockImplementation((_state, _title, url) => {
+      if (url) pushedUrls.push(url.toString())
+    })
   })
 
   afterEach(() => {
     mockPushState.mockRestore()
-    mockWindowLocation(originalLocation)
+    // Restore original location
+    window.history.replaceState(null, "", new URL(originalHref).pathname)
   })
 
   it("removeSearchParams strips search params when requested", () => {
-    setLocation("https://concord.org?foo=1&bar=roo")
+    // In Jest 30+ with jsdom 25+, we can only change the path/search, not the origin
+    // so tests use http://localhost as the base URL
+    setLocation("http://localhost/?foo=1&bar=roo")
     removeSearchParams(["foo"])
-    let newUrl = "https://concord.org/?bar=roo"
+    let newUrl = "http://localhost/?bar=roo"
     expect(mockPushState).toHaveBeenCalledWith({ path: newUrl }, "", newUrl)
 
-    setLocation("https://concord.org?foo=1&bar=roo")
+    setLocation("http://localhost/?foo=1&bar=roo")
     removeSearchParams(["foo", "bar"])
-    newUrl = "https://concord.org/"
+    newUrl = "http://localhost/"
     expect(mockPushState).toHaveBeenCalledWith({ path: newUrl }, "", newUrl)
   })
 
@@ -55,14 +61,15 @@ describe("urlParams", () => {
   })
 
   it("removeDevUrlParams strips appropriate dev-only params", () => {
-    setLocation("https://concord.org?sample=mammals&dashboard")
+    // In Jest 30+ with jsdom 25+, we can only change the path/search, not the origin
+    setLocation("http://localhost/?sample=mammals&dashboard")
     removeDevUrlParams()
-    let newUrl = "https://concord.org/"
+    let newUrl = "http://localhost/"
     expect(mockPushState).toHaveBeenCalledWith({ path: newUrl }, "", newUrl)
 
-    setLocation("https://concord.org?sample=mammals&dashboard&other=param")
+    setLocation("http://localhost/?sample=mammals&dashboard&other=param")
     removeDevUrlParams()
-    newUrl = "https://concord.org/?other=param"
+    newUrl = "http://localhost/?other=param"
     expect(mockPushState).toHaveBeenCalledWith({ path: newUrl }, "", newUrl)
   })
 

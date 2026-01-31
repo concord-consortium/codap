@@ -70,7 +70,7 @@ export function parseResourceSelector(iResource: string) {
 export function resolveResources(
   _resourceSelector: DIResourceSelector | string,
   action: ActionName,
-  interactiveFrame: ITileModel,
+  interactiveFrame: Maybe<ITileModel>,
   cfm: Maybe<CloudFileManager>
 ) {
   const resourceSelector = typeof _resourceSelector === "string"

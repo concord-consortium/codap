@@ -19,6 +19,11 @@
     align-items: center;
     justify-content: center;
   }
+
+  // Chakra Menu popper wrapper rendered via Portal into .codap-container needs high z-index to appear above tiles
+  > .chakra-portal > div:has(.axis-legend-menu) {
+    z-index: 10000;
+  }
 }
 
 .vertical-toolbar-container {

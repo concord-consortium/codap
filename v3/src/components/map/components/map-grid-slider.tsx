@@ -1,4 +1,4 @@
-import React, {MutableRefObject, useRef} from "react"
+import {MutableRefObject, useRef} from "react"
 import {Portal, Slider, SliderTrack, SliderFilledTrack, SliderThumb,} from "@chakra-ui/react"
 import {IMapContentModel} from "../models/map-content-model"
 import {isMapPointLayerModel} from "../models/map-point-layer-model"

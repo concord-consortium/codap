@@ -33,6 +33,7 @@ export const DEBUG_LOGGER = debugContains("logger")
 export const DEBUG_MAP = debugContains("map")
 export const DEBUG_PIXI_POINTS = debugContains("pixiPoints")
 export const DEBUG_PLUGINS = debugContains("plugins")
+export const DEBUG_RENDERERS = debugContains("renderers")
 export const DEBUG_SAVE_AS_V2 = debugContains("saveAsV2")
 export const DEBUG_UNDO = debugContains("undo")
 

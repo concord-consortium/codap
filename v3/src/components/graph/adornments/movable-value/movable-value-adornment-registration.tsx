@@ -1,5 +1,4 @@
 import { Button, Flex } from "@chakra-ui/react"
-import React from "react"
 import { registerAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
 import { safeJsonParse } from "../../../../utilities/js-utils"
 import { isFiniteNumber } from "../../../../utilities/math-utils"

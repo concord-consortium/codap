@@ -1,5 +1,5 @@
 import { Portal } from "@chakra-ui/react"
-import React, { ReactNode } from "react"
+import { ReactNode } from "react"
 
 /*
   By default, React events bubble up through portals following the React component hierarchy rather

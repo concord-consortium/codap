@@ -1,5 +1,4 @@
 import { observer } from "mobx-react-lite"
-import React from "react"
 import { ComponentTitleBar  } from "../component-title-bar"
 import { ITileTitleBarProps } from "../tiles/tile-base-props"
 import { isWebViewModel } from "./web-view-model"

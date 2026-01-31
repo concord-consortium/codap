@@ -1,7 +1,6 @@
 /* eslint-disable testing-library/render-result-naming-convention */
 // The renderAttributeValue function is not a React Testing Library render function,
 // but ESLint incorrectly flags variables named "result" that store its return value.
-import React from "react"
 import {
   getNumFormatter, getNumFormatterForAttribute, renderAttributeValue, findLongestContentWidth
 } from "./attribute-format-utils"

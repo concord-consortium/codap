@@ -1,4 +1,3 @@
-import React from "react"
 import { observer } from "mobx-react-lite"
 import { MenuItem, MenuList } from "@chakra-ui/react"
 import { useCfmContext } from "../../../hooks/use-cfm-context"

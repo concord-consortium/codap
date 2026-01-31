@@ -1,6 +1,5 @@
 import { useDndContext } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
-import React from "react"
 import { getTileComponentInfo } from "../models/tiles/tile-component-info"
 import { uiState } from "../models/ui-state"
 import { ITileBaseProps } from "./tiles/tile-base-props"

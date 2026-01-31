@@ -1,4 +1,5 @@
 import { kMain } from "../../../data-display/data-display-types"
+import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
 import { LSRLAdornmentModel, LSRLInstance } from "./lsrl-adornment-model"
 import { LineLabelInstance } from "../line-label-instance"
 
@@ -123,5 +124,160 @@ describe("LSRLAdornmentModel", () => {
     const lSRL = LSRLAdornmentModel.create()
     lSRL.updateLines(mockLSRLInstanceProps1, "{}")
     expect(lSRL.lines.get("{}")?.get(kMain)?.slopeAndIntercept).toEqual({intercept: 1, slope: 1})
+  })
+
+  describe("updateCategories", () => {
+    // Helper to create a mock dataConfig for testing updateCategories
+    function createMockDataConfig(options: {
+      cellKeys: Record<string, string>[],
+      legendCategories: string[],
+      xAttrId?: string,
+      yAttrId?: string
+    }) {
+      const { cellKeys, legendCategories, xAttrId = "xAttr", yAttrId = "yAttr" } = options
+      return {
+        getAllCellKeys: () => cellKeys,
+        categoryArrayForAttrRole: (role: string) => role === "legend" ? legendCategories : [],
+        getCategoriesOptions: () => ({
+          xAttrId,
+          yAttrId,
+          xCats: [],
+          yCats: [],
+          topCats: [],
+          rightCats: []
+        }),
+        subPlotCases: () => [],
+        filterCasesForDisplay: () => [],
+        dataset: undefined,
+        attributeID: () => ""
+      } as unknown as IGraphDataConfigurationModel
+    }
+
+    it("removes stale cell keys from lines when categories change", () => {
+      const lSRL = LSRLAdornmentModel.create()
+
+      // Manually add lines with specific cell keys (simulating prior state)
+      const cellKey1 = { xAttr: "A" }
+      const cellKey2 = { xAttr: "B" }
+      const instanceKey1 = lSRL.instanceKey(cellKey1) // '{"xAttr":"A"}'
+      const instanceKey2 = lSRL.instanceKey(cellKey2) // '{"xAttr":"B"}'
+
+      lSRL.updateLines(mockLSRLInstanceProps1, instanceKey1, kMain)
+      lSRL.updateLines(mockLSRLInstanceProps2, instanceKey2, kMain)
+      expect(lSRL.lines.size).toEqual(2)
+
+      // Now call updateCategories with only cellKey1 as valid
+      const mockDataConfig = createMockDataConfig({
+        cellKeys: [cellKey1], // Only cellKey1 is valid now
+        legendCategories: [kMain]
+      })
+
+      lSRL.updateCategories({ dataConfig: mockDataConfig })
+
+      // cellKey2 should be removed, cellKey1 should remain
+      expect(lSRL.lines.size).toEqual(1)
+      expect(lSRL.lines.has(instanceKey1)).toBe(true)
+      expect(lSRL.lines.has(instanceKey2)).toBe(false)
+    })
+
+    it("removes stale cell keys from labels when categories change", () => {
+      const lSRL = LSRLAdornmentModel.create()
+
+      // Manually add labels with specific cell keys
+      const cellKey1 = { xAttr: "A" }
+      const cellKey2 = { xAttr: "B" }
+      const instanceKey1 = lSRL.instanceKey(cellKey1)
+      const instanceKey2 = lSRL.instanceKey(cellKey2)
+
+      lSRL.setLabel(cellKey1, kMain, LineLabelInstance.create({ equationCoords: { x: 10, y: 10 } }))
+      lSRL.setLabel(cellKey2, kMain, LineLabelInstance.create({ equationCoords: { x: 20, y: 20 } }))
+      expect(lSRL.labels.size).toEqual(2)
+
+      // Now call updateCategories with only cellKey1 as valid
+      const mockDataConfig = createMockDataConfig({
+        cellKeys: [cellKey1], // Only cellKey1 is valid now
+        legendCategories: [kMain]
+      })
+
+      lSRL.updateCategories({ dataConfig: mockDataConfig })
+
+      // cellKey2 should be removed from labels, cellKey1 should remain
+      expect(lSRL.labels.size).toEqual(1)
+      expect(lSRL.labels.has(instanceKey1)).toBe(true)
+      expect(lSRL.labels.has(instanceKey2)).toBe(false)
+    })
+
+    it("handles keys consistently between lines and labels maps", () => {
+      const lSRL = LSRLAdornmentModel.create()
+
+      // Set up lines and labels with the same cell keys
+      const cellKey1 = { xAttr: "A", yAttr: "1" }
+      const cellKey2 = { xAttr: "B", yAttr: "2" }
+      const cellKey3 = { xAttr: "C", yAttr: "3" }
+      const instanceKey1 = lSRL.instanceKey(cellKey1)
+      const instanceKey2 = lSRL.instanceKey(cellKey2)
+      const instanceKey3 = lSRL.instanceKey(cellKey3)
+
+      // Add lines and labels for all three cell keys
+      lSRL.updateLines(mockLSRLInstanceProps1, instanceKey1, kMain)
+      lSRL.updateLines(mockLSRLInstanceProps1, instanceKey2, kMain)
+      lSRL.updateLines(mockLSRLInstanceProps1, instanceKey3, kMain)
+      lSRL.setLabel(cellKey1, kMain, LineLabelInstance.create({ equationCoords: { x: 10, y: 10 } }))
+      lSRL.setLabel(cellKey2, kMain, LineLabelInstance.create({ equationCoords: { x: 20, y: 20 } }))
+      lSRL.setLabel(cellKey3, kMain, LineLabelInstance.create({ equationCoords: { x: 30, y: 30 } }))
+
+      expect(lSRL.lines.size).toEqual(3)
+      expect(lSRL.labels.size).toEqual(3)
+
+      // Update categories to only include cellKey1 and cellKey2
+      const mockDataConfig = createMockDataConfig({
+        cellKeys: [cellKey1, cellKey2],
+        legendCategories: [kMain]
+      })
+
+      lSRL.updateCategories({ dataConfig: mockDataConfig })
+
+      // Both lines and labels should have the same keys removed
+      expect(lSRL.lines.size).toEqual(2)
+      expect(lSRL.labels.size).toEqual(2)
+
+      // Verify the same keys are present in both
+      expect(lSRL.lines.has(instanceKey1)).toBe(true)
+      expect(lSRL.lines.has(instanceKey2)).toBe(true)
+      expect(lSRL.lines.has(instanceKey3)).toBe(false)
+      expect(lSRL.labels.has(instanceKey1)).toBe(true)
+      expect(lSRL.labels.has(instanceKey2)).toBe(true)
+      expect(lSRL.labels.has(instanceKey3)).toBe(false)
+    })
+
+    it("removes stale legend categories within a cell", () => {
+      const lSRL = LSRLAdornmentModel.create()
+
+      const cellKey = { xAttr: "A" }
+      const instanceKey = lSRL.instanceKey(cellKey)
+
+      // Add lines for multiple legend categories
+      lSRL.updateLines(mockLSRLInstanceProps1, instanceKey, "cat1")
+      lSRL.updateLines(mockLSRLInstanceProps2, instanceKey, "cat2")
+      lSRL.updateLines({ ...mockLSRLInstanceProps1, slope: 3 }, instanceKey, "cat3")
+
+      const linesInCell = lSRL.lines.get(instanceKey)
+      expect(linesInCell?.size).toEqual(3)
+
+      // Update categories to only include cat1 and cat2
+      const mockDataConfig = createMockDataConfig({
+        cellKeys: [cellKey],
+        legendCategories: ["cat1", "cat2"] // cat3 is no longer valid
+      })
+
+      lSRL.updateCategories({ dataConfig: mockDataConfig })
+
+      // cat3 should be removed from within the cell
+      const updatedLinesInCell = lSRL.lines.get(instanceKey)
+      expect(updatedLinesInCell?.size).toEqual(2)
+      expect(updatedLinesInCell?.has("cat1")).toBe(true)
+      expect(updatedLinesInCell?.has("cat2")).toBe(true)
+      expect(updatedLinesInCell?.has("cat3")).toBe(false)
+    })
   })
 })

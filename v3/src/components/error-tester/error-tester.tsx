@@ -1,4 +1,3 @@
-import React from "react"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { isErrorTesterModel } from "./error-tester-model"
 import { urlParams } from "../../utilities/url-params"

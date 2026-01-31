@@ -1,4 +1,3 @@
-import React from "react"
 import { observer } from "mobx-react-lite"
 import {range} from "d3"
 import {AxisPlace} from "../axis-types"

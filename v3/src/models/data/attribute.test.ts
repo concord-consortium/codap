@@ -535,6 +535,38 @@ describe("Attribute", () => {
     expect(barSnap.values?.length).toBe(0)
   })
 
+  test("preProcessSnapshot converts null precision to undefined", () => {
+    // NaN precision values get converted to null by JSON.stringify, and MST's types.maybe()
+    // doesn't accept null. The preProcessSnapshot should convert null back to undefined.
+    // This can happen when:
+    // 1. A plugin sends an invalid precision value that converts to NaN
+    // 2. MST accepts NaN (types.number accepts NaN)
+    // 3. JSON.stringify converts NaN to null
+    // 4. On document reload, JSON.parse produces null
+    const snapshotWithNullPrecision = {
+      name: "test",
+      values: ["1", "2", "3"],
+      precision: null as any // simulating what comes from JSON.parse after NaN was serialized
+    }
+
+    // This should not throw - null precision should be converted to undefined
+    const attr = Attribute.create(snapshotWithNullPrecision)
+    expect(attr.name).toBe("test")
+    expect(attr.precision).toBeUndefined()
+    expect(attr.strValues).toEqual(["1", "2", "3"])
+
+    // Verify that valid precision values still work
+    const attrWithNumericPrecision = Attribute.create({ name: "num", precision: 2 })
+    expect(attrWithNumericPrecision.precision).toBe(2)
+
+    const attrWithDatePrecision = Attribute.create({ name: "date", precision: "day" })
+    expect(attrWithDatePrecision.precision).toBe("day")
+
+    // Verify undefined precision works
+    const attrWithUndefinedPrecision = Attribute.create({ name: "undef", precision: undefined })
+    expect(attrWithUndefinedPrecision.precision).toBeUndefined()
+  })
+
   test.skip("performance of value.toString() vs. JSON.stringify(value)", () => {
     const values: number[] = []
     for (let i = 0; i < 5000; ++i) {

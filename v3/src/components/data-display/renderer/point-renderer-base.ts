@@ -351,10 +351,13 @@ export abstract class PointRendererBase {
   }
 
   /**
-   * Set position or transition based on display type
+   * Set position or transition based on display type.
+   * This also sets scale to 1 since this method is called during transitions
+   * where points animate to their final position and full scale.
    */
   setPositionOrTransition(point: IPoint, style: Partial<IPointStyle>, x: number, y: number): void {
     this.state.updatePointPosition(point.id, x, y)
+    this.state.updatePointScale(point.id, 1)
     this.state.updatePointStyle(point.id, style)
     this.doSetPositionOrTransition(point.id, style, x, y)
   }

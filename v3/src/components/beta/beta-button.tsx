@@ -1,4 +1,3 @@
-import React from "react"
 import { isBeta } from "../../utilities/version-utils"
 
 import FeedbackIcon from "../../assets/icons/beta/feedback-icon.svg"

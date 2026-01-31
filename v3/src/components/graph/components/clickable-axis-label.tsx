@@ -1,4 +1,4 @@
-import React, { ForwardedRef, forwardRef, useEffect, useState } from "react"
+import { ForwardedRef, forwardRef, useEffect, useState } from "react"
 import { autorun } from "mobx"
 import { useDataDisplayLayout } from "../../data-display/hooks/use-data-display-layout"
 import { GraphPlace } from "../../axis-graph-shared"

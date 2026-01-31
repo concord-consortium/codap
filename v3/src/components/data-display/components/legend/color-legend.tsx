@@ -1,6 +1,6 @@
 import { reaction } from "mobx"
 import { observer } from "mobx-react-lite"
-import React, { useCallback, useEffect } from "react"
+import { useCallback, useEffect } from "react"
 import {axisGap} from "../../../axis/axis-types"
 import {getStringBounds} from "../../../axis/axis-utils"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"

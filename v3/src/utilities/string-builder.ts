@@ -28,7 +28,7 @@ export class StringBuilder {
 
   public pushBlock(block: string, indent = 0) {
     // strip trailing newline for insertion purposes
-    const _block = block && block[block.length - 1] === "\n"
+    const _block = block?.[block.length - 1] === "\n"
                     ? block.slice(0, block.length - 1)
                     : block
     this.pushLines(_block.split("\n"), indent)

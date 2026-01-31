@@ -40,7 +40,8 @@ context("Graph adornments", () => {
     cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid=lsrl-equation-]").should("exist")
       .should(
         "contain.html",
-        "<em>Speed</em> = −0.0014 (<em>Mass</em>) + 50<br>r<sup>2</sup> = 0.009<br>SE<sub>slope</sub> = 0.003"
+        "<em>Speed</em> = −0.0014 (<em>Mass</em>) + 50<br>r<sup>2</sup> = 0.009<br>" +
+        "σ<sub>slope</sub> = 0.003<br>σ<sub>intercept</sub> = 5.84"
       )
     // TODO: Test that mousing over equation highlights the line and vice versa
     // TODO: Also test the above after attributes are added to top and right axes (i.e. when there are

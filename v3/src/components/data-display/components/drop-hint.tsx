@@ -1,5 +1,5 @@
 import {useDndMonitor} from "@dnd-kit/core"
-import React, {useRef, useState} from "react"
+import {useRef, useState} from "react"
 import { useContainerDragScrollOffset } from "../../../hooks/use-controller-drag-scroll-offset"
 
 import "./drop-hint.scss"

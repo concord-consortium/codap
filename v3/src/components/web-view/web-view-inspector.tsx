@@ -1,6 +1,6 @@
 import { useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
-import React, { useEffect } from "react"
+import { useEffect } from "react"
 import { useDocumentContent } from "../../hooks/use-document-content"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { t } from "../../utilities/translation/translate"

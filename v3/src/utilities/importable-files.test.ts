@@ -3,6 +3,7 @@ import {
   getImportableFileTypeFromFile,
   getImportableFileTypeFromUrl,
   getImportableFileTypeFromDataTransferFile,
+  stripExtensionFromFilename,
 } from './importable-files'
 
 describe('getExtensionFromFile', () => {
@@ -108,5 +109,43 @@ describe('getImportableFileTypeFromDataTransferFile', () => {
   it('should return undefined if item is not a file', () => {
     const item = makeDataTransferItem({ kind: 'string', type: '', name: undefined })
     expect(getImportableFileTypeFromDataTransferFile(item)).toBeUndefined()
+  })
+})
+
+describe('stripExtensionFromFilename', () => {
+  it('removes single file extension', () => {
+    expect(stripExtensionFromFilename('image.jpg')).toBe('image')
+    expect(stripExtensionFromFilename('photo.png')).toBe('photo')
+    expect(stripExtensionFromFilename('diagram.gif')).toBe('diagram')
+  })
+
+  it('preserves hyphens in filenames', () => {
+    expect(stripExtensionFromFilename('atlantic-cod.jpg')).toBe('atlantic-cod')
+    expect(stripExtensionFromFilename('my-vacation-photo.png')).toBe('my-vacation-photo')
+  })
+
+  it('preserves underscores and other valid filename characters', () => {
+    expect(stripExtensionFromFilename('image_v2.jpg')).toBe('image_v2')
+    expect(stripExtensionFromFilename('my-image_v2.1.png')).toBe('my-image_v2.1')
+  })
+
+  it('removes only the final extension when multiple dots are present', () => {
+    expect(stripExtensionFromFilename('archive.tar.gz')).toBe('archive.tar')
+    expect(stripExtensionFromFilename('image.backup.jpg')).toBe('image.backup')
+  })
+
+  it('handles filenames with no extension', () => {
+    expect(stripExtensionFromFilename('image')).toBe('image')
+    expect(stripExtensionFromFilename('photo-collection')).toBe('photo-collection')
+  })
+
+  it('handles filenames starting with a dot', () => {
+    expect(stripExtensionFromFilename('.gitignore')).toBe('.gitignore')
+    expect(stripExtensionFromFilename('.hidden.jpg')).toBe('.hidden')
+  })
+
+  it('works with uppercase extensions', () => {
+    expect(stripExtensionFromFilename('PHOTO.JPG')).toBe('PHOTO')
+    expect(stripExtensionFromFilename('Image.PNG')).toBe('Image')
   })
 })

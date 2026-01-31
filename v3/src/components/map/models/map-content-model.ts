@@ -23,8 +23,34 @@ import { expandLatLngBounds, getLatLongBounds } from "../utilities/map-utils"
 import {LeafletMapState} from "./leaflet-map-state"
 import { IMapLayerModel, isMapLayerModel } from "./map-layer-model"
 import { isMapPinLayerModel, MapPinLayerModel } from "./map-pin-layer-model"
-import {isMapPointLayerModel, MapPointLayerModel} from "./map-point-layer-model"
-import {isMapPolygonLayerModel, MapPolygonLayerModel} from "./map-polygon-layer-model"
+import { isMapPointLayerModel, MapPointLayerModel } from "./map-point-layer-model"
+import { isMapPolygonLayerModel, MapPolygonLayerModel } from "./map-polygon-layer-model"
+
+/**
+ * Checks if a layer's dataset was deleted. This is true when:
+ * - The layer has attribute assignments (meaning it was connected to a dataset)
+ * - But the dataset reference is now undefined (because the dataset was removed)
+ *
+ * This allows us to distinguish between:
+ * - A new layer that was never assigned to a dataset (should be assigned)
+ * - A layer whose dataset was deleted (should be removed, not reassigned)
+ */
+function wasLayerDatasetDeleted(layer: IMapLayerModel): boolean {
+  const hasDataset = layer.dataConfiguration.dataset != null
+  if (hasDataset) return false // Dataset still exists
+
+  // Check if the layer had attribute assignments (indicating it was previously connected)
+  if (isMapPolygonLayerModel(layer)) {
+    return layer.boundaryAttributeId != null
+  }
+  if (isMapPointLayerModel(layer)) {
+    return layer.pointAttributes != null
+  }
+  if (isMapPinLayerModel(layer)) {
+    return layer.pinAttributes != null
+  }
+  return false
+}
 
 export const GeoRasterModel = types.model("GeoRasterModel", {
   /**
@@ -328,8 +354,22 @@ export const MapContentModel = DataDisplayContentModel
           const unmatchedLayers = self.layers.filter(layer => {
             return !matchedLayers.includes(layer)
           })
-          // reassign any unmatched layers to datasets with unassigned attributes
+
+          // Collect indices of layers to remove (will remove from highest to lowest to preserve indices)
+          const layerIndicesToRemove: number[] = []
+
+          // Handle unmatched layers: remove layers whose dataset was deleted,
+          // assign new layers to datasets with available attributes
           unmatchedLayers.forEach(layer => {
+            if (!isMapLayerModel(layer)) return
+
+            // If the layer's dataset was deleted, remove it (don't reassign to another dataset)
+            if (wasLayerDatasetDeleted(layer)) {
+              layerIndicesToRemove.push(self.layers.indexOf(layer))
+              return
+            }
+
+            // Layer never had a dataset assigned; try to assign it to a dataset with available attributes
             if (isMapPolygonLayerModel(layer)) {
               const dsWithBoundaryAttr = allDSMapAttrs.find(dsMapAttrs => dsMapAttrs.hasUnassignedBoundaryAttributes)
               const boundaryAttribute = dsWithBoundaryAttr?.assignFirstUnassignedBoundaryAttribute()
@@ -338,7 +378,7 @@ export const MapContentModel = DataDisplayContentModel
               }
               else {
                 // No available boundary attribute; remove the layer
-                self.layers.splice(self.layers.indexOf(layer), 1)
+                layerIndicesToRemove.push(self.layers.indexOf(layer))
               }
             }
             if (isMapPointLayerModel(layer)) {
@@ -349,7 +389,7 @@ export const MapContentModel = DataDisplayContentModel
               }
               else {
                 // No available point attributes; remove the layer
-                self.layers.splice(self.layers.indexOf(layer), 1)
+                layerIndicesToRemove.push(self.layers.indexOf(layer))
               }
             }
             if (isMapPinLayerModel(layer)) {
@@ -360,8 +400,15 @@ export const MapContentModel = DataDisplayContentModel
               }
               else {
                 // No available pin attributes; remove the layer
-                self.layers.splice(self.layers.indexOf(layer), 1)
+                layerIndicesToRemove.push(self.layers.indexOf(layer))
               }
+            }
+          })
+
+          // Remove layers from highest index to lowest to preserve indices during removal
+          layerIndicesToRemove.sort((a, b) => b - a).forEach(index => {
+            if (index >= 0) {
+              self.layers.splice(index, 1)
             }
           })
           // add new layers for any remaining unassigned attributes

@@ -1,4 +1,3 @@
-import React from "react"
 import { observer } from "mobx-react-lite"
 import { DataSetContext } from "../../hooks/use-data-set-context"
 import { logStringifiedObjectMessage } from "../../lib/log-message"

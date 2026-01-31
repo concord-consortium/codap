@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite"
-import React, { useCallback, useEffect } from "react"
+import { useCallback, useEffect } from "react"
 import { mstReaction } from "../../../../utilities/mst-reaction"
 import { handleClickOnCase } from "../../../data-display/data-display-utils"
 import { circleAnchor, IPoint, IPointMetadata } from "../../../data-display/renderer"

@@ -1,5 +1,4 @@
 import { observer } from "mobx-react-lite"
-import React from "react"
 import { dataInteractiveState } from "../../data-interactive/data-interactive-state"
 import { useDraggableAttribute } from "../../hooks/use-drag-drop"
 import { getDataSetFromId } from "../../models/shared/shared-data-utils"

@@ -45,6 +45,20 @@
       }
     }
   }
+
+  // Embedded mode: transparent background and text selectability
+  &.embedded-mode {
+    background: transparent;
+
+    .codap-app {
+      background: transparent;
+    }
+
+    // Allow text selection in background (unique to embeddedMode, not componentMode)
+    .codap-container {
+      user-select: text;
+    }
+  }
 }
 
 .drop-handler {
