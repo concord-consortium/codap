@@ -71,12 +71,12 @@ const SingleYAttributeLabel = observer(function SingleYAttributeLabel({
     const gSelection = select(labelRef.current)
 
     // Update or create the text element
-    gSelection.selectAll('text.attribute-label-multi-y')
+    gSelection.selectAll('text.attribute-label.multi-y')
       .data([1])
       .join(
         (enter) =>
           enter.append('text')
-            .attr('class', 'attribute-label-multi-y')
+            .attr('class', 'attribute-label multi-y')
             .attr('text-anchor', 'middle')
             .attr('data-testid', 'attribute-label-multi-y'),
         (update) => update,
