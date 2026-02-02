@@ -16,3 +16,7 @@ cypress/videos
 cypress/downloads
 cypress/snapshots/*/__diff_output__/**
 v3/cypress/screenshots
+
+# Claude Code
+.claude/*
+!.claude/skills/
