@@ -255,14 +255,13 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
     if (place === 'left' && (graphModel.dataConfiguration.yAttributeDescriptions.length ?? 0) > 1) {
       const attrName = dataset?.getAttribute(idOfAttributeToRemove)?.name
       const tile = getTileModel(graphModel)
-      let notificationValues: IAttrChangeValues | undefined = undefined
+      const notificationValues = attrChangeNotificationValues(place, "", attrName, idOfAttributeToRemove, tile)
       graphModel.applyModelChange(
         () => {
           graphModel.dataConfiguration.removeYAttributeWithID(idOfAttributeToRemove)
           const yAxisModel = graphModel.getAxis('left') as IBaseNumericAxisModel
           const yValues = graphModel.dataConfiguration.numericValuesForAttrRole('y') ?? []
           setNiceDomain(yValues, yAxisModel, graphModel.plot.axisDomainOptions)
-          notificationValues = attrChangeNotificationValues(place, "", attrName, idOfAttributeToRemove, tile)
         },
         {
           notify: () => updateTileNotification("attributeChange", notificationValues, tile),
