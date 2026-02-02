@@ -24,7 +24,7 @@ export interface IAttrChangeValues {
 }
 
 export const attrChangeNotificationValues = (
-  place: GraphPlace, attrId: string, attrName?: string, attrIdToRemove = "", tile?: ITileModel
+  place: GraphPlace, attrId: string, attrName = "", attrIdToRemove = "", tile?: ITileModel
 ) => {
   if (!isGraphContentModel(tile?.content)) return
 

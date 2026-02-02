@@ -253,10 +253,25 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
    */
   const handleRemoveAttribute = useCallback((place: GraphPlace, idOfAttributeToRemove: string) => {
     if (place === 'left' && (graphModel.dataConfiguration.yAttributeDescriptions.length ?? 0) > 1) {
-      graphModel.dataConfiguration.removeYAttributeWithID(idOfAttributeToRemove)
-      const yAxisModel = graphModel.getAxis('left') as IBaseNumericAxisModel
-      const yValues = graphModel.dataConfiguration.numericValuesForAttrRole('y') ?? []
-      setNiceDomain(yValues, yAxisModel, graphModel.plot.axisDomainOptions)
+      const attrName = dataset?.getAttribute(idOfAttributeToRemove)?.name
+      const tile = getTileModel(graphModel)
+      const notificationValues = attrChangeNotificationValues(place, "", attrName, idOfAttributeToRemove, tile)
+      graphModel.applyModelChange(
+        () => {
+          graphModel.dataConfiguration.removeYAttributeWithID(idOfAttributeToRemove)
+          const yAxisModel = graphModel.getAxis('left') as IBaseNumericAxisModel
+          const yValues = graphModel.dataConfiguration.numericValuesForAttrRole('y') ?? []
+          setNiceDomain(yValues, yAxisModel, graphModel.plot.axisDomainOptions)
+        },
+        {
+          notify: () => updateTileNotification("attributeChange", notificationValues, tile),
+          undoStringKey: "DG.Undo.axisAttributeChange",
+          redoStringKey: "DG.Redo.axisAttributeChange",
+          log: logStringifiedObjectMessage(
+                "Attribute removed: %@",
+                { attribute: attrName, axis: place }, "plot")
+        }
+      )
     } else {
       dataset && handleChangeAttribute(place, dataset, '', idOfAttributeToRemove)
     }
