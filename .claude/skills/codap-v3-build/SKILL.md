@@ -225,6 +225,8 @@ Wait for user confirmation before starting Phase 1.
    npm version --no-git-tag-version {version}
    ```
 
+   **IMPORTANT:** Use the `npm version` command - do NOT manually edit package.json. The npm command updates both package.json AND package-lock.json.
+
 2. **Update versions.md:**
 
    Add new row at top of versions table (using release date from Phase 1):
