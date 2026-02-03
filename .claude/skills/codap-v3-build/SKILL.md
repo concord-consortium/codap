@@ -471,6 +471,8 @@ Use these constants for all Atlassian MCP tool calls:
 | `cloudId` | `concord-consortium.atlassian.net` |
 | `projectKey` | `CODAP` |
 
+> **Note:** The Atlassian MCP tools accept either a UUID cloud ID or a site URL for the `cloudId` parameter. The site URL format is used here for readability.
+
 - Use Atlassian MCP tools for all Jira operations
 - Stories tagged via `Fix versions` field
 - Release marked `Released` after production deploy
