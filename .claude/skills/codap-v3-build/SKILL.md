@@ -149,17 +149,19 @@ Wait for user confirmation before starting Phase 1.
 
    **Note:** Strip Jira IDs from PR titles before presenting (e.g., "CODAP-138: Fix point color" → "Fix point color")
 
-   Then ask questions using AskUserQuestion:
+   Then ask questions using AskUserQuestion in TWO SEPARATE CALLS (so Title is skipped if Exclude):
 
-   - **Section question:** "Which section for this item?"
-     - Options: Features / Bug Fixes / Under the Hood / Exclude
-     - Add "(Recommended)" to Features for Stories, Bug Fixes for Bugs
-     - If user types in "Other", interpret as an instruction (e.g., "go back to previous item") and handle accordingly
+   **First call - Section:**
+   - Question: "Which section for this item?"
+   - Options: Features / Bug Fixes / Under the Hood / Exclude
+   - Add "(Recommended)" to Features for Stories, Bug Fixes for Bugs
+   - If user types in "Other", interpret as an instruction (e.g., "go back to previous item") and handle accordingly
 
-   If **not excluded**, ask:
-   - **Title question:** "Which title? (See table above, or type your preferred title in 'Other')"
-     - Options: AI suggestion / Jira / PR (no "Custom" - user types preferred title in built-in "Other")
-     - If user types in "Other", use their text as the title
+   **Second call - Title (ONLY if Section is not Exclude):**
+   - Question: "Which title? (See table above, or type your preferred title in 'Other')"
+   - Options: AI suggestion / Jira / PR (no "Custom" - user types preferred title in built-in "Other")
+   - If user types in "Other", use their text as the title
+   - Do NOT ask this question if user selected Exclude
 
    **Title option order must ALWAYS be:** AI suggestion, Jira, PR (both in table and in question options)
    - Fix Version will be updated automatically
