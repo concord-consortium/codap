@@ -1,6 +1,44 @@
 # Changelog
 
-## Version 3.0.0-beta.2614 - January 6, 2025
+## Version 3.0.0-beta.2664 - February 2, 2026
+
+### ✨ Features & Improvements:
+- **CODAP-171:** Users can import/drag a URL for a Google Sheet and get a dataset based on that sheet
+- **CODAP-223:** Image dragged from browser into CODAP has appropriate size and responds to component resize
+- **CODAP-760:** Notify users if CODAP is run on an unsupported browser
+- **CODAP-1023:** Implement embeddedMode and embeddedServer URL parameters
+- **CODAP-1027:** Implement `inbounds` URL parameter for constrained component layout
+- **CODAP-1083:** Plugin API now supports bar chart scale configuration
+
+### 🐞 Bug Fixes:
+- **CODAP-138:** Preserve point fill colors when selected in dual y-axis graphs
+- **CODAP-150:** Map component minimizes correctly with legend
+- **CODAP-214:** Fix removal of subsequently added y-axis attributes
+- **CODAP-257:** Fix undo tooltip when removing y-axis attribute
+- **CODAP-273:** Fix box plot outlier tooltips and selection for duplicate values
+- **CODAP-275:** Map layers are deleted automatically on deletion of a dataset
+- **CODAP-304:** Fix Safari graph rendering issues when zoomed
+- **CODAP-810:** Fix bar chart formula heights not rescaling when cases are hidden
+- **CODAP-880:** Disable add case button in case card when filter formula is active
+- **CODAP-969:** iPad local file save works in iOS 26
+- **CODAP-1048:** Graph axis menus scrollable for long attribute lists
+- **CODAP-1058:** LSRL confidence bands and standard error display fixed
+- **CODAP-1072:** Long text elides with ellipsis in table cells
+- **CODAP-1074:** Dropped images serialize correctly in saved documents
+- **CODAP-1075:** Scatter plot LSRLs show one line for each category when split
+- **CODAP-1077:** Image import works on macOS 26 Safari
+- **CODAP-1078:** Fix hover tips not showing for bar charts and histograms
+- **CODAP-1085:** Fix invalid precision values causing document load failures
+- **CODAP-1087:** Plot background transparency toggle works
+- **CODAP-1088:** Fix connecting line colors when there's a legend
+
+### Asset Sizes
+|      File |          Size | % Change from Previous Release |
+|-----------|---------------|--------------------------------|
+|  main.css |  210948 bytes |                          0.88% |
+|  index.js | 7065472 bytes |                          1.06% |
+
+## Version 3.0.0-beta.2614 - January 6, 2026
 
 ### ✨ Features & Improvements:
 - **CODAP-219:** Case table collection header indicates number of non-empty and hidden cases
