@@ -259,13 +259,15 @@ describe("UIState", () => {
       expect(uiState.shouldRenderBetaBanner).toBe(false)
     })
 
-    it("should disallow component interactions when embeddedMode=yes", () => {
+    it("should allow component interactions when embeddedMode=yes (unlike componentMode)", () => {
+      // embeddedMode hides UI chrome but keeps components fully interactive
+      // This matches v2 behavior where kLockThingsDown is only set for componentMode
       setUrlParams("?embeddedMode=yes")
       const uiState = new UIState()
-      expect(uiState.allowComponentMove).toBe(false)
-      expect(uiState.allowComponentResize).toBe(false)
-      expect(uiState.allowComponentClose).toBe(false)
-      expect(uiState.allowComponentMinimize).toBe(false)
+      expect(uiState.allowComponentMove).toBe(true)
+      expect(uiState.allowComponentResize).toBe(true)
+      expect(uiState.allowComponentClose).toBe(true)
+      expect(uiState.allowComponentMinimize).toBe(true)
     })
 
     it("should suppress unsaved warning when embeddedMode=yes", () => {
