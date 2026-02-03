@@ -83,7 +83,7 @@ When either `componentMode=yes` or `embeddedMode=yes`:
 | Tool shelf hidden | The toolbar with component creation buttons is hidden |
 | Beta banner hidden | The beta version banner is not displayed |
 | Scrollbars disabled | Horizontal and vertical scrollbars are hidden |
-| Undo/redo in title bar | Undo/redo buttons appear in component title bars (unless `hideUndoRedoInComponent=yes`) |
+| Undo/redo in title bar | Undo/redo buttons appear in component title bars (unless `hideUndoRedoInComponent=yes`). Button positioning differs between modes (see below). |
 | Page title unchanged | CODAP does not update `document.title` |
 | Unsaved warning suppressed | Browser's `beforeunload` dialog is not shown |
 | Splash screen bypassed | The startup splash screen is not shown |
@@ -97,6 +97,7 @@ When `componentMode=yes` (but NOT `embeddedMode=yes`):
 | Behavior | Description |
 |----------|-------------|
 | Components locked | Move, resize, close, and minimize are **disabled** |
+| Undo/redo at far right | Since minimize/close buttons are hidden, undo/redo buttons are positioned at the far right of the title bar |
 
 This "locked" behavior is the key distinction between the two modes. Component mode is designed for scenarios where you want to show a static CODAP view that users cannot rearrange.
 
@@ -107,6 +108,7 @@ When `embeddedMode=yes`:
 | Behavior | Description |
 |----------|-------------|
 | Components interactive | Move, resize, close, and minimize remain **enabled** |
+| Undo/redo left of window buttons | Undo/redo buttons are positioned to the left of the minimize/close buttons to avoid overlap |
 | Transparent background | The background is transparent, allowing parent page content to show through |
 | Text selectable | Text selection is enabled in the background area |
 | iframe-phone enabled | Communication with parent window via iframe-phone is initialized |
