@@ -112,13 +112,23 @@ Wait for user confirmation before starting Phase 1.
    gh pr view <number> --json number,title,headRefName
    ```
 
-3. **Get Jira stories with status "Done" since previous release date**
-
-4. **Match PRs to Jira stories by CODAP-XXX ID:**
+3. **Extract CODAP-XXX IDs from merged PRs:**
    - Check branch name first (most reliable, e.g., `CODAP-1027-inbounds-url-param`)
    - Then PR title (e.g., `CODAP-1027: Implement inbounds parameter`)
    - Use caution with PR descriptions - they may reference related stories (e.g., "Follow-up to CODAP-XXX") that aren't the primary story for this PR
    - Extract unique CODAP-XXX IDs
+
+4. **Verify Jira status for each story ID:**
+
+   **CRITICAL:** Only include stories that are **"Done"** in Jira.
+
+   - Query Jira for each CODAP-XXX ID extracted from merged PRs
+   - If status is "Done" → include in release notes candidates
+   - If status is NOT "Done" (e.g., "In Progress", "In Code Review", "In Project Team Review") → **exclude from release notes**
+
+   **Why this matters:** A PR branch may contain a Jira ID, but if the story is still in review, the work is not considered complete. Release notes should only document completed work.
+
+   **Tip:** Use a subagent to batch-check Jira status for all candidate stories to minimize context usage.
 
 5. **For each matched item, fetch:**
    - Jira story details (summary, issue type)
@@ -157,18 +167,19 @@ Wait for user confirmation before starting Phase 1.
    - Add "(Recommended)" to Features for Stories, Bug Fixes for Bugs
    - If user types in "Other", interpret as an instruction (e.g., "go back to previous item") and handle accordingly
 
-   **Second call - Title (ONLY if Section is not Exclude):**
+   **If Section is NOT Exclude - ask Title question:**
    - Question: "Which title? (See table above, or type your preferred title in 'Other')"
    - Options: AI suggestion / Jira / PR (no "Custom" - user types preferred title in built-in "Other")
    - If user types in "Other", use their text as the title
-   - Do NOT ask this question if user selected Exclude
+   - **Title option order must ALWAYS be:** AI suggestion, Jira, PR (both in table and in question options)
+   - Stories included in release notes will have their Fix Version updated automatically (tracked for step 10)
 
-   **Title option order must ALWAYS be:** AI suggestion, Jira, PR (both in table and in question options)
-   - Fix Version will be updated automatically
-
-   If **excluded**:
-   - Ask: **Update Fix Version anyway?** Yes / No
-     - Some stories marked "Done" may have been fixed in a prior release
+   **If Section IS Exclude - ask Fix Version question:**
+   - Question: "Should this story's Fix Version be set to this release?"
+   - Options: Yes / No
+   - Default recommendation: **Yes (Recommended)** - infrastructure improvements may not be user-facing but should still be tracked in Jira
+   - If **Yes**: Add to Fix Version update list (step 10) even though excluded from release notes
+   - If **No**: Do not update Fix Version (e.g., if the story was fixed in a prior release, or the PR isn't part of this release)
 
    After selection, confirm:
    > ✓ **CODAP-1027** → Features: "Selected title here"
@@ -345,7 +356,7 @@ Wait for user confirmation before starting Phase 1.
 3. **Create GitHub release:**
    ```bash
    gh release create {version} \
-     --title "{version}" \
+     --title "Version {version}" \
      --notes "{release_notes_from_phase_2}"
    ```
 
