@@ -82,10 +82,10 @@ Wait for user confirmation before starting Phase 1.
 
    | Field | Default | Options |
    |-------|---------|---------|
-   | Version name | `3.0.0-beta.<buildNumber+1>` (Recommended) | Also offer `-rc` and non-prerelease variants |
+   | Version name | Based on previous release pattern + new build number | Match previous pattern (e.g., `-beta`, `-rc`, or release) |
    | Start date | Previous release date | User can modify |
    | Release date | Today's date | Today / Tomorrow / Custom future date |
-   | Description | `Version 3.0.0-beta.<buildNumber+1>` | User can modify |
+   | Description | `Version {version}` | User can modify |
 
    **Note:** The release date chosen here is used throughout the process:
    - CHANGELOG.md header date
@@ -102,8 +102,10 @@ Wait for user confirmation before starting Phase 1.
 
 1. **Get PRs since last release:**
    ```bash
-   git log <last-tag>..HEAD --oneline --merges
+   git log <last-tag>..HEAD --oneline | grep -E '\(#[0-9]+\)|Merge pull request #[0-9]+'
    ```
+
+   **Note:** This finds both regular merge commits AND squash-merged PRs (which include `(#123)` in the commit message). Using `--merges` alone misses squash merges.
 
 2. **Get PR details from GitHub:**
    ```bash
@@ -125,22 +127,41 @@ Wait for user confirmation before starting Phase 1.
 
 6. **Interactive walkthrough for each item:**
 
-   Present item number and Jira ID:
-   > **Item 1/8: CODAP-1027** (Story)
+   **IMPORTANT - NO SHORTCUTS:**
+   - Do NOT ask user to approve the entire list at once
+   - Do NOT batch items together (e.g., "approve these 3 items")
+   - Do NOT skip showing title options
+   - ALWAYS go through items ONE BY ONE, presenting all title options for each
 
-   Show title options in table:
+   **IMPORTANT - PRESENTATION ORDER:**
+   Present the title options table as markdown output FIRST, then use AskUserQuestion. This prevents the question UI from covering the options.
+
+   First, output this markdown:
+   ```
+   ### Item 1/8: CODAP-1027 (Story)
+
    | Source | Title |
    |--------|-------|
+   | **AI suggestion** | {ai_title} |
    | **Jira** | {jira_summary} |
    | **PR** | {pr_title} |
-   | **AI suggestion** | {ai_title} |
+   ```
 
-   Ask user:
-   - **Section:** Features (Recommended) / Bug Fixes / Under the Hood / Exclude
+   **Note:** Strip Jira IDs from PR titles before presenting (e.g., "CODAP-138: Fix point color" → "Fix point color")
+
+   Then ask questions using AskUserQuestion:
+
+   - **Section question:** "Which section for this item?"
+     - Options: Features / Bug Fixes / Under the Hood / Exclude
      - Add "(Recommended)" to Features for Stories, Bug Fixes for Bugs
+     - If user types in "Other", interpret as an instruction (e.g., "go back to previous item") and handle accordingly
 
-   If **not excluded**:
-   - **Title:** AI suggestion / Jira / PR / Custom
+   If **not excluded**, ask:
+   - **Title question:** "Which title? (See table above, or type your preferred title in 'Other')"
+     - Options: AI suggestion / Jira / PR (no "Custom" - user types preferred title in built-in "Other")
+     - If user types in "Other", use their text as the title
+
+   **Title option order must ALWAYS be:** AI suggestion, Jira, PR (both in table and in question options)
    - Fix Version will be updated automatically
 
    If **excluded**:
@@ -159,7 +180,7 @@ Wait for user confirmation before starting Phase 1.
 8. **Generate CHANGELOG markdown** after all items are processed:
 
    ```markdown
-   ## Version 3.0.0-beta.XXXX - Month Day, Year
+   ## Version {version} - Month Day, Year
 
    ### ✨ Features & Improvements:
    - **CODAP-XXX:** Title here
@@ -199,14 +220,14 @@ Wait for user confirmation before starting Phase 1.
 1. **Update package.json version:**
    ```bash
    cd v3
-   npm version --no-git-tag-version 3.0.0-beta.XXXX
+   npm version --no-git-tag-version {version}
    ```
 
 2. **Update versions.md:**
 
    Add new row at top of versions table (using release date from Phase 1):
    ```markdown
-   | [3.0.0-beta.XXXX](https://codap3.concord.org/version/3.0.0-beta.XXXX/) | Month Day, Year |
+   | [{version}](https://codap3.concord.org/version/{version}/) | Month Day, Year |
    ```
 
 3. **Update CHANGELOG.md:**
@@ -215,8 +236,13 @@ Wait for user confirmation before starting Phase 1.
 
 4. **Create release branch:**
    ```bash
-   git checkout -b v3-release-XXXX
+   git checkout -b release-{version}
    ```
+
+   **Branch naming rules:**
+   - Pattern: `release-{version}` where `{version}` is from Phase 1 (e.g., `release-3.0.0-beta.2664`)
+   - Do NOT use `/` in branch names
+   - Do NOT invent your own pattern
 
 5. **Stage files:**
    ```bash
@@ -260,8 +286,8 @@ Wait for user confirmation before starting Phase 1.
 5. **Commit and push:**
    ```bash
    git add v3/CHANGELOG.md
-   git commit -m "Release 3.0.0-beta.XXXX"
-   git push -u origin v3-release-XXXX
+   git commit -m "Release {version}"
+   git push -u origin release-{version}
    ```
 
    **Note:** Only commit the version files (package.json, package-lock.json, versions.md, CHANGELOG.md). Do not commit the `dist/` build output.
@@ -269,7 +295,7 @@ Wait for user confirmation before starting Phase 1.
 6. **Create PR with labels:**
    ```bash
    gh pr create \
-     --title "Release 3.0.0-beta.XXXX" \
+     --title "Release {version}" \
      --body "{release_notes_from_phase_2}" \
      --label "v3" \
      --label "run regression"
@@ -298,14 +324,14 @@ Wait for user confirmation before starting Phase 1.
 
 2. **Create and push annotated tag:**
    ```bash
-   git tag -a 3.0.0-beta.XXXX -m "Version 3.0.0-beta.XXXX"
-   git push origin 3.0.0-beta.XXXX
+   git tag -a {version} -m "Version {version}"
+   git push origin {version}
    ```
 
 3. **Create GitHub release:**
    ```bash
-   gh release create 3.0.0-beta.XXXX \
-     --title "3.0.0-beta.XXXX" \
+   gh release create {version} \
+     --title "{version}" \
      --notes "{release_notes_from_phase_2}"
    ```
 
@@ -315,7 +341,7 @@ Wait for user confirmation before starting Phase 1.
    > Watch GitHub Actions: https://github.com/concord-consortium/codap/actions
    >
    > Once S3 Deploy completes, QA at:
-   > https://codap3.concord.org/version/3.0.0-beta.XXXX/
+   > https://codap3.concord.org/version/{version}/
    >
    > After QA passes, run `/codap-v3-build deploy` to continue.
 
@@ -327,7 +353,7 @@ Wait for user confirmation before starting Phase 1.
 
 1. **Trigger staging workflow:**
    ```bash
-   gh workflow run release-v3-staging.yml -f version=3.0.0-beta.XXXX
+   gh workflow run release-v3-staging.yml -f version={version}
    ```
 
    > **Staging workflow triggered.**
@@ -350,27 +376,27 @@ If you prefer to complete deployment outside of Claude Code:
 
 **Deploy to production:**
 ```bash
-gh workflow run release-v3-production.yml -f version=3.0.0-beta.XXXX
+gh workflow run release-v3-production.yml -f version={version}
 ```
 Or use GitHub UI: https://github.com/concord-consortium/codap/actions/workflows/release-v3-production.yml
 
 **Deploy to beta:**
 ```bash
-gh workflow run release-v3-beta.yml -f version=3.0.0-beta.XXXX
+gh workflow run release-v3-beta.yml -f version={version}
 ```
 Or use GitHub UI: https://github.com/concord-consortium/codap/actions/workflows/release-v3-beta.yml
 
 **Finalize Jira release:**
 1. Go to CODAPv3 project in Jira
 2. Open "Manage Releases" tab
-3. Find release `3.0.0-beta.XXXX`
+3. Find release `{version}`
 4. Mark as `Released`
 
 ### Resume Later
 
 To complete deployment in Claude Code after QA:
 ```
-/codap-v3-build deploy 3.0.0-beta.XXXX
+/codap-v3-build deploy {version}
 ```
 
 ## File Locations
@@ -385,7 +411,13 @@ To complete deployment in Claude Code after QA:
 
 ## Jira Integration
 
-- Project: CODAP at `concord-consortium.atlassian.net`
+Use these constants for all Atlassian MCP tool calls:
+
+| Constant | Value |
+|----------|-------|
+| `cloudId` | `concord-consortium.atlassian.net` |
+| `projectKey` | `CODAP` |
+
 - Use Atlassian MCP tools for all Jira operations
 - Stories tagged via `Fix versions` field
 - Release marked `Released` after production deploy
