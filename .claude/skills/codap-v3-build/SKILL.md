@@ -213,6 +213,16 @@ Wait for user confirmation before starting Phase 1.
 
 10. **Update Jira Fix Versions** for all stories where user approved the update (during step 6).
 
+    **IMPORTANT - Context Management:** Jira MCP responses can be verbose and consume significant context. Delegate this bulk operation to a subagent:
+
+    > Use the Task tool to update Fix Versions for all approved stories. Provide the subagent with:
+    > - The list of CODAP-XXX story IDs to update
+    > - The version string to set (e.g., `3.0.0-beta.2664`)
+    >
+    > The subagent should report back ONLY:
+    > - Success/failure count (e.g., "Updated 8/10 stories successfully")
+    > - IDs of any stories that failed (e.g., "Failed: CODAP-123, CODAP-456")
+
 ## Phase 3: Update Version Files
 
 **Goal:** Update all version-related files and create release branch.
