@@ -366,13 +366,52 @@ Wait for user confirmation before starting Phase 1.
    >
    > Test at: https://codap3.concord.org/index-staging.html
 
-2. **Wait for external QA** (may take 1+ days)
+2. **Post release announcement to Slack:**
+
+   Post to the `#codap-v3` channel in the Concord Consortium workspace (`concord-consortium.slack.com`).
+
+   **If Slack MCP server is available:**
+   - Ask user for permission to post
+   - Post the announcement using `mcp__slack__conversations_add_message`
+   - Use `channel_id: #codap-v3` and `content_type: text/markdown`
+
+   **If Slack MCP server is NOT available:**
+   - Show the user a draft of the announcement
+   - Instruct them to paste it into Slack manually
+
+   **Announcement format:**
+
+   ```markdown
+   CODAP {version} is available for testing at https://codap3.concord.org/staging.
+
+   ### ✨ Features & Improvements:
+   **CODAP-XXX:** Feature title here
+   **CODAP-YYY:** Another feature
+
+   ### 🐞 Bug Fixes:
+   **CODAP-AAA:** Bug fix title
+   **CODAP-BBB:** Another fix
+
+   ### 🛠️ Under the Hood:
+   **CODAP-ZZZ:** Internal change
+
+   The [beta](https://codap3.concord.org/beta) and [production](https://codap3.concord.org/) URLs will be updated once the staging build passes QA.
+   ```
+
+   **Rules:**
+   - Use the version number from this release (e.g., `3.0.0-beta.2664`)
+   - Include only the sections that have items (Features, Bug Fixes, Under the Hood)
+   - Use the same titles and order as in CHANGELOG.md (including emoji prefixes in section headers)
+   - Each item on its own line with `**CODAP-XXX:**` prefix
+   - End with the beta/production follow-up message (links should render in Slack)
+
+3. **Wait for external QA** (may take 1+ days)
 
    > **Let me know when staging QA is complete** and we can proceed with production deployment.
    >
    > If you'd prefer to complete deployment separately, see manual instructions below.
 
-3. **After QA approval, deploy to production and beta, then finalize Jira.**
+4. **After QA approval, deploy to production and beta, then finalize Jira.**
 
 ### Manual Completion Instructions
 
