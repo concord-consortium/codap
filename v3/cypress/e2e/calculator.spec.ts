@@ -85,8 +85,29 @@ context("Calculator", () => {
       c.checkToolTip($element, c.tooltips.closeComponent)
     })
   })
-  it("can make calculations", () => {
+  it("can make calculations with buttons", () => {
     calc.enterExpression("12X(1+2)=")
     calc.checkCalculatorDisplay("36")
+  })
+  it("can type expressions directly", () => {
+    calc.typeExpression("2+3{enter}")
+    calc.checkCalculatorDisplay("5")
+  })
+  it("can use formula functions", () => {
+    calc.typeExpression("sqrt(16){enter}")
+    calc.checkCalculatorDisplay("4")
+  })
+  it("can continue calculating after result", () => {
+    calc.typeExpression("10{enter}")
+    calc.checkCalculatorDisplay("10")
+    // Typing an operator should keep the result
+    calc.typeExpression("+5{enter}")
+    calc.checkCalculatorDisplay("15")
+  })
+  it("clears with Escape key", () => {
+    calc.typeExpression("123")
+    calc.checkCalculatorDisplay("123")
+    calc.getCalculatorInput().type("{esc}")
+    calc.checkCalculatorDisplay("")
   })
 })
