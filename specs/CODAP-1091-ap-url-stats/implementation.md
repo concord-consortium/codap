@@ -161,7 +161,47 @@ GROUP BY CONCAT(li.base_url, COALESCE(mi.url_fragment, ''))
 ORDER BY activity_count DESC;
 ```
 
-**Expected output**: List of distinct CODAP URLs with count of activities using each, showing source table
+**SQL Query for summary counts** (total distinct URLs per source):
+
+```sql
+SELECT
+  source,
+  COUNT(*) AS distinct_url_count,
+  SUM(activity_count) AS total_activity_references
+FROM (
+  -- From mw_interactives
+  SELECT
+    mw.url AS codap_url,
+    'mw_interactive' AS source,
+    COUNT(DISTINCT la.id) AS activity_count
+  FROM lightweight_activities la
+  JOIN interactive_pages ip ON ip.lightweight_activity_id = la.id
+  JOIN interactive_items ii ON ii.interactive_page_id = ip.id
+  JOIN mw_interactives mw ON mw.id = ii.interactive_id AND ii.interactive_type = 'MwInteractive'
+  WHERE mw.url LIKE '%codap.concord.org%'
+  GROUP BY mw.url
+
+  UNION ALL
+
+  -- From managed_interactives (via library_interactives)
+  SELECT
+    CONCAT(li.base_url, COALESCE(mi.url_fragment, '')) AS codap_url,
+    'managed_interactive' AS source,
+    COUNT(DISTINCT la.id) AS activity_count
+  FROM lightweight_activities la
+  JOIN interactive_pages ip ON ip.lightweight_activity_id = la.id
+  JOIN interactive_items ii ON ii.interactive_page_id = ip.id
+  JOIN managed_interactives mi ON mi.id = ii.interactive_id AND ii.interactive_type = 'ManagedInteractive'
+  JOIN library_interactives li ON li.id = mi.library_interactive_id
+  WHERE li.base_url LIKE '%codap.concord.org%' OR mi.url_fragment LIKE '%codap.concord.org%'
+  GROUP BY CONCAT(li.base_url, COALESCE(mi.url_fragment, ''))
+) AS url_counts
+GROUP BY source;
+```
+
+**Expected output**:
+- First query: List of distinct CODAP URLs with count of activities using each, showing source table
+- Summary query: Count of distinct URL patterns per source (e.g., "mw_interactive: 5 distinct URLs, 42 total activity references")
 
 ---
 
