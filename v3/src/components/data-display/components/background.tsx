@@ -45,6 +45,7 @@ const prepareTree = (rendererArray: PointRendererArray): RTree => {
   rendererArray.forEach(renderer => {
     // forEachPoint provides point metadata which includes x/y coordinates
     renderer?.forEachPoint((_point, metadata) => {
+      if (!isFinite(metadata.x) || !isFinite(metadata.y)) return
       const rect = {
         x: metadata.x,
         y: metadata.y,
