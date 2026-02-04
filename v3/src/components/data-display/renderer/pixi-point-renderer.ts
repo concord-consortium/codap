@@ -465,6 +465,13 @@ export class PixiPointRenderer extends PointRendererBase {
     let mouseoverElement: Element | null = null
     this.background.on("mousemove", (event: PIXI.FederatedPointerEvent) => {
       const elementUnderneath = getElementUnderCanvas(event)
+
+      // Always dispatch mousemove to the element underneath
+      if (elementUnderneath) {
+        this.dispatchEvent(elementUnderneath, new MouseEvent("mousemove", event), event)
+      }
+
+      // Handle mouseover/mouseout when element changes
       if (elementUnderneath && elementUnderneath === mouseoverElement) {
         return
       }

@@ -87,6 +87,14 @@
 
 .plot-cell-background {
   fill: white;
+
+  &.zoom-in {
+    cursor: url("../../../assets/MagnifyPlus.png") 8 8, zoom-in;
+  }
+
+  &.zoom-out {
+    cursor: url("../../../assets/MagnifyMinus.png") 8 8, zoom-out;
+  }
 }
 
 

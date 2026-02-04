@@ -1,14 +1,49 @@
 import {ScaleContinuousNumeric, ScaleLinear} from "d3"
-import {MutableRefObject} from "react"
+import {MutableRefObject, useEffect} from "react"
+import { logMessageWithReplacement } from "../../lib/log-message"
 import { IDataConfigurationModel } from "../data-display/models/data-configuration-model"
-import { axisPlaceToAttrRole, kDataDisplayFont } from "../data-display/data-display-types"
+import { IDataDisplayContentModel } from "../data-display/models/data-display-content-model"
+import { axisPlaceToAttrRole, kDataDisplayFont, transitionDuration } from "../data-display/data-display-types"
 import {measureText, measureTextExtent} from "../../hooks/use-measure-text"
 import { determineLevels } from "../../utilities/date-utils"
 import { GraphLayout } from "../graph/models/graph-layout"
+import { ITileModel } from "../../models/tiles/tile-model"
 import { kAxisGap, kAxisTickLength, kDefaultFontHeight } from "./axis-constants"
 import {AxisPlace} from "./axis-types"
+import { updateAxisNotification } from "./models/axis-notifications"
+import { IBaseNumericAxisModel } from "./models/base-numeric-axis-model"
 
 import vars from "../vars.scss"
+
+// Zoom factors for option-click zoom: 0.5 = zoom in (halve range), 2 = zoom out (double range)
+export const kZoomInFactor = 0.5
+export const kZoomOutFactor = 2
+
+/**
+ * Hook to update zoom cursor when modifier keys are pressed/released while hovering.
+ * @param isHoveredRef - Ref tracking whether mouse is over the target element
+ * @param updateCursor - Callback to update cursor based on alt/shift key state
+ */
+export function useZoomCursorKeyboardListener(
+  isHoveredRef: MutableRefObject<boolean>,
+  updateCursor: (altKey: boolean, shiftKey: boolean) => void
+) {
+  useEffect(function setupKeyboardListeners() {
+    const handleKeyChange = (event: KeyboardEvent) => {
+      if (isHoveredRef.current) {
+        updateCursor(event.altKey, event.shiftKey)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyChange)
+    window.addEventListener('keyup', handleKeyChange)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyChange)
+      window.removeEventListener('keyup', handleKeyChange)
+    }
+  }, [isHoveredRef, updateCursor])
+}
 
 export const getStringBounds = (s = 'Wy', font = kDataDisplayFont) => {
   return measureTextExtent(s, font)
@@ -295,4 +330,55 @@ export const isScaleLinear = (scale: any): scale is ScaleLinear<number, number> 
 export const getNumberOfLevelsForDateAxis = (minDateInSecs: number, maxDateInSecs: number) => {
   const levels = determineLevels(1000 * minDateInSecs, 1000 * maxDateInSecs)
   return levels.outerLevel !== levels.innerLevel ? 2 : 1
+}
+
+/**
+ * Zoom an axis by a given factor, centered on a fixed value.
+ * Uses the dilation formula: newBound = fixedValue + (currentBound - fixedValue) * factor
+ *
+ * @param axisModel - The numeric axis model to zoom
+ * @param fixedValue - The data coordinate to keep fixed (center of zoom)
+ * @param factor - The zoom factor (0.5 = zoom in/halve range, 2 = zoom out/double range)
+ * @param displayModel - Optional display model to trigger animation
+ * @param tileModel - Optional tile model for notifications
+ */
+export function zoomAxis(
+  axisModel: IBaseNumericAxisModel,
+  fixedValue: number,
+  factor: number,
+  displayModel?: IDataDisplayContentModel,
+  tileModel?: ITileModel
+) {
+  const [lower, upper] = axisModel.domain
+
+  // Apply dilation formula, respecting lockZero constraint
+  const newLower = axisModel.lockZero && lower === 0
+    ? 0
+    : fixedValue + (lower - fixedValue) * factor
+  const newUpper = axisModel.lockZero && upper === 0
+    ? 0
+    : fixedValue + (upper - fixedValue) * factor
+
+  // Ensure the range doesn't invert or collapse
+  if (newLower >= newUpper) return
+
+  // Allow the range to shrink (zoom in) or grow (zoom out)
+  axisModel.setAllowRangeToShrink(true)
+
+  // Enable animation for the zoom
+  axisModel.setTransitionDuration(transitionDuration)
+  displayModel?.startAnimation()
+
+  axisModel.applyModelChange(
+    () => axisModel.setDomain(newLower, newUpper),
+    {
+      notify: tileModel
+        ? updateAxisNotification("change axis bounds", [newLower, newUpper], tileModel)
+        : undefined,
+      undoStringKey: "DG.Undo.axisDilate",
+      redoStringKey: "DG.Redo.axisDilate",
+      log: logMessageWithReplacement("Axis zoom: lower: %@, upper: %@",
+        {lower: newLower, upper: newUpper}, "plot")
+    }
+  )
 }

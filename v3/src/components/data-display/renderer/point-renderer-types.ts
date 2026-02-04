@@ -69,6 +69,7 @@ export interface IBackgroundEventDistributionOptions {
  */
 export enum BackgroundPassThroughEvent {
   Click = "click",
+  MouseMove = "mousemove",
   PointerDown = "pointerdown",
   MouseOver = "mouseover",
   MouseOut = "mouseout"

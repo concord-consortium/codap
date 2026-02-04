@@ -32,5 +32,13 @@
       cursor: url("../../../assets/DownDilate.png") 8 8, grab;
     }
 
+    &.zoom-in {
+      cursor: url("../../../assets/MagnifyPlus.png") 8 8, zoom-in !important;
+    }
+
+    &.zoom-out {
+      cursor: url("../../../assets/MagnifyMinus.png") 8 8, zoom-out !important;
+    }
+
   }
 

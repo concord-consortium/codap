@@ -1,4 +1,6 @@
 import {forwardRef, MutableRefObject, useCallback, useEffect, useRef} from "react"
+import MagnifyPlus from "../../../assets/MagnifyPlus.png"
+import MagnifyMinus from "../../../assets/MagnifyMinus.png"
 import { comparer } from "mobx"
 import {useMemo} from "use-memo-one"
 import {select, color, range} from "d3"
@@ -7,9 +9,12 @@ import { mstReaction } from "../../../utilities/mst-reaction"
 import {appState} from "../../../models/app-state"
 import {IDataSet} from "../../../models/data/data-set"
 import {selectAllCases, selectAndDeselectCases} from "../../../models/data/data-set-utils"
+import { getTileModel } from "../../../models/tiles/tile-model"
 import {defaultBackgroundColor} from "../../../utilities/color-utils"
 import { useGraphLayoutContext } from "../../graph/hooks/use-graph-layout-context"
+import { kZoomInFactor, kZoomOutFactor, useZoomCursorKeyboardListener, zoomAxis } from "../../axis/axis-utils"
 import { isAnyNumericAxisModel } from "../../axis/models/numeric-axis-models"
+import { IBaseNumericAxisModel } from "../../axis/models/base-numeric-axis-model"
 import {rTreeRect} from "../data-display-types"
 import {rectangleSubtract, rectNormalize} from "../data-display-utils"
 import {useDataDisplayLayout} from "../hooks/use-data-display-layout"
@@ -89,7 +94,8 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
     height = useRef(0),
     needsToClearSelection = useRef(false),
     selectionTree = useRef<RTree | null>(null),
-    previousMarqueeRect = useRef<rTreeRect>()
+    previousMarqueeRect = useRef<rTreeRect>(),
+    isHoveredRef = useRef(false)
 
   const clearDatasetsMapArrays = useCallback(() => {
     Object.keys(datasetsMap).forEach((key) => {
@@ -164,6 +170,86 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
 
   useRendererPointerDownDeselect(rendererArray, dataDisplayModel)
 
+  // Check if graph has at least one numeric axis that can be zoomed
+  const hasNumericAxis = useCallback(() => {
+    const xAxisModel = dataDisplayModel.getAxis('bottom')
+    const yAxisModel = dataDisplayModel.getAxis('left')
+    return isAnyNumericAxisModel(xAxisModel) || isAnyNumericAxisModel(yAxisModel)
+  }, [dataDisplayModel])
+
+  // Handle option-click zoom on plot background
+  const handleOptionClickZoom = useCallback((event: PointerEvent) => {
+    if (!event.altKey) return false
+    if (!hasNumericAxis()) return false
+
+    // Get plot bounds to convert coordinates
+    const plotBounds = layout.computedBounds.plot
+    if (!plotBounds) return false
+
+    // Get the SVG bounding rect to convert from window coordinates to SVG coordinates
+    const bgRect = (bgRef.current as SVGGElement).getBoundingClientRect()
+    const svgX = event.x - bgRect.left - plotBounds.left
+    const svgY = event.y - bgRect.top - plotBounds.top
+
+    // Determine zoom factor
+    const factor = event.shiftKey ? kZoomOutFactor : kZoomInFactor
+
+    // Get tile model for undo/redo notifications
+    const tileModel = getTileModel(dataDisplayModel)
+
+    // Zoom the x-axis if numeric
+    const xAxisModel = dataDisplayModel.getAxis('bottom')
+    if (isAnyNumericAxisModel(xAxisModel)) {
+      const xScale = graphLayout.getNumericScale('bottom')
+      if (xScale) {
+        const fixedValue = xScale.invert(svgX)
+        zoomAxis(xAxisModel as IBaseNumericAxisModel, fixedValue, factor, dataDisplayModel, tileModel)
+      }
+    }
+
+    // Zoom the y-axis if numeric
+    const yAxisModel = dataDisplayModel.getAxis('left')
+    if (isAnyNumericAxisModel(yAxisModel)) {
+      const yScale = graphLayout.getNumericScale('left')
+      if (yScale) {
+        const fixedValue = yScale.invert(svgY)
+        zoomAxis(yAxisModel as IBaseNumericAxisModel, fixedValue, factor, dataDisplayModel, tileModel)
+      }
+    }
+
+    return true
+  }, [bgRef, dataDisplayModel, graphLayout, hasNumericAxis, layout.computedBounds.plot])
+
+  // Update cursor based on modifier keys
+  const updateBackgroundCursor = useCallback((altKey: boolean, shiftKey: boolean) => {
+    // Only show zoom cursor if there's a numeric axis
+    if (!hasNumericAxis()) {
+      // Clear cursor on all renderer canvases
+      rendererArray.forEach(renderer => {
+        if (renderer?.canvas) renderer.canvas.style.cursor = ""
+      })
+      return
+    }
+
+    // Determine the cursor to use
+    let cursor = ""
+    if (altKey) {
+      if (shiftKey) {
+        cursor = `url('${MagnifyMinus}') 8 8, zoom-out`
+      } else {
+        cursor = `url('${MagnifyPlus}') 8 8, zoom-in`
+      }
+    }
+
+    // Set cursor on all renderer canvases
+    rendererArray.forEach(renderer => {
+      if (renderer?.canvas) renderer.canvas.style.cursor = cursor
+    })
+  }, [hasNumericAxis, rendererArray])
+
+  // Handle keydown/keyup for immediate cursor feedback
+  useZoomCursorKeyboardListener(isHoveredRef, updateBackgroundCursor)
+
   const renderBackground = useCallback(() => {
     if (!layout.computedBounds.plot) {
       return
@@ -227,6 +313,11 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
       .style('fill', d => (row(d) + col(d)) % 2 === 0 ? bgColor : darkBgColor)
       .style('fill-opacity', fillOpacity)
       .on(BackgroundPassThroughEvent.PointerDown, pointerDownEvent => {
+        // Handle option-click zoom first
+        if (handleOptionClickZoom(pointerDownEvent)) {
+          return // Don't start marquee selection if we zoomed
+        }
+
         // Custom dragging implementation to avoid D3. Unfortunately, since we need to deal with events manually
         // dispatched from PixiJS canvas, we need to be very careful about the event handling. This implementation
         // allows us just to deal with pointerdown event being passed from canvas. pointermove and pointerup events
@@ -252,7 +343,21 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
         window.addEventListener("pointermove", onDragHandler)
         window.addEventListener("pointerup", onDragEndHandler)
       })
-  }, [layout, dataDisplayModel, bgRef, graphLayout, onDragStart, onDrag, onDragEnd])
+      // Add mousemove listener for cursor updates and hover tracking
+      // The Pixi canvas intercepts mouse events and re-dispatches them
+      .on(BackgroundPassThroughEvent.MouseMove, (event: MouseEvent) => {
+        isHoveredRef.current = true
+        updateBackgroundCursor(event.altKey, event.shiftKey)
+      })
+      // Add mouseout listener to clear zoom cursor and hover tracking
+      .on(BackgroundPassThroughEvent.MouseOut, () => {
+        isHoveredRef.current = false
+        select(groupElement).selectAll<SVGRectElement, number>('.plot-cell-background')
+          .classed('zoom-in', false)
+          .classed('zoom-out', false)
+      })
+  }, [layout, dataDisplayModel, bgRef, graphLayout, onDragStart, onDrag, onDragEnd, handleOptionClickZoom,
+      updateBackgroundCursor])
 
   useEffect(function respondToAxisBoundsChange() {
     mstReaction(() => {
