@@ -183,10 +183,8 @@ export const Adornments = observer(function Adornments() {
       </div>
       {/*The following div can be used by adornments to display divs that will not be clipped by grid cells*/}
       <div className={'adornment-spanner'} style={outerGridStyle} ref={spannerDivRef}>
-        {
-          graphModel.adornmentsStore.showMeasureLabels &&
-           <div className="measure-labels" id={`measure-labels-${graphModel.id}`} ref={labelsDivRef} />
-        }
+        {/*Always render the measure-labels div so hover tips (e.g., boxplot) can use it without clipping*/}
+        <div className="measure-labels" id={`measure-labels-${graphModel.id}`} ref={labelsDivRef} />
         {/*The following svg can be used by adornments that need to draw outside their grid cell*/}
         <svg className="spanner-svg measure-container" ref={spannerRef}/>
       </div>
