@@ -18,7 +18,7 @@ export const MapComponent = observer(function MapComponent({tile, isMinimized}: 
   const instanceId = useNextInstanceId("map")
   const layout = useInitMapLayout(mapModel)
   const mapRef = useRef<HTMLDivElement | null>(null)
-  const { rendererArray, contextValue } = usePointRendererArray({
+  const { rendererArray, contextValue, primaryRendererType, toggleRendererType } = usePointRendererArray({
     baseId: tile?.id ?? instanceId,
     isMinimized,
     containerRef: mapRef
@@ -46,7 +46,12 @@ export const MapComponent = observer(function MapComponent({tile, isMinimized}: 
       <DataDisplayLayoutContext.Provider value={layout}>
         <MapModelContext.Provider value={mapModel}>
           <PointRendererArrayContext.Provider value={contextValue}>
-            <CodapMap setMapRef={setMapRef} rendererArray={rendererArray}/>
+            <CodapMap
+              setMapRef={setMapRef}
+              rendererArray={rendererArray}
+              rendererType={primaryRendererType}
+              onToggleRendererType={toggleRendererType}
+            />
             <AttributeDragOverlay dragIdPrefix={instanceId}/>
           </PointRendererArrayContext.Provider>
         </MapModelContext.Provider>

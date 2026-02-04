@@ -23,7 +23,8 @@ export type { PointRendererArray } from "./point-renderer-base"
 
 // Renderers
 export { NullPointRenderer } from "./null-point-renderer"
-export { PixiPointRenderer } from "./pixi-point-renderer"
+export { PixiPointRenderer, isPixiPointRenderer } from "./pixi-point-renderer"
+export { CanvasPointRenderer, isCanvasPointRenderer } from "./canvas-point-renderer"
 
 // Context management
 export { webGLContextManager } from "./webgl-context-manager"

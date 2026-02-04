@@ -1,6 +1,6 @@
 # Point Rendering Architecture
 
-This document describes the point rendering system used by graphs and maps in CODAP v3. The system provides an abstraction layer over PIXI.js (WebGL) rendering with automatic context pooling to handle browser limitations.
+This document describes the point rendering system used by graphs and maps in CODAP v3. The system provides an abstraction layer over rendering implementations (WebGL via PIXI.js, Canvas 2D fallback) with automatic context pooling to handle browser limitations.
 
 ## Motivation
 
@@ -10,7 +10,7 @@ The refactoring addresses these issues by:
 1. Pooling WebGL contexts with a configurable maximum (default 14, leaving headroom)
 2. Providing priority-based context allocation (graphs with more points get priority)
 3. Supporting user interaction priority (clicking a graph bumps it to the top)
-4. Gracefully degrading when contexts are unavailable (showing a placeholder message)
+4. Gracefully degrading when contexts are unavailable (falling back to Canvas 2D rendering)
 5. Preserving point state across renderer switches (so graphs restore correctly when contexts become available)
 
 ## Architecture Overview
@@ -32,16 +32,16 @@ The refactoring addresses these issues by:
 │   - Creates appropriate renderer based on context availability  │
 └─────────────────────────────────────────────────────────────────┘
                               │
-                ┌─────────────┴─────────────┐
-                ▼                           ▼
-┌───────────────────────────┐ ┌───────────────────────────────────┐
-│   NullPointRenderer       │ │     PixiPointRenderer             │
-│   - Tracks state          │ │     - Full PIXI.js rendering      │
-│   - No actual rendering   │ │     - WebGL context consumer      │
-│   - Instant transitions   │ │     - Syncs from shared state     │
-└───────────────────────────┘ └───────────────────────────────────┘
-                │                           │
-                └─────────────┬─────────────┘
+          ┌───────────────────┼───────────────────┐
+          ▼                   ▼                   ▼
+┌───────────────────┐ ┌───────────────────┐ ┌───────────────────┐
+│ PixiPointRenderer │ │CanvasPointRenderer│ │ NullPointRenderer │
+│ - WebGL rendering │ │ - Canvas 2D       │ │ - Tracks state    │
+│ - Best performance│ │ - Fallback mode   │ │ - No rendering    │
+│ - Context pooled  │ │ - Full interactivity│ │ - Instant trans.│
+└───────────────────┘ └───────────────────┘ └───────────────────┘
+          │                   │                   │
+          └───────────────────┼───────────────────┘
                               ▼
                 ┌─────────────────────────────┐
                 │         PointsState         │
@@ -49,6 +49,14 @@ The refactoring addresses these issues by:
                 │    - Survives renderer swap │
                 └─────────────────────────────┘
 ```
+
+### Renderer Fallback Hierarchy
+
+1. **PixiPointRenderer** (WebGL) - Used when a WebGL context is available
+2. **CanvasPointRenderer** (Canvas 2D) - Used when WebGL context is denied (too many graphs)
+3. **NullPointRenderer** - Used temporarily while waiting for context decision
+
+The Canvas renderer provides full functionality (rendering, hit testing, transitions, hover effects) without requiring a WebGL context. Canvas 2D contexts are virtually unlimited, so this fallback ensures graphs always render.
 
 ## Key Components
 
@@ -61,13 +69,22 @@ Renderer core classes are in `src/components/data-display/renderer/`:
 | `point-renderer-types.ts` | Core type definitions (`IPoint`, `IPointStyle`, `IPointMetadata`, etc.) |
 | `points-state.ts` | `PointsState` class - canonical point data that survives renderer switches |
 | `point-renderer-base.ts` | `PointRendererBase` abstract class with shared logic |
-| `null-point-renderer.ts` | `NullPointRenderer` - no-op renderer for context-starved graphs |
+| `null-point-renderer.ts` | `NullPointRenderer` - no-op renderer for waiting states |
 | `pixi-point-renderer.ts` | `PixiPointRenderer` - full PIXI.js/WebGL rendering |
+| `canvas-point-renderer.ts` | `CanvasPointRenderer` - Canvas 2D fallback renderer |
 | `webgl-context-manager.ts` | `WebGLContextManager` singleton managing context pool |
 | `use-point-renderer.ts` | React hook: `usePointRenderer` |
 | `use-point-renderer-array.ts` | React hook: `usePointRendererArray` for multi-layer support |
 | `point-renderer-context.tsx` | React context for renderer access |
 | `index.ts` | Public API exports |
+
+Canvas renderer supporting files are in `src/components/data-display/renderer/canvas/`:
+
+| File | Purpose |
+|------|---------|
+| `canvas-hit-tester.ts` | `CanvasHitTester` - spatial hash for O(1) hit testing |
+| `canvas-transition.ts` | `CanvasTransitionManager` - animated transitions |
+| `index.ts` | Exports for canvas subfolder |
 
 Additional hooks are in `src/components/data-display/hooks/`:
 
@@ -182,7 +199,7 @@ interface IContextConsumer {
 
 **Priority System:**
 - Base priority is typically the point count (graphs with more data get priority)
-- User interaction (clicking/selecting a graph) assigns a very high priority (1 billion+, incrementing)
+- User interaction (clicking the renderer badge) assigns a very high priority (1 billion+, incrementing)
 - When the pool is full and a higher-priority consumer requests a context, the lowest-priority active consumer is evicted
 
 ### usePointRenderer Hook
@@ -203,20 +220,25 @@ interface IUsePointRendererOptions {
 }
 
 interface IUsePointRendererResult {
-  renderer: PointRendererBase      // Current renderer (Pixi or Null)
+  renderer: PointRendererBase      // Current renderer (Pixi, Canvas, or Null)
   hasWebGLContext: boolean         // Whether we have a WebGL context
-  contextWasDenied: boolean        // Whether a request was denied (for placeholder)
+  contextWasDenied: boolean        // Whether a request was denied
   isVisible: boolean               // Whether component is visible
   isReady: boolean                 // Whether renderer is initialized
   state: PointsState               // Shared state
+  rendererType: RendererCapability // "webgl", "canvas", or "null"
   requestContextWithHighPriority: () => void  // For user interaction
+  toggleRendererType: () => void   // Toggle between WebGL and Canvas (for testing)
 }
 ```
 
 The hook:
 1. Sets up an `IntersectionObserver` to track visibility
 2. Requests/yields contexts based on visibility and minimized state
-3. Creates the appropriate renderer (`PixiPointRenderer` or `NullPointRenderer`)
+3. Creates the appropriate renderer based on context availability:
+   - `PixiPointRenderer` when WebGL context is granted
+   - `CanvasPointRenderer` when WebGL context is denied
+   - `NullPointRenderer` while waiting for initial context decision
 4. Handles renderer switching when context availability changes
 
 ### usePointRendererArray Hook
@@ -241,6 +263,8 @@ interface IUsePointRendererArrayResult {
   contextWasDenied: boolean
   isVisible: boolean
   requestContextWithHighPriority: () => void
+  primaryRendererType: RendererCapability  // "webgl", "canvas", or "null"
+  toggleRendererType: () => void           // Toggle between WebGL and Canvas (for testing)
   contextValue: IPointRendererArrayContextValue  // For PointRendererArrayContext.Provider
 }
 ```
@@ -271,14 +295,32 @@ This hook must be used within a `PointRendererArrayContext.Provider`. It:
 2. Automatically registers the renderer with the parent via `setRendererLayer`
 3. Participates in WebGL context pooling
 
-## Placeholder UI
+## Canvas Fallback Renderer
 
-When a graph cannot get a WebGL context, it displays a placeholder message instead of rendering nothing. The placeholder:
-- Explains that rendering is paused due to too many graphs
-- Instructs the user to close/minimize other graphs or click to prioritize
-- Is clickable to request a high-priority context
+When a graph cannot get a WebGL context (typically because the context pool is exhausted), it automatically falls back to the `CanvasPointRenderer`. This provides a seamless experience - users see their data rendered without any placeholder or error message.
 
-The placeholder is only shown when `contextWasDenied` is true, which prevents flashing during initial render before the first context request completes.
+### Canvas Renderer Features
+
+The Canvas 2D fallback provides full functionality:
+- **Rendering**: Draws circles (points) and rectangles (bars) with fill and stroke
+- **Hit Testing**: Uses a spatial hash grid for O(1) average-case point lookup
+- **Transitions**: Animated position/scale changes using the same smoother interpolation as WebGL
+- **Hover Effects**: Animated scale-up on hover (points), stroke color change (bars)
+- **Drag Support**: Full pointer event handling for point dragging
+- **Subplot Clipping**: Proper masking for categorical split plots
+
+### Performance Characteristics
+
+- Suitable for graphs with up to ~5,000 points
+- Immediate-mode rendering (redraws entire canvas each frame)
+- No hardware acceleration (CPU-bound)
+- Slightly slower transitions than WebGL with many points
+
+### Testing Renderer Toggle
+
+For development and testing purposes, a renderer badge can be enabled by setting `debug="renderers"` in localStorage. When enabled, a small badge ("GL" or "2D") appears in the lower-left corner of each graph, indicating the current renderer type. Clicking this badge toggles between WebGL and Canvas modes.
+
+This toggle is also accessible programmatically via `toggleRendererType()` in the hook result.
 
 ## Usage Examples
 
@@ -288,43 +330,49 @@ The placeholder is only shown when `contextWasDenied` is true, which prevents fl
 // In graph-component.tsx
 const {
   rendererArray,
-  hasAnyWebGLContext,
-  contextWasDenied,
   isVisible,
-  requestContextWithHighPriority
+  primaryRendererType,
+  toggleRendererType
 } = usePointRendererArray({
-  baseId: tileId,
+  baseId: tile?.id ?? instanceId,
   isMinimized,
-  priority: dataConfiguration.filteredCases[0]?.caseIds.length ?? 0,
+  priority: graphModel?.dataConfiguration?.filteredCases[0]?.caseIds.length ?? 0,
   containerRef: graphRef,
   addInitialRenderer: true
 })
 
 // Pass to child components
 <Graph
+  graphController={graphController}
+  setGraphRef={setGraphRef}
   rendererArray={rendererArray}
-  contextWasDenied={contextWasDenied}
   isRendererVisible={isVisible}
-  onRequestContext={requestContextWithHighPriority}
+  rendererType={primaryRendererType}
+  onToggleRendererType={toggleRendererType}
 />
 ```
 
 ### Map Component
 
-Maps use `usePointRendererArray` with `addInitialRenderer: false` and provide context for child layers:
+Maps use `usePointRendererArray` with `addInitialRenderer: false` (the default) and provide context for child layers:
 
 ```typescript
 // In map-component.tsx
-const { rendererArray, contextValue } = usePointRendererArray({
-  baseId: tileId,
+const { rendererArray, contextValue, primaryRendererType, toggleRendererType } = usePointRendererArray({
+  baseId: tile?.id ?? instanceId,
   isMinimized,
   containerRef: mapRef
-  // Note: addInitialRenderer defaults to false for maps
+  // Note: addInitialRenderer defaults to false
 })
 
 // Wrap children in context provider
 <PointRendererArrayContext.Provider value={contextValue}>
-  <CodapMap rendererArray={rendererArray} />
+  <CodapMap
+    setMapRef={setMapRef}
+    rendererArray={rendererArray}
+    rendererType={primaryRendererType}
+    onToggleRendererType={toggleRendererType}
+  />
 </PointRendererArrayContext.Provider>
 
 // In map-point-layer.tsx - each layer gets its own context-managed renderer
@@ -374,6 +422,13 @@ renderer.transition(() => {
 }, { duration: 500 })
 ```
 
+Both `PixiPointRenderer` and `CanvasPointRenderer` use the same "smoother" interpolation function for visual consistency when switching between renderers:
+
+```typescript
+// Smoother easing: slow start, fast middle, slow end
+const smoother = (t) => t * t * t * (t * (t * 6 - 15) + 10)
+```
+
 The `NullPointRenderer` completes transitions instantly since there's nothing to animate.
 
 ## Subplot Masking
@@ -393,19 +448,31 @@ renderer.setPointSubPlot(point, subPlotIndex)
 For code that needs to check renderer types:
 
 ```typescript
-import { isPixiPointRenderer } from "./renderer"
+import { isPixiPointRenderer, isCanvasPointRenderer } from "./renderer"
 
 if (isPixiPointRenderer(renderer)) {
   // Access PixiPointRenderer-specific functionality
 }
+
+if (isCanvasPointRenderer(renderer)) {
+  // Access CanvasPointRenderer-specific functionality
+}
+
+// Or use the capability property
+if (renderer.capability === "webgl") { ... }
+if (renderer.capability === "canvas") { ... }
+if (renderer.capability === "null") { ... }
 ```
 
 ## Future Considerations
 
-1. **SVG Fallback**: The architecture supports adding an `SvgPointRenderer` for environments without WebGL, though this is not currently implemented.
+1. **Performance Monitoring**: The `WebGLContextManager` could be extended to track context usage statistics for debugging.
 
-2. **Performance Monitoring**: The `WebGLContextManager` could be extended to track context usage statistics for debugging.
+2. **Context Recovery**: The current system handles context switching when the `WebGLContextManager` revokes/grants contexts (priority-based pooling). However, browser-level context loss events (e.g., GPU reset, system-wide WebGL resource pressure) are not explicitly handled. A future enhancement could listen for `webglcontextlost` events and automatically recreate the renderer.
 
-3. **Context Recovery**: The current system handles context switching when the `WebGLContextManager` revokes/grants contexts (priority-based pooling). However, browser-level context loss events (e.g., GPU reset, system-wide WebGL resource pressure) are not explicitly handled. A future enhancement could listen for `webglcontextlost` events and automatically recreate the renderer.
+3. **Dynamic Context Limit**: The current implementation assumes browsers support ~16 WebGL contexts and sets a conservative limit of 14. However, some browsers or devices may support fewer contexts. A future enhancement could listen for `webglcontextlost` events to detect when the actual browser limit has been exceeded and dynamically reduce `maxContexts` accordingly.
 
-4. **Dynamic Context Limit**: The current implementation assumes browsers support ~16 WebGL contexts and sets a conservative limit of 14. However, some browsers or devices may support fewer contexts. A future enhancement could listen for `webglcontextlost` events to detect when the actual browser limit has been exceeded and dynamically reduce `maxContexts` accordingly.
+4. **Canvas Performance Optimization**: For very large datasets (10K+ points), the Canvas renderer could benefit from:
+   - Dirty region tracking (only redraw changed areas)
+   - Point culling (skip off-screen points)
+   - Level-of-detail rendering (simplify distant/small points)

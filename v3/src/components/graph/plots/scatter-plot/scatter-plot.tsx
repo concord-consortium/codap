@@ -282,7 +282,7 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
     const updateDot = (aCaseData: CaseData) => {
       const caseId = aCaseData.caseID
       const x = getScreenX(caseId)
-      const y = getScreenY(caseId)
+      const y = getScreenY(caseId, aCaseData.plotNum)
       if (x != null && isFinite(x) && y != null && isFinite(y)) {
         const point = renderer.getPointForCaseData(aCaseData)
         point && renderer.setPointPosition(point, x, y)

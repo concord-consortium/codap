@@ -36,7 +36,7 @@ export interface IContextConsumer {
 export class WebGLContextManager {
   private static instance: WebGLContextManager | null = null
 
-  /** Maximum number of contexts to allocate (conservative to leave room for system use) */
+  /** Maximum number of contexts to allocate */
   readonly maxContexts = 14
 
   /** All registered consumers (both active and waiting) */
@@ -130,8 +130,8 @@ export class WebGLContextManager {
     }
 
     // Try to evict a lower-priority consumer
-    const evicted = this.tryEvictLowestPriority(consumer.priority)
-    if (evicted) {
+    const evictedId = this.tryEvictLowestPriority(consumer.priority)
+    if (evictedId) {
       this.grantContext(consumer.id)
       return true
     }
@@ -255,9 +255,9 @@ export class WebGLContextManager {
    * Try to evict the lowest-priority active consumer if its priority is lower than the threshold.
    *
    * @param threshold Only evict if lowest priority is below this value
-   * @returns true if a consumer was evicted
+   * @returns true if a consumer was evicted, and the evicted ID
    */
-  private tryEvictLowestPriority(threshold: number): boolean {
+  private tryEvictLowestPriority(threshold: number): string | null {
     let lowestPriority = Infinity
     let lowestPriorityId: string | null = null
 
@@ -275,10 +275,10 @@ export class WebGLContextManager {
       if (evicted) {
         evicted.onContextRevoked()
       }
-      return true
+      return lowestPriorityId
     }
 
-    return false
+    return null
   }
 
   /**

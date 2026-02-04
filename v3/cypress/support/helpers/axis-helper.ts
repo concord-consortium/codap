@@ -111,7 +111,7 @@ export const AxisHelper = {
     cy.get(".axis-legend-submenu")
       .filter(":visible")
       .contains("button", attributeName)
-      .click({ force: true })
+      .click()
     cy.wait(2000)
   },
   removeAttributeFromAxis(name: string, axis: string) {

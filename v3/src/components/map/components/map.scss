@@ -154,6 +154,27 @@
     height: 100%;
   }
 
+  .renderer-type-indicator {
+    position: absolute;
+    bottom: 4px;
+    left: 4px;
+    background: rgba(0, 0, 0, 0.3);
+    color: white;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 4px;
+    border-radius: 3px;
+    pointer-events: auto;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    z-index: 5;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+
 }
 
 .map-d3-tip {

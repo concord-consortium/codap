@@ -5,6 +5,7 @@ import {observer} from "mobx-react-lite"
 import {IDisposer, isAlive} from "mobx-state-tree"
 import React, {useCallback, useEffect, useMemo, useRef} from "react"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
+import { DEBUG_RENDERERS } from "../../../lib/debug"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import { AttributeType, isCategoricalAttributeType } from "../../../models/data/attribute-types"
 import {IDataSet} from "../../../models/data/data-set"
@@ -20,12 +21,11 @@ import {GraphPlace} from "../../axis-graph-shared"
 import { AxisPlace, AxisPlaces, isAxisPlace } from "../../axis/axis-types"
 import { IBaseNumericAxisModel } from "../../axis/models/base-numeric-axis-model"
 import { If } from "../../common/if"
-import { PointRendererArray } from "../../data-display/renderer"
+import { PointRendererArray, RendererCapability } from "../../data-display/renderer"
 import {Background} from "../../data-display/components/background"
 import {DataTip} from "../../data-display/components/data-tip"
 import {MultiLegend} from "../../data-display/components/legend/multi-legend"
 import {Marquee} from "../../data-display/components/marquee"
-import { NoWebGLContextPlaceholder } from "../../data-display/components/no-webgl-context-placeholder"
 import {GraphAttrRole, graphPlaceToAttrRole, kPortalClass} from "../../data-display/data-display-types"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {isSetAttributeIDAction} from "../../data-display/models/display-model-actions"
@@ -60,21 +60,21 @@ interface IProps {
   graphController: GraphController
   setGraphRef: (ref: HTMLDivElement | null) => void
   rendererArray: PointRendererArray
-  /** Whether a context was requested and denied (for showing placeholder) */
-  contextWasDenied?: boolean
   /** Whether the renderer is visible (not minimized or off-screen) */
   isRendererVisible?: boolean
-  /** Callback to request a WebGL context with high priority (for user interaction) */
-  onRequestContext?: () => void
+  /** The type of renderer in use */
+  rendererType?: RendererCapability
+  /** Toggle between WebGL and Canvas renderers (for testing) */
+  onToggleRendererType?: () => void
 }
 
 export const Graph = observer(function Graph({
   graphController,
   setGraphRef,
   rendererArray,
-  contextWasDenied = false,
   isRendererVisible = true,
-  onRequestContext
+  rendererType,
+  onToggleRendererType
 }: IProps) {
   const graphModel = useGraphContentModelContext(),
     {plotType} = graphModel,
@@ -457,15 +457,18 @@ export const Graph = observer(function Graph({
         </svg>
         {/* HTML host for Pixi canvas to avoid Safari foreignObject issues */}
         <div ref={pixiContainerRef} className="pixi-points-host" />
-        {/* Show placeholder when a context was requested but denied */}
-        <If condition={contextWasDenied && isRendererVisible}>
-          <NoWebGLContextPlaceholder
-            width={layout.plotWidth}
-            height={layout.plotHeight}
-            left={layout.getComputedBounds('plot')?.left ?? 0}
-            top={layout.getComputedBounds('plot')?.top ?? 0}
-            onClick={onRequestContext}
-          />
+        {/* Renderer type indicator (developer only - enable with localStorage debug="renderers") */}
+        <If condition={DEBUG_RENDERERS && !!rendererType && rendererType !== "null"}>
+          <div
+            className="renderer-type-indicator"
+            style={{ bottom: layout.getComputedBounds("legend").height + 4 }}
+            title={rendererType === "webgl"
+              ? "WebGL renderer (click to switch)"
+              : "Canvas 2D renderer (click to switch)"}
+            onClick={onToggleRendererType}
+          >
+            {rendererType === "webgl" ? "GL" : "2D"}
+          </div>
         </If>
         <svg className="overlay-svg">
           <g className="above-points-group" ref={abovePointsGroupRef}>

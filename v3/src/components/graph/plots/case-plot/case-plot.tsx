@@ -47,12 +47,26 @@ export const CasePlot = function CasePlot({ renderer }: IPlotProps) {
       const dy = newPos.y - currPos.current.y
       currPos.current = newPos
       if (dx !== 0 || dy !== 0) {
+        const pointRadius = graphModel.getPointRadius()
+        const xLength = layout.getAxisMultiScale('bottom')?.length ?? 0
+        const yLength = layout.getAxisMultiScale('left')?.length ?? 0
         renderer.forEachSelectedPoint((selectedPoint: IPoint, pointMetadata: IPointMetadata) => {
-          renderer.setPointPosition(selectedPoint, pointMetadata.x + dx, pointMetadata.y + dy)
+          const newX = pointMetadata.x + dx
+          const newY = pointMetadata.y + dy
+          renderer.setPointPosition(selectedPoint, newX, newY)
+          // Update randomPointsRef so refreshPointPositions calculates the same positions
+          // This ensures dragged positions survive renderer switches
+          const points = randomPointsRef.current
+          if (points[pointMetadata.caseID]) {
+            points[pointMetadata.caseID] = {
+              x: (newX - pointRadius) / (xLength - 2 * pointRadius),
+              y: (yLength - newY - pointRadius) / (yLength - 2 * pointRadius)
+            }
+          }
         })
       }
     }
-  }, [renderer, dragID])
+  }, [renderer, dragID, graphModel, layout])
 
   const onDragEnd = useCallback((_event: PointerEvent, _point: IPoint, _metadata: IPointMetadata) => {
     if (dragID !== '') {

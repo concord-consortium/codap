@@ -8,7 +8,6 @@ import { registerTileCollisionDetection } from "../../../lib/dnd-kit/dnd-detect-
 import { useDataSet } from '../../../hooks/use-data-set'
 import { DataSetContext } from '../../../hooks/use-data-set-context'
 import { InstanceIdContext, useNextInstanceId } from "../../../hooks/use-instance-id-context"
-import { useTileSelectionContext } from '../../../hooks/use-tile-selection-context'
 import { AxisProviderContext } from '../../axis/hooks/use-axis-provider-context'
 import { AxisLayoutContext } from "../../axis/models/axis-layout-context"
 import { kTitleBarHeight } from "../../constants"
@@ -40,10 +39,9 @@ export const GraphComponent = observer(function GraphComponent({tile, isMinimize
   // Use the new point renderer hook with WebGL context management
   const {
     rendererArray,
-    hasAnyWebGLContext,
-    contextWasDenied,
     isVisible,
-    requestContextWithHighPriority
+    primaryRendererType,
+    toggleRendererType
   } = usePointRendererArray({
     baseId: tile?.id ?? instanceId,
     isMinimized,
@@ -86,17 +84,6 @@ export const GraphComponent = observer(function GraphComponent({tile, isMinimize
     }
   }, [layout])
 
-  // Request a WebGL context when the tile is selected but doesn't have one
-  // This allows users to click on a graph to bump it to the top of the priority queue
-  const { isTileSelected } = useTileSelectionContext()
-  const isSelected = isTileSelected()
-
-  useEffect(function requestContextOnSelection() {
-    if (isSelected && !hasAnyWebGLContext) {
-      requestContextWithHighPriority()
-    }
-  }, [isSelected, hasAnyWebGLContext, requestContextWithHighPriority])
-
   // used to determine when a dragged attribute is over the graph component
   const dropId = `${instanceId}-component-drop-overlay`
   const {setNodeRef} = useDroppable({id: dropId})
@@ -115,9 +102,9 @@ export const GraphComponent = observer(function GraphComponent({tile, isMinimize
                   graphController={graphController}
                   setGraphRef={setGraphRef}
                   rendererArray={rendererArray}
-                  contextWasDenied={contextWasDenied}
                   isRendererVisible={isVisible}
-                  onRequestContext={requestContextWithHighPriority}
+                  rendererType={primaryRendererType}
+                  onToggleRendererType={toggleRendererType}
                 />
               </AxisProviderContext.Provider>
               <AttributeDragOverlay dragIdPrefix={instanceId}/>

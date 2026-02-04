@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect, useMemo, useState } from "react"
 import { PointRendererBase } from "./point-renderer-base"
-import { IPointRendererOptions } from "./point-renderer-types"
+import { IPointRendererOptions, RendererCapability } from "./point-renderer-types"
 import { usePointRenderer } from "./use-point-renderer"
 
 /**
@@ -90,6 +90,16 @@ export interface IUsePointRendererArrayResult {
   requestContextWithHighPriority: () => void
 
   /**
+   * The type of the primary renderer ("webgl", "canvas", or "null")
+   */
+  primaryRendererType: RendererCapability
+
+  /**
+   * Toggle between WebGL and Canvas renderers (for testing purposes).
+   */
+  toggleRendererType: () => void
+
+  /**
    * Context value for child layers to use.
    * Wrap child components in PointRendererArrayContext.Provider with this value.
    */
@@ -151,6 +161,8 @@ export function usePointRendererArray(options: IUsePointRendererArrayOptions): I
     contextWasDenied: primaryResult.contextWasDenied,
     isVisible: primaryResult.isVisible,
     requestContextWithHighPriority: primaryResult.requestContextWithHighPriority,
+    primaryRendererType: primaryResult.rendererType,
+    toggleRendererType: primaryResult.toggleRendererType,
     contextValue
   }
 }

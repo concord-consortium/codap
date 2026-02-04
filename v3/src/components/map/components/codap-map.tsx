@@ -10,7 +10,7 @@ import {useMapModelContext} from "../hooks/use-map-model-context"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
 import {useRendererPointerDownDeselect} from "../../data-display/hooks/use-renderer-pointer-down-deselect"
 import {MultiLegend} from "../../data-display/components/legend/multi-legend"
-import { PointRendererArray } from "../../data-display/renderer"
+import { PointRendererArray, RendererCapability } from "../../data-display/renderer"
 import { DEBUG_PIXI_POINTS } from "../../../lib/debug"
 import {logStringifiedObjectMessage} from "../../../lib/log-message"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
@@ -27,9 +27,15 @@ import "./map.scss"
 interface IProps {
   setMapRef: (ref: HTMLDivElement | null) => void
   rendererArray: PointRendererArray
+  /** The type of renderer in use */
+  rendererType?: RendererCapability
+  /** Toggle between WebGL and Canvas renderers (for testing) */
+  onToggleRendererType?: () => void
 }
 
-export const CodapMap = observer(function CodapMap({setMapRef, rendererArray}: IProps) {
+export const CodapMap = observer(function CodapMap({
+  setMapRef, rendererArray, rendererType, onToggleRendererType
+}: IProps) {
   const mapModel = useMapModelContext(),
     layout = useDataDisplayLayout(),
     mapHeight = layout.contentHeight,
@@ -151,6 +157,16 @@ export const CodapMap = observer(function CodapMap({setMapRef, rendererArray}: I
         onDropAttribute={callHandleChangeAttribute}
       />
       <MapMarqueeSelectButton mapRef={mapRef} mapModel={mapModel}/>
+      {/* Renderer type indicator */}
+      {rendererType && rendererType !== "null" && (
+        <div
+          className="renderer-type-indicator"
+          title={rendererType === "webgl" ? "WebGL renderer (click to switch)" : "Canvas 2D renderer (click to switch)"}
+          onClick={onToggleRendererType}
+        >
+          {rendererType === "webgl" ? "GL" : "2D"}
+        </div>
+      )}
     </div>
   )
 })

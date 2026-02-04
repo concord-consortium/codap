@@ -44,7 +44,7 @@ export type PointEventHandler = (
 /**
  * Renderer capability type
  */
-export type RendererCapability = "webgl" | "svg" | "null"
+export type RendererCapability = "webgl" | "canvas" | "svg" | "null"
 
 /**
  * Options for initializing a point renderer
