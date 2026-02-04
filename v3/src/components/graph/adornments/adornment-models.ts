@@ -8,6 +8,7 @@ import { ScaleNumericBaseType } from "../../axis/axis-types"
 import { IAxisLayout } from "../../axis/models/axis-layout-context"
 import { IAxisModel } from "../../axis/models/axis-model"
 import {IGraphDataConfigurationModel} from "../models/graph-data-configuration-model"
+import { cellKeyToString } from "../utilities/cell-key-utils"
 
 export interface IUpdateCategoriesOptions {
   dataConfig: IGraphDataConfigurationModel
@@ -29,7 +30,7 @@ export const AdornmentModel = types.model("AdornmentModel", {
   })
   .views(self => ({
     instanceKey(cellKey: Record<string, string>) {
-      return JSON.stringify(cellKey)
+      return cellKeyToString(cellKey)
     },
     classNameFromKey(cellKey: Record<string, string>) {
       let className = ""

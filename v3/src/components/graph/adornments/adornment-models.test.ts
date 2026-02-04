@@ -46,8 +46,9 @@ describe("AdornmentModel", () => {
     const xCategories = ["pizza", "pasta", "salad"]
     const yCategories = ["red", "green", "blue"]
     const cellKey = {abc123: xCategories[0], def456: yCategories[0]}
-    expect(adornment.instanceKey({})).toEqual("{}")
-    expect(adornment.instanceKey(cellKey)).toEqual("{\"abc123\":\"pizza\",\"def456\":\"red\"}")
+    expect(adornment.instanceKey({})).toEqual("")
+    // New format: sorted keys, colon-separated key:value, pipe-separated entries
+    expect(adornment.instanceKey(cellKey)).toEqual("abc123:pizza|def456:red")
   })
   it("will create a class name from a given cell key", () => {
     const adornment = AdornmentModel.create({type: "Movable Line"})

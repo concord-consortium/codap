@@ -1,5 +1,6 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { isAnyNumericAxisModel } from "../../../axis/models/numeric-axis-models"
+import { migrateInstanceKeyMap } from "../../utilities/cell-key-utils"
 import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions } from "../adornment-models"
 import { kMovableValueType } from "./movable-value-adornment-types"
 
@@ -9,6 +10,10 @@ export const MovableValueAdornmentModel = AdornmentModel
     type: types.optional(types.literal(kMovableValueType), kMovableValueType),
     // key is instanceKey (derived from cellKey); value is array of movable values for a given cell
     values: types.map(types.array(types.number))
+  })
+  .preProcessSnapshot(snapshot => {
+    const values = migrateInstanceKeyMap(snapshot.values)
+    return values ? { ...snapshot, values } : snapshot
   })
   .volatile(() => ({
     axisMin: 0,

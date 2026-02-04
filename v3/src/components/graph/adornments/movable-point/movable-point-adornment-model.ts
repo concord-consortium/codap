@@ -2,6 +2,7 @@ import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { IAxisModel } from "../../../axis/models/axis-model"
 import { isAnyNumericAxisModel } from "../../../axis/models/numeric-axis-models"
 import { Point } from "../../../data-display/data-display-types"
+import { migrateInstanceKeyMap } from "../../utilities/cell-key-utils"
 import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions } from "../adornment-models"
 import { IPointModel, PointModel } from "../point-model"
 import { kMovablePointType } from "./movable-point-adornment-types"
@@ -12,6 +13,10 @@ export const MovablePointAdornmentModel = AdornmentModel
   .props({
     type: types.optional(types.literal(kMovablePointType), kMovablePointType),
     points: types.map(PointModel)
+  })
+  .preProcessSnapshot(snapshot => {
+    const points = migrateInstanceKeyMap(snapshot.points)
+    return points ? { ...snapshot, points } : snapshot
   })
   .views(self => ({
     get firstPoint(): Maybe<IPointModel> {

@@ -136,7 +136,7 @@ updateCellKey(cellKey, attrId, category): Record<string, string>
 **`adornment-models.ts`:**
 
 ```typescript
-// Convert cell key to string for use as map key (uses JSON.stringify)
+// Convert cell key to string for use as map key (uses cellKeyToString)
 instanceKey(cellKey: Record<string, string>): string
 
 // Convert to CSS-safe class name
@@ -187,18 +187,23 @@ Adornment models often need to store data (like computed values or user-placed l
 }))
 ```
 
-**Important:** `instanceKey()` uses `JSON.stringify` because these keys are **persisted** in saved documents. Don't change this format without migration code.
+**Note:** `instanceKey()` uses `cellKeyToString()` which produces stable, sorted keys.
 
-## Cache Keys vs Instance Keys
+## Instance Key Format and Migration
 
-There are two different string representations of cell keys:
+Instance keys are stored in saved documents as keys in MST map properties. The format is:
 
-| Function | Format | Purpose | Can Change? |
-|----------|--------|---------|-------------|
-| `cellKeyToString()` | `"attrId1:value1|attrId2:value2"` | Cache keys (transient) | Yes |
-| `instanceKey()` | `JSON.stringify(...)` | Map keys (persisted) | No* |
+```
+attrId1:value1|attrId2:value2
+```
 
-*Changing `instanceKey` format would break saved documents.
+Keys are sorted alphabetically by attribute ID to ensure deterministic output regardless of property insertion order. Special characters (`:`, `|`, `\`) are escaped.
+
+**Legacy Format Migration:** Documents saved before the format change used `JSON.stringify` format (e.g., `{"ATTR-123":"plant"}`). Each adornment model includes a `preProcessSnapshot` handler that automatically migrates legacy keys to the new format when loading old documents.
+
+To convert between formats:
+- `cellKeyToString(cellKey)` - Convert cell key object to string
+- `stringToCellKey(keyString)` - Parse string back to cell key object (handles both formats)
 
 ## Debugging Tips
 

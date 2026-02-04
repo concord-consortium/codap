@@ -5,6 +5,7 @@ import { ScaleNumericBaseType } from "../../../axis/axis-types"
 import { kMain, Point } from "../../../data-display/data-display-types"
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
 import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
+import { migrateInstanceKeyMap, stringToCellKey } from "../../utilities/cell-key-utils"
 import { leastSquaresLinearRegression, tAt0975ForDf } from "../../utilities/graph-utils"
 import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions } from "../adornment-models"
 import { ILineLabelInstance, LineLabelInstance } from "../line-label-instance"
@@ -106,9 +107,14 @@ export const LSRLAdornmentModel = AdornmentModel
 .named("LSRLAdornmentModel")
 .props({
   type: types.optional(types.literal(kLSRLType), kLSRLType),
-  // first key is cell key; second key is legend category (or kMain)
+  // first key is cell key (instanceKey format); second key is legend category (or kMain)
   labels: types.map(types.map(LineLabelInstance)),
   showConfidenceBands: false,
+})
+.preProcessSnapshot(snapshot => {
+  // Only the outer map keys are cell keys that need migration; inner keys are legend categories
+  const labels = migrateInstanceKeyMap(snapshot.labels)
+  return labels ? { ...snapshot, labels } : snapshot
 })
 .volatile(() => ({
   // first key is cell key; second key is legend category (or kMain)
@@ -156,7 +162,7 @@ export const LSRLAdornmentModel = AdornmentModel
       linesArray.forEach(line => {
         const { category, intercept, slope } = line
         if (!isFiniteNumber(intercept) || !isFiniteNumber(slope)) return
-        const cellKey = JSON.parse(`${key}`)
+        const cellKey = stringToCellKey(String(key))
         lineDescriptions.push({ category, cellKey, intercept, slope })
       })
     })

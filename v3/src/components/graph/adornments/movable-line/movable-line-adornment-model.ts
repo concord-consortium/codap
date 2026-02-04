@@ -2,6 +2,7 @@ import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { JsonNumber } from "../../../../utilities/json-number"
 import { IAxisModel } from "../../../axis/models/axis-model"
 import { Point } from "../../../data-display/data-display-types"
+import { migrateInstanceKeyMap, stringToCellKey } from "../../utilities/cell-key-utils"
 import { computeSlopeAndIntercept } from "../../utilities/graph-utils"
 import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions } from "../adornment-models"
 import { LineLabelInstance } from "../line-label-instance"
@@ -48,8 +49,12 @@ export const MovableLineAdornmentModel = AdornmentModel
 .named("MovableLineAdornmentModel")
 .props({
   type: types.optional(types.literal(kMovableLineType), kMovableLineType),
-  // key is cell key
+  // key is cell key (instanceKey format)
   lines: types.map(MovableLineInstance)
+})
+.preProcessSnapshot(snapshot => {
+  const lines = migrateInstanceKeyMap(snapshot.lines)
+  return lines ? { ...snapshot, lines } : snapshot
 })
 .views(self => ({
   get firstLineInstance(): Maybe<IMovableLineInstance> {
@@ -60,7 +65,7 @@ export const MovableLineAdornmentModel = AdornmentModel
     self.lines.forEach((line, key) => {
       const { intercept, slope } = line.slopeAndIntercept
       if (!Number.isFinite(intercept) || !Number.isFinite(slope)) return
-      const cellKey = JSON.parse(`${key}`)
+      const cellKey = stringToCellKey(String(key))
       lineDescriptions.push({ cellKey, intercept, slope })
     })
     return lineDescriptions

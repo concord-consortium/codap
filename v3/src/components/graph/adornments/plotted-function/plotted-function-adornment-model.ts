@@ -1,7 +1,8 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
+import { Formula } from "../../../../models/formula/formula"
+import { migrateInstanceKeyMap } from "../../utilities/cell-key-utils"
 import { AdornmentModel, IAdornmentModel } from "../adornment-models"
 import { kPlottedFunctionType, kPlottedFunctionValueTitleKey, FormulaFn } from "./plotted-function-adornment-types"
-import { Formula } from "../../../../models/formula/formula"
 
 export const PlottedFunctionInstance = types.model("PlottedFunctionInstance", {})
   .volatile(self => ({
@@ -21,6 +22,10 @@ export const PlottedFunctionAdornmentModel = AdornmentModel
     labelTitle: types.optional(types.literal(kPlottedFunctionValueTitleKey), kPlottedFunctionValueTitleKey),
     plottedFunctions: types.map(PlottedFunctionInstance),
     error: ""
+  })
+  .preProcessSnapshot(snapshot => {
+    const plottedFunctions = migrateInstanceKeyMap(snapshot.plottedFunctions)
+    return plottedFunctions ? { ...snapshot, plottedFunctions } : snapshot
   })
   .views(self => ({
     get expression() {
