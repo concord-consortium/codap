@@ -42,6 +42,8 @@ CODAP graphs can have categorical attributes in up to four positions:
 | `topSplit` | Top | Splits graph horizontally into panels |
 | `rightSplit` | Right | Splits graph vertically into panels |
 
+Note that `topSplit` and `rightSplit` are often referred to as "secondary."
+
 A cell key can have entries for any combination of these, depending on which axes have categorical attributes assigned.
 
 ## Special Values
@@ -193,7 +195,7 @@ There are two different string representations of cell keys:
 
 | Function | Format | Purpose | Can Change? |
 |----------|--------|---------|-------------|
-| `cellKeyToString()` | `"attrId1:value1\|attrId2:value2"` | Cache keys (transient) | Yes |
+| `cellKeyToString()` | `"attrId1:value1|attrId2:value2"` | Cache keys (transient) | Yes |
 | `instanceKey()` | `JSON.stringify(...)` | Map keys (persisted) | No* |
 
 *Changing `instanceKey` format would break saved documents.

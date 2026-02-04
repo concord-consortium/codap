@@ -5,6 +5,15 @@ export type { GraphCellKey } from "../graphing-types"
 export const kImpossible = "__IMPOSSIBLE__"
 
 /**
+ * Escape special characters in keys or values.
+ * Replaces `:` with `\:` and `|` with `\|`.
+ */
+function escapeSpecialCharacters(input: string): string {
+  return input.replace(/[:|\\]/g, (match) => `\\${match}`)
+}
+
+/**
+/**
  * Convert a cell key to a stable string for use as a cache key.
  * Unlike JSON.stringify, this produces the same string regardless of property insertion order.
  */
@@ -13,5 +22,8 @@ export function cellKeyToString(cellKey: Record<string, string>): string {
   if (entries.length === 0) return ""
   // Sort by key for deterministic output
   entries.sort((a, b) => a[0].localeCompare(b[0]))
-  return entries.map(([k, v]) => `${k}:${v}`).join("|")
+  return entries
+    .map(([k, v]) => `${escapeSpecialCharacters(k)}:${escapeSpecialCharacters(v)}`)
+    .join("|")
+
 }
