@@ -199,7 +199,7 @@ interface IContextConsumer {
 
 **Priority System:**
 - Base priority is typically the point count (graphs with more data get priority)
-- User interaction (clicking/selecting a graph) assigns a very high priority (1 billion+, incrementing)
+- User interaction (clicking the renderer badge) assigns a very high priority (1 billion+, incrementing)
 - When the pool is full and a higher-priority consumer requests a context, the lowest-priority active consumer is evicted
 
 ### usePointRenderer Hook
@@ -263,6 +263,8 @@ interface IUsePointRendererArrayResult {
   contextWasDenied: boolean
   isVisible: boolean
   requestContextWithHighPriority: () => void
+  primaryRendererType: RendererCapability  // "webgl", "canvas", or "null"
+  toggleRendererType: () => void           // Toggle between WebGL and Canvas (for testing)
   contextValue: IPointRendererArrayContextValue  // For PointRendererArrayContext.Provider
 }
 ```
@@ -316,7 +318,9 @@ The Canvas 2D fallback provides full functionality:
 
 ### Testing Renderer Toggle
 
-For testing purposes, clicking the renderer badge (shown in the graph inspector) toggles between WebGL and Canvas modes. This is also accessible via `renderer.toggleRendererType()` in the hook result.
+For development and testing purposes, a renderer badge can be enabled by setting `debug="renderers"` in localStorage. When enabled, a small badge ("GL" or "2D") appears in the lower-left corner of each graph, indicating the current renderer type. Clicking this badge toggles between WebGL and Canvas modes.
+
+This toggle is also accessible programmatically via `toggleRendererType()` in the hook result.
 
 ## Usage Examples
 
@@ -326,43 +330,49 @@ For testing purposes, clicking the renderer badge (shown in the graph inspector)
 // In graph-component.tsx
 const {
   rendererArray,
-  hasAnyWebGLContext,
   isVisible,
-  requestContextWithHighPriority,
+  primaryRendererType,
   toggleRendererType
 } = usePointRendererArray({
-  baseId: tileId,
+  baseId: tile?.id ?? instanceId,
   isMinimized,
-  priority: dataConfiguration.filteredCases[0]?.caseIds.length ?? 0,
+  priority: graphModel?.dataConfiguration?.filteredCases[0]?.caseIds.length ?? 0,
   containerRef: graphRef,
   addInitialRenderer: true
 })
 
 // Pass to child components
 <Graph
+  graphController={graphController}
+  setGraphRef={setGraphRef}
   rendererArray={rendererArray}
   isRendererVisible={isVisible}
-  onRequestContext={requestContextWithHighPriority}
-  onToggleRenderer={toggleRendererType}
+  rendererType={primaryRendererType}
+  onToggleRendererType={toggleRendererType}
 />
 ```
 
 ### Map Component
 
-Maps use `usePointRendererArray` with `addInitialRenderer: false` and provide context for child layers:
+Maps use `usePointRendererArray` with `addInitialRenderer: false` (the default) and provide context for child layers:
 
 ```typescript
 // In map-component.tsx
-const { rendererArray, contextValue } = usePointRendererArray({
-  baseId: tileId,
+const { rendererArray, contextValue, primaryRendererType, toggleRendererType } = usePointRendererArray({
+  baseId: tile?.id ?? instanceId,
   isMinimized,
   containerRef: mapRef
-  // Note: addInitialRenderer defaults to false for maps
+  // Note: addInitialRenderer defaults to false
 })
 
 // Wrap children in context provider
 <PointRendererArrayContext.Provider value={contextValue}>
-  <CodapMap rendererArray={rendererArray} />
+  <CodapMap
+    setMapRef={setMapRef}
+    rendererArray={rendererArray}
+    rendererType={primaryRendererType}
+    onToggleRendererType={toggleRendererType}
+  />
 </PointRendererArrayContext.Provider>
 
 // In map-point-layer.tsx - each layer gets its own context-managed renderer
