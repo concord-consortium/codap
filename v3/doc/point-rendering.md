@@ -132,13 +132,16 @@ class PointsState {
   // State includes position, style, selection, subplot assignment
   interface IPointState {
     id: string
+    caseID: string
+    plotNum: number
+    subPlotNum?: number
+    datasetID: string
     x: number
     y: number
     scale: number
     style: IPointStyle
     isRaised: boolean  // selected points are "raised" for z-ordering
-    subPlotIndex: number
-    metadata: IPointMetadata
+    isVisible: boolean
   }
 }
 ```
