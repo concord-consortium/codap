@@ -271,8 +271,9 @@ export class CanvasPointRenderer extends PointRendererBase {
       this._anchor = circleAnchor
     }
 
-    // Sync state with case data
-    this.state.syncWithCaseData(caseData, style)
+    // Sync state with case data and clean up hover animations for removed points
+    const { removed } = this.state.syncWithCaseData(caseData, style)
+    removed.forEach(pointId => this.hoverAnimations.delete(pointId))
 
     this.needsRedraw = true
     this.doStartRendering()
