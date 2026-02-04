@@ -310,8 +310,7 @@ export const graphComponentHandler: DIComponentHandler = {
       const backgroundColor = content.plotBackgroundColor
       const transparent = content.isTransparent
       const showConnectingLines = content.adornmentsStore.showConnectingLines
-
-      return {
+      const result: V2Graph = {
         backgroundColor, dataContext, displayOnlySelectedCases, enableNumberToggle, filterFormula, hiddenCases,
         numberToggleLastMode, plotType, pointColor, pointSize, primaryAxis, showConnectingLines,
         showMeasuresForSelection, strokeColor, strokeSameAsFill, transparent, captionAttributeID, captionAttributeName,
@@ -319,8 +318,11 @@ export const graphComponentHandler: DIComponentHandler = {
         topSplitAttributeID, topSplitAttributeName, type: "graph",
         xAttributeID, xAttributeName, xAttributeType, xLowerBound, xUpperBound,
         yAttributeID, yAttributeIDs, yAttributeName, yAttributeNames, yAttributeType, yLowerBound, yUpperBound,
-        y2AttributeID, y2AttributeName, y2AttributeType, y2LowerBound, y2UpperBound
+        y2AttributeID, y2AttributeName, y2AttributeType, y2LowerBound, y2UpperBound,
+        // retrieve plot-specific properties
+        ...content.plot.getApiProps()
       }
+      return result
     }
   },
 
@@ -329,11 +331,10 @@ export const graphComponentHandler: DIComponentHandler = {
 
     const {
       backgroundColor, dataContext: _dataContext, displayOnlySelectedCases, enableNumberToggle: showParentToggles,
-      filterFormula, hiddenCases, numberToggleLastMode: showOnlyLastCase, pointColor,
-      pointSize, showConnectingLines, showMeasuresForSelection, strokeColor, strokeSameAsFill, transparent,
+      filterFormula, hiddenCases, numberToggleLastMode: showOnlyLastCase, pointColor, pointSize, pointsAreFusedIntoBars,
+      showConnectingLines, showMeasuresForSelection, strokeColor, strokeSameAsFill, transparent,
       xAttributeType, xLowerBound, xUpperBound, yAttributeID, yAttributeIDs, yAttributeName, yAttributeNames,
-      yAttributeType, yLowerBound, yUpperBound, y2AttributeType, y2LowerBound, y2UpperBound,
-      pointsAreFusedIntoBars
+      yAttributeType, yLowerBound, yUpperBound, y2AttributeType, y2LowerBound, y2UpperBound
     } = values as V2GetGraph
     const attributeInfo = getAttributeInfo(values)
     const { dataConfiguration, pointDescription } = content
@@ -468,6 +469,12 @@ export const graphComponentHandler: DIComponentHandler = {
         return errorResult(t("V3.DI.Error.cannotFusePointsIntoBars"))
       }
       content.fusePointsIntoBars(pointsAreFusedIntoBars)
+    }
+
+    // delegate to plot to update plot-specific properties
+    if (typeof values === "object" && !Array.isArray(values)) {
+      const error = content.plot.updateApiProps(values as Record<string, unknown>)
+      if (error) return error
     }
 
     return { success: true }

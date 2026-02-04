@@ -1,4 +1,3 @@
-import React from "react"
 import { registerAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
 import { ICodapV2MovableLineAdornment } from "../../../../v2/codap-v2-types"
 import { registerAdornmentComponentInfo } from "../adornment-component-info"

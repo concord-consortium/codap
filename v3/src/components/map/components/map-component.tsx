@@ -1,6 +1,6 @@
 import {useDroppable} from '@dnd-kit/core'
 import {observer} from "mobx-react-lite"
-import React, { useCallback, useRef } from "react"
+import { useCallback, useRef } from "react"
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
 import {ITileBaseProps} from '../../tiles/tile-base-props'
 import {DataDisplayLayoutContext} from "../../data-display/hooks/use-data-display-layout"

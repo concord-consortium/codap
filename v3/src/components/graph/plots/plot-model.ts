@@ -1,5 +1,6 @@
 import { format } from "d3-format"
 import { Instance, types } from "mobx-state-tree"
+import { DIErrorResult } from "../../../data-interactive/handlers/di-results"
 import { AttributeType } from "../../../models/data/attribute-types"
 import { ICase } from "../../../models/data/data-set-types"
 import { applyModelChange } from "../../../models/history/apply-model-change"
@@ -156,6 +157,13 @@ export const PlotModel = types
     },
     barTipText(props: IBarTipTextProps) {
       return ""
+    },
+    // Returns plot-specific properties for the data interactive API.
+    // Derived classes can override to add their own properties.
+    getApiProps(): Record<string, unknown> {
+      return {
+        pointsAreFusedIntoBars: self.hasPointsFusedIntoBars
+      }
     }
   }))
   .views(self => ({
@@ -266,8 +274,13 @@ export const PlotModel = types
       self.dataConfiguration = dataConfiguration
       self.graphApi = api
     },
-    respondToPlotChange(options: IRespondToPlotChangeOptions) {
+    respondToPlotChange(_options: IRespondToPlotChangeOptions) {
       // derived models may override
+    },
+    updateApiProps(_values: Record<string, unknown>): Maybe<DIErrorResult> {
+      // derived models may override
+      // return undefined for success; DIErrorResult for failure
+      return undefined
     }
   }))
   .actions(applyModelChange)

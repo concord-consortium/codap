@@ -1,5 +1,4 @@
 import { DndContext } from "@dnd-kit/core"
-import React from "react"
 import { act, fireEvent, render, screen } from "@testing-library/react"
 import { ComponentTitleBar } from "./component-title-bar"
 import { ITileLikeModel } from "../models/tiles/tile-content-info"

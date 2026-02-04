@@ -1,5 +1,5 @@
 import {Active, useDndContext} from "@dnd-kit/core"
-import React, { useCallback } from "react"
+import { useCallback } from "react"
 import {IDataSet} from "../../../models/data/data-set"
 import {getDragAttributeInfo, useDropHandler} from "../../../hooks/use-drag-drop"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"

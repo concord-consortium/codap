@@ -1,5 +1,5 @@
 import {drag, select} from "d3"
-import React, {useCallback, useEffect, useMemo, useRef, useState} from "react"
+import {useCallback, useEffect, useMemo, useRef, useState} from "react"
 import {mstReaction} from "../../../../utilities/mst-reaction"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { setSelectedCases, selectCases } from "../../../../models/data/data-set-utils"

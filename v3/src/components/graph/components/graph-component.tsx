@@ -1,6 +1,6 @@
 import { useDroppable } from '@dnd-kit/core'
 import { observer } from "mobx-react-lite"
-import React, { useCallback, useEffect, useRef } from "react"
+import { useCallback, useEffect, useRef } from "react"
 import { useResizeDetector } from "react-resize-detector"
 import { useMemo } from 'use-memo-one'
 import { DEBUG_PIXI_POINTS } from '../../../lib/debug'

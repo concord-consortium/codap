@@ -1,4 +1,4 @@
-import React, { ForwardedRef, forwardRef, useEffect, useState } from "react"
+import { ForwardedRef, forwardRef, useEffect, useState } from "react"
 import { createPortal } from "react-dom"
 import { IDataSet } from "../../../models/data/data-set"
 import {kPortalClassSelector} from "../data-display-types"
@@ -17,10 +17,12 @@ interface IProps {
   onChangeAttribute?: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
   onRemoveAttribute?: (place: GraphPlace, attrId: string) => void
   onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: AttributeType) => void
+  // Optional override for attribute ID - used when rendering separate labels for multiple y-attributes
+  attrIdOverride?: string
 }
 
 export const AttributeLabel = forwardRef((props: IProps, labelRef: ForwardedRef<SVGGElement>) => {
-  const { place, refreshLabel, onChangeAttribute, onRemoveAttribute, onTreatAttributeAs } = props
+  const { place, refreshLabel, onChangeAttribute, onRemoveAttribute, onTreatAttributeAs, attrIdOverride } = props
   // labelRef must be a MutableRefObject, not a function
   const labelElt = typeof labelRef !== "function" ? labelRef?.current ?? null : null
   const portal = labelElt?.closest(kPortalClassSelector) as HTMLElement ?? null
@@ -51,6 +53,7 @@ export const AttributeLabel = forwardRef((props: IProps, labelRef: ForwardedRef<
           onChangeAttribute={onChangeAttribute}
           onRemoveAttribute={onRemoveAttribute}
           onTreatAttributeAs={onTreatAttributeAs}
+          attrIdOverride={attrIdOverride}
         />, portal)
       }
     </>

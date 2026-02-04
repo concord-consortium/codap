@@ -1,5 +1,5 @@
 import { comparer } from "mobx"
-import React, {useCallback, useEffect, useRef} from "react"
+import {useCallback, useEffect, useRef} from "react"
 import {DomEvent, LeafletMouseEvent, point, popup, Rectangle, rectangle} from "leaflet"
 import {useMap} from "react-leaflet"
 import {useMemo} from "use-memo-one"
@@ -92,8 +92,8 @@ export const MapPointGrid = function MapPointGrid(props: IMapPointGridProps) {
   }, [leafletMap, leafletPopup, mapGridModel, mapLayerModel, refreshGridSelection])
 
   const refreshGridLayer = useCallback(() => {
-    leafletMapLayers?.updateLayer(mapLayerModel, refreshLeafletRects)
-  }, [leafletMapLayers, mapLayerModel, refreshLeafletRects])
+    leafletMapLayers?.updateLayer(mapLayerModel.id, refreshLeafletRects)
+  }, [leafletMapLayers, mapLayerModel.id, refreshLeafletRects])
 
   useEffect(function syncMapGridModel() {
     return mstReaction(

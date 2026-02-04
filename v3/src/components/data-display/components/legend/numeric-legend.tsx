@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite"
-import React, { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { setOrExtendSelection } from "../../../../models/data/data-set-utils"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { axisGap } from "../../../axis/axis-types"

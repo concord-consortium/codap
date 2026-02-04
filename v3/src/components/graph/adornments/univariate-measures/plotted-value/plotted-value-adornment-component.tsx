@@ -1,4 +1,4 @@
-import React, { useEffect } from "react"
+import { useEffect } from "react"
 import { observer } from "mobx-react-lite"
 import { useGraphContentModelContext } from "../../../hooks/use-graph-content-model-context"
 import { isPlottedValueAdornment } from "./plotted-value-adornment-model"

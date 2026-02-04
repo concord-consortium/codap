@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { InspectorButton, InspectorPanel } from "../inspector-panel"
 import { SliderSettingsPalette } from "./inspector-panel/slider-settings-panel"
 import { t } from "../../utilities/translation/translate"

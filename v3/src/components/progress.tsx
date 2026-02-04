@@ -1,4 +1,3 @@
-import React from "react"
 import { useProgress } from "../hooks/use-progress"
 
 import "./progress.scss"

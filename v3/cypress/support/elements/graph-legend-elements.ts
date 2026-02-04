@@ -21,6 +21,7 @@ export const GraphLegendElements = {
     return this.getGraphTile().find("[data-testid=attribute-label-menu-legend]")
   },
   getAttributeFromLegendMenu() {
-    return this.getLegendAttributeMenu().parent()
+    // The menu items are rendered in a Portal at the body level, so we need to find the MenuList by data-testid
+    return cy.get('[data-testid="axis-legend-attribute-menu-list-legend"]')
   }
 }

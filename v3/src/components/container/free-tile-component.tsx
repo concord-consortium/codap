@@ -1,15 +1,16 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import React, { PointerEvent, useCallback, useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import { ComponentWrapperContext } from "../../hooks/use-component-wrapper-context"
 import { FreeTileLayoutContext } from "../../hooks/use-free-tile-layout-context"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { IFreeTileLayout, IFreeTileRow } from "../../models/document/free-tile-row"
+import { inBoundsScaling } from "../../models/document/inbounds-scaling"
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
-import { kDefaultMinWidth } from "../../models/tiles/tile-layout"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { updateTileNotification } from "../../models/tiles/tile-notifications"
 import { uiState } from "../../models/ui-state"
+import { getScaledDimensions, getScaledPositionSnapped } from "../../utilities/inbounds-utils"
 import { urlParams } from "../../utilities/url-params"
 import { CodapComponent } from "../codap-component"
 import { If } from "../common/if"
@@ -18,15 +19,12 @@ import {
 } from "../constants"
 import { ComponentResizeWidgets } from "./component-resize-widgets"
 import { useTileDrag } from "./use-tile-drag"
+import { useTileResize } from "./use-tile-resize"
 
 interface IProps {
   row: IFreeTileRow
   tile: ITileModel
   onCloseTile: (tileId: string) => void
-}
-
-const getSafeTileWidth = (width?: number) => {
-  return width != null ? Math.max(width, kDefaultMinWidth) : kDefaultMinWidth
 }
 
 export const FreeTileComponent = observer(function FreeTileComponent({ row, tile, onCloseTile}: IProps) {
@@ -38,10 +36,21 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
   const {
     isHidden, isMinimized, position: { x: left, y: top }, setMinimized, width, height, zIndex
   } = tileLayout || { position: { x: 0, y: 0 } }
+
+  // Apply inbounds scaling if active (scaleFactor is 1 when not in inbounds mode)
+  const { scaleFactor } = inBoundsScaling
+  const scaledPosition = scaleFactor < 1
+    ? getScaledPositionSnapped(left, top, scaleFactor)
+    : { x: left, y: top }
+  const scaledDimensions = scaleFactor < 1 && width != null && height != null
+    ? getScaledDimensions(width, height, scaleFactor)
+    : { width, height }
+
   // when animating creation, use the default creation style on the first render
   const tileStyle: React.CSSProperties = useDefaultCreationStyle
           ? { left: 0, top: 0, width: 0, height: kTitleBarHeight, zIndex }
-          : { left, top, width, height, zIndex }
+          : { left: scaledPosition.x, top: scaledPosition.y,
+              width: scaledDimensions.width, height: scaledDimensions.height, zIndex }
 
   useEffect(() => {
     // after the first render, render the actual style; CSS transitions will handle the animation
@@ -64,64 +73,7 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
   }, [isMinimized, setMinimized, tile])
 
   const { handlePointerDown: handleMoveTilePointerDown } = useTileDrag({ row, tile, tileLayout, setChangingTileStyle })
-
-  const handleResizePointerDown = useCallback((e: PointerEvent, _tileLayout: IFreeTileLayout, direction: string) => {
-    uiState.setFocusedTile(tileId)
-
-    if (e.pointerId !== undefined) {
-      e.currentTarget.setPointerCapture(e.pointerId)
-    }
-    const startWidth = _tileLayout.width
-    const startHeight = _tileLayout.height
-    const startPosition = {x: e.pageX, y: e.pageY}
-
-    let resizingWidth = startWidth, resizingHeight = startHeight, resizingLeft = _tileLayout.x
-    const startLeft = _tileLayout.x
-
-    const handlePointerMove = (pointerMoveEvent: { pageX: number; pageY: number }) => {
-      const xDelta = pointerMoveEvent.pageX - startPosition.x
-      const yDelta = pointerMoveEvent.pageY - startPosition.y
-      const addIfDefined = (x: number | undefined, delta: number) => x != null ? x + delta : x
-
-      if (direction.includes("left")) {
-        resizingWidth = addIfDefined(startWidth, -xDelta)
-        resizingLeft = startLeft + xDelta
-      }
-      if (direction.includes("bottom")) {
-        resizingHeight = addIfDefined(startHeight, yDelta)
-      }
-      if (direction.includes("right")) {
-        resizingWidth = addIfDefined(startWidth, xDelta)
-      }
-
-      setChangingTileStyle({
-        left: resizingLeft,
-        top: _tileLayout.y,
-        width: getSafeTileWidth(resizingWidth),
-        height: resizingHeight,
-        zIndex: _tileLayout.zIndex,
-        transition: "none"
-      })
-    }
-    const handlePointerUp = () => {
-      const newWidth = getSafeTileWidth(resizingWidth)
-      document.body.removeEventListener("pointermove", handlePointerMove, { capture: true })
-      document.body.removeEventListener("pointerup", handlePointerUp, { capture: true })
-      row.applyModelChange(() => {
-        _tileLayout.setSize(newWidth, resizingHeight)
-        _tileLayout.setPosition(resizingLeft, _tileLayout.y)
-      }, {
-        notify: () => updateTileNotification("resize", {}, tile),
-        undoStringKey: "DG.Undo.componentResize",
-        redoStringKey: "DG.Redo.componentResize",
-        log: logMessageWithReplacement("Resized component: %@", {tileID: _tileLayout.tileId})
-      })
-      setChangingTileStyle(undefined)
-    }
-
-    document.body.addEventListener("pointermove", handlePointerMove, { capture: true })
-    document.body.addEventListener("pointerup", handlePointerUp, { capture: true })
-  }, [row, tile, tileId])
+  const { handleResizePointerDown } = useTileResize({ row, tile, tileId, setChangingTileStyle })
 
   const info = getTileComponentInfo(tileType)
   const isStandalone = uiState.isStandaloneTile(tile)
@@ -135,7 +87,8 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
                     : isStandalone
                       ? standaloneStyle
                       : isMinimized
-                        ? { left, top, width, zIndex }
+                        ? { left: scaledPosition.x, top: scaledPosition.y,
+                            width: scaledDimensions.width, zIndex }
                         : tileStyle)
   // don't impose a width and height for fixed size components
   if (info?.isFixedWidth) delete style?.width
@@ -143,7 +96,7 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
   const disableAnimation = urlParams.noComponentAnimation !== undefined
   const classes = clsx(kCodapTileClass, {
                         minimized: isMinimized,
-                        "disable-animation": disableAnimation,
+                        "disable-animation": disableAnimation || inBoundsScaling.isResizing,
                         [kStandaloneTileClass]: isStandalone
                       })
 

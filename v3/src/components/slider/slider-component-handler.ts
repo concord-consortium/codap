@@ -40,7 +40,7 @@ function validateInput(values: DIValues | undefined, sliderModel?: ISliderModel)
     snapshot.globalValue = global.id
 
     // If this is a new slider, or the global is being changed, check for multiple sliders
-    if (!sliderModel || sliderModel.globalValue.id !== global.id) {
+    if (sliderModel?.globalValue.id !== global.id) {
       // Multiple sliders for one global value are not allowed
       let existingTile = false
       document.content?.tileMap.forEach(sliderTile => {

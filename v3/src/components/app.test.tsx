@@ -1,6 +1,6 @@
 import { CloudFileManager, CloudFileManagerClientEvent } from "@concord-consortium/cloud-file-manager"
 import { act, render, screen } from "@testing-library/react"
-import React, { ReactNode } from "react"
+import { ReactNode } from "react"
 import { Root } from "react-dom/client"
 import { prf } from "../utilities/profiler"
 import { setUrlParams } from "../utilities/url-params"

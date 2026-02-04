@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from "react"
+import { useCallback, useEffect } from "react"
 import { FallbackProps } from "react-error-boundary"
 import { CloudFileManager } from "@concord-consortium/cloud-file-manager"
 import { appState } from "../models/app-state"
@@ -32,7 +32,7 @@ export function useUncaughtErrorHandler(cfm: CloudFileManager) {
           ]}
         </p>
         <h2>{t("V3.app.documentDisplayError.detailsTitle")}</h2>
-        <p>{error.message}</p>
+        <p>{error instanceof Error ? error.message : String(error)}</p>
       </div>
     )
   }, [userCanSaveCopy])

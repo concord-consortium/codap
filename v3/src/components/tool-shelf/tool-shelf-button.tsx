@@ -1,6 +1,5 @@
 import { Box, Tag } from "@chakra-ui/react"
 import { clsx } from "clsx"
-import React from "react"
 import { getTileComponentIcon } from "../../models/tiles/tile-component-info"
 import { getSpecialLangFontClassName, t } from "../../utilities/translation/translate"
 
@@ -51,7 +50,5 @@ export interface IToolShelfTileButtonProps {
 export function ToolShelfTileButton({ tileType, onClick, ...others }: IToolShelfTileButtonProps) {
   const Icon = getTileComponentIcon(tileType)
   const handleClick = () => onClick(tileType)
-  return Icon && (
-    <ToolShelfButton icon={Icon && <Icon/>} onClick={handleClick} {...others} />
-  )
+  return Icon ? <ToolShelfButton icon={<Icon/>} onClick={handleClick} {...others} /> : null
 }

@@ -39,7 +39,6 @@
   }
 
   text {
-    fill: black;
     font: 12px sans-serif;
   }
 
@@ -184,6 +183,7 @@
 .bar-cover {
   cursor: pointer;
   fill: rgba(255, 255, 255, 0);
+  pointer-events: all;
   transition: 1s;
 
   &.active {

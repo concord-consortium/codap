@@ -18,6 +18,15 @@ export class UIState {
   // support for component mode (minimal chrome for embedding)
   @observable
   private _componentMode = false
+  // support for embedded mode (like component mode, but with iframePhone communication)
+  @observable
+  private _embeddedMode = false
+  // support for embedded server (iframePhone communication without UI changes)
+  @observable
+  private _embeddedServer = false
+  // support for inbounds mode (components constrained to visible container with scaling)
+  @observable
+  private _inboundsMode = false
   @observable
   private _hideUndoRedoInComponent = false
   @observable
@@ -70,8 +79,8 @@ export class UIState {
 
   constructor() {
     const {
-      componentMode, dashboard, di, hideSplashScreen, hideUndoRedoInComponent, noEntryModal,
-      sample, standalone, suppressUnsavedWarning
+      componentMode, dashboard, di, embeddedMode, embeddedServer, hideSplashScreen,
+      hideUndoRedoInComponent, inbounds, noEntryModal, sample, standalone, suppressUnsavedWarning
     } = urlParams
     this._hideSplashScreen = booleanParam(hideSplashScreen)
     this._hideUserEntryModal = !!sample || booleanParam(dashboard) || !!di || booleanParam(noEntryModal)
@@ -89,6 +98,14 @@ export class UIState {
     this._componentMode = booleanParam(componentMode)
     this._hideUndoRedoInComponent = booleanParam(hideUndoRedoInComponent)
     this._suppressUnsavedWarning = booleanParam(suppressUnsavedWarning)
+
+    // Initialize embedded mode
+    this._embeddedMode = booleanParam(embeddedMode)
+    // embeddedServer is active in embedded mode OR when explicitly enabled
+    this._embeddedServer = this._embeddedMode || booleanParam(embeddedServer)
+
+    // Initialize inbounds mode
+    this._inboundsMode = booleanParam(inbounds)
 
     makeObservable(this)
   }
@@ -118,18 +135,41 @@ export class UIState {
     return this._componentMode
   }
 
+  // Embedded mode getters
+  get embeddedMode() {
+    return this._embeddedMode
+  }
+
+  get embeddedServer() {
+    return this._embeddedServer
+  }
+
+  // Inbounds mode getter
+  get inboundsMode() {
+    return this._inboundsMode
+  }
+
+  // Minimal chrome mode: true when either componentMode or embeddedMode is active
+  // Used for UI chrome hiding, scrollbar disabling, and layout adjustments
+  get minimalChrome() {
+    return this._componentMode || this._embeddedMode
+  }
+
   get shouldRenderMenuBar() {
-    return !this._componentMode
+    return !this.minimalChrome
   }
 
   get shouldRenderToolShelf() {
-    return !this._componentMode && !this.standaloneMode
+    return !this.minimalChrome && !this.standaloneMode
   }
 
   get shouldRenderBetaBanner() {
-    return !this._componentMode
+    return !this.minimalChrome
   }
 
+  // Component interaction restrictions apply ONLY to componentMode, NOT embeddedMode.
+  // In embeddedMode, components should remain fully interactive (moveable, resizable, etc.)
+  // This matches v2 behavior where kLockThingsDown is only set for componentMode.
   get allowComponentMove() {
     return !this._componentMode
   }
@@ -147,23 +187,23 @@ export class UIState {
   }
 
   get shouldShowUndoRedoInComponentTitleBar() {
-    return this._componentMode && !this._hideUndoRedoInComponent
+    return this.minimalChrome && !this._hideUndoRedoInComponent
   }
 
   get shouldSuppressUnsavedWarning() {
-    return this._suppressUnsavedWarning || this._componentMode
+    return this._suppressUnsavedWarning || this.minimalChrome
   }
 
   get shouldUpdateBrowserTitleFromDocument() {
-    return !this._componentMode
+    return !this.minimalChrome
   }
 
   get shouldShowSplashScreen() {
-    return !this._componentMode
+    return !this.minimalChrome
   }
 
   get shouldAutoFocusInitialTile() {
-    return this._componentMode
+    return this.minimalChrome
   }
 
   get hideSplashScreen() {
@@ -176,7 +216,7 @@ export class UIState {
   }
 
   get hideUserEntryModal() {
-    return this._hideUserEntryModal
+    return this._hideUserEntryModal || this.minimalChrome
   }
 
   @action

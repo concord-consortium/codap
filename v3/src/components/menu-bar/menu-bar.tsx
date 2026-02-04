@@ -1,4 +1,3 @@
-import React from "react"
 
 import "@concord-consortium/cloud-file-manager/dist/css/app.css"
 import "./menu-bar.scss"

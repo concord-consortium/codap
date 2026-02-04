@@ -116,6 +116,10 @@ export class PixiPointRenderer extends PointRendererBase {
         backgroundAlpha: 0,
         antialias: true,
         eventMode: "passive",
+        // Allow software rendering fallback for CI/headless environments where hardware
+        // acceleration may not be available. Without this, renderer initialization can
+        // silently fail in GitHub Actions or other headless Chrome environments.
+        failIfMajorPerformanceCaveat: false,
         eventFeatures: {
           move: true,
           click: true,
@@ -125,6 +129,11 @@ export class PixiPointRenderer extends PointRendererBase {
       })
     } catch (e) {
       console.error("[PixiPointRenderer] PIXI.autoDetectRenderer FAILED", e)
+      return
+    }
+
+    if (!this.renderer) {
+      console.error("[PixiPointRenderer] renderer is null after initialization - WebGL may not be supported")
       return
     }
 
@@ -715,7 +724,7 @@ export class PixiPointRenderer extends PointRendererBase {
       canvasStyle.visibility = "hidden"
       const svgElement = (eventType === "mouseout") ? this.mostRecentSvgElement : document.elementFromPoint(x, y)
       canvasStyle.visibility = "visible"
-      if (svgElement && svgElement.tagName === "rect") {
+      if (svgElement?.tagName === "rect") {
         const mouseEvent = new MouseEvent(eventType, {
           bubbles: true,
           cancelable: true,
