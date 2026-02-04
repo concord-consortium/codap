@@ -168,7 +168,6 @@
   .measure-labels-tip {
     background: #ff0;
     cursor: move;
-    display: none;
     font-size: 12px;
     font-weight: bold;
     opacity: .6;
@@ -176,10 +175,6 @@
     pointer-events: all;
     position: absolute;
     z-index: 10;
-
-    &.visible {
-      display: block;
-    }
 
     &:hover, &.highlighted {
       opacity: 1;
