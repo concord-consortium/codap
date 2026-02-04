@@ -31,7 +31,11 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
   const [editingTitle, setEditingTitle] = useState(title)
   const tileId = tile?.id || ""
   const tileType = tile?.content.type
-  const classes = clsx("component-title-bar", `${tileType}-title-bar`, {focusTile: uiState.isFocusedTile(tile?.id)})
+  const classes = clsx("component-title-bar", `${tileType}-title-bar`, {
+    focusTile: uiState.isFocusedTile(tile?.id),
+    // Add class when minimize/close buttons are present (embeddedMode) to adjust undo/redo positioning
+    "has-window-buttons": uiState.allowComponentMinimize || uiState.allowComponentClose
+  })
   const [isHovering, setIsHovering] = useState(false)
   const blankTitle = "_____"
   const hasDraggedRef = useRef(false)

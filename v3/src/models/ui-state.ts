@@ -167,20 +167,23 @@ export class UIState {
     return !this.minimalChrome
   }
 
+  // Component interaction restrictions apply ONLY to componentMode, NOT embeddedMode.
+  // In embeddedMode, components should remain fully interactive (moveable, resizable, etc.)
+  // This matches v2 behavior where kLockThingsDown is only set for componentMode.
   get allowComponentMove() {
-    return !this.minimalChrome
+    return !this._componentMode
   }
 
   get allowComponentResize() {
-    return !this.minimalChrome
+    return !this._componentMode
   }
 
   get allowComponentClose() {
-    return !this.minimalChrome
+    return !this._componentMode
   }
 
   get allowComponentMinimize() {
-    return !this.minimalChrome
+    return !this._componentMode
   }
 
   get shouldShowUndoRedoInComponentTitleBar() {
