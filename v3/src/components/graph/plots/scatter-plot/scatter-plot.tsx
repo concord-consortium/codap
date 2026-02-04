@@ -200,8 +200,8 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
 
     cellKeys?.forEach((cellKey) => {
       renderConnectingLines({
-        cellKey, connectingLines, getLegendColor, parentAttrID, parentAttrName,
-        pointColorAtIndex, showConnectingLines: showLines
+        cellKey, connectingLines, getLegendColor, parentAttrID, parentAttrName, pointColorAtIndex,
+        showConnectingLines: showLines
       })
     })
 
@@ -214,7 +214,7 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
       pointDescription.setPointSizeMultiplier(pointSizeMultiplier / kPointSizeReductionFactor)
       pointDescription.setPointsHaveBeenReduced(false)
     }
-  }, [dataConfiguration, dataset, graphModel, layout, legendAttrID, renderConnectingLines])
+  }, [layout, dataConfiguration, dataset, legendAttrID, renderConnectingLines, graphModel])
 
   const refreshSquares = useCallback(() => {
 

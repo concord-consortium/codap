@@ -79,6 +79,17 @@ Other branches are deployed to https://codap3.concord.org/branch/{branch-name}/,
 
 To deploy a new release:
 
+The [codap-v3-build](../.claude/skills/codap-v3-build/SKILL.md) skill can be invoked to initiate an interactive walkthrough of the process of building a release of CODAP v3. The process has 6 phases:
+
+1. **Prepare the Release** - Set up Jira version and gather context
+2. **Prepare Release Notes** - Interactive walkthrough to create CHANGELOG entry
+3. **Update Version Files** - Update package.json, versions.md, CHANGELOG.md
+4. **Create Release PR** - Build, capture asset sizes, create PR
+5. **Tag and Release** - After PR merge, create git tag and GitHub release
+6. **Deploy** - Stage, QA, deploy to production
+
+The prior manual steps for building a release are listed below for posterity:
+
 1. Create a new release version in Jira using the `Manage Releases` tab of the CODAPv3 Jira board. (The new version number is the number found in the top right corner of v3, incremented by one.) The status of the release can remain `Unreleased` for now.
 2. Run `git log --reverse <last-version>...HEAD` and/or use the GitHub UI to see a list of PRs merged since the last release and identify their corresponding Jira stories. Tag the Jira stories based on this list as `3.0.0-pre.<new-version>` in the `Fix versions` field.
 3. Update the version number in `package.json` and `package-lock.json`.

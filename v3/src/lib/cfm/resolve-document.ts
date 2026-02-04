@@ -13,6 +13,7 @@ import { addDataSetAndMetadata } from "../../models/shared/shared-data-tile-util
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { convertParsedCsvToDataSet, importCsvContent } from "../../utilities/csv-import"
 import { safeJsonParse } from "../../utilities/js-utils"
+import { isGoogleSheetsUrl } from "../../utilities/urls"
 import { ICodapV2Case, isV2InternalContext } from "../../v2/codap-v2-data-context-types"
 import { ICodapV2DocumentJson, isCodapV2Document, kV2AppName } from "../../v2/codap-v2-types"
 
@@ -26,6 +27,12 @@ export function getExpectedContentType(mimeType?: string, url?: string) {
   if (mimeType) {
     return mimeType
   }
+
+  // Check for Google Sheets URL pattern
+  if (url && isGoogleSheetsUrl(url)) {
+    return 'application/vnd.google-apps.spreadsheet'
+  }
+
   const extensionMap: Record<string, string> = {
     codap: 'application/vnd.codap+json',
     codap3: 'application/vnd.codap+json',
@@ -277,6 +284,15 @@ export function resolveDocument(iDocContents: any, iMetadata: IDocumentMetadata)
     }
     else if (contentType === 'application/vnd.geo+json') {
       resolve(makeGeoJSONDocument(iDocContents, urlString, datasetName))
+    }
+    else if (contentType === 'application/vnd.google-apps.spreadsheet') {
+      const gameState = {
+        contentType: 'application/vnd.google-apps.spreadsheet',
+        url: urlString,
+        showCaseTable: true,
+        googleApiKey: process.env.GOOGLE_SHEETS_API_KEY
+      }
+      resolve(makePluginDocument(gameState, 'Import Google Sheet', kImporterPluginUrl))
     }
     else if (contentType === 'application/vnd.codap+json') {
       resolve(iDocContents)

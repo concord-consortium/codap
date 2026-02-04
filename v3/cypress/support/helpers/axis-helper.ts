@@ -106,7 +106,7 @@ export const AxisHelper = {
     // Click on collection menu item to open submenu (onClick handler opens it)
     ae.getAttributeFromAttributeMenu(axis)
       .contains(".collection-menu-item", collectionName)
-      .click()
+      .click({ force: true })
     // There may be multiple submenus in the DOM (one per collection); filter to find the visible one
     cy.get(".axis-legend-submenu")
       .filter(":visible")

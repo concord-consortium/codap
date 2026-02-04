@@ -148,9 +148,14 @@ $button-width: 34px;
   }
 }
 
+// Undo/redo buttons in component title bar (shown in componentMode and embeddedMode)
+// In componentMode: positioned at far right (no minimize/close buttons to avoid)
+// In embeddedMode: positioned to leave room for minimize/close buttons on the right
 .title-bar-undo-redo {
   align-items: center;
-  margin: 0 auto 0 8px;
+  margin-left: 8px;
+  // Default: position at far right (for componentMode where no window buttons exist)
+  margin-right: 8px;
 
   .component-title-bar-button {
     align-items: center;
@@ -179,6 +184,15 @@ $button-width: 34px;
       height: 16px;
       width: 16px;
     }
+  }
+}
+
+// When minimize/close buttons are present (embeddedMode), add right margin to undo/redo
+// to avoid overlap with the absolutely-positioned header-right buttons
+.component-title-bar.has-window-buttons {
+  .title-bar-undo-redo {
+    // Leave room for minimize + close buttons (2 x $button-width = 68px, plus some padding)
+    margin-right: calc(#{$button-width} * 2 + 8px);
   }
 }
 

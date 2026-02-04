@@ -11,7 +11,10 @@ CODAP supports two modes for embedding:
 | **Component Mode** | `componentMode=yes` | Minimal UI chrome for simple embedding |
 | **Embedded Mode** | `embeddedMode=yes` | Full embedding with parent communication via iframe-phone |
 
-Both modes hide UI chrome and disable certain interactions. **Embedded mode is a superset of component mode**, adding iframe-phone communication and additional styling.
+Both modes hide UI chrome (menu bar, tool shelf, etc.), but they differ in how they handle component interactions:
+
+- **Component Mode** locks components in place (no move, resize, close, or minimize)
+- **Embedded Mode** keeps components fully interactive while adding iframe-phone communication
 
 ## URL Parameters
 
@@ -37,7 +40,7 @@ https://codap.concord.org/releases/latest/?componentMode=yes
 | Values | `yes`, `true`, `1` (enabled) or `no`, `false`, `0` (disabled) |
 | Default | Disabled |
 
-Enables full embedded mode for running CODAP inside another application (e.g., SageModeler). Includes all component mode behaviors plus iframe-phone communication with the parent window and transparent background styling.
+Enables full embedded mode for running CODAP inside another application (e.g., SageModeler). Hides UI chrome like component mode, but **keeps components fully interactive** (moveable, resizable, etc.). Also enables iframe-phone communication with the parent window and transparent background styling.
 
 ```
 https://codap.concord.org/releases/latest/?embeddedMode=yes
@@ -80,25 +83,52 @@ When either `componentMode=yes` or `embeddedMode=yes`:
 | Tool shelf hidden | The toolbar with component creation buttons is hidden |
 | Beta banner hidden | The beta version banner is not displayed |
 | Scrollbars disabled | Horizontal and vertical scrollbars are hidden |
-| Component interactions disabled | Move, resize, close, and minimize are disabled |
-| Undo/redo in title bar | Undo/redo buttons appear in component title bars (unless `hideUndoRedoInComponent=yes`) |
+| Undo/redo in title bar | Undo/redo buttons appear in component title bars (unless `hideUndoRedoInComponent=yes`). Button positioning differs between modes (see below). |
 | Page title unchanged | CODAP does not update `document.title` |
 | Unsaved warning suppressed | Browser's `beforeunload` dialog is not shown |
 | Splash screen bypassed | The startup splash screen is not shown |
 | User entry modal bypassed | The initial "What would you like to do?" modal is not shown |
 | Auto-focus enabled | The initial tile receives focus automatically |
 
-### Additional Behaviors (Embedded Mode Only)
+### Component Mode Only Behaviors
+
+When `componentMode=yes` (but NOT `embeddedMode=yes`):
+
+| Behavior | Description |
+|----------|-------------|
+| Components locked | Move, resize, close, and minimize are **disabled** |
+| Undo/redo at far right | Since minimize/close buttons are hidden, undo/redo buttons are positioned at the far right of the title bar |
+
+This "locked" behavior is the key distinction between the two modes. Component mode is designed for scenarios where you want to show a static CODAP view that users cannot rearrange.
+
+### Embedded Mode Only Behaviors
 
 When `embeddedMode=yes`:
 
 | Behavior | Description |
 |----------|-------------|
+| Components interactive | Move, resize, close, and minimize remain **enabled** |
+| Undo/redo left of window buttons | Undo/redo buttons are positioned to the left of the minimize/close buttons to avoid overlap |
 | Transparent background | The background is transparent, allowing parent page content to show through |
 | Text selectable | Text selection is enabled in the background area |
 | iframe-phone enabled | Communication with parent window via iframe-phone is initialized |
 | `codap-present` message | CODAP sends a `codap-present` message to the parent when ready |
 | Notification broadcasts | CODAP broadcasts data change notifications to the parent |
+
+### Comparison Table
+
+| Feature | Normal | `componentMode=yes` | `embeddedMode=yes` |
+|---------|--------|---------------------|-------------------|
+| Menu bar | Visible | Hidden | Hidden |
+| Tool shelf | Visible | Hidden | Hidden |
+| Beta banner | Visible | Hidden | Hidden |
+| Scrollbars | Visible | Hidden | Hidden |
+| **Move components** | ✓ | ✗ | **✓** |
+| **Resize components** | ✓ | ✗ | **✓** |
+| **Close/minimize** | ✓ | ✗ | **✓** |
+| Undo/redo in title bar | ✗ | ✓ | ✓ |
+| Transparent background | ✗ | ✗ | ✓ |
+| iframe-phone server | ✗ | ✗ | ✓ |
 
 ## iframe-phone Communication
 
@@ -224,7 +254,9 @@ For developers working on the CODAP codebase, the embedding functionality is imp
 
 ### Key Concepts
 
-**minimalChrome**: A computed property in `UIState` that returns `true` when either `componentMode` or `embeddedMode` is active. Used to control shared behaviors like UI chrome visibility and scrollbar hiding.
+**minimalChrome**: A computed property in `UIState` that returns `true` when either `componentMode` or `embeddedMode` is active. Used to control shared behaviors like UI chrome visibility and scrollbar hiding. Note that `minimalChrome` does **not** control component interaction restrictions (move, resize, close, minimize) — those are controlled by `componentMode` alone.
+
+**Component interaction restrictions**: The `allowComponentMove`, `allowComponentResize`, `allowComponentClose`, and `allowComponentMinimize` getters in `UIState` only check `componentMode`, not `minimalChrome`. This ensures that embedded mode keeps components fully interactive while component mode locks them in place.
 
 **EmbeddedModeHandler**: Interface for the iframe-phone handler that manages communication with the parent window. Includes methods for broadcasting messages and tracking whether the phone is in use.
 
