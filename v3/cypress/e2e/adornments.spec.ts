@@ -716,7 +716,7 @@ context("Graph adornments", () => {
         // TODO: Add a test for undo and redo for moveable value checkbox
   })
 
-  it("renders Count adornment count per region defined by Movable Values", () => {
+  it("renders count per region defined by Movable Values", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Sleep", "bottom")
     graph.getDisplayValuesButton().click()
@@ -729,7 +729,7 @@ context("Graph adornments", () => {
     cy.get("[data-testid=adornment-button-movable-value--add]").click()
     cy.get(".sub-count").should("have.length", 3)
   })
-  it("renders Count adornment count per region defined by bin boundaries when 'Group into Bins' is selected", () => {
+  it("renders count per region defined by bin boundaries when 'Group into Bins' is selected", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Sleep", "bottom")
     graph.getDisplayConfigButton().click()
@@ -743,11 +743,20 @@ context("Graph adornments", () => {
     cy.get("button").contains("Remove X: Sleep").click()
     cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("exist")
     cy.get(".sub-count").should("have.length", 0)
+    // Wait for graph to stabilize after attribute removal (can trigger React warnings)
+    cy.wait(1000)
+    // Select graph before drag to ensure it's ready to receive the drop
+    c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Sleep", "left")
-    graph.getDisplayConfigButton().click()
-    cy.get("[data-testid=bins-radio-button]").click()
+    cy.wait(2000)  // Wait longer for graph to fully stabilize after drag
+    // Re-select graph after drag from table to update inspector panel
+    c.selectTile("graph", 0)
+    cy.wait(1000)  // Wait for inspector panel to update after tile selection
+    // Click config button first (always visible), then set up bins
+    graph.getDisplayConfigButton().should("exist").click()
+    cy.get("[data-testid=bins-radio-button]").should("exist").click()
     cy.wait(500)
-    graph.getDisplayValuesButton().click()
+    graph.getDisplayValuesButton().should("exist").click()
     cy.get(".sub-count").should("have.length", 10).and("have.class", "y-axis").and("have.class", "binned-points-count")
   })
   it("creates a binned dot plot with categorical axes and verifies even stacks", () => {

@@ -39,7 +39,7 @@ export const GraphCanvasHelper = {
 
     cy.log('Get the pixi metadata')
     cy.window().then((win: any) => {
-      const pixiPoints = win.pixiPointsMap[tileId] // Access pixiPoints using the graph ID
+      const pixiPoints = win.rendererArrayMap[tileId] // Access pixiPoints using the graph ID
       cy.log('PixiPoints Object:', pixiPoints) // Log the pixiPoints object for verification
 
       // Assert that pixiPoints exist
@@ -61,7 +61,7 @@ export const GraphCanvasHelper = {
   getPixiPointPosition(tileId: string, pointIndex: number): Cypress.Chainable<{ x: number; y: number }> {
     cy.log("Get the PixiPoint position")
     return cy.window().then((win: any) => {
-      const pixiPoints = win.pixiPointsMap[tileId]
+      const pixiPoints = win.rendererArrayMap[tileId]
       cy.log(`PixiPoints for Tile ID ${tileId}:`, pixiPoints)
 
       // Use optional chaining to check if pixiPoints and pixiPoints[0] exist
@@ -84,7 +84,7 @@ export const GraphCanvasHelper = {
    // @param {string} tileId - The ID of the graph tile to check.
   checkPointsHaveUniquePositions(tileId: string) {
     cy.window().then((win: any) => {
-      const pixiPoints = win.pixiPointsMap[tileId]
+      const pixiPoints = win.rendererArrayMap[tileId]
 
       if (!pixiPoints?.length) {
         throw new Error(`PixiPoints for Tile ID ${tileId} are undefined or empty.`)
@@ -114,7 +114,7 @@ export const GraphCanvasHelper = {
       )
 
     cy.window().then((win: any) => {
-      const pixiPoints = win.pixiPointsMap[tileId]
+      const pixiPoints = win.rendererArrayMap[tileId]
 
       if (!pixiPoints?.length) {
         throw new Error(`PixiPoints for Tile ID ${tileId} are undefined or empty.`)
@@ -141,8 +141,8 @@ export const GraphCanvasHelper = {
   getPixiPointFillColors(tileId: string): Cypress.Chainable<string[]> {
     cy.log("Get all PixiPoint fill colors from textures")
     return cy.window().then((win: any) => {
-      const pixiPoints = win.pixiPointsMap[tileId]
-      const textures = pixiPoints[0].textures // Access textures directly from PixiPoints
+      const pixiPoints = win.rendererArrayMap[tileId]
+      const textures = pixiPoints[0].texturesMap // Access textures directly from PixiPoints
 
       if (!textures) {
         throw new Error("Textures object is undefined.")

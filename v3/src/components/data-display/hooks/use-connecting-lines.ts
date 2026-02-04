@@ -4,7 +4,7 @@ import { useCallback } from "react"
 import { selectCases, setSelectedCases } from "../../../models/data/data-set-utils"
 import { t } from "../../../utilities/translation/translate"
 import { IConnectingLineDescription, transitionDuration } from "../data-display-types"
-import { PixiBackgroundPassThroughEvent, PixiPoints } from "../pixi/pixi-points"
+import { BackgroundPassThroughEvent, PointRendererBase } from "../renderer"
 import { useDataConfigurationContext } from "./use-data-configuration-context"
 
 interface IMouseOverProps {
@@ -38,7 +38,7 @@ interface IProps {
   clientType: "graph" | "map"
   connectingLinesActivatedRef: React.MutableRefObject<boolean>
   connectingLinesSvg: SVGGElement | null
-  pixiPoints?: PixiPoints
+  renderer?: PointRendererBase
   yAttrCount?: number
   isCaseInSubPlot?: (cellKey: Record<string, string>, caseData: Record<string, any>) => void
   onConnectingLinesClick?: (event: MouseEvent) => void
@@ -46,7 +46,7 @@ interface IProps {
 
 export const useConnectingLines = (props: IProps) => {
   const {
-    clientType, connectingLinesSvg, connectingLinesActivatedRef, pixiPoints, yAttrCount = 0,
+    clientType, connectingLinesSvg, connectingLinesActivatedRef, renderer, yAttrCount = 0,
     isCaseInSubPlot, onConnectingLinesClick
   } = props
   const dataConfig = useDataConfigurationContext()
@@ -75,7 +75,7 @@ export const useConnectingLines = (props: IProps) => {
 
   const handleConnectingLinesMouseOver = useCallback((mouseOverProps: IMouseOverProps) => {
     const { caseIDs, event, parentAttrName, primaryAttrValue } = mouseOverProps
-    if (pixiPoints?.canvas) pixiPoints.canvas.style.cursor = "pointer"
+    if (renderer?.canvas) renderer.canvas.style.cursor = "pointer"
     // TODO: In V2, the tool tip is only shown when there is a parent attribute. V3 should always show the tool tip,
     // but the text needs to be different when there is no parent attribute. We'll need to work out how to handle the
     // localization for this. When a parent attribute is present, the tool tip should look like:
@@ -89,12 +89,12 @@ export const useConnectingLines = (props: IProps) => {
     const vars = [parentAttrName, primaryAttrValue, caseIdCount, datasetName]
     const dataTipContent = t("DG.DataTip.connectingLine", {vars})
     dataTip.show(dataTipContent, event.target)
-  }, [dataTip, dataset?.name, pixiPoints])
+  }, [dataTip, dataset?.name, renderer])
 
   const handleConnectingLinesMouseOut = useCallback(() => {
-    if (pixiPoints?.canvas) pixiPoints.canvas.style.cursor = ""
+    if (renderer?.canvas) renderer.canvas.style.cursor = ""
     dataTip.hide()
-  }, [dataTip, pixiPoints])
+  }, [dataTip, renderer])
 
   const drawConnectingLines = useCallback((drawLinesProps: IDrawLines) => {
     if (!connectingLinesSvg) return
@@ -102,6 +102,13 @@ export const useConnectingLines = (props: IProps) => {
     const { allLineCaseIds, getLegendColor, lineGroups, parentAttrName, pointColorAtIndex,
             showConnectingLines } = drawLinesProps
     const curve = line().curve(curveLinear)
+
+    // Interrupt any running transitions to prevent race conditions where an old transition's
+    // "end" callback could interfere with state when rapid updates occur (e.g., during undo/redo).
+    // Note: We only interrupt here; path removal is handled in the transition "end" callback
+    // for each path when hiding connecting lines.
+    connectingLinesArea.selectAll("path").interrupt()
+
     // For each group of lines, draw a path using the lines' coordinates
     for (const [_linesIndex, [primaryAttrValue, cases]] of Object.entries(lineGroups).entries()) {
       const allLineCoords = cases.map((l: IConnectingLineDescription) => l.lineCoords)
@@ -118,11 +125,11 @@ export const useConnectingLines = (props: IProps) => {
         .attr("d", (d: any) => curve(d))
         .classed(`interactive-${clientType}-element`, true) // for dots canvas event passing
         .classed("selected", allCasesSelected)
-        .on(PixiBackgroundPassThroughEvent.Click, (e) => handleConnectingLinesClick(e, lineCaseIds))
-        .on(PixiBackgroundPassThroughEvent.MouseOver, (e) =>
+        .on(BackgroundPassThroughEvent.Click, (e) => handleConnectingLinesClick(e, lineCaseIds))
+        .on(BackgroundPassThroughEvent.MouseOver, (e) =>
           handleConnectingLinesMouseOver({ event: e, caseIDs: lineCaseIds, parentAttrName, primaryAttrValue })
         )
-        .on(PixiBackgroundPassThroughEvent.MouseOut, handleConnectingLinesMouseOut)
+        .on(BackgroundPassThroughEvent.MouseOut, handleConnectingLinesMouseOut)
         .call(dataTip)
         .attr("fill", "none")
         .attr("stroke", color)
@@ -133,9 +140,14 @@ export const useConnectingLines = (props: IProps) => {
         .transition()
         .duration(transitionDuration)
         .style("opacity", showConnectingLines ? 1 : 0)
-        .on("end", () => {
+        // Use regular function to access `this` (the path element that finished transitioning)
+        .on("end", function() {
           connectingLinesActivatedRef.current = showConnectingLines
-          !showConnectingLines && connectingLinesArea.selectAll("path").remove()
+          // Remove only this specific path when hiding (not all paths) to avoid race conditions
+          // where a stale "hide" transition callback could remove paths from a newer "show" transition
+          if (!showConnectingLines) {
+            select(this).remove()
+          }
         })
     }
   }, [clientType, connectingLinesActivatedRef, connectingLinesArea, connectingLinesSvg,

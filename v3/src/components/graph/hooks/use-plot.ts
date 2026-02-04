@@ -10,7 +10,7 @@ import {onAnyAction} from "../../../utilities/mst-utils"
 import {IAxisModel} from "../../axis/models/axis-model"
 import {GraphAttrRoles} from "../../data-display/data-display-types"
 import {matchCirclesToData} from "../../data-display/data-display-utils"
-import { PixiPointEventHandler, PixiPoints } from "../../data-display/pixi/pixi-points"
+import { PointEventHandler, PointRendererBase } from "../../data-display/renderer"
 import { syncModelWithAttributeConfiguration } from "../models/graph-model-utils"
 import { updateCellMasks } from "../utilities/graph-utils"
 import {useGraphContentModelContext} from "./use-graph-content-model-context"
@@ -65,32 +65,34 @@ export function useAccumulatingDebouncedCallback(
   }, [debouncedCallback])
 }
 
-export interface IPixiDragHandlers {
-  start: PixiPointEventHandler
-  drag: PixiPointEventHandler
-  end: PixiPointEventHandler
+export interface IRendererDragHandlers {
+  start: PointEventHandler
+  drag: PointEventHandler
+  end: PointEventHandler
 }
 
-export const usePixiDragHandlers = (pixiPoints: PixiPoints | undefined, {start, drag, end}: IPixiDragHandlers) => {
+export const useRendererDragHandlers = (
+  renderer: PointRendererBase | undefined, {start, drag, end}: IRendererDragHandlers
+) => {
   useEffect(() => {
-    if (pixiPoints) {
-      pixiPoints.onPointDragStart = start
-      pixiPoints.onPointDrag = drag
-      pixiPoints.onPointDragEnd = end
+    if (renderer) {
+      renderer.onPointerDragStart = start
+      renderer.onPointerDrag = drag
+      renderer.onPointerDragEnd = end
       // On cleanup, remove event listeners
       return () => {
-        pixiPoints.onPointDragStart = undefined
-        pixiPoints.onPointDrag = undefined
-        pixiPoints.onPointDragEnd = undefined
+        renderer.onPointerDragStart = undefined
+        renderer.onPointerDrag = undefined
+        renderer.onPointerDragEnd = undefined
       }
     }
-  }, [pixiPoints, start, drag, end])
+  }, [renderer, start, drag, end])
 }
 
 export interface IPlotResponderProps {
   refreshPointPositions: (selectedOnly: boolean) => void
   refreshPointSelection: () => void
-  pixiPoints?: PixiPoints
+  renderer?: PointRendererBase
 }
 
 function isDefunctAxisModel(axisModel?: IAxisModel) {
@@ -98,7 +100,7 @@ function isDefunctAxisModel(axisModel?: IAxisModel) {
 }
 
 export const usePlotResponders = (props: IPlotResponderProps) => {
-  const { refreshPointPositions, refreshPointSelection, pixiPoints} = props,
+  const { refreshPointPositions, refreshPointSelection, renderer} = props,
     graphModel = useGraphContentModelContext(),
     startAnimation = graphModel.startAnimation,
     layout = useGraphLayoutContext(),
@@ -111,34 +113,54 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   const callRefreshPointPositions = useAccumulatingDebouncedCallback((_props: IRefreshProps) => {
     const { selectedOnly = false, updateMasks = false } = _props
     if (updateMasks) {
-      updateCellMasks({ dataConfig: dataConfiguration, layout, pixiPoints })
+      updateCellMasks({ dataConfig: dataConfiguration, layout, renderer })
     }
     refreshPointPositions(selectedOnly)
   })
 
   const callMatchCirclesToData = useCallback(() => {
-    if (pixiPoints) {
+    if (renderer) {
       matchCirclesToData({
         dataConfiguration,
         pointRadius: graphModel.getPointRadius(),
         pointColor: graphModel.pointDescription.pointColor,
         pointDisplayType: graphModel.plot.displayType,
         pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
-        pixiPoints,
+        renderer,
         startAnimation, instanceId
       })
     }
-  }, [dataConfiguration, graphModel, instanceId, pixiPoints, startAnimation])
+  }, [dataConfiguration, graphModel, instanceId, renderer, startAnimation])
 
-  // Refresh point positions when pixiPoints become available to fix this bug:
-  // https://www.pivotaltracker.com/story/show/188333898
-  // This might be a workaround for the fact that useDebouncedCallback may not be updated when pixiPoints
-  // (a dependency of refreshPointPositions) are updated. useDebouncedCallback doesn't seem to declare any
-  // dependencies, and I'd imagine it returns a stable result (?).
+  // Track the previous renderer to detect actual renderer changes
+  const prevRendererRef = useRef<typeof renderer>(undefined)
+
+  // Refresh point positions and selection when renderer becomes available or changes.
+  // This handles both initial availability and renderer switches (e.g., when WebGL context is
+  // granted after being yielded). We call refreshPointPositions and refreshPointSelection directly
+  // (not via debounced callbacks) to ensure they use the new renderer, since useDebouncedCallback
+  // may have a stale closure capturing the old renderer reference.
+  // See: https://www.pivotaltracker.com/story/show/188333898
   useEffect(() => {
-    callMatchCirclesToData()
-    callRefreshPointPositions({ updateMasks: true })
-  }, [callMatchCirclesToData, callRefreshPointPositions, pixiPoints])
+    // Only call matchCirclesToData when the renderer actually changes (not when callbacks change)
+    // This prevents startAnimation from being called during axis dragging when callbacks are recreated
+    const rendererChanged = renderer !== prevRendererRef.current
+    prevRendererRef.current = renderer
+
+    if (rendererChanged) {
+      callMatchCirclesToData()
+    }
+    // Update masks with new renderer
+    updateCellMasks({ dataConfig: dataConfiguration, layout, renderer })
+    // Call refreshPointPositions directly to ensure it uses the new renderer
+    refreshPointPositions(false)
+    // Defer refreshPointSelection to run after any other synchronous matchCirclesToData calls
+    // (e.g., from useGraphController's setProperties). This ensures legend colors are applied
+    // after all points are created.
+    Promise.resolve().then(() => {
+      refreshPointSelection()
+    })
+  }, [callMatchCirclesToData, dataConfiguration, layout, renderer, refreshPointPositions, refreshPointSelection])
 
   // respond to numeric axis domain changes (e.g. axis dragging)
   useEffect(() => {
@@ -166,16 +188,18 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     return mstReaction(() => {
       return [dataConfiguration.allCategoriesForRoles, dataConfiguration.categoricalAttrsWithChangeCounts]
     }, () => {
-
       const updateMasksCallback = () => {
-        if (!pixiPoints) return
-        updateCellMasks({ dataConfig: dataConfiguration, layout, pixiPoints })
+        if (!renderer) return
+        // Update subPlotNum values in state before updating masks
+        // This ensures sprites get assigned to the correct masks after category reordering
+        renderer.updateSubPlotNums(dataConfiguration.caseDataWithSubPlot)
+        updateCellMasks({ dataConfig: dataConfiguration, layout, renderer })
       }
-      pixiPoints?.removeMasks()
+      renderer?.removeMasks()
       startAnimation(updateMasksCallback)
       callRefreshPointPositions()
     }, {name: "usePlot.respondToCategorySetChanges", equals: comparer.structural}, dataConfiguration)
-  }, [callRefreshPointPositions, dataConfiguration, layout, pixiPoints, startAnimation])
+  }, [callRefreshPointPositions, dataConfiguration, layout, renderer, startAnimation])
 
   // respond to attribute assignment changes
   useEffect(() => {
@@ -194,7 +218,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     const disposer = mstReaction(
       () => dataConfiguration?.caseDataHash,
       () => {
-        if (!pixiPoints) {
+        if (!renderer) {
           return
         }
         callMatchCirclesToData()
@@ -202,7 +226,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       }, {name: "respondToCasesChange"}, dataConfiguration
     )
     return () => disposer()
-  }, [callMatchCirclesToData, callRefreshPointPositions, dataConfiguration, pixiPoints])
+  }, [callMatchCirclesToData, callRefreshPointPositions, dataConfiguration, renderer])
 
   // respond to axis range changes (e.g. component resizing)
   useEffect(() => {
@@ -258,13 +282,13 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     return mstReaction(
       () => graphModel.plotType,
       () => {
-        if (!pixiPoints) return
+        if (!renderer) return
 
         callMatchCirclesToData()
         callRefreshPointPositions()
       }, {name: "usePlot [plotType]"}, graphModel
     )
-  }, [callMatchCirclesToData, callRefreshPointPositions, graphModel, pixiPoints])
+  }, [callMatchCirclesToData, callRefreshPointPositions, graphModel, renderer])
 
   useEffect(() => {
     return mstReaction(

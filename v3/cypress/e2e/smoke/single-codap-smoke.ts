@@ -12,7 +12,7 @@ import { AxisHelper as ah } from "../../support/helpers/axis-helper"
 
 context("codap single smoke test", () => {
   beforeEach(function () {
-    const url = `${Cypress.config("index")}?mouseSensor&noEntryModal&suppressUnsavedWarning`
+    const url = `${Cypress.config("index")}?mouseSensor&noEntryModal&suppressUnsavedWarning&noComponentAnimation`
     cy.visit(url)
     cy.wait(1000)
   })
@@ -120,6 +120,7 @@ context("codap single smoke test", () => {
 
     cy.log("Test date display in bottom axis of graph")
     ah.verifyDefaultAxisLabel("bottom")
+    cy.wait(1000)  // Wait for graph/map renderers to fully initialize before interacting with axis menu
     ah.openAxisAttributeMenu("bottom")
     ah.selectSubmenuAttribute("date", "Measurements", "bottom") // Date => x-axis
     cy.get('[data-testid="axis-legend-attribute-button-bottom"]').eq(0).should("have.text", "date")

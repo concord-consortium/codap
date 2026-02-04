@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite"
 import { useCallback, useEffect, useRef } from "react"
 import { createPortal } from "react-dom"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
+import { circleAnchor } from "../../../data-display/renderer"
 import { IBarCover, IPlotProps } from "../../graphing-types"
 import { useBinnedPlotResponders } from "../../hooks/use-binned-plot-responders"
 import { useDotPlot } from "../../hooks/use-dot-plot"
@@ -14,10 +15,10 @@ import { renderBarCovers } from "../bar-utils"
 import { kEmptyBinDetails } from "../binned-dot-plot/bin-details"
 import { computeBinPlacements } from "../dot-plot/dot-plot-utils"
 
-export const Histogram = observer(function Histogram({ abovePointsGroupRef, pixiPoints }: IPlotProps) {
+export const Histogram = observer(function Histogram({ abovePointsGroupRef, renderer }: IPlotProps) {
   const { dataset, dataConfig, graphModel, isAnimating, layout, getPrimaryScreenCoord, getSecondaryScreenCoord,
           pointColor, pointStrokeColor, primaryAttrRole, primaryAxisScale, primaryIsBottom, primaryPlace,
-          refreshPointSelection, secondaryAttrRole } = useDotPlot(pixiPoints)
+          refreshPointSelection, secondaryAttrRole } = useDotPlot(renderer)
   const binnedPlot = isBinnedPlotModel(graphModel.plot) ? graphModel.plot : undefined
   const barCoversRef = useRef<SVGGElement>(null)
 
@@ -102,25 +103,26 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, pixi
     }
 
     setPointCoordinates({
+      anchor: circleAnchor,
       pointRadius: graphModel.getPointRadius(),
       selectedPointRadius: graphModel.getPointRadius("select"),
-      pixiPoints, selectedOnly, pointColor, pointStrokeColor, getWidth, getHeight,
+      renderer, selectedOnly, pointColor, pointStrokeColor, getWidth, getHeight,
       getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating,
       pointDisplayType: "bars", dataset, pointsFusedIntoBars: true
     })
   }, [abovePointsGroupRef, binnedPlot, dataConfig, dataset, getPrimaryScreenCoord, getSecondaryScreenCoord,
-      graphModel, isAnimating, layout, pixiPoints, pointColor, pointStrokeColor,
+      graphModel, isAnimating, layout, renderer, pointColor, pointStrokeColor,
       primaryAttrRole, primaryAxisScale, primaryIsBottom, primaryPlace, secondaryAttrRole])
 
-  usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
+  usePlotResponders({renderer, refreshPointPositions, refreshPointSelection})
   useBinnedPlotResponders(refreshPointPositions)
 
-  // when points are fused into bars, update pixiPoints and set the secondary axis scale type to linear
+  // when points are fused into bars, update renderer and set the secondary axis scale type to linear
   useEffect(function handleFuseIntoBars() {
     return mstAutorun(
       () => {
-        if (pixiPoints) {
-          pixiPoints.pointsFusedIntoBars = graphModel.pointsFusedIntoBars
+        if (renderer) {
+          renderer.pointsFusedIntoBars = graphModel.pointsFusedIntoBars
         }
         if (graphModel.pointsFusedIntoBars) {
           const secondaryRole = graphModel.dataConfiguration.primaryRole === "x" ? "y" : "x"
@@ -130,7 +132,7 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, pixi
       },
       {name: "useAxis [handleFuseIntoBars]"}, graphModel
     )
-  }, [graphModel, layout, pixiPoints])
+  }, [graphModel, layout, renderer])
 
   return (
     <>

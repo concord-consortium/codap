@@ -5,23 +5,23 @@ import {mstReaction} from "../../../../utilities/mst-reaction"
 import { setNiceDomain } from "../../../axis/axis-domain-utils"
 import { AxisPlace } from "../../../axis/axis-types"
 import { kMain } from "../../../data-display/data-display-types"
-import { circleAnchor, hBarAnchor, vBarAnchor } from "../../../data-display/pixi/pixi-points"
+import { circleAnchor, hBarAnchor, vBarAnchor } from "../../../data-display/renderer"
 import {IPlotProps} from "../../graphing-types"
 import { useDotPlot } from "../../hooks/use-dot-plot"
 import { useDotPlotDragDrop } from "../../hooks/use-dot-plot-drag-drop"
-import { usePixiDragHandlers, usePlotResponders } from "../../hooks/use-plot"
+import { useRendererDragHandlers, usePlotResponders } from "../../hooks/use-plot"
 import { setPointCoordinates } from "../../utilities/graph-utils"
 import {
   computeBinPlacements, computePrimaryCoord, computeSecondaryCoord, IComputePrimaryCoord
 } from "./dot-plot-utils"
 
-export const DotLinePlot = observer(function DotLinePlot({ pixiPoints }: IPlotProps) {
+export const DotLinePlot = observer(function DotLinePlot({ renderer }: IPlotProps) {
   const { dataset, dataConfig, graphModel, isAnimating, layout,
           pointColor, pointDisplayType, pointStrokeColor,
           primaryAttrRole, primaryIsBottom,
-          secondaryAttrRole, refreshPointSelection } = useDotPlot(pixiPoints)
+          secondaryAttrRole, refreshPointSelection } = useDotPlot(renderer)
   const { onDrag, onDragEnd, onDragStart } = useDotPlotDragDrop()
-  usePixiDragHandlers(pixiPoints, {start: onDragStart, drag: onDrag, end: onDragEnd})
+  useRendererDragHandlers(renderer, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
       const primaryPlace: AxisPlace = primaryIsBottom ? 'bottom' : 'left',
@@ -102,6 +102,7 @@ export const DotLinePlot = observer(function DotLinePlot({ pixiPoints }: IPlotPr
       }
 
       const getBarPositionInSubPlot = (anID: string) => {
+        if (!binMap[anID]) return null
         const {caseIndex, casesInCategory} = getSubPlotDetails(anID)
         const barDimension = getBarStaticDimension()
         const {category, extraCategory} = binMap[anID]
@@ -162,15 +163,15 @@ export const DotLinePlot = observer(function DotLinePlot({ pixiPoints }: IPlotPr
       setPointCoordinates({
         pointRadius: graphModel.getPointRadius(),
         selectedPointRadius: graphModel.getPointRadius('select'),
-        pixiPoints, selectedOnly, pointColor, pointStrokeColor,
+        renderer, selectedOnly, pointColor, pointStrokeColor,
         getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating,
         pointDisplayType, getWidth, getHeight, anchor, dataset
       })
     },
     [primaryIsBottom, layout, dataConfig, primaryAttrRole, graphModel, secondaryAttrRole, dataset,
-      pointDisplayType, pixiPoints, pointColor, pointStrokeColor, isAnimating])
+      pointDisplayType, renderer, pointColor, pointStrokeColor, isAnimating])
 
-  usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
+  usePlotResponders({renderer, refreshPointPositions, refreshPointSelection})
 
   useEffect(function respondToPlotDisplayType() {
     return mstReaction(() => graphModel.plot.displayType,

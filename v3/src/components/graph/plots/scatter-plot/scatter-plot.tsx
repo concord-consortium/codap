@@ -1,7 +1,6 @@
 import {ScaleLinear, select} from "d3"
 import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
-import * as PIXI from "pixi.js"
 import {useCallback, useEffect, useRef, useState} from "react"
 import {useDataSetContext} from "../../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
@@ -17,7 +16,7 @@ import { handleClickOnCase, setPointSelection } from "../../../data-display/data
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
 import { useConnectingLines } from "../../../data-display/hooks/use-connecting-lines"
 import {useDataDisplayAnimation} from "../../../data-display/hooks/use-data-display-animation"
-import { IPixiPointMetadata } from "../../../data-display/pixi/pixi-points"
+import { IPoint, IPointMetadata } from "../../../data-display/renderer"
 import { ILSRLAdornmentModel } from "../../adornments/lsrl/lsrl-adornment-model"
 import { IMovableLineAdornmentModel } from "../../adornments/movable-line/movable-line-adornment-model"
 import { IPlottedFunctionAdornmentModel } from "../../adornments/plotted-function/plotted-function-adornment-model"
@@ -29,11 +28,11 @@ import {IPlotProps} from "../../graphing-types"
 import {useGraphContentModelContext} from "../../hooks/use-graph-content-model-context"
 import {useGraphDataConfigurationContext} from "../../hooks/use-graph-data-configuration-context"
 import {useGraphLayoutContext} from "../../hooks/use-graph-layout-context"
-import {usePixiDragHandlers, usePlotResponders} from "../../hooks/use-plot"
+import {useRendererDragHandlers, usePlotResponders} from "../../hooks/use-plot"
 import { setPointCoordinates } from "../../utilities/graph-utils"
 import { scatterPlotFuncs } from "./scatter-plot-utils"
 
-export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotProps) {
+export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProps) {
   const graphModel = useGraphContentModelContext(),
     instanceId = useInstanceIdContext(),
     dataConfiguration = useGraphDataConfigurationContext(),
@@ -65,10 +64,6 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
   const lsrlSquaresRef = useRef<SVGGElement>(null)
   const functionSquaresRef = useRef<SVGGElement>(null)
 
-  // The Connecting Lines option is controlled by the AdornmentsStore, so we need to watch for changes to that store
-  // and call refreshConnectingLines when the option changes. Unlike the Squares of Residuals, the lines are not
-  // rendered in connection with any other adornments.
-  const showConnectingLines = adornmentsStore.showConnectingLines
   const connectingLinesRef = useRef<SVGGElement>(null)
   const connectingLinesActivatedRef = useRef(false)
 
@@ -77,7 +72,7 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
   }, [dataConfiguration])
 
   const { renderConnectingLines } = useConnectingLines({
-    clientType: "graph", pixiPoints, connectingLinesSvg: connectingLinesRef.current, connectingLinesActivatedRef,
+    clientType: "graph", renderer, connectingLinesSvg: connectingLinesRef.current, connectingLinesActivatedRef,
     yAttrCount: dataConfiguration?.yAttributeIDs?.length, isCaseInSubPlot
   })
 
@@ -86,7 +81,7 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
   dragPointRadiusRef.current = graphModel.getPointRadius('hover-drag')
   yScaleRef.current = layout.getAxisScale("left") as ScaleNumericBaseType
 
-  const onDragStart = useCallback((event: PointerEvent, _point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+  const onDragStart = useCallback((event: PointerEvent, _point: IPoint, metadata: IPointMetadata) => {
     dataset?.beginCaching()
     secondaryAttrIDsRef.current = dataConfiguration?.yAttributeIDs || []
     stopAnimation() // We don't want to animate points until end of drag
@@ -168,20 +163,21 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
     }
   }, [dataConfiguration, dataset, dragID, startAnimation])
 
-  usePixiDragHandlers(pixiPoints, {start: onDragStart, drag: onDrag, end: onDragEnd})
+  useRendererDragHandlers(renderer, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointSelection = useCallback(() => {
     const {pointColor, pointStrokeColor} = graphModel.pointDescription
     dataConfiguration && setPointSelection(
       {
-        pixiPoints, dataConfiguration, pointRadius: graphModel.getPointRadius(),
+        renderer, dataConfiguration, pointRadius: graphModel.getPointRadius(),
         selectedPointRadius: selectedPointRadiusRef.current,
         pointColor, pointStrokeColor, getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex
       })
-  }, [dataConfiguration, graphModel, pixiPoints])
+  }, [dataConfiguration, graphModel, renderer])
 
-  const refreshConnectingLines = useCallback(async () => {
-    if (!showConnectingLines && !connectingLinesActivatedRef.current) return
+  // Accept showLines parameter to avoid stale closure issues during rapid state changes
+  const refreshConnectingLines = useCallback(async (showLines: boolean) => {
+    if (!showLines && !connectingLinesActivatedRef.current) return
     const { connectingLinesForCases } = scatterPlotFuncs(layout, dataConfiguration)
     const connectingLines = connectingLinesForCases()
     const childmostCollectionId = idOfChildmostCollectionForAttributes(dataConfiguration?.attributes ?? [], dataset)
@@ -204,20 +200,21 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
 
     cellKeys?.forEach((cellKey) => {
       renderConnectingLines({
-        cellKey, connectingLines, getLegendColor, parentAttrID, parentAttrName, pointColorAtIndex, showConnectingLines
+        cellKey, connectingLines, getLegendColor, parentAttrID, parentAttrName, pointColorAtIndex,
+        showConnectingLines: showLines
       })
     })
 
     // Decrease point size when Connecting Lines are first activated so the lines are easier to see, and
     // revert to original point size when Connecting Lines are deactivated.
-    if (!connectingLinesActivatedRef.current && showConnectingLines && !pointsHaveBeenReduced) {
+    if (!connectingLinesActivatedRef.current && showLines && !pointsHaveBeenReduced) {
       pointDescription.setPointSizeMultiplier(pointSizeMultiplier * kPointSizeReductionFactor)
       pointDescription.setPointsHaveBeenReduced(true)
-    } else if (!showConnectingLines && pointsHaveBeenReduced) {
+    } else if (!showLines && pointsHaveBeenReduced) {
       pointDescription.setPointSizeMultiplier(pointSizeMultiplier / kPointSizeReductionFactor)
       pointDescription.setPointsHaveBeenReduced(false)
     }
-  }, [showConnectingLines, layout, dataConfiguration, dataset, legendAttrID, renderConnectingLines, graphModel])
+  }, [layout, dataConfiguration, dataset, legendAttrID, renderConnectingLines, graphModel])
 
   const refreshSquares = useCallback(() => {
 
@@ -267,16 +264,16 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
       getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
 
     setPointCoordinates({
-      dataset, pixiPoints, pointRadius: graphModel.getPointRadius(),
+      dataset, renderer, pointRadius: graphModel.getPointRadius(),
       selectedPointRadius: selectedPointRadiusRef.current,
       selectedOnly, getScreenX, getScreenY, getLegendColor,
       getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex,
       pointColor, pointStrokeColor, getAnimationEnabled: isAnimating
     })
-  }, [dataConfiguration, graphModel, layout, legendAttrID, dataset, pixiPoints, isAnimating])
+  }, [dataConfiguration, graphModel, layout, legendAttrID, dataset, renderer, isAnimating])
 
   const refreshPointPositionsPerfMode = useCallback((selectedOnly: boolean) => {
-    if (!pixiPoints) {
+    if (!renderer) {
       return
     }
     const {joinedCaseDataArrays, selection} = dataConfiguration || {},
@@ -287,8 +284,8 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
       const x = getScreenX(caseId)
       const y = getScreenY(caseId)
       if (x != null && isFinite(x) && y != null && isFinite(y)) {
-        const point = pixiPoints.getPointForCaseData(aCaseData)
-        point && pixiPoints.setPointPosition(point, x, y)
+        const point = renderer.getPointForCaseData(aCaseData)
+        point && renderer.setPointPosition(point, x, y)
       }
     }
     if (selectedOnly) {
@@ -300,17 +297,19 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
     } else {
       joinedCaseDataArrays?.forEach((aCaseData) => updateDot(aCaseData))
     }
-  }, [pixiPoints, dataConfiguration, layout])
+  }, [renderer, dataConfiguration, layout])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
-    refreshConnectingLines()
+    // Read showConnectingLines directly from store to avoid stale closure issues
+    refreshConnectingLines(adornmentsStore.showConnectingLines)
     if (appState.isPerformanceMode) {
       refreshPointPositionsPerfMode(selectedOnly)
     } else {
       refreshAllPointPositions(selectedOnly)
     }
     showSquares && refreshSquares()
-  }, [showSquares, refreshConnectingLines, refreshSquares, refreshPointPositionsPerfMode, refreshAllPointPositions])
+  }, [adornmentsStore, showSquares, refreshConnectingLines, refreshSquares, refreshPointPositionsPerfMode,
+      refreshAllPointPositions])
 
   // Call refreshSquares when Squares of Residuals option is switched on and when a
   // Movable Line adornment is being dragged.
@@ -324,13 +323,18 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
 
   // Call refreshConnectingLines when Connecting Lines option is switched on and when all
   // points are selected.
+  // NOTE: We observe adornmentsStore.showConnectingLines directly inside the autorun to ensure
+  // we always get the current value, rather than relying on closures which can become stale
+  // during rapid state changes (e.g., during undo when renderer is also changing).
   useEffect(function updateConnectingLines() {
     return autorun(() => {
-      refreshConnectingLines()
+      // Read showConnectingLines directly from store inside autorun to create a reactive dependency
+      const currentShowConnectingLines = adornmentsStore.showConnectingLines
+      refreshConnectingLines(currentShowConnectingLines)
     }, { name: "ScatterDots.updateConnectingLines" })
-  }, [dataConfiguration?.selection, refreshConnectingLines, showConnectingLines])
+  }, [adornmentsStore, dataConfiguration?.selection, refreshConnectingLines])
 
-  usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
+  usePlotResponders({renderer, refreshPointPositions, refreshPointSelection})
 
   return (
     <>

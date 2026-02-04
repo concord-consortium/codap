@@ -3,7 +3,6 @@ import {useEffect} from "react"
 import { useMemo } from "use-memo-one"
 import { mstAutorun } from "../../../utilities/mst-autorun"
 import { DataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
-import {PixiPoints} from "../../data-display/pixi/pixi-points"
 import { LeafletMapLayersContext } from "../hooks/use-leaflet-map-layers"
 import {useMapModel} from "../hooks/use-map-model"
 import {useMapModelContext} from "../hooks/use-map-model-context"
@@ -16,11 +15,7 @@ import { MapPinLayer } from "./map-pin-layer"
 import {MapPointLayer} from "./map-point-layer"
 import {MapPolygonLayer} from "./map-polygon-layer"
 
-interface IProps {
-  setPixiPointsLayer: (pixiPoints: PixiPoints, layerIndex: number) => void
-}
-
-export const MapInterior = observer(function MapInterior({setPixiPointsLayer}: IProps) {
+export const MapInterior = observer(function MapInterior() {
   const mapModel = useMapModelContext()
   const leafletMapLayers = useMemo(() => new LeafletMapLayers(mapModel), [mapModel])
 
@@ -45,7 +40,7 @@ export const MapInterior = observer(function MapInterior({setPixiPointsLayer}: I
    * Note that we don't have to worry about layer order because polygons will be sent to the back
    */
   const renderMapLayerComponents = () => {
-    return mapModel?.layers.map((layerModel) => {
+    return mapModel?.layers.map((layerModel, index) => {
       if (isMapPointLayerModel(layerModel)) {
         return (
           <DataConfigurationContext.Provider
@@ -54,7 +49,7 @@ export const MapInterior = observer(function MapInterior({setPixiPointsLayer}: I
           >
             <MapPointLayer
               mapLayerModel={layerModel}
-              setPixiPointsLayer={setPixiPointsLayer}
+              layerIndex={index}
             />
           </DataConfigurationContext.Provider>
         )

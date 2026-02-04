@@ -1,20 +1,19 @@
 import {randomUniform} from "d3"
-import * as PIXI from "pixi.js"
 import {useCallback, useEffect, useRef, useState} from "react"
 import {useDataSetContext} from "../../../../hooks/use-data-set-context"
 import {mstReaction} from "../../../../utilities/mst-reaction"
 import { CaseData } from "../../../data-display/d3-types"
 import {handleClickOnCase, setPointSelection} from "../../../data-display/data-display-utils"
 import {useDataDisplayAnimation} from "../../../data-display/hooks/use-data-display-animation"
-import {IPixiPointMetadata} from "../../../data-display/pixi/pixi-points"
+import { IPoint, IPointMetadata } from "../../../data-display/renderer"
 import { IPlotProps } from "../../graphing-types"
 import {useGraphContentModelContext} from "../../hooks/use-graph-content-model-context"
 import {useGraphDataConfigurationContext} from "../../hooks/use-graph-data-configuration-context"
 import {useGraphLayoutContext} from "../../hooks/use-graph-layout-context"
-import {usePixiDragHandlers, usePlotResponders} from "../../hooks/use-plot"
+import {useRendererDragHandlers, usePlotResponders} from "../../hooks/use-plot"
 import { setPointCoordinates } from "../../utilities/graph-utils"
 
-export const CasePlot = function CasePlot({ pixiPoints }: IPlotProps) {
+export const CasePlot = function CasePlot({ renderer }: IPlotProps) {
   const graphModel = useGraphContentModelContext(),
     {isAnimating, startAnimation, stopAnimation} = useDataDisplayAnimation(),
     dataset = useDataSetContext(),
@@ -34,44 +33,43 @@ export const CasePlot = function CasePlot({ pixiPoints }: IPlotProps) {
       })
   }, [])
 
-  const onDragStart = useCallback((event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+  const onDragStart = useCallback((event: PointerEvent, _point: IPoint, metadata: IPointMetadata) => {
     stopAnimation() // We don't want to animate points until end of drag
     setDragID(metadata.caseID)
     currPos.current = { x: event.clientX, y: event.clientY }
     handleClickOnCase(event, metadata.caseID, dataset)
   }, [stopAnimation, dataset])
 
-  const onDrag = useCallback((event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
-    if (pixiPoints && dragID !== '') {
+  const onDrag = useCallback((event: PointerEvent, _point: IPoint, _metadata: IPointMetadata) => {
+    if (renderer && dragID !== '') {
       const newPos = { x: event.clientX, y: event.clientY }
       const dx = newPos.x - currPos.current.x
       const dy = newPos.y - currPos.current.y
       currPos.current = newPos
       if (dx !== 0 || dy !== 0) {
-        pixiPoints.forEachSelectedPoint((selectedPoint) => {
-          selectedPoint.x += dx
-          selectedPoint.y += dy
+        renderer.forEachSelectedPoint((selectedPoint: IPoint, pointMetadata: IPointMetadata) => {
+          renderer.setPointPosition(selectedPoint, pointMetadata.x + dx, pointMetadata.y + dy)
         })
       }
     }
-  }, [pixiPoints, dragID])
+  }, [renderer, dragID])
 
-  const onDragEnd = useCallback((event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+  const onDragEnd = useCallback((_event: PointerEvent, _point: IPoint, _metadata: IPointMetadata) => {
     if (dragID !== '') {
       setDragID(() => '')
     }
   }, [dragID])
 
-  usePixiDragHandlers(pixiPoints, { start: onDragStart, drag: onDrag, end: onDragEnd })
+  useRendererDragHandlers(renderer, { start: onDragStart, drag: onDrag, end: onDragEnd })
 
   const refreshPointSelection = useCallback(() => {
     const {pointColor, pointStrokeColor} = graphModel.pointDescription,
       selectedPointRadius = graphModel.getPointRadius('select')
       dataConfiguration && setPointSelection({
-        pixiPoints, dataConfiguration, pointRadius: graphModel.getPointRadius(), selectedPointRadius,
+        renderer, dataConfiguration, pointRadius: graphModel.getPointRadius(), selectedPointRadius,
         pointColor, pointStrokeColor
       })
-  }, [graphModel, dataConfiguration, pixiPoints])
+  }, [graphModel, dataConfiguration, renderer])
 
   const refreshPointPositions = useCallback((selectedOnly = false) => {
     const
@@ -90,10 +88,10 @@ export const CasePlot = function CasePlot({ pixiPoints }: IPlotProps) {
         ? dataConfiguration?.getLegendColorForCase : undefined
 
     setPointCoordinates({
-      dataset, pointRadius, selectedPointRadius, pixiPoints, selectedOnly,
+      dataset, pointRadius, selectedPointRadius, renderer, selectedOnly,
       pointColor, pointStrokeColor, getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating
     })
-  }, [pixiPoints, graphModel, layout, dataConfiguration, dataset, isAnimating])
+  }, [renderer, graphModel, layout, dataConfiguration, dataset, isAnimating])
 
   useEffect(function respondToModelChangeCount() {
     return mstReaction(
@@ -119,7 +117,7 @@ export const CasePlot = function CasePlot({ pixiPoints }: IPlotProps) {
       { name: "CaseDots.respondToCasesCountChange" }, dataConfiguration)
   }, [dataConfiguration, randomlyDistributePoints, refreshPointPositions, startAnimation])
 
-  usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
+  usePlotResponders({renderer, refreshPointPositions, refreshPointSelection})
 
   useEffect(function initDistribution() {
     randomlyDistributePoints(dataConfiguration?.getCaseDataArray(0))

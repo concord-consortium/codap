@@ -56,7 +56,7 @@ export const DataDisplayContentModel = TileContentModel
     marqueeMode: 'unclicked' as MarqueeMode,
     renderState: undefined as DataDisplayRenderState | undefined,
     showDataTip: (props: IShowDataTipProps) => {},
-    hideDataTip: (event: MouseEvent) => {}
+    hideDataTip: (event: PointerEvent) => {}
   }))
   .views(self => ({
     placeCanAcceptAttributeIDDrop(place: GraphPlace,
@@ -140,13 +140,22 @@ export const DataDisplayContentModel = TileContentModel
       }
     },
     startAnimation(onComplete?: () => void) {
-      if (self.animationTimerId) clearTimeout(self.animationTimerId)
-      self.animationTimerId = window.setTimeout(() => {
-        this.stopAnimation()
-        onComplete?.()
+      if (self.animationTimerId) {
+        clearTimeout(self.animationTimerId)
+      }
+      const timerId = window.setTimeout(() => {
+        // Only run callback if this timer is still the active one
+        if (self.animationTimerId === timerId) {
+          this.stopAnimation()
+          onComplete?.()
+        }
       }, 2000)
+      self.animationTimerId = timerId
     },
     stopAnimation() {
+      if (self.animationTimerId) {
+        clearTimeout(self.animationTimerId)
+      }
       self.animationTimerId = 0
     },
     installSharedModelManagerSync() {
@@ -204,7 +213,7 @@ export const DataDisplayContentModel = TileContentModel
     setShowDataTip: (showDataTip: (props: IShowDataTipProps) => void) => {
       self.showDataTip = showDataTip
     },
-    setHideDataTip: (hideDataTip: (event: MouseEvent) => void) => {
+    setHideDataTip: (hideDataTip: (event: PointerEvent) => void) => {
       self.hideDataTip = hideDataTip
     }
   }))

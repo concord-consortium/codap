@@ -1,17 +1,16 @@
 import { observer } from "mobx-react-lite"
-import * as PIXI from "pixi.js"
 import { useCallback, useEffect } from "react"
 import { mstReaction } from "../../../../utilities/mst-reaction"
 import { handleClickOnCase } from "../../../data-display/data-display-utils"
-import { circleAnchor, IPixiPointMetadata, PixiPointEventHandler } from "../../../data-display/pixi/pixi-points"
+import { circleAnchor, IPoint, IPointMetadata } from "../../../data-display/renderer"
 import { IPlotProps } from "../../graphing-types"
 import { useChartDots } from "../../hooks/use-chart-dots"
 import { usePlotResponders } from "../../hooks/use-plot"
 import { setPointCoordinates } from "../../utilities/graph-utils"
 
-export const DotChart = observer(function DotChart({ pixiPoints }: IPlotProps) {
+export const DotChart = observer(function DotChart({ renderer }: IPlotProps) {
   const { dataset, graphModel, isAnimating, primaryScreenCoord, secondaryScreenCoord,
-          refreshPointSelection, subPlotCells } = useChartDots(pixiPoints)
+          refreshPointSelection, subPlotCells } = useChartDots(renderer)
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     const { dataConfig, primaryCellWidth, primaryCellHeight, primaryIsBottom } = subPlotCells
@@ -29,23 +28,23 @@ export const DotChart = observer(function DotChart({ pixiPoints }: IPlotProps) {
 
     const anchor = circleAnchor
     setPointCoordinates({
-      anchor, dataset, pointRadius, selectedPointRadius: graphModel.getPointRadius('select'), pixiPoints, selectedOnly,
+      anchor, dataset, pointRadius, selectedPointRadius: graphModel.getPointRadius('select'), renderer, selectedOnly,
       pointColor, pointStrokeColor, getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating
     })
-  }, [dataset, graphModel, isAnimating, pixiPoints, primaryScreenCoord, secondaryScreenCoord, subPlotCells])
+  }, [dataset, graphModel, isAnimating, renderer, primaryScreenCoord, secondaryScreenCoord, subPlotCells])
 
-  usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
+  usePlotResponders({renderer, refreshPointPositions, refreshPointSelection})
 
-  const onPointClick: PixiPointEventHandler = useCallback(
-    (event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+  const onPointerClick = useCallback(
+    (event: PointerEvent, _point: IPoint, metadata: IPointMetadata) => {
       handleClickOnCase(event, metadata.caseID, dataset)
   }, [dataset])
 
   useEffect(() => {
-    if (pixiPoints) {
-      pixiPoints.onPointClick = onPointClick
+    if (renderer) {
+      renderer.onPointerClick = onPointerClick
     }
-  }, [pixiPoints, onPointClick])
+  }, [renderer, onPointerClick])
 
   // respond to point size change because we have to change the stacking
   useEffect(function respondToGraphPointVisualAction() {

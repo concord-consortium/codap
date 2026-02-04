@@ -4,7 +4,7 @@ import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { setPointSelection } from "../../data-display/data-display-utils"
 import { useDataDisplayAnimation } from "../../data-display/hooks/use-data-display-animation"
 import { SubPlotCells } from "../models/sub-plot-cells"
-import { PixiPoints } from "../../data-display/pixi/pixi-points"
+import { PointRendererBase } from "../../data-display/renderer"
 import { barCompressionFactorForCase } from "../plots/bar-utils"
 import { useGraphContentModelContext } from "./use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "./use-graph-data-configuration-context"
@@ -16,7 +16,7 @@ interface ScreenCoordContext {
   numPointsInRow?: number
 }
 
-export const useChartDots = (pixiPoints?: PixiPoints) => {
+export const useChartDots = (renderer?: PointRendererBase) => {
   const graphModel = useGraphContentModelContext(),
     {isAnimating} = useDataDisplayAnimation(),
     dataConfig = useGraphDataConfigurationContext(),
@@ -39,10 +39,10 @@ export const useChartDots = (pixiPoints?: PixiPoints) => {
     const selectedPointRadius = graphModel.getPointRadius('select')
     const pointsFusedIntoBars = graphModel.pointsFusedIntoBars
     dataConfig && setPointSelection({
-      pixiPoints, pointColor, pointStrokeColor, dataConfiguration: dataConfig, pointRadius, selectedPointRadius,
+      renderer, pointColor, pointStrokeColor, dataConfiguration: dataConfig, pointRadius, selectedPointRadius,
       pointsFusedIntoBars
     })
-  }, [dataConfig, graphModel, pixiPoints])
+  }, [dataConfig, graphModel, renderer])
 
   const primaryScreenCoord = useCallback((context: ScreenCoordContext, anID: string) => {
     const pointDiameter = 2 * graphModel.getPointRadius()

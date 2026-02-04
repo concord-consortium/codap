@@ -21,6 +21,9 @@
     "V3.app.documentDisplayError.reason": "An error is preventing CODAP from displaying the document.",
     "V3.app.documentDisplayError.detailsTitle": "Details",
 
+    "V3.graph.noWebGLContext.title": "Rendering paused",
+    "V3.graph.noWebGLContext.message": "Close or minimize other graphs to view this one or click to prioritize this graph.",
+
     "V3.graph.Inspector.Rescale": "Rescale",
     "V3.graph.Inspector.View": "View",
     "V3.graph.Inspector.Measure": "Measure",

@@ -1,5 +1,4 @@
 import {format} from "d3"
-import * as PIXI from "pixi.js"
 import {IDataSet} from "../../../models/data/data-set"
 import {
   defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth
@@ -12,7 +11,7 @@ import {isAnyNumericAxisModel} from "../../axis/models/numeric-axis-models"
 import { CaseData } from "../../data-display/d3-types"
 import {Point, PointDisplayType, transitionDuration} from "../../data-display/data-display-types"
 import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
-import { IPixiPointMetadata, PixiPoints } from "../../data-display/pixi/pixi-points"
+import { PointRendererBase } from "../../data-display/renderer"
 import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
 import { GraphLayout } from "../models/graph-layout"
 
@@ -387,17 +386,16 @@ export const lsrlEquationString = (props: ILsrlEquationString) => {
 interface IUpdateCellMasks {
   dataConfig: IGraphDataConfigurationModel
   layout: GraphLayout
-  pixiPoints?: PixiPoints
+  renderer?: PointRendererBase
 }
-export function updateCellMasks({ dataConfig, layout, pixiPoints }: IUpdateCellMasks) {
+export function updateCellMasks({ dataConfig, layout, renderer }: IUpdateCellMasks) {
   const { xCats, yCats, topCats, rightCats } = dataConfig.getCategoriesOptions()
-  pixiPoints?.resize(layout.plotWidth, layout.plotHeight,
+  renderer?.resize(layout.plotWidth, layout.plotHeight,
                     xCats.length || 1, yCats.length || 1, topCats.length || 1, rightCats.length || 1)
-  pixiPoints?.setPointsMask(dataConfig.caseDataWithSubPlot)
 }
 
 export interface ISetPointSelection {
-  pixiPoints?: PixiPoints
+  renderer?: PointRendererBase
   dataConfiguration: IDataConfigurationModel
   pointRadius: number,
   pointsFusedIntoBars?: boolean,
@@ -411,7 +409,7 @@ export interface ISetPointSelection {
 export interface ISetPointCoordinates {
   anchor?: Point
   dataset?: IDataSet
-  pixiPoints?: PixiPoints
+  renderer?: PointRendererBase
   pointsFusedIntoBars?: boolean
   selectedOnly?: boolean
   pointRadius: number
@@ -430,7 +428,7 @@ export interface ISetPointCoordinates {
 
 export function setPointCoordinates(props: ISetPointCoordinates) {
   const {
-    anchor, dataset, pixiPoints, selectedOnly = false, pointRadius, selectedPointRadius,
+    anchor, dataset, renderer, selectedOnly = false, pointRadius, selectedPointRadius,
     pointStrokeColor, pointColor, getPointColorAtIndex, getScreenX, getScreenY, getLegendColor, getAnimationEnabled,
     getWidth, getHeight, pointsFusedIntoBars
   } = props
@@ -450,25 +448,30 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
     return pointColor
   }
 
+  // Helper to check if point has default position (0, 0) based on metadata
+  const pointHasDefaultPosition = (metadata: { x: number, y: number }): boolean => {
+    return metadata.x === 0 && metadata.y === 0
+  }
+
   const setPoints = () => {
     // Do we really need to calculate legend color here? If this function is called both while resizing
     // the graph and while updating legend colors, we could possibly split it into two different functions.
-    if (pixiPoints) {
+    if (renderer) {
       if (anchor) {
-        pixiPoints.anchor = anchor
+        renderer.anchor = anchor
       }
       // Points that still have the default (0, 0) position will be set to their assigned position before transition.
-      pixiPoints.forEachPoint((point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
-        if (point.x === 0 && point.y === 0) {
+      renderer.forEachPoint((point, metadata) => {
+        if (pointHasDefaultPosition(metadata)) {
           const { caseID, plotNum } = metadata
           const screenX = getScreenX(caseID) || 0
           const screenY = getScreenY(caseID, plotNum) || 0
-          pixiPoints.setPointPosition(point, screenX, screenY)
-          pixiPoints.setPointScale(point, 0)
+          renderer.setPointPosition(point, screenX, screenY)
+          renderer.setPointScale(point, 0)
         }
       })
-      pixiPoints.transition(() => {
-        pixiPoints.forEachPoint((point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+      renderer.transition(() => {
+        renderer.forEachPoint((point, metadata) => {
           const { caseID, plotNum } = metadata
           const style = {
             radius: dataset?.isCaseSelected(caseID) ? selectedPointRadius : pointRadius,
@@ -482,8 +485,8 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
             width: getWidth?.(caseID) ?? pointRadius * 2,
             height: getHeight?.(caseID, plotNum) ?? pointRadius * 2
           }
-          pixiPoints.setPointStyle(point, style)
-          pixiPoints.setPositionOrTransition(point, style, getScreenX(caseID) || 0, getScreenY(caseID, plotNum) || 0)
+          renderer.setPointStyle(point, style)
+          renderer.setPositionOrTransition(point, style, getScreenX(caseID) || 0, getScreenY(caseID, plotNum) || 0)
         }, { selectedOnly })
       }, { duration: getAnimationEnabled() ? transitionDuration : 0 })
     }

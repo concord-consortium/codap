@@ -4,16 +4,16 @@ import { useMemo } from "use-memo-one"
 import { Background } from "../../data-display/components/background"
 import { Marquee } from "../../data-display/components/marquee"
 import { MarqueeState } from "../../data-display/models/marquee-state"
-import { PixiPointsArray } from "../../data-display/pixi/pixi-points"
+import { PointRendererArray } from "../../data-display/renderer"
 import { IMapContentModel } from "../models/map-content-model"
 import { mstReaction } from "../../../utilities/mst-reaction"
 
 interface IProps {
   mapModel: IMapContentModel
-  pixiPointsArray: PixiPointsArray
+  rendererArray: PointRendererArray
 }
 
-export const MapBackground = observer(function MapBackground({ mapModel, pixiPointsArray }: IProps) {
+export const MapBackground = observer(function MapBackground({ mapModel, rendererArray }: IProps) {
   const backgroundSvgRef = useRef<SVGGElement>(null)
   const marqueeState = useMemo<MarqueeState>(() => new MarqueeState(), [])
 
@@ -42,7 +42,7 @@ export const MapBackground = observer(function MapBackground({ mapModel, pixiPoi
         <Background
           ref={backgroundSvgRef}
           marqueeState={marqueeState}
-          pixiPointsArray={pixiPointsArray}
+          rendererArray={rendererArray}
         />
         <Marquee marqueeState={marqueeState}/>
       </svg>

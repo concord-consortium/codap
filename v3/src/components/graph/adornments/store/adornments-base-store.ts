@@ -75,7 +75,7 @@ export const AdornmentsBaseStore = types.model("AdornmentsBaseStore", {
     self.showConnectingLines = !self.showConnectingLines
   },
   setShowConnectingLines(show: boolean) {
-      self.showConnectingLines = show
+    self.showConnectingLines = show
   },
   toggleShowLabels() {
     self.showMeasureLabels = !self.showMeasureLabels

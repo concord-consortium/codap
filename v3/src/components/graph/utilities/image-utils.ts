@@ -1,4 +1,4 @@
-import { PixiPoints } from "../../data-display/pixi/pixi-points"
+import { PointRendererBase } from "../../data-display/renderer"
 
 const disallowedElementClasses = new Set([
   "axis-legend-attribute-menu",
@@ -18,10 +18,10 @@ export interface IGraphSvgOptions {
   rootEl: HTMLElement
   graphWidth: number
   graphHeight: number
-  pixiPoints: PixiPoints
+  renderer: PointRendererBase
 }
 
-export function graphSvg({ rootEl, graphWidth, graphHeight, pixiPoints }: IGraphSvgOptions): string {
+export function graphSvg({ rootEl, graphWidth, graphHeight, renderer }: IGraphSvgOptions): string {
   // Gather CSS styles
   const getCssText = (): string => {
     const text: string[] = []
@@ -70,7 +70,10 @@ export function graphSvg({ rootEl, graphWidth, graphHeight, pixiPoints }: IGraph
    * @returns {SVGImageElement | undefined} An SVG image element representing the PixiJS canvas, or undefined.
    */
   const imageFromPixiCanvas = (_foreignObject: SVGForeignObjectElement): SVGImageElement | undefined => {
-    const extractedCanvas = pixiPoints.renderer?.extract.canvas(pixiPoints.stage)
+    // Access PIXI-specific properties from the renderer
+    const pixiRenderer = (renderer as any).renderer
+    const pixiStage = (renderer as any).stage
+    const extractedCanvas = pixiRenderer?.extract.canvas(pixiStage)
     if (!extractedCanvas?.toDataURL) return
 
     const _width = _foreignObject.getAttribute("width") ?? extractedCanvas.width.toString()
@@ -152,7 +155,7 @@ interface IGraphSnapshotOptions extends IGraphSvgOptions {
 }
 
 export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | Blob> => {
-  const { rootEl, graphWidth, graphHeight, asDataURL, pixiPoints } = options
+  const { rootEl, graphWidth, graphHeight, asDataURL, renderer } = options
 
   // Create a canvas to render the snapshot
   const mainCanvas = document.createElement("canvas")
@@ -171,7 +174,7 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
    */
   const renderGraphToCanvas = async () => {
     // Serialize SVG
-    const svgString = graphSvg({ rootEl, graphWidth, graphHeight, pixiPoints })
+    const svgString = graphSvg({ rootEl, graphWidth, graphHeight, renderer })
     const svgDataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`
 
     // Draw SVG to canvas

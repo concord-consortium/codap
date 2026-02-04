@@ -1,8 +1,7 @@
-import {useCallback, useEffect, useRef, useState} from "react"
+import {useCallback, useEffect, useRef} from "react"
 import {comparer, reaction} from "mobx"
 import { observer } from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
-import * as PIXI from "pixi.js"
 import {useMap} from "react-leaflet"
 import simpleheat from "simpleheat"
 import {useDebouncedCallback} from "use-debounce"
@@ -21,7 +20,7 @@ import {
 import { IConnectingLineDescription } from "../../data-display/data-display-types"
 import {isDisplayItemVisualPropsAction} from "../../data-display/models/display-model-actions"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
-import {IPixiPointMetadata, PixiPoints} from "../../data-display/pixi/pixi-points"
+import { IPoint, IPointMetadata, PixiPointRenderer, useLayerRenderer } from "../../data-display/renderer"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {IMapPointLayerModel} from "../models/map-point-layer-model"
 import {MapPointGrid} from "./map-point-grid"
@@ -32,10 +31,10 @@ import "./map-point-layer.scss"
 
 interface IProps {
   mapLayerModel: IMapPointLayerModel
-  setPixiPointsLayer: (pixiPoints: PixiPoints, layerIndex: number) => void
+  layerIndex: number
 }
 
-export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, setPixiPointsLayer}: IProps) {
+export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, layerIndex}: IProps) {
   const {dataConfiguration, pointDescription} = mapLayerModel,
     dataset = isAlive(dataConfiguration) ? dataConfiguration?.dataset : undefined,
     mapModel = useMapModelContext(),
@@ -43,12 +42,16 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     layout = useDataDisplayLayout(),
     instanceId = useInstanceIdContext(),
     pixiContainerRef = useRef<HTMLDivElement>(null),
-    [pixiPoints, setPixiPoints] = useState<PixiPoints>(),
     showConnectingLines = mapLayerModel.connectingLinesAreVisible,
     connectingLinesRef = useRef<SVGGElement>(null),
     connectingLinesActivatedRef = useRef(false),
     heatmapCanvasRef = useRef<HTMLCanvasElement|null>(null),
     simpleheatRef = useRef<simpleheat.Instance>()
+
+  // Use context-managed renderer with WebGL context management
+  const { renderer: layerRenderer } = useLayerRenderer(layerIndex)
+  // Cast to PixiPointRenderer for access to pixi-specific methods
+  const renderer = layerRenderer as PixiPointRenderer | undefined
 
   const connectingLine = useCallback((caseID: string) => {
     const {latId, longId} = mapLayerModel.pointAttributes || {}
@@ -99,35 +102,22 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
   }, [mapModel])
 
   const { renderConnectingLines } = useConnectingLines({
-    clientType: "map", pixiPoints, connectingLinesSvg: connectingLinesRef.current,
+    clientType: "map", renderer, connectingLinesSvg: connectingLinesRef.current,
     connectingLinesActivatedRef, onConnectingLinesClick: handleConnectingLinesClick
   })
 
-  useEffect(function createPixiPoints() {
-    let _pixiPoints: PixiPoints
-
-    async function initPixiPoints() {
-      if (!pixiContainerRef.current) {
-        return
-      }
-      _pixiPoints = new PixiPoints()
-      await _pixiPoints.init({
-        resizeTo: pixiContainerRef.current,
-        // PixiPoints background should redistribute events to the geoJSON polygons that lie underneath.
-        backgroundEventDistribution: {
-          // Element that needs to be "hidden" to obtain another element at the current cursor position.
-          elementToHide: pixiContainerRef.current
-        }
-      })
-      setPixiPoints(_pixiPoints)
-      setPixiPointsLayer(_pixiPoints, mapLayerModel.layerIndex)
+  // Configure renderer with map-specific options when it becomes available
+  useEffect(function configureRenderer() {
+    if (!renderer || !pixiContainerRef.current) {
+      return
     }
-    initPixiPoints()
-
-    return () => {
-      _pixiPoints?.dispose()
-    }
-  }, [mapLayerModel.layerIndex, setPixiPointsLayer])
+    // Set up resize observer for the pixi container
+    renderer.setupResizeObserver(pixiContainerRef.current)
+    // Set up background event distribution for forwarding events to geoJSON polygons underneath
+    renderer.setupBackgroundEventDistribution({
+      elementToHide: pixiContainerRef.current
+    })
+  }, [renderer])
 
   // TODO: Deleted attributes should be removed from the DataConfiguration, in
   // which case the additional validation via the DataSet would be unnecessary.
@@ -217,10 +207,10 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
   }, 10)
 
   useEffect(() => {
-    if (!pixiPoints) {
+    if (!renderer) {
       return
     }
-    pixiPoints.onPointClick = (event: PointerEvent, sprite: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+    renderer.onPointerClick = (event: PointerEvent, _point: IPoint, metadata: IPointMetadata) => {
       handleClickOnCase(event, metadata.caseID, dataConfiguration.dataset)
       // TODO PIXI: this doesn't seem to work in pixi. Note that this click will be propagated to the map container
       // and handled by its click handler (which will deselect the point). The current workaround is to disable
@@ -234,14 +224,18 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
         setTimeout(() => mapModel.ignoreLeafletClicks(false), 10)
       }
     }
-  }, [dataConfiguration.dataset, mapModel, pixiPoints])
+  }, [dataConfiguration.dataset, mapModel, renderer])
 
   useEffect(() => {
-    if (pixiPoints?.canvas && pixiContainerRef.current?.children.length === 0) {
-      pixiContainerRef.current.appendChild(pixiPoints.canvas)
-      pixiPoints.resize(layout.contentWidth, layout.contentHeight)
+    if (renderer?.canvas && pixiContainerRef.current) {
+      // Clear any existing canvas (e.g., from a previous renderer before context was lost)
+      while (pixiContainerRef.current.firstChild) {
+        pixiContainerRef.current.removeChild(pixiContainerRef.current.firstChild)
+      }
+      pixiContainerRef.current.appendChild(renderer.canvas)
+      renderer.resize(layout.contentWidth, layout.contentHeight)
     }
-  }, [layout.contentWidth, layout.contentHeight, pixiPoints])
+  }, [layout.contentWidth, layout.contentHeight, renderer])
 
   const refreshConnectingLines = useCallback(() => {
     if (!showConnectingLines && !connectingLinesActivatedRef.current) return
@@ -265,10 +259,10 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
       renderConnectingLines, showConnectingLines])
 
   const callMatchCirclesToData = useCallback(() => {
-    if (mapLayerModel && dataConfiguration && layout && pixiPoints) {
+    if (mapLayerModel && dataConfiguration && layout && renderer) {
       matchCirclesToData({
         dataConfiguration,
-        pixiPoints,
+        renderer,
         pointRadius: mapLayerModel.getPointRadius(),
         instanceId: dataConfiguration.id,
         pointColor: pointDescription?.pointColor,
@@ -276,16 +270,16 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
         startAnimation: mapModel.startAnimation
       })
     }
-  }, [dataConfiguration, layout, mapLayerModel, mapModel.startAnimation, pointDescription, pixiPoints])
+  }, [dataConfiguration, layout, mapLayerModel, mapModel.startAnimation, pointDescription, renderer])
 
   const refreshPointSelection = useCallback(() => {
     const {pointColor, pointStrokeColor} = pointDescription,
       selectedPointRadius = mapLayerModel.getPointRadius('select')
     dataConfiguration && setPointSelection({
-      pixiPoints, dataConfiguration, pointRadius: mapLayerModel.getPointRadius(),
+      renderer, dataConfiguration, pointRadius: mapLayerModel.getPointRadius(),
       selectedPointRadius, pointColor, pointStrokeColor
     })
-  }, [pointDescription, mapLayerModel, dataConfiguration, pixiPoints])
+  }, [pointDescription, mapLayerModel, dataConfiguration, renderer])
 
   const displayPoints = displayType === "points" && pointsAreVisible && layerIsVisible
   const refreshPoints = useDebouncedCallback(async (selectedOnly: boolean) => {
@@ -303,15 +297,15 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
         const coords = getCoords(anID)
         return coords.y
       }
-    if (!pixiPoints || !dataset) {
+    if (!renderer || !dataset) {
       return
     }
-    if (!(displayPoints && pixiPoints.isVisible)) {
-      pixiPoints?.setVisibility(false)
+    if (!(displayPoints && renderer.isVisible)) {
+      renderer?.setVisibility(false)
       return
     }
-    if (displayPoints && !pixiPoints.isVisible) {
-      pixiPoints?.setVisibility(true)
+    if (displayPoints && !renderer.isVisible) {
+      renderer?.setVisibility(true)
     }
     const pointRadius = computePointRadius(dataConfiguration.getCaseDataArray(0).length, pointSizeMultiplier)
     const selectedPointRadius = computePointRadius(dataConfiguration.getCaseDataArray(0).length,
@@ -319,10 +313,10 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     const {latId, longId} = mapLayerModel.pointAttributes || {}
     if (!latId || !longId) return
 
-    pixiPoints.forEachPoint((point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+    renderer.forEachPoint((point: IPoint, metadata: IPointMetadata) => {
       const {caseID} = metadata
-      pixiPoints.setPointPosition(point, getScreenX(caseID), getScreenY(caseID))
-      pixiPoints.setPointStyle(point, {
+      renderer.setPointPosition(point, getScreenX(caseID), getScreenY(caseID))
+      renderer.setPointStyle(point, {
         radius: dataset?.isCaseSelected(caseID) ? selectedPointRadius : pointRadius,
         fill: lookupLegendColor(metadata),
         stroke: getLegendColor && dataset?.isCaseSelected(caseID)
@@ -353,6 +347,14 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
       return () => disposer()
     }
   }, [dataset, refreshPoints, refreshHeatmap, refreshPointSelection])
+
+  // Refresh points when the renderer changes (e.g., after reacquiring a WebGL context)
+  useEffect(function refreshPointsOnRendererChange() {
+    if (renderer) {
+      callMatchCirclesToData()
+      refreshPoints(false)
+    }
+  }, [renderer, callMatchCirclesToData, refreshPoints])
 
   useEffect(() => {
     return mstReaction(
@@ -425,20 +427,20 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
         }
       },
       ({ reactionDisplayPoints, reactionLayerIsVisible, reactionPointsAreVisible }) => {
-        if (reactionLayerIsVisible && reactionPointsAreVisible && reactionDisplayPoints && !pixiPoints?.isVisible) {
-          pixiPoints?.setVisibility(true)
+        if (reactionLayerIsVisible && reactionPointsAreVisible && reactionDisplayPoints && !renderer?.isVisible) {
+          renderer?.setVisibility(true)
           refreshPoints(false)
         }
         else if (
-          !(reactionLayerIsVisible && reactionPointsAreVisible && reactionDisplayPoints) && pixiPoints?.isVisible
+          !(reactionLayerIsVisible && reactionPointsAreVisible && reactionDisplayPoints) && renderer?.isVisible
         ) {
-          pixiPoints?.setVisibility(false)
+          renderer?.setVisibility(false)
         }
         refreshHeatmap()
       },
       {name: "MapPointLayer.respondToLayerVisibilityChange"}, mapLayerModel
     )
-  }, [mapLayerModel, refreshHeatmap, refreshPoints, pixiPoints])
+  }, [mapLayerModel, refreshHeatmap, refreshPoints, renderer])
 
   // respond to point properties change
   useEffect(function respondToPointVisualChange() {
@@ -486,7 +488,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
       <DataTip
         dataset={dataset}
         getTipAttrs={getTipAttrs}
-        pixiPoints={pixiPoints}
+        renderer={renderer}
         getTipText={mapModel.getTipText}
       />
     </>

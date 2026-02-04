@@ -1,9 +1,8 @@
 import { Fragment, useCallback, useRef, useState } from "react"
-import * as PIXI from "pixi.js"
 import { computePosition, flip, offset, shift, useFloating } from "@floating-ui/react"
 import { useDataDisplayModelContext } from "../hooks/use-data-display-model"
 import { IDataSet } from "../../../models/data/data-set"
-import {IPixiPointMetadata, PixiPoints} from "../pixi/pixi-points"
+import { IPoint, IPointMetadata, PointRendererBase } from "../renderer"
 import { urlParams } from "../../../utilities/url-params"
 import { IDataConfigurationModel } from "../models/data-configuration-model"
 import { IGetTipTextProps, IShowDataTipProps } from "../data-tip-types"
@@ -24,7 +23,7 @@ interface IDataTipHelperProps extends IDataTipBaseProps {
 }
 
 export interface IDataTipProps extends IDataTipBaseProps {
-  pixiPoints?: PixiPoints
+  renderer?: PointRendererBase
 }
 
 const createVirtualElement = (event: PointerEvent) => {
@@ -53,7 +52,7 @@ const tipText = (props: IDataTipHelperProps) => {
 }
 
 export const DataTip = (props: IDataTipProps) => {
-  const { dataConfiguration, dataset, getTipAttrs, pixiPoints, getTipText } = props
+  const { dataConfiguration, dataset, getTipAttrs, renderer, getTipText } = props
   const dataDisplayModel = useDataDisplayModelContext()
   const legendAttrID = dataConfiguration?.attributeID("legend")
   const tipTextLines = useRef<string[]>([])
@@ -98,21 +97,21 @@ export const DataTip = (props: IDataTipProps) => {
     }, 0)
   }
 
-  const showPixiDataTip = (event: PointerEvent, sprite: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+  const handlePointerOver = (event: PointerEvent, _point: IPoint, metadata: IPointMetadata) => {
     showDataTip({event, caseID: metadata.caseID, plotNum: metadata.plotNum})
   }
 
-  const hideDataTip = (event: MouseEvent) => {
+  const handlePointerLeave = (event: PointerEvent) => {
     event.stopPropagation()
     context.onOpenChange(false)
   }
 
   // support disabling data tips via url parameter for jest tests
-  if (urlParams.noDataTips === undefined && pixiPoints && dataDisplayModel) {
-    pixiPoints.onPointOver = showPixiDataTip
-    pixiPoints.onPointLeave = hideDataTip
+  if (urlParams.noDataTips === undefined && renderer && dataDisplayModel) {
+    renderer.onPointerOver = handlePointerOver
+    renderer.onPointerLeave = handlePointerLeave
     dataDisplayModel.setShowDataTip(showDataTip)
-    dataDisplayModel.setHideDataTip(hideDataTip)
+    dataDisplayModel.setHideDataTip(handlePointerLeave)
   }
 
   return (

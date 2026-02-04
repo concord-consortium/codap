@@ -14,8 +14,8 @@ import {
   pointRadiusSelectionAddend, Rect, rTreeRect
 } from "./data-display-types"
 import {IDataConfigurationModel } from "./models/data-configuration-model"
-import {getPixiPointsDispatcher, IPixiPointStyle, PixiPoints} from "./pixi/pixi-points"
 import {CaseDataWithSubPlot} from "./d3-types"
+import { getRendererForEvent, IPointStyle, PointRendererBase } from "./renderer"
 
 export const maxWidthOfStringsD3 = (strings: Iterable<string>) => {
   let maxWidth = 0
@@ -52,7 +52,8 @@ export const computePointRadius = (numPoints: number, pointSizeMultiplier: numbe
 
 export function handleClickOnCase(event: PointerEvent, caseID: string, dataset?: IDataSet) {
   // click occurred on a point, so don't deselect
-  getPixiPointsDispatcher(event)?.cancelAnimationFrame("deselectAll")
+  const renderer = getRendererForEvent(event)
+  renderer?.cancelAnimationFrame("deselectAll")
 
   const extendSelection = event.shiftKey,
     caseIsSelected = dataset?.isCaseSelected(caseID)
@@ -84,11 +85,11 @@ export interface IMatchCirclesProps {
   pointStrokeColor: string
   startAnimation: () => void
   instanceId: string | undefined
-  pixiPoints: PixiPoints
+  renderer: PointRendererBase
 }
 
 export function matchCirclesToData(props: IMatchCirclesProps) {
-  const { dataConfiguration, pixiPoints, startAnimation, pointRadius, pointColor, pointStrokeColor,
+  const { dataConfiguration, renderer, startAnimation, pointRadius, pointColor, pointStrokeColor,
           pointDisplayType = "points" } = props
   // TODO: eliminate dependence on GraphDataConfigurationModel
   const allCaseData: CaseDataWithSubPlot[] = isGraphDataConfigurationModel(dataConfiguration)
@@ -97,7 +98,7 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
 
   startAnimation()
 
-  pixiPoints?.matchPointsToData(dataConfiguration.dataset?.id ?? '', allCaseData, pointDisplayType, {
+  renderer?.matchPointsToData(dataConfiguration.dataset?.id ?? '', allCaseData, pointDisplayType, {
     radius: pointRadius,
     fill: pointColor,
     stroke: pointStrokeColor,
@@ -108,14 +109,14 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
 }
 
 export function setPointSelection(props: ISetPointSelection) {
-  const { pixiPoints, dataConfiguration, pointRadius, selectedPointRadius,
+  const { renderer, dataConfiguration, pointRadius, selectedPointRadius,
     pointColor, pointStrokeColor, getPointColorAtIndex, pointsFusedIntoBars } = props
   const dataset = dataConfiguration.dataset
   const legendID = dataConfiguration.attributeID('legend')
-  if (!pixiPoints) {
+  if (!renderer) {
     return
   }
-  pixiPoints.forEachPoint((point, metadata) => {
+  renderer.forEachPoint((point, metadata) => {
     const { caseID, plotNum } = metadata
     const isSelected = !!dataset?.isCaseSelected(caseID)
     // Determine fill color based on legend or plotNum, preserving original color when selected
@@ -125,7 +126,7 @@ export function setPointSelection(props: ISetPointSelection) {
     } else {
       fill = plotNum && getPointColorAtIndex ? getPointColorAtIndex(plotNum) : pointColor
     }
-    const style: Partial<IPixiPointStyle> = {
+    const style: Partial<IPointStyle> = {
       fill,
       radius: isSelected ? selectedPointRadius : pointRadius,
       stroke: isSelected
@@ -134,8 +135,8 @@ export function setPointSelection(props: ISetPointSelection) {
       strokeWidth: isSelected ? defaultSelectedStrokeWidth : defaultStrokeWidth,
       strokeOpacity: isSelected ? defaultSelectedStrokeOpacity : defaultStrokeOpacity
     }
-    pixiPoints.setPointStyle(point, style)
-    pixiPoints.setPointRaised(point, isSelected)
+    renderer.setPointStyle(point, style)
+    renderer.setPointRaised(point, isSelected)
   })
 }
 
