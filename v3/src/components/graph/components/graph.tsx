@@ -461,6 +461,7 @@ export const Graph = observer(function Graph({
         <If condition={DEBUG_RENDERERS && !!rendererType && rendererType !== "null"}>
           <div
             className="renderer-type-indicator"
+            style={{ bottom: layout.getComputedBounds("legend").height + 4 }}
             title={rendererType === "webgl"
               ? "WebGL renderer (click to switch)"
               : "Canvas 2D renderer (click to switch)"}
