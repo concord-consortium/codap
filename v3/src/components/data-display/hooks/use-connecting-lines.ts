@@ -85,11 +85,11 @@ export const useConnectingLines = (props: IProps) => {
     //   <number of points> points (<collection name>) on this line
     if (!parentAttrName || !primaryAttrValue) return // For now, do nothing if these are undefined
     const caseIdCount = caseIDs?.length ?? 0
-    const datasetName = dataset?.displayTitle
+    const datasetName = dataset?.displayTitle ?? ""
     const vars = [parentAttrName, primaryAttrValue, caseIdCount, datasetName]
     const dataTipContent = t("DG.DataTip.connectingLine", {vars})
     dataTip.show(dataTipContent, event.target)
-  }, [dataTip, dataset?.displayTitle, renderer])
+  }, [dataTip, dataset, renderer])
 
   const handleConnectingLinesMouseOut = useCallback(() => {
     if (renderer?.canvas) renderer.canvas.style.cursor = ""
