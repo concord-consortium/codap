@@ -69,6 +69,17 @@
   bottom: 0;
 }
 
+// Zoom cursor classes for option-click zoom on axes and plot background.
+// Use !important to override component-specific cursor styles (e.g., .dragRect's grab cursor).
+// The .dragging class also uses !important, so it will still win during active drags.
+.zoom-in {
+  cursor: url("../assets/MagnifyPlus.png") 8 8, zoom-in !important;
+}
+
+.zoom-out {
+  cursor: url("../assets/MagnifyMinus.png") 8 8, zoom-out !important;
+}
+
 #user-entry-drop-overlay {
   position: fixed;
   top: 0;

@@ -3,8 +3,6 @@ import { comparer, reaction } from "mobx"
 import {forwardRef, MutableRefObject, useCallback, useEffect, useRef} from "react"
 import RTreeLib from "rtree"
 import {useMemo} from "use-memo-one"
-import MagnifyPlus from "../../../assets/MagnifyPlus.png"
-import MagnifyMinus from "../../../assets/MagnifyMinus.png"
 import { isKeyDown } from "../../../hooks/use-key-states"
 import {appState} from "../../../models/app-state"
 import {IDataSet} from "../../../models/data/data-set"
@@ -223,28 +221,16 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
 
   // Update cursor based on modifier keys
   const updateBackgroundCursor = useCallback((altKey: boolean, shiftKey: boolean) => {
-    // Only show zoom cursor if there's a numeric axis
-    if (!hasNumericAxis()) {
-      // Clear cursor on all renderer canvases
-      rendererArray.forEach(renderer => {
-        if (renderer?.canvas) renderer.canvas.style.cursor = ""
-      })
-      return
-    }
-
-    // Determine the cursor to use
-    let cursor = ""
-    if (altKey) {
-      if (shiftKey) {
-        cursor = `url('${MagnifyMinus}') 8 8, zoom-out`
-      } else {
-        cursor = `url('${MagnifyPlus}') 8 8, zoom-in`
-      }
-    }
-
-    // Set cursor on all renderer canvases
     rendererArray.forEach(renderer => {
-      if (renderer?.canvas) renderer.canvas.style.cursor = cursor
+      if (!renderer?.canvas) return
+
+      // Clear zoom classes first
+      renderer.canvas.classList.remove('zoom-in', 'zoom-out')
+
+      // Add appropriate zoom class if alt is held and there's a numeric axis
+      if (altKey && hasNumericAxis()) {
+        renderer.canvas.classList.add(shiftKey ? 'zoom-out' : 'zoom-in')
+      }
     })
   }, [hasNumericAxis, rendererArray])
 

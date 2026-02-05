@@ -32,13 +32,7 @@
       cursor: url("../../../assets/DownDilate.png") 8 8, grab;
     }
 
-    &.zoom-in {
-      cursor: url("../../../assets/MagnifyPlus.png") 8 8, zoom-in;
-    }
-
-    &.zoom-out {
-      cursor: url("../../../assets/MagnifyMinus.png") 8 8, zoom-out;
-    }
+    // .zoom-in and .zoom-out cursor classes are defined in vars.scss
 
   }
 
