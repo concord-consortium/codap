@@ -1,4 +1,5 @@
 import { types } from "mobx-state-tree"
+import { kDefaultCellKey } from "../../../utilities/cell-key-utils"
 import { standardDeviationAdornmentHandler } from "./standard-deviation-adornment-handler"
 import { kStandardDeviationType } from "./standard-deviation-adornment-types"
 
@@ -42,7 +43,7 @@ describe("DataInteractive standardDeviationAdornmentHandler", () => {
   let mockStandardDeviationAdornment: any
   let mockInvalidAdornment: any
   const mockMeasuresMap = new Map([
-    ["{}", { value: 10 }]
+    [kDefaultCellKey, { value: 10 }]
   ])
 
   beforeEach(() => {

@@ -1,7 +1,7 @@
 import { Button, Flex } from "@chakra-ui/react"
 import { registerAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
-import { safeJsonParse } from "../../../../utilities/js-utils"
 import { isFiniteNumber } from "../../../../utilities/math-utils"
+import { stringToCellKey } from "../../utilities/cell-key-utils"
 import { t } from "../../../../utilities/translation/translate"
 import { ICodapV2MovableValueAdornmentInstance } from "../../../../v2/codap-v2-types"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
@@ -96,9 +96,9 @@ registerAdornmentContentInfo({
 
     if (splitAttrId) {
       adornment.values.forEach((valuesArray, key) => {
-        const parsedKey = safeJsonParse(`${key}`)
+        const parsedKey = stringToCellKey(String(key))
         // v2 only considers the first categorical attribute when saving/exporting
-        if (typeof parsedKey === "object" && parsedKey[splitAttrId] != null) {
+        if (parsedKey[splitAttrId] != null) {
           const splitValue = parsedKey[splitAttrId]
           valuesArray.forEach((value, index) => {
             if (isFiniteNumber(value) && valueModels[index].values[splitValue] == null) {

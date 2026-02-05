@@ -1,8 +1,9 @@
 import { DIAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
-import { IAdornmentModel } from "../../adornment-models"
-import { isStandardErrorAdornment } from "./standard-error-adornment-model"
 import { IGraphContentModel } from "../../../models/graph-content-model"
+import { cellKeyToString } from "../../../utilities/cell-key-utils"
+import { IAdornmentModel } from "../../adornment-models"
 import { AdornmentData, adornmentMismatchResult, cellKeyToCategories } from "../../utilities/adornment-handler-utils"
+import { isStandardErrorAdornment } from "./standard-error-adornment-model"
 import { kStandardErrorType } from "./standard-error-adornment-types"
 
 export const standardErrorAdornmentHandler: DIAdornmentHandler = {
@@ -16,7 +17,7 @@ export const standardErrorAdornmentHandler: DIAdornmentHandler = {
 
     for (const cellKey of cellKeys) {
       const primaryAttrId = dataConfig?.primaryAttributeID
-      const cellKeyString = JSON.stringify(cellKey)
+      const cellKeyString = cellKeyToString(cellKey)
       const standardError = adornment.measures.get(cellKeyString)?.value ?? NaN
       const { min, max } = adornment.computeMeasureRange(primaryAttrId, cellKey, dataConfig)
       const dataItem: AdornmentData = { standardError, min, max }

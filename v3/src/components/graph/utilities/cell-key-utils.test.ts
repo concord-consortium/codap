@@ -2,6 +2,7 @@ import { kMain, kOther } from "../../data-display/data-display-types"
 import {
   cellKeyToString,
   isLegacyInstanceKey,
+  kDefaultCellKey,
   kImpossible,
   migrateInstanceKeyMap,
   migrateLegacyInstanceKey,
@@ -9,8 +10,8 @@ import {
 } from "./cell-key-utils"
 
 describe("cellKeyToString", () => {
-  it("returns empty string for empty cell key", () => {
-    expect(cellKeyToString({})).toBe("")
+  it("returns default key for empty cell key", () => {
+    expect(cellKeyToString({})).toBe(kDefaultCellKey)
   })
 
   it("converts single entry cell key", () => {
@@ -47,8 +48,9 @@ describe("cellKeyToString", () => {
 })
 
 describe("stringToCellKey", () => {
-  it("returns empty object for empty string", () => {
+  it("returns empty object for empty string or default key", () => {
     expect(stringToCellKey("")).toEqual({})
+    expect(stringToCellKey(kDefaultCellKey)).toEqual({})
   })
 
   it("parses single entry cell key", () => {
@@ -85,6 +87,7 @@ describe("isLegacyInstanceKey", () => {
 
   it("returns false for new format keys", () => {
     expect(isLegacyInstanceKey("")).toBe(false)
+    expect(isLegacyInstanceKey(kDefaultCellKey)).toBe(false)
     expect(isLegacyInstanceKey("a:1")).toBe(false)
     expect(isLegacyInstanceKey("a:1|b:2")).toBe(false)
   })
@@ -92,7 +95,7 @@ describe("isLegacyInstanceKey", () => {
 
 describe("migrateLegacyInstanceKey", () => {
   it("converts legacy JSON format to new format", () => {
-    expect(migrateLegacyInstanceKey("{}")).toBe("")
+    expect(migrateLegacyInstanceKey("{}")).toBe(kDefaultCellKey)
     expect(migrateLegacyInstanceKey('{"abc123":"pizza"}')).toBe("abc123:pizza")
     expect(migrateLegacyInstanceKey('{"abc123":"pizza","def456":"red"}'))
       .toBe("abc123:pizza|def456:red")

@@ -1,4 +1,5 @@
 import { types } from "mobx-state-tree"
+import { kDefaultCellKey } from "../../../utilities/cell-key-utils"
 import { meanAdornmentHandler } from "./mean-adornment-handler"
 import { kMeanType } from "./mean-adornment-types"
 
@@ -39,7 +40,7 @@ describe("DataInteractive meanAdornmentHandler", () => {
   let mockMeanAdornment: any
   let mockInvalidAdornment: any
   const mockMeasuresMap = new Map([
-    ["{}", { value: 10 }]
+    [kDefaultCellKey, { value: 10 }]
   ])
 
   beforeEach(() => {

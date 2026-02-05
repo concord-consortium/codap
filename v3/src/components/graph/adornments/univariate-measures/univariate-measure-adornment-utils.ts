@@ -1,5 +1,5 @@
-import { safeJsonParse } from "../../../../utilities/js-utils"
 import { ICodapV2UnivariateAdornment } from "../../../../v2/codap-v2-types"
+import { stringToCellKey } from "../../utilities/cell-key-utils"
 import { exportAdornmentBase, IAdornmentExporterOptions } from "../adornment-content-info"
 import { IUnivariateMeasureAdornmentModel } from "./univariate-measure-adornment-model"
 
@@ -20,8 +20,8 @@ export function exportUnivariateMeasure(model: IUnivariateMeasureAdornmentModel,
                         : [""]
   const coordsMap = new Map<string, { x: number, y: number }>()
   model.measures.forEach((measure, key) => {
-    const parsedKey = safeJsonParse(`${key}`)
-    const splitValue = parsedKey ? parsedKey[splitAttrId] : undefined
+    const parsedKey = stringToCellKey(String(key))
+    const splitValue = splitAttrId ? parsedKey[splitAttrId] : undefined
     if (splitValue != null && coordsMap.get(splitValue) == null && measure.labelCoords != null) {
       coordsMap.set(splitValue, measure.labelCoords)
     }

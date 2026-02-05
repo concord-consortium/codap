@@ -1,6 +1,6 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { isAnyNumericAxisModel } from "../../../axis/models/numeric-axis-models"
-import { migrateInstanceKeyMap } from "../../utilities/cell-key-utils"
+import { kDefaultCellKey, migrateInstanceKeyMap } from "../../utilities/cell-key-utils"
 import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions } from "../adornment-models"
 import { kMovableValueType } from "./movable-value-adornment-types"
 
@@ -34,7 +34,7 @@ export const MovableValueAdornmentModel = AdornmentModel
     get firstValueArray(): number[] {
       return self.values.values().next().value
     },
-    valuesForKey(key = "{}") {
+    valuesForKey(key = kDefaultCellKey) {
       const values = self.values.get(key) || []
       if (!self.isDragging || key !== self.dragKey) return values
       const latestValues = [...values]
@@ -49,7 +49,7 @@ export const MovableValueAdornmentModel = AdornmentModel
     }
   }))
   .views(self => ({
-    newValue(key = "{}") {
+    newValue(key = kDefaultCellKey) {
       // New movable values are always placed within the largest gap existing between the
       // axis min, any existing movable values, and the axis max. The exact placement is
       // 1/3 of the way into the gap from the lower bound.
@@ -73,7 +73,7 @@ export const MovableValueAdornmentModel = AdornmentModel
         self.values.set(key, newValues)
       })
     },
-    replaceValue(aValue: number, key = "{}", index = 0) {
+    replaceValue(aValue: number, key = kDefaultCellKey, index = 0) {
       const newValues = [...self.valuesForKey(key)]
       newValues[index] = aValue
       self.values.set(key, newValues)
@@ -102,7 +102,7 @@ export const MovableValueAdornmentModel = AdornmentModel
     setAxisMax(aValue: number) {
       self.axisMax = aValue
     },
-    setInitialValue(aValue = 10, key = "{}") {
+    setInitialValue(aValue = 10, key = "") {
       self.deleteAllValues()
       self.values.set(key, [])
       self.addValue(aValue)

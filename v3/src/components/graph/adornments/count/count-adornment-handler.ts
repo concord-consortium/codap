@@ -5,6 +5,7 @@ import { adornmentNotFoundResult, errorResult } from "../../../../data-interacti
 import { t } from "../../../../utilities/translation/translate"
 import { IGraphContentModel } from "../../models/graph-content-model"
 import { isBinnedDotPlotModel } from "../../plots/binned-dot-plot/binned-dot-plot-model"
+import { cellKeyToString } from "../../utilities/cell-key-utils"
 import { percentString } from "../../utilities/graph-utils"
 import { IAdornmentModel } from "../adornment-models"
 import { getAdornmentContentInfo } from "../adornment-content-info"
@@ -115,7 +116,7 @@ export const countAdornmentHandler: DIAdornmentHandler = {
     for (const cellKey of cellKeys) {
       const dataItem: AdornmentData = {}
 
-      const subPlotRegionBoundaries = graphContent.adornmentsStore?.subPlotRegionBoundaries(JSON.stringify(cellKey))
+      const subPlotRegionBoundaries = graphContent.adornmentsStore?.subPlotRegionBoundaries(cellKeyToString(cellKey))
 
       const regionCounts = adornment.computeRegionCounts({
         cellKey,

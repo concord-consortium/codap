@@ -4,6 +4,10 @@ export type { GraphCellKey } from "../graphing-types"
 // Special marker when same attribute appears on multiple axes with conflicting values
 export const kImpossible = "__IMPOSSIBLE__"
 
+// Default key for empty cell key (no categories)
+// Using a sentinel value instead of empty string because MST map keys must be valid subpaths
+export const kDefaultCellKey = "__EMPTY__"
+
 /**
  * Escape special characters in keys or values.
  * Replaces `:` with `\:` and `|` with `\|`.
@@ -18,7 +22,7 @@ function escapeSpecialCharacters(input: string): string {
  */
 export function cellKeyToString(cellKey: Record<string, string>): string {
   const entries = Object.entries(cellKey)
-  if (entries.length === 0) return ""
+  if (entries.length === 0) return kDefaultCellKey
   // Sort by key for deterministic output
   entries.sort((a, b) => a[0].localeCompare(b[0]))
   return entries
@@ -40,7 +44,8 @@ function unescapeSpecialCharacters(input: string): string {
  * For legacy JSON format keys (starting with '{'), uses JSON.parse.
  */
 export function stringToCellKey(keyString: string): Record<string, string> {
-  if (keyString === "") return {}
+  // Handle default key (empty cell key with no categories)
+  if (keyString === "" || keyString === kDefaultCellKey) return {}
 
   // Handle legacy JSON format for backwards compatibility
   if (isLegacyInstanceKey(keyString)) {

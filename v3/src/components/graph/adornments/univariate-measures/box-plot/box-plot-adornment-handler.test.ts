@@ -1,3 +1,4 @@
+import { kDefaultCellKey } from "../../../utilities/cell-key-utils"
 import { boxPlotAdornmentHandler } from "./box-plot-adornment-handler"
 import { kBoxPlotType } from "./box-plot-adornment-types"
 
@@ -9,7 +10,7 @@ describe("DataInteractive boxPlotAdornmentHandler", () => {
   let mockBoxPlotAdornment: any
   let mockInvalidAdornment: any
   const mockMeasuresMap = new Map([
-    ["{}", { value: 10 }]
+    [kDefaultCellKey, { value: 10 }]
   ])
 
   beforeEach(() => {

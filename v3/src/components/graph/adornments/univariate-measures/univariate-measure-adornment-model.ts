@@ -40,7 +40,8 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
       throw "labelTitle must be overridden"
     }),
   })
-  .preProcessSnapshot(snapshot => {
+  // cast required to allow derived models to add props without TypeScript errors
+  .preProcessSnapshot((snapshot: any) => {
     const measures = migrateInstanceKeyMap(snapshot.measures)
     return measures ? { ...snapshot, measures } : snapshot
   })

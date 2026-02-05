@@ -1,3 +1,4 @@
+import { kDefaultCellKey } from "../../utilities/cell-key-utils"
 import { movablePointAdornmentHandler } from "./movable-point-adornment-handler"
 import { kMovablePointType } from "./movable-point-adornment-types"
 
@@ -9,7 +10,7 @@ describe("DataInteractive movablePointAdornmentHandler", () => {
   let mockMovablePointAdornment: any
   let mockInvalidAdornment: any
   const mockPointsMap = new Map([
-    ["{}", { x: 1, y: 2 }]
+    [kDefaultCellKey, { x: 1, y: 2 }]
   ])
 
   beforeEach(() => {

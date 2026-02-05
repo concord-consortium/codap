@@ -1,3 +1,4 @@
+import { kDefaultCellKey } from "../../../utilities/cell-key-utils"
 import { standardErrorAdornmentHandler } from "./standard-error-adornment-handler"
 import { kStandardErrorType } from "./standard-error-adornment-types"
 
@@ -9,7 +10,7 @@ describe("DataInteractive standardErrorAdornmentHandler", () => {
   let mockStandardErrorAdornment: any
   let mockInvalidAdornment: any
   const mockMeasuresMap = new Map([
-    ["{}", { value: 4 }]
+    [kDefaultCellKey, { value: 4 }]
   ])
 
   beforeEach(() => {

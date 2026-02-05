@@ -1,8 +1,9 @@
 import { DIAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
 import { IGraphContentModel } from "../../models/graph-content-model"
+import { cellKeyToString } from "../../utilities/cell-key-utils"
 import { IAdornmentModel } from "../adornment-models"
-import { isMovablePointAdornment } from "./movable-point-adornment-model"
 import { AdornmentData, adornmentMismatchResult, cellKeyToCategories } from "../utilities/adornment-handler-utils"
+import { isMovablePointAdornment } from "./movable-point-adornment-model"
 import { kMovablePointType } from "./movable-point-adornment-types"
 
 export const movablePointAdornmentHandler: DIAdornmentHandler = {
@@ -20,7 +21,7 @@ export const movablePointAdornmentHandler: DIAdornmentHandler = {
     const data: AdornmentData[] = []
 
     for (const cellKey of cellKeys) {
-      const cellKeyString = JSON.stringify(cellKey)
+      const cellKeyString = cellKeyToString(cellKey)
       const point = adornment.points.get(cellKeyString)
       if (!point) continue
     

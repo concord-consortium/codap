@@ -1,4 +1,5 @@
 import { types } from "mobx-state-tree"
+import { kDefaultCellKey } from "../../utilities/cell-key-utils"
 import { lsrlAdornmentHandler } from "./lsrl-adornment-handler"
 import { kLSRLType } from "./lsrl-adornment-types"
 
@@ -42,7 +43,7 @@ describe("DataInteractive lsrlAdornmentHandler", () => {
   let mockLSRLAdornment: any
   let mockInvalidAdornment: any
   const mockLinesMap = new Map([
-    ["{}", new Map([
+    [kDefaultCellKey, new Map([
       ["__main__", { category: "category", intercept: 1, rSquared: 0.5, sdResiduals: 0.5, slope: 0.5 }]
     ])]
   ])

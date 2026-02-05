@@ -13,6 +13,7 @@ import { useAdornmentCells } from "../../hooks/use-adornment-cells"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
 import { useGraphLayoutContext } from "../../hooks/use-graph-layout-context"
+import { cellKeyToString } from "../../utilities/cell-key-utils"
 import {
   IAxisIntercepts, calculateSumOfSquares, curveBasis, lineToAxisIntercepts, lsrlEquationString
 } from "../../utilities/graph-utils"
@@ -142,7 +143,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
   const updateEquations = useCallback(() => {
     const lines = getLines()
     if (!lines) return
-    const key = JSON.stringify(cellKey)
+    const key = cellKeyToString(cellKey)
     const xUnits = dataConfig?.dataset?.getAttribute(xAttrId)?.units
     const yUnits = dataConfig?.dataset?.getAttribute(yAttrId)?.units
     const equationDiv = select<HTMLDivElement, unknown>(equationContainerSelector)
@@ -272,7 +273,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
   const buildElements = useCallback(() => {
     const lines = getLines()
     if (!lines) return
-    const key = JSON.stringify(cellKey)
+    const key = cellKeyToString(cellKey)
 
     // Clear any previously added elements
     const selection = select(lineRef.current)

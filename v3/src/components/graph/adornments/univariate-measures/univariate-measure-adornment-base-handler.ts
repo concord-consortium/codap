@@ -4,6 +4,7 @@ import { adornmentNotFoundResult, adornmentNotSupportedByPlotTypeResult }
   from "../../../../data-interactive/handlers/di-results"
 import { IGraphContentModel } from "../../models/graph-content-model"
 import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
+import { cellKeyToString } from "../../utilities/cell-key-utils"
 import { getAdornmentContentInfo, isCompatibleWithPlotType } from "../adornment-content-info"
 import { IAdornmentModel } from "../adornment-models"
 import { IAdornmentsBaseStore } from "../store/adornments-base-store"
@@ -47,7 +48,7 @@ export const univariateMeasureAdornmentBaseHandler = (
       adornment.setVisibility(true)
 
       for (const cellKey of cellKeys) {
-        const cellKeyString = JSON.stringify(cellKey)
+        const cellKeyString = cellKeyToString(cellKey)
         const measureValue = getMeasureValue(adornment, cellKeyString)
         const additionalData = getAdditionalData?.(adornment, cellKey, dataConfig) ?? {}
         const dataItem: AdornmentData = {
@@ -74,7 +75,7 @@ export const univariateMeasureAdornmentBaseHandler = (
       const data: AdornmentData[] = []
 
       for (const cellKey of cellKeys) {
-        const cellKeyString = JSON.stringify(cellKey)
+        const cellKeyString = cellKeyToString(cellKey)
         const measureValue = getMeasureValue(adornment as IUnivariateMeasureAdornmentModel, cellKeyString)
         const additionalData = getAdditionalData?.(adornment, cellKey, dataConfig) ?? {}
         const dataItem: AdornmentData = {

@@ -1,4 +1,5 @@
 import { Attribute } from "../../../../models/data/attribute"
+import { kDefaultCellKey } from "../../utilities/cell-key-utils"
 import { adornmentMismatchResult, cellKeyToCategories, normalizeCellKey } from "./adornment-handler-utils"
 
 describe("adornment-handler-utils", () => {
@@ -33,20 +34,46 @@ describe("adornment-handler-utils", () => {
   })
 
   describe("normalizeCellKey", () => {
-    it("returns the original cellKey string if it already uses an attribute ID", () => {
+    it("normalizes legacy JSON format input with attribute ID to new format", () => {
       const cellKey = JSON.stringify({ ATTR1: "category value 1" })
-      expect(normalizeCellKey(cellKey, mockDataConfig)).toEqual(cellKey)
+      expect(normalizeCellKey(cellKey, mockDataConfig)).toEqual("ATTR1:category value 1")
     })
 
-    it("returns a normalized cellKey string if the request key uses an attribute name", () => {
+    it("normalizes new format input with attribute ID", () => {
+      const cellKey = "ATTR1:category value 1"
+      expect(normalizeCellKey(cellKey, mockDataConfig)).toEqual("ATTR1:category value 1")
+    })
+
+    it("converts attribute name to ID from legacy JSON format", () => {
       const cellKey = JSON.stringify({ "Category Name": "category value 1" })
-      expect(normalizeCellKey(cellKey, mockDataConfig)).toEqual("{\"ATTR1\":\"category value 1\"}")
+      expect(normalizeCellKey(cellKey, mockDataConfig)).toEqual("ATTR1:category value 1")
     })
 
-    it("returns undefined if the attribute name cannot be resolved to an ID", () => {
+    it("converts attribute name to ID from new format", () => {
+      const cellKey = "Category Name:category value 1"
+      expect(normalizeCellKey(cellKey, mockDataConfig)).toEqual("ATTR1:category value 1")
+    })
+
+    it("returns undefined if the attribute name cannot be resolved to an ID (JSON format)", () => {
       const cellKey = JSON.stringify({ "Invalid Attribute": "category value 1" })
       const result = normalizeCellKey(cellKey, mockDataConfig)
       expect(result).toBeUndefined()
+    })
+
+    it("returns undefined if the attribute name cannot be resolved to an ID (new format)", () => {
+      const cellKey = "Invalid Attribute:category value 1"
+      const result = normalizeCellKey(cellKey, mockDataConfig)
+      expect(result).toBeUndefined()
+    })
+
+    it("returns default key for empty cell key (JSON format)", () => {
+      const cellKey = "{}"
+      expect(normalizeCellKey(cellKey, mockDataConfig)).toEqual(kDefaultCellKey)
+    })
+
+    it("returns default key for empty cell key (new format)", () => {
+      const cellKey = ""
+      expect(normalizeCellKey(cellKey, mockDataConfig)).toEqual(kDefaultCellKey)
     })
   })
 

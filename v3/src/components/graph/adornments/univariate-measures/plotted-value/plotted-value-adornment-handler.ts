@@ -2,12 +2,13 @@ import { DIAdornmentHandler } from "../../../../../data-interactive/handlers/ado
 import { isAdornmentValues } from "../../../../../data-interactive/data-interactive-adornment-types"
 import { adornmentNotFoundResult, adornmentNotSupportedByPlotTypeResult }
   from "../../../../../data-interactive/handlers/di-results"
-import { IAdornmentModel } from "../../adornment-models"
-import { isPlottedValueAdornment } from "./plotted-value-adornment-model"
 import { IGraphContentModel } from "../../../models/graph-content-model"
-import { IAdornmentsBaseStore } from "../../store/adornments-base-store"
+import { cellKeyToString } from "../../../utilities/cell-key-utils"
 import { getAdornmentContentInfo, isCompatibleWithPlotType } from "../../adornment-content-info"
+import { IAdornmentModel } from "../../adornment-models"
+import { IAdornmentsBaseStore } from "../../store/adornments-base-store"
 import { AdornmentData, adornmentMismatchResult, cellKeyToCategories } from "../../utilities/adornment-handler-utils"
+import { isPlottedValueAdornment } from "./plotted-value-adornment-model"
 import { kPlottedValueType } from "./plotted-value-adornment-types"
 
 export const plottedValueAdornmentHandler: DIAdornmentHandler = {
@@ -40,7 +41,7 @@ export const plottedValueAdornmentHandler: DIAdornmentHandler = {
     adornment.setVisibility(true)
 
     for (const cellKey of cellKeys) {
-      const cellKeyString = JSON.stringify(cellKey)
+      const cellKeyString = cellKeyToString(cellKey)
       const plottedValueAdornment = isPlottedValueAdornment(adornment) ? adornment : undefined
       const plottedValue = plottedValueAdornment?.measures.get(cellKeyString)?.value ?? NaN
       const dataItem: AdornmentData = { plottedValue }
@@ -66,7 +67,7 @@ export const plottedValueAdornmentHandler: DIAdornmentHandler = {
     const data: AdornmentData[] = []
 
     for (const cellKey of cellKeys) {
-      const cellKeyString = JSON.stringify(cellKey)
+      const cellKeyString = cellKeyToString(cellKey)
       const plottedValue = adornment.measures.get(cellKeyString)?.value ?? NaN
       const dataItem: AdornmentData = { plottedValue }
     

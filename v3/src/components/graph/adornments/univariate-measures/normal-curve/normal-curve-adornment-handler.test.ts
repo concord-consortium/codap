@@ -1,3 +1,4 @@
+import { kDefaultCellKey } from "../../../utilities/cell-key-utils"
 import { normalCurveAdornmentHandler } from "./normal-curve-adornment-handler"
 import { kNormalCurveType } from "./normal-curve-adornment-types"
 
@@ -9,7 +10,7 @@ describe("DataInteractive normalCurveAdornmentHandler", () => {
   let mockNormalCurveAdornment: any
   let mockInvalidAdornment: any
   const mockMeasuresMap = new Map([
-    ["{}", { value: 24 }]
+    [kDefaultCellKey, { value: 24 }]
   ])
 
   beforeEach(() => {

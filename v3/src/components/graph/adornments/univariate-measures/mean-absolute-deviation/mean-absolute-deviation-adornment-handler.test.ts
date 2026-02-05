@@ -1,3 +1,4 @@
+import { kDefaultCellKey } from "../../../utilities/cell-key-utils"
 import { meanAbsoluteDeviationAdornmentHandler } from "./mean-absolute-deviation-adornment-handler"
 import { kMeanAbsoluteDeviationType } from "./mean-absolute-deviation-adornment-types"
 
@@ -9,7 +10,7 @@ describe("DataInteractive meanAbsoluteDeviationAdornmentHandler", () => {
   let mockMeanAbsoluteDeviationAdornment: any
   let mockInvalidAdornment: any
   const mockMeasuresMap = new Map([
-    ["{}", { value: 10 }]
+    [kDefaultCellKey, { value: 10 }]
   ])
 
   beforeEach(() => {

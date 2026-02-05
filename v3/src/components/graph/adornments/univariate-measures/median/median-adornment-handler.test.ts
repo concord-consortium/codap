@@ -1,4 +1,5 @@
 import { types } from "mobx-state-tree"
+import { kDefaultCellKey } from "../../../utilities/cell-key-utils"
 import { medianAdornmentHandler } from "./median-adornment-handler"
 import { kMedianType } from "./median-adornment-types"
 
@@ -39,7 +40,7 @@ describe("DataInteractive medianAdornmentHandler", () => {
   let mockMedianAdornment: any
   let mockInvalidAdornment: any
   const mockMeasuresMap = new Map([
-    ["{}", { value: 10 }]
+    [kDefaultCellKey, { value: 10 }]
   ])
 
   beforeEach(() => {

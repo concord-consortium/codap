@@ -1,6 +1,7 @@
-import { IDataConfigurationModel } from "../../../data-display/models/data-configuration-model"
 import { errorResult } from "../../../../data-interactive/handlers/di-results"
 import { t } from "../../../../utilities/translation/translate"
+import { IDataConfigurationModel } from "../../../data-display/models/data-configuration-model"
+import { cellKeyToString, stringToCellKey } from "../../utilities/cell-key-utils"
 
 export type AdornmentData = {
   categories?: Record<string, string>
@@ -29,7 +30,7 @@ export const adornmentMismatchResult = (adornmentType: string) => {
  * @returns a cell key string value with an attribute ID instead of a name, or undefined if the conversion fails
  */
 export const normalizeCellKey = (requestCellKey: string, dataConfig: IDataConfigurationModel) => {
-  const cellKey: Record<string, string> = JSON.parse(requestCellKey)
+  const cellKey = stringToCellKey(requestCellKey)
   const normalizedCellKey: Record<string, string> = {}
 
   for (const [attrNameOrId, value] of Object.entries(cellKey)) {
@@ -42,5 +43,5 @@ export const normalizeCellKey = (requestCellKey: string, dataConfig: IDataConfig
     }
   }
 
-  return JSON.stringify(normalizedCellKey)
+  return cellKeyToString(normalizedCellKey)
 }
