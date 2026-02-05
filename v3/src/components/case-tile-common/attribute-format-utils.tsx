@@ -148,7 +148,7 @@ export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, opt
       const formattedDate = formatDate(date, datePrecision)
       return {
         value: formattedDate || str,
-        content:  <div className="cell-content" key={key} style={textCellStyle}>
+        content:  <div className="cell-content numeric-format" key={key} style={textCellStyle}>
                     {formattedDate || `"${str}"`}
                   </div>
       }
