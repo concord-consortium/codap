@@ -35,7 +35,7 @@ interface IBoxPlotValue extends IValue {
 
 export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentComponent (props: IAdornmentComponentProps) {
   const {cellKey={}, cellCoords, containerId,
-    xAxis, yAxis, spannerRef} = props
+    xAxis, yAxis, spannerRef, labelsDivRef} = props
   const graphModel = useGraphContentModelContext()
   const model = props.model as IBoxPlotAdornmentModel
   const layout = useGraphLayoutContext()
@@ -59,8 +59,8 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
     const label = select(`#${labelId}`)
     const targetElement = event.target as HTMLElement
     const elementRect = targetElement.getBoundingClientRect()
-    const container = select(`#${helper.measureSlug}-${containerId}`)
-    const containerRect = (container.node() as Element)?.getBoundingClientRect()
+    // Use the global labels container (labelsDivRef) for positioning so tooltips aren't clipped by grid cells
+    const containerRect = labelsDivRef?.current?.getBoundingClientRect()
     const containerLeft = containerRect?.left || 0
     const containerTop = containerRect?.top || 0
     const labelLeft = elementRect.left - containerLeft - 30
@@ -69,7 +69,7 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
     label.style("left", `${labelLeft}px`)
       .style("top", `${labelTop}px`)
       .classed("visible", visible)
-  }, [containerId, helper])
+  }, [labelsDivRef])
 
   const newOutliers = useCallback((outliers: number[], arg1: string) => {
     const selection = select(valueRef.current)
@@ -309,7 +309,8 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
       }
     }
 
-    const container = select(labelRef.current)
+    // Use the global labels container (labelsDivRef) so tooltips aren't clipped by grid cells
+    const container = select(labelsDivRef?.current ?? labelRef.current)
     const textId = helper.generateIdString("label")
     const labels = textContent.split("\n")
     const covers = [
@@ -377,7 +378,7 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
           .on("click", (e) => selectRange([upperOutliers[i], upperOutliers[i]], e))
       }
     }
-  }, [attrId, cellKey, dataConfig, helper, labelRef, model, toggleBoxPlotLabels])
+  }, [attrId, cellKey, dataConfig, helper, labelsDivRef, labelRef, model, toggleBoxPlotLabels])
 
   const addAdornmentElements = useCallback((valueObj: IBoxPlotValue, labelsObj: ILabel) => {
 
@@ -473,8 +474,14 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
     selection.html(null)
     labelSelection.html(null)
 
+    // Also remove labels from the global container (they have IDs starting with the label prefix)
+    const labelIdPrefix = helper.generateIdString("label")
+    if (labelsDivRef?.current) {
+      select(labelsDivRef.current).selectAll(`[id^="${labelIdPrefix}"]`).remove()
+    }
+
     addAdornmentElements(newValueObj, newLabelsObj)
-  }, [model.isVisible, labelRef, addAdornmentElements])
+  }, [model.isVisible, labelRef, labelsDivRef, helper, addAdornmentElements])
 
   if (!model.isVisible || !graphModel.plot.canShowBoxPlotAndNormalCurve) {
     return
