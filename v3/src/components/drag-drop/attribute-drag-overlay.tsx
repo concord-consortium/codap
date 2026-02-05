@@ -1,4 +1,5 @@
-import { Active, DragOverlay, Modifier, Modifiers, useDndContext } from "@dnd-kit/core"
+import { Active, DragOverlay, Modifiers, useDndContext } from "@dnd-kit/core"
+import { snapCenterToCursor } from "@dnd-kit/modifiers"
 import { CSSProperties, useMemo } from "react"
 import { getDragAttributeInfo } from "../../hooks/use-drag-drop"
 
@@ -23,7 +24,7 @@ export function AttributeDragOverlay ({
   dragIdPrefix, dragIdExcludeRegEx, overlayHeight, overlayWidth, xOffset, yOffset
 }: IProps) {
   const { active } = useDndContext()
-  const { dataSet, attributeId: dragAttrId } = getDragAttributeInfo(active) || {}
+  const { dataSet, attributeId: dragAttrId, snapToCursor } = getDragAttributeInfo(active) || {}
 
   const activeDragId = getOverlayDragId(active, dragIdPrefix, dragIdExcludeRegEx)
   const attr = activeDragId && dragAttrId ? dataSet?.attrFromID(dragAttrId) : undefined
@@ -39,16 +40,23 @@ export function AttributeDragOverlay ({
     ? { height: `${overlayHeight}px`, width: `${overlayWidth}px` }
     : undefined, [activeDragId, overlayHeight, overlayWidth])
 
-  // Drags initiated by plugins have to be offset based on the location of the plugin
-  const modifier: Modifier | undefined = (xOffset || yOffset) ? (args => {
-    const { x, y, scaleX, scaleY } = args.transform
-    return {
-      x: x + (xOffset ?? 0),
-      y: y + (yOffset ?? 0),
-      scaleX, scaleY
+  // Build modifiers array: optionally snap to cursor, optionally add plugin offset
+  const modifiers: Modifiers | undefined = useMemo(() => {
+    const mods: Modifiers = []
+    if (snapToCursor) mods.push(snapCenterToCursor)
+    // Drags initiated by plugins have to be offset based on the location of the plugin
+    if (xOffset || yOffset) {
+      mods.push(args => {
+        const { x, y, scaleX, scaleY } = args.transform
+        return {
+          x: x + (xOffset ?? 0),
+          y: y + (yOffset ?? 0),
+          scaleX, scaleY
+        }
+      })
     }
-  }) : undefined
-  const modifiers: Modifiers | undefined = modifier ? [modifier] : undefined
+    return mods.length > 0 ? mods : undefined
+  }, [snapToCursor, xOffset, yOffset])
 
   // Trigger a re-render at the end of the drag.
   // Otherwise, dnd-kit doesn't always clean up the overlay properly.

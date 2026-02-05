@@ -775,6 +775,9 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         const typeToDropIsNumeric = dataSet?.attrFromID(idToDrop)?.type === "numeric"
         if (place === 'yPlus') {
           return xIsNumericOrDate && typeToDropIsNumeric && !self.yAttributeIDs.includes(idToDrop)
+        } else if (place === 'left') {
+          // For multi-Y graphs, reject drops of attributes already on the Y axis
+          return differentAttribute && !self.yAttributeIDs.includes(idToDrop)
         } else if (place === 'rightNumeric') {
           return xIsNumericOrDate && typeToDropIsNumeric && differentAttribute
         } else if (['top', 'rightCat'].includes(place)) {
