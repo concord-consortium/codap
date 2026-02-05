@@ -71,6 +71,18 @@ const cellKey = {
 }
 ```
 
+### `kDefaultCellKey` (`"__EMPTY__"`)
+
+When a graph has **no categorical attributes** on any axis (e.g., a simple scatter plot), the cell key is an empty object `{}`. When converted to a string for use as a map key, this becomes `kDefaultCellKey` (`"__EMPTY__"`).
+
+This sentinel value is required because MobX-State-Tree map keys must be valid "subpaths" — empty strings are not allowed.
+
+```typescript
+// A graph with no categorical attributes
+const cellKey = {}
+const keyString = cellKeyToString(cellKey)  // Returns "__EMPTY__"
+```
+
 ### `kImpossible` (`"__IMPOSSIBLE__"`)
 
 When the **same attribute** appears on multiple axes with **different values**, the cell key is marked as impossible (no case can exist there):
@@ -197,6 +209,8 @@ Instance keys are stored in saved documents as keys in MST map properties. The f
 attrId1:value1|attrId2:value2
 ```
 
+For empty cell keys (no categorical attributes), the string is `"__EMPTY__"` (`kDefaultCellKey`).
+
 Keys are sorted alphabetically by attribute ID to ensure deterministic output regardless of property insertion order. Special characters (`:`, `|`, `\`) are escaped.
 
 **Legacy Format Migration:** Documents saved before the format change used `JSON.stringify` format (e.g., `{"ATTR-123":"plant"}`). Each adornment model includes a `preProcessSnapshot` handler that automatically migrates legacy keys to the new format when loading old documents.
@@ -229,7 +243,7 @@ To convert between formats:
 
 - A **cell key** identifies a subplot in a categorical graph
 - It maps **attribute IDs** to **category values**
-- Special values: `kMain` (wildcard), `kOther` (overflow), `kImpossible` (conflict)
+- Special values: `kMain` (wildcard), `kOther` (overflow), `kImpossible` (conflict), `kDefaultCellKey` (empty)
 - Use `subPlotCases(cellKey)` to get cases in a cell
 - Use `instanceKey(cellKey)` when storing per-cell data in adornment models
-- Use `cellKeyToString(cellKey)` for transient cache keys
+- Use `cellKeyToString(cellKey)` for cache keys (returns `kDefaultCellKey` for empty cell keys)
