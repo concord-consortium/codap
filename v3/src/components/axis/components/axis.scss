@@ -33,11 +33,11 @@
     }
 
     &.zoom-in {
-      cursor: url("../../../assets/MagnifyPlus.png") 8 8, zoom-in !important;
+      cursor: url("../../../assets/MagnifyPlus.png") 8 8, zoom-in;
     }
 
     &.zoom-out {
-      cursor: url("../../../assets/MagnifyMinus.png") 8 8, zoom-out !important;
+      cursor: url("../../../assets/MagnifyMinus.png") 8 8, zoom-out;
     }
 
   }

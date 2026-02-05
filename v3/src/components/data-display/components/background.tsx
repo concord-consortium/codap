@@ -1,20 +1,20 @@
+import {select, color, range} from "d3"
+import { comparer, reaction } from "mobx"
 import {forwardRef, MutableRefObject, useCallback, useEffect, useRef} from "react"
+import RTreeLib from "rtree"
+import {useMemo} from "use-memo-one"
 import MagnifyPlus from "../../../assets/MagnifyPlus.png"
 import MagnifyMinus from "../../../assets/MagnifyMinus.png"
-import { comparer } from "mobx"
-import {useMemo} from "use-memo-one"
-import {select, color, range} from "d3"
-import RTreeLib from 'rtree'
-import { mstReaction } from "../../../utilities/mst-reaction"
+import { isKeyDown } from "../../../hooks/use-key-states"
 import {appState} from "../../../models/app-state"
 import {IDataSet} from "../../../models/data/data-set"
 import {selectAllCases, selectAndDeselectCases} from "../../../models/data/data-set-utils"
 import { getTileModel } from "../../../models/tiles/tile-model"
 import {defaultBackgroundColor} from "../../../utilities/color-utils"
+import { mstReaction } from "../../../utilities/mst-reaction"
 import { useGraphLayoutContext } from "../../graph/hooks/use-graph-layout-context"
-import { kZoomInFactor, kZoomOutFactor, useZoomCursorKeyboardListener, zoomAxis } from "../../axis/axis-utils"
+import { kZoomInFactor, kZoomOutFactor, zoomAxis } from "../../axis/axis-utils"
 import { isAnyNumericAxisModel } from "../../axis/models/numeric-axis-models"
-import { IBaseNumericAxisModel } from "../../axis/models/base-numeric-axis-model"
 import {rTreeRect} from "../data-display-types"
 import {rectangleSubtract, rectNormalize} from "../data-display-utils"
 import {useDataDisplayLayout} from "../hooks/use-data-display-layout"
@@ -187,7 +187,8 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
     if (!plotBounds) return false
 
     // Get the SVG bounding rect to convert from window coordinates to SVG coordinates
-    const bgRect = (bgRef.current as SVGGElement).getBoundingClientRect()
+    if (!bgRef.current) return false
+    const bgRect = bgRef.current.getBoundingClientRect()
     const svgX = event.x - bgRect.left - plotBounds.left
     const svgY = event.y - bgRect.top - plotBounds.top
 
@@ -203,7 +204,7 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
       const xScale = graphLayout.getNumericScale('bottom')
       if (xScale) {
         const fixedValue = xScale.invert(svgX)
-        zoomAxis(xAxisModel as IBaseNumericAxisModel, fixedValue, factor, dataDisplayModel, tileModel)
+        zoomAxis(xAxisModel, fixedValue, factor, dataDisplayModel, tileModel)
       }
     }
 
@@ -213,7 +214,7 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
       const yScale = graphLayout.getNumericScale('left')
       if (yScale) {
         const fixedValue = yScale.invert(svgY)
-        zoomAxis(yAxisModel as IBaseNumericAxisModel, fixedValue, factor, dataDisplayModel, tileModel)
+        zoomAxis(yAxisModel, fixedValue, factor, dataDisplayModel, tileModel)
       }
     }
 
@@ -247,8 +248,18 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
     })
   }, [hasNumericAxis, rendererArray])
 
-  // Handle keydown/keyup for immediate cursor feedback
-  useZoomCursorKeyboardListener(isHoveredRef, updateBackgroundCursor)
+  // React to modifier key changes for immediate cursor feedback
+  useEffect(() => {
+    const disposer = reaction(
+      () => [isKeyDown('Alt'), isKeyDown('Shift')] as const,
+      ([altKey, shiftKey]) => {
+        if (isHoveredRef.current) {
+          updateBackgroundCursor(altKey, shiftKey)
+        }
+      }
+    )
+    return () => disposer()
+  }, [updateBackgroundCursor])
 
   const renderBackground = useCallback(() => {
     if (!layout.computedBounds.plot) {

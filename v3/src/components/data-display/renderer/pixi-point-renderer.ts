@@ -466,7 +466,8 @@ export class PixiPointRenderer extends PointRendererBase {
     this.background.on("mousemove", (event: PIXI.FederatedPointerEvent) => {
       const elementUnderneath = getElementUnderCanvas(event)
 
-      // Always dispatch mousemove to the element underneath
+      // Dispatch mousemove on every move to enable cursor updates (e.g., for zoom mode)
+      // even when the cursor stays over the same element.
       if (elementUnderneath) {
         this.dispatchEvent(elementUnderneath, new MouseEvent("mousemove", event), event)
       }

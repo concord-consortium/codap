@@ -2,15 +2,14 @@ import {observer} from "mobx-react-lite"
 import React, {useCallback, useEffect, useRef} from "react"
 import { comparer, reaction } from "mobx"
 import { drag, DragBehavior, ScaleContinuousNumeric, select, SubjectPosition } from "d3"
+import { isKeyDown } from "../../../hooks/use-key-states"
 import { logMessageWithReplacement } from "../../../lib/log-message"
 import { getTileModel } from "../../../models/tiles/tile-model"
 import { t } from "../../../utilities/translation/translate"
 import {isVertical} from "../../axis-graph-shared"
 import { useDataDisplayModelContextMaybe } from "../../data-display/hooks/use-data-display-model"
 import {RectIndices, selectDragRects} from "../axis-types"
-import {
-  getDomainExtentForPixelWidth, kZoomInFactor, kZoomOutFactor, useZoomCursorKeyboardListener, zoomAxis
-} from "../axis-utils"
+import { getDomainExtentForPixelWidth, kZoomInFactor, kZoomOutFactor, zoomAxis } from "../axis-utils"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import { updateAxisNotification } from "../models/axis-notifications"
 import { IBaseNumericAxisModel } from "../models/base-numeric-axis-model"
@@ -60,8 +59,18 @@ export const NumericAxisDragRects = observer(
       }
     }, [])
 
-    // Handle keydown/keyup for immediate cursor feedback
-    useZoomCursorKeyboardListener(isHoveredRef, updateCursor)
+    // React to modifier key changes for immediate cursor feedback
+    useEffect(() => {
+      const disposer = reaction(
+        () => [isKeyDown('Alt'), isKeyDown('Shift')] as const,
+        ([altKey, shiftKey]) => {
+          if (isHoveredRef.current) {
+            updateCursor(altKey, shiftKey)
+          }
+        }
+      )
+      return () => disposer()
+    }, [updateCursor])
 
     // Handle option-click zoom on axis
     const handleOptionClickZoom = useCallback((event: MouseEvent, d3Scale: ScaleContinuousNumeric<number, number>) => {
@@ -96,6 +105,14 @@ export const NumericAxisDragRects = observer(
         dilating = false,
         optionClickPending = false,
         optionClickScale: ScaleContinuousNumeric<number, number> | null = null
+
+      // Cancel option-click zoom if there's any drag movement
+      const cancelOptionClickOnMove = (event: { dx: number, dy: number }) => {
+        if (optionClickPending && (event.dx !== 0 || event.dy !== 0)) {
+          optionClickPending = false
+          optionClickScale = null
+        }
+      }
 
       const dragBehaviors: Array<DragBehavior<SVGRectElement, RectIndices, SubjectPosition | RectIndices>> = []
 
@@ -151,11 +168,7 @@ export const NumericAxisDragRects = observer(
         },
 
         onLowerDilateDrag = (event: { x: number, y: number, dx: number, dy: number }) => {
-          // Cancel option-click if there's any drag movement
-          if (optionClickPending && (event.dx !== 0 || event.dy !== 0)) {
-            optionClickPending = false
-            optionClickScale = null
-          }
+          cancelOptionClickOnMove(event)
           const delta = -(place === 'bottom' ? event.dx : event.dy)
           if (dragging && delta !== 0) {
             const
@@ -169,11 +182,7 @@ export const NumericAxisDragRects = observer(
         },
 
         onDragTranslate = (event: { dx: number; dy: number }) => {
-          // Cancel option-click if there's any drag movement
-          if (optionClickPending && (event.dx !== 0 || event.dy !== 0)) {
-            optionClickPending = false
-            optionClickScale = null
-          }
+          cancelOptionClickOnMove(event)
           const delta = -(place === 'bottom' ? event.dx : event.dy)
           if (delta !== 0) {
             const worldDelta = getDomainExtentForPixelWidth(delta, d3Scale)
@@ -184,11 +193,7 @@ export const NumericAxisDragRects = observer(
         },
 
         onUpperDilateDrag = (event: { x: number, y: number, dx: number, dy: number }) => {
-          // Cancel option-click if there's any drag movement
-          if (optionClickPending && (event.dx !== 0 || event.dy !== 0)) {
-            optionClickPending = false
-            optionClickScale = null
-          }
+          cancelOptionClickOnMove(event)
           const delta = (place === 'bottom' ? event.dx : event.dy)
           if (dragging && delta !== 0) {
             const

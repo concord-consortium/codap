@@ -1,5 +1,5 @@
 import {ScaleContinuousNumeric, ScaleLinear} from "d3"
-import {MutableRefObject, useEffect} from "react"
+import { MutableRefObject } from "react"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { IDataConfigurationModel } from "../data-display/models/data-configuration-model"
 import { IDataDisplayContentModel } from "../data-display/models/data-display-content-model"
@@ -18,32 +18,6 @@ import vars from "../vars.scss"
 // Zoom factors for option-click zoom: 0.5 = zoom in (halve range), 2 = zoom out (double range)
 export const kZoomInFactor = 0.5
 export const kZoomOutFactor = 2
-
-/**
- * Hook to update zoom cursor when modifier keys are pressed/released while hovering.
- * @param isHoveredRef - Ref tracking whether mouse is over the target element
- * @param updateCursor - Callback to update cursor based on alt/shift key state
- */
-export function useZoomCursorKeyboardListener(
-  isHoveredRef: MutableRefObject<boolean>,
-  updateCursor: (altKey: boolean, shiftKey: boolean) => void
-) {
-  useEffect(function setupKeyboardListeners() {
-    const handleKeyChange = (event: KeyboardEvent) => {
-      if (isHoveredRef.current) {
-        updateCursor(event.altKey, event.shiftKey)
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyChange)
-    window.addEventListener('keyup', handleKeyChange)
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyChange)
-      window.removeEventListener('keyup', handleKeyChange)
-    }
-  }, [isHoveredRef, updateCursor])
-}
 
 export const getStringBounds = (s = 'Wy', font = kDataDisplayFont) => {
   return measureTextExtent(s, font)
