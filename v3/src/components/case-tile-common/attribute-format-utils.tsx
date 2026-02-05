@@ -135,14 +135,13 @@ export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, opt
   }
 
   // Dates
-  // Note that CODAP v2 formats dates in the case table ONLY if the user explicitly specifies the type as "date".
-  // Dates are not interpreted as dates and formatted by default. However, V3 adds one exception to this rule:
-  // if the date string is strictly an ISO string produced by the browser's Date.toISOString(), it will be treated as
-  // a Date object that should be formatted. The main reason for this is to format the results of date formulas.
-  // This is because CODAP v3 stores all the case values as strings natively, and we cannot simply check if the value
-  // is an instance of the `Date` class (as it will never be). Date.toISOString() is the native way of serializing dates
-  // in CODAP v3 (check `importValueToString` from attribute.ts).
-  if (isStdISODateString(str) || userType === "date" && str !== "") {
+  // Values are formatted as dates (and right-aligned) when:
+  // 1. The value is a standard ISO string produced by Date.toISOString() (e.g., from date formulas)
+  // 2. The user explicitly sets the attribute type to "date"
+  // 3. The attribute's values are all inferred to be dates
+  // Note: CODAP v3 stores all case values as strings, so we check string patterns rather than Date instances.
+  const isInferredDate = attr?.isInferredDateType?.()
+  if (isStdISODateString(str) || (userType === "date" || isInferredDate) && str !== "") {
     const date = parseDate(str, true)
     if (date) {
       const formattedDate = formatDate(date, datePrecision)

@@ -233,7 +233,7 @@ describe("attribute-format-utils", () => {
 
         expect(result.value).toBe("01/15/2024")
         expect(result.content.type).toBe("div")
-        expect(result.content.props.className).toBe("cell-content")
+        expect(result.content.props.className).toBe("cell-content numeric-format")
       })
 
       it("should format dates when userType is date", () => {
