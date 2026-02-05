@@ -9,6 +9,7 @@ export const kNewCollectionDropZoneBaseId = "new-collection"
 export const kCollectionTableBodyDropZoneBaseId = "collection-table-body"
 export const kAttributeDividerDropZoneBaseId = "attribute-divider"
 export const kRowDividerDropZoneBaseId = "row-divider"
+export const kJoinTargetDropZoneBaseId = "join-target"
 
 export function dropZoneRegEx(baseId: string) {
   return new RegExp(`${baseId}.+drop$`)
@@ -18,6 +19,7 @@ export const kNewCollectionDropZoneRegEx = dropZoneRegEx(kNewCollectionDropZoneB
 export const kCollectionTableBodyDropZoneRegEx = dropZoneRegEx(kCollectionTableBodyDropZoneBaseId)
 export const kAttributeDividerDropZoneRegEx = dropZoneRegEx(kAttributeDividerDropZoneBaseId)
 export const kRowDividerDropZoneRegEx = dropZoneRegEx(kRowDividerDropZoneBaseId)
+export const kJoinTargetDropZoneRegEx = dropZoneRegEx(kJoinTargetDropZoneBaseId)
 
 // filters containers by collectionId
 export function filterCollection(containers: DroppableContainer[], collectionId: string) {
@@ -64,6 +66,10 @@ export const caseTableCollisionDetection: CollisionDetection = (args) => {
     // if the pointer is within the new collection drop zone, then we're done
     const withinNewCollection = findCollision(withinCollisions, kNewCollectionDropZoneRegEx)
     if (withinNewCollection) return [withinNewCollection]
+
+    // check for join target drop zones (for cross-dataset attribute drops)
+    const withinJoinTarget = findCollision(withinCollisions, kJoinTargetDropZoneRegEx)
+    if (withinJoinTarget) return [withinJoinTarget]
 
     // if the pointer is within the collection table body, find the nearest attribute divider drop zone
     const droppableColumnDividers = filterContainers(args.droppableContainers, kAttributeDividerDropZoneRegEx)

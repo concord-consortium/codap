@@ -524,6 +524,36 @@ $collection-title-font-color: black;
     }
   }
 
+  .attribute-header-join-target {
+    position: absolute;
+    pointer-events: auto;
+    z-index: 10;
+
+    &.join-drag-over {
+      background: rgba(255, 255, 0, 0.5);
+    }
+
+    .join-drop-tip {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: normal;
+      width: 350px;
+      text-align: left;
+      background: rgba(0, 0, 0, 0.85);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: normal;
+      line-height: 1.4;
+      z-index: 100;
+      margin-top: 4px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+  }
+
   .codap-row-divider {
     position: absolute;
     opacity: 0;

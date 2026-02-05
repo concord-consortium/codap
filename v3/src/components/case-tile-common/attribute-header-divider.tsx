@@ -39,9 +39,11 @@ function AttributeHeaderDivider_({ before = false, columnKey, cellElt, getDivide
     }
   })
 
-  const { attributeId: dragAttributeId } = getDragAttributeInfo(active) || {}
+  const { dataSet: dragDataSet, attributeId: dragAttributeId } = getDragAttributeInfo(active) || {}
   const preventAttributeDrop = preventAttributeMove(dataset, dragAttributeId)
-  const preventDrop = preventAttributeDrop || preventCollectionDrop
+  // Don't show move feedback for cross-dataset drags (those are handled by join target)
+  const isCrossDatasetDrag = dragDataSet && dragDataSet !== dataset
+  const preventDrop = preventAttributeDrop || preventCollectionDrop || isCrossDatasetDrag
 
   // compute the divider position relative to the container element
   const { containerElt, dividerBounds } = useAttributeHeaderDividerContext({ cellElt, getDividerBounds })
