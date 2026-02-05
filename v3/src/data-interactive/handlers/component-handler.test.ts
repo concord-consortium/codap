@@ -4,9 +4,16 @@ import { kCaseCardIdPrefix } from "../../components/case-card/case-card-registra
 import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { ICaseTableModel, isCaseTableModel } from "../../components/case-table/case-table-model"
 import { kCaseTableIdPrefix } from "../../components/case-table/case-table-registration"
+import * as caseTableUtils from "../../components/case-table/case-table-utils"
 import { createOrShowTableOrCardForDataset } from "../../components/case-tile-common/case-tile-utils"
+import "../../components/graph/graph-registration"
+import "../../components/map/map-registration"
+import { kCalculatorIdPrefix } from "../../components/calculator/calculator-registration"
+import { kGraphIdPrefix } from "../../components/graph/graph-defs"
+import { kMapIdPrefix } from "../../components/map/map-defs"
 import { appState } from "../../models/app-state"
 import { getSharedDataSets } from "../../models/shared/shared-data-utils"
+import { uiState } from "../../models/ui-state"
 import { toV3Id } from "../../utilities/codap-utils"
 import { V2CaseCard, V2CaseTable } from "../data-interactive-component-types"
 import { DIComponentInfo } from "../data-interactive-types"
@@ -18,10 +25,24 @@ import { setupTestDataset } from "../../test/dataset-test-utils"
 describe("DataInteractive ComponentHandler", () => {
   const handler = diComponentHandler
   const documentContent = appState.document.content!
+  let dataset: ReturnType<typeof setupTestDataset>["dataset"]
+
+  beforeEach(() => {
+    const result = setupTestDataset()
+    dataset = result.dataset
+    documentContent.createDataSet(getSnapshot(dataset))
+  })
+
+  function createTile(type: string, idPrefix: string) {
+    const result = handler.create?.({}, { type })
+    expect(result?.success).toBe(true)
+    const values = result?.values as DIComponentInfo
+    const tile = documentContent.tileMap.get(toV3Id(idPrefix, values.id!))
+    expect(tile).toBeDefined()
+    return tile!
+  }
 
   it("create and get caseTable and caseCard work", () => {
-    const { dataset } = setupTestDataset()
-    documentContent.createDataSet(getSnapshot(dataset))
 
     expect(handler.create?.({}).success).toBe(false)
     expect(handler.create?.({}, {}).success).toBe(false)
@@ -90,8 +111,6 @@ describe("DataInteractive ComponentHandler", () => {
   })
 
   it("update caseTable works", () => {
-    const { dataset } = setupTestDataset()
-    documentContent.createDataSet(getSnapshot(dataset))
     const sharedDataSet = getSharedDataSets(documentContent)[0]
     const component = createOrShowTableOrCardForDataset(sharedDataSet, kCaseTableTileType)!
     const tableContent = component.content as ICaseTableModel
@@ -102,5 +121,60 @@ describe("DataInteractive ComponentHandler", () => {
     expect(tableContent._horizontalScrollOffset).toBe(0)
     expect(handler.update?.({ component }, { horizontalScrollOffset: 100 }).success).toBe(true)
     expect(tableContent._horizontalScrollOffset).toBe(100)
+  })
+
+  describe("notify", () => {
+    it("returns error when component or values are missing", () => {
+      expect(handler.notify?.({}).success).toBe(false)
+
+      const graphTile = createTile("graph", kGraphIdPrefix)
+      expect(handler.notify?.({ component: graphTile }).success).toBe(false)
+    })
+
+    it("autoScale works for graph tiles", () => {
+      const graphTile = createTile("graph", kGraphIdPrefix)
+      const rescaleSpy = jest.spyOn(graphTile.content as any, "rescale")
+
+      expect(handler.notify?.({ component: graphTile }, { request: "autoScale" }).success).toBe(true)
+      expect(rescaleSpy).toHaveBeenCalled()
+      rescaleSpy.mockRestore()
+    })
+
+    it("autoScale works for map tiles", () => {
+      const mapTile = createTile("map", kMapIdPrefix)
+      const rescaleSpy = jest.spyOn(mapTile.content as any, "rescale")
+
+      expect(handler.notify?.({ component: mapTile }, { request: "autoScale" }).success).toBe(true)
+      expect(rescaleSpy).toHaveBeenCalled()
+
+      rescaleSpy.mockRestore()
+    })
+
+    it("autoScale works for case table tiles", () => {
+      const sharedDataSet = getSharedDataSets(documentContent)[0]
+      const tableTile = createOrShowTableOrCardForDataset(sharedDataSet, kCaseTableTileType)
+
+      expect(isCaseTableModel(tableTile!.content)).toBe(true)
+
+      const resizeAllColumnsSpy = jest.spyOn(caseTableUtils, "resizeAllColumns")
+      expect(handler.notify?.({ component: tableTile }, { request: "autoScale" }).success).toBe(true)
+      expect(resizeAllColumnsSpy).toHaveBeenCalledWith(tableTile!.content)
+
+      resizeAllColumnsSpy.mockRestore()
+    })
+
+    it("autoScale returns error for unsupported component types", () => {
+      const calcTile = createTile("calculator", kCalculatorIdPrefix)
+      const result = handler.notify?.({ component: calcTile }, { request: "autoScale" })
+
+      expect(result?.success).toBe(false)
+    })
+
+    it("select request works", () => {
+      const graphTile = createTile("graph", kGraphIdPrefix)
+
+      expect(handler.notify?.({ component: graphTile }, { request: "select" }).success).toBe(true)
+      expect(uiState.focusedTile).toBe(graphTile.id)
+    })
   })
 })
