@@ -10,6 +10,7 @@ import { setNiceDomain } from "../../../axis/axis-domain-utils"
 import { IAxisModel } from "../../../axis/models/axis-model"
 import { isAnyNumericAxisModel, isNumericAxisModel } from "../../../axis/models/numeric-axis-models"
 import { GraphAttrRole, PointDisplayType } from "../../../data-display/data-display-types"
+import { cellKeyToString } from "../../utilities/cell-key-utils"
 import { BreakdownType, BreakdownTypes, GraphCellKey, isBreakdownType } from "../../graphing-types"
 import { DotChartModel } from "../dot-chart/dot-chart-model"
 import { IBarTipTextProps, IPlotModel, typesPlotType } from "../plot-model"
@@ -56,7 +57,7 @@ export const BarChartModel = DotChartModel
       self.formulaEditorIsOpen = isOpen
     },
     setBarSpec(key: GraphCellKey, value: number, numCases: number) {
-      self.barSpecs.set(JSON.stringify(key), { value, numCases })
+      self.barSpecs.set(cellKeyToString(key), { value, numCases })
     },
     clearBarSpecs() {
       self.barSpecs.clear()
@@ -163,7 +164,7 @@ export const BarChartModel = DotChartModel
       return true
     },
     getBarSpec(key: GraphCellKey): IBarSpec | undefined {
-      return self.barSpecs.get(JSON.stringify(key))
+      return self.barSpecs.get(cellKeyToString(key))
     },
     axisLabelClickHandler(role: GraphAttrRole): Maybe<() => void> {
       if (self.breakdownType === "formula" && self.hasExpression && role === self.dataConfiguration?.secondaryRole) {

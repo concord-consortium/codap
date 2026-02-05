@@ -3,6 +3,7 @@ import { addDisposer, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { isFiniteNumber } from "../../../../utilities/math-utils"
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
 import { IDataConfigurationModel } from "../../../data-display/models/data-configuration-model"
+import { migrateInstanceKeyMap } from "../../utilities/cell-key-utils"
 import {IGraphDataConfigurationModel} from "../../models/graph-data-configuration-model"
 import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions } from "../adornment-models"
 import { Point, PointModel } from "../point-model"
@@ -38,6 +39,11 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
     labelTitle: types.optional(types.string, () => {
       throw "labelTitle must be overridden"
     }),
+  })
+  // cast required to allow derived models to add props without TypeScript errors
+  .preProcessSnapshot((snapshot: any) => {
+    const measures = migrateInstanceKeyMap(snapshot.measures)
+    return measures ? { ...snapshot, measures } : snapshot
   })
   .volatile(() => ({
     needsRecomputation: true // A way to know if the adornment needs to be recomputed

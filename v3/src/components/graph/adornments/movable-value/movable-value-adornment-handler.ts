@@ -5,6 +5,7 @@ import {
 } from "../../../../data-interactive/handlers/di-results"
 import { t } from "../../../../utilities/translation/translate"
 import { IGraphContentModel } from "../../models/graph-content-model"
+import { cellKeyToString } from "../../utilities/cell-key-utils"
 import { getAdornmentContentInfo, isCompatibleWithPlotType } from "../adornment-content-info"
 import { IAdornmentModel, IUpdateCategoriesOptions } from "../adornment-models"
 import { IAdornmentsBaseStore } from "../store/adornments-base-store"
@@ -50,7 +51,7 @@ export const movableValueAdornmentHandler: DIAdornmentHandler = {
           if (typeof newValue !== "number") return
 
           const cellKey = normalizeCellKey(requestCellKey, graphContent.dataConfiguration)
-          if (!cellKey) {
+          if (cellKey == null) {
             return errorResult(t("V3.DI.Error.invalidCellKey", { vars: [requestCellKey] }))
           }
 
@@ -62,7 +63,7 @@ export const movableValueAdornmentHandler: DIAdornmentHandler = {
     }
 
     for (const cellKey of cellKeys) {
-      const cellKeyString = JSON.stringify(cellKey)
+      const cellKeyString = cellKeyToString(cellKey)
       const movableValues = adornment.values.get(cellKeyString)
       const movableValuesValues = movableValues ? Object.values(movableValues).map(value => value) : []
       const dataItem: AdornmentData = { movableValues: movableValuesValues }
@@ -96,7 +97,7 @@ export const movableValueAdornmentHandler: DIAdornmentHandler = {
     const data: AdornmentData[] = []
 
     for (const cellKey of cellKeys) {
-      const cellKeyString = JSON.stringify(cellKey)
+      const cellKeyString = cellKeyToString(cellKey)
       const movableValues = adornment.values.get(cellKeyString)
       const values = movableValues ? Object.values(movableValues) : []
       const dataItem: AdornmentData = { movableValues: values }
@@ -129,7 +130,7 @@ export const movableValueAdornmentHandler: DIAdornmentHandler = {
         if (typeof newValue !== "number") return
 
         const cellKey = normalizeCellKey(requestCellKey, graphContent.dataConfiguration)
-        if (!cellKey) {
+        if (cellKey == null) {
           return errorResult(t("V3.DI.Error.invalidCellKey", { vars: [requestCellKey] }))
         }
 

@@ -1,4 +1,5 @@
 import { getSnapshot, types } from "mobx-state-tree"
+import { kDefaultCellKey } from "../utilities/cell-key-utils"
 import { AdornmentModel, UnknownAdornmentModel } from "./adornment-models"
 import { AdornmentModelUnion, IAdornmentModelUnion } from "./adornment-types"
 import { MovableLineAdornmentModel, isMovableLineAdornment } from "./movable-line/movable-line-adornment-model"
@@ -46,8 +47,9 @@ describe("AdornmentModel", () => {
     const xCategories = ["pizza", "pasta", "salad"]
     const yCategories = ["red", "green", "blue"]
     const cellKey = {abc123: xCategories[0], def456: yCategories[0]}
-    expect(adornment.instanceKey({})).toEqual("{}")
-    expect(adornment.instanceKey(cellKey)).toEqual("{\"abc123\":\"pizza\",\"def456\":\"red\"}")
+    expect(adornment.instanceKey({})).toEqual(kDefaultCellKey)
+    // New format: sorted keys, colon-separated key:value, pipe-separated entries
+    expect(adornment.instanceKey(cellKey)).toEqual("abc123:pizza|def456:red")
   })
   it("will create a class name from a given cell key", () => {
     const adornment = AdornmentModel.create({type: "Movable Line"})

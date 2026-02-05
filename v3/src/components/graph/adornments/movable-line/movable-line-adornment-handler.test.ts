@@ -1,3 +1,4 @@
+import { kDefaultCellKey } from "../../utilities/cell-key-utils"
 import { movableLineAdornmentHandler } from "./movable-line-adornment-handler"
 import { kMovableLineType } from "./movable-line-adornment-types"
 
@@ -9,7 +10,7 @@ describe("DataInteractive movableLineAdornmentHandler", () => {
   let mockMovableLineAdornment: any
   let mockInvalidAdornment: any
   const mockLinesMap = new Map([
-    ["{}", { intercept: 1, slope: 0.5 }]
+    [kDefaultCellKey, { intercept: 1, slope: 0.5 }]
   ])
 
   beforeEach(() => {

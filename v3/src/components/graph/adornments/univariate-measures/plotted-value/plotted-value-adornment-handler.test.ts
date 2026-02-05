@@ -1,3 +1,4 @@
+// Note: Using "__EMPTY__" directly since jest.mock is hoisted before imports
 jest.mock("../../adornment-content-info", () => ({
   ...jest.requireActual("../../adornment-content-info"),
   getAdornmentContentInfo: jest.fn().mockReturnValue({
@@ -8,7 +9,7 @@ jest.mock("../../adornment-content-info", () => ({
         isVisible: true,
         setExpression: jest.fn(),
         setVisibility: jest.fn(),
-        measures: new Map([["{}", { value: 1 }]])
+        measures: new Map([["__EMPTY__", { value: 1 }]])
       })
     }
   }),
@@ -25,6 +26,7 @@ jest.mock("../../../../../data-interactive/data-interactive-adornment-types", ()
   isAdornmentValues: jest.fn().mockReturnValue(true)
 }))
 
+import { kDefaultCellKey } from "../../../utilities/cell-key-utils"
 import { plottedValueAdornmentHandler } from "./plotted-value-adornment-handler"
 import { kPlottedValueType } from "./plotted-value-adornment-types"
 
@@ -37,7 +39,7 @@ describe("DataInteractive plottedValueAdornmentHandler", () => {
   let mockPlottedValueAdornment: any
   let mockInvalidAdornment: any
   const mockPlottedValuesMap = new Map([
-    ["{}", { value: 1 }]
+    [kDefaultCellKey, { value: 1 }]
   ])
 
   beforeEach(() => {

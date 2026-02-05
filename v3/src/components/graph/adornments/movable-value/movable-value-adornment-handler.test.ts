@@ -1,7 +1,9 @@
 import { types } from "mobx-state-tree"
+import { kDefaultCellKey } from "../../utilities/cell-key-utils"
 import { movableValueAdornmentHandler } from "./movable-value-adornment-handler"
 import { kMovableValueType } from "./movable-value-adornment-types"
 
+// Note: Using "__EMPTY__" directly in jest.mock since it's hoisted before imports
 jest.mock("../adornment-content-info", () => {
   const mockMovableValueModel = types.model("MovableValueAdornmentModel", {
     id: types.optional(types.string, "ADRN123"),
@@ -10,7 +12,7 @@ jest.mock("../adornment-content-info", () => {
     values: types.map(types.array(types.number))
   }).actions(self => ({
     addValue(value: number) {
-      self.values.set("{}", [value])
+      self.values.set("__EMPTY__", [value])
     },
     replaceValue(value: number, key: string) {
       self.values.set(key, [value])
@@ -46,7 +48,7 @@ describe("DataInteractive movableValueAdornmentHandler", () => {
   let mockMovableValueAdornment: any
   let mockInvalidAdornment: any
   const mockValuesMap = new Map([
-    ["{}", [1, 3000000]]
+    [kDefaultCellKey, [1, 3000000]]
   ])
 
   beforeEach(() => {
@@ -93,7 +95,7 @@ describe("DataInteractive movableValueAdornmentHandler", () => {
   it("create returns the expected data when Movable Value adornment created", () => {
     const createRequestValues = {
       type: kMovableValueType,
-      values: [["{}", 5]]
+      values: [["", 5]]
     }
     const result = handler.create!({ graphContent: mockGraphContent, values: createRequestValues })
     expect(result?.success).toBe(true)
@@ -135,10 +137,10 @@ describe("DataInteractive movableValueAdornmentHandler", () => {
   it("update successfully updates count adornment properties", () => {
     mockGraphContent.adornmentsStore.findAdornmentOfType.mockReturnValue(mockMovableValueAdornment)
     const updateValues = {
-      values: [["{}", 5]]
+      values: [["", 5]]
     }
     const result = handler.update?.({ graphContent: mockGraphContent, values: updateValues })
     expect(result?.success).toBe(true)
-    expect(mockMovableValueAdornment.replaceValue).toHaveBeenCalledWith(5, "{}")
+    expect(mockMovableValueAdornment.replaceValue).toHaveBeenCalledWith(5, kDefaultCellKey)
   })
 })

@@ -1,6 +1,5 @@
 import { IDataSetMetadata } from "../../../models/shared/data-set-metadata"
 import { ISharedDataSet } from "../../../models/shared/shared-data-set"
-import { safeJsonParse } from "../../../utilities/js-utils"
 import {
   ICodapV2MultipleLSRLAdornments, ICodapV2PlotModel, ICodapV2UnivariateAdornment, isV2ScatterPlotModel
 } from "../../../v2/codap-v2-types"
@@ -8,6 +7,7 @@ import {
   GraphAttributeDescriptionsMapSnapshot, IAttributeDescriptionSnapshot
 } from "../../data-display/models/data-configuration-model"
 import { kMain } from "../../data-display/data-display-types"
+import { cellKeyToString, stringToCellKey } from "../utilities/cell-key-utils"
 import { updateCellKey } from "./utilities/adornment-utils"
 import { kCountType } from "./count/count-adornment-types"
 import { kLSRLType } from "./lsrl/lsrl-adornment-types"
@@ -90,8 +90,8 @@ function univariateMeasureInstances(adornment: ICodapV2UnivariateAdornment, prop
   const measures: Record<string, IMeasureInstanceSnapshot> = {}
   instanceKeys?.forEach((key: string) => {
     let splitIndex
-    const parsedKey = safeJsonParse(key)
-    if (parsedKey && splitAttrId && parsedKey[splitAttrId] != null) {
+    const parsedKey = stringToCellKey(key)
+    if (splitAttrId && parsedKey[splitAttrId] != null) {
       splitIndex = splitIndicesMap.get(parsedKey[splitAttrId])
       if (splitIndex == null) {
         splitIndex = splitIndicesMap.size
@@ -168,7 +168,7 @@ const instanceKey = (props: IInstanceKeyProps) => {
   cellKey = updateCellKey(cellKey, yAttrId, yCat)
   const xCat = xCats[index % xCatCount]
   cellKey = updateCellKey(cellKey, xAttrId, xCat)
-  return JSON.stringify(cellKey)
+  return cellKeyToString(cellKey)
 }
 
 type GetAttributeInfoResult = [Maybe<string>, string[]]
@@ -194,7 +194,7 @@ const instanceKeysForAdornments = (props: IInstanceKeysForAdornmentsProps) => {
   const { data, metadata, attributeDescriptions, yAttributeDescriptions } = props
   if (!data || !attributeDescriptions || !yAttributeDescriptions) {
     // legendCats default to [kMain], others default to [""] for cell key computations
-    return { instanceKeys: ["{}"], xCats: [""], yCats: [""], topCats: [""], rightCats: [""], legendCats: [kMain] }
+    return { instanceKeys: [""], xCats: [""], yCats: [""], topCats: [""], rightCats: [""], legendCats: [kMain] }
   }
   const [xAttrId, xCats] = getAttributeInfo(data, metadata, attributeDescriptions.x)
   const [yAttrId, yCats] = getAttributeInfo(data, metadata, yAttributeDescriptions[0])
@@ -455,7 +455,7 @@ export const v2AdornmentImporter = ({
   if (movableValuesAdornment) {
     const values: Record<string, number[]> = {}
     instanceKeys?.forEach((key: string) => {
-      const parsedKey = safeJsonParse(key)
+      const parsedKey = stringToCellKey(key)
       const plotValues: number[] = []
 
       movableValuesAdornment.valueModels?.forEach((valueModel) => {

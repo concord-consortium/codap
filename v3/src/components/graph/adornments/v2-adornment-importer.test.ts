@@ -4,6 +4,7 @@ import { SharedModelDocumentManager } from "../../../models/document/shared-mode
 import { CodapV2DataSetImporter, getCaseDataFromV2ContextGuid } from "../../../v2/codap-v2-data-set-importer"
 import { CodapV2Document } from "../../../v2/codap-v2-document"
 import { ICodapV2DocumentJson, ICodapV2GraphStorage } from "../../../v2/codap-v2-types"
+import { isLegacyInstanceKey } from "../utilities/cell-key-utils"
 import { v2AdornmentImporter } from "./v2-adornment-importer"
 import { ICountAdornmentModel } from "./count/count-adornment-model"
 import { IMeanAdornmentModelSnapshot } from "./univariate-measures/mean/mean-adornment-model"
@@ -178,5 +179,49 @@ describe("V2AdornmentImporter", () => {
     expect(plottedFunctionAdornment).toBeDefined()
     expect(plottedFunctionAdornment.isVisible).toBe(true)
     expect(plottedFunctionAdornment.formula?.display).toBe("x*x")
+  })
+
+  it("uses new cell key format (not legacy JSON) for instance keys", () => {
+    const { _links_: links, plotModels } = movablePointLineLSRLGraph?.componentStorage as ICodapV2GraphStorage
+    const contextId = links.context?.id
+    const { sharedData: data } = getCaseDataFromV2ContextGuid(contextId)
+    const adornmentStore = v2AdornmentImporter({
+      data, plotModels, attributeDescriptions: {}, yAttributeDescriptions: []
+    })
+
+    // Check movable point keys
+    const movablePointAdornment =
+      adornmentStore.adornments.find(a => a.type === "Movable Point") as IMovablePointAdornmentModelSnapshot
+    expect(movablePointAdornment.points).toBeDefined()
+    const pointKeys = Object.keys(movablePointAdornment.points!)
+    expect(pointKeys.length).toBeGreaterThan(0)
+    pointKeys.forEach(key => {
+      expect(isLegacyInstanceKey(key)).toBe(false)
+    })
+
+    // Check LSRL labels keys
+    const lsrlAdornment = adornmentStore.adornments.find(a => a.type === "LSRL") as ILSRLAdornmentModelSnapshot
+    expect(lsrlAdornment.labels).toBeDefined()
+    const lsrlKeys = Object.keys(lsrlAdornment.labels!)
+    expect(lsrlKeys.length).toBeGreaterThan(0)
+    lsrlKeys.forEach(key => {
+      expect(isLegacyInstanceKey(key)).toBe(false)
+    })
+
+    // Check mean adornment measures keys from univariate graph
+    const { _links_: uniLinks, plotModels: uniPlotModels } =
+      univariateMeasureGraph?.componentStorage as ICodapV2GraphStorage
+    const uniContextId = uniLinks.context?.id
+    const { sharedData: uniData } = getCaseDataFromV2ContextGuid(uniContextId)
+    const uniAdornmentStore = v2AdornmentImporter({
+      data: uniData, plotModels: uniPlotModels, attributeDescriptions: {}, yAttributeDescriptions: []
+    })
+    const meanAdornment = uniAdornmentStore.adornments.find(a => a.type === "Mean") as IMeanAdornmentModelSnapshot
+    expect(meanAdornment.measures).toBeDefined()
+    const meanKeys = Object.keys(meanAdornment.measures)
+    expect(meanKeys.length).toBeGreaterThan(0)
+    meanKeys.forEach(key => {
+      expect(isLegacyInstanceKey(key)).toBe(false)
+    })
   })
 })

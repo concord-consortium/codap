@@ -4,6 +4,7 @@ import { DIAdornmentHandler } from "../../../../data-interactive/handlers/adornm
 import { adornmentNotFoundResult, adornmentNotSupportedByPlotTypeResult }
   from "../../../../data-interactive/handlers/di-results"
 import { IGraphContentModel } from "../../models/graph-content-model"
+import { cellKeyToString } from "../../utilities/cell-key-utils"
 import { getAdornmentContentInfo, isCompatibleWithPlotType } from "../adornment-content-info"
 import { IAdornmentModel } from "../adornment-models"
 import { IAdornmentsBaseStore } from "../store/adornments-base-store"
@@ -49,7 +50,7 @@ export const lsrlAdornmentHandler: DIAdornmentHandler = {
     }
 
     for (const cellKey of cellKeys) {
-      const cellKeyString = JSON.stringify(cellKey)
+      const cellKeyString = cellKeyToString(cellKey)
       const linesMap = adornment.lines?.get(cellKeyString)
       if (!linesMap) continue
     
@@ -85,7 +86,7 @@ export const lsrlAdornmentHandler: DIAdornmentHandler = {
     const data: AdornmentData[] = []
 
     for (const cellKey of cellKeys) {
-      const cellKeyString = JSON.stringify(cellKey)
+      const cellKeyString = cellKeyToString(cellKey)
       const linesMap = adornment.lines.get(cellKeyString)
       if (!linesMap) continue
     
