@@ -190,8 +190,12 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
     }
   }, [])
 
+  // Enable snapToCursor for vertical (Y) axis labels since the rotated label's bounding box
+  // causes the drag overlay to appear far from the mouse position
+  const isVerticalAxis = ['left', 'rightCat', 'rightNumeric'].includes(place)
   const draggableOptions: IUseDraggableAttribute = {
-    prefix: instanceId, dataSet, attributeId: attrId, disabled: !!openCollectionId || isMenuOpen
+    prefix: instanceId, dataSet, attributeId: attrId, disabled: !!openCollectionId || isMenuOpen,
+    snapToCursor: isVerticalAxis
   }
   const { attributes, listeners, setNodeRef: setDragNodeRef } = useDraggableAttribute(draggableOptions)
 

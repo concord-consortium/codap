@@ -19,13 +19,14 @@ export interface IDragAttributeData extends IDragData {
   type: "attribute"
   dataSet: IDataSet | undefined
   attributeId: string
+  snapToCursor?: boolean
 }
 export function isDragAttributeData(data: DataRef): data is DataRef<IDragAttributeData> {
   return data.current?.type === "attribute"
 }
 export function getDragAttributeInfo(active: Active | null): Omit<IDragAttributeData, "type"> | undefined {
-  const { dataSet, attributeId } = active?.data.current as IDragAttributeData || {}
-  return dataSet && attributeId ? { dataSet, attributeId } : undefined
+  const { dataSet, attributeId, snapToCursor } = active?.data.current as IDragAttributeData || {}
+  return dataSet && attributeId ? { dataSet, attributeId, snapToCursor } : undefined
 }
 
 export interface IUseDraggableAttribute extends Omit<UseDraggableArguments, "id"> {
@@ -33,14 +34,17 @@ export interface IUseDraggableAttribute extends Omit<UseDraggableArguments, "id"
   prefix: string
   dataSet?: IDataSet
   attributeId: string
+  snapToCursor?: boolean
 }
-export const useDraggableAttribute = ({ prefix, dataSet, attributeId, ...others }: IUseDraggableAttribute) => {
+export const useDraggableAttribute = (
+  { prefix, dataSet, attributeId, snapToCursor, ...others }: IUseDraggableAttribute
+) => {
   // RDG expects all cells to have tabIndex of -1 except for the selected/active/clicked cell.
   // For instance, it calls scrollIntoView(gridRef.current?.querySelector('[tabindex="0"]')).
   // DnDKit sets the tabIndex of draggable elements to 0 by default for keyboard accessibility.
   // For now we set it to -1 to meet RDG's expectations and we'll worry about keyboard drag later.
   const attributes = { tabIndex: -1 }
-  const data: IDragAttributeData = { type: "attribute", dataSet, attributeId }
+  const data: IDragAttributeData = { type: "attribute", dataSet, attributeId, snapToCursor }
   return useDraggable({ ...others, id: `${prefix}-${attributeId}`, attributes, data })
 }
 
