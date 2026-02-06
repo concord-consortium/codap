@@ -69,6 +69,11 @@
     "V3.Undo.map.hideLayer": "Undo hiding map layer",
     "V3.Redo.map.hideLayer": "Redo hiding map layer",
 
+    "V3.Undo.calculator.calculate": "Undo calculation",
+    "V3.Redo.calculator.calculate": "Redo calculation",
+    "V3.Undo.calculator.clear": "Undo clearing calculator",
+    "V3.Redo.calculator.clear": "Redo clearing calculator",
+
     "V3.CaseCardTable.Inspector.Info": "Info",
     "V3.CaseCardTable.Inspector.Resize": "Resize",
     "V3.CaseCardTable.Inspector.View": "View",

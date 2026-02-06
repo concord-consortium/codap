@@ -1,10 +1,11 @@
 import { Button, Flex, Input } from "@chakra-ui/react"
 import React, { useCallback, useEffect, useRef, useState } from "react"
-import { ITileBaseProps } from "../tiles/tile-base-props"
-import { isCalculatorModel } from "./calculator-model"
+import { logMessageWithReplacement } from "../../lib/log-message"
 import { math } from "../../models/formula/functions/math"
 import { preprocessDisplayFormula } from "../../models/formula/utils/canonicalization-utils"
-import { logMessageWithReplacement } from "../../lib/log-message"
+import { mstAutorun } from "../../utilities/mst-autorun"
+import { ITileBaseProps } from "../tiles/tile-base-props"
+import { isCalculatorModel } from "./calculator-model"
 
 import "./calculator.scss"
 
@@ -26,12 +27,25 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
     }
   }, [isValidModel])
 
+  // Sync component state from model (enables undo/redo)
+  useEffect(() => {
+    return mstAutorun(() => {
+      if (isCalculatorModel(calculatorModel)) {
+        setCalcValue(calculatorModel.value)
+        setJustEvaled(false)
+      }
+    }, { name: "Calculator.syncFromModel" }, calculatorModel)
+  }, [calculatorModel])
+
   const clearValue = useCallback(() => {
-    setCalcValue("")
+    setCalcValue("")  // Clear local state (model sync won't trigger if model value unchanged)
     setJustEvaled(false)
     if (isValidModel) {
-      calculatorModel?.applyModelChange(() => {}, {
-        noDirty: true,  // calculator value isn't currently serialized
+      calculatorModel?.applyModelChange(() => {
+        calculatorModel.setValue()
+      }, {
+        undoStringKey: "V3.Undo.calculator.clear",
+        redoStringKey: "V3.Redo.calculator.clear",
         log: {message: "Calculator value cleared", args: {}, category: "calculator"}
       })
     }
@@ -82,16 +96,26 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
       const compiled = math.compile(canonicalFormula)
       const solution = compiled.evaluate({ "π": Math.PI })
       const solutionStr = String(solution)
-      setCalcValue(solutionStr)
       if (isValidModel) {
-        calculatorModel?.applyModelChange(() => {}, {
-          noDirty: true,  // calculator value isn't currently serialized
+        calculatorModel?.applyModelChange(() => {
+          calculatorModel.setValue(solutionStr)
+        }, {
+          undoStringKey: "V3.Undo.calculator.calculate",
+          redoStringKey: "V3.Redo.calculator.calculate",
           log: logMessageWithReplacement("Calculation done: %@ = %@", {calcValue, solution: solutionStr}, "calculator")
         })
       }
     } catch (error: any) {
       const errorMessage = error?.message ? `#${error.message}` : "#Error"
-      setCalcValue(errorMessage)
+      if (isValidModel) {
+        calculatorModel?.applyModelChange(() => {
+          calculatorModel.setValue(errorMessage)
+        }, {
+          undoStringKey: "V3.Undo.calculator.calculate",
+          redoStringKey: "V3.Redo.calculator.calculate",
+          log: logMessageWithReplacement("Calculation error: %@ = %@", {calcValue, error: errorMessage}, "calculator")
+        })
+      }
     }
     setJustEvaled(true)
   }, [justEvaled, calcValue, calculatorModel, isValidModel])
