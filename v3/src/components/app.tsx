@@ -89,8 +89,8 @@ export const App = observer(function App() {
   // Uses reaction (not autorun) so it doesn't fire on mount, which would hide the startup splash.
   useLayoutEffect(() => {
     return reaction(
-      () => ({ isBusy: uiState.isBusy, busyCursorMode: uiState.busyCursorMode }),
-      ({ isBusy, busyCursorMode }) => {
+      () => [uiState.isBusy, uiState.busyCursorMode] as const,
+      ([isBusy, busyCursorMode]) => {
         const splash = document.getElementById("splash-screen")
         if (!splash) return
         if (isBusy && !busyCursorMode) {
