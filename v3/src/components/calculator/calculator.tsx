@@ -111,7 +111,7 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
     } else {
       setCalcValue(e.target.value)
     }
-  }, [justEvaled, calcValue])
+  }, [justEvaled])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -140,7 +140,7 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
     {"4": ()=>insert("4")},
     {"5": ()=>insert("5")},
     {"6": ()=>insert("6")},
-    {"-": ()=>insert("-")},
+    {"\u2212": ()=>insert("-")},
     {"1": ()=>insert("1")},
     {"2": ()=>insert("2")},
     {"3": ()=>insert("3")},
