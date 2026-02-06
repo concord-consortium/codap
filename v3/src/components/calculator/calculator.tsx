@@ -38,6 +38,7 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
   }, [calculatorModel])
 
   const clearValue = useCallback(() => {
+    setCalcValue("")  // Clear local state (model sync won't trigger if model value unchanged)
     setJustEvaled(false)
     if (isValidModel) {
       calculatorModel?.applyModelChange(() => {
