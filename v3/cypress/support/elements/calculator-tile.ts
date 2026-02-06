@@ -4,6 +4,9 @@ export const CalculatorTileElements = {
   getCalculatorTile() {
     return c.getComponentTile("calculator")
   },
+  getCalculatorInput() {
+    return this.getCalculatorTile().find("[data-testid=calc-input]")
+  },
   getCalcButton(button: string) {
     return this.getCalculatorTile().find("[data-testid=calc-button]").contains(button)
   },
@@ -12,7 +15,13 @@ export const CalculatorTileElements = {
       this.getCalcButton(char).click()
     })
   },
+  typeExpression(expression: string) {
+    this.getCalculatorInput().type(expression)
+  },
+  clearInput() {
+    this.getCalculatorInput().clear()
+  },
   checkCalculatorDisplay(answer: string) {
-    this.getCalculatorTile().find("[data-testid=calc-input]").should("have.text", answer)
+    this.getCalculatorInput().should("have.value", answer)
   }
 }

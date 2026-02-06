@@ -379,8 +379,8 @@ context("Graph UI", () => {
       c.closeComponent("slider")
       c.checkComponentDoesNotExist("slider")
 
-      // get the graph component
-      c.getComponentTitle("graph").should("have.text", collectionName)
+      // get the graph component and click to focus it (inspector panel only shows when tile is focused)
+      c.getComponentTitle("graph").should("have.text", collectionName).click()
       graph.getDisplayStylesButton().click()
 
       // change point size

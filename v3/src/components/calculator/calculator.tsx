@@ -1,79 +1,152 @@
-import { Button, Flex, Text } from "@chakra-ui/react"
-import React, { useState } from "react"
+import { Button, Flex, Input } from "@chakra-ui/react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { isCalculatorModel } from "./calculator-model"
-import { evaluate } from "mathjs"
+import { math } from "../../models/formula/functions/math"
+import { preprocessDisplayFormula } from "../../models/formula/utils/canonicalization-utils"
 import { logMessageWithReplacement } from "../../lib/log-message"
 
 import "./calculator.scss"
 
+// Operations that continue a calculation when typed after evaluation
+const kOperations = ["+", "-", "*", "/", "("]
+
 export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
   const [calcValue, setCalcValue] = useState("")
   const [justEvaled, setJustEvaled] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const calculatorModel = tile?.content
-  if (!isCalculatorModel(calculatorModel)) return null
+  const isValidModel = isCalculatorModel(calculatorModel)
 
-  const clearValue = () => {
+  // Focus the input when the calculator opens
+  useEffect(() => {
+    if (isValidModel && inputRef.current) {
+      inputRef.current.focus()
+    }
+  }, [isValidModel])
+
+  const clearValue = useCallback(() => {
     setCalcValue("")
     setJustEvaled(false)
-    calculatorModel?.applyModelChange(() => {}, {
-      noDirty: true,  // calculator value isn't currently serialized
-      log: {message: "Calculator value cleared", args: {}, category: "calculator"}
-    })
-  }
-
-  const insert = (strToInsert: string) => {
-    const operation = ["+", "-", "*", "/", "("]
-    if (justEvaled) {
-      const prevValue = calcValue
-      clearValue()
-      setJustEvaled(false)
-      if (operation.includes(strToInsert)) {
-        setCalcValue(()=>`${prevValue}${strToInsert}`)
-      } else {
-        setCalcValue((ex)=>`${ex}${strToInsert}`)
-      }
-    } else {
-      setCalcValue((ex)=>`${ex}${strToInsert}`)
+    if (isValidModel) {
+      calculatorModel?.applyModelChange(() => {}, {
+        noDirty: true,  // calculator value isn't currently serialized
+        log: {message: "Calculator value cleared", args: {}, category: "calculator"}
+      })
     }
-  }
+    // Focus the input after clearing
+    inputRef.current?.focus()
+  }, [calculatorModel, isValidModel])
 
-  const handleEvaluateButtonPress = () => {
-    if (justEvaled) return
-      try {
-        const solution = evaluate(calcValue)
-        !isNaN(solution) && setCalcValue(solution)
+  const insert = useCallback((strToInsert: string) => {
+    if (justEvaled) {
+      if (kOperations.includes(strToInsert)) {
+        // Keep the result and append the operator
+        setCalcValue(prev => `${prev}${strToInsert}`)
+      } else {
+        // Start fresh with the new input
+        setCalcValue(strToInsert)
+      }
+      setJustEvaled(false)
+    } else {
+      // Insert at cursor position if we have a reference to the input
+      if (inputRef.current) {
+        const start = inputRef.current.selectionStart ?? calcValue.length
+        const end = inputRef.current.selectionEnd ?? calcValue.length
+        const newValue = calcValue.slice(0, start) + strToInsert + calcValue.slice(end)
+        setCalcValue(newValue)
+        // Set cursor position after the inserted text
+        requestAnimationFrame(() => {
+          if (inputRef.current) {
+            const newPos = start + strToInsert.length
+            inputRef.current.setSelectionRange(newPos, newPos)
+            inputRef.current.focus()
+          }
+        })
+      } else {
+        setCalcValue(prev => `${prev}${strToInsert}`)
+      }
+    }
+    // Keep focus on input after button click
+    inputRef.current?.focus()
+  }, [justEvaled, calcValue])
+
+  const handleEvaluate = useCallback(() => {
+    if (justEvaled || !calcValue.trim()) return
+    // Don't try to evaluate error messages
+    if (calcValue.startsWith("#")) return
+
+    try {
+      const canonicalFormula = preprocessDisplayFormula(calcValue)
+      const compiled = math.compile(canonicalFormula)
+      const solution = compiled.evaluate({ "π": Math.PI })
+      const solutionStr = String(solution)
+      setCalcValue(solutionStr)
+      if (isValidModel) {
         calculatorModel?.applyModelChange(() => {}, {
           noDirty: true,  // calculator value isn't currently serialized
-          log: logMessageWithReplacement("Calculation done: %@ = %@", {calcValue, solution}, "calculator")
+          log: logMessageWithReplacement("Calculation done: %@ = %@", {calcValue, solution: solutionStr}, "calculator")
         })
-      } catch  (error) {
-        setCalcValue(`Error`)
       }
-      setJustEvaled(true)
-    // }
-  }
+    } catch (error: any) {
+      const errorMessage = error?.message ? `#${error.message}` : "#Error"
+      setCalcValue(errorMessage)
+    }
+    setJustEvaled(true)
+  }, [justEvaled, calcValue, calculatorModel, isValidModel])
+
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (justEvaled) {
+      // If just evaluated and user starts typing, check what they're typing
+      const newChar = e.target.value.slice(-1)
+      if (kOperations.includes(newChar)) {
+        // Keep result and append operator
+        setCalcValue(prev => prev + newChar)
+      } else {
+        // Start fresh
+        setCalcValue(e.target.value)
+      }
+      setJustEvaled(false)
+    } else {
+      setCalcValue(e.target.value)
+    }
+  }, [justEvaled])
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault()
+      handleEvaluate()
+    } else if (e.key === "Escape") {
+      e.preventDefault()
+      clearValue()
+    } else if (e.key === "=") {
+      e.preventDefault()
+      handleEvaluate()
+    }
+  }, [handleEvaluate, clearValue])
+
+  if (!isValidModel) return null
 
   const calcButtonsArr = [
     {"C": ()=>clearValue()},
-    {"\u0028": ()=>insert("(")},
-    {"\u0029": ()=>insert(")")},
-    {"\u002F": ()=>insert("/")},
+    {"(": ()=>insert("(")},
+    {")": ()=>insert(")")},
+    {"/": ()=>insert("/")},
     {"7": ()=>insert("7")},
     {"8": ()=>insert("8")},
     {"9": ()=>insert("9")},
-    {"\u0058": ()=>insert("*")},
+    {"X": ()=>insert("*")},
     {"4": ()=>insert("4")},
     {"5": ()=>insert("5")},
     {"6": ()=>insert("6")},
-    {"\u002D": ()=>insert("-")},
+    {"\u2212": ()=>insert("-")},
     {"1": ()=>insert("1")},
     {"2": ()=>insert("2")},
     {"3": ()=>insert("3")},
-    {"\u002B": ()=>insert("+")},
+    {"+": ()=>insert("+")},
     {"0": ()=>insert("0")},
-    {"\u002E": ()=>insert(".")}
+    {".": ()=>insert(".")}
   ]
 
   const calcButtons: React.ReactElement[] = []
@@ -90,10 +163,20 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
   return (
     <Flex className="calculator-wrapper">
       <Flex className="calculator" data-testid="codap-calculator">
-        <Text className="calc-input" data-testid="calc-input">{calcValue}</Text>
+        <Input
+          ref={inputRef}
+          className="calc-input"
+          data-testid="calc-input"
+          aria-label="Calculator display"
+          value={calcValue}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          autoComplete="off"
+          spellCheck={false}
+        />
         <Flex className="calc-buttons">
             {calcButtons}
-            <Button className="calc-button wide" onClick={handleEvaluateButtonPress}
+            <Button className="calc-button wide" onClick={handleEvaluate}
             data-testid="calc-button">
               =
             </Button>
