@@ -110,4 +110,54 @@ context("Calculator", () => {
     calc.getCalculatorInput().type("{esc}")
     calc.checkCalculatorDisplay("")
   })
+  it("clears with C button", () => {
+    calc.typeExpression("456")
+    calc.checkCalculatorDisplay("456")
+    calc.getCalcButton("C").click()
+    calc.checkCalculatorDisplay("")
+  })
+  it("supports undo/redo for calculations", () => {
+    // Perform a calculation
+    calc.typeExpression("2+3{enter}")
+    calc.checkCalculatorDisplay("5")
+
+    // Undo should restore empty state
+    toolbar.getUndoTool().click()
+    calc.checkCalculatorDisplay("")
+
+    // Redo should restore the result
+    toolbar.getRedoTool().click()
+    calc.checkCalculatorDisplay("5")
+  })
+  it("supports undo/redo for clearing", () => {
+    // Enter and evaluate an expression
+    calc.typeExpression("42{enter}")
+    calc.checkCalculatorDisplay("42")
+
+    // Clear the calculator
+    calc.getCalcButton("C").click()
+    calc.checkCalculatorDisplay("")
+
+    // Undo should restore the previous value
+    toolbar.getUndoTool().click()
+    calc.checkCalculatorDisplay("42")
+
+    // Redo should clear again
+    toolbar.getRedoTool().click()
+    calc.checkCalculatorDisplay("")
+  })
+  it("handles decimal calculations", () => {
+    calc.typeExpression("3.14*2{enter}")
+    calc.checkCalculatorDisplay("6.28")
+  })
+  it("shows error for invalid expressions", () => {
+    // Unmatched parenthesis should cause a parse error
+    calc.typeExpression("(2+3{enter}")
+    // Errors are prefixed with #
+    calc.getCalculatorInput().invoke("val").should("match", /^#/)
+  })
+  it("shows error for division by zero", () => {
+    calc.typeExpression("1/0{enter}")
+    calc.checkCalculatorDisplay("Infinity")
+  })
 })
