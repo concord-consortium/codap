@@ -52,6 +52,11 @@ export function getImportableFileTypeFromFile(file: File | IImportedFile | null)
 }
 
 export function getImportableFileTypeFromUrl(url: string): ImportableFileType | undefined {
+  // Check for data URLs with image content type
+  if (url.startsWith("data:image/")) {
+    return "image"
+  }
+
   // Check for Google Sheets URL pattern (doesn't have a file extension)
   if (isGoogleSheetsUrl(url)) {
     return "google-sheets"

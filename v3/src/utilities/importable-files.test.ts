@@ -115,6 +115,22 @@ describe('getImportableFileTypeFromUrl', () => {
   it('should return google-sheets for Google Sheets URL regardless of case', () => {
     expect(getImportableFileTypeFromUrl('https://DOCS.GOOGLE.COM/Spreadsheets/d/1abc/edit')).toBe('google-sheets')
   })
+
+  it('should return image for data:image/png URL', () => {
+    expect(getImportableFileTypeFromUrl('data:image/png;base64,iVBORw0KGgoAAAANS...')).toBe('image')
+  })
+
+  it('should return image for data:image/jpeg URL', () => {
+    expect(getImportableFileTypeFromUrl('data:image/jpeg;base64,/9j/4AAQ...')).toBe('image')
+  })
+
+  it('should return image for data:image/gif URL', () => {
+    expect(getImportableFileTypeFromUrl('data:image/gif;base64,R0lGODlh...')).toBe('image')
+  })
+
+  it('should not return image for non-image data URLs', () => {
+    expect(getImportableFileTypeFromUrl('data:text/html;base64,PGh0bWw+...')).toBeUndefined()
+  })
 })
 
 describe('getImportableFileTypeFromDataTransferFile', () => {

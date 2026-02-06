@@ -19,7 +19,9 @@ export const WebViewInspector = observer(function WebViewInspector({tile, show}:
   const { isOpen, onClose, onOpen } = useDisclosure()
 
   const handleSetWebViewUrlAccept = (url: string) => {
-    if (!url.startsWith("https://") && !url.startsWith("http://")) {
+    // Only prepend https:// if the URL doesn't already have a scheme (e.g. data:, blob:, http:)
+    const hasScheme = /^[a-z][a-z0-9+.-]*:/i.test(url)
+    if (!hasScheme) {
       url = `https://${url}`
     }
     documentContent?.applyModelChange(() => {
