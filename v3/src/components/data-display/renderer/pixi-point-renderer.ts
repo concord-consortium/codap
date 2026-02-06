@@ -128,13 +128,14 @@ export class PixiPointRenderer extends PointRendererBase {
         }
       })
     } catch (e) {
-      console.error("[PixiPointRenderer] PIXI.autoDetectRenderer FAILED", e)
-      return
+      console.warn("[PixiPointRenderer] PIXI.autoDetectRenderer FAILED", e)
+      throw new Error(`PixiPointRenderer initialization failed: ${e instanceof Error ? e.message : String(e)}`)
     }
 
     if (!this.renderer) {
-      console.error("[PixiPointRenderer] renderer is null after initialization - WebGL may not be supported")
-      return
+      const msg = "renderer is null after initialization - WebGL may not be supported"
+      console.warn(`[PixiPointRenderer] ${msg}`)
+      throw new Error(`PixiPointRenderer initialization failed: ${msg}`)
     }
 
     this.ticker.add(this.tick.bind(this))
