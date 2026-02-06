@@ -323,19 +323,19 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
         console.warn(`[usePointRenderer:${id}] WebGL renderer init failed, falling back to Canvas`, e)
         // If PixiPointRenderer failed, fall back to CanvasPointRenderer
         if (newRenderer.capability === "webgl") {
+          // Release the WebGL context since we couldn't use it
+          if (!skipContextRegistration) {
+            webGLContextManager.yieldContext(id)
+            setHasWebGLContext(false)
+            setContextWasDenied(true)
+          }
           const fallbackRenderer = new CanvasPointRenderer(stateRef.current)
           try {
             await fallbackRenderer.init(rendererOptions)
             setRenderer(fallbackRenderer)
             setIsReady(true)
-            // Release the WebGL context since we couldn't use it
-            if (!skipContextRegistration) {
-              webGLContextManager.yieldContext(id)
-              setHasWebGLContext(false)
-              setContextWasDenied(true)
-            }
             onRendererChange?.(fallbackRenderer)
-            return // Skip the rest of the function
+            return // Canvas fallback succeeded
           } catch (fallbackError) {
             console.error(`[usePointRenderer:${id}] Canvas fallback also failed`, fallbackError)
           }
