@@ -6,8 +6,14 @@ export const CalculatorModel = TileContentModel
   .named("CalculatorModel")
   .props({
     type: types.optional(types.literal(kCalculatorTileType), kCalculatorTileType),
-    name: ""
+    name: "",
+    value: ""
   })
+  .actions(self => ({
+    setValue(value = "") {
+      self.value = value
+    }
+  }))
 export interface ICalculatorModel extends Instance<typeof CalculatorModel> {}
 export interface ICalculatorSnapshot extends SnapshotIn<typeof CalculatorModel> {}
 
