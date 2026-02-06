@@ -1,7 +1,7 @@
 import { useDisclosure } from "@chakra-ui/react"
 import { CloudFileManager } from "@concord-consortium/cloud-file-manager"
 import { clsx } from "clsx"
-import { autorun } from "mobx"
+import { autorun, reaction } from "mobx"
 import { observer } from "mobx-react-lite"
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import { ErrorBoundary } from "react-error-boundary"
@@ -83,6 +83,23 @@ export const App = observer(function App() {
         hideSplashScreen()
       }
     })
+  }, [])
+
+  // Show/hide the splash screen for non-cursorMode busy indicator.
+  // Uses reaction (not autorun) so it doesn't fire on mount, which would hide the startup splash.
+  useLayoutEffect(() => {
+    return reaction(
+      () => ({ isBusy: uiState.isBusy, busyCursorMode: uiState.busyCursorMode }),
+      ({ isBusy, busyCursorMode }) => {
+        const splash = document.getElementById("splash-screen")
+        if (!splash) return
+        if (isBusy && !busyCursorMode) {
+          splash.style.display = ""
+        } else {
+          splash.style.display = "none"
+        }
+      }
+    )
   }, [])
 
   const progressContextValue = useProgressContextProviderValue()
@@ -221,6 +238,7 @@ export const App = observer(function App() {
                   <Container/>
                 </div>
               </ErrorBoundary>
+              {uiState.isBusy && uiState.busyCursorMode && <div className="busy-overlay" />}
             </div>
             <If condition={isOpenUserEntry}>
               <div id={`${kUserEntryDropOverlay}`}

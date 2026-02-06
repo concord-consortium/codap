@@ -88,6 +88,17 @@
   }
 }
 
+.busy-overlay {
+  background-color: rgba(0, 0, 0, 0.2);
+  cursor: wait;
+  height: 100%;
+  left: 0;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 100000;
+}
+
 .document-render-error {
   margin: 20px;
 
