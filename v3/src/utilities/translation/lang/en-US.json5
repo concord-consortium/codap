@@ -212,6 +212,7 @@
     "V3.DI.Error.adornmentRequestNotSupported": "The %@1 adornment does not currently support %@2 requests.",
     "V3.DI.Error.countAdornmentPercentNotSupported": "The current plot type does not support Percent.",
     "V3.DI.Error.invalidCellKey": "%@1 contains an invalid attribute name or ID.",
+    "V3.DI.Error.componentDoesNotSupportRescale": "Component does not support rescale",
 
     // V3 adornment strings not present in V2
     "V3.Inspector.graphRegionOfInterest": "Region of Interest",

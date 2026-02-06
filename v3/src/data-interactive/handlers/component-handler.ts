@@ -1,4 +1,7 @@
+import { isCaseTableModel } from "../../components/case-table/case-table-model"
+import { resizeAllColumns } from "../../components/case-table/case-table-utils"
 import { isGraphContentModel } from "../../components/graph/models/graph-content-model"
+import { isMapContentModel } from "../../components/map/models/map-content-model"
 import { appState } from "../../models/app-state"
 import { INewTileOptions } from "../../models/codap/create-tile"
 import { isFreeTileRow } from "../../models/document/free-tile-row"
@@ -154,6 +157,12 @@ export const diComponentHandler: DIHandler = {
         const { content } = component
         if (isGraphContentModel(content)) {
           content.rescale()
+        } else if (isMapContentModel(content)) {
+          content.rescale()
+        } else if (isCaseTableModel(content)) {
+          resizeAllColumns(content)
+        } else {
+          return errorResult(t("V3.DI.Error.componentDoesNotSupportRescale"))
         }
         break
       }
