@@ -66,7 +66,6 @@ export function joinSourceToDestCollection(params: IJoinSourceToDestCollectionPa
   ) as IAttribute[]
 
   if (attributesToJoin.length === 0) {
-    console.log("joinSourceToDestCollection: no attributes to join (only key attribute in collection)")
     return
   }
 
@@ -141,9 +140,9 @@ export function getJoinTip(
   return t("DG.Collection.joinTip", {
     vars: [
       sourceCollection.name,
-      sourceDataSet.title || sourceDataSet.name,
+      sourceDataSet.displayTitle,
       destCollection.name,
-      destDataSet.title || destDataSet.name,
+      destDataSet.displayTitle,
       sourceKeyAttr.name,
       destKeyAttr.name
     ]

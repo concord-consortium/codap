@@ -2,11 +2,13 @@ import { clsx } from "clsx"
 import { useContext } from "react"
 import { createPortal } from "react-dom"
 import { useDndContext } from "@dnd-kit/core"
+import { flip, offset, shift, useFloating } from "@floating-ui/react"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { getDragAttributeInfo, useTileDroppable } from "../../hooks/use-drag-drop"
 import { getJoinTip, joinSourceToDestCollection } from "../../models/data/join-datasets"
 import { kJoinTargetDropZoneBaseId } from "../case-table/case-table-drag-drop"
+import { If } from "../common/if"
 import { AttributeHeaderDividerContext } from "./use-attribute-header-divider-context"
 
 interface IAttributeHeaderJoinTargetProps {
@@ -82,6 +84,16 @@ function AttributeHeaderJoinTarget_({
     ? getJoinTip(sourceDataSet, sourceAttributeId, destDataSet, attributeId)
     : ""
 
+  // Set up floating-ui for tooltip positioning
+  const { refs, floatingStyles } = useFloating({
+    placement: "bottom",
+    middleware: [
+      offset(4),
+      flip(),
+      shift({ padding: 5 })
+    ]
+  })
+
   // Don't render if we don't have the required elements or if no valid drag is happening
   if (!parentElt || !containerElt || !isValidJoinDrag) {
     return null
@@ -101,11 +113,17 @@ function AttributeHeaderJoinTarget_({
 
   const className = clsx("attribute-header-join-target", { "join-drag-over": isJoinDragOver })
 
+  // Merge refs for the drop target (needs both droppable ref and floating reference ref)
+  const setRefs = (node: HTMLElement | null) => {
+    setNodeRef(node)
+    refs.setReference(node)
+  }
+
   return createPortal(
-    <div ref={setNodeRef} className={className} style={bounds}>
-      {isJoinDragOver && joinTip && (
-        <div className="join-drop-tip">{joinTip}</div>
-      )}
+    <div ref={setRefs} className={className} style={bounds}>
+      <If condition={isJoinDragOver && !!joinTip}>
+        <div ref={refs.setFloating} className="join-drop-tip" style={floatingStyles}>{joinTip}</div>
+      </If>
     </div>,
     containerElt
   )

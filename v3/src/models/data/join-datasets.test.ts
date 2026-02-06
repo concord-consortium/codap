@@ -119,10 +119,10 @@ describe("joinSourceToDestCollection", () => {
 
 describe("getJoinTip", () => {
   it("generates correct join tip message", () => {
-    const sourceData = DataSet.create({ name: "Mammals" })
+    const sourceData = DataSet.create({ _title: "Mammals" })
     sourceData.addAttribute({ name: "Name" })
 
-    const destData = DataSet.create({ name: "Cats" })
+    const destData = DataSet.create({ _title: "Cats" })
     destData.addAttribute({ name: "Species" })
 
     const sourceNameAttr = sourceData.getAttributeByName("Name")

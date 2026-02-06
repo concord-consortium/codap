@@ -534,10 +534,8 @@ $collection-title-font-color: black;
     }
 
     .join-drop-tip {
+      // Position handled by floating-ui
       position: absolute;
-      top: 100%;
-      left: 50%;
-      transform: translateX(-50%);
       white-space: normal;
       width: 350px;
       text-align: left;
@@ -549,7 +547,6 @@ $collection-title-font-color: black;
       font-weight: normal;
       line-height: 1.4;
       z-index: 100;
-      margin-top: 4px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
   }
