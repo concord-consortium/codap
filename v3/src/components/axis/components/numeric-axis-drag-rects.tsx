@@ -1,14 +1,15 @@
 import {observer} from "mobx-react-lite"
-import React, {useEffect, useRef} from "react"
+import React, {useCallback, useEffect, useRef} from "react"
 import { comparer, reaction } from "mobx"
 import { drag, DragBehavior, ScaleContinuousNumeric, select, SubjectPosition } from "d3"
+import { isKeyDown } from "../../../hooks/use-key-states"
 import { logMessageWithReplacement } from "../../../lib/log-message"
 import { getTileModel } from "../../../models/tiles/tile-model"
 import { t } from "../../../utilities/translation/translate"
 import {isVertical} from "../../axis-graph-shared"
 import { useDataDisplayModelContextMaybe } from "../../data-display/hooks/use-data-display-model"
 import {RectIndices, selectDragRects} from "../axis-types"
-import { getDomainExtentForPixelWidth } from "../axis-utils"
+import { getDomainExtentForPixelWidth, kZoomInFactor, kZoomOutFactor, zoomAxis } from "../axis-utils"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import { updateAxisNotification } from "../models/axis-notifications"
 import { IBaseNumericAxisModel } from "../models/base-numeric-axis-model"
@@ -32,9 +33,64 @@ const axisDragHints = [t("DG.CellLinearAxisView.lowerPanelTooltip"),
 export const NumericAxisDragRects = observer(
   function NumericAxisDragRects({axisModel, axisWrapperElt, numSubAxes = 1, subAxisIndex = 0}: IProps) {
     const rectRef = useRef() as React.RefObject<SVGGElement>,
+      isHoveredRef = useRef(false),
       { lockZero, place } = axisModel,
       layout = useAxisLayoutContext(),
       displayModel = useDataDisplayModelContextMaybe()
+
+    // Update cursor based on modifier keys
+    const updateCursor = useCallback((altKey: boolean, shiftKey: boolean) => {
+      const rectElement = rectRef.current
+      if (!rectElement) return
+
+      const rects = selectDragRects(rectElement)
+      if (!rects) return
+
+      // Remove zoom classes first
+      rects.classed('zoom-in', false).classed('zoom-out', false)
+
+      // Add appropriate zoom class if alt is held
+      if (altKey) {
+        if (shiftKey) {
+          rects.classed('zoom-out', true)
+        } else {
+          rects.classed('zoom-in', true)
+        }
+      }
+    }, [])
+
+    // React to modifier key changes for immediate cursor feedback
+    useEffect(() => {
+      const disposer = reaction(
+        () => [isKeyDown('Alt'), isKeyDown('Shift')] as const,
+        ([altKey, shiftKey]) => {
+          if (isHoveredRef.current) {
+            updateCursor(altKey, shiftKey)
+          }
+        }
+      )
+      return () => disposer()
+    }, [updateCursor])
+
+    // Handle option-click zoom on axis
+    const handleOptionClickZoom = useCallback((event: MouseEvent, d3Scale: ScaleContinuousNumeric<number, number>) => {
+      if (!event.altKey) return false
+
+      // Convert pixel coordinate to data value
+      const pixelCoord = place === 'bottom' ? event.offsetX : event.offsetY
+      const fixedValue = d3Scale.invert(pixelCoord)
+
+      // Determine zoom factor
+      const factor = event.shiftKey ? kZoomOutFactor : kZoomInFactor
+
+      // Get tile model for undo/redo notifications
+      const tileModel = displayModel && getTileModel(displayModel)
+
+      // Perform the zoom
+      zoomAxis(axisModel, fixedValue, factor, displayModel ?? undefined, tileModel)
+
+      return true
+    }, [axisModel, displayModel, place])
 
     useEffect(function createRects() {
       const rectElement = rectRef.current // Copy the ref value to a local variable
@@ -46,18 +102,39 @@ export const NumericAxisDragRects = observer(
         minDelta: number,
         dilationAnchorCoord: number,
         dragging = false,
-        dilating = false
+        dilating = false,
+        optionClickPending = false,
+        optionClickScale: ScaleContinuousNumeric<number, number> | null = null
+
+      // Cancel option-click zoom if there's any drag movement
+      const cancelOptionClickOnMove = (event: { dx: number, dy: number }) => {
+        if (optionClickPending && (event.dx !== 0 || event.dy !== 0)) {
+          optionClickPending = false
+          optionClickScale = null
+        }
+      }
 
       const dragBehaviors: Array<DragBehavior<SVGRectElement, RectIndices, SubjectPosition | RectIndices>> = []
 
-      const onDragStart: D3Handler = function() {
-          const subAxisLength = layout.getAxisLength(place) / numSubAxes,
-            rangeMin = subAxisIndex * subAxisLength,
-            rangeMax = (subAxisIndex + 1) * subAxisLength,
-            range = isVertical(place) ? [rangeMax, rangeMin] : [rangeMin, rangeMax]
-          multiScale = layout.getAxisMultiScale(place)
-          d3Scale = (multiScale?.scale as ScaleContinuousNumeric<number, number>).copy()
-            .range(range)
+      // Helper to get a scale with the appropriate range for this sub-axis
+      const getScaleWithRange = () => {
+        const subAxisLength = layout.getAxisLength(place) / numSubAxes
+        const rangeMin = subAxisIndex * subAxisLength
+        const rangeMax = (subAxisIndex + 1) * subAxisLength
+        const scaleRange = isVertical(place) ? [rangeMax, rangeMin] : [rangeMin, rangeMax]
+        multiScale = layout.getAxisMultiScale(place)
+        return (multiScale?.scale as ScaleContinuousNumeric<number, number>).copy().range(scaleRange)
+      }
+
+      const onDragStart: D3Handler = function(event: { sourceEvent?: MouseEvent }) {
+          // Check for option-click zoom
+          if (event.sourceEvent?.altKey) {
+            optionClickPending = true
+            optionClickScale = getScaleWithRange()
+            return // Don't start regular drag
+          }
+
+          d3Scale = getScaleWithRange()
           d3ScaleAtStart = d3Scale.copy()
           lower = d3ScaleAtStart.domain()[0]
           upper = d3ScaleAtStart.domain()[1]
@@ -66,7 +143,15 @@ export const NumericAxisDragRects = observer(
           axisModel.setTransitionDuration(0)
         },
 
-        onDilateStart: D3Handler = function(event: { x: number, y: number }) {
+        onDilateStart: D3Handler = function(event: { x: number, y: number, sourceEvent?: MouseEvent }) {
+          // Check for option-click zoom
+          if (event.sourceEvent?.altKey) {
+            optionClickPending = true
+            multiScale = layout.getAxisMultiScale(place)
+            optionClickScale = multiScale?.scale as ScaleContinuousNumeric<number, number>
+            return // Don't start regular dilate
+          }
+
           select(this)
             .classed('dragging', true)
           multiScale = layout.getAxisMultiScale(place)
@@ -83,6 +168,7 @@ export const NumericAxisDragRects = observer(
         },
 
         onLowerDilateDrag = (event: { x: number, y: number, dx: number, dy: number }) => {
+          cancelOptionClickOnMove(event)
           const delta = -(place === 'bottom' ? event.dx : event.dy)
           if (dragging && delta !== 0) {
             const
@@ -96,6 +182,7 @@ export const NumericAxisDragRects = observer(
         },
 
         onDragTranslate = (event: { dx: number; dy: number }) => {
+          cancelOptionClickOnMove(event)
           const delta = -(place === 'bottom' ? event.dx : event.dy)
           if (delta !== 0) {
             const worldDelta = getDomainExtentForPixelWidth(delta, d3Scale)
@@ -106,6 +193,7 @@ export const NumericAxisDragRects = observer(
         },
 
         onUpperDilateDrag = (event: { x: number, y: number, dx: number, dy: number }) => {
+          cancelOptionClickOnMove(event)
           const delta = (place === 'bottom' ? event.dx : event.dy)
           if (dragging && delta !== 0) {
             const
@@ -118,7 +206,15 @@ export const NumericAxisDragRects = observer(
           }
         },
 
-        onDragEnd: D3Handler = function() {
+        onDragEnd: D3Handler = function(event: { sourceEvent?: MouseEvent }) {
+          // Handle option-click zoom
+          if (optionClickPending && optionClickScale && event.sourceEvent) {
+            handleOptionClickZoom(event.sourceEvent, optionClickScale)
+            optionClickPending = false
+            optionClickScale = null
+            return
+          }
+
           select(this)
             .classed('dragging', false)
           const tileModel = displayModel && getTileModel(displayModel)
@@ -194,17 +290,38 @@ export const NumericAxisDragRects = observer(
             indexedRects?.call(dragBehavior[behaviorIndex])
           }
         })
+
+        // Add mouseenter listener for cursor updates and hover tracking
+        selectDragRects(rectElement)?.on('mouseenter', function(event: MouseEvent) {
+          isHoveredRef.current = true
+          updateCursor(event.altKey, event.shiftKey)
+        })
+
+        // Add mousemove listener for cursor updates
+        selectDragRects(rectElement)?.on('mousemove', function(event: MouseEvent) {
+          updateCursor(event.altKey, event.shiftKey)
+        })
+
+        // Add mouseleave listener to clear zoom cursor and hover tracking
+        selectDragRects(rectElement)?.on('mouseleave', function() {
+          isHoveredRef.current = false
+          selectDragRects(rectElement)?.classed('zoom-in', false).classed('zoom-out', false)
+        })
       }
 
       return () => {
-        // Cleanup drag behaviors
+        // Cleanup drag behaviors and event listeners
         if (rectElement) {
           selectDragRects(rectElement)?.on(".drag", null)
+          selectDragRects(rectElement)?.on('mouseenter', null)
+          selectDragRects(rectElement)?.on('mousemove', null)
+          selectDragRects(rectElement)?.on('mouseleave', null)
           selectDragRects(rectElement)?.remove()
         }
         dragBehaviors.forEach((behavior) => behavior.on("start", null).on("drag", null).on("end", null))
       }
-    }, [axisModel, place, layout, numSubAxes, subAxisIndex, lockZero, displayModel])
+    }, [axisModel, place, layout, numSubAxes, subAxisIndex, lockZero, displayModel, updateCursor,
+        handleOptionClickZoom])
 
     // update layout of axis drag rects when axis bounds change
     useEffect(() => {

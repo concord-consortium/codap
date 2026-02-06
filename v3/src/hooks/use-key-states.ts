@@ -1,9 +1,33 @@
+import { observable } from "mobx"
 import { useEffect } from "react"
 
-const keysDown = new Set<string>
+/**
+ * Global observable set tracking which keys are currently pressed.
+ * Being a MobX observable, any MobX reaction or observer that reads from this
+ * (via `isKeyDown`) will automatically react to key state changes.
+ */
+const keysDown = observable.set<string>()
 
+/**
+ * Check if a key is currently pressed.
+ * @param key - The key to check (e.g., 'Alt', 'Shift', 'Meta', 'Control', 'a', 'Enter')
+ * @returns true if the key is currently pressed
+ *
+ * Since `keysDown` is a MobX observable, calling this function inside a MobX
+ * `reaction`, `autorun`, or `observer` component will cause it to re-run
+ * when the key state changes.
+ */
 export const isKeyDown = (key: string) => keysDown.has(key)
 
+/**
+ * Hook that sets up global keyboard event listeners to track key states.
+ * Must be called once at the app level (already done in app.tsx).
+ *
+ * Tracks:
+ * - All keys via keydown/keyup events
+ * - Modifier keys (Shift, Alt, Meta, Control) via click events to handle
+ *   cases where modifier state changes while the window doesn't have focus
+ */
 export const useKeyStates = () => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => keysDown.add(e.key)
