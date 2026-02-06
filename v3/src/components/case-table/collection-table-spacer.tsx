@@ -67,7 +67,9 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
 
   const dragAttributeInfo = getDragAttributeInfo(active)
   const preventAttributeDrag = preventAttributeMove(data, dragAttributeInfo?.attributeId)
-  const preventDrop = preventAttributeDrag || preventCollectionDrop
+  // Don't show feedback for cross-dataset drags (those are handled by join target)
+  const isCrossDatasetDrag = dragAttributeInfo?.dataSet && dragAttributeInfo.dataSet !== data
+  const preventDrop = preventAttributeDrag || preventCollectionDrop || isCrossDatasetDrag
   const isOverAndCanDrop = isOver && !preventDrop
 
   const classes = clsx("collection-table-spacer",

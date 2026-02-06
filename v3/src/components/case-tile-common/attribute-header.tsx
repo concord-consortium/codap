@@ -13,6 +13,7 @@ import { updateAttributesNotification } from "../../models/data/data-set-notific
 import { uiState } from "../../models/ui-state"
 import { uniqueName } from "../../utilities/js-utils"
 import { AttributeHeaderDivider } from "./attribute-header-divider"
+import { AttributeHeaderJoinTarget } from "./attribute-header-join-target"
 import { AttributeMenuList } from "./attribute-menu/attribute-menu-list"
 import { CaseTilePortal } from "./case-tile-portal"
 import { GetDividerBoundsFn, kIndexColumnKey } from "./case-tile-types"
@@ -283,12 +284,18 @@ export const AttributeHeader = observer(function AttributeHeader({
                 </CaseTilePortal>
               }
               {attributeId && !beforeHeaderDivider &&
-                <AttributeHeaderDivider
-                  key={attributeId}
-                  columnKey={attributeId}
-                  cellElt={parentRef.current}
-                  getDividerBounds={getDividerBounds}
-                />
+                <>
+                  <AttributeHeaderDivider
+                    key={attributeId}
+                    columnKey={attributeId}
+                    cellElt={parentRef.current}
+                    getDividerBounds={getDividerBounds}
+                  />
+                  <AttributeHeaderJoinTarget
+                    attributeId={attributeId}
+                    parentElt={parentRef.current}
+                  />
+                </>
               }
             </div>
           </Tooltip>
