@@ -8,6 +8,9 @@ import { logMessageWithReplacement } from "../../lib/log-message"
 
 import "./calculator.scss"
 
+// Operations that continue a calculation when typed after evaluation
+const kOperations = ["+", "-", "*", "/", "("]
+
 export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
   const [calcValue, setCalcValue] = useState("")
   const [justEvaled, setJustEvaled] = useState(false)
@@ -37,9 +40,8 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
   }, [calculatorModel, isValidModel])
 
   const insert = useCallback((strToInsert: string) => {
-    const operations = ["+", "-", "*", "/", "("]
     if (justEvaled) {
-      if (operations.includes(strToInsert)) {
+      if (kOperations.includes(strToInsert)) {
         // Keep the result and append the operator
         setCalcValue(prev => `${prev}${strToInsert}`)
       } else {
@@ -79,7 +81,7 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
       const canonicalFormula = preprocessDisplayFormula(calcValue)
       const compiled = math.compile(canonicalFormula)
       const solution = compiled.evaluate({ "π": Math.PI })
-      const solutionStr = typeof solution === "number" && !isNaN(solution) ? String(solution) : String(solution)
+      const solutionStr = String(solution)
       setCalcValue(solutionStr)
       if (isValidModel) {
         calculatorModel?.applyModelChange(() => {}, {
@@ -98,10 +100,9 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
     if (justEvaled) {
       // If just evaluated and user starts typing, check what they're typing
       const newChar = e.target.value.slice(-1)
-      const operations = ["+", "-", "*", "/", "("]
-      if (operations.includes(newChar)) {
+      if (kOperations.includes(newChar)) {
         // Keep result and append operator
-        setCalcValue(calcValue + newChar)
+        setCalcValue(prev => prev + newChar)
       } else {
         // Start fresh
         setCalcValue(e.target.value)
@@ -129,23 +130,23 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
 
   const calcButtonsArr = [
     {"C": ()=>clearValue()},
-    {"\u0028": ()=>insert("(")},
-    {"\u0029": ()=>insert(")")},
-    {"\u002F": ()=>insert("/")},
+    {"(": ()=>insert("(")},
+    {")": ()=>insert(")")},
+    {"/": ()=>insert("/")},
     {"7": ()=>insert("7")},
     {"8": ()=>insert("8")},
     {"9": ()=>insert("9")},
-    {"\u0058": ()=>insert("*")},
+    {"X": ()=>insert("*")},
     {"4": ()=>insert("4")},
     {"5": ()=>insert("5")},
     {"6": ()=>insert("6")},
-    {"\u002D": ()=>insert("-")},
+    {"-": ()=>insert("-")},
     {"1": ()=>insert("1")},
     {"2": ()=>insert("2")},
     {"3": ()=>insert("3")},
-    {"\u002B": ()=>insert("+")},
+    {"+": ()=>insert("+")},
     {"0": ()=>insert("0")},
-    {"\u002E": ()=>insert(".")}
+    {".": ()=>insert(".")}
   ]
 
   const calcButtons: React.ReactElement[] = []
@@ -166,6 +167,7 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
           ref={inputRef}
           className="calc-input"
           data-testid="calc-input"
+          aria-label="Calculator display"
           value={calcValue}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
