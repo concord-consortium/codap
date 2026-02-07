@@ -112,20 +112,18 @@ Wait for user confirmation before starting Phase 1.
    gh pr view <number> --json number,title,headRefName
    ```
 
-3. **Get Jira stories with status "Done" since previous release date**
-
-4. **Match PRs to Jira stories by CODAP-XXX ID:**
+3. **Match PRs to Jira stories by CODAP-XXX ID:**
    - Check branch name first (most reliable, e.g., `CODAP-1027-inbounds-url-param`)
    - Then PR title (e.g., `CODAP-1027: Implement inbounds parameter`)
    - Use caution with PR descriptions - they may reference related stories (e.g., "Follow-up to CODAP-XXX") that aren't the primary story for this PR
    - Extract unique CODAP-XXX IDs
 
-5. **For each matched item, fetch:**
-   - Jira story details (summary, issue type)
+4. **For each matched item, fetch:**
+   - Jira story details (summary, issue type, **current status**)
    - PR title from GitHub
    - Generate AI-suggested title (concise, user-focused)
 
-6. **Interactive walkthrough for each item:**
+5. **Interactive walkthrough for each item:**
 
    **IMPORTANT - NO SHORTCUTS:**
    - Do NOT ask user to approve the entire list at once
@@ -149,37 +147,45 @@ Wait for user confirmation before starting Phase 1.
 
    **Note:** Strip Jira IDs from PR titles before presenting (e.g., "CODAP-138: Fix point color" → "Fix point color")
 
-   Then ask questions using AskUserQuestion in TWO SEPARATE CALLS (so Title is skipped if Exclude):
+   **Jira status notice (if not Done):**
+   If the story's Jira status is anything other than "Done" (e.g., "In Project Team Review", "In Code Review"), append the status to the item header line with a warning indicator:
+   ```
+   ### Item 1/8: CODAP-1027 (Story) — Jira status: In Project Team Review ⚠️
+   ```
+   Do NOT add the status suffix for stories that are "Done". The user can choose to exclude the story via the Section question.
 
-   **First call - Section:**
+   Then ask questions using AskUserQuestion (Section and Title are TWO SEPARATE CALLS so Title is skipped if Exclude):
+
+   **Section question:**
    - Question: "Which section for this item?"
    - Options: Features / Bug Fixes / Under the Hood / Exclude
    - Add "(Recommended)" to Features for Stories, Bug Fixes for Bugs
    - If user types in "Other", interpret as an instruction (e.g., "go back to previous item") and handle accordingly
 
-   **Second call - Title (ONLY if Section is not Exclude):**
+   **If Section is NOT Exclude - ask Title question:**
    - Question: "Which title? (See table above, or type your preferred title in 'Other')"
    - Options: AI suggestion / Jira / PR (no "Custom" - user types preferred title in built-in "Other")
    - If user types in "Other", use their text as the title
-   - Do NOT ask this question if user selected Exclude
+   - **Title option order must ALWAYS be:** AI suggestion, Jira, PR (both in table and in question options)
+   - Stories included in release notes will have their Fix Version updated automatically (tracked for step 9)
 
-   **Title option order must ALWAYS be:** AI suggestion, Jira, PR (both in table and in question options)
-   - Fix Version will be updated automatically
-
-   If **excluded**:
-   - Ask: **Update Fix Version anyway?** Yes / No
-     - Some stories marked "Done" may have been fixed in a prior release
+   **If Section IS Exclude - ask Fix Version question:**
+   - Question: "Should this story's Fix Version be set to this release?"
+   - Options: Yes / No
+   - Default recommendation: **Yes (Recommended)** - infrastructure improvements may not be user-facing but should still be tracked in Jira
+   - If **Yes**: Add to Fix Version update list (step 9) even though excluded from release notes
+   - If **No**: Do not update Fix Version (e.g., if the story was fixed in a prior release, or the PR isn't part of this release)
 
    After selection, confirm:
    > ✓ **CODAP-1027** → Features: "Selected title here"
 
-7. **For PRs without Jira IDs:**
+6. **For PRs without Jira IDs:**
    - Show PR title only
    - Default recommendation: **Exclude (Recommended)** for docs, dependencies, maintenance
    - Option to include in Under the Hood if relevant
    - No Fix Version to update (no Jira story)
 
-8. **Generate CHANGELOG markdown** after all items are processed:
+7. **Generate CHANGELOG markdown** after all items are processed:
 
    ```markdown
    ## Version {version} - Month Day, Year
@@ -202,7 +208,7 @@ Wait for user confirmation before starting Phase 1.
    - Use the release date from Phase 1
    - Date format: `Month Day, Year` (e.g., `February 1, 2026`)
 
-9. **Present generated markdown for approval:**
+8. **Present generated markdown for approval:**
 
    Show the complete CHANGELOG entry, then ask:
    - **Approve** - Release notes are ready, proceed to Phase 3
@@ -211,7 +217,7 @@ Wait for user confirmation before starting Phase 1.
 
    Note: Mention that Asset Sizes will be added in Phase 4 after the build.
 
-10. **Update Jira Fix Versions** for all stories where user approved the update (during step 6).
+9. **Update Jira Fix Versions** for all stories where user approved the update (during step 5).
 
     **IMPORTANT - Context Management:** Jira MCP responses can be verbose and consume significant context. Delegate this bulk operation to a subagent:
 
@@ -345,7 +351,7 @@ Wait for user confirmation before starting Phase 1.
 3. **Create GitHub release:**
    ```bash
    gh release create {version} \
-     --title "{version}" \
+     --title "Version {version}" \
      --notes "{release_notes_from_phase_2}"
    ```
 
