@@ -34,11 +34,11 @@ export class DataDisplayRenderState {
     }
   }
 
-  async updateSnapshot() {
+  async updateSnapshot(dpr?: number) {
     const { imageOptions } = this
     if (!imageOptions) return
 
-    const graphImage = await graphSnapshot({ ...imageOptions, asDataURL: true })
+    const graphImage = await graphSnapshot({ ...imageOptions, asDataURL: true, dpr })
     const dataUri = typeof graphImage === "string" ? graphImage : undefined
     if (dataUri) {
       this.setDataUri(dataUri)

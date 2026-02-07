@@ -93,6 +93,7 @@ interface IExportGraphToPngOptions {
   renderer: PointRendererBase
   width: number
   height: number
+  dpr?: number
 }
 
 /**
@@ -101,7 +102,7 @@ interface IExportGraphToPngOptions {
  * with the context pre-scaled so all drawing uses logical (CSS) coordinates.
  */
 async function exportGraphToCanvas(options: IExportGraphToPngOptions): Promise<HTMLCanvasElement> {
-  const { graphElement, renderer, width, height } = options
+  const { graphElement, renderer, width, height, dpr: dprOption } = options
 
   // Find the actual graph content element (the .graph-plot div inside the tile)
   // graphElement may be the tile container which includes the title bar
@@ -113,8 +114,9 @@ async function exportGraphToCanvas(options: IExportGraphToPngOptions): Promise<H
   const exportWidth = contentRect.width || width
   const exportHeight = contentRect.height || height
 
-  // Scale canvas by devicePixelRatio for sharp output on high-DPI displays
-  const dpr = window.devicePixelRatio || 1
+  // Scale canvas by devicePixelRatio for sharp output on high-DPI displays.
+  // Callers can override dpr (e.g. dpr=1) when the image dimensions should match logical size.
+  const dpr = dprOption ?? (window.devicePixelRatio || 1)
   const canvas = document.createElement("canvas")
   canvas.width = Math.ceil(exportWidth * dpr)
   canvas.height = Math.ceil(exportHeight * dpr)
@@ -262,6 +264,7 @@ export interface IGraphImageOptions {
   graphWidth: number
   graphHeight: number
   renderer: PointRendererBase
+  dpr?: number
 }
 
 interface IGraphSnapshotOptions extends IGraphImageOptions {
@@ -269,13 +272,14 @@ interface IGraphSnapshotOptions extends IGraphImageOptions {
 }
 
 export const graphSnapshot = async (options: IGraphSnapshotOptions): Promise<string | Blob> => {
-  const { rootEl, graphWidth, graphHeight, renderer, asDataURL } = options
+  const { rootEl, graphWidth, graphHeight, renderer, asDataURL, dpr } = options
 
   const canvas = await exportGraphToCanvas({
     graphElement: rootEl,
     renderer,
     width: graphWidth,
-    height: graphHeight
+    height: graphHeight,
+    dpr
   })
 
   if (asDataURL) {

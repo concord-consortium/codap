@@ -82,15 +82,16 @@ export const CameraMenuList = observer(function CameraMenuList() {
     )
   }
 
-  const getImageString = async () => {
+  const getImageString = async (dpr?: number) => {
     if (!graphModel?.renderState) return ''
-    await graphModel.renderState.updateSnapshot()
+    await graphModel.renderState.updateSnapshot(dpr)
     return graphModel.renderState.dataUri || ''
   }
 
   const handleOpenInDrawTool = async () => {
     if (tile) {
-      const imageString = await getImageString()
+      // Use dpr=1 so the image dimensions match the graph's logical size
+      const imageString = await getImageString(1)
       await openInDrawTool(tile, imageString)
     }
   }
