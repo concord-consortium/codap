@@ -1,9 +1,25 @@
-import { Active, DragOverlay, Modifiers, useDndContext } from "@dnd-kit/core"
+import { Active, DragOverlay, Modifier, Modifiers, useDndContext } from "@dnd-kit/core"
 import { snapCenterToCursor } from "@dnd-kit/modifiers"
 import { CSSProperties, useMemo } from "react"
 import { getDragAttributeInfo } from "../../hooks/use-drag-drop"
+import { kContainerClass } from "../container/container-constants"
 
 import "./attribute-drag-overlay.scss"
+
+function createRestrictAboveContainerTop(): Modifier {
+  let containerTop: number | undefined
+  return ({ transform, draggingNodeRect }) => {
+    if (!draggingNodeRect) return transform
+    if (containerTop === undefined) {
+      const container = document.querySelector(`.${kContainerClass}`)
+      containerTop = container?.getBoundingClientRect().top ?? undefined
+    }
+    if (containerTop !== undefined && draggingNodeRect.top + transform.y < containerTop) {
+      return { ...transform, y: containerTop - draggingNodeRect.top }
+    }
+    return transform
+  }
+}
 
 function getOverlayDragId(active: Active | null, instanceId: string, excludeRegEx?: RegExp) {
   const activeId = `${active?.id}`
@@ -55,7 +71,8 @@ export function AttributeDragOverlay ({
         }
       })
     }
-    return mods.length > 0 ? mods : undefined
+    mods.push(createRestrictAboveContainerTop())
+    return mods
   }, [snapToCursor, xOffset, yOffset])
 
   // Trigger a re-render at the end of the drag.
