@@ -9,7 +9,7 @@ import styles from "./case-table-shared.scss"
 const kAutoScrollTickInterval = 16 // ms between auto-scroll ticks
 const kAutoScrollTicksPerSecond = 1000 / kAutoScrollTickInterval
 const kAutoScrollSpeedFactor = 0.5 // rows per second per pixel of distance from grid edge
-const kMaxAutoScrollSpeed = 8 // max rows scrolled per tick
+const kMaxAutoScrollSpeed = 8 // max rows scrolled per second
 
 // Helper function to get the case id from a pointer event
 function getCaseIdFromEvent(event: React.PointerEvent) {
@@ -86,6 +86,7 @@ export function useMarqueeSelection({
     }
     if (docUpHandler.current) {
       document.removeEventListener("pointerup", docUpHandler.current)
+      document.removeEventListener("pointercancel", docUpHandler.current)
       docUpHandler.current = null
     }
   }, [])
@@ -96,14 +97,16 @@ export function useMarqueeSelection({
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     const startRowIdx = getRowIndexFromEvent(event)
     if (startRowIdx != null) {
-      selectionStartRowIdx.current = startRowIdx
-      isSelecting.current = true
-      pointerY.current = event.clientY
-
       // Capture grid/rowHeight at pointer-down time for use in closures below.
+      // Guard before mutating selection state so that an early return doesn't
+      // leave isSelecting stuck without a document-level pointerup to clean up.
       const grid = gridRef.current?.element
       const rHeight = collectionTableModel?.rowHeight
       if (!grid || !rHeight) return
+
+      selectionStartRowIdx.current = startRowIdx
+      isSelecting.current = true
+      pointerY.current = event.clientY
 
       // Start auto-scroll interval. Uses collectionTableModel's scroll API
       // because React Data Grid overrides direct scrollTop manipulation.
@@ -136,6 +139,7 @@ export function useMarqueeSelection({
           const rowDelta = Math.floor(scrollAccumulator) * direction
           scrollAccumulator -= Math.abs(rowDelta)
           const numRows = rowsLengthRef.current
+          if (numRows <= 0) return
           const targetRowIdx = rowDelta < 0
             ? Math.max(0, ctModel.firstVisibleRowIndex + rowDelta)
             : Math.min(numRows - 1, ctModel.lastVisibleRowIndex + rowDelta)
@@ -161,6 +165,7 @@ export function useMarqueeSelection({
       }
       document.addEventListener("pointermove", docMoveHandler.current)
       document.addEventListener("pointerup", docUpHandler.current)
+      document.addEventListener("pointercancel", docUpHandler.current)
     }
   }
 
