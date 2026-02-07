@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useRef } from "react"
 import { DataGridHandle } from "react-data-grid"
-import { collectionCaseIdFromIndex, collectionCaseIndexFromId, setSelectedCases } from "../../models/data/data-set-utils"
 import { IDataSet } from "../../models/data/data-set"
+import {
+  collectionCaseIdFromIndex, collectionCaseIndexFromId, setSelectedCases
+} from "../../models/data/data-set-utils"
 import { CollectionTableModel } from "./collection-table-model"
 
 import styles from "./case-table-shared.scss"
