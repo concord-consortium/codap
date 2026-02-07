@@ -68,6 +68,20 @@ export function processWebViewUrl(url: string) {
   return updatedUrl
 }
 
+export function normalizeUrlScheme(url: string): string {
+  url = url.trim()
+  if (url.startsWith("//")) {
+    // Handle scheme-relative URLs (e.g. //example.com/path)
+    return `https:${url}`
+  }
+  // Only prepend https:// if the URL doesn't already have a scheme (e.g. data:, blob:, http:)
+  const hasScheme = /^[a-z][a-z0-9+.-]*:/i.test(url)
+  if (!hasScheme) {
+    return `https://${url}`
+  }
+  return url
+}
+
 export function getNameFromURL(iUrl: string | URL | null | undefined): string {
   if (!iUrl) return ""
 

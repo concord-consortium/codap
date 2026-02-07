@@ -8,6 +8,7 @@ import { InspectorButton, InspectorPanel } from "../inspector-panel"
 import { ITileInspectorPanelProps } from "../tiles/tile-base-props"
 import { WebViewUrlModal } from "./web-view-url-modal"
 import { isWebViewModel } from "./web-view-model"
+import { normalizeUrlScheme } from "./web-view-utils"
 
 import UrlIcon from "../../assets/icons/inspector-panel/web-url-icon.svg"
 
@@ -19,9 +20,7 @@ export const WebViewInspector = observer(function WebViewInspector({tile, show}:
   const { isOpen, onClose, onOpen } = useDisclosure()
 
   const handleSetWebViewUrlAccept = (url: string) => {
-    if (!url.startsWith("https://") && !url.startsWith("http://")) {
-      url = `https://${url}`
-    }
+    url = normalizeUrlScheme(url)
     documentContent?.applyModelChange(() => {
       webViewModel?.setUrl(url)
     }, {
