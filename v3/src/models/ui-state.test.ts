@@ -337,6 +337,77 @@ describe("UIState", () => {
     })
   })
 
+  describe("busy indicator", () => {
+    beforeEach(() => {
+      jest.useFakeTimers()
+    })
+
+    afterEach(() => {
+      jest.useRealTimers()
+    })
+
+    it("should not be busy by default", () => {
+      const uiState = new UIState()
+      expect(uiState.isBusy).toBe(false)
+      expect(uiState.busyCursorMode).toBe(false)
+    })
+
+    it("should set busy state without cursorMode", () => {
+      const uiState = new UIState()
+      uiState.setBusy(true)
+      expect(uiState.isBusy).toBe(true)
+      expect(uiState.busyCursorMode).toBe(false)
+    })
+
+    it("should set busy state with cursorMode", () => {
+      const uiState = new UIState()
+      uiState.setBusy(true, true)
+      expect(uiState.isBusy).toBe(true)
+      expect(uiState.busyCursorMode).toBe(true)
+    })
+
+    it("should clear busy state", () => {
+      const uiState = new UIState()
+      uiState.setBusy(true, true)
+      expect(uiState.isBusy).toBe(true)
+      uiState.setBusy(false)
+      expect(uiState.isBusy).toBe(false)
+      expect(uiState.busyCursorMode).toBe(false)
+    })
+
+    it("should auto-clear after timeout in cursorMode", () => {
+      const uiState = new UIState()
+      uiState.setBusy(true, true)
+      expect(uiState.isBusy).toBe(true)
+      expect(uiState.busyCursorMode).toBe(true)
+      jest.advanceTimersByTime(60000)
+      expect(uiState.isBusy).toBe(false)
+      expect(uiState.busyCursorMode).toBe(false)
+    })
+
+    it("should not auto-clear without cursorMode", () => {
+      const uiState = new UIState()
+      uiState.setBusy(true)
+      expect(uiState.isBusy).toBe(true)
+      jest.advanceTimersByTime(60000)
+      expect(uiState.isBusy).toBe(true)
+    })
+
+    it("should clear previous timeout when setBusy is called again", () => {
+      const uiState = new UIState()
+      uiState.setBusy(true, true)
+      jest.advanceTimersByTime(30000)
+      // Second call clears the first 60s timeout and starts a new one
+      uiState.setBusy(true, true)
+      // 30s later: the first timeout would have fired here (60s total) if not cleared
+      jest.advanceTimersByTime(30000)
+      expect(uiState.isBusy).toBe(true)
+      // 30s more: 60s since the second setBusy call, so its timeout fires
+      jest.advanceTimersByTime(30000)
+      expect(uiState.isBusy).toBe(false)
+    })
+  })
+
   describe("hideUserEntryModal", () => {
     it("should be false by default", () => {
       const uiState = new UIState()
