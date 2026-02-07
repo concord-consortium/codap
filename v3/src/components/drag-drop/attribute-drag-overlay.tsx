@@ -6,15 +6,19 @@ import { kContainerClass } from "../container/container-constants"
 
 import "./attribute-drag-overlay.scss"
 
-const restrictAboveContainerTop: Modifier = ({ transform, draggingNodeRect }) => {
-  if (!draggingNodeRect) return transform
-  const container = document.querySelector(`.${kContainerClass}`)
-  if (!container) return transform
-  const containerRect = container.getBoundingClientRect()
-  if (draggingNodeRect.top + transform.y < containerRect.top) {
-    return { ...transform, y: containerRect.top - draggingNodeRect.top }
+function createRestrictAboveContainerTop(): Modifier {
+  let containerTop: number | undefined
+  return ({ transform, draggingNodeRect }) => {
+    if (!draggingNodeRect) return transform
+    if (containerTop === undefined) {
+      const container = document.querySelector(`.${kContainerClass}`)
+      containerTop = container?.getBoundingClientRect().top ?? undefined
+    }
+    if (containerTop !== undefined && draggingNodeRect.top + transform.y < containerTop) {
+      return { ...transform, y: containerTop - draggingNodeRect.top }
+    }
+    return transform
   }
-  return transform
 }
 
 function getOverlayDragId(active: Active | null, instanceId: string, excludeRegEx?: RegExp) {
@@ -67,7 +71,7 @@ export function AttributeDragOverlay ({
         }
       })
     }
-    mods.push(restrictAboveContainerTop)
+    mods.push(createRestrictAboveContainerTop())
     return mods
   }, [snapToCursor, xOffset, yOffset])
 
