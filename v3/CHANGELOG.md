@@ -6,6 +6,8 @@
 - **CODAP-171:** Users can import/drag a URL for a Google Sheet and get a dataset based on that sheet
 - **CODAP-223:** Image dragged from browser into CODAP has appropriate size and responds to component resize
 - **CODAP-760:** Notify users if CODAP is run on an unsupported browser
+- **CODAP-1023:** Implement embeddedMode and embeddedServer URL parameters
+- **CODAP-1027:** Implement `inbounds` URL parameter for constrained component layout
 - **CODAP-1083:** Plugin API now supports bar chart scale configuration
 
 ### 🐞 Bug Fixes:
