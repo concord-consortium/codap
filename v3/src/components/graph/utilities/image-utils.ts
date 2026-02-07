@@ -14,198 +14,283 @@ const disallowedElementClasses = new Set([
   "header-right",
 ])
 
-export interface IGraphSvgOptions {
+interface IRenderSvgToCanvasOptions {
+  svg: SVGSVGElement
+  ctx: CanvasRenderingContext2D
+  x?: number
+  y?: number
+  width: number
+  height: number
+}
+
+/**
+ * Renders an SVG element to a canvas context.
+ * Clones the SVG, inlines styles, removes UI elements, and draws to canvas.
+ */
+async function renderSvgToCanvas(options: IRenderSvgToCanvasOptions): Promise<void> {
+  const { svg, ctx, x = 0, y = 0, width, height } = options
+
+  // Clone to avoid modifying the original
+  const clone = svg.cloneNode(true) as SVGSVGElement
+
+  // Inline computed styles for text and shape elements BEFORE removing disallowed elements.
+  // This ensures index-based matching between clone and original works correctly.
+  const elementsToStyle = clone.querySelectorAll("text, line, rect, circle, path, ellipse, polygon, polyline")
+  const originalElements = svg.querySelectorAll("text, line, rect, circle, path, ellipse, polygon, polyline")
+
+  elementsToStyle.forEach((el, index) => {
+    const original = originalElements[index]
+    if (original && el instanceof SVGElement) {
+      const computed = window.getComputedStyle(original)
+      // Inline key visual properties
+      const propsToInline = [
+        "fill", "stroke", "stroke-width", "font-family", "font-size", "font-weight",
+        "text-anchor", "dominant-baseline", "opacity", "fill-opacity", "stroke-opacity"
+      ]
+      propsToInline.forEach(prop => {
+        const value = computed.getPropertyValue(prop)
+        if (value) {
+          el.style.setProperty(prop, value)
+        }
+      })
+    }
+  })
+
+  // Remove disallowed elements from clone (after style inlining to preserve index matching)
+  Array.from(clone.querySelectorAll("*")).forEach(el => {
+    const isDisallowed = Array.from(el.classList).some(c => disallowedElementClasses.has(c))
+    if (isDisallowed) {
+      el.parentElement?.removeChild(el)
+    }
+  })
+
+  // Set SVG namespace and dimensions
+  clone.setAttribute("xmlns", "http://www.w3.org/2000/svg")
+  clone.setAttribute("width", String(width))
+  clone.setAttribute("height", String(height))
+
+  // Serialize to data URL
+  const svgString = new XMLSerializer().serializeToString(clone)
+  const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`
+
+  // Load as image and draw to canvas
+  await new Promise<void>((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      ctx.drawImage(img, x, y, width, height)
+      resolve()
+    }
+    img.onerror = (e) => {
+      console.warn("Failed to render SVG to canvas:", e)
+      resolve() // Don't reject - continue with partial export
+    }
+    img.src = dataUrl
+  })
+}
+
+interface IExportGraphToPngOptions {
+  graphElement: HTMLElement
+  renderer: PointRendererBase
+  width: number
+  height: number
+  dpr?: number
+}
+
+/**
+ * Composites all graph layers onto a single canvas and returns it.
+ * The canvas is scaled by devicePixelRatio for sharp rendering on high-DPI displays,
+ * with the context pre-scaled so all drawing uses logical (CSS) coordinates.
+ */
+async function exportGraphToCanvas(options: IExportGraphToPngOptions): Promise<HTMLCanvasElement> {
+  const { graphElement, renderer, width, height, dpr: dprOption } = options
+
+  // Find the actual graph content element (the .graph-plot div inside the tile)
+  // graphElement may be the tile container which includes the title bar
+  const graphContent = graphElement.querySelector(".graph-plot")
+  const contentElement = graphContent instanceof HTMLElement ? graphContent : graphElement
+  const contentRect = contentElement.getBoundingClientRect()
+
+  // Prefer dimensions from the content element; fall back to the passed width/height
+  const exportWidth = contentRect.width || width
+  const exportHeight = contentRect.height || height
+
+  // Scale canvas by devicePixelRatio for sharp output on high-DPI displays.
+  // Callers can override dpr (e.g. dpr=1) when the image dimensions should match logical size.
+  const dpr = dprOption ?? (window.devicePixelRatio || 1)
+  const canvas = document.createElement("canvas")
+  canvas.width = Math.ceil(exportWidth * dpr)
+  canvas.height = Math.ceil(exportHeight * dpr)
+  const ctx = canvas.getContext("2d")
+
+  if (!ctx) {
+    throw new Error("Failed to get 2D canvas context for PNG export")
+  }
+
+  // Scale context so all drawing operations use logical (CSS) coordinates
+  ctx.scale(dpr, dpr)
+
+  // 1. Background fill
+  ctx.fillStyle = "#f8f8f8"
+  ctx.fillRect(0, 0, exportWidth, exportHeight)
+
+  // Cache the graph content's bounding rect to avoid repeated layout calculations
+  const graphRect = contentRect
+
+  // 2. Base SVG layer (axes, grid, labels, below-points content)
+  const baseSvg = contentElement.querySelector("svg.graph-svg")
+  if (baseSvg instanceof SVGSVGElement) {
+    try {
+      const svgRect = baseSvg.getBoundingClientRect()
+      await renderSvgToCanvas({
+        svg: baseSvg,
+        ctx,
+        x: svgRect.left - graphRect.left,
+        y: svgRect.top - graphRect.top,
+        width: svgRect.width,
+        height: svgRect.height
+      })
+    } catch (e) {
+      console.warn("Failed to render graph SVG layer:", e)
+    }
+  }
+
+  // 3. Points/bars canvas (from renderer)
+  // For WebGL (PIXI), we need to use the extract API to get the rendered content
+  // For Canvas 2D, we can draw directly from the canvas element
+  const pointsCanvas = renderer.canvas
+  if (pointsCanvas && pointsCanvas.width > 0 && pointsCanvas.height > 0) {
+    try {
+      // Get the position of the canvas relative to the graph element
+      const canvasRect = pointsCanvas.getBoundingClientRect()
+      const canvasX = canvasRect.left - graphRect.left
+      const canvasY = canvasRect.top - graphRect.top
+
+      // Check if this is a PIXI renderer (has extract API)
+      const pixiRenderer = (renderer as any).renderer
+      const pixiStage = (renderer as any).stage
+      let sourceCanvas: HTMLCanvasElement | null = null
+
+      if (pixiRenderer?.extract?.canvas && pixiStage) {
+        // WebGL/PIXI: Extract the rendered content to a new canvas
+        sourceCanvas = pixiRenderer.extract.canvas(pixiStage) as HTMLCanvasElement
+      } else {
+        // Canvas 2D: Use the canvas directly
+        sourceCanvas = pointsCanvas
+      }
+
+      if (sourceCanvas) {
+        // Canvas uses devicePixelRatio scaling - draw from full size to logical size
+        ctx.drawImage(
+          sourceCanvas,
+          0, 0, sourceCanvas.width, sourceCanvas.height,  // source (DPR-scaled)
+          canvasX, canvasY, canvasRect.width, canvasRect.height  // dest (logical size)
+        )
+      }
+    } catch (e) {
+      console.warn("Failed to render points canvas:", e)
+    }
+  }
+
+  // 4. Overlay SVG (above-points content, selection shapes)
+  const overlaySvg = contentElement.querySelector("svg.overlay-svg")
+  if (overlaySvg instanceof SVGSVGElement) {
+    try {
+      const svgRect = overlaySvg.getBoundingClientRect()
+      await renderSvgToCanvas({
+        svg: overlaySvg,
+        ctx,
+        x: svgRect.left - graphRect.left,
+        y: svgRect.top - graphRect.top,
+        width: svgRect.width,
+        height: svgRect.height
+      })
+    } catch (e) {
+      console.warn("Failed to render overlay SVG layer:", e)
+    }
+  }
+
+  // 5. Adornments SVG (spanner-svg contains drawn adornment lines/shapes)
+  const adornmentSvg = contentElement.querySelector("svg.spanner-svg")
+  if (adornmentSvg instanceof SVGSVGElement) {
+    try {
+      const svgRect = adornmentSvg.getBoundingClientRect()
+      await renderSvgToCanvas({
+        svg: adornmentSvg,
+        ctx,
+        x: svgRect.left - graphRect.left,
+        y: svgRect.top - graphRect.top,
+        width: svgRect.width,
+        height: svgRect.height
+      })
+    } catch (e) {
+      console.warn("Failed to render adornments SVG:", e)
+    }
+  }
+
+  // 6. Legend SVG (positioned below the graph area)
+  const legendSvgs = contentElement.querySelectorAll("svg.legend-component")
+  for (const legendSvg of legendSvgs) {
+    if (!(legendSvg instanceof SVGSVGElement)) continue
+    try {
+      const svgRect = legendSvg.getBoundingClientRect()
+      await renderSvgToCanvas({
+        svg: legendSvg,
+        ctx,
+        x: svgRect.left - graphRect.left,
+        y: svgRect.top - graphRect.top,
+        width: svgRect.width,
+        height: svgRect.height
+      })
+    } catch (e) {
+      console.warn("Failed to render legend SVG:", e)
+    }
+  }
+
+  return canvas
+}
+
+/**
+ * Exports a graph to PNG by compositing all layers onto a single canvas.
+ * Layers (in z-order): background, base SVG, points canvas, overlay SVG, adornments, legend.
+ * Returns a data URL string.
+ */
+export async function exportGraphToPng(options: IExportGraphToPngOptions): Promise<string> {
+  const canvas = await exportGraphToCanvas(options)
+  return canvas.toDataURL("image/png")
+}
+
+export interface IGraphImageOptions {
   rootEl: HTMLElement
   graphWidth: number
   graphHeight: number
   renderer: PointRendererBase
+  dpr?: number
 }
 
-export function graphSvg({ rootEl, graphWidth, graphHeight, renderer }: IGraphSvgOptions): string {
-  // Gather CSS styles
-  const getCssText = (): string => {
-    const text: string[] = []
-    for (let ix = 0; ix < document.styleSheets.length; ix++) {
-      try {
-        const styleSheet = document.styleSheets[ix]
-        if (styleSheet) {
-          const rules = styleSheet.rules || styleSheet.cssRules || []
-          for (let jx = 0; jx < rules.length; jx++) {
-            const rule = rules[jx]
-            text.push(rule.cssText)
-          }
-        }
-      } catch (ex) {
-        console.warn(`Exception retrieving stylesheet: ${ex}`)
-      }
-    }
-    return text.join("\n")
-  }
-  const css = document.createElement("style")
-  css.textContent = getCssText()
-
-  // Append some custom rules to improve the output -- hopefully we can make this unnecessary later.
-  css.textContent += `
-    .png-container {
-      font-family: Montserrat, sans-serif;
-    }
-    .grid .tick line {
-      stroke: rgb(211, 211, 211);
-      stroke-opacity: 0.7;
-    }
-    line.divider, line.axis-line {
-      height: 1px;
-      stroke: rgb(211, 211, 211);
-    }
-    text.category-label {
-      fill: black;
-      font-family: arial, helvetica, sans-serif;
-      font-size: 9px;
-    }
-  `
-
-  /**
-   * Converts a PixiJS canvas to an SVG image element.
-   * @param _foreignObject {SVGForeignObjectElement} The foreignObject element containing the PixiJS canvas.
-   * @returns {SVGImageElement | undefined} An SVG image element representing the PixiJS canvas, or undefined.
-   */
-  const imageFromPixiCanvas = (_foreignObject: SVGForeignObjectElement): SVGImageElement | undefined => {
-    // Access PIXI-specific properties from the renderer
-    const pixiRenderer = (renderer as any).renderer
-    const pixiStage = (renderer as any).stage
-    const extractedCanvas = pixiRenderer?.extract.canvas(pixiStage)
-    if (!extractedCanvas?.toDataURL) return
-
-    const _width = _foreignObject.getAttribute("width") ?? extractedCanvas.width.toString()
-    const _height = _foreignObject.getAttribute("height") ?? extractedCanvas.height.toString()
-    const x = _foreignObject.getAttribute("x") || "0"
-    const y = _foreignObject.getAttribute("y") || "0"
-    const dataURL = extractedCanvas.toDataURL("image/png")
-    const image = document.createElementNS("http://www.w3.org/2000/svg", "image")
-    image.setAttributeNS(null, "href", dataURL)
-    image.setAttributeNS(null, "x", x)
-    image.setAttributeNS(null, "y", y)
-    image.setAttributeNS(null, "width", _width)
-    image.setAttributeNS(null, "height", _height)
-
-    return image
-  }
-
-  // Create SVG with foreignObject
-  const svgNS = "http://www.w3.org/2000/svg"
-  const xhtmlNS = "http://www.w3.org/1999/xhtml"
-  const svg = document.createElementNS(svgNS, "svg")
-  svg.setAttribute("width", graphWidth.toString())
-  svg.setAttribute("height", graphHeight.toString())
-
-  const foreignObject = document.createElementNS(svgNS, "foreignObject")
-  foreignObject.setAttribute("x", "0")
-  foreignObject.setAttribute("y", "0")
-  foreignObject.setAttribute("width", graphWidth.toString())
-  foreignObject.setAttribute("height", graphHeight.toString())
-  foreignObject.appendChild(css)
-
-  // Clone the element to avoid side effects
-  const elementClone = rootEl.cloneNode(true) as HTMLElement
-
-  // Remove elements we don't want to include in the snapshot
-  const isAllowedElement = (_element: Element): boolean => {
-    if (_element instanceof HTMLInputElement || _element instanceof HTMLTextAreaElement) return false
-    return Array.from(_element.classList).every((className) => !disallowedElementClasses.has(className))
-  }
-
-  Array.from(elementClone.querySelectorAll("*")).forEach(el => {
-    if (!isAllowedElement(el)) {
-      el.parentElement?.removeChild(el)
-    } else if (el instanceof HTMLElement) {
-      // Elements won't render if they're animated
-      el.style.animationDuration = "auto"
-    }
-  })
-
-  // The PixiJS canvas inside the `graph-svg` SVG element requires special handling. We extract its
-  // content using PixiJS, create an image element using the extracted content, then replace the canvas
-  // element with the image element.
-  const pixiSvg = elementClone.querySelector("svg.graph-svg")
-  const pixiForeignObject = pixiSvg?.querySelector("foreignObject")
-  const pixiCanvas = pixiForeignObject?.querySelector("canvas")
-  if (pixiForeignObject && pixiCanvas) {
-    const image = imageFromPixiCanvas(pixiForeignObject)
-    if (image) {
-      pixiSvg?.replaceChild(image, pixiForeignObject)
-    }
-  }
-
-  // Wrap in a div to ensure proper layout in foreignObject
-  const wrapper = document.createElementNS(xhtmlNS, "div")
-  wrapper.setAttribute("xmlns", xhtmlNS)
-  wrapper.style.width = "100%"
-  wrapper.style.height = "100%"
-  wrapper.className = "png-container"
-  wrapper.appendChild(elementClone)
-  foreignObject.appendChild(wrapper)
-  svg.appendChild(foreignObject)
-
-  // Serialize SVG
-  return new XMLSerializer().serializeToString(svg)
-}
-
-interface IGraphSnapshotOptions extends IGraphSvgOptions {
+interface IGraphSnapshotOptions extends IGraphImageOptions {
   asDataURL: boolean
 }
 
-export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | Blob> => {
-  const { rootEl, graphWidth, graphHeight, asDataURL, renderer } = options
+export const graphSnapshot = async (options: IGraphSnapshotOptions): Promise<string | Blob> => {
+  const { rootEl, graphWidth, graphHeight, renderer, asDataURL, dpr } = options
 
-  // Create a canvas to render the snapshot
-  const mainCanvas = document.createElement("canvas")
-  mainCanvas.width = graphWidth
-  mainCanvas.height = graphHeight
-  const mainCtx = mainCanvas.getContext("2d")
-  if (mainCtx) {
-    mainCtx.fillStyle = "#f8f8f8"
-    mainCtx.fillRect(0, 0, graphWidth, graphHeight)
+  const canvas = await exportGraphToCanvas({
+    graphElement: rootEl,
+    renderer,
+    width: graphWidth,
+    height: graphHeight,
+    dpr
+  })
+
+  if (asDataURL) {
+    return canvas.toDataURL("image/png")
   }
 
-  /**
-   * Renders an element onto the main canvas by drawing it inside a foreignObject in an SVG,
-   * then rasterizing the SVG to the canvas. This preserves HTML structure and styles.
-   * @param element The HTML element to render.
-   */
-  const renderGraphToCanvas = async () => {
-    // Serialize SVG
-    const svgString = graphSvg({ rootEl, graphWidth, graphHeight, renderer })
-    const svgDataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`
-
-    // Draw SVG to canvas
-    await new Promise<void>((resolve, reject) => {
-      const img = new window.Image()
-      img.onload = () => {
-        if (mainCtx) {
-          mainCtx.drawImage(img, 0, 0, graphWidth, graphHeight)
-        }
-        resolve()
-      }
-      img.onerror = reject
-      img.src = svgDataUrl
-    })
-  }
-
-  const makeCanvasBlob = (canvas: HTMLCanvasElement): Blob => {
-    const canvasDataURL = canvas.toDataURL("image/png")
-    const canvasData = atob(canvasDataURL.substring("data:image/png;base64,".length))
-    const canvasAsArray = new Uint8Array(canvasData.length)
-
-    for (let i = 0; i < canvasData.length; i++) {
-      canvasAsArray[i] = canvasData.charCodeAt(i)
-    }
-
-    return new Blob([canvasAsArray.buffer], { type: "image/png" })
-  }
-
-  const renderImage = async () => {
-    await renderGraphToCanvas()
-    return Promise.resolve(asDataURL ? mainCanvas.toDataURL("image/png") : makeCanvasBlob(mainCanvas))
-  }
-  return renderImage()
+  // Use canvas.toBlob() directly instead of round-tripping through a data URL
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      blob => blob ? resolve(blob) : reject(new Error("Failed to create PNG blob")),
+      "image/png"
+    )
+  })
 }
