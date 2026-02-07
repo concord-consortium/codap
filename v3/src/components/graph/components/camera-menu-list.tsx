@@ -105,21 +105,9 @@ export const CameraMenuList = observer(function CameraMenuList() {
     }
   }
 
+  // TODO: SVG export to be implemented in the 3.0 timeframe. Will need a new approach that
+  // composites SVG layers and embeds the points canvas as an <image> element.
   const handleExportSVG = () => {
-/*  Scheduled to happen in 3.1 timeframe
-    if (!graphModel?.renderState) return
-
-    const { imageOptions } = graphModel.renderState
-    if (!imageOptions) return
-
-    // TODO: The current strategy for turning a graph into an SVG involves wrapping the whole tile in a foreignObject,
-    // which will not render in Word, Notes, etc.
-    const svgString = graphSvg(imageOptions)
-
-    if (svgString) {
-      cfm?.client.saveSecondaryFileAsDialog(svgString, "svg", "text/plain", () => null)
-    }
-*/
   }
 
   return (
@@ -147,14 +135,12 @@ export const CameraMenuList = observer(function CameraMenuList() {
       }
 
       <MenuItem data-testid="open-in-draw-tool"
-                onClick={handleOpenInDrawTool}
-                isDisabled={true}>
-        {`${t("DG.DataDisplayMenu.copyAsImage")} 🚧`}
+                onClick={handleOpenInDrawTool}>
+        {t("DG.DataDisplayMenu.copyAsImage")}
       </MenuItem>
       <MenuItem data-testid="export-png-image"
-                onClick={handleExportPNG}
-                isDisabled={true}>
-        {`${t("DG.DataDisplayMenu.exportPngImage")} 🚧`}
+                onClick={handleExportPNG}>
+        {t("DG.DataDisplayMenu.exportPngImage")}
       </MenuItem>
       <MenuItem data-testid="export-svg-image"
                 onClick={handleExportSVG}

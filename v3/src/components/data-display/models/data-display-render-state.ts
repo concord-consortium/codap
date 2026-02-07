@@ -1,4 +1,4 @@
-import { graphSnapshot, IGraphSvgOptions } from "../../graph/utilities/image-utils"
+import { graphSnapshot, IGraphImageOptions } from "../../graph/utilities/image-utils"
 import { PointRendererArray } from "../renderer"
 
 export class DataDisplayRenderState {
@@ -20,7 +20,7 @@ export class DataDisplayRenderState {
     this.dataUri = dataUri
   }
 
-  get imageOptions(): IGraphSvgOptions | undefined {
+  get imageOptions(): IGraphImageOptions | undefined {
     const renderer = this.rendererArray?.[0]
     if (!this.displayElement || !renderer) return
 
