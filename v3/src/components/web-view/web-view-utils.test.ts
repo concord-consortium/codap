@@ -1,6 +1,7 @@
 import { kCodap3RootPluginsUrl, kRootDataGamesPluginUrl, kRootGuideUrl, kRootPluginsUrl } from "../../constants"
 import {
-  getNameFromURL, kRelativeGuideRoot, kRelativePluginRoot, kRelativeURLRoot, processWebViewUrl
+  getNameFromURL, kRelativeGuideRoot, kRelativePluginRoot, kRelativeURLRoot,
+  normalizeUrlScheme, processWebViewUrl
 } from "./web-view-utils"
 
 const kTestUrls: Array<{ original: string, processed: string }> = [
@@ -47,6 +48,32 @@ describe('WebView Utilities', () => {
     kTestUrls.forEach(({ original, processed }) => {
       expect(processWebViewUrl(original)).toEqual(processed)
     })
+  })
+})
+
+describe("normalizeUrlScheme", () => {
+  it("prepends https:// to bare hostnames", () => {
+    expect(normalizeUrlScheme("example.com")).toBe("https://example.com")
+  })
+  it("preserves existing http:// scheme", () => {
+    expect(normalizeUrlScheme("http://example.com")).toBe("http://example.com")
+  })
+  it("preserves existing https:// scheme", () => {
+    expect(normalizeUrlScheme("https://example.com/path")).toBe("https://example.com/path")
+  })
+  it("preserves data: URLs", () => {
+    expect(normalizeUrlScheme("data:image/png;base64,abc")).toBe("data:image/png;base64,abc")
+  })
+  it("preserves blob: URLs", () => {
+    expect(normalizeUrlScheme("blob:http://example.com/uuid")).toBe("blob:http://example.com/uuid")
+  })
+  it("handles scheme-relative URLs (//example.com)", () => {
+    expect(normalizeUrlScheme("//example.com/path")).toBe("https://example.com/path")
+  })
+  it("trims whitespace before processing", () => {
+    expect(normalizeUrlScheme("  example.com  ")).toBe("https://example.com")
+    expect(normalizeUrlScheme("  //example.com/path  ")).toBe("https://example.com/path")
+    expect(normalizeUrlScheme("  https://example.com  ")).toBe("https://example.com")
   })
 })
 
