@@ -12,30 +12,30 @@ context("Formula Engine", () => {
       table.addNewAttribute()
       table.renameAttribute("newAttr", "Formula")
       table.addFormula("Formula", "a+1")
-      table.verifyFormulaValues("Formula", [2, 3, 4, 4, ""])
+      table.verifyFormulaValues("Formula", [2, 3, 4, 4])
       table.checkFormulaExists("Formula", "a+1")
       table.editFormula("Formula", "a+2")
-      table.verifyFormulaValues("Formula", [3, 4, 5, 5, ""])
+      table.verifyFormulaValues("Formula", [3, 4, 5, 5])
     })
     it("Add and edit formula for an existing attribute", () => {
       fh.visitURL(dashboardUrlParams)
       table.addFormula("b", "count(a)")
-      table.verifyFormulaValues("b", [4, 4, 4, 4, 4])
+      table.verifyFormulaValues("b", [4, 4, 4, 4])
       table.checkFormulaExists("b", "count(a)")
       table.editFormula("b", "mean(a)")
-      table.verifyFormulaValues("b", [2.25, 2.25, 2.25, 2.25, 2.25])
+      table.verifyFormulaValues("b", [2.25, 2.25, 2.25, 2.25])
     })
     it("Rename attribute and make sure formula updates", () => {
       fh.visitURL(dashboardUrlParams)
       table.addNewAttribute()
       table.renameAttribute("newAttr", "Formula")
       table.addFormula("Formula", "count(a)")
-      table.verifyFormulaValues("Formula", [4, 4, 4, 4, 4])
+      table.verifyFormulaValues("Formula", [4, 4, 4, 4])
       table.renameAttribute("a", "x")
       table.checkFormulaExists("Formula", "count(x)")
-      table.verifyFormulaValues("Formula", [4, 4, 4, 4, 4])
+      table.verifyFormulaValues("Formula", [4, 4, 4, 4])
       table.editFormula("Formula", "mean(x)")
-      table.verifyFormulaValues("Formula", [2.25, 2.25, 2.25, 2.25, 2.25])
+      table.verifyFormulaValues("Formula", [2.25, 2.25, 2.25, 2.25])
     })
     it("Delete attribute that a formula uses", () => {
       fh.visitURL(dashboardUrlParams)
@@ -46,21 +46,20 @@ context("Formula Engine", () => {
         "❌ Undefined symbol a",
         "❌ Undefined symbol a",
         "❌ Undefined symbol a",
-        "❌ Undefined symbol a",
         "❌ Undefined symbol a"
       ])
       table.editFormula("b", "5")
-      table.verifyFormulaValues("b", [5, 5, 5, 5, 5])
+      table.verifyFormulaValues("b", [5, 5, 5, 5])
     })
     it("Use slider variable with formula", () => {
       fh.visitURL(dashboardUrlParams)
       table.addFormula("b", "count(a) + v1")
-      table.verifyFormulaValues("b", [4.5, 4.5, 4.5, 4.5, 4.5])
+      table.verifyFormulaValues("b", [4.5, 4.5, 4.5, 4.5])
       slider.changeVariableName("v2")
       table.checkFormulaExists("b", "count(a) + v2")
-      table.verifyFormulaValues("b", [4.5, 4.5, 4.5, 4.5, 4.5])
+      table.verifyFormulaValues("b", [4.5, 4.5, 4.5, 4.5])
       slider.changeVariableValue("10")
-      table.verifyFormulaValues("b", [14, 14, 14, 14, 14])
+      table.verifyFormulaValues("b", [14, 14, 14, 14])
       slider.deleteSlider()
       table.checkFormulaExists("b", "count(a) + v2")
     })
@@ -71,15 +70,13 @@ context("Formula Engine", () => {
         "❌ Undefined symbol v1",
         "❌ Undefined symbol v1",
         "❌ Undefined symbol v1",
-        "❌ Undefined symbol v1",
         "❌ Undefined symbol v1"
       ])
       slider.addSlider()
       table.checkFormulaExists("b", "count(a) + v1")
-      table.verifyFormulaValues("b", [4.5, 4.5, 4.5, 4.5, 4.5])
+      table.verifyFormulaValues("b", [4.5, 4.5, 4.5, 4.5])
       slider.deleteSlider()
       table.verifyFormulaValues("b", [
-        "❌ Undefined symbol v1",
         "❌ Undefined symbol v1",
         "❌ Undefined symbol v1",
         "❌ Undefined symbol v1",

@@ -12,12 +12,10 @@ context("Formula Engine", () => {
         "❌ Undefined symbol aaa",
         "❌ Undefined symbol aaa",
         "❌ Undefined symbol aaa",
-        "❌ Undefined symbol aaa",
         "❌ Undefined symbol aaa"
       ])
       table.editFormula("Formula", "c(aaa)")
       table.verifyFormulaValues("Formula", [
-        "❌ Undefined function c",
         "❌ Undefined function c",
         "❌ Undefined function c",
         "❌ Undefined function c",
@@ -29,11 +27,10 @@ context("Formula Engine", () => {
         "❌ Syntax error: 'Parenthesis ) expected (char 8)'",
         "❌ Syntax error: 'Parenthesis ) expected (char 8)'",
         "❌ Syntax error: 'Parenthesis ) expected (char 8)'",
-        "❌ Syntax error: 'Parenthesis ) expected (char 8)'",
         "❌ Syntax error: 'Parenthesis ) expected (char 8)'"
       ])
       table.editFormula("Formula", "count(a)")
-      table.verifyFormulaValues("Formula", [4, 4, 4, 4, 4])
+      table.verifyFormulaValues("Formula", [4, 4, 4, 4])
     })
   })
 })

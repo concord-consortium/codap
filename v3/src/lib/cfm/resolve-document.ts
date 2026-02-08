@@ -1,17 +1,11 @@
 import { getSnapshot } from "mobx-state-tree"
-import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
-import { kCaseTableDefaultHeight, kCaseTableDefaultWidth } from "../../components/case-table/case-table-types"
-import { kWebViewTileType } from "../../components/web-view/web-view-defs"
+import { kImporterPluginInsertOptions, kWebViewTileType } from "../../components/web-view/web-view-defs"
 import { IWebViewSnapshot } from "../../components/web-view/web-view-model"
 import { getPluginsRootUrl, kImporterPluginUrl } from "../../constants"
 import { createCodapDocument, isCodapDocument } from "../../models/codap/create-codap-document"
 import { IDocumentModelSnapshot } from "../../models/document/document"
 import { IDocumentMetadata } from "../../models/document/document-metadata"
 import { IFreeTileInRowOptions } from "../../models/document/free-tile-row"
-import { serializeCodapV3Document } from "../../models/document/serialize-document"
-import { addDataSetAndMetadata } from "../../models/shared/shared-data-tile-utils"
-import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
-import { convertParsedCsvToDataSet, importCsvContent } from "../../utilities/csv-import"
 import { safeJsonParse } from "../../utilities/js-utils"
 import { isGoogleSheetsUrl } from "../../utilities/urls"
 import { ICodapV2Case, isV2InternalContext } from "../../v2/codap-v2-data-context-types"
@@ -53,7 +47,10 @@ function makeEmptyDocument(): IDocumentModelSnapshot {
   return getSnapshot(createCodapDocument())
 }
 
-function makePluginDocument(gameState: unknown, pluginName: string, pluginPath: string): IDocumentModelSnapshot {
+function makePluginDocument(
+  gameState: unknown, pluginName: string, pluginPath: string,
+  layoutOptions?: Partial<IFreeTileInRowOptions>
+): IDocumentModelSnapshot {
   const document = createCodapDocument()
 
   const webViewModelSnap: IWebViewSnapshot = {
@@ -62,7 +59,7 @@ function makePluginDocument(gameState: unknown, pluginName: string, pluginPath: 
     url: `${getPluginsRootUrl()}${pluginPath}`,
     state: gameState
   }
-  const options: Partial<IFreeTileInRowOptions> = { isHidden: true }
+  const options: Partial<IFreeTileInRowOptions> = { isHidden: true, ...layoutOptions }
   document.content?.insertTileSnapshotInDefaultRow({
     _title: pluginName,
     content: webViewModelSnap
@@ -72,23 +69,14 @@ function makePluginDocument(gameState: unknown, pluginName: string, pluginPath: 
   return result
 }
 
-function makeCSVDocument(contents: string, urlString: string, dataSetName: string): Promise<IDocumentModelSnapshot> {
-  return new Promise<IDocumentModelSnapshot>(function(resolve, reject) {
-    importCsvContent(contents, async (results) => {
-      const dataSet = convertParsedCsvToDataSet(results, dataSetName)
-      const doc = createCodapDocument()
-      const tileSnap: ITileModelSnapshotIn = { content: { type: kCaseTableTileType } }
-      const options: IFreeTileInRowOptions = {
-        x: 5, y: 5, width: kCaseTableDefaultWidth, height: kCaseTableDefaultHeight
-      }
-      const tableTile = doc.content?.insertTileSnapshotInDefaultRow(tileSnap, options)
-      if (tableTile) {
-        // FIXME: This will cause multiple undo entries
-        addDataSetAndMetadata(tableTile, dataSet, true)
-        resolve(serializeCodapV3Document(doc))
-      }
-    })
-  })
+function makeCSVDocument(contents: string, urlString: string, datasetName: string): IDocumentModelSnapshot {
+  const gameState = {
+    contentType: 'text/csv',
+    text: contents,
+    name: urlString,
+    datasetName
+  }
+  return makePluginDocument(gameState, 'Import CSV', kImporterPluginUrl, kImporterPluginInsertOptions)
 }
 
 function makeGeoJSONDocument(contents: unknown, urlString: string, datasetName: string): IDocumentModelSnapshot {
@@ -98,7 +86,7 @@ function makeGeoJSONDocument(contents: unknown, urlString: string, datasetName: 
     name: urlString,
     datasetName
   }
-  return makePluginDocument(gameState, 'Import GeoJSON', kImporterPluginUrl)
+  return makePluginDocument(gameState, 'Import GeoJSON', kImporterPluginUrl, kImporterPluginInsertOptions)
 }
 
 /*
