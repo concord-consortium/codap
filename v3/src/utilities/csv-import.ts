@@ -8,19 +8,26 @@ import { DataSet, IDataSet } from "../models/data/data-set"
 type RowType = Record<string, string>
 export type CsvParseResult = ParseResult<RowType>
 
+const csvParseOptions = {
+  comments: "#",
+  header: true,
+  skipEmptyLines: true,
+  transformHeader: (h: string) => h.trim()
+}
+
 export function importCsvContent(content: string, onComplete: (results: CsvParseResult) => void) {
-  parse(content, { comments: "#", header: true, complete: onComplete })
+  parse(content, { ...csvParseOptions, complete: onComplete })
 }
 
 export function importCsvFile(file: File | null, onComplete: (results: CsvParseResult, aFile: any) => void) {
-  parse(file, { comments: "#", header: true, complete: onComplete })
+  parse(file, { ...csvParseOptions, complete: onComplete })
 }
 
 export function downloadCsvFile(dataUrl: string,
   onComplete: (results: CsvParseResult, aFile: any) => void,
   onError: (error: Error, file: string) => void
 ) {
-  parse(dataUrl, { download: true, comments: "#", header: true, complete: onComplete, error: onError })
+  parse(dataUrl, { ...csvParseOptions, download: true, complete: onComplete, error: onError })
 }
 
 export function convertParsedCsvToDataSet(results: CsvParseResult, filename: string) {
