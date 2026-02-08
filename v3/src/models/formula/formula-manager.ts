@@ -1,6 +1,6 @@
+import { parse } from "mathjs/number"
 import { comparer, makeObservable, observable, reaction, action } from "mobx"
 import { addDisposer } from "mobx-state-tree"
-import { parse } from "mathjs"
 import { uniqueId } from "../../utilities/js-utils"
 import { boundaryManager, BoundaryManager } from "../boundaries/boundary-manager"
 import { IDataSet } from "../data/data-set"

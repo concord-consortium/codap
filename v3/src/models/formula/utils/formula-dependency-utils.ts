@@ -1,4 +1,5 @@
-import { parse, MathNode, isFunctionNode } from "mathjs"
+import { parse, isFunctionNode } from "mathjs/number"
+import type { MathNode } from "mathjs"
 import { IFormulaDependency, isLocalAttributeDependency } from "../formula-types"
 import { typedFnRegistry } from "../functions/math"
 import { basicCanonicalNameToDependency } from "./name-mapping-utils"

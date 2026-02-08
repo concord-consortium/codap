@@ -1,4 +1,4 @@
-import { EvalFunction } from "mathjs"
+import type { EvalFunction } from "mathjs"
 import { functionCategoryInfoArray } from "../../lib/functions"
 import { math } from "../../models/formula/functions/math"
 import { preprocessDisplayFormula } from "../../models/formula/utils/canonicalization-utils"

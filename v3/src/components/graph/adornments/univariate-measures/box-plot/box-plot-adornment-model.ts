@@ -1,6 +1,6 @@
 import { comparer, observable, reaction } from "mobx"
 import { addDisposer, Instance, SnapshotIn, types } from "mobx-state-tree"
-import { median } from "mathjs"
+import { median } from "mathjs/number"
 import { quantileOfSortedArray } from "../../../../../utilities/math-utils"
 import { UnivariateMeasureAdornmentModel } from "../univariate-measure-adornment-model"
 import { kBoxPlotType, kBoxPlotValueTitleKey } from "./box-plot-adornment-types"

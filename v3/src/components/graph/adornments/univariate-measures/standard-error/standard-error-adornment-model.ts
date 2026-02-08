@@ -1,5 +1,5 @@
+import { mean, std } from "mathjs/number"
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
-import { mean, std } from "mathjs"
 import {IGraphDataConfigurationModel} from "../../../models/graph-data-configuration-model"
 import { IAdornmentModel } from "../../adornment-models"
 import { UnivariateMeasureAdornmentModel } from "../univariate-measure-adornment-model"

@@ -1,4 +1,4 @@
-import { MathNode } from "mathjs"
+import type { MathNode } from "mathjs"
 import { CODAPMathjsFunctionRegistry, CurrentScope, FValue } from "../formula-types"
 import { aggregateFnWithFilterFactory, cachedAggregateFnFactory } from "./aggregate-functions"
 import { UNDEF_RESULT, evaluateNode, getRootScope, isValueTruthy } from "./function-utils"

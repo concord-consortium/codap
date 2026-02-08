@@ -1,4 +1,4 @@
-import { EvalFunction } from "mathjs"
+import type { EvalFunction } from "mathjs"
 import { DEBUG_FORMULAS, debugLog } from "../../lib/debug"
 import { boundaryManager } from "../boundaries/boundary-manager"
 import { isFormulaAttr, isValidFormulaAttr } from "../data/attribute"

@@ -1,4 +1,4 @@
-import { mean, std } from "mathjs"
+import { mean, std } from "mathjs/number"
 import { observable } from "mobx"
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { IGraphDataConfigurationModel } from "../../../models/graph-data-configuration-model"

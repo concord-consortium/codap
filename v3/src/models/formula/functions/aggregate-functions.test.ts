@@ -1,4 +1,4 @@
-import { parse } from "mathjs"
+import { parse } from "mathjs/number"
 import { FormulaMathJsScope } from "../formula-mathjs-scope"
 import { evaluate } from "../test-utils/formula-test-utils"
 import { cachedAggregateFnFactory } from "./aggregate-functions"

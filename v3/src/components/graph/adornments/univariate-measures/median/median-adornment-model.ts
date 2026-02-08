@@ -1,5 +1,5 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
-import { median } from "mathjs"
+import { median } from "mathjs/number"
 import {IGraphDataConfigurationModel} from "../../../models/graph-data-configuration-model"
 import { UnivariateMeasureAdornmentModel } from "../univariate-measure-adornment-model"
 import { kMedianType, kMedianValueTitleKey } from "./median-adornment-types"

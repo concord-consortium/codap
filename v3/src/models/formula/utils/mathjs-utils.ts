@@ -1,4 +1,5 @@
-import { ConstantNode, MathNode, SymbolNode, isConstantNode, isFunctionNode, isSymbolNode } from "mathjs"
+import { isConstantNode, isFunctionNode, isSymbolNode } from "mathjs/number"
+import type { ConstantNode, MathNode, SymbolNode } from "mathjs"
 
 export const isConstantStringNode = (node: MathNode): node is ConstantNode<string> =>
   isConstantNode(node) && typeof node.value === "string"

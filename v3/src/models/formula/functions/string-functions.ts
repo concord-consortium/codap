@@ -1,5 +1,5 @@
 import escapeStringRegexp from "escape-string-regexp"
-import { MathNode } from "mathjs"
+import type { MathNode } from "mathjs"
 import { valueToString } from "../../../utilities/data-utils"
 import { t } from "../../../utilities/translation/translate"
 import { CurrentScope, DisplayNameMap, FValue, ILookupDependency, LookupStringConstantArg } from "../formula-types"

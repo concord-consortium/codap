@@ -1,4 +1,5 @@
-import { isSymbolNode, MathNode } from "mathjs"
+import { isSymbolNode } from "mathjs/number"
+import type { MathNode } from "mathjs"
 import { t } from "../../../utilities/translation/translate"
 import type { IDataSet } from "../../data/data-set"
 import { CurrentScope, DisplayNameMap, FValue, ILookupDependency, LookupStringConstantArg } from "../formula-types"

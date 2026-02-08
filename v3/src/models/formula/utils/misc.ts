@@ -1,6 +1,7 @@
-import { parse, MathNode, isFunctionNode } from "mathjs"
-import { typedFnRegistry } from "../functions/math"
+import { parse, isFunctionNode } from "mathjs/number"
+import type { MathNode } from "mathjs"
 import { t } from "../../../utilities/translation/translate"
+import { typedFnRegistry } from "../functions/math"
 
 export const formulaError = (message: string, vars?: string[]) => `❌ ${t(message, { vars })}`
 

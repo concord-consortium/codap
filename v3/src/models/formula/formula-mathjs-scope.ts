@@ -1,4 +1,5 @@
-import { MathNode, parse } from "mathjs"
+import { parse } from "mathjs/number"
+import type { MathNode } from "mathjs"
 import { t } from "../../utilities/translation/translate"
 import { BoundaryManager } from "../boundaries/boundary-manager"
 import type { IValueType } from "../data/attribute-types"

@@ -1,7 +1,7 @@
-import { isValueTruthy, equal, evaluateNode, isPartitionedMap, isMap, getRootScope } from "./function-utils"
-import { parse } from "mathjs"
-import { CurrentScope } from "../formula-types"
+import { parse } from "mathjs/number"
 import { FormulaMathJsScope } from "../formula-mathjs-scope"
+import { CurrentScope } from "../formula-types"
+import { isValueTruthy, equal, evaluateNode, isPartitionedMap, isMap, getRootScope } from "./function-utils"
 
 describe("isValueTruthy", () => {
   it("should return true for truthy values", () => {
