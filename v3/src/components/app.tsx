@@ -90,7 +90,7 @@ export const App = observer(function App() {
   useKeyboardShortcuts()
 
   const {
-    handleDataTransferItem, handleFileImported, handleUrlImported
+    handleDrop, handleFileImported, handleUrlImported
   } = useImportHelpers({ cfmRef, onCloseUserEntry })
 
   const handleFileOpened = useCallback(() => {
@@ -111,7 +111,7 @@ export const App = observer(function App() {
 
   useDropHandler({
     selector: isOpenUserEntry ? `#${kUserEntryDropOverlay}` : `#${kCodapAppElementId}`,
-    onDataTransferItem: handleDataTransferItem,
+    onDrop: handleDrop,
     onSetIsDragOver: setIsDragOver
   })
 

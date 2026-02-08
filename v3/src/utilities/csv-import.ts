@@ -73,7 +73,3 @@ export function initiateImportFromCsv(options: IImportFromCsvArgs) {
   }, kImporterPluginInsertOptions)
 }
 
-export function initiateImportFromClipboard(data?: IDataSet) {
-  const datasetName = data ? undefined : "clipboard data"
-  navigator.clipboard.readText().then(text => initiateImportFromCsv({ text, data, datasetName }))
-}

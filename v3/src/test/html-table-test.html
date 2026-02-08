@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>HTML Table Drag Test</title>
+  <style>
+    body { font-family: sans-serif; margin: 2em; }
+    table { border-collapse: collapse; margin: 1em 0; }
+    th, td { border: 1px solid #999; padding: 6px 12px; }
+    th { background: #eee; }
+    p { color: #555; max-width: 500px; }
+  </style>
+</head>
+<body>
+  <h2>Test Tables for CODAP HTML Table Drop</h2>
+  <p>Select a table below (click and drag across the cells), then drag the selection onto the CODAP window.</p>
+
+  <h3>1. Simple table with headers</h3>
+  <table>
+    <tr><th>Name</th><th>Age</th><th>City</th></tr>
+    <tr><td>Alice</td><td>30</td><td>Portland</td></tr>
+    <tr><td>Bob</td><td>25</td><td>Seattle</td></tr>
+    <tr><td>Carol</td><td>35</td><td>Denver</td></tr>
+    <tr><td>Dan</td><td>28</td><td>Austin</td></tr>
+  </table>
+
+  <h3>2. Table without headers (no th elements)</h3>
+  <table>
+    <tr><td>Red</td><td>1</td><td>100</td></tr>
+    <tr><td>Blue</td><td>2</td><td>200</td></tr>
+    <tr><td>Green</td><td>3</td><td>300</td></tr>
+  </table>
+
+  <h3>3. Table with colspan</h3>
+  <table>
+    <tr><th>Student</th><th colspan="2">Scores</th></tr>
+    <tr><td>Emma</td><td>85</td><td>92</td></tr>
+    <tr><td>Liam</td><td>78</td><td>88</td></tr>
+  </table>
+</body>
+</html>

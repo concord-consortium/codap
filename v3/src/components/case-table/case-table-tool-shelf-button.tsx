@@ -17,7 +17,7 @@ import { getFormulaManager, getSharedModelManager } from "../../models/tiles/til
 import { ITileModel } from "../../models/tiles/tile-model"
 import { createTileNotification } from "../../models/tiles/tile-notifications"
 import { persistentState } from "../../models/persistent-state"
-import { initiateImportFromClipboard } from "../../utilities/csv-import"
+import { initiateImportFromClipboard } from "../../utilities/clipboard-import"
 import { uniqueName } from "../../utilities/js-utils"
 import { getSpecialLangFontClassName, t } from "../../utilities/translation/translate"
 import { createOrShowTableOrCardForDataset, createTableOrCardForDataset } from "../case-tile-common/case-tile-utils"
