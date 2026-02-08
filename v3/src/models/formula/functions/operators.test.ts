@@ -388,3 +388,90 @@ describe("% (mod) operator", () => {
     expect(() => fn.evaluate()).toThrow("Invalid arguments for mod operator: foo, bar")
   })
 })
+
+// The following operators and constants come from mathjs's built-in factories (not overridden by CODAP).
+// They must be explicitly included in the minimal create() call in math.ts.
+
+describe("^ (pow) operator", () => {
+  it("raises a number to a power", () => {
+    expect(math.evaluate("2 ^ 3")).toBe(8)
+    expect(math.evaluate("9 ^ 0.5")).toBe(3)
+    expect(math.evaluate("5 ^ 0")).toBe(1)
+  })
+})
+
+describe("unary - operator", () => {
+  it("negates a number", () => {
+    expect(math.evaluate("-5")).toBe(-5)
+    expect(math.evaluate("-(3 + 2)")).toBe(-5)
+    expect(math.evaluate("--5")).toBe(5)
+  })
+})
+
+describe("unary + operator", () => {
+  it("returns the number unchanged", () => {
+    expect(math.evaluate("+5")).toBe(5)
+    expect(math.evaluate("+(3 + 2)")).toBe(5)
+  })
+})
+
+describe("and operator", () => {
+  it("returns logical AND of two values", () => {
+    expect(math.evaluate("true and true")).toBe(true)
+    expect(math.evaluate("true and false")).toBe(false)
+    expect(math.evaluate("false and true")).toBe(false)
+    expect(math.evaluate("false and false")).toBe(false)
+  })
+  it("works in compound expressions", () => {
+    expect(math.evaluate("1 < 2 and 3 < 4")).toBe(true)
+    expect(math.evaluate("1 < 2 and 3 > 4")).toBe(false)
+  })
+})
+
+describe("or operator", () => {
+  it("returns logical OR of two values", () => {
+    expect(math.evaluate("true or true")).toBe(true)
+    expect(math.evaluate("true or false")).toBe(true)
+    expect(math.evaluate("false or true")).toBe(true)
+    expect(math.evaluate("false or false")).toBe(false)
+  })
+  it("works in compound expressions", () => {
+    expect(math.evaluate("1 > 2 or 3 < 4")).toBe(true)
+    expect(math.evaluate("1 > 2 or 3 > 4")).toBe(false)
+  })
+})
+
+describe("not operator", () => {
+  it("returns logical NOT of a value", () => {
+    expect(math.evaluate("not true")).toBe(false)
+    expect(math.evaluate("not false")).toBe(true)
+  })
+})
+
+describe("xor operator", () => {
+  it("returns logical XOR of two values", () => {
+    expect(math.evaluate("true xor true")).toBe(false)
+    expect(math.evaluate("true xor false")).toBe(true)
+    expect(math.evaluate("false xor true")).toBe(true)
+    expect(math.evaluate("false xor false")).toBe(false)
+  })
+})
+
+describe("math constants", () => {
+  it("provides pi", () => {
+    expect(math.evaluate("pi")).toBeCloseTo(Math.PI)
+  })
+  it("provides e", () => {
+    expect(math.evaluate("e")).toBeCloseTo(Math.E)
+  })
+  it("provides true and false", () => {
+    expect(math.evaluate("true")).toBe(true)
+    expect(math.evaluate("false")).toBe(false)
+  })
+  it("provides Infinity", () => {
+    expect(math.evaluate("Infinity")).toBe(Infinity)
+  })
+  it("provides NaN", () => {
+    expect(math.evaluate("NaN")).toBeNaN()
+  })
+})
