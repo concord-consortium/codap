@@ -10,7 +10,7 @@ export const webViewSubTypes = ["guide", "plugin", "image"] as const
 export type WebViewSubType = typeof webViewSubTypes[number]
 
 export const kImporterPluginWidth = 300
-export const kImporterPluginHeight = 275
+export const kImporterPluginHeight = 320
 export const kImporterPluginInsertOptions = {
   x: 5, y: 5, width: kImporterPluginWidth, height: kImporterPluginHeight, isHidden: true
 }
