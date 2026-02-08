@@ -58,4 +58,50 @@ describe("CSV import", () => {
       done()
     })
   })
+
+  it("trailing newline does not produce phantom empty row", (done) => {
+    const csv = "a,b\n1,1\n2,1\n3,1\n3\n"
+
+    importCsvContent(csv, (results) => {
+      const data = convertParsedCsvToDataSet(results, "four.csv")
+      expect(data.name).toBe("four")
+      expect(data.attributes.length).toBe(2)
+      expect(data.items.length).toBe(4)
+      done()
+    })
+  })
+
+  it("multiple trailing newlines do not produce phantom rows", (done) => {
+    const csv = "a,b\n1,2\n3,4\n\n\n\n"
+
+    importCsvContent(csv, (results) => {
+      const data = convertParsedCsvToDataSet(results, "test")
+      expect(data.items.length).toBe(2)
+      done()
+    })
+  })
+
+  it("whitespace-only lines are skipped by greedy mode", (done) => {
+    const csv = "a,b\n1,2\n   \n  \t \n3,4\n"
+
+    importCsvContent(csv, (results) => {
+      const data = convertParsedCsvToDataSet(results, "test")
+      expect(data.items.length).toBe(2)
+      done()
+    })
+  })
+
+  it("trims whitespace from headers", (done) => {
+    const csv = "  name  , value \nhello,world\nhi,there"
+
+    importCsvContent(csv, (results) => {
+      const data = convertParsedCsvToDataSet(results, "test")
+      expect(data.attributes[0].name).toBe("name")
+      expect(data.attributes[1].name).toBe("value")
+      expect(data.items.length).toBe(2)
+      expect(data.getValueAtItemIndex(0, data.attributes[0].id)).toBe("hello")
+      expect(data.getValueAtItemIndex(0, data.attributes[1].id)).toBe("world")
+      done()
+    })
+  })
 })
