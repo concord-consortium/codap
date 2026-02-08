@@ -2,12 +2,12 @@ import { useEffect, useRef } from "react"
 
 export interface IDropHandler {
   selector: string
-  onDataTransferItem?: (item: DataTransferItem) => Promise<void>
+  onDrop?: (event: DragEvent) => void
   onSetIsDragOver?: (isDragOver: boolean) => void
 }
 
 export const useDropHandler = ({
-  selector, onDataTransferItem, onSetIsDragOver: setIsDragOver
+  selector, onDrop, onSetIsDragOver: setIsDragOver
 }: IDropHandler) => {
   const eltRef = useRef<HTMLElement | null>(null)
 
@@ -28,16 +28,8 @@ export const useDropHandler = ({
       // Prevent event from being handled more than once
       event.stopPropagation()
 
-      // iterate through the dropped files
-      if (event.dataTransfer?.items) {
-        const items = event.dataTransfer.items
-        const processItems = async () => {
-          for (let i = 0; i < items.length; i++) {
-            await onDataTransferItem?.(items[i])
-          }
-        }
-        processItems()
-      }
+      onDrop?.(event)
+
       // Pass event to removeDragData for cleanup
       removeDragData(event)
     }
@@ -62,7 +54,7 @@ export const useDropHandler = ({
       elt?.removeEventListener('dragover', dragOverHandler)
       elt?.removeEventListener('drop', dropHandler)
     }
-  }, [onDataTransferItem, selector, setIsDragOver])
+  }, [onDrop, selector, setIsDragOver])
 
   // return element to which listeners were attached; useful for tests
   return eltRef.current
