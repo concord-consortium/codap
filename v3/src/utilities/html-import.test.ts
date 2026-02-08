@@ -37,8 +37,18 @@ describe("initiateImportFromHTML", () => {
     expect(tileSnap.content.state).toEqual({
       contentType: "text/html",
       name: "Importer",
-      text: html
+      text: html,
+      targetDatasetName: undefined
     })
     expect(options.isHidden).toBe(true)
+  })
+
+  it("passes targetDatasetName when data is provided", () => {
+    const html = "<table><tr><th>Name</th></tr><tr><td>Alice</td></tr></table>"
+    const mockDataSet = { name: "existing" } as any
+    initiateImportFromHTML(html, mockDataSet)
+
+    const [tileSnap] = mockInsertTileSnapshotInDefaultRow.mock.calls[0]
+    expect(tileSnap.content.state.targetDatasetName).toBe("existing")
   })
 })

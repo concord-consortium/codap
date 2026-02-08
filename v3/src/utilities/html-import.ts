@@ -2,8 +2,9 @@ import { kImporterPluginInsertOptions, kWebViewTileType } from "../components/we
 import { IWebViewSnapshot } from "../components/web-view/web-view-model"
 import { getImporterPluginUrl } from "../constants"
 import { appState } from "../models/app-state"
+import { IDataSet } from "../models/data/data-set"
 
-export function initiateImportFromHTML(html: string) {
+export function initiateImportFromHTML(html: string, data?: IDataSet) {
   const webViewModelSnap: IWebViewSnapshot = {
     type: kWebViewTileType,
     subType: "plugin",
@@ -11,7 +12,8 @@ export function initiateImportFromHTML(html: string) {
     state: {
       contentType: "text/html",
       name: "Importer",
-      text: html
+      text: html,
+      targetDatasetName: data?.name
     }
   }
   appState.document.content?.insertTileSnapshotInDefaultRow({
