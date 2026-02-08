@@ -1,4 +1,4 @@
-import { parse, ParseResult } from "papaparse"
+import { parse, ParseConfig, ParseResult } from "papaparse"
 import { kImporterPluginInsertOptions, kWebViewTileType } from "../components/web-view/web-view-defs"
 import { IWebViewSnapshot } from "../components/web-view/web-view-model"
 import { getImporterPluginUrl } from "../constants"
@@ -8,10 +8,10 @@ import { DataSet, IDataSet } from "../models/data/data-set"
 type RowType = Record<string, string>
 export type CsvParseResult = ParseResult<RowType>
 
-const csvParseOptions = {
+const csvParseOptions: ParseConfig<RowType> = {
   comments: "#",
   header: true,
-  skipEmptyLines: true,
+  skipEmptyLines: "greedy",
   transformHeader: (h: string) => h.trim()
 }
 
