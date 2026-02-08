@@ -25,7 +25,8 @@ Like V2, all importer-based imports (CSV, GeoJSON, HTML table, Google Sheets) la
 | Image file | File drop | `downscaleImageFile()` -> `loadWebView()` | WebView tile (visible) |
 | Image URL | URL drop | `loadWebView()` | WebView tile (visible) |
 | HTML table | Drag from web page | `initiateImportFromHTML(html)` | Importer plugin (hidden WebView) |
-| Clipboard text | Menu action | `initiateImportFromClipboard()` | Importer plugin (hidden WebView) |
+| Clipboard (CSV) | Menu action | `initiateImportFromClipboard()` | Importer plugin (hidden WebView) |
+| Clipboard (HTML table) | Menu action | `initiateImportFromClipboard()` | Importer plugin (hidden WebView) |
 | Other URL | URL drop | `loadWebView(url)` | WebView tile (visible) |
 
 ## Drop Priority
@@ -96,8 +97,12 @@ initiateImportFromCsv/HTML/Generic(options)
 ```
 User -> "Open new dataset from clipboard" menu item
    -> initiateImportFromClipboard(data?)
-      -> navigator.clipboard.readText()
-      -> initiateImportFromCsv({ text, data, datasetName })
+      -> navigator.clipboard.read() if supported (feature-detected at runtime)
+         -> check for text/html with <table> element
+            | yes -> initiateImportFromHTML(html, data)
+            | no  -> initiateImportFromCsv({ text: html, data, datasetName })
+      -> navigator.clipboard.readText() fallback (e.g. Firefox < 127)
+         -> initiateImportFromCsv({ text, data, datasetName })
 ```
 
 ## Type Detection
@@ -117,6 +122,7 @@ Returns one of: `"csv"`, `"codap"`, `"geojson"`, `"google-sheets"`, `"image"`, `
 | `src/hooks/use-import-helpers.ts` | `handleDrop` with priority logic, `getDropPriority()`, `importFile` routing |
 | `src/utilities/csv-import.ts` | `initiateImportFromCsv()` — launches Importer for CSV |
 | `src/utilities/html-import.ts` | `initiateImportFromHTML()` — launches Importer for HTML tables |
+| `src/utilities/clipboard-import.ts` | `initiateImportFromClipboard()` — detects HTML tables vs CSV on clipboard |
 | `src/utilities/generic-import.ts` | `initiateGenericImport()` — launches Importer for GeoJSON/Sheets |
 | `src/utilities/importable-files.ts` | File type detection from MIME types, extensions, URLs |
 | `src/components/web-view/web-view-defs.ts` | `kImporterPluginInsertOptions` (hidden tile layout) |
@@ -263,7 +269,7 @@ Returns the matching entry with `{ group, mime[], extensions[] }`, or `undefined
 | Plugin launch | `openImporterPlugin()` creates `GameView` component | `insertTileSnapshotInDefaultRow()` creates hidden WebView tile |
 | Plugin state delivery | `savedGameState` on component creation | `IWebViewSnapshot.state` -> plugin queries `interactiveFrame` |
 | Type detection | `matchMimeSpec()` with MIME/extension table | `getImportableFileTypeFromDataTransferFile/Url()` |
-| Clipboard | `openNewDataSetFromClipboard()` in AppController | `initiateImportFromClipboard()` in `csv-import.ts` |
+| Clipboard | `openNewDataSetFromClipboard()` in AppController | `initiateImportFromClipboard()` in `clipboard-import.ts` |
 
 ---
 
