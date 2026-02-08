@@ -147,48 +147,46 @@ export function useImportHelpers({ cfmRef, onCloseUserEntry }: IProps) {
 
   // Replicates V2's priority order for drop handling (files > URLs > HTML tables).
   // This ensures that URL drops (which may include text/html items) don't trigger
-  // the HTML table importer.
+  // the HTML table importer. Uses synchronous getData() to extract string data so
+  // that drop handler cleanup doesn't race with async callbacks.
   const handleDrop = useCallback(
     function handleDrop(event: DragEvent) {
-      const items = event.dataTransfer?.items
-      if (!items) return
+      const dataTransfer = event.dataTransfer
+      if (!dataTransfer?.items) return
 
-      const priority = getDropPriority(items)
+      const priority = getDropPriority(dataTransfer.items)
 
       switch (priority) {
         case "files":
-          for (let i = 0; i < items.length; i++) {
-            if (items[i].kind === "file") {
-              const file = items[i].getAsFile()
-              const type = getImportableFileTypeFromDataTransferFile(items[i])
+          for (let i = 0; i < dataTransfer.items.length; i++) {
+            if (dataTransfer.items[i].kind === "file") {
+              const file = dataTransfer.items[i].getAsFile()
+              const type = getImportableFileTypeFromDataTransferFile(dataTransfer.items[i])
               if (file) {
                 importFile(type, { file })
               }
             }
           }
           break
-        case "url":
-          for (let i = 0; i < items.length; i++) {
-            if (items[i].kind === "string" && items[i].type === "text/uri-list") {
-              items[i].getAsString((itemUrl) => {
-                // pick di parameter if present
-                const url = (/di=(.+)/.exec(itemUrl))?.[1] || itemUrl
-                const type = getImportableFileTypeFromUrl(url)
-                importFile(type, { url })
-              })
-            }
+        case "url": {
+          // Per RFC 2483, text/uri-list may contain multiple lines and # comment lines
+          const rawUri = dataTransfer.getData("text/uri-list")
+          const url = rawUri.split(/\r?\n/).map(l => l.trim()).find(l => l && !l.startsWith("#"))
+          if (url) {
+            // pick di parameter if present
+            const importUrl = (/di=(.+)/.exec(url))?.[1] || url
+            const type = getImportableFileTypeFromUrl(importUrl)
+            importFile(type, { url: importUrl })
           }
           break
-        case "html":
-          for (let i = 0; i < items.length; i++) {
-            if (items[i].kind === "string" && items[i].type === "text/html") {
-              items[i].getAsString((html) => {
-                initiateImportFromHTML(html)
-              })
-              break
-            }
+        }
+        case "html": {
+          const html = dataTransfer.getData("text/html")
+          if (html) {
+            initiateImportFromHTML(html)
           }
           break
+        }
       }
   }, [importFile])
 

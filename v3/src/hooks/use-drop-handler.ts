@@ -30,20 +30,6 @@ export const useDropHandler = ({
 
       onDrop?.(event)
 
-      // Pass event to removeDragData for cleanup
-      removeDragData(event)
-    }
-
-    function removeDragData(event: DragEvent) {
-      if (event.dataTransfer) {
-        if (event.dataTransfer?.items?.clear) {
-          // Use DataTransferItemList interface to remove the drag data
-          event.dataTransfer.items.clear()
-        } else {
-          // Use DataTransfer interface to remove the drag data
-          event.dataTransfer.clearData()
-        }
-      }
       setIsDragOver?.(false)
     }
 
