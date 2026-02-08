@@ -458,11 +458,13 @@ describe("xor operator", () => {
 })
 
 describe("math constants", () => {
-  it("provides pi", () => {
+  it("provides pi and PI", () => {
     expect(math.evaluate("pi")).toBeCloseTo(Math.PI)
+    expect(math.evaluate("PI")).toBeCloseTo(Math.PI)
   })
-  it("provides e", () => {
+  it("provides e and E", () => {
     expect(math.evaluate("e")).toBeCloseTo(Math.E)
+    expect(math.evaluate("E")).toBeCloseTo(Math.E)
   })
   it("provides true and false", () => {
     expect(math.evaluate("true")).toBe(true)
@@ -473,5 +475,19 @@ describe("math constants", () => {
   })
   it("provides NaN", () => {
     expect(math.evaluate("NaN")).toBeNaN()
+  })
+  it("provides phi and tau", () => {
+    expect(math.evaluate("phi")).toBeCloseTo((1 + Math.sqrt(5)) / 2)
+    expect(math.evaluate("tau")).toBeCloseTo(2 * Math.PI)
+  })
+  it("provides logarithmic constants", () => {
+    expect(math.evaluate("LN10")).toBeCloseTo(Math.LN10)
+    expect(math.evaluate("LN2")).toBeCloseTo(Math.LN2)
+    expect(math.evaluate("LOG10E")).toBeCloseTo(Math.LOG10E)
+    expect(math.evaluate("LOG2E")).toBeCloseTo(Math.LOG2E)
+  })
+  it("provides square root constants", () => {
+    expect(math.evaluate("SQRT1_2")).toBeCloseTo(Math.SQRT1_2)
+    expect(math.evaluate("SQRT2")).toBeCloseTo(Math.SQRT2)
   })
 })
