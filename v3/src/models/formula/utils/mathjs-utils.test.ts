@@ -1,4 +1,4 @@
-import { ConstantNode, FunctionNode, SymbolNode } from "mathjs"
+import { ConstantNode, FunctionNode, SymbolNode } from "mathjs/number"
 import { isConstantStringNode, isNonFunctionSymbolNode } from "./mathjs-utils"
 
 describe("isConstantStringNode", () => {

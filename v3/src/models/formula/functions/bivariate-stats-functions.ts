@@ -1,4 +1,4 @@
-import { MathNode } from "mathjs"
+import type { MathNode } from "mathjs"
 import { checkNumber } from "../../../utilities/math-utils"
 import {
   correlation, leastSquaresLinearRegression, linRegrIntercept, linRegrStdErrSlopeAndIntercept, linRegrSlope,

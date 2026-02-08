@@ -1,4 +1,4 @@
-import { MathNode, SymbolNode, parse } from "mathjs"
+import { MathNode, SymbolNode, parse } from "mathjs/number"
 import {
   evaluateRawWithAggregateContext, evaluateRawWithDefaultArg, evaluateToEvaluateRaw, evaluateWithAggregateContextSupport
 } from "./math"

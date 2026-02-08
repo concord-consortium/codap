@@ -1,5 +1,5 @@
 
-import { combinations } from "mathjs"
+import { combinations } from "mathjs/number"
 import { FValue } from "../formula-types"
 import { UNDEF_RESULT, isNumber } from "./function-utils"
 

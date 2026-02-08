@@ -1,4 +1,12 @@
-import { create, all, MathNode } from "mathjs"
+import {
+  create, evaluateDependencies, parseDependencies, compileDependencies,
+  // Logical and unary operators are not included in the minimal evaluate/parse/compile dependency set,
+  // but formulas may use them. CODAP overrides comparison and arithmetic operators in its own registry,
+  // so those are handled by the import loop below.
+  andDependencies, orDependencies, notDependencies, xorDependencies,
+  unaryMinusDependencies, unaryPlusDependencies
+} from "mathjs/number"
+import type { MathNode } from "mathjs"
 import {
   CODAPMathjsFunctionRegistry, CurrentScope, EvaluateFunc, EvaluateFuncWithAggregateContextSupport, EvaluateRawFunc,
   FValue, FValueOrArray
@@ -17,7 +25,25 @@ import { otherFunctions } from "./other-functions"
 import { stringFunctions } from "./string-functions"
 import { univariateStatsFunctions } from "./univariate-stats-functions"
 
-export const math = create(all)
+export const math = create({
+  ...evaluateDependencies, ...parseDependencies, ...compileDependencies,
+  ...andDependencies, ...orDependencies, ...notDependencies, ...xorDependencies,
+  ...unaryMinusDependencies, ...unaryPlusDependencies
+})
+
+// The minimal create() above excludes mathjs's built-in constants. Import the standard ones that
+// formulas and plugins may reference as symbols.
+math.import({
+  e: Math.E, E: Math.E,
+  pi: Math.PI, PI: Math.PI,
+  "true": true, "false": false,
+  Infinity, NaN,
+  LN10: Math.LN10, LN2: Math.LN2,
+  LOG10E: Math.LOG10E, LOG2E: Math.LOG2E,
+  SQRT1_2: Math.SQRT1_2, SQRT2: Math.SQRT2,
+  phi: (1 + Math.sqrt(5)) / 2,
+  tau: 2 * Math.PI,
+}, { override: true })
 
 // Each aggregate function needs to be evaluated with `withAggregateContext` method.
 export const evaluateRawWithAggregateContext = (fn: EvaluateRawFunc): EvaluateRawFunc => {

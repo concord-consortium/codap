@@ -1,4 +1,4 @@
-import { MathNode } from "mathjs"
+import type { MathNode } from "mathjs"
 import { checkNumber } from "../../../utilities/math-utils"
 import { XYValues } from "../../../utilities/stats-utils"
 import { IValueType } from "../../data/attribute-types"
