@@ -169,9 +169,6 @@ export interface V2Slider extends V2Component {
   lowerBound?: number
   value?: number
 }
-export interface V2GetSlider extends V2Slider {
-  value?: number
-}
 export interface V2Text extends V2Component {
   text?: string | SlateExchangeValue
   type: "text"
