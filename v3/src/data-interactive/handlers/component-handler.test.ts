@@ -128,8 +128,8 @@ describe("DataInteractive ComponentHandler", () => {
     const component = createOrShowTableOrCardForDataset(sharedDataSet, kCaseTableTileType)!
     const tableContent = component.content as ICaseTableModel
 
-    // Initially undefined (not hidden)
-    expect(tableContent.isIndexHidden).toBeUndefined()
+    // Initially false (not hidden)
+    expect(tableContent.isIndexHidden).toBe(false)
 
     // Hide the index column
     expect(handler.update?.({ component }, { isIndexHidden: true }).success).toBe(true)
@@ -137,7 +137,7 @@ describe("DataInteractive ComponentHandler", () => {
 
     // Show the index column
     expect(handler.update?.({ component }, { isIndexHidden: false }).success).toBe(true)
-    expect(tableContent.isIndexHidden).toBeUndefined()
+    expect(tableContent.isIndexHidden).toBe(false)
 
     // Hide again and verify get returns the value
     expect(handler.update?.({ component }, { isIndexHidden: true }).success).toBe(true)
