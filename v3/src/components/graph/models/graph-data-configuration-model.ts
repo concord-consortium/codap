@@ -773,7 +773,8 @@ export const GraphDataConfigurationModel = DataConfigurationModel
 
         if (!idToDrop) return false
 
-        const typeToDropIsNumeric = dataSet?.attrFromID(idToDrop)?.type === "numeric"
+        const attrToDrop = dataSet?.attrFromID(idToDrop)
+        const typeToDropIsNumeric = attrToDrop?.type === "numeric"
         if (place === 'yPlus') {
           return xIsNumericOrDate && typeToDropIsNumeric && !self.yAttributeIDs.includes(idToDrop)
         } else if (place === 'left') {
@@ -782,7 +783,8 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         } else if (place === 'rightNumeric') {
           return xIsNumericOrDate && typeToDropIsNumeric && differentAttribute
         } else if (['top', 'rightCat'].includes(place)) {
-          return !typeToDropIsNumeric && differentAttribute
+          const typeToDropIsDate = attrToDrop?.type === 'date'
+          return !typeToDropIsNumeric && !typeToDropIsDate && differentAttribute
         } else {
           return differentAttribute
         }

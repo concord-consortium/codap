@@ -35,8 +35,9 @@ export const DroppableAddAttribute = ({place, onDrop}: IAddAttributeProps) => {
   }
 
   useDropHandler(droppableId, iActive => {
-    const { dataSet, attributeId: dragAttributeID } = getDragAttributeInfo(active) || {}
-    dataSet && dragAttributeID && onDrop(dataSet, dragAttributeID)
+    const { dataSet, attributeId: dragAttributeID } = getDragAttributeInfo(iActive) || {}
+    dataSet && dragAttributeID && isDropAllowed?.(place, dataSet, dragAttributeID) &&
+      onDrop(dataSet, dragAttributeID)
   })
 
   const isActive = active && handleIsActive(active),
