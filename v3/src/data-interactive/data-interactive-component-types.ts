@@ -38,6 +38,7 @@ export interface V2Component {
     height: number
   }
   id?: number
+  isResizable?: boolean
   isVisible?: boolean
   name?: string
   position?: string | {
@@ -66,6 +67,9 @@ export function isV2CaseTableComponent(obj?: any): obj is V2CaseTable {
 export interface V2Game extends V2Component {
   type: "game"
   URL?: string
+  // V2 aliases for URL and name
+  currentGameUrl?: string
+  currentGameName?: string
 }
 export interface V2Graph extends V2Component {
   backgroundColor?: string
@@ -163,6 +167,7 @@ export interface V2Slider extends V2Component {
   scaleType?: string
   upperBound?: number
   lowerBound?: number
+  value?: number
 }
 export interface V2GetSlider extends V2Slider {
   value?: number

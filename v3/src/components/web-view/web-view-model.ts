@@ -161,6 +161,15 @@ export const WebViewModel = TileContentModel
         }
       }
     },
+    setGuidePages(pages: Array<{ title?: string, url?: string }>) {
+      if (self.subType === "guide") {
+        self.pages.replace(pages.map(p => ({ title: p.title, url: p.url })))
+        self.pageIndex = clampPageIndex(self.pageIndex, self.pages.length)
+        if (self.pages[self.pageIndex]?.url) {
+          self.url = self.pages[self.pageIndex].url || ""
+        }
+      }
+    },
     setPluginCandidate(isPlugin: boolean) {
       self.isPluginCandidate = isPlugin
     }

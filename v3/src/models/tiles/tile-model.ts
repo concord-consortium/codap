@@ -57,6 +57,9 @@ export const TileModel = V2UserTitleModel.named("TileModel")
     // e.g. "TextContentModel", ...
     content: TileContentUnion,
     cannotClose: types.maybe(types.boolean),
+    // API-controlled flag: when false, prevents user from resizing a specific component instance.
+    // Default (undefined) means resizable. Set via API update requests.
+    isResizable: types.maybe(types.boolean),
   })
   .volatile(self => ({
     isNewlyCreated: false,
@@ -81,6 +84,7 @@ export const TileModel = V2UserTitleModel.named("TileModel")
       // eslint-disable-next-line no-useless-return
       return
     },
+    // Whether this component type supports resizing by the user.
     get isUserResizable() {
       return !!(self.content as any).isUserResizable
     },
@@ -119,6 +123,9 @@ export const TileModel = V2UserTitleModel.named("TileModel")
     },
     setCannotClose(cannotClose?: boolean) {
       self.cannotClose = cannotClose
+    },
+    setIsResizable(isResizable?: boolean) {
+      self.isResizable = isResizable
     },
     setTransitionComplete(complete: boolean) {
       self.transitionComplete = complete

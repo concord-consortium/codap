@@ -295,15 +295,51 @@ const webViewComponentHandler: DIComponentHandler = {
         image: kV2ImageComponentViewType,
         plugin: kV2GameType
       }
-      const type =  (content.subType && subTypeToV2TypeMap[content.subType]) ?? kV2WebViewType
+      const type = (content.subType && subTypeToV2TypeMap[content.subType]) ?? kV2WebViewType
+
+      // Return guide-specific properties
+      if (content.isGuide) {
+        const items = content.pages.map(page => ({
+          itemTitle: page.title ?? "",
+          url: page.url ?? ""
+        }))
+        return {
+          currentItemIndex: content.pageIndex,
+          items,
+          type,
+          URL: content.url,
+        } as V2Guide
+      }
+
       return { type, URL: content.url } as V2Game | V2Guide | V2WebView
     }
   },
 
   update(content, values) {
     if (isWebViewModel(content)) {
-      const { URL } = values as V2WebView
-      if (URL) content.setUrl(URL)
+      const { URL, currentGameUrl } = values as V2Game
+
+      // Support both URL and currentGameUrl (V2 alias)
+      const url = URL ?? currentGameUrl
+      if (url) content.setUrl(url)
+
+      // Handle guide-specific properties
+      if (content.isGuide) {
+        const { items, currentItemIndex } = values as V2Guide
+
+        if (items != null) {
+          // Convert V2 items format to V3 pages format
+          const pages = items.map(item => ({
+            title: item.itemTitle,
+            url: item.url
+          }))
+          content.setGuidePages(pages)
+        }
+
+        if (currentItemIndex != null) {
+          content.setGuidePageIndex(currentItemIndex)
+        }
+      }
     }
 
     return { success: true }

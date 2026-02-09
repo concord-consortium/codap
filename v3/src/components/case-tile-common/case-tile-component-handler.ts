@@ -15,7 +15,7 @@ import { createOrShowTableOrCardForDataset } from "./case-tile-utils"
 export const caseTableCardComponentHandler: DIComponentHandler = {
   create({ type, values }) {
     const { document } = appState
-    const { dataContext, horizontalScrollOffset } = values as V2CaseTable
+    const { dataContext, horizontalScrollOffset, isIndexHidden } = values as V2CaseTable
     const dataContextNotFound = fieldRequiredResult("Create", type, "dataContext")
     if (!dataContext) return dataContextNotFound
     const dataSet = getDataSetByNameOrId(document, dataContext)
@@ -32,26 +32,31 @@ export const caseTableCardComponentHandler: DIComponentHandler = {
       return createOrShowTableOrCardForDataset(sharedDataSet, tileType, options)
     }
 
-    // TODO Handle isIndexHidden
     const scrollOffset = horizontalScrollOffset != null ? { horizontalScrollOffset } : undefined
+    const indexHidden = isIndexHidden != null ? { isIndexHidden } : undefined
     return {
-      content: { type: type === kV2CaseCardType ? kCaseCardTileType : kCaseTableTileType, ...scrollOffset },
+      content: {
+        type: type === kV2CaseCardType ? kCaseCardTileType : kCaseTableTileType, ...scrollOffset, ...indexHidden
+      },
       createOrShow
     }
   },
   get(content) {
     if (isCaseCardModel(content) || isCaseTableModel(content)) {
-      const scrollOffset = isCaseTableModel(content)
-                            ? { horizontalScrollOffset: content._horizontalScrollOffset }
+      const tableProps = isCaseTableModel(content)
+                            ? {
+                                horizontalScrollOffset: content._horizontalScrollOffset,
+                                isIndexHidden: content.isIndexHidden
+                              }
                             : undefined
-      return { dataContext: content.data?.name, ...scrollOffset }
+      return { dataContext: content.data?.name, ...tableProps }
     }
   },
   update(content, values) {
     if (isCaseTableModel(content)) {
-      // TODO Handle isIndexHidden
-      const { horizontalScrollOffset } = values as V2CaseTable
+      const { horizontalScrollOffset, isIndexHidden } = values as V2CaseTable
       if (horizontalScrollOffset != null) content.setHorizontalScrollOffset(horizontalScrollOffset)
+      if (isIndexHidden != null) content.setIndexHidden(isIndexHidden)
     }
     return { success: true }
   }

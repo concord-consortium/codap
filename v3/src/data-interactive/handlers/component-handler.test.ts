@@ -123,6 +123,51 @@ describe("DataInteractive ComponentHandler", () => {
     expect(tableContent._horizontalScrollOffset).toBe(100)
   })
 
+  it("update caseTable isIndexHidden works", () => {
+    const sharedDataSet = getSharedDataSets(documentContent)[0]
+    const component = createOrShowTableOrCardForDataset(sharedDataSet, kCaseTableTileType)!
+    const tableContent = component.content as ICaseTableModel
+
+    // Initially undefined (not hidden)
+    expect(tableContent.isIndexHidden).toBeUndefined()
+
+    // Hide the index column
+    expect(handler.update?.({ component }, { isIndexHidden: true }).success).toBe(true)
+    expect(tableContent.isIndexHidden).toBe(true)
+
+    // Show the index column
+    expect(handler.update?.({ component }, { isIndexHidden: false }).success).toBe(true)
+    expect(tableContent.isIndexHidden).toBeUndefined()
+
+    // Hide again and verify get returns the value
+    expect(handler.update?.({ component }, { isIndexHidden: true }).success).toBe(true)
+    const getResult = handler.get?.({ component })
+    expect(getResult?.success).toBe(true)
+    expect((getResult?.values as V2CaseTable)?.isIndexHidden).toBe(true)
+  })
+
+  it("update common component properties works", () => {
+    const graphTile = createTile("graph", kGraphIdPrefix)
+
+    // Test updating name
+    expect(graphTile.name).toBe("")
+    expect(handler.update?.({ component: graphTile }, { name: "My Graph" }).success).toBe(true)
+    expect(graphTile.name).toBe("My Graph")
+
+    // Test updating isResizable
+    expect(graphTile.isResizable).toBeUndefined()
+    expect(handler.update?.({ component: graphTile }, { isResizable: false }).success).toBe(true)
+    expect(graphTile.isResizable).toBe(false)
+    expect(handler.update?.({ component: graphTile }, { isResizable: true }).success).toBe(true)
+    expect(graphTile.isResizable).toBe(true)
+
+    // Test that get returns the updated values
+    const getResult = handler.get?.({ component: graphTile })
+    expect(getResult?.success).toBe(true)
+    expect((getResult?.values as any)?.name).toBe("My Graph")
+    expect((getResult?.values as any)?.isResizable).toBe(true)
+  })
+
   describe("notify", () => {
     it("returns error when component or values are missing", () => {
       expect(handler.notify?.({}).success).toBe(false)

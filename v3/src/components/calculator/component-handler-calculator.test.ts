@@ -42,5 +42,15 @@ describe("DataInteractive ComponentHandler Calculator", () => {
     expect(result2Values.id).toBe(resultValues.id)
 
     testGetComponent(tile, handler)
+
+    // Test update with common properties
+    expect(tile.cannotClose).toBeUndefined()
+    const updateResult = handler.update?.({ component: tile }, {
+      title: "Updated Calculator",
+      cannotClose: true
+    })
+    expect(updateResult?.success).toBe(true)
+    expect(tile.title).toBe("Updated Calculator")
+    expect(tile.cannotClose).toBe(true)
   })
 })

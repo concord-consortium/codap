@@ -163,7 +163,8 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
                 onCloseTile={onCloseTile}
                 onMoveTilePointerDown={uiState.allowComponentMove ? handleMoveTilePointerDown : undefined}
               />
-              <If condition={!isMinimized && !isStandalone && uiState.allowComponentResize}>
+              <If condition={!isMinimized && !isStandalone && uiState.allowComponentResize &&
+                              tile.isResizable !== false}>
                 <ComponentResizeWidgets tile={tile} componentRef={componentRef}
                   isFixedWidth={isFixedWidth} isFixedHeight={isFixedHeight}
                   handleResizePointerDown={handleResizePointerDown} />

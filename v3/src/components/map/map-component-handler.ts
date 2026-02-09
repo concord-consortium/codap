@@ -105,7 +105,6 @@ export const mapComponentHandler: DIComponentHandler = {
   update(content: ITileContentModel, values: DIValues) {
     if (!isMapContentModel(content)) return { success: false }
 
-    // TODO: Finish implementing this function. See the Codap API docs for all properties that should be handled.
     const { legendAttributeName, center: _center, zoom: _zoom, geoRaster } = values as V2Map
     const { dataConfiguration } = content
     const dataset = dataConfiguration?.dataset
@@ -115,6 +114,7 @@ export const mapComponentHandler: DIComponentHandler = {
         dataConfiguration.setAttribute("legend", { attributeID: legendAttribute.id })
       }
     }
+
     if (_center != null || _zoom != null) {
       const center = _center ? { lat: _center[0], lng: _center[1] } : content.center
       const zoom = _zoom ?? content.zoom
