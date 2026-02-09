@@ -1,5 +1,4 @@
 import { getTitle } from "../../models/tiles/tile-content-info"
-import { getTileInfo } from "../../models/document/tile-utils"
 import { getPositionOfNewComponent } from "../../utilities/view-utils"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { IWebViewSnapshot } from "../web-view/web-view-model"
@@ -8,9 +7,15 @@ import { getDrawToolPluginUrl } from "../../constants"
 import { appState } from "../../models/app-state"
 import { isFreeTileRow } from "../../models/document/free-tile-row"
 
-export const openInDrawTool = async (tile: ITileModel, imageString: string) => {
+interface IImageDimensions {
+  width: number
+  height: number
+}
+
+export const openInDrawTool = async (tile: ITileModel, imageString: string, imageDimensions?: IImageDimensions) => {
   const title = (tile && getTitle?.(tile)) || tile?.title || ""
-  const { dimensions = { width: 400, height: 300 } } = tile?.id ? getTileInfo(tile?.id || '') : {}
+  // Use image dimensions for positioning if available, otherwise use defaults
+  const dimensions = imageDimensions ?? { width: 400, height: 300 }
   const computedPosition = getPositionOfNewComponent(dimensions)
   const webViewModelSnap: IWebViewSnapshot = {
     type: kWebViewTileType,
@@ -36,4 +41,3 @@ export const openInDrawTool = async (tile: ITileModel, imageString: string) => {
     }, 500)
   }
 }
-

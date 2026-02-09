@@ -117,28 +117,32 @@ describe("graphSnapshot", () => {
       rootEl: containerEl,
       graphWidth: 100,
       graphHeight: 100,
-      graphTitle: "Empty Test Graph",
+      title: "Empty Test Graph",
       asDataURL: true,
       renderer: mockRenderer
     }
     const result = await graphSnapshot(svgElementsToImageOptions)
-    expect(typeof result).toBe("string")
-    expect(result).toContain("data:image/png;base64,00")
+    expect(typeof result.image).toBe("string")
+    expect(result.image).toContain("data:image/png;base64,00")
+    expect(result.width).toBe(100)
+    // Height includes 20px for title area
+    expect(result.height).toBe(120)
   })
   it("should return a blob when `asDataUrl` is false", async () => {
     const svgElementsToImageOptions = {
       rootEl: containerEl,
       graphWidth: 100,
       graphHeight: 100,
-      graphTitle: "Empty Test Graph",
+      title: "Empty Test Graph",
       asDataURL: false,
       renderer: mockRenderer
     }
     const result = await graphSnapshot(svgElementsToImageOptions)
-    expect(typeof result).toBe("object")
     // Check for Blob-like properties (toBeInstanceOf(Blob) fails due to jest/jsdom realm differences)
-    expect(result).toHaveProperty("size")
-    expect(result).toHaveProperty("type")
+    expect(result.image).toHaveProperty("size")
+    expect(result.image).toHaveProperty("type")
+    expect(result.width).toBe(100)
+    expect(result.height).toBe(120)
   })
 })
 
@@ -244,5 +248,55 @@ describe("disallowed element filtering", () => {
       height: 100
     })
     expect(result).toContain("data:image/png;base64,")
+  })
+})
+
+describe("title rendering", () => {
+  it("should export successfully with a title", async () => {
+    const result = await exportGraphToPng({
+      graphElement: containerEl,
+      renderer: mockRenderer,
+      width: 100,
+      height: 100,
+      title: "Test Graph Title"
+    })
+    expect(result).toContain("data:image/png;base64,")
+  })
+
+  it("should export successfully without a title", async () => {
+    const result = await exportGraphToPng({
+      graphElement: containerEl,
+      renderer: mockRenderer,
+      width: 100,
+      height: 100
+    })
+    expect(result).toContain("data:image/png;base64,")
+  })
+
+  it("should not add title height when no title is provided", async () => {
+    const result = await graphSnapshot({
+      rootEl: containerEl,
+      graphWidth: 100,
+      graphHeight: 100,
+      asDataURL: true,
+      renderer: mockRenderer
+    })
+    expect(result.width).toBe(100)
+    expect(result.height).toBe(100)
+  })
+
+  it("should include title in graphSnapshot when provided", async () => {
+    const result = await graphSnapshot({
+      rootEl: containerEl,
+      graphWidth: 100,
+      graphHeight: 100,
+      title: "Snapshot Title",
+      asDataURL: true,
+      renderer: mockRenderer
+    })
+    expect(typeof result.image).toBe("string")
+    expect(result.image).toContain("data:image/png;base64,")
+    // Height includes 20px for title area
+    expect(result.height).toBe(120)
   })
 })

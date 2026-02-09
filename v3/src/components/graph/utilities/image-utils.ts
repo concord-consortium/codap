@@ -88,12 +88,23 @@ async function renderSvgToCanvas(options: IRenderSvgToCanvasOptions): Promise<vo
   })
 }
 
+// Height of the title area appended below the graph image (matches V2)
+export const kTitleAreaHeight = 20
+
 interface IExportGraphToPngOptions {
   graphElement: HTMLElement
   renderer: PointRendererBase
   width: number
   height: number
   dpr?: number
+  title?: string
+}
+
+interface IExportGraphToCanvasResult {
+  canvas: HTMLCanvasElement
+  // Logical dimensions (CSS pixels, not scaled by DPR)
+  width: number
+  height: number
 }
 
 /**
@@ -101,8 +112,8 @@ interface IExportGraphToPngOptions {
  * The canvas is scaled by devicePixelRatio for sharp rendering on high-DPI displays,
  * with the context pre-scaled so all drawing uses logical (CSS) coordinates.
  */
-async function exportGraphToCanvas(options: IExportGraphToPngOptions): Promise<HTMLCanvasElement> {
-  const { graphElement, renderer, width, height, dpr: dprOption } = options
+async function exportGraphToCanvas(options: IExportGraphToPngOptions): Promise<IExportGraphToCanvasResult> {
+  const { graphElement, renderer, width, height, dpr: dprOption, title } = options
 
   // Find the actual graph content element (the .graph-plot div inside the tile)
   // graphElement may be the tile container which includes the title bar
@@ -114,12 +125,16 @@ async function exportGraphToCanvas(options: IExportGraphToPngOptions): Promise<H
   const exportWidth = contentRect.width || width
   const exportHeight = contentRect.height || height
 
+  // Add extra height for title area if a title is provided (matches V2 behavior)
+  const titleHeight = title ? kTitleAreaHeight : 0
+  const totalHeight = exportHeight + titleHeight
+
   // Scale canvas by devicePixelRatio for sharp output on high-DPI displays.
   // Callers can override dpr (e.g. dpr=1) when the image dimensions should match logical size.
   const dpr = dprOption ?? (window.devicePixelRatio || 1)
   const canvas = document.createElement("canvas")
   canvas.width = Math.ceil(exportWidth * dpr)
-  canvas.height = Math.ceil(exportHeight * dpr)
+  canvas.height = Math.ceil(totalHeight * dpr)
   const ctx = canvas.getContext("2d")
 
   if (!ctx) {
@@ -131,7 +146,7 @@ async function exportGraphToCanvas(options: IExportGraphToPngOptions): Promise<H
 
   // 1. Background fill
   ctx.fillStyle = "#f8f8f8"
-  ctx.fillRect(0, 0, exportWidth, exportHeight)
+  ctx.fillRect(0, 0, exportWidth, totalHeight)
 
   // Cache the graph content's bounding rect to avoid repeated layout calculations
   const graphRect = contentRect
@@ -246,7 +261,30 @@ async function exportGraphToCanvas(options: IExportGraphToPngOptions): Promise<H
     }
   }
 
-  return canvas
+  // 7. Title area below the graph (matches V2 behavior)
+  if (title) {
+    // White background for title area
+    ctx.fillStyle = "#ffffff"
+    ctx.fillRect(0, exportHeight, exportWidth, kTitleAreaHeight)
+
+    // Separator line at the boundary between graph and title
+    ctx.strokeStyle = "#000000"
+    ctx.lineWidth = 1
+    ctx.beginPath()
+    ctx.moveTo(0, exportHeight)
+    ctx.lineTo(exportWidth, exportHeight)
+    ctx.stroke()
+
+    // Centered title text
+    ctx.fillStyle = "#000000"
+    ctx.font = '10pt "museo-sans", sans-serif'
+    ctx.textAlign = "center"
+    ctx.textBaseline = "middle"
+    // +2 nudge matches V2 title placement; compensates for "middle" baseline sitting slightly high
+    ctx.fillText(title, exportWidth / 2, exportHeight + kTitleAreaHeight / 2 + 2, exportWidth)
+  }
+
+  return { canvas, width: exportWidth, height: totalHeight }
 }
 
 /**
@@ -255,7 +293,7 @@ async function exportGraphToCanvas(options: IExportGraphToPngOptions): Promise<H
  * Returns a data URL string.
  */
 export async function exportGraphToPng(options: IExportGraphToPngOptions): Promise<string> {
-  const canvas = await exportGraphToCanvas(options)
+  const { canvas } = await exportGraphToCanvas(options)
   return canvas.toDataURL("image/png")
 }
 
@@ -265,31 +303,41 @@ export interface IGraphImageOptions {
   graphHeight: number
   renderer: PointRendererBase
   dpr?: number
+  title?: string
 }
 
 interface IGraphSnapshotOptions extends IGraphImageOptions {
   asDataURL: boolean
 }
 
-export const graphSnapshot = async (options: IGraphSnapshotOptions): Promise<string | Blob> => {
-  const { rootEl, graphWidth, graphHeight, renderer, asDataURL, dpr } = options
+export interface IGraphSnapshotResult {
+  image: string | Blob
+  width: number
+  height: number
+}
 
-  const canvas = await exportGraphToCanvas({
+export const graphSnapshot = async (options: IGraphSnapshotOptions): Promise<IGraphSnapshotResult> => {
+  const { rootEl, graphWidth, graphHeight, renderer, asDataURL, dpr, title } = options
+
+  const { canvas, width, height } = await exportGraphToCanvas({
     graphElement: rootEl,
     renderer,
     width: graphWidth,
     height: graphHeight,
-    dpr
+    dpr,
+    title
   })
 
   if (asDataURL) {
-    return canvas.toDataURL("image/png")
+    return { image: canvas.toDataURL("image/png"), width, height }
   }
 
   // Use canvas.toBlob() directly instead of round-tripping through a data URL
-  return new Promise<Blob>((resolve, reject) => {
+  return new Promise<IGraphSnapshotResult>((resolve, reject) => {
     canvas.toBlob(
-      blob => blob ? resolve(blob) : reject(new Error("Failed to create PNG blob")),
+      (blob: Blob | null) => blob
+        ? resolve({ image: blob, width, height })
+        : reject(new Error("Failed to create PNG blob")),
       "image/png"
     )
   })
