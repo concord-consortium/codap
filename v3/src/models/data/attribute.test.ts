@@ -567,6 +567,32 @@ describe("Attribute", () => {
     expect(attrWithUndefinedPrecision.precision).toBeUndefined()
   })
 
+  test("setUserType to numeric auto-sets default precision", () => {
+    // When precision is undefined and type is set to "numeric", precision should default to 2
+    const attr = Attribute.create({ name: "test" })
+    expect(attr.precision).toBeUndefined()
+    attr.setUserType("numeric")
+    expect(attr.precision).toBe(2)
+
+    // Should NOT override an existing precision value
+    const attr2 = Attribute.create({ name: "test2", precision: 5 })
+    expect(attr2.precision).toBe(5)
+    attr2.setUserType("numeric")
+    expect(attr2.precision).toBe(5)
+
+    // Setting to a non-numeric type should not set precision
+    const attr3 = Attribute.create({ name: "test3" })
+    attr3.setUserType("categorical")
+    expect(attr3.precision).toBeUndefined()
+
+    // Setting to numeric after clearing precision should re-apply default
+    const attr4 = Attribute.create({ name: "test4", precision: 3 })
+    attr4.setPrecision(undefined)
+    expect(attr4.precision).toBeUndefined()
+    attr4.setUserType("numeric")
+    expect(attr4.precision).toBe(2)
+  })
+
   test.skip("performance of value.toString() vs. JSON.stringify(value)", () => {
     const values: number[] = []
     for (let i = 0; i < 5000; ++i) {

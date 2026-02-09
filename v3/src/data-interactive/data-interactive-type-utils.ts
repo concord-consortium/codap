@@ -8,6 +8,7 @@ import { IGlobalValue } from "../models/global/global-value"
 import { IV2CollectionDefaults } from "../models/shared/data-set-metadata"
 import { getMetadataFromDataSet } from "../models/shared/shared-data-utils"
 import { kAttrIdPrefix, maybeToV2Id, toV2Id, toV2ItemId, toV3AttrId } from "../utilities/codap-utils"
+import { kDefaultNumPrecision } from "../models/data/attribute-types"
 import { isFiniteNumber } from "../utilities/math-utils"
 import {
   ICodapV2Attribute, ICodapV2Case, ICodapV2CategoryMap, ICodapV2CollectionV3,
@@ -24,15 +25,17 @@ export function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttr
   const values = _values as DIAttribute
   if (values.name) {
     const id = values.id != null ? toV3AttrId(values.id) : values.cid
+    const userType = v3TypeFromV2TypeString(values.type)
+    const _precision = values.precision == null || values.precision === ""
+                    ? undefined
+                    : isFiniteNumber(+values.precision) ? +values.precision : undefined
     return {
       ...v2ModelSnapshotFromV2ModelStorage(kAttrIdPrefix, values),
       id,
-      userType: v3TypeFromV2TypeString(values.type),
+      userType,
       description: values.description ?? undefined,
       formula: values.formula ? { display: values.formula } : undefined,
-      precision: values.precision == null || values.precision === ""
-                    ? undefined
-                    : isFiniteNumber(+values.precision) ? +values.precision : undefined,
+      precision: _precision ?? (userType === "numeric" ? kDefaultNumPrecision : undefined),
       units: values.unit ?? undefined
     }
   }

@@ -40,7 +40,7 @@ import { Formula, IFormula } from "../formula/formula"
 import { applyModelChange } from "../history/apply-model-change"
 import { withoutUndo } from "../history/without-undo"
 import {
-  AttributeType, attributeTypes, importValueToString, IValueType
+  AttributeType, attributeTypes, importValueToString, IValueType, kDefaultNumPrecision
 } from "./attribute-types"
 import { V2Model } from "./v2-model"
 
@@ -384,6 +384,9 @@ export const Attribute = V2Model.named("Attribute").props({
     },
     setUserType(type?: AttributeType) {
       self.userType = type
+      if (type === "numeric" && self.precision == null) {
+        self.precision = kDefaultNumPrecision
+      }
     },
     // setUserFormat(precision: string) {
     //   self.userFormat = `.${precision}~f`

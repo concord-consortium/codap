@@ -3,7 +3,7 @@ import { Button, FormControl, FormLabel, HStack, Input, ModalBody, ModalCloseBut
 import React, { useEffect, useState } from "react"
 import { useDataSet } from "../../../hooks/use-data-set"
 import { logMessageWithReplacement } from "../../../lib/log-message"
-import { AttributeType, attributeTypes } from "../../../models/data/attribute-types"
+import { attributeTypes, kDefaultNumPrecision } from "../../../models/data/attribute-types"
 import { updateAttributesNotification } from "../../../models/data/data-set-notifications"
 import { DatePrecision, datePrecisions } from "../../../utilities/date-utils"
 import { uniqueName } from "../../../utilities/js-utils"
@@ -181,7 +181,13 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
           </FormLabel>
           <FormLabel mr={5} className="edit-attribute-form-row">{t("DG.CaseTable.attributeEditor.type")}
             <Select size="xs" ml={5} value={userType} data-testid="attr-type-select"
-                onChange={(e) => setUserType(e.target.value as AttributeType)}
+                onChange={(e) => {
+                  const newType = e.target.value as SelectableAttributeType
+                  setUserType(newType)
+                  if (newType === "numeric" && precision == null) {
+                    setPrecision(kDefaultNumPrecision)
+                  }
+                }}
                 onMouseDown={(e) => e.stopPropagation()}>
               {selectableAttributeTypes.map(aType => {
                 return (<option key={aType} value={aType} data-testid="attr-type-option"
