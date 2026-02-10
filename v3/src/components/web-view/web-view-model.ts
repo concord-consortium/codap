@@ -156,18 +156,14 @@ export const WebViewModel = TileContentModel
     setGuidePageIndex(index: number) {
       if (self.subType === "guide") {
         self.pageIndex = clampPageIndex(index, self.pages.length)
-        if (self.pages[self.pageIndex]?.url) {
-          self.url = self.pages[self.pageIndex].url || ""
-        }
+        self.url = self.pages[self.pageIndex]?.url || ""
       }
     },
     setGuidePages(pages: Array<{ title?: string, url?: string }>) {
       if (self.subType === "guide") {
         self.pages.replace(pages.map(p => ({ title: p.title, url: p.url })))
         self.pageIndex = clampPageIndex(self.pageIndex, self.pages.length)
-        if (self.pages[self.pageIndex]?.url) {
-          self.url = self.pages[self.pageIndex].url || ""
-        }
+        self.url = self.pages[self.pageIndex]?.url || ""
       }
     },
     setPluginCandidate(isPlugin: boolean) {

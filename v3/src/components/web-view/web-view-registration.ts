@@ -322,7 +322,7 @@ const webViewComponentHandler: DIComponentHandler = {
 
       // Support both URL and currentGameUrl (V2 alias)
       const url = URL ?? currentGameUrl
-      if (url) content.setUrl(url)
+      if (url != null) content.setUrl(url)
 
       // Handle guide-specific properties
       if (content.isGuide) {
