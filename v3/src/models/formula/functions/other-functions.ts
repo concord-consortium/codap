@@ -1,4 +1,4 @@
-import { pickRandom } from "mathjs"
+import { pickRandom } from "mathjs/number"
 import { Random } from "random"
 import { isDateString, parseDate } from "../../../utilities/date-parser"
 import { isDate } from "../../../utilities/date-utils"
@@ -77,7 +77,9 @@ export const otherFunctions: Record<string, IFormulaMathjsFunction> = {
     }
   },
 
-  number: {
+  // Registered as "_number_" to avoid colliding with mathjs's internal number() function used by the parser.
+  // Canonicalization maps the user-facing "number()" to "_number_()" and back.
+  _number_: {
     numOfRequiredArguments: 1,
     evaluate: (arg: FValue) => {
       if (isDate(arg)) {

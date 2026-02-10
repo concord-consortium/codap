@@ -65,18 +65,20 @@ describe("randomBinomial", () => {
 })
 
 describe("number", () => {
+  // CODAP's number() is registered as _number_ to avoid colliding with mathjs's internal number().
+  // In production, canonicalization maps "number(...)" → "_number_(...)".
   it("converts a date to epoch time in seconds", () => {
-    const fn = math.compile("number(date(100500))")
+    const fn = math.compile("_number_(date(100500))")
     expect(fn.evaluate()).toEqual(100500)
   })
 
   it("converts a date string to epoch time in seconds", () => {
-    const fn = math.compile("number('01/01/2020')")
+    const fn = math.compile("_number_('01/01/2020')")
     expect(fn.evaluate()).toEqual(new Date('01/01/2020').getTime() / 1000) // Convert to seconds
   })
 
   it("returns UNDEF_RESULT for non-date values", () => {
-    const fn = math.compile("number('foo')")
+    const fn = math.compile("_number_('foo')")
     expect(fn.evaluate()).toEqual(UNDEF_RESULT)
   })
 })

@@ -1,4 +1,4 @@
-import { MathNode } from "mathjs"
+import type { MathNode } from "mathjs"
 import { checkDate } from "../../../utilities/date-utils"
 import { isValueNonEmpty } from "../../../utilities/math-utils"
 import { FormulaMathJsScope } from "../formula-mathjs-scope"

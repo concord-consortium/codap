@@ -199,6 +199,13 @@ describe("displayToCanonical", () => {
       // This is fine, as the reverse function, canonicalToDisplay, will convert them back to single quotes.
     })
   })
+  describe("when function name has a canonical alias (e.g. number → _number_)", () => {
+    it("maps number to _number_ in canonical form", () => {
+      expect(displayToCanonical(
+        "number(LifeSpan)", displayNameMapExample
+      )).toEqual("_number_(__CANONICAL_NAME__LOCAL_ATTR_ATTR_LIFE_SPAN)")
+    })
+  })
   describe("when attribute name is provided as string constant (e.g. lookup functions)", () => {
     it("is still converted correctly", () => {
       expect(displayToCanonical(
@@ -291,6 +298,14 @@ describe("canonicalToDisplay", () => {
         'lookupByKey("Old Roller Coaster", "Old\\"Park", "Old\\"Top\'Speed", OldOrder) * 2',
         reverseDisplayNameMap(displayNameMapExample)
       )).toEqual('lookupByKey("Roller Coaster", "Park\\"", "Top\\\\Speed\'", Order) * 2')
+    })
+  })
+  describe("when function name has a canonical alias (e.g. number → _number_)", () => {
+    it("maps _number_ back to number in display form", () => {
+      expect(canonicalToDisplay(
+        "_number_(__CANONICAL_NAME__LOCAL_ATTR_ATTR_LIFE_SPAN)",
+        "number(LifeSpan)", reverseDisplayNameMap(displayNameMapExample)
+      )).toEqual("number(LifeSpan)")
     })
   })
   describe("when attribute name is provided as a single quote string constant (e.g. lookup functions)", () => {

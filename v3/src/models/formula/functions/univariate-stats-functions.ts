@@ -1,4 +1,5 @@
-import { mad, MathNode, max, mean, median, min, std, sum } from "mathjs"
+import { mad, max, mean, median, min, std, sum } from "mathjs/number"
+import type { MathNode } from "mathjs"
 import { checkNumber, quantileOfSortedArray } from "../../../utilities/math-utils"
 import { IValueType } from "../../data/attribute-types"
 import { CurrentScope, FValue, IFormulaMathjsFunction } from "../formula-types"

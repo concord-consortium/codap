@@ -1,5 +1,6 @@
 import { TreeCursor } from "@lezer/common"
-import { parse, MathNode, isFunctionNode } from "mathjs"
+import { parse, isFunctionNode } from "mathjs/number"
+import type { MathNode } from "mathjs"
 import { DisplayNameMap, CanonicalNameMap } from "../formula-types"
 import { typedFnRegistry } from "../functions/math"
 import { parser } from "../lezer/parser"
@@ -185,6 +186,11 @@ export const formulaIndexOf = (formula: string, name: string, isStringConstant: 
   return { stringDelimiter: null, nameIndex: -1, finalName: name }
 }
 
+// Maps user-facing function names to internal canonical names that avoid collisions with mathjs internals.
+// For example, "number" collides with mathjs's internal number() used by the parser for numeric conversion.
+const fnDisplayToCanonical: Record<string, string> = { number: "_number_" }
+const fnCanonicalToDisplay: Record<string, string> = { _number_: "number" }
+
 // Function replaces all the symbol names typed by user (display names) with the symbol canonical names that
 // can be resolved by formula context and do not rely on user-based display names.
 export const displayToCanonical = (displayExpression: string, displayNameMap: DisplayNameMap) => {
@@ -196,11 +202,17 @@ export const displayToCanonical = (displayExpression: string, displayNameMap: Di
         node.name = canonicalName
       }
     }
-    // Some functions have special kind of dependencies that need to be canonicalized in a custom way
-    // (eg. lookupByIndex, lookupByKey).
-    if (isFunctionNode(node) && typedFnRegistry[node.fn.name]) {
-      // Note that parseArguments will modify args array in place, because we're passing canonicalizeWith option.
-      typedFnRegistry[node.fn.name].canonicalize?.(node.args, displayNameMap)
+    if (isFunctionNode(node)) {
+      const registryKey = fnDisplayToCanonical[node.fn.name] ?? node.fn.name
+      // Some functions have special kind of dependencies that need to be canonicalized in a custom way
+      // (eg. lookupByIndex, lookupByKey).
+      if (typedFnRegistry[registryKey]) {
+        typedFnRegistry[registryKey].canonicalize?.(node.args, displayNameMap)
+      }
+      // Rename function if it needs a canonical alias to avoid mathjs internal collisions
+      if (fnDisplayToCanonical[node.fn.name]) {
+        node.fn.name = fnDisplayToCanonical[node.fn.name]
+      }
     }
   }
   formulaTree.traverse(visitNode)
@@ -256,7 +268,7 @@ export const canonicalToDisplay = (canonical: string, originalDisplay: string, c
       wrapInBackticksIfNecessary(escapeBacktickString(getDisplayNameFromSymbol(node.name)))
     )
     isConstantStringNode(node) && newNames.push(getDisplayNameFromSymbol(node.value))
-    isFunctionNode(node) && newNames.push(node.fn.name)
+    isFunctionNode(node) && newNames.push(fnCanonicalToDisplay[node.fn.name] ?? node.fn.name)
   })
 
   let result = ""

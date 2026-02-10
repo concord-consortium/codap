@@ -20,7 +20,8 @@
       "@codemirror/autocomplete": ["./node_modules/@codemirror/autocomplete"],
       "@codemirror/state": ["./node_modules/@codemirror/state"],
       "@codemirror/view": ["./node_modules/@codemirror/view"],
-      "mobx-state-tree": ["./node_modules/@concord-consortium/mobx-state-tree/dist"]
+      "mobx-state-tree": ["./node_modules/@concord-consortium/mobx-state-tree/dist"],
+      "mathjs/number": ["./node_modules/mathjs/types/index.d.ts"]
     }
   },
   "include": [
