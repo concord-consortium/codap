@@ -161,6 +161,70 @@ GROUP BY CONCAT(li.base_url, COALESCE(mi.url_fragment, ''))
 ORDER BY activity_count DESC;
 ```
 
+**SQL Query for base URL counts** (strips query params, no unwrapping):
+
+```sql
+SELECT SUBSTRING_INDEX(mw.url, '?', 1) AS base_url, COUNT(DISTINCT la.id) AS activity_count
+FROM lightweight_activities la
+JOIN interactive_pages ip ON ip.lightweight_activity_id = la.id
+JOIN interactive_items ii ON ii.interactive_page_id = ip.id
+JOIN mw_interactives mw ON mw.id = ii.interactive_id AND ii.interactive_type = 'MwInteractive'
+WHERE mw.url LIKE '%codap.concord.org%'
+GROUP BY 1
+UNION ALL
+SELECT SUBSTRING_INDEX(CONCAT(li.base_url, COALESCE(mi.url_fragment, '')), '?', 1) AS base_url, COUNT(DISTINCT la.id) AS activity_count
+FROM lightweight_activities la
+JOIN interactive_pages ip ON ip.lightweight_activity_id = la.id
+JOIN interactive_items ii ON ii.interactive_page_id = ip.id
+JOIN managed_interactives mi ON mi.id = ii.interactive_id AND ii.interactive_type = 'ManagedInteractive'
+JOIN library_interactives li ON li.id = mi.library_interactive_id
+WHERE li.base_url LIKE '%codap.concord.org%' OR mi.url_fragment LIKE '%codap.concord.org%'
+GROUP BY 1
+ORDER BY 2 DESC;
+```
+
+**SQL Query for normalized URL path counts** (strips query params, unwraps `wrappedInteractive`):
+
+```sql
+SELECT normalized_url, SUM(activity_count) AS total_activities
+FROM (
+  SELECT
+    SUBSTRING_INDEX(
+      IF(mw.url LIKE '%wrappedInteractive=%',
+        REPLACE(REPLACE(REPLACE(
+          SUBSTRING_INDEX(SUBSTRING_INDEX(mw.url, 'wrappedInteractive=', -1), '%3F', 1),
+          '%2F', '/'), '%3A', ':'), '%23', '#'),
+        SUBSTRING_INDEX(mw.url, '?', 1)
+      ), '?', 1) AS normalized_url,
+    COUNT(DISTINCT la.id) AS activity_count
+  FROM lightweight_activities la
+  JOIN interactive_pages ip ON ip.lightweight_activity_id = la.id
+  JOIN interactive_items ii ON ii.interactive_page_id = ip.id
+  JOIN mw_interactives mw ON mw.id = ii.interactive_id AND ii.interactive_type = 'MwInteractive'
+  WHERE mw.url LIKE '%codap.concord.org%'
+  GROUP BY 1
+  UNION ALL
+  SELECT
+    SUBSTRING_INDEX(
+      IF(CONCAT(li.base_url, COALESCE(mi.url_fragment, '')) LIKE '%wrappedInteractive=%',
+        REPLACE(REPLACE(REPLACE(
+          SUBSTRING_INDEX(SUBSTRING_INDEX(CONCAT(li.base_url, COALESCE(mi.url_fragment, '')), 'wrappedInteractive=', -1), '%3F', 1),
+          '%2F', '/'), '%3A', ':'), '%23', '#'),
+        SUBSTRING_INDEX(CONCAT(li.base_url, COALESCE(mi.url_fragment, '')), '?', 1)
+      ), '?', 1) AS normalized_url,
+    COUNT(DISTINCT la.id) AS activity_count
+  FROM lightweight_activities la
+  JOIN interactive_pages ip ON ip.lightweight_activity_id = la.id
+  JOIN interactive_items ii ON ii.interactive_page_id = ip.id
+  JOIN managed_interactives mi ON mi.id = ii.interactive_id AND ii.interactive_type = 'ManagedInteractive'
+  JOIN library_interactives li ON li.id = mi.library_interactive_id
+  WHERE li.base_url LIKE '%codap.concord.org%' OR mi.url_fragment LIKE '%codap.concord.org%'
+  GROUP BY 1
+) AS combined
+GROUP BY 1
+ORDER BY 2 DESC;
+```
+
 **SQL Query for summary counts** (total distinct URLs per source):
 
 ```sql
