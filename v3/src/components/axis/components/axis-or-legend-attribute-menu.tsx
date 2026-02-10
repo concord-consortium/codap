@@ -135,7 +135,10 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   const layout = useFreeTileLayoutContext()
   const maxMenuHeight = `min(${layout?.height ?? 300}px, 50vh)`
   const dataConfiguration = useDataConfigurationContext()
-  const isAttributeAllowed = dataConfiguration?.placeCanAcceptAttributeIDDrop?.bind(dataConfiguration)
+  const isAttributeAllowed = dataConfiguration?.placeCanAcceptAttributeIDDrop
+    ? (aPlace: GraphPlace, data: IDataSet, anAttrId: string) =>
+        dataConfiguration.placeCanAcceptAttributeIDDrop(aPlace, data, anAttrId, { allowSameAttr: true })
+    : undefined
   const dataSet = dataConfiguration?.dataset
   const dataSets = dataConfiguration ? getDataSets(dataConfiguration) : []
   const allCollectionInfo: (ICollectionInfo|"divider")[] = []
