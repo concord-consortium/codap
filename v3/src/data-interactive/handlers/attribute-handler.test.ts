@@ -125,6 +125,43 @@ describe("DataInteractive AttributeHandler", () => {
     expect(a1.precision).toBe(4)
   })
 
+  it("create with numeric type uses default precision via accessor", () => {
+    const { dataset: dataContext, c1 } = setupTestDataset()
+    const resources = { dataContext, collection: c1 }
+    const create = handler.create!
+
+    // Numeric type without precision: stored precision is undefined, accessor returns 2
+    const result = create(resources, { name: "numAttr", type: "numeric" })
+    expect(result.success).toBe(true)
+    const numAttr = dataContext.getAttributeByName("numAttr")
+    expect(numAttr?.precision).toBeUndefined()
+    expect(numAttr?.numPrecision).toBe(2)
+
+    // Numeric type with explicit precision should use that value
+    const result2 = create(resources, { name: "numAttr2", type: "numeric", precision: 5 })
+    expect(result2.success).toBe(true)
+    const numAttr2 = dataContext.getAttributeByName("numAttr2")
+    expect(numAttr2?.precision).toBe(5)
+    expect(numAttr2?.numPrecision).toBe(5)
+
+    // Non-numeric type without precision should not get default precision
+    const result3 = create(resources, { name: "catAttr", type: "categorical" })
+    expect(result3.success).toBe(true)
+    const catAttr = dataContext.getAttributeByName("catAttr")
+    expect(catAttr?.precision).toBeUndefined()
+    expect(catAttr?.numPrecision).toBeUndefined()
+  })
+
+  it("update to numeric type provides default precision via accessor", () => {
+    const { dataset: dataContext, a1 } = setupTestDataset()
+    expect(a1.precision).toBeUndefined()
+
+    // Updating type to numeric: stored precision stays undefined, accessor returns 2
+    handler.update?.({ attribute: a1, dataContext }, { type: "numeric" })
+    expect(a1.precision).toBeUndefined()
+    expect(a1.numPrecision).toBe(2)
+  })
+
   it("delete works as expected", () => {
     const attribute = Attribute.create({ name: "name" })
     const dataContext = DataSet.create({}, {historyService: new AppHistoryService()})

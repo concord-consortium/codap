@@ -106,7 +106,7 @@ export function getCaseRequestResultValues(c: ICase, dataContext: IDataSet): DIG
 
 export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataSet): ICodapV2Attribute {
   const metadata = dataContext && getMetadataFromDataSet(dataContext)
-  const { cid, name, type, title, description, id, precision } = attribute
+  const { cid, name, type, title, description, id, effectivePrecision } = attribute
   const v2Id = toV2Id(id)
   const _defaultRange = metadata?.getAttributeDefaultRange(attribute.id)
   const defaultRange = _defaultRange ? { defaultMin: _defaultRange[0], defaultMax: _defaultRange[1] } : undefined
@@ -139,7 +139,7 @@ export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataS
     deletedFormula: (attribute && metadata?.getAttributeDeletedFormula(attribute.id)) || undefined,
     guid: v2Id,
     id: v2Id,
-    precision,
+    precision: effectivePrecision,
     unit: attribute.units
   }
 }

@@ -3,7 +3,7 @@ import { Button, FormControl, FormLabel, HStack, Input, ModalBody, ModalCloseBut
 import React, { useEffect, useState } from "react"
 import { useDataSet } from "../../../hooks/use-data-set"
 import { logMessageWithReplacement } from "../../../lib/log-message"
-import { AttributeType, attributeTypes } from "../../../models/data/attribute-types"
+import { attributeTypes } from "../../../models/data/attribute-types"
 import { updateAttributesNotification } from "../../../models/data/data-set-notifications"
 import { DatePrecision, datePrecisions } from "../../../utilities/date-utils"
 import { uniqueName } from "../../../utilities/js-utils"
@@ -32,7 +32,7 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
   const [attributeName, setAttributeName] = useState(columnName)
   const [description, setDescription] = useState("")
   const [units, setUnits] = useState("")
-  const [precision, setPrecision] = useState(attribute?.precision)
+  const [precision, setPrecision] = useState(attribute?.effectivePrecision)
   const [userType, setUserType] = useState<SelectableAttributeType>("none")
   const [editable, setEditable] = useState<YesNoValue>("yes")
 
@@ -41,7 +41,7 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
     setAttributeName(attribute?.name || "attribute")
     setDescription(attribute?.description ?? "")
     setUnits(attribute?.units ?? "")
-    setPrecision(attribute?.precision)
+    setPrecision(attribute?.effectivePrecision)
     setUserType(attribute?.userType ?? "none")
     setEditable(!metadata?.isEditProtected(attributeId) ? "yes" : "no")
   }, [attribute, attributeId, isOpen, metadata])
@@ -64,7 +64,7 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
         if (userType !== (attribute.userType ?? "none")) {
           attribute.setUserType(userType === "none" ? undefined : userType)
         }
-        if (precision !== attribute.precision) {
+        if (precision !== attribute.effectivePrecision) {
           attribute.setPrecision(precision)
         }
         if ((editable === "no") !== metadata?.isEditProtected(attributeId)) {
@@ -181,7 +181,7 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
           </FormLabel>
           <FormLabel mr={5} className="edit-attribute-form-row">{t("DG.CaseTable.attributeEditor.type")}
             <Select size="xs" ml={5} value={userType} data-testid="attr-type-select"
-                onChange={(e) => setUserType(e.target.value as AttributeType)}
+                onChange={(e) => setUserType(e.target.value as SelectableAttributeType)}
                 onMouseDown={(e) => e.stopPropagation()}>
               {selectableAttributeTypes.map(aType => {
                 return (<option key={aType} value={aType} data-testid="attr-type-option"

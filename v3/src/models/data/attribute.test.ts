@@ -567,6 +567,49 @@ describe("Attribute", () => {
     expect(attrWithUndefinedPrecision.precision).toBeUndefined()
   })
 
+  test("numPrecision returns default for numeric type without stored precision", () => {
+    // numPrecision returns default when type is numeric and no stored precision
+    const attr = Attribute.create({ name: "test" })
+    expect(attr.numPrecision).toBeUndefined()
+    attr.setUserType("numeric")
+    expect(attr.precision).toBeUndefined()
+    expect(attr.numPrecision).toBe(2)
+
+    // numPrecision returns stored precision when explicitly set
+    const attr2 = Attribute.create({ name: "test2", precision: 5 })
+    attr2.setUserType("numeric")
+    expect(attr2.numPrecision).toBe(5)
+
+    // Non-numeric type returns undefined
+    const attr3 = Attribute.create({ name: "test3" })
+    attr3.setUserType("categorical")
+    expect(attr3.numPrecision).toBeUndefined()
+
+    // Clearing precision on a numeric attribute falls back to default
+    const attr4 = Attribute.create({ name: "test4", userType: "numeric", precision: 3 })
+    expect(attr4.numPrecision).toBe(3)
+    attr4.setPrecision(undefined)
+    expect(attr4.numPrecision).toBe(2)
+  })
+
+  test("effectivePrecision returns the right value for all types", () => {
+    // Numeric with no stored precision returns default
+    const numAttr = Attribute.create({ name: "num", userType: "numeric" })
+    expect(numAttr.effectivePrecision).toBe(2)
+
+    // Numeric with stored precision returns stored
+    const numAttr2 = Attribute.create({ name: "num2", userType: "numeric", precision: 5 })
+    expect(numAttr2.effectivePrecision).toBe(5)
+
+    // Date type returns date precision
+    const dateAttr = Attribute.create({ name: "date", userType: "date", precision: "year" })
+    expect(dateAttr.effectivePrecision).toBe("year")
+
+    // No type, no precision returns undefined
+    const plainAttr = Attribute.create({ name: "plain" })
+    expect(plainAttr.effectivePrecision).toBeUndefined()
+  })
+
   test.skip("performance of value.toString() vs. JSON.stringify(value)", () => {
     const values: number[] = []
     for (let i = 0; i < 5000; ++i) {

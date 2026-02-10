@@ -32,6 +32,22 @@ describe("DataInteractiveTypeUtils", () => {
       expect(result3?.precision).toBeUndefined()
     })
 
+    it("does not store default precision for numeric type in snapshot (model accessor applies default)", () => {
+      const result = convertValuesToAttributeSnapshot({ name: "test", type: "numeric" })
+      expect(result?.precision).toBeUndefined()
+
+      const result2 = convertValuesToAttributeSnapshot({ name: "test", type: "numeric", precision: null })
+      expect(result2?.precision).toBeUndefined()
+    })
+
+    it("preserves explicit precision for numeric type", () => {
+      const result = convertValuesToAttributeSnapshot({ name: "test", type: "numeric", precision: 5 })
+      expect(result?.precision).toBe(5)
+
+      const result2 = convertValuesToAttributeSnapshot({ name: "test", type: "numeric", precision: 0 })
+      expect(result2?.precision).toBe(0)
+    })
+
     it("converts invalid precision values to undefined instead of NaN", () => {
       // Invalid string that would produce NaN when converted with +
       const result = convertValuesToAttributeSnapshot({ name: "test", precision: "invalid" })
