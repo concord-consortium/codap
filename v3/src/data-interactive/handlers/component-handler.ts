@@ -115,7 +115,7 @@ export const diComponentHandler: DIHandler = {
     const { component } = resources
     if (!component) return componentNotFoundResult
 
-    const { cannotClose, content, id, isResizable, name: _name, _title } = component
+    const { cannotClose, content, id, _isResizable, name: _name, _title } = component
     const v2Id = toV2Id(id)
     const name = _name || undefined
     const { dimensions, position } = getTileInfo(id)
@@ -123,7 +123,7 @@ export const diComponentHandler: DIHandler = {
       cannotClose,
       dimensions,
       id: v2Id,
-      isResizable,
+      isResizable: _isResizable,
       name,
       position,
       title: _title,

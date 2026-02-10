@@ -59,7 +59,7 @@ export const TileModel = V2UserTitleModel.named("TileModel")
     cannotClose: types.maybe(types.boolean),
     // API-controlled flag: when false, prevents user from resizing a specific component instance.
     // Default (undefined) means resizable. Set via API update requests.
-    isResizable: types.maybe(types.boolean),
+    _isResizable: types.maybe(types.boolean),
   })
   .volatile(self => ({
     isNewlyCreated: false,
@@ -85,8 +85,13 @@ export const TileModel = V2UserTitleModel.named("TileModel")
       return
     },
     // Whether this component type supports resizing by the user.
+    // True by default; content models can opt out by returning false.
     get isUserResizable() {
-      return !!(self.content as any).isUserResizable
+      return (self.content as any).isUserResizable !== false
+    },
+    // Combined resizability: true if the content type supports resizing AND the API hasn't disabled it.
+    get isResizable() {
+      return self._isResizable !== false && (self.content as any).isUserResizable !== false
     },
     get isUserClosable() {
       return !!(self.content as any).isUserClosable
@@ -125,7 +130,7 @@ export const TileModel = V2UserTitleModel.named("TileModel")
       self.cannotClose = cannotClose
     },
     setIsResizable(isResizable?: boolean) {
-      self.isResizable = isResizable
+      self._isResizable = isResizable
     },
     setTransitionComplete(complete: boolean) {
       self.transitionComplete = complete

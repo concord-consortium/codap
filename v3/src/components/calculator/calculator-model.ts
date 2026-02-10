@@ -9,6 +9,11 @@ export const CalculatorModel = TileContentModel
     name: "",
     value: ""
   })
+  .views(() => ({
+    get isUserResizable() {
+      return false
+    }
+  }))
   .actions(self => ({
     setValue(value = "") {
       self.value = value

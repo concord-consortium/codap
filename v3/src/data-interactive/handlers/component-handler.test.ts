@@ -155,10 +155,13 @@ describe("DataInteractive ComponentHandler", () => {
     expect(graphTile.name).toBe("My Graph")
 
     // Test updating isResizable
-    expect(graphTile.isResizable).toBeUndefined()
+    expect(graphTile._isResizable).toBeUndefined()
+    expect(graphTile.isResizable).toBe(true)
     expect(handler.update?.({ component: graphTile }, { isResizable: false }).success).toBe(true)
+    expect(graphTile._isResizable).toBe(false)
     expect(graphTile.isResizable).toBe(false)
     expect(handler.update?.({ component: graphTile }, { isResizable: true }).success).toBe(true)
+    expect(graphTile._isResizable).toBe(true)
     expect(graphTile.isResizable).toBe(true)
 
     // Test that get returns the updated values

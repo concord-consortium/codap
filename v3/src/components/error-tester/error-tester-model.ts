@@ -8,6 +8,11 @@ export const ErrorTesterModel = TileContentModel
     type: types.optional(types.literal(kErrorTesterTileType), kErrorTesterTileType),
     name: ""
   })
+  .views(() => ({
+    get isUserResizable() {
+      return false
+    }
+  }))
 export interface IErrorTesterModel extends Instance<typeof ErrorTesterModel> {}
 export interface IErrorTesterSnapshot extends SnapshotIn<typeof ErrorTesterModel> {}
 
