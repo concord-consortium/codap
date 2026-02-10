@@ -46,7 +46,7 @@ export const diInteractiveFrameHandler: DIHandler = {
 
     if (!values) return valuesRequiredResult
 
-    const { request, cursorMode } = values as DINotification & { cursorMode?: boolean | string }
+    const { request, cursorMode } = values as DINotification
     switch (request) {
       case "indicateBusy": {
         // cursorMode may arrive as a boolean or string from the plugin API

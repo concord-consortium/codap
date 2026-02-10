@@ -86,6 +86,7 @@ export const App = observer(function App() {
   }, [])
 
   // Show/hide the splash screen for non-cursorMode busy indicator.
+  // The splash screen is rendered outside of React (in index.html), so direct DOM manipulation is required.
   // Uses reaction (not autorun) so it doesn't fire on mount, which would hide the startup splash.
   useLayoutEffect(() => {
     return reaction(
@@ -238,7 +239,9 @@ export const App = observer(function App() {
                   <Container/>
                 </div>
               </ErrorBoundary>
-              {uiState.isBusy && uiState.busyCursorMode && <div className="busy-overlay" />}
+              <If condition={uiState.isBusy && uiState.busyCursorMode}>
+                <div className="busy-overlay" />
+              </If>
             </div>
             <If condition={isOpenUserEntry}>
               <div id={`${kUserEntryDropOverlay}`}

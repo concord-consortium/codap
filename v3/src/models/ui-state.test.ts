@@ -385,12 +385,12 @@ describe("UIState", () => {
       expect(uiState.busyCursorMode).toBe(false)
     })
 
-    it("should not auto-clear without cursorMode", () => {
+    it("should auto-clear after timeout without cursorMode", () => {
       const uiState = new UIState()
       uiState.setBusy(true)
       expect(uiState.isBusy).toBe(true)
       jest.advanceTimersByTime(60000)
-      expect(uiState.isBusy).toBe(true)
+      expect(uiState.isBusy).toBe(false)
     })
 
     it("should clear previous timeout when setBusy is called again", () => {

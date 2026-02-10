@@ -146,6 +146,14 @@ describe("DataInteractive InteractiveFrameHandler", () => {
       expect(uiState.busyCursorMode).toBe(true)
     })
 
+    it("indicateBusy with string cursorMode sets cursorMode", () => {
+      const tile = appState.document.content!.createOrShowTile(kWebViewTileType)!
+      const result = handler.notify?.({ interactiveFrame: tile }, { request: "indicateBusy", cursorMode: "true" })
+      expect(result?.success).toBe(true)
+      expect(uiState.isBusy).toBe(true)
+      expect(uiState.busyCursorMode).toBe(true)
+    })
+
     it("indicateIdle clears busy state", () => {
       uiState.setBusy(true, true)
       expect(uiState.isBusy).toBe(true)

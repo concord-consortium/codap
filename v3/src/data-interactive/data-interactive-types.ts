@@ -85,6 +85,7 @@ export interface DIInteractiveFrame {
 
 export interface DINotification {
   request?: string
+  cursorMode?: boolean | string
 }
 export interface DIItemSearchNotify {
   itemOrder?: "first" | "last" | number[]

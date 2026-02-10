@@ -341,7 +341,7 @@ export class UIState {
     this._isBusy = busy
     this._busyCursorMode = busy && cursorMode
 
-    if (busy && cursorMode) {
+    if (busy) {
       const kBusyTimeout = 60000
       this._busyTimeoutId = setTimeout(() => {
         this.setBusy(false)
