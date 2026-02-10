@@ -84,59 +84,70 @@ export class CategoricalAxisHelper extends AxisHelper {
       },
       fns = getCoordFunctions(props)
 
-    hasCategories && this.categoriesSelectionRef.current
-      .join(
-        enter => enter,
-        update => {
-          update.select('.tick')
-            .attr('x1', (d, i) => fns.getTickX(i))
-            .attr('x2', (d, i) => isVertical
-              ? (isRightCat ? 1 : -1) * kAxisTickLength : fns.getTickX(i))
-            .attr('y1', (d, i) => fns.getTickY(i))
-            .attr('y2', (d, i) => isVertical
-              ? fns.getTickY(i) : (isTop ? -1 : 1) * kAxisTickLength)
-          // divider between groups
-          update.select('.divider')
-            .attr('x1', (d, i) => fns.getDividerX(i))
-            .attr('x2', (d, i) => isVertical
-              ? (isRightCat ? -1 : 1) * dividerLength : fns.getDividerX(i))
-            .attr('y1', (d, i) => fns.getDividerY(i))
-            .attr('y2', (d, i) => isVertical
-              ? fns.getDividerY(i) : (isTop ? 1 : -1) * dividerLength)
-          // labels
-          if (isColorAxis) {
-            // Render color swatches
-            update.selectAll('text').remove()
-            update.select('.category-label')
-              .attr('class', 'category-label')
-              .attr('x', (d, i) => fns.getLabelX(i) - ((bandWidth * 2 / 3) / 2))
-              .attr('y', (d, i) => Math.max(6.5, fns.getLabelY(i) - (kDefaultColorSwatchHeight / (isVertical ? 2 : 1))))
-              .style("fill", (d, i) => categories[i])
-              .style("width", bandWidth * 2 / 3)
-              .style("height", `${kDefaultColorSwatchHeight}px`)
-              .attr('transform', `${rotation}`)
-              .attr('transform-origin', (d, i) => `${fns.getLabelX(i)} ${fns.getLabelY(i)}`)
-              .transition().duration(duration)
-          } else {
-            // Render category labels
-            update.selectAll('rect').remove()
-            update.select('.category-label')
-              .attr('transform', `${rotation}`)
-              .attr('text-anchor', textAnchor)
-              .attr('transform-origin', (d, i) => {
-                return `${fns.getLabelX(i)} ${fns.getLabelY(i)}`
-              })
-              .transition().duration(duration)
-              .attr('class', 'category-label')
-              .attr('x', (d, i) => fns.getLabelX(i))
-              .attr('y', (d, i) => fns.getLabelY(i))
-              .text((d: CatObject, i) => {
-                return collision ? elideStringToFit(String(categories[i]), maxCategoryLabelExtent)
-                  : categories[i]
-              })
-            }
-          return update
-        }
-      )
+    if (hasCategories) {
+      this.categoriesSelectionRef.current
+        .join(
+          enter => enter,
+          update => {
+            update.select('.tick')
+              .attr('x1', (d, i) => fns.getTickX(i))
+              .attr('x2', (d, i) => isVertical
+                ? (isRightCat ? 1 : -1) * kAxisTickLength : fns.getTickX(i))
+              .attr('y1', (d, i) => fns.getTickY(i))
+              .attr('y2', (d, i) => isVertical
+                ? fns.getTickY(i) : (isTop ? -1 : 1) * kAxisTickLength)
+            // divider between groups
+            update.select('.divider')
+              .attr('x1', (d, i) => fns.getDividerX(i))
+              .attr('x2', (d, i) => isVertical
+                ? (isRightCat ? -1 : 1) * dividerLength : fns.getDividerX(i))
+              .attr('y1', (d, i) => fns.getDividerY(i))
+              .attr('y2', (d, i) => isVertical
+                ? fns.getDividerY(i) : (isTop ? 1 : -1) * dividerLength)
+            // labels
+            if (isColorAxis) {
+              // Render color swatches
+              update.selectAll('text').remove()
+              update.select('.category-label')
+                .attr('class', 'category-label')
+                .attr('x', (d, i) => fns.getLabelX(i) - ((bandWidth * 2 / 3) / 2))
+                .attr('y', (d, i) =>
+                  Math.max(6.5, fns.getLabelY(i) - (kDefaultColorSwatchHeight / (isVertical ? 2 : 1))))
+                .style("fill", (d, i) => categories[i])
+                .style("width", bandWidth * 2 / 3)
+                .style("height", `${kDefaultColorSwatchHeight}px`)
+                .attr('transform', `${rotation}`)
+                .attr('transform-origin', (d, i) => `${fns.getLabelX(i)} ${fns.getLabelY(i)}`)
+                .transition().duration(duration)
+            } else {
+              // Render category labels
+              update.selectAll('rect').remove()
+              update.select('.category-label')
+                .attr('transform', `${rotation}`)
+                .attr('text-anchor', textAnchor)
+                .attr('transform-origin', (d, i) => {
+                  return `${fns.getLabelX(i)} ${fns.getLabelY(i)}`
+                })
+                .transition().duration(duration)
+                .attr('class', 'category-label')
+                .attr('x', (d, i) => fns.getLabelX(i))
+                .attr('y', (d, i) => fns.getLabelY(i))
+                .text((d: CatObject, i) => {
+                  return collision ? elideStringToFit(String(categories[i]), maxCategoryLabelExtent)
+                    : categories[i]
+                })
+              }
+            return update
+          }
+        )
+    } else {
+      // Clear stale category labels, ticks, and dividers when no categories are visible
+      this.categoriesSelectionRef.current
+        .selectAll('.category-label').text('')
+      this.categoriesSelectionRef.current
+        .selectAll('.tick').attr('x1', 0).attr('x2', 0).attr('y1', 0).attr('y2', 0)
+      this.categoriesSelectionRef.current
+        .selectAll('.divider').attr('x1', 0).attr('x2', 0).attr('y1', 0).attr('y2', 0)
+    }
   }
 }
