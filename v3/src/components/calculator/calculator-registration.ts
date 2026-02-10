@@ -76,5 +76,10 @@ registerComponentHandler(kV2CalculatorDIType, {
   },
   get(content) {
     return {}
+  },
+  update(content, values) {
+    // Calculator has no component-specific updatable properties
+    // Common properties (title, cannotClose, etc.) are handled by the common handler
+    return { success: true }
   }
 })

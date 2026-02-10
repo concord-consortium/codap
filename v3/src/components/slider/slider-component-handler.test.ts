@@ -250,6 +250,45 @@ describe("Slider ComponentHandler", () => {
     })
   })
 
+  test("update slider value", () => {
+    expect(documentContent.tileMap.size).toBe(0)
+    const globalValueName = createGlobalValue("testGlobalValue", 5)
+    const result = handler.create!({}, {
+      type: "slider",
+      globalValueName,
+    })
+    expect(result.success).toBe(true)
+    const resultValues = result.values as DIComponentInfo
+    const tile = documentContent.tileMap.get(toV3Id(kSliderIdPrefix, resultValues.id!))!
+    expect(tile).toBeDefined()
+    const sliderModel = tile.content
+    if (!isSliderModel(sliderModel)) {
+      throw new Error("Expected tile content to be a slider model")
+    }
+    expect(sliderModel.globalValue.value).toBe(5)
+
+    // Update the value
+    const updateResult = handler.update!({ component: tile }, { value: 10 })
+    expect(updateResult.success).toBe(true)
+    expect(sliderModel.globalValue.value).toBe(10)
+
+    // Update value along with other properties
+    const updateResult2 = handler.update!({ component: tile }, {
+      value: 25,
+      lowerBound: 0,
+      upperBound: 50,
+    })
+    expect(updateResult2.success).toBe(true)
+    expect(sliderModel.globalValue.value).toBe(25)
+    expect(sliderModel.axis.min).toBe(0)
+    expect(sliderModel.axis.max).toBe(50)
+
+    // Verify get returns the updated value
+    const getResult = handler.get!({ component: tile })
+    expect(getResult.success).toBe(true)
+    expect((getResult.values as any).value).toBe(25)
+  })
+
   test("update slider with a global value", () => {
     expect(documentContent.tileMap.size).toBe(0)
     const globalValueName = createGlobalValue("testGlobalValue", 1)

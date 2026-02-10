@@ -1,4 +1,4 @@
-import { V2Game, V2WebView } from "../../data-interactive/data-interactive-component-types"
+import { V2Game, V2Guide, V2WebView } from "../../data-interactive/data-interactive-component-types"
 import { DIComponentInfo } from "../../data-interactive/data-interactive-types"
 import { diComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { testGetComponent } from "../../data-interactive/handlers/component-handler-test-utils"
@@ -6,7 +6,7 @@ import { appState } from "../../models/app-state"
 import { isFreeTileRow } from "../../models/document/free-tile-row"
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { toV3Id } from "../../utilities/codap-utils"
-import { kV2GameType } from "./web-view-defs"
+import { kV2GameType, kV2GuideViewType } from "./web-view-defs"
 import { IWebViewModel, isWebViewModel } from "./web-view-model"
 import {
   kDefaultWebViewHeight, kDefaultWebViewWidth, kWebViewIdPrefix
@@ -95,5 +95,81 @@ describe("DataInteractive ComponentHandler WebView and Game", () => {
       // plugins should not show inspector
       expect(getTileComponentInfo(gameTile.content.type)?.hideInspector?.(gameTile)).toBe(true)
     }, { type: kV2GameType })
+
+    // Test currentGameUrl alias for URL
+    const newGameUrl = "https://codap.concord.org/other-plugin/"
+    expect(handler.update?.({ component: tile3 }, { currentGameUrl: newGameUrl }).success).toBe(true)
+    expect(gameModel.url).toBe(newGameUrl)
+
+    // Test currentGameName alias for name
+    expect(handler.update?.({ component: tile3 }, { currentGameName: "My Plugin" }).success).toBe(true)
+    expect(tile3.name).toBe("My Plugin")
+
+    // Test that name takes precedence over currentGameName when both are provided
+    expect(handler.update?.({ component: tile3 }, { name: "Primary Name", currentGameName: "Alias Name" }).success)
+      .toBe(true)
+    expect(tile3.name).toBe("Primary Name")
+  })
+
+  it("update and get guide view items and currentItemIndex work", () => {
+    const guideResult = handler.create!({}, { type: "webView", URL: "https://example.com/page1" })
+    expect(guideResult.success).toBe(true)
+    const guideValues = guideResult.values as DIComponentInfo
+    const guideTile = documentContent.tileMap.get(toV3Id(kWebViewIdPrefix, guideValues.id!))!
+    expect(guideTile).toBeDefined()
+    const guideModel = guideTile.content as IWebViewModel
+
+    guideModel.setSubType("guide")
+    guideModel.setGuidePages([
+      { title: "Page 1", url: "https://example.com/page1" },
+      { title: "Page 2", url: "https://example.com/page2" },
+      { title: "Page 3", url: "https://example.com/page3" }
+    ])
+
+    expect(guideModel.isGuide).toBe(true)
+    expect(guideModel.pages.length).toBe(3)
+    expect(guideModel.pageIndex).toBe(0)
+    expect(guideModel.url).toBe("https://example.com/page1")
+
+    // Get guide - should return items and currentItemIndex
+    testGetComponent(guideTile, handler, (tile, values) => {
+      const guideVals = values as V2Guide
+      expect(guideVals.items).toBeDefined()
+      expect(guideVals.items?.length).toBe(3)
+      expect(guideVals.items?.[0].itemTitle).toBe("Page 1")
+      expect(guideVals.items?.[0].url).toBe("https://example.com/page1")
+      expect(guideVals.currentItemIndex).toBe(0)
+    }, { type: kV2GuideViewType })
+
+    // Update currentItemIndex
+    expect(handler.update?.({ component: guideTile }, { currentItemIndex: 2 }).success).toBe(true)
+    expect(guideModel.pageIndex).toBe(2)
+    expect(guideModel.url).toBe("https://example.com/page3")
+
+    // Update items
+    const newItems = [
+      { itemTitle: "New Page 1", url: "https://example.com/new1" },
+      { itemTitle: "New Page 2", url: "https://example.com/new2" }
+    ]
+    expect(handler.update?.({ component: guideTile }, { items: newItems }).success).toBe(true)
+    expect(guideModel.pages.length).toBe(2)
+    expect(guideModel.pages[0].title).toBe("New Page 1")
+    expect(guideModel.pages[0].url).toBe("https://example.com/new1")
+    // pageIndex should be clamped to valid range (was 2, now max is 1)
+    expect(guideModel.pageIndex).toBe(1)
+    expect(guideModel.url).toBe("https://example.com/new2")
+
+    // Update both items and currentItemIndex together
+    expect(handler.update?.({ component: guideTile }, {
+      items: [
+        { itemTitle: "A", url: "https://a.com" },
+        { itemTitle: "B", url: "https://b.com" },
+        { itemTitle: "C", url: "https://c.com" }
+      ],
+      currentItemIndex: 1
+    }).success).toBe(true)
+    expect(guideModel.pages.length).toBe(3)
+    expect(guideModel.pageIndex).toBe(1)
+    expect(guideModel.url).toBe("https://b.com")
   })
 })

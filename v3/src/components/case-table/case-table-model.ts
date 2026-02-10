@@ -97,6 +97,9 @@ export const CaseTableModel = TileContentModel
     },
     setHorizontalScrollOffset(horizontalScrollOffset: number) {
       self._horizontalScrollOffset = horizontalScrollOffset
+    },
+    setIndexHidden(isIndexHidden: boolean) {
+      self.isIndexHidden = isIndexHidden
     }
   }))
 export interface ICaseTableModel extends Instance<typeof CaseTableModel> {}

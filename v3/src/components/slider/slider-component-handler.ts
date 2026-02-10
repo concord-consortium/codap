@@ -162,6 +162,7 @@ export const sliderComponentHandler: DIComponentHandler = {
       multipleOf,
       lowerBound,
       upperBound,
+      value,
     } = values as V2Slider
 
     const { error, validatedValues } = validateInput(values, content)
@@ -196,6 +197,10 @@ export const sliderComponentHandler: DIComponentHandler = {
     }
 
     applySnapshot(content, snapshot)
+
+    if (value != null) {
+      content.globalValue.setValue(value)
+    }
 
     return { success: true }
   }
