@@ -144,7 +144,7 @@ export class CategoricalAxisHelper extends AxisHelper {
       // Clear stale category labels, ticks, and dividers when no categories are visible
       const sel = this.categoriesSelectionRef.current
       sel.selectAll('text.category-label').text('')
-      sel.selectAll('rect.category-label').attr('width', 0).attr('height', 0)
+      sel.selectAll('rect.category-label').style('width', '0px').style('height', '0px')
       sel.selectAll('.tick').attr('x1', 0).attr('x2', 0).attr('y1', 0).attr('y2', 0)
       sel.selectAll('.divider').attr('x1', 0).attr('x2', 0).attr('y1', 0).attr('y2', 0)
     }
