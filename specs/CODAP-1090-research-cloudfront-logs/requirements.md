@@ -41,9 +41,7 @@ At a meeting on 2026-01-28, the team identified that AWS CloudFront access logs 
   - Launch points are: paths ending in `/index.html` or `/` (directory root), plus bare paths like `/app`, `/releases/latest` that redirect to index
 - Gather traffic statistics (simple totals) for at least the following URL categories:
   - `/app`
-  - `/releases`
-  - `/releases/latest`
-  - `/releases/stable`
+  - `/releases/<name>` — each release reported individually (e.g., `/releases/latest`, `/releases/stable`, `/releases/build_0742`, `/releases/dsg`, etc.)
 - Identify any other high-traffic launch URL paths not listed above
 - Produce a summary report of traffic volume per launch URL pattern
 - Document the method used to access and analyze the logs so it can be repeated

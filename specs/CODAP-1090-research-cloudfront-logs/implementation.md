@@ -2,7 +2,7 @@
 
 **Jira**: https://concord-consortium.atlassian.net/browse/CODAP-1090
 **Requirements Spec**: [requirements.md](requirements.md)
-**Status**: **Complete**
+**Status**: **Queries updated — re-run needed for per-release results**
 
 ## Implementation Plan
 
@@ -150,9 +150,8 @@ LIMIT 100;
 SELECT
   CASE
     WHEN cs_uri_stem LIKE '/app%' THEN '/app'
-    WHEN cs_uri_stem LIKE '/releases/latest%' THEN '/releases/latest'
-    WHEN cs_uri_stem LIKE '/releases/stable%' THEN '/releases/stable'
-    WHEN cs_uri_stem = '/releases' OR cs_uri_stem = '/releases/' OR cs_uri_stem LIKE '/releases/%' THEN '/releases (other)'
+    WHEN cs_uri_stem = '/releases' OR cs_uri_stem = '/releases/' THEN '/releases'
+    WHEN cs_uri_stem LIKE '/releases/%' THEN '/releases/' || SPLIT_PART(SUBSTR(cs_uri_stem, 11), '/', 1)
     ELSE 'other'
   END AS url_category,
   COUNT(*) AS request_count
@@ -161,15 +160,15 @@ WHERE date >= DATE '2025-02-01'
   AND date < DATE '2026-02-01'
   AND (
     cs_uri_stem LIKE '%/index.html'
-    OR cs_uri_stem LIKE '%/'
-    OR cs_uri_stem NOT LIKE '%.%'
+    OR REGEXP_LIKE(cs_uri_stem, '/static/dg/[^/]+/cert/$')
+    OR cs_uri_stem = '/app'
+    OR REGEXP_LIKE(cs_uri_stem, '^/releases(/[^/]+)?$')
   )
 GROUP BY
   CASE
     WHEN cs_uri_stem LIKE '/app%' THEN '/app'
-    WHEN cs_uri_stem LIKE '/releases/latest%' THEN '/releases/latest'
-    WHEN cs_uri_stem LIKE '/releases/stable%' THEN '/releases/stable'
-    WHEN cs_uri_stem = '/releases' OR cs_uri_stem = '/releases/' OR cs_uri_stem LIKE '/releases/%' THEN '/releases (other)'
+    WHEN cs_uri_stem = '/releases' OR cs_uri_stem = '/releases/' THEN '/releases'
+    WHEN cs_uri_stem LIKE '/releases/%' THEN '/releases/' || SPLIT_PART(SUBSTR(cs_uri_stem, 11), '/', 1)
     ELSE 'other'
   END
 ORDER BY request_count DESC;
@@ -182,9 +181,8 @@ SELECT
   DATE_TRUNC('month', date) AS month,
   CASE
     WHEN cs_uri_stem LIKE '/app%' THEN '/app'
-    WHEN cs_uri_stem LIKE '/releases/latest%' THEN '/releases/latest'
-    WHEN cs_uri_stem LIKE '/releases/stable%' THEN '/releases/stable'
-    WHEN cs_uri_stem = '/releases' OR cs_uri_stem = '/releases/' OR cs_uri_stem LIKE '/releases/%' THEN '/releases (other)'
+    WHEN cs_uri_stem = '/releases' OR cs_uri_stem = '/releases/' THEN '/releases'
+    WHEN cs_uri_stem LIKE '/releases/%' THEN '/releases/' || SPLIT_PART(SUBSTR(cs_uri_stem, 11), '/', 1)
     ELSE 'other'
   END AS url_category,
   COUNT(*) AS request_count
@@ -193,15 +191,15 @@ WHERE date >= DATE '2025-02-01'
   AND date < DATE '2026-02-01'
   AND (
     cs_uri_stem LIKE '%/index.html'
-    OR cs_uri_stem LIKE '%/'
-    OR cs_uri_stem NOT LIKE '%.%'
+    OR REGEXP_LIKE(cs_uri_stem, '/static/dg/[^/]+/cert/$')
+    OR cs_uri_stem = '/app'
+    OR REGEXP_LIKE(cs_uri_stem, '^/releases(/[^/]+)?$')
   )
 GROUP BY DATE_TRUNC('month', date),
   CASE
     WHEN cs_uri_stem LIKE '/app%' THEN '/app'
-    WHEN cs_uri_stem LIKE '/releases/latest%' THEN '/releases/latest'
-    WHEN cs_uri_stem LIKE '/releases/stable%' THEN '/releases/stable'
-    WHEN cs_uri_stem = '/releases' OR cs_uri_stem = '/releases/' OR cs_uri_stem LIKE '/releases/%' THEN '/releases (other)'
+    WHEN cs_uri_stem = '/releases' OR cs_uri_stem = '/releases/' THEN '/releases'
+    WHEN cs_uri_stem LIKE '/releases/%' THEN '/releases/' || SPLIT_PART(SUBSTR(cs_uri_stem, 11), '/', 1)
     ELSE 'other'
   END
 ORDER BY month, request_count DESC;
@@ -231,10 +229,11 @@ acli jira workitem comment add --key CODAP-1090 --body "$(cat <<'EOF'
 
 | Category | Request Count |
 |----------|---------------|
+| /app | X |
 | /releases/latest | X |
 | /releases/stable | X |
-| /releases (other) | X |
-| /app | X |
+| /releases/build_NNNN | X |
+| ... (each release individually) | X |
 | other | X |
 
 ### Top Individual Paths
@@ -280,15 +279,18 @@ All 115,996,503 requests in the analysis period were for `codap.concord.org` —
 
 ### URL Category Totals (Launch Points Only)
 
+> **TODO**: Re-run Query 2 with updated per-release categorization. Previous results grouped all non-latest/stable releases into "/releases (other)" (685,181 requests). Updated query will break this out by individual release.
+
 | Category | Request Count |
 |----------|---------------|
 | /app | 3,334,382 |
-| /releases/latest | 710,686 |
-| /releases (other) | 685,181 |
-| /releases/stable | 161,777 |
+| /releases/latest | _re-run needed_ |
+| /releases/stable | _re-run needed_ |
+| /releases/build_NNNN | _re-run needed_ |
+| ... (each release) | _re-run needed_ |
 | other (legacy WordPress) | 5,417,338 |
 
-**Key finding**: `/app` is the dominant launch path — 5x more traffic than `/releases/latest`, and 20x more than `/releases/stable`.
+**Key finding** (from prior run): `/app` is the dominant launch path — 5x more traffic than `/releases/latest`, and 20x more than `/releases/stable`.
 
 ### Top 20 Individual Launch Paths
 
@@ -319,28 +321,18 @@ All 115,996,503 requests in the analysis period were for `codap.concord.org` —
 
 ### Monthly Breakdown
 
-| Month | /app | /releases/latest | /releases/stable | /releases (other) | other |
-|-------|------|------------------|------------------|-------------------|-------|
-| Feb 2025 | 171,277 | 41,113 | 15,499 | 29,829 | 377,278 |
-| Mar 2025 | 215,567 | 71,487 | 32,023 | 80,321 | 558,893 |
-| Apr 2025 | 357,938 | 56,335 | 36,235 | 91,373 | 479,312 |
-| May 2025 | 377,437 | 56,415 | 28,234 | 86,987 | 467,758 |
-| Jun 2025 | 314,211 | 66,453 | **265** | 66,602 | 448,275 |
-| Jul 2025 | 147,137 | 35,021 | 7,361 | 34,836 | 311,047 |
-| Aug 2025 | 168,073 | 40,461 | 7,930 | 49,508 | 340,744 |
-| Sep 2025 | 493,340 | 70,264 | 18,378 | 86,700 | 517,104 |
-| Oct 2025 | 405,661 | 79,560 | 9,362 | 62,092 | 464,577 |
-| Nov 2025 | 303,400 | 86,370 | **49** | 19,498 | 489,521 |
-| Dec 2025 | 198,409 | 52,858 | 319 | 44,469 | 403,643 |
-| Jan 2026 | 181,932 | 54,349 | 6,122 | 32,966 | 559,186 |
+> **TODO**: Re-run Query 3 with updated per-release categorization. The monthly breakdown will have a row per release per month instead of the aggregated "/releases (other)" column.
 
 ### Key Observations
+
+> **TODO**: Update observations after re-running queries with per-release categorization.
 
 1. **`/app` is the dominant launch path** — consistently the most-used CODAP entry point every month
 2. **School year pattern** — `/app` traffic peaks during school year (Sep-Oct: ~400-500K), drops in summer (Jul-Aug: ~150-170K)
 3. **`/releases/stable` collapsed in June 2025** — dropped from 28,234 in May to just 265 in June, remained near-zero since (Nov: 49, Dec: 319). Likely a redirect was added or the path became unavailable.
 4. **`/releases/latest` remains steady** — consistent secondary usage at 35K-86K/month throughout the year
 5. **Legacy WordPress traffic** — the "other" category contains traffic to paths like `/`, `/get-started/`, `/forums/` from when WordPress was hosted on this domain
+6. **Per-release breakdown** — _pending re-run: will show traffic to individual build directories, `dsg`, `zisci`, etc._
 
 ---
 
