@@ -136,18 +136,17 @@ export class CategoricalAxisHelper extends AxisHelper {
                   return collision ? elideStringToFit(String(categories[i]), maxCategoryLabelExtent)
                     : categories[i]
                 })
-              }
+            }
             return update
           }
         )
     } else {
       // Clear stale category labels, ticks, and dividers when no categories are visible
-      this.categoriesSelectionRef.current
-        .selectAll('.category-label').text('')
-      this.categoriesSelectionRef.current
-        .selectAll('.tick').attr('x1', 0).attr('x2', 0).attr('y1', 0).attr('y2', 0)
-      this.categoriesSelectionRef.current
-        .selectAll('.divider').attr('x1', 0).attr('x2', 0).attr('y1', 0).attr('y2', 0)
+      const sel = this.categoriesSelectionRef.current
+      sel.selectAll('text.category-label').text('')
+      sel.selectAll('rect.category-label').attr('width', 0).attr('height', 0)
+      sel.selectAll('.tick').attr('x1', 0).attr('x2', 0).attr('y1', 0).attr('y2', 0)
+      sel.selectAll('.divider').attr('x1', 0).attr('x2', 0).attr('y1', 0).attr('y2', 0)
     }
   }
 }
