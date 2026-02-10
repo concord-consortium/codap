@@ -77,6 +77,13 @@ export class UIState {
   // Id of attribute whose formula is being edited using the editor modal
   @observable private _editFormulaAttributeId = ""
 
+  // Support for busy indicator (indicateBusy/indicateIdle API)
+  @observable
+  private _isBusy = false
+  @observable
+  private _busyCursorMode = false
+  private _busyTimeoutId: ReturnType<typeof setTimeout> | null = null
+
   constructor() {
     const {
       componentMode, dashboard, di, embeddedMode, embeddedServer, hideSplashScreen,
@@ -252,6 +259,14 @@ export class UIState {
     return this._editFormulaAttributeId
   }
 
+  get isBusy() {
+    return this._isBusy
+  }
+
+  get busyCursorMode() {
+    return this._busyCursorMode
+  }
+
   isFocusedTile(tileId?: string) {
     return this.focusTileId === tileId
   }
@@ -314,6 +329,24 @@ export class UIState {
 
   @action setAttrIdToEdit(attrId?: string) {
     this.attrIdToEdit = attrId
+  }
+
+  @action
+  setBusy(busy: boolean, cursorMode = false) {
+    if (this._busyTimeoutId != null) {
+      clearTimeout(this._busyTimeoutId)
+      this._busyTimeoutId = null
+    }
+
+    this._isBusy = busy
+    this._busyCursorMode = busy && cursorMode
+
+    if (busy) {
+      const kBusyTimeout = 60000
+      this._busyTimeoutId = setTimeout(() => {
+        this.setBusy(false)
+      }, kBusyTimeout)
+    }
   }
 
   getRulerStateVisibility(key: RulerStateKey) {

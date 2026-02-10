@@ -6,6 +6,7 @@ import {
   kDefaultRespectEditableItemAttribute, kDefaultWebViewVersion
 } from "../../components/web-view/web-view-model"
 import { appState } from "../../models/app-state"
+import { uiState } from "../../models/ui-state"
 import { toV2Id } from "../../utilities/codap-utils"
 import { DIInteractiveFrame } from "../data-interactive-types"
 import { diInteractiveFrameHandler } from "./interactive-frame-handler"
@@ -110,5 +111,63 @@ describe("DataInteractive InteractiveFrameHandler", () => {
 
     expect(result?.success).toBe(true)
     expect(tile.title).toBe("Plugin Title")
+  })
+
+  describe("notify", () => {
+    afterEach(() => {
+      uiState.setBusy(false)
+    })
+
+    it("returns error when interactiveFrame is missing", () => {
+      const result = handler.notify?.({}, { request: "indicateBusy" })
+      expect(result?.success).toBe(false)
+    })
+
+    it("returns error when values are missing", () => {
+      const tile = appState.document.content!.createOrShowTile(kWebViewTileType)!
+      const result = handler.notify?.({ interactiveFrame: tile })
+      expect(result?.success).toBe(false)
+    })
+
+    it("indicateBusy sets busy state", () => {
+      const tile = appState.document.content!.createOrShowTile(kWebViewTileType)!
+      expect(uiState.isBusy).toBe(false)
+      const result = handler.notify?.({ interactiveFrame: tile }, { request: "indicateBusy" })
+      expect(result?.success).toBe(true)
+      expect(uiState.isBusy).toBe(true)
+      expect(uiState.busyCursorMode).toBe(false)
+    })
+
+    it("indicateBusy with cursorMode sets cursorMode", () => {
+      const tile = appState.document.content!.createOrShowTile(kWebViewTileType)!
+      const result = handler.notify?.({ interactiveFrame: tile }, { request: "indicateBusy", cursorMode: true })
+      expect(result?.success).toBe(true)
+      expect(uiState.isBusy).toBe(true)
+      expect(uiState.busyCursorMode).toBe(true)
+    })
+
+    it("indicateBusy with string cursorMode sets cursorMode", () => {
+      const tile = appState.document.content!.createOrShowTile(kWebViewTileType)!
+      const result = handler.notify?.({ interactiveFrame: tile }, { request: "indicateBusy", cursorMode: "true" })
+      expect(result?.success).toBe(true)
+      expect(uiState.isBusy).toBe(true)
+      expect(uiState.busyCursorMode).toBe(true)
+    })
+
+    it("indicateIdle clears busy state", () => {
+      uiState.setBusy(true, true)
+      expect(uiState.isBusy).toBe(true)
+      const tile = appState.document.content!.createOrShowTile(kWebViewTileType)!
+      const result = handler.notify?.({ interactiveFrame: tile }, { request: "indicateIdle" })
+      expect(result?.success).toBe(true)
+      expect(uiState.isBusy).toBe(false)
+    })
+
+    // Unrecognized requests return success to avoid breaking plugins.
+    it("returns success for unrecognized requests", () => {
+      const tile = appState.document.content!.createOrShowTile(kWebViewTileType)!
+      const result = handler.notify?.({ interactiveFrame: tile }, { request: "unknownRequest" })
+      expect(result?.success).toBe(true)
+    })
   })
 })

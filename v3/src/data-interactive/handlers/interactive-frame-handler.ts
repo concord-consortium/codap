@@ -3,8 +3,8 @@ import { appState } from "../../models/app-state"
 import { uiState } from "../../models/ui-state"
 import { toV2Id } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
-import { DIHandler, DIResources, diNotImplementedYet, DIValues, DIInteractiveFrame } from "../data-interactive-types"
-import { noInteractiveFrameResult } from "./di-results"
+import { DIHandler, DINotification, DIResources, DIValues, DIInteractiveFrame } from "../data-interactive-types"
+import { noInteractiveFrameResult, valuesRequiredResult } from "./di-results"
 
 export const diInteractiveFrameHandler: DIHandler = {
   get(resources: DIResources) {
@@ -39,12 +39,29 @@ export const diInteractiveFrameHandler: DIHandler = {
     }
     return { success: true, values }
   },
-  // Notify needs to handle:
-  // dirty: true
-  // image: ...
-  // request: openGuideConfiguration | indicateBusy | indicateIdle
-  // cursorMode: true
-  notify: diNotImplementedYet,
+  // TODO: also handle dirty, image, openGuideConfiguration
+  notify(resources: DIResources, values?: DIValues) {
+    const { interactiveFrame } = resources
+    if (!interactiveFrame) return noInteractiveFrameResult
+
+    if (!values) return valuesRequiredResult
+
+    const { request, cursorMode } = values as DINotification
+    switch (request) {
+      case "indicateBusy": {
+        // cursorMode may arrive as a boolean or string from the plugin API
+        const isCursorMode = cursorMode === true || cursorMode === "true"
+        uiState.setBusy(true, isCursorMode)
+        break
+      }
+      case "indicateIdle":
+        uiState.setBusy(false)
+        break
+    }
+
+    // Unrecognized requests return success to avoid breaking plugins (matches V2 behavior)
+    return { success: true }
+  },
   update(resources: DIResources, values?: DIValues) {
     const { interactiveFrame } = resources
     if (!interactiveFrame) return noInteractiveFrameResult
