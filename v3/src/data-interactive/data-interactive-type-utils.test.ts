@@ -21,7 +21,7 @@ describe("DataInteractiveTypeUtils", () => {
       expect(result3?.precision).toBe(0)
     })
 
-    it("converts null or empty precision to undefined for non-numeric types", () => {
+    it("converts null or empty precision to undefined", () => {
       const result = convertValuesToAttributeSnapshot({ name: "test", precision: null })
       expect(result?.precision).toBeUndefined()
 
@@ -32,18 +32,15 @@ describe("DataInteractiveTypeUtils", () => {
       expect(result3?.precision).toBeUndefined()
     })
 
-    it("defaults precision to 2 for numeric type when precision not specified", () => {
+    it("does not store default precision for numeric type in snapshot (model accessor applies default)", () => {
       const result = convertValuesToAttributeSnapshot({ name: "test", type: "numeric" })
-      expect(result?.precision).toBe(2)
+      expect(result?.precision).toBeUndefined()
 
       const result2 = convertValuesToAttributeSnapshot({ name: "test", type: "numeric", precision: null })
-      expect(result2?.precision).toBe(2)
-
-      const result3 = convertValuesToAttributeSnapshot({ name: "test", type: "numeric", precision: "" })
-      expect(result3?.precision).toBe(2)
+      expect(result2?.precision).toBeUndefined()
     })
 
-    it("does not override explicit precision for numeric type", () => {
+    it("preserves explicit precision for numeric type", () => {
       const result = convertValuesToAttributeSnapshot({ name: "test", type: "numeric", precision: 5 })
       expect(result?.precision).toBe(5)
 

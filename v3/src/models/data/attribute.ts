@@ -71,6 +71,9 @@ export const Attribute = V2Model.named("Attribute").props({
   userType: types.maybe(types.enumeration([...attributeTypes])),
   // userFormat: types.maybe(types.string),
   units: types.maybe(types.string),
+  // stored precision value; number for numeric attributes, DatePrecision string for date attributes.
+  // Clients should generally use `numPrecision`, `datePrecision`, or `effectivePrecision` instead,
+  // which apply defaults (e.g. numeric attributes default to kDefaultNumPrecision).
   precision: types.maybe(types.union(types.number, types.enumeration(datePrecisions))),
   formula: types.maybe(Formula),
   // simple array -- _not_ MST all the way down to the array elements
@@ -154,11 +157,26 @@ export const Attribute = V2Model.named("Attribute").props({
       if (self.userType === "numeric") return extractNumeric(value) ?? NaN
       return Number(value)
     },
+    // Returns the numeric precision for display/formatting. Defaults to kDefaultNumPrecision
+    // for numeric attributes when no explicit precision has been stored.
     get numPrecision() {
-      return typeof self.precision === "number" ? self.precision : undefined
+      return typeof self.precision === "number"
+        ? self.precision
+        : self.userType === "numeric" ? kDefaultNumPrecision : undefined
     },
+    // Returns the date precision (e.g. "year", "month") if one has been stored.
     get datePrecision() {
       return typeof self.precision === "string" ? self.precision : undefined
+    },
+    // Returns the effective precision regardless of type — numeric (with default) or date.
+    // Use this when you need a single precision value without knowing the attribute type,
+    // e.g. for UI display or v2 export.
+    get effectivePrecision(): number | DatePrecision | undefined {
+      return typeof self.precision === "number"
+        ? self.precision
+        : typeof self.precision === "string"
+          ? self.precision
+          : self.userType === "numeric" ? kDefaultNumPrecision : undefined
     },
     isInferredNumericType: cachedFnFactory<boolean>(() => {
       let numCount = 0
@@ -384,13 +402,12 @@ export const Attribute = V2Model.named("Attribute").props({
     },
     setUserType(type?: AttributeType) {
       self.userType = type
-      if (type === "numeric" && self.precision == null) {
-        self.precision = kDefaultNumPrecision
-      }
     },
     // setUserFormat(precision: string) {
     //   self.userFormat = `.${precision}~f`
     // },
+    // Sets the stored precision. Pass undefined to clear and revert to the default
+    // (e.g. kDefaultNumPrecision for numeric attributes via the numPrecision accessor).
     setPrecision(precision?: number | DatePrecision) {
       self.precision = precision
     },

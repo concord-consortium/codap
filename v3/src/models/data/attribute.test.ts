@@ -567,30 +567,47 @@ describe("Attribute", () => {
     expect(attrWithUndefinedPrecision.precision).toBeUndefined()
   })
 
-  test("setUserType to numeric auto-sets default precision", () => {
-    // When precision is undefined and type is set to "numeric", precision should default to 2
+  test("numPrecision returns default for numeric type without stored precision", () => {
+    // numPrecision returns default when type is numeric and no stored precision
     const attr = Attribute.create({ name: "test" })
-    expect(attr.precision).toBeUndefined()
+    expect(attr.numPrecision).toBeUndefined()
     attr.setUserType("numeric")
-    expect(attr.precision).toBe(2)
+    expect(attr.precision).toBeUndefined()
+    expect(attr.numPrecision).toBe(2)
 
-    // Should NOT override an existing precision value
+    // numPrecision returns stored precision when explicitly set
     const attr2 = Attribute.create({ name: "test2", precision: 5 })
-    expect(attr2.precision).toBe(5)
     attr2.setUserType("numeric")
-    expect(attr2.precision).toBe(5)
+    expect(attr2.numPrecision).toBe(5)
 
-    // Setting to a non-numeric type should not set precision
+    // Non-numeric type returns undefined
     const attr3 = Attribute.create({ name: "test3" })
     attr3.setUserType("categorical")
-    expect(attr3.precision).toBeUndefined()
+    expect(attr3.numPrecision).toBeUndefined()
 
-    // Setting to numeric after clearing precision should re-apply default
-    const attr4 = Attribute.create({ name: "test4", precision: 3 })
+    // Clearing precision on a numeric attribute falls back to default
+    const attr4 = Attribute.create({ name: "test4", userType: "numeric", precision: 3 })
+    expect(attr4.numPrecision).toBe(3)
     attr4.setPrecision(undefined)
-    expect(attr4.precision).toBeUndefined()
-    attr4.setUserType("numeric")
-    expect(attr4.precision).toBe(2)
+    expect(attr4.numPrecision).toBe(2)
+  })
+
+  test("effectivePrecision returns the right value for all types", () => {
+    // Numeric with no stored precision returns default
+    const numAttr = Attribute.create({ name: "num", userType: "numeric" })
+    expect(numAttr.effectivePrecision).toBe(2)
+
+    // Numeric with stored precision returns stored
+    const numAttr2 = Attribute.create({ name: "num2", userType: "numeric", precision: 5 })
+    expect(numAttr2.effectivePrecision).toBe(5)
+
+    // Date type returns date precision
+    const dateAttr = Attribute.create({ name: "date", userType: "date", precision: "year" })
+    expect(dateAttr.effectivePrecision).toBe("year")
+
+    // No type, no precision returns undefined
+    const plainAttr = Attribute.create({ name: "plain" })
+    expect(plainAttr.effectivePrecision).toBeUndefined()
   })
 
   test.skip("performance of value.toString() vs. JSON.stringify(value)", () => {

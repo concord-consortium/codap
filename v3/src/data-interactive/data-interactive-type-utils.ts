@@ -8,7 +8,6 @@ import { IGlobalValue } from "../models/global/global-value"
 import { IV2CollectionDefaults } from "../models/shared/data-set-metadata"
 import { getMetadataFromDataSet } from "../models/shared/shared-data-utils"
 import { kAttrIdPrefix, maybeToV2Id, toV2Id, toV2ItemId, toV3AttrId } from "../utilities/codap-utils"
-import { kDefaultNumPrecision } from "../models/data/attribute-types"
 import { isFiniteNumber } from "../utilities/math-utils"
 import {
   ICodapV2Attribute, ICodapV2Case, ICodapV2CategoryMap, ICodapV2CollectionV3,
@@ -25,17 +24,15 @@ export function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttr
   const values = _values as DIAttribute
   if (values.name) {
     const id = values.id != null ? toV3AttrId(values.id) : values.cid
-    const userType = v3TypeFromV2TypeString(values.type)
-    const _precision = values.precision == null || values.precision === ""
-                    ? undefined
-                    : isFiniteNumber(+values.precision) ? +values.precision : undefined
     return {
       ...v2ModelSnapshotFromV2ModelStorage(kAttrIdPrefix, values),
       id,
-      userType,
+      userType: v3TypeFromV2TypeString(values.type),
       description: values.description ?? undefined,
       formula: values.formula ? { display: values.formula } : undefined,
-      precision: _precision ?? (userType === "numeric" ? kDefaultNumPrecision : undefined),
+      precision: values.precision == null || values.precision === ""
+                    ? undefined
+                    : isFiniteNumber(+values.precision) ? +values.precision : undefined,
       units: values.unit ?? undefined
     }
   }
@@ -109,7 +106,7 @@ export function getCaseRequestResultValues(c: ICase, dataContext: IDataSet): DIG
 
 export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataSet): ICodapV2Attribute {
   const metadata = dataContext && getMetadataFromDataSet(dataContext)
-  const { cid, name, type, title, description, id, precision } = attribute
+  const { cid, name, type, title, description, id, effectivePrecision } = attribute
   const v2Id = toV2Id(id)
   const _defaultRange = metadata?.getAttributeDefaultRange(attribute.id)
   const defaultRange = _defaultRange ? { defaultMin: _defaultRange[0], defaultMax: _defaultRange[1] } : undefined
@@ -142,7 +139,7 @@ export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataS
     deletedFormula: (attribute && metadata?.getAttributeDeletedFormula(attribute.id)) || undefined,
     guid: v2Id,
     id: v2Id,
-    precision,
+    precision: effectivePrecision,
     unit: attribute.units
   }
 }
