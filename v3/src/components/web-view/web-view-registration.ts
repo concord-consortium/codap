@@ -315,6 +315,7 @@ const webViewComponentHandler: DIComponentHandler = {
     }
   },
 
+  // Note: currentGameName (V2 alias for name) is handled by the common component handler
   update(content, values) {
     if (isWebViewModel(content)) {
       const { URL, currentGameUrl } = values as V2Game
