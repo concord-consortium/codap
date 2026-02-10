@@ -1,4 +1,5 @@
 import { PointRendererBase } from "../../data-display/renderer"
+import { convertHtmlToSvg, shouldConvertElement } from "./html-to-svg"
 
 const disallowedElementClasses = new Set([
   "axis-legend-attribute-menu",
@@ -13,6 +14,68 @@ const disallowedElementClasses = new Set([
   "empty-label",
   "header-right",
 ])
+
+// CSS selectors for adornment text elements that need to be converted to SVG for export.
+const adornmentTextSelectors = [
+  ".graph-count .count",
+  ".graph-count .sub-count",
+  ".lsrl-equation-container p",
+  ".measure-labels-tip",
+  ".movable-line-equation-container p",
+  ".movable-value-equation-container p",
+  ".normal-curve-equation-container p",
+  ".plotted-function-equation-container p"
+]
+
+/**
+ * Creates an SVG element containing converted adornment text elements.
+ * Queries the content element for HTML text elements matching adornment selectors,
+ * converts them to SVG text elements, and returns an SVG containing all of them.
+ *
+ * @param contentElement - The graph content element to search for adornment text
+ * @returns An SVG element containing the converted text, or null if no text was found
+ */
+function createAdornmentTextSvg(contentElement: HTMLElement): SVGSVGElement | null {
+  const contentRect = contentElement.getBoundingClientRect()
+  const convertedElements: SVGElement[] = []
+
+  for (const selector of adornmentTextSelectors) {
+    const elements = contentElement.querySelectorAll(selector)
+    for (const element of elements) {
+      if (!(element instanceof HTMLElement)) continue
+      if (!shouldConvertElement(element)) continue
+
+      try {
+        const result = convertHtmlToSvg({
+          element,
+          containerElement: contentElement
+        })
+        convertedElements.push(...result.svgElements)
+      } catch (e) {
+        console.warn("Failed to convert adornment text element:", e)
+      }
+    }
+  }
+
+  if (convertedElements.length === 0) {
+    return null
+  }
+
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+  svg.setAttribute("xmlns", "http://www.w3.org/2000/svg")
+  svg.setAttribute("width", String(contentRect.width))
+  svg.setAttribute("height", String(contentRect.height))
+
+  const group = document.createElementNS("http://www.w3.org/2000/svg", "g")
+  group.setAttribute("class", "adornment-text-svg")
+
+  for (const element of convertedElements) {
+    group.appendChild(element)
+  }
+  svg.appendChild(group)
+
+  return svg
+}
 
 interface IRenderSvgToCanvasOptions {
   svg: SVGSVGElement
@@ -242,7 +305,24 @@ async function exportGraphToCanvas(options: IExportGraphToPngOptions): Promise<I
     }
   }
 
-  // 6. Legend SVG (positioned below the graph area)
+  // 6. Adornment text (HTML elements converted to SVG)
+  const adornmentTextSvg = createAdornmentTextSvg(contentElement)
+  if (adornmentTextSvg) {
+    try {
+      await renderSvgToCanvas({
+        svg: adornmentTextSvg,
+        ctx,
+        x: 0,
+        y: 0,
+        width: exportWidth,
+        height: exportHeight
+      })
+    } catch (e) {
+      console.warn("Failed to render adornment text SVG:", e)
+    }
+  }
+
+  // 7. Legend SVG (positioned below the graph area)
   const legendSvgs = contentElement.querySelectorAll("svg.legend-component")
   for (const legendSvg of legendSvgs) {
     if (!(legendSvg instanceof SVGSVGElement)) continue
@@ -289,7 +369,7 @@ async function exportGraphToCanvas(options: IExportGraphToPngOptions): Promise<I
 
 /**
  * Exports a graph to PNG by compositing all layers onto a single canvas.
- * Layers (in z-order): background, base SVG, points canvas, overlay SVG, adornments, legend.
+ * Layers (in z-order): background, base SVG, points canvas, overlay SVG, adornments, adornment text, legend.
  * Returns a data URL string.
  */
 export async function exportGraphToPng(options: IExportGraphToPngOptions): Promise<string> {
