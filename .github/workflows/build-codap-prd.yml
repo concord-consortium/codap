@@ -11,7 +11,7 @@ jobs:
     with:
       env: prd
       target: main
-      propertyPath: nginx.image.tag
+      propertyPath: image.tag
       updateTargets: |
         {
           "aws": {

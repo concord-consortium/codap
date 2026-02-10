@@ -11,7 +11,7 @@ jobs:
     with:
       env: dev
       target: develop
-      propertyPath: nginx.image.tag
+      propertyPath: image.tag
       updateTargets: |
         {
           "aws": {
