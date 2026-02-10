@@ -65,7 +65,7 @@ describe("initiateImportFromClipboard", () => {
     expect(mockInitiateImportFromHTML).not.toHaveBeenCalled()
     expect(mockInitiateImportFromCsv).toHaveBeenCalledTimes(1)
     expect(mockInitiateImportFromCsv).toHaveBeenCalledWith({
-      text: html,
+      text: "just a paragraph",
       data: undefined,
       datasetName: "clipboard data"
     })
@@ -111,6 +111,24 @@ describe("initiateImportFromClipboard", () => {
       text: "Name,Age\nAlice,30",
       data: mockDataSet,
       datasetName: undefined
+    })
+  })
+
+  it("falls back to readText() when read() throws", async () => {
+    Object.assign(navigator, {
+      clipboard: {
+        read: jest.fn().mockRejectedValue(new DOMException("Permission denied")),
+        readText: jest.fn().mockResolvedValue("Name,Age\nAlice,30")
+      }
+    })
+    await initiateImportFromClipboard()
+
+    expect(mockInitiateImportFromHTML).not.toHaveBeenCalled()
+    expect(mockInitiateImportFromCsv).toHaveBeenCalledTimes(1)
+    expect(mockInitiateImportFromCsv).toHaveBeenCalledWith({
+      text: "Name,Age\nAlice,30",
+      data: undefined,
+      datasetName: "clipboard data"
     })
   })
 
