@@ -40,6 +40,11 @@ export class GraphController {
       this.graphModel.dataConfiguration.setDataset(dataset, metadata)
     }
 
+    // Ensure primaryRole is consistent with the current attribute types.
+    // On document restore, the snapshot may have a primaryRole that pointed to an attribute
+    // whose type was overridden (e.g. numeric treated as categorical), requiring a swap.
+    graphModel.syncPrimaryRoleWithAttributeConfiguration()
+
     this.installAxisReaction()
     this.syncAxisScalesWithModel()
   }
