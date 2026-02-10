@@ -25,6 +25,14 @@ $collection-title-font-color: black;
       display: flex;
       align-items: stretch;
 
+      &.no-attributes {
+        flex: 1;
+
+        .collection-table-and-title {
+          flex: 1;
+        }
+      }
+
       .collection-table-and-title {
         height: 100%;
         display: flex;

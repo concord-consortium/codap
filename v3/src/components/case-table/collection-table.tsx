@@ -21,6 +21,7 @@ import { uniqueName } from "../../utilities/js-utils"
 import { mstReaction } from "../../utilities/mst-reaction"
 import { preventCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
+import { If } from "../common/if"
 import { CollectionTitle } from "../case-tile-common/collection-title"
 import { kCollectionTableBodyDropZoneBaseId } from "./case-table-drag-drop"
 import {
@@ -318,23 +319,26 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     })
   }, [collection?.caseIds, collectionId, data])
 
-  if (!data || !rows || !visibleAttributes.length) return null
+  if (!data || !rows) return null
 
+  const hasVisibleAttributes = visibleAttributes.length > 0
   const dragId = String(active?.id)
-  const showDragOverlay = dragId.includes(kInputRowKey) && dragId.includes(collectionId)
+  const showDragOverlay = hasVisibleAttributes && dragId.includes(kInputRowKey) && dragId.includes(collectionId)
   return (
-    <div className={`collection-table collection-${collectionId}`}>
+    <div className={clsx("collection-table", `collection-${collectionId}`, { "no-attributes": !hasVisibleAttributes })}>
       <CollectionTableSpacer gridElt={gridRef.current?.element}
         onWhiteSpaceClick={handleWhiteSpaceClick} onDrop={handleNewCollectionDrop} />
       <div className="collection-table-and-title" ref={setNodeRef} onClick={handleClick}
             onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp}>
         <CollectionTitle onAddNewAttribute={handleAddNewAttribute} showCount={true} collectionIndex={collectionIndex}/>
-        <DataGrid ref={gridRef} className="rdg-light" data-testid="collection-table-grid" renderers={renderers}
-          columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
-          rowHeight={rowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
-          columnWidths={columnWidths} onColumnResize={handleColumnResize} onCellClick={handleCellClick}
-          onCellKeyDown={handleCellKeyDown} onRowsChange={handleRowsChange} onScroll={handleGridScroll}
-          onSelectedCellChange={handleSelectedCellChange} rowClass={rowClass}/>
+        <If condition={hasVisibleAttributes}>
+          <DataGrid ref={gridRef} className="rdg-light" data-testid="collection-table-grid" renderers={renderers}
+            columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
+            rowHeight={rowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
+            columnWidths={columnWidths} onColumnResize={handleColumnResize} onCellClick={handleCellClick}
+            onCellKeyDown={handleCellKeyDown} onRowsChange={handleRowsChange} onScroll={handleGridScroll}
+            onSelectedCellChange={handleSelectedCellChange} rowClass={rowClass}/>
+        </If>
         {showDragOverlay && <RowDragOverlay rows={rows} width={kIndexColumnWidth}/>}
       </div>
     </div>
