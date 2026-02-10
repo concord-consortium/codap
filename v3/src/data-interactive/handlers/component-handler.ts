@@ -185,10 +185,13 @@ export const diComponentHandler: DIHandler = {
       : { notify: updateTileNotification("update", values, component) }
     let result: DIHandlerFnResult | undefined
     component.applyModelChange(() => {
+      if (!values || typeof values !== "object" || Array.isArray(values)) return
+
       // Handle updating generic component features
       const { cannotClose, dimensions, isResizable, isVisible, name, position, title } = values as Partial<V2Component>
       // Support currentGameName as V2 alias for name (used by game/plugin components)
-      const currentGameName = (values as any).currentGameName as string | undefined
+      const currentGameName = "currentGameName" in values && typeof values.currentGameName === "string"
+        ? values.currentGameName : undefined
       if (cannotClose != null) component.setCannotClose(cannotClose)
       if (isResizable != null) component.setIsResizable(isResizable)
       if (name != null) component.setName(name)
