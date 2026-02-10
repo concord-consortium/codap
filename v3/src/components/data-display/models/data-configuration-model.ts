@@ -687,10 +687,13 @@ export const DataConfigurationModel = types
           !self.attributeID(graphPlaceToAttrRole[place])
       },
       // GraphDataConfigurationModel overrides this. Here we only have to worry about the 'legend' role.
-      placeCanAcceptAttributeIDDrop(place: GraphPlace, dataSet?: IDataSet, idToDrop?: string) {
+      placeCanAcceptAttributeIDDrop(
+        place: GraphPlace, dataSet?: IDataSet, idToDrop?: string,
+        options?: { allowSameAttr?: boolean }
+      ) {
         if (idToDrop) {
           const desc = self.attributeDescriptionForRole('legend')
-          return desc?.attributeID !== idToDrop
+          return options?.allowSameAttr || desc?.attributeID !== idToDrop
         }
         return false
       },

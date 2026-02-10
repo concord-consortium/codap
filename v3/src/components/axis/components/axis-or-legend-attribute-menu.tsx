@@ -32,13 +32,18 @@ interface ICollectionInfo {
 // MenuItems for all attributes in a single collection
 interface IMenuItemsForCollectionProps {
   collectionInfo: ICollectionInfo
+  isAttributeAllowed?: (place: GraphPlace, dataSet: IDataSet, attrId: string) => boolean
   onChangeAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
   place: GraphPlace
 }
-function MenuItemsForCollection({ collectionInfo, onChangeAttribute, place }: IMenuItemsForCollectionProps) {
+function MenuItemsForCollection(
+  { collectionInfo, isAttributeAllowed, onChangeAttribute, place }: IMenuItemsForCollectionProps
+) {
   const { collection, data, metadata } = collectionInfo
   const attrs = collection.attributes.filter(attr => !!attr)
-  return attrs.filter(attr => !metadata?.isHidden(attr.id)).map((attr) => {
+  return attrs.filter(attr =>
+    !metadata?.isHidden(attr.id) && (!isAttributeAllowed || isAttributeAllowed(place, data, attr.id))
+  ).map((attr) => {
     return (
       <MenuItem onClick={() => onChangeAttribute(place, data, attr.id)} key={attr.id}>
         {attr.name}
@@ -51,6 +56,7 @@ function MenuItemsForCollection({ collectionInfo, onChangeAttribute, place }: IM
 interface ICollectionMenuProps {
   collectionInfo: ICollectionInfo
   containerRef: React.RefObject<HTMLDivElement | null>
+  isAttributeAllowed?: (place: GraphPlace, dataSet: IDataSet, attrId: string) => boolean
   isOpen: boolean
   maxMenuHeight: string
   onCancelPendingHover?: () => void
@@ -59,7 +65,7 @@ interface ICollectionMenuProps {
   place: GraphPlace
 }
 const CollectionMenu = observer(function CollectionMenu({
-  collectionInfo, containerRef, isOpen, maxMenuHeight, onCancelPendingHover,
+  collectionInfo, containerRef, isAttributeAllowed, isOpen, maxMenuHeight, onCancelPendingHover,
   onChangeAttribute, onPointerOver, place
 }: ICollectionMenuProps) {
   const { collection } = collectionInfo
@@ -80,6 +86,7 @@ const CollectionMenu = observer(function CollectionMenu({
                   data-testid={`axis-legend-attribute-menu-list-${place}-${collection.id}`}>
           <MenuItemsForCollection
             collectionInfo={collectionInfo}
+            isAttributeAllowed={isAttributeAllowed}
             onChangeAttribute={onChangeAttribute}
             place={place}
           />
@@ -128,6 +135,10 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   const layout = useFreeTileLayoutContext()
   const maxMenuHeight = `min(${layout?.height ?? 300}px, 50vh)`
   const dataConfiguration = useDataConfigurationContext()
+  const isAttributeAllowed = dataConfiguration?.placeCanAcceptAttributeIDDrop
+    ? (aPlace: GraphPlace, data: IDataSet, anAttrId: string) =>
+        dataConfiguration.placeCanAcceptAttributeIDDrop(aPlace, data, anAttrId, { allowSameAttr: true })
+    : undefined
   const dataSet = dataConfiguration?.dataset
   const dataSets = dataConfiguration ? getDataSets(dataConfiguration) : []
   const allCollectionInfo: (ICollectionInfo|"divider")[] = []
@@ -241,6 +252,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
       return (
         <MenuItemsForCollection
           collectionInfo={allCollectionInfo[0]}
+          isAttributeAllowed={isAttributeAllowed}
           onChangeAttribute={handleChangeAttribute}
           place={place}
         />
@@ -256,6 +268,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
             <CollectionMenu
               collectionInfo={collectionInfo}
               containerRef={containerRef}
+              isAttributeAllowed={isAttributeAllowed}
               isOpen={openCollectionId === collection.id}
               key={collection.id}
               maxMenuHeight={maxMenuHeight}
