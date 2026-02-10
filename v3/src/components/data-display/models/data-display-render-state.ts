@@ -1,5 +1,11 @@
-import { graphSnapshot, IGraphImageOptions } from "../../graph/utilities/image-utils"
+import { graphSnapshot, IGraphImageOptions, IGraphSnapshotResult } from "../../graph/utilities/image-utils"
 import { PointRendererArray } from "../renderer"
+
+export interface ISnapshotResult {
+  dataUri: string
+  width: number
+  height: number
+}
 
 export class DataDisplayRenderState {
   rendererArray: PointRendererArray
@@ -34,14 +40,15 @@ export class DataDisplayRenderState {
     }
   }
 
-  async updateSnapshot(dpr?: number) {
+  async updateSnapshot(dpr?: number, title?: string): Promise<ISnapshotResult | undefined> {
     const { imageOptions } = this
     if (!imageOptions) return
 
-    const graphImage = await graphSnapshot({ ...imageOptions, asDataURL: true, dpr })
-    const dataUri = typeof graphImage === "string" ? graphImage : undefined
+    const result: IGraphSnapshotResult = await graphSnapshot({ ...imageOptions, asDataURL: true, dpr, title })
+    const dataUri = typeof result.image === "string" ? result.image : undefined
     if (dataUri) {
       this.setDataUri(dataUri)
+      return { dataUri, width: result.width, height: result.height }
     }
   }
 }

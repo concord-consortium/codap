@@ -4,9 +4,11 @@ import { DataDisplayRenderState } from "./data-display-render-state"
 
 // Mock graphSnapshot to avoid needing a full DOM/canvas setup
 jest.mock("../../graph/utilities/image-utils", () => ({
-  graphSnapshot: jest.fn(async ({ asDataURL }: { asDataURL: boolean }) =>
-    asDataURL ? "data:image/png;base64,mockdata" : new Blob(["mock"], { type: "image/png" })
-  )
+  graphSnapshot: jest.fn(async ({ asDataURL }: { asDataURL: boolean }) => ({
+    image: asDataURL ? "data:image/png;base64,mockdata" : new Blob(["mock"], { type: "image/png" }),
+    width: 200,
+    height: 150
+  }))
 }))
 
 const mockRect = (overrides: Partial<DOMRect> = {}): DOMRect => ({

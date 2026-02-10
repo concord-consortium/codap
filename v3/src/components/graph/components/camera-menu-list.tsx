@@ -82,22 +82,26 @@ export const CameraMenuList = observer(function CameraMenuList() {
     )
   }
 
-  const getImageString = async (dpr?: number) => {
-    if (!graphModel?.renderState) return ''
-    await graphModel.renderState.updateSnapshot(dpr)
-    return graphModel.renderState.dataUri || ''
+  const getImageSnapshot = async (dpr?: number) => {
+    if (!graphModel?.renderState) return
+    const title = tile?.title
+    return graphModel.renderState.updateSnapshot(dpr, title)
   }
 
   const handleOpenInDrawTool = async () => {
     if (tile) {
       // Use dpr=1 so the image dimensions match the graph's logical size
-      const imageString = await getImageString(1)
-      await openInDrawTool(tile, imageString)
+      const snapshot = await getImageSnapshot(1)
+      if (snapshot) {
+        const { dataUri, width, height } = snapshot
+        await openInDrawTool(tile, dataUri, { width, height })
+      }
     }
   }
 
   const handleExportPNG = async () => {
-    let imageString = await getImageString()
+    const snapshot = await getImageSnapshot()
+    let imageString = snapshot?.dataUri ?? ''
     imageString = imageString.replace("data:image/png;base64,", "")
     if (imageString) {
       cfm?.client.saveSecondaryFileAsDialog(imageString, "png", "image/png", () => null)
