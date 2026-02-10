@@ -313,6 +313,9 @@ DG.main = function main() {
   }
 
   function cfmInit(iCloudFileManager, iViewConfig) {
+    // Height of the toolbar; must match kToolbarHeight in main_page.js
+    var kToolbarHeight = DG.STANDALONE_MODE ? 0 : 66;
+
     var options = {
           autoSaveInterval: 5,
           appName: DG.APPNAME,
@@ -436,7 +439,23 @@ DG.main = function main() {
             },
             "localFile"//,
             //"localStorage"
-          ]
+          ],
+          // Callback for when CFM UI height changes (e.g., when banner is shown/hidden)
+          onHeightChange: function(cfmHeight) {
+            SC.run(function() {
+              var mainPane = DG.mainPage.mainPane;
+              var navBar = mainPane.get('navBar');
+              var topView = mainPane.get('topView');
+              var scrollView = mainPane.get('scrollView');
+
+              // Adjust navBar to fit CFM's new height
+              navBar.adjust('height', cfmHeight);
+
+              // Cascade adjustments to views positioned below navBar
+              topView.adjust('top', cfmHeight);
+              scrollView.adjust('top', cfmHeight + kToolbarHeight);
+            });
+          }
         };
     // only enable Google Drive if origin is ssl or localhost
      if (document.location.protocol === 'https:' || document.location.hostname === 'localhost' || document.location.hostname === '127.0.0.1') {
