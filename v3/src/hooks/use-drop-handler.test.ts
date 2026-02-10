@@ -49,9 +49,9 @@ describe("useDropHandler", () => {
     expect(handler).not.toHaveBeenCalled()
   })
 
-  it("handles drops with file as DataTransfer item", () => {
+  it("calls onDrop with the drop event", () => {
     const handler = jest.fn()
-    const params = { selector: "body", onDataTransferItem: handler }
+    const params = { selector: "body", onDrop: handler }
     const { rerender, result } = renderHook(() => useDropHandler(params))
     rerender()  // make sure effect has a chance to run
     expect(result.current).toBeTruthy()
@@ -60,8 +60,6 @@ describe("useDropHandler", () => {
     expect(handler).not.toHaveBeenCalled()
     fireEvent.drop(result.current, { dataTransfer: mockDataTransferWithItems })
     expect(handler).toHaveBeenCalled()
-    const file = handler.mock.calls[0][0].getAsFile()
-    expect(file.name).toBe(mockFilename)
   })
 
   it("ignores drops without DataTransfer items", () => {

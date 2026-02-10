@@ -15,6 +15,7 @@ import {
   convertParsedCsvToDataSet, CsvParseResult, importCsvFile, initiateImportFromCsv
 } from "../utilities/csv-import"
 import { initiateGenericImport } from "../utilities/generic-import"
+import { initiateImportFromHTML } from "../utilities/html-import"
 import { downscaleImageFile, getImageDimensions } from "../utilities/image-utils"
 import {
   getImportableFileTypeFromDataTransferFile, getImportableFileTypeFromFile, getImportableFileTypeFromUrl,
@@ -22,6 +23,25 @@ import {
 } from "../utilities/importable-files"
 
 const USE_IMPORTER_PLUGIN_FOR_CSV_FILE = true
+
+export type DropPriority = "files" | "url" | "html" | "none"
+
+// Determines the highest-priority drop type from the available DataTransfer items,
+// replicating V2's priority order: files > URLs > HTML tables.
+export function getDropPriority(items: DataTransferItemList): DropPriority {
+  let hasFile = false
+  let hasUrl = false
+  let hasHtml = false
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].kind === "file") hasFile = true
+    if (items[i].kind === "string" && items[i].type === "text/uri-list") hasUrl = true
+    if (items[i].kind === "string" && items[i].type === "text/html") hasHtml = true
+  }
+  if (hasFile) return "files"
+  if (hasUrl) return "url"
+  if (hasHtml) return "html"
+  return "none"
+}
 
 interface IProps {
   cfmRef: React.MutableRefObject<CloudFileManager | null>
@@ -125,29 +145,50 @@ export function useImportHelpers({ cfmRef, onCloseUserEntry }: IProps) {
     importFile(getImportableFileTypeFromFile(file), { file: file.object })
   }, [importFile])
 
-  const handleDataTransferItem = useCallback(
-    async function handleDataTransferItem(item: DataTransferItem) {
-      let type: ImportableFileType | undefined
-      let file: File | null = null
-      let url: string | null = null
+  // Replicates V2's priority order for drop handling (files > URLs > HTML tables).
+  // This ensures that URL drops (which may include text/html items) don't trigger
+  // the HTML table importer. Uses synchronous getData() to extract string data so
+  // that drop handler cleanup doesn't race with async callbacks.
+  const handleDrop = useCallback(
+    function handleDrop(event: DragEvent) {
+      const dataTransfer = event.dataTransfer
+      if (!dataTransfer?.items) return
 
-      if (item.kind === 'file') {
-        file = item.getAsFile()
-        type = getImportableFileTypeFromDataTransferFile(item)
-      } else if (item.kind === 'string' && item.type === 'text/uri-list') {
-        const urlPromise = new Promise<string>((resolve) => {
-          item.getAsString((itemUrl) => resolve(itemUrl))
-        })
-        url = await urlPromise
-        // pick di parameter if present
-        url = (/di=(.+)/.exec(url))?.[1] || url
-        type = getImportableFileTypeFromUrl(url)
-      }
+      const priority = getDropPriority(dataTransfer.items)
 
-      if (file || url) {
-        importFile(type, { file, url })
+      switch (priority) {
+        case "files":
+          for (let i = 0; i < dataTransfer.items.length; i++) {
+            if (dataTransfer.items[i].kind === "file") {
+              const file = dataTransfer.items[i].getAsFile()
+              const type = getImportableFileTypeFromDataTransferFile(dataTransfer.items[i])
+              if (file) {
+                importFile(type, { file })
+              }
+            }
+          }
+          break
+        case "url": {
+          // Per RFC 2483, text/uri-list may contain multiple lines and # comment lines
+          const rawUri = dataTransfer.getData("text/uri-list")
+          const url = rawUri.split(/\r?\n/).map(l => l.trim()).find(l => l && !l.startsWith("#"))
+          if (url) {
+            // pick di parameter if present
+            const importUrl = (/di=(.+)/.exec(url))?.[1] || url
+            const type = getImportableFileTypeFromUrl(importUrl)
+            importFile(type, { url: importUrl })
+          }
+          break
+        }
+        case "html": {
+          const html = dataTransfer.getData("text/html")
+          if (html) {
+            initiateImportFromHTML(html)
+          }
+          break
+        }
       }
   }, [importFile])
 
-  return { handleDataTransferItem, handleFileImported,  handleUrlImported }
+  return { handleDrop, handleFileImported,  handleUrlImported }
 }
