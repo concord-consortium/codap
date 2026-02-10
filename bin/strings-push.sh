@@ -2,10 +2,17 @@
 CURL='/usr/bin/curl'
 POEDITOR_UPLOAD_URL="https://api.poeditor.com/v2/projects/upload"
 API_TOKEN="$POEDITOR_API_TOKEN" # may be set as environment variable
+# updating: "terms" (add new terms only), "terms_translations" (add/update terms and translations),
+#           "translations" (update translations only)
 UPDATING="terms_translations"
 LANGUAGE="en-US"
+# overwrite: 1 = overwrite existing translations with uploaded values, 0 = keep existing
 OVERWRITE="1"
-SYNC_TERMS="1"
+# sync_terms: 1 = DELETE terms from POEditor that are not in the upload, 0 = leave them alone.
+# Must be 0 when multiple projects (e.g. CODAP V2 and V3) share the same POEditor project,
+# otherwise one project's push would delete the other's terms.
+SYNC_TERMS="0"
+# fuzzy_trigger: 1 = mark existing translations as fuzzy when the source term changes
 FUZZY_TRIGGER="1"
 
 # override with defaults, if rc is present
