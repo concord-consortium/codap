@@ -46,7 +46,7 @@ export const caseTableCardComponentHandler: DIComponentHandler = {
       const tableProps = isCaseTableModel(content)
                             ? {
                                 horizontalScrollOffset: content._horizontalScrollOffset,
-                                isIndexHidden: content.isIndexHidden
+                                isIndexHidden: !!content.isIndexHidden
                               }
                             : undefined
       return { dataContext: content.data?.name, ...tableProps }

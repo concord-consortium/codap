@@ -18,7 +18,7 @@ export const CaseTableModel = TileContentModel
     // Only used for serialization; volatile property used during run time
     horizontalScrollOffset: 0,
     // true if the index column is hidden
-    isIndexHidden: types.optional(types.boolean, false)
+    isIndexHidden: types.maybe(types.boolean)
   })
   .volatile(self => ({
     // entire hierarchical table scrolls as a unit horizontally
