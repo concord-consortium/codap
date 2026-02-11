@@ -74,6 +74,14 @@ describe("shouldConvertElement", () => {
     expect(shouldConvertElement(element)).toBe(false)
   })
 
+  it("returns false for elements with opacity: 0.0", () => {
+    const element = document.createElement("div")
+    element.textContent = "Test content"
+    window.getComputedStyle = jest.fn(() => mockGetComputedStyle({ opacity: "0.0" }))
+
+    expect(shouldConvertElement(element)).toBe(false)
+  })
+
   it("returns false for elements with no-svg-export class", () => {
     const element = document.createElement("div")
     element.textContent = "Tooltip content"

@@ -8,16 +8,21 @@
  */
 
 export interface IHtmlToSvgOptions {
+  baselineOffsetFactor?: number  
   // Container element for calculating relative positions. If not provided, absolute positions are used.
   containerElement?: HTMLElement
   // The HTML element to convert
   element: HTMLElement
+  fallbackFontSize?: number
 }
 
 export interface IHtmlToSvgResult {
   bounds: DOMRect
   svgElements: SVGElement[]
 }
+
+const DEFAULT_FONT_SIZE = 12
+const DEFAULT_BASELINE_RATIO = 0.8
 
 /**
  * Checks whether an HTML element should be converted to SVG for export.
@@ -41,7 +46,12 @@ export function shouldConvertElement(element: HTMLElement): boolean {
   }
 
   const computedStyle = window.getComputedStyle(element)
-  if (computedStyle.display === "none" || computedStyle.visibility === "hidden" || computedStyle.opacity === "0") {
+  const opacity = parseFloat(computedStyle.opacity)
+  if (
+    computedStyle.display === "none" ||
+    computedStyle.visibility === "hidden" ||
+    (!Number.isNaN(opacity) && opacity <= 0)
+  ) {
     return false
   }
 
@@ -58,8 +68,6 @@ function mapTextAlignToAnchor(textAlign: string): string {
     case "right":
     case "end":
       return "end"
-    case "left":
-    case "start":
     default:
       return "start"
   }
@@ -88,11 +96,10 @@ function calculateTextX(
 
 /**
  * Extracts font size in pixels from a computed style font-size value.
- * Falls back to 12 if parsing fails.
  */
-function parseFontSize(fontSizeValue: string): number {
+function parseFontSize(fontSizeValue: string, fallbackFontSize: number): number {
   const parsed = parseFloat(fontSizeValue)
-  return isNaN(parsed) ? 12 : parsed
+  return isNaN(parsed) ? fallbackFontSize : parsed
 }
 
 /**
@@ -116,7 +123,8 @@ function createSvgElement<K extends keyof SVGElementTagNameMap>(tagName: K): SVG
  * @returns Object containing the generated SVG elements and the original element bounds
  */
 export function convertHtmlToSvg(options: IHtmlToSvgOptions): IHtmlToSvgResult {
-  const { element, containerElement } = options
+  const { element, containerElement, baselineOffsetFactor = DEFAULT_BASELINE_RATIO,
+    fallbackFontSize = DEFAULT_FONT_SIZE } = options
   const elementRect = element.getBoundingClientRect()
   const containerRect = containerElement?.getBoundingClientRect() ?? null
   const computedStyle = window.getComputedStyle(element)
@@ -125,8 +133,8 @@ export function convertHtmlToSvg(options: IHtmlToSvgOptions): IHtmlToSvgResult {
 
   // Calculate position
   // SVG text y-coordinate is baseline, not top. Add ~80% of font size to approximate baseline.
-  const fontSize = parseFontSize(computedStyle.fontSize)
-  const baselineOffset = fontSize * 0.8
+  const fontSize = parseFontSize(computedStyle.fontSize, fallbackFontSize)
+  const baselineOffset = fontSize * baselineOffsetFactor
 
   const relativeTop = containerRect
     ? elementRect.top - containerRect.top
@@ -146,8 +154,7 @@ export function convertHtmlToSvg(options: IHtmlToSvgOptions): IHtmlToSvgResult {
   }
 
   // Set font properties with fallback system fonts
-  const fontFamily = computedStyle.fontFamily ||
-    "Lato, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
+  const fontFamily = computedStyle.fontFamily || "Lato, Helvetica, Arial, sans-serif"
   svgText.setAttribute("font-family", fontFamily)
   svgText.setAttribute("font-size", `${fontSize}px`)
 
