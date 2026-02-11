@@ -15,21 +15,9 @@ const disallowedElementClasses = new Set([
   "header-right",
 ])
 
-// CSS selectors for adornment text elements that need to be converted to SVG for export.
-const adornmentTextSelectors = [
-  ".graph-count .count",
-  ".graph-count .sub-count",
-  ".lsrl-equation-container p",
-  ".measure-labels-tip",
-  ".movable-line-equation-container p",
-  ".movable-value-equation-container p",
-  ".normal-curve-equation-container p",
-  ".plotted-function-equation-container p"
-]
-
 /**
  * Creates an SVG element containing converted adornment text elements.
- * Queries the content element for HTML text elements matching adornment selectors,
+ * Queries the content element for HTML text elements with the `svg-export` class,
  * converts them to SVG text elements, and returns an SVG containing all of them.
  *
  * @param contentElement - The graph content element to search for adornment text
@@ -39,21 +27,19 @@ function createAdornmentTextSvg(contentElement: HTMLElement): SVGSVGElement | nu
   const contentRect = contentElement.getBoundingClientRect()
   const convertedElements: SVGElement[] = []
 
-  for (const selector of adornmentTextSelectors) {
-    const elements = contentElement.querySelectorAll(selector)
-    for (const element of elements) {
-      if (!(element instanceof HTMLElement)) continue
-      if (!shouldConvertElement(element)) continue
+  const elements = contentElement.querySelectorAll(".svg-export")
+  for (const element of elements) {
+    if (!(element instanceof HTMLElement)) continue
+    if (!shouldConvertElement(element)) continue
 
-      try {
-        const result = convertHtmlToSvg({
-          element,
-          containerElement: contentElement
-        })
-        convertedElements.push(...result.svgElements)
-      } catch (e) {
-        console.warn("Failed to convert adornment text element:", e)
-      }
+    try {
+      const result = convertHtmlToSvg({
+        element,
+        containerElement: contentElement
+      })
+      convertedElements.push(...result.svgElements)
+    } catch (e) {
+      console.warn("Failed to convert adornment text element:", e)
     }
   }
 

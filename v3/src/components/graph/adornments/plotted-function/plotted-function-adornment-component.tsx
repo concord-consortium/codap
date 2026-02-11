@@ -152,7 +152,7 @@ export const PlottedFunctionAdornmentComponent = observer(function PlottedFuncti
 
     residualsBox
       .append("p")
-      .attr("class", "plotted-functions-residuals")
+      .attr("class", "plotted-functions-residuals svg-export")
       .attr("data-testid", `plotted-functions-residuals-${model.classNameFromKey(cellKey)}`)
 
     return () => {

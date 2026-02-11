@@ -13,7 +13,7 @@ import { useAdornmentCells } from "../../hooks/use-adornment-cells"
 
 import "./movable-point-adornment-component.scss"
 
-const dataTip = d3tip().attr('class', 'graph-d3-tip')
+const dataTip = d3tip().attr('class', 'graph-d3-tip no-svg-export')
   .attr('data-testid', 'graph-movable-point-data-tip')
   .html((d: string) => {
     return `<p>${d}</p>`

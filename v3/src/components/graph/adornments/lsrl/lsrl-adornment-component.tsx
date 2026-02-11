@@ -85,7 +85,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
       const left = event.offsetX - 200 > 0 ? event.offsetX - 220 : 0
       const top = event.offsetY - 50 > 0 ? event.offsetY - 55 : 0
       select(`#${containerId}`).append("div")
-        .attr("class", "graph-d3-tip confidence-bands-tip")
+        .attr("class", "graph-d3-tip confidence-bands-tip no-svg-export")
         .attr("data-testid", "graph-lsrl-data-tip")
         .html(`<p>${dataTipContent}</p>`)
         .style("left", `${left}px`)
@@ -338,7 +338,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
         // Add the equation box for the line to the equation container
         const equationP = equationDiv
           .append("p")
-          .attr("class", "lsrl-equation")
+          .attr("class", "lsrl-equation svg-export")
           .attr("id", `lsrl-equation-${model.classNameFromKey(cellKey)}-${lineIndex}`)
           .attr("data-testid", `lsrl-equation-${model.classNameFromKey(cellKey)}`)
           .on("mouseover", () => { handleHighlightLineAndEquation(true, lineCategory) })

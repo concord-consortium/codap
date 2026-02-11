@@ -88,7 +88,7 @@ export const StandardErrorAdornmentComponent = observer(
       const labelTop = labelCoords ? labelCoords.y : helper.yRangePct(defaultLabelTopOffset(model))
       const labelId =
         `${helper.measureSlug}-measure-labels-tip-${containerId}${helper.classFromKey ? `-${helper.classFromKey}` : ""}`
-      const labelClass = clsx("measure-labels-tip", `measure-labels-tip-${helper.measureSlug}`)
+      const labelClass = clsx("measure-labels-tip", `measure-labels-tip-${helper.measureSlug}`, "svg-export")
 
       labelObj.label = labelSelection.append("div")
         .attr("class", labelClass)

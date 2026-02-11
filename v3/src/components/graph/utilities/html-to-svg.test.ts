@@ -1,4 +1,4 @@
-import { shouldConvertElement, convertHtmlToSvg, hasExportableClass } from "./html-to-svg"
+import { shouldConvertElement, convertHtmlToSvg } from "./html-to-svg"
 
 const mockGetComputedStyle = (overrides: Partial<CSSStyleDeclaration> = {}): CSSStyleDeclaration => {
   return {
@@ -74,40 +74,22 @@ describe("shouldConvertElement", () => {
     expect(shouldConvertElement(element)).toBe(false)
   })
 
-  it("returns false for tooltip elements with graph-d3-tip class", () => {
+  it("returns false for elements with no-svg-export class", () => {
     const element = document.createElement("div")
     element.textContent = "Tooltip content"
-    element.classList.add("graph-d3-tip")
+    element.classList.add("no-svg-export")
     window.getComputedStyle = jest.fn(() => mockGetComputedStyle())
 
     expect(shouldConvertElement(element)).toBe(false)
   })
 
-  it("returns false for elements with data-tip class", () => {
+  it("returns true for elements with other classes but not no-svg-export", () => {
     const element = document.createElement("div")
-    element.textContent = "Tooltip content"
-    element.classList.add("data-tip")
+    element.textContent = "Valid content"
+    element.classList.add("some-other-class")
     window.getComputedStyle = jest.fn(() => mockGetComputedStyle())
 
-    expect(shouldConvertElement(element)).toBe(false)
-  })
-
-  it("returns false for elements with tooltip class", () => {
-    const element = document.createElement("div")
-    element.textContent = "Tooltip content"
-    element.classList.add("tooltip")
-    window.getComputedStyle = jest.fn(() => mockGetComputedStyle())
-
-    expect(shouldConvertElement(element)).toBe(false)
-  })
-
-  it("returns false for elements with confidence-bands-tip class", () => {
-    const element = document.createElement("div")
-    element.textContent = "CI info"
-    element.classList.add("confidence-bands-tip")
-    window.getComputedStyle = jest.fn(() => mockGetComputedStyle())
-
-    expect(shouldConvertElement(element)).toBe(false)
+    expect(shouldConvertElement(element)).toBe(true)
   })
 })
 
@@ -357,27 +339,5 @@ describe("convertHtmlToSvg", () => {
     expect(svgText.getAttribute("font-size")).toBe("12px")
     // Baseline offset should use fallback: 12 * 0.8 = 9.6
     expect(parseFloat(svgText.getAttribute("y") ?? "0")).toBeCloseTo(9.6)
-  })
-})
-
-describe("hasExportableClass", () => {
-  it("returns true when element has svg-exportable class", () => {
-    const element = document.createElement("div")
-    element.classList.add("svg-exportable")
-
-    expect(hasExportableClass(element)).toBe(true)
-  })
-
-  it("returns false when element does not have svg-exportable class", () => {
-    const element = document.createElement("div")
-    element.classList.add("other-class")
-
-    expect(hasExportableClass(element)).toBe(false)
-  })
-
-  it("returns false for element with no classes", () => {
-    const element = document.createElement("div")
-
-    expect(hasExportableClass(element)).toBe(false)
   })
 })

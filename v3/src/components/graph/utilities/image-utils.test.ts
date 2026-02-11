@@ -1,5 +1,6 @@
 import { PointRendererBase } from "../../data-display/renderer"
 import { exportGraphToPng, graphSnapshot } from "./image-utils"
+import * as htmlToSvg from "./html-to-svg"
 
 const mockRect = (overrides: Partial<DOMRect> = {}): DOMRect => ({
   left: 0, top: 0, width: 100, height: 100, right: 100, bottom: 100, x: 0, y: 0,
@@ -298,5 +299,73 @@ describe("title rendering", () => {
     expect(result.image).toContain("data:image/png;base64,")
     // Height includes 20px for title area
     expect(result.height).toBe(120)
+  })
+})
+
+describe("svg-export class handling", () => {
+  let convertSpy: jest.SpyInstance
+
+  beforeEach(() => {
+    convertSpy = jest.spyOn(htmlToSvg, "convertHtmlToSvg")
+  })
+
+  afterEach(() => {
+    convertSpy.mockRestore()
+    graphEl.querySelectorAll(".test-export-element").forEach(el => el.remove())
+  })
+
+  it("should convert elements with svg-export class", async () => {
+    const exportableDiv = document.createElement("div")
+    exportableDiv.classList.add("svg-export", "test-export-element")
+    exportableDiv.textContent = "Exportable text"
+    exportableDiv.getBoundingClientRect = jest.fn(() => mockRect({ left: 10, top: 20 }))
+    graphEl.appendChild(exportableDiv)
+
+    await exportGraphToPng({
+      graphElement: containerEl,
+      height: 100,
+      renderer: mockRenderer,
+      width: 100
+    })
+
+    expect(convertSpy).toHaveBeenCalled()
+    const callArgs = convertSpy.mock.calls[0][0]
+    expect(callArgs.element).toBe(exportableDiv)
+  })
+
+  it("should not convert elements without svg-export class", async () => {
+    const nonExportableDiv = document.createElement("div")
+    nonExportableDiv.classList.add("some-other-class", "test-export-element")
+    nonExportableDiv.textContent = "Non-exportable text"
+    graphEl.appendChild(nonExportableDiv)
+
+    await exportGraphToPng({
+      graphElement: containerEl,
+      height: 100,
+      renderer: mockRenderer,
+      width: 100
+    })
+
+    // convertHtmlToSvg should not be called for elements without svg-export
+    const callArgs = convertSpy.mock.calls.map(call => call[0].element)
+    expect(callArgs).not.toContain(nonExportableDiv)
+  })
+
+  it("should not convert elements with both svg-export and no-svg-export classes", async () => {
+    const excludedDiv = document.createElement("div")
+    excludedDiv.classList.add("svg-export", "no-svg-export", "test-export-element")
+    excludedDiv.textContent = "Excluded text"
+    graphEl.appendChild(excludedDiv)
+
+    await exportGraphToPng({
+      graphElement: containerEl,
+      height: 100,
+      renderer: mockRenderer,
+      width: 100
+    })
+
+    // convertHtmlToSvg should not be called for elements with no-svg-export
+    const callArgs = convertSpy.mock.calls.map(call => call[0].element)
+    expect(callArgs).not.toContain(excludedDiv)
   })
 })

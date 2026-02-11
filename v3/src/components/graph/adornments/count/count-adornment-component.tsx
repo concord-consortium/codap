@@ -156,6 +156,7 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
           countAdornmentValues?.values.map((value: INumDenom, i: number) => {
             const {startFraction, endFraction} = value
             const className = clsx(
+              "svg-export",
               {"count": numBins === 1},
               {"sub-count": numBins > 1},
               {"x-axis": primaryAttrRole === "x" && numBins > 1},

@@ -19,19 +19,12 @@ export interface IHtmlToSvgResult {
   svgElements: SVGElement[]
 }
 
-const excludedClasses = new Set([
-  "confidence-bands-tip",
-  "data-tip",
-  "graph-d3-tip",
-  "tooltip",
-])
-
 /**
  * Checks whether an HTML element should be converted to SVG for export.
  *
  * Elements are excluded if they are:
  * - Hidden (display: none, visibility: hidden, or opacity: 0)
- * - Tooltip elements (have excluded class names)
+ * - Marked with the `no-svg-export` class (tooltips, temporary UI elements)
  * - Empty (no text content)
  *
  * @param element - The HTML element to check
@@ -43,10 +36,8 @@ export function shouldConvertElement(element: HTMLElement): boolean {
     return false
   }
 
-  for (const className of element.classList) {
-    if (excludedClasses.has(className)) {
-      return false
-    }
+  if (element.classList.contains("no-svg-export")) {
+    return false
   }
 
   const computedStyle = window.getComputedStyle(element)
@@ -179,8 +170,4 @@ export function convertHtmlToSvg(options: IHtmlToSvgOptions): IHtmlToSvgResult {
     svgElements: [svgText],
     bounds: elementRect
   }
-}
-
-export function hasExportableClass(element: HTMLElement): boolean {
-  return element.classList.contains("svg-exportable")
 }
