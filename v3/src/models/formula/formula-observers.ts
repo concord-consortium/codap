@@ -42,7 +42,7 @@ export const observeLocalAttributes = (formulaDependencies: IFormulaDependency[]
     { name: "FormulaObservers.itemsReaction" }, localDataSet
   )
 
-  // Observe local dataset attribute value changes
+  // Observe local dataset attribute value changes and case additions
   const disposeDatasetValuesObserver = onAnyAction(localDataSet, mstAction => {
     let casesToRecalculate: CaseList = []
     switch (mstAction.name) {
@@ -50,6 +50,10 @@ export const observeLocalAttributes = (formulaDependencies: IFormulaDependency[]
         // Recalculate cases with dependency attribute updated.
         const cases = (mstAction as SetCaseValuesAction).args[0] || []
         casesToRecalculate = getLocalAttrCasesToRecalculate(cases, localAttrDependencies)
+        break
+      }
+      case "addCases": {
+        casesToRecalculate = "ALL_CASES"
         break
       }
       default:

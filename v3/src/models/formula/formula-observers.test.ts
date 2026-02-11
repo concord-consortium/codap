@@ -97,9 +97,10 @@ describe("observeLocalAttributes", () => {
       // non-aggregate optimization has been removed for now
       expect(recalculateCallback).toHaveBeenCalledWith("ALL_CASES")
 
+      const callCountBeforeDispose = recalculateCallback.mock.calls.length
       dispose()
       dataSet.addCases(newCases)
-      expect(recalculateCallback).toHaveBeenCalledTimes(1)
+      expect(recalculateCallback).toHaveBeenCalledTimes(callCountBeforeDispose)
     })
 
     it("should call recalculateCallback with sorted cases", () => {
