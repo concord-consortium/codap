@@ -46,6 +46,13 @@ jobs:
         with:
           name: build
           path: dist
+      - name: Fix .js.ignore MIME types for S3
+        run: |
+          # SproutCore uses .js.ignore to exclude webpack-managed files from its
+          # build. S3 serves these as binary/octet-stream which browsers block.
+          # Rename to .js and update HTML references before deploying.
+          find dist -name "*.js.ignore" -exec bash -c 'mv "$1" "${1%.ignore}"' _ {} \;
+          find dist -name "*.html" -exec sed -i 's/\.js\.ignore/.js/g' {} \;
       - uses: concord-consortium/s3-deploy-action@v1
         with:
           build: echo already built
