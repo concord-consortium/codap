@@ -222,6 +222,11 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         navigateToNextRow(reverse)
       }
       if (event.key === "Tab") {
+        // Prevent the browser's native Tab focus movement, which in Safari can move focus
+        // to other components (e.g. text component) instead of letting our custom navigation
+        // handle it. RDG's navigate() normally calls preventDefault(), but since we called
+        // preventGridDefault() above, RDG's navigate() is skipped entirely.
+        event.preventDefault()
         navigateToNextCell(event.shiftKey)
       }
     }
