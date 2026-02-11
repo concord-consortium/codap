@@ -42,12 +42,12 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
 
   // Attempts to navigate to the pending position if the target row exists.
   // Returns true if navigation succeeded, false if the target row doesn't exist yet.
+  // Skips navigation entirely if a newer navigation has been requested.
   const attemptNavigation = useCallback((nav: IPendingNavigation, currentRows?: TRow[]) => {
+    if (pendingNavigation.current !== nav) return false
     const rowCount = currentRows?.length ?? 0
     if (nav.rowIdx < rowCount) {
-      if (pendingNavigation.current === nav) {
-        pendingNavigation.current = null
-      }
+      pendingNavigation.current = null
       collectionTableModel?.scrollRowIntoView(nav.rowIdx)
       gridRef.current?.selectCell({ idx: nav.idx, rowIdx: nav.rowIdx }, true)
       return true

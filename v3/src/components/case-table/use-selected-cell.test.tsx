@@ -137,7 +137,7 @@ describe("useSelectedCell", () => {
       { __id__: "row-1" },
       { __id__: "input-row" }
     ]
-    rerender(() => useSelectedCell(gridRef, columns, rows))
+    rerender()
 
     // useEffect should have retried and succeeded now that row 2 exists
     expect(gridRef.current.selectCell).toHaveBeenCalledTimes(1)
