@@ -19,9 +19,10 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '2.7'
-          bundler-cache: true
       - name: Install Dependencies
-        run: npm ci --legacy-peer-deps
+        run: |
+          bundle install
+          npm ci --legacy-peer-deps
       - name: Build
         env:
           NODE_OPTIONS: --openssl-legacy-provider
