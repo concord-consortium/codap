@@ -45,7 +45,9 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
   const attemptNavigation = useCallback((nav: IPendingNavigation, currentRows?: TRow[]) => {
     const rowCount = currentRows?.length ?? 0
     if (nav.rowIdx < rowCount) {
-      pendingNavigation.current = null
+      if (pendingNavigation.current === nav) {
+        pendingNavigation.current = null
+      }
       collectionTableModel?.scrollRowIntoView(nav.rowIdx)
       gridRef.current?.selectCell({ idx: nav.idx, rowIdx: nav.rowIdx }, true)
       return true

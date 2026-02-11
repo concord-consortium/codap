@@ -99,4 +99,49 @@ describe("useSelectedCell", () => {
     jest.runAllTimers()
     expect(mockScrollRowIntoView).toHaveBeenCalledTimes(2)
   })
+
+  it("defers navigation via useEffect when target row doesn't exist yet", () => {
+    columns = [
+      { name: "Index", key: "__index__" },
+      { name: "Column1", key: "column-1" }
+    ]
+    rows = [
+      { __id__: "row-0" },
+      { __id__: "input-row" }
+    ]
+    const { rerender, result } =
+      renderHook(() => useSelectedCell(gridRef, columns, rows), {
+        wrapper: ({ children }) => (
+          <DataSetContext.Provider value={data}>
+            {children}
+          </DataSetContext.Provider>
+        )
+      })
+
+    // select the input row cell
+    const { handleSelectedCellChange, navigateToNextRow } = result.current
+    handleSelectedCellChange({
+      rowIdx: 1, row: rows[1], column: columns[1] as TCalculatedColumn
+    })
+
+    // navigate to next row — target rowIdx 2 doesn't exist yet (only 2 rows: 0, 1)
+    navigateToNextRow()
+    jest.runAllTimers()
+    // setTimeout should NOT have navigated because row 2 is out of bounds
+    expect(gridRef.current.selectCell).not.toHaveBeenCalled()
+    expect(mockScrollRowIntoView).not.toHaveBeenCalled()
+
+    // simulate grid re-rendering with the new case row + input row
+    rows = [
+      { __id__: "row-0" },
+      { __id__: "row-1" },
+      { __id__: "input-row" }
+    ]
+    rerender(() => useSelectedCell(gridRef, columns, rows))
+
+    // useEffect should have retried and succeeded now that row 2 exists
+    expect(gridRef.current.selectCell).toHaveBeenCalledTimes(1)
+    expect(gridRef.current.selectCell).toHaveBeenCalledWith({ idx: 1, rowIdx: 2 }, true)
+    expect(mockScrollRowIntoView).toHaveBeenCalledWith(2)
+  })
 })
