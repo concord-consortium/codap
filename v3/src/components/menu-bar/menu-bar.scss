@@ -16,31 +16,10 @@
         border: revert;
         line-height: normal;
       }
-      // TODO: this style override was added to v2 in https://github.com/concord-consortium/codap/pull/1075.
-      // It should really be handled internally to the CFM itself.
-      .tabbed-panel .workspace-tab-component .dialogTab .provider-message {
-        color: #000;
-        font-size: 12px;
-      }
-
-      // Reduce file list item size so all 10 English example documents fit without scrolling
-      .tabbed-panel .workspace-tab-component .dialogTab .filelist div {
-        font-size: 19px;
-        line-height: 1.3;
-        margin: 2px 0;
-        padding: 2px;
-      }
-
       // Hide the filter input to save space
       .tabbed-panel .workspace-tab-component .dialogTab input[type=text],
       .tabbed-panel .workspace-tab-component .dialogTab .dialogClearFilter {
         display: none;
-      }
-
-      // make the URL input field full width and match other input padding
-      .urlImport > input {
-        padding: 5px;
-        width: 100%;
       }
     }
   }
