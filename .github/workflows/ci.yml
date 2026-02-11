@@ -57,5 +57,7 @@ jobs:
           folderToDeploy: dist
           awsAccessKeyId: ${{ secrets.AWS_ACCESS_KEY_ID }}
           awsSecretAccessKey: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          deployRunUrl: https://codap-dev.concord.org/__deployPath__/
           topBranches: |
             ["master"]
