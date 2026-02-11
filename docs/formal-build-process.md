@@ -221,6 +221,71 @@ improved `strings-pull-project.sh` script addresses this by:
 The build engineer can press Ctrl-C to cancel if POEditor is entirely
 unresponsive.
 
+### Future Work: Automating Server Deployment via GitHub Actions
+
+The build skill automates the front end of the build process (preconditions,
+translations, plugin assembly, SproutCore build, packaging). The CI workflow
+(`.github/workflows/ci.yml`) handles build + S3 deploy for dev branches. But
+the final production deployment to `codap-server.concord.org` still requires
+manual SSH/SCP steps: uploading the zip, running `deployCODAP`, and updating
+symlinks.
+
+This could be automated with a manually-triggered GitHub Actions workflow
+(`workflow_dispatch`). Here's what would be involved:
+
+**Workflow design:**
+
+```yaml
+on:
+  workflow_dispatch:
+    inputs:
+      build_number:
+        description: 'Build number (e.g. 0742)'
+        required: true
+      release_target:
+        description: 'Symlink to update'
+        type: choice
+        options:
+          - staging
+          - latest
+          - none
+```
+
+This gives a "Run workflow" button in the GitHub UI with form fields for the
+build number and release target.
+
+**GitHub Secrets needed:**
+
+| Secret | Purpose |
+|--------|---------|
+| `CODAP_SERVER_SSH_KEY` | SSH private key for `codap-server.concord.org` |
+| `CODAP_SERVER_HOST` | Server hostname (or hardcode it) |
+| `CODAP_SERVER_USER` | SSH username |
+
+**Workflow steps:**
+
+1. Download the build artifact (from the CI workflow or a manual upload)
+2. SCP the zip to `codap-server.concord.org:/var/www/html/releases/`
+3. SSH in to unzip and set up the release directory
+4. Optionally update the symlink (`staging` or `latest`)
+5. Optionally invalidate the CloudFront cache
+
+**One-time setup work:**
+
+- Generate a dedicated SSH deploy key (not a personal key)
+- Add the public key to the server's `authorized_keys`
+- Add the private key and server details as GitHub Secrets
+- Consider restricting the deploy key's permissions (e.g. `command=` in
+  `authorized_keys` to limit what it can do)
+
+**Estimated effort:** An afternoon of work including testing. The server-side
+commands are already documented in the build skill — it's just wrapping them
+in a workflow.
+
+**Note:** Given that CODAP v2 is being superseded by v3, this automation may
+not be worth the investment. It is documented here for reference in case it
+becomes useful.
+
 ---
 
 ## Legacy Build Documentation
