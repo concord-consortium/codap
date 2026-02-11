@@ -52,7 +52,7 @@ Wait for user confirmation before starting Phase 1.
 1. **Read build configuration and verify config files:**
 
    Explain to the user:
-   > The CODAP build process is configured via two files in your home directory. `~/.codap-build.rc` defines where the 7 required repositories live and which server to deploy to. `~/.porc` stores the API token for POEditor, the translation management service used for CODAP's 16 supported languages.
+   > The CODAP build process is configured via two files in your home directory. `~/.codap-build.rc` defines where the 7 required repositories live and which server to deploy to. `~/.porc` stores the API token for POEditor, the translation management service used for CODAP's 17 supported languages.
 
    Read `~/.codap-build.rc` to discover configured repository paths, and check that `~/.porc` (POEditor API token) also exists:
    ```bash
@@ -64,7 +64,7 @@ Wait for user confirmation before starting Phase 1.
 
    **Note:** The `.codap-build.rc` file may not define paths for all 7 repositories. The build script (`bin/do-full-build-process`) defaults missing paths to sibling directories of `CODAP_HOME`:
    - `CODAP_DATA_HOME` defaults to `../codap-data`
-   - `CODAP_DATA_INTERACTIVE_HOME` defaults to `../codap-data-interactives`
+   - `CODAP_DATA_INTERACTIVES_HOME` defaults to `../codap-data-interactives`
    - `CODAP_TRANSFORMERS_HOME` defaults to `../codap-transformers`
    - `STORY_BUILDER_HOME` defaults to `../story-builder`
    - `NOAA_CODAP_PLUGIN_HOME` defaults to `../noaa-codap-plugin`
@@ -503,7 +503,7 @@ Explain to the user:
 
    Explain to the user:
    > This is the main build step. `makeCodapZip` orchestrates the entire release assembly:
-   > 1. Runs `sproutcore build` to compile the CODAP application (minified, all 16 languages)
+   > 1. Runs `sproutcore build` to compile the CODAP application (minified, all 17 languages)
    > 2. Runs `makeExtn` to build standard plugins (from `codap-data-interactives`) and example documents (from `codap-data`)
    > 3. Generates a top-level `index.html` that detects the user's browser language and redirects to the appropriate localized version
    > 4. Fixes absolute path references in HTML, JS, and CSS files so the build can run from any URL path

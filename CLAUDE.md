@@ -62,7 +62,7 @@ apps/dg/                    # Main application
 ├── react/                  # React component wrappers
 ├── resources/              # Assets, cloud-file-manager integration
 ├── tests/                  # Unit tests
-└── *.lproj/               # Localization (16 languages)
+└── *.lproj/               # Localization (17 languages)
 ```
 
 ### Data Model
