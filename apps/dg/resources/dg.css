@@ -228,9 +228,10 @@ html, body {
 //     float: right;
 // }
 
-.tabbed-panel .workspace-tab-component .dialogTab .provider-message  {
-    color: #000;
-    font-size: 12px;
+/* Hide the filter input to save space in the example documents list */
+.tabbed-panel .workspace-tab-component .dialogTab input[type=text],
+.tabbed-panel .workspace-tab-component .dialogTab .dialogClearFilter {
+    display: none;
 }
 
 .navBar .sc-view {
