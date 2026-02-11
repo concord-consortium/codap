@@ -9,7 +9,7 @@ CODAP (Common Online Data Analysis Platform) is a web-based data analysis and vi
 ## Build Commands
 
 ```bash
-# Install dependencies (Node 18+; set NODE_OPTIONS=--openssl-legacy-provider for builds)
+# Install dependencies (requires --legacy-peer-deps due to older SproutCore dependencies)
 npm install --legacy-peer-deps
 
 # Development build
@@ -95,6 +95,7 @@ CODAP uses a hierarchical data model:
 
 ## Development Notes
 
+- Build scripts in `package.json` set `NODE_OPTIONS=--openssl-legacy-provider` automatically — no need to set it manually
 - SproutCore dev server auto-reloads on file changes
 - ESLint configured for SproutCore globals (`DG`, `SC`, `YES`, `NO`, etc.)
 - Test GUI available at `http://localhost:4020/dg/en/current/tests.html` when server is running
