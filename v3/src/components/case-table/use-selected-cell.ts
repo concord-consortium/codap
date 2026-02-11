@@ -15,11 +15,17 @@ interface ISelectedCell {
   rowIdx: number
 }
 
+interface IPendingNavigation {
+  idx: number
+  rowIdx: number
+}
+
 export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>, columns: TColumn[], rows?: TRow[]) {
   const dataset = useDataSetContext()
   const blockingDataset = blockAPIRequestsWhileEditing(dataset)
   const collectionTableModel = useCollectionTableModel()
   const selectedCell = useRef<Maybe<ISelectedCell>>()
+  const pendingNavigation = useRef<IPendingNavigation | null>(null)
   const blockUpdateSelectedCell = useRef(false)
   const { tileId } = useTileModelContext()
   const tileIsFocused = tileId === uiState.focusedTile
@@ -34,18 +40,35 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
     }
   }, [])
 
+  // Attempts to navigate to the pending position if the target row exists.
+  // Returns true if navigation succeeded, false if the target row doesn't exist yet.
+  // Skips navigation entirely if a newer navigation has been requested.
+  const attemptNavigation = useCallback((nav: IPendingNavigation, currentRows?: TRow[]) => {
+    if (pendingNavigation.current !== nav) return false
+    const rowCount = currentRows?.length ?? 0
+    if (nav.rowIdx < rowCount) {
+      pendingNavigation.current = null
+      collectionTableModel?.scrollRowIntoView(nav.rowIdx)
+      gridRef.current?.selectCell({ idx: nav.idx, rowIdx: nav.rowIdx }, true)
+      return true
+    }
+    return false
+  }, [collectionTableModel, gridRef])
+
   const navigateToNextRow = useCallback((back = false) => {
     if (selectedCell.current?.columnId) {
       const idx = columns.findIndex(column => column.key === selectedCell.current?.columnId)
       const rowIdx = Math.max(0, selectedCell.current.rowIdx + (back ? -1 : 1))
-      const position = { idx, rowIdx }
-      // setTimeout so it occurs after handling of current event completes
+      const nav = { idx, rowIdx }
+      pendingNavigation.current = nav
+      // setTimeout so it occurs after handling of current event completes.
+      // If the target row doesn't exist yet (e.g. input row just created a new case
+      // and the grid hasn't re-rendered), the useEffect fallback will handle it.
       setTimeout(() => {
-        collectionTableModel?.scrollRowIntoView(rowIdx)
-        gridRef.current?.selectCell(position, true)
+        attemptNavigation(nav, rows)
       })
     }
-  }, [collectionTableModel, columns, gridRef])
+  }, [attemptNavigation, columns, rows])
 
   const navigateToNextCell = useCallback((back = false) => {
     if (selectedCell.current?.columnId) {
@@ -65,14 +88,15 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
       const rowIdx = back
         ? first ? Math.max(0, currentRowIdx - 1) : currentRowIdx
         : rightmost ? currentRowIdx + 1 : currentRowIdx
-      const position = { idx, rowIdx }
-      // setTimeout so it occurs after handling of current event completes
+      const nav = { idx, rowIdx }
+      pendingNavigation.current = nav
+      // setTimeout so it occurs after handling of current event completes.
+      // If the target row doesn't exist yet, the useEffect fallback will handle it.
       setTimeout(() => {
-        collectionTableModel?.scrollRowIntoView(rowIdx)
-        gridRef.current?.selectCell(position, true)
+        attemptNavigation(nav, rows)
       })
     }
-  }, [collectionTableModel, columns, gridRef])
+  }, [attemptNavigation, columns, rows])
 
   const refreshSelectedCell = useCallback(() => {
     if (selectedCell.current) {
@@ -105,6 +129,15 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
       )
     }
   }, [blockingDataset, refreshSelectedCellDebounced])
+
+  // In Safari, the setTimeout in navigateToNextRow/navigateToNextCell may fire before
+  // the grid has re-rendered with new rows (e.g. after input row creates a new case).
+  // This effect retries pending navigation when rows change.
+  useEffect(() => {
+    if (pendingNavigation.current && rows) {
+      attemptNavigation(pendingNavigation.current, rows)
+    }
+  }, [attemptNavigation, rows])
 
   return { selectedCell: selectedCell.current, handleSelectedCellChange, navigateToNextCell, navigateToNextRow }
 }
