@@ -322,10 +322,10 @@ export const NormalCurveAdornmentComponent = observer(
       const unitsContent = showLabel ? `<span class="units">${unitsString}</span>` : unitsString
       const meanValueContent = showLabel
         ? `<p style = "color:${kNormalCurveStrokeColor}">${meanValueString}${unitsContent}</p>`
-        : `${meanValueString}, `
+        : `${meanValueString}${unitsString}, `
       const sdValueContent = showLabel
         ? `<p style = "color:${kNormalCurveStrokeColor}">${sdValueString}${unitsContent}</p>`
-        : sdValueString
+        : `${sdValueString}${unitsString}`
       const stdErrValueContent = stdError
         ? helper.computeTextContentForStdErr(dataConfig, stdError, numStdErrs, showLabel) : ""
       const textContent = `${gaussianFitTitle}${meanValueContent}${sdValueContent}${stdErrValueContent}`
