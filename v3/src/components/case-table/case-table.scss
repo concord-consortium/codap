@@ -279,6 +279,7 @@ $collection-title-font-color: black;
               overflow-wrap: break-word;
               overflow: hidden;
               text-align: left;
+              max-height: 14px; // matches .rdg-header-row line-height; fallback for browsers without lh units
               max-height: 1lh;
             }
 
