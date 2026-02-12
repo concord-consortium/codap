@@ -11,7 +11,7 @@ export type OverflowMode = 'single-line' | 'wrap' | 'truncated'
 export function useAdjustHeaderForOverflow(attributeHeaderButtonEl: HTMLButtonElement | null,
                                             attrName: string, attrUnits?: string) {
   const attributeName = attrName.replace(/_/g, ' ')
-  const fullText = `${attributeName}${attrUnits}`.trim()
+  const fullText = `${attributeName}${attrUnits ?? ""}`.trim()
   const [overflowMode, setOverflowMode] = useState<OverflowMode>('single-line')
   const resizeObserverRef = useRef<ResizeObserver | null>(null)
 
@@ -37,7 +37,8 @@ export function useAdjustHeaderForOverflow(attributeHeaderButtonEl: HTMLButtonEl
 
     const buttonWidth = attributeHeaderButtonEl.clientWidth - kPaddingBuffer
     const computedStyle = getComputedStyle(attributeHeaderButtonEl)
-    const lineHeight = parseFloat(computedStyle.lineHeight)
+    // falls back to fontSize * 1.2 if lineHeight is "normal", then to 14px as last resort
+    const lineHeight = parseFloat(computedStyle.lineHeight) || parseFloat(computedStyle.fontSize) * 1.2 || 14
 
     // Use DOM-based measurement with word-breaking CSS to accurately detect overflow.
     // This matches V2 behavior where the browser handles natural word-breaking/hyphenation.

@@ -269,6 +269,8 @@ $collection-title-font-color: black;
               overflow-wrap: break-word;
               overflow: hidden;
               text-align: left;
+              max-height: 28px; // matches 2x .rdg-header-row line-height; fallback for browsers without lh units
+              max-height: 2lh;
             }
 
             // In truncated mode, line-1 shows the first line of naturally-broken text
