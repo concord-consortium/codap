@@ -133,6 +133,36 @@ export function cachedFnFactory<T>(calculate: () => T): (() => T) & { invalidate
 }
 
 /**
+ * Like cachedFnFactory, but uses a MobX observable version counter so that invalidation
+ * is observable by MobX reactions and computeds. The getter only reads the observable
+ * (never writes), avoiding the anti-pattern of modifying observables from within a computed.
+ * When invalidate() is called (from an action), the version counter increments, MobX marks
+ * any computed that read it as stale, and the next evaluation lazily recomputes the value.
+ *
+ * @param calculate function to compute the value when cache is invalid
+ * @returns a function that returns the cached value, with an invalidate() method
+ */
+export function observableCachedFnFactory<T>(calculate: () => T, initialValue: T):
+    (() => T) & { invalidate: () => void } {
+  const _version = observable.box(0)
+  let _lastVersion = -1
+  let _cachedValue: T = initialValue
+  const getter = () => {
+    // Reading _version makes MobX track it as a dependency of any enclosing computed/reaction.
+    const version = _version.get()
+    if (version !== _lastVersion) {
+      _cachedValue = calculate()
+      _lastVersion = version
+    }
+    return _cachedValue
+  }
+  getter.invalidate = () => {
+    _version.set(_version.get() + 1)
+  }
+  return getter
+}
+
+/**
  * A function factory that returns a lazily evaluated function, which takes arguments and will return the same value
  * until invalidate() or invalidateAll() is called. This is useful for caching values that are expensive to calculate.
  *
