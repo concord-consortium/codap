@@ -86,7 +86,7 @@ context("Formula Engine", () => {
     // TODO: update test when insert cases on input row is implemnted
     it("Formula in a new dataset", () => {
       fh.visitURL(emptyUrlParams)
-      cy.get("#user-entry-drop-overlay").type("{esc}")
+      cy.get(".user-entry-modal-container").type("{esc}")
       table.createNewTableFromToolShelf()
       table.getGridCell(2, 2).dblclick()
       table.getGridCell(2, 2).find("input").type("Sloth{enter}")

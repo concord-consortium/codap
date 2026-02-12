@@ -16,17 +16,10 @@
         border: revert;
         line-height: normal;
       }
-      // TODO: this style override was added to v2 in https://github.com/concord-consortium/codap/pull/1075.
-      // It should really be handled internally to the CFM itself.
-      .tabbed-panel .workspace-tab-component .dialogTab .provider-message {
-        color: #000;
-        font-size: 12px;
-      }
-
-      // make the URL input field full width and match other input padding
-      .urlImport > input {
-        padding: 5px;
-        width: 100%;
+      // Hide the filter input to save space
+      .tabbed-panel .workspace-tab-component .dialogTab input[type=text],
+      .tabbed-panel .workspace-tab-component .dialogTab .dialogClearFilter {
+        display: none;
       }
     }
   }
