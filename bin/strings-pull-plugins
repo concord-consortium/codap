@@ -1,4 +1,18 @@
 #!/bin/sh
+#
+# Pull translated strings for CODAP plugins from POEditor.
+#
+# This invokes each plugin repo's own strings:pull script, which downloads
+# translations from POEditor project #125447 and filters for the plugin's
+# string prefix (e.g. DG.plugin.Scrambler, DG.plugin.StoryBuilder).
+#
+# Affected repos:
+#   codap-data-interactives — Importer, TP-Sampler, Scrambler
+#   story-builder           — Story Builder
+#
+# Usage: ./bin/strings-pull-plugins --APIToken=XXXX
+#   (all arguments are passed through to each repo's strings:pull script)
+#
 PROGNAME=`basename "$0"`
 
 PLUGIN_PATHS="../codap-data-interactives ../story-builder"

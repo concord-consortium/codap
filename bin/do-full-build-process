@@ -6,8 +6,6 @@
 #   git, node, npm, openssh, jq.
 # Requires user account with root permissions on the server.
 # Configured in $HOME/.codap-build.rc: CODAP_HOME, CODAP_SERVER.
-# Requires access to Pivotal Tracker. PROJECT_ID, TOKEN, and USER_NAME should
-# be defined in $HOME/.ptrc
 PROGNAME=`basename $0`
 
 #
