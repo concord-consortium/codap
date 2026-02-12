@@ -42,7 +42,7 @@
   of people on the planet for whom that reference makes any sense.
  */
 
-import { comparer, observable, reaction, runInAction } from "mobx"
+import { comparer, observable, reaction, runInAction, untracked } from "mobx"
 import {
   addDisposer, addMiddleware, getEnv, hasEnv, Instance, isAlive, onPatch, ReferenceIdentifier, SnapshotIn, types
 } from "mobx-state-tree"
@@ -65,6 +65,7 @@ import { withoutUndo } from "../history/without-undo"
 import { kAttrIdPrefix, kItemIdPrefix, typeV3Id, v3Id } from "../../utilities/codap-utils"
 import { compareValues } from "../../utilities/data-utils"
 import { hashOrderedStringSet, hashStringSet } from "../../utilities/js-utils"
+import { observableCachedFnFactory } from "../../utilities/mst-utils"
 import { gLocale } from "../../utilities/translation/locale"
 import { t } from "../../utilities/translation/translate"
 import { V2UserTitleModel } from "./v2-user-title-model"
@@ -217,9 +218,31 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   // cached filtered item IDs (excludes hidden/filtered items)
   let _cachedItemIds: string[] = []
   let _cachedItems: IItem[] = []
-  let _cachedItemIdsHash = 0
-  let _cachedItemIdsOrderedHash = 0
   const _isValidItemIds = observable.box<boolean>(false)
+  // Hash caches use observableCachedFnFactory so that invalidation is observable by MobX.
+  // When invalidate() is called (from an action), MobX detects the change to the internal
+  // observable valid flag, which triggers re-evaluation of any computed/reaction that reads
+  // the hash. On re-evaluation, the hash is lazily recomputed from _cachedItemIds.
+  const _itemIdsHash = observableCachedFnFactory(() => hashStringSet(_cachedItemIds), 0)
+  const _itemIdsOrderedHash = observableCachedFnFactory(() => hashOrderedStringSet(_cachedItemIds), 0)
+  // Use untracked() so that enclosing computeds (itemIdsHash, itemIdsOrderedHash) don't
+  // track _isValidItemIds as a dependency. Those computeds use the version counter in
+  // observableCachedFnFactory for their reactivity; adding _isValidItemIds as a dependency
+  // would cause observable writes from within a computed, breaking MobX dependency tracking.
+  function _validateItemIds() {
+    if (!untracked(() => _isValidItemIds.get())) {
+      _cachedItemIds = self._itemIds.filter(itemId =>
+        !self.setAsideItemIdsSet.has(itemId) && !self.filteredOutItemIds.has(itemId)
+      )
+      _cachedItems = _cachedItemIds.map(id => ({ __id__: id }))
+      runInAction(() => _isValidItemIds.set(true))
+    }
+  }
+  function _invalidateItemIds() {
+    _isValidItemIds.set(false)
+    _itemIdsHash.invalidate()
+    _itemIdsOrderedHash.invalidate()
+  }
   return {
     views: {
       get validationCount() {
@@ -231,7 +254,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       invalidateCases() {
         runInAction(() => {
           _isValidCases.set(false)
-          _isValidItemIds.set(false)
+          _invalidateItemIds()
         })
       },
       setValidCases() {
@@ -246,53 +269,40 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
         return _isValidItemIds.get()
       },
       invalidateItemIds() {
-        runInAction(() => _isValidItemIds.set(false))
+        runInAction(() => _invalidateItemIds())
       },
-      validateItemIds() {
-        if (!_isValidItemIds.get()) {
-          _cachedItemIds = self._itemIds.filter(itemId =>
-            !self.setAsideItemIdsSet.has(itemId) && !self.filteredOutItemIds.has(itemId)
-          )
-          _cachedItems = _cachedItemIds.map(id => ({ __id__: id }))
-          _cachedItemIdsHash = hashStringSet(_cachedItemIds)
-          _cachedItemIdsOrderedHash = hashOrderedStringSet(_cachedItemIds)
-          runInAction(() => _isValidItemIds.set(true))
-        }
+      get itemIds() {
+        _validateItemIds()
         return _cachedItemIds
       },
-      validateItems() {
-        if (!_isValidItemIds.get()) {
-          this.validateItemIds()
-        }
+      get items(): readonly IItem[] {
+        _validateItemIds()
         return _cachedItems
       },
-      validateItemIdsHash() {
-        if (!_isValidItemIds.get()) {
-          this.validateItemIds()
-        }
-        return _cachedItemIdsHash
+      get itemIdsHash() {
+        _validateItemIds()
+        return _itemIdsHash()
       },
-      validateItemIdsOrderedHash() {
-        if (!_isValidItemIds.get()) {
-          this.validateItemIds()
-        }
-        return _cachedItemIdsOrderedHash
-      },
+      get itemIdsOrderedHash() {
+        _validateItemIds()
+        return _itemIdsOrderedHash()
+      }
+    },
+    actions: {
       // Efficiently append new item IDs to the cache when items are appended
       // (newly added items are not hidden, so they can be added directly)
       appendItemIdsToCache(itemIds: string[]) {
         if (_isValidItemIds.get()) {
-          // Filter out any that might be hidden (e.g., due to filter formula)
           const visibleIds = itemIds.filter(itemId =>
             !self.setAsideItemIdsSet.has(itemId) && !self.filteredOutItemIds.has(itemId)
           )
           _cachedItemIds.push(...visibleIds)
           _cachedItems.push(...visibleIds.map(id => ({ __id__: id })))
-          // Update hashes incrementally
-          _cachedItemIdsHash = hashStringSet(_cachedItemIds)
-          _cachedItemIdsOrderedHash = hashOrderedStringSet(_cachedItemIds)
+          // Invalidate the hash caches so they recompute from the updated _cachedItemIds.
+          // The invalidation is observable, so MobX reactions tracking the hashes will fire.
+          _itemIdsHash.invalidate()
+          _itemIdsOrderedHash.invalidate()
         }
-        // If cache is invalid, do nothing - next access will rebuild it
       }
     }
   }
@@ -409,12 +419,6 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   // ids of items that have not been hidden (set aside) by user
   get itemsNotSetAside() {
     return self._itemIds.filter(itemId => !self.isItemSetAside(itemId))
-  },
-  /**
-   * ids of items that have not been hidden (set aside) or filtered by user
-   */
-  get itemIds() {
-    return self.validateItemIds()
   }
 }))
 .views(self => ({
@@ -426,17 +430,6 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       })
     })
     return attrs
-  },
-  get itemIdsHash() {
-    // observable order-independent hash of visible (not set aside, not filtered out) item ids
-    return self.validateItemIdsHash()
-  },
-  get itemIdsOrderedHash() {
-    // observable order-dependent hash of visible (not set aside, not filtered out) item ids
-    return self.validateItemIdsOrderedHash()
-  },
-  get items(): readonly IItem[] {
-    return self.validateItems()
   },
   get hasFilterFormula() {
     return !!self.filterFormula && !self.filterFormula.empty
@@ -694,6 +687,8 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       self.setValidCases()
     }
   },
+}))
+.actions(self => ({
   validateCasesForNewItems(itemIds: string[]) {
     // Append new items to the itemIds/items cache
     self.appendItemIdsToCache(itemIds)
