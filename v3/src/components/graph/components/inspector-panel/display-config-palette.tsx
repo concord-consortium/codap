@@ -40,7 +40,8 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
   const showFuseIntoBars = graphModel?.plot?.showFusePointsIntoBars
   const showBreakdownTypes = graphModel?.plot?.showBreakdownTypes
   const showBarForEachPoint = graphModel?.plot?.isUnivariateNumeric &&
-                            graphModel?.dataConfiguration.primaryAttributeType !== "date"
+                            graphModel?.dataConfiguration.primaryAttributeType !== "date" &&
+                            !graphModel?.plot.isBinned
   const kInputMaxCharacters = 12
   const kBufferChars = 2 // used to account for input field padding
   const [binWidthInput, setBinWidthInput] = useState(String(binDetails?.binWidth))
