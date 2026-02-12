@@ -318,6 +318,17 @@ test("DataSet basic functionality", () => {
     expect((caseIndex >= 0) ? dataset.items[caseIndex].__id__ : "").toBe(aCase.__id__)
   })
 
+  // insert an empty case before an existing case (reproduces CODAP-1115 crash)
+  dataset.addCases([{}], { before: caseC3ID })
+  const emptyCaseID = dataset.items[2].__id__
+  expect(dataset.items.length).toBe(6)
+  // verify attribute values are empty strings, not undefined
+  dataset.attributes.forEach(attr => {
+    const index = dataset.getItemIndex(emptyCaseID) ?? -1
+    expect(attr.strValue(index)).toBe("")
+  })
+  dataset.removeCases([emptyCaseID])
+
   // add multiple new cases after specified case
   dataset.addCases([{ str: "j", num: 1 }, { str: "k", num: 2 }], { after: caseC3ID, canonicalize: true })
   const caseJ1ID = dataset.items[3].__id__,

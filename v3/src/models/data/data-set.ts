@@ -1194,7 +1194,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
 
         // insert/append cases and empty values
         const ids = cases.map(({ __id__ = v3Id(kItemIdPrefix) }) => __id__)
-        const _values = new Array(cases.length)
+        const _values = new Array(cases.length).fill("")
         if (insertPosition < self._itemIds.length) {
           self._itemIds.splice(insertPosition, 0, ...ids)
           // update the indices of cases after the insert
