@@ -261,21 +261,34 @@ $collection-title-font-color: black;
               white-space: normal;
             }
 
-            .two-line-header-line-1 {
-              display: inline-block;
+            // Text wraps naturally to 2 lines via CSS word-breaking/hyphenation
+            .two-line-header-wrap {
+              display: block;
+              white-space: normal;
               hyphens: auto;
               overflow-wrap: break-word;
               overflow: hidden;
+              text-align: left;
             }
 
+            // In truncated mode, line-1 shows the first line of naturally-broken text
+            .two-line-header-line-1 {
+              display: block;
+              white-space: normal;
+              hyphens: auto;
+              overflow-wrap: break-word;
+              overflow: hidden;
+              text-align: left;
+              max-height: 1lh;
+            }
+
+            // Line-2 shows the end of the text using the RTL trick with ellipsis at the start
             .two-line-header-line-2.truncated {
-              display: inline-block;
+              display: block;
               white-space: nowrap;
               overflow: hidden;
               text-overflow: ellipsis;
-              // We reverse the text in code so that the ellipsis is at the beginning of the text
-              // so text is styled to show right to left, but we override the unicode bi-directionality
-              // so that text is actually displayed left to right
+              text-align: left;
               direction: rtl;
               unicode-bidi: bidi-override;
             }

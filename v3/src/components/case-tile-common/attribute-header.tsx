@@ -4,7 +4,7 @@ import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { clsx } from "clsx"
-import { useAdjustHeaderForOverflow } from "../../hooks/use-adjust-header-overflow"
+import { OverflowMode, useAdjustHeaderForOverflow } from "../../hooks/use-adjust-header-overflow"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { IUseDraggableAttribute, useDraggableAttribute } from "../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
@@ -59,7 +59,7 @@ export const AttributeHeader = observer(function AttributeHeader({
   const attribute = data?.attrFromID(attributeId)
   const attrName = attribute?.name ?? ""
   const attrUnits = attribute?.units ? ` (${attribute.units})` : ""
-  const { line1, line2, isOverflowed, line2Truncated } =
+  const { fullText, reversedText, overflowMode } =
             useAdjustHeaderForOverflow(menuButtonRef.current, attrName, attrUnits)
   const draggableOptions: IUseDraggableAttribute = {
     prefix: instanceId, dataSet: data, attributeId
@@ -202,19 +202,18 @@ export const AttributeHeader = observer(function AttributeHeader({
   }
 
   const renderAttributeLabel = useMemo(() => {
-    if (isOverflowed) {
-      return (
+    const renderers: Record<OverflowMode, () => JSX.Element> = {
+      'single-line': () => <span className="one-line-header">{fullText}</span>,
+      'wrap': () => <span className="two-line-header-wrap">{fullText}</span>,
+      'truncated': () => (
         <>
-          <span className="two-line-header-line-1">{line1}</span>
-          <span className={clsx("two-line-header-line-2", {truncated: line2Truncated})}>{line2}</span>
+          <span className="two-line-header-line-1">{fullText}</span>
+          <span className="two-line-header-line-2 truncated">{reversedText}</span>
         </>
       )
-    } else {
-      return (
-        <span className="one-line-header">{line1}</span>
-      )
     }
-  }, [line1, line2, isOverflowed, line2Truncated])
+    return renderers[overflowMode]()
+  }, [fullText, reversedText, overflowMode])
 
   const renderTooltipLabel = useMemo(() => {
     const description = attribute?.description ? `: ${attribute.description}` : ""
