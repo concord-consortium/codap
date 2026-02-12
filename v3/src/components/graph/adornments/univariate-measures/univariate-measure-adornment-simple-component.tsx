@@ -70,7 +70,7 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
       const labelTop = labelCoords ? labelCoords.y : top
       const labelId =
         `${helper.measureSlug}-measure-labels-tip-${containerId}${helper.classFromKey ? `-${helper.classFromKey}` : ""}`
-      const labelClass = clsx("measure-labels-tip", `measure-labels-tip-${helper.measureSlug}`)
+      const labelClass = clsx("measure-labels-tip", `measure-labels-tip-${helper.measureSlug}`, "svg-export")
 
       valueObj.label = labelSelection.append("div")
         .attr("class", labelClass)

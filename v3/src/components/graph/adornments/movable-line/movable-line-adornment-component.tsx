@@ -447,7 +447,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
 
     const equationP = equationDiv
       .append("p")
-      .attr("class", "movable-line-equation")
+      .attr("class", "movable-line-equation svg-export")
       .attr("data-testid", `movable-line-equation-${model.classNameFromKey(cellKey)}`)
       .on("mouseover", () => { newLineObject.line?.style("stroke-width", 2) })
       .on("mouseout", () => { newLineObject.line?.style("stroke-width", 1) })
