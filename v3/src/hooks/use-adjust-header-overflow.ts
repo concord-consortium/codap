@@ -1,17 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
-import { measureText } from './use-measure-text'
 
 const kPaddingBuffer = 5 // Button width is 5px smaller because of parent padding
 
-// Hook to split headers into 2 rows and elide the 2nd line if it doesn't fit
+export type OverflowMode = 'single-line' | 'wrap' | 'truncated'
+
+// Hook to detect header overflow and determine display mode:
+// - 'single-line': text fits on one line
+// - 'wrap': text wraps naturally to 2 lines via CSS word-breaking/hyphenation
+// - 'truncated': text overflows even 2 lines; show first line + reversed end with RTL trick
 export function useAdjustHeaderForOverflow(attributeHeaderButtonEl: HTMLButtonElement | null,
                                             attrName: string, attrUnits?: string) {
   const attributeName = attrName.replace(/_/g, ' ')
-  const candidateAttributeLabel = `${attributeName}${attrUnits}`.trim()
-  const [line1, setLine1] = useState('')
-  const [line2, setLine2] = useState('')
-  const [isOverflowed, setIsOverflowed] = useState(false)
-  const [line2Truncated, setLine2Truncated] = useState(false)
+  const fullText = `${attributeName}${attrUnits ?? ""}`.trim()
+  const [overflowMode, setOverflowMode] = useState<OverflowMode>('single-line')
   const resizeObserverRef = useRef<ResizeObserver | null>(null)
 
   const reverse = (str: string) => {
@@ -28,80 +29,68 @@ export function useAdjustHeaderForOverflow(attributeHeaderButtonEl: HTMLButtonEl
     return n.join('')
   }
 
-  const calculateSplit = () => {
+  const calculateOverflow = () => {
     if (!attributeHeaderButtonEl) {
-      setLine1('')
-      setLine2('')
-      setIsOverflowed(false)
+      setOverflowMode('single-line')
       return
     }
 
-    const attributeButtonWidth = attributeHeaderButtonEl.clientWidth - kPaddingBuffer
+    const buttonWidth = attributeHeaderButtonEl.clientWidth - kPaddingBuffer
     const computedStyle = getComputedStyle(attributeHeaderButtonEl)
-    const style = [
+    // falls back to fontSize * 1.2 if lineHeight is "normal", then to 14px as last resort
+    const lineHeight = parseFloat(computedStyle.lineHeight) || parseFloat(computedStyle.fontSize) * 1.2 || 14
+
+    // Use DOM-based measurement with word-breaking CSS to accurately detect overflow.
+    // This matches V2 behavior where the browser handles natural word-breaking/hyphenation.
+    const measureEl = document.createElement('div')
+    measureEl.style.cssText = [
       `font-style:${computedStyle.fontStyle}`,
       `font-variant:${computedStyle.fontVariant}`,
       `font-weight:${computedStyle.fontWeight}`,
       `font-size:${computedStyle.fontSize}`,
       `font-family:${computedStyle.fontFamily}`,
-      `width:${attributeHeaderButtonEl.clientWidth}px`,
-      `height:${attributeHeaderButtonEl.clientHeight}px`
-    ].join('')
-    const fullTextWidth = measureText(candidateAttributeLabel, style)
-    const words = candidateAttributeLabel.split(' ')
-    if (fullTextWidth <= attributeButtonWidth || words.length === 1) {
-      setLine1(candidateAttributeLabel)
-      setLine2('')
-      setIsOverflowed(false)
-    } else {
-      let i = 0
-      let currentLine1 = ''
-      // Build line1 word by word without exceeding the button width
-      while (i < words.length && measureText(currentLine1 + words[i], style) < attributeButtonWidth) {
-        currentLine1 = currentLine1 ? `${currentLine1} ${words[i]}` : words[i]
-        i++
-      }
-      // If line1 ends up with just one word, show the word no matter what the width is
-      if (currentLine1.split(' ').length === 1) {
-        currentLine1 = words[0]
-      }
-      setLine1(currentLine1)
+      `line-height:${computedStyle.lineHeight}`,
+      `width:${buttonWidth}px`,
+      'position:absolute',
+      'visibility:hidden',
+      'white-space:normal',
+      'hyphens:auto',
+      'overflow-wrap:break-word'
+    ].join(';')
+    measureEl.textContent = fullText
+    document.body.appendChild(measureEl)
+    const textHeight = measureEl.scrollHeight
+    document.body.removeChild(measureEl)
 
-      const remainingWords = words.slice(i).join(' ')
-      const remainingTextWidth = measureText(remainingWords, style)
-      if (remainingTextWidth <= attributeButtonWidth) {
-        // Remaining text fits in line2
-        setLine2(remainingWords)
-        setLine2Truncated(false)
-      } else {
-        // Remaining text doesn't fit in line2
-        // We reverse the text so that the ellipsis is at the beginning of the text and
-        // line2 has style of direction: rtl, text-align: left, unicode-bidi: bidi-override
-        setLine2Truncated(true)
-        setLine2(reverse(candidateAttributeLabel))
-      }
-      setIsOverflowed(true)
+    if (textHeight <= lineHeight + 1) {
+      setOverflowMode('single-line')
+    } else if (textHeight <= lineHeight * 2 + 1) {
+      setOverflowMode('wrap')
+    } else {
+      setOverflowMode('truncated')
     }
   }
 
   useEffect(() => {
     if (!attributeHeaderButtonEl) return
     resizeObserverRef.current = new ResizeObserver(() => {
-      calculateSplit()
+      calculateOverflow()
     })
     resizeObserverRef.current.observe(attributeHeaderButtonEl)
     return () => {
       resizeObserverRef.current?.disconnect()
     }
-  // Adding calculateSplit to dependencies causes rerender problems on attribute rename
+  // Adding calculateOverflow to dependencies causes rerender problems on attribute rename
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [candidateAttributeLabel, attributeHeaderButtonEl])
+  }, [fullText, attributeHeaderButtonEl])
 
   useEffect(()=> {
-    calculateSplit()
-  // Adding calculateSplit to dependencies causes rerender problems on attribute rename
+    calculateOverflow()
+  // Adding calculateOverflow to dependencies causes rerender problems on attribute rename
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [candidateAttributeLabel])
+  }, [fullText])
 
-  return { line1, line2, isOverflowed, line2Truncated }
+  const reversedText = overflowMode === 'truncated' ? reverse(fullText) : ''
+
+  return { fullText, reversedText, overflowMode }
 }
