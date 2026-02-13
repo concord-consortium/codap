@@ -27,6 +27,7 @@ When the user says "Let's start work on CODAP-XXX" (or similar):
    - Example: `CODAP-1027-inbounds-url-param`
    - Use lowercase kebab-case for the description
    - Keep it concise but descriptive
+   - **Always propose the branch name and get user approval before creating it**
 
 3. **Update Jira status**: Transition the story to "In Progress"
 
