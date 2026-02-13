@@ -104,10 +104,36 @@ adornmentSvg.appendChild(adornmentLine)
 // Legend SVG layer
 const legendSvg = createSvgWithClass("legend-component", { top: 80, height: 20, bottom: 100 })
 
+// Adornment grid with per-cell SVGs (simulates the .graph-adornments-grid structure)
+const adornmentGrid = document.createElement("div")
+adornmentGrid.classList.add("graph-adornments-grid")
+adornmentGrid.style.position = "absolute"
+const innerGrid = document.createElement("div")
+innerGrid.classList.add("innerGrid")
+const gridCell = document.createElement("div")
+gridCell.classList.add("graph-adornments-grid__cell")
+const adornmentWrapper = document.createElement("div")
+adornmentWrapper.classList.add("adornment-wrapper", "visible")
+const cellSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+cellSvg.style.width = "100%"
+cellSvg.style.height = "100%"
+cellSvg.getBoundingClientRect = jest.fn(() => mockRect({ left: 10, top: 10, width: 80, height: 80 }))
+const cellLine = document.createElementNS("http://www.w3.org/2000/svg", "line")
+cellLine.setAttribute("x1", "10")
+cellLine.setAttribute("y1", "10")
+cellLine.setAttribute("x2", "90")
+cellLine.setAttribute("y2", "90")
+cellSvg.appendChild(cellLine)
+adornmentWrapper.appendChild(cellSvg)
+gridCell.appendChild(adornmentWrapper)
+innerGrid.appendChild(gridCell)
+adornmentGrid.appendChild(innerGrid)
+
 graphEl.appendChild(svgEl)
 graphEl.appendChild(overlaySvg)
 graphEl.appendChild(adornmentSvg)
 graphEl.appendChild(legendSvg)
+graphEl.appendChild(adornmentGrid)
 containerEl.appendChild(graphEl)
 document.head.appendChild(styleEl)
 document.body.appendChild(containerEl)
@@ -367,5 +393,65 @@ describe("svg-export class handling", () => {
     // convertHtmlToSvg should not be called for elements with no-svg-export
     const callArgs = convertSpy.mock.calls.map(call => call[0].element)
     expect(callArgs).not.toContain(excludedDiv)
+  })
+})
+
+describe("adornment grid cell SVG rendering", () => {
+  it("should render per-cell adornment SVGs from the adornment grid", async () => {
+    // The DOM fixture includes a .graph-adornments-grid with a cell SVG containing a line.
+    ;(cellSvg.getBoundingClientRect as jest.Mock).mockClear()
+
+    const result = await exportGraphToPng({
+      graphElement: containerEl,
+      renderer: mockRenderer,
+      width: 100,
+      height: 100
+    })
+    expect(result).toContain("data:image/png;base64,")
+    // Verify the per-cell SVG was actually measured for rendering
+    expect(cellSvg.getBoundingClientRect).toHaveBeenCalled()
+  })
+
+  it("should not render SVGs in hidden adornment wrappers", async () => {
+    // .hidden wrappers don't match the .adornment-wrapper.visible selector
+    const hiddenWrapper = document.createElement("div")
+    hiddenWrapper.classList.add("adornment-wrapper", "hidden")
+    const hiddenSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+    hiddenSvg.getBoundingClientRect = jest.fn(() => mockRect())
+    hiddenWrapper.appendChild(hiddenSvg)
+    gridCell.appendChild(hiddenWrapper)
+
+    await exportGraphToPng({
+      graphElement: containerEl,
+      renderer: mockRenderer,
+      width: 100,
+      height: 100
+    })
+    // The hidden wrapper's SVG should not be measured at all
+    expect(hiddenSvg.getBoundingClientRect).not.toHaveBeenCalled()
+
+    gridCell.removeChild(hiddenWrapper)
+  })
+
+  it("should skip visible adornment SVGs with zero-size bounding rects", async () => {
+    // A .visible wrapper whose SVG has a 0x0 rect exercises the zero-size skip branch
+    const zeroWrapper = document.createElement("div")
+    zeroWrapper.classList.add("adornment-wrapper", "visible")
+    const zeroSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+    zeroSvg.getBoundingClientRect = jest.fn(() => mockRect({ width: 0, height: 0 }))
+    zeroWrapper.appendChild(zeroSvg)
+    gridCell.appendChild(zeroWrapper)
+
+    const result = await exportGraphToPng({
+      graphElement: containerEl,
+      renderer: mockRenderer,
+      width: 100,
+      height: 100
+    })
+    expect(result).toContain("data:image/png;base64,")
+    // The SVG was measured but should have been skipped due to zero size
+    expect(zeroSvg.getBoundingClientRect).toHaveBeenCalled()
+
+    gridCell.removeChild(zeroWrapper)
   })
 })

@@ -22,8 +22,10 @@ that had cross-browser issues (Safari positioning bugs, poor rendering in Word/N
 2. **Base SVG** (`svg.graph-svg`) — axes, grid, labels
 3. **Points canvas** (`renderer.canvas`) — PIXI extract API for WebGL, direct copy for Canvas 2D
 4. **Overlay SVG** (`svg.overlay-svg`) — above-points content
-5. **Adornments SVG** (`svg.spanner-svg`) — adornment lines/shapes
-6. **Legend SVGs** (`svg.legend-component`) — one or more legend elements
+5a. **Per-cell adornment SVGs** (`.graph-adornments-grid .adornment-wrapper.visible svg`) — movable lines, LSRL, box plots, measure lines, plotted functions, normal curves, standard error bars
+5b. **Spanner SVG** (`svg.spanner-svg`) — region of interest, full-height measure lines (painted after per-cell SVGs to match DOM stacking order)
+6. **Adornment text** (`.svg-export` HTML elements converted to SVG) — equations, labels, counts
+7. **Legend SVGs** (`svg.legend-component`) — one or more legend elements
 
 Each layer is positioned relative to the `.graph-plot` content element using
 `getBoundingClientRect()` offsets.
@@ -68,9 +70,13 @@ The `disallowedElementClasses` set filters out interactive/UI-only elements:
 
 ## Known Limitations
 
-- **HTML adornment elements** — Some adornments render HTML elements (banners, measure labels)
-  in addition to SVG. These are not currently captured. A future pass could use `html2canvas`
-  or custom rendering for specific HTML elements.
+- **Rich text in equations** — `convertHtmlToSvg` extracts plain `.textContent`, losing HTML
+  formatting like `<sub>`, `<sup>`, `<em>` tags used in equations (e.g., R² renders as "R2").
+  A future enhancement should walk child nodes and produce `<tspan>` elements with appropriate
+  `dy`/`font-style` attributes.
+- **Adornment drag handles** — Interactive handles (e.g., `.movable-line-handle`) are included
+  in the export. These could be filtered via `disallowedElementClasses` or the
+  `show-on-tile-selected` CSS class for cleaner output.
 - **High-DPI output** — The export canvas is scaled by `devicePixelRatio` for sharp output
   on Retina displays. The context is pre-scaled so all drawing uses logical coordinates.
 

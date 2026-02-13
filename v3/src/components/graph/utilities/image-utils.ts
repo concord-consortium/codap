@@ -273,7 +273,35 @@ async function exportGraphToCanvas(options: IExportGraphToPngOptions): Promise<I
     }
   }
 
-  // 5. Adornments SVG (spanner-svg contains drawn adornment lines/shapes)
+  // 5a. Per-cell adornment SVGs (lines, paths, shapes inside the adornment grid)
+  // Adornments render their SVG shapes in per-cell SVGs inside .graph-adornments-grid.
+  // In the DOM, .graph-adornments-grid precedes .adornment-spanner, so we draw these
+  // first to match the browser's stacking order.
+  const adornmentGrid = contentElement.querySelector(".graph-adornments-grid")
+  if (adornmentGrid) {
+    const cellSvgs = adornmentGrid.querySelectorAll(".adornment-wrapper.visible svg")
+    for (const cellSvg of cellSvgs) {
+      if (!(cellSvg instanceof SVGSVGElement)) continue
+      try {
+        const svgRect = cellSvg.getBoundingClientRect()
+        // Skip zero-size SVGs (hidden or not yet laid out)
+        if (svgRect.width <= 0 || svgRect.height <= 0) continue
+        await renderSvgToCanvas({
+          svg: cellSvg,
+          ctx,
+          x: svgRect.left - graphRect.left,
+          y: svgRect.top - graphRect.top,
+          width: svgRect.width,
+          height: svgRect.height
+        })
+      } catch (e) {
+        console.warn("Failed to render adornment cell SVG:", e)
+      }
+    }
+  }
+
+  // 5b. Spanner SVG (adornment-spanner contains elements drawn outside grid cells, e.g. ROI,
+  // full-height measure lines). Painted after per-cell SVGs to match DOM stacking order.
   const adornmentSvg = contentElement.querySelector("svg.spanner-svg")
   if (adornmentSvg instanceof SVGSVGElement) {
     try {
