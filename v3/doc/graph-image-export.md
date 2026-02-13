@@ -22,10 +22,10 @@ that had cross-browser issues (Safari positioning bugs, poor rendering in Word/N
 2. **Base SVG** (`svg.graph-svg`) — axes, grid, labels
 3. **Points canvas** (`renderer.canvas`) — PIXI extract API for WebGL, direct copy for Canvas 2D
 4. **Overlay SVG** (`svg.overlay-svg`) — above-points content
-5. **Spanner SVG** (`svg.spanner-svg`) — region of interest, full-height measure lines
-6. **Per-cell adornment SVGs** (`.graph-adornments-grid .adornment-wrapper.visible svg`) — movable lines, LSRL, box plots, measure lines, plotted functions, normal curves, standard error bars
-7. **Adornment text** (`.svg-export` HTML elements converted to SVG) — equations, labels, counts
-8. **Legend SVGs** (`svg.legend-component`) — one or more legend elements
+5a. **Per-cell adornment SVGs** (`.graph-adornments-grid .adornment-wrapper.visible svg`) — movable lines, LSRL, box plots, measure lines, plotted functions, normal curves, standard error bars
+5b. **Spanner SVG** (`svg.spanner-svg`) — region of interest, full-height measure lines (painted after per-cell SVGs to match DOM stacking order)
+6. **Adornment text** (`.svg-export` HTML elements converted to SVG) — equations, labels, counts
+7. **Legend SVGs** (`svg.legend-component`) — one or more legend elements
 
 Each layer is positioned relative to the `.graph-plot` content element using
 `getBoundingClientRect()` offsets.

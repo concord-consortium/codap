@@ -273,27 +273,10 @@ async function exportGraphToCanvas(options: IExportGraphToPngOptions): Promise<I
     }
   }
 
-  // 5. Adornments SVG (spanner-svg contains drawn adornment lines/shapes)
-  const adornmentSvg = contentElement.querySelector("svg.spanner-svg")
-  if (adornmentSvg instanceof SVGSVGElement) {
-    try {
-      const svgRect = adornmentSvg.getBoundingClientRect()
-      await renderSvgToCanvas({
-        svg: adornmentSvg,
-        ctx,
-        x: svgRect.left - graphRect.left,
-        y: svgRect.top - graphRect.top,
-        width: svgRect.width,
-        height: svgRect.height
-      })
-    } catch (e) {
-      console.warn("Failed to render adornments SVG:", e)
-    }
-  }
-
-  // 5b. Per-cell adornment SVGs (lines, paths, shapes inside the adornment grid)
-  // Adornments render their SVG shapes in per-cell SVGs inside .graph-adornments-grid,
-  // NOT in the spanner-svg. We need to capture each cell's SVG individually.
+  // 5a. Per-cell adornment SVGs (lines, paths, shapes inside the adornment grid)
+  // Adornments render their SVG shapes in per-cell SVGs inside .graph-adornments-grid.
+  // In the DOM, .graph-adornments-grid precedes .adornment-spanner, so we draw these
+  // first to match the browser's stacking order.
   const adornmentGrid = contentElement.querySelector(".graph-adornments-grid")
   if (adornmentGrid) {
     const cellSvgs = adornmentGrid.querySelectorAll(".adornment-wrapper.visible svg")
@@ -314,6 +297,25 @@ async function exportGraphToCanvas(options: IExportGraphToPngOptions): Promise<I
       } catch (e) {
         console.warn("Failed to render adornment cell SVG:", e)
       }
+    }
+  }
+
+  // 5b. Spanner SVG (adornment-spanner contains elements drawn outside grid cells, e.g. ROI,
+  // full-height measure lines). Painted after per-cell SVGs to match DOM stacking order.
+  const adornmentSvg = contentElement.querySelector("svg.spanner-svg")
+  if (adornmentSvg instanceof SVGSVGElement) {
+    try {
+      const svgRect = adornmentSvg.getBoundingClientRect()
+      await renderSvgToCanvas({
+        svg: adornmentSvg,
+        ctx,
+        x: svgRect.left - graphRect.left,
+        y: svgRect.top - graphRect.top,
+        width: svgRect.width,
+        height: svgRect.height
+      })
+    } catch (e) {
+      console.warn("Failed to render adornments SVG:", e)
     }
   }
 

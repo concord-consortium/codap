@@ -399,7 +399,8 @@ describe("svg-export class handling", () => {
 describe("adornment grid cell SVG rendering", () => {
   it("should render per-cell adornment SVGs from the adornment grid", async () => {
     // The DOM fixture includes a .graph-adornments-grid with a cell SVG containing a line.
-    // Verify the export completes successfully with this layer present.
+    ;(cellSvg.getBoundingClientRect as jest.Mock).mockClear()
+
     const result = await exportGraphToPng({
       graphElement: containerEl,
       renderer: mockRenderer,
@@ -407,18 +408,40 @@ describe("adornment grid cell SVG rendering", () => {
       height: 100
     })
     expect(result).toContain("data:image/png;base64,")
+    // Verify the per-cell SVG was actually measured for rendering
+    expect(cellSvg.getBoundingClientRect).toHaveBeenCalled()
   })
 
-  it("should skip hidden adornment wrappers", async () => {
-    // Add a hidden wrapper with an SVG and verify it doesn't cause errors
+  it("should not render SVGs in hidden adornment wrappers", async () => {
+    // .hidden wrappers don't match the .adornment-wrapper.visible selector
     const hiddenWrapper = document.createElement("div")
     hiddenWrapper.classList.add("adornment-wrapper", "hidden")
-    hiddenWrapper.style.opacity = "0"
     const hiddenSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
-    hiddenSvg.getBoundingClientRect = jest.fn(() => mockRect({ width: 0, height: 0 }))
+    hiddenSvg.getBoundingClientRect = jest.fn(() => mockRect())
     hiddenWrapper.appendChild(hiddenSvg)
     gridCell.appendChild(hiddenWrapper)
 
+    await exportGraphToPng({
+      graphElement: containerEl,
+      renderer: mockRenderer,
+      width: 100,
+      height: 100
+    })
+    // The hidden wrapper's SVG should not be measured at all
+    expect(hiddenSvg.getBoundingClientRect).not.toHaveBeenCalled()
+
+    gridCell.removeChild(hiddenWrapper)
+  })
+
+  it("should skip visible adornment SVGs with zero-size bounding rects", async () => {
+    // A .visible wrapper whose SVG has a 0x0 rect exercises the zero-size skip branch
+    const zeroWrapper = document.createElement("div")
+    zeroWrapper.classList.add("adornment-wrapper", "visible")
+    const zeroSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+    zeroSvg.getBoundingClientRect = jest.fn(() => mockRect({ width: 0, height: 0 }))
+    zeroWrapper.appendChild(zeroSvg)
+    gridCell.appendChild(zeroWrapper)
+
     const result = await exportGraphToPng({
       graphElement: containerEl,
       renderer: mockRenderer,
@@ -426,8 +449,9 @@ describe("adornment grid cell SVG rendering", () => {
       height: 100
     })
     expect(result).toContain("data:image/png;base64,")
+    // The SVG was measured but should have been skipped due to zero size
+    expect(zeroSvg.getBoundingClientRect).toHaveBeenCalled()
 
-    // Cleanup
-    gridCell.removeChild(hiddenWrapper)
+    gridCell.removeChild(zeroWrapper)
   })
 })
