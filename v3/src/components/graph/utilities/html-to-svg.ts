@@ -286,7 +286,9 @@ export function parseHtmlContent(element: HTMLElement): ITextLine[] {
         const tagName = el.tagName.toLowerCase()
 
         if (tagName === "br") {
-          // Start a new line
+          // Start a new line. The guard skips empty lines (except the first) to avoid
+          // blank lines from consecutive <br> tags. CODAP adornments don't produce
+          // consecutive <br> tags, so this doesn't affect actual output.
           if (currentLine.segments.length > 0 || lines.length === 0) {
             lines.push(currentLine)
           }
@@ -313,7 +315,10 @@ export function parseHtmlContent(element: HTMLElement): ITextLine[] {
           continue
         }
 
-        // Process other elements
+        // Process other elements via processNode (handles em, sup, sub, span, etc.).
+        // Note: <br> nested inside inline elements (e.g. <em>A<br/>B</em>) won't produce
+        // a line break since processNode doesn't handle <br>. This is acceptable because
+        // CODAP adornments only use <br> as a sibling of inline elements.
         const segments = processNode(node, inheritedStyles)
         currentLine.segments.push(...segments)
       } else if (node.nodeType === Node.TEXT_NODE) {
