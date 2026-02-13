@@ -556,7 +556,25 @@ Explain to the user:
    ssh codap-server.concord.org "sudo deployCODAP codap_build_XXXX.zip"
    ```
 
-8. **Verify deployment:**
+8. **Copy noaa-codap-plugin to the new build:**
+
+   Explain to the user:
+   > The `makeCodapZip` build process packages the NOAA weather plugin under the folder name `NOAA-weather/` (matching the source directory in `codap-data-interactives`). However, `published-plugins.json` references it as `noaa-codap-plugin/` (matching the repository name). The `noaa-codap-plugin` repo produces a separate webpack build with a different structure (bundled JS, fewer files) than what `makeExtn` copies from the source.
+   >
+   > Since the CODAP build doesn't produce this bundled version, we copy it from the previous build on the server.
+
+   Determine the previous build number (current - 1, zero-padded). Then copy:
+   ```bash
+   ssh codap-server.concord.org "sudo cp -r /var/www/html/releases/build_PPPP/extn/plugins/noaa-codap-plugin /var/www/html/releases/build_XXXX/extn/plugins/noaa-codap-plugin"
+   ```
+   (Where PPPP is the previous build number and XXXX is the current build number.)
+
+   Verify the copy:
+   ```bash
+   ssh codap-server.concord.org "ls /var/www/html/releases/build_XXXX/extn/plugins/noaa-codap-plugin/"
+   ```
+
+9. **Verify deployment:**
 
    Ask the user to open the build and verify that it looks correct:
    > The build is now live at `https://codap.concord.org/releases/build_XXXX/`
@@ -565,7 +583,7 @@ Explain to the user:
 
    **Wait for the user to confirm the build looks good before proceeding.** Do not move on to the summary or Phase 4 until the user has acknowledged that the build works.
 
-9. **Summary:**
+10. **Summary:**
 
    > **Build and deployment complete.**
    >
