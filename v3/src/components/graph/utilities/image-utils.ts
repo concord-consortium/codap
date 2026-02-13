@@ -291,6 +291,32 @@ async function exportGraphToCanvas(options: IExportGraphToPngOptions): Promise<I
     }
   }
 
+  // 5b. Per-cell adornment SVGs (lines, paths, shapes inside the adornment grid)
+  // Adornments render their SVG shapes in per-cell SVGs inside .graph-adornments-grid,
+  // NOT in the spanner-svg. We need to capture each cell's SVG individually.
+  const adornmentGrid = contentElement.querySelector(".graph-adornments-grid")
+  if (adornmentGrid) {
+    const cellSvgs = adornmentGrid.querySelectorAll(".adornment-wrapper.visible svg")
+    for (const cellSvg of cellSvgs) {
+      if (!(cellSvg instanceof SVGSVGElement)) continue
+      try {
+        const svgRect = cellSvg.getBoundingClientRect()
+        // Skip zero-size SVGs (hidden or not yet laid out)
+        if (svgRect.width <= 0 || svgRect.height <= 0) continue
+        await renderSvgToCanvas({
+          svg: cellSvg,
+          ctx,
+          x: svgRect.left - graphRect.left,
+          y: svgRect.top - graphRect.top,
+          width: svgRect.width,
+          height: svgRect.height
+        })
+      } catch (e) {
+        console.warn("Failed to render adornment cell SVG:", e)
+      }
+    }
+  }
+
   // 6. Adornment text (HTML elements converted to SVG)
   const adornmentTextSvg = createAdornmentTextSvg(contentElement)
   if (adornmentTextSvg) {
