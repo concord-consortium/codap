@@ -528,7 +528,9 @@ Explain to the user:
    bin/makeCodapZip build_XXXX
    ```
 
-   Monitor output for errors. After completion, verify the zip file exists:
+   Monitor output for errors. In particular, check for plugin build failures — the `bin/build` script in `codap-data-interactives` reports failed plugins to stderr (e.g., `ERROR - Failed to build ../noaa-codap-plugin`) but continues building the remaining plugins. If any plugin builds failed, stop and investigate before proceeding.
+
+   After completion, verify the zip file exists:
    ```bash
    ls -lh codap_build_XXXX.zip
    ```
@@ -556,22 +558,23 @@ Explain to the user:
    ssh codap-server.concord.org "sudo deployCODAP codap_build_XXXX.zip"
    ```
 
-8. **Copy noaa-codap-plugin to the new build:**
+8. **Verify built plugins:**
 
    Explain to the user:
-   > The `makeCodapZip` build process packages the NOAA weather plugin under the folder name `NOAA-weather/` (matching the source directory in `codap-data-interactives`). However, `published-plugins.json` references it as `noaa-codap-plugin/` (matching the repository name). The `noaa-codap-plugin` repo produces a separate webpack build with a different structure (bundled JS, fewer files) than what `makeExtn` copies from the source.
-   >
-   > Since the CODAP build doesn't produce this bundled version, we copy it from the previous build on the server.
+   > The `makeExtn` step builds four plugins from sibling repositories (`onboarding`, `codap-transformers`, `story-builder`, `noaa-codap-plugin`). These builds can fail silently because the build script does not use `set -e`. We verify that all expected plugin folders exist in the deployed build.
 
-   Determine the previous build number (current - 1, zero-padded). Then copy:
+   Check that all expected plugin folders are present:
    ```bash
-   ssh codap-server.concord.org "sudo cp -r /var/www/html/releases/build_PPPP/extn/plugins/noaa-codap-plugin /var/www/html/releases/build_XXXX/extn/plugins/noaa-codap-plugin"
+   ssh codap-server.concord.org "for d in onboarding codap-transformers story-builder noaa-codap-plugin; do [ -d /var/www/html/releases/build_XXXX/extn/plugins/\$d ] && echo \"\$d: OK\" || echo \"\$d: MISSING\"; done"
    ```
-   (Where PPPP is the previous build number and XXXX is the current build number.)
 
-   Verify the copy:
+   If any are missing, the plugin build failed silently during `makeExtn`. Investigate by checking the build output for errors. Common causes:
+   - **noaa-codap-plugin:** Missing peer dependencies (`@emotion/react`, `@emotion/styled`). Fix: use `npm ci` instead of `npm install` in `codap-data-interactives/bin/build` (already fixed as of 2026-02-13).
+   - **General:** Stale `node_modules` in a sibling repo. Fix: `rm -rf node_modules && npm ci` in the affected repo, then rebuild.
+
+   If a plugin cannot be rebuilt quickly, copy it from the previous build as a fallback:
    ```bash
-   ssh codap-server.concord.org "ls /var/www/html/releases/build_XXXX/extn/plugins/noaa-codap-plugin/"
+   ssh codap-server.concord.org "sudo cp -r /var/www/html/releases/build_PPPP/extn/plugins/<plugin-name> /var/www/html/releases/build_XXXX/extn/plugins/<plugin-name>"
    ```
 
 9. **Verify deployment:**
