@@ -45,6 +45,8 @@ const SUPERSCRIPT_DY = "-0.4em"
 const SUPERSCRIPT_RESET_DY = "0.4em"
 const SUBSCRIPT_DY = "0.3em"
 const SUBSCRIPT_RESET_DY = "-0.3em"
+const SUP_TO_SUB_DY = "0.7em"   // reset from sup (+0.4) + apply sub (+0.3)
+const SUB_TO_SUP_DY = "-0.7em"  // reset from sub (-0.3) + apply sup (-0.4)
 const SUPER_SUB_FONT_SIZE = "0.7em"
 
 /**
@@ -356,20 +358,23 @@ function createTspansForLine(line: ITextLine): SVGTSpanElement[] {
       tspan.setAttribute("font-style", "italic")
     }
 
-    // Handle superscript
+    // Handle vertical positioning (superscript, subscript, and transitions between them).
+    // SVG dy is cumulative, so we must account for the current offset state when transitioning.
     if (segment.superscript) {
-      tspan.setAttribute("dy", SUPERSCRIPT_DY)
+      if (lastVerticalOffset !== "superscript") {
+        const dy = lastVerticalOffset === "subscript" ? SUB_TO_SUP_DY : SUPERSCRIPT_DY
+        tspan.setAttribute("dy", dy)
+      }
       tspan.setAttribute("font-size", SUPER_SUB_FONT_SIZE)
       lastVerticalOffset = "superscript"
-    }
-    // Handle subscript
-    else if (segment.subscript) {
-      tspan.setAttribute("dy", SUBSCRIPT_DY)
+    } else if (segment.subscript) {
+      if (lastVerticalOffset !== "subscript") {
+        const dy = lastVerticalOffset === "superscript" ? SUP_TO_SUB_DY : SUBSCRIPT_DY
+        tspan.setAttribute("dy", dy)
+      }
       tspan.setAttribute("font-size", SUPER_SUB_FONT_SIZE)
       lastVerticalOffset = "subscript"
-    }
-    // Reset baseline after super/subscript with inverse offset
-    else if (lastVerticalOffset) {
+    } else if (lastVerticalOffset) {
       const resetDy = lastVerticalOffset === "superscript"
         ? SUPERSCRIPT_RESET_DY
         : SUBSCRIPT_RESET_DY
