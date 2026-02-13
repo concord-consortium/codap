@@ -12,7 +12,7 @@
     "build:bundle-prod:comment": "echo Usage: `npm run build:bundle-prod` builds a production version of the `codap-lib-bundle.js`",
     "build:bundle-prod": "NODE_OPTIONS=--openssl-legacy-provider NODE_ENV=production webpack --progress",
     "build:cfm:comment": "echo Usage: `npm run build:cfm` builds CFM for CODAP. Assumes that CFM repository named 'cloud-file-manager' and CODAP repository named 'codap' are siblings.",
-    "build:cfm": "cd ../cloud-file-manager && npm run build:codap && cd ../codap && ./bin/recordCFMVersion",
+    "build:cfm": "cd ../cloud-file-manager && NODE_OPTIONS=--openssl-legacy-provider npm run build:codap && cd ../codap && ./bin/recordCFMVersion",
     "build:dev:comment": "echo Usage: `npm run build:dev` performs a local development build",
     "build:dev": "npm run build:bundle-dev && npm run build:local",
     "build:embedded:comment": "echo Usage: `npm run build:embedded` builds a CODAP embedded mode package named embeddedCODAP",

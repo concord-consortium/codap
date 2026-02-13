@@ -374,6 +374,7 @@ DG.main = function main() {
               { name: 'DG.fileMenu.menuItem.renameDocument'.loc(), action: 'renameDialog' }
             ],
           },
+          banner: 'https://codap-resources.concord.org/notifications/announcing-v3-banner.json',
           appSetsWindowTitle: true, // CODAP takes responsibility for the window title
           wrapFileContent: false,
           mimeType: 'application/json',
