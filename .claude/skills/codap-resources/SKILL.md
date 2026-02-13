@@ -104,12 +104,6 @@ The V2 build stores these assets under `extn/` in the release directory:
 | `extn/example-documents/` | `s3://codap-resources/example-documents/` |
 | `extn/boundaries/` | `s3://codap-resources/boundaries/` |
 
-### Warning: `.codap` file path rewriting
-
-The V2 build process (`makeCodapZip`) rewrites `%_url_%` placeholders in `.codap` files to relative paths like `../../../../extn/example-documents/guides/...`. These rewritten paths are correct for V2 (which serves everything from the build directory) but **wrong for V3** (which resolves `%_url_%` at runtime).
-
-When syncing example documents, **do not overwrite `.codap` files that already exist in S3** unless you are certain the new version is correct. Compare modified `.codap` files individually (using `jq -S` for readable diffs) and skip any whose only change is a URL path rewrite. New `.codap` files that don't yet exist in S3 are safe to upload.
-
 ### Sync workflow
 
 Read `~/.codap-build.rc` to get `CODAP_SERVER` (defaults to `codap-server.concord.org`) and `CODAP_SERVER_WWW_BASE` (defaults to `/var/www/html`).
@@ -141,15 +135,13 @@ Read `~/.codap-build.rc` to get `CODAP_SERVER` (defaults to `codap-server.concor
      --acl public-read --size-only --dryrun
    ```
 
-   Present changed files in two groups: **new** (not in S3) and **modified** (already in S3 with different size). For modified `.codap` files, download the S3 version and diff with `jq -S` to check whether the change is real content or just a URL path rewrite (see warning above).
+   Present changed files in two groups: **new** (not in S3) and **modified** (already in S3 with different size).
 
 4. **After user confirms, run for real:**
    ```bash
    aws s3 sync /tmp/codap-sync/example-documents/ s3://codap-resources/example-documents/ \
      --acl public-read --size-only
    ```
-
-   If some files need to be excluded (e.g., `.codap` files with only path rewrites), use `--exclude` patterns or upload specific files individually with `aws s3 cp`.
 
 5. **Invalidate CloudFront cache:**
    ```bash
