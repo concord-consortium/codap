@@ -464,22 +464,35 @@ Explain to the user:
 
 1. **Final cleanliness check:**
    ```bash
-   git status -s
+   git status -s | grep -v '^??'
    ```
-   Must be clean (no modified files). If not, stop and resolve.
+   Must have no modified or staged files. Untracked files are fine and do not affect the build. If modified files exist, stop and resolve.
 
 2. **Increment build number (optional):**
 
    Explain to the user:
-   > CODAP's build number is stored in `apps/dg/core.js` as `BUILD_NUM`. The `updateBuildNumber` script increments it, commits the change, creates a git tag (`build_XXXX`), and pushes both to GitHub. Incrementing is optional — if you're re-running the build after an error, you may want to skip this to avoid burning through build numbers.
+   > CODAP's build number is stored in `apps/dg/core.js` as `BUILD_NUM`. Incrementing is optional — if you're re-running the build after an error, you may want to skip this to avoid burning through build numbers.
 
    Ask user: "Increment the build number?"
 
-   If yes:
-   ```bash
-   # This increments, commits, tags, and pushes
-   bin/updateBuildNumber
-   ```
+   If yes, perform these steps directly (do **not** use the `bin/updateBuildNumber` script, which incorrectly treats untracked files as dirty):
+
+   a. Read the current build number:
+      ```bash
+      sed -nE "s/ *BUILD_NUM: '([0-9]+)'.*/\1/p" apps/dg/core.js
+      ```
+
+   b. Compute the new build number (zero-padded increment, e.g. `0742` → `0743`).
+
+   c. Update `BUILD_NUM` in `apps/dg/core.js` using the Edit tool.
+
+   d. Commit, tag, and push:
+      ```bash
+      git add apps/dg/core.js
+      git commit -m "Build XXXX"
+      git tag "build_XXXX"
+      git push && git push --tags
+      ```
 
 3. **Get current build number:**
    ```bash
@@ -529,6 +542,11 @@ Explain to the user:
    scp codap_build_XXXX.zip codap-server.concord.org:
    ```
 
+   After the copy succeeds, ask the user if they want to delete the local zip file. If yes:
+   ```bash
+   rm codap_build_XXXX.zip
+   ```
+
 7. **Deploy on server:**
 
    Explain to the user:
@@ -540,8 +558,12 @@ Explain to the user:
 
 8. **Verify deployment:**
 
-   Ask user to verify the build at:
-   > `https://codap.concord.org/releases/build_XXXX/`
+   Ask the user to open the build and verify that it looks correct:
+   > The build is now live at `https://codap.concord.org/releases/build_XXXX/`
+   >
+   > Please open this URL, verify the build loads and works correctly, and let me know when you're satisfied.
+
+   **Wait for the user to confirm the build looks good before proceeding.** Do not move on to the summary or Phase 4 until the user has acknowledged that the build works.
 
 9. **Summary:**
 
@@ -575,7 +597,7 @@ Explain to the user:
 
    **Announcement format:**
    ```
-   CODAP v2 build XXXX is available for testing at https://codap.concord.org/releases/build_XXXX/
+   CODAP V2 build XXXX is available for testing at https://codap.concord.org/releases/build_XXXX/
    ```
 
 2. **Reminder of manual follow-up steps:**
@@ -615,7 +637,7 @@ Explain to the user:
 | `bin/do-full-build-process` | Original automated build script |
 | `bin/makeCodapZip` | SproutCore build + packaging |
 | `bin/makeExtn` | Plugin/example assembly |
-| `bin/updateBuildNumber` | Increment, commit, tag, push |
+| `bin/updateBuildNumber` | Increment, commit, tag, push (not used by skill — treats untracked files as dirty) |
 | `bin/recordExtnVersions` | Record sibling repo git hashes |
 | `bin/recordCFMVersion` | Record CFM version |
 | `~/.codap-build.rc` | Build configuration |
