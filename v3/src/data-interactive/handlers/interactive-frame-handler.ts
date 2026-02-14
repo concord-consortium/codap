@@ -2,6 +2,7 @@ import { isWebViewModel } from "../../components/web-view/web-view-model"
 import { appState } from "../../models/app-state"
 import { uiState } from "../../models/ui-state"
 import { toV2Id } from "../../utilities/codap-utils"
+import { gLocale } from "../../utilities/translation/locale"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DINotification, DIResources, DIValues, DIInteractiveFrame } from "../data-interactive-types"
 import { noInteractiveFrameResult, valuesRequiredResult } from "./di-results"
@@ -36,6 +37,7 @@ export const diInteractiveFrameHandler: DIHandler = {
       subscribeToDocuments,
       title: interactiveFrame.title,
       version,
+      lang: gLocale.current
     }
     return { success: true, values }
   },

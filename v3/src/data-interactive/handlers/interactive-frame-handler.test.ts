@@ -37,6 +37,7 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     expect(savedState).toBe(webView.state)
     expect(title).toBe(interactiveFrame.title)
     expect(version).toBe(webView.version)
+    expect((result.values as DIInteractiveFrame).lang).toBeTruthy()
   })
 
   it("update works", () => {
