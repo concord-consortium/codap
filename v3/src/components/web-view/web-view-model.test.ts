@@ -54,6 +54,24 @@ describe("WebViewContentModel", () => {
     expect(webView.pageIndex).toBe(0) // min index
     expect(webView.url).toBe("http://example.com/page1")
   })
+  it("needsLocaleReload returns true for localized plugins", () => {
+    const webView = WebViewModel.create({ url: "https://example.com/plugins/Importer/index.html" })
+    expect(webView.needsLocaleReload).toBe(true)
+  })
+  it("needsLocaleReload returns true for TP-Sampler", () => {
+    const webView = WebViewModel.create({ url: "https://example.com/plugins/TP-Sampler/index.html" })
+    expect(webView.needsLocaleReload).toBe(true)
+  })
+  it("needsLocaleReload returns false for non-localized plugins", () => {
+    const webView = WebViewModel.create({ url: "https://example.com/plugins/SomeOtherPlugin/index.html" })
+    expect(webView.needsLocaleReload).toBe(false)
+  })
+  it("needsLocaleReload returns false when handlesLocaleChange is true", () => {
+    const webView = WebViewModel.create({ url: "https://example.com/plugins/Importer/index.html" })
+    expect(webView.needsLocaleReload).toBe(true)
+    webView.setHandlesLocaleChange(true)
+    expect(webView.needsLocaleReload).toBe(false)
+  })
   it("supports handlesLocaleChange volatile property", () => {
     const webView = WebViewModel.create({})
     expect(webView.handlesLocaleChange).toBe(false)
