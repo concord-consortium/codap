@@ -119,13 +119,22 @@ if [[ ${#FAILED_LANGS[@]} -gt 0 ]]; then
     echo "  Failed:    ${FAILED_LANGS[*]}"
 fi
 
-# Pull en-US and split into DG and V3 files
+# Pull en-US with retries (critical for DG/V3 split)
 echo ""
 echo "Pulling en-US and splitting into DG/V3 files..."
-printf "  %-10s " "en-US:"
-if pull_language "en-US"; then
-    echo "Success"
+en_us_success=false
+for (( en_attempt=1; en_attempt<=MAX_RETRIES; en_attempt++ )); do
+    printf "  %-10s " "en-US:"
+    if pull_language "en-US"; then
+        echo "Success"
+        en_us_success=true
+        break
+    else
+        echo "FAILED (attempt $en_attempt of $MAX_RETRIES)"
+    fi
+done
 
+if $en_us_success; then
     # Split en-US into DG and V3 files
     node -e "
 const fs = require('fs');
@@ -142,7 +151,7 @@ console.log('  V3 strings: ' + Object.keys(v3).length);
 "
     rm "$OUTPUT_DIR/en-US.json"  # Remove the combined download
 else
-    echo "FAILED - en-US pull failed after retries"
+    echo "FAILED - en-US pull failed after $MAX_RETRIES attempts"
     exit 1
 fi
 
