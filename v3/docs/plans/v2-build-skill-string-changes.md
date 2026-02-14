@@ -55,6 +55,10 @@ console.log('Pushing ' + Object.keys(dg).length + ' DG strings (filtering out ' 
 rm -f /tmp/dg-strings-push.json
 ```
 
+### TODO: Audit DG strings for unused keys
+
+When applying these changes on master, audit `lang/strings/en-US.json` for unused DG.* strings, similar to the V3 audit that found 7 unused strings and 2 code bugs (wrong key prefix). Search the V2 codebase for each DG.* key and remove any that are no longer referenced. Note that V2 uses dynamic key construction (e.g., `"DG.Undo.map." + op + "Pins"`) so grep for partial key fragments, not just full keys.
+
 ### Summary of intent
 
 - V2 push sends only DG.* keys (no longer sends V3.* keys that happen to be in the local file)
