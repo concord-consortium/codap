@@ -1,6 +1,7 @@
 import { observer } from "mobx-react-lite"
 import { useEffect, useRef, useState } from "react"
 import { detectDataUrlImageBug, hasDataUrlImageBug } from "../../utilities/image-utils"
+import { gLocale } from "../../utilities/translation/locale"
 import { t } from "../../utilities/translation/translate"
 import { booleanParam, urlParams } from "../../utilities/url-params"
 import { ITileBaseProps } from "../tiles/tile-base-props"
@@ -8,6 +9,7 @@ import { useDataInteractiveController } from "./use-data-interactive-controller"
 import { kWebViewBodyClass } from "./web-view-defs"
 import { WebViewDropOverlay } from "./web-view-drop-overlay"
 import { isWebViewModel } from "./web-view-model"
+import { appendLangParam } from "./web-view-utils"
 
 import "./web-view.scss"
 
@@ -147,6 +149,8 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
 
   if (!isWebViewModel(webViewModel)) return null
 
+  const urlWithLang = webViewModel.isImage ? webViewModel.url : appendLangParam(webViewModel.url, gLocale.current)
+
   const hideWebViewLoading = booleanParam(urlParams.hideWebViewLoading)
 
   // Don't show backdrop for data URLs - truncated data URLs aren't useful for users
@@ -169,7 +173,7 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
       <div className="codap-web-view-iframe-wrapper">
         { webViewModel.isImage
             ? <WebViewImage src={webViewModel.url} />
-            : <iframe className="codap-web-view-iframe" ref={iframeRef} src={webViewModel.url} />
+            : <iframe className="codap-web-view-iframe" ref={iframeRef} src={urlWithLang} />
         }
       </div>
       <WebViewDropOverlay />
