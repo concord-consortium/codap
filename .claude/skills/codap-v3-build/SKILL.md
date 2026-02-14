@@ -231,11 +231,67 @@ Wait for user confirmation before starting Phase 1.
 
 ## Phase 3: Update Version Files
 
-**Goal:** Update all version-related files and create release branch.
+**Goal:** Sync translations, update all version-related files, and create release branch.
 
 ### Steps
 
-1. **Update package.json version:**
+1. **Sync translations with POEditor:**
+
+   This step ensures DG strings from V2 are up-to-date and V3 strings are pushed.
+
+   **API Token:** The scripts check `~/.porc` then `$POEDITOR_API_TOKEN` automatically. Only ask the user for a token if neither is configured.
+
+   **1a. Pull en-US from POEditor and split into DG/V3:**
+   ```bash
+   cd v3
+   ./scripts/strings-pull-project.sh -a <API_TOKEN>
+   ```
+   This pulls all languages plus en-US. The en-US download is automatically split into `en-US-dg.json` (DG strings, overwritten) and `/tmp/poeditor-v3-strings.json` (V3 strings from POEditor, for comparison).
+
+   **1b. Report DG string changes (informational):**
+   ```bash
+   git diff src/utilities/translation/lang/en-US-dg.json
+   ```
+   Show the user what DG strings changed. These are V2 updates from POEditor — always accepted.
+
+   **1c. Reconcile V3 strings:**
+
+   Compare POEditor's V3 strings against local `en-US-v3.json5`:
+   ```bash
+   node -e "
+   const fs = require('fs');
+   const JSON5 = require('json5');
+   const local = JSON5.parse(fs.readFileSync('src/utilities/translation/lang/en-US-v3.json5', 'utf8'));
+   const remote = JSON.parse(fs.readFileSync('/tmp/poeditor-v3-strings.json', 'utf8'));
+   const localOnly = [], remoteOnly = [], differs = [];
+   for (const k of Object.keys(local)) { if (!(k in remote)) localOnly.push(k); }
+   for (const k of Object.keys(remote)) { if (!(k in local)) remoteOnly.push(k); }
+   for (const k of Object.keys(local)) {
+     if (k in remote && local[k] !== remote[k]) differs.push(k);
+   }
+   if (localOnly.length) console.log('New local strings (will be pushed):', localOnly.join(', '));
+   if (remoteOnly.length) console.log('POEditor-only strings (ask user to merge):', remoteOnly.join(', '));
+   if (differs.length) console.log('Value differs (ask user which to keep):', differs.join(', '));
+   if (!localOnly.length && !remoteOnly.length && !differs.length) console.log('V3 strings are in sync.');
+   "
+   ```
+
+   - **Local-only:** Inform user these new V3 strings will be pushed.
+   - **POEditor-only:** Ask user whether to merge these into `en-US-v3.json5`.
+   - **Value differs:** Ask user whether to push local values or accept POEditor values.
+
+   **1d. Push V3 strings to POEditor:**
+   ```bash
+   ./scripts/strings-push-project.sh -a <API_TOKEN>
+   ```
+
+   **1e. Commit string changes** if any files changed:
+   ```bash
+   git add src/utilities/translation/lang/
+   git commit -m "Update translations from POEditor"
+   ```
+
+2. **Update package.json version:**
    ```bash
    cd v3
    npm version --no-git-tag-version {version}
@@ -467,6 +523,8 @@ To complete deployment in Claude Code after QA:
 | `v3/versions.md` | Version history table |
 | `v3/CHANGELOG.md` | Release notes |
 | `v3/dist/assets/` | Built assets (after `npm run build`) |
+| `v3/src/utilities/translation/lang/en-US-v3.json5` | V3-owned English strings (JSON5, manually edited) |
+| `v3/src/utilities/translation/lang/en-US-dg.json` | DG strings from POEditor (overwritten by pulls) |
 
 ## Jira Integration
 

@@ -18,8 +18,8 @@ export const FilterFormulaBar = () => {
 
   const handleSubmitEditFormula = (formula: string) => {
     data?.applyModelChange(() => data.setFilterFormula(formula),
-      { undoStringKey: "DG.Undo.caseTable.changeFilterFormula",
-        redoStringKey: "DG.Redo.caseTable.changeFilterFormula",
+      { undoStringKey: "V3.Undo.hideShowMenu.changeFilterFormula",
+        redoStringKey: "V3.Redo.hideShowMenu.changeFilterFormula",
       }
     )
     handleCloseModal()
