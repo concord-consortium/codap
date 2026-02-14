@@ -1,6 +1,6 @@
 import { kCodap3RootPluginsUrl, kRootDataGamesPluginUrl, kRootGuideUrl, kRootPluginsUrl } from "../../constants"
 import {
-  getNameFromURL, kRelativeGuideRoot, kRelativePluginRoot, kRelativeURLRoot,
+  appendLangParam, getNameFromURL, kRelativeGuideRoot, kRelativePluginRoot, kRelativeURLRoot,
   normalizeUrlScheme, processWebViewUrl
 } from "./web-view-utils"
 
@@ -132,5 +132,43 @@ describe("getNameFromURL", () => {
   it("returns empty string for data URLs", () => {
     expect(getNameFromURL("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJ")).toBe("")
     expect(getNameFromURL("data:text/plain;charset=utf-8,Hello%20World")).toBe("")
+  })
+})
+
+describe("appendLangParam", () => {
+  it("appends ?lang= to URLs with no query params", () => {
+    expect(appendLangParam("https://example.com/plugin/index.html", "es"))
+      .toBe("https://example.com/plugin/index.html?lang=es")
+  })
+  it("appends &lang= to URLs with existing query params", () => {
+    expect(appendLangParam("https://example.com/plugin/index.html?foo=bar", "ja"))
+      .toBe("https://example.com/plugin/index.html?foo=bar&lang=ja")
+  })
+  it("replaces existing lang param", () => {
+    expect(appendLangParam("https://example.com/plugin/index.html?lang=en-US", "es"))
+      .toBe("https://example.com/plugin/index.html?lang=es")
+  })
+  it("replaces existing lang param among other params", () => {
+    expect(appendLangParam("https://example.com/plugin/index.html?foo=bar&lang=en-US&baz=qux", "ja"))
+      .toBe("https://example.com/plugin/index.html?foo=bar&lang=ja&baz=qux")
+  })
+  it("returns the URL unchanged for data: URLs", () => {
+    expect(appendLangParam("data:image/png;base64,abc", "es"))
+      .toBe("data:image/png;base64,abc")
+  })
+  it("returns empty string unchanged", () => {
+    expect(appendLangParam("", "es")).toBe("")
+  })
+  it("appends lang param to relative URLs", () => {
+    expect(appendLangParam("../../../../extn/plugins/onboarding/index.html", "de"))
+      .toBe("../../../../extn/plugins/onboarding/index.html?lang=de")
+  })
+  it("replaces lang param in relative URLs", () => {
+    expect(appendLangParam("../plugin/index.html?lang=en&foo=bar", "fr"))
+      .toBe("../plugin/index.html?lang=fr&foo=bar")
+  })
+  it("appends lang param before hash fragment in relative URLs", () => {
+    expect(appendLangParam("../plugin/index.html#section", "es"))
+      .toBe("../plugin/index.html?lang=es#section")
   })
 })
