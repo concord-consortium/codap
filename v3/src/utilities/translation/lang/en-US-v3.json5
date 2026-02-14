@@ -1,9 +1,4 @@
 {
-    // CODAP V3 temporary strings (not for translation, at least not yet)
-    "V3.caseTable.noCases": "no cases",
-
-    "V3.ToolButtonData.pluginMenu.fetchError": "No plugin configuration available",
-
     // V3 case table strings that are not present in V2 and will eventually require translation.
     "V3.general.yes": "Yes",
     "V3.general.no": "No",
@@ -92,14 +87,10 @@
     "V3.Redo.caseTable.create": "Redo adding case table",
     "V3.Undo.caseTable.delete": "Undo deleting case table",
     "V3.Redo.caseTable.delete": "Redo deleting case table",
-    "V3.Undo.caseTable.hide": "Undo hiding case table",
-    "V3.Redo.caseTable.hide": "Redo hiding case table",
     "V3.Undo.caseTable.changeRowHeight": "Undo changing row height",
     "V3.Redo.caseTable.changeRowHeight": "Redo changing row height",
     "V3.Undo.import.data": "Undo import of data",
     "V3.Redo.import.data": "Redo import of data",
-    "V3.Undo.caseCard.hide": "Undo hiding case card",
-    "V3.Redo.caseCard.hide": "Redo hiding case card",
     "V3.caseCard.summaryButton.showIndividualCases": "Browse Individual Cases",
     "V3.caseCard.summaryButton.showSummary": "Summarize Dataset",
     "V3.caseCard.addCaseDisabledBecauseFilter": "Cases cannot be added when there is a filter formula",
@@ -172,7 +163,6 @@
     // These should probably not be translated because plugins might be looking for specific
     // values.
     "V3.DI.Error.noAction": "No action to process.",
-    "V3.DI.Error.noTile": "No tile for action.",
     "V3.DI.Error.unsupportedAction": "Unsupported action: %@/%@",
     "V3.DI.Error.undefinedResponse": "Action handler returned undefined.",
     "V3.DI.Error.attributeNotFound": "Attribute not found",

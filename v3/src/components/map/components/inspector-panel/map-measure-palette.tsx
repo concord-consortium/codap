@@ -86,8 +86,8 @@ export const MapMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette}:
                           layer.applyModelChange(() => {
                             pinLayer.setPinsAreVisible(!pinLayer.pinsAreVisible)
                           }, {
-                            undoStringKey: `DG.Undo.map.${op}Pins`,
-                            redoStringKey: `DG.Redo.map.${op}Pins`,
+                            undoStringKey: `V3.Undo.map.${op}Pins`,
+                            redoStringKey: `V3.Redo.map.${op}Pins`,
                             log: logStringifiedObjectMessage("mapAction: %@", {mapAction: `${op}Pins`})
                           })
                         }}
