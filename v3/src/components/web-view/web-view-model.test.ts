@@ -54,6 +54,12 @@ describe("WebViewContentModel", () => {
     expect(webView.pageIndex).toBe(0) // min index
     expect(webView.url).toBe("http://example.com/page1")
   })
+  it("supports handlesLocaleChange volatile property", () => {
+    const webView = WebViewModel.create({})
+    expect(webView.handlesLocaleChange).toBe(false)
+    webView.setHandlesLocaleChange(true)
+    expect(webView.handlesLocaleChange).toBe(true)
+  })
   it("prepareSnapshot works correctly", async () => {
     const state = { status: "Looking good" }
     const dataInteractiveController = {

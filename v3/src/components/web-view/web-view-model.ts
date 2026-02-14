@@ -65,7 +65,8 @@ export const WebViewModel = TileContentModel
     version: kDefaultWebViewVersion,
     autoOpenUrlDialog: false,
     isPluginCandidate: false,
-    isPluginCommunicating: false
+    isPluginCommunicating: false,
+    handlesLocaleChange: false
   }))
   .preProcessSnapshot(snap => {
     let newSnap = snap
@@ -152,6 +153,9 @@ export const WebViewModel = TileContentModel
     },
     setVersion(version: string) {
       self.version = version
+    },
+    setHandlesLocaleChange(value: boolean) {
+      self.handlesLocaleChange = value
     },
     setGuidePageIndex(index: number) {
       if (self.subType === "guide") {

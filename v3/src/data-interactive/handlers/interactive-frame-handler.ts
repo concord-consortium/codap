@@ -72,9 +72,10 @@ export const diInteractiveFrameHandler: DIHandler = {
     if (Array.isArray(values)) return { success: true }
 
     const {
-      allowEmptyAttributeDeletion, blockAPIRequestsWhileEditing, cannotClose, dimensions, name,
-      preventAttributeDeletion, preventBringToFront, preventDataContextReorg, preventTopLevelReorg,
-      respectEditableItemAttribute, subscribeToDocuments, title, version
+      allowEmptyAttributeDeletion, blockAPIRequestsWhileEditing, cannotClose, dimensions,
+      handlesLocaleChange, name, preventAttributeDeletion, preventBringToFront,
+      preventDataContextReorg, preventTopLevelReorg, respectEditableItemAttribute,
+      subscribeToDocuments, title, version
     } = values as DIInteractiveFrame
     interactiveFrame.applyModelChange(() => {
       if (allowEmptyAttributeDeletion != null) {
@@ -104,6 +105,7 @@ export const diInteractiveFrameHandler: DIHandler = {
         interactiveFrame.setTitle(title)
       }
       if (version) webViewContent?.setVersion(version)
+      if (handlesLocaleChange != null) webViewContent?.setHandlesLocaleChange(handlesLocaleChange)
     })
     return { success: true }
   }
