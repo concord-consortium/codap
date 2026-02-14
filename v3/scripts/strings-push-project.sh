@@ -24,21 +24,24 @@ esac
 shift
 done
 
-# Extract V3-only strings from JSON5 source
+[[ -z "$API_TOKEN" ]] && { echo "No API_TOKEN provided! Use -a <token>" ; exit 1; }
+
+# Convert JSON5 to JSON for the push script
 node -e "
 const fs = require('fs');
 const JSON5 = require('json5');
 const data = JSON5.parse(fs.readFileSync('$INPUT_FILE', 'utf8'));
-const v3 = {};
-for (const [k, v] of Object.entries(data)) {
-  if (k.startsWith('V3.')) v3[k] = v;
-}
-fs.writeFileSync('$TEMP_FILE', JSON.stringify(v3));
-console.log('Pushing ' + Object.keys(v3).length + ' V3 strings to POEditor...');
+fs.writeFileSync('$TEMP_FILE', JSON.stringify(data));
+console.log('Pushing ' + Object.keys(data).length + ' V3-owned strings to POEditor...');
 "
 
-PUSHARGS="-p $PROJECT_ID -i $TEMP_FILE -a $API_TOKEN"
-./scripts/strings-push.sh $PUSHARGS
+if [[ $? -ne 0 ]] || [[ ! -s "$TEMP_FILE" ]]; then
+    echo "ERROR: Failed to extract strings from $INPUT_FILE"
+    rm -f "$TEMP_FILE"
+    exit 1
+fi
+
+./scripts/strings-push.sh -p "$PROJECT_ID" -i "$TEMP_FILE" -a "$API_TOKEN"
 RESULT=$?
 
 rm -f "$TEMP_FILE"

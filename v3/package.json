@@ -75,7 +75,7 @@
     "strings:pull": "./scripts/strings-pull-project.sh",
     "strings:push:usage": "echo Usage: `npm run strings:push -- -a <poeditor_api_key>`",
     "strings:push": "./scripts/strings-push-project.sh",
-    "strings:update": "npm-run-all strings:push strings:pull",
+    "strings:update": "npm-run-all strings:pull strings:push",
     "test": "jest",
     "test:all": "npm-run-all build test start",
     "test:clean": "jest --clearCache",
