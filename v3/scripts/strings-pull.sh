@@ -1,4 +1,17 @@
 #!/bin/bash
+#
+# Pull translated strings for a single language from POEditor.
+#
+# Uses the POEditor v2 export API to download a key-value JSON file for the
+# specified language. The downloaded file has POEditor's [uXXXX] Unicode escape
+# notation converted to standard \uXXXX JSON escapes.
+#
+# API token is resolved in order: -a argument > ~/.porc > $POEDITOR_API_TOKEN env var.
+#
+# Usage: ./scripts/strings-pull.sh -p <project_id> -l <language> -o <output_dir> -a <api_token>
+#
+# Output: <output_dir>/<language>.json
+#
 
 CURL='/usr/bin/curl'
 POEDITOR_EXPORT_URL="https://api.poeditor.com/v2/projects/export"
@@ -41,9 +54,9 @@ done
 CURLARGS="-X POST -d id=$PROJECT_ID -d language=$LANGUAGE -d type=key_value_json -d api_token=$API_TOKEN"
 # echo "CURLARGS='$CURLARGS'"
 
-# retrieve the initial API response
+# Step 1: Request an export from POEditor (returns a JSON response with a download URL)
 RESPONSE=$($CURL $CURLARGS $POEDITOR_EXPORT_URL)
-# extract the file URL from the initial response
+# extract the file URL from the response
 FILE_URL=$(echo $RESPONSE | cut -d '"' -f 20)
 
 if [ "$FILE_URL" = "" ] ; then echo "Error: $RESPONSE" 1>&2; exit 2; fi
@@ -51,5 +64,5 @@ if [ "$FILE_URL" = "" ] ; then echo "Error: $RESPONSE" 1>&2; exit 2; fi
 # eliminate the extraneous '\' characters in URL
 FILE_URL=$(echo $FILE_URL | tr -d \\ )
 
-# download and process the resulting file, e.g. replace '[u12ef]' with '\u12ef'
+# Step 2: Download the exported file, converting POEditor's [uXXXX] to standard \uXXXX
 $CURL $FILE_URL | sed 's/\[u\([0-9a-fA-F]\{4\}\)\]/\\u\1/g' > "$OUTPUT_DIR/$LANGUAGE.json"
