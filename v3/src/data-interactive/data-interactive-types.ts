@@ -81,6 +81,8 @@ export interface DIInteractiveFrame {
   subscribeToDocuments?: boolean
   title?: string
   version?: string
+  lang?: string
+  handlesLocaleChange?: boolean
 }
 
 export interface DINotification {
