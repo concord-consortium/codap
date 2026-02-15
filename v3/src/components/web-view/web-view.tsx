@@ -149,7 +149,12 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
 
   if (!isWebViewModel(webViewModel)) return null
 
-  const urlWithLang = webViewModel.isImage ? webViewModel.url : appendLangParam(webViewModel.url, gLocale.current)
+  // Only append ?lang= to localized plugins that need reload on locale change.
+  // This ensures their iframe src changes (triggering a reload), while non-localized
+  // plugins keep a stable src and just receive a localeChanged notification instead.
+  const iframeSrc = webViewModel.needsLocaleReload
+    ? appendLangParam(webViewModel.url, gLocale.current)
+    : webViewModel.url
 
   const hideWebViewLoading = booleanParam(urlParams.hideWebViewLoading)
 
@@ -173,7 +178,7 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
       <div className="codap-web-view-iframe-wrapper">
         { webViewModel.isImage
             ? <WebViewImage src={webViewModel.url} />
-            : <iframe className="codap-web-view-iframe" ref={iframeRef} src={urlWithLang} />
+            : <iframe className="codap-web-view-iframe" ref={iframeRef} src={iframeSrc} />
         }
       </div>
       <WebViewDropOverlay />
