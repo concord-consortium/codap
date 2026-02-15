@@ -275,4 +275,48 @@ describe("cachedFnWithArgsFactory", () => {
     expect(cachedFn(1, 2)).toEqual(2)
     expect(calculate).toHaveBeenCalledTimes(2)
   })
+
+  it("should trigger MobX reactions on invalidate() only for the affected key", () => {
+    let counter = 0
+    const calculate = jest.fn((x: string) => `${x}:${++counter}`)
+    const cachedFn = cachedFnWithArgsFactory({ key: (x: string) => x, calculate, name: "testFn" })
+
+    const effectA = jest.fn()
+    const effectB = jest.fn()
+    const disposeA = reaction(() => cachedFn("a"), v => effectA(v))
+    const disposeB = reaction(() => cachedFn("b"), v => effectB(v))
+    expect(calculate).toHaveBeenCalledTimes(2) // initial evaluation of both reactions
+
+    // invalidate only "a" — only effectA should fire
+    runInAction(() => cachedFn.invalidate("a"))
+    expect(effectA).toHaveBeenCalledTimes(1)
+    expect(effectB).toHaveBeenCalledTimes(0)
+
+    // invalidate only "b" — only effectB should fire
+    runInAction(() => cachedFn.invalidate("b"))
+    expect(effectA).toHaveBeenCalledTimes(1)
+    expect(effectB).toHaveBeenCalledTimes(1)
+
+    disposeA()
+    disposeB()
+  })
+
+  it("should trigger MobX reactions on invalidateAll() for all keys", () => {
+    let counter = 0
+    const calculate = jest.fn((x: string) => `${x}:${++counter}`)
+    const cachedFn = cachedFnWithArgsFactory({ key: (x: string) => x, calculate, name: "testFn" })
+
+    const effectA = jest.fn()
+    const effectB = jest.fn()
+    const disposeA = reaction(() => cachedFn("a"), v => effectA(v))
+    const disposeB = reaction(() => cachedFn("b"), v => effectB(v))
+    expect(calculate).toHaveBeenCalledTimes(2)
+
+    runInAction(() => cachedFn.invalidateAll())
+    expect(effectA).toHaveBeenCalledTimes(1)
+    expect(effectB).toHaveBeenCalledTimes(1)
+
+    disposeA()
+    disposeB()
+  })
 })

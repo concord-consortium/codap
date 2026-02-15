@@ -166,6 +166,10 @@ export function observableCachedFnFactory<T>(calculate: () => T, initialValue: T
  * A function factory that returns a lazily evaluated function, which takes arguments and will return the same value
  * until invalidate() or invalidateAll() is called. This is useful for caching values that are expensive to calculate.
  *
+ * Like observableCachedFnFactory, this uses observable version counters for MobX dependency tracking
+ * and a plain (non-observable) Map for cached values, so that the getter never writes to an observable.
+ * Per-key versions (observable map) handle invalidate(); a global version counter handles invalidateAll().
+ *
  * @param key a function that returns a string cache key using the arguments.
  * @param calculate a function that will be called to calculate the value when it is invalidated.
  * @returns a function that will return the same value for the same arguments until invalidate() is called.
@@ -179,28 +183,38 @@ export function cachedFnWithArgsFactory<FunDef extends (...args: any[]) => any>(
   // TypeScript generics are a bit complicated here. However, they ensure that invalidate() function is called
   // with the same arguments as the calculate() function. It will work even if the client code completely skips
   // explicit type definition between < and >.
-  const { key, calculate, name } = options
+  const { key, calculate, name: _name } = options
 
-  // The map is observable so any observers will be triggered when the cache is updated
-  // The values within the map are not automatically made observable since
-  // cachedFnWithArgsFactory is usually used in cases where the values are large objects
-  // and usually a whole new value object is created by on each calculate call
-  const cacheMap = observable.map<string, ReturnType<FunDef>>({},
-    {name: name || "cachedFnWithArgs", deep: false})
+  // Observable version counters for MobX dependency tracking.
+  // The getter only reads these; invalidate()/invalidateAll() write them from actions.
+  const _globalVersion = observable.box(0, { name: `${_name}:globalVersion` })
+  const _keyVersions = observable.map<string, number>({}, { name: `${_name}:keyVersions`, deep: false })
+
+  // Plain (non-observable) cache so getter writes are invisible to MobX.
+  const _cache = new Map<string, { value: ReturnType<FunDef>, globalVer: number, keyVer: number | undefined }>()
 
   const getter = (...args: Parameters<FunDef>) => {
     const cacheKey = key(...args)
-    if (!cacheMap.has(cacheKey)) {
-      cacheMap.set(cacheKey, calculate(...args))
+    // Reading observable versions establishes MobX dependencies without writing.
+    const gv = _globalVersion.get()
+    const kv = _keyVersions.get(cacheKey)
+    const cached = _cache.get(cacheKey)
+    if (!cached || cached.globalVer !== gv || cached.keyVer !== kv) {
+      const value = calculate(...args)
+      _cache.set(cacheKey, { value, globalVer: gv, keyVer: kv })
+      return value
     }
-    return cacheMap.get(cacheKey) as ReturnType<FunDef>
+    return cached.value
   }
   getter.invalidate = (...args: Parameters<FunDef>) => {
     const cacheKey = key(...args)
-    cacheMap.delete(cacheKey)
+    _cache.delete(cacheKey)
+    _keyVersions.set(cacheKey, (_keyVersions.get(cacheKey) ?? 0) + 1)
   }
   getter.invalidateAll = () => {
-    cacheMap.clear()
+    _cache.clear()
+    _keyVersions.clear()
+    _globalVersion.set(_globalVersion.get() + 1)
   }
   return getter
 }
