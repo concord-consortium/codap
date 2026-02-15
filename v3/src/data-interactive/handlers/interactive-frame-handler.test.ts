@@ -114,7 +114,7 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     expect(tile.title).toBe("Plugin Title")
   })
 
-  it("update handles handlesLocaleChange", () => {
+  it("update sets handlesLocaleChange", () => {
     const tile = appState.document.content!.createOrShowTile(kWebViewTileType)!
     const webViewContent = tile.content as IWebViewModel
     expect(webViewContent.handlesLocaleChange).toBe(false)

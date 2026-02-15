@@ -171,4 +171,12 @@ describe("appendLangParam", () => {
     expect(appendLangParam("../plugin/index.html#section", "es"))
       .toBe("../plugin/index.html?lang=es#section")
   })
+  it("handles existing query params and hash fragment in relative URLs", () => {
+    expect(appendLangParam("../plugin/index.html?foo=bar#section", "es"))
+      .toBe("../plugin/index.html?foo=bar&lang=es#section")
+  })
+  it("replaces lang param without dropping hash fragment in relative URLs", () => {
+    expect(appendLangParam("../plugin/index.html?lang=en#section", "es"))
+      .toBe("../plugin/index.html?lang=es#section")
+  })
 })

@@ -1,10 +1,10 @@
 # Plugin Locale-Switching Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+> Implementation plan for adding locale-switching support to plugins in CODAP V3.
 
 **Goal:** Notify and/or reload plugins when the user switches locale in CODAP V3, matching V2's backward-compatible behavior.
 
-**Architecture:** Add `?lang=` URL parameter to all plugin iframes, include locale in the `interactiveFrame` API response, broadcast a `localeChanged` notification on locale switch, and reload localized plugins by default (with an opt-out mechanism via `handlesLocaleChange`).
+**Architecture:** For localized plugins, append a `?lang=` URL parameter to their iframe URLs; include locale in the `interactiveFrame` API response, broadcast a `localeChanged` notification on locale switch, and reload localized plugins by default (with an opt-out mechanism via `handlesLocaleChange`).
 
 **Tech Stack:** React 18, MobX, MobX-State-Tree, TypeScript, iframe-phone, Jest
 

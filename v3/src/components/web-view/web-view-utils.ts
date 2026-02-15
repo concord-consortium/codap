@@ -81,12 +81,13 @@ export function appendLangParam(url: string, lang: string): string {
   } catch {
     // For relative or malformed URLs, fall back to simple string manipulation
     const langParam = `lang=${lang}`
-    // Replace existing lang param if present
-    const replaced = url.replace(/([?&])lang=[^&]*/, `$1${langParam}`)
-    if (replaced !== url) return replaced
-    // Split off hash fragment before appending
+    // Split off hash fragment so we don't accidentally drop it
     const hashIndex = url.indexOf("#")
     const [base, hash] = hashIndex >= 0 ? [url.slice(0, hashIndex), url.slice(hashIndex)] : [url, ""]
+    // Replace existing lang param if present
+    const replacedBase = base.replace(/([?&])lang=[^&]*/, `$1${langParam}`)
+    if (replacedBase !== base) return replacedBase + hash
+    // No existing lang param — append before the hash
     return base + (base.includes("?") ? "&" : "?") + langParam + hash
   }
 }

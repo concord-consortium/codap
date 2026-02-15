@@ -88,7 +88,7 @@ Each plugin independently reacts to locale changes via a MobX reaction in `useDa
    - Update the iframe `src` with the new `?lang=` value, triggering a full reload
    - The iframePhone connection is re-established naturally (the `useEffect` depends on `url`)
 
-2. **For all plugins** (including those just reloaded, after reconnection):
+2. **For non-localized plugins** (those not reloaded above):
    - Broadcast a notification via the existing `broadcastMessage` mechanism:
      ```typescript
      {
@@ -108,7 +108,7 @@ User selects language in CFM menu
   → gLocale.setCurrent("es")
   → MobX reaction in each WebViewComponent/useDataInteractiveController fires
     → For localized plugins (not opted out): reload iframe with new ?lang=es
-    → For all plugins: broadcast localeChanged notification
+    → For non-localized plugins: broadcast localeChanged notification
 ```
 
 ### 7. Files to modify

@@ -98,9 +98,12 @@ export const WebViewModel = TileContentModel
     },
     get isImage() {
       return self.subType === "image"
-    },
+    }
+  }))
+  .views(self => ({
     get needsLocaleReload() {
       if (self.handlesLocaleChange) return false
+      if (!(self.isPlugin || self.isPluginCandidate)) return false
       return kLocalizedPluginPatterns.some(pattern => self.url.includes(pattern))
     }
   }))
