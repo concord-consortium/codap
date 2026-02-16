@@ -10,6 +10,8 @@ jobs:
   test:
     name: Increment value test
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Check out source code
         uses: actions/checkout@v4
