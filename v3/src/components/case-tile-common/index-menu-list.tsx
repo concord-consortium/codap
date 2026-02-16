@@ -46,7 +46,7 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
     }
   }
 
-  function handleCloseInsertCasesModel(insertSpec?: IInsertSpec) {
+  function handleCloseInsertCasesModal(insertSpec?: IInsertSpec) {
     const { count, position } = insertSpec || {}
     if (data && count && position) {
       const casesToInsert: ICaseCreation[] = Array<ICaseCreation>(count).fill({})
@@ -113,7 +113,7 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
           })
         }
       </MenuList>
-      <InsertCasesModal caseId={caseId} isOpen={isOpen} onClose={handleCloseInsertCasesModel}/>
+      <InsertCasesModal caseId={caseId} isOpen={isOpen} onClose={handleCloseInsertCasesModal}/>
     </>
   )
 }
