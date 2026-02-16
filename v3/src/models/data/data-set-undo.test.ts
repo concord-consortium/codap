@@ -315,4 +315,41 @@ describe("DataSet undo/redo", () => {
     expect(attr.hasFormula).toBe(true)
     expect(attr.formula!.display).toBe("b * 10")
   })
+
+  it("can undo/redo setting a formula and renaming the attribute in one action", async () => {
+    const { data, whenTreeManagerIsReady, undoManager } = setupDocument()
+
+    const attr = data.attrFromID("aId")!
+    expect(attr.name).toBe("a")
+    expect(attr.hasFormula).toBe(false)
+    expect(data.getItem("ITEM0")).toEqual({ __id__: "ITEM0", aId: 1, bId: 2 })
+
+    data.applyModelChange(
+      () => setAttributeFormulaWithCustomUndoRedo(data, attr, "b * 10", "renamed"),
+      { undoStringKey: "Undo edit formula", redoStringKey: "Redo edit formula" })
+
+    expect(attr.hasFormula).toBe(true)
+    expect(attr.formula!.display).toBe("b * 10")
+    expect(attr.name).toBe("renamed")
+
+    await whenTreeManagerIsReady()
+
+    undoManager?.undo()
+
+    await whenTreeManagerIsReady()
+
+    // formula should be removed, values and name restored
+    expect(attr.hasFormula).toBe(false)
+    expect(attr.name).toBe("a")
+    expect(data.getItem("ITEM0")).toEqual({ __id__: "ITEM0", aId: 1, bId: 2 })
+
+    undoManager?.redo()
+
+    await whenTreeManagerIsReady()
+
+    // formula and name should be re-applied
+    expect(attr.hasFormula).toBe(true)
+    expect(attr.formula!.display).toBe("b * 10")
+    expect(attr.name).toBe("renamed")
+  })
 })

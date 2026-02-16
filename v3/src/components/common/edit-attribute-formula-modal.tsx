@@ -18,10 +18,7 @@ export const EditAttributeFormulaModal = observer(function EditAttributeFormulaM
   const applyFormula = (formula: string, attrName?: string) => {
     if (attribute) {
       dataSet?.applyModelChange(() => {
-        setAttributeFormulaWithCustomUndoRedo(dataSet, attribute, formula)
-        if (attrName && attrName !== attribute.name) {
-          dataSet.setAttributeName(attributeId, attrName)
-        }
+        setAttributeFormulaWithCustomUndoRedo(dataSet, attribute, formula, attrName)
       }, {
         // TODO Should also broadcast notify component edit formula notification
         notify: [
