@@ -4,7 +4,9 @@ import { createCodapDocument } from "../codap/create-codap-document"
 import { TreeManager } from "../history/tree-manager"
 import { getSharedModelManager } from "../tiles/tile-environment"
 import { SharedDataSet } from "../shared/shared-data-set"
-import { removeCasesWithCustomUndoRedo, setCaseValuesWithCustomUndoRedo } from "./data-set-undo"
+import {
+  removeCasesWithCustomUndoRedo, setAttributeFormulaWithCustomUndoRedo, setCaseValuesWithCustomUndoRedo
+} from "./data-set-undo"
 
 describe("DataSet undo/redo", () => {
 
@@ -200,5 +202,117 @@ describe("DataSet undo/redo", () => {
     await whenTreeManagerIsReady()
 
     expect(data.itemIds).toEqual(["ITEM1", "ITEM5"])
+  })
+
+  it("can undo/redo setting a formula on an attribute without a formula", async () => {
+    const { data, whenTreeManagerIsReady, undoManager } = setupDocument()
+
+    const attr = data.attrFromID("aId")!
+    expect(attr.hasFormula).toBe(false)
+    expect(data.getItem("ITEM0")).toEqual({ __id__: "ITEM0", aId: 1, bId: 2 })
+
+    data.applyModelChange(
+      () => setAttributeFormulaWithCustomUndoRedo(data, attr, "b * 10"),
+      { undoStringKey: "Undo edit formula", redoStringKey: "Redo edit formula" })
+
+    expect(attr.hasFormula).toBe(true)
+    expect(attr.formula!.display).toBe("b * 10")
+
+    await whenTreeManagerIsReady()
+
+    // custom undo/redo patch should be present
+    expect(undoManager?.undoEntry?.customPatches?.length).toBe(1)
+
+    undoManager?.undo()
+
+    await whenTreeManagerIsReady()
+
+    // formula should be removed and original values restored
+    expect(attr.hasFormula).toBe(false)
+    expect(data.getItem("ITEM0")).toEqual({ __id__: "ITEM0", aId: 1, bId: 2 })
+
+    undoManager?.redo()
+
+    await whenTreeManagerIsReady()
+
+    // formula should be re-applied
+    expect(attr.hasFormula).toBe(true)
+    expect(attr.formula!.display).toBe("b * 10")
+  })
+
+  it("does not use custom undo/redo when changing an existing formula", async () => {
+    const { data, whenTreeManagerIsReady, undoManager } = setupDocument()
+
+    const attr = data.attrFromID("aId")!
+
+    // first, set a formula
+    data.applyModelChange(
+      () => setAttributeFormulaWithCustomUndoRedo(data, attr, "b * 10"),
+      { undoStringKey: "Undo edit formula", redoStringKey: "Redo edit formula" })
+
+    await whenTreeManagerIsReady()
+
+    expect(attr.formula!.display).toBe("b * 10")
+
+    // now change the formula — should not generate a custom patch
+    data.applyModelChange(
+      () => setAttributeFormulaWithCustomUndoRedo(data, attr, "b * 20"),
+      { undoStringKey: "Undo edit formula", redoStringKey: "Redo edit formula" })
+
+    expect(attr.formula!.display).toBe("b * 20")
+
+    await whenTreeManagerIsReady()
+
+    // no custom undo/redo patch for formula-to-formula change
+    expect(undoManager?.undoEntry?.customPatches).toBeUndefined()
+
+    undoManager?.undo()
+
+    await whenTreeManagerIsReady()
+
+    // formula should revert to the previous formula
+    expect(attr.hasFormula).toBe(true)
+    expect(attr.formula!.display).toBe("b * 10")
+
+    undoManager?.redo()
+
+    await whenTreeManagerIsReady()
+
+    expect(attr.formula!.display).toBe("b * 20")
+  })
+
+  it("does not use custom undo/redo when clearing a formula", async () => {
+    const { data, whenTreeManagerIsReady, undoManager } = setupDocument()
+
+    const attr = data.attrFromID("aId")!
+
+    // first, set a formula
+    data.applyModelChange(
+      () => setAttributeFormulaWithCustomUndoRedo(data, attr, "b * 10"),
+      { undoStringKey: "Undo edit formula", redoStringKey: "Redo edit formula" })
+
+    await whenTreeManagerIsReady()
+
+    expect(attr.hasFormula).toBe(true)
+
+    // clear the formula — should not generate a custom patch
+    data.applyModelChange(
+      () => setAttributeFormulaWithCustomUndoRedo(data, attr, ""),
+      { undoStringKey: "Undo edit formula", redoStringKey: "Redo edit formula" })
+
+    expect(attr.hasFormula).toBe(false)
+
+    await whenTreeManagerIsReady()
+
+    // no custom undo/redo patch for clearing a formula
+    expect(undoManager?.undoEntry?.customPatches).toBeUndefined()
+
+    undoManager?.undo()
+
+    await whenTreeManagerIsReady()
+
+    // formula should be restored
+    expect(attr.hasFormula).toBe(true)
+    expect(attr.formula!.display).toBe("b * 10")
   })
 })

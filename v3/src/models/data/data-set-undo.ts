@@ -5,6 +5,7 @@ import { ICustomUndoRedoPatcher } from "../history/custom-undo-redo-registry"
 import { HistoryEntryType } from "../history/history"
 import { ICustomPatch } from "../history/tree-types"
 import { withCustomUndoRedo } from "../history/with-custom-undo-redo"
+import { IAttribute } from "./attribute"
 import { ICollectionModel } from "./collection"
 import { CaseInfo, IAddCasesOptions, ICase, ICaseCreation, IItem } from "./data-set-types"
 import { DataSet, IDataSet } from "./data-set"
@@ -53,6 +54,68 @@ export function setCaseValuesWithCustomUndoRedo(data: IDataSet, cases: ICase[], 
     type: "DataSet.setCaseValues",
     data: { dataId: data.id, before, after }
   }, setCaseValuesCustomUndoRedoPatcher)
+}
+
+/*
+ * setAttributeFormula custom undo/redo
+ *
+ * When a formula is set on an attribute, the formula manager recalculates and overwrites the
+ * attribute's stored values. This custom undo/redo captures the values before the formula is
+ * set so they can be restored on undo.
+ */
+interface ISetAttributeFormulaCustomPatch extends ICustomPatch {
+  type: "DataSet.setAttributeFormula"
+  data: {
+    dataId: string
+    attrId: string
+    formula: string
+    before: ICase[]
+  }
+}
+function isSetAttributeFormulaCustomPatch(patch: ICustomPatch): patch is ISetAttributeFormulaCustomPatch {
+  return patch.type === "DataSet.setAttributeFormula"
+}
+
+const setAttributeFormulaCustomUndoRedoPatcher: ICustomUndoRedoPatcher = {
+  // When custom patches are present, standard patches are skipped, so the custom
+  // undo/redo handlers must handle both the formula change and the value restoration.
+  undo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
+    if (isSetAttributeFormulaCustomPatch(patch)) {
+      const data = resolveIdentifier<typeof DataSet>(DataSet, node, patch.data.dataId)
+      const attr = data?.attrFromID(patch.data.attrId)
+      attr?.clearFormula()
+      data?.setCaseValues(patch.data.before)
+    }
+  },
+  redo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
+    if (isSetAttributeFormulaCustomPatch(patch)) {
+      const data = resolveIdentifier<typeof DataSet>(DataSet, node, patch.data.dataId)
+      const attr = data?.attrFromID(patch.data.attrId)
+      attr?.setDisplayExpression(patch.data.formula)
+    }
+  }
+}
+
+export function setAttributeFormulaWithCustomUndoRedo(data: IDataSet, attribute: IAttribute, formula: string) {
+  // Only need to capture/restore values when adding a formula to an attribute that doesn't
+  // already have one. When changing from one formula to another, the values are computed
+  // and will be recalculated automatically.
+  if (formula && !attribute.hasFormula) {
+    const attrId = attribute.id
+    const before: ICase[] = data.items.map(({ __id__ }) => {
+      const index = data.getItemIndex(__id__)!
+      return { __id__, [attrId]: attribute.strValue(index) }
+    })
+
+    attribute.setDisplayExpression(formula)
+
+    withCustomUndoRedo<ISetAttributeFormulaCustomPatch>({
+      type: "DataSet.setAttributeFormula",
+      data: { dataId: data.id, attrId, formula, before }
+    }, setAttributeFormulaCustomUndoRedoPatcher)
+  } else {
+    attribute.setDisplayExpression(formula)
+  }
 }
 
 /*
