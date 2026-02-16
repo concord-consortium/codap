@@ -1,5 +1,8 @@
-import { Button, FormControl, FormLabel, HStack, Input, ModalBody, ModalCloseButton, ModalFooter, ModalHeader,
-  Radio, RadioGroup, Select, Textarea, Tooltip } from "@chakra-ui/react"
+import {
+  Button, FormControl, FormLabel, HStack, Input, Menu, MenuButton, MenuItemOption, MenuList, MenuOptionGroup,
+  ModalBody, ModalCloseButton, ModalFooter, ModalHeader, Radio, RadioGroup, Textarea, Tooltip
+} from "@chakra-ui/react"
+import { ChevronDownIcon } from "@chakra-ui/icons"
 import React, { useEffect, useState } from "react"
 import { useDataSet } from "../../../hooks/use-data-set"
 import { logMessageWithReplacement } from "../../../lib/log-message"
@@ -118,34 +121,47 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
   const getPrecisionMenu = () => {
     if (userType === "date" || (userType === "none" && attribute?.type === "date")) {
       return (
-        <Select size="xs" ml={5} value={toDatePrecisionStr(precision)} data-testid="attr-precision-select"
-                        onChange={(e) => setPrecision(toDatePrecision(e.target.value))}>
-          {datePrecisions.map(p => {
-            return (
-              <option value={p} key={`precision-${p}`} data-testid={`attr-precision-option-${p}`}>
-                {p}
-              </option>
-            )
-          })}
-        </Select>
+        <Menu>
+          <MenuButton as={Button} className="attr-menu-select" ml={5} data-testid="attr-precision-select"
+              rightIcon={<ChevronDownIcon />}>
+            {toDatePrecisionStr(precision) || "\u00A0"}
+          </MenuButton>
+          <MenuList>
+            <MenuOptionGroup type="radio" value={toDatePrecisionStr(precision)}
+                onChange={(value) => setPrecision(toDatePrecision(value as string))}>
+              {datePrecisions.map(p => (
+                <MenuItemOption key={`precision-${p}`} value={p} data-testid={`attr-precision-option-${p}`}>
+                  {p}
+                </MenuItemOption>
+              ))}
+            </MenuOptionGroup>
+          </MenuList>
+        </Menu>
       )
     } else {
       const isDisabled = !["none", "date", "numeric"].includes(userType)
       const value = isDisabled ? "" : toNumPrecisionStr(precision)
       return (
-        <Select size="xs" ml={5} value={value} disabled={isDisabled}
-            data-testid="attr-precision-select"
-            onChange={(e) => setPrecision(toNumPrecision(e.target.value))}>
-          <option value={""}></option>
-          {[...Array(10).keys()].map(pNum => {
-            const precisionStr = `${pNum}`
-            return (
-              <option value={pNum} key={`precision-${pNum}`} data-testid={`attr-precision-option-${pNum}`}>
-                {precisionStr}
-              </option>
-            )
-          })}
-        </Select>
+        <Menu>
+          <MenuButton as={Button} className="attr-menu-select" ml={5} isDisabled={isDisabled}
+              data-testid="attr-precision-select" rightIcon={<ChevronDownIcon />}>
+            {value || "\u00A0"}
+          </MenuButton>
+          <MenuList>
+            <MenuOptionGroup type="radio" value={value}
+                onChange={(val) => setPrecision(toNumPrecision(val as string))}>
+              <MenuItemOption key="precision-none" value="" data-testid="attr-precision-option-none">
+                {"\u00A0"}
+              </MenuItemOption>
+              {[...Array(10).keys()].map(pNum => (
+                <MenuItemOption key={`precision-${pNum}`} value={`${pNum}`}
+                    data-testid={`attr-precision-option-${pNum}`}>
+                  {`${pNum}`}
+                </MenuItemOption>
+              ))}
+            </MenuOptionGroup>
+          </MenuList>
+        </Menu>
       )
     }
   }
@@ -180,16 +196,22 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
             />
           </FormLabel>
           <FormLabel mr={5} className="edit-attribute-form-row">{t("DG.CaseTable.attributeEditor.type")}
-            <Select size="xs" ml={5} value={userType} data-testid="attr-type-select"
-                onChange={(e) => setUserType(e.target.value as SelectableAttributeType)}
-                onMouseDown={(e) => e.stopPropagation()}>
-              {selectableAttributeTypes.map(aType => {
-                return (<option key={aType} value={aType} data-testid="attr-type-option"
-                                onMouseDown={(e)=>e.stopPropagation()}>
-                          {t(`DG.CaseTable.attribute.type.${aType}`)}
-                        </option>)
-              })}
-            </Select>
+            <Menu>
+              <MenuButton as={Button} className="attr-menu-select" ml={5} data-testid="attr-type-select"
+                  rightIcon={<ChevronDownIcon />}>
+                {t(`DG.CaseTable.attribute.type.${userType}`)}
+              </MenuButton>
+              <MenuList>
+                <MenuOptionGroup type="radio" value={userType}
+                    onChange={(value) => setUserType(value as SelectableAttributeType)}>
+                  {selectableAttributeTypes.map(aType => (
+                    <MenuItemOption key={aType} value={aType} data-testid="attr-type-option">
+                      {t(`DG.CaseTable.attribute.type.${aType}`)}
+                    </MenuItemOption>
+                  ))}
+                </MenuOptionGroup>
+              </MenuList>
+            </Menu>
           </FormLabel>
           <FormLabel className="edit-attribute-form-row">{t("DG.CaseTable.attributeEditor.unit")}
             <Input size="xs" placeholder="unit" ml={5} value={units} onFocus={(e) => e.target.select()}

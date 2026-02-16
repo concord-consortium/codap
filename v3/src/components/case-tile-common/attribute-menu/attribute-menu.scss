@@ -5,11 +5,28 @@
   align-items: center;
   justify-content: space-between;
 
-  input, .chakra-select__wrapper {
-    margin-left: 10px;
-  }
   input {
+    margin-left: 10px;
     padding: 0 8px;
+  }
+
+  .attr-menu-select {
+    flex: 1;
+    height: 24px;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    background-color: white;
+    font-size: 12px;
+    font-weight: normal;
+    text-align: left;
+    padding: 0 8px;
+
+    span {
+      // ensure text and icon are spaced apart
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
   }
 }
 .edit-attribute-form-row.editable {
