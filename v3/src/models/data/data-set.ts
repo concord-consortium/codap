@@ -1084,6 +1084,8 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       },
       // should be called before retrieving snapshot (pre-serialization)
       prepareSnapshot() {
+        // ensure case validation is up to date before serializing
+        self.validateCases()
         // move volatile data into serializable properties
         withoutUndo({ noDirty: true, suppressWarning: true })
         self.collections.forEach(collection => collection.prepareSnapshot())
