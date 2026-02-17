@@ -42,7 +42,7 @@
   of people on the planet for whom that reference makes any sense.
  */
 
-import { comparer, observable, reaction, runInAction, untracked } from "mobx"
+import { comparer, observable, reaction, runInAction } from "mobx"
 import {
   addDisposer, addMiddleware, getEnv, hasEnv, Instance, isAlive, onPatch, ReferenceIdentifier, SnapshotIn, types
 } from "mobx-state-tree"
@@ -213,65 +213,58 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   isAppendingItems: false
 }))
 .extend(self => {
-  const _validationCount = observable.box<number>(0)
-  const _isValidCases = observable.box<boolean>(false)
+  // Plain variables (NOT observable — no MobX involvement for cache guards)
+  let _validationCount = 0
+  let _isValidCases = false
+  let _isValidItemIds = false
+
+  // Single observable counter — bumped by setValidCases() after validation completes.
+  // Same pragmatic compromise as Collection._cacheVersion: a view writes one observable
+  // via runInAction so that MobX reactions fire only after cached data is fully updated.
+  const _caseValidationVersion = observable.box(0)
+
   // cached filtered item IDs (excludes hidden/filtered items)
   let _cachedItemIds: string[] = []
   let _cachedItems: IItem[] = []
-  const _isValidItemIds = observable.box<boolean>(false)
   // Hash caches use observableCachedFnFactory so that invalidation is observable by MobX.
   // When invalidate() is called (from an action), MobX detects the change to the internal
   // observable valid flag, which triggers re-evaluation of any computed/reaction that reads
   // the hash. On re-evaluation, the hash is lazily recomputed from _cachedItemIds.
   const _itemIdsHash = observableCachedFnFactory(() => hashStringSet(_cachedItemIds), 0)
   const _itemIdsOrderedHash = observableCachedFnFactory(() => hashOrderedStringSet(_cachedItemIds), 0)
-  // Use untracked() so that enclosing computeds (itemIdsHash, itemIdsOrderedHash) don't
-  // track _isValidItemIds as a dependency. Those computeds use the version counter in
-  // observableCachedFnFactory for their reactivity; adding _isValidItemIds as a dependency
-  // would cause observable writes from within a computed, breaking MobX dependency tracking.
   function _validateItemIds() {
-    if (!untracked(() => _isValidItemIds.get())) {
+    if (!_isValidItemIds) {
       _cachedItemIds = self._itemIds.filter(itemId =>
         !self.setAsideItemIdsSet.has(itemId) && !self.filteredOutItemIds.has(itemId)
       )
       _cachedItems = _cachedItemIds.map(id => ({ __id__: id }))
-      runInAction(() => _isValidItemIds.set(true))
+      _isValidItemIds = true
     }
   }
   function _invalidateItemIds() {
-    _isValidItemIds.set(false)
+    _isValidItemIds = false
     _itemIdsHash.invalidate()
     _itemIdsOrderedHash.invalidate()
   }
   return {
     views: {
       get validationCount() {
-        return _validationCount.get()
+        _caseValidationVersion.get()  // establish MobX dependency
+        return _validationCount
       },
       get isValidCases() {
-        return _isValidCases.get()
-      },
-      invalidateCases() {
-        runInAction(() => {
-          _isValidCases.set(false)
-          _invalidateItemIds()
-          // invalidate each collection's case group cache
-          self.collections.forEach(c => c.invalidateCaseGroups())
-        })
+        return _isValidCases
       },
       setValidCases() {
-        if (!_isValidCases.get()) {
-          runInAction(() => {
-            _validationCount.set(_validationCount.get() + 1)
-            _isValidCases.set(true)
-          })
+        if (!_isValidCases) {
+          _validationCount++
+          _isValidCases = true
+          // Signal validation completion to MobX (pragmatic compromise, see comment above)
+          runInAction(() => _caseValidationVersion.set(_caseValidationVersion.get() + 1))
         }
       },
       get isValidItemIds() {
-        return _isValidItemIds.get()
-      },
-      invalidateItemIds() {
-        runInAction(() => _invalidateItemIds())
+        return _isValidItemIds
       },
       get itemIds() {
         _validateItemIds()
@@ -291,10 +284,19 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       }
     },
     actions: {
+      invalidateCases() {
+        _isValidCases = false
+        _invalidateItemIds()
+        // invalidate each collection's case group cache
+        self.collections.forEach(c => c.invalidateCaseGroups())
+      },
+      invalidateItemIds() {
+        _invalidateItemIds()
+      },
       // Efficiently append new item IDs to the cache when items are appended
       // (newly added items are not hidden, so they can be added directly)
       appendItemIdsToCache(itemIds: string[]) {
-        if (_isValidItemIds.get()) {
+        if (_isValidItemIds) {
           const visibleIds = itemIds.filter(itemId =>
             !self.setAsideItemIdsSet.has(itemId) && !self.filteredOutItemIds.has(itemId)
           )
@@ -681,11 +683,13 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       Array.from(self.childCollection.caseGroupMap.values()).forEach(caseGroup => {
         self.itemIdChildCaseMap.set(caseGroup.childItemIds[0] ?? caseGroup.hiddenChildItemIds[0], caseGroup)
       })
-      // delete removed items from selection
-      itemsToValidate.forEach(itemId => {
-        // update selection
-        self.selection.delete(itemId)
-      })
+      // delete removed items from selection (self.selection is observable.set,
+      // so writing from a view requires runInAction — pragmatic compromise)
+      if (itemsToValidate.size) {
+        runInAction(() => {
+          itemsToValidate.forEach(itemId => self.selection.delete(itemId))
+        })
+      }
       self.setValidCases()
     }
   },

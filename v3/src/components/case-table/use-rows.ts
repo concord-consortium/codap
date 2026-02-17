@@ -129,7 +129,12 @@ export const useRows = (gridElement: HTMLDivElement | null) => {
 
     // rebuild the entire cache after grouping changes
     const validationReactionDisposer = reaction(
-      () => data?.isValidCases && data?.validationCount,
+      () => {
+        // Always evaluate validationCount to maintain MobX dependency on the
+        // underlying observable counter, even when isValidCases is false.
+        const version = data?.validationCount
+        return data?.isValidCases ? version : undefined
+      },
       validation => {
         if (typeof validation === "number") {
           resetRowCacheAndSyncRows()
