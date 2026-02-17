@@ -96,7 +96,13 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
     ? dataConfiguration.caseDataWithSubPlot
     : dataConfiguration.joinedCaseDataArrays
 
-  startAnimation()
+  // Skip animation when filter formula results were just recalculated (e.g., slider value changed),
+  // so points/bars update instantly instead of animating in/out.
+  if (dataConfiguration.suppressAnimation) {
+    dataConfiguration.setSuppressAnimation(false)
+  } else {
+    startAnimation()
+  }
 
   renderer?.matchPointsToData(dataConfiguration.dataset?.id ?? '', allCaseData, pointDisplayType, {
     radius: pointRadius,

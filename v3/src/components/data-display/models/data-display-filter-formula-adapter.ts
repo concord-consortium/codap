@@ -84,15 +84,24 @@ export class DataDisplayFilterFormulaAdapter extends FormulaManagerAdapter {
       console.error(`ContentModel with id "${extraMetadata.contentModelId}" not found`)
       return
     }
-    // Use visibleCaseIds to exclude hidden cases so they're not included in calculations,
-    // such as aggregate functions like mean.
-    const childMostCollectionCaseIds = [...dataConfig.visibleCaseIds]
+    let childMostCollectionCaseIds: string[]
+    let casesToRecalculate: string[]
 
-    let casesToRecalculate: string[] = []
     if (casesToRecalculateDesc === "ALL_CASES") {
-      // If casesToRecalculate is not provided, recalculate all cases.
+      // When recalculating all cases (e.g., when a global value/slider changes), include all non-hidden
+      // cases from the childmost collection, including those currently filtered out. Using visibleCaseIds
+      // here would exclude cases in filteredOutCaseIds, so they'd never be re-evaluated when the filter
+      // formula's dependencies change, causing stale filter results to accumulate.
+      const collectionId = dataConfig.childmostCollectionIDForAxisAttributes
+      const hiddenCases = dataConfig.hiddenCasesSet
+      childMostCollectionCaseIds = dataSet.getCasesForCollection(collectionId)
+        .map((c: ICase) => c.__id__)
+        .filter((id: string) => !hiddenCases.has(id))
       casesToRecalculate = childMostCollectionCaseIds
     } else {
+      // For incremental recalculation, use visibleCaseIds to exclude hidden and filtered cases
+      // so they're not included in aggregate calculations like mean.
+      childMostCollectionCaseIds = [...dataConfig.visibleCaseIds]
       casesToRecalculate = casesToRecalculateDesc.map(c => c.__id__)
     }
 

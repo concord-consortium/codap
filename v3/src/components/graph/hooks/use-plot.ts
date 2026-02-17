@@ -11,7 +11,7 @@ import {IAxisModel} from "../../axis/models/axis-model"
 import {GraphAttrRoles} from "../../data-display/data-display-types"
 import {matchCirclesToData} from "../../data-display/data-display-utils"
 import { PointEventHandler, PointRendererBase } from "../../data-display/renderer"
-import { syncModelWithAttributeConfiguration } from "../models/graph-model-utils"
+import { setupAxes, syncModelWithAttributeConfiguration } from "../models/graph-model-utils"
 import { updateCellMasks } from "../utilities/graph-utils"
 import {useGraphContentModelContext} from "./use-graph-content-model-context"
 import {useGraphLayoutContext} from "./use-graph-layout-context"
@@ -284,11 +284,14 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       () => {
         if (!renderer) return
 
+        // Use setupAxes (not syncModelWithAttributeConfiguration) to reconfigure axes without
+        // overriding the user's explicit plot type choice via syncPlotWithAttributeConfiguration.
+        setupAxes(graphModel, layout)
         callMatchCirclesToData()
         callRefreshPointPositions()
       }, {name: "usePlot [plotType]"}, graphModel
     )
-  }, [callMatchCirclesToData, callRefreshPointPositions, graphModel, renderer])
+  }, [callMatchCirclesToData, callRefreshPointPositions, graphModel, layout, renderer])
 
   useEffect(() => {
     return mstReaction(
