@@ -695,6 +695,12 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     // Append new items to the itemIds/items cache
     self.appendItemIdsToCache(itemIds)
 
+    // If a full invalidation is already pending (e.g., from an earlier insert in the same
+    // undo action), skip additive processing. The full rebuild will happen when validateCases()
+    // is next called. Without this check, completeCaseGroups() would run with incomplete volatile
+    // state and signal observers via _cacheVersion before the data is fully rebuilt.
+    if (!self.isValidCases) return
+
     self.collections.forEach((collection, index) => {
       // update the cases (additive — only processes new itemIds)
       const { newCaseIds } = collection.updateCaseGroups(itemIds)
