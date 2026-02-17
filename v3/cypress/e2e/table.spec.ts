@@ -55,7 +55,7 @@ context("case table ui", () => {
       table.selectMenuItemFromAttributeMenu("Edit Attribute Properties...")
       cy.get("[data-testid='attr-name-input']").should("have.value", name)
       cy.get("[data-testid='attr-description-input']").should("have.text", description)
-      cy.get("[data-testid='attr-type-select']").should("have.value", type)
+      cy.get("[data-testid='attr-type-select']").should("have.text", type)
       cy.get("[data-testid='attr-editable-radio'] input[value='no']").should("be.checked")
       table.getCancelButton().click({force: true})
 
@@ -71,7 +71,7 @@ context("case table ui", () => {
       table.selectMenuItemFromAttributeMenu("Edit Attribute Properties...")
       cy.get("[data-testid='attr-name-input']").should("have.value", "Height")
       cy.get("[data-testid='attr-description-input']").should("have.text", "")
-      cy.get("[data-testid='attr-type-select']").should("have.value", "none")
+      cy.get("[data-testid='attr-type-select']").should("have.text", "none")
       cy.get("[data-testid='attr-editable-radio'] input[value='yes']").should("be.checked")
       table.getCancelButton().click()
 

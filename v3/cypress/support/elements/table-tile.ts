@@ -143,13 +143,15 @@ export const TableTileElements = {
     cy.get("[data-testid=attr-description-input]").type(text)
   },
   selectAttributeType(type: string) {
-    cy.get("[data-testid=attr-type-select]").select(type)
+    cy.get("[data-testid=attr-type-select]").click()
+    cy.get("[data-testid=attr-type-option]").contains(type).click()
   },
   enterAttributeUnit(unit: string) {
     cy.get("[data-testid=attr-unit-input]").type(unit)
   },
   selectAttributePrecision(precision: string) {
-    cy.get("[data-testid=attr-precision-select]").select(precision)
+    cy.get("[data-testid=attr-precision-select]").click()
+    cy.get("[data-testid^=attr-precision-option]").contains(precision).click()
   },
   selectAttributeEditableState(state: string) {
     cy.get("[data-testid=attr-editable-radio] span").contains(state).click()
