@@ -98,7 +98,7 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
         }
       }
     }
-    else {  // only counts are possible
+    else if (showingCount) {
       if (showMeasuresForSelection) {
         result = t(countWithSelection, { vars: [numerator] })
       }
