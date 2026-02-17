@@ -459,6 +459,36 @@ describe("CollectionModel", () => {
     expect(c1.cases.length).toBe(2)
   })
 
+  it("empty newCaseIds falls through to rebuild path", () => {
+    const c1 = CollectionModel.create({ name: "c1" })
+    let items = ["i0", "i1"]
+    const itemData: IItemData = {
+      itemIds: () => items,
+      isHidden: () => false,
+      getValue: (itemId: string) => itemId,
+      addItemInfo: () => null,
+      invalidate: () => null
+    }
+    syncCollectionLinks([c1], itemData)
+
+    // initial full build
+    c1.updateCaseGroups()
+    c1.completeCaseGroups(undefined)
+    expect(c1.cases.length).toBe(2)
+
+    // simulate the scenario where items are re-added (e.g. undo of delete)
+    // and updateCaseGroups returns empty newCaseIds because the groupKey
+    // mappings already exist in groupKeyCaseIds
+    items = ["i0", "i1", "i2"]
+    c1.updateCaseGroups()
+    // pass empty array — should fall through to REBUILD, not take APPEND (which would append nothing)
+    c1.invalidateCaseGroupsForNewCases([])
+    c1.completeCaseGroups(undefined)
+    // rebuild should pick up all 3 items
+    expect(c1.cases.length).toBe(3)
+    expect(c1.caseGroups.length).toBe(3)
+  })
+
   it("additive invalidation appends correctly without full rebuild", () => {
     const c1 = CollectionModel.create({ name: "c1" })
     let items = ["i0", "i1"]
