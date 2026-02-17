@@ -106,4 +106,58 @@ context("hierarchical collections", () => {
     table.getNumOfRows(2).should("contain", 29)
   })
 
+  it("verify insert case from input row index menu in hierarchical table", () => {
+    table.moveAttributeToParent("Order", "newCollection")
+    table.getNumOfRows(1).should("contain", 14)
+    table.getNumOfRows(2).should("contain", 29)
+
+    // Move the input row into a group in the child collection.
+    // This also selects the case at row 5, which enables the insert menu items.
+    table.moveInputRowUsingIndexMenu(5, 2)
+    table.getIndexCellInRow(5, 2).should("have.class", "input-row")
+
+    // Insert a single case from the input row's index menu
+    table.openInputRowIndexMenu(2)
+    table.insertCase()
+    // Parent count unchanged means the new case inherited correct parent values
+    table.getNumOfRows(1).should("contain", 14)
+    table.getNumOfRows(2).should("contain", 30)
+    // Input row should have moved down by 1 (inserted before the input row)
+    table.getIndexCellInRow(6, 2).should("have.class", "input-row")
+  })
+
+  it("verify insert cases before from input row index menu in hierarchical table", () => {
+    table.moveAttributeToParent("Order", "newCollection")
+    table.getNumOfRows(1).should("contain", 14)
+    table.getNumOfRows(2).should("contain", 29)
+
+    table.moveInputRowUsingIndexMenu(5, 2)
+    table.getIndexCellInRow(5, 2).should("have.class", "input-row")
+
+    // Insert 2 cases before the input row
+    table.openInputRowIndexMenu(2)
+    table.insertCases(2, "before")
+    table.getNumOfRows(1).should("contain", 14)
+    table.getNumOfRows(2).should("contain", 31)
+    // Input row should have moved down by 2
+    table.getIndexCellInRow(7, 2).should("have.class", "input-row")
+  })
+
+  it("verify insert cases after from input row index menu in hierarchical table", () => {
+    table.moveAttributeToParent("Order", "newCollection")
+    table.getNumOfRows(1).should("contain", 14)
+    table.getNumOfRows(2).should("contain", 29)
+
+    table.moveInputRowUsingIndexMenu(5, 2)
+    table.getIndexCellInRow(5, 2).should("have.class", "input-row")
+
+    // Insert 2 cases after the input row
+    table.openInputRowIndexMenu(2)
+    table.insertCases(2, "after")
+    table.getNumOfRows(1).should("contain", 14)
+    table.getNumOfRows(2).should("contain", 31)
+    // Input row should stay at the same position (inserted after)
+    table.getIndexCellInRow(5, 2).should("have.class", "input-row")
+  })
+
 })

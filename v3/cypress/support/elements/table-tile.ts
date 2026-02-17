@@ -78,6 +78,11 @@ export const TableTileElements = {
     this.getIndexMenu().should("be.visible")
     cy.clickMenuItem("Move Data Entry Row Here")
   },
+  openInputRowIndexMenu(collectionIndex = 1) {
+    this.getCollection(collectionIndex)
+      .find("[data-testid=collection-table-grid] button[data-testid=codap-index-content-button].input-row")
+      .click()
+  },
   insertCase() {
     this.getIndexMenu().should("be.visible")
     cy.clickMenuItem("Insert Case")

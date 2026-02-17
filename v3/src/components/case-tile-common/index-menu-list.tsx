@@ -6,6 +6,7 @@ import { t } from "../../utilities/translation/translate"
 import { IInsertSpec, InsertCasesModal } from "./insert-cases-modal"
 import { isItemEditable } from "../../utilities/plugin-utils"
 import { ICaseCreation } from "../../models/data/data-set-types"
+import { kInputRowKey } from "../case-table/case-table-types"
 import { useCollectionTableModel } from "../case-table/use-collection-table-model"
 
 interface IProps {
@@ -26,11 +27,34 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
   const tableIndex = collection?.caseIdToIndexMap.get(caseId) ?? -1
   const collectionTable = useCollectionTableModel()
 
-  function handleCloseInsertCasesModel(insertSpec?: IInsertSpec) {
+  // When the menu is opened on the input row, resolve a real case ID for insert operations.
+  // The input row's __id__ is "__input__" which isn't a real case, so we map it to the case
+  // at the input row's current position so that inserts get the correct position and parent values.
+  const isInputRow = caseId === kInputRowKey
+  const inputRowIndex = collectionTable?.inputRowIndex ?? -1
+  const insertReferenceCaseId = isInputRow && inputRowIndex >= 0
+    ? collection?.caseIds[inputRowIndex]
+    : undefined
+
+  function insertCasesAtInputRow(cases: ICaseCreation[], position: "before" | "after" = "before") {
+    if (!data || !insertReferenceCaseId) return
+    insertCasesWithCustomUndoRedo(data, cases, { before: insertReferenceCaseId })
+    // "before" the input row: bump inputRowIndex so the input row moves below the new cases.
+    // "after" the input row: keep inputRowIndex as-is so the input row stays above the new cases.
+    if (collectionTable && inputRowIndex >= 0 && position === "before") {
+      collectionTable.setInputRowIndex(inputRowIndex + cases.length)
+    }
+  }
+
+  function handleCloseInsertCasesModal(insertSpec?: IInsertSpec) {
     const { count, position } = insertSpec || {}
     if (data && count && position) {
       const casesToInsert: ICaseCreation[] = Array<ICaseCreation>(count).fill({})
-      insertCasesWithCustomUndoRedo(data, casesToInsert, { [position]: caseId })
+      if (isInputRow) {
+        insertCasesAtInputRow(casesToInsert, position)
+      } else {
+        insertCasesWithCustomUndoRedo(data, casesToInsert, { [position]: caseId })
+      }
     }
     onCloseInsertCasesModal()
   }
@@ -52,7 +76,9 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
       itemKey: "DG.CaseTable.indexMenu.insertCase",
       isEnabled: () => !disableEdits,
       handleClick: () => {
-        if (data) {
+        if (isInputRow) {
+          insertCasesAtInputRow([{}])
+        } else if (data) {
           insertCasesWithCustomUndoRedo(data, [{}], { before: caseId })
         }
       }
@@ -87,7 +113,7 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
           })
         }
       </MenuList>
-      <InsertCasesModal caseId={caseId} isOpen={isOpen} onClose={handleCloseInsertCasesModel}/>
+      <InsertCasesModal caseId={caseId} isOpen={isOpen} onClose={handleCloseInsertCasesModal}/>
     </>
   )
 }
