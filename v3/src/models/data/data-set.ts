@@ -255,6 +255,8 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
         runInAction(() => {
           _isValidCases.set(false)
           _invalidateItemIds()
+          // invalidate each collection's case group cache
+          self.collections.forEach(c => c.invalidateCaseGroups())
         })
       },
       setValidCases() {
@@ -693,11 +695,11 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     // Append new items to the itemIds/items cache
     self.appendItemIdsToCache(itemIds)
 
-    const newCaseIdsForCollections = new Map<string, string[]>()
     self.collections.forEach((collection, index) => {
-      // update the cases
+      // update the cases (additive — only processes new itemIds)
       const { newCaseIds } = collection.updateCaseGroups(itemIds)
-      newCaseIdsForCollections.set(collection.id, newCaseIds)
+      // tell collection about new cases for additive completion
+      collection.invalidateCaseGroupsForNewCases(newCaseIds)
     })
     self.collections.forEach((collection, index) => {
       // complete the case groups, including sorting child collection cases into groups
