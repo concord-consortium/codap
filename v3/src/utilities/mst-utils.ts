@@ -199,7 +199,7 @@ export function cachedFnWithArgsFactory<FunDef extends (...args: any[]) => any>(
     const gv = _globalVersion.get()
     const kv = _keyVersions.get(cacheKey)
     const cached = _cache.get(cacheKey)
-    if (!cached || cached.globalVer !== gv || cached.keyVer !== kv) {
+    if (cached?.globalVer !== gv || cached.keyVer !== kv) {
       const value = calculate(...args)
       _cache.set(cacheKey, { value, globalVer: gv, keyVer: kv })
       return value
