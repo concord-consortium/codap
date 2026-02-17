@@ -127,8 +127,6 @@ describe("convertHtmlToSvg", () => {
     window.getComputedStyle = originalGetComputedStyle
   })
 
-
-
   it("creates an SVG text element with correct content", () => {
     const element = document.createElement("div")
     element.textContent = "Hello World"
@@ -497,8 +495,6 @@ describe("convertHtmlToSvg with rich formatting", () => {
     window.getComputedStyle = originalGetComputedStyle
   })
 
-
-
   it("creates tspans for italic text (<em>)", () => {
     const element = document.createElement("div")
     element.innerHTML = "Hello <em>world</em>!"
@@ -737,8 +733,6 @@ describe("convertHtmlToSvg with background rectangles", () => {
   afterEach(() => {
     window.getComputedStyle = originalGetComputedStyle
   })
-
-
 
   it("creates a background rect when element has visible background color", () => {
     const element = document.createElement("div")

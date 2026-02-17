@@ -254,13 +254,6 @@ function processNode(
         if (spanStyle.underline) newStyles.underline = true
         break
       }
-      case "p": {
-        // Parse inline styles on <p> elements
-        const pStyle = parseInlineStyle(element.getAttribute("style"))
-        if (pStyle.color) newStyles.color = pStyle.color
-        if (pStyle.underline) newStyles.underline = pStyle.underline
-        break
-      }
     }
 
     for (const child of Array.from(node.childNodes)) {
