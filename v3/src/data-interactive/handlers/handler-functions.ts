@@ -5,7 +5,9 @@ import { DIResources, DISuccessResult, DIValues } from "../data-interactive-type
 import { DICaseValues, DIFullCase, DIUpdateCase, DIUpdateItemResult } from "../data-interactive-data-set-types"
 import { getV2ItemResult, getCaseRequestResultValues } from "../data-interactive-type-utils"
 import { attrNamesToIds } from "../data-interactive-utils"
-import { caseNotFoundResult, dataContextNotFoundResult, fieldRequiredResult, itemNotFoundResult } from "./di-results"
+import {
+  caseNotFoundResult, dataContextNotFoundResult, fieldRequiredResult, itemNotFoundResult, valuesRequiredResult
+} from "./di-results"
 
 export function deleteCaseBy(resources: DIResources, aCase?: ICase) {
   const { dataContext } = resources
@@ -99,6 +101,7 @@ export function updateCaseBy(
 export function updateCasesBy(resources: DIResources, values?: DIValues, itemReturnStyle?: boolean) {
   const { dataContext } = resources
   if (!dataContext) return dataContextNotFoundResult
+  if (!values) return valuesRequiredResult
 
   const cases = (Array.isArray(values) ? values : [values]) as DIFullCase[]
   const caseIDs: number[] = []
