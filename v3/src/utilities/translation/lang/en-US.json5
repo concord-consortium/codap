@@ -225,6 +225,10 @@
     "V3.Redo.graph.addRegionOfInterest": "Redo showing region of interest",
     "V3.Undo.graph.removeRegionOfInterest": "Undo hiding region of interest",
     "V3.Redo.graph.removeRegionOfInterest": "Redo hiding region of interest",
+    "V3.Undo.graph.showConfidenceBands": "Undo show confidence bands",
+    "V3.Redo.graph.showConfidenceBands": "Redo show confidence bands",
+    "V3.Undo.graph.hideConfidenceBands": "Undo hide confidence bands",
+    "V3.Redo.graph.hideConfidenceBands": "Redo hide confidence bands",
 
     "V3.ToolButtonData.webPageButton.title": "Web Page",
     "V3.ToolButtonData.webPageButton.toolTip": "Open a web page",

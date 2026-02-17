@@ -57,7 +57,17 @@ const Controls = observer(function Controls() {
   }
 
   const handleShowConfidenceBandsSetting = (checked: boolean) => {
-    existingAdornment?.setShowConfidenceBands(checked)
+    graphModel.applyModelChange(
+      () => existingAdornment?.setShowConfidenceBands(checked),
+      {
+        undoStringKey: checked
+          ? "V3.Undo.graph.showConfidenceBands"
+          : "V3.Undo.graph.hideConfidenceBands",
+        redoStringKey: checked
+          ? "V3.Redo.graph.showConfidenceBands"
+          : "V3.Redo.graph.hideConfidenceBands"
+      }
+    )
   }
 
   return (
