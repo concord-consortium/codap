@@ -102,6 +102,7 @@ export function updateCasesBy(resources: DIResources, values?: DIValues, itemRet
 
   const cases = (Array.isArray(values) ? values : [values]) as DIFullCase[]
   const caseIDs: number[] = []
+  const updatedCases: ICase[] = []
   dataContext.applyModelChange(() => {
     cases.forEach(aCase => {
       const { id } = aCase
@@ -113,9 +114,10 @@ export function updateCasesBy(resources: DIResources, values?: DIValues, itemRet
       if (id && aCase.values && v3Id && (dcItem || dcCase)) {
         caseIDs.push(id)
         const updatedAttributes = attrNamesToIds(aCase.values, dataContext)
-        dataContext.setCaseValues([{ ...updatedAttributes, __id__: v3Id }])
+        updatedCases.push({ ...updatedAttributes, __id__: v3Id })
       }
     })
+    dataContext.setCaseValues(updatedCases)
   }, {
     notify: () => {
       if (caseIDs.length > 0) {
