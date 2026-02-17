@@ -3,6 +3,7 @@ import { DataSetContext } from "../../hooks/use-data-set-context"
 import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { appState } from "../../models/app-state"
 import { updateAttributesNotification, updateCasesNotification } from "../../models/data/data-set-notifications"
+import { setAttributeFormulaWithCustomUndoRedo } from "../../models/data/data-set-undo"
 import { getSharedDataSets } from "../../models/shared/shared-data-utils"
 import { uiState } from "../../models/ui-state"
 import { t } from "../../utilities/translation/translate"
@@ -17,10 +18,7 @@ export const EditAttributeFormulaModal = observer(function EditAttributeFormulaM
   const applyFormula = (formula: string, attrName?: string) => {
     if (attribute) {
       dataSet?.applyModelChange(() => {
-        attribute.setDisplayExpression(formula)
-        if (attrName && attrName !== attribute.name) {
-          dataSet.setAttributeName(attributeId, attrName)
-        }
+        setAttributeFormulaWithCustomUndoRedo(dataSet, attribute, formula, attrName)
       }, {
         // TODO Should also broadcast notify component edit formula notification
         notify: [
