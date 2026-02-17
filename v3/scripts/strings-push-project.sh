@@ -2,7 +2,8 @@
 #
 # Push V3-specific strings to POEditor.
 #
-# Only pushes strings with V3.* keys — DG.* strings are owned by the V2 build.
+# Pushes all strings from en-US-v3.json5 (mostly V3.* keys, plus any DG.* keys
+# that are V3-owned). DG.* strings from V2 master are managed by the V2 build.
 # Uses additive mode (sync_terms=0) so no terms are deleted.
 #
 # Usage: ./scripts/strings-push-project.sh -a <api_token>
