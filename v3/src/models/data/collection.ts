@@ -545,7 +545,9 @@ export const CollectionModel = V2Model
 
         // APPEND path: top-level collection with only new cases added
         // Uses concatenation (not mutation) so consumers holding old references see a new array.
-        if (!parentCases && !_needsFullRebuild && newCaseIds) {
+        // Note: newCaseIds can be an empty array (e.g., when re-adding previously deleted items
+        // whose group key mappings still exist), so check length to fall through to REBUILD.
+        if (!parentCases && !_needsFullRebuild && newCaseIds?.length) {
           const newCaseGroups = newCaseIds.map(caseId => self.getCaseGroup(caseId))
           _caseGroups = [..._caseGroups, ...newCaseGroups.filter(group => !!group)]
 
