@@ -261,6 +261,7 @@ Wait for user confirmation before starting Phase 1.
    > and V3 share the same POEditor project (ID 125447), with an ownership model:
    > - **V2 owns `DG.*` strings** — V2 pushes only these keys
    > - **V3 owns `V3.*` strings** — V3 pushes only these keys
+   > - All keys in the project use one of these two prefixes; no other prefixes exist
    >
    > Before pushing, we'll compare the local English strings against what's currently in
    > POEditor, categorize differences by ownership, accept any V3 changes from POEditor,
@@ -329,10 +330,15 @@ Wait for user confirmation before starting Phase 1.
    **V3.\* differences** (V3-owned):
    - Inform user: "V3 made these string changes in POEditor: [list]. These will be
      accepted into your local file."
-   - Accept V3 changes by updating the local `lang/strings/en-US.json` with the
-     POEditor values for V3.* keys. Use the Read tool to get the current file content,
-     then use the Edit tool to update each changed V3.* value in place. Preserve any
-     JSON comments in the file.
+   - Accept V3 changes by synchronizing the local `lang/strings/en-US.json` with the
+     POEditor values for V3.* keys:
+     - For V3.* keys that already exist locally, update their values in place to match
+       POEditor.
+     - For V3.* keys that are present only in POEditor (new V3 terms), add those keys
+       and values to `lang/strings/en-US.json`, placing them near related V3 entries to
+       preserve the existing JSON ordering and structure.
+     Use the Read tool to get the current file content, then use the Edit tool to make
+     these updates/additions while preserving any JSON comments in the file.
 
    Present a summary, e.g.:
    > **English strings: local vs. POEditor**
@@ -358,7 +364,7 @@ Wait for user confirmation before starting Phase 1.
      }
      fs.writeFileSync('/tmp/dg-strings-push.json', JSON.stringify(dg));
      console.log('Pushing ' + Object.keys(dg).length + ' DG strings (filtering out ' +
-       (Object.keys(data).length - Object.keys(dg).length) + ' V3 strings)');
+       (Object.keys(data).length - Object.keys(dg).length) + ' non-DG strings)');
      "
 
      ./bin/strings-push.sh -p 125447 -i /tmp/dg-strings-push.json -a "$API_TOKEN"
