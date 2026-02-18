@@ -2,10 +2,17 @@
 CURL='/usr/bin/curl'
 POEDITOR_UPLOAD_URL="https://api.poeditor.com/v2/projects/upload"
 API_TOKEN="$POEDITOR_API_TOKEN" # may be set as environment variable
+# updating: "terms" (add new terms only), "terms_translations" (add/update terms and translations),
+#           "translations" (update translations only)
 UPDATING="terms_translations"
 LANGUAGE="en-US"
+# overwrite: 1 = overwrite existing translations with uploaded values, 0 = keep existing
 OVERWRITE="1"
-SYNC_TERMS="1"
+# sync_terms: 1 = DELETE terms from POEditor that are not in the upload, 0 = leave them alone.
+# Must be 0 when multiple projects (e.g. CODAP V2 and V3) share the same POEditor project,
+# otherwise one project's push would delete the other's terms.
+SYNC_TERMS="0"
+# fuzzy_trigger: 1 = mark existing translations as fuzzy when the source term changes
 FUZZY_TRIGGER="1"
 
 # override with defaults, if rc is present
@@ -42,12 +49,16 @@ CURLARGS="-X POST -F api_token=$API_TOKEN -F id=$PROJECT_ID
 
 # echo "CURLARGS = '$CURLARGS'"
 
-# 1. strip comments
-# 2. convert empty strings to [u200b] before push
-# 3. use curl to push to POEditor
-./node_modules/.bin/strip-json-comments "$INPUT_FILE" | \
-    sed 's/"[ ]*:[ ]*""/": "[u200b]"/g' | \
-    $CURL $CURLARGS $POEDITOR_UPLOAD_URL
+# 1. Parse input (supports JSON5 comments and trailing commas)
+# 2. Convert empty strings to zero-width space [u200b] for POEditor
+# 3. Use curl to push to POEditor
+node -e "
+const fs = require('fs');
+const JSON5 = require('json5');
+const data = JSON5.parse(fs.readFileSync('$INPUT_FILE', 'utf8'));
+for (const k of Object.keys(data)) { if (data[k] === '') data[k] = '\u200b'; }
+process.stdout.write(JSON.stringify(data));
+" | $CURL $CURLARGS $POEDITOR_UPLOAD_URL
 
 echo ""
 echo ""

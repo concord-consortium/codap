@@ -4,10 +4,12 @@ jest.mock("../url-params", () => ({
   urlParams: { lang: "es-mx" }
 }))
 
-jest.mock("./lang/en-US.json5", () => ({
+jest.mock("./lang/en-US-dg.json", () => ({
   HELLO: "Hello",
   MISSING: "missing"
 }))
+
+jest.mock("./lang/en-US-v3.json5", () => ({}))
 
 jest.mock("./lang/es.json", () => ({
   HELLO: "Hola"
