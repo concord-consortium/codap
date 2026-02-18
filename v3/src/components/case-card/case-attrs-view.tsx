@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
+import { useResizeDetector } from "react-resize-detector"
 import { IAttribute } from "../../models/data/attribute"
 import { IGroupedCase } from "../../models/data/data-set-types"
 import { ICollectionModel } from "../../models/data/collection"
@@ -9,13 +10,18 @@ import { AttributeHeader } from "../case-tile-common/attribute-header"
 import { kIndexColumnKey } from "../case-tile-common/case-tile-types"
 import { ICaseCardModel } from "./case-card-model"
 import { CaseAttrView } from "./case-attr-view"
+import { ColumnResizeHandle } from "./column-resize-handle"
 import { useCaseCardModel } from "./use-case-card-model"
 
 import "./case-attrs-view.scss"
 
+const kDefaultColumnWidthPct = 0.5
+const kMinColumnWidth = 60
+
 interface ICaseAttrsViewProps {
   caseItem?: IGroupedCase
   collection?: ICollectionModel
+  onResizeColumn?: (collectionId: string, widthPct: number, isComplete?: boolean) => void
 }
 
 function getDividerBounds(containerBounds: DOMRect, cellBounds: DOMRect) {
@@ -57,7 +63,9 @@ function getNextAttrId(attrs: readonly IAttribute[], currentAttrId: string): May
   }
 }
 
-export const CaseAttrsView = observer(function CaseAttrsView({ caseItem, collection }: ICaseAttrsViewProps) {
+export const CaseAttrsView = observer(function CaseAttrsView(
+  { caseItem, collection, onResizeColumn }: ICaseAttrsViewProps
+) {
   const cardModel = useCaseCardModel()
   const isCollectionSummarized = !!collection?.cases && collection.cases.length > 0 &&
                                  !!cardModel?.summarizedCollections.has(collection.id)
@@ -65,6 +73,15 @@ export const CaseAttrsView = observer(function CaseAttrsView({ caseItem, collect
   const [, setCellElt] = useState<HTMLElement | null>(null)
   // map from attrId => function to begin editing the cell with that attrId
   const beginEditingFns = useMemo<Map<string, () => void>>(() => new Map(), [])
+
+  // Track live resize width during drag (percentage, 0-1)
+  const [liveResizeWidthPct, setLiveResizeWidthPct] = useState<number | undefined>(undefined)
+
+  const { width: containerWidth, ref: resizeRef } = useResizeDetector()
+
+  const collectionId = collection?.id ?? ""
+  const modelWidthPct = cardModel?.attributeColumnWidth(collectionId)
+  const columnWidthPct = liveResizeWidthPct ?? modelWidthPct ?? kDefaultColumnWidthPct
 
   const handleSetBeginEditingFn = useCallback((attrId: string, beginEditingFn: () => void) => {
     beginEditingFns.set(attrId, beginEditingFn)
@@ -92,40 +109,68 @@ export const CaseAttrsView = observer(function CaseAttrsView({ caseItem, collect
     }
   }, [beginEditingFns, cardModel, collection])
 
+  const handleResize = useCallback((newWidthPx: number, isComplete?: boolean) => {
+    if (!containerWidth) return
+    const newPct = newWidthPx / containerWidth
+    if (isComplete) {
+      setLiveResizeWidthPct(undefined)
+      onResizeColumn?.(collectionId, newPct, true)
+    } else {
+      setLiveResizeWidthPct(newPct)
+    }
+  }, [collectionId, containerWidth, onResizeColumn])
+
   const tableClassName = clsx("case-card-attrs", "fadeIn", {"summary-view": isCollectionSummarized})
   const visibleAttrs = getVisibleAttrs(collection, cardModel)
+  const resizeWidthPx = (containerWidth ?? 0) * columnWidthPct
+  const colWidthStyle = `${(columnWidthPct * 100).toFixed(1)}%`
+
   return (
-    <table className={tableClassName} data-testid="case-card-attrs">
-      <tbody>
-        <tr className="case-card-attr index-row">
-          <td colSpan={2}>
-            <AttributeHeader
-              attributeId={kIndexColumnKey}
-              disableTooltip={true}
-              draggable={false}
-              getDividerBounds={getDividerBounds}
-              showUnits={false}
-              onSetHeaderContentElt={handleSetHeaderContentElt}
-            />
-          </td>
-        </tr>
-        {collection && visibleAttrs.map(attr => {
-            return (
-              <CaseAttrView
-                key={`${attr.id}-${isCollectionSummarized ? "summary" : caseItem?.__id__}`}
-                attr={attr}
-                collection={collection}
+    <div className="case-card-attrs-wrapper" ref={resizeRef}>
+      <table className={tableClassName} data-testid="case-card-attrs">
+        <colgroup>
+          <col style={{ width: colWidthStyle }} />
+          <col />
+        </colgroup>
+        <tbody>
+          <tr className="case-card-attr index-row">
+            <td colSpan={2}>
+              <AttributeHeader
+                attributeId={kIndexColumnKey}
+                disableTooltip={true}
+                draggable={false}
                 getDividerBounds={getDividerBounds}
-                groupedCase={caseItem}
-                isCollectionSummarized={isCollectionSummarized}
-                onAttrKeyDown={handleAttrKeyDown}
-                onSetContentElt={handleSetHeaderContentElt}
-                onSetBeginEditingFn={handleSetBeginEditingFn}
+                showUnits={false}
+                onSetHeaderContentElt={handleSetHeaderContentElt}
               />
-            )
-          })
-        }
-      </tbody>
-    </table>
+            </td>
+          </tr>
+          {collection && visibleAttrs.map(attr => {
+              return (
+                <CaseAttrView
+                  key={`${attr.id}-${isCollectionSummarized ? "summary" : caseItem?.__id__}`}
+                  attr={attr}
+                  collection={collection}
+                  getDividerBounds={getDividerBounds}
+                  groupedCase={caseItem}
+                  isCollectionSummarized={isCollectionSummarized}
+                  onAttrKeyDown={handleAttrKeyDown}
+                  onSetContentElt={handleSetHeaderContentElt}
+                  onSetBeginEditingFn={handleSetBeginEditingFn}
+                />
+              )
+            })
+          }
+        </tbody>
+      </table>
+      {containerWidth != null && containerWidth > 0 &&
+        <ColumnResizeHandle
+          resizeWidth={resizeWidthPx}
+          containerWidth={containerWidth}
+          minWidth={kMinColumnWidth}
+          onResize={handleResize}
+        />
+      }
+    </div>
   )
 })

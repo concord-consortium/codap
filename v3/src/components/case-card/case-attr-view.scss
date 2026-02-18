@@ -15,11 +15,12 @@
     font-style: normal;
     line-height: normal;
     letter-spacing: normal;
+    overflow: hidden;
     padding: 1px 8px 2px 24px;
     position: relative;
     text-align: right;
+    text-overflow: ellipsis;
     white-space: nowrap;
-    width: 50%;
 
     .codap-column-header-content {
       &:hover {
@@ -36,9 +37,9 @@
     border: solid 1px #b2b2b2;
     border-top: none;
     font-weight: 500;
+    overflow: hidden;
     padding: 0;
     text-align: left;
-    width: 50%;
 
     &.editable {
       cursor: text;
@@ -49,6 +50,8 @@
     }
 
     .case-card-attr-value-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
       white-space: nowrap;
 
       &.static-summary {
@@ -60,10 +63,11 @@
 
       span {
         border-radius: 0;
-        display: inline-block;
+        display: block;
         height: 25px;
+        overflow: hidden;
         padding: 4px;
-        position: relative;
+        text-overflow: ellipsis;
         width: 100%;
 
         // add space to guarantee cell height if value is empty string

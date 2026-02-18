@@ -12,9 +12,10 @@ import "./card-view.scss"
 
 interface CardViewProps {
   onNewCollectionDrop: (dataSet: IDataSet, attrId: string, beforeCollectionId: string) => void
+  onResizeColumn?: (collectionId: string, widthPct: number, isComplete?: boolean) => void
 }
 
-export const CardView = observer(function CardView({onNewCollectionDrop}: CardViewProps) {
+export const CardView = observer(function CardView({onNewCollectionDrop, onResizeColumn}: CardViewProps) {
   const cardModel = useCaseCardModel()
   const data = cardModel?.data
   const collections = data?.collections
@@ -51,6 +52,7 @@ export const CardView = observer(function CardView({onNewCollectionDrop}: CardVi
               level={0}
               onSelectCases={handleSelectCases}
               onNewCollectionDrop={onNewCollectionDrop}
+              onResizeColumn={onResizeColumn}
             />
             <div className="summary-view-toggle-container">
               <button

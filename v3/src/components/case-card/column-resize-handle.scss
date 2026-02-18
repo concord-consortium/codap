@@ -1,0 +1,21 @@
+$interaction-width: 10px;
+
+.column-resize-handle {
+  position: absolute;
+  width: $interaction-width;
+  top: 0;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 1;
+
+  .column-resize-handle-divider {
+    position: absolute;
+    left: 50%;
+    width: 0;
+    height: 100%;
+
+    &.is-resizing {
+      border-right: 1px dotted black;
+    }
+  }
+}
