@@ -72,8 +72,8 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
     metadata?.applyModelChange(() => {
       metadata.setAttributeBinningType(legendAttrID, _scaleType)
     }, {
-      undoStringKey: "DG.Undo.graph.changeAttributeBinningType",
-      redoStringKey: "DG.Redo.graph.changeAttributeBinningType",
+      undoStringKey: "V3.Undo.graph.changeAttributeBinningType",
+      redoStringKey: "V3.Redo.graph.changeAttributeBinningType",
       log: "Changed attribute binning type"
     })
   }
@@ -291,12 +291,12 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
       {attrType === "numeric" &&
         <FormControl>
           <Flex>
-            <FormLabel className="form-label legend-bins-menu">{t("DG.Inspector.legendBins")}</FormLabel>
+            <FormLabel className="form-label legend-bins-menu">{t("V3.Inspector.graph.legendBins")}</FormLabel>
             <Select size="xs" data-testid="legend-bins-type-select" value={binningType}
               onChange={e => handleAttributeBinningTypeChange(e.target.value as AttributeBinningType)}
             >
               { AttributeBinningTypes.map(_binningType =>
-                <option key={_binningType} value={_binningType}>{t(`DG.Inspector.legendBins.${_binningType}`)}</option>
+                <option key={_binningType} value={_binningType}>{t(`V3.Inspector.graph.legendBins.${_binningType}`)}</option>
               )}
             </Select>
           </Flex>

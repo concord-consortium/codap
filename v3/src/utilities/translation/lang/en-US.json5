@@ -1285,18 +1285,6 @@
     "DG.plugin.Simmer.description": "Create block programmed simulations that generate data.",
     "DG.plugin.PurpleAir.title": "Purple Air",
 
-    // DG strings added or modified by V3
-    "DG.fileMenu.fileMenuName": "File",
-    "DG.Undo.graph.changeAttributeBinningType": "Undo changing attribute binning type",
-    "DG.Redo.graph.changeAttributeBinningType": "Redo changing attribute binning type",
-    "DG.CellAxis.dragCategory": "Click and drag to reorder categories",
-    "DG.PlottedValue.valueTitle": "value=%@",
-    "DG.Inspector.legendBins": "Legend bins:",
-    "DG.Inspector.legendBins.quantize": "Linear",
-    "DG.Inspector.legendBins.quantile": "Quantile",
-    "DG.Inspector.graphLSRLShowConfidenceBands": "Show Confidence Bands",
-
-
     // ==========================================================================
     // V3.* strings — V3-only strings not present in V2.
     // ==========================================================================
@@ -1306,6 +1294,7 @@
     "V3.general.unsavedChangesWarning": "Changes you made may not be saved.",
 
     // V3 application level strings
+    "V3.fileMenu.fileMenuName": "File",
     "V3.app.errorDialog.title": "Error",
     "V3.app.errorDialog.description": "An error has occurred that may affect how this program behaves.",
     "V3.app.errorDialog.suggestionWithSave": "You may wish to reload this page after you save a copy of your work.",
@@ -1323,6 +1312,9 @@
     "V3.graph.Inspector.Config": "Config",
     "V3.graph.Inspector.Format": "Format",
     "V3.graph.Inspector.Image": "Image",
+    "V3.Inspector.graph.legendBins": "Legend bins:",
+    "V3.Inspector.graph.legendBins.quantize": "Linear",
+    "V3.Inspector.graph.legendBins.quantile": "Quantile",
     "V3.Undo.graph.toggleParentVisibility": "Undo toggling visibility",
     "V3.Redo.graph.toggleParentVisibility": "Redo toggling visibility",
     "V3.Undo.graph.hideAllCases": "Undo hiding all cases",
@@ -1335,6 +1327,8 @@
     "V3.Redo.graph.showLastParentOnly": "Redo showing only last parent case",
     "V3.Undo.graph.uncheckLastParentOnly": "Undo unchecking \"Last\" checkbox",
     "V3.Redo.graph.uncheckLastParentOnly": "Redo unchecking \"Last\" checkbox",
+    "V3.Undo.graph.changeAttributeBinningType": "Undo changing attribute binning type",
+    "V3.Redo.graph.changeAttributeBinningType": "Redo changing attribute binning type",
 
     "V3.map.Inspector.Rescale": "Rescale",
     "V3.map.Inspector.View": "View",
@@ -1459,7 +1453,7 @@
     "V3.map.legendDrop": "Color regions by values of %@",
     "V3.DataDisplayMenu.treatAsDate": "Treat as Date",
 
-    // V3 digital interactive error messages.
+    // V3 data interactive (plugin) error messages.
     // These should probably not be translated because plugins might be looking for specific
     // values.
     "V3.DI.Error.noAction": "No action to process.",
@@ -1510,6 +1504,8 @@
     "V3.DI.Error.componentDoesNotSupportRescale": "Component does not support rescale",
 
     // V3 adornment strings not present in V2
+    "V3.PlottedValue.valueTitle": "value=%@",
+    "V3.Inspector.graphLSRLShowConfidenceBands": "Show Confidence Bands",
     "V3.Inspector.graphRegionOfInterest": "Region of Interest",
     "V3.Undo.graph.addRegionOfInterest": "Undo showing region of interest",
     "V3.Redo.graph.addRegionOfInterest": "Redo showing region of interest",

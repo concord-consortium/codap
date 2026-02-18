@@ -91,7 +91,7 @@ const Controls = observer(function Controls() {
             defaultChecked={existingAdornment?.showConfidenceBands}
             onChange={e => handleShowConfidenceBandsSetting(e.target.checked)}
           >
-            {t("DG.Inspector.graphLSRLShowConfidenceBands")}
+            {t("V3.Inspector.graphLSRLShowConfidenceBands")}
           </Checkbox>
         </FormControl>
       </div>
