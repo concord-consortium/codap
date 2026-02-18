@@ -120,6 +120,24 @@ describe("LSRLAdornmentModel", () => {
     lSRL.setShowConfidenceBands(true)
     expect(lSRL.showConfidenceBands).toEqual(true)
   })
+  it("can have its showR property set", () => {
+    const lSRL = LSRLAdornmentModel.create()
+    expect(lSRL.showR).toEqual(false)
+    lSRL.setShowR(true)
+    expect(lSRL.showR).toEqual(true)
+  })
+  it("can have its showRSquared property set", () => {
+    const lSRL = LSRLAdornmentModel.create()
+    expect(lSRL.showRSquared).toEqual(false)
+    lSRL.setShowRSquared(true)
+    expect(lSRL.showRSquared).toEqual(true)
+  })
+  it("can have its equationForm property set", () => {
+    const lSRL = LSRLAdornmentModel.create()
+    expect(lSRL.equationForm).toEqual("y=mx+b")
+    lSRL.setEquationForm("y=a+bx")
+    expect(lSRL.equationForm).toEqual("y=a+bx")
+  })
   it("can get both the intercept and slope values of a line via the line's slopeAndIntercept view", () => {
     const lSRL = LSRLAdornmentModel.create()
     lSRL.updateLines(mockLSRLInstanceProps1, "{}")

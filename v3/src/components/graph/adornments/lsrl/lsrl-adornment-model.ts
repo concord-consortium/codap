@@ -103,6 +103,9 @@ function removeStaleMapKeys(
   keysToRemove.forEach(key => map.delete(key))
 }
 
+export const LSRLEquationForms = ["y=mx+b", "y=a+bx"] as const
+export type LSRLEquationForm = typeof LSRLEquationForms[number]
+
 export const LSRLAdornmentModel = AdornmentModel
 .named("LSRLAdornmentModel")
 .props({
@@ -110,6 +113,9 @@ export const LSRLAdornmentModel = AdornmentModel
   // first key is cell key (instanceKey format); second key is legend category (or kMain)
   labels: types.map(types.map(LineLabelInstance)),
   showConfidenceBands: false,
+  showR: false,
+  showRSquared: false,
+  equationForm: types.optional(types.enumeration("EquationForm", [...LSRLEquationForms]), "y=mx+b"),
 })
 .preProcessSnapshot(snapshot => {
   // Only the outer map keys are cell keys that need migration; inner keys are legend categories
@@ -214,6 +220,15 @@ export const LSRLAdornmentModel = AdornmentModel
   },
   setShowConfidenceBands(showConfidenceBands: boolean) {
     self.showConfidenceBands = showConfidenceBands
+  },
+  setShowR(showR: boolean) {
+    self.showR = showR
+  },
+  setShowRSquared(showRSquared: boolean) {
+    self.showRSquared = showRSquared
+  },
+  setEquationForm(equationForm: LSRLEquationForm) {
+    self.equationForm = equationForm
   },
   computeValues(
     xAttrId: string, yAttrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel,

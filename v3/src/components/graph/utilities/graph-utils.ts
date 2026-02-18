@@ -348,13 +348,17 @@ interface ILsrlEquationString extends IEquationString {
   interceptLocked?: boolean
   rSquared?: number
   showConfidenceBands?: boolean
+  showR?: boolean
+  showRSquared?: boolean
+  equationForm?: "y=mx+b" | "y=a+bx"
   seSlope?: number
   seIntercept?: number
 }
 
 export const lsrlEquationString = (props: ILsrlEquationString) => {
   const { slope, intercept, attrNames, units, showConfidenceBands,
-    rSquared, seSlope, seIntercept, interceptLocked = false, sumOfSquares, layout } = props
+    rSquared, seSlope, seIntercept, interceptLocked = false, sumOfSquares, layout,
+    showR = false, showRSquared = false, equationForm = "y=mx+b" } = props
   const slopeUnits = units.x && units.y
                       ? `${units.y}/${units.x}`
                       : units.y || (units.x ? `/${units.x}` : "")
@@ -369,18 +373,26 @@ export const lsrlEquationString = (props: ILsrlEquationString) => {
   const formattedSeIntercept = seIntercept != null ? formatEquationValue(seIntercept, 3) : ""
   const xAttrString = attrNames.x.length > 1 ? `(<em>${attrNames.x}</em>)` : `<em>${attrNames.x}</em>`
   const interceptString = intercept !== 0 ? ` ${intercept > 0 ? "+" : ""} ${formattedIntercept}` : ""
-  const equationPart = slopeIsFinite
-    ? `<em>${attrNames.y}</em> = ${formattedSlope} ${xAttrString}${interceptString}`
-    : `<em>${slope === 0 ? attrNames.y : attrNames.x}</em> = ${formattedIntercept}`
+  const slopeString = slopeIsFinite ? ` + ${formattedSlope} ${xAttrString}` : ""
+  const equationPart = equationForm === "y=a+bx"
+    ? (slopeIsFinite
+        ? `<em>${attrNames.y}</em> = ${formattedIntercept}${slopeString}`
+        : `<em>${slope === 0 ? attrNames.y : attrNames.x}</em> = ${formattedIntercept}`)
+    : (slopeIsFinite
+        ? `<em>${attrNames.y}</em> = ${formattedSlope} ${xAttrString}${interceptString}`
+        : `<em>${slope === 0 ? attrNames.y : attrNames.x}</em> = ${formattedIntercept}`)
+  const rValue = rSquared != null && slope != null ? Math.sign(slope) * Math.sqrt(rSquared) : undefined
+  const formattedR = rValue != null ? formatEquationValue(rValue, 4) : ""
+  const rPart = showR && rValue != null ? `<br />r = ${formattedR}` : ""
   const seSlopePart = showConfidenceBands && !interceptLocked ? `<br />σ<sub>slope</sub> = ${formattedSeSlope}` : ""
   const seInterceptPart = showConfidenceBands && !interceptLocked
     ? `<br />σ<sub>intercept</sub> = ${formattedSeIntercept}` : ""
   const squaresPart = isFiniteNumber(sumOfSquares)
     ? `<br />${t("DG.ScatterPlotModel.sumSquares")} = ${formattedSumOfSquares}`
     : ""
-  const rSquaredPart = rSquared == null ? "" : `<br />r<sup>2</sup> = ${formattedRSquared}`
+  const rSquaredPart = showRSquared && rSquared != null ? `<br />r<sup>2</sup> = ${formattedRSquared}` : ""
 
-  return `${equationPart}${rSquaredPart}${seSlopePart}${seInterceptPart}${squaresPart}`
+  return `${equationPart}${rPart}${rSquaredPart}${seSlopePart}${seInterceptPart}${squaresPart}`
 }
 
 interface IUpdateCellMasks {

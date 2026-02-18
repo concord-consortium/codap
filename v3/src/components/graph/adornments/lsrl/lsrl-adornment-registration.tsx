@@ -1,14 +1,17 @@
-import { FormControl, Checkbox } from "@chakra-ui/react"
+import { FormControl, Checkbox, RadioGroup, Radio } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import { registerAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 import { t } from "../../../../utilities/translation/translate"
+import { If } from "../../../common/if"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { registerAdornmentComponentInfo } from "../adornment-component-info"
 import { exportAdornmentBase, getAdornmentContentInfo, registerAdornmentContentInfo } from "../adornment-content-info"
 import { LSRLAdornment } from "./lsrl-adornment-component"
 import { lsrlAdornmentHandler } from "./lsrl-adornment-handler"
-import { ILSRLAdornmentModel, isLSRLAdornment, LSRLAdornmentModel } from "./lsrl-adornment-model"
+import {
+  ILSRLAdornmentModel, isLSRLAdornment, LSRLAdornmentModel, LSRLEquationForm
+} from "./lsrl-adornment-model"
 import {
   kLSRLClass, kLSRLLabelKey, kLSRLPrefix, kLSRLRedoAddKey, kLSRLRedoRemoveKey, kLSRLType,
   kLSRLUndoAddKey, kLSRLUndoRemoveKey
@@ -56,6 +59,26 @@ const Controls = observer(function Controls() {
     }
   }
 
+  const handleShowRSetting = (checked: boolean) => {
+    graphModel.applyModelChange(
+      () => existingAdornment?.setShowR(checked),
+      {
+        undoStringKey: checked ? "V3.Undo.graph.showR" : "V3.Undo.graph.hideR",
+        redoStringKey: checked ? "V3.Redo.graph.showR" : "V3.Redo.graph.hideR"
+      }
+    )
+  }
+
+  const handleShowRSquaredSetting = (checked: boolean) => {
+    graphModel.applyModelChange(
+      () => existingAdornment?.setShowRSquared(checked),
+      {
+        undoStringKey: checked ? "V3.Undo.graph.showRSquared" : "V3.Undo.graph.hideRSquared",
+        redoStringKey: checked ? "V3.Redo.graph.showRSquared" : "V3.Redo.graph.hideRSquared"
+      }
+    )
+  }
+
   const handleShowConfidenceBandsSetting = (checked: boolean) => {
     graphModel.applyModelChange(
       () => existingAdornment?.setShowConfidenceBands(checked),
@@ -66,6 +89,16 @@ const Controls = observer(function Controls() {
         redoStringKey: checked
           ? "V3.Redo.graph.showConfidenceBands"
           : "V3.Redo.graph.hideConfidenceBands"
+      }
+    )
+  }
+
+  const handleEquationFormSetting = (form: string) => {
+    graphModel.applyModelChange(
+      () => existingAdornment?.setEquationForm(form as LSRLEquationForm),
+      {
+        undoStringKey: "V3.Undo.graph.changeEquationForm",
+        redoStringKey: "V3.Redo.graph.changeEquationForm"
       }
     )
   }
@@ -81,20 +114,56 @@ const Controls = observer(function Controls() {
           {t(kLSRLLabelKey)}
         </Checkbox>
       </FormControl>
-      <div
-        className="sub-options show-confidence-bands"
-        data-testid="adornment-show-confidence-bands-options"
-      >
-        <FormControl isDisabled={!existingAdornment?.isVisible || interceptLocked}>
-          <Checkbox
-            data-testid={`adornment-checkbox-${kLSRLClass}-show-confidence-bands`}
-            defaultChecked={existingAdornment?.showConfidenceBands}
-            onChange={e => handleShowConfidenceBandsSetting(e.target.checked)}
-          >
-            {t("V3.Inspector.graphLSRLShowConfidenceBands")}
-          </Checkbox>
-        </FormControl>
-      </div>
+      <If condition={!!existingAdornment?.isVisible}>
+        <div
+          className="sub-options lsrl-sub-options"
+          data-testid="adornment-lsrl-sub-options"
+        >
+          <FormControl>
+            <Checkbox
+              data-testid={`adornment-checkbox-${kLSRLClass}-show-r`}
+              defaultChecked={existingAdornment?.showR}
+              onChange={e => handleShowRSetting(e.target.checked)}
+            >
+              {t("V3.graphLSRL.showR")}
+            </Checkbox>
+          </FormControl>
+          <FormControl>
+            <Checkbox
+              data-testid={`adornment-checkbox-${kLSRLClass}-show-r-squared`}
+              defaultChecked={existingAdornment?.showRSquared}
+              onChange={e => handleShowRSquaredSetting(e.target.checked)}
+            >
+              {t("V3.graphLSRL.showRSquared")}
+            </Checkbox>
+          </FormControl>
+          <FormControl isDisabled={interceptLocked}>
+            <Checkbox
+              data-testid={`adornment-checkbox-${kLSRLClass}-show-confidence-bands`}
+              defaultChecked={existingAdornment?.showConfidenceBands}
+              onChange={e => handleShowConfidenceBandsSetting(e.target.checked)}
+            >
+              {t("V3.Inspector.graphLSRLShowConfidenceBands")}
+            </Checkbox>
+          </FormControl>
+          <FormControl data-testid="adornment-lsrl-equation-form">
+            <div className="equation-form-label">{t("V3.graphLSRL.equationForm")}</div>
+            <RadioGroup
+              name="equation-form"
+              size="sm"
+              value={existingAdornment?.equationForm ?? "y=mx+b"}
+              onChange={handleEquationFormSetting}
+            >
+              <Radio value="y=mx+b" size="sm">
+                <em>y</em>&nbsp;= m<em>x</em>&nbsp;+ b
+              </Radio>
+              <Radio value="y=a+bx" size="sm">
+                <em>y</em>&nbsp;= a + b<em>x</em>
+              </Radio>
+            </RadioGroup>
+          </FormControl>
+        </div>
+      </If>
     </>
   )
 })

@@ -55,6 +55,9 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
   const { cellCounts, classFromKey } = useAdornmentCells(model, cellKey)
   const { xSubAxesCount, ySubAxesCount } = useAdornmentCategories()
   const showConfidenceBands = model.showConfidenceBands
+  const showR = model.showR
+  const showRSquared = model.showRSquared
+  const equationForm = model.equationForm
   const { equationContainerClass, equationContainerSelector } = equationContainerDefs(model, cellKey, containerId)
   const lineRef = useRef() as React.RefObject<SVGSVGElement>
   const lineObjectsRef = useRef(new Map<string, ILineObject>())
@@ -167,7 +170,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
       const units = {x: xUnits, y: yUnits}
       const string = lsrlEquationString({
         attrNames, units, caseValues, intercept, interceptLocked, rSquared,
-        showConfidenceBands, slope, sumOfSquares, seSlope, seIntercept, layout
+        showConfidenceBands, showR, showRSquared, equationForm, slope, sumOfSquares, seSlope, seIntercept, layout
       })
       const equationSelector = `#lsrl-equation-${model.classNameFromKey(cellKey)}-${linesIndex}`
       const equation = equationDiv.select<HTMLDivElement>(equationSelector)
@@ -196,9 +199,9 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
       }
       ++linesIndex
     })
-  }, [adornmentsStore, cellKey, dataConfig, equationContainerSelector, getLines, layout, model,
-      plotHeight, plotWidth, showConfidenceBands, showSumSquares, xAttrId, xAttrName, xScale, xSubAxesCount,
-      yAttrId, yAttrName, yScale, ySubAxesCount])
+  }, [adornmentsStore, cellKey, dataConfig, equationContainerSelector, equationForm, getLines, layout, model,
+      plotHeight, plotWidth, showConfidenceBands, showR, showRSquared, showSumSquares, xAttrId, xAttrName,
+      xScale, xSubAxesCount, yAttrId, yAttrName, yScale, ySubAxesCount])
 
   const confidenceBandPaths = useCallback((caseValues: Point[], category = kMain) => {
     const xMin = xScale.domain()[0]
@@ -391,7 +394,8 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
   useEffect(function refreshConfigurationChange() {
     return mstReaction(
       // `equals: comparer.structural` is not needed because array will only update when its contents change
-      () => [adornmentsStore?.interceptLocked, model.showConfidenceBands],
+      () => [adornmentsStore?.interceptLocked, model.showConfidenceBands,
+             model.showR, model.showRSquared, model.equationForm],
       () => {
         model.updateCategories(graphModel.getUpdateCategoriesOptions())
         buildElements()

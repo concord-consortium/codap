@@ -356,6 +356,7 @@ export const v2AdornmentImporter = ({
     const lsrlAdornmentImport: ILSRLAdornmentModelSnapshot = {
       isVisible: lsrlAdornment.isVisible,
       showConfidenceBands: lsrlAdornment.showConfidenceBands,
+      showRSquared: true, // V2 always displayed r²
       type: kLSRLType,
       labels
     }

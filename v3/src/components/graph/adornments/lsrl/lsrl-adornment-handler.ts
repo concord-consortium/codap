@@ -14,12 +14,21 @@ import { kLSRLType } from "./lsrl-adornment-types"
 
 const setAdornmentProperties = (adornment: ILSRLAdornmentModel, values: DIAdornmentValues) => {
   if (isAdornmentValues(values)) {
-    const { isVisible, showConfidenceBands } = values as DILsrlAdornmentValues
+    const { isVisible, showConfidenceBands, showR, showRSquared, equationForm } = values as DILsrlAdornmentValues
     if (isVisible != null) {
       adornment.setVisibility(isVisible)
     }
     if (showConfidenceBands != null) {
       adornment.setShowConfidenceBands(showConfidenceBands)
+    }
+    if (showR != null) {
+      adornment.setShowR(showR)
+    }
+    if (showRSquared != null) {
+      adornment.setShowRSquared(showRSquared)
+    }
+    if (equationForm != null) {
+      adornment.setEquationForm(equationForm)
     }
   }
 }
@@ -73,14 +82,15 @@ export const lsrlAdornmentHandler: DIAdornmentHandler = {
       data.push(dataItem)
     }
 
-    const { id, isVisible, showConfidenceBands, type } = adornment
-    return { success: true, values: { id, isVisible, showConfidenceBands, type, data } }
+    const { id, isVisible, showConfidenceBands, showR, showRSquared, equationForm, type } = adornment
+    const resultValues = { id, isVisible, showConfidenceBands, showR, showRSquared, equationForm, type, data }
+    return { success: true, values: resultValues }
   },
 
   get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
     if (!isLSRLAdornment(adornment))  return adornmentMismatchResult(kLSRLType)
 
-    const { showConfidenceBands } = adornment
+    const { showConfidenceBands, showR, showRSquared, equationForm } = adornment
     const dataConfig = graphContent.dataConfiguration
     const cellKeys = dataConfig?.getAllCellKeys()
     const data: AdornmentData[] = []
@@ -109,7 +119,7 @@ export const lsrlAdornmentHandler: DIAdornmentHandler = {
       data.push(dataItem)
     }
 
-    return { data, showConfidenceBands }
+    return { data, showConfidenceBands, showR, showRSquared, equationForm }
   },
 
   update(args) {
