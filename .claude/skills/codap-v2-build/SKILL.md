@@ -255,7 +255,7 @@ Wait for user confirmation before starting Phase 1.
 4. **Update CODAP translations:**
 
    Explain to the user:
-   > CODAP supports 17 languages via POEditor (poeditor.com). POEditor is the single
+   > CODAP supports multiple languages via POEditor (poeditor.com). POEditor is the single
    > source of truth for translations — the push from git to POEditor is additive only
    > (it can add new terms and update existing values, but never deletes terms). CODAP V2
    > and V3 share the same POEditor project (ID 125447), with an ownership model:
@@ -573,7 +573,7 @@ Explain to the user:
 
    Explain to the user:
    > This is the main build step. `makeCodapZip` orchestrates the entire release assembly:
-   > 1. Runs `sproutcore build` to compile the CODAP application (minified, all 17 languages)
+   > 1. Runs `sproutcore build` to compile the CODAP application (minified, all languages)
    > 2. Runs `makeExtn` to build standard plugins (from `codap-data-interactives`) and example documents (from `codap-data`)
    > 3. Generates a top-level `index.html` that detects the user's browser language and redirects to the appropriate localized version
    > 4. Fixes absolute path references in HTML, JS, and CSS files so the build can run from any URL path
