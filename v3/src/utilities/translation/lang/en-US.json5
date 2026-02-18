@@ -1306,6 +1306,8 @@
     "V3.app.documentDisplayError.reason": "An error is preventing CODAP from displaying the document.",
     "V3.app.documentDisplayError.detailsTitle": "Details",
 
+    "V3.CellAxis.dragCategory": "Click and drag to reorder categories",
+
     "V3.graph.Inspector.Rescale": "Rescale",
     "V3.graph.Inspector.View": "View",
     "V3.graph.Inspector.Measure": "Measure",
