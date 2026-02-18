@@ -10,7 +10,7 @@
 #
 PROJECT_ID=125447
 OUTPUT_DIR=src/utilities/translation/lang
-LANGUAGES=("de" "el" "es" "fa" "he" "ja" "ko" "nb" "nn" "pt-BR" "th" "tr" "zh-TW" "zh-Hans")
+LANGUAGES=("ar" "de" "el" "es" "fa" "fr" "he" "ja" "ko" "nb" "nl" "nn" "pl" "pt-BR" "th" "tr" "zh-TW" "zh-Hans")
 MAX_RETRIES=3
 TIMEOUT_SECS=60
 
