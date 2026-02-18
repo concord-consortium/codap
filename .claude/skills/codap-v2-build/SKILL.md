@@ -1,6 +1,6 @@
 ---
 name: codap-v2-build
-description: Use when preparing a CODAP v2 release, updating translations, building plugins, incrementing build numbers, or deploying to codap-server. Invoke with phase name to resume.
+description: Use when preparing a CODAP v2 release, pulling translations, building plugins, incrementing build numbers, or deploying to codap-server. Invoke with phase name to resume.
 ---
 
 # CODAP v2 Build & Release
@@ -250,138 +250,23 @@ Wait for user confirmation before starting Phase 1.
 
    If CFM has not changed **and** no string updates, skip this step.
 
-4. **Update CODAP translations:**
+4. **Pull CODAP translations:**
 
    Explain to the user:
-   > CODAP supports multiple languages via POEditor (poeditor.com). POEditor is the single
-   > source of truth for translations — the push from git to POEditor is additive only
-   > (it can add new terms and update existing values, but never deletes terms). CODAP V2
-   > and V3 share the same POEditor project (ID 125447), with an ownership model:
-   > - **V2 owns `DG.*` strings** — V2 pushes only these keys
-   > - **V3 owns `V3.*` strings** — V3 pushes only these keys
-   > - All keys in the project use one of these two prefixes; no other prefixes exist
+   > CODAP supports multiple languages via POEditor (poeditor.com). CODAP V2 and V3
+   > share the same POEditor project (ID 125447), which contains both `DG.*` strings
+   > (used by V2 and V3) and `V3.*` strings (used only by V3).
    >
-   > Before pushing, we'll compare the local English strings against what's currently in
-   > POEditor, categorize differences by ownership, accept any V3 changes from POEditor,
-   > and push only DG changes.
-
-   **Constants:**
-   - POEditor project ID: `125447`
-   - API token: read from `~/.porc` (source the file to get `$API_TOKEN`)
-   - Source file: `lang/strings/en-US.json`
-
-   **4a. Compare local English strings with POEditor:**
-
-   Source the API token and download the current English strings from POEditor:
-   ```bash
-   source ~/.porc
-   ./bin/strings-pull.sh -p 125447 -l en-US -o /tmp -a "$API_TOKEN"
-   ```
-
-   Normalize both files for comparison. The local file may contain JSON comments and
-   uses empty strings (`""`), while POEditor uses zero-width spaces (`\u200b`) for
-   empty values:
-   ```bash
-   # Normalize POEditor download: sort keys, convert zero-width spaces to empty strings
-   jq -S 'with_entries(if .value == "\u200b" then .value = "" else . end)' \
-       /tmp/en-US.json > /tmp/poeditor-en.json
-
-   # Normalize local file: strip comments, sort keys
-   ./node_modules/.bin/strip-json-comments lang/strings/en-US.json | jq -S '.' \
-       > /tmp/local-en.json
-   ```
-
-   Compare the two normalized files:
-   ```bash
-   diff /tmp/local-en.json /tmp/poeditor-en.json
-   ```
-
-   **If identical:** Report to the user:
-   > Local English strings match POEditor. No push needed.
-
-   Clean up temp files and skip to step 4b.
-
-   **If different:** Categorize differences by ownership:
-   ```bash
-   # Categorize differences by ownership
-   node -e "
-   const local = require('/tmp/local-en.json');
-   const remote = require('/tmp/poeditor-en.json');
-   const dgDiffs = [], v3Diffs = [];
-   for (const k of new Set([...Object.keys(local), ...Object.keys(remote)])) {
-     if (local[k] !== remote[k]) {
-       (k.startsWith('V3.') ? v3Diffs : dgDiffs).push(k);
-     }
-   }
-   if (v3Diffs.length) console.log('V3 changes from POEditor (will be accepted):', v3Diffs.join(', '));
-   if (dgDiffs.length) console.log('DG changes to push:', dgDiffs.join(', '));
-   "
-   ```
-
-   Analyze and present differences in two groups:
-
-   **DG.\* differences** (V2-owned):
-   - **Keys in local but not in POEditor** — will be ADDED as new terms
-   - **Keys in POEditor but not in local** — will be LEFT ALONE (the push is additive only)
-   - **Keys with different values** — English text will be UPDATED in POEditor
-
-   **V3.\* differences** (V3-owned):
-   - Inform user: "V3 made these string changes in POEditor: [list]. These will be
-     accepted into your local file."
-   - Accept V3 changes by synchronizing the local `lang/strings/en-US.json` with the
-     POEditor values for V3.* keys:
-     - For V3.* keys that already exist locally, update their values in place to match
-       POEditor.
-     - For V3.* keys that are present only in POEditor (new V3 terms), add those keys
-       and values to `lang/strings/en-US.json`, placing them near related V3 entries to
-       preserve the existing JSON ordering and structure.
-     Use the Read tool to get the current file content, then use the Edit tool to make
-     these updates/additions while preserving any JSON comments in the file.
-
-   Present a summary, e.g.:
-   > **English strings: local vs. POEditor**
-   > - **DG.\* (V2-owned):** 3 new terms to add, 2 terms with changed values
-   > - **V3.\* (V3-owned):** 4 changes from POEditor (will be accepted locally)
-   > - 5 terms only in POEditor (will not be affected)
+   > The **V3 build owns all string pushes to POEditor** — it is responsible for
+   > syncing both `DG.*` and `V3.*` English strings to the project. The V2 build
+   > is **read-only**: it only pulls translations from POEditor, never pushes.
    >
-   > [show the specific additions and changes, grouped by ownership]
+   > If you need to add or update English source strings (including `DG.*` keys),
+   > do so through the V3 build process.
 
-   If there are DG.* differences, use AskUserQuestion: "Your local DG.* strings differ
-   from POEditor as shown above. Do you want to push DG changes to POEditor?"
-   - **Yes, push DG strings to POEditor** — Filter and push only DG.* keys:
-     ```bash
-     # Extract DG-only strings for push (V3 strings are managed by the V3 build)
-     node -e "
-     const fs = require('fs');
-     const stripComments = require('strip-json-comments');
-     const raw = fs.readFileSync('lang/strings/en-US.json', 'utf8');
-     const data = JSON.parse(stripComments(raw));
-     const dg = {};
-     for (const [k, v] of Object.entries(data)) {
-       if (k.startsWith('DG.')) dg[k] = v;
-     }
-     fs.writeFileSync('/tmp/dg-strings-push.json', JSON.stringify(dg));
-     console.log('Pushing ' + Object.keys(dg).length + ' DG strings (filtering out ' +
-       (Object.keys(data).length - Object.keys(dg).length) + ' non-DG strings)');
-     "
+   **4a. Pull translations:**
 
-     ./bin/strings-push.sh -p 125447 -i /tmp/dg-strings-push.json -a "$API_TOKEN"
-     rm -f /tmp/dg-strings-push.json
-     ```
-     Show the API response.
-   - **No, skip the push** — Continue without pushing
-
-   If there are no DG.* differences (only V3 changes were accepted), report:
-   > No DG.* changes to push. V3 changes have been accepted locally.
-
-   Clean up temp files:
-   ```bash
-   rm -f /tmp/en-US.json /tmp/poeditor-en.json /tmp/local-en.json
-   ```
-
-   **4b. Pull translations:**
-
-   This uses the improved `strings-pull-project.sh` which pulls each language
+   This uses the `strings-pull-project.sh` script which pulls each language
    individually with timeout protection, automatically retries failures, and reports
    streaming progress. The user can press Ctrl-C to cancel if POEditor is unresponsive.
 
@@ -411,7 +296,7 @@ Wait for user confirmation before starting Phase 1.
 
    If there are string changes:
 
-   **4c. Propagate to plugins:**
+   **4b. Propagate to plugins:**
 
    Explain to the user:
    > Some CODAP plugins (Importer, TP-Sampler, Scrambler, Story Builder) also have
@@ -424,19 +309,19 @@ Wait for user confirmation before starting Phase 1.
    ```
    (Replace XXXX with the token from `~/.porc`)
 
-   **4d. Check sibling repos for changes:**
+   **4c. Check sibling repos for changes:**
    ```bash
    git -C ../codap-data-interactives status -s
    git -C ../story-builder status -s
    ```
 
-   **4e. Commit string changes in codap:**
+   **4d. Commit string changes in codap:**
    ```bash
    git add apps/dg/*.lproj/
    git commit -m "chore: string updates for build XXXX"
    ```
 
-   **4f. Commit string changes in affected plugin repos** (codap-data-interactives,
+   **4e. Commit string changes in affected plugin repos** (codap-data-interactives,
    story-builder):
    ```bash
    git -C ../codap-data-interactives add -A
@@ -445,7 +330,7 @@ Wait for user confirmation before starting Phase 1.
    ```
    (Repeat for story-builder if changed)
 
-   **4g.** If story-builder has string changes, remind user that a separate deploy of
+   **4f.** If story-builder has string changes, remind user that a separate deploy of
    story-builder will be required since it is not built automatically as part of the
    CODAP build process.
 
