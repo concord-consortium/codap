@@ -95,22 +95,6 @@ describe("lsrlEquationString", () => {
     expect(result).toContain("r = 0.5")
     expect(result).toContain("r<sup>2</sup> = 0.25")
   })
-  it("should use y=a+bx form when equationForm is 'y=a+bx'", () => {
-    const result = lsrlEquationString({
-      caseValues: [], slope: 2, intercept: 3, attrNames, units, layout,
-      equationForm: "y=a+bx", showRSquared: false
-    })
-    // In y=a+bx form: intercept comes first, then slope*x
-    expect(result).toMatch(/<em>Speed<\/em> = 3 \+ 2/)
-  })
-  it("should use y=mx+b form by default", () => {
-    const result = lsrlEquationString({
-      caseValues: [], slope: 2, intercept: 3, attrNames, units, layout,
-      showRSquared: false
-    })
-    // In y=mx+b form: slope*x comes first, then + intercept
-    expect(result).toMatch(/<em>Speed<\/em> = 2 \(<em>Lifespan<\/em>\) \+ 3/)
-  })
 })
 
 describe("valueLabelString", () => {

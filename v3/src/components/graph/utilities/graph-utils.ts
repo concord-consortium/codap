@@ -350,7 +350,6 @@ interface ILsrlEquationString extends IEquationString {
   showConfidenceBands?: boolean
   showR?: boolean
   showRSquared?: boolean
-  equationForm?: "y=mx+b" | "y=a+bx"
   seSlope?: number
   seIntercept?: number
 }
@@ -358,7 +357,7 @@ interface ILsrlEquationString extends IEquationString {
 export const lsrlEquationString = (props: ILsrlEquationString) => {
   const { slope, intercept, attrNames, units, showConfidenceBands,
     rSquared, seSlope, seIntercept, interceptLocked = false, sumOfSquares, layout,
-    showR = false, showRSquared = false, equationForm = "y=mx+b" } = props
+    showR = false, showRSquared = false } = props
   const slopeUnits = units.x && units.y
                       ? `${units.y}/${units.x}`
                       : units.y || (units.x ? `/${units.x}` : "")
@@ -373,14 +372,9 @@ export const lsrlEquationString = (props: ILsrlEquationString) => {
   const formattedSeIntercept = seIntercept != null ? formatEquationValue(seIntercept, 3) : ""
   const xAttrString = attrNames.x.length > 1 ? `(<em>${attrNames.x}</em>)` : `<em>${attrNames.x}</em>`
   const interceptString = intercept !== 0 ? ` ${intercept > 0 ? "+" : ""} ${formattedIntercept}` : ""
-  const slopeString = slopeIsFinite ? ` + ${formattedSlope} ${xAttrString}` : ""
-  const equationPart = equationForm === "y=a+bx"
-    ? (slopeIsFinite
-        ? `<em>${attrNames.y}</em> = ${formattedIntercept}${slopeString}`
-        : `<em>${slope === 0 ? attrNames.y : attrNames.x}</em> = ${formattedIntercept}`)
-    : (slopeIsFinite
-        ? `<em>${attrNames.y}</em> = ${formattedSlope} ${xAttrString}${interceptString}`
-        : `<em>${slope === 0 ? attrNames.y : attrNames.x}</em> = ${formattedIntercept}`)
+  const equationPart = slopeIsFinite
+    ? `<em>${attrNames.y}</em> = ${formattedSlope} ${xAttrString}${interceptString}`
+    : `<em>${slope === 0 ? attrNames.y : attrNames.x}</em> = ${formattedIntercept}`
   const rValue = rSquared != null && slope != null ? Math.sign(slope) * Math.sqrt(rSquared) : undefined
   const formattedR = rValue != null ? formatEquationValue(rValue, 4) : ""
   const rPart = showR && rValue != null ? `<br />r = ${formattedR}` : ""
