@@ -125,15 +125,19 @@ export function useBinBoundaryDrag({
   const addBinBoundaryDragHandlers = useCallback(() => {
     const binBoundariesArea = select(binBoundariesRef.current)
     const binBoundaryCovers = binBoundariesArea.selectAll<SVGPathElement, unknown>("path.draggable-bin-boundary-cover")
+    // Each repetition (split sub-plot) has (totalNumberOfBins - 1) boundary covers.
+    // D3's index `i` counts across all repetitions, so use modulo to get the bin index within each.
+    const boundariesPerRepetition = Math.max(1, (binnedPlot?.binDetails().totalNumberOfBins ?? 1) - 1)
     binBoundaryCovers.each(function(d, i) {
+      const binIndex = i % boundariesPerRepetition
       select(this).call(
         drag<SVGPathElement, unknown>()
-          .on("start", (e) => handleDragBinBoundaryStart(e, i))
+          .on("start", (e) => handleDragBinBoundaryStart(e, binIndex))
           .on("drag", (e) => handleDragBinBoundary(e))
           .on("end", handleDragBinBoundaryEndFn.current)
       )
     })
-  }, [handleDragBinBoundary, handleDragBinBoundaryStart])
+  }, [binnedPlot, handleDragBinBoundary, handleDragBinBoundaryStart])
 
   handleDragBinBoundaryEndFn.current = useCallback(() => {
     if (!binnedPlot) return
