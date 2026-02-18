@@ -42,12 +42,6 @@ import ToolbarPositionTopIcon from "../../assets/cfm/icon-toolbar-position-top.n
 
 const locales = [
   {
-    langName: 'العربية',
-    langCode: 'ar',
-    countryDigraph: 'SA',
-    icon: 'flag flag-sa'
-  },
-  {
     langName: 'Deutsch',
     langCode: 'de',
     countryDigraph: 'DE',
