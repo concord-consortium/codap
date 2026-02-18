@@ -5,7 +5,9 @@ import { DIResources, DISuccessResult, DIValues } from "../data-interactive-type
 import { DICaseValues, DIFullCase, DIUpdateCase, DIUpdateItemResult } from "../data-interactive-data-set-types"
 import { getV2ItemResult, getCaseRequestResultValues } from "../data-interactive-type-utils"
 import { attrNamesToIds } from "../data-interactive-utils"
-import { caseNotFoundResult, dataContextNotFoundResult, fieldRequiredResult, itemNotFoundResult } from "./di-results"
+import {
+  caseNotFoundResult, dataContextNotFoundResult, fieldRequiredResult, itemNotFoundResult, valuesRequiredResult
+} from "./di-results"
 
 export function deleteCaseBy(resources: DIResources, aCase?: ICase) {
   const { dataContext } = resources
@@ -99,9 +101,11 @@ export function updateCaseBy(
 export function updateCasesBy(resources: DIResources, values?: DIValues, itemReturnStyle?: boolean) {
   const { dataContext } = resources
   if (!dataContext) return dataContextNotFoundResult
+  if (!values) return valuesRequiredResult
 
   const cases = (Array.isArray(values) ? values : [values]) as DIFullCase[]
   const caseIDs: number[] = []
+  const updatedCases: ICase[] = []
   dataContext.applyModelChange(() => {
     cases.forEach(aCase => {
       const { id } = aCase
@@ -113,9 +117,10 @@ export function updateCasesBy(resources: DIResources, values?: DIValues, itemRet
       if (id && aCase.values && v3Id && (dcItem || dcCase)) {
         caseIDs.push(id)
         const updatedAttributes = attrNamesToIds(aCase.values, dataContext)
-        dataContext.setCaseValues([{ ...updatedAttributes, __id__: v3Id }])
+        updatedCases.push({ ...updatedAttributes, __id__: v3Id })
       }
     })
+    dataContext.setCaseValues(updatedCases)
   }, {
     notify: () => {
       if (caseIDs.length > 0) {
