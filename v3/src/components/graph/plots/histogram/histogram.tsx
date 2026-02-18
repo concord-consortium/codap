@@ -1,10 +1,11 @@
-import { ScaleBand } from "d3"
+import { ScaleBand, drag, pointer, select } from "d3"
 import { observer } from "mobx-react-lite"
 import { useCallback, useEffect, useRef } from "react"
 import { createPortal } from "react-dom"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { circleAnchor } from "../../../data-display/renderer"
 import { IBarCover, IPlotProps } from "../../graphing-types"
+import { useBinBoundaryDrag } from "../../hooks/use-bin-boundary-drag"
 import { useBinnedPlotResponders } from "../../hooks/use-binned-plot-responders"
 import { useDotPlot } from "../../hooks/use-dot-plot"
 import { usePlotResponders } from "../../hooks/use-plot"
@@ -15,12 +16,88 @@ import { renderBarCovers } from "../bar-utils"
 import { kEmptyBinDetails } from "../binned-dot-plot/bin-details"
 import { computeBinPlacements } from "../dot-plot/dot-plot-utils"
 
+const kEdgeThreshold = 6 // pixels from bar edge to trigger resize cursor/drag
+
 export const Histogram = observer(function Histogram({ abovePointsGroupRef, renderer }: IPlotProps) {
   const { dataset, dataConfig, graphModel, isAnimating, layout, getPrimaryScreenCoord, getSecondaryScreenCoord,
           pointColor, pointStrokeColor, primaryAttrRole, primaryAxisScale, primaryIsBottom, primaryPlace,
           refreshPointSelection, secondaryAttrRole } = useDotPlot(renderer)
   const binnedPlot = isBinnedPlotModel(graphModel.plot) ? graphModel.plot : undefined
   const barCoversRef = useRef<SVGGElement>(null)
+  // Track which bin boundary index the mouse is near (for drag start), -1 if not near any
+  const nearBinIndexRef = useRef<number>(-1)
+
+  const {
+    handleDragBinBoundaryStart, handleDragBinBoundary, handleDragBinBoundaryEndFn,
+    reattachAfterDragRef,
+  } = useBinBoundaryDrag({
+    binnedPlot, dataConfig, graphModel, layout, primaryAxisScale, primaryIsBottom, primaryPlace
+  })
+
+  /**
+   * Given a mouse event on a bar cover, determine if the mouse is near a draggable bin boundary edge.
+   * Returns the bin boundary index (for use with binDetails.getBinEdge) or -1 if not near an edge.
+   */
+  const getNearBinBoundaryIndex = useCallback((event: MouseEvent) => {
+    if (!binnedPlot || !barCoversRef.current) return -1
+    const { binWidth, minBinEdge, totalNumberOfBins } = binnedPlot.binDetails()
+    if (binWidth === undefined) return -1
+    const [mx, my] = pointer(event, barCoversRef.current)
+    const mousePos = primaryIsBottom ? mx : my
+    const numRepetitions = dataConfig?.numRepetitionsForPlace(primaryPlace) ?? 1
+    const primaryLength = layout.getAxisLength(primaryPlace)
+    const bandWidth = primaryLength / numRepetitions
+    for (let repetition = 0; repetition < numRepetitions; repetition++) {
+      for (let binNumber = 1; binNumber < totalNumberOfBins; binNumber++) {
+        const boundaryPos = repetition * bandWidth +
+          primaryAxisScale(minBinEdge + binNumber * binWidth) / numRepetitions
+        if (Math.abs(mousePos - boundaryPos) <= kEdgeThreshold) {
+          // Return the bin index to the left of this boundary (same convention as binned dot plot)
+          return binNumber - 1
+        }
+      }
+    }
+    return -1
+  }, [binnedPlot, dataConfig, layout, primaryAxisScale, primaryIsBottom, primaryPlace])
+
+  const addHistogramBinDragHandlers = useCallback(() => {
+    if (!barCoversRef.current || !binnedPlot) return
+    const barCoverRects = select(barCoversRef.current)
+      .selectAll<SVGRectElement, IBarCover>("rect.bar-cover")
+
+    // Add mousemove handler for cursor changes
+    barCoverRects
+      .on("mousemove.binDrag", function(event: MouseEvent) {
+        const binIdx = getNearBinBoundaryIndex(event)
+        nearBinIndexRef.current = binIdx
+        if (binIdx >= 0) {
+          select(this).style("cursor", primaryIsBottom ? "col-resize" : "row-resize")
+        } else {
+          select(this).style("cursor", null)
+        }
+      })
+      .on("mouseleave.binDrag", function() {
+        nearBinIndexRef.current = -1
+        select(this).style("cursor", null)
+      })
+
+    // Add D3 drag behavior, filtered to only start when near a bin edge
+    barCoverRects.call(
+      drag<SVGRectElement, IBarCover>()
+        .filter((event: MouseEvent) => {
+          const binIdx = getNearBinBoundaryIndex(event)
+          nearBinIndexRef.current = binIdx
+          return binIdx >= 0
+        })
+        .on("start", (e: MouseEvent) => handleDragBinBoundaryStart(e, nearBinIndexRef.current))
+        .on("drag", (e: MouseEvent) => handleDragBinBoundary(e))
+        .on("end", () => handleDragBinBoundaryEndFn.current())
+    )
+  }, [binnedPlot, getNearBinBoundaryIndex, handleDragBinBoundary, handleDragBinBoundaryStart,
+      handleDragBinBoundaryEndFn, primaryIsBottom])
+
+  // Tell the hook to use histogram-specific handler re-attachment after drag end
+  reattachAfterDragRef.current = addHistogramBinDragHandlers
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     if (!dataConfig) return
@@ -102,6 +179,11 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, rend
       renderBarCovers({ barCovers, barCoversRef, graphModel, primaryAttrRole })
     }
 
+    // Add edge detection and drag handlers to bar covers for bin boundary resizing
+    if (!binnedPlot?.isDraggingBinBoundary) {
+      addHistogramBinDragHandlers()
+    }
+
     setPointCoordinates({
       anchor: circleAnchor,
       pointRadius: graphModel.getPointRadius(),
@@ -110,9 +192,9 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, rend
       getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating,
       pointDisplayType: "bars", dataset, pointsFusedIntoBars: true
     })
-  }, [abovePointsGroupRef, binnedPlot, dataConfig, dataset, getPrimaryScreenCoord, getSecondaryScreenCoord,
-      graphModel, isAnimating, layout, renderer, pointColor, pointStrokeColor,
-      primaryAttrRole, primaryAxisScale, primaryIsBottom, primaryPlace, secondaryAttrRole])
+  }, [abovePointsGroupRef, addHistogramBinDragHandlers, binnedPlot, dataConfig, dataset,
+      getPrimaryScreenCoord, getSecondaryScreenCoord, graphModel, isAnimating, layout, renderer, pointColor,
+      pointStrokeColor, primaryAttrRole, primaryAxisScale, primaryIsBottom, primaryPlace, secondaryAttrRole])
 
   usePlotResponders({renderer, refreshPointPositions, refreshPointSelection})
   useBinnedPlotResponders(refreshPointPositions)
