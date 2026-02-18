@@ -1,6 +1,7 @@
 import enUSDG from "./lang/en-US-dg.json"
+import enUSDGOverrides from "./lang/en-US-dg-overrides.json"
 import enUSV3 from "./lang/en-US-v3.json5"
-const enUS = { ...enUSDG, ...enUSV3 }
+const enUS = { ...enUSDG, ...enUSDGOverrides, ...enUSV3 }
 import de from "./lang/de.json"
 import el from "./lang/el.json"
 import es from './lang/es.json'
