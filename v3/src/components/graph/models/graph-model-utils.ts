@@ -19,7 +19,7 @@ function setPrimaryRoleAndPlotType(graphModel: IGraphContentModel) {
   return result
 }
 
-function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
+export function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
   function syncAttributeTypeWithAxis(place: AxisPlace, attributeType?: AttributeType, axisModel?: IAxisModel) {
     if (!attributeType || !axisModel) return
 

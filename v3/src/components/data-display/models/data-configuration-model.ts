@@ -113,6 +113,8 @@ export const DataConfigurationModel = types
     // cached result of filter formula evaluation for each case ID
     filteredOutCaseIds: observable.set<string>(),
     filterFormulaError: "",
+    // When true, suppress the next animation triggered by case changes (e.g., filter formula recalculation)
+    suppressAnimation: false,
     // The following is set in useSubAxis:setupCategories based on how many fit in available space
     numberOfCategoriesLimitByRole: observable.map<AttrRole, Maybe<number>>(),
     // When legendQuantilesAreLocked is true, this holds the quantile thresholds
@@ -941,6 +943,12 @@ export const DataConfigurationModel = types
     updateFilterFormulaResults(filterFormulaResults: { itemId: string, result: boolean }[], { replaceAll = false }) {
       if (replaceAll) {
         self.filteredOutCaseIds.clear()
+        // Suppress animation for actual filter formula recalculations so points/bars update instantly
+        // (e.g., when a slider value changes and the filter formula is re-evaluated for all cases).
+        // Don't suppress for cleanup calls that pass an empty array.
+        if (filterFormulaResults.length > 0) {
+          self.suppressAnimation = true
+        }
       }
       filterFormulaResults.forEach(({ itemId, result }) => {
         if (result === false) {
@@ -954,6 +962,9 @@ export const DataConfigurationModel = types
     },
     setFilterFormulaError(error: string) {
       self.filterFormulaError = error
+    },
+    setSuppressAnimation(suppress: boolean) {
+      self.suppressAnimation = suppress
     }
   }))
   .actions(self => ({
