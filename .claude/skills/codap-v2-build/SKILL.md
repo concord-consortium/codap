@@ -157,11 +157,9 @@ Wait for user confirmation before starting Phase 1.
    - `noaa-codap-plugin`
    - `story-builder`
 
-   If any are missing, offer to run `npm install` (with `--legacy-peer-deps` for codap and CFM).
+   If any are missing, offer to run `npm ci` (with `--legacy-peer-deps` for codap and CFM).
 
-   Even if all `node_modules` directories exist, offer the user the option to re-run `npm install` in all repositories — `package.json` or `package-lock.json` may have changed since dependencies were last installed (e.g. after `git pull`).
-
-   **After running `npm install`, re-verify cleanliness** — `npm install` can modify `package-lock.json` in some repos. Re-check modified file counts and ask the user to commit or discard any changes before proceeding.
+   Even if all `node_modules` directories exist, offer the user the option to re-run `npm ci` in all repositories — `package.json` or `package-lock.json` may have changed since dependencies were last installed (e.g. after `git pull`).
 
 7. **Summary:**
 
