@@ -943,9 +943,12 @@ export const DataConfigurationModel = types
     updateFilterFormulaResults(filterFormulaResults: { itemId: string, result: boolean }[], { replaceAll = false }) {
       if (replaceAll) {
         self.filteredOutCaseIds.clear()
-        // Suppress animation for filter formula recalculations so points/bars update instantly
-        // (e.g., when a slider value changes and the filter formula is re-evaluated for all cases)
-        self.suppressAnimation = true
+        // Suppress animation for actual filter formula recalculations so points/bars update instantly
+        // (e.g., when a slider value changes and the filter formula is re-evaluated for all cases).
+        // Don't suppress for cleanup calls that pass an empty array.
+        if (filterFormulaResults.length > 0) {
+          self.suppressAnimation = true
+        }
       }
       filterFormulaResults.forEach(({ itemId, result }) => {
         if (result === false) {
