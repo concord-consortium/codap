@@ -1,16 +1,11 @@
-import { ScaleBand, ScaleLinear, drag, pointer, select } from "d3"
-import { comparer } from "mobx"
+import { ScaleBand, drag, pointer, select } from "d3"
 import { observer } from "mobx-react-lite"
 import { useCallback, useEffect, useRef } from "react"
 import { createPortal } from "react-dom"
-import { LogMessageFn, logModelChangeFn } from "../../../../lib/log-message"
-import { isFiniteNumber, roundToPrecision } from "../../../../utilities/math-utils"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
-import { mstReaction } from "../../../../utilities/mst-reaction"
 import { circleAnchor } from "../../../data-display/renderer"
 import { IBarCover, IPlotProps } from "../../graphing-types"
-import { kMinBinScreenWidth, screenWidthToWorldWidth, worldWidthToScreenWidth }
-  from "../../hooks/use-bin-boundary-drag"
+import { useBinBoundaryDrag } from "../../hooks/use-bin-boundary-drag"
 import { useBinnedPlotResponders } from "../../hooks/use-binned-plot-responders"
 import { useDotPlot } from "../../hooks/use-dot-plot"
 import { usePlotResponders } from "../../hooks/use-plot"
@@ -29,13 +24,15 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, rend
           refreshPointSelection, secondaryAttrRole } = useDotPlot(renderer)
   const binnedPlot = isBinnedPlotModel(graphModel.plot) ? graphModel.plot : undefined
   const barCoversRef = useRef<SVGGElement>(null)
-  const primaryAxisScaleCopy = useRef<ScaleLinear<number, number>>(primaryAxisScale.copy())
-  const lowerBoundaryRef = useRef<number>(0)
-  const binWidthDragPrecision = useRef<number>(2)
-  const logFn = useRef<Maybe<LogMessageFn>>()
-  const handleDragEndFn = useRef<() => void>(() => {})
   // Track which bin boundary index the mouse is near (for drag start), -1 if not near any
   const nearBinIndexRef = useRef<number>(-1)
+
+  const {
+    handleDragBinBoundaryStart, handleDragBinBoundary, handleDragBinBoundaryEndFn,
+    reattachAfterDragRef,
+  } = useBinBoundaryDrag({
+    binnedPlot, dataConfig, graphModel, layout, primaryAxisScale, primaryIsBottom, primaryPlace
+  })
 
   /**
    * Given a mouse event on a bar cover, determine if the mouse is near a draggable bin boundary edge.
@@ -62,37 +59,6 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, rend
     }
     return -1
   }, [binnedPlot, dataConfig, layout, primaryAxisScale, primaryIsBottom, primaryPlace])
-
-  const handleDragBinBoundaryStart = useCallback((event: MouseEvent) => {
-    if (!dataConfig || !binnedPlot || !isFiniteNumber(binnedPlot.binAlignment)
-        || !isFiniteNumber(binnedPlot.binWidth)) return
-    const binIndex = nearBinIndexRef.current
-    if (binIndex < 0) return
-    logFn.current = logModelChangeFn(
-      "dragBinBoundary from { alignment: %@, width: %@ } to { alignment: %@, width: %@ }",
-      () => ({ alignment: binnedPlot.binAlignment, width: binnedPlot.binWidth }))
-    primaryAxisScaleCopy.current = primaryAxisScale.copy()
-    binnedPlot.setDragBinIndex(binIndex)
-    const binDetails = binnedPlot.binDetails()
-    if (binDetails.binWidth) {
-      const newBinAlignment = binDetails.getBinEdge(binIndex) ?? 0
-      lowerBoundaryRef.current = Math.round(primaryAxisScale(newBinAlignment))
-      const worldPixelWidth = screenWidthToWorldWidth(primaryAxisScaleCopy.current, 1)
-      const worldPixelWidthStr = worldPixelWidth.toExponential()
-      const [_, expStr2] = worldPixelWidthStr.split('e')
-      const exponent = parseInt(expStr2, 10)
-      binWidthDragPrecision.current = 1 - exponent
-      binnedPlot.setActiveBinAlignment(newBinAlignment)
-    }
-  }, [binnedPlot, dataConfig, primaryAxisScale])
-
-  const handleDragBinBoundary = useCallback((event: MouseEvent) => {
-    if (!dataConfig || !binnedPlot) return
-    const dragValue = primaryIsBottom ? event.x : event.y
-    const screenBinWidth = Math.max(kMinBinScreenWidth, Math.abs(dragValue - lowerBoundaryRef.current))
-    const worldBinWidth = screenWidthToWorldWidth(primaryAxisScaleCopy.current, screenBinWidth)
-    binnedPlot.setActiveBinWidth(roundToPrecision(worldBinWidth, binWidthDragPrecision.current))
-  }, [binnedPlot, dataConfig, primaryIsBottom])
 
   const addHistogramBinDragHandlers = useCallback(() => {
     if (!barCoversRef.current || !binnedPlot) return
@@ -123,37 +89,15 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, rend
           nearBinIndexRef.current = binIdx
           return binIdx >= 0
         })
-        .on("start", (e: MouseEvent) => handleDragBinBoundaryStart(e))
+        .on("start", (e: MouseEvent) => handleDragBinBoundaryStart(e, nearBinIndexRef.current))
         .on("drag", (e: MouseEvent) => handleDragBinBoundary(e))
-        .on("end", () => handleDragEndFn.current())
+        .on("end", () => handleDragBinBoundaryEndFn.current())
     )
-  }, [binnedPlot, getNearBinBoundaryIndex, handleDragBinBoundary, handleDragBinBoundaryStart, primaryIsBottom])
+  }, [binnedPlot, getNearBinBoundaryIndex, handleDragBinBoundary, handleDragBinBoundaryStart,
+      handleDragBinBoundaryEndFn, primaryIsBottom])
 
-  handleDragEndFn.current = useCallback(() => {
-    if (!binnedPlot) return
-    binnedPlot.setDragBinIndex(-1)
-    // Re-attach handlers since they were skipped during drag
-    addHistogramBinDragHandlers()
-    binnedPlot.applyModelChange(
-      () => {
-        if (binnedPlot.binAlignment != null && binnedPlot.binWidth != null) {
-          binnedPlot.endBinBoundaryDrag(binnedPlot.binAlignment, binnedPlot.binWidth)
-          // Update axis domain as part of the same undo entry (skipped during drag)
-          const { totalNumberOfBins, minBinEdge } = binnedPlot.binDetails()
-          if (isFiniteNumber(minBinEdge) && isFiniteNumber(totalNumberOfBins)) {
-            const axisModel = graphModel.getNumericAxis(primaryPlace)
-            axisModel?.setAllowRangeToShrink(true)
-            axisModel?.setDomain(minBinEdge, minBinEdge + binnedPlot.binWidth * totalNumberOfBins)
-          }
-        }
-        lowerBoundaryRef.current = 0
-      }, {
-        undoStringKey: "DG.Undo.graph.dragBinBoundary",
-        redoStringKey: "DG.Redo.graph.dragBinBoundary",
-        log: logFn.current
-      }
-    )
-  }, [addHistogramBinDragHandlers, binnedPlot, graphModel, primaryPlace])
+  // Tell the hook to use histogram-specific handler re-attachment after drag end
+  reattachAfterDragRef.current = addHistogramBinDragHandlers
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     if (!dataConfig) return
@@ -271,46 +215,6 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, rend
       {name: "useAxis [handleFuseIntoBars]"}, graphModel
     )
   }, [graphModel, layout, renderer])
-
-  // If the pixel width of binWidth would be less than kMinBinScreenWidth, set it to kMinBinScreenWidth.
-  // Skip during drag to avoid creating incremental undo entries.
-  useEffect(function enforceMinBinPixelWidth() {
-    return mstReaction(
-      () => binnedPlot?.binWidth,
-      () => {
-        if (binnedPlot?.binWidth && primaryAxisScale && !binnedPlot.isDraggingBinBoundary) {
-          if (worldWidthToScreenWidth(primaryAxisScale, binnedPlot.binWidth) < kMinBinScreenWidth) {
-            const newBinWidth = screenWidthToWorldWidth(primaryAxisScale, kMinBinScreenWidth)
-            binnedPlot.setBinWidth(newBinWidth)
-          }
-        }
-      }, {name: "enforceMinBinPixelWidth"}, binnedPlot
-    )
-  }, [binnedPlot, primaryAxisScale])
-
-  // When binWidth or binAlignment changes we may need to adjust the primaryAxisScale's domain.
-  // During drag, only update the D3 scale (visual) — skip the MST axis model update to avoid
-  // creating incremental undo entries. The axis model is updated in the drag end handler.
-  useEffect(function respondToBinChange() {
-    return mstReaction(
-      () => {
-        return { width: binnedPlot?.binWidth, alignment: binnedPlot?.binAlignment }
-      },
-      ({ width }) => {
-        const { totalNumberOfBins, minBinEdge } = binnedPlot?.binDetails() || {}
-        if (!isFiniteNumber(width) || !isFiniteNumber(minBinEdge) || !isFiniteNumber(totalNumberOfBins)) {
-          return
-        }
-        const newDomain = [minBinEdge, minBinEdge + width * totalNumberOfBins]
-        primaryAxisScale.domain(newDomain)
-        if (!binnedPlot?.isDraggingBinBoundary) {
-          const axisModel = graphModel.getNumericAxis(primaryPlace)
-          axisModel?.setAllowRangeToShrink(true)
-          axisModel?.setDomain(newDomain[0], newDomain[1])
-        }
-      }, {name: "respondToBinChange", equals: comparer.structural}, binnedPlot
-    )
-  }, [binnedPlot, graphModel, primaryAxisScale, primaryPlace])
 
   return (
     <>

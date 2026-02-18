@@ -42,6 +42,9 @@ export function useBinBoundaryDrag({
   const binWidthDragPrecision = useRef<number>(2)
   const logFn = useRef<Maybe<LogMessageFn>>()
   const handleDragBinBoundaryEndFn = useRef<() => void>(() => {})
+  // Consumer can set this to override post-drag-end behavior (e.g., histogram re-attaches its
+  // own edge-detection handlers instead of redrawing boundary lines)
+  const reattachAfterDragRef = useRef<(() => void) | undefined>()
 
   const drawBinBoundaries = useCallback(() => {
     if (!dataConfig || !isFiniteNumber(binnedPlot?.binAlignment) || !isFiniteNumber(binnedPlot?.binWidth)) return
@@ -135,8 +138,12 @@ export function useBinBoundaryDrag({
   handleDragBinBoundaryEndFn.current = useCallback(() => {
     if (!binnedPlot) return
     binnedPlot.setDragBinIndex(-1)
-    drawBinBoundaries()
-    addBinBoundaryDragHandlers()
+    if (reattachAfterDragRef.current) {
+      reattachAfterDragRef.current()
+    } else {
+      drawBinBoundaries()
+      addBinBoundaryDragHandlers()
+    }
     binnedPlot.applyModelChange(
       () => {
         if (binnedPlot.binAlignment != null && binnedPlot.binWidth != null) {
@@ -198,5 +205,9 @@ export function useBinBoundaryDrag({
     )
   }, [binnedPlot, graphModel, primaryAxisScale, primaryPlace])
 
-  return { binBoundariesRef, drawBinBoundaries, addBinBoundaryDragHandlers }
+  return {
+    binBoundariesRef, drawBinBoundaries, addBinBoundaryDragHandlers,
+    handleDragBinBoundaryStart, handleDragBinBoundary, handleDragBinBoundaryEndFn,
+    reattachAfterDragRef,
+  }
 }
