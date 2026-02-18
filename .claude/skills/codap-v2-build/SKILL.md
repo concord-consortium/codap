@@ -157,11 +157,9 @@ Wait for user confirmation before starting Phase 1.
    - `noaa-codap-plugin`
    - `story-builder`
 
-   If any are missing, offer to run `npm install` (with `--legacy-peer-deps` for codap and CFM).
+   If any are missing, offer to run `npm ci` (with `--legacy-peer-deps` for codap and CFM).
 
-   Even if all `node_modules` directories exist, offer the user the option to re-run `npm install` in all repositories — `package.json` or `package-lock.json` may have changed since dependencies were last installed (e.g. after `git pull`).
-
-   **After running `npm install`, re-verify cleanliness** — `npm install` can modify `package-lock.json` in some repos. Re-check modified file counts and ask the user to commit or discard any changes before proceeding.
+   Even if all `node_modules` directories exist, offer the user the option to re-run `npm ci` in all repositories — `package.json` or `package-lock.json` may have changed since dependencies were last installed (e.g. after `git pull`).
 
 7. **Summary:**
 
@@ -255,14 +253,17 @@ Wait for user confirmation before starting Phase 1.
 4. **Update CODAP translations:**
 
    Explain to the user:
-   > CODAP supports 17 languages via POEditor (poeditor.com). POEditor is the single
+   > CODAP supports multiple languages via POEditor (poeditor.com). POEditor is the single
    > source of truth for translations — the push from git to POEditor is additive only
-   > (it can add new terms and update existing values, but never deletes terms). This is
-   > important because CODAP V2 and V3 share the same POEditor project, so each must be
-   > able to push without affecting the other's strings.
+   > (it can add new terms and update existing values, but never deletes terms). CODAP V2
+   > and V3 share the same POEditor project (ID 125447), with an ownership model:
+   > - **V2 owns `DG.*` strings** — V2 pushes only these keys
+   > - **V3 owns `V3.*` strings** — V3 pushes only these keys
+   > - All keys in the project use one of these two prefixes; no other prefixes exist
    >
    > Before pushing, we'll compare the local English strings against what's currently in
-   > POEditor so you can see what will be added or changed.
+   > POEditor, categorize differences by ownership, accept any V3 changes from POEditor,
+   > and push only DG changes.
 
    **Constants:**
    - POEditor project ID: `125447`
@@ -300,24 +301,78 @@ Wait for user confirmation before starting Phase 1.
 
    Clean up temp files and skip to step 4b.
 
-   **If different:** Analyze the differences using the two normalized JSON files:
+   **If different:** Categorize differences by ownership:
+   ```bash
+   # Categorize differences by ownership
+   node -e "
+   const local = require('/tmp/local-en.json');
+   const remote = require('/tmp/poeditor-en.json');
+   const dgDiffs = [], v3Diffs = [];
+   for (const k of new Set([...Object.keys(local), ...Object.keys(remote)])) {
+     if (local[k] !== remote[k]) {
+       (k.startsWith('V3.') ? v3Diffs : dgDiffs).push(k);
+     }
+   }
+   if (v3Diffs.length) console.log('V3 changes from POEditor (will be accepted):', v3Diffs.join(', '));
+   if (dgDiffs.length) console.log('DG changes to push:', dgDiffs.join(', '));
+   "
+   ```
+
+   Analyze and present differences in two groups:
+
+   **DG.\* differences** (V2-owned):
    - **Keys in local but not in POEditor** — will be ADDED as new terms
    - **Keys in POEditor but not in local** — will be LEFT ALONE (the push is additive only)
    - **Keys with different values** — English text will be UPDATED in POEditor
 
+   **V3.\* differences** (V3-owned):
+   - Inform user: "V3 made these string changes in POEditor: [list]. These will be
+     accepted into your local file."
+   - Accept V3 changes by synchronizing the local `lang/strings/en-US.json` with the
+     POEditor values for V3.* keys:
+     - For V3.* keys that already exist locally, update their values in place to match
+       POEditor.
+     - For V3.* keys that are present only in POEditor (new V3 terms), add those keys
+       and values to `lang/strings/en-US.json`, placing them near related V3 entries to
+       preserve the existing JSON ordering and structure.
+     Use the Read tool to get the current file content, then use the Edit tool to make
+     these updates/additions while preserving any JSON comments in the file.
+
    Present a summary, e.g.:
    > **English strings: local vs. POEditor**
-   > - 3 new terms to add
+   > - **DG.\* (V2-owned):** 3 new terms to add, 2 terms with changed values
+   > - **V3.\* (V3-owned):** 4 changes from POEditor (will be accepted locally)
    > - 5 terms only in POEditor (will not be affected)
-   > - 2 terms with changed values
    >
-   > [show the specific additions and changes]
+   > [show the specific additions and changes, grouped by ownership]
 
-   Use AskUserQuestion: "Your local English strings differ from POEditor as shown
-   above. Do you want to push these changes to POEditor?"
-   - **Yes, push to POEditor** — Run `./bin/strings-push-project.sh -a "$API_TOKEN"`
-     and show the API response
+   If there are DG.* differences, use AskUserQuestion: "Your local DG.* strings differ
+   from POEditor as shown above. Do you want to push DG changes to POEditor?"
+   - **Yes, push DG strings to POEditor** — Filter and push only DG.* keys:
+     ```bash
+     # Extract DG-only strings for push (V3 strings are managed by the V3 build)
+     node -e "
+     const fs = require('fs');
+     const stripComments = require('strip-json-comments');
+     const raw = fs.readFileSync('lang/strings/en-US.json', 'utf8');
+     const data = JSON.parse(stripComments(raw));
+     const dg = {};
+     for (const [k, v] of Object.entries(data)) {
+       if (k.startsWith('DG.')) dg[k] = v;
+     }
+     fs.writeFileSync('/tmp/dg-strings-push.json', JSON.stringify(dg));
+     console.log('Pushing ' + Object.keys(dg).length + ' DG strings (filtering out ' +
+       (Object.keys(data).length - Object.keys(dg).length) + ' non-DG strings)');
+     "
+
+     ./bin/strings-push.sh -p 125447 -i /tmp/dg-strings-push.json -a "$API_TOKEN"
+     rm -f /tmp/dg-strings-push.json
+     ```
+     Show the API response.
    - **No, skip the push** — Continue without pushing
+
+   If there are no DG.* differences (only V3 changes were accepted), report:
+   > No DG.* changes to push. V3 changes have been accepted locally.
 
    Clean up temp files:
    ```bash
@@ -516,7 +571,7 @@ Explain to the user:
 
    Explain to the user:
    > This is the main build step. `makeCodapZip` orchestrates the entire release assembly:
-   > 1. Runs `sproutcore build` to compile the CODAP application (minified, all 17 languages)
+   > 1. Runs `sproutcore build` to compile the CODAP application (minified, all languages)
    > 2. Runs `makeExtn` to build standard plugins (from `codap-data-interactives`) and example documents (from `codap-data`)
    > 3. Generates a top-level `index.html` that detects the user's browser language and redirects to the appropriate localized version
    > 4. Fixes absolute path references in HTML, JS, and CSS files so the build can run from any URL path
