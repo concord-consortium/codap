@@ -190,7 +190,7 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, rend
       selectedPointRadius: graphModel.getPointRadius("select"),
       renderer, selectedOnly, pointColor, pointStrokeColor, getWidth, getHeight,
       getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating,
-      pointDisplayType: "bars", dataset, pointsFusedIntoBars: true
+      pointDisplayType: "bars", dataset
     })
   }, [abovePointsGroupRef, addHistogramBinDragHandlers, binnedPlot, dataConfig, dataset,
       getPrimaryScreenCoord, getSecondaryScreenCoord, graphModel, isAnimating, layout, renderer, pointColor,

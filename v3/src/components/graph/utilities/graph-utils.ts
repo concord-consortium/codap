@@ -409,7 +409,6 @@ export interface ISetPointCoordinates {
   anchor?: Point
   dataset?: IDataSet
   renderer?: PointRendererBase
-  pointsFusedIntoBars?: boolean
   selectedOnly?: boolean
   pointRadius: number
   selectedPointRadius: number

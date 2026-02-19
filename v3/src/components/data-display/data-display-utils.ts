@@ -81,7 +81,6 @@ export interface IMatchCirclesProps {
   pointRadius: number
   pointColor: string
   pointDisplayType?: PointDisplayType
-  pointsFusedIntoBars?: boolean
   pointStrokeColor: string
   startAnimation: () => void
   instanceId: string | undefined
