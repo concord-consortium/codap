@@ -9,6 +9,7 @@ import {useForceUpdate} from "../../../hooks/use-force-update"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
 import {useRendererPointerDownDeselect} from "../../data-display/hooks/use-renderer-pointer-down-deselect"
+import {useMapClickDeselect} from "../hooks/use-map-click-deselect"
 import {MultiLegend} from "../../data-display/components/legend/multi-legend"
 import { PointRendererArray, RendererCapability } from "../../data-display/renderer"
 import { DEBUG_PIXI_POINTS } from "../../../lib/debug"
@@ -61,6 +62,7 @@ export const CodapMap = observer(function CodapMap({
   }
 
   useRendererPointerDownDeselect(rendererArray, mapModel)
+  useMapClickDeselect(mapModel)
 
   const handleChangeLegendAttribute = useCallback((dataSet: IDataSet, attrId: string) => {
     const attrType = dataSet.attrFromID(attrId)?.type

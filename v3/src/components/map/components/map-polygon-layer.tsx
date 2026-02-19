@@ -1,6 +1,6 @@
 import {comparer, reaction} from "mobx"
 import {addDisposer, isAlive} from "mobx-state-tree"
-import {geoJSON, LeafletMouseEvent, point, Popup, popup} from "leaflet"
+import {DomEvent, geoJSON, LeafletMouseEvent, point, Popup, popup} from "leaflet"
 import {useCallback, useEffect} from "react"
 import {useMap} from "react-leaflet"
 import {DEBUG_MAP, debugLog} from "../../../lib/debug"
@@ -75,9 +75,8 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
         let infoPopup: Popup | null
 
         const handleClick = (iEvent: LeafletMouseEvent) => {
-            const mouseEvent = iEvent.originalEvent
-            handleClickOnCase(mouseEvent as PointerEvent, caseID, dataset)
-            mouseEvent.stopPropagation()
+            DomEvent.stopPropagation(iEvent)
+            handleClickOnCase(iEvent.originalEvent as PointerEvent, caseID, dataset)
           },
 
           handleMouseover = () => {
