@@ -95,6 +95,14 @@ describe("lsrlEquationString", () => {
     expect(result).toContain("r = 0.5")
     expect(result).toContain("r<sup>2</sup> = 0.25")
   })
+  it("should not show r or r² when interceptLocked is true", () => {
+    const result = lsrlEquationString({
+      caseValues: [], slope: 1, intercept: 0, rSquared: 0.25, attrNames, units, layout,
+      showR: true, showRSquared: true, interceptLocked: true
+    })
+    expect(result).not.toContain("r =")
+    expect(result).not.toContain("r<sup>2</sup>")
+  })
 })
 
 describe("valueLabelString", () => {

@@ -377,14 +377,15 @@ export const lsrlEquationString = (props: ILsrlEquationString) => {
     : `<em>${slope === 0 ? attrNames.y : attrNames.x}</em> = ${formattedIntercept}`
   const rValue = rSquared != null && slope != null ? Math.sign(slope) * Math.sqrt(rSquared) : undefined
   const formattedR = rValue != null ? formatEquationValue(rValue, 4) : ""
-  const rPart = showR && rValue != null ? `<br />r = ${formattedR}` : ""
+  const rPart = showR && !interceptLocked && rValue != null ? `<br />r = ${formattedR}` : ""
   const seSlopePart = showConfidenceBands && !interceptLocked ? `<br />σ<sub>slope</sub> = ${formattedSeSlope}` : ""
   const seInterceptPart = showConfidenceBands && !interceptLocked
     ? `<br />σ<sub>intercept</sub> = ${formattedSeIntercept}` : ""
   const squaresPart = isFiniteNumber(sumOfSquares)
     ? `<br />${t("DG.ScatterPlotModel.sumSquares")} = ${formattedSumOfSquares}`
     : ""
-  const rSquaredPart = showRSquared && rSquared != null ? `<br />r<sup>2</sup> = ${formattedRSquared}` : ""
+  const rSquaredPart = showRSquared && !interceptLocked && rSquared != null
+    ? `<br />r<sup>2</sup> = ${formattedRSquared}` : ""
 
   return `${equationPart}${rPart}${rSquaredPart}${seSlopePart}${seInterceptPart}${squaresPart}`
 }

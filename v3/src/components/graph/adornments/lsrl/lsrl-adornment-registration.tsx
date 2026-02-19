@@ -107,33 +107,35 @@ const Controls = observer(function Controls() {
           className="sub-options lsrl-sub-options"
           data-testid="adornment-lsrl-sub-options"
         >
-          <FormControl>
-            <Checkbox
-              data-testid={`adornment-checkbox-${kLSRLClass}-show-r`}
-              defaultChecked={existingAdornment?.showR}
-              onChange={e => handleShowRSetting(e.target.checked)}
-            >
-              {t("V3.graphLSRL.showR")}
-            </Checkbox>
-          </FormControl>
-          <FormControl>
-            <Checkbox
-              data-testid={`adornment-checkbox-${kLSRLClass}-show-r-squared`}
-              defaultChecked={existingAdornment?.showRSquared}
-              onChange={e => handleShowRSquaredSetting(e.target.checked)}
-            >
-              {t("V3.graphLSRL.showRSquared")}
-            </Checkbox>
-          </FormControl>
-          <FormControl isDisabled={interceptLocked}>
-            <Checkbox
-              data-testid={`adornment-checkbox-${kLSRLClass}-show-confidence-bands`}
-              defaultChecked={existingAdornment?.showConfidenceBands}
-              onChange={e => handleShowConfidenceBandsSetting(e.target.checked)}
-            >
-              {t("V3.Inspector.graphLSRLShowConfidenceBands")}
-            </Checkbox>
-          </FormControl>
+          <If condition={!interceptLocked}>
+            <FormControl>
+              <Checkbox
+                data-testid={`adornment-checkbox-${kLSRLClass}-show-r`}
+                defaultChecked={existingAdornment?.showR}
+                onChange={e => handleShowRSetting(e.target.checked)}
+              >
+                {t("V3.graphLSRL.showR")}
+              </Checkbox>
+            </FormControl>
+            <FormControl>
+              <Checkbox
+                data-testid={`adornment-checkbox-${kLSRLClass}-show-r-squared`}
+                defaultChecked={existingAdornment?.showRSquared}
+                onChange={e => handleShowRSquaredSetting(e.target.checked)}
+              >
+                {t("V3.graphLSRL.showRSquared")}
+              </Checkbox>
+            </FormControl>
+            <FormControl>
+              <Checkbox
+                data-testid={`adornment-checkbox-${kLSRLClass}-show-confidence-bands`}
+                defaultChecked={existingAdornment?.showConfidenceBands}
+                onChange={e => handleShowConfidenceBandsSetting(e.target.checked)}
+              >
+                {t("V3.Inspector.graphLSRLShowConfidenceBands")}
+              </Checkbox>
+            </FormControl>
+          </If>
         </div>
       </If>
     </>
