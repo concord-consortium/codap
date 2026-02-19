@@ -5,6 +5,7 @@ import RTreeLib from "rtree"
 import {useMemo} from "use-memo-one"
 import { isKeyDown } from "../../../hooks/use-key-states"
 import {appState} from "../../../models/app-state"
+import {Logger} from "../../../lib/logger"
 import {IDataSet} from "../../../models/data/data-set"
 import {selectAllCases, selectAndDeselectCases} from "../../../models/data/data-set-utils"
 import { getTileModel } from "../../../models/tiles/tile-model"
@@ -160,11 +161,15 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
   }, [clearDatasetsMapArrays, datasetsArray, datasetsMap, marqueeState])
 
   const onDragEnd = useCallback(() => {
+    const numCases = datasetsArray.reduce((sum, data) => sum + data.selection.size, 0)
+    if (numCases > 0) {
+      Logger.log(`marqueeSelection: ${numCases}`, { numCases }, "plot")
+    }
     marqueeState.setMarqueeRect({x: 0, y: 0, width: 0, height: 0})
     selectionTree.current = null
     dataDisplayModel.setMarqueeMode("unclicked")
     appState.endPerformance()
-  }, [dataDisplayModel, marqueeState])
+  }, [dataDisplayModel, datasetsArray, marqueeState])
 
   useRendererPointerDownDeselect(rendererArray, dataDisplayModel)
 
