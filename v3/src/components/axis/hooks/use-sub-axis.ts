@@ -206,6 +206,11 @@ export const useSubAxis = ({
         )
       categoriesSelectionRef.current.each(function () {
         const catGroup = select(this)
+        // drag hint tooltip
+        if (catGroup.select('title').empty()) {
+          catGroup.append('title')
+            .text(translate("V3.CellAxis.dragCategory"))
+        }
         // ticks
         if (catGroup.select('.tick').empty()) {
           catGroup.append('line')

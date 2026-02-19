@@ -1,6 +1,6 @@
 import { t } from "./translate"
 
-jest.mock("./lang/en-US-dg.json", () => ({
+jest.mock("./lang/en-US.json5", () => ({
   HELLO: "Hello",
   NAMED: "Replace %{foo} with %{bar}",
   INDEXED: "Replace %@1 with %@2",
@@ -8,8 +8,6 @@ jest.mock("./lang/en-US-dg.json", () => ({
   POSITIONED: "Replace %@ with %@",
   EMPTY_NAMED: "Replace %{foo} with %{}"
 }))
-
-jest.mock("./lang/en-US-v3.json5", () => ({}))
 
 jest.mock("./lang/es.json", () => ({
   HELLO: "Hola"

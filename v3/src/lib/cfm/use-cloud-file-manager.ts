@@ -42,12 +42,6 @@ import ToolbarPositionTopIcon from "../../assets/cfm/icon-toolbar-position-top.n
 
 const locales = [
   {
-    langName: 'العربية',
-    langCode: 'ar',
-    countryDigraph: 'SA',
-    icon: 'flag flag-sa'
-  },
-  {
     langName: 'Deutsch',
     langCode: 'de',
     countryDigraph: 'DE',
@@ -272,7 +266,7 @@ function getMenuBar(cfm: CloudFileManager) {
         gLocale.setCurrent(langCode)
         cfm.client.replaceMenu({
           menuAnchorIcon: FileMenuIcon,
-          menuAnchorName: t("DG.fileMenu.fileMenuName"),
+          menuAnchorName: t("V3.fileMenu.fileMenuName"),
           menu: getFileMenuConfig(cfm),
         })
       }
@@ -313,7 +307,7 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, hookOptions?: IUs
       ui: {
         menuBar: getMenuBar(cfm),
         menuAnchorIcon: FileMenuIcon,
-        menuAnchorName: t("DG.fileMenu.fileMenuName"),
+        menuAnchorName: t("V3.fileMenu.fileMenuName"),
         menu: getFileMenuConfig(cfm),
         clientToolBarPosition: "top",
       },

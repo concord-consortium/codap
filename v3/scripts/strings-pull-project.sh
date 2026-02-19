@@ -3,14 +3,14 @@
 # Pull translations for all languages from POEditor with per-language
 # timeout and automatic retry of failed languages.
 #
-# After pulling non-English languages, pulls en-US and splits it into
-# separate DG (V2-owned) and V3-owned string files.
+# Pulls non-English translations only. V3 owns the English source strings
+# in en-US.json5 and pushes them to POEditor; there is no need to pull en-US.
 #
 # Usage: ./scripts/strings-pull-project.sh -a <api_token> [-o <output_dir>]
 #
 PROJECT_ID=125447
 OUTPUT_DIR=src/utilities/translation/lang
-LANGUAGES=("ar" "de" "el" "es" "fa" "fr" "he" "ja" "ko" "nb" "nl" "nn" "pl" "pt-BR" "th" "tr" "zh-TW" "zh-Hans")
+LANGUAGES=("de" "el" "es" "fa" "fr" "he" "ja" "ko" "nb" "nl" "nn" "pl" "pt-BR" "th" "tr" "zh-TW" "zh-Hans")
 MAX_RETRIES=3
 TIMEOUT_SECS=60
 
@@ -104,7 +104,7 @@ while [[ ${#FAILED_LANGS[@]} -gt 0 ]] && [[ $attempt -le $MAX_RETRIES ]]; do
     ((attempt++))
 done
 
-# Summary for non-English languages
+# Summary
 echo ""
 SUCCESSFUL_COUNT=0
 for lang in "${LANGUAGES[@]}"; do
@@ -113,56 +113,15 @@ for lang in "${LANGUAGES[@]}"; do
     fi
 done
 
-echo "=== Non-English Summary ==="
+echo "=== Summary ==="
 echo "  Succeeded: $SUCCESSFUL_COUNT / $LANG_COUNT"
 if [[ ${#FAILED_LANGS[@]} -gt 0 ]]; then
     echo "  Failed:    ${FAILED_LANGS[*]}"
-fi
-
-# Pull en-US with retries (critical for DG/V3 split)
-echo ""
-echo "Pulling en-US and splitting into DG/V3 files..."
-en_us_success=false
-for (( en_attempt=1; en_attempt<=MAX_RETRIES; en_attempt++ )); do
-    printf "  %-10s " "en-US:"
-    if pull_language "en-US"; then
-        echo "Success"
-        en_us_success=true
-        break
-    else
-        echo "FAILED (attempt $en_attempt of $MAX_RETRIES)"
-    fi
-done
-
-if $en_us_success; then
-    # Split en-US into DG and V3 files
-    node -e "
-const fs = require('fs');
-const pulled = JSON.parse(fs.readFileSync('$OUTPUT_DIR/en-US.json', 'utf8'));
-const dg = {}, v3 = {};
-for (const [k, v] of Object.entries(pulled)) {
-  if (k.startsWith('V3.')) v3[k] = v;
-  else dg[k] = v;
-}
-fs.writeFileSync('$OUTPUT_DIR/en-US-dg.json', JSON.stringify(dg, null, 4) + '\n');
-fs.writeFileSync('/tmp/poeditor-v3-strings.json', JSON.stringify(v3, null, 4) + '\n');
-console.log('  DG strings: ' + Object.keys(dg).length);
-console.log('  V3 strings: ' + Object.keys(v3).length);
-"
-    rm "$OUTPUT_DIR/en-US.json"  # Remove the combined download
-else
-    echo "FAILED - en-US pull failed after $MAX_RETRIES attempts"
-    exit 1
-fi
-
-# Final summary
-echo ""
-echo "=== Complete ==="
-if [[ ${#FAILED_LANGS[@]} -gt 0 ]]; then
+    echo ""
     echo "WARNING: Some languages failed after $MAX_RETRIES attempts."
     echo "You can retry individual languages with:"
     echo "  ./scripts/strings-pull.sh -p $PROJECT_ID -l LANG -o $OUTPUT_DIR -a \$POEDITOR_API_TOKEN"
     exit 1
 else
-    echo "All languages pulled successfully."
+    echo "  All languages pulled successfully."
 fi
