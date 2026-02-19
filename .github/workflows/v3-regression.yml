@@ -20,6 +20,9 @@ jobs:
       # being a string is actually considered true, so fromJSON is needed to turn `"false"` into `false`.
       # If we are on the 'main' branch then run the regression tests regardless of the PR label
       run_regression: ${{ fromJSON(steps.run_regression.outputs.value) || github.ref_name == 'main' }}
+      # Resolve Chrome stable version once so all parallel runners use the same version.
+      # This prevents Cypress parallel mismatch errors during Chrome version rollouts.
+      chrome-version: ${{ steps.chrome.outputs.chrome-version }}
     permissions:
       pull-requests: read
     steps:
@@ -42,6 +45,11 @@ jobs:
       - name: Get run_regression
         id: run_regression
         run: echo "value=${{ contains(fromJSON(steps.pr.outputs.labels).*.name, 'run regression') }}" >> $GITHUB_OUTPUT
+      - name: Resolve Chrome stable version
+        id: chrome
+        uses: browser-actions/setup-chrome@v2
+        with:
+          chrome-version: stable
   cypress:
     needs: ['prepare']
     # only run the regression tests if the PR is labeled.
@@ -59,7 +67,7 @@ jobs:
     steps:
       - uses: browser-actions/setup-chrome@v2
         with:
-          chrome-version: stable
+          chrome-version: ${{ needs.prepare.outputs.chrome-version }}
           install-dependencies: true
       - name: Checkout
         uses: actions/checkout@v4
