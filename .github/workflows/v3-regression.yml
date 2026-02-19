@@ -66,6 +66,7 @@ jobs:
         containers: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
     steps:
       - uses: browser-actions/setup-chrome@v2
+        id: setup-chrome
         with:
           chrome-version: ${{ needs.prepare.outputs.chrome-version }}
           install-dependencies: true
@@ -89,7 +90,7 @@ jobs:
           record: ${{ !!secrets.CYPRESS_RECORD_KEY }}
           # only do parallel if we have a record key
           parallel: ${{ !!secrets.CYPRESS_RECORD_KEY }}
-          browser: chrome
+          browser: ${{ steps.setup-chrome.outputs.chrome-path }}
           # TODO: this currently will re-run the smoke test, once we have a dedicated smoke
           # test that should be excluded
           # spec: cypress/e2e/**
