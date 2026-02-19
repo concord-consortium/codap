@@ -38,6 +38,12 @@ describe("equationString", () => {
     expect(equationString({slope: Infinity, intercept: 1, attrNames, units, layout}))
       .toBe('<em>Lifespan</em> = 1')
   })
+  it("should omit the intercept when it rounds to zero", () => {
+    expect(equationString({slope: 1, intercept: 0.0001, attrNames, units, layout}))
+      .toBe('<em>Speed</em> = 1 (<em>Lifespan</em>)')
+    expect(equationString({slope: 1, intercept: -0.0001, attrNames, units, layout}))
+      .toBe('<em>Speed</em> = 1 (<em>Lifespan</em>)')
+  })
 })
 
 describe("lsrlEquationString", () => {
@@ -55,6 +61,12 @@ describe("lsrlEquationString", () => {
   it("should return an equation containing only the x attribute when the slope is Infinity", () => {
     expect(lsrlEquationString({caseValues: [], slope: Infinity, intercept: 1, attrNames, units, layout}))
       .toBe('<em>Lifespan</em> = 1')
+  })
+  it("should omit the intercept when it rounds to zero", () => {
+    expect(lsrlEquationString({caseValues: [], slope: 1, intercept: 0.0001, attrNames, units, layout}))
+      .toBe('<em>Speed</em> = 1 (<em>Lifespan</em>)')
+    expect(lsrlEquationString({caseValues: [], slope: 1, intercept: -0.0001, attrNames, units, layout}))
+      .toBe('<em>Speed</em> = 1 (<em>Lifespan</em>)')
   })
   it("should not show r or r² when both showR and showRSquared are false", () => {
     const result = lsrlEquationString({
