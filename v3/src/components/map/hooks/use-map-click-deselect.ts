@@ -17,7 +17,12 @@ export function useMapClickDeselect(mapModel: IMapContentModel) {
   const wasTileSelectedRef = useRef(false)
 
   useEffect(() => {
-    const handlePointerDown = () => {
+    const handlePointerDown = (event: PointerEvent) => {
+      // Only capture state from real browser events. When the Pixi canvas
+      // re-dispatches a pointerdown to underlying elements, isTrusted is false.
+      // Without this guard the re-dispatched event overwrites our ref after
+      // the tile has already been selected by the original bubble phase.
+      if (!event.isTrusted) return
       wasTileSelectedRef.current = isTileSelected()
     }
     window.addEventListener("pointerdown", handlePointerDown, { capture: true })
