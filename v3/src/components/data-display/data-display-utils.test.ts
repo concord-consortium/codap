@@ -131,8 +131,8 @@ describe("setPointSelection", () => {
     )
 
     // Selected point with legend should preserve legend fill and use selection stroke
-    expect(selectedPointStyle?.fill).toBeDefined()
-    expect(selectedPointStyle?.fill).not.toBe(defaultSelectedColor)
+    const expectedLegendColor = tree.config.getLegendColorForCase(caseIdFromItemId("c1")!)
+    expect(selectedPointStyle?.fill).toBe(expectedLegendColor)
     expect(selectedPointStyle?.stroke).toBe(defaultSelectedStroke)
     expect(selectedPointStyle?.strokeWidth).toBe(defaultSelectedStrokeWidth)
     expect(selectedPointStyle?.strokeOpacity).toBe(defaultSelectedStrokeOpacity)

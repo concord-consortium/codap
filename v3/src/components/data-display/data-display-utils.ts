@@ -124,7 +124,7 @@ export function setPointSelection(props: ISetPointSelection) {
   renderer.forEachPoint((point, metadata) => {
     const { caseID, plotNum } = metadata
     const isSelected = !!dataset?.isCaseSelected(caseID)
-    // Determine fill color based on legend or plotNum, preserving original color when selected
+    // Determine fill color based on legend or plotNum; no-legend selected points override to blue below
     let fill: string
     if (legendID) {
       fill = dataConfiguration?.getLegendColorForCase(caseID)
