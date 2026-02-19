@@ -6,6 +6,7 @@ $interaction-width: 10px;
   top: 0;
   height: 100%;
   cursor: col-resize;
+  touch-action: none;
   z-index: 1;
 
   .column-resize-handle-divider {

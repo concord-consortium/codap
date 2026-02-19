@@ -24,11 +24,11 @@ export function ColumnResizeHandle({ resizeWidth, containerWidth, minWidth, onRe
     }
   }, [resizeWidth, isResizing])
 
-  const continueResize = useCallback((e: MouseEvent) => {
-    const newWidthRaw = e.pageX - deltaStartRef.current
+  const continueResize = useCallback((e: PointerEvent) => {
+    const newWidthRaw = e.clientX - deltaStartRef.current
     const maxWidth = containerWidth - minWidth
     const newWidth = Math.max(minWidth, Math.min(newWidthRaw, maxWidth))
-    deltaStartRef.current = e.pageX - newWidth
+    deltaStartRef.current = e.clientX - newWidth
     if (newWidth !== resizeWidthRef.current) {
       resizeWidthRef.current = newWidth
       onResize(newWidth)
@@ -42,18 +42,19 @@ export function ColumnResizeHandle({ resizeWidth, containerWidth, minWidth, onRe
 
   useEffect(() => {
     if (isResizing) {
-      document.addEventListener("mousemove", continueResize)
-      document.addEventListener("mouseup", endResize)
+      document.addEventListener("pointermove", continueResize)
+      document.addEventListener("pointerup", endResize)
       return () => {
-        document.removeEventListener("mousemove", continueResize)
-        document.removeEventListener("mouseup", endResize)
+        document.removeEventListener("pointermove", continueResize)
+        document.removeEventListener("pointerup", endResize)
       }
     }
   }, [isResizing, continueResize, endResize])
 
-  const beginResize = useCallback((e: React.MouseEvent) => {
+  const beginResize = useCallback((e: React.PointerEvent) => {
     e.preventDefault()
-    deltaStartRef.current = e.pageX - resizeWidthRef.current
+    ;(e.target as Element).setPointerCapture?.(e.pointerId)
+    deltaStartRef.current = e.clientX - resizeWidthRef.current
     setIsResizing(true)
   }, [])
 
@@ -61,7 +62,7 @@ export function ColumnResizeHandle({ resizeWidth, containerWidth, minWidth, onRe
     <div
       className="column-resize-handle"
       style={{ left: resizeWidth - kColumnResizeHandleInteractionWidth / 2 }}
-      onMouseDown={beginResize}
+      onPointerDown={beginResize}
     >
       <div className={clsx("column-resize-handle-divider", { "is-resizing": isResizing })} />
     </div>

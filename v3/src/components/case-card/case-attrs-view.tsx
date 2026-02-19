@@ -6,6 +6,7 @@ import { IAttribute } from "../../models/data/attribute"
 import { IGroupedCase } from "../../models/data/data-set-types"
 import { ICollectionModel } from "../../models/data/collection"
 import { getCollectionAttrs } from "../../models/data/data-set-utils"
+import { If } from "../common/if"
 import { AttributeHeader } from "../case-tile-common/attribute-header"
 import { kIndexColumnKey } from "../case-tile-common/case-tile-types"
 import { ICaseCardModel } from "./case-card-model"
@@ -163,14 +164,14 @@ export const CaseAttrsView = observer(function CaseAttrsView(
           }
         </tbody>
       </table>
-      {containerWidth != null && containerWidth > 0 &&
+      <If condition={containerWidth != null && containerWidth > 0}>
         <ColumnResizeHandle
           resizeWidth={resizeWidthPx}
-          containerWidth={containerWidth}
+          containerWidth={containerWidth!}
           minWidth={kMinColumnWidth}
           onResize={handleResize}
         />
-      }
+      </If>
     </div>
   )
 })

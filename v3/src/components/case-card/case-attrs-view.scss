@@ -5,17 +5,17 @@ $xMarginOffset: $margin-left + $margin-right;
 .case-card-attrs-wrapper {
   overflow: hidden;
   position: relative;
-}
 
-.case-card-attrs {
-  border-collapse: collapse;
-  font-weight: 600;
-  margin: 5px $margin-right 5px $margin-left;
-  table-layout: fixed;
-  text-align: right;
-  width: calc(100% - $xMarginOffset);
+  .case-card-attrs {
+    border-collapse: collapse;
+    font-weight: 600;
+    margin: 5px $margin-right 5px $margin-left;
+    table-layout: fixed;
+    text-align: right;
+    width: calc(100% - $xMarginOffset);
 
-  .case-card-attr.index-row {
-    height: 0;
+    .case-card-attr.index-row {
+      height: 0;
+    }
   }
 }
