@@ -1,5 +1,23 @@
 import { setUrlParams } from "./url-params"
-import { isBeta } from "./version-utils"
+import { displayVersion, isBeta } from "./version-utils"
+
+describe("displayVersion", () => {
+  it("strips build numbers (4+ digits) from prerelease tags", () => {
+    expect(displayVersion("3.0.0-beta.2664")).toBe("3.0.0-beta")
+    expect(displayVersion("3.0.0-pre.12345")).toBe("3.0.0-pre")
+  })
+
+  it("preserves short prerelease numbers like rc.1", () => {
+    expect(displayVersion("3.0.0-rc.1")).toBe("3.0.0-rc.1")
+    expect(displayVersion("3.0.0-alpha.12")).toBe("3.0.0-alpha.12")
+    expect(displayVersion("3.0.0-beta.999")).toBe("3.0.0-beta.999")
+  })
+
+  it("preserves release versions", () => {
+    expect(displayVersion("3.0.0")).toBe("3.0.0")
+    expect(displayVersion("3.1.0")).toBe("3.1.0")
+  })
+})
 
 describe("isBeta", () => {
   const originalHref = window.location.href

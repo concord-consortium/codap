@@ -6,6 +6,7 @@ import { appState } from "../../models/app-state"
 import { uiState } from "../../models/ui-state"
 import { t } from "../../utilities/translation/translate"
 import { removeDevUrlParams, urlParams } from "../../utilities/url-params"
+import { displayVersion } from "../../utilities/version-utils"
 import { isCodapV2Document } from "../../v2/codap-v2-types"
 import { DEBUG_CFM_EVENTS, DEBUG_CFM_NO_AUTO_SAVE } from "../debug"
 import { Logger } from "../logger"
@@ -33,7 +34,7 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
         appBuildNum: build.buildNumber
       })
       // pass the version number for display in the CFM menu bar
-      wrapCfmCallback(() => cfmClient._ui.setMenuBarInfo(`v${pkg.version} (${build.buildNumber})`))
+      wrapCfmCallback(() => cfmClient._ui.setMenuBarInfo(`v${displayVersion(pkg.version)} (${build.buildNumber})`))
       appState.setVersion(pkg.version)
 
       // load initial document specified via `url` parameter (if any)
