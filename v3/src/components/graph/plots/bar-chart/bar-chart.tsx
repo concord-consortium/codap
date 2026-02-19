@@ -178,8 +178,7 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, render
     setPointCoordinates({
       anchor, dataset, pointRadius, selectedPointRadius: graphModel.getPointRadius('select'),
       renderer, selectedOnly, pointColor, pointStrokeColor, pointDisplayType,
-      getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating, getWidth, getHeight,
-      pointsFusedIntoBars: graphModel?.pointsFusedIntoBars
+      getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating, getWidth, getHeight
     })
   }, [abovePointsGroupRef, barChartModel, dataset, graphLayout, graphModel, isAnimating, layout,
     renderer, primaryScreenCoord, secondaryScreenCoord, subPlotCells])

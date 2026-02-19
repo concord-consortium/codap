@@ -75,10 +75,9 @@ export const useDotPlot = (renderer?: PointRendererBase) => {
   const refreshPointSelection = useCallback(() => {
     const pointRadius = graphModel.getPointRadius()
     const selectedPointRadius = graphModel.getPointRadius('select')
-    const pointsFusedIntoBars = graphModel.pointsFusedIntoBars
     dataConfig && setPointSelection({
       renderer, dataConfiguration: dataConfig, pointRadius, pointColor, pointStrokeColor, selectedPointRadius,
-      pointDisplayType, pointsFusedIntoBars
+      pointDisplayType
     })
   }, [dataConfig, graphModel, renderer, pointColor, pointStrokeColor, pointDisplayType])
 

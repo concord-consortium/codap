@@ -64,7 +64,7 @@ describe("setPointSelection", () => {
     }
   })
 
-  it("sets correct stroke color for selected points when pointsFusedIntoBars is false", () => {
+  it("uses blue selection fill for selected points with no legend", () => {
     const caseIdFromItemId = (itemId: string) => tree.data.getItemChildCaseId(itemId)
     // Select first case
     tree.data.setSelectedCases([caseIdFromItemId("c1")!])
@@ -75,8 +75,7 @@ describe("setPointSelection", () => {
       pointRadius: 5,
       selectedPointRadius: 7,
       pointColor: "#ffffff",
-      pointStrokeColor: "#000000",
-      pointsFusedIntoBars: false
+      pointStrokeColor: "#000000"
     })
 
     // Find the style update for the selected point (c1)
@@ -88,21 +87,32 @@ describe("setPointSelection", () => {
       (_, idx) => idx === 1
     )
 
-    // Selected point should have defaultSelectedStroke (red) when not fused into bars
-    expect(selectedPointStyle?.stroke).toBe(defaultSelectedStroke)
-    expect(selectedPointStyle?.strokeWidth).toBe(defaultSelectedStrokeWidth)
-    expect(selectedPointStyle?.strokeOpacity).toBe(defaultSelectedStrokeOpacity)
+    // Selected point with no legend should have blue fill and normal stroke
+    expect(selectedPointStyle?.fill).toBe(defaultSelectedColor)
+    expect(selectedPointStyle?.stroke).toBe("#000000")
+    expect(selectedPointStyle?.strokeWidth).toBe(defaultStrokeWidth)
+    expect(selectedPointStyle?.strokeOpacity).toBe(defaultStrokeOpacity)
     expect(selectedPointStyle?.radius).toBe(7)
 
-    // Unselected point should have the regular stroke color
+    // Unselected point should have the regular fill and stroke
+    expect(unselectedPointStyle?.fill).toBe("#ffffff")
     expect(unselectedPointStyle?.stroke).toBe("#000000")
     expect(unselectedPointStyle?.strokeWidth).toBe(defaultStrokeWidth)
     expect(unselectedPointStyle?.strokeOpacity).toBe(defaultStrokeOpacity)
     expect(unselectedPointStyle?.radius).toBe(5)
   })
 
-  it("sets correct stroke color for selected points when pointsFusedIntoBars is true", () => {
+  it("uses selection stroke for selected points with legend", () => {
     const caseIdFromItemId = (itemId: string) => tree.data.getItemChildCaseId(itemId)
+    // Add a categorical attribute for the legend
+    tree.data.addAttribute({ id: "categoryId", name: "category" })
+    tree.data.setCaseValues([
+      { __id__: "c1", categoryId: "A" },
+      { __id__: "c2", categoryId: "B" },
+      { __id__: "c3", categoryId: "A" }
+    ])
+    tree.config.setAttribute("legend", { attributeID: "categoryId" })
+
     // Select first case
     tree.data.setSelectedCases([caseIdFromItemId("c1")!])
 
@@ -112,8 +122,7 @@ describe("setPointSelection", () => {
       pointRadius: 5,
       selectedPointRadius: 7,
       pointColor: "#ffffff",
-      pointStrokeColor: "#000000",
-      pointsFusedIntoBars: true
+      pointStrokeColor: "#000000"
     })
 
     // Find the style update for the selected point (c1)
@@ -121,8 +130,10 @@ describe("setPointSelection", () => {
       (_, idx) => idx === 0
     )
 
-    // Selected point should have defaultSelectedColor (blue) when fused into bars
-    expect(selectedPointStyle?.stroke).toBe(defaultSelectedColor)
+    // Selected point with legend should preserve legend fill and use selection stroke
+    const expectedLegendColor = tree.config.getLegendColorForCase(caseIdFromItemId("c1")!)
+    expect(selectedPointStyle?.fill).toBe(expectedLegendColor)
+    expect(selectedPointStyle?.stroke).toBe(defaultSelectedStroke)
     expect(selectedPointStyle?.strokeWidth).toBe(defaultSelectedStrokeWidth)
     expect(selectedPointStyle?.strokeOpacity).toBe(defaultSelectedStrokeOpacity)
   })

@@ -81,7 +81,6 @@ export interface IMatchCirclesProps {
   pointRadius: number
   pointColor: string
   pointDisplayType?: PointDisplayType
-  pointsFusedIntoBars?: boolean
   pointStrokeColor: string
   startAnimation: () => void
   instanceId: string | undefined
@@ -116,7 +115,7 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
 
 export function setPointSelection(props: ISetPointSelection) {
   const { renderer, dataConfiguration, pointRadius, selectedPointRadius,
-    pointColor, pointStrokeColor, getPointColorAtIndex, pointsFusedIntoBars } = props
+    pointColor, pointStrokeColor, getPointColorAtIndex } = props
   const dataset = dataConfiguration.dataset
   const legendID = dataConfiguration.attributeID('legend')
   if (!renderer) {
@@ -125,21 +124,21 @@ export function setPointSelection(props: ISetPointSelection) {
   renderer.forEachPoint((point, metadata) => {
     const { caseID, plotNum } = metadata
     const isSelected = !!dataset?.isCaseSelected(caseID)
-    // Determine fill color based on legend or plotNum, preserving original color when selected
+    // Determine fill color based on legend or plotNum; no-legend selected points override to blue below
     let fill: string
     if (legendID) {
       fill = dataConfiguration?.getLegendColorForCase(caseID)
     } else {
       fill = plotNum && getPointColorAtIndex ? getPointColorAtIndex(plotNum) : pointColor
     }
+    // When there's no legend, use blue fill for selection instead of a colored stroke
+    const useSelectionFill = isSelected && !legendID
     const style: Partial<IPointStyle> = {
-      fill,
+      fill: useSelectionFill ? defaultSelectedColor : fill,
       radius: isSelected ? selectedPointRadius : pointRadius,
-      stroke: isSelected
-        ? (pointsFusedIntoBars ? defaultSelectedColor : defaultSelectedStroke)
-        : pointStrokeColor,
-      strokeWidth: isSelected ? defaultSelectedStrokeWidth : defaultStrokeWidth,
-      strokeOpacity: isSelected ? defaultSelectedStrokeOpacity : defaultStrokeOpacity
+      stroke: isSelected && !useSelectionFill ? defaultSelectedStroke : pointStrokeColor,
+      strokeWidth: isSelected && !useSelectionFill ? defaultSelectedStrokeWidth : defaultStrokeWidth,
+      strokeOpacity: isSelected && !useSelectionFill ? defaultSelectedStrokeOpacity : defaultStrokeOpacity
     }
     renderer.setPointStyle(point, style)
     renderer.setPointRaised(point, isSelected)

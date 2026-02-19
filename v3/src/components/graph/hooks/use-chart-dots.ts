@@ -37,10 +37,8 @@ export const useChartDots = (renderer?: PointRendererBase) => {
     const {pointColor, pointStrokeColor} = graphModel.pointDescription
     const pointRadius = graphModel.getPointRadius()
     const selectedPointRadius = graphModel.getPointRadius('select')
-    const pointsFusedIntoBars = graphModel.pointsFusedIntoBars
     dataConfig && setPointSelection({
-      renderer, pointColor, pointStrokeColor, dataConfiguration: dataConfig, pointRadius, selectedPointRadius,
-      pointsFusedIntoBars
+      renderer, pointColor, pointStrokeColor, dataConfiguration: dataConfig, pointRadius, selectedPointRadius
     })
   }, [dataConfig, graphModel, renderer])
 
