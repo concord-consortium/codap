@@ -3,7 +3,7 @@ import { FreeTileRow } from "../../../models/document/free-tile-row"
 import { SharedModelDocumentManager } from "../../../models/document/shared-model-document-manager"
 import { CodapV2DataSetImporter, getCaseDataFromV2ContextGuid } from "../../../v2/codap-v2-data-set-importer"
 import { CodapV2Document } from "../../../v2/codap-v2-document"
-import { ICodapV2DocumentJson, ICodapV2GraphStorage } from "../../../v2/codap-v2-types"
+import { ICodapV2DocumentJson, ICodapV2GraphStorage, isV2ScatterPlotModel } from "../../../v2/codap-v2-types"
 import { isLegacyInstanceKey } from "../utilities/cell-key-utils"
 import { v2AdornmentImporter } from "./v2-adornment-importer"
 import { ICountAdornmentModel } from "./count/count-adornment-model"
@@ -163,6 +163,32 @@ describe("V2AdornmentImporter", () => {
     const lsrlAdornment = adornmentStore.adornments.find(a => a.type === "LSRL") as ILSRLAdornmentModelSnapshot
     expect(lsrlAdornment).toBeDefined()
     expect(lsrlAdornment.isVisible).toBe(true)
+    // Pure V2 documents default to showR: false, showRSquared: true
+    expect(lsrlAdornment.showR).toBe(false)
+    expect(lsrlAdornment.showRSquared).toBe(true)
+  })
+
+  it("imports LSRL v3 extensions (showR, showRSquared) when present", () => {
+    // Deep clone the graph storage so we can inject v3 properties
+    const graphStorage = JSON.parse(JSON.stringify(movablePointLineLSRLGraph?.componentStorage)) as ICodapV2GraphStorage
+    const scatterPlot = graphStorage.plotModels?.find(p =>
+      isV2ScatterPlotModel(p) && p.plotModelStorage.multipleLSRLsStorage
+    )
+    const lsrlStorage = isV2ScatterPlotModel(scatterPlot!) ? scatterPlot.plotModelStorage.multipleLSRLsStorage : undefined
+    expect(lsrlStorage).toBeDefined()
+    // Inject v3 properties as would be present in a V3-exported document
+    lsrlStorage!.v3 = { showR: true, showRSquared: false }
+
+    const { _links_: links } = movablePointLineLSRLGraph?.componentStorage as ICodapV2GraphStorage
+    const contextId = links.context?.id
+    const { sharedData: data } = getCaseDataFromV2ContextGuid(contextId)
+    const adornmentStore = v2AdornmentImporter({
+      data, plotModels: graphStorage.plotModels, attributeDescriptions: {}, yAttributeDescriptions: []
+    })
+    const lsrlAdornment = adornmentStore.adornments.find(a => a.type === "LSRL") as ILSRLAdornmentModelSnapshot
+    expect(lsrlAdornment).toBeDefined()
+    expect(lsrlAdornment.showR).toBe(true)
+    expect(lsrlAdornment.showRSquared).toBe(false)
   })
 
   it("imports graphs with Plotted Function adornments", () => {

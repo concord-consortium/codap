@@ -161,6 +161,10 @@ registerAdornmentContentInfo({
         isInterceptLocked: options.isInterceptLocked,
         showSumSquares: options.showSumSquares,
         showConfidenceBands: adornment.showConfidenceBands,
+        v3: {
+          showR: adornment.showR,
+          showRSquared: adornment.showRSquared,
+        },
         // v2 ignores top and right splits
         lsrls: options.legendCategories.map(cat => {
           const labelInstance = adornment.firstLabelInstance(cat)
