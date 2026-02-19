@@ -202,7 +202,7 @@ const SingleCaseView = observer(function SingleCaseView({
   const childCollection = collection?.child
 
   return (
-    <div className={className} data-testid="case-card-view" style={style}>
+    <div className={clsx(className, { dummy })} data-testid="case-card-view" style={style}>
       <CaseCardHeader cases={cases} level={level}/>
       <div className="case-card-attributes">
         <CaseAttrsView
