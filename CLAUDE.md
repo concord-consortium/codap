@@ -6,6 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 CODAP (Common Online Data Analysis Platform) is an educational technology tool designed to help teach and learn data analysis and graphing. It is primarily used in classroom environments with students ranging from middle school through college. UI/UX recommendations and security considerations should account for this educational context and age range.
 
+## Public-Facing Messages
+
+When performing an action that includes a message visible to others — git commit messages, PR descriptions, PR review comments, Jira comments, Slack messages, etc. — always show the proposed message text to the user and get explicit confirmation before submitting. Authorizing an action (e.g., "yes, commit" or "yes, post the review") is NOT the same as approving the message content. The user must always have the opportunity to read, edit, or rewrite the message before it goes out.
+
 ## Repository Structure
 
 This repository contains two versions of CODAP (Common Online Data Analysis Platform):
