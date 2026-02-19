@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import { clsx } from "clsx"
 
 import "./column-resize-handle.scss"
@@ -44,9 +44,11 @@ export function ColumnResizeHandle({ resizeWidth, containerWidth, minWidth, onRe
     if (isResizing) {
       document.addEventListener("pointermove", continueResize)
       document.addEventListener("pointerup", endResize)
+      document.addEventListener("pointercancel", endResize)
       return () => {
         document.removeEventListener("pointermove", continueResize)
         document.removeEventListener("pointerup", endResize)
+        document.removeEventListener("pointercancel", endResize)
       }
     }
   }, [isResizing, continueResize, endResize])
