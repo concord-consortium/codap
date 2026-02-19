@@ -208,6 +208,8 @@
     "DG.Redo.caseTable.resizeColumn": "Redo fit width to content",
     "DG.Undo.caseTable.showAllHiddenAttributes": "Undo show all hidden attributes",
     "DG.Redo.caseTable.showAllHiddenAttributes": "Redo show all hidden attributes",
+    "DG.Undo.caseCard.columnWidthChange": "Undo resize case card column",
+    "DG.Redo.caseCard.columnWidthChange": "Redo resize case card column",
     "DG.Undo.document.share": "Undo sharing the document",
     "DG.Redo.document.share": "Redo sharing the document",
     "DG.Undo.document.unshare": "Undo stop sharing the document",

@@ -28,6 +28,7 @@ interface ICaseViewProps {
   cases: IGroupedCase[]
   dummy?: boolean // Dummy case views are used for animations and have stripped down functionality
   onNewCollectionDrop?: (dataSet: IDataSet, attrId: string, beforeCollectionId: string) => void
+  onResizeColumn?: (collectionId: string, widthPct: number, isComplete?: boolean) => void
   level: number
   onSelectCases?: (caseIds: string[]) => void
 }
@@ -39,7 +40,7 @@ interface IRenderSingleCaseViewArgs {
 }
 
 export const CaseView = observer(function CaseView({
-  cases, dummy, level, onNewCollectionDrop, onSelectCases
+  cases, dummy, level, onNewCollectionDrop, onResizeColumn, onSelectCases
 }: ICaseViewProps) {
   const cardModel = useCaseCardModel()
   const tileLayout = useFreeTileLayoutContext()
@@ -148,6 +149,7 @@ export const CaseView = observer(function CaseView({
       dummy={args.dummy}
       onAddNewAttribute={args.dummy ? undefined : handleAddNewAttribute}
       onNewCollectionDrop={args.dummy ? undefined : handleNewCollectionDrop}
+      onResizeColumn={args.dummy ? undefined : onResizeColumn}
       onSelectCases={args.dummy ? undefined : onSelectCases}
       level={level}
       style={args.style}
@@ -186,25 +188,27 @@ interface ISingleCaseViewProps {
   level: number
   onAddNewAttribute?: () => void
   onNewCollectionDrop?: (dataSet: IDataSet, attrId: string, beforeCollectionId: string) => void
+  onResizeColumn?: (collectionId: string, widthPct: number, isComplete?: boolean) => void
   onSelectCases?: (caseIds: string[]) => void
   style?: React.CSSProperties
 }
 
 const SingleCaseView = observer(function SingleCaseView({
   cases, className, collection, displayedCase, dummy, level, onAddNewAttribute, onNewCollectionDrop,
-  onSelectCases, style
+  onResizeColumn, onSelectCases, style
 }: ISingleCaseViewProps) {
   const cardModel = useCaseCardModel()
   const childCases = displayedCase ? cardModel?.groupChildCases(displayedCase.__id__) ?? [] : []
   const childCollection = collection?.child
 
   return (
-    <div className={className} data-testid="case-card-view" style={style}>
+    <div className={clsx(className, { dummy })} data-testid="case-card-view" style={style}>
       <CaseCardHeader cases={cases} level={level}/>
       <div className="case-card-attributes">
         <CaseAttrsView
           caseItem={displayedCase}
           collection={collection}
+          onResizeColumn={onResizeColumn}
         />
         { childCollection && (
           <ParentCollectionContext.Provider key={`${displayedCase?.__id__}-${level}`} value={collection?.id}>
@@ -215,6 +219,7 @@ const SingleCaseView = observer(function SingleCaseView({
                 level={level + 1}
                 onSelectCases={onSelectCases}
                 onNewCollectionDrop={onNewCollectionDrop}
+                onResizeColumn={onResizeColumn}
               />
             </CollectionContext.Provider>
           </ParentCollectionContext.Provider>
