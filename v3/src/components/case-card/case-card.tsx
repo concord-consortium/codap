@@ -65,7 +65,10 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
       }, {
         undoStringKey: "DG.Undo.caseCard.columnWidthChange",
         redoStringKey: "DG.Redo.caseCard.columnWidthChange",
-        log: "Resized column in case card"
+        log: logMessageWithReplacement(
+          "Change case card column width for collection '%@' to '%@'%",
+          {collection: data.getCollection(collectionId)?.name, width: Math.round(widthPct * 10000) / 100}
+        )
       })
     }
   }, [cardModel, data])
