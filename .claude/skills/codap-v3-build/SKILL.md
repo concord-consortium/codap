@@ -233,6 +233,12 @@ Wait for user confirmation before starting Phase 1.
 
 **Goal:** Sync translations, update all version-related files, and create release branch.
 
+**IMPORTANT — Working Directory Awareness:**
+- Scripts in `v3/scripts/` use `cd v3` internally, which changes the shell's working directory for subsequent commands in the same Bash call.
+- After running a v3 script, always verify your working directory with `pwd` before running git commands.
+- **All `git` commands must be run from the repository root** (`/path/to/codap`), not from `v3/`.
+- If a `git diff` or `git status` command produces **no output**, do NOT assume "no changes" — verify by checking the working directory and trying again with correct paths. Empty output from git commands that should show changes is a red flag that something is wrong.
+
 ### Steps
 
 1. **Sync translations with POEditor:**
@@ -249,7 +255,8 @@ Wait for user confirmation before starting Phase 1.
    ```
    This pushes all strings from `en-US.json5` (both DG and V3 keys) to POEditor.
    The push is additive (`sync_terms=0`) — it adds new terms and updates existing
-   values but never deletes terms.
+   values but never deletes terms. Push first so that the subsequent pull includes
+   any new keys added since the last release.
 
    **1b. Pull non-English translations:**
    ```bash
@@ -258,11 +265,28 @@ Wait for user confirmation before starting Phase 1.
    This pulls translated strings for all supported languages. Report results to the
    user (the streaming output may be collapsed in the UI).
 
-   **1c. Commit string changes** if any files changed:
+   **1c. Verify and commit pulled translations:**
+
+   Return to the repository root before running git commands:
    ```bash
-   git add src/utilities/translation/lang/
+   cd /path/to/codap   # repository root, NOT v3/
+   git status -- v3/src/utilities/translation/lang/
+   ```
+   Report results to the user. If there are changes:
+   ```bash
+   git add v3/src/utilities/translation/lang/
    git commit -m "Update translations from POEditor"
    ```
+
+   **Zero-width space handling:** POEditor treats truly empty strings as
+   "untranslated," so the scripts convert between empty strings and zero-width
+   spaces (`\u200b`) at the boundary:
+   - **Push** (`strings-push.sh`): `""` → `"\u200b"` before uploading
+   - **Pull** (`strings-pull.sh`): `"\u200b"` → `""` after downloading
+
+   The source file (`en-US.json5`) and all runtime language files use `""` for
+   intentionally blank strings — zero-width spaces should never appear in the
+   repository.
 
 2. **Update package.json version:**
    ```bash
