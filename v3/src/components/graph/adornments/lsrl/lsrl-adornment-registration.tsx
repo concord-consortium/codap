@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite"
 import { registerAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 import { t } from "../../../../utilities/translation/translate"
+import { If } from "../../../common/if"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { registerAdornmentComponentInfo } from "../adornment-component-info"
 import { exportAdornmentBase, getAdornmentContentInfo, registerAdornmentContentInfo } from "../adornment-content-info"
@@ -56,6 +57,26 @@ const Controls = observer(function Controls() {
     }
   }
 
+  const handleShowRSetting = (checked: boolean) => {
+    graphModel.applyModelChange(
+      () => existingAdornment?.setShowR(checked),
+      {
+        undoStringKey: checked ? "V3.Undo.graph.showR" : "V3.Undo.graph.hideR",
+        redoStringKey: checked ? "V3.Redo.graph.showR" : "V3.Redo.graph.hideR"
+      }
+    )
+  }
+
+  const handleShowRSquaredSetting = (checked: boolean) => {
+    graphModel.applyModelChange(
+      () => existingAdornment?.setShowRSquared(checked),
+      {
+        undoStringKey: checked ? "V3.Undo.graph.showRSquared" : "V3.Undo.graph.hideRSquared",
+        redoStringKey: checked ? "V3.Redo.graph.showRSquared" : "V3.Redo.graph.hideRSquared"
+      }
+    )
+  }
+
   const handleShowConfidenceBandsSetting = (checked: boolean) => {
     graphModel.applyModelChange(
       () => existingAdornment?.setShowConfidenceBands(checked),
@@ -81,20 +102,42 @@ const Controls = observer(function Controls() {
           {t(kLSRLLabelKey)}
         </Checkbox>
       </FormControl>
-      <div
-        className="sub-options show-confidence-bands"
-        data-testid="adornment-show-confidence-bands-options"
-      >
-        <FormControl isDisabled={!existingAdornment?.isVisible || interceptLocked}>
-          <Checkbox
-            data-testid={`adornment-checkbox-${kLSRLClass}-show-confidence-bands`}
-            defaultChecked={existingAdornment?.showConfidenceBands}
-            onChange={e => handleShowConfidenceBandsSetting(e.target.checked)}
-          >
-            {t("V3.Inspector.graphLSRLShowConfidenceBands")}
-          </Checkbox>
-        </FormControl>
-      </div>
+      <If condition={!!existingAdornment?.isVisible}>
+        <div
+          className="sub-options lsrl-sub-options"
+          data-testid="adornment-lsrl-sub-options"
+        >
+          <If condition={!interceptLocked}>
+            <FormControl>
+              <Checkbox
+                data-testid={`adornment-checkbox-${kLSRLClass}-show-r`}
+                defaultChecked={existingAdornment?.showR}
+                onChange={e => handleShowRSetting(e.target.checked)}
+              >
+                {t("V3.graphLSRL.showR")}
+              </Checkbox>
+            </FormControl>
+            <FormControl>
+              <Checkbox
+                data-testid={`adornment-checkbox-${kLSRLClass}-show-r-squared`}
+                defaultChecked={existingAdornment?.showRSquared}
+                onChange={e => handleShowRSquaredSetting(e.target.checked)}
+              >
+                {t("V3.graphLSRL.showRSquared")}
+              </Checkbox>
+            </FormControl>
+            <FormControl>
+              <Checkbox
+                data-testid={`adornment-checkbox-${kLSRLClass}-show-confidence-bands`}
+                defaultChecked={existingAdornment?.showConfidenceBands}
+                onChange={e => handleShowConfidenceBandsSetting(e.target.checked)}
+              >
+                {t("V3.Inspector.graphLSRLShowConfidenceBands")}
+              </Checkbox>
+            </FormControl>
+          </If>
+        </div>
+      </If>
     </>
   )
 })
@@ -120,6 +163,10 @@ registerAdornmentContentInfo({
         isInterceptLocked: options.isInterceptLocked,
         showSumSquares: options.showSumSquares,
         showConfidenceBands: adornment.showConfidenceBands,
+        v3: {
+          showR: adornment.showR,
+          showRSquared: adornment.showRSquared,
+        },
         // v2 ignores top and right splits
         lsrls: options.legendCategories.map(cat => {
           const labelInstance = adornment.firstLabelInstance(cat)

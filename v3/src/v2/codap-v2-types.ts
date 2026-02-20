@@ -274,6 +274,11 @@ export interface ICodapV2MultipleLSRLAdornments extends ICodapV2Adornment {
   isInterceptLocked: boolean
   showConfidenceBands?: boolean
   lsrls?: ICodapV2LSRLInstance[]
+  // v3 extensions
+  v3?: {
+    showR?: boolean
+    showRSquared?: boolean
+  }
 }
 
 export interface ICodapV2PlotStorageBase {

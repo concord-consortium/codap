@@ -55,6 +55,8 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
   const { cellCounts, classFromKey } = useAdornmentCells(model, cellKey)
   const { xSubAxesCount, ySubAxesCount } = useAdornmentCategories()
   const showConfidenceBands = model.showConfidenceBands
+  const showR = model.showR
+  const showRSquared = model.showRSquared
   const { equationContainerClass, equationContainerSelector } = equationContainerDefs(model, cellKey, containerId)
   const lineRef = useRef() as React.RefObject<SVGSVGElement>
   const lineObjectsRef = useRef(new Map<string, ILineObject>())
@@ -167,7 +169,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
       const units = {x: xUnits, y: yUnits}
       const string = lsrlEquationString({
         attrNames, units, caseValues, intercept, interceptLocked, rSquared,
-        showConfidenceBands, slope, sumOfSquares, seSlope, seIntercept, layout
+        showConfidenceBands, showR, showRSquared, slope, sumOfSquares, seSlope, seIntercept, layout
       })
       const equationSelector = `#lsrl-equation-${model.classNameFromKey(cellKey)}-${linesIndex}`
       const equation = equationDiv.select<HTMLDivElement>(equationSelector)
@@ -197,8 +199,8 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
       ++linesIndex
     })
   }, [adornmentsStore, cellKey, dataConfig, equationContainerSelector, getLines, layout, model,
-      plotHeight, plotWidth, showConfidenceBands, showSumSquares, xAttrId, xAttrName, xScale, xSubAxesCount,
-      yAttrId, yAttrName, yScale, ySubAxesCount])
+      plotHeight, plotWidth, showConfidenceBands, showR, showRSquared, showSumSquares, xAttrId, xAttrName,
+      xScale, xSubAxesCount, yAttrId, yAttrName, yScale, ySubAxesCount])
 
   const confidenceBandPaths = useCallback((caseValues: Point[], category = kMain) => {
     const xMin = xScale.domain()[0]
@@ -387,7 +389,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
       }, { name: "LSRLAdornmentComponent.refreshInterceptLockChange" }, model)
   }, [buildElements, model, model.changeCount])
 
-  // Refresh values on configuration changes
+  // Refresh values on configuration changes that require recomputation
   useEffect(function refreshConfigurationChange() {
     return mstReaction(
       // `equals: comparer.structural` is not needed because array will only update when its contents change
@@ -397,6 +399,15 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
         buildElements()
       }, { name: "LSRLAdornmentComponent.refreshConfigurationChange" }, model)
   }, [buildElements, dataConfig, graphModel, adornmentsStore, model, updateLSRL, xAxis, yAxis])
+
+  // Refresh display on changes to display-only options (no recomputation needed)
+  useEffect(function refreshDisplayOptions() {
+    return mstReaction(
+      () => [model.showR, model.showRSquared],
+      () => {
+        buildElements()
+      }, { name: "LSRLAdornmentComponent.refreshDisplayOptions" }, model)
+  }, [buildElements, model])
 
   // Refresh values on changes to axes
   useEffect(function refreshAxisChange() {

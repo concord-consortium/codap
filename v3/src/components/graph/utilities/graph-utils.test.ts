@@ -56,6 +56,53 @@ describe("lsrlEquationString", () => {
     expect(lsrlEquationString({caseValues: [], slope: Infinity, intercept: 1, attrNames, units, layout}))
       .toBe('<em>Lifespan</em> = 1')
   })
+  it("should not show r or r² when both showR and showRSquared are false", () => {
+    const result = lsrlEquationString({
+      caseValues: [], slope: 1, intercept: 0, rSquared: 0.5, attrNames, units, layout,
+      showR: false, showRSquared: false
+    })
+    expect(result).not.toContain("r<sup>2</sup>")
+    expect(result).not.toContain("r =")
+  })
+  it("should show r when showR is true", () => {
+    const result = lsrlEquationString({
+      caseValues: [], slope: 1, intercept: 0, rSquared: 0.25, attrNames, units, layout,
+      showR: true, showRSquared: false
+    })
+    expect(result).toContain("r = 0.5")
+    expect(result).not.toContain("r<sup>2</sup>")
+  })
+  it("should show negative r for negative slope", () => {
+    const result = lsrlEquationString({
+      caseValues: [], slope: -2, intercept: 5, rSquared: 0.25, attrNames, units, layout,
+      showR: true, showRSquared: false
+    })
+    expect(result).toContain(`r = ${kMinus}0.5`)
+  })
+  it("should show r² when showRSquared is true", () => {
+    const result = lsrlEquationString({
+      caseValues: [], slope: 1, intercept: 0, rSquared: 0.5, attrNames, units, layout,
+      showR: false, showRSquared: true
+    })
+    expect(result).toContain("r<sup>2</sup> = 0.5")
+    expect(result).not.toContain("<br />r =")
+  })
+  it("should show both r and r² when both are true", () => {
+    const result = lsrlEquationString({
+      caseValues: [], slope: 1, intercept: 0, rSquared: 0.25, attrNames, units, layout,
+      showR: true, showRSquared: true
+    })
+    expect(result).toContain("r = 0.5")
+    expect(result).toContain("r<sup>2</sup> = 0.25")
+  })
+  it("should not show r or r² when interceptLocked is true", () => {
+    const result = lsrlEquationString({
+      caseValues: [], slope: 1, intercept: 0, rSquared: 0.25, attrNames, units, layout,
+      showR: true, showRSquared: true, interceptLocked: true
+    })
+    expect(result).not.toContain("r =")
+    expect(result).not.toContain("r<sup>2</sup>")
+  })
 })
 
 describe("valueLabelString", () => {

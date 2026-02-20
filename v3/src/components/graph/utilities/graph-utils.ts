@@ -348,13 +348,16 @@ interface ILsrlEquationString extends IEquationString {
   interceptLocked?: boolean
   rSquared?: number
   showConfidenceBands?: boolean
+  showR?: boolean
+  showRSquared?: boolean
   seSlope?: number
   seIntercept?: number
 }
 
 export const lsrlEquationString = (props: ILsrlEquationString) => {
   const { slope, intercept, attrNames, units, showConfidenceBands,
-    rSquared, seSlope, seIntercept, interceptLocked = false, sumOfSquares, layout } = props
+    rSquared, seSlope, seIntercept, interceptLocked = false, sumOfSquares, layout,
+    showR = false, showRSquared = false } = props
   const slopeUnits = units.x && units.y
                       ? `${units.y}/${units.x}`
                       : units.y || (units.x ? `/${units.x}` : "")
@@ -372,15 +375,19 @@ export const lsrlEquationString = (props: ILsrlEquationString) => {
   const equationPart = slopeIsFinite
     ? `<em>${attrNames.y}</em> = ${formattedSlope} ${xAttrString}${interceptString}`
     : `<em>${slope === 0 ? attrNames.y : attrNames.x}</em> = ${formattedIntercept}`
+  const rValue = rSquared != null && slope != null ? Math.sign(slope) * Math.sqrt(rSquared) : undefined
+  const formattedR = rValue != null ? formatEquationValue(rValue, 4) : ""
+  const rPart = showR && !interceptLocked && rValue != null ? `<br />r = ${formattedR}` : ""
   const seSlopePart = showConfidenceBands && !interceptLocked ? `<br />σ<sub>slope</sub> = ${formattedSeSlope}` : ""
   const seInterceptPart = showConfidenceBands && !interceptLocked
     ? `<br />σ<sub>intercept</sub> = ${formattedSeIntercept}` : ""
   const squaresPart = isFiniteNumber(sumOfSquares)
     ? `<br />${t("DG.ScatterPlotModel.sumSquares")} = ${formattedSumOfSquares}`
     : ""
-  const rSquaredPart = rSquared == null ? "" : `<br />r<sup>2</sup> = ${formattedRSquared}`
+  const rSquaredPart = showRSquared && !interceptLocked && rSquared != null
+    ? `<br />r<sup>2</sup> = ${formattedRSquared}` : ""
 
-  return `${equationPart}${rSquaredPart}${seSlopePart}${seInterceptPart}${squaresPart}`
+  return `${equationPart}${rPart}${rSquaredPart}${seSlopePart}${seInterceptPart}${squaresPart}`
 }
 
 interface IUpdateCellMasks {
