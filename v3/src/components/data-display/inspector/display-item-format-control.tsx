@@ -296,7 +296,9 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
               onChange={e => handleAttributeBinningTypeChange(e.target.value as AttributeBinningType)}
             >
               { AttributeBinningTypes.map(_binningType =>
-                <option key={_binningType} value={_binningType}>{t(`V3.Inspector.graph.legendBins.${_binningType}`)}</option>
+                <option key={_binningType} value={_binningType}>
+                  {t(`V3.Inspector.graph.legendBins.${_binningType}`)}
+                </option>
               )}
             </Select>
           </Flex>

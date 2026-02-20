@@ -174,7 +174,8 @@ describe("V2AdornmentImporter", () => {
     const scatterPlot = graphStorage.plotModels?.find(p =>
       isV2ScatterPlotModel(p) && p.plotModelStorage.multipleLSRLsStorage
     )
-    const lsrlStorage = isV2ScatterPlotModel(scatterPlot!) ? scatterPlot.plotModelStorage.multipleLSRLsStorage : undefined
+    const lsrlStorage = isV2ScatterPlotModel(scatterPlot!)
+      ? scatterPlot.plotModelStorage.multipleLSRLsStorage : undefined
     expect(lsrlStorage).toBeDefined()
     // Inject v3 properties as would be present in a V3-exported document
     lsrlStorage!.v3 = { showR: true, showRSquared: false }
