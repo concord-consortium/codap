@@ -60,7 +60,7 @@ export const computeBoundsFromCoordinates = (lats: number[], lngs: number[]): La
   if (lats.length === 0 || lngs.length === 0) {
     return undefined
   }
-  // Use reduce instead of Math.min/max(...array) to avoid call stack overflow with large arrays
+  // Use a for loop instead of Math.min/max(...array) to avoid call stack overflow with large arrays
   let latMin = Infinity, latMax = -Infinity, lngMin = Infinity, lngMax = -Infinity
   for (const lat of lats) { if (lat < latMin) latMin = lat; if (lat > latMax) latMax = lat }
   for (const lng of lngs) { if (lng < lngMin) lngMin = lng; if (lng > lngMax) lngMax = lng }
