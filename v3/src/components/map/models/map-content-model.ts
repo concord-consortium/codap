@@ -1,4 +1,4 @@
-import {LatLngBounds, Layer, Map as LeafletMap, Polygon} from "leaflet"
+import {Layer, Map as LeafletMap} from "leaflet"
 import {comparer, reaction, when} from "mobx"
 import {addDisposer, getSnapshot, Instance, SnapshotIn, types} from "mobx-state-tree"
 import { AttributeType } from "../../../models/data/attribute-types"
@@ -19,7 +19,7 @@ import {kMapModelName, kMapTileType} from "../map-defs"
 import {ILatLngSnapshot, LatLngModel} from "../map-model-types"
 import {BaseMapKey, BaseMapKeys, kMapBoundsExtensionFactor} from "../map-types"
 import { DataSetMapAttributes } from "../utilities/data-set-map-attributes"
-import { expandLatLngBounds, getLatLongBounds } from "../utilities/map-utils"
+import { collectPolygonVertexLngs, computeBoundsFromCoordinates, expandLatLngBounds } from "../utilities/map-utils"
 import {LeafletMapState} from "./leaflet-map-state"
 import { IMapLayerModel, isMapLayerModel } from "./map-layer-model"
 import { isMapPinLayerModel, MapPinLayerModel } from "./map-pin-layer-model"
@@ -108,27 +108,43 @@ export const MapContentModel = DataDisplayContentModel
       return layerIndexMap
     },
     get latLongBounds() {
-      let overallBounds: LatLngBounds | undefined
+      const allLats: number[] = []
+      const allLngs: number[] = []
 
-      const applyBounds = (bounds: LatLngBounds | undefined) => {
-        if (bounds) {
-          if (overallBounds) {
-            overallBounds.extend(bounds)
-          } else {
-            overallBounds = bounds
+      // Collect lat/lng values from point/pin data layers
+      self.layers.forEach(({dataConfiguration}) => {
+        allLats.push(...dataConfiguration.numericValuesForAttrRole('lat'))
+        allLngs.push(...dataConfiguration.numericValuesForAttrRole('long'))
+      })
+
+      // Use Leaflet's getBounds() for polygon layers (efficient, no vertex iteration)
+      self.leafletMap?.eachLayer((layer: Layer) => {
+        if (typeof (layer as any).getBounds === 'function') {
+          const bounds = (layer as any).getBounds()
+          if (bounds?.isValid()) {
+            allLats.push(bounds.getSouth(), bounds.getNorth())
+            allLngs.push(bounds.getWest(), bounds.getEast())
           }
+        }
+      })
+
+      // If longitudes span > 180°, data may cross the date line. Polygon getBounds()
+      // returns a naive min/max that spans the wrong way across the globe in that case.
+      // Replace polygon bounds longitudes with actual vertex longitudes so the rational
+      // longitude algorithm in computeBoundsFromCoordinates can find the compact range.
+      if (allLngs.length > 0) {
+        let lngMin = Infinity, lngMax = -Infinity
+        for (const lng of allLngs) { if (lng < lngMin) lngMin = lng; if (lng > lngMax) lngMax = lng }
+        if (lngMax - lngMin > 180) {
+          allLngs.length = 0
+          self.layers.forEach(({dataConfiguration}) => {
+            allLngs.push(...dataConfiguration.numericValuesForAttrRole('long'))
+          })
+          collectPolygonVertexLngs(self.leafletMap, allLngs)
         }
       }
 
-      self.layers.forEach(({dataConfiguration}) => {
-        applyBounds(getLatLongBounds(dataConfiguration))
-      })
-      self.leafletMap?.eachLayer(function (iLayer: Layer) {
-        const polygon = iLayer as Polygon
-        polygon.getBounds && applyBounds(polygon.getBounds())
-      })
-
-      return overallBounds
+      return computeBoundsFromCoordinates(allLats, allLngs)
     },
     get datasetsArray(): IDataSet[] {
       const datasets: IDataSet[] = []

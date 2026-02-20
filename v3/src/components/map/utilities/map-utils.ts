@@ -1,4 +1,4 @@
-import {LatLngBounds, latLngBounds} from 'leaflet'
+import {LatLngBounds, latLngBounds, Map as LeafletMap} from 'leaflet'
 import {singular} from "pluralize"
 import {kPolygonNames} from "../../../models/boundaries/boundary-types"
 import { IAttribute } from "../../../models/data/attribute"
@@ -14,68 +14,101 @@ export const isBoundaryAttribute = (attribute: IAttribute) => {
 }
 
 /**
- * Returns the lat/long bounds for the given data configuration
- * Todo: Currently only deals with lat/long values. Extend to work with polygons as well.
- * @param dataConfiguration
+ * Finds the smallest contiguous longitude range by adjusting for
+ * date line crossing. Sorts and mutates the input array.
  */
-export const getLatLongBounds = (dataConfiguration: IDataConfigurationModel) => {
-  const getRationalLongitudeBounds = (longs: number[]) => {
-      longs.sort((v1: number, v2: number) => (v1 - v2))
-      let tLength = longs.length,
-        tMin = longs[0],
-        tMax = longs[tLength - 1],
-        tMedian
-      while (tMax - tMin > 180) {
-        tMin = Math.min(tMin, longs[0])
-        tMax = Math.max(tMax, longs[tLength - 1])
-        tMedian = longs[Math.floor(tLength / 2)]
-        if (tMax - tMedian > tMedian - tMin) {
-          tMax -= 360
-          if (tMax < longs[tLength - 2]) {
-            tMin = Math.min(tMin, tMax)
-            tMax = longs[tLength - 2]
-            longs.pop()
-          }
-        } else {
-          tMin += 360
-          if (tMin > longs[1]) {
-            tMax = Math.max(tMax, tMin)
-            tMin = longs[1]
-            longs.shift()
-          }
-        }
-        tLength = longs.length
-        if (tMax < tMin) {
-          const tTemp = tMax
-          tMax = tMin
-          tMin = tTemp
-        }
+export const getRationalLongitudeBounds = (longs: number[]) => {
+  longs.sort((v1: number, v2: number) => (v1 - v2))
+  let tLength = longs.length,
+    tMin = longs[0],
+    tMax = longs[tLength - 1],
+    tMedian
+  while (tMax - tMin > 180) {
+    tMin = Math.min(tMin, longs[0])
+    tMax = Math.max(tMax, longs[tLength - 1])
+    tMedian = longs[Math.floor(tLength / 2)]
+    if (tMax - tMedian > tMedian - tMin) {
+      tMax -= 360
+      if (tMax < longs[tLength - 2]) {
+        tMin = Math.min(tMin, tMax)
+        tMax = longs[tLength - 2]
+        longs.pop()
       }
-      return {min: tMin, max: tMax}
-    },
-
-    isValid = (iMinMax: { min: number, max: number }) => {
-      return isFiniteNumber(iMinMax.min) && isFiniteNumber(iMinMax.max)
+    } else {
+      tMin += 360
+      if (tMin > longs[1]) {
+        tMax = Math.max(tMax, tMin)
+        tMin = longs[1]
+        longs.shift()
+      }
     }
-  const latValues = dataConfiguration.numericValuesForAttrRole('lat'),
-    longValues = dataConfiguration.numericValuesForAttrRole('long')
-  if (latValues.length === 0 || longValues.length === 0) {
+    tLength = longs.length
+    if (tMax < tMin) {
+      const tTemp = tMax
+      tMax = tMin
+      tMin = tTemp
+    }
+  }
+  return {min: tMin, max: tMax}
+}
+
+/**
+ * Computes LatLngBounds from arrays of latitude and longitude values,
+ * handling the international date line when longitude values span > 180°.
+ */
+export const computeBoundsFromCoordinates = (lats: number[], lngs: number[]): LatLngBounds | undefined => {
+  if (lats.length === 0 || lngs.length === 0) {
     return undefined
   }
-  const latMin = Math.min(...latValues),
-    latMax = Math.max(...latValues)
-  let longMin = Math.min(...longValues),
-    longMax = Math.max(...longValues)
-  if (longMax - longMin > 180) {
-    const rationalLongs = getRationalLongitudeBounds(longValues)
-    if (isValid(rationalLongs)) {
-      longMin = rationalLongs.min
-      longMax = rationalLongs.max
+  // Use a for loop instead of Math.min/max(...array) to avoid call stack overflow with large arrays
+  let latMin = Infinity, latMax = -Infinity, lngMin = Infinity, lngMax = -Infinity
+  for (const lat of lats) { if (lat < latMin) latMin = lat; if (lat > latMax) latMax = lat }
+  for (const lng of lngs) { if (lng < lngMin) lngMin = lng; if (lng > lngMax) lngMax = lng }
+  if (lngMax - lngMin > 180) {
+    const rationalLngs = getRationalLongitudeBounds([...lngs])
+    if (isFiniteNumber(rationalLngs.min) && isFiniteNumber(rationalLngs.max)) {
+      lngMin = rationalLngs.min
+      lngMax = rationalLngs.max
     }
   }
-  const tSouthWest = {lat: latMin, lng: longMin},
-    tNorthEast = {lat: latMax, lng: longMax}
-  return latLngBounds([tSouthWest, tNorthEast])
+  return latLngBounds([{lat: latMin, lng: lngMin}, {lat: latMax, lng: lngMax}])
+}
+
+/**
+ * Returns the lat/long bounds for the given data configuration.
+ * Handles point lat/long data only; polygon bounds are handled separately
+ * in the map content model's latLongBounds getter.
+ */
+export const getLatLongBounds = (dataConfiguration: IDataConfigurationModel) => {
+  const latValues = dataConfiguration.numericValuesForAttrRole('lat'),
+    longValues = dataConfiguration.numericValuesForAttrRole('long')
+  return computeBoundsFromCoordinates(latValues, longValues)
+}
+
+/**
+ * Collects all longitude values from polygon vertices on the given Leaflet map
+ * into the provided array. Recursively traverses layer groups and flattens
+ * nested coordinate arrays.
+ */
+export const collectPolygonVertexLngs = (leafletMap: LeafletMap | undefined, lngs: number[]) => {
+  const collectFromLayer = (layer: any) => {
+    if (typeof layer.getLayers === 'function') {
+      layer.getLayers().forEach((child: any) => collectFromLayer(child))
+    }
+    if (typeof layer.getLatLngs === 'function') {
+      const flatten = (items: any[]) => {
+        for (const item of items) {
+          if (item != null && typeof item.lat === 'number' && typeof item.lng === 'number') {
+            lngs.push(item.lng)
+          } else if (Array.isArray(item)) {
+            flatten(item)
+          }
+        }
+      }
+      flatten(layer.getLatLngs())
+    }
+  }
+  leafletMap?.eachLayer((layer: any) => collectFromLayer(layer))
 }
 
 export const expandLatLngBounds = (bounds: LatLngBounds, fraction: number) => {

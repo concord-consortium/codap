@@ -1,6 +1,6 @@
 import {comparer, reaction} from "mobx"
 import {addDisposer, isAlive} from "mobx-state-tree"
-import {geoJSON, LeafletMouseEvent, point, Popup, popup} from "leaflet"
+import {DomEvent, geoJSON, LeafletMouseEvent, point, Popup, popup} from "leaflet"
 import {useCallback, useEffect} from "react"
 import {useMap} from "react-leaflet"
 import {DEBUG_MAP, debugLog} from "../../../lib/debug"
@@ -75,9 +75,18 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
         let infoPopup: Popup | null
 
         const handleClick = (iEvent: LeafletMouseEvent) => {
-            const mouseEvent = iEvent.originalEvent
-            handleClickOnCase(mouseEvent as PointerEvent, caseID, dataset)
-            mouseEvent.stopPropagation()
+            DomEvent.stopPropagation(iEvent)
+            handleClickOnCase(iEvent.originalEvent as PointerEvent, caseID, dataset)
+            // When a Pixi point layer is present, it re-dispatches clicks to
+            // polygons underneath. DomEvent.stopPropagation prevents the
+            // re-dispatched click from reaching the map, but the original
+            // click on the canvas still bubbles to the map container.
+            // ignoreLeafletClicks prevents that original click from triggering
+            // the map's deselect handler.
+            if (!mapModel._ignoreLeafletClicks) {
+              mapModel.ignoreLeafletClicks(true)
+              setTimeout(() => mapModel.ignoreLeafletClicks(false), 10)
+            }
           },
 
           handleMouseover = () => {
