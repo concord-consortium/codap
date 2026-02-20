@@ -37,7 +37,8 @@ export const SliderModel = TileContentModel
       () => NumericAxisModel.create({ place: 'bottom', min: kDefaultSliderAxisMin, max: kDefaultSliderAxisMax }))
   })
   .volatile(() => ({
-    axisHelper: undefined as Maybe<AxisHelper>
+    axisHelper: undefined as Maybe<AxisHelper>,
+    _isAxisAnimating: false
    }))
   .views(self => ({
     get name() {
@@ -141,6 +142,9 @@ export const SliderModel = TileContentModel
     },
     setAxisHelper(place: AxisPlace, subAxisIndex: number, helper: AxisHelper) {
       self.axisHelper = helper
+    },
+    setIsAxisAnimating(animating: boolean) {
+      self._isAxisAnimating = animating
     }
   }))
   .actions(self => ({
@@ -148,6 +152,8 @@ export const SliderModel = TileContentModel
       addDisposer(self, reaction(
         () => self.axis.domain,
         ([axisMin, axisMax]) => {
+          // skip constraining value during axis animation (value is intentionally outside bounds)
+          if (self._isAxisAnimating) return
           // keep the thumbnail within axis bounds when axis bounds are changed
           if (self.value < axisMin) self.setDynamicValueIfDynamic(axisMin)
           if (self.value > axisMax) self.setDynamicValueIfDynamic(axisMax)

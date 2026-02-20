@@ -78,6 +78,10 @@ export const BaseNumericAxisModel = AxisModel
     },
     setAllowRangeToShrink(allowRangeToShrink: boolean) {
       self.allowRangeToShrink = allowRangeToShrink
+    },
+    clearDynamicDomain() {
+      self.dynamicMin = undefined
+      self.dynamicMax = undefined
     }
   }))
 export interface IBaseNumericAxisModel extends Instance<typeof BaseNumericAxisModel> {}
