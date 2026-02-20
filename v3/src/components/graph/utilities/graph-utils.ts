@@ -333,7 +333,8 @@ export function equationString({ slope, intercept, attrNames, units, sumOfSquare
   const squaresMaxDec = !sumOfSquares || sumOfSquares > 100 ? 0 : 3
   const formattedSumOfSquares = formatEquationValue(sumOfSquares || 0, squaresMaxDec)
   const xAttrString = attrNames.x.length > 1 ? `(<em>${attrNames.x}</em>)` : `<em>${attrNames.x}</em>`
-  const interceptString = intercept !== 0 ? ` ${intercept > 0 ? "+" : ""} ${formattedIntercept}` : ""
+  const interceptDisplaysAsZero = formatValue(intercept, neededFractionDigits.interceptDigits) === "0"
+  const interceptString = !interceptDisplaysAsZero ? ` ${intercept > 0 ? "+" : ""} ${formattedIntercept}` : ""
   const squaresPart = isFiniteNumber(sumOfSquares)
     ? `<br />${t("DG.ScatterPlotModel.sumSquares")} = ${formattedSumOfSquares}`
     : ""
@@ -371,7 +372,8 @@ export const lsrlEquationString = (props: ILsrlEquationString) => {
   const formattedSeSlope = seSlope != null ? formatEquationValue(seSlope, 3) : ""
   const formattedSeIntercept = seIntercept != null ? formatEquationValue(seIntercept, 3) : ""
   const xAttrString = attrNames.x.length > 1 ? `(<em>${attrNames.x}</em>)` : `<em>${attrNames.x}</em>`
-  const interceptString = intercept !== 0 ? ` ${intercept > 0 ? "+" : ""} ${formattedIntercept}` : ""
+  const interceptDisplaysAsZero = formatValue(intercept, neededFractionDigits.interceptDigits) === "0"
+  const interceptString = !interceptDisplaysAsZero ? ` ${intercept > 0 ? "+" : ""} ${formattedIntercept}` : ""
   const equationPart = slopeIsFinite
     ? `<em>${attrNames.y}</em> = ${formattedSlope} ${xAttrString}${interceptString}`
     : `<em>${slope === 0 ? attrNames.y : attrNames.x}</em> = ${formattedIntercept}`
