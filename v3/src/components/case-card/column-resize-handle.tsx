@@ -4,15 +4,15 @@ import { clsx } from "clsx"
 import "./column-resize-handle.scss"
 
 interface IColumnResizeHandleProps {
-  resizeWidth: number       // current left column width in px
-  containerWidth: number    // total container width in px
-  minWidth: number          // minimum column width in px
+  resizeWidth: number       // current handle position in px (within container)
+  minLeft: number           // minimum handle position in px
+  maxLeft: number           // maximum handle position in px
   onResize: (newWidth: number, isComplete?: boolean) => void
 }
 
 export const kColumnResizeHandleInteractionWidth = 10
 
-export function ColumnResizeHandle({ resizeWidth, containerWidth, minWidth, onResize }: IColumnResizeHandleProps) {
+export function ColumnResizeHandle({ resizeWidth, minLeft, maxLeft, onResize }: IColumnResizeHandleProps) {
   const [isResizing, setIsResizing] = useState(false)
   const deltaStartRef = useRef(0)
   const resizeWidthRef = useRef(resizeWidth)
@@ -26,14 +26,13 @@ export function ColumnResizeHandle({ resizeWidth, containerWidth, minWidth, onRe
 
   const continueResize = useCallback((e: PointerEvent) => {
     const newWidthRaw = e.clientX - deltaStartRef.current
-    const maxWidth = containerWidth - minWidth
-    const newWidth = Math.max(minWidth, Math.min(newWidthRaw, maxWidth))
+    const newWidth = Math.max(minLeft, Math.min(newWidthRaw, maxLeft))
     deltaStartRef.current = e.clientX - newWidth
     if (newWidth !== resizeWidthRef.current) {
       resizeWidthRef.current = newWidth
       onResize(newWidth)
     }
-  }, [containerWidth, minWidth, onResize])
+  }, [minLeft, maxLeft, onResize])
 
   const endResize = useCallback(() => {
     onResize(resizeWidthRef.current, true)

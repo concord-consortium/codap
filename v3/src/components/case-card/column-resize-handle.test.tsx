@@ -13,8 +13,10 @@ class MockPointerEvent extends MouseEvent {
 window.PointerEvent = MockPointerEvent as any
 
 describe("ColumnResizeHandle", () => {
-  const containerWidth = 400
-  const minWidth = 60
+  // Simulates a container of 400px with a table that has 5px left margin and 10px total margin offset,
+  // giving a table width of 390px. minLeft/maxLeft represent clamped handle positions within the container.
+  const minLeft = 65   // 5 (margin) + 60 (min column width)
+  const maxLeft = 335  // 5 (margin) + 390 (table width) - 60 (min column width)
   const initialWidth = 200
 
   it("renders with correct position", () => {
@@ -22,8 +24,8 @@ describe("ColumnResizeHandle", () => {
     render(
       <ColumnResizeHandle
         resizeWidth={initialWidth}
-        containerWidth={containerWidth}
-        minWidth={minWidth}
+        minLeft={minLeft}
+        maxLeft={maxLeft}
         onResize={onResize}
       />
     )
@@ -37,8 +39,8 @@ describe("ColumnResizeHandle", () => {
     render(
       <ColumnResizeHandle
         resizeWidth={initialWidth}
-        containerWidth={containerWidth}
-        minWidth={minWidth}
+        minLeft={minLeft}
+        maxLeft={maxLeft}
         onResize={onResize}
       />
     )
@@ -60,8 +62,8 @@ describe("ColumnResizeHandle", () => {
     render(
       <ColumnResizeHandle
         resizeWidth={initialWidth}
-        containerWidth={containerWidth}
-        minWidth={minWidth}
+        minLeft={minLeft}
+        maxLeft={maxLeft}
         onResize={onResize}
       />
     )
@@ -80,20 +82,20 @@ describe("ColumnResizeHandle", () => {
 
     onResize.mockClear()
 
-    // drag beyond minimum — should clamp
+    // drag beyond minimum — should clamp to minLeft
     fireEvent.pointerMove(document, { clientX: 10 })
-    expect(onResize).toHaveBeenLastCalledWith(minWidth)
+    expect(onResize).toHaveBeenLastCalledWith(minLeft)
 
     onResize.mockClear()
 
-    // drag beyond maximum — should clamp to containerWidth - minWidth
+    // drag beyond maximum — should clamp to maxLeft
     fireEvent.pointerMove(document, { clientX: 1000 })
-    expect(onResize).toHaveBeenLastCalledWith(containerWidth - minWidth)
+    expect(onResize).toHaveBeenLastCalledWith(maxLeft)
 
     // end drag — calls onResize with isComplete=true
     onResize.mockClear()
     fireEvent.pointerUp(document)
-    expect(onResize).toHaveBeenCalledWith(containerWidth - minWidth, true)
+    expect(onResize).toHaveBeenCalledWith(maxLeft, true)
   })
 
   it("does not call onResize when width hasn't changed", () => {
@@ -101,8 +103,8 @@ describe("ColumnResizeHandle", () => {
     render(
       <ColumnResizeHandle
         resizeWidth={initialWidth}
-        containerWidth={containerWidth}
-        minWidth={minWidth}
+        minLeft={minLeft}
+        maxLeft={maxLeft}
         onResize={onResize}
       />
     )
@@ -123,8 +125,8 @@ describe("ColumnResizeHandle", () => {
     render(
       <ColumnResizeHandle
         resizeWidth={initialWidth}
-        containerWidth={containerWidth}
-        minWidth={minWidth}
+        minLeft={minLeft}
+        maxLeft={maxLeft}
         onResize={onResize}
       />
     )

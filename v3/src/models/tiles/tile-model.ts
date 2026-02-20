@@ -76,7 +76,7 @@ export const TileModel = V2UserTitleModel.named("TileModel")
   .views(self => ({
     // generally negotiated with tile, e.g. single column width for table
     get minWidth() {
-      return kDefaultMinWidth
+      return (self.content as any).minWidth ?? kDefaultMinWidth
     },
     // undefined by default, but can be negotiated with app,
     // e.g. width of all columns for table
