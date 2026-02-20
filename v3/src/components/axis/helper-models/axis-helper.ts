@@ -1,7 +1,7 @@
 import { select } from "d3"
 import { isVertical } from "../../axis-graph-shared"
 import { IDataDisplayContentModel } from "../../data-display/models/data-display-content-model"
-import { axisPlaceToAxisFn } from "../axis-types"
+import { AxisPlace, axisPlaceToAxisFn } from "../axis-types"
 import { IAxisLayout } from "../models/axis-layout-context"
 import { IAxisModel } from "../models/axis-model"
 import { MultiScale } from "../models/multi-scale"
@@ -23,20 +23,28 @@ export class AxisHelper {
   layout: IAxisLayout
   isAnimating: () => boolean
   multiScale: MultiScale | undefined
+  // Cache the axis place so it remains accessible even after the axis model is
+  // removed from the MST tree (e.g., during undo). The place never changes after creation.
+  private _axisPlace: AxisPlace
 
   constructor(props: IAxisHelperArgs) {
     this.displayModel = props.displayModel
     this.subAxisIndex = props.subAxisIndex
     this.subAxisElt = props.subAxisElt
     this.axisModel = props.axisModel
+    this._axisPlace = props.axisModel.place
     this.layout = props.layout
     this.isAnimating = props.isAnimating
     this.multiScale = this.layout.getAxisMultiScale(this.axisPlace)
-    select(this.subAxisElt).selectAll('*').remove() // clear any existing content
+    const elt = select(this.subAxisElt)
+    elt.selectAll('*').remove() // clear any existing content
+    // Clear SVG attributes set by D3's axis function (e.g., fill="none") so they don't
+    // leak into the next axis type. D3's axis will re-set these when it renders.
+    elt.attr('fill', null).attr('font-size', null).attr('font-family', null).attr('text-anchor', null)
   }
 
   get axisPlace() {
-    return this.axisModel.place
+    return this._axisPlace
   }
 
   get dataConfig() {
