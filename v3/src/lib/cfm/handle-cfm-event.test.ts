@@ -8,6 +8,7 @@ import { createCodapDocument, isCodapDocument } from "../../models/codap/create-
 import { ICodapV2DocumentJson } from "../../v2/codap-v2-types"
 import * as ImportV2Document from "../../v2/import-v2-document"
 import { handleCFMEvent, kCFMAutoSaveInterval } from "./handle-cfm-event"
+import { displayVersion } from "../../utilities/version-utils"
 import { Logger } from "../logger"
 
 const urlParamsModule = require("../../utilities/url-params")
@@ -46,7 +47,7 @@ describe("handleCFMEvent", () => {
     expect(providerOptionsArg.appBuildNum).toBeTruthy()
     expect(mockCfmClient._ui.setMenuBarInfo).toHaveBeenCalledTimes(1)
     const menuBarInfoArg = mockCfmClient._ui.setMenuBarInfo.mock.calls[0][0]
-    expect(menuBarInfoArg).toBe(`v${providerOptionsArg.appVersion} (${providerOptionsArg.appBuildNum})`)
+    expect(menuBarInfoArg).toBe(`v${displayVersion(providerOptionsArg.appVersion)} (${providerOptionsArg.appBuildNum})`)
 
     urlParamsModule.urlParams.url = "https://concord.org/example.json"
     await handleCFMEvent(mockCfmClientArg, cfmEvent)

@@ -1,5 +1,68 @@
 # Changelog
 
+## Version 3.0.0-beta.2724 - February 19, 2026
+
+### ✨ Features & Improvements:
+- **CODAP-169:** Calculator saves and restores its state
+- **CODAP-170:** Calculator input is editable with keyboard support
+- **CODAP-179:** Right-align date-type attributes in case table
+- **CODAP-203:** Auto-scroll case table during marquee selection
+- **CODAP-204:** Histogram bin boundaries are draggable
+- **CODAP-215:** Case card column width is adjustable by dragging
+- **CODAP-218:** Default numeric precision to 2 when type is set to numeric
+- **CODAP-295:** Support arbitrary number of graphs/maps (WebGL constraint)
+- **CODAP-625:** Support plugin autoscale notifications for graph components
+- **CODAP-626:** Support plugin update component API requests
+- **CODAP-637:** Preserve attribute values when undoing formula edit
+- **CODAP-854:** Support indicateBusy/indicateIdle in plugin API
+- **CODAP-968:** Add user controls for r and r² display with LSRL
+- **CODAP-985:** Add HTML table drag-and-drop import
+- **CODAP-1051:** Support drag-and-drop table join functionality
+- **CODAP-1097:** Support option-click zoom on numeric axes and plot background
+- **CODAP-1101:** Adjust example documents list styling to fit all items
+- **CODAP-1105:** Hide "Bar for Each Point" when "Group into Bins" is active
+- **CODAP-1109:** Replace HTML rendering in graph adornments with SVG on export
+- **CODAP-1114:** Export adornments in PNG image export
+- **STORYQ-66:** Batch update cases in update case API requests for better performance
+
+### 🐞 Bug Fixes:
+- **CODAP-145:** Fix incorrect hover text on connecting lines
+- **CODAP-157:** Fix case insertion in hierarchical tables
+- **CODAP-160:** Prevent date attributes on Y2 and split axes
+- **CODAP-177:** Fix Attribute Properties popups reflecting system dark mode
+- **CODAP-208:** Prevent dragging attributes into toolshelf area
+- **CODAP-212:** Fix boxplot hover tips being clipped in split graphs
+- **CODAP-222:** Include units in normal curve hover tooltip
+- **CODAP-268:** Fix undo/redo hover tip for confidence bands
+- **CODAP-282:** Fix dragged attribute overlay rotation
+- **CODAP-351:** Clear stale category labels when hiding cases on categorical axis
+- **CODAP-888:** Fix attribute name repetition on truncation
+- **CODAP-917:** Fix filter formula not fully responding to slider value changes
+- **CODAP-1008:** Keep case table and card functional when all attributes are removed
+- **CODAP-1023:** Fix embeddedMode to keep components interactive
+- **CODAP-1053:** Disable pointer events on hidden adornments
+- **CODAP-1073:** Fix PNG export and add title to exported graph images
+- **CODAP-1084:** Fix incorrect handling of image URLs in web views
+- **CODAP-1086:** Fix formula recalculation when items are added via plugins
+- **CODAP-1089:** Fix data entry in hierarchical table
+- **CODAP-1096:** Fix CSV import via URL parameter
+- **CODAP-1102:** Fix categorical graph not displaying on document open
+- **CODAP-1110:** Fix opening documents from shared Google drives
+- **CODAP-1113:** Fix Safari input row focus not advancing after Return
+- **CODAP-1115:** Fix crash on save after inserting a case
+- **CODAP-1116:** Fix Safari focus moving to text component during data entry
+- **CODAP-1125:** Fix selected point color for no-legend plots
+
+### 🛠️ Under the Hood:
+- **CODAP-1111:** Optimize mathjs bundle size
+- **CODAP-1112:** Sync V3 translation strings with POEditor
+
+### Asset Sizes
+|      File |          Size | % Change from Previous Release |
+|-----------|---------------|--------------------------------|
+|  main.css |  214942 bytes |                          1.89% |
+|  index.js | 7144146 bytes |                          1.11% |
+
 ## Version 3.0.0-beta.2664 - February 2, 2026
 
 ### ✨ Features & Improvements:
