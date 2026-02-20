@@ -66,3 +66,13 @@ FILE_URL=$(echo $FILE_URL | tr -d \\ )
 
 # Step 2: Download the exported file, converting POEditor's [uXXXX] to standard \uXXXX
 $CURL $FILE_URL | sed 's/\[u\([0-9a-fA-F]\{4\}\)\]/\\u\1/g' > "$OUTPUT_DIR/$LANGUAGE.json"
+
+# Step 3: Normalize JSON indentation to 4 spaces (POEditor uses inconsistent indentation)
+python3 -c "
+import json, sys
+with open('$OUTPUT_DIR/$LANGUAGE.json') as f:
+    data = json.load(f)
+with open('$OUTPUT_DIR/$LANGUAGE.json', 'w') as f:
+    json.dump(data, f, indent=4, ensure_ascii=False)
+    f.write('\n')
+"
