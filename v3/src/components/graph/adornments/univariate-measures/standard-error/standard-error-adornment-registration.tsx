@@ -68,13 +68,15 @@ const Controls = () => {
   }
 
   return (
-    <Flex direction="row">
+    <Flex direction="row" alignItems="center" gap="4px"
+          sx={{ "& > .chakra-form-control": { width: "auto" } }}
+    >
       <AdornmentCheckbox
         classNameValue={kStandardErrorClass}
         labelKey={''}
         type={kStandardErrorType}
       />
-      <NumberInput min={0} size={"xs"} variant={"outline"}
+      <NumberInput min={0} step={0.5} size={"xs"} w="70px" variant={"outline"}
                    data-testid={`adornment-number-input-${kStandardErrorClass}`}
                    focusInputOnChange={true}
                    focusBorderColor={"blue.500"}
@@ -93,7 +95,7 @@ const Controls = () => {
           <NumberDecrementStepper/>
         </NumberInputStepper>
       </NumberInput>
-      <span>{translate(kStandardErrorLabelKey)}</span>
+      <span style={{whiteSpace: "nowrap"}}>{translate(kStandardErrorLabelKey)}</span>
     </Flex>
   )
 }
