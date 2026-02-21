@@ -210,7 +210,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
         syncModelWithAttributeConfiguration(graphModel, layout)
         startAnimation()
         callRefreshPointPositions()
-      }, {name: "usePlot [attribute assignment/type]"}, dataConfiguration
+      }, {name: "usePlot [attribute assignment/type]", equals: comparer.structural}, dataConfiguration
     )
     return () => disposer()
   }, [callRefreshPointPositions, dataConfiguration, graphModel, layout, startAnimation])
