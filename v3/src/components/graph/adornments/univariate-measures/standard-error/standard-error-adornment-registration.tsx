@@ -67,6 +67,8 @@ const Controls = () => {
     }
   }
 
+  // Chakra's NumberInput renders an implicit FormControl wrapper with width: 100%,
+  // which would stretch to fill the Flex row and squeeze the input. Override it to auto.
   return (
     <Flex direction="row" alignItems="center" gap="4px"
           sx={{ "& > .chakra-form-control": { width: "auto" } }}
