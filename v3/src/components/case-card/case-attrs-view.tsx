@@ -18,6 +18,9 @@ import "./case-attrs-view.scss"
 
 const kDefaultColumnWidthPct = 0.5
 const kMinColumnWidth = 60
+// Must match $margin-left and $xMarginOffset in case-attrs-view.scss
+const kTableMarginLeft = 5
+const kTableMarginOffset = 10
 
 interface ICaseAttrsViewProps {
   caseItem?: IGroupedCase
@@ -112,7 +115,8 @@ export const CaseAttrsView = observer(function CaseAttrsView(
 
   const handleResize = useCallback((newWidthPx: number, isComplete?: boolean) => {
     if (!containerWidth) return
-    const newPct = newWidthPx / containerWidth
+    const tableWidth = containerWidth - kTableMarginOffset
+    const newPct = (newWidthPx - kTableMarginLeft) / tableWidth
     if (isComplete) {
       setLiveResizeWidthPct(undefined)
       onResizeColumn?.(collectionId, newPct, true)
@@ -123,7 +127,8 @@ export const CaseAttrsView = observer(function CaseAttrsView(
 
   const tableClassName = clsx("case-card-attrs", "fadeIn", {"summary-view": isCollectionSummarized})
   const visibleAttrs = getVisibleAttrs(collection, cardModel)
-  const resizeWidthPx = (containerWidth ?? 0) * columnWidthPct
+  const tableWidth = (containerWidth ?? 0) - kTableMarginOffset
+  const resizeWidthPx = kTableMarginLeft + tableWidth * columnWidthPct
   const colWidthStyle = `${(columnWidthPct * 100).toFixed(1)}%`
 
   return (
@@ -167,8 +172,8 @@ export const CaseAttrsView = observer(function CaseAttrsView(
       <If condition={containerWidth != null && containerWidth > 0}>
         <ColumnResizeHandle
           resizeWidth={resizeWidthPx}
-          containerWidth={containerWidth!}
-          minWidth={kMinColumnWidth}
+          minLeft={kTableMarginLeft + kMinColumnWidth}
+          maxLeft={kTableMarginLeft + tableWidth - kMinColumnWidth}
           onResize={handleResize}
         />
       </If>

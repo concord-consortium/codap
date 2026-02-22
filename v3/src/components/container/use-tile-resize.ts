@@ -18,8 +18,8 @@ interface IProps {
   setChangingTileStyle: (style: Maybe<IChangingTileStyle>) => void
 }
 
-const getSafeTileWidth = (width?: number) => {
-  return width != null ? Math.max(width, kDefaultMinWidth) : kDefaultMinWidth
+const getSafeTileWidth = (width?: number, minWidth = kDefaultMinWidth) => {
+  return width != null ? Math.max(width, minWidth) : minWidth
 }
 
 export function useTileResize({ row, tile, tileId, setChangingTileStyle }: IProps) {
@@ -99,7 +99,7 @@ export function useTileResize({ row, tile, tileId, setChangingTileStyle }: IProp
       setChangingTileStyle({
         left: displayLeft,
         top: displayTop,
-        width: getSafeTileWidth(displayWidth),
+        width: getSafeTileWidth(displayWidth, tile.minWidth),
         height: uiState.inboundsMode && resizingHeight != null
           ? resizingHeight * scaleFactor
           : resizingHeight,
@@ -109,7 +109,7 @@ export function useTileResize({ row, tile, tileId, setChangingTileStyle }: IProp
     }
 
     const handlePointerUp = () => {
-      const newWidth = getSafeTileWidth(resizingWidth)
+      const newWidth = getSafeTileWidth(resizingWidth, tile.minWidth)
       document.body.removeEventListener("pointermove", handlePointerMove, { capture: true })
       document.body.removeEventListener("pointerup", handlePointerUp, { capture: true })
 

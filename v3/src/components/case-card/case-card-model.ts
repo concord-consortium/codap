@@ -6,7 +6,7 @@ import { getTileCaseMetadata, getTileDataSet } from "../../models/shared/shared-
 import { ISharedModel } from "../../models/shared/shared-model"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
 import { getNumFormatterForAttribute } from "../case-tile-common/attribute-format-utils"
-import { kCaseCardTileType } from "./case-card-defs"
+import { kCaseCardMinWidth, kCaseCardTileType } from "./case-card-defs"
 
 export const CaseCardModel = TileContentModel
   .named("CaseCardModel")
@@ -26,6 +26,9 @@ export const CaseCardModel = TileContentModel
     },
     get metadata() {
       return getTileCaseMetadata(self)
+    },
+    get minWidth() {
+      return kCaseCardMinWidth
     },
     // value is a percentage width
     attributeColumnWidth(collectionId: string) {
