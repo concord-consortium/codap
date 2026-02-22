@@ -286,8 +286,9 @@ function ExpandCollapseButton({ isCollapsed, onClick, styles, title }: ExpandCol
   const tooltipKey = `DG.CaseTable.dividerView.${isCollapsed ? "expandGroupTooltip" : "collapseGroupTooltip"}`
   const tooltip = title ?? t(tooltipKey)
   return (
-    <button type="button" className="expand-collapse-button" onClick={onClick} style={styles}>
-      <img className={`expand-collapse-image ${isCollapsed ? 'closed' : 'open'}`} title={tooltip} />
+    <button type="button" className="expand-collapse-button" onClick={onClick} style={styles}
+      title={tooltip} aria-label={tooltip}>
+      <div className={`expand-collapse-image ${isCollapsed ? 'closed' : 'open'}`} />
     </button>
   )
 }

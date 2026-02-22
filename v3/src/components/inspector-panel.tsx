@@ -108,7 +108,7 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
   const paletteRef = useRef<HTMLDivElement>(null)
   const pointerRef = useRef<HTMLDivElement>(null)
   const viewportEl = paletteRef.current?.closest(".tile-row")
-  const [inBounds, setInBounds] = useState(isWithinBounds(panelRight, paletteRef.current))
+  const [inBounds, setInBounds] = useState(() => isWithinBounds(panelRight, paletteRef.current))
   const paletteHeight = paletteRef.current?.offsetHeight
   const tempPaletteTop = paletteRef.current?.getBoundingClientRect().top
   const pointerTop = buttonTop - panelTop - 5
@@ -143,35 +143,45 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
     }
   }, [])
 
-  const PalettePointer = () => {
-    const pointerStyle = {top: buttonTop - panelTop - 5}
-
-    return (
-      <div ref={pointerRef} className={`palette-pointer ${inBounds ? "arrow-left" : "arrow-right"}`}
-            style={pointerStyle} />
-    )
-  }
-
-  const PaletteHeader = () => {
-    return (
-      <div className="codap-inspector-palette-header" data-testid="codap-inspector-palette-header">
-        <div className="codap-inspector-palette-icon-container">
-          {Icon}
-        </div>
-        <div className="codap-inspector-palette-header-title">{title}</div>
-      </div>
-    )
-  }
-
   const paletteStyle = {top: paletteTop, left: inBounds ? 60 : -(paletteWidth + 10)}
   return (
     <>
-      <PalettePointer/>
+      <PalettePointer ref={pointerRef} top={buttonTop - panelTop - 5} inBounds={inBounds} />
       <Box ref={paletteRef} className="codap-inspector-palette" style={paletteStyle} tabIndex={0} zIndex={250}
           data-testid="codap-inspector-palette" onKeyDown={handleKeyDown}>
-        <PaletteHeader />
+        <PaletteHeader Icon={Icon} title={title} />
         {children}
       </Box>
     </>
+  )
+}
+
+interface IPalettePointerProps {
+  top: number
+  inBounds: boolean
+}
+
+const PalettePointer = React.forwardRef(function PalettePointer(
+  { top, inBounds }: IPalettePointerProps, ref: React.Ref<HTMLDivElement>
+) {
+  return (
+    <div ref={ref} className={`palette-pointer ${inBounds ? "arrow-left" : "arrow-right"}`}
+          style={{top}} />
+  )
+})
+
+interface IPaletteHeaderProps {
+  Icon?: ReactNode
+  title?: string
+}
+
+function PaletteHeader({ Icon, title }: IPaletteHeaderProps) {
+  return (
+    <div className="codap-inspector-palette-header" data-testid="codap-inspector-palette-header">
+      <div className="codap-inspector-palette-icon-container">
+        {Icon}
+      </div>
+      <div className="codap-inspector-palette-header-title">{title}</div>
+    </div>
   )
 }
