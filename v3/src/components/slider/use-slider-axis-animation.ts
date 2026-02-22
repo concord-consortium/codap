@@ -24,9 +24,9 @@ export function useSliderAxisAnimation(_sliderModel: ISliderModel | undefined) {
       cancelAnimationFrame(rafRef.current)
       rafRef.current = 0
     }
-    if (_sliderModel?._isAxisAnimating) {
-      _sliderModel.axis.clearDynamicDomain()
+    if (_sliderModel && isAlive(_sliderModel) && _sliderModel._isAxisAnimating) {
       _sliderModel.setIsAxisAnimating(false)
+      _sliderModel.axis.clearDynamicDomain()
     }
   }, [_sliderModel])
 
@@ -74,8 +74,8 @@ export function useSliderAxisAnimation(_sliderModel: ISliderModel | undefined) {
           sliderModel.axis.min !== newMin || sliderModel.axis.max !== newMax) {
         rafRef.current = 0
         if (isAlive(sliderModel)) {
-          sliderModel.axis.clearDynamicDomain()
           sliderModel.setIsAxisAnimating(false)
+          sliderModel.axis.clearDynamicDomain()
         }
         return
       }
@@ -92,8 +92,8 @@ export function useSliderAxisAnimation(_sliderModel: ISliderModel | undefined) {
         rafRef.current = requestAnimationFrame(animate)
       } else {
         rafRef.current = 0
-        sliderModel.axis.clearDynamicDomain()
         sliderModel.setIsAxisAnimating(false)
+        sliderModel.axis.clearDynamicDomain()
       }
     }
 
