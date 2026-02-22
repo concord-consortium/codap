@@ -8,7 +8,9 @@ import { ITileModel } from "../../models/tiles/tile-model"
 import { safeGetParent } from "../../utilities/mst-utils"
 import { t } from "../../utilities/translation/translate"
 import { getDataInteractiveUrl, getGuideIndex } from "../../utilities/url-params"
-import { kWebViewTileType, WebViewSubType, webViewSubTypes } from "./web-view-defs"
+import {
+  kLocalizedPluginPatterns, kWebViewTileType, WebViewSubType, webViewSubTypes
+} from "./web-view-defs"
 import { getNameFromURL } from "./web-view-utils"
 
 export const kDefaultAllowEmptyAttributeDeletion = true
@@ -65,7 +67,8 @@ export const WebViewModel = TileContentModel
     version: kDefaultWebViewVersion,
     autoOpenUrlDialog: false,
     isPluginCandidate: false,
-    isPluginCommunicating: false
+    isPluginCommunicating: false,
+    handlesLocaleChange: false
   }))
   .preProcessSnapshot(snap => {
     let newSnap = snap
@@ -95,6 +98,13 @@ export const WebViewModel = TileContentModel
     },
     get isImage() {
       return self.subType === "image"
+    }
+  }))
+  .views(self => ({
+    get needsLocaleReload() {
+      if (self.handlesLocaleChange) return false
+      if (!(self.isPlugin || self.isPluginCandidate)) return false
+      return kLocalizedPluginPatterns.some(pattern => self.url.includes(pattern))
     }
   }))
   .actions(self => ({
@@ -152,6 +162,9 @@ export const WebViewModel = TileContentModel
     },
     setVersion(version: string) {
       self.version = version
+    },
+    setHandlesLocaleChange(value: boolean) {
+      self.handlesLocaleChange = value
     },
     setGuidePageIndex(index: number) {
       if (self.subType === "guide") {

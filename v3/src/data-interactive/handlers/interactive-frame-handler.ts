@@ -2,6 +2,7 @@ import { isWebViewModel } from "../../components/web-view/web-view-model"
 import { appState } from "../../models/app-state"
 import { uiState } from "../../models/ui-state"
 import { toV2Id } from "../../utilities/codap-utils"
+import { gLocale } from "../../utilities/translation/locale"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DINotification, DIResources, DIValues, DIInteractiveFrame } from "../data-interactive-types"
 import { noInteractiveFrameResult, valuesRequiredResult } from "./di-results"
@@ -36,6 +37,7 @@ export const diInteractiveFrameHandler: DIHandler = {
       subscribeToDocuments,
       title: interactiveFrame.title,
       version,
+      lang: gLocale.current
     }
     return { success: true, values }
   },
@@ -70,9 +72,10 @@ export const diInteractiveFrameHandler: DIHandler = {
     if (Array.isArray(values)) return { success: true }
 
     const {
-      allowEmptyAttributeDeletion, blockAPIRequestsWhileEditing, cannotClose, dimensions, name,
-      preventAttributeDeletion, preventBringToFront, preventDataContextReorg, preventTopLevelReorg,
-      respectEditableItemAttribute, subscribeToDocuments, title, version
+      allowEmptyAttributeDeletion, blockAPIRequestsWhileEditing, cannotClose, dimensions,
+      handlesLocaleChange, name, preventAttributeDeletion, preventBringToFront,
+      preventDataContextReorg, preventTopLevelReorg, respectEditableItemAttribute,
+      subscribeToDocuments, title, version
     } = values as DIInteractiveFrame
     interactiveFrame.applyModelChange(() => {
       if (allowEmptyAttributeDeletion != null) {
@@ -102,6 +105,7 @@ export const diInteractiveFrameHandler: DIHandler = {
         interactiveFrame.setTitle(title)
       }
       if (version) webViewContent?.setVersion(version)
+      if (handlesLocaleChange != null) webViewContent?.setHandlesLocaleChange(handlesLocaleChange)
     })
     return { success: true }
   }

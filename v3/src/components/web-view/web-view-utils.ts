@@ -68,6 +68,30 @@ export function processWebViewUrl(url: string) {
   return updatedUrl
 }
 
+/**
+ * Append or replace the `lang` query parameter on a plugin URL.
+ * Skips data: URLs and empty strings.
+ */
+export function appendLangParam(url: string, lang: string): string {
+  if (!url || url.startsWith("data:")) return url
+  try {
+    const parsed = new URL(url)
+    parsed.searchParams.set("lang", lang)
+    return parsed.toString()
+  } catch {
+    // For relative or malformed URLs, fall back to simple string manipulation
+    const langParam = `lang=${lang}`
+    // Split off hash fragment so we don't accidentally drop it
+    const hashIndex = url.indexOf("#")
+    const [base, hash] = hashIndex >= 0 ? [url.slice(0, hashIndex), url.slice(hashIndex)] : [url, ""]
+    // Replace existing lang param if present
+    const replacedBase = base.replace(/([?&])lang=[^&]*/, `$1${langParam}`)
+    if (replacedBase !== base) return replacedBase + hash
+    // No existing lang param — append before the hash
+    return base + (base.includes("?") ? "&" : "?") + langParam + hash
+  }
+}
+
 export function normalizeUrlScheme(url: string): string {
   url = url.trim()
   if (url.startsWith("//")) {
