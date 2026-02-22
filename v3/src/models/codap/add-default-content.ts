@@ -19,7 +19,7 @@ type ILayoutOptions = IFreeTileInRowOptions | IMosaicTileInRowOptions | undefine
 
 export function createDefaultTileOfType(tileType: string, options?: INewTileOptions) {
   const env = getTileEnvironment(appState.document)
-  return createTileOfType(tileType, env, options)
+  return createTileOfType(tileType, env, appState.document.content, options)
 }
 
 export function addDefaultComponents() {

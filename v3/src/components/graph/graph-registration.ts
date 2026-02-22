@@ -4,7 +4,7 @@ import GraphIcon from "../../assets/icons/icon-graph.svg"
 import { registerComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { registerDataDisplayHandler } from "../../data-interactive/handlers/data-display-handler"
 import { idOfChildmostCollectionForAttributes } from "../../models/data/data-set-utils"
-import { SharedDataSet } from "../../models/shared/shared-data-set"
+import { ISharedDataSet, SharedDataSet } from "../../models/shared/shared-data-set"
 import { getMetadataFromDataSet } from "../../models/shared/shared-data-utils"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { ITileLikeModel, registerTileContentInfo } from "../../models/tiles/tile-content-info"
@@ -36,19 +36,42 @@ registerTileContentInfo({
   prefix: kGraphIdPrefix,
   modelClass: GraphContentModel,
   defaultContent: options => {
-    // auto-connect to data set if there's only one available
     const sharedModelManager = options?.env?.sharedModelManager
     const sharedDataSets = sharedModelManager?.getSharedModelsByType<typeof SharedDataSet>("SharedDataSet")
-    const onlyDataSet = sharedDataSets?.length === 1 ? sharedDataSets[0].dataSet : undefined
-    const onlyMetadata = onlyDataSet && getMetadataFromDataSet(onlyDataSet)
+
+    // Determine which dataset to auto-connect to, if any
+    let targetSharedDataSet: ISharedDataSet | undefined
+    if (sharedDataSets?.length === 1) {
+      // auto-connect to data set if there's only one available
+      targetSharedDataSet = sharedDataSets[0]
+    } else if (sharedDataSets && sharedDataSets.length > 1) {
+      // if multiple datasets exist, use the one with a visible table or card (if exactly one qualifies)
+      const content = options?.documentContent
+      const datasetsWithVisibleTiles = sharedDataSets.filter(sds => {
+        const metadata = getMetadataFromDataSet(sds.dataSet)
+        if (!metadata) return false
+        const { caseTableTileId, caseCardTileId } = metadata
+        const hasVisibleTable = !!(caseTableTileId && content?.getTile(caseTableTileId)
+          && !content?.isTileHidden(caseTableTileId))
+        const hasVisibleCard = !!(caseCardTileId && content?.getTile(caseCardTileId)
+          && !content?.isTileHidden(caseCardTileId))
+        return hasVisibleTable || hasVisibleCard
+      })
+      if (datasetsWithVisibleTiles.length === 1) {
+        targetSharedDataSet = datasetsWithVisibleTiles[0]
+      }
+    }
+
+    const targetDataSet = targetSharedDataSet?.dataSet
+    const targetMetadata = targetDataSet && getMetadataFromDataSet(targetDataSet)
     const graphTileSnapshot: SetRequired<IGraphContentModelSnapshot, "type"> = {
       type: kGraphTileType,
       layers: [{
         type: kGraphPointLayerType,
         dataConfiguration: {
           type: kGraphDataConfigurationType,
-          dataset: onlyDataSet?.id,
-          metadata: onlyMetadata?.id
+          dataset: targetDataSet?.id,
+          metadata: targetMetadata?.id
         }
       }]
     }
