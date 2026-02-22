@@ -280,6 +280,12 @@ export const useSubAxis = ({
               // It is necessary to call renderSubAxis in most cases, but doing so for a categorical axis causes
               // a crash on redo. So we only do it for non-categorical axes.
               shouldRenderSubAxis = false
+              // Clear stale D3 selection refs before creating the helper. The AxisHelper constructor
+              // clears all SVG children, which detaches the DOM elements these refs point to. Without
+              // clearing, other MobX reactions that fire synchronously (e.g., scaleType, layout bounds)
+              // would pass the null guard in render() but crash on detached DOM nodes.
+              categoriesSelectionRef.current = undefined
+              subAxisSelectionRef.current = undefined
               helper = new CategoricalAxisHelper(
                 {
                   ...helperProps, centerCategoryLabels, dragInfo,

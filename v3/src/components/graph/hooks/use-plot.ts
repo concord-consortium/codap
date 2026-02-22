@@ -201,15 +201,16 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     }, {name: "usePlot.respondToCategorySetChanges", equals: comparer.structural}, dataConfiguration)
   }, [callRefreshPointPositions, dataConfiguration, layout, renderer, startAnimation])
 
-  // respond to attribute assignment changes
+  // respond to attribute assignment or type changes (e.g., when user changes attribute type in case table/card)
   useEffect(() => {
     const disposer = mstReaction(
-      () => GraphAttrRoles.map((aRole) => dataConfiguration?.attributeID(aRole)),
+      () => GraphAttrRoles.map((aRole) =>
+        [dataConfiguration?.attributeID(aRole), dataConfiguration?.attributeType(aRole)]),
       () => {
         syncModelWithAttributeConfiguration(graphModel, layout)
         startAnimation()
         callRefreshPointPositions()
-      }, {name: "usePlot [attribute assignment]"}, dataConfiguration
+      }, {name: "usePlot [attribute assignment/type]", equals: comparer.structural}, dataConfiguration
     )
     return () => disposer()
   }, [callRefreshPointPositions, dataConfiguration, graphModel, layout, startAnimation])
