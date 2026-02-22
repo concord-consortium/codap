@@ -18,13 +18,13 @@ export const useAdornmentAttributes = () => {
   const allAttributes = dataConfig?.dataset?.attributes
   const xAttrId = dataConfig?.attributeID("x") || ""
   const yAttrId = dataConfig?.attributeID("y") || ""
-  const numericAttrId = xAttrId && xAttrType === "numeric" ? xAttrId : yAttrId
+  const numericAttrId = xAttrId && (xAttrType === "numeric" || xAttrType === "date") ? xAttrId : yAttrId
   const xAttr = allAttributes?.find(attr => attr.id === xAttrId)
   const yAttr = allAttributes?.find(attr => attr.id === yAttrId)
   const xAttrName = xAttr?.name ?? ""
   const yAttrName = yAttr?.name ?? ""
   const showLabel = adornmentsStore?.showMeasureLabels
-  const isVerticalRef = useRef(!!(xAttrType && xAttrType === "numeric"))
+  const isVerticalRef = useRef(!!(xAttrType && (xAttrType === "numeric" || xAttrType === "date")))
   const valueRef = useRef<SVGGElement>(null)
   const labelRef = useRef<HTMLDivElement>(null)
   const kLabelLineHeight = 20

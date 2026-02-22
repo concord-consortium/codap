@@ -32,7 +32,8 @@ export const UnivariateMeasureAdornmentBaseComponent = observer(
     useEffect(function refreshAxisChange() {
       return mstAutorun(() => {
         getAxisDomains(xAxis, yAxis)
-        setIsVertical(dataConfig?.attributeType("x") === "numeric")
+        const xType = dataConfig?.attributeType("x")
+        setIsVertical(xType === "numeric" || xType === "date")
         refreshValues()
       }, { name: "UnivariateMeasureAdornmentComponent.refreshAxisChange" }, model)
     }, [dataConfig, model, refreshValues, setIsVertical, xAxis, yAxis])

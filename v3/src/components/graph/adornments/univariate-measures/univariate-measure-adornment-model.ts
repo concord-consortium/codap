@@ -140,7 +140,7 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
     updateCategories(options: IUpdateCategoriesOptions) {
       const { dataConfig, resetPoints } = options
       const { xAttrId, yAttrId, xAttrType } = dataConfig.getCategoriesOptions()
-      const attrId = xAttrId && xAttrType === "numeric" ? xAttrId : yAttrId
+      const attrId = xAttrId && (xAttrType === "numeric" || xAttrType === "date") ? xAttrId : yAttrId
       dataConfig.getAllCellKeys().forEach(cellKey => {
         const instanceKey = self.instanceKey(cellKey)
         const value = Number(self.computeMeasureValue(attrId, cellKey, dataConfig))
