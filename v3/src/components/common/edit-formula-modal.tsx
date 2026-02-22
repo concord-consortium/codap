@@ -1,7 +1,7 @@
 import {
   Box, Button, Flex, FormControl, FormLabel, ModalBody, ModalFooter, Tooltip
 } from "@chakra-ui/react"
-import React, { useCallback, useEffect, useRef, useState } from "react"
+import React, { useCallback, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
 import { isCommandKeyDown } from "../../utilities/platform-utils"
@@ -44,10 +44,13 @@ export const EditFormulaModal = observer(function EditFormulaModal({
   const editorHeight = dimensions.height - headerHeight - footerHeight - insertButtonsHeight
   const attrInputRef = useRef("")
   const isAutoCompleteMenuOpen = useRef(false)
-
-  useEffect(() => {
+  // Sync formula state from value prop using React's recommended "adjust state during render" pattern
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  const [prevValue, setPrevValue] = useState(value)
+  if (value !== prevValue) {
+    setPrevValue(value)
     setFormula(value || "")
-  }, [value, setFormula])
+  }
 
   const applyAndClose = () => {
     applyFormula(formula, attrInputRef.current)
@@ -192,13 +195,12 @@ export const EditFormulaModal = observer(function EditFormulaModal({
           </Flex>
         </ModalBody>
         <ModalFooter mt="-5" className="formula-modal-footer">
-          { footerButtons.map((b, idx) => {
-              const key = `${idx}-${b.label}`
+          { footerButtons.map((b) => {
               return (
-                <Tooltip key={idx} label={b.tooltip} h="20px" fontSize="12px" color="white" openDelay={1000}
+                <Tooltip key={b.label} label={b.tooltip} h="20px" fontSize="12px" color="white" openDelay={1000}
                   placement="bottom" bottom="15px" left="15px" data-testid="modal-tooltip"
                 >
-                  <Button key={key} size="xs" variant={b.variant} ml="5" onClick={b.onClick}
+                  <Button size="xs" variant={b.variant} ml="5" onClick={b.onClick}
                         data-testid={`${b.label}-button`}>
                     {b.label}
                   </Button>
