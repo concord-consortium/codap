@@ -4,10 +4,11 @@ import { observer } from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
 import React, { useState, useEffect } from "react"
 import { convertToDate } from "../../utilities/date-utils"
+import { logMessageWithReplacement } from "../../lib/log-message"
 import { MultiScale } from "../axis/models/multi-scale"
 import { ISliderModel } from "./slider-model"
 import { valueChangeNotification } from "./slider-utils"
-import { logMessageWithReplacement } from "../../lib/log-message"
+import { useSliderAxisAnimation } from "./use-slider-axis-animation"
 
 import './slider.scss'
 
@@ -18,6 +19,7 @@ interface IProps {
 
 export const EditableSliderValue = observer(function EditableSliderValue({sliderModel, multiScale}: IProps) {
   const [candidate, setCandidate] = useState("")
+  const { animateAxisToEncompass } = useSliderAxisAnimation(sliderModel)
 
   useEffect(() => {
     return autorun(() => {
@@ -52,19 +54,13 @@ export const EditableSliderValue = observer(function EditableSliderValue({slider
   const handleSubmitValue = (e: React.FocusEvent<HTMLInputElement>) => {
     const inputValue = parseValue(e.target.value)
     if (isFinite(inputValue)) {
-      sliderModel.applyModelChange(
-        () => {
-          sliderModel.encompassValue(inputValue)
-          sliderModel.setValue(inputValue)
-        },
-        {
-          notify: () => valueChangeNotification(sliderModel.value, sliderModel.name),
-          undoStringKey: "DG.Undo.slider.change",
-          redoStringKey: "DG.Redo.slider.change",
-          log: logMessageWithReplacement("sliderEdit: { expression: %@ = %@ }",
-            {name: sliderModel.name, value: inputValue})
-        }
-      )
+      animateAxisToEncompass(inputValue, {
+        notify: () => valueChangeNotification(sliderModel.value, sliderModel.name),
+        undoStringKey: "DG.Undo.slider.change",
+        redoStringKey: "DG.Redo.slider.change",
+        log: logMessageWithReplacement("sliderEdit: { expression: %@ = %@ }",
+          {name: sliderModel.name, value: inputValue})
+      })
     }
   }
 
