@@ -16,7 +16,7 @@ function easeOutCubic(t: number): number {
  * this animates the axis from the old bounds to the new bounds using requestAnimationFrame
  * and the axis model's volatile setDynamicDomain, so the thumb slides into view.
  */
-export function useSliderAxisAnimation(sliderModel: ISliderModel | undefined) {
+export function useSliderAxisAnimation(_sliderModel: ISliderModel | undefined) {
   const rafRef = useRef<number>(0)
 
   const cancelAnimation = useCallback(() => {
@@ -24,17 +24,20 @@ export function useSliderAxisAnimation(sliderModel: ISliderModel | undefined) {
       cancelAnimationFrame(rafRef.current)
       rafRef.current = 0
     }
-    if (sliderModel?._isAxisAnimating) {
-      sliderModel.axis.clearDynamicDomain()
-      sliderModel.setIsAxisAnimating(false)
+    if (_sliderModel?._isAxisAnimating) {
+      _sliderModel.axis.clearDynamicDomain()
+      _sliderModel.setIsAxisAnimating(false)
     }
-  }, [sliderModel])
+  }, [_sliderModel])
 
   // Clean up on unmount
   useEffect(() => cancelAnimation, [cancelAnimation])
 
   const animateAxisToEncompass = useCallback((inputValue: number, options: IApplyModelChangeOptions) => {
-    if (!sliderModel) return
+    if (!_sliderModel) return
+
+    // const assignment doesn't require `!` below
+    const sliderModel = _sliderModel
 
     // Cancel any in-progress animation
     cancelAnimation()
@@ -67,12 +70,12 @@ export function useSliderAxisAnimation(sliderModel: ISliderModel | undefined) {
 
     function animate(currentTime: number) {
       // Stop if model was destroyed (e.g. tile closed) or persisted bounds changed (e.g. undo)
-      if (!isAlive(sliderModel!) ||
-          sliderModel!.axis.min !== newMin || sliderModel!.axis.max !== newMax) {
+      if (!isAlive(sliderModel) ||
+          sliderModel.axis.min !== newMin || sliderModel.axis.max !== newMax) {
         rafRef.current = 0
-        if (isAlive(sliderModel!)) {
-          sliderModel!.axis.clearDynamicDomain()
-          sliderModel!.setIsAxisAnimating(false)
+        if (isAlive(sliderModel)) {
+          sliderModel.axis.clearDynamicDomain()
+          sliderModel.setIsAxisAnimating(false)
         }
         return
       }
@@ -83,19 +86,19 @@ export function useSliderAxisAnimation(sliderModel: ISliderModel | undefined) {
 
       const min = oldMin + (newMin - oldMin) * eased
       const max = oldMax + (newMax - oldMax) * eased
-      sliderModel!.axis.setDynamicDomain(min, max)
+      sliderModel.axis.setDynamicDomain(min, max)
 
       if (t < 1) {
         rafRef.current = requestAnimationFrame(animate)
       } else {
         rafRef.current = 0
-        sliderModel!.axis.clearDynamicDomain()
-        sliderModel!.setIsAxisAnimating(false)
+        sliderModel.axis.clearDynamicDomain()
+        sliderModel.setIsAxisAnimating(false)
       }
     }
 
     rafRef.current = requestAnimationFrame(animate)
-  }, [sliderModel, cancelAnimation])
+  }, [_sliderModel, cancelAnimation])
 
   return { animateAxisToEncompass, cancelAnimation }
 }
