@@ -10,9 +10,17 @@ export interface ITileLikeModel {
   content: ITileContentModel
 }
 
+// Avoids circular dependency on IDocumentContentModel
+export interface IDocumentContentLike {
+  getTile(tileId: string): Maybe<ITileLikeModel>
+  isTileHidden(tileId?: string): boolean
+}
+
 export interface IDefaultContentOptions {
   // environment in which the tile will be created
   env?: ITileEnvironment;
+  // document content for tile visibility checks during auto-connection
+  documentContent?: IDocumentContentLike;
   // title is only currently used by the Geometry and Table tiles
   title?: string;
   // url is added so the CLUE core can add an image tile to the document when a user

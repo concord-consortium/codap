@@ -138,6 +138,23 @@ export const DocumentContentModel = BaseDocumentContentModel
       }
     }
   }))
+  .views(self => ({
+    isTileHidden(tileId?: string) {
+      if (tileId) {
+        const tileLayout = self.getTileLayoutById(tileId)
+        if (isFreeTileLayout(tileLayout)) {
+          return !!tileLayout.isHidden
+        }
+      }
+      return false
+    },
+    get gaussianFitEnabled() {
+      return self._gaussianFitEnabled || urlParams.gaussianFit !== undefined
+    },
+    get iciEnabled() {
+      return urlParams.ICI !== undefined
+    }
+  }))
   .actions(self => ({
     createDataSet(snapshot?: IDataSetSnapshot, providerId?: string) {
       const sharedModelManager = getSharedModelManager(self)
@@ -168,7 +185,7 @@ export const DocumentContentModel = BaseDocumentContentModel
       const row = self.getRowByIndex(0)
       if (row) {
         const env = getTileEnvironment(self)
-        const newTileSnapshot = createTileSnapshotOfType(tileType, env, options)
+        const newTileSnapshot = createTileSnapshotOfType(tileType, env, self, options)
         if (newTileSnapshot) {
           if (isFreeTileRow(row)) {
             const newTileSize = {width, height}
@@ -182,23 +199,6 @@ export const DocumentContentModel = BaseDocumentContentModel
           }
         }
       }
-    }
-  }))
-  .views(self => ({
-    isTileHidden(tileId?: string) {
-      if (tileId) {
-        const tileLayout = self.getTileLayoutById(tileId)
-        if (isFreeTileLayout(tileLayout)) {
-          return !!tileLayout.isHidden
-        }
-      }
-      return false
-    },
-    get gaussianFitEnabled() {
-      return self._gaussianFitEnabled || urlParams.gaussianFit !== undefined
-    },
-    get iciEnabled() {
-      return urlParams.ICI !== undefined
     }
   }))
   .actions(self => ({

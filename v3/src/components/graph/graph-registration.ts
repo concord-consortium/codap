@@ -3,7 +3,6 @@ import { SetRequired } from "type-fest"
 import GraphIcon from "../../assets/icons/icon-graph.svg"
 import { registerComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { registerDataDisplayHandler } from "../../data-interactive/handlers/data-display-handler"
-import { appState } from "../../models/app-state"
 import { idOfChildmostCollectionForAttributes } from "../../models/data/data-set-utils"
 import { ISharedDataSet, SharedDataSet } from "../../models/shared/shared-data-set"
 import { getMetadataFromDataSet } from "../../models/shared/shared-data-utils"
@@ -47,7 +46,7 @@ registerTileContentInfo({
       targetSharedDataSet = sharedDataSets[0]
     } else if (sharedDataSets && sharedDataSets.length > 1) {
       // if multiple datasets exist, use the one with a visible table or card (if exactly one qualifies)
-      const content = appState.document.content
+      const content = options?.documentContent
       const datasetsWithVisibleTiles = sharedDataSets.filter(sds => {
         const metadata = getMetadataFromDataSet(sds.dataSet)
         if (!metadata) return false
