@@ -10,22 +10,17 @@ jobs:
   test:
     name: Increment value test
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Check out source code
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.ref }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/checkout@v4
       - name: Increment value
         working-directory: v3
         run: ./increment_build_num.sh
-      - name: Commit files
+      - name: Commit and push
         run: |
-          git config --local user.email ${{ secrets.USER_EMAIL }}
-          git config --local user.name ${{ secrets.USER_NAME }}
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
           git commit -a -m "Increment the build number"
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
+          git push
