@@ -52,9 +52,9 @@ registerTileContentInfo({
         if (!metadata) return false
         const { caseTableTileId, caseCardTileId } = metadata
         const hasVisibleTable = !!(caseTableTileId && content?.getTile(caseTableTileId)
-          && !content.isTileHidden(caseTableTileId))
+          && !content?.isTileHidden(caseTableTileId))
         const hasVisibleCard = !!(caseCardTileId && content?.getTile(caseCardTileId)
-          && !content.isTileHidden(caseCardTileId))
+          && !content?.isTileHidden(caseCardTileId))
         return hasVisibleTable || hasVisibleCard
       })
       if (datasetsWithVisibleTiles.length === 1) {
