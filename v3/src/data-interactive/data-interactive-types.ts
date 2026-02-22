@@ -244,6 +244,11 @@ export type DIRequest = DIAction | DIAction[]
 export type DIRequestResponse = DIHandlerFnResult | DIHandlerFnResult[]
 export type DIRequestCallback = (response: DIRequestResponse) => void
 
+export interface DISelectionExpression {
+  collection?: string // defaults to childmost collection
+  expression: string
+}
+
 export type DIQueryValue = number | string | boolean
 export type DIQueryFunction = (a?: DIQueryValue, b?: DIQueryValue) => boolean
 export interface DIParsedOperand {
