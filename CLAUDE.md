@@ -31,6 +31,7 @@ When the user says "Let's start work on CODAP-XXX" (or similar):
    - Example: `CODAP-1027-inbounds-url-param`
    - Use lowercase kebab-case for the description
    - Keep it concise but descriptive
+   - **Always propose the branch name and get user approval before creating it**
 
 3. **Update Jira status**: Transition the story to "In Progress"
 
@@ -38,14 +39,16 @@ When the user says "Let's start work on CODAP-XXX" (or similar):
 
 When the work is ready for initial CI validation:
 
-1. **Create a draft PR**:
+1. **Create a PR**:
    - Title format: `{JIRA-ID}: {description}` (e.g., `CODAP-1027: add inbounds URL parameter`)
    - Description should include:
      - Summary of the changes
      - Reference to the Jira story (e.g., `Fixes CODAP-1027` or link to the story) so Jira links it automatically
    - Apply the `v3` label
+   - **For PRs with code changes**: Create as a draft PR. Mark as "Ready for Review" only after CI passes.
+   - **For docs-only PRs** (no code changes): Create as a regular (non-draft) PR — no need for CI validation.
 
-2. **Initial CI validation**:
+2. **Initial CI validation** (code PRs only):
    - CI runs automatically on PRs (lint, build, limited Cypress tests)
    - Review CI results and fix any issues
 
