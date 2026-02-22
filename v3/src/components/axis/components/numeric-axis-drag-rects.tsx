@@ -270,6 +270,8 @@ export const NumericAxisDragRects = observer(
                 .append('title')
                 .text((d?: number) => {
                   if (d === undefined) return ''
+                  // When lockZero is true, the single rect controls the upper bound
+                  if (lockZero) return axisDragHints[2]
                   const hintIndex = d >= 0 && d < numbering.length ? numbering[d] : undefined
                   if (hintIndex === undefined || axisDragHints[hintIndex] === undefined) {
                     return ''
