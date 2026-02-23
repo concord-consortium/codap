@@ -1,5 +1,6 @@
 import { observer } from "mobx-react-lite"
 import React, { useEffect } from "react"
+import { isNumericAttributeType } from "../../../../models/data/attribute-types"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { IBaseNumericAxisModel } from "../../../axis/models/base-numeric-axis-model"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
@@ -32,7 +33,8 @@ export const UnivariateMeasureAdornmentBaseComponent = observer(
     useEffect(function refreshAxisChange() {
       return mstAutorun(() => {
         getAxisDomains(xAxis, yAxis)
-        setIsVertical(dataConfig?.attributeType("x") === "numeric")
+        const xType = dataConfig?.attributeType("x")
+        setIsVertical(isNumericAttributeType(xType))
         refreshValues()
       }, { name: "UnivariateMeasureAdornmentComponent.refreshAxisChange" }, model)
     }, [dataConfig, model, refreshValues, setIsVertical, xAxis, yAxis])
