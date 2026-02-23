@@ -141,7 +141,7 @@ export interface DIResources {
 export type DISingleValues = DIAttribute | DINotifyAttribute | DIAttributeLocationValues | DICase | DIDataContext |
   DIDocument | DINotifyDataContext | DIGlobal | DIInteractiveFrame | DIItemValues | DICreateCollection | DINewCase |
   DIUpdateCase | DINotification | DIItemSearchNotify | DILogMessage | DIUpdateConfigurationValue | DIUrl |
-  V2SpecificComponent | DIAdornmentValues
+  V2SpecificComponent | DIAdornmentValues | DISelectionExpression
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
 // types returned as outputs by the API
@@ -243,6 +243,11 @@ export interface DIAction {
 export type DIRequest = DIAction | DIAction[]
 export type DIRequestResponse = DIHandlerFnResult | DIHandlerFnResult[]
 export type DIRequestCallback = (response: DIRequestResponse) => void
+
+export interface DISelectionExpression {
+  collection?: string // defaults to childmost collection
+  expression: string
+}
 
 export type DIQueryValue = number | string | boolean
 export type DIQueryFunction = (a?: DIQueryValue, b?: DIQueryValue) => boolean
