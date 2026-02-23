@@ -115,8 +115,7 @@ export const CaseAttrsView = observer(function CaseAttrsView(
 
   const handleResize = useCallback((newWidthPx: number, isComplete?: boolean) => {
     if (!containerWidth) return
-    const tableWidth = containerWidth - kTableMarginOffset
-    const newPct = (newWidthPx - kTableMarginLeft) / tableWidth
+    const newPct = (newWidthPx - kTableMarginLeft) / (containerWidth - kTableMarginOffset)
     if (isComplete) {
       setLiveResizeWidthPct(undefined)
       onResizeColumn?.(collectionId, newPct, true)
