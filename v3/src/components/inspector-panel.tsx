@@ -161,8 +161,8 @@ interface IPalettePointerProps {
   inBounds: boolean
 }
 
-const PalettePointer = React.forwardRef(function PalettePointer(
-  { top, inBounds }: IPalettePointerProps, ref: React.Ref<HTMLDivElement>
+const PalettePointer = forwardRef(function PalettePointer(
+  { top, inBounds }: IPalettePointerProps, ref
 ) {
   return (
     <div ref={ref} className={`palette-pointer ${inBounds ? "arrow-left" : "arrow-right"}`}
