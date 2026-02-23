@@ -97,14 +97,29 @@ This means plugin-triggered data mutations (create cases, update cases, delete c
 
 **Note:** `all-cases-handler.ts` (delete all cases) is the sole exception — it passes undo strings. This appears to be a bug, inconsistent with the established pattern for DI handlers. It should be fixed to omit undo strings like every other DI handler.
 
-### Why a Single Code Path Works
+### The Interleaving Problem in Standalone Mode
 
-Because V3 DI API mutations already bypass undo (just like V2), and because CODAP's undo UI is hidden in standalone mode (just like V2), the V3 implementation does **not** need separate code paths for standalone vs external mode. The same handler logic works for both:
+While DI API mutations don't create undo entries, **user-triggered CODAP actions do**. In standalone mode, the CODAP toolbar is hidden, but the user can still interact directly with CODAP tiles (graphs, tables, etc.). These interactions create normal undo entries with MST patches on CODAP's undo stack.
 
-- `undoableActionPerformed` creates an undo entry with plugin message callbacks
-- `undoButtonPress` triggers undo (which pops the entry and messages the plugin)
-- DI API mutations stay off the undo stack regardless of mode
-- In standalone mode, the user never sees CODAP's undo stack, so plugin entries on it are harmless
+If plugin undo entries share CODAP's undo stack, they interleave with user-triggered entries. For example:
+
+1. Plugin performs an undoable action → plugin entry pushed to CODAP stack
+2. User changes a graph setting → CODAP entry pushed to stack
+3. Plugin sends `undoButtonPress` → `document.undoLastAction()` pops the **graph change**, not the plugin action
+
+The plugin never receives `undoAction` — the wrong thing gets undone. This interleaving problem exists in V2 as well (V2's `handleUndoChangeNotice` shares the same `DG.UndoHistory` stack), but it likely goes unnoticed in practice because SageModeler controls most of the UX and direct user manipulation of CODAP tiles is rare.
+
+For V3, the **shadow counter approach** solves this cleanly for standalone mode by keeping plugin undo tracking completely separate from CODAP's undo stack (see [Standalone vs External Mode: Two Code Paths](#standalone-vs-external-mode-two-code-paths) below).
+
+In **external/embedded mode**, interleaving is the correct behavior — plugin actions and CODAP actions share a unified undo stack, and the user interacts with undo through CODAP's toolbar.
+
+### Standalone vs External Mode: Two Code Paths
+
+Despite V2 using a single code path, V3 should use **two code paths** to correctly handle the interleaving problem:
+
+- **Standalone mode** (`uiState.standaloneMode`): Use shadow counters. Plugin undo entries are NOT placed on CODAP's undo stack. `undoButtonPress` sends `undoAction` directly to the plugin and adjusts counters. User-triggered CODAP actions remain on CODAP's stack independently. The two undo histories never interfere with each other.
+
+- **External/embedded mode**: Use CODAP's undo stack (the approach from the original analysis). `undoableActionPerformed` creates a custom undo entry on CODAP's stack. `undoButtonPress` calls `document.undoLastAction()`. Interleaving of plugin and CODAP entries is intentional in this mode — they share a unified undo experience.
 
 ### What's Missing
 
@@ -136,20 +151,26 @@ Because V3 DI API mutations already bypass undo (just like V2), and because CODA
 
 ### Phase 1: Core `undoChangeNotice` Handler
 
-#### 1a. Implement `undoButtonPress` / `redoButtonPress` (simplest, no custom undo needed)
+The handler should branch on the undo mode early:
 
-In `src/data-interactive/handlers/undo-change-notice-handler.ts`:
-
-- Access the document model (via `appState.document` or through the resources)
-- For `undoButtonPress`: call `document.undoLastAction()`
-- For `redoButtonPress`: call `document.redoLastAction()`
-- Return `{ success: true, values: { canUndo, canRedo } }`
+```
+if (standalone mode for this plugin's tile) → shadow counter path
+else → CODAP undo entry path
+```
 
 **Note on operation name:** The existing TODO in the handler references `undoButtonPressed` (with trailing "d"), but V2 and Building Models use `undoButtonPress` (no "d"). The implementation should accept the correct V2 name.
 
-#### 1b. Implement `undoableActionPerformed` (the main feature)
+#### 1a. Standalone mode: Shadow counters
 
-When a plugin says it did something undoable:
+Maintain per-plugin undo/redo depth counters (two integers per plugin tile). No CODAP undo stack involvement.
+
+- **`undoableActionPerformed`**: Increment undo counter, reset redo counter. Return `{ success: true, values: { canUndo: true, canRedo: false } }`.
+- **`undoButtonPress`**: Send `{action: 'notify', resource: 'undoChangeNotice', values: {operation: 'undoAction'}}` directly to the originating plugin via `broadcastMessage` with `targetTileId`. Wait for the plugin's callback. Decrement undo counter, increment redo counter. Return updated `{ canUndo, canRedo }`.
+- **`redoButtonPress`**: Same as above but with `{operation: 'redoAction'}`. Increment undo counter, decrement redo counter.
+
+#### 1b. External mode: CODAP undo entries
+
+Use CODAP's undo system. When a plugin says it did something undoable:
 
 1. Identify the originating plugin's tile ID from `resources.interactiveFrame`
 2. Use `withCustomUndoRedo` (or a similar mechanism) to register a history entry with:
@@ -158,6 +179,10 @@ When a plugin says it did something undoable:
 3. The entry should use the existing `DG.Undo.interactiveUndoableAction` / `DG.Redo.interactiveUndoableAction` strings
 4. Return `{ success: true, values: { canUndo, canRedo } }`
 
+For `undoButtonPress`/`redoButtonPress`:
+- Call `document.undoLastAction()` / `document.redoLastAction()`
+- Return `{ success: true, values: { canUndo, canRedo } }`
+
 **Key implementation challenge**: `withCustomUndoRedo` currently works within the context of an `applyModelChange` call. Plugin undo entries don't modify MST state — they're purely side-effect-based (send a message to an iframe). The implementation needs to either:
 
 - Create a no-op `applyModelChange` that produces no patches but registers custom undo/redo, OR
@@ -165,7 +190,7 @@ When a plugin says it did something undoable:
 
 #### 1c. Wire up response values
 
-All three operations should return `{ canUndo, canRedo }` from the document model.
+All operations should return `{ canUndo, canRedo }`. In standalone mode, these come from the shadow counters. In external mode, they come from the document model.
 
 ### Phase 2: Proactive Notifications
 
@@ -206,25 +231,25 @@ This could be implemented:
 
 1. **Should plugin-triggered data mutations (create/update/delete cases via API) also be undoable?** **No.** V3 DI handlers already call `applyModelChange` without undo strings, which routes through `withoutUndo()`. This is the correct behavior — plugin-triggered mutations are one half of a logical action whose undo is managed by the plugin itself. Recording them separately would break the undo model. This matches V2's `retainUndo = true` behavior.
 
-2. **Does the implementation need separate code paths for standalone vs external mode?** **No.** V2 uses a single code path for both modes. V3 can do the same because: (a) DI API mutations already bypass undo in both modes, and (b) in standalone mode, CODAP's undo stack is hidden from the user, so plugin entries on it are harmless. The mode distinction only affects what flags the plugin receives (`standaloneUndoModeAvailable` vs `externalUndoAvailable`) and whether CODAP's toolbar is visible — neither is the handler's concern.
+2. **Does the implementation need separate code paths for standalone vs external mode?** **Yes.** Although V2 uses a single code path, that approach has an interleaving flaw: user-triggered CODAP actions (e.g., graph changes) create undo entries on the same stack as plugin entries. When the plugin sends `undoButtonPress`, `document.undoLastAction()` may pop a CODAP entry instead of the plugin's entry. V2 gets away with this because direct user manipulation of CODAP tiles is rare in SageModeler, but it's not architecturally correct. V3 should use shadow counters for standalone mode (keeping plugin undo separate from CODAP's stack) and CODAP undo entries for external mode (where interleaving is intentional).
 
-## Considered Alternative: Shadow Counters
+## Design Rationale: Why Shadow Counters for Standalone Mode
 
-An alternative approach was proposed in the CODAP-1127 spec (R3) for standalone mode: instead of creating CODAP undo entries, CODAP would maintain two integers (undo depth, redo depth) as "shadow counters." On `undoableActionPerformed`, increment the undo counter. On `undoButtonPress`, send `undoAction` directly to the plugin and adjust counters — no CODAP undo system involvement at all.
+An earlier version of this analysis concluded that V3 could use a single code path for both modes, matching V2. That conclusion was revised after identifying the **interleaving problem**: in standalone mode, user-triggered CODAP actions (graph changes, table edits, etc.) create undo entries on the same stack as plugin entries. When the plugin sends `undoButtonPress`, `document.undoLastAction()` may pop a user-triggered CODAP entry instead of the plugin's entry, undoing the wrong thing.
 
-This approach was motivated by two concerns:
+The shadow counter approach (from the CODAP-1127 spec) solves this by keeping plugin undo tracking completely separate from CODAP's undo stack:
 
-1. **DI API mutations would corrupt the undo stack** by creating interleaved undo entries alongside plugin entries.
-2. **Plugin actions should not appear on CODAP's undo stack** in standalone mode.
+- Plugin actions are tracked by per-plugin integer counters, not CODAP undo entries
+- `undoButtonPress` sends `undoAction` directly to the plugin and adjusts counters — CODAP's undo stack is never touched
+- User-triggered CODAP actions remain on CODAP's own stack independently
+- The two undo histories cannot interfere with each other
 
-Both concerns turned out to be unfounded:
+Note that two earlier concerns about the shared-stack approach turned out to be unfounded and are **not** the reason for choosing shadow counters:
 
-1. V3 DI handlers already call `applyModelChange` without undo strings, which routes through `withoutUndo()`. Plugin-triggered mutations do not create undo entries. This is equivalent to V2's `retainUndo = true` behavior.
-2. In standalone mode, CODAP's undo UI is hidden and inaccessible. Whether plugin entries sit on CODAP's undo stack has no user-visible effect.
+1. ~~DI API mutations would corrupt the undo stack~~ — V3 DI handlers already call `applyModelChange` without undo strings, which routes through `withoutUndo()`. Plugin-triggered mutations do not create undo entries.
+2. ~~Plugin actions should not appear on CODAP's undo stack~~ — In standalone mode, CODAP's undo UI is hidden. Plugin entries on the stack would be invisible to the user.
 
-The shadow counter approach would also introduce a second code path (branching on standalone vs external mode) that V2 does not need. V2 uses a single mode-agnostic handler, and V3 can do the same.
-
-For these reasons, the recommended approach follows V2: use CODAP's undo system for both modes, with `withCustomUndoRedo` (or equivalent) to register plugin undo/redo callbacks. The shadow counter approach is not needed.
+The actual reason is the interleaving of plugin entries with user-triggered CODAP entries on a shared stack. In **external mode**, this interleaving is correct and intentional (unified undo experience). In **standalone mode**, it causes the wrong action to be undone.
 
 ## Open Questions
 
