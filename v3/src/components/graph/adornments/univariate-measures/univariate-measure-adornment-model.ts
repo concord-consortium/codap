@@ -1,6 +1,7 @@
 import { reaction } from "mobx"
 import { addDisposer, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { isFiniteNumber } from "../../../../utilities/math-utils"
+import { isNumericAttributeType } from "../../../../models/data/attribute-types"
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
 import { IDataConfigurationModel } from "../../../data-display/models/data-configuration-model"
 import { migrateInstanceKeyMap } from "../../utilities/cell-key-utils"
@@ -140,7 +141,7 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
     updateCategories(options: IUpdateCategoriesOptions) {
       const { dataConfig, resetPoints } = options
       const { xAttrId, yAttrId, xAttrType } = dataConfig.getCategoriesOptions()
-      const attrId = xAttrId && (xAttrType === "numeric" || xAttrType === "date") ? xAttrId : yAttrId
+      const attrId = xAttrId && isNumericAttributeType(xAttrType) ? xAttrId : yAttrId
       dataConfig.getAllCellKeys().forEach(cellKey => {
         const instanceKey = self.instanceKey(cellKey)
         const value = Number(self.computeMeasureValue(attrId, cellKey, dataConfig))

@@ -4,6 +4,7 @@ import { IFormula } from "../../../../models/formula/formula"
 import { type IFormulaContext, type IFormulaExtraMetadata } from "../../../../models/formula/formula-manager-types"
 import { FormulaManagerAdapter, type IFormulaAdapterApi } from "../../../../models/formula/formula-manager-adapter"
 import { FormulaMathJsScope } from "../../../../models/formula/formula-mathjs-scope"
+import { isNumericAttributeType } from "../../../../models/data/attribute-types"
 import { localAttrIdToCanonical } from "../../../../models/formula/utils/name-mapping-utils"
 import { ITileContentModel } from "../../../../models/tiles/tile-content"
 import { GraphCellKey } from "../../graphing-types"
@@ -16,7 +17,7 @@ export interface IBaseGraphFormulaExtraMetadata extends IFormulaExtraMetadata {
 
 export const getDefaultArgument = (graphContentModel: IGraphContentModel) => {
   const { xAttrId, yAttrId, xAttrType } = graphContentModel.dataConfiguration.getCategoriesOptions()
-  const defaultArgumentId = xAttrId && (xAttrType === "numeric" || xAttrType === "date") ? xAttrId : yAttrId
+  const defaultArgumentId = xAttrId && isNumericAttributeType(xAttrType) ? xAttrId : yAttrId
   return defaultArgumentId ? localAttrIdToCanonical(defaultArgumentId) : undefined
 }
 
