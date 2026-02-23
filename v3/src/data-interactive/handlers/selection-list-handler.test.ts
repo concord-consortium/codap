@@ -74,9 +74,9 @@ describe("DataInteractive SelectionListHandler", () => {
     })
 
     const createExpr = (expr: DISelectionExpression) =>
-      handler.create?.({ dataContext: ds }, expr as unknown as DIValues)
+      handler.create?.({ dataContext: ds }, expr)
     const updateExpr = (expr: DISelectionExpression) =>
-      handler.update?.({ dataContext: ds }, expr as unknown as DIValues)
+      handler.update?.({ dataContext: ds }, expr)
 
     it("selects cases with a simple numeric expression", () => {
       // a3 values: 1, 2, 3, 4, 5, 6, so four cases have a3 > 2
@@ -148,7 +148,7 @@ describe("DataInteractive SelectionListHandler", () => {
     it("returns error for invalid collection name", () => {
       const result = createExpr({ expression: "a3 > 2", collection: "nonexistent" })
       expect(result?.success).toBe(false)
-      expect((result as any)?.values?.error).toContain("Collection not found: nonexistent")
+      expect((result as any)?.values?.error).toContain("Collection not found")
     })
 
     it("backwards compatibility: array-of-IDs still works", () => {
@@ -164,7 +164,7 @@ describe("DataInteractive SelectionListHandler", () => {
       emptyDs.validateCases()
       const result = handler.create?.(
         { dataContext: emptyDs },
-        { expression: "true" } as unknown as DIValues
+        { expression: "true" }
       )
       expect(result?.success).toBe(true)
       expect(emptyDs.selection.size).toBe(0)
@@ -186,7 +186,7 @@ describe("DataInteractive SelectionListHandler", () => {
     it("returns error when dataContext is missing", () => {
       const result = handler.create?.(
         {},
-        { expression: "a3 > 2" } as unknown as DIValues
+        { expression: "a3 > 2" }
       )
       expect(result?.success).toBe(false)
     })

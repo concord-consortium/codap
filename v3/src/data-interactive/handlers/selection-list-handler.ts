@@ -29,7 +29,7 @@ function evaluateExpressionSelection(dataContext: IDataSet, values: DISelectionE
     : dataContext.childCollection
 
   if (!collection) {
-    return { success: false, error: `Collection not found: ${collectionName}` }
+    return { success: false, error: t("V3.DI.Error.collectionNotFound") }
   }
 
   const { valid, caseIds, error } = evaluateCaseFormula(values.expression, dataContext, collection)
