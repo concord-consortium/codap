@@ -70,6 +70,11 @@ $tool-shelf-border-width: 1px;
       &:active:not(:disabled) {
         background-color: #bfefff;
       }
+      &:focus-visible {
+        background-color: vars.$icon-fill-light;
+        outline: 2px solid vars.$focus-outline-color;
+        outline-offset: -2px;
+      }
       &.menu-open {
         height: calc(vars.$tool-shelf-height - $tool-shelf-border-width);
         width: fit-content;
