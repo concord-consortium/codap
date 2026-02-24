@@ -23,6 +23,9 @@ export const kImporterPluginInsertOptions = {
 export const kLocalizedPluginPatterns = [
   "/Importer/",
   "/TP-Sampler/",
+  "sampler.concord.org",
+  "/scrambler/",
   "/Scrambler/",
+  "/story-builder/",
   "/storyBuilder/"
 ]
