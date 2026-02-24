@@ -38,9 +38,12 @@ export class AxisHelper {
     this.multiScale = this.layout.getAxisMultiScale(this.axisPlace)
     const elt = select(this.subAxisElt)
     elt.selectAll('*').remove() // clear any existing content
-    // Clear SVG attributes set by D3's axis function (e.g., fill="none") so they don't
-    // leak into the next axis type. D3's axis will re-set these when it renders.
+    // Clear SVG attributes and D3's internal __axis flag so they don't leak into the next
+    // axis type. D3's axis function only sets fill, font-size, font-family, and text-anchor
+    // on "entering" (when __axis is falsy), so we must clear it for D3 to re-set them.
     elt.attr('fill', null).attr('font-size', null).attr('font-family', null).attr('text-anchor', null)
+    const node = elt.node?.()
+    if (node) delete (node as any).__axis
   }
 
   get axisPlace() {
