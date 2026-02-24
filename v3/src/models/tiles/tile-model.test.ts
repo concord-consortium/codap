@@ -114,6 +114,27 @@ describe("TileModel", () => {
     expect(tile.isResizable).toEqual({ width: false, height: false })
   })
 
+  it("isResizable respects isUserResizable constraint", () => {
+    // Calculator has isUserResizable === false, so isResizable should always be false
+    // regardless of what _isResizable is set to
+    const tile = TileModel.create({ content: getTileContentInfo("Calculator")!.defaultContent() })
+
+    // default: isResizable should be false even though _isResizable is undefined
+    expect(tile._isResizable).toBeUndefined()
+    expect(tile.isUserResizable).toBe(false)
+    expect(tile.isResizable).toEqual({ width: false, height: false })
+
+    // setting _isResizable to true should not override isUserResizable
+    tile.setIsResizable(true)
+    expect(tile._isResizable).toEqual({ width: true, height: true })
+    expect(tile.isResizable).toEqual({ width: false, height: false })
+
+    // partial object form should also be constrained
+    tile.setIsResizable({ width: true, height: false })
+    expect(tile._isResizable).toEqual({ width: true, height: false })
+    expect(tile.isResizable).toEqual({ width: false, height: false })
+  })
+
   it("normalizes boolean _isResizable in preProcessSnapshot", () => {
     // simulate a snapshot saved with boolean _isResizable
     const snapshot: any = {
