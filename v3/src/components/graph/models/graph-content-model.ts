@@ -217,6 +217,20 @@ export const GraphContentModel = DataDisplayContentModel
         self.adornmentsStore.updateAdornments(updateCategoriesOptions)
       }, {name: "GraphContentModel.afterAttachToDocument.updateAdornments"}, self.dataConfiguration))
 
+      // Expand numeric axis domains when new cases are added (e.g., via plugin API)
+      addDisposer(self, self.dataConfiguration.onAction((actionCall) => {
+        if (actionCall.name === "addCases") {
+          AxisPlaces.forEach((axisPlace: AxisPlace) => {
+            const axis = self.getAxis(axisPlace),
+              role = axisPlaceToAttrRole[axisPlace]
+            if (isAnyNumericAxisModel(axis)) {
+              const numericValues = self.plot.numericValuesForRole(role)
+              setNiceDomain(numericValues, axis, self.plot.axisDomainOptions)
+            }
+          })
+        }
+      }))
+
       // When showMeasuresForSelection is true, update adornments when selection changes
       addDisposer(self, mstReaction(() => {
         return self.dataConfiguration.selection
