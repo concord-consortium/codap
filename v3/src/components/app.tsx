@@ -9,6 +9,7 @@ import { useMemo } from "use-memo-one"
 // import { setLivelinessChecking } from "mobx-state-tree"
 import { CfmContext } from "../hooks/use-cfm-context"
 import { DocumentContentContext } from "../hooks/use-document-content"
+import { useDocumentLanguage } from "../hooks/use-document-language"
 import { useDropHandler } from "../hooks/use-drop-handler"
 import { useImportHelpers } from "../hooks/use-import-helpers"
 import { useKeyStates } from "../hooks/use-key-states"
@@ -76,6 +77,9 @@ export const App = observer(function App() {
     = useDisclosure({defaultIsOpen: true})
   const [isDragOver, setIsDragOver] = useState(false)
   const cfmRef = useRef<CloudFileManager | null>(null)
+
+  // Sync the <html lang> attribute with the current locale
+  useDocumentLanguage()
 
   useLayoutEffect(() => {
     return autorun(() => {
