@@ -1,10 +1,12 @@
 import iframePhone from "iframe-phone"
-import React, { useEffect } from "react"
+import { reaction } from "mobx"
+import React, { useEffect, useState } from "react"
 import { setupRequestQueueProcessor } from "../../data-interactive/data-interactive-request-processor"
 import { DIRequest, DIRequestCallback } from "../../data-interactive/data-interactive-types"
 import { useCfmContext } from "../../hooks/use-cfm-context"
 import { DEBUG_PLUGINS, debugLog } from "../../lib/debug"
 import { ITileModel } from "../../models/tiles/tile-model"
+import { gLocale } from "../../utilities/translation/locale"
 import { RequestQueue } from "./request-queue"
 import { isWebViewModel } from "./web-view-model"
 
@@ -23,6 +25,33 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
   const webViewModel = isWebViewModel(tileContentModel) ? tileContentModel : undefined
   const url = webViewModel?.url
   const cfm = useCfmContext()
+
+  // Counter incremented when a localized plugin needs to reload due to a locale change.
+  // Included in the useEffect deps so the iframePhone connection is torn down and
+  // re-established after the iframe reloads, without mutating the persisted model URL.
+  const [localeVersion, setLocaleVersion] = useState(0)
+
+  // React to locale changes outside the main useEffect so that:
+  // - Localized plugins: bump localeVersion to trigger useEffect re-run (the iframe src
+  //   is recomputed by the observer in web-view.tsx using gLocale.current).
+  // - Other plugins: send a localeChanged notification via the existing controller.
+  useEffect(() => {
+    const localeDisposer = reaction(
+      () => gLocale.current,
+      (lang) => {
+        if (webViewModel?.needsLocaleReload) {
+          setLocaleVersion(v => v + 1)
+        } else if (webViewModel?.isPlugin) {
+          webViewModel.broadcastMessage(
+            { action: "notify", resource: "global", values: { operation: "localeChanged", lang } },
+            () => debugLog(DEBUG_PLUGINS, "Reply to localeChanged notification")
+          )
+        }
+      },
+      { name: "DataInteractiveController locale change reaction" }
+    )
+    return () => localeDisposer()
+  }, [webViewModel])
 
   useEffect(() => {
     debugLog(DEBUG_PLUGINS, `Establishing connection to ${iframeRef.current}`)
@@ -63,5 +92,5 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
         phone.disconnect()
       }
     }
-  }, [cfm, iframeRef, tile, url, webViewModel])
+  }, [cfm, iframeRef, localeVersion, tile, url, webViewModel])
 }

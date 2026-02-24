@@ -37,6 +37,7 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     expect(savedState).toBe(webView.state)
     expect(title).toBe(interactiveFrame.title)
     expect(version).toBe(webView.version)
+    expect((result.values as DIInteractiveFrame).lang).toBeTruthy()
   })
 
   it("update works", () => {
@@ -111,6 +112,16 @@ describe("DataInteractive InteractiveFrameHandler", () => {
 
     expect(result?.success).toBe(true)
     expect(tile.title).toBe("Plugin Title")
+  })
+
+  it("update sets handlesLocaleChange", () => {
+    const tile = appState.document.content!.createOrShowTile(kWebViewTileType)!
+    const webViewContent = tile.content as IWebViewModel
+    expect(webViewContent.handlesLocaleChange).toBe(false)
+
+    const result = handler.update?.({ interactiveFrame: tile }, { handlesLocaleChange: true })
+    expect(result?.success).toBe(true)
+    expect(webViewContent.handlesLocaleChange).toBe(true)
   })
 
   describe("notify", () => {
