@@ -158,9 +158,8 @@ Read `~/.codap-build.rc` to get `CODAP_SERVER` (defaults to `codap-server.concor
    referencing different chunks. The `--size-only` flag will miss this update,
    leaving the plugin broken (index.html pointing to chunks that no longer exist).
 
-   **After every plugin sync, explicitly copy `index.html`** (and any other
-   entry-point files like `manifest.json`, `asset-manifest.json`) to ensure
-   they are current:
+   **After every plugin sync, explicitly copy `index.html`** to ensure it is
+   current:
 
    ```bash
    aws s3 cp /tmp/codap-sync/plugins/TP-Sampler/index.html \

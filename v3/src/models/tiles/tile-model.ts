@@ -74,7 +74,7 @@ export const TileModel = V2UserTitleModel.named("TileModel")
       : _snapshotIsResizable
     const tileType = snapshot.content.type
     const preProcessor = getTileContentInfo(tileType)?.tileSnapshotPreProcessor
-    const snap = { ...rest, _title, _isResizable }
+    const snap = { ...rest, _title, ...(_isResizable !== undefined && { _isResizable }) }
     return preProcessor ? preProcessor(snap) : snap
   })
   .views(self => ({
