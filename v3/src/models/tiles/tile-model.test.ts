@@ -72,6 +72,67 @@ describe("TileModel", () => {
     expect(tile.content.type).toBe(kUnknownTileType)
   })
 
+  it("handles isResizable with boolean values", () => {
+    const tile = TileModel.create({ content: getTileContentInfo("Graph")!.defaultContent() })
+
+    // default: undefined _isResizable, isResizable reflects isUserResizable
+    expect(tile._isResizable).toBeUndefined()
+    expect(tile.isResizable).toEqual({ width: true, height: true })
+
+    // set to false boolean
+    tile.setIsResizable(false)
+    expect(tile._isResizable).toEqual({ width: false, height: false })
+    expect(tile.isResizable).toEqual({ width: false, height: false })
+
+    // set to true boolean
+    tile.setIsResizable(true)
+    expect(tile._isResizable).toEqual({ width: true, height: true })
+    expect(tile.isResizable).toEqual({ width: true, height: true })
+
+    // set to undefined clears the override
+    tile.setIsResizable(undefined)
+    expect(tile._isResizable).toBeUndefined()
+    expect(tile.isResizable).toEqual({ width: true, height: true })
+  })
+
+  it("handles isResizable with object values", () => {
+    const tile = TileModel.create({ content: getTileContentInfo("Graph")!.defaultContent() })
+
+    // set width-only resizable
+    tile.setIsResizable({ width: true, height: false })
+    expect(tile._isResizable).toEqual({ width: true, height: false })
+    expect(tile.isResizable).toEqual({ width: true, height: false })
+
+    // set height-only resizable
+    tile.setIsResizable({ width: false, height: true })
+    expect(tile._isResizable).toEqual({ width: false, height: true })
+    expect(tile.isResizable).toEqual({ width: false, height: true })
+
+    // set both false
+    tile.setIsResizable({ width: false, height: false })
+    expect(tile._isResizable).toEqual({ width: false, height: false })
+    expect(tile.isResizable).toEqual({ width: false, height: false })
+  })
+
+  it("normalizes boolean _isResizable in preProcessSnapshot", () => {
+    // simulate a snapshot saved with boolean _isResizable
+    const snapshot: any = {
+      content: getTileContentInfo("Graph")!.defaultContent(),
+      _isResizable: false
+    }
+    const tile = TileModel.create(snapshot)
+    expect(tile._isResizable).toEqual({ width: false, height: false })
+    expect(tile.isResizable).toEqual({ width: false, height: false })
+
+    const snapshot2: any = {
+      content: getTileContentInfo("Graph")!.defaultContent(),
+      _isResizable: true
+    }
+    const tile2 = TileModel.create(snapshot2)
+    expect(tile2._isResizable).toEqual({ width: true, height: true })
+    expect(tile2.isResizable).toEqual({ width: true, height: true })
+  })
+
   it("returns appropriate defaults for minWidth and maxWidth", () => {
     const tile = TileModel.create({
                         content: {

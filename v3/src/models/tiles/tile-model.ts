@@ -59,18 +59,22 @@ export const TileModel = V2UserTitleModel.named("TileModel")
     cannotClose: types.maybe(types.boolean),
     // API-controlled flag: when false, prevents user from resizing a specific component instance.
     // Default (undefined) means resizable. Set via API update requests.
-    _isResizable: types.maybe(types.boolean),
+    _isResizable: types.maybe(types.frozen<{ width: boolean, height: boolean }>()),
   })
   .volatile(self => ({
     isNewlyCreated: false,
     transitionComplete: false
   }))
   .preProcessSnapshot(snapshot => {
-    // early development versions of v3 had a `title` property
-    const _title = snapshot._title ?? ((snapshot as any).title || undefined)
+    // remove legacy `title` property; normalize boolean `_isResizable` to object form
+    const { title: _legacyTitle, _isResizable: _snapshotIsResizable, ...rest } = snapshot as any
+    const _title = snapshot._title ?? (_legacyTitle || undefined)
+    const _isResizable = typeof _snapshotIsResizable === "boolean"
+      ? { width: _snapshotIsResizable, height: _snapshotIsResizable }
+      : _snapshotIsResizable
     const tileType = snapshot.content.type
     const preProcessor = getTileContentInfo(tileType)?.tileSnapshotPreProcessor
-    const snap = { ...snapshot, _title }
+    const snap = { ...rest, _title, _isResizable }
     return preProcessor ? preProcessor(snap) : snap
   })
   .views(self => ({
@@ -89,9 +93,13 @@ export const TileModel = V2UserTitleModel.named("TileModel")
     get isUserResizable() {
       return (self.content as any).isUserResizable !== false
     },
-    // Combined resizability: true if the content type supports resizing AND the API hasn't disabled it.
+    // Combined resizability per axis: content type must support resizing AND the API hasn't disabled it.
     get isResizable() {
-      return self._isResizable !== false && (self.content as any).isUserResizable !== false
+      const isUserResizable = (self.content as any).isUserResizable !== false
+      return {
+        width: isUserResizable && (self._isResizable?.width ?? true),
+        height: isUserResizable && (self._isResizable?.height ?? true)
+      }
     },
     get isUserClosable() {
       return !!(self.content as any).isUserClosable
@@ -129,8 +137,10 @@ export const TileModel = V2UserTitleModel.named("TileModel")
     setCannotClose(cannotClose?: boolean) {
       self.cannotClose = cannotClose
     },
-    setIsResizable(isResizable?: boolean) {
-      self._isResizable = isResizable
+    setIsResizable(isResizable?: boolean | { width: boolean, height: boolean }) {
+      self._isResizable = typeof isResizable === "boolean"
+        ? { width: isResizable, height: isResizable }
+        : isResizable
     },
     setTransitionComplete(complete: boolean) {
       self.transitionComplete = complete
