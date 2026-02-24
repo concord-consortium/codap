@@ -38,7 +38,7 @@ export interface V2Component {
     height: number
   }
   id?: number
-  isResizable?: boolean
+  isResizable?: boolean | { width: boolean, height: boolean }
   isVisible?: boolean
   name?: string
   position?: string | {

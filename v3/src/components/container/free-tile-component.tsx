@@ -147,7 +147,9 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
 
   if (!info || (isHidden && !info.renderWhenHidden)) return null
 
-  const { isFixedWidth, isFixedHeight } = info
+  const isFixedWidth = info.isFixedWidth || !tile.isResizable.width
+  const isFixedHeight = info.isFixedHeight || !tile.isResizable.height
+  const canResize = !isFixedWidth || !isFixedHeight
 
   return (
     <ComponentWrapperContext.Provider value={componentRef}>
@@ -163,7 +165,7 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
                 onCloseTile={onCloseTile}
                 onMoveTilePointerDown={uiState.allowComponentMove ? handleMoveTilePointerDown : undefined}
               />
-              <If condition={!isMinimized && !isStandalone && uiState.allowComponentResize && tile.isResizable}>
+              <If condition={!isMinimized && !isStandalone && uiState.allowComponentResize && canResize}>
                 <ComponentResizeWidgets tile={tile} componentRef={componentRef}
                   isFixedWidth={isFixedWidth} isFixedHeight={isFixedHeight}
                   handleResizePointerDown={handleResizePointerDown} />

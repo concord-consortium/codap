@@ -129,7 +129,15 @@ Read `~/.codap-build.rc` to get `CODAP_SERVER` (defaults to `codap-server.concor
    rsync -avz codap-server.concord.org:/var/www/html/releases/build_XXXX/extn/plugins/TP-Sampler/ /tmp/codap-sync/plugins/TP-Sampler/
    ```
 
-3. **Dry-run the S3 sync** so the user can review changes:
+3. **Dry-run the S3 sync** so the user can review changes.
+
+   For **plugins**, use `--delete` to remove orphaned chunks from previous builds:
+   ```bash
+   aws s3 sync /tmp/codap-sync/plugins/TP-Sampler/ s3://codap-resources/plugins/TP-Sampler/ \
+     --acl public-read --size-only --delete --dryrun
+   ```
+
+   For **example documents and boundaries**, omit `--delete` to preserve files:
    ```bash
    aws s3 sync /tmp/codap-sync/example-documents/ s3://codap-resources/example-documents/ \
      --acl public-read --size-only --dryrun
@@ -139,17 +147,35 @@ Read `~/.codap-build.rc` to get `CODAP_SERVER` (defaults to `codap-server.concor
 
 4. **After user confirms, run for real:**
    ```bash
-   aws s3 sync /tmp/codap-sync/example-documents/ s3://codap-resources/example-documents/ \
-     --acl public-read --size-only
+   aws s3 sync /tmp/codap-sync/plugins/TP-Sampler/ s3://codap-resources/plugins/TP-Sampler/ \
+     --acl public-read --size-only --delete
    ```
 
-5. **Invalidate CloudFront cache:**
+5. **Fix up entry-point files missed by `--size-only`:**
+
+   Webpack-built plugins use content hashes in JS/CSS filenames, so when code
+   changes the chunk filenames change but `index.html` stays the same size while
+   referencing different chunks. The `--size-only` flag will miss this update,
+   leaving the plugin broken (index.html pointing to chunks that no longer exist).
+
+   **After every plugin sync, explicitly copy `index.html`** to ensure it is
+   current:
+
+   ```bash
+   aws s3 cp /tmp/codap-sync/plugins/TP-Sampler/index.html \
+     s3://codap-resources/plugins/TP-Sampler/index.html --acl public-read
+   ```
+
+   This step is not needed for example documents or boundaries since they don't
+   have entry-point files with hashed references.
+
+6. **Invalidate CloudFront cache:**
    ```bash
    aws cloudfront create-invalidation --distribution-id E1RS9TZVZBEEEC \
-     --paths "/example-documents/*"
+     --paths "/plugins/TP-Sampler/*"
    ```
 
-6. **Clean up the temp directory:**
+7. **Clean up the temp directory:**
    ```bash
    rm -rf /tmp/codap-sync/
    ```

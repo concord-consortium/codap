@@ -154,21 +154,27 @@ describe("DataInteractive ComponentHandler", () => {
     expect(handler.update?.({ component: graphTile }, { name: "My Graph" }).success).toBe(true)
     expect(graphTile.name).toBe("My Graph")
 
-    // Test updating isResizable
+    // Test updating isResizable with boolean
     expect(graphTile._isResizable).toBeUndefined()
-    expect(graphTile.isResizable).toBe(true)
+    expect(graphTile.isResizable).toEqual({ width: true, height: true })
     expect(handler.update?.({ component: graphTile }, { isResizable: false }).success).toBe(true)
-    expect(graphTile._isResizable).toBe(false)
-    expect(graphTile.isResizable).toBe(false)
+    expect(graphTile._isResizable).toEqual({ width: false, height: false })
+    expect(graphTile.isResizable).toEqual({ width: false, height: false })
     expect(handler.update?.({ component: graphTile }, { isResizable: true }).success).toBe(true)
-    expect(graphTile._isResizable).toBe(true)
-    expect(graphTile.isResizable).toBe(true)
+    expect(graphTile._isResizable).toEqual({ width: true, height: true })
+    expect(graphTile.isResizable).toEqual({ width: true, height: true })
+
+    // Test updating isResizable with object
+    expect(handler.update?.({ component: graphTile }, { isResizable: { width: true, height: false } }).success)
+      .toBe(true)
+    expect(graphTile._isResizable).toEqual({ width: true, height: false })
+    expect(graphTile.isResizable).toEqual({ width: true, height: false })
 
     // Test that get returns the updated values
     const getResult = handler.get?.({ component: graphTile })
     expect(getResult?.success).toBe(true)
     expect((getResult?.values as any)?.name).toBe("My Graph")
-    expect((getResult?.values as any)?.isResizable).toBe(true)
+    expect((getResult?.values as any)?.isResizable).toEqual({ width: true, height: false })
   })
 
   describe("notify", () => {
