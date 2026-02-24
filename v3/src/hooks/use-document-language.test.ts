@@ -3,7 +3,7 @@ import { gLocale } from "../utilities/translation/locale"
 import { useDocumentLanguage } from "./use-document-language"
 
 describe("useDocumentLanguage", () => {
-  afterEach(() => {
+  beforeEach(() => {
     gLocale.setCurrent("en-US")
   })
 
