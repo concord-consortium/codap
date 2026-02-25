@@ -1,5 +1,35 @@
 # Changelog
 
+## Version 3.0.0-beta.2746 - February 24, 2026
+
+### ✨ Features & Improvements:
+- **CODAP-166:** Graph dynamically updates when attribute type changes
+- **CODAP-281:** Slider axis animates to fit when value is edited beyond bounds
+- **CODAP-296:** New graph auto-connects to dataset with a visible table or card
+- **CODAP-1064:** Set HTML lang attribute dynamically based on current locale
+- **CODAP-1092:** Notify and reload plugins when locale changes
+- **CODAP-1138:** Graph rescales axes when cases are added via plugin API
+
+### 🐞 Bug Fixes:
+- **CODAP-215:** Fix Case Card attribute column resize issues
+- **CODAP-256:** Fix map zoom level when longitude values cross the date line
+- **CODAP-577:** Add focus-visible indicators to tool shelf buttons
+- **CODAP-886:** Fix standard error control layout and step increment in inspector
+- **CODAP-1009:** Fix LSRL equation showing near-zero intercept instead of omitting it
+- **CODAP-1130:** Fix incorrect tooltip on bar chart count axis
+- **CODAP-1131:** Fix slider animation to respect "Restrict to Multiples of" setting
+- **CODAP-1132:** Fix plotted value not showing on scatterplots with date axis
+- **CODAP-1140:** Fix Y-axis numeric labels offset when plugin updates graph
+
+### 🛠️ Under the Hood:
+- **CODAP-905:** Log marquee selection once at drag end instead of continuously
+
+### Asset Sizes
+|      File |          Size | % Change from Previous Release |
+|-----------|---------------|--------------------------------|
+|  main.css |  215159 bytes |                          0.10% |
+|  index.js | 7152597 bytes |                          0.12% |
+
 ## Version 3.0.0-beta.2724 - February 19, 2026
 
 ### ✨ Features & Improvements:
