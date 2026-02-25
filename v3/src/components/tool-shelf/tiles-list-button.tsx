@@ -45,6 +45,7 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
     <>
       <Menu isLazy autoSelect={false} isOpen={isOpen} onOpen={onOpen} onClose={onClose} placement={placement}>
         <MenuButton
+          aria-label={t("DG.ToolButtonData.tileListMenu.title")}
           className={clsx("tool-shelf-button", "tool-shelf-menu", "tiles-list-menu", langClass, {"menu-open": isOpen})}
           title={t("DG.ToolButtonData.tileListMenu.toolTip")}
           data-testid="tool-shelf-button-tiles"

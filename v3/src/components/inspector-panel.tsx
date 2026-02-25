@@ -47,8 +47,12 @@ export const InspectorButton = forwardRef(function InspectorButton({
   bottom, children, isActive, isDisabled, label, onButtonClick, onPointerDown, testId, tooltip, top
 }: IInspectorButtonProps, ref) {
   const className = clsx("inspector-tool-button", { active: isActive, bottom, top })
+  // Strip parenthetical keyboard shortcuts from tooltips (e.g. "bold (⌘-b)" → "bold")
+  // so screen readers announce a clean name rather than reading out the shortcut syntax.
+  const ariaLabel = label || tooltip.replace(/\s*\(.*\)$/, "")
   return (
     <Button
+      aria-label={ariaLabel}
       className={className}
       isDisabled={isDisabled}
       data-testid={testId}
@@ -81,7 +85,8 @@ export const InspectorMenu = ({
   const classes = clsx("inspector-tool-button", "inspector-tool-menu", { bottom, top })
   return (
     <Menu isLazy onOpen={onOpen}>
-      <MenuButton className={classes} title={tooltip} data-testid={testId} onClick={onButtonClick}>
+      <MenuButton aria-label={label || tooltip} className={classes} title={tooltip} data-testid={testId}
+          onClick={onButtonClick}>
         {icon}
         {label && <span className="inspector-button-label">{label}</span>}
       </MenuButton>

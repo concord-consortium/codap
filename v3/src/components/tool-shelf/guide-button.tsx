@@ -42,6 +42,7 @@ export const GuideButton = observer(function GuideButton(props: IProps) {
     <>
       <Menu isLazy autoSelect={false} isOpen={isOpen} onOpen={onOpen} onClose={onClose} placement={placement}>
         <MenuButton
+          aria-label={t("DG.ToolButtonData.guideMenu.title")}
           className={clsx("tool-shelf-button", "tool-shelf-menu", langClass, {"menu-open": isOpen})}
           title={t("DG.ToolButtonData.guideMenu.toolTip")}
           data-testid="tool-shelf-button-guide"

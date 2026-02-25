@@ -166,6 +166,7 @@ export const PluginsButton = observer(function PluginsButton() {
           return (
             <>
               <MenuButton
+                aria-label={t("DG.ToolButtonData.pluginMenu.title")}
                 className={className}
                 title={t("DG.ToolButtonData.optionMenu.toolTip")}
                 data-testid="tool-shelf-button-plugins"

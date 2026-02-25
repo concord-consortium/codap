@@ -26,6 +26,7 @@ export const ToolShelfButton = ({
   return (
     <Box
       as='button'
+      aria-label={t(label)}
       title={t(hint)}
       disabled={disabled}
       onClick={onClick}
