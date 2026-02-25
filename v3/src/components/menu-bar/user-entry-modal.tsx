@@ -35,9 +35,9 @@ export const UserEntryModal = ({ isOpen, onClose }: IProps) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} initialFocusRef={defaultButtonRef} isCentered>
       <ModalOverlay />
-      <ModalContent className="user-entry-modal-container">
+      <ModalContent className="user-entry-modal-container" aria-labelledby="user-entry-title">
         <div className="user-entry-modal-header">
-          <div className="user-entry-modal-title">
+          <div className="user-entry-modal-title" id="user-entry-title">
             {t("DG.main.userEntryView.title")}
           </div>
         </div>
