@@ -6,6 +6,15 @@ import { isWithinBounds, getPaletteTopPosition } from "../utilities/view-utils"
 
 import "./inspector-panel.scss"
 
+// Returns an aria-label for icon-only inspector buttons/menus.
+// When a visible text label exists, returns undefined (the label provides the accessible name).
+// When no label exists, returns the tooltip with parenthetical keyboard shortcuts stripped
+// (e.g. "bold (⌘-b)" → "bold") so screen readers announce a clean name.
+function ariaLabel(label?: string, tooltip?: string) {
+  if (label) return undefined
+  return tooltip?.replace(/\s*\(.*\)$/, "")
+}
+
 interface IProps {
   component?: string
   show?: boolean
@@ -47,12 +56,9 @@ export const InspectorButton = forwardRef(function InspectorButton({
   bottom, children, isActive, isDisabled, label, onButtonClick, onPointerDown, testId, tooltip, top
 }: IInspectorButtonProps, ref) {
   const className = clsx("inspector-tool-button", { active: isActive, bottom, top })
-  // Strip parenthetical keyboard shortcuts from tooltips (e.g. "bold (⌘-b)" → "bold")
-  // so screen readers announce a clean name rather than reading out the shortcut syntax.
-  const ariaLabel = label || tooltip.replace(/\s*\(.*\)$/, "")
   return (
     <Button
-      aria-label={ariaLabel}
+      aria-label={ariaLabel(label, tooltip)}
       className={className}
       isDisabled={isDisabled}
       data-testid={testId}
@@ -85,7 +91,7 @@ export const InspectorMenu = ({
   const classes = clsx("inspector-tool-button", "inspector-tool-menu", { bottom, top })
   return (
     <Menu isLazy onOpen={onOpen}>
-      <MenuButton aria-label={label || tooltip} className={classes} title={tooltip} data-testid={testId}
+      <MenuButton aria-label={ariaLabel(label, tooltip)} className={classes} title={tooltip} data-testid={testId}
           onClick={onButtonClick}>
         {icon}
         {label && <span className="inspector-button-label">{label}</span>}
