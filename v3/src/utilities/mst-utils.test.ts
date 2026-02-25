@@ -288,6 +288,9 @@ describe("cachedFnWithArgsFactory", () => {
     expect(calculate).toHaveBeenCalledTimes(2) // initial evaluation of both reactions
 
     // invalidate only "a" — only effectA should fire
+    // Note: These assertions rely on MobX reactions firing synchronously within runInAction.
+    // This is the current MobX behavior but is not formally guaranteed. If these tests become
+    // flaky, the assertions may need to be wrapped in `await when(...)` or similar async handling.
     runInAction(() => cachedFn.invalidate("a"))
     expect(effectA).toHaveBeenCalledTimes(1)
     expect(effectB).toHaveBeenCalledTimes(0)
