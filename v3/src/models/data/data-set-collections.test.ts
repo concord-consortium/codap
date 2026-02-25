@@ -215,6 +215,38 @@ describe("DataSet collections", () => {
     expect(data.collections.length).toBe(1)
   })
 
+  it("recovers correctly when addCases is called while cases are already invalidated", () => {
+    // This simulates the undo scenario: removeCases triggers invalidateCases (via onPatch),
+    // then addCases re-adds items. The INSERT path triggers another invalidateCases, but the
+    // APPEND path calls validateCasesForNewItems which should early-return when isValidCases
+    // is already false, deferring to the full rebuild.
+    data.moveAttributeToNewCollection("aId")
+    expect(data.collections.length).toBe(2)
+    data.validateCases()
+    const parentCollection = data.collections[0]
+    const originalParentCaseCount = parentCollection.cases.length
+    const originalChildCaseCount = data.childCollection.cases.length
+    expect(originalParentCaseCount).toBe(3) // 3 groups by aId
+
+    // remove some cases
+    const casesToRemove = ["1-1-1", "1-1-2", "1-1-3"]
+    data.removeCases(casesToRemove)
+    data.validateCases()
+    expect(data.childCollection.cases.length).toBe(originalChildCaseCount - casesToRemove.length)
+
+    // now re-add them (simulating undo) — first invalidate, then add
+    data.invalidateCases()
+    data.addCases(casesToRemove.map(id => ({ __id__: id, aId: "1", bId: "1", cId: id.split("-")[2] })))
+    // at this point isValidCases is still false; validateCasesForNewItems should have
+    // early-returned without corrupting state
+    expect(data.isValidCases).toBe(false)
+
+    // full validation should produce correct results
+    data.validateCases()
+    expect(parentCollection.cases.length).toBe(originalParentCaseCount)
+    expect(data.childCollection.cases.length).toBe(originalChildCaseCount)
+  })
+
   it("doesn't take formula evaluated values into account when grouping", () => {
     const aAttr = data.attrFromID("aId")
     aAttr?.setDisplayExpression("foo * bar")

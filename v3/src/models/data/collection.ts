@@ -479,29 +479,47 @@ export const CollectionModel = V2Model
   },
 }))
 .extend(self => {
-  const _caseGroups = observable.box<CaseInfo[]>([], { deep: false })
-  const _cases = observable.box<IGroupedCase[]>([], { deep: false })
-  const _nonEmptyCases = observable.box<IGroupedCase[]>([], { deep: false })
-  const _caseIdsHash = observable.box<number>(0)
-  const _caseIdsOrderedHash = observable.box<number>(0)
+  // Plain cached values (NOT observable — no MobX involvement)
+  let _caseGroups: CaseInfo[] = []
+  let _cases: IGroupedCase[] = []
+  let _nonEmptyCases: IGroupedCase[] = []
+  let _caseIdsHash = 0
+  let _caseIdsOrderedHash = 0
+
+  // Single observable version counter — incremented by completeCaseGroups() after updating
+  // plain variables, so that MobX reactions only fire when fresh data is available.
+  // Note: this is a pragmatic compromise — writing to an observable from a view via runInAction
+  // is not ideal, but avoids the circular read/write pattern of the old code (5 observable boxes
+  // read then written in the same view) and ensures reactions never see stale cached data.
+  const _cacheVersion = observable.box(0)
+
+  // Invalidation state (plain, not observable)
+  let _needsFullRebuild = true   // starts true: no valid data yet
+  let _pendingNewCaseIds: string[] | undefined
+
   return {
     views: {
       get caseGroups() {
-        return _caseGroups.get()
+        _cacheVersion.get()
+        return _caseGroups
       },
       get cases() {
-        return _cases.get()
+        _cacheVersion.get()
+        return _cases
       },
       get nonEmptyCases() {
-        return _nonEmptyCases.get()
+        _cacheVersion.get()
+        return _nonEmptyCases
       },
       get caseIdsHash() {
-        return _caseIdsHash.get()
+        _cacheVersion.get()
+        return _caseIdsHash
       },
       get caseIdsOrderedHash() {
-        return _caseIdsOrderedHash.get()
+        _cacheVersion.get()
+        return _caseIdsOrderedHash
       },
-      completeCaseGroups(parentCases: Maybe<CaseInfo[]>, newCaseIds?: string[]) {
+      completeCaseGroups(parentCases: Maybe<CaseInfo[]>) {
         if (parentCases) {
           self.caseIds.splice(0, self.caseIds.length)
           // sort cases by parent cases
@@ -522,44 +540,64 @@ export const CollectionModel = V2Model
           })
         }
 
-        let caseGroups = _caseGroups.get()
-        let cases = _cases.get()
-        let nonEmptyCases = _nonEmptyCases.get()
-        // append new cases to existing arrays
-        if (!parentCases && newCaseIds) {
+        const newCaseIds = _pendingNewCaseIds
+        _pendingNewCaseIds = undefined
+
+        // APPEND path: top-level collection with only new cases added
+        // Uses concatenation (not mutation) so consumers holding old references see a new array.
+        // Note: newCaseIds can be an empty array (e.g., when re-adding previously deleted items
+        // whose group key mappings still exist), so check length to fall through to REBUILD.
+        if (!parentCases && !_needsFullRebuild && newCaseIds?.length) {
           const newCaseGroups = newCaseIds.map(caseId => self.getCaseGroup(caseId))
-          caseGroups.push(...newCaseGroups.filter(group => !!group))
+          _caseGroups = [..._caseGroups, ...newCaseGroups.filter(group => !!group)]
 
           const newCases = newCaseGroups.map(caseGroup => caseGroup?.groupedCase)
-          cases.push(...newCases.filter(aCase => !!aCase))
+          _cases = [..._cases, ...newCases.filter(aCase => !!aCase)]
 
           const newNonEmptyCases = newCaseGroups.map(group => {
             return group && self.isNonEmptyCaseGroup(group) ? group.groupedCase : undefined
           }).filter(aCase => !!aCase)
-          nonEmptyCases.push(...newNonEmptyCases)
+          _nonEmptyCases = [..._nonEmptyCases, ...newNonEmptyCases]
         }
-        // rebuild arrays from scratch
+        // REBUILD path: full recompute from volatile state
         else {
-          caseGroups = self.caseIds
-                        .map(caseId => self.getCaseGroup(caseId))
-                        .filter(group => !!group)
+          _caseGroups = self.caseIds
+                          .map(caseId => self.getCaseGroup(caseId))
+                          .filter(group => !!group)
 
-          cases = caseGroups
-                    .map(group => group?.groupedCase)
-                    .filter(groupedCase => !!groupedCase)
+          _cases = _caseGroups
+                      .map(group => group?.groupedCase)
+                      .filter(groupedCase => !!groupedCase)
 
-          nonEmptyCases = caseGroups.map(group => {
+          _nonEmptyCases = _caseGroups.map(group => {
             return group && self.isNonEmptyCaseGroup(group) ? group.groupedCase : undefined
           }).filter(aCase => !!aCase)
+
+          _needsFullRebuild = false
         }
 
-        runInAction(() => {
-          _caseGroups.set(caseGroups)
-          _cases.set(cases)
-          _nonEmptyCases.set(nonEmptyCases)
-          _caseIdsHash.set(hashStringSet(self.caseIds))
-          _caseIdsOrderedHash.set(hashOrderedStringSet(self.caseIds))
-        })
+        _caseIdsHash = hashStringSet(self.caseIds)
+        _caseIdsOrderedHash = hashOrderedStringSet(self.caseIds)
+
+        // Signal to MobX that cached data has been updated.
+        // Must happen AFTER plain variables are updated so reactions see fresh data.
+        runInAction(() => _cacheVersion.set(_cacheVersion.get() + 1))
+      }
+    },
+    actions: {
+      // Full invalidation — signals complete rebuild needed.
+      // Called from DataSet.invalidateCases() (always in action context).
+      invalidateCaseGroups() {
+        _needsFullRebuild = true
+        _pendingNewCaseIds = undefined
+      },
+      // Additive invalidation — signals only new cases were added.
+      // Called from DataSet.validateCasesForNewItems() (action context).
+      // Only enables append path if no full rebuild is pending.
+      invalidateCaseGroupsForNewCases(newCaseIds: string[]) {
+        if (!_needsFullRebuild) {
+          _pendingNewCaseIds = newCaseIds
+        }
       }
     }
   }

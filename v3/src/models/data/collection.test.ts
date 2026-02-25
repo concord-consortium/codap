@@ -257,14 +257,22 @@ describe("CollectionModel", () => {
       itemIdToCaseIdsMap.clear()
 
       root.collections.forEach((collection, index) => {
+        if (!newCaseIds) {
+          // full invalidation for rebuild path
+          collection.invalidateCaseGroups()
+        }
         // update the cases
         collection.updateCaseGroups()
       })
 
       root.collections.forEach((collection, index) => {
+        if (newCaseIds) {
+          // additive invalidation for append path
+          collection.invalidateCaseGroupsForNewCases(newCaseIds)
+        }
         // sort child collection cases into groups
         const parentCaseGroups = index > 0 ? root.collections[index - 1].caseGroups : undefined
-        collection.completeCaseGroups(parentCaseGroups, newCaseIds)
+        collection.completeCaseGroups(parentCaseGroups)
       })
     }
     validateCases()
@@ -424,5 +432,94 @@ describe("CollectionModel", () => {
     expect(c1.groupKeyCaseIds.get(makeGroupKey(["b", "a"]))).toBe("case4")
     expect(c1.groupKeyCaseIds.get(makeGroupKey(["c"]))).toBe("case5")
     expect(c1.groupKeyCaseIds.get(makeGroupKey(["c", "d"]))).toBe("case6")
+  })
+
+  it("invalidateCaseGroups followed by invalidateCaseGroupsForNewCases still results in full rebuild", () => {
+    const c1 = CollectionModel.create({ name: "c1" })
+    const itemData: IItemData = {
+      itemIds: () => ["i0", "i1"],
+      isHidden: () => false,
+      getValue: (itemId: string) => itemId,
+      addItemInfo: () => null,
+      invalidate: () => null
+    }
+    syncCollectionLinks([c1], itemData)
+
+    // initial build (rebuild path since _needsFullRebuild starts true)
+    c1.updateCaseGroups()
+    c1.completeCaseGroups(undefined)
+    expect(c1.cases.length).toBe(2)
+
+    // full invalidation followed by additive — should still rebuild
+    c1.invalidateCaseGroups()
+    c1.invalidateCaseGroupsForNewCases(["i1"])
+    c1.updateCaseGroups()
+    c1.completeCaseGroups(undefined)
+    // rebuild produces full set, not just the "new" case
+    expect(c1.cases.length).toBe(2)
+  })
+
+  it("empty newCaseIds falls through to rebuild path", () => {
+    const c1 = CollectionModel.create({ name: "c1" })
+    let items = ["i0", "i1"]
+    const itemData: IItemData = {
+      itemIds: () => items,
+      isHidden: () => false,
+      getValue: (itemId: string) => itemId,
+      addItemInfo: () => null,
+      invalidate: () => null
+    }
+    syncCollectionLinks([c1], itemData)
+
+    // initial full build
+    c1.updateCaseGroups()
+    c1.completeCaseGroups(undefined)
+    expect(c1.cases.length).toBe(2)
+
+    // simulate the scenario where items are re-added (e.g. undo of delete)
+    // and updateCaseGroups returns empty newCaseIds because the groupKey
+    // mappings already exist in groupKeyCaseIds
+    items = ["i0", "i1", "i2"]
+    c1.updateCaseGroups()
+    // pass empty array — should fall through to REBUILD, not take APPEND (which would append nothing)
+    c1.invalidateCaseGroupsForNewCases([])
+    c1.completeCaseGroups(undefined)
+    // rebuild should pick up all 3 items
+    expect(c1.cases.length).toBe(3)
+    expect(c1.caseGroups.length).toBe(3)
+  })
+
+  it("additive invalidation appends correctly without full rebuild", () => {
+    const c1 = CollectionModel.create({ name: "c1" })
+    let items = ["i0", "i1"]
+    const itemData: IItemData = {
+      itemIds: () => items,
+      isHidden: () => false,
+      getValue: (itemId: string) => itemId,
+      addItemInfo: () => null,
+      invalidate: () => null
+    }
+    syncCollectionLinks([c1], itemData)
+
+    // initial full build
+    c1.invalidateCaseGroups()
+    c1.updateCaseGroups()
+    c1.completeCaseGroups(undefined)
+    expect(c1.cases.length).toBe(2)
+    expect(c1.caseGroups.length).toBe(2)
+
+    // add a new item and use additive path
+    items = ["i0", "i1", "i2"]
+    c1.updateCaseGroups(["i2"])
+    // find the case id for i2
+    let i2CaseId: string | undefined
+    c1.caseIdToGroupKeyMap.forEach((groupKey, caseId) => {
+      if (groupKey === "i2") i2CaseId = caseId
+    })
+    c1.invalidateCaseGroupsForNewCases(i2CaseId ? [i2CaseId] : [])
+    c1.completeCaseGroups(undefined)
+    // should have appended the new case
+    expect(c1.cases.length).toBe(3)
+    expect(c1.caseGroups.length).toBe(3)
   })
 })

@@ -255,6 +255,8 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
         runInAction(() => {
           _isValidCases.set(false)
           _invalidateItemIds()
+          // invalidate each collection's case group cache
+          self.collections.forEach(c => c.invalidateCaseGroups())
         })
       },
       setValidCases() {
@@ -693,11 +695,17 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     // Append new items to the itemIds/items cache
     self.appendItemIdsToCache(itemIds)
 
-    const newCaseIdsForCollections = new Map<string, string[]>()
+    // If a full invalidation is already pending (e.g., from an earlier insert in the same
+    // undo action), skip additive processing. The full rebuild will happen when validateCases()
+    // is next called. Without this check, completeCaseGroups() would run with incomplete volatile
+    // state and signal observers via _cacheVersion before the data is fully rebuilt.
+    if (!self.isValidCases) return
+
     self.collections.forEach((collection, index) => {
-      // update the cases
+      // update the cases (additive — only processes new itemIds)
       const { newCaseIds } = collection.updateCaseGroups(itemIds)
-      newCaseIdsForCollections.set(collection.id, newCaseIds)
+      // tell collection about new cases for additive completion
+      collection.invalidateCaseGroupsForNewCases(newCaseIds)
     })
     self.collections.forEach((collection, index) => {
       // complete the case groups, including sorting child collection cases into groups
@@ -1076,6 +1084,8 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       },
       // should be called before retrieving snapshot (pre-serialization)
       prepareSnapshot() {
+        // ensure case validation is up to date before serializing
+        self.validateCases()
         // move volatile data into serializable properties
         withoutUndo({ noDirty: true, suppressWarning: true })
         self.collections.forEach(collection => collection.prepareSnapshot())
