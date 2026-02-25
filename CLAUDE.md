@@ -18,6 +18,8 @@ This repository contains two versions of CODAP (Common Online Data Analysis Plat
 
 **Active development is in v3.** Most work should be done in the `/v3` directory.
 
+**Important:** Git commands must be run from the repository root (`/v3`'s parent), not from inside `/v3`. Since npm/jest/lint commands run from `/v3`, the working directory often drifts there. Always use absolute paths or `cd` back to the repo root before running git commands to avoid `v3/v3/...` path errors.
+
 ## Development Workflow
 
 ### Starting Work on a Jira Story
