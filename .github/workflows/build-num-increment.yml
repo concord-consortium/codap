@@ -19,6 +19,8 @@ jobs:
         working-directory: v3
         run: ./increment_build_num.sh
       - name: Commit and push
+        # Use the official github-actions[bot] account (ID 41898282) for automated commits.
+        # https://github.com/actions/checkout/issues/13#issuecomment-724415212
         run: |
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
