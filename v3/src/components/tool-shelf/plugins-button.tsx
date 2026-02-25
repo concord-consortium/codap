@@ -167,7 +167,7 @@ export const PluginsButton = observer(function PluginsButton() {
             <>
               <MenuButton
                 className={className}
-                title={t("DG.ToolButtonData.optionMenu.toolTip")}
+                title={t("DG.ToolButtonData.pluginMenu.toolTip")}
                 data-testid="tool-shelf-button-plugins"
               >
                 <PluginsIcon />
