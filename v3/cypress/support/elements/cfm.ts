@@ -7,7 +7,7 @@ export const CfmElements = {
     cy.wait(1000) // Wait for the document to load
   },
   openLocalDocWithUserEntry(filename: string) {
-    cy.get('#user-entry-drop-overlay').selectFile(filename, { action: 'drag-drop' })
+    cy.get('#user-entry-drop-overlay').selectFile(filename, { action: 'drag-drop', force: true })
   },
   closeDocument(options?: IDocumentOptions) {
     this.getHamburgerMenuButton().click()

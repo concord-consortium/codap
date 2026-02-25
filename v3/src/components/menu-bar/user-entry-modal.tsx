@@ -1,5 +1,5 @@
 import { Button, Modal, ModalContent, ModalOverlay } from "@chakra-ui/react"
-import { useRef } from "react"
+import { RefObject, useRef } from "react"
 import { useCfmContext } from "../../hooks/use-cfm-context"
 import { t } from "../../utilities/translation/translate"
 
@@ -8,9 +8,10 @@ import "./user-entry-modal.scss"
 interface IProps {
   isOpen: boolean
   onClose: () => void
+  containerRef?: RefObject<HTMLElement>
 }
 
-export const UserEntryModal = ({ isOpen, onClose }: IProps) => {
+export const UserEntryModal = ({ isOpen, onClose, containerRef }: IProps) => {
   const cfm = useCfmContext()
   const defaultButtonRef = useRef<HTMLButtonElement>(null)
 
@@ -33,7 +34,9 @@ export const UserEntryModal = ({ isOpen, onClose }: IProps) => {
   }]
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} initialFocusRef={defaultButtonRef} isCentered>
+    <Modal isOpen={isOpen} onClose={onClose} initialFocusRef={defaultButtonRef} isCentered
+      portalProps={containerRef ? { containerRef } : undefined}
+    >
       <ModalOverlay />
       <ModalContent className="user-entry-modal-container" aria-labelledby="user-entry-title">
         <div className="user-entry-modal-header">

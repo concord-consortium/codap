@@ -76,6 +76,7 @@ export const App = observer(function App() {
   const {isOpen: isOpenUserEntry, onOpen: onOpenUserEntry, onClose: onCloseUserEntry}
     = useDisclosure({defaultIsOpen: true})
   const [isDragOver, setIsDragOver] = useState(false)
+  const userEntryOverlayRef = useRef<HTMLDivElement>(null)
   const cfmRef = useRef<CloudFileManager | null>(null)
 
   // Sync the <html lang> attribute with the current locale
@@ -248,12 +249,13 @@ export const App = observer(function App() {
               </If>
             </div>
             <If condition={isOpenUserEntry}>
-              <div id={`${kUserEntryDropOverlay}`}
+              <div id={`${kUserEntryDropOverlay}`} ref={userEntryOverlayRef}
                 className={clsx({ "show-highlight": isOpenUserEntry && isDragOver, beta: isBeta() })}
               >
                 <UserEntryModal
                   isOpen={isOpenUserEntry}
                   onClose={onCloseUserEntry}
+                  containerRef={userEntryOverlayRef}
                 />
               </div>
             </If>
