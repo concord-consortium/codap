@@ -137,7 +137,7 @@ V2 uses a single code path for both modes. V3 can likely do the same, **provided
 ### What's Missing
 
 1. **The `undoChangeNotice` handler implementation** — all three operations are stubbed
-2. **Custom undo/redo entry creation** for plugin actions (history entries with no MST patches, only custom callbacks)
+2. **Custom undo/redo entry creation** for plugin actions (using `withCustomUndoRedo` — the mechanism already supports this; see [Resolved Questions](#resolved-questions))
 3. **Sending `undoAction`/`redoAction` messages back** to the originating plugin during undo/redo
 4. **Proactive `clearUndo`/`clearRedo` notifications** when the undo stack changes
 5. **Returning `canUndo`/`canRedo`** in handler responses
@@ -179,10 +179,13 @@ When a plugin says it did something undoable:
 3. The entry should use the existing `DG.Undo.interactiveUndoableAction` / `DG.Redo.interactiveUndoableAction` strings
 4. Return `{ success: true, values: { canUndo, canRedo } }`
 
-**Key implementation challenge**: `withCustomUndoRedo` currently works within the context of an `applyModelChange` call. Plugin undo entries don't modify MST state — they're purely side-effect-based (send a message to an iframe). The implementation needs to either:
+**Implementation note**: `withCustomUndoRedo` already supports purely side-effect-based undo entries with no MST state changes. A test in `undo-store.test.ts` ("supports undo/redo of pure side-effect actions") confirms that an MST action which produces zero patches but calls `withCustomUndoRedo` correctly:
+- Creates a history entry (the tree manager preserves entries with custom patches even when there are no standard patches)
+- Is automatically marked undoable (`undoable: undoable || !!customPatches?.length` in `tree-manager.ts`)
+- Invokes the registered custom undo handler on `undoStore.undo()`
+- Invokes the registered custom redo handler on `undoStore.redo()`
 
-- Create a no-op `applyModelChange` that produces no patches but registers custom undo/redo, OR
-- Extend the history system to support purely custom entries
+No extensions to the history system are needed. The implementation simply needs to call `withCustomUndoRedo` from within any MST action on the tile content model, and register a custom undo/redo patcher that sends messages to the plugin iframe
 
 #### 1b. `undoButtonPress` / `redoButtonPress`: Use CODAP's undo stack
 
@@ -232,10 +235,9 @@ This could be implemented:
 | File | Changes |
 |---|---|
 | `src/data-interactive/handlers/undo-change-notice-handler.ts` | Full handler implementation (single code path for both modes) |
-| `src/models/history/tree-manager.ts` or `undo-store.ts` | May need extension for purely custom entries |
 | `src/models/document/document.ts` | Access to `canUndo`/`canRedo` for responses |
-| `src/models/history/with-custom-undo-redo.ts` | May need adaptation for no-MST-patch entries |
 | `src/data-interactive/handlers/all-cases-handler.ts` | Remove undo strings from `delete` operation |
+| New: custom undo/redo patcher registration for plugin actions | Register handlers that send `undoAction`/`redoAction` to plugin iframes |
 | New: observer for undo state change notifications | Proactive `clearUndo`/`clearRedo` broadcasts |
 
 ---
@@ -245,6 +247,8 @@ This could be implemented:
 1. **Should plugin-triggered data mutations (create/update/delete cases via API) also be undoable?** **No.** V3 DI handlers already call `applyModelChange` without undo strings, which routes through `withoutUndo()`. This is the correct behavior — plugin-triggered mutations are one half of a logical action whose undo is managed by the plugin itself. Recording them separately would break the undo model. This matches V2's `retainUndo = true` behavior.
 
 2. **Does the implementation need separate code paths for standalone vs external mode?** **Probably not.** When plugin and CODAP entries interleave on a shared stack, the undo order is chronologically correct — the most recent action is undone first, regardless of source. The interleaving is not a flaw from the user's perspective. The potential issues are plugin-side: whether the plugin handles `undoButtonPress` responses where no `undoAction` is sent back (because a CODAP entry was undone), and whether it correctly interprets `canUndo`/`canRedo` as reflecting all actions. V3 should start with a single code path matching V2, and only add shadow counters for standalone mode if plugin testing reveals problems.
+
+3. **Does `withCustomUndoRedo` need to be extended for purely side-effect-based undo entries?** **No.** A test (`undo-store.test.ts`: "supports undo/redo of pure side-effect actions") confirms that an MST action producing zero patches but calling `withCustomUndoRedo` works correctly out of the box. The tree manager preserves entries that have custom patches even when there are no standard patches (`!entry.records.length && !entry.customPatches?.length` guard), and automatically marks them undoable. The custom undo/redo handlers are invoked correctly during undo and redo. No new mechanism is needed — the implementation simply registers a custom patcher that sends messages to the plugin iframe.
 
 ## Design Rationale: Shared Stack vs Shadow Counters
 
@@ -290,6 +294,4 @@ Two earlier concerns about the shared-stack approach turned out to be unfounded:
 
    If Building Models handles these cases correctly (or if interleaved CODAP actions are rare enough in practice), the shared stack approach works and shadow counters are unnecessary.
 
-2. **Should `withCustomUndoRedo` be extended, or should a new mechanism be created** for purely side-effect-based undo entries that produce no MST patches?
-
-3. **How should the proactive notifications be scoped?** V2 broadcasts `clearUndo`/`clearRedo` to all plugins. Should V3 do the same, or only to plugins that have registered undoable actions?
+2. **How should the proactive notifications be scoped?** V2 broadcasts `clearUndo`/`clearRedo` to all plugins. Should V3 do the same, or only to plugins that have registered undoable actions?
