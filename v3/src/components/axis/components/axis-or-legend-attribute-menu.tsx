@@ -105,7 +105,7 @@ const CollectionMenu = observer(function CollectionMenu({
   return (
     <>
       <Menu isOpen={isOpen} placement="auto">
-        <MenuButton as="div" className="collection-menu-button" />
+        <MenuButton as="div" className="collection-menu-button" aria-hidden="true" tabIndex={-1} />
         <MenuList ref={submenuRef} className="axis-legend-submenu"
                   maxH={adjustedMaxHeight ?? maxMenuHeight} overflowY="auto"
                   onFocus={onMenuItemFocus}
@@ -129,9 +129,11 @@ const CollectionMenu = observer(function CollectionMenu({
         key={collection.id}
         onClick={onPointerOver}
         onPointerOver={onPointerOver}
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
       >
         <span>{collection.name}</span>
-        <RightArrow className="collection-menu-arrow" />
+        <RightArrow className="collection-menu-arrow" aria-hidden="true" />
       </MenuItem>
     </>
   )

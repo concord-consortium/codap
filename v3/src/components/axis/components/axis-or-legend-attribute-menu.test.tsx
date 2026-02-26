@@ -1,5 +1,5 @@
 /* eslint-disable testing-library/no-node-access */
-import { render, screen } from "@testing-library/react"
+import { act, render, screen } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
 import React, { createRef } from "react"
 import { AxisOrLegendAttributeMenu } from "./axis-or-legend-attribute-menu"
@@ -179,7 +179,7 @@ describe("AxisOrLegendAttributeMenu", () => {
       // We can verify the handler works by directly focusing a menu item.
       const menuItems = screen.getAllByRole("menuitem", { hidden: true })
       expect(menuItems.length).toBeGreaterThan(0)
-      menuItems[0].focus()
+      act(() => { menuItems[0].focus() })
       // scrollIntoView is mocked in setupTests.ts
       expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ block: "nearest" })
     })
