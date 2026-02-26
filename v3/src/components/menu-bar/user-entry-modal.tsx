@@ -1,4 +1,4 @@
-import { Button, Modal, ModalContent, ModalOverlay } from "@chakra-ui/react"
+import { Button, Modal, ModalBody, ModalContent, ModalHeader, ModalOverlay } from "@chakra-ui/react"
 import { RefObject, useRef } from "react"
 import { useCfmContext } from "../../hooks/use-cfm-context"
 import { t } from "../../utilities/translation/translate"
@@ -35,16 +35,15 @@ export const UserEntryModal = ({ isOpen, onClose, containerRef }: IProps) => {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} initialFocusRef={defaultButtonRef} isCentered
+      closeOnOverlayClick={false}
       portalProps={containerRef ? { containerRef } : undefined}
     >
       <ModalOverlay />
-      <ModalContent className="user-entry-modal-container" aria-labelledby="user-entry-title">
-        <div className="user-entry-modal-header">
-          <div className="user-entry-modal-title" id="user-entry-title">
-            {t("DG.main.userEntryView.title")}
-          </div>
-        </div>
-        <div className="user-entry-modal-body">
+      <ModalContent className="user-entry-modal-container">
+        <ModalHeader className="user-entry-modal-header">
+          {t("DG.main.userEntryView.title")}
+        </ModalHeader>
+        <ModalBody className="user-entry-modal-body">
           {buttons.map((b, idx) => (
             <Button
               key={`${b.label}-${idx}`}
@@ -58,7 +57,7 @@ export const UserEntryModal = ({ isOpen, onClose, containerRef }: IProps) => {
               {b.label}
             </Button>
           ))}
-        </div>
+        </ModalBody>
       </ModalContent>
     </Modal>
   )
