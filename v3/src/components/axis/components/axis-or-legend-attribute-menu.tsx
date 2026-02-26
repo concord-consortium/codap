@@ -64,12 +64,13 @@ interface ICollectionMenuProps {
   onChangeAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
   onCloseSubmenu?: () => void
   onMenuItemFocus?: React.FocusEventHandler
+  onOpenSubmenu?: () => void
   onPointerOver?: React.PointerEventHandler<HTMLButtonElement>
   place: GraphPlace
 }
 const CollectionMenu = observer(function CollectionMenu({
   collectionInfo, containerRef, isAttributeAllowed, isOpen, maxMenuHeight, onCancelPendingHover,
-  onChangeAttribute, onCloseSubmenu, onMenuItemFocus, onPointerOver, place
+  onChangeAttribute, onCloseSubmenu, onMenuItemFocus, onOpenSubmenu, onPointerOver, place
 }: ICollectionMenuProps) {
   const { collection } = collectionInfo
   const submenuRef = useRef<HTMLDivElement>(null)
@@ -127,7 +128,7 @@ const CollectionMenu = observer(function CollectionMenu({
         closeOnSelect={false}
         data-collection-id={collection.id}
         key={collection.id}
-        onClick={onPointerOver}
+        onClick={onOpenSubmenu}
         onPointerOver={onPointerOver}
         aria-haspopup="menu"
         aria-expanded={isOpen}
@@ -350,6 +351,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
               onChangeAttribute={handleChangeAttribute}
               onCloseSubmenu={handleCloseSubmenu}
               onMenuItemFocus={handleMenuItemFocus}
+              onOpenSubmenu={() => handleOpenSubmenu(collection.id)}
               onPointerOver={() => handleCollectionHover(collection.id)}
               place={place}
             />
