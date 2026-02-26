@@ -1,7 +1,7 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { Menu, MenuItem, MenuList, MenuButton, MenuDivider, Portal } from "@chakra-ui/react"
-import React, { CSSProperties, useCallback, useRef, useState } from "react"
+import React, { CSSProperties, useCallback, useEffect, useRef, useState } from "react"
 import { useDocumentContainerContext } from "../../../hooks/use-document-container-context"
 import { useFreeTileLayoutContext } from "../../../hooks/use-free-tile-layout-context"
 import { IUseDraggableAttribute, useDraggableAttribute } from "../../../hooks/use-drag-drop"
@@ -19,6 +19,7 @@ import { GraphPlace } from "../../axis-graph-shared"
 import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
 import { useDataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
 
+import DropdownArrow from "../../../assets/icons/arrow.svg"
 import RightArrow from "../../../assets/icons/arrow-right.svg"
 
 import "./axis-or-legend-attribute-menu.scss"
@@ -61,20 +62,45 @@ interface ICollectionMenuProps {
   maxMenuHeight: string
   onCancelPendingHover?: () => void
   onChangeAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
+  onCloseSubmenu?: () => void
+  onMenuItemFocus?: React.FocusEventHandler
   onPointerOver?: React.PointerEventHandler<HTMLButtonElement>
   place: GraphPlace
 }
 const CollectionMenu = observer(function CollectionMenu({
   collectionInfo, containerRef, isAttributeAllowed, isOpen, maxMenuHeight, onCancelPendingHover,
-  onChangeAttribute, onPointerOver, place
+  onChangeAttribute, onCloseSubmenu, onMenuItemFocus, onPointerOver, place
 }: ICollectionMenuProps) {
   const { collection } = collectionInfo
   const submenuRef = useRef<HTMLDivElement>(null)
+  const collectionItemRef = useRef<HTMLDivElement>(null)
   const adjustedMaxHeight = useMenuHeightAdjustment({ menuRef: submenuRef, containerRef, isOpen })
 
   const handleSubmenuPointerEnter = () => {
     onCancelPendingHover?.()
   }
+
+  // When submenu opens, focus the first item
+  useEffect(() => {
+    if (isOpen && submenuRef.current) {
+      requestAnimationFrame(() => {
+        const firstItem = submenuRef.current?.querySelector('[role="menuitem"]') as HTMLElement
+        firstItem?.focus()
+      })
+    }
+  }, [isOpen])
+
+  // ArrowLeft or Escape in submenu closes it and returns focus to collection item
+  const handleSubmenuKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowLeft' || e.key === 'Escape') {
+      e.preventDefault()
+      e.stopPropagation()
+      onCloseSubmenu?.()
+      requestAnimationFrame(() => {
+        collectionItemRef.current?.focus()
+      })
+    }
+  }, [onCloseSubmenu])
 
   return (
     <>
@@ -82,6 +108,8 @@ const CollectionMenu = observer(function CollectionMenu({
         <MenuButton as="div" className="collection-menu-button" />
         <MenuList ref={submenuRef} className="axis-legend-submenu"
                   maxH={adjustedMaxHeight ?? maxMenuHeight} overflowY="auto"
+                  onFocus={onMenuItemFocus}
+                  onKeyDown={handleSubmenuKeyDown}
                   onPointerEnter={handleSubmenuPointerEnter}
                   data-testid={`axis-legend-attribute-menu-list-${place}-${collection.id}`}>
           <MenuItemsForCollection
@@ -93,9 +121,11 @@ const CollectionMenu = observer(function CollectionMenu({
         </MenuList>
       </Menu>
       <MenuItem
+        ref={collectionItemRef}
         as="div"
         className="collection-menu-item"
         closeOnSelect={false}
+        data-collection-id={collection.id}
         key={collection.id}
         onClick={onPointerOver}
         onPointerOver={onPointerOver}
@@ -201,6 +231,18 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
     }
   }, [])
 
+  // Open a collection submenu immediately (for keyboard navigation)
+  const handleOpenSubmenu = useCallback((collectionId: string) => {
+    cancelPendingHover()
+    setOpenCollectionId(collectionId)
+  }, [cancelPendingHover])
+
+  // Close the current collection submenu (for keyboard navigation)
+  const handleCloseSubmenu = useCallback(() => {
+    cancelPendingHover()
+    setOpenCollectionId(null)
+  }, [cancelPendingHover])
+
   // Enable snapToCursor for vertical (Y) axis labels since the rotated label's bounding box
   // causes the drag overlay to appear far from the mouse position
   const isVerticalAxis = ['left', 'rightCat', 'rightNumeric'].includes(place)
@@ -241,6 +283,36 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   }
   const clickLabel = place === 'legend' ? `—${t("DG.LegendView.attributeTooltip")}`
     : t("DG.AxisView.labelTooltip", { vars: [orientation]})
+  const ariaLabel = place === 'legend'
+    ? attribute?.name
+      ? t("DG.AxisView.legendAriaLabel", { vars: [attribute.name] })
+      : t("DG.AxisView.emptyLegendAriaLabel")
+    : attribute?.name
+      ? t("DG.AxisView.axisAriaLabel", { vars: [orientation, attribute.name] })
+      : t("DG.AxisView.emptyAxisAriaLabel", { vars: [orientation] })
+
+  // Scroll the focused menu item into view for magnification/zoom users
+  const handleMenuItemFocus = useCallback((e: React.FocusEvent) => {
+    const focusedElement = e.target as HTMLElement
+    if (focusedElement.getAttribute('role') === 'menuitem') {
+      focusedElement.scrollIntoView({ block: 'nearest' })
+    }
+  }, [])
+
+  // Handle ArrowRight on collection items to open submenus.
+  // Chakra MenuItem with as="div" doesn't forward onKeyDown to the user's handler,
+  // so we catch the bubbled event at the MenuList level instead.
+  const handleMainMenuKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowRight') {
+      const menuItem = (e.target as HTMLElement).closest('[data-collection-id]')
+      const collectionId = menuItem instanceof HTMLElement ? menuItem.dataset.collectionId : undefined
+      if (collectionId) {
+        e.preventDefault()
+        e.stopPropagation()
+        handleOpenSubmenu(collectionId)
+      }
+    }
+  }, [handleOpenSubmenu])
 
   const handleChangeAttribute = (_place: GraphPlace, data: IDataSet, _attrId: string) => {
     onChangeAttribute(_place, data, _attrId)
@@ -274,6 +346,8 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
               maxMenuHeight={maxMenuHeight}
               onCancelPendingHover={cancelPendingHover}
               onChangeAttribute={handleChangeAttribute}
+              onCloseSubmenu={handleCloseSubmenu}
+              onMenuItemFocus={handleMenuItemFocus}
               onPointerOver={() => handleCollectionHover(collection.id)}
               place={place}
             />
@@ -295,12 +369,16 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
             <div className="attribute-label-menu" ref={setDragNodeRef}
                 style={overlayStyle} {...attributes} {...listeners}
                 data-testid={`attribute-label-menu-${place}`}>
-              <MenuButton style={buttonStyle} data-testid={`axis-legend-attribute-button-${place}`}>
+              <MenuButton style={buttonStyle} aria-label={ariaLabel}
+                           data-testid={`axis-legend-attribute-button-${place}`}>
                 {attribute?.name}
               </MenuButton>
+              <DropdownArrow className="axis-label-dropdown-arrow" aria-hidden="true" />
               <Portal containerRef={containerRef}>
                 <MenuList ref={mainMenuListRef} className="axis-legend-menu"
                           maxH={adjustedMainMenuHeight ?? maxMenuHeight} overflowY="auto"
+                          onFocus={handleMenuItemFocus}
+                          onKeyDown={handleMainMenuKeyDown}
                           data-testid={`axis-legend-attribute-menu-list-${place}`}>
                   {renderMenuItems()}
                   { attribute &&
