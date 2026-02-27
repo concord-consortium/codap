@@ -4,19 +4,10 @@
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  position: fixed;
   height: 190px;
   width: 440px;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 200;
-  border: 1px solid #aaa;
+  max-width: 440px;
   background-color: #fff;
-  
-   &:focus {
-    outline: none;
-  }
 
   .user-entry-modal-header {
     display: flex;
@@ -25,10 +16,12 @@
     width: 100%;
     height: 30px;
     background-color: #0b4e5d;
+    border-radius: var(--codap-radii-md) var(--codap-radii-md) 0 0;
     color: white;
     font-size: 12px;
+    font-weight: normal;
     text-transform: uppercase;
-    padding: 10px
+    padding: 10px;
   }
 
   .user-entry-modal-body {
@@ -46,6 +39,10 @@
 
       &.default {
         outline: 2px solid #0085f2;
+        outline-offset: 2px;
+      }
+      &:focus-visible {
+        outline: 3px solid #0957d0;
         outline-offset: 2px;
       }
       &:hover {
