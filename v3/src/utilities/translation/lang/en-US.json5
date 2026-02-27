@@ -898,7 +898,7 @@
     "DG.AxisView.labelTooltip": "—Click to change %@ axis attribute",  // %@ is either horizontal or vertical
     "DG.AxisView.vertical": "vertical",
     "DG.AxisView.horizontal": "horizontal",
-    "DG.AxisView.axisAriaLabel": "Choose %@ axis attribute, currently %@",  // %1 is horizontal/vertical, %2 is attribute name
+    "DG.AxisView.axisAriaLabel": "Choose %@ axis attribute, currently %@",  // first %@ is horizontal/vertical, second %@ is attribute name
     "DG.AxisView.legendAriaLabel": "Choose legend attribute, currently %@",  // %@ is attribute name
     "DG.AxisView.emptyAxisAriaLabel": "Choose %@ axis attribute",  // %@ is horizontal/vertical
     "DG.AxisView.emptyLegendAriaLabel": "Choose legend attribute",
