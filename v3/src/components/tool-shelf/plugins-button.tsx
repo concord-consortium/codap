@@ -1,10 +1,12 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import React, { useRef } from "react"
+import React, { useCallback, useRef } from "react"
 import { Menu, MenuButton, MenuDivider, MenuItem, MenuList } from "@chakra-ui/react"
 import { kRootPluginsUrl } from "../../constants"
 import { useDocumentContent } from "../../hooks/use-document-content"
+import { useMenuItemScrollIntoView } from "../../hooks/use-menu-item-scroll-into-view"
 import { useOutsidePointerDown } from "../../hooks/use-outside-pointer-down"
+import { useSubmenuCloseOnArrowLeft, useSubmenuOpenOnArrowRight } from "../../hooks/use-submenu-keyboard-nav"
 import { useRemotePluginsConfig } from "../../hooks/use-remote-plugins-config"
 import { DEBUG_PLUGINS } from "../../lib/debug"
 import { logMessageWithReplacement } from "../../lib/log-message"
@@ -103,19 +105,29 @@ function PluginItem({ onClose, pluginData }: IPluginItemProps) {
 interface IPluginGroupMenuProps {
   isOpen: boolean
   onClose?: () => void
+  onCloseSubmenu?: () => void
+  onOpenSubmenu?: () => void
   onPointerOver?: React.PointerEventHandler<HTMLButtonElement>
   plugins: PluginData[]
   title: string
 }
 const PluginGroupMenu = observer(function PluginGroupMenu({
-  isOpen, onClose, onPointerOver, title, plugins
+  isOpen, onClose, onCloseSubmenu, onOpenSubmenu, onPointerOver, title, plugins
 }: IPluginGroupMenuProps) {
+  const submenuRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLDivElement>(null)
+  const handleMenuItemFocus = useMenuItemScrollIntoView()
+  const handleSubmenuKeyDown = useSubmenuCloseOnArrowLeft({
+    isOpen, submenuRef, triggerRef, onClose: onCloseSubmenu ?? (() => {})
+  })
+
   return (
     <>
       {isOpen && (
         <Menu isOpen={isOpen} placement="right-start">
-          <MenuButton as="div" className="plugin-group-menu-button" />
-          <MenuList className="tool-shelf-menu-list submenu">
+          <MenuButton as="div" className="plugin-group-menu-button" aria-hidden="true" tabIndex={-1} />
+          <MenuList ref={submenuRef} className="tool-shelf-menu-list submenu"
+              onFocus={handleMenuItemFocus} onKeyDown={handleSubmenuKeyDown}>
             {plugins.map((plugin, i) => (
               <PluginItem key={plugin?.title ?? `divider-${i}`} onClose={onClose} pluginData={plugin} />
             ))}
@@ -123,14 +135,19 @@ const PluginGroupMenu = observer(function PluginGroupMenu({
         </Menu>
       )}
       <MenuItem
+        ref={triggerRef}
         as="div"
         className="plugin-group-menu-item tool-shelf-menu-item"
         closeOnSelect={false}
+        data-plugin-group={title}
         key={title}
+        onClick={onOpenSubmenu}
         onPointerOver={onPointerOver}
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
       >
         <span className="category-title">{title}</span>
-        <RightArrow className="submenu-expand-icon" />
+        <RightArrow className="submenu-expand-icon" aria-hidden="true" />
       </MenuItem>
     </>
   )
@@ -145,6 +162,19 @@ export const PluginsButton = observer(function PluginsButton() {
     remotePlugins.length ? [...combinedPlugins, ...remotePlugins] : combinedPlugins
 
   const handleClose = () => onCloseRef.current?.()
+
+  // Open a submenu immediately (for keyboard navigation)
+  const handleOpenSubmenu = useCallback((id: string) => {
+    setOpenSubmenuId(id)
+  }, [])
+
+  // Close the current submenu (for keyboard navigation)
+  const handleCloseSubmenu = useCallback(() => {
+    setOpenSubmenuId(null)
+  }, [])
+
+  const handleMenuItemFocus = useMenuItemScrollIntoView()
+  const handleMainMenuKeyDown = useSubmenuOpenOnArrowRight("plugin-group", handleOpenSubmenu)
 
   useOutsidePointerDown({
     ref: menuRef,
@@ -167,13 +197,15 @@ export const PluginsButton = observer(function PluginsButton() {
             <>
               <MenuButton
                 className={className}
+                aria-label={t("DG.ToolButtonData.pluginMenu.ariaLabel")}
                 title={t("DG.ToolButtonData.pluginMenu.toolTip")}
                 data-testid="tool-shelf-button-plugins"
               >
                 <PluginsIcon />
                 <ToolShelfButtonTag className="plugins" label={t("DG.ToolButtonData.pluginMenu.title")} />
               </MenuButton>
-              <MenuList className="tool-shelf-menu-list top-menu plugins">
+              <MenuList className="tool-shelf-menu-list top-menu plugins"
+                  onFocus={handleMenuItemFocus} onKeyDown={handleMainMenuKeyDown}>
                 {pluginGroups.map(pluginGroup => {
                   const { plugins, title } = pluginGroup
                   return (
@@ -181,6 +213,8 @@ export const PluginsButton = observer(function PluginsButton() {
                       key={title}
                       isOpen={openSubmenuId === title}
                       onClose={handleClose}
+                      onCloseSubmenu={handleCloseSubmenu}
+                      onOpenSubmenu={() => handleOpenSubmenu(title)}
                       onPointerOver={() => setOpenSubmenuId(title)}
                       plugins={plugins}
                       title={title}

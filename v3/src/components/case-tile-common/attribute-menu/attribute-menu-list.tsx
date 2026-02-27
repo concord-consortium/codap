@@ -1,8 +1,9 @@
 import { MenuItem, MenuList, useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
-import React, { forwardRef, useCallback } from "react"
+import React, { forwardRef } from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { useDataSetMetadata } from "../../../hooks/use-data-set-metadata"
+import { useMenuItemScrollIntoView } from "../../../hooks/use-menu-item-scroll-into-view"
 import { logMessageWithReplacement, logStringifiedObjectMessage } from "../../../lib/log-message"
 import {
   deleteCollectionNotification, dependentCasesNotification, hideAttributeNotification, removeAttributesNotification
@@ -32,12 +33,7 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
   const tableModel = useCaseTableModel()
   const { isOpen, onClose, onOpen } = useDisclosure()
 
-  const handleMenuItemFocus = useCallback((e: React.FocusEvent) => {
-    const el = e.target as HTMLElement
-    if (el.getAttribute("role") === "menuitem") {
-      el.scrollIntoView({ block: "nearest" })
-    }
-  }, [])
+  const handleMenuItemFocus = useMenuItemScrollIntoView()
 
   if (!attributeId) return null
 

@@ -1,13 +1,15 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { Menu, MenuItem, MenuList, MenuButton, MenuDivider, Portal } from "@chakra-ui/react"
-import React, { CSSProperties, useCallback, useEffect, useRef, useState } from "react"
+import React, { CSSProperties, useCallback, useRef, useState } from "react"
 import { useDocumentContainerContext } from "../../../hooks/use-document-container-context"
 import { useFreeTileLayoutContext } from "../../../hooks/use-free-tile-layout-context"
 import { IUseDraggableAttribute, useDraggableAttribute } from "../../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import { useMenuHeightAdjustment } from "../../../hooks/use-menu-height-adjustment"
+import { useMenuItemScrollIntoView } from "../../../hooks/use-menu-item-scroll-into-view"
 import { useOutsidePointerDown } from "../../../hooks/use-outside-pointer-down"
+import { useSubmenuCloseOnArrowLeft, useSubmenuOpenOnArrowRight } from "../../../hooks/use-submenu-keyboard-nav"
 import { useOverlayBounds } from "../../../hooks/use-overlay-bounds"
 import { AttributeType } from "../../../models/data/attribute-types"
 import { ICollectionModel, isCollectionModel } from "../../../models/data/collection"
@@ -63,45 +65,26 @@ interface ICollectionMenuProps {
   onCancelPendingHover?: () => void
   onChangeAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
   onCloseSubmenu?: () => void
-  onMenuItemFocus?: React.FocusEventHandler
   onOpenSubmenu?: () => void
   onPointerOver?: React.PointerEventHandler<HTMLButtonElement>
   place: GraphPlace
 }
 const CollectionMenu = observer(function CollectionMenu({
   collectionInfo, containerRef, isAttributeAllowed, isOpen, maxMenuHeight, onCancelPendingHover,
-  onChangeAttribute, onCloseSubmenu, onMenuItemFocus, onOpenSubmenu, onPointerOver, place
+  onChangeAttribute, onCloseSubmenu, onOpenSubmenu, onPointerOver, place
 }: ICollectionMenuProps) {
   const { collection } = collectionInfo
   const submenuRef = useRef<HTMLDivElement>(null)
   const collectionItemRef = useRef<HTMLDivElement>(null)
   const adjustedMaxHeight = useMenuHeightAdjustment({ menuRef: submenuRef, containerRef, isOpen })
+  const handleMenuItemFocus = useMenuItemScrollIntoView()
+  const handleSubmenuKeyDown = useSubmenuCloseOnArrowLeft({
+    isOpen, submenuRef, triggerRef: collectionItemRef, onClose: onCloseSubmenu ?? (() => {})
+  })
 
   const handleSubmenuPointerEnter = () => {
     onCancelPendingHover?.()
   }
-
-  // When submenu opens, focus the first item
-  useEffect(() => {
-    if (isOpen && submenuRef.current) {
-      requestAnimationFrame(() => {
-        const firstItem = submenuRef.current?.querySelector('[role="menuitem"]') as HTMLElement
-        firstItem?.focus()
-      })
-    }
-  }, [isOpen])
-
-  // ArrowLeft or Escape in submenu closes it and returns focus to collection item
-  const handleSubmenuKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowLeft' || e.key === 'Escape') {
-      e.preventDefault()
-      e.stopPropagation()
-      onCloseSubmenu?.()
-      requestAnimationFrame(() => {
-        collectionItemRef.current?.focus()
-      })
-    }
-  }, [onCloseSubmenu])
 
   return (
     <>
@@ -109,7 +92,7 @@ const CollectionMenu = observer(function CollectionMenu({
         <MenuButton as="div" className="collection-menu-button" aria-hidden="true" tabIndex={-1} />
         <MenuList ref={submenuRef} className="axis-legend-submenu"
                   maxH={adjustedMaxHeight ?? maxMenuHeight} overflowY="auto"
-                  onFocus={onMenuItemFocus}
+                  onFocus={handleMenuItemFocus}
                   onKeyDown={handleSubmenuKeyDown}
                   onPointerEnter={handleSubmenuPointerEnter}
                   data-testid={`axis-legend-attribute-menu-list-${place}-${collection.id}`}>
@@ -294,28 +277,8 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
       ? t("DG.AxisView.axisAriaLabel", { vars: [orientation, attribute.name] })
       : t("DG.AxisView.emptyAxisAriaLabel", { vars: [orientation] })
 
-  // Scroll the focused menu item into view for magnification/zoom users
-  const handleMenuItemFocus = useCallback((e: React.FocusEvent) => {
-    const focusedElement = e.target as HTMLElement
-    if (focusedElement.getAttribute('role') === 'menuitem') {
-      focusedElement.scrollIntoView({ block: 'nearest' })
-    }
-  }, [])
-
-  // Handle ArrowRight on collection items to open submenus.
-  // Chakra MenuItem with as="div" doesn't forward onKeyDown to the user's handler,
-  // so we catch the bubbled event at the MenuList level instead.
-  const handleMainMenuKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowRight') {
-      const menuItem = (e.target as HTMLElement).closest('[data-collection-id]')
-      const collectionId = menuItem instanceof HTMLElement ? menuItem.dataset.collectionId : undefined
-      if (collectionId) {
-        e.preventDefault()
-        e.stopPropagation()
-        handleOpenSubmenu(collectionId)
-      }
-    }
-  }, [handleOpenSubmenu])
+  const handleMenuItemFocus = useMenuItemScrollIntoView()
+  const handleMainMenuKeyDown = useSubmenuOpenOnArrowRight("collection-id", handleOpenSubmenu)
 
   const handleChangeAttribute = (_place: GraphPlace, data: IDataSet, _attrId: string) => {
     onChangeAttribute(_place, data, _attrId)
@@ -350,7 +313,6 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
               onCancelPendingHover={cancelPendingHover}
               onChangeAttribute={handleChangeAttribute}
               onCloseSubmenu={handleCloseSubmenu}
-              onMenuItemFocus={handleMenuItemFocus}
               onOpenSubmenu={() => handleOpenSubmenu(collection.id)}
               onPointerOver={() => handleCollectionHover(collection.id)}
               place={place}

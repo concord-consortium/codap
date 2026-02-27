@@ -2,6 +2,7 @@ import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
 import { Menu, MenuButton, MenuItem, MenuList, useDisclosure } from "@chakra-ui/react"
 import { useDocumentContent } from "../../hooks/use-document-content"
+import { useMenuItemScrollIntoView } from "../../hooks/use-menu-item-scroll-into-view"
 import { persistentState } from "../../models/persistent-state"
 import { getSpecialLangFontClassName, t } from "../../utilities/translation/translate"
 import GuideIcon from "../../assets/icons/icon-guide.svg"
@@ -21,6 +22,7 @@ export const GuideButton = observer(function GuideButton(props: IProps) {
   const documentContent = useDocumentContent()
   const langClass = getSpecialLangFontClassName()
   const {isOpen, onOpen, onClose} = useDisclosure()
+  const handleMenuItemFocus = useMenuItemScrollIntoView()
   const webViewModel = documentContent?.getTile(guideTileId)?.content
   if (!isWebViewModel(webViewModel) || !webViewModel.isGuide) return null
 
@@ -43,6 +45,7 @@ export const GuideButton = observer(function GuideButton(props: IProps) {
       <Menu isLazy autoSelect={false} isOpen={isOpen} onOpen={onOpen} onClose={onClose} placement={placement}>
         <MenuButton
           className={clsx("tool-shelf-button", "tool-shelf-menu", langClass, {"menu-open": isOpen})}
+          aria-label={t("DG.ToolButtonData.guideMenu.ariaLabel")}
           title={t("DG.ToolButtonData.guideMenu.toolTip")}
           data-testid="tool-shelf-button-guide"
         >
@@ -52,7 +55,8 @@ export const GuideButton = observer(function GuideButton(props: IProps) {
             label={t("DG.ToolButtonData.guideMenu.title")}
           />
         </MenuButton>
-        <MenuList className="tool-shelf-menu-list top-menu" data-testid="guide-menu" >
+        <MenuList className="tool-shelf-menu-list top-menu" data-testid="guide-menu"
+            onFocus={handleMenuItemFocus}>
           <MenuItem
             key={"show-guide"}
             className="tool-shelf-menu-item"
