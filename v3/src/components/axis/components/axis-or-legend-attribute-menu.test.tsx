@@ -81,7 +81,6 @@ jest.mock("../../../hooks/use-free-tile-layout-context", () => ({
 
 describe("AxisOrLegendAttributeMenu", () => {
   const containerRef = createRef<HTMLDivElement>()
-  let containerDiv: HTMLDivElement
 
   const defaultProps = {
     place: "bottom" as const,
@@ -106,13 +105,10 @@ describe("AxisOrLegendAttributeMenu", () => {
   }
 
   beforeEach(() => {
-    containerDiv = document.createElement("div")
-    document.body.appendChild(containerDiv)
+    // Reset mock data configuration to defaults so tests are independent
+    mockDataConfiguration.attributeID = (role: string) => role === "x" ? "attr1" : ""
+    mockDataConfiguration.attributeType = (role: string) => role === "x" ? "numeric" : ""
     jest.clearAllMocks()
-  })
-
-  afterEach(() => {
-    document.body.removeChild(containerDiv)
   })
 
   describe("aria-label", () => {

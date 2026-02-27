@@ -683,6 +683,7 @@
     "DG.CaseTable.attributeEditor.type": "Type",
     "DG.CaseTable.attributeEditor.unit": "Unit",
     "DG.CaseTable.attributeEditor.precision": "Precision",
+    "DG.CaseTable.attributeEditor.datePrecision": "Date precision",
     "DG.CaseTable.attributeEditor.datePrecisionOptions": "year month day hour minute second millisecond",
     "DG.CaseTable.attributeEditor.editable": "Editable",
     "DG.CaseTable.insertCasesDialog.title": "Insert Cases",
