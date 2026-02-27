@@ -3,6 +3,7 @@ import {observer} from "mobx-react-lite"
 import {isAlive} from "mobx-state-tree"
 import { DataSetContext } from "../../../../hooks/use-data-set-context"
 import { useInspectorFormulaString } from "../../../../hooks/use-inspector-formula-string"
+import { useMenuItemScrollIntoView } from "../../../../hooks/use-menu-item-scroll-into-view"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 import {ITileContentModel} from "../../../../models/tiles/tile-content"
 import {ITileModel} from "../../../../models/tiles/tile-model"
@@ -20,6 +21,7 @@ function isAliveMapContentModel(model?: ITileContentModel): model is IMapContent
 
 export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProps) {
   const mapModel = isAliveMapContentModel(tile?.content) ? tile?.content : undefined
+  const handleFocus = useMenuItemScrollIntoView()
   const numSelected = mapModel?.numSelected() ?? 0
   const numUnselected = mapModel?.numUnselected() ?? 0
   const numHidden = mapModel?.numHidden() ?? 0
@@ -88,7 +90,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
 
   return (
     <>
-      <MenuList data-testid="hide-show-menu-list">
+      <MenuList data-testid="hide-show-menu-list" onFocus={handleFocus}>
         <MenuItem onClick={hideSelectedCases} isDisabled={numSelected === 0} data-testid="hide-selected-cases">
           {hideSelectedString}
         </MenuItem>

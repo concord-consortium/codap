@@ -1,6 +1,7 @@
 import { MenuItem, MenuList, useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
+import { useMenuItemScrollIntoView } from "../../../../hooks/use-menu-item-scroll-into-view"
 import { ITileModel } from "../../../../models/tiles/tile-model"
 import { isGraphContentModel } from "../../models/graph-content-model"
 import { t } from "../../../../utilities/translation/translate"
@@ -18,6 +19,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
   const graphModel = tile && isAlive(tile) && isGraphContentModel(tile?.content) ? tile?.content : undefined
   const dataConfig = graphModel?.dataConfiguration
   const { isOpen, onClose, onOpen } = useDisclosure()
+  const handleFocus = useMenuItemScrollIntoView()
 
   const hideSelectedCases = () => {
     const numberToHide = dataConfig?.selection.length ?? 0
@@ -140,7 +142,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
 
   return (
     <>
-      <MenuList data-testid="hide-show-menu-list">
+      <MenuList data-testid="hide-show-menu-list" onFocus={handleFocus}>
         <MenuItem onClick={hideSelectedCases} isDisabled={hideSelectedIsDisabled} data-testid="hide-selected-cases">
           {hideSelectedString}
         </MenuItem>

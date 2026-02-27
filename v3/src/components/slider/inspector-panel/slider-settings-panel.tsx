@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite"
 import {
   Button, Flex, FormControl, FormLabel, Menu, MenuButton, MenuItem, MenuList, NumberInput, NumberInputField
 } from "@chakra-ui/react"
+import { useMenuItemScrollIntoView } from "../../../hooks/use-menu-item-scroll-into-view"
 import { InspectorPalette } from "../../inspector-panel"
 import { ISliderModel } from "../slider-model"
 import {AnimationDirection, AnimationDirections, AnimationMode, AnimationModes, kDefaultAnimationRate}
@@ -25,6 +26,7 @@ export const SliderSettingsPalette =
   observer(function SliderSettingsPalette({sliderModel, panelRect, buttonRect, setShowPalette}: IProps) {
 
     const numberInputRef = useRef<HTMLInputElement>(null)
+    const handleMenuFocus = useMenuItemScrollIntoView()
 
     const scaleType = sliderModel.scaleType
     const [isEditing, setIsEditing] = useState(false)
@@ -119,10 +121,11 @@ export const SliderSettingsPalette =
               <NumberInputField ref={numberInputRef} data-testid="slider-variable-value-text-input"/>
             </NumberInput>
             <Menu>
-              <MenuButton as={Button} className="slider-select direction" sx={{height: "20px"}}>
+              <MenuButton as={Button} className="slider-select direction" sx={{height: "20px"}}
+                aria-label={t("DG.CaseTable.attributeEditor.datePrecision")}>
                 {sliderModel.dateMultipleOfUnit}
               </MenuButton>
-              <MenuList>
+              <MenuList onFocus={handleMenuFocus}>
                 {dateUnits.map((aPrecision, index) => (
                   <MenuItem key={aPrecision} onClick={() => handleDateMultipleOfUnitChange(aPrecision)}>
                     {langDatePrecisionOptions[index]}
@@ -177,10 +180,11 @@ export const SliderSettingsPalette =
               <FormLabel className="form-label">{t("DG.Slider.direction")}
                 <Menu>
                   <MenuButton as={Button} className="slider-select direction" sx={{height: "20px"}}
+                    aria-label={t("DG.Slider.direction")}
                     data-testid="slider-animation-direction">
                     {sliderModel.animationDirection}
                   </MenuButton>
-                  <MenuList>
+                  <MenuList onFocus={handleMenuFocus}>
                     {AnimationDirections.map(aDirection => (
                       <MenuItem key={aDirection} onClick={() => handleAnimationDirectionChange(aDirection)}>
                         {aDirection}
@@ -196,10 +200,11 @@ export const SliderSettingsPalette =
               <FormLabel className="form-label">{t("DG.Slider.mode")}
                 <Menu>
                   <MenuButton as={Button} className="slider-select mode" sx={{height: "20px"}}
+                    aria-label={t("DG.Slider.mode")}
                     data-testid="slider-animation-repetition">
                     {sliderModel.animationMode}
                   </MenuButton>
-                  <MenuList>
+                  <MenuList onFocus={handleMenuFocus}>
                     {AnimationModes.map(aMode => (
                       <MenuItem key={aMode} onClick={() => handleSliderAnimationModeChange(aMode)}>
                         {aMode}
