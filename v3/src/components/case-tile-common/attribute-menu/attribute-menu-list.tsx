@@ -1,6 +1,6 @@
 import { MenuItem, MenuList, useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
-import React, { forwardRef } from "react"
+import React, { forwardRef, useCallback } from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { useDataSetMetadata } from "../../../hooks/use-data-set-metadata"
 import { logMessageWithReplacement, logStringifiedObjectMessage } from "../../../lib/log-message"
@@ -31,6 +31,13 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
   const metadata = useDataSetMetadata()
   const tableModel = useCaseTableModel()
   const { isOpen, onClose, onOpen } = useDisclosure()
+
+  const handleMenuItemFocus = useCallback((e: React.FocusEvent) => {
+    const el = e.target as HTMLElement
+    if (el.getAttribute("role") === "menuitem") {
+      el.scrollIntoView({ block: "nearest" })
+    }
+  }, [])
 
   if (!attributeId) return null
 
@@ -224,7 +231,8 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
 
   return (
     <>
-      <MenuList ref={ref} data-testid="attribute-menu-list" onKeyDown={handleMenuKeyDown}>
+      <MenuList ref={ref} data-testid="attribute-menu-list"
+          onKeyDown={handleMenuKeyDown} onFocus={handleMenuItemFocus}>
         {menuItems.map(item => (
           <MenuItem key={item.itemKey} isDisabled={!isItemEnabled(item)} onClick={() => item.handleClick?.(item)}>
             {`${t(item.itemKey)}${item.handleClick ? "" : " 🚧"}`}

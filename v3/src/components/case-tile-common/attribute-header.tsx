@@ -4,6 +4,7 @@ import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { clsx } from "clsx"
+import DropdownArrow from "../../assets/icons/arrow.svg"
 import { OverflowMode, useAdjustHeaderForOverflow } from "../../hooks/use-adjust-header-overflow"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { IUseDraggableAttribute, useDraggableAttribute } from "../../hooks/use-drag-drop"
@@ -12,6 +13,7 @@ import { useOutsidePointerDown } from "../../hooks/use-outside-pointer-down"
 import { updateAttributesNotification } from "../../models/data/data-set-notifications"
 import { uiState } from "../../models/ui-state"
 import { uniqueName } from "../../utilities/js-utils"
+import { t } from "../../utilities/translation/translate"
 import { AttributeHeaderDivider } from "./attribute-header-divider"
 import { AttributeHeaderJoinTarget } from "./attribute-header-join-target"
 import { AttributeMenuList } from "./attribute-menu/attribute-menu-list"
@@ -31,13 +33,14 @@ interface IProps {
   // returns the draggable parent element for use with DnDKit
   onSetHeaderContentElt?: (contentElt: HTMLDivElement | null) => HTMLElement | null
   onBeginEdit?: () => void
+  onButtonKeyDown?: (e: React.KeyboardEvent) => void
   onEndEdit?: () => void
   onOpenMenu?: () => void
 }
 
 export const AttributeHeader = observer(function AttributeHeader({
   attributeId, beforeHeaderDivider, customButtonStyle, disableTooltip, draggable = true, allowTwoLines,
-  getDividerBounds, showUnits=true, onSetHeaderContentElt, onBeginEdit, onEndEdit, onOpenMenu
+  getDividerBounds, showUnits=true, onSetHeaderContentElt, onBeginEdit, onButtonKeyDown, onEndEdit, onOpenMenu
 }: IProps) {
   const { active } = useDndContext()
   const data = useDataSetContext()
@@ -137,11 +140,12 @@ export const AttributeHeader = observer(function AttributeHeader({
     }
   }
 
-    const handleButtonKeyDown = (e: React.KeyboardEvent) => {
+  const handleButtonKeyDown = (e: React.KeyboardEvent) => {
     if (["ArrowDown", "ArrowUp"].includes(e.key)) {
       // Prevent Chakra from bringing up the menu in favor of cell navigation
       e.preventDefault()
     }
+    onButtonKeyDown?.(e)
   }
 
   const handleClose = (accept: boolean) => {
@@ -251,6 +255,7 @@ export const AttributeHeader = observer(function AttributeHeader({
                 (editingAttrId
                   ? <Input ref={inputRef} value={editingAttrName} data-testid="column-name-input"
                             className="column-name-input" size="xs"
+                            aria-label={t("V3.CaseTable.renameAriaLabel", { vars: [attrName] })}
                             autoFocus={true} variant="unstyled" onClick={handleInputClick}
                             onChange={event => setEditingAttrName(event.target.value)}
                             onKeyDown={handleInputKeyDown} onBlur={handleInputBlur} onFocus={handleFocus}
@@ -263,14 +268,18 @@ export const AttributeHeader = observer(function AttributeHeader({
                           sx={customButtonStyle}
                           fontWeight="bold" onKeyDown={handleButtonKeyDown}
                           data-testid={`codap-attribute-button ${attrName}`}
-                          aria-describedby={`sr-column-header-drag-instructions-${instanceId}`}>
+                          aria-label={t("V3.CaseTable.attributeAriaLabel", { vars: [attrName] })}
+                          aria-describedby={
+                            `sr-column-header-drag-instructions-${instanceId}-${attributeId}`
+                          }>
                         {allowTwoLines ? renderAttributeLabel
                                         : `${attrName ?? ""}${showUnits ? attrUnits : ""}`.trim()}
                       </MenuButton>
-                      <VisuallyHidden id={`sr-column-header-drag-instructions-${instanceId}`}>
-                        <pre> Press Space to drag the attribute within the table or to a graph.
-                              Press Enter to open the attribute menu.
-                        </pre>
+                      <DropdownArrow className="attr-header-dropdown-arrow" aria-hidden="true" />
+                      <VisuallyHidden
+                        id={`sr-column-header-drag-instructions-${instanceId}-${attributeId}`}
+                      >
+                        {t("V3.CaseTable.attributeDragInstructions")}
                       </VisuallyHidden>
                     </>
                 )
