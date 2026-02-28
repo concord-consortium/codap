@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { InspectorButton, InspectorPanel } from "../inspector-panel"
 import { SliderSettingsPalette } from "./inspector-panel/slider-settings-panel"
 import { t } from "../../utilities/translation/translate"
@@ -23,16 +23,14 @@ export const SliderInspector = ({ tile, show }: ITileInspectorPanelProps) => {
 
   if (!isSliderModel(sliderModel)) return null
 
-  const handleTimerButton = () => {
+  const handleTimerButton = (e: React.MouseEvent) => {
+    buttonRef.current = e.currentTarget as HTMLDivElement
     setShowPalette(showPalette === "measure" ? undefined : "measure")
   }
 
-  const handleScaleButton = () => {
+  const handleScaleButton = (e: React.MouseEvent) => {
+    buttonRef.current = e.currentTarget as HTMLDivElement
     setShowPalette(showPalette === "scale" ? undefined : "scale")
-  }
-
-  const setButtonRef = (ref: any) => {
-    buttonRef.current = ref.current
   }
 
   const renderPaletteIfAny = () => {
@@ -53,7 +51,7 @@ export const SliderInspector = ({ tile, show }: ITileInspectorPanelProps) => {
       <InspectorButton
         label={t("V3.Slider.Inspector.Playback")}
         onButtonClick={handleTimerButton}
-        setButtonRef={setButtonRef}
+
         testId={"slider-values-button"}
         tooltip={t("DG.Inspector.sliderValues.toolTip")}
         top={true}
@@ -64,7 +62,7 @@ export const SliderInspector = ({ tile, show }: ITileInspectorPanelProps) => {
         bottom={true}
         label={t("V3.Slider.Inspector.Scale")}
         onButtonClick={handleScaleButton}
-        setButtonRef={setButtonRef}
+
         testId={"slider-scale-button"}
         tooltip={t("V3.Inspector.sliderScales.toolTip")}
       >

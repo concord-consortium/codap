@@ -1,6 +1,6 @@
 import { useDndContext } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
-import { useRef, useEffect, useState } from "react"
+import React, { useRef, useEffect, useState } from "react"
 import { InspectorButton, InspectorMenu, InspectorPanel } from "../../inspector-panel"
 import { t } from "../../../utilities/translation/translate"
 import { ITileInspectorPanelProps } from "../../tiles/tile-base-props"
@@ -34,9 +34,6 @@ export const MapInspector = observer(function MapInspector({tile, show}: ITileIn
   const handleClosePalette = () => {
     setShowPalette(undefined)
   }
-  const setButtonRef = (ref: any) => {
-    buttonRef.current = ref.current
-  }
 
   const handleMapRescale = () => {
     mapModel?.rescale("DG.Undo.map.fitBounds", "DG.Redo.map.fitBounds")
@@ -47,8 +44,10 @@ export const MapInspector = observer(function MapInspector({tile, show}: ITileIn
       return (
         <InspectorButton
           label={t("V3.map.Inspector.Data")}
-          onButtonClick={()=>{ setShowPalette(showPalette === "measure" ? undefined : "measure") }}
-          setButtonRef={setButtonRef}
+          onButtonClick={(e: React.MouseEvent) => {
+            buttonRef.current = e.currentTarget as HTMLDivElement
+            setShowPalette(showPalette === "measure" ? undefined : "measure")
+          }}
           testId={"map-display-values-button"}
           tooltip={t("DG.Inspector.displayValues.toolTip")}
         >
@@ -63,8 +62,10 @@ export const MapInspector = observer(function MapInspector({tile, show}: ITileIn
       return (
         <InspectorButton
           label={t("V3.map.Inspector.Layers")}
-          onButtonClick={()=>{ setShowPalette(showPalette === "layers" ? undefined : "layers") }}
-          setButtonRef={setButtonRef}
+          onButtonClick={(e: React.MouseEvent) => {
+            buttonRef.current = e.currentTarget as HTMLDivElement
+            setShowPalette(showPalette === "layers" ? undefined : "layers")
+          }}
           testId={"map-display-config-button"}
           tooltip={t("DG.Inspector.displayLayers.toolTip")}
         >

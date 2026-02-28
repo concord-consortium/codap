@@ -91,47 +91,46 @@ $inspector-panel-border-width: 2px;
   }
 }
 
-.codap-inspector-palette {
-  background-color: #EEE;
-  border: 0px #444 solid;
+.codap-inspector-palette-wrapper {
   position: absolute;
-  inset: 0;
   width: fit-content;
   height: fit-content;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
+}
+
+.codap-inspector-palette {
+  background-color: vars.$palette-bg;
+  border-radius: 4px;
+  overflow: hidden;
   font-family: "museo-sans", sans-serif;
-  z-index: 5;
   font-size: 12px;
-  min-width: 205px;
-  min-height: 100px;
+  min-width: 190px;
+  min-height: 50px;
   font-weight: bold;
+  outline: none;
 
   .codap-inspector-palette-header {
-    position: relative;
-    top: 0;
-    left: 0;
-    padding: 0;
     display: flex;
     flex-direction: row;
     align-items: center;
-    box-shadow: none;
+    gap: 5px;
+    padding: 0 5px;
+    background-color: vars.$palette-header-bg;
+    height: vars.$palette-header-height;
+    border-radius: 2px 2px 0 0;
 
-    .codap-inspector-palette-icon-container {
-      width: 30px;
-      height: 30px;
-      background-color: vars.$teal-dark;
+    .codap-inspector-palette-icon {
       display: flex;
       align-items: center;
       justify-content: center;
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
     }
 
     .codap-inspector-palette-header-title {
-      border-bottom: solid #C1C5C7 1px;
-      border-left: solid #C1C5C7 1px;
-      padding-left: 5px;
-      width: calc(100% - vars.$header-height);
-      height: vars.$header-height;
       font-size: 12px;
-      line-height: vars.$header-height;
+      line-height: vars.$palette-header-height;
     }
   }
 
@@ -139,7 +138,7 @@ $inspector-panel-border-width: 2px;
     position: relative;
     left: 0;
     padding: 5px 10px 10px 10px;
-    background-color: #EEE;
+    background-color: vars.$palette-bg;
     height: fit-content;
     z-index: 20;
 
@@ -226,15 +225,13 @@ $inspector-panel-border-width: 2px;
   z-index: 10;
 
   &.arrow-left {
-    left: calc($inspector-panel-width-medium - 10px);
-    border-top: 25px solid transparent;
-    border-bottom: 25px solid transparent;
-    border-right: 22px solid #EEE;
+    border-top: vars.$palette-pointer-size solid transparent;
+    border-bottom: vars.$palette-pointer-size solid transparent;
+    border-right: vars.$palette-pointer-size solid vars.$palette-bg;
   }
   &.arrow-right {
-    right: calc($inspector-panel-width-medium - 10px);
-    border-top: 25px solid transparent;
-    border-bottom: 25px solid transparent;
-    border-left: 22px solid #EEE;
+    border-top: vars.$palette-pointer-size solid transparent;
+    border-bottom: vars.$palette-pointer-size solid transparent;
+    border-left: vars.$palette-pointer-size solid vars.$palette-bg;
   }
 }

@@ -112,9 +112,11 @@ interface IInspectorPalette {
 
 export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
      setShowPalette}:IInspectorPalette) => {
+  const pointerSize = 10
   const panelTop = panelRect?.top || 0
   const panelRight = panelRect?.right || 0
   const buttonTop = buttonRect?.top || 0
+  const buttonHeight = buttonRect?.height || 52
   const [paletteWidth, setPaletteWidth] = useState(0)
   const paletteRef = useRef<HTMLDivElement>(null)
   const pointerRef = useRef<HTMLDivElement>(null)
@@ -122,11 +124,11 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
   const [inBounds, setInBounds] = useState(() => isWithinBounds(panelRight, paletteRef.current))
   const paletteHeight = paletteRef.current?.offsetHeight
   const tempPaletteTop = paletteRef.current?.getBoundingClientRect().top
-  const pointerTop = buttonTop - panelTop - 5
-  const pointerHeight = pointerRef.current?.offsetHeight
-  const pointerMidpoint = pointerHeight ? pointerTop + pointerHeight/2 : 13
+  const pointerTop = buttonTop - panelTop + buttonHeight / 2 - pointerSize
+  const pointerMidpoint = pointerTop + pointerSize
   const paletteTop = (tempPaletteTop && paletteHeight) &&
     getPaletteTopPosition(tempPaletteTop, paletteHeight, pointerMidpoint)
+  const headerId = title ? `palette-header-${title.replace(/\s+/g, "-").toLowerCase()}` : undefined
 
   useEffect(()=> {
     const observer = viewportEl && new ResizeObserver(entries => {
@@ -141,8 +143,7 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
   }, [panelRight, viewportEl])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    const { key } = e
-    if (key === "Enter" || key === "Escape") {
+    if (e.key === "Escape") {
       setShowPalette(undefined)
     }
   }
@@ -154,45 +155,38 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
     }
   }, [])
 
-  const paletteStyle = {top: paletteTop, left: inBounds ? 60 : -(paletteWidth + 10)}
+  const panelWidth = panelRect?.width || 72
+  const paletteLeft = inBounds ? panelWidth - 5 : -(paletteWidth + 10)
+  const wrapperStyle = {top: paletteTop || 0, left: paletteLeft, zIndex: 250}
+  const pointerStyle = inBounds
+    ? { left: -(pointerSize - 1) }
+    : { right: -(pointerSize - 1) }
   return (
-    <>
-      <PalettePointer ref={pointerRef} top={buttonTop - panelTop - 5} inBounds={inBounds} />
-      <Box ref={paletteRef} className="codap-inspector-palette" style={paletteStyle} tabIndex={0} zIndex={250}
+    <div className="codap-inspector-palette-wrapper" style={wrapperStyle}>
+      <div ref={pointerRef} className={`palette-pointer ${inBounds ? "arrow-left" : "arrow-right"}`}
+          style={{top: pointerTop - (paletteTop || 0), ...pointerStyle}} />
+      <div ref={paletteRef} className="codap-inspector-palette" tabIndex={0}
+          role="dialog" aria-labelledby={headerId}
           data-testid="codap-inspector-palette" onKeyDown={handleKeyDown}>
-        <PaletteHeader Icon={Icon} title={title} />
+        <PaletteHeader id={headerId} Icon={Icon} title={title} />
         {children}
-      </Box>
-    </>
+      </div>
+    </div>
   )
 }
 
-interface IPalettePointerProps {
-  top: number
-  inBounds: boolean
-}
-
-const PalettePointer = forwardRef(function PalettePointer(
-  { top, inBounds }: IPalettePointerProps, ref
-) {
-  return (
-    <div ref={ref} className={`palette-pointer ${inBounds ? "arrow-left" : "arrow-right"}`}
-          style={{top}} />
-  )
-})
 
 interface IPaletteHeaderProps {
+  id?: string
   Icon?: ReactNode
   title?: string
 }
 
-function PaletteHeader({ Icon, title }: IPaletteHeaderProps) {
+function PaletteHeader({ id, Icon, title }: IPaletteHeaderProps) {
   return (
-    <div className="codap-inspector-palette-header" data-testid="codap-inspector-palette-header">
-      <div className="codap-inspector-palette-icon-container">
-        {Icon}
-      </div>
-      <div className="codap-inspector-palette-header-title">{title}</div>
-    </div>
+    <header id={id} className="codap-inspector-palette-header" data-testid="codap-inspector-palette-header">
+      {Icon && <span className="codap-inspector-palette-icon">{Icon}</span>}
+      <span className="codap-inspector-palette-header-title">{title}</span>
+    </header>
   )
 }
