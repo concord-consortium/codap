@@ -1,4 +1,4 @@
-import { FormControl, Checkbox } from "@chakra-ui/react"
+import { Checkbox } from "react-aria-components"
 import { observer } from "mobx-react-lite"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 import { t } from "../../../../utilities/translation/translate"
@@ -49,14 +49,17 @@ export const AdornmentCheckbox = observer(function AdornmentCheckbox({classNameV
   }
 
   return (
-    <FormControl>
-      <Checkbox
-        data-testid={`adornment-checkbox-${classNameValue}`}
-        defaultChecked={existingAdornment?.isVisible}
-        onChange={e => handleSetting(e.target.checked)}
-      >
-        {t(labelKey)}
-      </Checkbox>
-    </FormControl>
+    <Checkbox
+      data-testid={`adornment-checkbox-${classNameValue}`}
+      isSelected={existingAdornment?.isVisible ?? false}
+      onChange={handleSetting}
+    >
+      {({isSelected}) => (
+        <>
+          <span className={`checkbox-indicator${isSelected ? " selected" : ""}`} />
+          {t(labelKey)}
+        </>
+      )}
+    </Checkbox>
   )
 })

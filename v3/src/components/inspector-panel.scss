@@ -104,9 +104,9 @@ $inspector-panel-border-width: 2px;
   overflow: hidden;
   font-family: "museo-sans", sans-serif;
   font-size: 12px;
-  min-width: 190px;
+  min-width: 256px;
   min-height: 50px;
-  font-weight: bold;
+  font-weight: normal;
   outline: none;
 
   .codap-inspector-palette-header {
@@ -130,6 +130,7 @@ $inspector-panel-border-width: 2px;
 
     .codap-inspector-palette-header-title {
       font-size: 12px;
+      font-weight: bold;
       line-height: vars.$palette-header-height;
     }
   }
@@ -165,6 +166,7 @@ $inspector-panel-border-width: 2px;
     .form-title {
       font-family: "museo-sans", sans-serif !important;
       font-size: 12px;
+      font-weight: bold;
     }
 
     .form-label {
@@ -217,6 +219,106 @@ $inspector-panel-border-width: 2px;
         text-align: right;
       }
     }
+  }
+
+  // Shared React Aria component styles for all palettes
+
+  .react-aria-RadioGroup {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .react-aria-Radio {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-weight: normal;
+    font-size: 12px;
+    padding: 2px 0;
+
+    .radio-indicator {
+      width: 18px;
+      height: 18px;
+      border: 2px solid vars.$palette-icon-color;
+      border-radius: 50%;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      background-color: vars.$palette-bg;
+    }
+
+    &[data-selected] .radio-indicator {
+      background: radial-gradient(circle, vars.$palette-icon-color 40%, transparent 41%);
+    }
+
+    &[data-hovered] .radio-indicator {
+      border-color: vars.$teal-dark;
+    }
+
+    &[data-focus-visible] .radio-indicator {
+      outline: 2px solid vars.$focus-outline-color;
+      outline-offset: 2px;
+    }
+  }
+
+  .react-aria-Checkbox {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-weight: normal;
+    font-size: 12px;
+    padding: 2px 0;
+
+    .checkbox-indicator {
+      width: 18px;
+      height: 18px;
+      border: 2px solid vars.$palette-icon-color;
+      border-radius: 2px;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: vars.$palette-bg;
+    }
+
+    &[data-selected] .checkbox-indicator {
+      background-color: vars.$palette-hover-bg;
+
+      &::after {
+        content: "";
+        display: block;
+        width: 5px;
+        height: 9px;
+        border: solid vars.$palette-icon-color;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg) translate(-1px, -1px);
+      }
+    }
+
+    &[data-hovered] .checkbox-indicator {
+      border-color: vars.$teal-dark;
+    }
+
+    &[data-focus-visible] .checkbox-indicator {
+      outline: 2px solid vars.$focus-outline-color;
+      outline-offset: 2px;
+    }
+
+    &[data-disabled] {
+      opacity: 0.5;
+      cursor: default;
+    }
+  }
+
+  .react-aria-TextField {
+    display: contents;
+  }
+
+  // Sub-options indentation for adornment controls
+  .sub-options {
+    padding-left: 20px;
   }
 }
 

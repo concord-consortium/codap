@@ -1,5 +1,5 @@
 import {
-  Flex, NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField, NumberInputStepper
+  NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField, NumberInputStepper
 } from "@chakra-ui/react"
 import React, { useCallback, useEffect } from "react"
 import { registerAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
@@ -67,12 +67,8 @@ const Controls = () => {
     }
   }
 
-  // Chakra's NumberInput renders an implicit FormControl wrapper with width: 100%,
-  // which would stretch to fill the Flex row and squeeze the input. Override it to auto.
   return (
-    <Flex direction="row" alignItems="center" gap="4px"
-          sx={{ "& > .chakra-form-control": { width: "auto" } }}
-    >
+    <div className="standard-error-controls">
       <AdornmentCheckbox
         classNameValue={kStandardErrorClass}
         labelKey={''}
@@ -97,8 +93,8 @@ const Controls = () => {
           <NumberDecrementStepper/>
         </NumberInputStepper>
       </NumberInput>
-      <span style={{whiteSpace: "nowrap"}}>{translate(kStandardErrorLabelKey)}</span>
-    </Flex>
+      <span className="standard-error-label">{translate(kStandardErrorLabelKey)}</span>
+    </div>
   )
 }
 

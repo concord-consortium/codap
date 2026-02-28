@@ -1,4 +1,3 @@
-import { Button, Flex } from "@chakra-ui/react"
 import { registerAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
 import { isFiniteNumber } from "../../../../utilities/math-utils"
 import { stringToCellKey } from "../../utilities/cell-key-utils"
@@ -55,18 +54,18 @@ const Controls = () => {
   }
 
   return (
-    <Flex direction="column">
-      <Button onClick={handleAddMovableValue} data-testid="adornment-button-movable-value--add"
-              className='measure-movable-value-button'/* variant='solid' size='sm'*/
+    <div className="movable-value-controls">
+      <button onClick={handleAddMovableValue} data-testid="adornment-button-movable-value--add"
+              className="measure-movable-value-button"
       >
         {t('DG.Inspector.graphAdd')}
-      </Button>
-      <Button onClick={handleRemoveMovableValue} data-testid="adornment-button-movable-value--remove"
-              className='measure-movable-value-button' variant='solid' size='sm'
+      </button>
+      <button onClick={handleRemoveMovableValue} data-testid="adornment-button-movable-value--remove"
+              className="measure-movable-value-button"
       >
         {t('DG.Inspector.graphRemove')}
-      </Button>
-    </Flex>
+      </button>
+    </div>
   )
 }
 
