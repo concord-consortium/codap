@@ -1,0 +1,127 @@
+@use "../../../vars";
+
+.display-config-palette {
+  display: flex;
+  flex-direction: column;
+
+  .config-section {
+    display: flex;
+    flex-direction: column;
+
+    &.indented {
+      padding-left: 20px;
+    }
+  }
+
+  // React Aria RadioGroup — no extra styling needed on the group itself
+  .react-aria-RadioGroup {
+    display: flex;
+    flex-direction: column;
+  }
+
+  // React Aria Radio
+  .react-aria-Radio {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-weight: normal;
+    font-size: 12px;
+    padding: 2px 0;
+
+    .radio-indicator {
+      width: 14px;
+      height: 14px;
+      border: 2px solid vars.$charcoal-light-2;
+      border-radius: 50%;
+      flex-shrink: 0;
+      box-sizing: border-box;
+    }
+
+    &[data-selected] .radio-indicator {
+      border-color: #3182ce;
+      background: radial-gradient(circle, #3182ce 40%, transparent 41%);
+    }
+
+    &[data-hovered] .radio-indicator {
+      border-color: #3182ce;
+    }
+
+    &[data-focus-visible] .radio-indicator {
+      outline: 2px solid vars.$focus-outline-color;
+      outline-offset: 2px;
+    }
+  }
+
+  // React Aria Checkbox
+  .react-aria-Checkbox {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-weight: normal;
+    font-size: 12px;
+    padding: 2px 0;
+    margin-top: 6px;
+
+    .checkbox-indicator {
+      width: 14px;
+      height: 14px;
+      border: 2px solid vars.$charcoal-light-2;
+      border-radius: 2px;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    &[data-selected] .checkbox-indicator {
+      border-color: #3182ce;
+      background-color: #3182ce;
+
+      &::after {
+        content: "";
+        display: block;
+        width: 4px;
+        height: 8px;
+        border: solid white;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg) translate(-1px, -1px);
+      }
+    }
+
+    &[data-hovered] .checkbox-indicator {
+      border-color: #3182ce;
+    }
+
+    &[data-focus-visible] .checkbox-indicator {
+      outline: 2px solid vars.$focus-outline-color;
+      outline-offset: 2px;
+    }
+  }
+
+  // React Aria TextField for bin width/alignment inputs
+  .react-aria-TextField {
+    display: contents;
+  }
+}
+
+// Override .codap-inspector-palette .palette-form .inline-input-group (specificity 0,3,0)
+.codap-inspector-palette .display-config-palette .inline-input-group {
+  background: transparent;
+
+  .form-label {
+    font-weight: normal;
+  }
+
+  .form-input {
+    border: 1px solid vars.$charcoal-light-2;
+    border-radius: 3px;
+
+    &:focus {
+      border-color: vars.$focus-border-color;
+      outline: none;
+    }
+  }
+}

@@ -1015,6 +1015,7 @@
     "DG.Inspector.graphBoxPlotShowOutliers": "Show Outliers",
     "DG.Inspector.graphBoxPlotShowICI": "Show Informal CI",
     "DG.Inspector.graphPlottedValue": "Plotted Value",
+    "DG.Inspector.displayConfigType": "Display type",
     "DG.Inspector.graphBarChart": "Fuse Dots into Bars",
     "DG.Inspector.graphPlotPoints": "Points",
     "DG.Inspector.graphGroupIntoBins": "Group into Bins",

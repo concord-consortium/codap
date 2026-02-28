@@ -1,19 +1,22 @@
-import { Checkbox, Box, Flex, FormLabel, Input, Radio, RadioGroup, Stack } from "@chakra-ui/react"
+import { Checkbox, Input, Label, Radio, RadioGroup, TextField } from "react-aria-components"
 import {observer} from "mobx-react-lite"
 import React, { useEffect, useState } from "react"
-import BarChartIcon from "../../../../assets/icons/icon-segmented-bar-chart.svg"
+import ConfigurationIcon from "../../../../assets/icons/inspector-panel/configuration-icon.svg"
 import { useForceUpdate } from "../../../../hooks/use-force-update"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 import { ITileModel } from "../../../../models/tiles/tile-model"
 import { mstReaction } from "../../../../utilities/mst-reaction"
 import { t } from "../../../../utilities/translation/translate"
 import { tileNotification } from "../../../../models/tiles/tile-notifications"
+import { If } from "../../../common/if"
 import { isPointDisplayType } from "../../../data-display/data-display-types"
 import { InspectorPalette } from "../../../inspector-panel"
 import { BreakdownType, BreakdownTypes } from "../../graphing-types"
 import { isGraphContentModel } from "../../models/graph-content-model"
 import { isBinnedPlotModel } from "../../plots/histogram/histogram-model"
 import { isBarChartModel } from "../../plots/bar-chart/bar-chart-model"
+
+import "./display-config-palette.scss"
 
 type BinOption = "binWidth" | "binAlignment"
 
@@ -40,8 +43,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
   const showFuseIntoBars = graphModel?.plot?.showFusePointsIntoBars
   const showBreakdownTypes = graphModel?.plot?.showBreakdownTypes
   const showBarForEachPoint = graphModel?.plot?.isUnivariateNumeric &&
-                            graphModel?.dataConfiguration.primaryAttributeType !== "date" &&
-                            !graphModel?.plot.isBinned
+                            graphModel?.dataConfiguration.primaryAttributeType !== "date"
   const kInputMaxCharacters = 12
   const kBufferChars = 2 // used to account for input field padding
   const [binWidthInput, setBinWidthInput] = useState(String(binDetails?.binWidth))
@@ -106,14 +108,12 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
     return filteredValue
   }
 
-  const handleBinWidthInput = (e: React.FormEvent<HTMLInputElement>) => {
-    const value = filterNumericInput(e.currentTarget.value)
-    setBinWidthInput(value)
+  const handleBinWidthInput = (value: string) => {
+    setBinWidthInput(filterNumericInput(value))
   }
 
-  const handleBinAlignmentInput = (e: React.FormEvent<HTMLInputElement>) => {
-    const value = filterNumericInput(e.currentTarget.value)
-    setBinAlignmentInput(value)
+  const handleBinAlignmentInput = (value: string) => {
+    setBinAlignmentInput(filterNumericInput(value))
   }
 
   const handleBinOptionKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, option: BinOption) => {
@@ -145,7 +145,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
     }
   }
 
-  const handleBinOptionBlur = (e: React.ChangeEvent<HTMLInputElement>, option: BinOption) => {
+  const handleBinOptionBlur = (e: React.FocusEvent<HTMLInputElement>, option: BinOption) => {
     const initialValue = binnedPlot?.[option]
     const value = Number((e.target as HTMLInputElement).value)
     graphModel?.applyModelChange(() => {
@@ -207,115 +207,122 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
   return (
     <InspectorPalette
       title={t("DG.Inspector.configuration")}
-      Icon={<BarChartIcon/>}
+      Icon={<ConfigurationIcon/>}
       setShowPalette={setShowPalette}
       panelRect={panelRect}
       buttonRect={buttonRect}
     >
-      <Flex className="palette-form" direction="column">
-        {showPointDisplayType && (
-          <RadioGroup defaultValue={graphModel?.plot.isBinned ? "bins" : graphModel?.plot.displayType}>
-            <Stack>
-              <Radio
-                size="md"
-                value="points"
-                data-testid="points-radio-button"
-                onChange={(e) => handleDisplayTypeChange(e.target.value)}
-              >
-                {t("DG.Inspector.graphPlotPoints")}
-              </Radio>
-              <Radio
-                size="md"
-                value="bins"
-                data-testid="bins-radio-button"
-                onChange={(e) => handleDisplayTypeChange(e.target.value)}
-              >
-                {t("DG.Inspector.graphGroupIntoBins")}
-              </Radio>
-              {showBarForEachPoint &&
-                <Radio
-                    size="md"
-                    value="bars"
-                    data-testid="bars-radio-button"
-                    onChange={(e) => handleDisplayTypeChange(e.target.value)}
-                >
-                  {t("DG.Inspector.graphBarForEachPoint")}
-                </Radio>}
-            </Stack>
-          </RadioGroup>
-        )}
-        {showPointDisplayType && graphModel?.plot.isBinned && (
-          <Stack>
-            <Box className="inline-input-group" data-testid="graph-bin-width-setting">
-              <FormLabel className="form-label">
-                {t("DG.Inspector.graphBinWidth")}
-              </FormLabel>
-              {/* TODO: Make it so this field updates instantly to the appropriate value if the user-entered
-                  value would result in a pixel width for bins that's smaller than the minimum allowed pixel
-                  width. Currently, enforcing of the min pixel width is handled by the enforceMinBinPixelWidth
-                  useEffect in BinnedDotPlotDots. */}
-              <Input
-                className="form-input"
-                value={binWidthInput}
-                width={`${binWidthInput.length + kBufferChars}ch`}
-                onBlur={(e) => handleBinOptionBlur(e, "binWidth")}
-                onChange={handleBinWidthInput}
-                onKeyDown={(e) => handleBinOptionKeyDown(e, "binWidth")}
-              />
-            </Box>
-            <Box className="inline-input-group" data-testid="graph-bin-alignment-setting">
-              <FormLabel className="form-label">
-                {t("DG.Inspector.graphAlignment")}
-              </FormLabel>
-              <Input
-                className="form-input"
-                value={binAlignmentInput}
-                width={`${binAlignmentInput.length + kBufferChars}ch`}
-                onBlur={(e) => handleBinOptionBlur(e, "binAlignment")}
-                onChange={handleBinAlignmentInput}
-                onKeyDown={(e) => handleBinOptionKeyDown(e, "binAlignment")}
-              />
-            </Box>
-          </Stack>
-        )}
-      {showFuseIntoBars && (
-        <Stack>
-          <Checkbox
-            data-testid="bar-chart-checkbox"
-            mt="6px" isChecked={pointsFusedIntoBars}
-            onChange={e => handleSetFuseIntoBars(e.target.checked)}
+      <div className="palette-form display-config-palette">
+        <If condition={!!showPointDisplayType}>
+          <RadioGroup
+            aria-label={t("DG.Inspector.displayConfigType")}
+            defaultValue={graphModel?.plot.isBinned ? "bins" : graphModel?.plot.displayType}
+            onChange={handleDisplayTypeChange}
           >
-            {t("DG.Inspector.graphBarChart")}
-          </Checkbox>
-          {showBreakdownTypes && (
-            <Stack>
-              <Box className="form-title">{t("DG.Inspector.displayShow")}</Box>
-              <RadioGroup value={breakdownTypeRadio}>
-                <Stack>
-                  {BreakdownTypes.map((type) => {
-                    return (
-                      <Radio
-                        key={type}
-                        size="md"
-                        value={type}
-                        data-testid={`${type}-radio-button`}
-                        onChange={(e) => {
-                          const value = e.target.value as BreakdownType
-                          handleBreakdownTypeChange(value)
-                        }}
-                      >
-                        {t(`DG.Inspector.graph${type.charAt(0).toUpperCase() + type.slice(1)}`)}
-                      </Radio>
-                    )
-                  })
-                  }
-                </Stack>
-              </RadioGroup>
-            </Stack>
-          )}
-        </Stack>
-       )}
-      </Flex>
+            <Radio value="points" data-testid="points-radio-button">
+              {({isSelected}) => (
+                <>
+                  <span className={`radio-indicator${isSelected ? " selected" : ""}`} />
+                  {t("DG.Inspector.graphPlotPoints")}
+                </>
+              )}
+            </Radio>
+            <Radio value="bins" data-testid="bins-radio-button">
+              {({isSelected}) => (
+                <>
+                  <span className={`radio-indicator${isSelected ? " selected" : ""}`} />
+                  {t("DG.Inspector.graphGroupIntoBins")}
+                </>
+              )}
+            </Radio>
+            <If condition={!!graphModel?.plot.isBinned}>
+              <div className="config-section indented">
+                <div className="inline-input-group" data-testid="graph-bin-width-setting">
+                  <TextField value={binWidthInput} onChange={handleBinWidthInput}>
+                    <Label className="form-label">
+                      {t("DG.Inspector.graphBinWidth")}
+                    </Label>
+                    {/* TODO: Make it so this field updates instantly to the appropriate value if the
+                        user-entered value would result in a pixel width for bins that's smaller than
+                        the minimum allowed pixel width. Currently, enforcing of the min pixel width is
+                        handled by the enforceMinBinPixelWidth useEffect in BinnedDotPlotDots. */}
+                    <Input
+                      className="form-input"
+                      style={{width: `${binWidthInput.length + kBufferChars}ch`}}
+                      onBlur={(e) => handleBinOptionBlur(e, "binWidth")}
+                      onKeyDown={(e) => handleBinOptionKeyDown(e, "binWidth")}
+                    />
+                  </TextField>
+                </div>
+                <div className="inline-input-group" data-testid="graph-bin-alignment-setting">
+                  <TextField value={binAlignmentInput} onChange={handleBinAlignmentInput}>
+                    <Label className="form-label">
+                      {t("DG.Inspector.graphAlignment")}
+                    </Label>
+                    <Input
+                      className="form-input"
+                      style={{width: `${binAlignmentInput.length + kBufferChars}ch`}}
+                      onBlur={(e) => handleBinOptionBlur(e, "binAlignment")}
+                      onKeyDown={(e) => handleBinOptionKeyDown(e, "binAlignment")}
+                    />
+                  </TextField>
+                </div>
+              </div>
+            </If>
+            <If condition={!!showFuseIntoBars}>
+              <div className="config-section indented">
+                <Checkbox
+                  data-testid="bar-chart-checkbox"
+                  isSelected={pointsFusedIntoBars}
+                  onChange={handleSetFuseIntoBars}
+                >
+                  {({isSelected}) => (
+                    <>
+                      <span className={`checkbox-indicator${isSelected ? " selected" : ""}`} />
+                      {t("DG.Inspector.graphBarChart")}
+                    </>
+                  )}
+                </Checkbox>
+                <If condition={!!showBreakdownTypes}>
+                  <div className="config-section">
+                    <div className="form-title">{t("DG.Inspector.displayShow")}</div>
+                    <RadioGroup
+                      aria-label={t("DG.Inspector.displayShow")}
+                      value={breakdownTypeRadio}
+                      onChange={(value) => handleBreakdownTypeChange(value as BreakdownType)}
+                    >
+                      {BreakdownTypes.map((type) => (
+                        <Radio
+                          key={type}
+                          value={type}
+                          data-testid={`${type}-radio-button`}
+                        >
+                          {({isSelected}) => (
+                            <>
+                              <span className={`radio-indicator${isSelected ? " selected" : ""}`} />
+                              {t(`DG.Inspector.graph${type.charAt(0).toUpperCase() + type.slice(1)}`)}
+                            </>
+                          )}
+                        </Radio>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                </If>
+              </div>
+            </If>
+            <If condition={!!showBarForEachPoint}>
+              <Radio value="bars" data-testid="bars-radio-button">
+                {({isSelected}) => (
+                  <>
+                    <span className={`radio-indicator${isSelected ? " selected" : ""}`} />
+                    {t("DG.Inspector.graphBarForEachPoint")}
+                  </>
+                )}
+              </Radio>
+            </If>
+          </RadioGroup>
+        </If>
+      </div>
     </InspectorPalette>
   )
 })
