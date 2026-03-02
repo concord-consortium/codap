@@ -1,5 +1,5 @@
 import React from "react"
-import { render, screen, within } from "@testing-library/react"
+import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { GraphMeasurePalette } from "./graph-measure-palette"
 import { IGroupItem, IMeasureMenuItem } from "../../adornments/store/adornments-store-utils"
@@ -205,8 +205,7 @@ describe("GraphMeasurePalette", () => {
       const trigger = screen.getByTestId("adornment-toggle-measuresOfCenter")
       expect(trigger).toHaveAttribute("aria-expanded", "false")
       // React Aria DisclosurePanel is hidden but still in DOM
-      const panel = screen.getByTestId("mean-controls").closest("[hidden]")
-      expect(panel).toBeInTheDocument()
+      expect(screen.getByTestId("mean-controls")).not.toBeVisible()
     })
 
     it("shows group items when expanded", () => {
@@ -250,8 +249,7 @@ describe("GraphMeasurePalette", () => {
 
       const group = screen.getByRole("group")
       expect(group).toHaveAttribute("aria-labelledby", "measure-palette-show-label")
-      const label = document.getElementById("measure-palette-show-label")
-      expect(label).toHaveTextContent("DG.Inspector.displayShow")
+      expect(group).toHaveAccessibleName("DG.Inspector.displayShow")
     })
 
     it("wraps disclosure group items in a group with aria-label", () => {
