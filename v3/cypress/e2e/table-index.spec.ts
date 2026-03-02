@@ -160,6 +160,24 @@ context("case table index and component", () => {
       table.getGridCell(lastRowIndex + 1, 2).find("input").type("Sloth{enter}")
       table.getNumOfRows().should("equal", `${Number(numOfCases) + 1}`)
     })
+    it("verify insert case from input row index menu at default position", () => {
+      // Select a case so the Insert Case menu item is enabled
+      table.getGridCell(2, 2).click()
+      table.getCaseTableGrid().scrollTo("bottom")
+      table.openInputRowIndexMenu()
+      table.getIndexMenu().should("be.visible")
+      table.insertCase()
+      table.getNumOfRows().should("equal", `${Number(numOfCases) + 1}`)
+    })
+    it("verify insert cases from input row index menu at default position", () => {
+      // Select a case so the Insert Cases menu item is enabled
+      table.getGridCell(2, 2).click()
+      table.getCaseTableGrid().scrollTo("bottom")
+      table.openInputRowIndexMenu()
+      table.getIndexMenu().should("be.visible")
+      table.insertCases(3, "before")
+      table.getNumOfRows().should("equal", `${Number(numOfCases) + 3}`)
+    })
     it("can move the input row using the index menu", () => {
       table.getIndexCellInRow(3).should("not.have.class", "input-row")
       table.moveInputRowUsingIndexMenu(3)
