@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite"
 import React, { forwardRef } from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { useDataSetMetadata } from "../../../hooks/use-data-set-metadata"
+import { useMenuItemScrollIntoView } from "../../../hooks/use-menu-item-scroll-into-view"
 import { logMessageWithReplacement, logStringifiedObjectMessage } from "../../../lib/log-message"
 import {
   deleteCollectionNotification, dependentCasesNotification, hideAttributeNotification, removeAttributesNotification
@@ -31,6 +32,8 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
   const metadata = useDataSetMetadata()
   const tableModel = useCaseTableModel()
   const { isOpen, onClose, onOpen } = useDisclosure()
+
+  const handleMenuItemFocus = useMenuItemScrollIntoView()
 
   if (!attributeId) return null
 
@@ -224,7 +227,8 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
 
   return (
     <>
-      <MenuList ref={ref} data-testid="attribute-menu-list" onKeyDown={handleMenuKeyDown}>
+      <MenuList ref={ref} data-testid="attribute-menu-list"
+          onKeyDown={handleMenuKeyDown} onFocus={handleMenuItemFocus}>
         {menuItems.map(item => (
           <MenuItem key={item.itemKey} isDisabled={!isItemEnabled(item)} onClick={() => item.handleClick?.(item)}>
             {`${t(item.itemKey)}${item.handleClick ? "" : " 🚧"}`}

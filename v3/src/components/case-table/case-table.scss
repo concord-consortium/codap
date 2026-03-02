@@ -223,6 +223,8 @@ $collection-title-font-color: black;
       line-height: 14px !important;
 
       .codap-column-header {
+        // Use our standard focus color for the RDG cell selection outline
+        --rdg-selection-color: #{vars.$focus-outline-color};
         text-align: center;
         height: shared.$header-row-height-px !important;
         &.index {
@@ -231,6 +233,7 @@ $collection-title-font-color: black;
         }
 
         .codap-column-header-content {
+          position: relative;
           width: 100%;
           height: 100%;
           display: flex;
@@ -251,6 +254,29 @@ $collection-title-font-color: black;
           button {
             width: 100%;
             height: 100%;
+          }
+
+          button.codap-attribute-button:focus-visible {
+            // Suppress button outline — the RDG cell outline handles focus indication
+            outline: none;
+          }
+
+          .attr-header-dropdown-arrow {
+            position: absolute;
+            right: 2px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 10px;
+            height: 10px;
+            color: vars.$icon-fill-dark;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+          }
+
+          &:hover .attr-header-dropdown-arrow,
+          &:focus-within .attr-header-dropdown-arrow {
+            opacity: 1;
           }
 
           button.codap-attribute-button.allow-two-lines > span {

@@ -7,7 +7,9 @@ import { useFreeTileLayoutContext } from "../../../hooks/use-free-tile-layout-co
 import { IUseDraggableAttribute, useDraggableAttribute } from "../../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import { useMenuHeightAdjustment } from "../../../hooks/use-menu-height-adjustment"
+import { useMenuItemScrollIntoView } from "../../../hooks/use-menu-item-scroll-into-view"
 import { useOutsidePointerDown } from "../../../hooks/use-outside-pointer-down"
+import { useSubmenuCloseOnArrowLeft, useSubmenuOpenOnArrowRight } from "../../../hooks/use-submenu-keyboard-nav"
 import { useOverlayBounds } from "../../../hooks/use-overlay-bounds"
 import { AttributeType } from "../../../models/data/attribute-types"
 import { ICollectionModel, isCollectionModel } from "../../../models/data/collection"
@@ -19,6 +21,7 @@ import { GraphPlace } from "../../axis-graph-shared"
 import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
 import { useDataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
 
+import DropdownArrow from "../../../assets/icons/arrow.svg"
 import RightArrow from "../../../assets/icons/arrow-right.svg"
 
 import "./axis-or-legend-attribute-menu.scss"
@@ -61,16 +64,23 @@ interface ICollectionMenuProps {
   maxMenuHeight: string
   onCancelPendingHover?: () => void
   onChangeAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
+  onCloseSubmenu?: () => void
+  onOpenSubmenu?: () => void
   onPointerOver?: React.PointerEventHandler<HTMLButtonElement>
   place: GraphPlace
 }
 const CollectionMenu = observer(function CollectionMenu({
   collectionInfo, containerRef, isAttributeAllowed, isOpen, maxMenuHeight, onCancelPendingHover,
-  onChangeAttribute, onPointerOver, place
+  onChangeAttribute, onCloseSubmenu, onOpenSubmenu, onPointerOver, place
 }: ICollectionMenuProps) {
   const { collection } = collectionInfo
   const submenuRef = useRef<HTMLDivElement>(null)
+  const collectionItemRef = useRef<HTMLDivElement>(null)
   const adjustedMaxHeight = useMenuHeightAdjustment({ menuRef: submenuRef, containerRef, isOpen })
+  const handleMenuItemFocus = useMenuItemScrollIntoView()
+  const handleSubmenuKeyDown = useSubmenuCloseOnArrowLeft({
+    isOpen, submenuRef, triggerRef: collectionItemRef, onClose: onCloseSubmenu ?? (() => {})
+  })
 
   const handleSubmenuPointerEnter = () => {
     onCancelPendingHover?.()
@@ -79,9 +89,11 @@ const CollectionMenu = observer(function CollectionMenu({
   return (
     <>
       <Menu isOpen={isOpen} placement="auto">
-        <MenuButton as="div" className="collection-menu-button" />
+        <MenuButton as="div" className="collection-menu-button" aria-hidden="true" tabIndex={-1} />
         <MenuList ref={submenuRef} className="axis-legend-submenu"
                   maxH={adjustedMaxHeight ?? maxMenuHeight} overflowY="auto"
+                  onFocus={handleMenuItemFocus}
+                  onKeyDown={handleSubmenuKeyDown}
                   onPointerEnter={handleSubmenuPointerEnter}
                   data-testid={`axis-legend-attribute-menu-list-${place}-${collection.id}`}>
           <MenuItemsForCollection
@@ -93,15 +105,19 @@ const CollectionMenu = observer(function CollectionMenu({
         </MenuList>
       </Menu>
       <MenuItem
+        ref={collectionItemRef}
         as="div"
         className="collection-menu-item"
         closeOnSelect={false}
+        data-collection-id={collection.id}
         key={collection.id}
-        onClick={onPointerOver}
+        onClick={onOpenSubmenu}
         onPointerOver={onPointerOver}
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
       >
         <span>{collection.name}</span>
-        <RightArrow className="collection-menu-arrow" />
+        <RightArrow className="collection-menu-arrow" aria-hidden="true" />
       </MenuItem>
     </>
   )
@@ -201,6 +217,18 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
     }
   }, [])
 
+  // Open a collection submenu immediately (for keyboard navigation)
+  const handleOpenSubmenu = useCallback((collectionId: string) => {
+    cancelPendingHover()
+    setOpenCollectionId(collectionId)
+  }, [cancelPendingHover])
+
+  // Close the current collection submenu (for keyboard navigation)
+  const handleCloseSubmenu = useCallback(() => {
+    cancelPendingHover()
+    setOpenCollectionId(null)
+  }, [cancelPendingHover])
+
   // Enable snapToCursor for vertical (Y) axis labels since the rotated label's bounding box
   // causes the drag overlay to appear far from the mouse position
   const isVerticalAxis = ['left', 'rightCat', 'rightNumeric'].includes(place)
@@ -241,6 +269,16 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   }
   const clickLabel = place === 'legend' ? `—${t("DG.LegendView.attributeTooltip")}`
     : t("DG.AxisView.labelTooltip", { vars: [orientation]})
+  const ariaLabel = place === 'legend'
+    ? attribute?.name
+      ? t("DG.AxisView.legendAriaLabel", { vars: [attribute.name] })
+      : t("DG.AxisView.emptyLegendAriaLabel")
+    : attribute?.name
+      ? t("DG.AxisView.axisAriaLabel", { vars: [orientation, attribute.name] })
+      : t("DG.AxisView.emptyAxisAriaLabel", { vars: [orientation] })
+
+  const handleMenuItemFocus = useMenuItemScrollIntoView()
+  const handleMainMenuKeyDown = useSubmenuOpenOnArrowRight("collection-id", handleOpenSubmenu)
 
   const handleChangeAttribute = (_place: GraphPlace, data: IDataSet, _attrId: string) => {
     onChangeAttribute(_place, data, _attrId)
@@ -274,6 +312,8 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
               maxMenuHeight={maxMenuHeight}
               onCancelPendingHover={cancelPendingHover}
               onChangeAttribute={handleChangeAttribute}
+              onCloseSubmenu={handleCloseSubmenu}
+              onOpenSubmenu={() => handleOpenSubmenu(collection.id)}
               onPointerOver={() => handleCollectionHover(collection.id)}
               place={place}
             />
@@ -295,12 +335,16 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
             <div className="attribute-label-menu" ref={setDragNodeRef}
                 style={overlayStyle} {...attributes} {...listeners}
                 data-testid={`attribute-label-menu-${place}`}>
-              <MenuButton style={buttonStyle} data-testid={`axis-legend-attribute-button-${place}`}>
+              <MenuButton style={buttonStyle} aria-label={ariaLabel}
+                           data-testid={`axis-legend-attribute-button-${place}`}>
                 {attribute?.name}
               </MenuButton>
+              <DropdownArrow className="axis-label-dropdown-arrow" aria-hidden="true" />
               <Portal containerRef={containerRef}>
                 <MenuList ref={mainMenuListRef} className="axis-legend-menu"
                           maxH={adjustedMainMenuHeight ?? maxMenuHeight} overflowY="auto"
+                          onFocus={handleMenuItemFocus}
+                          onKeyDown={handleMainMenuKeyDown}
                           data-testid={`axis-legend-attribute-menu-list-${place}`}>
                   {renderMenuItems()}
                   { attribute &&

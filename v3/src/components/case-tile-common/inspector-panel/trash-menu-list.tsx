@@ -1,6 +1,7 @@
 import { MenuItem, MenuList } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
+import { useMenuItemScrollIntoView } from "../../../hooks/use-menu-item-scroll-into-view"
 import { removeCasesWithCustomUndoRedo } from "../../../models/data/data-set-undo"
 import { selectAllCases } from "../../../models/data/data-set-utils"
 import { isItemEditable } from "../../../utilities/plugin-utils"
@@ -8,6 +9,7 @@ import { t } from "../../../utilities/translation/translate"
 
 export const TrashMenuList = observer(function TrashMenuList() {
   const data = useDataSetContext()
+  const handleFocus = useMenuItemScrollIntoView()
 
   const selectedItemIds = Array.from(data?.selection ?? [])
   const disableDeleteSelectedItems = !data || !selectedItemIds.some(itemId => isItemEditable(data, itemId))
@@ -37,7 +39,7 @@ export const TrashMenuList = observer(function TrashMenuList() {
   }
 
   return (
-    <MenuList data-testid="trash-menu-list">
+    <MenuList data-testid="trash-menu-list" onFocus={handleFocus}>
       <MenuItem
         onClick={handleSelectAllCases}
         data-testid="trash-menu-select-all-cases"

@@ -1,6 +1,7 @@
 import { MenuItem, MenuList } from "@chakra-ui/react"
 import { toPng, toSvg } from 'html-to-image'
 
+import { useMenuItemScrollIntoView } from "../../../../hooks/use-menu-item-scroll-into-view"
 import { ITileModel } from "../../../../models/tiles/tile-model"
 import { t } from "../../../../utilities/translation/translate"
 import { openInDrawTool } from "../../../data-display/data-display-image-utils"
@@ -16,6 +17,7 @@ interface IProps {
 
 export const SaveImageMenuList = ({tile}: IProps) => {
   const cfm = useCfmContext()
+  const handleFocus = useMenuItemScrollIntoView()
   const { setProgressMessage, clearProgressMessage } = useProgress()
   const mapModel = isMapContentModel(tile?.content) ? tile?.content : undefined
 
@@ -93,7 +95,7 @@ export const SaveImageMenuList = ({tile}: IProps) => {
   */
 
   return (
-    <MenuList data-testid="save-image-menu-list">
+    <MenuList data-testid="save-image-menu-list" onFocus={handleFocus}>
       <MenuItem data-testid="open-in-draw-tool" onClick={handleOpenInDrawTool}>
         {t("DG.DataDisplayMenu.copyAsImage")}
       </MenuItem>

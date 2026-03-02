@@ -2,6 +2,42 @@
 
 .attribute-label-menu {
   touch-action: none;
+
+  button:focus-visible {
+    outline: 2px solid vars.$focus-outline-color;
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  .axis-label-dropdown-arrow {
+    position: absolute;
+    right: -14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    color: vars.$icon-fill-dark;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  &:hover .axis-label-dropdown-arrow,
+  &:focus-within .axis-label-dropdown-arrow {
+    opacity: 1;
+  }
+}
+
+// For vertical axes, position the arrow below instead of to the right
+.axis-legend-attribute-menu.left,
+.axis-legend-attribute-menu.rightCat,
+.axis-legend-attribute-menu.rightNumeric {
+  .attribute-label-menu .axis-label-dropdown-arrow {
+    right: 50%;
+    top: auto;
+    bottom: -14px;
+    transform: translateX(50%);
+  }
 }
 
 .collection-menu-button {

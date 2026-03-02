@@ -145,6 +145,7 @@
     // DG.ToolButtonData
     "DG.ToolButtonData.tableButton.title": "Tables",
     "DG.ToolButtonData.tableButton.toolTip": "Open a case table for each data set",
+    "DG.ToolButtonData.tableButton.ariaLabel": "Tables menu",
     "DG.ToolButtonData.graphButton.title": "Graph",
     "DG.ToolButtonData.graphButton.toolTip": "Make a graph",
     "DG.ToolButtonData.sliderButton.title": "Slider",
@@ -159,13 +160,16 @@
     "DG.ToolButtonData.optionMenu.toolTip": "Display a website, configure guide...",
     "DG.ToolButtonData.tileListMenu.title": "Tiles",
     "DG.ToolButtonData.tileListMenu.toolTip": "Show the list of tiles in the document",
+    "DG.ToolButtonData.tileListMenu.ariaLabel": "Tiles menu",
     "DG.ToolButtonData.guideMenu.title": "Guide",
     "DG.ToolButtonData.guideMenu.toolTip": "Show the guide for this activity and navigate within it",
+    "DG.ToolButtonData.guideMenu.ariaLabel": "Guide menu",
     "DG.ToolButtonData.guideMenu.showGuide": "Show Guide",
     "DG.ToolButtonData.help.title": "Help",
     "DG.ToolButtonData.help.toolTip": "Help for CODAP, learn about CODAP project",
     "DG.ToolButtonData.pluginMenu.title": "Plugins",
     "DG.ToolButtonData.pluginMenu.toolTip": "Open a plugin component",
+    "DG.ToolButtonData.pluginMenu.ariaLabel": "Plugins menu",
 
     // DG.Slider
     "DG.Slider.multiples": "Restrict to Multiples of:",
@@ -679,6 +683,7 @@
     "DG.CaseTable.attributeEditor.type": "Type",
     "DG.CaseTable.attributeEditor.unit": "Unit",
     "DG.CaseTable.attributeEditor.precision": "Precision",
+    "DG.CaseTable.attributeEditor.datePrecision": "Date precision",
     "DG.CaseTable.attributeEditor.datePrecisionOptions": "year month day hour minute second millisecond",
     "DG.CaseTable.attributeEditor.editable": "Editable",
     "DG.CaseTable.insertCasesDialog.title": "Insert Cases",
@@ -894,6 +899,10 @@
     "DG.AxisView.labelTooltip": "—Click to change %@ axis attribute",  // %@ is either horizontal or vertical
     "DG.AxisView.vertical": "vertical",
     "DG.AxisView.horizontal": "horizontal",
+    "DG.AxisView.axisAriaLabel": "Choose %@ axis attribute, currently %@",  // first %@ is horizontal/vertical, second %@ is attribute name
+    "DG.AxisView.legendAriaLabel": "Choose legend attribute, currently %@",  // %@ is attribute name
+    "DG.AxisView.emptyAxisAriaLabel": "Choose %@ axis attribute",  // %@ is horizontal/vertical
+    "DG.AxisView.emptyLegendAriaLabel": "Choose legend attribute",
 
     // DG.DataTip
     "DG.DataTip.connectingLine": "%@: %@\nwith %@ points (%@) on this line", // <category attribute name> <category> <number of points> <collection name>
@@ -1378,6 +1387,9 @@
     "V3.CaseTable.collectionTitleTextWithEmptyAndHidden": "%@1 (%@2 nonempty cases, %@3 hidden)", /* %@1 replaced with case table title, %@2 replaced with case count, %@3 with hidden count */
     "V3.CaseTable.colorPalette.setColor": "Set Color",
     "V3.CaseTable.colorPalette.cancel": "Cancel",
+    "V3.CaseTable.attributeAriaLabel": "Attribute %@, open menu",
+    "V3.CaseTable.attributeDragInstructions": "Press Space to drag the attribute within the table or to a graph. Press Enter to open the attribute menu.",
+    "V3.CaseTable.renameAriaLabel": "Rename attribute %@",
     "V3.CaseTable.formulaFilterBar.label": "Show cases only if",
     "V3.Undo.caseTable.create": "Undo adding case table",
     "V3.Redo.caseTable.create": "Redo adding case table",

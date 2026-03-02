@@ -4,6 +4,7 @@ import { observer } from "mobx-react-lite"
 import WebViewIcon from "../../assets/icons/icon-media-tool.svg"
 import TileListIcon from "../../assets/icons/icon-tile-list.svg"
 import { useDocumentContent } from "../../hooks/use-document-content"
+import { useMenuItemScrollIntoView } from "../../hooks/use-menu-item-scroll-into-view"
 import { isFreeTileLayout, isFreeTileRow } from "../../models/document/free-tile-row"
 import { persistentState } from "../../models/persistent-state"
 import { getTileComponentIcon } from "../../models/tiles/tile-component-info"
@@ -29,6 +30,7 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
   }
   const langClass = getSpecialLangFontClassName()
   const {isOpen, onOpen, onClose} = useDisclosure()
+  const handleMenuItemFocus = useMenuItemScrollIntoView()
 
   const handleFocus = (tileId: string) => {
     uiState.setHoveredTile(tileId)
@@ -46,6 +48,7 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
       <Menu isLazy autoSelect={false} isOpen={isOpen} onOpen={onOpen} onClose={onClose} placement={placement}>
         <MenuButton
           className={clsx("tool-shelf-button", "tool-shelf-menu", "tiles-list-menu", langClass, {"menu-open": isOpen})}
+          aria-label={t("DG.ToolButtonData.tileListMenu.ariaLabel")}
           title={t("DG.ToolButtonData.tileListMenu.toolTip")}
           data-testid="tool-shelf-button-tiles"
         >
@@ -55,7 +58,8 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
             label={t("DG.ToolButtonData.tileListMenu.title")}
           />
         </MenuButton>
-        <MenuList className="tool-shelf-menu-list top-menu tiles-list" data-testid="tiles-list-menu" >
+        <MenuList className="tool-shelf-menu-list top-menu tiles-list" data-testid="tiles-list-menu"
+            onFocus={handleMenuItemFocus}>
           {tilesArr?.filter(tile => !isTileHidden(tile)).map((tile) => {
             const tileType = tile.content.type
             const _Icon = getTileComponentIcon(tileType)

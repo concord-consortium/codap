@@ -3,6 +3,7 @@ import { Button, Menu, MenuButton, MenuItem, MenuList, ModalBody, ModalFooter,
     Tooltip, useDisclosure } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
+import { useMenuItemScrollIntoView } from "../../hooks/use-menu-item-scroll-into-view"
 import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { appState } from "../../models/app-state"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
@@ -43,6 +44,7 @@ const CaseTableToolShelfMenuList = observer(
   const datasets = manager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType) ?? []
   const datasetNames = datasets.map(data => data.dataSet.name)
   const { isOpen, onOpen, onClose } = useDisclosure()
+  const handleMenuItemFocus = useMenuItemScrollIntoView()
   const [modalOpen, setModalOpen] = useState(false)
   const [dataSetIdToDeleteId, setDataSetIdToDelete] = useState("")
 
@@ -82,7 +84,8 @@ const CaseTableToolShelfMenuList = observer(
   }
   return (
     <>
-      <MenuList className="tool-shelf-menu-list top-menu table" data-testid="tool-shelf-table-menu-list">
+      <MenuList className="tool-shelf-menu-list top-menu table" data-testid="tool-shelf-table-menu-list"
+          onFocus={handleMenuItemFocus}>
         <MenuItem data-testid="tool-shelf-table-new" className="tool-shelf-menu-item table-menu-item"
             onClick={handleCreateNewCaseTable}>
           <TableIcon className="menu-icon case-table-icon"/>
@@ -132,6 +135,7 @@ export const CaseTableToolShelfButton = observer(function CaseTableToolShelfButt
   return (
     <Menu isLazy autoSelect={false} isOpen={isOpen} onOpen={onOpen} onClose={onClose} placement={placement}>
       <MenuButton className={clsx("tool-shelf-button tool-shelf-menu table first", langClass, {"menu-open": isOpen})}
+          aria-label={t("DG.ToolButtonData.tableButton.ariaLabel")}
           title={`${t("DG.ToolButtonData.tableButton.toolTip")}`}
           data-testid={"tool-shelf-button-table"}>
         <TableIcon className="menu-icon case-table-icon" />

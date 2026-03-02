@@ -1,6 +1,7 @@
 import { Flex, FormControl, FormLabel, Input, Menu, MenuButton, MenuList, MenuItem, Button } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React, { useEffect, useState } from "react"
+import { useMenuItemScrollIntoView } from "../../../hooks/use-menu-item-scroll-into-view"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import { convertToDate, createDateFromEpochSeconds, formatDateForInput } from "../../../utilities/date-utils"
 import { t } from "../../../utilities/translation/translate"
@@ -21,6 +22,7 @@ interface IProps {
 export const SliderScalesPalette =
   observer(function SliderScalesPalette({sliderModel, panelRect, buttonRect, setShowPalette}: IProps) {
     const scaleType = sliderModel.scaleType
+    const handleMenuFocus = useMenuItemScrollIntoView()
     const [minInputValue, setMinInputValue] = useState(sliderModel.axis.minDisplay)
     const [maxInputValue, setMaxInputValue] = useState(sliderModel.axis.maxDisplay)
 
@@ -132,10 +134,11 @@ export const SliderScalesPalette =
               <FormLabel className="form-label">{t("V3.Slider.scaleType")}
                 <Menu>
                   <MenuButton as={Button} className="slider-select scaleType" sx={{ height: "20px" }}
+                    aria-label={t("V3.Slider.scaleType")}
                     data-testid="slider-scale-type-button">
                     {t(`V3.Slider.scaleType.${scaleType}`)}
                   </MenuButton>
-                  <MenuList>
+                  <MenuList onFocus={handleMenuFocus}>
                     {SliderScaleTypes.map(aScaleType => (
                       <MenuItem key={aScaleType} onClick={() => handleScaleTypeChange(aScaleType)}
                         data-testid={`slider-scale-${aScaleType.toLowerCase()}`}>

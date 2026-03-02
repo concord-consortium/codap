@@ -1,7 +1,7 @@
 import { Editable, EditablePreview, EditableInput, useEditableControls } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import React, { useState } from "react"
+import React, { useCallback, useState } from "react"
 import { IAttribute } from "../../models/data/attribute"
 import { ICollectionModel } from "../../models/data/collection"
 import { ICase, IGroupedCase } from "../../models/data/data-set-types"
@@ -138,10 +138,23 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
   const customButtonStyle = {
     _focusVisible: {
       borderRadius: 0,
-      outline: "2px solid #66afe9",
-      outlineOffset: "5px"
+      outline: "2px solid #0957d0",
+      outlineOffset: "4px"
     }
   }
+
+  // Navigate between attribute headers with Up/Down arrows in the card view
+  // (analogous to Left/Right arrow navigation in the case table, which RDG handles natively)
+  const handleButtonKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (["ArrowDown", "ArrowUp"].includes(e.key)) {
+      const row = (e.target as HTMLElement).closest(".case-card-attr")
+      if (row) {
+        const sibling = e.key === "ArrowDown" ? row.nextElementSibling : row.previousElementSibling
+        const button = sibling?.querySelector(".codap-attribute-button") as HTMLElement | null
+        button?.focus()
+      }
+    }
+  }, [])
 
   const classes = clsx("case-card-attr-value", {
     editable: isEditable,
@@ -157,6 +170,7 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
           customButtonStyle={customButtonStyle}
           getDividerBounds={getDividerBounds}
           showUnits={false}
+          onButtonKeyDown={handleButtonKeyDown}
           onSetHeaderContentElt={onSetContentElt}
         />
       </td>

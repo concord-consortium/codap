@@ -1,6 +1,7 @@
 import { observer } from "mobx-react-lite"
 import { MenuItem, MenuList } from "@chakra-ui/react"
 import { useCfmContext } from "../../../hooks/use-cfm-context"
+import { useMenuItemScrollIntoView } from "../../../hooks/use-menu-item-scroll-into-view"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
 import { updateTileNotification } from "../../../models/tiles/tile-notifications"
 import { logMessageWithReplacement } from "../../../lib/log-message"
@@ -10,6 +11,7 @@ import { openInDrawTool } from "../../data-display/data-display-image-utils"
 
 export const CameraMenuList = observer(function CameraMenuList() {
   const tile = useTileModelContext().tile
+  const handleFocus = useMenuItemScrollIntoView()
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
   const cfm = useCfmContext()
   const backgroundImage = graphModel?.plotBackgroundImage
@@ -116,7 +118,7 @@ export const CameraMenuList = observer(function CameraMenuList() {
   }
 
   return (
-    <MenuList data-testid="graph-camera-menu-list">
+    <MenuList data-testid="graph-camera-menu-list" onFocus={handleFocus}>
       {
         backgroundImage !== undefined
         ? <>
@@ -150,7 +152,7 @@ export const CameraMenuList = observer(function CameraMenuList() {
       <MenuItem data-testid="export-svg-image"
                 onClick={handleExportSVG}
                 isDisabled={true}>
-        {`${t("DG.DataDisplayMenu.exportSvgImage")} 🚧`}
+        {t("DG.DataDisplayMenu.exportSvgImage")}<span aria-hidden="true"> 🚧</span>
       </MenuItem>
     </MenuList>
   )

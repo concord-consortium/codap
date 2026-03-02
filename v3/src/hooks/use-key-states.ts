@@ -1,4 +1,4 @@
-import { observable } from "mobx"
+import { observable, runInAction } from "mobx"
 import { useEffect } from "react"
 
 /**
@@ -30,9 +30,10 @@ export const isKeyDown = (key: string) => keysDown.has(key)
  */
 export const useKeyStates = () => {
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => keysDown.add(e.key)
-    const handleKeyUp = (e: KeyboardEvent) => keysDown.delete(e.key)
-    const updateKey = (key: string, isDown: boolean) => isDown ? keysDown.add(key) : keysDown.delete(key)
+    const handleKeyDown = (e: KeyboardEvent) => runInAction(() => keysDown.add(e.key))
+    const handleKeyUp = (e: KeyboardEvent) => runInAction(() => keysDown.delete(e.key))
+    const updateKey = (key: string, isDown: boolean) =>
+            runInAction(() => isDown ? keysDown.add(key) : keysDown.delete(key))
     const handleMouseEvent = (e: MouseEvent) => {
       const keys: Record<string, boolean> = {
         Shift: e.shiftKey, Alt: e.altKey, Meta: e.metaKey, Control: e.ctrlKey

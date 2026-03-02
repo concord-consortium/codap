@@ -1,3 +1,5 @@
+@use "../vars";
+
 .case-card-attr {
   touch-action: none;
   height: 25px;
@@ -23,11 +25,32 @@
     white-space: nowrap;
 
     .codap-column-header-content {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+
       &:hover {
         color: #1b5798 !important; // overrides Charkraui default color
         span {
           text-decoration: underline;
         }
+      }
+
+      .attr-header-dropdown-arrow {
+        flex-shrink: 0;
+        order: -1;
+        width: 10px;
+        height: 10px;
+        margin-right: 8px;
+        color: vars.$icon-fill-dark;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.15s ease;
+      }
+
+      &:hover .attr-header-dropdown-arrow,
+      &:focus-within .attr-header-dropdown-arrow {
+        opacity: 1;
       }
     }
   }
