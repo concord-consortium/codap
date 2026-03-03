@@ -38,17 +38,20 @@ describe("PointColorSetting", () => {
     jest.clearAllMocks()
   })
 
-  it("renders a swatch button", () => {
+  it("renders a swatch button with accessible name and ARIA attributes", () => {
     render(<PointColorSetting {...defaultProps} />)
 
-    const button = screen.getByRole("button", { name: "" })
+    const button = screen.getByRole("button", { name: /Fill Color/ })
     expect(button).toHaveClass("color-picker-thumb")
+    expect(button).toHaveAttribute("aria-label", "Fill Color: #FF0000")
+    expect(button).toHaveAttribute("aria-expanded", "false")
+    expect(button).toHaveAttribute("aria-haspopup", "dialog")
   })
 
   it("renders swatch inside the button", () => {
     render(<PointColorSetting {...defaultProps} />)
 
-    const button = screen.getByRole("button", { name: "" })
+    const button = screen.getByRole("button", { name: /Fill Color/ })
     // eslint-disable-next-line testing-library/no-node-access
     expect(button.firstElementChild).toHaveClass("color-picker-thumb-swatch")
   })
@@ -57,7 +60,7 @@ describe("PointColorSetting", () => {
     const user = userEvent.setup()
     render(<PointColorSetting {...defaultProps} />)
 
-    const button = screen.getByRole("button", { name: "" })
+    const button = screen.getByRole("button", { name: /Fill Color/ })
     await user.click(button)
 
     const popover = screen.getByTestId("popover")
@@ -68,7 +71,7 @@ describe("PointColorSetting", () => {
     const user = userEvent.setup()
     render(<PointColorSetting {...defaultProps} />)
 
-    const button = screen.getByRole("button", { name: "" })
+    const button = screen.getByRole("button", { name: /Fill Color/ })
     await user.click(button)
     await user.click(button)
 
@@ -95,7 +98,7 @@ describe("PointColorSetting", () => {
     render(<PointColorSetting {...defaultProps} />)
 
     // Open the popover first to set initialColorRef
-    const button = screen.getByRole("button", { name: "" })
+    const button = screen.getByRole("button", { name: /Fill Color/ })
     await user.click(button)
 
     await user.click(screen.getByTestId("reject-color"))
@@ -106,7 +109,7 @@ describe("PointColorSetting", () => {
     const user = userEvent.setup()
     render(<PointColorSetting {...defaultProps} />)
 
-    const button = screen.getByRole("button", { name: "" })
+    const button = screen.getByRole("button", { name: /Fill Color/ })
     await user.click(button)
 
     expect(button).toHaveClass("open")

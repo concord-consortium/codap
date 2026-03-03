@@ -940,6 +940,8 @@
     "DG.Inspector.transparency": "Transparency:",
     "DG.Inspector.color": "Fill Color",
     "DG.Inspector.legendColor": "Legend Color",
+    "DG.Inspector.legendColorLow": "Low Color",
+    "DG.Inspector.legendColorHigh": "High Color",
     "DG.Inspector.backgroundColor": "Background Color",
     "DG.Inspector.stroke": "Border Color",
     "DG.Inspector.rescale.toolTip": "Rescale display to show all the data",
@@ -972,6 +974,7 @@
     "DG.Inspector.displayScale": "Scale …",
 
     // Color Picker
+    "DG.Inspector.colorPicker.swatchGrid": "Color swatches",
     "DG.Inspector.colorPicker.more": "more",
     "DG.Inspector.colorPicker.less": "less",
 

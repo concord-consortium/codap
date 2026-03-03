@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite"
-import { Slider, SliderThumb, SliderTrack } from "react-aria-components"
+import { Label, Slider, SliderThumb, SliderTrack } from "react-aria-components"
 import { t } from "../../../utilities/translation/translate"
 import { PointDisplayType } from "../data-display-types"
 import { IDisplayItemDescriptionModel } from "../models/display-item-description-model"
@@ -14,7 +14,6 @@ export const PointSizeSlider = observer(function PointSizeSlider(
 ) {
   return (
     <Slider
-      aria-label={t("DG.Inspector.pointSize")}
       minValue={0}
       maxValue={2}
       step={0.01}
@@ -34,7 +33,7 @@ export const PointSizeSlider = observer(function PointSizeSlider(
       data-testid="point-size-slider"
     >
       <div className="palette-row slider-row">
-        <label className="form-label">{t("DG.Inspector.pointSize")}</label>
+        <Label className="form-label">{t("DG.Inspector.pointSize")}</Label>
         <SliderTrack>
           <SliderThumb />
         </SliderTrack>

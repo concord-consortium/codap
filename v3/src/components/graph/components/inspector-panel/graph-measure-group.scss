@@ -92,6 +92,11 @@
   &:hover {
     background-color: vars.$teal-light3;
   }
+
+  &:focus-visible {
+    outline: 2px solid vars.$focus-outline-color;
+    outline-offset: 2px;
+  }
 }
 
 // Standard error: checkbox + number input + label in a row

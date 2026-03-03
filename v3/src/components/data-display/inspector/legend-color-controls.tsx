@@ -102,12 +102,12 @@ export const LegendColorControls = observer(function LegendColorControls(
           <div className="palette-row color-picker-row">
             <label className="form-label color-picker">{t("DG.Inspector.legendColor")}</label>
             <PointColorSetting
-              propertyLabel={t("DG.Inspector.legendColor")}
+              propertyLabel={t("DG.Inspector.legendColorLow")}
               onColorChange={(color) => handleLowAttributeColorChange(color)}
               swatchBackgroundColor={colorRange?.low ?? kDefaultLowAttributeColor}
             />
             <PointColorSetting
-              propertyLabel={t("DG.Inspector.legendColor")}
+              propertyLabel={t("DG.Inspector.legendColorHigh")}
               onColorChange={(color) => handleHighAttributeColorChange(color)}
               swatchBackgroundColor={colorRange?.high ?? kDefaultHighAttributeColor}
             />

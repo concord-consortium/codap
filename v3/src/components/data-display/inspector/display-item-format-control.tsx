@@ -102,7 +102,8 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
         <LegendBinsSelect dataConfiguration={dataConfiguration} />
       </If>
 
-      <div className={clsx("stroke-section", { disabled: displayItemDescription.pointStrokeSameAsFill })}>
+      <div className={clsx("stroke-section", { disabled: displayItemDescription.pointStrokeSameAsFill })}
+        aria-disabled={displayItemDescription.pointStrokeSameAsFill || undefined}>
         <div className="palette-row color-picker-row">
           <label className="form-label color-picker">{t("DG.Inspector.stroke")}</label>
           <PointColorSetting propertyLabel={t("DG.Inspector.stroke")}

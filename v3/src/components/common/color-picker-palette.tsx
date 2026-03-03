@@ -123,18 +123,25 @@ export const ColorPickerPalette = ({ swatchBackgroundColor, inputValue, buttonRe
             className={clsx("color-picker-palette", `${placement}`,
                             {"with-color-picker": showColorPicker, "without-arrow": !showArrow})}>
         <div className="color-swatch-palette" onKeyDown={handleKeyDown}>
-          <div className="color-swatch-grid">
+          <div className="color-swatch-grid" role="group" aria-label={t("DG.Inspector.colorPicker.swatchGrid")}>
             {paletteColors.map((pColor, index) => (
-              <div className={clsx("color-swatch-cell",
+              <button type="button"
+                    className={clsx("color-swatch-cell",
                               {"selected": swatchBackgroundColor === pColor, "light": colord(pColor).isLight()})}
-                    style={{ backgroundColor: pColor }} key={index} onClick={()=>handleColorSelection(pColor)}/>
+                    style={{ backgroundColor: pColor }} key={index}
+                    aria-label={pColor}
+                    aria-pressed={swatchBackgroundColor === pColor}
+                    onClick={()=>handleColorSelection(pColor)}/>
             ))}
             {nonStandardColorSelected &&
               <div className="color-swatch-row">
-                <div className={clsx("color-swatch-cell",
+                <button type="button"
+                      className={clsx("color-swatch-cell",
                                       {"selected": swatchBackgroundColor === inputValue,
                                           "light": inputValue && colord(inputValue).isLight()})}
-                      style={{backgroundColor: inputValue}}/>
+                      style={{backgroundColor: inputValue}}
+                      aria-label={inputValue}
+                      aria-pressed={swatchBackgroundColor === inputValue}/>
               </div>}
           </div>
           <div className="color-swatch-footer">

@@ -106,9 +106,9 @@ describe("LegendColorControls", () => {
       })
       render(<LegendColorControls dataConfiguration={config as any} displayItemDescription={desc as any} />)
 
-      // Two color swatches (both labeled "DG.Inspector.legendColor")
-      const swatches = screen.getAllByTestId("color-swatch-DG.Inspector.legendColor")
-      expect(swatches).toHaveLength(2)
+      // Two distinct color swatches for low and high
+      expect(screen.getByTestId("color-swatch-DG.Inspector.legendColorLow")).toBeInTheDocument()
+      expect(screen.getByTestId("color-swatch-DG.Inspector.legendColorHigh")).toBeInTheDocument()
       // Lock quantiles checkbox
       expect(screen.getByTestId("lock-legend-quantiles-checkbox")).toBeInTheDocument()
       expect(screen.getByText("DG.Inspector.lockLegendQuantiles")).toBeInTheDocument()

@@ -54,7 +54,10 @@ export const PointColorSetting = observer(function PointColorSetting({ onColorCh
       <PopoverTrigger>
         <button className={clsx("color-picker-thumb", { open: openPopover === propertyLabel })}
           onClick={() => handleSwatchClick(propertyLabel)}
-          ref={pointColorSettingButtonRef}>
+          ref={pointColorSettingButtonRef}
+          aria-label={`${propertyLabel}: ${swatchBackgroundColor}`}
+          aria-expanded={openPopover === propertyLabel}
+          aria-haspopup="dialog">
           <div className="color-picker-thumb-swatch"
             style={{ "--swatch-color": swatchBackgroundColor } as React.CSSProperties} />
         </button>

@@ -21,7 +21,7 @@
   .color-picker-thumb-swatch {
     width: 24px;
     height: 24px;
-    border: 1px solid vars.$charcoal-light-2;
+    border: 1px solid vars.$charcoal-light-1;
     border-radius: 2px;
     flex-shrink: 0;
     position: relative;
@@ -74,7 +74,8 @@
       }
     }
 
-    .stroke-section {
+    .stroke-section,
+    .color-picker-row {
       &.disabled {
         opacity: 0.5;
         pointer-events: none;

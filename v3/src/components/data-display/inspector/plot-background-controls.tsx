@@ -16,7 +16,8 @@ export function PlotBackgroundControls(
 ) {
   return (
     <div>
-      <div className={clsx("palette-row", "color-picker-row", { disabled: isTransparent })}>
+      <div className={clsx("palette-row", "color-picker-row", { disabled: isTransparent })}
+        aria-disabled={isTransparent || undefined}>
         <label className="form-label color-picker">{t("DG.Inspector.backgroundColor")}</label>
         <PointColorSetting propertyLabel={t("DG.Inspector.backgroundColor")}
                           onColorChange={(color) => onBackgroundColorChange(color)}
