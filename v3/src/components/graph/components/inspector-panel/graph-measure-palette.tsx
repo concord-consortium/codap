@@ -38,11 +38,8 @@ export const GraphMeasurePalette = observer(function GraphMeasurePalette({
       buttonRect={buttonRect}
     >
       <div className="palette-form graph-measure-palette"
-        role="group" aria-labelledby="measure-palette-show-label"
+        role="group" aria-label={t("DG.Inspector.displayShow")}
       >
-        <div className="form-title" id="measure-palette-show-label">
-          {t("DG.Inspector.displayShow")}
-        </div>
         {graphModel && measures?.map(measureOrGroup => {
           if (isGroupItem(measureOrGroup)) {
             return (

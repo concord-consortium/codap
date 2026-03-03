@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from "react"
+import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { Popover, PopoverTrigger, Portal } from "@chakra-ui/react"
 import { useOutsidePointerDown } from "../../../hooks/use-outside-pointer-down"
@@ -12,14 +13,13 @@ interface ColorPickerIProps {
 
 export const PointColorSetting = observer(function PointColorSetting({ onColorChange,
   propertyLabel, swatchBackgroundColor }: ColorPickerIProps) {
-  const popoverContainerRef = useRef<HTMLDivElement>(null)
   const [openPopover, setOpenPopover] = useState<string | null>(null)
   const [inputValue, setInputValue] = useState(swatchBackgroundColor)
   const initialColorRef = useRef(swatchBackgroundColor)
   const pointColorSettingButtonRef = useRef<HTMLButtonElement>(null)
 
   useOutsidePointerDown({
-    ref: popoverContainerRef,
+    ref: pointColorSettingButtonRef,
     handler: () => setOpenPopover?.(null),
     info: { name: "PointColorSetting", propertyLabel }
    })
@@ -52,10 +52,11 @@ export const PointColorSetting = observer(function PointColorSetting({ onColorCh
   return (
     <Popover isLazy={true} isOpen={openPopover === propertyLabel} closeOnBlur={false} onClose={closePopover}>
       <PopoverTrigger>
-        <button className="color-picker-thumb" onClick={() => handleSwatchClick(propertyLabel)}
+        <button className={clsx("color-picker-thumb", { open: openPopover === propertyLabel })}
+          onClick={() => handleSwatchClick(propertyLabel)}
           ref={pointColorSettingButtonRef}>
           <div className="color-picker-thumb-swatch"
-            style={{ backgroundColor: swatchBackgroundColor }} />
+            style={{ "--swatch-color": swatchBackgroundColor } as React.CSSProperties} />
         </button>
       </PopoverTrigger>
       <Portal>

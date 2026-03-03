@@ -1,3 +1,4 @@
+import { clsx } from "clsx"
 import { Checkbox, Input, Label, Radio, RadioGroup, TextField } from "react-aria-components"
 import {observer} from "mobx-react-lite"
 import React, { useEffect, useState } from "react"
@@ -222,7 +223,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
             <Radio value="points" data-testid="points-radio-button">
               {({isSelected}) => (
                 <>
-                  <span className={`radio-indicator${isSelected ? " selected" : ""}`} />
+                  <span className={clsx("radio-indicator", { selected: isSelected })} />
                   {t("DG.Inspector.graphPlotPoints")}
                 </>
               )}
@@ -230,7 +231,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
             <Radio value="bins" data-testid="bins-radio-button">
               {({isSelected}) => (
                 <>
-                  <span className={`radio-indicator${isSelected ? " selected" : ""}`} />
+                  <span className={clsx("radio-indicator", { selected: isSelected })} />
                   {t("DG.Inspector.graphGroupIntoBins")}
                 </>
               )}
@@ -269,58 +270,56 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
                 </div>
               </div>
             </If>
-            <If condition={!!showFuseIntoBars}>
-              <div className="config-section indented">
-                <Checkbox
-                  data-testid="bar-chart-checkbox"
-                  isSelected={pointsFusedIntoBars}
-                  onChange={handleSetFuseIntoBars}
-                >
-                  {({isSelected}) => (
-                    <>
-                      <span className={`checkbox-indicator${isSelected ? " selected" : ""}`} />
-                      {t("DG.Inspector.graphBarChart")}
-                    </>
-                  )}
-                </Checkbox>
-                <If condition={!!showBreakdownTypes}>
-                  <div className="config-section">
-                    <div className="form-title">{t("DG.Inspector.displayShow")}</div>
-                    <RadioGroup
-                      aria-label={t("DG.Inspector.displayShow")}
-                      value={breakdownTypeRadio}
-                      onChange={(value) => handleBreakdownTypeChange(value as BreakdownType)}
-                    >
-                      {BreakdownTypes.map((type) => (
-                        <Radio
-                          key={type}
-                          value={type}
-                          data-testid={`${type}-radio-button`}
-                        >
-                          {({isSelected}) => (
-                            <>
-                              <span className={`radio-indicator${isSelected ? " selected" : ""}`} />
-                              {t(`DG.Inspector.graph${type.charAt(0).toUpperCase() + type.slice(1)}`)}
-                            </>
-                          )}
-                        </Radio>
-                      ))}
-                    </RadioGroup>
-                  </div>
-                </If>
-              </div>
-            </If>
             <If condition={!!showBarForEachPoint}>
               <Radio value="bars" data-testid="bars-radio-button">
                 {({isSelected}) => (
                   <>
-                    <span className={`radio-indicator${isSelected ? " selected" : ""}`} />
+                    <span className={clsx("radio-indicator", { selected: isSelected })} />
                     {t("DG.Inspector.graphBarForEachPoint")}
                   </>
                 )}
               </Radio>
             </If>
           </RadioGroup>
+        </If>
+        <If condition={!!showFuseIntoBars}>
+          <Checkbox
+            data-testid="bar-chart-checkbox"
+            isSelected={pointsFusedIntoBars}
+            onChange={handleSetFuseIntoBars}
+          >
+            {({isSelected}) => (
+              <>
+                <span className={clsx("checkbox-indicator", { selected: isSelected })} />
+                {t("DG.Inspector.graphBarChart")}
+              </>
+            )}
+          </Checkbox>
+          <If condition={!!showBreakdownTypes}>
+            <div className="config-section">
+              <div className="form-title">{t("DG.Inspector.displayShow")}</div>
+              <RadioGroup
+                aria-label={t("DG.Inspector.displayShow")}
+                value={breakdownTypeRadio}
+                onChange={(value) => handleBreakdownTypeChange(value as BreakdownType)}
+              >
+                {BreakdownTypes.map((type) => (
+                  <Radio
+                    key={type}
+                    value={type}
+                    data-testid={`${type}-radio-button`}
+                  >
+                    {({isSelected}) => (
+                      <>
+                        <span className={clsx("radio-indicator", { selected: isSelected })} />
+                        {t(`DG.Inspector.graph${type.charAt(0).toUpperCase() + type.slice(1)}`)}
+                      </>
+                    )}
+                  </Radio>
+                ))}
+              </RadioGroup>
+            </div>
+          </If>
         </If>
       </div>
     </InspectorPalette>
