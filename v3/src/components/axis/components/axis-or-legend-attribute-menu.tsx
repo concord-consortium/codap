@@ -17,6 +17,7 @@ import { IDataSet } from "../../../models/data/data-set"
 import { IDataSetMetadata } from "../../../models/shared/data-set-metadata"
 import { getDataSets, getMetadataFromDataSet } from "../../../models/shared/shared-data-utils"
 import { t } from "../../../utilities/translation/translate"
+import { If } from "../../common/if"
 import { GraphPlace } from "../../axis-graph-shared"
 import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
 import { useDataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
@@ -88,22 +89,24 @@ const CollectionMenu = observer(function CollectionMenu({
 
   return (
     <>
-      <Menu isOpen={isOpen} placement="auto">
-        <MenuButton as="div" className="collection-menu-button" aria-hidden="true" tabIndex={-1} />
-        <MenuList ref={submenuRef} className="axis-legend-submenu"
-                  maxH={adjustedMaxHeight ?? maxMenuHeight} overflowY="auto"
-                  onFocus={handleMenuItemFocus}
-                  onKeyDown={handleSubmenuKeyDown}
-                  onPointerEnter={handleSubmenuPointerEnter}
-                  data-testid={`axis-legend-attribute-menu-list-${place}-${collection.id}`}>
-          <MenuItemsForCollection
-            collectionInfo={collectionInfo}
-            isAttributeAllowed={isAttributeAllowed}
-            onChangeAttribute={onChangeAttribute}
-            place={place}
-          />
-        </MenuList>
-      </Menu>
+      <If condition={isOpen}>
+        <Menu isOpen={isOpen} placement="auto">
+          <MenuButton as="div" className="collection-menu-button" aria-hidden="true" tabIndex={-1} />
+          <MenuList ref={submenuRef} className="axis-legend-submenu"
+                    maxH={adjustedMaxHeight ?? maxMenuHeight} overflowY="auto"
+                    onFocus={handleMenuItemFocus}
+                    onKeyDown={handleSubmenuKeyDown}
+                    onPointerEnter={handleSubmenuPointerEnter}
+                    data-testid={`axis-legend-attribute-menu-list-${place}-${collection.id}`}>
+            <MenuItemsForCollection
+              collectionInfo={collectionInfo}
+              isAttributeAllowed={isAttributeAllowed}
+              onChangeAttribute={onChangeAttribute}
+              place={place}
+            />
+          </MenuList>
+        </Menu>
+      </If>
       <MenuItem
         ref={collectionItemRef}
         as="div"
