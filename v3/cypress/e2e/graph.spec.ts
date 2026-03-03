@@ -384,43 +384,60 @@ context("Graph UI", () => {
       graph.getDisplayStylesButton().click()
 
       // change point size
+      // React Aria Slider uses a native input[type="range"] that's visually hidden
       cy.get('[data-testid=point-size-slider]')
+        .find('input[type="range"]')
         .click({ force: true })
-        .type('{downArrow}{downArrow}')
+        .type('{downArrow}{downArrow}', { force: true })
         .wait(500) // wait for animation to finish
-        .get('div[role="slider"]')
         .should($slider => {
-          const value = parseFloat($slider.attr('aria-valuenow') || '0')
+          const value = parseFloat($slider.attr('aria-valuetext') || '0')
           expect(value).to.be.closeTo(0.98, 0.01)
         })
 
       cy.log("changes the stroke color value and verifies the change")
-      // Ensure stroke initially has the expected value
+      // Row 0 is the point/fill color, row 1 is the stroke color
 
-      cy.get('.color-picker-row').eq(0).find('.color-picker-thumb-swatch')
-        .should('have.css', 'background-color', 'rgb(255, 255, 255)')
+      cy.get('.color-picker-row').eq(1).find('.color-picker-thumb-swatch')
+        .should($swatch => {
+          const color = $swatch.css('--swatch-color')
+          // Accept either hex or rgb format for white
+          expect(color).to.match(/(rgb\(255,\s*255,\s*255\)|#ffffff|#fff|white)/i)
+        })
         .then((colorPicker) => {
           // Change the value of the color picker
-          cy.wrap(colorPicker).click()
+          cy.wrap(colorPicker).parent().click()
           cpp.getColorSettingSwatchCell().eq(0).click()
 
           // Verify the value has been updated
-          cy.wrap(colorPicker).should('have.css', 'background-color', 'rgb(0, 0, 0)')
+          cy.wrap(colorPicker).should($swatch => {
+            const color = $swatch.css('--swatch-color')
+            // Accept either hex or rgb format for black
+            expect(color).to.match(/(rgb\(0,\s*0,\s*0\)|#000000|#000|black)/i)
+          })
         })
       cy.get('.codap-inspector-palette-header-title').click() //close the color palette
 
       cy.log("changes the point color value and verifies the change")
 
-      cy.get('.color-picker-row').eq(1).find('.color-picker-thumb-swatch')
+      cy.get('.color-picker-row').eq(0).find('.color-picker-thumb-swatch')
         // Ensure point color initially has the expected value
-        .should('have.css', 'background-color', 'rgb(230, 128, 91)')
+        .should($swatch => {
+          const color = $swatch.css('--swatch-color')
+          // Accept either hex or rgb format - #e6805b = rgb(230, 128, 91)
+          expect(color).to.match(/(rgb\(230,\s*128,\s*91\)|#e6805b)/i)
+        })
         .then((colorPicker) => {
           // Change the value of the color picker
-          cy.wrap(colorPicker).click()
+          cy.wrap(colorPicker).parent().click()
           cpp.getColorSettingSwatchCell().eq(1).click()
 
           // Verify the value has been updated
-          cy.wrap(colorPicker).should('have.css', 'background-color', 'rgb(169, 169, 169)')
+          cy.wrap(colorPicker).should($swatch => {
+            const color = $swatch.css('--swatch-color')
+            // Accept either hex or rgb format - #a9a9a9 = rgb(169, 169, 169)
+            expect(color).to.match(/(rgb\(169,\s*169,\s*169\)|#a9a9a9)/i)
+          })
         })
       cy.get('.codap-inspector-palette-header-title').click() //close the color palette
 
@@ -431,7 +448,8 @@ context("Graph UI", () => {
         .click()
 
       // Verify the checkbox is checked
-      cy.get('input[type="checkbox"]')
+      cy.get('[data-testid=stroke-same-as-fill-checkbox]')
+        .find('input[type="checkbox"]')
         .should('be.checked')
 
       // Use Cypress commands to get the first and second color picker elements
@@ -442,38 +460,41 @@ context("Graph UI", () => {
         .as('strokeColorPicker')
 
       // Get the fill color value
-      cy.get('@fillColorPicker').invoke('css', 'background-color').then((fillColor) => {
+      cy.get('@fillColorPicker').invoke('css', '--swatch-color').then((fillColor) => {
         // Get the stroke color value and compare it to the fill color
         cy.get('@strokeColorPicker')
-        .should('have.css', 'background-color', fillColor)
+        .should($swatch => {
+          const color = $swatch.css('--swatch-color')
+          expect(color).to.equal(fillColor)
+        })
       })
 
       cy.log("changes the background color and verifies the change")
       // Use a more specific selector to find the background color input element
       cy.get('.color-picker-row').eq(2).find('.color-picker-thumb-swatch')
         // Ensure background initially has the expected value
-        .should('have.css', 'background-color', 'rgb(255, 255, 255)')
+        .should($swatch => {
+          const color = $swatch.css('--swatch-color')
+          expect(color).to.match(/(rgb\(255,\s*255,\s*255\)|#ffffff|#fff|white)/i)
+        })
         .then((backgroundColorPicker) => {
           // Change the value of the background color picker
-          cy.wrap(backgroundColorPicker).click()
+          cy.wrap(backgroundColorPicker).parent().click()
           cpp.getColorSettingSwatchCell().eq(4).click()
 
           // Verify the value has been updated
-          cy.wrap(backgroundColorPicker).should('have.css', 'background-color', 'rgb(173, 35, 35)')
+          cy.wrap(backgroundColorPicker).should($swatch => {
+            const color = $swatch.css('--swatch-color')
+            expect(color).to.match(/(rgb\(173,\s*35,\s*35\)|#ad2323)/i)
+          })
         })
+      cy.get('.codap-inspector-palette-header-title').click() //close the color palette
 
       cy.log("finds the Transparent checkbox and verifies it can be checked")
-      // Ensure the checkbox label with text "Transparent" is visible
-      cy.contains('span.chakra-checkbox__label.css-1e9gfn3', 'Transparent')
-        .should('be.visible')
-        .parent()
-        .within(() => {
-          // Find the checkbox input within the same parent and check it
-          cy.get('input[type="checkbox"]').check({ force: true })
-
-          // Verify the checkbox is checked
-          cy.get('input[type="checkbox"]').should('be.checked')
-        })
+      cy.get('[data-testid=background-transparency-checkbox]')
+        .click({ force: true })
+        .find('input[type="checkbox"]')
+        .should('be.checked')
     })
     it.skip("should lead to a file download when the 'Export PNG Image' button is clicked", () => {
       const fileName = "Untitled Document.png"
@@ -502,13 +523,13 @@ context("Graph UI", () => {
       ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       cy.wait(500)
       graph.getDisplayStylesButton().click()
-      cy.get("[data-testid=point-size-slider]").should("not.have.attr", "aria-disabled")
+      cy.get("[data-testid=point-size-slider]").should("not.have.attr", "data-disabled")
       graph.getDisplayConfigButton().click()
       cy.wait(500)
       cy.get("[data-testid=bars-radio-button]").click()
       cy.wait(500)
       graph.getDisplayStylesButton().click()
-      cy.get("[data-testid=point-size-slider]").should("have.attr", "aria-disabled", "true")
+      cy.get("[data-testid=point-size-slider]").should("have.attr", "data-disabled", "true")
     })
     it("should add bin boundaries to plot when 'Group into Bins' is selected", () => {
       ah.openAxisAttributeMenu("bottom")

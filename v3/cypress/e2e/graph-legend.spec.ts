@@ -813,7 +813,8 @@ context("Test changing the legend bins", () => {
     // open the format panel
     graph.getDisplayStylesButton().click()
 
-    cy.get("[data-testid=legend-bins-type-select]").select("Linear")
+    cy.get("[data-testid=legend-bins-type-select]").find("button").click()
+    cy.get("[role=option]").contains("Linear").click()
 
   })
 })
