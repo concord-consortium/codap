@@ -141,7 +141,8 @@ export const ColorPickerPalette = ({ swatchBackgroundColor, inputValue, buttonRe
                                           "light": inputValue && colord(inputValue).isLight()})}
                       style={{backgroundColor: inputValue}}
                       aria-label={inputValue}
-                      aria-pressed={swatchBackgroundColor === inputValue}/>
+                      aria-pressed={swatchBackgroundColor === inputValue}
+                      onClick={() => handleColorSelection(inputValue)}/>
               </div>}
           </div>
           <div className="color-swatch-footer">
