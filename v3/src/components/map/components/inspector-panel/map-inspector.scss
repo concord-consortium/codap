@@ -30,7 +30,7 @@
         flex: 1;
         height: 18px;
         margin-left: 5px;
-        border: 1px solid vars.$charcoal-light-2;
+        border: 1px solid vars.$charcoal;
         border-radius: 4px;
 
         .map-base-button {
@@ -60,12 +60,13 @@
             border-radius: 0 3px 3px 0;
           }
           &.topo {
-            border-left: 1px solid vars.$charcoal-light-2;
-            border-right: 1px solid vars.$charcoal-light-2;
+            border-left: 1px solid vars.$charcoal;
+            border-right: 1px solid vars.$charcoal;
             border-radius: 0;
           }
           &.selected {
             background-color: vars.$palette-header-bg;
+            font-weight: 700;
           }
         }
       }

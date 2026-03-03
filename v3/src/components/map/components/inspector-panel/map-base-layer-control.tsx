@@ -56,7 +56,7 @@ export const MapBaseLayerControl = observer(function MapBaseLayerControl(
       >
         {t('V3.map.inspector.base')}
       </PaletteCheckbox>
-      <div className="map-base-segmented">
+      <div className="map-base-segmented" role="group" aria-label={t('V3.map.inspector.baseMapType')}>
         <button type="button" data-testid={`map-layers-base-oceans`}
           className={classNameForSegment('oceans')}
           aria-pressed={mapModel.baseMapLayerName === 'oceans'}

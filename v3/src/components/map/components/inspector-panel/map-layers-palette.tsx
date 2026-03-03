@@ -46,7 +46,7 @@ export const MapLayersPalette = observer(function MapLayersPalette(
         return (
           <div className="map-layer-controls" key={layer.id}>
             <PaletteCheckbox
-              data-testid={`map-layers-checkbox-layer`}
+              data-testid={`map-layers-checkbox-layer-${layer.id}`}
               isSelected={layer.isVisible}
               onChange={(checked) => {
                 const op = checked ? 'show' : 'hide'
@@ -59,7 +59,7 @@ export const MapLayersPalette = observer(function MapLayersPalette(
                 })
               }}
             >
-              {layer.dataConfiguration.dataset?.name /* todo:  */}
+              {layer.dataConfiguration.dataset?.name ?? t("DG.Inspector.defaultLayerName")}
             </PaletteCheckbox>
             {renderOneFormatControl(layer)}
           </div>)

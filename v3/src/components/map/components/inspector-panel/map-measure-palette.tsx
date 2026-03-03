@@ -27,13 +27,15 @@ export const MapMeasurePalette = observer(function MapMeasurePalette(
       const pinLayer = isMapPinLayerModel(layer) ? layer : undefined
       if (pointLayer || pinLayer) {
         return (
-          <div className="map-values-controls" key={layer.id}>
-            <div className="map-values-layer-label" data-testid={`map-values-layer-label`}>
+          <div className="map-values-controls" key={layer.id}
+               role="group" aria-labelledby={`map-values-label-${layer.id}`}>
+            <div className="map-values-layer-label" id={`map-values-label-${layer.id}`}
+                 data-testid={`map-values-layer-label-${layer.id}`}>
               {layer.dataConfiguration.dataset?.name}
             </div>
             {pointLayer && (
               <>
-                <PaletteCheckbox data-testid={`map-values-grid-checkbox`}
+                <PaletteCheckbox data-testid={`map-values-grid-checkbox-${layer.id}`}
                           isSelected={pointLayer.gridModel.isVisible}
                           onChange={(checked) => {
                             const op = checked ? 'show' : 'hide'
@@ -48,7 +50,7 @@ export const MapMeasurePalette = observer(function MapMeasurePalette(
                 >
                   {t("DG.Inspector.mapGrid")}
                 </PaletteCheckbox>
-                <PaletteCheckbox data-testid={`map-values-points-checkbox`}
+                <PaletteCheckbox data-testid={`map-values-points-checkbox-${layer.id}`}
                           isSelected={pointLayer.pointsAreVisible}
                           onChange={(checked) => {
                             const op = checked ? 'show' : 'hide'
@@ -63,7 +65,7 @@ export const MapMeasurePalette = observer(function MapMeasurePalette(
                 >
                   {t("DG.Inspector.mapPoints")}
                 </PaletteCheckbox>
-                <PaletteCheckbox data-testid={`map-values-lines-checkbox`}
+                <PaletteCheckbox data-testid={`map-values-lines-checkbox-${layer.id}`}
                           isSelected={pointLayer.connectingLinesAreVisible}
                           onChange={(checked) => {
                             const op = checked ? 'show' : 'hide'
@@ -81,7 +83,7 @@ export const MapMeasurePalette = observer(function MapMeasurePalette(
               </>
             )}
             {pinLayer && (
-              <PaletteCheckbox data-testid={`map-values-pins-checkbox`}
+              <PaletteCheckbox data-testid={`map-values-pins-checkbox-${layer.id}`}
                         isSelected={pinLayer.pinsAreVisible}
                         onChange={(checked) => {
                           const op = checked ? 'show' : 'hide'
