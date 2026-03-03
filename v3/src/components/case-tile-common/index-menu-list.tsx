@@ -37,8 +37,14 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
     : undefined
 
   function insertCasesAtInputRow(cases: ICaseCreation[], position: "before" | "after" = "before") {
-    if (!data || !insertReferenceCaseId) return
-    insertCasesWithCustomUndoRedo(data, cases, { before: insertReferenceCaseId })
+    if (!data) return
+    if (insertReferenceCaseId) {
+      // Input row has been moved to a specific position — insert relative to the case at that position
+      insertCasesWithCustomUndoRedo(data, cases, { before: insertReferenceCaseId })
+    } else {
+      // Input row is at the default bottom position — just append
+      insertCasesWithCustomUndoRedo(data, cases, {})
+    }
     // "before" the input row: bump inputRowIndex so the input row moves below the new cases.
     // "after" the input row: keep inputRowIndex as-is so the input row stays above the new cases.
     if (collectionTable && inputRowIndex >= 0 && position === "before") {
