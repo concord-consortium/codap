@@ -1,11 +1,11 @@
 import {observer} from "mobx-react-lite"
-import {Checkbox} from "@chakra-ui/react"
-import LayersIcon from "../../../../assets/icons/icon-layers.svg"
+import LayersIcon from "../../../../assets/icons/inspector-panel/layers-icon.svg"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 import {t} from "../../../../utilities/translation/translate"
 import {ITileModel} from "../../../../models/tiles/tile-model"
 import {DisplayItemFormatControl} from "../../../data-display/inspector/display-item-format-control"
 import {InspectorPalette} from "../../../inspector-panel"
+import {PaletteCheckbox} from "../../../palette-checkbox"
 import {isMapContentModel} from "../../models/map-content-model"
 import {IMapLayerModel, isMapLayerModel} from "../../models/map-layer-model"
 import { isMapPinLayerModel } from "../../models/map-pin-layer-model"
@@ -45,14 +45,13 @@ export const MapLayersPalette = observer(function MapLayersPalette(
       if (isMapLayerModel(layer)) {
         return (
           <div className="map-layer-controls" key={layer.id}>
-            <Checkbox
-              className="palette-checkbox"
+            <PaletteCheckbox
               data-testid={`map-layers-checkbox-layer`}
-              defaultChecked={layer.isVisible}
-              onChange={() => {
-                const op = layer.isVisible ? 'hide' : 'show'
+              isSelected={layer.isVisible}
+              onChange={(checked) => {
+                const op = checked ? 'show' : 'hide'
                 layer.applyModelChange(() => {
-                  layer.setVisibility(!layer.isVisible)
+                  layer.setVisibility(checked)
                 }, {
                   undoStringKey: `V3.Undo.map.${op}Layer`,
                   redoStringKey: `V3.Redo.map.${op}Layer`,
@@ -61,7 +60,7 @@ export const MapLayersPalette = observer(function MapLayersPalette(
               }}
             >
               {layer.dataConfiguration.dataset?.name /* todo:  */}
-            </Checkbox>
+            </PaletteCheckbox>
             {renderOneFormatControl(layer)}
           </div>)
       }

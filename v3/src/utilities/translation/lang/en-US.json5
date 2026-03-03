@@ -1350,7 +1350,7 @@
     "V3.map.Inspector.Data": "Data",
     "V3.map.Inspector.Layers": "Layers",
     "V3.map.Inspector.Image": "Image",
-    "V3.map.inspector.base": "Base",
+    "V3.map.inspector.base": "Map",
     "V3.map.inspector.oceans": "Oceans",
     "V3.map.inspector.topo": "Topo",
     "V3.map.inspector.streets": "Streets",

@@ -156,7 +156,7 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
   }, [])
 
   const panelWidth = panelRect?.width || 72
-  const paletteLeft = inBounds ? panelWidth - 5 : -(paletteWidth + 10)
+  const paletteLeft = inBounds ? panelWidth - 5 : -(paletteWidth - 5)
   const wrapperStyle = {top: paletteTop || 0, left: paletteLeft, zIndex: 250}
   const pointerStyle = inBounds
     ? { left: -(pointerSize - 1) }
