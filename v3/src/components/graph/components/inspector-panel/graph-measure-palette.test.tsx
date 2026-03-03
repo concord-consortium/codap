@@ -239,7 +239,7 @@ describe("GraphMeasurePalette", () => {
   })
 
   describe("accessibility", () => {
-    it("wraps the palette form in a group with aria-labelledby", () => {
+    it("wraps the palette form in a group with aria-label", () => {
       const measures = [createSimpleMenuItem("DG.Inspector.graphCount")]
       const graphModel = createMockGraphModel(measures)
       mockIsGraphContentModel.mockReturnValue(true)
@@ -248,8 +248,7 @@ describe("GraphMeasurePalette", () => {
       render(<GraphMeasurePalette tile={tile} setShowPalette={mockSetShowPalette} />)
 
       const group = screen.getByRole("group")
-      expect(group).toHaveAttribute("aria-labelledby", "measure-palette-show-label")
-      expect(group).toHaveAccessibleName("DG.Inspector.displayShow")
+      expect(group).toHaveAttribute("aria-label", "DG.Inspector.displayShow")
     })
 
     it("wraps disclosure group items in a group with aria-label", () => {
