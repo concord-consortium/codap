@@ -1,6 +1,6 @@
 import { clsx } from "clsx"
-import { Checkbox } from "react-aria-components"
 import { t } from "../../../utilities/translation/translate"
+import { PaletteCheckbox } from "../../palette-checkbox"
 import { PointColorSetting } from "./point-color-setting"
 
 interface IPlotBackgroundControlsProps {
@@ -23,18 +23,13 @@ export function PlotBackgroundControls(
                           onColorChange={(color) => onBackgroundColorChange(color)}
                           swatchBackgroundColor={plotBackgroundColor ?? "#FFFFFF"}/>
       </div>
-      <Checkbox
+      <PaletteCheckbox
         isSelected={isTransparent}
         onChange={onBackgroundTransparencyChange}
         data-testid="background-transparency-checkbox"
       >
-        {() => (
-          <>
-            <div className="checkbox-indicator" />
-            {t("DG.Inspector.graphTransparency")}
-          </>
-        )}
-      </Checkbox>
+        {t("DG.Inspector.graphTransparency")}
+      </PaletteCheckbox>
     </div>
   )
 }

@@ -1,10 +1,10 @@
-import { Checkbox } from "react-aria-components"
 import { observer } from "mobx-react-lite"
 import MeasureIcon from "../../../../assets/icons/inspector-panel/data-icon.svg"
 import { ITileModel } from "../../../../models/tiles/tile-model"
 import { getDocumentContentPropertyFromNode } from "../../../../utilities/mst-utils"
 import { t } from "../../../../utilities/translation/translate"
 import { InspectorPalette } from "../../../inspector-panel"
+import { PaletteCheckbox } from "../../../palette-checkbox"
 import { isGroupItem, isMeasureMenuItem } from "../../adornments/store/adornments-store-utils"
 import { GraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { GraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
@@ -74,20 +74,15 @@ export const GraphMeasurePalette = observer(function GraphMeasurePalette({
               )
             } else {
               return (
-                <Checkbox
+                <PaletteCheckbox
                   key={titleSlug}
                   data-testid={`adornment-checkbox-${titleSlug}`}
                   defaultSelected={checked}
                   isDisabled={!!disabled}
                   onChange={clickHandler}
                 >
-                  {({isSelected}) => (
-                    <>
-                      <span className={`checkbox-indicator${isSelected ? " selected" : ""}`} />
-                      {t(title)}
-                    </>
-                  )}
-                </Checkbox>
+                  {t(title)}
+                </PaletteCheckbox>
               )
             }
           }

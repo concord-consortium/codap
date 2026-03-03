@@ -1,13 +1,14 @@
 import { observer } from "mobx-react-lite"
 import React, { useRef } from "react"
 import {
-  Button, Checkbox, ListBox, ListBoxItem, Popover, Select, SelectValue
+  Button, ListBox, ListBoxItem, Popover, Select, SelectValue
 } from "react-aria-components"
 import { AttributeBinningTypes, AttributeBinningType } from "../../../models/shared/data-set-metadata"
 import {
   kDefaultHighAttributeColor, kDefaultLowAttributeColor
 } from "../../../models/shared/data-set-metadata-constants"
 import { t } from "../../../utilities/translation/translate"
+import { PaletteCheckbox } from "../../palette-checkbox"
 import { IDataConfigurationModel } from "../models/data-configuration-model"
 import { IDisplayItemDescriptionModel } from "../models/display-item-description-model"
 import { PointColorSetting } from "./point-color-setting"
@@ -113,18 +114,13 @@ export const LegendColorControls = observer(function LegendColorControls(
             />
           </div>
         </div>
-        <Checkbox
+        <PaletteCheckbox
           data-testid="lock-legend-quantiles-checkbox"
           isSelected={dataConfiguration.legendQuantilesAreLocked}
           onChange={handleLockQuantilesChange}
         >
-          {() => (
-            <>
-              <div className="checkbox-indicator" />
-              {t("DG.Inspector.lockLegendQuantiles")}
-            </>
-          )}
-        </Checkbox>
+          {t("DG.Inspector.lockLegendQuantiles")}
+        </PaletteCheckbox>
       </>
     )
   }

@@ -1,5 +1,5 @@
 import { clsx } from "clsx"
-import { Checkbox, Input, Label, Radio, RadioGroup, TextField } from "react-aria-components"
+import { Input, Label, Radio, RadioGroup, TextField } from "react-aria-components"
 import {observer} from "mobx-react-lite"
 import React, { useEffect, useState } from "react"
 import ConfigurationIcon from "../../../../assets/icons/inspector-panel/configuration-icon.svg"
@@ -12,6 +12,7 @@ import { tileNotification } from "../../../../models/tiles/tile-notifications"
 import { If } from "../../../common/if"
 import { isPointDisplayType } from "../../../data-display/data-display-types"
 import { InspectorPalette } from "../../../inspector-panel"
+import { PaletteCheckbox } from "../../../palette-checkbox"
 import { BreakdownType, BreakdownTypes } from "../../graphing-types"
 import { isGraphContentModel } from "../../models/graph-content-model"
 import { isBinnedPlotModel } from "../../plots/histogram/histogram-model"
@@ -283,18 +284,13 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
           </RadioGroup>
         </If>
         <If condition={!!showFuseIntoBars}>
-          <Checkbox
+          <PaletteCheckbox
             data-testid="bar-chart-checkbox"
             isSelected={pointsFusedIntoBars}
             onChange={handleSetFuseIntoBars}
           >
-            {({isSelected}) => (
-              <>
-                <span className={clsx("checkbox-indicator", { selected: isSelected })} />
-                {t("DG.Inspector.graphBarChart")}
-              </>
-            )}
-          </Checkbox>
+            {t("DG.Inspector.graphBarChart")}
+          </PaletteCheckbox>
           <If condition={!!showBreakdownTypes}>
             <div className="config-section">
               <div className="form-title">{t("DG.Inspector.displayShow")}</div>

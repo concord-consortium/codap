@@ -1,8 +1,8 @@
-import { Checkbox } from "react-aria-components"
 import { observer } from "mobx-react-lite"
 import { registerAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 import { t } from "../../../../utilities/translation/translate"
+import { PaletteCheckbox } from "../../../palette-checkbox"
 import { If } from "../../../common/if"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { registerAdornmentComponentInfo } from "../adornment-component-info"
@@ -93,60 +93,40 @@ const Controls = observer(function Controls() {
 
   return (
     <>
-      <Checkbox
+      <PaletteCheckbox
         data-testid={`adornment-checkbox-${kLSRLClass}`}
         defaultSelected={existingAdornment?.isVisible}
         onChange={handleLSRLSetting}
       >
-        {({isSelected}) => (
-          <>
-            <span className={`checkbox-indicator${isSelected ? " selected" : ""}`} />
-            {t(kLSRLLabelKey)}
-          </>
-        )}
-      </Checkbox>
+        {t(kLSRLLabelKey)}
+      </PaletteCheckbox>
       <If condition={!!existingAdornment?.isVisible}>
         <div
           className="sub-options lsrl-sub-options"
           data-testid="adornment-lsrl-sub-options"
         >
           <If condition={!interceptLocked}>
-            <Checkbox
+            <PaletteCheckbox
               data-testid={`adornment-checkbox-${kLSRLClass}-show-r`}
               defaultSelected={existingAdornment?.showR}
               onChange={handleShowRSetting}
             >
-              {({isSelected}) => (
-                <>
-                  <span className={`checkbox-indicator${isSelected ? " selected" : ""}`} />
-                  {t("V3.graphLSRL.showR")}
-                </>
-              )}
-            </Checkbox>
-            <Checkbox
+              {t("V3.graphLSRL.showR")}
+            </PaletteCheckbox>
+            <PaletteCheckbox
               data-testid={`adornment-checkbox-${kLSRLClass}-show-r-squared`}
               defaultSelected={existingAdornment?.showRSquared}
               onChange={handleShowRSquaredSetting}
             >
-              {({isSelected}) => (
-                <>
-                  <span className={`checkbox-indicator${isSelected ? " selected" : ""}`} />
-                  {t("V3.graphLSRL.showRSquared")}
-                </>
-              )}
-            </Checkbox>
-            <Checkbox
+              {t("V3.graphLSRL.showRSquared")}
+            </PaletteCheckbox>
+            <PaletteCheckbox
               data-testid={`adornment-checkbox-${kLSRLClass}-show-confidence-bands`}
               defaultSelected={existingAdornment?.showConfidenceBands}
               onChange={handleShowConfidenceBandsSetting}
             >
-              {({isSelected}) => (
-                <>
-                  <span className={`checkbox-indicator${isSelected ? " selected" : ""}`} />
-                  {t("V3.Inspector.graphLSRLShowConfidenceBands")}
-                </>
-              )}
-            </Checkbox>
+              {t("V3.Inspector.graphLSRLShowConfidenceBands")}
+            </PaletteCheckbox>
           </If>
         </div>
       </If>

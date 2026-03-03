@@ -1,7 +1,7 @@
-import { Checkbox } from "react-aria-components"
 import { observer } from "mobx-react-lite"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 import { t } from "../../../../utilities/translation/translate"
+import { PaletteCheckbox } from "../../../palette-checkbox"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { getAdornmentContentInfo } from "../adornment-content-info"
 
@@ -49,17 +49,12 @@ export const AdornmentCheckbox = observer(function AdornmentCheckbox({classNameV
   }
 
   return (
-    <Checkbox
+    <PaletteCheckbox
       data-testid={`adornment-checkbox-${classNameValue}`}
       isSelected={existingAdornment?.isVisible ?? false}
       onChange={handleSetting}
     >
-      {({isSelected}) => (
-        <>
-          <span className={`checkbox-indicator${isSelected ? " selected" : ""}`} />
-          {t(labelKey)}
-        </>
-      )}
-    </Checkbox>
+      {t(labelKey)}
+    </PaletteCheckbox>
   )
 })
