@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 
-export const useAccessibilityPatches = () => {
+export const useChakraPatches = () => {
   // Chakra UI v2 pre-renders hidden portal divs for components like Menu, Tooltip, and Popover.
   // These clutter the accessibility tree for screen readers even when not visible. We observe
   // mutations and set aria-hidden on portals whose content is hidden, removing it when visible.

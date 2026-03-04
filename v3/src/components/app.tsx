@@ -8,10 +8,10 @@ import { ErrorBoundary } from "react-error-boundary"
 import { useMemo } from "use-memo-one"
 // import { setLivelinessChecking } from "mobx-state-tree"
 import { CfmContext } from "../hooks/use-cfm-context"
+import { useChakraPatches } from "../hooks/use-chakra-patches"
 import { DocumentContentContext } from "../hooks/use-document-content"
 import { useDocumentLanguage } from "../hooks/use-document-language"
 import { useDropHandler } from "../hooks/use-drop-handler"
-import { useAccessibilityPatches } from "../hooks/use-accessibility-patches"
 import { useImportHelpers } from "../hooks/use-import-helpers"
 import { useKeyStates } from "../hooks/use-key-states"
 import { useKeyboardShortcuts } from "../hooks/use-keyboard-shortcuts"
@@ -218,7 +218,7 @@ export const App = observer(function App() {
 
   const { fallbackRender } = useUncaughtErrorHandler(cfm)
 
-  useAccessibilityPatches()
+  useChakraPatches()
 
   const appContainerClassName =
     clsx("app-container", { "vertical-toolbar": persistentState.toolbarPosition === "Left" })
