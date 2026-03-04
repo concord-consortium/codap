@@ -1,9 +1,9 @@
-import { Checkbox } from "react-aria-components"
 import { observer } from "mobx-react-lite"
 import { registerAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
 import { logMessageWithReplacement } from "../../../../../lib/log-message"
 import { getDocumentContentPropertyFromNode } from "../../../../../utilities/mst-utils"
 import { t } from "../../../../../utilities/translation/translate"
+import { PaletteCheckbox } from "../../../../palette-checkbox"
 import { useGraphContentModelContext } from "../../../hooks/use-graph-content-model-context"
 import { registerAdornmentComponentInfo } from "../../adornment-component-info"
 import { getAdornmentContentInfo, registerAdornmentContentInfo } from "../../adornment-content-info"
@@ -64,59 +64,46 @@ const Controls = observer(function Controls() {
 
   const renderShowOutliers = () => {
     return (
-      <Checkbox
+      <PaletteCheckbox
         data-testid={`adornment-checkbox-${kBoxPlotClass}-show-outliers`}
-        defaultSelected={existingAdornment?.showOutliers}
+        isSelected={existingAdornment?.showOutliers}
         isDisabled={!existingAdornment?.isVisible}
         onChange={handleShowOutliersSetting}
       >
-        {({isSelected}) => (
-          <>
-            <span className={`checkbox-indicator${isSelected ? " selected" : ""}`} />
-            {t("DG.Inspector.graphBoxPlotShowOutliers")}
-          </>
-        )}
-      </Checkbox>
+        {t("DG.Inspector.graphBoxPlotShowOutliers")}
+      </PaletteCheckbox>
     )
   }
 
   const renderShowICI = () => {
     if (showICIOption) {
       return (
-        <Checkbox
+        <PaletteCheckbox
           data-testid={`adornment-checkbox-${kBoxPlotClass}-show-ici`}
-          defaultSelected={existingAdornment?.showICI}
+          isSelected={existingAdornment?.showICI}
           isDisabled={!existingAdornment?.isVisible}
           onChange={handleShowIciSetting}
         >
-          {({isSelected}) => (
-            <>
-              <span className={`checkbox-indicator${isSelected ? " selected" : ""}`} />
-              {t("DG.Inspector.graphBoxPlotShowICI")}
-            </>
-          )}
-        </Checkbox>
+          {t("DG.Inspector.graphBoxPlotShowICI")}
+        </PaletteCheckbox>
       )
     }
   }
 
   return (
     <>
-      <Checkbox
+      <PaletteCheckbox
         data-testid={`adornment-checkbox-${kBoxPlotClass}`}
-        defaultSelected={existingAdornment?.isVisible}
+        isSelected={existingAdornment?.isVisible}
         onChange={handleBoxPlotSetting}
       >
-        {({isSelected}) => (
-          <>
-            <span className={`checkbox-indicator${isSelected ? " selected" : ""}`} />
-            {t(kBoxPlotLabelKey)}
-          </>
-        )}
-      </Checkbox>
+        {t(kBoxPlotLabelKey)}
+      </PaletteCheckbox>
       <div
         className="sub-options show-outliers"
         data-testid="adornment-show-outliers-options"
+        role="group"
+        aria-label={t(kBoxPlotLabelKey)}
       >
         {renderShowOutliers()}
         {renderShowICI()}

@@ -156,7 +156,7 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
   }, [])
 
   const panelWidth = panelRect?.width || 72
-  const paletteLeft = inBounds ? panelWidth - 5 : -(paletteWidth + 10)
+  const paletteLeft = inBounds ? panelWidth - 5 : -(paletteWidth - 5)
   const wrapperStyle = {top: paletteTop || 0, left: paletteLeft, zIndex: 250}
   const pointerStyle = inBounds
     ? { left: -(pointerSize - 1) }
@@ -166,7 +166,7 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
       <div ref={pointerRef} className={`palette-pointer ${inBounds ? "arrow-left" : "arrow-right"}`}
           style={{top: pointerTop - (paletteTop || 0), ...pointerStyle}} />
       <div ref={paletteRef} className="codap-inspector-palette" tabIndex={0}
-          role="dialog" aria-labelledby={headerId}
+          role="region" aria-labelledby={headerId}
           data-testid="codap-inspector-palette" onKeyDown={handleKeyDown}>
         <PaletteHeader id={headerId} Icon={Icon} title={title} />
         {children}

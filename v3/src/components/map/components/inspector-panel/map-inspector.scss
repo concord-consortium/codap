@@ -1,3 +1,5 @@
+@use "../../../vars";
+
 .map-values-controls {
   display: flex;
   flex-direction: column;
@@ -6,57 +8,65 @@
   .map-values-layer-label{
     display: flex;
     align-items: center;
+    font-weight: 500;
   }
 }
 
 .inspector-panel.map.data-display {
+  .codap-inspector-palette:has(.map-base-control) {
+    width: 269px;
+  }
+
   .codap-inspector-palette {
     .map-base-control {
       display: flex;
       flex-direction: row;
-      margin: 10px;
+      margin: 10px 0;
       align-items: center;
-
-      .palette-checkbox{
-        width: 80px;
-      }
+      font-weight: 500;
 
       .map-base-segmented {
+        display: flex;
+        flex: 1;
         height: 18px;
-        width: 170px;
-        margin: 5px;
+        margin-left: 5px;
+        border: 1px solid vars.$charcoal;
         border-radius: 4px;
-        justify-content: center;
-        cursor: pointer;
 
         .map-base-button {
-          border-radius: 4px;
+          appearance: none;
+          background-color: vars.$palette-hover-bg;
+          border: none;
+          padding: 0;
+          font: inherit;
+          font-weight: 500;
+          cursor: pointer;
           display: flex;
+          flex: 1;
           align-items: center;
           justify-content: center;
           overflow: hidden;
-          height: 18px;
+          height: 100%;
+
+          &:focus-visible {
+            outline: 2px solid vars.$focus-outline-color;
+            outline-offset: 1px;
+          }
 
           &.oceans {
-            border: 1px solid #cccccc;
-            border-radius: 4px 0 0 4px;
-            width: 57.5px;
+            border-radius: 3px 0 0 3px;
           }
           &.streets {
-            border: 1px solid #cccccc;
-            border-radius: 0 4px 4px 0;
-            width: 54.5px;
+            border-radius: 0 3px 3px 0;
           }
           &.topo {
-            border-top: 1px solid #cccccc;
-            border-bottom: 1px solid #cccccc;
-            width: 45px;
+            border-left: 1px solid vars.$charcoal;
+            border-right: 1px solid vars.$charcoal;
             border-radius: 0;
           }
           &.selected {
-            background-image: linear-gradient(to bottom, #5DA3EE, #437BD4);
-            color: white;
-            text-shadow: black 1px 1px;
+            background-color: vars.$palette-header-bg;
+            font-weight: 700;
           }
         }
       }
@@ -64,6 +74,16 @@
 
     .map-layer-controls {
       margin: 10px;
+      border-top: 1px solid vars.$charcoal-light-2;
+      padding-top: 10px;
+
+      > .react-aria-Checkbox {
+        font-weight: 500;
+      }
+
+      .palette-row {
+        font-weight: normal;
+      }
     }
   }
 }

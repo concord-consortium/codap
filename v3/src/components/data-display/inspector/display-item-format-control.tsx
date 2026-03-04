@@ -1,8 +1,9 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import { Checkbox, Radio, RadioGroup } from "react-aria-components"
+import { Radio, RadioGroup } from "react-aria-components"
 import { t } from "../../../utilities/translation/translate"
 import { If } from "../../common/if"
+import { PaletteCheckbox } from "../../palette-checkbox"
 import { IMapPointLayerModel, isMapPointDisplayType } from "../../map/models/map-point-layer-model"
 import { PointDisplayType } from "../data-display-types"
 import { IDataConfigurationModel } from "../models/data-configuration-model"
@@ -65,7 +66,7 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
         <RadioGroup
           value={mapPointLayerModel?.displayType}
           onChange={handlePointTypeChange}
-          aria-label={t("V3.map.inspector.displayAsPoints")}
+          aria-label={t("V3.map.inspector.displayType")}
         >
           <Radio value="points" data-testid="point-type-points-radio-button">
             {() => (
@@ -111,7 +112,7 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
                             swatchBackgroundColor={displayItemDescription.pointStrokeColor}/>
         </div>
       </div>
-      <Checkbox
+      <PaletteCheckbox
         data-testid="stroke-same-as-fill-checkbox"
         isSelected={displayItemDescription.pointStrokeSameAsFill}
         onChange={(checked) => {
@@ -125,13 +126,8 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
           )
         }}
       >
-        {() => (
-          <>
-            <div className="checkbox-indicator" />
-            {t("DG.Inspector.strokeSameAsFill")}
-          </>
-        )}
-      </Checkbox>
+        {t("DG.Inspector.strokeSameAsFill")}
+      </PaletteCheckbox>
 
       <If condition={!!(onBackgroundTransparencyChange && onBackgroundColorChange)}>
         <PlotBackgroundControls

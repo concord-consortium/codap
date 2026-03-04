@@ -1,12 +1,11 @@
-import React from "react"
 import {clsx} from "clsx"
 import {observer} from "mobx-react-lite"
-import {Box, Checkbox, Flex} from "@chakra-ui/react"
 import {t} from "../../../../utilities/translation/translate"
 import {ITileModel} from "../../../../models/tiles/tile-model"
 import {BaseMapKey} from "../../map-types"
 import {isMapContentModel} from "../../models/map-content-model"
 import { logMessageWithReplacement, logStringifiedObjectMessage } from "../../../../lib/log-message"
+import {PaletteCheckbox} from "../../../palette-checkbox"
 
 import "./map-inspector.scss"
 
@@ -23,17 +22,16 @@ export const MapBaseLayerControl = observer(function MapBaseLayerControl(
     return clsx("map-base-button", layerName, { selected: layerName === mapModel.baseMapLayerName })
   }
 
-  const toggleVisibility = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const isVisible = e.target.checked,
-      undoString = isVisible
-        ? "V3.Undo.map.inspector.showMapLayer" : "V3.Undo.map.inspector.hideMapLayer",
-      redoString = isVisible
+  const toggleVisibility = (checked: boolean) => {
+    const undoString = checked
+        ? "V3.Undo.map.inspector.showMapLayer" : "V3.Undo.map.inspector.hideMapLayer"
+    const redoString = checked
         ? "V3.Redo.map.inspector.showMapLayer" : "V3.Redo.map.inspector.hideMapLayer"
     mapModel.applyModelChange(
-      () => mapModel.setBaseMapLayerVisibility(e.target.checked), {
+      () => mapModel.setBaseMapLayerVisibility(checked), {
         undoStringKey: undoString,
         redoStringKey: redoString,
-        log: logMessageWithReplacement("Map base layer visibility changed: %@", {visibility: isVisible}),
+        log: logMessageWithReplacement("Map base layer visibility changed: %@", {visibility: checked}),
       }
     )
   }
@@ -50,30 +48,34 @@ export const MapBaseLayerControl = observer(function MapBaseLayerControl(
   }
 
   return (
-    <Flex className="palette-form map-base-control" direction="row">
-      <Checkbox
-        className="palette-checkbox"
+    <div className="palette-form map-base-control">
+      <PaletteCheckbox
         data-testid={`map-layers-checkbox-base`}
-        defaultChecked={mapModel.baseMapLayerIsVisible}
+        isSelected={mapModel.baseMapLayerIsVisible}
         onChange={toggleVisibility}
-        padding="2px"
       >
         {t('V3.map.inspector.base')}
-      </Checkbox>
-      <Flex className='map-base-segmented'>
-        <Box data-testid={`map-layers-base-oceans`} className={classNameForSegment('oceans')}
+      </PaletteCheckbox>
+      <div className="map-base-segmented" role="group" aria-label={t('V3.map.inspector.baseMapType')}>
+        <button type="button" data-testid={`map-layers-base-oceans`}
+          className={classNameForSegment('oceans')}
+          aria-pressed={mapModel.baseMapLayerName === 'oceans'}
           onClick={()=>{ changeBaseMapLayer('oceans') }}>
           {t('V3.map.inspector.oceans')}
-        </Box>
-        <Box data-testid={`map-layers-base-topo`} className={classNameForSegment('topo')}
-              onClick={()=>{ changeBaseMapLayer('topo') }}>
+        </button>
+        <button type="button" data-testid={`map-layers-base-topo`}
+          className={classNameForSegment('topo')}
+          aria-pressed={mapModel.baseMapLayerName === 'topo'}
+          onClick={()=>{ changeBaseMapLayer('topo') }}>
           {t('V3.map.inspector.topo')}
-        </Box>
-        <Box data-testid={`map-layers-base-streets`} className={classNameForSegment('streets')}
-              onClick={()=>{ changeBaseMapLayer('streets') }}>
+        </button>
+        <button type="button" data-testid={`map-layers-base-streets`}
+          className={classNameForSegment('streets')}
+          aria-pressed={mapModel.baseMapLayerName === 'streets'}
+          onClick={()=>{ changeBaseMapLayer('streets') }}>
           {t('V3.map.inspector.streets')}
-        </Box>
-      </Flex>
-    </Flex>
+        </button>
+      </div>
+    </div>
   )
 })

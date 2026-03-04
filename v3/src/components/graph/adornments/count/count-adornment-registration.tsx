@@ -1,8 +1,9 @@
 import { useState } from "react"
-import { Checkbox, Radio, RadioGroup } from "react-aria-components"
+import { Radio, RadioGroup } from "react-aria-components"
 import { registerAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 import { t } from "../../../../utilities/translation/translate"
+import { PaletteCheckbox } from "../../../palette-checkbox"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
 import { registerAdornmentComponentInfo } from "../adornment-component-info"
@@ -78,32 +79,22 @@ const Controls = () => {
 
   return (
     <>
-      <Checkbox
+      <PaletteCheckbox
         data-testid={`adornment-checkbox-${kCountClass}-count`}
-        defaultSelected={existingAdornment?.showCount}
+        isSelected={existingAdornment?.showCount}
         onChange={checked => handleSetting(checked, "count")}
       >
-        {({isSelected}) => (
-          <>
-            <span className={`checkbox-indicator${isSelected ? " selected" : ""}`} />
-            {t(kCountLabelKey)}
-          </>
-        )}
-      </Checkbox>
+        {t(kCountLabelKey)}
+      </PaletteCheckbox>
       {shouldShowPercentOption &&
         <>
-          <Checkbox
+          <PaletteCheckbox
             data-testid={`adornment-checkbox-${kCountClass}-percent`}
-            defaultSelected={existingAdornment?.showPercent}
+            isSelected={existingAdornment?.showPercent}
             onChange={checked => handleSetting(checked, "percent")}
           >
-            {({isSelected}) => (
-              <>
-                <span className={`checkbox-indicator${isSelected ? " selected" : ""}`} />
-                {t(kPercentLabelKey)}
-              </>
-            )}
-          </Checkbox>
+            {t(kPercentLabelKey)}
+          </PaletteCheckbox>
           {shouldShowPercentTypeOptions &&
             <div
               className="sub-options percent-type"

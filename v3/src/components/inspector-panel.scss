@@ -108,7 +108,14 @@ $inspector-panel-border-width: 2px;
   min-width: 220px;
   min-height: 50px;
   font-weight: normal;
-  outline: none;
+
+  &:focus-visible {
+    outline: 2px solid vars.$focus-outline-color;
+    outline-offset: -2px;
+  }
+  &:focus:not(:focus-visible) {
+    outline: none;
+  }
 
   .codap-inspector-palette-header {
     display: flex;

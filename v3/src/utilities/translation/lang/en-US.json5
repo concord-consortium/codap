@@ -1047,6 +1047,7 @@
 
     // Map-layer Inspector
     "DG.Inspector.layers": "Layers",
+    "DG.Inspector.defaultLayerName": "Layer",
 
     // Game Controller
     "DG.GameController.continuityError": "Sorry, after columns in the case table have been reordered, new data cannot be accepted.",
@@ -1350,10 +1351,12 @@
     "V3.map.Inspector.Data": "Data",
     "V3.map.Inspector.Layers": "Layers",
     "V3.map.Inspector.Image": "Image",
-    "V3.map.inspector.base": "Base",
+    "V3.map.inspector.base": "Map",
+    "V3.map.inspector.baseMapType": "Base map layer type",
     "V3.map.inspector.oceans": "Oceans",
     "V3.map.inspector.topo": "Topo",
     "V3.map.inspector.streets": "Streets",
+    "V3.map.inspector.displayType": "Display type",
     "V3.map.inspector.displayAsPoints": "Display as points",
     "V3.map.inspector.displayAsHeatmap": "Display as heatmap",
     "V3.map.inspector.pins": "Pins",
