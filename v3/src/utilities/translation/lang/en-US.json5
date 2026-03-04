@@ -1356,6 +1356,7 @@
     "V3.map.inspector.oceans": "Oceans",
     "V3.map.inspector.topo": "Topo",
     "V3.map.inspector.streets": "Streets",
+    "V3.map.inspector.displayType": "Display type",
     "V3.map.inspector.displayAsPoints": "Display as points",
     "V3.map.inspector.displayAsHeatmap": "Display as heatmap",
     "V3.map.inspector.pins": "Pins",

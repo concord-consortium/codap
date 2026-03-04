@@ -66,7 +66,7 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
         <RadioGroup
           value={mapPointLayerModel?.displayType}
           onChange={handlePointTypeChange}
-          aria-label={t("V3.map.inspector.displayAsPoints")}
+          aria-label={t("V3.map.inspector.displayType")}
         >
           <Radio value="points" data-testid="point-type-points-radio-button">
             {() => (

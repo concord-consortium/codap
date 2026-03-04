@@ -102,6 +102,8 @@ const Controls = observer(function Controls() {
       <div
         className="sub-options show-outliers"
         data-testid="adornment-show-outliers-options"
+        role="group"
+        aria-label={t(kBoxPlotLabelKey)}
       >
         {renderShowOutliers()}
         {renderShowICI()}

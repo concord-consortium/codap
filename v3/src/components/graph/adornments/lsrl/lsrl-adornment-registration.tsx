@@ -104,6 +104,8 @@ const Controls = observer(function Controls() {
         <div
           className="sub-options lsrl-sub-options"
           data-testid="adornment-lsrl-sub-options"
+          role="group"
+          aria-label={t(kLSRLLabelKey)}
         >
           <If condition={!interceptLocked}>
             <PaletteCheckbox

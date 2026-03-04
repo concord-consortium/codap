@@ -1,3 +1,5 @@
+@use "../vars";
+
 $color-picker-popover-top: -8;
 $color-picker-popover-top-px: #{$color-picker-popover-top}px;
 $color-picker-popover-left: -90;
@@ -82,7 +84,11 @@ $color-palette-and-picker-height: 410px;
           height: 18px;
           margin: 1px;
           padding: 0;
-          border: solid 1px #d0d0d0;
+          border: solid 1px vars.$charcoal-light-1;
+          &:focus-visible {
+            outline: 2px solid vars.$focus-outline-color;
+            outline-offset: 2px;
+          }
           &.selected {
             border: 1px solid #000;
             background-position: 50% 50%;

@@ -166,7 +166,7 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
       <div ref={pointerRef} className={`palette-pointer ${inBounds ? "arrow-left" : "arrow-right"}`}
           style={{top: pointerTop - (paletteTop || 0), ...pointerStyle}} />
       <div ref={paletteRef} className="codap-inspector-palette" tabIndex={0}
-          role="dialog" aria-labelledby={headerId}
+          role="region" aria-labelledby={headerId}
           data-testid="codap-inspector-palette" onKeyDown={handleKeyDown}>
         <PaletteHeader id={headerId} Icon={Icon} title={title} />
         {children}
