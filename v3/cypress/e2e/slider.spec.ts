@@ -166,7 +166,7 @@ context("Slider UI", () => {
     slider.getVariableValue().should("contain", initialSliderValue)
     slider.playSliderButton()
     slider.checkPlayButtonIsRunning()
-    slider.getVariableValue().should("contain", finalSliderValue)
+    slider.getVariableValueInput(0, 15000).should("contain.value", finalSliderValue)
     slider.checkPlayButtonIsPaused()
     c.closeComponent("slider") //Change in component header height causes interference with variable value input
 
@@ -180,9 +180,9 @@ context("Slider UI", () => {
     slider.getVariableValue().should("contain", initialSliderValue)
     slider.playSliderButton()
     slider.checkPlayButtonIsRunning()
-    slider.getVariableValue().should("contain", finalSliderValue)
+    slider.getVariableValueInput(0, 15000).should("contain.value", finalSliderValue)
     slider.checkPlayButtonIsRunning()
-    slider.getVariableValue().should("contain", "2.5")
+    slider.getVariableValueInput(0, 15000).should("contain.value", "2.5")
     slider.checkPlayButtonIsPaused()
     c.closeComponent("slider") //Change in component header height causes interference with variable value input
 
