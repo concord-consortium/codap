@@ -23,24 +23,24 @@
     &.beta {
       top: vars.$beta-banner-height;
 
-      .toolbar-container {
+      .app-container {
         height: calc(100% - vars.$menu-bar-height - vars.$beta-banner-height);
       }
     }
 
-    .toolbar-container {
+    .app-container {
       display: flex;
       flex-direction: column;
       height: calc(100% - vars.$menu-bar-height);
       width: 100%;
 
-      &.vertical-toolbar-container {
+      &.vertical-toolbar {
         flex-direction: row;
       }
     }
 
     &.minimal-chrome {
-      .toolbar-container {
+      .app-container {
         height: 100%;
       }
     }
@@ -55,7 +55,7 @@
     }
 
     // Allow text selection in background (unique to embeddedMode, not componentMode)
-    .codap-container {
+    .document-container {
       user-select: text;
     }
   }
@@ -108,6 +108,18 @@
   top: 0;
   width: 100%;
   z-index: 100000;
+}
+
+.codap-visually-hidden {
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
 }
 
 .document-render-error {

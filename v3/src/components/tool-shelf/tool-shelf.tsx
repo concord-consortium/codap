@@ -145,7 +145,13 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
   })
 
   return (
-    <Flex className="tool-shelf" alignContent="center" data-testid="tool-shelf">
+    <Flex
+      className="tool-shelf"
+      alignContent="center"
+      data-testid="tool-shelf"
+      role="toolbar"
+      aria-label="Document Toolbar"
+    >
       <Flex className="tool-shelf-component-buttons">
         {[...tileButtons, <PluginsButton key="plugins-99" />]}
       </Flex>

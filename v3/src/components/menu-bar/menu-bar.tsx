@@ -6,7 +6,13 @@ export const kMenuBarElementId = "codap-menu-bar-id"
 
 export function MenuBar() {
   return (
-    <div id={kMenuBarElementId} className="codap-menu-bar" data-testid="codap-menu-bar">
+    <div
+      id={kMenuBarElementId}
+      className="codap-menu-bar"
+      data-testid="codap-menu-bar"
+      aria-label="Menu Bar"
+      role="menubar"
+    >
     </div>
   )
 }

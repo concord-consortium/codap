@@ -11,6 +11,7 @@ import { CfmContext } from "../hooks/use-cfm-context"
 import { DocumentContentContext } from "../hooks/use-document-content"
 import { useDocumentLanguage } from "../hooks/use-document-language"
 import { useDropHandler } from "../hooks/use-drop-handler"
+import { useAccessibilityPatches } from "../hooks/use-accessibility-patches"
 import { useImportHelpers } from "../hooks/use-import-helpers"
 import { useKeyStates } from "../hooks/use-key-states"
 import { useKeyboardShortcuts } from "../hooks/use-keyboard-shortcuts"
@@ -217,8 +218,10 @@ export const App = observer(function App() {
 
   const { fallbackRender } = useUncaughtErrorHandler(cfm)
 
-  const toolbarContainerClassName =
-    clsx("toolbar-container", { "vertical-toolbar-container": persistentState.toolbarPosition === "Left" })
+  useAccessibilityPatches()
+
+  const appContainerClassName =
+    clsx("app-container", { "vertical-toolbar": persistentState.toolbarPosition === "Left" })
   const appClasses = clsx("codap-app", {
     "minimal-chrome": uiState.minimalChrome,
     "inbounds-mode": uiState.inboundsMode,
@@ -233,11 +236,16 @@ export const App = observer(function App() {
               <BetaBanner />
             </If>
             <div className={appClasses} data-testid="codap-app">
-              <If condition={uiState.shouldRenderMenuBar}>
-                <MenuBar/>
-              </If>
+              <header>
+                <h1 className="codap-visually-hidden">
+                  <abbr title="Common Online Data Analysis Platform">CODAP</abbr>
+                </h1>
+                <If condition={uiState.shouldRenderMenuBar}>
+                  <MenuBar/>
+                </If>
+              </header>
               <ErrorBoundary fallbackRender={fallbackRender}>
-                <div className={toolbarContainerClassName}>
+                <div className={appContainerClassName}>
                   <If condition={uiState.shouldRenderToolShelf}>
                     <ToolShelf document={appState.document}/>
                   </If>

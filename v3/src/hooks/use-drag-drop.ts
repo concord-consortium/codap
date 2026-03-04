@@ -6,7 +6,7 @@ import { useInstanceIdContext } from "./use-instance-id-context"
 import { useTileSelectionContext } from "./use-tile-selection-context"
 
 // list of draggable types
-export const DragTypes = ["attribute", "row", "tile"] as const
+export const DragTypes = ["attribute", "row"] as const
 type DragType = typeof DragTypes[number]
 
 export interface IDragData {

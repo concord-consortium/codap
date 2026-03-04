@@ -5,6 +5,7 @@ import { dataInteractiveState } from "../../data-interactive/data-interactive-st
 import { DocumentContainerContext } from "../../hooks/use-document-container-context"
 import { useDocumentContent } from "../../hooks/use-document-content"
 import { logMessageWithReplacement } from "../../lib/log-message"
+import { appState } from "../../models/app-state"
 import { isFreeTileRow } from "../../models/document/free-tile-row"
 import { isMosaicTileRow } from "../../models/document/mosaic-tile-row"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
@@ -26,7 +27,7 @@ export const Container: React.FC = observer(function Container() {
   // TODO: handle the possibility of multiple rows
   const row = documentContent?.getRowByIndex(0)
   const getTile = useCallback((tileId: string) => documentContent?.getTile(tileId), [documentContent])
-  const containerRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLElement>(null)
 
   const handleCloseTile = useCallback((tileId: string) => {
     const tile = getTile(tileId)
@@ -50,7 +51,8 @@ export const Container: React.FC = observer(function Container() {
                         "scroll-behavior-auto": isScrollBehaviorAuto })
   return (
     <DocumentContainerContext.Provider value={containerRef}>
-      <div className={classes} ref={containerRef}>
+      <main className={classes} ref={containerRef}>
+        <h2 className="codap-visually-hidden">{appState.document.title}</h2>
         {isMosaicTileRow(row) &&
           <MosaicTileRowComponent row={row} getTile={getTile} onCloseTile={handleCloseTile}/>}
         {isFreeTileRow(row) &&
@@ -64,7 +66,7 @@ export const Container: React.FC = observer(function Container() {
           yOffset={dataInteractiveState.draggingYOffset}
         />
         <EditAttributeFormulaModal />
-      </div>
+      </main>
     </DocumentContainerContext.Provider>
   )
 })

@@ -624,7 +624,7 @@ context("Graph UI", () => {
       cy.get("[data-testid=graph-bin-alignment-setting]").find("input").clear().type("3")
       cy.get("[data-testid=graph-bin-alignment-setting]").find("input").type("{enter}")
       // Close the config panel by clicking elsewhere before changing attributes
-      cy.get(".codap-container").click({ force: true })
+      cy.get(".document-container").click({ force: true })
       cy.wait(500)
       // Select the graph before dragging to ensure it can receive the drop
       c.selectTile("graph", 0)
