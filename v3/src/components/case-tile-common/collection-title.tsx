@@ -137,8 +137,8 @@ export const CollectionTitle =
       {onAddNewAttribute &&
         <Button className="add-attribute-icon-button" title={t("DG.TableController.newAttributeTooltip")}
             data-testid={"collection-add-attribute-icon-button"} style={addIconStyle}
-            isDisabled={disableAddAttribute} >
-          <AddIcon className={addIconClass} onClick={onAddNewAttribute} />
+            isDisabled={disableAddAttribute} onClick={onAddNewAttribute}>
+          <AddIcon className={addIconClass} />
         </Button>
       }
     </div>

@@ -1,4 +1,4 @@
-import { Menu, MenuButton, VisuallyHidden } from "@chakra-ui/react"
+import { Menu, MenuButton } from "@chakra-ui/react"
 import { useDndContext } from "@dnd-kit/core"
 import { clsx } from "clsx"
 import React, { useCallback, useEffect, useRef, useState } from "react"
@@ -176,7 +176,7 @@ export function IndexCell({ caseId, disableMenu, index, collapsedCases, onClick,
       <div className={classes} ref={setDragNodeRef} {...attributes} {...listeners}
             data-testid="codap-index-content-button">
         <MenuButton ref={setMenuButtonRef} className={classes} data-testid="codap-index-content-button"
-            onKeyDown={handleKeyDown} aria-describedby="sr-index-menu-instructions"
+            onKeyDown={handleKeyDown} aria-describedby={`sr-index-menu-instructions-${collectionId}`}
             aria-label={t("V3.CaseTable.inputRowAriaLabel")}>
           <div className={classes}
               onPointerDown={onPointerDown} onMouseDown={onPointerDown}>
@@ -223,13 +223,11 @@ export function IndexCell({ caseId, disableMenu, index, collapsedCases, onClick,
       {isInputRow
         ? renderInputRowIndexColumnCell()
         : <MenuButton ref={setMenuButtonRef} className={classes} data-testid="codap-index-content-button"
-                      onClick={handleClick} onKeyDown={handleKeyDown} aria-describedby="sr-index-menu-instructions">
+                      onClick={handleClick} onKeyDown={handleKeyDown}
+                      aria-describedby={`sr-index-menu-instructions-${collectionId}`}>
             {cellContents}
           </MenuButton>
       }
-      <VisuallyHidden id="sr-index-menu-instructions">
-        {t("V3.CaseTable.indexMenuInstructions")}
-      </VisuallyHidden>
       {portalElt && createPortal(<IndexMenuList caseId={caseId} index={index}/>, portalElt)}
     </Menu>
   )

@@ -350,6 +350,9 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
           <VisuallyHidden id={gridInstructionsId}>
             {t("V3.CaseTable.gridEditInstructions")}
           </VisuallyHidden>
+          <VisuallyHidden id={`sr-index-menu-instructions-${collectionId}`}>
+            {t("V3.CaseTable.indexMenuInstructions")}
+          </VisuallyHidden>
           <DataGrid ref={gridRef} className="rdg-light" data-testid="collection-table-grid" renderers={renderers}
             columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
             rowHeight={rowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
