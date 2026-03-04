@@ -27,8 +27,8 @@ export const ToolShelfButton = ({
     <Box
       as='button'
       title={t(hint)}
-      disabled={disabled}
-      onClick={onClick}
+      aria-disabled={disabled || undefined}
+      onClick={disabled ? undefined : onClick}
       data-testid={`tool-shelf-button-${label.toLowerCase()}`}
       className={clsx("tool-shelf-button", langClass, className)}
     >

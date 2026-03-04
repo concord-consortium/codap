@@ -1,6 +1,6 @@
 import { Flex, Spacer } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
-import React from "react"
+import React, { useCallback, useEffect, useRef } from "react"
 import { SetRequired } from "type-fest"
 import { getRedoStringKey, getUndoStringKey } from "../../models/history/codap-undo-types"
 import {
@@ -15,6 +15,7 @@ import { logMessageWithReplacement } from "../../lib/log-message"
 import { IDocumentModel } from "../../models/document/document"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { createTileNotification } from "../../models/tiles/tile-notifications"
+import { persistentState } from "../../models/persistent-state"
 import { uiState } from "../../models/ui-state"
 import { t } from "../../utilities/translation/translate"
 import { kWebViewTileType } from "../web-view/web-view-defs"
@@ -52,6 +53,40 @@ interface IProps {
   document: IDocumentModel
 }
 export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
+  const toolbarRef = useRef<HTMLDivElement>(null)
+
+  // Get all top-level toolbar buttons, excluding items inside dropdown menus
+  const getToolbarButtons = useCallback(() => {
+    if (!toolbarRef.current) return []
+    const allButtons = toolbarRef.current.querySelectorAll<HTMLElement>("button")
+    return Array.from(allButtons).filter(btn => !btn.closest(".tool-shelf-menu-list"))
+  }, [])
+
+  // Roving tabindex: only the first toolbar button participates in Tab order
+  useEffect(() => {
+    const buttons = getToolbarButtons()
+    buttons.forEach((btn, i) => { btn.tabIndex = i === 0 ? 0 : -1 })
+  })
+
+  // Arrow key navigation between toolbar buttons
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    const isHorizontal = persistentState.toolbarPosition === "Top"
+    const forwardKey = isHorizontal ? "ArrowRight" : "ArrowDown"
+    const backwardKey = isHorizontal ? "ArrowLeft" : "ArrowUp"
+    if (e.key !== forwardKey && e.key !== backwardKey) return
+
+    const buttons = getToolbarButtons()
+    const currentIndex = buttons.indexOf(e.target as HTMLElement)
+    if (currentIndex === -1) return
+
+    const nextIndex = e.key === forwardKey ? currentIndex + 1 : currentIndex - 1
+    if (nextIndex < 0 || nextIndex >= buttons.length) return
+
+    e.preventDefault()
+    buttons.forEach((btn, i) => { btn.tabIndex = i === nextIndex ? 0 : -1 })
+    buttons[nextIndex].focus()
+  }, [getToolbarButtons])
+
   if (uiState.standaloneMode) return null
 
   const undoManager = document?.treeManagerAPI?.undoManager
@@ -146,11 +181,13 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
 
   return (
     <Flex
+      ref={toolbarRef}
       className="tool-shelf"
       alignContent="center"
       data-testid="tool-shelf"
       role="toolbar"
       aria-label="Document Toolbar"
+      onKeyDown={handleKeyDown}
     >
       <Flex className="tool-shelf-component-buttons">
         {[...tileButtons, <PluginsButton key="plugins-99" />]}
