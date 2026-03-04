@@ -63,7 +63,7 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
     <div className="palette-form">
       <If condition={!!(mapPointLayerModel && legendAttrID)}>
         <RadioGroup
-          defaultValue={mapPointLayerModel?.displayType}
+          value={mapPointLayerModel?.displayType}
           onChange={handlePointTypeChange}
           aria-label={t("V3.map.inspector.displayAsPoints")}
         >

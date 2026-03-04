@@ -28,7 +28,7 @@ export const ColorPickerPalette = ({ swatchBackgroundColor, inputValue, buttonRe
     "#2a4bd7", "#814a19", "#8126c0", "#29d0d0", "#e9debb", "#ffcdf3", "#9dafff", "#81c57a"]
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [selectedColor, setSelectedColor] = useState(swatchBackgroundColor)
-  const nonStandardColorSelected = !paletteColors.includes(swatchBackgroundColor)
+  const nonStandardColorSelected = inputValue !== "" && !paletteColors.includes(swatchBackgroundColor)
   const popoverRef = useRef<HTMLDivElement>(null)
   const popoverContainerRef = useRef<HTMLDivElement>(null)
   const kGapSize = 10

@@ -109,4 +109,53 @@
   .standard-error-label {
     white-space: nowrap;
   }
+
+  .standard-error-number-field {
+    &[data-disabled] {
+      opacity: 0.5;
+    }
+  }
+
+  .standard-error-input-group {
+    display: flex;
+    align-items: center;
+    border: 1px solid vars.$charcoal-light-2;
+    border-radius: 3px;
+    overflow: hidden;
+
+    &[data-focus-within] {
+      border-color: vars.$focus-border-color;
+    }
+  }
+
+  .standard-error-input {
+    width: 40px;
+    border: none;
+    text-align: center;
+    font-size: 12px;
+    padding: 1px 2px;
+    outline: none;
+  }
+
+  .standard-error-stepper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 22px;
+    border: none;
+    background: vars.$palette-hover-bg;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 0;
+
+    &:hover {
+      background: vars.$teal-light3;
+    }
+
+    &[data-disabled] {
+      cursor: default;
+      opacity: 0.5;
+    }
+  }
 }

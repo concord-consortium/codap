@@ -109,6 +109,10 @@
         background-color: gray;
       }
 
+      // Standard properties for modern browsers
+      scrollbar-width: thin;
+      scrollbar-color: gray lightgray;
+
       .cat-color-picker {
         margin: 6px 0;
       }

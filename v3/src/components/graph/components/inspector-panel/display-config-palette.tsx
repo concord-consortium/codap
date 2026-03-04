@@ -217,7 +217,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
         <If condition={!!showPointDisplayType}>
           <RadioGroup
             aria-label={t("DG.Inspector.displayConfigType")}
-            defaultValue={graphModel?.plot.isBinned ? "bins" : graphModel?.plot.displayType}
+            value={graphModel?.plot.isBinned ? "bins" : graphModel?.plot.displayType}
             onChange={handleDisplayTypeChange}
           >
             <Radio value="points" data-testid="points-radio-button">
