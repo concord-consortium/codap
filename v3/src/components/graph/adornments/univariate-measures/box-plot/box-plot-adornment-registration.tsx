@@ -66,7 +66,7 @@ const Controls = observer(function Controls() {
     return (
       <PaletteCheckbox
         data-testid={`adornment-checkbox-${kBoxPlotClass}-show-outliers`}
-        defaultSelected={existingAdornment?.showOutliers}
+        isSelected={existingAdornment?.showOutliers}
         isDisabled={!existingAdornment?.isVisible}
         onChange={handleShowOutliersSetting}
       >
@@ -80,7 +80,7 @@ const Controls = observer(function Controls() {
       return (
         <PaletteCheckbox
           data-testid={`adornment-checkbox-${kBoxPlotClass}-show-ici`}
-          defaultSelected={existingAdornment?.showICI}
+          isSelected={existingAdornment?.showICI}
           isDisabled={!existingAdornment?.isVisible}
           onChange={handleShowIciSetting}
         >
@@ -94,7 +94,7 @@ const Controls = observer(function Controls() {
     <>
       <PaletteCheckbox
         data-testid={`adornment-checkbox-${kBoxPlotClass}`}
-        defaultSelected={existingAdornment?.isVisible}
+        isSelected={existingAdornment?.isVisible}
         onChange={handleBoxPlotSetting}
       >
         {t(kBoxPlotLabelKey)}

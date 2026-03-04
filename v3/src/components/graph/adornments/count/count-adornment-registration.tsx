@@ -81,7 +81,7 @@ const Controls = () => {
     <>
       <PaletteCheckbox
         data-testid={`adornment-checkbox-${kCountClass}-count`}
-        defaultSelected={existingAdornment?.showCount}
+        isSelected={existingAdornment?.showCount}
         onChange={checked => handleSetting(checked, "count")}
       >
         {t(kCountLabelKey)}
@@ -90,7 +90,7 @@ const Controls = () => {
         <>
           <PaletteCheckbox
             data-testid={`adornment-checkbox-${kCountClass}-percent`}
-            defaultSelected={existingAdornment?.showPercent}
+            isSelected={existingAdornment?.showPercent}
             onChange={checked => handleSetting(checked, "percent")}
           >
             {t(kPercentLabelKey)}

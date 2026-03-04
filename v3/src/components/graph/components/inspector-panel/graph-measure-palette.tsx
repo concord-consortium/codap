@@ -77,7 +77,7 @@ export const GraphMeasurePalette = observer(function GraphMeasurePalette({
                 <PaletteCheckbox
                   key={titleSlug}
                   data-testid={`adornment-checkbox-${titleSlug}`}
-                  defaultSelected={checked}
+                  isSelected={checked}
                   isDisabled={!!disabled}
                   onChange={clickHandler}
                 >

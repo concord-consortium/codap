@@ -95,7 +95,7 @@ const Controls = observer(function Controls() {
     <>
       <PaletteCheckbox
         data-testid={`adornment-checkbox-${kLSRLClass}`}
-        defaultSelected={existingAdornment?.isVisible}
+        isSelected={existingAdornment?.isVisible}
         onChange={handleLSRLSetting}
       >
         {t(kLSRLLabelKey)}
@@ -108,21 +108,21 @@ const Controls = observer(function Controls() {
           <If condition={!interceptLocked}>
             <PaletteCheckbox
               data-testid={`adornment-checkbox-${kLSRLClass}-show-r`}
-              defaultSelected={existingAdornment?.showR}
+              isSelected={existingAdornment?.showR}
               onChange={handleShowRSetting}
             >
               {t("V3.graphLSRL.showR")}
             </PaletteCheckbox>
             <PaletteCheckbox
               data-testid={`adornment-checkbox-${kLSRLClass}-show-r-squared`}
-              defaultSelected={existingAdornment?.showRSquared}
+              isSelected={existingAdornment?.showRSquared}
               onChange={handleShowRSquaredSetting}
             >
               {t("V3.graphLSRL.showRSquared")}
             </PaletteCheckbox>
             <PaletteCheckbox
               data-testid={`adornment-checkbox-${kLSRLClass}-show-confidence-bands`}
-              defaultSelected={existingAdornment?.showConfidenceBands}
+              isSelected={existingAdornment?.showConfidenceBands}
               onChange={handleShowConfidenceBandsSetting}
             >
               {t("V3.Inspector.graphLSRLShowConfidenceBands")}
