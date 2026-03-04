@@ -18,8 +18,9 @@ export const SliderTileElements = {
   getVariableValue(index = 0) {
     return this.getVariableValueInput(index).invoke('val')
   },
-  getVariableValueInput(index = 0) {
-    return this.getSliderTile(index).find("[data-testid=slider-variable-value-text-input]")
+  getVariableValueInput(index = 0, timeout?: number) {
+    return this.getSliderTile(index)
+      .find("[data-testid=slider-variable-value-text-input]", timeout ? { timeout } : {})
   },
   changeVariableValue(value: number | string, index = 0) {
     this.getVariableValueInput(index)
@@ -93,6 +94,7 @@ export const SliderTileElements = {
     c.selectTile("slider", index)
     this.clickInspectorPanel()
     this.getAnimationRate().find("input").type(`${rate}{enter}`)
+    this.clickInspectorPanel()
   },
   checkAnimationRate(rate: number, index = 0) {
     c.selectTile("slider", index)
