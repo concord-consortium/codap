@@ -1,3 +1,4 @@
+import { VisuallyHidden } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import { comparer } from "mobx"
 import { observer } from "mobx-react-lite"
@@ -93,6 +94,13 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       return element !== gridRef.current?.element
     })
   }, [])
+
+  // Mark non-editable cells with aria-readonly (RDG doesn't support this natively)
+  useEffect(() => {
+    gridRef.current?.element?.querySelectorAll('.readonly-cell').forEach(cell => {
+      cell.setAttribute('aria-readonly', 'true')
+    })
+  })
 
   // columns
   const indexColumn = useIndexColumn()
@@ -329,6 +337,8 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const hasVisibleAttributes = visibleAttributes.length > 0
   const dragId = String(active?.id)
   const showDragOverlay = hasVisibleAttributes && dragId.includes(kInputRowKey) && dragId.includes(collectionId)
+  const gridAriaLabel = t("V3.CaseTable.gridAriaLabel", { vars: [collection?.name ?? ""] })
+  const gridInstructionsId = `sr-grid-instructions-${collectionId}`
   return (
     <div className={clsx("collection-table", `collection-${collectionId}`, { "no-attributes": !hasVisibleAttributes })}>
       <CollectionTableSpacer gridElt={gridRef.current?.element}
@@ -337,12 +347,16 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
             onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp}>
         <CollectionTitle onAddNewAttribute={handleAddNewAttribute} showCount={true} collectionIndex={collectionIndex}/>
         <If condition={hasVisibleAttributes}>
+          <VisuallyHidden id={gridInstructionsId}>
+            {t("V3.CaseTable.gridEditInstructions")}
+          </VisuallyHidden>
           <DataGrid ref={gridRef} className="rdg-light" data-testid="collection-table-grid" renderers={renderers}
             columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
             rowHeight={rowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
             columnWidths={columnWidths} onColumnResize={handleColumnResize} onCellClick={handleCellClick}
             onCellKeyDown={handleCellKeyDown} onRowsChange={handleRowsChange} onScroll={handleGridScroll}
-            onSelectedCellChange={handleSelectedCellChange} rowClass={rowClass}/>
+            onSelectedCellChange={handleSelectedCellChange} rowClass={rowClass}
+            aria-label={gridAriaLabel} aria-describedby={gridInstructionsId}/>
         </If>
         {showDragOverlay && <RowDragOverlay rows={rows} width={kIndexColumnWidth}/>}
       </div>

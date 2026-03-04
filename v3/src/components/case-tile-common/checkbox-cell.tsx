@@ -1,6 +1,7 @@
 import React, { forwardRef, useEffect, useRef } from "react"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { FValue } from "../../models/formula/formula-types"
+import { t } from "../../utilities/translation/translate"
 import { applyCaseValueChanges } from "./case-tile-utils"
 
 export const isBoolean = (value: FValue | undefined) => {
@@ -18,6 +19,7 @@ interface ICheckboxCellProps {
 
 const CheckboxCell = forwardRef<HTMLInputElement, ICheckboxCellProps>(({ caseId, attrId }, ref) => {
   const data = useDataSetContext()
+  const attrName = data?.getAttribute(attrId)?.name ?? ""
   // We need checkRef to show indeterminate state
   const checkRef = useRef<HTMLInputElement>(null)
   const cellValue = data?.getValue(caseId, attrId)
@@ -43,7 +45,8 @@ const CheckboxCell = forwardRef<HTMLInputElement, ICheckboxCellProps>(({ caseId,
   return (
     <span className="cell-checkbox">
       <input type="checkbox" ref={checkRef}  onChange={handleChange} onClick={(e) => e.stopPropagation()}
-              title={String(cellValue)}/>
+              title={String(cellValue)}
+              aria-label={t("V3.CaseTable.checkboxCellAriaLabel", { vars: [attrName] })}/>
     </span>
   )
 })

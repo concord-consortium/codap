@@ -10,6 +10,7 @@ import { selectAllCases } from "../../models/data/data-set-utils"
 import { uiState } from "../../models/ui-state"
 import { parseColor, parseColorToHex } from "../../utilities/color-utils"
 import { blockAPIRequestsWhileEditing } from "../../utilities/plugin-utils"
+import { t } from "../../utilities/translation/translate"
 import { ColorPickerPalette } from "../common/color-picker-palette"
 import { TRenderEditCellProps } from "./case-table-types"
 
@@ -110,8 +111,10 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
     the code is duplicated in both components because there were problems with duplicating cell entries
     when entering a new case in the case table.
 */
+  const attrName = attribute?.name ?? ""
   const swatchStyle: React.CSSProperties | undefined = showColorSwatch.current ? { background: color } : undefined
-  const inputElt = <InputElt value={inputValue} onChange={handleInputColorChange} />
+  const inputElt = <InputElt value={inputValue} onChange={handleInputColorChange}
+    aria-label={t("V3.CaseTable.cellEditorAriaLabel", { vars: [attrName] })} />
 
   return swatchStyle
     ? (
@@ -124,7 +127,8 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
           >
             <PopoverTrigger>
               <button className="cell-edit-color-swatch" ref={triggerButtonRef}
-                onClick={handleSwatchClick}>
+                onClick={handleSwatchClick}
+                aria-label={t("V3.CaseTable.colorSwatchButtonAriaLabel", { vars: [attrName] })}>
                 <div className="cell-edit-color-swatch-interior" style={swatchStyle}/>
               </button>
             </PopoverTrigger>

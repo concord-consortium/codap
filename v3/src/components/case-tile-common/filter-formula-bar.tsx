@@ -35,12 +35,14 @@ export const FilterFormulaBar = () => {
 
   return (
     <>
-      <div className="filter-formula-container" data-testid="filter-formula-bar" onClick={handleOpenEditFormulaModal}>
+      <button className="filter-formula-container" data-testid="filter-formula-bar"
+        onClick={handleOpenEditFormulaModal}
+        aria-label={t("V3.CaseTable.filterFormulaBarAriaLabel", { vars: [filterFormula || ""] })}>
         <span className="filter-formula-label">{t("V3.CaseTable.formulaFilterBar.label")}:</span>
         <span className="filter-formula-value">
           {filterFormula}
         </span>
-      </div>
+      </button>
       {modalOpen &&
         <EditFormulaModal
           applyFormula={handleSubmitEditFormula}

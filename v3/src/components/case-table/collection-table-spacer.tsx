@@ -20,9 +20,9 @@ import { useCollectionTableModel } from "./use-collection-table-model"
 
 const kRelationDefaultFillColor = "#ffffff" // white
 // these stroke color defaults are only used if the grid's CSS variables are not set
-const kRelationDefaultStrokeColor = "#ddd" // light gray
+const kRelationDefaultStrokeColor = "#949494" // medium gray (3:1+ vs white)
 const kRelationSelectedStrokeColor = "#66afe9" // blue
-const kRelationStrokeWidth = 1
+const kRelationStrokeWidth = 1.5
 const kRelationSelectedStrokeWidth = 3
 
 interface IRelationColors {
@@ -256,9 +256,15 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
             <div className="spacer-mid-layer">
               {indexRanges?.map(({ id }, index) => {
                 if (id !== kInputRowKey) {
+                  const buttonHeight = Math.min(24, parentTableModel.rowHeight)
+                  const topOffset = (parentTableModel.rowHeight - buttonHeight) / 2
                   return <ExpandCollapseButton key={id} isCollapsed={!!metadata?.isCaseOrAncestorCollapsed(id)}
                     onClick={() => handleExpandCollapseClick(id)}
-                    styles={{ left: '3px', top: `${((index * parentTableModel.rowHeight) - parentScrollTop) + 4}px`}}
+                    styles={{
+                      left: '-4px',
+                      top: `${((index * parentTableModel.rowHeight) - parentScrollTop) + topOffset}px`,
+                      height: `${buttonHeight}px`
+                    }}
                   />
                 }
               })}
@@ -278,6 +284,7 @@ interface ExpandCollapseButtonProps {
   styles?: {
     left?: string,
     top?: string,
+    height?: string,
   },
   title?: string,
 }
@@ -287,7 +294,7 @@ function ExpandCollapseButton({ isCollapsed, onClick, styles, title }: ExpandCol
   const tooltip = title ?? t(tooltipKey)
   return (
     <button type="button" className="expand-collapse-button" onClick={onClick} style={styles}
-      title={tooltip} aria-label={tooltip}>
+      title={tooltip} aria-label={tooltip} aria-expanded={!isCollapsed}>
       <div className={`expand-collapse-image ${isCollapsed ? 'closed' : 'open'}`} />
     </button>
   )

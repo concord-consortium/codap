@@ -9,6 +9,7 @@ import { isStdISODateString } from "../../utilities/date-iso-utils"
 import { parseDate } from "../../utilities/date-parser"
 import { formatDate } from "../../utilities/date-utils"
 import { gLocale } from "../../utilities/translation/locale"
+import { t } from "../../utilities/translation/translate"
 import {
   kCaseTableBodyFont, kCaseTableHeaderFont, kDefaultRowHeight,
   kMaxAutoColumnWidth, kMinAutoColumnWidth, lineCountFromRowHeight
@@ -78,11 +79,12 @@ export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, opt
     if (hasBoundaryThumbnail(boundaryObject)) {
       const thumb = boundaryObject?.properties?.THUMB
       if (thumb) {
+        const altText = boundaryObject?.properties?.NAME ?? str
         return {
-          value: boundaryObject?.properties?.NAME ?? str,
+          value: altText,
           content: (
             <span className="cell-boundary-thumb">
-              <img src={thumb} alt="thumb" className="cell-boundary-thumb-interior" />
+              <img src={thumb} alt={altText} className="cell-boundary-thumb-interior" />
             </span>
           )
         }
@@ -96,7 +98,8 @@ export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, opt
       const pctStr = num >= 0 ? str : "0"
       return {
         value: str,
-        content: <span className="cell-qualitative-backing" key={key}>
+        content: <span className="cell-qualitative-backing" key={key}
+                  role="img" aria-label={t("V3.CaseTable.qualitativeBarAriaLabel", { vars: [str] })}>
                   <span className="cell-qualitative-bar"
                         style={{background: defaultPointColor, width: `${pctStr}%`}}/>
                  </span>
@@ -110,7 +113,8 @@ export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, opt
     return {
       value: color,
       content: (
-        <div className="cell-color-swatch" key={key}>
+        <div className="cell-color-swatch" key={key}
+          role="img" aria-label={t("V3.CaseTable.colorSwatchCellAriaLabel", { vars: [color] })}>
           <div className="cell-color-swatch-interior" style={{ background: color }} />
         </div>
       )

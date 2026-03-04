@@ -5,6 +5,11 @@
   align-items: center;
   font: 12px "MuseoSans-500", sans-serif;
   height: 20px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
 
   .filter-formula-label {
     background: lightgray;

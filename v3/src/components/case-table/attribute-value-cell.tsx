@@ -1,6 +1,8 @@
-import { Tooltip } from "@chakra-ui/react"
+import { Tooltip, VisuallyHidden } from "@chakra-ui/react"
 import { useDataSet } from "../../hooks/use-data-set"
 import { symParent } from "../../models/data/data-set-types"
+import { t } from "../../utilities/translation/translate"
+import { If } from "../common/if"
 import { kInputRowKey, symDom, TRenderCellProps } from "./case-table-types"
 import { renderAttributeValue } from "../case-tile-common/attribute-format-utils"
 import { useCollectionTableModel } from "./use-collection-table-model"
@@ -17,16 +19,23 @@ export function AttributeValueCell({ column, row }: TRenderCellProps) {
   row[symDom]?.delete(column.key)
   const isParentCollapsed = row[symParent] ? metadata?.isCollapsed(row[symParent]) : false
   // don't pass input row id to common code
-  const caseId = row.__id__ === kInputRowKey ? undefined : row.__id__
+  const isInputRow = row.__id__ === kInputRowKey
+  const caseId = isInputRow ? undefined : row.__id__
+  const attr = data?.attrFromID(column.key)
+  const attrName = attr?.name ?? ""
   const { value, content } = isParentCollapsed
                               ? { value: "", content: null }
-                              : renderAttributeValue(strValue, numValue, data?.attrFromID(column.key),
-                                                      { key, rowHeight, caseId })
+                              : renderAttributeValue(strValue, numValue, attr, { key, rowHeight, caseId })
   const dataTestId = `case-table-tooltip-${row.__id__}-${column.key}`
   return (
     <Tooltip label={value} fontSize="12px" color="white" data-testid={dataTestId}
       openDelay={1000} placement="bottom" whiteSpace="pre-wrap" maxW="400px">
-      {content}
+      <span>
+        {content}
+        <If condition={isInputRow && !strValue}>
+          <VisuallyHidden>{t("V3.CaseTable.inputRowCellInstructions", { vars: [attrName] })}</VisuallyHidden>
+        </If>
+      </span>
     </Tooltip>
   )
 }

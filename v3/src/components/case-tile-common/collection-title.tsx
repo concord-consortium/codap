@@ -130,7 +130,8 @@ export const CollectionTitle =
             onEdit={() => setIsEditing(true)} onSubmit={handleSubmit} onCancel={handleCancel}
             isPreviewFocusable={!dragging} submitOnBlur={true} onChange={handleChangeName}>
           <EditablePreview width="100%" paddingY={0} overflow="hidden" whiteSpace="nowrap" textOverflow="ellipsis" />
-          <EditableInput value={editingName} paddingY={0} className="collection-title-input" />
+          <EditableInput value={editingName} paddingY={0} className="collection-title-input"
+            aria-label={t("V3.CaseTable.collectionTitleAriaLabel", { vars: [collectionName] })} />
         </Editable>
       </div>
       {onAddNewAttribute &&

@@ -90,7 +90,7 @@ $collection-title-font-color: black;
 
             .add-icon {
               visibility: hidden;
-              fill: #8b8b8b;
+              fill: #666666;
               &.focused {
                 visibility: visible;
                 opacity: 0.5;
@@ -177,14 +177,18 @@ $collection-title-font-color: black;
         .expand-collapse-button {
           position: absolute;
           display: flex;
+          align-items: center;
+          justify-content: center;
           cursor: pointer;
-          width: 9px;
-          height: 9px;
+          width: 24px;
+          height: 24px;
           -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 
           .expand-collapse-image {
-            width: 9px;
-            height: 9px;
+            width: 12px;
+            height: 12px;
+            background-size: 12px 12px;
+            background-repeat: no-repeat;
             &.closed {
               background-image: url("../../assets/expand.gif");
             }
@@ -356,6 +360,9 @@ $collection-title-font-color: black;
       &[aria-selected=true] {
         .codap-data-cell {
           background-color: var(--rdg-row-selected-background-color);
+        }
+        .codap-index-cell {
+          border-left: 3px solid var(--rdg-selection-color);
         }
       }
       &.highlight-border-top {

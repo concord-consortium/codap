@@ -66,7 +66,7 @@ export const useIndexColumn = () => {
                             : []
     const collapsedCaseCount = collapsedCases.length
 
-    function handleClick(e: React.MouseEvent) {
+    function handleClick(e: React.MouseEvent | React.KeyboardEvent) {
       if (parentId && collapsedCaseCount) {
         const wereSelected = collapsedCases.every(caseId => data?.isCaseSelected(caseId))
         const extend = e.metaKey || e.shiftKey
@@ -117,7 +117,7 @@ interface IIndexCellProps {
   disableMenu?: boolean
   index?: number
   collapsedCases?: number
-  onClick?: (evt: React.MouseEvent) => void
+  onClick?: (evt: React.MouseEvent | React.KeyboardEvent) => void
   onPointerDown?: (evt: React.PointerEvent | React.MouseEvent) => void
 }
 export function IndexCell({ caseId, disableMenu, index, collapsedCases, onClick, onPointerDown }: IIndexCellProps) {
@@ -176,10 +176,11 @@ export function IndexCell({ caseId, disableMenu, index, collapsedCases, onClick,
       <div className={classes} ref={setDragNodeRef} {...attributes} {...listeners}
             data-testid="codap-index-content-button">
         <MenuButton ref={setMenuButtonRef} className={classes} data-testid="codap-index-content-button"
-            onKeyDown={handleKeyDown} aria-describedby="sr-index-menu-instructions">
+            onKeyDown={handleKeyDown} aria-describedby="sr-index-menu-instructions"
+            aria-label={t("V3.CaseTable.inputRowAriaLabel")}>
           <div className={classes}
               onPointerDown={onPointerDown} onMouseDown={onPointerDown}>
-            <DragIndicator />
+            <DragIndicator aria-hidden="true" />
           </div>
         </MenuButton>
       </div>
@@ -195,8 +196,22 @@ export function IndexCell({ caseId, disableMenu, index, collapsedCases, onClick,
 
   // collapsed row or normal row with no menu
   if (collapsedCases || disableMenu) {
+    const handleCollapsedKeyDown = collapsedCases
+      ? (e: React.KeyboardEvent) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault()
+            onClick?.(e)
+          }
+        }
+      : undefined
     return (
-      <div className={classes} data-testid="codap-index-content-button" onClick={handleClick}>
+      <div className={classes} data-testid="codap-index-content-button" onClick={handleClick}
+        {...(collapsedCases ? {
+          role: "button",
+          tabIndex: 0,
+          "aria-label": t("V3.CaseTable.collapsedRowAriaLabel", { vars: [String(collapsedCases)] }),
+          onKeyDown: handleCollapsedKeyDown
+        } : {})}>
         {cellContents}
       </div>
     )
@@ -213,7 +228,7 @@ export function IndexCell({ caseId, disableMenu, index, collapsedCases, onClick,
           </MenuButton>
       }
       <VisuallyHidden id="sr-index-menu-instructions">
-        Press Enter to open the menu.
+        {t("V3.CaseTable.indexMenuInstructions")}
       </VisuallyHidden>
       {portalElt && createPortal(<IndexMenuList caseId={caseId} index={index}/>, portalElt)}
     </Menu>
