@@ -1,7 +1,5 @@
-import {
-  Flex, NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField, NumberInputStepper
-} from "@chakra-ui/react"
 import React, { useCallback, useEffect } from "react"
+import { Button, Group, Input, NumberField } from "react-aria-components"
 import { registerAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
 import { logMessageWithReplacement } from "../../../../../lib/log-message"
 import { translate } from "../../../../../utilities/translation/translate"
@@ -67,38 +65,35 @@ const Controls = () => {
     }
   }
 
-  // Chakra's NumberInput renders an implicit FormControl wrapper with width: 100%,
-  // which would stretch to fill the Flex row and squeeze the input. Override it to auto.
   return (
-    <Flex direction="row" alignItems="center" gap="4px"
-          sx={{ "& > .chakra-form-control": { width: "auto" } }}
-    >
+    <div className="standard-error-controls">
       <AdornmentCheckbox
         classNameValue={kStandardErrorClass}
         labelKey={''}
         type={kStandardErrorType}
       />
-      <NumberInput min={0} step={0.5} size={"xs"} w="70px" variant={"outline"}
-                   data-testid={`adornment-number-input-${kStandardErrorClass}`}
-                   focusInputOnChange={true}
-                   focusBorderColor={"blue.500"}
-                   isDisabled={!existingAdornment?.isVisible}
-                   defaultValue={existingAdornment?.numStErrs ?? 1}
-                   onFocus={(e) => e.target.select()}
-                   onChange={(_, valueAsNumber) => {
-                     existingAdornment?.setDynamicNumStErrs(valueAsNumber)
-                   }}
-                   onBlur={handleBlur}
-                   onKeyDown={(e) => handleKeyDown(e)}
+      <NumberField
+        className="standard-error-number-field"
+        data-testid={`adornment-number-input-${kStandardErrorClass}`}
+        minValue={0}
+        step={0.5}
+        defaultValue={existingAdornment?.numStErrs ?? 1}
+        isDisabled={!existingAdornment?.isVisible}
+        onChange={(value) => existingAdornment?.setDynamicNumStErrs(value)}
       >
-        <NumberInputField/>
-        <NumberInputStepper>
-          <NumberIncrementStepper/>
-          <NumberDecrementStepper/>
-        </NumberInputStepper>
-      </NumberInput>
-      <span style={{whiteSpace: "nowrap"}}>{translate(kStandardErrorLabelKey)}</span>
-    </Flex>
+        <Group className="standard-error-input-group">
+          <Button slot="decrement" className="standard-error-stepper">−</Button>
+          <Input
+            className="standard-error-input"
+            onFocus={(e) => e.target.select()}
+            onBlur={handleBlur}
+            onKeyDown={(e) => handleKeyDown(e)}
+          />
+          <Button slot="increment" className="standard-error-stepper">+</Button>
+        </Group>
+      </NumberField>
+      <span className="standard-error-label">{translate(kStandardErrorLabelKey)}</span>
+    </div>
   )
 }
 

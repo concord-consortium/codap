@@ -1,0 +1,125 @@
+@use "../../vars";
+
+.color-picker-thumb {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  height: auto !important;
+  padding: 3px !important;
+  margin: 2px 1px;
+  border: none;
+  background-color: vars.$palette-hover-bg;
+  border-radius: 3px;
+  cursor: pointer;
+
+  &.categorical {
+    position: absolute;
+    right: 2px;
+  }
+
+  .color-picker-thumb-swatch {
+    width: 24px;
+    height: 24px;
+    border: 1px solid vars.$charcoal-light-1;
+    border-radius: 2px;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+
+    // Checkerboard pattern so transparent colors don't show background
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: repeating-conic-gradient(#fff 0% 25%, #d0d0d0 0% 50%) 0 0 / 12px 12px;
+      z-index: 0;
+    }
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-color: var(--swatch-color);
+      z-index: 1;
+    }
+  }
+
+  // Down-pointing disclosure arrow; flips up when color picker is open
+  &::after {
+    content: "";
+    display: block;
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 4px solid vars.$palette-icon-color;
+    flex-shrink: 0;
+  }
+
+  &.open::after {
+    border-top: none;
+    border-bottom: 4px solid vars.$palette-icon-color;
+  }
+}
+
+.codap-inspector-palette {
+  .palette-form {
+    .slider-row {
+      gap: 10px;
+
+      .react-aria-SliderTrack {
+        flex: 1;
+        min-width: 100px;
+      }
+    }
+
+    .stroke-section,
+    .color-picker-row {
+      &.disabled {
+        opacity: 0.5;
+        pointer-events: none;
+      }
+    }
+
+    .legend-bins-row {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 6px;
+      margin: 4px 0;
+    }
+
+    .cat-color-setting {
+      height: 75px;
+      overflow-y: scroll;
+
+      // Force vertical scrollbar visibility for Chrome/Safari so users know
+      // the list is scrollable when there are more than 3 categories
+      &::-webkit-scrollbar-track {
+        border-radius: 0.175rem;
+        background-color: lightgray;
+      }
+      &::-webkit-scrollbar {
+        width: 0.35rem;
+        border-radius: 0.125rem;
+      }
+      &::-webkit-scrollbar-thumb {
+        border-radius: 0.175rem;
+        background-color: gray;
+      }
+
+      // Standard properties for modern browsers
+      scrollbar-width: thin;
+      scrollbar-color: gray lightgray;
+
+      .cat-color-picker {
+        margin: 6px 0;
+      }
+    }
+
+    .num-color-setting {
+      margin: 3px 0;
+    }
+  }
+}

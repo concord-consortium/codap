@@ -1,28 +1,161 @@
-.measure-group-button {
-  justify-content: left!important;
-  font-size: 12px!important;
-  font-weight: 400!important;
-  background-color: #eeeeee!important;
-  height: 24px!important;
-  padding-inline-start: 0!important;
-  border: none!important;
-  
-  svg {
-    height: 24px !important;
-    width: 24px !important;
+@use "../../../vars";
+
+.react-aria-Disclosure {
+  display: flex;
+  flex-direction: column;
+
+  // Heading wrapper — reset default heading margins
+  h3 {
+    margin: 0;
+    font-size: inherit;
+    font-weight: inherit;
+  }
+
+  .measure-group-button {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    font-weight: 500;
+    background-color: vars.$palette-bg;
+    height: 24px;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    gap: 2px;
+
+    &:hover {
+      background-color: vars.$palette-hover-bg;
+    }
+
+    &[data-focus-visible] {
+      outline: 2px solid vars.$focus-outline-color;
+      outline-offset: -2px;
+    }
+
+    .disclosure-arrow {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      position: relative;
+
+      &::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-left: 5px solid vars.$palette-icon-color;
+        border-top: 4px solid transparent;
+        border-bottom: 4px solid transparent;
+        transform: translate(-50%, -50%);
+        transition: transform 0.15s ease;
+      }
+    }
+  }
+
+  // Rotate arrow when expanded
+  &[data-expanded] .measure-group-button .disclosure-arrow::after {
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid vars.$palette-icon-color;
+    border-bottom: none;
+    transform: translate(-50%, -50%);
   }
 }
 
 .measure-items {
+  display: flex;
+  flex-direction: column;
   margin-left: 20px;
-  font-size: 12px;
+}
 
-  .measure-movable-value-button {
+// Movable value add/remove buttons
+.movable-value-controls {
+  display: flex;
+  flex-direction: column;
+}
+
+.measure-movable-value-button {
+  font-weight: bold;
+  background-color: vars.$palette-hover-bg;
+  border: none;
+  border-radius: 3px;
+  height: 24px;
+  width: fit-content;
+  margin-bottom: 5px;
+  cursor: pointer;
+  padding: 0 8px;
+
+  &:hover {
+    background-color: vars.$teal-light3;
+  }
+
+  &:focus-visible {
+    outline: 2px solid vars.$focus-outline-color;
+    outline-offset: 2px;
+  }
+}
+
+// Standard error: checkbox + number input + label in a row
+.standard-error-controls {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+
+  .standard-error-label {
+    white-space: nowrap;
+  }
+
+  .standard-error-number-field {
+    &[data-disabled] {
+      opacity: 0.5;
+    }
+  }
+
+  .standard-error-input-group {
+    display: flex;
+    align-items: center;
+    border: 1px solid vars.$charcoal-light-2;
+    border-radius: 3px;
+    overflow: hidden;
+
+    &[data-focus-within] {
+      border-color: vars.$focus-border-color;
+    }
+  }
+
+  .standard-error-input {
+    width: 40px;
+    border: none;
+    text-align: center;
     font-size: 12px;
-    font-weight: 400;
-    background-color: #eeeeee;
-    height: 20px;
-    width: fit-content;
-    margin-bottom: 5px;
+    padding: 1px 2px;
+    outline: none;
+  }
+
+  .standard-error-stepper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 22px;
+    border: none;
+    background: vars.$palette-hover-bg;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 0;
+
+    &:hover {
+      background: vars.$teal-light3;
+    }
+
+    &[data-disabled] {
+      cursor: default;
+      opacity: 0.5;
+    }
   }
 }

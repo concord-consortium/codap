@@ -1,3 +1,4 @@
+@use "sass:color";
 @use "./vars";
 $inspector-panel-width-very-narrow: 48px;
 $inspector-panel-width-narrow: 64px;
@@ -8,7 +9,7 @@ $inspector-panel-border-width: 2px;
 .inspector-panel {
   align-items: center;
   background-color: white;
-  border: $inspector-panel-border-width solid vars.$focus-border-color;
+  border: $inspector-panel-border-width solid vars.$codap-teal-dark;
   border-radius: 5px;
   box-shadow: rgba(0, 0, 0, 0.25) 0px 1px 3px 0px;
   display: flex;
@@ -91,55 +92,55 @@ $inspector-panel-border-width: 2px;
   }
 }
 
-.codap-inspector-palette {
-  background-color: #EEE;
-  border: 0px #444 solid;
+.codap-inspector-palette-wrapper {
   position: absolute;
-  inset: 0;
   width: fit-content;
   height: fit-content;
-  font-family: "museo-sans", sans-serif;
-  z-index: 5;
-  font-size: 12px;
-  min-width: 205px;
-  min-height: 100px;
-  font-weight: bold;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
+}
+
+.codap-inspector-palette {
+  background-color: vars.$palette-bg;
+  border-radius: 4px;
+  overflow: hidden;
+  font-family: Roboto, "museo-sans", sans-serif;
+  font-size: 14px;
+  min-width: 220px;
+  min-height: 50px;
+  font-weight: normal;
+  outline: none;
 
   .codap-inspector-palette-header {
-    position: relative;
-    top: 0;
-    left: 0;
-    padding: 0;
     display: flex;
     flex-direction: row;
     align-items: center;
-    box-shadow: none;
+    gap: 5px;
+    padding: 0 5px;
+    background-color: vars.$palette-header-bg;
+    height: vars.$palette-header-height;
+    border-radius: 2px 2px 0 0;
 
-    .codap-inspector-palette-icon-container {
-      width: 30px;
-      height: 30px;
-      background-color: vars.$teal-dark;
+    .codap-inspector-palette-icon {
       display: flex;
       align-items: center;
       justify-content: center;
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
     }
 
     .codap-inspector-palette-header-title {
-      border-bottom: solid #C1C5C7 1px;
-      border-left: solid #C1C5C7 1px;
-      padding-left: 5px;
-      width: calc(100% - vars.$header-height);
-      height: vars.$header-height;
-      font-size: 12px;
-      line-height: vars.$header-height;
+  
+      font-weight: bold;
+      line-height: vars.$palette-header-height;
     }
   }
 
   .palette-form {
     position: relative;
     left: 0;
-    padding: 5px 10px 10px 10px;
-    background-color: #EEE;
+    padding: 10px;
+    background-color: vars.$palette-bg;
     height: fit-content;
     z-index: 20;
 
@@ -148,6 +149,7 @@ $inspector-panel-border-width: 2px;
     }
 
     .palette-row {
+      display: flex;
       flex-direction: row;
       align-items: center;
       height: 20px;
@@ -164,8 +166,9 @@ $inspector-panel-border-width: 2px;
     }
 
     .form-title {
-      font-family: "museo-sans", sans-serif !important;
-      font-size: 12px;
+      font-family: Roboto, "museo-sans", sans-serif !important;
+  
+      font-weight: bold;
     }
 
     .form-label {
@@ -187,14 +190,6 @@ $inspector-panel-border-width: 2px;
       margin: 2px 0;
     }
 
-    .chakra-radio__control {
-      border-color: #cfcfcf;
-    }
-
-    [data-checked] {
-      border-color: #3182ce;
-    }
-
     .inline-input-group {
       background: rgba(231, 231, 231, 0.7);
       display: flex;
@@ -209,7 +204,7 @@ $inspector-panel-border-width: 2px;
       .form-input {
         background: white;
         display: inline-block;
-        font-size: 12px;
+    
         height: 24px;
         margin-right: 10px;
         max-width: 100px;
@@ -219,6 +214,226 @@ $inspector-panel-border-width: 2px;
       }
     }
   }
+
+  // Shared React Aria component styles for all palettes
+
+  .react-aria-RadioGroup {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .react-aria-Radio {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-weight: normal;
+
+    padding: 2px 0;
+
+    .radio-indicator {
+      width: 18px;
+      height: 18px;
+      border: 2px solid vars.$palette-icon-color;
+      border-radius: 50%;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      background-color: vars.$palette-bg;
+    }
+
+    &[data-selected] .radio-indicator {
+      background: radial-gradient(circle, vars.$palette-icon-color 40%, transparent 41%);
+    }
+
+    &[data-hovered] .radio-indicator {
+      border-color: vars.$teal-dark;
+    }
+
+    &[data-focus-visible] .radio-indicator {
+      outline: 2px solid vars.$focus-outline-color;
+      outline-offset: 2px;
+    }
+  }
+
+  .react-aria-Checkbox {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-weight: normal;
+
+    padding: 2px 0;
+    margin-left: 8px;
+
+    .checkbox-indicator {
+      width: 18px;
+      height: 18px;
+      border: 2px solid vars.$palette-icon-color;
+      border-radius: 2px;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: vars.$palette-bg;
+    }
+
+    &[data-selected] .checkbox-indicator {
+      background-color: vars.$palette-hover-bg;
+
+      &::after {
+        content: "";
+        display: block;
+        width: 5px;
+        height: 9px;
+        border: solid vars.$palette-icon-color;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg) translate(-1px, -1px);
+      }
+    }
+
+    &[data-hovered] .checkbox-indicator {
+      border-color: vars.$teal-dark;
+    }
+
+    &[data-focus-visible] .checkbox-indicator {
+      outline: 2px solid vars.$focus-outline-color;
+      outline-offset: 2px;
+    }
+
+    &[data-disabled] {
+      opacity: 0.5;
+      cursor: default;
+    }
+  }
+
+  .react-aria-TextField {
+    display: contents;
+  }
+
+  .react-aria-Slider {
+    width: 100%;
+
+    .react-aria-SliderTrack {
+      flex: 1;
+      height: 10px;
+      border-radius: 5px;
+      background-color: vars.$palette-hover-bg;
+      position: relative;
+      cursor: pointer;
+
+      &::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background-color: vars.$palette-icon-color;
+        transform: translateY(-50%);
+        border-radius: 1px;
+      }
+    }
+
+    .react-aria-SliderThumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background-color: vars.$palette-hover-bg;
+      border: 2px solid vars.$palette-icon-color;
+      box-sizing: border-box;
+      top: 50%;
+
+      &[data-dragging] {
+        background-color: color.adjust(vars.$palette-hover-bg, $lightness: -5%);
+      }
+
+      &[data-focus-visible] {
+        outline: 2px solid vars.$focus-outline-color;
+        outline-offset: 2px;
+      }
+    }
+
+    &[data-disabled] {
+      opacity: 0.5;
+
+      .react-aria-SliderTrack {
+        cursor: default;
+      }
+    }
+  }
+
+  .react-aria-Select {
+    .react-aria-Button {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: vars.$palette-hover-bg;
+      border: 1px solid vars.$charcoal;
+      border-radius: 3px;
+      padding: 2px 6px;
+  
+      cursor: pointer;
+      min-width: 80px;
+
+      &[data-focus-visible] {
+        outline: 2px solid vars.$focus-outline-color;
+        outline-offset: 2px;
+      }
+
+      &[data-hovered] {
+        border-color: vars.$palette-icon-color;
+      }
+
+      .select-arrow {
+        margin-left: auto;
+        font-size: 10px;
+        color: vars.$palette-icon-color;
+      }
+    }
+
+    .react-aria-SelectValue {
+      flex: 1;
+    }
+  }
+
+  .react-aria-Popover {
+    background: vars.$palette-bg;
+    border: 1px solid vars.$charcoal-light-1;
+    border-radius: 3px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    padding: 2px 0;
+    min-width: var(--trigger-width);
+
+    .react-aria-ListBox {
+      outline: none;
+
+      .react-aria-ListBoxItem {
+        padding: 4px 8px;
+    
+        cursor: pointer;
+        outline: none;
+
+        &[data-focused] {
+          background-color: vars.$palette-hover-bg;
+        }
+
+        &[data-selected] {
+          font-weight: bold;
+
+          &::before {
+            content: "✓";
+            margin-right: 4px;
+          }
+        }
+      }
+    }
+  }
+
+  // Sub-options indentation for adornment controls
+  .sub-options {
+    padding-left: 20px;
+  }
 }
 
 .palette-pointer {
@@ -226,15 +441,13 @@ $inspector-panel-border-width: 2px;
   z-index: 10;
 
   &.arrow-left {
-    left: calc($inspector-panel-width-medium - 10px);
-    border-top: 25px solid transparent;
-    border-bottom: 25px solid transparent;
-    border-right: 22px solid #EEE;
+    border-top: vars.$palette-pointer-size solid transparent;
+    border-bottom: vars.$palette-pointer-size solid transparent;
+    border-right: vars.$palette-pointer-size solid vars.$palette-bg;
   }
   &.arrow-right {
-    right: calc($inspector-panel-width-medium - 10px);
-    border-top: 25px solid transparent;
-    border-bottom: 25px solid transparent;
-    border-left: 22px solid #EEE;
+    border-top: vars.$palette-pointer-size solid transparent;
+    border-bottom: vars.$palette-pointer-size solid transparent;
+    border-left: vars.$palette-pointer-size solid vars.$palette-bg;
   }
 }

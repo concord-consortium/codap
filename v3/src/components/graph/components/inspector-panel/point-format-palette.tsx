@@ -3,7 +3,7 @@ import { t } from "../../../../utilities/translation/translate"
 import { ITileModel } from "../../../../models/tiles/tile-model"
 import {isGraphContentModel} from "../../models/graph-content-model"
 import {InspectorPalette} from "../../../inspector-panel"
-import StylesIcon from "../../../../assets/icons/icon-styles.svg"
+import FormatIcon from "../../../../assets/icons/inspector-panel/format-icon.svg"
 import {DisplayItemFormatControl} from "../../../data-display/inspector/display-item-format-control"
 
 interface IProps {
@@ -40,7 +40,7 @@ export const PointFormatPalette = observer(function PointFormatPalette({tile, pa
   return (
     <InspectorPalette
       title={t("DG.Inspector.styles")}
-      Icon={<StylesIcon/>}
+      Icon={<FormatIcon/>}
       setShowPalette={setShowPalette}
       panelRect={panelRect}
       buttonRect={buttonRect}

@@ -49,6 +49,15 @@ $icon-fill-dark: #006c8e;
 $focus-border-color: #1eabd6;
 $focus-outline-color: #0957d0;
 
+// Inspector palette design tokens (from Zeplin specs)
+$palette-bg: #ffffff;
+$palette-border-color: $focus-border-color; // #1eabd6
+$palette-header-bg: #a5e3f6;
+$palette-header-height: 34px;
+$palette-hover-bg: $icon-fill-light; // #d3f4ff
+$palette-icon-color: $icon-fill-dark; // #006c8e
+$palette-pointer-size: 10px;
+
 $default-font-color: #222;
 
 :export {

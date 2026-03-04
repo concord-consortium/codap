@@ -1,0 +1,39 @@
+@use "../../../vars";
+
+.display-config-palette {
+  display: flex;
+  flex-direction: column;
+
+  .config-section {
+    display: flex;
+    flex-direction: column;
+
+    &.indented {
+      padding-left: 20px;
+    }
+  }
+
+  // Checkbox in config palette needs top margin for spacing from radio buttons
+  .react-aria-Checkbox {
+    margin-top: 6px;
+  }
+}
+
+// Override .codap-inspector-palette .palette-form .inline-input-group (specificity 0,3,0)
+.codap-inspector-palette .display-config-palette .inline-input-group {
+  background: transparent;
+
+  .form-label {
+    font-weight: normal;
+  }
+
+  .form-input {
+    border: 1px solid vars.$charcoal-light-2;
+    border-radius: 3px;
+
+    &:focus {
+      border-color: vars.$focus-border-color;
+      outline: none;
+    }
+  }
+}

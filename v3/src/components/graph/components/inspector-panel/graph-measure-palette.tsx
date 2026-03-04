@@ -1,6 +1,6 @@
-import { Box, Checkbox, Flex, FormControl } from "@chakra-ui/react"
+import { Checkbox } from "react-aria-components"
 import { observer } from "mobx-react-lite"
-import ValuesIcon from "../../../../assets/icons/icon-values.svg"
+import MeasureIcon from "../../../../assets/icons/inspector-panel/data-icon.svg"
 import { ITileModel } from "../../../../models/tiles/tile-model"
 import { getDocumentContentPropertyFromNode } from "../../../../utilities/mst-utils"
 import { t } from "../../../../utilities/translation/translate"
@@ -10,6 +10,8 @@ import { GraphContentModelContext } from "../../hooks/use-graph-content-model-co
 import { GraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
 import { isGraphContentModel } from "../../models/graph-content-model"
 import { GraphMeasureGroup } from "./graph-measure-group"
+
+import "./graph-measure-palette.scss"
 
 interface IProps {
   tile?: ITileModel
@@ -30,13 +32,14 @@ export const GraphMeasurePalette = observer(function GraphMeasurePalette({
   return (
     <InspectorPalette
       title={t("DG.Inspector.values")}
-      Icon={<ValuesIcon />}
+      Icon={<MeasureIcon />}
       setShowPalette={setShowPalette}
       panelRect={panelRect}
       buttonRect={buttonRect}
     >
-      <Flex className="palette-form" direction="column">
-        <Box className="form-title">{t("DG.Inspector.displayShow")}</Box>
+      <div className="palette-form graph-measure-palette"
+        role="group" aria-label={t("DG.Inspector.displayShow")}
+      >
         {graphModel && measures?.map(measureOrGroup => {
           if (isGroupItem(measureOrGroup)) {
             return (
@@ -71,21 +74,25 @@ export const GraphMeasurePalette = observer(function GraphMeasurePalette({
               )
             } else {
               return (
-                <FormControl key={titleSlug}>
-                  <Checkbox
-                    data-testid={`adornment-checkbox-${titleSlug}`}
-                    defaultChecked={checked}
-                    isDisabled={!!disabled}
-                    onChange={clickHandler}
-                  >
-                    {t(title)}
-                  </Checkbox>
-                </FormControl>
+                <Checkbox
+                  key={titleSlug}
+                  data-testid={`adornment-checkbox-${titleSlug}`}
+                  defaultSelected={checked}
+                  isDisabled={!!disabled}
+                  onChange={clickHandler}
+                >
+                  {({isSelected}) => (
+                    <>
+                      <span className={`checkbox-indicator${isSelected ? " selected" : ""}`} />
+                      {t(title)}
+                    </>
+                  )}
+                </Checkbox>
               )
             }
           }
         })}
-      </Flex>
+      </div>
     </InspectorPalette>
   )
 })

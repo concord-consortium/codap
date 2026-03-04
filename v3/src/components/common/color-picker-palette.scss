@@ -75,6 +75,9 @@ $color-palette-and-picker-height: 410px;
         height: fit-content;
 
         .color-swatch-cell {
+          appearance: none;
+          cursor: pointer;
+          font: inherit;
           width: 18px;
           height: 18px;
           margin: 1px;

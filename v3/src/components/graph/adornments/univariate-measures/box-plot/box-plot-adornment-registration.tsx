@@ -1,4 +1,4 @@
-import { FormControl, Checkbox } from "@chakra-ui/react"
+import { Checkbox } from "react-aria-components"
 import { observer } from "mobx-react-lite"
 import { registerAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
 import { logMessageWithReplacement } from "../../../../../lib/log-message"
@@ -64,45 +64,56 @@ const Controls = observer(function Controls() {
 
   const renderShowOutliers = () => {
     return (
-      <FormControl isDisabled={!existingAdornment?.isVisible}>
-        <Checkbox
-          data-testid={`adornment-checkbox-${kBoxPlotClass}-show-outliers`}
-          defaultChecked={existingAdornment?.showOutliers}
-          onChange={e => handleShowOutliersSetting(e.target.checked)}
-        >
-          {t("DG.Inspector.graphBoxPlotShowOutliers")}
-        </Checkbox>
-      </FormControl>
+      <Checkbox
+        data-testid={`adornment-checkbox-${kBoxPlotClass}-show-outliers`}
+        defaultSelected={existingAdornment?.showOutliers}
+        isDisabled={!existingAdornment?.isVisible}
+        onChange={handleShowOutliersSetting}
+      >
+        {({isSelected}) => (
+          <>
+            <span className={`checkbox-indicator${isSelected ? " selected" : ""}`} />
+            {t("DG.Inspector.graphBoxPlotShowOutliers")}
+          </>
+        )}
+      </Checkbox>
     )
   }
 
   const renderShowICI = () => {
     if (showICIOption) {
       return (
-        <FormControl isDisabled={!existingAdornment?.isVisible}>
-          <Checkbox
-            data-testid={`adornment-checkbox-${kBoxPlotClass}-show-ici`}
-            defaultChecked={existingAdornment?.showICI}
-            onChange={e => handleShowIciSetting(e.target.checked)}
-          >
-            {t("DG.Inspector.graphBoxPlotShowICI")}
-          </Checkbox>
-        </FormControl>
+        <Checkbox
+          data-testid={`adornment-checkbox-${kBoxPlotClass}-show-ici`}
+          defaultSelected={existingAdornment?.showICI}
+          isDisabled={!existingAdornment?.isVisible}
+          onChange={handleShowIciSetting}
+        >
+          {({isSelected}) => (
+            <>
+              <span className={`checkbox-indicator${isSelected ? " selected" : ""}`} />
+              {t("DG.Inspector.graphBoxPlotShowICI")}
+            </>
+          )}
+        </Checkbox>
       )
     }
   }
 
   return (
     <>
-      <FormControl>
-        <Checkbox
-          data-testid={`adornment-checkbox-${kBoxPlotClass}`}
-          defaultChecked={existingAdornment?.isVisible}
-          onChange={e => handleBoxPlotSetting(e.target.checked)}
-        >
-          {t(kBoxPlotLabelKey)}
-        </Checkbox>
-      </FormControl>
+      <Checkbox
+        data-testid={`adornment-checkbox-${kBoxPlotClass}`}
+        defaultSelected={existingAdornment?.isVisible}
+        onChange={handleBoxPlotSetting}
+      >
+        {({isSelected}) => (
+          <>
+            <span className={`checkbox-indicator${isSelected ? " selected" : ""}`} />
+            {t(kBoxPlotLabelKey)}
+          </>
+        )}
+      </Checkbox>
       <div
         className="sub-options show-outliers"
         data-testid="adornment-show-outliers-options"

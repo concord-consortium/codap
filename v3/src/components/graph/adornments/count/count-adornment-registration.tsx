@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { FormControl, Checkbox, RadioGroup, Radio } from "@chakra-ui/react"
+import { Checkbox, Radio, RadioGroup } from "react-aria-components"
 import { registerAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 import { t } from "../../../../utilities/translation/translate"
@@ -71,57 +71,78 @@ const Controls = () => {
     }
   }
 
-  const handlePercentTypeSetting = (percentType: PercentType) => {
-    existingAdornment?.setPercentType(percentType)
-    setPercentTypeValue(percentType)
+  const handlePercentTypeSetting = (percentType: string) => {
+    existingAdornment?.setPercentType(percentType as PercentType)
+    setPercentTypeValue(percentType as PercentType)
   }
 
   return (
     <>
-      <FormControl>
-        <Checkbox
-          data-testid={`adornment-checkbox-${kCountClass}-count`}
-          defaultChecked={existingAdornment?.showCount}
-          onChange={e => handleSetting(e.target.checked, "count")}
-        >
-          {t(kCountLabelKey)}
-        </Checkbox>
-      </FormControl>
+      <Checkbox
+        data-testid={`adornment-checkbox-${kCountClass}-count`}
+        defaultSelected={existingAdornment?.showCount}
+        onChange={checked => handleSetting(checked, "count")}
+      >
+        {({isSelected}) => (
+          <>
+            <span className={`checkbox-indicator${isSelected ? " selected" : ""}`} />
+            {t(kCountLabelKey)}
+          </>
+        )}
+      </Checkbox>
       {shouldShowPercentOption &&
-        <FormControl>
+        <>
           <Checkbox
             data-testid={`adornment-checkbox-${kCountClass}-percent`}
-            defaultChecked={existingAdornment?.showPercent}
-            onChange={e => handleSetting(e.target.checked, "percent")}
+            defaultSelected={existingAdornment?.showPercent}
+            onChange={checked => handleSetting(checked, "percent")}
           >
-            {t(kPercentLabelKey)}
+            {({isSelected}) => (
+              <>
+                <span className={`checkbox-indicator${isSelected ? " selected" : ""}`} />
+                {t(kPercentLabelKey)}
+              </>
+            )}
           </Checkbox>
           {shouldShowPercentTypeOptions &&
             <div
               className="sub-options percent-type"
               data-testid="adornment-percent-type-options"
             >
-              <FormControl isDisabled={!enablePercentOptions}>
-                <RadioGroup
-                  name="percent-type"
-                  size="md"
-                  value={percentTypeValue}
-                  onChange={handlePercentTypeSetting}
-                >
-                  <Radio value="row" size="md">
-                    {t("DG.Inspector.graphRow")}
-                  </Radio>
-                  <Radio value="column" size="md">
-                    {t("DG.Inspector.graphColumn")}
-                  </Radio>
-                  <Radio value="cell" size="md">
-                    {t("DG.Inspector.graphCell")}
-                  </Radio>
-                </RadioGroup>
-              </FormControl>
+              <RadioGroup
+                aria-label={t(kPercentLabelKey)}
+                isDisabled={!enablePercentOptions}
+                value={percentTypeValue}
+                onChange={handlePercentTypeSetting}
+              >
+                <Radio value="row">
+                  {({isSelected}) => (
+                    <>
+                      <span className={`radio-indicator${isSelected ? " selected" : ""}`} />
+                      {t("DG.Inspector.graphRow")}
+                    </>
+                  )}
+                </Radio>
+                <Radio value="column">
+                  {({isSelected}) => (
+                    <>
+                      <span className={`radio-indicator${isSelected ? " selected" : ""}`} />
+                      {t("DG.Inspector.graphColumn")}
+                    </>
+                  )}
+                </Radio>
+                <Radio value="cell">
+                  {({isSelected}) => (
+                    <>
+                      <span className={`radio-indicator${isSelected ? " selected" : ""}`} />
+                      {t("DG.Inspector.graphCell")}
+                    </>
+                  )}
+                </Radio>
+              </RadioGroup>
             </div>
           }
-        </FormControl>
+        </>
       }
     </>
   )

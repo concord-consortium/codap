@@ -28,7 +28,7 @@ export const ColorPickerPalette = ({ swatchBackgroundColor, inputValue, buttonRe
     "#2a4bd7", "#814a19", "#8126c0", "#29d0d0", "#e9debb", "#ffcdf3", "#9dafff", "#81c57a"]
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [selectedColor, setSelectedColor] = useState(swatchBackgroundColor)
-  const nonStandardColorSelected = !paletteColors.includes(swatchBackgroundColor)
+  const nonStandardColorSelected = inputValue !== "" && !paletteColors.includes(swatchBackgroundColor)
   const popoverRef = useRef<HTMLDivElement>(null)
   const popoverContainerRef = useRef<HTMLDivElement>(null)
   const kGapSize = 10
@@ -123,18 +123,26 @@ export const ColorPickerPalette = ({ swatchBackgroundColor, inputValue, buttonRe
             className={clsx("color-picker-palette", `${placement}`,
                             {"with-color-picker": showColorPicker, "without-arrow": !showArrow})}>
         <div className="color-swatch-palette" onKeyDown={handleKeyDown}>
-          <div className="color-swatch-grid">
+          <div className="color-swatch-grid" role="group" aria-label={t("DG.Inspector.colorPicker.swatchGrid")}>
             {paletteColors.map((pColor, index) => (
-              <div className={clsx("color-swatch-cell",
+              <button type="button"
+                    className={clsx("color-swatch-cell",
                               {"selected": swatchBackgroundColor === pColor, "light": colord(pColor).isLight()})}
-                    style={{ backgroundColor: pColor }} key={index} onClick={()=>handleColorSelection(pColor)}/>
+                    style={{ backgroundColor: pColor }} key={index}
+                    aria-label={pColor}
+                    aria-pressed={swatchBackgroundColor === pColor}
+                    onClick={()=>handleColorSelection(pColor)}/>
             ))}
             {nonStandardColorSelected &&
               <div className="color-swatch-row">
-                <div className={clsx("color-swatch-cell",
+                <button type="button"
+                      className={clsx("color-swatch-cell",
                                       {"selected": swatchBackgroundColor === inputValue,
                                           "light": inputValue && colord(inputValue).isLight()})}
-                      style={{backgroundColor: inputValue}}/>
+                      style={{backgroundColor: inputValue}}
+                      aria-label={inputValue}
+                      aria-pressed={swatchBackgroundColor === inputValue}
+                      onClick={() => handleColorSelection(inputValue)}/>
               </div>}
           </div>
           <div className="color-swatch-footer">

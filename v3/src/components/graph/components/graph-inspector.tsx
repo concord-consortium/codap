@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from "react"
+import React, { useRef, useEffect, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
 import { InspectorButton, InspectorMenu, InspectorPanel } from "../../inspector-panel"
@@ -38,20 +38,19 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
     setShowPalette(undefined)
   }
 
-  const handleRulerButton = () => {
+  const handleRulerButton = (e: React.MouseEvent) => {
+    buttonRef.current = e.currentTarget as HTMLDivElement
     setShowPalette(showPalette === "measure" ? undefined : "measure")
   }
 
-  const handleConfigButton = () => {
+  const handleConfigButton = (e: React.MouseEvent) => {
+    buttonRef.current = e.currentTarget as HTMLDivElement
     setShowPalette(showPalette === "config" ? undefined : "config")
   }
 
-  const handleBrushButton = () => {
+  const handleBrushButton = (e: React.MouseEvent) => {
+    buttonRef.current = e.currentTarget as HTMLDivElement
     setShowPalette(showPalette === "format" ? undefined : "format")
-  }
-
-  const setButtonRef = (ref: any) => {
-    buttonRef.current = ref.current
   }
 
   const renderRescaleButton = () => {
@@ -108,7 +107,7 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
       <InspectorButton
         label={t("V3.graph.Inspector.Measure")}
         onButtonClick={handleRulerButton}
-        setButtonRef={setButtonRef}
+
         testId={"graph-display-values-button"}
         tooltip={t("DG.Inspector.displayValues.toolTip")}
       >
@@ -118,7 +117,7 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
         <InspectorButton
           label={t("V3.graph.Inspector.Config")}
           onButtonClick={handleConfigButton}
-          setButtonRef={setButtonRef}
+  
           testId={"graph-display-config-button"}
           tooltip={t("DG.Inspector.displayConfiguration.toolTip")}
         >
@@ -128,7 +127,7 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
       <InspectorButton
         label={t("V3.graph.Inspector.Format")}
         onButtonClick={handleBrushButton}
-        setButtonRef={setButtonRef}
+
         testId={"graph-display-styles-button"}
         tooltip={t("DG.Inspector.displayStyles.toolTip")}
       >
