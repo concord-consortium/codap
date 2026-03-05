@@ -7,6 +7,7 @@ import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { selectAllCases } from "../../models/data/data-set-utils"
 import { uiState } from "../../models/ui-state"
 import { blockAPIRequestsWhileEditing } from "../../utilities/plugin-utils"
+import { t } from "../../utilities/translation/translate"
 import { TRenderEditCellProps } from "./case-table-types"
 
 /*
@@ -33,6 +34,7 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
   const valueRef = useRef(initialValueRef.current)
   const { setPendingLogMessage } = useLoggingContext()
   const blockAPIRequests = blockAPIRequestsWhileEditing(data)
+  const attrName = data?.getAttribute(column.key)?.name ?? ""
   const isNumeric = data?.getAttribute(column.key)?.isNumeric
 
   useEffect(()=>{
@@ -63,6 +65,7 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
       ref={autoFocusAndSelect}
       value={valueRef.current}
       onChange={(event) => handleChange(event.target.value)}
+      aria-label={t("V3.CaseTable.cellEditorAriaLabel", { vars: [attrName] })}
     />
   )
 }

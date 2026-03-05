@@ -98,7 +98,9 @@ export const InsertCasesModal: React.FC<IProps> =
               color="white" openDelay={1000} placement="bottom" bottom="15px" left="15px"
               data-testid="modal-tooltip">
               <Button key={key} size="xs" variant={`${b.default ? "default" : ""}`}
-                  _hover={{backgroundColor: "#72bfca", color: "white"}} ml="5" onClick={b.onClick}
+                  _hover={{backgroundColor: "#357f8b", color: "white"}}
+                  _focusVisible={{outline: "2px solid #0957d0", outlineOffset: "2px"}}
+                  ml="5" onClick={b.onClick}
                   data-testid={`${b.label}-button`}>
                 {b.label}
               </Button>

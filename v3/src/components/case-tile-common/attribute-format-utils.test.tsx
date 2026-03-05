@@ -150,6 +150,15 @@ describe("attribute-format-utils", () => {
         expect(result.content.type).toBe("span")
         expect(result.content.props.className).toContain("cell-boundary-thumb")
       })
+
+      it("should use boundary NAME as alt text on thumbnail", () => {
+        const attr = createMockAttribute({ type: "boundary" })
+        const result = renderAttributeValue("mock-boundary", NaN, attr as IAttribute)
+
+        const img = result.content.props.children
+        expect(img.type).toBe("img")
+        expect(img.props.alt).toBe("Mock Boundary")
+      })
     })
 
     describe("qualitative bars", () => {
@@ -169,6 +178,14 @@ describe("attribute-format-utils", () => {
         expect(result.value).toBe("0")
         expect(result.content).toBeDefined()
       })
+
+      it("should have role=img and aria-label with percentage", () => {
+        const attr = createMockAttribute({ type: "qualitative" })
+        const result = renderAttributeValue("75", 75, attr as IAttribute)
+
+        expect(result.content.props.role).toBe("img")
+        expect(result.content.props["aria-label"]).toContain("75")
+      })
     })
 
     describe("colors", () => {
@@ -187,6 +204,14 @@ describe("attribute-format-utils", () => {
 
         expect(result.value).toBe("#ff0000")
         expect(result.content.props.className).toBe("cell-color-swatch")
+      })
+
+      it("should have role=img and aria-label with color value", () => {
+        const attr = createMockAttribute({ type: "color" })
+        const result = renderAttributeValue("red", NaN, attr as IAttribute)
+
+        expect(result.content.props.role).toBe("img")
+        expect(result.content.props["aria-label"]).toContain("#ff0000")
       })
     })
 

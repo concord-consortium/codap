@@ -130,14 +130,15 @@ export const CollectionTitle =
             onEdit={() => setIsEditing(true)} onSubmit={handleSubmit} onCancel={handleCancel}
             isPreviewFocusable={!dragging} submitOnBlur={true} onChange={handleChangeName}>
           <EditablePreview width="100%" paddingY={0} overflow="hidden" whiteSpace="nowrap" textOverflow="ellipsis" />
-          <EditableInput value={editingName} paddingY={0} className="collection-title-input" />
+          <EditableInput value={editingName} paddingY={0} className="collection-title-input"
+            aria-label={t("V3.CaseTable.collectionTitleAriaLabel", { vars: [editingName || collectionName] })} />
         </Editable>
       </div>
       {onAddNewAttribute &&
         <Button className="add-attribute-icon-button" title={t("DG.TableController.newAttributeTooltip")}
             data-testid={"collection-add-attribute-icon-button"} style={addIconStyle}
-            isDisabled={disableAddAttribute} >
-          <AddIcon className={addIconClass} onClick={onAddNewAttribute} />
+            isDisabled={disableAddAttribute} onClick={onAddNewAttribute}>
+          <AddIcon className={addIconClass} />
         </Button>
       }
     </div>

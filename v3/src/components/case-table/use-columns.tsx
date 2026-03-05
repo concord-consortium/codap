@@ -53,7 +53,8 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
                 headerCellClass: `codap-column-header`,
                 renderHeaderCell: ColumnHeader,
                 cellClass: row => clsx("codap-data-cell", `rowId-${row.__id__}`,
-                                        {"formula-column": hasFormula, "multi-line": rowHeight > kDefaultRowHeight}),
+                                    {"formula-column": hasFormula, "multi-line": rowHeight > kDefaultRowHeight,
+                                      "readonly-cell": !isEditable || hasFormula || !isCaseEditable(data, row.__id__)}),
                 renderCell: AttributeValueCell,
                 editable: row => isCaseEditable(data, row.__id__),
                 renderEditCell: isEditable

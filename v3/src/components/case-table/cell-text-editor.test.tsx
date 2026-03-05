@@ -42,4 +42,15 @@ describe("CellTextEditor", () => {
     fireEvent.blur(editor)
     expect(onRowChange).toHaveBeenCalled()
   })
+
+  it("should have aria-label with attribute name", () => {
+    const data = DataSet.create({ name: "data" }, {historyService: new AppHistoryService()})
+    data.addAttribute({ id: "columnKey", name: "Height" })
+    data.addCases([{ columnKey: "1" }])
+    mockUseDataSetContext.mockImplementation(() => data)
+    render(<CellTextEditor row={row} column={column} onRowChange={onRowChange} onClose={onClose}/>)
+    const editor = screen.getByTestId("cell-text-editor")
+    expect(editor).toHaveAttribute("aria-label")
+    expect(editor.getAttribute("aria-label")).toContain("Height")
+  })
 })

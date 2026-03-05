@@ -1,10 +1,20 @@
 
-.filter-formula-container {
+.filter-formula-button {
   display: flex;
   width: 100%;
   align-items: center;
   font: 12px "MuseoSans-500", sans-serif;
   height: 20px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid #0957d0;
+    outline-offset: -2px;
+  }
 
   .filter-formula-label {
     background: lightgray;
