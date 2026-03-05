@@ -30,7 +30,7 @@ export function AttributeValueCell({ column, row }: TRenderCellProps) {
   return (
     <Tooltip label={value} fontSize="12px" color="white" data-testid={dataTestId}
       openDelay={1000} placement="bottom" whiteSpace="pre-wrap" maxW="400px">
-      <span>
+      <span style={{ display: "contents" }}>
         {content}
         <If condition={isInputRow && !strValue}>
           <VisuallyHidden>{t("V3.CaseTable.inputRowCellInstructions", { vars: [attrName] })}</VisuallyHidden>
