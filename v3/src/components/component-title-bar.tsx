@@ -147,6 +147,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
         {isEditing && !preventTitleChange
           ? (
             <Input
+              aria-label={t("V3.app.component.editTitle.ariaLabel")}
               autoFocus={true}
               className="title-text-input"
               data-testid="title-text-input"

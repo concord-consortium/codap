@@ -196,7 +196,8 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
       alignContent="center"
       data-testid="tool-shelf"
       role="toolbar"
-      aria-label="Document Toolbar"
+      aria-label={t("V3.app.toolbar.ariaLabel")}
+      aria-orientation={persistentState.toolbarPosition === "Top" ? "horizontal" : "vertical"}
       onKeyDownCapture={handleKeyDown}
     >
       <Flex className="tool-shelf-component-buttons">

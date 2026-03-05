@@ -238,7 +238,7 @@ export const App = observer(function App() {
             <div className={appClasses} data-testid="codap-app">
               <header>
                 <h1 className="codap-visually-hidden">
-                  <abbr title="Common Online Data Analysis Platform">CODAP</abbr>
+                  <abbr title={t("V3.app.fullName")}>{t("V3.app.name")}</abbr>
                 </h1>
                 <If condition={uiState.shouldRenderMenuBar}>
                   <MenuBar/>
