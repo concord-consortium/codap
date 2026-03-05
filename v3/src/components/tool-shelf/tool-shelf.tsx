@@ -49,11 +49,14 @@ interface IRightButtonEntry {
   onClick?: () => void
 }
 
+const arrowKeys = ["ArrowRight", "ArrowLeft", "ArrowDown", "ArrowUp"]
+
 interface IProps {
   document: IDocumentModel
 }
 export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
   const toolbarRef = useRef<HTMLDivElement>(null)
+  const activeIndexRef = useRef(0)
 
   // Get all top-level toolbar buttons, excluding items inside dropdown menus
   const getToolbarButtons = useCallback(() => {
@@ -62,27 +65,34 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     return Array.from(allButtons).filter(btn => !btn.closest(".tool-shelf-menu-list"))
   }, [])
 
-  // Roving tabindex: only the first toolbar button participates in Tab order
+  // Roving tabindex
   useEffect(() => {
     const buttons = getToolbarButtons()
-    buttons.forEach((btn, i) => { btn.tabIndex = i === 0 ? 0 : -1 })
+    // Clamp in case buttons were removed (e.g. guide button disappearing)
+    const activeIndex = Math.min(activeIndexRef.current, buttons.length - 1)
+    buttons.forEach((btn, i) => { btn.tabIndex = i === activeIndex ? 0 : -1 })
   })
 
-  // Arrow key navigation between toolbar buttons
+  // Arrow key navigation between toolbar buttons.
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    const isHorizontal = persistentState.toolbarPosition === "Top"
-    const forwardKey = isHorizontal ? "ArrowRight" : "ArrowDown"
-    const backwardKey = isHorizontal ? "ArrowLeft" : "ArrowUp"
-    if (e.key !== forwardKey && e.key !== backwardKey) return
+    if (!arrowKeys.includes(e.key)) return
 
     const buttons = getToolbarButtons()
     const currentIndex = buttons.indexOf(e.target as HTMLElement)
     if (currentIndex === -1) return
 
+    e.preventDefault()
+    e.stopPropagation()
+
+    const isHorizontal = persistentState.toolbarPosition === "Top"
+    const forwardKey = isHorizontal ? "ArrowRight" : "ArrowDown"
+    const backwardKey = isHorizontal ? "ArrowLeft" : "ArrowUp"
+    if (e.key !== forwardKey && e.key !== backwardKey) return
+
     const nextIndex = e.key === forwardKey ? currentIndex + 1 : currentIndex - 1
     if (nextIndex < 0 || nextIndex >= buttons.length) return
 
-    e.preventDefault()
+    activeIndexRef.current = nextIndex
     buttons.forEach((btn, i) => { btn.tabIndex = i === nextIndex ? 0 : -1 })
     buttons[nextIndex].focus()
   }, [getToolbarButtons])
@@ -187,7 +197,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
       data-testid="tool-shelf"
       role="toolbar"
       aria-label="Document Toolbar"
-      onKeyDown={handleKeyDown}
+      onKeyDownCapture={handleKeyDown}
     >
       <Flex className="tool-shelf-component-buttons">
         {[...tileButtons, <PluginsButton key="plugins-99" />]}
