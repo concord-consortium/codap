@@ -118,11 +118,11 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
   const buttonTop = buttonRect?.top || 0
   const buttonHeight = buttonRect?.height || 52
   const [paletteWidth, setPaletteWidth] = useState(0)
+  const [paletteHeight, setPaletteHeight] = useState(0)
   const paletteRef = useRef<HTMLDivElement>(null)
   const pointerRef = useRef<HTMLDivElement>(null)
   const viewportEl = paletteRef.current?.closest(".tile-row")
   const [inBounds, setInBounds] = useState(() => isWithinBounds(panelRight, paletteRef.current))
-  const paletteHeight = paletteRef.current?.offsetHeight
   const tempPaletteTop = paletteRef.current?.getBoundingClientRect().top
   const pointerTop = buttonTop - panelTop + buttonHeight / 2 - pointerSize
   const pointerMidpoint = pointerTop + pointerSize
@@ -141,6 +141,17 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
     viewportEl && observer?.observe(viewportEl)
     return () => observer?.disconnect()
   }, [panelRight, viewportEl])
+
+  // Track palette height changes so positioning updates when content shrinks/grows
+  useEffect(() => {
+    const el = paletteRef.current
+    if (!el) return
+    const observer = new ResizeObserver(() => {
+      setPaletteHeight(el.offsetHeight)
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Escape") {

@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite"
-import React, { useRef } from "react"
+import React, { useRef, useState } from "react"
 import {
   Button, ListBox, ListBoxItem, Popover, Select, SelectValue
 } from "react-aria-components"
@@ -83,16 +83,11 @@ export const LegendColorControls = observer(function LegendColorControls(
 
   if (attrType === "categorical") {
     return (
-      <div className="cat-color-setting">
-        {categoriesRef.current?.map(category => (
-          <div key={category} className="palette-row color-picker-row cat-color-picker">
-            <label className="form-label color-picker">{category}</label>
-            <PointColorSetting key={category} propertyLabel={category}
-              onColorChange={(color) => handleCatPointColorChange(color, category)}
-              swatchBackgroundColor={dataConfiguration.getLegendColorForCategory(category)}/>
-          </div>
-        ))}
-      </div>
+      <CategoricalColorControls
+        categories={categoriesRef.current}
+        dataConfiguration={dataConfiguration}
+        onCatPointColorChange={handleCatPointColorChange}
+      />
     )
   }
 
@@ -133,6 +128,36 @@ export const LegendColorControls = observer(function LegendColorControls(
       <PointColorSetting propertyLabel={t("DG.Inspector.color")}
                         onColorChange={(color) => handlePointColorChange(color)}
                         swatchBackgroundColor={displayItemDescription.pointColor}/>
+    </div>
+  )
+})
+
+interface ICategoricalColorControlsProps {
+  categories?: string[]
+  dataConfiguration: IDataConfigurationModel
+  onCatPointColorChange: (color: string, cat: string) => void
+}
+
+const CategoricalColorControls = observer(function CategoricalColorControls(
+  { categories, dataConfiguration, onCatPointColorChange }: ICategoricalColorControlsProps
+) {
+  const [scrollVersion, setScrollVersion] = useState(0)
+
+  const handleScroll = () => {
+    setScrollVersion(v => v + 1)
+  }
+
+  return (
+    <div className="cat-color-setting" onScroll={handleScroll}>
+      {categories?.map(category => (
+        <div key={category} className="palette-row color-picker-row cat-color-picker">
+          <label className="form-label color-picker">{category}</label>
+          <PointColorSetting key={category} propertyLabel={category}
+            closeTrigger={scrollVersion}
+            onColorChange={(color) => onCatPointColorChange(color, category)}
+            swatchBackgroundColor={dataConfiguration.getLegendColorForCategory(category)}/>
+        </div>
+      ))}
     </div>
   )
 })

@@ -17,6 +17,12 @@
   .react-aria-Checkbox {
     margin-top: 6px;
   }
+
+  // Fuse Points checkbox inside RadioGroup (numeric case) — smaller indent
+  // to align with bin width/alignment labels, accounting for checkbox indicator width
+  .fuse-points-section {
+    padding-left: 10px;
+  }
 }
 
 // Override .codap-inspector-palette .palette-form .inline-input-group (specificity 0,3,0)
@@ -33,7 +39,11 @@
 
     &:focus {
       border-color: vars.$focus-border-color;
-      outline: none;
+    }
+
+    &:focus-visible {
+      outline: 2px solid vars.$focus-outline-color;
+      outline-offset: -2px;
     }
   }
 }

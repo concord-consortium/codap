@@ -43,6 +43,7 @@ export const MapInspector = observer(function MapInspector({tile, show}: ITileIn
     if (mapModel?.layers.some(layer => isMapPointLayerModel(layer) || isMapPinLayerModel(layer))) {
       return (
         <InspectorButton
+          isActive={showPalette === "measure"}
           label={t("V3.map.Inspector.Data")}
           onButtonClick={(e: React.MouseEvent) => {
             buttonRef.current = e.currentTarget as HTMLDivElement
@@ -61,6 +62,7 @@ export const MapInspector = observer(function MapInspector({tile, show}: ITileIn
     if (mapModel) {
       return (
         <InspectorButton
+          isActive={showPalette === "layers"}
           label={t("V3.map.Inspector.Layers")}
           onButtonClick={(e: React.MouseEvent) => {
             buttonRef.current = e.currentTarget as HTMLDivElement

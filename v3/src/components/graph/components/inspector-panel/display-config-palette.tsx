@@ -1,7 +1,7 @@
 import { clsx } from "clsx"
 import { Input, Label, Radio, RadioGroup, TextField } from "react-aria-components"
 import {observer} from "mobx-react-lite"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import ConfigurationIcon from "../../../../assets/icons/inspector-panel/configuration-icon.svg"
 import { useForceUpdate } from "../../../../hooks/use-force-update"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
@@ -19,6 +19,55 @@ import { isBinnedPlotModel } from "../../plots/histogram/histogram-model"
 import { isBarChartModel } from "../../plots/bar-chart/bar-chart-model"
 
 import "./display-config-palette.scss"
+
+interface IFusePointsControlsProps {
+  pointsFusedIntoBars?: boolean
+  showBreakdownTypes?: boolean
+  breakdownTypeRadio?: string
+  onFuseChange: (fuseIntoBars: boolean) => void
+  onBreakdownTypeChange: (breakdownType: BreakdownType) => void
+}
+
+const FusePointsControls = observer(function FusePointsControls({
+  pointsFusedIntoBars, showBreakdownTypes, breakdownTypeRadio,
+  onFuseChange, onBreakdownTypeChange
+}: IFusePointsControlsProps) {
+  return (
+    <>
+      <PaletteCheckbox
+        data-testid="bar-chart-checkbox"
+        isSelected={pointsFusedIntoBars}
+        onChange={onFuseChange}
+      >
+        {t("DG.Inspector.graphBarChart")}
+      </PaletteCheckbox>
+      <If condition={!!showBreakdownTypes}>
+        <div className="sub-options">
+          <RadioGroup
+            aria-label={t("DG.Inspector.displayShow")}
+            value={breakdownTypeRadio}
+            onChange={(value) => onBreakdownTypeChange(value as BreakdownType)}
+          >
+            {BreakdownTypes.map((type) => (
+              <Radio
+                key={type}
+                value={type}
+                data-testid={`${type}-radio-button`}
+              >
+                {({isSelected}) => (
+                  <>
+                    <span className={clsx("radio-indicator", { selected: isSelected })} />
+                    {t(`DG.Inspector.graph${type.charAt(0).toUpperCase() + type.slice(1)}`)}
+                  </>
+                )}
+              </Radio>
+            ))}
+          </RadioGroup>
+        </div>
+      </If>
+    </>
+  )
+})
 
 type BinOption = "binWidth" | "binAlignment"
 
@@ -50,6 +99,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
   const kBufferChars = 2 // used to account for input field padding
   const [binWidthInput, setBinWidthInput] = useState(String(binDetails?.binWidth))
   const [binAlignmentInput, setBinAlignmentInput] = useState(String(binDetails?.binAlignment))
+  const binWidthInputRef = useRef<HTMLInputElement>(null)
 
   const handleDisplayTypeChange = (configType: string) => {
     if (isPointDisplayType(configType) || configType === "bins") {
@@ -206,6 +256,20 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
     setBinAlignmentInput(String(binDetails?.binAlignment))
   }, [binDetails?.binWidth, binDetails?.binAlignment])
 
+  const plotIsBinned = !!graphModel?.plot.isBinned
+  useEffect(() => {
+    if (plotIsBinned) {
+      // Use requestAnimationFrame to wait for the bin settings to render,
+      // then a second frame to ensure focus doesn't reset the selection
+      requestAnimationFrame(() => {
+        binWidthInputRef.current?.focus()
+        requestAnimationFrame(() => {
+          binWidthInputRef.current?.select()
+        })
+      })
+    }
+  }, [plotIsBinned])
+
   return (
     <InspectorPalette
       title={t("DG.Inspector.configuration")}
@@ -249,6 +313,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
                         the minimum allowed pixel width. Currently, enforcing of the min pixel width is
                         handled by the enforceMinBinPixelWidth useEffect in BinnedDotPlotDots. */}
                     <Input
+                      ref={binWidthInputRef}
                       className="form-input"
                       style={{width: `${binWidthInput.length + kBufferChars}ch`}}
                       onBlur={(e) => handleBinOptionBlur(e, "binWidth")}
@@ -271,6 +336,17 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
                 </div>
               </div>
             </If>
+            <If condition={!!showFuseIntoBars}>
+              <div className="fuse-points-section">
+                <FusePointsControls
+                  pointsFusedIntoBars={pointsFusedIntoBars}
+                  showBreakdownTypes={showBreakdownTypes}
+                  breakdownTypeRadio={breakdownTypeRadio}
+                  onFuseChange={handleSetFuseIntoBars}
+                  onBreakdownTypeChange={handleBreakdownTypeChange}
+                />
+              </div>
+            </If>
             <If condition={!!showBarForEachPoint}>
               <Radio value="bars" data-testid="bars-radio-button">
                 {({isSelected}) => (
@@ -283,39 +359,14 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
             </If>
           </RadioGroup>
         </If>
-        <If condition={!!showFuseIntoBars}>
-          <PaletteCheckbox
-            data-testid="bar-chart-checkbox"
-            isSelected={pointsFusedIntoBars}
-            onChange={handleSetFuseIntoBars}
-          >
-            {t("DG.Inspector.graphBarChart")}
-          </PaletteCheckbox>
-          <If condition={!!showBreakdownTypes}>
-            <div className="config-section">
-              <div className="form-title">{t("DG.Inspector.displayShow")}</div>
-              <RadioGroup
-                aria-label={t("DG.Inspector.displayShow")}
-                value={breakdownTypeRadio}
-                onChange={(value) => handleBreakdownTypeChange(value as BreakdownType)}
-              >
-                {BreakdownTypes.map((type) => (
-                  <Radio
-                    key={type}
-                    value={type}
-                    data-testid={`${type}-radio-button`}
-                  >
-                    {({isSelected}) => (
-                      <>
-                        <span className={clsx("radio-indicator", { selected: isSelected })} />
-                        {t(`DG.Inspector.graph${type.charAt(0).toUpperCase() + type.slice(1)}`)}
-                      </>
-                    )}
-                  </Radio>
-                ))}
-              </RadioGroup>
-            </div>
-          </If>
+        <If condition={!showPointDisplayType && !!showFuseIntoBars}>
+          <FusePointsControls
+            pointsFusedIntoBars={pointsFusedIntoBars}
+            showBreakdownTypes={showBreakdownTypes}
+            breakdownTypeRadio={breakdownTypeRadio}
+            onFuseChange={handleSetFuseIntoBars}
+            onBreakdownTypeChange={handleBreakdownTypeChange}
+          />
         </If>
       </div>
     </InspectorPalette>

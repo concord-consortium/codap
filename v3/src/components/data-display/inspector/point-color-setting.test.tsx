@@ -105,6 +105,20 @@ describe("PointColorSetting", () => {
     expect(defaultProps.onColorChange).toHaveBeenCalledWith("#FF0000")
   })
 
+  it("closes popover when closeTrigger changes while open", async () => {
+    const user = userEvent.setup()
+    const { rerender } = render(<PointColorSetting {...defaultProps} closeTrigger={0} />)
+
+    // Open the popover
+    const button = screen.getByRole("button", { name: /Fill Color/ })
+    await user.click(button)
+    expect(screen.getByTestId("popover")).toHaveAttribute("data-open", "true")
+
+    // Change closeTrigger — popover should close
+    rerender(<PointColorSetting {...defaultProps} closeTrigger={1} />)
+    expect(screen.getByTestId("popover")).toHaveAttribute("data-open", "false")
+  })
+
   it("adds open class to button when popover is open", async () => {
     const user = userEvent.setup()
     render(<PointColorSetting {...defaultProps} />)

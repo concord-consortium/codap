@@ -135,6 +135,11 @@
     font-size: 12px;
     padding: 1px 2px;
     outline: none;
+
+    &:focus-visible {
+      outline: 2px solid vars.$focus-outline-color;
+      outline-offset: -2px;
+    }
   }
 
   .standard-error-stepper {
@@ -144,6 +149,7 @@
     width: 18px;
     height: 22px;
     border: none;
+    border-left: 1px solid vars.$charcoal-light-1;
     background: vars.$palette-hover-bg;
     cursor: pointer;
     font-size: 12px;
@@ -151,6 +157,11 @@
 
     &:hover {
       background: vars.$teal-light3;
+    }
+
+    &[data-focus-visible] {
+      outline: 2px solid vars.$focus-outline-color;
+      outline-offset: -2px;
     }
 
     &[data-disabled] {

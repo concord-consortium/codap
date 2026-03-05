@@ -61,9 +61,10 @@ function isValidEvent(event: any, ref: React.RefObject<HTMLElement>) {
     const doc = getOwnerDocument(target)
     if (!doc.contains(target)) return false
   }
-  // Ignore outside clicks if the target is a portal
-  // This is to prevent the inspector panel from closing when a user clicks on a color picker
-  if (target.closest('.chakra-portal')) return false
+  // Ignore outside clicks if the target is in a portal (Chakra or React Aria).
+  // This prevents the inspector panel from closing when a user clicks on a
+  // color picker (Chakra portal) or a React Aria Select popover.
+  if (target.closest('.chakra-portal, .react-aria-Popover')) return false
 
   // Note: If ref.current is undefined, isValidEvent will return true
   // so useOutsidePointerDown will call the callback. The code using

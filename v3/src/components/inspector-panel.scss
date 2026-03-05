@@ -50,7 +50,7 @@ $inspector-panel-border-width: 2px;
     padding-top: 4px;
     width: 100%;
 
-    &:active, &.active {
+    &:active, &.active, &[data-active] {
       background-color: #bfefff;
     }
 
@@ -260,6 +260,11 @@ $inspector-panel-border-width: 2px;
       outline: 2px solid vars.$focus-outline-color;
       outline-offset: 2px;
     }
+
+    &[data-disabled] {
+      opacity: 0.5;
+      cursor: default;
+    }
   }
 
   .react-aria-Checkbox {
@@ -404,42 +409,44 @@ $inspector-panel-border-width: 2px;
     }
   }
 
-  .react-aria-Popover {
-    background: vars.$palette-bg;
-    border: 1px solid vars.$charcoal-light-1;
-    border-radius: 3px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    padding: 2px 0;
-    min-width: var(--trigger-width);
-
-    .react-aria-ListBox {
-      outline: none;
-
-      .react-aria-ListBoxItem {
-        padding: 4px 8px;
-    
-        cursor: pointer;
-        outline: none;
-
-        &[data-focused] {
-          background-color: vars.$palette-hover-bg;
-        }
-
-        &[data-selected] {
-          font-weight: bold;
-
-          &::before {
-            content: "✓";
-            margin-right: 4px;
-          }
-        }
-      }
-    }
-  }
-
   // Sub-options indentation for adornment controls
   .sub-options {
     padding-left: 20px;
+  }
+}
+
+// React Aria Popover styles — top-level because <Popover> renders in a portal
+// outside the .codap-inspector-palette DOM tree
+.react-aria-Popover {
+  background: vars.$palette-bg;
+  border: 1px solid vars.$charcoal-light-1;
+  border-radius: 3px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  padding: 2px 0;
+  min-width: var(--trigger-width);
+
+  .react-aria-ListBox {
+    outline: none;
+
+    .react-aria-ListBoxItem {
+      padding: 4px 8px;
+
+      cursor: pointer;
+      outline: none;
+
+      &[data-focused] {
+        background-color: vars.$palette-hover-bg;
+      }
+
+      &[data-selected] {
+        font-weight: bold;
+
+        &::before {
+          content: "✓";
+          margin-right: 4px;
+        }
+      }
+    }
   }
 }
 

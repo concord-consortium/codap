@@ -82,13 +82,13 @@ const Controls = () => {
         onChange={(value) => existingAdornment?.setDynamicNumStErrs(value)}
       >
         <Group className="standard-error-input-group">
-          <Button slot="decrement" className="standard-error-stepper">−</Button>
           <Input
             className="standard-error-input"
             onFocus={(e) => e.target.select()}
             onBlur={handleBlur}
             onKeyDown={(e) => handleKeyDown(e)}
           />
+          <Button slot="decrement" className="standard-error-stepper">−</Button>
           <Button slot="increment" className="standard-error-stepper">+</Button>
         </Group>
       </NumberField>
