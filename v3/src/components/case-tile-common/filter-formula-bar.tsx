@@ -35,7 +35,7 @@ export const FilterFormulaBar = () => {
 
   return (
     <>
-      <button type="button" className="filter-formula-container" data-testid="filter-formula-bar"
+      <button type="button" className="filter-formula-button" data-testid="filter-formula-bar"
         onClick={handleOpenEditFormulaModal}
         aria-label={t("V3.CaseTable.filterFormulaBarAriaLabel", { vars: [filterFormula || ""] })}>
         <span className="filter-formula-label">{t("V3.CaseTable.formulaFilterBar.label")}:</span>
