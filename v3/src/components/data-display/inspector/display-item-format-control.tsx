@@ -108,6 +108,7 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
         <div className="palette-row color-picker-row">
           <label className="form-label color-picker">{t("DG.Inspector.stroke")}</label>
           <PointColorSetting propertyLabel={t("DG.Inspector.stroke")}
+                            disabled={displayItemDescription.pointStrokeSameAsFill}
                             onColorChange={(color) => handlePointStrokeColorChange(color)}
                             swatchBackgroundColor={displayItemDescription.pointStrokeColor}/>
         </div>

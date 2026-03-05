@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { fireEvent, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { LegendColorControls, LegendBinsSelect } from "./legend-color-controls"
 
@@ -8,10 +8,11 @@ jest.mock("../../../utilities/translation/translate", () => ({
   translate: (key: string) => key
 }))
 
-// Mock PointColorSetting to render a simple swatch button
+// Mock PointColorSetting to render a simple swatch button that exposes closeTrigger
 jest.mock("./point-color-setting", () => ({
-  PointColorSetting: ({ propertyLabel, onColorChange, swatchBackgroundColor }: any) => (
+  PointColorSetting: ({ propertyLabel, closeTrigger, onColorChange, swatchBackgroundColor }: any) => (
     <button data-testid={`color-swatch-${propertyLabel}`}
+      data-close-trigger={closeTrigger ?? ""}
       onClick={() => onColorChange("#123456")}
       style={{ backgroundColor: swatchBackgroundColor }}>
       {propertyLabel}
@@ -81,6 +82,25 @@ describe("LegendColorControls", () => {
       expect(screen.getByTestId("color-swatch-cat-a")).toBeInTheDocument()
       expect(screen.getByTestId("color-swatch-cat-b")).toBeInTheDocument()
       expect(screen.getByTestId("color-swatch-cat-c")).toBeInTheDocument()
+    })
+
+    it("increments closeTrigger on category list scroll to close color pickers", () => {
+      const desc = createMockDescription()
+      const config = createMockDataConfig({
+        attributeType: jest.fn(() => "categorical"),
+        categoryArrayForAttrRole: jest.fn(() => ["cat-a", "cat-b"])
+      })
+      render(<LegendColorControls dataConfiguration={config as any} displayItemDescription={desc as any} />)
+
+      const swatch = screen.getByTestId("color-swatch-cat-a")
+      expect(swatch).toHaveAttribute("data-close-trigger", "0")
+
+      // Scroll the category container
+      // eslint-disable-next-line testing-library/no-node-access
+      const scrollContainer = swatch.closest(".cat-color-setting")!
+      fireEvent.scroll(scrollContainer)
+
+      expect(swatch).toHaveAttribute("data-close-trigger", "1")
     })
 
     it("calls setLegendColorForCategory when a category color changes", async () => {

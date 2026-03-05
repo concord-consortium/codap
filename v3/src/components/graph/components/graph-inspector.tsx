@@ -105,9 +105,9 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
         <HideShowMenuList tile={tile}/>
       </InspectorMenu>
       <InspectorButton
+        isActive={showPalette === "measure"}
         label={t("V3.graph.Inspector.Measure")}
         onButtonClick={handleRulerButton}
-
         testId={"graph-display-values-button"}
         tooltip={t("DG.Inspector.displayValues.toolTip")}
       >
@@ -115,9 +115,9 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
       </InspectorButton>
       {showDisplayConfig &&
         <InspectorButton
+          isActive={showPalette === "config"}
           label={t("V3.graph.Inspector.Config")}
           onButtonClick={handleConfigButton}
-  
           testId={"graph-display-config-button"}
           tooltip={t("DG.Inspector.displayConfiguration.toolTip")}
         >
@@ -125,9 +125,9 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
         </InspectorButton>
       }
       <InspectorButton
+        isActive={showPalette === "format"}
         label={t("V3.graph.Inspector.Format")}
         onButtonClick={handleBrushButton}
-
         testId={"graph-display-styles-button"}
         tooltip={t("DG.Inspector.displayStyles.toolTip")}
       >
