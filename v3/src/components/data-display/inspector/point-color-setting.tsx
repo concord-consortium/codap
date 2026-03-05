@@ -26,7 +26,7 @@ export const PointColorSetting = observer(function PointColorSetting({ closeTrig
 
   // Close popover when external trigger changes (e.g. parent container scrolled)
   useEffect(() => {
-    if (closeTrigger && openPopover) {
+    if (closeTrigger != null && openPopover) {
       closePopover()
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps

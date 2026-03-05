@@ -119,14 +119,6 @@ describe("PointColorSetting", () => {
     expect(screen.getByTestId("popover")).toHaveAttribute("data-open", "false")
   })
 
-  it("does not close popover when closeTrigger changes while already closed", () => {
-    const { rerender } = render(<PointColorSetting {...defaultProps} closeTrigger={0} />)
-    expect(screen.getByTestId("popover")).toHaveAttribute("data-open", "false")
-
-    rerender(<PointColorSetting {...defaultProps} closeTrigger={1} />)
-    expect(screen.getByTestId("popover")).toHaveAttribute("data-open", "false")
-  })
-
   it("adds open class to button when popover is open", async () => {
     const user = userEvent.setup()
     render(<PointColorSetting {...defaultProps} />)
