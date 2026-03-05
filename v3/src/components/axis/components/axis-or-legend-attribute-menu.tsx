@@ -285,7 +285,20 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
     handleCloseMenu()
   }
 
+  const collectionInfoEntries = allCollectionInfo.filter(info => info !== "divider")
+  const hasAttributes = collectionInfoEntries.some(({ collection, data, metadata }) =>
+    collection.attributes.some(attr =>
+      attr && !metadata?.isHidden(attr.id) &&
+      (!isAttributeAllowed || isAttributeAllowed(place, data, attr.id))
+    )
+  )
+
   const renderMenuItems = () => {
+    if (!hasAttributes) {
+      return (
+        <MenuItem isDisabled isFocusable>{t("V3.DataDisplayMenu.noAttributesAvailable")}</MenuItem>
+      )
+    }
     if (allCollectionInfo.length === 1 && allCollectionInfo[0] !== "divider") {
       return (
         <MenuItemsForCollection

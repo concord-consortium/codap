@@ -133,7 +133,7 @@ export const CaseTableToolShelfButton = observer(function CaseTableToolShelfButt
 
   const placement = persistentState.toolbarPosition === "Top" ? "bottom-start" : "right-start"
   return (
-    <Menu isLazy autoSelect={false} isOpen={isOpen} onOpen={onOpen} onClose={onClose} placement={placement}>
+    <Menu isLazy isOpen={isOpen} onOpen={onOpen} onClose={onClose} placement={placement}>
       <MenuButton className={clsx("tool-shelf-button tool-shelf-menu table first", langClass, {"menu-open": isOpen})}
           aria-label={t("DG.ToolButtonData.tableButton.ariaLabel")}
           title={`${t("DG.ToolButtonData.tableButton.toolTip")}`}
