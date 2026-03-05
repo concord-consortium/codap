@@ -56,8 +56,10 @@ jest.mock("../../../models/data/collection", () => ({
   isCollectionModel: () => true
 }))
 
+let mockGetDataSetsReturn: any[] = [mockDataSet]
+
 jest.mock("../../../models/shared/shared-data-utils", () => ({
-  getDataSets: () => [mockDataSet],
+  getDataSets: () => mockGetDataSetsReturn,
   getMetadataFromDataSet: () => undefined
 }))
 
@@ -108,6 +110,7 @@ describe("AxisOrLegendAttributeMenu", () => {
     // Reset mock data configuration to defaults so tests are independent
     mockDataConfiguration.attributeID = (role: string) => role === "x" ? "attr1" : ""
     mockDataConfiguration.attributeType = (role: string) => role === "x" ? "numeric" : ""
+    mockGetDataSetsReturn = [mockDataSet]
     jest.clearAllMocks()
   })
 
@@ -209,6 +212,17 @@ describe("AxisOrLegendAttributeMenu", () => {
       expect(weightItem).toBeDefined()
       await user.click(weightItem!)
       expect(onChangeAttribute).toHaveBeenCalledWith("bottom", mockDataSet, "attr2")
+    })
+
+    it("shows 'No attributes available' when no datasets exist", () => {
+      mockGetDataSetsReturn = []
+      mockDataConfiguration.attributeID = () => ""
+      mockDataConfiguration.attributeType = () => ""
+      renderMenu({ place: "bottom" })
+      const menuItems = screen.getAllByRole("menuitem", { hidden: true })
+      const noAttrsItem = menuItems.find(item => item.textContent === "No attributes available")
+      expect(noAttrsItem).toBeDefined()
+      expect(noAttrsItem).toHaveAttribute("aria-disabled", "true")
     })
   })
 })
