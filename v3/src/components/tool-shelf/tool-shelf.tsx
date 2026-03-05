@@ -56,6 +56,7 @@ interface IProps {
 }
 export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
   const toolbarRef = useRef<HTMLDivElement>(null)
+  const guideTileId = getGuideTileId(document)
   const activeIndexRef = useRef(0)
 
   // Get all top-level toolbar buttons, excluding items inside dropdown menus
@@ -65,13 +66,13 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     return Array.from(allButtons).filter(btn => !btn.closest(".tool-shelf-menu-list"))
   }, [])
 
-  // Roving tabindex
+  // Roving tabindex — re-runs when the button list changes (e.g. guide button appearing/disappearing)
   useEffect(() => {
     const buttons = getToolbarButtons()
-    // Clamp in case buttons were removed (e.g. guide button disappearing)
+    // Clamp in case buttons were removed
     const activeIndex = Math.min(activeIndexRef.current, buttons.length - 1)
     buttons.forEach((btn, i) => { btn.tabIndex = i === activeIndex ? 0 : -1 })
-  })
+  }, [getToolbarButtons, guideTileId])
 
   // Arrow key navigation between toolbar buttons.
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -100,7 +101,6 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
   if (uiState.standaloneMode) return null
 
   const undoManager = document?.treeManagerAPI?.undoManager
-  const guideTileId = getGuideTileId(document)
   const rightButtons: IRightButtonEntry[] = [
     {
       className: "undo-button",

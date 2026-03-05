@@ -23,11 +23,11 @@ export const useChakraPatches = () => {
 
     const portalObserver = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
-        const target = mutation.target instanceof Element
-          ? mutation.target.closest(".chakra-portal") ?? mutation.target
+        const portal = mutation.target instanceof Element
+          ? mutation.target.closest(".chakra-portal")
           : mutation.target.parentElement?.closest(".chakra-portal")
-        if (target instanceof Element && target.classList.contains("chakra-portal")) {
-          updatePortalVisibility(target)
+        if (portal) {
+          updatePortalVisibility(portal)
         }
       }
     })
