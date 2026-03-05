@@ -51,7 +51,7 @@ export const Container: React.FC = observer(function Container() {
                         "scroll-behavior-auto": isScrollBehaviorAuto })
   return (
     <DocumentContainerContext.Provider value={containerRef}>
-      <main className={classes} ref={containerRef} aria-roledescription="document workspace">
+      <main className={classes} ref={containerRef}>
         <h2 className="codap-visually-hidden">{appState.document.title}</h2>
         {isMosaicTileRow(row) &&
           <MosaicTileRowComponent row={row} getTile={getTile} onCloseTile={handleCloseTile}/>}
