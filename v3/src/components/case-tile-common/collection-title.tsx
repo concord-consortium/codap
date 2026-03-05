@@ -131,7 +131,7 @@ export const CollectionTitle =
             isPreviewFocusable={!dragging} submitOnBlur={true} onChange={handleChangeName}>
           <EditablePreview width="100%" paddingY={0} overflow="hidden" whiteSpace="nowrap" textOverflow="ellipsis" />
           <EditableInput value={editingName} paddingY={0} className="collection-title-input"
-            aria-label={t("V3.CaseTable.collectionTitleAriaLabel", { vars: [collectionName] })} />
+            aria-label={t("V3.CaseTable.collectionTitleAriaLabel", { vars: [editingName || collectionName] })} />
         </Editable>
       </div>
       {onAddNewAttribute &&

@@ -97,8 +97,12 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   // Mark non-editable cells with aria-readonly (RDG doesn't support this natively)
   useEffect(() => {
-    gridRef.current?.element?.querySelectorAll('.readonly-cell').forEach(cell => {
-      cell.setAttribute('aria-readonly', 'true')
+    gridRef.current?.element?.querySelectorAll('[role="gridcell"]').forEach(cell => {
+      if (cell.classList.contains("readonly-cell")) {
+        cell.setAttribute("aria-readonly", "true")
+      } else {
+        cell.removeAttribute("aria-readonly")
+      }
     })
   })
 
