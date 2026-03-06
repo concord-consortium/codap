@@ -1,4 +1,5 @@
 import { observer } from "mobx-react-lite"
+import { useRef } from "react"
 import { DataSetContext } from "../../hooks/use-data-set-context"
 import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { appState } from "../../models/app-state"
@@ -11,6 +12,9 @@ import { EditFormulaModal } from "./edit-formula-modal"
 
 export const EditAttributeFormulaModal = observer(function EditAttributeFormulaModal() {
   const attributeId = uiState.editFormulaAttributeId
+  const finalFocusRef = useRef<HTMLElement | null>(null)
+  // Use the stored element as finalFocusRef so Chakra restores focus correctly
+  finalFocusRef.current = uiState.editFormulaFinalFocusElement
   const dataSet = getSharedDataSets(appState.document).find(ds => ds.dataSet.attrFromID(attributeId))?.dataSet
   const attribute = dataSet?.attrFromID(attributeId)
   const value = attribute?.formula?.display
@@ -38,6 +42,7 @@ export const EditAttributeFormulaModal = observer(function EditAttributeFormulaM
     <DataSetContext.Provider value={dataSet}>
       <EditFormulaModal
         applyFormula={applyFormula}
+        finalFocusRef={finalFocusRef}
         formulaPrompt={t("DG.AttrFormView.formulaPrompt")}
         isOpen={!!uiState.editFormulaAttributeId}
         onClose={() => uiState.setEditFormulaAttributeId()}

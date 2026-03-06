@@ -77,6 +77,9 @@ export class UIState {
   // Id of attribute whose formula is being edited using the editor modal
   @observable private _editFormulaAttributeId = ""
 
+  // Element to restore focus to when the formula editor closes (not observable — just a plain ref)
+  editFormulaFinalFocusElement: HTMLElement | null = null
+
   // Support for busy indicator (indicateBusy/indicateIdle API)
   @observable
   private _isBusy = false
