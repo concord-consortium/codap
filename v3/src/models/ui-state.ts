@@ -328,6 +328,9 @@ export class UIState {
 
   @action setEditFormulaAttributeId(id?: string) {
     this._editFormulaAttributeId = id ?? ""
+    if (!id) {
+      this.editFormulaFinalFocusElement = null
+    }
   }
 
   @action setAttrIdToEdit(attrId?: string) {
