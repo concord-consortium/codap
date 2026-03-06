@@ -157,7 +157,11 @@ export function IndexCell({ caseId, disableMenu, index, collapsedCases, onClick,
   })
 
   // focus our content when the cell is focused
-  useParentChildFocusRedirect(cellElt, menuButton)
+  const cellRef = useRef<HTMLElement | null>(null)
+  const menuButtonRef = useRef<HTMLElement | null>(null)
+  cellRef.current = cellElt
+  menuButtonRef.current = menuButton
+  useParentChildFocusRedirect(cellRef, menuButtonRef)
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (["ArrowDown", "ArrowUp"].includes(e.key)) {

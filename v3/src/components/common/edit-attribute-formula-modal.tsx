@@ -1,4 +1,5 @@
 import { observer } from "mobx-react-lite"
+import { useRef } from "react"
 import { DataSetContext } from "../../hooks/use-data-set-context"
 import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { appState } from "../../models/app-state"
@@ -11,6 +12,17 @@ import { EditFormulaModal } from "./edit-formula-modal"
 
 export const EditAttributeFormulaModal = observer(function EditAttributeFormulaModal() {
   const attributeId = uiState.editFormulaAttributeId
+  const finalFocusRef = useRef<HTMLElement | null>(null)
+  // Only update when non-null so the ref survives the close cycle (clearing the
+  // UIState element must not nullify the ref before Chakra restores focus).
+  // When opening without an explicit focus element (e.g. via DI API), clear any stale ref.
+  if (attributeId) {
+    if (uiState.editFormulaFinalFocusElement) {
+      finalFocusRef.current = uiState.editFormulaFinalFocusElement
+    } else if (finalFocusRef.current) {
+      finalFocusRef.current = null
+    }
+  }
   const dataSet = getSharedDataSets(appState.document).find(ds => ds.dataSet.attrFromID(attributeId))?.dataSet
   const attribute = dataSet?.attrFromID(attributeId)
   const value = attribute?.formula?.display
@@ -38,6 +50,7 @@ export const EditAttributeFormulaModal = observer(function EditAttributeFormulaM
     <DataSetContext.Provider value={dataSet}>
       <EditFormulaModal
         applyFormula={applyFormula}
+        finalFocusRef={finalFocusRef}
         formulaPrompt={t("DG.AttrFormView.formulaPrompt")}
         isOpen={!!uiState.editFormulaAttributeId}
         onClose={() => uiState.setEditFormulaAttributeId()}

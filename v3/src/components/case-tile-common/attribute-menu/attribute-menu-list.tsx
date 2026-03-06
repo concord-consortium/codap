@@ -22,12 +22,13 @@ import { EditAttributePropertiesModal } from "./edit-attribute-properties-modal"
 
 interface IProps {
   attributeId: string
+  finalFocusRef?: React.RefObject<HTMLElement>
   onRenameAttribute: () => void
   onModalOpen: (open: boolean) => void
 }
 
 const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
-    ({ attributeId, onRenameAttribute, onModalOpen }, ref) => {
+    ({ attributeId, finalFocusRef, onRenameAttribute, onModalOpen }, ref) => {
   const data = useDataSetContext()
   const metadata = useDataSetMetadata()
   const tableModel = useCaseTableModel()
@@ -52,6 +53,7 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
   }
 
   const handleEditFormulaOpen = () => {
+    uiState.editFormulaFinalFocusElement = finalFocusRef?.current ?? null
     uiState.setEditFormulaAttributeId(attributeId)
   }
 
@@ -235,8 +237,8 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
           </MenuItem>
         ))}
       </MenuList>
-      <EditAttributePropertiesModal attributeId={attributeId} isOpen={isOpen}
-        onClose={handleEditPropertiesClose} />
+      <EditAttributePropertiesModal attributeId={attributeId} finalFocusRef={finalFocusRef}
+        isOpen={isOpen} onClose={handleEditPropertiesClose} />
     </>
   )
 })

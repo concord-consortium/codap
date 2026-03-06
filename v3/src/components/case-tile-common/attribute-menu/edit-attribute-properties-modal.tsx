@@ -24,11 +24,12 @@ type YesNoValue = "yes" | "no"
 
 interface IProps {
   attributeId: string
+  finalFocusRef?: React.RefObject<HTMLElement>
   isOpen: boolean
   onClose: () => void
 }
 
-export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: IProps) => {
+export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpen, onClose }: IProps) => {
   const { data, metadata } = useDataSet()
   const attribute = data?.attrFromID(attributeId)
   const columnName = attribute?.name || "attribute"
@@ -168,6 +169,7 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
 
   return (
     <CodapModal
+      finalFocusRef={finalFocusRef}
       isOpen={isOpen}
       onClose={closeModal}
       modalWidth={"265px"}

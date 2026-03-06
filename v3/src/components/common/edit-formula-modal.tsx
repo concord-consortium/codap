@@ -17,9 +17,11 @@ import styles from './edit-formula-modal.scss'
 
 interface IProps {
   applyFormula: (formula: string, attrName: string) => void
+  finalFocusRef?: React.RefObject<HTMLElement>
   formulaPrompt?: string
   isOpen: boolean
   onClose?: () => void
+  returnFocusOnClose?: boolean
   titleInput?: string
   titleLabel: string
   titlePlaceholder?: string
@@ -27,7 +29,8 @@ interface IProps {
 }
 
 export const EditFormulaModal = observer(function EditFormulaModal({
-  applyFormula, formulaPrompt, isOpen, onClose, titleInput, titleLabel, titlePlaceholder, value
+  applyFormula, finalFocusRef, formulaPrompt, isOpen, onClose, returnFocusOnClose, titleInput, titleLabel,
+  titlePlaceholder, value
 }: IProps) {
   const minWidth = +styles.editFormulaModalMinWidth
   const minHeight = +styles.editFormulaModalMinHeight
@@ -144,7 +147,9 @@ export const EditFormulaModal = observer(function EditFormulaModal({
   return (
     <FormulaEditorContext.Provider value={formulaEditorState}>
       <CodapModal
+        finalFocusRef={finalFocusRef}
         isOpen={isOpen}
+        returnFocusOnClose={returnFocusOnClose}
         closeOnOverlayClick={false}
         onClose={closeModal}
         modalWidth={`${dimensions.width}px`}

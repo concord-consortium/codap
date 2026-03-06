@@ -114,7 +114,7 @@ export const AttributeHeader = observer(function AttributeHeader({
   }, [attributeId, attrName, onBeginEdit, onEndEdit])
 
   // focus our content when the cell is focused
-  useParentChildFocusRedirect(parentRef.current, menuButtonRef.current)
+  useParentChildFocusRedirect(parentRef, menuButtonRef)
   useOutsidePointerDown({
     ref: inputRef,
     handler: () => {
@@ -171,6 +171,12 @@ export const AttributeHeader = observer(function AttributeHeader({
     setEditingAttrName("")
     setIsFocused(false)
     uiState.setAttrIdToEdit?.()
+    // Restore focus to the menu button after React re-renders the Input back to a MenuButton.
+    // Also re-set aria-selected on the cell so RDG's selection outline is visible.
+    setTimeout(() => {
+      menuButtonRef.current?.focus()
+      parentRef.current?.setAttribute("aria-selected", "true")
+    })
   }
   const handleRenameAttribute = useCallback(() => {
     setEditingAttrId(attributeId)
@@ -287,6 +293,7 @@ export const AttributeHeader = observer(function AttributeHeader({
               {attributeId !== kIndexColumnKey &&
                 <CaseTilePortal>
                   <AttributeMenuList ref={menuListRef} attributeId={attributeId}
+                    finalFocusRef={menuButtonRef as React.RefObject<HTMLElement>}
                     onRenameAttribute={handleRenameAttribute} onModalOpen={handleModalOpen}
                   />
                 </CaseTilePortal>

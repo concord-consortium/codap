@@ -6,8 +6,10 @@ import "./codap-modal.scss"
 interface IProps {
   children?: ReactNode
   closeOnOverlayClick?: boolean
+  finalFocusRef?: React.RefObject<HTMLElement>
   initialRef?: any
   isOpen: boolean
+  returnFocusOnClose?: boolean
   onClick?: () => void
   onClose: () => void
   onKeyDown?: (e: React.KeyboardEvent) => void
@@ -16,14 +18,17 @@ interface IProps {
 }
 
 export const CodapModal = forwardRef(({
-  children, initialRef, isOpen, closeOnOverlayClick, onClick, onClose, onKeyDown, modalWidth, modalHeight
+  children, finalFocusRef, initialRef, isOpen, returnFocusOnClose, closeOnOverlayClick, onClick, onClose,
+  onKeyDown, modalWidth, modalHeight
 }: IProps, ref: React.Ref<HTMLElement> | undefined) => {
 
   return (
     <Modal
       data-testid="codap-modal"
+      finalFocusRef={finalFocusRef}
       initialFocusRef={initialRef}
       isOpen={isOpen}
+      returnFocusOnClose={returnFocusOnClose}
       closeOnOverlayClick={closeOnOverlayClick}
       onClose={onClose}
       size="xs"
