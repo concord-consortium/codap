@@ -325,9 +325,8 @@ context("Formula Engine", () => {
       })
       it("Escape from modal closes it when no menus are open", () => {
         // First escape from the editor input, then focus a non-editor element
-       escapeFormulaInputField()
-       cy.get("[data-testid=formula-insert-value-button]").should("have.focus")
-       cy.realPress("Escape")
+        escapeFormulaInputField()
+        cy.get("[data-testid=formula-insert-value-button]").should("have.focus")
         cy.realPress("Escape")
         // Modal should be closed
         cy.get(".formula-modal-body").should("not.exist")
