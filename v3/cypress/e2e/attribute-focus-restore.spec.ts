@@ -10,12 +10,25 @@ context("Attribute focus restore", () => {
     cy.wait(1000)
   })
 
-  it("restores focus to attribute button after inline rename", () => {
+  it("restores focus to attribute button after cancelling inline rename", () => {
+    table.openAttributeMenu("Height")
+    table.selectMenuItemFromAttributeMenu("Rename")
+    cy.get("[data-testid=column-name-input]").should("be.visible")
+    cy.get("[data-testid=column-name-input]").type("{esc}")
+    // Focus should be on the original attribute's MenuButton
+    cy.focused().should("have.attr", "data-testid", "codap-attribute-button Height")
+    // The RDG cell should show its selection outline
+    cy.focused().closest(".rdg-cell").should("have.attr", "aria-selected", "true")
+  })
+
+  it("restores focus to attribute button after accepting inline rename", () => {
     table.openAttributeMenu("Height")
     table.selectMenuItemFromAttributeMenu("Rename")
     table.renameColumnName("{selectAll}Tallness{enter}")
     // Focus should be on the renamed attribute's MenuButton
     cy.focused().should("have.attr", "data-testid", "codap-attribute-button Tallness")
+    // The RDG cell should show its selection outline
+    cy.focused().closest(".rdg-cell").should("have.attr", "aria-selected", "true")
     // The attribute menu should NOT be open
     cy.get("[data-testid=attribute-menu-list]").should("not.be.visible")
   })
