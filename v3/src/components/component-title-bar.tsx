@@ -147,6 +147,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
         {isEditing && !preventTitleChange
           ? (
             <Input
+              aria-label={t("V3.app.component.editTitle.ariaLabel")}
               autoFocus={true}
               className="title-text-input"
               data-testid="title-text-input"
@@ -168,7 +169,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
               onPointerDown={handleTitlePointerDown}
               onPointerMove={handleTitlePointerMove}
             >
-              <span>{isHovering && title === "" ? blankTitle : title}</span>
+              <h3>{isHovering && title === "" ? blankTitle : title}</h3>
             </div>
           )
         }

@@ -1,6 +1,6 @@
 @use "../../components/vars";
 
-.codap-container {
+.document-container {
   // set up a stacking context so component z-index values don't interact with others
   isolation: isolate;
   width: 100%;
@@ -20,14 +20,14 @@
     justify-content: center;
   }
 
-  // Chakra Menu popper wrapper rendered via Portal into .codap-container needs high z-index to appear above tiles
+  // Chakra Menu popper wrapper rendered via Portal into .document-container needs high z-index to appear above tiles
   > .chakra-portal > div:has(.axis-legend-menu) {
     z-index: 10000;
   }
 }
 
-.vertical-toolbar-container {
-  .codap-container {
+.vertical-toolbar {
+  .document-container {
     flex: 1;
     height: 100%;
     width: auto;
@@ -35,7 +35,7 @@
 }
 
 .codap-app.minimal-chrome {
-  .codap-container {
+  .document-container {
     height: 100%;
   }
 }

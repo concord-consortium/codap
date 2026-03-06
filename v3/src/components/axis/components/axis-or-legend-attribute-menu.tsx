@@ -59,7 +59,7 @@ function MenuItemsForCollection(
 // A MenuItem for a collection, which contains a submenu of the collection's attributes
 interface ICollectionMenuProps {
   collectionInfo: ICollectionInfo
-  containerRef: React.RefObject<HTMLDivElement | null>
+  containerRef: React.RefObject<HTMLElement | null>
   isAttributeAllowed?: (place: GraphPlace, dataSet: IDataSet, attrId: string) => boolean
   isOpen: boolean
   maxMenuHeight: string

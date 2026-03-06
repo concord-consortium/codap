@@ -121,8 +121,11 @@ $button-width: 34px;
     white-space: nowrap;
     width: fit-content;
 
-    span {
+    h3 {
       display: block;
+      font-size: inherit;
+      font-weight: inherit;
+      margin: 0;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;

@@ -35,7 +35,7 @@ export const GraphMeasureGroup = observer(
 
   return (
     <Disclosure isExpanded={itemsAreVisible} onExpandedChange={handleExpandedChange}>
-      <Heading level={3}>
+      <Heading level={4}>
         <Button
           slot="trigger"
           className="measure-group-button"

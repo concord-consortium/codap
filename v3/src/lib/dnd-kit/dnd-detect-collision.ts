@@ -35,12 +35,6 @@ export const dndDetectCollision: CollisionDetection = (args) => {
     return bTileZIndex - aTileZIndex
   })
 
-  // if this is a tile drag, then ignore all collisions other than the container
-  if (args.active.data.current?.type === "tile") {
-    const containers = args.droppableContainers.filter(({id}) => id === "codap-container-drop")
-    return rectIntersection({ ...args, droppableContainers: containers })
-  }
-
   // check for registered tile-specific collision handlers
   if (sortedCollisions.length > 0) {
     // find the prefix for the first tile collision

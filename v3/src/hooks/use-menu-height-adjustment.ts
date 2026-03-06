@@ -2,7 +2,7 @@ import { RefObject, useEffect, useState } from "react"
 
 interface UseMenuHeightAdjustmentOptions {
   menuRef: RefObject<HTMLDivElement | null>
-  containerRef?: RefObject<HTMLDivElement | null>  // container element (e.g., .codap-container)
+  containerRef?: RefObject<HTMLElement | null>  // container element (e.g., .document-container)
   isOpen: boolean
   marginBottom?: number  // minimum margin from bottom of container (default: 8)
   marginTop?: number     // minimum margin from top of container (default: 8)
