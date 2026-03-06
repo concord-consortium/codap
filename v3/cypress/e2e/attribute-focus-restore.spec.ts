@@ -54,9 +54,6 @@ context("Attribute focus restore", () => {
   })
 
   it("can open attribute menu after adding a new attribute without a name", () => {
-    // Regression: addNewAttribute without a name used to type {enter}{enter}.
-    // With focus restore, the second Enter opened the menu, causing the next
-    // openAttributeMenu click to toggle it closed instead of open.
     table.addNewAttribute()
     table.openAttributeMenu("newAttr")
     cy.get("[data-testid=attribute-menu-list]").should("be.visible")
