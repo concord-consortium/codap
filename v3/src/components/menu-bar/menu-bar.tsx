@@ -29,7 +29,7 @@ export function MenuBar() {
       id={kMenuBarElementId}
       className="codap-menu-bar"
       data-testid="codap-menu-bar"
-      aria-label={t("V3.app.menuBar.ariaLabel")}
+      aria-label={hasChildren ? t("V3.app.menuBar.ariaLabel") : undefined}
       role={hasChildren ? "menubar" : undefined}
     >
     </div>

@@ -4,8 +4,8 @@ export const useChakraPatches = () => {
   // Chakra UI v2 pre-renders hidden portal divs for components like Menu, Tooltip, and Popover.
   // These clutter the accessibility tree for screen readers even when not visible. We observe
   // mutations and set aria-hidden on portals whose content is hidden, removing it when visible.
-  // This workaround can be removed when upgrading to Chakra UI v3, which fixes the issue natively.
-  // See: https://github.com/chakra-ui/chakra-ui/issues/8620
+  // This workaround can be removed when upgrading to Chakra UI v3, which fixes the issue natively,
+  // or another framework. See: https://github.com/chakra-ui/chakra-ui/issues/8620
   useEffect(() => {
     const isPortalHidden = (portal: Element) => {
       if (portal.children.length === 0) return true
