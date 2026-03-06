@@ -229,13 +229,6 @@ export const InsertFunctionMenu = ({ buttonRef, onClose }: IProps) => {
     const functionObj = functionCategoryObj?.functions.find(
       (func) => func.displayName === selectedFunction)
 
-    const handleInfoKeyDown = (e: React.KeyboardEvent) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault()
-        insertFunctionString(functionObj)
-      }
-    }
-
     return (
       <div className="formula-function-list" role="region"
             aria-label={`Function info for ${functionObj?.displayName}`}
@@ -249,16 +242,15 @@ export const InsertFunctionMenu = ({ buttonRef, onClose }: IProps) => {
         </button>
         <hr className="function-header-divider" />
         <div className="function-info-body">
-          <div className="function-info-name" role="button" tabIndex={0}
+          <button className="function-info-name"
                 data-testid="function-info-name"
                 aria-label={`Insert ${functionObj?.displayName}(${functionObj?.args.map(a => a.name).join(", ")})`}
-                onClick={() => insertFunctionString(functionObj)}
-                onKeyDown={handleInfoKeyDown}>
+                onClick={() => insertFunctionString(functionObj)}>
             <span>
               {functionObj?.displayName}
               (<span className="function-arguments">{functionObj?.args.map((arg) => arg.name).join(", ")}</span>)
             </span>
-          </div>
+          </button>
           <div>{functionObj?.description}</div>
           <div className="function-info-subtitle">Parameters</div>
           {functionObj?.args.map((arg) => {

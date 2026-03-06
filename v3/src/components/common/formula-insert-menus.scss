@@ -118,10 +118,14 @@
 }
 
 .function-info-name {
+  background: none;
+  border: none;
+  cursor: pointer;
   font-size: 14px;
   font-weight: bold;
   margin: 5px 0;
-  cursor: pointer;
+  padding: 0;
+  text-align: left;
 
   &:hover, &:active {
     color: vars.$codap-teal-light;
