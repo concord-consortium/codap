@@ -15,8 +15,13 @@ export const EditAttributeFormulaModal = observer(function EditAttributeFormulaM
   const finalFocusRef = useRef<HTMLElement | null>(null)
   // Only update when non-null so the ref survives the close cycle (clearing the
   // UIState element must not nullify the ref before Chakra restores focus).
-  if (uiState.editFormulaFinalFocusElement) {
-    finalFocusRef.current = uiState.editFormulaFinalFocusElement
+  // When opening without an explicit focus element (e.g. via DI API), clear any stale ref.
+  if (attributeId) {
+    if (uiState.editFormulaFinalFocusElement) {
+      finalFocusRef.current = uiState.editFormulaFinalFocusElement
+    } else if (finalFocusRef.current) {
+      finalFocusRef.current = null
+    }
   }
   const dataSet = getSharedDataSets(appState.document).find(ds => ds.dataSet.attrFromID(attributeId))?.dataSet
   const attribute = dataSet?.attrFromID(attributeId)
