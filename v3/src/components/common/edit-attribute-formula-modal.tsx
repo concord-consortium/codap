@@ -13,8 +13,11 @@ import { EditFormulaModal } from "./edit-formula-modal"
 export const EditAttributeFormulaModal = observer(function EditAttributeFormulaModal() {
   const attributeId = uiState.editFormulaAttributeId
   const finalFocusRef = useRef<HTMLElement | null>(null)
-  // Use the stored element as finalFocusRef so Chakra restores focus correctly
-  finalFocusRef.current = uiState.editFormulaFinalFocusElement
+  // Only update when non-null so the ref survives the close cycle (clearing the
+  // UIState element must not nullify the ref before Chakra restores focus).
+  if (uiState.editFormulaFinalFocusElement) {
+    finalFocusRef.current = uiState.editFormulaFinalFocusElement
+  }
   const dataSet = getSharedDataSets(appState.document).find(ds => ds.dataSet.attrFromID(attributeId))?.dataSet
   const attribute = dataSet?.attrFromID(attributeId)
   const value = attribute?.formula?.display
