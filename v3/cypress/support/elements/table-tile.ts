@@ -430,7 +430,7 @@ export const TableTileElements = {
       cy.wait(100)
       this.getAttributeInput(collectionIndex).type(`${attributeName}{enter}`)
     } else {
-      cy.get("[data-testid=column-name-input]").type("{enter}{enter}")
+      cy.get("[data-testid=column-name-input]").type("{enter}")
     }
   },
   deleteAttribute(attributeName: string, collectionIndex = 1) {
