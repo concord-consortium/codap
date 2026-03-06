@@ -1,7 +1,6 @@
-import { TriangleDownIcon, TriangleUpIcon } from "@chakra-ui/icons"
-import {Divider, Flex, List, ListItem,} from "@chakra-ui/react"
 import { IAnyStateTreeNode } from "mobx-state-tree"
-import React, { useEffect, useRef, useState } from "react"
+import React, { Key, useEffect, useRef, useState } from "react"
+import { Menu, MenuItem, MenuSection, Separator } from "react-aria-components"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { boundaryManager } from "../../models/boundaries/boundary-manager"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
@@ -14,7 +13,8 @@ const kMenuGap = 3
 const kMaxHeight = 470
 
 interface IProps {
-  setShowValuesMenu: (show: boolean) => void
+  buttonRef: React.RefObject<HTMLButtonElement | null>
+  onClose: () => void
 }
 
 function getGlobalsNames(node?: IAnyStateTreeNode) {
@@ -22,7 +22,7 @@ function getGlobalsNames(node?: IAnyStateTreeNode) {
   return globalManager ? Array.from(globalManager.globals.values()).map(global => global.name) : []
 }
 
-export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
+export const InsertValuesMenu = ({ buttonRef, onClose }: IProps) => {
   const dataSet = useDataSetContext()
   const { editorApi } = useFormulaEditorContext()
   const collections = dataSet?.collections
@@ -32,43 +32,34 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
       .filter(name => name !== undefined)
   )
   const attributeNames = dataSet?.attributes.map(attr => attr.name)
+  const globalsNames = getGlobalsNames(dataSet)
   const constants = ["e", "false", "true", "π"]
   const containerRef = useRef<HTMLDivElement>(null)
-  const scrollableContainerRef = useRef<HTMLUListElement>(null)
+  const scrollableContainerRef = useRef<HTMLDivElement>(null)
   const [, setScrollPosition] = useState(0)
-
-  const maxItemLength = useRef(0)
 
   const insertValueToFormula = (value: string) => {
     // if the name begins with a digit or has any non-alphanumeric chars, wrap it in backticks
     if (/^\d|[^\w]/.test(value)) value = `\`${value}\``
     editorApi?.insertVariableString(value)
-    setShowValuesMenu(false)
+    onClose()
+  }
+
+  const handleAction = (key: Key) => {
+    // strip the category prefix (e.g. "attr:", "const:") to get the actual value
+    const value = String(key).replace(/^[^:]+:/, "")
+    insertValueToFormula(value)
   }
 
   function getListContainerStyle() {
     // calculate the top of the list container based on the height of the list. The list should be
     // nearly centered on the button that opens it.
     // The list should not extend beyond the top or bottom of the window.
-    const listEl = document.querySelector(".formula-operand-list-container") as HTMLElement
-    const button = document.querySelector(".formula-editor-button.insert-value")
+    const listEl = containerRef.current
+    const button = buttonRef.current
 
-    attributeNames?.forEach((attrName) => {
-      if (attrName.length > maxItemLength.current) {
-        maxItemLength.current = attrName.length
-      }
-    })
-    boundaryManager.boundaryKeys.forEach((boundary) => {
-      if (boundary.length > maxItemLength.current) {
-        maxItemLength.current = boundary.length
-      }
-    })
-
-    getGlobalsNames(dataSet).forEach(globalName => {
-      if (globalName.length > maxItemLength.current) {
-        maxItemLength.current = globalName.length
-      }
-    })
+    const allNames = [...(attributeNames ?? []), ...boundaryManager.boundaryKeys, ...globalsNames]
+    const maxItemLength = allNames.length > 0 ? Math.max(...allNames.map(n => n.length)) : 0
 
     let top = 0
     if (button && listEl) {
@@ -82,14 +73,14 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
       } else {
         top = spaceBelow - listHeight
       }
-      return { top, height: kMaxHeight, width: 40 + 10 * maxItemLength.current }
+      return { top, height: kMaxHeight, width: 40 + 10 * maxItemLength }
     }
     return {}
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape" || e.key === "Tab") {
-      setShowValuesMenu(false)
+      onClose()
       e.preventDefault()
       e.stopPropagation()
     }
@@ -113,13 +104,20 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
       }
     }
 
-    // focus the menu on mount so it gets key events
-    containerRef.current?.focus()
+    // Focus the first menu item on mount so arrow key navigation works.
+    // react-aria's Menu autoFocus doesn't move DOM focus in standalone mode (no MenuTrigger/Popover),
+    // so we do it manually. The requestAnimationFrame delay ensures we run after Chakra Modal's
+    // focus trapping has settled.
+    const rafId = requestAnimationFrame(() => {
+      const firstItem = scrollableContainerRef.current?.querySelector('[role="menuitem"]') as HTMLElement
+      firstItem?.focus()
+    })
 
     const container = scrollableContainerRef.current
     container?.addEventListener("scroll", handleScrollPosition)
 
     return () => {
+      cancelAnimationFrame(rafId)
       container?.removeEventListener("scroll", handleScrollPosition)
     }
   }, [])
@@ -130,72 +128,72 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
           (scrollableContainerRef.current.scrollHeight - scrollableContainerRef.current.scrollTop + 20 > kMaxHeight)
 
   return (
-    <Flex ref={containerRef} className="formula-operand-list-container" data-testid="formula-value-list" tabIndex={-1}
+    <div ref={containerRef} className="formula-operand-list-container" data-testid="formula-value-list"
         style={getListContainerStyle()} onKeyDown={handleKeyDown}>
       { isScrollable && canScrollUp &&
-      <div className="scroll-arrow" onPointerOver={()=>handleScroll("up")}>
-        <TriangleUpIcon />
-      </div>
-      }
-      <List className="formula-operand-scrollable-container" ref={scrollableContainerRef}>
-        <List className="formula-operand-list">
-          { collections?.map((collection, index) => {
-            return (
-              <React.Fragment key={collection.id}>
-                <List className="formula-operand-subset">
-                  { attributeNamesInCollection?.[index]?.map((attrName) => {
-                    return (
-                      <ListItem className="formula-operand-list-item" key={attrName}
-                          onClick={() => insertValueToFormula(attrName)} data-testid="formula-value-item">
-                        <span>{attrName}</span>
-                      </ListItem>
-                    )
-                  })}
-                </List>
-                <Divider className="list-divider"/>
-              </React.Fragment>
-            )
-          })}
-        </List>
-        <List className="formula-operand-subset">
-          <ListItem className="formula-operand-list-item" onClick={() => insertValueToFormula("caseIndex")}>
-            <span>caseIndex</span>
-          </ListItem>
-        </List>
-        <Divider className="list-divider"/>
-        <List className="formula-operand-subset">
-          { boundaryManager.boundaryKeys.map((boundary) => {
-            return (
-              <ListItem key={boundary} className="formula-operand-list-item"
-                    onClick={() => insertValueToFormula(boundary)}>
-                <span>{boundary}</span>
-              </ListItem>
-            )
-          })}
-          { getGlobalsNames(dataSet).map(globalName => {
-            return (
-              <ListItem key={globalName} className="formula-operand-list-item"
-                    onClick={() => insertValueToFormula(globalName)}>
-                <span>{globalName}</span>
-              </ListItem>
-            )
-          })}
-        </List>
-        <Divider className="list-divider"/>
-        <List className="formula-operand-subset">
-          {constants.map(constant => (
-            <ListItem className="formula-operand-list-item" key={constant}
-                      onClick={() => insertValueToFormula(constant)}>
-              <span>{constant}</span>
-            </ListItem>
-          ))}
-        </List>
-      </List>
-      { isScrollable && canScrollDown &&
-        <div className="scroll-arrow" onPointerOver={()=>handleScroll("down")}>
-          <TriangleDownIcon />
+        <div className="scroll-arrow" aria-hidden="true" onPointerOver={() => handleScroll("up")}>
+          <span>&#9650;</span>
         </div>
       }
-    </Flex>
+      <Menu ref={scrollableContainerRef} aria-label="Insert value" onAction={handleAction}
+            className="formula-operand-scrollable-container">
+        { collections?.map((collection, index) => {
+          return (
+            <React.Fragment key={collection.id}>
+              {index > 0 && <Separator className="list-divider" />}
+              <MenuSection className="formula-operand-subset" aria-label={collection.name}>
+                { attributeNamesInCollection?.[index]?.map((attrName) => {
+                  return (
+                    <MenuItem key={attrName} id={`attr:${attrName}`} textValue={attrName}
+                        className="formula-operand-list-item" data-testid="formula-value-item">
+                      <span>{attrName}</span>
+                    </MenuItem>
+                  )
+                })}
+              </MenuSection>
+            </React.Fragment>
+          )
+        })}
+        <Separator className="list-divider" />
+        <MenuSection className="formula-operand-subset" aria-label="Special">
+          <MenuItem id="special:caseIndex" textValue="caseIndex" className="formula-operand-list-item">
+            <span>caseIndex</span>
+          </MenuItem>
+        </MenuSection>
+        <Separator className="list-divider" />
+        <MenuSection className="formula-operand-subset" aria-label="Boundaries and globals">
+          { boundaryManager.boundaryKeys.map((boundary) => {
+            return (
+              <MenuItem key={boundary} id={`boundary:${boundary}`} textValue={boundary}
+                    className="formula-operand-list-item">
+                <span>{boundary}</span>
+              </MenuItem>
+            )
+          })}
+          { globalsNames.map(globalName => {
+            return (
+              <MenuItem key={globalName} id={`global:${globalName}`} textValue={globalName}
+                    className="formula-operand-list-item">
+                <span>{globalName}</span>
+              </MenuItem>
+            )
+          })}
+        </MenuSection>
+        <Separator className="list-divider" />
+        <MenuSection className="formula-operand-subset" aria-label="Constants">
+          {constants.map(constant => (
+            <MenuItem key={constant} id={`const:${constant}`} textValue={constant}
+                      className="formula-operand-list-item">
+              <span>{constant}</span>
+            </MenuItem>
+          ))}
+        </MenuSection>
+      </Menu>
+      { isScrollable && canScrollDown &&
+        <div className="scroll-arrow" aria-hidden="true" onPointerOver={() => handleScroll("down")}>
+          <span>&#9660;</span>
+        </div>
+      }
+    </div>
   )
 }

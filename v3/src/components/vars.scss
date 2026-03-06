@@ -49,6 +49,12 @@ $icon-fill-dark: #006c8e;
 $focus-border-color: #1c9fc7;
 $focus-outline-color: #0957d0;
 
+@mixin focus-outline($offset: -2px, $radius: 2px) {
+  border-radius: $radius;
+  outline: 2px solid $focus-outline-color;
+  outline-offset: $offset;
+}
+
 // Inspector palette design tokens (from Zeplin specs)
 $palette-bg: #ffffff;
 $palette-border-color: $focus-border-color; // #1c9fc7

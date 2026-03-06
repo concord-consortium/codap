@@ -14,6 +14,10 @@
   left: 20px;
   cursor: pointer;
 
+  .formula-function-list[role="menu"] {
+    outline: none;
+  }
+
   .formula-function-list {
     display: flex;
     flex-direction: column;
@@ -29,9 +33,15 @@
       font-size: 14px;
       font-weight: bold;
       line-height: 20px;
-      &:hover, &:active {
+      outline: none;
+
+      &:hover, &:active, &[data-hovered] {
         color: vars.$codap-teal-light;
         text-decoration: underline;
+      }
+
+      &[data-focus-visible] {
+        @include vars.focus-outline;
       }
 
       .function-category-expand-arrow {
@@ -41,9 +51,20 @@
     }
 
     .functions-list-header {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font: inherit;
+      padding: 0;
+      text-align: left;
+      width: 100%;
+
       &:hover, &:active {
         color: vars.$codap-teal-light;
         text-decoration: underline;
+      }
+      &:focus-visible {
+        @include vars.focus-outline;
       }
       .function-select-back-arrow {
         margin-right: 5px;
@@ -56,9 +77,14 @@
     }
 
     .function-menu-item {
+      align-items: center;
+      display: flex;
+      justify-content: space-between;
       margin-top: 5px;
       min-height: 20px;
-      &:hover, &:active {
+      outline: none;
+
+      &:hover, &:active, &[data-hovered] {
         color: vars.$codap-teal-light;
         .function-menu-name {
           text-decoration: underline;
@@ -69,6 +95,18 @@
         .function-info-button {
           text-decoration: none;
         }
+      }
+
+      &[data-focus-visible] {
+        @include vars.focus-outline;
+      }
+
+      .function-info-button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        padding: 0 2px;
       }
     }
 
@@ -88,6 +126,10 @@
   &:hover, &:active {
     color: vars.$codap-teal-light;
     text-decoration: underline;
+  }
+
+  &:focus-visible {
+    @include vars.focus-outline;
   }
 }
 
@@ -141,8 +183,8 @@
     overflow-x: hidden;
     overflow-y: auto;
     display: flex;
-    vertical-align: middle;
     flex-direction: column;
+    outline: none;
 
     .list-divider {
       border: 0.5px solid #d6d6d6;
@@ -162,6 +204,7 @@
       margin: 0 20px;
       height: 18px;
       min-width: 0;
+      outline: none;
       overflow: hidden;
 
       span {
@@ -171,9 +214,13 @@
         white-space: nowrap;
       }
 
-      &:hover, &:active {
+      &:hover, &:active, &[data-hovered] {
         color: vars.$codap-teal-light;
         text-decoration: underline;
+      }
+
+      &[data-focus-visible] {
+        @include vars.focus-outline;
       }
     }
   }

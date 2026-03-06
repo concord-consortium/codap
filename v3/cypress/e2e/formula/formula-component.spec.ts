@@ -156,4 +156,182 @@ context("Formula Engine", () => {
       cy.get("[data-testid=formula-editor-input] .cm-content").should("have.text", value)
     })
   })
+  describe("Keyboard navigation of formula editor menus", () => {
+    function escapeFormulaInputField() {
+      // Focus starts in the formula editor input field which captures Tab key presses.
+      // Pressing the Esc key moves focus out of the input field and to the next focusable element.
+      cy.get("[data-testid=formula-editor-input] .cm-content").should("be.visible").and("have.focus")
+      cy.realPress("Escape")
+    }
+
+    beforeEach(() => {
+      fh.visitURL(dashboardUrlParams)
+      table.addNewAttribute()
+      table.renameAttribute("newAttr", "Formula")
+      table.openAttributeMenu("Formula")
+      table.selectMenuItemFromAttributeMenu("Edit Formula...")
+    })
+
+    describe("Insert Value menu keyboard navigation", () => {
+      it("Open menu via keyboard, navigate items, select with Enter", () => {
+        escapeFormulaInputField()
+        // Focus should be on Insert Value button since it's the first focusable element after the input field
+        cy.get("[data-testid=formula-insert-value-button]").should("have.focus")
+        cy.realPress("Enter") // open menu by pressing Enter
+        cy.get("[data-testid=formula-value-list]").should("be.visible")
+        // First item should be focused
+        cy.get("[data-testid=formula-value-item]").first().should("have.attr", "data-focused")
+        // Navigate down with arrow key
+        cy.realPress("ArrowDown")
+        cy.get("[data-testid=formula-value-item]").eq(1).should("have.attr", "data-focused")
+        // Navigate back up
+        cy.realPress("ArrowUp")
+        cy.get("[data-testid=formula-value-item]").first().should("have.attr", "data-focused")
+        // Select the focused item with Enter — inserts "a" (first attribute in four dataset)
+        cy.realPress("Enter")
+        cy.get("[data-testid=formula-value-list]").should("not.exist")
+        cy.get("[data-testid=formula-editor-input] .cm-content").should("have.text", "a")
+      })
+      it("Close menu with Escape, focus returns to button", () => {
+        escapeFormulaInputField()
+        cy.get("[data-testid=formula-insert-value-button]").should("have.focus")
+        cy.realPress("Enter") // open menu by pressing Enter
+        cy.get("[data-testid=formula-value-list]").should("be.visible")
+        cy.realPress("Escape")
+        cy.get("[data-testid=formula-value-list]").should("not.exist")
+        cy.get("[data-testid=formula-insert-value-button]").should("have.focus")
+      })
+    })
+
+    describe("Insert Function menu keyboard navigation", () => {
+      it("Open menu via keyboard, navigate categories, open a category with Enter", () => {
+        escapeFormulaInputField()
+        // Move focus to Insert Function button
+        cy.get("[data-testid=formula-insert-function-button]").focus()
+        cy.realPress("Enter")
+        cy.get("[data-testid=formula-function-category-list]").should("be.visible")
+        // First category should be focused
+        cy.get("[data-testid=formula-function-category-item]").first().should("have.attr", "data-focused")
+        // Navigate down with arrow key
+        cy.realPress("ArrowDown")
+        cy.get("[data-testid=formula-function-category-item]").eq(1).should("have.attr", "data-focused")
+        // Select category with Enter — opens the function list
+        cy.realPress("Enter")
+        cy.get("[data-testid=formula-function-list]").should("be.visible")
+        cy.get("[data-testid=formula-function-list-header]").should("be.visible")
+      })
+      it("Navigate functions within a category and insert with Enter", () => {
+        escapeFormulaInputField()
+        // Move focus to Insert Function button
+        cy.get("[data-testid=formula-insert-function-button]").focus()
+        // Open function menu and select first category (Arithmetic)
+        cy.realPress("Enter")
+        cy.get("[data-testid=formula-function-category-item]").first().should("have.attr", "data-focused")
+        cy.realPress("Enter")
+        cy.get("[data-testid=formula-function-list]").should("be.visible")
+        // First function should be focused
+        cy.get("[data-testid=function-menu-item]").first().should("have.attr", "data-focused")
+        // Navigate down
+        cy.realPress("ArrowDown")
+        cy.get("[data-testid=function-menu-item]").eq(1).should("have.attr", "data-focused")
+        // Navigate back up
+        cy.realPress("ArrowUp")
+        cy.get("[data-testid=function-menu-item]").first().should("have.attr", "data-focused")
+        // Insert function with Enter
+        cy.realPress("Enter")
+        // Menu should close and function should be inserted
+        cy.get("[data-testid=formula-function-list]").should("not.exist")
+        cy.get("[data-testid=formula-editor-input] .cm-content").invoke("text").should("match", /\w+\(/)
+      })
+      it("Navigate back from list to categories with Escape", () => {
+        escapeFormulaInputField()
+        // Move focus to Insert Function button
+        cy.get("[data-testid=formula-insert-function-button]").focus()
+        cy.realPress("Enter")
+        cy.get("[data-testid=formula-function-category-item]").first().should("have.attr", "data-focused")
+        cy.realPress("Enter")
+        cy.get("[data-testid=formula-function-list]").should("be.visible")
+        // Escape goes back to categories
+        cy.realPress("Escape")
+        cy.get("[data-testid=formula-function-category-list]").should("be.visible")
+        // Escape again closes the menu entirely
+        cy.realPress("Escape")
+        cy.get("[data-testid=formula-function-category-list]").should("not.exist")
+        cy.get("[data-testid=formula-insert-function-button]").should("have.focus")
+      })
+      it("Navigate to function info with Right Arrow and back with Left Arrow", () => {
+        escapeFormulaInputField()
+        // Move focus to Insert Function button
+        cy.get("[data-testid=formula-insert-function-button]").focus()
+        cy.realPress("Enter")
+        cy.get("[data-testid=formula-function-category-item]").first().should("have.attr", "data-focused")
+        cy.realPress("Enter")
+        cy.get("[data-testid=formula-function-list]").should("be.visible")
+        // Right Arrow opens info for the focused function
+        cy.realPress("ArrowRight")
+        cy.get("[data-testid=formula-function-info]").should("be.visible")
+        cy.get("[data-testid=function-info-name]").should("be.visible")
+        // Left Arrow goes back to the function list
+        cy.realPress("ArrowLeft")
+        cy.get("[data-testid=formula-function-list]").should("be.visible")
+        // Left Arrow again goes back to categories
+        cy.realPress("ArrowLeft")
+        cy.get("[data-testid=formula-function-category-list]").should("be.visible")
+      })
+    })
+
+    describe("Modal-level keyboard navigation", () => {
+      it("Tab order through modal elements", () => {
+        escapeFormulaInputField()
+        // Focus should be on Insert Value button since it's the first focusable element after the input field
+        cy.get("[data-testid=formula-insert-value-button]").should("have.focus")
+        // Tab to Insert Function menu button
+        cy.realPress("Tab")
+        cy.get("[data-testid=formula-insert-function-button]").should("have.focus")
+        // Tab to Cancel button
+        cy.realPress("Tab")
+        cy.focused().should("contain.text", "Cancel")
+        // Tab to Apply button
+        cy.realPress("Tab")
+        cy.focused().should("contain.text", "Apply")
+        // Tab to attribute name input
+        cy.realPress("Tab")
+        cy.get("[data-testid=attr-name-input]").should("have.focus")
+        // Tab to formula editor input
+        cy.realPress("Tab")
+        cy.get("[data-testid=formula-editor-input] .cm-content").should("have.focus")
+      })
+      it("Reverse Tab order through modal elements", () => {
+        // Focus starts in the formula editor input.
+        cy.get("[data-testid=formula-editor-input] .cm-content").should("have.focus")
+        // Shift+Tab to attribute name input
+        cy.realPress(["Shift", "Tab"])
+        cy.get("[data-testid=attr-name-input]").should("have.focus")
+        // Shift+Tab to Apply button
+        cy.realPress(["Shift", "Tab"])
+        cy.focused().should("contain.text", "Apply")
+        // Shift+Tab to Cancel button
+        cy.realPress(["Shift", "Tab"])
+        cy.focused().should("contain.text", "Cancel")
+        // Shift+Tab to Insert Function menu button
+        cy.realPress(["Shift", "Tab"])
+        cy.get("[data-testid=formula-insert-function-button]").should("have.focus")
+        // Shift+Tab to Insert Value button
+        cy.realPress(["Shift", "Tab"])
+        cy.get("[data-testid=formula-insert-value-button]").should("have.focus")
+        // Shift+Tab to formula editor input
+        cy.realPress(["Shift", "Tab"])
+        cy.get("[data-testid=formula-editor-input] .cm-content").should("have.focus")
+      })
+      it("Escape from modal closes it when no menus are open", () => {
+        // First escape from the editor input, then focus a non-editor element
+       escapeFormulaInputField()
+       cy.get("[data-testid=formula-insert-value-button]").should("have.focus")
+       cy.realPress("Escape")
+        cy.realPress("Escape")
+        // Modal should be closed
+        cy.get(".formula-modal-body").should("not.exist")
+      })
+    })
+  })
 })
