@@ -108,9 +108,10 @@ const CaseTableToolShelfMenuList = observer(
               onClick={()=>createOrShowTableOrCardForDataset(dataset)} data-testid={`tool-shelf-table-${tileTitle}`}>
               <TableIcon className="menu-icon case-table-icon"/>
               {tileTitle}
-              <Button className="menu-list-button tool-shelf-menu-trash">
-                <TrashIcon className="menu-icon"
-                    onClick={() => handleOpenRemoveDataSetModal(dataset.dataSet.id)} />
+              <Button className="menu-list-button tool-shelf-menu-trash"
+                  aria-label={t("DG.AppController.caseTableMenu.deleteDataSetToolTip")}
+                  onClick={() => handleOpenRemoveDataSetModal(dataset.dataSet.id)}>
+                <TrashIcon className="menu-icon" aria-hidden="true" />
               </Button>
 
             </MenuItem>
@@ -133,7 +134,7 @@ export const CaseTableToolShelfButton = observer(function CaseTableToolShelfButt
 
   const placement = persistentState.toolbarPosition === "Top" ? "bottom-start" : "right-start"
   return (
-    <Menu isLazy autoSelect={false} isOpen={isOpen} onOpen={onOpen} onClose={onClose} placement={placement}>
+    <Menu isLazy isOpen={isOpen} onOpen={onOpen} onClose={onClose} placement={placement}>
       <MenuButton className={clsx("tool-shelf-button tool-shelf-menu table first", langClass, {"menu-open": isOpen})}
           aria-label={t("DG.ToolButtonData.tableButton.ariaLabel")}
           title={`${t("DG.ToolButtonData.tableButton.toolTip")}`}

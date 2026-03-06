@@ -45,7 +45,7 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
   const placement = persistentState.toolbarPosition === "Top" ? "bottom-end" : "right-end"
   return (
     <>
-      <Menu isLazy autoSelect={false} isOpen={isOpen} onOpen={onOpen} onClose={onClose} placement={placement}>
+      <Menu isLazy isOpen={isOpen} onOpen={onOpen} onClose={onClose} placement={placement}>
         <MenuButton
           className={clsx("tool-shelf-button", "tool-shelf-menu", "tiles-list-menu", langClass, {"menu-open": isOpen})}
           aria-label={t("DG.ToolButtonData.tileListMenu.ariaLabel")}

@@ -204,7 +204,8 @@ $tool-shelf-border-width: 1px;
 
     &.table {
       margin-left: 10px;
-      width: 190px;
+      min-width: 190px;
+      width: auto;
     }
 
     &.plugins {
@@ -243,7 +244,7 @@ $tool-shelf-border-width: 1px;
       color: vars.$default-font-color;
 
       &.table-menu-item {
-        padding: 6px 3px 6px 8px;
+        padding: 6px 30px 6px 8px;
       }
 
       > span {

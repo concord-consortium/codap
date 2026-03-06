@@ -181,22 +181,22 @@ export const PluginsButton = observer(function PluginsButton() {
     handler: handleClose
   })
 
-  const className = clsx("tool-shelf-button", "tool-shelf-menu", "plugins", getSpecialLangFontClassName())
+  const langClass = getSpecialLangFontClassName()
   const placement = persistentState.toolbarPosition === "Top" ? "bottom-start" : "right-start"
   return (
     <div className="tool-shelf-button no-padding" ref={menuRef}>
       <Menu
-        autoSelect={false}
         boundary="scrollParent"
         onClose={() => setOpenSubmenuId(null)}
         placement={placement}
       >
-        {({ onClose }) => {
+        {({ isOpen, onClose }) => {
           onCloseRef.current = onClose
           return (
             <>
               <MenuButton
-                className={className}
+                className={clsx("tool-shelf-button", "tool-shelf-menu", "plugins", langClass,
+                  {"menu-open": isOpen})}
                 aria-label={t("DG.ToolButtonData.pluginMenu.ariaLabel")}
                 title={t("DG.ToolButtonData.pluginMenu.toolTip")}
                 data-testid="tool-shelf-button-plugins"
