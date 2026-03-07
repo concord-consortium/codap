@@ -24,12 +24,6 @@ $edit-formula-modal-min-width-px: #{$edit-formula-modal-min-width}px;
     flex-grow: 1;
     align-items: flex-start;
 
-    .attr-name-form-label {
-      &.disabled {
-        opacity: 0.35;
-      }
-    }
-
     .title-label {
       width: 97px;
     }
@@ -76,7 +70,7 @@ $edit-formula-modal-min-width-px: #{$edit-formula-modal-min-width}px;
         background: vars.$codap-teal-lighter;
       }
       &:active, &.menu-open {
-        background: vars.$codap-teal-light;
+        background: vars.$codap-teal-dark;
         color: white;
       }
       &:focus-visible {

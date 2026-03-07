@@ -187,7 +187,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
         <ModalBody className="formula-modal-body" onKeyDown={handleKeyDown}>
           <FormControl display="flex" flexDirection="column" className="formula-form-control">
             <FormLabel display="flex" flexDirection="row"
-                      className={clsx("attr-name-form-label", {"disabled": !titleInput})}>
+                      className="attr-name-form-label">
               <span className="title-label">{titleLabel}</span>
               <input
                 ref={attrNameInputRef}
@@ -195,8 +195,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
                 defaultValue={titleInput}
                 data-testid="attr-name-input"
                 aria-label={titleLabel}
-                readOnly={!titleInput}
-                tabIndex={titleInput ? undefined : -1}
+                disabled={!titleInput}
                 onBlur={handleAttributeNameInputBlur}
               />
               <span>=</span>
