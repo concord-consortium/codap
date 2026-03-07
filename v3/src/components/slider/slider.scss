@@ -27,9 +27,11 @@ $date-slider-component-height: 110px;
     bottom: -8px;
 
     .slider-thumb-icon {
-      position: relative;
       bottom: 12px;
       cursor: grab;
+      display: block;
+      position: relative;
+      width: 24px;
 
       &.dragging {
         cursor: grabbing;
@@ -38,6 +40,10 @@ $date-slider-component-height: 110px;
           stroke: #555;
           stroke-width: 1px;
         }
+      }
+
+      &.focus-visible {
+        @include vars.focus-outline($offset: 2px);
       }
     }
 
@@ -86,7 +92,12 @@ $date-slider-component-height: 110px;
     flex-wrap: nowrap;
 
     .play-pause {
+      align-items: center;
       border: none;
+      cursor: pointer;
+      display: inline-flex;
+      flex-shrink: 0;
+      justify-content: center;
       padding: 0;
       line-height: 1;
       background-color: transparent;
@@ -108,6 +119,10 @@ $date-slider-component-height: 110px;
         height: 24px;
         width: 24px;
       }
+
+      &:focus-visible {
+        @include vars.focus-outline($offset: -2px);
+      }
     }
 
     .slider-inputs {
@@ -115,19 +130,26 @@ $date-slider-component-height: 110px;
       align-items: center;
       display: flex;
       flex-wrap: nowrap;
+      font-family: "museo-sans", sans-serif;
+      font-size: 14px;
 
       .name-input {
+        align-items: center;
         border-radius: 3px;
         border: none;
+        display: inline-flex;
+        flex: none;
         max-height: 40px;
         white-space: nowrap;
-        font-family: "museo-sans", sans-serif !important;
-        font-size: 14px !important;
 
         .text-input {
-          padding-inline-start: 0 !important;
-          padding-inline-end: 0 !important;
-          border: none !important;
+          padding-inline-start: 0;
+          padding-inline-end: 0;
+          border: none;
+
+          &:focus-visible {
+            @include vars.focus-outline($offset: 0px);
+          }
         }
       }
 
@@ -135,14 +157,16 @@ $date-slider-component-height: 110px;
         overflow-wrap: normal;
         border-radius: 3px;
         border: none;
-        font-size: 14px;
+
+        &:focus-visible {
+          @include vars.focus-outline($offset: 0px);
+        }
+
         .text-input {
-          font-family: "museo-sans", sans-serif !important;
-          font-size: 14px !important;
-          padding-inline-start: 0 !important;
-          padding-inline-end: 0 !important;
-          border: none !important;
-          height: inherit !important;
+          padding-inline-start: 0;
+          padding-inline-end: 0;
+          border: none;
+          height: inherit;
         }
       }
 

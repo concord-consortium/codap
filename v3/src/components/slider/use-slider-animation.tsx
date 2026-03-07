@@ -1,9 +1,19 @@
-import { useInterval } from "@chakra-ui/react"
+import { isAlive } from "mobx-state-tree"
 import { useCallback, useEffect, useRef } from "react"
 import { ISliderModel } from "./slider-model"
 import { FixValueFn, kAnimationDefaults } from "./slider-types"
 import { valueChangeNotification } from "./slider-utils"
 import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
+
+function useInterval(callback: () => void, delay: number | null) {
+  const callbackRef = useRef(callback)
+  useEffect(() => { callbackRef.current = callback })
+  useEffect(() => {
+    if (delay === null) return
+    const id = window.setInterval(() => callbackRef.current(), delay)
+    return () => window.clearInterval(id)
+  }, [delay])
+}
 
 interface IUseSliderAnimationProps {
   sliderModel?: ISliderModel
@@ -13,7 +23,7 @@ interface IUseSliderAnimationProps {
 
 export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSliderAnimationProps) => {
   const { animationRate, animationDirection, animationMode } = sliderModel || kAnimationDefaults
-  const tickTime = 1000 / animationRate
+  const tickTime = running ? 1000 / animationRate : null
   const direction = animationDirection
   const mode = animationMode
   const prevDirectionRef = useRef("")
@@ -27,7 +37,7 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
   }, [sliderModel])
 
   const resetSlider = useCallback((val?: number) => {
-    if (!sliderModel) return 0
+    if (!sliderModel || !isAlive(sliderModel)) return 0
     const [axisMin, axisMax] = getAxisDomain()
     const sign = animationDirection === "lowToHigh" ? 1 : -1
     const testValue = val || sliderModel.value + sign * (sliderModel.increment ?? 0)
@@ -47,7 +57,7 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
   }, [animationDirection, getAxisDomain, sliderModel])
 
   const updateSlider = useCallback((val: number, min: FixValueFn, max: FixValueFn) => {
-    if (sliderModel) {
+    if (sliderModel && isAlive(sliderModel)) {
       sliderModel.applyModelChange(
         () => sliderModel.setValidatedValue(sliderModel.validateValue(val, min, max)),
         { noDirty: true, notify: () => valueChangeNotification(sliderModel.value, sliderModel.name) }

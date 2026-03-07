@@ -1,10 +1,10 @@
-import { Input, NumberInput, NumberInputField } from "@chakra-ui/react"
 import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
 import React, { useState, useEffect } from "react"
 import { convertToDate } from "../../utilities/date-utils"
 import { logMessageWithReplacement } from "../../lib/log-message"
+import { t } from "../../utilities/translation/translate"
 import { MultiScale } from "../axis/models/multi-scale"
 import { ISliderModel } from "./slider-model"
 import { valueChangeNotification } from "./slider-utils"
@@ -65,21 +65,19 @@ export const EditableSliderValue = observer(function EditableSliderValue({slider
   }
 
   const renderValueInputField = () => {
-    return sliderModel.scaleType === 'numeric'
-      ? (
-        <NumberInput value={candidate} className="value-input"
-                     onChange={handleValueChange} data-testid="slider-variable-value">
-          <NumberInputField className="value-text-input text-input" data-testid="slider-variable-value-text-input"
-                            maxLength={15} onKeyDown={handleKeyDown} onBlur={handleSubmitValue}/>
-        </NumberInput>
-      ) : (
-        <Input value={candidate} className="value-text-input text-input value-input"
-               data-testid="slider-variable-value-text-input" size={'xs'}
-               maxLength={30} onKeyDown={handleKeyDown} onBlur={handleSubmitValue} onChange={
-          (e) => handleValueChange(e.target.value)
-        }
-        />
-      )
+    return (
+      <input
+        aria-label={t("DG.SliderView.sliderValue", { vars: [sliderModel.name] })}
+        className="value-text-input text-input value-input"
+        data-testid="slider-variable-value-text-input"
+        maxLength={sliderModel.scaleType === "numeric" ? 15 : 30}
+        type="text"
+        value={candidate}
+        onBlur={handleSubmitValue}
+        onChange={(e) => handleValueChange(e.target.value)}
+        onKeyDown={handleKeyDown}
+      />
+    )
   }
 
   return (
