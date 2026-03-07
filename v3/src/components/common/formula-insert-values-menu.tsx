@@ -132,7 +132,7 @@ export const InsertValuesMenu = ({ buttonRef, onClose }: IProps) => {
         style={getListContainerStyle()} onKeyDown={handleKeyDown}>
       { isScrollable && canScrollUp &&
         <div className="scroll-arrow" aria-hidden="true" onPointerOver={() => handleScroll("up")}>
-          <span>&#9650;</span>
+          <span>▲</span>
         </div>
       }
       <Menu ref={scrollableContainerRef} aria-label="Insert value" onAction={handleAction}
@@ -191,7 +191,7 @@ export const InsertValuesMenu = ({ buttonRef, onClose }: IProps) => {
       </Menu>
       { isScrollable && canScrollDown &&
         <div className="scroll-arrow" aria-hidden="true" onPointerOver={() => handleScroll("down")}>
-          <span>&#9660;</span>
+          <span>▼</span>
         </div>
       }
     </div>
