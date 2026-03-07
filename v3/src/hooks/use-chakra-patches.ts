@@ -10,7 +10,15 @@ export const useChakraPatches = () => {
     const isPortalHidden = (portal: Element) => {
       if (portal.children.length === 0) return true
       const firstChild = portal.children[0] as HTMLElement
-      return firstChild?.style?.visibility === "hidden"
+
+      if (firstChild?.style?.visibility === "hidden") return true
+
+      // Toast manager portal: hidden when all toast regions are empty
+      if (firstChild?.id?.startsWith("chakra-toast-manager-")) {
+        return Array.from(portal.children).every(child => child.children.length === 0)
+      }
+
+      return false
     }
 
     const updatePortalVisibility = (portal: Element) => {
@@ -23,11 +31,22 @@ export const useChakraPatches = () => {
 
     const portalObserver = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
+        // Handle style changes within existing portals
         const portal = mutation.target instanceof Element
           ? mutation.target.closest(".chakra-portal")
           : mutation.target.parentElement?.closest(".chakra-portal")
         if (portal) {
           updatePortalVisibility(portal)
+        }
+
+        // Handle newly added portals
+        for (const node of mutation.addedNodes) {
+          if (node instanceof Element) {
+            if (node.classList.contains("chakra-portal")) {
+              updatePortalVisibility(node)
+            }
+            node.querySelectorAll(".chakra-portal").forEach(updatePortalVisibility)
+          }
         }
       }
     })
