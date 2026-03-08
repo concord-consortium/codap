@@ -39,6 +39,10 @@ export const EditFormulaModal = observer(function EditFormulaModal({
   const insertButtonsHeight = 35
 
   const modalContentRef = React.useRef<HTMLDivElement>(null)
+  const attrNameInputRef = useRef<HTMLInputElement>(null)
+  const formulaEditorContainerRef = useRef<HTMLLabelElement>(null)
+  const insertValueButtonRef = useRef<HTMLButtonElement>(null)
+  const insertFunctionButtonRef = useRef<HTMLButtonElement>(null)
   const [showValuesMenu, setShowValuesMenu] = useState(false)
   const [showFunctionMenu, setShowFunctionMenu] = useState(false)
   const formulaEditorState = useFormulaEditorState(value ?? "")
@@ -79,10 +83,20 @@ export const EditFormulaModal = observer(function EditFormulaModal({
     setShowFunctionMenu(false)
   }
 
+  const handleInsertValuesClose = () => {
+    setShowValuesMenu(false)
+    insertValueButtonRef.current?.focus()
+  }
+
   const handleInsertFunctionsOpen = (e: React.MouseEvent) => {
     e.stopPropagation()
     setShowFunctionMenu(true)
     setShowValuesMenu(false)
+  }
+
+  const handleInsertFunctionsClose = () => {
+    setShowFunctionMenu(false)
+    insertFunctionButtonRef.current?.focus()
   }
 
   const footerButtons = [{
@@ -100,12 +114,25 @@ export const EditFormulaModal = observer(function EditFormulaModal({
     if (event.key === "Enter" && isCommandKeyDown(event)) {
       applyAndClose()
     }
+    if (event.key === "Tab" && event.shiftKey && (event.target as HTMLElement)?.closest(".cm-editor")) {
+      // Allow Shift+Tab out of CodeMirror to the attr name input (if focusable)
+      if (titleInput) {
+        event.preventDefault()
+        attrNameInputRef.current?.focus()
+      }
+    }
     if (event.key === "Escape") {
       if (showValuesMenu) {
-        setShowValuesMenu(false)
+        handleInsertValuesClose()
       } else if (showFunctionMenu) {
-        setShowFunctionMenu(false)
-      } else if (!isAutoCompleteMenuOpen.current) {
+        handleInsertFunctionsClose()
+      } else if (isAutoCompleteMenuOpen.current) {
+        // Let CodeMirror handle closing autocomplete
+      } else if ((event.target as HTMLElement)?.closest(".cm-editor")) {
+        // Move focus out of CodeMirror to the first insert button
+        // so users can Tab to other controls. A second Escape closes the modal.
+        insertValueButtonRef.current?.focus()
+      } else {
         closeModal()
       }
     }
@@ -148,6 +175,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
     <FormulaEditorContext.Provider value={formulaEditorState}>
       <CodapModal
         finalFocusRef={finalFocusRef}
+        initialRef={formulaEditorContainerRef}
         isOpen={isOpen}
         returnFocusOnClose={returnFocusOnClose}
         closeOnOverlayClick={false}
@@ -159,42 +187,47 @@ export const EditFormulaModal = observer(function EditFormulaModal({
         <ModalBody className="formula-modal-body" onKeyDown={handleKeyDown}>
           <FormControl display="flex" flexDirection="column" className="formula-form-control">
             <FormLabel display="flex" flexDirection="row"
-                      className={clsx("attr-name-form-label", {"disabled": !titleInput})}>
+                      className="attr-name-form-label">
               <span className="title-label">{titleLabel}</span>
               <input
+                ref={attrNameInputRef}
                 className="attr-name-input"
                 defaultValue={titleInput}
                 data-testid="attr-name-input"
+                aria-label={titleLabel}
+                disabled={!titleInput}
                 onBlur={handleAttributeNameInputBlur}
               />
               <span>=</span>
             </FormLabel>
-            <FormLabel className="formula-editor-container">
+            <FormLabel ref={formulaEditorContainerRef} className="formula-editor-container" tabIndex={-1}>
               {formulaPrompt ?? t("DG.AttrFormView.formulaPrompt")}
               <FormulaEditor editorHeight={editorHeight} isAutoCompleteMenuOpen={isAutoCompleteMenuOpen}/>
             </FormLabel>
           </FormControl>
           <Flex className="formula-insert-buttons-container" flexDirection="row" justifyContent="flex-start">
             <Box position="relative">
-              <Button variant="v3"
+              <Button ref={insertValueButtonRef} variant="v3"
                 className={clsx("formula-editor-button", "insert-value", {"menu-open": showValuesMenu})}
                 size="xs" ml="5" onClick={handleInsertValuesOpen} data-testid="formula-insert-value-button"
+                aria-expanded={showValuesMenu} aria-haspopup="menu"
               >
                 {t("DG.AttrFormView.operandMenuTitle")}
               </Button>
               {showValuesMenu &&
-                <InsertValuesMenu setShowValuesMenu={setShowValuesMenu} />
+                <InsertValuesMenu buttonRef={insertValueButtonRef} onClose={handleInsertValuesClose} />
               }
             </Box>
             <Box position="relative">
-              <Button variant="v3"
+              <Button ref={insertFunctionButtonRef} variant="v3"
                 className={clsx("formula-editor-button", "insert-function", {"menu-open": showFunctionMenu})}
                 size="xs" ml="5" onClick={handleInsertFunctionsOpen} data-testid="formula-insert-function-button"
+                aria-expanded={showFunctionMenu} aria-haspopup="menu"
               >
                 {t("DG.AttrFormView.functionMenuTitle")}
               </Button>
               {showFunctionMenu &&
-                <InsertFunctionMenu setShowFunctionMenu={setShowFunctionMenu} />
+                <InsertFunctionMenu buttonRef={insertFunctionButtonRef} onClose={handleInsertFunctionsClose} />
               }
             </Box>
           </Flex>
