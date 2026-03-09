@@ -13,7 +13,8 @@ export const useChakraPatches = () => {
 
       if (firstChild?.style?.visibility === "hidden") return true
 
-      // Toast manager portal: hidden when all toast regions are empty
+      // Toast manager portal: Chakra UI v2 pre-renders this even though CODAP doesn't
+      // use toasts. Treat it as hidden when all toast regions are empty.
       if (firstChild?.id?.startsWith("chakra-toast-manager-")) {
         return Array.from(portal.children).every(child => child.children.length === 0)
       }
@@ -31,7 +32,7 @@ export const useChakraPatches = () => {
 
     const portalObserver = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
-        // Handle style changes within existing portals
+        // Handle any mutation within existing portals (style changes, content added/removed, etc.)
         const portal = mutation.target instanceof Element
           ? mutation.target.closest(".chakra-portal")
           : mutation.target.parentElement?.closest(".chakra-portal")
@@ -40,6 +41,7 @@ export const useChakraPatches = () => {
         }
 
         // Handle newly added portals
+        if (mutation.type !== "childList") continue
         for (const node of mutation.addedNodes) {
           if (node instanceof Element) {
             if (node.classList.contains("chakra-portal")) {
