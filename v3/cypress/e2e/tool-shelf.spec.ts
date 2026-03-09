@@ -134,7 +134,7 @@ context("codap toolbar", () => {
     toolbar.getTilesListMenuItem().eq(0).should("have.text", "New Dataset")
     toolbar.getTilesListMenuIcon().eq(0).should("have.class", "CaseTable")
   })
-  it('will bring tile into focus when associated tiles menu item is moused over', ()=>{
+  it('will highlight tile when associated tiles menu item receives focus', ()=>{
     c.clickIconFromToolShelf("graph")
     graph.getGraphTile(0).should("exist")
     graph.getGraphTile(0).should("have.class", "focused")
@@ -143,10 +143,69 @@ context("codap toolbar", () => {
     graph.getGraphTile(1).should("have.class", "focused")
     toolbar.getTilesButton().click()
     toolbar.getTilesListMenu().should("be.visible")
+    // Hovering/focusing a menu item highlights the tile without fully selecting it
     toolbar.getTilesListMenuItem().eq(0).trigger("mouseover")
     graph.getGraphTile(0).should("have.class", "focused")
     toolbar.getTilesListMenuItem().eq(1).trigger("mouseover")
     graph.getGraphTile(1).should("have.class", "focused")
+  })
+  it('will deselect focused tile while navigating the tiles menu', ()=>{
+    // Create a graph and verify it's selected
+    c.clickIconFromToolShelf("graph")
+    graph.getGraphTile(0).should("have.class", "focused")
+    c.checkComponentFocused("graph", true)
+    // Open the tiles menu — the previously focused tile should lose its selected appearance
+    toolbar.getTilesButton().click()
+    toolbar.getTilesListMenu().should("be.visible")
+    graph.getGraphTile(0).should("not.have.class", "focused")
+    c.checkComponentFocused("graph", false)
+  })
+  it('will restore focused tile when tiles menu is cancelled with Escape', ()=>{
+    // Create a graph — it starts selected
+    c.clickIconFromToolShelf("graph")
+    graph.getGraphTile(0).should("have.class", "focused")
+    // Open the tiles menu
+    toolbar.getTilesButton().click()
+    toolbar.getTilesListMenu().should("be.visible")
+    // Arrow down into the menu so a menu item has focus, then press Escape.
+    // Chakra v2 only handles Escape when focus is on a menu item, not the MenuButton.
+    // We have an onKeyDown handler on the MenuButton that handles Escape for real users,
+    // but it can't be tested here: Chakra's framer-motion exit animation doesn't complete
+    // in Cypress's headless Chrome, so the menu DOM element persists even after isOpen
+    // becomes false, causing `should("not.exist")` / `should("not.be.visible")` to fail.
+    cy.realPress("ArrowDown")
+    cy.realPress("Escape")
+    cy.wait(300)
+    // The originally focused tile should be restored
+    graph.getGraphTile(0).should("have.class", "focused")
+  })
+  it('will select a tile when clicking its tiles menu item', ()=>{
+    // Create two graphs
+    c.clickIconFromToolShelf("graph")
+    graph.getGraphTile(0).should("have.class", "focused")
+    c.clickIconFromToolShelf("graph")
+    graph.getGraphTile(1).should("have.class", "focused")
+    // Select the first graph via the tiles menu
+    toolbar.getTilesButton().click()
+    toolbar.getTilesListMenu().should("be.visible")
+    toolbar.getTilesListMenuItem().eq(0).click()
+    // First graph should now be focused, second should not
+    graph.getGraphTile(0).should("have.class", "focused")
+    graph.getGraphTile(1).should("not.have.class", "focused")
+    c.checkComponentFocused("graph", true, 0)
+  })
+  it('will not auto-focus text editor when navigating tiles menu past a text tile', ()=>{
+    // Create a graph and a text tile
+    c.clickIconFromToolShelf("graph")
+    c.clickIconFromToolShelf("text")
+    // Open the tiles menu and hover over the text tile item (index 1, after graph)
+    toolbar.getTilesButton().click()
+    toolbar.getTilesListMenu().should("be.visible")
+    toolbar.getTilesListMenuItem().eq(1).trigger("mouseover")
+    // The tiles menu should still be visible (text tile didn't steal focus)
+    toolbar.getTilesListMenu().should("be.visible")
+    // Focus should still be in the menu, not on the text editor
+    cy.focused().should("not.have.class", "slate-editor")
   })
   it('will show a list of open tiles when there is a data context', ()=>{
     cy.visit("?suppressUnsavedWarning#file=examples:Four%20Seals")
