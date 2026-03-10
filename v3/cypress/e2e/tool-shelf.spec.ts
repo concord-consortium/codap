@@ -150,15 +150,15 @@ context("codap toolbar", () => {
     graph.getGraphTile(1).should("have.class", "focused")
   })
   it('will deselect focused tile while navigating the tiles menu', ()=>{
-    // Create a graph and verify it's selected
+    // Create two graphs — the second one starts selected
     c.clickIconFromToolShelf("graph")
-    graph.getGraphTile(0).should("have.class", "focused")
-    c.checkComponentFocused("graph", true)
-    // Open the tiles menu — the previously focused tile should lose its selected appearance
+    c.clickIconFromToolShelf("graph")
+    graph.getGraphTile(1).should("have.class", "focused")
+    // Open the tiles menu — the second graph should lose focus.
+    // (The first graph gains a highlight because Chakra auto-focuses the first menu item.)
     toolbar.getTilesButton().click()
     toolbar.getTilesListMenu().should("be.visible")
-    graph.getGraphTile(0).should("not.have.class", "focused")
-    c.checkComponentFocused("graph", false)
+    graph.getGraphTile(1).should("not.have.class", "focused")
   })
   it('will restore focused tile when tiles menu is cancelled with Escape', ()=>{
     // Create a graph — it starts selected
@@ -175,7 +175,7 @@ context("codap toolbar", () => {
     // becomes false, causing `should("not.exist")` / `should("not.be.visible")` to fail.
     cy.realPress("ArrowDown")
     cy.realPress("Escape")
-    cy.wait(300)
+    toolbar.getTilesButton().should("have.attr", "aria-expanded", "false")
     // The originally focused tile should be restored
     graph.getGraphTile(0).should("have.class", "focused")
   })
@@ -198,10 +198,12 @@ context("codap toolbar", () => {
     // Create a graph and a text tile
     c.clickIconFromToolShelf("graph")
     c.clickIconFromToolShelf("text")
-    // Open the tiles menu and hover over the text tile item (index 1, after graph)
+    // Open the tiles menu and navigate past the text tile item via keyboard
     toolbar.getTilesButton().click()
     toolbar.getTilesListMenu().should("be.visible")
-    toolbar.getTilesListMenuItem().eq(1).trigger("mouseover")
+    // Use keyboard navigation to move focus onto the text tile menu item
+    cy.realPress("ArrowDown") // move to first menu item (graph)
+    cy.realPress("ArrowDown") // move to second menu item (text)
     // The tiles menu should still be visible (text tile didn't steal focus)
     toolbar.getTilesListMenu().should("be.visible")
     // Focus should still be in the menu, not on the text editor

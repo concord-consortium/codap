@@ -1,7 +1,7 @@
 import { Menu, MenuButton, MenuItem, MenuList, useDisclosure } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import { KeyboardEvent, useCallback, useRef } from "react"
+import { KeyboardEvent, useCallback, useEffect, useRef } from "react"
 import WebViewIcon from "../../assets/icons/icon-media-tool.svg"
 import TileListIcon from "../../assets/icons/icon-tile-list.svg"
 import { useDocumentContent } from "../../hooks/use-document-content"
@@ -34,6 +34,7 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
   }
   const langClass = getSpecialLangFontClassName()
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout>>()
+  const focusTimerRef = useRef<ReturnType<typeof setTimeout>>()
   const savedFocusTileRef = useRef<string>("")
   const selectedTileRef = useRef<string>("")
   const {isOpen, onOpen: _onOpen, onClose: _onClose} = useDisclosure()
@@ -45,6 +46,21 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
       scrollTimerRef.current = undefined
     }
   }, [])
+
+  const clearFocusTimer = useCallback(() => {
+    if (focusTimerRef.current != null) {
+      clearTimeout(focusTimerRef.current)
+      focusTimerRef.current = undefined
+    }
+  }, [])
+
+  // Clean up timers on unmount
+  useEffect(() => {
+    return () => {
+      clearScrollTimer()
+      clearFocusTimer()
+    }
+  }, [clearScrollTimer, clearFocusTimer])
 
   const onOpen = useCallback(() => {
     // Save and clear the currently focused tile so it doesn't compete visually with hover highlights.
@@ -58,6 +74,7 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
 
   const onClose = useCallback(() => {
     clearScrollTimer()
+    clearFocusTimer()
     const selected = selectedTileRef.current
     selectedTileRef.current = ""
     if (selected) {
@@ -67,7 +84,8 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
       _onClose()
       // Chakra restores focus to MenuButton asynchronously (~50ms). After that settles,
       // re-trigger setFocusedTile so tile content (e.g. text editor) can claim focus.
-      setTimeout(() => {
+      focusTimerRef.current = setTimeout(() => {
+        focusTimerRef.current = undefined
         uiState.setFocusedTile("")
         uiState.setFocusedTile(selected)
       }, 100)
@@ -81,10 +99,11 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
       uiState.setHoveredTile("")
       _onClose()
     }
-  }, [clearScrollTimer, _onClose])
+  }, [clearScrollTimer, clearFocusTimer, _onClose])
 
   const handleMenuSelectTile = (tileId: string) => {
-    // Mark the tile as selected; onClose will handle focusing it after Chakra cleanup
+    // Mark the tile as selected. handleSelectTile sets focus immediately (for show/unhide),
+    // then onClose re-triggers setFocusedTile after Chakra's async cleanup settles.
     savedFocusTileRef.current = ""
     selectedTileRef.current = tileId
     handleSelectTile(tileId, documentContent)
