@@ -1,6 +1,6 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import { CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { CSSProperties, KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Input as RAInput, TextField } from "react-aria-components"
 import { useSlider } from "@react-aria/slider"
 import { useSliderState } from "@react-stately/slider"
@@ -134,7 +134,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
     sliderModel.setName(nameInput)
   }
 
-  const handleSliderNameKeyDown = (e: React.KeyboardEvent) => {
+  const handleSliderNameKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Enter") {
       commitSliderName()
     }

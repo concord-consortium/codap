@@ -7,7 +7,7 @@ import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
 
 function useInterval(callback: () => void, delay: number | null) {
   const callbackRef = useRef(callback)
-  useEffect(() => { callbackRef.current = callback })
+  useEffect(() => { callbackRef.current = callback }, [callback])
   useEffect(() => {
     if (delay === null) return
     const id = window.setInterval(() => callbackRef.current(), delay)
