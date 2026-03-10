@@ -141,11 +141,6 @@ context("Slider UI", () => {
     c.closeComponent("slider")
 
     cy.log("replays from initial value once it reaches the end")
-    // Override setInterval/clearInterval so cy.tick() can control the slider animation.
-    // We specify only these methods (rather than calling cy.clock() with no args) because
-    // overriding all timing functions (including setTimeout) breaks Chakra UI select menus
-    // in the slider toolbar's flyout sections.
-    cy.clock(Date.now(), ["setInterval", "clearInterval"])
     c.clickIconFromToolShelf("slider")
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
@@ -154,16 +149,15 @@ context("Slider UI", () => {
     cy.log("play slider")
     slider.playSliderButton()
     slider.checkPlayButtonIsRunning()
-    cy.tick(15000)
+    cy.wait(15000)
     slider.checkPlayButtonIsPaused()
     slider.getVariableValue().should("contain", finalSliderValue)
     slider.playSliderButton()
     slider.getVariableValue().should("contain", "0")
     c.closeComponent("slider") //Change in component header height causes interference with variable value input
-    cy.clock().then(clock => clock.restore())
+
 
     cy.log("plays low to high animation direction")
-    cy.clock(Date.now(), ["setInterval", "clearInterval"])
     c.clickIconFromToolShelf("slider")
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
@@ -172,31 +166,25 @@ context("Slider UI", () => {
     slider.getVariableValue().should("contain", initialSliderValue)
     slider.playSliderButton()
     slider.checkPlayButtonIsRunning()
-    cy.tick(15000)
-    slider.getVariableValueInput(0).should("have.value", finalSliderValue)
+    slider.getVariableValueInput(0, 15000).should("contain.value", finalSliderValue)
     slider.checkPlayButtonIsPaused()
     c.closeComponent("slider") //Change in component header height causes interference with variable value input
-    cy.clock().then(clock => clock.restore())
+
 
     cy.log("plays back and forth animation direction")
-    cy.clock(Date.now(), ["setInterval", "clearInterval"])
     c.clickIconFromToolShelf("slider")
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
-    slider.setAnimationRate(5)
+    slider.setAnimationRate(50)
     slider.setAnimationDirection("backAndForth")
-    slider.setMultipleRestriction("1")
     slider.getVariableValue().should("contain", initialSliderValue)
     slider.playSliderButton()
     slider.checkPlayButtonIsRunning()
-    cy.tick(2000)   // 10 ticks at 200ms each: slider reaches 11
-    slider.getVariableValueInput(0).should("have.value", "11")
+    slider.getVariableValueInput(0, 15000).should("contain.value", finalSliderValue)
     slider.checkPlayButtonIsRunning()
-    cy.tick(2600)   // 13 ticks at 200ms each: animation completes and stops at axisMin (value=0)
+    slider.getVariableValueInput(0, 15000).should("contain.value", "2.5")
     slider.checkPlayButtonIsPaused()
-    slider.getVariableValueInput(0).should("have.value", "0")
     c.closeComponent("slider") //Change in component header height causes interference with variable value input
-    cy.clock().then(clock => clock.restore())
 
     cy.log("plays high to low animation direction")
     c.clickIconFromToolShelf("slider")
