@@ -22,7 +22,7 @@ const kRelationDefaultFillColor = "#ffffff" // white
 // these stroke color defaults are only used if the grid's CSS variables are not set
 const kRelationDefaultStrokeColor = "#949494" // medium gray (3:1+ vs white)
 const kRelationSelectedStrokeColor = "#66afe9" // blue
-const kRelationStrokeWidth = 1.5
+const kRelationStrokeWidth = 1
 const kRelationSelectedStrokeWidth = 3
 
 interface IRelationColors {
@@ -113,10 +113,8 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
     if (relationSelectedFillColor) {
       newRelationColors.selectedFill = relationSelectedFillColor
     }
-    const relationDefaultStrokeColor = getStringCssVariable(gridElt, "--rdg-border-color")
-    if (relationDefaultStrokeColor) {
-      newRelationColors.defaultStroke = relationDefaultStrokeColor
-    }
+    // Don't read --rdg-border-color (#ddd) for spacer lines — it's too light for 3:1 contrast.
+    // Use the kRelationDefaultStrokeColor (#949494) fallback instead.
     const relationSelectedStrokeColor = getStringCssVariable(gridElt, "--rdg-selection-color")
     if (relationSelectedStrokeColor) {
       newRelationColors.selectedStroke = relationSelectedStrokeColor

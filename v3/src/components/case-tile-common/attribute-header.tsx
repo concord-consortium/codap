@@ -36,11 +36,13 @@ interface IProps {
   onButtonKeyDown?: (e: React.KeyboardEvent) => void
   onEndEdit?: () => void
   onOpenMenu?: () => void
+  onCloseMenu?: () => void
 }
 
 export const AttributeHeader = observer(function AttributeHeader({
   attributeId, beforeHeaderDivider, customButtonStyle, disableTooltip, draggable = true, allowTwoLines,
-  getDividerBounds, showUnits=true, onSetHeaderContentElt, onBeginEdit, onButtonKeyDown, onEndEdit, onOpenMenu
+  getDividerBounds, showUnits=true, onSetHeaderContentElt, onBeginEdit, onButtonKeyDown, onEndEdit,
+  onOpenMenu, onCloseMenu
 }: IProps) {
   const { active } = useDndContext()
   const data = useDataSetContext()
@@ -251,6 +253,7 @@ export const AttributeHeader = observer(function AttributeHeader({
         onCloseMenuRef.current = onClose
         // ensure selected header is styled correctly.
         if (isMenuOpen.current) onOpenMenu?.()
+        if (!isMenuOpen.current) onCloseMenu?.()
         return (
           <Tooltip label={renderTooltipLabel} fontSize="12px" color="white"
               openDelay={1000} placement="bottom" bottom="15px" left="15px" isDisabled={tooltipDisabled}

@@ -59,7 +59,8 @@ export const InsertCasesModal: React.FC<IProps> =
       <ModalHeader h="30" className="codap-modal-header" fontSize="md" data-testid="codap-modal-header">
         <div className="codap-modal-icon-container" />
         <div className="codap-header-title">{t("DG.CaseTable.insertCasesDialog.title")}</div>
-        <ModalCloseButton onClick={() => onClose()} data-testid="modal-close-button"/>
+        <ModalCloseButton onClick={() => onClose()} data-testid="modal-close-button"
+          _focusVisible={{outline: "2px solid #0957d0", outlineOffset: "-4px", borderRadius: "2px"}} />
       </ModalHeader>
       <ModalBody>
         <FormControl display="flex" flexDirection="column">

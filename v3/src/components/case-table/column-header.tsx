@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react"
 import { AttributeHeader } from "../case-tile-common/attribute-header"
+import { kIndexColumnKey } from "../case-tile-common/case-tile-types"
 import { TRenderHeaderCellProps } from "./case-table-types"
 
 function getDividerBounds(containerBounds: DOMRect, cellBounds: DOMRect) {
@@ -26,9 +27,14 @@ export function ColumnHeader(props: TRenderHeaderCellProps) {
   const handleSetHeaderContentElt = useCallback((contentElt: HTMLDivElement | null) => {
     contentRef.current = contentElt
     const _cellElt: HTMLElement | null = contentRef.current?.closest(".rdg-cell") ?? null
+    // Make the index column header cell inert — it has no interactive function.
+    // `inert` prevents focus regardless of RDG resetting tabIndex on re-renders.
+    if (_cellElt && props.column.key === kIndexColumnKey) {
+      _cellElt.inert = true
+    }
     setCellElt(_cellElt)
     return _cellElt
-  }, [])
+  }, [props.column.key])
 
   // RDG doesn't support selecting or editing column headers, so we implement that ourselves.
   // To signal selection, we set/clear the `aria-selected` attribute when editing, which
@@ -41,11 +47,21 @@ export function ColumnHeader(props: TRenderHeaderCellProps) {
     cellElt?.setAttribute("aria-selected", "false")
   }, [cellElt])
 
+  const handleOpenMenu = useCallback(() => {
+    setAriaSelectedAttribute()
+    cellElt?.classList.add("menu-open")
+  }, [cellElt, setAriaSelectedAttribute])
+
+  const handleCloseMenu = useCallback(() => {
+    cellElt?.classList.remove("menu-open")
+  }, [cellElt])
+
   return <AttributeHeader attributeId={props.column.key}
             allowTwoLines={true}
             getDividerBounds={getDividerBounds}
             onSetHeaderContentElt={handleSetHeaderContentElt}
             onBeginEdit={setAriaSelectedAttribute}
             onEndEdit={clearAriaSelectedAttribute}
-            onOpenMenu={setAriaSelectedAttribute}/>
+            onOpenMenu={handleOpenMenu}
+            onCloseMenu={handleCloseMenu}/>
 }
