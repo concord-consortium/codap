@@ -53,6 +53,7 @@ export const AttributeHeader = observer(function AttributeHeader({
   const contentRef = useRef<HTMLDivElement | null>(null)
   const menuListRef = useRef<HTMLDivElement | null>(null)
   const isMenuOpen = useRef(false)
+  const [isMenuOpenState, setIsMenuOpenState] = useState(false)
   const [editingAttrId, setEditingAttrId] = useState("")
   const [editingAttrName, setEditingAttrName] = useState("")
   const [modalIsOpen, setModalIsOpen] = useState(false)
@@ -243,6 +244,15 @@ export const AttributeHeader = observer(function AttributeHeader({
     )
   }, [attribute?.description, attribute?.formula, attrName])
 
+  // Notify parent of menu open/close state as an effect rather than during render
+  useEffect(() => {
+    if (isMenuOpenState) {
+      onOpenMenu?.()
+    } else {
+      onCloseMenu?.()
+    }
+  }, [isMenuOpenState, onOpenMenu, onCloseMenu])
+
   const isIndex = attributeId === kIndexColumnKey
   const headerContentClasses = clsx("codap-column-header-content", { "index-column-header": isIndex })
   return (
@@ -251,9 +261,7 @@ export const AttributeHeader = observer(function AttributeHeader({
         const tooltipDisabled = disableTooltip || dragging || isOpen || modalIsOpen || editingAttrId === attributeId
         isMenuOpen.current = isOpen
         onCloseMenuRef.current = onClose
-        // ensure selected header is styled correctly.
-        if (isMenuOpen.current) onOpenMenu?.()
-        if (!isMenuOpen.current) onCloseMenu?.()
+        if (isOpen !== isMenuOpenState) setIsMenuOpenState(isOpen)
         return (
           <Tooltip label={renderTooltipLabel} fontSize="12px" color="white"
               openDelay={1000} placement="bottom" bottom="15px" left="15px" isDisabled={tooltipDisabled}
