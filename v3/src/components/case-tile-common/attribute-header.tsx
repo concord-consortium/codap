@@ -36,11 +36,13 @@ interface IProps {
   onButtonKeyDown?: (e: React.KeyboardEvent) => void
   onEndEdit?: () => void
   onOpenMenu?: () => void
+  onCloseMenu?: () => void
 }
 
 export const AttributeHeader = observer(function AttributeHeader({
   attributeId, beforeHeaderDivider, customButtonStyle, disableTooltip, draggable = true, allowTwoLines,
-  getDividerBounds, showUnits=true, onSetHeaderContentElt, onBeginEdit, onButtonKeyDown, onEndEdit, onOpenMenu
+  getDividerBounds, showUnits=true, onSetHeaderContentElt, onBeginEdit, onButtonKeyDown, onEndEdit,
+  onOpenMenu, onCloseMenu
 }: IProps) {
   const { active } = useDndContext()
   const data = useDataSetContext()
@@ -51,6 +53,7 @@ export const AttributeHeader = observer(function AttributeHeader({
   const contentRef = useRef<HTMLDivElement | null>(null)
   const menuListRef = useRef<HTMLDivElement | null>(null)
   const isMenuOpen = useRef(false)
+  const [isMenuOpenState, setIsMenuOpenState] = useState(false)
   const [editingAttrId, setEditingAttrId] = useState("")
   const [editingAttrName, setEditingAttrName] = useState("")
   const [modalIsOpen, setModalIsOpen] = useState(false)
@@ -241,6 +244,21 @@ export const AttributeHeader = observer(function AttributeHeader({
     )
   }, [attribute?.description, attribute?.formula, attrName])
 
+  // Notify parent of menu open/close as a side effect (not during render).
+  // Skip the initial mount (isMenuOpenState starts false) to avoid a spurious onCloseMenu call.
+  const didMount = useRef(false)
+  useEffect(() => {
+    if (!didMount.current) {
+      didMount.current = true
+      return
+    }
+    if (isMenuOpenState) {
+      onOpenMenu?.()
+    } else {
+      onCloseMenu?.()
+    }
+  }, [isMenuOpenState, onOpenMenu, onCloseMenu])
+
   const isIndex = attributeId === kIndexColumnKey
   const headerContentClasses = clsx("codap-column-header-content", { "index-column-header": isIndex })
   return (
@@ -249,8 +267,7 @@ export const AttributeHeader = observer(function AttributeHeader({
         const tooltipDisabled = disableTooltip || dragging || isOpen || modalIsOpen || editingAttrId === attributeId
         isMenuOpen.current = isOpen
         onCloseMenuRef.current = onClose
-        // ensure selected header is styled correctly.
-        if (isMenuOpen.current) onOpenMenu?.()
+        if (isOpen !== isMenuOpenState) setIsMenuOpenState(isOpen)
         return (
           <Tooltip label={renderTooltipLabel} fontSize="12px" color="white"
               openDelay={1000} placement="bottom" bottom="15px" left="15px" isDisabled={tooltipDisabled}

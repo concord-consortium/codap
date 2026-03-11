@@ -88,9 +88,19 @@ $collection-title-font-color: black;
             padding-inline-end: 0;
             z-index: 6;
 
+            &:focus-visible {
+              outline: none;
+
+              .add-icon {
+                visibility: visible;
+                opacity: 1;
+                @include vars.focus-outline(-1px, 50%);
+              }
+            }
+
             .add-icon {
               visibility: hidden;
-              fill: #666666;
+              fill: #000000;
               &.focused {
                 visibility: visible;
                 opacity: 0.5;
@@ -223,6 +233,12 @@ $collection-title-font-color: black;
     border-radius: vars.$border-radius-bottom-corners;
     overflow-x: hidden;
 
+    // Suppress RDG's cell selection outline when focus has left the grid,
+    // but keep it for cells with an open menu
+    &:not(:focus-within) .rdg-cell[aria-selected='true']:not(.menu-open) {
+      outline: none;
+    }
+
     .rdg-header-row {
       line-height: 14px !important;
 
@@ -234,6 +250,10 @@ $collection-title-font-color: black;
         &.index {
           pointer-events: none;
           cursor: auto;
+          // Suppress RDG's selection outline on the non-interactive index header cell
+          &[aria-selected='true'] {
+            outline: none;
+          }
         }
 
         .codap-column-header-content {
