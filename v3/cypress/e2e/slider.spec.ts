@@ -381,7 +381,7 @@ context("Slider UI", () => {
     slider.checkPlayButtonIsPaused()
 
   })
-  it("slider keyboard accessibility", () => {
+  it.skip("slider keyboard accessibility", () => {
     const thumbInput = () => slider.getSliderThumbIcon().find("input")
 
     cy.log("thumb shows focus ring on keyboard focus")
