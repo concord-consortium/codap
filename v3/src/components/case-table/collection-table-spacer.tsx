@@ -114,7 +114,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
       newRelationColors.selectedFill = relationSelectedFillColor
     }
     // Don't read --rdg-border-color (#ddd) for spacer lines — it's too light for 3:1 contrast.
-    // Use the kRelationDefaultStrokeColor (#949494) fallback instead.
+    // Use the kRelationDefaultStrokeColor (#8a8a8a) fallback instead.
     const relationSelectedStrokeColor = getStringCssVariable(gridElt, "--rdg-selection-color")
     if (relationSelectedStrokeColor) {
       newRelationColors.selectedStroke = relationSelectedStrokeColor

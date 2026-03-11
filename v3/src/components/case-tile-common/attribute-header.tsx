@@ -245,7 +245,14 @@ export const AttributeHeader = observer(function AttributeHeader({
   }, [attribute?.description, attribute?.formula, attrName])
 
   // Notify parent of menu open/close state as an effect rather than during render
+  // Notify parent of menu open/close as a side effect (not during render).
+  // Skip the initial mount (isMenuOpenState starts false) to avoid a spurious onCloseMenu call.
+  const didMount = useRef(false)
   useEffect(() => {
+    if (!didMount.current) {
+      didMount.current = true
+      return
+    }
     if (isMenuOpenState) {
       onOpenMenu?.()
     } else {
