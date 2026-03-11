@@ -141,6 +141,11 @@ context("Slider UI", () => {
     c.closeComponent("slider")
 
     cy.log("replays from initial value once it reaches the end")
+    // Override setInterval/clearInterval so cy.tick() can control the slider animation.
+    // We specify only these methods (rather than calling cy.clock() with no args) because
+    // overriding all timing functions (including setTimeout) breaks Chakra UI select menus
+    // in the slider toolbar's flyout sections.
+    cy.clock(Date.now(), ["setInterval", "clearInterval"])
     c.clickIconFromToolShelf("slider")
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
@@ -149,15 +154,16 @@ context("Slider UI", () => {
     cy.log("play slider")
     slider.playSliderButton()
     slider.checkPlayButtonIsRunning()
-    cy.wait(15000)
+    cy.tick(15000)
     slider.checkPlayButtonIsPaused()
     slider.getVariableValue().should("contain", finalSliderValue)
     slider.playSliderButton()
     slider.getVariableValue().should("contain", "0")
     c.closeComponent("slider") //Change in component header height causes interference with variable value input
-
+    cy.clock().then(clock => clock.restore())
 
     cy.log("plays low to high animation direction")
+    cy.clock(Date.now(), ["setInterval", "clearInterval"])
     c.clickIconFromToolShelf("slider")
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
@@ -166,25 +172,31 @@ context("Slider UI", () => {
     slider.getVariableValue().should("contain", initialSliderValue)
     slider.playSliderButton()
     slider.checkPlayButtonIsRunning()
-    slider.getVariableValueInput(0, 15000).should("contain.value", finalSliderValue)
+    cy.tick(15000)
+    slider.getVariableValueInput(0).should("have.value", finalSliderValue)
     slider.checkPlayButtonIsPaused()
     c.closeComponent("slider") //Change in component header height causes interference with variable value input
-
+    cy.clock().then(clock => clock.restore())
 
     cy.log("plays back and forth animation direction")
+    cy.clock(Date.now(), ["setInterval", "clearInterval"])
     c.clickIconFromToolShelf("slider")
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
-    slider.setAnimationRate(50)
+    slider.setAnimationRate(5)
     slider.setAnimationDirection("backAndForth")
+    slider.setMultipleRestriction("1")
     slider.getVariableValue().should("contain", initialSliderValue)
     slider.playSliderButton()
     slider.checkPlayButtonIsRunning()
-    slider.getVariableValueInput(0, 15000).should("contain.value", finalSliderValue)
+    cy.tick(2000)   // 10 ticks at 200ms each: slider reaches 11
+    slider.getVariableValueInput(0).should("have.value", "11")
     slider.checkPlayButtonIsRunning()
-    slider.getVariableValueInput(0, 15000).should("contain.value", "2.5")
+    cy.tick(2600)   // 13 ticks at 200ms each: animation completes and stops at axisMin (value=0)
     slider.checkPlayButtonIsPaused()
+    slider.getVariableValueInput(0).should("have.value", "0")
     c.closeComponent("slider") //Change in component header height causes interference with variable value input
+    cy.clock().then(clock => clock.restore())
 
     cy.log("plays high to low animation direction")
     c.clickIconFromToolShelf("slider")
@@ -381,7 +393,30 @@ context("Slider UI", () => {
     slider.checkPlayButtonIsPaused()
 
   })
-  it.skip("slider keyboard accessibility", () => {
+})
+
+context("Slider keyboard accessibility", () => {
+  beforeEach(function () {
+    cy.visit(Cypress.config("index"), {
+      // Prevent the app's beforeunload handler from triggering a confirmation dialog.
+      // cy.realPress triggers browser "sticky activation", which allows beforeunload dialogs
+      // to display. This causes Cypress to hang indefinitely (see github.com/cypress-io/cypress/issues/28553).
+      // So far, this issue only manifests in the Slider tests. Other specs that use cy.realPress
+      // are unaffected. It may be related to React Aria's global event listeners (e.g. from
+      // useSlider/useFocusVisible), but the exact interaction is not fully understood.
+      onBeforeLoad(win) {
+        Object.defineProperty(win, "onbeforeunload", {
+          get() { return null },
+          set() { /* no-op: prevent beforeunload dialog that causes cy.realPress to hang */ },
+          configurable: true,
+        })
+      }
+    })
+    cy.get('[data-testid="Create New Document-button"]').click()
+    c.getIconFromToolShelf("slider").click()
+    slider.getSliderTile().should("be.visible")
+  })
+  it("slider keyboard accessibility", () => {
     const thumbInput = () => slider.getSliderThumbIcon().find("input")
 
     cy.log("thumb shows focus ring on keyboard focus")
