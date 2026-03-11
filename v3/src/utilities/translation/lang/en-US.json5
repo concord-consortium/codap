@@ -180,14 +180,14 @@
     "DG.ToolButtonData.pluginMenu.ariaLabel": "Plugins menu",
 
     // DG.Slider
-    "DG.Slider.multiples": "Restrict to Multiples of:",
-    "DG.Slider.maxPerSecond": "Maximum Animation Frames/sec:",
-    "DG.Slider.direction": "Animation Direction:",
+    "DG.Slider.multiples": "Playback in Multiples of",
+    "DG.Slider.maxPerSecond": "Playback Speed",
+    "DG.Slider.direction": "Playback Direction",
     "DG.Slider.backAndForth": "Back and Forth",
     "DG.Slider.lowToHigh": "Low to High",
     "DG.Slider.highToLow": "High to Low",
-    "DG.Slider.mode": "Animation Repetition:",
-    "DG.Slider.nonStop": "Non-Stop",
+    "DG.Slider.mode": "Playback Repetition",
+    "DG.Slider.nonStop": "Nonstop",
     "DG.Slider.onceOnly": "Once Only",
 
     // Undo / Redo
@@ -1453,7 +1453,8 @@
     "V3.Slider.Inspector.Playback": "Playback",
     "V3.Slider.Inspector.Scale": "Scale",
     "V3.Inspector.sliderScales.toolTip": "Set slider scale to numeric or date-time",
-    "V3.Inspector.animation": "Animation",
+    "V3.Inspector.animation": "Playback",
+    "V3.Slider.framesPerSec": "frames/sec",
     "V3.Inspector.scale": "Scale",
     "V3.Slider.scaleType": "Scale Type:",
     "V3.Slider.scaleType.numeric": "Numeric",
@@ -1466,6 +1467,22 @@
     "V3.Redo.slider.changeMinimum": "Redo change of slider minimum",
     "V3.Undo.slider.changeMaximum": "Undo change of slider maximum",
     "V3.Redo.slider.changeMaximum": "Redo change of slider maximum",
+
+    // Date unit labels with CLDR plural categories (one/other) via Intl.PluralRules.
+    "V3.dateUnit.year.one": "year",
+    "V3.dateUnit.year.other": "years",
+    "V3.dateUnit.month.one": "month",
+    "V3.dateUnit.month.other": "months",
+    "V3.dateUnit.day.one": "day",
+    "V3.dateUnit.day.other": "days",
+    "V3.dateUnit.hour.one": "hour",
+    "V3.dateUnit.hour.other": "hours",
+    "V3.dateUnit.minute.one": "minute",
+    "V3.dateUnit.minute.other": "minutes",
+    "V3.dateUnit.second.one": "second",
+    "V3.dateUnit.second.other": "seconds",
+    "V3.dateUnit.millisecond.one": "millisecond",
+    "V3.dateUnit.millisecond.other": "milliseconds",
 
     // V3 web view strings that are not present in V2 and will eventually require translation.
     "V3.WebView.Inspector.URL": "URL",

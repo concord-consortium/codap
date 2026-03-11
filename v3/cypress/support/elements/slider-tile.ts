@@ -73,6 +73,9 @@ export const SliderTileElements = {
   clickInspectorPanel() {
     this.getInspectorIcon().click()
   },
+  closePalette() {
+    cy.get("[data-testid=codap-inspector-palette]").find("input").first().type("{esc}")
+  },
   getMultipleRestriction() {
     return c.getInspectorPanel().find("[data-testid=slider-restrict-multiples]")
   },
@@ -85,7 +88,7 @@ export const SliderTileElements = {
     c.selectTile("slider", index)
     this.clickInspectorPanel()
     this.getMultipleRestriction().find("input").invoke("attr", "value").should("contain", multiple)
-    this.clickInspectorPanel()
+    this.closePalette()
   },
   getAnimationRate() {
     return c.getInspectorPanel().find("[data-testid=slider-animation-rate]")
@@ -94,13 +97,13 @@ export const SliderTileElements = {
     c.selectTile("slider", index)
     this.clickInspectorPanel()
     this.getAnimationRate().find("input").type(`${rate}{enter}`)
-    this.clickInspectorPanel()
+    this.closePalette()
   },
   checkAnimationRate(rate: number, index = 0) {
     c.selectTile("slider", index)
     this.clickInspectorPanel()
     this.getAnimationRate().find("input").invoke("attr", "value").should("contain", rate)
-    this.clickInspectorPanel()
+    this.closePalette()
   },
   getAnimationDirection() {
     return c.getInspectorPanel().find("[data-testid=slider-animation-direction]")
@@ -110,10 +113,10 @@ export const SliderTileElements = {
     this.clickInspectorPanel()
     // Open the animation direction dropdown
     this.getAnimationDirection().click()
-    // Select the specified direction from the dropdown menu
-    cy.contains('[role="menuitem"]', direction).click()
+    // Select the specified direction from the dropdown list
+    cy.contains('[role="option"]', direction).click()
     // Close the inspector panel if necessary
-    this.clickInspectorPanel()
+    this.closePalette()
   },
   getAnimationRepetition() {
     return c.getInspectorPanel().find("[data-testid=slider-animation-repetition]") // Targets the dropdown button itself
@@ -123,10 +126,10 @@ export const SliderTileElements = {
     this.clickInspectorPanel()
     // Open the repetition dropdown
     this.getAnimationRepetition().click()
-    // Select the specified repetition option from the dropdown menu
-    cy.contains('[role="menuitem"]', repetition).click()
+    // Select the specified repetition option from the dropdown list
+    cy.contains('[role="option"]', repetition).click()
     // Close the inspector panel if needed
-    this.clickInspectorPanel()
+    this.closePalette()
   },
   selectScaleType(scaleType: "numeric" | "date", index = 0) {
     // const today = new Date().toLocaleDateString("en-US")

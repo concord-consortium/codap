@@ -9,7 +9,7 @@ $inspector-panel-border-width: 2px;
 .inspector-panel {
   align-items: center;
   background-color: white;
-  border: $inspector-panel-border-width solid vars.$codap-teal-dark;
+  border: $inspector-panel-border-width solid vars.$teal-light1;
   border-radius: 5px;
   box-shadow: rgba(0, 0, 0, 0.25) 0px 1px 3px 0px;
   display: flex;
@@ -379,12 +379,12 @@ $inspector-panel-border-width: 2px;
     .react-aria-Button {
       display: flex;
       align-items: center;
+      font-size: 14px;
       gap: 4px;
       background: vars.$palette-hover-bg;
       border: 1px solid vars.$charcoal;
       border-radius: 3px;
       padding: 2px 6px;
-  
       cursor: pointer;
       min-width: 80px;
 
@@ -394,13 +394,25 @@ $inspector-panel-border-width: 2px;
       }
 
       &[data-hovered] {
+        background: vars.$title-bar-color;
         border-color: vars.$palette-icon-color;
+      }
+
+      &[data-pressed],
+      &[aria-expanded="true"] {
+        background: vars.$palette-header-bg;
       }
 
       .select-arrow {
         margin-left: auto;
         font-size: 10px;
         color: vars.$palette-icon-color;
+        transition: transform 0.15s ease;
+      }
+
+      // Flip arrow when dropdown is open
+      &[aria-expanded="true"] .select-arrow {
+        transform: rotate(180deg);
       }
     }
 
@@ -422,29 +434,24 @@ $inspector-panel-border-width: 2px;
   border: 1px solid vars.$charcoal-light-1;
   border-radius: 3px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  padding: 2px 0;
+  padding: 6px 0;
   min-width: var(--trigger-width);
 
   .react-aria-ListBox {
+    font-size: 14px;
     outline: none;
 
     .react-aria-ListBoxItem {
-      padding: 4px 8px;
-
+      padding: 5px 10px;
       cursor: pointer;
       outline: none;
 
       &[data-focused] {
-        background-color: vars.$palette-hover-bg;
+        background-color: vars.$charcoal-light-5;
       }
 
       &[data-selected] {
         font-weight: bold;
-
-        &::before {
-          content: "✓";
-          margin-right: 4px;
-        }
       }
     }
   }

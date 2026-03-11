@@ -1,14 +1,16 @@
-import { Flex, FormControl, FormLabel, Input, Menu, MenuButton, MenuList, MenuItem, Button } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React, { useEffect, useState } from "react"
-import { useMenuItemScrollIntoView } from "../../../hooks/use-menu-item-scroll-into-view"
+import {
+  Button, ListBox, ListBoxItem, Popover, Select, SelectValue
+} from "react-aria-components"
+import ScaleIcon from "../../../assets/icons/inspector-panel/data-icon.svg"
+import { useFocusTrap } from "../../../hooks/use-focus-trap"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import { convertToDate, createDateFromEpochSeconds, formatDateForInput } from "../../../utilities/date-utils"
 import { t } from "../../../utilities/translation/translate"
 import { InspectorPalette } from "../../inspector-panel"
 import { ISliderModel } from "../slider-model"
 import { ISliderScaleType, SliderScaleTypes } from "../slider-types"
-import ScaleIcon from "../../../assets/icons/icon-values.svg"
 
 import "./slider-settings-panel.scss"
 
@@ -22,9 +24,9 @@ interface IProps {
 export const SliderScalesPalette =
   observer(function SliderScalesPalette({sliderModel, panelRect, buttonRect, setShowPalette}: IProps) {
     const scaleType = sliderModel.scaleType
-    const handleMenuFocus = useMenuItemScrollIntoView()
     const [minInputValue, setMinInputValue] = useState(sliderModel.axis.minDisplay)
     const [maxInputValue, setMaxInputValue] = useState(sliderModel.axis.maxDisplay)
+    const { formRef, handleFormKeyDown } = useFocusTrap()
 
     useEffect(() => {
       setMinInputValue(sliderModel.axis.minDisplay)
@@ -40,9 +42,11 @@ export const SliderScalesPalette =
         : (dateValue?.valueOf() ?? 0) / 1000
     }
 
-    const handleScaleTypeChange = (value: string) => {
+    const handleScaleTypeChange = (key: React.Key | null) => {
+      if (key == null) return
+      const value = key as ISliderScaleType
       sliderModel.applyModelChange(() => {
-        sliderModel.setScaleType(value as ISliderScaleType)
+        sliderModel.setScaleType(value)
       }, {
         undoStringKey: "V3.Undo.slider.changeScaleType",
         redoStringKey: "V3.Redo.slider.changeScaleType",
@@ -106,18 +110,34 @@ export const SliderScalesPalette =
           : value
     }
 
+    const handleSelectOnFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+      if (scaleType === "numeric") e.target.select()
+    }
+
     const minimumInput = () => {
-      return <Input className="slider-input minimum" size="xs" value={getValueForInput(minInputValue)}
-             type = { scaleType === 'date' ? 'date' : 'text' }
-             onChange={(e) => setMinInputValue(e.target.value)}
-             onBlur={handleMinimumBlur} onKeyDown={handleMinimumKeyDown} data-testid="slider-minimum" flex="1"/>
+      const displayValue = getValueForInput(minInputValue)
+      return <input
+              id="slider-minimum-input" className="slider-input minimum"
+              value={displayValue}
+              size={scaleType === "numeric" ? Math.max(1, displayValue.length) : undefined}
+              type={scaleType === "date" ? "date" : "text"}
+              onChange={(e) => setMinInputValue(e.target.value)}
+              onFocus={handleSelectOnFocus}
+              onBlur={handleMinimumBlur} onKeyDown={handleMinimumKeyDown} data-testid="slider-minimum"
+             />
     }
 
     const maximumInput = () => {
-      return <Input className="slider-input maximum" size="xs" value={getValueForInput(maxInputValue)}
-             type = { scaleType === 'date' ? 'date' : 'text' }
-             onChange={(e) => setMaxInputValue(e.target.value)}
-             onBlur={handleMaximumBlur} onKeyDown={handleMaximumKeyDown} data-testid="slider-maximum" flex="1"/>
+      const displayValue = getValueForInput(maxInputValue)
+      return <input
+              id="slider-maximum-input" className="slider-input maximum"
+              value={displayValue}
+              size={scaleType === "numeric" ? Math.max(1, displayValue.length) : undefined}
+              type={scaleType === "date" ? "date" : "text"}
+              onChange={(e) => setMaxInputValue(e.target.value)}
+              onFocus={handleSelectOnFocus}
+              onBlur={handleMaximumBlur} onKeyDown={handleMaximumKeyDown} data-testid="slider-maximum"
+             />
     }
 
     return (
@@ -128,41 +148,40 @@ export const SliderScalesPalette =
         panelRect={panelRect}
         buttonRect={buttonRect}
       >
-        <Flex className="palette-form" direction="column">
-          <FormControl>
-            <Flex className="palette-row">
-              <FormLabel className="form-label">{t("V3.Slider.scaleType")}
-                <Menu>
-                  <MenuButton as={Button} className="slider-select scaleType" sx={{ height: "20px" }}
-                    aria-label={t("V3.Slider.scaleType")}
-                    data-testid="slider-scale-type-button">
-                    {t(`V3.Slider.scaleType.${scaleType}`)}
-                  </MenuButton>
-                  <MenuList onFocus={handleMenuFocus}>
-                    {SliderScaleTypes.map(aScaleType => (
-                      <MenuItem key={aScaleType} onClick={() => handleScaleTypeChange(aScaleType)}
-                        data-testid={`slider-scale-${aScaleType.toLowerCase()}`}>
-                        {t(`V3.Slider.scaleType.${aScaleType}`)}
-                      </MenuItem>
-                    ))}
-                  </MenuList>
-                </Menu>
-              </FormLabel>
-            </Flex>
-          </FormControl>
-          <FormControl size="xs">
-            <Flex className="palette-row" width="100%">
-              <FormLabel className="form-label" flex="0 0 auto">{t("V3.Slider.minimum")}</FormLabel>
-              { minimumInput() }
-            </Flex>
-          </FormControl>
-          <FormControl size="xs">
-            <Flex className="palette-row" width="100%">
-              <FormLabel className="form-label" flex="0 0 auto">{t("V3.Slider.maximum")}</FormLabel>
-              { maximumInput() }
-            </Flex>
-          </FormControl>
-        </Flex>
+        <div ref={formRef} className="palette-form scale-settings" onKeyDown={handleFormKeyDown}>
+          <div className="palette-row">
+            <label className="form-label">{t("V3.Slider.scaleType")}</label>
+            <Select
+              aria-label={t("V3.Slider.scaleType")}
+              className="slider-select-container"
+              value={scaleType}
+              onChange={handleScaleTypeChange}
+            >
+              <Button className="slider-select scaleType" data-testid="slider-scale-type-button">
+                <SelectValue />
+                <span aria-hidden="true" className="select-arrow">▾</span>
+              </Button>
+              <Popover>
+                <ListBox>
+                  {SliderScaleTypes.map(aScaleType => (
+                    <ListBoxItem key={aScaleType} id={aScaleType}
+                      data-testid={`slider-scale-${aScaleType.toLowerCase()}`}>
+                      {t(`V3.Slider.scaleType.${aScaleType}`)}
+                    </ListBoxItem>
+                  ))}
+                </ListBox>
+              </Popover>
+            </Select>
+          </div>
+          <div className="palette-row">
+            <label className="form-label" htmlFor="slider-minimum-input">{t("V3.Slider.minimum")}</label>
+            {minimumInput()}
+          </div>
+          <div className="palette-row">
+            <label className="form-label" htmlFor="slider-maximum-input">{t("V3.Slider.maximum")}</label>
+            {maximumInput()}
+          </div>
+        </div>
       </InspectorPalette>
     )
   })

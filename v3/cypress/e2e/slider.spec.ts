@@ -168,7 +168,7 @@ context("Slider UI", () => {
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
     slider.setAnimationRate(50)
-    slider.setAnimationDirection("lowToHigh")
+    slider.setAnimationDirection("Low to High")
     slider.getVariableValue().should("contain", initialSliderValue)
     slider.playSliderButton()
     slider.checkPlayButtonIsRunning()
@@ -184,9 +184,9 @@ context("Slider UI", () => {
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
     slider.setAnimationRate(5)
-    slider.setAnimationDirection("backAndForth")
+    slider.setAnimationDirection("Back and Forth")
     slider.setMultipleRestriction("1")
-    slider.getVariableValue().should("contain", initialSliderValue)
+    slider.getVariableValue().should("contain", 1)
     slider.playSliderButton()
     slider.checkPlayButtonIsRunning()
     cy.tick(2000)   // 10 ticks at 200ms each: slider reaches 11
@@ -204,7 +204,7 @@ context("Slider UI", () => {
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
     slider.setAnimationRate(50)
-    slider.setAnimationDirection("highToLow")
+    slider.setAnimationDirection("High to Low")
     slider.changeVariableValue(finalSliderValue)
     slider.getVariableValue().should("contain", finalSliderValue)
     slider.playSliderButton()
@@ -222,7 +222,7 @@ context("Slider UI", () => {
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
     slider.setAnimationRate(50)
-    slider.setAnimationRepetition("nonStop")
+    slider.setAnimationRepetition("Nonstop")
 
     // Initial value check
     slider.getVariableValue().should("contain", initialSliderValue)
