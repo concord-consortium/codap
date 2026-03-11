@@ -199,6 +199,7 @@ context("Slider UI", () => {
     cy.clock().then(clock => clock.restore())
 
     cy.log("plays high to low animation direction")
+    cy.clock(Date.now(), ["setInterval", "clearInterval"])
     c.clickIconFromToolShelf("slider")
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
@@ -208,9 +209,12 @@ context("Slider UI", () => {
     slider.getVariableValue().should("contain", finalSliderValue)
     slider.playSliderButton()
     slider.checkPlayButtonIsRunning()
-    slider.getVariableValue().should("contain", initialSliderValue)
+    cy.tick(15000)
+    // Check that it reaches the min value: -0.5. (D3 renders negative values with a unicode minus sign.)
+    slider.getVariableValueInput(0).should("have.value", "\u22120.5")
     slider.checkPlayButtonIsPaused()
     c.closeComponent("slider") //Change in component header height causes interference with variable value input
+    cy.clock().then(clock => clock.restore())
 
 
     cy.log("plays nonstop")
@@ -243,24 +247,33 @@ context("Slider UI", () => {
     const finalValue = "60"
     const multiple = "10"
     const values = ["10", "20", "30", "40", "50", "60"]
+    cy.clock(Date.now(), ["setInterval", "clearInterval"])
     c.clickIconFromToolShelf("slider")
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
 
-    slider.setAnimationRate(3)
+    slider.setAnimationRate(5)
     slider.changeVariableValue(finalValue)
     slider.setMultipleRestriction(multiple)
     slider.changeVariableValue(initialValue)
     slider.getVariableValue().should("contain", initialValue)
     slider.playSliderButton()
     slider.checkPlayButtonIsRunning()
-    slider.getVariableValue().should("contain", values[0])
-    slider.getVariableValue().should("contain", values[1])
-    slider.getVariableValue().should("contain", values[2])
-    slider.getVariableValue().should("contain", values[3])
-    slider.getVariableValue().should("contain", values[4])
-    slider.getVariableValue().should("contain", values[5])
+    cy.tick(200)  // 1 tick at 200ms: increment=10, value=10
+    slider.getVariableValueInput(0).should("have.value", values[0])
+    cy.tick(200)  // value=20
+    slider.getVariableValueInput(0).should("have.value", values[1])
+    cy.tick(200)  // value=30
+    slider.getVariableValueInput(0).should("have.value", values[2])
+    cy.tick(200)  // value=40
+    slider.getVariableValueInput(0).should("have.value", values[3])
+    cy.tick(200)  // value=50
+    slider.getVariableValueInput(0).should("have.value", values[4])
+    cy.tick(200)  // value=60
+    slider.getVariableValueInput(0).should("have.value", values[5])
+    cy.tick(200)  // next tick attempts value=70, exceeds axis max, animation stops
     slider.checkPlayButtonIsPaused()
+    cy.clock().then(clock => clock.restore())
 
     cy.log("checks playing in one slider only plays that slider")
     c.getIconFromToolShelf("slider").click()
@@ -277,13 +290,15 @@ context("Slider UI", () => {
     slider.checkPlayButtonIsPaused(0)
     slider.checkPlayButtonIsPaused(1)
 
+    cy.clock(Date.now(), ["setInterval", "clearInterval"])
     slider.playSliderButton(1)
     slider.checkPlayButtonIsPaused(0)
     slider.checkPlayButtonIsRunning(1)
 
-    cy.wait(2500)
+    cy.tick(15000)
     slider.checkPlayButtonIsPaused(0)
     slider.checkPlayButtonIsPaused(1)
+    cy.clock().then(clock => clock.restore())
   })
   it("checks editing variable name in one slider only affects that slider", () => {
     const newSliderName = "xyz"
@@ -397,21 +412,7 @@ context("Slider UI", () => {
 
 context("Slider keyboard accessibility", () => {
   beforeEach(function () {
-    cy.visit(Cypress.config("index"), {
-      // Prevent the app's beforeunload handler from triggering a confirmation dialog.
-      // cy.realPress triggers browser "sticky activation", which allows beforeunload dialogs
-      // to display. This causes Cypress to hang indefinitely (see github.com/cypress-io/cypress/issues/28553).
-      // So far, this issue only manifests in the Slider tests. Other specs that use cy.realPress
-      // are unaffected. It may be related to React Aria's global event listeners (e.g. from
-      // useSlider/useFocusVisible), but the exact interaction is not fully understood.
-      onBeforeLoad(win) {
-        Object.defineProperty(win, "onbeforeunload", {
-          get() { return null },
-          set() { /* no-op: prevent beforeunload dialog that causes cy.realPress to hang */ },
-          configurable: true,
-        })
-      }
-    })
+    cy.visit(`${Cypress.config("index")}?suppressUnsavedWarning`)
     cy.get('[data-testid="Create New Document-button"]').click()
     c.getIconFromToolShelf("slider").click()
     slider.getSliderTile().should("be.visible")
