@@ -19,8 +19,8 @@ import { CurvedSplineStroke } from "./curved-spline-stroke"
 import { useCollectionTableModel } from "./use-collection-table-model"
 
 const kRelationDefaultFillColor = "#ffffff" // white
-// these stroke color defaults are only used if the grid's CSS variables are not set
 const kRelationDefaultStrokeColor = "#8a8a8a" // medium gray (3:1+ vs all row backgrounds)
+// selected colors are overridden from grid CSS variables if available
 const kRelationSelectedStrokeColor = "#66afe9" // blue
 const kRelationStrokeWidth = 1
 const kRelationSelectedStrokeWidth = 3
