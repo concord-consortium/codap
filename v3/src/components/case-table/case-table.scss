@@ -94,9 +94,7 @@ $collection-title-font-color: black;
               .add-icon {
                 visibility: visible;
                 opacity: 1;
-                outline: 2px solid vars.$focus-outline-color;
-                outline-offset: -1px;
-                border-radius: 50%;
+                @include vars.focus-outline(-1px, 50%);
               }
             }
 
