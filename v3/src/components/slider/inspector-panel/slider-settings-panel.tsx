@@ -46,8 +46,9 @@ export const SliderSettingsPalette =
     }
 
     const handleAcceptMultiplesOf = useCallback((value: string) => {
-      const multipleOf = value ? parseFloat(value) : undefined
-      if (!multipleOf || isFinite(multipleOf)) {
+      const parsed = value ? parseFloat(value) : undefined
+      const multipleOf = parsed === undefined || isFinite(parsed) ? parsed : undefined
+      if (multipleOf === undefined || isFinite(multipleOf)) {
         sliderModel.applyModelChange(() => {
           sliderModel.setMultipleOf(multipleOf)
         }, {
@@ -92,6 +93,8 @@ export const SliderSettingsPalette =
           log: logStringifiedObjectMessage("sliderMaxPerSecond: %@",
             {name: sliderModel.name, maxPerSecond: animationRate})
         })
+      } else {
+        setAnimationRateValue(String(sliderModel.animationRate))
       }
     }
 

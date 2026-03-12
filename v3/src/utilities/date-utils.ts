@@ -36,7 +36,9 @@ export function isDatePrecision(value: any): value is DatePrecision {
 export function getDateUnitLabel(unit: DateUnit, count = 1) {
   const absCount = isFinite(count) ? Math.abs(count) : 1
   const category = new Intl.PluralRules(gLocale.current).select(absCount)
-  return translate(`V3.dateUnit.${unit}.${category}`)
+  // Normalize to "one"/"other" since we only define those two plural forms in translations
+  const normalizedCategory = category === "one" ? category : "other"
+  return translate(`V3.dateUnit.${unit}.${normalizedCategory}`)
 }
 
 // Constants for converting between units of time and milliseconds
