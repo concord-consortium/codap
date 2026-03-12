@@ -125,6 +125,8 @@
     "DG.SliderView.sliderValue": "%@ value",
     "DG.SliderView.animationStarted": "Slider animation started",
     "DG.SliderView.animationStopped": "Slider animation stopped",
+    "DG.SliderView.sliderRenamed": "Slider renamed to %@",
+    "DG.SliderView.invalidValue": "Invalid value, keeping %@",
 
     // DG.CaseCard
     "DG.CaseCard.indexString": "1 of %@ %@",    // number of cases, Name

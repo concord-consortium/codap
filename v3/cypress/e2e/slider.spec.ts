@@ -485,5 +485,28 @@ context("Slider keyboard accessibility", () => {
     slider.getSliderTile().find("[role=status]").should("have.text", "Slider animation started")
     slider.pauseSliderButton()
     slider.getSliderTile().find("[role=status]").should("have.text", "Slider animation stopped")
+
+    cy.log("Escape key in name input reverts and blurs")
+    slider.getVariableNameInput().click()
+    slider.getVariableNameInput().clear().type("newName")
+    slider.getVariableNameInput().should("have.value", "newName")
+    cy.realPress("Escape")
+    slider.getVariableNameInput().should("not.be.focused")
+    slider.getVariableName().should("eq", "v1")
+
+    cy.log("aria-live region announces slider rename")
+    slider.getVariableNameInput().click()
+    slider.getVariableNameInput().clear().type("mySlider{enter}")
+    slider.getSliderTile().find("[role=status]").should("have.text", "Slider renamed to mySlider")
+
+    cy.log("invalid value input resets and announces error")
+    slider.getVariableValueInput().click()
+    slider.getVariableValueInput().clear().type("abc")
+    slider.getVariableValueInput().blur()
+    slider.getVariableValueInput().should("not.have.value", "abc")
+    slider.getSliderTile().find("[role=status]").should("contain.text", "Invalid value")
+
+    cy.log("thumb icon SVG is hidden from screen readers")
+    slider.getSliderThumbIcon().find("svg").should("have.attr", "aria-hidden", "true")
   })
 })

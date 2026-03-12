@@ -15,9 +15,11 @@ import './slider.scss'
 interface IProps {
   sliderModel: ISliderModel
   multiScale: MultiScale
+  onStatusMessage?: (message: string) => void
 }
 
-export const EditableSliderValue = observer(function EditableSliderValue({sliderModel, multiScale}: IProps) {
+export const EditableSliderValue = observer(function EditableSliderValue({sliderModel, multiScale,
+    onStatusMessage}: IProps) {
   const [candidate, setCandidate] = useState("")
   const { animateAxisToEncompass } = useSliderAxisAnimation(sliderModel)
 
@@ -51,6 +53,11 @@ export const EditableSliderValue = observer(function EditableSliderValue({slider
     setCandidate(value)
   }
 
+  const formatCurrentValue = () => {
+    return multiScale.formatValueForScale(sliderModel.value, sliderModel.scaleType === "date",
+      sliderModel.multipleOf !== undefined ? sliderModel.dateMultipleOfUnit : undefined)
+  }
+
   const handleSubmitValue = (e: React.FocusEvent<HTMLInputElement>) => {
     const inputValue = parseValue(e.target.value)
     if (isFinite(inputValue)) {
@@ -61,6 +68,13 @@ export const EditableSliderValue = observer(function EditableSliderValue({slider
         log: logMessageWithReplacement("sliderEdit: { expression: %@ = %@ }",
           {name: sliderModel.name, value: inputValue})
       })
+    } else {
+      const formattedValue = formatCurrentValue()
+      setCandidate(formattedValue)
+      if (onStatusMessage) {
+        onStatusMessage(t("DG.SliderView.invalidValue", { vars: [formattedValue] }))
+        window.setTimeout(() => onStatusMessage(""), 1000)
+      }
     }
   }
 
@@ -68,7 +82,7 @@ export const EditableSliderValue = observer(function EditableSliderValue({slider
     return (
       <input
         aria-label={t("DG.SliderView.sliderValue", { vars: [sliderModel.name] })}
-        className="value-text-input text-input value-input"
+        className="value-text-input value-input"
         data-testid="slider-variable-value-text-input"
         maxLength={sliderModel.scaleType === "numeric" ? 15 : 30}
         type="text"

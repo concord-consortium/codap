@@ -1,8 +1,8 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import { CSSProperties, KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Input as RAInput, TextField } from "react-aria-components"
-import { useSlider } from "@react-aria/slider"
+import { useSlider } from "react-aria"
 import { useSliderState } from "@react-stately/slider"
 import { useResizeDetector } from "react-resize-detector"
 import PlayIcon from "../../assets/icons/icon-play.svg"
@@ -106,6 +106,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   }, [running])
 
   const [nameInput, setNameInput] = useState(sliderModel?.name ?? "")
+  const nameRevertingRef = useRef(false)
 
   // Sync local state when model changes externally (e.g. undo)
   useEffect(() => {
@@ -131,12 +132,24 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   }
 
   const commitSliderName = () => {
-    sliderModel.setName(nameInput)
+    if (nameRevertingRef.current) {
+      nameRevertingRef.current = false
+      return
+    }
+    if (nameInput !== sliderModel.name) {
+      sliderModel.setName(nameInput)
+      setStatusMessage(t("DG.SliderView.sliderRenamed", { vars: [nameInput] }))
+      window.setTimeout(() => setStatusMessage(""), 1000)
+    }
   }
 
-  const handleSliderNameKeyDown = (e: KeyboardEvent) => {
-    if (e.key === "Enter") {
-      commitSliderName()
+  const handleSliderNameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Escape") {
+      nameRevertingRef.current = true
+      setNameInput(sliderModel.name)
+    }
+    if (e.key === "Enter" || e.key === "Escape") {
+      e.currentTarget.blur()
     }
   }
 
@@ -164,7 +177,8 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
                            onKeyDown={handleSliderNameKeyDown} />
                 </TextField>
                 <span className="equals-sign">&nbsp;=&nbsp;</span>
-                <EditableSliderValue sliderModel={sliderModel} multiScale={multiScale}/>
+                <EditableSliderValue sliderModel={sliderModel} multiScale={multiScale}
+                                     onStatusMessage={setStatusMessage}/>
               </div>
             </div>
             <div {...trackProps} style={{ ...trackProps.style, position: "absolute" }}

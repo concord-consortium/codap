@@ -162,12 +162,6 @@ $date-slider-component-height: 110px;
           @include vars.focus-outline($offset: 0px);
         }
 
-        .text-input {
-          padding-inline-start: 0;
-          padding-inline-end: 0;
-          border: none;
-          height: inherit;
-        }
       }
 
       .equals-sign {

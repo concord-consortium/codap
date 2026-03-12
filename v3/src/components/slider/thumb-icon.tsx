@@ -15,6 +15,7 @@ export const ThumbIcon = function ThumbIcon({ title, ...otherProps }: ThumbIconP
       height="12px"
       viewBox="0 0 16 9"
       xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
       {...otherProps}
     >
       {title && <title>{title}</title>}

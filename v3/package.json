@@ -232,7 +232,6 @@
     "query-string": "^9.3.1",
     "random": "^5.4.1",
     "react": "^18.3.1",
-    "@react-aria/slider": "^3.8.4",
     "@react-stately/slider": "^3.7.4",
     "react-aria": "^3.46.0",
     "react-aria-components": "^1.15.1",
