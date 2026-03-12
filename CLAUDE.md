@@ -22,6 +22,10 @@ This repository contains two versions of CODAP (Common Online Data Analysis Plat
 
 ## Development Workflow
 
+### Branch Policy
+
+**Never commit directly to `main` or push to `main`.** All work must be done on a feature/PR branch, reviewed via pull request, and merged through GitHub. This applies even for small fixes, review feedback, or single-commit changes. If you're about to commit and the current branch is `main`, stop and create a branch first.
+
 ### Starting Work on a Jira Story
 
 When the user says "Let's start work on CODAP-XXX" (or similar):
