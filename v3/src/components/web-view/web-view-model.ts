@@ -101,6 +101,11 @@ export const WebViewModel = TileContentModel
     }
   }))
   .views(self => ({
+    get iframeTitleBase(): string {
+      if (self.isPlugin) return t("V3.WebView.iframeTitle.plugin")
+      if (self.isGuide) return t("V3.WebView.iframeTitle.guide")
+      return t("V3.WebView.iframeTitle.webPage")
+    },
     get needsLocaleReload() {
       if (self.handlesLocaleChange) return false
       if (!(self.isPlugin || self.isPluginCandidate)) return false

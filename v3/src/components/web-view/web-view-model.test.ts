@@ -86,6 +86,30 @@ describe("WebViewContentModel", () => {
     webView.setHandlesLocaleChange(true)
     expect(webView.handlesLocaleChange).toBe(true)
   })
+  it("returns correct iframeTitleBase for plugins", () => {
+    const webView = WebViewModel.create({ url: "https://example.com/plugin.html", subType: "plugin" })
+    expect(webView.iframeTitleBase).toBe("Data plugin")
+  })
+  it("returns correct iframeTitleBase for guides", () => {
+    const webView = WebViewModel.create({ url: "https://example.com/guide.html", subType: "guide" })
+    expect(webView.iframeTitleBase).toBe("Guide")
+  })
+  it("returns correct iframeTitleBase for web pages", () => {
+    const webView = WebViewModel.create({ url: "https://example.com/page.html" })
+    expect(webView.iframeTitleBase).toBe("Web page")
+  })
+  it("returns correct iframeTitleBase for web pages with empty url", () => {
+    const webView = WebViewModel.create({})
+    expect(webView.iframeTitleBase).toBe("Web page")
+  })
+  it("returns correct iframeTitleBase when url is undefined", () => {
+    const webView = WebViewModel.create({})
+    expect(webView.iframeTitleBase).toBe("Web page")
+  })
+  it("returns correct iframeTitleBase when url is an empty string", () => {
+    const webView = WebViewModel.create({ url: "" })
+    expect(webView.iframeTitleBase).toBe("Web page")
+  })
   it("prepareSnapshot works correctly", async () => {
     const state = { status: "Looking good" }
     const dataInteractiveController = {

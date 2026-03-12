@@ -25,13 +25,13 @@
     width: 100%;
 
     .codap-web-view-url {
-      color: white;
+      color: #767676;
       font-size: x-large;
       text-shadow: -1px -1px 0 #888, 1px -1px 0 #888, -1px 1px 0 #888, 1px 1px 0 #888;
     }
 
     .codap-web-view-message {
-      color: gray;
+      color: #595959;
       font-size: small;
       text-align: center;
     }
@@ -45,6 +45,28 @@
     .codap-web-view-iframe {
       height: 100%;
       width: 100%;
+    }
+
+    .codap-skip-iframe {
+      &:focus {
+        background: vars.$focus-outline-color;
+        border-radius: 4px;
+        clip: auto;
+        clip-path: none;
+        color: white;
+        font-size: 14px;
+        height: auto;
+        left: 4px;
+        margin: 0;
+        overflow: visible;
+        padding: 4px 8px;
+        position: absolute;
+        text-decoration: none;
+        top: 4px;
+        white-space: normal;
+        width: auto;
+        z-index: 10;
+      }
     }
 
     .codap-web-view-image {
