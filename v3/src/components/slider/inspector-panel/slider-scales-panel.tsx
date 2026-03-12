@@ -150,9 +150,9 @@ export const SliderScalesPalette =
       >
         <div ref={formRef} className="palette-form scale-settings" onKeyDown={handleFormKeyDown}>
           <div className="palette-row">
-            <label className="form-label">{t("V3.Slider.scaleType")}</label>
+            <label className="form-label" id="slider-scale-type-label">{t("V3.Slider.scaleType")}</label>
             <Select
-              aria-label={t("V3.Slider.scaleType")}
+              aria-labelledby="slider-scale-type-label"
               className="slider-select-container"
               value={scaleType}
               onChange={handleScaleTypeChange}

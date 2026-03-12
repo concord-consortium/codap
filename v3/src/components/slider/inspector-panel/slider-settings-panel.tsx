@@ -216,9 +216,9 @@ export const SliderSettingsPalette =
             <span className="form-label-suffix">{t("V3.Slider.framesPerSec")}</span>
           </div>
           <div className="palette-row">
-            <label className="form-label">{t("DG.Slider.direction")}</label>
+            <label className="form-label" id="slider-direction-label">{t("DG.Slider.direction")}</label>
             <Select
-              aria-label={t("DG.Slider.direction")}
+              aria-labelledby="slider-direction-label"
               value={sliderModel.animationDirection}
               onChange={handleAnimationDirectionChange}
               className="slider-select-container"
@@ -239,9 +239,9 @@ export const SliderSettingsPalette =
             </Select>
           </div>
           <div className="palette-row">
-            <label className="form-label">{t("DG.Slider.mode")}</label>
+            <label className="form-label" id="slider-mode-label">{t("DG.Slider.mode")}</label>
             <Select
-              aria-label={t("DG.Slider.mode")}
+              aria-labelledby="slider-mode-label"
               value={sliderModel.animationMode}
               onChange={handleSliderAnimationModeChange}
               className="slider-select-container"

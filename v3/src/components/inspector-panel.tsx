@@ -129,6 +129,7 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
   const paletteTop = (tempPaletteTop && paletteHeight) &&
     getPaletteTopPosition(tempPaletteTop, paletteHeight, pointerMidpoint)
   const headerId = title ? `palette-header-${title.replace(/\s+/g, "-").toLowerCase()}` : undefined
+  const previousFocusRef = useRef<HTMLElement | null>(null)
 
   useEffect(()=> {
     const observer = viewportEl && new ResizeObserver(entries => {
@@ -160,9 +161,13 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
   }
 
   useEffect(() => {
+    previousFocusRef.current = document.activeElement as HTMLElement
     if (paletteRef.current) {
       setPaletteWidth(paletteRef.current.offsetWidth)
       paletteRef.current.focus()
+    }
+    return () => {
+      previousFocusRef.current?.focus()
     }
   }, [])
 
@@ -176,7 +181,7 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
     <div className="codap-inspector-palette-wrapper" style={wrapperStyle}>
       <div ref={pointerRef} className={`palette-pointer ${inBounds ? "arrow-left" : "arrow-right"}`}
           style={{top: pointerTop - (paletteTop || 0), ...pointerStyle}} />
-      <div ref={paletteRef} className="codap-inspector-palette" tabIndex={0}
+      <div ref={paletteRef} className="codap-inspector-palette" tabIndex={-1}
           role="region" aria-labelledby={headerId}
           data-testid="codap-inspector-palette" onKeyDown={handleKeyDown}>
         <PaletteHeader id={headerId} Icon={Icon} title={title} />
