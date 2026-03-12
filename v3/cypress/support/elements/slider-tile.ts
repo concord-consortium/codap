@@ -5,13 +5,13 @@ export const SliderTileElements = {
     return c.getComponentTile("slider", index)
   },
   getVariableName(index = 0) {
-    return this.getSliderTile(index).find("[data-testid=slider-variable-name-text]")
+    return this.getVariableNameInput(index).invoke('val')
   },
   getVariableNameInput(index = 0) {
     return this.getSliderTile(index).find("[data-testid=slider-variable-name-text-input]")
   },
   changeVariableName(name: string, index = 0) {
-    this.getVariableName(index).click()
+    this.getVariableNameInput(index).click()
     this.getVariableNameInput(index).clear()
     this.getVariableNameInput(index).type(`${name}{enter}`)
   },

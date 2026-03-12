@@ -1,10 +1,10 @@
-import { Input, NumberInput, NumberInputField } from "@chakra-ui/react"
 import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
 import React, { useState, useEffect } from "react"
 import { convertToDate } from "../../utilities/date-utils"
 import { logMessageWithReplacement } from "../../lib/log-message"
+import { t } from "../../utilities/translation/translate"
 import { MultiScale } from "../axis/models/multi-scale"
 import { ISliderModel } from "./slider-model"
 import { valueChangeNotification } from "./slider-utils"
@@ -15,9 +15,11 @@ import './slider.scss'
 interface IProps {
   sliderModel: ISliderModel
   multiScale: MultiScale
+  onStatusMessage?: (message: string) => void
 }
 
-export const EditableSliderValue = observer(function EditableSliderValue({sliderModel, multiScale}: IProps) {
+export const EditableSliderValue = observer(function EditableSliderValue({sliderModel, multiScale,
+    onStatusMessage}: IProps) {
   const [candidate, setCandidate] = useState("")
   const { animateAxisToEncompass } = useSliderAxisAnimation(sliderModel)
 
@@ -51,6 +53,11 @@ export const EditableSliderValue = observer(function EditableSliderValue({slider
     setCandidate(value)
   }
 
+  const formatCurrentValue = () => {
+    return multiScale.formatValueForScale(sliderModel.value, sliderModel.scaleType === "date",
+      sliderModel.multipleOf !== undefined ? sliderModel.dateMultipleOfUnit : undefined)
+  }
+
   const handleSubmitValue = (e: React.FocusEvent<HTMLInputElement>) => {
     const inputValue = parseValue(e.target.value)
     if (isFinite(inputValue)) {
@@ -61,25 +68,29 @@ export const EditableSliderValue = observer(function EditableSliderValue({slider
         log: logMessageWithReplacement("sliderEdit: { expression: %@ = %@ }",
           {name: sliderModel.name, value: inputValue})
       })
+    } else {
+      const formattedValue = formatCurrentValue()
+      setCandidate(formattedValue)
+      if (onStatusMessage) {
+        onStatusMessage(t("DG.SliderView.invalidValue", { vars: [formattedValue] }))
+      }
     }
   }
 
   const renderValueInputField = () => {
-    return sliderModel.scaleType === 'numeric'
-      ? (
-        <NumberInput value={candidate} className="value-input"
-                     onChange={handleValueChange} data-testid="slider-variable-value">
-          <NumberInputField className="value-text-input text-input" data-testid="slider-variable-value-text-input"
-                            maxLength={15} onKeyDown={handleKeyDown} onBlur={handleSubmitValue}/>
-        </NumberInput>
-      ) : (
-        <Input value={candidate} className="value-text-input text-input value-input"
-               data-testid="slider-variable-value-text-input" size={'xs'}
-               maxLength={30} onKeyDown={handleKeyDown} onBlur={handleSubmitValue} onChange={
-          (e) => handleValueChange(e.target.value)
-        }
-        />
-      )
+    return (
+      <input
+        aria-label={t("DG.SliderView.sliderValue", { vars: [sliderModel.name] })}
+        className="value-text-input value-input"
+        data-testid="slider-variable-value-text-input"
+        maxLength={sliderModel.scaleType === "numeric" ? 15 : 30}
+        type="text"
+        value={candidate}
+        onBlur={handleSubmitValue}
+        onChange={(e) => handleValueChange(e.target.value)}
+        onKeyDown={handleKeyDown}
+      />
+    )
   }
 
   return (

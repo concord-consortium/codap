@@ -1,3 +1,5 @@
+@use "../../vars";
+
 .inspector-panel.slider {
   .palette-row {
     flex-direction: row;
@@ -25,6 +27,11 @@
       height: 24px;
       width: 54px;
       background-color: white;
+    }
+    .slider-select {
+      &:focus-visible {
+        @include vars.focus-outline($offset: 0px);
+      }
     }
     .chakra-select__wrapper {
       border: 1px #555 ;

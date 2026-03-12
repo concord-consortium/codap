@@ -28,7 +28,7 @@ context("Slider UI", () => {
   it("basic Slider UI", () => {
     cy.log("populates default title, variable name and value and checks tooltips")
     c.getComponentTitle("slider").should("contain", sliderName)
-    slider.getVariableName().should("have.text", sliderName)
+    slider.getVariableName().should("eq", sliderName)
     slider.getVariableValue().should("contain", initialSliderValue)
     slider.checkPlayButtonIsPaused()
     slider.getSliderThumbIcon().should("be.visible")
@@ -67,7 +67,7 @@ context("Slider UI", () => {
     c.getComponentTitle("slider").should("have.text", sliderName)
     c.changeComponentTitle("slider", newSliderName)
     c.getComponentTitle("slider").should("have.text", newSliderName)
-    slider.getVariableName().should("have.text", sliderName)
+    slider.getVariableName().should("eq", sliderName)
 
     // undo should work after renaming the component
     cy.log("check for undo/redo after renaming Slider component")
@@ -83,9 +83,9 @@ context("Slider UI", () => {
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
 
-    slider.getVariableName().should("have.text", "v1")
+    slider.getVariableName().should("eq", "v1")
     slider.changeVariableName(newName)
-    slider.getVariableName().should("have.text", newName)
+    slider.getVariableName().should("eq", newName)
     c.getComponentTitle("slider").should("have.text", newName)
 
     cy.log("adds new variable value")
@@ -102,12 +102,12 @@ context("Slider UI", () => {
     c.getIconFromToolShelf("slider").click()
 
     c.getComponentTitle("slider").should("contain", sliderName)
-    slider.getVariableName().should("have.text", sliderName)
+    slider.getVariableName().should("eq", sliderName)
     slider.getVariableValue().should("contain", initialSliderValue)
     slider.checkPlayButtonIsPaused()
 
     c.getComponentTitle("slider", 1).should("contain", newName)
-    slider.getVariableName(1).should("have.text", newName)
+    slider.getVariableName(1).should("eq", newName)
     slider.getVariableValue(1).should("contain", initialSliderValue)
     slider.checkPlayButtonIsPaused(1)
 
@@ -115,18 +115,18 @@ context("Slider UI", () => {
     c.getIconFromToolShelf("slider").click()
 
     c.getComponentTitle("slider").should("contain", sliderName)
-    slider.getVariableName().should("have.text", sliderName)
+    slider.getVariableName().should("eq", sliderName)
     slider.getVariableValue().should("contain", initialSliderValue)
     slider.checkPlayButtonIsPaused()
 
     c.getComponentTitle("slider", 1).should("contain", "v2")
-    slider.getVariableName(1).should("have.text", "v2")
+    slider.getVariableName(1).should("eq", "v2")
     slider.getVariableValue(1).should("contain", initialSliderValue)
     slider.checkPlayButtonIsPaused(1)
 
     c.getIconFromToolShelf("slider").click()
     c.getComponentTitle("slider", 2).should("contain", "v3")
-    slider.getVariableName(2).should("have.text", "v3")
+    slider.getVariableName(2).should("eq", "v3")
     slider.getVariableValue(2).should("contain", initialSliderValue)
     slider.checkPlayButtonIsPaused(2)
   })
@@ -141,6 +141,11 @@ context("Slider UI", () => {
     c.closeComponent("slider")
 
     cy.log("replays from initial value once it reaches the end")
+    // Override setInterval/clearInterval so cy.tick() can control the slider animation.
+    // We specify only these methods (rather than calling cy.clock() with no args) because
+    // overriding all timing functions (including setTimeout) breaks Chakra UI select menus
+    // in the slider toolbar's flyout sections.
+    cy.clock(Date.now(), ["setInterval", "clearInterval"])
     c.clickIconFromToolShelf("slider")
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
@@ -149,15 +154,16 @@ context("Slider UI", () => {
     cy.log("play slider")
     slider.playSliderButton()
     slider.checkPlayButtonIsRunning()
-    cy.wait(15000)
+    cy.tick(15000)
     slider.checkPlayButtonIsPaused()
     slider.getVariableValue().should("contain", finalSliderValue)
     slider.playSliderButton()
     slider.getVariableValue().should("contain", "0")
     c.closeComponent("slider") //Change in component header height causes interference with variable value input
-
+    cy.clock().then(clock => clock.restore())
 
     cy.log("plays low to high animation direction")
+    cy.clock(Date.now(), ["setInterval", "clearInterval"])
     c.clickIconFromToolShelf("slider")
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
@@ -166,28 +172,34 @@ context("Slider UI", () => {
     slider.getVariableValue().should("contain", initialSliderValue)
     slider.playSliderButton()
     slider.checkPlayButtonIsRunning()
-    slider.getVariableValueInput(0, 15000).should("contain.value", finalSliderValue)
+    cy.tick(15000)
+    slider.getVariableValueInput(0).should("have.value", finalSliderValue)
     slider.checkPlayButtonIsPaused()
     c.closeComponent("slider") //Change in component header height causes interference with variable value input
-
+    cy.clock().then(clock => clock.restore())
 
     cy.log("plays back and forth animation direction")
+    cy.clock(Date.now(), ["setInterval", "clearInterval"])
     c.clickIconFromToolShelf("slider")
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
-    slider.setAnimationRate(50)
+    slider.setAnimationRate(5)
     slider.setAnimationDirection("backAndForth")
+    slider.setMultipleRestriction("1")
     slider.getVariableValue().should("contain", initialSliderValue)
     slider.playSliderButton()
     slider.checkPlayButtonIsRunning()
-    slider.getVariableValueInput(0, 15000).should("contain.value", finalSliderValue)
+    cy.tick(2000)   // 10 ticks at 200ms each: slider reaches 11
+    slider.getVariableValueInput(0).should("have.value", "11")
     slider.checkPlayButtonIsRunning()
-    slider.getVariableValueInput(0, 15000).should("contain.value", "2.5")
+    cy.tick(2600)   // 13 ticks at 200ms each: animation completes and stops at axisMin (value=0)
     slider.checkPlayButtonIsPaused()
+    slider.getVariableValueInput(0).should("have.value", "0")
     c.closeComponent("slider") //Change in component header height causes interference with variable value input
-
+    cy.clock().then(clock => clock.restore())
 
     cy.log("plays high to low animation direction")
+    cy.clock(Date.now(), ["setInterval", "clearInterval"])
     c.clickIconFromToolShelf("slider")
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
@@ -197,9 +209,12 @@ context("Slider UI", () => {
     slider.getVariableValue().should("contain", finalSliderValue)
     slider.playSliderButton()
     slider.checkPlayButtonIsRunning()
-    slider.getVariableValue().should("contain", initialSliderValue)
+    cy.tick(15000)
+    // Check that it reaches the min value: -0.5. (D3 renders negative values with a unicode minus sign.)
+    slider.getVariableValueInput(0).should("have.value", "\u22120.5")
     slider.checkPlayButtonIsPaused()
     c.closeComponent("slider") //Change in component header height causes interference with variable value input
+    cy.clock().then(clock => clock.restore())
 
 
     cy.log("plays nonstop")
@@ -232,24 +247,33 @@ context("Slider UI", () => {
     const finalValue = "60"
     const multiple = "10"
     const values = ["10", "20", "30", "40", "50", "60"]
+    cy.clock(Date.now(), ["setInterval", "clearInterval"])
     c.clickIconFromToolShelf("slider")
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
 
-    slider.setAnimationRate(3)
+    slider.setAnimationRate(5)
     slider.changeVariableValue(finalValue)
     slider.setMultipleRestriction(multiple)
     slider.changeVariableValue(initialValue)
     slider.getVariableValue().should("contain", initialValue)
     slider.playSliderButton()
     slider.checkPlayButtonIsRunning()
-    slider.getVariableValue().should("contain", values[0])
-    slider.getVariableValue().should("contain", values[1])
-    slider.getVariableValue().should("contain", values[2])
-    slider.getVariableValue().should("contain", values[3])
-    slider.getVariableValue().should("contain", values[4])
-    slider.getVariableValue().should("contain", values[5])
+    cy.tick(200)  // 1 tick at 200ms: increment=10, value=10
+    slider.getVariableValueInput(0).should("have.value", values[0])
+    cy.tick(200)  // value=20
+    slider.getVariableValueInput(0).should("have.value", values[1])
+    cy.tick(200)  // value=30
+    slider.getVariableValueInput(0).should("have.value", values[2])
+    cy.tick(200)  // value=40
+    slider.getVariableValueInput(0).should("have.value", values[3])
+    cy.tick(200)  // value=50
+    slider.getVariableValueInput(0).should("have.value", values[4])
+    cy.tick(200)  // value=60
+    slider.getVariableValueInput(0).should("have.value", values[5])
+    cy.tick(200)  // next tick attempts value=70, exceeds axis max, animation stops
     slider.checkPlayButtonIsPaused()
+    cy.clock().then(clock => clock.restore())
 
     cy.log("checks playing in one slider only plays that slider")
     c.getIconFromToolShelf("slider").click()
@@ -266,13 +290,15 @@ context("Slider UI", () => {
     slider.checkPlayButtonIsPaused(0)
     slider.checkPlayButtonIsPaused(1)
 
+    cy.clock(Date.now(), ["setInterval", "clearInterval"])
     slider.playSliderButton(1)
     slider.checkPlayButtonIsPaused(0)
     slider.checkPlayButtonIsRunning(1)
 
-    cy.wait(2500)
+    cy.tick(15000)
     slider.checkPlayButtonIsPaused(0)
     slider.checkPlayButtonIsPaused(1)
+    cy.clock().then(clock => clock.restore())
   })
   it("checks editing variable name in one slider only affects that slider", () => {
     const newSliderName = "xyz"
@@ -281,8 +307,8 @@ context("Slider UI", () => {
     slider.changeVariableName(newSliderName, 1)
     c.getComponentTitle("slider", 0).should("contain", sliderName)
     c.getComponentTitle("slider", 1).should("contain", newSliderName)
-    slider.getVariableName(0).should("have.text", sliderName)
-    slider.getVariableName(1).should("have.text", newSliderName)
+    slider.getVariableName(0).should("eq", sliderName)
+    slider.getVariableName(1).should("eq", newSliderName)
   })
   // TODO: This test is flaky and needs to be fixed
   it.skip("checks slider with dates", () => {
@@ -367,7 +393,7 @@ context("Slider UI", () => {
     c.getIconFromToolShelf("slider").click()
 
     c.getComponentTitle("slider").should("contain", "v1")
-    slider.getVariableName().should("have.text", "v1")
+    slider.getVariableName().should("eq", "v1")
     slider.getVariableValue().should("contain", initialSliderValue)
     slider.checkPlayButtonIsPaused()
 
@@ -377,9 +403,110 @@ context("Slider UI", () => {
     c.getIconFromToolShelf("slider").click()
 
     c.getComponentTitle("slider").should("contain", "v1")
-    slider.getVariableName().should("have.text", "v1")
+    slider.getVariableName().should("eq", "v1")
     slider.getVariableValue().should("contain", initialSliderValue)
     slider.checkPlayButtonIsPaused()
 
+  })
+})
+
+context("Slider keyboard accessibility", () => {
+  beforeEach(function () {
+    cy.visit(`${Cypress.config("index")}?suppressUnsavedWarning`)
+    cy.get('[data-testid="Create New Document-button"]').click()
+    c.getIconFromToolShelf("slider").click()
+    slider.getSliderTile().should("be.visible")
+  })
+  it("slider keyboard accessibility", () => {
+    const thumbInput = () => slider.getSliderThumbIcon().find("input")
+
+    cy.log("thumb shows focus ring on keyboard focus")
+    // Click the thumb to focus it (no focus ring on mouse focus), then Tab away and Shift+Tab back
+    slider.getSliderThumbIcon().click()
+    slider.getSliderThumbIcon().should("not.have.class", "focus-visible")
+    cy.realPress("Tab")
+    cy.realPress(["Shift", "Tab"])
+    slider.getSliderThumbIcon().should("have.class", "focus-visible")
+    cy.realPress("Tab")
+    slider.getSliderThumbIcon().should("not.have.class", "focus-visible")
+
+    cy.log("arrow keys change slider value")
+    slider.changeVariableValue("5")
+    slider.getSliderThumbIcon().click()
+    cy.realPress("ArrowRight")
+    thumbInput().invoke("val").then(val => {
+      expect(Number(val)).to.be.greaterThan(5)
+    })
+    cy.realPress("ArrowLeft")
+    // After right then left, value should be back to 5
+    slider.getVariableValueInput().should("have.value", "5")
+
+    cy.log("Home and End keys jump to axis bounds")
+    cy.realPress("Home")
+    thumbInput().invoke("val").then(val => {
+      thumbInput().invoke("attr", "min").then(min => {
+        expect(Number(val)).to.equal(Number(min))
+      })
+    })
+    cy.realPress("End")
+    thumbInput().invoke("val").then(val => {
+      thumbInput().invoke("attr", "max").then(max => {
+        expect(Number(val)).to.equal(Number(max))
+      })
+    })
+
+    cy.log("play/pause button has correct aria-label")
+    slider.getPlayButton().should("have.attr", "aria-label", "Play slider")
+    slider.playSliderButton()
+    slider.getPlayButton().should("have.attr", "aria-label", "Pause slider")
+    slider.pauseSliderButton()
+    slider.getPlayButton().should("have.attr", "aria-label", "Play slider")
+
+    cy.log("tab order through slider controls: play/pause → name → value → thumb")
+    slider.getPlayButton().focus()
+    slider.getPlayButton().should("be.focused")
+    cy.realPress("Tab")
+    slider.getVariableNameInput().should("be.focused")
+    cy.realPress("Tab")
+    slider.getVariableValueInput().should("be.focused")
+    cy.realPress("Tab")
+    thumbInput().should("be.focused")
+    // Shift+Tab back through the controls
+    cy.realPress(["Shift", "Tab"])
+    slider.getVariableValueInput().should("be.focused")
+    cy.realPress(["Shift", "Tab"])
+    slider.getVariableNameInput().should("be.focused")
+    cy.realPress(["Shift", "Tab"])
+    slider.getPlayButton().should("be.focused")
+
+    cy.log("aria-live region announces animation state changes")
+    slider.getSliderTile().find("[role=status]").should("exist")
+    slider.playSliderButton()
+    slider.getSliderTile().find("[role=status]").should("have.text", "Slider animation started")
+    slider.pauseSliderButton()
+    slider.getSliderTile().find("[role=status]").should("have.text", "Slider animation stopped")
+
+    cy.log("Escape key in name input reverts and blurs")
+    slider.getVariableNameInput().click()
+    slider.getVariableNameInput().clear().type("newName")
+    slider.getVariableNameInput().should("have.value", "newName")
+    cy.realPress("Escape")
+    slider.getVariableNameInput().should("not.be.focused")
+    slider.getVariableName().should("eq", "v1")
+
+    cy.log("aria-live region announces slider rename")
+    slider.getVariableNameInput().click()
+    slider.getVariableNameInput().clear().type("mySlider{enter}")
+    slider.getSliderTile().find("[role=status]").should("have.text", "Slider renamed to mySlider")
+
+    cy.log("invalid value input resets and announces error")
+    slider.getVariableValueInput().click()
+    slider.getVariableValueInput().clear().type("abc")
+    slider.getVariableValueInput().blur()
+    slider.getVariableValueInput().should("not.have.value", "abc")
+    slider.getSliderTile().find("[role=status]").should("contain.text", "Invalid value")
+
+    cy.log("thumb icon SVG is hidden from screen readers")
+    slider.getSliderThumbIcon().find("svg").should("have.attr", "aria-hidden", "true")
   })
 })
