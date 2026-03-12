@@ -36,9 +36,20 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   const {width, height, ref: sliderRef} = useResizeDetector()
   const [running, setRunning] = useState(false)
   const [statusMessage, setStatusMessage] = useState("")
+  const statusTimeoutRef = useRef<number>()
   const prevRunningRef = useRef(false)
   const multiScale = layout.getAxisMultiScale("bottom")
   const trackRef = useRef<HTMLDivElement | null>(null)
+
+  // Set a status message that auto-clears after 1 second.
+  // Cancels any pending clear from a previous message to avoid races.
+  const showStatusMessage = useCallback((message: string) => {
+    window.clearTimeout(statusTimeoutRef.current)
+    setStatusMessage(message)
+    if (message) {
+      statusTimeoutRef.current = window.setTimeout(() => setStatusMessage(""), 1000)
+    }
+  }, [])
 
   // width and positioning
   useEffect(() => {
@@ -98,12 +109,10 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   useEffect(() => {
     if (prevRunningRef.current !== running) {
       const key = running ? "DG.SliderView.animationStarted" : "DG.SliderView.animationStopped"
-      setStatusMessage(t(key))
-      const id = window.setTimeout(() => setStatusMessage(""), 1000)
+      showStatusMessage(t(key))
       prevRunningRef.current = running
-      return () => window.clearTimeout(id)
     }
-  }, [running])
+  }, [running, showStatusMessage])
 
   const [nameInput, setNameInput] = useState(sliderModel?.name ?? "")
   const nameRevertingRef = useRef(false)
@@ -138,8 +147,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
     }
     if (nameInput !== sliderModel.name) {
       sliderModel.setName(nameInput)
-      setStatusMessage(t("DG.SliderView.sliderRenamed", { vars: [nameInput] }))
-      window.setTimeout(() => setStatusMessage(""), 1000)
+      showStatusMessage(t("DG.SliderView.sliderRenamed", { vars: [nameInput] }))
     }
   }
 
@@ -178,7 +186,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
                 </TextField>
                 <span className="equals-sign">&nbsp;=&nbsp;</span>
                 <EditableSliderValue sliderModel={sliderModel} multiScale={multiScale}
-                                     onStatusMessage={setStatusMessage}/>
+                                     onStatusMessage={showStatusMessage}/>
               </div>
             </div>
             <div {...trackProps} style={{ ...trackProps.style, position: "absolute" }}

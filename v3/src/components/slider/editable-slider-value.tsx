@@ -73,7 +73,6 @@ export const EditableSliderValue = observer(function EditableSliderValue({slider
       setCandidate(formattedValue)
       if (onStatusMessage) {
         onStatusMessage(t("DG.SliderView.invalidValue", { vars: [formattedValue] }))
-        window.setTimeout(() => onStatusMessage(""), 1000)
       }
     }
   }
