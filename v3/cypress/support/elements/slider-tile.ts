@@ -74,7 +74,7 @@ export const SliderTileElements = {
     this.getInspectorIcon().click()
   },
   closePalette() {
-    cy.get("[data-testid=codap-inspector-palette]").find("input").first().type("{esc}")
+    cy.get("[data-testid=codap-inspector-palette]").type("{esc}")
   },
   getMultipleRestriction() {
     return c.getInspectorPanel().find("[data-testid=slider-restrict-multiples]")
