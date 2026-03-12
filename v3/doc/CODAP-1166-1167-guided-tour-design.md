@@ -46,6 +46,8 @@ Uses existing `data-testid` attribute values as sub-element identifiers. This av
 
 When a component is specified, the `data-testid` lookup is scoped to that component's DOM subtree, disambiguating cases where multiple tiles have the same sub-element (e.g., axis drop zones in two different graphs).
 
+**Note:** Exposing `data-testid` values through the plugin API effectively promotes them from internal testing identifiers to part of the public API surface. Before finalizing this API, we should review the existing `data-testid` usage across the codebase for consistency in naming conventions, coverage of tour-relevant elements, and stability guarantees — since plugin authors will depend on these values not changing unexpectedly.
+
 ### API Surface
 
 The API extends the existing `interactiveFrame` and `component` notify mechanisms:
