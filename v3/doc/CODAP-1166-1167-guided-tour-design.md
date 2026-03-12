@@ -39,7 +39,7 @@ Driver.js runs in the CODAP host frame (not in plugin iframes), since it needs a
 A two-level approach leveraging existing infrastructure:
 
 **Level 1 — Tile/component targeting** (already exists in the plugin API):
-Plugins already identify tiles by type, name, or ID (e.g., `component[myGraph]`).
+Plugins already identify tiles by title, name, or ID (e.g., `component[myGraph]`).
 
 **Level 2 — Sub-element targeting within a tile** (new):
 Uses existing `data-testid` attribute values as sub-element identifiers. This avoids creating a parallel attribute system and ensures test coverage and tour coverage grow together.
@@ -100,7 +100,7 @@ The API extends the existing `interactiveFrame` and `component` notify mechanism
         "popover": { "description": "Click to create a graph" }
       },
       {
-        "component": { "type": "graph" },
+        "component": "myGraph",
         "target": { "testId": "add-attribute-drop-bottom" },
         "popover": { "description": "Drag an attribute here" }
       }
@@ -131,9 +131,13 @@ The API extends the existing `interactiveFrame` and `component` notify mechanism
 
 When CODAP receives a highlight/tour request:
 
-1. If a `component` is specified, resolve it to a tile DOM element using the existing tile registry
-2. Within that scope (or document-wide for `interactiveFrame`), find the element with the matching `data-testid`
-3. Pass the resolved DOM element to Driver.js using a function resolver (lazy evaluation handles elements that may not exist yet)
+1. Determine the target component (if any):
+   - If the `resource` is of the form `component[<componentId>]`, use `<componentId>` as the component.
+   - Otherwise, if `values.component` is provided (as in multi-step tour steps), use that as the component.
+   - If neither is present, operate in the `interactiveFrame` / document-wide scope.
+2. If a component was determined, resolve it to a tile DOM element using the existing tile registry.
+3. Within that scope (the resolved tile or document-wide for `interactiveFrame`), find the element with the matching `data-testid`.
+4. Pass the resolved DOM element to Driver.js using a function resolver (lazy evaluation handles elements that may not exist yet).
 
 ### Popover Options
 
@@ -229,8 +233,10 @@ Each task description gains a `highlight` property:
   url: './resources/' + resourceDir() + "MakeGraph.mp4",
   highlight: {
     target: { testId: "tool-shelf-button-graph" },
-    popover: { description: "Click this button to create a graph" },
-    side: "bottom"
+    popover: {
+      description: "Click this button to create a graph",
+      side: "bottom"
+    }
   },
   operation: ...,
   feedback: ...
