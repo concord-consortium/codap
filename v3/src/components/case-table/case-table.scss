@@ -88,16 +88,6 @@ $collection-title-font-color: black;
             padding-inline-end: 0;
             z-index: 6;
 
-            &:focus-visible {
-              outline: none;
-
-              .add-icon {
-                visibility: visible;
-                opacity: 1;
-                @include vars.focus-outline(-1px, 50%);
-              }
-            }
-
             .add-icon {
               visibility: hidden;
               fill: #000000;
@@ -108,6 +98,16 @@ $collection-title-font-color: black;
                 &:hover {
                   opacity: 1;
                 }
+              }
+            }
+
+            &:focus-visible {
+              outline: none;
+
+              .add-icon {
+                visibility: visible;
+                opacity: 1;
+                @include vars.focus-outline(-1px, 50%);
               }
             }
           }

@@ -20,10 +20,9 @@ import { useCollectionTableModel } from "./use-collection-table-model"
 
 const kRelationDefaultFillColor = "#ffffff" // white
 const kRelationDefaultStrokeColor = "#8a8a8a" // medium gray (3:1+ vs all row backgrounds)
-// selected colors are overridden from grid CSS variables if available
-const kRelationSelectedStrokeColor = "#66afe9" // blue
+const kRelationSelectedStrokeColor = "#2189DE" // blue (distinct from keyboard focus #0957d0)
 const kRelationStrokeWidth = 1
-const kRelationSelectedStrokeWidth = 3
+const kRelationSelectedStrokeWidth = 2
 
 interface IRelationColors {
   defaultFill: string
@@ -113,12 +112,8 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
     if (relationSelectedFillColor) {
       newRelationColors.selectedFill = relationSelectedFillColor
     }
-    // Don't read --rdg-border-color (#ddd) for spacer lines — it's too light for 3:1 contrast.
-    // Use the kRelationDefaultStrokeColor (#8a8a8a) fallback instead.
-    const relationSelectedStrokeColor = getStringCssVariable(gridElt, "--rdg-selection-color")
-    if (relationSelectedStrokeColor) {
-      newRelationColors.selectedStroke = relationSelectedStrokeColor
-    }
+    // Use kRelationSelectedStrokeColor (#2189DE) for selected spacer lines rather than
+    // --rdg-selection-color (#0957d0) to distinguish selection from keyboard focus.
     setRelationColors(newRelationColors)
   }, [gridElt])
 
