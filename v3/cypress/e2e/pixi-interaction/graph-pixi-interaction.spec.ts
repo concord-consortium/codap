@@ -550,7 +550,7 @@ context.skip("Graph UI with Pixi interaction", () => {
       cfm.getHamburgerMenu().should("not.exist")
       cfm.getHamburgerMenuButton().click()
       cfm.getHamburgerMenu().should("exist")
-      cfm.getHamburgerMenu().contains("li", "Open...").click()
+      cfm.getHamburgerMenu().contains(".menuItem", "Open...").click()
       cfm.getHamburgerMenu().should("not.exist")
       cfm.getModalDialog().contains(".modal-dialog-title", "Open")
       cfm.getModalDialog().contains(".tab-selected", "Example Documents")

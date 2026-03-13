@@ -7,13 +7,13 @@ export const ToolbarElements = {
       cy.get(".vertical-toolbar").should("not.exist")
       cfm.getSettingsMenuButton().click()
       cfm.getSettingsMenuItems().eq(0).should("contain.text", "Toolbar Position: Left")
-      cfm.getMenuBarInfo().click() // Close the menu
+      cy.get('body').type('{esc}') // Close the menu
     } else {
       cy.get(".app-container:not(.vertical-toolbar)").should("not.exist")
       cy.get(".vertical-toolbar").should("exist")
       cfm.getSettingsMenuButton().click()
       cfm.getSettingsMenuItems().eq(0).should("contain.text", "Toolbar Position: Top")
-      cfm.getMenuBarInfo().click() // Close the menu
+      cy.get('body').type('{esc}') // Close the menu
     }
   },
   getToolShelfSelector(component: string) {
