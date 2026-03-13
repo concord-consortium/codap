@@ -88,8 +88,22 @@ export function getTitle(tile?: ITileLikeModel) {
   return (tile && tileContentInfo?.getTitle?.(tile)) ?? ""
 }
 
+// Maps tile type to existing translation key for that tile type's display name.
+// Types not listed here fall back to V3.TileType.{type} or V3.TileType.Unknown.
+const tileTypeLabelKeys: Record<string, string> = {
+  CaseTable: "DG.DocumentController.caseTableTitle",
+  CaseCard: "DG.DocumentController.caseCardTitle",
+  Graph: "DG.DocumentController.graphTitle",
+  CodapSlider: "DG.DocumentController.sliderTitle",
+  Calculator: "DG.DocumentController.calculatorTitle",
+  CodapText: "DG.DocumentController.textTitle",
+  Map: "DG.DocumentController.mapTitle",
+}
+
 export function getTileTypeLabel(type?: string): string {
   if (!type) return t("V3.TileType.Unknown")
+  const existingKey = tileTypeLabelKeys[type]
+  if (existingKey) return t(existingKey).toLowerCase()
   const key = `V3.TileType.${type}`
   const label = t(key)
   return label !== key ? label : t("V3.TileType.Unknown")
