@@ -1394,6 +1394,10 @@
     "V3.Undo.calculator.clear": "Undo clearing calculator",
     "V3.Redo.calculator.clear": "Redo clearing calculator",
 
+    // Tile type labels for accessible names (e.g. in the Tiles menu)
+    "V3.TileType.CodapWebView": "web page",
+    "V3.TileType.Unknown": "tile",
+
     "V3.CaseCardTable.Inspector.Info": "Info",
     "V3.CaseCardTable.Inspector.Resize": "Resize",
     "V3.CaseCardTable.Inspector.View": "View",

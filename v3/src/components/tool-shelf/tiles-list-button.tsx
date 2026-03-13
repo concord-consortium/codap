@@ -9,7 +9,7 @@ import { useMenuItemScrollIntoView } from "../../hooks/use-menu-item-scroll-into
 import { isFreeTileLayout, isFreeTileRow } from "../../models/document/free-tile-row"
 import { persistentState } from "../../models/persistent-state"
 import { getTileComponentIcon } from "../../models/tiles/tile-component-info"
-import { getTileContentInfo } from "../../models/tiles/tile-content-info"
+import { getTileContentInfo, getTileTypeLabel } from "../../models/tiles/tile-content-info"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { uiState } from "../../models/ui-state"
 import { scrollTileIntoView } from "../../utilities/dom-utils"
@@ -157,13 +157,20 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
             const iconClass = _Icon ? tileType : "WebView"
             const tileInfo = getTileContentInfo(tileType)
             const title = tileInfo?.getTitle(tile)
+            const typeLabel = getTileTypeLabel(tileType)
+            const accessibleName = title ? `${title}, ${typeLabel}` : typeLabel
             return (
               <MenuItem key={tile?.id} data-testid="tiles-list-menu-item" className="tool-shelf-menu-item"
+                  aria-label={accessibleName}
                   onClick={()=>handleMenuSelectTile(tile.id) }
                   onFocus={()=>handleFocus(tile.id)} // Handle focus similar to pointer over
                   onBlur={()=>handleBlur()} // Handle blur similar to pointer leave
               >
-                <Icon className={`menu-icon ${iconClass}`} data-testid="tile-list-menu-icon"/>
+                <Icon
+                  aria-hidden="true"
+                  className={`menu-icon ${iconClass}`}
+                  data-testid="tile-list-menu-icon"
+                />
                 {title}
               </MenuItem>
             )
