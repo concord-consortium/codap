@@ -1,6 +1,7 @@
 import { forwardRef, Box, Button, Menu, MenuButton } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import React, { ReactNode, RefObject, useEffect, useRef, useState } from "react"
+import { useFocusTrap } from "../hooks/use-focus-trap"
 import { useOutsidePointerDown } from "../hooks/use-outside-pointer-down"
 import { isWithinBounds, getPaletteTopPosition } from "../utilities/view-utils"
 
@@ -120,6 +121,7 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
   const [paletteWidth, setPaletteWidth] = useState(0)
   const [paletteHeight, setPaletteHeight] = useState(0)
   const paletteRef = useRef<HTMLDivElement>(null)
+  const { handleFocusTrapKeyDown } = useFocusTrap(paletteRef)
   const pointerRef = useRef<HTMLDivElement>(null)
   const viewportEl = paletteRef.current?.closest(".tile-row")
   const [inBounds, setInBounds] = useState(() => isWithinBounds(panelRight, paletteRef.current))
@@ -158,22 +160,7 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
     if (e.key === "Escape") {
       setShowPalette(undefined)
     }
-    if (e.key === "Tab") {
-      if (!paletteRef.current) return
-      const focusable = Array.from(paletteRef.current.querySelectorAll<HTMLElement>(
-        'a[href], area[href], input, button, select, textarea, [tabindex]:not([tabindex="-1"])'
-      )).filter(el => el.offsetParent !== null && !el.closest('[aria-hidden="true"]'))
-      if (focusable.length === 0) return
-      const first = focusable[0]
-      const last = focusable[focusable.length - 1]
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault()
-        last.focus()
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault()
-        first.focus()
-      }
-    }
+    handleFocusTrapKeyDown(e)
   }
 
   useEffect(() => {
