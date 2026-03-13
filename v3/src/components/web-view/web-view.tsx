@@ -187,7 +187,8 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
       ?? tileWrapper?.parentElement?.querySelector(".free-tile-component")
     if (!targetTile) return
     const candidates = targetTile.querySelectorAll<HTMLElement>(
-      "a[href], button:not([disabled]), [tabindex]:not([tabindex='-1'])"
+      "a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), " +
+      "textarea:not([disabled]), iframe, [tabindex]:not([tabindex='-1']), [contenteditable]"
     )
     for (const el of candidates) {
       const style = getComputedStyle(el)
@@ -206,7 +207,7 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
     if (loadingTimerRef.current) {
       clearTimeout(loadingTimerRef.current)
     }
-    loadingTimerRef.current = setTimeout(() => setLoadingStatus(""), 1000)
+    loadingTimerRef.current = setTimeout(() => setLoadingStatus(""), 3000)
   }
 
   const hideWebViewLoading = booleanParam(urlParams.hideWebViewLoading)
