@@ -142,7 +142,7 @@ export const SliderSettingsPalette =
               onFocus={e => { handleSelectOnFocus(e); handleMultiplesOfFocus() }}
               onBlur={handleMultiplesOfBlur}
               onKeyDown={handleInputKeyDown(handleMultiplesOfBlur)}
-              {...(isDate ? { "data-testid": "slider-variable-value-text-input" } : {})}
+              data-testid="slider-multiples-value-input"
             />
           </span>
           {isDate && (() => {
@@ -150,7 +150,7 @@ export const SliderSettingsPalette =
               t("DG.CaseTable.attributeEditor.datePrecisionOptions").split(" ")
             return (
               <Select
-                aria-label={t("DG.CaseTable.attributeEditor.datePrecision")}
+                aria-labelledby="slider-multiples-label"
                 className="slider-select-container slider-date-unit-select"
                 value={sliderModel.dateMultipleOfUnit}
                 onChange={handleDateMultipleOfUnitChange}
@@ -195,7 +195,9 @@ export const SliderSettingsPalette =
       >
         <div className={paletteFormClass}>
           <div className="palette-row">
-            <label className="form-label" htmlFor="slider-multiples-input">{t("DG.Slider.multiples")}</label>
+            <label className="form-label" id="slider-multiples-label" htmlFor="slider-multiples-input">
+              {t("DG.Slider.multiples")}
+            </label>
             {renderMultiplesOfField()}
           </div>
           <div className="palette-row">
