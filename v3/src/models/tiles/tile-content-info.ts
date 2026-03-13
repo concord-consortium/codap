@@ -1,4 +1,5 @@
 import { IAnyStateTreeNode } from "mobx-state-tree"
+import { t } from "../../utilities/translation/translate"
 import { FormulaManagerAdapter } from "../formula/formula-manager-adapter"
 import { AppConfigModelType } from "../stores/app-config-model"
 import { TileContentModel, ITileContentSnapshotWithType, ITileContentModel } from "./tile-content"
@@ -85,6 +86,13 @@ export function getTilePrefixes() {
 export function getTitle(tile?: ITileLikeModel) {
   const tileContentInfo = getTileContentInfo(tile?.content.type)
   return (tile && tileContentInfo?.getTitle?.(tile)) ?? ""
+}
+
+export function getTileTypeLabel(type?: string): string {
+  if (!type) return t("V3.TileType.Unknown")
+  const key = `V3.TileType.${type}`
+  const label = t(key)
+  return label !== key ? label : t("V3.TileType.Unknown")
 }
 
 export interface ITileExportOptions {
