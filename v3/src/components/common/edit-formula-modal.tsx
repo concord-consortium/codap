@@ -114,13 +114,6 @@ export const EditFormulaModal = observer(function EditFormulaModal({
     if (event.key === "Enter" && isCommandKeyDown(event)) {
       applyAndClose()
     }
-    if (event.key === "Tab" && event.shiftKey && (event.target as HTMLElement)?.closest(".cm-editor")) {
-      // Allow Shift+Tab out of CodeMirror to the attr name input (if focusable)
-      if (titleInput) {
-        event.preventDefault()
-        attrNameInputRef.current?.focus()
-      }
-    }
     if (event.key === "Escape") {
       if (showValuesMenu) {
         handleInsertValuesClose()
@@ -128,10 +121,6 @@ export const EditFormulaModal = observer(function EditFormulaModal({
         handleInsertFunctionsClose()
       } else if (isAutoCompleteMenuOpen.current) {
         // Let CodeMirror handle closing autocomplete
-      } else if ((event.target as HTMLElement)?.closest(".cm-editor")) {
-        // Move focus out of CodeMirror to the first insert button
-        // so users can Tab to other controls. A second Escape closes the modal.
-        insertValueButtonRef.current?.focus()
       } else {
         closeModal()
       }

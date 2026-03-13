@@ -169,7 +169,9 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
               onPointerDown={handleTitlePointerDown}
               onPointerMove={handleTitlePointerMove}
             >
-              <h3>{isHovering && title === "" ? blankTitle : title}</h3>
+              <div className="title-text-content">
+                {isHovering && title === "" ? blankTitle : title}
+              </div>
             </div>
           )
         }
