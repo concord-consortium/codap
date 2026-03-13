@@ -8,7 +8,6 @@ import { ISliderModel } from "../slider-model"
 import {AnimationDirection, AnimationDirections, AnimationMode, AnimationModes, kDefaultAnimationRate}
   from "../slider-types"
 import PlaybackIcon from "../../../assets/icons/inspector-panel/playback-settings-icon.svg"
-import { useFocusTrap } from "../../../hooks/use-focus-trap"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import { DateUnit, dateUnits, getDateUnitLabel } from "../../../utilities/date-utils"
 import { t } from "../../../utilities/translation/translate"
@@ -31,7 +30,6 @@ export const SliderSettingsPalette =
     multiplesRef.current = multiplesValue
     const [isEditing, setIsEditing] = useState(false)
     const [animationRateValue, setAnimationRateValue] = useState(String(sliderModel.animationRate))
-    const { formRef, handleFormKeyDown } = useFocusTrap()
 
     useEffect(() => {
       setMultiplesValue(sliderModel.multipleOf != null ? String(sliderModel.multipleOf) : "")
@@ -195,7 +193,7 @@ export const SliderSettingsPalette =
         panelRect={panelRect}
         buttonRect={buttonRect}
       >
-        <div ref={formRef} className={paletteFormClass} onKeyDown={handleFormKeyDown}>
+        <div className={paletteFormClass}>
           <div className="palette-row">
             <label className="form-label" htmlFor="slider-multiples-input">{t("DG.Slider.multiples")}</label>
             {renderMultiplesOfField()}

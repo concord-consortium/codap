@@ -4,7 +4,6 @@ import {
   Button, ListBox, ListBoxItem, Popover, Select, SelectValue
 } from "react-aria-components"
 import ScaleIcon from "../../../assets/icons/inspector-panel/data-icon.svg"
-import { useFocusTrap } from "../../../hooks/use-focus-trap"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import { convertToDate, createDateFromEpochSeconds, formatDateForInput } from "../../../utilities/date-utils"
 import { t } from "../../../utilities/translation/translate"
@@ -26,7 +25,6 @@ export const SliderScalesPalette =
     const scaleType = sliderModel.scaleType
     const [minInputValue, setMinInputValue] = useState(sliderModel.axis.minDisplay)
     const [maxInputValue, setMaxInputValue] = useState(sliderModel.axis.maxDisplay)
-    const { formRef, handleFormKeyDown } = useFocusTrap()
 
     useEffect(() => {
       setMinInputValue(sliderModel.axis.minDisplay)
@@ -148,7 +146,7 @@ export const SliderScalesPalette =
         panelRect={panelRect}
         buttonRect={buttonRect}
       >
-        <div ref={formRef} className="palette-form scale-settings" onKeyDown={handleFormKeyDown}>
+        <div className="palette-form scale-settings">
           <div className="palette-row">
             <label className="form-label" id="slider-scale-type-label">{t("V3.Slider.scaleType")}</label>
             <Select

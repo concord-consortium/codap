@@ -519,6 +519,44 @@ context("Slider keyboard accessibility", () => {
     cy.get("[data-testid=codap-inspector-palette]").should("not.exist")
     slider.getRulerIcon().should("be.focused")
   })
+  it("inspector palette focus trap cycles Tab within the palette", () => {
+    cy.log("Full Tab cycle through Scale palette: scale-type button → min → max → wraps to scale-type")
+    c.selectTile("slider", 0)
+    slider.getRulerIcon().click()
+    cy.get("[data-testid=codap-inspector-palette]").should("exist")
+    // Scale palette has 3 focusable elements: scale-type button, min input, max input.
+    // Start at the scale-type button and Tab through the full cycle.
+    cy.get("[data-testid=slider-scale-type-button]").focus()
+    cy.get("[data-testid=slider-scale-type-button]").should("be.focused")
+    cy.realPress("Tab")
+    cy.get("[data-testid=slider-minimum]").should("be.focused")
+    cy.realPress("Tab")
+    cy.get("[data-testid=slider-maximum]").should("be.focused")
+    // Tab from last element wraps back to first
+    cy.realPress("Tab")
+    cy.get("[data-testid=slider-scale-type-button]").should("be.focused")
+
+    cy.log("Full Shift+Tab reverse cycle: scale-type → wraps to max → min → scale-type")
+    cy.realPress(["Shift", "Tab"])
+    cy.get("[data-testid=slider-maximum]").should("be.focused")
+    cy.realPress(["Shift", "Tab"])
+    cy.get("[data-testid=slider-minimum]").should("be.focused")
+    cy.realPress(["Shift", "Tab"])
+    cy.get("[data-testid=slider-scale-type-button]").should("be.focused")
+    slider.closePalette()
+
+    cy.log("Tab wraps within the Playback palette")
+    slider.clickInspectorPanel()
+    cy.get("[data-testid=codap-inspector-palette]").should("exist")
+    // The Playback palette has: multiples input, animation rate input, direction button, mode button.
+    // Focus the last button and Tab — should wrap back to the first input.
+    cy.get("[data-testid=slider-animation-repetition]").focus()
+    cy.get("[data-testid=slider-animation-repetition]").should("be.focused")
+    cy.realPress("Tab")
+    // Should wrap to the first focusable element (the multiples input)
+    cy.get("[data-testid=slider-restrict-multiples]").find("input").should("be.focused")
+    slider.closePalette()
+  })
   it("scale panel settings", () => {
     cy.log("scale palette opens and shows min/max inputs")
     c.selectTile("slider", 0)

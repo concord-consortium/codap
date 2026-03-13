@@ -158,6 +158,22 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
     if (e.key === "Escape") {
       setShowPalette(undefined)
     }
+    if (e.key === "Tab") {
+      if (!paletteRef.current) return
+      const focusable = Array.from(paletteRef.current.querySelectorAll<HTMLElement>(
+        'a[href], area[href], input, button, select, textarea, [tabindex]:not([tabindex="-1"])'
+      )).filter(el => el.offsetParent !== null && !el.closest('[aria-hidden="true"]'))
+      if (focusable.length === 0) return
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
   }
 
   useEffect(() => {
