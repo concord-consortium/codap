@@ -168,7 +168,7 @@ context("Slider UI", () => {
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
     slider.setAnimationRate(50)
-    slider.setAnimationDirection("lowToHigh")
+    slider.setAnimationDirection("Low to High")
     slider.getVariableValue().should("contain", initialSliderValue)
     slider.playSliderButton()
     slider.checkPlayButtonIsRunning()
@@ -184,9 +184,9 @@ context("Slider UI", () => {
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
     slider.setAnimationRate(5)
-    slider.setAnimationDirection("backAndForth")
+    slider.setAnimationDirection("Back and Forth")
     slider.setMultipleRestriction("1")
-    slider.getVariableValue().should("contain", initialSliderValue)
+    slider.getVariableValue().should("contain", 1)
     slider.playSliderButton()
     slider.checkPlayButtonIsRunning()
     cy.tick(2000)   // 10 ticks at 200ms each: slider reaches 11
@@ -204,7 +204,7 @@ context("Slider UI", () => {
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
     slider.setAnimationRate(50)
-    slider.setAnimationDirection("highToLow")
+    slider.setAnimationDirection("High to Low")
     slider.changeVariableValue(finalSliderValue)
     slider.getVariableValue().should("contain", finalSliderValue)
     slider.playSliderButton()
@@ -222,7 +222,7 @@ context("Slider UI", () => {
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
     slider.setAnimationRate(50)
-    slider.setAnimationRepetition("nonStop")
+    slider.setAnimationRepetition("Nonstop")
 
     // Initial value check
     slider.getVariableValue().should("contain", initialSliderValue)
@@ -310,48 +310,39 @@ context("Slider UI", () => {
     slider.getVariableName(0).should("eq", sliderName)
     slider.getVariableName(1).should("eq", newSliderName)
   })
-  // TODO: This test is flaky and needs to be fixed
-  it.skip("checks slider with dates", () => {
-    const today = new Date().toLocaleDateString("en-US") // Adjust locale as needed
-    const minValue = "01/01/2023" // Set an example minimum date
-    const maxValue = "12/31/2023" // Set an example maximum date
-    const expectedYear = "2023" // Expected year based on min and max values
+  it("checks slider with dates", () => {
+    const currentYear = new Date().getFullYear()
+    const minValue = `${currentYear}-01-01`
+    const maxValue = `${currentYear}-12-31`
 
     cy.log("Change from numeric to date display")
     c.selectTile("slider", 0)
-    slider.selectScaleType('date') // Use 'date' to match the data-testid
-    cy.get('[data-testid="slider-variable-value-text-input"]')
-    .invoke('val') // Get the value of the input
-    .should('include', today) // Check if today's date is included
-    cy.get('.codap-inspector-palette-header-title').click() // Close the scale type dropdown
+    slider.selectScaleType("date")
 
-    cy.log("set the minimum value and verify it is displayed correctly")
-    cy.get('[data-testid="slider-minimum"]')
-      .should('be.visible')
-      .should('be.enabled')
+    cy.log("Verify the value input shows a date (contains a slash)")
+    slider.getVariableValueInput()
+      .invoke("val").should("match", /\//)
+
+    cy.log("Set min and max date values")
+    // Min/max inputs are type="date" and expect YYYY-MM-DD format
+    cy.get("[data-testid=slider-minimum]")
+      .should("be.visible")
       .clear()
-      .type(minValue, { delay: 200 })
-      .should('have.value', minValue)
-      .blur()  // Ensure the value is committed
-
-    // Set the maximum value and verify it's displayed correctly
-    cy.get('[data-testid="slider-maximum"]')
+      .type(minValue)
+      .should("have.value", minValue)
+      .blur()
+    cy.get("[data-testid=slider-maximum]")
       .clear()
       .type(maxValue)
-      .should('have.value', maxValue)
+      .should("have.value", maxValue)
+      .blur()
 
-    // Check that the year displayed on the axis matches the expected year
+    cy.log("Check that the axis displays the expected year")
+    slider.closePalette()
     c.selectTile("slider", 0)
-    cy.get('[data-testid="axis-bottom"]')
-    .find('text')
-    .contains(expectedYear)
-
-    cy.log("Start playing and verify the button state with dates")
-    slider.playSliderButton()
-    slider.checkPlayButtonIsRunning()
-
-    // Wait and verify it reaches April 30
-    slider.getVariableValue().should("contain", "4/30/2023")
+    cy.get("[data-testid=axis-bottom]")
+      .find("text")
+      .contains(`${currentYear}`)
   })
   it("checks editing variable value in one slider only affects that slider", () => {
     const newVariableValue = "0.5"
@@ -508,5 +499,90 @@ context("Slider keyboard accessibility", () => {
 
     cy.log("thumb icon SVG is hidden from screen readers")
     slider.getSliderThumbIcon().find("svg").should("have.attr", "aria-hidden", "true")
+
+    cy.log("thumb icon has tooltip for sighted users")
+    slider.getSliderThumbIcon().should("have.attr", "title")
+  })
+  it("inspector palette keyboard interaction", () => {
+    cy.log("Escape closes Playback palette and restores focus to inspector button")
+    c.selectTile("slider", 0)
+    slider.getInspectorIcon().click()
+    cy.get("[data-testid=codap-inspector-palette]").should("exist")
+    cy.get("[data-testid=codap-inspector-palette]").find("input").first().type("{esc}")
+    cy.get("[data-testid=codap-inspector-palette]").should("not.exist")
+    slider.getInspectorIcon().should("be.focused")
+
+    cy.log("Escape closes Scale palette and restores focus to inspector button")
+    slider.getRulerIcon().click()
+    cy.get("[data-testid=codap-inspector-palette]").should("exist")
+    cy.get("[data-testid=codap-inspector-palette]").find("input").first().type("{esc}")
+    cy.get("[data-testid=codap-inspector-palette]").should("not.exist")
+    slider.getRulerIcon().should("be.focused")
+  })
+  it("inspector palette focus trap cycles Tab within the palette", () => {
+    cy.log("Full Tab cycle through Scale palette: scale-type button → min → max → wraps to scale-type")
+    c.selectTile("slider", 0)
+    slider.getRulerIcon().click()
+    cy.get("[data-testid=codap-inspector-palette]").should("exist")
+    // Scale palette has 3 focusable elements: scale-type button, min input, max input.
+    // Start at the scale-type button and Tab through the full cycle.
+    cy.get("[data-testid=slider-scale-type-button]").focus()
+    cy.get("[data-testid=slider-scale-type-button]").should("be.focused")
+    cy.realPress("Tab")
+    cy.get("[data-testid=slider-minimum]").should("be.focused")
+    cy.realPress("Tab")
+    cy.get("[data-testid=slider-maximum]").should("be.focused")
+    // Tab from last element wraps back to first
+    cy.realPress("Tab")
+    cy.get("[data-testid=slider-scale-type-button]").should("be.focused")
+
+    cy.log("Full Shift+Tab reverse cycle: scale-type → wraps to max → min → scale-type")
+    cy.realPress(["Shift", "Tab"])
+    cy.get("[data-testid=slider-maximum]").should("be.focused")
+    cy.realPress(["Shift", "Tab"])
+    cy.get("[data-testid=slider-minimum]").should("be.focused")
+    cy.realPress(["Shift", "Tab"])
+    cy.get("[data-testid=slider-scale-type-button]").should("be.focused")
+    slider.closePalette()
+
+    cy.log("Tab wraps within the Playback palette")
+    slider.clickInspectorPanel()
+    cy.get("[data-testid=codap-inspector-palette]").should("exist")
+    // The Playback palette has: multiples input, animation rate input, direction button, mode button.
+    // Focus the last button and Tab — should wrap back to the first input.
+    cy.get("[data-testid=slider-animation-repetition]").focus()
+    cy.get("[data-testid=slider-animation-repetition]").should("be.focused")
+    cy.realPress("Tab")
+    // Should wrap to the first focusable element (the multiples input)
+    cy.get("[data-testid=slider-restrict-multiples]").find("input").should("be.focused")
+    slider.closePalette()
+  })
+  it("scale panel settings", () => {
+    cy.log("scale palette opens and shows min/max inputs")
+    c.selectTile("slider", 0)
+    slider.getRulerIcon().click()
+    cy.get("[data-testid=codap-inspector-palette]").should("exist")
+    cy.get("[data-testid=slider-minimum]").should("be.visible")
+    cy.get("[data-testid=slider-maximum]").should("be.visible")
+
+    cy.log("min/max inputs accept and commit numeric values")
+    cy.get("[data-testid=slider-minimum]").clear().type("0{enter}")
+    cy.get("[data-testid=slider-minimum]").should("have.value", "0")
+    cy.get("[data-testid=slider-maximum]").clear().type("100{enter}")
+    cy.get("[data-testid=slider-maximum]").should("have.value", "100")
+    slider.closePalette()
+
+    cy.log("select controls have accessible labels via aria-labelledby")
+    slider.getRulerIcon().click()
+    cy.get("#slider-scale-type-label").should("exist")
+    cy.get("[data-testid=slider-scale-type-button]")
+      .closest("[aria-labelledby]")
+      .invoke("attr", "aria-labelledby").should("contain", "slider-scale-type-label")
+    slider.closePalette()
+
+    slider.clickInspectorPanel()
+    cy.get("#slider-direction-label").should("exist")
+    cy.get("#slider-mode-label").should("exist")
+    slider.closePalette()
   })
 })

@@ -28,6 +28,19 @@ export function isDatePrecision(value: any): value is DatePrecision {
   return typeof value === "string" && (datePrecisions as readonly string[]).includes(value)
 }
 
+/**
+ * Returns a translated, pluralized date unit label (e.g. "year" vs "years").
+ * Uses Intl.PluralRules with CLDR categories (one/other) for proper i18n.
+ * The `count` parameter determines the plural form; it defaults to 1 (singular).
+ */
+export function getDateUnitLabel(unit: DateUnit, count = 1) {
+  const absCount = isFinite(count) ? Math.abs(count) : 1
+  const category = new Intl.PluralRules(gLocale.current).select(absCount)
+  // Normalize to "one"/"other" since we only define those two plural forms in translations
+  const normalizedCategory = category === "one" ? category : "other"
+  return translate(`V3.dateUnit.${unit}.${normalizedCategory}`)
+}
+
 // Constants for converting between units of time and milliseconds
 export const secondsConverter = {
   kSecond: 1000,

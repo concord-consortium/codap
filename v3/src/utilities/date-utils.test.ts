@@ -1,4 +1,4 @@
-import { convertToDate, createDate } from "./date-utils"
+import { convertToDate, createDate, getDateUnitLabel } from "./date-utils"
 
 describe('createDate', () => {
   it('returns current date if no arguments are provided', () => {
@@ -72,5 +72,45 @@ describe('convertToDate', () => {
     expect(convertToDate('invalid')).toBeNull()
     expect(convertToDate(Infinity)).toBeNull()
     expect(convertToDate(null)).toBeNull()
+  })
+})
+
+describe("getDateUnitLabel", () => {
+  // The positive-number singular/plural tests check every unit to verify that the
+  // corresponding translation keys (e.g. V3.dateUnit.second.other) all exist.
+  // The pluralization logic itself is unit-independent (driven by Intl.PluralRules),
+  // so the negative-number tests only need a single representative unit.
+  it("returns singular form for count of 1", () => {
+    expect(getDateUnitLabel("year", 1)).toBe("year")
+    expect(getDateUnitLabel("month", 1)).toBe("month")
+    expect(getDateUnitLabel("day", 1)).toBe("day")
+    expect(getDateUnitLabel("second", 1)).toBe("second")
+    expect(getDateUnitLabel("millisecond", 1)).toBe("millisecond")
+  })
+
+  it("returns plural form for counts other than 1", () => {
+    expect(getDateUnitLabel("year", 2)).toBe("years")
+    expect(getDateUnitLabel("month", 5)).toBe("months")
+    expect(getDateUnitLabel("day", 0)).toBe("days")
+    expect(getDateUnitLabel("second", 100)).toBe("seconds")
+    expect(getDateUnitLabel("millisecond", 3)).toBe("milliseconds")
+  })
+
+  it("returns singular form for -1", () => {
+    expect(getDateUnitLabel("year", -1)).toBe("year")
+  })
+
+  it("returns plural form for other negative counts", () => {
+    expect(getDateUnitLabel("year", -2)).toBe("years")
+  })
+
+  it("defaults to singular when count is omitted", () => {
+    expect(getDateUnitLabel("year")).toBe("year")
+    expect(getDateUnitLabel("day")).toBe("day")
+  })
+
+  it("defaults to singular for non-finite counts", () => {
+    expect(getDateUnitLabel("year", NaN)).toBe("year")
+    expect(getDateUnitLabel("year", Infinity)).toBe("year")
   })
 })

@@ -1,6 +1,7 @@
 import { forwardRef, Box, Button, Menu, MenuButton } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import React, { ReactNode, RefObject, useEffect, useRef, useState } from "react"
+import { useFocusTrap } from "../hooks/use-focus-trap"
 import { useOutsidePointerDown } from "../hooks/use-outside-pointer-down"
 import { isWithinBounds, getPaletteTopPosition } from "../utilities/view-utils"
 
@@ -120,6 +121,7 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
   const [paletteWidth, setPaletteWidth] = useState(0)
   const [paletteHeight, setPaletteHeight] = useState(0)
   const paletteRef = useRef<HTMLDivElement>(null)
+  const { handleFocusTrapKeyDown } = useFocusTrap(paletteRef)
   const pointerRef = useRef<HTMLDivElement>(null)
   const viewportEl = paletteRef.current?.closest(".tile-row")
   const [inBounds, setInBounds] = useState(() => isWithinBounds(panelRight, paletteRef.current))
@@ -129,6 +131,7 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
   const paletteTop = (tempPaletteTop && paletteHeight) &&
     getPaletteTopPosition(tempPaletteTop, paletteHeight, pointerMidpoint)
   const headerId = title ? `palette-header-${title.replace(/\s+/g, "-").toLowerCase()}` : undefined
+  const previousFocusRef = useRef<HTMLElement | null>(null)
 
   useEffect(()=> {
     const observer = viewportEl && new ResizeObserver(entries => {
@@ -157,12 +160,17 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
     if (e.key === "Escape") {
       setShowPalette(undefined)
     }
+    handleFocusTrapKeyDown(e)
   }
 
   useEffect(() => {
+    previousFocusRef.current = document.activeElement as HTMLElement
     if (paletteRef.current) {
       setPaletteWidth(paletteRef.current.offsetWidth)
       paletteRef.current.focus()
+    }
+    return () => {
+      previousFocusRef.current?.focus()
     }
   }, [])
 
@@ -176,7 +184,7 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
     <div className="codap-inspector-palette-wrapper" style={wrapperStyle}>
       <div ref={pointerRef} className={`palette-pointer ${inBounds ? "arrow-left" : "arrow-right"}`}
           style={{top: pointerTop - (paletteTop || 0), ...pointerStyle}} />
-      <div ref={paletteRef} className="codap-inspector-palette" tabIndex={0}
+      <div ref={paletteRef} className="codap-inspector-palette" tabIndex={-1}
           role="region" aria-labelledby={headerId}
           data-testid="codap-inspector-palette" onKeyDown={handleKeyDown}>
         <PaletteHeader id={headerId} Icon={Icon} title={title} />

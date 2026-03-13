@@ -1,17 +1,16 @@
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"
 import {
-  Button, Flex, FormControl, FormLabel, Menu, MenuButton, MenuItem, MenuList, NumberInput, NumberInputField
-} from "@chakra-ui/react"
-import { useMenuItemScrollIntoView } from "../../../hooks/use-menu-item-scroll-into-view"
+  Button, ListBox, ListBoxItem, Popover, Select, SelectValue
+} from "react-aria-components"
 import { InspectorPalette } from "../../inspector-panel"
 import { ISliderModel } from "../slider-model"
 import {AnimationDirection, AnimationDirections, AnimationMode, AnimationModes, kDefaultAnimationRate}
   from "../slider-types"
+import PlaybackIcon from "../../../assets/icons/inspector-panel/playback-settings-icon.svg"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
-import { DateUnit, dateUnits } from "../../../utilities/date-utils"
+import { DateUnit, dateUnits, getDateUnitLabel } from "../../../utilities/date-utils"
 import { t } from "../../../utilities/translation/translate"
-import ScaleIcon from "../../../assets/icons/icon-stopwatch.svg"
 
 import "./slider-settings-panel.scss"
 
@@ -24,20 +23,30 @@ interface IProps {
 
 export const SliderSettingsPalette =
   observer(function SliderSettingsPalette({sliderModel, panelRect, buttonRect, setShowPalette}: IProps) {
-
-    const numberInputRef = useRef<HTMLInputElement>(null)
-    const handleMenuFocus = useMenuItemScrollIntoView()
-
     const scaleType = sliderModel.scaleType
+    const initialMultiples = sliderModel.multipleOf != null ? String(sliderModel.multipleOf) : ""
+    const [multiplesValue, setMultiplesValue] = useState(initialMultiples)
+    const multiplesRef = useRef(multiplesValue)
+    multiplesRef.current = multiplesValue
     const [isEditing, setIsEditing] = useState(false)
+    const [animationRateValue, setAnimationRateValue] = useState(String(sliderModel.animationRate))
 
-    const handleMultiplesOfFocus = () => {
-      setIsEditing(true)
+    useEffect(() => {
+      setMultiplesValue(sliderModel.multipleOf != null ? String(sliderModel.multipleOf) : "")
+    }, [sliderModel.multipleOf])
+
+    useEffect(() => {
+      setAnimationRateValue(String(sliderModel.animationRate))
+    }, [sliderModel.animationRate])
+
+    const handleSelectOnFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+      e.target.select()
     }
 
     const handleAcceptMultiplesOf = useCallback((value: string) => {
-      const multipleOf = value ? parseFloat(value) : undefined
-      if (!multipleOf || isFinite(multipleOf)) {
+      const parsed = value ? parseFloat(value) : undefined
+      const multipleOf = parsed === undefined || isFinite(parsed) ? parsed : undefined
+      if (multipleOf === undefined || isFinite(multipleOf)) {
         sliderModel.applyModelChange(() => {
           sliderModel.setMultipleOf(multipleOf)
         }, {
@@ -50,11 +59,17 @@ export const SliderSettingsPalette =
       setIsEditing(false)
     }, [sliderModel])
 
-    const handleMultiplesOfBlur = useCallback((event: React.FocusEvent<HTMLInputElement>) => {
-      handleAcceptMultiplesOf(event.target.value)
+    const handleMultiplesOfFocus = () => {
+      setIsEditing(true)
+    }
+
+    const handleMultiplesOfBlur = useCallback(() => {
+      handleAcceptMultiplesOf(multiplesRef.current)
     }, [handleAcceptMultiplesOf])
 
-    const handleDateMultipleOfUnitChange = (precision: DateUnit) => {
+    const handleDateMultipleOfUnitChange = (key: React.Key | null) => {
+      if (key == null) return
+      const precision = key as DateUnit
       sliderModel.applyModelChange(() => {
         sliderModel.setDateMultipleOfUnit(precision)
       }, {
@@ -65,8 +80,8 @@ export const SliderSettingsPalette =
       })
     }
 
-    const handleAnimationRateChange = (value: string) => {
-      const animationRate = value ? parseFloat(value) : kDefaultAnimationRate
+    const handleAnimationRateBlur = () => {
+      const animationRate = animationRateValue ? parseFloat(animationRateValue) : kDefaultAnimationRate
       if (isFinite(animationRate)) {
         sliderModel.applyModelChange(() => {
           sliderModel.setAnimationRate(animationRate)
@@ -76,146 +91,177 @@ export const SliderSettingsPalette =
           log: logStringifiedObjectMessage("sliderMaxPerSecond: %@",
             {name: sliderModel.name, maxPerSecond: animationRate})
         })
+      } else {
+        setAnimationRateValue(String(sliderModel.animationRate))
       }
     }
 
-    const handleAnimationDirectionChange = (value: string) => {
+    const handleAnimationDirectionChange = (key: React.Key | null) => {
+      if (key == null) return
+      const direction = key as AnimationDirection
       sliderModel.applyModelChange(() => {
-        sliderModel.setAnimationDirection(value as AnimationDirection)
+        sliderModel.setAnimationDirection(direction)
       }, {
         undoStringKey: "DG.Undo.slider.changeDirection",
         redoStringKey: "DG.Redo.slider.changeDirection",
         log: logStringifiedObjectMessage("sliderAnimationDirection: %@",
-          {name: sliderModel.name, direction: value})
+          {name: sliderModel.name, direction})
       })
     }
 
-    const handleSliderAnimationModeChange = (value: string) => {
+    const handleSliderAnimationModeChange = (key: React.Key | null) => {
+      if (key == null) return
+      const mode = key as AnimationMode
       sliderModel.applyModelChange(() => {
-        sliderModel.setAnimationMode(value as AnimationMode)
+        sliderModel.setAnimationMode(mode)
       }, {
         undoStringKey: "DG.Undo.slider.changeRepetition",
         redoStringKey: "DG.Redo.slider.changeRepetition",
         log: logStringifiedObjectMessage("sliderRepetitionMode: %@",
-          {name: sliderModel.name, mode: value})
+          {name: sliderModel.name, mode})
       })
     }
 
-    const renderMultiplesOfField = () => {
-      if (scaleType === "numeric") {
-        return (
-          <NumberInput className="slider-input multiples" size="xs" defaultValue={sliderModel.multipleOf}
-                       onBlur={handleMultiplesOfBlur} onFocus={handleMultiplesOfFocus}
-                       data-testid="slider-restrict-multiples">
-            <NumberInputField ref={numberInputRef}/>
-          </NumberInput>
-        )
-      } else {
-        // localized date precision strings are displayed in the menu
-        const langDatePrecisionOptions = t("DG.CaseTable.attributeEditor.datePrecisionOptions").split(" ")
-        return (
-          <>
-            <NumberInput className="slider-input multiples-input" size="xs" defaultValue={sliderModel.multipleOf}
-                         onBlur={handleMultiplesOfBlur} onFocus={handleMultiplesOfFocus}
-                         data-testid="slider-restrict-multiples">
-              <NumberInputField ref={numberInputRef} data-testid="slider-variable-value-text-input"/>
-            </NumberInput>
-            <Menu>
-              <MenuButton as={Button} className="slider-select direction" sx={{height: "20px"}}
-                aria-label={t("DG.CaseTable.attributeEditor.datePrecision")}>
-                {sliderModel.dateMultipleOfUnit}
-              </MenuButton>
-              <MenuList onFocus={handleMenuFocus}>
-                {dateUnits.map((aPrecision, index) => (
-                  <MenuItem key={aPrecision} onClick={() => handleDateMultipleOfUnitChange(aPrecision)}>
-                    {langDatePrecisionOptions[index]}
-                  </MenuItem>
-                ))}
-              </MenuList>
-            </Menu>
-          </>
-        )
+    const handleInputKeyDown = (commitFn: () => void) => (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") commitFn()
+    }
 
-      }
+    const multiplesCount = multiplesValue ? parseFloat(multiplesValue) : 1
+
+    const renderMultiplesOfField = () => {
+      const isDate = scaleType !== "numeric"
+      const inputClass = `slider-input ${isDate ? "multiples-input" : "multiples"}`
+      return (
+        <>
+          <span className={inputClass} data-testid="slider-restrict-multiples">
+            <input
+              id="slider-multiples-input"
+              size={Math.max(1, multiplesValue.length)}
+              value={multiplesValue}
+              onChange={e => setMultiplesValue(e.target.value)}
+              onFocus={e => { handleSelectOnFocus(e); handleMultiplesOfFocus() }}
+              onBlur={handleMultiplesOfBlur}
+              onKeyDown={handleInputKeyDown(handleMultiplesOfBlur)}
+              data-testid="slider-multiples-value-input"
+            />
+          </span>
+          {isDate && (() => {
+            const langDatePrecisionOptions =
+              t("DG.CaseTable.attributeEditor.datePrecisionOptions").split(" ")
+            return (
+              <Select
+                aria-labelledby="slider-multiples-label"
+                className="slider-select-container slider-date-unit-select"
+                value={sliderModel.dateMultipleOfUnit}
+                onChange={handleDateMultipleOfUnitChange}
+              >
+                <Button className="slider-select direction" data-testid="slider-date-unit">
+                  {getDateUnitLabel(sliderModel.dateMultipleOfUnit, multiplesCount)}
+                  <span aria-hidden="true" className="select-arrow">▾</span>
+                </Button>
+                <Popover>
+                  <ListBox>
+                    {dateUnits.map((aPrecision, index) => (
+                      <ListBoxItem key={aPrecision} id={aPrecision}>
+                        {langDatePrecisionOptions[index]}
+                      </ListBoxItem>
+                    ))}
+                  </ListBox>
+                </Popover>
+              </Select>
+            )
+          })()}
+        </>
+      )
     }
 
     useEffect(() => {
-      const currentNumberInputRef = numberInputRef.current
       return () => {
-        if (isEditing && currentNumberInputRef) {
-          handleAcceptMultiplesOf(currentNumberInputRef.value)
+        if (isEditing) {
+          handleAcceptMultiplesOf(multiplesRef.current)
         }
       }
     }, [isEditing, handleAcceptMultiplesOf])
 
+    const paletteFormClass = `palette-form playback-settings${scaleType === "date" ? " date-mode" : ""}`
+
     return (
       <InspectorPalette
         title={t("V3.Inspector.animation")}
-        Icon={<ScaleIcon/>}
+        Icon={<PlaybackIcon/>}
         setShowPalette={setShowPalette}
         panelRect={panelRect}
         buttonRect={buttonRect}
       >
-        <Flex className="palette-form" direction="column">
-          <FormControl size="xs">
-            <Flex className="palette-row">
-              <FormLabel className="form-label">{t("DG.Slider.multiples")}
-                {renderMultiplesOfField()}
-              </FormLabel>
-            </Flex>
-          </FormControl>
-          <FormControl>
-            <Flex className="palette-row">
-              <FormLabel className="form-label">{t("DG.Slider.maxPerSecond")}
-                <NumberInput className="slider-input animation-rate" size="xs"
-                             defaultValue={sliderModel._animationRate}
-                             onChange={handleAnimationRateChange} data-testid="slider-animation-rate">
-                  <NumberInputField/>
-                </NumberInput>
-              </FormLabel>
-            </Flex>
-          </FormControl>
-          <FormControl>
-            <Flex className="palette-row">
-              <FormLabel className="form-label">{t("DG.Slider.direction")}
-                <Menu>
-                  <MenuButton as={Button} className="slider-select direction" sx={{height: "20px"}}
-                    aria-label={t("DG.Slider.direction")}
-                    data-testid="slider-animation-direction">
-                    {sliderModel.animationDirection}
-                  </MenuButton>
-                  <MenuList onFocus={handleMenuFocus}>
-                    {AnimationDirections.map(aDirection => (
-                      <MenuItem key={aDirection} onClick={() => handleAnimationDirectionChange(aDirection)}>
-                        {aDirection}
-                      </MenuItem>
-                    ))}
-                  </MenuList>
-                </Menu>
-              </FormLabel>
-            </Flex>
-          </FormControl>
-          <FormControl>
-            <Flex className="palette-row">
-              <FormLabel className="form-label">{t("DG.Slider.mode")}
-                <Menu>
-                  <MenuButton as={Button} className="slider-select mode" sx={{height: "20px"}}
-                    aria-label={t("DG.Slider.mode")}
-                    data-testid="slider-animation-repetition">
-                    {sliderModel.animationMode}
-                  </MenuButton>
-                  <MenuList onFocus={handleMenuFocus}>
-                    {AnimationModes.map(aMode => (
-                      <MenuItem key={aMode} onClick={() => handleSliderAnimationModeChange(aMode)}>
-                        {aMode}
-                      </MenuItem>
-                    ))}
-                  </MenuList>
-                </Menu>
-              </FormLabel>
-            </Flex>
-          </FormControl>
-        </Flex>
+        <div className={paletteFormClass}>
+          <div className="palette-row">
+            <label className="form-label" id="slider-multiples-label" htmlFor="slider-multiples-input">
+              {t("DG.Slider.multiples")}
+            </label>
+            {renderMultiplesOfField()}
+          </div>
+          <div className="palette-row">
+            <label className="form-label" htmlFor="slider-animation-rate-input">{t("DG.Slider.maxPerSecond")}</label>
+            <span className="slider-input animation-rate" data-testid="slider-animation-rate">
+              <input
+                id="slider-animation-rate-input"
+                size={Math.max(1, animationRateValue.length)}
+                value={animationRateValue}
+                onChange={e => setAnimationRateValue(e.target.value)}
+                onFocus={handleSelectOnFocus}
+                onBlur={handleAnimationRateBlur}
+                onKeyDown={handleInputKeyDown(handleAnimationRateBlur)}
+              />
+            </span>
+            <span className="form-label-suffix">{t("V3.Slider.framesPerSec")}</span>
+          </div>
+          <div className="palette-row">
+            <label className="form-label" id="slider-direction-label">{t("DG.Slider.direction")}</label>
+            <Select
+              aria-labelledby="slider-direction-label"
+              value={sliderModel.animationDirection}
+              onChange={handleAnimationDirectionChange}
+              className="slider-select-container"
+            >
+              <Button className="slider-select direction" data-testid="slider-animation-direction">
+                <SelectValue />
+                <span aria-hidden="true" className="select-arrow">▾</span>
+              </Button>
+              <Popover>
+                <ListBox>
+                  {AnimationDirections.map(aDirection => (
+                    <ListBoxItem key={aDirection} id={aDirection}>
+                      {t(`DG.Slider.${aDirection}`)}
+                    </ListBoxItem>
+                  ))}
+                </ListBox>
+              </Popover>
+            </Select>
+          </div>
+          <div className="palette-row">
+            <label className="form-label" id="slider-mode-label">{t("DG.Slider.mode")}</label>
+            <Select
+              aria-labelledby="slider-mode-label"
+              value={sliderModel.animationMode}
+              onChange={handleSliderAnimationModeChange}
+              className="slider-select-container"
+            >
+              <Button className="slider-select mode" data-testid="slider-animation-repetition">
+                <SelectValue />
+                <span aria-hidden="true" className="select-arrow">▾</span>
+              </Button>
+              <Popover>
+                <ListBox>
+                  {AnimationModes.map(aMode => (
+                    <ListBoxItem key={aMode} id={aMode}>
+                      {t(`DG.Slider.${aMode}`)}
+                    </ListBoxItem>
+                  ))}
+                </ListBox>
+              </Popover>
+            </Select>
+          </div>
+        </div>
       </InspectorPalette>
     )
   })

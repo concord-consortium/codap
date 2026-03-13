@@ -48,10 +48,11 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({
     <div
       className={clsx("slider-thumb-icon", { dragging: isDragging, "focus-visible": isFocusVisible })}
       data-testid="slider-thumb-icon"
+      title={t("DG.SliderView.thumbView.toolTip")}
       {...thumbProps}
       style={{ ...thumbProps.style, left: thumbPos, position: "relative", transform: "none" }}
     >
-      <ThumbIcon title={t("DG.SliderView.thumbView.toolTip")} />
+      <ThumbIcon />
       <input {...mergeProps(inputProps, focusProps)} ref={inputRef} className="codap-visually-hidden" />
     </div>
   )

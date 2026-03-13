@@ -1,50 +1,138 @@
 @use "../../vars";
 
 .inspector-panel.slider {
+  .palette-form.playback-settings {
+    display: flex;
+    flex-direction: column;
+    min-width: 295px;
+
+    &.date-mode {
+      min-width: 389px;
+    }
+  }
+
+  .palette-form.scale-settings {
+    display: flex;
+    flex-direction: column;
+    min-width: 216px;
+
+    .slider-input {
+      &.minimum,
+      &.maximum {
+        text-align: right;
+      }
+    }
+  }
+
   .palette-row {
     flex-direction: row;
     align-items: center;
     height: 24px;
     margin: 5px 5px 5px 0;
     white-space: nowrap;
-    label {
-      height: inherit;
-    }
+
+    // Shared styles for slider number inputs. Applies to both:
+    // - <span> wrappers (settings panel multiples/rate)
+    // - <input> elements directly (scale panel min/max)
     .slider-input {
-      height: 24px;
-      width: 74px;
       background-color: white;
+      border: 1px solid vars.$palette-icon-color;
+      border-radius: 4px;
+      box-sizing: border-box;
+      height: 24px;
       margin-left: 8px;
+      width: fit-content;
+
+      // When .slider-input is a wrapper <span>, the inner input auto-sizes via
+      // the size attribute and the wrapper shrinks to fit.
       input {
-        height: inherit;
+        background: transparent;
+        border: none;
+        box-sizing: border-box;
+        font: inherit;
+        height: 100%;
+        padding: 2px 6px;
+        outline: none;
+        text-align: right;
+      }
+
+      // When .slider-input IS the <input> (scale panel min/max)
+      &:is(input) {
+        font: inherit;
+        padding: 2px 4px 2px 0;
+      }
+
+      &:hover {
+        background: vars.$palette-hover-bg;
+        cursor: text;
+      }
+
+      &:focus,
+      &:focus-within {
+        @include vars.focus-outline($offset: 0px);
       }
 
       &.multiples-input {
-        width: 50px;
+        // Remove right border-radius so the input visually connects to the date unit dropdown
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        border-right: none;
       }
     }
-    .animation-rate-input {
-      height: 24px;
-      width: 54px;
-      background-color: white;
-    }
-    .slider-select {
-      &:focus-visible {
-        @include vars.focus-outline($offset: 0px);
-      }
-    }
-    .chakra-select__wrapper {
-      border: 1px #555 ;
-      text-shadow: 0 1px 1px white;
-      height: 24px;
-      width: 130px;
-      padding: 0;
+    .slider-select-container {
+      margin-left: 8px;
+
       .slider-select {
-        height: 24px;
-        width: 130px;
-        border: 1px solid #555;
-        margin-left: 8px;
+        align-items: center;
+        background: vars.$palette-hover-bg;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        font-size: 14px;
+        font-weight: 500;
+        gap: 4px;
+        min-width: 80px;
+        padding: 2px 10px;
+
+        &[data-hovered] {
+          background: vars.$title-bar-color;
+          border-color: vars.$palette-icon-color;
+        }
+
+        &[data-pressed],
+        &[aria-expanded="true"] {
+          background: vars.$palette-header-bg;
+        }
+
+        &[data-focus-visible] {
+          outline: 2px solid vars.$focus-outline-color;
+          outline-offset: 2px;
+        }
+
+        .select-arrow {
+          color: vars.$palette-icon-color;
+          margin-left: auto;
+          transition: transform 0.15s ease;
+        }
+
+        &[aria-expanded="true"] .select-arrow {
+          transform: rotate(180deg);
+        }
       }
+    }
+
+    .slider-date-unit-select {
+      margin-left: 0;
+
+      .slider-select {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        padding-left: 6px;
+      }
+    }
+    .form-label-suffix {
+      margin-left: 8px;
     }
   }
 }
