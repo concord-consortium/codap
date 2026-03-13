@@ -8,12 +8,14 @@ export const ToolbarElements = {
       cfm.getSettingsMenuButton().click()
       cfm.getSettingsMenuItems().eq(0).should("contain.text", "Toolbar Position: Left")
       cy.get('body').type('{esc}') // Close the menu
+      cfm.getSettingsMenu().should("not.exist")
     } else {
       cy.get(".app-container:not(.vertical-toolbar)").should("not.exist")
       cy.get(".vertical-toolbar").should("exist")
       cfm.getSettingsMenuButton().click()
       cfm.getSettingsMenuItems().eq(0).should("contain.text", "Toolbar Position: Top")
       cy.get('body').type('{esc}') // Close the menu
+      cfm.getSettingsMenu().should("not.exist")
     }
   },
   getToolShelfSelector(component: string) {

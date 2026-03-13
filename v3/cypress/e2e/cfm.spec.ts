@@ -152,7 +152,7 @@ context("CloudFileManager", () => {
     cfm.getSettingsMenuButton().click()
     cfm.getSettingsMenuItems().eq(0).click()
     ToolbarElements.confirmToolbarPosition("Left")
-    cfm.getSettingsMenuButton().click({force: true})
+    cfm.getSettingsMenuButton().click()
     cfm.getSettingsMenuItems().eq(0).click()
     ToolbarElements.confirmToolbarPosition("Top")
   })
