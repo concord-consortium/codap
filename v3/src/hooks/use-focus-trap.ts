@@ -2,10 +2,7 @@ import React, { useRef } from "react"
 
 /**
  * Creates a focus trap that keeps Tab/Shift+Tab cycling within a container.
- * Queries for visible, interactive elements and filters out hidden ones —
- * React Aria's <Select> renders a hidden native <select> inside an
- * aria-hidden wrapper that would otherwise be included and break the
- * first/last element detection.
+ * Queries for visible, interactive elements and filters out hidden ones.
  *
  * @param externalRef optional ref to use as the trap container instead of the
  *   hook's own internal ref. Useful when the caller already has a container ref
