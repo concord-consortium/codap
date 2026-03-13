@@ -1,5 +1,5 @@
 import {
-  acceptCompletion, autocompletion, closeBrackets, closeBracketsKeymap, Completion, CompletionContext,
+  autocompletion, closeBrackets, closeBracketsKeymap, Completion, CompletionContext,
   completionKeymap, CompletionResult, insertCompletionText, pickedCompletion
 } from "@codemirror/autocomplete"
 import { defaultKeymap } from "@codemirror/commands"
@@ -227,6 +227,18 @@ const codapHighlightingViewPlugin = ViewPlugin.fromClass(
   }
 )
 
+function cmMoveFocus(view: EditorView, forward: boolean): boolean {
+  const modal = view.dom.closest("[role=dialog]")
+  if (!modal) return true
+
+  const target = forward
+    ? modal.querySelector<HTMLElement>("button.insert-value")
+    : modal.querySelector<HTMLElement>("input.attr-name-input:not(:disabled)")
+      ?? modal.querySelector<HTMLElement>(".formula-modal-footer button:last-of-type")
+  target?.focus()
+  return true
+}
+
 /*
  * editor configuration
  */
@@ -250,8 +262,9 @@ function cmExtensionsSetup() {
     keymap.of(keymaps.flat()),
     Prec.highest(
       keymap.of([
-        // Tab key accepts auto-complete suggestion (https://discuss.codemirror.net/t/tab-autocompletion/6396)
-        { key: "Tab", run: acceptCompletion },
+        // Move focus out of the editor instead of inserting tab characters
+        { key: "Tab", run: (view) => cmMoveFocus(view, true) },
+        { key: "Shift-Tab", run: (view) => cmMoveFocus(view, false) },
         // Prevents CodeMirror's default behavior for Cmd-Enter key
         { key: "Mod-Enter", run: () => true }
       ])

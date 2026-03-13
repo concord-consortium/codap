@@ -1318,7 +1318,6 @@
     // V3 application level strings
     "V3.app.name": "CODAP",
     "V3.app.fullName": "Common Online Data Analysis Platform",
-    "V3.app.menuBar.ariaLabel": "CODAP application",
     "V3.app.toolbar.ariaLabel": "CODAP document",
     "V3.app.component.editTitle.ariaLabel": "Edit title",
     "V3.fileMenu.fileMenuName": "File",
