@@ -1488,6 +1488,13 @@
     "V3.dateUnit.millisecond.other": "milliseconds",
 
     // V3 web view strings that are not present in V2 and will eventually require translation.
+    "V3.WebView.iframeTitle.plugin": "Data plugin",
+    "V3.WebView.iframeTitle.guide": "Guide",
+    "V3.WebView.iframeTitle.webPage": "Web page",
+    "V3.WebView.loading": "Loading content",
+    "V3.WebView.loaded": "Content loaded",
+    "V3.WebView.embeddedImage": "Embedded image",
+    "V3.WebView.skipIframe": "Skip embedded content",
     "V3.WebView.Inspector.URL": "URL",
     "V3.WebView.Modal.PlaceholderText": "URL",
     "V3.WebView.Modal.okBtnTitle": "OK",

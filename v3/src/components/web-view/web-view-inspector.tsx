@@ -12,8 +12,6 @@ import { normalizeUrlScheme } from "./web-view-utils"
 
 import UrlIcon from "../../assets/icons/inspector-panel/web-url-icon.svg"
 
-import "./web-view-inspector.scss"
-
 export const WebViewInspector = observer(function WebViewInspector({tile, show}: ITileInspectorPanelProps) {
   const documentContent = useDocumentContent()
   const webViewModel = isWebViewModel(tile?.content) ? tile?.content : undefined

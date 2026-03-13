@@ -124,10 +124,11 @@ export function getNameFromURL(iUrl: string | URL | null | undefined): string {
   const parts = url.pathname.split("/").filter(Boolean)
 
   if (parts.length === 0) {
-    // No path → return first part of the hostname
-    // Example: sampler.concord.org → ["sampler", "concord", "org"]
+    // No path → return first meaningful part of the hostname, skipping "www"
+    // Examples: sampler.concord.org → "sampler", www.example.com → "example"
     const hostParts = url.hostname.split(".")
-    return hostParts[0] ?? ""
+    const firstPart = hostParts[0] ?? ""
+    return firstPart === "www" ? (hostParts[1] ?? "") : firstPart
   }
 
   // Return the last part of the path or empty string (if there are no meaningful path segments)

@@ -78,7 +78,7 @@ export const WebViewUrlModal = ({
         h="30"
       >
         <div className="codap-modal-icon-container">
-          <MediaToolIcon className="codap-modal-icon white-icon"/>
+          <MediaToolIcon className="codap-modal-icon"/>
         </div>
         <div className="codap-header-title"/>
       </ModalHeader>
@@ -103,9 +103,8 @@ export const WebViewUrlModal = ({
           buttons.map((b, idx) => (
             <Tooltip key={idx} label={b.tooltip} h="20px" fontSize="12px" color="white" openDelay={1000}
               placement="bottom" bottom="15px" left="15px" data-testid="modal-tooltip">
-              <Button size="xs" variant={`${b.default ? "default" : ""}`} ml="5" onClick={b.onClick}
-                _hover={{backgroundColor: "#72bfca", color: "white"}} data-testid={`${b.label}-button`}
-                isDisabled={b.disabled ?? false}>
+              <Button size="xs" variant={b.default ? "v3Default" : "v3"} ml="5" onClick={b.onClick}
+                data-testid={`${b.label}-button`} isDisabled={b.disabled ?? false}>
                 {b.label}
               </Button>
             </Tooltip>

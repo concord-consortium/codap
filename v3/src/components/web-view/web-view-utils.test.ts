@@ -106,21 +106,25 @@ describe("getNameFromURL", () => {
     expect(getNameFromURL("/datagame/game.min.html")).toBe("game")
     expect(getNameFromURL("/datagame/my.game.level.html")).toBe("my")
   })
-  it("returns first part of domain when there is no pathname in an absolute URL", () => {
+  it("returns first meaningful part of domain when there is no pathname in an absolute URL", () => {
     expect(getNameFromURL("https://sampler.concord.org/")).toBe("sampler")
     expect(getNameFromURL("https://example.com/")).toBe("example")
     expect(getNameFromURL("https://foo.bar.baz.org/")).toBe("foo")
+    expect(getNameFromURL("https://www.example.com/")).toBe("example")
   })
-  it("returns first part of domain when there is no pathname and input is a URL instance", () => {
+  it("returns first meaningful part of domain when there is no pathname and input is a URL instance", () => {
     const url1 = new URL("https://sampler.concord.org/")
     const url2 = new URL("https://example.com/")
+    const url3 = new URL("https://www.example.com/")
     expect(getNameFromURL(url1)).toBe("sampler")
     expect(getNameFromURL(url2)).toBe("example")
+    expect(getNameFromURL(url3)).toBe("example")
   })
   it("falls back to current origin's hostname when given root path '/'", () => {
     // In Jest + jsdom, window.location.origin is usually "http://localhost"
-    // so hostname is "localhost" → first part is "localhost".
-    expect(getNameFromURL("/")).toBe(window.location.hostname.split(".")[0])
+    const hostParts = window.location.hostname.split(".")
+    const expected = hostParts[0] === "www" ? (hostParts[1] ?? "") : (hostParts[0] ?? "")
+    expect(getNameFromURL("/")).toBe(expected)
   })
   it("accepts a URL instance", () => {
     const url = new URL("https://example.com/datagame/game.html?param=abc.123")

@@ -53,7 +53,7 @@ function dataUrlToObjectUrl(dataUrl: string): string | null {
  * Canvas-based image renderer used as fallback when the browser has a bug
  * rendering data URLs in <img> elements (e.g., Safari on macOS 26).
  */
-function CanvasImage({ src }: { src: string }) {
+function CanvasImage({ src, alt }: { src: string, alt: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const objectUrlRef = useRef<string | null>(null)
 
@@ -94,8 +94,10 @@ function CanvasImage({ src }: { src: string }) {
 
   return (
     <canvas
+      aria-label={alt}
       ref={canvasRef}
       className="codap-web-view-image"
+      role="img"
       style={{
         maxWidth: "100%",
         maxHeight: "100%",
@@ -108,12 +110,12 @@ function CanvasImage({ src }: { src: string }) {
 /**
  * Standard image renderer using <img> element.
  */
-function StandardImage({ src }: { src: string }) {
+function StandardImage({ src, alt }: { src: string, alt: string }) {
   return (
     <img
+      alt={alt}
       className="codap-web-view-image"
       src={src}
-      alt="Image"
     />
   )
 }
@@ -122,7 +124,7 @@ function StandardImage({ src }: { src: string }) {
  * Image component that automatically detects and works around browser bugs
  * with data URL rendering in <img> elements.
  */
-function WebViewImage({ src }: { src: string }) {
+function WebViewImage({ src, alt }: { src: string, alt: string }) {
   const [useCanvas, setUseCanvas] = useState<boolean | null>(hasDataUrlImageBug())
 
   useEffect(() => {
@@ -138,28 +140,85 @@ function WebViewImage({ src }: { src: string }) {
     return null
   }
 
-  return useCanvas ? <CanvasImage src={src} /> : <StandardImage src={src} />
+  return useCanvas ? <CanvasImage src={src} alt={alt} /> : <StandardImage src={src} alt={alt} />
 }
 
 export const WebViewComponent = observer(function WebViewComponent({ tile }: ITileBaseProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
+  const loadingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [loadingStatus, setLoadingStatus] = useState("")
   const webViewModel = tile?.content
 
   useDataInteractiveController(iframeRef, tile)
 
-  if (!isWebViewModel(webViewModel)) return null
-
   // Only append ?lang= to localized plugins that need reload on locale change.
   // This ensures their iframe src changes (triggering a reload), while non-localized
   // plugins keep a stable src and just receive a localeChanged notification instead.
-  const iframeSrc = webViewModel.needsLocaleReload
+  const iframeSrc = isWebViewModel(webViewModel) && webViewModel.needsLocaleReload
     ? appendLangParam(webViewModel.url, gLocale.current)
-    : webViewModel.url
+    : isWebViewModel(webViewModel) ? webViewModel.url : ""
+
+  useEffect(() => {
+    return () => {
+      if (loadingTimerRef.current) {
+        clearTimeout(loadingTimerRef.current)
+      }
+    }
+  }, [])
+
+  // Announce loading state when iframe src changes
+  useEffect(() => {
+    if (isWebViewModel(webViewModel) && !webViewModel.isImage && webViewModel.url) {
+      setLoadingStatus(t("V3.WebView.loading"))
+    }
+  }, [iframeSrc, webViewModel])
+
+  if (!isWebViewModel(webViewModel)) return null
+
+  const handleSkipIframe = (e: React.MouseEvent) => {
+    const tileWrapper = (e.currentTarget as HTMLElement).closest(".free-tile-component")
+    let nextTile = tileWrapper?.nextElementSibling as HTMLElement | null
+    while (nextTile && !nextTile.classList.contains("free-tile-component")) {
+      nextTile = nextTile.nextElementSibling as HTMLElement | null
+    }
+
+    // If there is no next tile, wrap to the first.
+    const targetTile = nextTile
+      ?? tileWrapper?.parentElement?.querySelector(".free-tile-component")
+    if (!targetTile) return
+    const candidates = targetTile.querySelectorAll<HTMLElement>(
+      "a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), " +
+      "textarea:not([disabled]), iframe, [tabindex]:not([tabindex='-1']), [contenteditable]"
+    )
+    for (const el of candidates) {
+      const style = getComputedStyle(el)
+      if (style.display !== "none" && style.visibility !== "hidden") {
+        el.focus()
+        return
+      }
+    }
+
+    // Fallback: blur the skip button so focus leaves it
+    ;(e.currentTarget as HTMLElement).blur()
+  }
+
+  const announceLoaded = () => {
+    setLoadingStatus(t("V3.WebView.loaded"))
+    if (loadingTimerRef.current) {
+      clearTimeout(loadingTimerRef.current)
+    }
+    loadingTimerRef.current = setTimeout(() => setLoadingStatus(""), 3000)
+  }
 
   const hideWebViewLoading = booleanParam(urlParams.hideWebViewLoading)
 
   // Don't show backdrop for data URLs - truncated data URLs aren't useful for users
   const isDataUrl = webViewModel.url?.startsWith("data:")
+  const tileTitle = tile?.title
+  const baseLabel = webViewModel.iframeTitleBase
+  const iframeTitle = tileTitle ? `${baseLabel}: ${tileTitle}` : baseLabel
+  const imageAlt = tileTitle || t("V3.WebView.embeddedImage")
+
   const showBackdrop = !webViewModel.isPluginCommunicating && !hideWebViewLoading && !isDataUrl
   // Truncate long URLs to prevent Safari from crashing when rendering huge strings as text
   const maxUrlLength = 1000
@@ -176,12 +235,21 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
         </div>
       )}
       <div className="codap-web-view-iframe-wrapper">
+        { !webViewModel.isImage && (
+          <button className="codap-skip-iframe codap-visually-hidden" onClick={handleSkipIframe}>
+            {t("V3.WebView.skipIframe")}
+          </button>
+        )}
         { webViewModel.isImage
-            ? <WebViewImage src={webViewModel.url} />
-            : <iframe className="codap-web-view-iframe" ref={iframeRef} src={iframeSrc} />
+            ? <WebViewImage src={webViewModel.url} alt={imageAlt} />
+            : <iframe className="codap-web-view-iframe" ref={iframeRef} src={iframeSrc}
+                title={iframeTitle} onLoad={announceLoaded} />
         }
       </div>
       <WebViewDropOverlay />
+      <div aria-live="polite" className="codap-visually-hidden" role="status">
+        {loadingStatus}
+      </div>
     </div>
   )
 })
