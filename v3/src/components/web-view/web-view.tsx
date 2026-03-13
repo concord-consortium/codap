@@ -151,6 +151,13 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
 
   useDataInteractiveController(iframeRef, tile)
 
+  // Only append ?lang= to localized plugins that need reload on locale change.
+  // This ensures their iframe src changes (triggering a reload), while non-localized
+  // plugins keep a stable src and just receive a localeChanged notification instead.
+  const iframeSrc = isWebViewModel(webViewModel) && webViewModel.needsLocaleReload
+    ? appendLangParam(webViewModel.url, gLocale.current)
+    : isWebViewModel(webViewModel) ? webViewModel.url : ""
+
   useEffect(() => {
     return () => {
       if (loadingTimerRef.current) {
@@ -158,6 +165,13 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
       }
     }
   }, [])
+
+  // Announce loading state when iframe src changes
+  useEffect(() => {
+    if (isWebViewModel(webViewModel) && !webViewModel.isImage && webViewModel.url) {
+      setLoadingStatus(t("V3.WebView.loading"))
+    }
+  }, [iframeSrc, webViewModel])
 
   if (!isWebViewModel(webViewModel)) return null
 
@@ -176,7 +190,8 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
       "a[href], button:not([disabled]), [tabindex]:not([tabindex='-1'])"
     )
     for (const el of candidates) {
-      if (el.checkVisibility()) {
+      const style = getComputedStyle(el)
+      if (style.display !== "none" && style.visibility !== "hidden") {
         el.focus()
         return
       }
@@ -193,13 +208,6 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
     }
     loadingTimerRef.current = setTimeout(() => setLoadingStatus(""), 1000)
   }
-
-  // Only append ?lang= to localized plugins that need reload on locale change.
-  // This ensures their iframe src changes (triggering a reload), while non-localized
-  // plugins keep a stable src and just receive a localeChanged notification instead.
-  const iframeSrc = webViewModel.needsLocaleReload
-    ? appendLangParam(webViewModel.url, gLocale.current)
-    : webViewModel.url
 
   const hideWebViewLoading = booleanParam(urlParams.hideWebViewLoading)
 

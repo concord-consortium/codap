@@ -30,6 +30,15 @@ context("web view accessibility", () => {
       webView.enterUrl("https://example.com")
       cy.get("[data-testid=codap-web-view] [role=status]").should("exist")
     })
+
+    it("announces loading and loaded states", () => {
+      c.clickIconFromToolShelf("web page")
+      webView.enterUrl("https://example.com")
+      const statusRegion = () => cy.get("[data-testid=codap-web-view] [role=status]")
+      // After the iframe loads, the region should announce "loaded"
+      cy.get(".codap-web-view-iframe").should("exist")
+      statusRegion().should("contain.text", "loaded")
+    })
   })
 
   describe("skip iframe button", () => {

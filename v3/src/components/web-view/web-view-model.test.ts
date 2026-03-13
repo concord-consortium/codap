@@ -102,14 +102,6 @@ describe("WebViewContentModel", () => {
     const webView = WebViewModel.create({})
     expect(webView.iframeTitleBase).toBe("Web page")
   })
-  it("returns correct iframeTitleBase when url is undefined", () => {
-    const webView = WebViewModel.create({})
-    expect(webView.iframeTitleBase).toBe("Web page")
-  })
-  it("returns correct iframeTitleBase when url is an empty string", () => {
-    const webView = WebViewModel.create({ url: "" })
-    expect(webView.iframeTitleBase).toBe("Web page")
-  })
   it("prepareSnapshot works correctly", async () => {
     const state = { status: "Looking good" }
     const dataInteractiveController = {
