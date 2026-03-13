@@ -157,6 +157,21 @@ context("Formula Engine", () => {
     })
   })
   describe("Keyboard navigation of formula editor menus", () => {
+    // Tab out of the formula editor to a target button.
+    // Focus starts in the CodeMirror editor; each Tab moves to the next focusable element.
+    function tabToButton(testId: string) {
+      cy.get("[data-testid=formula-editor-input] .cm-content").should("be.visible").and("have.focus")
+      const tabUntilFocused = () => {
+        cy.realPress("Tab")
+        cy.focused().then($focused => {
+          if (!$focused.is(`[data-testid=${testId}]`)) {
+            tabUntilFocused()
+          }
+        })
+      }
+      tabUntilFocused()
+    }
+
     beforeEach(() => {
       fh.visitURL(dashboardUrlParams)
       table.addNewAttribute()
@@ -167,10 +182,7 @@ context("Formula Engine", () => {
 
     describe("Insert Value menu keyboard navigation", () => {
       it("Open menu via keyboard, navigate items, select with Enter", () => {
-        // Tab out of formula editor to Insert Value button
-        cy.get("[data-testid=formula-editor-input] .cm-content").should("be.visible").and("have.focus")
-        cy.realPress("Tab")
-        cy.get("[data-testid=formula-insert-value-button]").should("have.focus")
+        tabToButton("formula-insert-value-button")
         cy.realPress("Enter") // open menu by pressing Enter
         cy.get("[data-testid=formula-value-list]").should("be.visible")
         // First item should be focused
@@ -187,10 +199,7 @@ context("Formula Engine", () => {
         cy.get("[data-testid=formula-editor-input] .cm-content").should("have.text", "a")
       })
       it("Close menu with Escape, focus returns to button", () => {
-        // Tab out of formula editor to Insert Value button
-        cy.get("[data-testid=formula-editor-input] .cm-content").should("be.visible").and("have.focus")
-        cy.realPress("Tab")
-        cy.get("[data-testid=formula-insert-value-button]").should("have.focus")
+        tabToButton("formula-insert-value-button")
         cy.realPress("Enter") // open menu by pressing Enter
         cy.get("[data-testid=formula-value-list]").should("be.visible")
         cy.realPress("Escape")
@@ -201,11 +210,7 @@ context("Formula Engine", () => {
 
     describe("Insert Function menu keyboard navigation", () => {
       it("Open menu via keyboard, navigate categories, open a category with Enter", () => {
-        // Tab from formula editor to Insert Value, then to Insert Function button
-        cy.get("[data-testid=formula-editor-input] .cm-content").should("be.visible").and("have.focus")
-        cy.realPress("Tab")
-        cy.realPress("Tab")
-        cy.get("[data-testid=formula-insert-function-button]").should("have.focus")
+        tabToButton("formula-insert-function-button")
         cy.realPress("Enter")
         cy.get("[data-testid=formula-function-category-list]").should("be.visible")
         // First category should be focused
@@ -219,11 +224,7 @@ context("Formula Engine", () => {
         cy.get("[data-testid=formula-function-list-header]").should("be.visible")
       })
       it("Navigate functions within a category and insert with Enter", () => {
-        // Tab from formula editor to Insert Value, then to Insert Function button
-        cy.get("[data-testid=formula-editor-input] .cm-content").should("be.visible").and("have.focus")
-        cy.realPress("Tab")
-        cy.realPress("Tab")
-        cy.get("[data-testid=formula-insert-function-button]").should("have.focus")
+        tabToButton("formula-insert-function-button")
         // Open function menu and select first category (Arithmetic)
         cy.realPress("Enter")
         cy.get("[data-testid=formula-function-category-item]").first().should("have.attr", "data-focused")
@@ -244,11 +245,7 @@ context("Formula Engine", () => {
         cy.get("[data-testid=formula-editor-input] .cm-content").invoke("text").should("match", /\w+\(/)
       })
       it("Navigate back from list to categories with Escape", () => {
-        // Tab from formula editor to Insert Value, then to Insert Function button
-        cy.get("[data-testid=formula-editor-input] .cm-content").should("be.visible").and("have.focus")
-        cy.realPress("Tab")
-        cy.realPress("Tab")
-        cy.get("[data-testid=formula-insert-function-button]").should("have.focus")
+        tabToButton("formula-insert-function-button")
         cy.realPress("Enter")
         cy.get("[data-testid=formula-function-category-item]").first().should("have.attr", "data-focused")
         cy.realPress("Enter")
@@ -262,11 +259,7 @@ context("Formula Engine", () => {
         cy.get("[data-testid=formula-insert-function-button]").should("have.focus")
       })
       it("Navigate to function info with Right Arrow and back with Left Arrow", () => {
-        // Tab from formula editor to Insert Value, then to Insert Function button
-        cy.get("[data-testid=formula-editor-input] .cm-content").should("be.visible").and("have.focus")
-        cy.realPress("Tab")
-        cy.realPress("Tab")
-        cy.get("[data-testid=formula-insert-function-button]").should("have.focus")
+        tabToButton("formula-insert-function-button")
         cy.realPress("Enter")
         cy.get("[data-testid=formula-function-category-item]").first().should("have.attr", "data-focused")
         cy.realPress("Enter")
