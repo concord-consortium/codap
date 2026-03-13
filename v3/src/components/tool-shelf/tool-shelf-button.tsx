@@ -27,6 +27,7 @@ export const ToolShelfButton = ({
     <Box
       as='button'
       title={t(hint)}
+      aria-label={t(hint)}
       aria-disabled={disabled || undefined}
       onClick={disabled ? undefined : onClick}
       data-testid={`tool-shelf-button-${label.toLowerCase()}`}
