@@ -85,15 +85,15 @@
       .slider-select {
         align-items: center;
         background: vars.$palette-hover-bg;
-        border: 1px solid vars.$charcoal;
-        border-radius: 3px;
+        border: none;
+        border-radius: 4px;
         cursor: pointer;
         display: flex;
         font-size: 14px;
         font-weight: 500;
         gap: 4px;
         min-width: 80px;
-        padding: 2px 6px;
+        padding: 2px 10px;
 
         &[data-hovered] {
           background: vars.$title-bar-color;
