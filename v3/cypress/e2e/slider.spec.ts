@@ -58,7 +58,7 @@ context("Slider UI", () => {
       c.checkToolTip($element, c.tooltips.closeComponent)
     })
     slider.getInspectorIcon().then($element => {
-      c.checkToolTip($element, c.tooltips.sliderInspectorPanel)
+      c.checkReactAriaToolTip($element, c.tooltips.sliderInspectorPanel)
     })
 
     cy.log("updates slider title with undo/redo")

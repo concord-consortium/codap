@@ -12,7 +12,8 @@ export const MapTileElements = {
   },
   selectHideShowButton() {
     c.getInspectorPanel().find("[data-testid=map-hide-show-button]").click()
-    c.getInspectorPanel().find("[data-testid=hide-show-menu-list]").should("be.visible")
+    // Menu content renders in a React Aria Popover portal outside the inspector panel DOM
+    cy.get("[data-testid=hide-show-menu-list]").should("be.visible")
   },
   getDisplayValuesButton() {
     return c.getInspectorPanel().find("[data-testid=map-display-values-button]")
@@ -53,37 +54,39 @@ export const MapTileElements = {
   getMapGeoRasterLayer() {
     return this.getMapTile().find(".leaflet-overlay-pane .leaflet-layer")
   },
+  // Menu items render in a React Aria Popover portal outside the inspector panel DOM,
+  // so these use cy.get() to search the whole document instead of within the inspector panel.
   getHideSelectedCases() {
-    return c.getInspectorPanel().find("[data-testid=hide-selected-cases]")
+    return cy.get("[data-testid=hide-selected-cases]")
   },
   selectHideSelectedCases() {
-    c.getInspectorPanel().find("[data-testid=hide-show-menu-list]").should("be.visible").then(() => {
-      c.getInspectorPanel().find("[data-testid=hide-selected-cases]").click()
-      c.getInspectorPanel().find("[data-testid=hide-selected-cases]").should("not.exist")
-      c.getInspectorPanel().find("[data-testid=hide-show-menu-list]").should("not.be.visible")
+    cy.get("[data-testid=hide-show-menu-list]").should("be.visible").then(() => {
+      cy.get("[data-testid=hide-selected-cases]").click()
+      cy.get("[data-testid=hide-selected-cases]").should("not.exist")
+      cy.get("[data-testid=hide-show-menu-list]").should("not.exist")
     })
   },
   getHideUnselectedCases() {
-    return c.getInspectorPanel().find("[data-testid=hide-unselected-cases]")
+    return cy.get("[data-testid=hide-unselected-cases]")
   },
   getHeatmapCanvas() {
     return this.getMapTile().find(".heatmap-canvas")
   },
   selectHideUnselectedCases() {
-    c.getInspectorPanel().find("[data-testid=hide-show-menu-list]").should("be.visible").then(() => {
-      c.getInspectorPanel().find("[data-testid=hide-unselected-cases]").click()
-      c.getInspectorPanel().find("[data-testid=hide-unselected-cases]").should("not.exist")
-      c.getInspectorPanel().find("[data-testid=hide-show-menu-list]").should("not.be.visible")
+    cy.get("[data-testid=hide-show-menu-list]").should("be.visible").then(() => {
+      cy.get("[data-testid=hide-unselected-cases]").click()
+      cy.get("[data-testid=hide-unselected-cases]").should("not.exist")
+      cy.get("[data-testid=hide-show-menu-list]").should("not.exist")
     })
   },
   getShowAllCases() {
-    return c.getInspectorPanel().find("[data-testid=show-all-cases]")
+    return cy.get("[data-testid=show-all-cases]")
   },
   selectShowAllCases() {
-    c.getInspectorPanel().find("[data-testid=hide-show-menu-list]").should("be.visible").then(() => {
-      c.getInspectorPanel().find("[data-testid=show-all-cases]").click()
-      c.getInspectorPanel().find("[data-testid=show-all-cases]").should("not.exist")
-      c.getInspectorPanel().find("[data-testid=hide-show-menu-list]").should("not.be.visible")
+    cy.get("[data-testid=hide-show-menu-list]").should("be.visible").then(() => {
+      cy.get("[data-testid=show-all-cases]").click()
+      cy.get("[data-testid=show-all-cases]").should("not.exist")
+      cy.get("[data-testid=hide-show-menu-list]").should("not.exist")
     })
   }
 }

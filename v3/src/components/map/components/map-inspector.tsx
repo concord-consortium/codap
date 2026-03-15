@@ -1,6 +1,6 @@
 import { useDndContext } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
-import React, { useRef, useEffect, useState } from "react"
+import { useRef, useEffect, useState } from "react"
 import { InspectorButton, InspectorMenu, InspectorPanel } from "../../inspector-panel"
 import { t } from "../../../utilities/translation/translate"
 import { ITileInspectorPanelProps } from "../../tiles/tile-base-props"
@@ -21,9 +21,9 @@ import ImageIcon from "../../../assets/icons/inspector-panel/image-icon.svg"
 export const MapInspector = observer(function MapInspector({tile, show}: ITileInspectorPanelProps) {
   const mapModel = isMapContentModel(tile?.content) ? tile?.content : undefined
   const [showPalette, setShowPalette] = useState<string | undefined>(undefined)
-  const panelRef = useRef<HTMLDivElement>()
+  const panelRef = useRef<HTMLDivElement>(null)
   const panelRect = panelRef.current?.getBoundingClientRect()
-  const buttonRef = useRef<HTMLDivElement>()
+  const buttonRef = useRef<Element | null>(null)
   const buttonRect = buttonRef.current?.getBoundingClientRect()
   const {active} = useDndContext()
 
@@ -43,10 +43,11 @@ export const MapInspector = observer(function MapInspector({tile, show}: ITileIn
     if (mapModel?.layers.some(layer => isMapPointLayerModel(layer) || isMapPinLayerModel(layer))) {
       return (
         <InspectorButton
+          aria-haspopup="dialog"
           isActive={showPalette === "measure"}
           label={t("V3.map.Inspector.Data")}
-          onButtonClick={(e: React.MouseEvent) => {
-            buttonRef.current = e.currentTarget as HTMLDivElement
+          onButtonClick={(e: { target: Element }) => {
+            buttonRef.current = e.target
             setShowPalette(showPalette === "measure" ? undefined : "measure")
           }}
           testId={"map-display-values-button"}
@@ -62,10 +63,11 @@ export const MapInspector = observer(function MapInspector({tile, show}: ITileIn
     if (mapModel) {
       return (
         <InspectorButton
+          aria-haspopup="dialog"
           isActive={showPalette === "layers"}
           label={t("V3.map.Inspector.Layers")}
-          onButtonClick={(e: React.MouseEvent) => {
-            buttonRef.current = e.currentTarget as HTMLDivElement
+          onButtonClick={(e: { target: Element }) => {
+            buttonRef.current = e.target
             setShowPalette(showPalette === "layers" ? undefined : "layers")
           }}
           testId={"map-display-config-button"}

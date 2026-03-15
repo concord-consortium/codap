@@ -1,4 +1,4 @@
-import { act, render, screen, within } from "@testing-library/react"
+import { act, render, screen } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
 import { createCodapDocument } from "../../models/codap/create-codap-document"
 import { IDocumentModel } from "../../models/document/document"
@@ -87,7 +87,8 @@ describe("Tool shelf", () => {
   describe("keyboard navigation", () => {
     const getToolbarButtons = () => {
       const toolbar = screen.getByRole("toolbar")
-      return within(toolbar).getAllByRole("button")
+      return Array.from(toolbar.querySelectorAll<HTMLElement>("button"))
+        .filter(btn => !btn.closest(".tool-shelf-menu-list"))
     }
 
     it("sets tabIndex 0 on first button and -1 on others", () => {

@@ -1,14 +1,15 @@
-import {MenuItem, MenuList, useDisclosure} from "@chakra-ui/react"
+import {useDisclosure} from "@chakra-ui/react"
 import {observer} from "mobx-react-lite"
 import {isAlive} from "mobx-state-tree"
+import { MenuItem } from "react-aria-components"
 import { DataSetContext } from "../../../../hooks/use-data-set-context"
 import { useInspectorFormulaString } from "../../../../hooks/use-inspector-formula-string"
-import { useMenuItemScrollIntoView } from "../../../../hooks/use-menu-item-scroll-into-view"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 import {ITileContentModel} from "../../../../models/tiles/tile-content"
 import {ITileModel} from "../../../../models/tiles/tile-model"
 import {t} from "../../../../utilities/translation/translate"
 import { EditFormulaModal } from "../../../common/edit-formula-modal"
+import { InspectorMenuContent } from "../../../inspector-panel"
 import { IMapContentModel, isMapContentModel } from "../../models/map-content-model"
 
 interface IProps {
@@ -21,7 +22,6 @@ function isAliveMapContentModel(model?: ITileContentModel): model is IMapContent
 
 export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProps) {
   const mapModel = isAliveMapContentModel(tile?.content) ? tile?.content : undefined
-  const handleFocus = useMenuItemScrollIntoView()
   const numSelected = mapModel?.numSelected() ?? 0
   const numUnselected = mapModel?.numUnselected() ?? 0
   const numHidden = mapModel?.numHidden() ?? 0
@@ -90,20 +90,21 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
 
   return (
     <>
-      <MenuList data-testid="hide-show-menu-list" onFocus={handleFocus}>
-        <MenuItem onClick={hideSelectedCases} isDisabled={numSelected === 0} data-testid="hide-selected-cases">
+      <InspectorMenuContent data-testid="hide-show-menu-list">
+        <MenuItem onAction={hideSelectedCases} isDisabled={numSelected === 0} data-testid="hide-selected-cases">
           {hideSelectedString}
         </MenuItem>
-        <MenuItem onClick={hideUnselectedCases} isDisabled={numUnselected === 0} data-testid="hide-unselected-cases">
+        <MenuItem onAction={hideUnselectedCases} isDisabled={numUnselected === 0}
+          data-testid="hide-unselected-cases">
           {hideUnselectedString}
         </MenuItem>
-        <MenuItem onClick={showAllCases} isDisabled={numHidden === 0} data-testid="show-all-cases">
+        <MenuItem onAction={showAllCases} isDisabled={numHidden === 0} data-testid="show-all-cases">
           {t("DG.DataDisplayMenu.showAll")}
         </MenuItem>
-        <MenuItem onClick={onOpen} isDisabled={!dataConfig} data-testid="map-edit-filter-formula">
+        <MenuItem onAction={onOpen} isDisabled={!dataConfig} data-testid="map-edit-filter-formula">
           {addOrEditFormulaString}
         </MenuItem>
-      </MenuList>
+      </InspectorMenuContent>
       {dataConfig &&
         <DataSetContext.Provider value={dataConfig.dataset}>
           <EditFormulaModal

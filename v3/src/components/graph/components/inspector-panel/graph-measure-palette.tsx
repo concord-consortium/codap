@@ -14,6 +14,7 @@ import { GraphMeasureGroup } from "./graph-measure-group"
 import "./graph-measure-palette.scss"
 
 interface IProps {
+  id?: string
   tile?: ITileModel
   panelRect?: DOMRect
   buttonRect?: DOMRect
@@ -21,7 +22,7 @@ interface IProps {
 }
 
 export const GraphMeasurePalette = observer(function GraphMeasurePalette({
-  tile, panelRect, buttonRect, setShowPalette
+  id, tile, panelRect, buttonRect, setShowPalette
 }: IProps) {
   const graphModel = isGraphContentModel(tile?.content) ? tile.content : undefined
   const useGaussianOptions = graphModel?.plotType === "histogram" &&
@@ -31,15 +32,14 @@ export const GraphMeasurePalette = observer(function GraphMeasurePalette({
 
   return (
     <InspectorPalette
+      id={id}
       title={t("DG.Inspector.values")}
       Icon={<MeasureIcon />}
       setShowPalette={setShowPalette}
       panelRect={panelRect}
       buttonRect={buttonRect}
     >
-      <div className="palette-form graph-measure-palette"
-        role="group" aria-label={t("DG.Inspector.displayShow")}
-      >
+      <div className="palette-form graph-measure-palette">
         {graphModel && measures?.map(measureOrGroup => {
           if (isGroupItem(measureOrGroup)) {
             return (

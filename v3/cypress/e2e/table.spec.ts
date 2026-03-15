@@ -457,7 +457,7 @@ context("case table ui", () => {
         table.getCopiedCasesAlertOkButton().click()
 
         cy.log("check new table from clipboard")
-        cfm.openExampleDocument("Mammals")
+        cfm.openExampleDocument("Mammals", { discardChanges: true })
         cy.wait(1000)  // Wait for document to load
         c.getComponentTile("table", 0).should("exist")  // Verify first table exists before proceeding
         c.clickIconFromToolShelf("table")

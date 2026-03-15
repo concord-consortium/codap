@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react"
+import { useRef, useEffect, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
 import { InspectorButton, InspectorMenu, InspectorPanel } from "../../inspector-panel"
@@ -20,12 +20,16 @@ import ConfigurationIcon from "../../../assets/icons/inspector-panel/configurati
 import FormatIcon from "../../../assets/icons/inspector-panel/format-icon.svg"
 import ImageIcon from "../../../assets/icons/inspector-panel/image-icon.svg"
 
+const kConfigPaletteId = "graph-config-palette"
+const kFormatPaletteId = "graph-format-palette"
+const kMeasurePaletteId = "graph-measure-palette"
+
 export const GraphInspector = observer(function GraphInspector({tile, show}: ITileInspectorPanelProps) {
   const graphModel = isGraphContentModel(tile?.content) && isAlive(tile.content) ? tile.content : undefined
   const [showPalette, setShowPalette] = useState<string | undefined>(undefined)
-  const panelRef = useRef<HTMLDivElement>()
+  const panelRef = useRef<HTMLDivElement>(null)
   const panelRect = panelRef.current?.getBoundingClientRect()
-  const buttonRef = useRef<HTMLDivElement>()
+  const buttonRef = useRef<Element | null>(null)
   const buttonRect = buttonRef.current?.getBoundingClientRect()
   const { active } = useDndContext()
   const showDisplayConfig = graphModel?.plot.showDisplayConfig
@@ -38,18 +42,18 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
     setShowPalette(undefined)
   }
 
-  const handleRulerButton = (e: React.MouseEvent) => {
-    buttonRef.current = e.currentTarget as HTMLDivElement
+  const handleRulerButton = (e: { target: Element }) => {
+    buttonRef.current = e.target
     setShowPalette(showPalette === "measure" ? undefined : "measure")
   }
 
-  const handleConfigButton = (e: React.MouseEvent) => {
-    buttonRef.current = e.currentTarget as HTMLDivElement
+  const handleConfigButton = (e: { target: Element }) => {
+    buttonRef.current = e.target
     setShowPalette(showPalette === "config" ? undefined : "config")
   }
 
-  const handleBrushButton = (e: React.MouseEvent) => {
-    buttonRef.current = e.currentTarget as HTMLDivElement
+  const handleBrushButton = (e: { target: Element }) => {
+    buttonRef.current = e.target
     setShowPalette(showPalette === "format" ? undefined : "format")
   }
 
@@ -92,6 +96,9 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
       ref={panelRef}
       setShowPalette={setShowPalette}
       show={show}
+      toolbarAriaLabel={t("DG.DocumentController.graphTitle")}
+      toolbarOrientation="vertical"
+      toolbarPersistenceKey="graph-inspector-toolbar"
       width="wide"
     >
       {renderRescaleButton()}
@@ -105,6 +112,9 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
         <HideShowMenuList tile={tile}/>
       </InspectorMenu>
       <InspectorButton
+        aria-controls={kMeasurePaletteId}
+        aria-expanded={showPalette === "measure"}
+        aria-haspopup="dialog"
         isActive={showPalette === "measure"}
         label={t("V3.graph.Inspector.Measure")}
         onButtonClick={handleRulerButton}
@@ -115,6 +125,9 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
       </InspectorButton>
       {showDisplayConfig &&
         <InspectorButton
+          aria-controls={kConfigPaletteId}
+          aria-expanded={showPalette === "config"}
+          aria-haspopup="dialog"
           isActive={showPalette === "config"}
           label={t("V3.graph.Inspector.Config")}
           onButtonClick={handleConfigButton}
@@ -125,6 +138,9 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
         </InspectorButton>
       }
       <InspectorButton
+        aria-controls={kFormatPaletteId}
+        aria-expanded={showPalette === "format"}
+        aria-haspopup="dialog"
         isActive={showPalette === "format"}
         label={t("V3.graph.Inspector.Format")}
         onButtonClick={handleBrushButton}
@@ -144,14 +160,14 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
         <CameraMenuList/>
       </InspectorMenu>
       {showPalette === "measure" &&
-        <GraphMeasurePalette tile={tile} setShowPalette={setShowPalette}
+        <GraphMeasurePalette id={kMeasurePaletteId} tile={tile} setShowPalette={setShowPalette}
                              panelRect={panelRect} buttonRect={buttonRect}/>}
 
       {showPalette === "config" &&
-        <DisplayConfigPalette tile={tile} setShowPalette={setShowPalette}
+        <DisplayConfigPalette id={kConfigPaletteId} tile={tile} setShowPalette={setShowPalette}
                               panelRect={panelRect} buttonRect={buttonRect}/>}
       {showPalette === "format" &&
-        <PointFormatPalette tile={tile} setShowPalette={setShowPalette}
+        <PointFormatPalette id={kFormatPaletteId} tile={tile} setShowPalette={setShowPalette}
                             panelRect={panelRect} buttonRect={buttonRect}/>}
     </InspectorPanel>
   )

@@ -1,13 +1,13 @@
-import { MenuItem, MenuList } from "@chakra-ui/react"
 import { toPng, toSvg } from 'html-to-image'
+import { MenuItem } from "react-aria-components"
 
-import { useMenuItemScrollIntoView } from "../../../../hooks/use-menu-item-scroll-into-view"
+import { useCfmContext } from "../../../../hooks/use-cfm-context"
+import { useProgress } from "../../../../hooks/use-progress"
 import { ITileModel } from "../../../../models/tiles/tile-model"
 import { t } from "../../../../utilities/translation/translate"
 import { openInDrawTool } from "../../../data-display/data-display-image-utils"
+import { InspectorMenuContent } from "../../../inspector-panel"
 import { isMapContentModel } from "../../models/map-content-model"
-import { useCfmContext } from "../../../../hooks/use-cfm-context"
-import { useProgress } from "../../../../hooks/use-progress"
 
 type ExportableFormat = "png" | "svg"
 
@@ -17,7 +17,6 @@ interface IProps {
 
 export const SaveImageMenuList = ({tile}: IProps) => {
   const cfm = useCfmContext()
-  const handleFocus = useMenuItemScrollIntoView()
   const { setProgressMessage, clearProgressMessage } = useProgress()
   const mapModel = isMapContentModel(tile?.content) ? tile?.content : undefined
 
@@ -95,18 +94,18 @@ export const SaveImageMenuList = ({tile}: IProps) => {
   */
 
   return (
-    <MenuList data-testid="save-image-menu-list" onFocus={handleFocus}>
-      <MenuItem data-testid="open-in-draw-tool" onClick={handleOpenInDrawTool}>
+    <InspectorMenuContent data-testid="save-image-menu-list">
+      <MenuItem data-testid="open-in-draw-tool" onAction={handleOpenInDrawTool}>
         {t("DG.DataDisplayMenu.copyAsImage")}
       </MenuItem>
-      <MenuItem data-testid="export-png-image" onClick={handleExportPNG}>
+      <MenuItem data-testid="export-png-image" onAction={handleExportPNG}>
         {t("DG.DataDisplayMenu.exportPngImage")}
       </MenuItem>
       {/*
-      <MenuItem data-testid="export-svg-image" onClick={handleExportSVG}>
+      <MenuItem data-testid="export-svg-image" onAction={handleExportSVG}>
         {t("DG.DataDisplayMenu.exportSvgImage")}
       </MenuItem>
       */}
-    </MenuList>
+    </InspectorMenuContent>
   )
 }

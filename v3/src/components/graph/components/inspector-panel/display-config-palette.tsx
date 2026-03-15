@@ -72,6 +72,7 @@ const FusePointsControls = observer(function FusePointsControls({
 type BinOption = "binWidth" | "binAlignment"
 
 interface IProps {
+  id?: string
   tile?: ITileModel
   panelRect?: DOMRect
   buttonRect?: DOMRect
@@ -79,7 +80,7 @@ interface IProps {
 }
 
 export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: IProps) {
-  const { buttonRect, panelRect, setShowPalette, tile } = props
+  const { buttonRect, id, panelRect, setShowPalette, tile } = props
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
   const forceUpdate = useForceUpdate()
   const binnedPlot = isBinnedPlotModel(graphModel?.plot) ? graphModel?.plot : undefined
@@ -272,6 +273,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
 
   return (
     <InspectorPalette
+      id={id}
       title={t("DG.Inspector.configuration")}
       Icon={<ConfigurationIcon/>}
       setShowPalette={setShowPalette}

@@ -68,7 +68,7 @@ $tool-shelf-border-width: 1px;
         background-color: vars.$icon-fill-light;
       }
       &:active:not(:disabled):not([aria-disabled="true"]) {
-        background-color: #bfefff;
+        background-color: vars.$icon-fill-medium;
       }
       &:focus-visible {
         background-color: vars.$icon-fill-light;
@@ -282,7 +282,7 @@ $tool-shelf-border-width: 1px;
           background-color: vars.$icon-fill-light;
         }
         &:active:not(:disabled) {
-          background-color: #bfefff;
+          background-color: vars.$icon-fill-medium;
         }
 
         .menu-icon {

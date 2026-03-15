@@ -1,17 +1,16 @@
 import { observer } from "mobx-react-lite"
-import { MenuItem, MenuList } from "@chakra-ui/react"
+import { MenuItem } from "react-aria-components"
 import { useCfmContext } from "../../../hooks/use-cfm-context"
-import { useMenuItemScrollIntoView } from "../../../hooks/use-menu-item-scroll-into-view"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
 import { updateTileNotification } from "../../../models/tiles/tile-notifications"
 import { logMessageWithReplacement } from "../../../lib/log-message"
 import { t } from "../../../utilities/translation/translate"
 import { isGraphContentModel } from "../models/graph-content-model"
 import { openInDrawTool } from "../../data-display/data-display-image-utils"
+import { InspectorMenuContent } from "../../inspector-panel"
 
 export const CameraMenuList = observer(function CameraMenuList() {
   const tile = useTileModelContext().tile
-  const handleFocus = useMenuItemScrollIntoView()
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
   const cfm = useCfmContext()
   const backgroundImage = graphModel?.plotBackgroundImage
@@ -118,42 +117,42 @@ export const CameraMenuList = observer(function CameraMenuList() {
   }
 
   return (
-    <MenuList data-testid="graph-camera-menu-list" onFocus={handleFocus}>
+    <InspectorMenuContent data-testid="graph-camera-menu-list">
       {
         backgroundImage !== undefined
         ? <>
-            <MenuItem data-testid="remove-background-image" onClick={removeBackgroundImage}>
+            <MenuItem data-testid="remove-background-image" onAction={removeBackgroundImage}>
               {t("DG.DataDisplayMenu.removeBackgroundImage")}
             </MenuItem>
             {xAndOrYIsNumeric ?
               (backgroundImageIsLocked
-              ? <MenuItem data-testid="unlock-image" onClick={toggleBackgroundImageLock}>
+              ? <MenuItem data-testid="unlock-image" onAction={toggleBackgroundImageLock}>
                   {t("DG.DataDisplayMenu.unlockImageFromAxes")}
                 </MenuItem>
-              : <MenuItem data-testid="lock-image" onClick={toggleBackgroundImageLock}>
+              : <MenuItem data-testid="lock-image" onAction={toggleBackgroundImageLock}>
                   {t("DG.DataDisplayMenu.lockImageToAxes")}
                 </MenuItem>)
         : null
             }
           </>
-        : <MenuItem data-testid="add-background-image" onClick={addBackgroundImage}>
+        : <MenuItem data-testid="add-background-image" onAction={addBackgroundImage}>
             {t("DG.DataDisplayMenu.addBackgroundImage")}
           </MenuItem>
       }
 
       <MenuItem data-testid="open-in-draw-tool"
-                onClick={handleOpenInDrawTool}>
+                onAction={handleOpenInDrawTool}>
         {t("DG.DataDisplayMenu.copyAsImage")}
       </MenuItem>
       <MenuItem data-testid="export-png-image"
-                onClick={handleExportPNG}>
+                onAction={handleExportPNG}>
         {t("DG.DataDisplayMenu.exportPngImage")}
       </MenuItem>
       <MenuItem data-testid="export-svg-image"
-                onClick={handleExportSVG}
+                onAction={handleExportSVG}
                 isDisabled={true}>
         {t("DG.DataDisplayMenu.exportSvgImage")}<span aria-hidden="true"> 🚧</span>
       </MenuItem>
-    </MenuList>
+    </InspectorMenuContent>
   )
 })

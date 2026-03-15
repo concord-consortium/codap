@@ -122,6 +122,8 @@ describe("GraphMeasurePalette", () => {
 
       render(<GraphMeasurePalette tile={tile} setShowPalette={mockSetShowPalette} />)
 
+      expect(screen.getByRole("checkbox", { name: "DG.Inspector.graphCount" })).toBeInTheDocument()
+      expect(screen.getByRole("checkbox", { name: "DG.Inspector.showLabels" })).toBeInTheDocument()
       expect(screen.getByTestId("adornment-checkbox-dg.inspector.graphcount")).toBeInTheDocument()
       expect(screen.getByTestId("adornment-checkbox-dg.inspector.showlabels")).toBeInTheDocument()
     })
@@ -190,6 +192,7 @@ describe("GraphMeasurePalette", () => {
 
       render(<GraphMeasurePalette tile={tile} setShowPalette={mockSetShowPalette} />)
 
+      expect(screen.getByRole("button", { name: "DG.Inspector.graphMeasuresOfCenter" })).toBeInTheDocument()
       expect(screen.getByTestId("adornment-toggle-measuresOfCenter")).toBeInTheDocument()
       expect(screen.getByText("DG.Inspector.graphMeasuresOfCenter")).toBeInTheDocument()
     })
@@ -239,36 +242,6 @@ describe("GraphMeasurePalette", () => {
   })
 
   describe("accessibility", () => {
-    it("wraps the palette form in a group with aria-label", () => {
-      const measures = [createSimpleMenuItem("DG.Inspector.graphCount")]
-      const graphModel = createMockGraphModel(measures)
-      mockIsGraphContentModel.mockReturnValue(true)
-      const tile = createMockTile(graphModel)
-
-      render(<GraphMeasurePalette tile={tile} setShowPalette={mockSetShowPalette} />)
-
-      const group = screen.getByRole("group")
-      expect(group).toHaveAttribute("aria-label", "DG.Inspector.displayShow")
-    })
-
-    it("wraps disclosure group items in a group with aria-label", () => {
-      mockRulerState.measuresOfCenter = true
-      const meanItem = createControlsMenuItem("Mean", "mean-controls")
-      const groupItem = createGroupItem(
-        "DG.Inspector.graphMeasuresOfCenter", "measuresOfCenter", [meanItem]
-      )
-      const graphModel = createMockGraphModel([groupItem])
-      mockIsGraphContentModel.mockReturnValue(true)
-      const tile = createMockTile(graphModel)
-
-      render(<GraphMeasurePalette tile={tile} setShowPalette={mockSetShowPalette} />)
-
-      // The outer palette group + the inner disclosure group
-      const groups = screen.getAllByRole("group")
-      const innerGroup = groups.find(g => g.getAttribute("aria-label") === "DG.Inspector.graphMeasuresOfCenter")
-      expect(innerGroup).toBeInTheDocument()
-    })
-
     it("disclosure trigger has aria-expanded attribute", () => {
       const meanItem = createControlsMenuItem("Mean", "mean-controls")
       const groupItem = createGroupItem(

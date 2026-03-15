@@ -252,7 +252,7 @@ export const TableTileElements = {
   showAllAttributes() {
     cy.get("[data-testid=hide-show-button]").click()
     // The show hidden attributes button is the only one with "Show" in it
-    cy.get("[data-testid=hide-show-menu-list]").find("button").contains("Show").click()
+    cy.get("[data-testid=hide-show-menu-list]").find("[role=menuitem]").contains("Show").click()
   },
   createNewTableFromToolShelf() {
     c.getIconFromToolShelf("table").click()
@@ -299,7 +299,7 @@ export const TableTileElements = {
     return c.getInspectorPanel().find("[data-testid=delete-cases-button]")
   },
   getDeleteMenuItem(item: string) {
-    return cy.get("[data-testid=trash-menu-list] button").contains(item)
+    return cy.get("[data-testid=trash-menu-list] [role=menuitem]").contains(item)
   },
   selectItemFromDeleteMenu(item: string) {
     this.getDeleteMenuItem(item).click({ force: true })
@@ -308,13 +308,13 @@ export const TableTileElements = {
     return c.getInspectorPanel().find("[data-testid=hide-show-button]")
   },
   getHideShowMenuItem(item: string | RegExp) {
-    return cy.get("[data-testid=hide-show-menu-list] button").contains(item)
+    return cy.get("[data-testid=hide-show-menu-list] [role=menuitem]").contains(item)
   },
   getRulerButton() {
     return c.getInspectorPanel().find("[data-testid=ruler-button]")
   },
   getRulerMenuItem(item: string) {
-    return cy.get("[data-testid=ruler-menu-list] button").contains(item)
+    return cy.get("[data-testid=ruler-menu-list] [role=menuitem]").contains(item)
   },
   selectItemFromRulerMenu(item: string) {
     this.getRulerMenuItem(item).click({ force: true })

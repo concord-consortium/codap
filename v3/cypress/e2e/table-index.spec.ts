@@ -500,19 +500,19 @@ context("case table index and component", () => {
         c.checkToolTip($element, c.tooltips.tableSwitchCaseCard)
       })
       table.getDatasetInfoButton().then($element => {
-        c.checkToolTip($element, c.tooltips.tableDatasetInfoButton)
+        c.checkReactAriaToolTip($element, c.tooltips.tableDatasetInfoButton)
       })
       table.getResizeButton().then($element => {
-        c.checkToolTip($element, c.tooltips.tableResizeButton)
+        c.checkReactAriaToolTip($element, c.tooltips.tableResizeButton)
       })
       table.getDeleteCasesButton().then($element => {
-        c.checkToolTip($element, c.tooltips.tableDeleteCasesButton)
+        c.checkReactAriaToolTip($element, c.tooltips.tableDeleteCasesButton)
       })
       table.getHideShowButton().then($element => {
-        c.checkToolTip($element, c.tooltips.tableHideShowButton)
+        c.checkReactAriaToolTip($element, c.tooltips.tableHideShowButton)
       })
       table.getRulerButton().then($element => {
-        c.checkToolTip($element, c.tooltips.tableRulerButton)
+        c.checkReactAriaToolTip($element, c.tooltips.tableRulerButton)
       })
     })
   })

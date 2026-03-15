@@ -1,15 +1,17 @@
 /* eslint-disable testing-library/no-node-access */
-import { Menu } from "@chakra-ui/react"
-import { act, render, screen } from "@testing-library/react"
+import { render, screen } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
+import { Button, MenuTrigger } from "react-aria-components"
 import { IMenuItem, StdMenuList } from "./std-menu-list"
 
-// StdMenuList must be rendered inside a Chakra <Menu> parent
+// StdMenuList renders its own InspectorMenuContent (Popover + Menu).
+// It needs a React Aria MenuTrigger parent for overlay context.
 const renderMenuList = (menuItems: IMenuItem[]) => {
   return render(
-    <Menu isOpen>
+    <MenuTrigger defaultOpen>
+      <Button>Trigger</Button>
       <StdMenuList menuItems={menuItems} data-testid="test-menu-list" />
-    </Menu>
+    </MenuTrigger>
   )
 }
 
@@ -61,18 +63,14 @@ describe("StdMenuList", () => {
 
   it("passes isDisabled to items when isEnabled returns false", () => {
     renderMenuList(menuItems)
-    // Chakra MenuItem sets aria-disabled on the rendered element
     const item = screen.getByTestId("disabled-item")
-    // In Chakra v2, disabled MenuItems get either aria-disabled or disabled attribute
-    const isDisabled = item.getAttribute("aria-disabled") === "true" || item.hasAttribute("disabled")
-    expect(isDisabled).toBe(true)
+    expect(item).toHaveAttribute("aria-disabled", "true")
   })
 
   it("passes isDisabled to items without a handleClick", () => {
     renderMenuList(menuItems)
     const item = screen.getByTestId("unimplemented-item")
-    const isDisabled = item.getAttribute("aria-disabled") === "true" || item.hasAttribute("disabled")
-    expect(isDisabled).toBe(true)
+    expect(item).toHaveAttribute("aria-disabled", "true")
   })
 
   it("calls handleClick when an enabled item is clicked", async () => {
@@ -99,13 +97,5 @@ describe("StdMenuList", () => {
     })
   })
 
-  describe("scroll into view on focus", () => {
-    it("calls scrollIntoView when a menu item receives focus", () => {
-      renderMenuList(menuItems)
-      const items = screen.getAllByRole("menuitem")
-      act(() => { items[0].focus() })
-      expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ block: "nearest" })
-    })
-  })
 })
 /* eslint-enable testing-library/no-node-access */
