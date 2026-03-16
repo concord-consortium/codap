@@ -97,14 +97,15 @@ export function useRovingToolbarFocus({
     const currentIndex = items.findIndex(item => item === target || item.contains(target as Node))
     if (currentIndex === -1) return false
 
+    const forwardKey = orientation === "horizontal" ? "ArrowRight" : "ArrowDown"
+    const backwardKey = orientation === "horizontal" ? "ArrowLeft" : "ArrowUp"
+
     let nextIndex: number
     if (key === "Home") {
       nextIndex = 0
     } else if (key === "End") {
       nextIndex = items.length - 1
     } else {
-      const forwardKey = orientation === "horizontal" ? "ArrowRight" : "ArrowDown"
-      const backwardKey = orientation === "horizontal" ? "ArrowLeft" : "ArrowUp"
       if (key !== forwardKey && key !== backwardKey) return false
 
       nextIndex = key === forwardKey ? currentIndex + 1 : currentIndex - 1
@@ -113,6 +114,19 @@ export function useRovingToolbarFocus({
       } else {
         nextIndex = Math.max(0, Math.min(nextIndex, items.length - 1))
       }
+    }
+
+    // Skip natively disabled items, which can't receive focus
+    const direction = (key === forwardKey || key === "Home") ? 1 : -1
+    const startIndex = nextIndex
+    while (items[nextIndex] && isNativelyDisabled(items[nextIndex])) {
+      nextIndex += direction
+      if (wrap) {
+        nextIndex = (nextIndex + items.length) % items.length
+      } else {
+        nextIndex = Math.max(0, Math.min(nextIndex, items.length - 1))
+      }
+      if (nextIndex === startIndex) break
     }
 
     applyTabIndices(nextIndex, { skipDisabled: false })

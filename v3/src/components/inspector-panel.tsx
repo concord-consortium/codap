@@ -109,16 +109,17 @@ export const InspectorButton = forwardRef<HTMLButtonElement, IInspectorButtonPro
     <TooltipTrigger delay={kTooltipDelay}>
       <Button
         aria-controls={ariaControls}
+        aria-disabled={isDisabled || undefined}
         aria-expanded={ariaExpanded}
         aria-haspopup={ariaHaspopup}
         aria-label={ariaLabel(label, tooltip)}
         className={className}
         data-inspector-toolbar-item="true"
         data-testid={testId}
-        isDisabled={isDisabled}
-        onPress={onButtonClick}
+        excludeFromTabOrder={isDisabled}
         onMouseMove={onMouseMove}
         onPointerDown={!isDisabled ? onPointerDown : undefined}
+        onPress={!isDisabled ? onButtonClick : undefined}
         ref={ref}
       >
         {renderIcon(children, hasVisibleLabel)}
