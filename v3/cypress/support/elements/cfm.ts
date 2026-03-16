@@ -56,7 +56,7 @@ export const CfmElements = {
     return cy.get('#codap-menu-bar-id .view .modal-dialog')
   },
   discardDocumentChanges() {
-    this.getModalDialog().contains("Are you sure")
+    this.getModalDialog().should("contain", "Are you sure")
     this.getModalDialog().find('button').contains("Yes").click()
   },
   openExampleDocument(filename: string, options?: IDocumentOptions) {
