@@ -84,7 +84,6 @@ export const InspectorPanel = forwardRef<HTMLDivElement, IProps>(function Inspec
 interface IInspectorButtonProps {
   "aria-controls"?: string
   "aria-expanded"?: boolean
-  "aria-haspopup"?: React.AriaAttributes["aria-haspopup"]
   bottom?: boolean
   children: ReactNode
   isActive?: boolean
@@ -98,7 +97,7 @@ interface IInspectorButtonProps {
 }
 
 export const InspectorButton = forwardRef<HTMLButtonElement, IInspectorButtonProps>(function InspectorButton({
-  "aria-controls": ariaControls, "aria-expanded": ariaExpanded, "aria-haspopup": ariaHaspopup, bottom, children,
+  "aria-controls": ariaControls, "aria-expanded": ariaExpanded, bottom, children,
   isActive, isDisabled, label, onButtonClick,
   onPointerDown, testId, tooltip, top
 }: IInspectorButtonProps, ref) {
@@ -111,7 +110,6 @@ export const InspectorButton = forwardRef<HTMLButtonElement, IInspectorButtonPro
         aria-controls={ariaControls}
         aria-disabled={isDisabled || undefined}
         aria-expanded={ariaExpanded}
-        aria-haspopup={ariaHaspopup}
         aria-label={ariaLabel(label, tooltip)}
         className={className}
         data-inspector-toolbar-item="true"
@@ -285,7 +283,7 @@ export const InspectorPalette = ({children, Icon, id, title, panelRect, buttonRe
       <div ref={pointerRef} className={`palette-pointer ${inBounds ? "arrow-left" : "arrow-right"}`}
           style={{top: pointerTop - (paletteTop || 0), ...pointerStyle}} />
       <div ref={paletteRef} className="codap-inspector-palette" id={id} tabIndex={-1}
-          role="dialog" aria-labelledby={headerId}
+          role="region" aria-labelledby={headerId}
           data-testid="codap-inspector-palette" onKeyDown={handleKeyDown}>
         <PaletteHeader id={headerId} Icon={Icon} title={title} />
         {children}

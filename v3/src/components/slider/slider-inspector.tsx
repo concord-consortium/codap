@@ -49,7 +49,6 @@ export const SliderInspector = ({ tile, show }: ITileInspectorPanelProps) => {
   return (
     <InspectorPanel ref={panelRef} component="slider" show={show} setShowPalette={setShowPalette} width="wide">
       <InspectorButton
-        aria-haspopup="dialog"
         label={t("V3.Slider.Inspector.Playback")}
         onButtonClick={handleTimerButton}
         testId={"slider-values-button"}
@@ -59,7 +58,6 @@ export const SliderInspector = ({ tile, show }: ITileInspectorPanelProps) => {
         <TimerIcon />
       </InspectorButton>
       <InspectorButton
-        aria-haspopup="dialog"
         bottom={true}
         label={t("V3.Slider.Inspector.Scale")}
         onButtonClick={handleScaleButton}

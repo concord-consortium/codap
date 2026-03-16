@@ -100,7 +100,6 @@ describe("inspector-panel accessibility", () => {
       <InspectorButton
         aria-controls="dataset-info-modal"
         aria-expanded={true}
-        aria-haspopup="dialog"
         label="Info"
         testId="dialog-button"
         tooltip="Info tooltip"
@@ -112,7 +111,6 @@ describe("inspector-panel accessibility", () => {
     const button = screen.getByRole("button", { name: "Info" })
     expect(button).toHaveAttribute("aria-controls", "dataset-info-modal")
     expect(button).toHaveAttribute("aria-expanded", "true")
-    expect(button).toHaveAttribute("aria-haspopup", "dialog")
   })
 
   it("hides a labeled inspector menu icon from assistive tech", () => {
@@ -165,7 +163,7 @@ describe("inspector-panel accessibility", () => {
       </InspectorPalette>
     )
 
-    const region = screen.getByRole("dialog", { name: "Values" })
+    const region = screen.getByRole("region", { name: "Values" })
     expect(region).toBeInTheDocument()
     // Palette icon should be decorative (hidden from assistive tech)
     expect(within(region).queryByRole("img")).not.toBeInTheDocument()
@@ -183,7 +181,7 @@ describe("inspector-panel accessibility", () => {
       </InspectorPalette>
     )
 
-    const region = screen.getByRole("dialog", { name: "Values" })
+    const region = screen.getByRole("region", { name: "Values" })
     expect(region).toHaveAttribute("id", "values-palette")
   })
 

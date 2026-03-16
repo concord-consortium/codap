@@ -114,7 +114,6 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
       <InspectorButton
         aria-controls={kMeasurePaletteId}
         aria-expanded={showPalette === "measure"}
-        aria-haspopup="dialog"
         isActive={showPalette === "measure"}
         label={t("V3.graph.Inspector.Measure")}
         onButtonClick={handleRulerButton}
@@ -127,7 +126,6 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
         <InspectorButton
           aria-controls={kConfigPaletteId}
           aria-expanded={showPalette === "config"}
-          aria-haspopup="dialog"
           isActive={showPalette === "config"}
           label={t("V3.graph.Inspector.Config")}
           onButtonClick={handleConfigButton}
@@ -140,7 +138,6 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
       <InspectorButton
         aria-controls={kFormatPaletteId}
         aria-expanded={showPalette === "format"}
-        aria-haspopup="dialog"
         isActive={showPalette === "format"}
         label={t("V3.graph.Inspector.Format")}
         onButtonClick={handleBrushButton}

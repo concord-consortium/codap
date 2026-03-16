@@ -43,7 +43,6 @@ export const MapInspector = observer(function MapInspector({tile, show}: ITileIn
     if (mapModel?.layers.some(layer => isMapPointLayerModel(layer) || isMapPinLayerModel(layer))) {
       return (
         <InspectorButton
-          aria-haspopup="dialog"
           isActive={showPalette === "measure"}
           label={t("V3.map.Inspector.Data")}
           onButtonClick={(e: { target: Element }) => {
@@ -63,7 +62,6 @@ export const MapInspector = observer(function MapInspector({tile, show}: ITileIn
     if (mapModel) {
       return (
         <InspectorButton
-          aria-haspopup="dialog"
           isActive={showPalette === "layers"}
           label={t("V3.map.Inspector.Layers")}
           onButtonClick={(e: { target: Element }) => {
