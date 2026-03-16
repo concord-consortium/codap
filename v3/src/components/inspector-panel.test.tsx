@@ -165,7 +165,7 @@ describe("inspector-panel accessibility", () => {
       </InspectorPalette>
     )
 
-    const region = screen.getByRole("region", { name: "Values" })
+    const region = screen.getByRole("dialog", { name: "Values" })
     expect(region).toBeInTheDocument()
     // Palette icon should be decorative (hidden from assistive tech)
     expect(within(region).queryByRole("img")).not.toBeInTheDocument()
@@ -183,7 +183,7 @@ describe("inspector-panel accessibility", () => {
       </InspectorPalette>
     )
 
-    const region = screen.getByRole("region", { name: "Values" })
+    const region = screen.getByRole("dialog", { name: "Values" })
     expect(region).toHaveAttribute("id", "values-palette")
   })
 

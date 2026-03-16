@@ -87,8 +87,10 @@ describe("Tool shelf", () => {
   describe("keyboard navigation", () => {
     const getToolbarButtons = () => {
       const toolbar = screen.getByRole("toolbar")
+      /* eslint-disable testing-library/no-node-access */
       return Array.from(toolbar.querySelectorAll<HTMLElement>("button"))
         .filter(btn => !btn.closest(".tool-shelf-menu-list"))
+      /* eslint-enable testing-library/no-node-access */
     }
 
     it("sets tabIndex 0 on first button and -1 on others", () => {
