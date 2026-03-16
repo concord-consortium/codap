@@ -24,12 +24,12 @@ export const SliderInspector = ({ tile, show }: ITileInspectorPanelProps) => {
   if (!isSliderModel(sliderModel)) return null
 
   const handleTimerButton = (e: { target: Element }) => {
-    buttonRef.current = e.target
+    buttonRef.current = e.target.closest("button") ?? e.target
     setShowPalette(showPalette === "measure" ? undefined : "measure")
   }
 
   const handleScaleButton = (e: { target: Element }) => {
-    buttonRef.current = e.target
+    buttonRef.current = e.target.closest("button") ?? e.target
     setShowPalette(showPalette === "scale" ? undefined : "scale")
   }
 

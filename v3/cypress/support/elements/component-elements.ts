@@ -80,10 +80,10 @@ export const ComponentElements = {
   // Triggers the tooltip via hover and checks text.
   checkReactAriaToolTip(element: JQuery<HTMLElement>, tooltipText: string) {
     cy.wrap(element).realHover()
-    cy.get('.inspector-tooltip', { timeout: 2000 }).should('contain', tooltipText)
+    cy.get(".inspector-tooltip", { timeout: 2000 }).should("contain", tooltipText)
     // Move mouse away to dismiss the tooltip so it doesn't cover other elements
     cy.get(".document-container").realHover({ position: "bottom" })
-    cy.get('.inspector-tooltip').should('not.exist')
+    cy.get(".inspector-tooltip").should("not.exist")
   },
   getIconFromToolShelf(component: string) {
     return toolbar.getToolShelfIcon(component)

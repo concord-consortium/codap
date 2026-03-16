@@ -127,7 +127,7 @@ export const TableTileElements = {
     cy.get("[data-testid=attribute-menu-list][style*='visibility: visible']").type("{esc}")
   },
   getAttributeMenuItem(item: string) {
-    return cy.get("[data-testid=attribute-menu-list] button").contains(item)
+    return cy.get("[data-testid=attribute-menu-list] [role=menuitem]").contains(item)
   },
   selectMenuItemFromAttributeMenu(item: string) {
     this.getAttributeMenuItem(item).click({ force: true })

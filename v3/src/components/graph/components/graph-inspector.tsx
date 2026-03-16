@@ -43,17 +43,17 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
   }
 
   const handleRulerButton = (e: { target: Element }) => {
-    buttonRef.current = e.target
+    buttonRef.current = e.target.closest("button") ?? e.target
     setShowPalette(showPalette === "measure" ? undefined : "measure")
   }
 
   const handleConfigButton = (e: { target: Element }) => {
-    buttonRef.current = e.target
+    buttonRef.current = e.target.closest("button") ?? e.target
     setShowPalette(showPalette === "config" ? undefined : "config")
   }
 
   const handleBrushButton = (e: { target: Element }) => {
-    buttonRef.current = e.target
+    buttonRef.current = e.target.closest("button") ?? e.target
     setShowPalette(showPalette === "format" ? undefined : "format")
   }
 

@@ -47,7 +47,7 @@ export const MapInspector = observer(function MapInspector({tile, show}: ITileIn
           isActive={showPalette === "measure"}
           label={t("V3.map.Inspector.Data")}
           onButtonClick={(e: { target: Element }) => {
-            buttonRef.current = e.target
+            buttonRef.current = e.target.closest("button") ?? e.target
             setShowPalette(showPalette === "measure" ? undefined : "measure")
           }}
           testId={"map-display-values-button"}
@@ -67,7 +67,7 @@ export const MapInspector = observer(function MapInspector({tile, show}: ITileIn
           isActive={showPalette === "layers"}
           label={t("V3.map.Inspector.Layers")}
           onButtonClick={(e: { target: Element }) => {
-            buttonRef.current = e.target
+            buttonRef.current = e.target.closest("button") ?? e.target
             setShowPalette(showPalette === "layers" ? undefined : "layers")
           }}
           testId={"map-display-config-button"}
