@@ -11,7 +11,7 @@ export const CfmElements = {
   },
   closeDocument(options?: IDocumentOptions) {
     this.getHamburgerMenuButton().click()
-    this.getHamburgerMenu().contains("li", "Close").click()
+    this.getHamburgerMenu().contains(".menuItem", "Close").click()
     if (options?.discardChanges) {
       this.discardDocumentChanges()
     }
@@ -26,34 +26,34 @@ export const CfmElements = {
     return cy.get('#codap-menu-bar-id .menu-bar-left .cfm-menu.menu-anchor')
   },
   getHamburgerMenu() {
-    return cy.get('#codap-menu-bar-id .cfm-menu.menu-showing')
+    return cy.get('.cfm-menu.menu-showing')
   },
   getHelpMenuButton() {
     return cy.get('#codap-menu-bar-id .menu-bar-right .help-menu .cfm-menu.menu-anchor')
   },
   getHelpMenu() {
-    return cy.get('#codap-menu-bar-id .menu-bar-right .help-menu .cfm-menu.menu-showing')
+    return cy.get('.cfm-menu.menu-showing')
   },
   getHelpMenuItem(index: number) {
-    return cy.get(`.menu.help-menu.menu-open .menuItem`).eq(index)
+    return cy.get(`.cfm-menu.menu-showing .menuItem`).eq(index)
   },
   getLanguageMenuButton() {
     return cy.get('#codap-menu-bar-id .menu-bar-right .lang-menu .cfm-menu.menu-anchor')
   },
   getLanguageMenu() {
-    return cy.get('#codap-menu-bar-id .menu-bar-right .lang-menu .cfm-menu.menu-showing')
+    return cy.get('.cfm-menu.menu-showing')
   },
   getSettingsMenuButton() {
     return cy.get('#codap-menu-bar-id .menu-bar-right .settings-menu .menu-bar-button')
   },
   getSettingsMenu() {
-    return cy.get('#codap-menu-bar-id .menu-bar-right .settings-menu .cfm-menu')
+    return cy.get('.cfm-menu.menu-showing')
   },
   getSettingsMenuItems() {
     return this.getSettingsMenu().find(".menuItem")
   },
   getModalDialog() {
-    return cy.get('#codap-menu-bar-id .view .modal-dialog')
+    return cy.get('.modal-dialog')
   },
   discardDocumentChanges() {
     this.getModalDialog().contains("Are you sure")
@@ -61,7 +61,7 @@ export const CfmElements = {
   },
   openExampleDocument(filename: string, options?: IDocumentOptions) {
     this.getHamburgerMenuButton().click()
-    this.getHamburgerMenu().find("li").contains("Open...").click()
+    this.getHamburgerMenu().contains(".menuItem", "Open...").click()
     if (options?.discardChanges) {
       this.discardDocumentChanges()
     }
@@ -70,7 +70,7 @@ export const CfmElements = {
   },
   openLocalFile(filename: string) {
     this.getHamburgerMenuButton().click()
-    this.getHamburgerMenu().find("li").contains("Open...").click()
+    this.getHamburgerMenu().contains(".menuItem", "Open...").click()
     this.getModalDialog().find(".selectable").contains(filename).eq(1).click()
   }
 }

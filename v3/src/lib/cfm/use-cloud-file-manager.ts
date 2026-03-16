@@ -15,6 +15,7 @@ import { CONFIG_SAVE_AS_V2 } from "../config"
 import { DEBUG_CFM_LOCAL_STORAGE } from "../debug"
 import { handleCFMEvent, kCFMAutoSaveInterval } from "./handle-cfm-event"
 import CODAPLogo from "../../assets/cfm/codap-logo.nosvgr.svg"
+import CODAPLogoFocus from "../../assets/cfm/codap-logo-focus.nosvgr.svg"
 import CODAPProjectIcon from "../../assets/cfm/codap-project-icon.nosvgr.svg"
 import LanguageMenuIcon from "../../assets/cfm/language-menu-icon.nosvgr.svg"
 import FileMenuIcon from "../../assets/cfm/file-menu-icon.nosvgr.svg"
@@ -368,6 +369,7 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, hookOptions?: IUs
         ...(DEBUG_CFM_LOCAL_STORAGE ? ["localStorage"] : [])
       ],
       appIcon: CODAPLogo,
+      appFocusRingIcon: CODAPLogoFocus,
       ...options.current
     }
 

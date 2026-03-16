@@ -26,7 +26,7 @@ context("codap single smoke test", () => {
     cfm.getHamburgerMenuButton().click({force: true})
     cfm.getHamburgerMenu().should("exist")
     // clicking Open... item closes menu and shows Open dialog
-    cfm.getHamburgerMenu().contains("li", "Open...").click()
+    cfm.getHamburgerMenu().contains(".menuItem", "Open...").click()
     cfm.getHamburgerMenu().should("not.exist")
     cfm.getModalDialog().contains(".modal-dialog-title", "Open")
     // Example Documents should be selected by default
@@ -38,7 +38,7 @@ context("codap single smoke test", () => {
     cfm.getModalDialog().contains(".buttons button", "Open").click()
     cy.wait(1000)
     // once loaded, Open dialog should be hidden and document content should be shown
-    cfm.getModalDialog().should("not.exist")
+    cy.get('.modal-dialog:visible').should('not.exist')
     cy.get(".codap-component.codap-case-table").contains(".title-bar", "Mammals").should("exist")
 
     cy.log("Test table functionalities in Mammals sample doc")
@@ -99,7 +99,7 @@ context("codap single smoke test", () => {
     cfm.getHamburgerMenuButton().click()
     cfm.getHamburgerMenu().should("exist")
     // clicking Open... item closes menu and shows Open dialog
-    cfm.getHamburgerMenu().contains("li", "Open...").click()
+    cfm.getHamburgerMenu().contains(".menuItem", "Open...").click()
     cfm.getHamburgerMenu().should("not.exist")
     cfm.getModalDialog().contains(".modal-dialog-title", "Open")
     // Example Documents should be selected by default
@@ -111,7 +111,7 @@ context("codap single smoke test", () => {
     cfm.getModalDialog().contains(".buttons button", "Open").click()
     cy.wait(1000)
     // once loaded, Open dialog should be hidden and document content should be shown
-    cfm.getModalDialog().should("not.exist")
+    cy.get('.modal-dialog:visible').should('not.exist')
     cy.get(".codap-component.codap-case-table").contains(".title-bar", "Tracks/Measurements").should("exist")
 
     cy.log("Test date display exists in table")
@@ -204,7 +204,7 @@ context("codap single smoke test", () => {
     // Open Mammals document
     cy.log("Open Mammals from Hamburger menu")
     cfm.getHamburgerMenuButton().click()
-    cfm.getHamburgerMenu().contains("li", "Open...").click()
+    cfm.getHamburgerMenu().contains(".menuItem", "Open...").click()
     cfm.getModalDialog().contains(".filelist div.selectable", "Mammals").click()
     cfm.getModalDialog().contains(".buttons button", "Open").click()
     cy.wait(1000)

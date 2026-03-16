@@ -33,7 +33,7 @@ context("CloudFileManager", () => {
     cfm.getHamburgerMenuButton().click()
     cfm.getHamburgerMenu().should("exist")
     // clicking Open... item closes menu and shows Open dialog
-    cfm.getHamburgerMenu().contains("li", "Open...").click()
+    cfm.getHamburgerMenu().contains(".menuItem", "Open...").click()
     cfm.getHamburgerMenu().should("not.exist")
     cfm.getModalDialog().contains(".modal-dialog-title", "Open")
     // Example Documents should be selected by default
@@ -45,7 +45,7 @@ context("CloudFileManager", () => {
     cfm.getModalDialog().contains(".buttons button", "Open").click()
 
     // once loaded, Open dialog should be hidden and document content should be shown
-    cfm.getModalDialog().should("not.exist")
+    cy.get('.modal-dialog:visible').should('not.exist')
     cy.get(".codap-component.codap-case-table").contains(".title-bar", "Mammals").should("exist")
     cy.title().should("equal", "Mammals - CODAP")
   })
@@ -67,7 +67,7 @@ context("CloudFileManager", () => {
     // Open the document from Hamburger menu
     // Select file from dialog
     cfm.getHamburgerMenuButton().click()
-    cfm.getHamburgerMenu().contains("li", "Open...").click()
+    cfm.getHamburgerMenu().contains(".menuItem", "Open...").click()
     cfm.getHamburgerMenu().should("not.exist")
     cfm.getModalDialog().contains(".modal-dialog-title", "Open")
     cfm.getModalDialog().contains("", "Local File").click()
@@ -138,11 +138,12 @@ context("CloudFileManager", () => {
     visitEmptyCodap()
 
     cfm.getLanguageMenuButton().should("exist")
-    cfm.getLanguageMenu().should("not.exist")
+    cy.get('.cfm-menu.menu-showing').should("not.exist")
     cfm.getLanguageMenuButton().click()
     cfm.getLanguageMenu().should("exist")
-    cfm.getLanguageMenuButton().click()
-    cfm.getLanguageMenu().should("not.exist")
+    // Press Escape to close menu (React Aria popovers use overlays that block direct click)
+    cy.get('body').type('{esc}')
+    cy.get('.cfm-menu.menu-showing').should("not.exist")
   })
   it("can switch toolbar position", () => {
     visitEmptyCodap()
