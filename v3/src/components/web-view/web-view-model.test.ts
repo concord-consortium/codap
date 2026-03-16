@@ -54,9 +54,14 @@ describe("WebViewContentModel", () => {
     expect(webView.pageIndex).toBe(0) // min index
     expect(webView.url).toBe("http://example.com/page1")
   })
-  it("needsLocaleReload returns true for all plugins", () => {
+  it("needsLocaleReload returns true for all plugin candidates", () => {
     const webView = WebViewModel.create({ url: "https://example.com/plugins/SomePlugin/index.html" })
     webView.setPluginCandidate(true)
+    expect(webView.needsLocaleReload).toBe(true)
+  })
+  it("needsLocaleReload returns true for plugins with subType plugin", () => {
+    const webView = WebViewModel.create({ url: "https://example.com/plugins/SomePlugin/index.html",
+      subType: "plugin" })
     expect(webView.needsLocaleReload).toBe(true)
   })
   it("needsLocaleReload returns false for non-plugin web views", () => {
