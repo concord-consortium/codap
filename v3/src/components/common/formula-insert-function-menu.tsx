@@ -133,7 +133,21 @@ export const InsertFunctionMenu = ({ buttonRef, onClose }: IProps) => {
       return
     }
 
-    // Right Arrow navigates forward (list→info for focused function)
+    // Right Arrow navigates forward (category→list, list→info)
+    if (e.key === "ArrowRight" && functionMenuView === "category") {
+      const focused = containerRef.current?.querySelector('[role="menuitem"][data-focused]') as HTMLElement
+      const categoryName = focused?.dataset.name
+      if (categoryName) {
+        lastFocusedCategoryRef.current = categoryName
+        setSelectedCategory(categoryName)
+        lastFocusedFunctionRef.current = ""
+        setFunctionMenuView("list")
+        e.preventDefault()
+        e.stopPropagation()
+      }
+      return
+    }
+
     if (e.key === "ArrowRight" && functionMenuView === "list") {
       const focused = containerRef.current?.querySelector('[role="menuitem"][data-focused]') as HTMLElement
       const funcName = focused?.dataset.name
