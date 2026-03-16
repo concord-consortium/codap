@@ -23,6 +23,7 @@ import { mstReaction } from "../../utilities/mst-reaction"
 import { preventCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
 import { If } from "../common/if"
+import { kIndexColumnKey } from "../case-tile-common/case-tile-types"
 import { CollectionTitle } from "../case-tile-common/collection-title"
 import { kCollectionTableBodyDropZoneBaseId } from "./case-table-drag-drop"
 import {
@@ -219,6 +220,17 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const { handleSelectedCellChange, navigateToNextCell, navigateToNextRow } = useSelectedCell(gridRef, columns, rows)
 
   const handleCellKeyDown = useCallback((args: TCellKeyDownArgs, event: CellKeyboardEvent) => {
+    // Open the index column menu via keyboard. RDG keeps focus on the cell div rather than
+    // the MenuButton inside it, so we find and click the MenuButton programmatically.
+    if (args.mode === "SELECT" && args.column.key === kIndexColumnKey
+        && ["Enter", " "].includes(event.key)) {
+      event.preventGridDefault()
+      const grid = event.currentTarget as HTMLElement
+      const cell = grid.querySelector<HTMLElement>(`.rowId-${args.row.__id__}`)
+      const menuButton = cell?.querySelector<HTMLElement>('[data-testid="codap-index-content-button"]')
+      menuButton?.click()
+      return
+    }
     // By default in RDG, the enter/return key simply enters/exits edit mode without moving the
     // selected cell. In CODAP, the enter/return key should accept the edit _and_ advance to the
     // next row. To achieve this in RDG, we provide this callback, which is called before RDG

@@ -618,6 +618,28 @@ context("case table index and component", () => {
     })
   })
 
+  describe("table accessibility", () => {
+    it("collection title has aria-label with collection name", () => {
+      table.getCollectionTitle()
+        .find(".chakra-editable__preview")
+        .should("have.attr", "aria-label")
+        .and("contain", collectionName)
+        .and("contain", "cases")
+        .and("contain", "Press Enter to edit")
+    })
+    it("opens index menu via keyboard Enter on index cell", () => {
+      // Click the first data cell to get focus into the grid
+      table.getGridCell(2, 2).click()
+      // Navigate to the index cell using left arrow
+      table.getGridCell(2, 2).type("{leftarrow}")
+      // Press Enter to open the index menu
+      cy.focused().type("{enter}")
+      table.getIndexMenu().should("be.visible")
+      // Close the menu with Escape
+      cy.get("body").type("{esc}")
+    })
+  })
+
   describe("table cells with checkboxes", () => {
     it("displays checkboxes in cells with checkbox attribute type", () => {
       table.getTableTile().click()

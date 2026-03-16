@@ -129,7 +129,9 @@ export const CollectionTitle =
         <Editable value={isEditing ? editingName : displayName}
             onEdit={() => setIsEditing(true)} onSubmit={handleSubmit} onCancel={handleCancel}
             isPreviewFocusable={!dragging} submitOnBlur={true} onChange={handleChangeName}>
-          <EditablePreview width="100%" paddingY={0} overflow="hidden" whiteSpace="nowrap" textOverflow="ellipsis" />
+          <EditablePreview width="100%" paddingY={0} overflow="hidden" whiteSpace="nowrap" textOverflow="ellipsis"
+            aria-label={t("V3.CaseTable.collectionTitlePreviewAriaLabel",
+              { vars: [collectionName, String(nonEmptyCaseCount)] })} />
           <EditableInput value={editingName} paddingY={0} className="collection-title-input"
             aria-label={t("V3.CaseTable.collectionTitleAriaLabel", { vars: [editingName || collectionName] })} />
         </Editable>
