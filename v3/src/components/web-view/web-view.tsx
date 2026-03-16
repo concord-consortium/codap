@@ -151,9 +151,8 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
 
   useDataInteractiveController(iframeRef, tile)
 
-  // Only append ?lang= to localized plugins that need reload on locale change.
-  // This ensures their iframe src changes (triggering a reload), while non-localized
-  // plugins keep a stable src and just receive a localeChanged notification instead.
+  // Append ?lang= to all plugins that need reload on locale change.
+  // Plugins can opt out by setting handlesLocaleChange: true via interactiveFrame.update.
   const iframeSrc = isWebViewModel(webViewModel) && webViewModel.needsLocaleReload
     ? appendLangParam(webViewModel.url, gLocale.current)
     : isWebViewModel(webViewModel) ? webViewModel.url : ""
