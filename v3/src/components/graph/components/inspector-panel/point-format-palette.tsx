@@ -7,13 +7,14 @@ import FormatIcon from "../../../../assets/icons/inspector-panel/format-icon.svg
 import {DisplayItemFormatControl} from "../../../data-display/inspector/display-item-format-control"
 
 interface IProps {
+  id?: string
   tile?: ITileModel
   panelRect?: DOMRect
   buttonRect?: DOMRect
   setShowPalette: (palette: string | undefined) => void;
 }
 
-export const PointFormatPalette = observer(function PointFormatPalette({tile, panelRect, buttonRect,
+export const PointFormatPalette = observer(function PointFormatPalette({id, tile, panelRect, buttonRect,
     setShowPalette}: IProps) {
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
 
@@ -39,6 +40,7 @@ export const PointFormatPalette = observer(function PointFormatPalette({tile, pa
 
   return (
     <InspectorPalette
+      id={id}
       title={t("DG.Inspector.styles")}
       Icon={<FormatIcon/>}
       setShowPalette={setShowPalette}

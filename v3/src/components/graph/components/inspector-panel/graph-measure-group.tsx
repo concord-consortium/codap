@@ -41,12 +41,12 @@ export const GraphMeasureGroup = observer(
           className="measure-group-button"
           data-testid={`adornment-toggle-${measureGroup.rulerStateKey}`}
         >
-          <span className="disclosure-arrow" />
+          <span className="disclosure-arrow" aria-hidden="true" />
           {t(measureGroup.title)}
         </Button>
       </Heading>
       <DisclosurePanel>
-        <div className="measure-items" role="group" aria-label={t(measureGroup.title)}>
+        <div className="measure-items">
           {measureGroup.menuItems.map(measure => {
             const { componentInfo, componentContentInfo, title } = measure
             const titleSlug = t(title).replace(/ /g, "-").toLowerCase()

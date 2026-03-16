@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { InspectorButton, InspectorPanel } from "../inspector-panel"
 import { SliderSettingsPalette } from "./inspector-panel/slider-settings-panel"
 import { t } from "../../utilities/translation/translate"
@@ -12,9 +12,9 @@ import MeasureIcon from "../../assets/icons/inspector-panel/data-icon.svg"
 export const SliderInspector = ({ tile, show }: ITileInspectorPanelProps) => {
   const sliderModel = tile?.content
   const [showPalette, setShowPalette] = useState<string | undefined>(undefined)
-  const panelRef = useRef<HTMLDivElement>()
+  const panelRef = useRef<HTMLDivElement>(null)
   const panelRect = panelRef.current?.getBoundingClientRect()
-  const buttonRef = useRef<HTMLDivElement>()
+  const buttonRef = useRef<Element | null>(null)
   const buttonRect = buttonRef.current?.getBoundingClientRect()
 
   useEffect(()=>{
@@ -23,13 +23,13 @@ export const SliderInspector = ({ tile, show }: ITileInspectorPanelProps) => {
 
   if (!isSliderModel(sliderModel)) return null
 
-  const handleTimerButton = (e: React.MouseEvent) => {
-    buttonRef.current = e.currentTarget as HTMLDivElement
+  const handleTimerButton = (e: { target: Element }) => {
+    buttonRef.current = e.target.closest("button") ?? e.target
     setShowPalette(showPalette === "measure" ? undefined : "measure")
   }
 
-  const handleScaleButton = (e: React.MouseEvent) => {
-    buttonRef.current = e.currentTarget as HTMLDivElement
+  const handleScaleButton = (e: { target: Element }) => {
+    buttonRef.current = e.target.closest("button") ?? e.target
     setShowPalette(showPalette === "scale" ? undefined : "scale")
   }
 
@@ -51,7 +51,6 @@ export const SliderInspector = ({ tile, show }: ITileInspectorPanelProps) => {
       <InspectorButton
         label={t("V3.Slider.Inspector.Playback")}
         onButtonClick={handleTimerButton}
-
         testId={"slider-values-button"}
         tooltip={t("DG.Inspector.sliderValues.toolTip")}
         top={true}
@@ -62,7 +61,6 @@ export const SliderInspector = ({ tile, show }: ITileInspectorPanelProps) => {
         bottom={true}
         label={t("V3.Slider.Inspector.Scale")}
         onButtonClick={handleScaleButton}
-
         testId={"slider-scale-button"}
         tooltip={t("V3.Inspector.sliderScales.toolTip")}
       >

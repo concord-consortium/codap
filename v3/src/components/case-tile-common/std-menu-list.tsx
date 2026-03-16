@@ -1,7 +1,7 @@
-import { MenuItem, MenuList } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
+import { MenuItem } from "react-aria-components"
 import { If } from "../common/if"
-import { useMenuItemScrollIntoView } from "../../hooks/use-menu-item-scroll-into-view"
+import { InspectorMenuContent } from "../inspector-panel"
 import { t } from "../../utilities/translation/translate"
 
 export interface IMenuItem {
@@ -19,9 +19,8 @@ interface IProps {
 }
 
 export const StdMenuList = observer(function StdMenuList({ menuItems, ...others }: IProps) {
-  const handleFocus = useMenuItemScrollIntoView()
   return (
-    <MenuList onFocus={handleFocus} {...others}>
+    <InspectorMenuContent {...others}>
       {
         menuItems.map(item => {
           const isDisabled = !item.handleClick || (item.isEnabled && !item.isEnabled(item))
@@ -29,8 +28,9 @@ export const StdMenuList = observer(function StdMenuList({ menuItems, ...others 
           return (
             <MenuItem
               key={item.itemKey}
+              id={item.itemKey}
               isDisabled={isDisabled}
-              onClick={() => item.handleClick?.(item)}
+              onAction={() => item.handleClick?.(item)}
               data-testid={item.dataTestId}
             >
               {itemLabel}
@@ -39,6 +39,6 @@ export const StdMenuList = observer(function StdMenuList({ menuItems, ...others 
           )
         })
       }
-    </MenuList>
+    </InspectorMenuContent>
   )
 })

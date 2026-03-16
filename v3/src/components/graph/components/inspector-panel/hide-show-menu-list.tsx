@@ -1,7 +1,7 @@
-import { MenuItem, MenuList, useDisclosure } from "@chakra-ui/react"
+import { useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
-import { useMenuItemScrollIntoView } from "../../../../hooks/use-menu-item-scroll-into-view"
+import { MenuItem } from "react-aria-components"
 import { ITileModel } from "../../../../models/tiles/tile-model"
 import { isGraphContentModel } from "../../models/graph-content-model"
 import { t } from "../../../../utilities/translation/translate"
@@ -10,6 +10,7 @@ import { updateTileNotification } from "../../../../models/tiles/tile-notificati
 import { EditFormulaModal } from "../../../common/edit-formula-modal"
 import { DataSetContext } from "../../../../hooks/use-data-set-context"
 import { useInspectorFormulaString } from "../../../../hooks/use-inspector-formula-string"
+import { InspectorMenuContent } from "../../../inspector-panel"
 
 interface IProps {
   tile?: ITileModel
@@ -19,7 +20,6 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
   const graphModel = tile && isAlive(tile) && isGraphContentModel(tile?.content) ? tile?.content : undefined
   const dataConfig = graphModel?.dataConfiguration
   const { isOpen, onClose, onOpen } = useDisclosure()
-  const handleFocus = useMenuItemScrollIntoView()
 
   const hideSelectedCases = () => {
     const numberToHide = dataConfig?.selection.length ?? 0
@@ -142,31 +142,31 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
 
   return (
     <>
-      <MenuList data-testid="hide-show-menu-list" onFocus={handleFocus}>
-        <MenuItem onClick={hideSelectedCases} isDisabled={hideSelectedIsDisabled} data-testid="hide-selected-cases">
+      <InspectorMenuContent data-testid="hide-show-menu-list">
+        <MenuItem onAction={hideSelectedCases} isDisabled={hideSelectedIsDisabled} data-testid="hide-selected-cases">
           {hideSelectedString}
         </MenuItem>
-        <MenuItem onClick={hideUnselectedCases} isDisabled={hideUnselectedIsDisabled}
+        <MenuItem onAction={hideUnselectedCases} isDisabled={hideUnselectedIsDisabled}
           data-testid="hide-unselected-cases">
           {hideUnselectedString}
         </MenuItem>
-        <MenuItem onClick={showAllCases} isDisabled={showAllIsDisabled} data-testid="show-all-cases">
+        <MenuItem onAction={showAllCases} isDisabled={showAllIsDisabled} data-testid="show-all-cases">
           {t("DG.DataDisplayMenu.showAll")}
         </MenuItem>
-        <MenuItem onClick={handleEditFormulaOpen} data-testid="graph-edit-filter-formula">
+        <MenuItem onAction={handleEditFormulaOpen} data-testid="graph-edit-filter-formula">
           {addOrEditFormulaString}
         </MenuItem>
-        <MenuItem onClick={displayOnlySelectedCases} isDisabled={displayOnlySelectedIsDisabled}
-        data-testid="display-selected-cases">
+        <MenuItem onAction={displayOnlySelectedCases} isDisabled={displayOnlySelectedIsDisabled}
+          data-testid="display-selected-cases">
           {t("DG.DataDisplayMenu.displayOnlySelected")}
         </MenuItem>
-        <MenuItem onClick={handleParentTogglesChange} data-testid="show-parent-toggles">
+        <MenuItem onAction={handleParentTogglesChange} data-testid="show-parent-toggles">
           {parentToggleString}
         </MenuItem>
-        <MenuItem onClick={handleMeasuresForSelectionChange} data-testid="show-selection-measures">
+        <MenuItem onAction={handleMeasuresForSelectionChange} data-testid="show-selection-measures">
           {measuresForSelectionString}
         </MenuItem>
-      </MenuList>
+      </InspectorMenuContent>
       {
         dataConfig &&
         <DataSetContext.Provider value={dataConfig.dataset}>

@@ -55,7 +55,14 @@ export const CaseTileInspector = ({ tile, show, showResizeColumnsButton }: IProp
   return (
     <DataSetContext.Provider value={data}>
       <DataSetMetadataContext.Provider value={metadata}>
-        <InspectorPanel component="case-tile" show={show} width="narrow">
+        <InspectorPanel
+          component="case-tile"
+          show={show}
+          toolbarAriaLabel={t("DG.DocumentController.caseTableTitle")}
+          toolbarOrientation="vertical"
+          toolbarPersistenceKey="case-tile-inspector-toolbar"
+          width="narrow"
+        >
           <InspectorButton
             onButtonClick={()=>handleButtonClick("datasetInfo")}
             label={t("V3.CaseCardTable.Inspector.Info")}

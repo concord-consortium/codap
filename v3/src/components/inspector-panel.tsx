@@ -1,7 +1,10 @@
-import { forwardRef, Box, Button, Menu, MenuButton } from "@chakra-ui/react"
 import { clsx } from "clsx"
-import React, { ReactNode, RefObject, useEffect, useRef, useState } from "react"
+import React, { forwardRef, ReactNode, RefObject, useCallback, useEffect, useRef, useState } from "react"
+import { Button, Menu, MenuTrigger, Popover, Tooltip, TooltipTrigger } from "react-aria-components"
+
 import { useFocusTrap } from "../hooks/use-focus-trap"
+import { useMouseTooltipRef } from "../hooks/use-mouse-tooltip-ref"
+import { useRovingToolbarFocus } from "../hooks/use-roving-toolbar-focus"
 import { useOutsidePointerDown } from "../hooks/use-outside-pointer-down"
 import { isWithinBounds, getPaletteTopPosition } from "../utilities/view-utils"
 
@@ -16,61 +19,119 @@ function ariaLabel(label?: string, tooltip?: string) {
   return tooltip?.replace(/\s*\(.*\)$/, "")
 }
 
+function renderIcon(icon: ReactNode, isDecorative: boolean) {
+  return isDecorative ? <span aria-hidden="true">{icon}</span> : icon
+}
+
 interface IProps {
   component?: string
   show?: boolean
   children: ReactNode
   setShowPalette?: (palette: string | undefined) => void
+  toolbarAriaLabel?: string
+  toolbarOrientation?: "horizontal" | "vertical"
+  toolbarPersistenceKey?: string
   width?: "very-narrow" | "narrow" | "normal" | "wide"
 }
 
-export const InspectorPanel = forwardRef(({ component, show, setShowPalette, children, width }: IProps, ref) => {
+const kTooltipDelay = 1000
+const kTooltipPlacement = "bottom" as const
+const kTooltipOffset = 15
+
+export const InspectorPanel = forwardRef<HTMLDivElement, IProps>(function InspectorPanel({
+  component, show, setShowPalette, children, toolbarAriaLabel, toolbarOrientation = "vertical", toolbarPersistenceKey,
+  width
+}, ref) {
+  const panelRef = useRef<HTMLDivElement | null>(null)
+  const mergedRef = useCallback((node: HTMLDivElement | null) => {
+    panelRef.current = node
+    if (typeof ref === "function") ref(node)
+    else if (ref) ref.current = node
+  }, [ref])
   useOutsidePointerDown({
-    ref: ref as unknown as RefObject<HTMLElement>,
+    ref: panelRef as unknown as RefObject<HTMLElement>,
     handler: ()=> setShowPalette?.(undefined),
-    enabled: !!(show && ref && setShowPalette),
+    enabled: !!(show && panelRef && setShowPalette),
     info: {name: "InspectorPanel", component}
+  })
+  const { onFocusCapture, onKeyDownCapture } = useRovingToolbarFocus({
+    enabled: !!toolbarAriaLabel,
+    getItems: () => {
+      if (!panelRef.current) return []
+      return Array.from(panelRef.current.querySelectorAll<HTMLElement>("[data-inspector-toolbar-item='true']"))
+    },
+    orientation: toolbarOrientation,
+    persistenceKey: toolbarPersistenceKey
   })
   const classes = clsx("inspector-panel", component, width ?? "normal")
   return (show
-    ? <Box ref={ref} className={classes} data-testid={"inspector-panel"}>
+    ? <div
+        ref={mergedRef}
+        aria-label={toolbarAriaLabel}
+        aria-orientation={toolbarAriaLabel ? toolbarOrientation : undefined}
+        className={classes}
+        data-testid={"inspector-panel"}
+        onFocusCapture={onFocusCapture}
+        onKeyDownCapture={onKeyDownCapture}
+        role={toolbarAriaLabel ? "toolbar" : undefined}
+      >
         {children}
-      </Box>
+      </div>
     : null
   )
 })
 
 interface IInspectorButtonProps {
+  "aria-controls"?: string
+  "aria-expanded"?: boolean
   bottom?: boolean
   children: ReactNode
   isActive?: boolean
   isDisabled?: boolean
   label?: string
-  onButtonClick?: (e: React.MouseEvent) => void
+  onButtonClick?: (e: { target: Element }) => void
   onPointerDown?: (e: React.PointerEvent) => void
   testId: string
   tooltip: string
   top?: boolean
 }
 
-export const InspectorButton = forwardRef(function InspectorButton({
-  bottom, children, isActive, isDisabled, label, onButtonClick, onPointerDown, testId, tooltip, top
+export const InspectorButton = forwardRef<HTMLButtonElement, IInspectorButtonProps>(function InspectorButton({
+  "aria-controls": ariaControls, "aria-expanded": ariaExpanded, bottom, children,
+  isActive, isDisabled, label, onButtonClick,
+  onPointerDown, testId, tooltip, top
 }: IInspectorButtonProps, ref) {
   const className = clsx("inspector-tool-button", { active: isActive, bottom, top })
+  const hasVisibleLabel = !!label
+  const { triggerRef, onMouseMove } = useMouseTooltipRef()
   return (
-    <Button
-      aria-label={ariaLabel(label, tooltip)}
-      className={className}
-      isDisabled={isDisabled}
-      data-testid={testId}
-      onClick={onButtonClick}
-      onPointerDown={!isDisabled ? onPointerDown : undefined}
-      ref={ref}
-      title={tooltip}
-    >
-      {children}
-      {label && <span className="inspector-button-label">{label}</span>}
-    </Button>
+    <TooltipTrigger delay={kTooltipDelay}>
+      <Button
+        aria-controls={ariaControls}
+        aria-disabled={isDisabled || undefined}
+        aria-expanded={ariaExpanded}
+        aria-label={ariaLabel(label, tooltip)}
+        className={className}
+        data-inspector-toolbar-item="true"
+        data-testid={testId}
+        excludeFromTabOrder={isDisabled}
+        onMouseMove={onMouseMove}
+        onPointerDown={!isDisabled ? onPointerDown : undefined}
+        onPress={!isDisabled ? onButtonClick : undefined}
+        ref={ref}
+      >
+        {renderIcon(children, hasVisibleLabel)}
+        {label && <span className="inspector-button-label">{label}</span>}
+      </Button>
+      <Tooltip
+        className="inspector-tooltip"
+        offset={kTooltipOffset}
+        placement={kTooltipPlacement}
+        triggerRef={triggerRef}
+      >
+        {tooltip}
+      </Tooltip>
+    </TooltipTrigger>
   )
 })
 
@@ -90,28 +151,69 @@ export const InspectorMenu = ({
   bottom, children, icon, label, onButtonClick, onOpen, testId, tooltip, top
 }: IInspectorMenuProps) => {
   const classes = clsx("inspector-tool-button", "inspector-tool-menu", { bottom, top })
+  const hasVisibleLabel = !!label
+  const { triggerRef, onMouseMove } = useMouseTooltipRef()
+
+  const handleOpenChange = useCallback((isOpen: boolean) => {
+    if (isOpen) {
+      onButtonClick?.()
+      onOpen?.()
+    }
+  }, [onButtonClick, onOpen])
+
   return (
-    <Menu isLazy onOpen={onOpen}>
-      <MenuButton aria-label={ariaLabel(label, tooltip)} className={classes} title={tooltip} data-testid={testId}
-          onClick={onButtonClick}>
-        {icon}
-        {label && <span className="inspector-button-label">{label}</span>}
-      </MenuButton>
-      {children}
-    </Menu>
+    <TooltipTrigger delay={kTooltipDelay}>
+      <MenuTrigger onOpenChange={handleOpenChange}>
+        <Button
+          aria-label={ariaLabel(label, tooltip)}
+          className={classes}
+          data-inspector-toolbar-item="true"
+          data-testid={testId}
+          onMouseMove={onMouseMove}
+        >
+          {renderIcon(icon, hasVisibleLabel)}
+          {label && <span className="inspector-button-label">{label}</span>}
+        </Button>
+        {children}
+      </MenuTrigger>
+      <Tooltip
+        className="inspector-tooltip"
+        offset={kTooltipOffset}
+        placement={kTooltipPlacement}
+        triggerRef={triggerRef}
+      >
+        {tooltip}
+      </Tooltip>
+    </TooltipTrigger>
+  )
+}
+
+interface IInspectorMenuContentProps {
+  children: ReactNode
+  "data-testid"?: string
+}
+
+export function InspectorMenuContent({ children, ...props }: IInspectorMenuContentProps) {
+  return (
+    <Popover className="inspector-menu-popover">
+      <Menu className="inspector-menu-list" {...props}>
+        {children}
+      </Menu>
+    </Popover>
   )
 }
 
 interface IInspectorPalette {
   children: ReactNode
   Icon?: ReactNode
-  title?: string
+  id?: string
+  title: string
   panelRect?: DOMRect
   buttonRect?: DOMRect
   setShowPalette: (palette: string | undefined) => void
 }
 
-export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
+export const InspectorPalette = ({children, Icon, id, title, panelRect, buttonRect,
      setShowPalette}:IInspectorPalette) => {
   const pointerSize = 10
   const panelTop = panelRect?.top || 0
@@ -131,15 +233,11 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
   const paletteTop = (tempPaletteTop && paletteHeight) &&
     getPaletteTopPosition(tempPaletteTop, paletteHeight, pointerMidpoint)
   const headerId = title ? `palette-header-${title.replace(/\s+/g, "-").toLowerCase()}` : undefined
-  const previousFocusRef = useRef<HTMLElement | null>(null)
-
   useEffect(()=> {
-    const observer = viewportEl && new ResizeObserver(entries => {
-      entries.forEach(entry => {
-        if (panelRight && paletteRef.current) {
-          setInBounds(isWithinBounds(panelRight, paletteRef.current))
-        }
-      })
+    const observer = viewportEl && new ResizeObserver(() => {
+      if (panelRight && paletteRef.current) {
+        setInBounds(isWithinBounds(panelRight, paletteRef.current))
+      }
     })
     viewportEl && observer?.observe(viewportEl)
     return () => observer?.disconnect()
@@ -164,13 +262,13 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
   }
 
   useEffect(() => {
-    previousFocusRef.current = document.activeElement as HTMLElement
+    const previousFocus = document.activeElement as HTMLElement | null
     if (paletteRef.current) {
       setPaletteWidth(paletteRef.current.offsetWidth)
       paletteRef.current.focus()
     }
     return () => {
-      previousFocusRef.current?.focus()
+      previousFocus?.focus()
     }
   }, [])
 
@@ -184,7 +282,7 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
     <div className="codap-inspector-palette-wrapper" style={wrapperStyle}>
       <div ref={pointerRef} className={`palette-pointer ${inBounds ? "arrow-left" : "arrow-right"}`}
           style={{top: pointerTop - (paletteTop || 0), ...pointerStyle}} />
-      <div ref={paletteRef} className="codap-inspector-palette" tabIndex={-1}
+      <div ref={paletteRef} className="codap-inspector-palette" id={id} tabIndex={-1}
           role="region" aria-labelledby={headerId}
           data-testid="codap-inspector-palette" onKeyDown={handleKeyDown}>
         <PaletteHeader id={headerId} Icon={Icon} title={title} />
@@ -198,13 +296,13 @@ export const InspectorPalette = ({children, Icon, title, panelRect, buttonRect,
 interface IPaletteHeaderProps {
   id?: string
   Icon?: ReactNode
-  title?: string
+  title: string
 }
 
 function PaletteHeader({ id, Icon, title }: IPaletteHeaderProps) {
   return (
     <header id={id} className="codap-inspector-palette-header" data-testid="codap-inspector-palette-header">
-      {Icon && <span className="codap-inspector-palette-icon">{Icon}</span>}
+      {Icon && <span className="codap-inspector-palette-icon" aria-hidden="true">{Icon}</span>}
       <span className="codap-inspector-palette-header-title">{title}</span>
     </header>
   )

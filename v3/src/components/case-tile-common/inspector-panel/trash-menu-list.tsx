@@ -1,15 +1,14 @@
-import { MenuItem, MenuList } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
+import { MenuItem } from "react-aria-components"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
-import { useMenuItemScrollIntoView } from "../../../hooks/use-menu-item-scroll-into-view"
 import { removeCasesWithCustomUndoRedo } from "../../../models/data/data-set-undo"
 import { selectAllCases } from "../../../models/data/data-set-utils"
 import { isItemEditable } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
+import { InspectorMenuContent } from "../../inspector-panel"
 
 export const TrashMenuList = observer(function TrashMenuList() {
   const data = useDataSetContext()
-  const handleFocus = useMenuItemScrollIntoView()
 
   const selectedItemIds = Array.from(data?.selection ?? [])
   const disableDeleteSelectedItems = !data || !selectedItemIds.some(itemId => isItemEditable(data, itemId))
@@ -39,34 +38,34 @@ export const TrashMenuList = observer(function TrashMenuList() {
   }
 
   return (
-    <MenuList data-testid="trash-menu-list" onFocus={handleFocus}>
+    <InspectorMenuContent data-testid="trash-menu-list">
       <MenuItem
-        onClick={handleSelectAllCases}
+        onAction={handleSelectAllCases}
         data-testid="trash-menu-select-all-cases"
       >
         {t("DG.Inspector.selection.selectAll")}
       </MenuItem>
       <MenuItem
         isDisabled={disableDeleteSelectedItems}
-        onClick={handleDeleteSelectedCases}
+        onAction={handleDeleteSelectedCases}
         data-testid="trash-menu-delete-selected-cases"
       >
         {t("DG.Inspector.selection.deleteSelectedCases")}
       </MenuItem>
       <MenuItem
         isDisabled={disableDeleteUnselectedItems}
-        onClick={handleDeleteUnselectedCases}
+        onAction={handleDeleteUnselectedCases}
         data-testid="trash-menu-delete-unselected-cases"
       >
         {t("DG.Inspector.selection.deleteUnselectedCases")}
       </MenuItem>
       <MenuItem
         isDisabled={disableDeleteAllItems}
-        onClick={handleDeleteAllCases}
+        onAction={handleDeleteAllCases}
         data-testid="trash-menu-delete-all-cases"
       >
         {t("DG.Inspector.deleteAll")}
       </MenuItem>
-    </MenuList>
+    </InspectorMenuContent>
   )
 })

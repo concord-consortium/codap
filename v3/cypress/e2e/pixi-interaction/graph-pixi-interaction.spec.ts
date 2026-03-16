@@ -87,7 +87,7 @@ context.skip("Graph UI with Pixi interaction", () => {
       // Hide all cases
       cy.log('Hide all cases in graph')
       graph.getHideShowButton().click()
-      cy.get("[data-testid=hide-selected-cases]").should("be.disabled")
+      cy.get("[data-testid=hide-selected-cases]").should("have.attr", "aria-disabled", "true")
       cy.get("[data-testid=hide-unselected-cases]").click()
       gch.getGraphTileId().then((tileId) => {
         gch.validateGraphPointCount(tileId, 0) // 0 points in graph
@@ -97,7 +97,7 @@ context.skip("Graph UI with Pixi interaction", () => {
       cy.log('Show all cases in graph')
       graph.getGraphTile()
       graph.getHideShowButton().click()
-      cy.get("[data-testid=hide-selected-cases]").should("be.disabled")
+      cy.get("[data-testid=hide-selected-cases]").should("have.attr", "aria-disabled", "true")
       cy.get("[data-testid=show-all-cases]").click()
       cy.wait(500)
       gch.getGraphTileId().then((tileId) => {
@@ -110,7 +110,7 @@ context.skip("Graph UI with Pixi interaction", () => {
       table.getGridCell(2, 2).should("contain", "plants").click()
       graph.getGraphTile().click()
       graph.getHideShowButton().click()
-      cy.get("[data-testid=hide-selected-cases]").should("not.be.disabled").click()
+      cy.get("[data-testid=hide-selected-cases]").should("not.have.attr", "aria-disabled").click()
       cy.wait(500)
       gch.getGraphTileId().then((tileId) => {
         gch.validateGraphPointCount(tileId, 18) // 18 points in graph

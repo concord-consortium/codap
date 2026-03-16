@@ -50,12 +50,29 @@ $inspector-panel-border-width: 2px;
     padding-top: 4px;
     width: 100%;
 
-    &:active, &.active, &[data-active] {
-      background-color: #bfefff;
+    &[data-disabled], &[aria-disabled="true"] {
+      cursor: not-allowed;
+      opacity: 0.4;
+    }
+
+    &:active, &.active, &[data-active], &[aria-expanded="true"] {
+      background-color: vars.$icon-fill-medium;
     }
 
     &:hover {
-      background-color: #d3f4ff;
+      background-color: vars.$icon-fill-light;
+    }
+
+    &:focus-visible {
+      background-color: vars.$icon-fill-light;
+      outline: 2px solid vars.$focus-outline-color;
+      outline-offset: -2px;
+      position: relative;
+      z-index: 1;
+    }
+
+    &:focus:not(:focus-visible) {
+      outline: none;
     }
 
     &.bottom {
@@ -90,6 +107,18 @@ $inspector-panel-border-width: 2px;
       }
     }
   }
+}
+
+.inspector-tooltip {
+  background: vars.$charcoal-light-8;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  color: vars.$label-color;
+  font-size: 11px;
+  line-height: 1.3;
+  max-width: 200px;
+  padding: 2px 6px;
+  white-space: normal;
+  z-index: 1500;
 }
 
 .codap-inspector-palette-wrapper {
@@ -454,6 +483,62 @@ $inspector-panel-border-width: 2px;
         font-weight: bold;
       }
     }
+  }
+}
+
+.inspector-menu-popover {
+  background: white;
+  border: 1px solid vars.$menu-border-color;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  outline: none;
+  padding: 4px 0;
+  z-index: 1400;
+
+  &[data-entering] {
+    animation: menu-fade-in 150ms ease-out;
+  }
+  &[data-exiting] {
+    animation: menu-fade-out 100ms ease-in;
+  }
+}
+
+@keyframes menu-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes menu-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.inspector-menu-list {
+  outline: none;
+  padding: 0;
+}
+
+.inspector-menu-list [role="menuitem"] {
+  cursor: pointer;
+  font-size: 14px;
+  outline: none;
+  padding: 3px 10px;
+  white-space: nowrap;
+
+  &[data-focused],
+  &[data-hovered] {
+    background-color: vars.$menu-item-hover-bg;
+  }
+
+  &[data-disabled] {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  &[data-focus-visible] {
+    outline: 2px solid vars.$focus-outline-color;
+    outline-offset: -2px;
   }
 }
 
