@@ -8,9 +8,7 @@ import { ITileModel } from "../../models/tiles/tile-model"
 import { safeGetParent } from "../../utilities/mst-utils"
 import { t } from "../../utilities/translation/translate"
 import { getDataInteractiveUrl, getGuideIndex } from "../../utilities/url-params"
-import {
-  kLocalizedPluginPatterns, kWebViewTileType, WebViewSubType, webViewSubTypes
-} from "./web-view-defs"
+import { kWebViewTileType, WebViewSubType, webViewSubTypes } from "./web-view-defs"
 import { getNameFromURL } from "./web-view-utils"
 
 export const kDefaultAllowEmptyAttributeDeletion = true
@@ -108,8 +106,7 @@ export const WebViewModel = TileContentModel
     },
     get needsLocaleReload() {
       if (self.handlesLocaleChange) return false
-      if (!(self.isPlugin || self.isPluginCandidate)) return false
-      return kLocalizedPluginPatterns.some(pattern => self.url.includes(pattern))
+      return self.isPlugin || self.isPluginCandidate
     }
   }))
   .actions(self => ({
