@@ -1396,6 +1396,7 @@
 
     // Tile type labels for accessible names (e.g. in the Tiles menu)
     "V3.TileType.CodapWebView": "web page",
+    "V3.TileType.Plugin": "plugin",
     "V3.TileType.Unknown": "tile",
 
     "V3.CaseCardTable.Inspector.Info": "Info",

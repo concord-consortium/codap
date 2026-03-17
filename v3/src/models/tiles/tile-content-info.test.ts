@@ -9,6 +9,7 @@ describe("getTileTypeLabel", () => {
     expect(getTileTypeLabel("CodapText")).toBe("text")
     expect(getTileTypeLabel("Map")).toBe("map")
     expect(getTileTypeLabel("CodapWebView")).toBe("web page")
+    expect(getTileTypeLabel("Plugin")).toBe("plugin")
     expect(getTileTypeLabel("CaseCard")).toBe("case card")
   })
 

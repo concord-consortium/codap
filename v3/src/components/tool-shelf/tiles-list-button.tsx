@@ -3,6 +3,7 @@ import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { KeyboardEvent, useCallback, useEffect, useRef } from "react"
 import WebViewIcon from "../../assets/icons/icon-media-tool.svg"
+import PluginsIcon from "../../assets/icons/icon-plugins.svg"
 import TileListIcon from "../../assets/icons/icon-tile-list.svg"
 import { useDocumentContent } from "../../hooks/use-document-content"
 import { useMenuItemScrollIntoView } from "../../hooks/use-menu-item-scroll-into-view"
@@ -12,6 +13,7 @@ import { getTileComponentIcon } from "../../models/tiles/tile-component-info"
 import { getTileContentInfo, getTileTypeLabel } from "../../models/tiles/tile-content-info"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { uiState } from "../../models/ui-state"
+import { isWebViewModel } from "../web-view/web-view-model"
 import { scrollTileIntoView } from "../../utilities/dom-utils"
 import { getSpecialLangFontClassName, t } from "../../utilities/translation/translate"
 import { ToolShelfButtonTag } from "./tool-shelf-button"
@@ -152,12 +154,14 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
             onFocus={handleMenuItemFocus}>
           {tilesArr?.filter(tile => !isTileHidden(tile)).map((tile) => {
             const tileType = tile.content.type
+            const content = tile.content
+            const isPlugin = isWebViewModel(content) && (content.isPlugin || content.isPluginCandidate)
             const _Icon = getTileComponentIcon(tileType)
-            const Icon = _Icon ?? WebViewIcon
-            const iconClass = _Icon ? tileType : "WebView"
+            const Icon = isPlugin ? PluginsIcon : _Icon ?? WebViewIcon
+            const iconClass = isPlugin ? "Plugin" : _Icon ? tileType : "WebView"
             const tileInfo = getTileContentInfo(tileType)
             const title = tileInfo?.getTitle(tile)
-            const typeLabel = getTileTypeLabel(tileType)
+            const typeLabel = isPlugin ? t("V3.TileType.Plugin") : getTileTypeLabel(tileType)
             const accessibleName = title ? `${title}, ${typeLabel}` : typeLabel
             return (
               <MenuItem key={tile?.id} data-testid="tiles-list-menu-item" className="tool-shelf-menu-item"

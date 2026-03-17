@@ -123,7 +123,8 @@ context("codap toolbar", () => {
     toolbar.getTilesListMenuItem().eq(3).should("have.text", "Calculator")
     toolbar.getTilesListMenuIcon().eq(3).should("have.class", "Calculator")
     toolbar.getTilesListMenuItem().eq(4).should("have.text", "Sampler")
-    toolbar.getTilesListMenuIcon().eq(4).should("have.class", "CodapWebView")
+    toolbar.getTilesListMenuIcon().eq(4).should("have.class", "Plugin")
+    toolbar.getTilesListMenuItem().eq(4).should("have.attr", "aria-label", "Sampler, plugin")
   })
   it('will show correct title for a new table', ()=>{
     c.getIconFromToolShelf("table").click()
