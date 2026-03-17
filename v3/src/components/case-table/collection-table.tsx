@@ -227,7 +227,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       event.preventGridDefault()
       const grid = event.currentTarget as HTMLElement
       const cell = grid.querySelector<HTMLElement>(`.rowId-${args.row.__id__}`)
-      const menuButton = cell?.querySelector<HTMLElement>('[data-testid="codap-index-content-button"]')
+      const menuButton = cell?.querySelector<HTMLElement>('button[data-testid="codap-index-content-button"]')
       menuButton?.click()
       return
     }

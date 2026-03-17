@@ -638,6 +638,17 @@ context("case table index and component", () => {
       // Close the menu with Escape
       cy.get("body").type("{esc}")
     })
+    it("opens index menu via keyboard Space on index cell", () => {
+      // Click the first data cell to get focus into the grid
+      table.getGridCell(2, 2).click()
+      // Navigate to the index cell using left arrow
+      table.getGridCell(2, 2).type("{leftarrow}")
+      // Press Space to open the index menu
+      cy.focused().type(" ")
+      table.getIndexMenu().should("be.visible")
+      // Close the menu with Escape
+      cy.get("body").type("{esc}")
+    })
   })
 
   describe("table cells with checkboxes", () => {
