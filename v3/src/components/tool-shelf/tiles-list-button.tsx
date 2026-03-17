@@ -161,7 +161,7 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
             const iconClass = isPlugin ? "Plugin" : _Icon ? tileType : "WebView"
             const tileInfo = getTileContentInfo(tileType)
             const title = tileInfo?.getTitle(tile)
-            const typeLabel = isPlugin ? t("V3.TileType.Plugin") : getTileTypeLabel(tileType)
+            const typeLabel = getTileTypeLabel(isPlugin ? "Plugin" : tileType)
             const accessibleName = title ? `${title}, ${typeLabel}` : typeLabel
             return (
               <MenuItem key={tile?.id} data-testid="tiles-list-menu-item" className="tool-shelf-menu-item"
