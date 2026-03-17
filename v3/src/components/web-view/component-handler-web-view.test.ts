@@ -6,7 +6,7 @@ import { appState } from "../../models/app-state"
 import { isFreeTileRow } from "../../models/document/free-tile-row"
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { toV3Id } from "../../utilities/codap-utils"
-import { kV2GameType, kV2GuideViewType } from "./web-view-defs"
+import { kV2GameType, kV2GuideViewType, kV2ImageComponentViewType } from "./web-view-defs"
 import { IWebViewModel, isWebViewModel } from "./web-view-model"
 import {
   kDefaultWebViewHeight, kDefaultWebViewWidth, kWebViewIdPrefix
@@ -109,6 +109,58 @@ describe("DataInteractive ComponentHandler WebView and Game", () => {
     expect(handler.update?.({ component: tile3 }, { name: "Primary Name", currentGameName: "Alias Name" }).success)
       .toBe(true)
     expect(tile3.name).toBe("Primary Name")
+  })
+
+  it("create, get, and update imageComponentView work", () => {
+    const imageUrl = "https://codap-resources.concord.org/images/walkingrates-50-percent.png"
+    const tileCountBefore = documentContent.tileMap.size
+
+    // Create image tile with URL
+    const result = handler.create!({}, {
+      type: "imageComponentView",
+      URL: imageUrl,
+      name: "my-image",
+      title: "Walking Rates"
+    })
+    expect(result.success).toBe(true)
+    expect(documentContent.tileMap.size).toBe(tileCountBefore + 1)
+    const resultValues = result.values as DIComponentInfo
+    expect(resultValues.type).toBe("imageComponentView")
+    const tile = documentContent.tileMap.get(toV3Id(kWebViewIdPrefix, resultValues.id!))!
+    expect(tile).toBeDefined()
+    expect(isWebViewModel(tile.content)).toBe(true)
+    const content = tile.content as IWebViewModel
+    expect(content.url).toBe(imageUrl)
+    expect(tile.title).toBe("Walking Rates")
+    expect(tile.name).toBe("my-image")
+
+    // Get image tile — should return imageComponentView type when subType is "image"
+    content.setSubType("image")
+    testGetComponent(tile, handler, (_tile, values) => {
+      const { URL, type } = values as V2WebView
+      expect(URL).toBe(imageUrl)
+      expect(type).toBe(kV2ImageComponentViewType)
+    }, { type: kV2ImageComponentViewType })
+
+    // Update URL
+    const newUrl = "https://codap-resources.concord.org/images/other-image.png"
+    expect(handler.update?.({ component: tile }, { URL: newUrl }).success).toBe(true)
+    expect(content.url).toBe(newUrl)
+
+    // Update common properties (position, dimensions, cannotClose)
+    const row = appState.document.content?.findRowContainingTile(tile.id)
+    const freeTileRow = row && isFreeTileRow(row) ? row : undefined
+    const tileLayout = freeTileRow?.getNode(tile.id)
+    expect(handler.update?.({ component: tile }, {
+      cannotClose: true,
+      dimensions: { height: 200, width: 300 },
+      position: { left: 75, top: 125 }
+    }).success).toBe(true)
+    expect(tile.cannotClose).toBe(true)
+    expect(tileLayout?.height).toBe(200)
+    expect(tileLayout?.width).toBe(300)
+    expect(tileLayout?.x).toBe(75)
+    expect(tileLayout?.y).toBe(125)
   })
 
   it("update and get guide view items and currentItemIndex work", () => {
