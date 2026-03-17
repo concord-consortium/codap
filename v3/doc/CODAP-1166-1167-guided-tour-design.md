@@ -293,3 +293,124 @@ Each task description gains a `highlight` property:
 - Driver.js overlays cover the CODAP host page but not plugin iframes. This is fine for the initial scope since highlights target CODAP UI elements, not plugin content. In the future, it would be possible to support highlighting elements within plugins by having plugins communicate their targetable elements and bounding rectangles to CODAP. CODAP could then place an invisible overlay element over the plugin iframe at the reported coordinates, which Driver.js could target for highlighting. This would require a new API for plugins to register targetable regions, but it's a solvable problem — just not part of this initial effort.
 - Driver.js's `refresh()` method can recalculate highlight positions if CODAP layout changes during a tour (e.g., a new tile is created).
 - The `element` property in Driver.js accepts a function, enabling lazy resolution of elements that may not exist when the tour is defined.
+
+# Round 1 Review Comments
+
+**Reviewer:** Doug
+**Date:** 2026-03-17
+
+## Issues
+
+### 1. `data-testid` as public API — underestimated risk
+
+The spec acknowledges this concern in a note but treats it as something to "review before finalizing." This deserves stronger treatment. Right now `data-testid` values are informal — they're added ad-hoc by developers for Cypress tests, with no naming convention enforcement. Once they become a plugin API contract:
+- Renaming any `data-testid` is a breaking change for external plugins
+- There's no versioning or deprecation mechanism proposed
+- The attribute name `data-testid` itself signals "internal testing" to developers, who may casually rename values during refactors
+
+**Recommendation:** Consider a dedicated `data-tour-id` attribute (or `data-codap-id`) for tour-targeted elements, even if the initial values mirror `data-testid`. This decouples the public API from the testing infrastructure. Alternatively, document a clear policy and add lint rules to prevent casual changes.
+
+### 2. Document drop zone targeting is fragile
+
+The spec identifies the drop zone gap in `app.tsx`, but the bigger problem is that this element is conditionally rendered — it only exists when `isOpenUserEntry` is true. A plugin can't highlight an element that doesn't exist in the DOM. The spec's lazy resolution via Driver.js function resolvers only helps if the element *eventually* appears, but the plugin has no way to trigger `isOpenUserEntry`.
+
+**Recommendation:** The spec should address how to handle elements that are conditionally rendered. Options: (a) return an error when the target isn't found, (b) wait with a timeout, or (c) document that this particular step requires the user to have the entry modal open already.
+
+### 3. No error handling or feedback contract specified
+
+The API examples show the happy path, but the spec doesn't define what happens when:
+- A `testId` doesn't match any element
+- A `component` reference doesn't resolve to an existing tile
+- `startTour` is called while a tour is already active
+- The highlighted element is removed from the DOM mid-tour (e.g., user closes a tile)
+
+The existing handlers silently succeed for unrecognized requests (`interactive-frame-handler.ts` line 64: "Unrecognized requests return success to avoid breaking plugins"). This pattern means plugins won't know their highlight/tour requests failed. That's fine for unknown request types but problematic for known requests with bad targets.
+
+**Recommendation:** Define error responses for element-not-found, component-not-found, tour-already-active, etc.
+
+### 4. Tile-to-DOM resolution gap (partial)
+
+The spec says: "resolve it to a tile DOM element using the existing tile registry." The existing tile registry (`findTileFromNameOrId` in `resource-parser-utils.ts`) returns an MST `ITileModel`, not a DOM element, so a DOM mapping still has to be done somewhere.
+
+**Free-tile layout:** there *is* a reliable DOM mapping because the free-tile wrapper uses `id={tile.id}`. A component
+can be scoped to its DOM via `document.getElementById(tile.id)` without adding a new attribute.
+
+**Mosaic layout:** there is **no** unique DOM hook (the wrapper is just `className="mosaic-tile-component"`), and the
+`CodapComponent` uses `data-testid={tileEltClass}` which is not unique across multiple tiles of the same type.
+
+**Recommendation:** The gap is specific to mosaic layout. Add a stable DOM hook there (e.g., `id={tile.id}` or
+`data-tile-id`) so per-tile scoping works in both layouts.
+
+### 5. Component-scoped highlight via `resource` vs `values.component` inconsistency
+
+The API has two ways to specify a component scope:
+- Single highlight: `"resource": "component[myGraph]"` (uses resource selector)
+- Tour step: `"component": "myGraph"` inside `values.steps[]` (uses values field)
+
+This dual path means the element resolution logic needs to handle both, and the `startTour` handler on `interactiveFrame` needs to do per-step component resolution — but the `interactiveFrame` handler doesn't have access to the component handler's resolution machinery by default. The spec should clarify that `startTour` requires its own component resolution per step.
+
+### 6. HTML in popovers is an XSS vector
+
+The spec says popover `title` and `description` support HTML. Since these values come from plugins (which are third-party iframes), passing raw HTML to Driver.js creates an XSS risk. A malicious plugin could inject scripts into the CODAP host frame, escaping the iframe sandbox.
+
+**Recommendation:** Sanitize HTML content before passing to Driver.js (use a library like DOMPurify), or restrict to plain text only for the initial implementation.
+
+### 7. Missing: how the plugin knows what `testId` values exist
+
+The API requires plugins to know `data-testid` values, but there's no discovery mechanism. Plugins must hardcode these values based on out-of-band knowledge. This is fine for the Getting Started tutorial (which is maintained alongside CODAP), but the spec should acknowledge this limitation for third-party plugins.
+
+### 8. Mosaic layout has no unique tile DOM hook
+
+In free-tile layout, the tile wrapper has `id={tileId}` and can be found via `document.getElementById(tile.id)`. In
+**mosaic** layout, the wrapper is just a `<div className="mosaic-tile-component">` with no `id` or `data-*` attribute,
+so component-scoped highlights cannot reliably scope to a specific tile when multiple tiles of the same type exist.
+
+**Recommendation:** Add a stable DOM hook for mosaic tiles (e.g., `id={tile.id}` or `data-tile-id`) to make per-tile
+scoping possible in both layouts.
+
+### 9. Component lookup by name/title can be ambiguous
+
+`findTileFromNameOrId()` returns the first tile whose name/title matches. If multiple tiles share a title (common in
+tutorials where users create multiple graphs), `component[Graph]` can resolve unpredictably, causing highlights to
+attach to the wrong tile.
+
+**Recommendation:** Prefer V2 IDs when possible, or return an error when multiple tiles match to avoid unpredictable
+highlighting.
+
+### 10. `data-testid` values may require escaping in selectors
+
+The tutorial relies on `data-testid` values that can contain spaces or punctuation (e.g.,
+`codap-attribute-button ${attrName}`). If the implementation uses CSS selectors (e.g., `[data-testid="..."]` or
+`querySelector()`), it must escape the value (`CSS.escape`) or use attribute-based matching to avoid failures when
+attribute names include spaces or special characters.
+
+**Recommendation:** Use `CSS.escape()` or direct attribute comparison rather than raw selector strings.
+
+### 11. Highlight requests may be delayed while editing table cells
+
+Data-interactive requests are blocked while a table cell is being edited (`uiState.isEditingBlockingCell`). This can
+make highlights/tours appear delayed or unresponsive during tutorial steps that involve editing/renaming.
+
+**Recommendation:** Document this behavior or exempt highlight/tour requests from the edit-blocking gate.
+
+## Minor Issues
+
+- **`overlayClickBehavior`** is typed as `string` but the description says `"close"`. Should enumerate the valid values.
+- **`showButtons`** is `string[]` but should be `("next" | "previous" | "close")[]`.
+- The **story point estimates** (5-8 and 2-3) seem reasonable but may be tight given the tile-to-DOM resolution gap.
+
+## What's Good
+
+- Leveraging the existing plugin API notify mechanism is clean — no new communication channels needed
+- The `data-testid` coverage analysis is thorough and mostly accurate (verified against the codebase)
+- Keeping the plugin-side changes minimal for CODAP-1166 is pragmatic
+- The library choice (Driver.js) is appropriate for the use case
+- The decision to run Driver.js in the host frame is correct given iframe limitations
+
+## Summary of blockers/concerns in priority order
+
+1. **Tile-to-DOM resolution (mosaic layout)** — no unique DOM identifier per tile instance in mosaic layout (needs `id={tile.id}` or `data-tile-id` there)
+2. **XSS risk** — HTML content from plugins needs sanitization
+3. **Error handling contract** — undefined behavior for missing elements/components
+4. **Conditional rendering** — drop zone element may not exist when targeted
+5. **`data-testid` as public API** — needs governance strategy before shipping
