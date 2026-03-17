@@ -14,6 +14,7 @@ import { ISliderScaleType, SliderScaleTypes } from "../slider-types"
 import "./slider-settings-panel.scss"
 
 interface IProps {
+  id?: string
   sliderModel: ISliderModel
   panelRect?: DOMRect
   buttonRect?: DOMRect
@@ -21,7 +22,7 @@ interface IProps {
 }
 
 export const SliderScalesPalette =
-  observer(function SliderScalesPalette({sliderModel, panelRect, buttonRect, setShowPalette}: IProps) {
+  observer(function SliderScalesPalette({id, sliderModel, panelRect, buttonRect, setShowPalette}: IProps) {
     const scaleType = sliderModel.scaleType
     const [minInputValue, setMinInputValue] = useState(sliderModel.axis.minDisplay)
     const [maxInputValue, setMaxInputValue] = useState(sliderModel.axis.maxDisplay)
@@ -140,6 +141,7 @@ export const SliderScalesPalette =
 
     return (
       <InspectorPalette
+        id={id}
         title={t("V3.Inspector.scale")}
         Icon={<ScaleIcon/>}
         setShowPalette={setShowPalette}

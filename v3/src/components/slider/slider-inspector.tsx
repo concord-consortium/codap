@@ -9,6 +9,9 @@ import { SliderScalesPalette } from "./inspector-panel/slider-scales-panel"
 import TimerIcon from "../../assets/icons/inspector-panel/playback-settings-icon.svg"
 import MeasureIcon from "../../assets/icons/inspector-panel/data-icon.svg"
 
+const kPlaybackPaletteId = "slider-playback-palette"
+const kScalePaletteId = "slider-scale-palette"
+
 export const SliderInspector = ({ tile, show }: ITileInspectorPanelProps) => {
   const sliderModel = tile?.content
   const [showPalette, setShowPalette] = useState<string | undefined>(undefined)
@@ -36,10 +39,12 @@ export const SliderInspector = ({ tile, show }: ITileInspectorPanelProps) => {
   const renderPaletteIfAny = () => {
     switch (showPalette) {
       case "measure":
-        return <SliderSettingsPalette sliderModel={sliderModel} setShowPalette={setShowPalette}
+        return <SliderSettingsPalette id={kPlaybackPaletteId} sliderModel={sliderModel}
+                                      setShowPalette={setShowPalette}
                                       panelRect={panelRect} buttonRect={buttonRect}/>
       case "scale":
-        return <SliderScalesPalette sliderModel={sliderModel} setShowPalette={setShowPalette}
+        return <SliderScalesPalette id={kScalePaletteId} sliderModel={sliderModel}
+                                      setShowPalette={setShowPalette}
                                       panelRect={panelRect} buttonRect={buttonRect}/>
       default:
         return null
@@ -47,8 +52,20 @@ export const SliderInspector = ({ tile, show }: ITileInspectorPanelProps) => {
   }
 
   return (
-    <InspectorPanel ref={panelRef} component="slider" show={show} setShowPalette={setShowPalette} width="wide">
+    <InspectorPanel
+      ref={panelRef}
+      component="slider"
+      setShowPalette={setShowPalette}
+      show={show}
+      toolbarAriaLabel={t("DG.DocumentController.sliderTitle")}
+      toolbarOrientation="vertical"
+      toolbarPersistenceKey="slider-inspector-toolbar"
+      width="wide"
+    >
       <InspectorButton
+        aria-controls={kPlaybackPaletteId}
+        aria-expanded={showPalette === "measure"}
+        isActive={showPalette === "measure"}
         label={t("V3.Slider.Inspector.Playback")}
         onButtonClick={handleTimerButton}
         testId={"slider-values-button"}
@@ -58,7 +75,10 @@ export const SliderInspector = ({ tile, show }: ITileInspectorPanelProps) => {
         <TimerIcon />
       </InspectorButton>
       <InspectorButton
+        aria-controls={kScalePaletteId}
+        aria-expanded={showPalette === "scale"}
         bottom={true}
+        isActive={showPalette === "scale"}
         label={t("V3.Slider.Inspector.Scale")}
         onButtonClick={handleScaleButton}
         testId={"slider-scale-button"}
