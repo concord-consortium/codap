@@ -621,7 +621,7 @@ context("case table index and component", () => {
   describe("table accessibility", () => {
     it("collection title has aria-label with collection name", () => {
       table.getCollectionTitle()
-        .find(".chakra-editable__preview")
+        .find(".collection-title-preview")
         .should("have.attr", "aria-label")
         .and("contain", collectionName)
         .and("contain", "cases")
@@ -645,6 +645,24 @@ context("case table index and component", () => {
       table.getGridCell(2, 2).type("{leftarrow}")
       // Press Space to open the index menu
       cy.focused().type(" ")
+      table.getIndexMenu().should("be.visible")
+      // Close the menu with Escape
+      cy.get("body").type("{esc}")
+    })
+    it("collection title enters edit mode on double-click", () => {
+      table.getCollectionTitle().find(".collection-title-preview").dblclick()
+      table.getCollectionTitle().find("input.collection-title-input").should("exist")
+      // Press Escape to cancel
+      table.getCollectionTitle().find("input.collection-title-input").type("{esc}")
+      table.getCollectionTitle().find(".collection-title-preview").should("exist")
+    })
+    it("opens index menu for a non-first row via keyboard", () => {
+      // Click a data cell in a later row
+      table.getGridCell(5, 2).click()
+      // Navigate to the index cell using left arrow
+      table.getGridCell(5, 2).type("{leftarrow}")
+      // Press Enter to open the index menu
+      cy.focused().type("{enter}")
       table.getIndexMenu().should("be.visible")
       // Close the menu with Escape
       cy.get("body").type("{esc}")

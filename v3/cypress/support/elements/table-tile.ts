@@ -40,7 +40,7 @@ export const TableTileElements = {
     return this.getCollection(collectionIndex).find(".collection-title")
   },
   renameCollection(collectionName: string, oldName?: string, collectionIndex = 1) {
-    this.getCollectionTitle(collectionIndex).click()
+    this.getCollectionTitle(collectionIndex).find(".collection-title-preview").dblclick()
     if (oldName) {
       // NOTE This will leave the first letter of the old name until the UI for editing collection names is fixed
       const deleteCommand = oldName.split("").reduce(cmd => `${cmd}{backspace}`, "")

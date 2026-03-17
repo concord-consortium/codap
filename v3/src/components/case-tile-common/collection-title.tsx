@@ -1,9 +1,9 @@
-import { Button, Editable, EditableInput, EditablePreview } from "@chakra-ui/react"
+import { Button } from "@chakra-ui/react"
 import { useDndContext } from "@dnd-kit/core"
 import { clsx } from "clsx"
 import throttle from "lodash/throttle"
 import { observer } from "mobx-react-lite"
-import React, { useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import {useResizeDetector} from "react-resize-detector"
 import AddIcon from "../../assets/icons/icon-add-circle.svg"
 import { useCollectionContext } from "../../hooks/use-collection-context"
@@ -67,6 +67,18 @@ export const CollectionTitle =
     }
   }, [])
 
+  // Focus the input when entering edit mode, and restore focus to the preview when exiting
+  const wasEditingRef = useRef(false)
+  useEffect(() => {
+    if (isEditing) {
+      inputRef.current?.focus()
+      wasEditingRef.current = true
+    } else if (wasEditingRef.current) {
+      previewRef.current?.focus()
+      wasEditingRef.current = false
+    }
+  }, [isEditing])
+
   const tileRect = tileRef.current?.getBoundingClientRect()
   const titleRect = titleRef.current?.getBoundingClientRect()
   const titleStyle: React.CSSProperties = { left: 0, right: 0 }
@@ -84,17 +96,22 @@ export const CollectionTitle =
     }
   }
 
-  const handleChangeName = (newName: string) => {
-    setEditingName(newName)
-  }
+  const inputRef = useRef<HTMLInputElement>(null)
+  const previewRef = useRef<HTMLSpanElement>(null)
 
-  const handleSubmit = (newName: string) => {
-    if (newName) {
-      setEditingName(newName)
+  const enterEditMode = useCallback(() => {
+    setEditingName(collectionName)
+    setIsEditing(true)
+  }, [collectionName])
+
+  const handleSubmit = useCallback((newName: string) => {
+    const trimmed = newName.trim()
+    if (trimmed) {
+      setEditingName(trimmed)
       data?.applyModelChange(() => {
-        collection?.setName(newName)
+        collection?.setName(trimmed)
       }, {
-        notify: collection?.name !== newName ? () => updateCollectionNotification(collection, data) : undefined,
+        notify: collection?.name !== trimmed ? () => updateCollectionNotification(collection, data) : undefined,
         undoStringKey: "DG.Undo.caseTable.collectionNameChange",
         redoStringKey: "DG.Redo.caseTable.collectionNameChange",
         log: logModelChangeFn("Change collection name from %@ to %@",
@@ -104,12 +121,29 @@ export const CollectionTitle =
       setEditingName(collectionName)
     }
     setIsEditing(false)
-  }
+  }, [collection, collectionName, data])
 
-  const handleCancel = (_previousName?: string) => {
+  const handleCancel = useCallback(() => {
     setEditingName(collectionName)
     setIsEditing(false)
-  }
+  }, [collectionName])
+
+  const handlePreviewKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault()
+      enterEditMode()
+    }
+  }, [enterEditMode])
+
+  const handleInputKeyDown = useCallback((e: React.KeyboardEvent) => {
+    e.stopPropagation()
+    if (e.key === "Enter" || e.key === "Tab") {
+      e.preventDefault()
+      handleSubmit(editingName)
+    } else if (e.key === "Escape") {
+      handleCancel()
+    }
+  }, [editingName, handleCancel, handleSubmit])
 
   const titleTextStr = hasEmptyCases
                         ? hiddenCaseCount > 0
@@ -126,15 +160,20 @@ export const CollectionTitle =
   return (
     <div className={`collection-title-wrapper ${colorCycleClass(collectionIndex, collectionCount)}`} ref={titleRef}>
       <div className="collection-title" style={titleStyle}>
-        <Editable value={isEditing ? editingName : displayName}
-            onEdit={() => setIsEditing(true)} onSubmit={handleSubmit} onCancel={handleCancel}
-            isPreviewFocusable={!dragging} submitOnBlur={true} onChange={handleChangeName}>
-          <EditablePreview width="100%" paddingY={0} overflow="hidden" whiteSpace="nowrap" textOverflow="ellipsis"
-            aria-label={t("V3.CaseTable.collectionTitlePreviewAriaLabel",
-              { vars: [displayName] })} />
-          <EditableInput value={editingName} paddingY={0} className="collection-title-input"
-            aria-label={t("V3.CaseTable.collectionTitleAriaLabel", { vars: [editingName || collectionName] })} />
-        </Editable>
+        {isEditing
+          ? <input ref={inputRef} className="collection-title-input" value={editingName}
+              aria-label={t("V3.CaseTable.collectionTitleAriaLabel", { vars: [editingName || collectionName] })}
+              onChange={e => setEditingName(e.target.value)}
+              onKeyDown={handleInputKeyDown}
+              onBlur={() => handleSubmit(editingName)}
+              onFocus={e => e.target.select()} />
+          : <span ref={previewRef} className="collection-title-preview" tabIndex={dragging ? -1 : 0}
+              aria-label={t("V3.CaseTable.collectionTitlePreviewAriaLabel", { vars: [displayName] })}
+              onKeyDown={handlePreviewKeyDown}
+              onDoubleClick={enterEditMode}>
+              {displayName}
+            </span>
+        }
       </div>
       {onAddNewAttribute &&
         <Button className="add-attribute-icon-button" title={t("DG.TableController.newAttributeTooltip")}
