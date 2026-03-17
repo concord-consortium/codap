@@ -222,14 +222,18 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const handleCellKeyDown = useCallback((args: TCellKeyDownArgs, event: CellKeyboardEvent) => {
     // Open the index column menu via keyboard. RDG keeps focus on the cell div rather than
     // the MenuButton inside it, so we find and click the MenuButton programmatically.
+    // Only intercept the event when a MenuButton is found — collapsed rows and other index
+    // cells without menus should let the event fall through to their own handlers.
     if (args.mode === "SELECT" && args.column.key === kIndexColumnKey
         && ["Enter", " "].includes(event.key)) {
-      event.preventGridDefault()
       const grid = event.currentTarget as HTMLElement
       const cell = grid.querySelector<HTMLElement>(`.rowId-${args.row.__id__}`)
       const menuButton = cell?.querySelector<HTMLElement>('button[data-testid="codap-index-content-button"]')
-      menuButton?.click()
-      return
+      if (menuButton) {
+        event.preventGridDefault()
+        menuButton.click()
+        return
+      }
     }
     // By default in RDG, the enter/return key simply enters/exits edit mode without moving the
     // selected cell. In CODAP, the enter/return key should accept the edit _and_ advance to the

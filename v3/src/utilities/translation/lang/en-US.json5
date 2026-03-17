@@ -1427,7 +1427,7 @@
     "V3.CaseTable.indexCellAriaLabel": "Case %@, open menu",
     "V3.CaseTable.collapsedRowAriaLabel": "%@ collapsed cases",
     "V3.CaseTable.collectionTitleAriaLabel": "Edit collection name: %@",
-    "V3.CaseTable.collectionTitlePreviewAriaLabel": "Collection %@1, %@2 cases. Press Enter to edit.",
+    "V3.CaseTable.collectionTitlePreviewAriaLabel": "%@. Press Enter to edit.",
     "V3.CaseTable.filterFormulaBarAriaLabel": "Filter formula: %@. Press Enter to edit.",
     "V3.Undo.caseTable.create": "Undo adding case table",
     "V3.Redo.caseTable.create": "Redo adding case table",

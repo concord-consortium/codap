@@ -32,10 +32,9 @@ describe("CollectionTitle", () => {
       </DndContext>
     )
 
-    // The preview should have an aria-label that includes the collection name
-    const preview = screen.getByLabelText(/Collection Mammals/i)
+    // The preview should have an aria-label that includes the collection name and edit instruction
+    const preview = screen.getByLabelText(/Mammals.*Press Enter to edit/i)
     expect(preview).toBeInTheDocument()
-    expect(preview.getAttribute("aria-label")).toMatch(/cases\. Press Enter to edit\./)
   })
 
   it("includes the collection name in the edit input aria-label", () => {
