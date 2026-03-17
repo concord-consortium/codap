@@ -637,6 +637,7 @@ context("case table index and component", () => {
       table.getIndexMenu().should("be.visible")
       // Close the menu with Escape
       cy.get("body").type("{esc}")
+      table.getIndexMenu().should("not.exist")
     })
     it("opens index menu via keyboard Space on index cell", () => {
       // Click the first data cell to get focus into the grid
@@ -648,6 +649,7 @@ context("case table index and component", () => {
       table.getIndexMenu().should("be.visible")
       // Close the menu with Escape
       cy.get("body").type("{esc}")
+      table.getIndexMenu().should("not.exist")
     })
     it("collection title enters edit mode on double-click", () => {
       table.getCollectionTitle().find(".collection-title-preview").dblclick()
@@ -666,6 +668,7 @@ context("case table index and component", () => {
       table.getIndexMenu().should("be.visible")
       // Close the menu with Escape
       cy.get("body").type("{esc}")
+      table.getIndexMenu().should("not.exist")
     })
   })
 
