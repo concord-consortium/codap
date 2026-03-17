@@ -39,8 +39,8 @@ const kTooltipPlacement = "bottom" as const
 const kTooltipOffset = 15
 
 export const InspectorPanel = forwardRef<HTMLDivElement, IProps>(function InspectorPanel({
-  component, show, setShowPalette, children, toolbarAriaLabel, toolbarOrientation = "vertical", toolbarPersistenceKey,
-  width
+  component, show, setShowPalette, children, toolbarAriaLabel,
+  toolbarOrientation = "vertical", toolbarPersistenceKey, width
 }, ref) {
   const panelRef = useRef<HTMLDivElement | null>(null)
   const mergedRef = useCallback((node: HTMLDivElement | null) => {

@@ -18,6 +18,7 @@ import FormatSuperscriptIcon from "../../assets/icons/inspector-panel/format-sup
 import FormatTextDecreaseIcon from "../../assets/icons/inspector-panel/format-text-decrease-icon.svg"
 import FormatTextIncreaseIcon from "../../assets/icons/inspector-panel/format-text-increase-icon.svg"
 import FormatUnderlineIcon from "../../assets/icons/inspector-panel/format-underline-icon.svg"
+import { t } from "../../utilities/translation/translate"
 import { InspectorButton, InspectorPanel } from "../inspector-panel"
 import { ITileInspectorPanelProps } from "../tiles/tile-base-props"
 import { FormatImageButton } from "./format-image-button"
@@ -33,13 +34,17 @@ export const TextInspector = observer(function TextInspector({ tile, show }: ITi
   // Trigger a re-render when the editor content changes
   textModel?.editorChangeCount  // eslint-disable-line @typescript-eslint/no-unused-expressions
 
+  // Prevent focus theft from Slate editor when toolbar buttons are clicked
+  const preventFocusLoss = (e: React.PointerEvent) => {
+    e.preventDefault()
+  }
+
   const isEditorMarkActive = (format: EFormat) => {
     return textModel?.editor ? isMarkActive(textModel.editor, format) : false
   }
 
-  const toggleEditorMark = (e: React.PointerEvent, format: EFormat) => {
+  const handleMarkToggle = (format: EFormat) => {
     if (textModel?.editor) {
-      e.preventDefault()
       toggleMark(textModel.editor, format)
     }
   }
@@ -48,27 +53,33 @@ export const TextInspector = observer(function TextInspector({ tile, show }: ITi
     return textModel?.editor ? isBlockActive(textModel.editor, format) : false
   }
 
-  const toggleEditorBlock = (e: React.PointerEvent, format: EFormat) => {
+  const handleBlockToggle = (format: EFormat) => {
     if (textModel?.editor) {
-      e.preventDefault()
       toggleBlock(textModel.editor, format)
     }
   }
 
-  const toggleEditorSuperSubscript = (e: React.PointerEvent, format: EFormat.subscript | EFormat.superscript) => {
+  const handleSuperSubscriptToggle = (format: EFormat.subscript | EFormat.superscript) => {
     if (textModel?.editor) {
-      e.preventDefault()
       toggleSuperSubscript(textModel.editor, format)
     }
   }
 
   return (
-    <InspectorPanel component="text" show={show} width="normal">
+    <InspectorPanel
+      component="text"
+      show={show}
+      toolbarAriaLabel={t("DG.DocumentController.textTitle")}
+      toolbarOrientation="vertical"
+      toolbarPersistenceKey="text-inspector-toolbar"
+      width="normal"
+    >
       <InspectorButton
         testId={"text-toolbar-bold-button"}
         tooltip={getPlatformTooltip("bold (mod-b)")}
         isActive={isEditorMarkActive(EFormat.bold)}
-        onPointerDown={e => toggleEditorMark(e, EFormat.bold)}
+        onButtonClick={() => handleMarkToggle(EFormat.bold)}
+        onPointerDown={preventFocusLoss}
       >
         <FormatBoldIcon />
       </InspectorButton>
@@ -76,7 +87,8 @@ export const TextInspector = observer(function TextInspector({ tile, show }: ITi
         testId={"text-toolbar-italic-button"}
         tooltip={getPlatformTooltip("italic (mod-i)")}
         isActive={isEditorMarkActive(EFormat.italic)}
-        onPointerDown={e => toggleEditorMark(e, EFormat.italic)}
+        onButtonClick={() => handleMarkToggle(EFormat.italic)}
+        onPointerDown={preventFocusLoss}
       >
         <FormatItalicIcon />
       </InspectorButton>
@@ -84,7 +96,8 @@ export const TextInspector = observer(function TextInspector({ tile, show }: ITi
         testId={"text-toolbar-underline-button"}
         tooltip={getPlatformTooltip("underline (mod-u)")}
         isActive={isEditorMarkActive(EFormat.underlined)}
-        onPointerDown={e => toggleEditorMark(e, EFormat.underlined)}
+        onButtonClick={() => handleMarkToggle(EFormat.underlined)}
+        onPointerDown={preventFocusLoss}
       >
         <FormatUnderlineIcon />
       </InspectorButton>
@@ -92,7 +105,8 @@ export const TextInspector = observer(function TextInspector({ tile, show }: ITi
         testId={"text-toolbar-strike-through-button"}
         tooltip={"strike through"}
         isActive={isEditorMarkActive(EFormat.deleted)}
-        onPointerDown={e => toggleEditorMark(e, EFormat.deleted)}
+        onButtonClick={() => handleMarkToggle(EFormat.deleted)}
+        onPointerDown={preventFocusLoss}
       >
         <FormatStrikeThroughIcon />
       </InspectorButton>
@@ -100,7 +114,8 @@ export const TextInspector = observer(function TextInspector({ tile, show }: ITi
         testId={"text-toolbar-code-button"}
         tooltip={getPlatformTooltip("code (mod-\\)")}
         isActive={isEditorMarkActive(EFormat.code)}
-        onPointerDown={e => toggleEditorMark(e, EFormat.code)}
+        onButtonClick={() => handleMarkToggle(EFormat.code)}
+        onPointerDown={preventFocusLoss}
       >
         <FormatCodeIcon />
       </InspectorButton>
@@ -108,7 +123,8 @@ export const TextInspector = observer(function TextInspector({ tile, show }: ITi
         testId={"text-toolbar-superscript-button"}
         tooltip={getPlatformTooltip("superscript")}
         isActive={isEditorMarkActive(EFormat.superscript)}
-        onPointerDown={e => toggleEditorSuperSubscript(e, EFormat.superscript)}
+        onButtonClick={() => handleSuperSubscriptToggle(EFormat.superscript)}
+        onPointerDown={preventFocusLoss}
       >
         <FormatSuperscriptIcon />
       </InspectorButton>
@@ -116,7 +132,8 @@ export const TextInspector = observer(function TextInspector({ tile, show }: ITi
         testId={"text-toolbar-subscript-button"}
         tooltip={getPlatformTooltip("subscript")}
         isActive={isEditorMarkActive(EFormat.subscript)}
-        onPointerDown={e => toggleEditorSuperSubscript(e, EFormat.subscript)}
+        onButtonClick={() => handleSuperSubscriptToggle(EFormat.subscript)}
+        onPointerDown={preventFocusLoss}
       >
         <FormatSubscriptIcon />
       </InspectorButton>
@@ -127,7 +144,8 @@ export const TextInspector = observer(function TextInspector({ tile, show }: ITi
         testId={"text-toolbar-heading-1-button"}
         tooltip={"heading 1"}
         isActive={isEditorBlockActive(EFormat.heading1)}
-        onPointerDown={e => toggleEditorBlock(e, EFormat.heading1)}
+        onButtonClick={() => handleBlockToggle(EFormat.heading1)}
+        onPointerDown={preventFocusLoss}
       >
         <FormatHeading1Icon />
       </InspectorButton>
@@ -135,7 +153,8 @@ export const TextInspector = observer(function TextInspector({ tile, show }: ITi
         testId={"text-toolbar-heading-2-button"}
         tooltip={"heading 2"}
         isActive={isEditorBlockActive(EFormat.heading2)}
-        onPointerDown={e => toggleEditorBlock(e, EFormat.heading2)}
+        onButtonClick={() => handleBlockToggle(EFormat.heading2)}
+        onPointerDown={preventFocusLoss}
       >
         <FormatHeading2Icon />
       </InspectorButton>
@@ -143,7 +162,8 @@ export const TextInspector = observer(function TextInspector({ tile, show }: ITi
         testId={"text-toolbar-heading-3-button"}
         tooltip={"heading 3"}
         isActive={isEditorBlockActive(EFormat.heading3)}
-        onPointerDown={e => toggleEditorBlock(e, EFormat.heading3)}
+        onButtonClick={() => handleBlockToggle(EFormat.heading3)}
+        onPointerDown={preventFocusLoss}
       >
         <FormatHeading3Icon />
       </InspectorButton>
@@ -151,7 +171,8 @@ export const TextInspector = observer(function TextInspector({ tile, show }: ITi
         testId={"text-toolbar-quote-button"}
         tooltip={getPlatformTooltip("block quote")}
         isActive={isEditorBlockActive(EFormat.blockQuote)}
-        onPointerDown={e => toggleEditorBlock(e, EFormat.blockQuote)}
+        onButtonClick={() => handleBlockToggle(EFormat.blockQuote)}
+        onPointerDown={preventFocusLoss}
       >
         <FormatQuoteIcon />
       </InspectorButton>
@@ -159,7 +180,8 @@ export const TextInspector = observer(function TextInspector({ tile, show }: ITi
         testId={"text-toolbar-bulleted-list-button"}
         tooltip={getPlatformTooltip("bulleted list")}
         isActive={isEditorBlockActive(EFormat.bulletedList)}
-        onPointerDown={e => toggleEditorBlock(e, EFormat.bulletedList)}
+        onButtonClick={() => handleBlockToggle(EFormat.bulletedList)}
+        onPointerDown={preventFocusLoss}
       >
         <FormatListBulletedIcon />
       </InspectorButton>
@@ -167,7 +189,8 @@ export const TextInspector = observer(function TextInspector({ tile, show }: ITi
         testId={"text-toolbar-numbered-list-button"}
         tooltip={getPlatformTooltip("numbered list")}
         isActive={isEditorBlockActive(EFormat.numberedList)}
-        onPointerDown={e => toggleEditorBlock(e, EFormat.numberedList)}
+        onButtonClick={() => handleBlockToggle(EFormat.numberedList)}
+        onPointerDown={preventFocusLoss}
       >
         <FormatListNumberedIcon />
       </InspectorButton>
