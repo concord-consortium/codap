@@ -6,7 +6,9 @@ import { kGraphTileType, kV2GraphType } from "../components/graph/graph-defs"
 import { kMapTileType, kV2MapType } from "../components/map/map-defs"
 import { kSliderTileType, kV2SliderType } from "../components/slider/slider-defs"
 import { kTextTileType, kV2TextDIType } from "../components/text/text-defs"
-import { kV2GameType, kV2WebViewType, kWebViewTileType } from "../components/web-view/web-view-defs"
+import {
+  kV2GameType, kV2GuideViewType, kV2ImageComponentViewType, kV2WebViewType, kWebViewTileType
+} from "../components/web-view/web-view-defs"
 
 // export const kV2ImageType = "image"
 // export const kV2TextType = "text"
@@ -16,8 +18,6 @@ export const kComponentTypeV3ToV2Map: Record<string, string> = {
   [kCaseTableTileType]: kV2CaseTableType,
   [kCaseCardTileType]: kV2CaseCardType,
   [kGraphTileType]: kV2GraphType,
-  // kV2GuideViewType
-  // kV2ImageType
   [kMapTileType]: kV2MapType,
   [kSliderTileType]: kV2SliderType,
   [kTextTileType]: kV2TextDIType,
@@ -25,7 +25,9 @@ export const kComponentTypeV3ToV2Map: Record<string, string> = {
 }
 
 export const kComponentTypeV2ToV3Map: Record<string, string> = {
-  [kV2GameType]: kWebViewTileType
+  [kV2GameType]: kWebViewTileType,
+  [kV2GuideViewType]: kWebViewTileType,
+  [kV2ImageComponentViewType]: kWebViewTileType
 }
 for (const key in kComponentTypeV3ToV2Map) {
   kComponentTypeV2ToV3Map[kComponentTypeV3ToV2Map[key]] = key
