@@ -258,6 +258,19 @@ context("Formula Engine", () => {
         cy.get("[data-testid=formula-function-category-list]").should("not.exist")
         cy.get("[data-testid=formula-insert-function-button]").should("have.focus")
       })
+      it("Open category with Right Arrow from category list and navigate back with Left Arrow", () => {
+        tabToButton("formula-insert-function-button")
+        cy.realPress("Enter")
+        cy.get("[data-testid=formula-function-category-list]").should("be.visible")
+        cy.get("[data-testid=formula-function-category-item]").first().should("have.attr", "data-focused")
+        // Right Arrow opens the focused category's function list
+        cy.realPress("ArrowRight")
+        cy.get("[data-testid=formula-function-list]").should("be.visible")
+        cy.get("[data-testid=formula-function-list-header]").should("be.visible")
+        // Left Arrow goes back to categories
+        cy.realPress("ArrowLeft")
+        cy.get("[data-testid=formula-function-category-list]").should("be.visible")
+      })
       it("Navigate to function info with Right Arrow and back with Left Arrow", () => {
         tabToButton("formula-insert-function-button")
         cy.realPress("Enter")
