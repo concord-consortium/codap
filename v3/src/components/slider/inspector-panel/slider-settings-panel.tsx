@@ -159,7 +159,7 @@ export const SliderSettingsPalette =
                   {getDateUnitLabel(sliderModel.dateMultipleOfUnit, multiplesCount)}
                   <span aria-hidden="true" className="select-arrow">▾</span>
                 </Button>
-                <Popover>
+                <Popover offset={0}>
                   <ListBox>
                     {dateUnits.map((aPrecision, index) => (
                       <ListBoxItem key={aPrecision} id={aPrecision}>
@@ -227,7 +227,7 @@ export const SliderSettingsPalette =
                 <SelectValue />
                 <span aria-hidden="true" className="select-arrow">▾</span>
               </Button>
-              <Popover>
+              <Popover offset={0}>
                 <ListBox>
                   {AnimationDirections.map(aDirection => (
                     <ListBoxItem key={aDirection} id={aDirection}>
@@ -250,7 +250,7 @@ export const SliderSettingsPalette =
                 <SelectValue />
                 <span aria-hidden="true" className="select-arrow">▾</span>
               </Button>
-              <Popover>
+              <Popover offset={0}>
                 <ListBox>
                   {AnimationModes.map(aMode => (
                     <ListBoxItem key={aMode} id={aMode}>

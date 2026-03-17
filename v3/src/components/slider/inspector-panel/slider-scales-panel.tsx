@@ -159,7 +159,7 @@ export const SliderScalesPalette =
                 <SelectValue />
                 <span aria-hidden="true" className="select-arrow">▾</span>
               </Button>
-              <Popover>
+              <Popover offset={0}>
                 <ListBox>
                   {SliderScaleTypes.map(aScaleType => (
                     <ListBoxItem key={aScaleType} id={aScaleType}
