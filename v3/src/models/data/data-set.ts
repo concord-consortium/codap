@@ -217,6 +217,8 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   let _validationCount = 0
   let _isValidCases = false
   let _isValidItemIds = false
+  // Item IDs removed during validation — flushed by setValidCases() in its runInAction
+  let _pendingSelectionDeletes: string[] = []
 
   // Single observable counter — bumped by setValidCases() after validation completes.
   // Same pragmatic compromise as Collection._cacheVersion: a view writes one observable
@@ -256,12 +258,22 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
         _caseValidationVersion.get()  // establish MobX dependency
         return _isValidCases
       },
+      // Queue item IDs for removal from selection during the next setValidCases() flush
+      deferSelectionDelete(itemIds: Iterable<string>) {
+        _pendingSelectionDeletes.push(...itemIds)
+      },
       setValidCases() {
         if (!_isValidCases) {
           _validationCount++
           _isValidCases = true
-          // Signal validation completion to MobX (pragmatic compromise, see comment above)
-          runInAction(() => _caseValidationVersion.set(_caseValidationVersion.get() + 1))
+          // Signal validation completion to MobX and flush deferred selection cleanup.
+          // Single pragmatic compromise: one runInAction from a view to write observables
+          // only after all cached data is fully updated.
+          runInAction(() => {
+            _pendingSelectionDeletes.forEach(id => self.selection.delete(id))
+            _pendingSelectionDeletes = []
+            _caseValidationVersion.set(_caseValidationVersion.get() + 1)
+          })
         }
       },
       get isValidItemIds() {
@@ -687,12 +699,9 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       Array.from(self.childCollection.caseGroupMap.values()).forEach(caseGroup => {
         self.itemIdChildCaseMap.set(caseGroup.childItemIds[0] ?? caseGroup.hiddenChildItemIds[0], caseGroup)
       })
-      // delete removed items from selection (self.selection is observable.set,
-      // so writing from a view requires runInAction — pragmatic compromise)
+      // Defer selection cleanup — flushed by setValidCases() in its runInAction
       if (itemsToValidate.size) {
-        runInAction(() => {
-          itemsToValidate.forEach(itemId => self.selection.delete(itemId))
-        })
+        self.deferSelectionDelete(itemsToValidate)
       }
       self.setValidCases()
     }
