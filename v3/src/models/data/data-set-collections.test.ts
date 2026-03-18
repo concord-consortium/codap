@@ -383,4 +383,48 @@ describe("DataSet collections", () => {
     const abCases = data.getCasesForAttributes(["aId", "bId"])
     expect(abCases.length).toBe(27)
   })
+
+  it("items getter survives dependency oscillation (CODAP-1178 sampler bug)", () => {
+    // The items/itemIds getters are MobX computeds that call _validateItemIds().
+    // When cache is valid, _validateItemIds() is a no-op — reading no observables.
+    // If the computed has no stable dependency, MobX drops all tracked dependencies
+    // after a cache-valid re-evaluation ("dependency oscillation"), permanently
+    // sealing the computed. Subsequent changes to self._itemIds are invisible.
+    //
+    // This test reproduces the Sampler plugin bug: append items (triggers oscillation),
+    // then delete-all + re-add → items returns stale IDs from before the deletion.
+
+    // Observe items via reaction (makes it a cached/observed MobX computed)
+    const observedLengths: number[] = []
+    const disposer = reaction(
+      () => data.items.length,
+      len => observedLengths.push(len),
+      { fireImmediately: true }
+    )
+    expect(observedLengths).toEqual([27])
+    observedLengths.length = 0
+
+    // Append triggers oscillation: self._itemIds.push() changes the observable,
+    // MobX re-evaluates items, but _isValidItemIds is true (appendItemIdsToCache
+    // handled it), so _validateItemIds() is a no-op → MobX drops dependencies.
+    // Without the _caseValidationVersion dependency, the computed is sealed here.
+    data.addCases([{ __id__: "extra", aId: "99", bId: "99", cId: "99" }])
+    expect(data.items.length).toBe(28)
+
+    // Delete all + re-add (simulates Sampler "Clear Data" then new sample run)
+    data.removeCases(data.items.map(i => i.__id__))
+    expect(data._itemIds.length).toBe(0)
+    // items must reflect the deletion — not return stale 28-item array
+    expect(data.items.length).toBe(0)
+
+    data.addCases([
+      { __id__: "new1", aId: "A", bId: "B", cId: "C" },
+      { __id__: "new2", aId: "D", bId: "E", cId: "F" }
+    ])
+    // items must reflect the new additions
+    expect(data.items.length).toBe(2)
+    expect(data.items.map(i => i.__id__)).toEqual(["new1", "new2"])
+
+    disposer()
+  })
 })

@@ -281,10 +281,12 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
         return _isValidItemIds
       },
       get itemIds() {
+        _caseValidationVersion.get()  // stable MobX dependency (survives cache-valid no-op)
         _validateItemIds()
         return _cachedItemIds
       },
       get items(): readonly IItem[] {
+        _caseValidationVersion.get()  // stable MobX dependency (survives cache-valid no-op)
         _validateItemIds()
         return _cachedItems
       },
