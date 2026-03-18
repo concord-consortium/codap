@@ -76,7 +76,6 @@
         // Remove right border-radius so the input visually connects to the date unit dropdown
         border-top-right-radius: 0;
         border-bottom-right-radius: 0;
-        border-right: none;
       }
     }
     .slider-select-container {
@@ -107,7 +106,6 @@
 
         &[data-focus-visible] {
           outline: 2px solid vars.$focus-outline-color;
-          outline-offset: 2px;
         }
 
         .select-arrow {
