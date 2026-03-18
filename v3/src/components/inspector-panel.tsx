@@ -103,9 +103,16 @@ export const InspectorButton = forwardRef<HTMLButtonElement, IInspectorButtonPro
 }: IInspectorButtonProps, ref) {
   const className = clsx("inspector-tool-button", { active: isActive, bottom, top })
   const hasVisibleLabel = !!label
-  const { triggerRef, onMouseMove } = useMouseTooltipRef()
+  const { triggerRef, onMouseMove, onFocus } = useMouseTooltipRef()
+  const [tooltipOpen, setTooltipOpen] = useState(false)
+
+  const handlePress = useCallback((e: { target: Element }) => {
+    setTooltipOpen(false)
+    onButtonClick?.(e)
+  }, [onButtonClick])
+
   return (
-    <TooltipTrigger delay={kTooltipDelay}>
+    <TooltipTrigger delay={kTooltipDelay} isOpen={tooltipOpen} onOpenChange={setTooltipOpen}>
       <Button
         aria-controls={ariaControls}
         aria-disabled={isDisabled || undefined}
@@ -115,9 +122,10 @@ export const InspectorButton = forwardRef<HTMLButtonElement, IInspectorButtonPro
         data-inspector-toolbar-item="true"
         data-testid={testId}
         excludeFromTabOrder={isDisabled}
+        onFocus={onFocus}
         onMouseMove={onMouseMove}
         onPointerDown={!isDisabled ? onPointerDown : undefined}
-        onPress={!isDisabled ? onButtonClick : undefined}
+        onPress={!isDisabled ? handlePress : undefined}
         ref={ref}
       >
         {renderIcon(children, hasVisibleLabel)}
@@ -152,23 +160,26 @@ export const InspectorMenu = ({
 }: IInspectorMenuProps) => {
   const classes = clsx("inspector-tool-button", "inspector-tool-menu", { bottom, top })
   const hasVisibleLabel = !!label
-  const { triggerRef, onMouseMove } = useMouseTooltipRef()
+  const { triggerRef, onMouseMove, onFocus } = useMouseTooltipRef()
+  const [tooltipOpen, setTooltipOpen] = useState(false)
 
   const handleOpenChange = useCallback((isOpen: boolean) => {
     if (isOpen) {
+      setTooltipOpen(false)
       onButtonClick?.()
       onOpen?.()
     }
   }, [onButtonClick, onOpen])
 
   return (
-    <TooltipTrigger delay={kTooltipDelay}>
+    <TooltipTrigger delay={kTooltipDelay} isOpen={tooltipOpen} onOpenChange={setTooltipOpen}>
       <MenuTrigger onOpenChange={handleOpenChange}>
         <Button
           aria-label={ariaLabel(label, tooltip)}
           className={classes}
           data-inspector-toolbar-item="true"
           data-testid={testId}
+          onFocus={onFocus}
           onMouseMove={onMouseMove}
         >
           {renderIcon(icon, hasVisibleLabel)}

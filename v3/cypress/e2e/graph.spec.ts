@@ -136,6 +136,27 @@ context("Graph UI", () => {
       cy.wait(500)
       graph.getDisplayConfigButton().should("not.exist")
     })
+    it("should show tooltip when an inspector button receives keyboard focus", () => {
+      c.selectTile("graph", 0)
+      // Click the resize button to establish focus in the toolbar (no palette/menu opens)
+      graph.getResizeIcon().click()
+      // Move mouse away so the tooltip can only be triggered by focus, not hover
+      cy.get(".document-container").realHover({ position: "bottom" })
+      // Arrow key navigation triggers :focus-visible on the next button, showing its tooltip
+      cy.realPress("ArrowDown")
+      cy.get(".inspector-tooltip", { timeout: 2000 }).should("contain", c.tooltips.graphHideShowButton)
+    })
+    it("should dismiss tooltip when an inspector button is clicked and not block Escape", () => {
+      c.selectTile("graph", 0)
+      graph.getDisplayValuesButton().realHover()
+      cy.get(".inspector-tooltip", { timeout: 2000 }).should("contain", c.tooltips.graphDisplayValuesButton)
+      graph.getDisplayValuesButton().click()
+      cy.get(".inspector-tooltip").should("not.exist")
+      graph.getInspectorPalette().should("exist")
+      // A single Escape should close the palette (not be consumed by the tooltip)
+      cy.realPress("Escape")
+      graph.getInspectorPalette().should("not.exist")
+    })
   })
   describe("case card graph interaction", () => {
     it("should drag attributes from the case card to the graph", () => {
