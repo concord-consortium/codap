@@ -35,8 +35,11 @@ export function useMouseTooltipRef() {
   }
 
   const onFocus = (e: React.FocusEvent) => {
-    isMouseRef.current = false
-    buttonElRef.current = e.currentTarget
+    // Only switch to button-anchored positioning for keyboard focus, not pointer-induced focus
+    if (e.currentTarget.matches(":focus-visible")) {
+      isMouseRef.current = false
+      buttonElRef.current = e.currentTarget
+    }
   }
 
   return { triggerRef, onMouseMove, onFocus }
