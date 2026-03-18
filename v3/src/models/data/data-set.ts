@@ -308,6 +308,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       },
       invalidateItemIds() {
         _invalidateItemIds()
+        _caseValidationVersion.set(_caseValidationVersion.get() + 1)
       },
       // Efficiently append new item IDs to the cache when items are appended
       // (newly added items are not hidden, so they can be added directly)
