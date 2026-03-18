@@ -136,6 +136,20 @@ context("Graph UI", () => {
       cy.wait(500)
       graph.getDisplayConfigButton().should("not.exist")
     })
+    it("should show tooltip when an inspector button receives keyboard focus", () => {
+      c.selectTile("graph", 0)
+      // Move mouse away so the tooltip can only be triggered by focus, not hover
+      cy.get(".document-container").realHover({ position: "bottom" })
+      graph.getResizeIcon().focus()
+      cy.get(".inspector-tooltip", { timeout: 2000 }).should("contain", c.tooltips.graphResizeButton)
+    })
+    it("should dismiss tooltip when an inspector button is clicked", () => {
+      c.selectTile("graph", 0)
+      graph.getHideShowButton().realHover()
+      cy.get(".inspector-tooltip", { timeout: 2000 }).should("contain", c.tooltips.graphHideShowButton)
+      graph.getHideShowButton().click()
+      cy.get(".inspector-tooltip").should("not.exist")
+    })
   })
   describe("case card graph interaction", () => {
     it("should drag attributes from the case card to the graph", () => {
