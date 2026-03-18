@@ -253,6 +253,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
         return _validationCount
       },
       get isValidCases() {
+        _caseValidationVersion.get()  // establish MobX dependency
         return _isValidCases
       },
       setValidCases() {
@@ -264,6 +265,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
         }
       },
       get isValidItemIds() {
+        _caseValidationVersion.get()  // establish MobX dependency
         return _isValidItemIds
       },
       get itemIds() {
@@ -289,6 +291,8 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
         _invalidateItemIds()
         // invalidate each collection's case group cache
         self.collections.forEach(c => c.invalidateCaseGroups())
+        // Bump observable version so MobX re-evaluates isValidCases/validationCount computeds
+        _caseValidationVersion.set(_caseValidationVersion.get() + 1)
       },
       invalidateItemIds() {
         _invalidateItemIds()
