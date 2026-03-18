@@ -228,7 +228,9 @@ export function IndexCell({ caseId, disableMenu, index, collapsedCases, onClick,
         ? renderInputRowIndexColumnCell()
         : <MenuButton ref={setMenuButtonRef} className={classes} data-testid="codap-index-content-button"
                       onClick={handleClick} onKeyDown={handleKeyDown}
-                      aria-describedby={`sr-index-menu-instructions-${collectionId}`}>
+                      aria-describedby={`sr-index-menu-instructions-${collectionId}`}
+                      aria-label={t("V3.CaseTable.indexCellAriaLabel",
+                        { vars: [String((index ?? 0) + 1)] })}>
             {cellContents}
           </MenuButton>
       }

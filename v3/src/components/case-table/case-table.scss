@@ -76,6 +76,31 @@ $collection-title-font-color: black;
             user-select: none;
             font-style: italic;
             color: $collection-title-font-color;
+
+            .collection-title-preview {
+              display: block;
+              width: 100%;
+              overflow: hidden;
+              white-space: nowrap;
+              text-overflow: ellipsis;
+              outline: none;
+
+              &:focus-visible {
+                @include vars.focus-outline;
+              }
+            }
+
+            .collection-title-input {
+              width: 100%;
+              font: inherit;
+              color: inherit;
+              text-align: center;
+              background: white;
+              border: 1px solid vars.$focus-outline-color;
+              border-radius: 2px;
+              outline: none;
+              padding: 0;
+            }
           }
 
           .add-attribute-icon-button {

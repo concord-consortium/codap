@@ -618,6 +618,65 @@ context("case table index and component", () => {
     })
   })
 
+  describe("table accessibility", () => {
+    it("collection title has aria-label with collection name", () => {
+      table.getCollectionTitle()
+        .find(".collection-title-preview")
+        .should("have.attr", "aria-label")
+        .and("contain", collectionName)
+        .and("contain", "cases")
+        .and("contain", "Press Enter to edit")
+    })
+    it("opens index menu via keyboard Enter on index cell", () => {
+      // Click the first data cell to get focus into the grid
+      table.getGridCell(2, 2).click()
+      // Navigate to the index cell using left arrow
+      table.getGridCell(2, 2).type("{leftarrow}")
+      // Wait for focus to settle on the index cell, then press Enter.
+      // Use realPress() to send a real browser-level keyboard event.
+      cy.focused().should("have.attr", "aria-colindex", "1")
+      cy.realPress("Enter")
+      // Use :visible filter since multiple hidden MenuList wrappers exist in the DOM
+      table.getIndexMenu().filter(":visible").should("have.length", 1)
+      // Close the menu with Escape
+      cy.realPress("Escape")
+      table.getIndexMenu().should("not.be.visible")
+    })
+    it("opens index menu via keyboard Space on index cell", () => {
+      // Click the first data cell to get focus into the grid
+      table.getGridCell(2, 2).click()
+      // Navigate to the index cell using left arrow
+      table.getGridCell(2, 2).type("{leftarrow}")
+      // Wait for focus to settle on the index cell, then press Space.
+      cy.focused().should("have.attr", "aria-colindex", "1")
+      cy.realPress("Space")
+      table.getIndexMenu().filter(":visible").should("have.length", 1)
+      // Close the menu with Escape
+      cy.realPress("Escape")
+      table.getIndexMenu().should("not.be.visible")
+    })
+    it("collection title enters edit mode on double-click", () => {
+      table.getCollectionTitle().find(".collection-title-preview").dblclick()
+      table.getCollectionTitle().find("input.collection-title-input").should("exist")
+      // Press Escape to cancel
+      table.getCollectionTitle().find("input.collection-title-input").type("{esc}")
+      table.getCollectionTitle().find(".collection-title-preview").should("exist")
+    })
+    it("opens index menu for a non-first row via keyboard", () => {
+      // Click a data cell in a later row
+      table.getGridCell(5, 2).click()
+      // Navigate to the index cell using left arrow
+      table.getGridCell(5, 2).type("{leftarrow}")
+      // Wait for focus to settle on the index cell, then press Enter.
+      cy.focused().should("have.attr", "aria-colindex", "1")
+      cy.realPress("Enter")
+      table.getIndexMenu().filter(":visible").should("have.length", 1)
+      // Close the menu with Escape
+      cy.realPress("Escape")
+      table.getIndexMenu().should("not.be.visible")
+    })
+  })
+
   describe("table cells with checkboxes", () => {
     it("displays checkboxes in cells with checkbox attribute type", () => {
       table.getTableTile().click()
