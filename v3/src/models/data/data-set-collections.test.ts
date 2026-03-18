@@ -1,3 +1,4 @@
+import { reaction } from "mobx"
 import { types } from "mobx-state-tree"
 import { ICollectionModel } from "./collection"
 import { DataSet, IDataSet } from "./data-set"
@@ -245,6 +246,92 @@ describe("DataSet collections", () => {
     data.validateCases()
     expect(parentCollection.cases.length).toBe(originalParentCaseCount)
     expect(data.childCollection.cases.length).toBe(originalChildCaseCount)
+  })
+
+  it("MobX reaction fires after invalidateCases + validateCases", () => {
+    // Ensure the validation reaction pattern used by use-rows.ts works correctly.
+    // The isValidCases computed must re-evaluate when invalidateCases() is called,
+    // even when a reaction is observing it (which causes MobX to cache the computed).
+    data.validateCases()
+
+    const effectLog: Array<number | undefined> = []
+    const disposer = reaction(
+      () => {
+        const version = data.validationCount
+        return data.isValidCases ? version : undefined
+      },
+      validation => effectLog.push(validation),
+      { fireImmediately: true }
+    )
+
+    // Initial fire: valid, version 1
+    expect(effectLog).toEqual([1])
+    effectLog.length = 0
+
+    // Invalidate + revalidate should fire effect with new version
+    data.invalidateCases()
+    expect(data.isValidCases).toBe(false)
+    data.validateCases()
+    expect(data.isValidCases).toBe(true)
+    // Effect should have fired twice: once with undefined (invalidation), once with new version
+    expect(effectLog.filter(v => typeof v === "number").length).toBe(1)
+    expect(effectLog.filter(v => v === undefined).length).toBe(1)
+
+    disposer()
+  })
+
+  it("MobX reaction fires after moveAttributeToNewCollection", () => {
+    // End-to-end test: moving an attribute to a parent collection triggers
+    // invalidateCases, and a subsequent validateCases (via getCasesForCollection)
+    // should produce correct results and fire the validation reaction.
+    data.validateCases()
+
+    const effectLog: Array<number | undefined> = []
+    const disposer = reaction(
+      () => {
+        const version = data.validationCount
+        return data.isValidCases ? version : undefined
+      },
+      validation => effectLog.push(validation),
+      { fireImmediately: true }
+    )
+
+    expect(effectLog).toEqual([1])
+    effectLog.length = 0
+
+    // Move attribute to parent collection
+    data.moveAttributeToNewCollection("aId")
+    expect(data.collections.length).toBe(2)
+
+    // getCasesForCollection triggers validateCases internally
+    const parentCases = data.getCasesForCollection(data.collections[0].id)
+    expect(parentCases.length).toBe(3) // 3 unique values of "a"
+    const childCases = data.getCasesForCollection(data.collections[1].id)
+    expect(childCases.length).toBe(27)
+
+    // Reaction should have fired
+    expect(effectLog.filter(v => typeof v === "number").length).toBeGreaterThan(0)
+
+    disposer()
+  })
+
+  it("defers selection cleanup to setValidCases", () => {
+    data.validateCases()
+
+    // Select some items
+    const itemsToSelect = ["1-1-1", "1-1-2", "1-1-3"]
+    itemsToSelect.forEach(id => data.selection.add(id))
+    expect(data.selection.size).toBe(3)
+
+    // Remove those items
+    data.removeCases(itemsToSelect)
+
+    // After validateCases, removed items should be deselected
+    data.validateCases()
+    itemsToSelect.forEach(id => {
+      expect(data.selection.has(id)).toBe(false)
+    })
+    expect(data.selection.size).toBe(0)
   })
 
   it("doesn't take formula evaluated values into account when grouping", () => {
