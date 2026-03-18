@@ -223,7 +223,7 @@ export const InspectorPalette = ({children, Icon, id, title, panelRect, buttonRe
   const [paletteWidth, setPaletteWidth] = useState(0)
   const [paletteHeight, setPaletteHeight] = useState(0)
   const paletteRef = useRef<HTMLDivElement>(null)
-  const { handleFocusTrapKeyDown } = useFocusTrap(paletteRef)
+  useFocusTrap(paletteRef)
   const pointerRef = useRef<HTMLDivElement>(null)
   const viewportEl = paletteRef.current?.closest(".tile-row")
   const [inBounds, setInBounds] = useState(() => isWithinBounds(panelRight, paletteRef.current))
@@ -258,7 +258,6 @@ export const InspectorPalette = ({children, Icon, id, title, panelRect, buttonRe
     if (e.key === "Escape") {
       setShowPalette(undefined)
     }
-    handleFocusTrapKeyDown(e)
   }
 
   useEffect(() => {

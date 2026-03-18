@@ -1,24 +1,7 @@
+/* eslint-disable testing-library/no-node-access */
 import { renderHook } from "@testing-library/react"
-import { useRef } from "react"
+import React from "react"
 import { useFocusTrap } from "./use-focus-trap"
-
-// mock KeyboardEvents for the handler
-function tabEvent(opts: { shiftKey?: boolean } = {}) {
-  const event = {
-    key: "Tab",
-    shiftKey: opts.shiftKey ?? false,
-    preventDefault: jest.fn()
-  }
-  return event as unknown as React.KeyboardEvent<HTMLDivElement>
-}
-
-function nonTabEvent(key = "Enter") {
-  return {
-    key,
-    shiftKey: false,
-    preventDefault: jest.fn()
-  } as unknown as React.KeyboardEvent<HTMLDivElement>
-}
 
 // JSDom doesn't compute layout so offsetParent is always null.
 // We stub it on elements we want treated as visible.
@@ -38,39 +21,42 @@ describe("useFocusTrap", () => {
     document.body.removeChild(container)
   })
 
-  it("returns a ref and a keydown handler", () => {
+  // Helper: set up the trap with an external ref pointing at `container`
+  function setupTrap() {
+    const ref = { current: container } as React.RefObject<HTMLDivElement | null>
+    return renderHook(() => useFocusTrap(ref))
+  }
+
+  // Simulate a Tab or Shift+Tab keydown so the hook tracks direction
+  function simulateTab(shiftKey = false) {
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Tab", shiftKey, bubbles: true }))
+  }
+
+  it("returns a ref", () => {
     const { result } = renderHook(() => useFocusTrap())
     expect(result.current.focusTrapRef).toBeDefined()
-    expect(typeof result.current.handleFocusTrapKeyDown).toBe("function")
   })
 
-  it("ignores non-Tab keys", () => {
-    const { result } = renderHook(() => useFocusTrap())
-    const event = nonTabEvent("Enter")
-    // Should not throw even with no ref attached
-    result.current.handleFocusTrapKeyDown(event)
-    expect(event.preventDefault).not.toHaveBeenCalled()
+  describe("sentinel elements", () => {
+    it("inserts start and end sentinels into the container", () => {
+      setupTrap()
+      const sentinels = container.querySelectorAll<HTMLElement>('[aria-hidden="true"]')
+      expect(sentinels.length).toBe(2)
+      expect(sentinels[0]).toBe(container.firstChild)
+      expect(sentinels[1]).toBe(container.lastChild)
+      expect(sentinels[0].tabIndex).toBe(0)
+      expect(sentinels[1].tabIndex).toBe(0)
+    })
+
+    it("removes sentinels on unmount", () => {
+      const { unmount } = setupTrap()
+      expect(container.querySelectorAll('[aria-hidden="true"]').length).toBe(2)
+      unmount()
+      expect(container.querySelectorAll('[aria-hidden="true"]').length).toBe(0)
+    })
   })
 
-  it("does nothing when container ref is null", () => {
-    const { result } = renderHook(() => useFocusTrap())
-    const event = tabEvent()
-    // focusTrapRef.current is null by default
-    result.current.handleFocusTrapKeyDown(event)
-    expect(event.preventDefault).not.toHaveBeenCalled()
-  })
-
-  it("does nothing when container has no focusable elements", () => {
-    const { result } = renderHook(() => useFocusTrap())
-    // Attach ref to an empty container
-    Object.defineProperty(result.current.focusTrapRef, "current", { value: container, writable: true })
-
-    const event = tabEvent()
-    result.current.handleFocusTrapKeyDown(event)
-    expect(event.preventDefault).not.toHaveBeenCalled()
-  })
-
-  describe("with focusable elements", () => {
+  describe("focus wrapping", () => {
     let input1: HTMLInputElement
     let input2: HTMLInputElement
     let button1: HTMLButtonElement
@@ -85,42 +71,27 @@ describe("useFocusTrap", () => {
       makeVisible(button1)
     })
 
-    it("wraps focus from last to first on Tab", () => {
-      const { result } = renderHook(() => useFocusTrap())
-      Object.defineProperty(result.current.focusTrapRef, "current", { value: container, writable: true })
-
-      button1.focus()
-      const event = tabEvent()
-      result.current.handleFocusTrapKeyDown(event)
-
-      expect(event.preventDefault).toHaveBeenCalled()
+    it("wraps focus from end sentinel to first focusable element", () => {
+      setupTrap()
+      const endSentinel = container.lastChild as HTMLElement
+      endSentinel.focus()
       expect(input1).toHaveFocus()
     })
 
-    it("wraps focus from first to last on Shift+Tab", () => {
-      const { result } = renderHook(() => useFocusTrap())
-      Object.defineProperty(result.current.focusTrapRef, "current", { value: container, writable: true })
-
-      input1.focus()
-      const event = tabEvent({ shiftKey: true })
-      result.current.handleFocusTrapKeyDown(event)
-
-      expect(event.preventDefault).toHaveBeenCalled()
+    it("wraps focus from start sentinel to last focusable element on Shift+Tab", () => {
+      setupTrap()
+      simulateTab(true)
+      const startSentinel = container.firstChild as HTMLElement
+      startSentinel.focus()
       expect(button1).toHaveFocus()
     })
 
-    it("does not prevent default when focus is on a middle element", () => {
-      const { result } = renderHook(() => useFocusTrap())
-      Object.defineProperty(result.current.focusTrapRef, "current", { value: container, writable: true })
-
-      input2.focus()
-      const forwardEvent = tabEvent()
-      result.current.handleFocusTrapKeyDown(forwardEvent)
-      expect(forwardEvent.preventDefault).not.toHaveBeenCalled()
-
-      const backwardEvent = tabEvent({ shiftKey: true })
-      result.current.handleFocusTrapKeyDown(backwardEvent)
-      expect(backwardEvent.preventDefault).not.toHaveBeenCalled()
+    it("wraps focus from start sentinel to first focusable element on forward Tab", () => {
+      setupTrap()
+      simulateTab()
+      const startSentinel = container.firstChild as HTMLElement
+      startSentinel.focus()
+      expect(input1).toHaveFocus()
     })
   })
 
@@ -135,16 +106,16 @@ describe("useFocusTrap", () => {
       makeVisible(visibleInput)
       makeVisible(hiddenInput)
 
-      const { result } = renderHook(() => useFocusTrap())
-      Object.defineProperty(result.current.focusTrapRef, "current", { value: container, writable: true })
+      setupTrap()
 
-      // With only one visible focusable element, Tab on it should wrap to itself
-      visibleInput.focus()
-      const event = tabEvent()
-      result.current.handleFocusTrapKeyDown(event)
+      // End sentinel should redirect to the only visible focusable element
+      const endSentinel = container.lastChild as HTMLElement
+      endSentinel.focus()
+      expect(visibleInput).toHaveFocus()
 
-      // first === last === visibleInput, so both forward and backward wrap to it
-      expect(event.preventDefault).toHaveBeenCalled()
+      // Start sentinel should also redirect to it (first === last)
+      const startSentinel = container.firstChild as HTMLElement
+      startSentinel.focus()
       expect(visibleInput).toHaveFocus()
     })
 
@@ -155,15 +126,10 @@ describe("useFocusTrap", () => {
       makeVisible(visibleInput)
       // hiddenButton has offsetParent === null (JSDom default), so it's excluded
 
-      const { result } = renderHook(() => useFocusTrap())
-      Object.defineProperty(result.current.focusTrapRef, "current", { value: container, writable: true })
+      setupTrap()
 
-      visibleInput.focus()
-      const event = tabEvent()
-      result.current.handleFocusTrapKeyDown(event)
-
-      // Only one focusable element, wraps to itself
-      expect(event.preventDefault).toHaveBeenCalled()
+      const endSentinel = container.lastChild as HTMLElement
+      endSentinel.focus()
       expect(visibleInput).toHaveFocus()
     })
 
@@ -175,16 +141,18 @@ describe("useFocusTrap", () => {
       makeVisible(link)
       makeVisible(input)
 
-      const { result } = renderHook(() => useFocusTrap())
-      Object.defineProperty(result.current.focusTrapRef, "current", { value: container, writable: true })
+      setupTrap()
 
-      // Focus last element, Tab should wrap to link
-      input.focus()
-      const event = tabEvent()
-      result.current.handleFocusTrapKeyDown(event)
-
-      expect(event.preventDefault).toHaveBeenCalled()
+      // End sentinel → first element (link)
+      const endSentinel = container.lastChild as HTMLElement
+      endSentinel.focus()
       expect(link).toHaveFocus()
+
+      // Start sentinel + Shift+Tab → last element (input)
+      simulateTab(true)
+      const startSentinel = container.firstChild as HTMLElement
+      startSentinel.focus()
+      expect(input).toHaveFocus()
     })
 
     it("includes elements with tabindex", () => {
@@ -195,21 +163,14 @@ describe("useFocusTrap", () => {
       makeVisible(div)
       makeVisible(input)
 
-      const { result } = renderHook(() => useFocusTrap())
-      Object.defineProperty(result.current.focusTrapRef, "current", { value: container, writable: true })
+      setupTrap()
 
-      input.focus()
-      const event = tabEvent()
-      result.current.handleFocusTrapKeyDown(event)
-
-      expect(event.preventDefault).toHaveBeenCalled()
+      const endSentinel = container.lastChild as HTMLElement
+      endSentinel.focus()
       expect(div).toHaveFocus()
     })
 
     it("excludes elements with tabindex=-1", () => {
-      // Place a tabindex=-1 div between two inputs to verify it's skipped.
-      // If the div were included, Tab on input2 would not wrap to input1
-      // (the div would be last, not input2).
       const input1 = document.createElement("input")
       const div = document.createElement("div")
       div.setAttribute("tabindex", "-1")
@@ -219,40 +180,43 @@ describe("useFocusTrap", () => {
       makeVisible(div)
       makeVisible(input2)
 
-      const { result } = renderHook(() => useFocusTrap())
-      Object.defineProperty(result.current.focusTrapRef, "current", { value: container, writable: true })
+      setupTrap()
 
-      // Tab on the last focusable element (input2) should wrap to input1,
-      // skipping the tabindex=-1 div entirely
-      input2.focus()
-      const event = tabEvent()
-      result.current.handleFocusTrapKeyDown(event)
+      // Start sentinel + Shift+Tab should wrap to last focusable (input2), skipping div
+      simulateTab(true)
+      const startSentinel = container.firstChild as HTMLElement
+      startSentinel.focus()
+      expect(input2).toHaveFocus()
 
-      expect(event.preventDefault).toHaveBeenCalled()
+      // End sentinel + forward Tab should wrap to first focusable (input1), skipping div
+      simulateTab()
+      const endSentinel = container.lastChild as HTMLElement
+      endSentinel.focus()
       expect(input1).toHaveFocus()
     })
-  })
 
-  describe("external ref", () => {
-    it("uses an external ref when provided", () => {
-      const input1 = document.createElement("input")
-      const input2 = document.createElement("input")
-      container.append(input1, input2)
-      makeVisible(input1)
-      makeVisible(input2)
+    it("excludes disabled form elements", () => {
+      const input = document.createElement("input")
+      const disabledButton = document.createElement("button")
+      disabledButton.disabled = true
+      const button = document.createElement("button")
+      container.append(input, disabledButton, button)
+      makeVisible(input)
+      makeVisible(disabledButton)
+      makeVisible(button)
 
-      const { result } = renderHook(() => {
-        const externalRef = useRef<HTMLDivElement>(null)
-        return { externalRef, ...useFocusTrap(externalRef) }
-      })
-      Object.defineProperty(result.current.externalRef, "current", { value: container, writable: true })
+      setupTrap()
 
-      input2.focus()
-      const event = tabEvent()
-      result.current.handleFocusTrapKeyDown(event)
+      // End sentinel should wrap to first focusable (input), skipping disabled button
+      const endSentinel = container.lastChild as HTMLElement
+      endSentinel.focus()
+      expect(input).toHaveFocus()
 
-      expect(event.preventDefault).toHaveBeenCalled()
-      expect(input1).toHaveFocus()
+      // Start sentinel + Shift+Tab should wrap to last focusable (button), skipping disabled button
+      simulateTab(true)
+      const startSentinel = container.firstChild as HTMLElement
+      startSentinel.focus()
+      expect(button).toHaveFocus()
     })
   })
 })
