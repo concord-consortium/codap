@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from "react"
 
 const kFocusableSelectors =
-  'a[href], area[href], input, button, select, textarea, [tabindex]:not([tabindex="-1"])'
+  'a[href], area[href], input:not([disabled]), button:not([disabled]), select:not([disabled]),' +
+  ' textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
 /**
  * Creates a focus trap using invisible sentinel elements placed at the start

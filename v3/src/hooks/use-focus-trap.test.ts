@@ -194,5 +194,29 @@ describe("useFocusTrap", () => {
       endSentinel.focus()
       expect(input1).toHaveFocus()
     })
+
+    it("excludes disabled form elements", () => {
+      const input = document.createElement("input")
+      const disabledButton = document.createElement("button")
+      disabledButton.disabled = true
+      const button = document.createElement("button")
+      container.append(input, disabledButton, button)
+      makeVisible(input)
+      makeVisible(disabledButton)
+      makeVisible(button)
+
+      setupTrap()
+
+      // End sentinel should wrap to first focusable (input), skipping disabled button
+      const endSentinel = container.lastChild as HTMLElement
+      endSentinel.focus()
+      expect(input).toHaveFocus()
+
+      // Start sentinel + Shift+Tab should wrap to last focusable (button), skipping disabled button
+      simulateTab(true)
+      const startSentinel = container.firstChild as HTMLElement
+      startSentinel.focus()
+      expect(button).toHaveFocus()
+    })
   })
 })
