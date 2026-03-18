@@ -632,24 +632,28 @@ context("case table index and component", () => {
       table.getGridCell(2, 2).click()
       // Navigate to the index cell using left arrow
       table.getGridCell(2, 2).type("{leftarrow}")
-      // Press Enter to open the index menu
-      cy.focused().type("{enter}")
-      table.getIndexMenu().should("be.visible")
+      // Wait for focus to settle on the index cell, then press Enter.
+      // Use realPress() to send a real browser-level keyboard event.
+      cy.focused().should("have.attr", "aria-colindex", "1")
+      cy.realPress("Enter")
+      // Use :visible filter since multiple hidden MenuList wrappers exist in the DOM
+      table.getIndexMenu().filter(":visible").should("have.length", 1)
       // Close the menu with Escape
-      cy.get("body").type("{esc}")
-      table.getIndexMenu().should("not.exist")
+      cy.realPress("Escape")
+      table.getIndexMenu().should("not.be.visible")
     })
     it("opens index menu via keyboard Space on index cell", () => {
       // Click the first data cell to get focus into the grid
       table.getGridCell(2, 2).click()
       // Navigate to the index cell using left arrow
       table.getGridCell(2, 2).type("{leftarrow}")
-      // Press Space to open the index menu
-      cy.focused().type(" ")
-      table.getIndexMenu().should("be.visible")
+      // Wait for focus to settle on the index cell, then press Space.
+      cy.focused().should("have.attr", "aria-colindex", "1")
+      cy.realPress("Space")
+      table.getIndexMenu().filter(":visible").should("have.length", 1)
       // Close the menu with Escape
-      cy.get("body").type("{esc}")
-      table.getIndexMenu().should("not.exist")
+      cy.realPress("Escape")
+      table.getIndexMenu().should("not.be.visible")
     })
     it("collection title enters edit mode on double-click", () => {
       table.getCollectionTitle().find(".collection-title-preview").dblclick()
@@ -663,12 +667,13 @@ context("case table index and component", () => {
       table.getGridCell(5, 2).click()
       // Navigate to the index cell using left arrow
       table.getGridCell(5, 2).type("{leftarrow}")
-      // Press Enter to open the index menu
-      cy.focused().type("{enter}")
-      table.getIndexMenu().should("be.visible")
+      // Wait for focus to settle on the index cell, then press Enter.
+      cy.focused().should("have.attr", "aria-colindex", "1")
+      cy.realPress("Enter")
+      table.getIndexMenu().filter(":visible").should("have.length", 1)
       // Close the menu with Escape
-      cy.get("body").type("{esc}")
-      table.getIndexMenu().should("not.exist")
+      cy.realPress("Escape")
+      table.getIndexMenu().should("not.be.visible")
     })
   })
 
