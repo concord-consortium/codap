@@ -513,7 +513,9 @@ context("Slider keyboard accessibility", () => {
     slider.getInspectorIcon().should("be.focused")
 
     cy.log("Escape closes Scale palette and restores focus to inspector button")
-    slider.getRulerIcon().click()
+    // Navigate down to the Scale button, then press Enter to open the Scale palette.
+    cy.realPress("ArrowDown")
+    cy.realPress("Enter")
     cy.get("[data-testid=codap-inspector-palette]").should("exist")
     cy.get("[data-testid=codap-inspector-palette]").find("input").first().type("{esc}")
     cy.get("[data-testid=codap-inspector-palette]").should("not.exist")
