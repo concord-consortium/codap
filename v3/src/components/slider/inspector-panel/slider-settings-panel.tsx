@@ -15,6 +15,7 @@ import { t } from "../../../utilities/translation/translate"
 import "./slider-settings-panel.scss"
 
 interface IProps {
+  id?: string
   sliderModel: ISliderModel
   panelRect?: DOMRect
   buttonRect?: DOMRect
@@ -22,7 +23,7 @@ interface IProps {
 }
 
 export const SliderSettingsPalette =
-  observer(function SliderSettingsPalette({sliderModel, panelRect, buttonRect, setShowPalette}: IProps) {
+  observer(function SliderSettingsPalette({id, sliderModel, panelRect, buttonRect, setShowPalette}: IProps) {
     const scaleType = sliderModel.scaleType
     const initialMultiples = sliderModel.multipleOf != null ? String(sliderModel.multipleOf) : ""
     const [multiplesValue, setMultiplesValue] = useState(initialMultiples)
@@ -187,6 +188,7 @@ export const SliderSettingsPalette =
 
     return (
       <InspectorPalette
+        id={id}
         title={t("V3.Inspector.animation")}
         Icon={<PlaybackIcon/>}
         setShowPalette={setShowPalette}
