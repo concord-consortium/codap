@@ -27,6 +27,11 @@ describe("useFocusTrap", () => {
     return renderHook(() => useFocusTrap(ref))
   }
 
+  // Simulate a Tab or Shift+Tab keydown so the hook tracks direction
+  function simulateTab(shiftKey = false) {
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Tab", shiftKey, bubbles: true }))
+  }
+
   it("returns a ref", () => {
     const { result } = renderHook(() => useFocusTrap())
     expect(result.current.focusTrapRef).toBeDefined()
@@ -73,11 +78,20 @@ describe("useFocusTrap", () => {
       expect(input1).toHaveFocus()
     })
 
-    it("wraps focus from start sentinel to last focusable element", () => {
+    it("wraps focus from start sentinel to last focusable element on Shift+Tab", () => {
       setupTrap()
+      simulateTab(true)
       const startSentinel = container.firstChild as HTMLElement
       startSentinel.focus()
       expect(button1).toHaveFocus()
+    })
+
+    it("wraps focus from start sentinel to first focusable element on forward Tab", () => {
+      setupTrap()
+      simulateTab()
+      const startSentinel = container.firstChild as HTMLElement
+      startSentinel.focus()
+      expect(input1).toHaveFocus()
     })
   })
 
@@ -134,7 +148,8 @@ describe("useFocusTrap", () => {
       endSentinel.focus()
       expect(link).toHaveFocus()
 
-      // Start sentinel → last element (input)
+      // Start sentinel + Shift+Tab → last element (input)
+      simulateTab(true)
       const startSentinel = container.firstChild as HTMLElement
       startSentinel.focus()
       expect(input).toHaveFocus()
@@ -167,12 +182,14 @@ describe("useFocusTrap", () => {
 
       setupTrap()
 
-      // Start sentinel should wrap to last focusable (input2), skipping div
+      // Start sentinel + Shift+Tab should wrap to last focusable (input2), skipping div
+      simulateTab(true)
       const startSentinel = container.firstChild as HTMLElement
       startSentinel.focus()
       expect(input2).toHaveFocus()
 
-      // End sentinel should wrap to first focusable (input1), skipping div
+      // End sentinel + forward Tab should wrap to first focusable (input1), skipping div
+      simulateTab()
       const endSentinel = container.lastChild as HTMLElement
       endSentinel.focus()
       expect(input1).toHaveFocus()

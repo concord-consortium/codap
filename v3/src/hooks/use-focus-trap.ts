@@ -6,7 +6,7 @@ const kFocusableSelectors =
 /**
  * Creates a focus trap using invisible sentinel elements placed at the start
  * and end of a container. When focus reaches a sentinel (via Tab past the
- * last element or Shift+Tab before the first), it wraps to the other end.
+ * last element or Shift+Tab before the first), it wraps to the appropriate end.
  *
  * @param externalRef optional ref to use as the trap container instead of the
  *   hook's own internal ref. Useful when the caller already has a container ref
@@ -18,6 +18,14 @@ export function useFocusTrap(externalRef?: React.RefObject<HTMLElement | null>) 
   useEffect(() => {
     const container = externalRef?.current ?? internalRef.current
     if (!container) return
+
+    let tabDirection: "forward" | "backward" = "forward"
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Tab") {
+        tabDirection = e.shiftKey ? "backward" : "forward"
+      }
+    }
 
     const getFocusable = () =>
       Array.from(container.querySelectorAll<HTMLElement>(kFocusableSelectors))
@@ -36,22 +44,23 @@ export function useFocusTrap(externalRef?: React.RefObject<HTMLElement | null>) 
     container.insertBefore(startSentinel, container.firstChild)
     container.appendChild(endSentinel)
 
-    const handleStartFocus = () => {
+    const handleSentinelFocus = () => {
       const focusable = getFocusable()
-      focusable[focusable.length - 1]?.focus()
+      if (tabDirection === "forward") {
+        focusable[0]?.focus()
+      } else {
+        focusable[focusable.length - 1]?.focus()
+      }
     }
 
-    const handleEndFocus = () => {
-      const focusable = getFocusable()
-      focusable[0]?.focus()
-    }
-
-    startSentinel.addEventListener("focus", handleStartFocus)
-    endSentinel.addEventListener("focus", handleEndFocus)
+    document.addEventListener("keydown", handleKeyDown, true)
+    startSentinel.addEventListener("focus", handleSentinelFocus)
+    endSentinel.addEventListener("focus", handleSentinelFocus)
 
     return () => {
-      startSentinel.removeEventListener("focus", handleStartFocus)
-      endSentinel.removeEventListener("focus", handleEndFocus)
+      document.removeEventListener("keydown", handleKeyDown, true)
+      startSentinel.removeEventListener("focus", handleSentinelFocus)
+      endSentinel.removeEventListener("focus", handleSentinelFocus)
       startSentinel.remove()
       endSentinel.remove()
     }
