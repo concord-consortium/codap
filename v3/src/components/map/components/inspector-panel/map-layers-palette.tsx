@@ -15,6 +15,7 @@ import {MapBaseLayerControl} from "./map-base-layer-control"
 import "./map-inspector.scss"
 
 interface IProps {
+  id?: string
   tile?: ITileModel
   panelRect?: DOMRect
   buttonRect?: DOMRect
@@ -22,7 +23,7 @@ interface IProps {
 }
 
 export const MapLayersPalette = observer(function MapLayersPalette(
-  {tile, panelRect, buttonRect, setShowPalette}: IProps) {
+  {id, tile, panelRect, buttonRect, setShowPalette}: IProps) {
   const mapModel = isMapContentModel(tile?.content) ? tile?.content : undefined
   if (!mapModel) return null
 
@@ -69,6 +70,7 @@ export const MapLayersPalette = observer(function MapLayersPalette(
 
   return (
     <InspectorPalette
+      id={id}
       title={t("DG.Inspector.layers")}
       Icon={<LayersIcon/>}
       setShowPalette={setShowPalette}

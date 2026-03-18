@@ -18,6 +18,9 @@ import DataIcon from "../../../assets/icons/inspector-panel/data-icon.svg"
 import LayersIcon from "../../../assets/icons/inspector-panel/layers-icon.svg"
 import ImageIcon from "../../../assets/icons/inspector-panel/image-icon.svg"
 
+const kMeasurePaletteId = "map-measure-palette"
+const kLayersPaletteId = "map-layers-palette"
+
 export const MapInspector = observer(function MapInspector({tile, show}: ITileInspectorPanelProps) {
   const mapModel = isMapContentModel(tile?.content) ? tile?.content : undefined
   const [showPalette, setShowPalette] = useState<string | undefined>(undefined)
@@ -43,6 +46,8 @@ export const MapInspector = observer(function MapInspector({tile, show}: ITileIn
     if (mapModel?.layers.some(layer => isMapPointLayerModel(layer) || isMapPinLayerModel(layer))) {
       return (
         <InspectorButton
+          aria-controls={kMeasurePaletteId}
+          aria-expanded={showPalette === "measure"}
           isActive={showPalette === "measure"}
           label={t("V3.map.Inspector.Data")}
           onButtonClick={(e: { target: Element }) => {
@@ -62,6 +67,8 @@ export const MapInspector = observer(function MapInspector({tile, show}: ITileIn
     if (mapModel) {
       return (
         <InspectorButton
+          aria-controls={kLayersPaletteId}
+          aria-expanded={showPalette === "layers"}
           isActive={showPalette === "layers"}
           label={t("V3.map.Inspector.Layers")}
           onButtonClick={(e: { target: Element }) => {
@@ -80,10 +87,10 @@ export const MapInspector = observer(function MapInspector({tile, show}: ITileIn
   const renderPaletteIfAny = () => {
     switch (showPalette) {
       case "measure":
-        return <MapMeasurePalette tile={tile} setShowPalette={setShowPalette}
+        return <MapMeasurePalette id={kMeasurePaletteId} tile={tile} setShowPalette={setShowPalette}
                                   panelRect={panelRect} buttonRect={buttonRect}/>
       case "layers":
-        return <MapLayersPalette tile={tile} setShowPalette={setShowPalette}
+        return <MapLayersPalette id={kLayersPaletteId} tile={tile} setShowPalette={setShowPalette}
                                  panelRect={panelRect} buttonRect={buttonRect}/>
       default:
         return null
@@ -92,7 +99,16 @@ export const MapInspector = observer(function MapInspector({tile, show}: ITileIn
 
   if (mapModel && mapModel.layers.length > 0) {
     return (
-      <InspectorPanel ref={panelRef} component="map data-display" show={show} setShowPalette={setShowPalette}>
+      <InspectorPanel
+        ref={panelRef}
+        component="map data-display"
+        setShowPalette={setShowPalette}
+        show={show}
+        toolbarAriaLabel={t("DG.DocumentController.mapTitle")}
+        toolbarOrientation="vertical"
+        toolbarPersistenceKey="map-inspector-toolbar"
+        width="wide"
+      >
         <InspectorButton
           label={t("V3.map.Inspector.Rescale")}
           onButtonClick={handleMapRescale}

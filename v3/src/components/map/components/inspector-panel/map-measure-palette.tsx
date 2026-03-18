@@ -10,6 +10,7 @@ import { logStringifiedObjectMessage } from "../../../../lib/log-message"
 import { isMapPinLayerModel } from "../../models/map-pin-layer-model"
 
 interface IProps {
+  id?: string
   tile?: ITileModel
   panelRect?: DOMRect
   buttonRect?: DOMRect
@@ -17,7 +18,7 @@ interface IProps {
 }
 
 export const MapMeasurePalette = observer(function MapMeasurePalette(
-  {tile, panelRect, buttonRect, setShowPalette}: IProps) {
+  {id, tile, panelRect, buttonRect, setShowPalette}: IProps) {
   const mapModel = isMapContentModel(tile?.content) ? tile?.content : undefined
   if (!mapModel) return null
 
@@ -106,8 +107,8 @@ export const MapMeasurePalette = observer(function MapMeasurePalette(
   }
 
   return (
-    <InspectorPalette title={t("V3.map.Inspector.Data")} Icon={<DataIcon/>} setShowPalette={setShowPalette}
-                      panelRect={panelRect} buttonRect={buttonRect}
+    <InspectorPalette id={id} title={t("V3.map.Inspector.Data")} Icon={<DataIcon/>}
+                      setShowPalette={setShowPalette} panelRect={panelRect} buttonRect={buttonRect}
     >
       <div className="palette-form">
         {renderLayersDisplayControls()}
