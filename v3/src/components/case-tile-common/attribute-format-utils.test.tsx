@@ -135,6 +135,17 @@ describe("attribute-format-utils", () => {
       const formatter = getNumFormatterForAttribute(attr as IAttribute)
       expect(formatter(2024)).toBe("2024")
     })
+
+    it("should exclude grouping for categorical attributes", () => {
+      const isInferredYearType = Object.assign(() => false, { invalidate: () => {} })
+      const attr = createMockAttribute({
+        userType: "categorical",
+        numPrecision: 2,
+        isInferredYearType
+      })
+      const formatter = getNumFormatterForAttribute(attr as IAttribute)
+      expect(formatter(7215)).toBe("7215")
+    })
   })
 
   describe("renderAttributeValue", () => {
@@ -248,6 +259,23 @@ describe("attribute-format-utils", () => {
         const result = renderAttributeValue("42.5", 42.5, attr as IAttribute, { showUnits: false })
 
         expect(result.value).toBe("42.5")
+      })
+
+      it("should not show grouping separators for categorical numeric values", () => {
+        const isInferredYearType = Object.assign(() => false, { invalidate: () => {} })
+        const attr = createMockAttribute({ userType: "categorical", numPrecision: 2, isInferredYearType })
+        const result = renderAttributeValue("7215", 7215, attr as IAttribute)
+
+        expect(result.value).toBe("7215")
+        expect(result.content.props.className).toContain("numeric-format")
+      })
+
+      it("should show grouping separators for non-categorical numeric values", () => {
+        const isInferredYearType = Object.assign(() => false, { invalidate: () => {} })
+        const attr = createMockAttribute({ userType: "numeric", numPrecision: 2, isInferredYearType })
+        const result = renderAttributeValue("7215", 7215, attr as IAttribute)
+
+        expect(result.value).toBe("7,215")
       })
     })
 
