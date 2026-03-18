@@ -47,7 +47,8 @@ export const getNumFormatter = (formatStr: string) => {
 
 export function getNumFormatterForAttribute(attr?: IAttribute) {
   // uses d3-format style format strings like ",.2~f"
-  const grouping = attr?.isInferredYearType?.() ? "" : ","
+  // Suppress grouping separators for year types and categorical attributes
+  const grouping = attr?.isInferredYearType?.() || attr?.userType === "categorical" ? "" : ","
   const formatStr = `${grouping}.${attr?.numPrecision ?? kDefaultNumPrecision}~f`
   return getNumFormatter(formatStr)
 }
