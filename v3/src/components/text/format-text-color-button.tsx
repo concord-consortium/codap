@@ -30,8 +30,11 @@ export function FormatTextColorButton({ editor }: IProps) {
   const textColor = getColor(editor, { default: true }) ?? "#000000"
   const initialColorRef = React.useRef<string>(textColor)
 
-  function handleOpen(e: React.PointerEvent) {
+  function preventFocusLoss(e: React.PointerEvent) {
     e.preventDefault()
+  }
+
+  function handleOpen() {
     initialColorRef.current = getColor(editor, { default: true }) ?? "#000000"
     onOpen()
   }
@@ -57,7 +60,8 @@ export function FormatTextColorButton({ editor }: IProps) {
           testId={"text-toolbar-text-color-button"}
           tooltip={"color"}
           isActive={!!getColor(editor, { default: false })}
-          onPointerDown={handleOpen}
+          onButtonClick={handleOpen}
+          onPointerDown={preventFocusLoss}
         >
           <FormatTextColorIcon color={getColor(editor, { default: true })} />
         </InspectorButton>

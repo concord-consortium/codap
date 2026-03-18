@@ -60,7 +60,11 @@ export function FormatLinkButton({ editor }: IProps) {
                                     ? tileInspectorContent : undefined
   const { isLinkDialogOpen = false, openLinkDialog, closeLinkDialog, editLink } = textTileInspectorContent || {}
 
-  function handlePointerDown() {
+  function preventFocusLoss(e: React.PointerEvent) {
+    e.preventDefault()
+  }
+
+  function handleButtonClick() {
     if (editor && editLink) {
       editLink.current = getSelectedLink(editor)
     }
@@ -97,7 +101,8 @@ export function FormatLinkButton({ editor }: IProps) {
         isActive={!!editor?.isElementActive(EFormat.link)}
         // disable the button if the selection doesn't uniquely identify a link or potential link
         isDisabled={!(editor && (getSelectedLink(editor) || !editor?.isElementActive(EFormat.link)))}
-        onPointerDown={handlePointerDown}
+        onButtonClick={handleButtonClick}
+        onPointerDown={preventFocusLoss}
       >
         <AddLinkIcon />
       </InspectorButton>

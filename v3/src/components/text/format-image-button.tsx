@@ -59,7 +59,11 @@ export function FormatImageButton({ editor }: IProps) {
                                     ? tileInspectorContent : undefined
   const { isImageDialogOpen = false, openImageDialog, closeImageDialog, editImage } = textTileInspectorContent || {}
 
-  function handlePointerDown() {
+  function preventFocusLoss(e: React.PointerEvent) {
+    e.preventDefault()
+  }
+
+  function handleButtonClick() {
     if (editor && editImage) {
       editImage.current = getSelectedImage(editor)
     }
@@ -91,7 +95,8 @@ export function FormatImageButton({ editor }: IProps) {
         isActive={!!editor?.isElementActive(EFormat.image)}
         // disable the button if the selection doesn't uniquely identify an image or potential image
         isDisabled={!(editor && (getSelectedImage(editor) || !editor?.isElementActive(EFormat.image)))}
-        onPointerDown={handlePointerDown}
+        onButtonClick={handleButtonClick}
+        onPointerDown={preventFocusLoss}
       >
         <AddImageIcon />
       </InspectorButton>
