@@ -334,6 +334,42 @@ describe("DataSet collections", () => {
     expect(data.selection.size).toBe(0)
   })
 
+  it("prepareSnapshot validates cases when invalidated", () => {
+    // prepareSnapshot must call validateCases so that collection snapshots
+    // (e.g., groupKeyCaseIds) are up to date even if no one else has
+    // triggered validation since the last invalidation.
+    data.moveAttributeToNewCollection("aId")
+    // At this point cases are invalidated by moveAttributeToNewCollection
+    // but NOT yet validated (no getCasesForCollection call).
+    // prepareSnapshot should force validation.
+    data.prepareSnapshot()
+    data.completeSnapshot()
+
+    // If validation ran, the parent collection should have case groups
+    const parentCollection = data.collections[0]
+    expect(parentCollection.caseGroups.length).toBe(3) // 3 unique values of "a"
+    expect(data.childCollection.caseGroups.length).toBe(27)
+  })
+
+  it("getCasesForCollection implicitly validates after hierarchical change", () => {
+    // getCasesForCollection should trigger validateCases internally,
+    // so callers don't need to call validateCases explicitly.
+    data.moveAttributeToNewCollection("aId")
+
+    // No explicit validateCases call — getCasesForCollection should handle it
+    const parentCases = data.getCasesForCollection(data.collections[0].id)
+    expect(parentCases.length).toBe(3)
+
+    // Second move: Diet-like attribute to another parent
+    data.moveAttributeToNewCollection("bId", data.collections[0].id)
+    expect(data.collections.length).toBe(3)
+
+    const topCases = data.getCasesForCollection(data.collections[0].id)
+    expect(topCases.length).toBe(3) // 3 unique values of "b"
+    const midCases = data.getCasesForCollection(data.collections[1].id)
+    expect(midCases.length).toBe(9) // 3 values of "a" × 3 groups of "b"
+  })
+
   it("doesn't take formula evaluated values into account when grouping", () => {
     const aAttr = data.attrFromID("aId")
     aAttr?.setDisplayExpression("foo * bar")
