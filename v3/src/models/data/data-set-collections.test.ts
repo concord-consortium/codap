@@ -1,3 +1,4 @@
+import { reaction } from "mobx"
 import { types } from "mobx-state-tree"
 import { ICollectionModel } from "./collection"
 import { DataSet, IDataSet } from "./data-set"
@@ -247,6 +248,128 @@ describe("DataSet collections", () => {
     expect(data.childCollection.cases.length).toBe(originalChildCaseCount)
   })
 
+  it("MobX reaction fires after invalidateCases + validateCases", () => {
+    // Ensure the validation reaction pattern used by use-rows.ts works correctly.
+    // The isValidCases computed must re-evaluate when invalidateCases() is called,
+    // even when a reaction is observing it (which causes MobX to cache the computed).
+    data.validateCases()
+
+    const effectLog: Array<number | undefined> = []
+    const disposer = reaction(
+      () => {
+        const version = data.validationCount
+        return data.isValidCases ? version : undefined
+      },
+      validation => effectLog.push(validation),
+      { fireImmediately: true }
+    )
+
+    // Initial fire: valid, version 1
+    expect(effectLog).toEqual([1])
+    effectLog.length = 0
+
+    // Invalidate + revalidate should fire effect with new version
+    data.invalidateCases()
+    expect(data.isValidCases).toBe(false)
+    data.validateCases()
+    expect(data.isValidCases).toBe(true)
+    // Effect should have fired twice: once with undefined (invalidation), once with new version
+    expect(effectLog.filter(v => typeof v === "number").length).toBe(1)
+    expect(effectLog.filter(v => v === undefined).length).toBe(1)
+
+    disposer()
+  })
+
+  it("MobX reaction fires after moveAttributeToNewCollection", () => {
+    // End-to-end test: moving an attribute to a parent collection triggers
+    // invalidateCases, and a subsequent validateCases (via getCasesForCollection)
+    // should produce correct results and fire the validation reaction.
+    data.validateCases()
+
+    const effectLog: Array<number | undefined> = []
+    const disposer = reaction(
+      () => {
+        const version = data.validationCount
+        return data.isValidCases ? version : undefined
+      },
+      validation => effectLog.push(validation),
+      { fireImmediately: true }
+    )
+
+    expect(effectLog).toEqual([1])
+    effectLog.length = 0
+
+    // Move attribute to parent collection
+    data.moveAttributeToNewCollection("aId")
+    expect(data.collections.length).toBe(2)
+
+    // getCasesForCollection triggers validateCases internally
+    const parentCases = data.getCasesForCollection(data.collections[0].id)
+    expect(parentCases.length).toBe(3) // 3 unique values of "a"
+    const childCases = data.getCasesForCollection(data.collections[1].id)
+    expect(childCases.length).toBe(27)
+
+    // Reaction should have fired
+    expect(effectLog.filter(v => typeof v === "number").length).toBeGreaterThan(0)
+
+    disposer()
+  })
+
+  it("defers selection cleanup to setValidCases", () => {
+    data.validateCases()
+
+    // Select some items
+    const itemsToSelect = ["1-1-1", "1-1-2", "1-1-3"]
+    itemsToSelect.forEach(id => data.selection.add(id))
+    expect(data.selection.size).toBe(3)
+
+    // Remove those items
+    data.removeCases(itemsToSelect)
+
+    // After validateCases, removed items should be deselected
+    data.validateCases()
+    itemsToSelect.forEach(id => {
+      expect(data.selection.has(id)).toBe(false)
+    })
+    expect(data.selection.size).toBe(0)
+  })
+
+  it("prepareSnapshot validates cases when invalidated", () => {
+    // prepareSnapshot must call validateCases so that collection snapshots
+    // (e.g., groupKeyCaseIds) are up to date even if no one else has
+    // triggered validation since the last invalidation.
+    data.moveAttributeToNewCollection("aId")
+    // At this point cases are invalidated by moveAttributeToNewCollection
+    // but NOT yet validated (no getCasesForCollection call).
+    // prepareSnapshot should force validation.
+    data.prepareSnapshot()
+    data.completeSnapshot()
+
+    // If validation ran, the parent collection should have case groups
+    const parentCollection = data.collections[0]
+    expect(parentCollection.caseGroups.length).toBe(3) // 3 unique values of "a"
+    expect(data.childCollection.caseGroups.length).toBe(27)
+  })
+
+  it("getCasesForCollection implicitly validates after hierarchical change", () => {
+    // getCasesForCollection should trigger validateCases internally,
+    // so callers don't need to call validateCases explicitly.
+    data.moveAttributeToNewCollection("aId")
+
+    // No explicit validateCases call — getCasesForCollection should handle it
+    const parentCases = data.getCasesForCollection(data.collections[0].id)
+    expect(parentCases.length).toBe(3)
+
+    // Second move: Diet-like attribute to another parent
+    data.moveAttributeToNewCollection("bId", data.collections[0].id)
+    expect(data.collections.length).toBe(3)
+
+    const topCases = data.getCasesForCollection(data.collections[0].id)
+    expect(topCases.length).toBe(3) // 3 unique values of "b"
+    const midCases = data.getCasesForCollection(data.collections[1].id)
+    expect(midCases.length).toBe(9) // 3 values of "a" × 3 groups of "b"
+  })
+
   it("doesn't take formula evaluated values into account when grouping", () => {
     const aAttr = data.attrFromID("aId")
     aAttr?.setDisplayExpression("foo * bar")
@@ -259,5 +382,49 @@ describe("DataSet collections", () => {
     expect(aCases.map(aCase => data.getStrValue(aCase.__id__, "aId"))).toEqual([""]) // formula needs to be re-evaluated
     const abCases = data.getCasesForAttributes(["aId", "bId"])
     expect(abCases.length).toBe(27)
+  })
+
+  it("items getter survives dependency oscillation (CODAP-1178 sampler bug)", () => {
+    // The items/itemIds getters are MobX computeds that call _validateItemIds().
+    // When cache is valid, _validateItemIds() is a no-op — reading no observables.
+    // If the computed has no stable dependency, MobX drops all tracked dependencies
+    // after a cache-valid re-evaluation ("dependency oscillation"), permanently
+    // sealing the computed. Subsequent changes to self._itemIds are invisible.
+    //
+    // This test reproduces the Sampler plugin bug: append items (triggers oscillation),
+    // then delete-all + re-add → items returns stale IDs from before the deletion.
+
+    // Observe items via reaction (makes it a cached/observed MobX computed)
+    const observedLengths: number[] = []
+    const disposer = reaction(
+      () => data.items.length,
+      len => observedLengths.push(len),
+      { fireImmediately: true }
+    )
+    expect(observedLengths).toEqual([27])
+    observedLengths.length = 0
+
+    // Append triggers oscillation: self._itemIds.push() changes the observable,
+    // MobX re-evaluates items, but _isValidItemIds is true (appendItemIdsToCache
+    // handled it), so _validateItemIds() is a no-op → MobX drops dependencies.
+    // Without the _caseValidationVersion dependency, the computed is sealed here.
+    data.addCases([{ __id__: "extra", aId: "99", bId: "99", cId: "99" }])
+    expect(data.items.length).toBe(28)
+
+    // Delete all + re-add (simulates Sampler "Clear Data" then new sample run)
+    data.removeCases(data.items.map(i => i.__id__))
+    expect(data._itemIds.length).toBe(0)
+    // items must reflect the deletion — not return stale 28-item array
+    expect(data.items.length).toBe(0)
+
+    data.addCases([
+      { __id__: "new1", aId: "A", bId: "B", cId: "C" },
+      { __id__: "new2", aId: "D", bId: "E", cId: "F" }
+    ])
+    // items must reflect the new additions
+    expect(data.items.length).toBe(2)
+    expect(data.items.map(i => i.__id__)).toEqual(["new1", "new2"])
+
+    disposer()
   })
 })

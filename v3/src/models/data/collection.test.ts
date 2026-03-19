@@ -1,3 +1,4 @@
+import { reaction } from "mobx"
 import { destroy, getSnapshot, isAlive, types } from "mobx-state-tree"
 import { Attribute, IAttribute } from "./attribute"
 import {
@@ -487,6 +488,48 @@ describe("CollectionModel", () => {
     // rebuild should pick up all 3 items
     expect(c1.cases.length).toBe(3)
     expect(c1.caseGroups.length).toBe(3)
+  })
+
+  it("MobX reactions fire when caseGroups/cases are updated via version counter", () => {
+    const c1 = CollectionModel.create({ name: "c1" })
+    let items = ["i0", "i1"]
+    const itemData: IItemData = {
+      itemIds: () => items,
+      isHidden: () => false,
+      getValue: (itemId: string) => itemId,
+      addItemInfo: () => null,
+      invalidate: () => null
+    }
+    syncCollectionLinks([c1], itemData)
+
+    // initial build
+    c1.updateCaseGroups()
+    c1.completeCaseGroups(undefined)
+    expect(c1.caseGroups.length).toBe(2)
+
+    // set up reactions on the view getters
+    const caseGroupsLog: number[] = []
+    const casesLog: number[] = []
+    const disposeCaseGroups = reaction(
+      () => c1.caseGroups.length,
+      len => caseGroupsLog.push(len)
+    )
+    const disposeCases = reaction(
+      () => c1.cases.length,
+      len => casesLog.push(len)
+    )
+
+    // add an item and rebuild — reactions should fire
+    items = ["i0", "i1", "i2"]
+    c1.invalidateCaseGroups()
+    c1.updateCaseGroups()
+    c1.completeCaseGroups(undefined)
+    expect(c1.caseGroups.length).toBe(3)
+    expect(caseGroupsLog).toEqual([3])
+    expect(casesLog).toEqual([3])
+
+    disposeCaseGroups()
+    disposeCases()
   })
 
   it("additive invalidation appends correctly without full rebuild", () => {
