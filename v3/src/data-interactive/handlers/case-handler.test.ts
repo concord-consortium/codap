@@ -61,6 +61,65 @@ describe("DataInteractive CaseHandler", () => {
     newCases3.forEach(confirmNewCase)
   })
 
+  it("absorbs phantom child items when creating child cases with parent references", () => {
+    // Reproduces the Scrambler plugin bug (CODAP-1151):
+    // 1. Delete all cases
+    // 2. Create a parent case (creates a phantom child item with no child-level values)
+    // 3. Create child cases with parent references
+    // Expected: child count should match the number of explicitly created children
+    const { dataset, c1, c2 } = setupTestDataset()
+
+    // Delete all cases
+    dataset.removeCases(dataset.items.map(c => c.__id__))
+    expect(dataset.items.length).toBe(0)
+
+    // Create a parent case with only parent-level attribute values
+    const parentResult = handler.create?.({ dataContext: dataset, collection: c1 },
+      [{ values: { a1: "parent1" } }] as DIValues
+    )
+    expect(parentResult?.success).toBe(true)
+    dataset.validateCases()
+
+    // After creating the parent case, there should be 1 item (the phantom child)
+    expect(dataset.items.length).toBe(1)
+    const parentCases = dataset.getCasesForCollection(c1.id)
+    expect(parentCases.length).toBe(1)
+    // The phantom item also appears as a child case
+    expect(dataset.getCasesForCollection(c2.id).length).toBe(1)
+
+    // Create child cases with parent references
+    const parentCaseId = toV2Id(parentCases[0].__id__)
+    const childResult = handler.create?.({ dataContext: dataset, collection: c2 },
+      [
+        { parent: parentCaseId, values: { a2: "x", a3: 1 } },
+        { parent: parentCaseId, values: { a2: "y", a3: 2 } },
+        { parent: parentCaseId, values: { a2: "z", a3: 3 } }
+      ] as DIValues
+    )
+    expect(childResult?.success).toBe(true)
+
+    // Should have 3 items (phantom absorbed + 2 new), not 4 (phantom + 3 new)
+    expect(dataset.items.length).toBe(3)
+    const childCasesAfter = dataset.getCasesForCollection(c2.id)
+    expect(childCasesAfter.length).toBe(3)
+
+    // All child cases should have their values set
+    const a2 = dataset.getAttributeByName("a2")!
+    const a3 = dataset.getAttributeByName("a3")!
+    const childValues = childCasesAfter.map(c => {
+      const itemId = dataset.caseInfoMap.get(c.__id__)?.childItemIds[0]
+      return {
+        a2: itemId ? dataset.getStrValue(itemId, a2.id) : "",
+        a3: itemId ? dataset.getStrValue(itemId, a3.id) : ""
+      }
+    })
+    expect(childValues).toEqual([
+      { a2: "x", a3: "1" },
+      { a2: "y", a3: "2" },
+      { a2: "z", a3: "3" }
+    ])
+  })
+
   it("update works as expected", () => {
     const { dataset } = setupTestDataset()
 
