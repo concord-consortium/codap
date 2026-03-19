@@ -146,6 +146,18 @@ context("Graph UI", () => {
       cy.realPress("ArrowDown")
       cy.get(".inspector-tooltip", { timeout: 2000 }).should("contain", c.tooltips.graphHideShowButton)
     })
+    it("should dismiss tooltip when a menu button is opened via keyboard", () => {
+      c.selectTile("graph", 0)
+      // Click the resize button to establish focus, then arrow to the menu button
+      graph.getResizeIcon().click()
+      // Move mouse away so the tooltip can only be triggered by focus, not hover
+      cy.get(".document-container").realHover({ position: "bottom" })
+      cy.realPress("ArrowDown")
+      cy.get(".inspector-tooltip", { timeout: 2000 }).should("contain", c.tooltips.graphHideShowButton)
+      // Open the menu via Enter — tooltip should dismiss
+      cy.realPress("Enter")
+      cy.get(".inspector-tooltip").should("not.exist")
+    })
     it("should dismiss tooltip when an inspector button is clicked and not block Escape", () => {
       c.selectTile("graph", 0)
       graph.getDisplayValuesButton().realHover()
