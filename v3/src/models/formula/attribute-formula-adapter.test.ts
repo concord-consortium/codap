@@ -62,7 +62,7 @@ describe("AttributeFormulaAdapter", () => {
         attributes: attrSpecs.map(({ name, formula }) => ({ name, formula: { display: formula } }))
       }, {formulaManager})
       // Set canonical expressions using attribute IDs
-      attrSpecs.forEach(({ name, formula }, i) => {
+      attrSpecs.forEach(({ formula }, i) => {
         let canonical = formula
         attrSpecs.forEach(({ name: depName }) => {
           const depId = dataSet.attrIDFromName(depName)

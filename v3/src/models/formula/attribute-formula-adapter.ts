@@ -243,7 +243,7 @@ export class AttributeFormulaAdapter extends FormulaManagerAdapter {
 
       if (visitedFormulas[currentFormula]) {
         if (currentFormula === startFormulaId) return true // cycle back to this formula
-        continue // diamond dependency, not a cycle
+        continue // already explored (diamond dependency or cycle not involving this formula)
       }
       visitedFormulas[currentFormula] = true
 
