@@ -295,6 +295,27 @@ export class PixiPointRenderer extends PointRendererBase {
       }
     })
 
+    // Clean up orphan sprites — sprites that exist in the sprites map but have no corresponding
+    // entry in the shared PointsState. This can happen when the NullPointRenderer (which shares
+    // the same PointsState) removes points from state while the PixiPointRenderer has sprites
+    // for those points (e.g., due to the async timing between PIXI renderer initialization and
+    // plugin-driven attribute updates).
+    if (this.sprites.size > this.state.size) {
+      const orphanIds: string[] = []
+      this.sprites.forEach((_sprite, pointId) => {
+        if (!this.state.getPoint(pointId)) {
+          orphanIds.push(pointId)
+        }
+      })
+      orphanIds.forEach(pointId => {
+        const sprite = this.sprites.get(pointId)
+        if (sprite) {
+          sprite.destroy()
+          this.sprites.delete(pointId)
+        }
+      })
+    }
+
     // Update anchor based on display type
     this._anchor = displayType === "points" ? circleAnchor :
                    displayType === "bars" ? hBarAnchor : circleAnchor
