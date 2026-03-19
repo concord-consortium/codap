@@ -125,6 +125,8 @@
     right: 6px;
     width: 32px;
     height: 32px;
+    min-width: unset;
+    padding: 0;
     left: auto;
     border: none;
     z-index: 1;
@@ -136,6 +138,9 @@
       background-repeat: no-repeat;
     }
 
+    &:focus-visible {
+      @include vars.focus-outline($radius: 6px);
+    }
   }
   .selected {
     background-image:  url('../assets/map_marquee_icon_selected.svg');

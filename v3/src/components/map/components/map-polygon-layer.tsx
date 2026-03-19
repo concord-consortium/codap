@@ -14,6 +14,7 @@ import {handleClickOnCase} from "../../data-display/data-display-utils"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
 import { BackgroundPassThroughEvent } from "../../data-display/renderer"
 import { useLeafletMapLayers } from "../hooks/use-leaflet-map-layers"
+import {useMapClickWithDoubleClickZoom} from "../hooks/use-map-click-with-double-click-zoom"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {
   GeoJsonObject, kDefaultMapFillOpacity, kMapAreaNoLegendColor,
@@ -32,7 +33,8 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
     mapModel = useMapModelContext(),
     leafletMapLayers = useLeafletMapLayers(),
     leafletMap = useMap(),
-    layout = useDataDisplayLayout()
+    layout = useDataDisplayLayout(),
+    { wrapClickHandler } = useMapClickWithDoubleClickZoom(leafletMap)
 
   // useDataTips({dotsRef, dataset, displayModel: mapLayerModel})
 
@@ -76,7 +78,11 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
 
         const handleClick = (iEvent: LeafletMouseEvent) => {
             DomEvent.stopPropagation(iEvent)
-            handleClickOnCase(iEvent.originalEvent as PointerEvent, caseID, dataset)
+            // Delay selection so double-clicks trigger zoom without changing selection.
+            wrapClickHandler(
+              () => handleClickOnCase(iEvent.originalEvent as PointerEvent, caseID, dataset),
+              iEvent.originalEvent
+            )
             // When a Pixi point layer is present, it re-dispatches clicks to
             // polygons underneath. DomEvent.stopPropagation prevents the
             // re-dispatched click from reaching the map, but the original
@@ -166,7 +172,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
     })
     // Now that we're sure we have the right polygon features, update their styles
     refreshPolygonStyles()
-  }, [dataConfiguration, dataset, leafletMap, mapLayerModel, mapModel, refreshPolygonStyles])
+  }, [dataConfiguration, dataset, leafletMap, mapLayerModel, mapModel, refreshPolygonStyles, wrapClickHandler])
 
   const refreshPolygonLayer = useCallback(() => {
     leafletMapLayers?.updateLayer(mapLayerModel.id, refreshPolygons)

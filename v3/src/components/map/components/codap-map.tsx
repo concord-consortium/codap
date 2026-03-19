@@ -129,7 +129,11 @@ export const CodapMap = observer(function CodapMap({
   }, [mapModel, mapRef])
 
   return (
-    <div className={clsx('map-container', kPortalClass)} ref={mySetMapRef} data-testid="map">
+    <div
+      className={clsx('map-container', kPortalClass)}
+      ref={mySetMapRef}
+      data-testid="map"
+    >
       <div className="leaflet-wrapper" style={{height: mapHeight}} ref={interiorDivRef}>
         <MapContainer center={mapModel.center} zoom={mapModel.zoom} scrollWheelZoom={false}
                       zoomSnap={0} trackResize={true}>
