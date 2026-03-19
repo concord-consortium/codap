@@ -164,18 +164,21 @@ export const InspectorMenu = ({
   const [tooltipOpen, setTooltipOpen] = useState(false)
   const menuOpenRef = useRef(false)
 
-  const handleMenuOpenChange = useCallback((isOpen: boolean) => {
-    menuOpenRef.current = isOpen
-    if (isOpen) {
+  const handleMenuOpenChange = useCallback((openMenu: boolean) => {
+    menuOpenRef.current = openMenu
+    if (openMenu) {
+      // Close any tooltips when a menu opens.
       setTooltipOpen(false)
       onButtonClick?.()
       onOpen?.()
     }
   }, [onButtonClick, onOpen])
 
-  const handleTooltipOpenChange = useCallback((open: boolean) => {
-    if (open && menuOpenRef.current) return
-    setTooltipOpen(open)
+  const handleTooltipOpenChange = useCallback((openTooltip: boolean) => {
+    // Prevent tooltip from opening while a menu is open.
+    if (openTooltip && menuOpenRef.current) return
+
+    setTooltipOpen(openTooltip)
   }, [])
 
   return (
