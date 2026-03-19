@@ -85,7 +85,7 @@ describe("DataInteractive CaseHandler", () => {
     const parentCases = dataset.getCasesForCollection(c1.id)
     expect(parentCases.length).toBe(1)
     // The phantom item also appears as a child case
-    const childCasesBefore = dataset.getCasesForCollection(c2.id)
+    expect(dataset.getCasesForCollection(c2.id).length).toBe(1)
 
     // Create child cases with parent references
     const parentCaseId = toV2Id(parentCases[0].__id__)
