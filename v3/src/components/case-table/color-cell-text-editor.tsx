@@ -1,7 +1,5 @@
-import {
-  forwardRef, Popover, PopoverAnchor, PopoverTrigger, Portal, useDisclosure, useMergeRefs
-} from "@chakra-ui/react"
 import React, { ChangeEvent, useCallback, useEffect, useRef, useState } from "react"
+import { Button, Dialog, DialogTrigger, Popover } from "react-aria-components"
 import { textEditorClassname } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useLoggingContext } from "../../hooks/use-log-context"
@@ -32,9 +30,17 @@ function autoFocusAndSelect(input: HTMLInputElement | null) {
   input?.select()
 }
 
-const InputElt = forwardRef<React.InputHTMLAttributes<HTMLInputElement>, 'input'>((props, ref) => {
+const InputElt = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>((props, ref) => {
   const inputRef = useRef<HTMLInputElement | null>(null)
-  const mergeRefs = useMergeRefs(ref, inputRef)
+
+  const mergeRefs = useCallback((node: HTMLInputElement | null) => {
+    inputRef.current = node
+    if (typeof ref === "function") {
+      ref(node)
+    } else if (ref) {
+      (ref as React.MutableRefObject<HTMLInputElement | null>).current = node
+    }
+  }, [ref])
 
   useEffect(() => {
     autoFocusAndSelect(inputRef.current)
@@ -44,6 +50,7 @@ const InputElt = forwardRef<React.InputHTMLAttributes<HTMLInputElement>, 'input'
     <input data-testid="cell-text-editor" className={textEditorClassname} ref={mergeRefs} {...props} />
   )
 })
+InputElt.displayName = "InputElt"
 
 export default function ColorCellTextEditor({ row, column, onRowChange, onClose }: TRenderEditCellProps) {
   const data = useDataSetContext()
@@ -51,7 +58,6 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
   const attribute = data?.getAttribute(attributeId)
   const [inputValue, setInputValue] = useState(() => data?.getStrValue(row.__id__, attributeId))
   const initialInputValue = useRef(inputValue)
-  const [placement, setPlacement]= useState<"right" | "left">("right")
   // support colors if user hasn't assigned a non-color type
   const supportColors = attribute?.userType == null || attribute?.userType === "color"
   // support color names if the color type is user-assigned
@@ -62,7 +68,7 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
   const showColorSwatch = useRef(!!hexColor || attribute?.userType === "color")
   const { setPendingLogMessage } = useLoggingContext()
   const blockAPIRequests = blockAPIRequestsWhileEditing(data)
-  const triggerButtonRef = useRef<HTMLButtonElement>(null)
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false)
 
   useEffect(() => {
     selectAllCases(data, false)
@@ -96,15 +102,17 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
     onClose()
   }, [onClose])
 
-  const { isOpen: isPaletteOpen, onToggle: setOpenPopover } = useDisclosure()
-
-  function handleSwatchClick(event: React.MouseEvent) {
-    setOpenPopover()
+  function handleSwatchClick() {
+    setIsPaletteOpen(prev => !prev)
   }
 
   function handleInputColorChange(event: ChangeEvent<HTMLInputElement>) {
     updateValue(event.target.value)
   }
+
+  const handlePaletteOpenChange = useCallback((open: boolean) => {
+    setIsPaletteOpen(open)
+  }, [])
 
   /* The ColorTextEditor component was refactored out of this component to work with the case card.
     At some point we should refactor this component to use the ColorTextEditor as well. Currently,
@@ -119,29 +127,20 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
   return swatchStyle
     ? (
         <div className={"color-cell-text-editor"}>
-          <Popover
-            isLazy={true}
-            isOpen={isPaletteOpen}
-            placement={placement}
-            closeOnBlur={false}
-          >
-            <PopoverTrigger>
-              <button className="cell-edit-color-swatch" ref={triggerButtonRef}
-                onClick={handleSwatchClick}
-                aria-label={t("V3.CaseTable.colorSwatchButtonAriaLabel", { vars: [attrName] })}>
-                <div className="cell-edit-color-swatch-interior" style={swatchStyle}/>
-              </button>
-            </PopoverTrigger>
-            <PopoverAnchor>
-              { inputElt }
-            </PopoverAnchor>
-            <Portal>
-              <ColorPickerPalette initialColor={initialInputValue.current || "#ffffff"} isPaletteOpen={isPaletteOpen}
-                inputValue={inputValue || "#ffffff"} swatchBackgroundColor={color || "#ffffff"}
-                buttonRef={triggerButtonRef} showArrow={true} setPlacement={setPlacement} placement={placement}
-                onColorChange={updateValue} onAccept={acceptValue} onReject={rejectValue} onUpdateValue={updateValue}/>
-            </Portal>
-          </Popover>
+          <DialogTrigger isOpen={isPaletteOpen} onOpenChange={handlePaletteOpenChange}>
+            <Button className="cell-edit-color-swatch" onPress={handleSwatchClick}
+              aria-label={t("V3.CaseTable.colorSwatchButtonAriaLabel", { vars: [attrName] })}>
+              <div className="cell-edit-color-swatch-interior" style={swatchStyle}/>
+            </Button>
+            <Popover>
+              <Dialog className="color-picker-dialog">
+                <ColorPickerPalette inputValue={inputValue || "#ffffff"}
+                  swatchBackgroundColor={color || "#ffffff"} onColorChange={updateValue}
+                  onAccept={acceptValue} onReject={rejectValue} onUpdateValue={updateValue}/>
+              </Dialog>
+            </Popover>
+          </DialogTrigger>
+          { inputElt }
         </div>
       )
     // if we don't have a valid color, just a simple text editor
