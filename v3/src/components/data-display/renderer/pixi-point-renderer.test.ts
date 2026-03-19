@@ -64,7 +64,7 @@ jest.mock("pixi.js", () => {
   }
   return {
     Container: MockContainer,
-    Sprite: Object.assign(MockSprite, { constructor: MockSprite }),
+    Sprite: MockSprite,
     Graphics: MockGraphics,
     Ticker: MockTicker,
     Texture: { EMPTY: new MockTexture(), WHITE: new MockTexture() },
