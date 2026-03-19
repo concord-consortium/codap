@@ -3,8 +3,8 @@
  * Its array of DataDisplayLayerModels has just one element, a GraphPointLayerModel.
  */
 import {isEqual} from "lodash"
-import { comparer, reaction, when } from "mobx"
-import { addDisposer, getSnapshot, Instance, SnapshotIn, types } from "mobx-state-tree"
+import { comparer, when } from "mobx"
+import { addDisposer, getSnapshot, Instance, isAlive, SnapshotIn, types } from "mobx-state-tree"
 import { isCategoricalAttributeType, isNumericAttributeType } from "../../../models/data/attribute-types"
 import {IDataSet} from "../../../models/data/data-set"
 import {applyModelChange} from "../../../models/history/apply-model-change"
@@ -244,7 +244,7 @@ export const GraphContentModel = DataDisplayContentModel
         self.dataConfiguration))
 
       // When a univariate adornment becomes visible and needs to be recomputed, update it
-      addDisposer(self, reaction(
+      mstReaction(
         () => self.adornmentsStore.mapOfUnivariateAdornmentVisibility(),
         (adornmentMap) => {
           adornmentMap.forEach(({isVisible, needsRecomputation}, type) => {
@@ -255,13 +255,13 @@ export const GraphContentModel = DataDisplayContentModel
                 // MobX prevents reactions from re-triggering their accessor functions to prevent infinite loops
                 // setTimeout allows us re-trigger the reaction after the current event loop
                 // infinite loop is prevented by the needsRecomputation test
-                setTimeout(() => adornment.setNeedsRecomputation(false))
+                // isAlive guard protects against the adornment being destroyed before the timeout fires
+                setTimeout(() => isAlive(adornment) && adornment.setNeedsRecomputation(false))
               }
             }
           })
         },
-        { name: "GraphContentModel.afterAttachToDocument.reactToVisibilityChange", equals: comparer.structural }
-      ))
+        { name: "GraphContentModel.afterAttachToDocument.visibilityChange", equals: comparer.structural }, self)
     },
   }))
   .actions(self => ({
@@ -291,11 +291,10 @@ export const GraphContentModel = DataDisplayContentModel
           }
         }
       }
-      addDisposer(self, reaction(
+      mstReaction(
         () => self.plotType,
         () => self.plot.setGraphContext(self.dataConfiguration, self.plotGraphApi),
-        { name: "GraphContentModel.afterCreate.setGraphContext", fireImmediately: true }
-      ))
+        { name: "GraphContentModel.afterCreate.setGraphContext", fireImmediately: true }, self)
     },
     beforeDestroy() {
       self.formulaAdapters.forEach(adapter => {
