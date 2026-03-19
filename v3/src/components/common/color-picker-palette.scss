@@ -23,7 +23,7 @@ $hover-bg: #f0f0f0;
     .color-swatch-grid {
       display: grid;
       grid-template-columns: repeat(8, 22px);
-      grid-gap: 5px;
+      gap: 5px;
       width: 100%;
       height: fit-content;
 
@@ -86,7 +86,7 @@ $hover-bg: #f0f0f0;
     .color-picker-footer {
       display: flex;
       padding: 5px;
-      justify-content: right;
+      justify-content: flex-end;
       border-top-width: 1px;
       margin-top: 5px;
     }

@@ -11,14 +11,13 @@ import "./color-picker-palette.scss"
 interface IColorPickerPaletteProps {
   swatchBackgroundColor: string
   inputValue: string
-  isPaletteOpen: boolean
   onColorChange: (color: string) => void
   onAccept: (color: string) => void
   onReject: () => void
   onUpdateValue: (value: string) => void
 }
 
-export const ColorPickerPalette = ({ swatchBackgroundColor, inputValue, isPaletteOpen,
+export const ColorPickerPalette = ({ swatchBackgroundColor, inputValue,
                 onColorChange, onAccept, onReject, onUpdateValue }: IColorPickerPaletteProps) => {
   const paletteColors = ["#000000", "#a9a9a9", "#d3d3d3", "#FFFFFF", "#ad2323", "#ff9632", "#ffee33", "#1d6914",
     "#2a4bd7", "#814a19", "#8126c0", "#29d0d0", "#e9debb", "#ffcdf3", "#9dafff", "#81c57a"]
@@ -53,7 +52,7 @@ export const ColorPickerPalette = ({ swatchBackgroundColor, inputValue, isPalett
   }
 
   return (
-    <div className={clsx("color-picker-palette", {"with-color-picker": showColorPicker})}>
+    <div className="color-picker-palette">
       <div className="color-swatch-palette">
         <RadioGroup
           className="color-swatch-grid"
