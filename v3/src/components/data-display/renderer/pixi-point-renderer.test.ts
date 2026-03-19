@@ -139,6 +139,51 @@ describe("PixiPointRenderer", () => {
       pixiRenderer.dispose()
     })
 
+    it("handles equal-size mismatch when NullPointRenderer replaces cases with different cases", async () => {
+      // Reproduces the case where state.size === sprites.size but IDs differ:
+      // NullPointRenderer replaces N cases with N different cases in shared state.
+
+      const sharedState = new PointsState()
+      const nullRenderer = new NullPointRenderer(sharedState)
+      const pixiRenderer = new PixiPointRenderer(sharedState)
+
+      const oldCases = [createCaseData(0, "case1"), createCaseData(0, "case2")]
+      const newCases = [createCaseData(0, "case4"), createCaseData(0, "case5")]
+
+      // NullPointRenderer syncs 2 cases into shared state
+      nullRenderer.matchPointsToData("ds1", oldCases, "points", defaultStyle)
+      expect(sharedState.size).toBe(2)
+
+      // PixiPointRenderer initializes — creates sprites for case1, case2
+      await pixiRenderer.init()
+      const sprites = (pixiRenderer as any).sprites as Map<string, any>
+      const container = (pixiRenderer as any).pointsContainer as { children: any[] }
+      expect(sprites.size).toBe(2)
+
+      // NullPointRenderer replaces cases with different ones (same count)
+      nullRenderer.matchPointsToData("ds1", newCases, "points", defaultStyle)
+      expect(sharedState.size).toBe(2)
+
+      // sprites still has old entries, state has new entries — sizes match but IDs differ
+      expect(sprites.size).toBe(2)
+
+      // PixiPointRenderer syncs — should remove orphan sprites AND create new ones
+      pixiRenderer.matchPointsToData("ds1", newCases, "points", defaultStyle)
+
+      expect(sharedState.size).toBe(2)
+      expect(sprites.size).toBe(2)
+      expect(container.children.length).toBe(2)
+
+      // Verify the sprites are for the NEW cases, not the old ones
+      const statePointIds = new Set<string>()
+      sharedState.forEach(p => statePointIds.add(p.id))
+      sprites.forEach((_sprite: any, pointId: string) => {
+        expect(statePointIds.has(pointId)).toBe(true)
+      })
+
+      pixiRenderer.dispose()
+    })
+
     it("does not remove sprites when state and sprites are in sync", async () => {
       const sharedState = new PointsState()
       const pixiRenderer = new PixiPointRenderer(sharedState)
