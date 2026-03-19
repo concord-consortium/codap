@@ -1,85 +1,30 @@
-import { Button, ButtonGroup, Flex, PopoverArrow, PopoverBody, PopoverContent } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import { colord } from "colord"
-import React, { useCallback, useEffect, useRef, useState } from "react"
+import React, { useState } from "react"
+import { Radio, RadioGroup } from "react-aria-components"
 import { ColorPicker } from "./color-picker"
+import { If } from "./if"
 import { t } from "../../utilities/translation/translate"
 
-import styles from "./color-picker-palette.scss"
+import "./color-picker-palette.scss"
 
-interface IProps {
-  initialColor: string
-  inputValue: string
+interface IColorPickerPaletteProps {
   swatchBackgroundColor: string
-  isPaletteOpen?: boolean
-  buttonRef: React.RefObject<HTMLButtonElement>
-  showArrow?: boolean
-  placement?: "right" | "left"
-  onColorChange: (newColor: string) => void
-  onAccept: (value: string) => void
+  inputValue: string
+  isPaletteOpen: boolean
+  onColorChange: (color: string) => void
+  onAccept: (color: string) => void
   onReject: () => void
   onUpdateValue: (value: string) => void
-  setPlacement?: (placement: "right" | "left") => void
 }
 
-export const ColorPickerPalette = ({ swatchBackgroundColor, inputValue, buttonRef, showArrow, isPaletteOpen,
-                placement, onColorChange, onAccept, onReject, onUpdateValue, setPlacement }: IProps) => {
+export const ColorPickerPalette = ({ swatchBackgroundColor, inputValue, isPaletteOpen,
+                onColorChange, onAccept, onReject, onUpdateValue }: IColorPickerPaletteProps) => {
   const paletteColors = ["#000000", "#a9a9a9", "#d3d3d3", "#FFFFFF", "#ad2323", "#ff9632", "#ffee33", "#1d6914",
     "#2a4bd7", "#814a19", "#8126c0", "#29d0d0", "#e9debb", "#ffcdf3", "#9dafff", "#81c57a"]
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [selectedColor, setSelectedColor] = useState(swatchBackgroundColor)
   const nonStandardColorSelected = inputValue !== "" && !paletteColors.includes(swatchBackgroundColor)
-  const popoverRef = useRef<HTMLDivElement>(null)
-  const popoverContainerRef = useRef<HTMLDivElement>(null)
-  const kGapSize = 10
-
-  const adjustPosition = useCallback(() => {
-    const popoverContainer = popoverContainerRef.current
-    const popover = popoverRef.current
-
-    if (popoverContainer && popover) {
-      const rect = popover.getBoundingClientRect()
-      const viewportWidth = window.innerWidth
-      const viewportHeight = window.innerHeight
-      let top = +styles.colorPickerPopoverTop
-
-      let left = placement === "left" ? +styles.leftColorPickerPopoverLeft
-                                      : showArrow ? 0
-                                                  : +styles.colorPickerPopoverLeft
-      if (rect.right > viewportWidth) {
-        if (setPlacement) {
-          setPlacement("left")
-        } else {
-          left = +styles.colorPickerPopoverLeft - (rect.width/2) - kGapSize
-        }
-      } else if (rect.left < 0) {
-        left = kGapSize
-      }
-
-      if (rect.bottom > viewportHeight) {
-        top = viewportHeight - rect.bottom - kGapSize
-      } else if (rect.top < 0) {
-        top = kGapSize
-      }
-
-      popover.style.top = `${top}px`
-      popover.style.left = `${left}px`
-    }
-  }, [placement, setPlacement, showArrow])
-
-  useEffect(() => {
-    adjustPosition()
-    window.addEventListener('resize', adjustPosition)
-    return () => {
-      window.removeEventListener('resize', adjustPosition)
-    }
-  }, [setPlacement, placement, showArrow, showColorPicker, adjustPosition])
-
-  useEffect(() => {
-    if (isPaletteOpen) {
-      adjustPosition()
-    }
-  }, [adjustPosition, isPaletteOpen])
 
   const handleColorSelection = (color: string) => {
     setSelectedColor(color)
@@ -107,68 +52,60 @@ export const ColorPickerPalette = ({ swatchBackgroundColor, inputValue, buttonRe
     setShowColorPicker(!showColorPicker)
   }
 
-  const handleKeyDown = (evt: React.KeyboardEvent) => {
-    if (evt.key === "Escape") {
-      setShowColorPicker(false)
-      onReject()
-    }
-  }
-
   return (
-    <PopoverContent ref={popoverContainerRef}
-                    className={clsx("color-picker-palette-container",
-                                    {"with-color-picker": showColorPicker, "with-arrow": showArrow})}>
-      {showArrow && <PopoverArrow className={clsx("palette-arrow", `${placement}`)}/>}
-      <PopoverBody ref={popoverRef}
-            className={clsx("color-picker-palette", `${placement}`,
-                            {"with-color-picker": showColorPicker, "without-arrow": !showArrow})}>
-        <div className="color-swatch-palette" onKeyDown={handleKeyDown}>
-          <div className="color-swatch-grid" role="group" aria-label={t("DG.Inspector.colorPicker.swatchGrid")}>
-            {paletteColors.map((pColor, index) => (
-              <button type="button"
-                    className={clsx("color-swatch-cell",
-                              {"selected": swatchBackgroundColor === pColor, "light": colord(pColor).isLight()})}
-                    style={{ backgroundColor: pColor }} key={index}
-                    aria-label={pColor}
-                    aria-pressed={swatchBackgroundColor === pColor}
-                    onClick={()=>handleColorSelection(pColor)}/>
-            ))}
-            {nonStandardColorSelected &&
-              <div className="color-swatch-row">
-                <button type="button"
-                      className={clsx("color-swatch-cell",
-                                      {"selected": swatchBackgroundColor === inputValue,
-                                          "light": inputValue && colord(inputValue).isLight()})}
-                      style={{backgroundColor: inputValue}}
-                      aria-label={inputValue}
-                      aria-pressed={swatchBackgroundColor === inputValue}
-                      onClick={() => handleColorSelection(inputValue)}/>
-              </div>}
+    <div className={clsx("color-picker-palette", {"with-color-picker": showColorPicker})}>
+      <div className="color-swatch-palette">
+        <RadioGroup
+          className="color-swatch-grid"
+          aria-label={t("DG.Inspector.colorPicker.swatchGrid")}
+          value={selectedColor}
+          onChange={handleColorSelection}
+        >
+          {paletteColors.map((pColor) => (
+            <Radio
+              key={pColor}
+              value={pColor}
+              aria-label={pColor}
+              className={clsx("color-swatch-cell", {"light": colord(pColor).isLight()})}
+              style={{ backgroundColor: pColor }}
+            />
+          ))}
+          <If condition={nonStandardColorSelected}>
+            <Radio
+              value={inputValue}
+              aria-label={inputValue}
+              className={clsx("color-swatch-cell", {"light": inputValue && colord(inputValue).isLight()})}
+              style={{ backgroundColor: inputValue }}
+            />
+          </If>
+        </RadioGroup>
+        <div className="color-swatch-footer">
+          <button
+            className="color-picker-more-button"
+            onClick={handleShowColorPicker}
+            data-testid="toggle-show-color-picker-button"
+          >
+            {t(showColorPicker ? "DG.Inspector.colorPicker.less" : "DG.Inspector.colorPicker.more")}
+          </button>
+        </div>
+      </div>
+      <If condition={showColorPicker}>
+        <div className="color-picker-container">
+          <div className="color-picker">
+            <ColorPicker color={swatchBackgroundColor} onChange={handleUpdate} />
           </div>
-          <div className="color-swatch-footer">
-            <Button size="xs" onClick={handleShowColorPicker} data-testid="toggle-show-color-picker-button">
-              {t(showColorPicker ? "DG.Inspector.colorPicker.less" : "DG.Inspector.colorPicker.more")}
-            </Button>
+          <div className="color-picker-footer">
+            <div className="color-picker-actions">
+              <button className="color-picker-action-button" onClick={handleReject}>
+                {t("V3.CaseTable.colorPalette.cancel")}
+              </button>
+              <button className="color-picker-action-button" onClick={handleAccept}>
+                {t("V3.CaseTable.colorPalette.setColor")}
+              </button>
+            </div>
           </div>
         </div>
-        {showColorPicker &&
-          <div className="color-picker-container">
-            <div className="color-picker">
-              <ColorPicker color={swatchBackgroundColor} onChange={handleUpdate} />
-            </div>
-            <Flex className="color-picker-footer">
-              <ButtonGroup>
-                <Button className="cancel-button" size="xs" fontWeight="normal" onClick={handleReject}>
-                  {t("V3.CaseTable.colorPalette.cancel")}
-                </Button>
-                <Button className="set-color-button" size="xs" fontWeight="normal" onClick={handleAccept}>
-                  {t("V3.CaseTable.colorPalette.setColor")}
-                </Button>
-              </ButtonGroup>
-            </Flex>
-          </div>
-        }
-      </PopoverBody>
-    </PopoverContent>
+      </If>
+    </div>
   )
 }
