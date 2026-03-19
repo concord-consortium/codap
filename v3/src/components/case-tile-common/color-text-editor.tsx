@@ -1,13 +1,11 @@
-import {
-  forwardRef, Popover, PopoverAnchor, PopoverTrigger, Portal, useDisclosure, useMergeRefs
-} from "@chakra-ui/react"
 import React, { ChangeEvent, RefObject, useCallback, useEffect, useRef, useState } from "react"
+import { Button, Dialog, DialogTrigger, Popover } from "react-aria-components"
 import { textEditorClassname } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { useOutsidePointerDown } from "../../hooks/use-outside-pointer-down"
+import { IValueType } from "../../models/data/attribute-types"
 import { parseColor, parseColorToHex } from "../../utilities/color-utils"
 import { ColorPickerPalette } from "../common/color-picker-palette"
-import { IValueType } from "../../models/data/attribute-types"
-import { useOutsidePointerDown } from "../../hooks/use-outside-pointer-down"
 
 import "./color-text-editor.scss"
 
@@ -21,9 +19,17 @@ function autoFocusAndSelect(input: HTMLInputElement | null) {
   input?.select()
 }
 
-const InputElt = forwardRef<React.InputHTMLAttributes<HTMLInputElement>, 'input'>((props, ref) => {
+const InputElt = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>((props, ref) => {
   const inputRef = useRef<HTMLInputElement | null>(null)
-  const mergeRefs = useMergeRefs(ref, inputRef)
+
+  const mergeRefs = useCallback((node: HTMLInputElement | null) => {
+    inputRef.current = node
+    if (typeof ref === "function") {
+      ref(node)
+    } else if (ref) {
+      (ref as React.MutableRefObject<HTMLInputElement | null>).current = node
+    }
+  }, [ref])
 
   useEffect(() => {
     autoFocusAndSelect(inputRef.current)
@@ -33,6 +39,7 @@ const InputElt = forwardRef<React.InputHTMLAttributes<HTMLInputElement>, 'input'
     <input data-testid="cell-text-editor" className={textEditorClassname} ref={mergeRefs} {...props} />
   )
 })
+InputElt.displayName = "InputElt"
 
 interface IProps {
   attributeId: string
@@ -48,7 +55,6 @@ export default function ColorTextEditor({attributeId, caseId, value, acceptValue
   const data = useDataSetContext()
   const attribute = data?.getAttribute(attributeId)
   const [inputValue, setInputValue] = useState(value)
-  const initialInputValue = useRef(inputValue)
   // support colors if user hasn't assigned a non-color type
   const supportColors = attribute?.userType == null || attribute?.userType === "color"
   // support color names if the color type is user-assigned
@@ -56,20 +62,18 @@ export default function ColorTextEditor({attributeId, caseId, value, acceptValue
   const color = supportColors && value ? parseColor(String(value), { colorNames }) : undefined
   const hexColor = color ? parseColorToHex(color, { colorNames }) : undefined
   const showColorSwatch = useRef(!!hexColor || attribute?.userType === "color")
-  const [placement, setPlacement ]= useState<"right" | "left">("right")
-  const triggerButtonRef = useRef<HTMLButtonElement>(null)
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false)
+  const isCancellingRef = useRef(false)
   const colorEditorRef = useRef<HTMLDivElement>(null)
   useOutsidePointerDown({
     ref: colorEditorRef as unknown as RefObject<HTMLElement>,
-    handler: ()=> handleSubmit(inputValue as string),
+    handler: () => handleSubmit(inputValue as string),
     info: { name: "ColorTextEditor", attributeId, attributeName: attribute?.name }
   })
 
-  const { isOpen: isPaletteOpen, onToggle: setOpenPopover, onClose } = useDisclosure()
-
   function handleSubmit(newValue: string) {
     acceptValue(newValue)
-    onClose()
+    setIsPaletteOpen(false)
   }
 
   const handleUpdateValue = useCallback((newValue: string) => {
@@ -79,11 +83,11 @@ export default function ColorTextEditor({attributeId, caseId, value, acceptValue
 
   function handleCancel() {
     setInputValue(data?.getStrValue(caseId, attributeId) || "")
-    onClose()
+    setIsPaletteOpen(false)
   }
 
-  function handleSwatchClick(event: React.MouseEvent) {
-    setOpenPopover()
+  function handleSwatchClick() {
+    setIsPaletteOpen(prev => !prev)
   }
 
   function handleInputColorChange(event: ChangeEvent<HTMLInputElement>) {
@@ -100,6 +104,22 @@ export default function ColorTextEditor({attributeId, caseId, value, acceptValue
     }
   }
 
+  const handlePaletteOpenChange = useCallback((open: boolean) => {
+    if (!open && isPaletteOpen) {
+      if (!isCancellingRef.current) {
+        acceptValue(inputValue as string)
+      }
+      isCancellingRef.current = false
+    }
+    setIsPaletteOpen(open)
+  }, [acceptValue, inputValue, isPaletteOpen])
+
+  const handlePaletteReject = useCallback(() => {
+    isCancellingRef.current = true
+    setInputValue(data?.getStrValue(caseId, attributeId) || "")
+    setIsPaletteOpen(false)
+  }, [attributeId, caseId, data])
+
   const swatchStyle: React.CSSProperties | undefined = showColorSwatch.current ? { background: color } : undefined
   const inputElt = <InputElt value={String(inputValue)} onChange={handleInputColorChange}
                     onKeyDown={handleColorKeyDown}/>
@@ -107,29 +127,19 @@ export default function ColorTextEditor({attributeId, caseId, value, acceptValue
   return swatchStyle
     ? (
         <div className={"color-cell-text-editor"} ref={colorEditorRef}>
-          <Popover
-            isLazy={true}
-            isOpen={isPaletteOpen}
-            placement={placement}
-            closeOnBlur={true}
-          >
-            <PopoverTrigger>
-              <button className="cell-edit-color-swatch" ref={triggerButtonRef}
-                onClick={handleSwatchClick}>
-                <div className="cell-edit-color-swatch-interior" style={swatchStyle}/>
-              </button>
-            </PopoverTrigger>
-            <PopoverAnchor>
-              { inputElt }
-            </PopoverAnchor>
-            <Portal>
-              <ColorPickerPalette initialColor={String(initialInputValue.current) || "#ffffff"}
-                isPaletteOpen={isPaletteOpen} inputValue={String(inputValue) || "#ffffff"}
-                swatchBackgroundColor={color || "#ffffff"} setPlacement={setPlacement} placement={placement}
-                buttonRef={triggerButtonRef} showArrow={true} onColorChange={handleUpdateValue}
-                onAccept={handleSubmit} onReject={handleCancel} onUpdateValue={handleUpdateValue}/>
-            </Portal>
-          </Popover>
+          <DialogTrigger isOpen={isPaletteOpen} onOpenChange={handlePaletteOpenChange}>
+            <Button className="cell-edit-color-swatch" onPress={handleSwatchClick}>
+              <div className="cell-edit-color-swatch-interior" style={swatchStyle}/>
+            </Button>
+            <Popover>
+              <Dialog className="color-picker-dialog">
+                <ColorPickerPalette inputValue={String(inputValue) || "#ffffff"}
+                  swatchBackgroundColor={color || "#ffffff"} onColorChange={handleUpdateValue}
+                  onAccept={handleSubmit} onReject={handlePaletteReject} onUpdateValue={handleUpdateValue}/>
+              </Dialog>
+            </Popover>
+          </DialogTrigger>
+          { inputElt }
         </div>
       )
     // if we don't have a valid color, just a simple text editor
