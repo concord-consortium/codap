@@ -162,18 +162,28 @@ export const InspectorMenu = ({
   const hasVisibleLabel = !!label
   const { triggerRef, onMouseMove, onFocus } = useMouseTooltipRef()
   const [tooltipOpen, setTooltipOpen] = useState(false)
+  const menuOpenRef = useRef(false)
 
-  const handleOpenChange = useCallback((isOpen: boolean) => {
-    if (isOpen) {
+  const handleMenuOpenChange = useCallback((openMenu: boolean) => {
+    menuOpenRef.current = openMenu
+    if (openMenu) {
+      // Close any tooltips when a menu opens.
       setTooltipOpen(false)
       onButtonClick?.()
       onOpen?.()
     }
   }, [onButtonClick, onOpen])
 
+  const handleTooltipOpenChange = useCallback((openTooltip: boolean) => {
+    // Prevent tooltip from opening while a menu is open.
+    if (openTooltip && menuOpenRef.current) return
+
+    setTooltipOpen(openTooltip)
+  }, [])
+
   return (
-    <TooltipTrigger delay={kTooltipDelay} isOpen={tooltipOpen} onOpenChange={setTooltipOpen}>
-      <MenuTrigger onOpenChange={handleOpenChange}>
+    <TooltipTrigger delay={kTooltipDelay} isOpen={tooltipOpen} onOpenChange={handleTooltipOpenChange}>
+      <MenuTrigger onOpenChange={handleMenuOpenChange}>
         <Button
           aria-label={ariaLabel(label, tooltip)}
           className={classes}
