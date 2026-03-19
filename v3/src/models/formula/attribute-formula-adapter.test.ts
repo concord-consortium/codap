@@ -55,36 +55,73 @@ describe("AttributeFormulaAdapter", () => {
   })
 
   describe("getFormulaError", () => {
-    it("should detect dependency cycles", () => {
+    // Helper to build a cycle detection test environment with proper per-formula mocks.
+    const getCycleTestEnv = (attrSpecs: { name: string, formula: string }[]) => {
       const formulaManager = new FormulaManager()
       const dataSet = createDataSet({
-        attributes: [
-          { name: "foo", formula: { display: "bar + 1" } },
-          { name: "bar", formula: { display: "foo + 1" } }
-        ]
+        attributes: attrSpecs.map(({ name, formula }) => ({ name, formula: { display: formula } }))
       }, {formulaManager})
-      dataSet.attributes[0].formula!.setCanonicalExpression(
-        `${localAttrIdToCanonical(dataSet.attrIDFromName("bar")!)} + 1`
-      )
-      dataSet.attributes[1].formula!.setCanonicalExpression(
-        `${localAttrIdToCanonical(dataSet.attrIDFromName("foo")!)} + 1`
-      )
+      // Set canonical expressions using attribute IDs
+      attrSpecs.forEach(({ name, formula }, i) => {
+        let canonical = formula
+        attrSpecs.forEach(({ name: depName }) => {
+          const depId = dataSet.attrIDFromName(depName)
+          if (depId) {
+            canonical = canonical.replace(
+              new RegExp(`\\b${depName}\\b`, "g"), localAttrIdToCanonical(depId)
+            )
+          }
+        })
+        dataSet.attributes[i].formula!.setCanonicalExpression(canonical)
+      })
       dataSet.addCases([{ __id__: "1" }])
-      const attribute = dataSet.attributes[0]
-      const formula = attribute.formula!
       const dataSets = new Map<string, IDataSet>([[dataSet.id, dataSet]])
-      const context = { dataSet, formula }
-      const extraMetadata = { dataSetId: dataSet.id, attributeId: attribute.id }
+      // Build per-formula context/metadata maps
+      const contextMap = new Map<string, { dataSet: IDataSet, formula: any }>()
+      const metadataMap = new Map<string, { dataSetId: string, attributeId: string }>()
+      dataSet.attributes.forEach(attr => {
+        if (attr.formula) {
+          contextMap.set(attr.formula.id, { dataSet, formula: attr.formula })
+          metadataMap.set(attr.formula.id, { dataSetId: dataSet.id, attributeId: attr.id })
+        }
+      })
       const api = {
         getDatasets: jest.fn(() => dataSets),
         getBoundaryManager: jest.fn(),
         getGlobalValueManager: jest.fn(),
-        getFormulaExtraMetadata: jest.fn(() => extraMetadata),
-        getFormulaContext: jest.fn(() => context),
+        getFormulaExtraMetadata: jest.fn((id: string) => metadataMap.get(id)!),
+        getFormulaContext: jest.fn((id: string) => contextMap.get(id)!),
       }
       const adapter = new AttributeFormulaAdapter(api)
+      return { dataSet, adapter, contextMap, metadataMap }
+    }
+
+    it("should detect dependency cycles", () => {
+      const { dataSet, adapter, contextMap, metadataMap } = getCycleTestEnv([
+        { name: "foo", formula: "bar + 1" },
+        { name: "bar", formula: "foo + 1" }
+      ])
+      const fooAttr = dataSet.attributes[0]
+      const context = contextMap.get(fooAttr.formula!.id)!
+      const extraMetadata = metadataMap.get(fooAttr.formula!.id)!
       const error = adapter.getFormulaError(context, extraMetadata)
       expect(error).toMatch(/Circular reference/)
+    })
+
+    it("should not report false cycle for diamond dependencies (CODAP-1147)", () => {
+      // Diamond: A depends on B and C, both B and C depend on D.
+      // This is a DAG, not a cycle.
+      const { dataSet, adapter, contextMap, metadataMap } = getCycleTestEnv([
+        { name: "A", formula: "B + C" },
+        { name: "B", formula: "D + 1" },
+        { name: "C", formula: "D + 2" },
+        { name: "D", formula: "1" }
+      ])
+      const aAttr = dataSet.attributes[0]
+      const context = contextMap.get(aAttr.formula!.id)!
+      const extraMetadata = metadataMap.get(aAttr.formula!.id)!
+      const error = adapter.getFormulaError(context, extraMetadata)
+      expect(error).toBeUndefined()
     })
   })
 
