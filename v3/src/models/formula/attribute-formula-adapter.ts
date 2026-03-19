@@ -229,17 +229,21 @@ export class AttributeFormulaAdapter extends FormulaManagerAdapter {
   }
 
   // Simple DFS (depth first search) algorithm to detect dependency cycles.
+  // Only reports a cycle if a path leads back to the starting formula itself.
+  // Revisiting other already-visited nodes is a diamond dependency (DAG), not a cycle.
   isDependencyCyclePresent(formulaContext: IFormulaContext, extraMetadata: IAttrFormulaExtraMetadata) {
     const dataSets = this.api.getDatasets()
 
+    const startFormulaId = formulaContext.formula.id
     const visitedFormulas: Record<string, boolean> = {}
-    const stack: string[] = [formulaContext.formula.id]
+    const stack: string[] = [startFormulaId]
 
     while (stack.length > 0) {
       const currentFormula = stack.pop() as string
 
       if (visitedFormulas[currentFormula]) {
-        return true // cycle detected
+        if (currentFormula === startFormulaId) return true // cycle back to this formula
+        continue // already explored (diamond dependency or cycle not involving this formula)
       }
       visitedFormulas[currentFormula] = true
 
