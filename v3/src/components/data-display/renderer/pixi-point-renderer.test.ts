@@ -211,4 +211,73 @@ describe("PixiPointRenderer", () => {
       pixiRenderer.dispose()
     })
   })
+
+  describe("display type transition", () => {
+    it("activates transition state when switching from points to bars", async () => {
+      const sharedState = new PointsState()
+      const pixiRenderer = new PixiPointRenderer(sharedState)
+
+      const cases = [
+        createCaseData(0, "case1"),
+        createCaseData(0, "case2"),
+        createCaseData(0, "case3")
+      ]
+
+      await pixiRenderer.init()
+      pixiRenderer.matchPointsToData("ds1", cases, "points", defaultStyle)
+
+      const transitionState = (pixiRenderer as any).displayTypeTransitionState
+      expect(transitionState.isActive).toBe(false)
+
+      // Switch to bars — transition should activate
+      pixiRenderer.matchPointsToData("ds1", cases, "bars", defaultStyle)
+      expect(transitionState.isActive).toBe(true)
+
+      pixiRenderer.dispose()
+    })
+
+    it("activates transition state when switching from bars to points", async () => {
+      const sharedState = new PointsState()
+      const pixiRenderer = new PixiPointRenderer(sharedState)
+
+      const cases = [
+        createCaseData(0, "case1"),
+        createCaseData(0, "case2")
+      ]
+
+      await pixiRenderer.init()
+      pixiRenderer.matchPointsToData("ds1", cases, "bars", defaultStyle)
+
+      const transitionState = (pixiRenderer as any).displayTypeTransitionState
+      expect(transitionState.isActive).toBe(false)
+
+      // Switch to points — transition should activate
+      pixiRenderer.matchPointsToData("ds1", cases, "points", defaultStyle)
+      expect(transitionState.isActive).toBe(true)
+
+      pixiRenderer.dispose()
+    })
+
+    it("does not activate transition when display type stays the same", async () => {
+      const sharedState = new PointsState()
+      const pixiRenderer = new PixiPointRenderer(sharedState)
+
+      const cases = [
+        createCaseData(0, "case1"),
+        createCaseData(0, "case2")
+      ]
+
+      await pixiRenderer.init()
+      pixiRenderer.matchPointsToData("ds1", cases, "points", defaultStyle)
+
+      const transitionState = (pixiRenderer as any).displayTypeTransitionState
+      expect(transitionState.isActive).toBe(false)
+
+      // Same display type — no transition
+      pixiRenderer.matchPointsToData("ds1", cases, "points", defaultStyle)
+      expect(transitionState.isActive).toBe(false)
+
+      pixiRenderer.dispose()
+    })
+  })
 })
