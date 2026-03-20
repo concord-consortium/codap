@@ -184,6 +184,57 @@ describe("PixiPointRenderer", () => {
       pixiRenderer.dispose()
     })
 
+    it("does not create duplicate sprites when axis attribute change causes plotNum changes", async () => {
+      // Reproduces the bug where changing an axis attribute (e.g., from previous_2_markov_moves
+      // to your_move) causes plotNum values to change for some cases. syncWithCaseData returns
+      // these as removed+added, then syncFromState creates sprites for the added points, and
+      // then added.forEach creates duplicate sprites — leaving orphaned sprites at position (0,0).
+
+      const sharedState = new PointsState()
+      const pixiRenderer = new PixiPointRenderer(sharedState)
+
+      // Initial plot: 5 cases spread across different plotNums (e.g., categorical X axis)
+      const initialCases = [
+        createCaseData(0, "case1"),
+        createCaseData(1, "case2"),
+        createCaseData(2, "case3"),
+        createCaseData(3, "case4"),
+        createCaseData(4, "case5")
+      ]
+
+      await pixiRenderer.init()
+      pixiRenderer.matchPointsToData("ds1", initialCases, "points", defaultStyle)
+
+      const sprites = (pixiRenderer as any).sprites as Map<string, any>
+      const container = (pixiRenderer as any).pointsContainer as { children: any[] }
+      expect(sprites.size).toBe(5)
+      expect(container.children.length).toBe(5)
+
+      // Change axis attribute: all cases now have plotNum=0 (single categorical value)
+      // case1 keeps plotNum=0 (unchanged), cases 2-5 change plotNum → removed+added
+      const newCases = [
+        createCaseData(0, "case1"),
+        createCaseData(0, "case2"),
+        createCaseData(0, "case3"),
+        createCaseData(0, "case4"),
+        createCaseData(0, "case5")
+      ]
+
+      pixiRenderer.matchPointsToData("ds1", newCases, "points", defaultStyle)
+
+      // Should have exactly 5 sprites — no duplicates
+      expect(sprites.size).toBe(5)
+      expect(container.children.length).toBe(5)
+      expect(sharedState.size).toBe(5)
+
+      // All sprites should correspond to state entries
+      sprites.forEach((_sprite: any, pointId: string) => {
+        expect(sharedState.getPoint(pointId)).toBeDefined()
+      })
+
+      pixiRenderer.dispose()
+    })
+
     it("does not remove sprites when state and sprites are in sync", async () => {
       const sharedState = new PointsState()
       const pixiRenderer = new PixiPointRenderer(sharedState)
