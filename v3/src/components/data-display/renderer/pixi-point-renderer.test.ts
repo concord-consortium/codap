@@ -261,5 +261,196 @@ describe("PixiPointRenderer", () => {
 
       pixiRenderer.dispose()
     })
+
+    it("handles complete case replacement (all cases removed, all new cases added)", async () => {
+      const sharedState = new PointsState()
+      const pixiRenderer = new PixiPointRenderer(sharedState)
+
+      const oldCases = [
+        createCaseData(0, "case1"),
+        createCaseData(0, "case2"),
+        createCaseData(0, "case3")
+      ]
+      const newCases = [
+        createCaseData(0, "case10"),
+        createCaseData(0, "case11"),
+        createCaseData(0, "case12"),
+        createCaseData(0, "case13")
+      ]
+
+      await pixiRenderer.init()
+      pixiRenderer.matchPointsToData("ds1", oldCases, "points", defaultStyle)
+
+      const sprites = (pixiRenderer as any).sprites as Map<string, any>
+      const container = (pixiRenderer as any).pointsContainer as { children: any[] }
+      expect(sprites.size).toBe(3)
+      expect(container.children.length).toBe(3)
+
+      // Replace all cases with completely new ones (different count too)
+      pixiRenderer.matchPointsToData("ds1", newCases, "points", defaultStyle)
+
+      expect(sprites.size).toBe(4)
+      expect(container.children.length).toBe(4)
+      expect(sharedState.size).toBe(4)
+
+      // All sprites should correspond to state entries
+      sprites.forEach((_sprite: any, pointId: string) => {
+        expect(sharedState.getPoint(pointId)).toBeDefined()
+      })
+
+      pixiRenderer.dispose()
+    })
+
+    it("handles plotNum increase (fewer categories to more categories)", async () => {
+      // Reverse of the axis-change test: going from 1 category to many
+      const sharedState = new PointsState()
+      const pixiRenderer = new PixiPointRenderer(sharedState)
+
+      // All cases in one plotNum
+      const initialCases = [
+        createCaseData(0, "case1"),
+        createCaseData(0, "case2"),
+        createCaseData(0, "case3")
+      ]
+
+      await pixiRenderer.init()
+      pixiRenderer.matchPointsToData("ds1", initialCases, "points", defaultStyle)
+
+      const sprites = (pixiRenderer as any).sprites as Map<string, any>
+      const container = (pixiRenderer as any).pointsContainer as { children: any[] }
+      expect(sprites.size).toBe(3)
+
+      // Spread cases across multiple plotNums
+      const newCases = [
+        createCaseData(0, "case1"),
+        createCaseData(1, "case2"),
+        createCaseData(2, "case3")
+      ]
+
+      pixiRenderer.matchPointsToData("ds1", newCases, "points", defaultStyle)
+
+      expect(sprites.size).toBe(3)
+      expect(container.children.length).toBe(3)
+      expect(sharedState.size).toBe(3)
+
+      sprites.forEach((_sprite: any, pointId: string) => {
+        expect(sharedState.getPoint(pointId)).toBeDefined()
+      })
+
+      pixiRenderer.dispose()
+    })
+
+    it("handles idempotent matchPointsToData calls without creating duplicates", async () => {
+      const sharedState = new PointsState()
+      const pixiRenderer = new PixiPointRenderer(sharedState)
+
+      const cases = [
+        createCaseData(0, "case1"),
+        createCaseData(1, "case2"),
+        createCaseData(2, "case3")
+      ]
+
+      await pixiRenderer.init()
+      pixiRenderer.matchPointsToData("ds1", cases, "points", defaultStyle)
+
+      const sprites = (pixiRenderer as any).sprites as Map<string, any>
+      const container = (pixiRenderer as any).pointsContainer as { children: any[] }
+      expect(sprites.size).toBe(3)
+      expect(container.children.length).toBe(3)
+
+      // Call again with identical data — should be a no-op
+      pixiRenderer.matchPointsToData("ds1", cases, "points", defaultStyle)
+
+      expect(sprites.size).toBe(3)
+      expect(container.children.length).toBe(3)
+
+      // And again
+      pixiRenderer.matchPointsToData("ds1", cases, "points", defaultStyle)
+
+      expect(sprites.size).toBe(3)
+      expect(container.children.length).toBe(3)
+
+      pixiRenderer.dispose()
+    })
+
+    it("handles empty case data (all points removed)", async () => {
+      const sharedState = new PointsState()
+      const pixiRenderer = new PixiPointRenderer(sharedState)
+
+      const cases = [
+        createCaseData(0, "case1"),
+        createCaseData(0, "case2")
+      ]
+
+      await pixiRenderer.init()
+      pixiRenderer.matchPointsToData("ds1", cases, "points", defaultStyle)
+
+      const sprites = (pixiRenderer as any).sprites as Map<string, any>
+      const container = (pixiRenderer as any).pointsContainer as { children: any[] }
+      expect(sprites.size).toBe(2)
+
+      // Remove all cases
+      pixiRenderer.matchPointsToData("ds1", [], "points", defaultStyle)
+
+      expect(sprites.size).toBe(0)
+      expect(container.children.length).toBe(0)
+      expect(sharedState.size).toBe(0)
+
+      // Re-add cases — should work cleanly
+      pixiRenderer.matchPointsToData("ds1", cases, "points", defaultStyle)
+
+      expect(sprites.size).toBe(2)
+      expect(container.children.length).toBe(2)
+      expect(sharedState.size).toBe(2)
+
+      pixiRenderer.dispose()
+    })
+
+    it("handles NullRenderer adding cases then PixiRenderer picking up with plotNum changes", async () => {
+      // NullRenderer seeds state, then PixiRenderer initializes and immediately gets
+      // different plotNums — combining both the NullRenderer race and axis-change scenarios
+      const sharedState = new PointsState()
+      const nullRenderer = new NullPointRenderer(sharedState)
+      const pixiRenderer = new PixiPointRenderer(sharedState)
+
+      // NullRenderer adds cases spread across plotNums
+      const initialCases = [
+        createCaseData(0, "case1"),
+        createCaseData(1, "case2"),
+        createCaseData(2, "case3")
+      ]
+      nullRenderer.matchPointsToData("ds1", initialCases, "points", defaultStyle)
+      expect(sharedState.size).toBe(3)
+
+      // PixiRenderer initializes — creates sprites from state via syncFromState
+      await pixiRenderer.init()
+      const sprites = (pixiRenderer as any).sprites as Map<string, any>
+      const container = (pixiRenderer as any).pointsContainer as { children: any[] }
+      expect(sprites.size).toBe(3)
+
+      // NullRenderer changes axis — all cases to plotNum=0
+      const newCases = [
+        createCaseData(0, "case1"),
+        createCaseData(0, "case2"),
+        createCaseData(0, "case3")
+      ]
+      nullRenderer.matchPointsToData("ds1", newCases, "points", defaultStyle)
+      expect(sharedState.size).toBe(3)
+      // PixiRenderer still has old sprites (plotNum 0,1,2)
+      expect(sprites.size).toBe(3)
+
+      // PixiRenderer syncs — should clean up old sprites and create new ones
+      pixiRenderer.matchPointsToData("ds1", newCases, "points", defaultStyle)
+
+      expect(sprites.size).toBe(3)
+      expect(container.children.length).toBe(3)
+      expect(sharedState.size).toBe(3)
+
+      sprites.forEach((_sprite: any, pointId: string) => {
+        expect(sharedState.getPoint(pointId)).toBeDefined()
+      })
+
+      pixiRenderer.dispose()
+    })
   })
 })
