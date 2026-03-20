@@ -79,8 +79,30 @@ export const ComponentElements = {
   // For inspector panel buttons that use React Aria Tooltip instead of a native title attribute.
   // Triggers the tooltip via hover and checks text.
   checkReactAriaToolTip(element: JQuery<HTMLElement>, tooltipText: string) {
-    cy.wrap(element).realHover()
-    cy.get(".inspector-tooltip", { timeout: 2000 }).should("contain", tooltipText)
+    // Hover away, then hover the element to trigger the React Aria tooltip.
+    // Retry the hover sequence if the tooltip doesn't appear, since realHover()
+    // can be unreliable on the first attempt (especially in headless/CI).
+    const hasExpectedTooltip = ($root: JQuery<HTMLElement>): boolean => {
+      const tooltips = $root.find(".inspector-tooltip")
+      return tooltips.toArray().some(tip => tip.textContent?.includes(tooltipText))
+    }
+    function hoverUntilTooltip(retries = 3): void {
+      cy.get(".document-container").realHover({ position: "bottom" })
+      cy.wait(100)
+      cy.wrap(element).should("be.visible").realHover()
+      cy.get("body").then($body => {
+        if (!hasExpectedTooltip($body) && retries > 0) {
+          cy.wait(500)
+          cy.get("body").then($body2 => {
+            if (!hasExpectedTooltip($body2)) {
+              hoverUntilTooltip(retries - 1)
+            }
+          })
+        }
+      })
+    }
+    hoverUntilTooltip()
+    cy.get(".inspector-tooltip", { timeout: 4000 }).should("contain", tooltipText)
     // Move mouse away to dismiss the tooltip so it doesn't cover other elements
     cy.get(".document-container").realHover({ position: "bottom" })
     cy.get(".inspector-tooltip").should("not.exist")
