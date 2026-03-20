@@ -19,7 +19,7 @@ API_TOKEN="$POEDITOR_API_TOKEN" # may be set as environment variable
 OUTPUT_DIR="." # default before argument processing
 
 # override with defaults, if rc is present
-[ -f $HOME/.porc ] && . $HOME/.porc
+[[ -f "$HOME/.porc" ]] && source "$HOME/.porc"
 
 # argument processing from https://stackoverflow.com/a/14203146
 while [[ $# -gt 1 ]]

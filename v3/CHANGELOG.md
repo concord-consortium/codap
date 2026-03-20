@@ -1,5 +1,51 @@
 # Changelog
 
+## Version 3.0.0-beta.2803 - March 20, 2026
+
+### ✨ Features & Improvements:
+- **CODAP-546:** Improve Case table screen reader and keyboard navigation
+- **CODAP-572:** Improve accessibility of custom select dropdown menus
+- **CODAP-575:** Add accessible labels to tool shelf and inspector panel buttons
+- **CODAP-581:** Mark text that functions as headings and hide decorative elements for screen readers
+- **CODAP-583:** Improve arrow key navigation and tooltip behavior in Graph and Table toolbars
+- **CODAP-587:** Redesign graph and map inspector palettes with improved color contrast and accessibility
+- **CODAP-614:** Trap keyboard focus in the welcome modal dialog
+- **CODAP-627:** Support plugin API creation of image and guide components
+- **CODAP-1061:** Improve Web View tile accessibility
+- **CODAP-1136:** Improve formula editor menu keyboard accessibility
+- **CODAP-1139:** Add arrow key navigation to Slider and Text toolbars
+- **CODAP-1143:** Improve CFM focus indicator styling and accessibility
+- **CODAP-1144:** Add arrow key navigation to Map toolbar
+- **CODAP-1145:** Improve File/CFM menu accessibility and keyboard navigation
+- **CODAP-1146:** Improve Slider tile accessibility
+- **CODAP-1152:** Add context to accessible names of tiles in Tiles menu
+- **CODAP-1158:** Improve CFM Open/Save dialog accessibility
+
+### 🐞 Bug Fixes:
+- **CODAP-644:** Fix browser tab favicon to match CODAP V2
+- **CODAP-1147:** Fix false circular reference error in formulas
+- **CODAP-1148:** Fix insert case from input row index menu at default position
+- **CODAP-1151:** Fix scrambler creating extra cases with blank values
+- **CODAP-1153:** Update tile and inspector panel border color
+- **CODAP-1163:** Fix Tiles menu focus stealing and add keyboard accessibility
+- **CODAP-1178:** Fix user-reported Sampler bugs
+- **CODAP-1179:** Fix extraneous points sometimes appear on graphs
+- **CODAP-1190:** Suppress grouping separators for categorical numeric values
+- **CODAP-1198:** Fix Google file picker hang after accessibility improvements
+- **CODAP-1199:** Fix duplicate data points after changing graph axis attribute
+- **CODAP-1200:** Fix points-to-bars display type transition animation
+
+### 🛠️ Under the Hood:
+- **CODAP-1092:** Pass lang URL parameter to all plugins on locale change
+- **CODAP-1117:** Fix MobX constraint violations and stale computed values in data model
+- **CODAP-1177:** Fix MST warning when opening documents with certain adornments
+
+### Asset Sizes
+|      File |          Size | % Change from Previous Release |
+|-----------|---------------|--------------------------------|
+|  main.css |  242455 bytes |                         12.69% |
+|  index.js | 7292927 bytes |                          1.96% |
+
 ## Version 3.0.0-beta.2746 - February 24, 2026
 
 ### ✨ Features & Improvements:
