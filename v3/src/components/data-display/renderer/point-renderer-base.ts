@@ -298,8 +298,10 @@ export abstract class PointRendererBase {
     style: IPointStyle
   ): void {
     this.state.setDatasetID(datasetID)
-    this._displayType = displayType
+    // Subclass doMatchPointsToData may need to read _displayType to detect a change
+    // (e.g., PixiPointRenderer's display type transition), so defer the assignment.
     this.doMatchPointsToData(datasetID, caseData, displayType, style)
+    this._displayType = displayType
   }
 
   /**
