@@ -16,7 +16,7 @@ SYNC_TERMS="0"
 FUZZY_TRIGGER="1"
 
 # override with defaults, if rc is present
-[ -f $HOME/.porc ] && . $HOME/.porc
+[[ -f "$HOME/.porc" ]] && source "$HOME/.porc"
 
 # argument processing from https://stackoverflow.com/a/14203146
 while [[ $# -gt 1 ]]

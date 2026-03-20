@@ -13,7 +13,7 @@ TEMP_FILE="/tmp/codap-strings-push.json"
 API_TOKEN="$POEDITOR_API_TOKEN" # may be set as environment variable
 
 # override with defaults, if rc is present
-[ -f $HOME/.porc ] && . $HOME/.porc
+[[ -f "$HOME/.porc" ]] && source "$HOME/.porc"
 
 # argument processing
 while [[ $# -gt 1 ]]
