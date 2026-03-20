@@ -241,31 +241,100 @@ Wait for user confirmation before starting Phase 1.
 
 ### Steps
 
-1. **Sync translations with POEditor:**
+**IMPORTANT — Branch policy:** Never commit directly to `main`. The release
+branch must be created before any commits (translations, version files, etc.).
+
+1. **Create release branch:**
+   ```bash
+   git checkout -b release-{version}
+   ```
+
+   **Branch naming rules:**
+   - Pattern: `release-{version}` where `{version}` is from Phase 1 (e.g., `release-3.0.0-beta.2664`)
+   - Do NOT use `/` in branch names
+   - Do NOT invent your own pattern
+
+2. **Sync translations with POEditor:**
 
    V3 owns all string pushes to POEditor — both `DG.*` and `V3.*` keys.
    All English strings live in a single file: `src/utilities/translation/lang/en-US.json5`.
 
-   **API Token:** The scripts check `~/.porc` then `$POEDITOR_API_TOKEN` automatically. Only ask the user for a token if neither is configured.
+   **API Token:** All scripts resolve the token in order: `-a` argument >
+   `~/.porc` > `$POEDITOR_API_TOKEN` env var. Only ask the user for a token
+   if none of these are configured.
 
-   **1a. Push English strings to POEditor:**
+   **2a. Preview English string changes before pushing:**
+
+   Before pushing, pull the current English strings from POEditor and diff them
+   against the local `en-US.json5` so the user can validate the changes.
+
    ```bash
    cd v3
-   ./scripts/strings-push-project.sh -a <API_TOKEN>
+   # Pull current English strings from POEditor to a temp file
+   ./scripts/strings-pull.sh -p 125447 -l en-US -o /tmp
+   # Convert local JSON5 to JSON for comparison
+   node -e "
+   const fs = require('fs');
+   const JSON5 = require('json5');
+   const data = JSON5.parse(fs.readFileSync('src/utilities/translation/lang/en-US.json5', 'utf8'));
+   fs.writeFileSync('/tmp/en-US-local.json', JSON.stringify(data, null, 4) + '\n');
+   "
+   # Detailed diff showing new keys, changed values, and keys only in POEditor
+   node -e "
+   const poeditor = require('/tmp/en-US.json');
+   const local = require('/tmp/en-US-local.json');
+   const changed = [], newKeys = [], missingLocally = [];
+   for (const k of Object.keys(local)) {
+     if (!(k in poeditor)) newKeys.push(k);
+     else if (poeditor[k] !== local[k]) changed.push({key: k, old: poeditor[k], new: local[k]});
+   }
+   for (const k of Object.keys(poeditor)) {
+     if (!(k in local)) missingLocally.push(k);
+   }
+   console.log('=== VALUE CHANGES (' + changed.length + ' keys) ===');
+   changed.forEach(c => {
+     console.log('  ' + c.key);
+     console.log('    POEditor: ' + JSON.stringify(c.old));
+     console.log('    Local:    ' + JSON.stringify(c.new));
+     console.log();
+   });
+   console.log('=== NEW KEYS (' + newKeys.length + ' keys) ===');
+   newKeys.forEach(k => console.log('  ' + k + ': ' + JSON.stringify(local[k])));
+   console.log();
+   console.log('=== KEYS IN POEDITOR BUT NOT LOCAL (' + missingLocally.length + ' keys) ===');
+   missingLocally.forEach(k => console.log('  ' + k + ': ' + JSON.stringify(poeditor[k])));
+   "
+   ```
+
+   Show the diff to the user. Common expected changes:
+   - New keys added since the last release (lines only in local)
+   - Updated string values
+
+   **Red flags to call out:**
+   - Keys present in POEditor but missing locally (would NOT be deleted since
+     `sync_terms=0`, but worth noting)
+   - Unexpected value changes to existing keys
+
+   Ask the user to approve the push before proceeding. If the diff is empty
+   (no changes), note that and ask whether to skip the push.
+
+   **2b. Push English strings to POEditor:**
+   ```bash
+   ./scripts/strings-push-project.sh
    ```
    This pushes all strings from `en-US.json5` (both DG and V3 keys) to POEditor.
    The push is additive (`sync_terms=0`) — it adds new terms and updates existing
    values but never deletes terms. Push first so that the subsequent pull includes
    any new keys added since the last release.
 
-   **1b. Pull non-English translations:**
+   **2c. Pull non-English translations:**
    ```bash
-   ./scripts/strings-pull-project.sh -a <API_TOKEN>
+   ./scripts/strings-pull-project.sh
    ```
    This pulls translated strings for all supported languages. Report results to the
    user (the streaming output may be collapsed in the UI).
 
-   **1c. Verify and commit pulled translations:**
+   **2d. Verify and commit pulled translations:**
 
    Return to the repository root before running git commands:
    ```bash
@@ -288,7 +357,7 @@ Wait for user confirmation before starting Phase 1.
    intentionally blank strings — zero-width spaces should never appear in the
    repository.
 
-2. **Update package.json version:**
+3. **Update package.json version:**
    ```bash
    cd v3
    npm version --no-git-tag-version {version}
@@ -296,28 +365,18 @@ Wait for user confirmation before starting Phase 1.
 
    **IMPORTANT:** Use the `npm version` command - do NOT manually edit package.json. The npm command updates both package.json AND package-lock.json.
 
-2. **Update versions.md:**
+4. **Update versions.md:**
 
    Add new row at top of versions table (using release date from Phase 1):
    ```markdown
    | [{version}](https://codap3.concord.org/version/{version}/) | Month Day, Year |
    ```
 
-3. **Update CHANGELOG.md:**
+5. **Update CHANGELOG.md:**
    - Insert content from Phase 2 at top (after `# Changelog` heading)
    - Asset Sizes section added in Phase 4
 
-4. **Create release branch:**
-   ```bash
-   git checkout -b release-{version}
-   ```
-
-   **Branch naming rules:**
-   - Pattern: `release-{version}` where `{version}` is from Phase 1 (e.g., `release-3.0.0-beta.2664`)
-   - Do NOT use `/` in branch names
-   - Do NOT invent your own pattern
-
-5. **Stage files:**
+6. **Stage version files:**
    ```bash
    git add v3/package.json v3/package-lock.json v3/versions.md v3/CHANGELOG.md
    ```

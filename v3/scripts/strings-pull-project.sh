@@ -13,6 +13,10 @@ OUTPUT_DIR=src/utilities/translation/lang
 LANGUAGES=("de" "el" "es" "fa" "fr" "he" "ja" "ko" "nb" "nl" "nn" "pl" "pt-BR" "th" "tr" "zh-TW" "zh-Hans")
 MAX_RETRIES=3
 TIMEOUT_SECS=60
+API_TOKEN="$POEDITOR_API_TOKEN" # may be set as environment variable
+
+# override with defaults, if rc is present
+[ -f $HOME/.porc ] && . $HOME/.porc
 
 # argument processing from https://stackoverflow.com/a/14203146
 while [[ $# -gt 1 ]]

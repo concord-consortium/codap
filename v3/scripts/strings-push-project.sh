@@ -10,6 +10,10 @@
 PROJECT_ID="125447"
 INPUT_FILE="src/utilities/translation/lang/en-US.json5"
 TEMP_FILE="/tmp/codap-strings-push.json"
+API_TOKEN="$POEDITOR_API_TOKEN" # may be set as environment variable
+
+# override with defaults, if rc is present
+[ -f $HOME/.porc ] && . $HOME/.porc
 
 # argument processing
 while [[ $# -gt 1 ]]
