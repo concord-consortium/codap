@@ -1,10 +1,10 @@
-import { PointerEvent, useCallback } from "react"
+import { KeyboardEvent, PointerEvent, useCallback } from "react"
 import { useDocumentContainerContext } from "../../hooks/use-document-container-context"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { IFreeTileLayout, IFreeTileRow } from "../../models/document/free-tile-row"
 import { inBoundsScaling } from "../../models/document/inbounds-scaling"
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
-import { kDefaultMinWidth } from "../../models/tiles/tile-layout"
+import { kDefaultMinHeight, kDefaultMinWidth } from "../../models/tiles/tile-layout"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { updateTileNotification } from "../../models/tiles/tile-notifications"
 import { uiState } from "../../models/ui-state"
@@ -18,8 +18,14 @@ interface IProps {
   setChangingTileStyle: (style: Maybe<IChangingTileStyle>) => void
 }
 
+const kResizeIncrement = 20  // pixels per arrow keypress
+
 const getSafeTileWidth = (width?: number, minWidth = kDefaultMinWidth) => {
   return width != null ? Math.max(width, minWidth) : minWidth
+}
+
+const getSafeTileHeight = (height?: number, minHeight = kDefaultMinHeight) => {
+  return height != null ? Math.max(height, minHeight) : minHeight
 }
 
 export function useTileResize({ row, tile, tileId, setChangingTileStyle }: IProps) {
@@ -101,8 +107,8 @@ export function useTileResize({ row, tile, tileId, setChangingTileStyle }: IProp
         top: displayTop,
         width: getSafeTileWidth(displayWidth, tile.minWidth),
         height: uiState.inboundsMode && resizingHeight != null
-          ? resizingHeight * scaleFactor
-          : resizingHeight,
+          ? getSafeTileHeight(resizingHeight * scaleFactor)
+          : getSafeTileHeight(resizingHeight),
         zIndex: tileLayout.zIndex,
         transition: "none"
       })
@@ -115,7 +121,7 @@ export function useTileResize({ row, tile, tileId, setChangingTileStyle }: IProp
 
       row.applyModelChange(() => {
         // Store unscaled values in the model (they're already unscaled since we constrain in unscaled space)
-        tileLayout.setSize(newWidth, resizingHeight)
+        tileLayout.setSize(newWidth, getSafeTileHeight(resizingHeight))
         tileLayout.setPosition(resizingLeft, tileLayout.y)
       }, {
         notify: () => updateTileNotification("resize", {}, tile),
@@ -131,5 +137,76 @@ export function useTileResize({ row, tile, tileId, setChangingTileStyle }: IProp
     document.body.addEventListener("pointerup", handlePointerUp, { capture: true })
   }, [containerRef, row, setChangingTileStyle, tile, tileId])
 
-  return { handleResizePointerDown }
+  const handleResizeFocus = useCallback(() => {
+    uiState.setFocusedTile(tileId)
+  }, [tileId])
+
+  const handleResizeKeyDown = useCallback((e: KeyboardEvent) => {
+    const tileLayout: IFreeTileLayout | undefined = row.tiles.get(tileId)
+    if (!tileLayout) return
+
+    const { width, height } = tileLayout
+    let newWidth = width
+    let newHeight = height
+
+    switch (e.key) {
+      case "ArrowRight":
+        if (tile.isResizable.width && newWidth != null) {
+          newWidth = newWidth + kResizeIncrement
+        }
+        break
+      case "ArrowLeft":
+        if (tile.isResizable.width && newWidth != null) {
+          newWidth = Math.max(newWidth - kResizeIncrement, tile.minWidth)
+        }
+        break
+      case "ArrowDown":
+        if (tile.isResizable.height && newHeight != null) {
+          newHeight = newHeight + kResizeIncrement
+        }
+        break
+      case "ArrowUp":
+        if (tile.isResizable.height && newHeight != null) {
+          newHeight = Math.max(newHeight - kResizeIncrement, kDefaultMinHeight)
+        }
+        break
+      default:
+        return  // don't prevent default for other keys
+    }
+
+    e.preventDefault()
+
+    // Apply inbounds constraints
+    if (uiState.inboundsMode) {
+      const { scaleFactor } = inBoundsScaling
+      const containerWidth = containerRef.current?.clientWidth ?? Infinity
+      const containerHeight = containerRef.current?.clientHeight ?? Infinity
+      const componentInfo = getTileComponentInfo(tile.content.type)
+      const hasInspector = !!componentInfo?.InspectorPanel
+      const inspectorWidth = hasInspector ? kInspectorPanelWidth : 0
+
+      if (newWidth != null) {
+        const maxWidth = (containerWidth - tileLayout.x * scaleFactor - inspectorWidth) / scaleFactor
+        newWidth = Math.min(newWidth, maxWidth)
+      }
+      if (newHeight != null) {
+        const maxHeight = (containerHeight - tileLayout.y * scaleFactor) / scaleFactor
+        newHeight = Math.min(newHeight, maxHeight)
+      }
+    }
+
+    row.applyModelChange(() => {
+      tileLayout.setSize(
+        getSafeTileWidth(newWidth, tile.minWidth),
+        getSafeTileHeight(newHeight)
+      )
+    }, {
+      notify: () => updateTileNotification("resize", {}, tile),
+      undoStringKey: "DG.Undo.componentResize",
+      redoStringKey: "DG.Redo.componentResize",
+      log: logMessageWithReplacement("Resized component: %@", { tileID: tileLayout.tileId })
+    })
+  }, [containerRef, row, tile, tileId])
+
+  return { handleResizeFocus, handleResizeKeyDown, handleResizePointerDown }
 }

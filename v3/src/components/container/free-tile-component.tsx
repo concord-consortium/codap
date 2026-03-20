@@ -73,7 +73,8 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
   }, [isMinimized, setMinimized, tile])
 
   const { handlePointerDown: handleMoveTilePointerDown } = useTileDrag({ row, tile, tileLayout, setChangingTileStyle })
-  const { handleResizePointerDown } = useTileResize({ row, tile, tileId, setChangingTileStyle })
+  const { handleResizeFocus, handleResizeKeyDown, handleResizePointerDown } =
+    useTileResize({ row, tile, tileId, setChangingTileStyle })
 
   const info = getTileComponentInfo(tileType)
   const isStandalone = uiState.isStandaloneTile(tile)
@@ -168,6 +169,8 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
               <If condition={!isMinimized && !isStandalone && uiState.allowComponentResize && canResize}>
                 <ComponentResizeWidgets tile={tile} componentRef={componentRef}
                   isFixedWidth={isFixedWidth} isFixedHeight={isFixedHeight}
+                  handleResizeFocus={handleResizeFocus}
+                  handleResizeKeyDown={handleResizeKeyDown}
                   handleResizePointerDown={handleResizePointerDown} />
               </If>
             </>

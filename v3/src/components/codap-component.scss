@@ -69,6 +69,19 @@ $corner-drag-size: calc($border-drag-width * 2);
     cursor: se-resize;
   }
 
+  .component-resize-button {
+    background: none;
+    border: none;
+    cursor: inherit;
+    height: 100%;
+    padding: 0;
+    width: 100%;
+
+    &:focus-visible {
+      @include vars.focus-outline;
+    }
+  }
+
   .component-resize-handle {
     fill: #d3d3d3;
     &:hover {

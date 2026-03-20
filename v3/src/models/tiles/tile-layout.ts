@@ -2,6 +2,7 @@ import { types, Instance } from "mobx-state-tree"
 
 // generally negotiated with app, e.g. single column width for table
 export const kDefaultMinWidth = 50
+export const kDefaultMinHeight = 50
 
 export const TileLayoutModel = types
   .model("TileLayout", {
