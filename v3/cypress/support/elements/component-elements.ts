@@ -82,15 +82,19 @@ export const ComponentElements = {
     // Hover away, then hover the element to trigger the React Aria tooltip.
     // Retry the hover sequence if the tooltip doesn't appear, since realHover()
     // can be unreliable on the first attempt (especially in headless/CI).
+    const hasExpectedTooltip = ($root: JQuery<HTMLElement>): boolean => {
+      const tooltips = $root.find(".inspector-tooltip")
+      return tooltips.toArray().some(tip => tip.textContent?.includes(tooltipText))
+    }
     function hoverUntilTooltip(retries = 3): void {
       cy.get(".document-container").realHover({ position: "bottom" })
       cy.wait(100)
       cy.wrap(element).should("be.visible").realHover()
       cy.get("body").then($body => {
-        if ($body.find(".inspector-tooltip").length === 0 && retries > 0) {
+        if (!hasExpectedTooltip($body) && retries > 0) {
           cy.wait(500)
           cy.get("body").then($body2 => {
-            if ($body2.find(".inspector-tooltip").length === 0) {
+            if (!hasExpectedTooltip($body2)) {
               hoverUntilTooltip(retries - 1)
             }
           })
