@@ -327,11 +327,13 @@ export class PixiPointRenderer extends PointRendererBase {
 
     const texture = this.getPointTexture(style)
 
-    // Create sprites for added points
+    // Create sprites for added points (skip any already created by syncFromState above)
     added.forEach(pointId => {
-      const sprite = this.getNewSprite(pointId, texture)
-      this.pointsContainer.addChild(sprite)
-      this.sprites.set(pointId, sprite)
+      if (!this.sprites.has(pointId)) {
+        const sprite = this.getNewSprite(pointId, texture)
+        this.pointsContainer.addChild(sprite)
+        this.sprites.set(pointId, sprite)
+      }
     })
 
     // Update existing sprites
