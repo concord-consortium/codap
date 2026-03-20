@@ -279,6 +279,8 @@ export class PixiPointRenderer extends PointRendererBase {
         this.pointTransitionStates.set(point.id, { hasTransitioned: false })
       })
     }
+    // Set display type before the early return so texture/anchor logic sees the new type.
+    // (The base class also sets this after we return, but we need it set for the code below.)
     this._displayType = displayType
 
     if (this.displayTypeTransitionState.isActive) return
