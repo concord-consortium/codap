@@ -194,7 +194,10 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
               <CodapSliderThumb sliderModel={sliderModel} running={running} setRunning={setRunning}
                                 state={state} trackRef={trackRef}
               />
-              <div className={axisClasses()} style={axisStyle}>
+              {/* Stop pointer events from bubbling to React Aria's track handler so that
+                  D3's axis drag behavior (pan/zoom) receives them instead (CODAP-1206). */}
+              <div className={axisClasses()} style={axisStyle}
+                   onPointerDown={e => e.stopPropagation()}>
                 <div className="axis-end min"/>
                 <svg className="slider-axis" data-testid="slider-axis">
                   <Axis
