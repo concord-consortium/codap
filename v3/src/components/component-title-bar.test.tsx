@@ -1,5 +1,6 @@
 import { DndContext } from "@dnd-kit/core"
 import { act, fireEvent, render, screen } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { ComponentTitleBar } from "./component-title-bar"
 import { ITileLikeModel } from "../models/tiles/tile-content-info"
 import { ITileModel, TileModel } from "../models/tiles/tile-model"
@@ -122,6 +123,32 @@ describe("ComponentTitleBar", () => {
     fireEvent.pointerDown(titleInput)
     // The drag handler should not be called because stopPropagation prevents bubbling
     expect(mockOnMoveTilePointerDown).not.toHaveBeenCalled()
+  })
+
+  it("minimize and close buttons can receive keyboard focus", async () => {
+    const user = userEvent.setup()
+    const tile = TileModel.create({ _title: "title", content: {} as any })
+
+    render(
+      <DndContext>
+        <ComponentTitleBar tile={tile} />
+      </DndContext>
+    )
+
+    const minimizeButton = screen.getByTestId("component-minimize-button")
+    const closeButton = screen.getByTestId("component-close-button")
+
+    // Buttons should be focusable (not hidden with visibility: hidden)
+    await act(async () => minimizeButton.focus())
+    expect(minimizeButton).toHaveFocus()
+
+    await act(async () => closeButton.focus())
+    expect(closeButton).toHaveFocus()
+
+    // Tab should be able to reach the buttons
+    await act(async () => minimizeButton.focus())
+    await user.tab()
+    expect(closeButton).toHaveFocus()
   })
 
   it("only activates title edit mode on click with no drag", () => {

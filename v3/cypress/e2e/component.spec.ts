@@ -134,6 +134,16 @@ context("Component UI", () => {
     cy.wait(100)
     c.getComponentTile("table").should("have.class", "focused")
   })
+  it("shows focus ring on title bar buttons when focused via keyboard", () => {
+    // Click the title bar to place focus near the buttons
+    c.getComponentTitleBar("table").click({ force: true })
+    // Tab to reach the minimize button
+    c.getMinimizeButton("table").focus()
+    c.getMinimizeButton("table").should("have.css", "outline-style", "solid")
+    cy.realPress("Tab")
+    c.getCloseButton("table").should("have.focus")
+    c.getCloseButton("table").should("have.css", "outline-style", "solid")
+  })
   it("puts tile in focus when the tile's resize elements are clicked", () => {
     c.getComponentTile("table").should("not.have.class", "focused")
     c.getResizeControl("table").trigger("pointerdown")
