@@ -95,20 +95,24 @@ export function useTileResize({ row, tile, tileId, setChangingTileStyle }: IProp
         }
       }
 
+      const clampedWidth = getSafeTileWidth(resizingWidth, tile.minWidth)
+      const clampedHeight = resizingHeight != null ? getSafeTileHeight(resizingHeight) : resizingHeight
+
       // Compute display values (scaled if in inbounds mode)
       const displayLeft = uiState.inboundsMode ? resizingLeft * scaleFactor : resizingLeft
       const displayTop = uiState.inboundsMode ? startTop * scaleFactor : startTop
-      const displayWidth = uiState.inboundsMode && resizingWidth != null
-        ? resizingWidth * scaleFactor
-        : resizingWidth
+      const displayWidth = uiState.inboundsMode
+        ? clampedWidth * scaleFactor
+        : clampedWidth
+      const displayHeight = uiState.inboundsMode && clampedHeight != null
+        ? clampedHeight * scaleFactor
+        : clampedHeight
 
       setChangingTileStyle({
         left: displayLeft,
         top: displayTop,
-        width: getSafeTileWidth(displayWidth, tile.minWidth),
-        height: uiState.inboundsMode && resizingHeight != null
-          ? getSafeTileHeight(resizingHeight * scaleFactor)
-          : getSafeTileHeight(resizingHeight),
+        width: displayWidth,
+        height: displayHeight,
         zIndex: tileLayout.zIndex,
         transition: "none"
       })
@@ -116,12 +120,13 @@ export function useTileResize({ row, tile, tileId, setChangingTileStyle }: IProp
 
     const handlePointerUp = () => {
       const newWidth = getSafeTileWidth(resizingWidth, tile.minWidth)
+      const newHeight = resizingHeight != null ? getSafeTileHeight(resizingHeight) : undefined
       document.body.removeEventListener("pointermove", handlePointerMove, { capture: true })
       document.body.removeEventListener("pointerup", handlePointerUp, { capture: true })
 
       row.applyModelChange(() => {
         // Store unscaled values in the model (they're already unscaled since we constrain in unscaled space)
-        tileLayout.setSize(newWidth, getSafeTileHeight(resizingHeight))
+        tileLayout.setSize(newWidth, newHeight)
         tileLayout.setPosition(resizingLeft, tileLayout.y)
       }, {
         notify: () => updateTileNotification("resize", {}, tile),
@@ -148,31 +153,39 @@ export function useTileResize({ row, tile, tileId, setChangingTileStyle }: IProp
     const { width, height } = tileLayout
     let newWidth = width
     let newHeight = height
+    let widthChanged = false
+    let heightChanged = false
 
     switch (e.key) {
       case "ArrowRight":
         if (tile.isResizable.width && newWidth != null) {
           newWidth = newWidth + kResizeIncrement
+          widthChanged = true
         }
         break
       case "ArrowLeft":
         if (tile.isResizable.width && newWidth != null) {
           newWidth = Math.max(newWidth - kResizeIncrement, tile.minWidth)
+          widthChanged = newWidth !== width
         }
         break
       case "ArrowDown":
         if (tile.isResizable.height && newHeight != null) {
           newHeight = newHeight + kResizeIncrement
+          heightChanged = true
         }
         break
       case "ArrowUp":
         if (tile.isResizable.height && newHeight != null) {
           newHeight = Math.max(newHeight - kResizeIncrement, kDefaultMinHeight)
+          heightChanged = newHeight !== height
         }
         break
       default:
         return  // don't prevent default for other keys
     }
+
+    if (!widthChanged && !heightChanged) return
 
     e.preventDefault()
 
@@ -185,11 +198,11 @@ export function useTileResize({ row, tile, tileId, setChangingTileStyle }: IProp
       const hasInspector = !!componentInfo?.InspectorPanel
       const inspectorWidth = hasInspector ? kInspectorPanelWidth : 0
 
-      if (newWidth != null) {
+      if (widthChanged && newWidth != null) {
         const maxWidth = (containerWidth - tileLayout.x * scaleFactor - inspectorWidth) / scaleFactor
         newWidth = Math.min(newWidth, maxWidth)
       }
-      if (newHeight != null) {
+      if (heightChanged && newHeight != null) {
         const maxHeight = (containerHeight - tileLayout.y * scaleFactor) / scaleFactor
         newHeight = Math.min(newHeight, maxHeight)
       }
@@ -197,8 +210,8 @@ export function useTileResize({ row, tile, tileId, setChangingTileStyle }: IProp
 
     row.applyModelChange(() => {
       tileLayout.setSize(
-        getSafeTileWidth(newWidth, tile.minWidth),
-        getSafeTileHeight(newHeight)
+        widthChanged ? getSafeTileWidth(newWidth, tile.minWidth) : width,
+        heightChanged ? getSafeTileHeight(newHeight) : height
       )
     }, {
       notify: () => updateTileNotification("resize", {}, tile),
