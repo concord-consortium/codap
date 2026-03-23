@@ -144,6 +144,7 @@ export class Logger {
     debugLog(DEBUG_LOGGER, "logMessage:", logMessage)
     sendToLoggingService(logMessage)
     sendToAnalyticsService(event, category, extractGAEventArgs(args))
+    this.logListeners.forEach(listener => listener(logMessage))
   }
 
   private createLogMessage(
