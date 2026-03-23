@@ -19,6 +19,7 @@ Interactive workflow for CODAP v3 releases. Guides you through Jira setup, relea
 | 4 | `/codap-v3-build pr` | Create release PR |
 | 5 | `/codap-v3-build tag` | Tag and create GitHub release |
 | 6 | `/codap-v3-build deploy [version]` | Deploy to staging/production |
+| fix | `/codap-v3-build fix {old-version}` | Revise release after staging QA failure |
 
 ## Getting Started
 
@@ -569,6 +570,211 @@ To complete deployment in Claude Code after QA:
 ```
 /codap-v3-build deploy {version}
 ```
+
+## Staging QA Failure — Revised Release
+
+**Trigger:** A show-stopper bug is found during Phase 6 staging QA, and a fix has been merged to `main`.
+
+**Invocation:** `/codap-v3-build fix {old-version}` (e.g., `/codap-v3-build fix 3.0.0-beta.2803`)
+
+When invoked, introduce the situation:
+
+> A bug was found during staging QA for **{old-version}** and a fix has been merged.
+> This workflow will create a revised release with an updated version number.
+>
+> I'll walk you through:
+> 1. Determine the new version number and release date
+> 2. Decide whether release notes need updating
+> 3. Update version files
+> 4. Build and create a new release PR
+> 5. Clean up the old tag/release and create new ones
+> 6. Update Jira and re-deploy to staging
+
+### Step 1: Gather Context
+
+1. **Ensure on main with latest:**
+   ```bash
+   git checkout main
+   git pull
+   ```
+
+2. **Get current build number and verify the fix is present:**
+   ```bash
+   cat v3/build_number.json
+   git log --oneline {old-version}..HEAD
+   ```
+
+   Confirm with the user that the expected fix commit(s) appear in the log.
+
+3. **Determine new version number:**
+   - Current build number is N (from `build_number.json`)
+   - The release PR will increment it once more when merged → version is **N + 1**
+   - Example: If build number is `2804`, new version is `3.0.0-beta.2805`
+   - Match the version pattern of `{old-version}` (same prefix, new build number)
+
+4. **Confirm release date:**
+   - The original release date (from Phase 1) may no longer be appropriate if QA and the fix took multiple days.
+   - Show the original release date and today's date.
+   - Ask the user to confirm or update the release date.
+   - This date will be used in CHANGELOG.md, versions.md, and the Jira release.
+
+5. **Confirm with user:**
+   > The fix is on main. New version will be **{new-version}** (old was {old-version}).
+   > Release date: **{release-date}**
+   >
+   > Does this look correct?
+
+### Step 2: Release Notes Decision
+
+Ask the user:
+
+> Do the release notes need to be updated?
+>
+> - **No changes needed** — The bug was introduced in this release cycle, so users never saw it
+> - **Add the fix** — The bug existed in a prior release and the fix should be documented
+
+**If no changes needed:**
+- The existing CHANGELOG content will be reused with only the version number and date updated in the header.
+
+**If release notes need updating:**
+- Walk through the new fix item(s) using the same interactive process as Phase 2, step 5 (present title options, ask for section and title).
+- Insert the new item(s) into the appropriate section(s) of the existing release notes, maintaining numeric Jira ID order.
+- Present the updated CHANGELOG entry for approval.
+- Update Jira Fix Versions for any newly added stories.
+
+### Step 3: Create Release Branch and Update Files
+
+Follow the same working directory rules as Phase 3.
+
+1. **Create release branch:**
+   ```bash
+   git checkout -b release-{new-version}
+   ```
+
+2. **Sync translations (only if needed):**
+   - Only perform the translation sync (Phase 3, step 2) if the bug fix introduced new or changed translatable strings.
+   - For most bug fixes, this can be skipped. Ask the user if unsure.
+
+3. **Update package.json:**
+   ```bash
+   cd v3
+   npm version --no-git-tag-version {new-version}
+   ```
+
+4. **Update versions.md:**
+   - **Replace** the `{old-version}` row with the `{new-version}` row (using the confirmed release date)
+   - Do NOT add a second row — this is a revision, not a separate release
+
+5. **Update CHANGELOG.md:**
+   - **Replace** the `## Version {old-version}` header with `## Version {new-version}`, using the confirmed release date
+   - If release notes content changed (Step 2), update the content as well
+   - The Asset Sizes section will be updated after the build (Step 4)
+
+6. **Commit version file changes:**
+   ```bash
+   cd /path/to/codap
+   git add v3/package.json v3/package-lock.json v3/versions.md v3/CHANGELOG.md
+   git commit -m "Release {new-version}"
+   ```
+
+### Step 4: Build, Asset Sizes, and Release PR
+
+Follow the same process as Phase 4:
+
+1. **Build:**
+   ```bash
+   cd v3 && npm run build
+   ```
+
+2. **Update asset sizes** in CHANGELOG.md (same process as Phase 4, steps 2–4).
+   - Compare against the **previous release before {old-version}** for % change (since `{old-version}` is being replaced, not used as baseline).
+
+3. **Commit, push, and create PR:**
+   ```bash
+   cd /path/to/codap
+   git add v3/CHANGELOG.md
+   git commit --amend --no-edit
+   git push -u origin release-{new-version}
+   gh pr create \
+     --title "Release {new-version}" \
+     --body "{release_notes}" \
+     --label "v3" \
+     --label "run regression"
+   ```
+
+4. **Inform user:**
+   > **PR created:** {url}
+   >
+   > After CI passes and PR is merged, I'll clean up the old release and create the new one.
+
+### Step 5: After PR Merge — Clean Up and Re-tag
+
+**Prerequisite:** Release PR must be merged.
+
+1. **Checkout main and pull:**
+   ```bash
+   git checkout main
+   git pull
+   ```
+
+2. **Delete old GitHub release and tag:**
+   ```bash
+   gh release delete {old-version} --yes
+   git push origin --delete {old-version}
+   git tag -d {old-version}
+   ```
+
+   These are safe to delete because:
+   - The release was never deployed to production or beta
+   - The tag points to a known-buggy build
+   - No external consumers depend on it
+
+3. **Create new tag and GitHub release:**
+   ```bash
+   git tag -a {new-version} -m "Version {new-version}"
+   git push origin {new-version}
+   gh release create {new-version} \
+     --title "Version {new-version}" \
+     --notes "{release_notes}"
+   ```
+
+4. **Delete old release branch** (optional cleanup):
+   ```bash
+   git push origin --delete release-{old-version}
+   git branch -d release-{old-version}
+   ```
+
+### Step 6: Update Jira and Re-deploy
+
+1. **Update Jira release version:**
+   - Rename the Jira release from `{old-version}` to `{new-version}`
+   - Update the release date if it changed
+   - If new stories were added to release notes (Step 2), update their Fix Versions
+
+   **Context management:** Delegate Jira updates to a subagent (same pattern as Phase 2, step 9).
+
+2. **Re-deploy to staging:**
+   ```bash
+   gh workflow run release-v3-staging.yml -f version={new-version}
+   ```
+
+3. **Post updated Slack announcement** (same format as Phase 6, step 2, but note it's a revised build):
+
+   ```markdown
+   CODAP {new-version} is available for testing at https://codap3.concord.org/staging.
+   (Revised build — replaces {old-version} which had a staging QA issue.)
+
+   {same release notes sections as before}
+
+   The [beta](https://codap3.concord.org/beta) and [production](https://codap3.concord.org/) URLs will be updated once the staging build passes QA.
+   ```
+
+4. **Inform user:**
+   > **Revised release {new-version} deployed to staging.**
+   >
+   > Test at: https://codap3.concord.org/index-staging.html
+   >
+   > When staging QA passes, run `/codap-v3-build deploy {new-version}` to continue with production deployment.
 
 ## File Locations
 
