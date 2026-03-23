@@ -125,7 +125,21 @@ describe("ComponentTitleBar", () => {
     expect(mockOnMoveTilePointerDown).not.toHaveBeenCalled()
   })
 
-  it("minimize and close buttons can receive keyboard focus", async () => {
+  it("toolbar has correct ARIA attributes", () => {
+    const tile = TileModel.create({ _title: "title", content: {} as any })
+
+    render(
+      <DndContext>
+        <ComponentTitleBar tile={tile} />
+      </DndContext>
+    )
+
+    const toolbar = screen.getByRole("toolbar")
+    expect(toolbar).toBeInTheDocument()
+    expect(toolbar).toHaveAttribute("aria-label", "Tile actions")
+  })
+
+  it("arrow keys move focus between toolbar items", async () => {
     const user = userEvent.setup()
     const tile = TileModel.create({ _title: "title", content: {} as any })
 
@@ -135,32 +149,89 @@ describe("ComponentTitleBar", () => {
       </DndContext>
     )
 
+    const titleButton = screen.getByTestId("title-text")
     const minimizeButton = screen.getByTestId("component-minimize-button")
     const closeButton = screen.getByTestId("component-close-button")
 
-    // Buttons should be focusable (not hidden with visibility: hidden)
-    await act(async () => minimizeButton.focus())
+    // Title button is the first toolbar item
+    act(() => { titleButton.focus() })
+    expect(titleButton).toHaveFocus()
+
+    // Arrow right moves to minimize button
+    await user.keyboard("{ArrowRight}")
     expect(minimizeButton).toHaveFocus()
 
-    await act(async () => closeButton.focus())
+    // Arrow right moves to close button
+    await user.keyboard("{ArrowRight}")
     expect(closeButton).toHaveFocus()
 
-    // Tab should be able to reach the buttons
-    await act(async () => minimizeButton.focus())
-    await user.tab()
+    // Arrow left moves back to minimize button
+    await user.keyboard("{ArrowLeft}")
+    expect(minimizeButton).toHaveFocus()
+  })
+
+  it("Home and End keys jump to first and last toolbar items", async () => {
+    const user = userEvent.setup()
+    const tile = TileModel.create({ _title: "title", content: {} as any })
+
+    render(
+      <DndContext>
+        <ComponentTitleBar tile={tile} />
+      </DndContext>
+    )
+
+    const titleButton = screen.getByTestId("title-text")
+    const minimizeButton = screen.getByTestId("component-minimize-button")
+    const closeButton = screen.getByTestId("component-close-button")
+
+    act(() => { minimizeButton.focus() })
+    expect(minimizeButton).toHaveFocus()
+
+    // End key jumps to last item (close button)
+    await user.keyboard("{End}")
     expect(closeButton).toHaveFocus()
+
+    // Home key jumps to first item (title button)
+    await user.keyboard("{Home}")
+    expect(titleButton).toHaveFocus()
+  })
+
+  it("toolbar is a single tab stop", async () => {
+    const user = userEvent.setup()
+    const tile = TileModel.create({ _title: "title", content: {} as any })
+
+    render(
+      <DndContext>
+        <ComponentTitleBar tile={tile} />
+      </DndContext>
+    )
+
+    const titleButton = screen.getByTestId("title-text")
+    const minimizeButton = screen.getByTestId("component-minimize-button")
+    const closeButton = screen.getByTestId("component-close-button")
+
+    // Only the active roving item (title button) has tabIndex="0"
+    expect(titleButton).toHaveAttribute("tabindex", "0")
+    expect(minimizeButton).toHaveAttribute("tabindex", "-1")
+    expect(closeButton).toHaveAttribute("tabindex", "-1")
+
+    // Tab into the toolbar reaches the active item
+    act(() => { titleButton.focus() })
+    expect(titleButton).toHaveFocus()
+
+    // Tab again should exit the toolbar (other items have tabIndex="-1" so they're skipped)
+    await user.tab()
+    expect(titleButton).not.toHaveFocus()
+    expect(minimizeButton).not.toHaveFocus()
+    expect(closeButton).not.toHaveFocus()
   })
 
   it("only activates title edit mode on click with no drag", () => {
     const tile = TileModel.create({ _title: "title", content: {} as any })
-    const mockOnMoveTilePointerDown = jest.fn()
 
     render(
       <DndContext>
-        <ComponentTitleBar
-          tile={tile}
-          onMoveTilePointerDown={mockOnMoveTilePointerDown}
-        />
+        <ComponentTitleBar tile={tile} />
       </DndContext>
     )
 
@@ -170,11 +241,7 @@ describe("ComponentTitleBar", () => {
     fireEvent.pointerUp(titleText)
     expect(screen.queryByTestId("title-text-input")).not.toBeInTheDocument()
 
-    // Simulate a clean click (pointerDown + pointerUp without movement) to reset the drag state set by the call
-    // to pointerMove above. This is necessary here because `fireEvent.click()` does not trigger pointer events like
-    // an actual mouse click would.
-    fireEvent.pointerDown(titleText)
-    fireEvent.pointerUp(titleText)
+    // A subsequent click enters edit mode because handleTitleClick resets hasDraggedRef after each click
     fireEvent.click(titleText)
     expect(screen.getByTestId("title-text-input")).toBeInTheDocument()
   })

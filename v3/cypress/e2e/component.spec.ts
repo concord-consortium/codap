@@ -137,12 +137,41 @@ context("Component UI", () => {
   it("shows focus ring on title bar buttons when focused via keyboard", () => {
     // Click the title bar to place focus near the buttons
     c.getComponentTitleBar("table").click({ force: true })
-    // Tab to reach the minimize button
+    // Place focus on the minimize button
     c.getMinimizeButton("table").focus()
     c.getMinimizeButton("table").should("have.css", "outline-style", "solid")
-    cy.realPress("Tab")
+    cy.realPress("ArrowRight")
     c.getCloseButton("table").should("have.focus")
     c.getCloseButton("table").should("have.css", "outline-style", "solid")
+  })
+  it("enters title edit mode via keyboard and returns focus after Escape", () => {
+    c.getComponentTitle("table").focus()
+    c.getComponentTitle("table").should("have.focus")
+    cy.realPress("Enter")
+    c.getComponentTitleInput("table").should("exist").and("have.focus")
+    cy.realPress("Escape")
+    c.getComponentTitleInput("table").should("not.exist")
+    c.getComponentTitle("table").should("have.focus")
+  })
+  it("enters title edit mode via keyboard and returns focus after Enter submit", () => {
+    c.getComponentTitle("table").focus()
+    cy.realPress("Enter")
+    c.getComponentTitleInput("table").should("exist").and("have.focus")
+    c.getComponentTitleInput("table").type("New Title{enter}")
+    c.getComponentTitleInput("table").should("not.exist")
+    c.getComponentTitle("table").should("have.focus")
+  })
+  it("does not navigate toolbar with arrow keys while editing title", () => {
+    // Enter edit mode
+    c.getComponentTitle("table").focus()
+    cy.realPress("Enter")
+    c.getComponentTitleInput("table").should("exist").and("have.focus")
+    // Arrow keys should move cursor in the input, not navigate the toolbar
+    cy.realPress("ArrowRight")
+    c.getComponentTitleInput("table").should("have.focus")
+    c.getMinimizeButton("table").should("not.have.focus")
+    cy.realPress("ArrowLeft")
+    c.getComponentTitleInput("table").should("have.focus")
   })
   it("puts tile in focus when the tile's resize elements are clicked", () => {
     c.getComponentTile("table").should("not.have.class", "focused")

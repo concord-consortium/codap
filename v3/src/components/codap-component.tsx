@@ -2,6 +2,7 @@ import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
 import React, { useRef, useState } from "react"
+import { kTileAriaRole } from "../accessibility-constants"
 import { CodapComponentContext } from "../hooks/use-codap-component-context"
 import { TileInspectorContent, TileInspectorContext } from "../hooks/use-tile-inspector-context"
 import { TileModelContext } from "../hooks/use-tile-model-context"
@@ -81,9 +82,11 @@ export const CodapComponent = observer(function CodapComponent(props: IProps) {
         <TileSelectionContext.Provider value={tileSelection}>
           <CodapComponentContext.Provider value={codapComponentRef}>
             <div
+              aria-labelledby={`tile-title-${tile.id}`}
               className={classes}
               data-testid={tileEltClass}
               key={tile.id}
+              role={kTileAriaRole}
               onFocus={handleFocusEvent}
               onPointerDownCapture={handleFocusEvent}
               ref={codapComponentRef}
