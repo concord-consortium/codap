@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 3.0.0-beta.2803 - March 20, 2026
+## Version 3.0.0-beta.2805 - March 23, 2026
 
 ### ✨ Features & Improvements:
 - **CODAP-546:** Improve Case table screen reader and keyboard navigation
@@ -44,7 +44,7 @@
 |      File |          Size | % Change from Previous Release |
 |-----------|---------------|--------------------------------|
 |  main.css |  242455 bytes |                         12.69% |
-|  index.js | 7292927 bytes |                          1.96% |
+|  index.js | 7292981 bytes |                          1.96% |
 
 ## Version 3.0.0-beta.2746 - February 24, 2026
 
