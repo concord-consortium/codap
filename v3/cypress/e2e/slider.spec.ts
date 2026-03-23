@@ -377,6 +377,18 @@ context("Slider UI", () => {
     cy.wait(1000) // Wait for any animations
     slider.getVariableValueInput().should('have.value', MID_VALUE.toString())
   })
+  it("slider value doesn't change when clicking on axis (CODAP-1206)", () => {
+    // Verify that clicking on the slider axis does not cause the thumb to jump,
+    // which would indicate React Aria's track handler intercepted the event.
+    // This guards against regressions where the track handler captures mouse events
+    // meant for D3's axis drag rects, breaking axis pan/zoom.
+    slider.changeVariableValue("5")
+    slider.getVariableValue().should("contain", "5")
+
+    // Click on the axis — the thumb value should remain unchanged
+    slider.getSliderAxis().click({ force: true })
+    slider.getVariableValue().should("contain", "5")
+  })
   it("reuses slider names after existing ones are closed", () => {
     c.closeComponent("slider") //Change in component header height causes interference with variable value input
 
