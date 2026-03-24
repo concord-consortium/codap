@@ -1,7 +1,34 @@
 diff --git a/node_modules/react-data-grid/lib/bundle.cjs b/node_modules/react-data-grid/lib/bundle.cjs
-index 43bf414..635934c 100644
+index 43bf414..708f5f8 100644
 --- a/node_modules/react-data-grid/lib/bundle.cjs
 +++ b/node_modules/react-data-grid/lib/bundle.cjs
+@@ -175,7 +175,7 @@ function getNextSelectedCellPosition({
+   const setHeaderGroupColAndRowSpan = () => {
+     if (moveNext) {
+       const nextColumn = columns[nextIdx];
+-      let parent = nextColumn.parent;
++      let parent = nextColumn?.parent;
+       while (parent !== undefined) {
+         const parentRowIdx = getParentRowIdx(parent);
+         if (nextRowIdx === parentRowIdx) {
+@@ -186,7 +186,7 @@ function getNextSelectedCellPosition({
+       }
+     } else if (moveUp) {
+       const nextColumn = columns[nextIdx];
+-      let parent = nextColumn.parent;
++      let parent = nextColumn?.parent;
+       let found = false;
+       while (parent !== undefined) {
+         const parentRowIdx = getParentRowIdx(parent);
+@@ -230,7 +230,7 @@ function getNextSelectedCellPosition({
+   }
+   if (nextRowIdx < mainHeaderRowIdx) {
+     const nextColumn = columns[nextIdx];
+-    let parent = nextColumn.parent;
++    let parent = nextColumn?.parent;
+     const nextParentRowIdx = nextRowIdx;
+     nextRowIdx = mainHeaderRowIdx;
+     while (parent !== undefined) {
 @@ -764,7 +764,7 @@ function useColumnWidths(columns, viewportColumns, templateColumns, gridRef, gri
        return hasChanges ? newMeasuredColumnWidths : measuredColumnWidths;
      });
@@ -80,7 +107,15 @@ index 43bf414..635934c 100644
    const [gridRef, gridWidth, gridHeight, horizontalScrollbarHeight] = useGridDimensions();
    const {
      columns,
-@@ -3322,5 +3328,6 @@ exports.renderSortPriority = renderSortPriority;
+@@ -2255,6 +2261,7 @@ function DataGrid(props, ref) {
+     const isCellEvent = event.target.closest('.rdg-cell') !== null;
+     const isRowEvent = isTreeGrid && event.target === focusSinkRef.current;
+     if (!isCellEvent && !isRowEvent) return;
++    if (!selectedCellIsWithinSelectionBounds) return;
+     const {
+       keyCode
+     } = event;
+@@ -3322,5 +3329,6 @@ exports.renderSortPriority = renderSortPriority;
  exports.renderToggleGroup = renderToggleGroup;
  exports.renderValue = renderValue;
  exports.textEditor = textEditor;
@@ -88,9 +123,36 @@ index 43bf414..635934c 100644
  exports.useRowSelection = useRowSelection;
  //# sourceMappingURL=bundle.cjs.map
 diff --git a/node_modules/react-data-grid/lib/bundle.js b/node_modules/react-data-grid/lib/bundle.js
-index 0214c29..60b4932 100644
+index 0214c29..b2bf059 100644
 --- a/node_modules/react-data-grid/lib/bundle.js
 +++ b/node_modules/react-data-grid/lib/bundle.js
+@@ -171,7 +171,7 @@ function getNextSelectedCellPosition({
+   const setHeaderGroupColAndRowSpan = () => {
+     if (moveNext) {
+       const nextColumn = columns[nextIdx];
+-      let parent = nextColumn.parent;
++      let parent = nextColumn?.parent;
+       while (parent !== undefined) {
+         const parentRowIdx = getParentRowIdx(parent);
+         if (nextRowIdx === parentRowIdx) {
+@@ -182,7 +182,7 @@ function getNextSelectedCellPosition({
+       }
+     } else if (moveUp) {
+       const nextColumn = columns[nextIdx];
+-      let parent = nextColumn.parent;
++      let parent = nextColumn?.parent;
+       let found = false;
+       while (parent !== undefined) {
+         const parentRowIdx = getParentRowIdx(parent);
+@@ -226,7 +226,7 @@ function getNextSelectedCellPosition({
+   }
+   if (nextRowIdx < mainHeaderRowIdx) {
+     const nextColumn = columns[nextIdx];
+-    let parent = nextColumn.parent;
++    let parent = nextColumn?.parent;
+     const nextParentRowIdx = nextRowIdx;
+     nextRowIdx = mainHeaderRowIdx;
+     while (parent !== undefined) {
 @@ -760,7 +760,7 @@ function useColumnWidths(columns, viewportColumns, templateColumns, gridRef, gri
        return hasChanges ? newMeasuredColumnWidths : measuredColumnWidths;
      });
@@ -169,7 +231,15 @@ index 0214c29..60b4932 100644
    const [gridRef, gridWidth, gridHeight, horizontalScrollbarHeight] = useGridDimensions();
    const {
      columns,
-@@ -3303,5 +3309,5 @@ function textEditor({
+@@ -2251,6 +2257,7 @@ function DataGrid(props, ref) {
+     const isCellEvent = event.target.closest('.rdg-cell') !== null;
+     const isRowEvent = isTreeGrid && event.target === focusSinkRef.current;
+     if (!isCellEvent && !isRowEvent) return;
++    if (!selectedCellIsWithinSelectionBounds) return;
+     const {
+       keyCode
+     } = event;
+@@ -3303,5 +3310,5 @@ function textEditor({
    });
  }
 
