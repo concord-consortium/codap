@@ -14,7 +14,7 @@ function createMockLeafletMap() {
 }
 
 function createMouseEvent(overrides: Partial<MouseEvent> = {}): MouseEvent {
-  return { clientX: 100, clientY: 100, shiftKey: false, ...overrides } as MouseEvent
+  return { clientX: 100, clientY: 100, shiftKey: false, detail: 1, ...overrides } as MouseEvent
 }
 
 describe("useMapClickWithDoubleClickZoom", () => {
@@ -55,10 +55,9 @@ describe("useMapClickWithDoubleClickZoom", () => {
       result.current.wrapClickHandler(onClick, createMouseEvent())
     })
 
-    // Second click within the delay window
+    // Second click with detail: 2 (browser-reported double-click)
     act(() => {
-      jest.advanceTimersByTime(100)
-      result.current.wrapClickHandler(onClick, createMouseEvent())
+      result.current.wrapClickHandler(onClick, createMouseEvent({ detail: 2 } as Partial<MouseEvent>))
     })
 
     // Let all timers expire
@@ -76,10 +75,9 @@ describe("useMapClickWithDoubleClickZoom", () => {
       result.current.wrapClickHandler(onClick, createMouseEvent())
     })
 
-    // Second click
+    // Second click with detail: 2
     act(() => {
-      jest.advanceTimersByTime(100)
-      result.current.wrapClickHandler(onClick, createMouseEvent())
+      result.current.wrapClickHandler(onClick, createMouseEvent({ detail: 2 } as Partial<MouseEvent>))
     })
 
     expect(leafletMap.setZoomAround).toHaveBeenCalledWith(expect.any(LatLng), 6)
@@ -89,23 +87,22 @@ describe("useMapClickWithDoubleClickZoom", () => {
     const leafletMap = createMockLeafletMap()
     const { result } = renderHook(() => useMapClickWithDoubleClickZoom(leafletMap))
     const onClick = jest.fn()
-    const shiftEvent = createMouseEvent({ shiftKey: true } as Partial<MouseEvent>)
 
     // First click with shift
     act(() => {
-      result.current.wrapClickHandler(onClick, shiftEvent)
+      result.current.wrapClickHandler(onClick, createMouseEvent({ shiftKey: true } as Partial<MouseEvent>))
     })
 
-    // Second click with shift
+    // Second click with shift + detail: 2
     act(() => {
-      jest.advanceTimersByTime(100)
-      result.current.wrapClickHandler(onClick, shiftEvent)
+      result.current.wrapClickHandler(onClick,
+        createMouseEvent({ shiftKey: true, detail: 2 } as Partial<MouseEvent>))
     })
 
     expect(leafletMap.setZoomAround).toHaveBeenCalledWith(expect.any(LatLng), 4)
   })
 
-  it("treats two clicks far apart in time as separate single clicks", () => {
+  it("treats two single clicks (detail: 1) as separate actions", () => {
     const leafletMap = createMockLeafletMap()
     const { result } = renderHook(() => useMapClickWithDoubleClickZoom(leafletMap))
     const onClick1 = jest.fn()
@@ -116,13 +113,11 @@ describe("useMapClickWithDoubleClickZoom", () => {
       result.current.wrapClickHandler(onClick1, createMouseEvent())
     })
 
-    // Wait for the first click's timer to fire
     act(() => { jest.advanceTimersByTime(kDoubleClickDelay) })
     expect(onClick1).toHaveBeenCalledTimes(1)
 
-    // Second click, well after the delay window
+    // Second click, also detail: 1
     act(() => {
-      jest.advanceTimersByTime(500)
       result.current.wrapClickHandler(onClick2, createMouseEvent())
     })
 
@@ -140,13 +135,15 @@ describe("useMapClickWithDoubleClickZoom", () => {
       result.current.wrapClickHandler(onClick, createMouseEvent())
     })
 
-    // Second click
+    // Second click with detail: 2
     act(() => {
-      jest.advanceTimersByTime(100)
-      result.current.wrapClickHandler(onClick, createMouseEvent())
+      result.current.wrapClickHandler(onClick, createMouseEvent({ detail: 2 } as Partial<MouseEvent>))
     })
 
-    // onClick should not be called
+    // Advance past the double-click delay to ensure no delayed callback fires
+    act(() => { jest.advanceTimersByTime(kDoubleClickDelay) })
+
+    // onClick should not be called — pending single-click was cancelled, and no zoom without a map
     expect(onClick).not.toHaveBeenCalled()
   })
 })

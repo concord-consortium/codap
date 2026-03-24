@@ -4,6 +4,7 @@ import { IMapContentModel } from "../models/map-content-model"
 import { kDoubleClickDelay } from "../../constants" // Use the constant directly
 
 // JSDom doesn't implement PointerEvent; polyfill it from MouseEvent.
+const OriginalPointerEvent = window.PointerEvent
 class MockPointerEvent extends MouseEvent {
   pointerId: number
   constructor(type: string, init?: PointerEventInit) {
@@ -12,18 +13,18 @@ class MockPointerEvent extends MouseEvent {
   }
 }
 window.PointerEvent = MockPointerEvent as any
+afterAll(() => {
+  if (OriginalPointerEvent) {
+    window.PointerEvent = OriginalPointerEvent
+  } else {
+    delete (window as any).PointerEvent
+  }
+})
 
 // JSDom marks isTrusted as a non-configurable own property (always false) on
 // every Event instance. We intercept the capture-phase pointerdown listener
 // and call it directly with a plain object where isTrusted = true.
 let capturedPointerDownHandler: ((e: any) => void) | undefined
-const origAddEventListener = window.addEventListener.bind(window)
-jest.spyOn(window, "addEventListener").mockImplementation(
-  ((type: string, handler: any, options?: any) => {
-    if (type === "pointerdown") capturedPointerDownHandler = handler
-    origAddEventListener(type, handler, options)
-  }) as typeof window.addEventListener
-)
 
 // Mock useTileSelectionContext
 const mockIsTileSelected = jest.fn().mockReturnValue(true)
@@ -88,6 +89,13 @@ describe("useMapClickDeselect", () => {
 
   beforeEach(() => {
     jest.useFakeTimers()
+    const origAddEventListener = window.addEventListener.bind(window)
+    jest.spyOn(window, "addEventListener").mockImplementation(
+      ((type: string, handler: any, options?: any) => {
+        if (type === "pointerdown") capturedPointerDownHandler = handler
+        origAddEventListener(type, handler, options)
+      }) as typeof window.addEventListener
+    )
     mockIsTileSelected.mockReturnValue(true)
     mockSelectAllCases.mockClear()
     leafletMap = createMockLeafletMap()
@@ -95,8 +103,9 @@ describe("useMapClickDeselect", () => {
   })
 
   afterEach(() => {
+    capturedPointerDownHandler = undefined
     jest.useRealTimers()
-    jest.clearAllMocks()
+    jest.restoreAllMocks()
   })
 
   // Render the hook and simulate the common pointerdown → click sequence.
