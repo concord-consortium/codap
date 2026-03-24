@@ -76,7 +76,11 @@ export const ComponentResizeWidgets = observer(function ComponentResizeWidgets(p
         }
       </Portal>
       {!(isFixedWidth && isFixedHeight) &&
-        <div className="codap-component-corner bottom-left" onPointerDown={handleBottomLeftPointerDown}/>
+        <div
+          aria-hidden="true"
+          className="codap-component-corner bottom-left"
+          onPointerDown={handleBottomLeftPointerDown}
+        />
       }
       {!(isFixedWidth && isFixedHeight) &&
         <div className="codap-component-corner bottom-right">
