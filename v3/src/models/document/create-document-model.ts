@@ -67,14 +67,14 @@ export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
     () => ({ canUndo: document.canUndo, canRedo: document.canRedo }),
     ({ canUndo, canRedo }, prev) => {
       if (!document.content) return
-      if (prev.canUndo && !canUndo) {
+      if (prev?.canUndo && !canUndo) {
         document.content.broadcastMessage({
           action: "notify",
           resource: "undoChangeNotice",
           values: { operation: "clearUndo", canUndo, canRedo }
         }, () => {})
       }
-      if (prev.canRedo && !canRedo) {
+      if (prev?.canRedo && !canRedo) {
         document.content.broadcastMessage({
           action: "notify",
           resource: "undoChangeNotice",

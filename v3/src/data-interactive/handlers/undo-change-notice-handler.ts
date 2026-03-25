@@ -71,8 +71,7 @@ export const diUndoChangeNoticeHandler: DIHandler = {
         if (!webViewContent) {
           return errorResult("Interactive frame content not found")
         }
-        const documentContent = getDocumentContentFromNode(interactiveFrame)
-        if (!documentContent) {
+        if (!getDocumentContentFromNode(interactiveFrame)) {
           return errorResult("Document content not found")
         }
         const tileId = interactiveFrame.id
