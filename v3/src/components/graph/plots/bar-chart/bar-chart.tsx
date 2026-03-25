@@ -153,7 +153,7 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, render
                 const maxInCell = bins[primeSplitCat]?.[secSplitCat]?.[primeCat]?.[secCat] ?? 0
                 const { x, y, barWidth, barHeight } = barCoverDimensions({
                   subPlotCells, cellIndices: cellData.cell, layout, primCatsCount, maxInCell,
-                  denominator: dataConfig.allPlottedCases().length,
+                  denominator: Math.max(1, dataConfig.allPlottedCases().length),
                   isPercentAxis: barChartModel.breakdownType === "percent"
                 })
                 const caseIDs = dataConfig.getCasesForCategoryValues(
