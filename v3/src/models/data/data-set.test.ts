@@ -1,8 +1,10 @@
 import { isEqual, isEqualWith } from "lodash"
 import { applyAction, clone, destroy, getSnapshot, onAction, onSnapshot } from "mobx-state-tree"
 import { uniqueName } from "../../utilities/js-utils"
+import { onAnyAction } from "../../utilities/mst-utils"
 import { DataSet, fromCanonical, isFilterFormulaDataSet, nullItemData, toCanonical } from "./data-set"
 import { createDataSet } from "./data-set-conversion"
+import { isCaseValueChangeAction } from "./data-set-actions"
 import { ICaseID } from "./data-set-types"
 
 let message = () => ""
@@ -883,4 +885,209 @@ test("Filter formula", () => {
 
   data.setFilterFormulaError("Error")
   expect(data.filterFormulaError).toBe("Error")
+})
+
+test("setComputedCaseValues writes values correctly", () => {
+  const data = DataSet.create({ name: "data" })
+  const strAttr = data.addAttribute({ name: "str" })
+  const numAttr = data.addAttribute({ name: "num" })
+  data.addCases(toCanonical(data, [
+    { str: "a", num: 1 },
+    { str: "b", num: 2 },
+    { str: "c", num: 3 }
+  ]))
+  const [id1, id2, id3] = data.itemIds
+
+  // write computed values
+  data.setComputedCaseValues([
+    { __id__: id1, [numAttr.id]: 10 },
+    { __id__: id2, [numAttr.id]: 20 },
+    { __id__: id3, [numAttr.id]: 30 }
+  ], [numAttr.id])
+
+  expect(data.getNumeric(id1, numAttr.id)).toBe(10)
+  expect(data.getNumeric(id2, numAttr.id)).toBe(20)
+  expect(data.getNumeric(id3, numAttr.id)).toBe(30)
+  // str values should be unchanged
+  expect(data.getValue(id1, strAttr.id)).toBe("a")
+})
+
+test("setComputedCaseValues produces same results as setCaseValues", () => {
+  const data1 = DataSet.create({ name: "data1" })
+  const data2 = DataSet.create({ name: "data2" })
+  const attr1 = data1.addAttribute({ name: "val" })
+  const attr2 = data2.addAttribute({ name: "val" })
+  data1.addCases([{ __id__: "i1", [attr1.id]: "0" }, { __id__: "i2", [attr1.id]: "0" }])
+  data2.addCases([{ __id__: "i1", [attr2.id]: "0" }, { __id__: "i2", [attr2.id]: "0" }])
+
+  data1.setCaseValues([
+    { __id__: "i1", [attr1.id]: 42 },
+    { __id__: "i2", [attr1.id]: "hello" }
+  ])
+  data2.setComputedCaseValues([
+    { __id__: "i1", [attr2.id]: 42 },
+    { __id__: "i2", [attr2.id]: "hello" }
+  ], [attr2.id])
+
+  expect(data2.getValue("i1", attr2.id)).toBe(data1.getValue("i1", attr1.id))
+  expect(data2.getValue("i2", attr2.id)).toBe(data1.getValue("i2", attr1.id))
+  expect(data2.getNumeric("i1", attr2.id)).toBe(data1.getNumeric("i1", attr1.id))
+})
+
+test("setComputedCaseValues fires onAnyAction once per call", () => {
+  const data = DataSet.create({ name: "data" })
+  const attr = data.addAttribute({ name: "val" })
+  data.addCases([{ __id__: "i1", [attr.id]: "0" }, { __id__: "i2", [attr.id]: "0" }])
+
+  const actionNames: string[] = []
+  const disposer = onAnyAction(data, action => {
+    actionNames.push(action.name)
+  })
+
+  data.setComputedCaseValues([
+    { __id__: "i1", [attr.id]: 10 },
+    { __id__: "i2", [attr.id]: 20 }
+  ], [attr.id])
+
+  // should fire setComputedCaseValues once + incChangeCount once, not per-item
+  expect(actionNames.filter(n => n === "setComputedCaseValues")).toHaveLength(1)
+  expect(actionNames.filter(n => n === "setValue")).toHaveLength(0)
+  disposer()
+})
+
+test("setComputedCaseValues is recognized by isCaseValueChangeAction", () => {
+  const data = DataSet.create({ name: "data" })
+  const attr = data.addAttribute({ name: "val" })
+  data.addCases([{ __id__: "i1", [attr.id]: "0" }])
+
+  let matched = false
+  const disposer = onAnyAction(data, action => {
+    if (isCaseValueChangeAction(action)) matched = true
+  })
+
+  data.setComputedCaseValues([{ __id__: "i1", [attr.id]: 99 }], [attr.id])
+  expect(matched).toBe(true)
+
+  // also verify setCaseValues still matches
+  matched = false
+  data.setCaseValues([{ __id__: "i1", [attr.id]: 100 }])
+  expect(matched).toBe(true)
+  disposer()
+})
+
+test("setComputedCaseValues works with hierarchical data", () => {
+  const data = DataSet.create({ name: "data" })
+  const parentCollection = data.addCollection({ name: "Parent" })
+  data.addAttribute({ name: "group" }, { collection: parentCollection.id })
+  const childAttr = data.addAttribute({ name: "val" })
+  data.addCases(toCanonical(data, [
+    { group: "A", val: 1 },
+    { group: "A", val: 2 },
+    { group: "B", val: 3 }
+  ]))
+  data.validateCases()
+
+  const [id1, id2, id3] = data.itemIds
+
+  // write computed values for a child collection attribute
+  data.setComputedCaseValues([
+    { __id__: id1, [childAttr.id]: 10 },
+    { __id__: id2, [childAttr.id]: 20 },
+    { __id__: id3, [childAttr.id]: 30 }
+  ], [childAttr.id])
+
+  expect(data.getNumeric(id1, childAttr.id)).toBe(10)
+  expect(data.getNumeric(id2, childAttr.id)).toBe(20)
+  expect(data.getNumeric(id3, childAttr.id)).toBe(30)
+})
+
+test("invalidateCases(false) skips regrouping", () => {
+  const data = DataSet.create({ name: "data" })
+  const parentCollection = data.addCollection({ name: "Parent" })
+  data.addAttribute({ name: "group" }, { collection: parentCollection.id })
+  data.addAttribute({ name: "val" })
+  data.addCases(toCanonical(data, [
+    { group: "A", val: 1 },
+    { group: "A", val: 2 },
+    { group: "B", val: 3 }
+  ]))
+  data.validateCases()
+
+  // record the case groups before invalidation
+  const caseGroupsBefore = data.collections[0].caseGroups.length
+
+  // invalidate without regrouping
+  data.invalidateCases(false)
+  expect(data.isValidCases).toBe(false)
+
+  // validate — should NOT rebuild case groups
+  data.validateCases()
+  expect(data.isValidCases).toBe(true)
+  expect(data.collections[0].caseGroups.length).toBe(caseGroupsBefore)
+
+  // now invalidate WITH regrouping
+  data.invalidateCases(true)
+  data.validateCases()
+  expect(data.isValidCases).toBe(true)
+  // groups should still exist after full regrouping
+  expect(data.collections[0].caseGroups.length).toBe(caseGroupsBefore)
+})
+
+test("invalidateCases(false) accumulates with invalidateCases(true)", () => {
+  const data = DataSet.create({ name: "data" })
+  const parentCollection = data.addCollection({ name: "Parent" })
+  data.addAttribute({ name: "group" }, { collection: parentCollection.id })
+  data.addAttribute({ name: "val" })
+  data.addCases(toCanonical(data, [
+    { group: "A", val: 1 },
+    { group: "B", val: 2 }
+  ]))
+  data.validateCases()
+
+  // invalidate without regrouping, then with regrouping
+  data.invalidateCases(false)
+  data.invalidateCases(true)
+
+  // the true should win — regrouping should happen
+  expect(data.needsRegrouping).toBe(true)
+  data.validateCases()
+  expect(data.needsRegrouping).toBe(false)
+})
+
+test("setComputedCaseValues skips regrouping for child collection attributes", () => {
+  const data = DataSet.create({ name: "data" })
+  const parentCollection = data.addCollection({ name: "Parent" })
+  data.addAttribute({ name: "group" }, { collection: parentCollection.id })
+  const childAttr = data.addAttribute({ name: "val" })
+  data.addCases(toCanonical(data, [
+    { group: "A", val: 1 },
+    { group: "B", val: 2 }
+  ]))
+  data.validateCases()
+
+  // setComputedCaseValues for child attr should not trigger regrouping
+  data.setComputedCaseValues([
+    { __id__: data.itemIds[0], [childAttr.id]: 99 }
+  ], [childAttr.id])
+
+  expect(data.needsRegrouping).toBe(false)
+})
+
+test("setComputedCaseValues triggers regrouping for parent collection attributes", () => {
+  const data = DataSet.create({ name: "data" })
+  const parentCollection = data.addCollection({ name: "Parent" })
+  const parentAttr = data.addAttribute({ name: "group" }, { collection: parentCollection.id })
+  data.addAttribute({ name: "val" })
+  data.addCases(toCanonical(data, [
+    { group: "A", val: 1 },
+    { group: "B", val: 2 }
+  ]))
+  data.validateCases()
+
+  // setComputedCaseValues for parent attr should trigger regrouping
+  data.setComputedCaseValues([
+    { __id__: data.itemIds[0], [parentAttr.id]: "C" }
+  ], [parentAttr.id])
+
+  expect(data.needsRegrouping).toBe(true)
 })

@@ -48,7 +48,7 @@ import {
 } from "mobx-state-tree"
 import pluralize from "pluralize"
 import { Attribute, IAttribute, IAttributeSnapshot } from "./attribute"
-import { importValueToString } from "./attribute-types"
+import { IValueType, importValueToString } from "./attribute-types"
 import {
   CollectionModel, ICollectionModel, ICollectionModelSnapshot, IItemData, isCollectionModel, syncCollectionLinks
 } from "./collection"
@@ -1334,7 +1334,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
 
       // Write formula-computed values directly to volatile arrays, bypassing per-item MST actions.
       // This is an MST action so that onAnyAction listeners fire once for the whole batch, but
-      // internally it uses Attribute.setComputedValue (a non-action volatile method) to avoid the
+      // internally it uses Attribute.setComputedValues (a non-action volatile method) to avoid the
       // overhead of ~N individual attribute.setValue() MST action calls.
       // `affectedAttributes` is required so listeners know which attributes changed.
       setComputedCaseValues(cases: ICase[], affectedAttributes: string[]) {
@@ -1349,13 +1349,16 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
           if (!needsRegrouping && self.getCollectionForAttribute(attrId) !== self.childCollection) {
             needsRegrouping = true
           }
+          const indices: number[] = []
+          const values: IValueType[] = []
           for (const item of items) {
             const index = self.getItemIndex(item.__id__)
             if (index != null && item[attrId] !== undefined) {
-              attr.setComputedValue(index, item[attrId])
+              indices.push(index)
+              values.push(item[attrId])
             }
           }
-          attr.incChangeCount()
+          attr.setComputedValues(indices, values)
         }
         self.invalidateCases(needsRegrouping)
       },

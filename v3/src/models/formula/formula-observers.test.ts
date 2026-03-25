@@ -123,6 +123,15 @@ describe("observeLocalAttributes", () => {
       expect(recalculateCallback).toHaveBeenCalledWith([caseUpdates[0]])
       dispose()
     })
+
+    it("should call recalculateCallback for setComputedCaseValues", () => {
+      const recalculateCallback = jest.fn()
+      const dispose = observeLocalAttributes(formulaDependenciesWithoutAggregate, dataSet, recalculateCallback)
+      const caseUpdates = [{ __id__: "case1", attr1: 1 }, { __id__: "case2", attr321: 2 }]
+      dataSet.setComputedCaseValues(caseUpdates, ["attr1"])
+      expect(recalculateCallback).toHaveBeenCalledWith([caseUpdates[0]])
+      dispose()
+    })
   })
 
   describe("when there is aggregate dependency", () => {
@@ -181,9 +190,12 @@ describe("observeLookupDependencies", () => {
     dataSet.setCaseValues([{ __id__: "case2", attr1: 1 }])
     expect(recalculateCallback).toHaveBeenNthCalledWith(3, "ALL_CASES")
 
+    dataSet.setComputedCaseValues([{ __id__: "case2", attr1: 2 }], ["attr1"])
+    expect(recalculateCallback).toHaveBeenNthCalledWith(4, "ALL_CASES")
+
     dispose()
     dataSet.addCases(newCases)
-    expect(recalculateCallback).toHaveBeenCalledTimes(3)
+    expect(recalculateCallback).toHaveBeenCalledTimes(4)
   })
 })
 

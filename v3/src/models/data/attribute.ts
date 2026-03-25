@@ -318,6 +318,16 @@ export const Attribute = V2Model.named("Attribute").props({
           self.numValues[index] = self.toNumeric(self.strValues[index])
         }
       }
+    },
+
+    // Batch version of setComputedValue. Writes multiple computed/formula values directly to the
+    // volatile arrays without MST action overhead and calls incChangeCount() once at the end.
+    setComputedValues(indices: number[], values: IValueType[]) {
+      const length = Math.min(indices.length, values.length)
+      for (let i = 0; i < length; i++) {
+        this.setComputedValue(indices[i], values[i])
+      }
+      self.incChangeCount()
     }
 
   }))
