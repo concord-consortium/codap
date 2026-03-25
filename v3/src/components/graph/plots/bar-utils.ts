@@ -108,8 +108,8 @@ export const barCompressionFactorForCase = (caseID: string, graphModel?: IGraphC
   else {
     const hasLegend = !!dataConfiguration?.attributeID('legend')
     const denominator = hasLegend
-      ? dataConfiguration?.numPrimaryCategoryCases(caseID) ?? 1
-      : dataConfiguration?.allPlottedCases().length ?? 1
+      ? dataConfiguration?.numPrimaryCategoryCases(caseID) || 1
+      : dataConfiguration?.allPlottedCases().length || 1
     return 100 / denominator
   }
 }

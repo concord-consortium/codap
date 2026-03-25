@@ -212,7 +212,7 @@ export const BarChartModel = DotChartModel
         return computeTipForFormulaBar(casesInSubPlot[0], casePrimaryValue || "")
       } else {
         const firstCount = legendAttrId ? legendMatchesInSubplot : casesInSubPlot.length
-        const allPlottedCount = self.dataConfiguration?.allPlottedCases().length ?? totalCases
+        const allPlottedCount = self.dataConfiguration?.allPlottedCases().length || totalCases
         const secondCount = legendAttrId ? casesInSubPlot.length : allPlottedCount
         const percent = float1(100 * firstCount / secondCount)
         // <n> of <m> <category> (<p>%) are <legend category>
