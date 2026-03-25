@@ -120,13 +120,39 @@ export class AttributeFormulaAdapter extends FormulaManagerAdapter {
     if (!dataSet) {
       throw new Error(`Dataset with id "${extraMetadata.dataSetId}" not found`)
     }
-    const results = prf.measure("Formula.computeFormula", () =>
+    const allResults = prf.measure("Formula.computeFormula", () =>
       this.computeFormula(formulaContext, extraMetadata, casesToRecalculateDesc)
     )
-    if (results && results.length > 0) {
-      prf.measure("Formula.setComputedCaseValues", () =>
-        dataSet.setComputedCaseValues(results, [extraMetadata.attributeId])
-      )
+    if (allResults && allResults.length > 0) {
+      // Filter to only cases whose computed value actually changed, to avoid unnecessary
+      // downstream work (attribute change notifications, filtered case updates, cascading
+      // formula recalculations, tile re-renders).
+      const { attributeId } = extraMetadata
+      const attr = dataSet.attrFromID(attributeId)
+      // Filter to only cases whose computed value actually changed, to avoid unnecessary
+      // downstream work (attribute change notifications, filtered case updates, cascading
+      // formula recalculations, tile re-renders).
+      const changedResults = attr
+        ? prf.measure("Formula.filterChanged", () =>
+            allResults.filter(result => {
+              const index = dataSet.getItemIndexForCaseOrItem(result.__id__)
+              if (index == null) return true
+              const newValue = result[attributeId]
+              const currentStr = attr.strValue(index)
+              if (typeof newValue === "number") {
+                return newValue.toString() !== currentStr
+              } else if (typeof newValue === "string") {
+                return newValue.trim() !== currentStr
+              }
+              return true // write unknown types unconditionally
+            })
+          )
+        : allResults
+      if (changedResults.length > 0) {
+        prf.measure("Formula.setComputedCaseValues", () =>
+          dataSet.setComputedCaseValues(changedResults, [attributeId])
+        )
+      }
     }
   }
 
