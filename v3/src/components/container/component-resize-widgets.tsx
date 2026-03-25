@@ -7,6 +7,7 @@ import { useTileContainerContext } from "../../hooks/use-tile-container-context"
 import { IFreeTileLayout } from "../../models/document/free-tile-row"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { uiState } from "../../models/ui-state"
+import { t } from "../../utilities/translation/translate"
 import { ComponentResizeBorder } from "../component-resize-border"
 
 interface IProps {
@@ -14,10 +15,17 @@ interface IProps {
   componentRef: React.RefObject<HTMLDivElement | null>
   isFixedWidth?: boolean
   isFixedHeight?: boolean
+  handleResizeBlur: () => void
+  handleResizeFocus: () => void
+  handleResizeKeyDown: (e: React.KeyboardEvent) => void
   handleResizePointerDown: (e: React.PointerEvent, _tileLayout: IFreeTileLayout, direction: string) => void
 }
+
 export const ComponentResizeWidgets = observer(function ComponentResizeWidgets(props: IProps) {
-  const { tile, componentRef, isFixedWidth, isFixedHeight, handleResizePointerDown } = props
+  const {
+    tile, componentRef, isFixedWidth, isFixedHeight,
+    handleResizeBlur, handleResizeFocus, handleResizeKeyDown, handleResizePointerDown
+  } = props
   const tileLayout = useFreeTileLayoutContext()
   const containerRef = useTileContainerContext()
 
@@ -70,12 +78,27 @@ export const ComponentResizeWidgets = observer(function ComponentResizeWidgets(p
         }
       </Portal>
       {!(isFixedWidth && isFixedHeight) &&
-        <div className="codap-component-corner bottom-left" onPointerDown={handleBottomLeftPointerDown}/>
+        <div
+          aria-hidden="true"
+          className="codap-component-corner bottom-left"
+          onPointerDown={handleBottomLeftPointerDown}
+        />
       }
       {!(isFixedWidth && isFixedHeight) &&
-        <div className="codap-component-corner bottom-right" onPointerDown={handleBottomRightPointerDown}>
-          {(uiState.isFocusedTile(tile.id)) &&
-            <ResizeHandle className="component-resize-handle"/>}
+        <div className="codap-component-corner bottom-right">
+          <button
+            aria-label={t("DG.Component.resizeComponent.ariaLabel")}
+            className="component-resize-button"
+            data-testid="component-resize-button"
+            type="button"
+            onBlur={handleResizeBlur}
+            onFocus={handleResizeFocus}
+            onKeyDown={handleResizeKeyDown}
+            onPointerDown={handleBottomRightPointerDown}
+          >
+            {uiState.isFocusedTile(tile.id) &&
+              <ResizeHandle className="component-resize-handle"/>}
+          </button>
         </div>
       }
     </>

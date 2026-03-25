@@ -1,10 +1,10 @@
-import { PointerEvent, useCallback } from "react"
+import { KeyboardEvent, PointerEvent, useCallback, useRef } from "react"
 import { useDocumentContainerContext } from "../../hooks/use-document-container-context"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { IFreeTileLayout, IFreeTileRow } from "../../models/document/free-tile-row"
 import { inBoundsScaling } from "../../models/document/inbounds-scaling"
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
-import { kDefaultMinWidth } from "../../models/tiles/tile-layout"
+import { kDefaultMinHeight, kDefaultMinWidth } from "../../models/tiles/tile-layout"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { updateTileNotification } from "../../models/tiles/tile-notifications"
 import { uiState } from "../../models/ui-state"
@@ -18,12 +18,53 @@ interface IProps {
   setChangingTileStyle: (style: Maybe<IChangingTileStyle>) => void
 }
 
+const kResizeIncrement = 20  // pixels per arrow keypress
+
 const getSafeTileWidth = (width?: number, minWidth = kDefaultMinWidth) => {
   return width != null ? Math.max(width, minWidth) : minWidth
 }
 
+const getSafeTileHeight = (height?: number, minHeight = kDefaultMinHeight) => {
+  return height != null ? Math.max(height, minHeight) : minHeight
+}
+
+// Builds an IChangingTileStyle from unscaled, already-clamped dimensions.
+// Handles inbounds scaling for display before new dimensions get saved to the model.
+const buildResizeDisplayStyle = (
+  left: number, top: number, width?: number, height?: number, zIndex?: number
+): IChangingTileStyle => {
+  const { scaleFactor } = inBoundsScaling
+  const inbounds = uiState.inboundsMode
+  return {
+    height: inbounds && height != null ? height * scaleFactor : height,
+    left: inbounds ? left * scaleFactor : left,
+    top: inbounds ? top * scaleFactor : top,
+    transition: "none",
+    width: inbounds && width != null ? width * scaleFactor : width,
+    zIndex
+  }
+}
+
 export function useTileResize({ row, tile, tileId, setChangingTileStyle }: IProps) {
   const containerRef = useDocumentContainerContext()
+
+  // Commits a resize to the model as a single undoable action.
+  // Used by both pointer-up and keyboard blur.
+  const commitResize = useCallback((
+    tileLayout: IFreeTileLayout, width?: number, height?: number, left?: number
+  ) => {
+    row.applyModelChange(() => {
+      tileLayout.setSize(width, height)
+      if (left != null) {
+        tileLayout.setPosition(left, tileLayout.y)
+      }
+    }, {
+      notify: () => updateTileNotification("resize", {}, tile),
+      undoStringKey: "DG.Undo.componentResize",
+      redoStringKey: "DG.Redo.componentResize",
+      log: logMessageWithReplacement("Resized component: %@", { tileID: tileLayout.tileId })
+    })
+  }, [row, tile])
 
   const handleResizePointerDown = useCallback((e: PointerEvent, tileLayout: IFreeTileLayout, direction: string) => {
     uiState.setFocusedTile(tileId)
@@ -89,47 +130,152 @@ export function useTileResize({ row, tile, tileId, setChangingTileStyle }: IProp
         }
       }
 
-      // Compute display values (scaled if in inbounds mode)
-      const displayLeft = uiState.inboundsMode ? resizingLeft * scaleFactor : resizingLeft
-      const displayTop = uiState.inboundsMode ? startTop * scaleFactor : startTop
-      const displayWidth = uiState.inboundsMode && resizingWidth != null
-        ? resizingWidth * scaleFactor
-        : resizingWidth
+      const clampedWidth = getSafeTileWidth(resizingWidth, tile.minWidth)
+      const clampedHeight = resizingHeight != null ? getSafeTileHeight(resizingHeight) : resizingHeight
 
-      setChangingTileStyle({
-        left: displayLeft,
-        top: displayTop,
-        width: getSafeTileWidth(displayWidth, tile.minWidth),
-        height: uiState.inboundsMode && resizingHeight != null
-          ? resizingHeight * scaleFactor
-          : resizingHeight,
-        zIndex: tileLayout.zIndex,
-        transition: "none"
-      })
+      const resizeStyle = buildResizeDisplayStyle(
+        resizingLeft, startTop, clampedWidth, clampedHeight, tileLayout.zIndex
+      )
+      setChangingTileStyle(resizeStyle)
     }
 
     const handlePointerUp = () => {
-      const newWidth = getSafeTileWidth(resizingWidth, tile.minWidth)
       document.body.removeEventListener("pointermove", handlePointerMove, { capture: true })
       document.body.removeEventListener("pointerup", handlePointerUp, { capture: true })
 
-      row.applyModelChange(() => {
-        // Store unscaled values in the model (they're already unscaled since we constrain in unscaled space)
-        tileLayout.setSize(newWidth, resizingHeight)
-        tileLayout.setPosition(resizingLeft, tileLayout.y)
-      }, {
-        notify: () => updateTileNotification("resize", {}, tile),
-        undoStringKey: "DG.Undo.componentResize",
-        redoStringKey: "DG.Redo.componentResize",
-        log: logMessageWithReplacement("Resized component: %@", { tileID: tileLayout.tileId })
-      })
+      const newWidth = getSafeTileWidth(resizingWidth, tile.minWidth)
+      const newHeight = resizingHeight != null ? getSafeTileHeight(resizingHeight) : undefined
+      const leftChanged = direction.includes("left") ? resizingLeft : undefined
+      commitResize(tileLayout, newWidth, newHeight, leftChanged)
 
       setChangingTileStyle(undefined)
     }
 
     document.body.addEventListener("pointermove", handlePointerMove, { capture: true })
     document.body.addEventListener("pointerup", handlePointerUp, { capture: true })
+  }, [commitResize, containerRef, setChangingTileStyle, tile, tileId])
+
+  // Accumulated keyboard resize state, persisted across keystrokes.
+  // Model is only updated on blur.
+  const keyboardResizeRef = useRef<{
+    startWidth: number | undefined
+    startHeight: number | undefined
+    currentWidth: number | undefined
+    currentHeight: number | undefined
+    widthChanged: boolean
+    heightChanged: boolean
+  } | null>(null)
+
+  const handleResizeFocus = useCallback(() => {
+    uiState.setFocusedTile(tileId)
+
+    const tileLayout: IFreeTileLayout | undefined = row.tiles.get(tileId)
+    if (!tileLayout) return
+
+    // Capture starting dimensions from the model.
+    keyboardResizeRef.current = {
+      startWidth: tileLayout.width,
+      startHeight: tileLayout.height,
+      currentWidth: tileLayout.width,
+      currentHeight: tileLayout.height,
+      widthChanged: false,
+      heightChanged: false
+    }
+  }, [row, tileId])
+
+  const handleResizeKeyDown = useCallback((e: KeyboardEvent) => {
+    const tileLayout: IFreeTileLayout | undefined = row.tiles.get(tileId)
+    const state = keyboardResizeRef.current
+    if (!tileLayout || !state) return
+
+    let { currentWidth, currentHeight } = state
+
+    switch (e.key) {
+      case "ArrowRight":
+        if (tile.isResizable.width && currentWidth != null) {
+          currentWidth = currentWidth + kResizeIncrement
+          state.widthChanged = true
+        }
+        break
+      case "ArrowLeft":
+        if (tile.isResizable.width && currentWidth != null) {
+          currentWidth = Math.max(currentWidth - kResizeIncrement, tile.minWidth)
+          state.widthChanged = state.widthChanged || currentWidth !== state.currentWidth
+        }
+        break
+      case "ArrowDown":
+        if (tile.isResizable.height && currentHeight != null) {
+          currentHeight = currentHeight + kResizeIncrement
+          state.heightChanged = true
+        }
+        break
+      case "ArrowUp":
+        if (tile.isResizable.height && currentHeight != null) {
+          currentHeight = Math.max(currentHeight - kResizeIncrement, kDefaultMinHeight)
+          state.heightChanged = state.heightChanged || currentHeight !== state.currentHeight
+        }
+        break
+      default:
+        return  // don't prevent default for other keys
+    }
+
+    if (currentWidth === state.currentWidth && currentHeight === state.currentHeight) return
+
+    e.preventDefault()
+
+    state.currentWidth = currentWidth
+    state.currentHeight = currentHeight
+
+    // Apply inbounds constraints
+    const { scaleFactor } = inBoundsScaling
+    const componentInfo = getTileComponentInfo(tile.content.type)
+    const hasInspector = !!componentInfo?.InspectorPanel
+    const inspectorWidth = hasInspector ? kInspectorPanelWidth : 0
+
+    if (uiState.inboundsMode) {
+      const containerWidth = containerRef.current?.clientWidth ?? Infinity
+      const containerHeight = containerRef.current?.clientHeight ?? Infinity
+
+      if (currentWidth != null) {
+        const maxWidth = (containerWidth - tileLayout.x * scaleFactor - inspectorWidth) / scaleFactor
+        currentWidth = Math.min(currentWidth, maxWidth)
+        state.currentWidth = currentWidth
+      }
+      if (currentHeight != null) {
+        const maxHeight = (containerHeight - tileLayout.y * scaleFactor) / scaleFactor
+        currentHeight = Math.min(currentHeight, maxHeight)
+        state.currentHeight = currentHeight
+      }
+    }
+
+    const clampedWidth = state.widthChanged ? getSafeTileWidth(currentWidth, tile.minWidth) : currentWidth
+    const clampedHeight = currentHeight != null && state.heightChanged
+      ? getSafeTileHeight(currentHeight)
+      : currentHeight
+
+    const resizeStyle = buildResizeDisplayStyle(
+      tileLayout.x, tileLayout.y, clampedWidth, clampedHeight, tileLayout.zIndex
+    )
+    setChangingTileStyle(resizeStyle)
   }, [containerRef, row, setChangingTileStyle, tile, tileId])
 
-  return { handleResizePointerDown }
+  const handleResizeBlur = useCallback(() => {
+    const tileLayout: IFreeTileLayout | undefined = row.tiles.get(tileId)
+    const state = keyboardResizeRef.current
+    if (!tileLayout || !state) return
+
+    const { startWidth, startHeight, currentWidth, currentHeight, widthChanged, heightChanged } = state
+    keyboardResizeRef.current = null
+    setChangingTileStyle(undefined)
+
+    if (!widthChanged && !heightChanged) return
+
+    commitResize(
+      tileLayout,
+      widthChanged ? getSafeTileWidth(currentWidth, tile.minWidth) : startWidth,
+      heightChanged ? getSafeTileHeight(currentHeight) : startHeight
+    )
+  }, [commitResize, row, setChangingTileStyle, tile, tileId])
+
+  return { handleResizeBlur, handleResizeFocus, handleResizeKeyDown, handleResizePointerDown }
 }

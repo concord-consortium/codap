@@ -67,6 +67,73 @@ context("Component UI", () => {
       })
     })
   })
+  it("resizes components with keyboard arrow keys", () => {
+    c.getComponentTile("table").parent().then($tileEl => {
+      const tileEl = $tileEl[0]
+
+      // Focus the tile first, then focus the resize button
+      c.getComponentTitleBar("table").trigger("click", { force: true })
+      cy.wait(100)
+      c.getResizeControl("table").focus()
+      cy.wait(100)
+
+      // Press ArrowRight to increase width
+      let widthBefore: number
+      cy.then(() => {
+        widthBefore = tileEl.getBoundingClientRect().width
+      })
+      c.getResizeControl("table").type("{rightarrow}{rightarrow}{rightarrow}")
+      cy.wait(100)
+
+      cy.then(() => {
+        const widthAfter = tileEl.getBoundingClientRect().width
+        expect(widthAfter).to.be.greaterThan(widthBefore)
+        widthBefore = widthAfter
+      })
+
+      // Press ArrowLeft to decrease width
+      c.getResizeControl("table").type("{leftarrow}{leftarrow}{leftarrow}")
+      cy.wait(100)
+
+      cy.then(() => {
+        const widthAfter = tileEl.getBoundingClientRect().width
+        expect(widthAfter).to.be.lessThan(widthBefore)
+      })
+
+      // Press ArrowDown to increase height
+      let heightBefore: number
+      cy.then(() => {
+        heightBefore = tileEl.getBoundingClientRect().height
+      })
+      c.getResizeControl("table").type("{downarrow}{downarrow}{downarrow}")
+      cy.wait(100)
+
+      cy.then(() => {
+        const heightAfter = tileEl.getBoundingClientRect().height
+        expect(heightAfter).to.be.greaterThan(heightBefore)
+        heightBefore = heightAfter
+      })
+
+      // Press ArrowUp to decrease height
+      c.getResizeControl("table").type("{uparrow}{uparrow}{uparrow}")
+      cy.wait(100)
+
+      cy.then(() => {
+        const heightAfter = tileEl.getBoundingClientRect().height
+        expect(heightAfter).to.be.lessThan(heightBefore)
+      })
+    })
+  })
+  it("focuses tile when resize button receives focus", () => {
+    // Blur the table first
+    c.getComponentTitleBar("text").trigger("click", { force: true })
+    c.getComponentTile("table").should("not.have.class", "focused")
+
+    // Focus the resize button
+    c.getResizeControl("table").focus()
+    cy.wait(100)
+    c.getComponentTile("table").should("have.class", "focused")
+  })
   it("puts tile in focus when the tile's resize elements are clicked", () => {
     c.getComponentTile("table").should("not.have.class", "focused")
     c.getResizeControl("table").trigger("pointerdown")

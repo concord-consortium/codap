@@ -68,7 +68,7 @@ export const ComponentElements = {
     return this.getComponentTile(component, index).find("[data-testid=component-close-button]")
   },
   getResizeControl(component: string, index = 0) {
-    return this.getComponentTile(component, index).parent().find(".codap-component-corner.bottom-right")
+    return this.getComponentTile(component, index).parent().find("[data-testid=component-resize-button]")
   },
   getResizeBorder(tileId: string, edge: string) {
     return cy.get(`[data-testid=resize-border-${tileId}-${edge}]`)

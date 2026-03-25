@@ -55,6 +55,7 @@ export function ComponentResizeBorder({ componentRef, edge, tileId, onPointerDow
 
   return (
     <div
+      aria-hidden="true"
       ref={setFloating}
       className={classes}
       style={{ ...floatingStyles, zIndex }}

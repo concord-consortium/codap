@@ -20,9 +20,6 @@ jobs:
       # being a string is actually considered true, so fromJSON is needed to turn `"false"` into `false`.
       # If we are on the 'main' branch then run the regression tests regardless of the PR label
       run_regression: ${{ fromJSON(steps.run_regression.outputs.value) || github.ref_name == 'main' }}
-      # Resolve Chrome stable version once so all parallel runners use the same version.
-      # This prevents Cypress parallel mismatch errors during Chrome version rollouts.
-      chrome-version: ${{ steps.chrome.outputs.chrome-version }}
     permissions:
       pull-requests: read
     steps:
@@ -45,16 +42,18 @@ jobs:
       - name: Get run_regression
         id: run_regression
         run: echo "value=${{ contains(fromJSON(steps.pr.outputs.labels).*.name, 'run regression') }}" >> $GITHUB_OUTPUT
-      - name: Resolve Chrome stable version
-        id: chrome
-        uses: browser-actions/setup-chrome@v2
-        with:
-          chrome-version: stable
   cypress:
     needs: ['prepare']
     # only run the regression tests if the PR is labeled.
     if: fromJSON(needs.prepare.outputs.run_regression)
     runs-on: ubuntu-latest
+    # Run in a container so every parallel runner has the exact same OS version,
+    # browser version, and dependencies. This prevents Cypress Cloud from rejecting
+    # parallel runs due to environment mismatches during GitHub runner image rollouts.
+    # Update this tag periodically to get newer Chrome/Node versions:
+    # https://hub.docker.com/r/cypress/browsers/tags
+    container:
+      image: cypress/browsers:node-22.19.0-chrome-139.0.7258.154-1-ff-142.0.1-edge-139.0.3405.125-1
     strategy:
       # when one test fails, DO NOT cancel the other
       # containers, because this will kill Cypress processes
@@ -65,11 +64,6 @@ jobs:
         # run multiple copies of the current job in parallel [1, ..., n]
         containers: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
     steps:
-      - uses: browser-actions/setup-chrome@v2
-        id: setup-chrome
-        with:
-          chrome-version: ${{ needs.prepare.outputs.chrome-version }}
-          install-dependencies: true
       - name: Checkout
         uses: actions/checkout@v4
       - name: Restore Webpack Cache
@@ -90,7 +84,7 @@ jobs:
           record: ${{ !!secrets.CYPRESS_RECORD_KEY }}
           # only do parallel if we have a record key
           parallel: ${{ !!secrets.CYPRESS_RECORD_KEY }}
-          browser: ${{ steps.setup-chrome.outputs.chrome-path }}
+          browser: chrome
           # TODO: this currently will re-run the smoke test, once we have a dedicated smoke
           # test that should be excluded
           # spec: cypress/e2e/**
