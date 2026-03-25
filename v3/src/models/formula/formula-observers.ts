@@ -4,7 +4,7 @@ import { mstReaction } from "../../utilities/mst-reaction"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { BoundaryManager } from "../boundaries/boundary-manager"
 import { IDataSet } from "../data/data-set"
-import { SetCaseValuesAction, SetComputedCaseValuesAction } from "../data/data-set-actions"
+import { SetCaseValuesAction } from "../data/data-set-actions"
 import { ICase } from "../data/data-set-types"
 import { IGlobalValueManager } from "../global/global-value-manager"
 import { CaseList } from "./formula-manager-types"
@@ -47,10 +47,12 @@ export const observeLocalAttributes = (formulaDependencies: IFormulaDependency[]
   const disposeDatasetValuesObserver = onAnyAction(localDataSet, mstAction => {
     let casesToRecalculate: CaseList = []
     switch (mstAction.name) {
-      case "setCaseValues":
-      case "setComputedCaseValues": {
-        // Recalculate cases with dependency attribute updated.
-        const cases = (mstAction as SetCaseValuesAction | SetComputedCaseValuesAction).args[0] || []
+      case "setCaseValues": {
+        // Recalculate for user-initiated value changes only.
+        // Formula-to-formula cascading (setComputedCaseValues) is handled by
+        // FormulaManager.recalculateDownstreamFormulas() using the static dependency graph,
+        // avoiding an extra round-trip through MST action dispatch.
+        const cases = (mstAction as SetCaseValuesAction).args[0] || []
         casesToRecalculate = getLocalAttrCasesToRecalculate(cases, localAttrDependencies)
         break
       }
@@ -94,10 +96,11 @@ export const observeLookupDependencies = (formulaDependencies: IFormulaDependenc
           casesToRecalculate = "ALL_CASES"
           break
         }
-        case "setCaseValues":
-        case "setComputedCaseValues": {
-          // recalculate cases with dependency attribute updated
-          const cases = (mstAction as SetCaseValuesAction | SetComputedCaseValuesAction).args[0] || []
+        case "setCaseValues": {
+          // Recalculate for user-initiated value changes only.
+          // Formula-to-formula cascading (setComputedCaseValues) is handled by
+          // FormulaManager.recalculateDownstreamFormulas() using the static dependency graph.
+          const cases = (mstAction as SetCaseValuesAction).args[0] || []
           casesToRecalculate = getLookupCasesToRecalculate(cases, dependency)
           break
         }
