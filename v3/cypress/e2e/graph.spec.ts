@@ -744,7 +744,6 @@ context("Graph UI", () => {
       // cy.get("[data-testid=bar-cover]").should("exist").and("have.length", 3)
       cy.get("[data-testid=bar-cover]").should("exist")
       cy.dragAttributeToTarget("table", "Sleep", "left")
-      cy.wait(1000)  // Wait for graph to process attribute change after drag from table
       cy.get(".axis-wrapper.left").find("[data-testid=attribute-label]").should("exist").and("have.text", "Sleep")
       cy.get("[data-testid=bar-cover]").should("not.exist")
     })
