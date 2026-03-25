@@ -21,6 +21,7 @@ import { IConnectingLineDescription } from "../../data-display/data-display-type
 import {isDisplayItemVisualPropsAction} from "../../data-display/models/display-model-actions"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
 import { IPoint, IPointMetadata, PixiPointRenderer, useLayerRenderer } from "../../data-display/renderer"
+import {useMapClickWithDoubleClickZoom} from "../hooks/use-map-click-with-double-click-zoom"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {IMapPointLayerModel} from "../models/map-point-layer-model"
 import {MapPointGrid} from "./map-point-grid"
@@ -52,6 +53,8 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
   const { renderer: layerRenderer } = useLayerRenderer(layerIndex)
   // Cast to PixiPointRenderer for access to pixi-specific methods
   const renderer = layerRenderer as PixiPointRenderer | undefined
+
+  const { wrapClickHandler } = useMapClickWithDoubleClickZoom(leafletMap)
 
   const connectingLine = useCallback((caseID: string) => {
     const {latId, longId} = mapLayerModel.pointAttributes || {}
@@ -211,7 +214,11 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
       return
     }
     renderer.onPointerClick = (event: PointerEvent, _point: IPoint, metadata: IPointMetadata) => {
-      handleClickOnCase(event, metadata.caseID, dataConfiguration.dataset)
+      // Delay selection so double-clicks trigger zoom without changing selection.
+      wrapClickHandler(
+        () => handleClickOnCase(event, metadata.caseID, dataConfiguration.dataset),
+        event
+      )
       // TODO PIXI: this doesn't seem to work in pixi. Note that this click will be propagated to the map container
       // and handled by its click handler (which will deselect the point). The current workaround is to disable
       // point deselection on map click, but it needs to be addressed better.
@@ -224,7 +231,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
         setTimeout(() => mapModel.ignoreLeafletClicks(false), 10)
       }
     }
-  }, [dataConfiguration.dataset, mapModel, renderer])
+  }, [dataConfiguration.dataset, mapModel, renderer, wrapClickHandler])
 
   useEffect(() => {
     if (renderer?.canvas && pixiContainerRef.current) {

@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite"
 import React, { useEffect, useRef } from "react"
 import { useMap } from "react-leaflet"
 import { useForceUpdate } from "../../../hooks/use-force-update"
+import { useMapClickWithDoubleClickZoom } from "../hooks/use-map-click-with-double-click-zoom"
 import { IDataSet } from "../../../models/data/data-set"
 import { isSetCaseValuesAction } from "../../../models/data/data-set-actions"
 import { ICaseCreation } from "../../../models/data/data-set-types"
@@ -32,22 +33,36 @@ interface IMapPinProps {
 }
 function MapPin({ color="#0068EA", dataset, id, selected, x, y }: IMapPinProps) {
   const map = useMap()
+  const { wrapClickHandler } = useMapClickWithDoubleClickZoom(map)
   const handlePointerEnter = () => map.dragging.disable()
   const handlePointerLeave = () => map.dragging.enable()
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (e.shiftKey) {
-      selectCases([id], dataset, !selected)
-    } else {
-      setSelectedCases([id], dataset)
-    }
+    // Delay selection so double-clicks trigger zoom without changing selection.
+    wrapClickHandler(
+      () => {
+        if (e.shiftKey) {
+          selectCases([id], dataset, !selected)
+        } else {
+          setSelectedCases([id], dataset)
+        }
+      },
+      e.nativeEvent
+    )
+  }
+
+  // Stop mouseDown propagation to prevent the overlay's handleMouseUp from
+  // deselecting all pins before our delayed selection callback fires.
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation()
   }
 
   return (
     <button
       className={clsx("map-pin", { "selected-pin": selected })}
       onClick={handleClick}
+      onMouseDown={handleMouseDown}
       onPointerEnter={handlePointerEnter}
       onPointerLeave={handlePointerLeave}
       style={{ left: x, top: y }}
