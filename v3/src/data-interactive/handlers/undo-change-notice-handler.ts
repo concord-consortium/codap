@@ -1,6 +1,7 @@
+import { IAnyStateTreeNode } from "mobx-state-tree"
 import { isWebViewModel } from "../../components/web-view/web-view-model"
 import { appState } from "../../models/app-state"
-import { registerCustomUndoRedo } from "../../models/history/custom-undo-redo-registry"
+import { ICustomUndoRedoPatcher, registerCustomUndoRedo } from "../../models/history/custom-undo-redo-registry"
 import { ICustomPatch } from "../../models/history/tree-types"
 import { withCustomUndoRedo } from "../../models/history/with-custom-undo-redo"
 import { getDocumentContentFromNode } from "../../utilities/mst-document-utils"
@@ -17,6 +18,10 @@ interface IPluginUndoRedoPatch extends ICustomPatch {
   }
 }
 
+function isPluginUndoRedoPatch(patch: ICustomPatch): patch is IPluginUndoRedoPatch {
+  return patch.type === kPluginUndoRedoPatchType
+}
+
 function sendUndoRedoMessage(tileId: string, operation: "undoAction" | "redoAction") {
   const documentContent = appState.document.content
   if (!documentContent) return
@@ -31,16 +36,20 @@ function sendUndoRedoMessage(tileId: string, operation: "undoAction" | "redoActi
   }, tileId)
 }
 
-registerCustomUndoRedo({
-  [kPluginUndoRedoPatchType]: {
-    undo: (_node, patch: IPluginUndoRedoPatch) => {
+const pluginUndoRedoPatcher: ICustomUndoRedoPatcher = {
+  undo: (_node: IAnyStateTreeNode, patch: ICustomPatch) => {
+    if (isPluginUndoRedoPatch(patch)) {
       sendUndoRedoMessage(patch.data.tileId, "undoAction")
-    },
-    redo: (_node, patch: IPluginUndoRedoPatch) => {
+    }
+  },
+  redo: (_node: IAnyStateTreeNode, patch: ICustomPatch) => {
+    if (isPluginUndoRedoPatch(patch)) {
       sendUndoRedoMessage(patch.data.tileId, "redoAction")
     }
   }
-})
+}
+
+registerCustomUndoRedo({ [kPluginUndoRedoPatchType]: pluginUndoRedoPatcher })
 
 function undoRedoResult(): { canUndo: boolean, canRedo: boolean } {
   const { document } = appState
