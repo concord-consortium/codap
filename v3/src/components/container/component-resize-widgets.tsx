@@ -15,14 +15,16 @@ interface IProps {
   componentRef: React.RefObject<HTMLDivElement | null>
   isFixedWidth?: boolean
   isFixedHeight?: boolean
+  handleResizeBlur: () => void
   handleResizeFocus: () => void
   handleResizeKeyDown: (e: React.KeyboardEvent) => void
   handleResizePointerDown: (e: React.PointerEvent, _tileLayout: IFreeTileLayout, direction: string) => void
 }
+
 export const ComponentResizeWidgets = observer(function ComponentResizeWidgets(props: IProps) {
   const {
     tile, componentRef, isFixedWidth, isFixedHeight,
-    handleResizeFocus, handleResizeKeyDown, handleResizePointerDown
+    handleResizeBlur, handleResizeFocus, handleResizeKeyDown, handleResizePointerDown
   } = props
   const tileLayout = useFreeTileLayoutContext()
   const containerRef = useTileContainerContext()
@@ -89,6 +91,7 @@ export const ComponentResizeWidgets = observer(function ComponentResizeWidgets(p
             className="component-resize-button"
             data-testid="component-resize-button"
             type="button"
+            onBlur={handleResizeBlur}
             onFocus={handleResizeFocus}
             onKeyDown={handleResizeKeyDown}
             onPointerDown={handleBottomRightPointerDown}
