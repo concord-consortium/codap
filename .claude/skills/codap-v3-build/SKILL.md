@@ -468,15 +468,17 @@ branch must be created before any commits (translations, version files, etc.).
      --notes "{release_notes_from_phase_2}"
    ```
 
-4. **Inform user:**
+4. **Inform user and wait for S3 deploy:**
    > **Tag pushed and GitHub release created.**
    >
    > Watch GitHub Actions: https://github.com/concord-consortium/codap/actions
    >
-   > Once S3 Deploy completes, QA at:
+   > The tag push triggers a CI build that deploys to S3. **Do not trigger the staging workflow until this deploy completes.** Once the S3 deploy is done, the version will be available at:
    > https://codap3.concord.org/version/{version}/
    >
-   > After QA passes, run `/codap-v3-build deploy` to continue.
+   > Let me know when the deploy is complete and you're ready to proceed with staging, or run `/codap-v3-build deploy {version}` to continue.
+
+   **IMPORTANT:** Do NOT automatically trigger the staging workflow here. The staging workflow copies the build from S3, so it will fail if the tag's CI deploy hasn't finished yet. Wait for the user to confirm the deploy is complete.
 
 ## Phase 6: Deploy
 
@@ -743,6 +745,18 @@ Follow the same process as Phase 4:
    git push origin --delete release-{old-version}
    git branch -d release-{old-version}
    ```
+
+5. **Inform user and wait for S3 deploy:**
+   > **Old release cleaned up. New tag and GitHub release created.**
+   >
+   > Watch GitHub Actions: https://github.com/concord-consortium/codap/actions
+   >
+   > The tag push triggers a CI build that deploys to S3. **Do not trigger the staging workflow until this deploy completes.** Once the S3 deploy is done, the version will be available at:
+   > https://codap3.concord.org/version/{new-version}/
+   >
+   > Let me know when the deploy is complete and we can proceed with Jira updates and staging.
+
+   **IMPORTANT:** Do NOT automatically trigger the staging workflow here. The staging workflow copies the build from S3, so it will fail if the tag's CI deploy hasn't finished yet. Wait for the user to confirm the deploy is complete.
 
 ### Step 6: Update Jira and Re-deploy
 
