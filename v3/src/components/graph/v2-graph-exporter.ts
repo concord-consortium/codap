@@ -8,7 +8,7 @@ import { CodapV2PlotType, guidLink, ICodapV2Adornment, ICodapV2GraphStorage, IGu
 import { exportLegendQuantileProps, exportV3Properties, V2PlaceToV3AxisTypeMap } from "../../v2/codap-v2-type-utils"
 import { AxisModelType, IAxisModel } from "../axis/models/axis-model"
 import { isAnyCategoricalAxisModel } from "../axis/models/categorical-axis-models"
-import { isAnyNumericAxisModel, isCountAxisModel } from "../axis/models/numeric-axis-models"
+import { isAnyNumericAxisModel, isCountAxisModel, isPercentAxisModel } from "../axis/models/numeric-axis-models"
 import { GraphAttrRole } from "../data-display/data-display-types"
 import {
   getAdornmentContentInfo, IAdornmentExporterOptions, isCodapV2TopLevelAdornment
@@ -169,7 +169,7 @@ function getAxisClassAndBounds(
   if (isAnyNumericAxisModel(axis)) {
     axisClass = graph.plot.hasExpression
                   ? "DG.FormulaAxisModel"
-                  : isCountAxisModel(axis)
+                  : isCountAxisModel(axis) || isPercentAxisModel(axis)
                     ? "DG.CountAxisModel"
                     : isPrimary && graph.plot.type === "binnedDotPlot"
                       ? "DG.BinnedAxisModel"

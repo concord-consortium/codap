@@ -425,32 +425,6 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         }, 0))
       }, 0)
     },
-    maxPercentAllCells(extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole) {
-      if (self.attributeID('legend')) return 100  // because we divide the full bar into categories
-      const bins = self.cellMap(extraPrimaryAttrRole, extraSecondaryAttrRole)
-      // Each ep/es pair defines a "subPlot" with a total number of cases and a cell with a max percentage
-      let maxPercent = 0
-      for (const epKey in bins) {
-        const epBin = bins[epKey]
-        for (const esKey in epBin) {
-          const esBin = epBin[esKey]
-          let numCasesInSubPlot = 0
-          let maxCasesInCell = 0
-          for (const pKey in esBin) {
-            const pBin = esBin[pKey]
-            for (const sKey in pBin) {
-              const sBin = pBin[sKey]
-              numCasesInSubPlot += sBin
-              maxCasesInCell = Math.max(maxCasesInCell, sBin)
-            }
-          }
-          const subPlotMaxPercent = numCasesInSubPlot === 0 ? 0
-            : Math.max(maxPercent, 100 * maxCasesInCell / numCasesInSubPlot)
-          maxPercent = Math.max(maxPercent, subPlotMaxPercent)
-        }
-      }
-      return maxPercent
-    },
     maxCellLength(
       extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole,
       binWidth: number, minValue: number, totalNumberOfBins: number
@@ -541,6 +515,15 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     })
   }))
   .views(self => ({
+    maxPercentAllCells(extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole) {
+      if (self.attributeID('legend')) return 100  // because we divide the full bar into categories
+      // Compute percent relative to total plotted cases (not per-subplot) to match V2 behavior.
+      // This prevents small subplots (e.g., 2 cases → 100%) from dominating the axis scale.
+      const totalPlottedCases = self.allPlottedCases().length
+      if (totalPlottedCases === 0) return 0
+      const maxInCell = self.maxOverAllCells(extraPrimaryAttrRole, extraSecondaryAttrRole)
+      return 100 * maxInCell / totalPlottedCases
+    },
     subPlotKey(anID: string) {
       const primaryAttrRole = self.primaryRole ?? "x"
       const primaryIsBottom = primaryAttrRole === "x"
