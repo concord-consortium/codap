@@ -1618,6 +1618,7 @@
     "V3.Undo.errorTester.create": "Undo adding error tester",
     "V3.Redo.errorTester.create": "Redo adding error tester",
 
+    "V3.AppController.optionMenuItems.featureTour": "Feature Tour",
     "V3.AppController.optionMenuItems.positionToolShelfLeft": "Toolbar Position: Top",
     "V3.AppController.optionMenuItems.positionToolShelfTop": "Toolbar Position: Left"
 }

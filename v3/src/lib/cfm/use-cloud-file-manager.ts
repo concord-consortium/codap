@@ -32,6 +32,7 @@ import FileSaveIcon from "../../assets/cfm/file-save-icon.nosvgr.svg"
 import FileShareIcon from "../../assets/cfm/file-share-icon.nosvgr.svg"
 import FileSharedViewIcon from "../../assets/cfm/file-shared-view-icon.nosvgr.svg"
 import FileUpdateSharedViewIcon from "../../assets/cfm/file-update-shared-view-icon.nosvgr.svg"
+import FeatureTourIcon from "../../assets/cfm/feature-tour-icon.nosvgr.svg"
 import HelpForumIcon from "../../assets/cfm/help-forum-icon.nosvgr.svg"
 import HelpIcon from "../../assets/cfm/icon-help.nosvgr.svg"
 import HelpPagesIcon from "../../assets/cfm/help-pages-and-videos-icon.nosvgr.svg"
@@ -40,6 +41,7 @@ import SettingsIcon from "../../assets/cfm/icon-settings.nosvgr.svg"
 import SubMenuExpandIcon from "../../assets/cfm/dropdown-arrow-old.nosvgr.svg"
 import ToolbarPositionLeftIcon from "../../assets/cfm/icon-toolbar-position-left.nosvgr.svg"
 import ToolbarPositionTopIcon from "../../assets/cfm/icon-toolbar-position-top.nosvgr.svg"
+import { runFeatureTour } from "../tour/feature-tour"
 
 const locales = [
   {
@@ -234,6 +236,11 @@ function getMenuBar(cfm: CloudFileManager) {
             icon: PrivacyPolicyIcon,
             name: t("DG.AppController.optionMenuItems.toPrivacyPage"),
             action: () => window.open(privacyPolicyURL, "_blank")
+          },
+          {
+            icon: FeatureTourIcon,
+            name: t("V3.AppController.optionMenuItems.featureTour"),
+            action: () => runFeatureTour()
           }
         ]
       },

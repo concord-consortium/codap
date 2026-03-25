@@ -1,0 +1,88 @@
+@use "../../components/vars";
+
+$tour-bg: #f0f0f0;
+
+// Popover container
+.codap-tour-popover.driver-popover {
+  font-family: Montserrat, sans-serif;
+  background-color: $tour-bg;
+  color: vars.$default-font-color;
+  border-radius: vars.$border-radius-four-corners;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  max-width: 320px;
+  padding: 16px;
+}
+
+// Arrow (must match popover background)
+.codap-tour-popover .driver-popover-arrow-side-top {
+  border-bottom-color: $tour-bg;
+}
+.codap-tour-popover .driver-popover-arrow-side-bottom {
+  border-top-color: $tour-bg;
+}
+.codap-tour-popover .driver-popover-arrow-side-left {
+  border-right-color: $tour-bg;
+}
+.codap-tour-popover .driver-popover-arrow-side-right {
+  border-left-color: $tour-bg;
+}
+
+// Title
+.codap-tour-popover .driver-popover-title {
+  font-family: "museo-sans", sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: vars.$icon-fill-dark;
+  margin-bottom: 8px;
+}
+
+// Description
+.codap-tour-popover .driver-popover-description {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: vars.$default-font-color;
+}
+
+// Navigation buttons
+.codap-tour-popover .driver-popover-next-btn,
+.codap-tour-popover .driver-popover-prev-btn {
+  font-family: Montserrat, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  background-color: vars.$icon-fill-dark;
+  color: white;
+  text-shadow: none;
+  border: none;
+  border-radius: vars.$border-radius-four-corners;
+  padding: 5px 12px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: vars.$teal-dark;
+  }
+
+  &:focus {
+    @include vars.focus-outline;
+  }
+}
+
+// Progress text
+.codap-tour-popover .driver-popover-progress-text {
+  font-size: 12px;
+  color: vars.$charcoal-dark-1;
+}
+
+// Close button
+.codap-tour-popover .driver-popover-close-btn {
+  color: vars.$charcoal;
+  outline: none;
+
+  &:hover {
+    color: vars.$default-font-color;
+  }
+
+  &:focus-visible {
+    @include vars.focus-outline;
+  }
+}
