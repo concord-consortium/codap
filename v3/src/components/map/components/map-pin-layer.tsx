@@ -5,7 +5,7 @@ import { useMap } from "react-leaflet"
 import { useForceUpdate } from "../../../hooks/use-force-update"
 import { useMapClickWithDoubleClickZoom } from "../hooks/use-map-click-with-double-click-zoom"
 import { IDataSet } from "../../../models/data/data-set"
-import { isSetCaseValuesAction } from "../../../models/data/data-set-actions"
+import { isCaseValueChangeAction } from "../../../models/data/data-set-actions"
 import { ICaseCreation } from "../../../models/data/data-set-types"
 import { insertCasesWithCustomUndoRedo } from "../../../models/data/data-set-undo"
 import { selectCases, setSelectedCases } from "../../../models/data/data-set-utils"
@@ -90,7 +90,7 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
   useEffect(() => {
     if (dataset) {
       return onAnyAction(dataset, action => {
-        if (isSetCaseValuesAction(action)) {
+        if (isCaseValueChangeAction(action)) {
           forceUpdate()
         }
       })

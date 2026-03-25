@@ -6,7 +6,8 @@ import {useMap} from "react-leaflet"
 import simpleheat from "simpleheat"
 import {useDebouncedCallback} from "use-debounce"
 import { select } from "d3"
-import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
+import {isCaseValueChangeAction, isSelectionAction} from "../../../models/data/data-set-actions"
+import { prf } from "../../../utilities/profiler"
 import { firstVisibleParentAttribute, idOfChildmostCollectionForAttributes } from "../../../models/data/data-set-utils"
 import {defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth} from "../../../utilities/color-utils"
 import { mstAutorun } from "../../../utilities/mst-autorun"
@@ -320,18 +321,20 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
     const {latId, longId} = mapLayerModel.pointAttributes || {}
     if (!latId || !longId) return
 
-    renderer.forEachPoint((point: IPoint, metadata: IPointMetadata) => {
-      const {caseID} = metadata
-      renderer.setPointPosition(point, getScreenX(caseID), getScreenY(caseID))
-      renderer.setPointStyle(point, {
-        radius: dataset?.isCaseSelected(caseID) ? selectedPointRadius : pointRadius,
-        fill: lookupLegendColor(metadata),
-        stroke: getLegendColor && dataset?.isCaseSelected(caseID)
-          ? defaultSelectedStroke : pointStrokeColor,
-        strokeWidth: getLegendColor && dataset?.isCaseSelected(caseID)
-          ? defaultSelectedStrokeWidth : defaultStrokeWidth
-      })
-    }, { selectedOnly })
+    prf.measure("Map.refreshPoints[forEachPoint]", () => {
+      renderer.forEachPoint((point: IPoint, metadata: IPointMetadata) => {
+        const {caseID} = metadata
+        renderer.setPointPosition(point, getScreenX(caseID), getScreenY(caseID))
+        renderer.setPointStyle(point, {
+          radius: dataset?.isCaseSelected(caseID) ? selectedPointRadius : pointRadius,
+          fill: lookupLegendColor(metadata),
+          stroke: getLegendColor && dataset?.isCaseSelected(caseID)
+            ? defaultSelectedStroke : pointStrokeColor,
+          strokeWidth: getLegendColor && dataset?.isCaseSelected(caseID)
+            ? defaultSelectedStrokeWidth : defaultStrokeWidth
+        })
+      }, { selectedOnly })
+    })
 
     refreshPointSelection()
   }, 10)
@@ -342,7 +345,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
       const disposer = onAnyAction(dataset, action => {
         if (isSelectionAction(action)) {
           refreshPointSelection()
-        } else if (isSetCaseValuesAction(action)) {
+        } else if (isCaseValueChangeAction(action)) {
           // assumes that if we're caching then only selected cases are being updated
           refreshPoints(dataset.isCaching())
           refreshHeatmap()

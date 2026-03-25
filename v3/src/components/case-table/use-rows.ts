@@ -7,7 +7,7 @@ import { useDataSetMetadata } from "../../hooks/use-data-set-metadata"
 import { useLoggingContext } from "../../hooks/use-log-context"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { appState } from "../../models/app-state"
-import { isAddCasesAction, isRemoveCasesAction, isSetCaseValuesAction } from "../../models/data/data-set-actions"
+import { isAddCasesAction, isCaseValueChangeAction, isRemoveCasesAction } from "../../models/data/data-set-actions"
 import { createCasesNotification } from "../../models/data/data-set-notifications"
 import {
   IAddCasesOptions, ICase, ICaseCreation, IGroupedCase, symFirstChild, symIndex, symParent
@@ -196,7 +196,7 @@ export const useRows = (gridElement: HTMLDivElement | null) => {
             const casesToUpdate = getCasesToUpdate(_cases)
             casesToUpdate.forEach(({ __id__ }) => rowCache.set(__id__, { __id__ }))
           }
-          else if (isSetCaseValuesAction(action)) {
+          else if (isCaseValueChangeAction(action)) {
             // update cache entries for each affected case
             const [_cases] = action.args
             _cases.forEach(({ __id__ }) => rowCache.set(__id__, { __id__ }))

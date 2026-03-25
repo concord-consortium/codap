@@ -4,6 +4,7 @@ import { ISliderModel } from "./slider-model"
 import { FixValueFn, kAnimationDefaults } from "./slider-types"
 import { valueChangeNotification } from "./slider-utils"
 import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
+import { prf } from "../../utilities/profiler"
 
 function useInterval(callback: () => void, delay: number | null) {
   const callbackRef = useRef(callback)
@@ -58,10 +59,12 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
 
   const updateSlider = useCallback((val: number, min: FixValueFn, max: FixValueFn) => {
     if (sliderModel && isAlive(sliderModel)) {
-      sliderModel.applyModelChange(
-        () => sliderModel.setValidatedValue(sliderModel.validateValue(val, min, max)),
-        { noDirty: true, notify: () => valueChangeNotification(sliderModel.value, sliderModel.name) }
-      )
+      prf.measure("Slider.animationTick", () => {
+        sliderModel.applyModelChange(
+          () => sliderModel.setValidatedValue(sliderModel.validateValue(val, min, max)),
+          { noDirty: true, notify: () => valueChangeNotification(sliderModel.value, sliderModel.name) }
+        )
+      })
     }
   }, [sliderModel])
 

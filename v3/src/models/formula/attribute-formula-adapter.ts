@@ -1,5 +1,6 @@
 import type { EvalFunction } from "mathjs"
 import { DEBUG_FORMULAS, debugLog } from "../../lib/debug"
+import { prf } from "../../utilities/profiler"
 import { boundaryManager } from "../boundaries/boundary-manager"
 import { isFormulaAttr, isValidFormulaAttr } from "../data/attribute"
 import { CaseInfo, ICase, IGroupedCase, symParent } from "../data/data-set-types"
@@ -119,9 +120,13 @@ export class AttributeFormulaAdapter extends FormulaManagerAdapter {
     if (!dataSet) {
       throw new Error(`Dataset with id "${extraMetadata.dataSetId}" not found`)
     }
-    const results = this.computeFormula(formulaContext, extraMetadata, casesToRecalculateDesc)
+    const results = prf.measure("Formula.computeFormula", () =>
+      this.computeFormula(formulaContext, extraMetadata, casesToRecalculateDesc)
+    )
     if (results && results.length > 0) {
-      dataSet.setCaseValues(results)
+      prf.measure("Formula.setComputedCaseValues", () =>
+        dataSet.setComputedCaseValues(results, [extraMetadata.attributeId])
+      )
     }
   }
 
@@ -209,10 +214,10 @@ export class AttributeFormulaAdapter extends FormulaManagerAdapter {
     const { dataSet } = formulaContext
     const { attributeId } = extraMetadata
     const allCases = dataSet.getCasesForAttributes([attributeId])
-    dataSet.setCaseValues(allCases.map(c => ({
+    dataSet.setComputedCaseValues(allCases.map(c => ({
       __id__: c.__id__,
       [attributeId]: errorMsg
-    })))
+    })), [attributeId])
   }
 
   setupFormulaObservers(formulaContext: IFormulaContext, extraMetadata: IAttrFormulaExtraMetadata) {

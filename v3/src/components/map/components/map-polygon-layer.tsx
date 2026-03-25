@@ -4,7 +4,7 @@ import {DomEvent, geoJSON, LeafletMouseEvent, point, Popup, popup} from "leaflet
 import {useCallback, useEffect} from "react"
 import {useMap} from "react-leaflet"
 import {DEBUG_MAP, debugLog} from "../../../lib/debug"
-import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
+import {isCaseValueChangeAction, isSelectionAction} from "../../../models/data/data-set-actions"
 import { transparentColor } from "../../../utilities/color-utils"
 import {safeJsonParse} from "../../../utilities/js-utils"
 import {onAnyAction} from "../../../utilities/mst-utils"
@@ -184,7 +184,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
       const disposer = onAnyAction(dataset, action => {
         if (isSelectionAction(action)) {
           refreshPolygonStyles()
-        } else if (isSetCaseValuesAction(action) || ["addCases", "removeCases"].includes(action.name)) {
+        } else if (isCaseValueChangeAction(action) || ["addCases", "removeCases"].includes(action.name)) {
           refreshPolygonLayer()
         }
       })

@@ -299,6 +299,25 @@ export const Attribute = V2Model.named("Attribute").props({
       // NOTE: we don't need to increment changeCount here. We are replacing the entire value
       // of strValues. And the volatile object itself is observable (but by default not its contents). So
       // any view that is reading strValues will be updated.
+    },
+
+    // Write a computed/formula value directly to the volatile arrays without MST action overhead.
+    // Formula values are deterministic and recomputable, so they don't need undo/redo tracking
+    // or MST action middleware. Callers must call incChangeCount() once after all values are set.
+    setComputedValue(index: number, value: IValueType) {
+      if (index >= 0 && index < self.strValues.length) {
+        if (typeof value === "number") {
+          self.strValues[index] = value.toString()
+          self.numValues[index] = value
+        } else if (typeof value === "string") {
+          const trimmedValue = value.trim()
+          self.strValues[index] = trimmedValue
+          self.numValues[index] = self.toNumeric(trimmedValue)
+        } else {
+          self.strValues[index] = self.importValue(value)
+          self.numValues[index] = self.toNumeric(self.strValues[index])
+        }
+      }
     }
 
   }))

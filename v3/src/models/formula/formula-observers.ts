@@ -1,9 +1,10 @@
 import { comparer, reaction } from "mobx"
+import { prf } from "../../utilities/profiler"
 import { mstReaction } from "../../utilities/mst-reaction"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { BoundaryManager } from "../boundaries/boundary-manager"
 import { IDataSet } from "../data/data-set"
-import { SetCaseValuesAction } from "../data/data-set-actions"
+import { SetCaseValuesAction, SetComputedCaseValuesAction } from "../data/data-set-actions"
 import { ICase } from "../data/data-set-types"
 import { IGlobalValueManager } from "../global/global-value-manager"
 import { CaseList } from "./formula-manager-types"
@@ -46,9 +47,10 @@ export const observeLocalAttributes = (formulaDependencies: IFormulaDependency[]
   const disposeDatasetValuesObserver = onAnyAction(localDataSet, mstAction => {
     let casesToRecalculate: CaseList = []
     switch (mstAction.name) {
-      case "setCaseValues": {
+      case "setCaseValues":
+      case "setComputedCaseValues": {
         // Recalculate cases with dependency attribute updated.
-        const cases = (mstAction as SetCaseValuesAction).args[0] || []
+        const cases = (mstAction as SetCaseValuesAction | SetComputedCaseValuesAction).args[0] || []
         casesToRecalculate = getLocalAttrCasesToRecalculate(cases, localAttrDependencies)
         break
       }
@@ -92,9 +94,10 @@ export const observeLookupDependencies = (formulaDependencies: IFormulaDependenc
           casesToRecalculate = "ALL_CASES"
           break
         }
-        case "setCaseValues": {
+        case "setCaseValues":
+        case "setComputedCaseValues": {
           // recalculate cases with dependency attribute updated
-          const cases = (mstAction as SetCaseValuesAction).args[0] || []
+          const cases = (mstAction as SetCaseValuesAction | SetComputedCaseValuesAction).args[0] || []
           casesToRecalculate = getLookupCasesToRecalculate(cases, dependency)
           break
         }
@@ -131,7 +134,7 @@ export const observeGlobalValues = (formulaDependencies: IFormulaDependency[],
   if (globalValueDependencies.length === 0) return () => {}
   return reaction(
     () => globalValueDependencies.map(dependency => globalValueManager?.getValueById(dependency.globalId)?.value),
-    () => recalculateCallback("ALL_CASES"),
+    () => prf.measure("Formula.observeGlobalValues", () => recalculateCallback("ALL_CASES")),
     { name: "observeGlobalValues reaction", equals: comparer.structural }
   )
 }

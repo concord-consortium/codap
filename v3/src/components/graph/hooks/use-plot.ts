@@ -3,7 +3,7 @@ import {isAlive} from "mobx-state-tree"
 import { useCallback, useEffect, useRef } from "react"
 import {useDebouncedCallback} from "use-debounce"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import {isSetCaseValuesAction} from "../../../models/data/data-set-actions"
+import {isCaseValueChangeAction} from "../../../models/data/data-set-actions"
 import {mstAutorun} from "../../../utilities/mst-autorun"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
@@ -268,7 +268,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   useEffect(() => {
     if (dataset) {
       const disposer = onAnyAction(dataset, action => {
-        if (isSetCaseValuesAction(action)) {
+        if (isCaseValueChangeAction(action)) {
           // If we're caching then only selected cases need to be updated in scatterplots. But for dotplots
           // we need to update all points because the unselected points positions change.
           callRefreshPointPositions({ selectedOnly: dataset.isCaching() && graphModel.plotType !== "dotPlot" })
