@@ -5,7 +5,9 @@ import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useOutsidePointerDown } from "../../hooks/use-outside-pointer-down"
 import { IValueType } from "../../models/data/attribute-types"
 import { parseColor, parseColorToHex } from "../../utilities/color-utils"
+import { t } from "../../utilities/translation/translate"
 import { ColorPickerPalette } from "../common/color-picker-palette"
+import { useColorPickerPopoverOffset } from "../common/use-color-picker-popover-offset"
 
 import "./color-text-editor.scss"
 
@@ -63,7 +65,9 @@ export default function ColorTextEditor({attributeId, caseId, value, acceptValue
   const hexColor = color ? parseColorToHex(color, { colorNames }) : undefined
   const showColorSwatch = useRef(!!hexColor || attribute?.userType === "color")
   const [isPaletteOpen, setIsPaletteOpen] = useState(false)
+  const { popoverRef, popoverOffset, handleExpandedChange, resetPopoverOffset } = useColorPickerPopoverOffset()
   const isCancellingRef = useRef(false)
+  const isSubmittingRef = useRef(false)
   const colorEditorRef = useRef<HTMLDivElement>(null)
   useOutsidePointerDown({
     ref: colorEditorRef as unknown as RefObject<HTMLElement>,
@@ -72,6 +76,8 @@ export default function ColorTextEditor({attributeId, caseId, value, acceptValue
   })
 
   function handleSubmit(newValue: string) {
+    if (isSubmittingRef.current) return
+    isSubmittingRef.current = true
     acceptValue(newValue)
     setIsPaletteOpen(false)
   }
@@ -84,10 +90,6 @@ export default function ColorTextEditor({attributeId, caseId, value, acceptValue
   function handleCancel() {
     setInputValue(data?.getStrValue(caseId, attributeId) || "")
     setIsPaletteOpen(false)
-  }
-
-  function handleSwatchClick() {
-    setIsPaletteOpen(prev => !prev)
   }
 
   function handleInputColorChange(event: ChangeEvent<HTMLInputElement>) {
@@ -106,13 +108,17 @@ export default function ColorTextEditor({attributeId, caseId, value, acceptValue
 
   const handlePaletteOpenChange = useCallback((open: boolean) => {
     if (!open && isPaletteOpen) {
-      if (!isCancellingRef.current) {
+      if (!isCancellingRef.current && !isSubmittingRef.current) {
         acceptValue(inputValue as string)
       }
       isCancellingRef.current = false
+      isSubmittingRef.current = false
+    }
+    if (!open) {
+      resetPopoverOffset()
     }
     setIsPaletteOpen(open)
-  }, [acceptValue, inputValue, isPaletteOpen])
+  }, [acceptValue, inputValue, isPaletteOpen, resetPopoverOffset])
 
   const handlePaletteReject = useCallback(() => {
     isCancellingRef.current = true
@@ -121,21 +127,26 @@ export default function ColorTextEditor({attributeId, caseId, value, acceptValue
   }, [attributeId, caseId, data])
 
   const swatchStyle: React.CSSProperties | undefined = showColorSwatch.current ? { background: color } : undefined
+  const attrName = attribute?.name ?? ""
   const inputElt = <InputElt value={String(inputValue)} onChange={handleInputColorChange}
-                    onKeyDown={handleColorKeyDown}/>
+                    onKeyDown={handleColorKeyDown}
+                    aria-label={t("V3.CaseTable.cellEditorAriaLabel", { vars: [attrName] })}/>
 
   return swatchStyle
     ? (
         <div className={"color-cell-text-editor"} ref={colorEditorRef}>
           <DialogTrigger isOpen={isPaletteOpen} onOpenChange={handlePaletteOpenChange}>
-            <Button className="cell-edit-color-swatch" onPress={handleSwatchClick}>
+            <Button className="cell-edit-color-swatch"
+              aria-label={t("V3.CaseTable.colorSwatchButtonAriaLabel", { vars: [attrName] })}>
               <div className="cell-edit-color-swatch-interior" style={swatchStyle}/>
             </Button>
-            <Popover>
-              <Dialog className="color-picker-dialog">
+            <Popover ref={popoverRef} shouldFlip={false} offset={popoverOffset}
+              className={({defaultClassName}) => `${defaultClassName} color-picker-popover`}>
+              <Dialog className="color-picker-dialog" aria-label={t("DG.Inspector.colorPicker.dialogLabel")}>
                 <ColorPickerPalette inputValue={String(inputValue) || "#ffffff"}
                   swatchBackgroundColor={color || "#ffffff"} onColorChange={handleUpdateValue}
-                  onAccept={handleSubmit} onReject={handlePaletteReject} onUpdateValue={handleUpdateValue}/>
+                  onAccept={handleSubmit} onExpandedChange={handleExpandedChange}
+                  onReject={handlePaletteReject} onUpdateValue={handleUpdateValue}/>
               </Dialog>
             </Popover>
           </DialogTrigger>

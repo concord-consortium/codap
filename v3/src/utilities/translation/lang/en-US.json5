@@ -982,9 +982,26 @@
     "DG.Inspector.displayScale": "Scale …",
 
     // Color Picker
+    "DG.Inspector.colorPicker.dialogLabel": "Color picker",
     "DG.Inspector.colorPicker.swatchGrid": "Color swatches",
     "DG.Inspector.colorPicker.more": "more",
     "DG.Inspector.colorPicker.less": "less",
+    "DG.Inspector.colorPicker.color.black": "Black",
+    "DG.Inspector.colorPicker.color.darkGray": "Dark gray",
+    "DG.Inspector.colorPicker.color.lightGray": "Light gray",
+    "DG.Inspector.colorPicker.color.white": "White",
+    "DG.Inspector.colorPicker.color.red": "Red",
+    "DG.Inspector.colorPicker.color.orange": "Orange",
+    "DG.Inspector.colorPicker.color.yellow": "Yellow",
+    "DG.Inspector.colorPicker.color.green": "Green",
+    "DG.Inspector.colorPicker.color.blue": "Blue",
+    "DG.Inspector.colorPicker.color.brown": "Brown",
+    "DG.Inspector.colorPicker.color.purple": "Purple",
+    "DG.Inspector.colorPicker.color.cyan": "Cyan",
+    "DG.Inspector.colorPicker.color.cream": "Cream",
+    "DG.Inspector.colorPicker.color.pink": "Pink",
+    "DG.Inspector.colorPicker.color.lightBlue": "Light blue",
+    "DG.Inspector.colorPicker.color.lightGreen": "Light green",
 
     // Graph/Map Inspector
     "DG.Inspector.strokeSameAsFill": "Border color same as fill",

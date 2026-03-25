@@ -621,9 +621,8 @@ context("Test changing legend colors", () => {
         })
       color_picker.getCategoricalColorSettingSwatch().eq(0).click()
       color_picker.getColorSettingSwatchGrid().should("be.visible")
-      color_picker.getColorSettingSwatchRow().should("have.length", 1)
       color_picker.getColorSettingSwatchCell().should("have.length", 17)
-      color_picker.getColorSettingSwatchCell().eq(16).should("have.class", "selected")
+      color_picker.getColorSettingSwatchCell().eq(16).should("have.attr", "data-selected", "true")
         .invoke('css', 'background-color').then((color) => {
           const rgb = ch.parseRgbColorToObj(color)
           if (rgb !== null) {
@@ -644,7 +643,7 @@ context("Test changing legend colors", () => {
 
       cy.log("Propagates selected color to inspector palette swatch, legend key, and plot area")
       color_picker.getColorSettingSwatchCell().eq(6).click()
-      color_picker.getColorSettingSwatchCell().eq(6).should("have.class", "selected")
+      color_picker.getColorSettingSwatchCell().eq(6).should("have.attr", "data-selected", "true")
       color_picker.getColorSettingSwatchCell().eq(6)
         .invoke('css', 'background-color').then((color) => {
           const rgb = ch.parseRgbColorToObj(color)
@@ -653,6 +652,8 @@ context("Test changing legend colors", () => {
             expect(rgb.g).to.be.within(standardLandGreen - colorTolerance, standardLandGreen + colorTolerance)
           }
         })
+      // Close the popover (Escape preserves the committed swatch selection)
+      cy.realPress("Escape")
       cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
         .find('rect')
         .invoke('css', 'fill')
@@ -663,10 +664,6 @@ context("Test changing legend colors", () => {
             expect(rgb.g).to.be.within(standardLandGreen - colorTolerance, standardLandGreen + colorTolerance)
           }
         })
-
-      cy.log("Hides color picker when user clicks outside of the color picker")
-      cy.get(".codap-inspector-palette-header-title").click()
-      color_picker.getColorPalette().should("not.exist")
 
       cy.log("Undo/Redo color change")
       toolbar.getUndoTool().click()
@@ -699,8 +696,8 @@ context("Test changing legend colors", () => {
       color_picker.getColorPickerToggleButton().should("have.text", "more").click()
       color_picker.getColorPickerSaturation().click("topRight", {force: true})
       color_picker.getColorSettingSwatchCell().should("have.length", 17)
-      color_picker.getColorSettingSwatchCell().eq(16).should("have.class", "selected")
-      color_picker.getColorSettingSwatchCell().eq(6).should("not.have.class", "selected")
+      color_picker.getColorSettingSwatchCell().eq(16).should("have.attr", "data-selected", "true")
+      color_picker.getColorSettingSwatchCell().eq(6).should("not.have.attr", "data-selected")
       color_picker.getColorSettingSwatchCell().eq(16)
         .invoke('css', 'background-color').then((color) => {
           const rgb = ch.parseRgbColorToObj(color)

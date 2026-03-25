@@ -2,6 +2,8 @@ import { CustomEditor, CustomMarks, Editor, EFormat } from "@concord-consortium/
 import React, { useCallback, useRef, useState } from "react"
 import { Dialog, Popover } from "react-aria-components"
 import { ColorPickerPalette } from "../common/color-picker-palette"
+import { t } from "../../utilities/translation/translate"
+import { useColorPickerPopoverOffset } from "../common/use-color-picker-popover-offset"
 import { InspectorButton } from "../inspector-panel"
 import { FormatTextColorIcon } from "./format-text-color-icon"
 
@@ -27,6 +29,7 @@ export function FormatTextColorButton({ editor }: IProps) {
 
   const [isOpen, setIsOpen] = useState(false)
   const triggerRef = useRef<HTMLButtonElement>(null)
+  const { popoverRef, popoverOffset, handleExpandedChange, resetPopoverOffset } = useColorPickerPopoverOffset()
   const textColor = getColor(editor, { default: true }) ?? "#000000"
   const initialColorRef = useRef<string>(textColor)
   const isAcceptingRef = useRef(false)
@@ -57,11 +60,14 @@ export function FormatTextColorButton({ editor }: IProps) {
   }, [handleSetColor])
 
   const handleOpenChange = useCallback((open: boolean) => {
-    if (!open && !isAcceptingRef.current) {
-      handleSetColor(initialColorRef.current)
+    if (!open) {
+      if (!isAcceptingRef.current) {
+        handleSetColor(initialColorRef.current)
+      }
+      resetPopoverOffset()
     }
     setIsOpen(open)
-  }, [handleSetColor])
+  }, [handleSetColor, resetPopoverOffset])
 
   return (
     <>
@@ -74,11 +80,13 @@ export function FormatTextColorButton({ editor }: IProps) {
       >
         <FormatTextColorIcon color={getColor(editor, { default: true })} />
       </InspectorButton>
-      <Popover triggerRef={triggerRef} isOpen={isOpen} onOpenChange={handleOpenChange} placement="end">
-        <Dialog className="color-picker-dialog">
-          <ColorPickerPalette swatchBackgroundColor={"white"} onColorChange={handleSetColor}
+      <Popover ref={popoverRef} shouldFlip={false} crossOffset={popoverOffset} triggerRef={triggerRef} 
+        className={({defaultClassName}) => `${defaultClassName} color-picker-popover`}
+        isOpen={isOpen} onOpenChange={handleOpenChange} placement="end">
+        <Dialog className="color-picker-dialog" aria-label={t("DG.Inspector.colorPicker.dialogLabel")}>
+          <ColorPickerPalette swatchBackgroundColor={textColor} onColorChange={handleSetColor}
             inputValue={textColor} onUpdateValue={handleSetColor}
-            onAccept={handleAccept} onReject={handleReject}/>
+            onAccept={handleAccept} onExpandedChange={handleExpandedChange} onReject={handleReject}/>
         </Dialog>
       </Popover>
     </>

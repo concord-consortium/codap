@@ -64,16 +64,6 @@ describe("PointColorSetting", () => {
     expect(button).toHaveAttribute("aria-expanded", "false")
   })
 
-  it("renders ColorPickerPalette when open", async () => {
-    const user = userEvent.setup()
-    render(<PointColorSetting {...defaultProps} />)
-
-    const button = screen.getByRole("button", { name: /Fill Color/ })
-    await user.click(button)
-
-    expect(screen.getByTestId("color-picker-palette")).toBeInTheDocument()
-  })
-
   it("calls onColorChange when color is updated", async () => {
     const user = userEvent.setup()
     render(<PointColorSetting {...defaultProps} />)

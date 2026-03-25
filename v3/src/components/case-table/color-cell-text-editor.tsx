@@ -10,6 +10,7 @@ import { parseColor, parseColorToHex } from "../../utilities/color-utils"
 import { blockAPIRequestsWhileEditing } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
 import { ColorPickerPalette } from "../common/color-picker-palette"
+import { useColorPickerPopoverOffset } from "../common/use-color-picker-popover-offset"
 import { TRenderEditCellProps } from "./case-table-types"
 
 /*
@@ -69,6 +70,7 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
   const { setPendingLogMessage } = useLoggingContext()
   const blockAPIRequests = blockAPIRequestsWhileEditing(data)
   const [isPaletteOpen, setIsPaletteOpen] = useState(false)
+  const { popoverRef, popoverOffset, handleExpandedChange, resetPopoverOffset } = useColorPickerPopoverOffset()
 
   useEffect(() => {
     selectAllCases(data, false)
@@ -102,17 +104,16 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
     onClose()
   }, [onClose])
 
-  function handleSwatchClick() {
-    setIsPaletteOpen(prev => !prev)
-  }
-
   function handleInputColorChange(event: ChangeEvent<HTMLInputElement>) {
     updateValue(event.target.value)
   }
 
   const handlePaletteOpenChange = useCallback((open: boolean) => {
+    if (!open) {
+      resetPopoverOffset()
+    }
     setIsPaletteOpen(open)
-  }, [])
+  }, [resetPopoverOffset])
 
   /* The ColorTextEditor component was refactored out of this component to work with the case card.
     At some point we should refactor this component to use the ColorTextEditor as well. Currently,
@@ -128,15 +129,17 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
     ? (
         <div className={"color-cell-text-editor"}>
           <DialogTrigger isOpen={isPaletteOpen} onOpenChange={handlePaletteOpenChange}>
-            <Button className="cell-edit-color-swatch" onPress={handleSwatchClick}
+            <Button className="cell-edit-color-swatch"
               aria-label={t("V3.CaseTable.colorSwatchButtonAriaLabel", { vars: [attrName] })}>
               <div className="cell-edit-color-swatch-interior" style={swatchStyle}/>
             </Button>
-            <Popover>
-              <Dialog className="color-picker-dialog">
+            <Popover ref={popoverRef} shouldFlip={false} offset={popoverOffset}
+              className={({defaultClassName}) => `${defaultClassName} color-picker-popover`}>
+              <Dialog className="color-picker-dialog" aria-label={t("DG.Inspector.colorPicker.dialogLabel")}>
                 <ColorPickerPalette inputValue={inputValue || "#ffffff"}
                   swatchBackgroundColor={color || "#ffffff"} onColorChange={updateValue}
-                  onAccept={acceptValue} onReject={rejectValue} onUpdateValue={updateValue}/>
+                  onAccept={acceptValue} onExpandedChange={handleExpandedChange}
+                  onReject={rejectValue} onUpdateValue={updateValue}/>
               </Dialog>
             </Popover>
           </DialogTrigger>
