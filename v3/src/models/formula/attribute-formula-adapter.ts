@@ -129,16 +129,18 @@ export class AttributeFormulaAdapter extends FormulaManagerAdapter {
       // formula recalculations, tile re-renders).
       const { attributeId } = extraMetadata
       const attr = dataSet.attrFromID(attributeId)
-      // Filter to only cases whose computed value actually changed, to avoid unnecessary
-      // downstream work (attribute change notifications, filtered case updates, cascading
-      // formula recalculations, tile re-renders).
       const changedResults = attr
-        ? prf.measure("Formula.filterChanged", () =>
-            allResults.filter(result => {
-              const index = dataSet.getItemIndexForCaseOrItem(result.__id__)
+        ? prf.measure("Formula.filterChanged", () => {
+            // Capture Maps/arrays locally to avoid repeated MST proxy access in the loop
+            const { caseInfoMap, itemInfoMap } = dataSet
+            const { strValues } = attr
+            return allResults.filter(result => {
+              const caseInfo = caseInfoMap.get(result.__id__)
+              const itemId = caseInfo ? caseInfo.childItemIds[0] : result.__id__
+              const index = itemInfoMap.get(itemId)?.index
               if (index == null) return true
               const newValue = result[attributeId]
-              const currentStr = attr.strValue(index)
+              const currentStr = strValues[index]
               if (typeof newValue === "number") {
                 return newValue.toString() !== currentStr
               } else if (typeof newValue === "string") {
@@ -146,7 +148,7 @@ export class AttributeFormulaAdapter extends FormulaManagerAdapter {
               }
               return true // write unknown types unconditionally
             })
-          )
+          })
         : allResults
       if (changedResults.length > 0) {
         prf.measure("Formula.setComputedCaseValues", () =>

@@ -1340,6 +1340,8 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       setComputedCaseValues(cases: ICase[], affectedAttributes: string[]) {
         // Map case IDs to item IDs (handles hierarchical grouping)
         const items = self.getItemsForCases(cases)
+        // Capture the Map locally to avoid repeated MST proxy access in the inner loop
+        const { itemInfoMap } = self
         // Only regroup if a computed attribute is in a parent collection,
         // since parent collection values determine case grouping.
         let needsRegrouping = false
@@ -1352,7 +1354,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
           const indices: number[] = []
           const values: IValueType[] = []
           for (const item of items) {
-            const index = self.getItemIndex(item.__id__)
+            const index = itemInfoMap.get(item.__id__)?.index
             if (index != null && item[attrId] !== undefined) {
               indices.push(index)
               values.push(item[attrId])
