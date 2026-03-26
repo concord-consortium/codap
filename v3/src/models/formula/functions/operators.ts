@@ -43,6 +43,8 @@ export const operators = {
     numOfRequiredArguments: 2,
     evaluateOperator: (a: any, b: any) => {
       if (a == null || b == null || Number.isNaN(a) || Number.isNaN(b)) return false
+      // Fast path: both arguments are already numbers — skip expensive date parsing
+      if (typeof a === "number" && typeof b === "number") return a < b
       const [isADate, aDate] = checkDate(a)
       const [isBDate, bDate] = checkDate(b)
       if (isADate) a = aDate.valueOf() / 1000
@@ -61,6 +63,8 @@ export const operators = {
     numOfRequiredArguments: 2,
     evaluateOperator: (a: any, b: any) => {
       if (a == null || b == null || Number.isNaN(a) || Number.isNaN(b)) return false
+      // Fast path: both arguments are already numbers — skip expensive date parsing
+      if (typeof a === "number" && typeof b === "number") return a <= b
       const [isADate, aDate] = checkDate(a)
       const [isBDate, bDate] = checkDate(b)
       if (isADate) a = aDate.valueOf() / 1000
@@ -79,6 +83,8 @@ export const operators = {
     numOfRequiredArguments: 2,
     evaluateOperator: (a: any, b: any) => {
       if (a == null || b == null || Number.isNaN(a) || Number.isNaN(b)) return false
+      // Fast path: both arguments are already numbers — skip expensive date parsing
+      if (typeof a === "number" && typeof b === "number") return a > b
       const [isADate, aDate] = checkDate(a)
       const [isBDate, bDate] = checkDate(b)
       if (isADate) a = aDate.valueOf() / 1000
@@ -97,6 +103,8 @@ export const operators = {
     numOfRequiredArguments: 2,
     evaluateOperator: (a: any, b: any) => {
       if (a == null || b == null || Number.isNaN(a) || Number.isNaN(b)) return false
+      // Fast path: both arguments are already numbers — skip expensive date parsing
+      if (typeof a === "number" && typeof b === "number") return a >= b
       const [isADate, aDate] = checkDate(a)
       const [isBDate, bDate] = checkDate(b)
       if (isADate) a = aDate.valueOf() / 1000
