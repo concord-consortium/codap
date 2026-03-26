@@ -29,6 +29,8 @@ export function LogMonitorSidebar() {
     return () => clearInterval(id)
   }, [])
 
-  if (!logMonitorEnabled) return null
+  if (!logMonitorEnabled) {
+    return null
+  }
   return <LogMonitor logFilePrefix="codap-log-events" />
 }
