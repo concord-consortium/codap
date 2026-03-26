@@ -21,6 +21,7 @@ import { hideSplashScreen } from "../lib/cfm/splash-screen"
 import { useEmbeddedMode } from "../lib/embedded-mode/use-embedded-mode"
 import { IUseCloudFileManagerHookOptions, useCloudFileManager } from "../lib/cfm/use-cloud-file-manager"
 import { CodapDndContext } from "../lib/dnd-kit/codap-dnd-context"
+import { LogMonitorSidebar } from "../hooks/use-log-monitor"
 import { Logger } from "../lib/logger"
 import { appState } from "../models/app-state"
 import { addDefaultComponents } from "../models/codap/add-default-content"
@@ -36,7 +37,7 @@ import { uiState } from "../models/ui-state"
 import { registerTileTypes } from "../register-tile-types"
 import { importSample, sampleData } from "../sample-data"
 import { t } from "../utilities/translation/translate"
-import { booleanParam, urlParams } from "../utilities/url-params"
+import { urlParams } from "../utilities/url-params"
 import { isBeta } from "../utilities/version-utils"
 import { BetaBanner } from "./beta/beta-banner"
 import { If } from "./common/if"
@@ -48,10 +49,6 @@ import { Progress } from "./progress"
 import { ToolShelf } from "./tool-shelf/tool-shelf"
 import { kWebViewTileType } from "./web-view/web-view-defs"
 import { isWebViewModel, IWebViewModel } from "./web-view/web-view-model"
-import { LogMonitor, emitLogEvent } from "@concord-consortium/log-monitor"
-
-const logMonitorEnabled = booleanParam(urlParams.logMonitor)
-
 import "../lib/debug-event-modification"
 import "../models/shared/data-set-metadata-registration"
 import "../models/shared/shared-data-set-registration"
@@ -209,13 +206,6 @@ export const App = observer(function App() {
       appState.enableDocumentMonitoring()
       Logger.initializeLogger(appState.document)
 
-      if (logMonitorEnabled) {
-        Logger.Instance.registerLogListener((logMessage) => {
-          const { event, ...data } = logMessage
-          emitLogEvent({ event, data, timestamp: Date.now() })
-        })
-      }
-
       window.onbeforeunload = function() {
         if (!uiState.shouldSuppressUnsavedWarning && cfm.client.state.dirty) {
           return t("V3.general.unsavedChangesWarning")
@@ -278,7 +268,7 @@ export const App = observer(function App() {
               </div>
             </If>
             <Progress />
-            {logMonitorEnabled && <LogMonitor logFilePrefix="codap-log-events" />}
+            <LogMonitorSidebar />
           </ProgressContext.Provider>
         </CfmContext.Provider>
       </DocumentContentContext.Provider>

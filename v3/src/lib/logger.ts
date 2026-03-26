@@ -115,6 +115,10 @@ export class Logger {
     this.pendingMessages = []
   }
 
+  public static get isInitialized() {
+    return !!this._instance
+  }
+
   public static get Instance() {
     if (this._instance) {
       return this._instance
