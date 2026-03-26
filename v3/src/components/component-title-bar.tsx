@@ -151,9 +151,6 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
       case "Enter":
         handleSubmit(editingTitle)
         break
-      case "Tab":
-        handleBlur()
-        break
     }
   }
 
@@ -172,7 +169,8 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
   return (
     <Flex className={classes} onMouseOver={()=>setIsHovering(true)} onMouseOut={()=>setIsHovering(false)}
           onPointerDown={onMoveTilePointerDown}>
-      <div role={kTileTitleBarAriaRole} aria-label={t("V3.titleBar.toolbar.ariaLabel")} className="title-bar-toolbar"
+      <div role={kTileTitleBarAriaRole} aria-label={t("V3.titleBar.toolbar.ariaLabel")}
+           aria-orientation="horizontal" className="title-bar-toolbar"
            ref={toolbarRef} onFocusCapture={onFocusCapture} onKeyDownCapture={onKeyDownCapture}>
         {children}
         <div className={titleBarClasses} data-testid="component-title-bar">

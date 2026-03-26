@@ -207,6 +207,10 @@ $button-width: 34px;
     &[aria-disabled="true"] {
       opacity: 0.5;
       cursor: not-allowed;
+
+      &:hover, &:active {
+        background-color: transparent;
+      }
     }
 
     svg {
