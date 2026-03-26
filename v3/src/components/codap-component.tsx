@@ -2,6 +2,7 @@ import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
 import React, { useRef, useState } from "react"
+import { kTileAriaRole } from "../accessibility-constants"
 import { CodapComponentContext } from "../hooks/use-codap-component-context"
 import { TileInspectorContent, TileInspectorContext } from "../hooks/use-tile-inspector-context"
 import { TileModelContext } from "../hooks/use-tile-model-context"
@@ -9,6 +10,7 @@ import {
   FocusIgnoreEventType, FocusIgnoreFn, ITileSelection, TileSelectionContext
 } from "../hooks/use-tile-selection-context"
 import { getTileComponentInfo } from "../models/tiles/tile-component-info"
+import { getTitle } from "../models/tiles/tile-content-info"
 import { ITileModel } from "../models/tiles/tile-model"
 import { uiState } from "../models/ui-state"
 import { uniqueId } from "../utilities/js-utils"
@@ -81,9 +83,12 @@ export const CodapComponent = observer(function CodapComponent(props: IProps) {
         <TileSelectionContext.Provider value={tileSelection}>
           <CodapComponentContext.Provider value={codapComponentRef}>
             <div
+              aria-label={hideTitleBar ? (getTitle(tile) || tile.title) : undefined}
+              aria-labelledby={hideTitleBar ? undefined : `tile-title-${tile.id}`}
               className={classes}
               data-testid={tileEltClass}
               key={tile.id}
+              role={kTileAriaRole}
               onFocus={handleFocusEvent}
               onPointerDownCapture={handleFocusEvent}
               ref={codapComponentRef}

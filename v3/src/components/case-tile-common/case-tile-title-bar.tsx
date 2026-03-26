@@ -123,6 +123,7 @@ export const CaseTileTitleBar =
           <button
             className="component-title-bar-button"
             data-testid={"case-table-toggle-view"}
+            data-titlebar-toolbar-item="true"
             onClick={handleShowCardTableToggleMessage}
             title={caseTableOrCardToggleString}
           >

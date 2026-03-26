@@ -12,6 +12,7 @@ $button-width: 34px;
   flex-direction: row;
   height: vars.$title-bar-height;
   overflow: hidden;
+  position: relative;
   width: 100%;
 
   &.focusTile {
@@ -29,13 +30,34 @@ $button-width: 34px;
   }
 
   &:hover, &:active {
-    .header-right {
-      visibility: visible;
-
-      &.disabled {
-        visibility: hidden;
-      }
+    .header-right:not(.disabled) {
+      opacity: 1;
+      pointer-events: auto;
     }
+  }
+
+  // Reveal minimize/close buttons when any toolbar button has keyboard focus
+  .title-bar-toolbar:focus-within {
+    .header-right:not(.disabled) {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+
+  .component-title-bar-button {
+    &:focus-visible {
+      @include vars.focus-outline;
+    }
+  }
+
+  .title-bar-toolbar {
+    display: flex;
+    align-items: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
   }
 
   .header-left, .header-right {
@@ -77,8 +99,9 @@ $button-width: 34px;
     top: 0;
     right: 0;
     cursor: pointer;
-    visibility: hidden;
-    fill: lightgray;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
     border-top-right-radius: 6px;
 
     .component-minimize-button {
@@ -117,7 +140,10 @@ $button-width: 34px;
   }
 
   .title-text {
+    background: none;
     border: 1px solid vars.$icon-fill-dark;
+    color: inherit;
+    font: inherit;
     white-space: nowrap;
     width: fit-content;
 
@@ -130,6 +156,10 @@ $button-width: 34px;
 
     &:hover {
       background-color: vars.$title-bar-color;
+    }
+
+    &:focus-visible {
+      @include vars.focus-outline($radius: vars.$border-radius-four-corners);
     }
   }
 
@@ -174,9 +204,13 @@ $button-width: 34px;
       background-color: #d3f4ff;
     }
 
-    &:disabled {
+    &[aria-disabled="true"] {
       opacity: 0.5;
       cursor: not-allowed;
+
+      &:hover, &:active {
+        background-color: transparent;
+      }
     }
 
     svg {

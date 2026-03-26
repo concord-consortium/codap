@@ -2,6 +2,7 @@ import { clsx } from "clsx"
 import React, { forwardRef, ReactNode, RefObject, useCallback, useEffect, useRef, useState } from "react"
 import { Button, Menu, MenuTrigger, Popover, Tooltip, TooltipTrigger } from "react-aria-components"
 
+import { kInspectorPaletteAriaRole } from "../accessibility-constants"
 import { useFocusTrap } from "../hooks/use-focus-trap"
 import { useMouseTooltipRef } from "../hooks/use-mouse-tooltip-ref"
 import { useRovingToolbarFocus } from "../hooks/use-roving-toolbar-focus"
@@ -303,7 +304,7 @@ export const InspectorPalette = ({children, Icon, id, title, panelRect, buttonRe
       <div ref={pointerRef} className={`palette-pointer ${inBounds ? "arrow-left" : "arrow-right"}`}
           style={{top: pointerTop - (paletteTop || 0), ...pointerStyle}} />
       <div ref={paletteRef} className="codap-inspector-palette" id={id} tabIndex={-1}
-          role="region" aria-labelledby={headerId}
+          role={kInspectorPaletteAriaRole} aria-labelledby={headerId}
           data-testid="codap-inspector-palette" onKeyDown={handleKeyDown}>
         <PaletteHeader id={headerId} Icon={Icon} title={title} />
         {children}
