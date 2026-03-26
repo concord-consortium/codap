@@ -134,7 +134,7 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, render
                     const numInBar = cellMap[primeSplitCat]?.[secSplitCat]?.[primeCat]?.[secCat] ?? 1
                     const { x, y, barWidth, barHeight } = barCoverDimensions({
                       subPlotCells, cellIndices: cellData.cell, layout, primCatsCount, maxInCell, minInCell,
-                      denominator: numInBar, isPercentAxis: graphModel.secondaryAxisIsPercent
+                      denominator: numInBar, isPercentAxis: barChartModel.breakdownType === "percent"
                     })
                     const caseIDs = dataConfig.getCasesForCategoryValues(
                       primaryAttrRole, primeCat, secCat, primeSplitCat, secSplitCat, legendCat
@@ -153,8 +153,8 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, render
                 const maxInCell = bins[primeSplitCat]?.[secSplitCat]?.[primeCat]?.[secCat] ?? 0
                 const { x, y, barWidth, barHeight } = barCoverDimensions({
                   subPlotCells, cellIndices: cellData.cell, layout, primCatsCount, maxInCell,
-                  denominator: dataConfig.numCasesInSubPlotGivenCategories(primeSplitCat, secSplitCat),
-                  isPercentAxis: graphModel.secondaryAxisIsPercent
+                  denominator: Math.max(1, dataConfig.allPlottedCases().length),
+                  isPercentAxis: barChartModel.breakdownType === "percent"
                 })
                 const caseIDs = dataConfig.getCasesForCategoryValues(
                   primaryAttrRole, primeCat, secCat, primeSplitCat, secSplitCat

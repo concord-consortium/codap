@@ -134,14 +134,19 @@ export function v2GraphImporter({v2Component, v2Document, getCaseData, insertTil
     const attrDescType = _attributeDescriptions[axisPlaceToAttrRole[v3Place]]?.type
     const attrId = v2AttrIdsForPlaces[v2Place]
     const attrType = attrId ? v2Document.getV2Attribute(attrId)?.type : undefined
-    return axisClass === "DG.CountAxisModel"
-            ? "count"
-            : attrDescType === "date"
-              ? "date"
-              // V2 doesn't export qualitative axes properly, so we have to infer them from attribute type
-              : [attrDescType, attrType].includes("qualitative")
-                ? "qualitative"
-                : "numeric"
+    if (axisClass === "DG.CountAxisModel") {
+      // V2 uses DG.CountAxisModel for both count and percent bar charts.
+      // Check if the bar chart's breakdownType indicates percent mode.
+      const plotStorage = plotModels[0]?.plotModelStorage as Record<string, unknown> | undefined
+      if (plotStorage?.breakdownType) return "percent"
+      return "count"
+    }
+    return attrDescType === "date"
+            ? "date"
+            // V2 doesn't export qualitative axes properly, so we have to infer them from attribute type
+            : [attrDescType, attrType].includes("qualitative")
+              ? "qualitative"
+              : "numeric"
   }
 
   v2GraphPlaces.forEach(v2Place => {

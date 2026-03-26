@@ -91,12 +91,13 @@ export const barCompressionFactorForCase = (caseID: string, graphModel?: IGraphC
    * In the presence of a legend, all the cases belonging to the primary category in this sub-plot will be
    *    spread from 0 to 100%, so we compress by 100 over the number of cases in the primary category in this sub-plot
    * When the height of the bar is computed by a formula, we divide the value by the number of cases making up the bar.
-   * If there is no legend and no formula, then we compress by 100 over the number of cases in the sub-plot.
+   * If there is no legend and no formula, then we compress by 100 over all plotted cases.
    */
   const barChartModel = graphModel?.plot
   if (!isBarChartModel(barChartModel)) return 1
   const isFormulaDriven = barChartModel.breakdownType === "formula"
-  if (!(graphModel?.secondaryAxisIsPercent || isFormulaDriven)) return 1
+  const isPercent = barChartModel.breakdownType === "percent"
+  if (!(isPercent || isFormulaDriven)) return 1
 
   const dataConfiguration = graphModel?.dataConfiguration
   if (isFormulaDriven) {
@@ -105,9 +106,10 @@ export const barCompressionFactorForCase = (caseID: string, graphModel?: IGraphC
     return barSpec.value / barSpec.numCases
   }
   else {
-    const denominator = dataConfiguration?.attributeID('legend')
-      ? dataConfiguration?.numPrimaryCategoryCases(caseID) ?? 1
-      : dataConfiguration?.subPlotCases(dataConfiguration?.subPlotKey(caseID)).length ?? 1
+    const hasLegend = !!dataConfiguration?.attributeID('legend')
+    const denominator = hasLegend
+      ? dataConfiguration?.numPrimaryCategoryCases(caseID) || 1
+      : dataConfiguration?.allPlottedCases().length || 1
     return 100 / denominator
   }
 }

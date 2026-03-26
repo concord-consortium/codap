@@ -14,6 +14,7 @@ import { CodapV2Document } from "../../v2/codap-v2-document"
 import { ICodapV2DocumentJson } from "../../v2/codap-v2-types"
 import {isGraphContentModel} from "./models/graph-content-model"
 import { IGraphPointLayerModel } from "./models/graph-point-layer-model"
+import { isBarChartModel } from "./plots/bar-chart/bar-chart-model"
 import { v2GraphImporter } from "./v2-graph-importer"
 import "./graph-registration"
 
@@ -313,6 +314,101 @@ describe("V2GraphImporter", () => {
       expect(sharedModelManager!.getSharedModelTileIds(sharedDataSet)).toEqual([tile!.id])
       expect(sharedModelManager!.getSharedModelTileIds(layer.dataConfiguration.metadata)).toEqual([tile!.id])
       done()
+    })
+  })
+
+  describe("imports bar chart axis types from V2", () => {
+    const barChartsFile = path.join(__dirname, "../../test/v2", "mammals-bar-charts.codap")
+    const barChartsJson = fs.readFileSync(barChartsFile, "utf8")
+    const barChartsDoc = safeJsonParse<ICodapV2DocumentJson>(barChartsJson)!
+
+    let barV2Document: CodapV2Document
+    let barDocContent: IDocumentContentModel | undefined
+    let barSharedModelManager: SharedModelDocumentManager | undefined
+
+    beforeEach(() => {
+      barV2Document = new CodapV2Document(barChartsDoc)
+      barSharedModelManager = new SharedModelDocumentManager()
+      barDocContent = DocumentContentModel.create({}, { sharedModelManager: barSharedModelManager })
+      barDocContent.setRowCreator(() => FreeTileRow.create())
+      barSharedModelManager.setDocument(barDocContent)
+
+      const importer = new CodapV2DataSetImporter(barV2Document.guidMap)
+      barV2Document.dataContexts.forEach(context => {
+        importer.importContext(context, barSharedModelManager)
+      })
+
+      mockInsertTile.mockClear()
+      mockInsertTile.mockImplementation((tileSnap: ITileModelSnapshotIn) => {
+        return barDocContent!.insertTileSnapshotInDefaultRow(tileSnap)
+      })
+    })
+
+    function importBarChart(title: string) {
+      const component = barV2Document.components.find(c => c.componentStorage?.title === title)!
+      const tile = v2GraphImporter({
+        v2Component: component,
+        v2Document: barV2Document,
+        getCaseData: (dataContextGuid: number) =>
+          getCaseDataFromV2ContextGuid(dataContextGuid, barSharedModelManager),
+        getGlobalValues: mockGetGlobalValues,
+        insertTile: mockInsertTile,
+        linkSharedModel: (tileContent: ITileContentModel, sharedModel?: ISharedModel, isProvider?: boolean) => {
+          if (sharedModel) {
+            barSharedModelManager?.addTileSharedModel(tileContent, sharedModel, isProvider)
+          }
+        }
+      })
+      const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
+      return graphModel!
+    }
+
+    it("imports count bar chart with count axis", () => {
+      const graphModel = importBarChart("BarChart-Count")
+      expect(graphModel.plotType).toBe("barChart")
+      const plot = graphModel.plot
+      expect(isBarChartModel(plot)).toBe(true)
+      expect((plot as any).breakdownType).toBe("count")
+      expect(graphModel.axes.get("left")?.type).toBe("count")
+    })
+
+    it("imports percent bar chart with percent axis", () => {
+      const graphModel = importBarChart("BarChart-Percent")
+      expect(graphModel.plotType).toBe("barChart")
+      const plot = graphModel.plot
+      expect(isBarChartModel(plot)).toBe(true)
+      expect((plot as any).breakdownType).toBe("percent")
+      expect(graphModel.axes.get("left")?.type).toBe("percent")
+    })
+
+    it("imports formula bar chart with numeric axis", () => {
+      const graphModel = importBarChart("BarChart-Formula")
+      expect(graphModel.plotType).toBe("barChart")
+      const plot = graphModel.plot
+      expect(isBarChartModel(plot)).toBe(true)
+      expect((plot as any).breakdownType).toBe("formula")
+      expect(graphModel.axes.get("left")?.type).toBe("numeric")
+    })
+
+    it("imports count bar chart with split and count axis", () => {
+      const graphModel = importBarChart("BarChart-Count-SplitRight")
+      expect(graphModel.plotType).toBe("barChart")
+      expect((graphModel.plot as any).breakdownType).toBe("count")
+      expect(graphModel.axes.get("left")?.type).toBe("count")
+    })
+
+    it("imports percent bar chart with split and percent axis", () => {
+      const graphModel = importBarChart("BarChart-Percent-SplitRight")
+      expect(graphModel.plotType).toBe("barChart")
+      expect((graphModel.plot as any).breakdownType).toBe("percent")
+      expect(graphModel.axes.get("left")?.type).toBe("percent")
+    })
+
+    it("imports formula bar chart with split and numeric axis", () => {
+      const graphModel = importBarChart("BarChartFormula-SplitRight")
+      expect(graphModel.plotType).toBe("barChart")
+      expect((graphModel.plot as any).breakdownType).toBe("formula")
+      expect(graphModel.axes.get("left")?.type).toBe("numeric")
     })
   })
 })
