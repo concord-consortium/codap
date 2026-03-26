@@ -12,7 +12,7 @@ export const isAddCasesAction = (action: ISerializedActionCall): action is AddCa
 
 export interface SetCaseValuesAction extends ISerializedActionCall {
   name: "setCaseValues"
-  args: [ICase[], string[]]
+  args: [ICase[], string[] | undefined]
 }
 export const isSetCaseValuesAction = (action: ISerializedActionCall): action is SetCaseValuesAction =>
               action.name === "setCaseValues"

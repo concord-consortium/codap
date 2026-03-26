@@ -1355,12 +1355,14 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
           const values: IValueType[] = []
           for (const item of items) {
             const index = itemInfoMap.get(item.__id__)?.index
-            if (index != null && item[attrId] !== undefined) {
+            if (index != null && Object.prototype.hasOwnProperty.call(item, attrId)) {
               indices.push(index)
-              values.push(item[attrId])
+              values.push(item[attrId] as IValueType)
             }
           }
-          attr.setComputedValues(indices, values)
+          if (indices.length > 0) {
+            attr.setComputedValues(indices, values)
+          }
         }
         self.invalidateCases(needsRegrouping)
       },
