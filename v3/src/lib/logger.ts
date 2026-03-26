@@ -144,7 +144,13 @@ export class Logger {
     debugLog(DEBUG_LOGGER, "logMessage:", logMessage)
     sendToLoggingService(logMessage)
     sendToAnalyticsService(event, category, extractGAEventArgs(args))
-    this.logListeners.forEach(listener => listener(logMessage))
+    this.logListeners.forEach(listener => {
+      try {
+        listener(logMessage)
+      } catch (e) {
+        console.error("Logger listener threw an error:", e)
+      }
+    })
   }
 
   private createLogMessage(

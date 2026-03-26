@@ -135,7 +135,7 @@ export interface UrlParams {
   interactiveApi?: string | null
   /*
    * When present enables the log monitor sidebar for real-time log event viewing.
-   * value: ignored
+   * value: boolean-like string (parsed via booleanParam)
    */
   logMonitor?: string | null
   /*

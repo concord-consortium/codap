@@ -55,6 +55,10 @@
     > .log-monitor {
       padding-top: vars.$menu-bar-height;
     }
+
+    .codap-app.beta ~ .log-monitor {
+      padding-top: calc(vars.$menu-bar-height + vars.$beta-banner-height);
+    }
   }
 
   // Embedded mode: transparent background and text selectability
