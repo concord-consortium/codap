@@ -10,6 +10,7 @@ import {
   FocusIgnoreEventType, FocusIgnoreFn, ITileSelection, TileSelectionContext
 } from "../hooks/use-tile-selection-context"
 import { getTileComponentInfo } from "../models/tiles/tile-component-info"
+import { getTitle } from "../models/tiles/tile-content-info"
 import { ITileModel } from "../models/tiles/tile-model"
 import { uiState } from "../models/ui-state"
 import { uniqueId } from "../utilities/js-utils"
@@ -82,7 +83,8 @@ export const CodapComponent = observer(function CodapComponent(props: IProps) {
         <TileSelectionContext.Provider value={tileSelection}>
           <CodapComponentContext.Provider value={codapComponentRef}>
             <div
-              aria-labelledby={`tile-title-${tile.id}`}
+              aria-label={hideTitleBar ? (getTitle(tile) || tile.title) : undefined}
+              aria-labelledby={hideTitleBar ? undefined : `tile-title-${tile.id}`}
               className={classes}
               data-testid={tileEltClass}
               key={tile.id}

@@ -1322,6 +1322,7 @@
     "V3.app.toolbar.ariaLabel": "CODAP document",
     "V3.app.component.editTitle.ariaLabel": "Edit title",
     "V3.titleBar.toolbar.ariaLabel": "Tile actions",
+    "V3.titleBar.untitled": "Untitled %@",
     "V3.fileMenu.fileMenuName": "File",
     "V3.app.errorDialog.title": "Error",
     "V3.app.errorDialog.description": "An error has occurred that may affect how this program behaves.",

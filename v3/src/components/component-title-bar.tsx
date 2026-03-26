@@ -11,7 +11,7 @@ import { useRovingToolbarFocus } from "../hooks/use-roving-toolbar-focus"
 import { logMessageWithReplacement } from "../lib/log-message"
 import { appState } from "../models/app-state"
 import { getRedoStringKey, getUndoStringKey } from "../models/history/codap-undo-types"
-import { getTitle } from "../models/tiles/tile-content-info"
+import { getTitle, getTileTypeLabel } from "../models/tiles/tile-content-info"
 import { updateTileNotification } from "../models/tiles/tile-notifications"
 import { uiState } from "../models/ui-state"
 import { t } from "../utilities/translation/translate"
@@ -75,7 +75,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
     }
   }
 
-  const handleSubmit = (nextValue: string) => {
+  const handleSubmit = (nextValue: string, restoreFocus = true) => {
     const trimmedNextValue = nextValue.trim()
     if (!preventTitleChange) {
       if (onHandleTitleChange) {
@@ -86,8 +86,11 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
       // Assume the title was successfully changed
       setEditingTitle(trimmedNextValue)
       setIsEditing(false)
-      // Return focus to title button after React re-renders it
-      requestAnimationFrame(() => titleButtonRef.current?.focus())
+      // Return focus to title button after React re-renders it, 
+      // unless restoreFocus is false (e.g. when cancelled by blur)
+      if (restoreFocus) {
+        requestAnimationFrame(() => titleButtonRef.current?.focus())
+      }
     }
   }
 
@@ -130,6 +133,10 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
     pointerStart.current = null
   }
 
+  const handleBlur = () => {
+    handleSubmit(editingTitle, false)
+  }
+
   const handleInputPointerDown = (e: React.PointerEvent<HTMLInputElement>) => {
     e.stopPropagation()
   }
@@ -142,8 +149,10 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
         handleCancel()
         break
       case "Enter":
-      case "Tab":
         handleSubmit(editingTitle)
+        break
+      case "Tab":
+        handleBlur()
         break
     }
   }
@@ -175,7 +184,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
                 autoFocus={true}
                 className="title-text-input"
                 data-testid="title-text-input"
-                onBlur={() => handleSubmit(editingTitle)}
+                onBlur={handleBlur}
                 onChange={(e) => setEditingTitle(e.target.value)}
                 onFocus={(e) => e.target.select()}
                 onInput={handleInput}
@@ -188,6 +197,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
             ) : (
               <button
                 aria-description={t("V3.app.component.editTitle.ariaLabel")}
+                aria-label={title ? undefined : t("V3.titleBar.untitled", { vars: [getTileTypeLabel(tileType)] })}
                 className="title-text"
                 data-testid="title-text"
                 data-titlebar-toolbar-item="true"
