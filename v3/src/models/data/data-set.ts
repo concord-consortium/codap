@@ -1357,7 +1357,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
             const index = itemInfoMap.get(item.__id__)?.index
             if (index != null && Object.prototype.hasOwnProperty.call(item, attrId)) {
               indices.push(index)
-              values.push(item[attrId] as IValueType)
+              values.push(item[attrId])
             }
           }
           if (indices.length > 0) {

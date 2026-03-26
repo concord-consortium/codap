@@ -1,10 +1,10 @@
 import { isAlive } from "mobx-state-tree"
 import { useCallback, useEffect, useRef } from "react"
+import { prf } from "../../utilities/profiler"
+import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
 import { ISliderModel } from "./slider-model"
 import { FixValueFn, kAnimationDefaults } from "./slider-types"
 import { valueChangeNotification } from "./slider-utils"
-import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
-import { prf } from "../../utilities/profiler"
 
 // Uses requestAnimationFrame instead of setInterval to ensure each animation tick
 // aligns with a browser paint cycle. When the tick work takes longer than the
