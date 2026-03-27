@@ -10,7 +10,7 @@ export const diLogMessageMonitorHandler: DIHandler = {
     }
     const filter = values as unknown as LogMonitorFilter
     const monitor = logMonitorManager.register(clientId, filter)
-    return { success: true, values: { logMonitor: monitor } }
+    return { success: true, values: { logMonitor: { id: monitor.id, clientId: monitor.clientId } } }
   },
 
   unregister(resources: DIResources, values?: DIValues) {
