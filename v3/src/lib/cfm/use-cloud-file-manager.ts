@@ -11,6 +11,8 @@ import { gLocale } from "../../utilities/translation/locale"
 import { t } from "../../utilities/translation/translate"
 import { removeDevUrlParams, urlParams } from "../../utilities/url-params"
 import { clientConnect, createCloudFileManager, renderRoot } from "./cfm-utils"
+import { handleLogLaraData } from "./cfm-log-utils"
+import { Logger } from "../logger"
 import { CONFIG_SAVE_AS_V2 } from "../config"
 import { DEBUG_CFM_LOCAL_STORAGE } from "../debug"
 import { handleCFMEvent, kCFMAutoSaveInterval } from "./handle-cfm-event"
@@ -334,9 +336,10 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, hookOptions?: IUs
       extension: CONFIG_SAVE_AS_V2 ? "codap" : "codap3",
       readableExtensions: ["json", "", "codap", "codap3"],
       enableLaraSharing: true,
-      log(event, eventData) {
-        // const params = eventData ? JSON.stringify(eventData) : ""
-        // DG.logUser("%@: %@", event, params)
+      log(_event: string, _eventData: any) {
+        // Intentionally empty. CODAP logs are forwarded to CFM via a Logger listener
+        // that calls cfmClient.log(). Activating this callback would create an
+        // infinite loop: Logger -> cfmClient.log() -> appOptions.log -> Logger.
       },
       providers: [
         {
@@ -353,7 +356,7 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, hookOptions?: IUs
             return obj.guid || JSON.stringify(obj)
           },
           logLaraData(obj) {
-            // handleLogLaraData(obj)
+            handleLogLaraData(obj as unknown as Record<string, unknown>)
           }
         },
         {
@@ -388,6 +391,13 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, hookOptions?: IUs
     }
 
     cfm.init(_options)
+
+    // Forward all CODAP log events to CFM for LARA/Activity Player forwarding.
+    // CFM PR #419 adds a listener in InteractiveApiProvider that forwards
+    // cfmClient.log() events to lara-interactive-api's log() function.
+    Logger.registerLogListener((logMessage) => {
+      cfm.client?.log(logMessage.event, logMessage)
+    })
 
     clientConnect(cfm, function cfmEventCallback(event: CloudFileManagerClientEvent) {
       handleCFMEvent(cfm.client, event)
