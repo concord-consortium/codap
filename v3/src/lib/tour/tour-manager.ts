@@ -1,6 +1,7 @@
 import { driver, DriveStep, Driver } from "driver.js"
 import "driver.js/dist/driver.css"
 import "./tour-styles.scss"
+import { DEBUG_PLUGINS, debugLog } from "../debug"
 import { isWebViewModel } from "../../components/web-view/web-view-model"
 import { findTileFromNameOrId } from "../../data-interactive/resource-parser-utils"
 import { ITileModel } from "../../models/tiles/tile-model"
@@ -73,12 +74,12 @@ class TourManager {
   private resolveTarget(step: TourStepInput): { element: Element | null, targetProp: Record<string, string> } {
     if (step.tourKey) {
       if (!step.tourKey.includes(".")) {
-        console.warn(`Invalid tourKey "${step.tourKey}" — expected "namespace.element" format`)
+        debugLog(DEBUG_PLUGINS, `Invalid tourKey "${step.tourKey}" — expected "namespace.element" format`)
         return { element: null, targetProp: { tourKey: step.tourKey } }
       }
       const resolved = resolveElement(step.tourKey as TourElementKey)
       if (!resolved) {
-        console.warn(`Unknown tourKey "${step.tourKey}" — not found in tour element registry`)
+        debugLog(DEBUG_PLUGINS, `Unknown tourKey "${step.tourKey}" — not found in tour element registry`)
         return { element: null, targetProp: { tourKey: step.tourKey } }
       }
       const scope = step.component ? this.findComponentRoot(step.component) : document
@@ -129,12 +130,17 @@ class TourManager {
     const title = step.popover?.title ?? defaults.title
     const description = step.popover?.description ?? defaults.description
     if (!title && !description) return undefined
-    return {
-      title,
-      description,
-      ...(step.popover?.side && { side: step.popover.side as "top" | "right" | "bottom" | "left" }),
-      ...(step.popover?.align && { align: step.popover.align as "start" | "center" | "end" })
+
+    const popover: DriveStep["popover"] = { title, description }
+    const rawSide = step.popover?.side
+    const rawAlign = step.popover?.align
+    if (rawSide === "top" || rawSide === "right" || rawSide === "bottom" || rawSide === "left") {
+      popover.side = rawSide
     }
+    if (rawAlign === "start" || rawAlign === "center" || rawAlign === "end") {
+      popover.align = rawAlign
+    }
+    return popover
   }
 
   /** Send a notification to the owning plugin */

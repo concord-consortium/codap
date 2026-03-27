@@ -22,13 +22,28 @@ function pickBoolean(val: unknown): boolean | undefined {
 
 function pickStringArray<T extends string>(val: unknown, allowed: readonly T[]): T[] | undefined {
   if (!Array.isArray(val)) return undefined
-  const filtered = val.filter((v: unknown): v is T => typeof v === "string" && (allowed as readonly string[]).includes(v))
-  return filtered.length > 0 ? filtered : undefined
+  const allowedStrings = allowed as readonly string[]
+  const filtered = val.filter((v: unknown): v is T => typeof v === "string" && allowedStrings.includes(v))
+  return filtered
 }
+
+function stripHtml(val: unknown): string | undefined {
+  const str = pickString(val)
+  if (str == null) return undefined
+  return str.replace(/<[^>]*>/g, "")
+}
+
+const validSides = ["top", "right", "bottom", "left"]
+const validAligns = ["start", "center", "end"]
 
 function sanitizeStepInput(raw: unknown): TourStepInput | null {
   if (typeof raw !== "object" || raw == null) return null
   const v = raw as Record<string, unknown>
+  const popoverRaw = v.popover != null && typeof v.popover === "object"
+    ? v.popover as Record<string, unknown>
+    : null
+  const side = pickString(popoverRaw?.side)
+  const align = pickString(popoverRaw?.align)
   return {
     ...(v.tourKey != null && { tourKey: pickString(v.tourKey) }),
     ...(v.testId != null && { testId: pickString(v.testId) }),
@@ -38,12 +53,12 @@ function sanitizeStepInput(raw: unknown): TourStepInput | null {
     ...(v.disableActiveInteraction != null && { disableActiveInteraction: pickBoolean(v.disableActiveInteraction) }),
     ...(v.stagePadding != null && { stagePadding: pickNumber(v.stagePadding) }),
     ...(v.stageRadius != null && { stageRadius: pickNumber(v.stageRadius) }),
-    ...(v.popover != null && typeof v.popover === "object" && {
+    ...(popoverRaw && {
       popover: {
-        title: pickString((v.popover as Record<string, unknown>).title),
-        description: pickString((v.popover as Record<string, unknown>).description),
-        side: pickString((v.popover as Record<string, unknown>).side),
-        align: pickString((v.popover as Record<string, unknown>).align),
+        title: stripHtml(popoverRaw.title),
+        description: stripHtml(popoverRaw.description),
+        ...(side && validSides.includes(side) && { side }),
+        ...(align && validAligns.includes(align) && { align }),
       }
     }),
   }
