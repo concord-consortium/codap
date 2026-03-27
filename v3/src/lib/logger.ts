@@ -1,6 +1,7 @@
 import { nanoid } from "nanoid"
 import { debugLog, DEBUG_LOGGER } from "./debug"
 import { IDocumentModel } from "../models/document/document"
+import { urlParams } from "../utilities/url-params"
 import { AnalyticsCategory, mockGA } from "./analytics"
 
 // Set to true (temporarily) to debug logging to server specifically.
@@ -166,7 +167,7 @@ export class Logger {
 
   private constructor(document: IDocumentModel) {
     this.document = document
-    this.session = nanoid()
+    this.session = urlParams.runKey || nanoid()
   }
 
   private formatAndSend(
