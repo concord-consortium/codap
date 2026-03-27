@@ -145,6 +145,12 @@ export class Logger {
     }
   }
 
+  public static setRunRemoteEndpoint(endpoint: string) {
+    if (this._instance) {
+      this._instance.runRemoteEndpoint = endpoint
+    }
+  }
+
   private static flushPendingListeners() {
     if (!this._instance) return
     for (const listener of this.pendingListeners) {
@@ -155,6 +161,7 @@ export class Logger {
 
   private document: IDocumentModel
   private session: string
+  private runRemoteEndpoint?: string
   private logListeners: ILogListener[] = []
 
   private constructor(document: IDocumentModel) {
@@ -197,9 +204,9 @@ export class Logger {
       parameters,
     }
 
-    // if (loggingRemoteEndpoint) {
-    //   logMessage.run_remote_endpoint = loggingRemoteEndpoint
-    // }
+    if (this.runRemoteEndpoint) {
+      logMessage.run_remote_endpoint = this.runRemoteEndpoint
+    }
 
     return logMessage
   }

@@ -124,4 +124,60 @@ describe("Logger", () => {
       expect(listener).toHaveBeenCalledTimes(1)
     })
   })
+
+  describe("run_remote_endpoint", () => {
+    it("includes run_remote_endpoint when set", () => {
+      Logger.initializeLogger(mockDocument)
+      Logger.setRunRemoteEndpoint("https://example.com/endpoint")
+      const listener = jest.fn()
+      Logger.registerLogListener(listener)
+
+      Logger.log("testEvent")
+
+      const logMessage: LogMessage = listener.mock.calls[0][0]
+      expect(logMessage.run_remote_endpoint).toBe("https://example.com/endpoint")
+    })
+
+    it("omits run_remote_endpoint when not set", () => {
+      Logger.initializeLogger(mockDocument)
+      const listener = jest.fn()
+      Logger.registerLogListener(listener)
+
+      Logger.log("testEvent")
+
+      const logMessage: LogMessage = listener.mock.calls[0][0]
+      expect(logMessage.run_remote_endpoint).toBeUndefined()
+    })
+  })
+
+  describe("runKey session", () => {
+    it("uses runKey as session when URL param is present", () => {
+      const urlParamsModule = require("../utilities/url-params")
+      const originalParams = urlParamsModule.urlParams
+      urlParamsModule.urlParams = { ...originalParams, runKey: "my-run-key-123" }
+
+      Logger.initializeLogger(mockDocument)
+      const listener = jest.fn()
+      Logger.registerLogListener(listener)
+
+      Logger.log("testEvent")
+
+      const logMessage: LogMessage = listener.mock.calls[0][0]
+      expect(logMessage.session).toBe("my-run-key-123")
+
+      urlParamsModule.urlParams = originalParams
+    })
+
+    it("uses generated session when runKey is absent", () => {
+      Logger.initializeLogger(mockDocument)
+      const listener = jest.fn()
+      Logger.registerLogListener(listener)
+
+      Logger.log("testEvent")
+
+      const logMessage: LogMessage = listener.mock.calls[0][0]
+      expect(logMessage.session).toBeDefined()
+      expect(logMessage.session).not.toBe("")
+    })
+  })
 })
