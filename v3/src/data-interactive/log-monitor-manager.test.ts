@@ -100,4 +100,79 @@ describe("LogMonitorManager", () => {
       expect(manager.evaluateLogEvent({ message: "test", formatStr: "test" })).toHaveLength(0)
     })
   })
+
+  describe("notification delivery", () => {
+    it("calls broadcastMessage on matching plugin tile", () => {
+      const mockBroadcast = jest.fn((_msg: any, cb: any) => cb?.(null))
+      const mockDocument = {
+        content: {
+          broadcastMessage: jest.fn((message: any, callback: any, targetTileId?: string) => {
+            // Only the targeted tile's broadcastMessage should be called
+            mockBroadcast(message, callback)
+          })
+        }
+      }
+
+      manager.setDocumentProvider(() => mockDocument as any)
+      manager.register("plugin-1", { message: "*" })
+
+      manager.notifyMatchingMonitors({
+        message: "test event",
+        formatStr: "test event"
+      })
+
+      expect(mockDocument.content.broadcastMessage).toHaveBeenCalledTimes(1)
+      const call = mockDocument.content.broadcastMessage.mock.calls[0]
+      expect(call[0].action).toBe("notify")
+      expect(call[0].resource).toBe("logMessageNotice")
+      expect(call[0].values.message).toBe("test event")
+      expect(call[2]).toBe("plugin-1") // targetTileId
+    })
+
+    it("includes topic in logMessageNotice when present", () => {
+      const mockDocument = {
+        content: {
+          broadcastMessage: jest.fn()
+        }
+      }
+
+      manager.setDocumentProvider(() => mockDocument as any)
+      manager.register("plugin-1", { message: "*" })
+
+      manager.notifyMatchingMonitors({
+        message: "game start",
+        formatStr: "game %@",
+        topic: "game.lifecycle",
+        replaceArgs: ["start"]
+      })
+
+      const call = mockDocument.content.broadcastMessage.mock.calls[0]
+      expect(call[0].values.topic).toBe("game.lifecycle")
+      expect(call[0].values.replaceArgs).toEqual(["start"])
+    })
+
+    it("does not notify non-matching monitors", () => {
+      const mockDocument = {
+        content: {
+          broadcastMessage: jest.fn()
+        }
+      }
+
+      manager.setDocumentProvider(() => mockDocument as any)
+      manager.register("plugin-1", { topic: "specific" })
+
+      manager.notifyMatchingMonitors({
+        message: "test event",
+        formatStr: "test event"
+      })
+
+      expect(mockDocument.content.broadcastMessage).not.toHaveBeenCalled()
+    })
+
+    it("does nothing when no document provider is set", () => {
+      manager.register("plugin-1", { message: "*" })
+      // Should not throw
+      manager.notifyMatchingMonitors({ message: "test", formatStr: "test" })
+    })
+  })
 })

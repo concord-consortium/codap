@@ -29,7 +29,7 @@ export const diLogMessageHandler: DIHandler = {
         topic,
         replaceArgs: argsArray
       }
-      logMonitorManager.evaluateLogEvent(eventInfo)
+      logMonitorManager.notifyMatchingMonitors(eventInfo)
 
       return { success: true }
     } else {

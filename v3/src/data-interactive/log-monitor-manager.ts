@@ -1,3 +1,5 @@
+import { Logger } from "../lib/logger"
+
 export interface LogMonitorFilter {
   topic?: string
   topicPrefix?: string
@@ -41,6 +43,34 @@ function matchesFilter(filter: LogMonitorFilter, event: LogEventInfo): boolean {
 export class LogMonitorManager {
   private monitors: LogMonitor[] = []
   private nextId = 1
+  private documentProvider?: () => any
+
+  setDocumentProvider(provider: () => any) {
+    this.documentProvider = provider
+  }
+
+  notifyMatchingMonitors(event: LogEventInfo) {
+    const matches = this.evaluateLogEvent(event)
+    if (matches.length === 0) return
+
+    const document = this.documentProvider?.()
+    if (!document?.content?.broadcastMessage) return
+
+    for (const monitor of matches) {
+      const notice = {
+        action: "notify",
+        resource: "logMessageNotice",
+        values: {
+          message: event.message,
+          formatStr: event.formatStr,
+          ...(event.topic != null ? { topic: event.topic } : {}),
+          ...(event.replaceArgs != null ? { replaceArgs: event.replaceArgs } : {}),
+          logMonitor: { id: monitor.id, clientId: monitor.clientId }
+        }
+      }
+      document.content.broadcastMessage(notice, () => null, monitor.clientId)
+    }
+  }
 
   register(clientId: string, filter: LogMonitorFilter): LogMonitor {
     const monitor: LogMonitor = { id: this.nextId++, clientId, filter }
@@ -69,3 +99,15 @@ export class LogMonitorManager {
 }
 
 export const logMonitorManager = new LogMonitorManager()
+
+// Register a Logger listener to evaluate CODAP-originated log events against
+// registered monitors. DI-originated events with topics are handled separately
+// by the logMessage handler (which calls notifyMatchingMonitors directly).
+Logger.registerLogListener((logMessage) => {
+  const eventInfo: LogEventInfo = {
+    message: logMessage.event,
+    formatStr: logMessage.event,
+    // CODAP-originated events have no topic
+  }
+  logMonitorManager.notifyMatchingMonitors(eventInfo)
+})
