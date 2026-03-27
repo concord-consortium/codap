@@ -12,10 +12,24 @@ export const isAddCasesAction = (action: ISerializedActionCall): action is AddCa
 
 export interface SetCaseValuesAction extends ISerializedActionCall {
   name: "setCaseValues"
-  args: [ICase[], string[]]
+  args: [ICase[], string[] | undefined]
 }
 export const isSetCaseValuesAction = (action: ISerializedActionCall): action is SetCaseValuesAction =>
               action.name === "setCaseValues"
+
+export interface SetComputedCaseValuesAction extends ISerializedActionCall {
+  name: "setComputedCaseValues"
+  args: [ICase[], string[]]
+}
+export const isSetComputedCaseValuesAction =
+              (action: ISerializedActionCall): action is SetComputedCaseValuesAction =>
+                action.name === "setComputedCaseValues"
+
+// Matches either setCaseValues or setComputedCaseValues — use when responding to value changes
+// regardless of whether they originated from user edits or formula evaluation.
+export const isCaseValueChangeAction = (action: ISerializedActionCall):
+              action is SetCaseValuesAction | SetComputedCaseValuesAction =>
+              action.name === "setCaseValues" || action.name === "setComputedCaseValues"
 
 export interface SetAttributeNameAction extends ISerializedActionCall {
   name: "setAttributeName"

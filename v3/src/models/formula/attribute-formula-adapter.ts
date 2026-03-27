@@ -1,5 +1,6 @@
 import type { EvalFunction } from "mathjs"
 import { DEBUG_FORMULAS, debugLog } from "../../lib/debug"
+import { prf } from "../../utilities/profiler"
 import { boundaryManager } from "../boundaries/boundary-manager"
 import { isFormulaAttr, isValidFormulaAttr } from "../data/attribute"
 import { CaseInfo, ICase, IGroupedCase, symParent } from "../data/data-set-types"
@@ -119,9 +120,41 @@ export class AttributeFormulaAdapter extends FormulaManagerAdapter {
     if (!dataSet) {
       throw new Error(`Dataset with id "${extraMetadata.dataSetId}" not found`)
     }
-    const results = this.computeFormula(formulaContext, extraMetadata, casesToRecalculateDesc)
-    if (results && results.length > 0) {
-      dataSet.setCaseValues(results)
+    const allResults = prf.measure("Formula.computeFormula", () =>
+      this.computeFormula(formulaContext, extraMetadata, casesToRecalculateDesc)
+    )
+    if (allResults && allResults.length > 0) {
+      // Filter to only cases whose computed value actually changed, to avoid unnecessary
+      // downstream work (attribute change notifications, filtered case updates, cascading
+      // formula recalculations, tile re-renders).
+      const { attributeId } = extraMetadata
+      const attr = dataSet.attrFromID(attributeId)
+      const changedResults = attr
+        ? prf.measure("Formula.filterChanged", () => {
+            // Capture Maps/arrays locally to avoid repeated MST proxy access in the loop
+            const { caseInfoMap, itemInfoMap } = dataSet
+            const { strValues } = attr
+            return allResults.filter(result => {
+              const caseInfo = caseInfoMap.get(result.__id__)
+              const itemId = caseInfo ? caseInfo.childItemIds[0] : result.__id__
+              const index = itemInfoMap.get(itemId)?.index
+              if (index == null) return true
+              const newValue = result[attributeId]
+              const currentStr = strValues[index]
+              if (typeof newValue === "number") {
+                return newValue.toString() !== currentStr
+              } else if (typeof newValue === "string") {
+                return newValue.trim() !== currentStr
+              }
+              return true // write unknown types unconditionally
+            })
+          })
+        : allResults
+      if (changedResults.length > 0) {
+        prf.measure("Formula.setComputedCaseValues", () =>
+          dataSet.setComputedCaseValues(changedResults, [attributeId])
+        )
+      }
     }
   }
 
@@ -209,10 +242,10 @@ export class AttributeFormulaAdapter extends FormulaManagerAdapter {
     const { dataSet } = formulaContext
     const { attributeId } = extraMetadata
     const allCases = dataSet.getCasesForAttributes([attributeId])
-    dataSet.setCaseValues(allCases.map(c => ({
+    dataSet.setComputedCaseValues(allCases.map(c => ({
       __id__: c.__id__,
       [attributeId]: errorMsg
-    })))
+    })), [attributeId])
   }
 
   setupFormulaObservers(formulaContext: IFormulaContext, extraMetadata: IAttrFormulaExtraMetadata) {

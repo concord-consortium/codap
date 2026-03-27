@@ -3,7 +3,7 @@ import {isAlive} from "mobx-state-tree"
 import { useCallback, useEffect, useRef } from "react"
 import {useDebouncedCallback} from "use-debounce"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import {isSetCaseValuesAction} from "../../../models/data/data-set-actions"
+import {isCaseValueChangeAction, isSetComputedCaseValuesAction} from "../../../models/data/data-set-actions"
 import {mstAutorun} from "../../../utilities/mst-autorun"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
@@ -268,7 +268,18 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   useEffect(() => {
     if (dataset) {
       const disposer = onAnyAction(dataset, action => {
-        if (isSetCaseValuesAction(action)) {
+        if (isCaseValueChangeAction(action)) {
+          // For computed value changes, skip refresh if none of the affected attributes
+          // are plotted by this graph — avoids expensive per-point PIXI updates for
+          // formula recalculations on unrelated attributes.
+          if (isSetComputedCaseValuesAction(action)) {
+            const affectedAttrs = action.args[1]
+            const plottedAttrs = dataConfiguration?.uniqueAttributes
+            if (affectedAttrs && plottedAttrs &&
+                !affectedAttrs.some(attrId => plottedAttrs.includes(attrId))) {
+              return
+            }
+          }
           // If we're caching then only selected cases need to be updated in scatterplots. But for dotplots
           // we need to update all points because the unselected points positions change.
           callRefreshPointPositions({ selectedOnly: dataset.isCaching() && graphModel.plotType !== "dotPlot" })
@@ -276,7 +287,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       })
       return () => disposer()
     }
-  }, [dataset, callRefreshPointPositions, graphModel.plotType])
+  }, [dataset, dataConfiguration, callRefreshPointPositions, graphModel.plotType])
 
   // respond to plotType changes
   useEffect(function respondToPlotTypeChange() {

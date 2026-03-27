@@ -43,6 +43,8 @@ export const operators = {
     numOfRequiredArguments: 2,
     evaluateOperator: (a: any, b: any) => {
       if (a == null || b == null || Number.isNaN(a) || Number.isNaN(b)) return false
+      // Fast path: both arguments are already numbers — skip expensive date parsing
+      if (typeof a === "number" && typeof b === "number") return a < b
       const [isADate, aDate] = checkDate(a)
       const [isBDate, bDate] = checkDate(b)
       if (isADate) a = aDate.valueOf() / 1000
@@ -61,6 +63,8 @@ export const operators = {
     numOfRequiredArguments: 2,
     evaluateOperator: (a: any, b: any) => {
       if (a == null || b == null || Number.isNaN(a) || Number.isNaN(b)) return false
+      // Fast path: both arguments are already numbers — skip expensive date parsing
+      if (typeof a === "number" && typeof b === "number") return a <= b
       const [isADate, aDate] = checkDate(a)
       const [isBDate, bDate] = checkDate(b)
       if (isADate) a = aDate.valueOf() / 1000
@@ -79,6 +83,8 @@ export const operators = {
     numOfRequiredArguments: 2,
     evaluateOperator: (a: any, b: any) => {
       if (a == null || b == null || Number.isNaN(a) || Number.isNaN(b)) return false
+      // Fast path: both arguments are already numbers — skip expensive date parsing
+      if (typeof a === "number" && typeof b === "number") return a > b
       const [isADate, aDate] = checkDate(a)
       const [isBDate, bDate] = checkDate(b)
       if (isADate) a = aDate.valueOf() / 1000
@@ -97,6 +103,8 @@ export const operators = {
     numOfRequiredArguments: 2,
     evaluateOperator: (a: any, b: any) => {
       if (a == null || b == null || Number.isNaN(a) || Number.isNaN(b)) return false
+      // Fast path: both arguments are already numbers — skip expensive date parsing
+      if (typeof a === "number" && typeof b === "number") return a >= b
       const [isADate, aDate] = checkDate(a)
       const [isBDate, bDate] = checkDate(b)
       if (isADate) a = aDate.valueOf() / 1000
@@ -117,6 +125,11 @@ export const operators = {
       // empty strings
       if (a === "" && typeof b !== "string") return ""
       if (b === "" && typeof a !== "string") return ""
+
+      // Fast path: both arguments are already numbers — skip expensive date parsing
+      if (typeof a === "number" && typeof b === "number") {
+        return a + b
+      }
 
       const [isADate, aDate] = checkDate(a)
       const [isBDate, bDate] = checkDate(b)
@@ -168,6 +181,11 @@ export const operators = {
         return ""
       }
 
+      // Fast path: both arguments are already numbers — skip expensive date parsing
+      if (typeof a === "number" && typeof b === "number") {
+        return a - b
+      }
+
       const [isADate, aDate] = checkDate(a)
       const [isBDate, bDate] = checkDate(b)
       const [isANumber, aNumber] = checkNumber(a)
@@ -200,10 +218,9 @@ export const operators = {
     isOperator: true,
     numOfRequiredArguments: 2,
     evaluateOperator: (a: any, b: any) => {
-      // Empty strings
-      if (a === "" || b === "") {
-        return ""
-      }
+      if (a === "" || b === "") return ""
+      // Fast path: both arguments are already numbers
+      if (typeof a === "number" && typeof b === "number") return a * b
 
       const [isANumber, aNumber] = checkNumber(a)
       const [isBNumber, bNumber] = checkNumber(b)
@@ -220,10 +237,9 @@ export const operators = {
     isOperator: true,
     numOfRequiredArguments: 2,
     evaluateOperator: (a: any, b: any) => {
-      // Empty strings
-      if (a === "" || b === "") {
-        return ""
-      }
+      if (a === "" || b === "") return ""
+      // Fast path: both arguments are already numbers
+      if (typeof a === "number" && typeof b === "number") return a / b
 
       const [isANumber, aNumber] = checkNumber(a)
       const [isBNumber, bNumber] = checkNumber(b)
@@ -240,10 +256,9 @@ export const operators = {
     isOperator: true,
     numOfRequiredArguments: 2,
     evaluateOperator: (a: any, b: any) => {
-      // Empty strings
-      if (a === "" || b === "") {
-        return ""
-      }
+      if (a === "" || b === "") return ""
+      // Fast path: both arguments are already numbers
+      if (typeof a === "number" && typeof b === "number") return a % b
 
       const [isANumber, aNumber] = checkNumber(a)
       const [isBNumber, bNumber] = checkNumber(b)

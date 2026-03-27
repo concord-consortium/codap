@@ -3,7 +3,7 @@ import { addDisposer, ISerializedActionCall } from "mobx-state-tree"
 import { typedId } from "../../utilities/js-utils"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { IDataSet } from "./data-set"
-import { isSetCaseValuesAction } from "./data-set-actions"
+import { isCaseValueChangeAction } from "./data-set-actions"
 
 export type FilterFn = (data: IDataSet, caseId: string, casesArrayNumber?: number) => boolean
 
@@ -110,7 +110,7 @@ export class FilteredCases {
   }
 
   private handleBeforeAction = (actionCall: ISerializedActionCall) => {
-    if (isSetCaseValuesAction(actionCall)) {
+    if (isCaseValueChangeAction(actionCall)) {
       // cache the pre-change filter state of the affected cases
       this.prevCaseIdSet.clear()
       const cases = actionCall.args[0]
@@ -123,7 +123,7 @@ export class FilteredCases {
   }
 
   private handleAction = (actionCall: ISerializedActionCall) => {
-    if (isSetCaseValuesAction(actionCall)) {
+    if (isCaseValueChangeAction(actionCall)) {
       const cases = actionCall.args[0]
       const added: string[] = []
       const changed: string[] = []

@@ -610,6 +610,112 @@ describe("Attribute", () => {
     expect(plainAttr.effectivePrecision).toBeUndefined()
   })
 
+  describe("setComputedValue and setComputedValues", () => {
+    test("setComputedValue writes numeric values correctly", () => {
+      const a = Attribute.create({ name: "a", values: ["0", "0", "0"] })
+      a.setComputedValue(0, 42)
+      expect(a.strValues[0]).toBe("42")
+      expect(a.numValues[0]).toBe(42)
+      a.setComputedValue(1, 3.14)
+      expect(a.strValues[1]).toBe("3.14")
+      expect(a.numValues[1]).toBe(3.14)
+    })
+
+    test("setComputedValue writes string values correctly", () => {
+      const a = Attribute.create({ name: "a", values: ["0", "0", "0"] })
+      a.setComputedValue(0, "hello")
+      expect(a.strValues[0]).toBe("hello")
+      expect(a.numValues[0]).toBeNaN()
+      a.setComputedValue(1, " trimmed ")
+      expect(a.strValues[1]).toBe("trimmed")
+    })
+
+    test("setComputedValue writes other value types correctly", () => {
+      const a = Attribute.create({ name: "a", values: ["0", "0"] })
+      a.setComputedValue(0, true)
+      expect(a.strValues[0]).toBe("true")
+      a.setComputedValue(1, undefined)
+      expect(a.strValues[1]).toBe("")
+    })
+
+    test("setComputedValue ignores out-of-range indices", () => {
+      const a = Attribute.create({ name: "a", values: ["x", "y"] })
+      a.setComputedValue(-1, "bad")
+      a.setComputedValue(2, "bad")
+      expect(a.strValues).toEqual(["x", "y"])
+    })
+
+    test("setComputedValue does not increment changeCount", () => {
+      const a = Attribute.create({ name: "a", values: ["0", "0"] })
+      const initialChangeCount = a.changeCount
+      a.setComputedValue(0, 99)
+      expect(a.changeCount).toBe(initialChangeCount)
+    })
+
+    test("setComputedValue produces same results as setValue for equivalent inputs", () => {
+      const a = Attribute.create({ name: "a", values: ["0", "0", "0", "0", "0", "0"] })
+      const b = Attribute.create({ name: "b", values: ["0", "0", "0", "0", "0", "0"] })
+
+      // numeric
+      a.setValue(0, 42)
+      b.setComputedValue(0, 42)
+      expect(b.strValues[0]).toBe(a.strValues[0])
+      expect(b.numValues[0]).toBe(a.numValues[0])
+
+      // string
+      a.setValue(1, "hello")
+      b.setComputedValue(1, "hello")
+      expect(b.strValues[1]).toBe(a.strValues[1])
+      expect(b.numValues[1]).toBe(a.numValues[1])
+
+      // undefined
+      a.setValue(2, undefined)
+      b.setComputedValue(2, undefined)
+      expect(b.strValues[2]).toBe(a.strValues[2])
+
+      // numeric string
+      a.setValue(3, "3.14")
+      b.setComputedValue(3, "3.14")
+      expect(b.strValues[3]).toBe(a.strValues[3])
+      expect(b.numValues[3]).toBe(a.numValues[3])
+    })
+
+    test("setComputedValues writes multiple values and increments changeCount once", () => {
+      const a = Attribute.create({ name: "a", values: ["0", "0", "0"] })
+      const initialChangeCount = a.changeCount
+      a.setComputedValues([0, 1, 2], [10, 20, 30])
+      expect(a.strValues).toEqual(["10", "20", "30"])
+      expect(a.numValues).toEqual([10, 20, 30])
+      expect(a.changeCount).toBe(initialChangeCount + 1)
+    })
+
+    test("setComputedValues handles mismatched array lengths", () => {
+      const a = Attribute.create({ name: "a", values: ["0", "0", "0"] })
+      // fewer values than indices
+      a.setComputedValues([0, 1, 2], [10, 20])
+      expect(a.strValues).toEqual(["10", "20", "0"])
+      // fewer indices than values
+      const b = Attribute.create({ name: "b", values: ["0", "0", "0"] })
+      b.setComputedValues([0], [10, 20, 30])
+      expect(b.strValues).toEqual(["10", "0", "0"])
+    })
+
+    test("setComputedValues skips out-of-range indices", () => {
+      const a = Attribute.create({ name: "a", values: ["x", "y"] })
+      a.setComputedValues([-1, 0, 2], ["bad", "good", "bad"])
+      expect(a.strValues).toEqual(["good", "y"])
+    })
+
+    test("setComputedValues with mixed value types", () => {
+      const a = Attribute.create({ name: "a", values: ["0", "0", "0"] })
+      a.setComputedValues([0, 1, 2], [42, "hello", 3.14])
+      expect(a.strValues).toEqual(["42", "hello", "3.14"])
+      expect(a.numValues[0]).toBe(42)
+      expect(a.numValues[1]).toBeNaN()
+      expect(a.numValues[2]).toBe(3.14)
+    })
+  })
+
   test.skip("performance of value.toString() vs. JSON.stringify(value)", () => {
     const values: number[] = []
     for (let i = 0; i < 5000; ++i) {

@@ -162,6 +162,94 @@ describe("FormulaManager", () => {
     })
   })
 
+  describe("recalculateDownstreamFormulas", () => {
+    it("recalculates downstream formula when upstream attribute changes", () => {
+      const formulaManager = new FormulaManager()
+      const dataSet = createDataSet({
+        attributes: [
+          { name: "x" },
+          // "double" depends on "x" via formula
+          { name: "double", formula: { display: "x * 2" } }
+        ]
+      }, { formulaManager })
+      dataSet.addCases([{ __id__: "c1" }])
+      const adapter = new AttributeFormulaAdapter(formulaManager.getAdapterApi())
+      formulaManager.addDataSet(dataSet)
+      formulaManager.addAdapters([adapter])
+
+      const xId = dataSet.attrFromName("x")!.id
+      const doubleId = dataSet.attrFromName("double")!.id
+
+      // Set x to 5 — "double" should compute to 10 after recalculation
+      dataSet.setCaseValues([{ __id__: "c1", [xId]: 5 }])
+      expect(dataSet.getNumeric("c1", doubleId)).toBe(10)
+
+      // Set x to 7 — "double" should update to 14
+      dataSet.setCaseValues([{ __id__: "c1", [xId]: 7 }])
+      expect(dataSet.getNumeric("c1", doubleId)).toBe(14)
+    })
+
+    it("cascades through multiple levels (A → B → C)", () => {
+      const formulaManager = new FormulaManager()
+      const dataSet = createDataSet({
+        attributes: [
+          { name: "x" },
+          { name: "y", formula: { display: "x + 1" } },
+          { name: "z", formula: { display: "y * 2" } }
+        ]
+      }, { formulaManager })
+      dataSet.addCases([{ __id__: "c1" }])
+      const adapter = new AttributeFormulaAdapter(formulaManager.getAdapterApi())
+      formulaManager.addDataSet(dataSet)
+      formulaManager.addAdapters([adapter])
+
+      const xId = dataSet.attrFromName("x")!.id
+      const yId = dataSet.attrFromName("y")!.id
+      const zId = dataSet.attrFromName("z")!.id
+
+      // x=3 → y=4 → z=8
+      dataSet.setCaseValues([{ __id__: "c1", [xId]: 3 }])
+      expect(dataSet.getNumeric("c1", yId)).toBe(4)
+      expect(dataSet.getNumeric("c1", zId)).toBe(8)
+
+      // x=10 → y=11 → z=22
+      dataSet.setCaseValues([{ __id__: "c1", [xId]: 10 }])
+      expect(dataSet.getNumeric("c1", yId)).toBe(11)
+      expect(dataSet.getNumeric("c1", zId)).toBe(22)
+    })
+
+    it("does not recalculate non-dependent formulas", () => {
+      const formulaManager = new FormulaManager()
+      const dataSet = createDataSet({
+        attributes: [
+          { name: "x" },
+          { name: "y" },
+          { name: "fromX", formula: { display: "x + 1" } },
+          { name: "fromY", formula: { display: "y + 1" } }
+        ]
+      }, { formulaManager })
+      dataSet.addCases([{ __id__: "c1" }])
+      const adapter = new AttributeFormulaAdapter(formulaManager.getAdapterApi())
+      formulaManager.addDataSet(dataSet)
+      formulaManager.addAdapters([adapter])
+
+      const xId = dataSet.attrFromName("x")!.id
+      const yId = dataSet.attrFromName("y")!.id
+      const fromXId = dataSet.attrFromName("fromX")!.id
+      const fromYId = dataSet.attrFromName("fromY")!.id
+
+      // Set both base values
+      dataSet.setCaseValues([{ __id__: "c1", [xId]: 5, [yId]: 10 }])
+      expect(dataSet.getNumeric("c1", fromXId)).toBe(6)
+      expect(dataSet.getNumeric("c1", fromYId)).toBe(11)
+
+      // Change only x — fromY should remain 11
+      dataSet.setCaseValues([{ __id__: "c1", [xId]: 20 }])
+      expect(dataSet.getNumeric("c1", fromXId)).toBe(21)
+      expect(dataSet.getNumeric("c1", fromYId)).toBe(11)
+    })
+  })
+
   describe("getAdapterApi", () => {
     it("should return functional adapter api", () => {
       const { manager, adapter, formula, dataSet } = getManagerWithFakeAdapter()

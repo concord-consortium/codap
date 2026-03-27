@@ -121,6 +121,47 @@ export class FormulaManager implements IFormulaManager {
     }
     const extraMetadata = this.getExtraMetadata(formulaId)
     adapter.recalculateFormula(formulaContext, extraMetadata, casesToRecalculate)
+
+    // After evaluating, recalculate any downstream formulas that depend on this formula's
+    // output attribute. This replaces the reactive onAnyAction cascade for formula-to-formula
+    // dependencies, using the static dependency graph instead of MST action dispatch.
+    const { attributeId, dataSetId } = extraMetadata
+    if (attributeId) {
+      this.recalculateDownstreamFormulas(dataSetId, attributeId)
+    }
+  }
+
+  // Find and recalculate all formulas that depend on the given attribute, either as a local
+  // attribute dependency (same dataset) or a lookup dependency (cross-dataset).
+  recalculateDownstreamFormulas(sourceDataSetId: string, sourceAttributeId: string) {
+    this.formulaMetadata.forEach((metadata, formulaId) => {
+      if (!metadata.isInitialized) return
+      const extraMetadata = this.extraMetadata.get(formulaId)
+      if (!extraMetadata) return
+      // Skip if this formula computes the same attribute (avoid self-triggering)
+      if (extraMetadata.dataSetId === sourceDataSetId && extraMetadata.attributeId === sourceAttributeId) return
+
+      const { formula } = metadata
+      if (formula.empty || !formula.canonical) return
+
+      const { attributeId, defaultArgument } = extraMetadata
+      const dependencies = getFormulaDependencies(formula.canonical, attributeId, defaultArgument)
+
+      const isDependent = dependencies.some(dep => {
+        if (dep.type === "localAttribute" && extraMetadata.dataSetId === sourceDataSetId) {
+          return dep.attrId === sourceAttributeId
+        }
+        if (dep.type === "lookup" && dep.dataSetId === sourceDataSetId) {
+          return dep.attrId === sourceAttributeId || dep.otherAttrId === sourceAttributeId
+        }
+        return false
+      })
+
+      if (isDependent) {
+        // Recalculate this downstream formula (which will recursively handle its own downstream)
+        this.recalculateFormula(formulaId, "ALL_CASES")
+      }
+    })
   }
 
   updateFormulaCanonicalExpression(formulaId: string) {

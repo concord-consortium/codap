@@ -105,6 +105,29 @@ describe("DerivedDataSet", () => {
     filtered.destroy()
   })
 
+  it("handles setComputedCaseValues which change filtering", () => {
+    const handleSetCaseValues = jest.fn()
+    const filtered = new FilteredCases({
+      source: data,
+      filter: (_data, caseId) => isFinite(_data.getNumeric(caseId, "xId") ?? NaN) &&
+                                 isFinite(_data.getNumeric(caseId, "yId") ?? NaN),
+      onSetCaseValues: handleSetCaseValues })
+
+    // c3 gains a valid x value, becoming plottable (added)
+    data.setComputedCaseValues([{ __id__: "c3", xId: 3 }], ["xId"])
+    expect(handleSetCaseValues).toHaveBeenCalledTimes(1)
+    expect(handleSetCaseValues.mock.lastCall[1]).toEqual({ added: ["c3"], changed: [], removed: [] })
+    expect(filtered.caseIds).toEqual(["c1", "c3"])
+
+    // c1 loses its x value, becoming non-plottable (removed)
+    data.setComputedCaseValues([{ __id__: "c1", xId: "" }], ["xId"])
+    expect(handleSetCaseValues).toHaveBeenCalledTimes(2)
+    expect(handleSetCaseValues.mock.lastCall[1]).toEqual({ added: [], changed: [], removed: ["c1"] })
+    expect(filtered.caseIds).toEqual(["c3"])
+
+    filtered.destroy()
+  })
+
   it("triggers observers on value changes which change filtering", () => {
     const filtered = new FilteredCases({
       source: data,

@@ -123,6 +123,17 @@ describe("observeLocalAttributes", () => {
       expect(recalculateCallback).toHaveBeenCalledWith([caseUpdates[0]])
       dispose()
     })
+
+    it("should NOT call recalculateCallback for setComputedCaseValues", () => {
+      // Formula-to-formula cascading is handled by FormulaManager.recalculateDownstreamFormulas()
+      // using the static dependency graph, not by observeLocalAttributes.
+      const recalculateCallback = jest.fn()
+      const dispose = observeLocalAttributes(formulaDependenciesWithoutAggregate, dataSet, recalculateCallback)
+      const callCountBefore = recalculateCallback.mock.calls.length
+      dataSet.setComputedCaseValues([{ __id__: "case1", attr1: 1 }], ["attr1"])
+      expect(recalculateCallback).toHaveBeenCalledTimes(callCountBefore)
+      dispose()
+    })
   })
 
   describe("when there is aggregate dependency", () => {
@@ -180,6 +191,11 @@ describe("observeLookupDependencies", () => {
 
     dataSet.setCaseValues([{ __id__: "case2", attr1: 1 }])
     expect(recalculateCallback).toHaveBeenNthCalledWith(3, "ALL_CASES")
+
+    // setComputedCaseValues should NOT trigger lookup recalculation —
+    // formula-to-formula cascading is handled by FormulaManager.recalculateDownstreamFormulas()
+    dataSet.setComputedCaseValues([{ __id__: "case2", attr1: 2 }], ["attr1"])
+    expect(recalculateCallback).toHaveBeenCalledTimes(3)
 
     dispose()
     dataSet.addCases(newCases)

@@ -6,7 +6,7 @@ import {
 } from "mobx-state-tree"
 import {AttributeType, attributeTypes} from "../../../models/data/attribute-types"
 import {DataSet, IDataSet} from "../../../models/data/data-set"
-import {isSetCaseValuesAction} from "../../../models/data/data-set-actions"
+import {isCaseValueChangeAction} from "../../../models/data/data-set-actions"
 import {ICase} from "../../../models/data/data-set-types"
 import {idOfChildmostCollectionForAttributes} from "../../../models/data/data-set-utils"
 import {FilteredCases, IFilteredChangedCases} from "../../../models/data/filtered-cases"
@@ -805,7 +805,7 @@ export const DataConfigurationModel = types
       }
     },
     handleSetCaseValues(actionCall: ISerializedActionCall, cases: IFilteredChangedCases) {
-      if (!isSetCaseValuesAction(actionCall)) return
+      if (!isCaseValueChangeAction(actionCall)) return
       const [affectedCases] = actionCall.args
       // this is called by the FilteredCases object with additional information about
       // whether the value changes result in adding/removing any cases from the filtered set

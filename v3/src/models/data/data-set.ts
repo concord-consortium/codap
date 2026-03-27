@@ -48,7 +48,7 @@ import {
 } from "mobx-state-tree"
 import pluralize from "pluralize"
 import { Attribute, IAttribute, IAttributeSnapshot } from "./attribute"
-import { importValueToString } from "./attribute-types"
+import { IValueType, importValueToString } from "./attribute-types"
 import {
   CollectionModel, ICollectionModel, ICollectionModelSnapshot, IItemData, isCollectionModel, syncCollectionLinks
 } from "./collection"
@@ -66,6 +66,7 @@ import { kAttrIdPrefix, kItemIdPrefix, typeV3Id, v3Id } from "../../utilities/co
 import { compareValues } from "../../utilities/data-utils"
 import { hashOrderedStringSet, hashStringSet } from "../../utilities/js-utils"
 import { observableCachedFnFactory } from "../../utilities/mst-utils"
+import { prf } from "../../utilities/profiler"
 import { gLocale } from "../../utilities/translation/locale"
 import { t } from "../../utilities/translation/translate"
 import { V2UserTitleModel } from "./v2-user-title-model"
@@ -216,6 +217,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   // Plain variables (NOT observable — no MobX involvement for cache guards)
   let _validationCount = 0
   let _isValidCases = false
+  let _needsRegrouping = false
   let _isValidItemIds = false
   // Item IDs removed during validation — flushed by setValidCases() in its runInAction
   let _pendingSelectionDeletes: string[] = []
@@ -297,16 +299,27 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       get itemIdsOrderedHash() {
         _validateItemIds()
         return _itemIdsOrderedHash()
+      },
+      get needsRegrouping() {
+        return _needsRegrouping
+      },
+      clearNeedsRegrouping() {
+        _needsRegrouping = false
       }
     },
     actions: {
-      invalidateCases() {
-        _isValidCases = false
-        _invalidateItemIds()
-        // invalidate each collection's case group cache
-        self.collections.forEach(c => c.invalidateCaseGroups())
-        // Bump observable version so MobX re-evaluates isValidCases/validationCount computeds
-        _caseValidationVersion.set(_caseValidationVersion.get() + 1)
+      invalidateCases(regrouping = true) {
+        prf.measure("DataSet.invalidateCases", () => {
+          _isValidCases = false
+          _invalidateItemIds()
+          if (regrouping) {
+            _needsRegrouping = true
+            // invalidate each collection's case group cache
+            self.collections.forEach(c => c.invalidateCaseGroups())
+          }
+          // Bump observable version so MobX re-evaluates isValidCases/validationCount computeds
+          _caseValidationVersion.set(_caseValidationVersion.get() + 1)
+        })
       },
       invalidateItemIds() {
         _invalidateItemIds()
@@ -677,36 +690,41 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
 .views(self => ({
   validateCases() {
     if (!self.isValidCases) {
-      self.caseInfoMap.clear()
+      prf.measure("DataSet.validateCases", () => {
+        if (self.needsRegrouping) {
+          self.caseInfoMap.clear()
 
-      // TODO: look at this more closely to see if after an applySnapshot we need to clear this
-      // better
-      const itemsToValidate = new Set<string>(self.itemInfoMap.keys())
-      self.itemInfoMap.clear()
-      self._itemIds.forEach((itemId, index) => {
-        self.itemInfoMap.set(itemId, { index, caseIds: [], isHidden: self.isCaseOrItemHidden(itemId) })
-        itemsToValidate.delete(itemId)
+          // TODO: look at this more closely to see if after an applySnapshot we need to clear this
+          // better
+          const itemsToValidate = new Set<string>(self.itemInfoMap.keys())
+          self.itemInfoMap.clear()
+          self._itemIds.forEach((itemId, index) => {
+            self.itemInfoMap.set(itemId, { index, caseIds: [], isHidden: self.isCaseOrItemHidden(itemId) })
+            itemsToValidate.delete(itemId)
+          })
+          self.collections.forEach((collection, index) => {
+            // update the cases
+            collection.updateCaseGroups()
+          })
+          self.collections.forEach((collection, index) => {
+            // complete the case groups, including sorting child collection cases into groups
+            const parentCaseGroups = index > 0 ? self.collections[index - 1].caseGroups : undefined
+            collection.completeCaseGroups(parentCaseGroups)
+            // update the caseGroupMap
+            collection.caseGroupMap.forEach(group => self.caseInfoMap.set(group.groupedCase.__id__, group))
+          })
+          self.itemIdChildCaseMap.clear()
+          Array.from(self.childCollection.caseGroupMap.values()).forEach(caseGroup => {
+            self.itemIdChildCaseMap.set(caseGroup.childItemIds[0] ?? caseGroup.hiddenChildItemIds[0], caseGroup)
+          })
+          // Defer selection cleanup — flushed by setValidCases() in its runInAction
+          if (itemsToValidate.size) {
+            self.deferSelectionDelete(itemsToValidate)
+          }
+          self.clearNeedsRegrouping()
+        }
+        self.setValidCases()
       })
-      self.collections.forEach((collection, index) => {
-        // update the cases
-        collection.updateCaseGroups()
-      })
-      self.collections.forEach((collection, index) => {
-        // complete the case groups, including sorting child collection cases into groups
-        const parentCaseGroups = index > 0 ? self.collections[index - 1].caseGroups : undefined
-        collection.completeCaseGroups(parentCaseGroups)
-        // update the caseGroupMap
-        collection.caseGroupMap.forEach(group => self.caseInfoMap.set(group.groupedCase.__id__, group))
-      })
-      self.itemIdChildCaseMap.clear()
-      Array.from(self.childCollection.caseGroupMap.values()).forEach(caseGroup => {
-        self.itemIdChildCaseMap.set(caseGroup.childItemIds[0] ?? caseGroup.hiddenChildItemIds[0], caseGroup)
-      })
-      // Defer selection cleanup — flushed by setValidCases() in its runInAction
-      if (itemsToValidate.size) {
-        self.deferSelectionDelete(itemsToValidate)
-      }
-      self.setValidCases()
     }
   },
 }))
@@ -1284,28 +1302,69 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       // For instance, a scatter plot that is dragging many points but affecting only two
       // attributes can indicate that, which can enable more efficient responses.
       setCaseValues(cases: ICase[], affectedAttributes?: string[]) {
-        const items = self.getItemsForCases(cases)
+        const items = prf.measure("DataSet.setCaseValues[getItemsForCases]", () =>
+          self.getItemsForCases(cases)
+        )
 
         if (self.isCaching()) {
           // update the cases in the cache
-          items.forEach(item => {
-            const cached = self.itemCache.get(item.__id__)
-            if (!cached) {
-              self.itemCache.set(item.__id__, { ...item })
-            }
-            else {
-              Object.assign(cached, item)
-            }
+          prf.measure("DataSet.setCaseValues[cache]", () => {
+            items.forEach(item => {
+              const cached = self.itemCache.get(item.__id__)
+              if (!cached) {
+                self.itemCache.set(item.__id__, { ...item })
+              }
+              else {
+                Object.assign(cached, item)
+              }
+            })
           })
         }
         else {
-          items.forEach((caseValues) => {
-            setItemValues(caseValues)
+          prf.measure("DataSet.setCaseValues[setItemValues]", () => {
+            items.forEach((caseValues) => {
+              setItemValues(caseValues)
+            })
           })
         }
 
         // only changes to parent collection attributes invalidate grouping
         items.length && self.invalidateCases()
+      },
+
+      // Write formula-computed values directly to volatile arrays, bypassing per-item MST actions.
+      // This is an MST action so that onAnyAction listeners fire once for the whole batch, but
+      // internally it uses Attribute.setComputedValues (a non-action volatile method) to avoid the
+      // overhead of ~N individual attribute.setValue() MST action calls.
+      // `affectedAttributes` is required so listeners know which attributes changed.
+      setComputedCaseValues(cases: ICase[], affectedAttributes: string[]) {
+        // Map case IDs to item IDs (handles hierarchical grouping)
+        const items = self.getItemsForCases(cases)
+        // Capture the Map locally to avoid repeated MST proxy access in the inner loop
+        const { itemInfoMap } = self
+        // Only regroup if a computed attribute is in a parent collection,
+        // since parent collection values determine case grouping.
+        let needsRegrouping = false
+        for (const attrId of affectedAttributes) {
+          const attr = self.getAttribute(attrId)
+          if (!attr) continue
+          if (!needsRegrouping && self.getCollectionForAttribute(attrId) !== self.childCollection) {
+            needsRegrouping = true
+          }
+          const indices: number[] = []
+          const values: IValueType[] = []
+          for (const item of items) {
+            const index = itemInfoMap.get(item.__id__)?.index
+            if (index != null && Object.prototype.hasOwnProperty.call(item, attrId)) {
+              indices.push(index)
+              values.push(item[attrId])
+            }
+          }
+          if (indices.length > 0) {
+            attr.setComputedValues(indices, values)
+          }
+        }
+        self.invalidateCases(needsRegrouping)
       },
 
       removeCases(caseIDs: string[]) {
