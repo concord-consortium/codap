@@ -1,6 +1,6 @@
 import { featureTourConfig } from "./feature-tour-config"
-import { runTour } from "./tour-runner"
+import { tourManager } from "./tour-manager"
 
 export function runFeatureTour() {
-  runTour(featureTourConfig)
+  tourManager.runInternalTour(featureTourConfig)
 }

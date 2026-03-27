@@ -1,5 +1,10 @@
 import { CfmElements as cfm } from "../support/elements/cfm"
 
+function launchFeatureTour() {
+  cfm.getHelpMenuButton().click()
+  cfm.getHelpMenu().contains(".menuItem", "Feature Tour").click()
+}
+
 context("Feature Tour", () => {
   beforeEach(() => {
     const url = `${Cypress.config("index")}?mouseSensor&noEntryModal&suppressUnsavedWarning`
@@ -9,44 +14,39 @@ context("Feature Tour", () => {
   it("shows Feature Tour in the Help menu", () => {
     cfm.getHelpMenuButton().click()
     cfm.getHelpMenu().should("be.visible")
-    cfm.getHelpMenuItem(4).should("contains.text", "Feature Tour")
+    cfm.getHelpMenu().contains(".menuItem", "Feature Tour").should("be.visible")
   })
 
   it("launches the tour when Feature Tour is clicked", () => {
-    cfm.getHelpMenuButton().click()
-    cfm.getHelpMenuItem(4).click()
+    launchFeatureTour()
     cy.get(".driver-popover").should("be.visible")
     cy.get(".driver-popover-description")
       .should("contain.text", "Welcome to CODAP")
   })
 
   it("advances to next step when Next is clicked", () => {
-    cfm.getHelpMenuButton().click()
-    cfm.getHelpMenuItem(4).click()
+    launchFeatureTour()
     cy.get(".driver-popover").should("be.visible")
     cy.get(".driver-popover-next-btn").click()
     cy.get(".driver-popover-title").should("contain.text", "File Menu")
   })
 
   it("dismisses the tour when close button is clicked", () => {
-    cfm.getHelpMenuButton().click()
-    cfm.getHelpMenuItem(4).click()
+    launchFeatureTour()
     cy.get(".driver-popover").should("be.visible")
     cy.get(".driver-popover-close-btn").click()
     cy.get(".driver-popover").should("not.exist")
   })
 
   it("dismisses the tour when Escape is pressed", () => {
-    cfm.getHelpMenuButton().click()
-    cfm.getHelpMenuItem(4).click()
+    launchFeatureTour()
     cy.get(".driver-popover").should("be.visible")
     cy.get("body").type("{esc}")
     cy.get(".driver-popover").should("not.exist")
   })
 
   it("navigates with arrow keys", () => {
-    cfm.getHelpMenuButton().click()
-    cfm.getHelpMenuItem(4).click()
+    launchFeatureTour()
     cy.get(".driver-popover").should("be.visible")
     cy.get("body").type("{rightarrow}")
     cy.get(".driver-popover-title").should("contain.text", "File Menu")
@@ -56,8 +56,7 @@ context("Feature Tour", () => {
   })
 
   it("shows progress text", () => {
-    cfm.getHelpMenuButton().click()
-    cfm.getHelpMenuItem(4).click()
+    launchFeatureTour()
     cy.get(".driver-popover-progress-text")
       .should("contain.text", "1 of 21")
   })
@@ -93,8 +92,7 @@ context("Feature Tour", () => {
     cy.get(".settings-menu .cfm-menu.menu-anchor").click()
     cy.get(".cfm-menu.menu-showing .menuItem").first().click()
     // Launch tour
-    cfm.getHelpMenuButton().click()
-    cfm.getHelpMenuItem(4).click()
+    launchFeatureTour()
     cy.get(".driver-popover").should("be.visible")
     cy.get(".driver-popover-description")
       .should("contain.text", "Welcome to CODAP")

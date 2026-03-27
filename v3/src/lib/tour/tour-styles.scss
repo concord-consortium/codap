@@ -2,6 +2,14 @@
 
 $tour-bg: #f0f0f0;
 
+// Ensure tour overlay and popover appear above all CODAP tiles and menus
+.driver-overlay {
+  z-index: 10000 !important;
+}
+.codap-tour-popover.driver-popover {
+  z-index: 10001 !important;
+}
+
 // Popover container
 .codap-tour-popover.driver-popover {
   font-family: Montserrat, sans-serif;
@@ -76,7 +84,10 @@ $tour-bg: #f0f0f0;
 // Close button
 .codap-tour-popover .driver-popover-close-btn {
   color: vars.$charcoal;
-  outline: none;
+
+  &:focus:not(:focus-visible) {
+    outline: none;
+  }
 
   &:hover {
     color: vars.$default-font-color;
