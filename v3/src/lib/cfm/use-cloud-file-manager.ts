@@ -291,6 +291,8 @@ export interface IUseCloudFileManagerHookOptions {
   onFileImported?: (file: IImportedFile) => void;
 }
 
+let laraForwardingRegistered = false
+
 export function useCloudFileManager(optionsArg: CFMAppOptions, hookOptions?: IUseCloudFileManagerHookOptions) {
   const {onFileOpened, onUrlImported, onFileImported} = hookOptions || {}
   const options = useRef(optionsArg)
@@ -396,9 +398,13 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, hookOptions?: IUs
     // Forward all CODAP log events to CFM for LARA/Activity Player forwarding.
     // CFM PR #419 adds a listener in InteractiveApiProvider that forwards
     // cfmClient.log() events to lara-interactive-api's log() function.
-    Logger.registerLogListener((logMessage) => {
-      cfm.client?.log(logMessage.event, logMessage)
-    })
+    // Guard: only register once (React StrictMode may re-run this effect).
+    if (!laraForwardingRegistered) {
+      laraForwardingRegistered = true
+      Logger.registerLogListener((logMessage) => {
+        cfm.client?.log(logMessage.event, logMessage)
+      })
+    }
 
     clientConnect(cfm, function cfmEventCallback(event: CloudFileManagerClientEvent) {
       handleCFMEvent(cfm.client, event)

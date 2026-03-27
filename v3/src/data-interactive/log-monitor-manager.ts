@@ -1,5 +1,6 @@
 import { LoggableValue } from "../lib/log-message"
 import { Logger } from "../lib/logger"
+import { appState } from "../models/app-state"
 
 interface DocumentBroadcaster {
   content?: {
@@ -106,6 +107,7 @@ export class LogMonitorManager {
 }
 
 export const logMonitorManager = new LogMonitorManager()
+logMonitorManager.setDocumentProvider(() => appState.document)
 
 // Register a Logger listener to evaluate CODAP-originated log events against
 // registered monitors. DI-originated events with topics are handled separately

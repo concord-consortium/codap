@@ -83,8 +83,12 @@ export class Logger {
   public static initializeLogger(document: IDocumentModel) {
     debugLog(DEBUG_LOGGER, "Logger#initializeLogger called.")
     this._instance = new Logger(document)
-    this.sendPendingMessages()
+    if (this.pendingRunRemoteEndpoint) {
+      this._instance.runRemoteEndpoint = this.pendingRunRemoteEndpoint
+      this.pendingRunRemoteEndpoint = undefined
+    }
     this.flushPendingListeners()
+    this.sendPendingMessages()
   }
 
   public static updateDocument(document: IDocumentModel) {
@@ -96,16 +100,14 @@ export class Logger {
   }
 
   public static log(event: string, args?: Record<string, unknown>, category: AnalyticsCategory = "general") {
-    if (!this._instance) return
-
     const time = Date.now() // eventually we will want server skew (or to add this via FB directly)
-    const documentTitle = this._instance.document.title
     if (this._instance) {
+      const documentTitle = this._instance.document.title
       this._instance.formatAndSend(time, event, documentTitle, category, args)
     } else {
       debugLog(DEBUG_LOGGER, "Queueing log message for later delivery", event)
       const event_value = args ? JSON.stringify(args) : undefined
-      this.pendingMessages.push({ time, event, documentTitle, category, event_value, parameters: args })
+      this.pendingMessages.push({ time, event, documentTitle: "", category, event_value, parameters: args })
     }
   }
 
@@ -136,6 +138,7 @@ export class Logger {
     this._instance = undefined as unknown as Logger
     this.pendingMessages = []
     this.pendingListeners = []
+    this.pendingRunRemoteEndpoint = undefined
   }
 
   public static registerLogListener(listener: ILogListener) {
@@ -146,9 +149,13 @@ export class Logger {
     }
   }
 
+  private static pendingRunRemoteEndpoint?: string
+
   public static setRunRemoteEndpoint(endpoint: string) {
     if (this._instance) {
       this._instance.runRemoteEndpoint = endpoint
+    } else {
+      this.pendingRunRemoteEndpoint = endpoint
     }
   }
 

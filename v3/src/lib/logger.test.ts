@@ -18,15 +18,21 @@ describe("Logger", () => {
     expect(() => Logger.Instance).toThrow()
   })
 
-  it("does not log when not initialized", () => {
-    const event = "test event"
-    const mockPostHandler = jest.fn((req, res) => {
-      return res.status(201)
-    })
-    mockXhr.use(mockPostHandler)
+  it("queues log messages before initialization and sends them after", () => {
+    const listener = jest.fn()
+    Logger.registerLogListener(listener)
 
-    Logger.log(event)
-    expect(mockPostHandler).not.toHaveBeenCalled()
+    Logger.log("pre-init-event", { key: "value" })
+
+    // not yet initialized — listener should not have been called
+    expect(listener).not.toHaveBeenCalled()
+
+    Logger.initializeLogger(mockDocument)
+
+    // pending message should have been flushed
+    expect(listener).toHaveBeenCalledTimes(1)
+    const logMessage: LogMessage = listener.mock.calls[0][0]
+    expect(logMessage.event).toBe("pre-init-event")
   })
 
   it("should log when initialized", () => {
@@ -136,6 +142,18 @@ describe("Logger", () => {
 
       const logMessage: LogMessage = listener.mock.calls[0][0]
       expect(logMessage.run_remote_endpoint).toBe("https://example.com/endpoint")
+    })
+
+    it("queues run_remote_endpoint set before initialization", () => {
+      Logger.setRunRemoteEndpoint("https://example.com/pending")
+      Logger.initializeLogger(mockDocument)
+      const listener = jest.fn()
+      Logger.registerLogListener(listener)
+
+      Logger.log("testEvent")
+
+      const logMessage: LogMessage = listener.mock.calls[0][0]
+      expect(logMessage.run_remote_endpoint).toBe("https://example.com/pending")
     })
 
     it("omits run_remote_endpoint when not set", () => {
