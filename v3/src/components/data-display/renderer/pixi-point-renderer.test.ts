@@ -57,6 +57,7 @@ jest.mock("pixi.js", () => {
   }
   class MockRenderer {
     view = { canvas: document.createElement("canvas") }
+    gl = { isContextLost: () => false }
     resize() {}
     render() {}
     generateTexture() { return new MockTexture() }

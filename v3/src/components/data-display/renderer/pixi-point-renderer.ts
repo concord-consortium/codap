@@ -80,8 +80,20 @@ export class PixiPointRenderer extends PointRendererBase {
   // Disposed flag to prevent operations after disposal
   private isDisposed = false
 
+  // Callback for when the browser forcibly reclaims this renderer's WebGL context
+  private _onBrowserContextLoss?: () => void
+  private boundContextLostHandler?: (e: Event) => void
+
   constructor(state?: PointsState) {
     super(state)
+  }
+
+  /**
+   * Set a callback to be invoked if the browser forcibly reclaims this renderer's
+   * WebGL context (e.g., because too many contexts are active).
+   */
+  set onBrowserContextLoss(callback: (() => void) | undefined) {
+    this._onBrowserContextLoss = callback
   }
 
   // ===== Abstract property implementations =====
@@ -138,6 +150,29 @@ export class PixiPointRenderer extends PointRendererBase {
       throw new Error(`PixiPointRenderer initialization failed: ${msg}`)
     }
 
+    // Check if this renderer's GL context was killed during creation. When multiple
+    // renderers init in the same batch, later inits can cause the browser to kill older
+    // contexts. Since all inits happen synchronously (async only for module loading),
+    // the webglcontextlost events don't fire until after the batch completes.
+    // We check here so we can fail fast and fall back to canvas.
+    const gl = "gl" in this.renderer ? this.renderer.gl : undefined
+    if (!gl || gl.isContextLost()) {
+      this._onBrowserContextLoss?.()
+      this.renderer.destroy()
+      this.renderer = undefined
+      throw new Error("PixiPointRenderer initialization failed: WebGL context lost during creation")
+    }
+
+    // Listen for browser-initiated context loss that occurs AFTER successful init
+    // (e.g., if another component later allocates too many contexts).
+    const canvas = this.renderer.view.canvas as HTMLCanvasElement
+    this.boundContextLostHandler = () => {
+      if (!this.isDisposed) {
+        this._onBrowserContextLoss?.()
+      }
+    }
+    canvas.addEventListener("webglcontextlost", this.boundContextLostHandler)
+
     this.ticker.add(this.tick.bind(this))
     this.stage.addChild(this.background)
     this.stage.addChild(this.pointsContainer)
@@ -168,6 +203,12 @@ export class PixiPointRenderer extends PointRendererBase {
 
   protected doDispose(): void {
     this.isDisposed = true
+    // Remove context loss listener before destroying the renderer
+    if (this.boundContextLostHandler) {
+      const canvas = this.renderer?.view.canvas as HTMLCanvasElement | undefined
+      canvas?.removeEventListener("webglcontextlost", this.boundContextLostHandler)
+      this.boundContextLostHandler = undefined
+    }
     this.ticker.stop()
     this.ticker.destroy()
     this.renderer?.destroy()

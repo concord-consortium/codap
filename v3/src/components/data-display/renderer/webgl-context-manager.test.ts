@@ -1,4 +1,4 @@
-import { IContextConsumer, webGLContextManager } from "./webgl-context-manager"
+import { IContextConsumer, webGLContextManager, WebGLContextManager } from "./webgl-context-manager"
 
 // Import the class directly for resetInstance (which is a static method)
 // We need to re-import the singleton after reset
@@ -8,6 +8,9 @@ const getManager = () => {
   WebGLContextManagerModule.WebGLContextManager.resetInstance()
   return WebGLContextManagerModule.WebGLContextManager.getInstance()
 }
+
+// Use the actual default limit for tests
+const TEST_MAX_CONTEXTS = WebGLContextManager.DEFAULT_MAX_CONTEXTS
 
 describe("WebGLContextManager", () => {
   let manager: typeof webGLContextManager
@@ -54,8 +57,9 @@ describe("WebGLContextManager", () => {
   })
 
   describe("maxContexts", () => {
-    it("has max contexts set to 14", () => {
-      expect(manager.maxContexts).toBe(14)
+    it("starts with the default limit", () => {
+      const freshManager = getManager()
+      expect(freshManager.maxContexts).toBe(WebGLContextManager.DEFAULT_MAX_CONTEXTS)
     })
   })
 
@@ -434,6 +438,88 @@ describe("WebGLContextManager", () => {
 
       expect(granted).toBe(false)
       expect(onGranted).not.toHaveBeenCalled()
+    })
+  })
+
+  describe("reportBrowserContextLoss", () => {
+    it("reduces maxContexts to activeCount - 1", () => {
+      // Start with no limit
+      manager.setMaxContextsForTesting(Infinity)
+
+      // Add 16 consumers (simulating a browser that allows 16)
+      for (let i = 0; i < 16; i++) {
+        manager.requestContext(createConsumer(`consumer${i}`, 100))
+      }
+      expect(manager.activeCount).toBe(16)
+
+      // Browser kills the oldest context
+      manager.reportBrowserContextLoss("consumer0")
+
+      // Limit should be learned as 15 (16 - 1)
+      expect(manager.maxContexts).toBe(15)
+      expect(manager.activeCount).toBe(15)
+      expect(manager.hasContext("consumer0")).toBe(false)
+    })
+
+    it("revokes the affected consumer's context", () => {
+      const onRevoked = jest.fn()
+      const consumer = createConsumer("consumer1", 100, jest.fn(), onRevoked)
+      manager.requestContext(consumer)
+
+      manager.reportBrowserContextLoss("consumer1")
+
+      expect(onRevoked).toHaveBeenCalled()
+      expect(manager.hasContext("consumer1")).toBe(false)
+    })
+
+    it("only decreases the limit, never increases", () => {
+      manager.setMaxContextsForTesting(Infinity)
+
+      // Add 10 consumers
+      for (let i = 0; i < 10; i++) {
+        manager.requestContext(createConsumer(`consumer${i}`, 100))
+      }
+
+      // Browser reports loss — limit becomes 9
+      manager.reportBrowserContextLoss("consumer0")
+      expect(manager.maxContexts).toBe(9)
+
+      // Add more consumers up to 9
+      for (let i = 10; i < 19; i++) {
+        manager.requestContext(createConsumer(`consumer${i}`, 100))
+      }
+
+      // Browser reports another loss — limit decreases further to 8
+      manager.reportBrowserContextLoss("consumer1")
+      expect(manager.maxContexts).toBe(8)
+    })
+
+    it("does not grant to waiting consumers after context loss", () => {
+      // Fill pool
+      for (let i = 0; i < TEST_MAX_CONTEXTS; i++) {
+        manager.requestContext(createConsumer(`consumer${i}`, 100))
+      }
+
+      // Add a waiting consumer
+      const waitingGranted = jest.fn()
+      manager.requestContext(createConsumer("waiting", 50, waitingGranted))
+      expect(waitingGranted).not.toHaveBeenCalled()
+
+      // Browser kills a context — should NOT grant to the waiting consumer
+      // because we just learned we're at the limit
+      manager.reportBrowserContextLoss("consumer0")
+      expect(waitingGranted).not.toHaveBeenCalled()
+    })
+
+    it("ignores non-active consumers", () => {
+      manager.requestContext(createConsumer("consumer1", 100))
+      const initialMax = manager.maxContexts
+
+      // Report loss for a consumer that doesn't exist
+      manager.reportBrowserContextLoss("nonexistent")
+
+      expect(manager.maxContexts).toBe(initialMax)
+      expect(manager.activeCount).toBe(1)
     })
   })
 

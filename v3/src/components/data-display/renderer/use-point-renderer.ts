@@ -150,6 +150,11 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
     new NullPointRenderer(stateRef.current)
   )
 
+  // Ref that always points to the current renderer, for use in cleanup effects
+  // which would otherwise capture a stale renderer from the initial render closure
+  const rendererRef = useRef<PointRendererBase>(renderer)
+  rendererRef.current = renderer
+
   // Track if renderer is ready
   const [isReady, setIsReady] = useState(false)
 
@@ -245,7 +250,9 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
         outgoingRendererRef.current.dispose()
         outgoingRendererRef.current = null
       }
-      renderer.dispose()
+      // Use rendererRef (always current) instead of the stale `renderer` from the
+      // closure, which would be the NullPointRenderer from the initial render.
+      rendererRef.current.dispose()
     }
   // Note: We intentionally don't include `renderer` or `skipContextRegistration` in dependencies
   // because we want to dispose whatever renderer exists at unmount time
@@ -313,6 +320,13 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
       } else {
         // Use null renderer while waiting for context decision
         newRenderer = new NullPointRenderer(stateRef.current)
+      }
+
+      // Wire up browser context loss notification for WebGL renderers
+      if (newRenderer instanceof PixiPointRenderer && !skipContextRegistration) {
+        newRenderer.onBrowserContextLoss = () => {
+          webGLContextManager.reportBrowserContextLoss(id)
+        }
       }
 
       try {
