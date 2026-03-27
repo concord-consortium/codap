@@ -126,6 +126,14 @@ export class Logger {
     throw new Error("Logger not initialized yet.")
   }
 
+  /**
+   * Reset Logger state for testing. NOT for production use.
+   */
+  public static resetForTesting() {
+    this._instance = undefined as unknown as Logger
+    this.pendingMessages = []
+  }
+
   private document: IDocumentModel
   private session: string
   private logListeners: ILogListener[] = []
