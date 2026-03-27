@@ -77,11 +77,13 @@ export class Logger {
     || DEBUG_LOGGER
   private static _instance: Logger
   private static pendingMessages: PendingMessage[] = []
+  private static pendingListeners: ILogListener[] = []
 
   public static initializeLogger(document: IDocumentModel) {
     debugLog(DEBUG_LOGGER, "Logger#initializeLogger called.")
     this._instance = new Logger(document)
     this.sendPendingMessages()
+    this.flushPendingListeners()
   }
 
   public static updateDocument(document: IDocumentModel) {
@@ -132,6 +134,23 @@ export class Logger {
   public static resetForTesting() {
     this._instance = undefined as unknown as Logger
     this.pendingMessages = []
+    this.pendingListeners = []
+  }
+
+  public static registerLogListener(listener: ILogListener) {
+    if (this._instance) {
+      this._instance.logListeners.push(listener)
+    } else {
+      this.pendingListeners.push(listener)
+    }
+  }
+
+  private static flushPendingListeners() {
+    if (!this._instance) return
+    for (const listener of this.pendingListeners) {
+      this._instance.logListeners.push(listener)
+    }
+    this.pendingListeners = []
   }
 
   private document: IDocumentModel
@@ -141,10 +160,6 @@ export class Logger {
   private constructor(document: IDocumentModel) {
     this.document = document
     this.session = nanoid()
-  }
-
-  public registerLogListener(listener: ILogListener) {
-    this.logListeners.push(listener)
   }
 
   private formatAndSend(
