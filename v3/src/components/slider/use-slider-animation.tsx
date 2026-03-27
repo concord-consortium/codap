@@ -6,14 +6,34 @@ import { ISliderModel } from "./slider-model"
 import { FixValueFn, kAnimationDefaults } from "./slider-types"
 import { valueChangeNotification } from "./slider-utils"
 
-function useInterval(callback: () => void, delay: number | null) {
+// Uses requestAnimationFrame instead of setInterval to ensure each animation tick
+// aligns with a browser paint cycle. When the tick work takes longer than the
+// requested interval, setInterval queues callbacks that execute back-to-back,
+// starving the browser's render loop. With rAF, each update produces a visible
+// frame, and we skip frames when the desired rate exceeds what the system can deliver.
+function useAnimationFrame(callback: () => void, interval: number | null) {
   const callbackRef = useRef(callback)
   useEffect(() => { callbackRef.current = callback }, [callback])
   useEffect(() => {
-    if (delay === null) return
-    const id = window.setInterval(() => callbackRef.current(), delay)
-    return () => window.clearInterval(id)
-  }, [delay])
+    if (interval === null) return
+    let rafId: number
+    // Initialize lastTime to -1 so the first rAF callback sets it from the
+    // callback's own timestamp. This avoids a time-domain mismatch when
+    // Cypress fake-timers mock rAF (fake timestamps) while performance.now()
+    // returns real wall-clock time.
+    let lastTime = -1
+    const tick = (now: number) => {
+      if (lastTime < 0) lastTime = now
+      const elapsed = now - lastTime
+      if (elapsed >= interval) {
+        lastTime = now - (elapsed % interval)
+        callbackRef.current()
+      }
+      rafId = window.requestAnimationFrame(tick)
+    }
+    rafId = window.requestAnimationFrame(tick)
+    return () => window.cancelAnimationFrame(rafId)
+  }, [interval])
 }
 
 interface IUseSliderAnimationProps {
@@ -80,7 +100,7 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
     }
   }, [animationDirection])
 
-  useInterval(() => {
+  useAnimationFrame(() => {
     if (running && sliderModel) {
       const increment = sliderModel.increment ? sliderModel.increment
         : multiScale?.resolution ? multiScale.resolution : 1

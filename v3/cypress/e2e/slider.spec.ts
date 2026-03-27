@@ -141,11 +141,13 @@ context("Slider UI", () => {
     c.closeComponent("slider")
 
     cy.log("replays from initial value once it reaches the end")
-    // Override setInterval/clearInterval so cy.tick() can control the slider animation.
-    // We specify only these methods (rather than calling cy.clock() with no args) because
-    // overriding all timing functions (including setTimeout) breaks Chakra UI select menus
-    // in the slider toolbar's flyout sections.
-    cy.clock(Date.now(), ["setInterval", "clearInterval"])
+    // Override requestAnimationFrame/cancelAnimationFrame so cy.tick() can control the
+    // slider animation. We specify only these methods (rather than calling cy.clock() with
+    // no args) because overriding all timing functions (including setTimeout) breaks Chakra
+    // UI select menus in the slider toolbar's flyout sections.
+    // Note: fake-timers fires rAF callbacks every 16ms, so cy.tick() values may need to
+    // account for this granularity in tests that expect precise tick counts.
+    cy.clock(Date.now(), ["requestAnimationFrame", "cancelAnimationFrame"] as any)
     c.clickIconFromToolShelf("slider")
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
@@ -163,7 +165,7 @@ context("Slider UI", () => {
     cy.clock().then(clock => clock.restore())
 
     cy.log("plays low to high animation direction")
-    cy.clock(Date.now(), ["setInterval", "clearInterval"])
+    cy.clock(Date.now(), ["requestAnimationFrame", "cancelAnimationFrame"] as any)
     c.clickIconFromToolShelf("slider")
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
@@ -179,7 +181,7 @@ context("Slider UI", () => {
     cy.clock().then(clock => clock.restore())
 
     cy.log("plays back and forth animation direction")
-    cy.clock(Date.now(), ["setInterval", "clearInterval"])
+    cy.clock(Date.now(), ["requestAnimationFrame", "cancelAnimationFrame"] as any)
     c.clickIconFromToolShelf("slider")
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
@@ -189,17 +191,17 @@ context("Slider UI", () => {
     slider.getVariableValue().should("contain", 1)
     slider.playSliderButton()
     slider.checkPlayButtonIsRunning()
-    cy.tick(2000)   // 10 ticks at 200ms each: slider reaches 11
+    cy.tick(2100)   // 10 animation ticks at 200ms interval: slider reaches 11 (padded for 16ms rAF granularity)
     slider.getVariableValueInput(0).should("have.value", "11")
     slider.checkPlayButtonIsRunning()
-    cy.tick(2600)   // 13 ticks at 200ms each: animation completes and stops at axisMin (value=0)
+    cy.tick(2700)   // 13 animation ticks at 200ms interval: animation completes and stops at axisMin (value=0)
     slider.checkPlayButtonIsPaused()
     slider.getVariableValueInput(0).should("have.value", "0")
     c.closeComponent("slider") //Change in component header height causes interference with variable value input
     cy.clock().then(clock => clock.restore())
 
     cy.log("plays high to low animation direction")
-    cy.clock(Date.now(), ["setInterval", "clearInterval"])
+    cy.clock(Date.now(), ["requestAnimationFrame", "cancelAnimationFrame"] as any)
     c.clickIconFromToolShelf("slider")
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
@@ -247,7 +249,7 @@ context("Slider UI", () => {
     const finalValue = "60"
     const multiple = "10"
     const values = ["10", "20", "30", "40", "50", "60"]
-    cy.clock(Date.now(), ["setInterval", "clearInterval"])
+    cy.clock(Date.now(), ["requestAnimationFrame", "cancelAnimationFrame"] as any)
     c.clickIconFromToolShelf("slider")
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
@@ -259,19 +261,22 @@ context("Slider UI", () => {
     slider.getVariableValue().should("contain", initialValue)
     slider.playSliderButton()
     slider.checkPlayButtonIsRunning()
-    cy.tick(200)  // 1 tick at 200ms: increment=10, value=10
+    // rAF fires every 16ms in fake-timers. With a 200ms animation interval,
+    // we need cy.tick(224) per step (14 rAF frames × 16ms = 224ms > 200ms)
+    // to ensure exactly one animation tick fires per step.
+    cy.tick(224)  // 1 animation tick: increment=10, value=10
     slider.getVariableValueInput(0).should("have.value", values[0])
-    cy.tick(200)  // value=20
+    cy.tick(224)  // value=20
     slider.getVariableValueInput(0).should("have.value", values[1])
-    cy.tick(200)  // value=30
+    cy.tick(224)  // value=30
     slider.getVariableValueInput(0).should("have.value", values[2])
-    cy.tick(200)  // value=40
+    cy.tick(224)  // value=40
     slider.getVariableValueInput(0).should("have.value", values[3])
-    cy.tick(200)  // value=50
+    cy.tick(224)  // value=50
     slider.getVariableValueInput(0).should("have.value", values[4])
-    cy.tick(200)  // value=60
+    cy.tick(224)  // value=60
     slider.getVariableValueInput(0).should("have.value", values[5])
-    cy.tick(200)  // next tick attempts value=70, exceeds axis max, animation stops
+    cy.tick(224)  // next tick attempts value=70, exceeds axis max, animation stops
     slider.checkPlayButtonIsPaused()
     cy.clock().then(clock => clock.restore())
 
@@ -290,7 +295,7 @@ context("Slider UI", () => {
     slider.checkPlayButtonIsPaused(0)
     slider.checkPlayButtonIsPaused(1)
 
-    cy.clock(Date.now(), ["setInterval", "clearInterval"])
+    cy.clock(Date.now(), ["requestAnimationFrame", "cancelAnimationFrame"] as any)
     slider.playSliderButton(1)
     slider.checkPlayButtonIsPaused(0)
     slider.checkPlayButtonIsRunning(1)
