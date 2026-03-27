@@ -156,11 +156,17 @@ export class PixiPointRenderer extends PointRendererBase {
     // the webglcontextlost events don't fire until after the batch completes.
     // We check here so we can fail fast and fall back to canvas.
     const gl = "gl" in this.renderer ? this.renderer.gl : undefined
-    if (!gl || gl.isContextLost()) {
+    if (gl?.isContextLost()) {
+      // GL context exists but was lost — report to the manager so it can learn the limit
       this._onBrowserContextLoss?.()
       this.renderer.destroy()
       this.renderer = undefined
       throw new Error("PixiPointRenderer initialization failed: WebGL context lost during creation")
+    } else if (!gl) {
+      // No GL context (e.g., non-WebGL renderer) — fail without reporting context loss
+      this.renderer.destroy()
+      this.renderer = undefined
+      throw new Error("PixiPointRenderer initialization failed: no WebGL context available")
     }
 
     // Listen for browser-initiated context loss that occurs AFTER successful init

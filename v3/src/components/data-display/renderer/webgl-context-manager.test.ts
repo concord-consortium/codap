@@ -442,11 +442,9 @@ describe("WebGLContextManager", () => {
   })
 
   describe("reportBrowserContextLoss", () => {
-    it("reduces maxContexts to activeCount - 1", () => {
-      // Start with no limit
-      manager.setMaxContextsForTesting(Infinity)
-
-      // Add 16 consumers (simulating a browser that allows 16)
+    it("reduces maxContexts when at capacity", () => {
+      // Set limit to 16 and fill to capacity
+      manager.setMaxContextsForTesting(16)
       for (let i = 0; i < 16; i++) {
         manager.requestContext(createConsumer(`consumer${i}`, 100))
       }
@@ -462,6 +460,8 @@ describe("WebGLContextManager", () => {
     })
 
     it("revokes the affected consumer's context", () => {
+      // Set limit to 1 so a single consumer is at capacity
+      manager.setMaxContextsForTesting(1)
       const onRevoked = jest.fn()
       const consumer = createConsumer("consumer1", 100, jest.fn(), onRevoked)
       manager.requestContext(consumer)
@@ -473,23 +473,21 @@ describe("WebGLContextManager", () => {
     })
 
     it("only decreases the limit, never increases", () => {
-      manager.setMaxContextsForTesting(Infinity)
-
-      // Add 10 consumers
+      // Set limit to 10 and fill to capacity
+      manager.setMaxContextsForTesting(10)
       for (let i = 0; i < 10; i++) {
         manager.requestContext(createConsumer(`consumer${i}`, 100))
       }
 
-      // Browser reports loss — limit becomes 9
+      // Browser reports loss at capacity — limit becomes 9
       manager.reportBrowserContextLoss("consumer0")
       expect(manager.maxContexts).toBe(9)
 
-      // Add more consumers up to 9
-      for (let i = 10; i < 19; i++) {
-        manager.requestContext(createConsumer(`consumer${i}`, 100))
-      }
+      // Fill back to new capacity of 9
+      manager.requestContext(createConsumer("consumer10", 100))
+      expect(manager.activeCount).toBe(9)
 
-      // Browser reports another loss — limit decreases further to 8
+      // Browser reports another loss at capacity — limit decreases further to 8
       manager.reportBrowserContextLoss("consumer1")
       expect(manager.maxContexts).toBe(8)
     })
@@ -509,6 +507,21 @@ describe("WebGLContextManager", () => {
       // because we just learned we're at the limit
       manager.reportBrowserContextLoss("consumer0")
       expect(waitingGranted).not.toHaveBeenCalled()
+    })
+
+    it("does not reduce limit when below capacity (e.g., GPU reset)", () => {
+      // 3 active consumers, limit is 15 — well below capacity
+      manager.requestContext(createConsumer("consumer1", 100))
+      manager.requestContext(createConsumer("consumer2", 100))
+      manager.requestContext(createConsumer("consumer3", 100))
+
+      manager.reportBrowserContextLoss("consumer1")
+
+      // Limit should NOT have changed — context loss wasn't due to over-allocation
+      expect(manager.maxContexts).toBe(TEST_MAX_CONTEXTS)
+      // But the consumer's context should still be revoked
+      expect(manager.hasContext("consumer1")).toBe(false)
+      expect(manager.activeCount).toBe(2)
     })
 
     it("ignores non-active consumers", () => {

@@ -286,11 +286,15 @@ export class WebGLContextManager {
       return
     }
 
-    // The browser killed this context because there were too many.
-    // The actual limit is one less than what we had when the loss occurred.
-    const newLimit = this.activeConsumers.size - 1
-    if (newLimit < this._maxContexts) {
-      this._maxContexts = newLimit
+    // Only adjust the learned limit if we were at/above our current capacity.
+    // Context loss can occur for reasons other than exceeding the context limit
+    // (GPU reset, driver crash, etc.), so we avoid ratcheting the limit down in
+    // those cases. Also clamp the learned limit to a minimum of 1.
+    if (this.activeConsumers.size >= this._maxContexts) {
+      const newLimit = Math.max(1, this.activeConsumers.size - 1)
+      if (newLimit < this._maxContexts) {
+        this._maxContexts = newLimit
+      }
     }
 
     // Revoke the lost context — the consumer should fall back to canvas

@@ -245,14 +245,19 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
       if (!skipContextRegistration) {
         webGLContextManager.releaseContext(id)
       }
-      // Dispose any outgoing renderer that's pending disposal
-      if (outgoingRendererRef.current) {
-        outgoingRendererRef.current.dispose()
+      // Dispose any outgoing renderer that's pending disposal, then dispose the
+      // current renderer. Guard against double-dispose if they are the same instance
+      // (can happen if unmount occurs mid-transition before switchRenderer completes).
+      const outgoing = outgoingRendererRef.current
+      if (outgoing) {
+        outgoing.dispose()
         outgoingRendererRef.current = null
       }
       // Use rendererRef (always current) instead of the stale `renderer` from the
       // closure, which would be the NullPointRenderer from the initial render.
-      rendererRef.current.dispose()
+      if (rendererRef.current !== outgoing) {
+        rendererRef.current.dispose()
+      }
     }
   // Note: We intentionally don't include `renderer` or `skipContextRegistration` in dependencies
   // because we want to dispose whatever renderer exists at unmount time
