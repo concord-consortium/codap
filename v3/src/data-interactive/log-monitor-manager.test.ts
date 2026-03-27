@@ -172,7 +172,9 @@ describe("LogMonitorManager", () => {
     it("does nothing when no document provider is set", () => {
       manager.register("plugin-1", { message: "*" })
       // Should not throw
-      manager.notifyMatchingMonitors({ message: "test", formatStr: "test" })
+      expect(() => {
+        manager.notifyMatchingMonitors({ message: "test", formatStr: "test" })
+      }).not.toThrow()
     })
   })
 })
