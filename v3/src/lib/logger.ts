@@ -113,8 +113,9 @@ export class Logger {
 
   private static sendPendingMessages() {
     if (!this._instance) return
+    const documentTitle = this._instance.document.title
     for (const message of this.pendingMessages) {
-      this._instance.formatAndSend(message.time, message.event, message.documentTitle,
+      this._instance.formatAndSend(message.time, message.event, documentTitle || message.documentTitle,
                                     message.category, message.parameters)
     }
     this.pendingMessages = []

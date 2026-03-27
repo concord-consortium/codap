@@ -154,8 +154,7 @@ export type DIResultSingleValues = DICase | DIComponentInfo |  DIDataDisplay | D
 
 export type DIResultValues = DIResultSingleValues | DIResultSingleValues[] |
   DIAllCases | DIDeleteCollectionResult | DIUpdateItemResult | DIResultAttributes | number | number[] |
-  DICreateAdornment | DIDeleteAdornment | DIUpdateAdornment | number | number[] |
-  DILogMonitorResult
+  DICreateAdornment | DIDeleteAdornment | DIUpdateAdornment | DILogMonitorResult
 
 export interface DIMetadata {
   dirtyDocument?: boolean
