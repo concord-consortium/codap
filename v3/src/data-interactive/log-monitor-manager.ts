@@ -1,4 +1,11 @@
+import { LoggableValue } from "../lib/log-message"
 import { Logger } from "../lib/logger"
+
+interface DocumentBroadcaster {
+  content?: {
+    broadcastMessage: (message: Record<string, unknown>, callback: () => void, targetTileId?: string) => void
+  }
+}
 
 export interface LogMonitorFilter {
   topic?: string
@@ -18,7 +25,7 @@ export interface LogEventInfo {
   message: string
   formatStr: string
   topic?: string
-  replaceArgs?: any[]
+  replaceArgs?: LoggableValue[]
 }
 
 function matchesFilter(filter: LogMonitorFilter, event: LogEventInfo): boolean {
@@ -43,9 +50,9 @@ function matchesFilter(filter: LogMonitorFilter, event: LogEventInfo): boolean {
 export class LogMonitorManager {
   private monitors: LogMonitor[] = []
   private nextId = 1
-  private documentProvider?: () => any
+  private documentProvider?: () => DocumentBroadcaster | undefined
 
-  setDocumentProvider(provider: () => any) {
+  setDocumentProvider(provider: () => DocumentBroadcaster | undefined) {
     this.documentProvider = provider
   }
 
