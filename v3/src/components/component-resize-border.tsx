@@ -16,7 +16,7 @@ export function ComponentResizeBorder({ componentRef, edge, tileId, onPointerDow
   const tileLayout = useFreeTileLayoutContext()
   const { zIndex } = tileLayout || { zIndex: 1 }  // So that borders are selectable when overlapping other components
   // Use floating-ui for positioning
-  const { elements: { reference }, refs: { setFloating, setReference }, floatingStyles, update } = useFloating({
+  const { elements: { reference }, refs: { setFloating, setReference }, floatingStyles } = useFloating({
     placement: edge,
     open: true,
     middleware: [
@@ -36,7 +36,11 @@ export function ComponentResizeBorder({ componentRef, edge, tileId, onPointerDow
         },
       })
     ],
-    whileElementsMounted: autoUpdate
+    // The animationFrame option polls for position changes via requestAnimationFrame,
+    // which is necessary because autoUpdate's default observers don't detect moves from
+    // CSS left/top changes (only resizes via ResizeObserver).
+    whileElementsMounted: (ref, floating, updateFn) =>
+      autoUpdate(ref, floating, updateFn, { animationFrame: true })
   })
 
   // Attach the reference ref to your component
@@ -44,10 +48,7 @@ export function ComponentResizeBorder({ componentRef, edge, tileId, onPointerDow
     if (componentRef.current && reference !== componentRef.current) {
       setReference(componentRef.current)
     }
-    // Note: explicit update shouldn't be required, but without it the border would track
-    // tile resizes correctly but not tile moves.
-    update()
-  })
+  }, [componentRef, reference, setReference])
 
   if (!onPointerDown) return null
 
