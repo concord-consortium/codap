@@ -75,21 +75,36 @@ export default function ColorTextEditor({attributeId, caseId, value, acceptValue
     info: { name: "ColorTextEditor", attributeId, attributeName: attribute?.name }
   })
 
-  function handleSubmit(newValue: string) {
-    if (isSubmittingRef.current) return
-    isSubmittingRef.current = true
-    acceptValue(newValue)
-    setIsPaletteOpen(false)
-  }
-
   const handleUpdateValue = useCallback((newValue: string) => {
     setInputValue(newValue)
     updateValue(newValue)
   }, [updateValue])
 
+  const handlePaletteOpenChange = useCallback((open: boolean) => {
+    if (!open && isPaletteOpen) {
+      if (!isCancellingRef.current && !isSubmittingRef.current) {
+        acceptValue(inputValue as string)
+      }
+      isCancellingRef.current = false
+      isSubmittingRef.current = false
+    }
+    if (!open) {
+      resetPopoverOffset()
+    }
+    setIsPaletteOpen(open)
+  }, [acceptValue, inputValue, isPaletteOpen, resetPopoverOffset])
+
+  function handleSubmit(newValue: string) {
+    if (isSubmittingRef.current) return
+    isSubmittingRef.current = true
+    acceptValue(newValue)
+    handlePaletteOpenChange(false)
+  }
+
   function handleCancel() {
+    isCancellingRef.current = true
     setInputValue(data?.getStrValue(caseId, attributeId) || "")
-    setIsPaletteOpen(false)
+    handlePaletteOpenChange(false)
   }
 
   function handleInputColorChange(event: ChangeEvent<HTMLInputElement>) {
@@ -106,25 +121,11 @@ export default function ColorTextEditor({attributeId, caseId, value, acceptValue
     }
   }
 
-  const handlePaletteOpenChange = useCallback((open: boolean) => {
-    if (!open && isPaletteOpen) {
-      if (!isCancellingRef.current && !isSubmittingRef.current) {
-        acceptValue(inputValue as string)
-      }
-      isCancellingRef.current = false
-      isSubmittingRef.current = false
-    }
-    if (!open) {
-      resetPopoverOffset()
-    }
-    setIsPaletteOpen(open)
-  }, [acceptValue, inputValue, isPaletteOpen, resetPopoverOffset])
-
   const handlePaletteReject = useCallback(() => {
     isCancellingRef.current = true
     setInputValue(data?.getStrValue(caseId, attributeId) || "")
-    setIsPaletteOpen(false)
-  }, [attributeId, caseId, data])
+    handlePaletteOpenChange(false)
+  }, [attributeId, caseId, data, handlePaletteOpenChange])
 
   const swatchStyle: React.CSSProperties | undefined = showColorSwatch.current ? { background: color } : undefined
   const attrName = attribute?.name ?? ""

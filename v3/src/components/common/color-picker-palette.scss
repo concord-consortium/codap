@@ -28,14 +28,8 @@ $palette-width: 235px;
   }
 }
 
-.color-picker-popover {
-
-  &.react-aria-Popover {
-    // Override the global .react-aria-Popover styles (defined in inspector-panel.scss)
-    // so the color picker palette controls its own padding, border, and shadow.
-    // The react-aria-Popover class is preserved (via className render prop) for
-    // compatibility with useOutsidePointerDown's portal detection.
-
+.react-aria-Popover {
+  &.color-picker-popover {
     padding: 0;
   }
 }

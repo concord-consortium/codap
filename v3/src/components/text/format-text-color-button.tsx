@@ -48,17 +48,6 @@ export function FormatTextColorButton({ editor }: IProps) {
     setIsOpen(true)
   }, [editor])
 
-  const handleAccept = useCallback((color: string) => {
-    handleSetColor(color)
-    isAcceptingRef.current = true
-    setIsOpen(false)
-  }, [handleSetColor])
-
-  const handleReject = useCallback(() => {
-    handleSetColor(initialColorRef.current)
-    setIsOpen(false)
-  }, [handleSetColor])
-
   const handleOpenChange = useCallback((open: boolean) => {
     if (!open) {
       if (!isAcceptingRef.current) {
@@ -68,6 +57,16 @@ export function FormatTextColorButton({ editor }: IProps) {
     }
     setIsOpen(open)
   }, [handleSetColor, resetPopoverOffset])
+
+  const handleAccept = useCallback((color: string) => {
+    handleSetColor(color)
+    isAcceptingRef.current = true
+    handleOpenChange(false)
+  }, [handleOpenChange, handleSetColor])
+
+  const handleReject = useCallback(() => {
+    handleOpenChange(false)
+  }, [handleOpenChange])
 
   return (
     <>

@@ -45,13 +45,6 @@ export const PointColorSetting = observer(function PointColorSetting({ closeTrig
     onColorChange(initialColorRef.current)
   }, [onColorChange])
 
-  const handleAcceptColor = useCallback((color: string) => {
-    updateValue(color)
-    initialColorRef.current = color
-    isAcceptingRef.current = true
-    setIsOpen(false)
-  }, [updateValue])
-
   const handleOpenChange = useCallback((open: boolean) => {
     if (open) {
       initialColorRef.current = swatchBackgroundColor
@@ -60,15 +53,22 @@ export const PointColorSetting = observer(function PointColorSetting({ closeTrig
       if (!isAcceptingRef.current) {
         handleRejectColor()
       }
+      setInputValue(initialColorRef.current)
       resetPopoverOffset()
     }
     setIsOpen(open)
   }, [handleRejectColor, resetPopoverOffset, swatchBackgroundColor])
 
+  const handleAcceptColor = useCallback((color: string) => {
+    updateValue(color)
+    initialColorRef.current = color
+    isAcceptingRef.current = true
+    handleOpenChange(false)
+  }, [handleOpenChange, updateValue])
+
   const handleReject = useCallback(() => {
-    handleRejectColor()
-    setIsOpen(false)
-  }, [handleRejectColor])
+    handleOpenChange(false)
+  }, [handleOpenChange])
 
   return (
     <DialogTrigger isOpen={isOpen} onOpenChange={handleOpenChange}>
