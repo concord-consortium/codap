@@ -35,6 +35,26 @@ describe("DataInteractive LogMessageHandler", () => {
       noDirty: true, log: {message: "This is a log message with replacement", args: {0: "replacement"}}
     })
   })
+
+  it("passes topic to log monitor evaluation", () => {
+    const interactiveFrame = appState.document.content!.createOrShowTile(kWebViewTileType)!
+    const resources: DIResources = { interactiveFrame }
+    const values: DIValues = {
+      formatStr: "game event: %@",
+      replaceArgs: ["start"],
+      topic: "game.lifecycle"
+    } as DILogMessage
+
+    logMonitorManager.unregisterAll()
+    const evaluateSpy = jest.spyOn(logMonitorManager, "evaluateLogEvent")
+
+    notify(resources, values)
+
+    expect(evaluateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ topic: "game.lifecycle" })
+    )
+    evaluateSpy.mockRestore()
+  })
 })
 
 describe("DataInteractive LogMessageMonitorHandler", () => {

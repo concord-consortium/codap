@@ -96,6 +96,7 @@ export interface DIItemSearchNotify {
 export interface DILogMessage {
   formatStr?: string
   replaceArgs?: LoggableValue | LoggableValue[]
+  topic?: string
 }
 
 export interface DIUrl {
