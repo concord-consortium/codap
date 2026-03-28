@@ -53,9 +53,10 @@ $palette-width: 235px;
     .color-swatch-grid {
       display: grid;
       grid-template-columns: repeat(8, 22px);
+      grid-template-rows: repeat(3, 22px);
       gap: 5px;
       width: 100%;
-      height: fit-content;
+      align-content: start;
 
       .color-swatch-cell {
         appearance: none;
