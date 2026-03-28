@@ -98,26 +98,31 @@ export const ColorPickerPalette = ({ swatchBackgroundColor: rawSwatchBgColor, in
     onExpandedChange?.(newValue)
   }
 
+  // React synthetic events bubble through the component tree (not the DOM tree),
+  // so keydown events from this portal-rendered popover reach parent components
+  // like RDG's EditCell, which interprets Enter/Arrow as cell navigation. We stop
+  // propagation at two levels: Escape and Enter on the whole palette, and arrow keys
+  // only on the swatch grid area (so react-colorful sliders still receive them).
   const handleKeyDownCapture = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
       e.stopPropagation()
       onReject()
       return
     }
-    // Stop certain key events from bubbling out of the palette via React's synthetic
-    // event system. React synthetic events bubble through the component tree (not the
-    // DOM tree), so without this, keydown events from this portal-rendered popover
-    // reach parent components like RDG's EditCell, which interprets Enter/Arrow as
-    // cell navigation. Tab is intentionally NOT stopped here — React Aria's FocusScope
-    // needs to see it to trap focus within the popover.
-    if (["Enter", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+    if (e.key === "Enter") {
+      e.stopPropagation()
+    }
+  }
+
+  const handleSwatchKeyDownCapture = (e: React.KeyboardEvent) => {
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
       e.stopPropagation()
     }
   }
 
   return (
     <div className="color-picker-palette" onKeyDownCapture={handleKeyDownCapture}>
-      <div className="color-swatch-palette">
+      <div className="color-swatch-palette" onKeyDownCapture={handleSwatchKeyDownCapture}>
         <ListBox
           className="color-swatch-grid"
           aria-label={t("DG.Inspector.colorPicker.swatchGrid")}

@@ -32,7 +32,6 @@ export function FormatTextColorButton({ editor }: IProps) {
   const { popoverRef, popoverOffset, handleExpandedChange, resetPopoverOffset } = useColorPickerPopoverOffset()
   const textColor = getColor(editor, { default: true }) ?? "#000000"
   const initialColorRef = useRef<string>(textColor)
-  const isAcceptingRef = useRef(false)
 
   function preventFocusLoss(e: React.PointerEvent) {
     e.preventDefault()
@@ -42,31 +41,25 @@ export function FormatTextColorButton({ editor }: IProps) {
     setColor(editor, color)
   }, [editor])
 
-  const handleOpen = useCallback(() => {
-    initialColorRef.current = getColor(editor, { default: true }) ?? "#000000"
-    isAcceptingRef.current = false
-    setIsOpen(true)
-  }, [editor])
-
   const handleOpenChange = useCallback((open: boolean) => {
+    if (open) {
+      initialColorRef.current = getColor(editor, { default: true }) ?? "#000000"
+    }
     if (!open) {
-      if (!isAcceptingRef.current) {
-        handleSetColor(initialColorRef.current)
-      }
       resetPopoverOffset()
     }
     setIsOpen(open)
-  }, [handleSetColor, resetPopoverOffset])
+  }, [editor, resetPopoverOffset])
 
   const handleAccept = useCallback((color: string) => {
     handleSetColor(color)
-    isAcceptingRef.current = true
     handleOpenChange(false)
   }, [handleOpenChange, handleSetColor])
 
   const handleReject = useCallback(() => {
+    handleSetColor(initialColorRef.current)
     handleOpenChange(false)
-  }, [handleOpenChange])
+  }, [handleOpenChange, handleSetColor])
 
   return (
     <>
@@ -74,7 +67,7 @@ export function FormatTextColorButton({ editor }: IProps) {
         testId={"text-toolbar-text-color-button"}
         tooltip={"color"}
         isActive={!!getColor(editor, { default: false })}
-        onButtonClick={handleOpen}
+        onButtonClick={() => handleOpenChange(true)}
         onPointerDown={preventFocusLoss}
       >
         <FormatTextColorIcon color={getColor(editor, { default: true })} />
