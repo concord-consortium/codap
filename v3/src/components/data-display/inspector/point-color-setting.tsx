@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import { Button, Dialog, DialogTrigger, Popover } from "react-aria-components"
+import { Button, DialogTrigger, Popover } from "react-aria-components"
 import { ColorPickerPalette } from "../../common/color-picker-palette"
 import { useColorPickerPopoverOffset } from "../../common/use-color-picker-popover-offset"
 import { t } from "../../../utilities/translation/translate"
@@ -84,13 +84,12 @@ export const PointColorSetting = observer(function PointColorSetting({ closeTrig
         className={({defaultClassName}) => `${defaultClassName} color-picker-popover`}
         shouldFlip={false}
         offset={popoverOffset}
+        aria-label={t("DG.Inspector.colorPicker.dialogLabel")}
       >
-        <Dialog className="color-picker-dialog" aria-label={t("DG.Inspector.colorPicker.dialogLabel")}>
-          <ColorPickerPalette swatchBackgroundColor={swatchBackgroundColor} onColorChange={onColorChange}
-            inputValue={inputValue} onUpdateValue={updateValue}
-            onAccept={handleAcceptColor} onCommitColor={handleCommitColor}
-            onExpandedChange={handleExpandedChange} onReject={handleReject}/>
-        </Dialog>
+        <ColorPickerPalette swatchBackgroundColor={swatchBackgroundColor} onColorChange={onColorChange}
+          inputValue={inputValue} onUpdateValue={updateValue}
+          onAccept={handleAcceptColor} onCommitColor={handleCommitColor}
+          onExpandedChange={handleExpandedChange} onReject={handleReject}/>
       </Popover>
     </DialogTrigger>
   )

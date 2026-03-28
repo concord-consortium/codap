@@ -1,5 +1,5 @@
 import React, { ChangeEvent, RefObject, useCallback, useEffect, useRef, useState } from "react"
-import { Button, Dialog, DialogTrigger, Popover } from "react-aria-components"
+import { Button, DialogTrigger, Popover } from "react-aria-components"
 import { textEditorClassname } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useOutsidePointerDown } from "../../hooks/use-outside-pointer-down"
@@ -142,13 +142,12 @@ export default function ColorTextEditor({attributeId, caseId, value, acceptValue
               <div className="cell-edit-color-swatch-interior" style={swatchStyle}/>
             </Button>
             <Popover ref={popoverRef} shouldFlip={false} offset={popoverOffset}
-              className={({defaultClassName}) => `${defaultClassName} color-picker-popover`}>
-              <Dialog className="color-picker-dialog" aria-label={t("DG.Inspector.colorPicker.dialogLabel")}>
-                <ColorPickerPalette inputValue={String(inputValue) || "#ffffff"}
-                  swatchBackgroundColor={color || "#ffffff"} onColorChange={handleUpdateValue}
-                  onAccept={handleSubmit} onExpandedChange={handleExpandedChange}
-                  onReject={handlePaletteReject} onUpdateValue={handleUpdateValue}/>
-              </Dialog>
+              className={({defaultClassName}) => `${defaultClassName} color-picker-popover`}
+              aria-label={t("DG.Inspector.colorPicker.dialogLabel")}>
+              <ColorPickerPalette inputValue={String(inputValue) || "#ffffff"}
+                swatchBackgroundColor={color || "#ffffff"} onColorChange={handleUpdateValue}
+                onAccept={handleSubmit} onExpandedChange={handleExpandedChange}
+                onReject={handlePaletteReject} onUpdateValue={handleUpdateValue}/>
             </Popover>
           </DialogTrigger>
           { inputElt }

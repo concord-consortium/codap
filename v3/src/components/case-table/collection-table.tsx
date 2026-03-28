@@ -241,6 +241,12 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     // handles the event internally. If we get an enter/return key while in edit mode, we handle
     // it ourselves and call `preventGridDefault()` to prevent RDG from handling the event itself.
     if (args.mode === "EDIT" && ["Enter", "Tab", "ArrowUp", "ArrowDown"].includes(event.key)) {
+      // React synthetic events bubble through the React component tree, not the DOM tree.
+      // When a color picker popover is open, its portal DOM is outside the grid, but React
+      // still bubbles keydown events up through the component tree to this handler. Skip
+      // cell navigation when focus is inside a popover portal — let the popover handle it.
+      const activeElement = document.activeElement
+      if (activeElement && !event.currentTarget.contains(activeElement)) return
       // complete the cell edit
       args.onClose(true)
       // prevent RDG from handling the event

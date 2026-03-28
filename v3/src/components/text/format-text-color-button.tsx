@@ -1,6 +1,6 @@
 import { CustomEditor, CustomMarks, Editor, EFormat } from "@concord-consortium/slate-editor"
 import React, { useCallback, useRef, useState } from "react"
-import { Dialog, Popover } from "react-aria-components"
+import { Popover } from "react-aria-components"
 import { ColorPickerPalette } from "../common/color-picker-palette"
 import { t } from "../../utilities/translation/translate"
 import { useColorPickerPopoverOffset } from "../common/use-color-picker-popover-offset"
@@ -79,14 +79,13 @@ export function FormatTextColorButton({ editor }: IProps) {
       >
         <FormatTextColorIcon color={getColor(editor, { default: true })} />
       </InspectorButton>
-      <Popover ref={popoverRef} shouldFlip={false} crossOffset={popoverOffset} triggerRef={triggerRef} 
+      <Popover ref={popoverRef} shouldFlip={false} crossOffset={popoverOffset} triggerRef={triggerRef}
         className={({defaultClassName}) => `${defaultClassName} color-picker-popover`}
-        isOpen={isOpen} onOpenChange={handleOpenChange} placement="end">
-        <Dialog className="color-picker-dialog" aria-label={t("DG.Inspector.colorPicker.dialogLabel")}>
-          <ColorPickerPalette swatchBackgroundColor={textColor} onColorChange={handleSetColor}
-            inputValue={textColor} onUpdateValue={handleSetColor}
-            onAccept={handleAccept} onExpandedChange={handleExpandedChange} onReject={handleReject}/>
-        </Dialog>
+        isOpen={isOpen} onOpenChange={handleOpenChange} placement="end"
+        aria-label={t("DG.Inspector.colorPicker.dialogLabel")}>
+        <ColorPickerPalette swatchBackgroundColor={textColor} onColorChange={handleSetColor}
+          inputValue={textColor} onUpdateValue={handleSetColor}
+          onAccept={handleAccept} onExpandedChange={handleExpandedChange} onReject={handleReject}/>
       </Popover>
     </>
   )

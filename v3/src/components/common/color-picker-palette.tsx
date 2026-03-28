@@ -102,6 +102,16 @@ export const ColorPickerPalette = ({ swatchBackgroundColor: rawSwatchBgColor, in
     if (e.key === "Escape") {
       e.stopPropagation()
       onReject()
+      return
+    }
+    // Stop certain key events from bubbling out of the palette via React's synthetic
+    // event system. React synthetic events bubble through the component tree (not the
+    // DOM tree), so without this, keydown events from this portal-rendered popover
+    // reach parent components like RDG's EditCell, which interprets Enter/Arrow as
+    // cell navigation. Tab is intentionally NOT stopped here — React Aria's FocusScope
+    // needs to see it to trap focus within the popover.
+    if (["Enter", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+      e.stopPropagation()
     }
   }
 
