@@ -5,10 +5,14 @@ import { PointColorSetting } from "./point-color-setting"
 // Mock ColorPickerPalette
 jest.mock("../../common/color-picker-palette", () => ({
   ColorPickerPalette: ({ onUpdateValue, onAccept, onReject }: any) => (
-    <div data-testid="color-picker-palette">
+    <div data-testid="color-picker-palette" onKeyDownCapture={(e: React.KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.stopPropagation()
+        onReject()
+      }
+    }}>
       <button data-testid="update-color" onClick={() => onUpdateValue("#AABBCC")}>Update</button>
       <button data-testid="accept-color" onClick={() => onAccept("#AABBCC")}>Accept</button>
-      <button data-testid="reject-color" onClick={() => onReject()}>Reject</button>
     </div>
   )
 }))
@@ -75,18 +79,6 @@ describe("PointColorSetting", () => {
     expect(defaultProps.onColorChange).toHaveBeenCalledWith("#AABBCC")
   })
 
-  it("calls onColorChange with initial color when rejected", async () => {
-    const user = userEvent.setup()
-    render(<PointColorSetting {...defaultProps} />)
-
-    // Open the popover first to set initialColorRef
-    const button = screen.getByRole("button", { name: /Fill Color/ })
-    await user.click(button)
-
-    await user.click(screen.getByTestId("reject-color"))
-    expect(defaultProps.onColorChange).toHaveBeenCalledWith("#FF0000")
-  })
-
   it("closes popover when closeTrigger changes while open", async () => {
     const user = userEvent.setup()
     const { rerender } = render(<PointColorSetting {...defaultProps} closeTrigger={0} />)
@@ -111,13 +103,18 @@ describe("PointColorSetting", () => {
     expect(button).toHaveClass("open")
   })
 
-  it("closes and rejects when Escape is pressed", async () => {
+  it("closes and reverts color when Escape is pressed", async () => {
     const user = userEvent.setup()
     render(<PointColorSetting {...defaultProps} />)
 
     const button = screen.getByRole("button", { name: /Fill Color/ })
     await user.click(button)
     expect(button).toHaveAttribute("aria-expanded", "true")
+
+    // Change the color, then press Escape to revert
+    await user.click(screen.getByTestId("update-color"))
+    expect(defaultProps.onColorChange).toHaveBeenCalledWith("#AABBCC")
+    defaultProps.onColorChange.mockClear()
 
     await user.keyboard("{Escape}")
     expect(button).toHaveAttribute("aria-expanded", "false")

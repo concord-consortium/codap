@@ -652,8 +652,8 @@ context("Test changing legend colors", () => {
             expect(rgb.g).to.be.within(standardLandGreen - colorTolerance, standardLandGreen + colorTolerance)
           }
         })
-      // Close the popover (Escape preserves the committed swatch selection)
-      cy.realPress("Escape")
+      // Close the popover by clicking outside (close = accept, keeps the selected color)
+      cy.get(".codap-inspector-palette-header-title").click({force: true})
       cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
         .find('rect')
         .invoke('css', 'fill')

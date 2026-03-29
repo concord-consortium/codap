@@ -20,11 +20,10 @@ export const PointColorSetting = observer(function PointColorSetting({ closeTrig
   const [inputValue, setInputValue] = useState(swatchBackgroundColor)
   const { popoverRef, popoverOffset, handleExpandedChange, resetPopoverOffset } = useColorPickerPopoverOffset()
   const initialColorRef = useRef(swatchBackgroundColor)
-  const isAcceptingRef = useRef(false)
 
   // Close popover when external trigger changes (e.g. parent container scrolled).
-  // Calls handleOpenChange rather than setIsOpen directly so that uncommitted
-  // color changes are rejected and the popover offset is reset.
+  // Calls handleOpenChange rather than setIsOpen directly so that cleanup
+  // (e.g. resetPopoverOffset) runs.
   useEffect(() => {
     if (closeTrigger != null && isOpen) {
       handleOpenChange(false)
@@ -37,38 +36,28 @@ export const PointColorSetting = observer(function PointColorSetting({ closeTrig
     onColorChange(value)
   }, [onColorChange])
 
-  const handleCommitColor = useCallback((color: string) => {
-    initialColorRef.current = color
-  }, [])
-
-  const handleRejectColor = useCallback(() => {
-    onColorChange(initialColorRef.current)
-  }, [onColorChange])
-
+  // handleOpenChange itself always accepts (the current color stays).
+  // Escape rejection is handled by handleReject, which reverts the color
+  // before calling handleOpenChange(false).
   const handleOpenChange = useCallback((open: boolean) => {
     if (open) {
       initialColorRef.current = swatchBackgroundColor
-      isAcceptingRef.current = false
-    } else {
-      if (!isAcceptingRef.current) {
-        handleRejectColor()
-      }
-      setInputValue(initialColorRef.current)
+    }
+    if (!open) {
       resetPopoverOffset()
     }
     setIsOpen(open)
-  }, [handleRejectColor, resetPopoverOffset, swatchBackgroundColor])
+  }, [resetPopoverOffset, swatchBackgroundColor])
 
   const handleAcceptColor = useCallback((color: string) => {
     updateValue(color)
-    initialColorRef.current = color
-    isAcceptingRef.current = true
     handleOpenChange(false)
   }, [handleOpenChange, updateValue])
 
   const handleReject = useCallback(() => {
+    onColorChange(initialColorRef.current)
     handleOpenChange(false)
-  }, [handleOpenChange])
+  }, [handleOpenChange, onColorChange])
 
   return (
     <DialogTrigger isOpen={isOpen} onOpenChange={handleOpenChange}>
@@ -88,7 +77,7 @@ export const PointColorSetting = observer(function PointColorSetting({ closeTrig
       >
         <ColorPickerPalette swatchBackgroundColor={swatchBackgroundColor} onColorChange={onColorChange}
           inputValue={inputValue} onUpdateValue={updateValue}
-          onAccept={handleAcceptColor} onCommitColor={handleCommitColor}
+          onAccept={handleAcceptColor}
           onExpandedChange={handleExpandedChange} onReject={handleReject}/>
       </Popover>
     </DialogTrigger>

@@ -98,31 +98,35 @@ export const ColorPickerPalette = ({ swatchBackgroundColor: rawSwatchBgColor, in
     onExpandedChange?.(newValue)
   }
 
-  // React synthetic events bubble through the component tree (not the DOM tree),
-  // so keydown events from this portal-rendered popover reach parent components
-  // like RDG's EditCell, which interprets Enter/Arrow as cell navigation. We stop
-  // propagation at two levels: Escape and Enter on the whole palette, and arrow keys
-  // only on the swatch grid area (so react-colorful sliders still receive them).
+  // Escape must be caught in the capture phase so it fires before any other handler.
   const handleKeyDownCapture = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
       e.stopPropagation()
       onReject()
-      return
     }
+  }
+
+  // React synthetic events bubble through the component tree (not the DOM tree),
+  // so keydown events from this portal-rendered popover reach parent components
+  // like RDG's EditCell, which interprets Enter/Arrow as cell navigation. We stop
+  // propagation in the bubble phase so the ListBox handles these keys first, then
+  // we prevent them from reaching parent components. Arrow keys are scoped to the
+  // swatch grid area only so react-colorful sliders still receive them.
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.stopPropagation()
     }
   }
 
-  const handleSwatchKeyDownCapture = (e: React.KeyboardEvent) => {
+  const handleSwatchKeyDown = (e: React.KeyboardEvent) => {
     if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
       e.stopPropagation()
     }
   }
 
   return (
-    <div className="color-picker-palette" onKeyDownCapture={handleKeyDownCapture}>
-      <div className="color-swatch-palette" onKeyDownCapture={handleSwatchKeyDownCapture}>
+    <div className="color-picker-palette" onKeyDownCapture={handleKeyDownCapture} onKeyDown={handleKeyDown}>
+      <div className="color-swatch-palette" onKeyDown={handleSwatchKeyDown}>
         <ListBox
           className="color-swatch-grid"
           aria-label={t("DG.Inspector.colorPicker.swatchGrid")}

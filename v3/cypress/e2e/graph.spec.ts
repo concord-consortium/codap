@@ -441,8 +441,8 @@ context("Graph UI", () => {
           // Change the value of the color picker
           cy.wrap(colorPicker).parent().click()
           cpp.getColorSettingSwatchCell().eq(0).click()
-          // Close the popover (Escape preserves the committed swatch selection)
-          cy.realPress("Escape")
+          // Close the popover by clicking outside (close = accept, keeps the selected color)
+          cy.get(".codap-inspector-palette-header-title").click({force: true})
 
           // Verify the value has been updated
           cy.wrap(colorPicker).should($swatch => {
@@ -465,8 +465,8 @@ context("Graph UI", () => {
           // Change the value of the color picker
           cy.wrap(colorPicker).parent().click()
           cpp.getColorSettingSwatchCell().eq(1).click()
-          // Close the popover (Escape preserves the committed swatch selection)
-          cy.realPress("Escape")
+          // Close the popover by clicking outside (close = accept, keeps the selected color)
+          cy.get(".codap-inspector-palette-header-title").click({force: true})
 
           // Verify the value has been updated
           cy.wrap(colorPicker).should($swatch => {
@@ -516,8 +516,8 @@ context("Graph UI", () => {
           // Change the value of the background color picker
           cy.wrap(backgroundColorPicker).parent().click()
           cpp.getColorSettingSwatchCell().eq(4).click()
-          // Close the popover (Escape preserves the committed swatch selection)
-          cy.realPress("Escape")
+          // Close the popover by clicking outside (close = accept, keeps the selected color)
+          cy.get(".codap-inspector-palette-header-title").click({force: true})
 
           // Verify the value has been updated
           cy.wrap(backgroundColorPicker).should($swatch => {
