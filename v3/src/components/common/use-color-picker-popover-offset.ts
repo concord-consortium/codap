@@ -24,7 +24,9 @@ export function useColorPickerPopoverOffset() {
     if (!el) return
 
     const rect = el.getBoundingClientRect()
-    // Estimate how much taller the expanded color picker content is
+    // Approximate additional height (px) when the color picker expands via "More":
+    // react-colorful controls (~200px) + action buttons and spacing (~80px).
+    // If the expanded layout changes, inspect the popover height before/after to recalibrate.
     const expandedAddition = 280
     const viewportHeight = window.innerHeight
     const padding = 8
