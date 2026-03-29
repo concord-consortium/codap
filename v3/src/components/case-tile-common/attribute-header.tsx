@@ -102,6 +102,41 @@ export const AttributeHeader = observer(function AttributeHeader({
     onCloseMenuRef.current?.()
   }, [dragging])
 
+  // When this attribute is being keyboard-dragged, lock focus and the RDG selection indicator
+  // to its MenuButton/cell. RDG's header-cell navigation bypasses onCellKeyDown entirely
+  // (isRowIdxWithinViewportBounds returns false for rowIdx=-1), so preventGridDefault() has
+  // no effect there. Instead we listen for focusin on document:
+  //   1. If focus moves anywhere inside .rdg while we are the drag source, redirect it back to
+  //      our MenuButton. The native focusin event fires AFTER focus has moved, so we cannot
+  //      prevent the move — but we can immediately reverse it. Calling button.focus() inside
+  //      the handler triggers another focusin with target===button, which hits the early-return
+  //      guard, preventing an infinite loop.
+  //   2. Also reset aria-selected on header cells so the visual selection indicator stays on
+  //      our cell rather than following RDG's selectedPosition (which advances with each arrow
+  //      key even though we redirect focus).
+  const draggableId = `${instanceId}-${attributeId}`
+  useEffect(() => {
+    if (active?.id !== draggableId) return
+
+    const button = menuButtonRef.current
+    if (!button) return
+
+    const handleFocusIn = (e: FocusEvent) => {
+      const target = e.target as HTMLElement
+      if (target === button || target.closest(".rdg") === null) return
+
+      // Fix the aria-selected visual indicator: unselect the cell that stole focus,
+      // restore selection to our drag-source cell.
+      const neighbor = target.closest<HTMLElement>("[role='columnheader']")
+      if (neighbor) neighbor.setAttribute("aria-selected", "false")
+      parentRef.current?.setAttribute("aria-selected", "true")
+      button.focus()
+    }
+
+    document.addEventListener("focusin", handleFocusIn)
+    return () => document.removeEventListener("focusin", handleFocusIn)
+  }, [active?.id, draggableId])
+
   useEffect(() => {
     return autorun(() => {
       if (uiState.attrIdToEdit === attributeId) {

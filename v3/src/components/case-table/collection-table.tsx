@@ -235,6 +235,13 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         return
       }
     }
+    // During a DnDKit keyboard drag, prevent RDG from navigating cells on arrow keys.
+    // The KeyboardSensor handles movement at the document level — preventGridDefault() stops
+    // RDG's navigate() call without affecting the native event, so DnDKit still fires.
+    if (active && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+      event.preventGridDefault()
+      return
+    }
     // By default in RDG, the enter/return key simply enters/exits edit mode without moving the
     // selected cell. In CODAP, the enter/return key should accept the edit _and_ advance to the
     // next row. To achieve this in RDG, we provide this callback, which is called before RDG
@@ -303,7 +310,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         }
       }
     }
-  }, [collection, collectionId, data, navigateToNextCell, navigateToNextRow, onScrollRowRangeIntoView])
+  }, [active, collection, collectionId, data, navigateToNextCell, navigateToNextRow, onScrollRowRangeIntoView])
 
   const handleClick = (event: React.PointerEvent<HTMLDivElement>) => {
     // See if mouse has moved beyond kMouseMovementThreshold since initial mousedown
