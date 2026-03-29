@@ -134,6 +134,11 @@ export interface UrlParams {
    */
   interactiveApi?: string | null
   /*
+   * When present enables the log monitor sidebar for real-time log event viewing.
+   * value: boolean-like string (parsed via booleanParam)
+   */
+  logMonitor?: string | null
+  /*
    * [V2] Specifies the default locale, overriding the browser default.
    * value: locale string, e.g. `en-US` or `es`
    */

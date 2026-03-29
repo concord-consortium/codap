@@ -115,6 +115,10 @@ export class Logger {
     this.pendingMessages = []
   }
 
+  public static get isInitialized() {
+    return !!this._instance
+  }
+
   public static get Instance() {
     if (this._instance) {
       return this._instance
@@ -144,6 +148,13 @@ export class Logger {
     debugLog(DEBUG_LOGGER, "logMessage:", logMessage)
     sendToLoggingService(logMessage)
     sendToAnalyticsService(event, category, extractGAEventArgs(args))
+    this.logListeners.forEach(listener => {
+      try {
+        listener(logMessage)
+      } catch (e) {
+        console.error("Logger listener threw an error:", e)
+      }
+    })
   }
 
   private createLogMessage(

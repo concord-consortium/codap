@@ -21,6 +21,7 @@ import { hideSplashScreen } from "../lib/cfm/splash-screen"
 import { useEmbeddedMode } from "../lib/embedded-mode/use-embedded-mode"
 import { IUseCloudFileManagerHookOptions, useCloudFileManager } from "../lib/cfm/use-cloud-file-manager"
 import { CodapDndContext } from "../lib/dnd-kit/codap-dnd-context"
+import { LogMonitorSidebar } from "./log-monitor-sidebar"
 import { Logger } from "../lib/logger"
 import { appState } from "../models/app-state"
 import { addDefaultComponents } from "../models/codap/add-default-content"
@@ -48,7 +49,6 @@ import { Progress } from "./progress"
 import { ToolShelf } from "./tool-shelf/tool-shelf"
 import { kWebViewTileType } from "./web-view/web-view-defs"
 import { isWebViewModel, IWebViewModel } from "./web-view/web-view-model"
-
 import "../lib/debug-event-modification"
 import "../models/shared/data-set-metadata-registration"
 import "../models/shared/shared-data-set-registration"
@@ -268,6 +268,7 @@ export const App = observer(function App() {
               </div>
             </If>
             <Progress />
+            <LogMonitorSidebar />
           </ProgressContext.Provider>
         </CfmContext.Provider>
       </DocumentContentContext.Provider>
