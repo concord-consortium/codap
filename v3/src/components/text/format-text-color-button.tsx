@@ -1,7 +1,9 @@
-import { Popover, PopoverTrigger, Portal, useDisclosure } from "@chakra-ui/react"
 import { CustomEditor, CustomMarks, Editor, EFormat } from "@concord-consortium/slate-editor"
-import React from "react"
+import React, { useCallback, useRef, useState } from "react"
+import { Popover } from "react-aria-components"
 import { ColorPickerPalette } from "../common/color-picker-palette"
+import { t } from "../../utilities/translation/translate"
+import { useColorPickerPopoverOffset } from "../common/use-color-picker-popover-offset"
 import { InspectorButton } from "../inspector-panel"
 import { FormatTextColorIcon } from "./format-text-color-icon"
 
@@ -25,52 +27,59 @@ function setColor(editor: Maybe<CustomEditor>, color: string) {
 
 export function FormatTextColorButton({ editor }: IProps) {
 
-  const { isOpen, onOpen, onClose } = useDisclosure()
-  const buttonRef = React.useRef<HTMLButtonElement>(null)
+  const [isOpen, setIsOpen] = useState(false)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const { popoverRef, popoverOffset, handleExpandedChange, resetPopoverOffset } = useColorPickerPopoverOffset()
   const textColor = getColor(editor, { default: true }) ?? "#000000"
-  const initialColorRef = React.useRef<string>(textColor)
+  const initialColorRef = useRef<string>(textColor)
 
   function preventFocusLoss(e: React.PointerEvent) {
     e.preventDefault()
   }
 
-  function handleOpen() {
-    initialColorRef.current = getColor(editor, { default: true }) ?? "#000000"
-    onOpen()
-  }
-
-  function handleSetColor(color: string) {
+  const handleSetColor = useCallback((color: string) => {
     setColor(editor, color)
-  }
+  }, [editor])
 
-  function handleAccept(color: string) {
+  const handleOpenChange = useCallback((open: boolean) => {
+    if (open) {
+      initialColorRef.current = getColor(editor, { default: true }) ?? "#000000"
+    }
+    if (!open) {
+      resetPopoverOffset()
+    }
+    setIsOpen(open)
+  }, [editor, resetPopoverOffset])
+
+  const handleAccept = useCallback((color: string) => {
     handleSetColor(color)
-    onClose()
-  }
+    handleOpenChange(false)
+  }, [handleOpenChange, handleSetColor])
 
-  function handleReject() {
+  const handleReject = useCallback(() => {
     handleSetColor(initialColorRef.current)
-    onClose()
-  }
+    handleOpenChange(false)
+  }, [handleOpenChange, handleSetColor])
 
   return (
-    <Popover isLazy={true} isOpen={isOpen} closeOnBlur={false} onClose={onClose} placement="right">
-      <PopoverTrigger>
-        <InspectorButton ref={buttonRef}
-          testId={"text-toolbar-text-color-button"}
-          tooltip={"color"}
-          isActive={!!getColor(editor, { default: false })}
-          onButtonClick={handleOpen}
-          onPointerDown={preventFocusLoss}
-        >
-          <FormatTextColorIcon color={getColor(editor, { default: true })} />
-        </InspectorButton>
-      </PopoverTrigger>
-      <Portal>
-        <ColorPickerPalette placement={"right"} swatchBackgroundColor={"white"} onColorChange={handleSetColor}
-          buttonRef={buttonRef} inputValue={textColor} onUpdateValue={handleSetColor}
-          initialColor={initialColorRef.current} onAccept={handleAccept} onReject={handleReject}/>
-      </Portal>
-    </Popover>
+    <>
+      <InspectorButton ref={triggerRef}
+        testId={"text-toolbar-text-color-button"}
+        tooltip={"color"}
+        isActive={!!getColor(editor, { default: false })}
+        onButtonClick={() => handleOpenChange(true)}
+        onPointerDown={preventFocusLoss}
+      >
+        <FormatTextColorIcon color={getColor(editor, { default: true })} />
+      </InspectorButton>
+      <Popover ref={popoverRef} shouldFlip={false} crossOffset={popoverOffset} triggerRef={triggerRef}
+        className={({defaultClassName}) => `${defaultClassName} color-picker-popover`}
+        isOpen={isOpen} onOpenChange={handleOpenChange} placement="end"
+        aria-label={t("DG.Inspector.colorPicker.dialogLabel")}>
+        <ColorPickerPalette swatchBackgroundColor={textColor} onColorChange={handleSetColor}
+          inputValue={textColor} onUpdateValue={handleSetColor}
+          onAccept={handleAccept} onExpandedChange={handleExpandedChange} onReject={handleReject}/>
+      </Popover>
+    </>
   )
 }

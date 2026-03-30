@@ -17,23 +17,17 @@ export const ColorPickerPaletteElements = {
   getCategoricalColorSettingSwatch() {
     return cy.get(".cat-color-setting .color-picker-thumb-swatch")
   },
-  getColorSettingPalette() {
-    return cy.get(".color-picker-palette-container")
-  },
   getColorSettingSwatchGrid() {
     return cy.get(".color-swatch-grid")
   },
   getColorSettingSwatchCell() {
     return cy.get(".color-swatch-cell")
   },
-  getColorSettingSwatchRow() {
-    return cy.get(".color-swatch-row")
-  },
   getSelectedSwatchCell() {
-    return cy.get(".selected")
+    return cy.get("[data-selected]")
   },
   getColorPickerToggleButton() {
-    return cy.get(".color-swatch-footer [data-testid=toggle-show-color-picker-button]")
+    return cy.get("[data-testid=toggle-show-color-picker-button]")
   },
   getColorPicker() {
     return cy.get(".color-picker-container")
@@ -45,9 +39,12 @@ export const ColorPickerPaletteElements = {
     return cy.get(".react-colorful__hue .react-colorful__interactive")
   },
   getSetColorButton() {
-    return cy.get(".color-picker-footer .set-color-button")
+    return cy.get(".color-picker-action-button:not(.cancel)")
   },
   getCancelColorButton() {
-    return cy.get(".color-picker-footer .cancel-button")
+    return cy.get(".color-picker-action-button.cancel")
+  },
+  getColorPickerPopover() {
+    return cy.get(".color-picker-popover")
   }
 }

@@ -1,7 +1,5 @@
-import {
-  forwardRef, Popover, PopoverAnchor, PopoverTrigger, Portal, useDisclosure, useMergeRefs
-} from "@chakra-ui/react"
 import React, { ChangeEvent, useCallback, useEffect, useRef, useState } from "react"
+import { Button, DialogTrigger, Popover } from "react-aria-components"
 import { textEditorClassname } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useLoggingContext } from "../../hooks/use-log-context"
@@ -12,6 +10,7 @@ import { parseColor, parseColorToHex } from "../../utilities/color-utils"
 import { blockAPIRequestsWhileEditing } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
 import { ColorPickerPalette } from "../common/color-picker-palette"
+import { useColorPickerPopoverOffset } from "../common/use-color-picker-popover-offset"
 import { TRenderEditCellProps } from "./case-table-types"
 
 /*
@@ -32,9 +31,17 @@ function autoFocusAndSelect(input: HTMLInputElement | null) {
   input?.select()
 }
 
-const InputElt = forwardRef<React.InputHTMLAttributes<HTMLInputElement>, 'input'>((props, ref) => {
+const InputElt = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>((props, ref) => {
   const inputRef = useRef<HTMLInputElement | null>(null)
-  const mergeRefs = useMergeRefs(ref, inputRef)
+
+  const mergeRefs = useCallback((node: HTMLInputElement | null) => {
+    inputRef.current = node
+    if (typeof ref === "function") {
+      ref(node)
+    } else if (ref) {
+      ref.current = node
+    }
+  }, [ref])
 
   useEffect(() => {
     autoFocusAndSelect(inputRef.current)
@@ -44,6 +51,7 @@ const InputElt = forwardRef<React.InputHTMLAttributes<HTMLInputElement>, 'input'
     <input data-testid="cell-text-editor" className={textEditorClassname} ref={mergeRefs} {...props} />
   )
 })
+InputElt.displayName = "InputElt"
 
 export default function ColorCellTextEditor({ row, column, onRowChange, onClose }: TRenderEditCellProps) {
   const data = useDataSetContext()
@@ -51,7 +59,6 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
   const attribute = data?.getAttribute(attributeId)
   const [inputValue, setInputValue] = useState(() => data?.getStrValue(row.__id__, attributeId))
   const initialInputValue = useRef(inputValue)
-  const [placement, setPlacement]= useState<"right" | "left">("right")
   // support colors if user hasn't assigned a non-color type
   const supportColors = attribute?.userType == null || attribute?.userType === "color"
   // support color names if the color type is user-assigned
@@ -62,7 +69,8 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
   const showColorSwatch = useRef(!!hexColor || attribute?.userType === "color")
   const { setPendingLogMessage } = useLoggingContext()
   const blockAPIRequests = blockAPIRequestsWhileEditing(data)
-  const triggerButtonRef = useRef<HTMLButtonElement>(null)
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false)
+  const { popoverRef, popoverOffset, handleExpandedChange, resetPopoverOffset } = useColorPickerPopoverOffset()
 
   useEffect(() => {
     selectAllCases(data, false)
@@ -96,15 +104,16 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
     onClose()
   }, [onClose])
 
-  const { isOpen: isPaletteOpen, onToggle: setOpenPopover } = useDisclosure()
-
-  function handleSwatchClick(event: React.MouseEvent) {
-    setOpenPopover()
-  }
-
   function handleInputColorChange(event: ChangeEvent<HTMLInputElement>) {
     updateValue(event.target.value)
   }
+
+  const handlePaletteOpenChange = useCallback((open: boolean) => {
+    if (!open) {
+      resetPopoverOffset()
+    }
+    setIsPaletteOpen(open)
+  }, [resetPopoverOffset])
 
   /* The ColorTextEditor component was refactored out of this component to work with the case card.
     At some point we should refactor this component to use the ColorTextEditor as well. Currently,
@@ -119,29 +128,21 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
   return swatchStyle
     ? (
         <div className={"color-cell-text-editor"}>
-          <Popover
-            isLazy={true}
-            isOpen={isPaletteOpen}
-            placement={placement}
-            closeOnBlur={false}
-          >
-            <PopoverTrigger>
-              <button className="cell-edit-color-swatch" ref={triggerButtonRef}
-                onClick={handleSwatchClick}
-                aria-label={t("V3.CaseTable.colorSwatchButtonAriaLabel", { vars: [attrName] })}>
-                <div className="cell-edit-color-swatch-interior" style={swatchStyle}/>
-              </button>
-            </PopoverTrigger>
-            <PopoverAnchor>
-              { inputElt }
-            </PopoverAnchor>
-            <Portal>
-              <ColorPickerPalette initialColor={initialInputValue.current || "#ffffff"} isPaletteOpen={isPaletteOpen}
-                inputValue={inputValue || "#ffffff"} swatchBackgroundColor={color || "#ffffff"}
-                buttonRef={triggerButtonRef} showArrow={true} setPlacement={setPlacement} placement={placement}
-                onColorChange={updateValue} onAccept={acceptValue} onReject={rejectValue} onUpdateValue={updateValue}/>
-            </Portal>
-          </Popover>
+          <DialogTrigger isOpen={isPaletteOpen} onOpenChange={handlePaletteOpenChange}>
+            <Button className="cell-edit-color-swatch"
+              aria-label={t("V3.CaseTable.colorSwatchButtonAriaLabel", { vars: [attrName] })}>
+              <div className="cell-edit-color-swatch-interior" style={swatchStyle}/>
+            </Button>
+            <Popover ref={popoverRef} shouldFlip={false} offset={popoverOffset}
+              className={({defaultClassName}) => `${defaultClassName} color-picker-popover`}
+              aria-label={t("DG.Inspector.colorPicker.dialogLabel")}>
+              <ColorPickerPalette inputValue={inputValue || "#ffffff"}
+                swatchBackgroundColor={color || "#ffffff"} onColorChange={updateValue}
+                onAccept={acceptValue} onExpandedChange={handleExpandedChange}
+                onReject={rejectValue} onUpdateValue={updateValue}/>
+            </Popover>
+          </DialogTrigger>
+          { inputElt }
         </div>
       )
     // if we don't have a valid color, just a simple text editor

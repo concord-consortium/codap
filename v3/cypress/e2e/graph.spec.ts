@@ -441,6 +441,8 @@ context("Graph UI", () => {
           // Change the value of the color picker
           cy.wrap(colorPicker).parent().click()
           cpp.getColorSettingSwatchCell().eq(0).click()
+          // Close the popover by clicking outside (close = accept, keeps the selected color)
+          cy.get(".codap-inspector-palette-header-title").click({force: true})
 
           // Verify the value has been updated
           cy.wrap(colorPicker).should($swatch => {
@@ -449,7 +451,6 @@ context("Graph UI", () => {
             expect(color).to.match(/(rgb\(0,\s*0,\s*0\)|#000000|#000|black)/i)
           })
         })
-      cy.get('.codap-inspector-palette-header-title').click() //close the color palette
 
       cy.log("changes the point color value and verifies the change")
 
@@ -464,6 +465,8 @@ context("Graph UI", () => {
           // Change the value of the color picker
           cy.wrap(colorPicker).parent().click()
           cpp.getColorSettingSwatchCell().eq(1).click()
+          // Close the popover by clicking outside (close = accept, keeps the selected color)
+          cy.get(".codap-inspector-palette-header-title").click({force: true})
 
           // Verify the value has been updated
           cy.wrap(colorPicker).should($swatch => {
@@ -472,7 +475,6 @@ context("Graph UI", () => {
             expect(color).to.match(/(rgb\(169,\s*169,\s*169\)|#a9a9a9)/i)
           })
         })
-      cy.get('.codap-inspector-palette-header-title').click() //close the color palette
 
       cy.log("checks the box Stroke same color as fill and check it")
       // Get the checkbox and check it
@@ -514,6 +516,8 @@ context("Graph UI", () => {
           // Change the value of the background color picker
           cy.wrap(backgroundColorPicker).parent().click()
           cpp.getColorSettingSwatchCell().eq(4).click()
+          // Close the popover by clicking outside (close = accept, keeps the selected color)
+          cy.get(".codap-inspector-palette-header-title").click({force: true})
 
           // Verify the value has been updated
           cy.wrap(backgroundColorPicker).should($swatch => {
@@ -521,13 +525,43 @@ context("Graph UI", () => {
             expect(color).to.match(/(rgb\(173,\s*35,\s*35\)|#ad2323)/i)
           })
         })
-      cy.get('.codap-inspector-palette-header-title').click() //close the color palette
 
       cy.log("finds the Transparent checkbox and verifies it can be checked")
       cy.get('[data-testid=background-transparency-checkbox]')
         .click({ force: true })
         .find('input[type="checkbox"]')
         .should('be.checked')
+    })
+    it("should keep expanded color picker fully visible when graph is near viewport bottom", () => {
+      // Move the graph tile near the bottom of the viewport so the color picker
+      // popover would overflow if not offset-corrected.
+      cy.window().then(win => {
+        const targetY = win.innerHeight - 150
+        cy.get(".Graph-title-bar")
+          .trigger("mousedown", { button: 0 })
+          .trigger("mousemove", { clientY: targetY })
+          .trigger("mouseup")
+      })
+
+      // Select the graph to show the inspector panel, then open the Format panel
+      c.selectTile("graph", 0)
+      graph.getDisplayStylesButton().click()
+      cy.get(".color-picker-row").eq(0).find(".color-picker-thumb").click()
+
+      // Expand the color picker via the "More" button
+      cpp.getColorPickerToggleButton().click()
+      cpp.getColorPicker().should("be.visible")
+
+      // Assert the popover is fully within the viewport
+      cpp.getColorPickerPopover().then($popover => {
+        const rect = $popover[0].getBoundingClientRect()
+        cy.window().then(win => {
+          expect(rect.top).to.be.at.least(0,
+            "popover top edge should not be above the viewport")
+          expect(rect.bottom).to.be.at.most(win.innerHeight,
+            "popover bottom edge should not extend below the viewport")
+        })
+      })
     })
     it.skip("should lead to a file download when the 'Export PNG Image' button is clicked", () => {
       const fileName = "Untitled Document.png"

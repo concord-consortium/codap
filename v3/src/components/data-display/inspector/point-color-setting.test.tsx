@@ -2,27 +2,17 @@ import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { PointColorSetting } from "./point-color-setting"
 
-// Mock useOutsidePointerDown to be a no-op
-jest.mock("../../../hooks/use-outside-pointer-down", () => ({
-  useOutsidePointerDown: jest.fn()
-}))
-
-// Mock Chakra Portal to render children directly
-jest.mock("@chakra-ui/react", () => ({
-  Popover: ({ children, isOpen }: any) => (
-    <div data-testid="popover" data-open={isOpen}>{children}</div>
-  ),
-  PopoverTrigger: ({ children }: any) => <>{children}</>,
-  Portal: ({ children }: any) => <div data-testid="portal">{children}</div>
-}))
-
 // Mock ColorPickerPalette
 jest.mock("../../common/color-picker-palette", () => ({
   ColorPickerPalette: ({ onUpdateValue, onAccept, onReject }: any) => (
-    <div data-testid="color-picker-palette">
+    <div data-testid="color-picker-palette" onKeyDownCapture={(e: React.KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.stopPropagation()
+        onReject()
+      }
+    }}>
       <button data-testid="update-color" onClick={() => onUpdateValue("#AABBCC")}>Update</button>
       <button data-testid="accept-color" onClick={() => onAccept("#AABBCC")}>Accept</button>
-      <button data-testid="reject-color" onClick={() => onReject()}>Reject</button>
     </div>
   )
 }))
@@ -45,7 +35,6 @@ describe("PointColorSetting", () => {
     expect(button).toHaveClass("color-picker-thumb")
     expect(button).toHaveAttribute("aria-label", "Fill Color: #FF0000")
     expect(button).toHaveAttribute("aria-expanded", "false")
-    expect(button).toHaveAttribute("aria-haspopup", "dialog")
   })
 
   it("renders swatch inside the button", () => {
@@ -63,8 +52,8 @@ describe("PointColorSetting", () => {
     const button = screen.getByRole("button", { name: /Fill Color/ })
     await user.click(button)
 
-    const popover = screen.getByTestId("popover")
-    expect(popover).toHaveAttribute("data-open", "true")
+    expect(screen.getByTestId("color-picker-palette")).toBeInTheDocument()
+    expect(button).toHaveAttribute("aria-expanded", "true")
   })
 
   it("closes popover when swatch is clicked again", async () => {
@@ -73,36 +62,21 @@ describe("PointColorSetting", () => {
 
     const button = screen.getByRole("button", { name: /Fill Color/ })
     await user.click(button)
+    expect(button).toHaveAttribute("aria-expanded", "true")
+
     await user.click(button)
-
-    const popover = screen.getByTestId("popover")
-    expect(popover).toHaveAttribute("data-open", "false")
-  })
-
-  it("renders ColorPickerPalette inside portal", () => {
-    render(<PointColorSetting {...defaultProps} />)
-
-    expect(screen.getByTestId("color-picker-palette")).toBeInTheDocument()
+    expect(button).toHaveAttribute("aria-expanded", "false")
   })
 
   it("calls onColorChange when color is updated", async () => {
     const user = userEvent.setup()
     render(<PointColorSetting {...defaultProps} />)
 
-    await user.click(screen.getByTestId("update-color"))
-    expect(defaultProps.onColorChange).toHaveBeenCalledWith("#AABBCC")
-  })
-
-  it("calls onColorChange with initial color when rejected", async () => {
-    const user = userEvent.setup()
-    render(<PointColorSetting {...defaultProps} />)
-
-    // Open the popover first to set initialColorRef
     const button = screen.getByRole("button", { name: /Fill Color/ })
     await user.click(button)
 
-    await user.click(screen.getByTestId("reject-color"))
-    expect(defaultProps.onColorChange).toHaveBeenCalledWith("#FF0000")
+    await user.click(screen.getByTestId("update-color"))
+    expect(defaultProps.onColorChange).toHaveBeenCalledWith("#AABBCC")
   })
 
   it("closes popover when closeTrigger changes while open", async () => {
@@ -112,11 +86,11 @@ describe("PointColorSetting", () => {
     // Open the popover
     const button = screen.getByRole("button", { name: /Fill Color/ })
     await user.click(button)
-    expect(screen.getByTestId("popover")).toHaveAttribute("data-open", "true")
+    expect(button).toHaveAttribute("aria-expanded", "true")
 
     // Change closeTrigger — popover should close
     rerender(<PointColorSetting {...defaultProps} closeTrigger={1} />)
-    expect(screen.getByTestId("popover")).toHaveAttribute("data-open", "false")
+    expect(button).toHaveAttribute("aria-expanded", "false")
   })
 
   it("adds open class to button when popover is open", async () => {
@@ -127,5 +101,48 @@ describe("PointColorSetting", () => {
     await user.click(button)
 
     expect(button).toHaveClass("open")
+  })
+
+  it("closes and reverts color when Escape is pressed", async () => {
+    const user = userEvent.setup()
+    render(<PointColorSetting {...defaultProps} />)
+
+    const button = screen.getByRole("button", { name: /Fill Color/ })
+    await user.click(button)
+    expect(button).toHaveAttribute("aria-expanded", "true")
+
+    // Change the color, then press Escape to revert
+    await user.click(screen.getByTestId("update-color"))
+    expect(defaultProps.onColorChange).toHaveBeenCalledWith("#AABBCC")
+    defaultProps.onColorChange.mockClear()
+
+    await user.keyboard("{Escape}")
+    expect(button).toHaveAttribute("aria-expanded", "false")
+    expect(defaultProps.onColorChange).toHaveBeenCalledWith("#FF0000")
+  })
+
+  it("accepts color without rejecting", async () => {
+    const user = userEvent.setup()
+    render(<PointColorSetting {...defaultProps} />)
+
+    const button = screen.getByRole("button", { name: /Fill Color/ })
+    await user.click(button)
+
+    await user.click(screen.getByTestId("accept-color"))
+    // Should have called onColorChange with the accepted color, not the initial
+    expect(defaultProps.onColorChange).toHaveBeenCalledWith("#AABBCC")
+    // Should NOT have been called with the initial color (reject)
+    expect(defaultProps.onColorChange).not.toHaveBeenCalledWith("#FF0000")
+  })
+
+  it("does not open when disabled", async () => {
+    const user = userEvent.setup()
+    render(<PointColorSetting {...defaultProps} disabled={true} />)
+
+    const button = screen.getByRole("button", { name: /Fill Color/ })
+    expect(button).toBeDisabled()
+
+    await user.click(button)
+    expect(button).toHaveAttribute("aria-expanded", "false")
   })
 })
