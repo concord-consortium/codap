@@ -536,6 +536,83 @@ describe("WebGLContextManager", () => {
     })
   })
 
+  describe("WebGL availability check", () => {
+    it("denies all requests when WebGL is not available", () => {
+      // Mock getContext to return null (no WebGL support)
+      const originalGetContext = HTMLCanvasElement.prototype.getContext
+      HTMLCanvasElement.prototype.getContext = jest.fn().mockReturnValue(null) as any
+
+      const freshManager = getManager()
+      const onGranted = jest.fn()
+      const consumer = createConsumer("consumer1", 100, onGranted)
+      const granted = freshManager.requestContext(consumer)
+
+      expect(granted).toBe(false)
+      expect(onGranted).not.toHaveBeenCalled()
+      expect(freshManager.activeCount).toBe(0)
+
+      HTMLCanvasElement.prototype.getContext = originalGetContext
+    })
+
+    it("denies reRequestContext when WebGL is not available", () => {
+      // Mock getContext to return null (no WebGL support)
+      const originalGetContext = HTMLCanvasElement.prototype.getContext
+      HTMLCanvasElement.prototype.getContext = jest.fn().mockReturnValue(null) as any
+
+      const freshManager = getManager()
+      const granted = freshManager.reRequestContext("consumer1")
+
+      expect(granted).toBe(false)
+
+      HTMLCanvasElement.prototype.getContext = originalGetContext
+    })
+
+    it("caches the WebGL availability check", () => {
+      // Mock getContext to return null initially
+      const originalGetContext = HTMLCanvasElement.prototype.getContext
+      const mockGetContext = jest.fn().mockReturnValue(null) as any
+      HTMLCanvasElement.prototype.getContext = mockGetContext
+
+      const freshManager = getManager()
+      freshManager.requestContext(createConsumer("c1", 100))
+      freshManager.requestContext(createConsumer("c2", 200))
+      freshManager.requestContext(createConsumer("c3", 300))
+
+      // getContext should have been called only once (for the probe), not per request
+      // The probe tries webgl2 first, then webgl if that fails — both return null
+      expect(mockGetContext).toHaveBeenCalledTimes(2)
+
+      HTMLCanvasElement.prototype.getContext = originalGetContext
+    })
+
+    it("grants contexts normally when WebGL is available", () => {
+      // Default test environment has jest-webgl-canvas-mock, so WebGL is available
+      const consumer = createConsumer("consumer1", 100)
+      const granted = manager.requestContext(consumer)
+
+      expect(granted).toBe(true)
+      expect(manager.activeCount).toBe(1)
+    })
+
+    it("cleans up probe context via WEBGL_lose_context extension", () => {
+      // The probe should call loseContext() to clean up
+      const mockLoseContext = jest.fn()
+      const mockGL = {
+        getExtension: jest.fn().mockReturnValue({ loseContext: mockLoseContext })
+      }
+      const originalGetContext = HTMLCanvasElement.prototype.getContext
+      HTMLCanvasElement.prototype.getContext = jest.fn().mockReturnValue(mockGL) as any
+
+      const freshManager = getManager()
+      freshManager.requestContext(createConsumer("c1", 100))
+
+      expect(mockGL.getExtension).toHaveBeenCalledWith("WEBGL_lose_context")
+      expect(mockLoseContext).toHaveBeenCalled()
+
+      HTMLCanvasElement.prototype.getContext = originalGetContext
+    })
+  })
+
   describe("complex scenarios", () => {
     it("handles rapid request/yield/release cycles", () => {
       const consumer = createConsumer("consumer1", 100)

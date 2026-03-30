@@ -75,8 +75,39 @@ export class WebGLContextManager {
    */
   private userInteractionPriorityCounter = 1_000_000_000
 
+  /**
+   * Cached result of the WebGL support probe. `null` means not yet checked.
+   * Once set to `false`, the manager will never grant contexts — all consumers
+   * are immediately denied, avoiding noisy fallback chains in the renderers.
+   */
+  private _webGLAvailable: boolean | null = null
+
   private constructor() {
     // Private constructor for singleton
+  }
+
+  /**
+   * Probe whether the browser supports WebGL by creating a temporary canvas
+   * and requesting a WebGL context. The result is cached for the session.
+   * This avoids depending on PIXI's `isWebGLSupported()`.
+   */
+  private isWebGLAvailable(): boolean {
+    if (this._webGLAvailable != null) {
+      return this._webGLAvailable
+    }
+    try {
+      const canvas = document.createElement("canvas")
+      const gl = canvas.getContext("webgl2") || canvas.getContext("webgl")
+      if (gl) {
+        // Clean up the probe context immediately
+        const loseExt = gl.getExtension("WEBGL_lose_context")
+        loseExt?.loseContext()
+      }
+      this._webGLAvailable = !!gl
+    } catch {
+      this._webGLAvailable = false
+    }
+    return this._webGLAvailable
   }
 
   static getInstance(): WebGLContextManager {
@@ -145,6 +176,13 @@ export class WebGLContextManager {
    * @returns true if context was immediately granted, false if consumer must wait
    */
   requestContext(consumer: IContextConsumer): boolean {
+    // If WebGL isn't available in this browser, deny all requests immediately.
+    // This prevents the noisy fallback chain (WebGPU → WebGL → Canvas → throw)
+    // that PIXI's autoDetectRenderer produces for every graph.
+    if (!this.isWebGLAvailable()) {
+      return false
+    }
+
     // Register/update the consumer
     this.consumers.set(consumer.id, consumer)
 
@@ -243,6 +281,10 @@ export class WebGLContextManager {
    * @returns true if context was granted, false if consumer must wait
    */
   reRequestContext(consumerId: string): boolean {
+    if (!this.isWebGLAvailable()) {
+      return false
+    }
+
     const consumer = this.consumers.get(consumerId)
     if (!consumer) {
       return false
