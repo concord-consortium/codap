@@ -88,8 +88,6 @@ export class CanvasPointRenderer extends PointRendererBase {
   private boundWindowPointerUp: ((event: PointerEvent) => void) | null = null
   private boundWindowPointerMove: ((event: PointerEvent) => void) | null = null
 
-  // Disposed flag
-  private isDisposed = false
 
   // Temporary storage for pre-transition positions
   // Used to capture old positions before state is updated
@@ -182,8 +180,6 @@ export class CanvasPointRenderer extends PointRendererBase {
   }
 
   protected doDispose(): void {
-    this.isDisposed = true
-
     // Cancel any pending animation frame
     if (this.animationFrameId !== null) {
       cancelAnimationFrame(this.animationFrameId)
@@ -259,7 +255,7 @@ export class CanvasPointRenderer extends PointRendererBase {
     displayType: PointDisplayType,
     style: IPointStyle
   ): void {
-    if (this.isDisposed) return
+    if (this._isDisposed) return
 
     // NOTE: Unlike Pixi, we do NOT change _anchor here for bars.
     // bar-chart.tsx explicitly sets renderer.anchor = circleAnchor via setPointCoordinates,
@@ -325,7 +321,7 @@ export class CanvasPointRenderer extends PointRendererBase {
   }
 
   protected doStartRendering(): void {
-    if (this.isDisposed || this.renderLoopActive) return
+    if (this._isDisposed || this.renderLoopActive) return
 
     this.renderLoopActive = true
     // Use requestAnimationFrame to batch multiple synchronous updates into one render
@@ -415,7 +411,7 @@ export class CanvasPointRenderer extends PointRendererBase {
   // ===== Private rendering methods =====
 
   private renderFrame = (): void => {
-    if (this.isDisposed) {
+    if (this._isDisposed) {
       this.renderLoopActive = false
       return
     }

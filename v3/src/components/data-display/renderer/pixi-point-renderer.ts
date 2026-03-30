@@ -77,8 +77,6 @@ export class PixiPointRenderer extends PointRendererBase {
   // Resize observer
   private resizeObserver?: ResizeObserver
 
-  // Disposed flag to prevent operations after disposal
-  private isDisposed = false
 
   // Callback for when the browser forcibly reclaims this renderer's WebGL context
   private _onBrowserContextLoss?: () => void
@@ -173,7 +171,7 @@ export class PixiPointRenderer extends PointRendererBase {
     // (e.g., if another component later allocates too many contexts).
     const canvas = this.renderer.view.canvas as HTMLCanvasElement
     this.boundContextLostHandler = () => {
-      if (!this.isDisposed) {
+      if (!this._isDisposed) {
         this._onBrowserContextLoss?.()
       }
     }
@@ -208,7 +206,6 @@ export class PixiPointRenderer extends PointRendererBase {
   }
 
   protected doDispose(): void {
-    this.isDisposed = true
     // Remove context loss listener before destroying the renderer
     if (this.boundContextLostHandler) {
       const canvas = this.renderer?.view.canvas as HTMLCanvasElement | undefined
@@ -303,10 +300,6 @@ export class PixiPointRenderer extends PointRendererBase {
     displayType: PointDisplayType,
     style: IPointStyle
   ): void {
-    if (this.isDisposed) {
-      console.warn("PixiPointRenderer.doMatchPointsToData: called after dispose, ignoring")
-      return
-    }
     if (!this.renderer) {
       console.warn("PixiPointRenderer.doMatchPointsToData: renderer not initialized, skipping")
       return
@@ -464,10 +457,6 @@ export class PixiPointRenderer extends PointRendererBase {
   }
 
   protected doStartRendering(): void {
-    if (this.isDisposed) {
-      console.warn("PixiPointRenderer.doStartRendering: called after dispose, ignoring")
-      return
-    }
     if (!this.ticker.started) {
       this.ticker.start()
     }
@@ -575,7 +564,7 @@ export class PixiPointRenderer extends PointRendererBase {
   // ===== Private helper methods =====
 
   private tick(): void {
-    if (this.isDisposed || !this.renderer) {
+    if (this._isDisposed || !this.renderer) {
       this.ticker.stop()
       return
     }

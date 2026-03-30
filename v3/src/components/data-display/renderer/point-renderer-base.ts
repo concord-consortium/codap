@@ -45,6 +45,7 @@ export function getRendererForEvent(event: Event): PointRendererBase | undefined
 export abstract class PointRendererBase {
   protected state: PointsState
   protected _isReady = false
+  protected _isDisposed = false
   protected _isVisible = true
   protected _displayType: PointDisplayType = "points"
   protected _pointsFusedIntoBars = false
@@ -192,6 +193,10 @@ export abstract class PointRendererBase {
     return this._isVisible
   }
 
+  get isDisposed(): boolean {
+    return this._isDisposed
+  }
+
   get pointsCount(): number {
     return this.state.size
   }
@@ -246,6 +251,8 @@ export abstract class PointRendererBase {
    * Clean up renderer resources
    */
   dispose(): void {
+    if (this._isDisposed) return
+    this._isDisposed = true
     this.doDispose()
     this._isReady = false
   }
@@ -254,6 +261,7 @@ export abstract class PointRendererBase {
    * Resize the renderer and update masks
    */
   resize(width: number, height: number, xCats = 1, yCats = 1, topCats = 1, rightCats = 1): void {
+    if (this._isDisposed) return
     this.doResize(width, height, xCats, yCats, topCats, rightCats)
   }
 
@@ -261,6 +269,7 @@ export abstract class PointRendererBase {
    * Remove all subplot masks
    */
   removeMasks(): void {
+    if (this._isDisposed) return
     this.doRemoveMasks()
   }
 
@@ -285,6 +294,7 @@ export abstract class PointRendererBase {
    * Start the rendering loop
    */
   startRendering(): void {
+    if (this._isDisposed) return
     this.doStartRendering()
   }
 
@@ -297,6 +307,7 @@ export abstract class PointRendererBase {
     displayType: PointDisplayType,
     style: IPointStyle
   ): void {
+    if (this._isDisposed) return
     this.state.setDatasetID(datasetID)
     // Subclass doMatchPointsToData may need to read _displayType to detect a change
     // (e.g., PixiPointRenderer's display type transition), so defer the assignment.
@@ -378,6 +389,7 @@ export abstract class PointRendererBase {
    * Perform a transition
    */
   transition(callback: () => void, options: ITransitionOptions): Promise<void> {
+    if (this._isDisposed) return Promise.resolve()
     return this.doTransition(callback, options.duration)
   }
 
@@ -393,6 +405,7 @@ export abstract class PointRendererBase {
     callback: (point: IPoint, metadata: IPointMetadata) => void,
     options?: { selectedOnly?: boolean }
   ): void {
+    if (this._isDisposed) return
     this.state.forEach(pointState => {
       if (options?.selectedOnly && !pointState.isRaised) return
       const metadata = this.state.getMetadata(pointState.id)
