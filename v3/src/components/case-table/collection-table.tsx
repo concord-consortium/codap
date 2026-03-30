@@ -220,6 +220,16 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const { handleSelectedCellChange, navigateToNextCell, navigateToNextRow } = useSelectedCell(gridRef, columns, rows)
 
   const handleCellKeyDown = useCallback((args: TCellKeyDownArgs, event: CellKeyboardEvent) => {
+    // During a DnDKit keyboard drag, prevent RDG from navigating cells on arrow keys.
+    // The KeyboardSensor handles movement at the document level — preventGridDefault() stops
+    // RDG's navigate() call without affecting the native event, so DnDKit still fires.
+    // This applies to both data cells and, via an RDG patch, header cells (rowIdx < 0).
+    if (active && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+      event.preventGridDefault()
+      return
+    }
+    if (args.rowIdx < 0) return
+
     // Open the index column menu via keyboard. RDG keeps focus on the cell div rather than
     // the MenuButton inside it, so we find and click the MenuButton programmatically.
     // Only intercept the event when a MenuButton is found — collapsed rows and other index
@@ -234,13 +244,6 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         menuButton.click()
         return
       }
-    }
-    // During a DnDKit keyboard drag, prevent RDG from navigating cells on arrow keys.
-    // The KeyboardSensor handles movement at the document level — preventGridDefault() stops
-    // RDG's navigate() call without affecting the native event, so DnDKit still fires.
-    if (active && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
-      event.preventGridDefault()
-      return
     }
     // By default in RDG, the enter/return key simply enters/exits edit mode without moving the
     // selected cell. In CODAP, the enter/return key should accept the edit _and_ advance to the

@@ -107,6 +107,15 @@ index 43bf414..708f5f8 100644
    const [gridRef, gridWidth, gridHeight, horizontalScrollbarHeight] = useGridDimensions();
    const {
      columns,
+@@ -2239,7 +2245,7 @@ function DataGrid(props, ref) {
+       mode
+     } = selectedPosition;
+     if (mode === 'EDIT') return;
+-    if (onCellKeyDown && isRowIdxWithinViewportBounds(rowIdx)) {
++    if (onCellKeyDown && (isRowIdxWithinViewportBounds(rowIdx) || rowIdx < 0)) {
+       const row = rows[rowIdx];
+       const cellEvent = createCellEvent(event);
+       onCellKeyDown({
 @@ -2255,6 +2261,7 @@ function DataGrid(props, ref) {
      const isCellEvent = event.target.closest('.rdg-cell') !== null;
      const isRowEvent = isTreeGrid && event.target === focusSinkRef.current;
@@ -231,6 +240,15 @@ index 0214c29..b2bf059 100644
    const [gridRef, gridWidth, gridHeight, horizontalScrollbarHeight] = useGridDimensions();
    const {
      columns,
+@@ -2235,7 +2241,7 @@ function DataGrid(props, ref) {
+       mode
+     } = selectedPosition;
+     if (mode === 'EDIT') return;
+-    if (onCellKeyDown && isRowIdxWithinViewportBounds(rowIdx)) {
++    if (onCellKeyDown && (isRowIdxWithinViewportBounds(rowIdx) || rowIdx < 0)) {
+       const row = rows[rowIdx];
+       const cellEvent = createCellEvent(event);
+       onCellKeyDown({
 @@ -2251,6 +2257,7 @@ function DataGrid(props, ref) {
      const isCellEvent = event.target.closest('.rdg-cell') !== null;
      const isRowEvent = isTreeGrid && event.target === focusSinkRef.current;
