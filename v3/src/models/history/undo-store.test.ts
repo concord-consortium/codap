@@ -115,11 +115,26 @@ const TestTile = TileContentModel
     }),
     setChildValue(_value: string) {
       self.child?.setValueWithoutUndo(_value)
+    },
+    // Pure side-effect action: no MST state changes, only custom patches.
+    // Models the plugin undo/redo case where the action sends a message to an iframe.
+    performPureSideEffect(actionId: string) {
+      withCustomUndoRedo({
+        type: "TestTile.performPureSideEffect",
+        data: { id: self.id, actionId }
+      })
     }
   }))
 interface TestTileType extends Instance<typeof TestTile> {}
 
+const mockPureSideEffectUndo = jest.fn()
+const mockPureSideEffectRedo = jest.fn()
+
 registerCustomUndoRedo({
+  "TestTile.performPureSideEffect": {
+    undo: mockPureSideEffectUndo,
+    redo: mockPureSideEffectRedo
+  },
   "TestTile.setVolatileValueWithCustomPatch": {
     undo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
       const testTile = resolveIdentifier(TestTile, node, patch.data.id)
@@ -977,6 +992,66 @@ it("can track the addition of a new shared model", async () => {
       undoable: true
     }
   ])
+})
+
+it("supports undo/redo of pure side-effect actions (no MST state changes)", async () => {
+  const {tileContent, manager, undoStore} = setupDocument()
+
+  mockPureSideEffectUndo.mockClear()
+  mockPureSideEffectRedo.mockClear()
+
+  // Perform an action that produces no MST patches — only a custom patch
+  tileContent.performPureSideEffect("plugin-action-1")
+
+  // Wait for the entry to be recorded
+  let timedOut = false
+  try {
+    await when(
+      () => manager.activeHistoryEntries.length === 0,
+      {timeout: 100})
+  } catch (e) {
+    timedOut = true
+  }
+  expect(timedOut).toBe(false)
+
+  // A history entry should exist with the custom patch
+  expect(manager.document.history.length).toBe(1)
+  const entry = getSnapshot(manager.document.history[0])
+  expect(entry.customPatches).toEqual([{
+    type: "TestTile.performPureSideEffect",
+    data: { id: tileContent.id, actionId: "plugin-action-1" }
+  }])
+  // No standard patches — records may contain an entry with empty patches
+  const totalPatches = entry.records.reduce((sum, r) => sum + r.patches.length, 0)
+  expect(totalPatches).toBe(0)
+
+  // Should be undoable
+  expect(undoStore.canUndo).toBe(true)
+  expect(undoStore.canRedo).toBe(false)
+  expect(mockPureSideEffectUndo).not.toHaveBeenCalled()
+  expect(mockPureSideEffectRedo).not.toHaveBeenCalled()
+
+  // Undo should invoke the custom undo handler
+  undoStore.undo()
+  expect(mockPureSideEffectUndo).toHaveBeenCalledTimes(1)
+  expect(mockPureSideEffectUndo).toHaveBeenCalledWith(
+    expect.anything(),
+    { type: "TestTile.performPureSideEffect", data: { id: tileContent.id, actionId: "plugin-action-1" } },
+    expect.anything()
+  )
+  expect(undoStore.canUndo).toBe(false)
+  expect(undoStore.canRedo).toBe(true)
+
+  // Redo should invoke the custom redo handler
+  undoStore.redo()
+  expect(mockPureSideEffectRedo).toHaveBeenCalledTimes(1)
+  expect(mockPureSideEffectRedo).toHaveBeenCalledWith(
+    expect.anything(),
+    { type: "TestTile.performPureSideEffect", data: { id: tileContent.id, actionId: "plugin-action-1" } },
+    expect.anything()
+  )
+  expect(undoStore.canUndo).toBe(true)
+  expect(undoStore.canRedo).toBe(false)
 })
 
 async function expectUpdateToBeCalledTimes(testTile: TestTileType, times: number) {

@@ -12,8 +12,6 @@ export const diAllCasesHandler: DIHandler = {
     dataContext.applyModelChange(() => {
       dataContext.removeCases(dataContext.items.map(c => c.__id__))
     }, {
-      undoStringKey: "DG.Undo.data.deleteCases",
-      redoStringKey: "DG.Redo.data.deleteCases",
       log: {message: "Delete all cases", args: {}, category: "data"}
     })
     return { success: true }
