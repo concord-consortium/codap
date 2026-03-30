@@ -220,10 +220,11 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const { handleSelectedCellChange, navigateToNextCell, navigateToNextRow } = useSelectedCell(gridRef, columns, rows)
 
   const handleCellKeyDown = useCallback((args: TCellKeyDownArgs, event: CellKeyboardEvent) => {
-    // During a DnDKit keyboard drag, prevent RDG from navigating cells on arrow keys.
-    // The KeyboardSensor handles movement at the document level — preventGridDefault() stops
-    // RDG's navigate() call without affecting the native event, so DnDKit still fires.
-    // This applies to both data cells and, via an RDG patch, header cells (rowIdx < 0).
+    // During an active DnDKit drag (mouse, pointer, or keyboard), prevent RDG from navigating
+    // cells on arrow keys. DnDKit's sensors handle movement at the document level —
+    // preventGridDefault() stops RDG's navigate() call without affecting the native event,
+    // so DnDKit still fires. This applies to both data cells and, via an RDG patch, header
+    // cells (rowIdx < 0).
     if (active && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
       event.preventGridDefault()
       return
