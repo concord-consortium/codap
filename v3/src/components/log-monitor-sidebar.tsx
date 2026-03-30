@@ -12,21 +12,13 @@ export function LogMonitorSidebar() {
     if (!logMonitorEnabled || registeredRef.current) {
       return
     }
-
-    // Logger may not be initialized yet; poll briefly until it is.
-    const id = setInterval(() => {
-      if (!Logger.isInitialized) {
-        return
-      }
-      clearInterval(id)
-      registeredRef.current = true
-      Logger.Instance.registerLogListener((logMessage) => {
-        const { event, ...data } = logMessage
-        emitLogEvent({ event, data, timestamp: Date.now() })
-      })
-    }, 100)
-
-    return () => clearInterval(id)
+    registeredRef.current = true
+    // Static registerLogListener handles pre-init registration via pending queue,
+    // so no polling needed.
+    Logger.registerLogListener((logMessage) => {
+      const { event, ...data } = logMessage
+      emitLogEvent({ event, data, timestamp: Date.now() })
+    })
   }, [])
 
   if (!logMonitorEnabled) {
