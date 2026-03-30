@@ -130,3 +130,6 @@ export interface DIDeleteAdornment {
 export interface DIUpdateAdornment {
   adornment: IAdornmentModelSnapshot
 }
+export interface DILogMonitorResult {
+  logMonitor: { id: number, clientId: string }
+}

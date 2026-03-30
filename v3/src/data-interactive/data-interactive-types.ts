@@ -12,8 +12,9 @@ import { ITileModel } from "../models/tiles/tile-model"
 import { V2SpecificComponent } from "./data-interactive-component-types"
 import {
   DIAllCases, DIAttribute, DIAttributeLocationValues, DICase, DICreateAdornment, DICreateCollection,
-  DIDataContext, DIDeleteAdornment, DIDeleteCollectionResult, DIGetCaseResult, DIItemValues, DINewCase,
-  DINotifyAttribute, DINotifyDataContext, DIResultAttributes, DIUpdateAdornment, DIUpdateCase, DIUpdateItemResult
+  DIDataContext, DIDeleteAdornment, DIDeleteCollectionResult, DIGetCaseResult, DIItemValues, DILogMonitorResult,
+  DINewCase, DINotifyAttribute, DINotifyDataContext, DIResultAttributes, DIUpdateAdornment, DIUpdateCase,
+  DIUpdateItemResult
 } from "./data-interactive-data-set-types"
 import { DIAdornmentValues } from "./data-interactive-adornment-types"
 
@@ -96,6 +97,7 @@ export interface DIItemSearchNotify {
 export interface DILogMessage {
   formatStr?: string
   replaceArgs?: LoggableValue | LoggableValue[]
+  topic?: string
 }
 
 export interface DIUrl {
@@ -152,7 +154,7 @@ export type DIResultSingleValues = DICase | DIComponentInfo |  DIDataDisplay | D
 
 export type DIResultValues = DIResultSingleValues | DIResultSingleValues[] |
   DIAllCases | DIDeleteCollectionResult | DIUpdateItemResult | DIResultAttributes | number | number[] |
-  DICreateAdornment | DIDeleteAdornment | DIUpdateAdornment | number | number[]
+  DICreateAdornment | DIDeleteAdornment | DIUpdateAdornment | DILogMonitorResult
 
 export interface DIMetadata {
   dirtyDocument?: boolean

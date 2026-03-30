@@ -1,6 +1,7 @@
 import { nanoid } from "nanoid"
 import { debugLog, DEBUG_LOGGER } from "./debug"
 import { IDocumentModel } from "../models/document/document"
+import { urlParams } from "../utilities/url-params"
 import { AnalyticsCategory, mockGA } from "./analytics"
 
 // Set to true (temporarily) to debug logging to server specifically.
@@ -77,10 +78,16 @@ export class Logger {
     || DEBUG_LOGGER
   private static _instance: Logger
   private static pendingMessages: PendingMessage[] = []
+  private static pendingListeners: ILogListener[] = []
 
   public static initializeLogger(document: IDocumentModel) {
     debugLog(DEBUG_LOGGER, "Logger#initializeLogger called.")
     this._instance = new Logger(document)
+    if (this.pendingRunRemoteEndpoint) {
+      this._instance.runRemoteEndpoint = this.pendingRunRemoteEndpoint
+      this.pendingRunRemoteEndpoint = undefined
+    }
+    this.flushPendingListeners()
     this.sendPendingMessages()
   }
 
@@ -93,23 +100,22 @@ export class Logger {
   }
 
   public static log(event: string, args?: Record<string, unknown>, category: AnalyticsCategory = "general") {
-    if (!this._instance) return
-
     const time = Date.now() // eventually we will want server skew (or to add this via FB directly)
-    const documentTitle = this._instance.document.title
     if (this._instance) {
+      const documentTitle = this._instance.document.title
       this._instance.formatAndSend(time, event, documentTitle, category, args)
     } else {
       debugLog(DEBUG_LOGGER, "Queueing log message for later delivery", event)
       const event_value = args ? JSON.stringify(args) : undefined
-      this.pendingMessages.push({ time, event, documentTitle, category, event_value, parameters: args })
+      this.pendingMessages.push({ time, event, documentTitle: "", category, event_value, parameters: args })
     }
   }
 
   private static sendPendingMessages() {
     if (!this._instance) return
+    const documentTitle = this._instance.document.title
     for (const message of this.pendingMessages) {
-      this._instance.formatAndSend(message.time, message.event, message.documentTitle,
+      this._instance.formatAndSend(message.time, message.event, documentTitle || message.documentTitle,
                                     message.category, message.parameters)
     }
     this.pendingMessages = []
@@ -126,17 +132,50 @@ export class Logger {
     throw new Error("Logger not initialized yet.")
   }
 
+  /**
+   * Reset Logger state for testing. NOT for production use.
+   */
+  public static resetForTesting() {
+    this._instance = undefined as unknown as Logger
+    this.pendingMessages = []
+    this.pendingListeners = []
+    this.pendingRunRemoteEndpoint = undefined
+  }
+
+  public static registerLogListener(listener: ILogListener) {
+    if (this._instance) {
+      this._instance.logListeners.push(listener)
+    } else {
+      this.pendingListeners.push(listener)
+    }
+  }
+
+  private static pendingRunRemoteEndpoint?: string
+
+  public static setRunRemoteEndpoint(endpoint: string) {
+    if (this._instance) {
+      this._instance.runRemoteEndpoint = endpoint
+    } else {
+      this.pendingRunRemoteEndpoint = endpoint
+    }
+  }
+
+  private static flushPendingListeners() {
+    if (!this._instance) return
+    for (const listener of this.pendingListeners) {
+      this._instance.logListeners.push(listener)
+    }
+    this.pendingListeners = []
+  }
+
   private document: IDocumentModel
   private session: string
+  private runRemoteEndpoint?: string
   private logListeners: ILogListener[] = []
 
   private constructor(document: IDocumentModel) {
     this.document = document
-    this.session = nanoid()
-  }
-
-  public registerLogListener(listener: ILogListener) {
-    this.logListeners.push(listener)
+    this.session = urlParams.runKey || nanoid()
   }
 
   private formatAndSend(
@@ -174,9 +213,9 @@ export class Logger {
       parameters,
     }
 
-    // if (loggingRemoteEndpoint) {
-    //   logMessage.run_remote_endpoint = loggingRemoteEndpoint
-    // }
+    if (this.runRemoteEndpoint) {
+      logMessage.run_remote_endpoint = this.runRemoteEndpoint
+    }
 
     return logMessage
   }

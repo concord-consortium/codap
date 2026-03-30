@@ -195,6 +195,12 @@ export interface UrlParams {
    */
   release?: string | null
   /*
+   * [V2] Provides anonymous read-write session tracking. When present, used as
+   * the session identifier for log messages instead of a generated ID.
+   * value: session key string
+   */
+  runKey?: string | null
+  /*
    * For testing -- specifies a built-in sample document to be loaded on startup.
    * Useful for automated tests; often combined with `dashboard`.
    * value: "abalone" | "cats" | "coasters" | "colors" | "four" | "mammals"
