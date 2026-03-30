@@ -1,5 +1,26 @@
 @use "../vars.scss";
 
+.component-title-bar {
+  .header-left {
+    .component-title-bar-button {
+      &.toggle-view-button {
+        align-items: center;
+        display: flex;
+        gap: 4px;
+        padding: 0 9px 0 5px;
+        white-space: nowrap;
+        width: auto;
+
+        span {
+          color: vars.$label-color;
+          font-size: 14px;
+          font-weight: 500;
+        }
+      }
+    }
+  }
+}
+
 .toggle-icon {
   height: 24px;
   width: 24px;
@@ -16,9 +37,16 @@
   background-color: rgba(255, 255, 255, 0.90);
   border-radius: 6px;
   color: black;
+  cursor: pointer;
   padding: 5px 10px;
   z-index: 5;
   &:hover {
     color: #3366CC
+  }
+}
+
+@container titleBar (max-width: 300px) {
+  .component-title-bar .header-left .toggle-view-button span {
+    display: none;
   }
 }
