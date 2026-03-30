@@ -47,6 +47,6 @@
 
 @container titleBar (max-width: 300px) {
   .component-title-bar .header-left .toggle-view-button span {
-    @include vars.visually-hidden;
+    display: none;
   }
 }

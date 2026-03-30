@@ -154,6 +154,7 @@ export const CaseTileTitleBar =
         <div className="header-left">
           <button
             ref={toggleButtonRef}
+            aria-label={viewButtonLabel}
             className="component-title-bar-button toggle-view-button"
             data-testid={"case-table-toggle-view"}
             data-titlebar-toolbar-item="true"
