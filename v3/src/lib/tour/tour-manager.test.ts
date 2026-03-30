@@ -849,6 +849,8 @@ describe("TourManager", () => {
     })
   })
 
+  // The "Feature Tour" has been removed from the help menu but these tests are a good
+  // way to exercise the tour logic without needing to set up a plugin tour
   describe("runInternalTour", () => {
     it("runs a feature tour with no ownerTile", () => {
       tourManager.runInternalTour({

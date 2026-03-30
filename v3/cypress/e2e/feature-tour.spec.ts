@@ -5,7 +5,10 @@ function launchFeatureTour() {
   cfm.getHelpMenu().contains(".menuItem", "Feature Tour").click()
 }
 
-context("Feature Tour", () => {
+// Skipping these tests for now since the "Feature Tour" has been removed from the help
+// menu but may come back in the future in some form. This is a good set of tests to
+// have in place to test any future implementations of a built in tour.
+context.skip("Feature Tour", () => {
   beforeEach(() => {
     const url = `${Cypress.config("index")}?mouseSensor&noEntryModal&suppressUnsavedWarning`
     cy.visit(url)
