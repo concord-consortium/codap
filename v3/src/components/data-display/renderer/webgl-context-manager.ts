@@ -37,13 +37,18 @@ export class WebGLContextManager {
   private static instance: WebGLContextManager | null = null
 
   /**
-   * Default context limit. Browsers typically support ~16 WebGL contexts; we use 15
-   * to leave headroom for other uses (e.g., devtools). This avoids unsightly browser
-   * warnings in the common case. If the browser reports context loss via
+   * Default context limit. Browsers typically support ~16 WebGL contexts; we use 14
+   * to leave headroom for other uses (e.g., devtools) and to account for "zombie"
+   * contexts that linger in the browser's tally. In particular, PIXI's
+   * `isWebGLSupported()` probe creates a temporary WebGL context and calls
+   * `loseContext()`, but Safari may still count it toward the active context limit
+   * until it is garbage collected. With 15 active contexts plus this zombie probe,
+   * Safari logs "too many active WebGL contexts" console warnings. Using 14 avoids
+   * these warnings across browsers. If the browser reports context loss via
    * `reportBrowserContextLoss()`, the limit is reduced further to match the browser's
    * actual capacity, handling low-capability browsers (Chromebooks, tablets) gracefully.
    */
-  static readonly DEFAULT_MAX_CONTEXTS = 15
+  static readonly DEFAULT_MAX_CONTEXTS = 14
 
   /**
    * Current maximum number of contexts to allocate. Starts at the default and may be
