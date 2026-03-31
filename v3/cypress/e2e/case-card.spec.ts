@@ -41,6 +41,24 @@ context("case card", () => {
       cy.get('[data-testid="codap-case-table"]').should("exist")
       cy.get('[data-testid="case-card-view"]').should("not.exist")
     })
+    it("supports keyboard interaction for the toggle message", () => {
+      // Click the toggle button to show the message
+      table.getToggleCardView().click()
+      table.getToggleCardMessage().should("be.visible").and("have.focus")
+
+      // ESC dismisses the message and returns focus to the toggle button
+      table.getToggleCardMessage().type("{esc}")
+      table.getToggleCardMessage().should("not.exist")
+      table.getToggleCardView().should("have.focus")
+
+      // Enter on the message triggers the view switch
+      table.getToggleCardView().click()
+      table.getToggleCardMessage().should("have.focus")
+      table.getToggleCardMessage().type("{enter}")
+      cy.get('[data-testid="codap-case-card"]').should("exist")
+      cy.get('[data-testid="codap-case-table"]').should("not.exist")
+      table.getToggleCardView().should("have.focus")
+    })
     it("initially displays a summary view of all cases and whenever 'Summarize Dataset' button is clicked", () => {
       table.toggleCaseView()
       cy.wait(500)

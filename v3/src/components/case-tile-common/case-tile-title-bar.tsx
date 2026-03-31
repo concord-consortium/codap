@@ -56,6 +56,7 @@ export const CaseTileTitleBar =
     const tileInfo = getTileInfo(tile?.content.type)
     const data = tile?.content && getTileDataSet(tile?.content)
     const [showSwitchMessage, setShowSwitchMessage] = useState(false)
+    const toggleButtonRef = useRef<HTMLButtonElement>(null)
     const cardTableToggleRef = useRef(null)
     const documentContent = useDocumentContent()
     const preventTitleChange = preventDataContextReorg(data)
@@ -71,20 +72,49 @@ export const CaseTileTitleBar =
       handler: () => setShowSwitchMessage(false)
     })
 
+    // Auto-focus the toggle confirmation message (cardTableToggleRef) when it appears
+    useEffect(() => {
+      if (showSwitchMessage) {
+        (cardTableToggleRef.current as HTMLElement | null)?.focus()
+      }
+    }, [showSwitchMessage])
+
     const handleShowCardTableToggleMessage = () => {
       setShowSwitchMessage(true)
     }
 
-    const handleToggleCardTable = (e: React.MouseEvent) => {
+    const handleToggleCardTable = (e: React.MouseEvent | React.KeyboardEvent) => {
+      let newTileId: string | undefined
       const suffix = tileInfo.toggleSuffix
       e.stopPropagation()
       documentContent?.applyModelChange(() => {
-        tile && documentContent && toggleCardTable(documentContent, tile.id)
+        if (tile && documentContent) {
+          newTileId = toggleCardTable(documentContent, tile.id)?.id
+        }
       }, {
         log: logMessageWithReplacement("Toggle component: %@", {componentType: suffix}, "table"),
         undoStringKey: `DG.Undo.component.toggle${suffix}`,
         redoStringKey: `DG.Redo.component.toggle${suffix}`
       })
+      return newTileId
+    }
+
+    const handleToggleMessageKeyDown = (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault()
+        const newTileId = handleToggleCardTable(e)
+        // Focus the toggle button in the newly rendered tile after the view switch
+        if (newTileId) {
+          requestAnimationFrame(() => {
+            document.getElementById(newTileId)
+              ?.querySelector<HTMLElement>('[data-testid="case-table-toggle-view"]')
+              ?.focus()
+          })
+        }
+      } else if (e.key === "Escape") {
+        setShowSwitchMessage(false)
+        toggleButtonRef.current?.focus()
+      }
     }
 
     const handleChangeTitle = (newTitle?: string) => {
@@ -113,15 +143,17 @@ export const CaseTileTitleBar =
     }, [documentContent, tile?.id, tileInfo])
 
     const { Icon, otherSuffix } = tileInfo
-    const caseTableOrCardToggleString = t(`DG.DocumentController.toggleToCase${otherSuffix}`)
-
+    const translationKey = `DG.DocumentController.toggleToCase${otherSuffix}`
+    const caseTableOrCardToggleString = t(translationKey)
     return (
       <ComponentTitleBar tile={tile} {...others}
                          onHandleTitleChange={handleChangeTitle} onCloseTile={closeCaseTableOrCard}
                          preventTitleChange={preventTitleChange} initiateEditTitle={isNewCaseTile}>
         <div className="header-left">
           <button
-            className="component-title-bar-button"
+            ref={toggleButtonRef}
+            aria-label={caseTableOrCardToggleString}
+            className="component-title-bar-button toggle-view-button"
             data-testid={"case-table-toggle-view"}
             data-titlebar-toolbar-item="true"
             onClick={handleShowCardTableToggleMessage}
@@ -133,7 +165,10 @@ export const CaseTileTitleBar =
             <Box
               ref={cardTableToggleRef}
               className="card-table-toggle-message"
+              role="button"
+              tabIndex={0}
               onClick={handleToggleCardTable}
+              onKeyDown={handleToggleMessageKeyDown}
               data-testid="card-table-toggle-message"
             >
               {caseTableOrCardToggleString}
