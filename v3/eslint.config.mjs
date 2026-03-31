@@ -100,6 +100,8 @@ export default [
       "curly": ["error", "multi-line", "consistent"],
       "dot-notation": "error",
       "eqeqeq": ["error", "smart"],
+      // driver.js package name has a .js extension which confuses the import resolver
+      "import-x/no-unresolved": ["error", { ignore: ["^driver\\.js"] }],
       "import-x/no-cycle": ["warn", { ignoreExternal: true }],
       "import-x/no-extraneous-dependencies": "warn",
       "import-x/no-named-as-default-member": "off",

@@ -236,6 +236,7 @@ export interface DIResourceSelector {
   itemSearch?: string
   logMessage?: string
   interactiveApi?: string
+  tourElements?: string
   type?: string
 }
 

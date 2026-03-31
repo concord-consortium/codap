@@ -1,4 +1,6 @@
 import { isWebViewModel } from "../../components/web-view/web-view-model"
+import { tourManager } from "../../lib/tour/tour-manager"
+import { pickNumber, pickString, sanitizeHighlightValues, sanitizeTourValues } from "../../lib/tour/tour-sanitize"
 import { appState } from "../../models/app-state"
 import { uiState } from "../../models/ui-state"
 import { toV2Id } from "../../utilities/codap-utils"
@@ -59,6 +61,22 @@ export const diInteractiveFrameHandler: DIHandler = {
       case "indicateIdle":
         uiState.setBusy(false)
         break
+      case "highlight":
+        return tourManager.highlight(interactiveFrame, sanitizeHighlightValues(values as Record<string, unknown>))
+      case "clearHighlight":
+        return tourManager.clearHighlight(interactiveFrame)
+      case "startTour":
+        return tourManager.startTour(interactiveFrame, sanitizeTourValues(values as Record<string, unknown>))
+      case "endTour":
+        return tourManager.endTour(interactiveFrame, pickString((values as Record<string, unknown>)?.tourId))
+      case "tourNext":
+        return tourManager.tourNext(interactiveFrame)
+      case "tourPrevious":
+        return tourManager.tourPrevious(interactiveFrame)
+      case "tourMoveTo":
+        return tourManager.tourMoveTo(interactiveFrame, pickNumber((values as Record<string, unknown>)?.stepIndex))
+      case "tourRefresh":
+        return tourManager.tourRefresh(interactiveFrame)
     }
 
     // Unrecognized requests return success to avoid breaking plugins (matches V2 behavior)

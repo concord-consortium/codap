@@ -5,6 +5,7 @@ import { setupRequestQueueProcessor } from "../../data-interactive/data-interact
 import { DIRequest, DIRequestCallback } from "../../data-interactive/data-interactive-types"
 import { useCfmContext } from "../../hooks/use-cfm-context"
 import { DEBUG_PLUGINS, debugLog } from "../../lib/debug"
+import { tourManager } from "../../lib/tour/tour-manager"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { gLocale } from "../../utilities/translation/locale"
 import { RequestQueue } from "./request-queue"
@@ -87,6 +88,7 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
       })
 
       return () => {
+        if (tile) tourManager.cleanupForTile(tile)
         disposer()
         rpcEndpoint.disconnect()
         phone.disconnect()

@@ -217,6 +217,7 @@
     "d3": "^7.9.0",
     "d3-format": "^3.1.2",
     "d3-v6-tip": "^1.0.9",
+    "driver.js": "^1.4.0",
     "escape-string-regexp": "^5.0.0",
     "html-to-image": "^1.11.13",
     "iframe-phone": "^1.4.0",
