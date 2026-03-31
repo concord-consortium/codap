@@ -8,6 +8,8 @@
 
 Add a "Feature Tour" item to the Help menu that launches a 21-step driver.js guided tour of the CODAP interface — menu bar, toolbar buttons, and workspace — with student-friendly popover text at each step. The tour configuration is a public TypeScript interface in `src/lib/tour/` designed for reuse by the plugin API in future work.
 
+UPDATE: The "Feature Tour" item in the Help menu was removed in CODAP-1167 but the driver.js integration was kept.  This spec is left as is to document the initial integration.
+
 ## Requirements
 
 - Add a "Feature Tour" menu item to the Help dropdown menu (last item in the menu)
