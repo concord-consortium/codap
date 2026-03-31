@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite"
 import React, { useCallback, useRef } from "react"
 import { SetRequired } from "type-fest"
 import { useRovingToolbarFocus } from "../../hooks/use-roving-toolbar-focus"
+import { useRegisterSection } from "../../hooks/use-section-navigation"
 import { getRedoStringKey, getUndoStringKey } from "../../models/history/codap-undo-types"
 import {
   getTileComponentInfo, getTileComponentKeys, ITileComponentInfo
@@ -55,6 +56,7 @@ interface IProps {
 }
 export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
   const toolbarRef = useRef<HTMLDivElement>(null)
+  useRegisterSection("toolshelf", toolbarRef, 1)
   const guideTileId = getGuideTileId(document)
 
   // Get all top-level toolbar buttons, excluding items inside dropdown menus

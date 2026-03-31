@@ -1,8 +1,5 @@
 import React, { useEffect, useRef } from "react"
-
-const kFocusableSelectors =
-  'a[href], area[href], input:not([disabled]), button:not([disabled]), select:not([disabled]),' +
-  ' textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+import { kFocusableSelector } from "../accessibility-constants"
 
 /**
  * Creates a focus trap using invisible sentinel elements placed at the start
@@ -29,7 +26,7 @@ export function useFocusTrap(externalRef?: React.RefObject<HTMLElement | null>) 
     }
 
     const getFocusable = () =>
-      Array.from(container.querySelectorAll<HTMLElement>(kFocusableSelectors))
+      Array.from(container.querySelectorAll<HTMLElement>(kFocusableSelector))
         .filter(el => el.offsetParent !== null && !el.closest('[aria-hidden="true"]'))
 
     const createSentinel = () => {

@@ -1,5 +1,6 @@
 import { observer } from "mobx-react-lite"
 import { useEffect, useRef, useState } from "react"
+import { kFocusableSelector } from "../../accessibility-constants"
 import { detectDataUrlImageBug, hasDataUrlImageBug } from "../../utilities/image-utils"
 import { gLocale } from "../../utilities/translation/locale"
 import { t } from "../../utilities/translation/translate"
@@ -186,8 +187,7 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
       ?? tileWrapper?.parentElement?.querySelector(".free-tile-component")
     if (!targetTile) return
     const candidates = targetTile.querySelectorAll<HTMLElement>(
-      "a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), " +
-      "textarea:not([disabled]), iframe, [tabindex]:not([tabindex='-1']), [contenteditable]"
+      `${kFocusableSelector}, iframe, [contenteditable]`
     )
     for (const el of candidates) {
       const style = getComputedStyle(el)

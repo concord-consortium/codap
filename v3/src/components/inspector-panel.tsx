@@ -4,6 +4,9 @@ import { Button, Menu, MenuTrigger, Popover, Tooltip, TooltipTrigger } from "rea
 
 import { kInspectorPaletteAriaRole } from "../accessibility-constants"
 import { useFocusTrap } from "../hooks/use-focus-trap"
+import { useTabTrap } from "../hooks/use-tab-trap"
+import { useTileModelContext } from "../hooks/use-tile-model-context"
+import { returnToTileContent } from "../hooks/use-tile-navigation"
 import { useMouseTooltipRef } from "../hooks/use-mouse-tooltip-ref"
 import { useRovingToolbarFocus } from "../hooks/use-roving-toolbar-focus"
 import { useOutsidePointerDown } from "../hooks/use-outside-pointer-down"
@@ -43,6 +46,7 @@ export const InspectorPanel = forwardRef<HTMLDivElement, IProps>(function Inspec
   component, show, setShowPalette, children, toolbarAriaLabel,
   toolbarOrientation = "vertical", toolbarPersistenceKey, width
 }, ref) {
+  const { tileId } = useTileModelContext()
   const panelRef = useRef<HTMLDivElement | null>(null)
   const mergedRef = useCallback((node: HTMLDivElement | null) => {
     panelRef.current = node
@@ -64,6 +68,28 @@ export const InspectorPanel = forwardRef<HTMLDivElement, IProps>(function Inspec
     orientation: toolbarOrientation,
     persistenceKey: toolbarPersistenceKey
   })
+
+  const { onKeyDown: handleTabTrap } = useTabTrap({ containerRef: panelRef })
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === "Escape") {
+      // Don't handle Escape if a palette or menu is open. Let those handle it first.
+      const panel = panelRef.current
+      if (!panel) return
+      if (panel.querySelector(".codap-inspector-palette-wrapper")) return
+      if (!tileId) return
+
+      e.preventDefault()
+      returnToTileContent(tileId)
+      return
+    }
+
+    // Don't trap Tab if a palette is open. Palettes have their own focus trap.
+    if (e.key === "Tab" && panelRef.current?.querySelector(".codap-inspector-palette-wrapper")) return
+
+    handleTabTrap(e)
+  }, [handleTabTrap, tileId])
+
   const classes = clsx("inspector-panel", component, width ?? "normal")
   return (show
     ? <div
@@ -73,6 +99,7 @@ export const InspectorPanel = forwardRef<HTMLDivElement, IProps>(function Inspec
         className={classes}
         data-testid={"inspector-panel"}
         onFocusCapture={onFocusCapture}
+        onKeyDown={handleKeyDown}
         onKeyDownCapture={onKeyDownCapture}
         role={toolbarAriaLabel ? "toolbar" : undefined}
       >

@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite"
 import React, { useCallback, useRef } from "react"
 import { dataInteractiveState } from "../../data-interactive/data-interactive-state"
 import { DocumentContainerContext } from "../../hooks/use-document-container-context"
+import { useRegisterSection } from "../../hooks/use-section-navigation"
 import { useDocumentContent } from "../../hooks/use-document-content"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { appState } from "../../models/app-state"
@@ -11,6 +12,7 @@ import { isMosaicTileRow } from "../../models/document/mosaic-tile-row"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { deleteTileNotification } from "../../models/tiles/tile-notifications"
 import { uiState } from "../../models/ui-state"
+import { t } from "../../utilities/translation/translate"
 import { urlParams } from "../../utilities/url-params"
 import { EditAttributeFormulaModal } from "../common/edit-attribute-formula-modal"
 import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
@@ -28,6 +30,7 @@ export const Container: React.FC = observer(function Container() {
   const row = documentContent?.getRowByIndex(0)
   const getTile = useCallback((tileId: string) => documentContent?.getTile(tileId), [documentContent])
   const containerRef = useRef<HTMLElement>(null)
+  useRegisterSection("tilearea", containerRef, 2)
 
   const handleCloseTile = useCallback((tileId: string) => {
     const tile = getTile(tileId)
@@ -51,8 +54,14 @@ export const Container: React.FC = observer(function Container() {
                         "scroll-behavior-auto": isScrollBehaviorAuto })
   return (
     <DocumentContainerContext.Provider value={containerRef}>
-      <main className={classes} ref={containerRef}>
+      <main
+        aria-describedby="tile-area-hint"
+        aria-label={t("V3.app.tileArea.ariaLabel")}
+        className={classes}
+        ref={containerRef}
+      >
         <h2 className="codap-visually-hidden">{appState.document.title}</h2>
+        <span id="tile-area-hint" className="codap-visually-hidden">{t("V3.app.tileAreaHint")}</span>
         {isMosaicTileRow(row) &&
           <MosaicTileRowComponent row={row} getTile={getTile} onCloseTile={handleCloseTile}/>}
         {isFreeTileRow(row) &&
