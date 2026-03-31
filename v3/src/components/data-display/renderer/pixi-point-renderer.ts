@@ -300,6 +300,10 @@ export class PixiPointRenderer extends PointRendererBase {
     displayType: PointDisplayType,
     style: IPointStyle
   ): void {
+    if (this._isDisposed) {
+      console.warn("PixiPointRenderer.doMatchPointsToData: called after dispose, ignoring")
+      return
+    }
     if (!this.renderer) {
       console.warn("PixiPointRenderer.doMatchPointsToData: renderer not initialized, skipping")
       return
@@ -457,6 +461,10 @@ export class PixiPointRenderer extends PointRendererBase {
   }
 
   protected doStartRendering(): void {
+    if (this._isDisposed) {
+      console.warn("PixiPointRenderer.doStartRendering: called after dispose, ignoring")
+      return
+    }
     if (!this.ticker.started) {
       this.ticker.start()
     }
