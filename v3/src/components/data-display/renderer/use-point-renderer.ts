@@ -150,6 +150,11 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
     new NullPointRenderer(stateRef.current)
   )
 
+  // Ref that always points to the current renderer, for use in cleanup effects
+  // which would otherwise capture a stale renderer from the initial render closure
+  const rendererRef = useRef<PointRendererBase>(renderer)
+  rendererRef.current = renderer
+
   // Track if renderer is ready
   const [isReady, setIsReady] = useState(false)
 
@@ -240,12 +245,19 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
       if (!skipContextRegistration) {
         webGLContextManager.releaseContext(id)
       }
-      // Dispose any outgoing renderer that's pending disposal
-      if (outgoingRendererRef.current) {
-        outgoingRendererRef.current.dispose()
+      // Dispose any outgoing renderer that's pending disposal, then dispose the
+      // current renderer. Guard against double-dispose if they are the same instance
+      // (can happen if unmount occurs mid-transition before switchRenderer completes).
+      const outgoing = outgoingRendererRef.current
+      if (outgoing) {
+        outgoing.dispose()
         outgoingRendererRef.current = null
       }
-      renderer.dispose()
+      // Use rendererRef (always current) instead of the stale `renderer` from the
+      // closure, which would be the NullPointRenderer from the initial render.
+      if (rendererRef.current !== outgoing) {
+        rendererRef.current.dispose()
+      }
     }
   // Note: We intentionally don't include `renderer` or `skipContextRegistration` in dependencies
   // because we want to dispose whatever renderer exists at unmount time
@@ -313,6 +325,13 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
       } else {
         // Use null renderer while waiting for context decision
         newRenderer = new NullPointRenderer(stateRef.current)
+      }
+
+      // Wire up browser context loss notification for WebGL renderers
+      if (newRenderer instanceof PixiPointRenderer && !skipContextRegistration) {
+        newRenderer.onBrowserContextLoss = () => {
+          webGLContextManager.reportBrowserContextLoss(id)
+        }
       }
 
       try {

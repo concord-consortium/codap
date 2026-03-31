@@ -88,8 +88,6 @@ export class CanvasPointRenderer extends PointRendererBase {
   private boundWindowPointerUp: ((event: PointerEvent) => void) | null = null
   private boundWindowPointerMove: ((event: PointerEvent) => void) | null = null
 
-  // Disposed flag
-  private isDisposed = false
 
   // Temporary storage for pre-transition positions
   // Used to capture old positions before state is updated
@@ -182,8 +180,6 @@ export class CanvasPointRenderer extends PointRendererBase {
   }
 
   protected doDispose(): void {
-    this.isDisposed = true
-
     // Cancel any pending animation frame
     if (this.animationFrameId !== null) {
       cancelAnimationFrame(this.animationFrameId)

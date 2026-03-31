@@ -156,10 +156,16 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     refreshPointPositions(false)
     // Defer refreshPointSelection to run after any other synchronous matchCirclesToData calls
     // (e.g., from useGraphController's setProperties). This ensures legend colors are applied
-    // after all points are created.
+    // after all points are created. The `cancelled` flag prevents calling refreshPointSelection
+    // on a stale renderer if the effect re-runs (e.g., due to a renderer switch) before the
+    // microtask executes.
+    let cancelled = false
     Promise.resolve().then(() => {
-      refreshPointSelection()
+      if (!cancelled) {
+        refreshPointSelection()
+      }
     })
+    return () => { cancelled = true }
   }, [callMatchCirclesToData, dataConfiguration, layout, renderer, refreshPointPositions, refreshPointSelection])
 
   // respond to numeric axis domain changes (e.g. axis dragging)

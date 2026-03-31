@@ -16,11 +16,11 @@ export interface IContextConsumer {
 /**
  * Manages WebGL context allocation across multiple renderers.
  *
- * Browsers typically limit WebGL contexts to ~16. This manager:
- * - Tracks active contexts (conservative limit of 14)
- * - Maintains a priority queue for context requests
- * - Evicts lower-priority consumers when higher-priority ones need contexts
- * - Notifies consumers when contexts are granted or revoked
+ * Browsers typically support ~16 WebGL contexts. This manager uses a conservative
+ * default limit (DEFAULT_MAX_CONTEXTS = 15) to avoid browser warnings. If the browser
+ * forcibly reclaims a context (firing `webglcontextlost`), the manager reduces its
+ * limit further to match the browser's actual capacity. This handles low-capability
+ * browsers (Chromebooks, tablets) gracefully.
  *
  * Usage:
  * ```
@@ -36,8 +36,26 @@ export interface IContextConsumer {
 export class WebGLContextManager {
   private static instance: WebGLContextManager | null = null
 
-  /** Maximum number of contexts to allocate */
-  readonly maxContexts = 14
+  /**
+   * Default context limit. Browsers typically support ~16 WebGL contexts; we use 14
+   * to leave headroom for other uses (e.g., devtools) and to account for "zombie"
+   * contexts that linger in the browser's tally. In particular, PIXI's
+   * `isWebGLSupported()` probe creates a temporary WebGL context and calls
+   * `loseContext()`, but Safari may still count it toward the active context limit
+   * until it is garbage collected. With 15 active contexts plus this zombie probe,
+   * Safari logs "too many active WebGL contexts" console warnings. Using 14 avoids
+   * these warnings across browsers. If the browser reports context loss via
+   * `reportBrowserContextLoss()`, the limit is reduced further to match the browser's
+   * actual capacity, handling low-capability browsers (Chromebooks, tablets) gracefully.
+   */
+  static readonly DEFAULT_MAX_CONTEXTS = 14
+
+  /**
+   * Current maximum number of contexts to allocate. Starts at the default and may be
+   * reduced when the browser reports context loss via `reportBrowserContextLoss()`.
+   * Once reduced, the limit persists for the session to avoid repeated over-allocation.
+   */
+  private _maxContexts = WebGLContextManager.DEFAULT_MAX_CONTEXTS
 
   /** All registered consumers (both active and waiting) */
   private consumers = new Map<string, IContextConsumer>()
@@ -57,8 +75,39 @@ export class WebGLContextManager {
    */
   private userInteractionPriorityCounter = 1_000_000_000
 
+  /**
+   * Cached result of the WebGL support probe. `null` means not yet checked.
+   * Once set to `false`, the manager will never grant contexts — all consumers
+   * are immediately denied, avoiding noisy fallback chains in the renderers.
+   */
+  private _webGLAvailable: boolean | null = null
+
   private constructor() {
     // Private constructor for singleton
+  }
+
+  /**
+   * Probe whether the browser supports WebGL by creating a temporary canvas
+   * and requesting a WebGL context. The result is cached for the session.
+   * This avoids depending on PIXI's `isWebGLSupported()`.
+   */
+  private isWebGLAvailable(): boolean {
+    if (this._webGLAvailable != null) {
+      return this._webGLAvailable
+    }
+    try {
+      const canvas = document.createElement("canvas")
+      const gl = canvas.getContext("webgl2") || canvas.getContext("webgl")
+      if (gl) {
+        // Clean up the probe context immediately
+        const loseExt = gl.getExtension("WEBGL_lose_context")
+        loseExt?.loseContext()
+      }
+      this._webGLAvailable = !!gl
+    } catch {
+      this._webGLAvailable = false
+    }
+    return this._webGLAvailable
   }
 
   static getInstance(): WebGLContextManager {
@@ -73,6 +122,21 @@ export class WebGLContextManager {
    */
   static resetInstance(): void {
     WebGLContextManager.instance = null
+  }
+
+  /**
+   * Set the maximum context limit (primarily for testing).
+   * In production, the limit is learned from browser context loss events.
+   */
+  setMaxContextsForTesting(max: number): void {
+    this._maxContexts = max
+  }
+
+  /**
+   * Get the current maximum context limit
+   */
+  get maxContexts(): number {
+    return this._maxContexts
   }
 
   /**
@@ -112,6 +176,13 @@ export class WebGLContextManager {
    * @returns true if context was immediately granted, false if consumer must wait
    */
   requestContext(consumer: IContextConsumer): boolean {
+    // If WebGL isn't available in this browser, deny all requests immediately.
+    // This prevents the noisy fallback chain (WebGPU → WebGL → Canvas → throw)
+    // that PIXI's autoDetectRenderer produces for every graph.
+    if (!this.isWebGLAvailable()) {
+      return false
+    }
+
     // Register/update the consumer
     this.consumers.set(consumer.id, consumer)
 
@@ -210,6 +281,10 @@ export class WebGLContextManager {
    * @returns true if context was granted, false if consumer must wait
    */
   reRequestContext(consumerId: string): boolean {
+    if (!this.isWebGLAvailable()) {
+      return false
+    }
+
     const consumer = this.consumers.get(consumerId)
     if (!consumer) {
       return false
@@ -237,6 +312,46 @@ export class WebGLContextManager {
     }
 
     return false
+  }
+
+  /**
+   * Report that the browser forcibly reclaimed a WebGL context.
+   * Called when a `webglcontextlost` event fires on a renderer's canvas.
+   *
+   * This teaches the manager the browser's actual context limit:
+   * - The limit is set to `activeCount - 1` (the current count minus the one just lost)
+   * - The affected consumer is revoked and moved to waiting
+   * - Future requests will respect the learned limit
+   *
+   * The limit only decreases — if the browser reclaims another context, the limit
+   * drops further, but it never increases from context loss events.
+   *
+   * @param consumerId The ID of the consumer whose context was lost
+   */
+  reportBrowserContextLoss(consumerId: string): void {
+    if (!this.activeConsumers.has(consumerId)) {
+      return
+    }
+
+    // Only adjust the learned limit if we were at/above our current capacity.
+    // Context loss can occur for reasons other than exceeding the context limit
+    // (GPU reset, driver crash, etc.), so we avoid ratcheting the limit down in
+    // those cases. Also clamp the learned limit to a minimum of 1.
+    if (this.activeConsumers.size >= this._maxContexts) {
+      const newLimit = Math.max(1, this.activeConsumers.size - 1)
+      if (newLimit < this._maxContexts) {
+        this._maxContexts = newLimit
+      }
+    }
+
+    // Revoke the lost context — the consumer should fall back to canvas
+    this.activeConsumers.delete(consumerId)
+    const consumer = this.consumers.get(consumerId)
+    if (consumer) {
+      consumer.onContextRevoked()
+    }
+
+    // Don't try to grant to waiting consumers — we just learned we're at the limit
   }
 
   /**

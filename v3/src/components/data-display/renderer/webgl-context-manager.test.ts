@@ -1,4 +1,4 @@
-import { IContextConsumer, webGLContextManager } from "./webgl-context-manager"
+import { IContextConsumer, webGLContextManager, WebGLContextManager } from "./webgl-context-manager"
 
 // Import the class directly for resetInstance (which is a static method)
 // We need to re-import the singleton after reset
@@ -8,6 +8,9 @@ const getManager = () => {
   WebGLContextManagerModule.WebGLContextManager.resetInstance()
   return WebGLContextManagerModule.WebGLContextManager.getInstance()
 }
+
+// Use the actual default limit for tests
+const TEST_MAX_CONTEXTS = WebGLContextManager.DEFAULT_MAX_CONTEXTS
 
 describe("WebGLContextManager", () => {
   let manager: typeof webGLContextManager
@@ -54,8 +57,9 @@ describe("WebGLContextManager", () => {
   })
 
   describe("maxContexts", () => {
-    it("has max contexts set to 14", () => {
-      expect(manager.maxContexts).toBe(14)
+    it("starts with the default limit", () => {
+      const freshManager = getManager()
+      expect(freshManager.maxContexts).toBe(WebGLContextManager.DEFAULT_MAX_CONTEXTS)
     })
   })
 
@@ -434,6 +438,178 @@ describe("WebGLContextManager", () => {
 
       expect(granted).toBe(false)
       expect(onGranted).not.toHaveBeenCalled()
+    })
+  })
+
+  describe("reportBrowserContextLoss", () => {
+    it("reduces maxContexts when at capacity", () => {
+      // Set limit to 16 and fill to capacity
+      manager.setMaxContextsForTesting(16)
+      for (let i = 0; i < 16; i++) {
+        manager.requestContext(createConsumer(`consumer${i}`, 100))
+      }
+      expect(manager.activeCount).toBe(16)
+
+      // Browser kills the oldest context
+      manager.reportBrowserContextLoss("consumer0")
+
+      // Limit should be learned as 15 (16 - 1)
+      expect(manager.maxContexts).toBe(15)
+      expect(manager.activeCount).toBe(15)
+      expect(manager.hasContext("consumer0")).toBe(false)
+    })
+
+    it("revokes the affected consumer's context", () => {
+      // Set limit to 1 so a single consumer is at capacity
+      manager.setMaxContextsForTesting(1)
+      const onRevoked = jest.fn()
+      const consumer = createConsumer("consumer1", 100, jest.fn(), onRevoked)
+      manager.requestContext(consumer)
+
+      manager.reportBrowserContextLoss("consumer1")
+
+      expect(onRevoked).toHaveBeenCalled()
+      expect(manager.hasContext("consumer1")).toBe(false)
+    })
+
+    it("only decreases the limit, never increases", () => {
+      // Set limit to 10 and fill to capacity
+      manager.setMaxContextsForTesting(10)
+      for (let i = 0; i < 10; i++) {
+        manager.requestContext(createConsumer(`consumer${i}`, 100))
+      }
+
+      // Browser reports loss at capacity — limit becomes 9
+      manager.reportBrowserContextLoss("consumer0")
+      expect(manager.maxContexts).toBe(9)
+
+      // Fill back to new capacity of 9
+      manager.requestContext(createConsumer("consumer10", 100))
+      expect(manager.activeCount).toBe(9)
+
+      // Browser reports another loss at capacity — limit decreases further to 8
+      manager.reportBrowserContextLoss("consumer1")
+      expect(manager.maxContexts).toBe(8)
+    })
+
+    it("does not grant to waiting consumers after context loss", () => {
+      // Fill pool
+      for (let i = 0; i < TEST_MAX_CONTEXTS; i++) {
+        manager.requestContext(createConsumer(`consumer${i}`, 100))
+      }
+
+      // Add a waiting consumer
+      const waitingGranted = jest.fn()
+      manager.requestContext(createConsumer("waiting", 50, waitingGranted))
+      expect(waitingGranted).not.toHaveBeenCalled()
+
+      // Browser kills a context — should NOT grant to the waiting consumer
+      // because we just learned we're at the limit
+      manager.reportBrowserContextLoss("consumer0")
+      expect(waitingGranted).not.toHaveBeenCalled()
+    })
+
+    it("does not reduce limit when below capacity (e.g., GPU reset)", () => {
+      // 3 active consumers, limit is 15 — well below capacity
+      manager.requestContext(createConsumer("consumer1", 100))
+      manager.requestContext(createConsumer("consumer2", 100))
+      manager.requestContext(createConsumer("consumer3", 100))
+
+      manager.reportBrowserContextLoss("consumer1")
+
+      // Limit should NOT have changed — context loss wasn't due to over-allocation
+      expect(manager.maxContexts).toBe(TEST_MAX_CONTEXTS)
+      // But the consumer's context should still be revoked
+      expect(manager.hasContext("consumer1")).toBe(false)
+      expect(manager.activeCount).toBe(2)
+    })
+
+    it("ignores non-active consumers", () => {
+      manager.requestContext(createConsumer("consumer1", 100))
+      const initialMax = manager.maxContexts
+
+      // Report loss for a consumer that doesn't exist
+      manager.reportBrowserContextLoss("nonexistent")
+
+      expect(manager.maxContexts).toBe(initialMax)
+      expect(manager.activeCount).toBe(1)
+    })
+  })
+
+  describe("WebGL availability check", () => {
+    it("denies all requests when WebGL is not available", () => {
+      // Mock getContext to return null (no WebGL support)
+      const originalGetContext = HTMLCanvasElement.prototype.getContext
+      HTMLCanvasElement.prototype.getContext = jest.fn().mockReturnValue(null) as any
+
+      const freshManager = getManager()
+      const onGranted = jest.fn()
+      const consumer = createConsumer("consumer1", 100, onGranted)
+      const granted = freshManager.requestContext(consumer)
+
+      expect(granted).toBe(false)
+      expect(onGranted).not.toHaveBeenCalled()
+      expect(freshManager.activeCount).toBe(0)
+
+      HTMLCanvasElement.prototype.getContext = originalGetContext
+    })
+
+    it("denies reRequestContext when WebGL is not available", () => {
+      // Mock getContext to return null (no WebGL support)
+      const originalGetContext = HTMLCanvasElement.prototype.getContext
+      HTMLCanvasElement.prototype.getContext = jest.fn().mockReturnValue(null) as any
+
+      const freshManager = getManager()
+      const granted = freshManager.reRequestContext("consumer1")
+
+      expect(granted).toBe(false)
+
+      HTMLCanvasElement.prototype.getContext = originalGetContext
+    })
+
+    it("caches the WebGL availability check", () => {
+      // Mock getContext to return null initially
+      const originalGetContext = HTMLCanvasElement.prototype.getContext
+      const mockGetContext = jest.fn().mockReturnValue(null) as any
+      HTMLCanvasElement.prototype.getContext = mockGetContext
+
+      const freshManager = getManager()
+      freshManager.requestContext(createConsumer("c1", 100))
+      freshManager.requestContext(createConsumer("c2", 200))
+      freshManager.requestContext(createConsumer("c3", 300))
+
+      // getContext should have been called only once (for the probe), not per request
+      // The probe tries webgl2 first, then webgl if that fails — both return null
+      expect(mockGetContext).toHaveBeenCalledTimes(2)
+
+      HTMLCanvasElement.prototype.getContext = originalGetContext
+    })
+
+    it("grants contexts normally when WebGL is available", () => {
+      // Default test environment has jest-webgl-canvas-mock, so WebGL is available
+      const consumer = createConsumer("consumer1", 100)
+      const granted = manager.requestContext(consumer)
+
+      expect(granted).toBe(true)
+      expect(manager.activeCount).toBe(1)
+    })
+
+    it("cleans up probe context via WEBGL_lose_context extension", () => {
+      // The probe should call loseContext() to clean up
+      const mockLoseContext = jest.fn()
+      const mockGL = {
+        getExtension: jest.fn().mockReturnValue({ loseContext: mockLoseContext })
+      }
+      const originalGetContext = HTMLCanvasElement.prototype.getContext
+      HTMLCanvasElement.prototype.getContext = jest.fn().mockReturnValue(mockGL) as any
+
+      const freshManager = getManager()
+      freshManager.requestContext(createConsumer("c1", 100))
+
+      expect(mockGL.getExtension).toHaveBeenCalledWith("WEBGL_lose_context")
+      expect(mockLoseContext).toHaveBeenCalled()
+
+      HTMLCanvasElement.prototype.getContext = originalGetContext
     })
   })
 
