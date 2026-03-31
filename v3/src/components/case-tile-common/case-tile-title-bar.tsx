@@ -145,8 +145,6 @@ export const CaseTileTitleBar =
     const { Icon, otherSuffix } = tileInfo
     const translationKey = `DG.DocumentController.toggleToCase${otherSuffix}`
     const caseTableOrCardToggleString = t(translationKey)
-    const viewButtonLabel = t(`${translationKey}Label`)
-
     return (
       <ComponentTitleBar tile={tile} {...others}
                          onHandleTitleChange={handleChangeTitle} onCloseTile={closeCaseTableOrCard}
@@ -154,7 +152,7 @@ export const CaseTileTitleBar =
         <div className="header-left">
           <button
             ref={toggleButtonRef}
-            aria-label={viewButtonLabel}
+            aria-label={caseTableOrCardToggleString}
             className="component-title-bar-button toggle-view-button"
             data-testid={"case-table-toggle-view"}
             data-titlebar-toolbar-item="true"
@@ -162,7 +160,6 @@ export const CaseTileTitleBar =
             title={caseTableOrCardToggleString}
           >
             <Icon className="toggle-icon"/>
-            <span>{viewButtonLabel}</span>
           </button>
           {showSwitchMessage &&
             <Box

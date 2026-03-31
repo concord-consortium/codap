@@ -111,8 +111,6 @@
     "DG.DocumentController.enterViewWebPageOKTip": "Displays the web page given by the URL",
     "DG.DocumentController.toggleToCaseCard": "Switch to case card view of the data",
     "DG.DocumentController.toggleToCaseTable": "Switch to case table view of the data",
-    "DG.DocumentController.toggleToCaseCardLabel": "Card view",
-    "DG.DocumentController.toggleToCaseTableLabel": "Table view",
 
     // DG.Document
     "DG.Document.defaultDocumentName": "Untitled Document",
