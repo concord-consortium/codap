@@ -77,8 +77,6 @@ export class PixiPointRenderer extends PointRendererBase {
   // Resize observer
   private resizeObserver?: ResizeObserver
 
-  // Disposed flag to prevent operations after disposal
-  private isDisposed = false
 
   // Callback for when the browser forcibly reclaims this renderer's WebGL context
   private _onBrowserContextLoss?: () => void
@@ -208,7 +206,6 @@ export class PixiPointRenderer extends PointRendererBase {
   }
 
   protected doDispose(): void {
-    this.isDisposed = true
     // Remove context loss listener before destroying the renderer
     if (this.boundContextLostHandler) {
       const canvas = this.renderer?.view.canvas as HTMLCanvasElement | undefined
