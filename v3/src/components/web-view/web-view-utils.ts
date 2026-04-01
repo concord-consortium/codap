@@ -1,30 +1,43 @@
-import { kCodap3RootPluginsUrl, kRootDataGamesPluginUrl, kRootGuideUrl, kRootPluginsUrl } from "../../constants"
+import { kCodapResourcesUrl, kRootDataGamesPluginUrl, kRootGuideUrl, kRootPluginsUrl } from "../../constants"
 import { getDataInteractiveUrl } from "../../utilities/url-params"
 
 export const kRelativePluginRoot = "../../../../extn/plugins"
 export const kRelativeGuideRoot = "../../../../extn/example-documents/guides"
 export const kRelativeURLRoot = "%_url_%/guides"
 
+// Absolute URLs from old documents that should be rewritten to use the same-origin proxy
+const kAbsoluteUrlRewrites: Array<[RegExp, string]> = [
+  // Old codap-resources.concord.org URLs → /codap-resources/
+  [/^https?:\/\/codap-resources\.concord\.org\/(.+)$/, `${kCodapResourcesUrl}/$1`],
+  // Old codap3.concord.org/plugins/ URLs → /codap-resources/plugins/
+  [/^https?:\/\/codap3\.concord\.org\/plugins\/(.+)$/, `${kCodapResourcesUrl}/plugins/$1`],
+]
+
 // Old/new plugin URL mappings stored as tuples of [oldUrl, newUrl] so that we can use
 // a substring match against the old URL to find the new URL.
 const kFullyReplacedUrls: Array<[RegExp, string]> = [
   // v3 version of Markov has been deployed to s3, but not all data games have been migrated
   [/\/concord-consortium.github.io\/codap-data-interactives\/Markov\/?/, `${kRootDataGamesPluginUrl}/Markov/`],
-  // onboarding plugins are proxied so that drag/drop works, so we used the proxied url
-  [/\/plugins\/onboarding\/?$/, `${kCodap3RootPluginsUrl}/onboarding/`],
 ]
 
 const kReplaceToken = "_$@_"
 const kPartiallyReplacedUrls: Array<[RegExp, string]> = [
-  // [V2] weather plugin url was mapped in V2 code
-  [/\/plugins\/NOAA-weather\/(.+)$/, `${kCodap3RootPluginsUrl}/noaa-codap-plugin/${kReplaceToken}`],
-  // onboarding plugins are proxied so that drag/drop works, so we used the proxied url
-  [/\/plugins\/onboarding\/(.+)$/, `${kCodap3RootPluginsUrl}/onboarding/${kReplaceToken}`]
+  // NOAA weather plugin was renamed in the S3 bucket
+  [/\/plugins\/NOAA-weather\/(.+)$/, `${kRootPluginsUrl}/noaa-codap-plugin/${kReplaceToken}`],
 ]
 
 export function processWebViewUrl(url: string) {
   // First, allow any URL modifications from url params
   let updatedUrl = getDataInteractiveUrl(url)
+
+  // Rewrite absolute URLs from old documents to use same-origin proxy path
+  for (const [urlRegex, replacement] of kAbsoluteUrlRewrites) {
+    const rewritten = updatedUrl.replace(urlRegex, replacement)
+    if (rewritten !== updatedUrl) {
+      updatedUrl = rewritten
+      break
+    }
+  }
 
   // Many plugins were hosted on GitHub pages at http://concord-consortium.github.io/codap-data-interactives/
   // or other sites but are now hosted on s3, so we have to change the URL to point to the new location.

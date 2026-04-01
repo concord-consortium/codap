@@ -13,7 +13,7 @@ jest.mock("../models/app-state", () => ({
 }))
 
 jest.mock("../constants", () => ({
-  getImporterPluginUrl: () => "https://codap-resources.concord.org/plugins/Importer/index.html?lang=en-US"
+  getImporterPluginUrl: () => "https://codap.concord.org/codap-resources/plugins/Importer/index.html?lang=en-US"
 }))
 
 describe("initiateImportFromHTML", () => {
@@ -32,7 +32,7 @@ describe("initiateImportFromHTML", () => {
     expect(tileSnap.content.type).toBe("CodapWebView")
     expect(tileSnap.content.subType).toBe("plugin")
     expect(tileSnap.content.url).toBe(
-      "https://codap-resources.concord.org/plugins/Importer/index.html?lang=en-US"
+      "https://codap.concord.org/codap-resources/plugins/Importer/index.html?lang=en-US"
     )
     expect(tileSnap.content.state).toEqual({
       contentType: "text/html",

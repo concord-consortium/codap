@@ -12,6 +12,7 @@ import {
   ICodapV2DocumentJson, ICodapV2GameViewStorage, ICodapV2GuideViewStorage, ICodapV2ImageComponentStorage,
   ICodapV2WebViewStorage
 } from "../../v2/codap-v2-types"
+import { kCodapResourcesUrl } from "../../constants"
 import { kWebViewTileType } from "./web-view-defs"
 import { isWebViewModel, IWebViewModel } from "./web-view-model"
 import "./web-view-registration"
@@ -69,14 +70,14 @@ describe("WebView registration", () =>  {
     expect(tile.name).toBe("https://codap-resources.concord.org/images/walkingrates-50-percent.png")
     expect(tile._title).toBe("Walking Rates")
     expect(getTileContentInfo(kWebViewTileType)!.getTitle(tile)).toBe("Walking Rates")
-    expect(content?.url).toBe("https://codap-resources.concord.org/images/walkingrates-50-percent.png")
+    expect(content?.url).toBe("https://codap.concord.org/codap-resources/images/walkingrates-50-percent.png")
     expect(content?.isPlugin).toBe(false)
 
     const row = docContent.getRowByIndex(0) as IFreeTileRow
     const componentExport = exportV2Component({ tile, row, sharedModelManager })
     expect(componentExport?.type).toBe("DG.WebView")
     const contentStorage = componentExport?.componentStorage as ICodapV2WebViewStorage
-    expect(contentStorage.URL).toBe("https://codap-resources.concord.org/images/walkingrates-50-percent.png")
+    expect(contentStorage.URL).toBe("https://codap.concord.org/codap-resources/images/walkingrates-50-percent.png")
     expect(contentStorage.name).toBe("https://codap-resources.concord.org/images/walkingrates-50-percent.png")
     expect(contentStorage.title).toBe("Walking Rates")
     expect(contentStorage.userSetTitle).toBe(true)
@@ -108,7 +109,7 @@ describe("WebView registration", () =>  {
     expect(tile._title).toBe("Microdata Portal")
     expect(tile.name).toBe("Microdata Portal")
     expect(getTileContentInfo(kWebViewTileType)!.getTitle(tile)).toBe("Microdata Portal")
-    expect(content?.url).toBe("https://codap-resources.concord.org/plugins/sdlc/plugin/index.html")
+    expect(content?.url).toBe("https://codap.concord.org/codap-resources/plugins/sdlc/plugin/index.html")
     expect(content?.isPlugin).toBe(true)
 
     const row = docContent.getRowByIndex(0) as IFreeTileRow
@@ -123,7 +124,7 @@ describe("WebView registration", () =>  {
 
     // Note: we do not convert the URL back to the relative one that is used by CODAPv2
     // this seems OK to do.
-    expect(contentStorage.currentGameUrl).toBe("https://codap-resources.concord.org/plugins/sdlc/plugin/index.html")
+    expect(contentStorage.currentGameUrl).toBe("https://codap.concord.org/codap-resources/plugins/sdlc/plugin/index.html")
   })
 
   it("imports/exports v2 Markov game view components", () => {
@@ -152,7 +153,7 @@ describe("WebView registration", () =>  {
     expect(tile._title).toBe("Markov")
     expect(tile.name).toBe("Markov")
     expect(getTileContentInfo(kWebViewTileType)!.getTitle(tile)).toBe("Markov")
-    expect(content?.url).toBe("https://codap-resources.concord.org/plugins/data-games/Markov/index.html")
+    expect(content?.url).toBe("https://codap.concord.org/codap-resources/plugins/data-games/Markov/index.html")
     expect(content?.isPlugin).toBe(true)
 
     const row = docContent.getRowByIndex(0) as IFreeTileRow
@@ -167,7 +168,7 @@ describe("WebView registration", () =>  {
 
     // Note: we do not convert the URL back to the relative one that is used by CODAPv2
     // this seems OK to do.
-    expect(contentStorage.currentGameUrl).toBe("https://codap-resources.concord.org/plugins/data-games/Markov/index.html")
+    expect(contentStorage.currentGameUrl).toBe("https://codap.concord.org/codap-resources/plugins/data-games/Markov/index.html")
   })
 
   it("imports/exports v2 guide view components with external url", () => {
@@ -235,7 +236,7 @@ describe("WebView registration", () =>  {
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
     const content = isWebViewModel(tile?.content) ? tile?.content : undefined
     expect(getTileContentInfo(kWebViewTileType)!.getTitle(tile)).toBe("Mammals Sample Guide")
-    expect(content?.url).toBe("https://codap-resources.concord.org/example-documents/guides/Mammals/mammals_getstarted.html")
+    expect(content?.url).toBe("https://codap.concord.org/codap-resources/example-documents/guides/Mammals/mammals_getstarted.html")
     expect(content?.isGuide).toBe(true)
 
     const row = docContent.getRowByIndex(0) as IFreeTileRow
@@ -247,7 +248,7 @@ describe("WebView registration", () =>  {
     expect(contentStorage.name).toBe("Mammals Sample Guide")
     expect(contentStorage.items).toBeDefined()
     expect(contentStorage.items[0].itemTitle).toBe("Get Started")
-    expect(contentStorage.items[0].url).toBe("https://codap-resources.concord.org/example-documents/guides/Mammals/mammals_getstarted.html")
+    expect(contentStorage.items[0].url).toBe("https://codap.concord.org/codap-resources/example-documents/guides/Mammals/mammals_getstarted.html")
   })
 
   it("imports/exports v2 guide view components of legacy documents", () => {
@@ -358,7 +359,7 @@ describe("WebView registration", () =>  {
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
     const content = isWebViewModel(tile?.content) ? tile?.content : undefined
     expect(getTileContentInfo(kWebViewTileType)!.getTitle(tile)).toBe("Getting Started")
-    expect(content?.url).toBe("https://codap-resources.concord.org/example-documents/guides/images/edc-oceans-of-data-logo.png")
+    expect(content?.url).toBe("https://codap.concord.org/codap-resources/example-documents/guides/images/edc-oceans-of-data-logo.png")
     expect(content?.isImage).toBe(true)
 
     const row = docContent.getRowByIndex(0) as IFreeTileRow
@@ -368,7 +369,7 @@ describe("WebView registration", () =>  {
 
     expect(hasOwnProperty(contentStorage, "name")).toBe(true)
     expect(contentStorage.name).toBe("Oceans of Data")
-    expect(contentStorage.URL).toBe("https://codap-resources.concord.org/example-documents/guides/images/edc-oceans-of-data-logo.png")
+    expect(contentStorage.URL).toBe("https://codap.concord.org/codap-resources/example-documents/guides/images/edc-oceans-of-data-logo.png")
   })
 
   it("imports/exports v2 image component view with image data", () => {
@@ -458,5 +459,61 @@ describe("WebView registration", () =>  {
     expect(contentStorage.currentGameName).toBe("Default Plugin Name")
     expect(contentStorage.title).toBe("Custom Plugin Title")
     expect(contentStorage.userSetTitle).toBe(true)
+  })
+
+  describe("WebView importer URL rewriting", () => {
+    function importWebViewWithUrl(url: string) {
+      const doc: ICodapV2DocumentJson = {
+        name: "test", guid: 1, id: 1, appName: "DG", appVersion: "2.0", appBuildNum: "0730",
+        lang: "en", idCount: 2, metadata: {},
+        components: [{
+          type: "DG.WebView", guid: 2, id: 2,
+          componentStorage: { title: "Test", URL: url, name: url, userSetTitle: false, cannotClose: false },
+          layout: { left: 0, top: 0, width: 400, height: 300, isVisible: true },
+          savedHeight: null
+        }],
+        contexts: [], globalValues: []
+      }
+      const v2Document = new CodapV2Document(doc)
+      const codapDoc = createCodapDocument()
+      const docContent = codapDoc.content!
+      docContent.setRowCreator(() => FreeTileRow.create())
+      const mockInsertTile = jest.fn((tileSnap: ITileModelSnapshotIn) => {
+        return docContent?.insertTileSnapshotInDefaultRow(tileSnap)
+      })
+      const tile = importV2Component({
+        v2Component: v2Document.components[0],
+        v2Document,
+        insertTile: mockInsertTile,
+        ...mockImportArgs
+      })!
+      const content = isWebViewModel(tile?.content) ? tile?.content : undefined
+      return content?.url
+    }
+
+    it("rewrites codap-resources.concord.org URLs to use the same-origin proxy", () => {
+      expect(importWebViewWithUrl("https://codap-resources.concord.org/images/test.png"))
+        .toBe(`${kCodapResourcesUrl}/images/test.png`)
+    })
+
+    it("rewrites codap3.concord.org/plugins/ URLs to use the same-origin proxy", () => {
+      expect(importWebViewWithUrl("https://codap3.concord.org/plugins/onboarding/index.html"))
+        .toBe(`${kCodapResourcesUrl}/plugins/onboarding/index.html`)
+    })
+
+    it("does not rewrite external URLs", () => {
+      expect(importWebViewWithUrl("https://example.com/my-page.html"))
+        .toBe("https://example.com/my-page.html")
+    })
+
+    it("does not rewrite data: URLs", () => {
+      expect(importWebViewWithUrl("data:image/png;base64,abc123"))
+        .toBe("data:image/png;base64,abc123")
+    })
+
+    it("upgrades http:// to https://", () => {
+      expect(importWebViewWithUrl("http://example.com/page.html"))
+        .toBe("https://example.com/page.html")
+    })
   })
 })

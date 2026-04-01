@@ -1,4 +1,4 @@
-import { kCodap3RootPluginsUrl, kRootDataGamesPluginUrl, kRootGuideUrl, kRootPluginsUrl } from "../../constants"
+import { kCodapResourcesUrl, kRootDataGamesPluginUrl, kRootGuideUrl, kRootPluginsUrl } from "../../constants"
 import {
   appendLangParam, getNameFromURL, kRelativeGuideRoot, kRelativePluginRoot, kRelativeURLRoot,
   normalizeUrlScheme, processWebViewUrl
@@ -11,11 +11,11 @@ const kTestUrls: Array<{ original: string, processed: string }> = [
   },
   {
     original: "../../../../extn/plugins/onboarding/",
-    processed: `${kCodap3RootPluginsUrl}/onboarding/index.html`
+    processed: `${kRootPluginsUrl}/onboarding/index.html`
   },
   {
     original: "../../../../extn/plugins/onboarding/onboarding_2.html",
-    processed: `${kCodap3RootPluginsUrl}/onboarding/onboarding_2.html`
+    processed: `${kRootPluginsUrl}/onboarding/onboarding_2.html`
   },
   {
     original: "https://test/",
@@ -40,7 +40,27 @@ const kTestUrls: Array<{ original: string, processed: string }> = [
   {
     original: "http://index.html",
     processed: "https://index.html"
-  }
+  },
+  // Absolute codap-resources.concord.org URLs are rewritten to use the same-origin proxy
+  {
+    original: "https://codap-resources.concord.org/plugins/Foo/index.html",
+    processed: `${kCodapResourcesUrl}/plugins/Foo/index.html`
+  },
+  // Absolute codap3.concord.org/plugins/ URLs are rewritten to use the same-origin proxy
+  {
+    original: "https://codap3.concord.org/plugins/onboarding/index.html",
+    processed: `${kCodapResourcesUrl}/plugins/onboarding/index.html`
+  },
+  // Relative /codap-resources/ URLs pass through unchanged (no double-rewrite)
+  {
+    original: `${kCodapResourcesUrl}/plugins/Foo/index.html`,
+    processed: `${kCodapResourcesUrl}/plugins/Foo/index.html`
+  },
+  // NOAA weather plugin is renamed in S3
+  {
+    original: "/plugins/NOAA-weather/index.html",
+    processed: `${kRootPluginsUrl}/noaa-codap-plugin/index.html`
+  },
 ]
 
 describe('WebView Utilities', () => {
