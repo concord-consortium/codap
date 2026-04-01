@@ -7,7 +7,7 @@ import { IDocumentModelSnapshot } from "../../models/document/document"
 import { IDocumentMetadata } from "../../models/document/document-metadata"
 import { IFreeTileInRowOptions } from "../../models/document/free-tile-row"
 import { safeJsonParse } from "../../utilities/js-utils"
-import { isGoogleSheetsUrl } from "../../utilities/urls"
+import { isGoogleSheetsUrl, safeParseUrl } from "../../utilities/urls"
 import { ICodapV2Case, isV2InternalContext } from "../../v2/codap-v2-data-context-types"
 import { ICodapV2DocumentJson, isCodapV2Document, kV2AppName } from "../../v2/codap-v2-types"
 
@@ -35,7 +35,7 @@ export function getExpectedContentType(mimeType?: string, url?: string) {
     csv: 'application/csv',
     txt: 'application/csv'
   }
-  const parsedURL = url ? new URL(url) : undefined
+  const parsedURL = url ? safeParseUrl(url) : undefined
   const path = parsedURL?.pathname
   if (path) {
     return extensionMap[path.replace(/.*\./g, '')]
@@ -234,7 +234,7 @@ export function resolveDocument(iDocContents: any, iMetadata: IDocumentMetadata)
     const metadata = iMetadata || {}
     const urlString = metadata.url || (metadata.filename ? `file:${metadata.filename}` : "")
     const expectedContentType = getExpectedContentType(metadata.contentType, urlString)
-    const url = urlString ? new URL(urlString) : undefined
+    const url = urlString ? safeParseUrl(urlString) : undefined
     const urlPath = url?.pathname
     const datasetName = urlPath ? urlPath.replace(/.*\//g, '').replace(/\..*/, '') : 'data'
     let contentType
