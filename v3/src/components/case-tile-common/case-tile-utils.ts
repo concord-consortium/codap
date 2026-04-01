@@ -111,6 +111,10 @@ export function createOrShowTableOrCardForDataset (
       if (content?.isTileHidden(existingTileId)) {
         content?.toggleNonDestroyableTileVisibility(existingTileId)
       }
+      const tileLayout = content?.getTileLayoutById(existingTileId)
+      if (isFreeTileLayout(tileLayout) && tileLayout.isMinimized) {
+        tileLayout.setMinimized(false)
+      }
       uiState.setFocusedTile(existingTileId)
       return content?.tileMap.get(existingTileId)
     } else if (content) {
