@@ -3,6 +3,7 @@
  * Returns undefined if the URL is invalid.
  */
 export function safeParseUrl(url: string): URL | undefined {
+  if (!url) return undefined
   try {
     const base = typeof window !== "undefined" ? window.location.origin : undefined
     return new URL(url, base)
