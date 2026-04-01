@@ -11,11 +11,11 @@ import { gLocale } from "../../utilities/translation/locale"
 import { RequestQueue } from "./request-queue"
 import { isWebViewModel } from "./web-view-model"
 
-function extractOrigin(url?: string) {
+export function extractOrigin(url?: string) {
   if (!url) return
-  // TODO It would probably be better to confirm that the url is legal before trying to create a URL from it
   try {
-    return new URL(url).origin
+    // Use window.location.origin as base so relative URLs (e.g. /codap-resources/...) resolve correctly
+    return new URL(url, window.location.origin).origin
   } catch (e) {
     debugLog(DEBUG_PLUGINS, `Could not determine origin from illegal url:`, url)
   }
