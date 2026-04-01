@@ -1,12 +1,13 @@
 import { urlParams } from "./utilities/url-params"
 
 function isLocalDev() {
-  return typeof window !== "undefined" &&
-    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+  if (typeof window === "undefined") return false
+  const hostname = window.location.hostname
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1" || hostname === "0.0.0.0"
 }
 
-// Exported as a function so tests can mock it via jest.mock() to exercise both
-// the deployed ("/codap-resources") and localhost ("https://codap.concord.org/codap-resources") code paths.
+// Exported as a function for clarity. Note: kCodapResourcesUrl and derived constants are cached at module
+// load time. Tests that need to override the base URL must mock all derived constants (see *-deployed.test.ts).
 export function getCodapResourcesUrl() {
   // Use codap.concord.org (not codap3) so URLs continue to work when codap3 migrates to codap.concord.org
   return isLocalDev()
