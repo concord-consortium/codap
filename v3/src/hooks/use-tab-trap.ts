@@ -27,18 +27,18 @@ export function useTabTrap({ containerRef, getAdditionalElements }: UseTabTrapOp
     const container = containerRef.current
     if (!container) return
 
-    const focusable = Array.from(container.querySelectorAll<HTMLElement>(kFocusableSelector))
-      .filter(el => el.offsetParent !== null
+    const isTabbable = (el: HTMLElement) =>
+      el.offsetParent !== null
         && !el.closest('[aria-hidden="true"]')
-        && el.tabIndex !== -1)
+        && !el.closest("[inert]")
+        && el.tabIndex !== -1
+
+    const focusable = Array.from(container.querySelectorAll<HTMLElement>(kFocusableSelector))
+      .filter(isTabbable)
 
     // Append any additional elements (e.g. resize handles outside the container)
     const extras = getAdditionalElements?.() ?? []
-    const allTabbable = [...focusable, ...extras.filter(el =>
-      el.offsetParent !== null
-        && !el.closest('[aria-hidden="true"]')
-        && el.tabIndex !== -1
-    )]
+    const allTabbable = [...focusable, ...extras.filter(isTabbable)]
 
     if (allTabbable.length === 0) return
 

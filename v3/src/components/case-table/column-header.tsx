@@ -1,7 +1,17 @@
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { AttributeHeader } from "../case-tile-common/attribute-header"
 import { kIndexColumnKey } from "../case-tile-common/case-tile-types"
 import { TRenderHeaderCellProps } from "./case-table-types"
+
+// RDG's shouldFocusGrid logic always sets tabindex="0" on the first header cell (index 0).
+// Since that cell is inert (the index column header), the grid has no focusable entry point.
+// Transfer tabindex="0" to the next sibling header cell so the grid remains reachable via Tab.
+function transferTabIndex(inertCell: HTMLElement) {
+  if (inertCell.getAttribute("tabindex") === "0") {
+    const next = inertCell.nextElementSibling as HTMLElement | null
+    if (next?.tabIndex === -1) next.tabIndex = 0
+  }
+}
 
 function getDividerBounds(containerBounds: DOMRect, cellBounds: DOMRect) {
   const kTableDividerWidth = 7
@@ -31,6 +41,7 @@ export function ColumnHeader(props: TRenderHeaderCellProps) {
     // `inert` prevents focus regardless of RDG resetting tabIndex on re-renders.
     if (_cellElt && props.column.key === kIndexColumnKey) {
       _cellElt.inert = true
+      transferTabIndex(_cellElt)
     }
     setCellElt(_cellElt)
     return _cellElt
@@ -55,6 +66,16 @@ export function ColumnHeader(props: TRenderHeaderCellProps) {
   const handleCloseMenu = useCallback(() => {
     cellElt?.classList.remove("menu-open")
   }, [cellElt])
+
+  // Watch for RDG re-renders that reset tabindex="0" on the inert index column header.
+  // When detected, transfer it to the next sibling so the grid stays reachable via Tab.
+  useEffect(() => {
+    if (!cellElt || props.column.key !== kIndexColumnKey) return
+
+    const observer = new MutationObserver(() => transferTabIndex(cellElt))
+    observer.observe(cellElt, { attributes: true, attributeFilter: ["tabindex"] })
+    return () => observer.disconnect()
+  }, [cellElt, props.column.key])
 
   return <AttributeHeader attributeId={props.column.key}
             allowTwoLines={true}

@@ -12,8 +12,7 @@ export function MenuBar() {
   useRegisterSection("menubar", menuBarRef, 0)
 
   return (
-    <div id={kMenuBarElementId} className="codap-menu-bar" data-testid="codap-menu-bar"
-      ref={menuBarRef}>
+    <div id={kMenuBarElementId} className="codap-menu-bar" data-testid="codap-menu-bar" ref={menuBarRef}>
     </div>
   )
 }
