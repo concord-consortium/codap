@@ -23,6 +23,13 @@ import "./tool-shelf.scss"
 
 const kScrollDebounceMs = 400
 
+export function getShortcutKey(index: number): string | undefined {
+  if (index < 9) return String(index + 1) // 1-9
+  if (index === 9) return "0" // 0
+  if (index < 36) return String.fromCharCode(97 + index - 10) // a-z
+  return undefined
+}
+
 export const TilesListShelfButton = observer(function TilesListShelfButton() {
   const documentContent = useDocumentContent()
   const tilesArr = documentContent?.tileMap ? Array.from(documentContent.tileMap.values()) : []
@@ -133,6 +140,43 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
     }
   }, [isOpen, onClose])
 
+  // Compute display data for menu items: duplicate disambiguation, type labels, shortcut keys
+  const visibleTiles = tilesArr.filter(tile => !isTileHidden(tile))
+  const nameCounts = new Map<string, number>()
+  const tileData = visibleTiles.map(tile => {
+    const tileType = tile.content.type
+    const tileInfo = getTileContentInfo(tileType)
+    const title = tileInfo?.getTitle(tile) ?? ""
+    const content = tile.content
+    const isPlugin = isWebViewModel(content) && (content.isPlugin || content.isPluginCandidate)
+    const typeLabel = getTileTypeLabel(isPlugin ? "Plugin" : tileType)
+    const key = `${title}|||${typeLabel}`
+    const count = (nameCounts.get(key) ?? 0) + 1
+    nameCounts.set(key, count)
+    return { tile, title, typeLabel, tileType, isPlugin, duplicateIndex: count }
+  })
+
+  const shortcutMap = new Map<string, string>()
+  const displayItems = tileData.map((dt, index) => {
+    const key = `${dt.title}|||${dt.typeLabel}`
+    const total = nameCounts.get(key) ?? 1
+    const displayTitle = total > 1 ? `${dt.title} (${dt.duplicateIndex})` : dt.title
+    const shortcutKey = getShortcutKey(index)
+    if (shortcutKey) shortcutMap.set(shortcutKey, dt.tile.id)
+    return { ...dt, displayTitle, shortcutKey }
+  })
+
+  const handleMenuKeyDown = (e: KeyboardEvent) => {
+    const key = e.key.toLowerCase()
+    const tileId = shortcutMap.get(key)
+    if (tileId) {
+      e.preventDefault()
+      e.stopPropagation()
+      handleMenuSelectTile(tileId)
+      onClose()
+    }
+  }
+
   const placement = persistentState.toolbarPosition === "Top" ? "bottom-end" : "right-end"
   return (
     <>
@@ -151,21 +195,14 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
           />
         </MenuButton>
         <MenuList className="tool-shelf-menu-list top-menu tiles-list" data-testid="tiles-list-menu"
-            onFocus={handleMenuItemFocus}>
-          {tilesArr?.filter(tile => !isTileHidden(tile)).map((tile) => {
-            const tileType = tile.content.type
-            const content = tile.content
-            const isPlugin = isWebViewModel(content) && (content.isPlugin || content.isPluginCandidate)
+            onFocus={handleMenuItemFocus} onKeyDown={handleMenuKeyDown}>
+          {displayItems.map((item) => {
+            const { tile, tileType, isPlugin, displayTitle, typeLabel, shortcutKey } = item
             const _Icon = getTileComponentIcon(tileType)
             const Icon = isPlugin ? PluginsIcon : _Icon ?? WebViewIcon
             const iconClass = isPlugin ? "Plugin" : _Icon ? tileType : "WebView"
-            const tileInfo = getTileContentInfo(tileType)
-            const title = tileInfo?.getTitle(tile)
-            const typeLabel = getTileTypeLabel(isPlugin ? "Plugin" : tileType)
-            const accessibleName = title ? `${title}, ${typeLabel}` : typeLabel
             return (
-              <MenuItem key={tile?.id} data-testid="tiles-list-menu-item" className="tool-shelf-menu-item"
-                  aria-label={accessibleName}
+              <MenuItem key={tile.id} data-testid="tiles-list-menu-item" className="tool-shelf-menu-item"
                   onClick={()=>handleMenuSelectTile(tile.id) }
                   onFocus={()=>handleFocus(tile.id)} // Handle focus similar to pointer over
                   onBlur={()=>handleBlur()} // Handle blur similar to pointer leave
@@ -175,7 +212,12 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
                   className={`menu-icon ${iconClass}`}
                   data-testid="tile-list-menu-icon"
                 />
-                {title}
+                <span className="tile-menu-item-label">{displayTitle}, {typeLabel}</span>
+                {shortcutKey &&
+                  <span className="tile-menu-shortcut-key" aria-label={`shortcut ${shortcutKey}`}>
+                    {shortcutKey}
+                  </span>
+                }
               </MenuItem>
             )
           })}

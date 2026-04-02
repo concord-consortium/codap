@@ -295,6 +295,19 @@ $tool-shelf-border-width: 1px;
         width: 18px;
         margin-right: 6px;
       }
+
+      .tile-menu-item-label {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .tile-menu-shortcut-key {
+        font-family: monospace;
+        font-size: 12px;
+        margin-inline-start: 20px;
+      }
     }
   }
 }
