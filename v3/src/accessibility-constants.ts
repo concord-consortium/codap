@@ -9,9 +9,9 @@ export const kTileTitleBarAriaRole = "toolbar"
 export const kInspectorPaletteAriaRole = "group"
 
 // Keyboard shortcut keys (tinykeys format)
-export const kSectionNextShortcut = "Control+."
-export const kSectionPrevShortcut = "Shift+Control+."
-export const kTileNextShortcut = "Control+;"
-export const kTilePrevShortcut = "Shift+Control+;"
+export const kSectionNextShortcut = "Control+Period"
+export const kSectionPrevShortcut = "Shift+Control+Period"
+export const kTileNextShortcut = "Control+Semicolon"
+export const kTilePrevShortcut = "Shift+Control+Semicolon"
 export const kTileInspectorToggleShortcut = "Control+\\"
 export const kTilesMenuShortcut = "Control+'"
