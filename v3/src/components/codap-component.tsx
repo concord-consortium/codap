@@ -131,8 +131,8 @@ export const CodapComponent = observer(function CodapComponent(props: IProps) {
                     onMoveTilePointerDown={onMoveTilePointerDown}/>
               )}
               <Component tile={tile} isMinimized={isMinimized} />
+              <InspectorPanelWrapper tile={tile} isMinimized={isMinimized} />
             </div>
-            <InspectorPanelWrapper tile={tile} isMinimized={isMinimized} />
           </CodapComponentContext.Provider>
         </TileSelectionContext.Provider>
       </TileInspectorContext.Provider>

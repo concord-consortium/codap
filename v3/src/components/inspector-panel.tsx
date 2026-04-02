@@ -4,7 +4,6 @@ import { Button, Menu, MenuTrigger, Popover, Tooltip, TooltipTrigger } from "rea
 
 import { kInspectorPaletteAriaRole } from "../accessibility-constants"
 import { useFocusTrap } from "../hooks/use-focus-trap"
-import { useTabTrap } from "../hooks/use-tab-trap"
 import { useTileModelContext } from "../hooks/use-tile-model-context"
 import { returnToTileContent } from "../hooks/use-tile-navigation"
 import { useMouseTooltipRef } from "../hooks/use-mouse-tooltip-ref"
@@ -69,8 +68,6 @@ export const InspectorPanel = forwardRef<HTMLDivElement, IProps>(function Inspec
     persistenceKey: toolbarPersistenceKey
   })
 
-  const { onKeyDown: handleTabTrap } = useTabTrap({ containerRef: panelRef })
-
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
       // Don't handle Escape if a palette or menu is open. Let those handle it first.
@@ -84,11 +81,12 @@ export const InspectorPanel = forwardRef<HTMLDivElement, IProps>(function Inspec
       return
     }
 
-    // Don't trap Tab if a palette is open. Palettes have their own focus trap.
-    if (e.key === "Tab" && panelRef.current?.querySelector(".codap-inspector-palette-wrapper")) return
-
-    handleTabTrap(e)
-  }, [handleTabTrap, tileId])
+    // When a palette is open, stop Tab from reaching the tile's tab trap.
+    // The palette has its own focus trap via sentinels.
+    if (e.key === "Tab" && panelRef.current?.querySelector(".codap-inspector-palette-wrapper")) {
+      e.stopPropagation()
+    }
+  }, [tileId])
 
   const classes = clsx("inspector-panel", component, width ?? "normal")
   return (show
