@@ -22,10 +22,11 @@ $modal-width: 350px;
       display: flex;
       align-items: center;
       justify-content: center;
+      margin-left: 5px;
     }
 
     .codap-header-title-v3 {
-      padding-left: 5px;
+      padding-left: 3px;
       width: calc(100% - $header-height);
       height: $header-height;
       font-size: 14px;
@@ -41,6 +42,7 @@ $modal-width: 350px;
 
     button {
       top: 0;
+      right: 0;
     }
   }
 
@@ -49,10 +51,24 @@ $modal-width: 350px;
     padding: 0 8px;
     box-sizing: border-box;
     width: inherit;
+
+    .chakra-numberinput {
+      box-sizing: content-box;
+    }
   }
 
   .chakra-modal__footer {
     background-color: white;
+    margin-top: 0;
+    padding-inline-end: 10px;
+
+    button {
+      border: solid 1px vars.$accent;
+      cursor: pointer;
+      font-size: 14px;
+      height: 30px;
+      padding: 10px;
+    }
   }
 
   .chakra-form__label {

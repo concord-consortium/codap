@@ -5,7 +5,7 @@ $button-width: 34px;
 
 .component-title-bar {
   align-items: center;
-  background-color: vars.$title-bar-color;
+  background-color: vars.$accent-light-3;
   border-radius: vars.$border-radius-top-corners;
   container-name: titleBar;
   container-type: inline-size;
@@ -16,11 +16,11 @@ $button-width: 34px;
   width: 100%;
 
   &.focusTile {
-    background-color: vars.$title-bar-focus-color;
+    background-color: vars.$accent-light-1;
 
     .component-title-bar-button {
       &:hover {
-        background-color: vars.$title-bar-color;
+        background-color: vars.$accent-light-3;
       }
 
       &:active {
@@ -155,7 +155,7 @@ $button-width: 34px;
     }
 
     &:hover {
-      background-color: vars.$title-bar-color;
+      background-color: vars.$accent-light-3;
     }
 
     &:focus-visible {
@@ -197,7 +197,7 @@ $button-width: 34px;
     padding: 0;
 
     &:hover {
-      background-color: vars.$title-bar-focus-color;
+      background-color: vars.$accent-light-1;
     }
 
     &:active {
