@@ -11,6 +11,8 @@ const kAbsoluteUrlRewrites: Array<[RegExp, string]> = [
   [/^https?:\/\/codap-resources\.concord\.org\/(.+)$/, `${kCodapResourcesUrl}/$1`],
   // Old codap3.concord.org/plugins/ URLs → /codap-resources/plugins/
   [/^https?:\/\/codap3\.concord\.org\/plugins\/(.+)$/, `${kCodapResourcesUrl}/plugins/$1`],
+  // Documents saved on localhost use codap.concord.org/codap-resources/... which won't work on deployed
+  [/^https?:\/\/codap\.concord\.org\/codap-resources\/(.+)$/, `${kCodapResourcesUrl}/$1`],
 ]
 
 // Old/new plugin URL mappings stored as tuples of [oldUrl, newUrl] so that we can use
@@ -26,18 +28,26 @@ const kPartiallyReplacedUrls: Array<[RegExp, string]> = [
   [/\/plugins\/NOAA-weather\/(.+)$/, `${kRootPluginsUrl}/noaa-codap-plugin/${kReplaceToken}`],
 ]
 
+/**
+ * Rewrite absolute URLs from old documents to use the same-origin proxy path.
+ * Used by both processWebViewUrl (V2 import) and preProcessSnapshot (V3 load).
+ */
+export function rewriteAbsoluteUrl(url: string): string {
+  for (const [urlRegex, replacement] of kAbsoluteUrlRewrites) {
+    const rewritten = url.replace(urlRegex, replacement)
+    if (rewritten !== url) {
+      return rewritten
+    }
+  }
+  return url
+}
+
 export function processWebViewUrl(url: string) {
   // First, allow any URL modifications from url params
   let updatedUrl = getDataInteractiveUrl(url)
 
   // Rewrite absolute URLs from old documents to use same-origin proxy path
-  for (const [urlRegex, replacement] of kAbsoluteUrlRewrites) {
-    const rewritten = updatedUrl.replace(urlRegex, replacement)
-    if (rewritten !== updatedUrl) {
-      updatedUrl = rewritten
-      break
-    }
-  }
+  updatedUrl = rewriteAbsoluteUrl(updatedUrl)
 
   // Many plugins were hosted on GitHub pages at http://concord-consortium.github.io/codap-data-interactives/
   // or other sites but are now hosted on s3, so we have to change the URL to point to the new location.
@@ -86,23 +96,29 @@ export function processWebViewUrl(url: string) {
  * Skips data: URLs and empty strings.
  */
 export function appendLangParam(url: string, lang: string): string {
-  if (!url || url.startsWith("data:")) return url
-  try {
-    const parsed = new URL(url)
-    parsed.searchParams.set("lang", lang)
-    return parsed.toString()
-  } catch {
-    // For relative or malformed URLs, fall back to simple string manipulation
-    const langParam = `lang=${lang}`
-    // Split off hash fragment so we don't accidentally drop it
-    const hashIndex = url.indexOf("#")
-    const [base, hash] = hashIndex >= 0 ? [url.slice(0, hashIndex), url.slice(hashIndex)] : [url, ""]
-    // Replace existing lang param if present
-    const replacedBase = base.replace(/([?&])lang=[^&]*/, `$1${langParam}`)
-    if (replacedBase !== base) return replacedBase + hash
-    // No existing lang param — append before the hash
-    return base + (base.includes("?") ? "&" : "?") + langParam + hash
+  const trimmedUrl = url?.trim()
+  if (!trimmedUrl || trimmedUrl.startsWith("data:")) return url
+  if (/^https?:\/\//.test(trimmedUrl)) {
+    try {
+      const parsed = new URL(trimmedUrl)
+      parsed.searchParams.set("lang", lang)
+      return parsed.toString()
+    } catch {
+      // fall through to string manipulation
+    }
   }
+  // For relative or malformed URLs, use string manipulation to preserve the path form
+  const langParam = `lang=${lang}`
+  // Split off hash fragment so we don't accidentally drop it
+  const hashIndex = trimmedUrl.indexOf("#")
+  const [base, hash] = hashIndex >= 0
+    ? [trimmedUrl.slice(0, hashIndex), trimmedUrl.slice(hashIndex)]
+    : [trimmedUrl, ""]
+  // Replace existing lang param if present
+  const replacedBase = base.replace(/([?&])lang=[^&]*/, `$1${langParam}`)
+  if (replacedBase !== base) return replacedBase + hash
+  // No existing lang param — append before the hash
+  return base + (base.includes("?") ? "&" : "?") + langParam + hash
 }
 
 export function normalizeUrlScheme(url: string): string {

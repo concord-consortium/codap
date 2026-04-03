@@ -9,7 +9,7 @@ import { safeGetParent } from "../../utilities/mst-utils"
 import { t } from "../../utilities/translation/translate"
 import { getDataInteractiveUrl, getGuideIndex } from "../../utilities/url-params"
 import { kWebViewTileType, WebViewSubType, webViewSubTypes } from "./web-view-defs"
-import { getNameFromURL } from "./web-view-utils"
+import { getNameFromURL, rewriteAbsoluteUrl } from "./web-view-utils"
 
 export const kDefaultAllowEmptyAttributeDeletion = true
 export const kDefaultBlockAPIRequestsWhileEditing = false
@@ -71,8 +71,9 @@ export const WebViewModel = TileContentModel
   .preProcessSnapshot(snap => {
     let newSnap = snap
     const { url, ...others } = snap
-    // support url param processing for urls in saved documents
-    const processedUrl = url ? getDataInteractiveUrl(url) : undefined
+    // Rewrite cross-origin resource URLs to use the same-origin proxy path and apply
+    // url param overrides for urls in saved documents.
+    const processedUrl = url ? rewriteAbsoluteUrl(getDataInteractiveUrl(url)) : undefined
     if (processedUrl && url !== processedUrl) {
       newSnap = { ...others, url: processedUrl }
     }

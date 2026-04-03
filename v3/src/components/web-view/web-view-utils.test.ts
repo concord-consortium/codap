@@ -203,4 +203,10 @@ describe("appendLangParam", () => {
     expect(appendLangParam("../plugin/index.html?lang=en#section", "es"))
       .toBe("../plugin/index.html?lang=es#section")
   })
+  it("trims whitespace from URLs", () => {
+    expect(appendLangParam("  https://example.com/plugin/index.html  ", "es"))
+      .toBe("https://example.com/plugin/index.html?lang=es")
+    expect(appendLangParam("  /codap-resources/plugins/Sampler/index.html  ", "es"))
+      .toBe("/codap-resources/plugins/Sampler/index.html?lang=es")
+  })
 })

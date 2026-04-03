@@ -1,9 +1,27 @@
 import iframePhone from "iframe-phone"
 import { getSnapshot } from "mobx-state-tree"
+import { kCodapResourcesUrl } from "../../constants"
 import { setUrlParams } from "../../utilities/url-params"
 import { WebViewModel } from "./web-view-model"
 
 describe("WebViewContentModel", () => {
+  it("rewrites legacy cross-origin URLs in preProcessSnapshot", () => {
+    setUrlParams("")
+    // codap-resources.concord.org → kCodapResourcesUrl
+    const legacyUrl = "https://codap-resources.concord.org/plugins/Sampler/index.html"
+    const webView = WebViewModel.create({ url: legacyUrl })
+    expect(webView.url).toBe(`${kCodapResourcesUrl}/plugins/Sampler/index.html`)
+
+    // codap.concord.org/codap-resources (localhost-saved) → kCodapResourcesUrl
+    const localhostUrl = "https://codap.concord.org/codap-resources/plugins/Sampler/index.html"
+    const webView2 = WebViewModel.create({ url: localhostUrl })
+    expect(webView2.url).toBe(`${kCodapResourcesUrl}/plugins/Sampler/index.html`)
+
+    // Non-matching URLs pass through unchanged
+    const otherUrl = "https://example.com/some-plugin/index.html"
+    const webView3 = WebViewModel.create({ url: otherUrl })
+    expect(webView3.url).toBe(otherUrl)
+  })
   it("performs url parameter processing in preProcessSnapshot", () => {
     const originalUrl = "http://example.com"
     const dataInteractiveUrl = "http://data-interactive-url.com"

@@ -112,7 +112,7 @@ describe("DataInteractive ComponentHandler WebView and Game", () => {
   })
 
   it("create, get, and update imageComponentView work", () => {
-    const imageUrl = "https://codap-resources.concord.org/images/walkingrates-50-percent.png"
+    const imageUrl = "https://example.com/images/walkingrates-50-percent.png"
     const tileCountBefore = documentContent.tileMap.size
 
     // Create image tile with URL
@@ -143,7 +143,7 @@ describe("DataInteractive ComponentHandler WebView and Game", () => {
     }, { type: kV2ImageComponentViewType })
 
     // Update URL
-    const newUrl = "https://codap-resources.concord.org/images/other-image.png"
+    const newUrl = "https://example.com/images/other-image.png"
     expect(handler.update?.({ component: tile }, { URL: newUrl }).success).toBe(true)
     expect(content.url).toBe(newUrl)
 
