@@ -49,7 +49,9 @@ export function createTableOrCardForDataset (
 
   const caseTableTileId = sharedMetadata.caseTableTileId
   if (caseTableTileId) {
-    content?.toggleNonDestroyableTileVisibility(caseTableTileId)
+    if (content?.isTileHidden(caseTableTileId)) {
+      content?.toggleNonDestroyableTileVisibility(caseTableTileId)
+    }
     return
   }
 
@@ -102,11 +104,16 @@ export function createOrShowTableOrCardForDataset (
   if (!sharedDataSet || !metadata) return
 
   const existingTileId = metadata.lastShownTableOrCardTileId
+    || (tileType === kCaseTableTileType ? metadata.caseTableTileId : metadata.caseCardTileId)
   if (existingTileId) { // We already have a case card/table so make sure it's visible and has focus
     const existingTile = content?.getTile(existingTileId)
     if (existingTile?.content.type === tileType) {
       if (content?.isTileHidden(existingTileId)) {
         content?.toggleNonDestroyableTileVisibility(existingTileId)
+      }
+      const tileLayout = content?.getTileLayoutById(existingTileId)
+      if (isFreeTileLayout(tileLayout) && tileLayout.isMinimized) {
+        tileLayout.setMinimized(false)
       }
       uiState.setFocusedTile(existingTileId)
       return content?.tileMap.get(existingTileId)
