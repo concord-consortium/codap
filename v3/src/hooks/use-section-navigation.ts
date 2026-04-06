@@ -83,7 +83,7 @@ export function useSectionNavigation() {
       return
     }
 
-    // Last resort: focus the root element itself
+    // Last resort: make the container itself focusable so focus isn't lost entirely
     if (rootEl.tabIndex < 0) {
       rootEl.setAttribute("tabindex", "-1")
     }
@@ -118,9 +118,10 @@ export function useSectionNavigation() {
     focusSection(nextIndex)
   }, [focusSection, getSortedSections, saveCurrentFocus])
 
-  // Prevent Tab from leaving the menu bar and tool shelf sections.
-  // Per the navigation model, Tab never crosses section boundaries — only Ctrl+. does.
-  // The tile area is excluded here because it has its own per-tile tab trapping.
+  // Prevent Tab/Shift+Tab from moving focus within or out of the menu bar and tool shelf.
+  // Arrow keys handle navigation between focusable items within these sections;
+  // Ctrl+. / Shift+Ctrl+. moves focus between sections.
+  // The tile area is excluded because it has its own per-tile tab trapping.
   useEffect(() => {
     const handleTab = (e: KeyboardEvent) => {
       if (e.key !== "Tab" || e.ctrlKey || e.altKey || e.metaKey) return

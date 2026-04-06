@@ -6,6 +6,7 @@ import { kTileAriaRole } from "../accessibility-constants"
 import { CodapComponentContext } from "../hooks/use-codap-component-context"
 import { useTabTrap } from "../hooks/use-tab-trap"
 import { TileInspectorContent, TileInspectorContext } from "../hooks/use-tile-inspector-context"
+import { clearLastFocusedForTile } from "../hooks/use-tile-navigation"
 import { TileModelContext } from "../hooks/use-tile-model-context"
 import {
   FocusIgnoreEventType, FocusIgnoreFn, ITileSelection, TileSelectionContext
@@ -92,6 +93,9 @@ export const CodapComponent = observer(function CodapComponent(props: IProps) {
     resizeBtn.addEventListener("keydown", handler)
     return () => resizeBtn.removeEventListener("keydown", handler)
   }, [handleTabTrap])
+
+  // Clean up last-focused tracking when tile unmounts
+  useEffect(() => () => clearLastFocusedForTile(tile.id), [tile.id])
 
   const focused = uiState.isFocusedTile(tile.id) || uiState.isHoveredTile(tile.id)
 

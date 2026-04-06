@@ -66,7 +66,7 @@ context("Keyboard Navigation", () => {
       // Ctrl+; should move to the next tile
       cy.realPress(["Control", ";"])
       cy.focused().closest(".codap-component").should("exist")
-        .and("not.have.attr", "data-testid", "codap-table")
+        .invoke("attr", "data-testid").should("not.match", /table$/)
     })
 
     it("cycles backward with Shift+Ctrl+;", () => {
@@ -160,7 +160,7 @@ context("Keyboard Navigation", () => {
   })
 
   describe("Toolbar clamping", () => {
-    it("does not wrap arrow key navigation in the tool shelf", () => {
+    it("does not wrap arrow key navigation at the start of the tool shelf", () => {
       // Focus the first button in the tool shelf
       cy.get("[data-testid=tool-shelf]").find("button")
         .filter((_, el) => !Cypress.$(el).closest(".tool-shelf-menu-list").length)
@@ -170,6 +170,17 @@ context("Keyboard Navigation", () => {
       // ArrowLeft from the first item should stay on the first item
       cy.realPress("ArrowLeft")
       cy.get("@firstButton").should("have.focus")
+    })
+
+    it("does not wrap arrow key navigation at the end of the tool shelf", () => {
+      cy.get("[data-testid=tool-shelf]").find("button")
+        .filter((_, el) => !Cypress.$(el).closest(".tool-shelf-menu-list").length)
+        .last().as("lastButton")
+      cy.get("@lastButton").focus()
+
+      // ArrowRight from the last item should stay on the last item
+      cy.realPress("ArrowRight")
+      cy.get("@lastButton").should("have.focus")
     })
   })
 })

@@ -34,10 +34,10 @@ function getTilesInVisualOrder(): string[] {
 // Module-level Map so exported functions can access last-focused state
 const lastFocusedPerTile = new Map<string, HTMLElement>()
 
-/**
- * Moves DOM focus to the first focusable element within a tile's .codap-component.
- * Useful when programmatically selecting a tile (e.g. from the Tiles menu).
- */
+export function clearLastFocusedForTile(tileId: string) {
+  lastFocusedPerTile.delete(tileId)
+}
+
 /**
  * Moves DOM focus to the first focusable element within a tile's .codap-component.
  * Does not attempt to restore last-focused element.
@@ -53,6 +53,7 @@ export function focusTileContent(tileId: string) {
     return
   }
 
+  // Last resort: make the container itself focusable so focus isn't lost entirely
   const target = codapComponent ?? tileEl
   if (target.tabIndex < 0) {
     target.setAttribute("tabindex", "-1")
@@ -77,7 +78,15 @@ export function returnToTileContent(tileId: string) {
   } else {
     if (lastFocused) lastFocusedPerTile.delete(tileId)
     const firstFocusable = codapComponent.querySelector<HTMLElement>(kFocusableSelector)
-    ;(firstFocusable ?? codapComponent).focus()
+    if (firstFocusable) {
+      firstFocusable.focus()
+    } else {
+      // Last resort: make the container itself focusable so focus isn't lost entirely
+      if (codapComponent.tabIndex < 0) {
+        codapComponent.setAttribute("tabindex", "-1")
+      }
+      codapComponent.focus()
+    }
   }
 }
 
@@ -102,20 +111,7 @@ export function useTileNavigation() {
     // Clean up stale entry if restore failed
     if (lastFocused) lastFocusedPerTile.delete(tileId)
 
-    // Fall back to first focusable element in the tile's .codap-component
-    const codapComponent = tileEl.querySelector<HTMLElement>(".codap-component")
-    const firstFocusable = codapComponent?.querySelector<HTMLElement>(kFocusableSelector)
-    if (firstFocusable) {
-      firstFocusable.focus()
-      return
-    }
-
-    // Last resort: focus the codap-component or tile itself
-    const target = codapComponent ?? tileEl
-    if (target.tabIndex < 0) {
-      target.setAttribute("tabindex", "-1")
-    }
-    target.focus()
+    focusTileContent(tileId)
   }, [])
 
   const saveCurrentTileFocus = useCallback(() => {
