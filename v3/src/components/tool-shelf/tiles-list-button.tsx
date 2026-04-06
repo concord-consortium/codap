@@ -160,7 +160,8 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
   const displayItems = tileData.map((dt, index) => {
     const key = `${dt.title}|||${dt.typeLabel}`
     const total = nameCounts.get(key) ?? 1
-    const displayTitle = total > 1 ? `${dt.title} (${dt.duplicateIndex})` : dt.title
+    const suffix = total > 1 ? `(${dt.duplicateIndex})` : ""
+    const displayTitle = [dt.title, suffix].filter(Boolean).join(" ")
     const shortcutKey = getShortcutKey(index)
     if (shortcutKey) shortcutMap.set(shortcutKey, dt.tile.id)
     return { ...dt, displayTitle, shortcutKey }
@@ -212,7 +213,9 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
                   className={`menu-icon ${iconClass}`}
                   data-testid="tile-list-menu-icon"
                 />
-                <span className="tile-menu-item-label">{displayTitle}, {typeLabel}</span>
+                <span className="tile-menu-item-label">
+                  {displayTitle ? `${displayTitle}, ${typeLabel}` : typeLabel}
+                </span>
                 {shortcutKey &&
                   <span className="tile-menu-shortcut-key" aria-label={`shortcut ${shortcutKey}`}>
                     {shortcutKey}
