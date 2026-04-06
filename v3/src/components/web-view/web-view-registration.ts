@@ -205,7 +205,7 @@ function importWebView(args: V2TileImportArgs) {
   // create webView model
   // Note: a renamed WebView has the componentStorage.name set to the URL,
   // only the componentStorage.title is updated
-  return addWebViewSnapshot(args, name, { url: URL })
+  return addWebViewSnapshot(args, name, { url: processWebViewUrl(URL) })
 }
 registerV2TileImporter("DG.WebView", importWebView)
 
