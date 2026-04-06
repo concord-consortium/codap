@@ -28,6 +28,7 @@ export interface IProps extends ITileBaseProps {
   onMinimizeTile?: () => void
   onCloseTile: (tileId: string) => void
   onMoveTilePointerDown?: (event: React.PointerEvent) => void
+  onTabTrapReady?: (handler: (e: React.KeyboardEvent) => void) => void
 }
 
 class TileSelectionHandler implements ITileSelection {
@@ -65,7 +66,7 @@ class TileSelectionHandler implements ITileSelection {
 }
 
 export const CodapComponent = observer(function CodapComponent(props: IProps) {
-  const { tile, hideTitleBar, isMinimized, onMinimizeTile, onCloseTile, onMoveTilePointerDown } = props
+  const { tile, hideTitleBar, isMinimized, onMinimizeTile, onCloseTile, onMoveTilePointerDown, onTabTrapReady } = props
   const info = getTileComponentInfo(tile.content.type)
   const codapComponentRef = useRef<HTMLDivElement | null>(null)
   // Include the resize handle (rendered outside .codap-component by FreeTileComponent) in the tab cycle
@@ -79,20 +80,11 @@ export const CodapComponent = observer(function CodapComponent(props: IProps) {
     getAdditionalElements: getResizeHandle
   })
 
-  // Attach the tab trap to the resize handle (which lives outside .codap-component in the DOM)
-  // so that Tab from the resize handle wraps back into the tile content.
+  // Expose the tab trap handler to the parent so it can be passed as a prop
+  // to the resize handle (which lives outside .codap-component in the DOM).
   useEffect(() => {
-    const tileEl = codapComponentRef.current?.closest(".free-tile-component")
-    const resizeBtn = tileEl?.querySelector<HTMLElement>(".component-resize-button")
-    if (!resizeBtn) return
-
-    const handler = (e: KeyboardEvent) => {
-      // Cast is safe. handleTabTrap only uses standard KeyboardEvent properties
-      handleTabTrap(e as unknown as React.KeyboardEvent)
-    }
-    resizeBtn.addEventListener("keydown", handler)
-    return () => resizeBtn.removeEventListener("keydown", handler)
-  }, [handleTabTrap])
+    onTabTrapReady?.(handleTabTrap)
+  }, [handleTabTrap, onTabTrapReady])
 
   // Clean up last-focused tracking when tile unmounts
   useEffect(() => () => clearLastFocusedForTile(tile.id), [tile.id])

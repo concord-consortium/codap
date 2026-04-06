@@ -70,7 +70,9 @@ export const InspectorPanel = forwardRef<HTMLDivElement, IProps>(function Inspec
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
-      // Don't handle Escape if a palette or menu is open. Let those handle it first.
+      // Don't handle Escape if a palette is open. Let the palette handle it first.
+      // (Menus don't need a guard because React Aria renders them in a portal
+      // outside this panel's DOM tree. Their Escape events don't bubble here.)
       const panel = panelRef.current
       if (!panel) return
       if (panel.querySelector(".codap-inspector-palette-wrapper")) return

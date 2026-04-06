@@ -76,6 +76,18 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
   const { handleResizeBlur, handleResizeFocus, handleResizeKeyDown, handleResizePointerDown } =
     useTileResize({ row, tile, tileId, setChangingTileStyle })
 
+  // Tab trap handler from CodapComponent, chained onto the resize button's keydown
+  const tabTrapRef = useRef<((e: React.KeyboardEvent) => void) | null>(null)
+  const handleTabTrapReady = useCallback((handler: (e: React.KeyboardEvent) => void) => {
+    tabTrapRef.current = handler
+  }, [])
+  const handleResizeKeyDownWithTabTrap = useCallback((e: React.KeyboardEvent) => {
+    tabTrapRef.current?.(e)
+    if (!e.defaultPrevented) {
+      handleResizeKeyDown(e)
+    }
+  }, [handleResizeKeyDown])
+
   const info = getTileComponentInfo(tileType)
   const isStandalone = uiState.isStandaloneTile(tile)
 
@@ -165,13 +177,14 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
                 onMinimizeTile={handleMinimizeTile}
                 onCloseTile={onCloseTile}
                 onMoveTilePointerDown={uiState.allowComponentMove ? handleMoveTilePointerDown : undefined}
+                onTabTrapReady={handleTabTrapReady}
               />
               <If condition={!isMinimized && !isStandalone && uiState.allowComponentResize && canResize}>
                 <ComponentResizeWidgets tile={tile} componentRef={componentRef}
                   isFixedWidth={isFixedWidth} isFixedHeight={isFixedHeight}
                   handleResizeBlur={handleResizeBlur}
                   handleResizeFocus={handleResizeFocus}
-                  handleResizeKeyDown={handleResizeKeyDown}
+                  handleResizeKeyDown={handleResizeKeyDownWithTabTrap}
                   handleResizePointerDown={handleResizePointerDown} />
               </If>
             </>
