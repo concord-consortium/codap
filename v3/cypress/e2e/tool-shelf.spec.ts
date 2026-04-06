@@ -114,7 +114,7 @@ context("codap toolbar", () => {
     toolbar.getTilesListMenu().should("be.visible")
     toolbar.getTilesListMenuItem().should("have.length", 5)
 
-    toolbar.getTilesListMenuItemLabel().eq(0).should("have.text", ", graph")
+    toolbar.getTilesListMenuItemLabel().eq(0).should("have.text", "graph")
     toolbar.getTilesListMenuIcon().eq(0).should("have.class", "Graph")
     toolbar.getTilesListMenuItemLabel().eq(1).should("have.text", "Map, map")
     toolbar.getTilesListMenuIcon().eq(1).should("have.class", "Map")
@@ -237,8 +237,8 @@ context("codap toolbar", () => {
     c.clickIconFromToolShelf("graph")
     toolbar.getTilesButton().click()
     toolbar.getTilesListMenu().should("be.visible")
-    toolbar.getTilesListMenuItemLabel().eq(0).should("have.text", " (1), graph")
-    toolbar.getTilesListMenuItemLabel().eq(1).should("have.text", " (2), graph")
+    toolbar.getTilesListMenuItemLabel().eq(0).should("have.text", "(1), graph")
+    toolbar.getTilesListMenuItemLabel().eq(1).should("have.text", "(2), graph")
   })
   it('will select a tile via shortcut key while the menu is open', ()=>{
     // Create two graphs
