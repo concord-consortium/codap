@@ -248,7 +248,8 @@ describe("WebView registration", () =>  {
     expect(contentStorage.name).toBe("Mammals Sample Guide")
     expect(contentStorage.items).toBeDefined()
     expect(contentStorage.items[0].itemTitle).toBe("Get Started")
-    expect(contentStorage.items[0].url).toBe(`${kCodapResourcesUrl}/example-documents/guides/Mammals/mammals_getstarted.html`)
+    expect(contentStorage.items[0].url)
+      .toBe(`${kCodapResourcesUrl}/example-documents/guides/Mammals/mammals_getstarted.html`)
   })
 
   it("imports/exports v2 guide view components of legacy documents", () => {

@@ -1,4 +1,3 @@
-/* eslint-disable testing-library/no-node-access */
 import { renderHook } from "@testing-library/react"
 import React from "react"
 import { useTabTrap } from "./use-tab-trap"
