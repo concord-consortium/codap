@@ -15,6 +15,7 @@ interface IProps {
   componentRef: React.RefObject<HTMLDivElement | null>
   isFixedWidth?: boolean
   isFixedHeight?: boolean
+  resizeButtonRef?: React.RefObject<HTMLButtonElement>
   handleResizeBlur: () => void
   handleResizeFocus: () => void
   handleResizeKeyDown: (e: React.KeyboardEvent) => void
@@ -23,7 +24,7 @@ interface IProps {
 
 export const ComponentResizeWidgets = observer(function ComponentResizeWidgets(props: IProps) {
   const {
-    tile, componentRef, isFixedWidth, isFixedHeight,
+    tile, componentRef, resizeButtonRef, isFixedWidth, isFixedHeight,
     handleResizeBlur, handleResizeFocus, handleResizeKeyDown, handleResizePointerDown
   } = props
   const tileLayout = useFreeTileLayoutContext()
@@ -87,6 +88,7 @@ export const ComponentResizeWidgets = observer(function ComponentResizeWidgets(p
       {!(isFixedWidth && isFixedHeight) &&
         <div className="codap-component-corner bottom-right">
           <button
+            ref={resizeButtonRef}
             aria-label={t("DG.Component.resizeComponent.ariaLabel")}
             className="component-resize-button"
             data-testid="component-resize-button"

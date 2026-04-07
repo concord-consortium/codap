@@ -25,6 +25,7 @@ import "./codap-component.scss"
 export interface IProps extends ITileBaseProps {
   tile: ITileModel
   isMinimized?: boolean
+  resizeButtonRef?: React.RefObject<HTMLButtonElement | null>
   onMinimizeTile?: () => void
   onCloseTile: (tileId: string) => void
   onMoveTilePointerDown?: (event: React.PointerEvent) => void
@@ -66,15 +67,15 @@ class TileSelectionHandler implements ITileSelection {
 }
 
 export const CodapComponent = observer(function CodapComponent(props: IProps) {
-  const { tile, hideTitleBar, isMinimized, onMinimizeTile, onCloseTile, onMoveTilePointerDown, onTabTrapReady } = props
+  const { tile, hideTitleBar, isMinimized, resizeButtonRef,
+    onMinimizeTile, onCloseTile, onMoveTilePointerDown, onTabTrapReady } = props
   const info = getTileComponentInfo(tile.content.type)
   const codapComponentRef = useRef<HTMLDivElement | null>(null)
   // Include the resize handle (rendered outside .codap-component by FreeTileComponent) in the tab cycle
-  const getResizeHandle = useCallback(() => {
-    const tileEl = codapComponentRef.current?.closest(".free-tile-component")
-    const btn = tileEl?.querySelector<HTMLElement>(".component-resize-button")
-    return btn ? [btn] : []
-  }, [])
+  const getResizeHandle = useCallback(
+    () => resizeButtonRef?.current ? [resizeButtonRef.current] : [],
+    [resizeButtonRef]
+  )
   const { onKeyDown: handleTabTrap } = useTabTrap({
     containerRef: codapComponentRef,
     getAdditionalElements: getResizeHandle

@@ -29,6 +29,7 @@ interface IProps {
 
 export const FreeTileComponent = observer(function FreeTileComponent({ row, tile, onCloseTile}: IProps) {
   const componentRef = useRef<HTMLDivElement | null>(null)
+  const resizeButtonRef = useRef<HTMLButtonElement | null>(null)
   const { id: tileId, content: { type: tileType } } = tile
   const [useDefaultCreationStyle, setUseDefaultCreationStyle] = useState(row.animateCreationTiles.has(tileId))
   const [changingTileStyle, setChangingTileStyle] = useState<Maybe<IChangingTileStyle>>()
@@ -174,13 +175,14 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
               <CodapComponent tile={tile}
                 hideTitleBar={isStandalone}
                 isMinimized={isMinimized}
+                resizeButtonRef={resizeButtonRef}
                 onMinimizeTile={handleMinimizeTile}
                 onCloseTile={onCloseTile}
                 onMoveTilePointerDown={uiState.allowComponentMove ? handleMoveTilePointerDown : undefined}
                 onTabTrapReady={handleTabTrapReady}
               />
               <If condition={!isMinimized && !isStandalone && uiState.allowComponentResize && canResize}>
-                <ComponentResizeWidgets tile={tile} componentRef={componentRef}
+                <ComponentResizeWidgets tile={tile} componentRef={componentRef} resizeButtonRef={resizeButtonRef}
                   isFixedWidth={isFixedWidth} isFixedHeight={isFixedHeight}
                   handleResizeBlur={handleResizeBlur}
                   handleResizeFocus={handleResizeFocus}
