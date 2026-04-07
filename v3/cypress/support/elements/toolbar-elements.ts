@@ -60,6 +60,12 @@ export const ToolbarElements = {
   getTilesListMenuIcon() {
     return cy.get(`[data-testid=tile-list-menu-icon]`)
   },
+  getTilesListMenuItemLabel() {
+    return this.getTilesListMenuItem().find('.tile-menu-item-label')
+  },
+  getTilesListMenuShortcutKey() {
+    return this.getTilesListMenuItem().find('.tile-menu-shortcut-key')
+  },
   getOptionsButton() {
     return cy.get(`[data-testid=tool-shelf-button-options]`)
   },
