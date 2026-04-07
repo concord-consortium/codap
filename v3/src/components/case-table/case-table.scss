@@ -272,11 +272,16 @@ $collection-title-font-color: black;
         --rdg-selection-color: #{vars.$focus-outline-color};
         text-align: center;
         height: shared.$header-row-height-px !important;
+        // Show focus ring when any child (MenuButton or Input) has focus
+        &:focus-within {
+          @include vars.focus-outline;
+        }
         &.index {
           pointer-events: none;
           cursor: auto;
           // Suppress RDG's selection outline on the non-interactive index header cell
-          &[aria-selected='true'] {
+          &[aria-selected='true'],
+          &:focus-within {
             outline: none;
           }
         }

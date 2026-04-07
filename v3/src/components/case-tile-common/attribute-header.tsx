@@ -148,6 +148,10 @@ export const AttributeHeader = observer(function AttributeHeader({
       // Prevent Chakra from bringing up the menu in favor of cell navigation
       e.preventDefault()
     }
+    if (dragging && e.key === "Enter") {
+      // During keyboard drag, prevent menu from opening so dnd-kit handles the drop
+      e.preventDefault()
+    }
     onButtonKeyDown?.(e)
   }
 
