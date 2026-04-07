@@ -89,6 +89,27 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     }
   }, [collectionId, collectionTableModel, gridRef.current?.element, onMount])
 
+  // RDG assigns tabindex="0" to the first header cell for Tab entry into the grid.
+  // Since that cell is the inert index column header, the grid has no focusable entry point.
+  // Make the grid element a Tab entry point that uses RDG's selectCell API to focus the first
+  // attribute header (idx 1, rowIdx -1). This doesn't interfere with RDG's getCellToScroll
+  // (which queries cells within rows, not the grid element itself).
+  useEffect(function makeGridTabbable() {
+    const grid = gridRef.current?.element
+    if (!grid) return
+
+    grid.tabIndex = 0
+    const handleFocus = (e: FocusEvent) => {
+      if (e.target !== grid) return
+      // idx 1 = first attribute column (skipping index column at 0)
+      // rowIdx -1 = the main header row
+      gridRef.current?.selectCell({ idx: 1, rowIdx: -1 })
+    }
+    grid.addEventListener("focus", handleFocus)
+
+    return () => grid.removeEventListener("focus", handleFocus)
+  }, [gridRef.current?.element])
+
   useEffect(() => {
     return registerCanAutoScrollCallback((element) => {
       // prevent auto-scroll on grid since there's nothing droppable in the grid
