@@ -7,6 +7,7 @@ import PluginsIcon from "../../assets/icons/icon-plugins.svg"
 import TileListIcon from "../../assets/icons/icon-tile-list.svg"
 import { useDocumentContent } from "../../hooks/use-document-content"
 import { useMenuItemScrollIntoView } from "../../hooks/use-menu-item-scroll-into-view"
+import { focusTileContent } from "../../hooks/use-tile-navigation"
 import { isFreeTileLayout, isFreeTileRow } from "../../models/document/free-tile-row"
 import { persistentState } from "../../models/persistent-state"
 import { getTileComponentIcon } from "../../models/tiles/tile-component-info"
@@ -92,11 +93,13 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
       uiState.setHoveredTile("")
       _onClose()
       // Chakra restores focus to MenuButton asynchronously (~50ms). After that settles,
-      // re-trigger setFocusedTile so tile content (e.g. text editor) can claim focus.
+      // re-trigger setFocusedTile so tile content (e.g. text editor) can claim focus,
+      // and move DOM focus into the tile so keyboard navigation works immediately.
       focusTimerRef.current = setTimeout(() => {
         focusTimerRef.current = undefined
         uiState.setFocusedTile("")
         uiState.setFocusedTile(selected)
+        focusTileContent(selected)
       }, 100)
     } else {
       // Menu was cancelled — restore the previously focused tile
@@ -187,6 +190,7 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
           aria-label={t("DG.ToolButtonData.tileListMenu.ariaLabel")}
           title={t("DG.ToolButtonData.tileListMenu.toolTip")}
           onKeyDown={handleMenuButtonKeyDown}
+          data-action="tiles-menu"
           data-testid="tool-shelf-button-tiles"
         >
           <TileListIcon />

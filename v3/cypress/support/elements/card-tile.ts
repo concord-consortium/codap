@@ -55,7 +55,7 @@ export const CardTileElements = {
     return cy.get('[data-testid="summary-view-toggle-button"]')
   },
   getInspectorPanel() {
-    return cy.get('[data-testid="codap-case-card"]').siblings('[data-testid="inspector-panel"]')
+    return cy.get('[data-testid="codap-case-card"]').find('[data-testid="inspector-panel"]')
   },
   getDeleteCasesButton() {
     return this.getInspectorPanel().find('[data-testid="delete-cases-button"]')

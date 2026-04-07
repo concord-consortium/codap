@@ -15,6 +15,8 @@ import { useDropHandler } from "../hooks/use-drop-handler"
 import { useImportHelpers } from "../hooks/use-import-helpers"
 import { useKeyStates } from "../hooks/use-key-states"
 import { useKeyboardShortcuts } from "../hooks/use-keyboard-shortcuts"
+import { useSectionNavigation } from "../hooks/use-section-navigation"
+import { useTileNavigation } from "../hooks/use-tile-navigation"
 import { ProgressContext, useProgressContextProviderValue } from "../hooks/use-progress"
 import { useUncaughtErrorHandler } from "../hooks/use-uncaught-error-handler"
 import { hideSplashScreen } from "../lib/cfm/splash-screen"
@@ -112,6 +114,8 @@ export const App = observer(function App() {
   const progressContextValue = useProgressContextProviderValue()
 
   useKeyboardShortcuts()
+  const { SectionNavigationProvider } = useSectionNavigation()
+  useTileNavigation()
 
   const {
     handleDrop, handleFileImported, handleUrlImported
@@ -235,27 +239,38 @@ export const App = observer(function App() {
             <If condition={isBeta() && uiState.shouldRenderBetaBanner}>
               <BetaBanner />
             </If>
-            <div className={appClasses} data-testid="codap-app">
-              <header>
-                <h1 className="codap-visually-hidden">
-                  <abbr title={t("V3.app.fullName")}>{t("V3.app.name")}</abbr>
-                </h1>
-                <If condition={uiState.shouldRenderMenuBar}>
-                  <MenuBar/>
-                </If>
-              </header>
-              <ErrorBoundary fallbackRender={fallbackRender}>
-                <div className={appContainerClassName}>
-                  <If condition={uiState.shouldRenderToolShelf}>
-                    <ToolShelf document={appState.document}/>
+            <SectionNavigationProvider>
+              <div
+                aria-describedby="app-nav-hint"
+                aria-label={t("V3.app.name")}
+                className={appClasses}
+                data-testid="codap-app"
+                role="application" 
+              >
+                <span id="app-nav-hint" className="codap-visually-hidden">
+                  {t("V3.app.navHint")}
+                </span>
+                <header>
+                  <h1 className="codap-visually-hidden">
+                    <abbr title={t("V3.app.fullName")}>{t("V3.app.name")}</abbr>
+                  </h1>
+                  <If condition={uiState.shouldRenderMenuBar}>
+                    <MenuBar/>
                   </If>
-                  <Container/>
-                </div>
-              </ErrorBoundary>
-              <If condition={uiState.isBusy && uiState.busyCursorMode}>
-                <div className="busy-overlay" />
-              </If>
-            </div>
+                </header>
+                <ErrorBoundary fallbackRender={fallbackRender}>
+                  <div className={appContainerClassName}>
+                    <If condition={uiState.shouldRenderToolShelf}>
+                      <ToolShelf document={appState.document}/>
+                    </If>
+                    <Container/>
+                  </div>
+                </ErrorBoundary>
+                <If condition={uiState.isBusy && uiState.busyCursorMode}>
+                  <div className="busy-overlay" />
+                </If>
+              </div>
+            </SectionNavigationProvider>
             <If condition={isOpenUserEntry}>
               <div id={`${kUserEntryDropOverlay}`} ref={userEntryOverlayRef}
                 className={clsx({ "show-highlight": isOpenUserEntry && isDragOver, beta: isBeta() })}

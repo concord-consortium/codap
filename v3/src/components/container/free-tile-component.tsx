@@ -29,6 +29,7 @@ interface IProps {
 
 export const FreeTileComponent = observer(function FreeTileComponent({ row, tile, onCloseTile}: IProps) {
   const componentRef = useRef<HTMLDivElement | null>(null)
+  const resizeButtonRef = useRef<HTMLButtonElement | null>(null)
   const { id: tileId, content: { type: tileType } } = tile
   const [useDefaultCreationStyle, setUseDefaultCreationStyle] = useState(row.animateCreationTiles.has(tileId))
   const [changingTileStyle, setChangingTileStyle] = useState<Maybe<IChangingTileStyle>>()
@@ -75,6 +76,18 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
   const { handlePointerDown: handleMoveTilePointerDown } = useTileDrag({ row, tile, tileLayout, setChangingTileStyle })
   const { handleResizeBlur, handleResizeFocus, handleResizeKeyDown, handleResizePointerDown } =
     useTileResize({ row, tile, tileId, setChangingTileStyle })
+
+  // Tab trap handler from CodapComponent, chained onto the resize button's keydown
+  const tabTrapRef = useRef<((e: React.KeyboardEvent) => void) | null>(null)
+  const handleTabTrapReady = useCallback((handler: (e: React.KeyboardEvent) => void) => {
+    tabTrapRef.current = handler
+  }, [])
+  const handleResizeKeyDownWithTabTrap = useCallback((e: React.KeyboardEvent) => {
+    tabTrapRef.current?.(e)
+    if (!e.defaultPrevented) {
+      handleResizeKeyDown(e)
+    }
+  }, [handleResizeKeyDown])
 
   const info = getTileComponentInfo(tileType)
   const isStandalone = uiState.isStandaloneTile(tile)
@@ -162,16 +175,18 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
               <CodapComponent tile={tile}
                 hideTitleBar={isStandalone}
                 isMinimized={isMinimized}
+                resizeButtonRef={resizeButtonRef}
                 onMinimizeTile={handleMinimizeTile}
                 onCloseTile={onCloseTile}
                 onMoveTilePointerDown={uiState.allowComponentMove ? handleMoveTilePointerDown : undefined}
+                onTabTrapReady={handleTabTrapReady}
               />
               <If condition={!isMinimized && !isStandalone && uiState.allowComponentResize && canResize}>
-                <ComponentResizeWidgets tile={tile} componentRef={componentRef}
+                <ComponentResizeWidgets tile={tile} componentRef={componentRef} resizeButtonRef={resizeButtonRef}
                   isFixedWidth={isFixedWidth} isFixedHeight={isFixedHeight}
                   handleResizeBlur={handleResizeBlur}
                   handleResizeFocus={handleResizeFocus}
-                  handleResizeKeyDown={handleResizeKeyDown}
+                  handleResizeKeyDown={handleResizeKeyDownWithTabTrap}
                   handleResizePointerDown={handleResizePointerDown} />
               </If>
             </>

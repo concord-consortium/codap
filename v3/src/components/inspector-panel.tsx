@@ -4,6 +4,8 @@ import { Button, Menu, MenuTrigger, Popover, Tooltip, TooltipTrigger } from "rea
 
 import { kInspectorPaletteAriaRole } from "../accessibility-constants"
 import { useFocusTrap } from "../hooks/use-focus-trap"
+import { useTileModelContext } from "../hooks/use-tile-model-context"
+import { returnToTileContent } from "../hooks/use-tile-navigation"
 import { useMouseTooltipRef } from "../hooks/use-mouse-tooltip-ref"
 import { useRovingToolbarFocus } from "../hooks/use-roving-toolbar-focus"
 import { useOutsidePointerDown } from "../hooks/use-outside-pointer-down"
@@ -43,6 +45,7 @@ export const InspectorPanel = forwardRef<HTMLDivElement, IProps>(function Inspec
   component, show, setShowPalette, children, toolbarAriaLabel,
   toolbarOrientation = "vertical", toolbarPersistenceKey, width
 }, ref) {
+  const { tileId } = useTileModelContext()
   const panelRef = useRef<HTMLDivElement | null>(null)
   const mergedRef = useCallback((node: HTMLDivElement | null) => {
     panelRef.current = node
@@ -64,6 +67,29 @@ export const InspectorPanel = forwardRef<HTMLDivElement, IProps>(function Inspec
     orientation: toolbarOrientation,
     persistenceKey: toolbarPersistenceKey
   })
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === "Escape") {
+      // Don't handle Escape if a palette is open. Let the palette handle it first.
+      // (Menus don't need a guard because React Aria renders them in a portal
+      // outside this panel's DOM tree. Their Escape events don't bubble here.)
+      const panel = panelRef.current
+      if (!panel) return
+      if (panel.querySelector(".codap-inspector-palette-wrapper")) return
+      if (!tileId) return
+
+      e.preventDefault()
+      returnToTileContent(tileId)
+      return
+    }
+
+    // When a palette is open, stop Tab from reaching the tile's tab trap.
+    // The palette has its own focus trap via sentinels.
+    if (e.key === "Tab" && panelRef.current?.querySelector(".codap-inspector-palette-wrapper")) {
+      e.stopPropagation()
+    }
+  }, [tileId])
+
   const classes = clsx("inspector-panel", component, width ?? "normal")
   return (show
     ? <div
@@ -73,6 +99,7 @@ export const InspectorPanel = forwardRef<HTMLDivElement, IProps>(function Inspec
         className={classes}
         data-testid={"inspector-panel"}
         onFocusCapture={onFocusCapture}
+        onKeyDown={handleKeyDown}
         onKeyDownCapture={onKeyDownCapture}
         role={toolbarAriaLabel ? "toolbar" : undefined}
       >
