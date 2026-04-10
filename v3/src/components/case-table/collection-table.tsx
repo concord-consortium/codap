@@ -94,20 +94,42 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   // Make the grid element a Tab entry point that uses RDG's selectCell API to focus the first
   // attribute header (idx 1, rowIdx -1). This doesn't interfere with RDG's getCellToScroll
   // (which queries cells within rows, not the grid element itself).
+  //
+  // The grid's own tab stop is only active while focus is outside the grid. Once focus is
+  // inside, we disable it so Shift+Tab from within the grid skips over the grid element —
+  // otherwise the grid becomes a phantom tab stop between the first attribute header and
+  // the add-attribute "+" button.
   useEffect(function makeGridTabbable() {
     const grid = gridRef.current?.element
     if (!grid) return
 
     grid.tabIndex = 0
-    const handleFocus = (e: FocusEvent) => {
-      if (e.target !== grid) return
-      // idx 1 = first attribute column (skipping index column at 0)
-      // rowIdx -1 = the main header row
-      gridRef.current?.selectCell({ idx: 1, rowIdx: -1 })
+    const handleFocusIn = (e: FocusEvent) => {
+      if (e.target === grid) {
+        // Tab entered on the grid element itself → forward to the first attribute header.
+        // idx 1 = first attribute column (skipping index column at 0)
+        // rowIdx -1 = the main header row
+        gridRef.current?.selectCell({ idx: 1, rowIdx: -1 })
+      } else {
+        // A descendant of the grid received focus → disable the grid's tab stop so
+        // Shift+Tab from within skips the grid element.
+        grid.tabIndex = -1
+      }
     }
-    grid.addEventListener("focus", handleFocus)
+    const handleFocusOut = (e: FocusEvent) => {
+      // Focus has left the grid entirely → restore the grid's tab stop for the next entry.
+      const to = e.relatedTarget as Node | null
+      if (!to || !grid.contains(to)) {
+        grid.tabIndex = 0
+      }
+    }
+    grid.addEventListener("focusin", handleFocusIn)
+    grid.addEventListener("focusout", handleFocusOut)
 
-    return () => grid.removeEventListener("focus", handleFocus)
+    return () => {
+      grid.removeEventListener("focusin", handleFocusIn)
+      grid.removeEventListener("focusout", handleFocusOut)
+    }
   }, [gridRef.current?.element])
 
   useEffect(() => {
