@@ -92,13 +92,17 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   // RDG assigns tabindex="0" to the first header cell for Tab entry into the grid.
   // Since that cell is the inert index column header, the grid has no focusable entry point.
   // Make the grid element a Tab entry point that uses RDG's selectCell API to focus the first
-  // attribute header (idx 1, rowIdx -1). This doesn't interfere with RDG's getCellToScroll
-  // (which queries cells within rows, not the grid element itself).
+  // attribute header (rowIdx -1). This doesn't interfere with RDG's getCellToScroll (which
+  // queries cells within rows, not the grid element itself).
+  //
+  // The first attribute column is at idx 1 when the index column is shown, or idx 0 when it
+  // is hidden (see use-columns.tsx — the index column is conditionally prepended).
   //
   // The grid's own tab stop is only active while focus is outside the grid. Once focus is
   // inside, we disable it so Shift+Tab from within the grid skips over the grid element —
   // otherwise the grid becomes a phantom tab stop between the first attribute header and
   // the add-attribute "+" button.
+  const isIndexHidden = caseTableModel?.isIndexHidden ?? false
   useEffect(function makeGridTabbable() {
     const grid = gridRef.current?.element
     if (!grid) return
@@ -107,9 +111,8 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     const handleFocusIn = (e: FocusEvent) => {
       if (e.target === grid) {
         // Tab entered on the grid element itself → forward to the first attribute header.
-        // idx 1 = first attribute column (skipping index column at 0)
-        // rowIdx -1 = the main header row
-        gridRef.current?.selectCell({ idx: 1, rowIdx: -1 })
+        const firstAttrIdx = isIndexHidden ? 0 : 1
+        gridRef.current?.selectCell({ idx: firstAttrIdx, rowIdx: -1 })
       } else {
         // A descendant of the grid received focus → disable the grid's tab stop so
         // Shift+Tab from within skips the grid element.
@@ -118,8 +121,8 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     }
     const handleFocusOut = (e: FocusEvent) => {
       // Focus has left the grid entirely → restore the grid's tab stop for the next entry.
-      const to = e.relatedTarget as Node | null
-      if (!to || !grid.contains(to)) {
+      const to = e.relatedTarget
+      if (!(to instanceof Node) || !grid.contains(to)) {
         grid.tabIndex = 0
       }
     }
@@ -130,7 +133,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       grid.removeEventListener("focusin", handleFocusIn)
       grid.removeEventListener("focusout", handleFocusOut)
     }
-  }, [gridRef.current?.element])
+  }, [gridRef.current?.element, isIndexHidden])
 
   useEffect(() => {
     return registerCanAutoScrollCallback((element) => {
