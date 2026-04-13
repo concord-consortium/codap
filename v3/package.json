@@ -197,7 +197,7 @@
     "@codemirror/commands": "^6.10.1",
     "@codemirror/language": "^6.12.1",
     "@codemirror/view": "^6.39.11",
-    "@concord-consortium/cloud-file-manager": "github:concord-consortium/cloud-file-manager#CODAP-1193-new-teal-color-scheme",
+    "@concord-consortium/cloud-file-manager": "^2.2.8",
     "@concord-consortium/log-monitor": "^1.0.0",
     "@concord-consortium/mobx-state-tree": "^6.0.0-cc.1",
     "@concord-consortium/slate-editor": "^0.12.0",
