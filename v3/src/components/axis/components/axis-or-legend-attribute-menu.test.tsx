@@ -148,7 +148,7 @@ describe("AxisOrLegendAttributeMenu", () => {
       renderMenu({ place: "bottom" })
       const button = screen.getByTestId("axis-legend-attribute-button-bottom")
       const label = button.getAttribute("aria-label")!
-      expect(label).toContain("Drag an attribute or click here")
+      expect(label).toContain("horizontal")
       // Should not contain an attribute name
       expect(label).not.toContain("Height")
     })

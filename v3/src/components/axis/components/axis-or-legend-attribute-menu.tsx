@@ -289,7 +289,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
       : t("DG.AxisView.emptyLegendAriaLabel")
     : attribute?.name
       ? t("DG.AxisView.axisAriaLabel", { vars: [orientation, attribute.name] })
-      : t("DG.AxisView.emptyGraphCue")
+      : t("DG.AxisView.emptyAxisAriaLabel", { vars: [orientation] })
 
   const handleMenuItemFocus = useMenuItemScrollIntoView()
   const handleMainMenuKeyDown = useSubmenuOpenOnArrowRight("collection-id", handleOpenSubmenu)
