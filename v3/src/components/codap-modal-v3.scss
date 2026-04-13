@@ -12,7 +12,7 @@ $modal-width: 350px;
     flex-direction: row;
     align-items: center;
     box-shadow: none;
-    background-color: #a5e3f6;
+    background-color: vars.$accent-light-2;
 
     .codap-modal-icon-container-v3 {
       width: 30px;

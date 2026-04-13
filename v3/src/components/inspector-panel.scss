@@ -152,7 +152,7 @@ $inspector-panel-border-width: 2px;
     align-items: center;
     gap: 5px;
     padding: 0 5px;
-    background-color: vars.$palette-header-bg;
+    background-color: vars.$accent-light-2;
     height: vars.$palette-header-height;
     border-radius: 2px 2px 0 0;
 
@@ -420,13 +420,13 @@ $inspector-panel-border-width: 2px;
       }
 
       &[data-hovered] {
-        background: vars.$title-bar-color;
+        background: vars.$accent-light-3;
         border-color: vars.$palette-icon-color;
       }
 
       &[data-pressed],
       &[aria-expanded="true"] {
-        background: vars.$palette-header-bg;
+        background: vars.$accent-light-2;
       }
 
       .select-arrow {

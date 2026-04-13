@@ -95,13 +95,13 @@
         padding: 2px 10px;
 
         &[data-hovered] {
-          background: vars.$title-bar-color;
+          background: vars.$accent-light-3;
           border-color: vars.$palette-icon-color;
         }
 
         &[data-pressed],
         &[aria-expanded="true"] {
-          background: vars.$palette-header-bg;
+          background: vars.$accent-light-2;
         }
 
         &[data-focus-visible] {

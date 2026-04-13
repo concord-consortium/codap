@@ -4,9 +4,12 @@ $tool-shelf-height: 66px; // Horizontal tool shelf
 $beta-banner-height: 50px;
 
 $title-bar-height: 34px;
-$title-bar-color: #bbefff;
-$title-bar-focus-color: #8ddaf2;
 $header-height: 30px;
+
+$accent: #006c8e;
+$accent-light-1: #8ddaf2;
+$accent-light-2: #a5e3f6;
+$accent-light-3: #bbefff;
 
 $border-radius-top-corners: 4px 4px 0px 0px;
 $border-radius-four-corners: 4px;
@@ -46,7 +49,7 @@ $empty-label-font: 12px Roboto, sans-serif;
 $background-fill: #f9f9f9;
 $icon-fill-light: #d3f4ff;
 $icon-fill-medium: #bfefff;
-$icon-fill-dark: #006c8e;
+$icon-fill-dark: $accent; // #006c8e
 $tile-border-color: #0081a9;
 $focus-border-color: #1c9fc7;
 $focus-outline-color: #0957d0;
@@ -60,10 +63,9 @@ $focus-outline-color: #0957d0;
 // Inspector palette design tokens (from Zeplin specs)
 $palette-bg: #ffffff;
 $palette-border-color: $focus-border-color; // #1c9fc7
-$palette-header-bg: #a5e3f6;
 $palette-header-height: 34px;
 $palette-hover-bg: $icon-fill-light; // #d3f4ff
-$palette-icon-color: $icon-fill-dark; // #006c8e
+$palette-icon-color: $accent; // #006c8e
 $palette-pointer-size: 10px;
 $menu-item-hover-bg: #edf2f7;
 $menu-border-color: #e2e8f0;
