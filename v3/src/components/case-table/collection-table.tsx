@@ -108,6 +108,8 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     if (!grid) return
 
     grid.tabIndex = 0
+    // Two-phase cascade: Tab on grid fires focusin (target=grid) → selectCell → RDG focuses
+    // the attribute header cell → second focusin (target=descendant) sets grid.tabIndex = -1.
     const handleFocusIn = (e: FocusEvent) => {
       if (e.target === grid) {
         // Tab entered on the grid element itself → forward to the first attribute header.
