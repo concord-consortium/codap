@@ -2,7 +2,8 @@ import {axisBottom, axisLeft, axisRight, axisTop,
   ScaleBand, ScaleContinuousNumeric, ScaleOrdinal, select, Selection} from "d3"
 
 export const axisGap = 5
-export const labelPadding = 13  // whitespace above and below axis attribute labels
+export const labelMargin = 13   // whitespace outside the label background rect (between rect and axis bounds)
+export const labelPaddingX = 8  // horizontal padding inside the label background rect (between rect edge and text)
 
 // "rightCat" and "top" can only be categorical axes. "rightNumeric" can only be numeric
 export const AxisPlaces = ["bottom", "left", "rightCat", "top", "rightNumeric"] as const

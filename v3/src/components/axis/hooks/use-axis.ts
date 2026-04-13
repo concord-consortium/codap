@@ -9,7 +9,7 @@ import { useDataConfigurationContext } from "../../data-display/hooks/use-data-c
 import { useDataDisplayModelContextMaybe } from "../../data-display/hooks/use-data-display-model"
 import { IDataDisplayContentModel } from "../../data-display/models/data-display-content-model"
 import { kColorAxisExtent, kQualitativeAxisExtent } from "../axis-constants"
-import { AxisPlace, AxisScaleType, axisPlaceToAxisFn, labelPadding } from "../axis-types"
+import { AxisPlace, AxisScaleType, axisPlaceToAxisFn, labelMargin } from "../axis-types"
 import {
   collisionExists, computeBestNumberOfTicks,
   computeBestNumberOfVerticalAxisTicks,
@@ -83,8 +83,8 @@ export const useAxis = (axisPlace: AxisPlace) => {
       numbersHeight = getStringBounds('0').height,
       repetitions = multiScale?.repetitions ?? 1,
       d3Scale = multiScale?.scale ?? (isNumeric ? scaleLinear() : scaleOrdinal())
-    // labelPadding above and below the attribute label, plus a gap between tick labels and the label
-    let desiredExtent = axisTitleHeight + 2 * labelPadding
+    // labelMargin above and below the attribute label, plus a gap between tick labels and the label
+    let desiredExtent = axisTitleHeight + 2 * labelMargin
     let ticks: string[] = []
     switch (axisType) {
       case 'count':
@@ -92,8 +92,8 @@ export const useAxis = (axisPlace: AxisPlace) => {
       case 'numeric': {
         ticks = getTicks({d3Scale, isBinned, isVertical, multiScale, displayModel})
         desiredExtent += isVertical || _axisModel?.labelsAreRotated
-          ? Math.max(...ticks.map(tick => getStringBounds(tick).width)) + labelPadding
-          : numbersHeight + labelPadding
+          ? Math.max(...ticks.map(tick => getStringBounds(tick).width)) + labelMargin
+          : numbersHeight + labelMargin
         break
       }
       case 'qualitative': {
@@ -116,7 +116,7 @@ export const useAxis = (axisPlace: AxisPlace) => {
       case 'date': {
         if (isDateAxisModel(_axisModel)) {
           const [min, max] = _axisModel.domain
-          desiredExtent += getNumberOfLevelsForDateAxis(min, max) * numbersHeight + labelPadding
+          desiredExtent += getNumberOfLevelsForDateAxis(min, max) * numbersHeight + labelMargin
         }
         break
       }

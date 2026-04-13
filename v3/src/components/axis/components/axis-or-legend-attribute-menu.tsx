@@ -251,15 +251,15 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   // Sync menu-open class with actual menu state, and clean up focused on close
   useEffect(() => {
     if (isMenuOpen) {
-      target?.classList.add('menu-open')
+      target?.classList.add("menu-open")
     } else {
-      target?.classList.remove('menu-open')
-      target?.classList.remove('focused')
+      target?.classList.remove("menu-open")
+      target?.classList.remove("focused")
     }
     return () => {
-      target?.classList.remove('menu-open')
-      target?.classList.remove('focused')
-      target?.classList.remove('hovered')
+      target?.classList.remove("menu-open")
+      target?.classList.remove("focused")
+      target?.classList.remove("hovered")
     }
   }, [isMenuOpen, target])
 
@@ -350,21 +350,21 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
     }
   }
 
-  const handlePointerEnter = useCallback(() => {
-    target?.classList.add('hovered')
-  }, [target])
+  const handlePointerEnter = () => {
+    target?.classList.add("hovered")
+  }
 
-  const handlePointerLeave = useCallback(() => {
-    target?.classList.remove('hovered')
-  }, [target])
+  const handlePointerLeave = () => {
+    target?.classList.remove("hovered")
+  }
 
-  const handleFocusCapture = useCallback(() => {
-    target?.classList.add('focused')
-  }, [target])
+  const handleFocusCapture = () => {
+    target?.classList.add("focused")
+  }
 
-  const handleBlurCapture = useCallback(() => {
-    target?.classList.remove('focused')
-  }, [target])
+  const handleBlurCapture = () => {
+    target?.classList.remove("focused")
+  }
 
   return (
     <div className={clsx("axis-legend-attribute-menu", place)} ref={menuRef} title={description + clickLabel}>

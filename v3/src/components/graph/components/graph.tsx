@@ -18,7 +18,7 @@ import {onAnyAction} from "../../../utilities/mst-utils"
 import { t } from "../../../utilities/translation/translate"
 import { setNiceDomain } from "../../axis/axis-domain-utils"
 import {GraphPlace} from "../../axis-graph-shared"
-import { AxisPlace, AxisPlaces, isAxisPlace } from "../../axis/axis-types"
+import { AxisPlace, AxisPlaces, isAxisPlace, isHorizontal } from "../../axis/axis-types"
 import { IBaseNumericAxisModel } from "../../axis/models/base-numeric-axis-model"
 import { If } from "../../common/if"
 import { PointRendererArray, RendererCapability } from "../../data-display/renderer"
@@ -382,11 +382,8 @@ export const Graph = observer(function Graph({
   const renderGraphAxes = () => {
     // Render horizontal axes first so vertical axes (and their labels) appear on top
     // of the full-width horizontal axis backgrounds
-    const horizontalFirst = (a: AxisPlace, b: AxisPlace) => {
-      const aIsH = ['bottom', 'top'].includes(a) ? 0 : 1
-      const bIsH = ['bottom', 'top'].includes(b) ? 0 : 1
-      return aIsH - bIsH
-    }
+    const horizontalFirst = (a: AxisPlace, b: AxisPlace) =>
+      (isHorizontal(a) ? 0 : 1) - (isHorizontal(b) ? 0 : 1)
     const places = AxisPlaces.filter((place: AxisPlace) => {
       return !!graphModel.getAxis(place)
     }).sort(horizontalFirst)

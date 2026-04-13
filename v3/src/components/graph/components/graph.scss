@@ -12,7 +12,7 @@
   height: calc(100% - vars.$title-bar-height);
 
   .empty-label {
-    fill: #222;
+    fill: vars.$default-font-color;
     font: vars.$empty-label-font;
   }
 

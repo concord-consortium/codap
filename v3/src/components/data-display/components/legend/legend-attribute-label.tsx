@@ -2,9 +2,9 @@ import {useCallback, useEffect, useRef} from "react"
 import {select} from "d3"
 import {AttributeType} from "../../../../models/data/attribute-types"
 import {IDataSet} from "../../../../models/data/data-set"
-import {axisGap} from "../../../axis/axis-types"
+import {axisGap, labelPaddingX} from "../../../axis/axis-types"
 import {GraphPlace} from "../../../axis-graph-shared"
-import {getStringBounds} from "../../../axis/axis-utils"
+import {getStringBounds, renderLabelBackground} from "../../../axis/axis-utils"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {useTileSelectionContext} from "../../../../hooks/use-tile-selection-context"
 import {AttributeLabel} from "../attribute-label"
@@ -30,7 +30,7 @@ export const LegendAttributeLabel =
         attributeUnits = (attributeID ? dataset?.attrFromID(attributeID)?.units : '') ?? '',
         labelFont = vars.labelFont,
         labelBounds = getStringBounds(attributeName, labelFont),
-        tX = axisGap + 8,  // offset by paddingX so rect left edge aligns with legend keys
+        tX = axisGap + labelPaddingX,  // offset so rect left edge aligns with legend keys
         tY = labelBounds.height / 2
 
       const gSelection = select(labelRef.current)
@@ -50,53 +50,7 @@ export const LegendAttributeLabel =
               .text(`${attributeName}${attributeUnits ? ` (${attributeUnits})` : ''}`)
         )
 
-      // Add background rect and dropdown arrow (same pattern as axis labels)
-      const textNode = gSelection.select(`text.${className}`).node() as SVGTextElement | null
-      const textBBox = textNode?.getBBox()
-
-      if (textBBox) {
-        const paddingX = 8
-        const paddingY = 2
-        const arrowWidth = 24
-
-        const rectWidth = textBBox.width + paddingX + arrowWidth
-        const rectHeight = textBBox.height + paddingY * 2
-        const rectX = textBBox.x - paddingX
-        const rectY = textBBox.y - paddingY
-
-        gSelection.selectAll('rect.attribute-label-bg')
-          .data([1])
-          .join(
-            (enter) => enter.append('rect').attr('class', 'attribute-label-bg'),
-            (update) => update
-          )
-          .attr('x', rectX)
-          .attr('y', rectY)
-          .attr('width', rectWidth)
-          .attr('height', rectHeight)
-          .attr('rx', 4)
-          .lower()
-
-        const arrowX = textBBox.x + textBBox.width
-        const arrowY = textBBox.y + (textBBox.height - arrowWidth) / 2
-
-        gSelection.selectAll('svg.attribute-label-arrow')
-          .data([1])
-          .join(
-            (enter) => {
-              const arrow = enter.append('svg')
-                .attr('class', 'attribute-label-arrow')
-                .attr('viewBox', '0 0 24 24')
-                .attr('width', arrowWidth)
-                .attr('height', arrowWidth)
-              arrow.append('path').attr('d', 'm12 15-5-5h10z')
-              return arrow
-            },
-            (update) => update
-          )
-          .attr('x', arrowX)
-          .attr('y', arrowY)
-      }
+      renderLabelBackground({ gSelection, textSelector: `text.${className}` })
     }, [dataConfiguration, isTileSelected])
 
     const handleRemoveAttribute = useCallback(() => {

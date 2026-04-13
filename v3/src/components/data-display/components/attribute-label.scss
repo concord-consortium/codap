@@ -10,21 +10,21 @@
   }
 }
 
-// Background rect behind axis label text — always present, invisible by default
 .attribute-label-bg {
   fill: transparent;
   stroke: transparent;
   stroke-width: 1;
 }
 
-// Dropdown arrow next to axis label text — always present, hidden by default
 .attribute-label-arrow path {
   fill: transparent;
 }
 
-// Arrow visible when tile is selected (without background/border)
-g.tile-selected .attribute-label-arrow path {
-  fill: vars.$accent;
+// Arrow becomes visible in any active state
+g.tile-selected, g.hovered, g.focused, g.menu-open {
+  .attribute-label-arrow path {
+    fill: vars.$accent;
+  }
 }
 
 // Flip arrow when menu is open
@@ -40,10 +40,6 @@ g.hovered, g.focused {
     fill: vars.$accent-light-3;
     stroke: vars.$accent;
   }
-
-  .attribute-label-arrow path {
-    fill: vars.$accent;
-  }
 }
 
 // Selected state (menu open) — darker background
@@ -51,9 +47,5 @@ g.menu-open {
   .attribute-label-bg {
     fill: vars.$accent-light-2;
     stroke: vars.$accent;
-  }
-
-  .attribute-label-arrow path {
-    fill: vars.$accent;
   }
 }
