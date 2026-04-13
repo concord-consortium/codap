@@ -9,7 +9,7 @@ import { useDataConfigurationContext } from "../../data-display/hooks/use-data-c
 import { useDataDisplayModelContextMaybe } from "../../data-display/hooks/use-data-display-model"
 import { IDataDisplayContentModel } from "../../data-display/models/data-display-content-model"
 import { kColorAxisExtent, kQualitativeAxisExtent } from "../axis-constants"
-import { AxisPlace, AxisScaleType, axisPlaceToAxisFn, labelMargin } from "../axis-types"
+import { AxisPlace, AxisScaleType, axisGap, axisPlaceToAxisFn, labelMargin } from "../axis-types"
 import {
   collisionExists, computeBestNumberOfTicks,
   computeBestNumberOfVerticalAxisTicks,
@@ -92,8 +92,8 @@ export const useAxis = (axisPlace: AxisPlace) => {
       case 'numeric': {
         ticks = getTicks({d3Scale, isBinned, isVertical, multiScale, displayModel})
         desiredExtent += isVertical || _axisModel?.labelsAreRotated
-          ? Math.max(...ticks.map(tick => getStringBounds(tick).width)) + labelMargin
-          : numbersHeight + labelMargin
+          ? Math.max(...ticks.map(tick => getStringBounds(tick).width)) + axisGap
+          : numbersHeight + axisGap
         break
       }
       case 'qualitative': {
@@ -116,7 +116,7 @@ export const useAxis = (axisPlace: AxisPlace) => {
       case 'date': {
         if (isDateAxisModel(_axisModel)) {
           const [min, max] = _axisModel.domain
-          desiredExtent += getNumberOfLevelsForDateAxis(min, max) * numbersHeight + labelMargin
+          desiredExtent += getNumberOfLevelsForDateAxis(min, max) * numbersHeight + axisGap
         }
         break
       }

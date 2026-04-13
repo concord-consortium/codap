@@ -148,7 +148,7 @@ describe("AxisOrLegendAttributeMenu", () => {
       renderMenu({ place: "bottom" })
       const button = screen.getByTestId("axis-legend-attribute-button-bottom")
       const label = button.getAttribute("aria-label")!
-      expect(label).toContain("horizontal")
+      expect(label).toContain("Drag an attribute or click here")
       // Should not contain an attribute name
       expect(label).not.toContain("Height")
     })
@@ -181,6 +181,89 @@ describe("AxisOrLegendAttributeMenu", () => {
       act(() => { menuItems[0].focus() })
       // scrollIntoView is mocked in setupTests.ts
       expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ block: "nearest" })
+    })
+  })
+
+  describe("CSS class relay to SVG target", () => {
+    let svgTarget: SVGGElement
+
+    beforeEach(() => {
+      // Create an SVG <g> element to serve as the target
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+      svgTarget = document.createElementNS("http://www.w3.org/2000/svg", "g")
+      svg.appendChild(svgTarget)
+      document.body.appendChild(svg)
+    })
+
+    afterEach(() => {
+      svgTarget.closest("svg")?.remove()
+    })
+
+    it("adds 'hovered' class on pointer enter and removes on pointer leave", async () => {
+      const user = userEvent.setup()
+      renderMenu({ target: svgTarget })
+      const overlay = screen.getByTestId("attribute-label-menu-bottom")
+
+      await user.hover(overlay)
+      expect(svgTarget.classList.contains("hovered")).toBe(true)
+
+      await user.unhover(overlay)
+      expect(svgTarget.classList.contains("hovered")).toBe(false)
+    })
+
+    it("adds 'focused' class on focus and removes on blur", () => {
+      renderMenu({ target: svgTarget })
+      const button = screen.getByTestId("axis-legend-attribute-button-bottom")
+
+      act(() => { button.focus() })
+      expect(svgTarget.classList.contains("focused")).toBe(true)
+
+      act(() => { button.blur() })
+      expect(svgTarget.classList.contains("focused")).toBe(false)
+    })
+
+    it("adds 'menu-open' class when menu opens and removes when it closes", async () => {
+      const user = userEvent.setup()
+      renderMenu({ target: svgTarget })
+      const button = screen.getByTestId("axis-legend-attribute-button-bottom")
+
+      // Open menu
+      await user.click(button)
+      expect(svgTarget.classList.contains("menu-open")).toBe(true)
+
+      // Close menu by clicking button again
+      await user.click(button)
+      expect(svgTarget.classList.contains("menu-open")).toBe(false)
+    })
+
+    it("removes 'focused' class when menu closes", async () => {
+      const user = userEvent.setup()
+      renderMenu({ target: svgTarget })
+      const button = screen.getByTestId("axis-legend-attribute-button-bottom")
+
+      // Open menu (which may set focused via focus events)
+      await user.click(button)
+      svgTarget.classList.add("focused")  // simulate focus state
+      expect(svgTarget.classList.contains("menu-open")).toBe(true)
+
+      // Close menu
+      await user.click(button)
+      expect(svgTarget.classList.contains("focused")).toBe(false)
+    })
+
+    it("cleans up all classes on unmount", async () => {
+      const user = userEvent.setup()
+      const { unmount } = renderMenu({ target: svgTarget })
+      const overlay = screen.getByTestId("attribute-label-menu-bottom")
+
+      // Set up some classes
+      await user.hover(overlay)
+      expect(svgTarget.classList.contains("hovered")).toBe(true)
+
+      unmount()
+      expect(svgTarget.classList.contains("hovered")).toBe(false)
+      expect(svgTarget.classList.contains("focused")).toBe(false)
+      expect(svgTarget.classList.contains("menu-open")).toBe(false)
     })
   })
 
