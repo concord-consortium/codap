@@ -1,7 +1,7 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { Menu, MenuItem, MenuList, MenuButton, MenuDivider, Portal } from "@chakra-ui/react"
-import React, { CSSProperties, useCallback, useRef, useState } from "react"
+import React, { CSSProperties, useCallback, useEffect, useRef, useState } from "react"
 import { useDocumentContainerContext } from "../../../hooks/use-document-container-context"
 import { useFreeTileLayoutContext } from "../../../hooks/use-free-tile-layout-context"
 import { IUseDraggableAttribute, useDraggableAttribute } from "../../../hooks/use-drag-drop"
@@ -22,7 +22,6 @@ import { GraphPlace } from "../../axis-graph-shared"
 import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
 import { useDataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
 
-import DropdownArrow from "../../../assets/icons/arrow.svg"
 import RightArrow from "../../../assets/icons/arrow-right.svg"
 
 import "./axis-or-legend-attribute-menu.scss"
@@ -189,9 +188,6 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   const onCloseMenuRef = useRef<() => void>()
   const [openCollectionId, setOpenCollectionId] = React.useState<string | null>(null)
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const adjustedMainMenuHeight = useMenuHeightAdjustment({
-    menuRef: mainMenuListRef, containerRef, isOpen: isMenuOpen
-  })
 
   // Delayed submenu switching to prevent accidental switches when moving to a submenu
   // that appears above/below the trigger item
@@ -252,6 +248,21 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
     setIsMenuOpen(false)
   }
 
+  // Sync menu-open class with actual menu state, and clean up focused on close
+  useEffect(() => {
+    if (isMenuOpen) {
+      target?.classList.add('menu-open')
+    } else {
+      target?.classList.remove('menu-open')
+      target?.classList.remove('focused')
+    }
+    return () => {
+      target?.classList.remove('menu-open')
+      target?.classList.remove('focused')
+      target?.classList.remove('hovered')
+    }
+  }, [isMenuOpen, target])
+
   useOutsidePointerDown({
     ref: menuRef,
     handler: handleCloseMenu,
@@ -278,7 +289,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
       : t("DG.AxisView.emptyLegendAriaLabel")
     : attribute?.name
       ? t("DG.AxisView.axisAriaLabel", { vars: [orientation, attribute.name] })
-      : t("DG.AxisView.emptyAxisAriaLabel", { vars: [orientation] })
+      : t("DG.AxisView.emptyGraphCue")
 
   const handleMenuItemFocus = useMenuItemScrollIntoView()
   const handleMainMenuKeyDown = useSubmenuOpenOnArrowRight("collection-id", handleOpenSubmenu)
@@ -339,6 +350,22 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
     }
   }
 
+  const handlePointerEnter = useCallback(() => {
+    target?.classList.add('hovered')
+  }, [target])
+
+  const handlePointerLeave = useCallback(() => {
+    target?.classList.remove('hovered')
+  }, [target])
+
+  const handleFocusCapture = useCallback(() => {
+    target?.classList.add('focused')
+  }, [target])
+
+  const handleBlurCapture = useCallback(() => {
+    target?.classList.remove('focused')
+  }, [target])
+
   return (
     <div className={clsx("axis-legend-attribute-menu", place)} ref={menuRef} title={description + clickLabel}>
       <Menu placement="auto" onOpen={handleOpenMenu}>
@@ -348,17 +375,19 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
           }
           onCloseMenuRef.current = onClose
           return (
-            <div className="attribute-label-menu" ref={setDragNodeRef}
+            <div className={`attribute-label-menu ${place}`} ref={setDragNodeRef}
                 style={overlayStyle} {...attributes} {...listeners}
+                onPointerEnter={handlePointerEnter}
+                onPointerLeave={handlePointerLeave}
+                onFocusCapture={handleFocusCapture}
+                onBlurCapture={handleBlurCapture}
                 data-testid={`attribute-label-menu-${place}`}>
               <MenuButton style={buttonStyle} aria-label={ariaLabel}
                            data-testid={`axis-legend-attribute-button-${place}`}>
                 {attribute?.name}
               </MenuButton>
-              <DropdownArrow className="axis-label-dropdown-arrow" aria-hidden="true" />
               <Portal containerRef={containerRef}>
                 <MenuList ref={mainMenuListRef} className="axis-legend-menu"
-                          maxH={adjustedMainMenuHeight ?? maxMenuHeight} overflowY="auto"
                           onFocus={handleMenuItemFocus}
                           onKeyDown={handleMainMenuKeyDown}
                           data-testid={`axis-legend-attribute-menu-list-${place}`}>

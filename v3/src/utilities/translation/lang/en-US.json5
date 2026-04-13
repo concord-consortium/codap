@@ -758,7 +758,7 @@
     "DG.DataDisplayModel.HideConnectingLine": "Hide Connecting Lines",
 
     // DG.AxisView
-    "DG.AxisView.emptyGraphCue": "Click here, or drag an attribute here.",
+    "DG.AxisView.emptyGraphCue": "Drag an attribute or click here",
 
     // DG.CellAxis
     "DG.CellAxis.other": "OTHER",

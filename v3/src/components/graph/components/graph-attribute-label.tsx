@@ -8,6 +8,7 @@ import { useGraphLayoutContext } from "../hooks/use-graph-layout-context"
 import { AttributeType } from "../../../models/data/attribute-types"
 import { IDataSet } from "../../../models/data/data-set"
 import { GraphPlace, isVertical } from "../../axis-graph-shared"
+import { labelPadding } from "../../axis/axis-types"
 import { AttributeLabel } from "../../data-display/components/attribute-label"
 import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
 import { useTileSelectionContext } from "../../../hooks/use-tile-selection-context"
@@ -15,6 +16,76 @@ import { getStringBounds } from "../../axis/axis-utils"
 import { ClickableAxisLabel } from "./clickable-axis-label"
 
 import vars from "../../vars.scss"
+
+interface IRenderLabelBackgroundOptions {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  gSelection: any  // D3 Selection<SVGGElement | null, ...> — typed as any to avoid variance issues
+  textSelector: string
+  transform?: string
+  visibility?: string
+}
+
+/**
+ * Renders a background rect and dropdown arrow behind/after an axis or legend label text element.
+ * The rect provides hover/focus/selected visual states via CSS classes on the parent <g>.
+ * The arrow uses the same path as dropdown-arrow-icon.svg (10x5 triangle in a 24x24 viewBox).
+ */
+function renderLabelBackground(
+  { gSelection, textSelector, transform = '', visibility }: IRenderLabelBackgroundOptions
+) {
+  const textNode = gSelection.select(textSelector).node() as SVGTextElement | null
+  const textBBox = textNode?.getBBox()
+  if (!textBBox) return
+
+  const paddingX = 8
+  const paddingY = 2
+  const arrowWidth = 24  // icon container size matching dropdown-arrow-icon.svg viewBox
+
+  // Background rect: left padding + text + arrow (arrow's 24x24 container provides right padding)
+  const rectWidth = textBBox.width + paddingX + arrowWidth
+  const rectHeight = textBBox.height + paddingY * 2
+  const rectX = textBBox.x - paddingX
+  const rectY = textBBox.y - paddingY
+
+  const rectSelection = gSelection.selectAll('rect.attribute-label-bg')
+    .data([1])
+    .join(
+      (enter: any) => enter.append('rect').attr('class', 'attribute-label-bg'),
+      (update: any) => update
+    )
+    .attr('x', rectX)
+    .attr('y', rectY)
+    .attr('width', rectWidth)
+    .attr('height', rectHeight)
+    .attr('rx', 4)
+  if (transform) rectSelection.attr('transform', transform)
+  if (visibility) rectSelection.style('visibility', visibility)
+  rectSelection.lower()  // Ensure rect renders behind text
+
+  // Dropdown arrow: nested <svg> using the same path as dropdown-arrow-icon.svg
+  // Place directly after text — the icon's built-in padding provides sufficient spacing
+  const arrowX = textBBox.x + textBBox.width
+  const arrowY = textBBox.y + (textBBox.height - arrowWidth) / 2
+
+  const arrowSelection = gSelection.selectAll('svg.attribute-label-arrow')
+    .data([1])
+    .join(
+      (enter: any) => {
+        const arrow = enter.append('svg')
+          .attr('class', 'attribute-label-arrow')
+          .attr('viewBox', '0 0 24 24')
+          .attr('width', arrowWidth)
+          .attr('height', arrowWidth)
+        arrow.append('path').attr('d', 'm12 15-5-5h10z')
+        return arrow
+      },
+      (update: any) => update
+    )
+    .attr('x', arrowX)
+    .attr('y', arrowY)
+  if (transform) arrowSelection.attr('transform', transform)
+  if (visibility) arrowSelection.style('visibility', visibility)
+}
 
 interface IAttributeLabelProps {
   place: GraphPlace
@@ -36,6 +107,7 @@ const SingleYAttributeLabel = observer(function SingleYAttributeLabel({
   const graphModel = useGraphContentModelContext()
   const dataConfiguration = useGraphDataConfigurationContext()
   const layout = useGraphLayoutContext()
+  const {isTileSelected} = useTileSelectionContext()
   const dataset = dataConfiguration?.dataset
   const labelRef = useRef<SVGGElement>(null)
 
@@ -69,6 +141,7 @@ const SingleYAttributeLabel = observer(function SingleYAttributeLabel({
     const circleRadius = 5
 
     const gSelection = select(labelRef.current)
+    gSelection.classed('tile-selected', isTileSelected())
 
     // Update or create the text element
     gSelection.selectAll('text.attribute-label.multi-y')
@@ -87,6 +160,11 @@ const SingleYAttributeLabel = observer(function SingleYAttributeLabel({
       .attr('x', tX)
       .attr('y', tY)
       .text(label)
+
+    renderLabelBackground({
+      gSelection, textSelector: 'text.attribute-label.multi-y',
+      transform: labelTransform + tRotation
+    })
 
     // Update or create the circle element
     // Position the circle as a bullet point before the rotated text
@@ -107,7 +185,7 @@ const SingleYAttributeLabel = observer(function SingleYAttributeLabel({
       .attr('cy', circleY)
       .attr('r', circleRadius)
       .style('fill', color)
-  }, [getLabel, graphModel.pointDescription, labelIndex, layout, place, totalLabels])
+  }, [getLabel, graphModel.pointDescription, isTileSelected, labelIndex, layout, place, totalLabels])
 
   return (
     <AttributeLabel
@@ -184,10 +262,11 @@ export const GraphAttributeLabel =
 
     const refreshAxisTitle = useCallback(() => {
 
-      const updateSelection = (selection:  any) => {
+      const updateTextSelection = (selection:  any) => {
         return selection
           .attr('class', className)
           .attr('text-anchor', 'middle')
+          .attr('dominant-baseline', 'central')
           .attr('data-testid', className)
           .attr("transform", labelTransform + tRotation)
           .attr('class', className)
@@ -205,29 +284,41 @@ export const GraphAttributeLabel =
         label = getLabel(),
         labelBounds = getStringBounds(label, labelFont),
         labelTransform = `translate(${bounds.left}, ${bounds.top})`,
-        tX = place === 'left' ? labelBounds.height
+        // With dominant-baseline: central, tY sets the visual center of the text.
+        // Place center at labelPadding + labelBounds.height/2 from the outer edge.
+        labelCenter = labelPadding + labelBounds.height / 2,
+        tX = place === 'left' ? labelCenter
           : place === 'legend' ? bounds.left
-            : ['rightNumeric', 'rightCat'].includes(place) ? bounds.width - labelBounds.height / 2
+            : ['rightNumeric', 'rightCat'].includes(place) ? bounds.width - labelCenter
               : halfRange,
         tY = isVertical(place) ? halfRange
           : place === 'legend' ? labelBounds.height / 2
-            : place === 'top' ? labelBounds.height : bounds.height - labelBounds.height / 2,
+            : place === 'top' ? labelCenter : bounds.height - labelCenter,
         tRotation = isVertical(place) ? ` rotate(-90,${tX},${tY})` : ''
 
       select(labelRef.current).selectAll(`text.${unusedClassName}`).remove()
 
-      const labelTextSelection = select(labelRef.current).selectAll(`text.${className}`)
+      const gSelection = select(labelRef.current)
+      gSelection.classed('tile-selected', isTileSelected())
+
+      // Render the text first so we can measure it
+      const labelTextSelection = gSelection.selectAll(`text.${className}`)
       labelTextSelection
         .data([1])
         .join(
           (enter) =>
             enter.append('text')
               .attr('text-anchor', 'middle')
-              .call(updateSelection),
+              .call(updateTextSelection),
           (update) =>
-            update.call(updateSelection),
+            update.call(updateTextSelection),
           )
-    }, [getClickHereCue, getLabel, layout, place])
+
+      renderLabelBackground({
+        gSelection, textSelector: `text.${className}`,
+        transform: labelTransform + tRotation, visibility
+      })
+    }, [getClickHereCue, getLabel, isTileSelected, layout, place])
 
     const plotDefinedAxisClickHandler = graphModel.plot.axisLabelClickHandler(graphPlaceToAttrRole[place])
 

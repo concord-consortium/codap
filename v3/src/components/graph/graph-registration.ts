@@ -109,8 +109,8 @@ registerTileComponentInfo({
     undoStringKey: "DG.Undo.graphComponent.create",
     redoStringKey: "DG.Redo.graphComponent.create"
   },
-  defaultWidth: 300,
-  defaultHeight: 300
+  defaultWidth: 340,
+  defaultHeight: 340
 })
 
 registerV2TileExporter(kGraphTileType, v2GraphExporter)

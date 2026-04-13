@@ -380,9 +380,16 @@ export const Graph = observer(function Graph({
   }
 
   const renderGraphAxes = () => {
+    // Render horizontal axes first so vertical axes (and their labels) appear on top
+    // of the full-width horizontal axis backgrounds
+    const horizontalFirst = (a: AxisPlace, b: AxisPlace) => {
+      const aIsH = ['bottom', 'top'].includes(a) ? 0 : 1
+      const bIsH = ['bottom', 'top'].includes(b) ? 0 : 1
+      return aIsH - bIsH
+    }
     const places = AxisPlaces.filter((place: AxisPlace) => {
       return !!graphModel.getAxis(place)
-    })
+    }).sort(horizontalFirst)
     return places.map((place: AxisPlace) => {
       return <GraphAxis key={place}
                         place={place}
