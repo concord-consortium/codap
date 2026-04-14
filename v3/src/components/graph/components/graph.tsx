@@ -407,12 +407,15 @@ export const Graph = observer(function Graph({
   const isDropAllowed = graphModel.dataConfiguration.placeCanAcceptAttributeIDDrop
   const hasTopDropZone = plotType !== "casePlot"
     && !graphModel.getAxis("top" as AxisPlace)
-    && (!dragAttrId || isDropAllowed("top", dragDataSet, dragAttrId))
+    && !!dragAttrId
+    && isDropAllowed("top", dragDataSet, dragAttrId)
   const hasRightDropZone = plotType !== "casePlot" && (
     (!graphModel.getAxis("rightCat" as AxisPlace)
-      && (!dragAttrId || isDropAllowed("rightCat", dragDataSet, dragAttrId))) ||
+      && !!dragAttrId
+      && isDropAllowed("rightCat", dragDataSet, dragAttrId)) ||
     (plotType === "scatterPlot" && !graphModel.getAxis("rightNumeric" as AxisPlace)
-      && (!dragAttrId || isDropAllowed("rightNumeric", dragDataSet, dragAttrId)))
+      && !!dragAttrId
+      && isDropAllowed("rightNumeric", dragDataSet, dragAttrId))
   )
   const plotDropInsets: IDropInsets = {
     ...(hasTopDropZone ? { top: kDropZoneSize + kDropZoneGap } : {}),

@@ -2,7 +2,7 @@ import {
   Active, Announcements, AutoScrollOptions, DndContext, KeyboardCoordinateGetter, KeyboardSensor,
   MouseSensor, PointerSensor, TraversalOrder, useSensor, useSensors
 } from "@dnd-kit/core"
-import { ReactNode, useMemo } from "react"
+import { ReactNode } from "react"
 import { dataInteractiveState } from "../../data-interactive/data-interactive-state"
 import { getDragAttributeInfo } from "../../hooks/use-drag-drop"
 import { t } from "../../utilities/translation/translate"
@@ -33,18 +33,23 @@ export const CodapDndContext = ({ children }: IProps) => {
     threshold: { x: 0.05, y: 0.05 }
   }
 
-  const announcements: Announcements = useMemo(() => ({
+  // Custom announcements for attribute drags only; non-attribute drags
+  // (e.g. row drags) return undefined to use dnd-kit's defaults.
+  const announcements: Announcements = {
     onDragStart({ active }) {
-      return t("V3.DnD.onDragStart", { vars: [getAttrName(active)] })
+      const name = getAttrName(active)
+      return name ? t("V3.DnD.onDragStart", { vars: [name] }) : undefined
     },
     onDragOver() { return undefined },
     onDragEnd({ active }) {
-      return t("V3.DnD.onDragEnd", { vars: [getAttrName(active)] })
+      const name = getAttrName(active)
+      return name ? t("V3.DnD.onDragEnd", { vars: [name] }) : undefined
     },
     onDragCancel({ active }) {
-      return t("V3.DnD.onDragCancel", { vars: [getAttrName(active)] })
+      const name = getAttrName(active)
+      return name ? t("V3.DnD.onDragCancel", { vars: [name] }) : undefined
     }
-  }), [])
+  }
 
   const useMouseSensor = useSensor(MouseSensor)
   const sensors = useSensors(

@@ -55,11 +55,11 @@ export const DroppableAddAttribute = ({place, hasRightDropZone, onDrop}: IAddAtt
   const style: CSSProperties | undefined = (() => {
     if (!plotBounds) return undefined
     if (placeKey === "right") {
-      return { height: plotBounds.height - kDropZoneGap, top: plotBounds.top + kDropZoneGap }
+      return { height: Math.max(0, plotBounds.height - kDropZoneGap), top: plotBounds.top + kDropZoneGap }
     }
     if (placeKey === "top" || placeKey === "yPlus") {
       const rightInset = hasRightDropZone ? kDropZoneSize + kDropZoneGap : 0
-      return { width: plotBounds.width - kDropZoneGap - rightInset, left: plotBounds.left + kDropZoneGap }
+      return { width: Math.max(0, plotBounds.width - kDropZoneGap - rightInset), left: plotBounds.left + kDropZoneGap }
     }
   })()
 
