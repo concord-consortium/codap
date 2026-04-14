@@ -151,7 +151,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
 }: IProps) {
   const containerRef = useDocumentContainerContext()
   const layout = useFreeTileLayoutContext()
-  const maxMenuHeight = `min(${layout?.height ?? 300}px, 50vh)`
+  const maxMenuHeight = `min(${layout?.height ?? 340}px, 50vh)`
   const dataConfiguration = useDataConfigurationContext()
   const isAttributeAllowed = dataConfiguration?.placeCanAcceptAttributeIDDrop
     ? (aPlace: GraphPlace, data: IDataSet, anAttrId: string) =>
@@ -188,6 +188,9 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   const onCloseMenuRef = useRef<() => void>()
   const [openCollectionId, setOpenCollectionId] = React.useState<string | null>(null)
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const adjustedMainMenuHeight = useMenuHeightAdjustment({
+    menuRef: mainMenuListRef, containerRef, isOpen: isMenuOpen
+  })
 
   // Delayed submenu switching to prevent accidental switches when moving to a submenu
   // that appears above/below the trigger item
@@ -388,6 +391,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
               </MenuButton>
               <Portal containerRef={containerRef}>
                 <MenuList ref={mainMenuListRef} className="axis-legend-menu"
+                          maxH={adjustedMainMenuHeight ?? maxMenuHeight} overflowY="auto"
                           onFocus={handleMenuItemFocus}
                           onKeyDown={handleMainMenuKeyDown}
                           data-testid={`axis-legend-attribute-menu-list-${place}`}>
