@@ -199,8 +199,6 @@ export const GraphAttributeLabel =
           .attr('dominant-baseline', 'central')
           .attr('data-testid', className)
           .attr("transform", labelTransform + tRotation)
-          .attr('class', className)
-          .attr('data-testid', className)
           .style('visibility', visibility)
           .attr('x', tX)
           .attr('y', tY)
