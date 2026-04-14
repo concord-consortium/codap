@@ -42,6 +42,12 @@ g.hovered, g.focused {
   }
 }
 
+// Keyboard focus ring on the SVG rect (replaces the HTML button's focus outline for alignment)
+g.focused .attribute-label-bg {
+  stroke: vars.$focus-outline-color;
+  stroke-width: 2;
+}
+
 // Selected state (menu open) — darker background
 g.menu-open {
   .attribute-label-bg {
