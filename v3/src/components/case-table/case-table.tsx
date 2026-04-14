@@ -1,10 +1,11 @@
 import { Portal } from "@chakra-ui/react"
+import { useDndMonitor } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { ICoreNotification } from "../../data-interactive/notification-core-types"
 import { CollectionContext, ParentCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
-import { useTileDropOverlay } from "../../hooks/use-drag-drop"
+import { isDragAttributeData, useTileDropOverlay } from "../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { useTileSelectionContext } from "../../hooks/use-tile-selection-context"
 import { registerCanAutoScrollCallback } from "../../lib/dnd-kit/dnd-can-auto-scroll"
@@ -51,6 +52,29 @@ export const CaseTable = observer(function CaseTable() {
       return element !== contentRef.current || (direction?.y === 0)
     })
   }, [])
+
+  // Disable table scrolling during attribute drags to prevent keyboard-initiated drags
+  // from scrolling through all table rows before the overlay can leave the table.
+  // Only applies to attribute drags — row drags need scrolling to reach their drop targets.
+  const tableRef = useRef<HTMLDivElement | null>(null)
+  useDndMonitor({
+    onDragStart({ active }) {
+      if (isDragAttributeData(active.data)) {
+        tableRef.current?.classList.add("dragging")
+      }
+    },
+    onDragEnd() {
+      tableRef.current?.classList.remove("dragging")
+    },
+    onDragCancel() {
+      tableRef.current?.classList.remove("dragging")
+    }
+  })
+
+  const handleTableRef = useCallback((el: HTMLDivElement | null) => {
+    tableRef.current = el
+    setNodeRef(el)
+  }, [setNodeRef])
 
   useEffect(() => {
     return tileSelection.addFocusIgnoreFn(event => {
@@ -153,7 +177,7 @@ export const CaseTable = observer(function CaseTable() {
     }
 
     return (
-      <div ref={setNodeRef} className="case-table" data-testid="case-table">
+      <div ref={handleTableRef} className="case-table" data-testid="case-table">
         <CaseTableAnnounceContext.Provider value={announce}>
           {data.hasFilterFormula && <FilterFormulaBar />}
           <div className="case-table-content" ref={contentRef} onScroll={handleHorizontalScroll}>

@@ -1,10 +1,12 @@
 import {clsx} from "clsx"
 import {select} from "d3"
+import {useDndContext} from "@dnd-kit/core"
 import {comparer} from "mobx"
 import {observer} from "mobx-react-lite"
 import {IDisposer, isAlive} from "mobx-state-tree"
 import React, {useCallback, useEffect, useMemo, useRef} from "react"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
+import {getDragAttributeInfo} from "../../../hooks/use-drag-drop"
 import { DEBUG_RENDERERS } from "../../../lib/debug"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import { AttributeType, isCategoricalAttributeType } from "../../../models/data/attribute-types"
@@ -24,6 +26,7 @@ import { If } from "../../common/if"
 import { PointRendererArray, RendererCapability } from "../../data-display/renderer"
 import {Background} from "../../data-display/components/background"
 import {DataTip} from "../../data-display/components/data-tip"
+import {IDropInsets} from "../../data-display/components/droppable-svg"
 import {MultiLegend} from "../../data-display/components/legend/multi-legend"
 import {Marquee} from "../../data-display/components/marquee"
 import {GraphAttrRole, graphPlaceToAttrRole, kPortalClass} from "../../data-display/data-display-types"
@@ -32,7 +35,7 @@ import {isSetAttributeIDAction} from "../../data-display/models/display-model-ac
 import {MarqueeState} from "../../data-display/models/marquee-state"
 import { setNumberOfCategoriesLimit } from "../../axis/axis-utils"
 import {Adornments} from "../adornments/components/adornments"
-import {IPlotProps, kGraphClass, PlotType} from "../graphing-types"
+import {IPlotProps, kDropZoneGap, kDropZoneSize, kGraphClass, PlotType} from "../graphing-types"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {GraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
@@ -397,6 +400,25 @@ export const Graph = observer(function Graph({
     })
   }
 
+  // Compute insets for the plot drop zone so it doesn't overlap adjacent add-attribute drop zones.
+  // Only apply insets when the drop zones would actually accept the currently dragged attribute.
+  const { active } = useDndContext()
+  const { dataSet: dragDataSet, attributeId: dragAttrId } = getDragAttributeInfo(active) || {}
+  const isDropAllowed = graphModel.dataConfiguration.placeCanAcceptAttributeIDDrop
+  const hasTopDropZone = plotType !== "casePlot"
+    && !graphModel.getAxis("top" as AxisPlace)
+    && (!dragAttrId || isDropAllowed("top", dragDataSet, dragAttrId))
+  const hasRightDropZone = plotType !== "casePlot" && (
+    (!graphModel.getAxis("rightCat" as AxisPlace)
+      && (!dragAttrId || isDropAllowed("rightCat", dragDataSet, dragAttrId))) ||
+    (plotType === "scatterPlot" && !graphModel.getAxis("rightNumeric" as AxisPlace)
+      && (!dragAttrId || isDropAllowed("rightNumeric", dragDataSet, dragAttrId)))
+  )
+  const plotDropInsets: IDropInsets = {
+    ...(hasTopDropZone ? { top: kDropZoneSize + kDropZoneGap } : {}),
+    ...(hasRightDropZone ? { right: kDropZoneSize + kDropZoneGap } : {})
+  }
+
   const renderDroppableAddAttributes = () => {
     const droppables: React.ReactElement[] = []
     if (plotType !== 'casePlot') {
@@ -410,6 +432,7 @@ export const Graph = observer(function Graph({
               key={place}
               place={place}
               plotType={plotType}
+              hasRightDropZone={hasRightDropZone}
               onDrop={handleChangeAttribute.bind(null, place)}
             />
           )
@@ -483,6 +506,7 @@ export const Graph = observer(function Graph({
           <DroppablePlot
             graphElt={graphRef.current}
             plotElt={backgroundSvgRef.current}
+            insets={plotDropInsets}
             onDropAttribute={handleChangeAttribute}
           />
         </svg>
@@ -490,8 +514,8 @@ export const Graph = observer(function Graph({
           divElt={graphRef.current}
           onDropAttribute={handleChangeAttribute}
         />
-        {renderDroppableAddAttributes()}
         <Adornments/>
+        {renderDroppableAddAttributes()}
         <DataTip
           dataConfiguration={graphModel.dataConfiguration}
           dataset={dataset}

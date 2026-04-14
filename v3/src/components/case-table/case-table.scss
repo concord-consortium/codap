@@ -14,6 +14,12 @@ $collection-title-font-color: black;
   display: flex;
   flex-direction: column;
 
+  // Prevent all scrollable descendants from scrolling during drag so keyboard
+  // drags can move past the table without scrolling through every row first.
+  &.dragging * {
+    overflow: hidden !important;
+  }
+
   .case-table-content {
     width: 100%;
     height: 100%;

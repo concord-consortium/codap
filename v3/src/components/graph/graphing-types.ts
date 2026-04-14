@@ -1,5 +1,10 @@
 import { PointRendererBase } from "../data-display/renderer"
 
+// Size of the add-attribute drop zones (top, yPlus, right) in pixels.
+// Also defined in graph.scss — keep in sync.
+export const kDropZoneSize = 50
+export const kDropZoneGap = 1
+
 export interface IPlotProps {
   renderer?: PointRendererBase
   abovePointsGroupRef: React.RefObject<SVGGElement>

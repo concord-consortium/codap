@@ -53,11 +53,24 @@ $icon-fill-dark: $accent; // #006c8e
 $tile-border-color: #0081a9;
 $focus-border-color: #1c9fc7;
 $focus-outline-color: #0957d0;
+$drop-highlight-color: rgba(255, 229, 0, 0.5);
 
 @mixin focus-outline($offset: -2px, $radius: 2px) {
   border-radius: $radius;
   outline: 2px solid $focus-outline-color;
   outline-offset: $offset;
+}
+
+@mixin drop-zone-states {
+  &.active {
+    outline: 2px solid $accent;
+    outline-offset: -3px;
+  }
+  &.over {
+    background: $drop-highlight-color;
+    background-clip: content-box;
+    padding: 1px;
+  }
 }
 
 // Inspector palette design tokens (from Zeplin specs)

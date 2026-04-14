@@ -2,6 +2,7 @@ import {
   Active, DataRef, useDndMonitor, useDraggable, UseDraggableArguments, useDroppable, UseDroppableArguments
 } from "@dnd-kit/core"
 import { IDataSet } from "../models/data/data-set"
+import { t } from "../utilities/translation/translate"
 import { useInstanceIdContext } from "./use-instance-id-context"
 import { useTileSelectionContext } from "./use-tile-selection-context"
 
@@ -43,7 +44,7 @@ export const useDraggableAttribute = (
   // For instance, it calls scrollIntoView(gridRef.current?.querySelector('[tabindex="0"]')).
   // DnDKit sets the tabIndex of draggable elements to 0 by default for keyboard accessibility.
   // For now we set it to -1 to meet RDG's expectations and we'll worry about keyboard drag later.
-  const attributes = { tabIndex: -1 }
+  const attributes = { tabIndex: -1, "aria-roledescription": t("V3.DnD.draggableAttribute") }
   const data: IDragAttributeData = { type: "attribute", dataSet, attributeId, snapToCursor }
   return useDraggable({ ...others, id: `${prefix}-${attributeId}`, attributes, data })
 }

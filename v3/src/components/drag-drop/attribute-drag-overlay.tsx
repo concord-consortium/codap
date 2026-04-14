@@ -3,6 +3,7 @@ import { snapCenterToCursor } from "@dnd-kit/modifiers"
 import { CSSProperties, useMemo } from "react"
 import { getDragAttributeInfo } from "../../hooks/use-drag-drop"
 import { kContainerClass } from "../container/container-constants"
+import DragIndicator from "../../assets/icons/drag-indicator.svg"
 
 import "./attribute-drag-overlay.scss"
 
@@ -89,7 +90,8 @@ export function AttributeDragOverlay ({
     >
       {attr
         ? <div className="attribute-drag-overlay">
-            {attr?.name}
+            <DragIndicator className="drag-indicator-icon" aria-hidden="true" />
+            {attr.name}
           </div>
         : null}
     </DragOverlay>
