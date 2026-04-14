@@ -83,7 +83,7 @@ export const useAxis = (axisPlace: AxisPlace) => {
       numbersHeight = getStringBounds('0').height,
       repetitions = multiScale?.repetitions ?? 1,
       d3Scale = multiScale?.scale ?? (isNumeric ? scaleLinear() : scaleOrdinal())
-    // labelMargin above and below the attribute label, plus a gap between tick labels and the label
+    // labelMargin above and below the attribute label
     let desiredExtent = axisTitleHeight + 2 * labelMargin
     let ticks: string[] = []
     switch (axisType) {

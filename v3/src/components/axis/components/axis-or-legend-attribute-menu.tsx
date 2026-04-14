@@ -248,7 +248,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
     setIsMenuOpen(false)
   }
 
-  // Sync menu-open class with actual menu state, and clean up focused on close
+  // Sync menu-open class with actual menu state, and clean up all visual state classes on close/unmount
   useEffect(() => {
     if (isMenuOpen) {
       target?.classList.add("menu-open")

@@ -377,7 +377,7 @@ export function renderLabelBackground<GElement extends BaseType>(
 
   const paddingX = labelPaddingX
   const paddingY = 2
-  const arrowWidth = 24  // icon container size matching dropdown-arrow-icon.svg viewBox
+  const arrowWidth = 24
 
   const rectWidth = textBBox.width + paddingX + arrowWidth
   const rectHeight = textBBox.height + paddingY * 2
