@@ -34,7 +34,7 @@ export function addDefaultComponents() {
   const kFullWidth = 580
   const kWidth25 = kFullWidth / 4
   const kWidth75 = kFullWidth * 3 / 4
-  const kFullHeight = 300
+  const kFullHeight = 340
   const kHalfHeight = kFullHeight / 2
   const kGap = 10
 

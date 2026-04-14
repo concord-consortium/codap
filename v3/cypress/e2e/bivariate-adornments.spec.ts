@@ -273,9 +273,6 @@ context("Graph adornments", () => {
 
   it("adds connecting lines to the plot when the Connecting Lines checkbox is checked", () => {
     c.selectTile("graph", 0)
-    c.getResizeControl("graph").focus()
-      .type("{rightarrow}".repeat(10) + "{downarrow}".repeat(10))
-    cy.wait(500)
     cy.dragAttributeToTarget("table", "Sleep", "bottom")
     cy.dragAttributeToTarget("table", "Speed", "left")
     cy.dragAttributeToTarget("table", "Diet", "top")
