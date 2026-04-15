@@ -225,10 +225,10 @@ $collection-title-font-color: black;
             background-size: 12px 12px;
             background-repeat: no-repeat;
             &.closed {
-              background-image: url("../../assets/expand.gif");
+              background-image: url("../../assets/icons/row-expand-icon.svg");
             }
             &.open {
-              background-image: url("../../assets/collapse.gif");
+              background-image: url("../../assets/icons/row-collapse-icon.svg");
             }
           }
         }

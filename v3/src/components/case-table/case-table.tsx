@@ -1,6 +1,6 @@
 import { Portal } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
-import React, { useCallback, useEffect, useRef } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import { ICoreNotification } from "../../data-interactive/notification-core-types"
 import { CollectionContext, ParentCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
@@ -20,6 +20,7 @@ import { AttributeHeaderDividerContext } from "../case-tile-common/use-attribute
 import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
 import { IScrollOptions } from "./case-table-types"
 import { CollectionTable } from "./collection-table"
+import { CaseTableAnnounceContext } from "./use-case-table-announce"
 import { useCaseTableModel } from "./use-case-table-model"
 import { useSyncScrolling } from "./use-sync-scrolling"
 
@@ -34,6 +35,15 @@ export const CaseTable = observer(function CaseTable() {
   const tileSelection = useTileSelectionContext()
   const contentRef = useRef<HTMLDivElement>(null)
   const lastNewCollectionDrop = useRef<{ newCollectionId: string, beforeCollectionId: string } | undefined>()
+  const [statusMessage, setStatusMessage] = useState("")
+  const statusTimeoutRef = useRef<number>()
+  const announce = useCallback((message: string) => {
+    window.clearTimeout(statusTimeoutRef.current)
+    setStatusMessage(message)
+    if (message) {
+      statusTimeoutRef.current = window.setTimeout(() => setStatusMessage(""), 1000)
+    }
+  }, [])
 
   useEffect(() => {
     // disable vertical auto-scroll of table (column headers can't scroll out of view)
@@ -144,28 +154,33 @@ export const CaseTable = observer(function CaseTable() {
 
     return (
       <div ref={setNodeRef} className="case-table" data-testid="case-table">
-        {data.hasFilterFormula && <FilterFormulaBar />}
-        <div className="case-table-content" ref={contentRef} onScroll={handleHorizontalScroll}>
-          <AttributeHeaderDividerContext.Provider value={contentRef}>
-            {collections.map((collection, i) => {
-              const key = collection.id
-              const parent = i > 0 ? collections[i - 1] : undefined
-              return (
-                <ParentCollectionContext.Provider key={key} value={parent?.id}>
-                  <CollectionContext.Provider value={collection.id}>
-                    <CollectionTable collectionIndex={i} onMount={handleCollectionTableMount}
-                      onNewCollectionDrop={handleNewCollectionDrop} onTableScroll={handleTableScroll}
-                      onScrollClosestRowIntoView={handleScrollClosestRowIntoView}
-                      onScrollRowRangeIntoView={handleScrollRowRangeIntoView} />
-                  </CollectionContext.Provider>
-                </ParentCollectionContext.Provider>
-              )
-            })}
-          </AttributeHeaderDividerContext.Provider>
-          <Portal>
-            <AttributeDragOverlay dragIdPrefix={instanceId} dragIdExcludeRegEx={excludeDragOverlayRegEx} />
-          </Portal>
-        </div>
+        <CaseTableAnnounceContext.Provider value={announce}>
+          {data.hasFilterFormula && <FilterFormulaBar />}
+          <div className="case-table-content" ref={contentRef} onScroll={handleHorizontalScroll}>
+            <AttributeHeaderDividerContext.Provider value={contentRef}>
+              {collections.map((collection, i) => {
+                const key = collection.id
+                const parent = i > 0 ? collections[i - 1] : undefined
+                return (
+                  <ParentCollectionContext.Provider key={key} value={parent?.id}>
+                    <CollectionContext.Provider value={collection.id}>
+                      <CollectionTable collectionIndex={i} onMount={handleCollectionTableMount}
+                        onNewCollectionDrop={handleNewCollectionDrop} onTableScroll={handleTableScroll}
+                        onScrollClosestRowIntoView={handleScrollClosestRowIntoView}
+                        onScrollRowRangeIntoView={handleScrollRowRangeIntoView} />
+                    </CollectionContext.Provider>
+                  </ParentCollectionContext.Provider>
+                )
+              })}
+            </AttributeHeaderDividerContext.Provider>
+            <Portal>
+              <AttributeDragOverlay dragIdPrefix={instanceId} dragIdExcludeRegEx={excludeDragOverlayRegEx} />
+            </Portal>
+          </div>
+          <div aria-live="polite" className="codap-visually-hidden" role="status">
+            {statusMessage}
+          </div>
+        </CaseTableAnnounceContext.Provider>
       </div>
     )
   })
