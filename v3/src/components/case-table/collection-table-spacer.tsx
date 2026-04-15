@@ -16,6 +16,7 @@ import { t } from "../../utilities/translation/translate"
 import { kInputRowKey } from "./case-table-types"
 import { CurvedSplineFill } from "./curved-spline-fill"
 import { CurvedSplineStroke } from "./curved-spline-stroke"
+import { useCaseTableAnnounce } from "./use-case-table-announce"
 import { useCollectionTableModel } from "./use-collection-table-model"
 
 const kRelationDefaultFillColor = "#ffffff" // white
@@ -52,6 +53,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
   const parentTableModel = useCollectionTableModel(parentCollectionId)
   const visibleParentAttributes = useVisibleAttributes(parentCollectionId)
   const parentScrollTop = parentTableModel?.scrollTop ?? 0
+  const announce = useCaseTableAnnounce()
   const childCollectionId = useCollectionContext()
   const childTableModel = useCollectionTableModel()
   const parentMost = !parentCollection
@@ -159,12 +161,14 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
       undoStringKey: "DG.Undo.caseTable.groupToggleExpandCollapseAll",
       redoStringKey: "DG.Redo.caseTable.groupToggleExpandCollapseAll"
     })
+    announce(t(everyCaseIsCollapsed ? "V3.CaseTable.allGroupsExpanded" : "V3.CaseTable.allGroupsCollapsed"))
   }
 
   function handleExpandCollapseClick(parentCaseId: string) {
+    const wasCollapsed = !!metadata?.isCaseOrAncestorCollapsed(parentCaseId)
     // collapse the parent case
     metadata?.applyModelChange(() => {
-      metadata?.setIsCollapsed(parentCaseId, !metadata?.isCaseOrAncestorCollapsed(parentCaseId))
+      metadata?.setIsCollapsed(parentCaseId, !wasCollapsed)
     }, {
       undoStringKey: "DG.Undo.caseTable.expandCollapseOneCase",
       redoStringKey: "DG.Redo.caseTable.expandCollapseOneCase",
@@ -173,9 +177,13 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
     })
     // scroll to the first expanded/collapsed child case (if necessary)
     const parentCase = data?.caseInfoMap.get(parentCaseId)
+    const childCount = parentCase?.childCaseIds?.length || parentCase?.childItemIds?.length || 0
     const firstChildId = parentCase?.childCaseIds?.[0] || parentCase?.childItemIds?.[0]
     const rowIndex = (firstChildId ? childTableModel?.getRowIndexOfCase(firstChildId) : -1) ?? -1
     ;(rowIndex >= 0) && childTableModel?.scrollRowIntoView(rowIndex)
+    announce(t(wasCollapsed
+      ? "V3.CaseTable.groupExpanded" : "V3.CaseTable.groupCollapsed", { vars: [String(childCount)] }
+    ))
   }
 
   function handleBackgroundClick() {
