@@ -169,10 +169,10 @@ describe("Case Table aria-live announcements", () => {
       const user = userEvent.setup()
       renderCaseTable()
 
-      const collapseAllButton = screen.getByTitle(t("collapse all groups"))
+      const collapseAllButton = screen.getByTitle(t("DG.CaseTable.dividerView.collapseAllTooltip"))
       await user.click(collapseAllButton)
 
-      expect(getStatusRegion()).toHaveTextContent(t("All groups collapsed"))
+      expect(getStatusRegion()).toHaveTextContent(t("V3.CaseTable.allGroupsCollapsed"))
     })
 
     it("announces 'All groups expanded' when expand-all is clicked", async () => {
@@ -180,14 +180,14 @@ describe("Case Table aria-live announcements", () => {
       renderCaseTable()
 
       // First collapse all, then expand all
-      const button = screen.getByTitle(t("collapse all groups"))
+      const button = screen.getByTitle(t("DG.CaseTable.dividerView.collapseAllTooltip"))
       await user.click(button)
 
       // After collapsing, the button tooltip changes to "expand all groups"
-      const expandAllButton = screen.getByTitle(t("expand all groups"))
+      const expandAllButton = screen.getByTitle(t("DG.CaseTable.dividerView.expandAllTooltip"))
       await user.click(expandAllButton)
 
-      expect(getStatusRegion()).toHaveTextContent(t("All groups expanded"))
+      expect(getStatusRegion()).toHaveTextContent(t("V3.CaseTable.allGroupsExpanded"))
     })
 
     it("announces single group collapsed with case count", async () => {
@@ -195,7 +195,9 @@ describe("Case Table aria-live announcements", () => {
       renderCaseTable()
 
       // Individual buttons have aria-label "collapse group"
-      const individualButtons = screen.getAllByRole("button", { name: "collapse group" })
+      const individualButtons = screen.getAllByRole(
+        "button", { name: t("DG.CaseTable.dividerView.collapseGroupTooltip") }
+      )
       expect(individualButtons.length).toBeGreaterThan(0)
 
       await user.click(individualButtons[0])
@@ -208,11 +210,15 @@ describe("Case Table aria-live announcements", () => {
       renderCaseTable()
 
       // Collapse a single group first
-      const individualButtons = screen.getAllByRole("button", { name: "collapse group" })
+      const individualButtons = screen.getAllByRole(
+        "button", { name: t("DG.CaseTable.dividerView.collapseGroupTooltip") }
+      )
       await user.click(individualButtons[0])
 
       // Now expand it — the collapsed button now has aria-label "expand group"
-      const expandButton = screen.getAllByRole("button", { name: "expand group" })[0]
+      const expandButton = screen.getAllByRole(
+        "button", { name: t("DG.CaseTable.dividerView.expandGroupTooltip") }
+      )[0]
       await user.click(expandButton)
 
       expect(getStatusRegion()).toHaveTextContent(/Group expanded, \d+ cases shown/)
