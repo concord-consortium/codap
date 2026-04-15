@@ -11,6 +11,7 @@ import { DataSet, toCanonical } from "../../models/data/data-set"
 import { symParent } from "../../models/data/data-set-types"
 import { DataSetMetadata } from "../../models/shared/data-set-metadata"
 import { TileModel } from "../../models/tiles/tile-model"
+import { t } from "../../utilities/translation/translate"
 import { CaseTable } from "./case-table"
 import { CaseTableModel, ICaseTableModel } from "./case-table-model"
 import "./case-table-registration"
@@ -160,14 +161,18 @@ describe("Case Table aria-live announcements", () => {
       return within(caseTable).getByRole("status")
     }
 
+    beforeEach(() => {
+      jest.spyOn(navigator, "languages", "get").mockReturnValue(["en-US"])
+    })
+
     it("announces 'All groups collapsed' when collapse-all is clicked", async () => {
       const user = userEvent.setup()
       renderCaseTable()
 
-      const collapseAllButton = screen.getByTitle("collapse all groups")
+      const collapseAllButton = screen.getByTitle(t("collapse all groups"))
       await user.click(collapseAllButton)
 
-      expect(getStatusRegion()).toHaveTextContent("All groups collapsed")
+      expect(getStatusRegion()).toHaveTextContent(t("All groups collapsed"))
     })
 
     it("announces 'All groups expanded' when expand-all is clicked", async () => {
@@ -175,14 +180,14 @@ describe("Case Table aria-live announcements", () => {
       renderCaseTable()
 
       // First collapse all, then expand all
-      const button = screen.getByTitle("collapse all groups")
+      const button = screen.getByTitle(t("collapse all groups"))
       await user.click(button)
 
       // After collapsing, the button tooltip changes to "expand all groups"
-      const expandAllButton = screen.getByTitle("expand all groups")
+      const expandAllButton = screen.getByTitle(t("expand all groups"))
       await user.click(expandAllButton)
 
-      expect(getStatusRegion()).toHaveTextContent("All groups expanded")
+      expect(getStatusRegion()).toHaveTextContent(t("All groups expanded"))
     })
 
     it("announces single group collapsed with case count", async () => {
