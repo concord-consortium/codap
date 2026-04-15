@@ -1,7 +1,7 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { Menu, MenuItem, MenuList, MenuButton, MenuDivider, Portal } from "@chakra-ui/react"
-import React, { CSSProperties, useCallback, useRef, useState } from "react"
+import React, { CSSProperties, useCallback, useEffect, useRef, useState } from "react"
 import { useDocumentContainerContext } from "../../../hooks/use-document-container-context"
 import { useFreeTileLayoutContext } from "../../../hooks/use-free-tile-layout-context"
 import { IUseDraggableAttribute, useDraggableAttribute } from "../../../hooks/use-drag-drop"
@@ -22,7 +22,6 @@ import { GraphPlace } from "../../axis-graph-shared"
 import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
 import { useDataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
 
-import DropdownArrow from "../../../assets/icons/arrow.svg"
 import RightArrow from "../../../assets/icons/arrow-right.svg"
 
 import "./axis-or-legend-attribute-menu.scss"
@@ -152,7 +151,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
 }: IProps) {
   const containerRef = useDocumentContainerContext()
   const layout = useFreeTileLayoutContext()
-  const maxMenuHeight = `min(${layout?.height ?? 300}px, 50vh)`
+  const maxMenuHeight = `min(${layout?.height ?? 340}px, 50vh)`
   const dataConfiguration = useDataConfigurationContext()
   const isAttributeAllowed = dataConfiguration?.placeCanAcceptAttributeIDDrop
     ? (aPlace: GraphPlace, data: IDataSet, anAttrId: string) =>
@@ -182,7 +181,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   const treatAs = (nativeType === 'date' && attrType === 'categorical') ? 'date'
     : ['numeric', 'date'].includes(attrType) ? "categorical" : "numeric"
   const overlayStyle: CSSProperties = { position: "absolute", ...useOverlayBounds({target, portal}) }
-  const buttonStyle: CSSProperties = { position: "absolute", width: "100%", height: "100%", color: "transparent" }
+  const buttonStyle: CSSProperties = { width: "100%", height: "100%", color: "transparent" }
   const menuRef = useRef<HTMLDivElement>(null)
   const mainMenuListRef = useRef<HTMLDivElement>(null)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -251,6 +250,21 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
     onCloseMenuRef.current?.()
     setIsMenuOpen(false)
   }
+
+  // Sync menu-open class with actual menu state, and clean up all visual state classes on close/unmount
+  useEffect(() => {
+    if (isMenuOpen) {
+      target?.classList.add("menu-open")
+    } else {
+      target?.classList.remove("menu-open")
+      target?.classList.remove("focused")
+    }
+    return () => {
+      target?.classList.remove("menu-open")
+      target?.classList.remove("focused")
+      target?.classList.remove("hovered")
+    }
+  }, [isMenuOpen, target])
 
   useOutsidePointerDown({
     ref: menuRef,
@@ -339,6 +353,22 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
     }
   }
 
+  const handlePointerEnter = () => {
+    target?.classList.add("hovered")
+  }
+
+  const handlePointerLeave = () => {
+    target?.classList.remove("hovered")
+  }
+
+  const handleFocusCapture = () => {
+    target?.classList.add("focused")
+  }
+
+  const handleBlurCapture = () => {
+    target?.classList.remove("focused")
+  }
+
   return (
     <div className={clsx("axis-legend-attribute-menu", place)} ref={menuRef} title={description + clickLabel}>
       <Menu placement="auto" onOpen={handleOpenMenu}>
@@ -348,14 +378,17 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
           }
           onCloseMenuRef.current = onClose
           return (
-            <div className="attribute-label-menu" ref={setDragNodeRef}
+            <div className={`attribute-label-menu ${place}`} ref={setDragNodeRef}
                 style={overlayStyle} {...attributes} {...listeners}
+                onPointerEnter={handlePointerEnter}
+                onPointerLeave={handlePointerLeave}
+                onFocusCapture={handleFocusCapture}
+                onBlurCapture={handleBlurCapture}
                 data-testid={`attribute-label-menu-${place}`}>
               <MenuButton style={buttonStyle} aria-label={ariaLabel}
                            data-testid={`axis-legend-attribute-button-${place}`}>
                 {attribute?.name}
               </MenuButton>
-              <DropdownArrow className="axis-label-dropdown-arrow" aria-hidden="true" />
               <Portal containerRef={containerRef}>
                 <MenuList ref={mainMenuListRef} className="axis-legend-menu"
                           maxH={adjustedMainMenuHeight ?? maxMenuHeight} overflowY="auto"

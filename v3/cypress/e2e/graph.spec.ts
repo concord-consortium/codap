@@ -765,7 +765,7 @@ context("Graph UI", () => {
       // TODO: See comment above regarding number of bars.
       // cy.get("[data-testid=bar-cover]").should("exist").and("have.length", 9)
       cy.get("[data-testid=bar-cover]").should("exist")
-      cy.get("[data-testid=axis-legend-attribute-button-top").click()
+      cy.get("[data-testid=axis-legend-attribute-button-top]").click()
       cy.get("[role=menuitem]").contains("Remove Side-by-side Layout by Diet").click()
       graph.getDisplayConfigButton().click()
       cy.get("[data-testid=bar-chart-checkbox]").click()

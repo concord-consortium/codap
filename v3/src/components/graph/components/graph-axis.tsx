@@ -69,8 +69,9 @@ export const GraphAxis = observer(function GraphAxis(
       if (wrapperElt) {
         const bounds = layout.getComputedBounds(place),
           graphWidth = layout.tileWidth,
-          left = ['bottom', 'top'].includes(place) ? 0 : bounds.left,
-          width = ['bottom', 'top'].includes(place) ? graphWidth : bounds.width,
+          isHorizontal = ['bottom', 'top'].includes(place),
+          left = isHorizontal ? 0 : bounds.left,
+          width = isHorizontal ? graphWidth : bounds.width,
           transform = `translate(${left}, ${bounds.top})`
         select(wrapperElt)
           .selectAll<SVGRectElement, number>('rect.axis-background')

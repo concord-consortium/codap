@@ -2,10 +2,11 @@ import {useCallback, useEffect, useRef} from "react"
 import {select} from "d3"
 import {AttributeType} from "../../../../models/data/attribute-types"
 import {IDataSet} from "../../../../models/data/data-set"
-import {axisGap} from "../../../axis/axis-types"
+import {axisGap, labelPaddingX} from "../../../axis/axis-types"
 import {GraphPlace} from "../../../axis-graph-shared"
-import {getStringBounds} from "../../../axis/axis-utils"
+import {getStringBounds, renderLabelBackground} from "../../../axis/axis-utils"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
+import {useTileSelectionContext} from "../../../../hooks/use-tile-selection-context"
 import {AttributeLabel} from "../attribute-label"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 
@@ -18,6 +19,7 @@ interface IAttributeLabelProps {
 export const LegendAttributeLabel =
   function LegendAttributeLabel({ onChangeAttribute }: IAttributeLabelProps) {
     const dataConfiguration = useDataConfigurationContext(),
+      {isTileSelected} = useTileSelectionContext(),
       labelRef = useRef<SVGGElement>(null),
       className = 'attribute-label'
 
@@ -28,9 +30,13 @@ export const LegendAttributeLabel =
         attributeUnits = (attributeID ? dataset?.attrFromID(attributeID)?.units : '') ?? '',
         labelFont = vars.labelFont,
         labelBounds = getStringBounds(attributeName, labelFont),
-        tX = axisGap,
-        tY = labelBounds.height / 2 + axisGap
-      select(labelRef.current)
+        tX = axisGap + labelPaddingX,  // offset so rect left edge aligns with legend keys
+        tY = labelBounds.height / 2
+
+      const gSelection = select(labelRef.current)
+      gSelection.classed('tile-selected', isTileSelected())
+
+      gSelection
         .selectAll(`text.${className}`)
         .data([1])
         .join(
@@ -43,7 +49,9 @@ export const LegendAttributeLabel =
               .attr('y', tY)
               .text(`${attributeName}${attributeUnits ? ` (${attributeUnits})` : ''}`)
         )
-    }, [dataConfiguration])
+
+      renderLabelBackground({ gSelection, textSelector: `text.${className}` })
+    }, [dataConfiguration, isTileSelected])
 
     const handleRemoveAttribute = useCallback(() => {
       dataConfiguration?.applyModelChange(

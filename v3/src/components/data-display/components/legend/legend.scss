@@ -1,5 +1,9 @@
 @use "../../../vars";
 
+.multi-legend .legend-component {
+  overflow: visible;
+}
+
 .legend-component {
   position: relative;
   width: 100%;
@@ -24,7 +28,7 @@
     font: 12px sans-serif;
   }
 
-  rect {
+  rect:not(.attribute-label-bg) {
     opacity: 0.85;
     stroke: #315B7D;
   }
@@ -37,6 +41,11 @@
   display: flex;
   flex-direction: column;
   background-color: vars.$background-fill;
+  overflow: visible;
+
+  .legend {
+    overflow: visible;
+  }
 }
 
 .legend-rect-selected {
@@ -46,12 +55,4 @@
 
 .choropleth-rect {
   cursor: pointer;
-}
-
-.legend-categories {
-
-}
-
-.key {
-
 }

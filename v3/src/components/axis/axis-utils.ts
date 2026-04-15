@@ -1,4 +1,4 @@
-import {ScaleContinuousNumeric, ScaleLinear} from "d3"
+import {BaseType, ScaleContinuousNumeric, ScaleLinear, Selection} from "d3"
 import { MutableRefObject } from "react"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { IDataConfigurationModel } from "../data-display/models/data-configuration-model"
@@ -9,7 +9,7 @@ import { determineLevels } from "../../utilities/date-utils"
 import { GraphLayout } from "../graph/models/graph-layout"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { kAxisGap, kAxisTickLength, kDefaultFontHeight } from "./axis-constants"
-import {AxisPlace} from "./axis-types"
+import {AxisPlace, labelPaddingX} from "./axis-types"
 import { updateAxisNotification } from "./models/axis-notifications"
 import { IBaseNumericAxisModel } from "./models/base-numeric-axis-model"
 
@@ -355,4 +355,63 @@ export function zoomAxis(
         {lower: newLower, upper: newUpper}, "plot")
     }
   )
+}
+
+interface IRenderLabelBackgroundOptions<GElement extends BaseType> {
+  gSelection: Selection<GElement, unknown, any, any>
+  textSelector: string
+  transform?: string
+  visibility?: string
+}
+
+/**
+ * Renders a background rect and dropdown arrow behind/after an axis or legend label text element.
+ * The rect provides hover/focus/selected visual states via CSS classes on the parent <g>.
+ */
+export function renderLabelBackground<GElement extends BaseType>(
+  { gSelection, textSelector, transform = '', visibility }: IRenderLabelBackgroundOptions<GElement>
+) {
+  const textNode = gSelection.select(textSelector).node() as SVGTextElement | null
+  const textBBox = textNode?.getBBox()
+  if (!textBBox) return
+
+  const paddingX = labelPaddingX
+  const paddingY = 2
+  const arrowWidth = 24
+
+  const rectWidth = textBBox.width + paddingX + arrowWidth
+  const rectHeight = textBBox.height + paddingY * 2
+  const rectX = textBBox.x - paddingX
+  const rectY = textBBox.y - paddingY
+
+  const rectSelection = gSelection.selectAll('rect.attribute-label-bg')
+    .data([1])
+    .join((enter: any) => enter.append('rect').attr('class', 'attribute-label-bg'))
+    .attr('x', rectX)
+    .attr('y', rectY)
+    .attr('width', rectWidth)
+    .attr('height', rectHeight)
+    .attr('rx', 4)
+  if (transform) rectSelection.attr('transform', transform)
+  if (visibility) rectSelection.style('visibility', visibility)
+  rectSelection.lower()
+
+  const arrowX = textBBox.x + textBBox.width
+  const arrowY = textBBox.y + (textBBox.height - arrowWidth) / 2
+
+  const arrowSelection = gSelection.selectAll('svg.attribute-label-arrow')
+    .data([1])
+    .join((enter: any) => {
+      const arrow = enter.append('svg')
+        .attr('class', 'attribute-label-arrow')
+        .attr('viewBox', '0 0 24 24')
+        .attr('width', arrowWidth)
+        .attr('height', arrowWidth)
+      arrow.append('path').attr('d', 'm12 15-5-5h10z')
+      return arrow
+    })
+    .attr('x', arrowX)
+    .attr('y', arrowY)
+  if (transform) arrowSelection.attr('transform', transform)
+  if (visibility) arrowSelection.style('visibility', visibility)
 }

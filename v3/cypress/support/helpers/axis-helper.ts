@@ -2,7 +2,7 @@ import { AxisElements as ae } from "../elements/axis-elements"
 
 export const AxisHelper = {
   verifyDefaultAxisLabel(axis: string) {
-    ae.getDefaultAxisLabel(axis).should("have.text", "Click here, or drag an attribute here.")
+    ae.getDefaultAxisLabel(axis).should("have.text", "Drag an attribute or click here")
   },
   verifyAxisLabel(axis: string, name: string) {
     ae.getAxisLabel(axis).should("have.text", name)

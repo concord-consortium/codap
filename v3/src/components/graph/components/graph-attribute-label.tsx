@@ -5,13 +5,14 @@ import { t } from "../../../utilities/translation/translate"
 import { useGraphDataConfigurationContext } from "../hooks/use-graph-data-configuration-context"
 import { useGraphContentModelContext } from "../hooks/use-graph-content-model-context"
 import { useGraphLayoutContext } from "../hooks/use-graph-layout-context"
+import { useTileSelectionContext } from "../../../hooks/use-tile-selection-context"
 import { AttributeType } from "../../../models/data/attribute-types"
 import { IDataSet } from "../../../models/data/data-set"
 import { GraphPlace, isVertical } from "../../axis-graph-shared"
+import { labelMargin } from "../../axis/axis-types"
+import { getStringBounds, renderLabelBackground } from "../../axis/axis-utils"
 import { AttributeLabel } from "../../data-display/components/attribute-label"
 import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
-import { useTileSelectionContext } from "../../../hooks/use-tile-selection-context"
-import { getStringBounds } from "../../axis/axis-utils"
 import { ClickableAxisLabel } from "./clickable-axis-label"
 
 import vars from "../../vars.scss"
@@ -36,6 +37,7 @@ const SingleYAttributeLabel = observer(function SingleYAttributeLabel({
   const graphModel = useGraphContentModelContext()
   const dataConfiguration = useGraphDataConfigurationContext()
   const layout = useGraphLayoutContext()
+  const {isTileSelected} = useTileSelectionContext()
   const dataset = dataConfiguration?.dataset
   const labelRef = useRef<SVGGElement>(null)
 
@@ -69,6 +71,7 @@ const SingleYAttributeLabel = observer(function SingleYAttributeLabel({
     const circleRadius = 5
 
     const gSelection = select(labelRef.current)
+    gSelection.classed('tile-selected', isTileSelected())
 
     // Update or create the text element
     gSelection.selectAll('text.attribute-label.multi-y')
@@ -87,6 +90,11 @@ const SingleYAttributeLabel = observer(function SingleYAttributeLabel({
       .attr('x', tX)
       .attr('y', tY)
       .text(label)
+
+    renderLabelBackground({
+      gSelection, textSelector: 'text.attribute-label.multi-y',
+      transform: labelTransform + tRotation
+    })
 
     // Update or create the circle element
     // Position the circle as a bullet point before the rotated text
@@ -107,7 +115,7 @@ const SingleYAttributeLabel = observer(function SingleYAttributeLabel({
       .attr('cy', circleY)
       .attr('r', circleRadius)
       .style('fill', color)
-  }, [getLabel, graphModel.pointDescription, labelIndex, layout, place, totalLabels])
+  }, [getLabel, graphModel.pointDescription, isTileSelected, labelIndex, layout, place, totalLabels])
 
   return (
     <AttributeLabel
@@ -184,14 +192,13 @@ export const GraphAttributeLabel =
 
     const refreshAxisTitle = useCallback(() => {
 
-      const updateSelection = (selection:  any) => {
+      const updateTextSelection = (selection:  any) => {
         return selection
           .attr('class', className)
           .attr('text-anchor', 'middle')
+          .attr('dominant-baseline', 'central')
           .attr('data-testid', className)
           .attr("transform", labelTransform + tRotation)
-          .attr('class', className)
-          .attr('data-testid', className)
           .style('visibility', visibility)
           .attr('x', tX)
           .attr('y', tY)
@@ -205,29 +212,41 @@ export const GraphAttributeLabel =
         label = getLabel(),
         labelBounds = getStringBounds(label, labelFont),
         labelTransform = `translate(${bounds.left}, ${bounds.top})`,
-        tX = place === 'left' ? labelBounds.height
+        // With dominant-baseline: central, tY sets the visual center of the text.
+        // Place center at labelMargin + labelBounds.height/2 from the outer edge.
+        labelCenter = labelMargin + labelBounds.height / 2,
+        tX = place === 'left' ? labelCenter
           : place === 'legend' ? bounds.left
-            : ['rightNumeric', 'rightCat'].includes(place) ? bounds.width - labelBounds.height / 2
+            : ['rightNumeric', 'rightCat'].includes(place) ? bounds.width - labelCenter
               : halfRange,
         tY = isVertical(place) ? halfRange
           : place === 'legend' ? labelBounds.height / 2
-            : place === 'top' ? labelBounds.height : bounds.height - labelBounds.height / 2,
+            : place === 'top' ? labelCenter : bounds.height - labelCenter,
         tRotation = isVertical(place) ? ` rotate(-90,${tX},${tY})` : ''
 
       select(labelRef.current).selectAll(`text.${unusedClassName}`).remove()
 
-      const labelTextSelection = select(labelRef.current).selectAll(`text.${className}`)
+      const gSelection = select(labelRef.current)
+      gSelection.classed('tile-selected', isTileSelected())
+
+      // Render the text first so we can measure it
+      const labelTextSelection = gSelection.selectAll(`text.${className}`)
       labelTextSelection
         .data([1])
         .join(
           (enter) =>
             enter.append('text')
               .attr('text-anchor', 'middle')
-              .call(updateSelection),
+              .call(updateTextSelection),
           (update) =>
-            update.call(updateSelection),
+            update.call(updateTextSelection),
           )
-    }, [getClickHereCue, getLabel, layout, place])
+
+      renderLabelBackground({
+        gSelection, textSelector: `text.${className}`,
+        transform: labelTransform + tRotation, visibility
+      })
+    }, [getClickHereCue, getLabel, isTileSelected, layout, place])
 
     const plotDefinedAxisClickHandler = graphModel.plot.axisLabelClickHandler(graphPlaceToAttrRole[place])
 

@@ -1,12 +1,57 @@
 @use "../../vars";
 
 .attribute-label {
-  text-decoration: underline;
   font: vars.$label-font !important;
-  fill: blue; // default fill for single-attribute labels
+  fill: vars.$default-font-color; // default fill for single-attribute labels
 
   // Multi-y-attribute labels: D3 sets fill color dynamically to match point color
   &.multi-y {
     fill: unset;
+  }
+}
+
+.attribute-label-bg {
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: 1;
+}
+
+.attribute-label-arrow path {
+  fill: transparent;
+}
+
+// Arrow becomes visible in any active state
+g.tile-selected, g.hovered, g.focused, g.menu-open {
+  .attribute-label-arrow path {
+    fill: vars.$accent;
+  }
+}
+
+// Flip arrow when menu is open
+g.menu-open .attribute-label-arrow path {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scaleY(-1);
+}
+
+// Hover and focus states
+g.hovered, g.focused {
+  .attribute-label-bg {
+    fill: vars.$accent-light-3;
+    stroke: vars.$accent;
+  }
+}
+
+// Keyboard focus ring on the SVG rect (replaces the HTML button's focus outline for alignment)
+g.focused .attribute-label-bg {
+  stroke: vars.$focus-outline-color;
+  stroke-width: 2;
+}
+
+// Selected state (menu open) — darker background
+g.menu-open {
+  .attribute-label-bg {
+    fill: vars.$accent-light-2;
+    stroke: vars.$accent;
   }
 }
