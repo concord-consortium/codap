@@ -1438,7 +1438,7 @@
     "V3.CaseTable.attributeAriaLabel": "Attribute %@, open menu",
     "V3.CaseTable.attributeDragInstructions": "Press Space to drag the attribute within the table or to a graph. Press Enter to open the attribute menu.",
     "V3.DnD.draggableAttribute": "draggable attribute",
-    "V3.DnD.onDragStart": "Picked up attribute %@.",
+    "V3.DnD.onDragStart": "Dragging attribute %@.",
     "V3.DnD.onDragEnd": "Attribute %@ was dropped.",
     "V3.DnD.onDragCancel": "Dragging of attribute %@ was canceled.",
     "V3.CaseTable.renameAriaLabel": "Rename attribute %@",
