@@ -14,10 +14,11 @@ $collection-title-font-color: black;
   display: flex;
   flex-direction: column;
 
-  // Prevent all scrollable descendants from scrolling during drag so keyboard
-  // drags can move past the table without scrolling through every row first.
-  &.dragging * {
-    overflow: hidden !important;
+  // Prevent vertical scrolling in the RDG grid during attribute drags so
+  // keyboard drags can move past the table without scrolling through every row.
+  // Scoped to .rdg to preserve horizontal auto-scroll on .case-table-content.
+  &.dragging .rdg {
+    overflow-y: hidden !important;
   }
 
   .case-table-content {
