@@ -3,10 +3,6 @@
 .attribute-label-menu {
   touch-action: none;
 
-  button {
-    position: relative !important;
-  }
-
   button:focus-visible {
     outline: none;
   }

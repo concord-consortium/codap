@@ -181,7 +181,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   const treatAs = (nativeType === 'date' && attrType === 'categorical') ? 'date'
     : ['numeric', 'date'].includes(attrType) ? "categorical" : "numeric"
   const overlayStyle: CSSProperties = { position: "absolute", ...useOverlayBounds({target, portal}) }
-  const buttonStyle: CSSProperties = { position: "absolute", width: "100%", height: "100%", color: "transparent" }
+  const buttonStyle: CSSProperties = { width: "100%", height: "100%", color: "transparent" }
   const menuRef = useRef<HTMLDivElement>(null)
   const mainMenuListRef = useRef<HTMLDivElement>(null)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
