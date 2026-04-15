@@ -1,9 +1,13 @@
 import {
-  Active, Announcements, AutoScrollOptions, DndContext, KeyboardCoordinateGetter, KeyboardSensor,
-  MouseSensor, PointerSensor, TraversalOrder, useSensor, useSensors
+  Active, Announcements, AutoScrollOptions, DndContext, DragCancelEvent, DragEndEvent, DragStartEvent,
+  KeyboardCoordinateGetter, KeyboardSensor, MouseSensor, PointerSensor, TraversalOrder, useSensor, useSensors
 } from "@dnd-kit/core"
 import { ReactNode } from "react"
 import { dataInteractiveState } from "../../data-interactive/data-interactive-state"
+import {
+  buildDragCancelNotice, buildDragEndNotice, buildDragStartNotice
+} from "../../data-interactive/ui-notifications/drag-adapter"
+import { uiNotificationMonitorManager } from "../../data-interactive/ui-notifications/ui-notification-monitor-manager"
 import { getDragAttributeInfo } from "../../hooks/use-drag-drop"
 import { t } from "../../utilities/translation/translate"
 import { urlParams } from "../../utilities/url-params"
@@ -59,12 +63,37 @@ export const CodapDndContext = ({ children }: IProps) => {
                     // mouse sensor can be enabled for cypress tests, for instance
                     urlParams.mouseSensor !== undefined ? useMouseSensor : null
   )
+  const onDragStart = (event: DragStartEvent) => {
+    try {
+      uiNotificationMonitorManager.deliver(buildDragStartNotice(event))
+    } catch (e) {
+      console.error("[ui-notifications] dragStart hook error", e)
+    }
+  }
+  const onDragEnd = (event: DragEndEvent) => {
+    try {
+      uiNotificationMonitorManager.deliver(buildDragEndNotice(event))
+    } catch (e) {
+      console.error("[ui-notifications] dragEnd hook error", e)
+    }
+    dataInteractiveState.endDrag()
+  }
+  const onDragCancel = (event: DragCancelEvent) => {
+    try {
+      uiNotificationMonitorManager.deliver(buildDragCancelNotice(event))
+    } catch (e) {
+      console.error("[ui-notifications] dragCancel hook error", e)
+    }
+  }
+
   return (
     <DndContext
       accessibility={{ announcements }}
       autoScroll={autoScrollOptions}
       collisionDetection={dndDetectCollision}
-      onDragEnd={() => dataInteractiveState.endDrag()}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      onDragCancel={onDragCancel}
       sensors={sensors} >
       {children}
     </DndContext>
