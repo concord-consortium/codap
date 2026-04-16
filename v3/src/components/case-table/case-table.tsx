@@ -177,7 +177,7 @@ export const CaseTable = observer(function CaseTable() {
     }
 
     return (
-      <div ref={handleTableRef} className="case-table" data-testid="case-table">
+      <div ref={handleTableRef} className="case-table" data-testid="codap-case-table">
         <CaseTableAnnounceContext.Provider value={announce}>
           {data.hasFilterFormula && <FilterFormulaBar />}
           <div className="case-table-content" ref={contentRef} onScroll={handleHorizontalScroll}>

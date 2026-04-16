@@ -55,19 +55,19 @@ export const GuideButton = observer(function GuideButton(props: IProps) {
             label={t("DG.ToolButtonData.guideMenu.title")}
           />
         </MenuButton>
-        <MenuList className="tool-shelf-menu-list top-menu" data-testid="guide-menu"
+        <MenuList className="tool-shelf-menu-list top-menu" data-testid="tool-shelf-guide-menu-list"
             onFocus={handleMenuItemFocus}>
           <MenuItem
             key={"show-guide"}
             className="tool-shelf-menu-item"
-            data-testid="show-guide-item"
+            data-testid="tool-shelf-guide-show-item"
             onClick={() => handleSelectTile(guideTileId, documentContent)}
           >
             {`${t("DG.ToolButtonData.guideMenu.showGuide")}`}
           </MenuItem>
           {webViewModel.pages.map((page, index) => {
             return (
-              <MenuItem key={index} data-testid="guide-page-list-item"
+              <MenuItem key={index} data-testid={`tool-shelf-guide-page-item-${index}`}
                         className="tool-shelf-menu-item"
                         onClick={()=>showGuidePage(page.url || "")}
               >

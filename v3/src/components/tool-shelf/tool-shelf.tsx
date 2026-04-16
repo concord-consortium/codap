@@ -43,6 +43,7 @@ function getGuideTileId(document: IDocumentModel) {
 
 interface IRightButtonEntry {
   className?: string
+  testId?: string
   icon: React.ReactElement
   labelKey: string
   hintKey: string
@@ -77,6 +78,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
   const rightButtons: IRightButtonEntry[] = [
     {
       className: "undo-button",
+      testId: "undo-button",
       icon: <UndoIcon className="icon-undo"/>,
       labelKey: "DG.mainPage.mainPane.undoButton.title",
       hintKey: getUndoStringKey(undoManager),
@@ -89,6 +91,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     },
     {
       className: "redo-button",
+      testId: "redo-button",
       icon: <RedoIcon className="icon-redo"/>,
       labelKey: "DG.mainPage.mainPane.redoButton.title",
       hintKey: getRedoStringKey(undoManager),
@@ -180,7 +183,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
       <Spacer />
       <Flex className="tool-shelf-right-buttons">
         {rightButtons.map(entry => {
-          const { className, icon, labelKey, hintKey, button } = entry
+          const { className, testId, icon, labelKey, hintKey, button } = entry
           return (
             button
               ? button
@@ -191,6 +194,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
                   icon={icon}
                   key={labelKey}
                   label={t(labelKey)}
+                  testId={testId}
                   onClick={() => entry.onClick?.()}
                 />
           )

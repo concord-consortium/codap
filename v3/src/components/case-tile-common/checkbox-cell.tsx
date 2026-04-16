@@ -45,6 +45,7 @@ const CheckboxCell = forwardRef<HTMLInputElement, ICheckboxCellProps>(({ caseId,
   return (
     <span className="cell-checkbox">
       <input type="checkbox" ref={checkRef}  onChange={handleChange} onClick={(e) => e.stopPropagation()}
+              data-testid="case-cell-checkbox"
               title={String(cellValue)}
               aria-label={t("V3.CaseTable.checkboxCellAriaLabel", { vars: [attrName] })}/>
     </span>

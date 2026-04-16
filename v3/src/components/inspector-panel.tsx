@@ -242,10 +242,20 @@ interface IInspectorMenuContentProps {
   "data-testid"?: string
 }
 
+// Derives the stable section name from a data-testid like "hide-show-menu-list" → "hide-show".
+// Used to form `inspector-popover-{name}` and `inspector-menu-{name}` testids.
+function inspectorSectionName(testId?: string): string | undefined {
+  if (!testId) return undefined
+  return testId.replace(/-menu-list$/, "")
+}
+
 export function InspectorMenuContent({ children, ...props }: IInspectorMenuContentProps) {
+  const section = inspectorSectionName(props["data-testid"])
+  const popoverTestId = section ? `inspector-popover-${section}` : undefined
+  const menuTestId = section ? `inspector-menu-${section}` : props["data-testid"]
   return (
-    <Popover className="inspector-menu-popover">
-      <Menu className="inspector-menu-list" {...props}>
+    <Popover className="inspector-menu-popover" data-testid={popoverTestId}>
+      <Menu className="inspector-menu-list" {...props} data-testid={menuTestId}>
         {children}
       </Menu>
     </Popover>
@@ -260,10 +270,11 @@ interface IInspectorPalette {
   panelRect?: DOMRect
   buttonRect?: DOMRect
   setShowPalette: (palette: string | undefined) => void
+  tileType: string
 }
 
 export const InspectorPalette = ({children, Icon, id, title, panelRect, buttonRect,
-     setShowPalette}:IInspectorPalette) => {
+     setShowPalette, tileType}:IInspectorPalette) => {
   const pointerSize = 10
   const panelTop = panelRect?.top || 0
   const panelRight = panelRect?.right || 0
@@ -332,7 +343,8 @@ export const InspectorPalette = ({children, Icon, id, title, panelRect, buttonRe
           style={{top: pointerTop - (paletteTop || 0), ...pointerStyle}} />
       <div ref={paletteRef} className="codap-inspector-palette" id={id} tabIndex={-1}
           role={kInspectorPaletteAriaRole} aria-labelledby={headerId}
-          data-testid="codap-inspector-palette" onKeyDown={handleKeyDown}>
+          data-testid={`inspector-palette-${tileType}`}
+          onKeyDown={handleKeyDown}>
         <PaletteHeader id={headerId} Icon={Icon} title={title} />
         {children}
       </div>

@@ -73,7 +73,7 @@ context("codap single smoke test", () => {
     // it is possible to create a graph
     cy.dragAttributeToTarget("table", "Speed", "left")
     cy.get('[data-testid="axis-legend-attribute-button-left"]').eq(0).should("have.text", "Speed")
-    cy.get("[data-testid=graph]").find("[data-testid=axis-left]").find(".tick").should("have.length", 25)
+    cy.get("[data-testid=codap-graph]").find("[data-testid=axis-left]").find(".tick").should("have.length", 25)
 
     cy.log("test creating parent collections")
     // NOTE: the graph compresses to a single point in Cypress here.

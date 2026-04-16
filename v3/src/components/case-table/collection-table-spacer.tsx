@@ -295,6 +295,7 @@ function ExpandCollapseButton({ isCollapsed, onClick, styles, title }: ExpandCol
   const tooltip = title ?? t(tooltipKey)
   return (
     <button type="button" className="expand-collapse-button" onClick={onClick} style={styles}
+      data-testid="expand-collapse-button"
       title={tooltip} aria-label={tooltip} aria-expanded={!isCollapsed}>
       <div className={`expand-collapse-image ${isCollapsed ? 'closed' : 'open'}`} />
     </button>

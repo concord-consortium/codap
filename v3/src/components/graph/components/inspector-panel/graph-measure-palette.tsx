@@ -38,6 +38,7 @@ export const GraphMeasurePalette = observer(function GraphMeasurePalette({
       setShowPalette={setShowPalette}
       panelRect={panelRect}
       buttonRect={buttonRect}
+      tileType="graph"
     >
       <div className="palette-form graph-measure-palette">
         {graphModel && measures?.map(measureOrGroup => {
@@ -58,6 +59,14 @@ export const GraphMeasurePalette = observer(function GraphMeasurePalette({
               disabled, title
             } = measureOrGroup
             const titleSlug = t(title).replace(/ /g, "-").toLowerCase()
+            // Derive a stable kebab-case slug from the i18n key (not the translated label)
+            // so the data-testid stays locale-independent.
+            const keyTail = title.split(".").pop() ?? title
+            const stableSlug = keyTail
+              .replace(/([a-z])([A-Z])/g, "$1-$2")
+              .replace(/[^a-zA-Z0-9]+/g, "-")
+              .toLowerCase()
+              .replace(/^-+|-+$/g, "")
             if (componentInfo && componentContentInfo) {
               return (
                 <GraphContentModelContext.Provider key={`${titleSlug}-graph-model-context`} value={graphModel}>
@@ -76,7 +85,7 @@ export const GraphMeasurePalette = observer(function GraphMeasurePalette({
               return (
                 <PaletteCheckbox
                   key={titleSlug}
-                  data-testid={`adornment-checkbox-${titleSlug}`}
+                  data-testid={`adornment-checkbox-${stableSlug}`}
                   isSelected={checked}
                   isDisabled={!!disabled}
                   onChange={clickHandler}

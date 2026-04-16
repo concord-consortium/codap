@@ -99,13 +99,15 @@ const CaseTableToolShelfMenuList = observer(
           <TableIcon className="menu-icon case-table-icon"/>
           {`${t("DG.AppController.caseTableMenu.clipboardDataset")}`}
         </MenuItem>
-        {datasets.map((dataset) => {
+        {datasets.map((dataset, datasetIndex) => {
           // case table title reflects DataSet title
           const tileTitle = dataset.dataSet.displayTitle
           return (
             // FIXME: this will create multiple undo entries
             <MenuItem key={`${dataset.dataSet.id}`} className="tool-shelf-menu-item table-menu-item"
-              onClick={()=>createOrShowTableOrCardForDataset(dataset)} data-testid={`tool-shelf-table-${tileTitle}`}>
+              onClick={()=>createOrShowTableOrCardForDataset(dataset)}
+              aria-label={tileTitle}
+              data-testid={`tool-shelf-table-${datasetIndex}`}>
               <TableIcon className="menu-icon case-table-icon"/>
               {tileTitle}
               <Button className="menu-list-button tool-shelf-menu-trash"
@@ -182,11 +184,13 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
 
   const buttons = [{label: t("DG.TableController.deleteDataSet.cancelButtonTitle"),
                     className: "cancel",
+                    testId: "delete-data-set-cancel-button",
                     onClick: handleCancel
                    },
                    {
                     label: t("DG.TableController.deleteDataSet.okButtonTitle"),
                     className: "delete",
+                    testId: "delete-data-set-delete-button",
                     onClick: handleDeleteDataSet
                    }]
 
@@ -195,7 +199,7 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
       data-testid="delete-data-set-modal">
       <ModalBody className="delete-data-set-modal-body">
         <AlertIcon />
-        <div className="delete-data-set-modal-text">
+        <div className="delete-data-set-modal-text" data-testid="delete-data-set-modal-text">
           <p className="warning">
             {t("DG.TableController.deleteDataSet.confirmMessage", { vars: [data?.name || ""] })}
           </p>
@@ -210,7 +214,7 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
               color="white" openDelay={1000} placement="bottom" bottom="15px" left="15px"
               data-testid="modal-tooltip">
               <Button key={key} className={`delete-data-set-button-${b.className}`} size="xs" variant="ghost" ml="5"
-                  onClick={b.onClick} data-testid={`delete-data-set-button-${b.className}`}>
+                  onClick={b.onClick} data-testid={b.testId}>
                 {b.label}
               </Button>
             </Tooltip>

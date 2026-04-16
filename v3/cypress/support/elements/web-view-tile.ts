@@ -6,10 +6,10 @@ export const WebViewTileElements = {
     return cy.get(`[data-testid=web-view-url-input]`)
   },
   getUrlModalOkButton() {
-    return cy.get(`[data-testid=OK-button]`)
+    return cy.get(`[data-testid=web-view-url-ok-button]`)
   },
   getUrlModalCancelButton() {
-    return cy.get(`[data-testid=Cancel-button]`)
+    return cy.get(`[data-testid=web-view-url-cancel-button]`)
   },
   confirmUrlModal() {
     this.getUrlModalOkButton().click()

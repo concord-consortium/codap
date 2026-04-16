@@ -17,10 +17,11 @@ export interface IToolShelfButtonProps {
   label: string
   hint: string
   disabled?: boolean
+  testId?: string
   onClick: () => void
 }
 export const ToolShelfButton = ({
-  className, icon, label, hint, disabled, onClick
+  className, icon, label, hint, disabled, testId, onClick
 }: IToolShelfButtonProps) => {
   const langClass = getSpecialLangFontClassName()
   return (
@@ -30,7 +31,7 @@ export const ToolShelfButton = ({
       aria-label={t(hint)}
       aria-disabled={disabled || undefined}
       onClick={disabled ? undefined : onClick}
-      data-testid={`tool-shelf-button-${label.toLowerCase()}`}
+      data-testid={testId ?? `tool-shelf-button-${label.toLowerCase()}`}
       className={clsx("tool-shelf-button", langClass, className)}
     >
       <Box className={clsx("tool-shelf-button-content", langClass)}>

@@ -88,8 +88,14 @@ const Controls = () => {
             onBlur={handleBlur}
             onKeyDown={(e) => handleKeyDown(e)}
           />
-          <Button slot="decrement" className="standard-error-stepper">−</Button>
-          <Button slot="increment" className="standard-error-stepper">+</Button>
+          <Button slot="decrement" className="standard-error-stepper"
+              data-testid="standard-error-stepper-decrement">
+            −
+          </Button>
+          <Button slot="increment" className="standard-error-stepper"
+              data-testid="standard-error-stepper-increment">
+            +
+          </Button>
         </Group>
       </NumberField>
       <span className="standard-error-label">{translate(kStandardErrorLabelKey)}</span>

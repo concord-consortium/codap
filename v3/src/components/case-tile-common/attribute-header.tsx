@@ -10,6 +10,7 @@ import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { IUseDraggableAttribute, useDraggableAttribute } from "../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { useOutsidePointerDown } from "../../hooks/use-outside-pointer-down"
+import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
 import { updateAttributesNotification } from "../../models/data/data-set-notifications"
 import { uiState } from "../../models/ui-state"
 import { uniqueName } from "../../utilities/js-utils"
@@ -65,6 +66,9 @@ export const AttributeHeader = observer(function AttributeHeader({
   const attribute = data?.attrFromID(attributeId)
   const attrName = attribute?.name ?? ""
   const attrUnits = attribute?.units ? ` (${attribute.units})` : ""
+  const attributeCollection = data?.getCollectionForAttribute(attributeId)
+  const visibleAttributes = useVisibleAttributes(attributeCollection?.id)
+  const attrIndex = visibleAttributes.findIndex(attr => attr.id === attributeId)
   const { fullText, reversedText, overflowMode } =
             useAdjustHeaderForOverflow(menuButtonRef.current, attrName, attrUnits)
   const draggableOptions: IUseDraggableAttribute = {
@@ -294,7 +298,7 @@ export const AttributeHeader = observer(function AttributeHeader({
                           disabled={attributeId === kIndexColumnKey}
                           sx={customButtonStyle}
                           fontWeight="bold" onKeyDown={handleButtonKeyDown}
-                          data-testid={`codap-attribute-button ${attrName}`}
+                          data-testid={`codap-attribute-button-${attrIndex}`}
                           aria-label={t("V3.CaseTable.attributeAriaLabel", { vars: [attrName] })}
                           aria-describedby={
                             `sr-column-header-drag-instructions-${instanceId}-${attributeId}`
@@ -313,7 +317,7 @@ export const AttributeHeader = observer(function AttributeHeader({
               }
               {attributeId !== kIndexColumnKey &&
                 <CaseTilePortal>
-                  <AttributeMenuList ref={menuListRef} attributeId={attributeId}
+                  <AttributeMenuList ref={menuListRef} attributeId={attributeId} attrIndex={attrIndex}
                     finalFocusRef={menuButtonRef as React.RefObject<HTMLElement>}
                     onRenameAttribute={handleRenameAttribute} onModalOpen={handleModalOpen}
                   />

@@ -41,9 +41,9 @@ function stringifyDOMRect(rect: DOMRect): string {
 Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, targetNumber) => {
   const el = {
     tableColumnHeader:
-      `.codap-case-table [data-testid="codap-attribute-button ${attribute}"]`,
+      `.codap-case-table [data-testid^="codap-attribute-button-"]:contains("${attribute}")`,
     headerDivider: `.codap-attribute-header-divider`,
-    caseCardHeader: `.codap-case-card [data-testid="codap-attribute-button ${attribute}"]`,
+    caseCardHeader: `.codap-case-card [data-testid^="codap-attribute-button-"]:contains("${attribute}")`,
     caseCardHeaderDropZone: ".react-data-card .data-cell-lower",
     caseCardCollectionDropZone: ".react-data-card .collection-header-row",
     graphTile: ".graph-plot svg",
@@ -221,7 +221,7 @@ Cypress.Commands.add("pointerMoveBy",
   Cypress.Commands.add("checkDragAttributeHighlights", (source, attribute, target, exists) => {
     const el = {
       tableColumnHeader:
-        `.codap-case-table [data-testid="codap-attribute-button ${attribute}"]`,
+        `.codap-case-table [data-testid^="codap-attribute-button-"]:contains("${attribute}")`,
       caseCardHeader: ".react-data-card-attribute",
       caseCardHeaderDropZone: ".react-data-card .data-cell-lower",
       caseCardCollectionDropZone: ".react-data-card .collection-header-row",

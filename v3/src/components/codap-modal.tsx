@@ -6,6 +6,7 @@ import "./codap-modal.scss"
 interface IProps {
   children?: ReactNode
   closeOnOverlayClick?: boolean
+  "data-testid": string
   finalFocusRef?: React.RefObject<HTMLElement>
   initialRef?: any
   isOpen: boolean
@@ -18,13 +19,12 @@ interface IProps {
 }
 
 export const CodapModal = forwardRef(({
-  children, finalFocusRef, initialRef, isOpen, returnFocusOnClose, closeOnOverlayClick, onClick, onClose,
-  onKeyDown, modalWidth, modalHeight
+  children, "data-testid": dataTestId, finalFocusRef, initialRef, isOpen, returnFocusOnClose, closeOnOverlayClick,
+  onClick, onClose, onKeyDown, modalWidth, modalHeight
 }: IProps, ref: React.Ref<HTMLElement> | undefined) => {
 
   return (
     <Modal
-      data-testid="codap-modal"
       finalFocusRef={finalFocusRef}
       initialFocusRef={initialRef}
       isOpen={isOpen}
@@ -35,6 +35,7 @@ export const CodapModal = forwardRef(({
     >
       <ModalOverlay />
       <DraggableModalContent
+        data-testid={dataTestId}
         fRef={ref}
         modalWidth={modalWidth}
         modalHeight={modalHeight}
@@ -51,6 +52,7 @@ CodapModal.displayName = "CodapModal"
 
 interface IDraggableModalContentProps {
   children: ReactNode
+  "data-testid": string
   modalWidth?: string
   modalHeight?: string
   onClick?: () => void
@@ -59,7 +61,8 @@ interface IDraggableModalContentProps {
   isOpen: boolean
 }
 
-const DraggableModalContent = ({children, modalWidth, modalHeight, onClick, onKeyDown, fRef, isOpen
+const DraggableModalContent = ({
+    children, "data-testid": dataTestId, modalWidth, modalHeight, onClick, onKeyDown, fRef, isOpen
     }: IDraggableModalContentProps) => {
   const [modalPos, setModalPos] = useState({left: 350, top: 250})
   const modalRef = useRef<HTMLElement | null>(null)
@@ -147,6 +150,7 @@ const DraggableModalContent = ({children, modalWidth, modalHeight, onClick, onKe
   return (
     <ModalContent
       ref={mergedRef}
+      data-testid={dataTestId}
       style={{...style, ...varStyle}}
       onClick={onClick}
       onKeyDownCapture={onKeyDown}

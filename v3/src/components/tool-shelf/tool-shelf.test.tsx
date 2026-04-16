@@ -61,9 +61,9 @@ describe("Tool shelf", () => {
     const tile = TileModel.create({ id: "tile-1", content: TestTileContent.create() })
     act(() => document.addTile(tile))
     expect(document.content?.tileMap.size).toBe(1)
-    await user.click(screen.getByTestId("tool-shelf-button-undo"))
+    await user.click(screen.getByTestId("undo-button"))
     expect(document.content?.tileMap.size).toBe(1)
-    await user.click(screen.getByTestId("tool-shelf-button-redo"))
+    await user.click(screen.getByTestId("redo-button"))
     expect(document.content?.tileMap.size).toBe(1)
   })
 
@@ -77,9 +77,9 @@ describe("Tool shelf", () => {
     const tile = TileModel.create({ id: "tile-1", content: TestTileContent.create() })
     act(() => document.addTile(tile))
     expect(document.content?.tileMap.size).toBe(1)
-    await user.click(screen.getByTestId("tool-shelf-button-undo"))
+    await user.click(screen.getByTestId("undo-button"))
     expect(document.content?.tileMap.size).toBe(0)
-    await user.click(screen.getByTestId("tool-shelf-button-redo"))
+    await user.click(screen.getByTestId("redo-button"))
     expect(document.content?.tileMap.size).toBe(1)
     document.treeMonitor?.disableMonitoring()
   })
@@ -159,7 +159,7 @@ describe("Tool shelf", () => {
     it("can focus disabled buttons via arrow keys", async () => {
       const user = userEvent.setup()
       renderToolShelf()
-      const undoButton = screen.getByTestId("tool-shelf-button-undo")
+      const undoButton = screen.getByTestId("undo-button")
       expect(undoButton).toHaveAttribute("aria-disabled", "true")
 
       // Navigate to the undo button by arrowing through all buttons

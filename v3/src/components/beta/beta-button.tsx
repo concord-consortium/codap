@@ -17,7 +17,7 @@ export function BetaButton() {
 
   return (
     <div className="beta-button-container">
-      <button className="beta-button" onClick={handleClick}>
+      <button className="beta-button" data-testid="beta-feedback-button" onClick={handleClick}>
         <FeedbackIcon className="feedback-icon" />
         BETA Feedback
       </button>

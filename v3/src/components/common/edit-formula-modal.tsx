@@ -103,10 +103,12 @@ export const EditFormulaModal = observer(function EditFormulaModal({
     variant: "v3Clear",
     label: t("DG.AttrFormView.cancelBtnTitle"),
     tooltip: t("DG.AttrFormView.cancelBtnTooltip"),
+    testId: "formula-cancel-button",
     onClick: closeModal
   }, {
     variant: "v3Default",
     label: t("DG.AttrFormView.applyBtnTitle"),
+    testId: "formula-apply-button",
     onClick: applyAndClose
   }]
 
@@ -163,6 +165,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
   return (
     <FormulaEditorContext.Provider value={formulaEditorState}>
       <CodapModal
+        data-testid="edit-formula-modal"
         finalFocusRef={finalFocusRef}
         initialRef={formulaEditorContainerRef}
         isOpen={isOpen}
@@ -228,14 +231,14 @@ export const EditFormulaModal = observer(function EditFormulaModal({
                   placement="bottom" bottom="15px" left="15px" data-testid="modal-tooltip"
                 >
                   <Button size="xs" variant={b.variant} ml="5" onClick={b.onClick}
-                        data-testid={`${b.label}-button`}>
+                        data-testid={b.testId}>
                     {b.label}
                   </Button>
                 </Tooltip>
               )
             })
           }
-          <div className="codap-modal-corner bottom-right" onPointerDown={handleResizeModal}>
+          <div className="codap-modal-corner bottom-right" aria-hidden="true" onPointerDown={handleResizeModal}>
             <ResizeHandle className="component-resize-handle"/>
           </div>
         </ModalFooter>

@@ -257,13 +257,13 @@ context("Test graph axes with various attribute types", () => {
   it("will split an axis into identical sub axes when categorical attribute is on opposite split", () => {
     ah.openAxisAttributeMenu("bottom")
     ah.selectMenuAttribute("Mass", "bottom") // Mass => x-axis
-    cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
+    cy.get("[data-testid=codap-graph] [data-testid=axis-bottom] .sub-axis-wrapper").should("have.length", 1)
     cy.dragAttributeToTarget("table", arrayOfAttributes[7], "top") // Habitat => top split
-    cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 3)
-    cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").each((wrapper) => {
+    cy.get("[data-testid=codap-graph] [data-testid=axis-bottom] .sub-axis-wrapper").should("have.length", 3)
+    cy.get("[data-testid=codap-graph] [data-testid=axis-bottom] .sub-axis-wrapper").each((wrapper) => {
       cy.wrap(wrapper).find(".tick").should("have.length", 4)
     })
-    cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").each((wrapper) => {
+    cy.get("[data-testid=codap-graph] [data-testid=axis-bottom] .sub-axis-wrapper").each((wrapper) => {
       cy.wrap(wrapper).find(".tick").each((tick, index) => {
         const value = index * 2000
         cy.wrap(tick).invoke("text").should("eq", value.toString())
@@ -271,22 +271,22 @@ context("Test graph axes with various attribute types", () => {
     })
     ah.openAxisAttributeMenu("top")
     ah.removeAttributeFromAxis(arrayOfAttributes[7], "top")
-    cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
+    cy.get("[data-testid=codap-graph] [data-testid=axis-bottom] .sub-axis-wrapper").should("have.length", 1)
   })
   it("will create a graph with categorical x-axis, categorical right-axis, and numerical y-axis", () => {
     ah.openAxisAttributeMenu("bottom")
     ah.selectMenuAttribute("Diet", "bottom") // Diet => bottom
-    cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
+    cy.get("[data-testid=codap-graph] [data-testid=axis-bottom] .sub-axis-wrapper").should("have.length", 1)
     cy.dragAttributeToTarget("table", arrayOfAttributes[4], "left") // Mass => y axis
-    cy.get("[data-testid=graph]").find("[data-testid=axis-left]").find(".sub-axis-wrapper").should("have.length", 1)
+    cy.get("[data-testid=codap-graph] [data-testid=axis-left] .sub-axis-wrapper").should("have.length", 1)
     cy.dragAttributeToTarget("table", arrayOfAttributes[7], "right") // Habitat => right axis
-    cy.get("[data-testid=graph]").find("[data-testid=axis-rightCat]").find(".sub-axis-wrapper").should("have.length", 1)
-    cy.get("[data-testid=graph]").find("[data-testid=axis-left]").find(".sub-axis-wrapper").should("have.length", 3)
+    cy.get("[data-testid=codap-graph] [data-testid=axis-rightCat] .sub-axis-wrapper").should("have.length", 1)
+    cy.get("[data-testid=codap-graph] [data-testid=axis-left] .sub-axis-wrapper").should("have.length", 3)
   })
   it("will test graph with numeric x-axis and two numeric y-attributes", () => {
     ah.openAxisAttributeMenu("bottom")
     ah.selectMenuAttribute("LifeSpan", "bottom") // LifeSpan => x-axis
-    cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
+    cy.get("[data-testid=codap-graph] [data-testid=axis-bottom] .sub-axis-wrapper").should("have.length", 1)
     cy.dragAttributeToTarget("table", arrayOfAttributes[3], "left") // Height => left split
     cy.dragAttributeToTarget("table", arrayOfAttributes[5], "yplus") // Sleep => left split
 
@@ -294,13 +294,15 @@ context("Test graph axes with various attribute types", () => {
     ah.verifyXAxisTickMarksDisplayed()
     ah.verifyYAxisTickMarksDisplayed()
     // With multiple y-attributes, each gets its own separate label
-    cy.get("[data-testid=graph]").find(".axis-wrapper.bottom [data-testid=attribute-label]")
+    cy.get("[data-testid=codap-graph]").find(".axis-wrapper.bottom [data-testid=attribute-label]")
       .should("have.text", "LifeSpan")
-    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").should("have.length", 2)
-    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").eq(0).should("have.text", "Height")
-    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").eq(1).should("have.text", "Sleep")
+    cy.get("[data-testid=codap-graph] [data-testid=attribute-label-multi-y]").should("have.length", 2)
+    cy.get("[data-testid=codap-graph] [data-testid=attribute-label-multi-y]").eq(0)
+      .should("have.text", "Height")
+    cy.get("[data-testid=codap-graph] [data-testid=attribute-label-multi-y]").eq(1)
+      .should("have.text", "Sleep")
     ah.verifyAxisTickLabel("left", "0", 0)
-    cy.get("[data-testid=graph]")
+    cy.get("[data-testid=codap-graph]")
       .find("[data-testid=axis-bottom]")
       .find(".sub-axis-wrapper")
       .should("have.length", 1)
@@ -310,11 +312,11 @@ context("Test graph axes with various attribute types", () => {
     toolbar.getUndoTool().click()
     cy.wait(500)
     // After undo, only one y-attribute remains, so it uses the standard attribute-label
-    cy.get("[data-testid=graph]").find(".axis-wrapper.bottom [data-testid=attribute-label]")
+    cy.get("[data-testid=codap-graph]").find(".axis-wrapper.bottom [data-testid=attribute-label]")
       .should("have.text", "LifeSpan")
-    cy.get("[data-testid=graph]").find(".axis-wrapper.left [data-testid=attribute-label]")
+    cy.get("[data-testid=codap-graph]").find(".axis-wrapper.left [data-testid=attribute-label]")
       .should("have.text", "Height")
-    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").should("have.length", 0)
+    cy.get("[data-testid=codap-graph]").find("[data-testid=attribute-label-multi-y]").should("have.length", 0)
     ah.verifyYAxisTickMarksDisplayed()
     ah.verifyAxisTickLabel("left", "0", 0)
 
@@ -322,17 +324,19 @@ context("Test graph axes with various attribute types", () => {
     toolbar.getRedoTool().click()
     cy.wait(500)
     // After redo, multiple y-attributes restored, each gets its own label
-    cy.get("[data-testid=graph]").find(".axis-wrapper.bottom [data-testid=attribute-label]")
+    cy.get("[data-testid=codap-graph]").find(".axis-wrapper.bottom [data-testid=attribute-label]")
       .should("have.text", "LifeSpan")
-    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").should("have.length", 2)
-    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").eq(0).should("have.text", "Height")
-    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").eq(1).should("have.text", "Sleep")
+    cy.get("[data-testid=codap-graph] [data-testid=attribute-label-multi-y]").should("have.length", 2)
+    cy.get("[data-testid=codap-graph] [data-testid=attribute-label-multi-y]").eq(0)
+      .should("have.text", "Height")
+    cy.get("[data-testid=codap-graph] [data-testid=attribute-label-multi-y]").eq(1)
+      .should("have.text", "Sleep")
     ah.verifyYAxisTickMarksDisplayed()
     ah.verifyAxisTickLabel("left", "0", 0)
 
     // Verify the state after undo/redo
     ah.verifyXAxisTickMarksDisplayed()
-    cy.get("[data-testid=graph]")
+    cy.get("[data-testid=codap-graph]")
       .find("[data-testid=axis-bottom]")
       .find(".sub-axis-wrapper")
       .should("have.length", 1)
@@ -580,10 +584,12 @@ context("Test date axes with multiple y-axes", () => {
     cy.dragAttributeToTarget("table", "temperature", "yplus")
 
     // Verify multiple y-axes - each y-attribute gets its own separate label
-    cy.get("[data-testid=graph]").find("[data-testid=attribute-label]").should("have.text", "date")
-    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").should("have.length", 2)
-    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").eq(0).should("have.text", "chlorophyll")
-    cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").eq(1).should("have.text", "temperature")
+    cy.get("[data-testid=codap-graph]").find("[data-testid=attribute-label]").should("have.text", "date")
+    cy.get("[data-testid=codap-graph] [data-testid=attribute-label-multi-y]").should("have.length", 2)
+    cy.get("[data-testid=codap-graph] [data-testid=attribute-label-multi-y]").eq(0)
+      .should("have.text", "chlorophyll")
+    cy.get("[data-testid=codap-graph] [data-testid=attribute-label-multi-y]").eq(1)
+      .should("have.text", "temperature")
 
     // Explicitly check for the year label on the x-axis
     cy.get('[data-testid="axis-bottom"]').find('text').contains('2005').should('exist')

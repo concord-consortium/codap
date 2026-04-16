@@ -154,6 +154,17 @@ describe("AxisOrLegendAttributeMenu", () => {
     })
   })
 
+  describe("aria-labelledby", () => {
+    it("links MenuList to MenuButton so screen readers announce axis context on menu entry", () => {
+      renderMenu({ place: "bottom" })
+      const button = screen.getByTestId("axis-legend-attribute-button-bottom")
+      const menuList = screen.getByTestId("axis-attr-menu-bottom")
+      const buttonId = button.getAttribute("id")
+      expect(buttonId).toBeTruthy()
+      expect(menuList).toHaveAttribute("aria-labelledby", buttonId)
+    })
+  })
+
   describe("dropdown arrow indicator", () => {
     it("renders a dropdown arrow element", () => {
       // SVG imports are mocked as strings in the test environment (fileMock.js),
@@ -270,7 +281,7 @@ describe("AxisOrLegendAttributeMenu", () => {
   describe("menu rendering", () => {
     it("renders the menu list in the DOM", () => {
       renderMenu({ place: "bottom" })
-      const menuList = screen.getByTestId("axis-legend-attribute-menu-list-bottom")
+      const menuList = screen.getByTestId("axis-attr-menu-bottom")
       expect(menuList).toBeInTheDocument()
     })
 

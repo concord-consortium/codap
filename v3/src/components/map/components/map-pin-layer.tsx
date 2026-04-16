@@ -61,6 +61,7 @@ function MapPin({ color="#0068EA", dataset, id, selected, x, y }: IMapPinProps) 
   return (
     <button
       className={clsx("map-pin", { "selected-pin": selected })}
+      data-testid="map-pin"
       onClick={handleClick}
       onMouseDown={handleMouseDown}
       onPointerEnter={handlePointerEnter}

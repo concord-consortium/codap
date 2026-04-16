@@ -460,7 +460,7 @@ export const Graph = observer(function Graph({
 
   return (
     <GraphDataConfigurationContext.Provider value={graphModel.dataConfiguration}>
-      <div className={clsx(kGraphClass, kPortalClass)} ref={mySetGraphRef} data-testid="graph">
+      <div className={clsx(kGraphClass, kPortalClass)} ref={mySetGraphRef} data-testid="codap-graph">
         {graphModel.showParentToggles && <ParentToggles/>}
         <svg className='graph-svg' ref={svgRef}>
           <Background

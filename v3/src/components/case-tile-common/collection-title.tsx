@@ -162,12 +162,14 @@ export const CollectionTitle =
       <div className="collection-title" style={titleStyle}>
         {isEditing
           ? <input ref={inputRef} className="collection-title-input" value={editingName}
+              data-testid="collection-title-input"
               aria-label={t("V3.CaseTable.collectionTitleAriaLabel", { vars: [editingName || collectionName] })}
               onChange={e => setEditingName(e.target.value)}
               onKeyDown={handleInputKeyDown}
               onBlur={() => handleSubmit(editingName)}
               onFocus={e => e.target.select()} />
           : <span ref={previewRef} className="collection-title-preview" tabIndex={dragging ? -1 : 0}
+              data-testid="collection-title-preview"
               aria-label={t("V3.CaseTable.collectionTitlePreviewAriaLabel", { vars: [displayName] })}
               onKeyDown={handlePreviewKeyDown}
               onDoubleClick={enterEditMode}>
