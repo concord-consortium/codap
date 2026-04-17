@@ -1,15 +1,27 @@
+@use "../vars.scss" as *;
+
 .attribute-drag-overlay {
   cursor: grabbing;
-  padding: 4px 8px;
+  padding: 5px 10px 5px 2px;
   white-space: nowrap;
   opacity: 75%;
-  background: #f9f9f9;    // --rdg-header-background-color
-  border: 1px solid #ddd; // --rdg-border-color
-  font-weight: bold;
-  color: #888;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid $accent;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px 1px rgba(0, 0, 0, 0.25);
+  font-size: 14px;
+  font-weight: 500;
+  color: $default-font-color;
   display: inline-flex;
+  gap: 2px;
   justify-content: center;
   align-items: center;
+
+  .drag-indicator-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+  }
 }
 
 .dnd-kit-drag-overlay {

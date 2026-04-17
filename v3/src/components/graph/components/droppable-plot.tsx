@@ -3,18 +3,19 @@ import {memo} from "react"
 import {getDragAttributeInfo, useDropHandler} from "../../../hooks/use-drag-drop"
 import {useDropHintString} from "../../../hooks/use-drop-hint-string"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import {DroppableSvg} from "../../data-display/components/droppable-svg"
+import {DroppableSvg, IDropInsets} from "../../data-display/components/droppable-svg"
 import {useGraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
 import {GraphPlace} from "../../axis-graph-shared"
 import {IDataSet} from "../../../models/data/data-set"
 
 interface IProps {
   graphElt: HTMLDivElement | null
+  insets?: IDropInsets
   plotElt: SVGGElement | null
   onDropAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
 }
 
-const DroppablePlotBase = ({graphElt, plotElt, onDropAttribute}: IProps) => {
+const DroppablePlotBase = ({graphElt, insets, plotElt, onDropAttribute}: IProps) => {
   const instanceId = useInstanceIdContext()
   const dataConfig = useGraphDataConfigurationContext()
   const isDropAllowed = dataConfig?.placeCanAcceptAttributeIDDrop ?? (() => true)
@@ -44,6 +45,7 @@ const DroppablePlotBase = ({graphElt, plotElt, onDropAttribute}: IProps) => {
       portal={graphElt}
       target={plotElt}
       dropId={droppableId}
+      insets={insets}
       onIsActive={handleIsActive}
       hintString={hintString}
     />
