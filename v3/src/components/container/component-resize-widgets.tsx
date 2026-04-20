@@ -89,7 +89,7 @@ export const ComponentResizeWidgets = observer(function ComponentResizeWidgets(p
         <div className="codap-component-corner bottom-right">
           <button
             ref={resizeButtonRef}
-            aria-label={t("DG.Component.resizeComponent.ariaLabel")}
+            aria-label={t("V3.Component.resizeComponent.ariaLabel")}
             className="component-resize-button"
             data-testid="component-resize-button"
             type="button"
