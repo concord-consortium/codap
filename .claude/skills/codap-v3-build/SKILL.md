@@ -504,35 +504,46 @@ branch must be created before any commits (translations, version files, etc.).
    **If Slack MCP server is available:**
    - Ask user for permission to post
    - Post the announcement using `mcp__slack__conversations_add_message`
-   - Use `channel_id: #codap-v3` and `content_type: text/markdown`
+   - **IMPORTANT:** Use `content_type: text/plain` (NOT `text/markdown`).
+     The `text/markdown` mode collapses single newlines, causing all items
+     to run together into one paragraph. With `text/plain`, Slack preserves
+     newlines and applies its native mrkdwn formatting.
+   - Use `channel_id: #codap-v3`
 
    **If Slack MCP server is NOT available:**
    - Show the user a draft of the announcement
    - Instruct them to paste it into Slack manually
 
-   **Announcement format:**
+   **Announcement format (Slack mrkdwn, NOT standard markdown):**
 
-   ```markdown
+   ```
    CODAP {version} is available for testing at https://codap3.concord.org/staging.
 
-   ### ✨ Features & Improvements:
-   **CODAP-XXX:** Feature title here
-   **CODAP-YYY:** Another feature
+   :sparkles: *Features & Improvements:*
+   *CODAP-XXX:* Feature title here
+   *CODAP-YYY:* Another feature
 
-   ### 🐞 Bug Fixes:
-   **CODAP-AAA:** Bug fix title
-   **CODAP-BBB:** Another fix
+   :ladybug: *Bug Fixes:*
+   *CODAP-AAA:* Bug fix title
+   *CODAP-BBB:* Another fix
 
-   ### 🛠️ Under the Hood:
-   **CODAP-ZZZ:** Internal change
+   :hammer_and_wrench: *Under the Hood:*
+   *CODAP-ZZZ:* Internal change
 
-   The [beta](https://codap3.concord.org/beta) and [production](https://codap3.concord.org/) URLs will be updated once the staging build passes QA.
+   The <https://codap3.concord.org/beta|beta> and <https://codap3.concord.org/|production> URLs will be updated once the staging build passes QA.
    ```
+
+   **Slack mrkdwn differences from standard markdown:**
+   - Bold: `*text*` (single asterisk), not `**text**`
+   - Italic: `_text_` (underscore)
+   - Links: `<url|label>`, not `[label](url)`
+   - Emoji: `:sparkles:` `:ladybug:` `:hammer_and_wrench:` (not Unicode emoji)
+   - No `###` headings — use `*bold*` for section headers
 
    **Rules:**
    - Use the version number from this release (e.g., `3.0.0-beta.2664`)
    - Include only the sections that have items (Features, Bug Fixes, Under the Hood)
-   - Use the same titles and order as in CHANGELOG.md (including emoji prefixes in section headers)
+   - Use the same titles and order as in CHANGELOG.md
    - Each item on its own line with `**CODAP-XXX:**` prefix
    - End with the beta/production follow-up message (links should render in Slack)
 
