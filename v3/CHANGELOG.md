@@ -1,5 +1,42 @@
 # Changelog
 
+## Version 3.0.0-beta.2832 - April 20, 2026
+
+### ✨ Features & Improvements:
+- **CODAP-542:** Map zoom double-click
+- **CODAP-547:** Improve accessibility of tile minimize and close buttons
+- **CODAP-548:** Improve accessibility of case table/card toggle button
+- **CODAP-561:** Improve accessibility of case table expand/collapse buttons
+- **CODAP-566:** Improve feedback and accessibility for attribute drags
+- **CODAP-1118:** Support plugin undo/redo via undoChangeNotice API
+- **CODAP-1137:** Improve accessibility of graph attribute labels
+- **CODAP-1150:** Improve accessibility of color picker dialogs
+- **CODAP-1164:** Implement application-level keyboard navigation for menu bar, toolbar, and tiles
+- **CODAP-1167:** Add plugin tour API
+- **CODAP-1184:** Support resizing tiles via keyboard
+- **CODAP-1193:** Refresh style of file/share dialogs
+- **CODAP-1197:** Improve accessibility of Tiles menu
+
+### 🐞 Bug Fixes:
+- **CODAP-996:** Improve slider-driven animation performance
+- **CODAP-1157:** Fix Tables menu toggling visibility of an already-visible table
+- **CODAP-1174:** Fix graph rescale for bar charts showing percents
+- **CODAP-1176:** Fix console errors/warnings when opening some documents
+- **CODAP-1183:** Fix double tab stop on first attribute header in case table
+- **CODAP-1204:** Prevent arrow keys from moving focus during keyboard drag
+- **CODAP-1209:** Fix shift-tab crash in hierarchical case table
+
+### 🛠️ Under the Hood:
+- **CODAP-189:** Add V3 logging infrastructure for LARA integration
+- **CODAP-1213:** Integrate log-monitor sidebar for real-time log viewing
+- **CODAP-1218:** Proxy plugin URLs through codap.concord.org
+
+### Asset Sizes
+|      File |          Size | % Change from Previous Release |
+|-----------|---------------|--------------------------------|
+|  main.css |  240427 bytes |                         -0.84% |
+|  index.js | 7410501 bytes |                          1.61% |
+
 ## Version 3.0.0-beta.2805 - March 23, 2026
 
 ### ✨ Features & Improvements:

@@ -143,7 +143,7 @@ export default function ColorTextEditor({attributeId, caseId, value, acceptValue
             </Button>
             <Popover ref={popoverRef} shouldFlip={false} offset={popoverOffset}
               className={({defaultClassName}) => `${defaultClassName} color-picker-popover`}
-              aria-label={t("DG.Inspector.colorPicker.dialogLabel")}>
+              aria-label={t("V3.Inspector.colorPicker.dialogLabel")}>
               <ColorPickerPalette inputValue={String(inputValue) || "#ffffff"}
                 swatchBackgroundColor={color || "#ffffff"} onColorChange={handleUpdateValue}
                 onAccept={handleSubmit} onExpandedChange={handleExpandedChange}

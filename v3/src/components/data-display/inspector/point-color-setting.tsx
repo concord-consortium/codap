@@ -73,7 +73,7 @@ export const PointColorSetting = observer(function PointColorSetting({ closeTrig
         className={({defaultClassName}) => `${defaultClassName} color-picker-popover`}
         shouldFlip={false}
         offset={popoverOffset}
-        aria-label={t("DG.Inspector.colorPicker.dialogLabel")}
+        aria-label={t("V3.Inspector.colorPicker.dialogLabel")}
       >
         <ColorPickerPalette swatchBackgroundColor={swatchBackgroundColor} onColorChange={onColorChange}
           inputValue={inputValue} onUpdateValue={updateValue}
