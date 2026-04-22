@@ -124,6 +124,11 @@ describe("useSelectedCell", () => {
     expect(gridRef.current.selectCell).toHaveBeenCalledTimes(1)
     expect(gridRef.current.selectCell).toHaveBeenCalledWith({ idx: 0, rowIdx: 1 }, true)
     expect(mockScrollRowIntoView).toHaveBeenCalledWith(1)
+
+    // Also guard against a regression that reintroduces setTimeout *alongside*
+    // the sync call: flushing pending timers must not trigger a second navigation.
+    jest.runAllTimers()
+    expect(gridRef.current.selectCell).toHaveBeenCalledTimes(1)
   })
 
   it("navigateToNextCell invokes selectCell synchronously (no setTimeout)", () => {
@@ -151,6 +156,11 @@ describe("useSelectedCell", () => {
 
     expect(gridRef.current.selectCell).toHaveBeenCalledTimes(1)
     expect(gridRef.current.selectCell).toHaveBeenCalledWith({ idx: 2, rowIdx: 0 }, true)
+
+    // Flushing pending timers must not trigger a second navigation — guards
+    // against a reintroduced setTimeout alongside the sync call.
+    jest.runAllTimers()
+    expect(gridRef.current.selectCell).toHaveBeenCalledTimes(1)
   })
 
   it("defers navigation via useEffect when target row doesn't exist yet", () => {
