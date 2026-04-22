@@ -8,7 +8,7 @@ import { kChoroplethHeight } from "../../data-display-types"
 import { useDataConfigurationContext } from "../../hooks/use-data-configuration-context"
 import { useDataDisplayLayout } from "../../hooks/use-data-display-layout"
 import { choroplethLegend } from "./choropleth-legend/choropleth-legend"
-import { IBaseLegendProps } from "./legend-common"
+import { IBaseLegendProps, kLegendLabelTopPadding } from "./legend-common"
 
 import vars from "../../../vars.scss"
 
@@ -32,7 +32,7 @@ export const NumericLegend =
         if (dataConfiguration?.placeCanHaveZeroExtent('legend')) {
           return 0
         }
-        return labelHeight + kChoroplethHeight + numberHeight + 2 * axisGap
+        return labelHeight + kChoroplethHeight + numberHeight + 2 * axisGap + kLegendLabelTopPadding
       }
 
       if (!choroplethElt || !dataConfiguration) return
@@ -42,7 +42,7 @@ export const NumericLegend =
         {
           isDate: dataConfiguration.attributeType('legend') === 'date',
           width: tileWidth,
-          marginLeft: 6, marginTop: labelHeight, marginRight: 6, ticks: 5,
+          marginLeft: 6, marginTop: labelHeight + kLegendLabelTopPadding, marginRight: 6, ticks: 5,
           clickHandler: (bin: number, extend: boolean) => {
             const dataset = dataConfiguration.dataset
             const binCases = dataConfiguration.getCasesForLegendBin(bin)
