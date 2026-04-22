@@ -1,12 +1,15 @@
+@use "../../components/vars";
+
 .drop-hint {
   position:fixed;
   z-index:12;
-  background-color:#5b616b; // NOTE: http://web-accessibility.carnegiemuseums.org/design/color/
-  padding:5px 11px;
-  font-size:11px;
-  font-weight: bold;
+  transform: translate(-50%, -100%);
+  background-color: vars.$charcoal-dark-1;
+  padding: 5px 10px;
+  font-size: 14px;
+  font-weight: 500;
   color:white;
-  border-radius: 5px;
+  border-radius: 4px;
   opacity: 100%;
   animation-duration: .3s;
   animation-name: fadeSlide;
