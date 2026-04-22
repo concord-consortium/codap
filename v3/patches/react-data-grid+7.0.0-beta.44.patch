@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-data-grid/lib/bundle.cjs b/node_modules/react-data-grid/lib/bundle.cjs
-index 43bf414..f43c52c 100644
+index 43bf414..2e5a598 100644
 --- a/node_modules/react-data-grid/lib/bundle.cjs
 +++ b/node_modules/react-data-grid/lib/bundle.cjs
 @@ -175,7 +175,7 @@ function getNextSelectedCellPosition({
@@ -124,7 +124,7 @@ index 43bf414..f43c52c 100644
      const {
        keyCode
      } = event;
-@@ -2638,7 +2645,16 @@ function DataGrid(props, ref) {
+@@ -2638,7 +2645,19 @@ function DataGrid(props, ref) {
          }));
        }
      };
@@ -132,17 +132,20 @@ index 43bf414..f43c52c 100644
 +    // Patched: compare via rowKeyGetter if available so row objects that
 +    // legitimately represent the same case (but as a new object reference)
 +    // are not treated as stale. Falls back to ref equality when no keyGetter
-+    // is set.
++    // is set. If the selected row index is now out of bounds, treat it as
++    // stale and close the editor before invoking rowKeyGetter.
 +    const currentRow = rows[selectedPosition.rowIdx];
 +    const originalRow = selectedPosition.originalRow;
-+    const stale = rowKeyGetter
-+      ? rowKeyGetter(currentRow) !== rowKeyGetter(originalRow)
-+      : currentRow !== originalRow;
++    const stale = currentRow === undefined
++      ? true
++      : rowKeyGetter
++        ? rowKeyGetter(currentRow) !== rowKeyGetter(originalRow)
++        : currentRow !== originalRow;
 +    if (stale) {
        closeEditor(false);
      }
      return /*#__PURE__*/jsxRuntime.jsx(EditCell, {
-@@ -3322,5 +3338,6 @@ exports.renderSortPriority = renderSortPriority;
+@@ -3322,5 +3341,6 @@ exports.renderSortPriority = renderSortPriority;
  exports.renderToggleGroup = renderToggleGroup;
  exports.renderValue = renderValue;
  exports.textEditor = textEditor;
@@ -150,7 +153,7 @@ index 43bf414..f43c52c 100644
  exports.useRowSelection = useRowSelection;
  //# sourceMappingURL=bundle.cjs.map
 diff --git a/node_modules/react-data-grid/lib/bundle.js b/node_modules/react-data-grid/lib/bundle.js
-index 0214c29..5719092 100644
+index 0214c29..71f0c57 100644
 --- a/node_modules/react-data-grid/lib/bundle.js
 +++ b/node_modules/react-data-grid/lib/bundle.js
 @@ -171,7 +171,7 @@ function getNextSelectedCellPosition({
@@ -275,7 +278,7 @@ index 0214c29..5719092 100644
      const {
        keyCode
      } = event;
-@@ -2634,7 +2641,16 @@ function DataGrid(props, ref) {
+@@ -2634,7 +2641,19 @@ function DataGrid(props, ref) {
          }));
        }
      };
@@ -283,17 +286,20 @@ index 0214c29..5719092 100644
 +    // Patched: compare via rowKeyGetter if available so row objects that
 +    // legitimately represent the same case (but as a new object reference)
 +    // are not treated as stale. Falls back to ref equality when no keyGetter
-+    // is set.
++    // is set. If the selected row index is now out of bounds, treat it as
++    // stale and close the editor before invoking rowKeyGetter.
 +    const currentRow = rows[selectedPosition.rowIdx];
 +    const originalRow = selectedPosition.originalRow;
-+    const stale = rowKeyGetter
-+      ? rowKeyGetter(currentRow) !== rowKeyGetter(originalRow)
-+      : currentRow !== originalRow;
++    const stale = currentRow === undefined
++      ? true
++      : rowKeyGetter
++        ? rowKeyGetter(currentRow) !== rowKeyGetter(originalRow)
++        : currentRow !== originalRow;
 +    if (stale) {
        closeEditor(false);
      }
      return /*#__PURE__*/jsx(EditCell, {
-@@ -3303,5 +3319,5 @@ function textEditor({
+@@ -3303,5 +3322,5 @@ function textEditor({
    });
  }
  
