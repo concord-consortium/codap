@@ -100,6 +100,59 @@ describe("useSelectedCell", () => {
     expect(mockScrollRowIntoView).toHaveBeenCalledTimes(2)
   })
 
+  it("navigateToNextRow invokes selectCell synchronously (no setTimeout)", () => {
+    // Regression guard for CODAP-1225: navigateToNextRow must move selection
+    // synchronously so a keystroke between Enter and the selection move cannot
+    // enter edit mode on the old cell.
+    columns = [{ name: "Column1", key: "column-1" }]
+    rows = [{ __id__: "row-0" }, { __id__: "row-1" }, { __id__: "row-2" }]
+    const { result } =
+      renderHook(() => useSelectedCell(gridRef, columns, rows), {
+        wrapper: ({ children }) => (
+          <DataSetContext.Provider value={data}>
+            {children}
+          </DataSetContext.Provider>
+        )
+      })
+    result.current.handleSelectedCellChange({
+      rowIdx: 0, row: rows[0], column: columns[0] as TCalculatedColumn
+    })
+
+    result.current.navigateToNextRow()
+
+    // Assert selectCell was called BEFORE any timers ran — i.e. synchronously.
+    expect(gridRef.current.selectCell).toHaveBeenCalledTimes(1)
+    expect(gridRef.current.selectCell).toHaveBeenCalledWith({ idx: 0, rowIdx: 1 }, true)
+    expect(mockScrollRowIntoView).toHaveBeenCalledWith(1)
+  })
+
+  it("navigateToNextCell invokes selectCell synchronously (no setTimeout)", () => {
+    // Regression guard for CODAP-1225 (Tab variant): navigateToNextCell must
+    // move selection synchronously for the same reason as navigateToNextRow.
+    columns = [
+      { name: "Index", key: "__index__" },
+      { name: "Column1", key: "column-1" },
+      { name: "Column2", key: "column-2" }
+    ]
+    rows = [{ __id__: "row-0" }, { __id__: "row-1" }]
+    const { result } =
+      renderHook(() => useSelectedCell(gridRef, columns, rows), {
+        wrapper: ({ children }) => (
+          <DataSetContext.Provider value={data}>
+            {children}
+          </DataSetContext.Provider>
+        )
+      })
+    result.current.handleSelectedCellChange({
+      rowIdx: 0, row: rows[0], column: columns[1] as TCalculatedColumn
+    })
+
+    result.current.navigateToNextCell()
+
+    expect(gridRef.current.selectCell).toHaveBeenCalledTimes(1)
+    expect(gridRef.current.selectCell).toHaveBeenCalledWith({ idx: 2, rowIdx: 0 }, true)
+  })
+
   it("defers navigation via useEffect when target row doesn't exist yet", () => {
     columns = [
       { name: "Index", key: "__index__" },
