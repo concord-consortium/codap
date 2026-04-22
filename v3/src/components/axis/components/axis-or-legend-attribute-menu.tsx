@@ -1,3 +1,4 @@
+import { useDndContext } from "@dnd-kit/core"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { Menu, MenuItem, MenuList, MenuButton, MenuDivider, Portal } from "@chakra-ui/react"
@@ -186,6 +187,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   const mainMenuListRef = useRef<HTMLDivElement>(null)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const onCloseMenuRef = useRef<() => void>()
+  const { active: dndActive } = useDndContext()
   const [openCollectionId, setOpenCollectionId] = React.useState<string | null>(null)
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const adjustedMainMenuHeight = useMenuHeightAdjustment({
@@ -265,6 +267,15 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
       target?.classList.remove("hovered")
     }
   }, [isMenuOpen, target])
+
+  // Strip hover/focus state while a drag is in progress, so the label doesn't
+  // compete visually with the drop-zone outline.
+  useEffect(() => {
+    if (dndActive) {
+      target?.classList.remove("hovered")
+      target?.classList.remove("focused")
+    }
+  }, [dndActive, target])
 
   useOutsidePointerDown({
     ref: menuRef,
@@ -354,6 +365,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   }
 
   const handlePointerEnter = () => {
+    if (dndActive) return
     target?.classList.add("hovered")
   }
 
