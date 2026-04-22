@@ -3,7 +3,6 @@ import { useDataSet } from "../../hooks/use-data-set"
 import { symParent } from "../../models/data/data-set-types"
 import { t } from "../../utilities/translation/translate"
 import { renderAttributeValue } from "../case-tile-common/attribute-format-utils"
-import { If } from "../common/if"
 import { kInputRowKey, symDom, TRenderCellProps } from "./case-table-types"
 import { useCollectionTableModel } from "./use-collection-table-model"
 
@@ -27,15 +26,22 @@ export function AttributeValueCell({ column, row }: TRenderCellProps) {
                               ? { value: "", content: null }
                               : renderAttributeValue(strValue, numValue, attr, { key, rowHeight, caseId })
   const dataTestId = `case-table-tooltip-${row.__id__}-${column.key}`
+  // Empty input-row cells don't need a tooltip (no value to show), but do need
+  // screen-reader instructions. Render content + VisuallyHidden directly.
+  // Normal cells pass `content` as Tooltip's single child so Popper can anchor
+  // against the .cell-content div's bounding rect.
+  if (isInputRow && !strValue) {
+    return (
+      <>
+        {content}
+        <VisuallyHidden>{t("V3.CaseTable.inputRowCellInstructions", { vars: [attrName] })}</VisuallyHidden>
+      </>
+    )
+  }
   return (
     <Tooltip label={value} fontSize="12px" color="white" data-testid={dataTestId}
       openDelay={1000} placement="bottom" whiteSpace="pre-wrap" maxW="400px">
-      <span style={{ display: "contents" }}>
-        {content}
-        <If condition={isInputRow && !strValue}>
-          <VisuallyHidden>{t("V3.CaseTable.inputRowCellInstructions", { vars: [attrName] })}</VisuallyHidden>
-        </If>
-      </span>
+      {content}
     </Tooltip>
   )
 }
