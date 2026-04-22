@@ -28,8 +28,6 @@ export function AttributeValueCell({ column, row }: TRenderCellProps) {
   const dataTestId = `case-table-tooltip-${row.__id__}-${column.key}`
   // Empty input-row cells don't need a tooltip (no value to show), but do need
   // screen-reader instructions. Render content + VisuallyHidden directly.
-  // Normal cells pass `content` as Tooltip's single child so Popper can anchor
-  // against the .cell-content div's bounding rect.
   if (isInputRow && !strValue) {
     return (
       <>
@@ -38,6 +36,11 @@ export function AttributeValueCell({ column, row }: TRenderCellProps) {
       </>
     )
   }
+  // No value means no tooltip to display (e.g. collapsed parent rows where
+  // content is also null). Skip the Tooltip wrapper entirely.
+  if (!value) return content
+  // Normal cells pass `content` as Tooltip's single child so Popper can anchor
+  // against the .cell-content div's bounding rect.
   return (
     <Tooltip label={value} fontSize="12px" color="white" data-testid={dataTestId}
       openDelay={1000} placement="bottom" whiteSpace="pre-wrap" maxW="400px">
