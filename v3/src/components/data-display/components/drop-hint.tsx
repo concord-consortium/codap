@@ -15,7 +15,7 @@ export const DropHint = ({ hintText, isVisible }: IProps) => {
   useDndMonitor({
     onDragMove() {
       const overlayEl = document.querySelector<HTMLElement>(".attribute-drag-overlay")
-      if (!overlayEl || !hintDiv.current) return
+      if (!overlayEl) return
       const rect = overlayEl.getBoundingClientRect()
       setHintPos({
         left: rect.left + rect.width / 2,
