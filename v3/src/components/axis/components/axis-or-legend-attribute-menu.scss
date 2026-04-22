@@ -26,7 +26,6 @@
 
     &:focus-visible {
       @include vars.focus-outline;
-      background-color: transparent;
     }
 
     // "Selected" (currently assigned) attribute

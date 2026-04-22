@@ -361,8 +361,11 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
     target?.classList.remove("hovered")
   }
 
-  const handleFocusCapture = () => {
-    target?.classList.add("focused")
+  const handleFocusCapture = (event: React.FocusEvent<HTMLDivElement>) => {
+    // Only show the focus ring for keyboard-driven focus, not mouse clicks.
+    if (event.target.matches(":focus-visible")) {
+      target?.classList.add("focused")
+    }
   }
 
   const handleBlurCapture = () => {

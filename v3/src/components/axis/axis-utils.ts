@@ -376,7 +376,7 @@ export function renderLabelBackground<GElement extends BaseType>(
   if (!textBBox) return
 
   const paddingX = labelPaddingX
-  const paddingY = 2
+  const paddingY = 4
   const arrowWidth = 24
 
   const rectWidth = textBBox.width + paddingX + arrowWidth
