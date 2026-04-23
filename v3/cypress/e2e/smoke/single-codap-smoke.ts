@@ -115,7 +115,8 @@ context("codap single smoke test", () => {
     cy.get(".codap-component.codap-case-table").contains(".title-bar", "Tracks/Measurements").should("exist")
 
     cy.log("Test date display exists in table")
-    cy.get('button[data-testid="codap-attribute-button date"]').should('exist')
+    // CODAP-1236: attribute testids are now index-based, not name-based. Match by name via :contains.
+    cy.get('.codap-case-table [data-testid^="codap-attribute-button-"]:contains("date")').should('exist')
     table.getGridCell(2, 3, 2).should('be.visible').and("contain", "5/23/2005")
 
     cy.log("Test date display in bottom axis of graph")
