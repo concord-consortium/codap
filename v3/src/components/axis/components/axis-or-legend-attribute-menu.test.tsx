@@ -211,7 +211,7 @@ describe("AxisOrLegendAttributeMenu", () => {
       expect(svgTarget.classList.contains("hovered")).toBe(false)
     })
 
-    it("adds 'focused' class on focus and removes on blur", () => {
+    it("adds 'focused' class on keyboard-visible focus and removes on blur", () => {
       renderMenu({ target: svgTarget })
       const button = screen.getByTestId("axis-legend-attribute-button-bottom")
 
