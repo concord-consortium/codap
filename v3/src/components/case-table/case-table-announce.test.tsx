@@ -157,7 +157,7 @@ describe("Case Table aria-live announcements", () => {
     }
 
     function getStatusRegion() {
-      const caseTable = screen.getByTestId("codap-case-table")
+      const caseTable = screen.getByTestId("case-table")
       return within(caseTable).getByRole("status")
     }
 

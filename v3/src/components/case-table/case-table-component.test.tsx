@@ -48,7 +48,7 @@ describe("Case Table", () => {
           <CaseTableComponent tile={tile}/>
         </TileSelectionContext.Provider>
       </DndContext>)
-    expect(screen.queryByTestId("codap-case-table")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("case-table")).not.toBeInTheDocument()
   })
 
   it("renders nothing with empty broker", () => {
@@ -58,7 +58,7 @@ describe("Case Table", () => {
           <CaseTableComponent tile={tile}/>
         </TileSelectionContext.Provider>
       </DndContext>)
-    expect(screen.queryByTestId("codap-case-table")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("case-table")).not.toBeInTheDocument()
   })
 
   it("renders table with data", () => {
@@ -75,7 +75,7 @@ describe("Case Table", () => {
           </DataSetContext.Provider>
         </DndContext>
       </TileSelectionContext.Provider>)
-    expect(screen.getByTestId("codap-case-table")).toBeInTheDocument()
+    expect(screen.getByTestId("case-table")).toBeInTheDocument()
   })
 
   // recent changes, e.g. debouncing some callbacks, prevent this test from succeeding
@@ -94,7 +94,7 @@ describe("Case Table", () => {
         </DataSetContext.Provider>
       </DndContext>
     ))
-    expect(screen.getByTestId("codap-case-table")).toBeInTheDocument()
+    expect(screen.getByTestId("case-table")).toBeInTheDocument()
     const indexCells = screen.getAllByRole("rowheader")
     expect(indexCells.length).toBe(2)
     const indexContents = screen.getAllByTestId("codap-index-content-button")
