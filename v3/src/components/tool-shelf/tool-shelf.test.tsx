@@ -186,9 +186,14 @@ describe("Tool shelf", () => {
       expect(buttons[2]).toHaveFocus()
       expect(buttons[2]).toHaveAttribute("tabindex", "0")
 
-      // Trigger a re-render by adding a tile (changes canUndo observable)
+      // Trigger a re-render by adding a tile (changes canUndo observable).
+      // The tree monitor's async recordAction dispatches an observer re-render
+      // after addTile returns, so flush pending tasks inside act().
       const tile = TileModel.create({ id: "tile-1", content: TestTileContent.create() })
-      act(() => document.addTile(tile))
+      await act(async () => {
+        document.addTile(tile)
+        await new Promise(resolve => setTimeout(resolve, 0))
+      })
 
       // Tabindex should still be on the third button after re-render
       expect(buttons[2]).toHaveAttribute("tabindex", "0")
