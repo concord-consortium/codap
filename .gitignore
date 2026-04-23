@@ -20,3 +20,8 @@ v3/cypress/screenshots
 # Claude Code
 .claude/*
 !.claude/skills/
+
+# Local dev
+.yalc/
+yalc.lock
+frameworks/
