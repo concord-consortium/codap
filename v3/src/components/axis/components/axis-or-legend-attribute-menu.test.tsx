@@ -310,6 +310,39 @@ describe("AxisOrLegendAttributeMenu", () => {
       expect(svgTarget.classList.contains("hovered")).toBe(false)
       expect(svgTarget.classList.contains("focused")).toBe(false)
     })
+
+    it("restores 'focused' when a drag ends and the button is still keyboard-focused", async () => {
+      const user = userEvent.setup()
+      mockUseDndContext.mockReturnValue({ active: null })
+      const { rerender } = renderMenu({ target: svgTarget })
+      const button = screen.getByTestId("axis-legend-attribute-button-bottom")
+
+      // Keyboard-focus the button.
+      await user.tab()
+      expect(document.activeElement).toBe(button)
+      expect(svgTarget.classList.contains("focused")).toBe(true)
+
+      const rerenderTree = (layoutBounds: string) => rerender(
+        <DocumentContainerContext.Provider value={containerRef}>
+          <InstanceIdContext.Provider value="test-instance">
+            <div ref={containerRef}>
+              <AxisOrLegendAttributeMenu {...defaultProps} target={svgTarget} layoutBounds={layoutBounds} />
+            </div>
+          </InstanceIdContext.Provider>
+        </DocumentContainerContext.Provider>
+      )
+
+      // Drag starts, class is stripped.
+      mockUseDndContext.mockReturnValue({ active: { id: "drag-in-progress" } })
+      rerenderTree("drag-on")
+      expect(svgTarget.classList.contains("focused")).toBe(false)
+
+      // Button is still keyboard-focused throughout. Drag ends, class restored.
+      expect(document.activeElement).toBe(button)
+      mockUseDndContext.mockReturnValue({ active: null })
+      rerenderTree("drag-off")
+      expect(svgTarget.classList.contains("focused")).toBe(true)
+    })
   })
 
   describe("menu rendering", () => {
