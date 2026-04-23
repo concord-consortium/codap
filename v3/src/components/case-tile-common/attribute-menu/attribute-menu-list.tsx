@@ -22,7 +22,9 @@ import { IMenuItem } from "../std-menu-list"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties-modal"
 
 interface IProps {
-  attrIndex: number
+  /** Stable suffix used in the `attribute-header-menu-*` testid. May be a numeric index
+   *  or a fallback identifier when the attribute has no positional index. */
+  attrTestIdSuffix: string
   attributeId: string
   finalFocusRef?: React.RefObject<HTMLElement>
   onRenameAttribute: () => void
@@ -30,7 +32,7 @@ interface IProps {
 }
 
 const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
-    ({ attrIndex, attributeId, finalFocusRef, onRenameAttribute, onModalOpen }, ref) => {
+    ({ attrTestIdSuffix, attributeId, finalFocusRef, onRenameAttribute, onModalOpen }, ref) => {
   const data = useDataSetContext()
   const metadata = useDataSetMetadata()
   const tableModel = useCaseTableModel()
@@ -235,7 +237,7 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
 
   return (
     <>
-      <MenuList ref={ref} data-testid={`attribute-header-menu-${attrIndex}`}
+      <MenuList ref={ref} data-testid={`attribute-header-menu-${attrTestIdSuffix}`}
           onKeyDown={handleMenuKeyDown} onFocus={handleMenuItemFocus}>
         {menuItems.map(item => (
           <MenuItem key={item.itemKey} isDisabled={!isItemEnabled(item)} onClick={() => item.handleClick?.(item)}

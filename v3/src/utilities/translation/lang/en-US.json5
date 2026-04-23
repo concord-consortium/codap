@@ -939,6 +939,7 @@
     "DG.MapView.hidePoints": "Hide Points",
     "DG.MapView.marqueeHint": "Marquee tool—drag select points in map",
     "DG.MapView.gridControlHint": "Change size of grid rectangles",
+    "V3.Map.pinAriaLabel": "Map pin %@",
 
     // Inspector
     "DG.Inspector.values": "Measure",

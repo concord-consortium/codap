@@ -11,13 +11,27 @@ export function ToolShelfButtonTag({className, label }: IToolShelfButtonTagProps
   return <Tag className={clsx("tool-shelf-tool-label", className)} >{label}</Tag>
 }
 
+/** Stable, locale-independent kebab-case suffix for tool-shelf button testids. */
+export function toolShelfButtonTestId(tileType: string): string {
+  // Strip optional "Codap" prefix used by some tile types (CodapSlider, CodapText, CodapWebView)
+  // so the result is just the semantic type name in kebab-case.
+  const stripped = tileType.replace(/^Codap/, "")
+  const kebab = stripped
+    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+    .toLowerCase()
+  return `tool-shelf-button-${kebab}`
+}
+
 export interface IToolShelfButtonProps {
   className?: string
   icon: React.ReactElement
   label: string
   hint: string
   disabled?: boolean
-  testId?: string
+  /** Required for locale-independence. Callers must pass a stable kebab-case identifier
+   *  — tool-shelf buttons previously fell back to `label.toLowerCase()`, which varied by
+   *  locale and could introduce spaces (e.g. "web page"). */
+  testId: string
   onClick: () => void
 }
 export const ToolShelfButton = ({
@@ -31,7 +45,7 @@ export const ToolShelfButton = ({
       aria-label={t(hint)}
       aria-disabled={disabled || undefined}
       onClick={disabled ? undefined : onClick}
-      data-testid={testId ?? `tool-shelf-button-${label.toLowerCase()}`}
+      data-testid={testId}
       className={clsx("tool-shelf-button", langClass, className)}
     >
       <Box className={clsx("tool-shelf-button-content", langClass)}>
@@ -52,5 +66,7 @@ export interface IToolShelfTileButtonProps {
 export function ToolShelfTileButton({ tileType, onClick, ...others }: IToolShelfTileButtonProps) {
   const Icon = getTileComponentIcon(tileType)
   const handleClick = () => onClick(tileType)
-  return Icon ? <ToolShelfButton icon={<Icon/>} onClick={handleClick} {...others} /> : null
+  return Icon
+    ? <ToolShelfButton icon={<Icon/>} onClick={handleClick} testId={toolShelfButtonTestId(tileType)} {...others} />
+    : null
 }

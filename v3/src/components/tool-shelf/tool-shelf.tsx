@@ -43,6 +43,9 @@ function getGuideTileId(document: IDocumentModel) {
 
 interface IRightButtonEntry {
   className?: string
+  /** Required when the entry renders via `<ToolShelfButton>` (no `button` override).
+   *  Entries that provide a `button` supply their own testid inside that component,
+   *  so this is loosened to optional to allow those entries to omit it. */
   testId?: string
   icon: React.ReactElement
   labelKey: string
@@ -194,7 +197,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
                   icon={icon}
                   key={labelKey}
                   label={t(labelKey)}
-                  testId={testId}
+                  testId={testId ?? labelKey}
                   onClick={() => entry.onClick?.()}
                 />
           )
