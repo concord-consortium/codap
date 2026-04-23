@@ -537,7 +537,7 @@ context("Map Resizing", () => {
       // and we don't want it to pass if all of the points are not shown.
       expect(bounds.getNorth()).to.be.within(47, 53)
       expect(bounds.getEast()).to.be.within(-70, -66)
-      expect(bounds.getSouth()).to.be.within(23, 28)
+      expect(bounds.getSouth()).to.be.within(23, 29)
       expect(bounds.getWest()).to.be.within(-126, -123)
     })
   }

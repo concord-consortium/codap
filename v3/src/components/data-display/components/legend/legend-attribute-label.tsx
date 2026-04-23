@@ -8,6 +8,7 @@ import {getStringBounds, renderLabelBackground} from "../../../axis/axis-utils"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {useTileSelectionContext} from "../../../../hooks/use-tile-selection-context"
 import {AttributeLabel} from "../attribute-label"
+import { kLegendLabelTopPadding } from "./legend-common"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 
 import vars from "../../../vars.scss"
@@ -31,7 +32,7 @@ export const LegendAttributeLabel =
         labelFont = vars.labelFont,
         labelBounds = getStringBounds(attributeName, labelFont),
         tX = axisGap + labelPaddingX,  // offset so rect left edge aligns with legend keys
-        tY = labelBounds.height / 2
+        tY = labelBounds.height / 2 + kLegendLabelTopPadding
 
       const gSelection = select(labelRef.current)
       gSelection.classed('tile-selected', isTileSelected())
