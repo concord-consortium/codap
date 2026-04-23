@@ -180,7 +180,7 @@ context("codap single smoke test", () => {
     c.closeComponent("slider")
 
     cy.log("will open a calculator")
-    c.clickIconFromToolShelf("calc")
+    c.clickIconFromToolShelf("calculator")
     calculator.getCalculatorTile().should("be.visible")
     c.getComponentTitle("calculator").should("have.text", "Calculator")
     c.closeComponent("calculator")

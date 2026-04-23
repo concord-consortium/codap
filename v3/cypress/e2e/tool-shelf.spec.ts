@@ -45,7 +45,7 @@ context("codap toolbar", () => {
     c.getComponentTitle("slider").should("have.text", "v1")
   })
   it("will open a calculator", () => {
-    c.clickIconFromToolShelf("calc")
+    c.clickIconFromToolShelf("calculator")
     calculator.getCalculatorTile().should("be.visible")
     c.getComponentTitle("calculator").should("have.text", "Calculator")
   })
@@ -62,7 +62,7 @@ context("codap toolbar", () => {
   it('will display a webpage', ()=>{
       const url='https://www.wikipedia.org'
       const url2='https://en.wikipedia.org/wiki/Concord_Consortium'
-      c.clickIconFromToolShelf("web page")
+      c.clickIconFromToolShelf("web-view")
       webView.getUrlModal().should("exist")
       webView.enterUrl(url)
       cy.wait(1500)
@@ -75,14 +75,14 @@ context("codap toolbar", () => {
       webView.getIFrame().find(`.mw-page-title-main`).should("contain.text", "Concord Consortium")
   })
   it("only enables web page modal OK button after a value is entered", () => {
-    c.clickIconFromToolShelf("web page")
+    c.clickIconFromToolShelf("web-view")
     webView.getUrlModal().should("be.visible")
     webView.getUrlModalOkButton().should("be.disabled")
     webView.getUrlModalInput().type("https://example.com")
     webView.getUrlModalOkButton().should("be.enabled")
   })
   it("removes empty web view when URL modal is cancelled", () => {
-    c.clickIconFromToolShelf("web page")
+    c.clickIconFromToolShelf("web-view")
     webView.verifyWebViewExists()
     webView.getUrlModal().should("be.visible")
     webView.cancelUrlModal()
@@ -90,7 +90,7 @@ context("codap toolbar", () => {
     webView.verifyWebViewRemoved()
   })
   it("does not remove a web view with a URL value when URL modal is cancelled", () => {
-    c.clickIconFromToolShelf("web page")
+    c.clickIconFromToolShelf("web-view")
     webView.getUrlModal().should("be.visible")
     webView.enterUrl("https://example.com")
     cy.wait(1500)
@@ -105,7 +105,7 @@ context("codap toolbar", () => {
     c.getIconFromToolShelf("graph").click()
     c.getIconFromToolShelf("map").click()
     c.getIconFromToolShelf("slider").click()
-    c.getIconFromToolShelf("calc").click()
+    c.getIconFromToolShelf("calculator").click()
     c.getIconFromToolShelf("plugins").click()
     toolbar.getPluginGroup().eq(2).click()
     toolbar.getPluginSelection().eq(0).click()
