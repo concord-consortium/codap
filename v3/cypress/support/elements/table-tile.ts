@@ -114,12 +114,14 @@ export const TableTileElements = {
     const sanitizedName = name.trim()
     return this.getCollection(collectionIndex).find(`[data-testid^="codap-attribute-button-"]`)
       .contains(sanitizedName)
+      .closest(`[data-testid^="codap-attribute-button-"]`)
   },
   getAttributeInput(collectionIndex = 1) {
     return this.getCollection(collectionIndex).find("[data-testid=column-name-input]")
   },
   getCaseTableAttribute(name: string) {
     return this.getTableTile().find(`[data-testid^="codap-attribute-button-"]`).contains(name)
+      .closest(`[data-testid^="codap-attribute-button-"]`)
   },
   openAttributeMenu(name: string, collectionIndex = 1) {
     this.getAttribute(name, collectionIndex).click({force: true})
