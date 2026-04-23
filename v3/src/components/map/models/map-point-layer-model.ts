@@ -1,4 +1,5 @@
 import {Instance, SnapshotIn, types} from "mobx-state-tree"
+import {ICollectionModel} from "../../../models/data/collection"
 import {IDataDisplayLayerModel} from "../../data-display/models/data-display-layer-model"
 import {kMapPointLayerType} from "../map-types"
 import {MapLayerModel} from "./map-layer-model"
@@ -53,6 +54,10 @@ export const MapPointLayerModel = MapLayerModel
     },
     get pointDescription() {
       return self.displayItemDescription
+    },
+    get titleCollection(): Maybe<ICollectionModel> {
+      const latId = self.dataConfiguration.attributeID('lat')
+      return latId ? self.dataConfiguration.dataset?.getCollectionForAttribute(latId) : undefined
     }
   }))
 

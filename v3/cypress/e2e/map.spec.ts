@@ -191,9 +191,9 @@ context("Map UI", () => {
     map.getHeatmapCanvas().should("exist")
 
     // Hidden when layer is hidden
-    map.getInspectorPalette().contains("RollerCoastersWithLatLong").click()
+    map.getInspectorPalette().contains(/cases/i).click()
     map.getHeatmapCanvas().should("not.exist")
-    map.getInspectorPalette().contains("RollerCoastersWithLatLong").click()
+    map.getInspectorPalette().contains(/cases/i).click()
     map.getHeatmapCanvas().should("exist")
 
     // Hidden when points are hidden
@@ -290,9 +290,9 @@ context("Map UI", () => {
 
     cy.log("Can hide pins using the layers menu")
     map.getDisplayConfigButton().click()
-    map.getInspectorPalette().contains("New Dataset").click()
+    map.getInspectorPalette().contains(/cases/i).click()
     map.getMapPins().should("not.exist")
-    map.getInspectorPalette().contains("New Dataset").click()
+    map.getInspectorPalette().contains(/cases/i).click()
     map.getMapPin().should("exist")
 
     cy.log("Can remove a pin using the remove pin button")
