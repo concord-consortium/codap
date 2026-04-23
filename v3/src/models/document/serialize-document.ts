@@ -35,9 +35,10 @@ export async function serializeCodapV3Document<T = ISerializedV3Document>(docume
 
 // serialize a document in v2 or v3 format depending on configuration
 export async function serializeCodapDocument(document: IDocumentModel): Promise<ISerializedDocument> {
-  const serializeFn = CONFIG_SAVE_AS_V2
-                        // export as v2 if configured to do so
-                        ? serializeCodapV2Document<ISerializedDocument>
-                        : serializeCodapV3Document<ISerializedDocument>
-  return serializeDocument(document, serializeFn)
+  // Dispatch directly to the v2/v3 serializer; each wraps its work in
+  // serializeDocument(), so an outer wrapper here would run prepareSnapshot()/
+  // completeSnapshot() twice per save.
+  return CONFIG_SAVE_AS_V2
+    ? serializeCodapV2Document<ISerializedDocument>(document)
+    : serializeCodapV3Document<ISerializedDocument>(document)
 }
