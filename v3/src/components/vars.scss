@@ -70,6 +70,7 @@ $drop-highlight-color: rgba(255, 229, 0, 0.55);
   &.over {
     background: $drop-highlight-color;
     background-clip: content-box;
+    box-sizing: border-box;
     padding: 5px;
   }
 }

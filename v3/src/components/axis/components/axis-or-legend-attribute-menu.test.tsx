@@ -27,6 +27,11 @@ jest.mock("../../../hooks/use-menu-height-adjustment", () => ({
   useMenuHeightAdjustment: () => undefined
 }))
 
+const mockUseDndContext = jest.fn<{ active: unknown }, []>(() => ({ active: null }))
+jest.mock("@dnd-kit/core", () => ({
+  useDndContext: () => mockUseDndContext()
+}))
+
 // Mock shared data utilities that need MST tree context
 const mockDataSet = {
   id: "ds1",
@@ -112,6 +117,7 @@ describe("AxisOrLegendAttributeMenu", () => {
     mockDataConfiguration.attributeType = (role: string) => role === "x" ? "numeric" : ""
     mockGetDataSetsReturn = [mockDataSet]
     jest.clearAllMocks()
+    mockUseDndContext.mockReturnValue({ active: null })
   })
 
   describe("aria-label", () => {
@@ -264,6 +270,45 @@ describe("AxisOrLegendAttributeMenu", () => {
       expect(svgTarget.classList.contains("hovered")).toBe(false)
       expect(svgTarget.classList.contains("focused")).toBe(false)
       expect(svgTarget.classList.contains("menu-open")).toBe(false)
+    })
+
+    it("does not add 'hovered' on pointer enter while a drag is active", async () => {
+      const user = userEvent.setup()
+      mockUseDndContext.mockReturnValue({ active: { id: "drag-in-progress" } })
+      renderMenu({ target: svgTarget })
+      const overlay = screen.getByTestId("attribute-label-menu-bottom")
+
+      await user.hover(overlay)
+      expect(svgTarget.classList.contains("hovered")).toBe(false)
+    })
+
+    it("removes 'hovered' and 'focused' classes when a drag becomes active", async () => {
+      const user = userEvent.setup()
+      mockUseDndContext.mockReturnValue({ active: null })
+      const { rerender } = renderMenu({ target: svgTarget })
+      const overlay = screen.getByTestId("attribute-label-menu-bottom")
+      const button = screen.getByTestId("axis-legend-attribute-button-bottom")
+
+      await user.hover(overlay)
+      act(() => { button.focus() })
+      expect(svgTarget.classList.contains("hovered")).toBe(true)
+      expect(svgTarget.classList.contains("focused")).toBe(true)
+
+      // Simulate a drag starting by flipping the dnd context value and forcing
+      // a re-render; the effect watching dndActive should strip both classes.
+      mockUseDndContext.mockReturnValue({ active: { id: "drag-in-progress" } })
+      rerender(
+        <DocumentContainerContext.Provider value={containerRef}>
+          <InstanceIdContext.Provider value="test-instance">
+            <div ref={containerRef}>
+              <AxisOrLegendAttributeMenu {...defaultProps} target={svgTarget} layoutBounds="changed" />
+            </div>
+          </InstanceIdContext.Provider>
+        </DocumentContainerContext.Provider>
+      )
+
+      expect(svgTarget.classList.contains("hovered")).toBe(false)
+      expect(svgTarget.classList.contains("focused")).toBe(false)
     })
   })
 

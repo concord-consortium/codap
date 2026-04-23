@@ -1,5 +1,5 @@
 import {useDndMonitor} from "@dnd-kit/core"
-import {useRef, useState} from "react"
+import {useState} from "react"
 
 import "./drop-hint.scss"
 
@@ -8,26 +8,35 @@ interface IProps {
   isVisible?: boolean
 }
 
+interface HintPos { left: number; top: number }
+
+// Reads the current attribute drag overlay's bounds and returns the hint's
+// target position (horizontally centered on the overlay, 2px above its top).
+// Returns null when no overlay is present (e.g., between drags).
+function computeHintPos(): HintPos | null {
+  const overlayEl = document.querySelector<HTMLElement>(".attribute-drag-overlay")
+  if (!overlayEl) return null
+  const rect = overlayEl.getBoundingClientRect()
+  return { left: rect.left + rect.width / 2, top: rect.top - 2 }
+}
+
 export const DropHint = ({ hintText, isVisible }: IProps) => {
-  const hintDiv = useRef<HTMLDivElement>(null)
-  const [hintPos, setHintPos] = useState<{ left: number, top: number }>({ left: 0, top: 0 })
+  if (!isVisible || !hintText) return null
+  return <ActiveDropHint hintText={hintText} />
+}
+
+const ActiveDropHint = ({ hintText }: { hintText: string }) => {
+  const [hintPos, setHintPos] = useState<HintPos>(() => computeHintPos() ?? { left: 0, top: 0 })
 
   useDndMonitor({
     onDragMove() {
-      const overlayEl = document.querySelector<HTMLElement>(".attribute-drag-overlay")
-      if (!overlayEl) return
-      const rect = overlayEl.getBoundingClientRect()
-      setHintPos({
-        left: rect.left + rect.width / 2,
-        top: rect.top - 2
-      })
+      const pos = computeHintPos()
+      if (pos) setHintPos(pos)
     }
   })
 
-  if (!isVisible || !hintText) return null
-
   return (
-    <div ref={hintDiv} className="drop-hint" style={{ top: hintPos.top, left: hintPos.left }}>
+    <div className="drop-hint" style={{ top: hintPos.top, left: hintPos.left }}>
       {hintText}
     </div>
   )
