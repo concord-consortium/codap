@@ -276,4 +276,84 @@ describe("MapContentModel", () => {
       expect(mapContent.layers[0].dataConfiguration.dataset?.id).toBe(dataSet2.id)
     })
   })
+
+  describe("titleCollection (CODAP-1249)", () => {
+    // Each map layer's palette label should reflect the *collection* holding the
+    // layer's spatial attributes (matching v2 behavior), not the dataset name.
+    // For imported v2 docs where the data context's title differs from its name,
+    // this also exercises the v2NameTitleToV3Title import path indirectly: the
+    // collection's `title` getter falls back through `_title` then `name`.
+
+    async function attachDataset(dataSet: ReturnType<typeof DataSet.create>) {
+      const sharedDataSet = SharedDataSet.create()
+      sharedDataSet.setDataSet(dataSet)
+      const metadata = DataSetMetadata.create({ data: dataSet.id })
+      sharedModelManager.addSharedModel(sharedDataSet)
+      sharedModelManager.addSharedModel(metadata)
+      await new Promise(resolve => setTimeout(resolve, 0))
+    }
+
+    it("returns the leaf collection for a hierarchical point layer", async () => {
+      // Mirrors the Roller Coasters example: parent States, child Roller Coasters
+      // with the lat/long attributes.
+      const dataSet = DataSet.create({ name: "rc_internal", _title: "Roller Coasters DS" })
+      dataSet.childCollection.setName("Roller Coasters")
+      const parent = dataSet.addCollection({ name: "States" })
+      dataSet.addAttribute({ name: "State" }, { collection: parent.id })
+      dataSet.addAttribute({ id: "lat", name: "Latitude" })
+      dataSet.addAttribute({ id: "long", name: "Longitude" })
+
+      await attachDataset(dataSet)
+
+      expect(mapContent.layers.length).toBe(1)
+      const layer = mapContent.layers[0]
+      if (!isMapPointLayerModel(layer)) throw new Error("expected MapPointLayerModel")
+      expect(layer.titleCollection?.name).toBe("Roller Coasters")
+      // No _title set on the collection, so title falls back to name.
+      expect(layer.titleCollection?.title).toBe("Roller Coasters")
+    })
+
+    it("prefers the collection's _title over its name when set", async () => {
+      const dataSet = DataSet.create({ name: "ds" })
+      dataSet.childCollection.setName("internal_name")
+      dataSet.childCollection.setTitle("User-Visible Title")
+      dataSet.addAttribute({ id: "lat", name: "Latitude" })
+      dataSet.addAttribute({ id: "long", name: "Longitude" })
+
+      await attachDataset(dataSet)
+
+      const layer = mapContent.layers[0]
+      if (!isMapPointLayerModel(layer)) throw new Error("expected MapPointLayerModel")
+      expect(layer.titleCollection?.title).toBe("User-Visible Title")
+    })
+
+    it("returns the leaf collection for a hierarchical polygon layer", async () => {
+      const dataSet = DataSet.create({ name: "boundaries_ds" })
+      dataSet.childCollection.setName("Districts")
+      const parent = dataSet.addCollection({ name: "Regions" })
+      dataSet.addAttribute({ name: "Region" }, { collection: parent.id })
+      dataSet.addAttribute({ id: "boundary", name: "Boundary", userType: "boundary" })
+
+      await attachDataset(dataSet)
+
+      const layer = mapContent.layers[0]
+      if (!isMapPolygonLayerModel(layer)) throw new Error("expected MapPolygonLayerModel")
+      expect(layer.titleCollection?.name).toBe("Districts")
+    })
+
+    it("returns the leaf collection for a hierarchical pin layer", async () => {
+      const dataSet = DataSet.create({ name: "pins_ds" })
+      dataSet.childCollection.setName("Sites")
+      const parent = dataSet.addCollection({ name: "Categories" })
+      dataSet.addAttribute({ name: "Category" }, { collection: parent.id })
+      dataSet.addAttribute({ id: "pinLat", name: "PinLat" })
+      dataSet.addAttribute({ id: "pinLong", name: "PinLong" })
+
+      await attachDataset(dataSet)
+
+      const layer = mapContent.layers[0]
+      if (!isMapPinLayerModel(layer)) throw new Error("expected MapPinLayerModel")
+      expect(layer.titleCollection?.name).toBe("Sites")
+    })
+  })
 })

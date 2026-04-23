@@ -32,7 +32,7 @@ export const MapMeasurePalette = observer(function MapMeasurePalette(
                role="group" aria-labelledby={`map-values-label-${layer.id}`}>
             <div className="map-values-layer-label" id={`map-values-label-${layer.id}`}
                  data-testid={`map-values-layer-label-${layer.id}`}>
-              {layer.dataConfiguration.dataset?.name}
+              {(pointLayer ?? pinLayer)?.titleCollection?.title}
             </div>
             {pointLayer && (
               <>
