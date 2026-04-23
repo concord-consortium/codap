@@ -304,6 +304,7 @@ export const AttributeHeader = observer(function AttributeHeader({
                           sx={customButtonStyle}
                           fontWeight="bold" onKeyDown={handleButtonKeyDown}
                           data-testid={`codap-attribute-button-${attrTestIdSuffix}`}
+                          data-label={attrName}
                           aria-label={t("V3.CaseTable.attributeAriaLabel", { vars: [attrName] })}
                           aria-describedby={
                             `sr-column-header-drag-instructions-${instanceId}-${attributeId}`

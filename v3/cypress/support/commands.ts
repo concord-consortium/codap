@@ -25,14 +25,21 @@ Cypress.Commands.add("clickWhenClickable", (selector: string, shouldCondition = 
   })
 })
 
-// Like `contains` but matches the trimmed textContent exactly, normalizing whitespace.
-// Exact match avoids confusion when one attribute name is a prefix of another (e.g. "newAttr"
-// vs "newAttr2") — substring matches would pick the wrong button.
+// Like `contains` but matches the trimmed textContent exactly, normalizing
+// whitespace. Exact match avoids confusion when one attribute name is a prefix
+// of another (e.g. "newAttr" vs "newAttr2") — substring matches would pick the
+// wrong button. For attribute-header buttons the canonical name lives on the
+// `data-label` attribute (textContent is unreliable in truncated overflow
+// mode, where a reversed copy is concatenated for a CSS ellipsis effect).
 Cypress.Commands.add("containsText", (selector: string, text: string) => {
   const normalize = (s: string) => s.replace(/\s+/g, " ").trim()
   const target = normalize(text)
   return cy.get(selector)
-          .filter((i, el) => normalize(el.textContent || "") === target)
+          .filter((_i, el) => {
+            const label = el.getAttribute("data-label")
+            const value = normalize(label ?? el.textContent ?? "")
+            return value === target
+          })
           .first()
           .should("exist")
 })

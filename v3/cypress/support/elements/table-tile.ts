@@ -9,28 +9,17 @@ type OptString = string | null | undefined
 const isMac = navigator.platform.toLowerCase().includes("mac")
 const metaCtrlKey = isMac ? "Meta" : "Control"
 
-// Reads the attribute-button's displayed name. Case-table headers use
-// `allowTwoLines`, which in truncated overflow mode embeds a reversed copy of
-// the label for a CSS ellipsis effect — so raw textContent of the button (or of
-// Chakra's MenuButton inner wrapper span) is unreliable. Target the specific
-// label-class span instead; fall back to textContent otherwise.
+// Reads the attribute-button's canonical name from its `data-label` attribute
+// (set by AttributeHeader). textContent is unreliable because case-table's
+// truncated overflow mode embeds a reversed copy of the label for a CSS
+// ellipsis effect.
 function attributeButtonName(el: Element): string {
-  const labeled = el.querySelector(
-    ".one-line-header, .two-line-header-wrap, .two-line-header-line-1"
-  )
-  return (labeled?.textContent ?? el.textContent ?? "").trim()
+  return (el.getAttribute("data-label") ?? el.textContent ?? "").trim()
 }
-// Cypress filter predicate: match an attribute button by the given name. The
-// display swaps `_` → ` ` for nicer line-wrapping (see useAdjustHeaderForOverflow),
-// so compare against both forms. Allows an optional " (units)" suffix.
+// Cypress filter predicate: match an attribute button by its canonical name.
 function isAttributeNamed(name: string) {
   const target = name.trim()
-  const display = target.replace(/_/g, " ")
-  return (_: number, el: HTMLElement) => {
-    const text = attributeButtonName(el)
-    return text === target || text === display
-      || text.startsWith(`${target} (`) || text.startsWith(`${display} (`)
-  }
+  return (_: number, el: HTMLElement) => attributeButtonName(el) === target
 }
 
 export const TableTileElements = {
@@ -383,7 +372,7 @@ export const TableTileElements = {
     return this.getExportDataButtons().contains("Export")
   },
   getCfmModal() {
-    return cy.get("[data-testid=cfm-dialog-shell]")
+    return cy.get("[data-testid=modal-dialog]")
   },
   verifyAttributeValues(attributes: TestAttributes, values: TestValues, collectionIndex = 1) {
     attributes.forEach(a => {
