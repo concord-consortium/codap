@@ -19,6 +19,22 @@ describe("serializeDocument", () => {
     expect(serializeFn).toHaveBeenCalledTimes(1)
   })
 
+  it("waits for an async serialize function to settle before completeSnapshot runs", async () => {
+    const doc = createCodapDocument()
+    const order: string[] = []
+    jest.spyOn(doc.content!, "completeSnapshot").mockImplementation(() => { order.push("complete") })
+    const serializeFn = jest.fn(async () => {
+      await Promise.resolve()
+      order.push("serialize-resolved")
+      return "result"
+    })
+
+    const result = await serializeDocument(doc, serializeFn)
+
+    expect(result).toBe("result")
+    expect(order).toEqual(["serialize-resolved", "complete"])
+  })
+
   it("calls completeSnapshot even when the serialize function throws", async () => {
     const doc = createCodapDocument()
     const completeSpy = jest.spyOn(doc.content!, "completeSnapshot")

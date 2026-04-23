@@ -9,12 +9,16 @@ export type ISerializedV3Document = IDocumentModelSnapshot & {revisionId?: strin
 export type ISerializedV2Document = ICodapV2DocumentJson & {revisionId?: string}
 export type ISerializedDocument = ISerializedV3Document | ISerializedV2Document
 
-export async function serializeDocument<T>(document: IDocumentModel, serializeFn: (doc: IDocumentModel) => T) {
+export async function serializeDocument<T>(
+  document: IDocumentModel,
+  serializeFn: (doc: IDocumentModel) => T | Promise<T>
+): Promise<T> {
   try {
     await document.prepareSnapshot()
 
-    // perform the serialization of the prepared document
-    return serializeFn(document)
+    // perform the serialization of the prepared document; await so completeSnapshot()
+    // doesn't run until the serializer settles, even if serializeFn returns a Promise
+    return await serializeFn(document)
   }
   finally {
     document.completeSnapshot()
