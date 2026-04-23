@@ -1,5 +1,6 @@
 /**
- * MapLayerModel serves as a base model for map layers: MapPolygonLayerModel and MapPointLayerModel.
+ * MapLayerModel serves as a base model for map layers: MapPolygonLayerModel,
+ * MapPointLayerModel, and MapPinLayerModel.
  */
 import {Instance, types} from "mobx-state-tree"
 import {ICollectionModel} from "../../../models/data/collection"
