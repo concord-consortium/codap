@@ -216,7 +216,7 @@ export const InsertFunctionMenu = ({ buttonRef, onClose }: IProps) => {
         </button>
         <hr className="function-header-divider" />
         <Menu aria-label={`${categoryObj.displayName} functions`} onAction={handleInsertFunction}>
-          {categoryObj.functions.map((func, index) => (
+          {categoryObj.functions.map((func) => (
             <MenuItem key={func.displayName} id={func.displayName} textValue={func.displayName}
                       className="function-menu-item" data-testid="function-menu-item"
                       data-name={func.displayName}>
@@ -226,7 +226,7 @@ export const InsertFunctionMenu = ({ buttonRef, onClose }: IProps) => {
               </span>
               <button className="function-info-button" tabIndex={-1}
                       aria-label={`Info for ${func.displayName}`}
-                      data-testid={`function-info-button-${index}`}
+                      data-testid={`function-info-button-${func.displayName}`}
                       onClick={(e) => handleInfoClick(func.displayName, e)}>
                 ⓘ
               </button>

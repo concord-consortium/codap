@@ -25,11 +25,14 @@ Cypress.Commands.add("clickWhenClickable", (selector: string, shouldCondition = 
   })
 })
 
-// Like `contains` but uses a regex to match the text, allowing for whitespace variations
+// Like `contains` but matches the trimmed textContent exactly, normalizing whitespace.
+// Exact match avoids confusion when one attribute name is a prefix of another (e.g. "newAttr"
+// vs "newAttr2") — substring matches would pick the wrong button.
 Cypress.Commands.add("containsText", (selector: string, text: string) => {
-  const textRegex = new RegExp(text.replace(/\s+/g, "\\s*"))
+  const normalize = (s: string) => s.replace(/\s+/g, " ").trim()
+  const target = normalize(text)
   return cy.get(selector)
-          .filter((i, el) => textRegex.test(el.textContent || ""))
+          .filter((i, el) => normalize(el.textContent || "") === target)
           .first()
           .should("exist")
 })

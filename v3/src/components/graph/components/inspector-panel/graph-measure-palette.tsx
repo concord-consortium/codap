@@ -56,13 +56,14 @@ export const GraphMeasurePalette = observer(function GraphMeasurePalette({
               clickHandler,
               componentInfo,
               componentContentInfo,
+              dataTestId,
               disabled, title
             } = measureOrGroup
             const titleSlug = t(title).replace(/ /g, "-").toLowerCase()
-            // Derive a stable kebab-case slug from the i18n key (not the translated label)
-            // so the data-testid stays locale-independent.
+            // Prefer an explicit dataTestId when provided; otherwise derive a stable
+            // kebab-case slug from the i18n key so the data-testid stays locale-independent.
             const keyTail = title.split(".").pop() ?? title
-            const stableSlug = keyTail
+            const stableSlug = dataTestId ?? keyTail
               .replace(/([a-z])([A-Z])/g, "$1-$2")
               .replace(/[^a-zA-Z0-9]+/g, "-")
               .toLowerCase()

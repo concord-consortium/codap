@@ -653,7 +653,7 @@ context("Test changing legend colors", () => {
           }
         })
       // Close the popover by clicking outside (close = accept, keeps the selected color)
-      cy.get(".inspector-palette-graph-header-title").click({force: true})
+      cy.get("[data-testid=codap-inspector-palette-header]").click({force: true})
       cy.get('[data-testid^="legend-key-"]').eq(0) //fragile but couldn't get it to work with the contains "land"
         .find('rect')
         .invoke('css', 'fill')

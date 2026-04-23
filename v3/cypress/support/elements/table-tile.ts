@@ -9,6 +9,30 @@ type OptString = string | null | undefined
 const isMac = navigator.platform.toLowerCase().includes("mac")
 const metaCtrlKey = isMac ? "Meta" : "Control"
 
+// Reads the attribute-button's displayed name. Case-table headers use
+// `allowTwoLines`, which in truncated overflow mode embeds a reversed copy of
+// the label for a CSS ellipsis effect — so raw textContent of the button (or of
+// Chakra's MenuButton inner wrapper span) is unreliable. Target the specific
+// label-class span instead; fall back to textContent otherwise.
+function attributeButtonName(el: Element): string {
+  const labeled = el.querySelector(
+    ".one-line-header, .two-line-header-wrap, .two-line-header-line-1"
+  )
+  return (labeled?.textContent ?? el.textContent ?? "").trim()
+}
+// Cypress filter predicate: match an attribute button by the given name. The
+// display swaps `_` → ` ` for nicer line-wrapping (see useAdjustHeaderForOverflow),
+// so compare against both forms. Allows an optional " (units)" suffix.
+function isAttributeNamed(name: string) {
+  const target = name.trim()
+  const display = target.replace(/_/g, " ")
+  return (_: number, el: HTMLElement) => {
+    const text = attributeButtonName(el)
+    return text === target || text === display
+      || text.startsWith(`${target} (`) || text.startsWith(`${display} (`)
+  }
+}
+
 export const TableTileElements = {
   getTableTile(index = 0) {
     return c.getComponentTile("table", index)
@@ -111,17 +135,17 @@ export const TableTileElements = {
     return cy.get("[data-testid^=codap-attribute-button]")
   },
   getAttribute(name: string, collectionIndex = 1) {
-    const sanitizedName = name.trim()
-    return this.getCollection(collectionIndex).find(`[data-testid^="codap-attribute-button-"]`)
-      .contains(sanitizedName)
-      .closest(`[data-testid^="codap-attribute-button-"]`)
+    return this.getCollection(collectionIndex)
+      .find(`[data-testid^="codap-attribute-button-"]`)
+      .filter(isAttributeNamed(name))
   },
   getAttributeInput(collectionIndex = 1) {
     return this.getCollection(collectionIndex).find("[data-testid=column-name-input]")
   },
   getCaseTableAttribute(name: string) {
-    return this.getTableTile().find(`[data-testid^="codap-attribute-button-"]`).contains(name)
-      .closest(`[data-testid^="codap-attribute-button-"]`)
+    return this.getTableTile()
+      .find(`[data-testid^="codap-attribute-button-"]`)
+      .filter(isAttributeNamed(name))
   },
   openAttributeMenu(name: string, collectionIndex = 1) {
     this.getAttribute(name, collectionIndex).click({force: true})
@@ -216,7 +240,7 @@ export const TableTileElements = {
     if (description != null) {
       this.enterInfoDescription(`{selectAll}{backspace}${description}`)
     }
-    this.getApplyButton().click()
+    this.submitDatasetInfo()
    },
   getGridCell(row: number, column: number, collection = 1) {
     return this.getCollection(collection).find(`[aria-rowindex="${row}"] [aria-colindex="${column}"]`)
@@ -359,7 +383,7 @@ export const TableTileElements = {
     return this.getExportDataButtons().contains("Export")
   },
   getCfmModal() {
-    return cy.get("[data-testid=modal-dialog]")
+    return cy.get("[data-testid=cfm-dialog-shell]")
   },
   verifyAttributeValues(attributes: TestAttributes, values: TestValues, collectionIndex = 1) {
     attributes.forEach(a => {

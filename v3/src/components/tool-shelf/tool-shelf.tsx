@@ -81,7 +81,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
   const rightButtons: IRightButtonEntry[] = [
     {
       className: "undo-button",
-      testId: "undo-button",
+      testId: "tool-shelf-button-undo",
       icon: <UndoIcon className="icon-undo"/>,
       labelKey: "DG.mainPage.mainPane.undoButton.title",
       hintKey: getUndoStringKey(undoManager),
@@ -94,7 +94,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     },
     {
       className: "redo-button",
-      testId: "redo-button",
+      testId: "tool-shelf-button-redo",
       icon: <RedoIcon className="icon-redo"/>,
       labelKey: "DG.mainPage.mainPane.redoButton.title",
       hintKey: getRedoStringKey(undoManager),

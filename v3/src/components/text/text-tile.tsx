@@ -152,7 +152,7 @@ export const TextTile = observer(function TextTile({ tile }: ITileBaseProps) {
   }
 
   return (
-    <div className="codap-text-content" ref={textTileRef} data-testid="codap-text"
+    <div className="codap-text-content" ref={textTileRef} data-testid="codap-text-content"
       onPointerDown={handlePointerDown}>
 
       <Slate editor={editor} initialValue={initialValue}

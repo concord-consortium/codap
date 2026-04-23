@@ -85,7 +85,7 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
     return (
       <>
         {data.hasFilterFormula && <FilterFormulaBar />}
-        <div ref={mergeRefs} className="case-card react-data-card" data-testid="codap-case-card">
+        <div ref={mergeRefs} className="case-card react-data-card" data-testid="case-card">
           <CardView onNewCollectionDrop={handleNewCollectionDrop} onResizeColumn={handleResizeColumn}/>
           <AttributeDragOverlay dragIdPrefix={instanceId} dragIdExcludeRegEx={excludeDragOverlayRegEx}/>
         </div>
