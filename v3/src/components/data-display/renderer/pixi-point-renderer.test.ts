@@ -522,5 +522,53 @@ describe("PixiPointRenderer", () => {
 
       pixiRenderer.dispose()
     })
+
+    it("updates sprite masks and state subPlotNums during a bars→points transition (CODAP-1214)", async () => {
+      // CODAP-1214: a coincident subplot layout change (new categorical axis) must be picked up
+      // during a bars→points transition; otherwise sprites stay masked to their old bar-chart cells.
+      const sharedState = new PointsState()
+      const pixiRenderer = new PixiPointRenderer(sharedState)
+      await pixiRenderer.init()
+
+      // Start as a bar chart with all cases in subplot 0 (single categorical x-axis)
+      const barCases = [
+        createCaseData(0, "case1", 0),
+        createCaseData(0, "case2", 0),
+        createCaseData(0, "case3", 0)
+      ]
+      pixiRenderer.matchPointsToData("ds1", barCases, "bars", defaultStyle)
+
+      // Resize the renderer to create a 3x3 subplot layout (9 masks) — simulates the layout
+      // that would exist after a second categorical axis is added
+      pixiRenderer.resize(300, 300, 3, 3, 1, 1)
+      const subPlotMasks = (pixiRenderer as any).subPlotMasks as any[]
+      expect(subPlotMasks.length).toBe(9)
+
+      // Transition to dot chart with each case mapped to a different subplot
+      const dotCases = [
+        createCaseData(0, "case1", 0),
+        createCaseData(0, "case2", 4),
+        createCaseData(0, "case3", 8)
+      ]
+      pixiRenderer.matchPointsToData("ds1", dotCases, "points", defaultStyle)
+
+      const transitionState = (pixiRenderer as any).displayTypeTransitionState
+      expect(transitionState.isActive).toBe(true)
+
+      const sprites = (pixiRenderer as any).sprites as Map<string, any>
+      const id1 = sharedState.getPointIdForCaseData({ plotNum: 0, caseID: "case1" })!
+      const id2 = sharedState.getPointIdForCaseData({ plotNum: 0, caseID: "case2" })!
+      const id3 = sharedState.getPointIdForCaseData({ plotNum: 0, caseID: "case3" })!
+
+      expect(sprites.get(id1)?.mask).toBe(subPlotMasks[0])
+      expect(sprites.get(id2)?.mask).toBe(subPlotMasks[4])
+      expect(sprites.get(id3)?.mask).toBe(subPlotMasks[8])
+
+      expect(sharedState.getPoint(id1)?.subPlotNum).toBe(0)
+      expect(sharedState.getPoint(id2)?.subPlotNum).toBe(4)
+      expect(sharedState.getPoint(id3)?.subPlotNum).toBe(8)
+
+      pixiRenderer.dispose()
+    })
   })
 })
