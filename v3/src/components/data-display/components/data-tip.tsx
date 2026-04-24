@@ -5,6 +5,7 @@ import { IDataSet } from "../../../models/data/data-set"
 import { IPoint, IPointMetadata, PointRendererBase } from "../renderer"
 import { urlParams } from "../../../utilities/url-params"
 import { IDataConfigurationModel } from "../models/data-configuration-model"
+import { Rect } from "../data-display-types"
 import { IGetTipTextProps, IShowDataTipProps } from "../data-tip-types"
 
 import "./data-tip.scss"
@@ -26,7 +27,7 @@ export interface IDataTipProps extends IDataTipBaseProps {
   renderer?: PointRendererBase
 }
 
-const createVirtualElement = (rect: { x: number, y: number, width: number, height: number }) => {
+const createVirtualElement = (rect: Rect) => {
   const { x, y, width, height } = rect
   return {
     getBoundingClientRect: () => ({
@@ -114,7 +115,7 @@ export const DataTip = (props: IDataTipProps) => {
         <div ref={refs.setFloating} style={floatingStyles} className="data-tip" data-testid="data-tip">
           {tipTextLines.current.map((line: string, i: number) => (
             <Fragment key={`dt-line-${i}`}>
-              {line}{i < tipTextLines.current.length && <br />}
+              {line}{i < tipTextLines.current.length - 1 && <br />}
             </Fragment>
           ))}
         </div>
