@@ -21,7 +21,7 @@ interface MonitorPipelineState {
   rateLimitedWindowEndMs?: number
 }
 
-function targetKeyFor(notice: UiNotice): string {
+export function targetKeyFor(notice: UiNotice): string {
   switch (notice.eventType) {
     case "appear":
     case "disappear":

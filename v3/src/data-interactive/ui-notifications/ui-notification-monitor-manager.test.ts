@@ -203,4 +203,84 @@ describe("UiNotificationMonitorManager", () => {
       expect(deliveries.map(d => d.targetTileId)).toEqual(["A"])
     })
   })
+
+  describe("size and snapshot accessors", () => {
+    it("size reflects registered monitor count", () => {
+      const { manager } = makeManager()
+      expect(manager.size).toBe(0)
+      manager.register("A", { eventTypes: ["click"] })
+      manager.register("B", { eventTypes: ["click"] })
+      expect(manager.size).toBe(2)
+      expect(manager.snapshot()).toHaveLength(2)
+    })
+  })
+
+  describe("unregisterAll", () => {
+    it("clears all monitors, cancels timers, and fires subscriber-count 0", () => {
+      const { manager } = makeManager()
+      const cancels: number[] = []
+      manager.setCancelPendingTimers(id => cancels.push(id))
+      const counts: number[] = []
+      manager.onSubscriberCountChange(c => counts.push(c))
+      const r1 = manager.register("A", { eventTypes: ["click"] }) as { ok: true; id: number }
+      const r2 = manager.register("B", { eventTypes: ["click"] }) as { ok: true; id: number }
+      expect(counts).toEqual([1])
+      manager.unregisterAll()
+      expect(manager.size).toBe(0)
+      expect(cancels.sort()).toEqual([r1.id, r2.id].sort())
+      expect(counts).toEqual([1, 0])
+    })
+
+    it("is a no-op when no monitors are registered", () => {
+      const { manager } = makeManager()
+      const counts: number[] = []
+      manager.onSubscriberCountChange(c => counts.push(c))
+      manager.unregisterAll()
+      expect(manager.size).toBe(0)
+      expect(counts).toEqual([])
+    })
+  })
+
+  describe("onSubscriberCountChange unsubscribe", () => {
+    it("returned disposer removes the listener", () => {
+      const { manager } = makeManager()
+      const counts: number[] = []
+      const dispose = manager.onSubscriberCountChange(c => counts.push(c))
+      manager.register("A", { eventTypes: ["click"] })
+      expect(counts).toEqual([1])
+      dispose()
+      manager.unregisterAll()
+      // Listener was removed before the 1→0 transition; counts unchanged
+      expect(counts).toEqual([1])
+    })
+
+    it("disposer called twice is safe (second call is a no-op)", () => {
+      const { manager } = makeManager()
+      const counts: number[] = []
+      const dispose = manager.onSubscriberCountChange(c => counts.push(c))
+      dispose()
+      expect(() => dispose()).not.toThrow()
+      manager.register("A", { eventTypes: ["click"] })
+      expect(counts).toEqual([])
+    })
+  })
+
+  describe("deliverTo", () => {
+    it("broadcasts directly to a specific monitor, bypassing filter + pipeline", () => {
+      const { manager, deliveries } = makeManager()
+      const r = manager.register("A", { eventTypes: ["appear"] }) as { ok: true; id: number }
+      // Click wouldn't match the filter; deliverTo ignores the filter.
+      manager.deliverTo(r.id, makeClick("x"))
+      expect(deliveries).toHaveLength(1)
+      expect(deliveries[0].targetTileId).toBe("A")
+      const values = deliveries[0].payload.values as { monitor: { id: number } }
+      expect(values.monitor.id).toBe(r.id)
+    })
+
+    it("is a no-op for an unknown monitor id", () => {
+      const { manager, deliveries } = makeManager()
+      manager.deliverTo(999, makeClick("x"))
+      expect(deliveries).toHaveLength(0)
+    })
+  })
 })

@@ -106,6 +106,65 @@ describe("dialog-change-observer", () => {
     expect(_getScopedObserverCount()).toBe(0)
   })
 
+  it("fires dialogChange with change.kind 'value' for value attribute flip", async () => {
+    const { manager, delivered } = makeManagerWithCapture()
+    manager.register("plugin-A", { eventTypes: ["dialogChange"] })
+    installed = installDialogChangeObserver(manager)
+
+    document.body.innerHTML = `
+      <section class="modal-dialog-container" role="dialog" data-testid="cfm-dialog-v">
+        <input data-testid="cfm-dialog-v-input" value="a" />
+      </section>`
+    dialogEl = document.querySelector("section") as HTMLElement
+    onDialogAppear(dialogEl, { testId: "cfm-dialog-v" })
+
+    const input = document.querySelector("input") as HTMLInputElement
+    input.setAttribute("value", "b")
+    await awaitMutations()
+
+    const dc = delivered.find((d): d is UiDialogChangeNotice =>
+      d.eventType === "dialogChange" && d.change.kind === "value"
+    )
+    expect(dc).toBeTruthy()
+    if (!dc) return
+    const change = dc.change as { kind: "value"; before: string; after: string }
+    expect(change.kind).toBe("value")
+    expect(change.before).toBe("a")
+    expect(change.after).toBe("b")
+    expect(dc.control.testId).toBe("cfm-dialog-v-input")
+    expect(dc.control.tag).toBe("INPUT")
+  })
+
+  it("fires dialogChange with change.kind 'label' when control text content mutates", async () => {
+    const { manager, delivered } = makeManagerWithCapture()
+    manager.register("plugin-A", { eventTypes: ["dialogChange"] })
+    installed = installDialogChangeObserver(manager)
+
+    document.body.innerHTML = `
+      <section class="modal-dialog-container" role="dialog" data-testid="cfm-dialog-l">
+        <button data-testid="cfm-btn-l"><span>Old</span></button>
+      </section>`
+    dialogEl = document.querySelector("section") as HTMLElement
+    onDialogAppear(dialogEl, { testId: "cfm-dialog-l" })
+
+    const span = document.querySelector("span") as HTMLElement
+    const textNode = span.firstChild as Text
+    textNode.data = "New"
+    await awaitMutations()
+
+    const dc = delivered.find((d): d is UiDialogChangeNotice =>
+      d.eventType === "dialogChange" && d.change.kind === "label"
+    )
+    expect(dc).toBeTruthy()
+    if (!dc) return
+    const change = dc.change as { kind: "label"; before: string; after: string }
+    expect(change.kind).toBe("label")
+    expect(change.after).toBe("New")
+    // characterData bubbles to the nearest [data-testid] ancestor control
+    expect(dc.control.testId).toBe("cfm-btn-l")
+    expect(dc.control.tag).toBe("BUTTON")
+  })
+
   it("uninstalling manager clears all scoped observers", () => {
     const { manager } = makeManagerWithCapture()
     const inst = installDialogChangeObserver(manager)

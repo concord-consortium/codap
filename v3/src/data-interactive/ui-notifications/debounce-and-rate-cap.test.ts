@@ -1,5 +1,5 @@
 import {
-  createDeliveryPipeline, DEFAULT_DEBOUNCE_MS, DEFAULT_RATE_CAP, RATE_CAP_WINDOW_MS
+  createDeliveryPipeline, DEFAULT_DEBOUNCE_MS, DEFAULT_RATE_CAP, RATE_CAP_WINDOW_MS, targetKeyFor
 } from "./debounce-and-rate-cap"
 import { UiMonitor, UiNotice } from "./ui-notification-types"
 
@@ -128,6 +128,33 @@ describe("createDeliveryPipeline", () => {
     p2.enqueue(m, click("fresh"))
     expect(delivered.filter(d => d.eventType === "click")).toHaveLength(DEFAULT_RATE_CAP + 1)
     void p
+  })
+
+  describe("targetKeyFor", () => {
+    it("keys click/dblclick/dragStart/dragEnd by testId, falling back to tourKey then empty", () => {
+      expect(targetKeyFor({
+        eventType: "click", region: "header", target: { testId: "btn" }, monitor: { id: 0 }
+      } as UiNotice)).toBe("btn")
+      expect(targetKeyFor({
+        eventType: "dblclick", region: "header", target: { testId: "btn2" }, monitor: { id: 0 }
+      } as UiNotice)).toBe("btn2")
+      expect(targetKeyFor({
+        eventType: "dragStart", region: "workspace", target: { tourKey: "tour-1" },
+        dragId: { source: "s" }, monitor: { id: 0 }
+      } as UiNotice)).toBe("tour-1")
+      expect(targetKeyFor({
+        eventType: "dragEnd", region: "workspace", target: {},
+        dragId: { source: "s" }, monitor: { id: 0 }
+      } as UiNotice)).toBe("")
+    })
+
+    it("keys rateLimited and unknown event types as empty string", () => {
+      expect(targetKeyFor({
+        eventType: "rateLimited", monitor: { id: 0 }, droppedCount: 1, windowMs: 1000
+      } as UiNotice)).toBe("")
+      // default branch: unknown / unhandled event type
+      expect(targetKeyFor({ eventType: "whatever" as any, monitor: { id: 0 } } as UiNotice)).toBe("")
+    })
   })
 
   it("disposeAll clears timers", () => {

@@ -140,4 +140,73 @@ describe("dom-observer", () => {
     const n = delivered.find(d => d.eventType === "appear" && d.target?.testId === "r-mi")
     expect(n?.target?.interactionKind).toBe("menuitem")
   })
+
+  it("emits disappear when a marker element is removed", async () => {
+    const { manager, delivered } = makeManagerWithCapture()
+    manager.register("plugin-A", { eventTypes: ["appear", "disappear"] })
+
+    const menu = document.createElement("div")
+    menu.className = "chakra-menu__menu-list"
+    menu.setAttribute("data-testid", "remove-me")
+    document.body.appendChild(menu)
+
+    const handle = installDomObserver(manager)
+    installed = handle
+
+    // Remove the previously-appeared marker; processRemoved should emit disappear
+    menu.remove()
+    await awaitMutations()
+
+    expect(delivered.some(d => d.eventType === "disappear" && d.target?.testId === "remove-me")).toBe(true)
+  })
+
+  it("emits disappear for a marker inside a removed subtree", async () => {
+    const { manager, delivered } = makeManagerWithCapture()
+    manager.register("plugin-A", { eventTypes: ["disappear"] })
+
+    const wrap = document.createElement("div")
+    wrap.innerHTML = `
+      <div class="chakra-menu__menu-list" data-testid="nested-marker"></div>
+    `
+    document.body.appendChild(wrap)
+
+    installed = installDomObserver(manager)
+
+    wrap.remove()
+    await awaitMutations()
+
+    expect(delivered.some(d => d.eventType === "disappear" && d.target?.testId === "nested-marker")).toBe(true)
+  })
+
+  it("ignores removed non-element (text) nodes", async () => {
+    const { manager, delivered } = makeManagerWithCapture()
+    manager.register("plugin-A", { eventTypes: ["disappear"] })
+    const text = document.createTextNode("hi")
+    document.body.appendChild(text)
+
+    installed = installDomObserver(manager)
+
+    document.body.removeChild(text)
+    await awaitMutations()
+
+    expect(delivered).toHaveLength(0)
+  })
+
+  it("exposes and resets the appearance counter via diagnostics", async () => {
+    const { manager } = makeManagerWithCapture()
+    manager.register("plugin-A", { eventTypes: ["appear"] })
+    const handle = installDomObserver(manager)
+    installed = handle
+
+    expect(handle.getAppearanceCount()).toBe(0)
+    const menu = document.createElement("div")
+    menu.className = "chakra-menu__menu-list"
+    menu.setAttribute("data-testid", "diag-menu")
+    document.body.appendChild(menu)
+    await awaitMutations()
+
+    expect(handle.getAppearanceCount()).toBeGreaterThan(0)
+    handle.resetDiagnostics()
+    expect(handle.getAppearanceCount()).toBe(0)
+  })
 })
