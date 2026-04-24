@@ -9,6 +9,7 @@ npm-error.log
 .yalc
 yalc.lock
 .cache
+.eslintcache
 
 # Editors
 .idea

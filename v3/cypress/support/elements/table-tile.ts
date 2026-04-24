@@ -372,7 +372,7 @@ export const TableTileElements = {
     return this.getExportDataButtons().contains("Export")
   },
   getCfmModal() {
-    return cy.get("[data-testid=modal-dialog]")
+    return cy.get("[data-testid=cfm-dialog-shell]")
   },
   verifyAttributeValues(attributes: TestAttributes, values: TestValues, collectionIndex = 1) {
     attributes.forEach(a => {
