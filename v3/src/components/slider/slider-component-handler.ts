@@ -150,7 +150,7 @@ export const sliderComponentHandler: DIComponentHandler = {
         lowerBound: content.axis.min,
         upperBound: content.axis.max,
         value: content.globalValue.value
-      } as V2Slider
+      }
     }
   },
 

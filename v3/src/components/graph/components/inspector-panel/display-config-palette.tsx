@@ -200,7 +200,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
 
   const handleBinOptionBlur = (e: React.FocusEvent<HTMLInputElement>, option: BinOption) => {
     const initialValue = binnedPlot?.[option]
-    const value = Number((e.target as HTMLInputElement).value)
+    const value = Number(e.target.value)
     graphModel?.applyModelChange(() => {
       setBinOption(option, value)
     }, {

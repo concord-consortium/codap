@@ -24,7 +24,7 @@ export function useMouseTooltipRef() {
         top: mousePosRef.current.y, left: mousePosRef.current.x,
         right: mousePosRef.current.x, bottom: mousePosRef.current.y,
         toJSON() { return this }
-      } as DOMRect
+      }
     }
     triggerRef.current = el
   }

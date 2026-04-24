@@ -11,7 +11,7 @@ global.ResizeObserver = ResizeObserverPolyfill
 import { TextEncoder } from "util"
 // Type assertion needed because Node's TextEncoder returns Uint8Array<ArrayBufferLike>
 // while DOM's TextEncoder expects Uint8Array<ArrayBuffer> (stricter in TS 5.9+)
-global.TextEncoder = TextEncoder as typeof globalThis.TextEncoder
+global.TextEncoder = TextEncoder
 import { assertIsDefined } from "./assert-is-defined"
 import { ConsoleMethod, IJestSpyConsoleOptions, jestSpyConsole, JestSpyConsoleFn } from "./jest-spy-console"
 

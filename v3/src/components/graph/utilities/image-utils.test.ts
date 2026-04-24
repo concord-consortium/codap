@@ -58,7 +58,7 @@ beforeAll(() => {
     return img
   })
 
-  global.Image = mockImage as unknown as typeof Image
+  global.Image = mockImage
 })
 
 afterAll(() => {

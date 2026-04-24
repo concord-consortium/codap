@@ -53,6 +53,7 @@ export const DataDisplayContentModel = TileContentModel
   })
   .volatile(() => ({
     animationTimerId: 0,
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     marqueeMode: 'unclicked' as MarqueeMode,
     renderState: undefined as DataDisplayRenderState | undefined,
     showDataTip: (props: IShowDataTipProps) => {},

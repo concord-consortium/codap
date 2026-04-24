@@ -64,5 +64,5 @@ export function isLegacyDataSetSnap(snap: IDataSetSnapshot): snap is ILegacyData
 
 export function createDataSet(snap: IDataSetSnapshot | ILegacyDataSetSnap, env?: any): IDataSet {
   // preProcessSnapshot handler will perform the necessary conversion internally
-  return DataSet.create(snap as IDataSetSnapshot, env)
+  return DataSet.create(snap, env)
 }

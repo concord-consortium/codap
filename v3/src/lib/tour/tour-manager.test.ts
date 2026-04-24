@@ -232,7 +232,7 @@ describe("TourManager", () => {
 
       mockFindTileFromNameOrId.mockReturnValue({ id: "TILE123" })
       jest.spyOn(document, "getElementById").mockImplementation((id: string) => {
-        if (id === "TILE123") return mockComponentEl as unknown as HTMLElement
+        if (id === "TILE123") return mockComponentEl
         return null
       })
 
@@ -248,7 +248,7 @@ describe("TourManager", () => {
 
       mockFindTileFromNameOrId.mockReturnValue({ id: "TILE456" })
       jest.spyOn(document, "getElementById").mockImplementation((id: string) => {
-        if (id === "TILE456") return mockComponentEl as unknown as HTMLElement
+        if (id === "TILE456") return mockComponentEl
         return null
       })
 

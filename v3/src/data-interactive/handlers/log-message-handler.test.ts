@@ -1,6 +1,6 @@
 import "../../components/web-view/web-view-registration"
 import { kWebViewTileType } from "../../components/web-view/web-view-defs"
-import { DILogMessage, DIResources, DIValues } from "../data-interactive-types"
+import { DIResources, DIValues } from "../data-interactive-types"
 import { diLogMessageHandler } from "./log-message-handler"
 import { diLogMessageMonitorHandler } from "./log-message-monitor-handler"
 import { logMonitorManager } from "../log-monitor-manager"
@@ -27,7 +27,7 @@ describe("DataInteractive LogMessageHandler", () => {
     const values: DIValues = {
       formatStr: "This is a log message with %@",
       replaceArgs: ["replacement"]
-    } as DILogMessage
+    }
 
     notify(resources, values)
     expect(webViewContent.applyModelChange).toHaveBeenCalled()
@@ -43,7 +43,7 @@ describe("DataInteractive LogMessageHandler", () => {
       formatStr: "game event: %@",
       replaceArgs: ["start"],
       topic: "game.lifecycle"
-    } as DILogMessage
+    }
 
     logMonitorManager.unregisterAll()
     const evaluateSpy = jest.spyOn(logMonitorManager, "evaluateLogEvent")
@@ -88,24 +88,24 @@ describe("DataInteractive LogMessageMonitorHandler", () => {
 
   it("unregisters by monitor ID", () => {
     const resources = { interactiveFrame: { id: "plugin-1" } } as any
-    const registerResult = handler.register!(resources, { message: "*" } as any)
+    const registerResult = handler.register!(resources, { message: "*" })
     const monitorId = (registerResult as any).values.logMonitor.id
 
-    const result = handler.unregister!(resources, { id: monitorId } as any)
+    const result = handler.unregister!(resources, { id: monitorId })
     expect(result.success).toBe(true)
   })
 
   it("unregisters by clientId", () => {
     const resources = { interactiveFrame: { id: "plugin-1" } } as any
-    handler.register!(resources, { message: "*" } as any)
+    handler.register!(resources, { message: "*" })
 
-    const result = handler.unregister!(resources, { clientId: "plugin-1" } as any)
+    const result = handler.unregister!(resources, { clientId: "plugin-1" })
     expect(result.success).toBe(true)
   })
 
   it("returns failure for unregister with invalid ID", () => {
     const resources = {} as any
-    const result = handler.unregister!(resources, { id: 9999 } as any)
+    const result = handler.unregister!(resources, { id: 9999 })
     expect(result.success).toBe(false)
   })
 })

@@ -1,5 +1,5 @@
 import { clsx } from "clsx"
-import React, { forwardRef, ReactNode, RefObject, useCallback, useEffect, useRef, useState } from "react"
+import React, { forwardRef, ReactNode, useCallback, useEffect, useRef, useState } from "react"
 import { Button, Menu, MenuTrigger, Popover, Tooltip, TooltipTrigger } from "react-aria-components"
 
 import { kInspectorPaletteAriaRole } from "../accessibility-constants"
@@ -53,7 +53,7 @@ export const InspectorPanel = forwardRef<HTMLDivElement, IProps>(function Inspec
     else if (ref) ref.current = node
   }, [ref])
   useOutsidePointerDown({
-    ref: panelRef as unknown as RefObject<HTMLElement>,
+    ref: panelRef,
     handler: ()=> setShowPalette?.(undefined),
     enabled: !!(show && panelRef && setShowPalette),
     info: {name: "InspectorPanel", component}

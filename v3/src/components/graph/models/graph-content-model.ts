@@ -43,7 +43,6 @@ import { CatMapType, CellType, PlotType } from "../graphing-types"
 import { CasePlotModel } from "../plots/case-plot/case-plot-model"
 import { IPlotGraphApi } from "../plots/plot-model"
 import { IPlotModelUnionSnapshot, PlotModelUnion } from "../plots/plot-model-union"
-import {IGraphDataConfigurationModel} from "./graph-data-configuration-model"
 import {GraphPointLayerModel, IGraphPointLayerModel, kGraphPointLayerType} from "./graph-point-layer-model"
 
 export interface GraphProperties {
@@ -97,7 +96,7 @@ export const GraphContentModel = DataDisplayContentModel
       return self.layers[0] as IGraphPointLayerModel
     },
     get dataConfiguration() {
-      return this.graphPointLayerModel.dataConfiguration as IGraphDataConfigurationModel
+      return this.graphPointLayerModel.dataConfiguration
     },
     get dataset() {
       return getTileDataSet(self)
@@ -639,7 +638,7 @@ export const GraphContentModel = DataDisplayContentModel
                                       ? currSecondaryRole
                                       : undefined
       if (newPrimaryRole !== self.dataConfiguration.primaryRole) {
-        self.dataConfiguration.setPrimaryRole(newPrimaryRole as Maybe<GraphAttrRole>)
+        self.dataConfiguration.setPrimaryRole(newPrimaryRole)
       }
     },
     // returns true if the plot type changed

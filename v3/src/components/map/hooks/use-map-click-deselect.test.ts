@@ -113,7 +113,7 @@ describe("useMapClickDeselect", () => {
   // always sets isTrusted to false on dispatched events and it's non-configurable.
   function renderAndSimulateClick(clickOverrides?: Partial<MouseEvent>) {
     renderHook(() => useMapClickDeselect(mapModel))
-    act(() => { capturedPointerDownHandler?.({ isTrusted: true } as PointerEvent) })
+    act(() => { capturedPointerDownHandler?.({ isTrusted: true }) })
     act(() => { mapModel._simulateClick(clickOverrides) })
   }
 
@@ -157,7 +157,7 @@ describe("useMapClickDeselect", () => {
   })
 
   it("does not deselect when modifier keys are held", () => {
-    renderAndSimulateClick({ shiftKey: true } as Partial<MouseEvent>)
+    renderAndSimulateClick({ shiftKey: true })
 
     act(() => { jest.advanceTimersByTime(kDoubleClickDelay) })
     expect(mockSelectAllCases).not.toHaveBeenCalled()

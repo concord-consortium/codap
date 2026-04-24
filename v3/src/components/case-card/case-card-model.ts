@@ -17,6 +17,7 @@ export const CaseCardModel = TileContentModel
   })
   .volatile(() => ({
     animationLevel: Infinity,
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     animationDirection: "right" as "left" | "right",
     animationTimeout: undefined as ReturnType<typeof setTimeout> | undefined
   }))

@@ -17,6 +17,8 @@ export const MapPolygonLayerModel = MapLayerModel
   })
   .volatile(() => ({
     // Key is case ID
+    // assertion is load-bearing: MST otherwise infers {} which can't be indexed by string
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     features: {} as Record<string, GeoJSON>
   }))
   .actions(self => ({

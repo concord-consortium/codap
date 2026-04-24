@@ -113,7 +113,7 @@ describe("LogMonitorManager", () => {
         }
       }
 
-      manager.setDocumentProvider(() => mockDocument as any)
+      manager.setDocumentProvider(() => mockDocument)
       manager.register("plugin-1", { message: "*" })
 
       manager.notifyMatchingMonitors({
@@ -136,7 +136,7 @@ describe("LogMonitorManager", () => {
         }
       }
 
-      manager.setDocumentProvider(() => mockDocument as any)
+      manager.setDocumentProvider(() => mockDocument)
       manager.register("plugin-1", { message: "*" })
 
       manager.notifyMatchingMonitors({
@@ -158,7 +158,7 @@ describe("LogMonitorManager", () => {
         }
       }
 
-      manager.setDocumentProvider(() => mockDocument as any)
+      manager.setDocumentProvider(() => mockDocument)
       manager.register("plugin-1", { topic: "specific" })
 
       manager.notifyMatchingMonitors({
