@@ -50,6 +50,11 @@ const languageFiles: LanguageFileEntry[] = [
   {key: 'zh-TW',    contents: zhTW}     // Traditional Chinese (Taiwan)
 ]
 
+// Exported for a test that asserts this list stays in sync with the POEditor
+// pull script's LANGUAGES array (scripts/strings-pull-project.sh). Bundled
+// non-English entries must match what the pull script fetches.
+export const kBundledLanguageKeys: string[] = languageFiles.map(f => f.key)
+
 export const translations: Record<string, LanguageFileContent> = {}
 
 languageFiles.forEach((langFile) => {
