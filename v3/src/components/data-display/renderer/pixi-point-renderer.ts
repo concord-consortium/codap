@@ -332,6 +332,7 @@ export class PixiPointRenderer extends PointRendererBase {
       // (e.g. adding a second categorical axis) would otherwise leave sprites masked to old cells.
       this.state.updateSubPlotNumsFromCaseData(caseData)
       this.applyMasks(caseData)
+      this.doStartRendering()
       return
     }
 
@@ -754,7 +755,7 @@ export class PixiPointRenderer extends PointRendererBase {
         const sprite = this.sprites.get(pointId)
         if (sprite) {
           const subPlotNum = caseData.subPlotNum
-          sprite.mask = subPlotNum !== undefined ? this.subPlotMasks[subPlotNum] : null
+          sprite.mask = subPlotNum !== undefined ? (this.subPlotMasks[subPlotNum] ?? null) : null
         }
       }
     })
