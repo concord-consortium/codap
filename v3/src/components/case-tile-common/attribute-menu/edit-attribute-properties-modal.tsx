@@ -100,9 +100,11 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
 
   const buttons = [
     {
-      label: t("DG.AttrFormView.cancelBtnTitle"), tooltip: t("DG.AttrFormView.cancelBtnTooltip"), onClick: closeModal
+      label: t("DG.AttrFormView.cancelBtnTitle"), tooltip: t("DG.AttrFormView.cancelBtnTooltip"),
+      onClick: closeModal, testId: "attr-properties-cancel-button"
     },
-    { label: t("DG.AttrFormView.applyBtnTitle"), onClick: applyChanges, default: true }
+    { label: t("DG.AttrFormView.applyBtnTitle"), onClick: applyChanges, default: true,
+      testId: "attr-properties-apply-button" }
   ]
 
   function toDatePrecision(pStr: string) {
@@ -123,11 +125,11 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
     if (userType === "date" || (userType === "none" && attribute?.type === "date")) {
       return (
         <Menu>
-          <MenuButton as={Button} className="attr-menu-select" ml={5} data-testid="attr-precision-select"
+          <MenuButton as={Button} className="attr-menu-select" ml={5} data-testid="attr-precision-select-date"
               rightIcon={<ChevronDownIcon />}>
             {toDatePrecisionStr(precision) || "\u00A0"}
           </MenuButton>
-          <MenuList>
+          <MenuList data-testid="attr-precision-date-menu-list">
             <MenuOptionGroup type="radio" value={toDatePrecisionStr(precision)}
                 onChange={(value) => setPrecision(toDatePrecision(value as string))}>
               {datePrecisions.map(p => (
@@ -145,10 +147,10 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
       return (
         <Menu>
           <MenuButton as={Button} className="attr-menu-select" ml={5} isDisabled={isDisabled}
-              data-testid="attr-precision-select" rightIcon={<ChevronDownIcon />}>
+              data-testid="attr-precision-select-numeric" rightIcon={<ChevronDownIcon />}>
             {value || "\u00A0"}
           </MenuButton>
-          <MenuList>
+          <MenuList data-testid="attr-precision-numeric-menu-list">
             <MenuOptionGroup type="radio" value={value}
                 onChange={(val) => setPrecision(toNumPrecision(val as string))}>
               <MenuItemOption key="precision-none" value="" data-testid="attr-precision-option-none">
@@ -169,6 +171,7 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
 
   return (
     <CodapModal
+      data-testid="edit-attribute-properties-modal"
       finalFocusRef={finalFocusRef}
       isOpen={isOpen}
       onClose={closeModal}
@@ -176,7 +179,7 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
       modalHeight={"300px"}
     >
       <ModalHeader h="30" className="codap-modal-header" fontSize="md" data-testid="codap-modal-header">
-        <div className="codap-modal-icon-container">
+        <div className="codap-modal-icon-container" aria-hidden="true">
           <AttributeIcon className="codap-modal-icon" />
         </div>
         <div className="codap-header-title">{t("DG.TableController.attributeEditor.title")}</div>
@@ -203,7 +206,7 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
                   rightIcon={<ChevronDownIcon />}>
                 {t(`DG.CaseTable.attribute.type.${userType}`)}
               </MenuButton>
-              <MenuList>
+              <MenuList data-testid="attr-type-menu-list">
                 <MenuOptionGroup type="radio" value={userType}
                     onChange={(value) => setUserType(value as SelectableAttributeType)}>
                   {selectableAttributeTypes.map(aType => (
@@ -244,7 +247,7 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
               color="white" openDelay={1000} placement="bottom" bottom="15px" left="15px"
               data-testid="modal-tooltip">
               <Button key={key} size="xs" variant={`${b.default ? "default" : ""}`} ml="5" onClick={b.onClick}
-                      _hover={{backgroundColor: "#72bfca", color: "white"}} data-testid={`${b.label}-button`}>
+                      _hover={{backgroundColor: "#72bfca", color: "white"}} data-testid={b.testId}>
                 {b.label}
               </Button>
             </Tooltip>

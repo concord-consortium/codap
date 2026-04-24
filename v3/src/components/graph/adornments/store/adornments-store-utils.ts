@@ -15,6 +15,7 @@ export interface IMeasureMenuItem {
   checked: boolean
   componentContentInfo?: IAdornmentContentInfo
   componentInfo?: IAdornmentComponentInfo
+  dataTestId?: string
   disabled?: boolean
   title: string
   type: string
@@ -88,6 +89,7 @@ export function getAdornmentsMenuItemsFromTheStore(theStore: IAdornmentsBaseStor
     // appear in the univariate plot's ruler.
     addItemIfCondition(measureOrGroup.type === "Group", {
       checked: theStore.showMeasureLabels,
+      dataTestId: "show-measure-labels",
       title: "DG.Inspector.showLabels",
       type: "control",
       clickHandler: () => {
@@ -120,6 +122,7 @@ export function getAdornmentsMenuItemsFromTheStore(theStore: IAdornmentsBaseStor
     if (plotType === "scatterPlot" && measureOrGroup.type === kCountType) {
       addItemIfCondition(true, {
         checked: theStore.showConnectingLines,
+        dataTestId: "connecting-lines",
         title: "DG.Inspector.graphConnectingLine",
         type: "control",
         clickHandler: () => {
@@ -148,6 +151,7 @@ export function getAdornmentsMenuItemsFromTheStore(theStore: IAdornmentsBaseStor
       const lsrlVisible = theStore.isShowingAdornment(kLSRLType)
       addItemIfCondition(true, {
         checked: theStore.interceptLocked,
+        dataTestId: "intercept-locked",
         disabled: !movableLineVisible && !lsrlVisible,
         title: "DG.Inspector.graphInterceptLocked",
         type: "control",
@@ -180,6 +184,7 @@ export function getAdornmentsMenuItemsFromTheStore(theStore: IAdornmentsBaseStor
     const plottedFunctionVisible = theStore.isShowingAdornment(kPlottedFunctionType)
     addItemIfCondition(true, {
       checked: theStore.showSquaresOfResiduals,
+      dataTestId: "squares-of-residuals",
       disabled: !movableLineVisible && !lsrlVisible && !plottedFunctionVisible,
       title: "DG.Inspector.graphSquares",
       type: "control",

@@ -51,20 +51,23 @@ export const DatasetInfoModal = ({showInfoModal, setShowInfoModal}: IProps) => {
 
   const buttons=[{  label: t("DG.AttrFormView.cancelBtnTitle"),
                     tooltip: t("DG.AttrFormView.cancelBtnTooltip"),
+                    testId: "dataset-info-close-button",
                     onClick: ()=>setShowInfoModal(false) },
                  {  label: t("DG.AttrFormView.applyBtnTitle"),
                     tooltip: t("DG.AttrFormView.applyBtnTitle"),
+                    testId: "dataset-info-apply-button",
                     onClick: handleCloseInfoModal }
                 ]
 
   return (
     <CodapModal
+      data-testid="dataset-info-modal"
       isOpen={showInfoModal}
       onClose={()=>setShowInfoModal(false)}
       modalWidth={"280px"}
     >
       <ModalHeader h="30" className="codap-modal-header" fontSize="md" data-testid="codap-modal-header">
-        <div className="codap-modal-icon-container" />
+        <div className="codap-modal-icon-container" aria-hidden="true" />
         <div className="codap-header-title">{t("DG.TableController.datasetMetadata.title")}</div>
         <ModalCloseButton onClick={handleCloseInfoModal} data-testid="modal-close-button"/>
       </ModalHeader>
@@ -110,7 +113,7 @@ export const DatasetInfoModal = ({showInfoModal, setShowInfoModal}: IProps) => {
             <Tooltip key={key} label={b.tooltip} h="20px" fontSize="12px"
               color="white" openDelay={1000} placement="bottom" bottom="15px" left="15px"
               data-testid="modal-tooltip">
-              <Button key={key} size="xs" variant="ghost" ml="5" onClick={b.onClick} data-testid={`${b.label}-button`}>
+              <Button key={key} size="xs" variant="ghost" ml="5" onClick={b.onClick} data-testid={b.testId}>
                 {b.label}
               </Button>
             </Tooltip>

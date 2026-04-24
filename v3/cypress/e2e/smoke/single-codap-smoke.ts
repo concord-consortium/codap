@@ -73,7 +73,7 @@ context("codap single smoke test", () => {
     // it is possible to create a graph
     cy.dragAttributeToTarget("table", "Speed", "left")
     cy.get('[data-testid="axis-legend-attribute-button-left"]').eq(0).should("have.text", "Speed")
-    cy.get("[data-testid=graph]").find("[data-testid=axis-left]").find(".tick").should("have.length", 25)
+    cy.get("[data-testid=codap-graph]").find("[data-testid=axis-left]").find(".tick").should("have.length", 25)
 
     cy.log("test creating parent collections")
     // NOTE: the graph compresses to a single point in Cypress here.
@@ -115,7 +115,8 @@ context("codap single smoke test", () => {
     cy.get(".codap-component.codap-case-table").contains(".title-bar", "Tracks/Measurements").should("exist")
 
     cy.log("Test date display exists in table")
-    cy.get('button[data-testid="codap-attribute-button date"]').should('exist')
+    // CODAP-1236: attribute testids are now index-based, not name-based. Match by name via :contains.
+    cy.get('.codap-case-table [data-testid^="codap-attribute-button-"]:contains("date")').should('exist')
     table.getGridCell(2, 3, 2).should('be.visible').and("contain", "5/23/2005")
 
     cy.log("Test date display in bottom axis of graph")
@@ -179,7 +180,7 @@ context("codap single smoke test", () => {
     c.closeComponent("slider")
 
     cy.log("will open a calculator")
-    c.clickIconFromToolShelf("calc")
+    c.clickIconFromToolShelf("calculator")
     calculator.getCalculatorTile().should("be.visible")
     c.getComponentTitle("calculator").should("have.text", "Calculator")
     c.closeComponent("calculator")

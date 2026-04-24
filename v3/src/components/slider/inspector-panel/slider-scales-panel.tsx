@@ -147,6 +147,7 @@ export const SliderScalesPalette =
         setShowPalette={setShowPalette}
         panelRect={panelRect}
         buttonRect={buttonRect}
+        tileType="slider"
       >
         <div className="palette-form scale-settings">
           <div className="palette-row">
@@ -161,7 +162,7 @@ export const SliderScalesPalette =
                 <SelectValue />
                 <span aria-hidden="true" className="select-arrow">▾</span>
               </Button>
-              <Popover offset={0}>
+              <Popover offset={0} data-testid="slider-scale-type-popover">
                 <ListBox>
                   {SliderScaleTypes.map(aScaleType => (
                     <ListBoxItem key={aScaleType} id={aScaleType}

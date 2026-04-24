@@ -89,7 +89,7 @@ export const AxisElements = {
   },
   getAttributeFromAttributeMenu(axis: string) {
     // The menu items are rendered in a Portal at the body level, so we need to find the MenuList by data-testid
-    return cy.get(`[data-testid="axis-legend-attribute-menu-list-${axis}"]`)
+    return cy.get(`[data-testid^="axis-attr-menu-${axis}"]`)
   },
   getDateAxisTickLabels(axis: string) {
     return this.getAxisElement(axis).find("text:not([class])")

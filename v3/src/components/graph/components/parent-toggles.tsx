@@ -283,12 +283,13 @@ export const ParentToggles = observer(function ParentToggles() {
             data-testid="parent-toggles-case-buttons-list"
             style={{ transform: `translateX(${buttonsListOffset}px)` }}
           >
-            {caseButtons.map((caseButton) => {
+            {caseButtons.map((caseButton, index) => {
               const key = caseButton.ids[0]
               return <button
                        key={key}
                        className={caseButton.isHidden ? "case-hidden" : ""}
-                       data-testid={`parent-toggles-case-buttons-${caseButton.textLabel?.replace(/\s/g, "-")}`}
+                       data-testid={`parent-toggles-case-button-${index}`}
+                       aria-label={caseButton.textLabel}
                        onClick={() => handleCaseButtonClick(caseButton.ids)}
                        title={t("DG.NumberToggleView.indexTooltip")}
                      >
