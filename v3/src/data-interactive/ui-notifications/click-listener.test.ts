@@ -168,6 +168,29 @@ describe("click-listener", () => {
     expect(click?.target?.interactionKind).toBe("axis-drag-rect")
   })
 
+  it("uninstall invalidates a pending keyboard suppression so a later install's click fires", () => {
+    // Keydown on install A adds a suppress entry for the element. If that entry
+    // leaked into install B, B would incorrectly suppress the first real click.
+    const { manager: managerA, delivered: deliveredA } = makeManagerWithCapture()
+    managerA.register("plugin-A", { eventTypes: ["click"] })
+    installed = installClickListener(managerA)
+
+    document.body.innerHTML = `<div class="menu-bar"><button data-testid="x">OK</button></div>`
+    const el = document.querySelector("button")!
+    el.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }))
+    // Unsubscribe before the synthesized click arrives
+    installed.uninstall()
+    installed = undefined
+    expect(deliveredA.filter(d => d.eventType === "click")).toHaveLength(1)
+
+    // Fresh re-subscribe: the stale suppress entry must NOT suppress this click
+    const { manager: managerB, delivered: deliveredB } = makeManagerWithCapture()
+    managerB.register("plugin-B", { eventTypes: ["click"] })
+    installed = installClickListener(managerB)
+    el.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+    expect(deliveredB.filter(d => d.eventType === "click")).toHaveLength(1)
+  })
+
   it("dblclick fires independent of click", () => {
     const { manager, delivered } = makeManagerWithCapture()
     manager.register("plugin-A", { eventTypes: ["dblclick"] })

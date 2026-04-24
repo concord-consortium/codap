@@ -12,7 +12,12 @@ interface RecentClickState {
 }
 
 let recentClick: RecentClickState | undefined
-const suppressSet = new WeakSet<Element>()
+// Per-install generation counter for keyboard→click dedup.
+// Each install() increments the generation; entries stamped with a stale
+// generation are ignored so a pending suppression from a previous install
+// can never leak into a later re-subscribe.
+let suppressGeneration = 0
+const suppressMap = new WeakMap<Element, number>()
 
 export function getRecentClick(): RecentClickState | undefined {
   return recentClick
@@ -38,12 +43,13 @@ export interface ClickListenerInstalled {
 }
 
 export function installClickListener(manager: UiNotificationMonitorManager): ClickListenerInstalled {
+  const generation = ++suppressGeneration
   const onClick = (e: Event) => {
     try {
       const t = e.target as Element | null
       if (!t) return
-      if (suppressSet.has(t)) {
-        suppressSet.delete(t)
+      if (suppressMap.get(t) === generation) {
+        suppressMap.delete(t)
         return
       }
       const cls = classifyNode(t, { recentClick: getRecentClick() })
@@ -103,7 +109,7 @@ export function installClickListener(manager: UiNotificationMonitorManager): Cli
       }
       manager.deliver(notice)
       // Mark element so the synthesized click doesn't re-emit
-      suppressSet.add(t)
+      suppressMap.set(t, generation)
     } catch (err) {
       console.error("[ui-notifications] keydown handler error", err)
     }
@@ -118,6 +124,9 @@ export function installClickListener(manager: UiNotificationMonitorManager): Cli
       document.removeEventListener("click", onClick, true)
       document.removeEventListener("dblclick", onDblClick, true)
       document.removeEventListener("keydown", onKeyDown, true)
+      // Bump the generation so any still-pending entries in suppressMap are
+      // considered stale — a re-subscribe starts with a clean slate.
+      suppressGeneration++
       recentClick = undefined
     }
   }
@@ -126,4 +135,5 @@ export function installClickListener(manager: UiNotificationMonitorManager): Cli
 /** Test helper to reset internal state between tests */
 export function _resetClickListenerState() {
   recentClick = undefined
+  suppressGeneration++
 }

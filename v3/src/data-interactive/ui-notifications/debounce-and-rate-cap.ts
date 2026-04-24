@@ -153,10 +153,7 @@ export function createDeliveryPipeline(
       const state = states.get(monitorId)
       if (!state) return
       for (const slot of state.debounceSlots.values()) clearTimeout(slot.timer)
-      state.debounceSlots.clear()
-      state.deliveryTimestamps = []
-      state.rateLimitedPendingDropped = 0
-      state.rateLimitedWindowEndMs = undefined
+      states.delete(monitorId)
     },
     disposeAll() {
       for (const state of states.values()) {

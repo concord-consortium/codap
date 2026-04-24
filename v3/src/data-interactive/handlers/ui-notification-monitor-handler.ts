@@ -48,6 +48,12 @@ export const diUiNotificationMonitorHandler: DIHandler = {
     const bodyId = parseMonitorId(requestValues.id)
     const id = selectorId ?? bodyId
     if (id == null) return errorResult("monitor id required")
+    // Don't leak whether the id exists under another plugin — use the same
+    // "not found" error for both a missing id and an id owned by a different
+    // plugin so a caller can't discover other plugins' monitors by probing.
+    if (uiNotificationMonitorManager.getMonitor(id)?.ownerTileId !== ownerTileId) {
+      return errorResult(`monitor not found: ${id}`)
+    }
     const { id: _id, clientId: _clientId, ...filter } = requestValues
     const result = uiNotificationMonitorManager.update(id, filter)
     if (!result.ok) return errorResult(result.error)
@@ -68,6 +74,9 @@ export const diUiNotificationMonitorHandler: DIHandler = {
     const bodyId = parseMonitorId(requestValues.id)
     const id = selectorId ?? bodyId
     if (id == null) return errorResult("monitor id required")
+    if (uiNotificationMonitorManager.getMonitor(id)?.ownerTileId !== ownerTileId) {
+      return errorResult(`monitor not found: ${id}`)
+    }
     const result = uiNotificationMonitorManager.unregister(id)
     if (!result.ok) return errorResult(result.error)
     return { success: true as const }

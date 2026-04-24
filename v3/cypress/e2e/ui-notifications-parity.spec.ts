@@ -13,6 +13,13 @@
  *   6. Drag attribute to graph axis (dragStart/dragEnd)
  *   7. Tile minimize/restore
  *   8. Tile close
+ *
+ * INTENTIONALLY `describe.skip(...)` — the "time-to-open within 5% of baseline"
+ * assertion is inherently sensitive to CI VM jitter and produced too much noise
+ * when enabled. The scenarios remain committed as a reference harness for
+ * local regression checks and for when we replace the 5%-wall-clock assertion
+ * with a less jitter-sensitive measurement. Run locally with Cypress to verify
+ * parity behavior after changes to the UI-notification pipeline.
  */
 
 import { withBroadMonitor } from "../support/with-monitor"

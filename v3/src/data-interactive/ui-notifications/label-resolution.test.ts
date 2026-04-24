@@ -16,6 +16,21 @@ describe("resolveLabel", () => {
     expect(resolveLabel(document.getElementById("btn"))).toBe("Open file")
   })
 
+  it("concatenates multiple aria-labelledby ids with spaces", () => {
+    document.body.innerHTML = `
+      <span id="a">Open</span>
+      <span id="b">file</span>
+      <button aria-labelledby="a b" id="btn"></button>`
+    expect(resolveLabel(document.getElementById("btn"))).toBe("Open file")
+  })
+
+  it("skips missing ids in aria-labelledby list", () => {
+    document.body.innerHTML = `
+      <span id="a">Open</span>
+      <button aria-labelledby="a missing-id" id="btn"></button>`
+    expect(resolveLabel(document.getElementById("btn"))).toBe("Open")
+  })
+
   it("returns own textContent trimmed when 2+ chars with alphanumeric", () => {
     const el = document.createElement("button")
     el.textContent = "  OK  "

@@ -74,4 +74,38 @@ describe("DataInteractive UiNotificationMonitorHandler", () => {
     )
     expect(r?.success).toBe(true)
   })
+
+  it("update of another plugin's monitor returns not-found error", () => {
+    const created = handler.notify?.(
+      { interactiveFrame: fakeFrame as any },
+      { eventTypes: ["click"] } as any
+    )
+    const id = (created?.values as { id: number }).id
+    const otherFrame = { id: "WEBV-2" }
+    const r = handler.update?.(
+      { interactiveFrame: otherFrame as any, uiNotificationMonitor: String(id) },
+      { eventTypes: ["appear"] } as any
+    )
+    expect(r?.success).toBe(false)
+    // Original monitor must still be present and unchanged
+    const monitor = uiNotificationMonitorManager.getMonitor(id)
+    expect(monitor?.ownerTileId).toBe("WEBV-1")
+    expect(monitor?.compiled.eventTypes?.has("click")).toBe(true)
+    expect(monitor?.compiled.eventTypes?.has("appear")).toBe(false)
+  })
+
+  it("delete of another plugin's monitor returns not-found error", () => {
+    const created = handler.notify?.(
+      { interactiveFrame: fakeFrame as any },
+      { eventTypes: ["click"] } as any
+    )
+    const id = (created?.values as { id: number }).id
+    const otherFrame = { id: "WEBV-2" }
+    const r = handler.delete?.(
+      { interactiveFrame: otherFrame as any, uiNotificationMonitor: String(id) }
+    )
+    expect(r?.success).toBe(false)
+    // Original monitor must still exist
+    expect(uiNotificationMonitorManager.getMonitor(id)?.ownerTileId).toBe("WEBV-1")
+  })
 })

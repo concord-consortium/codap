@@ -8,6 +8,13 @@
  *   - updateMonitor(id, filter)
  *   - unsubscribeMonitor(id)
  *   - getDeliveredNotices()
+ *
+ * INTENTIONALLY `describe.skip(...)` — these scenarios require the plugin
+ * fixture to finish loading inside an iframe-phone handshake before each test,
+ * and the end-to-end timing of that handshake has been too flaky to run on CI.
+ * The scenarios remain committed as reference/documentation for plugin authors
+ * and as scaffolding for when we invest in stabilizing the iframe-phone fixture
+ * handshake; unskipping requires verifying all three tests pass locally first.
  */
 
 const PLUGIN_PATH = "/cypress/fixtures/ui-notification-test-plugin.html"

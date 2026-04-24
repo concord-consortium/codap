@@ -84,6 +84,7 @@ export const CodapDndContext = ({ children }: IProps) => {
     } catch (e) {
       console.error("[ui-notifications] dragCancel hook error", e)
     }
+    dataInteractiveState.endDrag()
   }
 
   return (

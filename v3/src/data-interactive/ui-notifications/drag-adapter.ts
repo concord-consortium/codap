@@ -23,10 +23,6 @@ export function buildDragStartNotice(event: DragStartEvent): UiDragNotice {
   const source = event.active
   const srcTarget = targetFromDndEntity(source as unknown as { id: string | number })
   const sourceId = String(source.id)
-  const hint = source.rect?.current?.initial
-    ? { clientX: (source.rect.current.initial as DOMRect).left, clientY: (source.rect.current.initial as DOMRect).top }
-    : null
-  void hint
   const cls = classifyElement(findNodeForEntity(source as unknown as { id: string | number }))
   return {
     eventType: "dragStart",
