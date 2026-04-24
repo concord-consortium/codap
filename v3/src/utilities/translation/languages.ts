@@ -3,11 +3,14 @@ import de from "./lang/de.json"
 import el from "./lang/el.json"
 import es from './lang/es.json'
 import fa from "./lang/fa.json"
+import fr from "./lang/fr.json"
 import he from "./lang/he.json"
 import ja from "./lang/ja.json"
 import ko from "./lang/ko.json"
 import nb from "./lang/nb.json"
+import nl from "./lang/nl.json"
 import nn from "./lang/nn.json"
+import pl from "./lang/pl.json"
 import ptBR from "./lang/pt-BR.json"
 import th from "./lang/th.json"
 import tr from "./lang/tr.json"
@@ -32,11 +35,14 @@ const languageFiles: LanguageFileEntry[] = [
   {key: 'en-US',    contents: enUS},    // US English
   {key: 'es',       contents: es},      // Spanish
   {key: 'fa',       contents: fa},      // Farsi (Persian)
+  {key: 'fr',       contents: fr},      // French
   {key: 'he',       contents: he},      // Hebrew
   {key: 'ja',       contents: ja},      // Japanese
   {key: 'ko',       contents: ko},      // Korean
   {key: 'nb',       contents: nb},      // Norwegian Bokmål
+  {key: 'nl',       contents: nl},      // Dutch
   {key: 'nn',       contents: nn},      // Norwegian Nynorsk
+  {key: 'pl',       contents: pl},      // Polish
   {key: 'pt-BR',    contents: ptBR},    // Brazilian Portuguese
   {key: 'th',       contents: th},      // Thai
   {key: 'tr',       contents: tr},      // Turkish
