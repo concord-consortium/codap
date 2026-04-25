@@ -53,6 +53,7 @@ export const DataDisplayContentModel = TileContentModel
   })
   .volatile(() => ({
     animationTimerId: 0,
+    // assertion is load-bearing: widens the literal to MarqueeMode so the field stays assignable to other modes
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     marqueeMode: 'unclicked' as MarqueeMode,
     renderState: undefined as DataDisplayRenderState | undefined,

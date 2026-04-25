@@ -55,7 +55,7 @@ export function typeOptionalBoolean() {
  * The caller is responsible for passing a `T` that matches the runtime type associated with
  * `typeName`; the type is otherwise unverifiable from a string parameter.
  */
-export function getParentWithTypeName<T = IAnyStateTreeNode>(
+export function getParentWithTypeName<T extends IAnyStateTreeNode = IAnyStateTreeNode>(
   target: IAnyStateTreeNode, typeName: string
 ): T | undefined {
   let current = target

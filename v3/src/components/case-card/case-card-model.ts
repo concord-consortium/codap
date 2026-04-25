@@ -17,6 +17,7 @@ export const CaseCardModel = TileContentModel
   })
   .volatile(() => ({
     animationLevel: Infinity,
+    // assertion is load-bearing: widens the literal to the union so the field stays assignable to "left"
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     animationDirection: "right" as "left" | "right",
     animationTimeout: undefined as ReturnType<typeof setTimeout> | undefined
