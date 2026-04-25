@@ -51,13 +51,18 @@ export function typeOptionalBoolean() {
  * Returns an ancestor of a node whose type name is `typeName`, if any.
  * This is like `getParentOfType(target, type)`, but allows us not to refer directly to the
  * parent type, which can cause circular reference errors in MST.
+ *
+ * The caller is responsible for passing a `T` that matches the runtime type associated with
+ * `typeName`; the type is otherwise unverifiable from a string parameter.
  */
-export function getParentWithTypeName(target: IAnyStateTreeNode, typeName: string): IAnyStateTreeNode | undefined {
+export function getParentWithTypeName<T = IAnyStateTreeNode>(
+  target: IAnyStateTreeNode, typeName: string
+): T | undefined {
   let current = target
   while (hasParent(current)) {
       const parent = getParent(current)
       const type = getType(parent)
-      if (type.name === typeName) return parent
+      if (type.name === typeName) return parent as T
       current = parent
   }
   return undefined
