@@ -26,6 +26,12 @@ $tour-ring-color: vars.$teal-dark;
   padding: 16px 32px 16px 16px;
   transition: transform 200ms ease-out, opacity 150ms ease-out;
   cursor: grab;
+
+  // The root is tabindex="-1" — the only path to focus is our programmatic pull-out
+  // from a plugin iframe (so document-level keydown listeners can fire). It is never a
+  // keyboard tab stop, so it never needs a focus indicator. Buttons inside still get
+  // their own :focus-visible outlines.
+  &:focus { outline: none; }
 }
 
 .codap-tour-popover--dragging {
