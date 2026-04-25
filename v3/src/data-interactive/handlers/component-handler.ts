@@ -90,7 +90,10 @@ export const diComponentHandler: DIHandler = {
           }
         }
       }, {
-        notify: createTileNotification(tile)
+        // Wrap in a function so it runs AFTER applyModelChange's actionFn assigns `tile`.
+        // Evaluating createTileNotification(tile) inline would call it with tile=undefined,
+        // producing no notification (createTileNotification returns undefined for falsy tile).
+        notify: () => createTileNotification(tile)
       })
     }
 
