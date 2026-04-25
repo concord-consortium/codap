@@ -1,5 +1,3 @@
-import { driver, DriveStep, Driver } from "driver.js"
-import "driver.js/dist/driver.css"
 import "./tour-styles.scss"
 import { DEBUG_PLUGINS, debugLog } from "../debug"
 import { isWebViewModel } from "../../components/web-view/web-view-model"
@@ -7,6 +5,7 @@ import { findTileFromNameOrId } from "../../data-interactive/resource-parser-uti
 import { ITileModel } from "../../models/tiles/tile-model"
 import { uniqueId } from "../../utilities/js-utils"
 import { resolveElement, TourElementKey } from "./tour-elements"
+import { createTourEngine, EngineHandle, EngineStep, EngineStepPopover } from "./tour-engine"
 import { defaultTourOptions, ITourConfig } from "./tour-types"
 
 export interface TourStepInput {
@@ -16,31 +15,18 @@ export interface TourStepInput {
   component?: string
   popover?: { title?: string, description?: string, side?: string, align?: string }
   id?: string
-  // per-step driver.js overrides
-  disableActiveInteraction?: boolean
-  stagePadding?: number
-  stageRadius?: number
 }
 
-export interface HighlightRequestValues extends TourStepInput {
-  overlayColor?: string
-  overlayOpacity?: number
-}
+export interface HighlightRequestValues extends TourStepInput {}
 
 export interface TourRequestValues {
   steps: TourStepInput[]
-  // Overlay options
-  overlayColor?: string
-  overlayOpacity?: number
-  stagePadding?: number
-  stageRadius?: number
   // Navigation options
   showButtons?: ("next" | "previous" | "close")[]
-  disableButtons?: ("next" | "previous" | "close")[]
+  disableButtons?: ("next" | "previous")[]
   showProgress?: boolean
   allowKeyboardControl?: boolean
   allowClose?: boolean
-  disableActiveInteraction?: boolean
   // Presentation options
   animate?: boolean
   smoothScroll?: boolean
@@ -54,7 +40,7 @@ export interface TourRequestValues {
 
 interface ActiveTourState {
   type: "highlight" | "tour"
-  driverInstance: Driver
+  engineInstance: EngineHandle
   ownerTile: ITileModel | null
   tourId?: string
   originalSteps?: TourStepInput[]
@@ -62,7 +48,6 @@ interface ActiveTourState {
   filteredToOriginalIndex?: number[]
   currentFilteredIdx?: number
   hasStartedStep?: boolean
-  setCancelling?: () => void
   highlightId?: string
   highlightTarget?: Record<string, string>
 }
@@ -72,36 +57,37 @@ class TourManager {
 
   /** Resolve a step's target to a DOM element and the targeting property for notifications */
   private resolveTarget(step: TourStepInput): { element: Element | null, targetProp: Record<string, string> } {
+    const componentEcho: Record<string, string> = step.component ? { component: step.component } : {}
     if (step.tourKey) {
       if (!step.tourKey.includes(".")) {
         debugLog(DEBUG_PLUGINS, `Invalid tourKey "${step.tourKey}" — expected "namespace.element" format`)
-        return { element: null, targetProp: { tourKey: step.tourKey } }
+        return { element: null, targetProp: { tourKey: step.tourKey, ...componentEcho } }
       }
       const resolved = resolveElement(step.tourKey as TourElementKey)
       if (!resolved) {
         debugLog(DEBUG_PLUGINS, `Unknown tourKey "${step.tourKey}" — not found in tour element registry`)
-        return { element: null, targetProp: { tourKey: step.tourKey } }
+        return { element: null, targetProp: { tourKey: step.tourKey, ...componentEcho } }
       }
       const scope = step.component ? this.findComponentRoot(step.component) : document
       const el = scope?.querySelector(resolved.selector) ?? null
-      return { element: el, targetProp: { tourKey: step.tourKey } }
+      return { element: el, targetProp: { tourKey: step.tourKey, ...componentEcho } }
     }
     if (step.testId) {
       try {
         const sel = `[data-testid="${CSS.escape(step.testId)}"]`
         const scope = step.component ? this.findComponentRoot(step.component) : document
         const el = scope?.querySelector(sel) ?? null
-        return { element: el, targetProp: { testId: step.testId } }
-      } catch { return { element: null, targetProp: { testId: step.testId } } }
+        return { element: el, targetProp: { testId: step.testId, ...componentEcho } }
+      } catch { return { element: null, targetProp: { testId: step.testId, ...componentEcho } } }
     }
     if (step.selector) {
       try {
         const scope = step.component ? this.findComponentRoot(step.component) : document
         const el = scope?.querySelector(step.selector) ?? null
-        return { element: el, targetProp: { selector: step.selector } }
-      } catch { return { element: null, targetProp: { selector: step.selector } } }
+        return { element: el, targetProp: { selector: step.selector, ...componentEcho } }
+      } catch { return { element: null, targetProp: { selector: step.selector, ...componentEcho } } }
     }
-    // If only component is provided (no tourKey/testId/selector), target the tile itself
+    // If only component is provided (no tourKey/testId/selector), target the tile itself.
     if (step.component) {
       const el = this.findComponentRoot(step.component)
       return { element: el, targetProp: { component: step.component } }
@@ -117,7 +103,7 @@ class TourManager {
   }
 
   /** Build popover config, merging registry defaults with plugin overrides */
-  private buildPopover(step: TourStepInput): DriveStep["popover"] | undefined {
+  private buildPopover(step: TourStepInput): EngineStepPopover | undefined {
     let defaults: { title?: string, description?: string } = {}
     if (step.tourKey) {
       if (step.tourKey.includes(".")) {
@@ -131,7 +117,7 @@ class TourManager {
     const description = step.popover?.description ?? defaults.description
     if (!title && !description) return undefined
 
-    const popover: DriveStep["popover"] = { title, description }
+    const popover: EngineStepPopover = { title, description }
     const rawSide = step.popover?.side
     const rawAlign = step.popover?.align
     if (rawSide === "top" || rawSide === "right" || rawSide === "bottom" || rawSide === "left") {
@@ -152,20 +138,21 @@ class TourManager {
     )
   }
 
-  /** Extract the targeting property from a step input (tourKey > testId > selector) */
+  /** Extract the targeting property from a step input (tourKey > testId > selector, plus component echo) */
   private getTargetPropFromInput(input: TourStepInput): Record<string, string> {
-    if (input.tourKey) return { tourKey: input.tourKey }
-    if (input.testId) return { testId: input.testId }
-    if (input.selector) return { selector: input.selector }
-    return {}
+    const out: Record<string, string> = {}
+    if (input.tourKey) out.tourKey = input.tourKey
+    else if (input.testId) out.testId = input.testId
+    else if (input.selector) out.selector = input.selector
+    if (input.component) out.component = input.component
+    return out
   }
 
   /** Cancel the current active tour/highlight, notifying the owner if needed */
   cancelActive() {
     if (!this.active) return
-    const { type, driverInstance, ownerTile } = this.active
+    const { type, engineInstance, ownerTile } = this.active
     if (type === "tour") {
-      this.active.setCancelling?.()
       if (ownerTile) {
         const notification: Record<string, unknown> = {
           operation: "tourUpdate",
@@ -192,7 +179,7 @@ class TourManager {
         ...this.active.highlightTarget
       })
     }
-    driverInstance.destroy()
+    engineInstance.destroy()
     this.active = null
   }
 
@@ -204,32 +191,30 @@ class TourManager {
     if (!element) return { success: true as const }
 
     const popover = this.buildPopover(values)
-    const driverObj = driver({
+    const engineObj = createTourEngine({
       allowClose: true,
       allowKeyboardControl: true,
-      overlayClickBehavior: "close",
-      popoverClass: "codap-tour-popover",
-      ...(values.overlayColor != null && { overlayColor: values.overlayColor }),
-      ...(values.overlayOpacity != null && { overlayOpacity: values.overlayOpacity }),
-      ...(values.stagePadding != null && { stagePadding: values.stagePadding }),
-      ...(values.stageRadius != null && { stageRadius: values.stageRadius }),
-      onDeselected: () => {
-        if (this.active?.type === "highlight") {
-          this.notify(tile, {
+      onCancelRequested: () => this.cancelActive(),
+      onDestroyed: () => {
+        if (this.active?.type !== "highlight") return
+        const { ownerTile, highlightId, highlightTarget } = this.active
+        if (ownerTile) {
+          this.notify(ownerTile, {
             operation: "highlightUpdate", type: "highlightCleared",
-            ...(values.id && { id: values.id }), ...targetProp
+            ...(highlightId && { id: highlightId }),
+            ...highlightTarget
           })
-          this.active = null
         }
+        this.active = null
       }
     })
 
     this.active = {
-      type: "highlight", driverInstance: driverObj, ownerTile: tile,
+      type: "highlight", engineInstance: engineObj, ownerTile: tile,
       highlightId: values.id, highlightTarget: targetProp
     }
 
-    driverObj.highlight({ element: element as HTMLElement, popover })
+    engineObj.highlight({ element: element as HTMLElement, popover })
 
     this.notify(tile, {
       operation: "highlightUpdate", type: "highlighted",
@@ -251,7 +236,7 @@ class TourManager {
           ...this.active.highlightTarget
         })
       }
-      this.active.driverInstance.destroy()
+      this.active.engineInstance.destroy()
       this.active = null
     }
     return { success: true as const }
@@ -263,19 +248,16 @@ class TourManager {
 
     const tourId = `tour-${uniqueId()}`
     const originalSteps = values.steps ?? []
-    const filteredSteps: { driverStep: DriveStep, originalIndex: number, input: TourStepInput }[] = []
+    const filteredSteps: { engineStep: EngineStep, originalIndex: number, input: TourStepInput }[] = []
 
     for (let i = 0; i < originalSteps.length; i++) {
       const step = originalSteps[i]
       const { element } = this.resolveTarget(step)
       if (!element) continue
       filteredSteps.push({
-        driverStep: {
+        engineStep: {
           element: element as HTMLElement,
           popover: this.buildPopover(step),
-          ...(step.disableActiveInteraction != null && { disableActiveInteraction: step.disableActiveInteraction }),
-          ...(step.stagePadding != null && { stagePadding: step.stagePadding }),
-          ...(step.stageRadius != null && { stageRadius: step.stageRadius }),
         },
         originalIndex: i,
         input: step
@@ -291,21 +273,15 @@ class TourManager {
       return { success: true as const, values: { tourId } }
     }
 
-    let isCancelling = false
     let currentFilteredIdx = 0
     const filteredToOriginalIndex = filteredSteps.map(s => s.originalIndex)
 
-    const driverObj = driver({
+    const engineObj = createTourEngine({
       ...defaultTourOptions,
-      ...(values.overlayColor != null && { overlayColor: values.overlayColor }),
-      ...(values.overlayOpacity != null && { overlayOpacity: values.overlayOpacity }),
-      ...(values.stagePadding != null && { stagePadding: values.stagePadding }),
-      ...(values.stageRadius != null && { stageRadius: values.stageRadius }),
       ...(values.showButtons != null && { showButtons: values.showButtons }),
       ...(values.showProgress != null && { showProgress: values.showProgress }),
       ...(values.allowKeyboardControl != null && { allowKeyboardControl: values.allowKeyboardControl }),
       ...(values.allowClose != null && { allowClose: values.allowClose }),
-      ...(values.disableActiveInteraction != null && { disableActiveInteraction: values.disableActiveInteraction }),
       ...(values.disableButtons != null && { disableButtons: values.disableButtons }),
       ...(values.animate != null && { animate: values.animate }),
       ...(values.smoothScroll != null && { smoothScroll: values.smoothScroll }),
@@ -314,9 +290,8 @@ class TourManager {
       ...(values.nextBtnText != null && { nextBtnText: values.nextBtnText }),
       ...(values.prevBtnText != null && { prevBtnText: values.prevBtnText }),
       ...(values.doneBtnText != null && { doneBtnText: values.doneBtnText }),
-      steps: filteredSteps.map(s => s.driverStep),
-      onHighlightStarted: (_el: unknown, _step: unknown, { state }: { state: { activeIndex?: number } }) => {
-        if (isCancelling) return
+      steps: filteredSteps.map(s => s.engineStep),
+      onHighlightStarted: (_el, _step, { state }) => {
         currentFilteredIdx = state.activeIndex ?? 0
         if (this.active) {
           this.active.currentFilteredIdx = currentFilteredIdx
@@ -333,7 +308,6 @@ class TourManager {
         })
       },
       onDeselected: () => {
-        if (isCancelling) return
         const origIdx = filteredToOriginalIndex[currentFilteredIdx]
         const input = filteredSteps[currentFilteredIdx].input
         this.notify(tile, {
@@ -345,26 +319,25 @@ class TourManager {
         })
       },
       onDestroyed: () => {
-        if (isCancelling) return
         this.notify(tile, {
           operation: "tourUpdate", tourId, type: "completed",
           totalSteps: originalSteps.length, visibleSteps: filteredSteps.length
         })
         this.active = null
-      }
+      },
+      onCancelRequested: () => { this.cancelActive() }
     })
 
     this.active = {
-      type: "tour", driverInstance: driverObj, ownerTile: tile, tourId,
+      type: "tour", engineInstance: engineObj, ownerTile: tile, tourId,
       originalSteps,
       filteredToOriginalIndex,
       filteredSteps: filteredSteps.map(s => ({ input: s.input, originalIndex: s.originalIndex })),
       currentFilteredIdx: 0,
       hasStartedStep: false,
-      setCancelling: () => { isCancelling = true }
     }
 
-    driverObj.drive()
+    engineObj.drive()
     return { success: true as const, values: { tourId } }
   }
 
@@ -381,7 +354,7 @@ class TourManager {
   tourNext(tile: ITileModel) {
     if (this.active?.type !== "tour") return { success: true as const }
     if (this.active.ownerTile && this.active.ownerTile !== tile) return { success: true as const }
-    this.active.driverInstance.moveNext()
+    this.active.engineInstance.moveNext()
     return { success: true as const }
   }
 
@@ -389,7 +362,7 @@ class TourManager {
   tourPrevious(tile: ITileModel) {
     if (this.active?.type !== "tour") return { success: true as const }
     if (this.active.ownerTile && this.active.ownerTile !== tile) return { success: true as const }
-    this.active.driverInstance.movePrevious()
+    this.active.engineInstance.movePrevious()
     return { success: true as const }
   }
 
@@ -397,9 +370,9 @@ class TourManager {
   tourMoveTo(tile: ITileModel, stepIndex?: number) {
     if (this.active?.type !== "tour" || stepIndex == null) return { success: true as const }
     if (this.active.ownerTile && this.active.ownerTile !== tile) return { success: true as const }
-    const filteredIdx = this.active.filteredToOriginalIndex?.indexOf(stepIndex)
-    if (filteredIdx == null || filteredIdx < 0) return { success: true as const }
-    this.active.driverInstance.moveTo(filteredIdx)
+    const filteredIdx = this.active.filteredToOriginalIndex?.indexOf(stepIndex) ?? -1
+    if (filteredIdx < 0) return { success: true as const }
+    this.active.engineInstance.moveTo(filteredIdx)
     return { success: true as const }
   }
 
@@ -407,7 +380,7 @@ class TourManager {
   tourRefresh(tile: ITileModel) {
     if (!this.active) return { success: true as const }
     if (this.active.ownerTile && this.active.ownerTile !== tile) return { success: true as const }
-    this.active.driverInstance.refresh()
+    this.active.engineInstance.refresh()
     return { success: true as const }
   }
 
@@ -415,29 +388,39 @@ class TourManager {
   runInternalTour(config: ITourConfig) {
     this.cancelActive()
 
-    const activeSteps = config.steps.filter(step => {
-      if (step.skip) return false
-      if (typeof step.element === "string" && !document.querySelector(step.element)) return false
-      return true
-    })
-    if (activeSteps.length === 0) return
+    const resolvedSteps: EngineStep[] = []
+    for (const step of config.steps) {
+      if (step.skip) continue
+      let el: HTMLElement | null = null
+      if (typeof step.element === "string") {
+        el = document.querySelector<HTMLElement>(step.element)
+      } else if (step.element) {
+        el = step.element
+      }
+      if (!el) continue
+      resolvedSteps.push({ element: el, popover: step.popover })
+    }
+    if (resolvedSteps.length === 0) return
 
-    const driverObj = driver({
+    const engineObj = createTourEngine({
+      ...defaultTourOptions,
       ...config.options,
-      steps: activeSteps
+      steps: resolvedSteps,
+      onDestroyed: () => { this.active = null },
+      onCancelRequested: () => { this.cancelActive() }
     })
 
     this.active = {
-      type: "tour", driverInstance: driverObj, ownerTile: null
+      type: "tour", engineInstance: engineObj, ownerTile: null
     }
 
-    driverObj.drive()
+    engineObj.drive()
   }
 
   /** Clean up any active tour/highlight owned by a disconnecting plugin tile */
   cleanupForTile(tile: ITileModel) {
     if (this.active?.ownerTile === tile) {
-      this.active.driverInstance.destroy()
+      this.active.engineInstance.destroy()
       this.active = null
     }
   }
