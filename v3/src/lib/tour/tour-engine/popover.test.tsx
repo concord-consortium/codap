@@ -146,13 +146,28 @@ describe("Popover component", () => {
     spy.mockRestore()
   })
 
-  // Without this, focus stays on whatever launched the tour (often a plugin iframe)
-  // and arrow keys never reach the document-level keydown listener.
-  it("focuses the popover on mount so arrow keys reach the keyboard handler", () => {
+  it("does not steal focus on mount when active element is in the parent document", () => {
+    const launcher = document.createElement("button")
+    document.body.appendChild(launcher)
+    launcher.focus()
     const state = makeState()
     render(<Popover state={state} />)
     const popover = screen.getByTestId("codap-tour-popover")
     expect(popover.getAttribute("tabindex")).toBe("-1")
+    expect(launcher).toHaveFocus()
+    document.body.removeChild(launcher)
+  })
+
+  // Plugin iframes don't bubble keydown to the parent document, so arrow/Escape would
+  // otherwise be dead until the user clicked somewhere in the parent.
+  it("pulls focus out of an iframe so arrow keys reach the keyboard handler", () => {
+    const iframe = document.createElement("iframe")
+    document.body.appendChild(iframe)
+    iframe.focus()
+    const state = makeState()
+    render(<Popover state={state} />)
+    const popover = screen.getByTestId("codap-tour-popover")
     expect(popover).toHaveFocus()
+    document.body.removeChild(iframe)
   })
 })

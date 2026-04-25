@@ -36,7 +36,9 @@ const PopoverContent = observer(function PopoverContent({ state, step }: Popover
   const arrowRef = useRef<SVGSVGElement>(null)
   const [popoverEl, setPopoverEl] = useState<HTMLElement | null>(null)
 
-  const { position: dragPosition, isDragging, onPointerDown } = usePopoverDrag(step.element, popoverEl)
+  // Reset drag on step transition. Keyed on activeIndex (not step.element) so consecutive
+  // steps targeting the same element still reset the drag offset.
+  const { position: dragPosition, isDragging, onPointerDown } = usePopoverDrag(state.activeIndex, popoverEl)
 
   const dragPlacement = useMemo<Placement | null>(() => {
     if (!dragPosition || !popoverEl) return null
@@ -85,11 +87,12 @@ const PopoverContent = observer(function PopoverContent({ state, step }: Popover
     setPopoverEl(el)
   }, [refs])
 
-  // Focus the popover on first mount so arrow-key navigation works immediately.
-  // Without this, focus stays on whatever launched the tour (often a plugin iframe),
-  // and keystrokes never reach the document-level keydown listener.
+  // Spec: focus does not move to the popover on step start. Exception: when focus is in
+  // an iframe (typical when a plugin starts the tour), keydown events never bubble to the
+  // parent document, so arrow/Escape would be dead. Pull focus out of the iframe in that
+  // case only — leave focus alone in every other case.
   useEffect(() => {
-    if (popoverEl) popoverEl.focus()
+    if (popoverEl && document.activeElement?.tagName === "IFRAME") popoverEl.focus()
   }, [popoverEl])
 
   useEffect(() => {
