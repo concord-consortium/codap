@@ -74,7 +74,7 @@ describe("DataDisplayRenderState", () => {
 
     it("should return undefined when first renderer is undefined", () => {
       const el = createMockElement()
-      const state = new DataDisplayRenderState([undefined as any], el)
+      const state = new DataDisplayRenderState([undefined], el)
       expect(state.imageOptions).toBeUndefined()
     })
   })

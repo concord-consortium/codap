@@ -99,7 +99,7 @@ export const localLookupFunctions: CODAPMathjsFunctionRegistry = {
 
       const caseGroupId = scope.getCaseGroupId()
       const cacheKey = `prev(${args.toString()})-${caseGroupId}`
-      const cachedResult = scope.getCached(cacheKey) as FValue | undefined
+      const cachedResult = scope.getCached(cacheKey)
 
       let newExpressionValue, newFilterValue
       scope.withCustomCasePointer(() => {

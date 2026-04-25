@@ -58,10 +58,14 @@ export const TreeManager = types
   activeHistoryEntries: types.array(HistoryEntry)
 })
 .volatile(self => ({
+  // assertion is load-bearing: MST otherwise infers {} which can't be indexed by string
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   trees: {} as Record<string, TreeAPI>,
   // The number of history entries that have been applied to the document.
   // When replaying history this number can be less than the total number
   // history entries (self.document.history.length)
+  // assertion is load-bearing: widens MST inference to allow undefined
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   numHistoryEventsApplied: 0 as number | undefined,
   mainDocument: undefined as IMainDocument | undefined,
   /**

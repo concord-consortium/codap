@@ -1,6 +1,6 @@
 import { IDataSet } from "../data/data-set"
 import { DataSetMetadata, kDataSetMetadataType, IDataSetMetadata } from "../shared/data-set-metadata"
-import { SharedDataSet, kSharedDataSetType, ISharedDataSet, isSharedDataSet } from "../shared/shared-data-set"
+import { SharedDataSet, kSharedDataSetType, isSharedDataSet } from "../shared/shared-data-set"
 import { getTileSharedModels } from "../shared/shared-data-tile-utils"
 import { ITileContentModel } from "../tiles/tile-content"
 import { getSharedModelManager } from "../tiles/tile-environment"
@@ -25,7 +25,7 @@ export function linkTileToDataSet(tile: ITileModel, dataSet: IDataSet) {
 
   const sharedModelManager = getSharedModelManager(tile)
   const sharedDataSets = sharedModelManager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType)
-  const sharedDataSet = sharedDataSets?.find(model => model.dataSet.id === dataSet.id) as ISharedDataSet | undefined
+  const sharedDataSet = sharedDataSets?.find(model => model.dataSet.id === dataSet.id)
   if (sharedModelManager && sharedDataSet) {
     sharedModelManager.addTileSharedModel(tileContent, sharedDataSet)
 

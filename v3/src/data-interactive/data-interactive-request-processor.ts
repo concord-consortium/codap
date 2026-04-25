@@ -8,7 +8,7 @@ import { t } from "../utilities/translation/translate"
 import { isV2CaseTableComponent } from "./data-interactive-component-types"
 import { getDIHandler } from "./data-interactive-handler"
 import {
-  DIAction, DIHandler, DIHandlerFnResult, DIRequest, DIRequestResponse
+  DIAction, DIHandlerFnResult, DIRequest, DIRequestResponse
 } from "./data-interactive-types"
 import { errorResult } from "./handlers/di-results"
 import { parseResourceSelector, resolveResources } from "./resource-parser"
@@ -43,7 +43,7 @@ export async function processAction(
   const resources = resolveResources(resourceSelector, action.action, tile, cfm)
   const type = resourceSelector.type ?? ""
   const a = action.action
-  const func = getDIHandler(type)?.[a as keyof DIHandler]
+  const func = getDIHandler(type)?.[a]
   if (!func) return errorResult(t("V3.DI.Error.unsupportedAction", { vars: [a, type] }))
 
   const actionResult = await func?.(resources, action.values)

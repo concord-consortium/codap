@@ -139,7 +139,7 @@ export const nullItemData: IItemData = {
   getValue: () => "",
   addItemInfo: () => {},
   invalidate: () => {}
-} as IItemData
+}
 
 export const DataSet = V2UserTitleModel.named("DataSet").props({
   id: typeV3Id("DATA"),

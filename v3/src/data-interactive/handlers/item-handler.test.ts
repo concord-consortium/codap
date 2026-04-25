@@ -17,7 +17,7 @@ describe("DataInteractive ItemHandler", () => {
     expect(handler.create?.(resources).success).toBe(false)
 
     // Create a single item
-    const result1 = handler.create?.(resources, { a1: "d", a2: "w", a3: 7 } as DIItem) as DISuccessResult
+    const result1 = handler.create?.(resources, { a1: "d", a2: "w", a3: 7 }) as DISuccessResult
     expect(result1.success).toBe(true)
     expect(result1.itemIDs?.length).toBe(1)
     expect(result1.itemIDs?.[0]).toBe(toV2Id(dataset.items[6].__id__))

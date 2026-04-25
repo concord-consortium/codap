@@ -314,7 +314,7 @@ export const AttributeHeader = observer(function AttributeHeader({
               {attributeId !== kIndexColumnKey &&
                 <CaseTilePortal>
                   <AttributeMenuList ref={menuListRef} attributeId={attributeId}
-                    finalFocusRef={menuButtonRef as React.RefObject<HTMLElement>}
+                    finalFocusRef={menuButtonRef}
                     onRenameAttribute={handleRenameAttribute} onModalOpen={handleModalOpen}
                   />
                 </CaseTilePortal>

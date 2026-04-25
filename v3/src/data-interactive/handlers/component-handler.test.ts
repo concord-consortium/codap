@@ -50,7 +50,7 @@ describe("DataInteractive ComponentHandler", () => {
     expect(handler.create?.({}, { type: "caseTable" }).success).toBe(false)
     expect(handler.create?.({}, { type: "caseTable", dataContext: "unknown" }).success).toBe(false)
     expect(handler.create?.({}, { type: "caseCard" }).success).toBe(false)
-    expect(handler.create?.({}, { type: "caseCard", dataContext: "unknown" } as V2CaseCard).success).toBe(false)
+    expect(handler.create?.({}, { type: "caseCard", dataContext: "unknown" }).success).toBe(false)
 
     // Create a table tile
     expect(documentContent.tileMap.size).toBe(0)

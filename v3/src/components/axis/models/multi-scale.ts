@@ -210,7 +210,7 @@ export class MultiScale {
 
     const formatDatePrecisionArr = ["year", "month", "day", "hour"]
     const formatSliderInputDate = (n: number): string => {
-      if (isDate && formatDatePrecisionArr.includes(dateMultipleOfUnit as DatePrecision)) {
+      if (isDate && formatDatePrecisionArr.includes(dateMultipleOfUnit)) {
         return formatDate(n * 1000, dateMultipleOfUnit as DatePrecision) ?? ''
       } else { return formatDate(n * 1000, "minute") ?? '' }
     }

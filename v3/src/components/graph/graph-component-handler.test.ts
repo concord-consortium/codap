@@ -227,7 +227,7 @@ describe("DataInteractive ComponentHandler Graph", () => {
     const updateResult2 = update({ component: tile }, {
       xAttributeName: null, yAttributeName: null, legendAttributeName: null, captionAttributeID: null,
       rightNumericAttributeName: null, rightSplitAttributeName: null, topSplitAttributeName: null
-    } as V2Graph)
+    })
     expect(updateResult2.success).toBe(true)
     expect(dataConfig.attributeDescriptionForRole("x")?.attributeID).toBeUndefined()
     expect(dataConfig.attributeDescriptionForRole("y")?.attributeID).toBeUndefined()
@@ -269,19 +269,19 @@ describe("DataInteractive ComponentHandler Graph", () => {
     expect(update({ component: tile }, { y2AttributeType: "numeric" }).success).toBe(true)
 
     // Update to remove y attributes
-    const updateResultRemoveYs = update({ component: tile }, { yAttributeNames: [] as string[] } as V2Graph)
+    const updateResultRemoveYs = update({ component: tile }, { yAttributeNames: [] as string[] })
     expect(updateResultRemoveYs.success).toBe(true)
     expect(dataConfig._yAttributeDescriptions.length).toBe(0)
 
     // Update to set multiple y attributes with names
-    const updateResultYNames = update({ component: tile }, { yAttributeNames: [a4.name, a3.name] } as V2Graph)
+    const updateResultYNames = update({ component: tile }, { yAttributeNames: [a4.name, a3.name] })
     expect(updateResultYNames.success).toBe(true)
     expect(dataConfig._yAttributeDescriptions.length).toBe(2)
     expect(dataConfig._yAttributeDescriptions[0].attributeID).toBe(a4.id)
     expect(dataConfig._yAttributeDescriptions[1].attributeID).toBe(a3.id)
 
     // Update to set y attributes with ids; setting numeric y attribute results in scatter plot
-    const updateResultYIDs = update({ component: tile }, { yAttributeIDs: [toV2Id(a3.id)] } as V2Graph)
+    const updateResultYIDs = update({ component: tile }, { yAttributeIDs: [toV2Id(a3.id)] })
     expect(updateResultYIDs.success).toBe(true)
     expect(dataConfig._yAttributeDescriptions.length).toBe(1)
     expect(dataConfig._yAttributeDescriptions[0].attributeID).toBe(a3.id)
