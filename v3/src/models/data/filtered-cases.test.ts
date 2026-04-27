@@ -1,4 +1,4 @@
-import { reaction } from "mobx"
+import { computed, makeObservable, reaction } from "mobx"
 import { DataSet, IDataSet, toCanonical } from "./data-set"
 import { FilteredCases } from "./filtered-cases"
 
@@ -147,6 +147,62 @@ describe("DerivedDataSet", () => {
     expect(filtered.caseIds.length).toBe(1)
     expect(filtered.caseIds).toEqual(["c3"])
     expect(trigger).toHaveBeenCalledTimes(2)
+
+    filtered.destroy()
+  })
+
+  it("triggers direct reactions on caseIds when invalidateCases is called externally", () => {
+    // Mirrors how DataConfigurationModel.invalidateCases() externally invalidates a
+    // FilteredCases on dataset addCases (which doesn't trigger FilteredCases' own
+    // handleAction listener since addCases isn't isCaseValueChangeAction).
+    const filtered = new FilteredCases({ source: data })
+
+    // Warm the cache so _isValidCaseIds is true before reaction installs.
+    expect(filtered.caseIds.length).toBe(3)
+
+    const trigger = jest.fn()
+    reaction(() => filtered.caseIds, () => trigger())
+    expect(trigger).toHaveBeenCalledTimes(0)
+
+    // Adding cases doesn't notify FilteredCases (addCases isn't a value-change action).
+    data.addCases(toCanonical(data, [{ __id__: "c4", x: 4, y: 4 }]))
+
+    // Production code (DataConfigurationModel) explicitly calls invalidateCases here.
+    filtered.invalidateCases()
+
+    expect(filtered.caseIds.length).toBe(4)
+    expect(trigger).toHaveBeenCalledTimes(1)
+
+    filtered.destroy()
+  })
+
+  it("triggers reactions through an intermediate computed when invalidateCases is called externally", () => {
+    // Mirrors the production caseDataHash path: a @computed that transitively reads
+    // FilteredCases.caseIds, with a reaction observing the computed.
+    const filtered = new FilteredCases({ source: data })
+
+    class HashWrapper {
+      constructor(public f: FilteredCases) {
+        makeObservable(this, { caseIdsHash: computed })
+      }
+      get caseIdsHash() {
+        return this.f.caseIds.join(",")
+      }
+    }
+    const wrapper = new HashWrapper(filtered)
+
+    // Warm both the FilteredCases cache and the wrapper computed.
+    expect(wrapper.caseIdsHash).toBe("c1,c2,c3")
+
+    const trigger = jest.fn()
+    reaction(() => wrapper.caseIdsHash, () => trigger())
+    expect(trigger).toHaveBeenCalledTimes(0)
+
+    data.addCases(toCanonical(data, [{ __id__: "c4", x: 4, y: 4 }]))
+    filtered.invalidateCases()
+
+    expect(wrapper.caseIdsHash).toBe("c1,c2,c3,c4")
+    expect(trigger).toHaveBeenCalledTimes(1)
 
     filtered.destroy()
   })
