@@ -15,7 +15,7 @@ $collection-title-font-color: black;
   flex-direction: column;
 
   // Prevent vertical scrolling in the table during attribute drags so
-  // keyboard drag can move past the table without scrolling through every row.
+  // keyboard drags can move past the table without scrolling through every row.
   // Scoped to preserve horizontal auto-scroll on .case-table-content.
   &.dragging {
     .rdg, .collection-table-spacer {
