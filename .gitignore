@@ -21,6 +21,7 @@ v3/cypress/screenshots
 .claude/*
 !.claude/skills/
 .worktrees/
+.playwright-mcp/
 
 # Local dev
 .yalc/
