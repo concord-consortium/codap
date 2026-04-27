@@ -14,11 +14,13 @@ $collection-title-font-color: black;
   display: flex;
   flex-direction: column;
 
-  // Prevent vertical scrolling in the RDG grid during attribute drags so
-  // keyboard drags can move past the table without scrolling through every row.
-  // Scoped to .rdg to preserve horizontal auto-scroll on .case-table-content.
-  &.dragging .rdg {
-    overflow-y: hidden !important;
+  // Prevent vertical scrolling in the table during attribute drags so
+  // keyboard drag can move past the table without scrolling through every row.
+  // Scoped to preserve horizontal auto-scroll on .case-table-content.
+  &.dragging {
+    .rdg, .collection-table-spacer {
+      overflow-y: hidden !important;
+    }
   }
 
   .case-table-content {
@@ -158,7 +160,6 @@ $collection-title-font-color: black;
         background: white;
         display: flex;
         flex-direction: column;
-        overflow-y: hidden;
 
         &.parentMost {
           width: 30px;
