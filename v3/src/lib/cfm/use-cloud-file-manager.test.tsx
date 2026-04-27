@@ -2,6 +2,7 @@ import { act, render, renderHook, screen, waitFor } from "@testing-library/react
 import { CloudFileManager, CloudFileManagerClientEvent } from "@concord-consortium/cloud-file-manager"
 import { ReactNode } from "react"
 import { Root } from "react-dom/client"
+import { LogMessage, Logger } from "../logger"
 import { useCloudFileManager } from "./use-cloud-file-manager"
 
 let spySetMenuBarInfo: jest.SpyInstance | undefined
@@ -41,6 +42,51 @@ jest.mock("./cfm-utils", () => {
 })
 
 describe("useCloudFileManager", () => {
+
+  it("forwards Logger events to cfm.client.log with parameters only", async () => {
+    render(<div id="container-div" data-testid="container-div"/>)
+
+    let registeredListener: ((msg: LogMessage) => void) | undefined
+    const spyRegister = jest.spyOn(Logger, "registerLogListener")
+      .mockImplementation((listener) => {
+        registeredListener = listener
+      })
+
+    let cfm: CloudFileManager | undefined
+    renderHook(() => {
+      const { cfm: _cfm } = useCloudFileManager({ appOrMenuElemId: "container-div" })
+      cfm = _cfm
+    })
+
+    await waitFor(() => expect(registeredListener).toBeDefined())
+
+    const spyClientLog = jest.spyOn(cfm!.client, "log").mockImplementation(() => undefined)
+
+    const baseMessage: LogMessage = {
+      application: "CODAPV3",
+      activity: "doc-title",
+      session: "test-session",
+      time: 1234567890,
+      event: "testEvent",
+      event_value: "some-event-value",
+      run_remote_endpoint: "https://example.com/run",
+      parameters: { foo: "bar" }
+    }
+
+    // only parameters are forwarded; top-level fields (application, session, time,
+    // run_remote_endpoint, activity, event_value) are not forwarded
+    registeredListener!(baseMessage)
+    expect(spyClientLog).toHaveBeenCalledTimes(1)
+    expect(spyClientLog).toHaveBeenCalledWith("testEvent", { foo: "bar" })
+
+    // parameters undefined → empty object
+    spyClientLog.mockClear()
+    registeredListener!({ ...baseMessage, parameters: undefined })
+    expect(spyClientLog).toHaveBeenCalledWith("testEvent", {})
+
+    spyClientLog.mockRestore()
+    spyRegister.mockRestore()
+  })
 
   it("instantiates the CFM and renders the menu bar under the specified parent", async () => {
     render(<div id="container-div" data-testid="container-div"/>)

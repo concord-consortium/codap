@@ -402,7 +402,10 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, hookOptions?: IUs
     if (!laraForwardingRegistered) {
       laraForwardingRegistered = true
       Logger.registerLogListener((logMessage) => {
-        cfm.client?.log(logMessage.event, logMessage)
+        // NOTE: we have to destructure the parameters back into a plain object which CFM/AP
+        // will restructure back in its log message processing.  The rest of the CODAP log message
+        // is not forwarded since CFM/AP will use its own values for the other fields.
+        cfm.client?.log(logMessage.event, logMessage.parameters ?? {})
       })
     }
 
