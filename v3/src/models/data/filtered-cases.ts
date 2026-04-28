@@ -1,4 +1,4 @@
-import { action, computed, makeObservable, observable, runInAction } from "mobx"
+import { action, computed, makeObservable, observable } from "mobx"
 import { addDisposer, ISerializedActionCall } from "mobx-state-tree"
 import { typedId } from "../../utilities/js-utils"
 import { onAnyAction } from "../../utilities/mst-utils"
@@ -34,10 +34,20 @@ export class FilteredCases {
   private prevCaseIdSet = new Set<string>()
   private disposers: Array<() => void>
 
-  // Manual caching for caseIds and caseIdSet to avoid recomputation outside reactive context
+  // Manual caching for caseIds and caseIdSet to avoid recomputation outside reactive context.
+  //
+  // We follow the same pattern as cachedFnWithArgsFactory: an observable version counter that
+  // is ONLY written by invalidateCases (an action), and a non-observable last-validated-version
+  // that is written from inside the getter. This guarantees MobX dependency tracking is clean —
+  // any reactive context that reads caseIds will observe `_caseIdsVersion` and properly fire when
+  // invalidateCases() bumps it. The previous implementation used a boolean `_isValidCaseIds` that
+  // was both read and written from inside `caseIds` (via runInAction), which violates MobX's
+  // "no side effects in computeds" rule and causes some computed observers to silently miss
+  // invalidation.
   private _cachedCaseIds: string[] = []
   private _cachedCaseIdSet: Set<string> = new Set()
-  @observable private _isValidCaseIds = false
+  @observable private _caseIdsVersion = 0
+  private _lastValidatedVersion = -1
 
   constructor({ source, collectionID, casesArrayNumber = 0, filter, onSetCaseValues }: IProps) {
     this.source = source
@@ -68,11 +78,13 @@ export class FilteredCases {
   }
 
   private validateCaseIds() {
-    if (!this._isValidCaseIds) {
+    // Reading the observable version establishes the MobX dependency without writing.
+    const version = this._caseIdsVersion
+    if (version !== this._lastValidatedVersion) {
       this._cachedCaseIds = this.rawCaseIds
             .filter(id => !this.filter || (this.source && this.filter(this.source, id, this.casesArrayNumber)))
       this._cachedCaseIdSet = new Set(this._cachedCaseIds)
-      runInAction(() => { this._isValidCaseIds = true })
+      this._lastValidatedVersion = version
     }
   }
 
@@ -94,7 +106,7 @@ export class FilteredCases {
   setCasesArrayNumber(casesArrayNumber: number) {
     if (this.casesArrayNumber === casesArrayNumber) return
     this.casesArrayNumber = casesArrayNumber
-    this._isValidCaseIds = false
+    this._caseIdsVersion++
   }
 
   @action
@@ -106,7 +118,7 @@ export class FilteredCases {
 
   @action
   invalidateCases() {
-    this._isValidCaseIds = false
+    this._caseIdsVersion++
   }
 
   private handleBeforeAction = (actionCall: ISerializedActionCall) => {

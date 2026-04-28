@@ -353,17 +353,22 @@ export const useSubAxis = ({
     }, {name: "useSubAxis.installDomainSync"}, axisProvider)
   }, [axisPlace, axisProvider, layout, renderSubAxis])
 
-  // Refresh when category set, if any, changes
+  // Refresh when the categories actually shown on the axis change. This must observe
+  // categoryArrayForAttrRole (the intersection of the categorySet with plotted cases),
+  // not categorySet.valuesArray (the union of all strValues). Otherwise, when a value
+  // that was already in strValues from earlier unplotted cases first appears in a
+  // plotted case, the union doesn't change but the axis's effective categories do —
+  // and the axis would silently fail to add the new tick.
   useEffect(function installCategorySetSync() {
     if (isCategorical) {
-      const disposer = mstReaction(() => {
-        return (dataConfig?.categorySetForAttrRole(axisPlaceToAttrRole[axisPlace]))?.valuesArray
-      }, () => {
-        setupCategories()
-        swapInProgress.current = true
-        renderSubAxis()
-        swapInProgress.current = false
-      }, {name: "useSubAxis [categories]", equals: comparer.structural}, dataConfig)
+      const disposer = mstReaction(
+        () => dataConfig?.categoryArrayForAttrRole(axisPlaceToAttrRole[axisPlace]),
+        () => {
+          setupCategories()
+          swapInProgress.current = true
+          renderSubAxis()
+          swapInProgress.current = false
+        }, {name: "useSubAxis [categories]", equals: comparer.structural}, dataConfig)
       return () => disposer()
     }
   }, [renderSubAxis, isCategorical, setupCategories, dataConfig, axisPlace])
@@ -409,11 +414,17 @@ export const useSubAxis = ({
 
   useEffect(function respondToHiddenCasesChange() {
     if (dataConfig) {
-      const axisModel = axisProvider?.getAxis?.(axisPlace)
+      // Scope is `dataConfig` only — NOT [axisModel, dataConfig]. The axis model is
+      // replaced (not mutated) during axis-type transitions (e.g. empty → categorical).
+      // Including it as a scope node would cause mstReaction to auto-dispose this
+      // reaction the first time the axis type changes, leaving the axis unable to
+      // respond to subsequent hidden-cases changes. The data-fn does not read the
+      // axis model directly; updateDomainAndRenderSubAxis re-fetches the current
+      // model on every call via axisProvider.getAxis(axisPlace).
       return mstReaction(
         () => dataConfig.caseDataHash,
         () => updateDomainAndRenderSubAxis(),
-        {name: "useSubAxis.respondToHiddenCasesChange"}, [axisModel, dataConfig]
+        {name: "useSubAxis.respondToHiddenCasesChange"}, dataConfig
       )
     }
   }, [axisPlace, axisProvider, dataConfig, updateDomainAndRenderSubAxis])
