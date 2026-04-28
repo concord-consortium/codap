@@ -157,7 +157,8 @@ describe("DerivedDataSet", () => {
     // handleAction listener since addCases isn't isCaseValueChangeAction).
     const filtered = new FilteredCases({ source: data })
 
-    // Warm the cache so _isValidCaseIds is true before reaction installs.
+    // Force an initial caseIds read to warm the cached/versioned state before the
+    // reaction is installed.
     expect(filtered.caseIds.length).toBe(3)
 
     const trigger = jest.fn()

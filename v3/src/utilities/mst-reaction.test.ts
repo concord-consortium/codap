@@ -73,7 +73,7 @@ describe("mstReaction", () => {
     // them in the scope.
     const c = Container.create({ a: { value: 0 }, b: { value: 0 } })
     const trigger = jest.fn()
-    mstReaction(() => c.b!.value, () => trigger(), { name: "test" }, c.b!)
+    const dispose = mstReaction(() => c.b!.value, () => trigger(), { name: "test" }, c.b!)
 
     c.b!.inc()
     expect(trigger).toHaveBeenCalledTimes(1)
@@ -82,5 +82,7 @@ describe("mstReaction", () => {
 
     c.b!.inc()
     expect(trigger).toHaveBeenCalledTimes(2)
+
+    dispose()
   })
 })
