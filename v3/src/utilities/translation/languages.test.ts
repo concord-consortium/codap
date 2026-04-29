@@ -7,7 +7,7 @@ describe("bundled languages", () => {
     const scriptPath = path.join(__dirname, "../../../scripts/strings-pull-project.sh")
     const scriptContent = fs.readFileSync(scriptPath, "utf8")
 
-    const match = scriptContent.match(/^LANGUAGES=\(([^)]*)\)/m)
+    const match = scriptContent.match(/^\s*LANGUAGES\s*=\s*\(([\s\S]*?)\)/m)
     expect(match).not.toBeNull()
     const pulledLangs = Array.from(match![1].matchAll(/"([^"]+)"/g))
       .map(m => m[1])
