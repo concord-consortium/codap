@@ -325,6 +325,8 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, hookOptions?: IUs
         renderRoot(rootRef.current, content)
       },
       appSetsWindowTitle: true, // CODAP takes responsibility for the window title
+      // CODAP v3 does not reload on language change, so the save-before-change behavior is unnecessary.
+      saveOnLanguageChange: false,
       wrapFileContent: false,
       isClientContent(content: unknown) {
         if (!content || typeof content !== "object") return false

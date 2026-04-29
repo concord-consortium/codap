@@ -197,7 +197,7 @@
     "@codemirror/commands": "^6.10.3",
     "@codemirror/language": "^6.12.3",
     "@codemirror/view": "^6.41.1",
-    "@concord-consortium/cloud-file-manager": "~2.2.9",
+    "@concord-consortium/cloud-file-manager": "~2.2.10",
     "@concord-consortium/log-monitor": "^1.0.0",
     "@concord-consortium/mobx-state-tree": "^6.0.0-cc.1",
     "@concord-consortium/slate-editor": "^0.12.0",
