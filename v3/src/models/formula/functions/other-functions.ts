@@ -93,6 +93,15 @@ export const otherFunctions: Record<string, IFormulaMathjsFunction> = {
     }
   },
 
+  // Mirrors v2's string() type-conversion function. Empty values propagate as UNDEF_RESULT;
+  // anything else uses JS String() coercion. Unlike _number_, this name does not need to be
+  // aliased: mathjs's parser/evaluate factories do not declare 'string' as a dependency, so
+  // overriding it does not perturb any internal closures.
+  string: {
+    numOfRequiredArguments: 1,
+    evaluate: (arg: FValue) => isValueEmpty(arg) ? UNDEF_RESULT : String(arg)
+  },
+
   /**
     Returns the great circle distance between the two lat/long points on the earth's surface.
     @param    {Number}  The latitude in degrees of the first point
