@@ -1,12 +1,12 @@
 import { uniq } from "lodash"
 import { observable, runInAction } from "mobx"
 import {
-  addDisposer, getEnv, hasEnv, IAnyStateTreeNode, IDisposer, Instance, ISerializedActionCall, isValidReference,
+  addDisposer, getEnv, hasEnv, IAnyStateTreeNode, Instance, isValidReference,
   onPatch, resolveIdentifier, SnapshotIn, types
 } from "mobx-state-tree"
 import { kellyColors } from "../../utilities/color-utils"
 import { compareValues } from "../../utilities/data-utils"
-import { onAnyAction } from "../../utilities/mst-utils"
+import { mstReaction } from "../../utilities/mst-reaction"
 import { gLocale } from "../../utilities/translation/locale"
 import { Attribute, IAttribute } from "./attribute"
 import { IDataSet } from "./data-set"
@@ -62,7 +62,6 @@ export const CategorySet = types.model("CategorySet", {
   moves: types.array(types.frozen<ICategoryMove>())
 })
 .volatile(self => ({
-  provisionalAttributeActionDisposer: undefined as Maybe<IDisposer>,
   handleAttributeInvalidated: undefined as Maybe<(attrId: string) => void>,
   dragCategory: undefined as Maybe<string>,
   dragCategoryIndex: -1
@@ -233,39 +232,28 @@ export const CategorySet = types.model("CategorySet", {
   }
 }))
 .actions(self => ({
-  handleAttributeAction(action: ISerializedActionCall) {
-    const actionsInvalidatingCategories = [
-      "clearFormula", "setDisplayExpression", "addValue", "addValues", "setValue", "setValues", "removeValues"
-    ]
-    if (actionsInvalidatingCategories.includes(action.name)) {
-      self.invalidate()
-    }
-  }
-}))
-.actions(self => ({
   afterCreate() {
-    // invalidate the cached categories when necessary
-    // afterAttach isn't called for provisional category sets, so we need to listen here
-    const hasProvisionalDataSet = !!getProvisionalDataSet(self)
-    if (hasProvisionalDataSet && isValidReference(() => self.attribute)) {
-      const provisionalDisposer = onAnyAction(self.attribute, action => self.handleAttributeAction(action))
-      self.provisionalAttributeActionDisposer = provisionalDisposer
-      addDisposer(self, () => self.provisionalAttributeActionDisposer?.())
-    }
-
     addDisposer(self, onPatch(self, patch => {
       // invalidate the categories when the moves are changed
       if (patch.path.includes("/moves")) {
         self.invalidate()
       }
     }))
-  },
-  afterAttach() {
-    // invalidate the cached categories when necessary
+
+    // Invalidate the cached categories whenever the attribute's values change.
+    // Reacting to changeCount (the canonical "values changed" signal) covers all value-mutation
+    // paths, including the volatile setComputedValues path used by formula evaluation, which
+    // doesn't fire its own MST action. Note: clearFormula/setDisplayExpression don't bump
+    // changeCount, but they don't need to invalidate the cache either — the values themselves
+    // don't change at that moment, and any subsequent recomputation goes through setComputedValues
+    // which will bump changeCount and trigger this reaction.
     if (isValidReference(() => self.attribute)) {
-      self.provisionalAttributeActionDisposer?.()
-      self.provisionalAttributeActionDisposer = undefined
-      addDisposer(self, onAnyAction(self.attribute, action => self.handleAttributeAction(action)))
+      mstReaction(
+        () => self.attribute.changeCount,
+        () => self.invalidate(),
+        { name: "CategorySet.invalidateOnAttributeChangeCount" },
+        self
+      )
     }
   },
   move(value: string, beforeValue?: string) {
