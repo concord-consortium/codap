@@ -247,14 +247,17 @@ export const CategorySet = types.model("CategorySet", {
     // changeCount, but they don't need to invalidate the cache either — the values themselves
     // don't change at that moment, and any subsequent recomputation goes through setComputedValues
     // which will bump changeCount and trigger this reaction.
-    if (isValidReference(() => self.attribute)) {
-      mstReaction(
-        () => self.attribute.changeCount,
-        () => self.invalidate(),
-        { name: "CategorySet.invalidateOnAttributeChangeCount" },
-        self
-      )
-    }
+    // The accessor guards against an invalid attribute reference (which can occur briefly while
+    // the attribute is being destroyed); the reaction is auto-disposed when this CategorySet
+    // is destroyed via the onInvalidated → removeCategorySet chain.
+    mstReaction(
+      () => isValidReference(() => self.attribute) ? self.attribute.changeCount : undefined,
+      changeCount => {
+        if (changeCount != null) self.invalidate()
+      },
+      { name: "CategorySet.invalidateOnAttributeChangeCount" },
+      self
+    )
   },
   move(value: string, beforeValue?: string) {
     const fromIndex = self.index(value)
