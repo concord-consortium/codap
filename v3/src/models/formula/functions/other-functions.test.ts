@@ -83,6 +83,24 @@ describe("number", () => {
   })
 })
 
+describe("string", () => {
+  it("converts numbers to strings", () => {
+    expect(math.evaluate("string(42)")).toEqual("42")
+    expect(math.evaluate("string(-3.14)")).toEqual("-3.14")
+    expect(math.evaluate("string(0)")).toEqual("0")
+  })
+  it("returns string arguments unchanged", () => {
+    expect(math.evaluate("string('hello')")).toEqual("hello")
+  })
+  it("converts booleans to 'true'/'false'", () => {
+    expect(math.evaluate("string(true)")).toEqual("true")
+    expect(math.evaluate("string(false)")).toEqual("false")
+  })
+  it("returns UNDEF_RESULT for empty input", () => {
+    expect(math.evaluate("string('')")).toEqual(UNDEF_RESULT)
+  })
+})
+
 describe("greatCircleDistance", () => {
   it("returns empty if not enough numeric arguments are provided", () => {
     expect(math.compile("greatCircleDistance()").evaluate()).toBe(UNDEF_RESULT)
