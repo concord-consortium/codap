@@ -399,19 +399,16 @@ export function renderLabelBackground<GElement extends BaseType>(
   const arrowX = textBBox.x + textBBox.width
   const arrowY = textBBox.y + (textBBox.height - arrowWidth) / 2
 
-  const arrowSelection = gSelection.selectAll('svg.attribute-label-arrow')
+  // Safari/WebKit doesn't apply the transform attribute to a nested <svg> element, so we
+  // use a <g> and fold the (arrowX, arrowY) position into its transform via translate.
+  const arrowTransform = `${transform} translate(${arrowX}, ${arrowY})`.trim()
+  const arrowSelection = gSelection.selectAll('g.attribute-label-arrow')
     .data([1])
     .join((enter: any) => {
-      const arrow = enter.append('svg')
-        .attr('class', 'attribute-label-arrow')
-        .attr('viewBox', '0 0 24 24')
-        .attr('width', arrowWidth)
-        .attr('height', arrowWidth)
+      const arrow = enter.append('g').attr('class', 'attribute-label-arrow')
       arrow.append('path').attr('d', 'm12 15-5-5h10z')
       return arrow
     })
-    .attr('x', arrowX)
-    .attr('y', arrowY)
-  if (transform) arrowSelection.attr('transform', transform)
+    .attr('transform', arrowTransform)
   if (visibility) arrowSelection.style('visibility', visibility)
 }
