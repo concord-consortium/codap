@@ -393,6 +393,13 @@ export const useSubAxis = ({
       multiScale?.setCategoricalDomain(categoryValues)
       renderSubAxis()
     } else if (isAnyNumericAxisModel(axisModel)) {
+      if (axisProvider.hasBinnedNumericAxis(axisModel)) {
+        // The plot owns a binned numeric axis's domain ([minBinEdge, maxBinEdge]),
+        // set in respondToPlotChange and during bin-boundary drag. Don't overwrite
+        // it with data-extent niceBounds; doing so widens the domain past the bins
+        // and makes the top/bottom bands visually larger than the rest.
+        return
+      }
       const currentAxisDomain = axisModel.domain
       const multiScale = layout.getAxisMultiScale(axisPlace)
       const allowToShrink = axisModel.allowRangeToShrink
