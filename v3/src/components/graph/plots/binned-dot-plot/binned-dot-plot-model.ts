@@ -195,25 +195,33 @@ export const BinnedDotPlotModel = DotPlotModel
         }
       })
       for (let binIndex = 0; binIndex < totalNumberOfBins; binIndex++) {
+        const startFraction = binIndex / totalNumberOfBins
+        const endFraction = (binIndex + 1) / totalNumberOfBins
         if (!binCounts[binIndex]) {
-          values[binIndex] = { numerator: 0, denominator: 1 }
+          values[binIndex] = { numerator: 0, denominator: 1, startFraction, endFraction }
         }
         else {
           if (showMeasuresForSelection) {
             values[binIndex] = {
               numerator: binCounts[binIndex].numSelected,
-              denominator: binCounts[binIndex].numInBin
+              denominator: binCounts[binIndex].numInBin,
+              startFraction, endFraction
             }
           } else {
             values[binIndex] = {
               numerator: binCounts[binIndex].numInBin,
-              denominator: totalNumberOfCases
+              denominator: totalNumberOfCases,
+              startFraction, endFraction
             }
           }
         }
       }
+      // Bins extend along the primary axis. Only multiply horizontal regions by the bin count when
+      // bins run horizontally (primary axis = x); otherwise the cell width is shared by all bin counts.
+      // Default to x when primaryRole is undefined to match the component's `?? "x"` convention.
+      const primaryIsX = (dataConfig?.primaryRole ?? "x") === "x"
       return {
-        numHorizontalRegions: (dataConfig?.numberOfHorizontalRegions ?? 1) * totalNumberOfBins,
+        numHorizontalRegions: (dataConfig?.numberOfHorizontalRegions ?? 1) * (primaryIsX ? totalNumberOfBins : 1),
         values
       }
     }
