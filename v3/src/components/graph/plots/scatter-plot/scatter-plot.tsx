@@ -248,9 +248,6 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
     }
 
     if (plottedFunctionModel?.isVisible) {
-      const funcs = plottedFunctionModel.plottedFunctions
-      const func = funcs.get('{}')?.formulaFunction
-      if (!func) return
       const caseSubsetDescriptions = dataConfiguration?.getAllCaseSubsetDescriptions() || []
       const funcSquares: ISquareOfResidual[] = residualSquaresForFunction(plottedFunctionModel, caseSubsetDescriptions)
       doUpdateSquares(functionSquaresRef.current, funcSquares, "#4682b4")
