@@ -77,6 +77,8 @@ export const EditFormulaModal = observer(function EditFormulaModal({
     setShowValuesMenu(false)
     setShowFunctionMenu(false)
     setFormula(value || "")
+    setTitle(titleInput ?? "")
+    setPrevTitleInput(titleInput)
     onClose?.()
     setDimensions({ width: minWidth, height: minHeight })
   }
