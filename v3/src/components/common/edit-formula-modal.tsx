@@ -79,6 +79,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
     setFormula(value || "")
     setTitle(titleInput ?? "")
     setPrevTitleInput(titleInput)
+    isAutoCompleteMenuOpen.current = false
     onClose?.()
     setDimensions({ width: minWidth, height: minHeight })
   }

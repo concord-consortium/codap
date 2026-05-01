@@ -2,8 +2,21 @@ import { render, screen } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
 import { EditFormulaModal } from "./edit-formula-modal"
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 jest.mock("./formula-editor", () => ({
-  FormulaEditor: () => <div data-testid="formula-editor-stub" />
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  FormulaEditor: ({ isAutoCompleteMenuOpen }: any) => {
+    // Capture the ref so a test can assert on it after closeModal runs.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(globalThis as any).__capturedIsAutoCompleteMenuOpen = isAutoCompleteMenuOpen
+    return (
+      <button
+        data-testid="open-autocomplete-stub"
+        type="button"
+        onClick={() => { isAutoCompleteMenuOpen.current = true }}
+      />
+    )
+  }
 }))
 
 describe("EditFormulaModal", () => {
@@ -72,6 +85,33 @@ describe("EditFormulaModal", () => {
     // Apply without touching the title input — cancel should have discarded "newA"
     await user.click(screen.getByRole("button", { name: "Apply" }))
     expect(applyFormula).toHaveBeenLastCalledWith("", "A")
+  })
+
+  it("clears the autocomplete-open state when the modal is closed", async () => {
+    const user = userEvent.setup()
+    render(
+      <EditFormulaModal
+        applyFormula={jest.fn()}
+        titleLabel="Attribute name"
+        onClose={() => {}}
+        value=""
+        titleInput="A"
+        isOpen={true}
+      />
+    )
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const autocompleteRef = (globalThis as any).__capturedIsAutoCompleteMenuOpen
+    expect(autocompleteRef).toBeDefined()
+
+    // Simulate the FormulaEditor opening its autocomplete tooltip
+    await user.click(screen.getByTestId("open-autocomplete-stub"))
+    expect(autocompleteRef.current).toBe(true)
+
+    // Closing the modal should clear the autocomplete-open ref so a stale `true`
+    // doesn't suppress the Escape handler on the next open.
+    await user.click(screen.getByRole("button", { name: "Cancel" }))
+    expect(autocompleteRef.current).toBe(false)
   })
 
   it("passes the in-session edited attribute name (trimmed) to applyFormula", async () => {
