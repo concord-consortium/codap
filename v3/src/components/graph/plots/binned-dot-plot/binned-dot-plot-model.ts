@@ -218,7 +218,8 @@ export const BinnedDotPlotModel = DotPlotModel
       }
       // Bins extend along the primary axis. Only multiply horizontal regions by the bin count when
       // bins run horizontally (primary axis = x); otherwise the cell width is shared by all bin counts.
-      const primaryIsX = dataConfig?.primaryRole === "x"
+      // Default to x when primaryRole is undefined to match the component's `?? "x"` convention.
+      const primaryIsX = (dataConfig?.primaryRole ?? "x") === "x"
       return {
         numHorizontalRegions: (dataConfig?.numberOfHorizontalRegions ?? 1) * (primaryIsX ? totalNumberOfBins : 1),
         values
