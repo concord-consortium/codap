@@ -301,6 +301,24 @@ describe("attribute-format-utils", () => {
         expect(result.value).toBe("NaN")
       })
 
+      it("should render computed NaN as empty for formula attributes (e.g. 0/0)", () => {
+        // Formula attributes whose every value is NaN may have no inferred type. hasFormula
+        // still flags it as a computation source so the NaN should be hidden.
+        const attr = createMockAttribute({ hasFormula: true })
+        const result = renderAttributeValue("NaN", NaN, attr as IAttribute)
+
+        expect(result.value).toBe("")
+      })
+
+      it("should preserve non-numeric formula results (str !== 'NaN' even when num is NaN)", () => {
+        // A formula like if(x > 5, "high", "low") returns strings; num=NaN since Number("high")
+        // is NaN. Limiting the formula branch to str === "NaN" preserves the string result.
+        const attr = createMockAttribute({ hasFormula: true })
+        const result = renderAttributeValue("high", NaN, attr as IAttribute)
+
+        expect(result.value).toBe("high")
+      })
+
       it("should preserve 'Infinity' for numeric attributes (potentially meaningful, unlike NaN)", () => {
         const attr = createMockAttribute({ userType: "numeric", numPrecision: 2 })
         const result = renderAttributeValue("Infinity", Infinity, attr as IAttribute)

@@ -133,11 +133,13 @@ export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, opt
     }
   }
 
-  // numbers — finite values for any attribute, plus NaN for numeric attributes (where NaN comes
-  // from computation rather than user-typed text and should render as empty). Infinity falls
-  // through to the default text branch so the literal "Infinity" remains visible — still
-  // potentially meaningful to users, unlike NaN.
-  if (isFinite(num) || (type === "numeric" && Number.isNaN(num))) {
+  // numbers — finite values for any attribute, plus NaN for numeric and formula attributes
+  // (where NaN comes from computation rather than user-typed text and should render as empty).
+  // Formula attributes are included because their type may be unset or non-numeric when every
+  // computed value is NaN (e.g., a "0/0" formula). Infinity falls through to the default text
+  // branch so the literal "Infinity" remains visible — still potentially meaningful, unlike NaN.
+  const isComputedNaN = attr?.hasFormula && str === "NaN" && Number.isNaN(num)
+  if (isFinite(num) || isComputedNaN || (type === "numeric" && Number.isNaN(num))) {
     const formatter = getNumFormatterForAttribute(attr)
     if (formatter) {
       str = `${formatter(num)}${showUnits ? ` ${attr?.units}` : ""}`
