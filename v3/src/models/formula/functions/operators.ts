@@ -42,8 +42,9 @@ function compareValues(a: any, b: any, compare: (x: number | string, y: number |
   if (isANumber && isBNumber) return compare(aNumber, bNumber)
   // empty paired with a numeric value → propagate empty (V2 parity)
   if ((isAEmpty && isBNumber) || (isANumber && isBEmpty)) return ""
-  // compare as strings
-  return compare(String(a), String(b))
+  // compare as strings; normalize empty operands to "" so e.g. null compares lexically as ""
+  // rather than as "null" (V2 falls through to String(...) and has the same edge case)
+  return compare(isAEmpty ? "" : String(a), isBEmpty ? "" : String(b))
 }
 
 export const operators = {

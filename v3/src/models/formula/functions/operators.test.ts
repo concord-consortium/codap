@@ -35,6 +35,10 @@ describe("< operator", () => {
     expect(math.compile("'' < ''").evaluate()).toEqual("")
     // empty paired with a non-numeric string falls through to lexical comparison (V2 parity)
     expect(math.compile("'' < 'abc'").evaluate()).toBe(true)
+    // null/undefined operands normalize to "" for the lexical comparison rather than
+    // stringifying as "null"/"undefined"
+    expect(math.compile("x < 'abc'").evaluate({ x: null })).toBe(true)
+    expect(math.compile("x < 'abc'").evaluate({ x: undefined })).toBe(true)
   })
   it("compares dates numerically", () => {
     const f1 = math.compile("today() < today()")
