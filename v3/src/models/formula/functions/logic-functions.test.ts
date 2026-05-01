@@ -15,9 +15,10 @@ describe("boolean", () => {
     expect(fn.evaluate({ x: 1 })).toBe(true)
     expect(fn.evaluate({ x: 0 })).toBe(false)
     expect(fn.evaluate({ x: -1 })).toBe(true)
-    expect(fn.evaluate({ x: NaN })).toBe(true)
+    // NaN is falsy (V2 parity: !!NaN === false). Number.isNaN is strict, so non-numeric strings
+    // like "foo"/"bar" remain truthy via the Number(arg) !== 0 fall-through.
+    expect(fn.evaluate({ x: NaN })).toBe(false)
     expect(fn.evaluate({ x: "0" })).toBe(false)
-    // NaN !== 0
     expect(fn.evaluate({ x: "foo" })).toBe(true)
     expect(fn.evaluate({ x: "bar" })).toBe(true)
   })

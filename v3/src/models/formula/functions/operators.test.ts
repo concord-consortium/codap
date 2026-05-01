@@ -112,7 +112,7 @@ describe("<= operator", () => {
     expect(f1.evaluate()).toBe(true)
     const f2 = math.compile("'abc' <= 'abc'")
     expect(f2.evaluate()).toBe(true)
-    const f3 = math.compile("'def' < 'abc'")
+    const f3 = math.compile("'def' <= 'abc'")
     expect(f3.evaluate()).toBe(false)
   })
 })
