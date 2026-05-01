@@ -340,6 +340,16 @@ describe("attribute-format-utils", () => {
         expect(result.value).toBe("Hello")
       })
 
+      it("should not clobber non-numeric strings in numeric attributes (case-card summary like '3-80')", () => {
+        // case-card summarizedValues produces "min-max" strings; case-attr-view renders them
+        // through a numeric attribute with displayNumValue = Number("3-80") = NaN. The numeric
+        // branch must not enter for str !== "NaN", or the meaningful summary text gets clobbered.
+        const attr = createMockAttribute({ userType: "numeric", numPrecision: 2 })
+        const result = renderAttributeValue("3-80", NaN, attr as IAttribute)
+
+        expect(result.value).toBe("3-80")
+      })
+
       it("renders 'foo' (default num=NaN, no attr) as text — does not enter numeric branch", () => {
         const result = renderAttributeValue("foo")
 

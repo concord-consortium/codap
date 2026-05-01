@@ -133,13 +133,15 @@ export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, opt
     }
   }
 
-  // numbers — finite values for any attribute, plus NaN for numeric and formula attributes
-  // (where NaN comes from computation rather than user-typed text and should render as empty).
-  // Formula attributes are included because their type may be unset or non-numeric when every
-  // computed value is NaN (e.g., a "0/0" formula). Infinity falls through to the default text
-  // branch so the literal "Infinity" remains visible — still potentially meaningful, unlike NaN.
-  const isComputedNaN = attr?.hasFormula && str === "NaN" && Number.isNaN(num)
-  if (isFinite(num) || isComputedNaN || (type === "numeric" && Number.isNaN(num))) {
+  // numbers — finite values for any attribute, plus NaN for numeric and formula attributes when
+  // str === "NaN" (i.e., the value came from computation, stored via importValueToString(NaN)).
+  // The str check protects non-numeric strings whose Number() coerces to NaN: case-card summaries
+  // like "3-80", user-typed invalid input like "abc", and formula results that return strings.
+  // Formula attributes are admitted because their type may be unset when every value is NaN
+  // (e.g., a "0/0" formula). Infinity falls through to the default text branch so the literal
+  // "Infinity" remains visible — still potentially meaningful, unlike NaN.
+  const isComputedNaN = (type === "numeric" || attr?.hasFormula) && str === "NaN" && Number.isNaN(num)
+  if (isFinite(num) || isComputedNaN) {
     const formatter = getNumFormatterForAttribute(attr)
     if (formatter) {
       const formatted = formatter(num)
