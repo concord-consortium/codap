@@ -199,7 +199,10 @@ export const EditFormulaModal = observer(function EditFormulaModal({
                 onChange={e => setTitle(e.target.value)}
                 data-testid="attr-name-input"
                 aria-label={titleLabel}
-                disabled={!titleInput}
+                // Disable only when there's no title prop at all (most callers).
+                // Allow editing when titleInput is "", since Attribute.setName()
+                // can trim a name to "" and the user needs a way to fix it.
+                disabled={titleInput == null}
               />
               <span>=</span>
             </FormLabel>

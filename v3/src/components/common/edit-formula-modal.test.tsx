@@ -114,6 +114,35 @@ describe("EditFormulaModal", () => {
     expect(autocompleteRef.current).toBe(false)
   })
 
+  it("enables the title input when titleInput is an empty string", () => {
+    // Attribute names can be trimmed to "" by Attribute.setName(). When that happens,
+    // the formula editor must still allow editing the name to fix it.
+    render(
+      <EditFormulaModal
+        applyFormula={jest.fn()}
+        titleLabel="Attribute name"
+        onClose={() => {}}
+        value=""
+        titleInput=""
+        isOpen={true}
+      />
+    )
+    expect(screen.getByTestId("attr-name-input")).not.toBeDisabled()
+  })
+
+  it("disables the title input when no titleInput prop is provided (e.g. filter formula)", () => {
+    render(
+      <EditFormulaModal
+        applyFormula={jest.fn()}
+        titleLabel="Filter formula"
+        onClose={() => {}}
+        value=""
+        isOpen={true}
+      />
+    )
+    expect(screen.getByTestId("attr-name-input")).toBeDisabled()
+  })
+
   it("passes the in-session edited attribute name (trimmed) to applyFormula", async () => {
     const user = userEvent.setup()
     const applyFormula = jest.fn()
