@@ -2,12 +2,9 @@ import { render, screen } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
 import { EditFormulaModal } from "./edit-formula-modal"
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 jest.mock("./formula-editor", () => ({
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   FormulaEditor: ({ isAutoCompleteMenuOpen }: any) => {
     // Capture the ref so a test can assert on it after closeModal runs.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ;(globalThis as any).__capturedIsAutoCompleteMenuOpen = isAutoCompleteMenuOpen
     return (
       <button
@@ -100,7 +97,6 @@ describe("EditFormulaModal", () => {
       />
     )
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const autocompleteRef = (globalThis as any).__capturedIsAutoCompleteMenuOpen
     expect(autocompleteRef).toBeDefined()
 
