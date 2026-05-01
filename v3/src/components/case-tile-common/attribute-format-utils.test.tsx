@@ -63,18 +63,25 @@ jest.mock("./checkbox-cell", () => ({
 }))
 
 // Helper to create mock attributes
-const createMockAttribute = (overrides?: Partial<IAttribute>): Partial<IAttribute> => ({
-  id: "attr1",
-  name: "TestAttr",
-  type: undefined,
-  userType: undefined,
-  numPrecision: 2,
-  units: "",
-  length: 10,
-  strValues: [],
-  numValues: [],
-  ...overrides
-})
+const createMockAttribute = (overrides?: Partial<IAttribute>): Partial<IAttribute> => {
+  const attr: Partial<IAttribute> = {
+    id: "attr1",
+    name: "TestAttr",
+    type: undefined,
+    userType: undefined,
+    numPrecision: 2,
+    units: "",
+    length: 10,
+    strValues: [],
+    numValues: [],
+    ...overrides
+  }
+  // Mirror the real attribute model: if userType is set, type takes the same value (see
+  // attribute.ts:380-397). Tests can still override type explicitly via overrides. type is a
+  // read-only getter on the real model, so cast through any to assign on the plain mock.
+  if (attr.userType && !overrides?.type) (attr as any).type = attr.userType
+  return attr
+}
 
 describe("attribute-format-utils", () => {
 
@@ -276,6 +283,42 @@ describe("attribute-format-utils", () => {
         const result = renderAttributeValue("7215", 7215, attr as IAttribute)
 
         expect(result.value).toBe("7,215")
+      })
+
+      it("should render NaN as empty for numeric attributes (V2 parity)", () => {
+        const attr = createMockAttribute({ userType: "numeric", numPrecision: 2 })
+        const result = renderAttributeValue("NaN", NaN, attr as IAttribute)
+
+        expect(result.value).toBe("")
+        expect(result.content.props.children).toBe("")
+        expect(result.content.props.className).toContain("numeric-format")
+      })
+
+      it("should preserve user-typed 'NaN' text in non-numeric attributes", () => {
+        const attr = createMockAttribute({ userType: "categorical" })
+        const result = renderAttributeValue("NaN", NaN, attr as IAttribute)
+
+        expect(result.value).toBe("NaN")
+      })
+
+      it("should preserve 'Infinity' for numeric attributes (potentially meaningful, unlike NaN)", () => {
+        const attr = createMockAttribute({ userType: "numeric", numPrecision: 2 })
+        const result = renderAttributeValue("Infinity", Infinity, attr as IAttribute)
+
+        expect(result.value).toBe("Infinity")
+      })
+
+      it("should not clobber non-numeric strings whose num happens to be NaN", () => {
+        const attr = createMockAttribute()
+        const result = renderAttributeValue("Hello", NaN, attr as IAttribute)
+
+        expect(result.value).toBe("Hello")
+      })
+
+      it("renders 'foo' (default num=NaN, no attr) as text — does not enter numeric branch", () => {
+        const result = renderAttributeValue("foo")
+
+        expect(result.value).toBe("foo")
       })
     })
 

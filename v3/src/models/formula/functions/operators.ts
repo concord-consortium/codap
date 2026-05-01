@@ -1,5 +1,5 @@
 import { checkDate, formatDate } from '../../../utilities/date-utils'
-import { checkNumber } from '../../../utilities/math-utils'
+import { checkNumber, isValueEmpty } from '../../../utilities/math-utils'
 import { equal } from './function-utils'
 
 function addError(a: any, b: any) {
@@ -22,6 +22,30 @@ function modError(a: any, b: any) {
   return new Error(`Invalid arguments for mod operator: ${a}, ${b}`)
 }
 
+// Shared logic for the relational operators (<, <=, >, >=). Matches V2 (apps/dg/formula/formula.js)
+// in propagating empty values as "" and NaN values as NaN. Empty propagates against numeric or
+// empty operands; an empty paired with a non-numeric string falls through to lexical comparison.
+function compareValues(a: any, b: any, compare: (x: number | string, y: number | string) => boolean) {
+  if (Number.isNaN(a) || Number.isNaN(b)) return NaN
+  const isAEmpty = isValueEmpty(a)
+  const isBEmpty = isValueEmpty(b)
+  if (isAEmpty && isBEmpty) return ""
+  // Fast path: both arguments are already numbers — skip expensive date parsing
+  if (typeof a === "number" && typeof b === "number") return compare(a, b)
+  const [isADate, aDate] = checkDate(a)
+  const [isBDate, bDate] = checkDate(b)
+  if (isADate) a = aDate.valueOf() / 1000
+  if (isBDate) b = bDate.valueOf() / 1000
+  // compare numerically if possible
+  const [isANumber, aNumber] = checkNumber(a)
+  const [isBNumber, bNumber] = checkNumber(b)
+  if (isANumber && isBNumber) return compare(aNumber, bNumber)
+  // empty paired with a numeric value → propagate empty (V2 parity)
+  if ((isAEmpty && isBNumber) || (isANumber && isBEmpty)) return ""
+  // compare as strings
+  return compare(String(a), String(b))
+}
+
 export const operators = {
   // equal(a, b) or a == b
   // Note that we need to override default MathJs implementation so we can compare strings like "ABC" == "CDE".
@@ -41,81 +65,25 @@ export const operators = {
   smaller: {
     isOperator: true,
     numOfRequiredArguments: 2,
-    evaluateOperator: (a: any, b: any) => {
-      if (a == null || b == null || Number.isNaN(a) || Number.isNaN(b)) return false
-      // Fast path: both arguments are already numbers — skip expensive date parsing
-      if (typeof a === "number" && typeof b === "number") return a < b
-      const [isADate, aDate] = checkDate(a)
-      const [isBDate, bDate] = checkDate(b)
-      if (isADate) a = aDate.valueOf() / 1000
-      if (isBDate) b = bDate.valueOf() / 1000
-      // compare numerically if possible
-      const [isANumber, aNumber] = checkNumber(a)
-      const [isBNumber, bNumber] = checkNumber(b)
-      if (isANumber && isBNumber) return aNumber < bNumber
-      // compare as strings
-      return String(a) < String(b)
-    }
+    evaluateOperator: (a: any, b: any) => compareValues(a, b, (x, y) => x < y)
   },
 
   smallerEq: {
     isOperator: true,
     numOfRequiredArguments: 2,
-    evaluateOperator: (a: any, b: any) => {
-      if (a == null || b == null || Number.isNaN(a) || Number.isNaN(b)) return false
-      // Fast path: both arguments are already numbers — skip expensive date parsing
-      if (typeof a === "number" && typeof b === "number") return a <= b
-      const [isADate, aDate] = checkDate(a)
-      const [isBDate, bDate] = checkDate(b)
-      if (isADate) a = aDate.valueOf() / 1000
-      if (isBDate) b = bDate.valueOf() / 1000
-      // compare numerically if possible
-      const [isANumber, aNumber] = checkNumber(a)
-      const [isBNumber, bNumber] = checkNumber(b)
-      if (isANumber && isBNumber) return aNumber <= bNumber
-      // compare as strings
-      return String(a) <= String(b)
-    }
+    evaluateOperator: (a: any, b: any) => compareValues(a, b, (x, y) => x <= y)
   },
 
   larger: {
     isOperator: true,
     numOfRequiredArguments: 2,
-    evaluateOperator: (a: any, b: any) => {
-      if (a == null || b == null || Number.isNaN(a) || Number.isNaN(b)) return false
-      // Fast path: both arguments are already numbers — skip expensive date parsing
-      if (typeof a === "number" && typeof b === "number") return a > b
-      const [isADate, aDate] = checkDate(a)
-      const [isBDate, bDate] = checkDate(b)
-      if (isADate) a = aDate.valueOf() / 1000
-      if (isBDate) b = bDate.valueOf() / 1000
-      // compare numerically if possible
-      const [isANumber, aNumber] = checkNumber(a)
-      const [isBNumber, bNumber] = checkNumber(b)
-      if (isANumber && isBNumber) return aNumber > bNumber
-      // compare as strings
-      return String(a) > String(b)
-    }
+    evaluateOperator: (a: any, b: any) => compareValues(a, b, (x, y) => x > y)
   },
 
   largerEq: {
     isOperator: true,
     numOfRequiredArguments: 2,
-    evaluateOperator: (a: any, b: any) => {
-      if (a == null || b == null || Number.isNaN(a) || Number.isNaN(b)) return false
-      // Fast path: both arguments are already numbers — skip expensive date parsing
-      if (typeof a === "number" && typeof b === "number") return a >= b
-      const [isADate, aDate] = checkDate(a)
-      const [isBDate, bDate] = checkDate(b)
-      if (isADate) a = aDate.valueOf() / 1000
-      if (isBDate) b = bDate.valueOf() / 1000
-      // compare numerically if possible
-      const [isANumber, aNumber] = checkNumber(a)
-      const [isBNumber, bNumber] = checkNumber(b)
-      if (isANumber && isBNumber) return aNumber >= bNumber
-      // compare as strings
-      return String(a) >= String(b)
-    }
+    evaluateOperator: (a: any, b: any) => compareValues(a, b, (x, y) => x >= y)
   },
 
   add: {

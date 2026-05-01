@@ -34,6 +34,9 @@ export const getNumFormatter = (formatStr: string) => {
     const useGrouping = formatStr.startsWith(",")
     const numberFormat = new Intl.NumberFormat(gLocale.current, { maximumFractionDigits: precision, useGrouping })
     const formatFn = (n: number) => {
+      // NaN is rendered as empty (V2 parity). The literal token "NaN" is meaningless to most
+      // users; an empty cell communicates "no value" more clearly. Infinity is left to Intl.
+      if (Number.isNaN(n)) return ""
       const str = numberFormat.format(n)
       const _match = /^-(0\.?0*)$/.exec(str)
       if (_match?.[1]) return _match[1] // handle negative zero
@@ -130,8 +133,11 @@ export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, opt
     }
   }
 
-  // numbers
-  if (isFinite(num)) {
+  // numbers — finite values for any attribute, plus NaN for numeric attributes (where NaN comes
+  // from computation rather than user-typed text and should render as empty). Infinity falls
+  // through to the default text branch so the literal "Infinity" remains visible — still
+  // potentially meaningful to users, unlike NaN.
+  if (isFinite(num) || (type === "numeric" && Number.isNaN(num))) {
     const formatter = getNumFormatterForAttribute(attr)
     if (formatter) {
       str = `${formatter(num)}${showUnits ? ` ${attr?.units}` : ""}`
