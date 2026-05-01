@@ -294,6 +294,13 @@ describe("attribute-format-utils", () => {
         expect(result.content.props.className).toContain("numeric-format")
       })
 
+      it("should suppress units when NaN renders as empty (no leading-space ' kg')", () => {
+        const attr = createMockAttribute({ userType: "numeric", numPrecision: 2, units: "kg" })
+        const result = renderAttributeValue("NaN", NaN, attr as IAttribute, { showUnits: true })
+
+        expect(result.value).toBe("")
+      })
+
       it("should preserve user-typed 'NaN' text in non-numeric attributes", () => {
         const attr = createMockAttribute({ userType: "categorical" })
         const result = renderAttributeValue("NaN", NaN, attr as IAttribute)

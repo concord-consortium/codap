@@ -15,6 +15,10 @@ export const otherFunctions: Record<string, IFormulaMathjsFunction> = {
     evaluate: (...args: FValue[]) => {
       const [condition, trueValue, falseValue] = args
       if (isValueEmpty(condition)) return ""
+      // NaN is treated as falsy (V2 parity: V2's if() uses !!NaN === false). Without this, a
+      // condition like `0/0 < 0` (which propagates as NaN) would incorrectly take the true branch
+      // because Number(NaN) !== 0 is true.
+      if (Number.isNaN(condition)) return falseValue
       if (condition === true || (typeof condition === "string" && condition.toLowerCase() === "true")) {
         return trueValue
       }

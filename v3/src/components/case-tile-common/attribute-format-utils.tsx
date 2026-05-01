@@ -142,7 +142,10 @@ export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, opt
   if (isFinite(num) || isComputedNaN || (type === "numeric" && Number.isNaN(num))) {
     const formatter = getNumFormatterForAttribute(attr)
     if (formatter) {
-      str = `${formatter(num)}${showUnits ? ` ${attr?.units}` : ""}`
+      const formatted = formatter(num)
+      // Suppress units when the formatted value is empty (NaN renders as ""); otherwise an
+      // empty cell would surface as " kg".
+      str = formatted && showUnits ? `${formatted} ${attr?.units}` : formatted
       formatClass = "numeric-format"
     }
   }
