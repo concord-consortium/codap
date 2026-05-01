@@ -869,16 +869,15 @@ export const DataConfigurationModel = types
       })
     },
     handleDataSetAction(actionCall: ISerializedActionCall) {
-      const cacheClearingActions = ["setCaseValues", "addCases", "removeCases", "removeAttribute"]
+      // setCaseValues, setComputedCaseValues, and removeAttribute self-invalidate via the dataset's
+      // own invalidateCases call, which we observe reactively (see the dataset.itemIds reaction).
+      // addCases and removeCases don't currently self-invalidate, so we have to do it here.
+      const cacheClearingActions = ["addCases", "removeCases"]
       if (cacheClearingActions.includes(actionCall.name)) {
         this.invalidateCases()
       }
       // forward all actions from dataset except "setCaseValues" which requires intervention
       if (actionCall.name === "setCaseValues") return
-      if (actionCall.name === "invalidateCollectionGroups") {
-        this._updateFilteredCasesCollectionID()
-        this.invalidateCases()
-      }
       self.handlers.forEach(handler => handler(actionCall))
     },
   }))

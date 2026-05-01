@@ -1091,3 +1091,30 @@ test("setComputedCaseValues triggers regrouping for parent collection attributes
 
   expect(data.needsRegrouping).toBe(true)
 })
+
+// Removing an attribute changes the columnar structure of the dataset and can affect
+// downstream consumers (e.g., filtered cases, value caches in display models). The dataset
+// should self-invalidate so consumers can react via a single canonical signal rather than
+// every consumer listening for "removeAttribute" via onAnyAction.
+test("removeAttribute invalidates cases", () => {
+  const data = DataSet.create({ name: "data" })
+  data.addAttribute({ id: "aId", name: "a" })
+  data.addAttribute({ id: "bId", name: "b" })
+  data.addCases(toCanonical(data, [
+    { a: "x", b: 1 },
+    { a: "y", b: 2 }
+  ]))
+  // ensure cases are valid before removal
+  data.validateCases()
+  expect(data.isValidCases).toBe(true)
+  const validationCountBefore = data.validationCount
+
+  data.removeAttribute("bId")
+
+  // cases should be invalidated (so reactions on validationCount fire)
+  expect(data.isValidCases).toBe(false)
+
+  // re-validate and verify validationCount incremented
+  data.validateCases()
+  expect(data.validationCount).toBe(validationCountBefore + 1)
+})
