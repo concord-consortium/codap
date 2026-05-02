@@ -35,6 +35,7 @@ import {
 import { computePointRadius } from "../../data-display/data-display-utils"
 import { IGetTipTextProps } from "../../data-display/data-tip-types"
 import { AxisHelper } from "../../axis/helper-models/axis-helper"
+import { IAxisProviderBase } from "../../axis/models/axis-provider"
 import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment-models"
 import {AdornmentsStore} from "../adornments/store/adornments-store"
 import { isUnivariateMeasureAdornment } from "../adornments/univariate-measures/univariate-measure-adornment-model"
@@ -219,10 +220,27 @@ export const GraphContentModel = DataDisplayContentModel
       // Expand numeric axis domains when new cases are added (e.g., via plugin API)
       addDisposer(self, self.dataConfiguration.onAction((actionCall) => {
         if (actionCall.name === "addCases") {
+          // Binned plots own [minBinEdge, maxBinEdge] on the primary axis; running
+          // setNiceDomain on it would re-nice the domain past the bins and produce
+          // the half-bin sliver at top/bottom (CODAP-1281). Let the plot resync
+          // its own domain (and grow bins to fit new data), then skip the binned
+          // primary axis below.
+          if (self.plot.hasBinnedNumericAxis) {
+            // The captured self doesn't satisfy IAxisProviderBase here because
+            // setAxisHelper is defined in the same .actions block as this callback,
+            // so it isn't visible on self yet. The cast through unknown is required;
+            // at runtime self does provide every method on the interface.
+            self.plot.respondToPlotChange({
+              axisProvider: self as unknown as IAxisProviderBase,
+              primaryPlace: self.primaryPlace,
+              secondaryPlace: self.secondaryPlace
+            })
+          }
           AxisPlaces.forEach((axisPlace: AxisPlace) => {
             const axis = self.getAxis(axisPlace),
               role = axisPlaceToAttrRole[axisPlace]
             if (isAnyNumericAxisModel(axis)) {
+              if (self.plot.hasBinnedNumericAxis && axisPlace === self.primaryPlace) return
               const numericValues = self.plot.numericValuesForRole(role)
               setNiceDomain(numericValues, axis, self.plot.axisDomainOptions)
             }
@@ -292,8 +310,44 @@ export const GraphContentModel = DataDisplayContentModel
       }
       mstReaction(
         () => self.plotType,
-        () => self.plot.setGraphContext(self.dataConfiguration, self.plotGraphApi),
+        () => {
+          self.plot.setGraphContext(self.dataConfiguration, self.plotGraphApi)
+          // setPlot calls respondToPlotChange when the plot type changes, but on
+          // document load nothing else does — so a doc that saved a stale (niced)
+          // primary-axis domain would rehydrate with that wrong domain. Re-run it
+          // here so binned plots reset to [minBinEdge, maxBinEdge] on load.
+          if (self.dataConfiguration && self.plot.hasBinnedNumericAxis) {
+            self.plot.respondToPlotChange({
+              axisProvider: self,
+              primaryPlace: self.primaryPlace,
+              secondaryPlace: self.secondaryPlace
+            })
+          }
+        },
         { name: "GraphContentModel.afterCreate.setGraphContext", fireImmediately: true }, self)
+      // Extend (never shrink) a binned plot's primary axis when the visible-case extent
+      // grows past the current axis — i.e., when cases are added or unhidden. This mirrors
+      // the established asymmetry between addCases (extends) and removeCases (no change),
+      // and applies it to hide (no change) and show (extends). caseDataHash reflects the
+      // visible-case set that binDetails() reads, so it covers all four data-change paths.
+      // The addCases handler in afterAttachToDocument still handles niceBounds for
+      // non-primary numeric axes; this reaction is binned-primary-only.
+      mstReaction(
+        () => self.dataConfiguration?.caseDataHash,
+        () => {
+          if (!self.dataConfiguration || !self.plot.hasBinnedNumericAxis) return
+          const primaryAxis = self.getNumericAxis(self.primaryPlace)
+          if (!primaryAxis) return
+          const { minBinEdge, maxBinEdge } = (self.plot as any).binDetails()
+          if (!isFinite(minBinEdge) || !isFinite(maxBinEdge)) return
+          const [curMin, curMax] = primaryAxis.domain
+          const newMin = Math.min(curMin, minBinEdge)
+          const newMax = Math.max(curMax, maxBinEdge)
+          if (newMin !== curMin || newMax !== curMax) {
+            primaryAxis.setDomain(newMin, newMax)
+          }
+        },
+        { name: "GraphContentModel.afterCreate.binnedPlotCaseDataHash" }, self)
     },
     beforeDestroy() {
       self.formulaAdapters.forEach(adapter => {
