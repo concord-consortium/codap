@@ -226,7 +226,6 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
       select(squaresElement).selectAll("*")
         .data(squares)
         .join("rect")
-        .attr("id", (d: ISquareOfResidual) => `#${instanceId}-${d.caseID}-ml-square`)
         .attr("x", (d: ISquareOfResidual) => d.x)
         .attr("y", (d: ISquareOfResidual) => d.y)
         .attr("width", (d: ISquareOfResidual) => d.side)
@@ -248,15 +247,12 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
     }
 
     if (plottedFunctionModel?.isVisible) {
-      const funcs = plottedFunctionModel.plottedFunctions
-      const func = funcs.get('{}')?.formulaFunction
-      if (!func) return
       const caseSubsetDescriptions = dataConfiguration?.getAllCaseSubsetDescriptions() || []
       const funcSquares: ISquareOfResidual[] = residualSquaresForFunction(plottedFunctionModel, caseSubsetDescriptions)
       doUpdateSquares(functionSquaresRef.current, funcSquares, "#4682b4")
     }
 
-  }, [lsrl, movableLine, dataConfiguration, layout, instanceId, plottedFunctionModel])
+  }, [lsrl, movableLine, dataConfiguration, layout, plottedFunctionModel])
 
   const refreshAllPointPositions = useCallback((selectedOnly: boolean) => {
     const {getXCoord: getScreenX, getYCoord: getScreenY} = scatterPlotFuncs(layout, dataConfiguration),

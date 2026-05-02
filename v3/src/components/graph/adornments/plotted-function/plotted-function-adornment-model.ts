@@ -1,5 +1,6 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { Formula } from "../../../../models/formula/formula"
+import { withoutUndo } from "../../../../models/history/without-undo"
 import { migrateInstanceKeyMap } from "../../utilities/cell-key-utils"
 import { AdornmentModel, IAdornmentModel } from "../adornment-models"
 import { kPlottedFunctionType, kPlottedFunctionValueTitleKey, FormulaFn } from "./plotted-function-adornment-types"
@@ -40,6 +41,9 @@ export const PlottedFunctionAdornmentModel = AdornmentModel
       self.error = error
     },
     addPlottedFunction(formulaFunction: FormulaFn, key="{}") {
+      // The formula adapter calls this on every load to populate the volatile formula function.
+      // Treat it as derived state so it doesn't dirty the document.
+      withoutUndo({ noDirty: true, suppressWarning: true })
       const newPlottedFunction = PlottedFunctionInstance.create()
       newPlottedFunction.setValue(formulaFunction)
       self.plottedFunctions.set(key, newPlottedFunction)
