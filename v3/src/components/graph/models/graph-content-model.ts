@@ -324,6 +324,29 @@ export const GraphContentModel = DataDisplayContentModel
           }
         },
         { name: "GraphContentModel.afterCreate.setGraphContext", fireImmediately: true }, self)
+      // Extend (never shrink) a binned plot's primary axis when the visible-case extent
+      // grows past the current axis — i.e., when cases are added or unhidden. This mirrors
+      // the established asymmetry between addCases (extends) and removeCases (no change),
+      // and applies it to hide (no change) and show (extends). caseDataHash reflects the
+      // visible-case set that binDetails() reads, so it covers all four data-change paths.
+      // The addCases handler in afterAttachToDocument still handles niceBounds for
+      // non-primary numeric axes; this reaction is binned-primary-only.
+      mstReaction(
+        () => self.dataConfiguration?.caseDataHash,
+        () => {
+          if (!self.dataConfiguration || !self.plot.hasBinnedNumericAxis) return
+          const primaryAxis = self.getNumericAxis(self.primaryPlace)
+          if (!primaryAxis) return
+          const { minBinEdge, maxBinEdge } = (self.plot as any).binDetails()
+          if (!isFinite(minBinEdge) || !isFinite(maxBinEdge)) return
+          const [curMin, curMax] = primaryAxis.domain
+          const newMin = Math.min(curMin, minBinEdge)
+          const newMax = Math.max(curMax, maxBinEdge)
+          if (newMin !== curMin || newMax !== curMax) {
+            primaryAxis.setDomain(newMin, newMax)
+          }
+        },
+        { name: "GraphContentModel.afterCreate.binnedPlotCaseDataHash" }, self)
     },
     beforeDestroy() {
       self.formulaAdapters.forEach(adapter => {

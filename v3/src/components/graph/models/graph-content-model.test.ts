@@ -81,5 +81,110 @@ describe("GraphContentModel", () => {
       // Clean up
       diComponentHandler.delete!({ component: tile })
     })
+
+    // The asymmetric behavior — extend on add/show, leave alone on remove/hide — mirrors
+    // the established addCases/removeCases asymmetry. On hide the bin extent shrinks but
+    // the axis stays put (so the user sees the same axis they saw before hiding); on show
+    // the axis grows to keep newly-visible outliers from falling outside the plot.
+    it("leaves the primary axis alone when cases are hidden (no shrink)", async () => {
+      (isInquirySpaceMode as jest.Mock).mockReturnValue(false)
+      const documentContent = appState.document.content!
+      const { dataset: _dataset } = setupTestDataset({ datasetName: "binnedHideTestData" })
+      const dataset = documentContent.createDataSet(getSnapshot(_dataset)).sharedDataSet.dataSet
+      dataset.addCases(testCases, { canonicalize: true })
+      dataset.validateCases()
+
+      const result = diComponentHandler.create!(
+        {}, { type: "graph", dataContext: "binnedHideTestData", xAttributeName: "a3" }
+      )
+      const tile = documentContent.tileMap.get(
+        toV3Id(kGraphIdPrefix, (result.values as DIComponentInfo).id!)
+      )!
+      const content = tile.content as IGraphContentModel
+      await new Promise(resolve => setTimeout(resolve, 0))
+      content.setPlotType("binnedDotPlot")
+
+      // Add an outlier; axis extends to fit it.
+      dataset.addCases([{ a3: 9 }], { canonicalize: true })
+      const xAxis = content.getAxis("bottom") as IBaseNumericAxisModel
+      const { binDetails } = content.plot as any
+      const wideMax = xAxis.max
+      expect(wideMax).toBe(binDetails().maxBinEdge)
+      expect(wideMax).toBeGreaterThanOrEqual(9)
+
+      // Hide the outlier — bin extent shrinks, but the axis stays put.
+      const dataConfig = content.graphPointLayerModel.dataConfiguration
+      const a3 = dataset.getAttributeByName("a3")!
+      const outlierCaseId = dataConfig.getCaseDataArray(0)
+        .map(c => c.caseID)
+        .find(id => Number(dataset.getValue(id, a3.id)) === 9)!
+      dataConfig.setHiddenCases([outlierCaseId])
+      // In the live app, mobx reactions flush the hiddenCases → invalidateCases →
+      // filteredCases → caseDataHash chain before render. In jest, trigger the
+      // invalidation explicitly so subsequent reads of binDetails see the new visible set.
+      dataConfig.invalidateCases()
+      await new Promise(resolve => setTimeout(resolve, 0))
+      expect(binDetails().maxBinEdge).toBeLessThan(wideMax) // bins shrank
+      expect(xAxis.max).toBe(wideMax)                       // but the axis didn't
+
+      // Unhide — bins regrow to the previous extent. Axis was already wide enough,
+      // so no change here.
+      dataConfig.setHiddenCases([])
+      dataConfig.invalidateCases()
+      await new Promise(resolve => setTimeout(resolve, 0))
+      expect(xAxis.max).toBe(wideMax)
+      expect(binDetails().maxBinEdge).toBe(wideMax)
+
+      diComponentHandler.delete!({ component: tile })
+    })
+
+    // The Copilot-flagged scenario: previously-hidden outliers, when shown, can extend
+    // the bin extent past the current axis. Without the caseDataHash extend-only reaction,
+    // the unhidden outliers would render outside the axis range.
+    it("extends the primary axis when previously-hidden cases unhide past the current bin edge",
+       async () => {
+      (isInquirySpaceMode as jest.Mock).mockReturnValue(false)
+      const documentContent = appState.document.content!
+      const { dataset: _dataset } = setupTestDataset({ datasetName: "binnedShowTestData" })
+      const dataset = documentContent.createDataSet(getSnapshot(_dataset)).sharedDataSet.dataSet
+      dataset.addCases(testCases, { canonicalize: true })
+      dataset.addCases([{ a3: 9 }], { canonicalize: true })
+      dataset.validateCases()
+
+      const result = diComponentHandler.create!(
+        {}, { type: "graph", dataContext: "binnedShowTestData", xAttributeName: "a3" }
+      )
+      const tile = documentContent.tileMap.get(
+        toV3Id(kGraphIdPrefix, (result.values as DIComponentInfo).id!)
+      )!
+      const content = tile.content as IGraphContentModel
+      const dataConfig = content.graphPointLayerModel.dataConfiguration
+      const a3 = dataset.getAttributeByName("a3")!
+      const outlierCaseId = dataConfig.getCaseDataArray(0)
+        .map(c => c.caseID)
+        .find(id => Number(dataset.getValue(id, a3.id)) === 9)!
+
+      // Hide the outlier BEFORE switching to binned. setPlot's respondToPlotChange will
+      // initialize the axis against the visible cases only (1..6).
+      dataConfig.setHiddenCases([outlierCaseId])
+      dataConfig.invalidateCases()
+      await new Promise(resolve => setTimeout(resolve, 0))
+      content.setPlotType("binnedDotPlot")
+
+      const xAxis = content.getAxis("bottom") as IBaseNumericAxisModel
+      const { binDetails } = content.plot as any
+      const narrowMax = xAxis.max
+      expect(narrowMax).toBe(binDetails().maxBinEdge)
+      expect(narrowMax).toBeLessThan(9) // outlier is outside the initial axis
+
+      // Unhide — bin extent grows past narrowMax. The axis must extend to follow.
+      dataConfig.setHiddenCases([])
+      dataConfig.invalidateCases()
+      await new Promise(resolve => setTimeout(resolve, 0))
+      expect(xAxis.max).toBe(binDetails().maxBinEdge)
+      expect(xAxis.max).toBeGreaterThanOrEqual(9)
+
+      diComponentHandler.delete!({ component: tile })
+    })
   })
 })
