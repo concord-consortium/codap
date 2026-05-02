@@ -217,14 +217,23 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   // Plain variables (NOT observable — no MobX involvement for cache guards)
   let _validationCount = 0
   let _isValidCases = false
+  // Two invalidation flags distinguish what kind of work the next validateCases() must do:
+  //   _needsRegrouping — case groupings have changed; collections must rebuild fully.
+  //   _needsValueRevalidation — child-collection values have changed without affecting
+  //     groupings (e.g. formula recomputation); only value-derived caches like
+  //     Collection._nonEmptyCases need to refresh.
+  // Regrouping subsumes value revalidation, so when both are pending the regrouping branch
+  // runs and the value-revalidation flag is cleared as a no-op.
   let _needsRegrouping = false
+  let _needsValueRevalidation = false
   let _isValidItemIds = false
   // Item IDs removed during validation — flushed by setValidCases() in its runInAction
   let _pendingSelectionDeletes: string[] = []
 
   // Single observable counter — bumped by setValidCases() after validation completes.
-  // Same pragmatic compromise as Collection._cacheVersion: a view writes one observable
-  // via runInAction so that MobX reactions fire only after cached data is fully updated.
+  // Same pragmatic compromise as Collection._groupingChangeVersion: a view writes one
+  // observable via runInAction so that MobX reactions fire only after cached data is fully
+  // updated.
   const _caseValidationVersion = observable.box(0)
 
   // cached filtered item IDs (excludes hidden/filtered items)
@@ -305,6 +314,12 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       },
       clearNeedsRegrouping() {
         _needsRegrouping = false
+      },
+      get needsValueRevalidation() {
+        return _needsValueRevalidation
+      },
+      clearNeedsValueRevalidation() {
+        _needsValueRevalidation = false
       }
     },
     actions: {
@@ -316,6 +331,12 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
             _needsRegrouping = true
             // invalidate each collection's case group cache
             self.collections.forEach(c => c.invalidateCaseGroups())
+          }
+          else {
+            // Values may have changed without affecting groupings — schedule a value-only
+            // revalidation. Harmless if _needsRegrouping is already pending; the regrouping
+            // branch in validateCases() will clear this flag without doing redundant work.
+            _needsValueRevalidation = true
           }
           // Bump observable version so MobX re-evaluates isValidCases/validationCount computeds
           _caseValidationVersion.set(_caseValidationVersion.get() + 1)
@@ -722,6 +743,13 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
             self.deferSelectionDelete(itemsToValidate)
           }
           self.clearNeedsRegrouping()
+          // The full rebuild already refreshed _nonEmptyCases, so any pending value-only
+          // revalidation is satisfied.
+          self.clearNeedsValueRevalidation()
+        }
+        else if (self.needsValueRevalidation) {
+          self.collections.forEach(collection => collection.recomputeNonEmptyCases())
+          self.clearNeedsValueRevalidation()
         }
         self.setValidCases()
       })

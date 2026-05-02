@@ -486,12 +486,19 @@ export const CollectionModel = V2Model
   let _caseIdsHash = 0
   let _caseIdsOrderedHash = 0
 
-  // Single observable version counter — incremented by completeCaseGroups() after updating
-  // plain variables, so that MobX reactions only fire when fresh data is available.
-  // Note: this is a pragmatic compromise — writing to an observable from a view via runInAction
-  // is not ideal, but avoids the circular read/write pattern of the old code (5 observable boxes
+  // Two observable version counters track when cached views need re-evaluation:
+  //   _groupingChangeVersion — bumped by completeCaseGroups() after a full rebuild. All
+  //     grouping-affected views invalidate together (caseGroups, cases, nonEmptyCases, hashes).
+  //   _valueChangeVersion — bumped by recomputeNonEmptyCases() when child-collection
+  //     attribute values change without affecting groupings (e.g. formula recomputation).
+  //     Only views derived from values read this; other views ignore it.
+  // Invariant: a grouping change subsumes a value change — the rebuild path refreshes
+  // _nonEmptyCases as part of completeCaseGroups, so it bumps only _groupingChangeVersion.
+  // Note: writing to these observables from a view via runInAction is a pragmatic compromise,
+  // but it avoids the circular read/write pattern of the old code (multiple observable boxes
   // read then written in the same view) and ensures reactions never see stale cached data.
-  const _cacheVersion = observable.box(0)
+  const _groupingChangeVersion = observable.box(0)
+  const _valueChangeVersion = observable.box(0)
 
   // Invalidation state (plain, not observable)
   let _needsFullRebuild = true   // starts true: no valid data yet
@@ -500,23 +507,24 @@ export const CollectionModel = V2Model
   return {
     views: {
       get caseGroups() {
-        _cacheVersion.get()
+        _groupingChangeVersion.get()
         return _caseGroups
       },
       get cases() {
-        _cacheVersion.get()
+        _groupingChangeVersion.get()
         return _cases
       },
       get nonEmptyCases() {
-        _cacheVersion.get()
+        _groupingChangeVersion.get()
+        _valueChangeVersion.get()
         return _nonEmptyCases
       },
       get caseIdsHash() {
-        _cacheVersion.get()
+        _groupingChangeVersion.get()
         return _caseIdsHash
       },
       get caseIdsOrderedHash() {
-        _cacheVersion.get()
+        _groupingChangeVersion.get()
         return _caseIdsOrderedHash
       },
       completeCaseGroups(parentCases: Maybe<CaseInfo[]>) {
@@ -581,7 +589,7 @@ export const CollectionModel = V2Model
 
         // Signal to MobX that cached data has been updated.
         // Must happen AFTER plain variables are updated so reactions see fresh data.
-        runInAction(() => _cacheVersion.set(_cacheVersion.get() + 1))
+        runInAction(() => _groupingChangeVersion.set(_groupingChangeVersion.get() + 1))
       }
     },
     actions: {
@@ -598,6 +606,18 @@ export const CollectionModel = V2Model
         if (!_needsFullRebuild) {
           _pendingNewCaseIds = newCaseIds
         }
+      },
+      // Re-derive _nonEmptyCases from the existing _caseGroups without redoing any grouping.
+      // Used after child-collection attribute values change (e.g. formula recomputation), where
+      // emptiness can flip but groupings cannot. Skipped if a full rebuild is already pending —
+      // completeCaseGroups will refresh _nonEmptyCases anyway, and walking stale _caseGroups
+      // would produce a transiently wrong result.
+      recomputeNonEmptyCases() {
+        if (_needsFullRebuild) return
+        _nonEmptyCases = _caseGroups
+          .filter(group => self.isNonEmptyCaseGroup(group))
+          .map(group => group.groupedCase)
+        _valueChangeVersion.set(_valueChangeVersion.get() + 1)
       }
     }
   }

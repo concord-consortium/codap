@@ -1073,6 +1073,33 @@ test("setComputedCaseValues skips regrouping for child collection attributes", (
   expect(data.needsRegrouping).toBe(false)
 })
 
+// Regression test for CODAP-1173: when all attributes of a child (or single) collection are
+// formula-driven, snapshot values are empty until the formula evaluates. The initial
+// validateCases() therefore caches nonEmptyCases as []. setComputedCaseValues then writes
+// the formula's results but, because the affected attribute lives in the child collection,
+// it skips the regrouping path — and nonEmptyCases must still refresh because the new values
+// can flip cases from empty to non-empty.
+test("setComputedCaseValues for child-collection attributes refreshes nonEmptyCases", () => {
+  const data = DataSet.create({ name: "data" })
+  const formulaAttr = data.addAttribute({ name: "Test" })
+  // Three items with empty values, mirroring a freshly loaded document whose only attribute
+  // has a formula whose results are not yet evaluated.
+  data.addCases(toCanonical(data, [{ Test: "" }, { Test: "" }, { Test: "" }]))
+  // Initial validation populates the nonEmptyCases cache with all-empty values.
+  expect(data.getNonEmptyCasesForCollection(data.childCollection.id).length).toBe(0)
+
+  // Formula evaluation writes results via setComputedCaseValues for the child-collection attr.
+  const [id1, id2, id3] = data.itemIds
+  data.setComputedCaseValues([
+    { __id__: id1, [formulaAttr.id]: 10 },
+    { __id__: id2, [formulaAttr.id]: 20 },
+    { __id__: id3, [formulaAttr.id]: 30 }
+  ], [formulaAttr.id])
+
+  // All three cases now have non-empty values, so the count must reflect that.
+  expect(data.getNonEmptyCasesForCollection(data.childCollection.id).length).toBe(3)
+})
+
 test("setComputedCaseValues triggers regrouping for parent collection attributes", () => {
   const data = DataSet.create({ name: "data" })
   const parentCollection = data.addCollection({ name: "Parent" })
