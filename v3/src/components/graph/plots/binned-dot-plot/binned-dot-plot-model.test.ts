@@ -81,4 +81,71 @@ describe("BinnedDotPlotModel", () => {
       expect(result.numHorizontalRegions).toBe(8) // 2 horizontal regions * 4 bins (x-primary default)
     })
   })
+
+  describe("respondToPlotChange", () => {
+    // CODAP-1281: respondToPlotChange must set the primary axis to the bin extent so that
+    // bin bands render uniformly. Other code paths (addCases, useSubAxis) rely on this.
+    it("sets the primary axis domain to [minBinEdge, maxBinEdge]", () => {
+      // _binWidth=1, _binAlignment=0 with case values 0.5 and 3.5 yields minBinEdge=0, maxBinEdge=4
+      const m = BinnedDotPlotModel.create({ _binWidth: 1, _binAlignment: 0 })
+      m.setGraphContext({
+        primaryRole: "x",
+        primaryAttributeID: "attr1",
+        dataset: {} as any,
+        showMeasuresForSelection: false,
+        numberOfHorizontalRegions: 1,
+        getCaseDataArray: () => [{ caseID: "c1" }, { caseID: "c2" }],
+        subPlotCases: () => []
+      } as any)
+
+      const setDomain = jest.fn()
+      const setAllowRangeToShrink = jest.fn()
+      const primaryAxis = { setDomain, setAllowRangeToShrink }
+      const axisProvider = {
+        getAxis: () => primaryAxis,
+        getNumericAxis: () => primaryAxis,
+        getAxisHelper: () => undefined,
+        setAxisHelper: () => undefined
+      }
+
+      m.respondToPlotChange({
+        axisProvider: axisProvider as any,
+        primaryPlace: "bottom",
+        secondaryPlace: "left"
+      })
+
+      expect(setAllowRangeToShrink).toHaveBeenCalledWith(true)
+      expect(setDomain).toHaveBeenCalledWith(0, 4)
+    })
+
+    it("preserves saved binWidth/binAlignment when neither primaryAttrChanged nor isBinnedPlotChanged is set", () => {
+      // Saved bins (binWidth=1, alignment=0) should survive an addCases-style call
+      const m = BinnedDotPlotModel.create({ _binWidth: 1, _binAlignment: 0 })
+      m.setGraphContext({
+        primaryRole: "x",
+        primaryAttributeID: "attr1",
+        dataset: {} as any,
+        showMeasuresForSelection: false,
+        numberOfHorizontalRegions: 1,
+        getCaseDataArray: () => [{ caseID: "c1" }, { caseID: "c2" }],
+        subPlotCases: () => []
+      } as any)
+
+      const axisProvider = {
+        getAxis: () => undefined,
+        getNumericAxis: () => ({ setDomain: jest.fn(), setAllowRangeToShrink: jest.fn() }),
+        getAxisHelper: () => undefined,
+        setAxisHelper: () => undefined
+      }
+
+      m.respondToPlotChange({
+        axisProvider: axisProvider as any,
+        primaryPlace: "bottom",
+        secondaryPlace: "left"
+      })
+
+      expect(m.binWidth).toBe(1)
+      expect(m.binAlignment).toBe(0)
+    })
+  })
 })
