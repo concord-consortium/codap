@@ -1037,6 +1037,17 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     }
   }
 
+  // Returns true if any of the given attribute ids belong to a non-child (parent) collection.
+  // Parent-collection attribute values determine case grouping, so writes that touch them must
+  // trigger a regrouping. Writes that touch only child-collection attributes can take the
+  // value-revalidation fast path. Used by both setCaseValues and setComputedCaseValues.
+  function _attrIdsAffectGrouping(attrIds: Iterable<string>) {
+    for (const attrId of attrIds) {
+      if (self.getCollectionForAttribute(attrId) !== self.childCollection) return true
+    }
+    return false
+  }
+
   return {
     /*
      * public views
@@ -1330,10 +1341,14 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       // Supports items or cases, but not mixing the two.
       // For cases, will set the values of all items in the group
       // regardless of whether the attribute is grouped or not.
-      // `affectedAttributes` are not used in the function, but are present as a potential
-      // optimization for responders, as all arguments are available to `onAction` listeners.
-      // For instance, a scatter plot that is dragging many points but affecting only two
-      // attributes can indicate that, which can enable more efficient responses.
+      //
+      // `affectedAttributes` is also a contract used to drive a regrouping-skip optimization:
+      // when supplied, callers guarantee that any value change made by this call is to one of
+      // the listed attributes. With that guarantee the dataset can skip the regrouping path
+      // when no listed attribute belongs to a parent collection (parent-collection values
+      // determine case grouping, child-collection values do not). Passing an incomplete list
+      // will result in stale groupings — when in doubt, omit the argument and the dataset will
+      // regroup defensively. The argument is also surfaced to onAction listeners as before.
       setCaseValues(cases: ICase[], affectedAttributes?: string[]) {
         const items = prf.measure("DataSet.setCaseValues[getItemsForCases]", () =>
           self.getItemsForCases(cases)
@@ -1361,8 +1376,14 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
           })
         }
 
-        // only changes to parent collection attributes invalidate grouping
-        items.length && self.invalidateCases()
+        if (items.length) {
+          // With an exhaustive affectedAttributes contract we can skip regrouping when only
+          // child-collection attrs were touched. Without the contract we must regroup.
+          const needsRegrouping = affectedAttributes
+            ? _attrIdsAffectGrouping(affectedAttributes)
+            : true
+          self.invalidateCases(needsRegrouping)
+        }
       },
 
       // Write formula-computed values directly to volatile arrays, bypassing per-item MST actions.
@@ -1375,15 +1396,9 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
         const items = self.getItemsForCases(cases)
         // Capture the Map locally to avoid repeated MST proxy access in the inner loop
         const { itemInfoMap } = self
-        // Only regroup if a computed attribute is in a parent collection,
-        // since parent collection values determine case grouping.
-        let needsRegrouping = false
         for (const attrId of affectedAttributes) {
           const attr = self.getAttribute(attrId)
           if (!attr) continue
-          if (!needsRegrouping && self.getCollectionForAttribute(attrId) !== self.childCollection) {
-            needsRegrouping = true
-          }
           const indices: number[] = []
           const values: IValueType[] = []
           for (const item of items) {
@@ -1397,7 +1412,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
             attr.setComputedValues(indices, values)
           }
         }
-        self.invalidateCases(needsRegrouping)
+        self.invalidateCases(_attrIdsAffectGrouping(affectedAttributes))
       },
 
       removeCases(caseIDs: string[]) {

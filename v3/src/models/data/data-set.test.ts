@@ -1100,6 +1100,66 @@ test("setComputedCaseValues for child-collection attributes refreshes nonEmptyCa
   expect(data.getNonEmptyCasesForCollection(data.childCollection.id).length).toBe(3)
 })
 
+// When a caller of setCaseValues supplies affectedAttributes, the dataset can apply the
+// same regrouping-skip optimization used by setComputedCaseValues. This is the same shape
+// as the CODAP-1173 formula path but exercised via the user-edit code path (case table /
+// case card cell edits, plugin DI updates that opt into the contract, etc.).
+test("setCaseValues with child-only affectedAttributes skips regrouping", () => {
+  const data = DataSet.create({ name: "data" })
+  const parentCollection = data.addCollection({ name: "Parent" })
+  data.addAttribute({ name: "group" }, { collection: parentCollection.id })
+  const childAttr = data.addAttribute({ name: "val" })
+  data.addCases(toCanonical(data, [
+    { group: "A", val: 1 },
+    { group: "B", val: 2 }
+  ]))
+  data.validateCases()
+  expect(data.needsRegrouping).toBe(false)
+
+  data.setCaseValues(
+    [{ __id__: data.itemIds[0], [childAttr.id]: 99 }],
+    [childAttr.id]
+  )
+  expect(data.needsRegrouping).toBe(false)
+})
+
+test("setCaseValues with parent-collection affectedAttributes triggers regrouping", () => {
+  const data = DataSet.create({ name: "data" })
+  const parentCollection = data.addCollection({ name: "Parent" })
+  const parentAttr = data.addAttribute({ name: "group" }, { collection: parentCollection.id })
+  data.addAttribute({ name: "val" })
+  data.addCases(toCanonical(data, [
+    { group: "A", val: 1 },
+    { group: "B", val: 2 }
+  ]))
+  data.validateCases()
+  expect(data.needsRegrouping).toBe(false)
+
+  data.setCaseValues(
+    [{ __id__: data.itemIds[0], [parentAttr.id]: "C" }],
+    [parentAttr.id]
+  )
+  expect(data.needsRegrouping).toBe(true)
+})
+
+test("setCaseValues without affectedAttributes regroups defensively", () => {
+  const data = DataSet.create({ name: "data" })
+  const parentCollection = data.addCollection({ name: "Parent" })
+  data.addAttribute({ name: "group" }, { collection: parentCollection.id })
+  const childAttr = data.addAttribute({ name: "val" })
+  data.addCases(toCanonical(data, [
+    { group: "A", val: 1 },
+    { group: "B", val: 2 }
+  ]))
+  data.validateCases()
+  expect(data.needsRegrouping).toBe(false)
+
+  // Caller doesn't supply affectedAttributes — even though only a child-collection attr
+  // is written, the dataset can't know that, so it must regroup.
+  data.setCaseValues([{ __id__: data.itemIds[0], [childAttr.id]: 99 }])
+  expect(data.needsRegrouping).toBe(true)
+})
+
 test("setComputedCaseValues triggers regrouping for parent collection attributes", () => {
   const data = DataSet.create({ name: "data" })
   const parentCollection = data.addCollection({ name: "Parent" })
