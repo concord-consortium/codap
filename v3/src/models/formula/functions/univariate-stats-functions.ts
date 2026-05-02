@@ -144,7 +144,7 @@ export const univariateStatsFunctions: Record<string, IFormulaMathjsFunction> = 
       const [pIsValid, p] = scope.withLocalContext(() => checkNumber(evaluateNode(percentileArg, scope)))
       if (!pIsValid) return UNDEF_RESULT
 
-      return quantileOfSortedArray(cached.sorted, p / 100) ?? UNDEF_RESULT
+      return quantileOfSortedArray(cached.sorted, p) ?? UNDEF_RESULT
     }
   },
 
