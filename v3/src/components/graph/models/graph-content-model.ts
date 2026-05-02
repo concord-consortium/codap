@@ -35,7 +35,7 @@ import {
 import { computePointRadius } from "../../data-display/data-display-utils"
 import { IGetTipTextProps } from "../../data-display/data-tip-types"
 import { AxisHelper } from "../../axis/helper-models/axis-helper"
-import { IAxisProvider } from "../../axis/models/axis-provider"
+import { IAxisProviderBase } from "../../axis/models/axis-provider"
 import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment-models"
 import {AdornmentsStore} from "../adornments/store/adornments-store"
 import { isUnivariateMeasureAdornment } from "../adornments/univariate-measures/univariate-measure-adornment-model"
@@ -226,11 +226,12 @@ export const GraphContentModel = DataDisplayContentModel
           // its own domain (and grow bins to fit new data), then skip the binned
           // primary axis below.
           if (self.plot.hasBinnedNumericAxis) {
-            // Captured-self in this onAction callback isn't typed as IAxisProvider
-            // even though it satisfies the interface at runtime; chain-sibling
-            // actions like setAxisHelper aren't visible here.
+            // The captured self doesn't satisfy IAxisProviderBase here because
+            // setAxisHelper is defined in the same .actions block as this callback,
+            // so it isn't visible on self yet. The cast through unknown is required;
+            // at runtime self does provide every method on the interface.
             self.plot.respondToPlotChange({
-              axisProvider: self as unknown as IAxisProvider,
+              axisProvider: self as unknown as IAxisProviderBase,
               primaryPlace: self.primaryPlace,
               secondaryPlace: self.secondaryPlace
             })
