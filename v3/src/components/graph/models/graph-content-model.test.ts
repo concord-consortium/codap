@@ -1,4 +1,4 @@
-import { getSnapshot } from "mobx-state-tree"
+import { applySnapshot, getSnapshot } from "mobx-state-tree"
 import { diComponentHandler } from "../../../data-interactive/handlers/component-handler"
 import { DIComponentInfo } from "../../../data-interactive/data-interactive-types"
 import { appState } from "../../../models/app-state"
@@ -183,6 +183,60 @@ describe("GraphContentModel", () => {
       await new Promise(resolve => setTimeout(resolve, 0))
       expect(xAxis.max).toBe(binDetails().maxBinEdge)
       expect(xAxis.max).toBeGreaterThanOrEqual(9)
+
+      diComponentHandler.delete!({ component: tile })
+    })
+
+    // The setGraphContext mstReaction with fireImmediately: true is the load-time repair —
+    // it resets a binned plot's primary axis to [minBinEdge, maxBinEdge] when the plotType
+    // changes (which happens at construction time and on snapshot rehydration). Without
+    // this fix, a doc saved with a stale niced primary-axis domain would rehydrate with
+    // the wrong domain. We can't easily reproduce a full document rehydration in a unit
+    // test, but applySnapshot replicates the relevant mechanism: replacing the plot via
+    // a snapshot bypasses setPlot's explicit respondToPlotChange call, so only the
+    // mstReaction can reset the axis.
+    it("resets the primary axis to bin edges when plot type rehydrates as binned via applySnapshot", async () => {
+      (isInquirySpaceMode as jest.Mock).mockReturnValue(false)
+      const documentContent = appState.document.content!
+      const { dataset: _dataset } = setupTestDataset({ datasetName: "binnedLoadTestData" })
+      const dataset = documentContent.createDataSet(getSnapshot(_dataset)).sharedDataSet.dataSet
+      dataset.addCases(testCases, { canonicalize: true })
+      dataset.validateCases()
+
+      const result = diComponentHandler.create!(
+        {}, { type: "graph", dataContext: "binnedLoadTestData", xAttributeName: "a3" }
+      )
+      const tile = documentContent.tileMap.get(
+        toV3Id(kGraphIdPrefix, (result.values as DIComponentInfo).id!)
+      )!
+      const content = tile.content as IGraphContentModel
+      await new Promise(resolve => setTimeout(resolve, 0))
+
+      // Start with a regular dotPlot — the primary axis settles at niced bounds
+      // (e.g., [0.5, 7.5]) which are wider than the bin extent (1..7) for this data.
+      content.setPlotType("dotPlot")
+      const dotPlotXAxis = content.getAxis("bottom") as IBaseNumericAxisModel
+      const stalePlotMax = dotPlotXAxis.max // niced wider value
+
+      // Take a snapshot, switch the plot type to binnedDotPlot in the snapshot, but
+      // KEEP the dotPlot's wider niced axis. Applying this snapshot is analogous to
+      // rehydrating a saved doc whose binned graph had a stale niced domain.
+      const snap = getSnapshot(content) as any
+      const corruptedSnap = {
+        ...snap,
+        plot: { type: "binnedDotPlot" } // bin width/alignment defaulted from data
+      }
+      applySnapshot(content, corruptedSnap)
+      await new Promise(resolve => setTimeout(resolve, 0))
+
+      // After the snapshot is applied, plotType change fires the setGraphContext
+      // mstReaction, which calls respondToPlotChange — resetting the primary axis to
+      // the current bin extent.
+      const xAxis = content.getAxis("bottom") as IBaseNumericAxisModel
+      const { binDetails } = content.plot as any
+      const correctMax = binDetails().maxBinEdge
+      expect(xAxis.max).toBe(correctMax)
+      expect(correctMax).toBeLessThan(stalePlotMax) // confirms the axis was reset, not preserved
 
       diComponentHandler.delete!({ component: tile })
     })
