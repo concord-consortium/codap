@@ -284,6 +284,10 @@ context("Graph adornments", () => {
     cy.get("[data-testid=Apply-button]").click()
     cy.get("*[data-testid^=plotted-function-path]").should("exist")
 
+    // Re-open the inspector palette (it closes when the formula editor's Apply button is clicked)
+    graph.getDisplayValuesButton().click()
+    graph.getInspectorPalette().should("be.visible")
+
     // Enable Squares of Residuals — squares should render for the plotted function in steel blue
     cy.get("[data-testid=adornment-checkbox-squares-of-residuals]").find("input")
       .should("not.have.attr", "disabled")
