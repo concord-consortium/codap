@@ -34,6 +34,9 @@ export const getNumFormatter = (formatStr: string) => {
     const useGrouping = formatStr.startsWith(",")
     const numberFormat = new Intl.NumberFormat(gLocale.current, { maximumFractionDigits: precision, useGrouping })
     const formatFn = (n: number) => {
+      // NaN is rendered as empty (V2 parity). The literal token "NaN" is meaningless to most
+      // users; an empty cell communicates "no value" more clearly. Infinity is left to Intl.
+      if (Number.isNaN(n)) return ""
       const str = numberFormat.format(n)
       const _match = /^-(0\.?0*)$/.exec(str)
       if (_match?.[1]) return _match[1] // handle negative zero
@@ -130,11 +133,21 @@ export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, opt
     }
   }
 
-  // numbers
-  if (isFinite(num)) {
+  // numbers — finite values for any attribute, plus NaN for numeric and formula attributes when
+  // str === "NaN" (i.e., the value came from computation, stored via importValueToString(NaN)).
+  // The str check protects non-numeric strings whose Number() coerces to NaN: case-card summaries
+  // like "3-80", user-typed invalid input like "abc", and formula results that return strings.
+  // Formula attributes are admitted because their type may be unset when every value is NaN
+  // (e.g., a "0/0" formula). Infinity falls through to the default text branch so the literal
+  // "Infinity" remains visible — still potentially meaningful, unlike NaN.
+  const isComputedNaN = (type === "numeric" || attr?.hasFormula) && str === "NaN" && Number.isNaN(num)
+  if (isFinite(num) || isComputedNaN) {
     const formatter = getNumFormatterForAttribute(attr)
     if (formatter) {
-      str = `${formatter(num)}${showUnits ? ` ${attr?.units}` : ""}`
+      const formatted = formatter(num)
+      // Suppress units when the formatted value is empty (NaN renders as ""); otherwise an
+      // empty cell would surface as " kg".
+      str = formatted && showUnits ? `${formatted} ${attr?.units}` : formatted
       formatClass = "numeric-format"
     }
   }

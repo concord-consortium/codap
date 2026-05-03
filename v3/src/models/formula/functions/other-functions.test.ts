@@ -10,6 +10,17 @@ describe("if", () => {
     const fn2 = math.compile("if('', 'foo', 'bar')")
     expect(fn2.evaluate()).toEqual("")
   })
+
+  it("treats NaN conditions as falsy (V2 parity)", () => {
+    // 0/0 → NaN; relational operators propagate NaN (CODAP-1286). Without explicit NaN handling
+    // in if(), Number(NaN) !== 0 evaluates to true and the condition incorrectly takes the
+    // truthy branch.
+    const fn = math.compile("if(0/0 < 0, 'true_branch', 'false_branch')")
+    expect(fn.evaluate()).toEqual("false_branch")
+
+    const fn2 = math.compile("if(0/0, 'true_branch', 'false_branch')")
+    expect(fn2.evaluate()).toEqual("false_branch")
+  })
 })
 
 describe("randomPick", () => {

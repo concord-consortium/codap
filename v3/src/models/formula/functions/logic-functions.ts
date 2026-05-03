@@ -11,6 +11,9 @@ export const logicFunctions: Record<string, IFormulaMathjsFunction> = {
     numOfRequiredArguments: 1,
     evaluate: (arg: FValue) => {
       if (isValueEmpty(arg)) return ""
+      // NaN is treated as falsy (V2 parity: !!NaN === false). Without this, Number(NaN) !== 0
+      // evaluates to true and boolean(0/0) would incorrectly return true.
+      if (Number.isNaN(arg)) return false
       if (arg === true || arg === false) return arg
       if (typeof arg === "string" && arg.toLowerCase() === "false") return false
       if (typeof arg === "string" && arg.toLowerCase() === "true") return true

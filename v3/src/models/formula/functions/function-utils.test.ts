@@ -15,6 +15,20 @@ describe("isValueTruthy", () => {
     expect(isValueTruthy(undefined)).toBe(false)
     expect(isValueTruthy(false)).toBe(false)
   })
+
+  it("should treat NaN as falsy (V2 parity)", () => {
+    // NaN propagates through relational operators (CODAP-1286), so a filter expression like
+    // `count(x, y < z)` may produce NaN entries when y or z are empty. Those entries should
+    // be excluded from the aggregation, matching V2's `!!NaN === false` semantics.
+    expect(isValueTruthy(NaN)).toBe(false)
+  })
+
+  it("should keep non-numeric strings truthy (Number.isNaN does not coerce)", () => {
+    // Strings like "abc" coerce to NaN via Number(), but isValueTruthy uses the strict
+    // Number.isNaN check so they remain truthy as non-empty values.
+    expect(isValueTruthy("abc")).toBe(true)
+    expect(isValueTruthy("NaN")).toBe(true)
+  })
 })
 
 describe("equal", () => {
