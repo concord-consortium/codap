@@ -1,3 +1,4 @@
+import { ComponentProps } from "react"
 import { render, screen } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
 import { EditFormulaModal } from "./edit-formula-modal"
@@ -16,22 +17,26 @@ jest.mock("./formula-editor", () => ({
   }
 }))
 
+type ModalProps = ComponentProps<typeof EditFormulaModal>
+
+const baseProps: Omit<ModalProps, "applyFormula"> = {
+  titleLabel: "Attribute name",
+  onClose: () => {},
+  value: "",
+  titleInput: "A",
+  isOpen: true
+}
+
+function setup(overrides: Partial<ModalProps> = {}) {
+  const user = userEvent.setup()
+  const props: ModalProps = { ...baseProps, applyFormula: jest.fn(), ...overrides }
+  const view = render(<EditFormulaModal {...props} />)
+  return { user, applyFormula: props.applyFormula as jest.Mock, props, ...view }
+}
+
 describe("EditFormulaModal", () => {
   it("does not carry over the previous attribute's name when reopened for a different attribute", async () => {
-    const user = userEvent.setup()
-    const applyFormula = jest.fn()
-    const noop = () => {}
-
-    const props = {
-      applyFormula,
-      titleLabel: "Attribute name",
-      onClose: noop,
-      value: ""
-    }
-
-    const { rerender } = render(
-      <EditFormulaModal {...props} titleInput="A" isOpen={true} />
-    )
+    const { user, applyFormula, props, rerender } = setup()
 
     // Edit attribute A's name to "newA"
     const input = await screen.findByDisplayValue("A")
@@ -43,12 +48,11 @@ describe("EditFormulaModal", () => {
     expect(applyFormula).toHaveBeenLastCalledWith("", "newA")
 
     // Simulate the parent closing the modal then reopening it for attribute B
-    rerender(<EditFormulaModal {...props} titleInput="A" isOpen={false} />)
-    rerender(<EditFormulaModal {...props} titleInput="B" isOpen={true} />)
+    rerender(<EditFormulaModal {...props} isOpen={false} />)
+    rerender(<EditFormulaModal {...props} titleInput="B" />)
 
     // Apply without touching the attribute name input
-    const applyButton = await screen.findByRole("button", { name: "Apply" })
-    await user.click(applyButton)
+    await user.click(await screen.findByRole("button", { name: "Apply" }))
 
     // The current attribute is B, so applyFormula must receive B's name —
     // not the "newA" left over from the previous session.
@@ -56,17 +60,7 @@ describe("EditFormulaModal", () => {
   })
 
   it("discards in-session title edits when the modal is canceled and reopened for the same attribute", async () => {
-    const user = userEvent.setup()
-    const applyFormula = jest.fn()
-    const props = {
-      applyFormula,
-      titleLabel: "Attribute name",
-      onClose: () => {},
-      value: "",
-      titleInput: "A"
-    }
-
-    const { rerender } = render(<EditFormulaModal {...props} isOpen={true} />)
+    const { user, applyFormula, props, rerender } = setup()
 
     const input = await screen.findByDisplayValue("A")
     await user.clear(input)
@@ -85,17 +79,7 @@ describe("EditFormulaModal", () => {
   })
 
   it("clears the autocomplete-open state when the modal is closed", async () => {
-    const user = userEvent.setup()
-    render(
-      <EditFormulaModal
-        applyFormula={jest.fn()}
-        titleLabel="Attribute name"
-        onClose={() => {}}
-        value=""
-        titleInput="A"
-        isOpen={true}
-      />
-    )
+    const { user } = setup()
 
     const autocompleteRef = (globalThis as any).__capturedIsAutoCompleteMenuOpen
     expect(autocompleteRef).toBeDefined()
@@ -113,46 +97,17 @@ describe("EditFormulaModal", () => {
   it("enables the title input when titleInput is an empty string", () => {
     // Attribute names can be trimmed to "" by Attribute.setName(). When that happens,
     // the formula editor must still allow editing the name to fix it.
-    render(
-      <EditFormulaModal
-        applyFormula={jest.fn()}
-        titleLabel="Attribute name"
-        onClose={() => {}}
-        value=""
-        titleInput=""
-        isOpen={true}
-      />
-    )
+    setup({ titleInput: "" })
     expect(screen.getByTestId("attr-name-input")).not.toBeDisabled()
   })
 
   it("disables the title input when no titleInput prop is provided (e.g. filter formula)", () => {
-    render(
-      <EditFormulaModal
-        applyFormula={jest.fn()}
-        titleLabel="Filter formula"
-        onClose={() => {}}
-        value=""
-        isOpen={true}
-      />
-    )
+    setup({ titleInput: undefined, titleLabel: "Filter formula" })
     expect(screen.getByTestId("attr-name-input")).toBeDisabled()
   })
 
   it("passes the in-session edited attribute name (trimmed) to applyFormula", async () => {
-    const user = userEvent.setup()
-    const applyFormula = jest.fn()
-
-    render(
-      <EditFormulaModal
-        applyFormula={applyFormula}
-        titleLabel="Attribute name"
-        onClose={() => {}}
-        value=""
-        titleInput="A"
-        isOpen={true}
-      />
-    )
+    const { user, applyFormula } = setup()
 
     const input = await screen.findByDisplayValue("A")
     await user.clear(input)
