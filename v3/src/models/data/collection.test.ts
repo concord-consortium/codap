@@ -534,7 +534,7 @@ describe("CollectionModel", () => {
 
   it("recomputeNonEmptyCases refreshes _nonEmptyCases from current attribute values", () => {
     // Build a single collection with one attribute. The collection needs to know about
-    // its attribute because isNonEmptyCaseGroup walks self.dataAttributesArray.
+    // its attribute because isNonEmptyCaseGroup walks self.attributesArray.
     const Model = types.model("Model", {
       attributes: types.array(Attribute),
       collections: types.array(CollectionModel)
