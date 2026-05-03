@@ -106,10 +106,11 @@ export const computePrimaryCoord = (props: IComputePrimaryCoord) => {
   const primaryValue = binMidpoint ?? caseValue
   const primaryCoord = primaryAxisScale(primaryValue) / numExtraPrimaryBands
   // Bucket overflow categories into kOther so the band scale lookup hits the OTHER position
-  // rather than returning undefined and falling back to 0 (left edge).
+  // rather than returning undefined and falling back to 0 (left edge). Without dataConfig
+  // we can't resolve the canonical category, so treat the case as having no extra primary
+  // (kMain) — this matches the fallback in computeBinPlacements below.
   const extraPrimaryValue = extraPrimaryAttrID
-    ? dataConfig?.categoricalValueForCaseInRole(anID, extraPrimaryRole)
-        ?? dataset?.getStrValue(anID, extraPrimaryAttrID)
+    ? dataConfig?.categoricalValueForCaseInRole(anID, extraPrimaryRole) ?? kMain
     : undefined
   const extraPrimaryCoord = extraPrimaryValue && extraPrimaryValue !== kMain
     ? extraPrimaryAxisScale(extraPrimaryValue) ?? 0

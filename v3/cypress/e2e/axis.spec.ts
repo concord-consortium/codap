@@ -1,4 +1,5 @@
 import { AxisHelper as ah } from "../support/helpers/axis-helper"
+import { ComponentElements as c } from "../support/elements/component-elements"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 import { AxisElements as ae } from "../support/elements/axis-elements"
 
@@ -382,6 +383,55 @@ context("Test graph axes with various attribute types", () => {
     cy.get("[data-testid=graph-display-config-button").click()
     cy.get("[data-testid=points-radio-button]").click()
     ah.verifyAxisTickLabel("bottom", "-0.5", 0)
+  })
+  it("places dots in the OTHER bucket when a categorical axis overflows (CODAP-1260)", () => {
+    // Mammal has one unique value per case (~27 mammals). The dashboard's default
+    // graph is wide enough that all 27 categories fit (limit = axisLength / 12).
+    // Close it and create a fresh graph from the toolbar — its default size is
+    // narrow enough that 27 mammals overflow into OTHER.
+    c.closeComponent("graph")
+    c.getIconFromToolShelf("graph").click()
+    cy.wait(500)
+
+    ah.openAxisAttributeMenu("bottom")
+    ah.selectMenuAttribute("Mammal", "bottom")
+    cy.wait(1000)
+
+    // Overflow happened: the localized "OTHER" label appears as the rightmost tick.
+    ah.verifyAxisTickLabels("bottom", ["OTHER"], true)
+
+    // Before the fix, the OTHER bucket cases bucketed to x ≈ pointDiameter/2 (the
+    // left edge) because the band scale's domain held the localized "OTHER" while
+    // dot bucketing looked up the kOther sentinel — the lookup missed and fell
+    // back to 0. After the fix, those cases land at the OTHER band center, which
+    // is the *rightmost* band on the axis.
+    //
+    // The OTHER bucket holds more cases than any single visible category (overflow
+    // is by definition the larger residue). All those cases get the same x (their
+    // band center), so the largest cluster of dots indicates where OTHER is. With
+    // the bug it's at the left edge; with the fix it's at the right edge.
+    cy.get('[data-testid=codap-graph]').parents('.free-tile-component')
+      .invoke('attr', 'id').then((id) => {
+        const tileId = String(id)
+        cy.window().then((win: any) => {
+          const pixiPoints = win.rendererArrayMap?.[tileId]
+          const xs: number[] = pixiPoints[0].points.map((p: any) => p.position.x)
+          expect(xs.length, 'graph has rendered points').to.be.greaterThan(0)
+          const buckets = new Map<number, number>()
+          xs.forEach((x: number) => {
+            const b = Math.round(x / 3) * 3
+            buckets.set(b, (buckets.get(b) ?? 0) + 1)
+          })
+          let maxCount = 0
+          let largestClusterX = 0
+          buckets.forEach((count, x) => {
+            if (count > maxCount) { maxCount = count; largestClusterX = x }
+          })
+          const midpoint = (Math.min(...xs) + Math.max(...xs)) / 2
+          expect(largestClusterX, 'OTHER bucket cluster is in the right half of the axis')
+            .to.be.greaterThan(midpoint)
+        })
+      })
   })
 })
 
