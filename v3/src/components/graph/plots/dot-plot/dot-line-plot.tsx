@@ -4,7 +4,7 @@ import {useCallback, useEffect} from "react"
 import {mstReaction} from "../../../../utilities/mst-reaction"
 import { setNiceDomain } from "../../../axis/axis-domain-utils"
 import { AxisPlace } from "../../../axis/axis-types"
-import { kMain } from "../../../data-display/data-display-types"
+import { GraphAttrRole, kMain } from "../../../data-display/data-display-types"
 import { circleAnchor, hBarAnchor, vBarAnchor } from "../../../data-display/renderer"
 import {IPlotProps} from "../../graphing-types"
 import { useDotPlot } from "../../hooks/use-dot-plot"
@@ -27,9 +27,9 @@ export const DotLinePlot = observer(function DotLinePlot({ renderer }: IPlotProp
       const primaryPlace: AxisPlace = primaryIsBottom ? 'bottom' : 'left',
         secondaryPlace = primaryIsBottom ? 'left' : 'bottom',
         extraPrimaryPlace = primaryIsBottom ? 'top' : 'rightCat',
-        extraPrimaryRole = primaryIsBottom ? 'topSplit' : 'rightSplit',
+        extraPrimaryRole: GraphAttrRole = primaryIsBottom ? 'topSplit' : 'rightSplit',
         extraSecondaryPlace = primaryIsBottom ? 'rightCat' : 'top',
-        extraSecondaryRole = primaryIsBottom ? 'rightSplit' : 'topSplit',
+        extraSecondaryRole: GraphAttrRole = primaryIsBottom ? 'rightSplit' : 'topSplit',
         primaryAxisScale = layout.getAxisScale(primaryPlace) as ScaleLinear<number, number>,
         extraPrimaryAxisScale = layout.getAxisScale(extraPrimaryPlace) as ScaleBand<string>,
         secondaryAxisScale = layout.getAxisScale(secondaryPlace) as ScaleBand<string>,
@@ -52,8 +52,9 @@ export const DotLinePlot = observer(function DotLinePlot({ renderer }: IPlotProp
         baseCoord = primaryIsBottom ? secondaryMax : 0
 
       const binPlacementProps = {
-        dataConfig, dataset, extraPrimaryAttrID, extraSecondaryAttrID, layout, numExtraPrimaryBands,
-        pointDiameter, primaryAttrID, primaryAxisScale, primaryPlace, secondaryAttrID, secondaryBandwidth
+        dataConfig, dataset, extraPrimaryAttrID, extraPrimaryRole, extraSecondaryAttrID, extraSecondaryRole, layout,
+        numExtraPrimaryBands, pointDiameter, primaryAttrID, primaryAxisScale, primaryPlace, secondaryAttrID,
+        secondaryAttrRole, secondaryBandwidth
       }
       const {binMap, overlap} = computeBinPlacements(binPlacementProps)
       graphModel.setPointOverlap(overlap) // So that if we draw a normal curve, it can use the overlap
@@ -94,7 +95,7 @@ export const DotLinePlot = observer(function DotLinePlot({ renderer }: IPlotProp
 
       const getBarValueDimension = (anID: string) => {
         const computePrimaryCoordProps: IComputePrimaryCoord = {
-          anID, dataset, extraPrimaryAttrID, extraPrimaryAxisScale,
+          anID, dataConfig, dataset, extraPrimaryAttrID, extraPrimaryAxisScale, extraPrimaryRole,
           numExtraPrimaryBands, primaryAttrID, primaryAxisScale
         }
         const {primaryCoord} = computePrimaryCoord(computePrimaryCoordProps)
@@ -121,7 +122,7 @@ export const DotLinePlot = observer(function DotLinePlot({ renderer }: IPlotProp
 
       const getPrimaryScreenCoord = (anID: string) => {
         const computePrimaryCoordProps: IComputePrimaryCoord = {
-          anID, dataset, extraPrimaryAttrID, extraPrimaryAxisScale,
+          anID, dataConfig, dataset, extraPrimaryAttrID, extraPrimaryAxisScale, extraPrimaryRole,
           numExtraPrimaryBands, primaryAttrID, primaryAxisScale
         }
         let {primaryCoord, extraPrimaryCoord} = computePrimaryCoord(computePrimaryCoordProps)

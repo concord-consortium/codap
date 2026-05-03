@@ -68,12 +68,11 @@ export const useSubAxis = ({
     categoriesSelectionRef = useRef<Selection<SVGGElement | BaseType, CatObject, SVGGElement, any>>(),
     categoriesRef = useRef<string[]>([]),
 
+    // Returns the canonical category list — kOther is preserved so the band scale's domain
+    // matches the keys used in dot/cell bucketing. Translation to the user-visible "OTHER"
+    // happens only at the label-rendering layer.
     getCategoryArray = useCallback(() => {
-      const catArray = dataConfig?.categoryArrayForAttrRole(axisPlaceToAttrRole[axisPlace]).slice() ?? []
-      if (catArray[catArray.length - 1] === kOther) {
-        catArray[catArray.length - 1] = translate("DG.CellAxis.other")
-      }
-      return catArray
+      return dataConfig?.categoryArrayForAttrRole(axisPlaceToAttrRole[axisPlace]).slice() ?? []
     }, [axisPlace, dataConfig]),
 
     renderSubAxis = useCallback(() => {
@@ -96,9 +95,7 @@ export const useSubAxis = ({
         : dI.categories.length - 1 - Math.floor(dI.currentDragPosition / dI.bandwidth)
       dI.initialIndexOfCategory = dI.indexOfCategory
       dI.catName = dI.categories[dI.indexOfCategory]
-      // Todo: There is a slight possibility that the category name is "OTHER" in the data and it is the last category
-      // We could prevent by recording the translation of kOther as a flag to be checked here.
-      dI.isOther = dI.catName === translate("DG.CellAxis.other") && dI.indexOfCategory === dI.categories.length - 1
+      dI.isOther = dI.catName === kOther
       dI.currentOffset = 0
       dI.initialOffset = dI.currentDragPosition - (dI.indexOfCategory + 0.5) * dI.bandwidth
     }, []),

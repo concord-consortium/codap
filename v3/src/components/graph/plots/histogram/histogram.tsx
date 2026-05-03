@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite"
 import { useCallback, useEffect, useRef } from "react"
 import { createPortal } from "react-dom"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
+import { GraphAttrRole } from "../../../data-display/data-display-types"
 import { circleAnchor } from "../../../data-display/renderer"
 import { IBarCover, IPlotProps } from "../../graphing-types"
 import { useBinBoundaryDrag } from "../../hooks/use-bin-boundary-drag"
@@ -104,9 +105,9 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, rend
 
     const secondaryPlace = primaryIsBottom ? "left" : "bottom",
       extraPrimaryPlace = primaryIsBottom ? "top" : "rightCat",
-      extraPrimaryRole = primaryIsBottom ? "topSplit" : "rightSplit",
+      extraPrimaryRole: GraphAttrRole = primaryIsBottom ? "topSplit" : "rightSplit",
       extraSecondaryPlace = primaryIsBottom ? "rightCat" : "top",
-      extraSecondaryRole = primaryIsBottom ? "rightSplit" : "topSplit",
+      extraSecondaryRole: GraphAttrRole = primaryIsBottom ? "rightSplit" : "topSplit",
       extraPrimaryAxisScale = layout.getAxisScale(extraPrimaryPlace) as ScaleBand<string>,
       secondaryAxisScale = layout.getAxisScale(secondaryPlace) as ScaleBand<string>,
       extraSecondaryAxisScale = layout.getAxisScale(extraSecondaryPlace) as ScaleBand<string>,
@@ -125,8 +126,9 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, rend
       { secondaryNumericUnitLength } = subPlotCells
 
     const binPlacementProps = {
-      binDetails, dataConfig, dataset, extraPrimaryAttrID, extraSecondaryAttrID, layout, numExtraPrimaryBands,
-      pointDiameter, primaryAttrID, primaryAxisScale, primaryPlace, secondaryAttrID, secondaryBandwidth
+      binDetails, dataConfig, dataset, extraPrimaryAttrID, extraPrimaryRole, extraSecondaryAttrID, extraSecondaryRole,
+      layout, numExtraPrimaryBands, pointDiameter, primaryAttrID, primaryAxisScale, primaryPlace, secondaryAttrID,
+      secondaryAttrRole, secondaryBandwidth
     }
     if (!binDetails?.binWidth) return
 

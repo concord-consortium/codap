@@ -31,7 +31,7 @@ export const useDotPlot = (renderer?: PointRendererBase) => {
   const primaryIsBottom = primaryAttrRole === "x"
   const secondaryPlace = primaryIsBottom ? "left" : "bottom"
   const secondaryAttrRole: GraphAttrRole = primaryAttrRole === "x" ? "y" : "x"
-  const extraPrimaryRole = primaryIsBottom ? "topSplit" : "rightSplit"
+  const extraPrimaryRole: GraphAttrRole = primaryIsBottom ? "topSplit" : "rightSplit"
   const extraPrimaryPlace = primaryIsBottom ? "top" : "rightCat"
   const extraPrimaryAttrID = dataConfig?.attributeID(extraPrimaryRole) ?? ""
   // TODO: Instead of using `layout.getAxisScale` and casting to `ScaleBand<string>` to set
@@ -42,7 +42,7 @@ export const useDotPlot = (renderer?: PointRendererBase) => {
   const extraPrimaryAxisScale = layout.getAxisScale(extraPrimaryPlace) as ScaleBand<string>
   const primaryPlace: AxisPlace = primaryIsBottom ? "bottom" : "left"
   const numExtraPrimaryBands = dataConfig?.numRepetitionsForPlace(primaryPlace) ?? 1
-  const extraSecondaryRole = primaryIsBottom ? "rightSplit" : "topSplit"
+  const extraSecondaryRole: GraphAttrRole = primaryIsBottom ? "rightSplit" : "topSplit"
   const extraSecondaryAttrID = dataConfig?.attributeID(extraSecondaryRole) ?? ""
   const primaryAttrID = dataConfig?.attributeID(primaryAttrRole) ?? ""
   const primaryAxisScale = layout.getAxisScale(primaryPlace) as ScaleLinear<number, number>
@@ -60,8 +60,9 @@ export const useDotPlot = (renderer?: PointRendererBase) => {
                       ? graphModel.plot.binDetails()
                       : kEmptyBinDetails
   const binPlacementProps = {
-    binDetails, dataConfig, dataset, extraPrimaryAttrID, extraSecondaryAttrID, layout, numExtraPrimaryBands,
-    pointDiameter, primaryAttrID, primaryAxisScale, primaryPlace, secondaryAttrID, secondaryBandwidth
+    binDetails, dataConfig, dataset, extraPrimaryAttrID, extraPrimaryRole, extraSecondaryAttrID, extraSecondaryRole,
+    layout, numExtraPrimaryBands, pointDiameter, primaryAttrID, primaryAxisScale, primaryPlace, secondaryAttrID,
+    secondaryAttrRole, secondaryBandwidth
   }
   const { bins, binMap, overlap, numPointsInRow } = computeBinPlacements(binPlacementProps)
   const secondaryRangeIndex = primaryIsBottom ? 0 : 1
@@ -83,7 +84,7 @@ export const useDotPlot = (renderer?: PointRendererBase) => {
 
   const getPrimaryScreenCoord = useCallback((anID: string) => {
     const computePrimaryCoordProps: IComputePrimaryCoord = {
-      anID, binDetails, dataset, extraPrimaryAttrID, extraPrimaryAxisScale,
+      anID, binDetails, dataConfig, dataset, extraPrimaryAttrID, extraPrimaryAxisScale, extraPrimaryRole,
       numExtraPrimaryBands, primaryAttrID, primaryAxisScale
     }
     const { primaryCoord, extraPrimaryCoord } = computePrimaryCoord(computePrimaryCoordProps)
@@ -100,8 +101,8 @@ export const useDotPlot = (renderer?: PointRendererBase) => {
     }
 
     return primaryScreenCoord
-  }, [binDetails, binMap, bins, dataset, extraPrimaryAttrID, extraPrimaryAxisScale, isHistogram,
-      numExtraPrimaryBands, pointDiameter, primaryAttrID, primaryAxisScale, primaryIsBottom,
+  }, [binDetails, binMap, bins, dataConfig, dataset, extraPrimaryAttrID, extraPrimaryAxisScale, extraPrimaryRole,
+      isHistogram, numExtraPrimaryBands, pointDiameter, primaryAttrID, primaryAxisScale, primaryIsBottom,
       secondaryBandwidth, numPointsInRow])
 
   const getSecondaryScreenCoord = useCallback((anID: string) => {

@@ -1,11 +1,16 @@
 import { BaseType, Selection } from "d3"
 import { AxisHelper, IAxisHelperArgs } from "./axis-helper"
 import { MutableRefObject } from "react"
-import { kMain, transitionDuration } from "../../data-display/data-display-types"
+import { kMain, kOther, transitionDuration } from "../../data-display/data-display-types"
+import { translate } from "../../../utilities/translation/translate"
 import { otherPlace } from "../axis-types"
 import { kAxisGap, kAxisTickLength, kDefaultColorSwatchHeight } from "../axis-constants"
 import { collisionExists, DragInfo, elideStringToFit, getCategoricalLabelPlacement, getCoordFunctions, getStringBounds,
   IGetCoordFunctionsProps } from "../axis-utils"
+
+// kOther is the internal marker; users see the localized "OTHER" string.
+const labelForCategory = (category: string) =>
+  category === kOther ? translate("DG.CellAxis.other") : category
 
 export interface CatObject {
   cat: string
@@ -53,9 +58,10 @@ export class CategoricalAxisHelper extends AxisHelper {
       categories = this.categoriesRef.current,
       numCategories = categories.length,
       hasCategories = !(categories.length === 1 && categories[0] === kMain),
+      displayLabels = categories.map(labelForCategory),
       bandWidth = this.subAxisLength / numCategories,
-      // we don't rotate the color swatch axis labels 
-      collision = !isColorAxis && collisionExists({bandWidth, categories, centerCategoryLabels}),
+      // we don't rotate the color swatch axis labels
+      collision = !isColorAxis && collisionExists({bandWidth, categories: displayLabels, centerCategoryLabels}),
       {rotation, textAnchor} = getCategoricalLabelPlacement(this.axisPlace, this.centerCategoryLabels, collision),
       duration = (this.isAnimating() && !this.swapInProgress.current &&
         dragInfo.current.indexOfCategory === -1) ? transitionDuration : 0
@@ -133,8 +139,8 @@ export class CategoricalAxisHelper extends AxisHelper {
                 .attr('x', (d, i) => fns.getLabelX(i))
                 .attr('y', (d, i) => fns.getLabelY(i))
                 .text((d: CatObject, i) => {
-                  return collision ? elideStringToFit(String(categories[i]), maxCategoryLabelExtent)
-                    : categories[i]
+                  return collision ? elideStringToFit(String(displayLabels[i]), maxCategoryLabelExtent)
+                    : displayLabels[i]
                 })
             }
             return update

@@ -6,7 +6,7 @@ import { ScaleBand, ScaleLinear, max, range } from "d3"
 import { IDataSet } from "../../../../models/data/data-set"
 import { AxisPlace } from "../../../axis/axis-types"
 import { CaseData } from "../../../data-display/d3-types"
-import { kMain } from "../../../data-display/data-display-types"
+import { GraphAttrRole, kMain } from "../../../data-display/data-display-types"
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
 import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
 import { GraphLayout } from "../../models/graph-layout"
@@ -18,7 +18,9 @@ export interface IComputeBinPlacements {
   dataConfig?: IGraphDataConfigurationModel
   dataset?: IDataSet
   extraPrimaryAttrID: string
+  extraPrimaryRole: GraphAttrRole
   extraSecondaryAttrID: string
+  extraSecondaryRole: GraphAttrRole
   layout: GraphLayout
   numExtraPrimaryBands: number
   pointDiameter: number
@@ -26,6 +28,7 @@ export interface IComputeBinPlacements {
   primaryAxisScale: ScaleLinear<number, number>
   primaryPlace: AxisPlace
   secondaryAttrID: string
+  secondaryAttrRole: GraphAttrRole
   secondaryBandwidth: number
 }
 
@@ -39,9 +42,11 @@ export type BinMap = {
 export interface IComputePrimaryCoord {
   anID: string
   binDetails?: BinDetails
+  dataConfig?: IGraphDataConfigurationModel
   dataset?: IDataSet
   extraPrimaryAttrID: string
   extraPrimaryAxisScale: ScaleBand<string>
+  extraPrimaryRole: GraphAttrRole
   numExtraPrimaryBands: number
   primaryAttrID: string
   primaryAxisScale: ScaleLinear<number, number>
@@ -93,15 +98,22 @@ const computeRowAndColumn = (indexInBin: number, numPointsInRow: number) => {
  * account the primary and extra primary axis scales, the extra primary bandwidth, and the number of bins (if any).
  */
 export const computePrimaryCoord = (props: IComputePrimaryCoord) => {
-  const { anID, binDetails, dataset, extraPrimaryAttrID, extraPrimaryAxisScale,
-          numExtraPrimaryBands, primaryAttrID, primaryAxisScale } = props
+  const { anID, binDetails, dataConfig, dataset, extraPrimaryAttrID, extraPrimaryAxisScale,
+          extraPrimaryRole, numExtraPrimaryBands, primaryAttrID, primaryAxisScale } = props
   const caseValue = dataDisplayGetNumericValue(dataset, anID, primaryAttrID) ?? NaN
   const binNumber = binDetails?.getBinForValue(caseValue)
   const binMidpoint = binDetails?.getBinMidpoint(binNumber)
   const primaryValue = binMidpoint ?? caseValue
   const primaryCoord = primaryAxisScale(primaryValue) / numExtraPrimaryBands
-  const extraPrimaryValue = dataset?.getStrValue(anID, extraPrimaryAttrID)
-  const extraPrimaryCoord = extraPrimaryValue ? extraPrimaryAxisScale(extraPrimaryValue ?? kMain) ?? 0 : 0
+  // Bucket overflow categories into kOther so the band scale lookup hits the OTHER position
+  // rather than returning undefined and falling back to 0 (left edge).
+  const extraPrimaryValue = extraPrimaryAttrID
+    ? dataConfig?.categoricalValueForCaseInRole(anID, extraPrimaryRole)
+        ?? dataset?.getStrValue(anID, extraPrimaryAttrID)
+    : undefined
+  const extraPrimaryCoord = extraPrimaryValue && extraPrimaryValue !== kMain
+    ? extraPrimaryAxisScale(extraPrimaryValue) ?? 0
+    : 0
   return { primaryCoord, extraPrimaryCoord }
 }
 
@@ -144,9 +156,9 @@ export const computeSecondaryCoord = (props: IComputeSecondaryCoord) => {
  * Returns bins, binMap, overlap and numPointsPerRow values.
  */
 export const computeBinPlacements = (props: IComputeBinPlacements) => {
-  const { binDetails, dataConfig, dataset, extraPrimaryAttrID, extraSecondaryAttrID, layout,
-          numExtraPrimaryBands, pointDiameter, primaryAttrID, primaryAxisScale, primaryPlace, secondaryAttrID,
-          secondaryBandwidth } = props
+  const { binDetails, dataConfig, dataset, extraPrimaryAttrID, extraPrimaryRole, extraSecondaryAttrID,
+          extraSecondaryRole, layout, numExtraPrimaryBands, pointDiameter, primaryAttrID, primaryAxisScale,
+          primaryPlace, secondaryAttrID, secondaryAttrRole, secondaryBandwidth } = props
   const primaryLength = layout.getAxisLength(primaryPlace) / numExtraPrimaryBands
   const numBins = binDetails?.totalNumberOfBins || Math.ceil(primaryLength / pointDiameter) + 1
   const binWidth = binDetails?.binWidth || primaryLength / (numBins - 1)
@@ -168,9 +180,13 @@ export const computeBinPlacements = (props: IComputeBinPlacements) => {
       const bin = binDetails?.totalNumberOfBins
         ? binDetails.getBinForValue(caseValue) ?? 0
         : Math.ceil((numerator ?? 0) / binWidth)
-      const category = dataset?.getStrValue(anID, secondaryAttrID) ?? kMain
-      const extraCategory = dataset?.getStrValue(anID, extraSecondaryAttrID) ?? kMain
-      const extraPrimaryCategory = dataset?.getStrValue(anID, extraPrimaryAttrID) ?? kMain
+      // Use categoricalValueForCaseInRole so overflow values land in kOther to match the band scale's domain.
+      const category = secondaryAttrID
+        ? dataConfig?.categoricalValueForCaseInRole(anID, secondaryAttrRole) ?? kMain : kMain
+      const extraCategory = extraSecondaryAttrID
+        ? dataConfig?.categoricalValueForCaseInRole(anID, extraSecondaryRole) ?? kMain : kMain
+      const extraPrimaryCategory = extraPrimaryAttrID
+        ? dataConfig?.categoricalValueForCaseInRole(anID, extraPrimaryRole) ?? kMain : kMain
 
       if (!bins[category]) {
         bins[category] = {}

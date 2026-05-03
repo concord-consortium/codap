@@ -210,6 +210,29 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     )
   }, [callRefreshPointPositions, graphModel])
 
+  // When the category limit changes on resize, the cell layout shifts (kOther moves to a different
+  // index, more or fewer columns appear). The points' subPlotNum must be recomputed against the new
+  // cell keys, otherwise dots stay assigned to stale cell masks and silently disappear from the
+  // rightmost columns. The categorySet itself doesn't change in this case, so respondToCategorySetChanges
+  // doesn't fire — we need our own reaction on the rendered cell layout.
+  useEffect(function respondToCellLayoutChanges() {
+    return mstReaction(
+      () => {
+        const opts = dataConfiguration.getCategoriesOptions()
+        return [opts.xCats, opts.yCats, opts.topCats, opts.rightCats]
+      },
+      () => {
+        if (!renderer) return
+        // Remove stale masks before resizing so old cell-mask graphics from a prior layout
+        // don't linger across rapid resize sequences (mirrors respondToCategorySetChanges).
+        renderer.removeMasks()
+        renderer.updateSubPlotNums(dataConfiguration.caseDataWithSubPlot)
+        updateCellMasks({ dataConfig: dataConfiguration, layout, renderer })
+      },
+      { name: "usePlot.respondToCellLayoutChanges", equals: comparer.structural }, dataConfiguration
+    )
+  }, [dataConfiguration, layout, renderer])
+
   useEffect(function respondToCategorySetChanges() {
     return mstReaction(() => {
       return [dataConfiguration.allCategoriesForRoles, dataConfiguration.categoricalAttrsWithChangeCounts]
