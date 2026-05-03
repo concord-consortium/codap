@@ -332,9 +332,10 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       invalidateCases(regrouping = true) {
         prf.measure("DataSet.invalidateCases", () => {
           _isValidCases = false
-          _invalidateItemIds()
           if (regrouping) {
             _needsRegrouping = true
+            // grouping changes can affect which items are visible / their order
+            _invalidateItemIds()
             // invalidate each collection's case group cache
             self.collections.forEach(c => c.invalidateCaseGroups())
           }
@@ -342,6 +343,8 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
             // Values may have changed without affecting groupings — schedule a value-only
             // revalidation. Harmless if _needsRegrouping is already pending; the regrouping
             // branch in validateCases() will clear this flag without doing redundant work.
+            // Note: the itemIds cache is intentionally NOT invalidated — child-collection
+            // attribute value changes don't change which items are visible or their order.
             _needsValueRevalidation = true
           }
           // Bump observable version so MobX re-evaluates isValidCases/validationCount computeds
@@ -754,7 +757,11 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
           self.clearNeedsValueRevalidation()
         }
         else if (self.needsValueRevalidation) {
-          self.collections.forEach(collection => collection.recomputeNonEmptyCases())
+          // Only the childmost collection's nonEmpty status can change as a result of value
+          // updates — parent collections always report their cases as non-empty (see
+          // Collection.isNonEmptyCaseGroup, which short-circuits when self.child is set), so
+          // recomputing them is wasted work and would needlessly notify parent observers.
+          self.childCollection.recomputeNonEmptyCases()
           self.clearNeedsValueRevalidation()
         }
         self.setValidCases()

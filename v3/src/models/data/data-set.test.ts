@@ -1143,6 +1143,62 @@ test("autorun reading getNonEmptyCasesForCollection updates after setComputedCas
   dispose()
 })
 
+// Value-only invalidations (regrouping=false) leave item visibility/order untouched, so the
+// dataset's itemIds cache must NOT be discarded — that would force consumers (case table,
+// filters, etc.) to rebuild on every formula recompute and give back part of the perf win.
+test("setCaseValues with child-only affectedAttributes does not invalidate the itemIds cache", () => {
+  const data = DataSet.create({ name: "data" })
+  const childAttr = data.addAttribute({ name: "val" })
+  data.addCases(toCanonical(data, [{ val: "a" }, { val: "b" }, { val: "c" }]))
+  data.validateCases()
+  const itemIdsBefore = data.itemIds
+
+  data.setCaseValues([{ __id__: data.itemIds[0], [childAttr.id]: "x" }], [childAttr.id])
+
+  // Same array reference proves the cache wasn't rebuilt; a regrouping invalidation would
+  // have set _isValidItemIds = false and the next read would have produced a new array.
+  expect(data.itemIds).toBe(itemIdsBefore)
+})
+
+// In a hierarchical dataset, parent-collection cases short-circuit isNonEmptyCaseGroup on
+// self.child and so their nonEmpty status is invariant across value-only updates. The
+// value-revalidation branch therefore must touch only the childmost collection — both to
+// avoid wasted work and to avoid notifying parent observers. Pinning this with a reaction
+// counter so a regression that re-iterates all collections would surface here.
+test("setComputedCaseValues on a child attr does not refresh parent-collection nonEmptyCases", () => {
+  const data = DataSet.create({ name: "data" })
+  const parentCollection = data.addCollection({ name: "Parent" })
+  data.addAttribute({ name: "group" }, { collection: parentCollection.id })
+  const childAttr = data.addAttribute({ name: "val" })
+  data.addCases(toCanonical(data, [
+    { group: "A", val: "" },
+    { group: "A", val: "" },
+    { group: "B", val: "" }
+  ]))
+  data.validateCases()
+
+  const parent = data.getCollection(parentCollection.id)!
+  const child = data.childCollection
+  let parentEvalCount = 0
+  let childEvalCount = 0
+  const disposeParent = autorun(() => { parentEvalCount++; void parent.nonEmptyCases })
+  const disposeChild = autorun(() => { childEvalCount++; void child.nonEmptyCases })
+  const baselineParent = parentEvalCount
+  const baselineChild = childEvalCount
+
+  data.setComputedCaseValues(
+    data.itemIds.map(id => ({ __id__: id, [childAttr.id]: 99 })),
+    [childAttr.id]
+  )
+  data.validateCases() // run the value-revalidation branch
+
+  expect(childEvalCount).toBeGreaterThan(baselineChild)   // child observers re-run
+  expect(parentEvalCount).toBe(baselineParent)            // parent observers don't
+
+  disposeParent()
+  disposeChild()
+})
+
 test("setCaseValues with child-only affectedAttributes skips regrouping", () => {
   const data = DataSet.create({ name: "data" })
   const parentCollection = data.addCollection({ name: "Parent" })

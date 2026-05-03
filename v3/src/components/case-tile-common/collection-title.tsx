@@ -34,10 +34,13 @@ export const CollectionTitle =
   // on the dataset's validation observable. Without that dependency the title would not
   // re-render after a value-only invalidation (e.g. formula recompute via
   // setComputedCaseValues), and the displayed nonEmptyCases count would stay stale.
-  const visibleCaseCount = data?.getCasesForCollection(collectionId).length ?? 0
-  const nonEmptyCaseCount = data?.getNonEmptyCasesForCollection(collectionId).length ?? 0
+  // Only compute the counts when showCount is true; otherwise we'd trigger validateCases
+  // (potentially expensive for large datasets) just to throw the result away. CaseCardHeader
+  // renders this component with showCount={false} on every card render.
+  const visibleCaseCount = showCount ? (data?.getCasesForCollection(collectionId).length ?? 0) : 0
+  const nonEmptyCaseCount = showCount ? (data?.getNonEmptyCasesForCollection(collectionId).length ?? 0) : 0
+  const hiddenCaseCount = showCount ? ((collection?.allCaseIds.size ?? 0) - visibleCaseCount) : 0
   const hasEmptyCases = visibleCaseCount - nonEmptyCaseCount > 0
-  const hiddenCaseCount = (collection?.allCaseIds.size ?? 0) - visibleCaseCount
   const tileRef = useRef<HTMLDivElement | null>(null)
   const contentRef = useRef<HTMLDivElement | null>(null)
   const titleRef = useRef<HTMLDivElement>(null)
