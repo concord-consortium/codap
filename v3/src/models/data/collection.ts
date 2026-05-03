@@ -454,13 +454,12 @@ export const CollectionModel = V2Model
     if (!caseGroup?.childItemIds.length) return false
     // cases with multiple child items are non-empty (shouldn't happen for child collections)
     if (caseGroup.childItemIds.length > 1) return true
-    // for child collections, determine non-empty status by checking child item values
+    // For child collections, determine non-empty status by checking child item values across
+    // all attributes — including formula-driven ones. Formula-evaluated values count as
+    // non-empty by definition (a case with a computed value is not empty), so we check
+    // attributesArray rather than dataAttributesArray (which excludes formula attrs).
     const childItemId = caseGroup.childItemIds[0]
-    const childItemHasNonEmptyValue = self.dataAttributesArray.some(attr => {
-      const value = self.itemData.getValue(childItemId, attr.id)
-      return isValueNonEmpty(value)
-    })
-    return childItemHasNonEmptyValue
+    return self.attributesArray.some(attr => isValueNonEmpty(self.itemData.getValue(childItemId, attr.id)))
   },
   addChildCase(parentCaseId: string, childCaseId: string) {
     const groupKey = self.caseIdToGroupKeyMap.get(parentCaseId)

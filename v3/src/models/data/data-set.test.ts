@@ -1,4 +1,5 @@
 import { isEqual, isEqualWith } from "lodash"
+import { autorun } from "mobx"
 import { applyAction, clone, destroy, getSnapshot, onAction, onSnapshot } from "mobx-state-tree"
 import { uniqueName } from "../../utilities/js-utils"
 import { onAnyAction } from "../../utilities/mst-utils"
@@ -1082,10 +1083,15 @@ test("setComputedCaseValues skips regrouping for child collection attributes", (
 test("setComputedCaseValues for child-collection attributes refreshes nonEmptyCases", () => {
   const data = DataSet.create({ name: "data" })
   const formulaAttr = data.addAttribute({ name: "Test" })
-  // Three items with empty values, mirroring a freshly loaded document whose only attribute
-  // has a formula whose results are not yet evaluated.
+  // Marking the attribute as formula-driven matters: the original CODAP-1173 bug only
+  // surfaced when every attribute in the (child) collection had a formula. Without the
+  // formula here, the attribute would fall into Collection.dataAttributesArray and the
+  // initial validation would already see "empty" values via the regular path; the bug
+  // requires Collection.attributesArray (formula-included) to be the attribute source.
+  formulaAttr.setDisplayExpression("0")
+  // Three items with empty values, mirroring a freshly loaded document whose only
+  // attribute has a formula whose results are not yet evaluated.
   data.addCases(toCanonical(data, [{ Test: "" }, { Test: "" }, { Test: "" }]))
-  // Initial validation populates the nonEmptyCases cache with all-empty values.
   expect(data.getNonEmptyCasesForCollection(data.childCollection.id).length).toBe(0)
 
   // Formula evaluation writes results via setComputedCaseValues for the child-collection attr.
@@ -1096,7 +1102,10 @@ test("setComputedCaseValues for child-collection attributes refreshes nonEmptyCa
     { __id__: id3, [formulaAttr.id]: 30 }
   ], [formulaAttr.id])
 
-  // All three cases now have non-empty values, so the count must reflect that.
+  // All three cases now have non-empty (formula-derived) values, so the count must reflect
+  // that. This exercises both the value-revalidation cache refresh (setComputedCaseValues
+  // calls invalidateCases(false), which schedules a recompute) and the formula-aware
+  // emptiness check in isNonEmptyCaseGroup.
   expect(data.getNonEmptyCasesForCollection(data.childCollection.id).length).toBe(3)
 })
 
@@ -1104,6 +1113,36 @@ test("setComputedCaseValues for child-collection attributes refreshes nonEmptyCa
 // same regrouping-skip optimization used by setComputedCaseValues. This is the same shape
 // as the CODAP-1173 formula path but exercised via the user-edit code path (case table /
 // case card cell edits, plugin DI updates that opt into the contract, etc.).
+// CODAP-1173 follow-on: an early version of the fix made validateCases() recompute
+// _nonEmptyCases via a new branch, but a production reader (the case-table title bar)
+// reads `collection.nonEmptyCases` directly — that getter does NOT trigger validateCases.
+// Reactive consumers must read through the dataset's getNonEmptyCasesForCollection so
+// they pick up the MobX dependency on the dataset's validation observable, which is what
+// invalidateCases(false) bumps. This test guards the reactive path: the autorun simulates
+// the title bar's render, and must observe the refreshed count after setComputedCaseValues.
+test("autorun reading getNonEmptyCasesForCollection updates after setComputedCaseValues", () => {
+  const data = DataSet.create({ name: "data" })
+  const formulaAttr = data.addAttribute({ name: "Test" })
+  data.addCases(toCanonical(data, [{ Test: "" }, { Test: "" }, { Test: "" }]))
+
+  let observedCount = -1
+  const dispose = autorun(() => {
+    observedCount = data.getNonEmptyCasesForCollection(data.childCollection.id).length
+  })
+  expect(observedCount).toBe(0)
+
+  const [id1, id2, id3] = data.itemIds
+  data.setComputedCaseValues([
+    { __id__: id1, [formulaAttr.id]: 10 },
+    { __id__: id2, [formulaAttr.id]: 20 },
+    { __id__: id3, [formulaAttr.id]: 30 }
+  ], [formulaAttr.id])
+
+  expect(observedCount).toBe(3)
+
+  dispose()
+})
+
 test("setCaseValues with child-only affectedAttributes skips regrouping", () => {
   const data = DataSet.create({ name: "data" })
   const parentCollection = data.addCollection({ name: "Parent" })

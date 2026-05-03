@@ -310,12 +310,18 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
         return _itemIdsOrderedHash()
       },
       get needsRegrouping() {
+        // Establish a MobX dependency on _caseValidationVersion so this getter is not
+        // memoized as a no-dependency computed (which would cache its first return value
+        // forever). _caseValidationVersion is bumped by every invalidateCases / setValidCases.
+        _caseValidationVersion.get()
         return _needsRegrouping
       },
       clearNeedsRegrouping() {
         _needsRegrouping = false
       },
       get needsValueRevalidation() {
+        // See needsRegrouping for why _caseValidationVersion.get() is required.
+        _caseValidationVersion.get()
         return _needsValueRevalidation
       },
       clearNeedsValueRevalidation() {
