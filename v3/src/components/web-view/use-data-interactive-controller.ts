@@ -35,8 +35,9 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
   //   is recomputed by the observer in web-view.tsx using gLocale.current).
   // - Other plugins: send a localeChanged notification via the existing controller.
   useEffect(() => {
+    // Track the 2-letter base language to match V2 behavior; see web-view.tsx for context.
     const localeDisposer = reaction(
-      () => gLocale.current,
+      () => gLocale.currentBaseLanguage,
       (lang) => {
         if (webViewModel?.needsLocaleReload) {
           setLocaleVersion(v => v + 1)

@@ -154,8 +154,10 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
 
   // Append ?lang= to all plugins that need reload on locale change.
   // Plugins can opt out by setting handlesLocaleChange: true via interactiveFrame.update.
+  // Use the 2-letter base language to match V2 behavior; some plugins (e.g. Simmer) crash
+  // if given a region-qualified locale like "en-US" they don't have strings for.
   const iframeSrc = isWebViewModel(webViewModel) && webViewModel.needsLocaleReload
-    ? appendLangParam(webViewModel.url, gLocale.current)
+    ? appendLangParam(webViewModel.url, gLocale.currentBaseLanguage)
     : isWebViewModel(webViewModel) ? webViewModel.url : ""
 
   useEffect(() => {
