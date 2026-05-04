@@ -8,6 +8,7 @@ import {
 import { appState } from "../../models/app-state"
 import { uiState } from "../../models/ui-state"
 import { toV2Id } from "../../utilities/codap-utils"
+import { gLocale } from "../../utilities/translation/locale"
 import { DIInteractiveFrame } from "../data-interactive-types"
 import { diInteractiveFrameHandler } from "./interactive-frame-handler"
 
@@ -37,7 +38,10 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     expect(savedState).toBe(webView.state)
     expect(title).toBe(interactiveFrame.title)
     expect(version).toBe(webView.version)
-    expect((result.values as DIInteractiveFrame).lang).toBeTruthy()
+    // `lang` must be the 2-letter base language for V2 plugin compatibility (CODAP-1219).
+    // `locale` carries the full BCP-47 locale for plugins that need region/script info.
+    expect((result.values as DIInteractiveFrame).lang).toBe(gLocale.currentBaseLanguage)
+    expect((result.values as DIInteractiveFrame).locale).toBe(gLocale.current)
   })
 
   it("update works", () => {
