@@ -36,18 +36,18 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
   //   the 2-letter base language for V2 plugin compatibility).
   // - Other plugins: send a localeChanged notification via the existing controller.
   useEffect(() => {
-    // Track the 2-letter base language to match V2 behavior; see web-view.tsx for context.
-    // The notification carries both `lang` (2-letter base) and `locale` (full BCP-47) so
-    // plugins that need region or script info can read either.
+    // Track the full locale so region/script-only changes (e.g. zh-Hans → zh-TW) propagate.
+    // The notification carries both `lang` (2-letter base, for V2 plugin compatibility — see
+    // web-view.tsx) and `locale` (full BCP-47) so plugins can read either.
     const localeDisposer = reaction(
-      () => gLocale.currentBaseLanguage,
-      (lang) => {
+      () => gLocale.current,
+      (locale) => {
         if (webViewModel?.needsLocaleReload) {
           setLocaleVersion(v => v + 1)
         } else if (webViewModel?.isPlugin) {
           webViewModel.broadcastMessage(
             { action: "notify", resource: "global",
-              values: { operation: "localeChanged", lang, locale: gLocale.current } },
+              values: { operation: "localeChanged", lang: gLocale.currentBaseLanguage, locale } },
             () => debugLog(DEBUG_PLUGINS, "Reply to localeChanged notification")
           )
         }
