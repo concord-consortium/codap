@@ -101,25 +101,32 @@ describe("V2AdornmentImporter", () => {
     expect(adornmentStore).toBeDefined()
     expect(adornmentStore.showMeasureLabels).toBe(true)
     expect(adornmentStore.adornments.length).toBe(9)
-    const meanAdornment = adornmentStore.adornments.find(a=> a.type === "Mean") as IMeanAdornmentModelSnapshot
+    const meanAdornment = adornmentStore.adornments.find(
+      (a): a is IMeanAdornmentModelSnapshot => a.type === "Mean"
+    )
     expect(meanAdornment).toBeDefined()
-    expect(meanAdornment.isVisible).toBe(true)
-    const medianAdornment = adornmentStore.adornments.find(a => a.type === "Median") as IMedianAdornmentModelSnapshot
+    expect(meanAdornment!.isVisible).toBe(true)
+    const medianAdornment = adornmentStore.adornments.find(
+      (a): a is IMedianAdornmentModelSnapshot => a.type === "Median"
+    )
     expect(medianAdornment).toBeDefined()
-    expect(medianAdornment.isVisible).toBe(true)
-    const stDevAdornment =
-      adornmentStore.adornments.find(a => a.type === "Standard Deviation") as IStandardDeviationAdornmentModelSnapshot
+    expect(medianAdornment!.isVisible).toBe(true)
+    const stDevAdornment = adornmentStore.adornments.find(
+      (a): a is IStandardDeviationAdornmentModelSnapshot => a.type === "Standard Deviation"
+    )
     expect(stDevAdornment).toBeDefined()
-    expect(stDevAdornment.isVisible).toBe(true)
-    const madAdornment = adornmentStore.adornments
-      .find(a => a.type === "Mean Absolute Deviation") as IMeanAbsoluteDeviationAdornmentModelSnapshot
+    expect(stDevAdornment!.isVisible).toBe(true)
+    const madAdornment = adornmentStore.adornments.find(
+      (a): a is IMeanAbsoluteDeviationAdornmentModelSnapshot => a.type === "Mean Absolute Deviation"
+    )
     expect(madAdornment).toBeDefined()
-    expect(madAdornment?.isVisible).toBe(true)
-    const boxPlotAdornment = adornmentStore.adornments
-      .find(a => a.type === "Box Plot") as IBoxPlotAdornmentModelSnapshot
+    expect(madAdornment!.isVisible).toBe(true)
+    const boxPlotAdornment = adornmentStore.adornments.find(
+      (a): a is IBoxPlotAdornmentModelSnapshot => a.type === "Box Plot"
+    )
     expect(boxPlotAdornment).toBeDefined()
-    expect(boxPlotAdornment.isVisible).toBe(true)
-    expect(boxPlotAdornment.showOutliers).toBe(true)
+    expect(boxPlotAdornment!.isVisible).toBe(true)
+    expect(boxPlotAdornment!.showOutliers).toBe(true)
   })
 
   it("imports graphs with Plotted and Movable Values adornments", () => {
@@ -131,11 +138,12 @@ describe("V2AdornmentImporter", () => {
     })
     expect(adornmentStore).toBeDefined()
     expect(adornmentStore.adornments.length).toBe(3)
-    const plottedValuesAdornment =
-      adornmentStore.adornments.find(a => a.type === "Plotted Value") as IPlottedValueAdornmentModelSnapshot
+    const plottedValuesAdornment = adornmentStore.adornments.find(
+      (a): a is IPlottedValueAdornmentModelSnapshot => a.type === "Plotted Value"
+    )
     expect(plottedValuesAdornment).toBeDefined()
-    expect(plottedValuesAdornment.isVisible).toBe(true)
-    expect(plottedValuesAdornment.formula?.display).toBe("60")
+    expect(plottedValuesAdornment!.isVisible).toBe(true)
+    expect(plottedValuesAdornment!.formula?.display).toBe("60")
     const movableValuesAdornment =
       adornmentStore.adornments.find(a => a.type === "Movable Value") as IMovableValueAdornmentModelSnapshot
     expect(movableValuesAdornment).toBeDefined()
@@ -243,9 +251,11 @@ describe("V2AdornmentImporter", () => {
     const uniAdornmentStore = v2AdornmentImporter({
       data: uniData, plotModels: uniPlotModels, attributeDescriptions: {}, yAttributeDescriptions: []
     })
-    const meanAdornment = uniAdornmentStore.adornments.find(a => a.type === "Mean") as IMeanAdornmentModelSnapshot
-    expect(meanAdornment.measures).toBeDefined()
-    const meanKeys = Object.keys(meanAdornment.measures)
+    const meanAdornment = uniAdornmentStore.adornments.find(
+      (a): a is IMeanAdornmentModelSnapshot => a.type === "Mean"
+    )
+    expect(meanAdornment!.measures).toBeDefined()
+    const meanKeys = Object.keys(meanAdornment!.measures)
     expect(meanKeys.length).toBeGreaterThan(0)
     meanKeys.forEach(key => {
       expect(isLegacyInstanceKey(key)).toBe(false)

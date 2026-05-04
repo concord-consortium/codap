@@ -501,51 +501,54 @@ branch must be created before any commits (translations, version files, etc.).
 
    Post to the `#codap-v3` channel in the Concord Consortium workspace (`concord-consortium.slack.com`).
 
+   **CRITICAL — every item MUST start with `- ` (hyphen + space).** Slack's
+   markdown renderer collapses consecutive non-list lines into a single
+   paragraph (joining `**CODAP-XXX:**` prefixes mid-sentence). Bullet lists
+   are rendered as discrete items, so the `- ` prefix is non-negotiable —
+   even when a section has only one item. Do NOT skip it because it "looks
+   redundant" with one item; the next release may add more, and the format
+   must be uniform.
+
    **If Slack MCP server is available:**
    - Ask user for permission to post
    - Post the announcement using `mcp__slack__conversations_add_message`
-   - **IMPORTANT:** Use `content_type: text/plain` (NOT `text/markdown`).
-     The `text/markdown` mode collapses single newlines, causing all items
-     to run together into one paragraph. With `text/plain`, Slack preserves
-     newlines and applies its native mrkdwn formatting.
-   - Use `channel_id: #codap-v3`
+   - Use `content_type: text/markdown` and `channel_id: #codap-v3`
 
    **If Slack MCP server is NOT available:**
    - Show the user a draft of the announcement
    - Instruct them to paste it into Slack manually
 
-   **Announcement format (Slack mrkdwn, NOT standard markdown):**
+   **Announcement format (standard markdown — same syntax as CHANGELOG):**
 
-   ```
+   ```markdown
    CODAP {version} is available for testing at https://codap3.concord.org/staging.
 
-   :sparkles: *Features & Improvements:*
-   *CODAP-XXX:* Feature title here
-   *CODAP-YYY:* Another feature
+   ### ✨ Features & Improvements:
+   - **CODAP-XXX:** Feature title here
+   - **CODAP-YYY:** Another feature
 
-   :ladybug: *Bug Fixes:*
-   *CODAP-AAA:* Bug fix title
-   *CODAP-BBB:* Another fix
+   ### 🐞 Bug Fixes:
+   - **CODAP-AAA:** Bug fix title
+   - **CODAP-BBB:** Another fix
 
-   :hammer_and_wrench: *Under the Hood:*
-   *CODAP-ZZZ:* Internal change
+   ### 🛠️ Under the Hood:
+   - **CODAP-ZZZ:** Internal change
 
-   The <https://codap3.concord.org/beta|beta> and <https://codap3.concord.org/|production> URLs will be updated once the staging build passes QA.
+   The [beta](https://codap3.concord.org/beta) and [production](https://codap3.concord.org/) URLs will be updated once the staging build passes QA.
    ```
-
-   **Slack mrkdwn differences from standard markdown:**
-   - Bold: `*text*` (single asterisk), not `**text**`
-   - Italic: `_text_` (underscore)
-   - Links: `<url|label>`, not `[label](url)`
-   - Emoji: `:sparkles:` `:ladybug:` `:hammer_and_wrench:` (not Unicode emoji)
-   - No `###` headings — use `*bold*` for section headers
 
    **Rules:**
    - Use the version number from this release (e.g., `3.0.0-beta.2664`)
    - Include only the sections that have items (Features, Bug Fixes, Under the Hood)
-   - Use the same titles and order as in CHANGELOG.md
-   - Each item on its own line with `**CODAP-XXX:**` prefix
+   - Use the same titles and order as in CHANGELOG.md (including emoji prefixes in section headers)
+   - Each item on its own line, prefixed with `- **CODAP-XXX:**` — every section, every item, no exceptions
    - End with the beta/production follow-up message (links should render in Slack)
+
+   **Self-check before posting** — count `\n- ` in your message body. The
+   count must equal the total number of items across all sections. If it
+   doesn't, you forgot the `- ` prefix on at least one item; fix it before
+   calling the tool. Show the exact text you will post to the user for
+   approval before calling `mcp__slack__conversations_add_message`.
 
 3. **Wait for external QA** (may take 1+ days)
 
@@ -783,13 +786,21 @@ Follow the same process as Phase 4:
    gh workflow run release-v3-staging.yml -f version={new-version}
    ```
 
-3. **Post updated Slack announcement** (same format as Phase 6, step 2, but note it's a revised build):
+3. **Post updated Slack announcement** (same format as Phase 6, step 2 — every item must use the `- **CODAP-XXX:**` bullet prefix). Note this is a revised build:
 
    ```markdown
    CODAP {new-version} is available for testing at https://codap3.concord.org/staging.
    (Revised build — replaces {old-version} which had a staging QA issue.)
 
-   {same release notes sections as before}
+   ### ✨ Features & Improvements:
+   - **CODAP-XXX:** Feature title here
+
+   ### 🐞 Bug Fixes:
+   - **CODAP-AAA:** Bug fix title
+   - **CODAP-BBB:** Another fix
+
+   ### 🛠️ Under the Hood:
+   - **CODAP-ZZZ:** Internal change
 
    The [beta](https://codap3.concord.org/beta) and [production](https://codap3.concord.org/) URLs will be updated once the staging build passes QA.
    ```

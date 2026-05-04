@@ -57,7 +57,7 @@ describe("useMapClickWithDoubleClickZoom", () => {
 
     // Second click with detail: 2 (browser-reported double-click)
     act(() => {
-      result.current.wrapClickHandler(onClick, createMouseEvent({ detail: 2 } as Partial<MouseEvent>))
+      result.current.wrapClickHandler(onClick, createMouseEvent({ detail: 2 }))
     })
 
     // Let all timers expire
@@ -77,7 +77,7 @@ describe("useMapClickWithDoubleClickZoom", () => {
 
     // Second click with detail: 2
     act(() => {
-      result.current.wrapClickHandler(onClick, createMouseEvent({ detail: 2 } as Partial<MouseEvent>))
+      result.current.wrapClickHandler(onClick, createMouseEvent({ detail: 2 }))
     })
 
     expect(leafletMap.setZoomAround).toHaveBeenCalledWith(expect.any(LatLng), 6)
@@ -90,13 +90,13 @@ describe("useMapClickWithDoubleClickZoom", () => {
 
     // First click with shift
     act(() => {
-      result.current.wrapClickHandler(onClick, createMouseEvent({ shiftKey: true } as Partial<MouseEvent>))
+      result.current.wrapClickHandler(onClick, createMouseEvent({ shiftKey: true }))
     })
 
     // Second click with shift + detail: 2
     act(() => {
       result.current.wrapClickHandler(onClick,
-        createMouseEvent({ shiftKey: true, detail: 2 } as Partial<MouseEvent>))
+        createMouseEvent({ shiftKey: true, detail: 2 }))
     })
 
     expect(leafletMap.setZoomAround).toHaveBeenCalledWith(expect.any(LatLng), 4)
@@ -137,7 +137,7 @@ describe("useMapClickWithDoubleClickZoom", () => {
 
     // Second click with detail: 2
     act(() => {
-      result.current.wrapClickHandler(onClick, createMouseEvent({ detail: 2 } as Partial<MouseEvent>))
+      result.current.wrapClickHandler(onClick, createMouseEvent({ detail: 2 }))
     })
 
     // Advance past the double-click delay to ensure no delayed callback fires

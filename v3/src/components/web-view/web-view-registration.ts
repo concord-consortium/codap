@@ -308,10 +308,10 @@ const webViewComponentHandler: DIComponentHandler = {
           items,
           type,
           URL: content.url,
-        } as V2Guide
+        }
       }
 
-      return { type, URL: content.url } as V2Game | V2Guide | V2WebView
+      return { type, URL: content.url }
     }
   },
 

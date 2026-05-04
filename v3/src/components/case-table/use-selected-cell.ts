@@ -61,12 +61,11 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
       const rowIdx = Math.max(0, selectedCell.current.rowIdx + (back ? -1 : 1))
       const nav = { idx, rowIdx }
       pendingNavigation.current = nav
-      // setTimeout so it occurs after handling of current event completes.
-      // If the target row doesn't exist yet (e.g. input row just created a new case
-      // and the grid hasn't re-rendered), the useEffect fallback will handle it.
-      setTimeout(() => {
-        attemptNavigation(nav, rows)
-      })
+      // Navigate synchronously so a keystroke between the Enter handler and selection
+      // move cannot enter edit mode on the old cell. If the target row doesn't exist yet
+      // (e.g. input row just created a new case and the grid hasn't re-rendered),
+      // attemptNavigation returns false and the useEffect fallback will handle it.
+      attemptNavigation(nav, rows)
     }
   }, [attemptNavigation, columns, rows])
 
@@ -90,11 +89,8 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
         : rightmost ? currentRowIdx + 1 : currentRowIdx
       const nav = { idx, rowIdx }
       pendingNavigation.current = nav
-      // setTimeout so it occurs after handling of current event completes.
-      // If the target row doesn't exist yet, the useEffect fallback will handle it.
-      setTimeout(() => {
-        attemptNavigation(nav, rows)
-      })
+      // Navigate synchronously; see navigateToNextRow for rationale.
+      attemptNavigation(nav, rows)
     }
   }, [attemptNavigation, columns, rows])
 
@@ -130,9 +126,9 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
     }
   }, [blockingDataset, refreshSelectedCellDebounced])
 
-  // In Safari, the setTimeout in navigateToNextRow/navigateToNextCell may fire before
-  // the grid has re-rendered with new rows (e.g. after input row creates a new case).
-  // This effect retries pending navigation when rows change.
+  // When sync navigation in navigateToNextRow/Cell finds the target row doesn't yet
+  // exist (e.g. after input row creates a new case and the grid hasn't re-rendered),
+  // this effect retries pending navigation when rows change.
   useEffect(() => {
     if (pendingNavigation.current && rows) {
       attemptNavigation(pendingNavigation.current, rows)

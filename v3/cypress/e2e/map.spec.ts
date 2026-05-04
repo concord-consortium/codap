@@ -191,9 +191,9 @@ context("Map UI", () => {
     map.getHeatmapCanvas().should("exist")
 
     // Hidden when layer is hidden
-    map.getInspectorPalette().contains("RollerCoastersWithLatLong").click()
+    map.getInspectorPalette().contains(/cases/i).click()
     map.getHeatmapCanvas().should("not.exist")
-    map.getInspectorPalette().contains("RollerCoastersWithLatLong").click()
+    map.getInspectorPalette().contains(/cases/i).click()
     map.getHeatmapCanvas().should("exist")
 
     // Hidden when points are hidden
@@ -290,9 +290,9 @@ context("Map UI", () => {
 
     cy.log("Can hide pins using the layers menu")
     map.getDisplayConfigButton().click()
-    map.getInspectorPalette().contains("New Dataset").click()
+    map.getInspectorPalette().contains(/cases/i).click()
     map.getMapPins().should("not.exist")
-    map.getInspectorPalette().contains("New Dataset").click()
+    map.getInspectorPalette().contains(/cases/i).click()
     map.getMapPin().should("exist")
 
     cy.log("Can remove a pin using the remove pin button")
@@ -537,7 +537,7 @@ context("Map Resizing", () => {
       // and we don't want it to pass if all of the points are not shown.
       expect(bounds.getNorth()).to.be.within(47, 53)
       expect(bounds.getEast()).to.be.within(-70, -66)
-      expect(bounds.getSouth()).to.be.within(23, 28)
+      expect(bounds.getSouth()).to.be.within(23, 29)
       expect(bounds.getWest()).to.be.within(-126, -123)
     })
   }

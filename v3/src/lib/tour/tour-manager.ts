@@ -229,7 +229,7 @@ class TourManager {
       highlightId: values.id, highlightTarget: targetProp
     }
 
-    driverObj.highlight({ element: element as HTMLElement, popover })
+    driverObj.highlight({ element, popover })
 
     this.notify(tile, {
       operation: "highlightUpdate", type: "highlighted",
@@ -271,7 +271,7 @@ class TourManager {
       if (!element) continue
       filteredSteps.push({
         driverStep: {
-          element: element as HTMLElement,
+          element,
           popover: this.buildPopover(step),
           ...(step.disableActiveInteraction != null && { disableActiveInteraction: step.disableActiveInteraction }),
           ...(step.stagePadding != null && { stagePadding: step.stagePadding }),

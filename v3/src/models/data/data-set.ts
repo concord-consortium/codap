@@ -139,7 +139,7 @@ export const nullItemData: IItemData = {
   getValue: () => "",
   addItemInfo: () => {},
   invalidate: () => {}
-} as IItemData
+}
 
 export const DataSet = V2UserTitleModel.named("DataSet").props({
   id: typeV3Id("DATA"),
@@ -1202,6 +1202,11 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
 
           // remove attribute from attributesMap
           self.attributesMap.delete(attribute.id)
+
+          // signal cache invalidation so consumers (e.g., data display value caches,
+          // filtered cases) can react via the canonical validation signal rather than
+          // each listening for the removeAttribute action specifically.
+          self.invalidateCases()
         }
         return result
       },

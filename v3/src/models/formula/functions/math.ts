@@ -23,6 +23,7 @@ import { lookupFunctions } from "./lookup-functions"
 import { operators } from "./operators"
 import { otherFunctions } from "./other-functions"
 import { stringFunctions } from "./string-functions"
+import { trigFunctions } from "./trig-functions"
 import { univariateStatsFunctions } from "./univariate-stats-functions"
 
 export const math = create({
@@ -98,6 +99,8 @@ export const fnRegistry = {
   ...operators,
 
   ...arithmeticFunctions,
+
+  ...trigFunctions,
 
   ...logicFunctions,
 

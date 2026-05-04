@@ -325,6 +325,8 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, hookOptions?: IUs
         renderRoot(rootRef.current, content)
       },
       appSetsWindowTitle: true, // CODAP takes responsibility for the window title
+      // CODAP v3 does not reload on language change, so the save-before-change behavior is unnecessary.
+      saveOnLanguageChange: false,
       wrapFileContent: false,
       isClientContent(content: unknown) {
         if (!content || typeof content !== "object") return false
@@ -402,7 +404,10 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, hookOptions?: IUs
     if (!laraForwardingRegistered) {
       laraForwardingRegistered = true
       Logger.registerLogListener((logMessage) => {
-        cfm.client?.log(logMessage.event, logMessage)
+        // NOTE: we have to destructure the parameters back into a plain object which CFM/AP
+        // will restructure back in its log message processing.  The rest of the CODAP log message
+        // is not forwarded since CFM/AP will use its own values for the other fields.
+        cfm.client?.log(logMessage.event, logMessage.parameters ?? {})
       })
     }
 

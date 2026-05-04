@@ -39,7 +39,7 @@ describe("DataInteractive CaseHandler", () => {
     // creating a single parent case
     const result2 = handler.create?.({ dataContext: dataset, collection: c1 }, {
       values: { a1: "d", a2: "d", a3: 8 }
-    } as DIValues)
+    })
     expect(result2?.success).toBe(true)
     expect(dataset.items.length).toBe(9)
     expect(dataset.getCasesForCollection(c1.id).length).toBe(4)
@@ -52,7 +52,7 @@ describe("DataInteractive CaseHandler", () => {
       {
         parent: dataset.getCasesForCollection(c1.id)[0].__id__,
         values: { a2: "e", a3: 9 }
-      } as DIValues
+      }
     )
     expect(result3?.success).toBe(true)
     expect(dataset.items.length).toBe(10)
@@ -128,7 +128,7 @@ describe("DataInteractive CaseHandler", () => {
 
     // Update single case
     const caseId0 = dataset.items[0].__id__
-    const result = handler.update?.({ dataContext: dataset }, { id: toV2Id(caseId0), values: { a3: 10 } } as DIValues)
+    const result = handler.update?.({ dataContext: dataset }, { id: toV2Id(caseId0), values: { a3: 10 } })
     expect(result?.success).toBe(true)
     expect(dataset.getAttributeByName("a3")?.value(0)).toBe(10)
     expect((result as DISuccessResult).caseIDs?.includes(toV2Id(caseId0))).toBe(true)

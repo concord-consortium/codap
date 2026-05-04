@@ -270,6 +270,39 @@ context("Graph adornments", () => {
     cy.get("*[data-testid^=movable-line-squares]").should("not.exist")
     cy.get("[data-testid=adornment-checkbox-squares-of-residuals]").find("input").should("have.attr", "disabled")
   })
+  it("renders squares of residuals for plotted function and clears the sum-of-squares text when toggled off", () => {
+    c.selectTile("graph", 0)
+    cy.dragAttributeToTarget("table", "Speed", "bottom")
+    cy.dragAttributeToTarget("table", "Mass", "left")
+    graph.getDisplayValuesButton().click()
+
+    // Add a plotted function with a constant value
+    graph.getInspectorPalette().find("[data-testid=adornment-checkbox-plotted-function]").click()
+    cy.get("[data-testid=plotted-function-control-value]").click()
+    cy.get("[data-testid=formula-editor-input] .cm-content").should("be.visible").and("have.focus")
+    cy.get("[data-testid=formula-editor-input] .cm-content").realType("10")
+    cy.get("[data-testid=Apply-button]").click()
+    cy.get("*[data-testid^=plotted-function-path]").should("exist")
+
+    // Re-open the inspector palette (it closes when the formula editor's Apply button is clicked)
+    graph.getDisplayValuesButton().click()
+    graph.getInspectorPalette().should("be.visible")
+
+    // Enable Squares of Residuals — squares should render for the plotted function in steel blue
+    cy.get("[data-testid=adornment-checkbox-squares-of-residuals]").find("input")
+      .should("not.have.attr", "disabled")
+    cy.get("[data-testid=adornment-checkbox-squares-of-residuals]").click()
+    cy.get("*[data-testid^=function-squares]").should("exist")
+    cy.get("*[data-testid^=function-squares]").find("rect").should("have.length.greaterThan", 0)
+    cy.get("*[data-testid^=function-squares]").find("rect").first()
+      .should("have.attr", "stroke", "#4682b4")
+    cy.get("*[data-testid^=plotted-functions-residuals-]").should("contain.text", "Sum of squares")
+
+    // Toggle Squares of Residuals off — both the squares and the sum-of-squares text should disappear
+    cy.get("[data-testid=adornment-checkbox-squares-of-residuals]").click()
+    cy.get("*[data-testid^=function-squares]").should("not.exist")
+    cy.get("*[data-testid^=plotted-functions-residuals-]").should("be.empty")
+  })
 
   it("adds connecting lines to the plot when the Connecting Lines checkbox is checked", () => {
     c.selectTile("graph", 0)

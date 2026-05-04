@@ -30,17 +30,18 @@ context("Formula Engine", () => {
     table.addNewAttribute()
     table.renameAttribute("newAttr", "frac")
     table.addFormula("frac", "frac(num)")
-    table.verifyFormulaValues("frac", [0, 0, 0, 0, "−0.15", 0.98, "−0.57", "NaN", "NaN", "", ""])
+    // NaN renders as empty in numeric/formula attributes (CODAP-1286, V2 parity)
+    table.verifyFormulaValues("frac", [0, 0, 0, 0, "−0.15", 0.98, "−0.57", "", "", "", ""])
 
     table.addNewAttribute()
     table.renameAttribute("newAttr", "ln")
     table.addFormula("ln", "ln(num)")
-    table.verifyFormulaValues("ln", [0.69, 0, "-Infinity", "NaN", "NaN", "−0.02", "NaN", "Infinity", "NaN", "", ""])
+    table.verifyFormulaValues("ln", [0.69, 0, "-Infinity", "", "", "−0.02", "", "Infinity", "", "", ""])
 
     table.addNewAttribute()
     table.renameAttribute("newAttr", "log")
     table.addFormula("log", "log(num)")
-    table.verifyFormulaValues("log", [0.30, 0, "-Infinity", "NaN", "NaN", "−0.01", "NaN", "Infinity", "NaN", "", ""])
+    table.verifyFormulaValues("log", [0.30, 0, "-Infinity", "", "", "−0.01", "", "Infinity", "", "", ""])
 
     table.addNewAttribute()
     table.renameAttribute("newAttr", "pow")
@@ -55,7 +56,7 @@ context("Formula Engine", () => {
     table.addNewAttribute()
     table.renameAttribute("newAttr", "sqrt")
     table.addFormula("sqrt", "sqrt(num)")
-    table.verifyFormulaValues("sqrt", [1.41, 1, 0, "NaN", "NaN", 0.99, "NaN", "Infinity", "NaN", "", ""])
+    table.verifyFormulaValues("sqrt", [1.41, 1, 0, "", "", 0.99, "", "Infinity", "", "", ""])
 
     table.addNewAttribute()
     table.renameAttribute("newAttr", "trunc")

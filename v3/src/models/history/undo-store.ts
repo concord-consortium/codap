@@ -1,4 +1,4 @@
-import { types, Instance, flow, getParent, IAnyStateTreeNode, getType } from "mobx-state-tree"
+import { types, Instance, flow, getParent, getType } from "mobx-state-tree"
 import { nanoid } from "nanoid"
 import { HistoryEntry, HistoryEntryType, HistoryOperation } from "./history"
 // eslint-disable-next-line import-x/no-cycle
@@ -185,7 +185,7 @@ export const UndoStore = types
 
       if (entryToUndo.customPatches?.length) {
         const manager: Instance<typeof TreeManager> = getParent(self)
-        const document = manager.mainDocument as IAnyStateTreeNode | undefined
+        const document = manager.mainDocument
         const patchCount = entryToUndo.customPatches.length
         for (let patchIdx = patchCount - 1; patchIdx >= 0; --patchIdx) {
           const patch = entryToUndo.customPatches[patchIdx]
@@ -219,7 +219,7 @@ export const UndoStore = types
 
       if (entryToRedo.customPatches?.length) {
         const manager: Instance<typeof TreeManager> = getParent(self)
-        const document = manager.mainDocument as IAnyStateTreeNode | undefined
+        const document = manager.mainDocument
         const patchCount = entryToRedo.customPatches.length
         for (let patchIdx = patchCount - 1; patchIdx >= 0; --patchIdx) {
           const patch = entryToRedo.customPatches[patchIdx]

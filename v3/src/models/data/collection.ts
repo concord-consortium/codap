@@ -151,7 +151,7 @@ export const CollectionModel = V2Model
     return self.attributes.find(attribute => attribute?.name === name)
   },
   get attributesArray(): IAttribute[] {
-    return Array.from(self.attributes).filter(attr => !!attr) as IAttribute[]
+    return Array.from(self.attributes).filter(attr => !!attr)
   },
   // non-formula attributes
   get dataAttributesArray(): IAttribute[] {

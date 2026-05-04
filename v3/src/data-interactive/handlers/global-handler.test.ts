@@ -13,7 +13,7 @@ describe("DataInteractive GlobalHandler", () => {
     const create = (values: DIValues) => handler.create?.({}, values)
 
     // Values must be numbers
-    expect(create({ name: name1, value: "a" } as DIValues)?.success).toBe(false)
+    expect(create({ name: name1, value: "a" })?.success).toBe(false)
     expect(create({ name: name1, value: value1 })?.success).toBe(true)
 
     // Names must be unique
@@ -39,7 +39,7 @@ describe("DataInteractive GlobalHandler", () => {
     expect(handler.update?.(resources, {}).success).toBe(false)
 
     // Value must be a number
-    expect(handler.update?.(resources, { value: "a" } as DIValues).success).toBe(false)
+    expect(handler.update?.(resources, { value: "a" }).success).toBe(false)
 
     expect(handler.update?.(resources, { value: value2 }).success).toBe(true)
     expect(global1?.value).toBe(value2)

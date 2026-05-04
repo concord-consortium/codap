@@ -8,8 +8,7 @@ import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { setupTestDataset } from "../../test/dataset-test-utils"
 import { toV2Id } from "../../utilities/codap-utils"
 import { ICodapV2DataContext } from "../../v2/codap-v2-data-context-types"
-import { DIDataContext, DIUpdateDataContext } from "../data-interactive-data-set-types"
-import { DIValues } from "../data-interactive-types"
+import { DIDataContext } from "../data-interactive-data-set-types"
 import { diDataContextHandler } from "./data-context-handler"
 
 import "../../components/web-view/web-view-registration"
@@ -59,7 +58,7 @@ describe("DataInteractive DataContextHandler", () => {
           attrs: [{ name: "attr3" }, { name: "attr4" }]
         }
       ]
-    } as DIValues)
+    })
     expect(result3?.success).toBe(true)
     expect(gDataBroker.length).toBe(1)
     const defaultName = "Data_Set_1"
@@ -167,13 +166,13 @@ describe("DataInteractive DataContextHandler", () => {
     expect(dataContext.managingControllerId).toBe("")
 
     // Sort works
-    expect(update({ dataContext }, { sort: {} } as DIUpdateDataContext).success).toBe(false)
-    expect(update({ dataContext }, { sort: { attr: "fake" } } as DIUpdateDataContext).success).toBe(false)
+    expect(update({ dataContext }, { sort: {} }).success).toBe(false)
+    expect(update({ dataContext }, { sort: { attr: "fake" } }).success).toBe(false)
     expect(dataContext.attrFromName("a1")?.strValues[0]).toBe("a")
-    expect(update({ dataContext }, { sort: { attr: "a1", isDescending: true } } as DIUpdateDataContext).success)
+    expect(update({ dataContext }, { sort: { attr: "a1", isDescending: true } }).success)
       .toBe(true)
     expect(dataContext.attrFromName("a1")?.strValues[0]).toBe("b")
-    expect(update({ dataContext }, { sort: { attr: "a1" } } as DIUpdateDataContext).success).toBe(true)
+    expect(update({ dataContext }, { sort: { attr: "a1" } }).success).toBe(true)
     expect(dataContext.attrFromName("a1")?.strValues[0]).toBe("a")
   })
 })

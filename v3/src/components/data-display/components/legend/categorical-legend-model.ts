@@ -7,6 +7,7 @@ import { getStringBounds } from "../../../axis/axis-utils"
 import { kMain, kDataDisplayFont } from "../../data-display-types"
 import { IDataConfigurationModel } from "../../models/data-configuration-model"
 import { DataDisplayLayout } from "../../models/data-display-layout"
+import { kLegendLabelTopPadding } from "./legend-common"
 
 import vars from "../../../vars.scss"
 
@@ -27,7 +28,7 @@ interface Layout {
 
 export const keySize = 15
 export const padding = 5
-export const labelHeight = getStringBounds('Wy', vars.labelFont).height + axisGap
+export const labelHeight = getStringBounds('Wy', vars.labelFont).height + axisGap + kLegendLabelTopPadding
 
 export class CategoricalLegendModel {
   dragInfo = {
