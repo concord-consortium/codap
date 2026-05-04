@@ -163,11 +163,23 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
               {"y-axis": primaryAttrRole === "y" && numBins > 1},
               {"binned-points-count": !!isBinnedPlot}
             )
-            const lowerPixels = isFiniteNumber(startFraction)
-                ? range[0] + startFraction * (range[1] - range[0]) : width * i,
-              upperPixels = isFiniteNumber(endFraction)
-                ? range[0] + endFraction * (range[1] - range[0]) : width * (i + 1),
-              widthPixels = upperPixels - lowerPixels
+            const hasFractions = isFiniteNumber(startFraction) && isFiniteNumber(endFraction)
+            // For x-primary the scale range is [0, length], so range[0] + f*(range[1]-range[0]) = f*length,
+            // which matches CSS `left`. For y-primary the d3 range is [length, 0], but the count div uses
+            // CSS `bottom` (measured from the bottom of the parent), so the lower pixel value should grow
+            // with the fraction. Compute pixels accordingly for each axis.
+            const axisLength = Math.abs(range[1] - range[0])
+            const lowerPixels = hasFractions
+              ? primaryAttrRole === "x"
+                ? range[0] + startFraction * (range[1] - range[0])
+                : startFraction * axisLength
+              : width * i
+            const upperPixels = hasFractions
+              ? primaryAttrRole === "x"
+                ? range[0] + endFraction * (range[1] - range[0])
+                : endFraction * axisLength
+              : width * (i + 1)
+            const widthPixels = upperPixels - lowerPixels
             const style = primaryAttrRole === "x"
               ? {left: `${lowerPixels}px`, width: `${widthPixels}px`}
               : {bottom: `${lowerPixels}px`, height: `${widthPixels}px`}

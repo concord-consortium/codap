@@ -21,7 +21,7 @@ export const diItemHandler: DIHandler = {
       if (typeof item.values === "object") {
         newItem = item.values as DIItem
       } else {
-        newItem = item as DIItem
+        newItem = item
       }
 
       // If an id is specified, we need to put it in the right format

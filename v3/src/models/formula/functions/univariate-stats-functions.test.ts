@@ -121,23 +121,23 @@ describe("min", () => {
 describe("percentile", () => {
   it("returns correct value", () => {
     expect(evaluate("percentile(Speed, 0)")).toBeCloseTo(1)
-    expect(evaluate("percentile(Speed, 50)")).toBeCloseTo(49)
-    expect(evaluate("percentile(Speed, 100)")).toBeCloseTo(110)
+    expect(evaluate("percentile(Speed, 0.5)")).toBeCloseTo(49)
+    expect(evaluate("percentile(Speed, 1)")).toBeCloseTo(110)
   })
 
   it("supports filter expression", () => {
     expect(evaluate("percentile(Speed, 0, Diet = 'plants')")).toBeCloseTo(40)
-    expect(evaluate("percentile(Speed, 50, Diet = 'plants')")).toBeCloseTo(50)
-    expect(evaluate("percentile(Speed, 100, Diet = 'plants')")).toBeCloseTo(98)
+    expect(evaluate("percentile(Speed, 0.5, Diet = 'plants')")).toBeCloseTo(50)
+    expect(evaluate("percentile(Speed, 1, Diet = 'plants')")).toBeCloseTo(98)
   })
 
   it("ignores non-numeric values", () => {
-    expect(evaluate("percentile(Diet, 50)")).toEqual(UNDEF_RESULT)
+    expect(evaluate("percentile(Diet, 0.5)")).toEqual(UNDEF_RESULT)
   })
 
   it("supports single value argument", () => {
-    expect(evaluate("percentile(1, 50, true)")).toEqual(1)
-    expect(evaluate("percentile(1, 50, false)")).toEqual(UNDEF_RESULT)
+    expect(evaluate("percentile(1, 0.5, true)")).toEqual(1)
+    expect(evaluate("percentile(1, 0.5, false)")).toEqual(UNDEF_RESULT)
   })
 })
 

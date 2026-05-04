@@ -1,4 +1,4 @@
-import React, { ChangeEvent, RefObject, useCallback, useEffect, useRef, useState } from "react"
+import React, { ChangeEvent, useCallback, useEffect, useRef, useState } from "react"
 import { Button, DialogTrigger, Popover } from "react-aria-components"
 import { textEditorClassname } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
@@ -70,7 +70,7 @@ export default function ColorTextEditor({attributeId, caseId, value, acceptValue
   const isSubmittingRef = useRef(false)
   const colorEditorRef = useRef<HTMLDivElement>(null)
   useOutsidePointerDown({
-    ref: colorEditorRef as unknown as RefObject<HTMLElement>,
+    ref: colorEditorRef,
     handler: () => handleSubmit(inputValue as string),
     info: { name: "ColorTextEditor", attributeId, attributeName: attribute?.name }
   })

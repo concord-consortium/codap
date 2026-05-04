@@ -110,9 +110,27 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     metadata = dataConfiguration?.metadata,
     instanceId = useInstanceIdContext()
 
+  // Suppresses updateMasks while a category-set change is in flight. The delayed
+  // callback in respondToCategorySetChanges owns the mask reapply in that case; running
+  // updateCellMasks sooner would reapply masks against stale state.subPlotNum values,
+  // clipping sprites to their old cells as they animate to their new positions.
+  const categorySetChangeInFlightRef = useRef(false)
+
   const callRefreshPointPositions = useAccumulatingDebouncedCallback((_props: IRefreshProps) => {
     const { selectedOnly = false, updateMasks = false } = _props
-    if (updateMasks) {
+    // If the flag is set but no animation is actually running, the delayed cleanup
+    // was cancelled (e.g., by a point-drag calling stopAnimation). Heal it here so
+    // we don't suppress mask updates indefinitely. Sync subPlotNums and reapply masks
+    // together so rendered sprite masks match state — syncing one without the other
+    // leaves a stale pairing that later mask reapplications (e.g., on resize) would bake in.
+    if (categorySetChangeInFlightRef.current && !graphModel.animationTimerId) {
+      categorySetChangeInFlightRef.current = false
+      if (renderer) {
+        renderer.updateSubPlotNums(dataConfiguration.caseDataWithSubPlot)
+        updateCellMasks({ dataConfig: dataConfiguration, layout, renderer })
+      }
+    }
+    if (updateMasks && !categorySetChangeInFlightRef.current) {
       updateCellMasks({ dataConfig: dataConfiguration, layout, renderer })
     }
     refreshPointPositions(selectedOnly)
@@ -149,9 +167,11 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
 
     if (rendererChanged) {
       callMatchCirclesToData()
+      // Update masks with new renderer. Only needed when the renderer actually changes;
+      // running it on every callback-identity change reapplies masks against stale
+      // state.subPlotNum values mid-category-reorder (see respondToCategorySetChanges).
+      updateCellMasks({ dataConfig: dataConfiguration, layout, renderer })
     }
-    // Update masks with new renderer
-    updateCellMasks({ dataConfig: dataConfiguration, layout, renderer })
     // Call refreshPointPositions directly to ensure it uses the new renderer
     refreshPointPositions(false)
     // Defer refreshPointSelection to run after any other synchronous matchCirclesToData calls
@@ -194,7 +214,9 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     return mstReaction(() => {
       return [dataConfiguration.allCategoriesForRoles, dataConfiguration.categoricalAttrsWithChangeCounts]
     }, () => {
+      categorySetChangeInFlightRef.current = true
       const updateMasksCallback = () => {
+        categorySetChangeInFlightRef.current = false
         if (!renderer) return
         // Update subPlotNum values in state before updating masks
         // This ensures sprites get assigned to the correct masks after category reordering

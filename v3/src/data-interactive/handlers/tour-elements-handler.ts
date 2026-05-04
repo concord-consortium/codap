@@ -17,7 +17,7 @@ function flattenRegistry(): Record<string, ITourElement> {
 
 export const diTourElementsHandler: DIHandler = {
   get() {
-    return { success: true, values: flattenRegistry() as any }
+    return { success: true, values: flattenRegistry() }
   }
 }
 

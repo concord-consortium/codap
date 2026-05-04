@@ -188,7 +188,7 @@ export const formulaIndexOf = (formula: string, name: string, isStringConstant: 
 
 // Maps user-facing function names to internal canonical names that avoid collisions with mathjs internals.
 // For example, "number" collides with mathjs's internal number() used by the parser for numeric conversion.
-const fnDisplayToCanonical: Record<string, string> = { number: "_number_" }
+export const fnDisplayToCanonical: Record<string, string> = { number: "_number_" }
 const fnCanonicalToDisplay: Record<string, string> = { _number_: "number" }
 
 // Function replaces all the symbol names typed by user (display names) with the symbol canonical names that

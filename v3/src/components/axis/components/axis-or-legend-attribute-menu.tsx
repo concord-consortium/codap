@@ -1,3 +1,4 @@
+import { useDndContext } from "@dnd-kit/core"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { Menu, MenuItem, MenuList, MenuButton, MenuDivider, Portal } from "@chakra-ui/react"
@@ -201,8 +202,10 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   const buttonStyle: CSSProperties = { width: "100%", height: "100%", color: "transparent" }
   const menuRef = useRef<HTMLDivElement>(null)
   const mainMenuListRef = useRef<HTMLDivElement>(null)
+  const overlayRef = useRef<HTMLDivElement | null>(null)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const onCloseMenuRef = useRef<() => void>()
+  const { active: dndActive } = useDndContext()
   const [openCollectionId, setOpenCollectionId] = React.useState<string | null>(null)
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const adjustedMainMenuHeight = useMenuHeightAdjustment({
@@ -282,6 +285,24 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
       target?.classList.remove("hovered")
     }
   }, [isMenuOpen, target])
+
+  // Strip hover/focus state while a drag is in progress, so the label doesn't
+  // compete visually with the drop-zone outline. On drag end, restore the
+  // focus ring if the button is still keyboard-focused (e.g. after an Escape
+  // cancel by a keyboard user).
+  useEffect(() => {
+    if (!target) return
+    if (dndActive) {
+      target.classList.remove("hovered")
+      target.classList.remove("focused")
+    } else {
+      const overlay = overlayRef.current
+      const active = document.activeElement
+      if (overlay && active instanceof Element && overlay.contains(active) && active.matches(":focus-visible")) {
+        target.classList.add("focused")
+      }
+    }
+  }, [dndActive, target])
 
   useOutsidePointerDown({
     ref: menuRef,
@@ -376,6 +397,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   }
 
   const handlePointerEnter = () => {
+    if (dndActive) return
     target?.classList.add("hovered")
   }
 
@@ -383,8 +405,11 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
     target?.classList.remove("hovered")
   }
 
-  const handleFocusCapture = () => {
-    target?.classList.add("focused")
+  const handleFocusCapture = (event: React.FocusEvent<HTMLDivElement>) => {
+    // Only show the focus ring for keyboard-driven focus, not mouse clicks.
+    if (event.target.matches(":focus-visible")) {
+      target?.classList.add("focused")
+    }
   }
 
   const handleBlurCapture = () => {
@@ -400,7 +425,8 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
           }
           onCloseMenuRef.current = onClose
           return (
-            <div className={`attribute-label-menu ${place}`} ref={setDragNodeRef}
+            <div className={`attribute-label-menu ${place}`}
+                ref={el => { setDragNodeRef(el); overlayRef.current = el }}
                 style={overlayStyle} {...attributes} {...listeners}
                 onPointerEnter={handlePointerEnter}
                 onPointerLeave={handlePointerLeave}

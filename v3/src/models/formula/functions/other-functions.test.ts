@@ -10,6 +10,17 @@ describe("if", () => {
     const fn2 = math.compile("if('', 'foo', 'bar')")
     expect(fn2.evaluate()).toEqual("")
   })
+
+  it("treats NaN conditions as falsy (V2 parity)", () => {
+    // 0/0 → NaN; relational operators propagate NaN (CODAP-1286). Without explicit NaN handling
+    // in if(), Number(NaN) !== 0 evaluates to true and the condition incorrectly takes the
+    // truthy branch.
+    const fn = math.compile("if(0/0 < 0, 'true_branch', 'false_branch')")
+    expect(fn.evaluate()).toEqual("false_branch")
+
+    const fn2 = math.compile("if(0/0, 'true_branch', 'false_branch')")
+    expect(fn2.evaluate()).toEqual("false_branch")
+  })
 })
 
 describe("randomPick", () => {
@@ -80,6 +91,24 @@ describe("number", () => {
   it("returns UNDEF_RESULT for non-date values", () => {
     const fn = math.compile("_number_('foo')")
     expect(fn.evaluate()).toEqual(UNDEF_RESULT)
+  })
+})
+
+describe("string", () => {
+  it("converts numbers to strings", () => {
+    expect(math.evaluate("string(42)")).toEqual("42")
+    expect(math.evaluate("string(-3.14)")).toEqual("-3.14")
+    expect(math.evaluate("string(0)")).toEqual("0")
+  })
+  it("returns string arguments unchanged", () => {
+    expect(math.evaluate("string('hello')")).toEqual("hello")
+  })
+  it("converts booleans to 'true'/'false'", () => {
+    expect(math.evaluate("string(true)")).toEqual("true")
+    expect(math.evaluate("string(false)")).toEqual("false")
+  })
+  it("returns UNDEF_RESULT for empty input", () => {
+    expect(math.evaluate("string('')")).toEqual(UNDEF_RESULT)
   })
 })
 

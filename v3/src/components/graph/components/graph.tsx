@@ -406,14 +406,14 @@ export const Graph = observer(function Graph({
   const { dataSet: dragDataSet, attributeId: dragAttrId } = getDragAttributeInfo(active) || {}
   const isDropAllowed = graphModel.dataConfiguration.placeCanAcceptAttributeIDDrop
   const hasTopDropZone = plotType !== "casePlot"
-    && !graphModel.getAxis("top" as AxisPlace)
+    && !graphModel.getAxis("top")
     && !!dragAttrId
     && isDropAllowed("top", dragDataSet, dragAttrId)
   const hasRightDropZone = plotType !== "casePlot" && (
-    (!graphModel.getAxis("rightCat" as AxisPlace)
+    (!graphModel.getAxis("rightCat")
       && !!dragAttrId
       && isDropAllowed("rightCat", dragDataSet, dragAttrId)) ||
-    (plotType === "scatterPlot" && !graphModel.getAxis("rightNumeric" as AxisPlace)
+    (plotType === "scatterPlot" && !graphModel.getAxis("rightNumeric")
       && !!dragAttrId
       && isDropAllowed("rightNumeric", dragDataSet, dragAttrId))
   )

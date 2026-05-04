@@ -3,6 +3,7 @@
  */
 import {Instance, SnapshotIn, types} from "mobx-state-tree"
 import {GeoJSON} from "leaflet"
+import {ICollectionModel} from "../../../models/data/collection"
 import {IDataSet} from "../../../models/data/data-set"
 import {getMetadataFromDataSet} from "../../../models/shared/shared-data-utils"
 import {IDataDisplayLayerModel} from "../../data-display/models/data-display-layer-model"
@@ -16,6 +17,8 @@ export const MapPolygonLayerModel = MapLayerModel
   })
   .volatile(() => ({
     // Key is case ID
+    // assertion is load-bearing: MST otherwise infers {} which can't be indexed by string
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     features: {} as Record<string, GeoJSON>
   }))
   .actions(self => ({
@@ -35,6 +38,10 @@ export const MapPolygonLayerModel = MapLayerModel
     },
     get polygonDescription() {
       return self.displayItemDescription
+    },
+    get titleCollection(): Maybe<ICollectionModel> {
+      const polygonId = self.dataConfiguration.attributeID('polygon')
+      return polygonId ? self.dataConfiguration.dataset?.getCollectionForAttribute(polygonId) : undefined
     }
   }))
 

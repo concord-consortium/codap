@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react"
+import { act, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { ColorPickerPalette } from "./color-picker-palette"
 
@@ -266,7 +266,7 @@ describe("ColorPickerPalette", () => {
     render(<ColorPickerPalette {...defaultProps} />)
 
     const swatch = screen.getByRole("option", { name: "Black" })
-    swatch.focus()
+    act(() => { swatch.focus() })
     await user.keyboard("{Escape}")
 
     expect(defaultProps.onReject).toHaveBeenCalled()

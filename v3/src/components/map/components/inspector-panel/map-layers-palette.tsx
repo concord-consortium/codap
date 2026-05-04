@@ -60,7 +60,7 @@ export const MapLayersPalette = observer(function MapLayersPalette(
                 })
               }}
             >
-              {layer.dataConfiguration.dataset?.name ?? t("DG.Inspector.defaultLayerName")}
+              {layer.titleCollection?.title ?? t("DG.Inspector.defaultLayerName")}
             </PaletteCheckbox>
             {renderOneFormatControl(layer)}
           </div>)

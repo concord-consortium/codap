@@ -66,7 +66,7 @@ describe("evaluateToEvaluateRaw", () => {
     const currentScope = { a: scope, b: new Map() } as any as MathJSPartitionedMap
     const mockFn = jest.fn((a: FValueOrArray, b: FValueOrArray) => Number(a) + Number(b))
 
-    const res = evaluateToEvaluateRaw(mockFn)(args as any as MathNode[], mathjs, currentScope)
+    const res = evaluateToEvaluateRaw(mockFn)(args, mathjs, currentScope)
     expect(mockFn).toHaveBeenCalledWith(1, 2)
     expect(res).toEqual(3)
   })

@@ -1,5 +1,28 @@
 # Changelog
 
+## Version 3.0.0-beta.2845 - April 26, 2026
+
+### ✨ Features & Improvements:
+- **CODAP-1137:** Improve graph axis label styling
+
+### 🐞 Bug Fixes:
+- **CODAP-269:** Prevent map data tips from being clipped by the component
+- **CODAP-566:** Improve drag overlay and drop zone styling
+- **CODAP-1214:** Show all points when transitioning from bar to dot chart
+- **CODAP-1225:** Fix case table edit focus handling
+- **CODAP-1240:** Fix case table tooltip positioning
+- **CODAP-1249:** Use collection name for map layer palette labels
+- **CODAP-1255:** Keep graph points visible while reordering categories
+
+### 🛠️ Under the Hood:
+- **CODAP-1252:** Reduce redundant work during document save
+
+### Asset Sizes
+|      File |          Size | % Change from Previous Release |
+|-----------|---------------|--------------------------------|
+|  main.css |  239045 bytes |                         -0.57% |
+|  index.js | 7446530 bytes |                          0.49% |
+
 ## Version 3.0.0-beta.2832 - April 20, 2026
 
 ### ✨ Features & Improvements:

@@ -2,6 +2,7 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "sourceMap": false,
+    "skipLibCheck": true,
     "types": ["cypress", "cypress-real-events"]
   },
   "include": [

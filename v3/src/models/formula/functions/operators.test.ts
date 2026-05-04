@@ -23,11 +23,22 @@ describe("< operator", () => {
     expect(f2.evaluate()).toBe(false)
     const f3 = math.compile("2 < 1")
     expect(f3.evaluate()).toBe(false)
-    // NaN comparisons are always false
+    // NaN propagates as NaN
     const f4 = math.compile("0/0 < 0")
-    expect(f4.evaluate()).toBe(false)
+    expect(f4.evaluate()).toBeNaN()
     const f5 = math.compile("0 < 0/0")
-    expect(f5.evaluate()).toBe(false)
+    expect(f5.evaluate()).toBeNaN()
+  })
+  it("propagates empty values", () => {
+    expect(math.compile("'' < 30").evaluate()).toEqual("")
+    expect(math.compile("30 < ''").evaluate()).toEqual("")
+    expect(math.compile("'' < ''").evaluate()).toEqual("")
+    // empty paired with a non-numeric string falls through to lexical comparison (V2 parity)
+    expect(math.compile("'' < 'abc'").evaluate()).toBe(true)
+    // null/undefined operands normalize to "" for the lexical comparison rather than
+    // stringifying as "null"/"undefined"
+    expect(math.compile("x < 'abc'").evaluate({ x: null })).toBe(true)
+    expect(math.compile("x < 'abc'").evaluate({ x: undefined })).toBe(true)
   })
   it("compares dates numerically", () => {
     const f1 = math.compile("today() < today()")
@@ -65,11 +76,18 @@ describe("<= operator", () => {
     expect(f2.evaluate()).toBe(true)
     const f3 = math.compile("2 <= 1")
     expect(f3.evaluate()).toBe(false)
-    // NaN comparisons are always false
+    // NaN propagates as NaN
     const f4 = math.compile("0/0 <= 0")
-    expect(f4.evaluate()).toBe(false)
+    expect(f4.evaluate()).toBeNaN()
     const f5 = math.compile("0 <= 0/0")
-    expect(f5.evaluate()).toBe(false)
+    expect(f5.evaluate()).toBeNaN()
+  })
+  it("propagates empty values", () => {
+    expect(math.compile("'' <= 30").evaluate()).toEqual("")
+    expect(math.compile("30 <= ''").evaluate()).toEqual("")
+    expect(math.compile("'' <= ''").evaluate()).toEqual("")
+    // empty paired with a non-numeric string falls through to lexical comparison (V2 parity)
+    expect(math.compile("'' <= 'abc'").evaluate()).toBe(true)
   })
   it("compares dates numerically", () => {
     const f1 = math.compile("today() <= today()")
@@ -94,7 +112,7 @@ describe("<= operator", () => {
     expect(f1.evaluate()).toBe(true)
     const f2 = math.compile("'abc' <= 'abc'")
     expect(f2.evaluate()).toBe(true)
-    const f3 = math.compile("'def' < 'abc'")
+    const f3 = math.compile("'def' <= 'abc'")
     expect(f3.evaluate()).toBe(false)
   })
 })
@@ -107,11 +125,18 @@ describe("> operator", () => {
     expect(f2.evaluate()).toBe(false)
     const f3 = math.compile("2 > 1")
     expect(f3.evaluate()).toBe(true)
-    // NaN comparisons are always false
+    // NaN propagates as NaN
     const f4 = math.compile("0/0 > 0")
-    expect(f4.evaluate()).toBe(false)
+    expect(f4.evaluate()).toBeNaN()
     const f5 = math.compile("0 > 0/0")
-    expect(f5.evaluate()).toBe(false)
+    expect(f5.evaluate()).toBeNaN()
+  })
+  it("propagates empty values", () => {
+    expect(math.compile("'' > 30").evaluate()).toEqual("")
+    expect(math.compile("30 > ''").evaluate()).toEqual("")
+    expect(math.compile("'' > ''").evaluate()).toEqual("")
+    // empty paired with a non-numeric string falls through to lexical comparison (V2 parity)
+    expect(math.compile("'abc' > ''").evaluate()).toBe(true)
   })
   it("compares dates numerically", () => {
     const f1 = math.compile("today() > today()")
@@ -149,11 +174,18 @@ describe(">= operator", () => {
     expect(f2.evaluate()).toBe(true)
     const f3 = math.compile("2 >= 1")
     expect(f3.evaluate()).toBe(true)
-    // NaN comparisons are always false
+    // NaN propagates as NaN
     const f4 = math.compile("0/0 >= 0")
-    expect(f4.evaluate()).toBe(false)
+    expect(f4.evaluate()).toBeNaN()
     const f5 = math.compile("0 >= 0/0")
-    expect(f5.evaluate()).toBe(false)
+    expect(f5.evaluate()).toBeNaN()
+  })
+  it("propagates empty values", () => {
+    expect(math.compile("'' >= 30").evaluate()).toEqual("")
+    expect(math.compile("30 >= ''").evaluate()).toEqual("")
+    expect(math.compile("'' >= ''").evaluate()).toEqual("")
+    // empty paired with a non-numeric string falls through to lexical comparison (V2 parity)
+    expect(math.compile("'abc' >= ''").evaluate()).toBe(true)
   })
   it("compares dates numerically", () => {
     const f1 = math.compile("today() >= today()")

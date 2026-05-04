@@ -12,7 +12,7 @@ const mockBoundingClientRect = (rect: Partial<DOMRect> = {}): DOMRect => {
     width: 100,
     toJSON: () => ({}),
     ...rect
-  } as DOMRect
+  }
 }
 
 const mockGetComputedStyle = (overrides: Partial<CSSStyleDeclaration> = {}): CSSStyleDeclaration => {

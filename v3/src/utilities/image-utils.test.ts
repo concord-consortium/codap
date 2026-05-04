@@ -34,7 +34,8 @@ describe("image-utils", () => {
     window.Image = class extends MockImage {
       constructor() {
         super()
-        mockImageInstance = this as unknown as MockImage
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        mockImageInstance = this
       }
     }
   })
