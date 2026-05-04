@@ -122,7 +122,7 @@ context("Test graph axes with split, multi-y, bars, and overflow configurations"
     ah.verifyAxisTickLabel("bottom", "−0.5", 0)
 
     // Changing to bars and verifying axis adjustment
-    cy.get("[data-testid=graph-display-config-button").click()
+    cy.get("[data-testid=graph-display-config-button]").click()
     cy.get("[data-testid=bars-radio-button]").click()
     ah.verifyAxisTickLabel("bottom", "0", 0)
 
@@ -140,7 +140,7 @@ context("Test graph axes with split, multi-y, bars, and overflow configurations"
     ah.verifyAxisTickLabel("bottom", "0", 0)
 
     // Switch back to points without undo/redo to clean up state
-    cy.get("[data-testid=graph-display-config-button").click()
+    cy.get("[data-testid=graph-display-config-button]").click()
     cy.get("[data-testid=points-radio-button]").click()
     ah.verifyAxisTickLabel("bottom", "-0.5", 0)
   })
