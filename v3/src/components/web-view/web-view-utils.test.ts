@@ -241,4 +241,8 @@ describe("appendLocaleParam", () => {
     expect(appendLocaleParam("https://example.com/plugin/index.html", "en&evil=1"))
       .toBe("https://example.com/plugin/index.html?locale=en%26evil%3D1")
   })
+  it("collapses duplicate param entries to a single value (matches URLSearchParams.set)", () => {
+    expect(appendLocaleParam("../plugin/index.html?locale=en-US&locale=fr", "es"))
+      .toBe("../plugin/index.html?locale=es")
+  })
 })

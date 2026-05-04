@@ -107,21 +107,19 @@ function setUrlQueryParam(url: string, name: string, value: string): string {
       // fall through to string manipulation
     }
   }
-  // For relative or malformed URLs, use string manipulation to preserve the path form.
-  // Encode the value to match URLSearchParams behavior on the absolute-URL path and to
-  // prevent characters like `&` or `#` from injecting additional query params.
-  const param = `${name}=${encodeURIComponent(value)}`
-  // Split off hash fragment so we don't accidentally drop it
+  // For relative or malformed URLs, parse the query portion with URLSearchParams so
+  // we match the absolute-URL semantics: encoding is handled, and `set()` removes
+  // any existing duplicate entries before assigning a single value.
   const hashIndex = trimmedUrl.indexOf("#")
   const [base, hash] = hashIndex >= 0
     ? [trimmedUrl.slice(0, hashIndex), trimmedUrl.slice(hashIndex)]
     : [trimmedUrl, ""]
-  // Replace existing param if present
-  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-  const replacedBase = base.replace(new RegExp(`([?&])${escaped}=[^&]*`), `$1${param}`)
-  if (replacedBase !== base) return replacedBase + hash
-  // No existing param — append before the hash
-  return base + (base.includes("?") ? "&" : "?") + param + hash
+  const queryStart = base.indexOf("?")
+  const path = queryStart >= 0 ? base.slice(0, queryStart) : base
+  const params = new URLSearchParams(queryStart >= 0 ? base.slice(queryStart + 1) : "")
+  params.set(name, value)
+  const newQuery = params.toString()
+  return newQuery ? `${path}?${newQuery}${hash}` : `${path}${hash}`
 }
 
 /**

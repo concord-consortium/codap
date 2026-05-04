@@ -14,6 +14,13 @@ import { diInteractiveFrameHandler } from "./interactive-frame-handler"
 
 describe("DataInteractive InteractiveFrameHandler", () => {
   const handler = diInteractiveFrameHandler
+
+  // Pin the locale so lang/locale assertions are deterministic regardless of
+  // any other test that may have called gLocale.setCurrent.
+  beforeEach(() => {
+    gLocale.setCurrent("en-US")
+  })
+
   it("get works", () => {
     expect(handler.get?.({}).success).toBe(false)
 
