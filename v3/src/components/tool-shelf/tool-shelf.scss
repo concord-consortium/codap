@@ -284,6 +284,9 @@ $tool-shelf-border-width: 1px;
         &:active:not(:disabled) {
           background-color: vars.$icon-fill-medium;
         }
+        &:focus-visible {
+          @include vars.focus-outline();
+        }
 
         .menu-icon {
           margin: 0;
