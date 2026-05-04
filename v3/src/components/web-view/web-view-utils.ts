@@ -107,8 +107,10 @@ function setUrlQueryParam(url: string, name: string, value: string): string {
       // fall through to string manipulation
     }
   }
-  // For relative or malformed URLs, use string manipulation to preserve the path form
-  const param = `${name}=${value}`
+  // For relative or malformed URLs, use string manipulation to preserve the path form.
+  // Encode the value to match URLSearchParams behavior on the absolute-URL path and to
+  // prevent characters like `&` or `#` from injecting additional query params.
+  const param = `${name}=${encodeURIComponent(value)}`
   // Split off hash fragment so we don't accidentally drop it
   const hashIndex = trimmedUrl.indexOf("#")
   const [base, hash] = hashIndex >= 0

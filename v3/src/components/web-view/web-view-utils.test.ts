@@ -232,4 +232,13 @@ describe("appendLocaleParam", () => {
     expect(appendLocaleParam("data:image/png;base64,abc", "en-US"))
       .toBe("data:image/png;base64,abc")
   })
+  it("URL-encodes values containing special characters in relative URLs", () => {
+    // Defensive: prevent a malformed locale from injecting additional query params.
+    expect(appendLocaleParam("../plugin/index.html", "en&evil=1"))
+      .toBe("../plugin/index.html?locale=en%26evil%3D1")
+  })
+  it("URL-encodes values containing special characters in absolute URLs", () => {
+    expect(appendLocaleParam("https://example.com/plugin/index.html", "en&evil=1"))
+      .toBe("https://example.com/plugin/index.html?locale=en%26evil%3D1")
+  })
 })
