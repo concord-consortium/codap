@@ -106,16 +106,56 @@ Short README, included via the new `files` list. Suggested content:
 This README will render on the npm package page — the first thing anyone
 landing there sees.
 
-### Publish workflow with provenance
+### Publish workflow with provenance and OIDC trusted publishing
 
 Publish via `npm publish --provenance` (npm 9.5+) from a public-repo
-GitHub Actions workflow with `id-token: write`. npm attaches a Sigstore
-attestation that the package page surfaces as **"Built and signed on
-GitHub Actions"** with a direct link to the workflow run, which links
-back to the commit, branch, and PR. This is the single biggest
-traceability improvement.
+GitHub Actions workflow with `id-token: write`. Authentication uses
+[npm OIDC trusted publishing](https://docs.npmjs.com/trusted-publishers)
+(npm 11.5+) — the workflow exchanges its GitHub OIDC token for an npm
+access token at publish time, with no long-lived `NPM_TOKEN` secret to
+manage or rotate. The trusted-publisher relationship is configured on
+the npm package page (which workflow + tag pattern is allowed to
+publish).
 
-Reference: <https://docs.npmjs.com/generating-provenance-statements>.
+npm attaches a Sigstore attestation that the package page surfaces as
+**"Built and signed on GitHub Actions"** with a direct link to the
+workflow run, which links back to the commit, branch, and PR. This is
+the single biggest traceability improvement.
+
+References:
+- <https://docs.npmjs.com/generating-provenance-statements>
+- <https://docs.npmjs.com/trusted-publishers>
+
+#### Bootstrap (chicken-and-egg)
+
+Trusted publishing requires the package to **already exist on npm**
+before you can configure the relationship. So the first publish has to
+be done by hand:
+
+1. Locally, with publish rights to `@concord-consortium`, publish a
+   placeholder version (e.g. `0.0.0`) so the package exists.
+2. On the npm package page, configure a trusted publisher pointing at
+   `concord-consortium/codap`, the `publish-formulas.yml` workflow,
+   and the `codap-formulas-v*` tag pattern.
+3. Restore `formulas/package.json` to the real version (`1.1.0`) and
+   push the `codap-formulas-v1.1.0` tag — the workflow takes over from
+   there.
+
+#### How the workflow works
+
+The workflow uses `yarn pack` rather than `npm publish` directly,
+because yarn rewrites the `workspace:^` reference to
+`@concord-consortium/codap-utilities` into a concrete version (`^1.0.0`)
+that npm consumers can resolve. The pipeline:
+
+1. `yarn install --immutable`
+2. Verify the pushed tag matches `formulas/package.json`'s version
+3. Build `codap-utilities` (the workspace dependency)
+4. Build `codap-formulas`
+5. `yarn pack --out /tmp/codap-formulas.tgz` (does the workspace
+   rewrite into a tarball)
+6. `npm publish /tmp/codap-formulas.tgz --provenance --access public`
+   — npm CLI handles OIDC + provenance
 
 There is no existing publish workflow to extend — `formulas-react17` is
 currently published manually per its

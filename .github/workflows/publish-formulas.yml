@@ -1,0 +1,60 @@
+name: Publish @concord-consortium/codap-formulas
+
+on:
+  push:
+    tags:
+      - 'codap-formulas-v*'
+
+permissions:
+  contents: read
+  id-token: write  # required for OIDC trusted publishing and npm provenance
+
+jobs:
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Corepack
+        # See "Corepack and GitHub Actions" in v3/doc/yarn.md
+        run: |
+          npm uninstall -g yarn || true
+          npm install -g corepack
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+          registry-url: 'https://registry.npmjs.org'
+      - name: Upgrade npm to a version with OIDC trusted publishing support
+        # OIDC trusted publishing was added in npm 11.5+. Node 20 ships
+        # with npm 10.x, so upgrade explicitly.
+        run: npm install -g npm@latest
+      - name: Install Dependencies
+        run: yarn install --immutable
+      - name: Verify tag matches package version
+        run: |
+          PKG_VERSION=$(node -p "require('./formulas/package.json').version")
+          TAG_VERSION="${GITHUB_REF#refs/tags/codap-formulas-v}"
+          if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
+            echo "::error::Tag version ($TAG_VERSION) does not match formulas/package.json version ($PKG_VERSION)"
+            exit 1
+          fi
+      - name: Build dependent workspaces
+        # codap-formulas depends on codap-utilities; tsc --build handles
+        # the TS compilation of references but not asset copyfiles, so
+        # build the dependency explicitly first.
+        run: yarn workspace @concord-consortium/codap-utilities build:ci
+      - name: Build formulas
+        run: yarn workspace @concord-consortium/codap-formulas build:ci
+      - name: Pack tarball
+        # yarn pack rewrites workspace:^ references to concrete versions
+        # (e.g. codap-utilities → ^1.0.0); npm publish doesn't know how
+        # to do this on its own.
+        run: yarn workspace @concord-consortium/codap-formulas pack --out /tmp/codap-formulas.tgz
+      - name: Publish via npm with OIDC trusted publishing
+        # No NPM_TOKEN — auth is via OIDC trusted publishing configured
+        # on the package page at npmjs.com. Requires the package to
+        # already exist on npm and a trusted-publisher relationship to
+        # be set up there pointing at this repo + workflow + tag pattern.
+        run: npm publish /tmp/codap-formulas.tgz --provenance --access public
