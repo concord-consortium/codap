@@ -91,7 +91,7 @@
     "DG.AppController.caseTableMenu.openCaseTableToolTip": "Open case table for this data set",
     "DG.AppController.caseTableMenu.newDataSet": "Νew",
     "DG.AppController.caseTableMenu.newDataSetToolTip": "Create a new data set",
-    "DG.AppController.caseTableMenu.deleteDataSetToolTip": "Delete and destroy this data set",
+    "DG.AppController.caseTableMenu.deleteDataSetToolTip": "Delete and destroy data set %@",
     "DG.AppController.caseTableMenu.clipboardDataset": "Νew from clipboard",
     "DG.AppController.caseTableMenu.clipboardDatasetToolTip": "Paste data set from clipboard",
 
