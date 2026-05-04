@@ -415,6 +415,8 @@ context("Test graph axes with various attribute types", () => {
         const tileId = String(id)
         cy.window().then((win: any) => {
           const pixiPoints = win.rendererArrayMap?.[tileId]
+          chai.assert.exists(pixiPoints, "rendererArrayMap entry for graph tile exists")
+          chai.assert.exists(pixiPoints[0], "graph has at least one renderer")
           const xs: number[] = pixiPoints[0].points.map((p: any) => p.position.x)
           expect(xs.length, 'graph has rendered points').to.be.greaterThan(0)
           const buckets = new Map<number, number>()
