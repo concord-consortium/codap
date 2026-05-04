@@ -108,11 +108,14 @@ const CaseTableToolShelfMenuList = observer(
               onClick={()=>createOrShowTableOrCardForDataset(dataset)} data-testid={`tool-shelf-table-${tileTitle}`}>
               <TableIcon className="menu-icon case-table-icon"/>
               {tileTitle}
-              <Button className="menu-list-button tool-shelf-menu-trash"
+              <span className="menu-list-button tool-shelf-menu-trash" role="button"
                   aria-label={t("DG.AppController.caseTableMenu.deleteDataSetToolTip")}
-                  onClick={() => handleOpenRemoveDataSetModal(dataset.dataSet.id)}>
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleOpenRemoveDataSetModal(dataset.dataSet.id)
+                  }}>
                 <TrashIcon className="menu-icon" aria-hidden="true" />
-              </Button>
+              </span>
 
             </MenuItem>
           )
