@@ -12,6 +12,6 @@ export function useDataSet(inData?: IDataSet, inMetadata?: IDataSetMetadata) {
                                   ?.getSharedModelsByType<typeof DataSetMetadata>(kDataSetMetadataType)
                                   .find((model: IDataSetMetadata) => {
                                     return model.data?.id === data?.id
-                                  }) as IDataSetMetadata | undefined
+                                  })
   return { data, metadata }
 }

@@ -45,7 +45,7 @@ describe("ComponentTitleBar", () => {
 
   it("renders successfully and efficiently", () => {
     // will create UnknownContentModel
-    const tile = TileModel.create({ _title: "title", content: {} as any })
+    const tile = TileModel.create({ _title: "title", content: {} })
     render(<Parent tile={tile}/>)
     expect(screen.getByText("title")).toBeInTheDocument()
     expect(parentRenderCounter).toHaveBeenCalledTimes(1)
@@ -64,7 +64,7 @@ describe("ComponentTitleBar", () => {
   })
 
   it("prevents drag when clicking minimize button", () => {
-    const tile = TileModel.create({ _title: "title", content: {} as any })
+    const tile = TileModel.create({ _title: "title", content: {} })
     const mockOnMoveTilePointerDown = jest.fn()
     
     render(
@@ -84,7 +84,7 @@ describe("ComponentTitleBar", () => {
   })
 
   it("prevents drag when clicking close button", () => {
-    const tile = TileModel.create({ _title: "title", content: {} as any })
+    const tile = TileModel.create({ _title: "title", content: {} })
     const mockOnMoveTilePointerDown = jest.fn()
     
     render(
@@ -104,7 +104,7 @@ describe("ComponentTitleBar", () => {
   })
 
   it("prevents drag when editing title", () => {
-    const tile = TileModel.create({ _title: "title", content: {} as any })
+    const tile = TileModel.create({ _title: "title", content: {} })
     const mockOnMoveTilePointerDown = jest.fn()
 
     render(
@@ -126,7 +126,7 @@ describe("ComponentTitleBar", () => {
   })
 
   it("toolbar has correct ARIA attributes", () => {
-    const tile = TileModel.create({ _title: "title", content: {} as any })
+    const tile = TileModel.create({ _title: "title", content: {} })
 
     render(
       <DndContext>
@@ -141,7 +141,7 @@ describe("ComponentTitleBar", () => {
 
   it("arrow keys move focus between toolbar items", async () => {
     const user = userEvent.setup()
-    const tile = TileModel.create({ _title: "title", content: {} as any })
+    const tile = TileModel.create({ _title: "title", content: {} })
 
     render(
       <DndContext>
@@ -172,7 +172,7 @@ describe("ComponentTitleBar", () => {
 
   it("Home and End keys jump to first and last toolbar items", async () => {
     const user = userEvent.setup()
-    const tile = TileModel.create({ _title: "title", content: {} as any })
+    const tile = TileModel.create({ _title: "title", content: {} })
 
     render(
       <DndContext>
@@ -198,7 +198,7 @@ describe("ComponentTitleBar", () => {
 
   it("toolbar is a single tab stop", async () => {
     const user = userEvent.setup()
-    const tile = TileModel.create({ _title: "title", content: {} as any })
+    const tile = TileModel.create({ _title: "title", content: {} })
 
     render(
       <DndContext>
@@ -227,7 +227,7 @@ describe("ComponentTitleBar", () => {
   })
 
   it("only activates title edit mode on click with no drag", () => {
-    const tile = TileModel.create({ _title: "title", content: {} as any })
+    const tile = TileModel.create({ _title: "title", content: {} })
 
     render(
       <DndContext>

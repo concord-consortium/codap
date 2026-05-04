@@ -9,7 +9,9 @@ export const UNDEF_RESULT = ""
 
 // CODAP formulas assume that 0 is a truthy value, which is different from default JS behavior. So that, for instance,
 // count(attribute) will return a count of valid data values, since 0 is a valid numeric value.
-export const isValueTruthy = (value: any) => isValueNonEmpty(value) && value !== false
+// NaN is treated as falsy (V2 parity: V2 uses !!x where !!NaN === false) so a filter expression
+// evaluating to NaN excludes that case from aggregations.
+export const isValueTruthy = (value: any) => isValueNonEmpty(value) && value !== false && !Number.isNaN(value)
 
 export const
 equal = (a: any, b: any): boolean => {

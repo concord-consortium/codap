@@ -15,7 +15,7 @@
     "strict": true,
     "types": [],
     "jsx": "react-jsx",
-    "lib": ["dom", "dom.iterable", "es2020"],
+    "lib": ["dom", "dom.iterable", "es2020", "es2022.array"],
     "paths": {
       "@codemirror/autocomplete": ["./node_modules/@codemirror/autocomplete"],
       "@codemirror/state": ["./node_modules/@codemirror/state"],

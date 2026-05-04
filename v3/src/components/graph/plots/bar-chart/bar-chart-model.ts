@@ -30,6 +30,8 @@ export const BarChartModel = DotChartModel
   })
   .volatile(self => ({
     formulaEditorIsOpen: false,
+    // assertion is load-bearing: MST otherwise widens the literal union to string
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     fallbackBreakdownType: self.breakdownType === "percent" ? "percent" : "count" as Exclude<BreakdownType, "formula">,
     barSpecs: observable.map<string, IBarSpec>()
   }))

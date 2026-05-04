@@ -99,4 +99,11 @@ export interface TreeAPI {
    * TODO: need to bring over updated documentation from prototype
    */
   applySharedModelSnapshotFromManager(historyEntryId: string, exchangeId: string, snapshot: any): Promise<void>
+
+  /**
+   * Run a synchronous callback in a context where the tree's normal undo
+   * recording is suppressed. Used by the UndoStore to apply custom patches
+   * (undo or redo) without re-entering the history machinery.
+   */
+  applyCustomUndoRedo(customUndoRedo: () => void): void
 }

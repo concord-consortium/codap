@@ -31,9 +31,9 @@ describe("CategorySet", () => {
     // attribute reference resolves to the free attribute
     expect(categories.attribute.name).toBe("aFree")
 
-    // attribute changes trigger invalidation for provisional category sets
+    // attribute value changes trigger invalidation for provisional category sets
     const provisionalSpy = jest.spyOn(categories, "invalidate")
-    data.attributes[0].clearFormula()
+    data.attributes[0].addValue("a")
     expect(provisionalSpy).toHaveBeenCalledTimes(1)
     provisionalSpy.mockRestore()
 
@@ -46,9 +46,9 @@ describe("CategorySet", () => {
     // attribute reference resolves to attribute in tree
     expect(tree.categories.attribute.name).toBe("aTree")
 
-    // attribute changes trigger invalidation for attached category sets
+    // attribute value changes trigger invalidation for attached category sets
     const attachedSpy = jest.spyOn(tree.categories, "invalidate")
-    tree.attribute.clearFormula()
+    tree.attribute.addValue("a")
     expect(attachedSpy).toHaveBeenCalledTimes(1)
     attachedSpy.mockRestore()
 
@@ -165,6 +165,24 @@ describe("CategorySet", () => {
     expect(categories.valuesArray).toEqual(["x", "y", "z", "b"])
     expect(categories.moves.length).toBe(6)
     expect(categories.lastMove?.fromIndex).toBe(originalFromIndex)
+  })
+
+  // Regression test: formula-computed values are written via Attribute.setComputedValues, which
+  // is a volatile method that doesn't fire its own MST action. The CategorySet must still invalidate
+  // and pick up the new categories — otherwise categorical scales backed by formula attributes are
+  // empty, points get NaN positions, and graphs render blank.
+  it("invalidates when formula-computed values are written via setComputedValues", () => {
+    const a = Attribute.create({ name: "a", values: ["a", "a", "a", "a"] })
+    const tree = Tree.create({
+      attribute: a,
+      categories: { attribute: a.id }
+    })
+    const categories = tree.categories
+    expect(categories.valuesArray).toEqual(["a"])
+
+    // simulate a formula recomputing the values
+    a.setComputedValues([0, 1, 2, 3], ["x", "y", "x", "y"])
+    expect(categories.valuesArray).toEqual(["x", "y"])
   })
 
   it("handles volatile category drags", () => {

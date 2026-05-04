@@ -325,7 +325,7 @@ export const AttributeHeader = observer(function AttributeHeader({
                 <CaseTilePortal>
                   <AttributeMenuList ref={menuListRef} attributeId={attributeId}
                     attrTestIdSuffix={attrTestIdSuffix}
-                    finalFocusRef={menuButtonRef as React.RefObject<HTMLElement>}
+                    finalFocusRef={menuButtonRef}
                     onRenameAttribute={handleRenameAttribute} onModalOpen={handleModalOpen}
                   />
                 </CaseTilePortal>

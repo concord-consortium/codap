@@ -65,10 +65,14 @@ export const PlottedFunctionAdornmentComponent = observer(function PlottedFuncti
   const plottedFunctionRef = useRef<SVGGElement>(null)
 
   const refreshResiduals = useCallback((plottedFunc: FormulaFn) => {
-    if (!showSumSquares || !dataConfig) return
+    if (!dataConfig) return
+    const residualsParagraph = select(residualsContainerSelector).select("p")
+    if (!showSumSquares) {
+      residualsParagraph.html("")
+      return
+    }
     const sumOfSquares = calculateSumOfSquares({ cellKey, dataConfig, computeY: plottedFunc })
     const string = residualsString(sumOfSquares, false)
-    const residualsParagraph = select(residualsContainerSelector).select("p")
 
     select(residualsContainerSelector)
       .style("width", `${plotWidth}px`)

@@ -4,7 +4,6 @@ import * as SharedDataUtils from "../../models/shared/shared-data-utils"
 import { toV2Id, toV3CollectionId } from "../../utilities/codap-utils"
 import { ICodapV2CollectionV3 } from "../../v2/codap-v2-data-context-types"
 import { DICollection, DIDeleteCollectionResult } from "../data-interactive-data-set-types"
-import { DIValues } from "../data-interactive-types"
 import { diCollectionHandler } from "./collection-handler"
 import { setupTestDataset } from "../../test/dataset-test-utils"
 
@@ -131,7 +130,7 @@ describe("DataInteractive CollectionHandler", () => {
     expect(handler.update?.({ dataContext, collection }).success).toBe(true)
 
     expect(handler.update?.(
-      { dataContext, collection }, { title: "newTitle", labels: { singleCase: "singleCase" } } as DIValues
+      { dataContext, collection }, { title: "newTitle", labels: { singleCase: "singleCase" } }
     ).success).toBe(true)
     expect(collection._title).toBe("newTitle")
     expect(metadata?.collections.get(collection.id)?.labels?.singleCase).toBe("singleCase")

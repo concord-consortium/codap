@@ -30,7 +30,7 @@ describe("CodapComponent", () => {
   })
 
   it("uses aria-labelledby when the title bar exists", () => {
-    const tile = TileModel.create({ _title: "Test Title", content: {} as any })
+    const tile = TileModel.create({ _title: "Test Title", content: {} })
     render(<CodapComponent tile={tile} onCloseTile={jest.fn()} />)
 
     const container = screen.getByTestId("mock-tile")
@@ -39,7 +39,7 @@ describe("CodapComponent", () => {
   })
 
   it("uses aria-label when the title bar does not exist", () => {
-    const tile = TileModel.create({ _title: "Test Title", content: {} as any })
+    const tile = TileModel.create({ _title: "Test Title", content: {} })
     render(<CodapComponent tile={tile} hideTitleBar onCloseTile={jest.fn()} />)
 
     const container = screen.getByTestId("mock-tile")

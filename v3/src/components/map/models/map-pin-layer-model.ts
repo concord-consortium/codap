@@ -1,4 +1,5 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
+import { ICollectionModel } from "../../../models/data/collection"
 import { IDataSet } from "../../../models/data/data-set"
 import { getMetadataFromDataSet } from "../../../models/shared/shared-data-utils"
 import { computePointRadius } from "../../data-display/data-display-utils"
@@ -45,6 +46,10 @@ export const MapPinLayerModel = MapLayerModel
     },
     get pointDescription() {
       return self.displayItemDescription
+    },
+    get titleCollection(): Maybe<ICollectionModel> {
+      const pinLatId = self.dataConfiguration.attributeID('pinLat')
+      return pinLatId ? self.dataConfiguration.dataset?.getCollectionForAttribute(pinLatId) : undefined
     }
   }))
 

@@ -327,7 +327,14 @@ export class PixiPointRenderer extends PointRendererBase {
     // (The base class also sets this after we return, but we need it set for the code below.)
     this._displayType = displayType
 
-    if (this.displayTypeTransitionState.isActive) return
+    if (this.displayTypeTransitionState.isActive) {
+      // Sync subplot assignment even when deferring the rest: a coincident subplot layout change
+      // (e.g. adding a second categorical axis) would otherwise leave sprites masked to old cells.
+      this.state.updateSubPlotNumsFromCaseData(caseData)
+      this.applyMasks(caseData)
+      this.doStartRendering()
+      return
+    }
 
     // Sync state with case data
     const { added, removed } = this.state.syncWithCaseData(caseData, style)
@@ -748,7 +755,7 @@ export class PixiPointRenderer extends PointRendererBase {
         const sprite = this.sprites.get(pointId)
         if (sprite) {
           const subPlotNum = caseData.subPlotNum
-          sprite.mask = subPlotNum !== undefined ? this.subPlotMasks[subPlotNum] : null
+          sprite.mask = subPlotNum !== undefined ? (this.subPlotMasks[subPlotNum] ?? null) : null
         }
       }
     })

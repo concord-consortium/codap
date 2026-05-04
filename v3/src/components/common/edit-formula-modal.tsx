@@ -16,7 +16,10 @@ import ResizeHandle from "../../assets/icons/icon-corner-resize-handle.svg"
 import styles from './edit-formula-modal.scss'
 
 interface IProps {
-  applyFormula: (formula: string, attrName: string) => void
+  // The `title` is the optional secondary value (e.g. an attribute name) edited alongside the
+  // formula. Only some clients use it; most clients pass a `(formula) => void` callback and
+  // ignore the second argument.
+  applyFormula: (formula: string, title?: string) => void
   finalFocusRef?: React.RefObject<HTMLElement>
   formulaPrompt?: string
   isOpen: boolean
@@ -39,7 +42,6 @@ export const EditFormulaModal = observer(function EditFormulaModal({
   const insertButtonsHeight = 35
 
   const modalContentRef = React.useRef<HTMLDivElement>(null)
-  const attrNameInputRef = useRef<HTMLInputElement>(null)
   const formulaEditorContainerRef = useRef<HTMLLabelElement>(null)
   const insertValueButtonRef = useRef<HTMLButtonElement>(null)
   const insertFunctionButtonRef = useRef<HTMLButtonElement>(null)
@@ -49,18 +51,25 @@ export const EditFormulaModal = observer(function EditFormulaModal({
   const { formula, setFormula } = formulaEditorState
   const [dimensions, setDimensions] = useState({ width: minWidth, height: minHeight })
   const editorHeight = dimensions.height - headerHeight - footerHeight - insertButtonsHeight
-  const attrInputRef = useRef("")
+  const [title, setTitle] = useState(titleInput ?? "")
   const isAutoCompleteMenuOpen = useRef(false)
-  // Sync formula state from value prop using React's recommended "adjust state during render" pattern
+  // Sync formula and title state from props using React's recommended
+  // "adjust state during render" pattern. Without this, a title typed during a
+  // previous editing session would carry over and overwrite the next session's title on Apply.
   // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
   const [prevValue, setPrevValue] = useState(value)
   if (value !== prevValue) {
     setPrevValue(value)
     setFormula(value || "")
   }
+  const [prevTitleInput, setPrevTitleInput] = useState(titleInput)
+  if (titleInput !== prevTitleInput) {
+    setPrevTitleInput(titleInput)
+    setTitle(titleInput ?? "")
+  }
 
   const applyAndClose = () => {
-    applyFormula(formula, attrInputRef.current)
+    applyFormula(formula, title.trim())
     closeModal()
   }
 
@@ -68,6 +77,9 @@ export const EditFormulaModal = observer(function EditFormulaModal({
     setShowValuesMenu(false)
     setShowFunctionMenu(false)
     setFormula(value || "")
+    setTitle(titleInput ?? "")
+    setPrevTitleInput(titleInput)
+    isAutoCompleteMenuOpen.current = false
     onClose?.()
     setDimensions({ width: minWidth, height: minHeight })
   }
@@ -157,11 +169,6 @@ export const EditFormulaModal = observer(function EditFormulaModal({
     document.body.addEventListener("pointerup", onPointerUp, { capture: true })
   }, [dimensions.height, dimensions.width, minHeight, minWidth])
 
-  const handleAttributeNameInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const trimmedValue = e.target.value.trim()
-    attrInputRef.current = trimmedValue
-  }
-
   return (
     <FormulaEditorContext.Provider value={formulaEditorState}>
       <CodapModal
@@ -178,17 +185,27 @@ export const EditFormulaModal = observer(function EditFormulaModal({
       >
         <ModalBody className="formula-modal-body" onKeyDown={handleKeyDown}>
           <FormControl display="flex" flexDirection="column" className="formula-form-control">
+            {/*
+              TODO: rename the `attr-name-form-label` and `attr-name-input` className/data-testid
+              to a generic `title-form-label` / `title-input`. The title is not always an
+              attribute name (this modal is shared across multiple callers). Touches the SCSS,
+              the focus selector in formula-editor.tsx (`input.attr-name-input:not(:disabled)`),
+              and several Cypress selectors — keep `edit-attribute-properties-modal.tsx`'s
+              independent `attr-name-input` testid as-is.
+            */}
             <FormLabel display="flex" flexDirection="row"
                       className="attr-name-form-label">
               <span className="title-label">{titleLabel}</span>
               <input
-                ref={attrNameInputRef}
                 className="attr-name-input"
-                defaultValue={titleInput}
+                value={title}
+                onChange={e => setTitle(e.target.value)}
                 data-testid="attr-name-input"
                 aria-label={titleLabel}
-                disabled={!titleInput}
-                onBlur={handleAttributeNameInputBlur}
+                // Disable only when there's no title prop at all (most callers).
+                // Allow editing when titleInput is "", since Attribute.setName()
+                // can trim a name to "" and the user needs a way to fix it.
+                disabled={titleInput == null}
               />
               <span>=</span>
             </FormLabel>
