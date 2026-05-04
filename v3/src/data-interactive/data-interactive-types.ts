@@ -82,7 +82,11 @@ export interface DIInteractiveFrame {
   subscribeToDocuments?: boolean
   title?: string
   version?: string
+  // Two-letter base language (e.g. "en", "es"). Maintained for V2 plugin compatibility.
   lang?: string
+  // Full BCP-47 locale (e.g. "en-US", "zh-Hans"). Plugins that need region or script
+  // information should read this in preference to `lang`.
+  locale?: string
   handlesLocaleChange?: boolean
 }
 

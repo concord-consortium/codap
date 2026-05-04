@@ -1,6 +1,6 @@
 import { kCodapResourcesUrl, kRootDataGamesPluginUrl, kRootGuideUrl, kRootPluginsUrl } from "../../constants"
 import {
-  appendLangParam, getNameFromURL, kRelativeGuideRoot, kRelativePluginRoot, kRelativeURLRoot,
+  appendLangParam, appendLocaleParam, getNameFromURL, kRelativeGuideRoot, kRelativePluginRoot, kRelativeURLRoot,
   normalizeUrlScheme, processWebViewUrl
 } from "./web-view-utils"
 
@@ -208,5 +208,41 @@ describe("appendLangParam", () => {
       .toBe("https://example.com/plugin/index.html?lang=es")
     expect(appendLangParam("  /codap-resources/plugins/Sampler/index.html  ", "es"))
       .toBe("/codap-resources/plugins/Sampler/index.html?lang=es")
+  })
+})
+
+describe("appendLocaleParam", () => {
+  it("appends ?locale= to URLs with no query params", () => {
+    expect(appendLocaleParam("https://example.com/plugin/index.html", "en-US"))
+      .toBe("https://example.com/plugin/index.html?locale=en-US")
+  })
+  it("appends &locale= alongside an existing lang param", () => {
+    expect(appendLocaleParam("https://example.com/plugin/index.html?lang=en", "en-US"))
+      .toBe("https://example.com/plugin/index.html?lang=en&locale=en-US")
+  })
+  it("replaces existing locale param", () => {
+    expect(appendLocaleParam("https://example.com/plugin/index.html?locale=en-GB", "en-US"))
+      .toBe("https://example.com/plugin/index.html?locale=en-US")
+  })
+  it("appends locale param to relative URLs without affecting an existing lang param", () => {
+    expect(appendLocaleParam("../plugin/index.html?lang=zh", "zh-Hans"))
+      .toBe("../plugin/index.html?lang=zh&locale=zh-Hans")
+  })
+  it("returns the URL unchanged for data: URLs", () => {
+    expect(appendLocaleParam("data:image/png;base64,abc", "en-US"))
+      .toBe("data:image/png;base64,abc")
+  })
+  it("URL-encodes values containing special characters in relative URLs", () => {
+    // Defensive: prevent a malformed locale from injecting additional query params.
+    expect(appendLocaleParam("../plugin/index.html", "en&evil=1"))
+      .toBe("../plugin/index.html?locale=en%26evil%3D1")
+  })
+  it("URL-encodes values containing special characters in absolute URLs", () => {
+    expect(appendLocaleParam("https://example.com/plugin/index.html", "en&evil=1"))
+      .toBe("https://example.com/plugin/index.html?locale=en%26evil%3D1")
+  })
+  it("collapses duplicate param entries to a single value (matches URLSearchParams.set)", () => {
+    expect(appendLocaleParam("../plugin/index.html?locale=en-US&locale=fr", "es"))
+      .toBe("../plugin/index.html?locale=es")
   })
 })

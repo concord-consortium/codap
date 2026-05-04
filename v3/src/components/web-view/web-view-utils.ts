@@ -92,33 +92,50 @@ export function processWebViewUrl(url: string) {
 }
 
 /**
- * Append or replace the `lang` query parameter on a plugin URL.
+ * Append or replace a query parameter on a plugin URL.
  * Skips data: URLs and empty strings.
  */
-export function appendLangParam(url: string, lang: string): string {
+function setUrlQueryParam(url: string, name: string, value: string): string {
   const trimmedUrl = url?.trim()
   if (!trimmedUrl || trimmedUrl.startsWith("data:")) return url
   if (/^https?:\/\//.test(trimmedUrl)) {
     try {
       const parsed = new URL(trimmedUrl)
-      parsed.searchParams.set("lang", lang)
+      parsed.searchParams.set(name, value)
       return parsed.toString()
     } catch {
       // fall through to string manipulation
     }
   }
-  // For relative or malformed URLs, use string manipulation to preserve the path form
-  const langParam = `lang=${lang}`
-  // Split off hash fragment so we don't accidentally drop it
+  // For relative or malformed URLs, parse the query portion with URLSearchParams so
+  // we match the absolute-URL semantics: encoding is handled, and `set()` removes
+  // any existing duplicate entries before assigning a single value.
   const hashIndex = trimmedUrl.indexOf("#")
   const [base, hash] = hashIndex >= 0
     ? [trimmedUrl.slice(0, hashIndex), trimmedUrl.slice(hashIndex)]
     : [trimmedUrl, ""]
-  // Replace existing lang param if present
-  const replacedBase = base.replace(/([?&])lang=[^&]*/, `$1${langParam}`)
-  if (replacedBase !== base) return replacedBase + hash
-  // No existing lang param — append before the hash
-  return base + (base.includes("?") ? "&" : "?") + langParam + hash
+  const queryStart = base.indexOf("?")
+  const path = queryStart >= 0 ? base.slice(0, queryStart) : base
+  const params = new URLSearchParams(queryStart >= 0 ? base.slice(queryStart + 1) : "")
+  params.set(name, value)
+  const newQuery = params.toString()
+  return newQuery ? `${path}?${newQuery}${hash}` : `${path}${hash}`
+}
+
+/**
+ * Append or replace the `lang` query parameter on a plugin URL.
+ * Skips data: URLs and empty strings.
+ */
+export function appendLangParam(url: string, lang: string): string {
+  return setUrlQueryParam(url, "lang", lang)
+}
+
+/**
+ * Append or replace the `locale` query parameter on a plugin URL.
+ * Skips data: URLs and empty strings.
+ */
+export function appendLocaleParam(url: string, locale: string): string {
+  return setUrlQueryParam(url, "locale", locale)
 }
 
 export function normalizeUrlScheme(url: string): string {

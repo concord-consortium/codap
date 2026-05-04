@@ -39,7 +39,10 @@ export const diInteractiveFrameHandler: DIHandler = {
       subscribeToDocuments,
       title: interactiveFrame.title,
       version,
-      lang: gLocale.current
+      // 2-letter base language for V2 plugin compatibility; full locale in `locale`.
+      // See web-view.tsx for context.
+      lang: gLocale.currentBaseLanguage,
+      locale: gLocale.current
     }
     return { success: true, values }
   },

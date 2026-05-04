@@ -32,17 +32,22 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
 
   // React to locale changes outside the main useEffect so that:
   // - Localized plugins: bump localeVersion to trigger useEffect re-run (the iframe src
-  //   is recomputed by the observer in web-view.tsx using gLocale.current).
+  //   is recomputed by the observer in web-view.tsx using gLocale.currentBaseLanguage,
+  //   the 2-letter base language for V2 plugin compatibility).
   // - Other plugins: send a localeChanged notification via the existing controller.
   useEffect(() => {
+    // Track the full locale so region/script-only changes (e.g. zh-Hans → zh-TW) propagate.
+    // The notification carries both `lang` (2-letter base, for V2 plugin compatibility — see
+    // web-view.tsx) and `locale` (full BCP-47) so plugins can read either.
     const localeDisposer = reaction(
       () => gLocale.current,
-      (lang) => {
+      (locale) => {
         if (webViewModel?.needsLocaleReload) {
           setLocaleVersion(v => v + 1)
         } else if (webViewModel?.isPlugin) {
           webViewModel.broadcastMessage(
-            { action: "notify", resource: "global", values: { operation: "localeChanged", lang } },
+            { action: "notify", resource: "global",
+              values: { operation: "localeChanged", lang: gLocale.currentBaseLanguage, locale } },
             () => debugLog(DEBUG_PLUGINS, "Reply to localeChanged notification")
           )
         }

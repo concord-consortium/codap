@@ -10,7 +10,7 @@ import { useDataInteractiveController } from "./use-data-interactive-controller"
 import { kWebViewBodyClass } from "./web-view-defs"
 import { WebViewDropOverlay } from "./web-view-drop-overlay"
 import { isWebViewModel } from "./web-view-model"
-import { appendLangParam } from "./web-view-utils"
+import { appendLangParam, appendLocaleParam } from "./web-view-utils"
 
 import "./web-view.scss"
 
@@ -152,10 +152,13 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
 
   useDataInteractiveController(iframeRef, tile)
 
-  // Append ?lang= to all plugins that need reload on locale change.
+  // Append ?lang= and &locale= to all plugins that need reload on locale change.
   // Plugins can opt out by setting handlesLocaleChange: true via interactiveFrame.update.
+  // `lang` is the 2-letter base language to match V2 behavior; some plugins (e.g. Simmer)
+  // crash if given a region-qualified locale they don't have strings for. Plugins that need
+  // region or script information (e.g. zh-Hans vs zh-TW) can read `locale` instead.
   const iframeSrc = isWebViewModel(webViewModel) && webViewModel.needsLocaleReload
-    ? appendLangParam(webViewModel.url, gLocale.current)
+    ? appendLocaleParam(appendLangParam(webViewModel.url, gLocale.currentBaseLanguage), gLocale.current)
     : isWebViewModel(webViewModel) ? webViewModel.url : ""
 
   useEffect(() => {
