@@ -5,7 +5,7 @@ describe("Locale.currentBaseLanguage", () => {
   // param and in `localeChanged` notifications. Sending a region-qualified locale like
   // `en-US` causes some plugins (e.g. Simmer) to crash during initialization since their
   // string tables are keyed by 2-letter codes only. See CODAP-1219.
-  it("returns the 2-letter base for a region-qualified locale", () => {
+  it("returns the 2-letter base for a locale with region or script subtag", () => {
     const locale = new Locale()
     locale.setCurrent("en-US")
     expect(locale.currentBaseLanguage).toBe("en")
