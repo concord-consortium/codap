@@ -210,6 +210,36 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     )
   }, [callRefreshPointPositions, graphModel])
 
+  // When the category limit changes on resize, the cell layout shifts (kOther moves to a different
+  // index, more or fewer columns appear). The points' subPlotNum must be recomputed against the new
+  // cell keys, otherwise dots stay assigned to stale cell masks and silently disappear from the
+  // rightmost columns. The categorySet itself doesn't change in this case, so respondToCategorySetChanges
+  // doesn't fire — we need our own reaction on this resize-driven layout shift.
+  //
+  // Observe numberOfCategoriesLimitByRole directly rather than the rendered category arrays — those
+  // also change on reorder/hide-show, which respondToCategorySetChanges and respondToCasesChange
+  // already handle (with animation). Firing here on those would race the animation-driven mask
+  // reapply and clip sprites mid-flight. The limit map is only mutated by setupCategories /
+  // setNumberOfCategoriesLimit (both axis-length-driven), so this fires exclusively when a resize
+  // crosses a category-fitting threshold — the gap the existing reactions don't cover.
+  useEffect(function respondToCellLayoutChanges() {
+    return mstReaction(
+      () => {
+        const limits = dataConfiguration.numberOfCategoriesLimitByRole
+        return [limits.get("x"), limits.get("y"), limits.get("topSplit"), limits.get("rightSplit")]
+      },
+      () => {
+        if (!renderer) return
+        // Remove stale masks before resizing so old cell-mask graphics from a prior layout
+        // don't linger across rapid resize sequences (mirrors respondToCategorySetChanges).
+        renderer.removeMasks()
+        renderer.updateSubPlotNums(dataConfiguration.caseDataWithSubPlot)
+        updateCellMasks({ dataConfig: dataConfiguration, layout, renderer })
+      },
+      { name: "usePlot.respondToCellLayoutChanges", equals: comparer.structural }, dataConfiguration
+    )
+  }, [dataConfiguration, layout, renderer])
+
   useEffect(function respondToCategorySetChanges() {
     return mstReaction(() => {
       return [dataConfiguration.allCategoriesForRoles, dataConfiguration.categoricalAttrsWithChangeCounts]

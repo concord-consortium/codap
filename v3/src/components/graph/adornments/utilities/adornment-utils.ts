@@ -1,6 +1,4 @@
-import { t } from "../../../../utilities/translation/translate"
 import { IBaseNumericAxisModel } from "../../../axis/models/base-numeric-axis-model"
-import { kOther } from "../../../data-display/data-display-types"
 
 export function getAxisDomains(xAxis?: IBaseNumericAxisModel, yAxis?: IBaseNumericAxisModel) {
   // establishes access to the specified axis domains for purposes of MobX observation
@@ -19,7 +17,7 @@ export const updateCellKey = (cellKey: Record<string, string>, attrId: string | 
       // different values for the same attribute.
       newCellKey.__IMPOSSIBLE__ = cat
     } else {
-      newCellKey[attrId] = cat === t("DG.CellAxis.other") ? kOther : cat
+      newCellKey[attrId] = cat
     }
   }
   return newCellKey
