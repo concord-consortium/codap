@@ -281,7 +281,7 @@ context("Graph adornments", () => {
     cy.get("[data-testid=plotted-function-control-value]").click()
     cy.get("[data-testid=formula-editor-input] .cm-content").should("be.visible").and("have.focus")
     cy.get("[data-testid=formula-editor-input] .cm-content").realType("10")
-    cy.get("[data-testid=Apply-button]").click()
+    cy.get("[data-testid=formula-apply-button]").click()
     cy.get("*[data-testid^=plotted-function-path]").should("exist")
 
     // Re-open the inspector palette (it closes when the formula editor's Apply button is clicked)
