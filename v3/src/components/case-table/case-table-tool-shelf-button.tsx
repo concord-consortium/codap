@@ -62,12 +62,18 @@ const CaseTableToolShelfMenuList = observer(
       // the new tile is created at 0,0. The correct fix for this issue is to prevent scrolling to show the new table.
       // const options: INewTileOptions = { animateCreation: true, markNewlyCreated: true }
       const options: INewTileOptions = { markNewlyCreated: true }
-      tile = createDefaultTileOfType(kCaseTableTileType, options)
-      if (!tile) return
-      const { sharedData, sharedMetadata } = gDataBroker.addDataSet(ds, tile.id)
+      const orphanTile = createDefaultTileOfType(kCaseTableTileType, options)
+      if (!orphanTile) return
+      const { sharedData, sharedMetadata } = gDataBroker.addDataSet(ds, orphanTile.id)
       // Add dataset to the formula manager
       getFormulaManager(document)?.addDataSet(ds)
       createTableOrCardForDataset(sharedData, sharedMetadata, kCaseTableTileType, options)
+      // orphanTile only seeds the dataset's providerId — it never enters the document.
+      // The visible tile is created inside createTableOrCardForDataset and registered on
+      // sharedMetadata. Notify with that tile so plugins receive the id of the actual
+      // workspace component (otherwise highlight/component lookups by plugins fail).
+      const actualTileId = sharedMetadata.caseTableTileId
+      tile = actualTileId ? content.tileMap.get(actualTileId) : undefined
     }, {
       notify: [ dataContextCountChangedNotification, () => createTileNotification(tile) ],
       undoStringKey: "V3.Undo.caseTable.create",

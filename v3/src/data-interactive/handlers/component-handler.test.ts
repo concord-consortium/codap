@@ -231,4 +231,26 @@ describe("DataInteractive ComponentHandler", () => {
       expect(uiState.focusedTile).toBe(graphTile.id)
     })
   })
+
+  it("broadcasts a create notification with the new tile's id (regression: notify callback timing)", () => {
+    // Bug 2 from CODAP-1231: `notify: createTileNotification(tile)` was evaluated
+    // immediately when the options literal was constructed — at which point `tile`
+    // was still undefined inside the actionFn closure. createTileNotification(undefined)
+    // returns undefined, so plugin-created components fired no create notification.
+    // The fix wraps it in a function: `notify: () => createTileNotification(tile)`,
+    // so it runs AFTER applyModelChange's actionFn assigns `tile`.
+    const broadcastSpy = jest.spyOn(documentContent, "broadcastMessage")
+
+    const result = handler.create!({}, { type: "graph" })
+    expect(result.success).toBe(true)
+    const newId = (result.values as DIComponentInfo).id
+
+    const createCall = broadcastSpy.mock.calls.find(([msg]) =>
+      msg?.values?.operation === "create" &&
+      msg?.values?.id === newId
+    )
+    expect(createCall).toBeDefined()
+
+    broadcastSpy.mockRestore()
+  })
 })

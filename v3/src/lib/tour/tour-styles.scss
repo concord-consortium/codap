@@ -1,42 +1,47 @@
 @use "../../components/vars";
 
 $tour-bg: #f0f0f0;
+$tour-ring-color: vars.$teal-dark;
 
-// Ensure tour overlay and popover appear above all CODAP tiles and menus
-.driver-overlay {
-  z-index: 10000 !important;
-}
-.codap-tour-popover.driver-popover {
-  z-index: 10001 !important;
+// Expose tour colors as CSS custom properties for inline-styled / SVG-prop consumers
+// (outline-ring's inline style; FloatingArrow's fill/stroke props in popover.tsx).
+:root {
+  --codap-tour-ring-color: #{$tour-ring-color};
+  --codap-tour-popover-bg: #{$tour-bg};
+  --codap-tour-popover-border: #{vars.$tile-border-color};
 }
 
 // Popover container
-.codap-tour-popover.driver-popover {
+.codap-tour-popover {
+  position: fixed;
+  z-index: 10001;
   font-family: Montserrat, sans-serif;
   background-color: $tour-bg;
   color: vars.$default-font-color;
+  border: 1px solid vars.$tile-border-color;
   border-radius: vars.$border-radius-four-corners;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   max-width: 320px;
-  padding: 16px;
+  // Right padding clears the absolutely-positioned close button (24px wide @ right:4px).
+  padding: 16px 32px 16px 16px;
+  transition: transform 200ms ease-out, opacity 150ms ease-out;
+  cursor: grab;
+
+  // The root is tabindex="-1" — the only path to focus is our programmatic pull-out
+  // from a plugin iframe (so document-level keydown listeners can fire). It is never a
+  // keyboard tab stop, so it never needs a focus indicator. Buttons inside still get
+  // their own :focus-visible outlines.
+  &:focus { outline: none; }
 }
 
-// Arrow (must match popover background)
-.codap-tour-popover .driver-popover-arrow-side-top {
-  border-bottom-color: $tour-bg;
-}
-.codap-tour-popover .driver-popover-arrow-side-bottom {
-  border-top-color: $tour-bg;
-}
-.codap-tour-popover .driver-popover-arrow-side-left {
-  border-right-color: $tour-bg;
-}
-.codap-tour-popover .driver-popover-arrow-side-right {
-  border-left-color: $tour-bg;
+.codap-tour-popover--dragging {
+  cursor: grabbing;
+  user-select: none;
+  transition: none;
 }
 
 // Title
-.codap-tour-popover .driver-popover-title {
+.codap-tour-popover-title {
   font-family: "museo-sans", sans-serif;
   font-size: 14px;
   font-weight: 700;
@@ -45,16 +50,23 @@ $tour-bg: #f0f0f0;
 }
 
 // Description
-.codap-tour-popover .driver-popover-description {
+.codap-tour-popover-description {
   font-size: 13px;
   font-weight: 400;
   line-height: 1.5;
   color: vars.$default-font-color;
 }
 
+// Progress text
+.codap-tour-popover-progress-text {
+  font-size: 12px;
+  color: vars.$charcoal-dark-1;
+  margin-top: 8px;
+}
+
 // Navigation buttons
-.codap-tour-popover .driver-popover-next-btn,
-.codap-tour-popover .driver-popover-prev-btn {
+.codap-tour-popover-next-btn,
+.codap-tour-popover-prev-btn {
   font-family: Montserrat, sans-serif;
   font-size: 12px;
   font-weight: 500;
@@ -65,35 +77,55 @@ $tour-bg: #f0f0f0;
   border-radius: vars.$border-radius-four-corners;
   padding: 5px 12px;
   cursor: pointer;
+  margin-top: 8px;
+  margin-right: 4px;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background-color: vars.$teal-dark;
   }
 
-  &:focus {
-    @include vars.focus-outline;
-  }
-}
-
-// Progress text
-.codap-tour-popover .driver-popover-progress-text {
-  font-size: 12px;
-  color: vars.$charcoal-dark-1;
-}
-
-// Close button
-.codap-tour-popover .driver-popover-close-btn {
-  color: vars.$charcoal;
-
-  &:focus:not(:focus-visible) {
-    outline: none;
-  }
-
-  &:hover {
-    color: vars.$default-font-color;
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
   }
 
   &:focus-visible {
     @include vars.focus-outline;
   }
+}
+
+// Close button — styled to match the tile title-bar close button
+.codap-tour-popover-close-btn {
+  align-items: center;
+  background-color: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  height: 24px;
+  justify-content: center;
+  padding: 0;
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  width: 24px;
+
+  &:focus:not(:focus-visible) { outline: none; }
+  &:focus-visible { @include vars.focus-outline; }
+
+  // Match the Done button's hover color shift, but on the icon's fill instead of the
+  // button's background. The SVG's visible-icon path has fill="#006C8E"; the bounding-box
+  // path has no fill attribute, so [fill] targets only the visible icon.
+  &:hover .codap-tour-popover-close-icon path[fill] {
+    fill: vars.$teal-dark;
+  }
+}
+
+.codap-tour-popover-close-icon {
+  display: block;
+}
+
+// Reduced motion — disable popover transitions when the modifier class is applied.
+.codap-tour-popover--reduced-motion {
+  transition: none;
 }
