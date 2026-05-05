@@ -96,6 +96,9 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
       const compiled = math.compile(canonicalFormula)
       const solution = compiled.evaluate({ "π": Math.PI })
       const solutionStr = String(solution)
+      // Update local state explicitly: model sync won't trigger if model value is unchanged
+      // (e.g. evaluating 0*0 when previous result was already 0).
+      setCalcValue(solutionStr)
       if (isValidModel) {
         calculatorModel?.applyModelChange(() => {
           calculatorModel.setValue(solutionStr)
@@ -107,6 +110,7 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
       }
     } catch (error: any) {
       const errorMessage = error?.message ? `#${error.message}` : "#Error"
+      setCalcValue(errorMessage)
       if (isValidModel) {
         calculatorModel?.applyModelChange(() => {
           calculatorModel.setValue(errorMessage)
