@@ -91,6 +91,10 @@ const PopoverContent = observer(function PopoverContent({ state, step }: Popover
   // an iframe (typical when a plugin starts the tour), keydown events never bubble to the
   // parent document, so arrow/Escape would be dead. Pull focus out of the iframe in that
   // case only — leave focus alone in every other case.
+  // Note: this pull works as a unit with `tabIndex={-1}` on the popover root below and
+  // the `.codap-tour-popover:focus { outline: none }` rule in tour-styles.scss. Touch any
+  // one of the three and the others need to be revisited. See CODAP-1231 spec
+  // § "Post-review observations".
   useEffect(() => {
     if (popoverEl && document.activeElement?.tagName === "IFRAME") popoverEl.focus()
   }, [popoverEl])

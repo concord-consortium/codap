@@ -25,7 +25,16 @@ export function createTourEngine(args: CreateTourEngineArgs): EngineHandle {
     preFocusAnchor: null,
     moveNext: () => moveNext(),
     movePrevious: () => movePrevious(),
-    cancel: () => state.callbacks.onCancelRequested?.(),
+    cancel: () => {
+      // Defense-in-depth: a no-op when the engine is already inactive. Guards against
+      // a useTargetWatcher mount-time `target.isConnected === false` firing onRemoved
+      // before the engine has reached `active = true`, or a stale handler firing after
+      // teardown has begun.
+      if (!state.active) {
+        return
+      }
+      state.callbacks.onCancelRequested?.()
+    },
   })
 
   const container = document.createElement("div")
