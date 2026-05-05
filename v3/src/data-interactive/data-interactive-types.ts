@@ -112,6 +112,7 @@ export interface DIInteractiveApi {
 }
 
 export interface DIResources {
+  uiNotificationMonitor?: string
   adornment?: IAdornmentModel
   adornmentList?: IAdornmentModel[]
   attribute?: IAttribute
@@ -237,6 +238,7 @@ export interface DIResourceSelector {
   logMessage?: string
   interactiveApi?: string
   tourElements?: string
+  uiNotificationMonitor?: string
   type?: string
 }
 

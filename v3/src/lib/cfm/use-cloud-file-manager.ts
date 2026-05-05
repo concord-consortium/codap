@@ -326,6 +326,10 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, hookOptions?: IUs
       },
       appSetsWindowTitle: true, // CODAP takes responsibility for the window title
       // CODAP v3 does not reload on language change, so the save-before-change behavior is unnecessary.
+      // FIXME: CFM 2.3.0 typings dropped saveOnLanguageChange (restored in 2.3.1 via
+      // concord-consortium/cloud-file-manager#426). The follow-up cfm-bump PR at the top of
+      // this stack must bump cfm to 2.3.1 and remove this @ts-expect-error.
+      // @ts-expect-error CFM 2.3.0 typings dropped saveOnLanguageChange; restored in 2.3.1
       saveOnLanguageChange: false,
       wrapFileContent: false,
       isClientContent(content: unknown) {
