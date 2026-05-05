@@ -20,6 +20,11 @@ export interface ISetCaseValuesCustomPatch extends ICustomPatch {
     dataId: string  // DataSet id
     before: IItem[]
     after: IItem[]
+    // The attribute ids whose values may have changed in the original setCaseValues call.
+    // Persisted so that undo/redo can carry the regrouping-skip optimization through to the
+    // inverse operation (omitted for backward compatibility with patches created before this
+    // field was added — undefined falls through to defensive regrouping).
+    affectedAttributes?: string[]
   }
 }
 function isSetCaseValuesCustomPatch(patch: ICustomPatch): patch is ISetCaseValuesCustomPatch {
@@ -30,13 +35,13 @@ const setCaseValuesCustomUndoRedoPatcher: ICustomUndoRedoPatcher = {
   undo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
     if (isSetCaseValuesCustomPatch(patch)) {
       const data = resolveIdentifier<typeof DataSet>(DataSet, node, patch.data.dataId)
-      data?.setCaseValues(patch.data.before)
+      data?.setCaseValues(patch.data.before, patch.data.affectedAttributes)
     }
   },
   redo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
     if (isSetCaseValuesCustomPatch(patch)) {
       const data = resolveIdentifier<typeof DataSet>(DataSet, node, patch.data.dataId)
-      data?.setCaseValues(patch.data.after)
+      data?.setCaseValues(patch.data.after, patch.data.affectedAttributes)
     }
   }
 }
@@ -52,7 +57,7 @@ export function setCaseValuesWithCustomUndoRedo(data: IDataSet, cases: ICase[], 
   const after = data.getItems(itemIds)
   withCustomUndoRedo<ISetCaseValuesCustomPatch>({
     type: "DataSet.setCaseValues",
-    data: { dataId: data.id, before, after }
+    data: { dataId: data.id, before, after, affectedAttributes }
   }, setCaseValuesCustomUndoRedoPatcher)
 }
 

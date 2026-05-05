@@ -166,13 +166,15 @@ export function toggleCardTable(documentContent: IDocumentContentModel, tileID: 
   }
 }
 
-export function applyCaseValueChanges(data: IDataSet, cases: ICase[], log?: ILogMessage | LogMessageFn) {
+export function applyCaseValueChanges(
+  data: IDataSet, cases: ICase[], log?: ILogMessage | LogMessageFn, affectedAttributes?: string[]
+) {
   const updatedCaseIds = cases.map(aCase => aCase.__id__)
   const newCaseIds: string[] = []
   data.applyModelChange(() => {
     if (cases.length > 0) {
       const allCaseIDs = new Set<string>(data.caseInfoMap.keys())
-      setCaseValuesWithCustomUndoRedo(data, cases)
+      setCaseValuesWithCustomUndoRedo(data, cases, affectedAttributes)
 
       // Changing values can result in new cases if grouping changes occur
       Array.from(data.caseInfoMap.keys()).forEach(caseId => {

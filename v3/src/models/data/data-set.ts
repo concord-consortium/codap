@@ -217,14 +217,23 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   // Plain variables (NOT observable — no MobX involvement for cache guards)
   let _validationCount = 0
   let _isValidCases = false
+  // Two invalidation flags distinguish what kind of work the next validateCases() must do:
+  //   _needsRegrouping — case groupings have changed; collections must rebuild fully.
+  //   _needsValueRevalidation — child-collection values have changed without affecting
+  //     groupings (e.g. formula recomputation); only value-derived caches like
+  //     Collection._nonEmptyCases need to refresh.
+  // Regrouping subsumes value revalidation, so when both are pending the regrouping branch
+  // runs and the value-revalidation flag is cleared as a no-op.
   let _needsRegrouping = false
+  let _needsValueRevalidation = false
   let _isValidItemIds = false
   // Item IDs removed during validation — flushed by setValidCases() in its runInAction
   let _pendingSelectionDeletes: string[] = []
 
   // Single observable counter — bumped by setValidCases() after validation completes.
-  // Same pragmatic compromise as Collection._cacheVersion: a view writes one observable
-  // via runInAction so that MobX reactions fire only after cached data is fully updated.
+  // Same pragmatic compromise as Collection._groupingChangeVersion: a view writes one
+  // observable via runInAction so that MobX reactions fire only after cached data is fully
+  // updated.
   const _caseValidationVersion = observable.box(0)
 
   // cached filtered item IDs (excludes hidden/filtered items)
@@ -301,21 +310,42 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
         return _itemIdsOrderedHash()
       },
       get needsRegrouping() {
+        // Establish a MobX dependency on _caseValidationVersion so this getter is not
+        // memoized as a no-dependency computed (which would cache its first return value
+        // forever). _caseValidationVersion is bumped by every invalidateCases / setValidCases.
+        _caseValidationVersion.get()
         return _needsRegrouping
       },
       clearNeedsRegrouping() {
         _needsRegrouping = false
+      },
+      get needsValueRevalidation() {
+        // See needsRegrouping for why _caseValidationVersion.get() is required.
+        _caseValidationVersion.get()
+        return _needsValueRevalidation
+      },
+      clearNeedsValueRevalidation() {
+        _needsValueRevalidation = false
       }
     },
     actions: {
       invalidateCases(regrouping = true) {
         prf.measure("DataSet.invalidateCases", () => {
           _isValidCases = false
-          _invalidateItemIds()
           if (regrouping) {
             _needsRegrouping = true
+            // grouping changes can affect which items are visible / their order
+            _invalidateItemIds()
             // invalidate each collection's case group cache
             self.collections.forEach(c => c.invalidateCaseGroups())
+          }
+          else {
+            // Values may have changed without affecting groupings — schedule a value-only
+            // revalidation. Harmless if _needsRegrouping is already pending; the regrouping
+            // branch in validateCases() will clear this flag without doing redundant work.
+            // Note: the itemIds cache is intentionally NOT invalidated — child-collection
+            // attribute value changes don't change which items are visible or their order.
+            _needsValueRevalidation = true
           }
           // Bump observable version so MobX re-evaluates isValidCases/validationCount computeds
           _caseValidationVersion.set(_caseValidationVersion.get() + 1)
@@ -722,6 +752,17 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
             self.deferSelectionDelete(itemsToValidate)
           }
           self.clearNeedsRegrouping()
+          // The full rebuild already refreshed _nonEmptyCases, so any pending value-only
+          // revalidation is satisfied.
+          self.clearNeedsValueRevalidation()
+        }
+        else if (self.needsValueRevalidation) {
+          // Only the childmost collection's nonEmpty status can change as a result of value
+          // updates — parent collections always report their cases as non-empty (see
+          // Collection.isNonEmptyCaseGroup, which short-circuits when self.child is set), so
+          // recomputing them is wasted work and would needlessly notify parent observers.
+          self.childCollection.recomputeNonEmptyCases()
+          self.clearNeedsValueRevalidation()
         }
         self.setValidCases()
       })
@@ -1007,6 +1048,17 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
         }
       }
     }
+  }
+
+  // Returns true if any of the given attribute ids belong to a non-child (parent) collection.
+  // Parent-collection attribute values determine case grouping, so writes that touch them must
+  // trigger a regrouping. Writes that touch only child-collection attributes can take the
+  // value-revalidation fast path. Used by both setCaseValues and setComputedCaseValues.
+  function _attrIdsAffectGrouping(attrIds: Iterable<string>) {
+    for (const attrId of attrIds) {
+      if (self.getCollectionForAttribute(attrId) !== self.childCollection) return true
+    }
+    return false
   }
 
   return {
@@ -1302,10 +1354,14 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       // Supports items or cases, but not mixing the two.
       // For cases, will set the values of all items in the group
       // regardless of whether the attribute is grouped or not.
-      // `affectedAttributes` are not used in the function, but are present as a potential
-      // optimization for responders, as all arguments are available to `onAction` listeners.
-      // For instance, a scatter plot that is dragging many points but affecting only two
-      // attributes can indicate that, which can enable more efficient responses.
+      //
+      // `affectedAttributes` is also a contract used to drive a regrouping-skip optimization:
+      // when supplied, callers guarantee that any value change made by this call is to one of
+      // the listed attributes. With that guarantee the dataset can skip the regrouping path
+      // when no listed attribute belongs to a parent collection (parent-collection values
+      // determine case grouping, child-collection values do not). Passing an incomplete list
+      // will result in stale groupings — when in doubt, omit the argument and the dataset will
+      // regroup defensively. The argument is also surfaced to onAction listeners as before.
       setCaseValues(cases: ICase[], affectedAttributes?: string[]) {
         const items = prf.measure("DataSet.setCaseValues[getItemsForCases]", () =>
           self.getItemsForCases(cases)
@@ -1333,8 +1389,14 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
           })
         }
 
-        // only changes to parent collection attributes invalidate grouping
-        items.length && self.invalidateCases()
+        if (items.length) {
+          // With an exhaustive affectedAttributes contract we can skip regrouping when only
+          // child-collection attrs were touched. Without the contract we must regroup.
+          const needsRegrouping = affectedAttributes
+            ? _attrIdsAffectGrouping(affectedAttributes)
+            : true
+          self.invalidateCases(needsRegrouping)
+        }
       },
 
       // Write formula-computed values directly to volatile arrays, bypassing per-item MST actions.
@@ -1347,15 +1409,9 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
         const items = self.getItemsForCases(cases)
         // Capture the Map locally to avoid repeated MST proxy access in the inner loop
         const { itemInfoMap } = self
-        // Only regroup if a computed attribute is in a parent collection,
-        // since parent collection values determine case grouping.
-        let needsRegrouping = false
         for (const attrId of affectedAttributes) {
           const attr = self.getAttribute(attrId)
           if (!attr) continue
-          if (!needsRegrouping && self.getCollectionForAttribute(attrId) !== self.childCollection) {
-            needsRegrouping = true
-          }
           const indices: number[] = []
           const values: IValueType[] = []
           for (const item of items) {
@@ -1369,7 +1425,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
             attr.setComputedValues(indices, values)
           }
         }
-        self.invalidateCases(needsRegrouping)
+        self.invalidateCases(_attrIdsAffectGrouping(affectedAttributes))
       },
 
       removeCases(caseIDs: string[]) {

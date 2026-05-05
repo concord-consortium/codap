@@ -532,6 +532,152 @@ describe("CollectionModel", () => {
     disposeCases()
   })
 
+  it("recomputeNonEmptyCases refreshes _nonEmptyCases from current attribute values", () => {
+    // Build a single collection with one attribute. The collection needs to know about
+    // its attribute because isNonEmptyCaseGroup walks self.attributesArray.
+    const Model = types.model("Model", {
+      attributes: types.array(Attribute),
+      collections: types.array(CollectionModel)
+    })
+    const a1 = Attribute.create({ id: "a1", name: "a1" })
+    const root = Model.create({ attributes: [a1], collections: [{ id: "c1", name: "c1" }] })
+    const [c1] = root.collections
+    c1.addAttribute(a1)
+
+    // Mutable values map so we can simulate values flipping post-build, mimicking what
+    // setComputedValues does when a formula evaluates after the initial validateCases.
+    let values: Record<string, string> = { i0: "", i1: "", i2: "" }
+    const itemData: IItemData = {
+      itemIds: () => ["i0", "i1", "i2"],
+      isHidden: () => false,
+      getValue: (itemId: string) => values[itemId] ?? "",
+      addItemInfo: () => null,
+      invalidate: () => null
+    }
+    syncCollectionLinks([c1], itemData)
+
+    // Initial rebuild with all-empty values: no non-empty cases.
+    c1.updateCaseGroups()
+    c1.completeCaseGroups(undefined)
+    expect(c1.cases.length).toBe(3)
+    expect(c1.nonEmptyCases.length).toBe(0)
+
+    // Values become non-empty (without any grouping change). recomputeNonEmptyCases
+    // walks the existing _caseGroups and refreshes the cache.
+    values = { i0: "10", i1: "20", i2: "30" }
+    c1.recomputeNonEmptyCases()
+    expect(c1.nonEmptyCases.length).toBe(3)
+
+    // Values back to empty: cache reflects the new state on the next recompute.
+    values = { i0: "", i1: "", i2: "" }
+    c1.recomputeNonEmptyCases()
+    expect(c1.nonEmptyCases.length).toBe(0)
+  })
+
+  it("recomputeNonEmptyCases is a no-op while a full rebuild is pending", () => {
+    // Same setup as the previous test.
+    const Model = types.model("Model", {
+      attributes: types.array(Attribute),
+      collections: types.array(CollectionModel)
+    })
+    const a1 = Attribute.create({ id: "a1", name: "a1" })
+    const root = Model.create({ attributes: [a1], collections: [{ id: "c1", name: "c1" }] })
+    const [c1] = root.collections
+    c1.addAttribute(a1)
+
+    let values: Record<string, string> = { i0: "", i1: "", i2: "" }
+    const itemData: IItemData = {
+      itemIds: () => ["i0", "i1", "i2"],
+      isHidden: () => false,
+      getValue: (itemId: string) => values[itemId] ?? "",
+      addItemInfo: () => null,
+      invalidate: () => null
+    }
+    syncCollectionLinks([c1], itemData)
+
+    c1.updateCaseGroups()
+    c1.completeCaseGroups(undefined)
+    expect(c1.nonEmptyCases.length).toBe(0)
+    const initialNonEmptyRef = c1.nonEmptyCases
+
+    // Mark a full rebuild pending and update the values. recomputeNonEmptyCases must defer
+    // to the upcoming rebuild — walking _caseGroups (which are about to be discarded) could
+    // produce a transiently wrong result.
+    values = { i0: "10", i1: "20", i2: "30" }
+    c1.invalidateCaseGroups()
+    c1.recomputeNonEmptyCases()
+    // The cached array is unchanged (same reference, same length).
+    expect(c1.nonEmptyCases).toBe(initialNonEmptyRef)
+    expect(c1.nonEmptyCases.length).toBe(0)
+
+    // Once the pending full rebuild runs, _nonEmptyCases reflects the new values.
+    c1.updateCaseGroups()
+    c1.completeCaseGroups(undefined)
+    expect(c1.nonEmptyCases.length).toBe(3)
+  })
+
+  it("value-only invalidations do not invalidate grouping-affected views", () => {
+    // This test pins down the architectural contract behind the split observable design:
+    // a value-only update (recomputeNonEmptyCases) must not invalidate caseGroups/cases
+    // observers — only nonEmptyCases observers. If the two observables were collapsed
+    // back together, this test would fail.
+    const Model = types.model("Model", {
+      attributes: types.array(Attribute),
+      collections: types.array(CollectionModel)
+    })
+    const a1 = Attribute.create({ id: "a1", name: "a1" })
+    const root = Model.create({ attributes: [a1], collections: [{ id: "c1", name: "c1" }] })
+    const [c1] = root.collections
+    c1.addAttribute(a1)
+
+    let values: Record<string, string> = { i0: "", i1: "", i2: "" }
+    const itemData: IItemData = {
+      itemIds: () => ["i0", "i1", "i2"],
+      isHidden: () => false,
+      getValue: (itemId: string) => values[itemId] ?? "",
+      addItemInfo: () => null,
+      invalidate: () => null
+    }
+    syncCollectionLinks([c1], itemData)
+
+    c1.updateCaseGroups()
+    c1.completeCaseGroups(undefined)
+
+    // Counters track how many times each tracked expression is re-evaluated by MobX.
+    // The default reaction comparer compares by reference, so collapsing observables back
+    // would surface here as caseGroupsEvalCount climbing on a value-only update.
+    let caseGroupsEvalCount = 0
+    let nonEmptyEvalCount = 0
+    const disposeCaseGroups = reaction(
+      () => { caseGroupsEvalCount++; return c1.caseGroups },
+      () => { /* no-op effect */ }
+    )
+    const disposeNonEmpty = reaction(
+      () => { nonEmptyEvalCount++; return c1.nonEmptyCases },
+      () => { /* no-op effect */ }
+    )
+    const baselineCaseGroupsEvalCount = caseGroupsEvalCount   // 1 from initial reaction setup
+    const baselineNonEmptyEvalCount = nonEmptyEvalCount       // 1 from initial reaction setup
+
+    // Value-only update: nonEmptyCases re-evaluates, caseGroups does not.
+    values = { i0: "10", i1: "20", i2: "30" }
+    c1.recomputeNonEmptyCases()
+    expect(caseGroupsEvalCount).toBe(baselineCaseGroupsEvalCount)
+    expect(nonEmptyEvalCount).toBeGreaterThan(baselineNonEmptyEvalCount)
+
+    // A subsequent regrouping update re-evaluates both — confirms the grouping path still
+    // notifies all grouping-affected views.
+    const beforeRegroup = { caseGroups: caseGroupsEvalCount, nonEmpty: nonEmptyEvalCount }
+    c1.invalidateCaseGroups()
+    c1.updateCaseGroups()
+    c1.completeCaseGroups(undefined)
+    expect(caseGroupsEvalCount).toBeGreaterThan(beforeRegroup.caseGroups)
+    expect(nonEmptyEvalCount).toBeGreaterThan(beforeRegroup.nonEmpty)
+
+    disposeCaseGroups()
+    disposeNonEmpty()
+  })
+
   it("additive invalidation appends correctly without full rebuild", () => {
     const c1 = CollectionModel.create({ name: "c1" })
     let items = ["i0", "i1"]

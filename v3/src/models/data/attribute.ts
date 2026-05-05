@@ -532,12 +532,14 @@ export const Attribute = V2Model.named("Attribute").props({
         self.strValues[i] = _strValues[indices[i]]
         self.numValues[i] = _numValues[indices[i]]
       }
+      self.incChangeCount()
     },
     clearValues() {
       for (let i = self.strValues.length - 1; i >= 0; --i) {
         self.strValues[i] = ""
         self.numValues[i] = self.toNumeric(self.strValues[i])
       }
+      self.incChangeCount()
     }
   }))
   .actions(applyModelChange)

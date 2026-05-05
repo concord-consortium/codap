@@ -90,6 +90,33 @@ describe("DataSet undo/redo", () => {
     expect(undoManager?.redoEntry?.clientData).toBeUndefined()
   })
 
+  // The forward setCaseValuesWithCustomUndoRedo edit can pass affectedAttributes to engage the
+  // regrouping-skip optimization in setCaseValues. The custom undo/redo patch must persist that
+  // list so undo/redo replays carry the optimization through to the inverse operation, which is
+  // the more common workflow (edit → undo → redo) and where the perf win matters most.
+  it("preserves affectedAttributes through undo/redo so the regrouping-skip optimization carries through", async () => {
+    const { data, whenTreeManagerIsReady, undoManager } = setupDocument()
+
+    // Both attributes live in the (only) child collection, so an edit to aId is a child-only
+    // change and setCaseValues should call invalidateCases(false) — leaving needsRegrouping
+    // unchanged at false.
+    data.applyModelChange(
+      () => setCaseValuesWithCustomUndoRedo(data, [{ __id__: "ITEM0", aId: 99 }], ["aId"]),
+      { undoStringKey: "Undo edit value", redoStringKey: "Redo edit value" })
+    expect(data.needsRegrouping).toBe(false)
+    await whenTreeManagerIsReady()
+
+    undoManager?.undo()
+    await whenTreeManagerIsReady()
+    expect(data.getItem("ITEM0")).toEqual({ __id__: "ITEM0", aId: 1, bId: 2 })
+    expect(data.needsRegrouping).toBe(false)
+
+    undoManager?.redo()
+    await whenTreeManagerIsReady()
+    expect(data.getItem("ITEM0")).toEqual({ __id__: "ITEM0", aId: 99, bId: 2 })
+    expect(data.needsRegrouping).toBe(false)
+  })
+
   it("can undo/redo inserting cases at the end", async () => {
     const { data, whenTreeManagerIsReady, undoManager } = setupDocument()
 

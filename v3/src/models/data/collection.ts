@@ -454,13 +454,12 @@ export const CollectionModel = V2Model
     if (!caseGroup?.childItemIds.length) return false
     // cases with multiple child items are non-empty (shouldn't happen for child collections)
     if (caseGroup.childItemIds.length > 1) return true
-    // for child collections, determine non-empty status by checking child item values
+    // For child collections, determine non-empty status by checking child item values across
+    // all attributes — including formula-driven ones. Formula-evaluated values count as
+    // non-empty by definition (a case with a computed value is not empty), so we check
+    // attributesArray rather than dataAttributesArray (which excludes formula attrs).
     const childItemId = caseGroup.childItemIds[0]
-    const childItemHasNonEmptyValue = self.dataAttributesArray.some(attr => {
-      const value = self.itemData.getValue(childItemId, attr.id)
-      return isValueNonEmpty(value)
-    })
-    return childItemHasNonEmptyValue
+    return self.attributesArray.some(attr => isValueNonEmpty(self.itemData.getValue(childItemId, attr.id)))
   },
   addChildCase(parentCaseId: string, childCaseId: string) {
     const groupKey = self.caseIdToGroupKeyMap.get(parentCaseId)
@@ -486,12 +485,19 @@ export const CollectionModel = V2Model
   let _caseIdsHash = 0
   let _caseIdsOrderedHash = 0
 
-  // Single observable version counter — incremented by completeCaseGroups() after updating
-  // plain variables, so that MobX reactions only fire when fresh data is available.
-  // Note: this is a pragmatic compromise — writing to an observable from a view via runInAction
-  // is not ideal, but avoids the circular read/write pattern of the old code (5 observable boxes
+  // Two observable version counters track when cached views need re-evaluation:
+  //   _groupingChangeVersion — bumped by completeCaseGroups() after a full rebuild. All
+  //     grouping-affected views invalidate together (caseGroups, cases, nonEmptyCases, hashes).
+  //   _valueChangeVersion — bumped by recomputeNonEmptyCases() when child-collection
+  //     attribute values change without affecting groupings (e.g. formula recomputation).
+  //     Only views derived from values read this; other views ignore it.
+  // Invariant: a grouping change subsumes a value change — the rebuild path refreshes
+  // _nonEmptyCases as part of completeCaseGroups, so it bumps only _groupingChangeVersion.
+  // Note: writing to these observables from a view via runInAction is a pragmatic compromise,
+  // but it avoids the circular read/write pattern of the old code (multiple observable boxes
   // read then written in the same view) and ensures reactions never see stale cached data.
-  const _cacheVersion = observable.box(0)
+  const _groupingChangeVersion = observable.box(0)
+  const _valueChangeVersion = observable.box(0)
 
   // Invalidation state (plain, not observable)
   let _needsFullRebuild = true   // starts true: no valid data yet
@@ -500,23 +506,24 @@ export const CollectionModel = V2Model
   return {
     views: {
       get caseGroups() {
-        _cacheVersion.get()
+        _groupingChangeVersion.get()
         return _caseGroups
       },
       get cases() {
-        _cacheVersion.get()
+        _groupingChangeVersion.get()
         return _cases
       },
       get nonEmptyCases() {
-        _cacheVersion.get()
+        _groupingChangeVersion.get()
+        _valueChangeVersion.get()
         return _nonEmptyCases
       },
       get caseIdsHash() {
-        _cacheVersion.get()
+        _groupingChangeVersion.get()
         return _caseIdsHash
       },
       get caseIdsOrderedHash() {
-        _cacheVersion.get()
+        _groupingChangeVersion.get()
         return _caseIdsOrderedHash
       },
       completeCaseGroups(parentCases: Maybe<CaseInfo[]>) {
@@ -551,12 +558,18 @@ export const CollectionModel = V2Model
           const newCaseGroups = newCaseIds.map(caseId => self.getCaseGroup(caseId))
           _caseGroups = [..._caseGroups, ...newCaseGroups.filter(group => !!group)]
 
-          const newCases = newCaseGroups.map(caseGroup => caseGroup?.groupedCase)
-          _cases = [..._cases, ...newCases.filter(aCase => !!aCase)]
+          const newCases = newCaseGroups
+                            .map(caseGroup => caseGroup?.groupedCase)
+                            .filter(aCase => !!aCase)
+          _cases = [..._cases, ...newCases]
 
-          const newNonEmptyCases = newCaseGroups.map(group => {
-            return group && self.isNonEmptyCaseGroup(group) ? group.groupedCase : undefined
-          }).filter(aCase => !!aCase)
+          // Parent collections: every case is non-empty by definition (isNonEmptyCaseGroup
+          // short-circuits to true), so reuse newCases rather than running the filter.
+          const newNonEmptyCases = self.child
+            ? newCases
+            : newCaseGroups
+                .map(group => group && self.isNonEmptyCaseGroup(group) ? group.groupedCase : undefined)
+                .filter(aCase => !!aCase)
           _nonEmptyCases = [..._nonEmptyCases, ...newNonEmptyCases]
         }
         // REBUILD path: full recompute from volatile state
@@ -569,9 +582,15 @@ export const CollectionModel = V2Model
                       .map(group => group?.groupedCase)
                       .filter(groupedCase => !!groupedCase)
 
-          _nonEmptyCases = _caseGroups.map(group => {
-            return group && self.isNonEmptyCaseGroup(group) ? group.groupedCase : undefined
-          }).filter(aCase => !!aCase)
+          // Parent collections: every case is non-empty by definition (isNonEmptyCaseGroup
+          // short-circuits to true), so _nonEmptyCases content equals _cases. A shallow copy
+          // preserves reference-identity semantics (each rebuild produces a fresh array, so
+          // identity-comparing reactions on nonEmptyCases still fire when caseGroups change).
+          _nonEmptyCases = self.child
+            ? [..._cases]
+            : _caseGroups
+                .map(group => group && self.isNonEmptyCaseGroup(group) ? group.groupedCase : undefined)
+                .filter(aCase => !!aCase)
 
           _needsFullRebuild = false
         }
@@ -581,7 +600,7 @@ export const CollectionModel = V2Model
 
         // Signal to MobX that cached data has been updated.
         // Must happen AFTER plain variables are updated so reactions see fresh data.
-        runInAction(() => _cacheVersion.set(_cacheVersion.get() + 1))
+        runInAction(() => _groupingChangeVersion.set(_groupingChangeVersion.get() + 1))
       }
     },
     actions: {
@@ -598,6 +617,21 @@ export const CollectionModel = V2Model
         if (!_needsFullRebuild) {
           _pendingNewCaseIds = newCaseIds
         }
+      },
+      // Re-derive _nonEmptyCases from the existing _caseGroups without redoing any grouping.
+      // Used after child-collection attribute values change (e.g. formula recomputation), where
+      // emptiness can flip but groupings cannot. Skipped if a full rebuild is already pending —
+      // completeCaseGroups will refresh _nonEmptyCases anyway, and walking stale _caseGroups
+      // would produce a transiently wrong result. Also a no-op on parent collections, where
+      // every case is non-empty by definition (isNonEmptyCaseGroup short-circuits to true), so
+      // a value-only change can never flip emptiness — DataSet.validateCases already filters to
+      // the childmost collection, but this guard documents the action's contract.
+      recomputeNonEmptyCases() {
+        if (_needsFullRebuild || self.child) return
+        _nonEmptyCases = _caseGroups
+          .filter(group => self.isNonEmptyCaseGroup(group))
+          .map(group => group.groupedCase)
+        _valueChangeVersion.set(_valueChangeVersion.get() + 1)
       }
     }
   }

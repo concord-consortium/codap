@@ -271,7 +271,10 @@ export const useRows = (gridElement: HTMLDivElement | null) => {
 
     // handle updating cases (editing cells of existing cases)
     if (data && casesToUpdate.length) {
-      applyCaseValueChanges(data, casesToUpdate, getPendingLogMessage("editCellValue"))
+      // Each case-table cell edit changes exactly one column's value, so passing the edited
+      // column id as affectedAttributes lets setCaseValues skip the regrouping path when the
+      // edit is on a child-collection attribute.
+      applyCaseValueChanges(data, casesToUpdate, getPendingLogMessage("editCellValue"), [changes.column.key])
       return
     }
 

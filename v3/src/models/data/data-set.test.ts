@@ -1,4 +1,5 @@
 import { isEqual, isEqualWith } from "lodash"
+import { autorun } from "mobx"
 import { applyAction, clone, destroy, getSnapshot, onAction, onSnapshot } from "mobx-state-tree"
 import { uniqueName } from "../../utilities/js-utils"
 import { onAnyAction } from "../../utilities/mst-utils"
@@ -1071,6 +1072,187 @@ test("setComputedCaseValues skips regrouping for child collection attributes", (
   ], [childAttr.id])
 
   expect(data.needsRegrouping).toBe(false)
+})
+
+// Regression test for CODAP-1173: when all attributes of a child (or single) collection are
+// formula-driven, snapshot values are empty until the formula evaluates. The initial
+// validateCases() therefore caches nonEmptyCases as []. setComputedCaseValues then writes
+// the formula's results but, because the affected attribute lives in the child collection,
+// it skips the regrouping path — and nonEmptyCases must still refresh because the new values
+// can flip cases from empty to non-empty.
+test("setComputedCaseValues for child-collection attributes refreshes nonEmptyCases", () => {
+  const data = DataSet.create({ name: "data" })
+  const formulaAttr = data.addAttribute({ name: "Test" })
+  // Marking the attribute as formula-driven matters: the original CODAP-1173 bug only
+  // surfaced when every attribute in the (child) collection had a formula. Without the
+  // formula here, the attribute would fall into Collection.dataAttributesArray and the
+  // initial validation would already see "empty" values via the regular path; the bug
+  // requires Collection.attributesArray (formula-included) to be the attribute source.
+  formulaAttr.setDisplayExpression("0")
+  // Three items with empty values, mirroring a freshly loaded document whose only
+  // attribute has a formula whose results are not yet evaluated.
+  data.addCases(toCanonical(data, [{ Test: "" }, { Test: "" }, { Test: "" }]))
+  expect(data.getNonEmptyCasesForCollection(data.childCollection.id).length).toBe(0)
+
+  // Formula evaluation writes results via setComputedCaseValues for the child-collection attr.
+  const [id1, id2, id3] = data.itemIds
+  data.setComputedCaseValues([
+    { __id__: id1, [formulaAttr.id]: 10 },
+    { __id__: id2, [formulaAttr.id]: 20 },
+    { __id__: id3, [formulaAttr.id]: 30 }
+  ], [formulaAttr.id])
+
+  // All three cases now have non-empty (formula-derived) values, so the count must reflect
+  // that. This exercises both the value-revalidation cache refresh (setComputedCaseValues
+  // calls invalidateCases(false), which schedules a recompute) and the formula-aware
+  // emptiness check in isNonEmptyCaseGroup.
+  expect(data.getNonEmptyCasesForCollection(data.childCollection.id).length).toBe(3)
+})
+
+// When a caller of setCaseValues supplies affectedAttributes, the dataset can apply the
+// same regrouping-skip optimization used by setComputedCaseValues. This is the same shape
+// as the CODAP-1173 formula path but exercised via the user-edit code path (case table /
+// case card cell edits, plugin DI updates that opt into the contract, etc.).
+// CODAP-1173 follow-on: an early version of the fix made validateCases() recompute
+// _nonEmptyCases via a new branch, but a production reader (the case-table title bar)
+// reads `collection.nonEmptyCases` directly — that getter does NOT trigger validateCases.
+// Reactive consumers must read through the dataset's getNonEmptyCasesForCollection so
+// they pick up the MobX dependency on the dataset's validation observable, which is what
+// invalidateCases(false) bumps. This test guards the reactive path: the autorun simulates
+// the title bar's render, and must observe the refreshed count after setComputedCaseValues.
+test("autorun reading getNonEmptyCasesForCollection updates after setComputedCaseValues", () => {
+  const data = DataSet.create({ name: "data" })
+  const formulaAttr = data.addAttribute({ name: "Test" })
+  data.addCases(toCanonical(data, [{ Test: "" }, { Test: "" }, { Test: "" }]))
+
+  let observedCount = -1
+  const dispose = autorun(() => {
+    observedCount = data.getNonEmptyCasesForCollection(data.childCollection.id).length
+  })
+  expect(observedCount).toBe(0)
+
+  const [id1, id2, id3] = data.itemIds
+  data.setComputedCaseValues([
+    { __id__: id1, [formulaAttr.id]: 10 },
+    { __id__: id2, [formulaAttr.id]: 20 },
+    { __id__: id3, [formulaAttr.id]: 30 }
+  ], [formulaAttr.id])
+
+  expect(observedCount).toBe(3)
+
+  dispose()
+})
+
+// Value-only invalidations (regrouping=false) leave item visibility/order untouched, so the
+// dataset's itemIds cache must NOT be discarded — that would force consumers (case table,
+// filters, etc.) to rebuild on every formula recompute and give back part of the perf win.
+test("setCaseValues with child-only affectedAttributes does not invalidate the itemIds cache", () => {
+  const data = DataSet.create({ name: "data" })
+  const childAttr = data.addAttribute({ name: "val" })
+  data.addCases(toCanonical(data, [{ val: "a" }, { val: "b" }, { val: "c" }]))
+  data.validateCases()
+  const itemIdsBefore = data.itemIds
+
+  data.setCaseValues([{ __id__: data.itemIds[0], [childAttr.id]: "x" }], [childAttr.id])
+
+  // Same array reference proves the cache wasn't rebuilt; a regrouping invalidation would
+  // have set _isValidItemIds = false and the next read would have produced a new array.
+  expect(data.itemIds).toBe(itemIdsBefore)
+})
+
+// In a hierarchical dataset, parent-collection cases short-circuit isNonEmptyCaseGroup on
+// self.child and so their nonEmpty status is invariant across value-only updates. The
+// value-revalidation branch therefore must touch only the childmost collection — both to
+// avoid wasted work and to avoid notifying parent observers. Pinning this with a reaction
+// counter so a regression that re-iterates all collections would surface here.
+test("setComputedCaseValues on a child attr does not refresh parent-collection nonEmptyCases", () => {
+  const data = DataSet.create({ name: "data" })
+  const parentCollection = data.addCollection({ name: "Parent" })
+  data.addAttribute({ name: "group" }, { collection: parentCollection.id })
+  const childAttr = data.addAttribute({ name: "val" })
+  data.addCases(toCanonical(data, [
+    { group: "A", val: "" },
+    { group: "A", val: "" },
+    { group: "B", val: "" }
+  ]))
+  data.validateCases()
+
+  const parent = data.getCollection(parentCollection.id)!
+  const child = data.childCollection
+  let parentEvalCount = 0
+  let childEvalCount = 0
+  const disposeParent = autorun(() => { parentEvalCount++; void parent.nonEmptyCases })
+  const disposeChild = autorun(() => { childEvalCount++; void child.nonEmptyCases })
+  const baselineParent = parentEvalCount
+  const baselineChild = childEvalCount
+
+  data.setComputedCaseValues(
+    data.itemIds.map(id => ({ __id__: id, [childAttr.id]: 99 })),
+    [childAttr.id]
+  )
+  data.validateCases() // run the value-revalidation branch
+
+  expect(childEvalCount).toBeGreaterThan(baselineChild)   // child observers re-run
+  expect(parentEvalCount).toBe(baselineParent)            // parent observers don't
+
+  disposeParent()
+  disposeChild()
+})
+
+test("setCaseValues with child-only affectedAttributes skips regrouping", () => {
+  const data = DataSet.create({ name: "data" })
+  const parentCollection = data.addCollection({ name: "Parent" })
+  data.addAttribute({ name: "group" }, { collection: parentCollection.id })
+  const childAttr = data.addAttribute({ name: "val" })
+  data.addCases(toCanonical(data, [
+    { group: "A", val: 1 },
+    { group: "B", val: 2 }
+  ]))
+  data.validateCases()
+  expect(data.needsRegrouping).toBe(false)
+
+  data.setCaseValues(
+    [{ __id__: data.itemIds[0], [childAttr.id]: 99 }],
+    [childAttr.id]
+  )
+  expect(data.needsRegrouping).toBe(false)
+})
+
+test("setCaseValues with parent-collection affectedAttributes triggers regrouping", () => {
+  const data = DataSet.create({ name: "data" })
+  const parentCollection = data.addCollection({ name: "Parent" })
+  const parentAttr = data.addAttribute({ name: "group" }, { collection: parentCollection.id })
+  data.addAttribute({ name: "val" })
+  data.addCases(toCanonical(data, [
+    { group: "A", val: 1 },
+    { group: "B", val: 2 }
+  ]))
+  data.validateCases()
+  expect(data.needsRegrouping).toBe(false)
+
+  data.setCaseValues(
+    [{ __id__: data.itemIds[0], [parentAttr.id]: "C" }],
+    [parentAttr.id]
+  )
+  expect(data.needsRegrouping).toBe(true)
+})
+
+test("setCaseValues without affectedAttributes regroups defensively", () => {
+  const data = DataSet.create({ name: "data" })
+  const parentCollection = data.addCollection({ name: "Parent" })
+  data.addAttribute({ name: "group" }, { collection: parentCollection.id })
+  const childAttr = data.addAttribute({ name: "val" })
+  data.addCases(toCanonical(data, [
+    { group: "A", val: 1 },
+    { group: "B", val: 2 }
+  ]))
+  data.validateCases()
+  expect(data.needsRegrouping).toBe(false)
+
+  // Caller doesn't supply affectedAttributes — even though only a child-collection attr
+  // is written, the dataset can't know that, so it must regroup.
+  data.setCaseValues([{ __id__: data.itemIds[0], [childAttr.id]: 99 }])
+  expect(data.needsRegrouping).toBe(true)
 })
 
 test("setComputedCaseValues triggers regrouping for parent collection attributes", () => {

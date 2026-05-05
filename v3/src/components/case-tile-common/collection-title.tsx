@@ -29,10 +29,18 @@ export const CollectionTitle =
   const collection = data?.getCollection(collectionId)
   const collectionName = collection?.name || t("DG.AppController.createDataSet.collectionName")
   const { isTileSelected } = useTileSelectionContext()
-  const visibleCaseCount = collection?.cases.length ?? 0
-  const nonEmptyCaseCount = collection?.nonEmptyCases.length ?? 0
+  // Read through the dataset's getter methods (rather than `collection.cases` /
+  // `collection.nonEmptyCases` directly) so this observer establishes a MobX dependency
+  // on the dataset's validation observable. Without that dependency the title would not
+  // re-render after a value-only invalidation (e.g. formula recompute via
+  // setComputedCaseValues), and the displayed nonEmptyCases count would stay stale.
+  // Only compute the counts when showCount is true; otherwise we'd trigger validateCases
+  // (potentially expensive for large datasets) just to throw the result away. CaseCardHeader
+  // renders this component with showCount={false} on every card render.
+  const visibleCaseCount = showCount ? (data?.getCasesForCollection(collectionId).length ?? 0) : 0
+  const nonEmptyCaseCount = showCount ? (data?.getNonEmptyCasesForCollection(collectionId).length ?? 0) : 0
+  const hiddenCaseCount = showCount ? ((collection?.allCaseIds.size ?? 0) - visibleCaseCount) : 0
   const hasEmptyCases = visibleCaseCount - nonEmptyCaseCount > 0
-  const hiddenCaseCount = (collection?.allCaseIds.size ?? 0) - visibleCaseCount
   const tileRef = useRef<HTMLDivElement | null>(null)
   const contentRef = useRef<HTMLDivElement | null>(null)
   const titleRef = useRef<HTMLDivElement>(null)
