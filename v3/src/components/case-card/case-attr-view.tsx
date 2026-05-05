@@ -36,6 +36,11 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
   const caseId = groupedCase?.__id__ ?? ""
   const cardModel = useCaseCardModel()
   const { data, metadata } = cardModel || {}
+  // Establish a MobX dependency on the attribute's mutation counter so this observer
+  // re-renders when values change (e.g. slider-driven formula recomputes). The data
+  // accessors below read non-observable volatile arrays. (CODAP-1290)
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+  attr?.changeCount
   const cellStrValue = isCollectionSummarized
                         ? cardModel?.summarizedValues(attr, collection)
                         : data?.getStrValue(caseId, id)
