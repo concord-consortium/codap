@@ -62,12 +62,27 @@ const CaseTableToolShelfMenuList = observer(
       // the new tile is created at 0,0. The correct fix for this issue is to prevent scrolling to show the new table.
       // const options: INewTileOptions = { animateCreation: true, markNewlyCreated: true }
       const options: INewTileOptions = { markNewlyCreated: true }
-      tile = createDefaultTileOfType(kCaseTableTileType, options)
-      if (!tile) return
-      const { sharedData, sharedMetadata } = gDataBroker.addDataSet(ds, tile.id)
+      const orphanTile = createDefaultTileOfType(kCaseTableTileType, options)
+      if (!orphanTile) return
+      const { sharedData, sharedMetadata } = gDataBroker.addDataSet(ds, orphanTile.id)
       // Add dataset to the formula manager
       getFormulaManager(document)?.addDataSet(ds)
       createTableOrCardForDataset(sharedData, sharedMetadata, kCaseTableTileType, options)
+      // orphanTile is never inserted into a row — it exists only to (a) verify the
+      // case-table tile type is creatable and (b) seed sharedData.providerId via
+      // gDataBroker.addDataSet. The visible tile is created inside
+      // createTableOrCardForDataset and registered on sharedMetadata.
+      //
+      // Notify with the visible tile so plugins receive the id of the actual workspace
+      // component (otherwise highlight / { component: <id> } lookups by plugins fail —
+      // the orphan id resolves in tileMap but document.getElementById returns null).
+      //
+      // Note: sharedData.providerId is currently dead state — no reader exists in the
+      // codebase. So even though the orphan id is being stored there, it doesn't cause
+      // an observable bug today. A future cleanup could drop the orphan tile and
+      // sharedData.providerId entirely once we confirm nothing relies on the field.
+      const actualTileId = sharedMetadata.caseTableTileId
+      tile = actualTileId ? content.tileMap.get(actualTileId) : undefined
     }, {
       notify: [ dataContextCountChangedNotification, () => createTileNotification(tile) ],
       undoStringKey: "V3.Undo.caseTable.create",
