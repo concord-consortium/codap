@@ -558,12 +558,18 @@ export const CollectionModel = V2Model
           const newCaseGroups = newCaseIds.map(caseId => self.getCaseGroup(caseId))
           _caseGroups = [..._caseGroups, ...newCaseGroups.filter(group => !!group)]
 
-          const newCases = newCaseGroups.map(caseGroup => caseGroup?.groupedCase)
-          _cases = [..._cases, ...newCases.filter(aCase => !!aCase)]
+          const newCases = newCaseGroups
+                            .map(caseGroup => caseGroup?.groupedCase)
+                            .filter(aCase => !!aCase)
+          _cases = [..._cases, ...newCases]
 
-          const newNonEmptyCases = newCaseGroups.map(group => {
-            return group && self.isNonEmptyCaseGroup(group) ? group.groupedCase : undefined
-          }).filter(aCase => !!aCase)
+          // Parent collections: every case is non-empty by definition (isNonEmptyCaseGroup
+          // short-circuits to true), so reuse newCases rather than running the filter.
+          const newNonEmptyCases = self.child
+            ? newCases
+            : newCaseGroups
+                .map(group => group && self.isNonEmptyCaseGroup(group) ? group.groupedCase : undefined)
+                .filter(aCase => !!aCase)
           _nonEmptyCases = [..._nonEmptyCases, ...newNonEmptyCases]
         }
         // REBUILD path: full recompute from volatile state
@@ -576,9 +582,15 @@ export const CollectionModel = V2Model
                       .map(group => group?.groupedCase)
                       .filter(groupedCase => !!groupedCase)
 
-          _nonEmptyCases = _caseGroups.map(group => {
-            return group && self.isNonEmptyCaseGroup(group) ? group.groupedCase : undefined
-          }).filter(aCase => !!aCase)
+          // Parent collections: every case is non-empty by definition (isNonEmptyCaseGroup
+          // short-circuits to true), so _nonEmptyCases content equals _cases. A shallow copy
+          // preserves reference-identity semantics (each rebuild produces a fresh array, so
+          // identity-comparing reactions on nonEmptyCases still fire when caseGroups change).
+          _nonEmptyCases = self.child
+            ? [..._cases]
+            : _caseGroups
+                .map(group => group && self.isNonEmptyCaseGroup(group) ? group.groupedCase : undefined)
+                .filter(aCase => !!aCase)
 
           _needsFullRebuild = false
         }
@@ -610,9 +622,12 @@ export const CollectionModel = V2Model
       // Used after child-collection attribute values change (e.g. formula recomputation), where
       // emptiness can flip but groupings cannot. Skipped if a full rebuild is already pending —
       // completeCaseGroups will refresh _nonEmptyCases anyway, and walking stale _caseGroups
-      // would produce a transiently wrong result.
+      // would produce a transiently wrong result. Also a no-op on parent collections, where
+      // every case is non-empty by definition (isNonEmptyCaseGroup short-circuits to true), so
+      // a value-only change can never flip emptiness — DataSet.validateCases already filters to
+      // the childmost collection, but this guard documents the action's contract.
       recomputeNonEmptyCases() {
-        if (_needsFullRebuild) return
+        if (_needsFullRebuild || self.child) return
         _nonEmptyCases = _caseGroups
           .filter(group => self.isNonEmptyCaseGroup(group))
           .map(group => group.groupedCase)
