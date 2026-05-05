@@ -72,6 +72,11 @@ export const CaseCardModel = TileContentModel
         .filter(groupedCase => !!groupedCase)
     },
     summarizedValues(attr: IAttribute, collection: ICollectionModel) {
+      // Establish a MobX dependency on the attribute's mutation counter so this view
+      // re-evaluates when individual values change. Volatile strValues/numValues are
+      // not deep-observable; changeCount is bumped by setValue/setComputedValues.
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+      attr.changeCount
       // Returns a string summarizing the selected values of the attribute
       if (attr.isNumeric) {
         const numericValues = attr.numValues.filter((_v, i) => attr.isValueNumeric(i))

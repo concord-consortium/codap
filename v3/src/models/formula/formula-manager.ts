@@ -348,6 +348,11 @@ export class FormulaManager implements IFormulaManager {
       const oldCanonical = formula.canonical
       this.updateFormulaCanonicalExpression(formulaId)
       if (oldCanonical !== formula.canonical) {
+        // The dependency set may have changed (e.g. a previously-unresolved symbol now
+        // resolves to a newly-added global value or attribute). Tear down and re-register
+        // observers from the new canonical form so subsequent value changes are tracked.
+        this.formulaMetadata.get(formulaId)?.dispose?.()
+        this.setupFormulaObservers(formulaId)
         this.recalculateFormula(formula.id)
       }
     }
