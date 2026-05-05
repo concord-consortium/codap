@@ -104,6 +104,12 @@ context("Calculator", () => {
     calc.typeExpression("+5{enter}")
     calc.checkCalculatorDisplay("15")
   })
+  it("collapses expression when new result equals the previous result", () => {
+    calc.typeExpression("2*0{enter}")
+    calc.checkCalculatorDisplay("0")
+    calc.typeExpression("*0{enter}")
+    calc.checkCalculatorDisplay("0")
+  })
   it("clears with Escape key", () => {
     calc.typeExpression("123")
     calc.checkCalculatorDisplay("123")
