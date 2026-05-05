@@ -13,6 +13,12 @@ export function isAxisPlace(place: string): place is AxisPlace {
   return (AxisPlaces as readonly string[]).includes(place)
 }
 
+// Maps AxisPlace values to lowercase kebab-case for use in data-testid values.
+// Enumerated (not a generic camelToKebab) so adding a new place to AxisPlaces forces
+// an explicit decision rather than silently passing camelCase into testids.
+export const placeTestId = (place: AxisPlace): string =>
+  place === "rightCat" ? "right-cat" : place === "rightNumeric" ? "right-numeric" : place
+
 export function otherPlace(aPlace: AxisPlace): AxisPlace {
   return ['bottom', 'top'].includes(aPlace) ? 'left' : 'bottom'
 }

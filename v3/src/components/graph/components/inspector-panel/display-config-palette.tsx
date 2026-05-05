@@ -279,6 +279,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
       setShowPalette={setShowPalette}
       panelRect={panelRect}
       buttonRect={buttonRect}
+      tileType="graph"
     >
       <div className="palette-form display-config-palette">
         <If condition={!!showPointDisplayType}>

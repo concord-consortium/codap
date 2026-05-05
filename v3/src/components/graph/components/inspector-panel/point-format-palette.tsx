@@ -46,6 +46,7 @@ export const PointFormatPalette = observer(function PointFormatPalette({id, tile
       setShowPalette={setShowPalette}
       panelRect={panelRect}
       buttonRect={buttonRect}
+      tileType="graph"
     >
       <DisplayItemFormatControl
         dataConfiguration={graphModel.dataConfiguration}

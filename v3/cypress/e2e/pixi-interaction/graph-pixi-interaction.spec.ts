@@ -196,7 +196,7 @@ context.skip("Graph UI with Pixi interaction", () => {
       cy.get("[data-testid=parent-toggles-all]").should("exist").and("have.text", "Hide All –")
       cy.get("[data-testid=parent-toggles-case-buttons-list]").find("button").should("exist").and("have.length", 27)
       cy.get("[data-testid=parent-toggles-last]").should("exist").and("have.text", "☐ Last")
-      cy.get("[data-testid=graph]").click()
+      cy.get("[data-testid=codap-graph]").click()
       cy.get("[data-testid=parent-toggles-case-buttons-list]")
         .find("button").contains("Spotted Hyena").should("exist").and("not.have.class", "case-hidden")
       cy.get("[data-testid=parent-toggles-case-buttons-list]")
@@ -303,15 +303,15 @@ context.skip("Graph UI with Pixi interaction", () => {
     it("should have correct point count and position with numerical y, categorical x, and right axes", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Diet", "bottom") // Diet => bottom
-      cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
+      cy.get("[data-testid=codap-graph] [data-testid=axis-bottom] .sub-axis-wrapper").should("have.length", 1)
       cy.dragAttributeToTarget("table", arrayOfAttributes[4], "left") // Mass => y axis
-      cy.get("[data-testid=graph]").find("[data-testid=axis-left]").find(".sub-axis-wrapper").should("have.length", 1)
+      cy.get("[data-testid=codap-graph] [data-testid=axis-left] .sub-axis-wrapper").should("have.length", 1)
       cy.dragAttributeToTarget("table", arrayOfAttributes[7], "right") // Habitat => right axis
-      cy.get("[data-testid=graph]")
+      cy.get("[data-testid=codap-graph]")
         .find("[data-testid=axis-rightCat]")
         .find(".sub-axis-wrapper")
         .should("have.length", 1)
-      cy.get("[data-testid=graph]").find("[data-testid=axis-left]").find(".sub-axis-wrapper").should("have.length", 3)
+      cy.get("[data-testid=codap-graph] [data-testid=axis-left] .sub-axis-wrapper").should("have.length", 3)
       gch.getGraphTileId().then((tileId) => {
         gch.validateGraphPointCount(tileId, 27) // 27 points in graph
       })
@@ -493,16 +493,17 @@ context.skip("Graph UI with Pixi interaction", () => {
     it("should display connecting lines in multiple colors when there are multiple y-axes", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("LifeSpan", "bottom") // LifeSpan => x-axis
-      cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
+      cy.get("[data-testid=codap-graph] [data-testid=axis-bottom] .sub-axis-wrapper").should("have.length", 1)
       cy.dragAttributeToTarget("table", arrayOfAttributes[3], "left") // Height => left split
       cy.dragAttributeToTarget("table", arrayOfAttributes[5], "yplus") // Sleep => left split
 
       // checks for multiple y-axis labels
       ah.verifyXAxisTickMarksDisplayed()
       ah.verifyYAxisTickMarksDisplayed()
-      cy.get("[data-testid=graph]").find("[data-testid=attribute-label]").should("have.text", "LifeSpanHeight, Sleep")
+      cy.get("[data-testid=codap-graph] [data-testid=attribute-label]")
+        .should("have.text", "LifeSpanHeight, Sleep")
       ah.verifyAxisTickLabel("left", "0", 0)
-      cy.get("[data-testid=graph]")
+      cy.get("[data-testid=codap-graph]")
         .find("[data-testid=axis-bottom]")
         .find(".sub-axis-wrapper")
         .should("have.length", 1)

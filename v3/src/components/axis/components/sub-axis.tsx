@@ -1,6 +1,6 @@
 import { observer } from "mobx-react-lite"
 import {useRef} from "react"
-import {AxisPlace} from "../axis-types"
+import {AxisPlace, placeTestId} from "../axis-types"
 import {useAxisProviderContext} from "../hooks/use-axis-provider-context"
 import {useSubAxis} from "../hooks/use-sub-axis"
 import { isAnyNumericAxisModel } from "../models/numeric-axis-models"
@@ -35,7 +35,8 @@ export const SubAxis = observer(function SubAxis({
   })
 
   return (
-    <g className='sub-axis-wrapper' ref={subWrapperElt}>
+    <g className='sub-axis-wrapper' ref={subWrapperElt}
+        data-testid={`sub-axis-${placeTestId(axisPlace)}-${subAxisIndex}`}>
       <g className='axis' ref={subAxisEltRef}/>
       {isAnyNumericAxisModel(axisModel) && axisProvider.hasDraggableNumericAxis(axisModel) &&
         <NumericAxisDragRects

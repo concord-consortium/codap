@@ -235,7 +235,8 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
       )}
       <div className="codap-web-view-iframe-wrapper">
         { !webViewModel.isImage && (
-          <button className="codap-skip-iframe codap-visually-hidden" onClick={handleSkipIframe}>
+          <button className="codap-skip-iframe codap-visually-hidden" data-testid="codap-skip-iframe-button"
+              onClick={handleSkipIframe}>
             {t("V3.WebView.skipIframe")}
           </button>
         )}

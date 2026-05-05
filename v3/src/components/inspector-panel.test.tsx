@@ -158,6 +158,7 @@ describe("inspector-panel accessibility", () => {
         Icon={<svg role="img" aria-label="palette icon" />}
         title="Values"
         setShowPalette={jest.fn()}
+        tileType="graph"
       >
         <div>Palette body</div>
       </InspectorPalette>
@@ -176,6 +177,7 @@ describe("inspector-panel accessibility", () => {
         id="values-palette"
         title="Values"
         setShowPalette={jest.fn()}
+        tileType="graph"
       >
         <div>Palette body</div>
       </InspectorPalette>

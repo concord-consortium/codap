@@ -109,6 +109,7 @@ export const MapMeasurePalette = observer(function MapMeasurePalette(
   return (
     <InspectorPalette id={id} title={t("V3.map.Inspector.Data")} Icon={<DataIcon/>}
                       setShowPalette={setShowPalette} panelRect={panelRect} buttonRect={buttonRect}
+                      tileType="map"
     >
       <div className="palette-form">
         {renderLayersDisplayControls()}

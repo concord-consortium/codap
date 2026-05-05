@@ -103,6 +103,7 @@ function PluginItem({ onClose, pluginData }: IPluginItemProps) {
 
 // A MenuItem for a group of plugins, which contains a submenu of the plugins
 interface IPluginGroupMenuProps {
+  groupIndex: number
   isOpen: boolean
   onClose?: () => void
   onCloseSubmenu?: () => void
@@ -112,7 +113,7 @@ interface IPluginGroupMenuProps {
   title: string
 }
 const PluginGroupMenu = observer(function PluginGroupMenu({
-  isOpen, onClose, onCloseSubmenu, onOpenSubmenu, onPointerOver, title, plugins
+  groupIndex, isOpen, onClose, onCloseSubmenu, onOpenSubmenu, onPointerOver, title, plugins
 }: IPluginGroupMenuProps) {
   const submenuRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLDivElement>(null)
@@ -127,6 +128,7 @@ const PluginGroupMenu = observer(function PluginGroupMenu({
         <Menu isOpen={isOpen} placement="right-start">
           <MenuButton as="div" className="plugin-group-menu-button" aria-hidden="true" tabIndex={-1} />
           <MenuList ref={submenuRef} className="tool-shelf-menu-list submenu"
+              data-testid="tool-shelf-plugins-submenu-list"
               onFocus={handleMenuItemFocus} onKeyDown={handleSubmenuKeyDown}>
             {plugins.map((plugin, i) => (
               <PluginItem key={plugin?.title ?? `divider-${i}`} onClose={onClose} pluginData={plugin} />
@@ -140,6 +142,7 @@ const PluginGroupMenu = observer(function PluginGroupMenu({
         className="plugin-group-menu-item tool-shelf-menu-item"
         closeOnSelect={false}
         data-plugin-group={title}
+        data-testid={`tool-shelf-plugins-group-item-${groupIndex}`}
         key={title}
         onClick={onOpenSubmenu}
         onPointerOver={onPointerOver}
@@ -205,12 +208,14 @@ export const PluginsButton = observer(function PluginsButton() {
                 <ToolShelfButtonTag className="plugins" label={t("DG.ToolButtonData.pluginMenu.title")} />
               </MenuButton>
               <MenuList className="tool-shelf-menu-list top-menu plugins"
+                  data-testid="tool-shelf-plugins-menu-list"
                   onFocus={handleMenuItemFocus} onKeyDown={handleMainMenuKeyDown}>
-                {pluginGroups.map(pluginGroup => {
+                {pluginGroups.map((pluginGroup, groupIndex) => {
                   const { plugins, title } = pluginGroup
                   return (
                     <PluginGroupMenu
                       key={title}
+                      groupIndex={groupIndex}
                       isOpen={openSubmenuId === title}
                       onClose={handleClose}
                       onCloseSubmenu={handleCloseSubmenu}

@@ -219,7 +219,7 @@ context("Graph UI", () => {
       // this check basically just counts the tick marks in the graph but I'm
       // wondering if there's a better way. E.g. if we added a data-testid further
       // in the graph axis it might be possible to check the axis labels or scale
-      cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".tick").should("have.length", 29)
+      cy.get("[data-testid=codap-graph]").find("[data-testid=axis-bottom]").find(".tick").should("have.length", 29)
     })
     it("should hide and show selected/unselected cases", () => {
       ah.openAxisAttributeMenu("bottom")
@@ -293,7 +293,7 @@ context("Graph UI", () => {
       cy.get("[data-testid=parent-toggles-all]").should("exist").and("have.text", "Hide All –")
       cy.get("[data-testid=parent-toggles-case-buttons-list]").find("button").should("exist").and("have.length", 27)
       cy.get("[data-testid=parent-toggles-last]").should("exist").and("have.text", "☐ Last")
-      cy.get("[data-testid=graph]").click()
+      cy.get("[data-testid=codap-graph]").click()
       cy.get("[data-testid=parent-toggles-case-buttons-list]")
         .find("button").contains("Spotted Hyena").should("exist").and("not.have.class", "case-hidden")
       cy.get("[data-testid=parent-toggles-case-buttons-list]")
@@ -442,7 +442,7 @@ context("Graph UI", () => {
           cy.wrap(colorPicker).parent().click()
           cpp.getColorSettingSwatchCell().eq(0).click()
           // Close the popover by clicking outside (close = accept, keeps the selected color)
-          cy.get(".codap-inspector-palette-header-title").click({force: true})
+          cy.get("[data-testid=codap-inspector-palette-header]").click({force: true})
 
           // Verify the value has been updated
           cy.wrap(colorPicker).should($swatch => {
@@ -466,7 +466,7 @@ context("Graph UI", () => {
           cy.wrap(colorPicker).parent().click()
           cpp.getColorSettingSwatchCell().eq(1).click()
           // Close the popover by clicking outside (close = accept, keeps the selected color)
-          cy.get(".codap-inspector-palette-header-title").click({force: true})
+          cy.get("[data-testid=codap-inspector-palette-header]").click({force: true})
 
           // Verify the value has been updated
           cy.wrap(colorPicker).should($swatch => {
@@ -517,7 +517,7 @@ context("Graph UI", () => {
           cy.wrap(backgroundColorPicker).parent().click()
           cpp.getColorSettingSwatchCell().eq(4).click()
           // Close the popover by clicking outside (close = accept, keeps the selected color)
-          cy.get(".codap-inspector-palette-header-title").click({force: true})
+          cy.get("[data-testid=codap-inspector-palette-header]").click({force: true})
 
           // Verify the value has been updated
           cy.wrap(backgroundColorPicker).should($swatch => {
@@ -668,7 +668,7 @@ context("Graph UI", () => {
 
       // Close and reopen palette to verify widths persist
       cy.get(`[data-testid=${fields[1].testId}]`).find("input").type("{enter}")
-      cy.get("[data-testid=graph]").click()
+      cy.get("[data-testid=codap-graph]").click()
       cy.get(`[data-testid=${fields[1].testId}]`).should("not.exist")
       graph.getDisplayConfigButton().click()
 
@@ -754,13 +754,14 @@ context("Graph UI", () => {
       // cy.get("[data-testid=bar-cover]").should("exist").and("have.length", 3)
       cy.get("[data-testid=bar-cover]").should("exist")
       cy.get(".axis-wrapper.left").find("[data-testid=attribute-label]").should("exist").and("have.text", "Count")
-      cy.get("[data-testid=case-table]").find("[role=row][aria-selected=true]").should("not.exist")
+      cy.get("[data-testid=codap-case-table]").find("[role=row][aria-selected=true]").should("not.exist")
       cy.get("[data-testid=bar-cover]").eq(1).click({ force: true })
-      cy.get("[data-testid=case-table]").find("[role=row][aria-selected=true]").should("have.length.greaterThan", 0)
+      cy.get("[data-testid=codap-case-table]").find("[role=row][aria-selected=true]")
+        .should("have.length.greaterThan", 0)
       // TODO: Enable these checks once the number of bars is consistent. See comment above.
-      // cy.get("[data-testid=case-table]").find("[role=row][aria-selected=true]").should("have.length", 2)
+      // cy.get("[data-testid=codap-case-table]").find("[role=row][aria-selected=true]").should("have.length", 2)
       // cy.get("[data-testid=bar-cover]").eq(2).click({ shiftKey: true })
-      // cy.get("[data-testid=case-table]").find("[role=row][aria-selected=true]").should("have.length", 3)
+      // cy.get("[data-testid=codap-case-table]").find("[role=row][aria-selected=true]").should("have.length", 3)
       cy.dragAttributeToTarget("table", "Diet", "top")
       // TODO: See comment above regarding number of bars.
       // cy.get("[data-testid=bar-cover]").should("exist").and("have.length", 9)

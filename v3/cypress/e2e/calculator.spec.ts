@@ -35,7 +35,7 @@ context("Calculator", () => {
     c.changeComponentTitle("calculator", newCalculatorName)
     c.getComponentTitle("calculator").should("have.text", newCalculatorName)
 
-    c.getIconFromToolShelf("calc").click()
+    c.getIconFromToolShelf("calculator").click()
     c.checkComponentDoesNotExist("calculator")
 
     cy.log("Check undo/redo of close and open calculator component")
@@ -48,7 +48,7 @@ context("Calculator", () => {
     toolbar.getRedoTool().click()
     c.checkComponentDoesNotExist("calculator")
 
-    c.getIconFromToolShelf("calc").click()
+    c.getIconFromToolShelf("calculator").click()
     c.checkComponentExists("calculator")
     c.getComponentTitle("calculator").should("contain", newCalculatorName)
   })
@@ -69,13 +69,13 @@ context("Calculator", () => {
     toolbar.getRedoTool().click()
     c.checkComponentDoesNotExist("calculator")
 
-    c.getIconFromToolShelf("calc").click()
+    c.getIconFromToolShelf("calculator").click()
     c.checkComponentExists("calculator")
     c.getComponentTitle("calculator").should("contain", newCalculatorName)
   })
   it("checks all calculator tooltips", () => {
     c.selectTile("calculator")
-    toolbar.getToolShelfIcon("calc").then($element => {
+    toolbar.getToolShelfIcon("calculator").then($element => {
       c.checkToolTip($element, c.tooltips.calculatorToolShelfIcon)
     })
     c.getMinimizeButton("calculator").then($element => {

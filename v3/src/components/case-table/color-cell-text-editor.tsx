@@ -129,11 +129,12 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
     ? (
         <div className={"color-cell-text-editor"}>
           <DialogTrigger isOpen={isPaletteOpen} onOpenChange={handlePaletteOpenChange}>
-            <Button className="cell-edit-color-swatch"
+            <Button className="cell-edit-color-swatch" data-testid="cell-edit-color-swatch"
               aria-label={t("V3.CaseTable.colorSwatchButtonAriaLabel", { vars: [attrName] })}>
               <div className="cell-edit-color-swatch-interior" style={swatchStyle}/>
             </Button>
             <Popover ref={popoverRef} shouldFlip={false} offset={popoverOffset}
+              data-testid="color-picker-popover"
               className={({defaultClassName}) => `${defaultClassName} color-picker-popover`}
               aria-label={t("V3.Inspector.colorPicker.dialogLabel")}>
               <ColorPickerPalette inputValue={inputValue || "#ffffff"}
