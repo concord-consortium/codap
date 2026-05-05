@@ -2,9 +2,13 @@ import { observable, runInAction } from "mobx"
 import { castToSnapshot, types } from "mobx-state-tree"
 import { DataSet, IDataSet } from "../data/data-set"
 import { createDataSet } from "../data/data-set-conversion"
+import { GlobalValue } from "../global/global-value"
+import { GlobalValueManager } from "../global/global-value-manager"
 import { Formula, IFormula } from "./formula"
 import { FormulaManager } from "./formula-manager"
-import { CASE_INDEX_FAKE_ATTR_ID, idToCanonical, localAttrIdToCanonical } from "./utils/name-mapping-utils"
+import {
+  CASE_INDEX_FAKE_ATTR_ID, globalValueIdToCanonical, idToCanonical, localAttrIdToCanonical
+} from "./utils/name-mapping-utils"
 import { AttributeFormulaAdapter } from "./attribute-formula-adapter"
 
 const formulaDisplay = "1 + 2 + foo"
@@ -157,6 +161,44 @@ describe("FormulaManager", () => {
         const newAttr = dataSet.attrFromName("foo")
         expect(formula.display).toEqual("1 + 2 + foo")
         expect(formula.canonical).toEqual(`1 + 2 + ${localAttrIdToCanonical(newAttr?.id || "")}`)
+        expect(adapter.recalculateFormula).toHaveBeenCalledTimes(3)
+      })
+    })
+
+    // CODAP-1290 follow-up: when a formula references a global by name and the global is created
+    // afterward, the formula's canonical form is updated and a recalculation is triggered, but
+    // subsequent global-value changes are missed because the formula's static dependency list was
+    // captured at registration time when the global did not exist.
+    describe("when a global value referenced by name is added after the formula", () => {
+      it("recalculates the formula when the newly-added global's value subsequently changes", () => {
+        const formulaManager = new FormulaManager()
+        const dataSet = createDataSet({ name: "Cases", attributes: [{ name: "result" }] })
+        const formula = Formula.create({ display: "slider1 + 1" })
+        Container.create({
+          dataSet: castToSnapshot(dataSet),
+          formula
+        }, { formulaManager })
+        const adapter = getFakeAdapter(formula, dataSet)
+        const globalValueManager = GlobalValueManager.create()
+        formulaManager.addDataSet(dataSet)
+        formulaManager.addGlobalValueManager(globalValueManager)
+        formulaManager.addAdapters([adapter])
+
+        // Slider doesn't exist yet — `slider1` is unresolved in the canonical form.
+        expect(formula.canonical).toEqual("slider1 + 1")
+        expect(adapter.recalculateFormula).toHaveBeenCalledTimes(1)
+
+        // Add the slider as a global value. The formula's canonical form should be re-resolved
+        // (this part already works) and the formula recalculates once.
+        const slider = GlobalValue.create({ name: "slider1", _value: 5 })
+        globalValueManager.addValue(slider)
+        expect(formula.canonical).toEqual(`${globalValueIdToCanonical(slider.id)} + 1`)
+        expect(adapter.recalculateFormula).toHaveBeenCalledTimes(2)
+
+        // The bug: changing the slider's value should now trigger a recalculation, but the
+        // formula's global-value observer was registered with no dependencies (the slider didn't
+        // exist at registration time), so the change is silently missed.
+        slider.setValue(10)
         expect(adapter.recalculateFormula).toHaveBeenCalledTimes(3)
       })
     })
