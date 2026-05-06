@@ -1,5 +1,41 @@
 # Changelog
 
+## Version 3.0.0-beta.2870 - May 5, 2026
+
+### ✨ Features & Improvements:
+- **CODAP-229:** Updated meta description and title tag for SEO
+
+### 🐞 Bug Fixes:
+- **CODAP-141:** Removed unclear save prompt when changing language with a saved document
+- **CODAP-566:** Fixed table vertical scroll during attribute drag (Allyant #52)
+- **CODAP-1055:** Count adornment now aligns correctly for binned y-primary plots
+- **CODAP-1173:** Case table now reports correct nonempty count for formula-driven attributes
+- **CODAP-1215:** Squares of residuals now display for plotted functions in scatterplots
+- **CODAP-1216:** Wired up missing French, Dutch, and Polish translations
+- **CODAP-1219:** Plugins now receive a 2-letter base language code (fixes Simmer plugin restoration)
+- **CODAP-1238:** Fix axis menu caret position in Safari
+- **CODAP-1260:** Categorical axes correctly bin extra categories into the OTHER bucket
+- **CODAP-1262:** Dot chart now reliably adds new categories
+- **CODAP-1273:** Restored trig and string() functions in formulas
+- **CODAP-1280:** Graphs now render correctly when opening documents containing formula-driven attributes
+- **CODAP-1281:** Binned axis gridlines now align with bin edges
+- **CODAP-1282:** Formula editor no longer carries a stale attribute name across reopens
+- **CODAP-1285:** percentile() function expects argument in [0,1] range
+- **CODAP-1286:** Comparison operators now propagate empty values in formulas
+- **CODAP-1290:** Case card displays now update reactively when values change
+- **CODAP-1295:** Plugin tile creation notifications now report the correct tile id
+- **CODAP-1296:** Calculator now updates display correctly when successive operations yield the same result
+
+### 🛠️ Under the Hood:
+- **CODAP-189:** Enabled Learn Portal logging by forwarding only parameters to CFM log
+- **CODAP-1251:** Removed nested-button warning in case table tools menu
+
+### Asset Sizes
+|      File |          Size | % Change from Previous Release |
+|-----------|---------------|--------------------------------|
+|  main.css |  239363 bytes |                          0.13% |
+|  index.js | 7776740 bytes |                          4.43% |
+
 ## Version 3.0.0-beta.2845 - April 26, 2026
 
 ### ✨ Features & Improvements:
