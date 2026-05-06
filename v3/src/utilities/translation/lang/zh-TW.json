@@ -643,7 +643,7 @@
     "DG.Inspector.graphMovablePoint": "Movable Point",
     "DG.AppController.caseTableMenu.openCaseTableToolTip": "Open case table for this data set",
     "DG.AppController.caseTableMenu.newDataSetToolTip": "Create a new data set",
-    "DG.AppController.caseTableMenu.deleteDataSetToolTip": "Delete and destroy this data set",
+    "DG.AppController.caseTableMenu.deleteDataSetToolTip": "Delete and destroy data set %@",
     "DG.Undo.graph.showAsBarChart": "Undo fusing dots into bars",
     "DG.Redo.graph.showAsBarChart": "Redo fusing dots into bars",
     "DG.Undo.graph.showAsDotChart": "Undo dispersing bars into dots",
