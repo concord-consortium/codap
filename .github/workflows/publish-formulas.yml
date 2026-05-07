@@ -32,14 +32,15 @@ jobs:
         run: npm install -g npm@latest
       - name: Install Dependencies
         run: yarn install --immutable
-      - name: Verify tag matches package version
+      - name: Set version from git tag
+        # The committed formulas/package.json carries a placeholder version
+        # (0.0.0-development); the real version is taken from the git tag and
+        # written to package.json before pack. Tag IS the release authority.
+        working-directory: formulas
         run: |
-          PKG_VERSION=$(node -p "require('./formulas/package.json').version")
           TAG_VERSION="${GITHUB_REF#refs/tags/codap-formulas-v}"
-          if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
-            echo "::error::Tag version ($TAG_VERSION) does not match formulas/package.json version ($PKG_VERSION)"
-            exit 1
-          fi
+          echo "Setting formulas version to $TAG_VERSION"
+          npm pkg set version="$TAG_VERSION"
       - name: Build dependent workspaces
         # codap-formulas depends on codap-utilities; tsc --build handles
         # the TS compilation of references but not asset copyfiles, so
