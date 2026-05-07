@@ -57,4 +57,16 @@ jobs:
         # on the package page at npmjs.com. Requires the package to
         # already exist on npm and a trusted-publisher relationship to
         # be set up there pointing at this repo + workflow + tag pattern.
-        run: npm publish /tmp/codap-formulas.tgz --provenance --access public
+        # Derives the npm dist-tag from the version: stable releases go
+        # to "latest"; prereleases go to a tag matching the prerelease
+        # channel (e.g. 1.2.0-rc.1 → rc, 1.2.0-beta.0 → beta).
+        run: |
+          PKG_VERSION=$(node -p "require('./formulas/package.json').version")
+          if [[ "$PKG_VERSION" == *-* ]]; then
+            PRERELEASE_PART="${PKG_VERSION#*-}"
+            DIST_TAG="${PRERELEASE_PART%%.*}"
+          else
+            DIST_TAG="latest"
+          fi
+          echo "Publishing $PKG_VERSION to dist-tag: $DIST_TAG"
+          npm publish /tmp/codap-formulas.tgz --provenance --access public --tag "$DIST_TAG"
