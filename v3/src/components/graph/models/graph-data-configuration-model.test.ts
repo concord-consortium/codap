@@ -356,8 +356,12 @@ describe("DataConfigurationModel", () => {
     config.setAttribute("x", { attributeID: "yId", type: "numeric" })
     expect(config.filteredCases[0].caseIds).toEqual(caseIdsFromItemIds(["c1", "c3"]))
 
-    // Simulate undo: mutate the underlying map directly, the way an MST patch replay would.
-    config._setAttributeDescription("x", { attributeID: "xId", type: "numeric" })
+    // Simulate undo: replace _attributeDescriptions/x in place via MST patch.
+    applyPatch(config, {
+      op: "replace",
+      path: "/_attributeDescriptions/x",
+      value: { attributeID: "xId", type: "numeric" }
+    })
     expect(config.filteredCases[0].caseIds).toEqual(caseIdsFromItemIds(["c1", "c2"]))
   })
 
