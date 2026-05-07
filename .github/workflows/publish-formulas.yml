@@ -36,11 +36,20 @@ jobs:
         # The committed formulas/package.json carries a placeholder version
         # (0.0.0-development); the real version is taken from the git tag and
         # written to package.json before pack. Tag IS the release authority.
+        # Uses node directly to edit the JSON because the root package.json's
+        # devEngines.packageManager (yarn) blocks the npm CLI from running
+        # anywhere in the tree, and `npm pkg set` is a project-scoped npm
+        # command. node itself doesn't check devEngines.
         working-directory: formulas
         run: |
           TAG_VERSION="${GITHUB_REF#refs/tags/codap-formulas-v}"
           echo "Setting formulas version to $TAG_VERSION"
-          npm pkg set version="$TAG_VERSION"
+          node -e "
+          const fs = require('fs');
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          pkg.version = process.argv[1];
+          fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          " "$TAG_VERSION"
       - name: Build dependent workspaces
         # codap-formulas depends on codap-utilities; tsc --build handles
         # the TS compilation of references but not asset copyfiles, so
@@ -70,4 +79,7 @@ jobs:
             DIST_TAG="latest"
           fi
           echo "Publishing $PKG_VERSION to dist-tag: $DIST_TAG"
+          # cd to /tmp so npm doesn't walk up the workspace tree and trip
+          # over the root package.json's devEngines.packageManager (yarn).
+          cd /tmp
           npm publish /tmp/codap-formulas.tgz --provenance --access public --tag "$DIST_TAG"
