@@ -243,18 +243,40 @@ describe("GraphController", () => {
   })
 
   // Removing one right-axis attribute (assigning the empty string) should NOT touch the other.
-  // This exercises the attrId-truthiness guard so that removals don't cascade.
+  // The DI API and v2 import can produce a state with both set simultaneously by going through
+  // dataConfiguration.setAttribute directly (bypassing setAttributeID's mutual exclusion). We
+  // reproduce that state here, then exercise the attrId-truthiness guard by removing one role
+  // and asserting the populated counterpart survives.
   it("does not clear the other right-axis attribute on removal", () => {
     ({ tree, model, controller, data } = setup())
     setAttributeId("x", "xId")
     setAttributeId("y", "yId")
 
-    setAttributeId("rightNumeric", "y2Id")
+    // Populate both roles directly to simulate a DI-API / v2-imported graph.
+    model.dataConfiguration.setAttribute("rightNumeric", { attributeID: "y2Id" })
+    model.dataConfiguration.setAttribute("rightSplit", { attributeID: "cId" })
+    controller.handleAttributeAssignment()
+    controller.syncAxisScalesWithModel()
     expect(model.dataConfiguration.attributeID("rightNumeric")).toBe("y2Id")
+    expect(model.dataConfiguration.attributeID("rightSplit")).toBe("cId")
 
-    // Remove rightNumeric; rightSplit stays empty (it never had a value).
+    // Removing rightNumeric must leave rightSplit intact — without the attributeID guard in
+    // setAttributeID, the mutual-exclusion branch would cascade and clear rightSplit too.
     setAttributeId("rightNumeric", "")
     expect(model.dataConfiguration.attributeID("rightNumeric")).toBe("")
+    expect(model.dataConfiguration.attributeID("rightSplit")).toBe("cId")
+    expect(isCategoricalAxisModel(model.axes.get("rightCat"))).toBe(true)
+
+    // Symmetric check: re-populate rightNumeric, then remove rightSplit.
+    model.dataConfiguration.setAttribute("rightNumeric", { attributeID: "y2Id" })
+    controller.handleAttributeAssignment()
+    controller.syncAxisScalesWithModel()
+    expect(model.dataConfiguration.attributeID("rightNumeric")).toBe("y2Id")
+    expect(model.dataConfiguration.attributeID("rightSplit")).toBe("cId")
+
+    setAttributeId("rightSplit", "")
     expect(model.dataConfiguration.attributeID("rightSplit")).toBe("")
+    expect(model.dataConfiguration.attributeID("rightNumeric")).toBe("y2Id")
+    expect(isNumericAxisModel(model.axes.get("rightNumeric"))).toBe(true)
   })
 })
