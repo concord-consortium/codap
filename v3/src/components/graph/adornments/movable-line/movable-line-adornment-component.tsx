@@ -66,6 +66,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
   const lineRef = useRef() as React.RefObject<SVGSVGElement>
   const [lineObject, setLineObject] = useState<ILine>({})
   const pointsOnAxes = useRef<IAxisIntercepts>({pt1: {x: 0, y: 0}, pt2: {x: 0, y: 0}})
+  const dragPivotRef = useRef<Point | null>(null)
   const xScaleRef = useRef(xScale.copy())
   const yScaleRef = useRef(yScale.copy())
   const logFn = useRef<Maybe<LogMessageFn>>()
@@ -262,22 +263,29 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
 
     if (event.dx !== 0 || event.dy !== 0 || isFinished) {
       const equationCoords = lineParams?.equationCoords
-      // The current pivot is the pivot point on the line section not being dragged.
-      // lineParams.pivot1 is the pivot point on the lower section, lineParams.pivot2 is the
-      // pivot point on the upper section
-      const currentPivot = lineSection === "lower" ? lineParams?.pivot2 : lineParams?.pivot1
       // The new pivot will be the point on the line section where it is currently being dragged,
       // i.e. where the mouse cursor is.
       const mousePosition = { x: xScaleRef.current.invert(event.x), y: yScaleRef.current.invert(event.y) }
-      // If the intercept is locked, the pivot is fixed. Otherwise, if the current pivot isn't
-      // valid, use the point where the other line section intersects the axes as the pivot point.
-      const pivot = interceptLocked
-        ? {x: 0, y: 0}
-        : currentPivot?.isValid()
-          ? currentPivot
-          : lineSection === "lower"
-            ? pointsOnAxes.current.pt2
-            : pointsOnAxes.current.pt1
+      // Capture the rotation pivot once at the start of the drag and reuse it for the
+      // duration. lineToAxisIntercepts sorts pt1/pt2 by x, so when the slope crosses
+      // vertical, pt2 swaps which physical end of the line it represents. Recomputing
+      // the pivot per tick would teleport it across the line at that moment.
+      if (!dragPivotRef.current) {
+        // The current pivot is the pivot point on the line section not being dragged.
+        // lineParams.pivot1 is the pivot point on the lower section, lineParams.pivot2 is the
+        // pivot point on the upper section
+        const currentPivot = lineSection === "lower" ? lineParams.pivot2 : lineParams.pivot1
+        // If the intercept is locked, the pivot is fixed. Otherwise, if the current pivot isn't
+        // valid, use the point where the other line section intersects the axes as the pivot point.
+        dragPivotRef.current = interceptLocked
+          ? {x: 0, y: 0}
+          : currentPivot?.isValid()
+            ? {x: currentPivot.x, y: currentPivot.y}
+            : lineSection === "lower"
+              ? {x: pointsOnAxes.current.pt2.x, y: pointsOnAxes.current.pt2.y}
+              : {x: pointsOnAxes.current.pt1.x, y: pointsOnAxes.current.pt1.y}
+      }
+      const pivot = dragPivotRef.current
 
       // If the line is perfectly vertical, set the new pivot's x coordinate to the x coordinate of the
       // original pivot. If the line is perfectly horizontal, set the new pivot's y coordinate to the y
@@ -318,6 +326,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
           undoStringKey: "V3.Undo.graph.adjustMovableLine",
           redoStringKey: "V3.Redo.graph.adjustMovableLine"
         })
+        dragPivotRef.current = null
       } else {
         model.setVolatileLine({intercept: newIntercept, slope: newSlope}, instanceKey)
       }
