@@ -62,6 +62,14 @@ DataSet, CollectionModel, Attribute, and DataSetMetadata are MST models.
 FilteredCases is a plain class that uses MobX decorators directly.
 CategorySet is an MST model with private MobX state.
 
+Downstream consumers — notably `DataConfigurationModel` (the graph/dataConfig
+layer that owns `FilteredCases` instances) — are out of scope for this doc,
+but exhibit the same reactivity patterns and run into the same classes of
+bugs: their own observable state (e.g. `_attributeDescriptions`) can be
+mutated by patch-driven paths that bypass the action wrappers that would
+otherwise invalidate caches. CODAP-1297 is the canonical example (see
+Worked examples).
+
 ## The case-validation pipeline
 
 Whenever items, hidden flags, filter results, or grouping-attribute values
@@ -159,6 +167,19 @@ observable-write happens only inside `invalidate()` (which callers must
 invoke from an action), and the getter has no side effects on observables
 at all. Prefer `observableCachedFnFactory` when adding a new derived value
 that has its own invalidation lifecycle.
+
+A fourth, lighter-weight variant trades the dedicated version counter for a
+derived snapshot. A getter like
+`attributeDescriptionsStr = JSON.stringify(this.attributeDescriptions)` on
+`DataConfigurationModel` (or `caseDataHash` on the same model) exposes the
+*contents* of a small observable structure as a primitive that is cheap to
+compare. Reactions that observe it fire on any change — value, structure,
+or otherwise — without anyone having to remember to bump a counter. Use
+this when there is no dedicated version, the source is a small-ish
+observable structure (a map, an array of descriptions), and the reaction
+consumer wants "fire on any change to this state, regardless of how it
+changed." The cost is JSON recomputation on every underlying change — fine
+for small structures, not for large ones.
 
 ### `CollectionModel`
 
@@ -548,6 +569,36 @@ correctly.
 **General lesson.** "Read a value off an Attribute" is a non-reactive
 operation. To make it reactive, depend on `changeCount`.
 
+### Graph dataConfig FilteredCases stale after axis-attribute undo (CODAP-1297)
+
+**Symptom.** After replacing an axis attribute on a graph and clicking
+undo, dots for cases with missing values on the restored attribute didn't
+disappear — they piled up at the axis edge.
+
+**Why.** `DataConfigurationModel.setAttribute` (an MST action) mutates
+`_attributeDescriptions` *and* calls `FilteredCases.invalidateCases()` to
+bump `_caseIdsVersion`. MST undo replays the patches via `applyPatch`
+against `_attributeDescriptions` directly (`tree.ts:144`), bypassing the
+action wrapper. The version counter wasn't bumped, so the cached `caseIds`
+— computed against the *previous* attribute — stayed valid; cases that
+should now be filtered out (NaN values on the restored attribute) remained
+in the array and got plotted with NaN → axis-edge.
+
+**Fix (PR #2560).** Add reactions that close the loop regardless of how
+`_attributeDescriptions` changes. In `DataConfigurationModel`, generalize
+the existing legend-only reaction to watch `attributeDescriptionsStr` (a
+JSON-stringified snapshot) and call `invalidateCases()`. The graph
+subclass overrides `attributeDescriptionsStr` to omit `y[1+]` and
+`rightNumeric`, so the subclass's existing `allYAttributeDescriptions`
+reaction also gets an `invalidateCases()` call.
+
+**General lesson.** If an action both mutates state *and* invalidates a
+downstream cache, add a reaction on the mutated state. The action's
+explicit call still has a job (synchronous invalidation for nested-action
+callers — the reaction is queued until the outer action ends) but it can
+no longer be the sole guarantor of cache freshness. Undo and any other
+patch-driven path will desync the action and the cache.
+
 ## Common pitfalls
 
 1. **Reading `attribute.strValues[i]` or `numValues[i]` in an observer.**
@@ -590,6 +641,15 @@ operation. To make it reactive, depend on `changeCount`.
 7. **Mutating `setAsideItemIds` outside an action.** The `onPatch` handler
    keeps a mirror set in sync and triggers `invalidateCases`; mutations
    from outside an action skip the patch and desynchronize the mirror.
+
+8. **Relying on an action wrapper to invalidate a downstream cache when
+   undo may bypass it.** If an MST action both mutates state and
+   explicitly calls `invalidateCases()` (or any sibling cache-version
+   bump) on a derived consumer, undo's `applyPatch` replays the state
+   mutation but skips the action body — so the explicit call never fires
+   and the cache silently desyncs. Pair the explicit call with a reaction
+   on the mutated state so the loop closes regardless of how the mutation
+   arrived. (See worked example: CODAP-1297.)
 
 ## Reference: which methods invalidate, and how
 
