@@ -214,4 +214,47 @@ describe("GraphController", () => {
     expect(isNumericAxisModel(model.axes.get("left"))).toBe(true)
     expect(getScaleType("left")).toBe("linear")
   })
+
+  it("clears the other right-axis attribute when assigning rightSplit or rightNumeric", () => {
+    ({ tree, model, controller, data } = setup())
+    setAttributeId("x", "xId")
+    setAttributeId("y", "yId")
+
+    // Add a Y2 numeric attribute to the right axis.
+    setAttributeId("rightNumeric", "y2Id")
+    expect(model.dataConfiguration.attributeID("rightNumeric")).toBe("y2Id")
+    expect(model.dataConfiguration.attributeID("rightSplit")).toBe("")
+    expect(isNumericAxisModel(model.axes.get("rightNumeric"))).toBe(true)
+
+    // Now assign a categorical attribute to the right-split slot. The previous Y2 numeric
+    // attribute (and its axis) should be cleared so the new rightCat axis is unobscured.
+    setAttributeId("rightSplit", "cId")
+    expect(model.dataConfiguration.attributeID("rightSplit")).toBe("cId")
+    expect(model.dataConfiguration.attributeID("rightNumeric")).toBe("")
+    expect(model.axes.get("rightNumeric")).toBeUndefined()
+    expect(isCategoricalAxisModel(model.axes.get("rightCat"))).toBe(true)
+
+    // And the reverse: assigning a numeric attribute to rightNumeric should clear rightSplit.
+    setAttributeId("rightNumeric", "y2Id")
+    expect(model.dataConfiguration.attributeID("rightNumeric")).toBe("y2Id")
+    expect(model.dataConfiguration.attributeID("rightSplit")).toBe("")
+    expect(model.axes.get("rightCat")).toBeUndefined()
+    expect(isNumericAxisModel(model.axes.get("rightNumeric"))).toBe(true)
+  })
+
+  // Removing one right-axis attribute (assigning the empty string) should NOT touch the other.
+  // This exercises the attrId-truthiness guard so that removals don't cascade.
+  it("does not clear the other right-axis attribute on removal", () => {
+    ({ tree, model, controller, data } = setup())
+    setAttributeId("x", "xId")
+    setAttributeId("y", "yId")
+
+    setAttributeId("rightNumeric", "y2Id")
+    expect(model.dataConfiguration.attributeID("rightNumeric")).toBe("y2Id")
+
+    // Remove rightNumeric; rightSplit stays empty (it never had a value).
+    setAttributeId("rightNumeric", "")
+    expect(model.dataConfiguration.attributeID("rightNumeric")).toBe("")
+    expect(model.dataConfiguration.attributeID("rightSplit")).toBe("")
+  })
 })

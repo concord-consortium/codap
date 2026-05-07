@@ -58,7 +58,13 @@ export const DroppableAddAttribute = ({place, hasRightDropZone, onDrop}: IAddAtt
       return { height: Math.max(0, plotBounds.height - kDropZoneGap), top: plotBounds.top + kDropZoneGap }
     }
     if (placeKey === "top" || placeKey === "yPlus") {
-      const rightInset = hasRightDropZone ? kDropZoneSize + kDropZoneGap : 0
+      // Only inset by the portion of the right-edge drop zone that would actually overlap the
+      // top drop zone.
+      const rightAxisExtent =
+        layout.getDesiredExtent('rightNumeric') + layout.getDesiredExtent('rightCat')
+      const rightInset = hasRightDropZone
+        ? Math.max(0, kDropZoneSize + kDropZoneGap - rightAxisExtent)
+        : 0
       return { width: Math.max(0, plotBounds.width - kDropZoneGap - rightInset), left: plotBounds.left + kDropZoneGap }
     }
   })()

@@ -555,6 +555,16 @@ export const GraphContentModel = DataDisplayContentModel
       const prevPrimaryRole = self.dataConfiguration.primaryRole
       const prevPrimaryAttrId = prevPrimaryRole ? self.dataConfiguration.attributeID(prevPrimaryRole) : undefined
       self.setDataSet(dataSetID)
+      // The right side has two distinct attribute roles ('rightNumeric' for a Y2 axis and
+      // 'rightSplit' for a categorical splitter) backed by axis places that share the same
+      // screen real estate. Letting both coexist makes one axis paint over the other, so when
+      // assigning one we clear the other. Removals (empty attributeID) leave the other alone.
+      if (attributeID && (role === 'rightNumeric' || role === 'rightSplit')) {
+        const otherRole: GraphAttrRole = role === 'rightNumeric' ? 'rightSplit' : 'rightNumeric'
+        if (self.dataConfiguration.attributeID(otherRole)) {
+          self.dataConfiguration.setAttribute(otherRole)
+        }
+      }
       if (role === 'yPlus') {
         self.dataConfiguration.addYAttribute({attributeID})
       } else {
