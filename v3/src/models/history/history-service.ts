@@ -11,6 +11,8 @@ export interface IApplyModelChangeOptions {
   log?: string | ILogMessage | (() => Maybe<string | ILogMessage>)
   notify?: INotify
   notifyTileId?: string
+  // tile to exclude from broadcast — e.g. the source plugin shouldn't get an echo of its own action
+  excludeTileId?: string
   noDirty?: boolean
   undoStringKey?: string
   redoStringKey?: string

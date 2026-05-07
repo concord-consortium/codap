@@ -53,7 +53,7 @@ export function registerComponentHandler(type: string, handler: DIComponentHandl
 }
 
 export const diComponentHandler: DIHandler = {
-  create(_resources: DIResources, values?: DIValues) {
+  create(resources: DIResources, values?: DIValues) {
     if (!values) return valuesRequiredResult
 
     const { type, cannotClose, dimensions, position, name, title: _title } = values as V2Component
@@ -93,7 +93,11 @@ export const diComponentHandler: DIHandler = {
         // Wrap in a function so it runs AFTER applyModelChange's actionFn assigns `tile`.
         // Evaluating createTileNotification(tile) inline would call it with tile=undefined,
         // producing no notification (createTileNotification returns undefined for falsy tile).
-        notify: () => createTileNotification(tile)
+        notify: () => createTileNotification(tile),
+        // Don't echo the create back to the requesting plugin — Story Builder otherwise treats
+        // notifications about its own DI-API actions as document edits and marks the current
+        // moment as unsaved (CODAP-1307).
+        excludeTileId: resources.interactiveFrame?.id
       })
     }
 
@@ -108,7 +112,8 @@ export const diComponentHandler: DIHandler = {
     document.applyModelChange(() => {
       document.content?.deleteOrHideTile(component.id)
     }, {
-      notify: deleteTileNotification(component)
+      notify: deleteTileNotification(component),
+      excludeTileId: resources.interactiveFrame?.id
     })
 
     return { success: true }
@@ -184,8 +189,14 @@ export const diComponentHandler: DIHandler = {
 
     // We don't want to notify if the request to update is coming from the component itself. Doing so causes
     // Story Builder to mark the selected moment as changed.
+    // Also exclude the requesting plugin from cross-component updates (e.g. Story Builder updating its
+    // narrative text box) so it doesn't receive an echo of its own action — same root cause as
+    // CODAP-1307.
     const options = resources.interactiveFrame?.id === component.id ? { }
-      : { notify: updateTileNotification("update", values, component) }
+      : {
+          notify: updateTileNotification("update", values, component),
+          excludeTileId: resources.interactiveFrame?.id
+        }
     let result: DIHandlerFnResult | undefined
     component.applyModelChange(() => {
       if (!values || typeof values !== "object" || Array.isArray(values)) return

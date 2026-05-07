@@ -119,10 +119,14 @@ export const DocumentContentModel = BaseDocumentContentModel
       // TODO: do we need to do anything for rows?
       // It doesn't seem like rows actually do anything with prepareSnapshot
     },
-    broadcastMessage(message: TileBroadcastMessage, callback: TileBroadcastCallback, targetTileId?: string) {
+    broadcastMessage(
+      message: TileBroadcastMessage, callback: TileBroadcastCallback,
+      targetTileId?: string, excludeTileId?: string
+    ) {
       const tileIds = self.tileMap.keys()
       if (tileIds) {
         Array.from(tileIds).forEach(tileId => {
+          if (tileId === excludeTileId) return
           if (!targetTileId || tileId === targetTileId) {
             self.tileMap.get(tileId)?.content.broadcastMessage(message, callback)
           }
