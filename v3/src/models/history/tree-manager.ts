@@ -196,6 +196,12 @@ export const TreeManager = types
     self.revisionId = revisionId
   },
 
+  // Resets the revisionId baseline so the dirty-tracking reaction in app-state
+  // treats the document as "just loaded" rather than dirty.
+  markDocumentClean(baselineRevisionId?: string) {
+    self.revisionId = baselineRevisionId ?? ""
+  },
+
   setNumHistoryEntriesApplied(value: number) {
     self.numHistoryEventsApplied = value
   },

@@ -150,6 +150,18 @@ class AppState {
       // monitor document changes for undo/redo
       this.enableDocumentMonitoring()
 
+      // After load, post-load fixup actions (reactions, plugin handshakes, etc.)
+      // can run between enableDocumentMonitoring() and the first user edit, which
+      // would mark the document "Unsaved" before the user has changed anything.
+      // Defer to the next tick so synchronous post-load actions complete first,
+      // then reset the revisionId baseline and tell CFM the document is clean.
+      const loadedDocument = this.currentDocument
+      setTimeout(() => {
+        if (this.currentDocument !== loadedDocument) return
+        this.treeManager?.markDocumentClean(snap.revisionId)
+        this.cfm?.client.dirty(false)
+      }, 0)
+
       // update data broker with the new data sets
       const manager = getSharedModelManager(document)
       manager && gDataBroker.setSharedModelManager(manager)
