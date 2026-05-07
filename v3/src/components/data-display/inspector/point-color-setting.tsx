@@ -68,12 +68,15 @@ export const PointColorSetting = observer(function PointColorSetting({ closeTrig
         <div className="color-picker-thumb-swatch"
           style={{ "--swatch-color": swatchBackgroundColor } as React.CSSProperties} />
       </Button>
+      {/* isNonModal so React Aria doesn't render a viewport-covering underlay; the underlay
+          intercepts outside clicks and would close the surrounding inspector palette. */}
       <Popover
         ref={popoverRef}
         className={({defaultClassName}) => `${defaultClassName} color-picker-popover`}
         shouldFlip={false}
         offset={popoverOffset}
         aria-label={t("V3.Inspector.colorPicker.dialogLabel")}
+        isNonModal
       >
         <ColorPickerPalette swatchBackgroundColor={swatchBackgroundColor} onColorChange={onColorChange}
           inputValue={inputValue} onUpdateValue={updateValue}
