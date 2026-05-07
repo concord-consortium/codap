@@ -1004,13 +1004,14 @@ export const DataConfigurationModel = types
           equals: comparer.structural
         }
       ))
-      // respond to change of legend attribute
+      // respond to change of any attribute description (including via undo/redo, which
+      // bypasses the setAttribute action that would otherwise call invalidateCases)
       addDisposer(self, reaction(
-        () => JSON.stringify(self.attributeDescriptionForRole("legend")),
+        () => self.attributeDescriptionsStr,
         () => {
           self.invalidateCases()
         },
-        {name: "DataConfigurationModel.afterCreate.reaction [legend attribute]"}
+        {name: "DataConfigurationModel.afterCreate.reaction [attribute descriptions]"}
       ))
       // Invalidate cases when items change in data set.
       addDisposer(self, reaction(

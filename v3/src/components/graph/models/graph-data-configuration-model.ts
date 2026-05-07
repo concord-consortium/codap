@@ -913,10 +913,16 @@ export const GraphDataConfigurationModel = DataConfigurationModel
           () => self.clearCasesCache(),
           { name: "GraphDataConfigurationModel primaryRole reaction" }
         ))
-        // synchronize filteredCases with attribute configuration
+        // synchronize filteredCases with attribute configuration. Also invalidate cases so that
+        // y[1+]/rightNumeric replacements (especially via undo, which bypasses setAttribute's
+        // invalidateCases) recompute their filtered caseIds; the parent class only watches
+        // attributeDescriptionsStr, which omits y[1+] and rightNumeric.
         addDisposer(self, reaction(
           () => self.allYAttributeDescriptions,
-          (allYAttributeDescriptions) => self.synchronizeFilteredCases(allYAttributeDescriptions),
+          (allYAttributeDescriptions) => {
+            self.synchronizeFilteredCases(allYAttributeDescriptions)
+            self.invalidateCases()
+          },
           { name: "GraphDataConfigurationModel yAttrDescriptions reaction", equals: comparer.structural }
         ))
         addDisposer(self, reaction(

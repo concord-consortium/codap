@@ -1,5 +1,5 @@
 import { reaction } from "mobx"
-import {Instance, types} from "mobx-state-tree"
+import {applyPatch, Instance, types} from "mobx-state-tree"
 import { DataSet, toCanonical } from "../../../models/data/data-set"
 import {DataSetMetadata} from "../../../models/shared/data-set-metadata"
 import { kMain } from "../../data-display/data-display-types"
@@ -341,6 +341,52 @@ describe("DataConfigurationModel", () => {
     expect(config.columnCases({})).toEqual([])
     expect(config.columnCases({ nId: "n1" })).toEqual(caseIdsFromItemIds(["c1"]))
     expect(config.columnCases({ nId: "n3" })).toEqual(caseIdsFromItemIds(["c3"]))
+  })
+
+  it("invalidates filteredCases when _attributeDescriptions mutate without setAttribute (CODAP-1297)", () => {
+    // Regression: MST undo replays patches that mutate _attributeDescriptions directly,
+    // bypassing setAttribute()'s call to invalidateCases(). A reaction on
+    // attributeDescriptionsStr must catch this so cached caseIds are recomputed.
+    const config = tree.config
+    config.setDataset(tree.data, tree.metadata)
+
+    config.setAttribute("x", { attributeID: "xId", type: "numeric" })
+    expect(config.filteredCases[0].caseIds).toEqual(caseIdsFromItemIds(["c1", "c2"]))
+
+    config.setAttribute("x", { attributeID: "yId", type: "numeric" })
+    expect(config.filteredCases[0].caseIds).toEqual(caseIdsFromItemIds(["c1", "c3"]))
+
+    // Simulate undo: replace _attributeDescriptions/x in place via MST patch.
+    applyPatch(config, {
+      op: "replace",
+      path: "/_attributeDescriptions/x",
+      value: { attributeID: "xId", type: "numeric" }
+    })
+    expect(config.filteredCases[0].caseIds).toEqual(caseIdsFromItemIds(["c1", "c2"]))
+  })
+
+  it("invalidates filteredCases for y[1+] when patch replay replaces it in place (CODAP-1297)", () => {
+    // Regression: when MST undo replays a JSON patch that replaces _yAttributeDescriptions[i]
+    // in place, FilteredCases at that index isn't destroyed/recreated and its cache must be
+    // invalidated. The parent class reaction on attributeDescriptionsStr only covers y[0];
+    // y[1+] needs invalidation via the graph subclass's allYAttributeDescriptions reaction.
+    const config = tree.config
+    config.setDataset(tree.data, tree.metadata)
+
+    config.setAttribute("x", { attributeID: "xId", type: "numeric" })
+    config.setAttribute("y", { attributeID: "yId", type: "numeric" })
+    config.addYAttribute({ attributeID: "xId", type: "numeric" })
+    // y[1] = xId: requires xId valid (c1, c2) and x = xId valid (c1, c2) → c1, c2
+    expect(config.filteredCases[1].caseIds).toEqual(caseIdsFromItemIds(["c1", "c2"]))
+
+    // Simulate undo: replace _yAttributeDescriptions[1] in place via MST patch.
+    applyPatch(config, {
+      op: "replace",
+      path: "/_yAttributeDescriptions/1",
+      value: { attributeID: "yId", type: "numeric" }
+    })
+    // y[1] = yId: requires yId valid (c1, c3) and x = xId valid (c1, c2) → c1
+    expect(config.filteredCases[1].caseIds).toEqual(caseIdsFromItemIds(["c1"]))
   })
 
   it("can create cell key", () => {
