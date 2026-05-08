@@ -356,13 +356,6 @@ describe("markDocumentClean", () => {
     expect(manager.revisionId).toBe("baseline")
   })
 
-  it("resets revisionId to an empty string when no baseline is supplied", () => {
-    const { manager } = setupDocument()
-    manager.setRevisionId("post-load")
-    manager.markDocumentClean()
-    expect(manager.revisionId).toBe("")
-  })
-
   it("resets revisionId to an empty string when baseline is undefined", () => {
     const { manager } = setupDocument()
     manager.setRevisionId("post-load")

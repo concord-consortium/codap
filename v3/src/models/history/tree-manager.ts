@@ -196,8 +196,10 @@ export const TreeManager = types
     self.revisionId = revisionId
   },
 
-  // Resets the revisionId baseline so the dirty-tracking reaction in app-state
-  // treats the document as "just loaded" rather than dirty.
+  // Resets revisionId, typically called after a document load to discard
+  // transient changes from post-load fixup work. The dirty-tracking reaction
+  // in app-state fires on any revisionId change, so callers must also clear
+  // the CFM dirty flag explicitly.
   markDocumentClean(baselineRevisionId?: string) {
     self.revisionId = baselineRevisionId ?? ""
   },
