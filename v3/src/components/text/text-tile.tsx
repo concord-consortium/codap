@@ -142,7 +142,12 @@ export const TextTile = observer(function TextTile({ tile }: ITileBaseProps) {
         log: textDidChange ? () => `Edited text component: ${textModel.textContent}` : undefined,
         undoStringKey: "DG.Undo.textComponent.edit",
         redoStringKey: "DG.Redo.textComponent.edit",
-        notify: textDidChange ? () => updateTileNotification("edit text", {}, tile) : undefined
+        notify: textDidChange
+          ? () => updateTileNotification("commitEdit", {
+              title: tile?.title,
+              text: JSON.stringify(textModel.value)
+            }, tile)
+          : undefined
       })
     }
   }
