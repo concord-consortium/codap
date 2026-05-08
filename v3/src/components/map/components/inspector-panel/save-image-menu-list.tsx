@@ -5,8 +5,7 @@ import { useCfmContext } from "../../../../hooks/use-cfm-context"
 import { useProgress } from "../../../../hooks/use-progress"
 import { ITileModel } from "../../../../models/tiles/tile-model"
 import { t } from "../../../../utilities/translation/translate"
-// DISABLED FOR NOW (CODAP-1303): see commented-out draw-tool handler/menu item below
-// import { openInDrawTool } from "../../../data-display/data-display-image-utils"
+import { openInDrawTool } from "../../../data-display/data-display-image-utils"
 import { InspectorMenuContent } from "../../../inspector-panel"
 import { isMapContentModel } from "../../models/map-content-model"
 
@@ -54,18 +53,15 @@ export const SaveImageMenuList = ({tile}: IProps) => {
     return undefined
   }
 
-  /*
-
-  DISABLED FOR NOW (CODAP-1303): launching the Draw tool from the Map has significant bugs.
-  Re-enable once the underlying issues are resolved.
-
+  // The menu item that invokes this handler is currently disabled (CODAP-1303): launching the
+  // Draw tool from the Map has significant bugs. Once those are resolved, remove `isDisabled`
+  // from the corresponding <MenuItem> below to re-enable.
   const handleOpenInDrawTool = async () => {
     if (tile) {
       const imageDataUri = await getImageDataUri("png")
       await openInDrawTool(tile, imageDataUri || "")
     }
   }
-  */
 
   const handleExportPNG = async () => {
     const imageString = await getImageDataString("png")
@@ -102,12 +98,9 @@ export const SaveImageMenuList = ({tile}: IProps) => {
 
   return (
     <InspectorMenuContent data-testid="save-image-menu-list">
-      {/*
-      DISABLED FOR NOW (CODAP-1303): launching the Draw tool from the Map has significant bugs.
-      <MenuItem data-testid="open-in-draw-tool" onAction={handleOpenInDrawTool}>
-        {t("DG.DataDisplayMenu.copyAsImage")}
+      <MenuItem data-testid="open-in-draw-tool" onAction={handleOpenInDrawTool} isDisabled={true}>
+        {t("DG.DataDisplayMenu.copyAsImage")}<span aria-hidden="true"> 🚧</span>
       </MenuItem>
-      */}
       <MenuItem data-testid="export-png-image" onAction={handleExportPNG}>
         {t("DG.DataDisplayMenu.exportPngImage")}
       </MenuItem>
