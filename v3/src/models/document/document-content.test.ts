@@ -34,4 +34,48 @@ describe("DocumentContent", () => {
     expect(ds?.attributes.length).toBe(2)
     expect(ds?.items.length).toBe(2)
   })
+
+  describe("broadcastMessage", () => {
+    const message = { action: "notify", resource: "componentChangeNotice", values: {} } as any
+
+    it("broadcasts to every tile when no targetTileId or excludeTileId is given", () => {
+      const tile1 = content.createTile("Test")!
+      const tile2 = content.createTile("Test")!
+      const spy1 = jest.spyOn(tile1.content, "broadcastMessage")
+      const spy2 = jest.spyOn(tile2.content, "broadcastMessage")
+
+      content.broadcastMessage(message, () => {})
+
+      expect(spy1).toHaveBeenCalledTimes(1)
+      expect(spy2).toHaveBeenCalledTimes(1)
+    })
+
+    it("skips the tile specified by excludeTileId (CODAP-1307)", () => {
+      const tile1 = content.createTile("Test")!
+      const tile2 = content.createTile("Test")!
+      const tile3 = content.createTile("Test")!
+      const spy1 = jest.spyOn(tile1.content, "broadcastMessage")
+      const spy2 = jest.spyOn(tile2.content, "broadcastMessage")
+      const spy3 = jest.spyOn(tile3.content, "broadcastMessage")
+
+      content.broadcastMessage(message, () => {}, undefined, tile2.id)
+
+      expect(spy1).toHaveBeenCalledTimes(1)
+      expect(spy2).not.toHaveBeenCalled()
+      expect(spy3).toHaveBeenCalledTimes(1)
+    })
+
+    it("excludeTileId can suppress delivery to a tile that would otherwise be the broadcast target", () => {
+      const tile1 = content.createTile("Test")!
+      const tile2 = content.createTile("Test")!
+      const spy1 = jest.spyOn(tile1.content, "broadcastMessage")
+      const spy2 = jest.spyOn(tile2.content, "broadcastMessage")
+
+      // targetTileId limits delivery to tile2; excludeTileId then skips tile2 — nothing receives.
+      content.broadcastMessage(message, () => {}, tile2.id, tile2.id)
+
+      expect(spy1).not.toHaveBeenCalled()
+      expect(spy2).not.toHaveBeenCalled()
+    })
+  })
 })

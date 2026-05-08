@@ -253,4 +253,79 @@ describe("DataInteractive ComponentHandler", () => {
 
     broadcastSpy.mockRestore()
   })
+
+  describe("excludes source plugin from broadcast (CODAP-1307)", () => {
+    // Story Builder treats notifications about its own DI-API actions as document edits and
+    // marks the current moment as unsaved. When resources.interactiveFrame is the requesting
+    // plugin's tile, the create / update / delete handlers should pass excludeTileId so the
+    // broadcast skips that tile.
+
+    it("create passes excludeTileId from resources.interactiveFrame", () => {
+      // Use any tile to stand in for the plugin's interactive frame — the handler only reads its id.
+      const pluginTile = createTile("graph", kGraphIdPrefix)
+      const broadcastSpy = jest.spyOn(documentContent, "broadcastMessage")
+
+      const result = handler.create!({ interactiveFrame: pluginTile }, { type: "graph" })
+      expect(result.success).toBe(true)
+      const newId = (result.values as DIComponentInfo).id
+
+      const createCall = broadcastSpy.mock.calls.find(([msg]) =>
+        msg?.values?.operation === "create" && msg?.values?.id === newId
+      )
+      expect(createCall).toBeDefined()
+      // 4th arg of broadcastMessage is excludeTileId
+      expect(createCall?.[3]).toBe(pluginTile.id)
+
+      broadcastSpy.mockRestore()
+    })
+
+    it("delete passes excludeTileId from resources.interactiveFrame", () => {
+      const pluginTile = createTile("graph", kGraphIdPrefix)
+      const targetTile = createTile("graph", kGraphIdPrefix)
+      const broadcastSpy = jest.spyOn(documentContent, "broadcastMessage")
+
+      const result = handler.delete?.({ interactiveFrame: pluginTile, component: targetTile })
+      expect(result?.success).toBe(true)
+
+      const deleteCall = broadcastSpy.mock.calls.find(([msg]) =>
+        msg?.values?.operation === "delete"
+      )
+      expect(deleteCall).toBeDefined()
+      expect(deleteCall?.[3]).toBe(pluginTile.id)
+
+      broadcastSpy.mockRestore()
+    })
+
+    it("update on a different component passes excludeTileId from resources.interactiveFrame", () => {
+      const pluginTile = createTile("graph", kGraphIdPrefix)
+      const targetTile = createTile("graph", kGraphIdPrefix)
+      const broadcastSpy = jest.spyOn(documentContent, "broadcastMessage")
+
+      const result = handler.update?.({ interactiveFrame: pluginTile, component: targetTile }, { name: "Renamed" })
+      expect(result?.success).toBe(true)
+
+      const updateCall = broadcastSpy.mock.calls.find(([msg]) =>
+        msg?.values?.operation === "update"
+      )
+      expect(updateCall).toBeDefined()
+      expect(updateCall?.[3]).toBe(pluginTile.id)
+
+      broadcastSpy.mockRestore()
+    })
+
+    it("update on self sends no notification (existing self-update suppression preserved)", () => {
+      const tile = createTile("graph", kGraphIdPrefix)
+      const broadcastSpy = jest.spyOn(documentContent, "broadcastMessage")
+
+      const result = handler.update?.({ interactiveFrame: tile, component: tile }, { name: "Renamed" })
+      expect(result?.success).toBe(true)
+
+      const updateCall = broadcastSpy.mock.calls.find(([msg]) =>
+        msg?.values?.operation === "update"
+      )
+      expect(updateCall).toBeUndefined()
+
+      broadcastSpy.mockRestore()
+    })
+  })
 })
