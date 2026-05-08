@@ -1,8 +1,9 @@
+import { kV2TextDIType } from "./text-defs"
 import { TextModel } from "./text-model"
 import { commitEditNotification } from "./text-notifications"
 
 const v2Id = 12345
-const v2Type = "DG.TextView"
+const v2Type = kV2TextDIType
 
 jest.mock("../../models/tiles/tile-notifications", () => ({
   updateTileNotification: jest.fn((updateType: string, values: any, tileModel: any) => {
