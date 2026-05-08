@@ -417,9 +417,16 @@ export const Graph = observer(function Graph({
       && !!dragAttrId
       && isDropAllowed("rightNumeric", dragDataSet, dragAttrId))
   )
+  // Only inset by the portion of the right-edge drop zone that would actually overlap the
+  // plot drop zone.
+  const rightAxisExtent =
+    layout.getDesiredExtent('rightNumeric') + layout.getDesiredExtent('rightCat')
+  const rightDropZoneInset = hasRightDropZone
+    ? Math.max(0, kDropZoneSize + kDropZoneGap - rightAxisExtent)
+    : 0
   const plotDropInsets: IDropInsets = {
     ...(hasTopDropZone ? { top: kDropZoneSize + kDropZoneGap } : {}),
-    ...(hasRightDropZone ? { right: kDropZoneSize + kDropZoneGap } : {})
+    ...(rightDropZoneInset > 0 ? { right: rightDropZoneInset } : {})
   }
 
   const renderDroppableAddAttributes = () => {

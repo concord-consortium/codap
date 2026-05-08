@@ -214,4 +214,69 @@ describe("GraphController", () => {
     expect(isNumericAxisModel(model.axes.get("left"))).toBe(true)
     expect(getScaleType("left")).toBe("linear")
   })
+
+  it("clears the other right-axis attribute when assigning rightSplit or rightNumeric", () => {
+    ({ tree, model, controller, data } = setup())
+    setAttributeId("x", "xId")
+    setAttributeId("y", "yId")
+
+    // Add a Y2 numeric attribute to the right axis.
+    setAttributeId("rightNumeric", "y2Id")
+    expect(model.dataConfiguration.attributeID("rightNumeric")).toBe("y2Id")
+    expect(model.dataConfiguration.attributeID("rightSplit")).toBe("")
+    expect(isNumericAxisModel(model.axes.get("rightNumeric"))).toBe(true)
+
+    // Now assign a categorical attribute to the right-split slot. The previous Y2 numeric
+    // attribute (and its axis) should be cleared so the new rightCat axis is unobscured.
+    setAttributeId("rightSplit", "cId")
+    expect(model.dataConfiguration.attributeID("rightSplit")).toBe("cId")
+    expect(model.dataConfiguration.attributeID("rightNumeric")).toBe("")
+    expect(model.axes.get("rightNumeric")).toBeUndefined()
+    expect(isCategoricalAxisModel(model.axes.get("rightCat"))).toBe(true)
+
+    // And the reverse: assigning a numeric attribute to rightNumeric should clear rightSplit.
+    setAttributeId("rightNumeric", "y2Id")
+    expect(model.dataConfiguration.attributeID("rightNumeric")).toBe("y2Id")
+    expect(model.dataConfiguration.attributeID("rightSplit")).toBe("")
+    expect(model.axes.get("rightCat")).toBeUndefined()
+    expect(isNumericAxisModel(model.axes.get("rightNumeric"))).toBe(true)
+  })
+
+  // Removing one right-axis attribute (assigning the empty string) should NOT touch the other.
+  // The DI API and v2 import can produce a state with both set simultaneously by going through
+  // dataConfiguration.setAttribute directly (bypassing setAttributeID's mutual exclusion). We
+  // reproduce that state here, then exercise the attrId-truthiness guard by removing one role
+  // and asserting the populated counterpart survives.
+  it("does not clear the other right-axis attribute on removal", () => {
+    ({ tree, model, controller, data } = setup())
+    setAttributeId("x", "xId")
+    setAttributeId("y", "yId")
+
+    // Populate both roles directly to simulate a DI-API / v2-imported graph.
+    model.dataConfiguration.setAttribute("rightNumeric", { attributeID: "y2Id" })
+    model.dataConfiguration.setAttribute("rightSplit", { attributeID: "cId" })
+    controller.handleAttributeAssignment()
+    controller.syncAxisScalesWithModel()
+    expect(model.dataConfiguration.attributeID("rightNumeric")).toBe("y2Id")
+    expect(model.dataConfiguration.attributeID("rightSplit")).toBe("cId")
+
+    // Removing rightNumeric must leave rightSplit intact — without the attributeID guard in
+    // setAttributeID, the mutual-exclusion branch would cascade and clear rightSplit too.
+    setAttributeId("rightNumeric", "")
+    expect(model.dataConfiguration.attributeID("rightNumeric")).toBe("")
+    expect(model.dataConfiguration.attributeID("rightSplit")).toBe("cId")
+    expect(isCategoricalAxisModel(model.axes.get("rightCat"))).toBe(true)
+
+    // Symmetric check: re-populate rightNumeric, then remove rightSplit.
+    model.dataConfiguration.setAttribute("rightNumeric", { attributeID: "y2Id" })
+    controller.handleAttributeAssignment()
+    controller.syncAxisScalesWithModel()
+    expect(model.dataConfiguration.attributeID("rightNumeric")).toBe("y2Id")
+    expect(model.dataConfiguration.attributeID("rightSplit")).toBe("cId")
+
+    setAttributeId("rightSplit", "")
+    expect(model.dataConfiguration.attributeID("rightSplit")).toBe("")
+    expect(model.dataConfiguration.attributeID("rightNumeric")).toBe("y2Id")
+    expect(isNumericAxisModel(model.axes.get("rightNumeric"))).toBe(true)
+  })
 })
