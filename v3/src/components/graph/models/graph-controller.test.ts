@@ -279,4 +279,55 @@ describe("GraphController", () => {
     expect(model.dataConfiguration.attributeID("rightNumeric")).toBe("y2Id")
     expect(isNumericAxisModel(model.axes.get("rightNumeric"))).toBe(true)
   })
+
+  // Companion to the rightNumeric/rightSplit mutual-exclusion guard: the Y2 axis is also
+  // orphaned when the plot itself collapses off scatter (because x or y stops being
+  // numeric). Drag-drop reaches this through setAttributeID; the "Treat As" menu reaches
+  // it through dataConfiguration.setAttributeType. Both should clear rightNumeric.
+  it("clears rightNumeric when x or y becomes non-numeric via setAttributeID", () => {
+    ;({ tree, model, controller, data } = setup())
+    setAttributeId("x", "xId")
+    setAttributeId("y", "yId")
+    setAttributeId("rightNumeric", "y2Id")
+    expect(model.dataConfiguration.attributeID("rightNumeric")).toBe("y2Id")
+    expect(isNumericAxisModel(model.axes.get("rightNumeric"))).toBe(true)
+
+    // Dropping a categorical attribute on x collapses the plot off scatter, so the
+    // orphaned Y2 attribute and axis should be cleared.
+    setAttributeId("x", "cId")
+    expect(model.dataConfiguration.attributeID("rightNumeric")).toBe("")
+    expect(model.axes.get("rightNumeric")).toBeUndefined()
+
+    // Symmetric: re-establish a scatter, then drop categorical on y.
+    setAttributeId("x", "xId")
+    setAttributeId("rightNumeric", "y2Id")
+    expect(model.dataConfiguration.attributeID("rightNumeric")).toBe("y2Id")
+    setAttributeId("y", "cId")
+    expect(model.dataConfiguration.attributeID("rightNumeric")).toBe("")
+    expect(model.axes.get("rightNumeric")).toBeUndefined()
+  })
+
+  it("clears rightNumeric when x or y is retyped non-numeric via setAttributeType", () => {
+    ;({ tree, model, controller, data } = setup())
+    setAttributeId("x", "xId")
+    setAttributeId("y", "yId")
+    setAttributeId("rightNumeric", "y2Id")
+    expect(model.dataConfiguration.attributeID("rightNumeric")).toBe("y2Id")
+
+    // "Treat as Categorical" on x reaches dataConfiguration.setAttributeType directly.
+    model.dataConfiguration.setAttributeType("x", "categorical")
+    controller.handleAttributeAssignment()
+    expect(model.dataConfiguration.attributeID("rightNumeric")).toBe("")
+    expect(model.axes.get("rightNumeric")).toBeUndefined()
+
+    // Symmetric: re-establish a scatter, then retype y to categorical.
+    model.dataConfiguration.setAttributeType("x", "numeric")
+    controller.handleAttributeAssignment()
+    setAttributeId("rightNumeric", "y2Id")
+    expect(model.dataConfiguration.attributeID("rightNumeric")).toBe("y2Id")
+    model.dataConfiguration.setAttributeType("y", "categorical")
+    controller.handleAttributeAssignment()
+    expect(model.dataConfiguration.attributeID("rightNumeric")).toBe("")
+    expect(model.axes.get("rightNumeric")).toBeUndefined()
+  })
 })

@@ -570,6 +570,13 @@ export const GraphContentModel = DataDisplayContentModel
       } else {
         self.dataConfiguration.setAttribute(role, {attributeID})
       }
+      if ((role === 'x' || role === 'y') && self.dataConfiguration.attributeID('rightNumeric')) {
+        const xType = self.dataConfiguration.attributeType('x')
+        const yType = self.dataConfiguration.attributeType('y')
+        if (!isNumericAttributeType(xType) || !isNumericAttributeType(yType)) {
+          self.dataConfiguration.setAttribute('rightNumeric')
+        }
+      }
       const newPrimaryRole = self.dataConfiguration.primaryRole
       const newPrimaryAttrId = newPrimaryRole ? self.dataConfiguration.attributeID(newPrimaryRole) : undefined
       self.plot.respondToPlotChange({

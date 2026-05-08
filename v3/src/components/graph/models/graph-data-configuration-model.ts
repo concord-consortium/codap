@@ -1,6 +1,6 @@
 import {comparer, reaction} from "mobx"
 import {addDisposer, getSnapshot, Instance, SnapshotIn, types} from "mobx-state-tree"
-import { AttributeType, isCategoricalAttributeType } from "../../../models/data/attribute-types"
+import { AttributeType, isCategoricalAttributeType, isNumericAttributeType } from "../../../models/data/attribute-types"
 import {IDataSet} from "../../../models/data/data-set"
 import {typedId} from "../../../utilities/js-utils"
 import { isFiniteNumber } from "../../../utilities/math-utils"
@@ -859,6 +859,13 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         self._attributeDescriptions.get(role)?.setType(type)
       }
       self._setAttributeType(type, plotNumber)
+      if ((role === 'x' || role === 'y') && self.attributeID('rightNumeric')) {
+        const xType = self.attributeType('x')
+        const yType = self.attributeType('y')
+        if (!isNumericAttributeType(xType) || !isNumericAttributeType(yType)) {
+          this.setAttribute('rightNumeric')
+        }
+      }
     }
   }))
   .actions(self => ({
