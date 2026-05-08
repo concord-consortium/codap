@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react"
 import { isAlive } from "mobx-state-tree"
-import { IApplyModelChangeOptions } from "../../models/history/apply-model-change"
+import { IApplyModelChangeOptions } from "../../models/history/history-service"
 import { ISliderModel } from "./slider-model"
 
 const kAnimationDuration = 500 // ms
