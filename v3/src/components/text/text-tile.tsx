@@ -8,10 +8,10 @@ import React, { useCallback, useEffect, useRef, useState } from "react"
 import { useMemo } from "use-memo-one"
 import { useTileInspectorContext } from "../../hooks/use-tile-inspector-context"
 import { useTileSelectionContext } from "../../hooks/use-tile-selection-context"
-import { updateTileNotification } from "../../models/tiles/tile-notifications"
 import { mstReaction } from "../../utilities/mst-reaction"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { isTextModel, modelValueToEditorValue } from "./text-model"
+import { commitEditNotification } from "./text-notifications"
 import { TextTileInspectorContent } from "./text-tile-inspector-content"
 
 import "@concord-consortium/slate-editor/dist/index.css"
@@ -142,7 +142,7 @@ export const TextTile = observer(function TextTile({ tile }: ITileBaseProps) {
         log: textDidChange ? () => `Edited text component: ${textModel.textContent}` : undefined,
         undoStringKey: "DG.Undo.textComponent.edit",
         redoStringKey: "DG.Redo.textComponent.edit",
-        notify: textDidChange ? () => updateTileNotification("edit text", {}, tile) : undefined
+        notify: textDidChange ? () => commitEditNotification(textModel, tile) : undefined
       })
     }
   }
