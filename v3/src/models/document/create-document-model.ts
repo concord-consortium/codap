@@ -56,8 +56,8 @@ export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
   }
 
   // configure notifications
-  fullEnvironment.notify = function(message, callback, targetTileId) {
-    document.content?.broadcastMessage(message, callback, targetTileId)
+  fullEnvironment.notify = function(message, callback, targetTileId, excludeTileId) {
+    document.content?.broadcastMessage(message, callback, targetTileId, excludeTileId)
   }
 
   historyService.setDependencies(fullEnvironment)

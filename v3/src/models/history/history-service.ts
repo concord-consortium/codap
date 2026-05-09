@@ -11,7 +11,11 @@ export interface IApplyModelChangeOptions {
   log?: string | ILogMessage | (() => Maybe<string | ILogMessage>)
   notify?: INotify
   notifyTileId?: string
+  // tile to exclude from broadcast — e.g. the source plugin shouldn't get an echo of its own action
+  excludeTileId?: string
+  // all changes dirty the document by default; specify noDirty to disable dirtying the document
   noDirty?: boolean
+  // undo/redo strings indicate undo-ability; if not provided, the action is not undoable
   undoStringKey?: string
   redoStringKey?: string
 }

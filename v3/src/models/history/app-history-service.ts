@@ -19,7 +19,7 @@ export class AppHistoryService implements IHistoryService {
   }
 
   handleApplyModelChange(options?: IApplyModelChangeOptions) {
-    const { log, notify, notifyTileId, noDirty, undoStringKey, redoStringKey } = options || {}
+    const { log, notify, notifyTileId, excludeTileId, noDirty, undoStringKey, redoStringKey } = options || {}
 
     // Add strings to undoable action or keep out of the undo stack
     if (undoStringKey != null && redoStringKey != null) {
@@ -49,7 +49,7 @@ export class AppHistoryService implements IHistoryService {
           const __notification = typeof _notification === "function" ? _notification() : _notification
           if (__notification) {
             const { message, callback } = __notification
-            this.tileEnv.notify(message, callback ?? (() => null), notifyTileId)
+            this.tileEnv.notify(message, callback ?? (() => null), notifyTileId, excludeTileId)
           }
         }
       }

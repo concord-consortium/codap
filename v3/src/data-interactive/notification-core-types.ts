@@ -32,6 +32,7 @@ export interface ICoreNotifyFunctionEnv {
   notify: (
     message: ICoreNotification["message"],
     callback: NotificationCallback,
-    notifyTileId?: string
+    notifyTileId?: string,
+    excludeTileId?: string
   ) => void
 }
