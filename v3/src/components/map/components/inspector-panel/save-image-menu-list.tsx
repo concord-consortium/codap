@@ -53,6 +53,9 @@ export const SaveImageMenuList = ({tile}: IProps) => {
     return undefined
   }
 
+  // The menu item that invokes this handler is currently disabled (CODAP-1303): launching the
+  // Draw tool from the Map has significant bugs. Once those are resolved, remove `isDisabled`
+  // from the corresponding <MenuItem> below to re-enable.
   const handleOpenInDrawTool = async () => {
     if (tile) {
       const imageDataUri = await getImageDataUri("png")
@@ -95,8 +98,8 @@ export const SaveImageMenuList = ({tile}: IProps) => {
 
   return (
     <InspectorMenuContent data-testid="save-image-menu-list">
-      <MenuItem data-testid="open-in-draw-tool" onAction={handleOpenInDrawTool}>
-        {t("DG.DataDisplayMenu.copyAsImage")}
+      <MenuItem data-testid="open-in-draw-tool" onAction={handleOpenInDrawTool} isDisabled={true}>
+        {t("DG.DataDisplayMenu.copyAsImage")}<span aria-hidden="true"> 🚧</span>
       </MenuItem>
       <MenuItem data-testid="export-png-image" onAction={handleExportPNG}>
         {t("DG.DataDisplayMenu.exportPngImage")}
