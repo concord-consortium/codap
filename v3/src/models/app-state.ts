@@ -45,6 +45,7 @@ class AppState {
   private cfm: CloudFileManager | undefined
   private dirtyMonitorDisposer: (() => void) | undefined
   private titleMonitorDisposer: (() => void) | undefined
+  private pendingDirtyResetTimeout: ReturnType<typeof setTimeout> | undefined
 
   constructor() {
     this.currentDocument = createCodapDocument()
@@ -100,6 +101,14 @@ class AppState {
     // stop monitoring changes for undo/redo on the existing document
     this.disableDocumentMonitoring()
 
+    // Cancel any pending dirty-state reset from a prior load. The V2 path
+    // yields before swapping currentDocument, so an earlier setTimeout could
+    // otherwise fire while this load is in progress.
+    if (this.pendingDirtyResetTimeout != null) {
+      clearTimeout(this.pendingDirtyResetTimeout)
+      this.pendingDirtyResetTimeout = undefined
+    }
+
     let content: ISerializedV3Document
     if (isCodapV2Document(snap)) {
       const v2Document = new CodapV2Document(snap, metadata)
@@ -149,6 +158,19 @@ class AppState {
 
       // monitor document changes for undo/redo
       this.enableDocumentMonitoring()
+
+      // After load, post-load fixup actions (reactions, plugin handshakes, etc.)
+      // can run between enableDocumentMonitoring() and the first user edit, which
+      // would mark the document "Unsaved" before the user has changed anything.
+      // Defer to the next tick so synchronous post-load actions complete first,
+      // then reset the revisionId baseline and tell CFM the document is clean.
+      const loadedDocument = this.currentDocument
+      this.pendingDirtyResetTimeout = setTimeout(() => {
+        this.pendingDirtyResetTimeout = undefined
+        if (this.currentDocument !== loadedDocument) return
+        this.treeManager?.markDocumentClean(snap.revisionId)
+        this.cfm?.client.dirty(false)
+      }, 0)
 
       // update data broker with the new data sets
       const manager = getSharedModelManager(document)

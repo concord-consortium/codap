@@ -347,3 +347,19 @@ it("records tile model changes in response to shared model changes", async () =>
   const changeDocument: Instance<typeof CDocument> = manager.document
   expect(getSnapshot(changeDocument.history)).toEqual([sharedModelChange])
 })
+
+describe("markDocumentClean", () => {
+  it("resets revisionId to the supplied baseline", () => {
+    const { manager } = setupDocument()
+    manager.setRevisionId("post-load")
+    manager.markDocumentClean("baseline")
+    expect(manager.revisionId).toBe("baseline")
+  })
+
+  it("resets revisionId to an empty string when baseline is undefined", () => {
+    const { manager } = setupDocument()
+    manager.setRevisionId("post-load")
+    manager.markDocumentClean(undefined)
+    expect(manager.revisionId).toBe("")
+  })
+})
