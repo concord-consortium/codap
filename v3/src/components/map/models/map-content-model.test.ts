@@ -1,10 +1,12 @@
 import { Map as LeafletMap } from "leaflet"
 import { DataSet } from "../../../models/data/data-set"
+import { createCodapDocument } from "../../../models/codap/create-codap-document"
 import { DocumentContentModel, IDocumentContentModel } from "../../../models/document/document-content"
 import { FreeTileRow } from "../../../models/document/free-tile-row"
 import {
   ISharedModelDocumentManager, SharedModelDocumentManager
 } from "../../../models/document/shared-model-document-manager"
+import { TreeManagerType } from "../../../models/history/tree-manager"
 import { SharedDataSet } from "../../../models/shared/shared-data-set"
 import { DataSetMetadata } from "../../../models/shared/data-set-metadata"
 import { kMapTileType } from "../map-defs"
@@ -354,6 +356,55 @@ describe("MapContentModel", () => {
       const layer = mapContent.layers[0]
       if (!isMapPinLayerModel(layer)) throw new Error("expected MapPinLayerModel")
       expect(layer.titleCollection?.name).toBe("Sites")
+    })
+  })
+
+  // CODAP-1308: Leaflet emits its own center/zoom values once the map renders,
+  // even when the saved view is being restored. Those round-trip values are
+  // synced back into the model via syncCenterAndZoomFromMapWithoutUndo and
+  // were dirtying the document on open.
+  describe("syncCenterAndZoomFromMapWithoutUndo (CODAP-1308)", () => {
+    it("does not bump revisionId when leaflet syncs back to the model", async () => {
+      // Use a real CODAP document so a TreeManager / TreeMonitor are wired up
+      // (the default test setup uses a bare DocumentContentModel and so has no
+      // history/dirty tracking).
+      const doc = createCodapDocument()
+      const content = doc.content!
+      const tile = content.insertTileSnapshotInDefaultRow({ content: { type: kMapTileType } })!
+      const map = isMapContentModel(tile.content) ? tile.content : undefined
+      if (!map) throw new Error("expected MapContentModel")
+
+      // Enable monitoring so history entries actually get recorded.
+      doc.treeMonitor?.enableMonitoring()
+      const treeManager = doc.treeManagerAPI as TreeManagerType
+
+      // Wire up a leaflet that returns values different from the model's
+      // defaults so the action does mutate model state.
+      map.setLeafletMap({
+        ...mockLeafletMap,
+        getCenter: jest.fn(() => ({ lat: 1.234, lng: 5.678 })),
+        getZoom: jest.fn(() => 7)
+      } as unknown as LeafletMap)
+
+      // Capture the baseline *after* the leaflet hookup; setLeafletMap may
+      // itself record a history entry.
+      await new Promise(resolve => setTimeout(resolve, 0))
+      const baselineRevisionId = treeManager.revisionId
+
+      map.syncCenterAndZoomFromMapWithoutUndo()
+
+      // Wait for the action to finalize (history entries complete on a
+      // microtask).
+      await new Promise(resolve => setTimeout(resolve, 0))
+
+      // The model received the new values...
+      expect(map.center.lat).toBeCloseTo(1.234)
+      expect(map.center.lng).toBeCloseTo(5.678)
+      expect(map.zoom).toBe(7)
+      // ...but the document was not dirtied: revisionId is unchanged.
+      // (The entry still goes into history — that's intentional under
+      // `noDirty` — but it must not bump the dirty-tracking revisionId.)
+      expect(treeManager.revisionId).toBe(baselineRevisionId)
     })
   })
 })

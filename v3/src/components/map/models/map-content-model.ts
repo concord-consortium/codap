@@ -226,7 +226,10 @@ export const MapContentModel = DataDisplayContentModel
       }
     },
     syncCenterAndZoomFromMapWithoutUndo() {
-      withoutUndo()
+      // Leaflet may emit small center/zoom adjustments after the map renders
+      // (e.g. floating-point precision when restoring a saved view). These
+      // round-trip syncs aren't user changes and shouldn't dirty the document.
+      withoutUndo({ noDirty: true })
       this.syncCenterAndZoomFromMap()
     },
     rescale(undoStringKey = "", redoStringKey = "") {
