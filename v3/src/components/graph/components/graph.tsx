@@ -9,7 +9,7 @@ import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {getDragAttributeInfo} from "../../../hooks/use-drag-drop"
 import { DEBUG_RENDERERS } from "../../../lib/debug"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
-import { AttributeType, isCategoricalAttributeType } from "../../../models/data/attribute-types"
+import { AttributeType, isCategoricalAttributeType, isNumericAttributeType } from "../../../models/data/attribute-types"
 import {IDataSet} from "../../../models/data/data-set"
 import {isUndoingOrRedoing} from "../../../models/history/tree-types"
 import { getTileModel } from "../../../models/tiles/tile-model"
@@ -314,7 +314,21 @@ export const Graph = observer(function Graph({
       // We need to call setNumberOfCategoriesLimit early to avoid potential performance bottlenecks
       isCategoricalAttributeType(treatAs) && isAxisPlace(place) &&
         setNumberOfCategoriesLimit(graphModel.dataConfiguration, place, layout)
-      graphModel.dataConfiguration.setAttributeType(graphPlaceToAttrRole[place], treatAs)
+      const role = graphPlaceToAttrRole[place]
+      graphModel.dataConfiguration.setAttributeType(role, treatAs)
+      // The Y2 axis (rightNumeric) is only meaningful when both x and y are numeric.
+      // If retyping x or y to a non-numeric kind via "Treat as Categorical" has collapsed
+      // the configuration off scatter, the existing rightNumeric attribute is orphaned,
+      // so clear it. (Mirror of the cleanup in graphContentModel.setAttributeID for the
+      // drag-drop path; kept here rather than in setAttributeType so the DI-API update
+      // flow — which also calls setAttributeType — is unaffected.)
+      if ((role === 'x' || role === 'y') && graphModel.dataConfiguration.attributeID('rightNumeric')) {
+        const xType = graphModel.dataConfiguration.attributeType('x')
+        const yType = graphModel.dataConfiguration.attributeType('y')
+        if (!isNumericAttributeType(xType) || !isNumericAttributeType(yType)) {
+          graphModel.dataConfiguration.setAttribute('rightNumeric')
+        }
+      }
       graphController?.handleAttributeAssignment()
     }, {
       undoStringKey: "V3.Undo.attributeTreatAs",
