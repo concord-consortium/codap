@@ -306,6 +306,8 @@ export const CollectionModel = V2Model
     // For now, we treat appending items as a special case for which we don't need to start
     // from scratch. Eventually, we may be able to handle inserting items efficiently as well.
     const isAppendingItems = !!itemIds && !!isAppending
+    // newCaseIds semantics differ between rebuild and additive paths — see the push site.
+    const isFullRebuild = !itemIds
     if (!itemIds) {
       self.clearCases()
       itemIds = self.itemData.itemIds()
@@ -320,10 +322,17 @@ export const CollectionModel = V2Model
       const groupKey = self.groupKey(itemId)
       const hadCaseIdForGroupKey = !!self.groupKeyCaseIds.get(groupKey)
       const caseId = self.groupKeyCaseId(groupKey)
-      if (caseId && !hadCaseIdForGroupKey) newCaseIds.push(caseId)
       if (groupKey && caseId) {
         let caseGroup = self.caseGroupMap.get(groupKey)
         if (!caseGroup) {
+          // newCaseIds feeds two consumers: completeCaseGroups' append branch needs every
+          // newly-created caseGroupMap entry (including ones whose case ID was preserved
+          // across a prior wipe of caseGroupMap), while getRemappedCaseIds in the full-
+          // rebuild path must not see preserved-id cases or it'd treat them as candidates
+          // for remapping.
+          if (!isFullRebuild || !hadCaseIdForGroupKey) {
+            newCaseIds.push(caseId)
+          }
           self.allCaseIds.add(caseId)
           // cases with only hidden items aren't in caseIds and don't get indices
           const newCaseIndex = isItemHidden ? -1 : self.caseIds.length
