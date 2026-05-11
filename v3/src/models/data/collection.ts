@@ -566,9 +566,9 @@ export const CollectionModel = V2Model
         if (!parentCases && !_needsFullRebuild && newCaseIds?.length) {
           // Exclude hidden-only case groups so this branch matches REBUILD's walk of
           // self.caseIds (which already excludes them).
-          const newCaseGroups: CaseInfo[] = newCaseIds
-                                              .map(caseId => self.getCaseGroup(caseId))
-                                              .filter(group => !!group && !group.isHidden) as CaseInfo[]
+          const newCaseGroups = newCaseIds
+                                  .map(caseId => self.getCaseGroup(caseId))
+                                  .filter((group): group is CaseInfo => !!group && !group.isHidden)
           _caseGroups = [..._caseGroups, ...newCaseGroups]
 
           const newCases = newCaseGroups.map(group => group.groupedCase)
