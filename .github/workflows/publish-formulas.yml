@@ -28,8 +28,10 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - name: Upgrade npm to a version with OIDC trusted publishing support
         # OIDC trusted publishing was added in npm 11.5+. Node 20 ships
-        # with npm 10.x, so upgrade explicitly.
-        run: npm install -g npm@latest
+        # with npm 10.x, so upgrade explicitly. Pinned to 11.5.x so the
+        # release pipeline is reproducible — bump deliberately when ready
+        # to pick up a newer npm.
+        run: npm install -g npm@11.5
       - name: Install Dependencies
         run: yarn install --immutable
       - name: Set version from git tag
@@ -43,6 +45,13 @@ jobs:
         working-directory: formulas
         run: |
           TAG_VERSION="${GITHUB_REF#refs/tags/codap-formulas-v}"
+          # The trigger glob (codap-formulas-v*) matches any suffix; guard
+          # against malformed tags (empty, non-semver) before writing to
+          # package.json and attempting to publish.
+          if [[ ! "$TAG_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$ ]]; then
+            echo "::error::Tag version '$TAG_VERSION' is not valid semver (expected X.Y.Z or X.Y.Z-prerelease)"
+            exit 1
+          fi
           echo "Setting formulas version to $TAG_VERSION"
           node -e "
           const fs = require('fs');

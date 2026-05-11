@@ -7,8 +7,8 @@ system.
 This package is built from the [`monorepo`
 branch](https://github.com/concord-consortium/codap/tree/monorepo/formulas)
 of `concord-consortium/codap`, in the `formulas/` directory. It is not
-present on `main`. See [doc/monorepo.md](../doc/monorepo.md) for context
-on the mono-repo setup.
+present on `main`. See [doc/monorepo.md](https://github.com/concord-consortium/codap/blob/monorepo/doc/monorepo.md)
+for context on the mono-repo setup.
 
 ## Peer dependencies
 
@@ -23,14 +23,22 @@ which builds from the same source.
 
 ## Publishing
 
-Publishes are triggered by pushing a tag of the form
-`codap-formulas-v<version>` (e.g. `codap-formulas-v1.1.0`). The
-[`.github/workflows/publish-formulas.yml`](../.github/workflows/publish-formulas.yml)
-workflow builds and publishes with npm provenance.
+Cutting a release is a single command:
 
-Before tagging, bump `version` in [package.json](package.json) and run
-the verification commands in [doc/react18-plan.md](../doc/react18-plan.md)
-to confirm the workspace is clean.
+```sh
+git tag codap-formulas-v1.2.0 && git push origin codap-formulas-v1.2.0
+```
+
+The [`publish-formulas.yml`](https://github.com/concord-consortium/codap/blob/monorepo/.github/workflows/publish-formulas.yml)
+GitHub Actions workflow extracts the version from the tag, writes it
+into `package.json`, builds, and publishes with npm provenance via
+OIDC trusted publishing. The committed `version` in `package.json`
+stays at a placeholder (`0.0.0-development`) — the git tag is the
+release authority.
+
+Stable versions (e.g. `1.2.0`) publish to the `latest` dist-tag;
+prerelease versions (e.g. `1.2.0-rc.1`, `1.2.0-beta.0`) publish to a
+dist-tag matching the prerelease channel (`rc`, `beta`, etc.).
 
 ## Local testing
 
@@ -49,5 +57,5 @@ npx yalc add @concord-consortium/codap-formulas
 If you also need an unpublished `@concord-consortium/codap-utilities`,
 publish it with yalc first, then add it to this package, then publish
 this package — see
-[formulas-react17/README.md](../formulas-react17/README.md) for the
-exact sequence.
+[formulas-react17/README.md](https://github.com/concord-consortium/codap/blob/monorepo/formulas-react17/README.md)
+for the exact sequence.
