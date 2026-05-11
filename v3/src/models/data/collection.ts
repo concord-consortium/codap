@@ -564,12 +564,14 @@ export const CollectionModel = V2Model
         // Note: newCaseIds can be an empty array (e.g., when re-adding previously deleted items
         // whose group key mappings still exist), so check length to fall through to REBUILD.
         if (!parentCases && !_needsFullRebuild && newCaseIds?.length) {
-          const newCaseGroups = newCaseIds.map(caseId => self.getCaseGroup(caseId))
-          _caseGroups = [..._caseGroups, ...newCaseGroups.filter(group => !!group)]
+          // Exclude hidden-only case groups so this branch matches REBUILD's walk of
+          // self.caseIds (which already excludes them).
+          const newCaseGroups: CaseInfo[] = newCaseIds
+                                              .map(caseId => self.getCaseGroup(caseId))
+                                              .filter(group => !!group && !group.isHidden) as CaseInfo[]
+          _caseGroups = [..._caseGroups, ...newCaseGroups]
 
-          const newCases = newCaseGroups
-                            .map(caseGroup => caseGroup?.groupedCase)
-                            .filter(aCase => !!aCase)
+          const newCases = newCaseGroups.map(group => group.groupedCase)
           _cases = [..._cases, ...newCases]
 
           // Parent collections: every case is non-empty by definition (isNonEmptyCaseGroup
@@ -577,8 +579,8 @@ export const CollectionModel = V2Model
           const newNonEmptyCases = self.child
             ? newCases
             : newCaseGroups
-                .map(group => group && self.isNonEmptyCaseGroup(group) ? group.groupedCase : undefined)
-                .filter(aCase => !!aCase)
+                .filter(group => self.isNonEmptyCaseGroup(group))
+                .map(group => group.groupedCase)
           _nonEmptyCases = [..._nonEmptyCases, ...newNonEmptyCases]
         }
         // REBUILD path: full recompute from volatile state

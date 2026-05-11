@@ -460,6 +460,48 @@ describe("CollectionModel", () => {
     expect(c1.cases.length).toBe(2)
   })
 
+  it("append path excludes hidden-only case groups so it matches the rebuild path", () => {
+    // The additive path can produce a newCaseIds entry whose only item is hidden — its
+    // caseGroup is created with isHidden=true but self.caseIds (which excludes hidden-only
+    // cases) doesn't get the entry. completeCaseGroups' APPEND branch must drop such
+    // groups, otherwise it would add hidden cases that the REBUILD branch (which walks
+    // self.caseIds) wouldn't include.
+    const c1 = CollectionModel.create({ name: "c1" })
+    let items = ["i0", "i1"]
+    const hiddenItems = new Set<string>()
+    const itemData: IItemData = {
+      itemIds: () => items,
+      isHidden: (itemId: string) => hiddenItems.has(itemId),
+      getValue: (itemId: string) => itemId,
+      addItemInfo: () => null,
+      invalidate: () => null
+    }
+    syncCollectionLinks([c1], itemData)
+
+    // initial rebuild with two visible items
+    c1.updateCaseGroups()
+    c1.completeCaseGroups(undefined)
+    expect(c1.cases.length).toBe(2)
+    expect(c1.caseGroups.length).toBe(2)
+
+    // additive add of a hidden item — APPEND must drop its case group
+    items = ["i0", "i1", "i2"]
+    hiddenItems.add("i2")
+    const { newCaseIds } = c1.updateCaseGroups(["i2"])
+    const hiddenCaseId = c1.groupKeyCaseIds.get("i2")!
+    c1.invalidateCaseGroupsForNewCases(newCaseIds)
+    c1.completeCaseGroups(undefined)
+    // hidden case is tracked in allCaseIds and caseGroupMap but not in caseIds
+    expect(c1.allCaseIds.has(hiddenCaseId)).toBe(true)
+    expect(c1.caseGroupMap.get("i2")?.isHidden).toBe(true)
+    expect(c1.caseIds.length).toBe(2)
+    expect(c1.caseIds).not.toContain(hiddenCaseId)
+    // cases and caseGroups views must match: APPEND must drop the hidden new case so it
+    // mirrors REBUILD's walk of caseIds
+    expect(c1.cases.length).toBe(2)
+    expect(c1.caseGroups.length).toBe(2)
+  })
+
   it("empty newCaseIds falls through to rebuild path", () => {
     const c1 = CollectionModel.create({ name: "c1" })
     let items = ["i0", "i1"]
