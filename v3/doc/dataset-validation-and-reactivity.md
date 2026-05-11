@@ -112,6 +112,26 @@ A second, additive path exists for **appended items**. `addCases` calls
 `completeCaseGroups` take its append branch (concatenation rather than full
 rebuild). This avoids an O(N) walk per append.
 
+The additive path and the full-rebuild path use **different semantics for
+`newCaseIds`**, the list returned by `updateCaseGroups` that drives the
+APPEND branch. In the additive path, `newCaseIds` must include every newly-
+created `caseGroupMap` entry — including ones whose case id was preserved
+across a prior `clearCases()` (see [collection-properties.md][cp]) — because
+APPEND consumes it as "what to extend `_cases` / `_caseGroups` with." In the
+full-rebuild path, `newCaseIds` is consumed instead by `getRemappedCaseIds`,
+which treats it as a list of remapping *candidates*; preserved-id cases must
+be omitted there because they are by definition not candidates for being
+remapped to a prior id. The push site in `Collection.updateCaseGroups`
+encodes both rules.
+
+A related invariant: APPEND and REBUILD are dual implementations of the same
+observable surface (`_cases`, `_caseGroups`, `_nonEmptyCases`). Any property
+REBUILD enforces by construction — notably "no hidden-only case groups",
+because REBUILD walks `self.caseIds` which already excludes them — APPEND
+must enforce by filtering, because it walks `newCaseIds` which doesn't.
+
+[cp]: ../src/models/data/collection-properties.md
+
 ## Validation markers — full catalog
 
 ### `DataSet`
@@ -650,6 +670,21 @@ patch-driven path will desync the action and the cache.
    and the cache silently desyncs. Pair the explicit call with a reaction
    on the mutated state so the loop closes regardless of how the mutation
    arrived. (See worked example: CODAP-1297.)
+
+9. **Changing what `Collection.updateCaseGroups` pushes to `newCaseIds`
+   without considering both consumers.** `newCaseIds` feeds two different
+   downstream branches with different requirements: `completeCaseGroups`'s
+   APPEND branch wants every newly-created `caseGroupMap` entry (so it can
+   extend the observable arrays correctly); `getRemappedCaseIds` wants only
+   brand-new group keys (preserved-id cases are not remapping candidates).
+   The current code uses an `isFullRebuild` switch to satisfy both. A
+   related invariant: APPEND and REBUILD must produce identical
+   `_cases` / `_caseGroups` sets — properties REBUILD enforces by walking
+   `self.caseIds` (e.g., excluding hidden-only groups) APPEND must enforce
+   by filtering `newCaseIds`. The `collection.test.ts` test
+   *"append path excludes hidden-only case groups so it matches the rebuild
+   path"* pins this. Bug history: NASAEARTH-27 (preserved-id parent groups
+   dropped from APPEND after delete-all + re-add).
 
 ## Reference: which methods invalidate, and how
 
