@@ -427,4 +427,42 @@ describe("DataSet collections", () => {
 
     disposer()
   })
+
+  it("regroups parent cases when re-added items mix previously-seen and new group keys", () => {
+    // After delete-all + re-add, items whose parent group key was seen in a prior cycle
+    // must still appear as parent cases — even when they're added alongside items whose
+    // group key is new in this cycle.
+    data.moveAttributeToNewCollection("aId")
+    data.validateCases()
+
+    // Cycle 1: clear and add items with a single parent group ("OLD")
+    data.removeCases(data.items.map(i => i.__id__))
+    data.validateCases()
+    const oldItems = Array.from({ length: 5 }, (_, i) => ({
+      __id__: `c1-${i}`, aId: "OLD", bId: `${i}`, cId: `${i}`
+    }))
+    data.addCases(oldItems)
+    data.validateCases()
+    const parentCollection = data.collections[0]
+    expect(parentCollection.cases.length).toBe(1)
+
+    // Cycle 2: delete all, then re-add items mixing the previously-seen "OLD" key with
+    // a new "NEW" key
+    data.removeCases(data.items.map(i => i.__id__))
+    data.validateCases()
+    expect(parentCollection.cases.length).toBe(0)
+
+    const mixedItems = [
+      ...Array.from({ length: 5 }, (_, i) => ({
+        __id__: `c2-old-${i}`, aId: "OLD", bId: `${i}`, cId: `${i}`
+      })),
+      ...Array.from({ length: 5 }, (_, i) => ({
+        __id__: `c2-new-${i}`, aId: "NEW", bId: `${i}`, cId: `${i}`
+      }))
+    ]
+    data.addCases(mixedItems)
+    data.validateCases()
+
+    expect(parentCollection.cases.length).toBe(2)
+  })
 })

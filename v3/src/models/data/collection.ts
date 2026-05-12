@@ -306,6 +306,8 @@ export const CollectionModel = V2Model
     // For now, we treat appending items as a special case for which we don't need to start
     // from scratch. Eventually, we may be able to handle inserting items efficiently as well.
     const isAppendingItems = !!itemIds && !!isAppending
+    // newCaseIds semantics differ between rebuild and additive paths — see the push site.
+    const isFullRebuild = !itemIds
     if (!itemIds) {
       self.clearCases()
       itemIds = self.itemData.itemIds()
@@ -320,10 +322,17 @@ export const CollectionModel = V2Model
       const groupKey = self.groupKey(itemId)
       const hadCaseIdForGroupKey = !!self.groupKeyCaseIds.get(groupKey)
       const caseId = self.groupKeyCaseId(groupKey)
-      if (caseId && !hadCaseIdForGroupKey) newCaseIds.push(caseId)
       if (groupKey && caseId) {
         let caseGroup = self.caseGroupMap.get(groupKey)
         if (!caseGroup) {
+          // newCaseIds feeds two consumers: completeCaseGroups' append branch needs every
+          // newly-created caseGroupMap entry (including ones whose case ID was preserved
+          // across a prior wipe of caseGroupMap), while getRemappedCaseIds in the full-
+          // rebuild path must not see preserved-id cases or it'd treat them as candidates
+          // for remapping.
+          if (!isFullRebuild || !hadCaseIdForGroupKey) {
+            newCaseIds.push(caseId)
+          }
           self.allCaseIds.add(caseId)
           // cases with only hidden items aren't in caseIds and don't get indices
           const newCaseIndex = isItemHidden ? -1 : self.caseIds.length
@@ -555,12 +564,14 @@ export const CollectionModel = V2Model
         // Note: newCaseIds can be an empty array (e.g., when re-adding previously deleted items
         // whose group key mappings still exist), so check length to fall through to REBUILD.
         if (!parentCases && !_needsFullRebuild && newCaseIds?.length) {
-          const newCaseGroups = newCaseIds.map(caseId => self.getCaseGroup(caseId))
-          _caseGroups = [..._caseGroups, ...newCaseGroups.filter(group => !!group)]
+          // Exclude hidden-only case groups so this branch matches REBUILD's walk of
+          // self.caseIds (which already excludes them).
+          const newCaseGroups = newCaseIds
+                                  .map(caseId => self.getCaseGroup(caseId))
+                                  .filter((group): group is CaseInfo => !!group && !group.isHidden)
+          _caseGroups = [..._caseGroups, ...newCaseGroups]
 
-          const newCases = newCaseGroups
-                            .map(caseGroup => caseGroup?.groupedCase)
-                            .filter(aCase => !!aCase)
+          const newCases = newCaseGroups.map(group => group.groupedCase)
           _cases = [..._cases, ...newCases]
 
           // Parent collections: every case is non-empty by definition (isNonEmptyCaseGroup
@@ -568,8 +579,8 @@ export const CollectionModel = V2Model
           const newNonEmptyCases = self.child
             ? newCases
             : newCaseGroups
-                .map(group => group && self.isNonEmptyCaseGroup(group) ? group.groupedCase : undefined)
-                .filter(aCase => !!aCase)
+                .filter(group => self.isNonEmptyCaseGroup(group))
+                .map(group => group.groupedCase)
           _nonEmptyCases = [..._nonEmptyCases, ...newNonEmptyCases]
         }
         // REBUILD path: full recompute from volatile state
