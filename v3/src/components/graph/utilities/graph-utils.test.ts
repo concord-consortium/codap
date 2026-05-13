@@ -1,7 +1,8 @@
 import {ptInRect} from "../../data-display/data-display-utils"
 import { GraphLayout } from "../models/graph-layout"
 import {
-  equationString, formatValue, kMinus, lineToAxisIntercepts, lsrlEquationString, valueLabelString
+  dateTimeSlopeUnit, equationString, formatValue, kMinus, lineToAxisIntercepts,
+  lsrlEquationString, valueLabelString
 } from "./graph-utils"
 
 describe("formatValue", () => {
@@ -43,6 +44,104 @@ describe("equationString", () => {
       .toBe('<em>Speed</em> = 1 (<em>Lifespan</em>)')
     expect(equationString({slope: 1, intercept: -0.0001, attrNames, units, layout}))
       .toBe('<em>Speed</em> = 1 (<em>Lifespan</em>)')
+  })
+
+  // x-axis range expressed in seconds (since V3 stores date values as epoch seconds).
+  const oneHour = 3600
+  const oneDay = 86400
+  const oneYear = 86400 * 365.25
+
+  describe("date-time x-axis", () => {
+    // When the x-axis is date-time, the equation should show only the scaled slope with a
+    // sensible per-{time-unit} label — never the meaningless intercept (= y at the Unix epoch).
+    it("uses seconds when range < 120s", () => {
+      const result = equationString({
+        slope: 0.5, intercept: 100, attrNames, units: { y: "°C" }, layout,
+        xIsDateTime: true, xAxisRange: [0, 60]
+      })
+      expect(result).toBe(
+        '<em>slope</em> = 0.5 <span class="units">°C</span> <span class="units">per seconds</span>')
+      expect(result).not.toContain("Lifespan")
+    })
+    it("uses minutes when range < 2 hours", () => {
+      // 0.001 °C/sec × 60 = 0.06 °C/min
+      const result = equationString({
+        slope: 0.001, intercept: 0, attrNames, units: { y: "°C" }, layout,
+        xIsDateTime: true, xAxisRange: [0, oneHour]
+      })
+      expect(result).toContain('= 0.06 <span class="units">°C</span>')
+      expect(result).toContain('per minute')
+    })
+    it("uses hours when range < 2 days", () => {
+      // 1e-5 °C/sec × 3600 = 0.036 °C/hour
+      const result = equationString({
+        slope: 1e-5, intercept: 0, attrNames, units: { y: "°C" }, layout,
+        xIsDateTime: true, xAxisRange: [0, oneDay]
+      })
+      expect(result).toContain('= 0.036 <span class="units">°C</span>')
+      expect(result).toContain('per hour')
+    })
+    it("uses days when range < 365 days", () => {
+      // 1e-6 °C/sec × 86400 = 0.0864 °C/day
+      const result = equationString({
+        slope: 1e-6, intercept: 0, attrNames, units: { y: "°C" }, layout,
+        xIsDateTime: true, xAxisRange: [0, oneDay * 30]
+      })
+      expect(result).toContain('= 0.0864 <span class="units">°C</span>')
+      expect(result).toContain('per day')
+    })
+    it("uses years when range >= 365 days", () => {
+      // 1e-8 °C/sec × (86400 × 365.25) ≈ 0.316 °C/year
+      const result = equationString({
+        slope: 1e-8, intercept: 0, attrNames, units: { y: "°C" }, layout,
+        xIsDateTime: true, xAxisRange: [0, oneYear * 5]
+      })
+      expect(result).toContain('per year')
+    })
+    it("omits the y-unit when scaled slope rounds to 0", () => {
+      const result = equationString({
+        slope: 0, intercept: 100, attrNames, units: { y: "°C" }, layout,
+        xIsDateTime: true, xAxisRange: [0, oneDay * 30]
+      })
+      expect(result).toBe('<em>slope</em> = 0 <span class="units">per day</span>')
+    })
+    it("omits the y-unit span when y has no units", () => {
+      const result = equationString({
+        slope: 1e-6, intercept: 0, attrNames, units: {}, layout,
+        xIsDateTime: true, xAxisRange: [0, oneDay * 30]
+      })
+      expect(result).toBe('<em>slope</em> = 0.0864 <span class="units">per day</span>')
+    })
+    it("appends sum-of-squares when provided", () => {
+      const result = equationString({
+        slope: 1e-6, intercept: 0, attrNames, units: { y: "°C" }, layout,
+        xIsDateTime: true, xAxisRange: [0, oneDay * 30], sumOfSquares: 42
+      })
+      expect(result).toContain('per day')
+      expect(result).toContain('Sum of squares = 42')
+    })
+    it("falls through to standard form when xIsDateTime is false", () => {
+      const result = equationString({
+        slope: 1, intercept: 0, attrNames, units, layout,
+        xAxisRange: [0, oneDay]
+      })
+      expect(result).toBe('<em>Speed</em> = 1 (<em>Lifespan</em>)')
+    })
+  })
+})
+
+describe("dateTimeSlopeUnit", () => {
+  it("selects unit by x-axis range in seconds", () => {
+    expect(dateTimeSlopeUnit(60).label).toMatch(/seconds/)
+    expect(dateTimeSlopeUnit(60).multiplier).toBe(1)
+    expect(dateTimeSlopeUnit(3600).label).toMatch(/minute/)
+    expect(dateTimeSlopeUnit(3600).multiplier).toBe(60)
+    expect(dateTimeSlopeUnit(86400).label).toMatch(/hour/)
+    expect(dateTimeSlopeUnit(86400).multiplier).toBe(3600)
+    expect(dateTimeSlopeUnit(86400 * 30).label).toMatch(/day/)
+    expect(dateTimeSlopeUnit(86400 * 30).multiplier).toBe(86400)
+    expect(dateTimeSlopeUnit(86400 * 365 * 5).label).toMatch(/year/)
+    expect(dateTimeSlopeUnit(86400 * 365 * 5).multiplier).toBeCloseTo(86400 * 365.25)
   })
 })
 
@@ -114,6 +213,26 @@ describe("lsrlEquationString", () => {
     })
     expect(result).not.toContain("r =")
     expect(result).not.toContain("r<sup>2</sup>")
+  })
+
+  describe("date-time x-axis", () => {
+    const oneDay = 86400
+    it("uses slope-only form and still appends r² and sum-of-squares", () => {
+      const result = lsrlEquationString({
+        caseValues: [], slope: 1e-6, intercept: 12345, attrNames, units: { y: "°C" }, layout,
+        xIsDateTime: true, xAxisRange: [0, oneDay * 30],
+        rSquared: 0.25, showR: false, showRSquared: true, sumOfSquares: 7
+      })
+      // Slope-only form for the leading equation — no Speed/Lifespan and no intercept.
+      expect(result).toContain('<em>slope</em> = 0.0864 <span class="units">°C</span>')
+      expect(result).toContain('per day')
+      expect(result).not.toContain("Speed")
+      expect(result).not.toContain("Lifespan")
+      expect(result).not.toContain("12345")
+      // Trailing statistics still appended.
+      expect(result).toContain("r<sup>2</sup> = 0.25")
+      expect(result).toContain("Sum of squares = 7")
+    })
   })
 })
 
