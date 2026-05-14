@@ -321,6 +321,10 @@ export function dateTimeSlopeUnit(xRangeSeconds: number): { multiplier: number, 
 }
 
 // Returns the number of fractional digits needed to show `value` with `sigFigs` significant figures.
+// Note: this is slightly different from V2 behavior — V2 used toPrecision(3), which always renders
+// 3 sig figs (e.g., 1234.5 → "1.23e+3"). This helper picks fractional digits, so values >= 1000
+// render at native precision with grouping (e.g., 1234.5 → "1,235"). We prefer "1,235" over either
+// "1,230" (sig-fig rounded) or "1.23e+3" (scientific) for readability of moderately large slopes.
 function sigFigFractionDigits(value: number, sigFigs: number): number {
   if (!isFiniteNumber(value) || value === 0) return 0
   const magnitude = Math.floor(Math.log10(Math.abs(value)))
