@@ -24,9 +24,21 @@ Parent epic: CODAP-1070 (Release processes).
 
 V2 final release with V3-document detection must be live before flip day with enough soak time to detect issues — ideally also before or around May 22.
 
-## Phase 1 — Build
+## Phase 1 — Pre-release
 
 Can run in parallel; mostly independent.
+
+**Implementation stories in Phase 1:**
+
+| Story | Summary | Pts |
+|---|---|---:|
+| [CODAP-1319](https://concord-consortium.atlassian.net/browse/CODAP-1319) | Change the banner at the top of V3 (welcome banner) | 2 |
+| [CODAP-1323](https://concord-consortium.atlassian.net/browse/CODAP-1323) | Build CloudFront Function for V2 → V3 redirects | 3 |
+| [CODAP-1324](https://concord-consortium.atlassian.net/browse/CODAP-1324) | Mirror V2's launchFromLara/lara/interactiveApi parameter handling in V3 | 1 |
+| [CODAP-1325](https://concord-consortium.atlassian.net/browse/CODAP-1325) | Set up /v2 symlink and update SageModeler CloudFront redirects | 2 |
+| [CODAP-1326](https://concord-consortium.atlassian.net/browse/CODAP-1326) | Flip V3 release switches for production | 2 |
+| [CODAP2-287](https://concord-consortium.atlassian.net/browse/CODAP2-287) | Final V2 release: detect V3 documents and show a useful error | 2 |
+| [CFM-8](https://concord-consortium.atlassian.net/browse/CFM-8) ✅ | CODAP V2 should show V3 banner (shipped) | 2 |
 
 ### URL routing & redirects
 
