@@ -308,10 +308,6 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         return self.attributeType(role) === "numeric"
       }).map(role => ({ role, attrId: self.attributeID(role) }))
     },
-    get xAndYAreNumeric() {
-      const attrTypes = self.attrTypes
-      return attrTypes.bottom === "numeric" && attrTypes.left === "numeric"
-    },
     get numberOfHorizontalRegions() {
       return self.primaryRole === 'x'
         ? this.primaryIsCategorical ? self.categoryArrayForAttrRole('x').length : 1
