@@ -36,7 +36,7 @@ Can run in parallel; mostly independent.
 | [CODAP-1323](https://concord-consortium.atlassian.net/browse/CODAP-1323) | Build CloudFront Function for V2 → V3 redirects | 3 |
 | [CODAP-1324](https://concord-consortium.atlassian.net/browse/CODAP-1324) | Mirror V2's launchFromLara/lara/interactiveApi parameter handling in V3 | 1 |
 | [CODAP-1325](https://concord-consortium.atlassian.net/browse/CODAP-1325) | Set up /v2 symlink and update SageModeler CloudFront redirects | 2 |
-| [CODAP-1326](https://concord-consortium.atlassian.net/browse/CODAP-1326) | Flip V3 release switches for production | 2 |
+| [CODAP-1326](https://concord-consortium.atlassian.net/browse/CODAP-1326) | Flip V3 release switches for production | 3 |
 | [CODAP2-287](https://concord-consortium.atlassian.net/browse/CODAP2-287) | Final V2 release: detect V3 documents and show a useful error | 2 |
 | [CFM-8](https://concord-consortium.atlassian.net/browse/CFM-8) ✅ | CODAP V2 should show V3 banner (shipped) | 2 |
 
