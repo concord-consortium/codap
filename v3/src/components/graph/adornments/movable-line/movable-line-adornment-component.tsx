@@ -89,7 +89,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
       ? calculateSumOfSquares({ cellKey, dataConfig, computeY: (x) => intercept + slope * x })
       : undefined
     const xIsDateTime = isDateAxisModel(xAxis)
-    const xAxisRange: [number, number] | undefined = xIsDateTime ? [xAxis.min, xAxis.max] : undefined
+    const xAxisRange: [number, number] | undefined = xIsDateTime ? [...xAxis.domain] : undefined
     return equationString({slope, intercept, attrNames, units, sumOfSquares, layout, xIsDateTime, xAxisRange})
   }, [cellKey, dataConfig, graphModel, layout, xAttrId, xAttrName, xAxis, yAttrId, yAttrName])
 

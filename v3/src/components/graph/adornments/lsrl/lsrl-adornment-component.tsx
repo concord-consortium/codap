@@ -169,7 +169,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
       const attrNames = {x: xAttrName, y: yAttrName}
       const units = {x: xUnits, y: yUnits}
       const xIsDateTime = isDateAxisModel(xAxis)
-      const xAxisRange: [number, number] | undefined = xIsDateTime ? [xAxis.min, xAxis.max] : undefined
+      const xAxisRange: [number, number] | undefined = xIsDateTime ? [...xAxis.domain] : undefined
       const string = lsrlEquationString({
         attrNames, units, caseValues, intercept, interceptLocked, rSquared,
         showConfidenceBands, showR, showRSquared, slope, sumOfSquares, seSlope, seIntercept, layout,
