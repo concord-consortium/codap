@@ -334,8 +334,10 @@ function dateTimeSlopeOnlyString(slope: number, xRangeSeconds: number, yUnit?: s
   const { multiplier, label } = dateTimeSlopeUnit(xRangeSeconds)
   const scaledSlope = slope * multiplier
   const formattedSlope = formatValue(scaledSlope, sigFigFractionDigits(scaledSlope, 3))
-  // When the displayed scaled slope is "0" (or pure -0), hide the y-unit too — V2 treats this as
-  // "no meaningful rate", since multiplying zero by any unit conveys nothing useful.
+  // When the displayed scaled slope rounds to "0", hide the y-unit too — a "0 °C per day" rate
+  // doesn't convey anything that "0 per day" doesn't. (V2 has a similar-looking check, but its
+  // threshold string "0 " never matches toPrecision(3) output, so V2 effectively always shows
+  // the y-unit here. We diverge intentionally.)
   const showYUnit = formattedSlope !== "0" && !!yUnit
   const yUnitPart = showYUnit ? ` <span class="units">${yUnit}</span>` : ""
   return `<em>${t("DG.ScatterPlotModel.slopeOnly")}</em> = ${formattedSlope}${yUnitPart} ` +
@@ -365,13 +367,9 @@ export function residualsString(sumOfSquares: number, includeBreak = true) {
 export function equationString(
   { slope, intercept, attrNames, units, sumOfSquares, layout, xIsDateTime, xAxisRange }: IEquationString
 ) {
-  const squaresMaxDec = !sumOfSquares || sumOfSquares > 100 ? 0 : 3
-  const formattedSumOfSquares = formatEquationValue(sumOfSquares || 0, squaresMaxDec)
-  const squaresPart = isFiniteNumber(sumOfSquares)
-    ? `<br />${t("DG.ScatterPlotModel.sumSquares")} = ${formattedSumOfSquares}`
-    : ""
+  const squaresPart = isFiniteNumber(sumOfSquares) ? residualsString(sumOfSquares, true) : ""
 
-  if (xIsDateTime && xAxisRange && isFinite(slope)) {
+  if (xIsDateTime && xAxisRange && isFiniteNumber(slope)) {
     const xRangeSeconds = xAxisRange[1] - xAxisRange[0]
     return `${dateTimeSlopeOnlyString(slope, xRangeSeconds, units.y)}${squaresPart}`
   }
@@ -425,7 +423,7 @@ export const lsrlEquationString = (props: ILsrlEquationString) => {
   const xAttrString = attrNames.x.length > 1 ? `(<em>${attrNames.x}</em>)` : `<em>${attrNames.x}</em>`
   const interceptDisplaysAsZero = formatValue(intercept, neededFractionDigits.interceptDigits) === "0"
   const interceptString = !interceptDisplaysAsZero ? ` ${intercept > 0 ? "+" : ""} ${formattedIntercept}` : ""
-  const dateTimeForm = xIsDateTime && xAxisRange && isFinite(slope)
+  const dateTimeForm = xIsDateTime && xAxisRange && isFiniteNumber(slope)
   const equationPart = dateTimeForm
     ? dateTimeSlopeOnlyString(slope, xAxisRange[1] - xAxisRange[0], units.y)
     : slopeIsFinite

@@ -60,7 +60,7 @@ describe("equationString", () => {
         xIsDateTime: true, xAxisRange: [0, 60]
       })
       expect(result).toBe(
-        '<em>slope</em> = 0.5 <span class="units">°C</span> <span class="units">per seconds</span>')
+        '<em>slope</em> = 0.5 <span class="units">°C</span> <span class="units">per second</span>')
       expect(result).not.toContain("Lifespan")
     })
     it("uses minutes when range < 2 hours", () => {
@@ -132,7 +132,7 @@ describe("equationString", () => {
 
 describe("dateTimeSlopeUnit", () => {
   it("selects unit by x-axis range in seconds", () => {
-    expect(dateTimeSlopeUnit(60).label).toMatch(/seconds/)
+    expect(dateTimeSlopeUnit(60).label).toMatch(/second/)
     expect(dateTimeSlopeUnit(60).multiplier).toBe(1)
     expect(dateTimeSlopeUnit(3600).label).toMatch(/minute/)
     expect(dateTimeSlopeUnit(3600).multiplier).toBe(60)
