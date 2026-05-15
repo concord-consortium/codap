@@ -143,4 +143,60 @@ describe("urlParams", () => {
     expect(getGuideIndex()).toBeUndefined()
   })
 
+  describe("hasInteractiveApiContext", () => {
+    const { hasInteractiveApiContext } = require("./url-params")
+
+    it("returns false when no relevant params are present", () => {
+      setUrlParams("")
+      expect(hasInteractiveApiContext()).toBe(false)
+
+      setUrlParams("?other=value")
+      expect(hasInteractiveApiContext()).toBe(false)
+    })
+
+    it("returns true when interactiveApi is present (any form)", () => {
+      setUrlParams("?interactiveApi")          // present without value
+      expect(hasInteractiveApiContext()).toBe(true)
+
+      setUrlParams("?interactiveApi=")         // present with empty value
+      expect(hasInteractiveApiContext()).toBe(true)
+
+      setUrlParams("?interactiveApi=anything") // present with value
+      expect(hasInteractiveApiContext()).toBe(true)
+    })
+
+    it("returns true when launchFromLara has a truthy value", () => {
+      setUrlParams("?launchFromLara=abc123")
+      expect(hasInteractiveApiContext()).toBe(true)
+    })
+
+    it("returns false when launchFromLara is present but empty/valueless", () => {
+      // Mirrors v2's `!!getUrlParameter('launchFromLara')`: null/empty are falsy
+      setUrlParams("?launchFromLara")
+      expect(hasInteractiveApiContext()).toBe(false)
+
+      setUrlParams("?launchFromLara=")
+      expect(hasInteractiveApiContext()).toBe(false)
+    })
+
+    it("returns true when lara has a truthy value", () => {
+      setUrlParams("?lara=foo")
+      expect(hasInteractiveApiContext()).toBe(true)
+    })
+
+    it("returns false when lara is present but empty/valueless", () => {
+      setUrlParams("?lara")
+      expect(hasInteractiveApiContext()).toBe(false)
+
+      setUrlParams("?lara=")
+      expect(hasInteractiveApiContext()).toBe(false)
+    })
+
+    it("returns true when multiple relevant params are present (OR semantics)", () => {
+      // Guard against a future refactor changing `||` to `&&` or adding precedence checks.
+      setUrlParams("?interactiveApi=&launchFromLara=abc123&lara=foo")
+      expect(hasInteractiveApiContext()).toBe(true)
+    })
+  })
+
 })
