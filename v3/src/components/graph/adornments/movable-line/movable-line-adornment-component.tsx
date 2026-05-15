@@ -11,6 +11,7 @@ import { useAdornmentCells } from "../../hooks/use-adornment-cells"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import {useGraphDataConfigurationContext} from "../../hooks/use-graph-data-configuration-context"
 import { useGraphLayoutContext } from "../../hooks/use-graph-layout-context"
+import { isDateAxisModel } from "../../../axis/models/numeric-axis-models"
 import {
   calculateSumOfSquares, computeSlopeAndIntercept, equationString, IAxisIntercepts, lineToAxisIntercepts
 } from "../../utilities/graph-utils"
@@ -87,8 +88,10 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
     const sumOfSquares = type === "display" && dataConfig && graphModel?.adornmentsStore.showSquaresOfResiduals
       ? calculateSumOfSquares({ cellKey, dataConfig, computeY: (x) => intercept + slope * x })
       : undefined
-    return equationString({slope, intercept, attrNames, units, sumOfSquares, layout})
-  }, [cellKey, dataConfig, graphModel, layout, xAttrId, xAttrName, yAttrId, yAttrName])
+    const xIsDateTime = isDateAxisModel(xAxis)
+    const xAxisRange: [number, number] | undefined = xIsDateTime ? [...xAxis.domain] : undefined
+    return equationString({slope, intercept, attrNames, units, sumOfSquares, layout, xIsDateTime, xAxisRange})
+  }, [cellKey, dataConfig, graphModel, layout, xAttrId, xAttrName, xAxis, yAttrId, yAttrName])
 
   const refreshEquation = useCallback((slope: number, intercept: number) => {
     const lineInstance = model.lines.get(instanceKey)

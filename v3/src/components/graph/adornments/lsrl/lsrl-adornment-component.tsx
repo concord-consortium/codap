@@ -14,6 +14,7 @@ import { useGraphContentModelContext } from "../../hooks/use-graph-content-model
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
 import { useGraphLayoutContext } from "../../hooks/use-graph-layout-context"
 import { cellKeyToString } from "../../utilities/cell-key-utils"
+import { isDateAxisModel } from "../../../axis/models/numeric-axis-models"
 import {
   IAxisIntercepts, calculateSumOfSquares, curveBasis, lineToAxisIntercepts, lsrlEquationString
 } from "../../utilities/graph-utils"
@@ -167,9 +168,12 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
       const screenY = yScale((pointsOnAxes.current.pt1.y + pointsOnAxes.current.pt2.y) / 2) / ySubAxesCount
       const attrNames = {x: xAttrName, y: yAttrName}
       const units = {x: xUnits, y: yUnits}
+      const xIsDateTime = isDateAxisModel(xAxis)
+      const xAxisRange: [number, number] | undefined = xIsDateTime ? [...xAxis.domain] : undefined
       const string = lsrlEquationString({
         attrNames, units, caseValues, intercept, interceptLocked, rSquared,
-        showConfidenceBands, showR, showRSquared, slope, sumOfSquares, seSlope, seIntercept, layout
+        showConfidenceBands, showR, showRSquared, slope, sumOfSquares, seSlope, seIntercept, layout,
+        xIsDateTime, xAxisRange
       })
       const equationSelector = `#lsrl-equation-${model.classNameFromKey(cellKey)}-${linesIndex}`
       const equation = equationDiv.select<HTMLDivElement>(equationSelector)
@@ -199,7 +203,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
       ++linesIndex
     })
   }, [adornmentsStore, cellKey, dataConfig, equationContainerSelector, getLines, layout, model,
-      plotHeight, plotWidth, showConfidenceBands, showR, showRSquared, showSumSquares, xAttrId, xAttrName,
+      plotHeight, plotWidth, showConfidenceBands, showR, showRSquared, showSumSquares, xAttrId, xAttrName, xAxis,
       xScale, xSubAxesCount, yAttrId, yAttrName, yScale, ySubAxesCount])
 
   const confidenceBandPaths = useCallback((caseValues: Point[], category = kMain) => {

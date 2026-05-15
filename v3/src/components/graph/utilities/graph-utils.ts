@@ -303,6 +303,51 @@ function formatEquationValue(equationValue: number, equationDigits: number, unit
   return units && parenthesizeUnits ? `(${numUnitsStr})` : numUnitsStr
 }
 
+// When the x-axis is a date-time axis, the slope of a line is in units of y-per-second
+// (since date values are stored as seconds since epoch). This helper picks a human-scale
+// time unit based on the visible x-axis range and returns the scale factor and label.
+// Mirrors V2's behavior in twoD_line_adornment.js (handleDateTime).
+export function dateTimeSlopeUnit(xRangeSeconds: number): { multiplier: number, label: string } {
+  if (xRangeSeconds < 120) {
+    return { multiplier: 1, label: t("DG.ScatterPlotModel.secondsLabel") }
+  } else if (xRangeSeconds < 60 * 60 * 2) { // 2 hours
+    return { multiplier: 60, label: t("DG.ScatterPlotModel.minutesLabel") }
+  } else if (xRangeSeconds < 3600 * 24 * 2) { // 2 days
+    return { multiplier: 3600, label: t("DG.ScatterPlotModel.hoursLabel") }
+  } else if (xRangeSeconds < 3600 * 24 * 365) { // 365 days
+    return { multiplier: 3600 * 24, label: t("DG.ScatterPlotModel.daysLabel") }
+  }
+  return { multiplier: 3600 * 24 * 365.25, label: t("DG.ScatterPlotModel.yearsLabel") }
+}
+
+// Returns the number of fractional digits needed to show `value` with `sigFigs` significant figures.
+// Note: this is slightly different from V2 behavior — V2 used toPrecision(3), which always renders
+// 3 sig figs (e.g., 1234.5 → "1.23e+3"). This helper picks fractional digits, so values >= 1000
+// render at native precision with grouping (e.g., 1234.5 → "1,235"). We prefer "1,235" over either
+// "1,230" (sig-fig rounded) or "1.23e+3" (scientific) for readability of moderately large slopes.
+function sigFigFractionDigits(value: number, sigFigs: number): number {
+  if (!isFiniteNumber(value) || value === 0) return 0
+  const magnitude = Math.floor(Math.log10(Math.abs(value)))
+  return Math.max(0, sigFigs - 1 - magnitude)
+}
+
+// Slope-only equation form used when x is a date-time axis. The intercept (y at the Unix epoch)
+// is meaningless in that case, so V2 — and now V3 — hides it. Matches V2's kSlopeOnly format:
+//   "slope = {scaled-slope} {yUnit} {time-unit-label}"
+function dateTimeSlopeOnlyString(slope: number, xRangeSeconds: number, yUnit?: string): string {
+  const { multiplier, label } = dateTimeSlopeUnit(xRangeSeconds)
+  const scaledSlope = slope * multiplier
+  const formattedSlope = formatValue(scaledSlope, sigFigFractionDigits(scaledSlope, 3))
+  // When the displayed scaled slope rounds to "0", hide the y-unit too — a "0 °C per day" rate
+  // doesn't convey anything that "0 per day" doesn't. (V2 has a similar-looking check, but its
+  // threshold string "0 " never matches toPrecision(3) output, so V2 effectively always shows
+  // the y-unit here. We diverge intentionally.)
+  const showYUnit = formattedSlope !== "0" && !!yUnit
+  const yUnitPart = showYUnit ? ` <span class="units">${yUnit}</span>` : ""
+  return `<em>${t("DG.ScatterPlotModel.slopeOnly")}</em> = ${formattedSlope}${yUnitPart} ` +
+    `<span class="units">${label}</span>`
+}
+
 interface IEquationString {
   attrNames: { x: string, y: string }
   units: { x?: string, y?: string }
@@ -310,6 +355,10 @@ interface IEquationString {
   layout: GraphLayout
   slope: number
   sumOfSquares?: number
+  // When set, the x-axis is a date-time axis with the given visible range (in seconds since epoch);
+  // the equation will be rendered in slope-only form rather than y = slope·x + intercept.
+  xIsDateTime?: boolean
+  xAxisRange?: [number, number]
 }
 
 export function residualsString(sumOfSquares: number, includeBreak = true) {
@@ -319,7 +368,16 @@ export function residualsString(sumOfSquares: number, includeBreak = true) {
     ? `${includeBreak ? '<br />' : ''}${t("DG.ScatterPlotModel.sumSquares")} = ${formattedSumOfSquares}` : ""
 }
 
-export function equationString({ slope, intercept, attrNames, units, sumOfSquares, layout }: IEquationString) {
+export function equationString(
+  { slope, intercept, attrNames, units, sumOfSquares, layout, xIsDateTime, xAxisRange }: IEquationString
+) {
+  const squaresPart = isFiniteNumber(sumOfSquares) ? residualsString(sumOfSquares, true) : ""
+
+  if (xIsDateTime && xAxisRange && isFiniteNumber(slope)) {
+    const xRangeSeconds = xAxisRange[1] - xAxisRange[0]
+    return `${dateTimeSlopeOnlyString(slope, xRangeSeconds, units.y)}${squaresPart}`
+  }
+
   const slopeUnits = units.x && units.y
                       ? `${units.y}/${units.x}`
                       : units.y || (units.x ? `/${units.x}` : "")
@@ -330,14 +388,9 @@ export function equationString({ slope, intercept, attrNames, units, sumOfSquare
   const formattedSlope = slopeIsFinite
                           ? formatEquationValue(slope, neededFractionDigits.slopeDigits, slopeUnits, true)
                           : 0
-  const squaresMaxDec = !sumOfSquares || sumOfSquares > 100 ? 0 : 3
-  const formattedSumOfSquares = formatEquationValue(sumOfSquares || 0, squaresMaxDec)
   const xAttrString = attrNames.x.length > 1 ? `(<em>${attrNames.x}</em>)` : `<em>${attrNames.x}</em>`
   const interceptDisplaysAsZero = formatValue(intercept, neededFractionDigits.interceptDigits) === "0"
   const interceptString = !interceptDisplaysAsZero ? ` ${intercept > 0 ? "+" : ""} ${formattedIntercept}` : ""
-  const squaresPart = isFiniteNumber(sumOfSquares)
-    ? `<br />${t("DG.ScatterPlotModel.sumSquares")} = ${formattedSumOfSquares}`
-    : ""
 
   return slopeIsFinite
     ? `<em>${attrNames.y}</em> = ${formattedSlope} ${xAttrString}${interceptString}${squaresPart}`
@@ -358,7 +411,7 @@ interface ILsrlEquationString extends IEquationString {
 export const lsrlEquationString = (props: ILsrlEquationString) => {
   const { slope, intercept, attrNames, units, showConfidenceBands,
     rSquared, seSlope, seIntercept, interceptLocked = false, sumOfSquares, layout,
-    showR = false, showRSquared = false } = props
+    showR = false, showRSquared = false, xIsDateTime, xAxisRange } = props
   const slopeUnits = units.x && units.y
                       ? `${units.y}/${units.x}`
                       : units.y || (units.x ? `/${units.x}` : "")
@@ -374,9 +427,12 @@ export const lsrlEquationString = (props: ILsrlEquationString) => {
   const xAttrString = attrNames.x.length > 1 ? `(<em>${attrNames.x}</em>)` : `<em>${attrNames.x}</em>`
   const interceptDisplaysAsZero = formatValue(intercept, neededFractionDigits.interceptDigits) === "0"
   const interceptString = !interceptDisplaysAsZero ? ` ${intercept > 0 ? "+" : ""} ${formattedIntercept}` : ""
-  const equationPart = slopeIsFinite
-    ? `<em>${attrNames.y}</em> = ${formattedSlope} ${xAttrString}${interceptString}`
-    : `<em>${slope === 0 ? attrNames.y : attrNames.x}</em> = ${formattedIntercept}`
+  const dateTimeForm = xIsDateTime && xAxisRange && isFiniteNumber(slope)
+  const equationPart = dateTimeForm
+    ? dateTimeSlopeOnlyString(slope, xAxisRange[1] - xAxisRange[0], units.y)
+    : slopeIsFinite
+      ? `<em>${attrNames.y}</em> = ${formattedSlope} ${xAttrString}${interceptString}`
+      : `<em>${slope === 0 ? attrNames.y : attrNames.x}</em> = ${formattedIntercept}`
   const rValue = rSquared != null && slope != null ? Math.sign(slope) * Math.sqrt(rSquared) : undefined
   const formattedR = rValue != null ? formatEquationValue(rValue, 4) : ""
   const rPart = showR && !interceptLocked && rValue != null ? `<br />r = ${formattedR}` : ""
