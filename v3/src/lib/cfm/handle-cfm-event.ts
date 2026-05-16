@@ -5,7 +5,7 @@ import pkg from "../../../package.json"
 import { appState } from "../../models/app-state"
 import { uiState } from "../../models/ui-state"
 import { t } from "../../utilities/translation/translate"
-import { removeDevUrlParams, urlParams } from "../../utilities/url-params"
+import { hasInteractiveApiContext, removeDevUrlParams, urlParams } from "../../utilities/url-params"
 import { displayVersion } from "../../utilities/version-utils"
 import { isCodapV2Document } from "../../v2/codap-v2-types"
 import { DEBUG_CFM_EVENTS, DEBUG_CFM_NO_AUTO_SAVE } from "../debug"
@@ -112,14 +112,15 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
           // should use a more advanced mechanism to determine which application saved
           // the document. In the meantime we just look at the appVersion. If it isn't
           // a v3 appVersion, then we assume this is a v2 document.
-          // If CFM file menu is hidden because of the interactiveApi url parameter then
-          // we keep autoSave enabled.
+          // If CFM file menu is hidden because the app is launched in embedded-LARA context
+          // (interactiveApi, launchFromLara, or lara URL params; see hasInteractiveApiContext)
+          // then we keep autoSave enabled.
           // Note: if auto save is disabled by the debug flag DEBUG_CFM_NO_AUTO_SAVE,
           // that will override this, and is handled by the value of kCFMAutoSaveInterval
           // computed above.
           // Note: in some v2 documents the appVersion is not set
           const loadedDocumentWasSavedByV3 = !!resolvedDocument.appVersion?.startsWith("3.")
-          shouldAutoSaveDocument = loadedDocumentWasSavedByV3 || urlParams.interactiveApi !== undefined
+          shouldAutoSaveDocument = loadedDocumentWasSavedByV3 || hasInteractiveApiContext()
           if (!shouldAutoSaveDocument) {
             // eslint-disable-next-line no-console
             console.log("Disabling autoSave for v2 document that was saved by CODAPv2",

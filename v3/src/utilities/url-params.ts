@@ -129,8 +129,11 @@ export interface UrlParams {
   inbounds?: string | null
   /*
    * Indicates CODAP is running in the Activity Player. Used by the CFM and to configure
-   * the CFM.
-   * value: ignored
+   * the CFM. Treated equivalently to `launchFromLara` and `lara` for the purpose of hiding
+   * the CFM menu and keeping auto-save enabled (see `hasInteractiveApiContext()`).
+   * value: presence in any form (with or without a value) is the signal — null, "", or a string.
+   *        This differs from `launchFromLara` and `lara`, which require a truthy string value
+   *        to trigger. All three mirror v2's hideCFMMenu logic (apps/dg/core.js:354-359).
    */
   interactiveApi?: string | null
   /*
@@ -149,6 +152,22 @@ export interface UrlParams {
    * value: locale string, e.g. `en-US` or `es`
    */
   "lang-override"?: string | null
+  /*
+   * [V2] Indicates CODAP is running embedded in LARA/Activity Player (legacy form).
+   * Treated equivalently to `launchFromLara` and `interactiveApi` for the purpose
+   * of hiding the CFM menu and keeping auto-save enabled for v2 documents.
+   * value: typically a truthy string; presence-with-value is what triggers the signal
+   *        (mirrors v2's `!!getUrlParameter('lara')` check)
+   */
+  lara?: string | null
+  /*
+   * [V2] Indicates CODAP is running embedded via the CFM autolaunch wrapper
+   * (typical AP/LARA launch). Treated equivalently to `lara` and `interactiveApi`
+   * for the purpose of hiding the CFM menu and keeping auto-save enabled.
+   * value: base64-encoded launch payload from the autolaunch wrapper; presence-with-value
+   *        is what triggers the signal (mirrors v2's `!!getUrlParameter('launchFromLara')`)
+   */
+  launchFromLara?: string | null
   /*
    * Specifies the type of tile container. Defaults to "free", which is the standard free layout used by CODAP.
    * Limited/provisional support for "mosaic" layout, in which tiles are connected and cannot overlap.
@@ -258,6 +277,23 @@ export function removeDevUrlParams() {
 
 export function isInquirySpaceMode() {
   return urlParams.app === "is"
+}
+
+/*
+ * Returns true when any of the three URL params used to signal an embedded-LARA
+ * launch is present. Mirrors v2's hideCFMMenu predicate (apps/dg/core.js):
+ *   - interactiveApi is "present" if it appears in the query string in any form
+ *     (matches v2's `!!interactiveApi || interactiveApi === null` check)
+ *   - launchFromLara / lara are "present" only when their value is truthy
+ *     (matches v2's `!!getUrlParameter(...)` check)
+ * Use this anywhere V3 needs to know whether it is running embedded in LARA
+ * or the CFM autolaunch wrapper.
+ */
+export function hasInteractiveApiContext(): boolean {
+  if (urlParams.interactiveApi !== undefined) return true
+  if (urlParams.launchFromLara) return true
+  if (urlParams.lara) return true
+  return false
 }
 
 export function getDataInteractiveUrl(url: string) {

@@ -9,7 +9,7 @@ import { isCodapDocument } from "../../models/codap/create-codap-document"
 import { persistentState } from "../../models/persistent-state"
 import { gLocale } from "../../utilities/translation/locale"
 import { t } from "../../utilities/translation/translate"
-import { removeDevUrlParams, urlParams } from "../../utilities/url-params"
+import { hasInteractiveApiContext, removeDevUrlParams } from "../../utilities/url-params"
 import { CONFIG_SAVE_AS_V2 } from "../config"
 import { DEBUG_CFM_LOCAL_STORAGE } from "../debug"
 import { Logger } from "../logger"
@@ -308,8 +308,8 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, hookOptions?: IUs
 
     const _options: CFMAppOptions = {
       autoSaveInterval: kCFMAutoSaveInterval,
-      // When running in the Activity Player, hide the hamburger menu
-      hideMenuBar: urlParams.interactiveApi !== undefined,
+      // When running in the Activity Player or any other embedded-LARA context, hide the hamburger menu
+      hideMenuBar: hasInteractiveApiContext(),
       ui: {
         menuBar: getMenuBar(cfm),
         menuAnchorIcon: FileMenuIcon,
