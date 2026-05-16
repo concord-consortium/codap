@@ -185,6 +185,18 @@ DG.main = function main() {
 
     return (content.appName === DG.APPNAME) && !!content.appVersion && !!content.appBuildNum ? content : null;
   }
+
+  // A V3 document may reach resolveDocument either unwrapped (CFM stripped
+  // its envelope, leaving the V3 DocumentContent at the top level) or wrapped
+  // (the full V3 envelope, with the DocumentContent nested under a content
+  // property). Detect the V3 DocumentContent shape (tileMap + rowMap) in
+  // either position so detection is unaffected by CFM's unwrap behavior.
+  function isV3Document(content) {
+    if (!content) return false;
+    var v3Content = content.content || content;
+    return !!(v3Content.tileMap && v3Content.rowMap);
+  }
+
   function translateQueryParameters() {
     var startingDataInteractive = DG.get('startingDataInteractive');
     var diURLs = [];
@@ -644,6 +656,10 @@ DG.main = function main() {
             return;
           }
         }
+        if (isV3Document(iDocContents)) {
+          reject({ userMessage: 'DG.AppController.openDocument.error.v3Format'.loc() });
+          return;
+        }
         if (iDocContents.appName != null &&
             iDocContents.appVersion != null) {
           contentType = 'application/vnd.codap+json';
@@ -923,7 +939,9 @@ DG.main = function main() {
                     },  // then() error handler
                     function(iReason) {
                       DG.logWarn(iReason);
-                      event.callback('DG.AppController.openDocument.error.general'.loc());
+                      var userMessage = (iReason && typeof iReason === 'object' && iReason.userMessage)
+                          || 'DG.AppController.openDocument.error.general'.loc();
+                      event.callback(userMessage);
                       // we force the state to be clean to avoid the CFM overriding
                       // the file that failed to open with whatever was the previous
                       // document, then close the file.

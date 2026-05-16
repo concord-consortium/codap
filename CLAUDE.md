@@ -101,6 +101,16 @@ CODAP uses a hierarchical data model:
 - Test GUI available at `http://localhost:4020/dg/en/current/tests.html` when server is running
 - Production builds require the `makeCodapZip` script which also builds plugins from sibling repositories
 
+## Localized Strings
+
+The English strings source of truth is `lang/strings/en-US.json` (a JSONC file at the repo root that may contain comments). The SproutCore-format file at `apps/dg/english.lproj/strings.js` is a **generated artifact** — never edit it directly. To add or change a string:
+
+1. Edit `lang/strings/en-US.json`.
+2. Run `bin/strings-build.sh` from the repo root to regenerate `apps/dg/english.lproj/strings.js` (a sed wrapper that adds the `SC.stringsFor("en", {...})` envelope).
+3. Commit both files together.
+
+Translations for other locales (`apps/dg/<lang>.lproj/strings.js`) are picked up by `bin/strings-pull-project.sh` from the translation service after translators handle the new key — no need to edit those files manually.
+
 ## Related Repositories
 
 Full builds require these sibling directories:
