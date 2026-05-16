@@ -1,0 +1,98 @@
+@use "../vars";
+
+.announcement-banner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: vars.$announcement-banner-height;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  font-size: 14px;
+  gap: 16px;
+  box-sizing: border-box;
+
+  .announcement-banner-message {
+    flex: 1;
+    line-height: 1.4;
+
+    a {
+      text-decoration: underline;
+      color: inherit;
+
+      &:hover {
+        opacity: 0.8;
+      }
+
+      &:focus {
+        outline: 2px solid currentColor;
+        outline-offset: 1px;
+      }
+    }
+  }
+
+  .announcement-banner-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .announcement-banner-button {
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 13px;
+    white-space: nowrap;
+    padding: 6px 12px;
+
+    &:hover {
+      opacity: 0.9;
+    }
+
+    &:focus {
+      outline: 2px solid currentColor;
+      outline-offset: 2px;
+    }
+  }
+
+  .announcement-banner-dont-show {
+    background: transparent;
+    border: 1px solid currentColor;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    white-space: nowrap;
+
+    &:hover {
+      opacity: 0.8;
+    }
+
+    &:focus {
+      outline: 2px solid currentColor;
+      outline-offset: 2px;
+    }
+  }
+
+  .announcement-banner-close {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    line-height: 1;
+    padding: 4px 8px;
+    cursor: pointer;
+    opacity: 0.8;
+
+    &:hover {
+      opacity: 1;
+    }
+
+    &:focus {
+      outline: 2px solid currentColor;
+      outline-offset: 2px;
+    }
+  }
+}
