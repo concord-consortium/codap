@@ -1,5 +1,29 @@
 # Changelog
 
+## Version 3.0.0-beta.2885 - May 15, 2026
+
+### 🐞 Bug Fixes:
+- **CODAP-1270:** Fix right y-axis display when switching attributes
+- **CODAP-1272:** Keep inspector menu open when dismissing the color palette
+- **CODAP-1297:** Keep missing-value points hidden after undoing an axis attribute change
+- **CODAP-1298:** Keep the movable line's pivot stable when rotated past vertical
+- **CODAP-1303:** Temporarily disable the Map draw tool
+- **CODAP-1306:** Preserve Story Builder moment descriptions when editing text
+- **CODAP-1307:** Prevent Story Builder moments from being wrongly marked unsaved
+- **CODAP-1308:** Prevent V2 documents from showing "Unsaved" right after opening
+- **CODAP-1314:** Show a slope-only LSRL equation when the x-axis is date-time
+- **CODAP-1320:** Render the movable line on a date-time x-axis
+- **NASAEARTH-27:** Fix bug that prevented NASA Earth Data plugin from placing multiple pins
+
+### 🛠️ Under the Hood:
+- **CODAP-1324:** Support launchFromLara/lara/interactiveApi URL parameters
+
+### Asset Sizes
+|      File |          Size | % Change from Previous Release |
+|-----------|---------------|--------------------------------|
+|  main.css |  239363 bytes |                          0.00% |
+|  index.js | 7780569 bytes |                          0.05% |
+
 ## Version 3.0.0-beta.2870 - May 5, 2026
 
 ### ✨ Features & Improvements:
