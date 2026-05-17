@@ -1,9 +1,7 @@
 import {
   isBannerDismissed,
   dismissBanner,
-  isPositiveNumber,
   isValidButtonUrl,
-  isValidCssColor,
   isWithinDateRange,
   isValidBannerConfig,
   validateBannerConfig,
@@ -24,34 +22,6 @@ describe("announcement-banner-utils", () => {
       expect(isValidButtonUrl("data:text/html,...")).toBe(false)
       expect(isValidButtonUrl(undefined)).toBe(false)
       expect(isValidButtonUrl("")).toBe(false)
-    })
-  })
-
-  describe("isValidCssColor", () => {
-    it("returns true for valid hex colors", () => {
-      expect(isValidCssColor("#fff")).toBe(true)
-      expect(isValidCssColor("#ffffff")).toBe(true)
-      expect(isValidCssColor("#ffffffff")).toBe(true)
-      expect(isValidCssColor("#1a73e8")).toBe(true)
-    })
-
-    it("returns true for valid rgb/rgba colors", () => {
-      expect(isValidCssColor("rgb(255, 255, 255)")).toBe(true)
-      expect(isValidCssColor("rgba(255, 255, 255, 0.5)")).toBe(true)
-      expect(isValidCssColor("rgb(0,0,0)")).toBe(true)
-    })
-
-    it("returns true for named colors", () => {
-      expect(isValidCssColor("red")).toBe(true)
-      expect(isValidCssColor("blue")).toBe(true)
-      expect(isValidCssColor("transparent")).toBe(true)
-    })
-
-    it("returns false for invalid values", () => {
-      expect(isValidCssColor(undefined)).toBe(false)
-      expect(isValidCssColor("")).toBe(false)
-      expect(isValidCssColor("url(evil)")).toBe(false)
-      expect(isValidCssColor("#gg0000")).toBe(false)
     })
   })
 
@@ -118,30 +88,6 @@ describe("announcement-banner-utils", () => {
       expect(parseMessageWithLinks("[](https://example.com)")).toEqual([
         { text: "[](https://example.com)" }
       ])
-    })
-  })
-
-  describe("isPositiveNumber", () => {
-    it("returns true for zero and positive numbers", () => {
-      expect(isPositiveNumber(0)).toBe(true)
-      expect(isPositiveNumber(10)).toBe(true)
-      expect(isPositiveNumber(3.14)).toBe(true)
-    })
-
-    it("returns false for negative numbers", () => {
-      expect(isPositiveNumber(-1)).toBe(false)
-      expect(isPositiveNumber(-0.5)).toBe(false)
-    })
-
-    it("returns false for non-finite numbers", () => {
-      expect(isPositiveNumber(Infinity)).toBe(false)
-      expect(isPositiveNumber(NaN)).toBe(false)
-    })
-
-    it("returns false for non-numbers", () => {
-      expect(isPositiveNumber("10")).toBe(false)
-      expect(isPositiveNumber(undefined)).toBe(false)
-      expect(isPositiveNumber(null)).toBe(false)
     })
   })
 

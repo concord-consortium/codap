@@ -1,8 +1,7 @@
 import React, { useEffect, useLayoutEffect, useState } from "react"
 import { kCodapResourcesUrl } from "../../constants"
 import {
-  BannerConfig, dismissBanner, fetchBannerConfig, isPositiveNumber,
-  isValidButtonUrl, isValidCssColor, parseMessageWithLinks
+  BannerConfig, dismissBanner, fetchBannerConfig, isValidButtonUrl, parseMessageWithLinks
 } from "./announcement-banner-utils"
 
 import "./announcement-banner.scss"
@@ -32,24 +31,7 @@ export function AnnouncementBanner() {
 
   if (!visible || !config) return null
 
-  const {
-    message,
-    id,
-    buttonText = "Learn More",
-    buttonUrl,
-    buttonTarget = "_blank",
-    backgroundColor,
-    textColor,
-    buttonBackgroundColor,
-    buttonTextColor,
-    closeButtonColor,
-    linkColor,
-    paddingX,
-    paddingY,
-    buttonPaddingX,
-    buttonPaddingY
-  } = config
-
+  const { message, id, buttonText = "Learn More", buttonUrl, buttonTarget = "_blank" } = config
   const showButton = isValidButtonUrl(buttonUrl)
 
   const handleClose = () => {
@@ -61,60 +43,18 @@ export function AnnouncementBanner() {
     setDismissed(true)
   }
 
-  const customStyles: React.CSSProperties = {}
-  if (isValidCssColor(backgroundColor)) customStyles.backgroundColor = backgroundColor
-  if (isValidCssColor(textColor)) customStyles.color = textColor
-  if (isPositiveNumber(paddingY)) {
-    customStyles.paddingTop = paddingY
-    customStyles.paddingBottom = paddingY
-  }
-  if (isPositiveNumber(paddingX)) {
-    customStyles.paddingLeft = paddingX
-    customStyles.paddingRight = paddingX
-  }
-
-  const buttonStyles: React.CSSProperties = {}
-  if (isValidCssColor(buttonBackgroundColor)) buttonStyles.backgroundColor = buttonBackgroundColor
-  if (isValidCssColor(buttonTextColor)) buttonStyles.color = buttonTextColor
-  if (isPositiveNumber(buttonPaddingY)) {
-    buttonStyles.paddingTop = buttonPaddingY
-    buttonStyles.paddingBottom = buttonPaddingY
-  }
-  if (isPositiveNumber(buttonPaddingX)) {
-    buttonStyles.paddingLeft = buttonPaddingX
-    buttonStyles.paddingRight = buttonPaddingX
-  }
-
-  const closeStyles: React.CSSProperties = {}
-  if (isValidCssColor(closeButtonColor)) {
-    closeStyles.color = closeButtonColor
-    closeStyles.borderColor = closeButtonColor
-  }
-  if (isPositiveNumber(buttonPaddingY)) {
-    closeStyles.paddingTop = buttonPaddingY
-    closeStyles.paddingBottom = buttonPaddingY
-  }
-  if (isPositiveNumber(buttonPaddingX)) {
-    closeStyles.paddingLeft = buttonPaddingX
-    closeStyles.paddingRight = buttonPaddingX
-  }
-
-  const linkStyles: React.CSSProperties = {}
-  if (isValidCssColor(linkColor)) linkStyles.color = linkColor
-
   return (
     <div
       className="announcement-banner"
       role="status"
       aria-label="Announcement"
-      style={customStyles}
       data-testid="announcement-banner"
     >
       <span className="announcement-banner-message">
         {parseMessageWithLinks(message).map((segment, i) =>
           segment.url
             ? (
-              <a key={i} href={segment.url} target="_blank" rel="noopener noreferrer" style={linkStyles}>
+              <a key={i} href={segment.url} target="_blank" rel="noopener noreferrer">
                 {segment.text}
               </a>
             )
@@ -129,7 +69,6 @@ export function AnnouncementBanner() {
             target={buttonTarget}
             rel="noopener noreferrer"
             className="announcement-banner-button"
-            style={buttonStyles}
             data-testid="announcement-banner-button"
           >
             {buttonText}
@@ -139,7 +78,6 @@ export function AnnouncementBanner() {
         <button
           type="button"
           className="announcement-banner-dont-show"
-          style={closeStyles}
           onClick={handleDontShowAgain}
           data-testid="announcement-banner-dont-show"
         >
@@ -149,7 +87,6 @@ export function AnnouncementBanner() {
         <button
           type="button"
           className="announcement-banner-close"
-          style={closeStyles}
           onClick={handleClose}
           aria-label="Close announcement"
           data-testid="announcement-banner-close"

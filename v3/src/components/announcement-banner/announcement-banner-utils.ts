@@ -1,5 +1,5 @@
 /**
- * Banner configuration schema (from remote JSON)
+ * Banner configuration schema (from remote JSON).
  */
 export interface BannerConfig {
   message: string
@@ -10,16 +10,6 @@ export interface BannerConfig {
   enabled?: boolean
   startDate?: number
   endDate?: number
-  backgroundColor?: string
-  textColor?: string
-  buttonBackgroundColor?: string
-  buttonTextColor?: string
-  closeButtonColor?: string
-  paddingX?: number
-  paddingY?: number
-  buttonPaddingX?: number
-  buttonPaddingY?: number
-  linkColor?: string
 }
 
 /**
@@ -50,24 +40,6 @@ export function dismissBanner(id: string): void {
 export function isValidButtonUrl(url: string | undefined): boolean {
   if (!url) return false
   return url.startsWith("https://")
-}
-
-/**
- * Type guard: check if a value is a finite, non-negative number.
- */
-export function isPositiveNumber(n: unknown): n is number {
-  return typeof n === "number" && Number.isFinite(n) && n >= 0
-}
-
-/**
- * Validate CSS color value to prevent CSS injection.
- * Allows: hex (#rgb, #rrggbb, #rrggbbaa), rgb(), rgba(), and named colors.
- */
-export function isValidCssColor(value: string | undefined): boolean {
-  if (!value) return false
-  return /^#[0-9a-fA-F]{3,8}$/.test(value) ||
-         /^rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(,\s*[\d.]+\s*)?\)$/.test(value) ||
-         /^[a-zA-Z]+$/.test(value)
 }
 
 /**

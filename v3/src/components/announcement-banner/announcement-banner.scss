@@ -1,5 +1,11 @@
 @use "../vars";
 
+$announcement-banner-bg: #fbe5b3;
+$announcement-banner-fg: #242424;
+$announcement-banner-link: #0057b8;
+$announcement-banner-button-bg: #242424;
+$announcement-banner-button-fg: #ffffff;
+
 .announcement-banner {
   position: absolute;
   top: 0;
@@ -9,10 +15,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px;
+  padding: 4px 8px;
   font-size: 14px;
   gap: 16px;
   box-sizing: border-box;
+  background-color: $announcement-banner-bg;
+  color: $announcement-banner-fg;
 
   .announcement-banner-message {
     flex: 1;
@@ -20,7 +28,7 @@
 
     a {
       text-decoration: underline;
-      color: inherit;
+      color: $announcement-banner-link;
 
       &:hover {
         opacity: 0.8;
@@ -41,12 +49,14 @@
   }
 
   .announcement-banner-button {
+    background-color: $announcement-banner-button-bg;
+    color: $announcement-banner-button-fg;
     border-radius: 4px;
     text-decoration: none;
     font-weight: 500;
     font-size: 13px;
     white-space: nowrap;
-    padding: 6px 12px;
+    padding: 4px 8px;
 
     &:hover {
       opacity: 0.9;
@@ -60,8 +70,9 @@
 
   .announcement-banner-dont-show {
     background: transparent;
-    border: 1px solid currentColor;
-    padding: 5px 10px;
+    border: 1px solid $announcement-banner-fg;
+    color: $announcement-banner-fg;
+    padding: 4px 8px;
     border-radius: 4px;
     cursor: pointer;
     font-size: 12px;
@@ -80,6 +91,7 @@
   .announcement-banner-close {
     background: transparent;
     border: none;
+    color: $announcement-banner-fg;
     font-size: 20px;
     line-height: 1;
     padding: 4px 8px;
