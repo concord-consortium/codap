@@ -1,6 +1,6 @@
 import { action, makeObservable, observable } from "mobx"
 import { scrollTileIntoView } from "../utilities/dom-utils"
-import { booleanParam, urlParams } from "../utilities/url-params"
+import { booleanParam, hasInteractiveApiContext, urlParams } from "../utilities/url-params"
 import { ITileModel } from "./tiles/tile-model"
 import { RulerState, RulerStateKey } from "./ui-state-types"
 
@@ -173,8 +173,8 @@ export class UIState {
     return !this.minimalChrome && !this.standaloneMode
   }
 
-  get shouldRenderBetaBanner() {
-    return !this.minimalChrome
+  get shouldRenderAnnouncementBanner() {
+    return !this.minimalChrome && !hasInteractiveApiContext()
   }
 
   // Component interaction restrictions apply ONLY to componentMode, NOT embeddedMode.
