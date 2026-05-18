@@ -3,6 +3,7 @@ import { select, Selection } from "d3"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
 import { t } from "../../../../../utilities/translation/translate"
+import { isNumericAttributeType } from "../../../../../models/data/attribute-types"
 import { selectCases, setSelectedCases } from "../../../../../models/data/data-set-utils"
 import { useGraphContentModelContext } from "../../../hooks/use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "../../../hooks/use-graph-data-configuration-context"
@@ -42,12 +43,12 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
   const { plotWidth, plotHeight } = layout
   const dataConfig = useGraphDataConfigurationContext()
   const { xAttrId, yAttrId, xAttrType } = useAdornmentAttributes()
-  const isVerticalRef = useRef(!!(xAttrType && xAttrType === "numeric"))
+  const isVerticalRef = useRef(isNumericAttributeType(xAttrType))
   const { cellCounts } = useAdornmentCells(model, cellKey)
   const helper = useMemo(() => {
     return new UnivariateMeasureAdornmentHelper(cellKey, isVerticalRef, layout, model, containerId)
   }, [cellKey, containerId, layout, model])
-  const attrId = xAttrId && xAttrType === "numeric" ? xAttrId : yAttrId
+  const attrId = xAttrId && isNumericAttributeType(xAttrType) ? xAttrId : yAttrId
   const boxPlotOffset = 5
   const secondaryAxisX = plotWidth / cellCounts.x / 2 - boxPlotOffset
   const secondaryAxisY = plotHeight / cellCounts.y / 2 - boxPlotOffset
