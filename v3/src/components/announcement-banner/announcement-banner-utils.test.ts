@@ -178,6 +178,48 @@ describe("announcement-banner-utils", () => {
       expect(isValidBannerConfig(123)).toBe(false)
       expect(isValidBannerConfig(undefined)).toBe(false)
     })
+
+    describe("optional field type checks (fail-closed on bad types)", () => {
+      const base = { message: "Hello", id: "test-1" }
+
+      it("rejects non-boolean enabled (e.g. string 'false')", () => {
+        expect(isValidBannerConfig({ ...base, enabled: "false" })).toBe(false)
+        expect(isValidBannerConfig({ ...base, enabled: "true" })).toBe(false)
+        expect(isValidBannerConfig({ ...base, enabled: 0 })).toBe(false)
+        expect(isValidBannerConfig({ ...base, enabled: 1 })).toBe(false)
+        expect(isValidBannerConfig({ ...base, enabled: null })).toBe(false)
+      })
+
+      it("rejects non-number startDate (e.g. ISO 8601 string)", () => {
+        expect(isValidBannerConfig({ ...base, startDate: "2024-07-31T23:59:59Z" })).toBe(false)
+        expect(isValidBannerConfig({ ...base, startDate: null })).toBe(false)
+      })
+
+      it("rejects non-finite startDate / endDate", () => {
+        expect(isValidBannerConfig({ ...base, startDate: NaN })).toBe(false)
+        expect(isValidBannerConfig({ ...base, startDate: Infinity })).toBe(false)
+        expect(isValidBannerConfig({ ...base, endDate: NaN })).toBe(false)
+        expect(isValidBannerConfig({ ...base, endDate: -Infinity })).toBe(false)
+      })
+
+      it("rejects non-string buttonText / buttonUrl / buttonTarget", () => {
+        expect(isValidBannerConfig({ ...base, buttonText: 42 })).toBe(false)
+        expect(isValidBannerConfig({ ...base, buttonUrl: false })).toBe(false)
+        expect(isValidBannerConfig({ ...base, buttonTarget: null })).toBe(false)
+      })
+
+      it("accepts a config with all optional fields of the correct type", () => {
+        expect(isValidBannerConfig({
+          ...base,
+          buttonText: "Feedback",
+          buttonUrl: "https://example.com",
+          buttonTarget: "_blank",
+          enabled: true,
+          startDate: 1700000000000,
+          endDate: 1800000000000
+        })).toBe(true)
+      })
+    })
   })
 
   describe("localStorage functions", () => {

@@ -96,8 +96,20 @@ export function isWithinDateRange(config: BannerConfig): boolean {
   return true
 }
 
+const isOptionalString = (v: unknown) => v === undefined || typeof v === "string"
+const isOptionalBoolean = (v: unknown) => v === undefined || typeof v === "boolean"
+const isOptionalFiniteNumber = (v: unknown) =>
+  v === undefined || (typeof v === "number" && Number.isFinite(v))
+
 /**
- * Validate banner JSON has required fields.
+ * Validate banner JSON has required fields, and that any optional fields
+ * present have the expected runtime types.
+ *
+ * Strict validation matters here because optional fields like `enabled`,
+ * `startDate`, and `endDate` directly control whether the banner renders.
+ * Without this, a typo like `enabled: "false"` (string) would silently fail
+ * open and render the banner anyway. Any fields not listed in BannerConfig
+ * are silently ignored.
  */
 export function isValidBannerConfig(data: unknown): data is BannerConfig {
   if (typeof data !== "object" || data === null) return false
@@ -105,7 +117,13 @@ export function isValidBannerConfig(data: unknown): data is BannerConfig {
   return typeof obj.message === "string" &&
          obj.message.length > 0 &&
          typeof obj.id === "string" &&
-         obj.id.length > 0
+         obj.id.length > 0 &&
+         isOptionalString(obj.buttonText) &&
+         isOptionalString(obj.buttonUrl) &&
+         isOptionalString(obj.buttonTarget) &&
+         isOptionalBoolean(obj.enabled) &&
+         isOptionalFiniteNumber(obj.startDate) &&
+         isOptionalFiniteNumber(obj.endDate)
 }
 
 /**
