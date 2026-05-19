@@ -4,11 +4,13 @@ import { MutableRefObject } from "react"
 import { isFiniteNumber } from "../../../../utilities/math-utils"
 import { t } from "../../../../utilities/translation/translate"
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
+import { IBaseNumericAxisModel } from "../../../axis/models/base-numeric-axis-model"
+import { IDateAxisModel, isDateAxisModel } from "../../../axis/models/numeric-axis-models"
 import { IDataConfigurationModel } from "../../../data-display/models/data-configuration-model"
 import { Point } from "../../../data-display/data-display-types"
 import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
 import { GraphLayout } from "../../models/graph-layout"
-import { valueLabelString } from "../../utilities/graph-utils"
+import { formatDateDuration, valueLabelString } from "../../utilities/graph-utils"
 import { IAdornmentsStore } from "../store/adornments-store"
 import { isBoxPlotAdornment } from "./box-plot/box-plot-adornment-model"
 import { kMeanType } from "./mean/mean-adornment-types"
@@ -35,6 +37,8 @@ export class UnivariateMeasureAdornmentHelper {
   measureSlug = ""
   model: IUnivariateMeasureAdornmentModel
   defaultLabelTopOffset: (adornmentModel: IUnivariateMeasureAdornmentModel) => number = () => 0
+  xAxis?: IBaseNumericAxisModel
+  yAxis?: IBaseNumericAxisModel
 
   constructor (
     cellKey: Record<string, string>,
@@ -42,7 +46,9 @@ export class UnivariateMeasureAdornmentHelper {
     layout: GraphLayout,
     model: IUnivariateMeasureAdornmentModel,
     containerId?: string,
-    defaultLabelTopOffset: (adornmentModel: IUnivariateMeasureAdornmentModel) => number = () => 0
+    defaultLabelTopOffset: (adornmentModel: IUnivariateMeasureAdornmentModel) => number = () => 0,
+    xAxis?: IBaseNumericAxisModel,
+    yAxis?: IBaseNumericAxisModel
   ) {
     this.cellKey = cellKey
     this.isVerticalRef = isVerticalRef
@@ -53,6 +59,8 @@ export class UnivariateMeasureAdornmentHelper {
     this.measureSlug = model.type.toLowerCase().replace(/ /g, "-")
     this.model = model
     this.defaultLabelTopOffset = defaultLabelTopOffset
+    this.xAxis = xAxis
+    this.yAxis = yAxis
   }
 
   // There is a convenient fiction in the types of these scales in that one of them is _actually_
@@ -75,14 +83,29 @@ export class UnivariateMeasureAdornmentHelper {
   }
 
   formatValueForScale(value: number | undefined) {
-    const multiScale = this.isVerticalRef.current
+    const isVertical = this.isVerticalRef.current
+    const multiScale = isVertical
       ? this.layout.getAxisMultiScale("bottom")
       : this.layout.getAxisMultiScale("left")
+    const primaryAxis = isVertical ? this.xAxis : this.yAxis
+    const dateAxis: IDateAxisModel | undefined = isDateAxisModel(primaryAxis) ? primaryAxis : undefined
     return value != null
       ? multiScale
-        ? multiScale.formatValueForScale(value)
+        ? multiScale.formatValueForScale(value, !!dateAxis, dateAxis?.precisionForDisplay)
         : valueLabelString(value)
       : ""
+  }
+
+  // For values that represent a *duration* on a date axis (e.g. box-plot IQR,
+  // normal-curve standard deviation, standard error) rather than an absolute date.
+  // Picks a human-scale time unit from the visible axis range and returns plain text
+  // like "30 days" or "2.5 hours". On non-date axes, falls back to formatValueForScale.
+  formatDateDurationForScale(value: number | undefined) {
+    if (value == null) return ""
+    const primaryAxis = this.isVerticalRef.current ? this.xAxis : this.yAxis
+    if (!isDateAxisModel(primaryAxis)) return this.formatValueForScale(value)
+    const [domainMin, domainMax] = primaryAxis.domain
+    return formatDateDuration(value, Math.abs(domainMax - domainMin))
   }
 
   // Calculate the coordinates for the line endpoints
@@ -242,7 +265,8 @@ export class UnivariateMeasureAdornmentHelper {
       ? this.model.computeMeasureRange(attrId, this.cellKey, dataConfig)
       : {}
     const rangeValue = measureRange.min != null ? value - measureRange.min : undefined
-    const displayRange = this.formatValueForScale(rangeValue)
+    // rangeValue is a *duration* (value − range-min), so format with time units on date axes.
+    const displayRange = this.formatDateDurationForScale(rangeValue)
     const {x: x1, y: y1} =
       this.calculateLineCoords(plotValue, 1, cellCounts, secondaryAxisX, secondaryAxisY)
     const {x: x2, y: y2} =
@@ -368,7 +392,8 @@ export class UnivariateMeasureAdornmentHelper {
     const primaryAttribute = primaryAttributeID
       ? dataConfiguration?.dataset?.attrFromID(primaryAttributeID) : undefined
     const primaryAttributeUnits = primaryAttribute?.units
-    const stdErrorString = this.formatValueForScale(numStErrs * stdErr)
+    // numStErrs * stdErr is a *duration* on a date axis (a half-range around the mean).
+    const stdErrorString = this.formatDateDurationForScale(numStErrs * stdErr)
     const numStdErrsString = numStErrs === 1 ? '' : parseFloat(numStErrs.toFixed(2)).toString()
     const substitutionVars = inHTML ? [`${numStdErrsString}`,
       '<sub style="vertical-align: sub">',

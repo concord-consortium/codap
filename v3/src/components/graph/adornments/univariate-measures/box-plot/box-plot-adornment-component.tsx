@@ -46,8 +46,9 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
   const isVerticalRef = useRef(isNumericAttributeType(xAttrType))
   const { cellCounts } = useAdornmentCells(model, cellKey)
   const helper = useMemo(() => {
-    return new UnivariateMeasureAdornmentHelper(cellKey, isVerticalRef, layout, model, containerId)
-  }, [cellKey, containerId, layout, model])
+    return new UnivariateMeasureAdornmentHelper(cellKey, isVerticalRef, layout, model, containerId,
+      undefined, xAxis, yAxis)
+  }, [cellKey, containerId, layout, model, xAxis, yAxis])
   const attrId = xAttrId && isNumericAttributeType(xAttrType) ? xAttrId : yAttrId
   const boxPlotOffset = 5
   const secondaryAxisX = plotWidth / cellCounts.x / 2 - boxPlotOffset
@@ -407,8 +408,16 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
       helper.adornmentSpecs(attrId, dataConfig, value, cellCounts, secondaryAxisX, secondaryAxisY)
     const { median, lowerQuartile, upperQuartile, iqr,
             minWhiskerValue, maxWhiskerValue } = model.getBoxPlotParams(cellKey)
-    const translationVars = [ minWhiskerValue, lowerQuartile, median, upperQuartile, maxWhiskerValue, iqr ]
-      .map(v => helper.formatValueForScale(v))
+    // IQR is a *duration*, not an absolute date — format it with a time unit on date axes;
+    // the other five are absolute values.
+    const translationVars = [
+      helper.formatValueForScale(minWhiskerValue),
+      helper.formatValueForScale(lowerQuartile),
+      helper.formatValueForScale(median),
+      helper.formatValueForScale(upperQuartile),
+      helper.formatValueForScale(maxWhiskerValue),
+      helper.formatDateDurationForScale(iqr)
+    ]
     let textContent = `${t(model.labelTitle, { vars: translationVars })}`
     // Special case in which median equals lower and/or upper quartile
     // We combine the labels for those two or three measures so the user sees all info

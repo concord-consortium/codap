@@ -790,6 +790,11 @@
     "DG.ScatterPlotModel.hoursLabel": "per hour", // used in equation for line when x is a datetime axis
     "DG.ScatterPlotModel.minutesLabel": "per minute", // used in equation for line when x is a datetime axis
     "DG.ScatterPlotModel.secondsLabel": "per second", // used in equation for line when x is a datetime axis
+    "DG.ScatterPlotModel.yearsUnit": "years", // duration unit used in adornment labels when x is a datetime axis
+    "DG.ScatterPlotModel.daysUnit": "days", // duration unit used in adornment labels when x is a datetime axis
+    "DG.ScatterPlotModel.hoursUnit": "hours", // duration unit used in adornment labels when x is a datetime axis
+    "DG.ScatterPlotModel.minutesUnit": "minutes", // duration unit used in adornment labels when x is a datetime axis
+    "DG.ScatterPlotModel.secondsUnit": "seconds", // duration unit used in adornment labels when x is a datetime axis
     "DG.ScatterPlotModel.LSRLCIBandInfo": "Shaded regions shows the range\n in which the true regression line\n lies at 95% confidence level.",
 
     // DG.BarChartModel

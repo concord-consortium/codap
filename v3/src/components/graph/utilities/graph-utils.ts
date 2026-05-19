@@ -331,6 +331,32 @@ function sigFigFractionDigits(value: number, sigFigs: number): number {
   return Math.max(0, sigFigs - 1 - magnitude)
 }
 
+// Same unit-selection thresholds as dateTimeSlopeUnit, but the label is a plain time
+// unit ("days") rather than a slope-style "per day". Used for duration-valued
+// adornment labels (IQR, stddev, stderr, MAD range) on date axes.
+function dateTimeDurationUnit(xRangeSeconds: number): { multiplier: number, label: string } {
+  if (xRangeSeconds < 120) {
+    return { multiplier: 1, label: t("DG.ScatterPlotModel.secondsUnit") }
+  } else if (xRangeSeconds < 60 * 60 * 2) { // 2 hours
+    return { multiplier: 60, label: t("DG.ScatterPlotModel.minutesUnit") }
+  } else if (xRangeSeconds < 3600 * 24 * 2) { // 2 days
+    return { multiplier: 3600, label: t("DG.ScatterPlotModel.hoursUnit") }
+  } else if (xRangeSeconds < 3600 * 24 * 365) { // 365 days
+    return { multiplier: 3600 * 24, label: t("DG.ScatterPlotModel.daysUnit") }
+  }
+  return { multiplier: 3600 * 24 * 365.25, label: t("DG.ScatterPlotModel.yearsUnit") }
+}
+
+// Formats a duration (in seconds) using a human-scale time unit picked from the visible
+// date-axis range, e.g. "30 days" or "2.5 hours". Used for box-plot IQR, normal-curve
+// standard deviation, standard error, and similar duration-valued labels on date axes.
+export function formatDateDuration(durationSeconds: number, xRangeSeconds: number): string {
+  const { multiplier, label } = dateTimeDurationUnit(xRangeSeconds)
+  const scaled = durationSeconds / multiplier
+  const formatted = formatValue(scaled, sigFigFractionDigits(scaled, 3))
+  return `${formatted} ${label}`
+}
+
 // Slope-only equation form used when x is a date-time axis. The intercept (y at the Unix epoch)
 // is meaningless in that case, so V2 — and now V3 — hides it. Matches V2's kSlopeOnly format:
 //   "slope = {scaled-slope} {yUnit} {time-unit-label}"
