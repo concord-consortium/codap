@@ -1,7 +1,7 @@
 import {ptInRect} from "../../data-display/data-display-utils"
 import { GraphLayout } from "../models/graph-layout"
 import {
-  dateTimeSlopeUnit, equationString, formatValue, kMinus, lineToAxisIntercepts,
+  dateTimeSlopeUnit, equationString, formatDateDuration, formatValue, kMinus, lineToAxisIntercepts,
   lsrlEquationString, valueLabelString
 } from "./graph-utils"
 
@@ -142,6 +142,16 @@ describe("dateTimeSlopeUnit", () => {
     expect(dateTimeSlopeUnit(86400 * 30).multiplier).toBe(86400)
     expect(dateTimeSlopeUnit(86400 * 365 * 5).label).toMatch(/year/)
     expect(dateTimeSlopeUnit(86400 * 365 * 5).multiplier).toBeCloseTo(86400 * 365.25)
+  })
+})
+
+describe("formatDateDuration", () => {
+  it("selects unit by x-axis range and scales the duration accordingly", () => {
+    expect(formatDateDuration(30, 60)).toMatch(/^30 seconds?$/)
+    expect(formatDateDuration(600, 3600)).toMatch(/^10 minutes?$/)
+    expect(formatDateDuration(7200, 86400)).toMatch(/^2 hours?$/)
+    expect(formatDateDuration(86400 * 30, 86400 * 30)).toMatch(/^30 days?$/)
+    expect(formatDateDuration(86400 * 365 * 5, 86400 * 365 * 5)).toMatch(/^5 years?$/)
   })
 })
 
