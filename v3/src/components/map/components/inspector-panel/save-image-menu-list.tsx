@@ -6,6 +6,7 @@ import { useProgress } from "../../../../hooks/use-progress"
 import { ITileModel } from "../../../../models/tiles/tile-model"
 import { t } from "../../../../utilities/translation/translate"
 import { openInDrawTool } from "../../../data-display/data-display-image-utils"
+import { PointRendererArray } from "../../../data-display/renderer"
 import { InspectorMenuContent } from "../../../inspector-panel"
 import { isMapContentModel } from "../../models/map-content-model"
 
@@ -13,6 +14,66 @@ type ExportableFormat = "png" | "svg"
 
 interface IProps {
   tile?: ITileModel
+}
+
+// html-to-image cannot capture WebGL canvases, so PIXI-rendered points are missing from
+// its output. Use PIXI's extract API to snapshot each point layer ourselves and composite
+// it onto the html-to-image base (basemap, polygons, connecting-lines SVG, heatmap).
+function extractPixiCanvas(renderer: NonNullable<PointRendererArray[number]>): HTMLCanvasElement | null {
+  const pixiRenderer = (renderer as any).renderer
+  const pixiStage = (renderer as any).stage
+  if (pixiRenderer?.extract?.canvas && pixiStage) {
+    return pixiRenderer.extract.canvas(pixiStage) as HTMLCanvasElement
+  }
+  return null
+}
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => resolve(img)
+    img.onerror = () => reject(new Error("Failed to load base map image"))
+    img.src = src
+  })
+}
+
+async function compositeMapPng(
+  displayElement: HTMLElement, rendererArray: PointRendererArray
+): Promise<string> {
+  const baseDataUri = await toPng(displayElement)
+  const baseImage = await loadImage(baseDataUri)
+
+  const canvas = document.createElement("canvas")
+  canvas.width = baseImage.naturalWidth
+  canvas.height = baseImage.naturalHeight
+  const ctx = canvas.getContext("2d")
+  if (!ctx) throw new Error("Failed to get 2D canvas context for PNG export")
+
+  ctx.drawImage(baseImage, 0, 0)
+
+  const displayRect = displayElement.getBoundingClientRect()
+  if (displayRect.width > 0 && displayRect.height > 0) {
+    // html-to-image scales by pixelRatio, so compute scale from the base image dimensions
+    const scaleX = canvas.width / displayRect.width
+    const scaleY = canvas.height / displayRect.height
+    for (const renderer of rendererArray) {
+      if (!renderer?.canvas || !renderer.isVisible) continue
+      const sourceCanvas = extractPixiCanvas(renderer)
+      if (!sourceCanvas || sourceCanvas.width === 0 || sourceCanvas.height === 0) continue
+      const canvasRect = renderer.canvas.getBoundingClientRect()
+      if (canvasRect.width <= 0 || canvasRect.height <= 0) continue
+      ctx.drawImage(
+        sourceCanvas,
+        0, 0, sourceCanvas.width, sourceCanvas.height,
+        (canvasRect.left - displayRect.left) * scaleX,
+        (canvasRect.top - displayRect.top) * scaleY,
+        canvasRect.width * scaleX,
+        canvasRect.height * scaleY
+      )
+    }
+  }
+
+  return canvas.toDataURL("image/png")
 }
 
 export const SaveImageMenuList = ({tile}: IProps) => {
@@ -24,15 +85,15 @@ export const SaveImageMenuList = ({tile}: IProps) => {
     if (!mapModel?.renderState) {
       return undefined
     }
-    const {displayElement} = mapModel.renderState
+    const {displayElement, rendererArray} = mapModel.renderState
     let dataUri: string|undefined = undefined
 
     // TODO: add translation for progress message
     setProgressMessage("Exporting map ...")
     try {
-      dataUri = await (format === "png"
-        ? toPng(displayElement)
-        : toSvg(displayElement))
+      dataUri = format === "png"
+        ? await compositeMapPng(displayElement, rendererArray)
+        : await toSvg(displayElement)
     } catch (error) {
       console.error(`Error generating ${format.toUpperCase()} image:`, error)
     }
