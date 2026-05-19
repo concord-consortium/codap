@@ -161,6 +161,12 @@ describe("formatDateDuration", () => {
     expect(formatDateDuration(86400, 86400 * 30)).toBe("1 day")
     expect(formatDateDuration(86400 * 365.25, 86400 * 365 * 5)).toBe("1 year")
   })
+
+  it("pluralizes from the rounded display value, not the raw scaled value", () => {
+    // 0.99998 rounds to "1" for display, so the unit should be singular too.
+    expect(formatDateDuration(0.99998, 60)).toBe("1 second")
+    expect(formatDateDuration(1.001, 60)).toBe("1 second")
+  })
 })
 
 describe("lsrlEquationString", () => {

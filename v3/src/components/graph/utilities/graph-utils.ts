@@ -355,8 +355,12 @@ function dateTimeDurationUnit(xRangeSeconds: number): { multiplier: number, unit
 export function formatDateDuration(durationSeconds: number, xRangeSeconds: number): string {
   const { multiplier, unit } = dateTimeDurationUnit(xRangeSeconds)
   const scaled = durationSeconds / multiplier
-  const formatted = formatValue(scaled, sigFigFractionDigits(scaled, 3))
-  return `${formatted} ${getDateUnitLabel(unit, scaled)}`
+  const fractionDigits = sigFigFractionDigits(scaled, 3)
+  // Pluralize based on the rounded value so the unit matches the displayed number
+  // (e.g. scaled=0.99998 rounds to "1" → "1 second", not "1 seconds").
+  const factor = 10 ** fractionDigits
+  const rounded = Math.round(scaled * factor) / factor
+  return `${formatValue(scaled, fractionDigits)} ${getDateUnitLabel(unit, rounded)}`
 }
 
 // Slope-only equation form used when x is a date-time axis. The intercept (y at the Unix epoch)
