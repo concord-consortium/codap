@@ -386,7 +386,10 @@ export function renderLabelBackground<GElement extends BaseType>(
 
   const rectSelection = gSelection.selectAll('rect.attribute-label-bg')
     .data([1])
-    .join((enter: any) => enter.append('rect').attr('class', 'attribute-label-bg'))
+    // fill/stroke set as presentation attrs so export pipelines that don't inline CSS
+    // don't fall back to the SVG default of black fill. CSS class rules still override.
+    .join((enter: any) => enter.append('rect').attr('class', 'attribute-label-bg')
+      .attr('fill', 'transparent').attr('stroke', 'transparent'))
     .attr('x', rectX)
     .attr('y', rectY)
     .attr('width', rectWidth)
