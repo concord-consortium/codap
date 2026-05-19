@@ -29,9 +29,9 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 // its output. Composite each visible WebGL point layer's static snapshot on top of the
 // html-to-image base (basemap, polygons, connecting-lines SVG, heatmap).
 async function compositeMapPng(
-  displayElement: HTMLElement, rendererArray: PointRendererArray
+  displayElement: HTMLElement, rendererArray: PointRendererArray, pixelRatio?: number
 ): Promise<string> {
-  const baseDataUri = await toPng(displayElement)
+  const baseDataUri = await toPng(displayElement, { pixelRatio })
   const baseImage = await loadImage(baseDataUri)
 
   const canvas = document.createElement("canvas")
@@ -78,7 +78,7 @@ export const SaveImageMenuList = ({tile}: IProps) => {
   const { setProgressMessage, clearProgressMessage } = useProgress()
   const mapModel = isMapContentModel(tile?.content) ? tile?.content : undefined
 
-  const getImageDataUri = async (format: ExportableFormat) => {
+  const getImageDataUri = async (format: ExportableFormat, pixelRatio?: number) => {
     if (!mapModel?.renderState) {
       return undefined
     }
@@ -89,7 +89,7 @@ export const SaveImageMenuList = ({tile}: IProps) => {
     setProgressMessage("Exporting map ...")
     try {
       dataUri = format === "png"
-        ? await compositeMapPng(displayElement, rendererArray)
+        ? await compositeMapPng(displayElement, rendererArray, pixelRatio)
         : await toSvg(displayElement)
     } catch (error) {
       console.error(`Error generating ${format.toUpperCase()} image:`, error)
@@ -111,13 +111,13 @@ export const SaveImageMenuList = ({tile}: IProps) => {
     return undefined
   }
 
-  // The menu item that invokes this handler is currently disabled (CODAP-1303): launching the
-  // Draw tool from the Map has significant bugs. Once those are resolved, remove `isDisabled`
-  // from the corresponding <MenuItem> below to re-enable.
   const handleOpenInDrawTool = async () => {
-    if (tile) {
-      const imageDataUri = await getImageDataUri("png")
-      await openInDrawTool(tile, imageDataUri || "")
+    if (!tile || !mapModel?.renderState) return
+    const { displayElement } = mapModel.renderState
+    const imageDataUri = await getImageDataUri("png", 1)
+    if (imageDataUri) {
+      const { width, height } = displayElement.getBoundingClientRect()
+      await openInDrawTool(tile, imageDataUri, { width, height })
     }
   }
 
@@ -156,8 +156,8 @@ export const SaveImageMenuList = ({tile}: IProps) => {
 
   return (
     <InspectorMenuContent data-testid="save-image-menu-list">
-      <MenuItem data-testid="open-in-draw-tool" onAction={handleOpenInDrawTool} isDisabled={true}>
-        {t("DG.DataDisplayMenu.copyAsImage")}<span aria-hidden="true"> 🚧</span>
+      <MenuItem data-testid="open-in-draw-tool" onAction={handleOpenInDrawTool}>
+        {t("DG.DataDisplayMenu.copyAsImage")}
       </MenuItem>
       <MenuItem data-testid="export-png-image" onAction={handleExportPNG}>
         {t("DG.DataDisplayMenu.exportPngImage")}
