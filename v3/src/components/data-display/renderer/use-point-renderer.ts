@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { persistentState } from "../../../models/persistent-state"
 import { CanvasPointRenderer } from "./canvas-point-renderer"
+import { computeEffectiveForcedRendererType } from "./effective-forced-renderer-type"
 import { NullPointRenderer } from "./null-point-renderer"
 import { PixiPointRenderer } from "./pixi-point-renderer"
 import { PointRendererBase } from "./point-renderer-base"
@@ -145,6 +147,16 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
   // Forced renderer type override (for testing - null means use normal logic)
   const [forcedRendererType, setForcedRendererType] = useState<"webgl" | "canvas" | null>(null)
 
+  // Effective forced type: user-level "disable graphics acceleration" wins
+  // over the per-graph debug override. Reading
+  // persistentState.disableGraphicsAcceleration here registers a MobX
+  // observation; parent components are observer-wrapped, so a change to the
+  // setting triggers a re-render and recomputes this value.
+  const effectiveForcedType = computeEffectiveForcedRendererType(
+    persistentState.disableGraphicsAcceleration,
+    forcedRendererType
+  )
+
   // Current renderer instance
   const [renderer, setRenderer] = useState<PointRendererBase>(() =>
     new NullPointRenderer(stateRef.current)
@@ -264,15 +276,20 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
-  // Manage WebGL context when forced renderer type changes
+  // Track whether the last yield was caused by an effective force-to-canvas,
+  // so that lifting the force can re-request a normal-priority context.
+  const yieldedDueToForceCanvasRef = useRef(false)
+
+  // Manage WebGL context when effective forced renderer type changes
   useEffect(() => {
     if (skipContextRegistration) return
 
-    if (forcedRendererType === "canvas" && hasWebGLContext) {
+    if (effectiveForcedType === "canvas" && hasWebGLContext) {
       // Forcing Canvas mode - release the WebGL context back to the pool
       webGLContextManager.yieldContext(id)
       setHasWebGLContext(false)
-    } else if (forcedRendererType === "webgl" && !hasWebGLContext) {
+      yieldedDueToForceCanvasRef.current = true
+    } else if (effectiveForcedType === "webgl" && !hasWebGLContext) {
       // Forcing WebGL mode - request a high-priority context (user-initiated action)
       const highPriority = webGLContextManager.getNextUserInteractionPriority()
       webGLContextManager.updatePriority(id, highPriority)
@@ -284,8 +301,24 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
         setHasWebGLContext(true)
         setContextWasDenied(false)
       }
+      yieldedDueToForceCanvasRef.current = false
+    } else if (
+      effectiveForcedType == null &&
+      yieldedDueToForceCanvasRef.current &&
+      !hasWebGLContext &&
+      isVisible
+    ) {
+      // Force-to-canvas was just lifted; re-request a normal-priority context.
+      yieldedDueToForceCanvasRef.current = false
+      const granted = webGLContextManager.requestContext(contextConsumer)
+      if (granted) {
+        setHasWebGLContext(true)
+        setContextWasDenied(false)
+      } else {
+        setContextWasDenied(true)
+      }
     }
-  }, [forcedRendererType, hasWebGLContext, id, skipContextRegistration, contextConsumer])
+  }, [effectiveForcedType, hasWebGLContext, id, skipContextRegistration, contextConsumer, isVisible])
 
   // Track if this is the first render to avoid disposing the initial renderer
   const isFirstRender = useRef(true)
@@ -306,13 +339,13 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
 
       let newRenderer: PointRendererBase
 
-      if (forcedRendererType === "webgl" && hasWebGLContext) {
+      if (effectiveForcedType === "webgl" && hasWebGLContext) {
         // Forced WebGL mode AND we have a context
         newRenderer = new PixiPointRenderer(stateRef.current)
-      } else if (forcedRendererType === "canvas") {
+      } else if (effectiveForcedType === "canvas") {
         // Forced Canvas mode (for testing)
         newRenderer = new CanvasPointRenderer(stateRef.current)
-      } else if (forcedRendererType === "webgl" && !hasWebGLContext) {
+      } else if (effectiveForcedType === "webgl" && !hasWebGLContext) {
         // Forced WebGL but waiting for context - skip this intermediate state
         // The context management effect will grant us a context and trigger another render
         return
@@ -396,7 +429,7 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
     // Note: We intentionally don't include `renderer` or `rendererOptions` in dependencies
     // as it would cause infinite loops or unnecessary re-renders
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasWebGLContext, contextWasDenied, forcedRendererType, onRendererChange])
+  }, [hasWebGLContext, contextWasDenied, effectiveForcedType, onRendererChange])
 
   // Request a context with boosted priority (for user interaction)
   const requestContextWithHighPriority = useCallback(() => {
