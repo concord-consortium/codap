@@ -4,7 +4,7 @@
 
 **Goal:** Add a user-toggleable "Graphics Acceleration" item to CODAP's Settings menu that forces all graphs and map point layers to use Canvas2D instead of WebGL, persisted across launches and effective without a page reload.
 
-**Architecture:** Extend `PersistentState` with a new optional boolean field named `disableGraphicsAcceleration` (truthy means user disabled accel; `undefined` is the default). Introduce a pure helper that composes the new user setting with the existing per-graph debug `forcedRendererType` (user-disabled wins; otherwise debug override; otherwise default). Wire the helper into `use-point-renderer.ts` so all graphs and map point layers swap renderers immediately via the existing fallback paths. Add the menu item (with divider above) to the CFM-managed Settings dropdown using two new Tabler bolt SVG icons, and revise the existing Toolbar Position wording for consistency.
+**Architecture:** Extend `PersistentState` with a new optional boolean field named `disableGraphicsAcceleration` (truthy means user disabled accel; `undefined` is the default). Introduce a pure helper that composes the new user setting with the existing per-graph debug `forcedRendererType` (user-disabled wins; otherwise debug override; otherwise default). Wire the helper into `use-point-renderer.ts` so all graphs and map point layers swap renderers immediately via the existing fallback paths. Add the menu item (with divider above) to the CFM-managed Settings dropdown using two designer-provided SVG icons, and revise the existing Toolbar Position wording for consistency.
 
 **Tech Stack:** React 18, TypeScript, MobX-State-Tree (`@concord-consortium/mobx-state-tree`), mobx-react-lite (`observer`), PIXI.js (`PixiPointRenderer`), Canvas2D (`CanvasPointRenderer`), Jest. CFM menu rendering via `@concord-consortium/cloud-file-manager`. SVG icons imported as URL strings via the `.nosvgr.svg` extension convention.
 
@@ -28,8 +28,8 @@
 
 - `src/components/data-display/renderer/effective-forced-renderer-type.ts` — pure helper
 - `src/components/data-display/renderer/effective-forced-renderer-type.test.ts` — unit tests for the helper
-- `src/assets/cfm/icon-graphics-acceleration-on.nosvgr.svg` — Tabler bolt icon
-- `src/assets/cfm/icon-graphics-acceleration-off.nosvgr.svg` — Tabler bolt-off icon
+- `src/assets/cfm/graphics-acceleration-turn-on-icon.nosvgr.svg` — designer bolt icon
+- `src/assets/cfm/graphics-acceleration-turn-off-icon.nosvgr.svg` — designer bolt-with-slash icon
 
 ---
 
@@ -174,40 +174,40 @@ EOF
 
 ---
 
-## Task 2: Add Tabler bolt SVG icons
+## Task 2: Install designer's bolt icons
 
 **Files:**
-- Create: `src/assets/cfm/icon-graphics-acceleration-on.nosvgr.svg`
-- Create: `src/assets/cfm/icon-graphics-acceleration-off.nosvgr.svg`
+- Create: `src/assets/cfm/graphics-acceleration-turn-on-icon.nosvgr.svg`
+- Create: `src/assets/cfm/graphics-acceleration-turn-off-icon.nosvgr.svg`
 
 (No unit tests — these are static asset files. They'll be exercised manually in Task 6.)
 
-- [ ] **Step 1: Create the "on" (bolt) icon**
+The designer provided two SVGs in `~/Downloads/`:
+- `graphics-acceleration-turn-on-icon.svg` (bolt — shown when accel is OFF, click turns it on)
+- `graphics-acceleration-turn-off-icon.svg` (bolt with diagonal slash — shown when accel is ON, click turns it off)
 
-Create `src/assets/cfm/icon-graphics-acceleration-on.nosvgr.svg` with this exact content:
+These already match CODAP's existing CFM icon style (fill-based, `#006C8E` / `#D3F4FF` brand colors, `viewBox="0 0 24 24"`). Copy them verbatim — no content normalization needed — and append `.nosvgr.svg` to the filename to opt out of SVGR component import (matches the existing `icon-toolbar-position-*.nosvgr.svg` convention so webpack URL-imports them).
 
-```xml
-<!-- Source: Tabler Icons (MIT) - https://tabler.io/icons/icon/bolt -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
-     fill="none" stroke="currentColor" stroke-width="2"
-     stroke-linecap="round" stroke-linejoin="round">
-  <path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11" />
-</svg>
+- [ ] **Step 1: Copy both icons from Downloads**
+
+```
+cp ~/Downloads/graphics-acceleration-turn-on-icon.svg \
+   v3/src/assets/cfm/graphics-acceleration-turn-on-icon.nosvgr.svg
+
+cp ~/Downloads/graphics-acceleration-turn-off-icon.svg \
+   v3/src/assets/cfm/graphics-acceleration-turn-off-icon.nosvgr.svg
 ```
 
-- [ ] **Step 2: Create the "off" (bolt-off) icon**
+Run from the repo root (`/Users/kswenson/Development/idea-dev/codap`).
 
-Create `src/assets/cfm/icon-graphics-acceleration-off.nosvgr.svg` with this exact content:
+- [ ] **Step 2: Verify the files are valid SVG**
 
-```xml
-<!-- Source: Tabler Icons (MIT) - https://tabler.io/icons/icon/bolt-off -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
-     fill="none" stroke="currentColor" stroke-width="2"
-     stroke-linecap="round" stroke-linejoin="round">
-  <path d="M3 3l18 18" />
-  <path d="M15.212 15.21l-4.212 5.79v-7h-6l3.79 -5.21m1.685 -2.32l2.525 -3.47v6m1 1h5l-2.104 2.893" />
-</svg>
 ```
+head -2 v3/src/assets/cfm/graphics-acceleration-turn-on-icon.nosvgr.svg
+head -2 v3/src/assets/cfm/graphics-acceleration-turn-off-icon.nosvgr.svg
+```
+
+Expected output: each file starts with `<?xml version="1.0" encoding="UTF-8"?>` followed by an `<svg ...>` opening tag with `viewBox="0 0 24 24"`.
 
 - [ ] **Step 3: Verify build still works**
 
@@ -215,23 +215,26 @@ Create `src/assets/cfm/icon-graphics-acceleration-off.nosvgr.svg` with this exac
 npm run build:tsc
 ```
 
-Expected: no errors. (Webpack's URL loader picks these up at build time; tsc just verifies the rest of the codebase compiles.)
+Expected: no errors. (Webpack's URL loader picks these up at build time; `tsc` verifies the rest of the codebase still compiles.)
 
 - [ ] **Step 4: Commit**
 
 ```
-git add v3/src/assets/cfm/icon-graphics-acceleration-on.nosvgr.svg \
-        v3/src/assets/cfm/icon-graphics-acceleration-off.nosvgr.svg
-git commit -m "$(cat <<'EOF'
-CODAP-1339: add bolt / bolt-off icons for graphics acceleration toggle
+git add v3/src/assets/cfm/graphics-acceleration-turn-on-icon.nosvgr.svg \
+        v3/src/assets/cfm/graphics-acceleration-turn-off-icon.nosvgr.svg
+git commit -F /tmp/codap-1339-task2-msg.txt
+```
 
-Two Tabler-sourced (MIT) SVG icons used by the Settings menu item.
-Stored as .nosvgr.svg files (URL-imported, not React-component-imported)
-following the existing CFM icon convention.
+…where the message file contains (write it first with `cat > /tmp/codap-1339-task2-msg.txt <<'EOF' ... EOF`):
+
+```
+CODAP-1339: add designer icons for graphics acceleration toggle
+
+Two designer-provided SVGs (bolt and bolt-with-slash) used by the
+Settings menu item. Stored as .nosvgr.svg files (URL-imported, not
+React-component-imported) following the existing CFM icon convention.
 
 Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
-EOF
-)"
 ```
 
 ---
@@ -655,8 +658,8 @@ The CFM menu schema accepts a bare `'separator'` string between items. Adding th
 Open `src/lib/cfm/use-cloud-file-manager.ts`. Find the block of existing icon imports (search for `ToolbarPositionLeftIcon`). Add these two imports alongside the other CFM-icon imports:
 
 ```typescript
-import GraphicsAccelOnIcon from "../../assets/cfm/icon-graphics-acceleration-on.nosvgr.svg"
-import GraphicsAccelOffIcon from "../../assets/cfm/icon-graphics-acceleration-off.nosvgr.svg"
+import GraphicsAccelOnIcon from "../../assets/cfm/graphics-acceleration-turn-on-icon.nosvgr.svg"
+import GraphicsAccelOffIcon from "../../assets/cfm/graphics-acceleration-turn-off-icon.nosvgr.svg"
 ```
 
 Follow the local convention (relative paths, ordering style) of the surrounding imports.
@@ -799,7 +802,7 @@ Wait for "compiled successfully" then open the printed `http://localhost:…` UR
    - "Toolbar Position: Move to the left" (assuming default top position)
    - "Graphics Acceleration: Turn off" (assuming accel default on)
 3. Confirm the bolt-off icon appears next to the Graphics Acceleration label.
-4. Visual style check: if the bolt-off icon looks visually out of place next to the colorful fill-based Toolbar Position icon, flag it for the PR description — designer may want a fill-based version. Not a blocker.
+4. Visual style check: both icons should match the existing Toolbar Position icons (same brand colors, same weight). Flag any visual issues to the designer in the PR description.
 
 - [ ] **Step 3: Test the toolbar wording**
 

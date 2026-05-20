@@ -145,8 +145,8 @@ menu: [
 **Icon and label semantics:** both describe the *result* of clicking (matches
 existing Toolbar Position convention and the designer's mock):
 
-- Accel currently ON → show `ti-bolt-off` icon, "Graphics Acceleration: Turn off"
-- Accel currently OFF → show `ti-bolt` icon, "Graphics Acceleration: Turn on"
+- Accel currently ON → show bolt-with-slash icon, "Graphics Acceleration: Turn off"
+- Accel currently OFF → show bolt icon, "Graphics Acceleration: Turn on"
 
 **Divider** — Open implementation detail. The CFM menu library
 (`@concord-consortium/cloud-file-manager`) needs to accept either (a) a separator
@@ -159,27 +159,22 @@ lightest option; the File menu already uses dividers so the support likely exist
 Two new files in `src/assets/cfm/`, following the existing `.nosvgr.svg`
 URL-import pattern (bypasses SVGR/svgo; imported as a URL string):
 
-- `icon-graphics-acceleration-on.nosvgr.svg` — Tabler `bolt` path (shown when
+- `graphics-acceleration-turn-on-icon.nosvgr.svg` — bolt (shown when
   accel is OFF; click turns it on).
-- `icon-graphics-acceleration-off.nosvgr.svg` — Tabler `bolt-off` path (shown
-  when accel is ON; click turns it off).
+- `graphics-acceleration-turn-off-icon.nosvgr.svg` — bolt with diagonal
+  slash (shown when accel is ON; click turns it off).
 
-**Source paths** — Copy from `@tabler/icons` (MIT-licensed,
-github.com/tabler/tabler-icons). Normalize to match existing CFM icons:
-
-- `viewBox="0 0 24 24"`
-- `stroke="currentColor"`, `stroke-width="2"`, `fill="none"`
-- Strip `<title>` and other no-value attrs
-
-**Attribution** — Add Tabler to an existing notices/licenses file if one exists;
-otherwise note the source as an XML comment in each SVG
-(`<!-- Source: Tabler Icons (MIT) -->`). Determine at plan-write time.
+**Source** — Provided by the designer. Already use CODAP's brand fill colors
+(`#006C8E` / `#D3F4FF`) and the `viewBox="0 0 24 24"` convention shared by
+the existing CFM icons (e.g., `icon-toolbar-position-left.nosvgr.svg`).
+Copy verbatim from the designer's drop into `src/assets/cfm/` with the
+`.nosvgr.svg` suffix appended to the base filename.
 
 **Imports** in `use-cloud-file-manager.ts`:
 
 ```ts
-import GraphicsAccelOnIcon from "../../assets/cfm/icon-graphics-acceleration-on.nosvgr.svg"
-import GraphicsAccelOffIcon from "../../assets/cfm/icon-graphics-acceleration-off.nosvgr.svg"
+import GraphicsAccelOnIcon from "../../assets/cfm/graphics-acceleration-turn-on-icon.nosvgr.svg"
+import GraphicsAccelOffIcon from "../../assets/cfm/graphics-acceleration-turn-off-icon.nosvgr.svg"
 ```
 
 ### 5. Translation strings
@@ -251,7 +246,7 @@ resulting action.
 **In scope:**
 
 - New `disableGraphicsAcceleration: types.maybe(types.boolean)` field on `PersistentState` with setter and persistence.
-- New "Graphics Acceleration: Turn on/off" item in the Settings menu, with bolt/bolt-off icons.
+- New "Graphics Acceleration: Turn on/off" item in the Settings menu, with designer-provided bolt icons.
 - Updated wording for the existing "Toolbar Position" item in `en-US.json5`.
 - Wiring `use-point-renderer.ts` so the user setting forces Canvas across all graphs and map point layers, with the per-graph debug badge as a lower-precedence override.
 - Unit tests for `persistent-state` and `use-point-renderer` covering the new precedence rules.
