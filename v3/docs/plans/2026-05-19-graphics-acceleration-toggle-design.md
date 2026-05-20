@@ -22,7 +22,7 @@ for the whole app, persisted across launches, without requiring a reload.
 ## Solution overview
 
 Mirror the existing per-graph debug-badge mechanism, but driven by a new
-`PersistentState.graphicsAcceleration` boolean (default `true`) instead of per-graph
+`PersistentState.disableGraphicsAcceleration` optional boolean (default `undefined`) instead of per-graph
 component state. The user setting composes with the per-graph debug override:
 **user setting OFF wins; otherwise debug override applies; otherwise default
 WebGL-with-Canvas-fallback.**
@@ -41,31 +41,36 @@ Extend `src/models/persistent-state.ts` with one new field and one setter:
 ```ts
 export const PersistentState = types.model("PersistentState", {
   toolbarPosition: types.optional(types.enumeration(["Top", "Left"]), "Top"),
-  graphicsAcceleration: true
+  disableGraphicsAcceleration: types.maybe(types.boolean)
 })
 // ...
-setGraphicsAcceleration(enabled: boolean) {
-  self.graphicsAcceleration = enabled
+setDisableGraphicsAcceleration(disabled: boolean) {
+  self.disableGraphicsAcceleration = disabled
   self.save()
 }
 ```
 
-- Default `true` preserves current "try WebGL first" behavior.
+- Default `undefined` preserves current "try WebGL first" behavior. Polarity
+  is inverted (truthy means "user disabled accel") so consumer code reads
+  cleanly as `if (disableGraphicsAcceleration) ...`.
 - Persisted alongside `toolbarPosition` in the existing `"persistentState"`
   `localStorage` JSON snapshot.
 - Cross-tab sync via the existing `storage` event listener (no new code).
-- Snapshots written before this field exists deserialize with the default.
+- Snapshots written before this field exists deserialize with `undefined`,
+  which means accel is enabled — matches today's behavior.
+- The setter writes `false` (not `undefined`) on re-enable so the change is
+  explicit, fires MobX reactions, and propagates via the `storage` event.
 
 ### 2. Renderer wiring
 
 In `src/components/data-display/renderer/use-point-renderer.ts`, observe
-`persistentState.graphicsAcceleration` and compose it with the existing per-graph
-`forcedRendererType` into an **effective forced type**:
+`persistentState.disableGraphicsAcceleration` and compose it with the existing
+per-graph `forcedRendererType` into an **effective forced type**:
 
 ```ts
-const accelEnabled = persistentState.graphicsAcceleration
+const disabled = persistentState.disableGraphicsAcceleration
 const effectiveForcedType: "webgl" | "canvas" | null =
-  !accelEnabled ? "canvas" : forcedRendererType
+  disabled ? "canvas" : forcedRendererType
 ```
 
 Replace reads of `forcedRendererType` inside the two effects (renderer-selection
@@ -88,7 +93,7 @@ effect ~lines 297-399, context-management effect ~lines 267-288) with
   existing grant/swap path takes over.
 
 **Implementation detail to resolve at plan-write time:** whether the surrounding
-`observer`/`mobx-react` wrapping makes `persistentState.graphicsAcceleration`
+`observer`/`mobx-react` wrapping makes `persistentState.disableGraphicsAcceleration`
 reads reactive within the hook's effects, or whether we need an explicit
 `reaction` to trigger `effectiveForcedType` updates. Verify by reading the
 component wrapper that hosts the hook.
@@ -108,7 +113,7 @@ Wiring (sketch):
 
 ```ts
 const isToolbarTop = persistentState.toolbarPosition === "Top"
-const isAccelOn = persistentState.graphicsAcceleration
+const isAccelOn = !persistentState.disableGraphicsAcceleration
 
 menu: [
   {
@@ -127,7 +132,9 @@ menu: [
     name: t(`V3.AppController.optionMenuItems.graphicsAcceleration${isAccelOn ? "On" : "Off"}`),
     action() {
       runInAction(() => {
-        persistentState.setGraphicsAcceleration(!isAccelOn)
+        // If accel is currently on, this click disables it (true);
+        // if currently off, this click re-enables it (false).
+        persistentState.setDisableGraphicsAcceleration(isAccelOn)
         cfm.client.updateMenuBar(getMenuBar(cfm))
       })
     }
@@ -208,7 +215,7 @@ resulting action.
 |---|---|---|
 | EC1 | WebGL unavailable in browser at all (`isWebGLAvailable()` returns false) | Menu item still toggles preference; Canvas2D is used either way. No special UI. |
 | EC2 | User toggles rapidly | Each toggle is a synchronous `runInAction` write. Existing renderer-selection effect coalesces. No debounce needed. |
-| EC3 | Document opens with setting OFF | `persistentState` initializes before any `usePointRenderer` mounts; first evaluation sees `graphicsAcceleration = false` and boots into Canvas with no "WebGL flash." |
+| EC3 | Document opens with setting OFF | `persistentState` initializes before any `usePointRenderer` mounts; first evaluation sees `disableGraphicsAcceleration = true` and boots into Canvas with no "WebGL flash." |
 | EC4 | `localStorage` write fails (quota, private mode) | Existing `save()` swallows the error silently; in-session toggle still works. Matches Toolbar Position behavior. |
 | EC5 | Cross-tab sync | Existing `storage` event listener applies the new snapshot; the other tab's `usePointRenderer` reactions swap renderers. No new code. |
 | EC6 | Debug badge interaction when user setting OFF | Debug badge click sets per-graph state, but the user-setting override pins effective force to `"canvas"`. Documented; not surfaced in UI (debug feature is developer-gated). |
@@ -217,18 +224,17 @@ resulting action.
 
 **Unit tests:**
 
-1. `src/models/persistent-state.test.ts` (extend or create):
-   - Default `graphicsAcceleration` is `true`.
-   - `setGraphicsAcceleration(false)` updates the model and writes to `localStorage`.
+1. `src/models/persistent-state.test.ts` (extend):
+   - Default `disableGraphicsAcceleration` is falsy (`undefined`).
+   - `setDisableGraphicsAcceleration(true)` updates the model and writes to `localStorage`.
+   - `setDisableGraphicsAcceleration(false)` flips it back; field reads as `false`.
    - Snapshot round-trip preserves the value.
-   - Loading a snapshot without the field yields the default `true`.
 
-2. `src/components/data-display/renderer/use-point-renderer.test.ts` (extend):
-   - `graphicsAcceleration = false` and no per-graph force → effective force = `"canvas"`; renderer is `CanvasPointRenderer`.
-   - `graphicsAcceleration = false` and per-graph force = `"webgl"` → effective force still `"canvas"` (user setting wins).
-   - `graphicsAcceleration = true` and per-graph force = `"webgl"` → effective force = `"webgl"`.
-   - Flipping `graphicsAcceleration` from `true` → `false` while a renderer is mounted triggers a swap to `CanvasPointRenderer` and yields the WebGL context.
-   - Flipping back to `true` swaps back to `PixiPointRenderer` (when context granted).
+2. `src/components/data-display/renderer/effective-forced-renderer-type.test.ts` (new — pure helper):
+   - `disableGraphicsAcceleration = true` and no per-graph force → effective force = `"canvas"`.
+   - `disableGraphicsAcceleration = true` and per-graph force = `"webgl"` → effective force still `"canvas"` (user setting wins).
+   - `disableGraphicsAcceleration = false` (or `undefined`) and per-graph force = `"webgl"` → effective force = `"webgl"`.
+   - `disableGraphicsAcceleration = undefined` and no per-graph force → effective force = `null` (default behavior).
 
 **No new Cypress test.** End-to-end verification ("click menu item, graph swaps renderer") requires exposing internal state or visual diffing; cost outweighs value here. Covered manually instead.
 
@@ -244,7 +250,7 @@ resulting action.
 
 **In scope:**
 
-- New `graphicsAcceleration: true` field on `PersistentState` with setter and persistence.
+- New `disableGraphicsAcceleration: types.maybe(types.boolean)` field on `PersistentState` with setter and persistence.
 - New "Graphics Acceleration: Turn on/off" item in the Settings menu, with bolt/bolt-off icons.
 - Updated wording for the existing "Toolbar Position" item in `en-US.json5`.
 - Wiring `use-point-renderer.ts` so the user setting forces Canvas across all graphs and map point layers, with the per-graph debug badge as a lower-precedence override.

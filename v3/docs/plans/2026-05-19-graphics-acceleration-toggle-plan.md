@@ -4,7 +4,7 @@
 
 **Goal:** Add a user-toggleable "Graphics Acceleration" item to CODAP's Settings menu that forces all graphs and map point layers to use Canvas2D instead of WebGL, persisted across launches and effective without a page reload.
 
-**Architecture:** Extend `PersistentState` with a new boolean field. Introduce a pure helper that composes the new user setting with the existing per-graph debug `forcedRendererType` (user-OFF wins; otherwise debug override; otherwise default). Wire the helper into `use-point-renderer.ts` so all graphs and map point layers swap renderers immediately via the existing fallback paths. Add the menu item (with divider above) to the CFM-managed Settings dropdown using two new Tabler bolt SVG icons, and revise the existing Toolbar Position wording for consistency.
+**Architecture:** Extend `PersistentState` with a new optional boolean field named `disableGraphicsAcceleration` (truthy means user disabled accel; `undefined` is the default). Introduce a pure helper that composes the new user setting with the existing per-graph debug `forcedRendererType` (user-disabled wins; otherwise debug override; otherwise default). Wire the helper into `use-point-renderer.ts` so all graphs and map point layers swap renderers immediately via the existing fallback paths. Add the menu item (with divider above) to the CFM-managed Settings dropdown using two new Tabler bolt SVG icons, and revise the existing Toolbar Position wording for consistency.
 
 **Tech Stack:** React 18, TypeScript, MobX-State-Tree (`@concord-consortium/mobx-state-tree`), mobx-react-lite (`observer`), PIXI.js (`PixiPointRenderer`), Canvas2D (`CanvasPointRenderer`), Jest. CFM menu rendering via `@concord-consortium/cloud-file-manager`. SVG icons imported as URL strings via the `.nosvgr.svg` extension convention.
 
@@ -18,7 +18,7 @@
 
 **Modify:**
 
-- `src/models/persistent-state.ts` — add `graphicsAcceleration` field + setter
+- `src/models/persistent-state.ts` — add `disableGraphicsAcceleration` field + setter
 - `src/models/persistent-state.test.ts` — extend with new tests
 - `src/components/data-display/renderer/use-point-renderer.ts` — observe setting, compose precedence, handle canvas→null transition
 - `src/lib/cfm/use-cloud-file-manager.ts` — add menu item, divider, icon imports
@@ -33,11 +33,13 @@
 
 ---
 
-## Task 1: Add `graphicsAcceleration` field to PersistentState
+## Task 1: Add `disableGraphicsAcceleration` field to PersistentState
 
 **Files:**
 - Modify: `src/models/persistent-state.ts`
 - Test: `src/models/persistent-state.test.ts`
+
+**Polarity convention:** The field name expresses the *non-default* state, so consumer code reads cleanly: `if (persistentState.disableGraphicsAcceleration) { /* user disabled accel */ }`. Default is `undefined` (accel enabled — current behavior). Setting `true` disables; setting `false` explicitly re-enables (writes through `localStorage` so cross-tab sync fires).
 
 - [ ] **Step 1: Write the failing test**
 
@@ -60,12 +62,12 @@ describe("PersistentState", () => {
 Add a second `it()` block immediately after the existing one (still inside the `describe`):
 
 ```typescript
-  it("can toggle graphicsAcceleration", () => {
-    expect(persistentState.graphicsAcceleration).toBe(true)
-    persistentState.setGraphicsAcceleration(false)
-    expect(persistentState.graphicsAcceleration).toBe(false)
-    persistentState.setGraphicsAcceleration(true)
-    expect(persistentState.graphicsAcceleration).toBe(true)
+  it("can toggle disableGraphicsAcceleration", () => {
+    expect(persistentState.disableGraphicsAcceleration).toBeUndefined()
+    persistentState.setDisableGraphicsAcceleration(true)
+    expect(persistentState.disableGraphicsAcceleration).toBe(true)
+    persistentState.setDisableGraphicsAcceleration(false)
+    expect(persistentState.disableGraphicsAcceleration).toBe(false)
   })
 ```
 
@@ -77,7 +79,7 @@ From `v3/`:
 npm test -- persistent-state
 ```
 
-Expected: the new test fails because `graphicsAcceleration` and `setGraphicsAcceleration` don't exist yet (TS error or runtime `undefined`).
+Expected: the new test fails because `disableGraphicsAcceleration` and `setDisableGraphicsAcceleration` don't exist yet (TS error or runtime `undefined`).
 
 - [ ] **Step 3: Add the field and setter**
 
@@ -109,7 +111,7 @@ Change to:
 ```typescript
 export const PersistentState = types.model("PersistentState", {
   toolbarPosition: types.optional(types.enumeration(["Top", "Left"]), "Top"),
-  graphicsAcceleration: true
+  disableGraphicsAcceleration: types.maybe(types.boolean)
 })
 .actions(self => ({
   save() {
@@ -125,14 +127,14 @@ export const PersistentState = types.model("PersistentState", {
     self.toolbarPosition = position
     self.save()
   },
-  setGraphicsAcceleration(enabled: boolean) {
-    self.graphicsAcceleration = enabled
+  setDisableGraphicsAcceleration(disabled: boolean) {
+    self.disableGraphicsAcceleration = disabled
     self.save()
   }
 }))
 ```
 
-Note: MST infers the type and default from the literal `true`. Same as `types.optional(types.boolean, true)`.
+Note: `types.maybe(types.boolean)` makes the field `boolean | undefined`, defaulting to `undefined`. The setter accepts a concrete boolean so a re-enable writes `false` explicitly (rather than clearing to `undefined`), which keeps the change observable and lets cross-tab sync fire.
 
 - [ ] **Step 4: Run test to verify it passes**
 
@@ -157,10 +159,11 @@ From the repo root (one directory up from `v3/`):
 ```
 git add v3/src/models/persistent-state.ts v3/src/models/persistent-state.test.ts
 git commit -m "$(cat <<'EOF'
-CODAP-1339: add graphicsAcceleration to PersistentState
+CODAP-1339: add disableGraphicsAcceleration to PersistentState
 
-Adds a persisted boolean (default true) representing the user's
-preference for using GPU-accelerated rendering. Mirrors the existing
+Adds a persisted optional boolean representing the user's preference
+to force Canvas2D rendering. Default is undefined (accel enabled —
+current behavior); truthy means user disabled. Mirrors the existing
 toolbarPosition field — same save() helper, same localStorage key,
 same cross-tab sync.
 
@@ -331,19 +334,21 @@ Create `src/components/data-display/renderer/effective-forced-renderer-type.test
 import { computeEffectiveForcedRendererType } from "./effective-forced-renderer-type"
 
 describe("computeEffectiveForcedRendererType", () => {
-  it("returns 'canvas' when user setting is off, regardless of debug override", () => {
-    expect(computeEffectiveForcedRendererType(false, null)).toBe("canvas")
-    expect(computeEffectiveForcedRendererType(false, "webgl")).toBe("canvas")
-    expect(computeEffectiveForcedRendererType(false, "canvas")).toBe("canvas")
-  })
-
-  it("returns the debug override when user setting is on", () => {
-    expect(computeEffectiveForcedRendererType(true, "webgl")).toBe("webgl")
+  it("returns 'canvas' when accel is disabled, regardless of debug override", () => {
+    expect(computeEffectiveForcedRendererType(true, null)).toBe("canvas")
+    expect(computeEffectiveForcedRendererType(true, "webgl")).toBe("canvas")
     expect(computeEffectiveForcedRendererType(true, "canvas")).toBe("canvas")
   })
 
-  it("returns null (default behavior) when user setting is on and no debug override", () => {
-    expect(computeEffectiveForcedRendererType(true, null)).toBe(null)
+  it("returns the debug override when accel is not disabled", () => {
+    expect(computeEffectiveForcedRendererType(false, "webgl")).toBe("webgl")
+    expect(computeEffectiveForcedRendererType(false, "canvas")).toBe("canvas")
+    expect(computeEffectiveForcedRendererType(undefined, "webgl")).toBe("webgl")
+  })
+
+  it("returns null (default behavior) when accel is not disabled and no debug override", () => {
+    expect(computeEffectiveForcedRendererType(false, null)).toBe(null)
+    expect(computeEffectiveForcedRendererType(undefined, null)).toBe(null)
   })
 })
 ```
@@ -364,10 +369,10 @@ Create `src/components/data-display/renderer/effective-forced-renderer-type.ts`:
 export type ForcedRendererType = "webgl" | "canvas" | null
 
 export function computeEffectiveForcedRendererType(
-  graphicsAccelerationEnabled: boolean,
+  disableGraphicsAcceleration: boolean | undefined,
   debugForcedType: ForcedRendererType
 ): ForcedRendererType {
-  if (!graphicsAccelerationEnabled) return "canvas"
+  if (disableGraphicsAcceleration) return "canvas"
   return debugForcedType
 }
 ```
@@ -396,9 +401,10 @@ git add v3/src/components/data-display/renderer/effective-forced-renderer-type.t
 git commit -m "$(cat <<'EOF'
 CODAP-1339: add pure helper for effective forced renderer type
 
-Computes the effective renderer override from the user-level graphics
-acceleration setting and the per-graph debug override. User setting
-takes precedence over debug; default behavior when both are unset.
+Computes the effective renderer override from the user-level
+disableGraphicsAcceleration setting and the per-graph debug override.
+A truthy user setting wins; otherwise the debug override applies;
+otherwise null (default behavior).
 
 Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
 EOF
@@ -412,7 +418,7 @@ EOF
 **Files:**
 - Modify: `src/components/data-display/renderer/use-point-renderer.ts`
 
-This task wires the pure helper into the hook, observing `persistentState.graphicsAcceleration`. The parent components (`GraphComponent`, `MapComponent`) are already wrapped in `observer()` from `mobx-react-lite`, so observable reads inside the hook are automatically tracked — no explicit `reaction` needed.
+This task wires the pure helper into the hook, observing `persistentState.disableGraphicsAcceleration`. The parent components (`GraphComponent`, `MapComponent`) are already wrapped in `observer()` from `mobx-react-lite`, so observable reads inside the hook are automatically tracked — no explicit `reaction` needed.
 
 **Also handles the canvas→null transition** that the design flagged: when the user toggles accel back ON after being OFF, the existing line 267-288 effect doesn't re-request a WebGL context. We add a third branch using a ref to detect the transition specifically.
 
@@ -442,12 +448,13 @@ Immediately below this declaration (before the next blank line), add:
 
 ```typescript
 
-  // Effective forced type: user-level "graphics acceleration off" wins over the
-  // per-graph debug override. Reading persistentState.graphicsAcceleration here
-  // registers a MobX observation; parent components are observer-wrapped, so a
-  // change to the setting triggers a re-render and recomputes this value.
+  // Effective forced type: user-level "disable graphics acceleration" wins
+  // over the per-graph debug override. Reading
+  // persistentState.disableGraphicsAcceleration here registers a MobX
+  // observation; parent components are observer-wrapped, so a change to the
+  // setting triggers a re-render and recomputes this value.
   const effectiveForcedType = computeEffectiveForcedRendererType(
-    persistentState.graphicsAcceleration,
+    persistentState.disableGraphicsAcceleration,
     forcedRendererType
   )
 ```
@@ -618,14 +625,14 @@ Expected: clean. Lint may flag the new `useRef` if not imported — verify `useR
 ```
 git add v3/src/components/data-display/renderer/use-point-renderer.ts
 git commit -m "$(cat <<'EOF'
-CODAP-1339: wire graphicsAcceleration setting into use-point-renderer
+CODAP-1339: wire disableGraphicsAcceleration into use-point-renderer
 
-Observes persistentState.graphicsAcceleration via the surrounding
-observer-wrapped parent components and composes it with the existing
-per-graph debug forcedRendererType (user-OFF wins). Adds a third
-branch to the context-management effect so that re-enabling the user
-setting re-requests a WebGL context for graphs that yielded due to the
-force-to-canvas path.
+Observes persistentState.disableGraphicsAcceleration via the
+surrounding observer-wrapped parent components and composes it with
+the existing per-graph debug forcedRendererType (user-disabled wins).
+Adds a third branch to the context-management effect so that
+re-enabling the user setting re-requests a WebGL context for graphs
+that yielded due to the force-to-canvas path.
 
 Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
 EOF
@@ -669,7 +676,7 @@ Change to:
 ```typescript
 function getMenuBar(cfm: CloudFileManager) {
   const isToolbarTop = persistentState.toolbarPosition === "Top"
-  const isAccelOn = persistentState.graphicsAcceleration
+  const isAccelOn = !persistentState.disableGraphicsAcceleration
   return {
 ```
 
@@ -721,7 +728,9 @@ Change the `menu` array to include a separator and the new item:
             name: t(`V3.AppController.optionMenuItems.graphicsAcceleration${isAccelOn ? "On" : "Off"}`),
             action() {
               runInAction(() => {
-                persistentState.setGraphicsAcceleration(!isAccelOn)
+                // If accel is currently on, this click disables it (true);
+                // if currently off, this click re-enables it (false).
+                persistentState.setDisableGraphicsAcceleration(isAccelOn)
                 cfm.client.updateMenuBar(getMenuBar(cfm))
               })
             }
