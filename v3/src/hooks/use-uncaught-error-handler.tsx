@@ -38,6 +38,20 @@ export function useUncaughtErrorHandler(cfm: CloudFileManager) {
   }, [userCanSaveCopy])
 
   useEffect(() => {
+    // Chrome reports "ResizeObserver loop completed with undelivered notifications"
+    // as a global error whenever an observer callback causes a layout change in
+    // the same frame; the browser silently handles it next frame, so we don't
+    // want to surface it to users (or to webpack-dev-server's overlay).
+    // Intercept on the capture phase so it never reaches the bubble-phase
+    // listener below or any other listener.
+    const swallowBenignError = (e: ErrorEvent) => {
+      if (e.message?.startsWith("ResizeObserver loop")) {
+        e.stopImmediatePropagation()
+        e.preventDefault()
+      }
+    }
+    window.addEventListener("error", swallowBenignError, true)
+
     const showErrorDialog = (error: ErrorEvent) => {
       const dialogMessage = [
         t("V3.app.errorDialog.description"),
@@ -50,6 +64,7 @@ export function useUncaughtErrorHandler(cfm: CloudFileManager) {
     }
     window.addEventListener("error", showErrorDialog)
     return () => {
+      window.removeEventListener("error", swallowBenignError, true)
       window.removeEventListener("error", showErrorDialog)
     }
   }, [userCanSaveCopy])
