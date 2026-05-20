@@ -111,6 +111,10 @@ export const SaveImageMenuList = ({tile}: IProps) => {
     return undefined
   }
 
+  // The menu item below is disabled because the Draw Tool plugin itself has severe issues
+  // in Safari (CODAP-1340 covered the scaling fix; the underlying Safari blocker remains).
+  // The handler is kept wired up so the feature can be re-enabled by removing `isDisabled`
+  // once Draw Tool works in all supported browsers.
   const handleOpenInDrawTool = async () => {
     if (!tile || !mapModel?.renderState) return
     const { displayElement } = mapModel.renderState
@@ -156,8 +160,8 @@ export const SaveImageMenuList = ({tile}: IProps) => {
 
   return (
     <InspectorMenuContent data-testid="save-image-menu-list">
-      <MenuItem data-testid="open-in-draw-tool" onAction={handleOpenInDrawTool}>
-        {t("DG.DataDisplayMenu.copyAsImage")}
+      <MenuItem data-testid="open-in-draw-tool" onAction={handleOpenInDrawTool} isDisabled={true}>
+        {t("DG.DataDisplayMenu.copyAsImage")}<span aria-hidden="true"> 🚧</span>
       </MenuItem>
       <MenuItem data-testid="export-png-image" onAction={handleExportPNG}>
         {t("DG.DataDisplayMenu.exportPngImage")}
