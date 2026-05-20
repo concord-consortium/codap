@@ -104,6 +104,13 @@ export class PixiPointRenderer extends PointRendererBase {
     return "webgl"
   }
 
+  // The live WebGL canvas reads as empty from external pipelines (e.g. html-to-image),
+  // so extract a static snapshot via PIXI's extract API instead.
+  override snapshotCanvas(): HTMLCanvasElement | null {
+    if (!this.renderer) return null
+    return this.renderer.extract.canvas(this.stage) as HTMLCanvasElement
+  }
+
   get anyTransitionActive(): boolean {
     return PixiTransition.anyTransitionActive(this.targetProp)
   }

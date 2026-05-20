@@ -219,29 +219,16 @@ async function exportGraphToCanvas(options: IExportGraphToPngOptions): Promise<I
   }
 
   // 3. Points/bars canvas (from renderer)
-  // For WebGL (PIXI), we need to use the extract API to get the rendered content
-  // For Canvas 2D, we can draw directly from the canvas element
+  // For WebGL, snapshotCanvas() extracts a static snapshot; for Canvas 2D it returns the
+  // live canvas. Either way, drawImage handles the result.
   const pointsCanvas = renderer.canvas
   if (pointsCanvas && pointsCanvas.width > 0 && pointsCanvas.height > 0) {
     try {
-      // Get the position of the canvas relative to the graph element
       const canvasRect = pointsCanvas.getBoundingClientRect()
       const canvasX = canvasRect.left - graphRect.left
       const canvasY = canvasRect.top - graphRect.top
 
-      // Check if this is a PIXI renderer (has extract API)
-      const pixiRenderer = (renderer as any).renderer
-      const pixiStage = (renderer as any).stage
-      let sourceCanvas: HTMLCanvasElement | null = null
-
-      if (pixiRenderer?.extract?.canvas && pixiStage) {
-        // WebGL/PIXI: Extract the rendered content to a new canvas
-        sourceCanvas = pixiRenderer.extract.canvas(pixiStage) as HTMLCanvasElement
-      } else {
-        // Canvas 2D: Use the canvas directly
-        sourceCanvas = pointsCanvas
-      }
-
+      const sourceCanvas = renderer.snapshotCanvas()
       if (sourceCanvas) {
         // Canvas uses devicePixelRatio scaling - draw from full size to logical size
         ctx.drawImage(

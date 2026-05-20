@@ -16,27 +16,18 @@ interface IProps {
   tile?: ITileModel
 }
 
-// html-to-image cannot capture WebGL canvases, so PIXI-rendered points are missing from
-// its output. Use PIXI's extract API to snapshot each point layer ourselves and composite
-// it onto the html-to-image base (basemap, polygons, connecting-lines SVG, heatmap).
-function extractPixiCanvas(renderer: NonNullable<PointRendererArray[number]>): HTMLCanvasElement | null {
-  const pixiRenderer = (renderer as any).renderer
-  const pixiStage = (renderer as any).stage
-  if (pixiRenderer?.extract?.canvas && pixiStage) {
-    return pixiRenderer.extract.canvas(pixiStage) as HTMLCanvasElement
-  }
-  return null
-}
-
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image()
     img.onload = () => resolve(img)
-    img.onerror = () => reject(new Error("Failed to load base map image"))
+    img.onerror = () => reject(new Error("Failed to load map image"))
     img.src = src
   })
 }
 
+// html-to-image cannot capture WebGL canvases, so PIXI-rendered points are missing from
+// its output. Composite each visible WebGL point layer's static snapshot on top of the
+// html-to-image base (basemap, polygons, connecting-lines SVG, heatmap).
 async function compositeMapPng(
   displayElement: HTMLElement, rendererArray: PointRendererArray
 ): Promise<string> {
@@ -57,8 +48,9 @@ async function compositeMapPng(
     const scaleX = canvas.width / displayRect.width
     const scaleY = canvas.height / displayRect.height
     for (const renderer of rendererArray) {
-      if (!renderer?.canvas || !renderer.isVisible) continue
-      const sourceCanvas = extractPixiCanvas(renderer)
+      // Canvas-2D renderers are already captured by html-to-image, so only composite WebGL layers
+      if (!renderer?.canvas || !renderer.isVisible || renderer.capability !== "webgl") continue
+      const sourceCanvas = renderer.snapshotCanvas()
       if (!sourceCanvas || sourceCanvas.width === 0 || sourceCanvas.height === 0) continue
       const canvasRect = renderer.canvas.getBoundingClientRect()
       if (canvasRect.width <= 0 || canvasRect.height <= 0) continue
