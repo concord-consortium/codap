@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { logStringifiedObjectMessage } from "../../../../lib/log-message"
 import { numericSortComparator } from "../../../../utilities/data-utils"
+import { convertToDate } from "../../../../utilities/date-utils"
 import { t } from "../../../../utilities/translation/translate"
 import { useTileModelContext } from "../../../../hooks/use-tile-model-context"
 import { tileNotification } from "../../../../models/tiles/tile-notifications"
@@ -116,11 +117,18 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, render
                   caseGroups.get(caseGroupKey).push(aCase)
                 })
 
-                // If the legend attribute is numeric, sort legendCats in descending order making sure to handle any NaN
-                // values for cases that don't have a numeric value for the legend attribute.
-                if (dataConfig.attributeType("legend") === "numeric") {
+                // If the legend attribute is numeric or date, sort legendCats in descending order. NaN values
+                // (cases that don't have a numeric/date value for the legend attribute) are handled by the comparator.
+                const legendType = dataConfig.attributeType("legend")
+                if (legendType === "numeric") {
                   legendCats.sort((cat1: string, cat2: string) => {
                     return numericSortComparator({a: Number(cat1), b: Number(cat2), order: "desc"})
+                  })
+                } else if (legendType === "date") {
+                  legendCats.sort((cat1: string, cat2: string) => {
+                    const a = convertToDate(cat1)?.valueOf() ?? NaN
+                    const b = convertToDate(cat2)?.valueOf() ?? NaN
+                    return numericSortComparator({a, b, order: "desc"})
                   })
                 }
                 const cellMap = dataConfig.cellMap(primarySplitAttrRole, secondarySplitAttrRole)
