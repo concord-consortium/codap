@@ -35,6 +35,8 @@ import FileSaveIcon from "../../assets/cfm/file-save-icon.nosvgr.svg"
 import FileShareIcon from "../../assets/cfm/file-share-icon.nosvgr.svg"
 import FileSharedViewIcon from "../../assets/cfm/file-shared-view-icon.nosvgr.svg"
 import FileUpdateSharedViewIcon from "../../assets/cfm/file-update-shared-view-icon.nosvgr.svg"
+import GraphicsAccelOffIcon from "../../assets/cfm/graphics-acceleration-turn-off-icon.nosvgr.svg"
+import GraphicsAccelOnIcon from "../../assets/cfm/graphics-acceleration-turn-on-icon.nosvgr.svg"
 import HelpForumIcon from "../../assets/cfm/help-forum-icon.nosvgr.svg"
 import HelpIcon from "../../assets/cfm/icon-help.nosvgr.svg"
 import HelpPagesIcon from "../../assets/cfm/help-pages-and-videos-icon.nosvgr.svg"
@@ -207,6 +209,7 @@ function getHelpUrl() {
 
 function getMenuBar(cfm: CloudFileManager) {
   const isToolbarTop = persistentState.toolbarPosition === "Top"
+  const isAccelOn = !persistentState.disableGraphicsAcceleration
   return {
     onInfoClick() {
       window.open(projectWebSiteURL, "_blank")
@@ -251,6 +254,19 @@ function getMenuBar(cfm: CloudFileManager) {
             action() {
               runInAction(() => {
                 persistentState.setToolbarPosition(isToolbarTop ? "Left" : "Top")
+                cfm.client.updateMenuBar(getMenuBar(cfm))
+              })
+            }
+          },
+          "separator",
+          {
+            icon: isAccelOn ? GraphicsAccelOffIcon : GraphicsAccelOnIcon,
+            name: t(`V3.AppController.optionMenuItems.graphicsAcceleration${isAccelOn ? "On" : "Off"}`),
+            action() {
+              runInAction(() => {
+                // If accel is currently on, this click disables it (true);
+                // if currently off, this click re-enables it (false).
+                persistentState.setDisableGraphicsAcceleration(isAccelOn)
                 cfm.client.updateMenuBar(getMenuBar(cfm))
               })
             }
