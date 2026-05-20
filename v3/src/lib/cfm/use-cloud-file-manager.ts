@@ -1,5 +1,5 @@
 import { CFMAppOptions, CloudFileManager, CloudFileManagerClientEvent } from "@concord-consortium/cloud-file-manager"
-import { runInAction } from "mobx"
+import { reaction, runInAction } from "mobx"
 import { useEffect, useRef } from "react"
 import { Root, createRoot } from "react-dom/client"
 import { useMemo } from "use-memo-one"
@@ -447,6 +447,17 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, hookOptions?: IUs
 
     appState.setCFM(cfm)
   }, [cfm, onFileOpened, onUrlImported, onFileImported])
+
+  useEffect(function refreshMenuBarOnPersistentStateChange() {
+    // Rebuild the menu bar whenever PersistentState fields read by getMenuBar
+    // change (e.g., from cross-tab storage sync). Without this, this tab's
+    // settings menu items display stale labels/icons and the action() closures
+    // toggle the wrong direction.
+    return reaction(
+      () => [persistentState.toolbarPosition, persistentState.disableGraphicsAcceleration],
+      () => cfm.client.updateMenuBar(getMenuBar(cfm))
+    )
+  }, [cfm])
 
   useEffect(() => {
     // Ideally, the CFM would be responsible for marking its images as non-draggable,
