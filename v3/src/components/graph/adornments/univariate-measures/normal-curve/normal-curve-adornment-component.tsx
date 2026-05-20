@@ -47,8 +47,9 @@ export const NormalCurveAdornmentComponent = observer(
       labelRef, defaultLabelTopOffset
     } = useAdornmentAttributes()
     const helper = useMemo(() => {
-      return new UnivariateMeasureAdornmentHelper(cellKey, isVerticalRef, layout, model, containerId)
-    }, [cellKey, containerId, isVerticalRef, layout, model])
+      return new UnivariateMeasureAdornmentHelper(cellKey, isVerticalRef, layout, model, containerId,
+        undefined, xAxis, yAxis)
+    }, [cellKey, containerId, isVerticalRef, layout, model, xAxis, yAxis])
     const isHistogram = graphModel.plotType === "histogram"
     const binnedPlot = isBinnedPlotModel(graphModel.plot) ? graphModel.plot : undefined
     const useGaussianFit = isHistogram && getDocumentContentPropertyFromNode(graphModel, "gaussianFitEnabled")
@@ -305,7 +306,8 @@ export const NormalCurveAdornmentComponent = observer(
       const numericAttr = dataConfig?.dataset?.attrFromID(numericAttrId) ?? null
       const numericAttrUnits = numericAttr?.units
       const meanDisplayValue = helper.formatValueForScale(mean)
-      const sdDisplayValue = helper.formatValueForScale(stdDev)
+      // Standard deviation is a *duration* on a date axis, not an absolute date.
+      const sdDisplayValue = helper.formatDateDurationForScale(stdDev)
 
       addNormalCurve(selectionsObj)
 

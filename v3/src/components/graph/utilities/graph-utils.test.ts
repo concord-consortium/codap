@@ -1,7 +1,7 @@
 import {ptInRect} from "../../data-display/data-display-utils"
 import { GraphLayout } from "../models/graph-layout"
 import {
-  dateTimeSlopeUnit, equationString, formatValue, kMinus, lineToAxisIntercepts,
+  dateTimeSlopeUnit, equationString, formatDateDuration, formatValue, kMinus, lineToAxisIntercepts,
   lsrlEquationString, valueLabelString
 } from "./graph-utils"
 
@@ -142,6 +142,30 @@ describe("dateTimeSlopeUnit", () => {
     expect(dateTimeSlopeUnit(86400 * 30).multiplier).toBe(86400)
     expect(dateTimeSlopeUnit(86400 * 365 * 5).label).toMatch(/year/)
     expect(dateTimeSlopeUnit(86400 * 365 * 5).multiplier).toBeCloseTo(86400 * 365.25)
+  })
+})
+
+describe("formatDateDuration", () => {
+  it("selects unit by x-axis range and scales the duration accordingly", () => {
+    expect(formatDateDuration(30, 60)).toBe("30 seconds")
+    expect(formatDateDuration(600, 3600)).toBe("10 minutes")
+    expect(formatDateDuration(7200, 86400)).toBe("2 hours")
+    expect(formatDateDuration(86400 * 30, 86400 * 30)).toBe("30 days")
+    expect(formatDateDuration(86400 * 365 * 5, 86400 * 365 * 5)).toBe("5 years")
+  })
+
+  it("uses the singular unit form when the scaled count is 1", () => {
+    expect(formatDateDuration(1, 60)).toBe("1 second")
+    expect(formatDateDuration(60, 3600)).toBe("1 minute")
+    expect(formatDateDuration(3600, 86400)).toBe("1 hour")
+    expect(formatDateDuration(86400, 86400 * 30)).toBe("1 day")
+    expect(formatDateDuration(86400 * 365.25, 86400 * 365 * 5)).toBe("1 year")
+  })
+
+  it("pluralizes from the rounded display value, not the raw scaled value", () => {
+    // 0.99998 rounds to "1" for display, so the unit should be singular too.
+    expect(formatDateDuration(0.99998, 60)).toBe("1 second")
+    expect(formatDateDuration(1.001, 60)).toBe("1 second")
   })
 })
 

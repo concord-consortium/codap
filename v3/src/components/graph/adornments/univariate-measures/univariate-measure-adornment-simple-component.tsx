@@ -25,8 +25,8 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
     const { cellCounts } = useAdornmentCells(model, cellKey)
     const helper = useMemo(() => {
       return new UnivariateMeasureAdornmentHelper(cellKey, isVerticalRef, layout, model,
-        containerId, defaultLabelTopOffset)
-    }, [cellKey, containerId, defaultLabelTopOffset, isVerticalRef, layout, model])
+        containerId, defaultLabelTopOffset, xAxis, yAxis)
+    }, [cellKey, containerId, defaultLabelTopOffset, isVerticalRef, layout, model, xAxis, yAxis])
     const isBlockingOtherMeasure = dataConfig &&
       helper.blocksOtherMeasure({adornmentsStore, attrId: numericAttrId, dataConfig})
     const valueObjRef = useRef<IValue>({})

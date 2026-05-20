@@ -1,6 +1,7 @@
 import { comparer, observable, reaction } from "mobx"
 import { addDisposer, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { median } from "mathjs/number"
+import { isNumericAttributeType } from "../../../../../models/data/attribute-types"
 import { quantileOfSortedArray } from "../../../../../utilities/math-utils"
 import { UnivariateMeasureAdornmentModel } from "../univariate-measure-adornment-model"
 import { kBoxPlotType, kBoxPlotValueTitleKey } from "./box-plot-adornment-types"
@@ -183,7 +184,7 @@ export const BoxPlotAdornmentModel = UnivariateMeasureAdornmentModel
     updateCategories(options: IUpdateCategoriesOptions) {
       const { dataConfig, resetPoints } = options
       const { xAttrId, yAttrId, xAttrType } = dataConfig.getCategoriesOptions()
-      const attrId = xAttrId && xAttrType === "numeric" ? xAttrId : yAttrId
+      const attrId = xAttrId && isNumericAttributeType(xAttrType) ? xAttrId : yAttrId
       dataConfig.getAllCellKeys().forEach(cellKey => {
         const instanceKey = self.instanceKey(cellKey)
         const boxPlotParams = self.computeBoxPlotParamValues(attrId, cellKey, dataConfig)

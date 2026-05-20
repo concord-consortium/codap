@@ -34,8 +34,9 @@ export const StandardErrorAdornmentComponent = observer(
       numericAttrId, showLabel, isVerticalRef, valueRef,
       labelRef, defaultLabelTopOffset } = useAdornmentAttributes()
     const helper = useMemo(() => {
-      return new UnivariateMeasureAdornmentHelper(cellKey, isVerticalRef, layout, model, containerId)
-    }, [cellKey, containerId, isVerticalRef, layout, model])
+      return new UnivariateMeasureAdornmentHelper(cellKey, isVerticalRef, layout, model, containerId,
+        undefined, xAxis, yAxis)
+    }, [cellKey, containerId, isVerticalRef, layout, model, xAxis, yAxis])
     const {cellCounts} = useAdornmentCells(model, cellKey)
     const isBlockingOtherMeasure = dataConfig &&
       helper.blocksOtherMeasure({adornmentsStore, attrId: numericAttrId, dataConfig})

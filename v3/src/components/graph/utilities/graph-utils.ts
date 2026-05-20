@@ -3,6 +3,7 @@ import {IDataSet} from "../../../models/data/data-set"
 import {
   defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth
 } from "../../../utilities/color-utils"
+import { DateUnit, getDateUnitLabel } from "../../../utilities/date-utils"
 import { isFiniteNumber } from "../../../utilities/math-utils"
 import { t } from "../../../utilities/translation/translate"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
@@ -329,6 +330,37 @@ function sigFigFractionDigits(value: number, sigFigs: number): number {
   if (!isFiniteNumber(value) || value === 0) return 0
   const magnitude = Math.floor(Math.log10(Math.abs(value)))
   return Math.max(0, sigFigs - 1 - magnitude)
+}
+
+// Same unit-selection thresholds as dateTimeSlopeUnit, but returns the bare unit name
+// (e.g. "day") so callers can route the label through getDateUnitLabel for correct
+// singular/plural forms. Used for duration-valued adornment labels (IQR, stddev,
+// stderr, MAD range) on date axes.
+function dateTimeDurationUnit(xRangeSeconds: number): { multiplier: number, unit: DateUnit } {
+  if (xRangeSeconds < 120) {
+    return { multiplier: 1, unit: "second" }
+  } else if (xRangeSeconds < 60 * 60 * 2) { // 2 hours
+    return { multiplier: 60, unit: "minute" }
+  } else if (xRangeSeconds < 3600 * 24 * 2) { // 2 days
+    return { multiplier: 3600, unit: "hour" }
+  } else if (xRangeSeconds < 3600 * 24 * 365) { // 365 days
+    return { multiplier: 3600 * 24, unit: "day" }
+  }
+  return { multiplier: 3600 * 24 * 365.25, unit: "year" }
+}
+
+// Formats a duration (in seconds) using a human-scale time unit picked from the visible
+// date-axis range, e.g. "30 days" or "1 hour". Used for box-plot IQR, normal-curve
+// standard deviation, standard error, and similar duration-valued labels on date axes.
+export function formatDateDuration(durationSeconds: number, xRangeSeconds: number): string {
+  const { multiplier, unit } = dateTimeDurationUnit(xRangeSeconds)
+  const scaled = durationSeconds / multiplier
+  const fractionDigits = sigFigFractionDigits(scaled, 3)
+  // Pluralize based on the rounded value so the unit matches the displayed number
+  // (e.g. scaled=0.99998 rounds to "1" → "1 second", not "1 seconds").
+  const factor = 10 ** fractionDigits
+  const rounded = Math.round(scaled * factor) / factor
+  return `${formatValue(scaled, fractionDigits)} ${getDateUnitLabel(unit, rounded)}`
 }
 
 // Slope-only equation form used when x is a date-time axis. The intercept (y at the Unix epoch)
