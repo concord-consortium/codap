@@ -258,7 +258,7 @@ function getMenuBar(cfm: CloudFileManager) {
               })
             }
           },
-          "separator",
+          { separator: true },
           {
             icon: isAccelOn ? GraphicsAccelOffIcon : GraphicsAccelOnIcon,
             name: t(`V3.AppController.optionMenuItems.graphicsAcceleration${isAccelOn ? "On" : "Off"}`),
