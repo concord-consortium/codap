@@ -1647,6 +1647,8 @@
     "V3.Undo.errorTester.create": "Undo adding error tester",
     "V3.Redo.errorTester.create": "Redo adding error tester",
 
-    "V3.AppController.optionMenuItems.positionToolShelfLeft": "Toolbar Position: Top",
-    "V3.AppController.optionMenuItems.positionToolShelfTop": "Toolbar Position: Left"
+    "V3.AppController.optionMenuItems.positionToolShelfLeft": "Toolbar Position: Move to the top",
+    "V3.AppController.optionMenuItems.positionToolShelfTop": "Toolbar Position: Move to the left",
+    "V3.AppController.optionMenuItems.graphicsAccelerationOn": "Graphics Acceleration: Turn off",
+    "V3.AppController.optionMenuItems.graphicsAccelerationOff": "Graphics Acceleration: Turn on"
 }
