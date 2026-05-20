@@ -77,6 +77,15 @@ export abstract class PointRendererBase {
    */
   abstract get capability(): RendererCapability
 
+  /**
+   * Return a canvas snapshot of the rendered content for use by image-export pipelines.
+   * Default returns the live canvas; WebGL renderers override to extract a static snapshot
+   * (a live WebGL canvas is empty when read by external pipelines like html-to-image).
+   */
+  snapshotCanvas(): HTMLCanvasElement | null {
+    return this.canvas
+  }
+
   // ===== Abstract methods (subclasses must implement) =====
 
   /**
