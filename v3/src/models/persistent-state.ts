@@ -7,7 +7,8 @@ const kPersistentStateKey = "persistentState"
   (and thus trigger an auto-save), but is saved to local storage between sessions and shared between tabs.
  */
 export const PersistentState = types.model("PersistentState", {
-  toolbarPosition: types.optional(types.enumeration(["Top", "Left"]), "Top")
+  toolbarPosition: types.optional(types.enumeration(["Top", "Left"]), "Top"),
+  disableGraphicsAcceleration: types.maybe(types.boolean)
 })
 .actions(self => ({
   save() {
@@ -21,6 +22,10 @@ export const PersistentState = types.model("PersistentState", {
 .actions(self => ({
   setToolbarPosition(position: "Top" | "Left") {
     self.toolbarPosition = position
+    self.save()
+  },
+  setDisableGraphicsAcceleration(disabled: boolean) {
+    self.disableGraphicsAcceleration = disabled
     self.save()
   }
 }))

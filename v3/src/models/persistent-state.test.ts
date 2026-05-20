@@ -8,4 +8,11 @@ describe("PersistentState", () => {
     persistentState.setToolbarPosition("Top")
     expect(persistentState.toolbarPosition).toBe("Top")
   })
+  it("can toggle disableGraphicsAcceleration", () => {
+    expect(persistentState.disableGraphicsAcceleration).toBeUndefined()
+    persistentState.setDisableGraphicsAcceleration(true)
+    expect(persistentState.disableGraphicsAcceleration).toBe(true)
+    persistentState.setDisableGraphicsAcceleration(false)
+    expect(persistentState.disableGraphicsAcceleration).toBe(false)
+  })
 })
