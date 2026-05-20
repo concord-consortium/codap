@@ -1,10 +1,10 @@
 import { reaction } from "mobx"
 import { observer } from "mobx-react-lite"
 import { useCallback, useEffect } from "react"
-import {axisGap} from "../../../axis/axis-types"
+import {axisGap, labelPaddingY} from "../../../axis/axis-types"
 import {getStringBounds} from "../../../axis/axis-utils"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
-import { IBaseLegendProps, kLegendLabelTopPadding } from "./legend-common"
+import { IBaseLegendProps } from "./legend-common"
 
 import vars from "../../../vars.scss"
 
@@ -22,7 +22,9 @@ export const ColorLegend = observer(function ColorLegend({layerIndex, setDesired
     const computeDesiredExtent = () => {
       if (dataConfiguration?.placeCanHaveZeroExtent('legend')) return 0
 
-      return labelHeight + 2 * axisGap + kLegendLabelTopPadding
+      // Reserve space for the attribute label's background rect (labelHeight + 2 *
+      // labelPaddingY) plus a small buffer below it.
+      return labelHeight + 2 * labelPaddingY + 2 * axisGap
     }
 
     setDesiredExtent(layerIndex, computeDesiredExtent())

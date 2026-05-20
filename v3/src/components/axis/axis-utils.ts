@@ -9,7 +9,7 @@ import { determineLevels } from "../../utilities/date-utils"
 import { GraphLayout } from "../graph/models/graph-layout"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { kAxisGap, kAxisTickLength, kDefaultFontHeight } from "./axis-constants"
-import {AxisPlace, labelPaddingX} from "./axis-types"
+import {AxisPlace, labelPaddingX, labelPaddingY} from "./axis-types"
 import { updateAxisNotification } from "./models/axis-notifications"
 import { IBaseNumericAxisModel } from "./models/base-numeric-axis-model"
 
@@ -376,7 +376,7 @@ export function renderLabelBackground<GElement extends BaseType>(
   if (!textBBox) return
 
   const paddingX = labelPaddingX
-  const paddingY = 4
+  const paddingY = labelPaddingY
   const arrowWidth = 24
 
   const rectWidth = textBBox.width + paddingX + arrowWidth
