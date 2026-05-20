@@ -276,11 +276,13 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
-  // Track whether the last yield was caused by an effective force-to-canvas,
-  // so that lifting the force can re-request a normal-priority context.
-  const yieldedDueToForceCanvasRef = useRef(false)
-
-  // Manage WebGL context when effective forced renderer type changes
+  // Manage WebGL context when effective forced renderer type changes.
+  // Three cases:
+  //   1. Force Canvas + we hold a context → yield it.
+  //   2. Force WebGL + no context → request at high priority.
+  //   3. No force + no context + visible → request at normal priority. This
+  //      self-corrects after a force-canvas is lifted, and also recovers if
+  //      the context was lost for any other reason (e.g., eviction).
   useEffect(() => {
     if (skipContextRegistration) return
 
@@ -288,7 +290,6 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
       // Forcing Canvas mode - release the WebGL context back to the pool
       webGLContextManager.yieldContext(id)
       setHasWebGLContext(false)
-      yieldedDueToForceCanvasRef.current = true
     } else if (effectiveForcedType === "webgl" && !hasWebGLContext) {
       // Forcing WebGL mode - request a high-priority context (user-initiated action)
       const highPriority = webGLContextManager.getNextUserInteractionPriority()
@@ -301,15 +302,11 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
         setHasWebGLContext(true)
         setContextWasDenied(false)
       }
-      yieldedDueToForceCanvasRef.current = false
-    } else if (
-      effectiveForcedType == null &&
-      yieldedDueToForceCanvasRef.current &&
-      !hasWebGLContext &&
-      isVisible
-    ) {
-      // Force-to-canvas was just lifted; re-request a normal-priority context.
-      yieldedDueToForceCanvasRef.current = false
+    } else if (effectiveForcedType === null && !hasWebGLContext && isVisible) {
+      // No force is active but we don't have a context. Try to (re-)acquire one
+      // at normal priority. This covers two cases: a previously-active
+      // force-to-canvas has been lifted, or the context was lost for another
+      // reason (e.g., eviction) and conditions may now allow a retry.
       const granted = webGLContextManager.requestContext(contextConsumer)
       if (granted) {
         setHasWebGLContext(true)
