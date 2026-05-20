@@ -50,18 +50,23 @@ async function compositeMapPng(
     for (const renderer of rendererArray) {
       // Canvas-2D renderers are already captured by html-to-image, so only composite WebGL layers
       if (!renderer?.canvas || !renderer.isVisible || renderer.capability !== "webgl") continue
-      const sourceCanvas = renderer.snapshotCanvas()
-      if (!sourceCanvas || sourceCanvas.width === 0 || sourceCanvas.height === 0) continue
-      const canvasRect = renderer.canvas.getBoundingClientRect()
-      if (canvasRect.width <= 0 || canvasRect.height <= 0) continue
-      ctx.drawImage(
-        sourceCanvas,
-        0, 0, sourceCanvas.width, sourceCanvas.height,
-        (canvasRect.left - displayRect.left) * scaleX,
-        (canvasRect.top - displayRect.top) * scaleY,
-        canvasRect.width * scaleX,
-        canvasRect.height * scaleY
-      )
+      try {
+        const sourceCanvas = renderer.snapshotCanvas()
+        if (!sourceCanvas || sourceCanvas.width === 0 || sourceCanvas.height === 0) continue
+        const canvasRect = renderer.canvas.getBoundingClientRect()
+        if (canvasRect.width <= 0 || canvasRect.height <= 0) continue
+        ctx.drawImage(
+          sourceCanvas,
+          0, 0, sourceCanvas.width, sourceCanvas.height,
+          (canvasRect.left - displayRect.left) * scaleX,
+          (canvasRect.top - displayRect.top) * scaleY,
+          canvasRect.width * scaleX,
+          canvasRect.height * scaleY
+        )
+      } catch (e) {
+        // Skip a failing layer rather than aborting the whole export
+        console.warn("Failed to composite map point layer:", e)
+      }
     }
   }
 

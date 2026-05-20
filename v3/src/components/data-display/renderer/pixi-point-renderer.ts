@@ -105,10 +105,17 @@ export class PixiPointRenderer extends PointRendererBase {
   }
 
   // The live WebGL canvas reads as empty from external pipelines (e.g. html-to-image),
-  // so extract a static snapshot via PIXI's extract API instead.
+  // so extract a static snapshot via PIXI's extract API instead. The extract call can
+  // throw on context loss or partial init, so callers see a null snapshot on failure
+  // rather than a thrown error.
   override snapshotCanvas(): HTMLCanvasElement | null {
     if (!this.renderer) return null
-    return this.renderer.extract.canvas(this.stage) as HTMLCanvasElement
+    try {
+      return this.renderer.extract.canvas(this.stage) as HTMLCanvasElement
+    } catch (e) {
+      console.warn("[PixiPointRenderer] snapshotCanvas extract failed:", e)
+      return null
+    }
   }
 
   get anyTransitionActive(): boolean {
