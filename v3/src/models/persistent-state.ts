@@ -24,6 +24,9 @@ export const PersistentState = types.model("PersistentState", {
     self.toolbarPosition = position
     self.save()
   },
+  // Signature is `boolean`, not `boolean | undefined`: on re-enable we write
+  // `false` explicitly rather than clearing to `undefined`, so the change
+  // fires MobX reactions and the cross-tab `storage` event propagates.
   setDisableGraphicsAcceleration(disabled: boolean) {
     self.disableGraphicsAcceleration = disabled
     self.save()
