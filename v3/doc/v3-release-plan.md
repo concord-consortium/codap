@@ -200,6 +200,7 @@ Activation of work prepared in Phase 1. By this point all code is released and a
 - [ ] Activate V2 → V3 redirects (attach the gated CloudFront Function to the production `codap.concord.org` cache behavior, or flip the in-function gate)
 - [ ] Verify Google Drive double-click works through the CloudFront Function (Drive Open URL pattern → V3 with hash preserved); Drive config cleanup (Option B) deferred to Phase 4
 - [ ] Content team updates "Launch CODAP" button destination on the marketing site
+- [ ] Restore V3 release-announcement banner content: copy `s3://codap-resources/notifications/v3-release-announcement.json` into `v3-announcement-banner.json` (during the pre-release period, `v3-announcement-banner.json` holds beta-period content; this step swaps it for the release-period content). See `s3://codap-resources/notifications/README.md` for details.
 - [ ] **Already live before Phase 3:** V2 final release with V3-doc detection; V3 writing native V3 format; V2 application preserved at `/v2/`
 - [ ] User-facing launch communications — *[needs story]*
 
