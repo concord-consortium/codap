@@ -1,12 +1,18 @@
 import React, { useEffect, useLayoutEffect, useState } from "react"
-import { kCodapResourcesUrl } from "../../constants"
 import {
   BannerConfig, dismissBanner, fetchBannerConfig, isValidButtonUrl, parseMessageWithLinks
 } from "./announcement-banner-utils"
 
 import "./announcement-banner.scss"
 
-const kAnnouncementBannerUrl = `${kCodapResourcesUrl}/notifications/v3-announcement-banner.json`
+// Fetch directly from codap-resources.concord.org (CloudFront distribution
+// E1RS9TZVZBEEEC) rather than via codap.concord.org/codap-resources/* (E3H9X49AG3GYSO).
+// The latter caches at the edge for 1 day under the S3-CORS policy, ignoring origin
+// Cache-Control: no-cache headers on the banner JSON. The former honors no-cache properly.
+// Other codap-resources paths (plugins, examples) still go through codap.concord.org
+// where they benefit from caching and same-domain plugin requirements.
+const kAnnouncementBannerUrl =
+  "https://codap-resources.concord.org/notifications/v3-announcement-banner.json"
 
 export function AnnouncementBanner() {
   const [config, setConfig] = useState<BannerConfig | null>(null)
