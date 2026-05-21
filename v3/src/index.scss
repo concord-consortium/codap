@@ -6,10 +6,27 @@ html, body {
 body {
   user-select: none;
 
-  /* Remove outline for non-keyboard :focus */
-  *:focus:not(:focus-visible) {
-    // chakra uses box-shadow for focus highlight rather than outline
+  /* Remove the box-shadow focus highlight for non-keyboard :focus.
+     (Chakra draws focus highlights with box-shadow rather than outline.)
+     .menu-list-container is excluded — see the rule below. */
+  *:focus:not(:focus-visible):not(.menu-list-container) {
     box-shadow: none !important;
+  }
+
+  /* .menu-list-container is the CFM menu list (File, Settings, etc.) — a class
+     owned by the @concord-consortium/cloud-file-manager package. It is focused
+     programmatically when a menu opens via the mouse, and the browser resolves
+     :focus-visible for it inconsistently, so we don't style it off focus state:
+     it keeps its decorative drop shadow (excluded from the reset above) and
+     shows no focus outline here. Keyboard users navigate the menu items, not
+     the container.
+
+     This fix lives in CODAP because the box-shadow reset above is CODAP's, but
+     CFM ideally would also style its own menu list to be resilient to any
+     consumer's focus reset — a CFM-side rule would complement this one as
+     defense in depth. */
+  .menu-list-container:focus {
+    outline: none;
   }
 
   /* Show outline for keyboard :focus-visible */
