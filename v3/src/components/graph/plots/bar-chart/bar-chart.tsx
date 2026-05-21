@@ -3,7 +3,6 @@ import { observer } from "mobx-react-lite"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { logStringifiedObjectMessage } from "../../../../lib/log-message"
-import { numericSortComparator } from "../../../../utilities/data-utils"
 import { t } from "../../../../utilities/translation/translate"
 import { useTileModelContext } from "../../../../hooks/use-tile-model-context"
 import { tileNotification } from "../../../../models/tiles/tile-notifications"
@@ -16,6 +15,7 @@ import { useGraphLayoutContext } from "../../hooks/use-graph-layout-context"
 import { usePlotResponders } from "../../hooks/use-plot"
 import { setPointCoordinates } from "../../utilities/graph-utils"
 import { barCompressionFactorForCase, barCoverDimensions, renderBarCovers } from "../bar-utils"
+import { sortLegendCategories } from "./bar-chart-utils"
 import { isBarChartModel } from "./bar-chart-model"
 
 export const BarChart = observer(function BarChart({ abovePointsGroupRef, renderer }: IPlotProps) {
@@ -88,6 +88,9 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, render
         : []
       const primCatsCount = primCatsArray.length
       const legendCats = dataConfig.categorySetForAttrRole("legend")?.values ?? []
+      // sortLegendCategories returns a sorted copy: `legendCats` is the CategorySet's shared
+      // observable array, so sorting it in place would corrupt its canonical ordering and index map.
+      const sortedLegendCats = sortLegendCategories(legendCats, dataConfig.attributeType("legend"))
       Object.entries(catMap).forEach(([primeCat, secCats]) => {
         Object.entries(secCats).forEach(([secCat, primSplitCats]) => {
           Object.entries(primSplitCats).forEach(([primeSplitCat, secSplitCats]) => {
@@ -116,17 +119,10 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, render
                   caseGroups.get(caseGroupKey).push(aCase)
                 })
 
-                // If the legend attribute is numeric, sort legendCats in descending order making sure to handle any NaN
-                // values for cases that don't have a numeric value for the legend attribute.
-                if (dataConfig.attributeType("legend") === "numeric") {
-                  legendCats.sort((cat1: string, cat2: string) => {
-                    return numericSortComparator({a: Number(cat1), b: Number(cat2), order: "desc"})
-                  })
-                }
                 const cellMap = dataConfig.cellMap(primarySplitAttrRole, secondarySplitAttrRole)
 
                 // For each legend value, create a bar cover
-                legendCats.forEach((legendCat: string) => {
+                sortedLegendCats.forEach((legendCat: string) => {
                   const matchingCases =
                     caseGroups.get(`${legendCat}-${primeCat}-${exPrimeCatKey}-${exSecCatKey}`) ?? []
                   const maxInCell = minInCell + matchingCases.length
