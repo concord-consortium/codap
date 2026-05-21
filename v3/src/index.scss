@@ -13,11 +13,18 @@ body {
     box-shadow: none !important;
   }
 
-  /* The CFM menu list (File, Settings, etc.) is focused programmatically when
-     a menu opens via the mouse, and the browser resolves :focus-visible for it
-     inconsistently. So we don't style it off focus state: it keeps its
-     decorative drop shadow (excluded from the reset above) and shows no focus
-     outline here. Keyboard users navigate the menu items, not the container. */
+  /* .menu-list-container is the CFM menu list (File, Settings, etc.) — a class
+     owned by the @concord-consortium/cloud-file-manager package. It is focused
+     programmatically when a menu opens via the mouse, and the browser resolves
+     :focus-visible for it inconsistently, so we don't style it off focus state:
+     it keeps its decorative drop shadow (excluded from the reset above) and
+     shows no focus outline here. Keyboard users navigate the menu items, not
+     the container.
+
+     This fix lives in CODAP because the box-shadow reset above is CODAP's, but
+     CFM ideally would also style its own menu list to be resilient to any
+     consumer's focus reset — a CFM-side rule would complement this one as
+     defense in depth. */
   .menu-list-container:focus {
     outline: none;
   }
