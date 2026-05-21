@@ -39,14 +39,14 @@ Then ask the user what they want to do, or proceed with the task if it was alrea
 
 ## Notifications folder
 
-`notifications/` contains dynamic banner content. The two CODAP versions read it via different consumers:
+`notifications/` contains banner content loaded by CODAP at runtime. The content is intentionally dynamic — it lives here on S3 rather than built into the application, so it can be updated without a code release.
 
-| File | Consumer | Purpose |
-|---|---|---|
-| `announcing-v3-banner.json` | CODAP V2 — read by CFM | V2 banner directing users to V3 beta (CFM-8) |
-| `v3-announcement-banner.json` | CODAP V3 — read by V3 directly (separate from CFM's banner mechanism, via V3's own AnnouncementBanner component) | V3 welcome banner shown post-cutover (CODAP-1319) |
+| File | Loaded by |
+|---|---|
+| `announcing-v3-banner.json` | CODAP V2, via the CFM banner mechanism |
+| `v3-announcement-banner.json` | CODAP V3, via its own AnnouncementBanner component (separate from CFM) |
 
-See `s3://codap-resources/notifications/README.md` for the full banner JSON schema (required + optional styling fields).
+Other files in this folder may exist for operational reasons (e.g., parked content swapped in/out at release time). See `s3://codap-resources/notifications/README.md` for the full file inventory and the banner JSON schema.
 
 ## Common Commands
 
