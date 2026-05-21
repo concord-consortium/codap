@@ -77,7 +77,9 @@ context("Test graph axes with split, multi-y, bars, and overflow configurations"
       .should("have.text", "Height")
     cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").should("have.length", 0)
     ah.verifyYAxisTickMarksDisplayed()
-    ah.verifyAxisTickLabel("left", "0", 0)
+    // Single y-attribute: the full-height left axis fits a finer tick interval than the
+    // split (two-y) cases above and below, so its first tick is "-0.5" rather than "0".
+    ah.verifyAxisTickLabel("left", "-0.5", 0)
 
     // Redo the last change (Sleep => left split)
     toolbar.getRedoTool().click()

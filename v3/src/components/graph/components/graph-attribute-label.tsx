@@ -9,7 +9,7 @@ import { useTileSelectionContext } from "../../../hooks/use-tile-selection-conte
 import { AttributeType } from "../../../models/data/attribute-types"
 import { IDataSet } from "../../../models/data/data-set"
 import { GraphPlace, isVertical } from "../../axis-graph-shared"
-import { labelMargin } from "../../axis/axis-types"
+import { labelMargin, labelPaddingY } from "../../axis/axis-types"
 import { getStringBounds, renderLabelBackground } from "../../axis/axis-utils"
 import { AttributeLabel } from "../../data-display/components/attribute-label"
 import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
@@ -215,13 +215,20 @@ export const GraphAttributeLabel =
         // With dominant-baseline: central, tY sets the visual center of the text.
         // Place center at labelMargin + labelBounds.height/2 from the outer edge.
         labelCenter = labelMargin + labelBounds.height / 2,
+        // For the bottom axis, position the label so its background rect aligns with the
+        // bottom edge of the axis bounds (no labelMargin below). The legend (or tile edge)
+        // immediately below provides any further visual separation. The +1 is a sub-pixel
+        // safety margin: labelBounds.height can be fractional, and without it the rect's
+        // bottom can spill 0.25–0.5 px past the bounds edge and be clipped by the legend's
+        // background.
+        bottomLabelCenter = labelPaddingY + labelBounds.height / 2 + 1,
         tX = place === 'left' ? labelCenter
           : place === 'legend' ? bounds.left
             : ['rightNumeric', 'rightCat'].includes(place) ? bounds.width - labelCenter
               : halfRange,
         tY = isVertical(place) ? halfRange
           : place === 'legend' ? labelBounds.height / 2
-            : place === 'top' ? labelCenter : bounds.height - labelCenter,
+            : place === 'top' ? labelCenter : bounds.height - bottomLabelCenter,
         tRotation = isVertical(place) ? ` rotate(-90,${tX},${tY})` : ''
 
       select(labelRef.current).selectAll(`text.${unusedClassName}`).remove()

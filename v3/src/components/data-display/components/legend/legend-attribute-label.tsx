@@ -2,13 +2,12 @@ import {useCallback, useEffect, useRef} from "react"
 import {select} from "d3"
 import {AttributeType} from "../../../../models/data/attribute-types"
 import {IDataSet} from "../../../../models/data/data-set"
-import {axisGap, labelPaddingX} from "../../../axis/axis-types"
+import {axisGap, labelPaddingX, labelPaddingY} from "../../../axis/axis-types"
 import {GraphPlace} from "../../../axis-graph-shared"
 import {getStringBounds, renderLabelBackground} from "../../../axis/axis-utils"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {useTileSelectionContext} from "../../../../hooks/use-tile-selection-context"
 import {AttributeLabel} from "../attribute-label"
-import { kLegendLabelTopPadding } from "./legend-common"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 
 import vars from "../../../vars.scss"
@@ -32,7 +31,11 @@ export const LegendAttributeLabel =
         labelFont = vars.labelFont,
         labelBounds = getStringBounds(attributeName, labelFont),
         tX = axisGap + labelPaddingX,  // offset so rect left edge aligns with legend keys
-        tY = labelBounds.height / 2 + kLegendLabelTopPadding
+        // With dominant-baseline: central, tY sets the vertical center of the text. Placing
+        // the center at labelBounds.height/2 + labelPaddingY puts the background rect's top
+        // edge at y=0 (the legend bounds top) — no overflow that could be clipped by the
+        // SVG viewport on hover, and no excess whitespace above the label.
+        tY = labelBounds.height / 2 + labelPaddingY
 
       const gSelection = select(labelRef.current)
       gSelection.classed('tile-selected', isTileSelected())
@@ -94,6 +97,7 @@ export const LegendAttributeLabel =
               enter.append('text')
                 .attr('class', className)
                 .attr('text-anchor', 'start')
+                .attr('dominant-baseline', 'central')
                 .attr('data-testid', className)
           )
         refreshLegendTitle()

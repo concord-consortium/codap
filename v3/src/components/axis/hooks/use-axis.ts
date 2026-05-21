@@ -9,7 +9,7 @@ import { useDataConfigurationContext } from "../../data-display/hooks/use-data-c
 import { useDataDisplayModelContextMaybe } from "../../data-display/hooks/use-data-display-model"
 import { IDataDisplayContentModel } from "../../data-display/models/data-display-content-model"
 import { kColorAxisExtent, kQualitativeAxisExtent } from "../axis-constants"
-import { AxisPlace, AxisScaleType, axisGap, axisPlaceToAxisFn, labelMargin } from "../axis-types"
+import { AxisPlace, AxisScaleType, axisGap, axisPlaceToAxisFn, labelMargin, labelPaddingY } from "../axis-types"
 import {
   collisionExists, computeBestNumberOfTicks,
   computeBestNumberOfVerticalAxisTicks,
@@ -83,8 +83,14 @@ export const useAxis = (axisPlace: AxisPlace) => {
       numbersHeight = getStringBounds('0').height,
       repetitions = multiScale?.repetitions ?? 1,
       d3Scale = multiScale?.scale ?? (isNumeric ? scaleLinear() : scaleOrdinal())
-    // labelMargin above and below the attribute label
-    let desiredExtent = axisTitleHeight + 2 * labelMargin
+    // For the bottom axis, the legend (or tile edge) sits immediately below, so we use
+    // only labelPaddingY below the label (aligning the label rect with the axis bounds
+    // edge) and a tighter labelPaddingY * 2 above. Other axes keep the larger labelMargin
+    // on both sides.
+    const isBottom = axisPlace === 'bottom'
+    const aboveLabelSpace = isBottom ? labelPaddingY * 2 : labelMargin
+    const belowLabelSpace = isBottom ? labelPaddingY : labelMargin
+    let desiredExtent = axisTitleHeight + aboveLabelSpace + belowLabelSpace
     let ticks: string[] = []
     switch (axisType) {
       case 'count':

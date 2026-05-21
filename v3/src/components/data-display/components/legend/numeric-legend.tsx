@@ -2,13 +2,13 @@ import { observer } from "mobx-react-lite"
 import { useCallback, useEffect, useState } from "react"
 import { setOrExtendSelection } from "../../../../models/data/data-set-utils"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
-import { axisGap } from "../../../axis/axis-types"
+import { axisGap, labelPaddingY } from "../../../axis/axis-types"
 import { getStringBounds } from "../../../axis/axis-utils"
 import { kChoroplethHeight } from "../../data-display-types"
 import { useDataConfigurationContext } from "../../hooks/use-data-configuration-context"
 import { useDataDisplayLayout } from "../../hooks/use-data-display-layout"
 import { choroplethLegend } from "./choropleth-legend/choropleth-legend"
-import { IBaseLegendProps, kLegendLabelTopPadding } from "./legend-common"
+import { IBaseLegendProps } from "./legend-common"
 
 import vars from "../../../vars.scss"
 
@@ -32,7 +32,9 @@ export const NumericLegend =
         if (dataConfiguration?.placeCanHaveZeroExtent('legend')) {
           return 0
         }
-        return labelHeight + kChoroplethHeight + numberHeight + 2 * axisGap + kLegendLabelTopPadding
+        // The label's background rect spans labelHeight + 2 * labelPaddingY vertically
+        // (paddingY above and below the text), so the choropleth needs to clear that.
+        return labelHeight + 2 * labelPaddingY + kChoroplethHeight + numberHeight + 2 * axisGap
       }
 
       if (!choroplethElt || !dataConfiguration) return
@@ -42,7 +44,7 @@ export const NumericLegend =
         {
           isDate: dataConfiguration.attributeType('legend') === 'date',
           width: tileWidth,
-          marginLeft: 6, marginTop: labelHeight + kLegendLabelTopPadding, marginRight: 6, ticks: 5,
+          marginLeft: 6, marginTop: labelHeight + 2 * labelPaddingY, marginRight: 6, ticks: 5,
           clickHandler: (bin: number, extend: boolean) => {
             const dataset = dataConfiguration.dataset
             const binCases = dataConfiguration.getCasesForLegendBin(bin)

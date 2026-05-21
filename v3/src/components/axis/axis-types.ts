@@ -4,6 +4,7 @@ import {axisBottom, axisLeft, axisRight, axisTop,
 export const axisGap = 5
 export const labelMargin = 13   // whitespace outside the label background rect (between rect and axis bounds)
 export const labelPaddingX = 8  // horizontal padding inside the label background rect (between rect edge and text)
+export const labelPaddingY = 4  // vertical padding inside the label background rect (between rect edge and text)
 
 // "rightCat" and "top" can only be categorical axes. "rightNumeric" can only be numeric
 export const AxisPlaces = ["bottom", "left", "rightCat", "top", "rightNumeric"] as const
