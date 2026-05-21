@@ -1,5 +1,26 @@
 # Changelog
 
+## Version 3.0.0-beta.2897 - May 21, 2026
+
+### ✨ Features & Improvements:
+- **CODAP-1319:** Update the announcement banner at the top of CODAP v3
+- **CODAP-1339:** Add a Graphics Acceleration toggle to the Settings menu
+
+### 🐞 Bug Fixes:
+- **CODAP-1318:** Include points in map PNG image exports
+- **CODAP-1328:** Support date axes in univariate and count adornments
+- **CODAP-1329:** Sort date-typed legend attributes chronologically
+- **CODAP-1340:** Fix doubled image scaling when exporting a map
+- **CODAP-1341:** Fix missing drop shadow and focus outline on CFM menus
+- **CODAP-1344:** Reduce excess space between the x-axis label and the legend
+- **CODAP-1345:** Restore the missing case card inspector panel
+
+### Asset Sizes
+|      File |          Size | % Change from Previous Release |
+|-----------|---------------|--------------------------------|
+|  main.css |  240732 bytes |                          0.57% |
+|  index.js | 7790976 bytes |                          0.13% |
+
 ## Version 3.0.0-beta.2885 - May 15, 2026
 
 ### 🐞 Bug Fixes:
