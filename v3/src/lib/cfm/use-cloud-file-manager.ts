@@ -1,5 +1,5 @@
 import { CFMAppOptions, CloudFileManager, CloudFileManagerClientEvent } from "@concord-consortium/cloud-file-manager"
-import { reaction, runInAction } from "mobx"
+import { reaction } from "mobx"
 import { useEffect, useRef } from "react"
 import { Root, createRoot } from "react-dom/client"
 import { useMemo } from "use-memo-one"
@@ -252,10 +252,10 @@ function getMenuBar(cfm: CloudFileManager) {
             icon: isToolbarTop ? ToolbarPositionLeftIcon : ToolbarPositionTopIcon,
             name: t(`V3.AppController.optionMenuItems.positionToolShelf${persistentState.toolbarPosition}`),
             action() {
-              runInAction(() => {
-                persistentState.setToolbarPosition(isToolbarTop ? "Left" : "Top")
-                cfm.client.updateMenuBar(getMenuBar(cfm))
-              })
+              // The refreshMenuBarOnPersistentStateChange reaction rebuilds the
+              // menu bar as soon as toolbarPosition changes, so no explicit
+              // updateMenuBar call is needed here.
+              persistentState.setToolbarPosition(isToolbarTop ? "Left" : "Top")
             }
           },
           { separator: true },
@@ -263,12 +263,10 @@ function getMenuBar(cfm: CloudFileManager) {
             icon: isAccelOn ? GraphicsAccelOffIcon : GraphicsAccelOnIcon,
             name: t(`V3.AppController.optionMenuItems.graphicsAcceleration${isAccelOn ? "On" : "Off"}`),
             action() {
-              runInAction(() => {
-                // If accel is currently on, this click disables it (true);
-                // if currently off, this click re-enables it (false).
-                persistentState.setDisableGraphicsAcceleration(isAccelOn)
-                cfm.client.updateMenuBar(getMenuBar(cfm))
-              })
+              // If accel is currently on, this click disables it (true);
+              // if currently off, this click re-enables it (false). The
+              // reaction rebuilds the menu bar; no explicit update needed.
+              persistentState.setDisableGraphicsAcceleration(isAccelOn)
             }
           }
         ]
