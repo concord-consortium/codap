@@ -125,10 +125,12 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, render
                     return numericSortComparator({a: Number(cat1), b: Number(cat2), order: "desc"})
                   })
                 } else if (legendType === "date") {
+                  // Precompute one epoch key per category so convertToDate isn't re-parsed on every sort comparison.
+                  const dateKeys = new Map(legendCats.map(cat => [cat, convertToDate(cat)?.valueOf() ?? NaN]))
                   legendCats.sort((cat1: string, cat2: string) => {
-                    const a = convertToDate(cat1)?.valueOf() ?? NaN
-                    const b = convertToDate(cat2)?.valueOf() ?? NaN
-                    return numericSortComparator({a, b, order: "desc"})
+                    return numericSortComparator({
+                      a: dateKeys.get(cat1) ?? NaN, b: dateKeys.get(cat2) ?? NaN, order: "desc"
+                    })
                   })
                 }
                 const cellMap = dataConfig.cellMap(primarySplitAttrRole, secondarySplitAttrRole)
