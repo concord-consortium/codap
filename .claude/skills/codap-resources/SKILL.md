@@ -37,6 +37,17 @@ Then ask the user what they want to do, or proceed with the task if it was alrea
 | `example-documents/` | CODAP example documents | `public-read` | default |
 | `plugins/` | Built CODAP plugins (folders) | `public-read` | default |
 
+## Notifications folder
+
+`notifications/` contains dynamic banner content. The two CODAP versions read it via different consumers:
+
+| File | Consumer | Purpose |
+|---|---|---|
+| `announcing-v3-banner.json` | CODAP V2 — read by CFM | V2 banner directing users to V3 beta (CFM-8) |
+| `v3-announcement-banner.json` | CODAP V3 — read by V3 directly (separate from CFM's banner mechanism, via V3's own AnnouncementBanner component) | V3 welcome banner shown post-cutover (CODAP-1319) |
+
+See `s3://codap-resources/notifications/README.md` for the full banner JSON schema (required + optional styling fields).
+
 ## Common Commands
 
 ### Copy a single file
