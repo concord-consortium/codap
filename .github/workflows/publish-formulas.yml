@@ -1,0 +1,94 @@
+name: Publish @concord-consortium/codap-formulas
+
+on:
+  push:
+    tags:
+      - 'codap-formulas-v*'
+
+permissions:
+  contents: read
+  id-token: write  # required for OIDC trusted publishing and npm provenance
+
+jobs:
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Corepack
+        # See "Corepack and GitHub Actions" in v3/doc/yarn.md
+        run: |
+          npm uninstall -g yarn || true
+          npm install -g corepack
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+          registry-url: 'https://registry.npmjs.org'
+      - name: Upgrade npm to a version with OIDC trusted publishing support
+        # OIDC trusted publishing was added in npm 11.5+. Node 20 ships
+        # with npm 10.x, so upgrade explicitly. Pinned to 11.5.x so the
+        # release pipeline is reproducible — bump deliberately when ready
+        # to pick up a newer npm.
+        run: npm install -g npm@11.5
+      - name: Install Dependencies
+        run: yarn install --immutable
+      - name: Set version from git tag
+        # The committed formulas/package.json carries a placeholder version
+        # (0.0.0-development); the real version is taken from the git tag and
+        # written to package.json before pack. Tag IS the release authority.
+        # Uses node directly to edit the JSON because the root package.json's
+        # devEngines.packageManager (yarn) blocks the npm CLI from running
+        # anywhere in the tree, and `npm pkg set` is a project-scoped npm
+        # command. node itself doesn't check devEngines.
+        working-directory: formulas
+        run: |
+          TAG_VERSION="${GITHUB_REF#refs/tags/codap-formulas-v}"
+          # The trigger glob (codap-formulas-v*) matches any suffix; guard
+          # against malformed tags (empty, non-semver) before writing to
+          # package.json and attempting to publish.
+          if [[ ! "$TAG_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$ ]]; then
+            echo "::error::Tag version '$TAG_VERSION' is not valid semver (expected X.Y.Z or X.Y.Z-prerelease)"
+            exit 1
+          fi
+          echo "Setting formulas version to $TAG_VERSION"
+          node -e "
+          const fs = require('fs');
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          pkg.version = process.argv[1];
+          fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          " "$TAG_VERSION"
+      - name: Build dependent workspaces
+        # codap-formulas depends on codap-utilities; tsc --build handles
+        # the TS compilation of references but not asset copyfiles, so
+        # build the dependency explicitly first.
+        run: yarn workspace @concord-consortium/codap-utilities build:ci
+      - name: Build formulas
+        run: yarn workspace @concord-consortium/codap-formulas build:ci
+      - name: Pack tarball
+        # yarn pack rewrites workspace:^ references to concrete versions
+        # (e.g. codap-utilities → ^1.0.0); npm publish doesn't know how
+        # to do this on its own.
+        run: yarn workspace @concord-consortium/codap-formulas pack --out /tmp/codap-formulas.tgz
+      - name: Publish via npm with OIDC trusted publishing
+        # No NPM_TOKEN — auth is via OIDC trusted publishing configured
+        # on the package page at npmjs.com. Requires the package to
+        # already exist on npm and a trusted-publisher relationship to
+        # be set up there pointing at this repo + workflow + tag pattern.
+        # Derives the npm dist-tag from the version: stable releases go
+        # to "latest"; prereleases go to a tag matching the prerelease
+        # channel (e.g. 1.2.0-rc.1 → rc, 1.2.0-beta.0 → beta).
+        run: |
+          PKG_VERSION=$(node -p "require('./formulas/package.json').version")
+          if [[ "$PKG_VERSION" == *-* ]]; then
+            PRERELEASE_PART="${PKG_VERSION#*-}"
+            DIST_TAG="${PRERELEASE_PART%%.*}"
+          else
+            DIST_TAG="latest"
+          fi
+          echo "Publishing $PKG_VERSION to dist-tag: $DIST_TAG"
+          # cd to /tmp so npm doesn't walk up the workspace tree and trip
+          # over the root package.json's devEngines.packageManager (yarn).
+          cd /tmp
+          npm publish /tmp/codap-formulas.tgz --provenance --access public --tag "$DIST_TAG"
