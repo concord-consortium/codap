@@ -112,9 +112,9 @@ export const SaveImageMenuList = ({tile}: IProps) => {
   }
 
   // The menu item below is disabled because the Draw Tool plugin itself has severe issues
-  // in Safari (CODAP-1340 covered the scaling fix; the underlying Safari blocker remains).
-  // The handler is kept wired up so the feature can be re-enabled by removing `isDisabled`
-  // once Draw Tool works in all supported browsers.
+  // in Safari (CODAP-1340 covered the scaling fix; the underlying Safari blocker remains,
+  // tracked by CODAP-1303). The handler is kept wired up so the feature can be re-enabled
+  // by removing `isDisabled` once Draw Tool works in all supported browsers.
   const handleOpenInDrawTool = async () => {
     if (!tile || !mapModel?.renderState) return
     const { displayElement } = mapModel.renderState
