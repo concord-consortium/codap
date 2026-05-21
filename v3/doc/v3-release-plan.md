@@ -195,13 +195,15 @@ Test-area checklist. Stories created on demand for areas that need scheduled wor
 
 ## Phase 3 — Flip
 
-Activation of work prepared in Phase 1. By this point all code is released and all redirect rules are staged. The flip is a coordinated sequence of activation steps, not new development.
+Activation of work prepared in Phase 1. By this point V3 is released and all redirect rules are staged. The flip is a coordinated sequence of activation steps; ordering matters between the V3 redirect activation and the V2 final-build deployment.
 
-- [ ] Activate V2 → V3 redirects (attach the gated CloudFront Function to the production `codap.concord.org` cache behavior, or flip the in-function gate)
+**Already live before Phase 3:** V3 writing native V3 format; V2 application preserved at `codap.concord.org/v2/` (per the SageModeler precursor work in Phase 1).
+
+- [ ] Restore V3 release-announcement banner content: copy `s3://codap-resources/notifications/v3-release-announcement.json` into `v3-announcement-banner.json` (during the pre-release period, `v3-announcement-banner.json` holds beta-period content; this step swaps it for the release-period content). See `s3://codap-resources/notifications/README.md` for details.
+- [ ] **Activate V2 → V3 redirects** (attach the gated CloudFront Function to the production `codap.concord.org` cache behavior, or flip the in-function gate). At this point, `/app` and other V2 paths redirect to V3.
+- [ ] **Immediately after** the V3 redirect activation: deploy the V2 final release with V3-doc detection. **This must follow the V3 flip** — the V3-doc detection error message in the V2 build links to `https://codap.concord.org/app` to direct users to V3, and that link only resolves to V3 after the redirects are active.
 - [ ] Verify Google Drive double-click works through the CloudFront Function (Drive Open URL pattern → V3 with hash preserved); Drive config cleanup (Option B) deferred to Phase 4
 - [ ] Content team updates "Launch CODAP" button destination on the marketing site
-- [ ] Restore V3 release-announcement banner content: copy `s3://codap-resources/notifications/v3-release-announcement.json` into `v3-announcement-banner.json` (during the pre-release period, `v3-announcement-banner.json` holds beta-period content; this step swaps it for the release-period content). See `s3://codap-resources/notifications/README.md` for details.
-- [ ] **Already live before Phase 3:** V2 final release with V3-doc detection; V3 writing native V3 format; V2 application preserved at `/v2/`
 - [ ] User-facing launch communications — *[needs story]*
 
 ## Phase 4 — Post-release
