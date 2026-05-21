@@ -6,14 +6,14 @@ export const ToolbarElements = {
       cy.get(".app-container:not(.vertical-toolbar)").should("exist")
       cy.get(".vertical-toolbar").should("not.exist")
       cfm.getSettingsMenuButton().click()
-      cfm.getSettingsMenuItems().eq(0).should("contain.text", "Toolbar Position: Left")
+      cfm.getSettingsMenuItems().eq(0).should("contain.text", "Toolbar Position: Move to the left")
       cy.get('body').type('{esc}') // Close the menu
       cfm.getSettingsMenu().should("not.exist")
     } else {
       cy.get(".app-container:not(.vertical-toolbar)").should("not.exist")
       cy.get(".vertical-toolbar").should("exist")
       cfm.getSettingsMenuButton().click()
-      cfm.getSettingsMenuItems().eq(0).should("contain.text", "Toolbar Position: Top")
+      cfm.getSettingsMenuItems().eq(0).should("contain.text", "Toolbar Position: Move to the top")
       cy.get('body').type('{esc}') // Close the menu
       cfm.getSettingsMenu().should("not.exist")
     }

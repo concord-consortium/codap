@@ -1,5 +1,5 @@
 import { CFMAppOptions, CloudFileManager, CloudFileManagerClientEvent } from "@concord-consortium/cloud-file-manager"
-import { runInAction } from "mobx"
+import { reaction } from "mobx"
 import { useEffect, useRef } from "react"
 import { Root, createRoot } from "react-dom/client"
 import { useMemo } from "use-memo-one"
@@ -35,6 +35,8 @@ import FileSaveIcon from "../../assets/cfm/file-save-icon.nosvgr.svg"
 import FileShareIcon from "../../assets/cfm/file-share-icon.nosvgr.svg"
 import FileSharedViewIcon from "../../assets/cfm/file-shared-view-icon.nosvgr.svg"
 import FileUpdateSharedViewIcon from "../../assets/cfm/file-update-shared-view-icon.nosvgr.svg"
+import GraphicsAccelOffIcon from "../../assets/cfm/graphics-acceleration-turn-off-icon.nosvgr.svg"
+import GraphicsAccelOnIcon from "../../assets/cfm/graphics-acceleration-turn-on-icon.nosvgr.svg"
 import HelpForumIcon from "../../assets/cfm/help-forum-icon.nosvgr.svg"
 import HelpIcon from "../../assets/cfm/icon-help.nosvgr.svg"
 import HelpPagesIcon from "../../assets/cfm/help-pages-and-videos-icon.nosvgr.svg"
@@ -207,6 +209,7 @@ function getHelpUrl() {
 
 function getMenuBar(cfm: CloudFileManager) {
   const isToolbarTop = persistentState.toolbarPosition === "Top"
+  const isAccelOn = !persistentState.disableGraphicsAcceleration
   return {
     onInfoClick() {
       window.open(projectWebSiteURL, "_blank")
@@ -249,10 +252,21 @@ function getMenuBar(cfm: CloudFileManager) {
             icon: isToolbarTop ? ToolbarPositionLeftIcon : ToolbarPositionTopIcon,
             name: t(`V3.AppController.optionMenuItems.positionToolShelf${persistentState.toolbarPosition}`),
             action() {
-              runInAction(() => {
-                persistentState.setToolbarPosition(isToolbarTop ? "Left" : "Top")
-                cfm.client.updateMenuBar(getMenuBar(cfm))
-              })
+              // The refreshMenuBarOnPersistentStateChange reaction rebuilds the
+              // menu bar as soon as toolbarPosition changes, so no explicit
+              // updateMenuBar call is needed here.
+              persistentState.setToolbarPosition(isToolbarTop ? "Left" : "Top")
+            }
+          },
+          { separator: true },
+          {
+            icon: isAccelOn ? GraphicsAccelOffIcon : GraphicsAccelOnIcon,
+            name: t(`V3.AppController.optionMenuItems.graphicsAcceleration${isAccelOn ? "On" : "Off"}`),
+            action() {
+              // If accel is currently on, this click disables it (true);
+              // if currently off, this click re-enables it (false). The
+              // reaction rebuilds the menu bar; no explicit update needed.
+              persistentState.setDisableGraphicsAcceleration(isAccelOn)
             }
           }
         ]
@@ -431,6 +445,17 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, hookOptions?: IUs
 
     appState.setCFM(cfm)
   }, [cfm, onFileOpened, onUrlImported, onFileImported])
+
+  useEffect(function refreshMenuBarOnPersistentStateChange() {
+    // Rebuild the menu bar whenever PersistentState fields read by getMenuBar
+    // change (e.g., from cross-tab storage sync). Without this, this tab's
+    // settings menu items display stale labels/icons and the action() closures
+    // toggle the wrong direction.
+    return reaction(
+      () => [persistentState.toolbarPosition, persistentState.disableGraphicsAcceleration],
+      () => cfm.client.updateMenuBar(getMenuBar(cfm))
+    )
+  }, [cfm])
 
   useEffect(() => {
     // Ideally, the CFM would be responsible for marking its images as non-draggable,

@@ -24,3 +24,17 @@
     }
   }
 }
+
+// CFM ships a separator style scoped to `.menu-showing .menuItem.separator`, but
+// `.menu-showing` is only set on the File-menu dropdown; "other menus" (Help,
+// Settings) render their dropdowns without it, so their separators collapse to
+// an invisible 0px line. Reapply the same style unconditionally. The selector
+// lives outside `.codap-menu-bar` because CFM portals the dropdown contents
+// outside this component into `.cfm-menu .menu-list-container`.
+.cfm-menu .menu-list-container .menuItem.separator {
+  border-top: 1px solid #ddd;
+  padding: 0;
+  height: 1px;
+  margin: 6px;
+  width: 92%;
+}

@@ -156,6 +156,24 @@ context("CloudFileManager", () => {
     cfm.getSettingsMenuItems().eq(0).click()
     ToolbarElements.confirmToolbarPosition("Top")
   })
+  it("can toggle graphics acceleration", () => {
+    visitEmptyCodap()
+
+    // The Settings menu has three items: Toolbar Position (.eq(0)),
+    // a separator (.eq(1)), and Graphics Acceleration (.eq(2)).
+    // The label and icon describe the result of clicking.
+    cfm.getSettingsMenuButton().click()
+    cfm.getSettingsMenuItems().eq(2).should("contain.text", "Graphics Acceleration: Turn off")
+    cfm.getSettingsMenuItems().eq(2).click()
+
+    cfm.getSettingsMenuButton().click()
+    cfm.getSettingsMenuItems().eq(2).should("contain.text", "Graphics Acceleration: Turn on")
+    cfm.getSettingsMenuItems().eq(2).click()
+
+    cfm.getSettingsMenuButton().click()
+    cfm.getSettingsMenuItems().eq(2).should("contain.text", "Graphics Acceleration: Turn off")
+    cy.get('body').type('{esc}') // Close the menu
+  })
   it("should display in the Activity Player", () => {
     // Ignore uncaught exceptions from the application for this test only
     Cypress.on('uncaught:exception', (err) => {
