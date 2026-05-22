@@ -178,8 +178,8 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
         setBinOption(option, value)
       }, {
         log: logMessageWithReplacement(
-                    "Changed %@ from %@ to %@",
-                    { option, [`${option}Initial`]: initialValue, [option]: value }),
+                    "change %@ from %@ to %@",
+                    { changedProperty: option, fromValue: initialValue, toValue: value }),
         undoStringKey: option === "binWidth" ? "DG.Undo.graph.changeBinWidth" : "DG.Undo.graph.changeBinAlignment",
         redoStringKey: option === "binWidth" ? "DG.Redo.graph.changeBinWidth" : "DG.Redo.graph.changeBinAlignment",
         notify: tile ? tileNotification(`change bin parameter`, {}, tile) : undefined
@@ -205,8 +205,8 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
       setBinOption(option, value)
     }, {
       log: logMessageWithReplacement(
-                  "Changed %@ from %@ to %@",
-                  { option, [`${option}Initial`]: initialValue, [option]: value }),
+                  "change %@ from %@ to %@",
+                  { changedProperty: option, fromValue: initialValue, toValue: value }),
       undoStringKey: option === "binWidth" ? "DG.Undo.graph.changeBinWidth" : "DG.Undo.graph.changeBinAlignment",
       redoStringKey: option === "binWidth" ? "DG.Redo.graph.changeBinWidth" : "DG.Redo.graph.changeBinAlignment",
       notify: tile ? tileNotification(`change bin parameter`, {}, tile) : undefined
@@ -241,8 +241,8 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
     } else {
       barChart?.applyModelChange(() => barChart?.setBreakdownType(breakdownType), {
         log: logMessageWithReplacement(
-          "Changed %@ from %@ to %@",
-          {option: "breakdownType", [`breakdownTypeInitial`]: barChart?.breakdownType, breakdownType}),
+          "change %@ from %@ to %@",
+          {changedProperty: "breakdownType", fromValue: barChart?.breakdownType, toValue: breakdownType}),
         undoStringKey: "DG.Undo.graph.changeBreakdownType",
         redoStringKey: "DG.Redo.graph.changeBreakdownType",
         notify: tile ? tileNotification(
