@@ -141,9 +141,9 @@ export const CaseTileTitleBar =
       }, {
         undoStringKey: `V3.Undo.case${suffix}.hide`,
         redoStringKey: `V3.Redo.case${suffix}.hide`,
-        log: logMessageWithReplacement("Close component: %@", { type: tileInfo.toggleSuffix }, "component")
+        log: logMessageWithReplacement("Close component: %@", {tileType: tile?.content.type}, "component")
       })
-    }, [documentContent, tile?.id, tileInfo])
+    }, [documentContent, tile?.content.type, tile?.id, tileInfo])
 
     const { Icon, otherSuffix } = tileInfo
     const translationKey = `DG.DocumentController.toggleToCase${otherSuffix}`
