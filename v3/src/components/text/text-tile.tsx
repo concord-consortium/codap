@@ -6,6 +6,7 @@ import { observer } from "mobx-react-lite"
 import { addDisposer, onPatch } from "mobx-state-tree"
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { useMemo } from "use-memo-one"
+import { logMessageWithReplacement } from "../../lib/log-message"
 import { useTileInspectorContext } from "../../hooks/use-tile-inspector-context"
 import { useTileSelectionContext } from "../../hooks/use-tile-selection-context"
 import { mstReaction } from "../../utilities/mst-reaction"
@@ -139,7 +140,9 @@ export const TextTile = observer(function TextTile({ tile }: ITileBaseProps) {
         // log only when the text actually changed, e.g. not on style changes
         // Note that logging of text changes was commented out in v2 in build 0601. ¯\_(ツ)_/¯
         // For now, we log just the text content, not the full JSON-stringified slate value.
-        log: textDidChange ? () => `Edited text component: ${textModel.textContent}` : undefined,
+        log: textDidChange
+          ? () => logMessageWithReplacement("Edited text component", { text: textModel.textContent })
+          : undefined,
         undoStringKey: "DG.Undo.textComponent.edit",
         redoStringKey: "DG.Redo.textComponent.edit",
         notify: textDidChange ? () => commitEditNotification(textModel, tile) : undefined
