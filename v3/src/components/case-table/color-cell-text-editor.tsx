@@ -3,7 +3,7 @@ import { Button, DialogTrigger, Popover } from "react-aria-components"
 import { textEditorClassname } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useLoggingContext } from "../../hooks/use-log-context"
-import { logStringifiedObjectMessage } from "../../lib/log-message"
+import { logMessageWithReplacement } from "../../lib/log-message"
 import { selectAllCases } from "../../models/data/data-set-utils"
 import { uiState } from "../../models/ui-state"
 import { parseColor, parseColorToHex } from "../../utilities/color-utils"
@@ -91,13 +91,15 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
   const updateValue = useCallback((value: string) => {
     setInputValue(value)
     onRowChange({ ...row, [column.key]: value })
-    setPendingLogMessage("editCellValue", logStringifiedObjectMessage("editCellValue: %@",
-      {attrId: column.key, caseId: row.__id__, from: initialInputValue.current, to: value }))
+    setPendingLogMessage("editCellValue", logMessageWithReplacement(
+      "editValue: { collection: %@, case: %@, attribute: '%@', old: '%@', new: '%@' }",
+      { collection: data?.getCollectionForAttribute(column.key)?.name, case: row.__id__,
+        attribute: column.key, old: initialInputValue.current, new: value }))
     if (blockAPIRequests && value !== initialInputValue.current) {
       // Only block API requests if the user has actually changed the value.
       uiState.setIsEditingBlockingCell()
     }
-  }, [blockAPIRequests, column.key, onRowChange, row, setPendingLogMessage])
+  }, [blockAPIRequests, column.key, data, onRowChange, row, setPendingLogMessage])
 
   // rejects any local changes and closes the editor
   const rejectValue = useCallback(() => {
