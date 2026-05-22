@@ -58,6 +58,10 @@ export class FormulaManager implements IFormulaManager {
   }
 
   @action addDataSet(dataSet: IDataSet) {
+    // addDataSet may be called more than once for the same dataset (e.g. an explicit
+    // caller plus the document's dataset-sync reaction); registering twice would leak a
+    // redundant disposer, so treat a repeat registration as a no-op.
+    if (this.dataSets.has(dataSet.id)) return
     this.dataSets.set(dataSet.id, dataSet)
     // remove the DataSet if it is destroyed
     addDisposer(dataSet, () => this.removeDataSet(dataSet.id))
