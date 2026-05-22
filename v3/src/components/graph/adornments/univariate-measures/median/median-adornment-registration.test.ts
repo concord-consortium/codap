@@ -16,4 +16,9 @@ describe("MedianAdornmentRegistration", () => {
     expect(meanMedianComponentInfo?.Component).toBeDefined()
     expect(meanMedianComponentInfo?.type).toBe(kMedianType)
   })
+
+  it("registers notificationOperation for togglePlottedMedian", () => {
+    const meanMedianContentInfo = getAdornmentContentInfo(kMedianType)
+    expect(meanMedianContentInfo?.notificationOperation).toBe("togglePlottedMedian")
+  })
 })

@@ -16,4 +16,9 @@ describe("MeanRegistration", () => {
     expect(meanComponentInfo?.Component).toBeDefined()
     expect(meanComponentInfo?.type).toBe(kMeanType)
   })
+
+  it("registers notificationOperation for togglePlottedMean", () => {
+    const meanContentInfo = getAdornmentContentInfo(kMeanType)
+    expect(meanContentInfo?.notificationOperation).toBe("togglePlottedMean")
+  })
 })

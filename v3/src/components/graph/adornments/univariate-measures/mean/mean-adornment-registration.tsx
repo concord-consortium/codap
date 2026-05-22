@@ -27,6 +27,7 @@ registerAdornmentContentInfo({
   plots: ["dotPlot"],
   prefix: kMeanPrefix,
   modelClass: MeanAdornmentModel,
+  notificationOperation: "togglePlottedMean",
   undoRedoKeys: {
     undoAdd: kMeanUndoAddKey,
     redoAdd: kMeanRedoAddKey,

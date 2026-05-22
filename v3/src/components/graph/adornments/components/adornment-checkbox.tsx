@@ -1,5 +1,7 @@
 import { observer } from "mobx-react-lite"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
+import { useTileModelContext } from "../../../../hooks/use-tile-model-context"
+import { updateTileNotification } from "../../../../models/tiles/tile-notifications"
 import { t } from "../../../../utilities/translation/translate"
 import { PaletteCheckbox } from "../../../palette-checkbox"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
@@ -15,6 +17,7 @@ export const AdornmentCheckbox = observer(function AdornmentCheckbox({classNameV
   const graphModel = useGraphContentModelContext()
   const adornmentsStore = graphModel?.adornmentsStore
   const existingAdornment = adornmentsStore.adornments.find(a => a.type === type)
+  const { tile } = useTileModelContext()
 
   const handleSetting = (checked: boolean) => {
     const componentContentInfo = getAdornmentContentInfo(type)
@@ -26,6 +29,10 @@ export const AdornmentCheckbox = observer(function AdornmentCheckbox({classNameV
       redoRemove: "DG.mainPage.mainPane.redoButton.toolTip"
     }
     const undoRedoKeys = componentContentInfo.undoRedoKeys ?? defaultUndoRedoKeys
+    const notificationOperation = componentContentInfo.notificationOperation
+    const notify = (notificationOperation && tile)
+      ? () => updateTileNotification(notificationOperation, { isChecked: checked }, tile)
+      : undefined
 
     if (checked) {
       graphModel.applyModelChange(
@@ -33,7 +40,8 @@ export const AdornmentCheckbox = observer(function AdornmentCheckbox({classNameV
         {
           undoStringKey: undoRedoKeys.undoAdd,
           redoStringKey: undoRedoKeys.redoAdd,
-          log: logMessageWithReplacement(`Added %@`, {type: adornment.type})
+          log: logMessageWithReplacement(`Added %@`, {type: adornment.type}),
+          notify
         }
       )
     } else {
@@ -42,7 +50,8 @@ export const AdornmentCheckbox = observer(function AdornmentCheckbox({classNameV
         {
           undoStringKey: undoRedoKeys.undoRemove,
           redoStringKey: undoRedoKeys.redoRemove,
-          log: logMessageWithReplacement(`Removed %@`, {type: adornment.type})
+          log: logMessageWithReplacement(`Removed %@`, {type: adornment.type}),
+          notify
         }
       )
     }
