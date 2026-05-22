@@ -245,7 +245,8 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
         { webViewModel.isImage
             ? <WebViewImage src={webViewModel.url} alt={imageAlt} />
             : <iframe className="codap-web-view-iframe" ref={iframeRef} src={iframeSrc}
-                title={iframeTitle} onLoad={announceLoaded} />
+                title={iframeTitle} onLoad={announceLoaded}
+                allow="geolocation; microphone; camera; bluetooth; clipboard-read; clipboard-write; fullscreen" />
         }
       </div>
       <WebViewDropOverlay />
