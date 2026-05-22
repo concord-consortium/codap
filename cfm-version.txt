@@ -1,2 +1,2 @@
-version: 1.9.5
-commit: 1e2412f72f3af834168d0a3abd6965be1f6ada7c
+version: 1.9.6
+commit: 228327e43689c50f1449a346575c734e23dc4120
