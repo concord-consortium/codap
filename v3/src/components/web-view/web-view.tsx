@@ -244,6 +244,10 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
         )}
         { webViewModel.isImage
             ? <WebViewImage src={webViewModel.url} alt={imageAlt} />
+            // `allow` is applied to every web view, not just plugins: the attribute is read only at iframe load,
+            // so by the time the iframePhone handshake identifies a plugin (e.g. for web views created by
+            // dragging a plugin tab URL onto CODAP), we'd have to reload and lose plugin state to add
+            // permissions. Matches v2 behavior; browser still requires user consent for sensitive APIs.
             : <iframe className="codap-web-view-iframe" ref={iframeRef} src={iframeSrc}
                 title={iframeTitle} onLoad={announceLoaded}
                 allow="geolocation; microphone; camera; bluetooth; clipboard-read; clipboard-write; fullscreen" />
