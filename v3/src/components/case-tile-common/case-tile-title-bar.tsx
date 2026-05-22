@@ -122,13 +122,14 @@ export const CaseTileTitleBar =
     const handleChangeTitle = (newTitle?: string) => {
       if (newTitle !== undefined) {
         // case table title reflects DataSet title
+        const oldTitle = data?.title ?? ""
         data?.applyModelChange(() => {
           data.setTitle(newTitle)
         }, {
           notify: () => updateDataContextNotification(data),
           undoStringKey: "DG.Undo.component.componentTitleChange",
           redoStringKey: "DG.Redo.component.componentTitleChange",
-          log: logMessageWithReplacement("Title changed to: %@", {newTitle}, "component")
+          log: logMessageWithReplacement("Change title '%@' to '%@'", {from: oldTitle, to: newTitle}, "component")
         })
       }
     }
