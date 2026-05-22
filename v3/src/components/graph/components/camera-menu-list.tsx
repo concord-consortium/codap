@@ -33,7 +33,7 @@ export const CameraMenuList = observer(function CameraMenuList() {
             undoStringKey: "DG.Undo.graph.addBackgroundImage",
             redoStringKey: "DG.Redo.graph.addBackgroundImage",
             log: logMessageWithReplacement(`added background image`, {}),
-            notify: updateTileNotification("added background image", {}, tile)
+            notify: updateTileNotification("backgroundImage", { to: "added" }, tile)
           }
         )
       }
@@ -61,7 +61,7 @@ export const CameraMenuList = observer(function CameraMenuList() {
         undoStringKey: "DG.Undo.graph.removeBackgroundImage",
         redoStringKey: "DG.Redo.graph.removeBackgroundImage",
         log: logMessageWithReplacement(`removed background image`, {}),
-        notify: updateTileNotification("removed background image", {}, tile)
+        notify: updateTileNotification("backgroundImage", { to: "removed" }, tile)
       }
     )
   }
@@ -78,7 +78,8 @@ export const CameraMenuList = observer(function CameraMenuList() {
         undoStringKey: undoKey,
         redoStringKey: redoKey,
         log: logMessageWithReplacement(`${isLocked ? "unlocked" : "locked"} background image from axes`, {}),
-        notify: updateTileNotification("background locked to axes", { to: isLocked ? 'unlocked' : 'locked' }, tile)
+        notify: updateTileNotification(
+          isLocked ? "unlockBackgroundImage" : "lockBackgroundImage", {}, tile)
       }
     )
   }
