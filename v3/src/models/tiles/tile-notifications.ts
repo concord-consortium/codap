@@ -40,7 +40,7 @@ export function deleteTileNotification(tile?: ITileModel) {
   return tileNotification("delete", values, tile)
 }
 
-export function updateTileNotification(updateType: string, values?: any, tile?: ITileModel) {
+export function updateTileNotification(updateType: string, values: any, tile?: ITileModel) {
   if (!tile) return
 
   return tileNotification(updateType, values, tile)
