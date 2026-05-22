@@ -13,6 +13,7 @@ import { kCaseCardTileType } from "../case-card/case-card-defs"
 import { kCaseTableTileType } from "../case-table/case-table-defs"
 import { ComponentTitleBar } from "../component-title-bar"
 import { ITileTitleBarProps } from "../tiles/tile-base-props"
+import { toggleCardTableNotification } from "./case-tile-notifications"
 import { toggleCardTable } from "./case-tile-utils"
 
 import "../component-title-bar.scss"
@@ -92,6 +93,7 @@ export const CaseTileTitleBar =
           newTileId = toggleCardTable(documentContent, tile.id)?.id
         }
       }, {
+        notify: () => toggleCardTableNotification(tile),
         log: logMessageWithReplacement("Toggle component: %@", {componentType: suffix}, "table"),
         undoStringKey: `DG.Undo.component.toggle${suffix}`,
         redoStringKey: `DG.Redo.component.toggle${suffix}`
