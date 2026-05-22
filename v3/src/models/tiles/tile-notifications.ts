@@ -6,13 +6,21 @@ import { ITileModel } from "./tile-model"
 export const tileNotification = (
   operation: string, values: any, tile: ITileModel, callback?: (result: any) => void
 ) => {
-  const resource = operation === "titleChange" ? `component[${toV2Id(tile.id)}]` : "component"
+  const isTitleChange = operation === "titleChange"
+  const resource = isTitleChange ? `component[${toV2Id(tile.id)}]` : "component"
+  const v2Type = kComponentTypeV3ToV2Map[tile.content.type]
 
   values.operation = operation
   values.id = toV2Id(tile.id)
-  values.type = kComponentTypeV3ToV2Map[tile.content.type]
+  values.type = v2Type
 
-  return notification(resource, values, callback)
+  const result = notification(resource, values, callback)
+  // V2 (apps/dg/views/component_view.js) places `type` at the outer envelope level for
+  // titleChange, a peer of `action`/`resource`. Mirror it there for V2 plugins while
+  // keeping `type` in `values` for consistency with every other operation.
+  if (isTitleChange) (result.message as any).type = v2Type
+
+  return result
 }
 
 export function createTileNotification(tile?: ITileModel) {

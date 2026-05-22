@@ -70,3 +70,31 @@ describe("updateTileNotification", () => {
     expect(notification?.message.values.type).toBe(v2Type)
   })
 })
+
+describe("titleChange notification envelope", () => {
+  it("adds type to the outer envelope for the titleChange operation", () => {
+    const tileMock = { id: v3Id, content: { type: v3Type } } as ITileModel
+    const values = { from: "Old Title", to: "New Title" }
+
+    const notification = updateTileNotification("titleChange", values, tileMock)
+
+    expect(notification?.message.action).toBe("notify")
+    expect(notification?.message.resource).toBe(`component[${v2Id}]`)
+    // type is mirrored to the outer envelope AND kept in values
+    expect((notification?.message as any).type).toBe(v2Type)
+    expect(notification?.message.values.operation).toBe("titleChange")
+    expect(notification?.message.values.id).toBe(v2Id)
+    expect(notification?.message.values.from).toBe("Old Title")
+    expect(notification?.message.values.to).toBe("New Title")
+    expect(notification?.message.values.type).toBe(v2Type)
+  })
+
+  it("keeps type inside values for non-titleChange operations", () => {
+    const tileMock = { id: v3Id, content: { type: v3Type } } as ITileModel
+
+    const notification = updateTileNotification("attributeChange", {}, tileMock)
+
+    expect((notification?.message as any).type).toBeUndefined()
+    expect(notification?.message.values.type).toBe(v2Type)
+  })
+})
