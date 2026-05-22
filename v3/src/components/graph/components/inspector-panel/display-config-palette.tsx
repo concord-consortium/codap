@@ -217,6 +217,12 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
     const [undoStringKey, redoStringKey] = fuseIntoBars
       ? ["DG.Undo.graph.fuseDotsToRectangles", "DG.Redo.graph.fuseDotsToRectangles"]
       : ["DG.Undo.graph.dissolveRectanglesToDots", "DG.Redo.graph.dissolveRectanglesToDots"]
+    // A binned plot (binnedDotPlot / histogram) fuses dots into a histogram; an unbinned plot
+    // fuses dots into bars. V2 emits a distinct operation for each, but neither operation name
+    // states the direction — add a `to` discriminator naming the destination state.
+    const isBinned = !!graphModel?.plot.isBinned
+    const fuseOperation = isBinned ? "toggle between histogram and dots" : "switch bar and dot"
+    const to = fuseIntoBars ? (isBinned ? "histogram" : "bars") : "dots"
 
     graphModel?.applyModelChange(() => {
         graphModel?.fusePointsIntoBars(fuseIntoBars)
@@ -224,7 +230,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
       },
       { undoStringKey, redoStringKey,
         log: logMessageWithReplacement("toggleShowAs: %@", { type: fuseIntoBars ? "BarChart" : "DotChart" }),
-        notify: tile ? tileNotification(`toggle between bars and dots`, {}, tile) : undefined
+        notify: tile ? tileNotification(fuseOperation, { to }, tile) : undefined
       }
     )
   }

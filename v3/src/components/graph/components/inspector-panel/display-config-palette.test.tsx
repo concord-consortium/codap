@@ -1,6 +1,7 @@
 import React from "react"
 import { render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
+import { tileNotification } from "../../../../models/tiles/tile-notifications"
 import { DisplayConfigPalette } from "./display-config-palette"
 
 // Mock InspectorPalette to just render children
@@ -243,6 +244,31 @@ describe("DisplayConfigPalette", () => {
 
       await user.click(screen.getByTestId("bar-chart-checkbox"))
       expect(graphModel.applyModelChange).toHaveBeenCalled()
+      // unbinned plot → "switch bar and dot" with to: "bars"
+      expect(tileNotification).toHaveBeenCalledWith("switch bar and dot", { to: "bars" }, expect.anything())
+    })
+
+    it("emits toggle between histogram and dots notification for binned plot", async () => {
+      const user = userEvent.setup()
+      const binnedPlot = createMockBinnedPlot({
+        showDisplayTypeSelection: true,
+        showFusePointsIntoBars: true
+      })
+      const graphModel = createMockGraphModel(undefined, { plot: binnedPlot })
+      mockIsGraphContentModel.mockReturnValue(true)
+      mockIsBinnedPlotModel.mockReturnValue(true)
+      const tile = createMockTile(graphModel)
+
+      render(
+        <DisplayConfigPalette tile={tile} setShowPalette={mockSetShowPalette} />
+      )
+
+      await user.click(screen.getByTestId("bar-chart-checkbox"))
+      expect(graphModel.applyModelChange).toHaveBeenCalled()
+      // binned plot → "toggle between histogram and dots" with to: "histogram"
+      expect(tileNotification).toHaveBeenCalledWith(
+        "toggle between histogram and dots", { to: "histogram" }, expect.anything()
+      )
     })
   })
 
