@@ -104,6 +104,16 @@ The V2 build stores these assets under `extn/` in the release directory:
 | `extn/example-documents/` | `s3://codap-resources/example-documents/` |
 | `extn/boundaries/` | `s3://codap-resources/boundaries/` |
 
+### Plugins to exclude from sync
+
+The V2 build still ships some plugin folders that are no longer used. **Skip these** when syncing `plugins/` — they're dead weight and uploading them just wastes bandwidth and pollutes S3.
+
+| Folder | Why it's dead | Use instead |
+|--------|---------------|-------------|
+| `NOAA-weather/` | Renamed; V2's plugin map points to `noaa-codap-plugin/`. V3 has an explicit URL rewriter at `v3/src/components/web-view/web-view-utils.ts:28` that translates `/plugins/NOAA-weather/...` → `/plugins/noaa-codap-plugin/...` so old saved documents still load. | `noaa-codap-plugin/` |
+
+When using `aws s3 sync ... s3://codap-resources/plugins/`, pass `--exclude "NOAA-weather/*"` (repeat `--exclude` for any others added in future).
+
 ### Sync workflow
 
 Read `~/.codap-build.rc` to get `CODAP_SERVER` (defaults to `codap-server.concord.org`) and `CODAP_SERVER_WWW_BASE` (defaults to `/var/www/html`).
