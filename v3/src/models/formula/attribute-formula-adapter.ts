@@ -218,6 +218,9 @@ export class AttributeFormulaAdapter extends FormulaManagerAdapter {
     } catch (e: any) {
       return this.setFormulaError(formulaContext, extraMetadata, formulaError(e.message))
     }
+    // Give the scope access to the compiled formula so that self-referencing functions like
+    // next(self) can recursively re-evaluate at a future case when the cache hasn't been filled yet.
+    formulaScope.setCompiledFormula(compiledFormula)
 
     return casesToRecalculate.map((c, idx) => {
       formulaScope.setCasePointer(idx)

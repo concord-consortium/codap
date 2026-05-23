@@ -141,6 +141,23 @@ describe("AttributeFormulaAdapter", () => {
       expect(rainyError).toBeUndefined()
     })
 
+    it("should not report false cycle when two attributes reference each other only via next() (CODAP-1358)", () => {
+      // Symmetric counterpart to the prev() case: each attribute references the other only
+      // through next(). next() reads the next case, so this is not a runtime cycle.
+      const { dataSet, adapter, contextMap, metadataMap } = getCycleTestEnv([
+        { name: "a", formula: "caseIndex=27 ? 1 : next(a, 0) + next(b, 0)" },
+        { name: "b", formula: "caseIndex=27 ? 1 : next(a, 0) + next(b, 0)" }
+      ])
+      const aAttr = dataSet.attributes[0]
+      const aError = adapter.getFormulaError(
+        contextMap.get(aAttr.formula!.id)!, metadataMap.get(aAttr.formula!.id)!)
+      expect(aError).toBeUndefined()
+      const bAttr = dataSet.attributes[1]
+      const bError = adapter.getFormulaError(
+        contextMap.get(bAttr.formula!.id)!, metadataMap.get(bAttr.formula!.id)!)
+      expect(bError).toBeUndefined()
+    })
+
     it("should still detect cycle when a prev() cross-reference is paired with a direct reference", () => {
       // A = prev(B) + B  (B is referenced both inside and outside prev)
       // B = A            (B depends directly on A)

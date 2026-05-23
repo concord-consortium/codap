@@ -1,5 +1,5 @@
 import { parse } from "mathjs/number"
-import type { MathNode } from "mathjs"
+import type { EvalFunction, MathNode } from "mathjs"
 import { t } from "../../utilities/translation/translate"
 import { BoundaryManager } from "../boundaries/boundary-manager"
 import type { IValueType } from "../data/attribute-types"
@@ -43,9 +43,16 @@ export class FormulaMathJsScope {
   caseIndexCache?: Record<string, number>
   // `cache` is used directly by custom formula functions like `prev`, `next` or aggregate functions.
   cache = new Map<string, any>()
-  // `previousResults` is used for calculating self-referencing, recursive functions like prev(), e.g.:
+  // `previousResults` caches each case's computed formula value, indexed by casePointer. Used by
+  // self-referencing recursive functions like prev() and next(), e.g.:
   // [CumulativeValue attribute formula]: "prev(CumulativeValue, 0) + Value"
+  // [ReverseSum attribute formula]: "caseIndex == numCases ? Value : Value + next(ReverseSum, 0)"
+  // For prev(self), entries are filled in forward order by the outer recalculation loop. For
+  // next(self), getLocalValue triggers recursive re-evaluation to fill entries on demand.
   previousResults: FValue[] = []
+  // Compiled formula, used by getLocalValue to recursively re-evaluate the formula at a different
+  // case pointer when a self-reference reads a row that hasn't been computed yet.
+  compiledFormula?: EvalFunction
   defaultArgumentNode?: MathNode
   // Extra scope is used to pass additional values to the formula scope, e.g. when evaluating plotted function
   // with `x` argument.
@@ -154,7 +161,18 @@ export class FormulaMathJsScope {
       // When formula references its own attribute, we cannot simply return case values - we're just trying
       // to calculate them. In most cases this is not allowed, but there are some exceptions, e.g. prev function
       // referencing its own attribute. It could be used to calculate cumulative value in a recursive way.
-      return this.previousResults[this.casePointer]
+      const cached = this.previousResults[this.casePointer]
+      if (cached !== undefined) return cached
+      // Cache miss: this case hasn't been computed yet (e.g. next(self) reading a future row).
+      // Recursively re-evaluate the formula at this case, matching V2's behavior. Cache the result
+      // so the outer recalculation loop and any peer recursive calls reuse it.
+      const totalCases = this.context.caseIds?.length ?? 0
+      if (this.compiledFormula && this.casePointer >= 0 && this.casePointer < totalCases) {
+        const value = this.compiledFormula.evaluate(this) as FValue
+        this.previousResults[this.casePointer] = value
+        return value
+      }
+      return undefined as any
     }
     return attrId === CASE_INDEX_FAKE_ATTR_ID
       ? this.getCaseIndex(caseId)
@@ -197,7 +215,14 @@ export class FormulaMathJsScope {
   }
 
   savePreviousResult(value: FValue) {
-    this.previousResults.push(value)
+    // Index-based assignment (not push) so that recursive self-reference fills (e.g. next(self))
+    // can populate future indices without colliding with the outer recalculation loop's
+    // sequential saves.
+    this.previousResults[this.casePointer] = value
+  }
+
+  setCompiledFormula(fn: EvalFunction) {
+    this.compiledFormula = fn
   }
 
   // with... methods could be replaced by more elegant approach of creating sub-scope with modified properties,

@@ -155,6 +155,18 @@ describe("local lookup functions", () => {
         20, 10, 10, 5, 7, 25, "", ""
       ])
     })
+
+    it("supports self reference for reverse-counting formulas (CODAP-1358)", () => {
+      // Reverse counting: last case is 1, each earlier case is next(self) + 1.
+      // This exercises recursive evaluation of next(self) without depending on data values.
+      const options = { formulaAttrName: "LifeSpan" }
+      const result = evaluateForAllCases(
+        "caseIndex = 27 ? 1 : next(LifeSpan, 0) + 1", options
+      )
+      // 27 cases: 27, 26, 25, ..., 2, 1
+      const expected = Array.from({ length: 27 }, (_, i) => 27 - i)
+      expect(result).toEqual(expected)
+    })
   })
 
   it("implements caching that ensures O(n) complexity", () => {

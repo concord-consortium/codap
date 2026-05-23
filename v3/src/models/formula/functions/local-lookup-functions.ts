@@ -23,6 +23,14 @@ export const localLookupFunctions: CODAPMathjsFunctionRegistry = {
   // next(expression, defaultValue, filterExpression)
   next: {
     numOfRequiredArguments: 1,
+    // Self-reference is used by reverse-cumulative formulas, e.g.:
+    // `ReverseSum = caseIndex == numCases ? value : value + next(ReverseSum, 0)`.
+    // When the cached self-reference value is missing (forward iteration hasn't reached that row
+    // yet), getLocalValue falls back to recursive re-evaluation - matching V2's behavior.
+    // Note: cross-attribute mutual next() references (e.g. two attributes that both call next()
+    // on each other) require V2-style on-demand cross-formula evaluation, which V3 does not yet
+    // support - tracked in CODAP-1359.
+    selfReferenceAllowed: true,
     // expression and filter are evaluated as aggregate symbols, defaultValue is not - it depends on case index
     isSemiAggregate: [true, false, true],
     evaluateRaw: (args: MathNode[], mathjs: any, currentScope: CurrentScope) => {

@@ -121,6 +121,7 @@ export const evaluateForAllCases = (displayFormula: string, options?: IEvaluateF
   })
   const formula = displayToCanonical(displayFormula, displayNameMap)
   const compiledFormula = math.compile(formula)
+  scope.setCompiledFormula(compiledFormula)
 
   return caseIds.map((caseId, idx) => {
     scope.setCasePointer(idx)
