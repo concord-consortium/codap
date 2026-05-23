@@ -123,6 +123,37 @@ describe("AttributeFormulaAdapter", () => {
       const error = adapter.getFormulaError(context, extraMetadata)
       expect(error).toBeUndefined()
     })
+
+    it("should not report false cycle when two attributes reference each other only via prev() (CODAP-1357)", () => {
+      // Markov-style mutual recurrence: each attribute references the other only through prev().
+      // prev() reads the previous case, so this is not a runtime cycle.
+      const { dataSet, adapter, contextMap, metadataMap } = getCycleTestEnv([
+        { name: "sunny", formula: "caseIndex=1 ? 3600 : 5/6 * prev(sunny) + 4/6 * prev(rainy)" },
+        { name: "rainy", formula: "caseIndex=1 ? 0 : 1/6 * prev(sunny) + 2/6 * prev(rainy)" }
+      ])
+      const sunnyAttr = dataSet.attributes[0]
+      const sunnyError = adapter.getFormulaError(
+        contextMap.get(sunnyAttr.formula!.id)!, metadataMap.get(sunnyAttr.formula!.id)!)
+      expect(sunnyError).toBeUndefined()
+      const rainyAttr = dataSet.attributes[1]
+      const rainyError = adapter.getFormulaError(
+        contextMap.get(rainyAttr.formula!.id)!, metadataMap.get(rainyAttr.formula!.id)!)
+      expect(rainyError).toBeUndefined()
+    })
+
+    it("should still detect cycle when a prev() cross-reference is paired with a direct reference", () => {
+      // A = prev(B) + B  (B is referenced both inside and outside prev)
+      // B = A            (B depends directly on A)
+      // This is a real cycle: B[N] needs A[N], A[N] needs B[N].
+      const { dataSet, adapter, contextMap, metadataMap } = getCycleTestEnv([
+        { name: "A", formula: "prev(B) + B" },
+        { name: "B", formula: "A" }
+      ])
+      const aAttr = dataSet.attributes[0]
+      const error = adapter.getFormulaError(
+        contextMap.get(aAttr.formula!.id)!, metadataMap.get(aAttr.formula!.id)!)
+      expect(error).toMatch(/Circular reference/)
+    })
   })
 
   describe("setupFormulaObservers", () => {

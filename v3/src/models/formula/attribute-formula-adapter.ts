@@ -284,8 +284,11 @@ export class AttributeFormulaAdapter extends FormulaManagerAdapter {
       const { attributeId } = this.api.getFormulaExtraMetadata(currentFormula)
       const formulaDependencies = getFormulaDependencies(formula.canonical, attributeId)
 
-      const localDatasetAttributeDependencies: ILocalAttributeDependency[] =
-        formulaDependencies.filter(d => d.type === "localAttribute")
+      // Skip dependencies wrapped only in prev() (or any selfReferenceAllowed function) - prev()
+      // breaks the row-level cycle by reading the previous case's value, so cross-attribute
+      // references through prev() (e.g. attrA = prev(attrB), attrB = prev(attrA)) are not real cycles.
+      const localDatasetAttributeDependencies: ILocalAttributeDependency[] = formulaDependencies
+        .filter((d): d is ILocalAttributeDependency => d.type === "localAttribute" && !d.selfReferenceAllowed)
       for (const dependency of localDatasetAttributeDependencies) {
         const dependencyAttribute = dataSet.attrFromID(dependency.attrId)
         if (isValidFormulaAttr(dependencyAttribute)) {

@@ -1,6 +1,6 @@
 import { parse, isFunctionNode } from "mathjs/number"
 import type { MathNode } from "mathjs"
-import { IFormulaDependency, isLocalAttributeDependency } from "../formula-types"
+import { IFormulaDependency, ILocalAttributeDependency, isLocalAttributeDependency } from "../formula-types"
 import { typedFnRegistry } from "../functions/math"
 import { basicCanonicalNameToDependency } from "./name-mapping-utils"
 import { isNonFunctionSymbolNode } from "./mathjs-utils"
@@ -45,15 +45,30 @@ export const getFormulaDependencies = (formulaCanonical: string, formulaAttribut
         dependency.aggregate = true
       }
       const isSelfReference = ifSelfReference(dependency, formulaAttributeId)
-      // Note that when self reference is allowed, we should NOT add the attribute to the dependency list.
-      // This would create cycle in observers and trigger an error even earlier, when we check for this scenario.
-      const isPresent = result.some((dep) => {
-        return isLocalAttributeDependency(dep) &&
-                isLocalAttributeDependency(dependency) &&
-                dep.attrId === dependency.attrId
-      })
-      if (dependency && (!isSelfReference || !isSelfReferenceAllowed) && !isPresent) {
-        result.push(dependency)
+      // Direct self-reference inside prev() (e.g. CumulativeValue = Value + prev(CumulativeValue, 0))
+      // is dropped from the dependency list - prev() breaks the row-level cycle, and adding the
+      // attribute would create an observer cycle that recalculates the formula from its own output.
+      const skipDirectSelfRef = isSelfReference && isSelfReferenceAllowed
+      if (dependency && !skipDirectSelfRef) {
+        const existing = isLocalAttributeDependency(dependency)
+          ? result.find((dep): dep is ILocalAttributeDependency =>
+              isLocalAttributeDependency(dep) && dep.attrId === dependency.attrId)
+          : undefined
+        if (existing) {
+          // If the same attribute is referenced outside a selfReferenceAllowed function anywhere
+          // in the formula, the dependency cannot be treated as cycle-safe.
+          if (!isSelfReferenceAllowed) {
+            existing.selfReferenceAllowed = false
+          }
+        } else {
+          if (isLocalAttributeDependency(dependency) && isSelfReferenceAllowed) {
+            // Cross-attribute reference inside prev() (e.g. sunny = prev(rainy), rainy = prev(sunny)).
+            // Keep the dependency so observers fire when the referenced attribute changes, but mark
+            // it so the cycle detector ignores it - prev() breaks the row-level cycle.
+            dependency.selfReferenceAllowed = true
+          }
+          result.push(dependency)
+        }
       }
     }
 
