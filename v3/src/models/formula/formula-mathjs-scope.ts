@@ -24,11 +24,13 @@ export interface IFormulaMathjsScopeContext {
   // Cases that the formula is evaluated for, in case it's evaluated for a group of cases during one evaluation.
   // This is necessary for case-dependant formulas to work, e.g. `round(NewAttribute)` or `prev(NewAttribute, 0) + 1`.
   caseIds?: string[]
-  // When set, the scope routes reads of this attribute through getLocalValue's self-reference
-  // branch (using previousResults + the compiled formula for recursive fills). Callers that set
-  // this MUST also call setCompiledFormula(), or self-reference cache misses for next(self)
-  // will silently return undefined. All current callers that set formulaAttrId also set the
-  // compiled formula; filter-formula adapters set formulaAttrId to undefined and do not need it.
+  // When defined, the scope routes reads of this attribute through getLocalValue's self-reference
+  // branch (using previousResults + the compiled formula for recursive fills). Callers that pass
+  // a defined value MUST also call setCompiledFormula(), or self-reference cache misses for
+  // next(self) will silently return undefined. Filter-formula adapters pass `formulaAttrId:
+  // attributeId` from extraMetadata, but extraMetadata.attributeId is always undefined for filter
+  // formulas (they have no target attribute), so the self-reference branch is unreachable from
+  // those call sites today.
   formulaAttrId?: string
   formulaCollectionIndex?: number
   childMostAggregateCollectionIndex?: number

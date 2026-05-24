@@ -124,8 +124,11 @@ export const evaluateForAllCases = (displayFormula: string, options?: IEvaluateF
   const compiledFormula = math.compile(formula)
   scope.setCompiledFormula(compiledFormula)
 
-  // Match the AttributeFormulaAdapter's iteration policy: when the formula uses only next(self),
-  // evaluate cases last-to-first so the cache is filled before each next() read.
+  // Mirror only the reverse-order optimization from AttributeFormulaAdapter: when the formula
+  // uses only next(self), evaluate cases last-to-first so the cache is filled before each next()
+  // read. We deliberately do NOT mirror the adapter's "mixed direction" rejection here so
+  // existing tests can use this helper to exercise the runtime re-entry guard (e.g. with
+  // `prev(next(self, 0), 0)`) without being short-circuited at setup.
   const direction = formulaAttrId ? getSelfReferenceDirection(formula, formulaAttrId) : "none"
   const reverse = direction === "reverse"
   const indices = reverse
