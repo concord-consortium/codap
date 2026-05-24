@@ -154,6 +154,20 @@ describe("AttributeFormulaAdapter", () => {
         contextMap.get(aAttr.formula!.id)!, metadataMap.get(aAttr.formula!.id)!)
       expect(error).toMatch(/Circular reference/)
     })
+
+    it("should detect cycle when a prev() defaultValue arg references an attr that closes the cycle", () => {
+      // A = prev(B, B): B in the expression arg is row-shifted, but B in the defaultValue arg
+      // is evaluated in the current-case context (see prev() in local-lookup-functions.ts),
+      // so it is NOT cycle-safe. With B = A, this is a real cycle on case 1.
+      const { dataSet, adapter, contextMap, metadataMap } = getCycleTestEnv([
+        { name: "A", formula: "prev(B, B)" },
+        { name: "B", formula: "A" }
+      ])
+      const aAttr = dataSet.attributes[0]
+      const error = adapter.getFormulaError(
+        contextMap.get(aAttr.formula!.id)!, metadataMap.get(aAttr.formula!.id)!)
+      expect(error).toMatch(/Circular reference/)
+    })
   })
 
   describe("setupFormulaObservers", () => {

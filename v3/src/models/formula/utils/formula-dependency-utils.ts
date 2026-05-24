@@ -34,7 +34,22 @@ export const getFormulaDependencies = (formulaCanonical: string, formulaAttribut
         }
       })
     }
-    if (isFunctionNode(node) && typedFnRegistry[node.fn.name]?.selfReferenceAllowed || parent?.isSelfReferenceAllowed) {
+    if (isFunctionNode(node) && typedFnRegistry[node.fn.name]?.selfReferenceAllowed) {
+      const semiAggregate = typedFnRegistry[node.fn.name].isSemiAggregate
+      if (semiAggregate) {
+        // Only the row-shifted args (marked aggregate in isSemiAggregate) are cycle-safe.
+        // E.g. prev()'s defaultValue is evaluated in the current-case context and is NOT
+        // row-shifted, so deps appearing only there should not be treated as cycle-safe.
+        semiAggregate.forEach((isAggregateArgument, index) => {
+          if (node.args[index] && isAggregateArgument) {
+            (node.args[index] as IExtendedMathNode).isSelfReferenceAllowed = true
+          }
+        })
+      } else {
+        (node as IExtendedMathNode).isSelfReferenceAllowed = true
+      }
+    }
+    if (parent?.isSelfReferenceAllowed) {
       node.isSelfReferenceAllowed = true
     }
     const isDescendantOfAggregateFunc = !!node.isDescendantOfAggregateFunc
@@ -55,6 +70,10 @@ export const getFormulaDependencies = (formulaCanonical: string, formulaAttribut
               isLocalAttributeDependency(dep) && dep.attrId === dependency.attrId)
           : undefined
         if (existing) {
+          // Merge aggregate flag - if any reference is in an aggregate context, the dep is aggregate.
+          if (isLocalAttributeDependency(dependency) && dependency.aggregate) {
+            existing.aggregate = true
+          }
           // If the same attribute is referenced outside a selfReferenceAllowed function anywhere
           // in the formula, the dependency cannot be treated as cycle-safe.
           if (!isSelfReferenceAllowed) {
