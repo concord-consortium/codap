@@ -1,0 +1,156 @@
+# Playbook -- recipes for maintaining the V2 -> V3 redirect (CODAP-1323)
+
+Operational recipes that don't belong in [`RUNBOOK.md`](RUNBOOK.md) (the cutover itself)
+or [`PREFLIGHT.md`](PREFLIGHT.md) (the one-time setup). Each recipe is a "if you find X,
+update these files" entry. Add new recipes as needs surface; this is a living document.
+
+---
+
+## Recipe 1 -- Add a new URL pattern that SHOULD redirect
+
+When testing surfaces a V2-shape path we missed (a forgotten language route, a new
+build-name shape, a third-party deep link).
+
+**Edit (in order):**
+
+1. **`../../../specs/CODAP-1323-redirect-v2-to-v3/requirements.md`** -- extend the
+   matching `R1` - `R6` rule (or add a new R-number) and add a row to the **R28
+   positive matrix**.
+2. **`v2-v3-redirect.js`** -- add the `RE_*` regex and a new branch in `handler()`. Pick
+   a tag name (`'app-foo'` style) for the R30 log line.
+3. **`v2-v3-redirect.test.js`** -- add row(s) to the R28 `test.each` table. If the path
+   yields a `{lang}`, add an R17a query / hash test case.
+4. **`test-events/`** -- add a `r28-*.json` fixture so `test-function.sh` (R30a)
+   measures the new path's `ComputeUtilization`.
+5. **`../../../v3/cypress/e2e/v2-v3-redirect.spec.ts`** -- add row(s) to
+   `positiveMatrix`.
+6. **`modify-clone.sh`** -- only if the new pattern doesn't match an existing cache
+   behavior (most don't need this; `/app/*`, `/releases/*`, `/v3/*` cover most).
+
+**Then redeploy:**
+
+```bash
+./deploy-function.sh
+# if modify-clone.sh was touched:
+./modify-clone.sh
+aws cloudfront wait distribution-deployed --id "$CLONE_DIST_ID"
+./verify-clone.sh
+```
+
+**Verify:** run the unit suite (`npm test`), the conformance spec
+(`cypress run --spec cypress/e2e/v2-v3-redirect.spec.ts ...`), and `test-function.sh`.
+
+---
+
+## Recipe 2 -- Stop redirecting a path (false positive / new carve-out)
+
+The function is intercepting a path that should instead serve origin -- typically a V3
+asset shape that happens to match the regex, or a V2-origin-served path under
+`/releases/`.
+
+**Pick one of two approaches:**
+
+- **Tighten the regex** in `v2-v3-redirect.js` if the false-positive shape can be
+  excluded without breaking real V2 paths. Prefer this when the change is purely about
+  the regex's pattern boundaries.
+- **Add a higher-priority `if` branch** at the top of `handler()` (or insert a
+  more-specific match before the general one) that returns `request` unchanged for the
+  specific shape. Prefer this when the new exclusion is unrelated to the regex's
+  parameter capture.
+
+**Edit (in order):**
+
+1. **`../../../specs/CODAP-1323-redirect-v2-to-v3/requirements.md`** -- add a row to
+   the **R29 negative matrix**. If the carve-out routes to a different origin, also
+   extend `R7` - `R14`.
+2. **`v2-v3-redirect.js`** -- tighten the regex OR add the higher-priority branch.
+3. **`v2-v3-redirect.test.js`** -- add row(s) to the R29 `test.each` table.
+4. **`test-events/`** -- add a `r29-*.json` fixture.
+5. **`../../../v3/cypress/e2e/v2-v3-redirect.spec.ts`** -- add row(s) to
+   `negativeMatrix` and pick the right `ExpectedOrigin`. If it's a brand-new origin
+   signature (not `marketing` / `v2` / `v3-s3` / `tp-sampler`), add an entry to the
+   `ORIGIN_SIGNALS` map -- QA-I1 requires a positive origin-identifying assertion.
+6. **`modify-clone.sh`** -- if the carve-out needs a cache-behavior at higher
+   precedence than `/app/*` or `/releases/*`, add a `new_behavior(...)` entry to the
+   prepended array. Skip this step if the new exclusion just falls through to an
+   existing behavior.
+7. **`expected-diff.md`** -- if `modify-clone.sh` got a new behavior, allowlist it:
+   `+ .CacheBehaviors.Items[?(@.PathPattern=='/your/new/carve-out')]`. Without this,
+   `verify-clone.sh` blocks the next deploy.
+
+**Then redeploy:**
+
+```bash
+./deploy-function.sh
+# if modify-clone.sh was touched:
+./modify-clone.sh
+aws cloudfront wait distribution-deployed --id "$CLONE_DIST_ID"
+./verify-clone.sh
+```
+
+**Verify:** same as Recipe 1.
+
+---
+
+## Recipe 3 -- Roll a debugging window with LOG_ENABLED = true
+
+The committed source has `LOG_ENABLED = false` (R23). To capture per-match log lines
+for incident diagnosis:
+
+1. Edit `v2-v3-redirect.js`, set `LOG_ENABLED = true`.
+2. Run `./deploy-function.sh` to rebuild + republish.
+3. **Record** the start time, operator, and reason in the incident log. Set a calendar
+   reminder for the revert (typically same day; max 48 h per the RUNBOOK Fin2 protocol).
+4. After collecting evidence: restore `LOG_ENABLED = false`, run `./deploy-function.sh`.
+5. Verify the committed source has `LOG_ENABLED = false` and the LIVE function reports
+   the restored ETag.
+
+The `error-fallthrough` catch-block log line is emitted unconditionally and is
+unaffected by `LOG_ENABLED`.
+
+---
+
+## Recipe 4 -- Common things that do NOT need updating when redirect rules change
+
+Just to save you from looking:
+
+- **`dist/v2-v3-redirect.js`** -- regenerated by `build-function.sh`; never edit by hand.
+- **`route53-change.sh`**, **`flip.sh`**, **`rollback.sh`**, **`setup-temp-subdomain.sh`**
+  -- DNS-layer; indifferent to URL shapes.
+- **`dns-audit.sh`**, **`deploy-monitoring.sh`**, **`verify-alarms.sh`** -- DNS /
+  monitoring scopes; unaffected by individual rule changes unless you change the
+  log-line prefix (which would break the R26b metric filter -- see Recipe 5 if you
+  ever need to do this).
+- **`RUNBOOK.md`** / **`PREFLIGHT.md`** -- only update if a finding changes the
+  cutover pipeline order or adds a new G-gate. Adding a redirect rule does not.
+- **`requirements.md`** rows for unaffected paths -- leave them alone.
+
+---
+
+## Recipe 5 -- Renaming the `error-fallthrough` log-line prefix
+
+DO NOT do this lightly. The R26b log-metric filter pattern in `deploy-monitoring.sh` --
+`"codap-redirect tag=error-fallthrough"` -- is the **only** detection signal for caught
+exceptions (R18b / REL-F1: a caught error returns a valid `request`, so
+`FunctionExecutionErrors` never moves). The Jest SE-J1 catch-block test pins that exact
+prefix.
+
+If you must rename it:
+
+1. Update the `console.log(...)` literal in `v2-v3-redirect.js`'s catch block.
+2. Update the SE-J1 test assertion in `v2-v3-redirect.test.js`.
+3. Update the `--filter-pattern` in `deploy-monitoring.sh`.
+4. Redeploy: `./deploy-function.sh` then re-run the relevant section of
+   `deploy-monitoring.sh` (or recreate the metric filter manually).
+5. Re-run `verify-alarms.sh` Check 2 to confirm the new prefix still fires the alarm.
+
+The three places must stay byte-identical -- one drift and the alarm silently stops
+firing.
+
+---
+
+## When to add a new recipe to this file
+
+If you do the same multi-file update twice in a row, write it down. Recipes here should
+be **mechanical** (a sequence of file edits + a verification) rather than design-level
+guidance -- design-level decisions go in [`../../../specs/CODAP-1323-redirect-v2-to-v3/`](../../../specs/CODAP-1323-redirect-v2-to-v3/).

@@ -81,13 +81,15 @@ temp subdomain `codap2to3.concord.org`, and made live on flip day by a CloudFron
 
 ## Where to start
 
-Two operational documents in this folder, to be read in order:
+Three operational documents in this folder; read them in the order that fits the task:
 
 1. **`PREFLIGHT.md`** — the ordered pre-flip pipeline. Walks through every script in the
    correct execution order to stand up the cloned distribution at the temp subdomain,
    deploy monitoring, and collect G1 – G6 evidence. Run before flip day.
 2. **`RUNBOOK.md`** — the flip-day runbook (G1 – G9 checklist, forward flip, rollback,
    mid-abort recovery, post-flip active-watch, post-soak disposition).
+3. **`PLAYBOOK.md`** — recipes for ongoing maintenance after flip (add a redirect rule,
+   add a carve-out, debug with `LOG_ENABLED`, rename the `error-fallthrough` prefix).
 
 ## Scripts
 
@@ -110,6 +112,7 @@ Two operational documents in this folder, to be read in order:
 | `route53-change.sh`        | Shared helper: UPSERT a Route 53 ALIAS A record (record-name + target args) | shared |
 | `PREFLIGHT.md`             | Pre-flip pipeline (run this first)                                  | this folder |
 | `RUNBOOK.md`               | Flip-day operational runbook                                        | R31      |
+| `PLAYBOOK.md`              | Ongoing-maintenance recipes (add/remove rules, debugging, etc.)     | this folder |
 
 All scripts are idempotent where practical and read identifiers from `config.env` (see
 `config.env.example`). Run from this directory.
@@ -1262,6 +1265,48 @@ A pointer at the top of `RUNBOOK.md` directs readers to run `PREFLIGHT.md` first
 
 The runbook ships with the rollback-authority names and the `CLONE_DIST_ID` as fill-in
 placeholders (the clone ID is known only after `clone-distribution.sh` runs).
+
+---
+
+### Playbook -- ongoing-maintenance recipes
+
+**Summary**: `PLAYBOOK.md` -- recipes for changes that come up **after** the cutover
+lands. Each recipe lists the file edits in order plus the verification step. This is
+the sibling of `RUNBOOK.md` (cutover-day operational) and `PREFLIGHT.md` (one-time
+setup): it's the maintenance reference for "the cutover is done, now what do I do when
+the rules need to change."
+
+The need for this surfaced during Phase 3 testing -- when a redirect rule changes, the
+edit touches 5+ files (requirements row, function code, Jest test, Cypress test,
+test-events fixture, and sometimes `modify-clone.sh` + `expected-diff.md`) that must
+stay in sync. `cc-code-review` catches drift, but having the mechanical edit list in
+one place saves the discovery time.
+
+**Files affected**:
+- `devops/cloudfront-functions/v2-v3-redirect/PLAYBOOK.md` -- new.
+
+**Estimated diff size**: ~150 lines.
+
+`PLAYBOOK.md` is a living document; recipes are added when the same multi-file update
+is performed twice. The initial set:
+
+- **Recipe 1 -- Add a new URL pattern that SHOULD redirect.** Spec row in `requirements.md`
+  (R1-R6, R28), function `RE_*` + handler branch, Jest + Cypress positive-matrix rows, a
+  `test-events/r28-*.json` fixture, and (rarely) a new `modify-clone.sh` cache behavior.
+- **Recipe 2 -- Stop redirecting a path (false positive / new carve-out).** R29 row, regex
+  tightening OR a higher-priority handler branch, Jest + Cypress negative-matrix rows
+  with origin signal, an `r29-*.json` fixture, and (commonly) a new `modify-clone.sh`
+  carve-out behavior plus the matching `expected-diff.md` allowlist entry.
+- **Recipe 3 -- Roll a debugging window with `LOG_ENABLED = true`.** Fin2 protocol
+  ported into a step-by-step.
+- **Recipe 4 -- Things that do NOT need updating when redirect rules change.** Saves a
+  reader from looking.
+- **Recipe 5 -- Renaming the `error-fallthrough` log-line prefix.** A "do not do this
+  lightly" recipe; the prefix is the only signal for caught exceptions and three places
+  must stay byte-identical (the function source, the SE-J1 test, and the
+  `deploy-monitoring.sh` filter pattern).
+
+The README's "Where to start" section lists PLAYBOOK alongside PREFLIGHT and RUNBOOK.
 
 ## Open Questions
 

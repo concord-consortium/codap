@@ -24,7 +24,8 @@ temp subdomain `codap2to3.concord.org`, and made live on flip day by a CloudFron
 
 ## Where to start
 
-This folder has **two** operational documents that should be read in order:
+This folder has three operational documents, read them in the order that fits what
+you're doing:
 
 1. **[`PREFLIGHT.md`](PREFLIGHT.md)** — the ordered pre-flip pipeline. Run every step
    here to stand up the cloned distribution at the temp subdomain, deploy monitoring,
@@ -32,6 +33,10 @@ This folder has **two** operational documents that should be read in order:
 2. **[`RUNBOOK.md`](RUNBOOK.md)** — the flip-day operational runbook. The G1 – G9 go /
    no-go checklist, the forward flip and rollback procedures, mid-abort recovery, the
    post-flip active-watch protocol, and the post-soak old-distribution disposition.
+3. **[`PLAYBOOK.md`](PLAYBOOK.md)** — recipes for **ongoing maintenance after flip**
+   (add a redirect rule, add a carve-out, debugging with `LOG_ENABLED`, renaming the
+   `error-fallthrough` prefix). Each recipe lists the file edits + verification in
+   order.
 
 The script table below lists every script alphabetically; `PREFLIGHT.md` gives the
 correct execution order, and each row points back at its requirement.
@@ -57,6 +62,7 @@ correct execution order, and each row points back at its requirement.
 | `route53-change.sh`        | Shared helper: UPSERT a Route 53 ALIAS A record                     | shared   |
 | `PREFLIGHT.md`             | Pre-flip pipeline (run this first)                                  | this folder |
 | `RUNBOOK.md`               | Flip-day operational runbook                                        | R31      |
+| `PLAYBOOK.md`              | Ongoing-maintenance recipes (add/remove rules, debugging, etc.)     | this folder |
 
 All scripts are idempotent where practical and read identifiers from `config.env` (see
 `config.env.example`). Run from this directory.
