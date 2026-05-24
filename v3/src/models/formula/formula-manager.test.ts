@@ -113,6 +113,38 @@ describe("FormulaManager", () => {
     })
   })
 
+  describe("when two formulas reference each other only through prev() (CODAP-1357)", () => {
+    it("recalculates without infinite recursion in the downstream cascade", () => {
+      // Pre-PR, cycle detection rejected mutual prev() references. With CODAP-1357 they pass
+      // validation, but recalculateDownstreamFormulas still walks the cycle-safe edges, so
+      // without a re-entry guard the cascade recurses sunny -> rainy -> sunny -> ... and
+      // stack-overflows (RangeError, caught by MobX and logged to console.error).
+      const consoleErrSpy = jest.spyOn(console, "error").mockImplementation(() => undefined)
+      try {
+        const formulaManager = new FormulaManager()
+        const dataSet = createDataSet({
+          attributes: [
+            { name: "sunny", formula: { display: "prev(rainy)" } },
+            { name: "rainy", formula: { display: "prev(sunny)" } }
+          ]
+        }, {formulaManager})
+        dataSet.addCases([{ __id__: "1" }])
+        const adapter = new AttributeFormulaAdapter(formulaManager.getAdapterApi())
+        formulaManager.addDataSet(dataSet)
+        formulaManager.addAdapters([adapter])
+
+        // No errors should have been reported by MobX (a stack overflow would be).
+        expect(consoleErrSpy).not.toHaveBeenCalled()
+        const sunnyValue = dataSet.getValueAtItemIndex(0, dataSet.attrFromName("sunny")?.id || "")
+        const rainyValue = dataSet.getValueAtItemIndex(0, dataSet.attrFromName("rainy")?.id || "")
+        expect(typeof sunnyValue === "string" ? sunnyValue : "").not.toMatch(/Circular reference/)
+        expect(typeof rainyValue === "string" ? rainyValue : "").not.toMatch(/Circular reference/)
+      } finally {
+        consoleErrSpy.mockRestore()
+      }
+    })
+  })
+
   describe("when formula becomes inactive or it's removed", () => {
     it("un-registers formula", () => {
       const { manager, adapter, formula } = getManagerWithFakeAdapter()

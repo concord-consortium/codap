@@ -30,6 +30,11 @@ export class FormulaManager implements IFormulaManager {
 
   adapters: IFormulaManagerAdapter[] = []
 
+  // Tracks formulas currently being recalculated, to prevent infinite recursion through
+  // cycle-safe (selfReferenceAllowed) edges where recalculateDownstreamFormulas could
+  // otherwise propagate back into a formula that is already higher in the call stack.
+  recalculatingFormulas = new Set<string>()
+
   @observable
   areAdaptersInitialized = false
 
@@ -118,20 +123,30 @@ export class FormulaManager implements IFormulaManager {
   }
 
   recalculateFormula(formulaId: string, casesToRecalculate?: ICase[] | "ALL_CASES") {
+    // Skip re-entry for a formula already mid-recalculation in the current call stack.
+    // Mutual prev() references (e.g. sunny = prev(rainy), rainy = prev(sunny)) now pass
+    // cycle detection but their dependency edges are still walked by the downstream cascade,
+    // which would otherwise recurse indefinitely.
+    if (this.recalculatingFormulas.has(formulaId)) return
     const formulaContext = this.getFormulaContext(formulaId)
     const { adapter, isInitialized } = formulaContext
     if (!isInitialized) {
       return
     }
-    const extraMetadata = this.getExtraMetadata(formulaId)
-    adapter.recalculateFormula(formulaContext, extraMetadata, casesToRecalculate)
+    this.recalculatingFormulas.add(formulaId)
+    try {
+      const extraMetadata = this.getExtraMetadata(formulaId)
+      adapter.recalculateFormula(formulaContext, extraMetadata, casesToRecalculate)
 
-    // After evaluating, recalculate any downstream formulas that depend on this formula's
-    // output attribute. This replaces the reactive onAnyAction cascade for formula-to-formula
-    // dependencies, using the static dependency graph instead of MST action dispatch.
-    const { attributeId, dataSetId } = extraMetadata
-    if (attributeId) {
-      this.recalculateDownstreamFormulas(dataSetId, attributeId)
+      // After evaluating, recalculate any downstream formulas that depend on this formula's
+      // output attribute. This replaces the reactive onAnyAction cascade for formula-to-formula
+      // dependencies, using the static dependency graph instead of MST action dispatch.
+      const { attributeId, dataSetId } = extraMetadata
+      if (attributeId) {
+        this.recalculateDownstreamFormulas(dataSetId, attributeId)
+      }
+    } finally {
+      this.recalculatingFormulas.delete(formulaId)
     }
   }
 
