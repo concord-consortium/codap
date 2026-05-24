@@ -53,6 +53,10 @@ export class FormulaMathJsScope {
   // Compiled formula, used by getLocalValue to recursively re-evaluate the formula at a different
   // case pointer when a self-reference reads a row that hasn't been computed yet.
   compiledFormula?: EvalFunction
+  // Tracks case pointers currently mid-evaluation, to break runtime cycles that the static cycle
+  // detector cannot see. E.g. `prev(next(self, 0), 0)` shifts -1 then +1, returning to the
+  // current case before its value is cached, and would otherwise recurse indefinitely.
+  evaluatingCasePointers = new Set<number>()
   defaultArgumentNode?: MathNode
   // Extra scope is used to pass additional values to the formula scope, e.g. when evaluating plotted function
   // with `x` argument.
@@ -163,14 +167,23 @@ export class FormulaMathJsScope {
       // referencing its own attribute. It could be used to calculate cumulative value in a recursive way.
       const cached = this.previousResults[this.casePointer]
       if (cached !== undefined) return cached
+      // If we're already mid-evaluation for this case (e.g. prev(next(self, 0), 0) shifts -1
+      // then +1, returning to the current case before its value is cached), break the cycle
+      // by returning undefined - this is a runtime cycle the static detector cannot see.
+      if (this.evaluatingCasePointers.has(this.casePointer)) return undefined as any
       // Cache miss: this case hasn't been computed yet (e.g. next(self) reading a future row).
       // Recursively re-evaluate the formula at this case, matching V2's behavior. Cache the result
       // so the outer recalculation loop and any peer recursive calls reuse it.
       const totalCases = this.context.caseIds?.length ?? 0
       if (this.compiledFormula && this.casePointer >= 0 && this.casePointer < totalCases) {
-        const value = this.compiledFormula.evaluate(this) as FValue
-        this.previousResults[this.casePointer] = value
-        return value
+        this.evaluatingCasePointers.add(this.casePointer)
+        try {
+          const value = this.compiledFormula.evaluate(this) as FValue
+          this.previousResults[this.casePointer] = value
+          return value
+        } finally {
+          this.evaluatingCasePointers.delete(this.casePointer)
+        }
       }
       return undefined as any
     }

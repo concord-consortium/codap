@@ -167,6 +167,14 @@ describe("local lookup functions", () => {
       const expected = Array.from({ length: 27 }, (_, i) => 27 - i)
       expect(result).toEqual(expected)
     })
+
+    it("does not infinitely recurse when a self-reference returns to the current case", () => {
+      // prev(next(self, 0), 0) shifts case pointer -1 then +1, returning to the current case
+      // during evaluation. Without a per-casePointer re-entry guard in getLocalValue, the
+      // recursive eval would loop indefinitely and stack-overflow.
+      const options = { formulaAttrName: "LifeSpan" }
+      expect(() => evaluateForAllCases("prev(next(LifeSpan, 0), 0)", options)).not.toThrow()
+    })
   })
 
   it("implements caching that ensures O(n) complexity", () => {
