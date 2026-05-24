@@ -4,6 +4,11 @@ This runbook is the source of truth for **who does what and when** on flip day. 
 requirements spec at [`../../../specs/CODAP-1323-redirect-v2-to-v3/requirements.md`](../../../specs/CODAP-1323-redirect-v2-to-v3/requirements.md)
 is the source of truth for **what must be true**.
 
+> **Run [`PREFLIGHT.md`](PREFLIGHT.md) first.** It walks through every script in the
+> correct order to stand up the cloned distribution at the temp subdomain, deploy
+> monitoring, and collect G1 – G6 evidence. This RUNBOOK assumes that pipeline is done
+> and only handles the flip itself + everything after.
+
 Keep this document open during flip and rollback. If anything in this runbook disagrees
 with the script behavior, the script is authoritative -- pause and reconcile before
 proceeding.

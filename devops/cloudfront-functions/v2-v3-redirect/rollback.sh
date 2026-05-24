@@ -58,7 +58,7 @@ CURRENT_TARGET=$(aws route53 list-resource-record-sets --hosted-zone-id "$HOSTED
 if [ "$CURRENT_TARGET" = "$PROD_DIST_DOMAIN" ] || [ "$CURRENT_TARGET" = "${PROD_DIST_DOMAIN}." ]; then
   echo "    already done: ALIAS already targets $PROD_DIST_DOMAIN (resuming)"
 else
-  ./route53-change.sh "$PROD_DIST_DOMAIN"
+  ./route53-change.sh codap.concord.org "$PROD_DIST_DOMAIN"
   echo "    Route 53 change submitted"
 fi
 

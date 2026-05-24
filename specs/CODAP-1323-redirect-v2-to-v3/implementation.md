@@ -79,23 +79,37 @@ Instead a clone of that distribution is stood up with the V3 cutover changes, va
 temp subdomain `codap2to3.concord.org`, and made live on flip day by a CloudFront
 `associate-alias` move followed by a Route 53 ALIAS swap. Rollback reverses both.
 
+## Where to start
+
+Two operational documents in this folder, to be read in order:
+
+1. **`PREFLIGHT.md`** — the ordered pre-flip pipeline. Walks through every script in the
+   correct execution order to stand up the cloned distribution at the temp subdomain,
+   deploy monitoring, and collect G1 – G6 evidence. Run before flip day.
+2. **`RUNBOOK.md`** — the flip-day runbook (G1 – G9 checklist, forward flip, rollback,
+   mid-abort recovery, post-flip active-watch, post-soak disposition).
+
 ## Scripts
 
 | Script | Purpose | Requirement |
 |---|---|---|
-| `v2-v3-redirect.js`     | The CloudFront Function — committed, fully-commented source | R18–R21a |
-| `v2-v3-redirect.test.js`| Jest unit tests for the function logic                 | R28/R29  |
-| `build-function.sh`     | Strip comments → `dist/v2-v3-redirect.js` (deployed artifact) | R20b |
-| `check-size.sh`         | Verify both 10 KB budgets                              | R20c     |
-| `test-function.sh`      | Execution-time validation via `aws cloudfront test-function` | R30a |
-| `deploy-function.sh`    | Create/update the function in CloudFront               | R18      |
-| `clone-distribution.sh` | Clone `E3H9X49AG3GYSO`                                 | R26a     |
-| `modify-clone.sh`       | Apply the V3 cutover cache-behavior changes            | R26      |
-| `verify-clone.sh`       | Structured config diff + response-header checks        | R26a     |
-| `dns-audit.sh`          | Audit `*.codap.concord.org` records                    | R26c     |
-| `deploy-monitoring.sh`  | CloudWatch alarms, log metric filter, synthetic canaries | R26b   |
-| `flip.sh` / `rollback.sh` | Flip-day forward / reverse                           | R24/R24a/R25 |
-| `RUNBOOK.md`            | Flip-day operational runbook                           | R31      |
+| `v2-v3-redirect.js`        | The CloudFront Function — committed, fully-commented source         | R18–R21a |
+| `v2-v3-redirect.test.js`   | Jest unit tests for the function logic                              | R28/R29  |
+| `build-function.sh`        | Strip comments → `dist/v2-v3-redirect.js` (deployed artifact)       | R20b     |
+| `check-size.sh`            | Verify both 10 KB budgets                                           | R20c     |
+| `test-function.sh`         | Execution-time validation via `aws cloudfront test-function`        | R30a     |
+| `deploy-function.sh`       | Create/update the function in CloudFront                            | R18      |
+| `clone-distribution.sh`    | Clone `E3H9X49AG3GYSO`                                              | R26a     |
+| `setup-temp-subdomain.sh`  | Route 53 ALIAS `$TEMP_SUBDOMAIN` → clone (makes temp subdomain resolvable) | R27 |
+| `modify-clone.sh`          | Apply the V3 cutover cache-behavior changes                         | R26      |
+| `verify-clone.sh`          | Structured config diff + response-header checks                     | R26a     |
+| `dns-audit.sh`             | Audit `*.codap.concord.org` records                                 | R26c     |
+| `deploy-monitoring.sh`     | CloudWatch alarms, log metric filter, synthetic canaries            | R26b     |
+| `verify-alarms.sh`         | Induce a synthetic error against each R26b check; confirm ALARM     | G5 / DO-I3 |
+| `flip.sh` / `rollback.sh`  | Flip-day forward / reverse                                          | R24/R24a/R25 |
+| `route53-change.sh`        | Shared helper: UPSERT a Route 53 ALIAS A record (record-name + target args) | shared |
+| `PREFLIGHT.md`             | Pre-flip pipeline (run this first)                                  | this folder |
+| `RUNBOOK.md`               | Flip-day operational runbook                                        | R31      |
 
 All scripts are idempotent where practical and read identifiers from `config.env` (see
 `config.env.example`). Run from this directory.
@@ -1052,9 +1066,16 @@ the Route 53 swap (DO-F6).
 - `devops/cloudfront-functions/v2-v3-redirect/flip.sh` — new.
 - `devops/cloudfront-functions/v2-v3-redirect/rollback.sh` — new.
 - `devops/cloudfront-functions/v2-v3-redirect/route53-change.sh` — new; shared helper that
-  emits the `change-resource-record-sets` batch for a given ALIAS target.
+  UPSERTs a Route 53 ALIAS A record. Takes two positional args: record name and target
+  CloudFront DomainName. Used by `flip.sh`, `rollback.sh`, and `setup-temp-subdomain.sh`.
+- `devops/cloudfront-functions/v2-v3-redirect/setup-temp-subdomain.sh` — new; pre-flip
+  setup that points the temp subdomain at the clone. `clone-distribution.sh` adds the
+  temp subdomain to the clone's CloudFront `Aliases` (cert validation), but DNS still
+  needs a Route 53 record for `https://$TEMP_SUBDOMAIN` to actually resolve (R27 /
+  Technical Notes step 6). Thin wrapper around `route53-change.sh` with idempotency
+  pre-check and a verification hint.
 
-**Estimated diff size**: ~190 lines.
+**Estimated diff size**: ~250 lines.
 
 `flip.sh` — refuses to run without an explicit `--confirm` flag; **resumable** — on startup it
 probes the current state and skips any already-completed action (DO-I4), printing what it
@@ -1064,10 +1085,11 @@ detected (e.g. "step 1 done — resuming at the wait"). It prints each step:
    *Skipped* if `codap.concord.org` is already in the clone's `Aliases`.
 2. **Wait** — `aws cloudfront wait distribution-deployed --id "$CLONE_DIST_ID"` (DO-F6 — step 3
    MUST NOT be issued until this returns). Naturally idempotent — safe to re-run.
-3. **Step 2** — `route53-change.sh` UPSERTs the `codap.concord.org` ALIAS A record in
-   `$HOSTED_ZONE_ID` to target `$CLONE_DIST_DOMAIN` (AliasTarget HostedZoneId
-   `Z2FDTNDATAQYW2` — CloudFront's fixed alias zone — `EvaluateTargetHealth=false`). UPSERT is
-   idempotent; reported as already-done if the record already targets the clone.
+3. **Step 2** — `route53-change.sh codap.concord.org "$CLONE_DIST_DOMAIN"` UPSERTs the
+   ALIAS A record in `$HOSTED_ZONE_ID` to target `$CLONE_DIST_DOMAIN` (AliasTarget
+   HostedZoneId `Z2FDTNDATAQYW2` — CloudFront's fixed alias zone —
+   `EvaluateTargetHealth=false`). UPSERT is idempotent; reported as already-done if the
+   record already targets the clone.
 4. Print the post-flip checklist pointer (re-point canaries; R31b active-watch).
 
 `rollback.sh` — the same actions reversed and equally resumable: `associate-alias` back to
@@ -1139,11 +1161,54 @@ CI regression.
 
 ---
 
+### Pre-flight pipeline document
+
+**Summary**: `PREFLIGHT.md` — the ordered build-and-validate pipeline that stands up the
+clone at the temp subdomain and collects G1 – G6 evidence. Run BEFORE `RUNBOOK.md`. The
+spec's individual phases each list "Files affected" but never tie them together into a
+single ordered runlist; `PREFLIGHT.md` is that runlist, plus pointers at the manual
+steps (Google OAuth temp-subdomain authorization for Drive, DNS-audit classification,
+Drive double-click validation).
+
+**Files affected**:
+- `devops/cloudfront-functions/v2-v3-redirect/PREFLIGHT.md` — new.
+
+**Estimated diff size**: ~190 lines.
+
+`PREFLIGHT.md` contents (each step is a single command unless noted):
+- **0. Configure** — copy `config.env.example` to `config.env`; confirm identifier values.
+- **1. Build, size-check, and deploy the redirect function** — `deploy-function.sh`.
+- **2. Clone the production distribution** — `clone-distribution.sh` then
+  `aws cloudfront wait distribution-deployed`.
+- **3. Point the temp subdomain at the clone** — `setup-temp-subdomain.sh` (creates the
+  Route 53 record so `https://$TEMP_SUBDOMAIN` resolves).
+- **4. Apply the V3 cutover cache-behavior changes** — `modify-clone.sh` then wait
+  `distribution-deployed`.
+- **5. Verify the clone matches the expected config diff** — `verify-clone.sh` (the
+  SE-J2 automated gate).
+- **6. DNS audit** — `dns-audit.sh`; operator classifies each row.
+- **7. Deploy monitoring** — `deploy-monitoring.sh`.
+- **8. Verify alarms (G5 gate)** — `verify-alarms.sh`.
+- **9. Function execution-time validation (G3 gate)** — `test-function.sh`.
+- **10. Final size budget (G4 gate)** — `check-size.sh` (also run by `deploy-function.sh`;
+  standalone run produces clean evidence).
+- **11. Authorize the temp subdomain in Google OAuth (X1)** — manual console action.
+- **12. Run the Cypress conformance suite (G1 + G2 gates)** — `npx cypress run --spec
+  cypress/e2e/v2-v3-redirect.spec.ts --env redirectBaseUrl=https://codap2to3.concord.org`.
+- **13. Drive double-click validation (G6 gate)** — manual end-to-end check (R27 Path A).
+
+The README's "Where to start" section points readers at PREFLIGHT.md first, RUNBOOK.md
+second.
+
+---
+
 ### Flip-day runbook
 
 **Summary**: `RUNBOOK.md` — the R31-mandated checked-in operational runbook. It must exist
 before any G1–G9 sign-off begins. This is the source of truth for *who does what and when*
 on flip day; the requirements spec is the source of truth for *what must be true*.
+
+A pointer at the top of `RUNBOOK.md` directs readers to run `PREFLIGHT.md` first.
 
 **Files affected**:
 - `devops/cloudfront-functions/v2-v3-redirect/RUNBOOK.md` — new.
