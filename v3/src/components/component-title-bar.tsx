@@ -68,7 +68,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
         tile.setUserTitle(nextValue)
       }, {
         notify: updateTileNotification("titleChange", { from: title, to: nextValue }, tile),
-        log: logMessageWithReplacement("Title changed to: %@", {nextValue}, "component"),
+        log: logMessageWithReplacement("Change title '%@' to '%@'", {from: title, to: nextValue}, "component"),
         undoStringKey: "DG.Undo.component.componentTitleChange",
         redoStringKey: "DG.Redo.component.componentTitleChange"
       })

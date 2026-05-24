@@ -5,9 +5,10 @@ import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { appState } from "../../models/app-state"
 import { updateAttributesNotification, updateCasesNotification } from "../../models/data/data-set-notifications"
 import { setAttributeFormulaWithCustomUndoRedo } from "../../models/data/data-set-undo"
-import { getSharedDataSets } from "../../models/shared/shared-data-utils"
+import { getMetadataFromDataSet, getSharedDataSets } from "../../models/shared/shared-data-utils"
 import { uiState } from "../../models/ui-state"
 import { t } from "../../utilities/translation/translate"
+import { editFormulaNotification } from "./edit-formula-notifications"
 import { EditFormulaModal } from "./edit-formula-modal"
 
 export const EditAttributeFormulaModal = observer(function EditAttributeFormulaModal() {
@@ -32,11 +33,19 @@ export const EditAttributeFormulaModal = observer(function EditAttributeFormulaM
       dataSet?.applyModelChange(() => {
         setAttributeFormulaWithCustomUndoRedo(dataSet, attribute, formula, attrName)
       }, {
-        // TODO Should also broadcast notify component edit formula notification
-        notify: [
-          updateCasesNotification(dataSet),
-          updateAttributesNotification([attribute], dataSet)
-        ],
+        notify: () => {
+          const metadata = getMetadataFromDataSet(dataSet)
+          const caseTableTile = metadata?.caseTableTileId
+            ? appState.document.content?.getTile(metadata.caseTableTileId)
+            : undefined
+          const notifications = [
+            updateCasesNotification(dataSet),
+            updateAttributesNotification([attribute], dataSet)
+          ]
+          const editFormula = editFormulaNotification(caseTableTile)
+          if (editFormula) notifications.push(editFormula)
+          return notifications
+        },
         undoStringKey: "DG.Undo.caseTable.editAttributeFormula",
         redoStringKey: "DG.Redo.caseTable.editAttributeFormula",
         log: logStringifiedObjectMessage("Edit attribute formula: %@",

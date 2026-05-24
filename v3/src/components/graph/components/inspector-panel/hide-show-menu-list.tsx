@@ -50,7 +50,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
           tile),
         undoStringKey: "DG.Undo.hideUnselectedCases",
         redoStringKey: "DG.Redo.hideUnselectedCases",
-        log: "Hide unselected cases"
+        log: logMessageWithReplacement("Hide %@ unselected cases", {numUnselected: numberToHide})
       }
     )
   }
@@ -72,7 +72,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
       {
         undoStringKey: "DG.Undo.showAllCases",
         redoStringKey: "DG.Redo.showAllCases",
-        log: {message: "Show all cases", args: {category: "data"}}
+        log: {message: "Show all cases", args: {}, category: "data"}
       }
     )
   }

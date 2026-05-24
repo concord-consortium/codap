@@ -9,6 +9,14 @@ jest.mock("../../hooks/use-data-set-context", () => ({
   useDataSetContext: () => mockUseDataSetContext()
 }))
 
+const mockSetPendingLogMessage = jest.fn()
+jest.mock("../../hooks/use-log-context", () => ({
+  useLoggingContext: () => ({
+    getPendingLogMessage: jest.fn(),
+    setPendingLogMessage: mockSetPendingLogMessage
+  })
+}))
+
 describe("CellTextEditor", () => {
   const row = { __id__: "rowId" }
   const column = { key: "columnKey" } as TCalculatedColumn
@@ -52,5 +60,26 @@ describe("CellTextEditor", () => {
     const editor = screen.getByTestId("cell-text-editor")
     expect(editor).toHaveAttribute("aria-label")
     expect(editor.getAttribute("aria-label")).toContain("Height")
+  })
+
+  it("records a pending log with V2-compatible editValue event format", async () => {
+    const data = DataSet.create({ name: "data" }, {historyService: new AppHistoryService()})
+    data.addAttribute({ id: "columnKey", name: "columnName" })
+    const [caseId] = data.addCases([{ columnKey: "1" }])
+    const rowWithRealId = { __id__: caseId }
+    mockUseDataSetContext.mockImplementation(() => data)
+    const user = userEvent.setup()
+    render(<CellTextEditor row={rowWithRealId} column={column} onRowChange={onRowChange} onClose={onClose}/>)
+    await user.keyboard("9")
+    expect(mockSetPendingLogMessage).toHaveBeenCalled()
+    const [, msg] = mockSetPendingLogMessage.mock.calls[mockSetPendingLogMessage.mock.calls.length - 1]
+    expect(msg.message).toMatch(/^editValue: \{ collection:/)
+    expect(msg.args).toEqual(expect.objectContaining({
+      collection: expect.any(String),
+      case: caseId,
+      attribute: "columnKey",
+      old: "1",
+      new: "9"
+    }))
   })
 })

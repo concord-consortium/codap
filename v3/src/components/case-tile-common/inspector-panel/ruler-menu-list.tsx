@@ -42,7 +42,7 @@ export const RulerMenuList = observer(function RulerMenuList() {
       undoStringKey: "DG.Undo.caseTable.createAttribute",
       redoStringKey: "DG.Redo.caseTable.createAttribute",
       log: logStringifiedObjectMessage("attributeCreate: %@",
-        {name: "newAttr", collection: data?.getCollection(collectionId)?.name, formula: ""})
+        {name: "newAttr", collection: data?.getCollection(collectionId)?.name, formula: ""}, "data")
     })
   }
 

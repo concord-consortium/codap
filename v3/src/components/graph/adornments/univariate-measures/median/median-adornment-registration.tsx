@@ -27,6 +27,7 @@ registerAdornmentContentInfo({
   plots: ["dotPlot"],
   prefix: kMedianPrefix,
   modelClass: MedianAdornmentModel,
+  notificationOperation: "togglePlottedMedian",
   undoRedoKeys: {
     undoAdd: kMedianUndoAddKey,
     redoAdd: kMedianRedoAddKey,
