@@ -232,20 +232,29 @@ var HTML_HEAD =
   '(Your link’s saved settings may not carry over.)</p></noscript>' +
   '<script>(function(){' +
   'var lang="'
+// R17a: when path-detected `lang` is non-empty (R3/R5 -- the only paths that contribute
+// a lang), prepend it and strip any incoming `?lang=` pair. When it is empty (R1, R2, R4,
+// R6a), preserve the original query VERBATIM -- including any `?lang=` the user passed.
+// (Phase 3 fix; the prior implementation stripped query `lang` unconditionally, which
+// dropped the user's lang on R1/R2/R4/R6a paths.)
 var HTML_TAIL =
   '";' +
   'var s=window.location.search;' +
-  'var pairs=s?s.slice(1).split("&"):[];' +
-  'var out=[];' +
-  'if(lang){out.push("lang="+lang);}' +
-  'for(var i=0;i<pairs.length;i++){' +
-    'var p=pairs[i];if(p===""){continue;}' +
-    'var eq=p.indexOf("=");' +
-    'var n=eq<0?p:p.slice(0,eq);' +
-    'if(n==="lang"){continue;}' +
-    'out.push(p);' +
+  'var qs;' +
+  'if(lang){' +
+    'var pairs=s?s.slice(1).split("&"):[];' +
+    'var out=["lang="+lang];' +
+    'for(var i=0;i<pairs.length;i++){' +
+      'var p=pairs[i];if(p===""){continue;}' +
+      'var eq=p.indexOf("=");' +
+      'var n=eq<0?p:p.slice(0,eq);' +
+      'if(n==="lang"){continue;}' +
+      'out.push(p);' +
+    '}' +
+    'qs="?"+out.join("&");' +
+  '}else{' +
+    'qs=s;' +
   '}' +
-  'var qs=out.length?("?"+out.join("&")):"";' +
   'window.location.replace("' + V3_DEST + '"+qs+window.location.hash);' +
   '})();</script></body></html>'
 
@@ -300,12 +309,16 @@ function logSafe(s) {
 }
 
 // R30 — server-side destination for the log line: V3_DEST + R17a-processed query.
-// path-detected `lang` wins; any incoming query `lang` is dropped. The hash is appended
-// client-side (R19) and is never seen by the function, so it is not part of the log line.
+// When path-detected `lang` is non-empty (R3/R5), it wins and any incoming query `lang`
+// is dropped. When path lang is empty (R1, R2, R4, R6a), the original query is preserved
+// verbatim. The hash is appended client-side (R19) and is never seen by the function, so
+// it is not part of the log line. (Phase 3 fix -- mirrors the client-side R17a fix.)
 function logDestination(lang, rawQuery) {
+  if (!lang) {
+    return V3_DEST + (rawQuery ? '?' + rawQuery : '')
+  }
   var pairs = rawQuery ? rawQuery.split('&') : []
-  var out = []
-  if (lang) { out.push('lang=' + lang) }
+  var out = ['lang=' + lang]
   for (var i = 0; i < pairs.length; i++) {
     var p = pairs[i]
     if (p === '') { continue }
@@ -314,7 +327,7 @@ function logDestination(lang, rawQuery) {
     if (n === 'lang') { continue }
     out.push(p)
   }
-  return V3_DEST + (out.length ? '?' + out.join('&') : '')
+  return V3_DEST + '?' + out.join('&')
 }
 
 function buildResponse(lang) {
@@ -407,7 +420,8 @@ function handler(event) {
 context (so the function file stays a pure CloudFront Function — no `module.exports`
 scaffolding) and exercises the full R28 positive and R29 negative matrices at the logic
 level: path matching, English detection, the synthetic response, headers, the
-client-side query/hash construction (run under jsdom), and the logging and exception paths
+client-side query/hash construction (run under a minimal VM-context window stub -- see the
+IMPLEMENTATION NOTE on `runClientScript`), and the logging and exception paths
 (R23 / R30 / R18b — see SE-J1). The suite is parameterized (a Jest `describe.each`) over
 **both** the committed source and the built artifact `dist/v2-v3-redirect.js`, so every
 assertion runs against the bytes that actually deploy as well as the reviewed source (SE-J3);
@@ -427,10 +441,12 @@ suite runs, on every `jest` invocation (RR-J1).
   built before the SE-J3 dual-target suite — on every `jest` invocation (`npm test`,
   `npx jest`, watch mode, IDE runner), not only the `npm test` path a `pretest` hook would
   cover.
-- `devops/cloudfront-functions/v2-v3-redirect/package.json` — new; `jest` + `jsdom` + `terser`
+- `devops/cloudfront-functions/v2-v3-redirect/package.json` — new; `jest` + `terser`
   devDeps (`terser` drives `build-function.sh`), `npm test` script, and Jest config pointing
   `globalSetup` at `jest.globalSetup.js`. Self-contained (the function is repo-root infra, not
-  `v3/` code) — see Open Question IQ2.
+  `v3/` code) — see Open Question IQ2. (Implementation note: the draft listed `jsdom` too,
+  but `runClientScript` was implemented with a VM-context stub instead — see the
+  "IMPLEMENTATION NOTE" in `test-harness.js` below — so jsdom is not a dependency.)
 
 **Estimated diff size**: ~410 lines.
 
@@ -440,7 +456,8 @@ suite runs, on every `jest` invocation (RR-J1).
 const fs = require('fs')
 const path = require('path')
 const vm = require('vm')
-const { JSDOM } = require('jsdom')
+// Note: jsdom was originally proposed here but dropped in implementation -- see the
+// IMPLEMENTATION NOTE on runClientScript below.
 
 // SE-J3 — both the committed source and the built artifact are valid load targets; the
 // suite (below) runs every assertion against each. Default target is the committed source.
@@ -476,16 +493,26 @@ function makeEvent(uri, { method = 'GET', querystring = '' } = {}) {
   return { request: { method, uri, querystring: qs, headers: {} } }
 }
 
-// Extract the inline <script> from a synthetic response body and run it under jsdom with the
-// given location.search / location.hash. Returns the URL passed to window.location.replace().
+// Extract the inline <script> from a synthetic response body and run it in a fresh VM
+// context with a minimal `window.location` stub exposing only the members the script
+// reads (`search`, `hash`, `replace`). Returns the URL passed to `window.location.replace()`.
+//
+// IMPLEMENTATION NOTE: the Phase 3 draft proposed jsdom for this helper. In Cypress /
+// Node, jsdom's `window.location` is non-configurable, so we cannot replace `.replace`
+// (read-only) or swap the whole `location` object (also non-configurable). A plain VM
+// context with a `window` global is sufficient and faithful to what runs in the browser
+// (the inline script does not touch any other DOM surface). The package.json devDeps
+// therefore do NOT include jsdom.
 function runClientScript(body, { search = '', hash = '' } = {}) {
   const script = body.match(/<script>([\s\S]*?)<\/script>/)[1]
-  const dom = new JSDOM('<!DOCTYPE html>', { url: 'https://codap.concord.org/x' })
   let replaced = null
-  dom.window.location.replace = (url) => { replaced = url }
-  Object.defineProperty(dom.window.location, 'search', { value: search })
-  Object.defineProperty(dom.window.location, 'hash', { value: hash })
-  dom.window.eval(script)
+  const sandbox = {
+    window: {
+      location: { search, hash, replace(url) { replaced = url } }
+    }
+  }
+  vm.createContext(sandbox)
+  vm.runInContext(script, sandbox)
   return replaced
 }
 
@@ -723,13 +750,14 @@ from the committed source:
 # R20b / SE-I2 — build the deployed artifact dist/v2-v3-redirect.js by removing comments from
 # the committed, fully-commented source. terser parses the JS properly (a naive regex strip
 # would corrupt the RE_* regex literals and the https:// base-URL string). Comment removal
-# ONLY — --compress false --mangle false — so the artifact is behavior-identical to the
-# reviewed source.
+# ONLY (no -c/-m flags) — so the artifact is behavior-identical to the reviewed source.
 set -euo pipefail
 cd "$(dirname "$0")"
 mkdir -p dist
-npx terser v2-v3-redirect.js --compress false --mangle false --comments false \
-  --output dist/v2-v3-redirect.js
+# terser CLI: omitting -c/-m disables compression and mangling entirely (the defaults
+# are OFF when the flags aren't passed). Trying to pass `false` as a value to -c/-m fails
+# in current terser CLI builds with "`false` is not a supported option".
+npx terser v2-v3-redirect.js --comments false --output dist/v2-v3-redirect.js
 node --check dist/v2-v3-redirect.js          # parse-validity smoke check
 echo "built dist/v2-v3-redirect.js ($(wc -c < dist/v2-v3-redirect.js) bytes)"
 ```
