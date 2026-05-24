@@ -2,7 +2,7 @@ import { parse, isFunctionNode } from "mathjs/number"
 import type { MathNode } from "mathjs"
 import { IFormulaDependency, ILocalAttributeDependency, isLocalAttributeDependency } from "../formula-types"
 import { typedFnRegistry } from "../functions/math"
-import { basicCanonicalNameToDependency } from "./name-mapping-utils"
+import { basicCanonicalNameToDependency, localAttrIdToCanonical } from "./name-mapping-utils"
 import { isNonFunctionSymbolNode } from "./mathjs-utils"
 
 export const ifSelfReference = (dependency?: IFormulaDependency, formulaAttributeId?: string) =>
@@ -110,4 +110,54 @@ export const getFormulaDependencies = (formulaCanonical: string, formulaAttribut
   }
   formulaTree.traverse(visitNode)
   return result
+}
+
+// Iteration direction implied by the formula's self-references inside prev()/next() calls.
+// - "forward": only prev(self) appears - outer recalc loop iterates 0..n-1 so each prev() reads a cached value
+// - "reverse": only next(self) appears - outer loop iterates n-1..0 so each next() reads a cached value
+// - "mixed":  both prev(self) and next(self) appear - single-pass evaluation cannot satisfy both;
+//            caller should reject the formula since it would require iterative resolution
+// - "none":   no self-references through prev()/next() - direction does not matter
+export type SelfReferenceDirection = "forward" | "reverse" | "mixed" | "none"
+
+const subtreeReferencesSymbol = (root: MathNode, canonicalSymbolName: string): boolean => {
+  let found = false
+  root.traverse((node) => {
+    if (found) return
+    if (node.type === "SymbolNode" && (node as any).name === canonicalSymbolName) {
+      found = true
+    }
+  })
+  return found
+}
+
+export const getSelfReferenceDirection = (
+  formulaCanonical: string, formulaAttributeId: string
+): SelfReferenceDirection => {
+  if (!formulaCanonical || !formulaAttributeId) return "none"
+  const formulaTree = parse(formulaCanonical)
+  const canonicalAttrName = localAttrIdToCanonical(formulaAttributeId)
+  let hasPrevSelf = false
+  let hasNextSelf = false
+  formulaTree.traverse((node) => {
+    if (!isFunctionNode(node)) return
+    const fnName = node.fn.name
+    if (fnName !== "prev" && fnName !== "next") return
+    // Only the row-shifted (aggregate) args carry the self-reference cycle; defaultValue is
+    // evaluated in the current-case context and a self-ref there is a real cycle (caught by
+    // the static detector), not a recurrence to be iterated.
+    const semiAggregate = typedFnRegistry[fnName]?.isSemiAggregate
+    if (!semiAggregate) return
+    semiAggregate.forEach((isAggregate, index) => {
+      if (!isAggregate || !node.args[index]) return
+      if (subtreeReferencesSymbol(node.args[index], canonicalAttrName)) {
+        if (fnName === "prev") hasPrevSelf = true
+        else hasNextSelf = true
+      }
+    })
+  })
+  if (hasPrevSelf && hasNextSelf) return "mixed"
+  if (hasNextSelf) return "reverse"
+  if (hasPrevSelf) return "forward"
+  return "none"
 }

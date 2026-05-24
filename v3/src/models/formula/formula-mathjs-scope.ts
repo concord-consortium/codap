@@ -24,6 +24,11 @@ export interface IFormulaMathjsScopeContext {
   // Cases that the formula is evaluated for, in case it's evaluated for a group of cases during one evaluation.
   // This is necessary for case-dependant formulas to work, e.g. `round(NewAttribute)` or `prev(NewAttribute, 0) + 1`.
   caseIds?: string[]
+  // When set, the scope routes reads of this attribute through getLocalValue's self-reference
+  // branch (using previousResults + the compiled formula for recursive fills). Callers that set
+  // this MUST also call setCompiledFormula(), or self-reference cache misses for next(self)
+  // will silently return undefined. All current callers that set formulaAttrId also set the
+  // compiled formula; filter-formula adapters set formulaAttrId to undefined and do not need it.
   formulaAttrId?: string
   formulaCollectionIndex?: number
   childMostAggregateCollectionIndex?: number
@@ -170,6 +175,10 @@ export class FormulaMathJsScope {
       // If we're already mid-evaluation for this case (e.g. prev(next(self, 0), 0) shifts -1
       // then +1, returning to the current case before its value is cached), break the cycle
       // by returning undefined - this is a runtime cycle the static detector cannot see.
+      // We use `undefined` (not the user-facing `""` UNDEF_RESULT sentinel) so that the
+      // surrounding prev()/next() catches it via `?? defaultValue` and falls back cleanly.
+      // The AttributeFormulaAdapter coerces any surviving undefined to `""` at the case-value
+      // boundary so users never see a literal `undefined` cell.
       if (this.evaluatingCasePointers.has(this.casePointer)) return undefined as any
       // Cache miss: this case hasn't been computed yet (e.g. next(self) reading a future row).
       // Recursively re-evaluate the formula at this case, matching V2's behavior. Cache the result

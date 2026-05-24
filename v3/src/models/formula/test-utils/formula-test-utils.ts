@@ -7,6 +7,7 @@ import { getSharedModelManager } from "../../tiles/tile-environment"
 import { FormulaMathJsScope, IFormulaMathjsScopeContext } from "../formula-mathjs-scope"
 import { math } from "../functions/math"
 import { displayToCanonical } from "../utils/canonicalization-utils"
+import { getSelfReferenceDirection } from "../utils/formula-dependency-utils"
 import { getDisplayNameMap } from "../utils/name-mapping-utils"
 import testDoc from "./test-doc.json"
 
@@ -123,10 +124,19 @@ export const evaluateForAllCases = (displayFormula: string, options?: IEvaluateF
   const compiledFormula = math.compile(formula)
   scope.setCompiledFormula(compiledFormula)
 
-  return caseIds.map((caseId, idx) => {
+  // Match the AttributeFormulaAdapter's iteration policy: when the formula uses only next(self),
+  // evaluate cases last-to-first so the cache is filled before each next() read.
+  const direction = formulaAttrId ? getSelfReferenceDirection(formula, formulaAttrId) : "none"
+  const reverse = direction === "reverse"
+  const indices = reverse
+    ? Array.from({ length: caseIds.length }, (_, i) => caseIds.length - 1 - i)
+    : Array.from({ length: caseIds.length }, (_, i) => i)
+  const results: any[] = new Array(caseIds.length)
+  for (const idx of indices) {
     scope.setCasePointer(idx)
     const formulaValue = compiledFormula.evaluate(scope)
     scope.savePreviousResult(formulaValue)
-    return formulaValue
-  })
+    results[idx] = formulaValue
+  }
+  return results
 }

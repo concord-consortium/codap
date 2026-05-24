@@ -44,6 +44,45 @@ describe("AttributeFormulaAdapter", () => {
       adapter.recalculateFormula(context, extraMetadata, "ALL_CASES")
       expect(dataSet.getValueAtItemIndex(0, attribute.id)).toEqual(3)
     })
+
+    it("handles next(self) on large datasets without stack overflow (CODAP-1358)", () => {
+      // Recursive next(self) evaluation would add ~10 stack frames per case, hitting the
+      // ~10k JS stack limit around 1000 cases. With iterative reverse-order evaluation, the
+      // outer loop fills the cache before each next() read, so depth stays O(1).
+      const N = 2000
+      const formulaManager = new FormulaManager()
+      const dataSet = createDataSet({
+        attributes: [{ name: "x", formula: { display: `caseIndex = ${N} ? 1 : next(x, 0) + 1` } }]
+      }, {formulaManager})
+      dataSet.addCases(Array.from({ length: N }, (_, i) => ({ __id__: `c${i}` })))
+      const adapter = new AttributeFormulaAdapter(formulaManager.getAdapterApi())
+      formulaManager.addDataSet(dataSet)
+      formulaManager.addAdapters([adapter])
+
+      const xAttr = dataSet.attributes[0]
+      // Reverse-counting: case 1 -> N, case 2 -> N-1, ..., case N -> 1
+      expect(dataSet.getValueAtItemIndex(0, xAttr.id)).toEqual(N)
+      expect(dataSet.getValueAtItemIndex(N - 1, xAttr.id)).toEqual(1)
+      expect(dataSet.getValueAtItemIndex(Math.floor(N / 2), xAttr.id)).toEqual(N - Math.floor(N / 2))
+    })
+
+    it("rejects formulas that mix prev(self) and next(self) with a formula error (CODAP-1358)", () => {
+      // Such a formula would require iterative resolution (cannot be satisfied in a single
+      // forward or reverse pass). Until that's supported (see CODAP-1359 follow-up), reject
+      // at recalculation time with a clear error rather than silently computing wrong values
+      // or stack-overflowing on the runtime guard.
+      const formulaManager = new FormulaManager()
+      const dataSet = createDataSet({
+        attributes: [{ name: "x", formula: { display: "prev(x, 0) + next(x, 0)" } }]
+      }, {formulaManager})
+      dataSet.addCases([{ __id__: "1" }, { __id__: "2" }, { __id__: "3" }])
+      const adapter = new AttributeFormulaAdapter(formulaManager.getAdapterApi())
+      formulaManager.addDataSet(dataSet)
+      formulaManager.addAdapters([adapter])
+
+      const xAttr = dataSet.attributes[0]
+      expect(dataSet.getValueAtItemIndex(0, xAttr.id)).toMatch(/prev.*next|next.*prev/)
+    })
   })
 
   describe("setError", () => {

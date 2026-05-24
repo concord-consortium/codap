@@ -11,11 +11,12 @@ import { IFormulaAdapterApi, FormulaManagerAdapter } from "./formula-manager-ada
 import { FormulaMathJsScope, NO_PARENT_KEY } from "./formula-mathjs-scope"
 import { observeDatasetHierarchyChanges } from "./formula-observers"
 import { FValue, ILocalAttributeDependency, ILookupDependency } from "./formula-types"
+import { UNDEF_RESULT } from "./functions/function-utils"
 import { math } from "./functions/math"
 import {
   getFormulaChildMostAggregateCollectionIndex, getIncorrectChildAttrReference, getIncorrectParentAttrReference
 } from "./utils/collection-utils"
-import { getFormulaDependencies } from "./utils/formula-dependency-utils"
+import { getFormulaDependencies, getSelfReferenceDirection } from "./utils/formula-dependency-utils"
 import { formulaError } from "./utils/misc"
 
 const ATTRIBUTE_FORMULA_ADAPTER = "AttributeFormulaAdapter"
@@ -212,6 +213,15 @@ export class AttributeFormulaAdapter extends FormulaManagerAdapter {
       caseChildrenCount: this.getCaseChildrenCountMap(formulaContext, extraMetadata)
     })
 
+    // Direction of self-references through prev()/next(). "reverse" (only next(self)) makes the
+    // outer loop iterate last-to-first so the cache is filled before next() reads it - this is
+    // the iterative form of V2's behavior and avoids stack growth proportional to remaining cases.
+    // "mixed" (both prev(self) and next(self)) cannot be resolved in a single pass and is rejected.
+    const direction = getSelfReferenceDirection(formula.canonical, attributeId)
+    if (direction === "mixed") {
+      return this.setFormulaError(formulaContext, extraMetadata, formulaError("V3.formula.error.mixedSelfRef"))
+    }
+
     let compiledFormula: EvalFunction
     try {
       compiledFormula = math.compile(formula.canonical)
@@ -222,22 +232,31 @@ export class AttributeFormulaAdapter extends FormulaManagerAdapter {
     // next(self) can recursively re-evaluate at a future case when the cache hasn't been filled yet.
     formulaScope.setCompiledFormula(compiledFormula)
 
-    return casesToRecalculate.map((c, idx) => {
+    const n = casesToRecalculate.length
+    const evalOrder: number[] = direction === "reverse"
+      ? Array.from({ length: n }, (_, i) => n - 1 - i)
+      : Array.from({ length: n }, (_, i) => i)
+    const formulaValues: FValue[] = new Array(n)
+    for (const idx of evalOrder) {
       formulaScope.setCasePointer(idx)
       let formulaValue: FValue
       try {
         formulaValue = compiledFormula.evaluate(formulaScope)
-        // This is necessary for functions like `prev` that need to know the previous result when they reference
-        // its own attribute.
+        // This is necessary for functions like `prev` and `next` that read their own attribute's
+        // previously-computed values via the case-pointer-indexed previousResults cache.
         formulaScope.savePreviousResult(formulaValue)
       } catch (e: any) {
         formulaValue = formulaError(e.message)
       }
-      return {
-        __id__: c.__id__,
-        [attributeId]: formulaValue
-      }
-    })
+      formulaValues[idx] = formulaValue
+    }
+    return casesToRecalculate.map((c, idx) => ({
+      __id__: c.__id__,
+      // Coerce undefined to the empty-string sentinel (UNDEF_RESULT) so users never see an
+      // `undefined` cell. Internally undefined is used as a "missing" signal that prev()/next()
+      // can catch via `?? defaultValue`; at this boundary it should always become `""`.
+      [attributeId]: formulaValues[idx] ?? UNDEF_RESULT
+    }))
   }
 
   // Error message is set as formula output, similarly as in CODAP V2.

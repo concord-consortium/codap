@@ -37,20 +37,30 @@ export const localLookupFunctions: CODAPMathjsFunctionRegistry = {
       interface ICachedData {
         result?: FValue
         resultCasePointer: number
+        // casePointer at which this entry was computed. The cached result represents "no
+        // matching case between cacheSetAtCasePointer+1 and resultCasePointer-1, match at
+        // resultCasePointer." That guarantee only holds for callers at or after
+        // cacheSetAtCasePointer; reverse iteration crosses below it and must recompute.
+        cacheSetAtCasePointer: number
       }
 
       const scope = getRootScope(currentScope)
       const caseGroupId = scope.getCaseGroupId()
       const cacheKey = `next(${args.toString()})-${caseGroupId}`
       const [ expression, defaultValue, filter ] = args
-      const cachedData = scope.getCached<ICachedData>(cacheKey)
 
       let result
-      let casePointer = scope.getCasePointer()
-      if (!cachedData || casePointer >= cachedData.resultCasePointer) {
-        // We need to look for a new next value when there's no cached data (e.g. first case being processed) or when
-        // we already passed the index of cached result.
-        if (filter) {
+      if (filter) {
+        // With a filter we may need to scan forward through cases until the filter is truthy.
+        // Cache the result so subsequent calls at smaller casePointers can reuse it (forward
+        // iteration). For reverse iteration the cacheSetAtCasePointer guard invalidates the
+        // entry when we cross below it.
+        const cachedData = scope.getCached<ICachedData>(cacheKey)
+        const originalCasePointer = scope.getCasePointer()
+        let casePointer = originalCasePointer
+        if (!cachedData ||
+            casePointer >= cachedData.resultCasePointer ||
+            casePointer < cachedData.cacheSetAtCasePointer) {
           const numOfCases = scope.getNumberOfCases()
           let expressionValue, filterValue
           let currentGroup = caseGroupId
@@ -72,21 +82,24 @@ export const localLookupFunctions: CODAPMathjsFunctionRegistry = {
             }, casePointer)
           }
           result = isValueTruthy(filterValue) ? expressionValue : undefined
+          scope.setCached(cacheKey, {
+            result, resultCasePointer: casePointer, cacheSetAtCasePointer: originalCasePointer
+          })
         } else {
-          // When there's no filter, simply get the next expression value (within the same case group).
-          casePointer = scope.getCasePointer() + 1
-          result = scope.withCustomCasePointer(() => {
-            if (scope.getCaseGroupId() === caseGroupId) {
-              return evaluateNode(expression, scope)
-            }
-            return undefined
-          }, casePointer)
+          result = cachedData.result
         }
-
-        scope.setCached(cacheKey, { result, resultCasePointer: casePointer })
       } else {
-        // When scope.casePointer < cachedData.resultCasePointer, we can reuse the previous result.
-        result = cachedData.result
+        // Without a filter, next() always reads casePointer+1 within the same case group, an O(1)
+        // lookup. The cache-reuse optimization that the filter case relies on would actively
+        // mis-fire in reverse iteration (where casePointer decreases), so we just recompute - it's
+        // cheap and direction-agnostic.
+        const targetCasePointer = scope.getCasePointer() + 1
+        result = scope.withCustomCasePointer(() => {
+          if (scope.getCaseGroupId() === caseGroupId) {
+            return evaluateNode(expression, scope)
+          }
+          return undefined
+        }, targetCasePointer)
       }
 
       return result ?? (defaultValue ? evaluateNode(defaultValue, scope) : UNDEF_RESULT)
