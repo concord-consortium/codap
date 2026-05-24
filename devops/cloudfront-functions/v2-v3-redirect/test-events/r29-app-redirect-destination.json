@@ -1,0 +1,19 @@
+{
+  "version": "1.0",
+  "context": {
+    "eventType": "viewer-request",
+    "requestId": "test-r29-app-redirect-destination"
+  },
+  "viewer": { "ip": "127.0.0.1" },
+  "request": {
+    "method": "GET",
+    "uri": "/app/",
+    "querystring": {
+      "lang": { "value": "fr" }
+    },
+    "headers": {
+      "host": { "value": "codap.concord.org" }
+    },
+    "cookies": {}
+  }
+}

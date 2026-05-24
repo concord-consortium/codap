@@ -1,0 +1,17 @@
+{
+  "version": "1.0",
+  "context": {
+    "eventType": "viewer-request",
+    "requestId": "test-r29-app-asset"
+  },
+  "viewer": { "ip": "127.0.0.1" },
+  "request": {
+    "method": "GET",
+    "uri": "/app/static/js/bundle.js",
+    "querystring": {},
+    "headers": {
+      "host": { "value": "codap.concord.org" }
+    },
+    "cookies": {}
+  }
+}

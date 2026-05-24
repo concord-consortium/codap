@@ -3,7 +3,6 @@
 const fs = require('fs')
 const path = require('path')
 const vm = require('vm')
-const { JSDOM } = require('jsdom')
 
 // SE-J3 -- both the committed source and the built artifact are valid load targets; the
 // suite (in v2-v3-redirect.test.js) runs every assertion against each. Default target is
@@ -45,20 +44,25 @@ function makeEvent(uri, opts) {
   return { request: { method, uri, querystring: qs, headers: {} } }
 }
 
-// Extract the inline <script> from a synthetic response body and run it under jsdom with
-// the given location.search / location.hash. Returns the URL passed to
-// window.location.replace().
+// Extract the inline <script> from a synthetic response body and run it in a fresh VM
+// context with a minimal `window.location` stub exposing the only members the script
+// reads (`search`, `hash`, `replace`). Returns the URL passed to
+// `window.location.replace()`. A full jsdom Window is intentionally NOT used here: jsdom's
+// `window.location` is non-configurable, and the inline script doesn't exercise any other
+// DOM surface -- a plain stub is both sufficient and faithful to what runs in the browser.
 function runClientScript(body, opts) {
   const o = opts || {}
   const search = o.search || ''
   const hash = o.hash || ''
   const script = body.match(/<script>([\s\S]*?)<\/script>/)[1]
-  const dom = new JSDOM('<!DOCTYPE html>', { url: 'https://codap.concord.org/x' })
   let replaced = null
-  dom.window.location.replace = (url) => { replaced = url }
-  Object.defineProperty(dom.window.location, 'search', { value: search, configurable: true })
-  Object.defineProperty(dom.window.location, 'hash', { value: hash, configurable: true })
-  dom.window.eval(script)
+  const sandbox = {
+    window: {
+      location: { search, hash, replace(url) { replaced = url } }
+    }
+  }
+  vm.createContext(sandbox)
+  vm.runInContext(script, sandbox)
   return replaced
 }
 

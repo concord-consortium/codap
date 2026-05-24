@@ -1,0 +1,17 @@
+{
+  "version": "1.0",
+  "context": {
+    "eventType": "viewer-request",
+    "requestId": "test-r28-releases-lang"
+  },
+  "viewer": { "ip": "127.0.0.1" },
+  "request": {
+    "method": "GET",
+    "uri": "/releases/latest/static/dg/fr/cert/index.html",
+    "querystring": {},
+    "headers": {
+      "host": { "value": "codap.concord.org" }
+    },
+    "cookies": {}
+  }
+}
