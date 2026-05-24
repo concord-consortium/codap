@@ -43,20 +43,27 @@ var HTML_HEAD =
   "(Your link's saved settings may not carry over.)</p></noscript>" +
   '<script>(function(){' +
   'var lang="'
+// R17a: when path-detected `lang` is non-empty (R3/R5 -- the only paths that contribute
+// a lang), prepend it and strip any incoming `?lang=` pair. When it is empty (R1, R2, R4,
+// R6a), preserve the original query VERBATIM -- including any `?lang=` the user passed.
 var HTML_TAIL =
   '";' +
   'var s=window.location.search;' +
-  'var pairs=s?s.slice(1).split("&"):[];' +
-  'var out=[];' +
-  'if(lang){out.push("lang="+lang);}' +
-  'for(var i=0;i<pairs.length;i++){' +
-    'var p=pairs[i];if(p===""){continue;}' +
-    'var eq=p.indexOf("=");' +
-    'var n=eq<0?p:p.slice(0,eq);' +
-    'if(n==="lang"){continue;}' +
-    'out.push(p);' +
+  'var qs;' +
+  'if(lang){' +
+    'var pairs=s?s.slice(1).split("&"):[];' +
+    'var out=["lang="+lang];' +
+    'for(var i=0;i<pairs.length;i++){' +
+      'var p=pairs[i];if(p===""){continue;}' +
+      'var eq=p.indexOf("=");' +
+      'var n=eq<0?p:p.slice(0,eq);' +
+      'if(n==="lang"){continue;}' +
+      'out.push(p);' +
+    '}' +
+    'qs="?"+out.join("&");' +
+  '}else{' +
+    'qs=s;' +
   '}' +
-  'var qs=out.length?("?"+out.join("&")):"";' +
   'window.location.replace("' + V3_DEST + '"+qs+window.location.hash);' +
   '})();</script></body></html>'
 
@@ -111,12 +118,16 @@ function logSafe(s) {
 }
 
 // R30 -- server-side destination for the log line: V3_DEST + R17a-processed query.
-// path-detected `lang` wins; any incoming query `lang` is dropped. The hash is appended
-// client-side (R19) and is never seen by the function, so it is not part of the log line.
+// When path-detected `lang` is non-empty (R3/R5), it wins and any incoming query `lang`
+// is dropped. When path lang is empty (R1, R2, R4, R6a), the original query is preserved
+// verbatim. The hash is appended client-side (R19) and is never seen by the function, so
+// it is not part of the log line.
 function logDestination(lang, rawQuery) {
+  if (!lang) {
+    return V3_DEST + (rawQuery ? '?' + rawQuery : '')
+  }
   var pairs = rawQuery ? rawQuery.split('&') : []
-  var out = []
-  if (lang) { out.push('lang=' + lang) }
+  var out = ['lang=' + lang]
   for (var i = 0; i < pairs.length; i++) {
     var p = pairs[i]
     if (p === '') { continue }
@@ -125,7 +136,7 @@ function logDestination(lang, rawQuery) {
     if (n === 'lang') { continue }
     out.push(p)
   }
-  return V3_DEST + (out.length ? '?' + out.join('&') : '')
+  return V3_DEST + '?' + out.join('&')
 }
 
 function buildResponse(lang) {
