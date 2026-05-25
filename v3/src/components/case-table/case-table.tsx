@@ -174,6 +174,11 @@ export const CaseTable = observer(function CaseTable() {
     if (!tableModel || !data) return null
 
     const collections = data.collections
+    const handleContentClick = (event: React.MouseEvent<HTMLDivElement>) => {
+      if (event.target === contentRef.current) {
+        handleWhiteSpaceClick()
+      }
+    }
     const handleHorizontalScroll: React.UIEventHandler<HTMLDivElement> = () => {
       tableModel.setHorizontalScrollOffset(contentRef.current?.scrollLeft ?? 0)
     }
@@ -182,7 +187,8 @@ export const CaseTable = observer(function CaseTable() {
       <div ref={handleTableRef} className="case-table" data-testid="case-table">
         <CaseTableAnnounceContext.Provider value={announce}>
           {data.hasFilterFormula && <FilterFormulaBar />}
-          <div className="case-table-content" ref={contentRef} onScroll={handleHorizontalScroll}>
+          <div className="case-table-content" ref={contentRef}
+               onScroll={handleHorizontalScroll} onClick={handleContentClick}>
             <AttributeHeaderDividerContext.Provider value={contentRef}>
               {collections.map((collection, i) => {
                 const key = collection.id
