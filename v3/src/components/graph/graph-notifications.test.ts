@@ -1,9 +1,9 @@
 import {
   add2ndAxisAttributeNotification, addAxisAttributeNotification,
-  changeBackgroundColorNotification, dragMovableLineNotification, dragMovablePointNotification,
-  dragMovableValueNotification, repositionEquationNotification, swapCategoriesNotification,
-  toggleBackgroundTransparencyNotification, toggleMeasuresForSelectionNotification,
-  toggleNumberToggleNotification
+  changeBackgroundColorNotification, dragBinBoundaryNotification, dragMovableLineNotification,
+  dragMovablePointNotification, dragMovableValueNotification, repositionEquationNotification,
+  swapCategoriesNotification, toggleBackgroundTransparencyNotification,
+  toggleMeasuresForSelectionNotification, toggleNumberToggleNotification
 } from "./graph-notifications"
 
 const v2Id = 77001
@@ -186,6 +186,29 @@ describe("dragMovableLineNotification", () => {
   it("returns undefined for non-graph tiles", () => {
     const calcTile = { id: "CALC1", content: { type: "Calculator" } } as any
     expect(dragMovableLineNotification(calcTile)).toBeUndefined()
+  })
+})
+
+describe("dragBinBoundaryNotification", () => {
+  it("emits 'drag bin boundary' with the resulting alignment and width", () => {
+    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    const notification = dragBinBoundaryNotification(tile, { alignment: 2.5, width: 7 })
+    expect(notification?.message.values.operation).toBe("drag bin boundary")
+    expect(notification?.message.values.alignment).toBe(2.5)
+    expect(notification?.message.values.width).toBe(7)
+    expect(notification?.message.values.type).toBe(v2SCType)
+  })
+
+  it("omits alignment/width when undefined", () => {
+    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    const notification = dragBinBoundaryNotification(tile, {})
+    expect(notification?.message.values.alignment).toBeUndefined()
+    expect(notification?.message.values.width).toBeUndefined()
+  })
+
+  it("returns undefined for non-graph tiles", () => {
+    const calcTile = { id: "CALC1", content: { type: "Calculator" } } as any
+    expect(dragBinBoundaryNotification(calcTile, { alignment: 1, width: 1 })).toBeUndefined()
   })
 })
 

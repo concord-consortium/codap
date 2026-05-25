@@ -91,6 +91,21 @@ export function dragMovableLineNotification(graphTile: ITileModel | undefined) {
   return updateTileNotification("drag movable line", {}, graphTile)
 }
 
+// V2 emits `drag bin boundary` from both apps/dg/components/graph/plots/binned_plot_view.js
+// (~:210) and histogram_view.js (~:261) via identical `markBinParamsChange` functions, fired on
+// drag-end after a user adjusts a histogram/binned-dot-plot bin boundary. V2's payload is bare
+// (the new alignment/width are only in the log). V3 carries them in the notification too so
+// plugins can react without re-querying. No-ops for non-graph tiles.
+export function dragBinBoundaryNotification(
+  graphTile: ITileModel | undefined, params: { alignment?: number, width?: number }
+) {
+  if (graphTile?.content.type !== kGraphTileType) return
+  const values: Record<string, number> = {}
+  if (params.alignment != null) values.alignment = params.alignment
+  if (params.width != null) values.width = params.width
+  return updateTileNotification("drag bin boundary", values, graphTile)
+}
+
 // V2 emits `reposition equation` from two sites — plotted_average_adornment.js (~:529, equation
 // labels for plotted averages/measures) and twoD_line_adornment.js (~:285, equation labels for
 // movable line / LSRL). Bare V2 payload. V3 adds `adornment: <type>` so plugins know which
