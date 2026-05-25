@@ -66,7 +66,8 @@ by-ARN attach in step 4).
 ```
 
 **Verify**: `aws cloudfront describe-function --name codap-v2-v3-redirect --stage LIVE`
-returns the expected ETag and the `Status` is `READY`.
+returns the expected ETag and the `Status` is `UNASSOCIATED` (a LIVE function is
+`UNASSOCIATED` until a distribution attaches it; it becomes `READY` after step 4).
 
 `npm install && npm test` (run from this folder) is a useful pre-deploy sanity check --
 the Jest suite runs against both the committed source and `dist/v2-v3-redirect.js`.

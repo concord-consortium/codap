@@ -32,6 +32,12 @@ prose around it is for the human reviewer who signs G-criteria.
 ~ .CacheBehaviors.Items[?(@.PathPattern=='/app')].FunctionAssociations
 ~ .CacheBehaviors.Items[?(@.PathPattern=='/app/*')].FunctionAssociations
 ~ .CacheBehaviors.Items[?(@.PathPattern=='/releases/*')].FunctionAssociations
+# Prod's FunctionAssociations is `{Quantity: 0}` (no Items key); the clone gains the
+# Items array when the function is attached. The matcher reports the Quantity bump as
+# `~` (covered above) but the Items addition as `+`, which requires its own entry.
++ .CacheBehaviors.Items[?(@.PathPattern=='/app')].FunctionAssociations.Items
++ .CacheBehaviors.Items[?(@.PathPattern=='/app/*')].FunctionAssociations.Items
++ .CacheBehaviors.Items[?(@.PathPattern=='/releases/*')].FunctionAssociations.Items
 ~ .CacheBehaviors.Items[?(@.PathPattern=='/app')].ResponseHeadersPolicyId
 ~ .CacheBehaviors.Items[?(@.PathPattern=='/app/*')].ResponseHeadersPolicyId
 ~ .CacheBehaviors.Items[?(@.PathPattern=='/releases/*')].ResponseHeadersPolicyId
@@ -48,6 +54,15 @@ prose around it is for the human reviewer who signs G-criteria.
 
 # 4. CacheBehaviors.Quantity changes with the new behaviors.
 ~ .CacheBehaviors.Quantity
+
+# 5. Cache policy substitution on sensor-interactive/* and multidata-plugin/*.
+#    Prod references CachePolicyId=a1cf85e6-... (S3-CORS-1), which is already at the
+#    AWS-default per-policy quota of 100 distinct distributions. The clone substitutes
+#    CachePolicyId=d41b1d60-... (S3-CORS) -- byte-equivalent caching config (same TTLs,
+#    cache key, headers/cookies/querystring forwarding); only Name and Comment differ.
+#    See clone-distribution notes.
+~ .CacheBehaviors.Items[?(@.PathPattern=='sensor-interactive/*')].CachePolicyId
+~ .CacheBehaviors.Items[?(@.PathPattern=='multidata-plugin/*')].CachePolicyId
 
 # 5. Per CloudFront API, every update-distribution returns new ETag/LastModifiedTime --
 #    these are wrappers around DistributionConfig and are not part of it, so they should
@@ -70,6 +85,12 @@ prose around it is for the human reviewer who signs G-criteria.
   redirects, so the origin is never reached.
 - **Response-headers policy** -- only present if `RHP_REQUIRED=true` (DO-I1). When
   `false`, the clone inherits prod's policy attachment (or has no policy if prod had none).
+- **Cache policy substitution on `sensor-interactive/*` and `multidata-plugin/*`** --
+  prod references custom cache policy `S3-CORS-1` (`a1cf85e6-b5ea-4ed9-80e7-1cf3cdc8ecaa`),
+  which is already at the AWS-default per-policy quota of 100 distinct distributions.
+  The clone uses the structurally-identical `S3-CORS` (`d41b1d60-f629-4499-93ba-a45153f58bbc`)
+  -- same TTL bounds, cache key, and forwarded headers/cookies/querystrings; only Name and
+  Comment differ. Caching behavior on these plugin-asset paths is unchanged.
 
 Any other difference -- a different policy id, an unexpected pattern, a touched origin,
 a change to the default cache behavior, an alteration to `/v2`, `/v2/*`, `/~user/*`,

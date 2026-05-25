@@ -90,22 +90,18 @@ jq --arg fnArn "$FUNCTION_ARN" \
    --arg rhpId   "$RHP_TO_USE" \
    '
    # Cache-policy id used by the existing /app behavior (so new behaviors stay consistent).
-   ($.CacheBehaviors.Items[]? | select(.PathPattern == "/app/*") | .CachePolicyId // "") as $cpid
-   | ($.CacheBehaviors.Items[]? | select(.PathPattern == "/app/*") | .ViewerProtocolPolicy // "redirect-to-https") as $vpp
+   (.CacheBehaviors.Items[]? | select(.PathPattern == "/app/*") | .CachePolicyId // "") as $cpid
+   | (.CacheBehaviors.Items[]? | select(.PathPattern == "/app/*") | .ViewerProtocolPolicy // "redirect-to-https") as $vpp
 
-   # Helper: an empty trusted-signers/key-groups block (CloudFront requires these even if empty).
+   # Template for new behaviors: clone the existing /app/* behavior so new behaviors
+   # inherit whatever shape (modern CachePolicyId, legacy ForwardedValues+MinTTL/DefaultTTL/
+   # MaxTTL, etc.) prod actually uses. PathPattern / TargetOriginId / FunctionAssociations
+   # are set per-behavior below; everything else (AllowedMethods, ViewerProtocolPolicy,
+   # caching fields) is inherited verbatim.
    | (
-       {
-         AllowedMethods: { Quantity: 2, Items: ["GET","HEAD"], CachedMethods: { Quantity: 2, Items: ["GET","HEAD"] } },
-         Compress: true,
-         ViewerProtocolPolicy: $vpp,
-         CachePolicyId: $cpid,
-         SmoothStreaming: false,
-         FieldLevelEncryptionId: "",
-         LambdaFunctionAssociations: { Quantity: 0 },
-         TrustedSigners: { Enabled: false, Quantity: 0 },
-         TrustedKeyGroups: { Enabled: false, Quantity: 0 }
-       }
+       .CacheBehaviors.Items[]
+       | select(.PathPattern == "/app/*")
+       | del(.PathPattern, .TargetOriginId, .FunctionAssociations)
      ) as $template
 
    # Attach a function association to a behavior.
@@ -117,17 +113,17 @@ jq --arg fnArn "$FUNCTION_ARN" \
          } ;
 
    # Optionally set the response-headers policy id (only if $rhpId is non-empty).
-   | def maybe_rhp(b):
+   def maybe_rhp(b):
        if ($rhpId | length) > 0 then b + { ResponseHeadersPolicyId: $rhpId } else b end ;
 
    # Build a brand-new behavior with a given path, origin, and whether to attach the function.
-   | def new_behavior(path; origin; with_fn):
+   def new_behavior(path; origin; with_fn):
        ($template + { PathPattern: path, TargetOriginId: origin })
        | (if with_fn then attach_fn(.) else . + { FunctionAssociations: { Quantity: 0 } } end)
        | maybe_rhp(.) ;
 
    # Mutate existing /app, /app/*, /releases/* behaviors.
-   | .CacheBehaviors.Items |= map(
+   .CacheBehaviors.Items |= map(
        if .PathPattern == "/app" or .PathPattern == "/app/*" or .PathPattern == "/releases/*"
        then attach_fn(. + { TargetOriginId: $v3Origin }) | maybe_rhp(.)
        else .

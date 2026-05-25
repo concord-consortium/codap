@@ -146,6 +146,12 @@ echo "Part 2 -- response-header check against https://$TEMP_SUBDOMAIN"
 ORIGIN_HEADERS=$(curl -sI "https://$TEMP_SUBDOMAIN/app/static/js/bundle.js" || true)
 SYNTH_HEADERS=$(curl -sI "https://$TEMP_SUBDOMAIN/app/static/dg/en/cert/index.html" || true)
 
+# Probe prod for HSTS the same way clone-distribution.sh's RHP_REQUIRED determination does.
+# If prod itself serves no HSTS, the cutover preserves status quo and there is no
+# synthetic-response regression to gate on.
+PROD_HSTS=$(curl -sI "https://codap.concord.org/app/" 2>/dev/null \
+  | grep -i '^strict-transport-security:' || true)
+
 fail=0
 for check in "origin-served:$ORIGIN_HEADERS" "synthetic-response:$SYNTH_HEADERS"; do
   label="${check%%:*}"
@@ -157,7 +163,7 @@ for check in "origin-served:$ORIGIN_HEADERS" "synthetic-response:$SYNTH_HEADERS"
     echo "    HSTS present: $has_hsts"
   else
     echo "    HSTS MISSING"
-    if [ "$label" = "synthetic-response" ] && [ "${RHP_REQUIRED:-false}" = "false" ]; then
+    if [ "$label" = "synthetic-response" ] && [ "${RHP_REQUIRED:-false}" = "false" ] && [ -n "$PROD_HSTS" ]; then
       cat <<'INSTR'
     R20a HSTS contingency triggered. The synthetic response did not carry HSTS, which
     means either RHP_REQUIRED should have been true or the function should add the header
@@ -168,6 +174,8 @@ for check in "origin-served:$ORIGIN_HEADERS" "synthetic-response:$SYNTH_HEADERS"
       (c) accept that this distribution serves no HSTS today.
 INSTR
       fail=1
+    elif [ "$label" = "synthetic-response" ]; then
+      echo "    (prod also serves no HSTS at https://codap.concord.org/app/; status quo preserved, no action required)"
     fi
   fi
   if [ -z "$has_xcto" ]; then
