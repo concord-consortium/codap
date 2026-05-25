@@ -31,6 +31,11 @@ describe("calculateNotification", () => {
     expect(notification?.message.values.diType).toBe(diType)
   })
 
+  it("returns undefined for non-calculator tiles (e.g. graph)", () => {
+    const graphTile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    expect(calculateNotification(graphTile)).toBeUndefined()
+  })
+
   it("returns undefined when the calculator tile is missing", () => {
     expect(calculateNotification(undefined)).toBeUndefined()
   })

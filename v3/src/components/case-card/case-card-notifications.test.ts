@@ -31,6 +31,11 @@ describe("changeColumnWidthNotification", () => {
     expect(notification?.message.values.diType).toBe(diType)
   })
 
+  it("returns undefined for non-case-card tiles (e.g. case table)", () => {
+    const tableTile = { id: "TABLE1", content: { type: "CaseTable" } } as any
+    expect(changeColumnWidthNotification(tableTile)).toBeUndefined()
+  })
+
   it("returns undefined when the case-card tile is missing", () => {
     expect(changeColumnWidthNotification(undefined)).toBeUndefined()
   })
