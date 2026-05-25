@@ -1,4 +1,5 @@
 import {
+  add2ndAxisAttributeNotification, addAxisAttributeNotification,
   changeBackgroundColorNotification, toggleBackgroundTransparencyNotification
 } from "./graph-notifications"
 
@@ -41,6 +42,64 @@ describe("changeBackgroundColorNotification", () => {
 
   it("returns undefined when the graph tile is missing", () => {
     expect(changeBackgroundColorNotification(undefined, "#ff8800")).toBeUndefined()
+  })
+})
+
+describe("addAxisAttributeNotification", () => {
+  const sampleValues: any = {
+    attributeId: 4242, attributeName: "MPG", plotType: "scatterPlot",
+    primaryAxis: "x", axisOrientation: "vertical"
+  }
+
+  it("emits 'add axis attribute' with the given attribute-change values", () => {
+    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    const notification = addAxisAttributeNotification(tile, sampleValues)
+    expect(notification?.message.values.operation).toBe("add axis attribute")
+    expect(notification?.message.values.attributeId).toBe(4242)
+    expect(notification?.message.values.attributeName).toBe("MPG")
+    expect(notification?.message.values.type).toBe(v2SCType)
+    expect(notification?.message.values.diType).toBe(diType)
+  })
+
+  it("falls back to an empty payload when values are undefined", () => {
+    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    const notification = addAxisAttributeNotification(tile, undefined)
+    expect(notification?.message.values.operation).toBe("add axis attribute")
+    expect(notification?.message.values.attributeId).toBeUndefined()
+  })
+
+  it("returns undefined for non-graph tiles", () => {
+    const calcTile = { id: "CALC1", content: { type: "Calculator" } } as any
+    expect(addAxisAttributeNotification(calcTile, sampleValues)).toBeUndefined()
+  })
+
+  it("returns undefined when the graph tile is missing", () => {
+    expect(addAxisAttributeNotification(undefined, sampleValues)).toBeUndefined()
+  })
+})
+
+describe("add2ndAxisAttributeNotification", () => {
+  const sampleValues: any = {
+    attributeId: 5151, attributeName: "Horsepower", plotType: "scatterPlot",
+    primaryAxis: "x", axisOrientation: "vertical"
+  }
+
+  it("emits 'add 2nd axis attribute' with the given attribute-change values", () => {
+    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    const notification = add2ndAxisAttributeNotification(tile, sampleValues)
+    expect(notification?.message.values.operation).toBe("add 2nd axis attribute")
+    expect(notification?.message.values.attributeId).toBe(5151)
+    expect(notification?.message.values.type).toBe(v2SCType)
+    expect(notification?.message.values.diType).toBe(diType)
+  })
+
+  it("returns undefined for non-graph tiles", () => {
+    const calcTile = { id: "CALC1", content: { type: "Calculator" } } as any
+    expect(add2ndAxisAttributeNotification(calcTile, sampleValues)).toBeUndefined()
+  })
+
+  it("returns undefined when the graph tile is missing", () => {
+    expect(add2ndAxisAttributeNotification(undefined, sampleValues)).toBeUndefined()
   })
 })
 
