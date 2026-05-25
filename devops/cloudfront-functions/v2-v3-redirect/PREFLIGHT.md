@@ -216,12 +216,33 @@ artifact for the G4 evidence row.
 ## 11. Authorize the temp subdomain in Google OAuth (X1)
 
 This step is **manual** (no script). In the Google Cloud Console, open the CODAP Drive
-OAuth client and add `https://codap2to3.concord.org` to the authorized JavaScript
-origins / redirect URIs so the G6 Drive double-click validation (R27 Path A) can run
-pre-flip. Tick the matching box in the RUNBOOK's "Pre-flip manual prerequisites".
+OAuth client and add `https://codap2to3.concord.org` to **Authorized JavaScript origins**.
+Tick the matching box in the RUNBOOK's "Pre-flip manual prerequisites".
 
-The post-flip cleanup removes the temp subdomain from the authorized list (out of scope
-of this story).
+**Authorized redirect URIs do NOT need a new entry.** Three scenarios cover all of the
+pre-flip Drive testing on the temp subdomain; only the JavaScript-origin path needs
+authorization:
+
+- **G6 Drive double-click test (R27 Path A)** -- the URL the tester clicks lives on
+  `codap2to3.concord.org`, but the function intercepts it with a synthetic redirect to
+  `codap.concord.org/app/`. The V3 SPA loads at the **prod** origin and runs the OAuth
+  popup from `codap.concord.org` (already authorized). The temp subdomain isn't involved
+  in OAuth at all.
+- **Tester loads V3 directly at `https://codap2to3.concord.org/app/`** -- V3 SPA loads at
+  the temp origin; GIS popup runs from `codap2to3.concord.org`. **This is the case that
+  requires the new Authorized JavaScript origin.**
+- **V2 SproutCore via the temp subdomain** -- impossible. Every V2-shape URL on the temp
+  subdomain is intercepted by the function and redirected away; V2's redirect-based OAuth
+  flow never starts there. So no V2-style redirect URI mirror is needed.
+
+CODAP's V3 flow uses Google's GIS popup with `postMessage`, so it sends no `redirect_uri`
+parameter -- the Authorized redirect URIs list is consulted only by V2's redirect flow.
+The prod V2 redirect URI (`https://codap.concord.org/releases/latest/static/dg/en/cert/index.html`)
+becomes dead post-flip because the function intercepts `/releases/latest/...` on prod too;
+cleaning it up is a separate post-flip task, out of CODAP-1323's scope.
+
+The post-flip cleanup removes `https://codap2to3.concord.org` from Authorized JavaScript
+origins (out of scope of this story).
 
 ---
 
