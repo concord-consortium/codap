@@ -21,6 +21,7 @@ import { ITileBaseProps } from "../tiles/tile-base-props"
 import { EditableSliderValue } from "./editable-slider-value"
 import { SliderAxisLayout } from "./slider-layout"
 import { isSliderModel } from "./slider-model"
+import { changeSliderValueNotification } from "./slider-notifications"
 import { CodapSliderThumb } from "./slider-thumb"
 import { kSliderClass } from "./slider-types"
 import { valueChangeNotification } from "./slider-utils"
@@ -78,13 +79,18 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
     sliderModel.applyModelChange(
       () => sliderModel.setValue(values[0]),
       {
+        // V2 emits `change slider value` on mouseUp after drag (slider_view.js:330).
+        // Mirror that here. The during-drag handleChange above continues to fire the
+        // `global[<name>]` notification per tick, which V2 also does via the model
+        // observer; the component-resource notification fires only on drag completion.
+        notify: () => changeSliderValueNotification(tile, values[0]),
         undoStringKey: "DG.Undo.slider.change",
         redoStringKey: "DG.Redo.slider.change",
         log: logMessageWithReplacement("sliderThumbDrag: { name: %@ = value: %@ }",
               { name: sliderModel.name, value: values[0] }, "slider")
       }
     )
-  }, [sliderModel])
+  }, [sliderModel, tile])
 
   const numberFormatter = useMemo(() => new Intl.NumberFormat(), [])
 
