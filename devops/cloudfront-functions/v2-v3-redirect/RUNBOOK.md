@@ -181,18 +181,47 @@ direction the team agrees on; the symmetric statement is true for a `rollback.sh
 `deploy-monitoring.sh` created both Synthetics canaries with `CANARY_TARGET_HOST` set to
 `$TEMP_SUBDOMAIN` (`codap2to3.concord.org`). After the flip lands, repoint both to
 `codap.concord.org` so the post-flip soak monitors the real customer-facing host (DO-F2 /
-R26b):
+R26b).
+
+**Re-pointing is delete + recreate, not update-canary.** AWS Synthetics' `UpdateCanary`
+silently drops `EnvironmentVariables` (the API returns success and LastModified updates,
+but env vars never persist). The handler `process.env.CANARY_TARGET_HOST || 'codap2to3.concord.org'`
+also has the temp subdomain hard-coded as a fallback, so even if `update-canary` appeared
+to work, the canary would silently keep hitting the temp subdomain.
+
+The reliable procedure is to delete each canary and re-create it via `deploy-monitoring.sh`
+with `CANARY_TARGET_HOST` overridden on the command line. **First update**
+[`canaries/v3-reachability.js`](canaries/) and [`canaries/redirect-correctness.js`](canaries/)
+to change the fallback string from `codap2to3.concord.org` to `codap.concord.org`
+(committing the change so the canaries reflect the post-flip world), then:
 
 ```bash
+# 1. Delete both canaries (recreating preserves the alarms + dashboard which only
+#    reference canary names, not their lifecycle).
 for canary in codap-v2-v3-v3-reachability codap-v2-v3-redirect-correctness; do
-  aws synthetics update-canary --name "$canary" \
-    --run-config "EnvironmentVariables={CANARY_TARGET_HOST=codap.concord.org}" \
-    --region us-east-1
+  aws synthetics stop-canary --name "$canary" --region us-east-1 || true
+  aws synthetics delete-canary --name "$canary" --region us-east-1
+done
+
+# 2. Wait until both fully delete (DELETING -> 404).
+for canary in codap-v2-v3-v3-reachability codap-v2-v3-redirect-correctness; do
+  until ! aws synthetics get-canary --name "$canary" --region us-east-1 >/dev/null 2>&1; do
+    sleep 5
+  done
+done
+
+# 3. Recreate via deploy-monitoring.sh -- it picks up the updated fallback target
+#    in canaries/*.js and creates fresh canaries pointing at codap.concord.org.
+./deploy-monitoring.sh
+
+# 4. Start the freshly-created canaries (create leaves them in READY, not RUNNING).
+for canary in codap-v2-v3-v3-reachability codap-v2-v3-redirect-correctness; do
+  aws synthetics start-canary --name "$canary" --region us-east-1
 done
 ```
 
-After the change, wait one canary tick (~60s) and confirm both canaries report
-`PASSED` in the console.
+After ~90 seconds, confirm both canaries report `PASSED` in the console and are hitting
+`https://codap.concord.org/...` in their CloudWatch artifact screenshots.
 
 ---
 

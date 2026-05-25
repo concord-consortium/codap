@@ -93,28 +93,37 @@ echo "    (this can take up to 6 minutes to ALARM under low background traffic)"
 assert_alarm "codap-v2-v3-redirect-4xxErrorRate" 480 || echo "    NOTE: 4xx alarm did not fire; the clone may be high-traffic enough to dilute the ratio."
 
 # ---------------------------------------------------------------------------
-# Synthetic canaries (Check 6) -- temporarily change CANARY_TARGET_HOST to an unreachable
-# host so each canary fails its assertion, then restore the value.
+# Synthetic canaries (Check 6) -- passive observation.
+#
+# AWS Synthetics' UpdateCanary silently drops EnvironmentVariables (the API call returns
+# success and LastModified updates, but the env vars never persist). This means a
+# scripted "point at invalid host briefly to induce failure" verification isn't reliable
+# -- the canary keeps its previous target regardless of the update. Re-pointing canaries
+# is a delete-and-recreate operation, not an in-place update.
+#
+# G5 evidence for canaries is therefore observational: confirm both canaries are
+# RUNNING (lifecycle), have recent runs (the schedule is firing), and at least one
+# recent run PASSED (the assertion logic works against the real target). Failure modes
+# are detected by watching the dashboard (no CloudWatch alarm is attached to canary
+# SuccessPercent in deploy-monitoring.sh -- if you want one, add it there).
 # ---------------------------------------------------------------------------
-echo "Check 6 -- synthetic canaries"
-echo "    point both canaries at an unreachable host briefly, expect failures, then restore."
-for canary in codap-v2-v3-v3-reachability codap-v2-v3-redirect-correctness; do
-  aws synthetics update-canary --name "$canary" \
-    --run-config "EnvironmentVariables={CANARY_TARGET_HOST=invalid.invalid}" \
-    --region "$REGION_US_E1" >/dev/null
-  echo "    $canary pointed at invalid host"
-done
-echo "    waiting 3 minutes for canary runs..."
-sleep 180
+echo "Check 6 -- synthetic canaries (passive observation)"
+canary_ok=1
 for canary in codap-v2-v3-v3-reachability codap-v2-v3-redirect-correctness; do
   state=$(aws synthetics get-canary --name "$canary" \
     --query 'Canary.Status.State' --output text --region "$REGION_US_E1")
-  echo "    $canary state=$state"
-  # Restore the real target.
-  aws synthetics update-canary --name "$canary" \
-    --run-config "EnvironmentVariables={CANARY_TARGET_HOST=$TEMP_SUBDOMAIN}" \
-    --region "$REGION_US_E1" >/dev/null
+  passed_recent=$(aws synthetics get-canary-runs --name "$canary" --max-results 10 \
+    --query 'CanaryRuns[?Status.State==`PASSED`] | length(@)' \
+    --output text --region "$REGION_US_E1")
+  echo "    $canary state=$state, PASSED in last 10 runs=$passed_recent"
+  if [ "$state" != "RUNNING" ] || [ "${passed_recent:-0}" -lt 1 ]; then
+    echo "    FAIL: $canary is not healthy (need state=RUNNING and >=1 recent PASSED run)"
+    canary_ok=0
+  fi
 done
+if [ "$canary_ok" -eq 0 ]; then
+  echo "    Canary G5 evidence INSUFFICIENT -- investigate before signing"
+fi
 
 # ---------------------------------------------------------------------------
 # Checks (1) + (4): FunctionExecutionErrors + 5xxErrorRate. Both move together because

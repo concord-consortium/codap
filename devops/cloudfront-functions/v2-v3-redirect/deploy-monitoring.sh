@@ -36,7 +36,7 @@ aws cloudwatch put-metric-alarm \
   --alarm-description "high-severity: redirect function uncaught exceptions" \
   --namespace "AWS/CloudFront" \
   --metric-name "FunctionExecutionErrors" \
-  --dimensions "Name=FunctionName,Value=$FUNCTION_NAME" \
+  --dimensions "Name=FunctionName,Value=$FUNCTION_NAME" "Name=Region,Value=Global" \
   --statistic Sum \
   --period 60 \
   --evaluation-periods 1 \
@@ -87,7 +87,7 @@ aws cloudwatch put-metric-alarm \
   --alarm-description "high-severity: redirect function throttled" \
   --namespace "AWS/CloudFront" \
   --metric-name "FunctionThrottles" \
-  --dimensions "Name=FunctionName,Value=$FUNCTION_NAME" \
+  --dimensions "Name=FunctionName,Value=$FUNCTION_NAME" "Name=Region,Value=Global" \
   --statistic Sum \
   --period 60 \
   --evaluation-periods 1 \
@@ -168,7 +168,7 @@ else
       || aws synthetics update-canary \
         --name "codap-v2-v3-$canary" \
         --code "Handler=$canary.handler,ZipFile=fileb://$zip_path" \
-        --run-config "EnvironmentVariables={CANARY_TARGET_HOST=$TEMP_SUBDOMAIN}" \
+        --run-config "{\"EnvironmentVariables\":{\"CANARY_TARGET_HOST\":\"$TEMP_SUBDOMAIN\"}}" \
         --region "$REGION_US_E1"
     echo "    canary codap-v2-v3-$canary ready (target $TEMP_SUBDOMAIN)"
   done
