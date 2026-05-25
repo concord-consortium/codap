@@ -169,7 +169,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
         resultingShowHide = "show"
       }
       // diType is guaranteed truthy here (gated by useSingletonV2Path).
-      const lifecycleName = kV2DITypeToLifecycleNameMap[diType!] ?? diType!
+      const lifecycleName = kV2DITypeToLifecycleNameMap[diType] ?? diType
       const action = resultingShowHide === "hide" ? "delete" : "add"
       undoStringKey = `DG.Undo.toggleComponent.${action}.${lifecycleName}`
       redoStringKey = `DG.Redo.toggleComponent.${action}.${lifecycleName}`
