@@ -2,11 +2,13 @@ import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
 import React, { useState, useEffect } from "react"
+import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { convertToDate } from "../../utilities/date-utils"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { t } from "../../utilities/translation/translate"
 import { MultiScale } from "../axis/models/multi-scale"
 import { ISliderModel } from "./slider-model"
+import { changeSliderValueNotification } from "./slider-notifications"
 import { valueChangeNotification } from "./slider-utils"
 import { useSliderAxisAnimation } from "./use-slider-axis-animation"
 
@@ -21,6 +23,7 @@ interface IProps {
 export const EditableSliderValue = observer(function EditableSliderValue({sliderModel, multiScale,
     onStatusMessage}: IProps) {
   const [candidate, setCandidate] = useState("")
+  const { tile } = useTileModelContext()
   const { animateAxisToEncompass } = useSliderAxisAnimation(sliderModel)
 
   useEffect(() => {
@@ -62,7 +65,10 @@ export const EditableSliderValue = observer(function EditableSliderValue({slider
     const inputValue = parseValue(e.target.value)
     if (isFinite(inputValue)) {
       animateAxisToEncompass(inputValue, {
-        notify: () => valueChangeNotification(sliderModel.value, sliderModel.name),
+        notify: [
+          () => valueChangeNotification(sliderModel.value, sliderModel.name),
+          () => changeSliderValueNotification(tile, sliderModel.value)
+        ],
         undoStringKey: "DG.Undo.slider.change",
         redoStringKey: "DG.Redo.slider.change",
         log: logMessageWithReplacement("sliderEdit: { expression: %@ = %@ }",

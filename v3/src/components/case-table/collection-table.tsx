@@ -14,6 +14,8 @@ import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { IAttribute } from "../../models/data/attribute"
 import { IDataSet } from "../../models/data/data-set"
 import { createAttributesNotification } from "../../models/data/data-set-notifications"
+import { getTileModel } from "../../models/tiles/tile-model"
+import { resizeColumnNotification } from "./case-table-notifications"
 import {
   collectionCaseIdFromIndex, collectionCaseIndexFromId, isAnyChildSelected, selectCases, setSelectedCases
 } from "../../models/data/data-set-utils"
@@ -223,6 +225,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         caseTableModel?.applyModelChange(() => {
           caseTableModel?.columnWidths.set(attrId, newWidth)
         }, {
+          notify: () => resizeColumnNotification(caseTableModel ? getTileModel(caseTableModel) : undefined),
           log: {message: "Resize one case table column", args:{}, category: "table"},
           undoStringKey: "DG.Undo.caseTable.resizeOneColumn",
           redoStringKey: "DG.Redo.caseTable.resizeOneColumn"

@@ -7,12 +7,14 @@ import { useDataSetMetadata } from "../../hooks/use-data-set-metadata"
 import { getDragAttributeInfo, useTileDroppable } from "../../hooks/use-drag-drop"
 import { measureText } from "../../hooks/use-measure-text"
 import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
+import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { IDataSet } from "../../models/data/data-set"
 import { isAnyChildSelected } from "../../models/data/data-set-utils"
 import { getStringCssVariable } from "../../utilities/css-utils"
 import { preventAttributeMove, preventCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
+import { expandCollapseAllNotification } from "./case-table-notifications"
 import { kInputRowKey } from "./case-table-types"
 import { CurvedSplineFill } from "./curved-spline-fill"
 import { CurvedSplineStroke } from "./curved-spline-stroke"
@@ -48,6 +50,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
 }: IProps) {
   const data = useDataSetContext()
   const metadata = useDataSetMetadata()
+  const { tile } = useTileModelContext()
   const parentCollectionId = useParentCollectionContext()
   const parentCollection = parentCollectionId ? data?.getCollection(parentCollectionId) : undefined
   const parentTableModel = useCollectionTableModel(parentCollectionId)
@@ -153,9 +156,12 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
   // }
 
   function handleExpandCollapseAllClick() {
+    // Resulting state — click toggles from current `everyCaseIsCollapsed`.
+    const toState = everyCaseIsCollapsed ? "expanded" : "collapsed"
     metadata?.applyModelChange(() => {
       parentCases?.forEach((value) => metadata?.setIsCollapsed(value.__id__, !everyCaseIsCollapsed))
     }, {
+      notify: () => expandCollapseAllNotification(tile, toState),
       log: logMessageWithReplacement("%@ all",
               { state: everyCaseIsCollapsed ? "Expand" : "Collapse" }, "table"),
       undoStringKey: "DG.Undo.caseTable.groupToggleExpandCollapseAll",

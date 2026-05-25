@@ -4,6 +4,7 @@ import { DataSetContext } from "../../../hooks/use-data-set-context"
 import { DataSetMetadataContext } from "../../../hooks/use-data-set-metadata"
 import { t } from "../../../utilities/translation/translate"
 import { ICaseTableModel, isCaseTableModel } from "../../case-table/case-table-model"
+import { resizeColumnsNotification } from "../../case-table/case-table-notifications"
 import { resizeAllColumns } from "../../case-table/case-table-utils"
 import { InspectorButton, InspectorMenu, InspectorPanel } from "../../inspector-panel"
 import { ITileInspectorPanelProps } from "../../tiles/tile-base-props"
@@ -46,6 +47,7 @@ export const CaseTileInspector = ({ tile, show, showResizeColumnsButton }: IProp
     tableModel.applyModelChange(() => {
       resizeAllColumns(tableModel)
     }, {
+      notify: () => resizeColumnsNotification(tile),
       log: {message: "Resize all columns", args:{}, category: "table"},
       undoStringKey: "DG.Undo.caseTable.resizeColumns",
       redoStringKey: "DG.Redo.caseTable.resizeColumns"

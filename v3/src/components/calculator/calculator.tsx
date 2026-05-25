@@ -5,6 +5,7 @@ import { math } from "../../models/formula/functions/math"
 import { preprocessDisplayFormula } from "../../models/formula/utils/canonicalization-utils"
 import { mstAutorun } from "../../utilities/mst-autorun"
 import { ITileBaseProps } from "../tiles/tile-base-props"
+import { calculateNotification } from "./calculator-notifications"
 import { isCalculatorModel } from "./calculator-model"
 
 import "./calculator.scss"
@@ -44,6 +45,7 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
       calculatorModel?.applyModelChange(() => {
         calculatorModel.setValue()
       }, {
+        notify: () => calculateNotification(tile),
         undoStringKey: "V3.Undo.calculator.clear",
         redoStringKey: "V3.Redo.calculator.clear",
         log: {message: "Calculator value cleared", args: {}, category: "calculator"}
@@ -51,7 +53,7 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
     }
     // Focus the input after clearing
     inputRef.current?.focus()
-  }, [calculatorModel, isValidModel])
+  }, [calculatorModel, isValidModel, tile])
 
   const insert = useCallback((strToInsert: string) => {
     if (justEvaled) {
@@ -103,6 +105,7 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
         calculatorModel?.applyModelChange(() => {
           calculatorModel.setValue(solutionStr)
         }, {
+          notify: () => calculateNotification(tile),
           undoStringKey: "V3.Undo.calculator.calculate",
           redoStringKey: "V3.Redo.calculator.calculate",
           log: logMessageWithReplacement("Calculation done: %@ = %@", {calcValue, solution: solutionStr}, "calculator")
@@ -115,6 +118,7 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
         calculatorModel?.applyModelChange(() => {
           calculatorModel.setValue(errorMessage)
         }, {
+          notify: () => calculateNotification(tile),
           undoStringKey: "V3.Undo.calculator.calculate",
           redoStringKey: "V3.Redo.calculator.calculate",
           log: logMessageWithReplacement("Calculation error: %@ = %@", {calcValue, error: errorMessage}, "calculator")
@@ -122,7 +126,7 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
       }
     }
     setJustEvaled(true)
-  }, [justEvaled, calcValue, calculatorModel, isValidModel])
+  }, [justEvaled, calcValue, calculatorModel, isValidModel, tile])
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (justEvaled) {
