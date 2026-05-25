@@ -1,15 +1,10 @@
 import { useCallback, useEffect, useRef } from "react"
-import { DataGridHandle } from "react-data-grid"
 import { useTileSelectionContext } from "../../hooks/use-tile-selection-context"
 import { selectAllCases } from "../../models/data/data-set-utils"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useCodapComponentContext } from "../../hooks/use-codap-component-context"
 
-interface IProps {
-  gridRef: React.RefObject<DataGridHandle>
-}
-
-export function useWhiteSpaceClick({ gridRef }: IProps) {
+export function useWhiteSpaceClick() {
   const data = useDataSetContext()
   const componentRef = useCodapComponentContext()
   // Whitespace should only clear selection if the table is already focused.
