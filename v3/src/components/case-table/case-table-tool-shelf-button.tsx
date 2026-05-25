@@ -25,6 +25,7 @@ import { createOrShowTableOrCardForDataset, createTableOrCardForDataset } from "
 import { CodapModal } from "../codap-modal"
 import { ToolShelfButtonTag } from "../tool-shelf/tool-shelf-button"
 import { kCaseTableTileType } from "./case-table-defs"
+import { openCaseTableNotification } from "./case-table-notifications"
 
 import AlertIcon from "../../assets/icons/icon-alert.svg"
 import TableIcon from "../../assets/icons/icon-table.svg"
@@ -84,7 +85,11 @@ const CaseTableToolShelfMenuList = observer(
       const actualTileId = sharedMetadata.caseTableTileId
       tile = actualTileId ? content.tileMap.get(actualTileId) : undefined
     }, {
-      notify: [ dataContextCountChangedNotification, () => createTileNotification(tile) ],
+      notify: [
+        dataContextCountChangedNotification,
+        () => createTileNotification(tile),
+        () => openCaseTableNotification(tile)
+      ],
       undoStringKey: "V3.Undo.caseTable.create",
       redoStringKey: "V3.Redo.caseTable.create",
       log: {message: "Create New Empty DataSet", args: {}, category: "document"}
@@ -117,10 +122,24 @@ const CaseTableToolShelfMenuList = observer(
         {datasets.map((dataset) => {
           // case table title reflects DataSet title
           const tileTitle = dataset.dataSet.displayTitle
+          // Wrap createOrShow in applyModelChange so the V2-compat `open case table`
+          // notification fires for V2 plugins (CODAP-1353). V2's bulk-open path is undoable
+          // (DG.UndoHistory.execute in document_controller.js:1064), so mirror that here.
+          const handleOpenTableForDataset = () => {
+            let tile: Maybe<ITileModel>
+            document.applyModelChange(() => {
+              tile = createOrShowTableOrCardForDataset(dataset)
+            }, {
+              notify: () => openCaseTableNotification(tile),
+              undoStringKey: "DG.Undo.caseTable.open",
+              redoStringKey: "DG.Redo.caseTable.open",
+              log: "Create caseTable component"
+            })
+          }
           return (
             // FIXME: this will create multiple undo entries
             <MenuItem key={`${dataset.dataSet.id}`} className="tool-shelf-menu-item table-menu-item"
-              onClick={()=>createOrShowTableOrCardForDataset(dataset)} data-testid={`tool-shelf-table-${tileTitle}`}>
+              onClick={handleOpenTableForDataset} data-testid={`tool-shelf-table-${tileTitle}`}>
               <TableIcon className="menu-icon case-table-icon"/>
               {tileTitle}
               <span className="menu-list-button tool-shelf-menu-trash" role="button" tabIndex={0}

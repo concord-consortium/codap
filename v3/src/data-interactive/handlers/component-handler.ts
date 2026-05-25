@@ -1,4 +1,5 @@
 import { isCaseTableModel } from "../../components/case-table/case-table-model"
+import { openCaseTableNotification } from "../../components/case-table/case-table-notifications"
 import { resizeAllColumns } from "../../components/case-table/case-table-utils"
 import { isGraphContentModel } from "../../components/graph/models/graph-content-model"
 import { isMapContentModel } from "../../components/map/models/map-content-model"
@@ -90,10 +91,12 @@ export const diComponentHandler: DIHandler = {
           }
         }
       }, {
-        // Wrap in a function so it runs AFTER applyModelChange's actionFn assigns `tile`.
-        // Evaluating createTileNotification(tile) inline would call it with tile=undefined,
-        // producing no notification (createTileNotification returns undefined for falsy tile).
-        notify: () => createTileNotification(tile),
+        // Wrap each helper in a function so it runs AFTER applyModelChange's actionFn assigns
+        // `tile`. Evaluating notifications inline would call them with tile=undefined,
+        // producing no notification (the helpers return undefined for falsy tile).
+        // openCaseTableNotification no-ops for non-case-table tiles, so it's safe to call
+        // unconditionally here (V2-plugin compat for the case-table create path, CODAP-1353).
+        notify: [() => createTileNotification(tile), () => openCaseTableNotification(tile)],
         // Don't echo the create back to the requesting plugin — Story Builder otherwise treats
         // notifications about its own DI-API actions as document edits and marks the current
         // moment as unsaved (CODAP-1307).
