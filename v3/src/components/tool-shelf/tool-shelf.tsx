@@ -14,6 +14,9 @@ import TileListIcon from "../../assets/icons/icon-tile-list.svg"
 import GuideIcon from "../../assets/icons/icon-guide.svg"
 import { DEBUG_UNDO } from "../../lib/debug"
 import { logMessageWithReplacement } from "../../lib/log-message"
+import {
+  kComponentTypeV3ToV2Map, kV2DITypeToLifecycleNameMap
+} from "../../data-interactive/data-interactive-component-types"
 import { IDocumentModel } from "../../models/document/document"
 import { isFreeTileLayout } from "../../models/document/free-tile-row"
 import { getTileContentInfo } from "../../models/tiles/tile-content-info"
@@ -136,26 +139,47 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
   function handleTileButtonClick(tileType: string) {
     const tileInfo = getTileComponentInfo(tileType)
     const isSingleton = !!getTileContentInfo(tileType)?.isSingleton
-    const { undoStringKey = "", redoStringKey = "" } = tileInfo?.shelf || {}
-    let tile: Maybe<ITileModel>
-    // For singletons, V2 emits `hide`/`show` rather than `create` (the operation reflects
-    // the resulting visible state, not whether the tile was newly created). For
-    // non-singletons V2 emits `create`. We mirror that per-op convention (CODAP-1353).
+    let undoStringKey = tileInfo?.shelf?.undoStringKey ?? ""
+    let redoStringKey = tileInfo?.shelf?.redoStringKey ?? ""
+    let log: ReturnType<typeof logMessageWithReplacement> | string =
+      logMessageWithReplacement("Create component: %@", {tileType}, "component")
+
+    // For singletons, V2 emits `hide`/`show` rather than `create` (the op reflects the
+    // resulting visible state, not whether the tile was newly created). Compute the
+    // resulting state ahead of time so we can pick V2's matching add/delete undo strings
+    // and log message — `DG.{Undo,Redo}.toggleComponent.{add,delete}.{lifecycleName}` per
+    // document_controller.js:1644-1666. lifecycleName comes from the V2 lifecycle-name
+    // override (calculator → 'calcView') with DI-name fallback.
     let resultingShowHide: "show" | "hide" | undefined
+    if (isSingleton) {
+      const existingTiles = document?.content?.getTilesOfType(tileType) ?? []
+      if (existingTiles.length > 0) {
+        const existingLayout = document?.content?.getTileLayoutById(existingTiles[0].id)
+        resultingShowHide = isFreeTileLayout(existingLayout) && existingLayout.isHidden ? "show" : "hide"
+      } else {
+        resultingShowHide = "show"
+      }
+      const diType = kComponentTypeV3ToV2Map[tileType]
+      const lifecycleName = (diType && kV2DITypeToLifecycleNameMap[diType]) ?? diType ?? tileType
+      const action = resultingShowHide === "hide" ? "delete" : "add"
+      undoStringKey = `DG.Undo.toggleComponent.${action}.${lifecycleName}`
+      redoStringKey = `DG.Redo.toggleComponent.${action}.${lifecycleName}`
+      log = action === "add"
+        ? `Add toggle component: ${lifecycleName}`
+        : `Remove toggle component: ${lifecycleName}`
+    }
+
+    let tile: Maybe<ITileModel>
     document?.content?.applyModelChange(() => {
       tile = document?.content?.createOrShowTile?.(tileType, { animateCreation: true })
       if (tile) tileInfo?.shelf?.afterCreate?.(tile.content)
-      if (isSingleton && tile) {
-        const layout = document?.content?.getTileLayoutById(tile.id)
-        resultingShowHide = isFreeTileLayout(layout) && layout.isHidden ? "hide" : "show"
-      }
     }, {
       notify: () => isSingleton
         ? componentShowHideNotification(tile, resultingShowHide ?? "show")
         : createTileNotification(tile),
       undoStringKey,
       redoStringKey,
-      log: logMessageWithReplacement("Create component: %@", {tileType}, "component")
+      log
     })
   }
 

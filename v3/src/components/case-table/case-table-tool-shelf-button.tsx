@@ -137,7 +137,6 @@ const CaseTableToolShelfMenuList = observer(
             })
           }
           return (
-            // FIXME: this will create multiple undo entries
             <MenuItem key={`${dataset.dataSet.id}`} className="tool-shelf-menu-item table-menu-item"
               onClick={handleOpenTableForDataset} data-testid={`tool-shelf-table-${tileTitle}`}>
               <TableIcon className="menu-icon case-table-icon"/>
