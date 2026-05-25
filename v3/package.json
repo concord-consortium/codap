@@ -101,7 +101,10 @@
   "nyc": {
     "extends": "@istanbuljs/nyc-config-typescript",
     "all": true,
-    "report-dir": "coverage-cypress"
+    "report-dir": "coverage-cypress",
+    "include": [
+      "src/**/*.{ts,tsx,js,jsx}"
+    ]
   },
   "overrides": {
     "mobx-state-tree": "npm:@concord-consortium/mobx-state-tree"
