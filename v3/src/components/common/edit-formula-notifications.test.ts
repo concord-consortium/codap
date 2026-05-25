@@ -1,7 +1,10 @@
 import { editFormulaNotification } from "./edit-formula-notifications"
 
 const v2Id = 54321
-const v2Type = "DG.CaseTable"
+// V2 component-resource notifications carry the SC class name (`DG.CaseTable`) in
+// `values.type`; V3 adds the DI-convention name as `values.diType`.
+const v2SCType = "DG.CaseTable"
+const diType = "caseTable"
 
 jest.mock("../../models/tiles/tile-notifications", () => ({
   updateTileNotification: jest.fn((updateType: string, values: any, tileModel: any) => {
@@ -10,7 +13,7 @@ jest.mock("../../models/tiles/tile-notifications", () => ({
       message: {
         action: "notify",
         resource: "component",
-        values: { operation: updateType, ...values, id: v2Id, type: v2Type }
+        values: { operation: updateType, ...values, id: v2Id, type: v2SCType, diType }
       }
     }
   })
@@ -24,7 +27,8 @@ describe("editFormulaNotification", () => {
     expect(notification?.message.resource).toBe("component")
     expect(notification?.message.values.operation).toBe("edit formula")
     expect(notification?.message.values.id).toBe(v2Id)
-    expect(notification?.message.values.type).toBe(v2Type)
+    expect(notification?.message.values.type).toBe(v2SCType)
+    expect(notification?.message.values.diType).toBe(diType)
   })
 
   it("returns undefined when the case-table tile is missing", () => {

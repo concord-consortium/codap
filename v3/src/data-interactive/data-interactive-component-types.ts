@@ -24,6 +24,29 @@ export const kComponentTypeV3ToV2Map: Record<string, string> = {
   [kWebViewTileType]: kV2WebViewType
 }
 
+// For V2-plugin compatibility. V2 is internally inconsistent: it sends the lowercase
+// DI-convention name (`"calculator"`) in `get component/<id>` API responses — translated by
+// `data_interactive_phone_handler.js:1718` — but the SC class name (`"DG.Calculator"`) in
+// the `type` field of component-resource notification payloads (e.g.
+// apps/dg/components/calculator/calculator.js:99 emits `type: 'DG.Calculator'`). Each V2
+// `executeNotification` block hard-codes the SC name with no translation. Arguably the V2
+// notification path should have used the same translation table the API path does, but
+// that's water under the bridge; V2 plugins in the wild filter notifications on the SC name.
+// V3's `tileNotification` therefore emits the SC name as `values.type` (for V2-plugin
+// matching) and the DI-convention name as `values.diType` (additive). V3 collapses
+// WebView/Game/Guide/Image into a single tile type; this mapping uses the generic
+// `DG.WebView` for all of them.
+export const kComponentTypeV3ToV2SCNameMap: Record<string, string> = {
+  [kCalculatorTileType]: "DG.Calculator",
+  [kCaseTableTileType]: "DG.CaseTable",
+  [kCaseCardTileType]: "DG.CaseCard",
+  [kGraphTileType]: "DG.GraphView",
+  [kMapTileType]: "DG.MapView",
+  [kSliderTileType]: "DG.SliderView",
+  [kTextTileType]: "DG.TextView",
+  [kWebViewTileType]: "DG.WebView"
+}
+
 export const kComponentTypeV2ToV3Map: Record<string, string> = {
   [kV2GameType]: kWebViewTileType,
   [kV2GuideViewType]: kWebViewTileType,
