@@ -140,35 +140,46 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     const tileInfo = getTileComponentInfo(tileType)
     const isSingleton = !!getTileContentInfo(tileType)?.isSingleton
     const diType = kComponentTypeV3ToV2Map[tileType]
-    // Only take the V2-compat singleton path when the tile is both a singleton AND has
-    // a V2 type mapping. Singletons without a V2 mapping (e.g. test-only tile types or
-    // future tile types not yet registered with V2) fall back to the generic
-    // create-notification path so we don't generate broken
-    // `DG.Undo.toggleComponent.{add,delete}.<V3-name>` translation keys or emit
-    // notifications with undefined `type`/`diType`.
-    const useSingletonV2Path = isSingleton && !!diType
+
+    // Compute the V2-compat singleton path's preconditions and resulting state up front.
+    // We take the singleton path only when ALL of these hold:
+    //   - tile is a singleton (`isSingleton`)
+    //   - there's a V2 type mapping (`diType`) — otherwise undo keys + notification
+    //     `type`/`diType` would be undefined
+    //   - the toggle will actually change visibility — `toggleSingletonTileVisibility`
+    //     gates `setHidden` on `isFreeTileLayout` (document-content.ts:225), so in
+    //     mosaic/legacy layouts the click is a no-op visually. Emitting V2 hide/show in
+    //     that case would lie about what happened.
+    // When any precondition fails we fall back to the generic create-notification path.
+    let useSingletonV2Path = isSingleton && !!diType
+    let resultingShowHide: "show" | "hide" | undefined
+    if (useSingletonV2Path) {
+      const existingTiles = document?.content?.getTilesOfType(tileType) ?? []
+      if (existingTiles.length > 0) {
+        const existingLayout = document?.content?.getTileLayoutById(existingTiles[0].id)
+        if (isFreeTileLayout(existingLayout)) {
+          resultingShowHide = existingLayout.isHidden ? "show" : "hide"
+        } else {
+          // Non-free layout — toggleSingletonTileVisibility won't toggle visibility.
+          useSingletonV2Path = false
+        }
+      } else {
+        // No existing tile — `createTile` runs and the singleton appears.
+        resultingShowHide = "show"
+      }
+    }
 
     let undoStringKey = tileInfo?.shelf?.undoStringKey ?? ""
     let redoStringKey = tileInfo?.shelf?.redoStringKey ?? ""
     let log: ReturnType<typeof logMessageWithReplacement> | string =
       logMessageWithReplacement("Create component: %@", {tileType}, "component")
 
-    // For singletons with a V2 mapping, V2 emits `hide`/`show` rather than `create` (the
-    // op reflects the resulting visible state). Compute the resulting state ahead of time
-    // so we can pick V2's matching add/delete undo strings — `DG.{Undo,Redo}.
-    // toggleComponent.{add,delete}.{lifecycleName}` per document_controller.js:1644-1666.
-    // lifecycleName comes from the V2 lifecycle-name override (calculator → 'calcView')
-    // with DI-name fallback.
-    let resultingShowHide: "show" | "hide" | undefined
+    // For singletons with a V2 mapping in a hideable layout, V2 emits `hide`/`show`
+    // rather than `create` (the op reflects the resulting visible state). Use V2's
+    // matching add/delete undo strings — `DG.{Undo,Redo}.toggleComponent.{add,delete}.
+    // {lifecycleName}` per document_controller.js:1644-1666. lifecycleName comes from
+    // the V2 lifecycle-name override (calculator → 'calcView') with DI-name fallback.
     if (useSingletonV2Path) {
-      const existingTiles = document?.content?.getTilesOfType(tileType) ?? []
-      if (existingTiles.length > 0) {
-        const existingLayout = document?.content?.getTileLayoutById(existingTiles[0].id)
-        resultingShowHide = isFreeTileLayout(existingLayout) && existingLayout.isHidden ? "show" : "hide"
-      } else {
-        resultingShowHide = "show"
-      }
-      // diType is guaranteed truthy here (gated by useSingletonV2Path).
       const lifecycleName = kV2DITypeToLifecycleNameMap[diType] ?? diType
       const action = resultingShowHide === "hide" ? "delete" : "add"
       undoStringKey = `DG.Undo.toggleComponent.${action}.${lifecycleName}`
