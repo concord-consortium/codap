@@ -72,6 +72,14 @@ const positiveMatrix: PositiveRow[] = [
     expectedQuery: '?lang=fr&launchFromLara=true&documentServer=https://example.com',
     expectedHash: '#shared=xyz'
   },
+  // Real-world CFM-shared URL: URL-encoded chars in the hash (%3A, %2F) must
+  // round-trip verbatim through the function and the browser's location.hash.
+  {
+    uri: '/app/static/dg/fr/cert/index.html',
+    query: '?foo=bar',
+    hash: '#shared=https%3A%2F%2Fcfm-shared.concord.org%2Fokk5EQ5H8RbOn8UsXpl3%2Ffile.json',
+    expectedLang: 'fr'
+  },
   // R17a lang collision: path lang wins, query lang stripped.
   {
     uri: '/app/static/dg/fr/cert/index.html',
