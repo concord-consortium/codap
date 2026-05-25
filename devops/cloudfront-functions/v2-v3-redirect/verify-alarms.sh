@@ -74,7 +74,9 @@ LOG_GROUP="/aws/cloudfront/function/$FUNCTION_NAME"
 STREAM="verify-alarms-$(date +%s)"
 aws logs create-log-stream --log-group-name "$LOG_GROUP" --log-stream-name "$STREAM" \
   --region "$REGION_US_E1"
-TS=$(date +%s%3N)
+# put-log-events wants millisecond precision. date +%s%3N is GNU-only (BSD date on
+# macOS doesn't support %3N), so use python3 for cross-platform portability.
+TS=$(python3 -c 'import time; print(int(time.time()*1000))')
 aws logs put-log-events --log-group-name "$LOG_GROUP" --log-stream-name "$STREAM" \
   --log-events "timestamp=$TS,message=codap-redirect tag=error-fallthrough uri=/induced qs= error=induced" \
   --region "$REGION_US_E1" > /dev/null

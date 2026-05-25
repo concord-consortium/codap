@@ -148,9 +148,10 @@ SYNTH_HEADERS=$(curl -sI "https://$TEMP_SUBDOMAIN/app/static/dg/en/cert/index.ht
 
 # Probe prod for HSTS the same way clone-distribution.sh's RHP_REQUIRED determination does.
 # If prod itself serves no HSTS, the cutover preserves status quo and there is no
-# synthetic-response regression to gate on.
-PROD_HSTS=$(curl -sI "https://codap.concord.org/app/" 2>/dev/null \
-  | grep -i '^strict-transport-security:' || true)
+# synthetic-response regression to gate on. Same logic for x-content-type-options.
+PROD_HEADERS=$(curl -sI "https://codap.concord.org/app/" 2>/dev/null || true)
+PROD_HSTS=$(echo "$PROD_HEADERS" | grep -i '^strict-transport-security:' || true)
+PROD_XCTO=$(echo "$PROD_HEADERS" | grep -i '^x-content-type-options:'      || true)
 
 fail=0
 for check in "origin-served:$ORIGIN_HEADERS" "synthetic-response:$SYNTH_HEADERS"; do
@@ -178,8 +179,23 @@ INSTR
       echo "    (prod also serves no HSTS at https://codap.concord.org/app/; status quo preserved, no action required)"
     fi
   fi
-  if [ -z "$has_xcto" ]; then
+  if [ -n "$has_xcto" ]; then
+    echo "    x-content-type-options present: $has_xcto"
+  else
     echo "    x-content-type-options MISSING"
+    if [ "$label" = "synthetic-response" ] && [ "${RHP_REQUIRED:-false}" = "false" ] && [ -n "$PROD_XCTO" ]; then
+      cat <<'INSTR'
+    x-content-type-options regression. Prod serves the header but the synthetic response
+    does not. Choose one:
+      (a) set RHP_REQUIRED=true in config.env and re-run modify-clone.sh; OR
+      (b) add the header inside buildResponse() in v2-v3-redirect.js, then
+          re-run deploy-function.sh; OR
+      (c) accept that this distribution will no longer serve the header.
+INSTR
+      fail=1
+    elif [ "$label" = "synthetic-response" ]; then
+      echo "    (prod also serves no x-content-type-options at https://codap.concord.org/app/; status quo preserved, no action required)"
+    fi
   fi
 done
 
