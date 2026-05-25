@@ -1,6 +1,7 @@
 import {
   add2ndAxisAttributeNotification, addAxisAttributeNotification,
-  changeBackgroundColorNotification, swapCategoriesNotification,
+  changeBackgroundColorNotification, dragMovableLineNotification, dragMovablePointNotification,
+  dragMovableValueNotification, repositionEquationNotification, swapCategoriesNotification,
   toggleBackgroundTransparencyNotification, toggleMeasuresForSelectionNotification,
   toggleNumberToggleNotification
 } from "./graph-notifications"
@@ -142,6 +143,64 @@ describe("toggleMeasuresForSelectionNotification", () => {
 
   it("returns undefined when the tile is missing", () => {
     expect(toggleMeasuresForSelectionNotification(undefined, true)).toBeUndefined()
+  })
+})
+
+describe("dragMovablePointNotification", () => {
+  it("emits 'drag movable point' on the graph component resource", () => {
+    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    const notification = dragMovablePointNotification(tile)
+    expect(notification?.message.values.operation).toBe("drag movable point")
+    expect(notification?.message.values.type).toBe(v2SCType)
+    expect(notification?.message.values.diType).toBe(diType)
+  })
+
+  it("returns undefined for non-graph tiles", () => {
+    const calcTile = { id: "CALC1", content: { type: "Calculator" } } as any
+    expect(dragMovablePointNotification(calcTile)).toBeUndefined()
+  })
+})
+
+describe("dragMovableValueNotification", () => {
+  it("emits the V3-clarified 'drag movable value' op (not V2's confusingly-named 'drag movable line')", () => {
+    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    const notification = dragMovableValueNotification(tile)
+    expect(notification?.message.values.operation).toBe("drag movable value")
+    expect(notification?.message.values.type).toBe(v2SCType)
+  })
+
+  it("returns undefined for non-graph tiles", () => {
+    const calcTile = { id: "CALC1", content: { type: "Calculator" } } as any
+    expect(dragMovableValueNotification(calcTile)).toBeUndefined()
+  })
+})
+
+describe("dragMovableLineNotification", () => {
+  it("emits 'drag movable line' for scatterplot movable-line drag (fills V2 gap)", () => {
+    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    const notification = dragMovableLineNotification(tile)
+    expect(notification?.message.values.operation).toBe("drag movable line")
+    expect(notification?.message.values.type).toBe(v2SCType)
+  })
+
+  it("returns undefined for non-graph tiles", () => {
+    const calcTile = { id: "CALC1", content: { type: "Calculator" } } as any
+    expect(dragMovableLineNotification(calcTile)).toBeUndefined()
+  })
+})
+
+describe("repositionEquationNotification", () => {
+  it("emits 'reposition equation' with the adornment type", () => {
+    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    const notification = repositionEquationNotification(tile, "movableLine")
+    expect(notification?.message.values.operation).toBe("reposition equation")
+    expect(notification?.message.values.adornment).toBe("movableLine")
+    expect(notification?.message.values.type).toBe(v2SCType)
+  })
+
+  it("returns undefined for non-graph tiles", () => {
+    const calcTile = { id: "CALC1", content: { type: "Calculator" } } as any
+    expect(repositionEquationNotification(calcTile, "lsrl")).toBeUndefined()
   })
 })
 

@@ -5,8 +5,10 @@ import { clsx } from "clsx"
 import { t } from "../../../../../utilities/translation/translate"
 import { getDocumentContentPropertyFromNode } from "../../../../../utilities/mst-utils"
 import { measureText } from "../../../../../hooks/use-measure-text"
+import { useTileModelContext } from "../../../../../hooks/use-tile-model-context"
 import { fitGaussianLM, normal, sqrtTwoPi } from "../../../../../utilities/math-utils"
 import { getDomainExtentForPixelWidth } from "../../../../axis/axis-utils"
+import { repositionEquationNotification } from "../../../graph-notifications"
 import { useGraphContentModelContext } from "../../../hooks/use-graph-content-model-context"
 import { isBinnedPlotModel } from "../../../plots/histogram/histogram-model"
 import { curveBasis } from "../../../utilities/graph-utils"
@@ -40,6 +42,7 @@ export const NormalCurveAdornmentComponent = observer(
       xAxis, yAxis, spannerRef
     } = props
     const graphModel = useGraphContentModelContext()
+    const { tile } = useTileModelContext()
     const model = props.model as INormalCurveAdornmentModel
     const {
       dataConfig, layout, adornmentsStore,
@@ -140,7 +143,14 @@ export const NormalCurveAdornmentComponent = observer(
       labelObj.label.call(
         drag<HTMLDivElement, unknown>()
           .on("drag", (e) => helper.handleMoveLabel(e, labelId))
-          .on("end", (e) => helper.handleEndMoveLabel(e, labelId))
+          .on("end", (e) => {
+            graphModel.applyModelChange(() => helper.handleEndMoveLabel(e, labelId), {
+              notify: () => repositionEquationNotification(tile, model.type),
+              undoStringKey: "DG.Undo.graph.repositionEquation",
+              redoStringKey: "DG.Redo.graph.repositionEquation",
+              log: "Moved equation label"
+            })
+          })
       )
 
       labelObj.label.on("mouseover", () => highlightCovers(true))
@@ -149,8 +159,8 @@ export const NormalCurveAdornmentComponent = observer(
       selectionsObj.normalCurveHoverCover?.on("mouseover", () => highlightLabel(labelId, true))
         .on("mouseout", () => highlightLabel(labelId, false))
 
-    }, [containerId, dataConfig, defaultLabelTopOffset, helper, highlightCovers, highlightLabel,
-        isVerticalRef, labelRef, model, numericAttrId])
+    }, [containerId, dataConfig, defaultLabelTopOffset, graphModel, helper, highlightCovers,
+        highlightLabel, isVerticalRef, labelRef, model, numericAttrId, tile])
 
     const addTextTip = useCallback((plotValue: number, textContent: string, valueObj: INormalCurveSelections) => {
       const measure = model?.measures.get(helper.instanceKey)

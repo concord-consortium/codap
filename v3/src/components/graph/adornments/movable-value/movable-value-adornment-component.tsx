@@ -2,10 +2,12 @@ import {drag, select, Selection} from "d3"
 import {autorun} from "mobx"
 import { observer } from "mobx-react-lite"
 import {useCallback, useEffect, useRef} from "react"
+import { useTileModelContext } from "../../../../hooks/use-tile-model-context"
 import { isNumericAttributeType } from "../../../../models/data/attribute-types"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 import {useAxisLayoutContext} from "../../../axis/models/axis-layout-context"
 import { IDateAxisModel, isDateAxisModel } from "../../../axis/models/numeric-axis-models"
+import { dragMovableValueNotification } from "../../graph-notifications"
 import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
 import { useAdornmentCells } from "../../hooks/use-adornment-cells"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
@@ -29,6 +31,7 @@ export const MovableValueAdornment = observer(function MovableValueAdornment(pro
   const layout = useAxisLayoutContext()
   const graphModel = useGraphContentModelContext()
   const dataConfig = useGraphDataConfigurationContext()
+  const { tile } = useTileModelContext()
   const { xAttrType, xScale, yScale } = useAdornmentAttributes()
   const { cellCounts, classFromKey, instanceKey } = useAdornmentCells(model, cellKey)
   const [left, right] = xScale?.range() || [0, 1]
@@ -145,15 +148,14 @@ export const MovableValueAdornment = observer(function MovableValueAdornment(pro
                                 ? Math.round(model.values.get(instanceKey)![dragIndex] * 10) / 10
                                 : 'undefined'
       const logToValue = Math.round(dragValue *10)/10
-      graphModel.applyModelChange(
-        () => model.endDrag(dragValue, instanceKey, dragIndex),
-        { undoStringKey: "DG.Undo.graph.moveMovableValue",
-          redoStringKey: "DG.Redo.graph.moveMovableValue",
-          log: logMessageWithReplacement("Moved value from %@ to %@", {from: logFromValue, to: logToValue})
-        }
-      )
+      graphModel.applyModelChange(() => model.endDrag(dragValue, instanceKey, dragIndex), {
+        notify: () => dragMovableValueNotification(tile),
+        undoStringKey: "DG.Undo.graph.moveMovableValue",
+        redoStringKey: "DG.Redo.graph.moveMovableValue",
+        log: logMessageWithReplacement("Moved value from %@ to %@", {from: logFromValue, to: logToValue})
+      })
     }
-  }, [graphModel, instanceKey, model])
+  }, [graphModel, instanceKey, model, tile])
 
   // Add drag behaviors to the line cover
   const addDragHandlers = useCallback(() => {

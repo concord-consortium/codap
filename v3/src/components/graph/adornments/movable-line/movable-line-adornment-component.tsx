@@ -2,9 +2,11 @@ import React, {useCallback, useEffect, useRef, useState} from "react"
 import { observer } from "mobx-react-lite"
 import {drag, select, Selection} from "d3"
 import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
+import { useTileModelContext } from "../../../../hooks/use-tile-model-context"
 import { LogMessageFn, logMessageWithReplacement, logModelChangeFn } from "../../../../lib/log-message"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { safeGetSnapshot } from "../../../../utilities/mst-utils"
+import { dragMovableLineNotification, repositionEquationNotification } from "../../graph-notifications"
 import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
 import { useAdornmentCategories } from "../../hooks/use-adornment-categories"
 import { useAdornmentCells } from "../../hooks/use-adornment-cells"
@@ -53,6 +55,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
   const graphModel = useGraphContentModelContext()
   const dataConfig = useGraphDataConfigurationContext()
   const layout = useGraphLayoutContext()
+  const { tile } = useTileModelContext()
   const instanceId = useInstanceIdContext()
   const adornmentsStore = graphModel.adornmentsStore
   const { xAttrId, xAttrName, yAttrId, yAttrName, xScale, yScale } = useAdornmentAttributes()
@@ -229,6 +232,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
         const equationCoords = lineParams?.equationCoords
         model.setLine({slope, intercept: newIntercept, equationCoords}, instanceKey)
       }, {
+        notify: () => dragMovableLineNotification(tile),
         log: logMessageWithReplacement("dragMovableLine: '%@'", {equation}, "plot"),
         undoStringKey: "V3.Undo.graph.adjustMovableLine",
         redoStringKey: "V3.Redo.graph.adjustMovableLine"
@@ -236,7 +240,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
     } else {
       model.setVolatileLine({intercept: newIntercept, slope}, instanceKey)
     }
-  }, [getEquationString, instanceKey, interceptLocked, model, updateLine, xAxis, yAxis])
+  }, [getEquationString, instanceKey, interceptLocked, model, tile, updateLine, xAxis, yAxis])
 
   const newSlopeAndIntercept = useCallback((
     pivot: Point, mousePosition: Point, lineSection: string, isVertical: boolean
@@ -325,6 +329,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
             equationCoords,
           }, instanceKey)
         }, {
+          notify: () => dragMovableLineNotification(tile),
           log: logMessageWithReplacement("dragMovableLine: '%@'", {equation}, "plot"),
           undoStringKey: "V3.Undo.graph.adjustMovableLine",
           redoStringKey: "V3.Redo.graph.adjustMovableLine"
@@ -335,7 +340,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
       }
     }
   }, [getEquationString, instanceKey, interceptLocked, lineObject.lower, lineObject.upper, model,
-      newSlopeAndIntercept, updateLine, xAxis, yAxis])
+      newSlopeAndIntercept, tile, updateLine, xAxis, yAxis])
 
   const handleMoveEquation = useCallback((
     event: { x: number, y: number, dx: number, dy: number },
@@ -359,18 +364,16 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
           // compute proportional position of center of label within container
           const x = (left + equationBounds.width / 2) / containerBounds.width
           const y = (top + equationBounds.height / 2) / containerBounds.height
-          model.applyModelChange(
-            () => lineInstance?.setEquationCoords({ x, y }),
-            {
-              undoStringKey: "DG.Undo.graph.repositionEquation",
-              redoStringKey: "DG.Redo.graph.repositionEquation",
-              log: logFn.current
-            }
-          )
+          model.applyModelChange(() => lineInstance?.setEquationCoords({ x, y }), {
+            notify: () => repositionEquationNotification(tile, "movableLine"),
+            undoStringKey: "DG.Undo.graph.repositionEquation",
+            redoStringKey: "DG.Redo.graph.repositionEquation",
+            log: logFn.current
+          })
         }
       }
     }
-  }, [equationContainerSelector, instanceKey, model])
+  }, [equationContainerSelector, instanceKey, model, tile])
 
   // Refresh the line
   useEffect(function refresh() {

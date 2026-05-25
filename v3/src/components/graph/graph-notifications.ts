@@ -62,6 +62,44 @@ export function toggleMeasuresForSelectionNotification(graphTile: ITileModel | u
   return updateTileNotification("toggle MeasuresForSelection", { to }, graphTile)
 }
 
+// V2 emits `drag movable point` from apps/dg/components/graph/adornments/movable_point_adornment.js
+// (endDrag ~:128) when a user finishes dragging the scatterplot movable point. Bare payload.
+// No-ops for non-graph tiles.
+export function dragMovablePointNotification(graphTile: ITileModel | undefined) {
+  if (graphTile?.content.type !== kGraphTileType) return
+  return updateTileNotification("drag movable point", {}, graphTile)
+}
+
+// V2's `endTranslate` in apps/dg/components/graph/adornments/movable_value_adornment.js (~:166)
+// emits a notification with op string `'drag movable line'` for movable-VALUE drag — a confusingly
+// named V2 op (the actual movable LINE has no V2 notification; see dragMovableLineNotification).
+// V3 renames the value-drag emission to `drag movable value` for clarity. This is a deliberate
+// V2 deviation: the V2 op name was misleading enough that no plugin would have intentionally
+// matched on it for value-drag events. Bare payload. No-ops for non-graph tiles.
+export function dragMovableValueNotification(graphTile: ITileModel | undefined) {
+  if (graphTile?.content.type !== kGraphTileType) return
+  return updateTileNotification("drag movable value", {}, graphTile)
+}
+
+// V2 does NOT emit a notification when the scatterplot movable LINE is dragged
+// (apps/dg/components/graph/adornments/movable_line_adornment.js has a `dragMovableLine` log
+// but no `executeNotification`) — a V2 gap. V3 fills it by emitting `drag movable line` here.
+// Now that V3's value drag uses `drag movable value`, the op string is unambiguously the line.
+// Bare payload. No-ops for non-graph tiles.
+export function dragMovableLineNotification(graphTile: ITileModel | undefined) {
+  if (graphTile?.content.type !== kGraphTileType) return
+  return updateTileNotification("drag movable line", {}, graphTile)
+}
+
+// V2 emits `reposition equation` from two sites — plotted_average_adornment.js (~:529, equation
+// labels for plotted averages/measures) and twoD_line_adornment.js (~:285, equation labels for
+// movable line / LSRL). Bare V2 payload. V3 adds `adornment: <type>` so plugins know which
+// adornment's equation moved. No-ops for non-graph tiles.
+export function repositionEquationNotification(graphTile: ITileModel | undefined, adornment: string) {
+  if (graphTile?.content.type !== kGraphTileType) return
+  return updateTileNotification("reposition equation", { adornment }, graphTile)
+}
+
 // V2 emits `swap categories` from apps/dg/components/graph/axes/cell_axis_view.js (endDrag
 // ~:198) when a user finishes dragging a category label on a graph's categorical axis to a
 // new position. V2's analogous LEGEND swap command at apps/dg/components/graph_map_common/

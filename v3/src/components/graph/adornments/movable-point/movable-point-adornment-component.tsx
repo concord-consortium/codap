@@ -3,8 +3,10 @@ import {drag, select, Selection} from "d3"
 import {tip as d3tip} from "d3-v6-tip"
 import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
+import { useTileModelContext } from "../../../../hooks/use-tile-model-context"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 import { IAdornmentComponentProps } from "../adornment-component-info"
+import { dragMovablePointNotification } from "../../graph-notifications"
 import { IMovablePointAdornmentModel } from "./movable-point-adornment-model"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
@@ -28,6 +30,7 @@ export const MovablePointAdornment = observer(function MovablePointAdornment(pro
   const {plotHeight, plotWidth, cellKey = {}, xAxis, yAxis} = props
   const model = props.model as IMovablePointAdornmentModel
   const graphModel = useGraphContentModelContext()
+  const { tile } = useTileModelContext()
   const { xAttrId, yAttrId, xAttrName, yAttrName, xScale, yScale } = useAdornmentAttributes()
   const { classFromKey, instanceKey } = useAdornmentCells(model, cellKey)
   const { xSubAxesCount, ySubAxesCount } = useAdornmentCategories()
@@ -91,18 +94,16 @@ export const MovablePointAdornment = observer(function MovablePointAdornment(pro
     const xValue = Math.round(xScale.invert(xPoint * xSubAxesCount) * 10) / 10
     const yValue = Math.round(yScale.invert(yPoint * ySubAxesCount) * 10) / 10
 
-    graphModel.applyModelChange(
-      () => model.setPoint({x: xValue, y: yValue}, instanceKey),
-      {
-        undoStringKey: "DG.Undo.graph.moveMovablePoint",
-        redoStringKey: "DG.Redo.graph.moveMovablePoint",
-        log: logMessageWithReplacement(
-              "Move point from (%@, %@) to (%@, %@)",
-              { xInitial: dragStartPoint.current.x, yInitial: dragStartPoint.current.y, x: xValue, y: yValue})
-      }
-    )
+    graphModel.applyModelChange(() => model.setPoint({x: xValue, y: yValue}, instanceKey), {
+      notify: () => dragMovablePointNotification(tile),
+      undoStringKey: "DG.Undo.graph.moveMovablePoint",
+      redoStringKey: "DG.Redo.graph.moveMovablePoint",
+      log: logMessageWithReplacement(
+            "Move point from (%@, %@) to (%@, %@)",
+            { xInitial: dragStartPoint.current.x, yInitial: dragStartPoint.current.y, x: xValue, y: yValue})
+    })
 
-  }, [graphModel, instanceKey, model, xScale, xSubAxesCount, yScale, ySubAxesCount])
+  }, [graphModel, instanceKey, model, tile, xScale, xSubAxesCount, yScale, ySubAxesCount])
 
   useEffect(function repositionPoint() {
     return autorun(() => {
