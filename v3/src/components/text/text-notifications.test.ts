@@ -1,6 +1,6 @@
 import { kV2TextDIType } from "./text-defs"
 import { TextModel } from "./text-model"
-import { commitEditNotification } from "./text-notifications"
+import { commitEditNotification, editTextNotification } from "./text-notifications"
 
 const v2Id = 12345
 const v2Type = kV2TextDIType
@@ -48,5 +48,23 @@ describe("commitEditNotification", () => {
   it("returns undefined when tile is missing", () => {
     const textModel = TextModel.create()
     expect(commitEditNotification(textModel, undefined)).toBeUndefined()
+  })
+})
+
+describe("editTextNotification", () => {
+  it("emits an 'edit text' notification", () => {
+    const tile = { title: "Notes", content: TextModel.create() } as any
+
+    const notification = editTextNotification(tile)
+
+    expect(notification?.message.action).toBe("notify")
+    expect(notification?.message.resource).toBe("component")
+    expect(notification?.message.values.operation).toBe("edit text")
+    expect(notification?.message.values.id).toBe(v2Id)
+    expect(notification?.message.values.type).toBe(v2Type)
+  })
+
+  it("returns undefined when tile is missing", () => {
+    expect(editTextNotification(undefined)).toBeUndefined()
   })
 })
