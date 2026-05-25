@@ -1,9 +1,11 @@
 import { useState } from "react"
 import { observer } from "mobx-react-lite"
 import { Button, useDisclosure } from "@chakra-ui/react"
+import { useTileModelContext } from "../../../../../hooks/use-tile-model-context"
 import { logMessageWithReplacement } from "../../../../../lib/log-message"
 import { t } from "../../../../../utilities/translation/translate"
 import { EditFormulaModal } from "../../../../common/edit-formula-modal"
+import { editPlotFormulaNotification } from "../../../graph-notifications"
 import { useGraphContentModelContext } from "../../../hooks/use-graph-content-model-context"
 import { IAdornmentBannerComponentProps } from "../../adornment-component-info"
 import { IPlottedValueAdornmentModel } from "./plotted-value-adornment-model"
@@ -15,6 +17,7 @@ export const PlottedValueAdornmentBanner = observer(function PlottedValueAdornme
 ) {
   const model = props.model as IPlottedValueAdornmentModel
   const graphModel = useGraphContentModelContext()
+  const { tile } = useTileModelContext()
   const { expression, error } = model
   const { isOpen, onClose, onOpen } = useDisclosure()
   const [modalIsOpen, setModalIsOpen] = useState(false)
@@ -35,15 +38,13 @@ export const PlottedValueAdornmentBanner = observer(function PlottedValueAdornme
 
   const handleEditExpressionClose = (newExpression: string) => {
     handleCloseModal()
-    graphModel.applyModelChange(
-      () => model.setExpression(newExpression),
-      {
-        undoStringKey: "DG.Undo.graph.changePlotValue",
-        redoStringKey: "DG.Redo.graph.changePlotValue",
-        log: logMessageWithReplacement("Change plotted value from %@ to %@",
-                {expression, newExpression})
-      }
-    )
+    graphModel.applyModelChange(() => model.setExpression(newExpression), {
+      notify: () => editPlotFormulaNotification(tile, "plottedValue", expression, newExpression),
+      undoStringKey: "DG.Undo.graph.changePlotValue",
+      redoStringKey: "DG.Redo.graph.changePlotValue",
+      log: logMessageWithReplacement("Change plotted value from %@ to %@",
+              {expression, newExpression})
+    })
   }
 
   return (

@@ -111,6 +111,17 @@ export function removeMovableValueNotification(graphTile: ITileModel | undefined
   return updateTileNotification("remove movable value", {}, graphTile)
 }
 
+// V2 emits `edit plot formula` from apps/dg/components/graph/adornments/plotted_formula_edit_context.js
+// (createEditCommand ~:102) when the user applies a new formula via the plotted-value or plotted-function
+// edit dialog. V2's payload is bare. V3 additionally carries `{ adornment, from, to }` so plugins can
+// tell which adornment's formula was edited and see the old/new expressions. No-ops for non-graph tiles.
+export function editPlotFormulaNotification(
+  graphTile: ITileModel | undefined, adornment: string, from: string, to: string
+) {
+  if (graphTile?.content.type !== kGraphTileType) return
+  return updateTileNotification("edit plot formula", { adornment, from, to }, graphTile)
+}
+
 // V2 emits `setNumStdErrs` from apps/dg/components/graph/plots/univariate_adornment_base_model.js
 // (~:357) when the user changes the number of standard errors in the std-err adornment's number
 // input. V2's payload is bare (the new value lives only in the log). V3 carries the new value

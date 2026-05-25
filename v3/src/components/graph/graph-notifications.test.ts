@@ -1,10 +1,11 @@
 import {
   add2ndAxisAttributeNotification, addAxisAttributeNotification, addMovableValueNotification,
   changeBackgroundColorNotification, dragBinBoundaryNotification, dragMovableLineNotification,
-  dragMovablePointNotification, dragMovableValueNotification, removeMovableValueNotification,
-  repositionEquationNotification, setNumStdErrsNotification, swapCategoriesNotification,
-  toggleBackgroundTransparencyNotification, toggleMeasuresForSelectionNotification,
-  toggleNumberToggleNotification, toggleShowICINotification, toggleShowOutliersNotification
+  dragMovablePointNotification, dragMovableValueNotification, editPlotFormulaNotification,
+  removeMovableValueNotification, repositionEquationNotification, setNumStdErrsNotification,
+  swapCategoriesNotification, toggleBackgroundTransparencyNotification,
+  toggleMeasuresForSelectionNotification, toggleNumberToggleNotification,
+  toggleShowICINotification, toggleShowOutliersNotification
 } from "./graph-notifications"
 
 const v2Id = 77001
@@ -187,6 +188,22 @@ describe("dragMovableLineNotification", () => {
   it("returns undefined for non-graph tiles", () => {
     const calcTile = { id: "CALC1", content: { type: "Calculator" } } as any
     expect(dragMovableLineNotification(calcTile)).toBeUndefined()
+  })
+})
+
+describe("editPlotFormulaNotification", () => {
+  it("emits 'edit plot formula' with adornment + from + to", () => {
+    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    const notification = editPlotFormulaNotification(tile, "plottedValue", "mean(x)", "median(x)")
+    expect(notification?.message.values.operation).toBe("edit plot formula")
+    expect(notification?.message.values.adornment).toBe("plottedValue")
+    expect(notification?.message.values.from).toBe("mean(x)")
+    expect(notification?.message.values.to).toBe("median(x)")
+  })
+
+  it("returns undefined for non-graph tiles", () => {
+    const calcTile = { id: "CALC1", content: { type: "Calculator" } } as any
+    expect(editPlotFormulaNotification(calcTile, "plottedFunction", "", "x")).toBeUndefined()
   })
 })
 
