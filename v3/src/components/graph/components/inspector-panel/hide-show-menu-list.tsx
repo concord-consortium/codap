@@ -7,6 +7,9 @@ import { isGraphContentModel } from "../../models/graph-content-model"
 import { t } from "../../../../utilities/translation/translate"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 import { updateTileNotification } from "../../../../models/tiles/tile-notifications"
+import {
+  toggleMeasuresForSelectionNotification, toggleNumberToggleNotification
+} from "../../graph-notifications"
 import { EditFormulaModal } from "../../../common/edit-formula-modal"
 import { DataSetContext } from "../../../../hooks/use-data-set-context"
 import { useInspectorFormulaString } from "../../../../hooks/use-inspector-formula-string"
@@ -98,28 +101,28 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
   }
 
   const handleParentTogglesChange = () => {
-    const [undoStringKey, redoStringKey] = graphModel?.showParentToggles
+    const wasEnabled = !!graphModel?.showParentToggles
+    const [undoStringKey, redoStringKey] = wasEnabled
       ? ["DG.Undo.disableNumberToggle", "DG.Redo.disableNumberToggle"]
       : ["DG.Undo.enableNumberToggle", "DG.Redo.enableNumberToggle"]
 
-    dataConfig?.applyModelChange(
-      () => graphModel?.setShowParentToggles(!graphModel?.showParentToggles),
-      { undoStringKey, redoStringKey,
-        log: graphModel?.showParentToggles ? "Disable Number Toggle" : "Enable Number Toggle"
-      }
-    )
+    dataConfig?.applyModelChange(() => graphModel?.setShowParentToggles(!wasEnabled), {
+      notify: () => toggleNumberToggleNotification(tile, !wasEnabled),
+      undoStringKey, redoStringKey,
+      log: wasEnabled ? "Disable Number Toggle" : "Enable Number Toggle"
+    })
   }
 
   const handleMeasuresForSelectionChange = () => {
-    const [undoStringKey, redoStringKey] = dataConfig?.showMeasuresForSelection
+    const wasEnabled = !!dataConfig?.showMeasuresForSelection
+    const [undoStringKey, redoStringKey] = wasEnabled
       ? ["DG.Undo.disableMeasuresForSelection", "DG.Redo.disableMeasuresForSelection"]
       : ["DG.Undo.enableMeasuresForSelection", "DG.Redo.enableMeasuresForSelection"]
-    dataConfig?.applyModelChange(
-      () => dataConfig?.setShowMeasuresForSelection(!dataConfig?.showMeasuresForSelection),
-      { undoStringKey, redoStringKey,
-        log: dataConfig?.showMeasuresForSelection ? "Disable Measures For Selection" : "Enable Measures For Selection"
-      }
-    )
+    dataConfig?.applyModelChange(() => dataConfig?.setShowMeasuresForSelection(!wasEnabled), {
+      notify: () => toggleMeasuresForSelectionNotification(tile, !wasEnabled),
+      undoStringKey, redoStringKey,
+      log: wasEnabled ? "Disable Measures For Selection" : "Enable Measures For Selection"
+    })
   }
 
   const numSelected = dataConfig?.selection.length ?? 0,

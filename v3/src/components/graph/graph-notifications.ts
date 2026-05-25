@@ -47,6 +47,21 @@ export function add2ndAxisAttributeNotification(
   return updateTileNotification("add 2nd axis attribute", values ?? {}, graphTile)
 }
 
+// V2 emits `toggle NumberToggle` and `toggle MeasuresForSelection` from
+// apps/dg/components/graph/graph_model.js (`toggleCapability` closure ~:511), reached via
+// the inspector hide/show menu items. The op string is interpolated from the capability
+// name (`'toggle ' + iCapability`); V2's payload is bare. V3 additionally carries
+// `to: <boolean>` for the resulting enabled state. No-ops for non-graph tiles.
+export function toggleNumberToggleNotification(graphTile: ITileModel | undefined, to: boolean) {
+  if (graphTile?.content.type !== kGraphTileType) return
+  return updateTileNotification("toggle NumberToggle", { to }, graphTile)
+}
+
+export function toggleMeasuresForSelectionNotification(graphTile: ITileModel | undefined, to: boolean) {
+  if (graphTile?.content.type !== kGraphTileType) return
+  return updateTileNotification("toggle MeasuresForSelection", { to }, graphTile)
+}
+
 // V2 emits `swap categories` from apps/dg/components/graph/axes/cell_axis_view.js (endDrag
 // ~:198) when a user finishes dragging a category label on a graph's categorical axis to a
 // new position. V2's analogous LEGEND swap command at apps/dg/components/graph_map_common/

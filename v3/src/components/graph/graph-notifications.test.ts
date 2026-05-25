@@ -1,6 +1,8 @@
 import {
   add2ndAxisAttributeNotification, addAxisAttributeNotification,
-  changeBackgroundColorNotification, swapCategoriesNotification, toggleBackgroundTransparencyNotification
+  changeBackgroundColorNotification, swapCategoriesNotification,
+  toggleBackgroundTransparencyNotification, toggleMeasuresForSelectionNotification,
+  toggleNumberToggleNotification
 } from "./graph-notifications"
 
 const v2Id = 77001
@@ -100,6 +102,46 @@ describe("add2ndAxisAttributeNotification", () => {
 
   it("returns undefined when the graph tile is missing", () => {
     expect(add2ndAxisAttributeNotification(undefined, sampleValues)).toBeUndefined()
+  })
+})
+
+describe("toggleNumberToggleNotification", () => {
+  it("emits 'toggle NumberToggle' with the resulting enabled state", () => {
+    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    const notification = toggleNumberToggleNotification(tile, true)
+    expect(notification?.message.values.operation).toBe("toggle NumberToggle")
+    expect(notification?.message.values.to).toBe(true)
+    expect(notification?.message.values.type).toBe(v2SCType)
+    expect(notification?.message.values.diType).toBe(diType)
+  })
+
+  it("returns undefined for non-graph tiles", () => {
+    const calcTile = { id: "CALC1", content: { type: "Calculator" } } as any
+    expect(toggleNumberToggleNotification(calcTile, true)).toBeUndefined()
+  })
+
+  it("returns undefined when the tile is missing", () => {
+    expect(toggleNumberToggleNotification(undefined, false)).toBeUndefined()
+  })
+})
+
+describe("toggleMeasuresForSelectionNotification", () => {
+  it("emits 'toggle MeasuresForSelection' with the resulting enabled state", () => {
+    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    const notification = toggleMeasuresForSelectionNotification(tile, false)
+    expect(notification?.message.values.operation).toBe("toggle MeasuresForSelection")
+    expect(notification?.message.values.to).toBe(false)
+    expect(notification?.message.values.type).toBe(v2SCType)
+    expect(notification?.message.values.diType).toBe(diType)
+  })
+
+  it("returns undefined for non-graph tiles", () => {
+    const calcTile = { id: "CALC1", content: { type: "Calculator" } } as any
+    expect(toggleMeasuresForSelectionNotification(calcTile, true)).toBeUndefined()
+  })
+
+  it("returns undefined when the tile is missing", () => {
+    expect(toggleMeasuresForSelectionNotification(undefined, true)).toBeUndefined()
   })
 })
 
