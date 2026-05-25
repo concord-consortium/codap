@@ -175,7 +175,7 @@ export const CaseTable = observer(function CaseTable() {
 
     const collections = data.collections
     const handleContentClick = (event: React.MouseEvent<HTMLDivElement>) => {
-      if (event.target === contentRef.current) {
+      if (tileSelection.isTileSelected() && event.target === contentRef.current) {
         handleWhiteSpaceClick()
       }
     }

@@ -41,6 +41,7 @@ import { useMarqueeSelection } from "./use-marquee-selection"
 import { useRows } from "./use-rows"
 import { useSelectedCell } from "./use-selected-cell"
 import { useSelectedRows } from "./use-selected-rows"
+
 import "react-data-grid/lib/styles.css"
 import styles from "./case-table-shared.scss"
 
