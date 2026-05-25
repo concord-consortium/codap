@@ -91,6 +91,26 @@ export function dragMovableLineNotification(graphTile: ITileModel | undefined) {
   return updateTileNotification("drag movable line", {}, graphTile)
 }
 
+// V2 emits `add movable value` from apps/dg/components/graph/plots/univariate_adornment_base_model.js
+// (addMovableValue ~:195) when the user clicks the "Add" button in the movable-value adornment
+// Controls. Bare payload. No-ops for non-graph tiles.
+//
+// NOTE: V2's `toggle movable value` (~:107) is NOT replicated here. V2's only emission of that op
+// is a copy-paste bug in V2's `togglePlottedCount` override — it fires `'toggle movable value'`
+// instead of the correct `'toggle plotted Count|Percent'` (audit §3.5). V3 has no
+// add-all/remove-all UI, so no semantic place to emit the toggle op from anyway.
+export function addMovableValueNotification(graphTile: ITileModel | undefined) {
+  if (graphTile?.content.type !== kGraphTileType) return
+  return updateTileNotification("add movable value", {}, graphTile)
+}
+
+// V2 emits `remove movable value` from apps/dg/components/graph/plots/univariate_adornment_base_model.js
+// (removeMovableValue ~:272) when the user clicks "Remove". Bare payload. No-ops for non-graph tiles.
+export function removeMovableValueNotification(graphTile: ITileModel | undefined) {
+  if (graphTile?.content.type !== kGraphTileType) return
+  return updateTileNotification("remove movable value", {}, graphTile)
+}
+
 // V2 emits `drag bin boundary` from both apps/dg/components/graph/plots/binned_plot_view.js
 // (~:210) and histogram_view.js (~:261) via identical `markBinParamsChange` functions, fired on
 // drag-end after a user adjusts a histogram/binned-dot-plot bin boundary. V2's payload is bare

@@ -1,8 +1,8 @@
 import {
-  add2ndAxisAttributeNotification, addAxisAttributeNotification,
+  add2ndAxisAttributeNotification, addAxisAttributeNotification, addMovableValueNotification,
   changeBackgroundColorNotification, dragBinBoundaryNotification, dragMovableLineNotification,
-  dragMovablePointNotification, dragMovableValueNotification, repositionEquationNotification,
-  swapCategoriesNotification, toggleBackgroundTransparencyNotification,
+  dragMovablePointNotification, dragMovableValueNotification, removeMovableValueNotification,
+  repositionEquationNotification, swapCategoriesNotification, toggleBackgroundTransparencyNotification,
   toggleMeasuresForSelectionNotification, toggleNumberToggleNotification
 } from "./graph-notifications"
 
@@ -186,6 +186,35 @@ describe("dragMovableLineNotification", () => {
   it("returns undefined for non-graph tiles", () => {
     const calcTile = { id: "CALC1", content: { type: "Calculator" } } as any
     expect(dragMovableLineNotification(calcTile)).toBeUndefined()
+  })
+})
+
+describe("addMovableValueNotification", () => {
+  it("emits 'add movable value' on the graph component resource", () => {
+    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    const notification = addMovableValueNotification(tile)
+    expect(notification?.message.values.operation).toBe("add movable value")
+    expect(notification?.message.values.type).toBe(v2SCType)
+    expect(notification?.message.values.diType).toBe(diType)
+  })
+
+  it("returns undefined for non-graph tiles", () => {
+    const calcTile = { id: "CALC1", content: { type: "Calculator" } } as any
+    expect(addMovableValueNotification(calcTile)).toBeUndefined()
+  })
+})
+
+describe("removeMovableValueNotification", () => {
+  it("emits 'remove movable value' on the graph component resource", () => {
+    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    const notification = removeMovableValueNotification(tile)
+    expect(notification?.message.values.operation).toBe("remove movable value")
+    expect(notification?.message.values.type).toBe(v2SCType)
+  })
+
+  it("returns undefined for non-graph tiles", () => {
+    const calcTile = { id: "CALC1", content: { type: "Calculator" } } as any
+    expect(removeMovableValueNotification(calcTile)).toBeUndefined()
   })
 })
 
