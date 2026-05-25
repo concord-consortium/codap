@@ -13,7 +13,7 @@ build-name shape, a third-party deep link).
 
 **Edit (in order):**
 
-1. **`../../../specs/CODAP-1323-redirect-v2-to-v3/requirements.md`** -- extend the
+1. **`../../../specs/CODAP-1323-redirect-v2-to-v3.md`** -- extend the
    matching `R1` - `R6` rule (or add a new R-number) and add a row to the **R28
    positive matrix**.
 2. **`v2-v3-redirect.js`** -- add the `RE_*` regex and a new branch in `handler()`. Pick
@@ -60,7 +60,7 @@ asset shape that happens to match the regex, or a V2-origin-served path under
 
 **Edit (in order):**
 
-1. **`../../../specs/CODAP-1323-redirect-v2-to-v3/requirements.md`** -- add a row to
+1. **`../../../specs/CODAP-1323-redirect-v2-to-v3.md`** -- add a row to
    the **R29 negative matrix**. If the carve-out routes to a different origin, also
    extend `R7` - `R14`.
 2. **`v2-v3-redirect.js`** -- tighten the regex OR add the higher-priority branch.
@@ -123,7 +123,7 @@ Just to save you from looking:
   ever need to do this).
 - **`RUNBOOK.md`** / **`PREFLIGHT.md`** -- only update if a finding changes the
   cutover pipeline order or adds a new G-gate. Adding a redirect rule does not.
-- **`requirements.md`** rows for unaffected paths -- leave them alone.
+- **`specs/CODAP-1323-redirect-v2-to-v3.md`** rows for unaffected paths -- leave them alone.
 
 ---
 
@@ -153,4 +153,4 @@ firing.
 
 If you do the same multi-file update twice in a row, write it down. Recipes here should
 be **mechanical** (a sequence of file edits + a verification) rather than design-level
-guidance -- design-level decisions go in [`../../../specs/CODAP-1323-redirect-v2-to-v3/`](../../../specs/CODAP-1323-redirect-v2-to-v3/).
+guidance -- design-level decisions go in [`../../../specs/CODAP-1323-redirect-v2-to-v3.md`](../../../specs/CODAP-1323-redirect-v2-to-v3.md).

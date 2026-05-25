@@ -1,7 +1,7 @@
 'use strict'
 // CloudFront Function -- V2 -> V3 redirects for codap.concord.org   [CODAP-1323]
 // Runtime: cloudfront-js-2.0   Stage: viewer-request
-// Spec: specs/CODAP-1323-redirect-v2-to-v3/   This is the committed, fully-commented source;
+// Spec: specs/CODAP-1323-redirect-v2-to-v3.md   This is the committed, fully-commented source;
 // the deployed artifact is dist/v2-v3-redirect.js -- comments stripped by build-function.sh (R20b).
 //
 // Attached to the /app, /app/*, /releases/*, /v3 and /v3/* cache behaviors of the CLONED

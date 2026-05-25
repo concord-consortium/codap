@@ -1,7 +1,7 @@
 # Flip-day runbook -- CODAP V2 -> V3 cutover (CODAP-1323)
 
 This runbook is the source of truth for **who does what and when** on flip day. The
-requirements spec at [`../../../specs/CODAP-1323-redirect-v2-to-v3/requirements.md`](../../../specs/CODAP-1323-redirect-v2-to-v3/requirements.md)
+requirements spec at [`../../../specs/CODAP-1323-redirect-v2-to-v3.md`](../../../specs/CODAP-1323-redirect-v2-to-v3.md)
 is the source of truth for **what must be true**.
 
 > **Run [`PREFLIGHT.md`](PREFLIGHT.md) first.** It walks through every script in the
@@ -352,7 +352,6 @@ operations before doing so.
 
 ## Reference
 
-- Requirements: [`../../../specs/CODAP-1323-redirect-v2-to-v3/requirements.md`](../../../specs/CODAP-1323-redirect-v2-to-v3/requirements.md)
-- Implementation plan: [`../../../specs/CODAP-1323-redirect-v2-to-v3/implementation.md`](../../../specs/CODAP-1323-redirect-v2-to-v3/implementation.md)
+- Spec (requirements + decisions): [`../../../specs/CODAP-1323-redirect-v2-to-v3.md`](../../../specs/CODAP-1323-redirect-v2-to-v3.md)
 - Function source: [`v2-v3-redirect.js`](v2-v3-redirect.js)
 - Folder README: [`README.md`](README.md)

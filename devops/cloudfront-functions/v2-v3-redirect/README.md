@@ -3,7 +3,7 @@
 CODAP-1323. Redirects legacy CODAP **V2** URLs on `codap.concord.org` to **V3** at
 `https://codap.concord.org/app/`, preserving the URL hash (a server-side 301/302 cannot —
 browsers never send the hash to the server). See
-[`specs/CODAP-1323-redirect-v2-to-v3/`](../../../specs/CODAP-1323-redirect-v2-to-v3/) for the
+[`specs/CODAP-1323-redirect-v2-to-v3.md`](../../../specs/CODAP-1323-redirect-v2-to-v3.md) for the
 requirements and this implementation plan.
 
 ## How the redirect works
