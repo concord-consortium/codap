@@ -17,4 +17,9 @@ describe("PlottedValueRegistration", () => {
     expect(plottedValueComponentInfo?.BannerComponent).toBeDefined()
     expect(plottedValueComponentInfo?.type).toBe(kPlottedValueType)
   })
+
+  it("registers notificationOperation for 'toggle plotted value'", () => {
+    const plottedValueContentInfo = getAdornmentContentInfo(kPlottedValueType)
+    expect(plottedValueContentInfo?.notificationOperation).toBe("toggle plotted value")
+  })
 })
