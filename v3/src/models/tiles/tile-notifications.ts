@@ -76,8 +76,10 @@ export function updateTileNotification(updateType: string, values: any, tile?: I
 
 // V2 emits `hide` / `show` on the component resource for singleton-component toggle
 // (apps/dg/controllers/document_controller.js:1644-1666) via the
-// `DG.UndoHistory.makeComponentNotification(op, type)` helper — `type` is the lowercase
-// DI-convention name (e.g. `'calculator'`). The op reflects the resulting visible state:
+// `DG.UndoHistory.makeComponentNotification(op, type)` helper. The `type` value defaults
+// to the lowercase DI-convention name but is subject to V2's lifecycle-name overrides
+// (e.g. calculator → `'calcView'`) — see `kV2DITypeToLifecycleNameMap`. `tileNotification`
+// applies the override automatically. The op reflects the resulting visible state:
 // hiding/deleting the singleton emits `hide`; making it visible (whether newly created
 // or unhidden) emits `show`. Non-singleton tiles use `create`/`delete` instead — this
 // helper no-ops for them so it's safe to call from generic notify callbacks.

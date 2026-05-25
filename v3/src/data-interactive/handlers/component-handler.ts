@@ -178,10 +178,16 @@ export const diComponentHandler: DIHandler = {
           // `resize columns`. Mirror that here so plugin-initiated rescales are also
           // undoable and visible to V2 plugins (CODAP-1353). Graph/Map rescales above are
           // not yet wrapped — deferred to CODAP-1351 / CODAP-1352.
+          //
+          // Don't echo the notification back to the requesting plugin — Story Builder
+          // otherwise treats notifications about its own DI-API actions as document edits
+          // and marks the current moment as unsaved (CODAP-1307), matching the pattern
+          // used by the create/update/delete handlers in this file.
           content.applyModelChange(() => {
             resizeAllColumns(content)
           }, {
             notify: () => resizeColumnsNotification(component),
+            excludeTileId: resources.interactiveFrame?.id,
             log: {message: "Resize all columns", args:{}, category: "table"},
             undoStringKey: "DG.Undo.caseTable.resizeColumns",
             redoStringKey: "DG.Redo.caseTable.resizeColumns"

@@ -45,7 +45,7 @@ export const kComponentTypeV3ToV2Map: Record<string, string> = {
 // resolves the DI type at runtime via `getTileContentInfo(type)?.getV2Type?.(content)`
 // (e.g. WebView returns `'game'` when `isPlugin`), so the SC mapping needs to follow the
 // runtime-resolved DI type, not the static V3 tile type. This map covers all DI types
-// V3 may emit, including the WebView subtypes (game / guideView / imageComponent).
+// V3 may emit, including the WebView subtypes (game / guideView / imageComponentView).
 export const kV2DITypeToSCNameMap: Record<string, string> = {
   calculator: "DG.Calculator",
   caseTable: "DG.CaseTable",
@@ -57,19 +57,22 @@ export const kV2DITypeToSCNameMap: Record<string, string> = {
   webView: "DG.WebView",
   game: "DG.GameView",
   guideView: "DG.GuideView",
-  imageComponent: "DG.ImageComponentView"
+  imageComponentView: "DG.ImageComponentView"
 }
 
 // V2's lifecycle `type` strings sometimes differ from its DI-API names. Verified V2
-// sources: app_controller.js:122 (`'table'` for case-table create/delete) and
-// document_controller.js:587, 1649 (`'calcView'` for calculator hide/show). Everything
-// else lines up with the DI name — graph, map, slider, text, webView, etc.
+// sources: app_controller.js:122 (`'table'` for case-table create/delete);
+// document_controller.js:587, 1649 (`'calcView'` for calculator hide/show); and
+// document_controller.js (`'imageComponent'` for image-component create/delete via
+// `makeComponentNotification('create', 'imageComponent')`). Everything else lines up
+// with the DI name — graph, map, slider, text, webView, etc.
 //
 // Keys are V2 DI types; values are V2's lifecycle-notification `type` strings. Anything
 // not listed uses its DI name verbatim for lifecycle ops.
 export const kV2DITypeToLifecycleNameMap: Record<string, string> = {
   caseTable: "table",
-  calculator: "calcView"
+  calculator: "calcView",
+  imageComponentView: "imageComponent"
 }
 
 export const kComponentTypeV2ToV3Map: Record<string, string> = {
