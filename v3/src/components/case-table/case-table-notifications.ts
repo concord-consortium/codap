@@ -13,3 +13,22 @@ export function openCaseTableNotification(tile?: ITileModel) {
   if (tile?.content.type !== kCaseTableTileType) return
   return updateTileNotification("open case table", {}, tile)
 }
+
+// V2 emits `resize column` (singular) from two sites:
+//   - apps/dg/components/case_table/case_table_controller.js (~:906) on the "Fit Width"
+//     attribute-menu item (single-column auto-fit)
+//   - apps/dg/components/case_table/case_table_view.js (~:1926) on user drag-resize
+// Both carry only { operation:'resize column', type:'DG.CaseTable' } — no width/attr info.
+export function resizeColumnNotification(tile?: ITileModel) {
+  if (tile?.content.type !== kCaseTableTileType) return
+  return updateTileNotification("resize column", {}, tile)
+}
+
+// V2 emits `resize columns` (plural) from apps/dg/components/case_table/case_table_controller.js
+// (~:1136) on the "Fit All Columns" inspector button. Payload: { operation:'resize columns',
+// type:'DG.CaseTable' }. Audit §3.5: V2's log at that site has a `%` typo (missing `@`) —
+// V3 must NOT replicate.
+export function resizeColumnsNotification(tile?: ITileModel) {
+  if (tile?.content.type !== kCaseTableTileType) return
+  return updateTileNotification("resize columns", {}, tile)
+}

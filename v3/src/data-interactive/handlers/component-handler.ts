@@ -1,5 +1,7 @@
 import { isCaseTableModel } from "../../components/case-table/case-table-model"
-import { openCaseTableNotification } from "../../components/case-table/case-table-notifications"
+import {
+  openCaseTableNotification, resizeColumnsNotification
+} from "../../components/case-table/case-table-notifications"
 import { resizeAllColumns } from "../../components/case-table/case-table-utils"
 import { isGraphContentModel } from "../../components/graph/models/graph-content-model"
 import { isMapContentModel } from "../../components/map/models/map-content-model"
@@ -172,7 +174,18 @@ export const diComponentHandler: DIHandler = {
         } else if (isMapContentModel(content)) {
           content.rescale()
         } else if (isCaseTableModel(content)) {
-          resizeAllColumns(content)
+          // V2's resize-all path (case_table_controller.js:1136) is undoable and emits
+          // `resize columns`. Mirror that here so plugin-initiated rescales are also
+          // undoable and visible to V2 plugins (CODAP-1353). Graph/Map rescales above are
+          // not yet wrapped — deferred to CODAP-1351 / CODAP-1352.
+          content.applyModelChange(() => {
+            resizeAllColumns(content)
+          }, {
+            notify: () => resizeColumnsNotification(component),
+            log: {message: "Resize all columns", args:{}, category: "table"},
+            undoStringKey: "DG.Undo.caseTable.resizeColumns",
+            redoStringKey: "DG.Redo.caseTable.resizeColumns"
+          })
         } else {
           return errorResult(t("V3.DI.Error.componentDoesNotSupportRescale"))
         }

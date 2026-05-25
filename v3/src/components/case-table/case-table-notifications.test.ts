@@ -1,4 +1,6 @@
-import { openCaseTableNotification } from "./case-table-notifications"
+import {
+  openCaseTableNotification, resizeColumnNotification, resizeColumnsNotification
+} from "./case-table-notifications"
 
 const v2Id = 77501
 // V2 component-resource notifications carry the SC class name (`DG.CaseTable`) in
@@ -38,5 +40,49 @@ describe("openCaseTableNotification", () => {
 
   it("returns undefined when no tile is provided", () => {
     expect(openCaseTableNotification(undefined)).toBeUndefined()
+  })
+})
+
+describe("resizeColumnNotification", () => {
+  it("emits a 'resize column' notification for case-table tiles", () => {
+    const tile = { id: "TABLE1", content: { type: "CaseTable" } } as any
+    const notification = resizeColumnNotification(tile)
+    expect(notification?.message.action).toBe("notify")
+    expect(notification?.message.resource).toBe("component")
+    expect(notification?.message.values.operation).toBe("resize column")
+    expect(notification?.message.values.id).toBe(v2Id)
+    expect(notification?.message.values.type).toBe(v2SCType)
+    expect(notification?.message.values.diType).toBe(diType)
+  })
+
+  it("returns undefined for non-case-table tiles (e.g. case card)", () => {
+    const cardTile = { id: "CARD1", content: { type: "CaseCard" } } as any
+    expect(resizeColumnNotification(cardTile)).toBeUndefined()
+  })
+
+  it("returns undefined when no tile is provided", () => {
+    expect(resizeColumnNotification(undefined)).toBeUndefined()
+  })
+})
+
+describe("resizeColumnsNotification", () => {
+  it("emits a 'resize columns' (plural) notification for case-table tiles", () => {
+    const tile = { id: "TABLE1", content: { type: "CaseTable" } } as any
+    const notification = resizeColumnsNotification(tile)
+    expect(notification?.message.action).toBe("notify")
+    expect(notification?.message.resource).toBe("component")
+    expect(notification?.message.values.operation).toBe("resize columns")
+    expect(notification?.message.values.id).toBe(v2Id)
+    expect(notification?.message.values.type).toBe(v2SCType)
+    expect(notification?.message.values.diType).toBe(diType)
+  })
+
+  it("returns undefined for non-case-table tiles (e.g. case card)", () => {
+    const cardTile = { id: "CARD1", content: { type: "CaseCard" } } as any
+    expect(resizeColumnsNotification(cardTile)).toBeUndefined()
+  })
+
+  it("returns undefined when no tile is provided", () => {
+    expect(resizeColumnsNotification(undefined)).toBeUndefined()
   })
 })
