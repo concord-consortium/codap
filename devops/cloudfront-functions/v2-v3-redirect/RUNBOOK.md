@@ -46,8 +46,8 @@ method used per check; this row reflects the actual run.
 | `FunctionThrottles` | Brief request burst against clone; G5 exception recorded if the alarm does not fire | _______________ |
 | `5xxErrorRate` | Co-fires with `FunctionExecutionErrors` from the broken-function publish | _______________ |
 | `4xxErrorRate` | 10x curl to known-404 paths against clone | _______________ |
-| `v3-reachability` canary | Re-pointed at an unreachable host briefly | _______________ |
-| `redirect-correctness` canary | Re-pointed at an unreachable host briefly | _______________ |
+| `v3-reachability` canary | Passive observation: state=RUNNING + >=1 PASSED in last 10 runs (UpdateCanary drops EnvironmentVariables, so re-pointing for failure induction is delete+recreate -- not scripted in G5) | _______________ |
+| `redirect-correctness` canary | Passive observation: state=RUNNING + >=1 PASSED in last 10 runs (same UpdateCanary limitation as above) | _______________ |
 
 ---
 

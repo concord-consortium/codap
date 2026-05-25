@@ -225,6 +225,17 @@ else
     (cd "$pkgdir" && zip -qr "$zip_path" .)
     rm -rf "$pkgdir"
 
+    # Check existence first. UpdateCanary silently drops EnvironmentVariables (the API
+    # returns success and LastModified updates, but env vars never persist), so re-running
+    # this script against an existing canary cannot reliably re-point CANARY_TARGET_HOST.
+    # Re-pointing is delete+recreate; see RUNBOOK.md "Canary re-pointing (flip-day step)".
+    # For idempotent re-runs we therefore skip when the canary already exists.
+    if aws synthetics get-canary --name "codap-v2-v3-$canary" --region "$REGION_US_E1" \
+        >/dev/null 2>&1; then
+      echo "    canary codap-v2-v3-$canary already exists -- skipping (re-pointing requires"
+      echo "    delete+recreate; see RUNBOOK.md 'Canary re-pointing (flip-day step)')"
+      continue
+    fi
     aws synthetics create-canary \
       --name "codap-v2-v3-$canary" \
       --code "Handler=$canary.handler,ZipFile=fileb://$zip_path" \
@@ -233,14 +244,8 @@ else
       --schedule "Expression=rate(1 minute)" \
       --runtime-version "syn-nodejs-puppeteer-15.1" \
       --run-config "EnvironmentVariables={CANARY_TARGET_HOST=$TEMP_SUBDOMAIN}" \
-      --region "$REGION_US_E1" \
-      2>/dev/null \
-      || aws synthetics update-canary \
-        --name "codap-v2-v3-$canary" \
-        --code "Handler=$canary.handler,ZipFile=fileb://$zip_path" \
-        --run-config "{\"EnvironmentVariables\":{\"CANARY_TARGET_HOST\":\"$TEMP_SUBDOMAIN\"}}" \
-        --region "$REGION_US_E1"
-    echo "    canary codap-v2-v3-$canary ready (target $TEMP_SUBDOMAIN)"
+      --region "$REGION_US_E1"
+    echo "    canary codap-v2-v3-$canary created (target $TEMP_SUBDOMAIN)"
   done
 fi
 
@@ -254,7 +259,7 @@ DASHBOARD_BODY=$(cat <<JSON
     {
       "type": "metric",
       "properties": {
-        "metrics": [["AWS/CloudFront", "FunctionExecutionErrors", "FunctionName", "$FUNCTION_NAME"]],
+        "metrics": [["AWS/CloudFront", "FunctionExecutionErrors", "FunctionName", "$FUNCTION_NAME", "Region", "Global"]],
         "region": "$REGION_US_E1",
         "title": "FunctionExecutionErrors"
       }
@@ -270,7 +275,7 @@ DASHBOARD_BODY=$(cat <<JSON
     {
       "type": "metric",
       "properties": {
-        "metrics": [["AWS/CloudFront", "FunctionThrottles", "FunctionName", "$FUNCTION_NAME"]],
+        "metrics": [["AWS/CloudFront", "FunctionThrottles", "FunctionName", "$FUNCTION_NAME", "Region", "Global"]],
         "region": "$REGION_US_E1",
         "title": "FunctionThrottles"
       }
