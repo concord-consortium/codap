@@ -80,8 +80,8 @@ const Controls = observer(function Controls() {
     // op `toggle show ICI` (V2 emits the wrong `toggle show outliers` op here — audit §3.5 bug).
     graphModel.applyModelChange(() => existingAdornment?.setShowICI(checked), {
       notify: () => toggleShowICINotification(tile, checked),
-      undoStringKey: checked ? "V3.Undo.graph.showICI" : "V3.Undo.graph.hideICI",
-      redoStringKey: checked ? "V3.Redo.graph.showICI" : "V3.Redo.graph.hideICI",
+      undoStringKey: checked ? "DG.Undo.graph.showICI" : "DG.Undo.graph.hideICI",
+      redoStringKey: checked ? "DG.Redo.graph.showICI" : "DG.Redo.graph.hideICI",
       log: logMessageWithReplacement("%@ ICI", {action: checked ? "Show" : "Hide"})
     })
   }

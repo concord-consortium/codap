@@ -30,19 +30,20 @@ const Controls = () => {
 
   const handleBlur = useCallback(() => {
     if (existingAdornment) {
+      const numStErrs = existingAdornment.numStErrs  // Can be NaN if user cleared value
+      const isValid = isFinite(numStErrs)
       graphModel.applyModelChange(() => {
-        const numStErrs = existingAdornment.numStErrs  // Can be NaN if user cleared value
-        if (isFinite(numStErrs)) {
+        if (isValid) {
           existingAdornment.setNumStErrs(numStErrs)
         }
         else {
-          existingAdornment?.setDynamicNumStErrs(undefined)
+          existingAdornment.setDynamicNumStErrs(undefined)
         }
       }, {
-        notify: () => setNumStdErrsNotification(tile, existingAdornment.numStErrs),
+        notify: isValid ? () => setNumStdErrsNotification(tile, numStErrs) : undefined,
         undoStringKey: 'DG.Undo.graph.setNumStErrs',
-        redoStringKey: 'DG.Undo.graph.setNumStErrs',
-        log: logMessageWithReplacement("Set standard error to %@", {numStErrs: existingAdornment.numStErrs})
+        redoStringKey: 'DG.Redo.graph.setNumStErrs',
+        log: logMessageWithReplacement("Set standard error to %@", {numStErrs})
       })
     }
   }, [existingAdornment, graphModel, tile])
