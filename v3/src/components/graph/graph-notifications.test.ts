@@ -1,11 +1,11 @@
 import {
   add2ndAxisAttributeNotification, addAxisAttributeNotification, addMovableValueNotification,
-  changeBackgroundColorNotification, dragBinBoundaryNotification, dragMovableLineNotification,
-  dragMovablePointNotification, dragMovableValueNotification, editPlotFormulaNotification,
-  removeMovableValueNotification, repositionEquationNotification, setNumStdErrsNotification,
-  swapCategoriesNotification, toggleBackgroundTransparencyNotification,
-  toggleMeasuresForSelectionNotification, toggleNumberToggleNotification,
-  toggleShowICINotification, toggleShowOutliersNotification
+  changeBackgroundColorNotification, displayOnlySelectedNotification, dragBinBoundaryNotification,
+  dragMovableLineNotification, dragMovablePointNotification, dragMovableValueNotification,
+  editPlotFormulaNotification, removeMovableValueNotification, repositionEquationNotification,
+  setNumStdErrsNotification, showAllCasesNotification, swapCategoriesNotification,
+  toggleBackgroundTransparencyNotification, toggleMeasuresForSelectionNotification,
+  toggleNumberToggleNotification, toggleShowICINotification, toggleShowOutliersNotification
 } from "./graph-notifications"
 
 const v2Id = 77001
@@ -188,6 +188,34 @@ describe("dragMovableLineNotification", () => {
   it("returns undefined for non-graph tiles", () => {
     const calcTile = { id: "CALC1", content: { type: "Calculator" } } as any
     expect(dragMovableLineNotification(calcTile)).toBeUndefined()
+  })
+})
+
+describe("showAllCasesNotification", () => {
+  it("emits 'showAllCases' on the graph component resource", () => {
+    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    const notification = showAllCasesNotification(tile)
+    expect(notification?.message.values.operation).toBe("showAllCases")
+    expect(notification?.message.values.type).toBe(v2SCType)
+  })
+
+  it("returns undefined for non-graph tiles (map gets its own helper in CODAP-1352)", () => {
+    const mapTile = { id: "MAP1", content: { type: "Map" } } as any
+    expect(showAllCasesNotification(mapTile)).toBeUndefined()
+  })
+})
+
+describe("displayOnlySelectedNotification", () => {
+  it("emits 'displayOnlySelected' on the graph component resource", () => {
+    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    const notification = displayOnlySelectedNotification(tile)
+    expect(notification?.message.values.operation).toBe("displayOnlySelected")
+    expect(notification?.message.values.type).toBe(v2SCType)
+  })
+
+  it("returns undefined for non-graph tiles", () => {
+    const mapTile = { id: "MAP1", content: { type: "Map" } } as any
+    expect(displayOnlySelectedNotification(mapTile)).toBeUndefined()
   })
 })
 

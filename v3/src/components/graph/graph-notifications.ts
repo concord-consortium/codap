@@ -111,6 +111,24 @@ export function removeMovableValueNotification(graphTile: ITileModel | undefined
   return updateTileNotification("remove movable value", {}, graphTile)
 }
 
+// V2 emits `showAllCases` from apps/dg/components/graph_map_common/data_layer_model.js (~:680)
+// when the user clicks "Show All" in the inspector hide/show menu. V2 emits with `type: ''`
+// (empty string — likely accidental, since the shared graph_map_common file doesn't know the SC
+// class name at that point). V3 emits with the correct `'DG.GraphView'` type via tileNotification —
+// an implicit V2 wart-fix. Bare payload. No-ops for non-graph tiles (map is CODAP-1352).
+export function showAllCasesNotification(graphTile: ITileModel | undefined) {
+  if (graphTile?.content.type !== kGraphTileType) return
+  return updateTileNotification("showAllCases", {}, graphTile)
+}
+
+// V2 emits `displayOnlySelected` from apps/dg/components/graph_map_common/data_layer_model.js
+// (~:705) when the user picks "Display Only Selected Cases". Same `type: ''` V2 wart as
+// showAllCases; V3 emits with the correct type. Bare payload. No-ops for non-graph tiles.
+export function displayOnlySelectedNotification(graphTile: ITileModel | undefined) {
+  if (graphTile?.content.type !== kGraphTileType) return
+  return updateTileNotification("displayOnlySelected", {}, graphTile)
+}
+
 // V2 emits `edit plot formula` from apps/dg/components/graph/adornments/plotted_formula_edit_context.js
 // (createEditCommand ~:102) when the user applies a new formula via the plotted-value or plotted-function
 // edit dialog. V2's payload is bare. V3 additionally carries `{ adornment, from, to }` so plugins can

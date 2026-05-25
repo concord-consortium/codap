@@ -8,6 +8,7 @@ import { t } from "../../../../utilities/translation/translate"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 import { updateTileNotification } from "../../../../models/tiles/tile-notifications"
 import {
+  displayOnlySelectedNotification, showAllCasesNotification,
   toggleMeasuresForSelectionNotification, toggleNumberToggleNotification
 } from "../../graph-notifications"
 import { EditFormulaModal } from "../../../common/edit-formula-modal"
@@ -59,25 +60,21 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
   }
 
   const displayOnlySelectedCases = () => {
-    dataConfig?.applyModelChange(
-      () => graphModel?.displayOnlySelectedCases(),
-      {
-        undoStringKey: "DG.Undo.displayOnlySelected",
-        redoStringKey: "DG.Redo.displayOnlySelected",
-        log: "Display only selected cases"
-      }
-    )
+    dataConfig?.applyModelChange(() => graphModel?.displayOnlySelectedCases(), {
+      notify: () => displayOnlySelectedNotification(tile),
+      undoStringKey: "DG.Undo.displayOnlySelected",
+      redoStringKey: "DG.Redo.displayOnlySelected",
+      log: "Display only selected cases"
+    })
   }
 
   const showAllCases = () => {
-    dataConfig?.applyModelChange(
-      () => graphModel?.showAllCases(),
-      {
-        undoStringKey: "DG.Undo.showAllCases",
-        redoStringKey: "DG.Redo.showAllCases",
-        log: {message: "Show all cases", args: {}, category: "data"}
-      }
-    )
+    dataConfig?.applyModelChange(() => graphModel?.showAllCases(), {
+      notify: () => showAllCasesNotification(tile),
+      undoStringKey: "DG.Undo.showAllCases",
+      redoStringKey: "DG.Redo.showAllCases",
+      log: {message: "Show all cases", args: {}, category: "data"}
+    })
   }
 
   const applyFilterFormula = (formula: string) => {
