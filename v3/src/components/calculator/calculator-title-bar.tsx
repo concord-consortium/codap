@@ -5,6 +5,7 @@ import { useDocumentContent } from "../../hooks/use-document-content"
 import { ITileTitleBarProps } from "../tiles/tile-base-props"
 import { kCalculatorTileType } from "./calculator-defs"
 import { logStringifiedObjectMessage } from "../../lib/log-message"
+import { componentShowHideNotification } from "../../models/tiles/tile-notifications"
 
 export const CalculatorTitleBar =
   observer(function CalculatorTitleBar({ tile, onCloseTile, ...others }: ITileTitleBarProps) {
@@ -13,11 +14,12 @@ export const CalculatorTitleBar =
       documentContent?.applyModelChange(() => {
         documentContent?.toggleSingletonTileVisibility(kCalculatorTileType)
       }, {
+        notify: () => componentShowHideNotification(tile, "hide"),
         undoStringKey: "DG.Undo.toggleComponent.delete.calcView",
         redoStringKey: "DG.Redo.toggleComponent.delete.calcView",
         log: logStringifiedObjectMessage("Close calculator", { type: kCalculatorTileType}, "component")
       })
-    }, [documentContent])
+    }, [documentContent, tile])
     return (
       <ComponentTitleBar tile={tile} onCloseTile={closeCalculator} {...others} />
     )

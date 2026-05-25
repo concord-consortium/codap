@@ -24,18 +24,25 @@ export const kComponentTypeV3ToV2Map: Record<string, string> = {
   [kWebViewTileType]: kV2WebViewType
 }
 
-// For V2-plugin compatibility. V2 is internally inconsistent: it sends the lowercase
-// DI-convention name (`"calculator"`) in `get component/<id>` API responses — translated by
-// `data_interactive_phone_handler.js:1718` — but the SC class name (`"DG.Calculator"`) in
-// the `type` field of component-resource notification payloads (e.g.
-// apps/dg/components/calculator/calculator.js:99 emits `type: 'DG.Calculator'`). Each V2
-// `executeNotification` block hard-codes the SC name with no translation. Arguably the V2
-// notification path should have used the same translation table the API path does, but
-// that's water under the bridge; V2 plugins in the wild filter notifications on the SC name.
-// V3's `tileNotification` therefore emits the SC name as `values.type` (for V2-plugin
-// matching) and the DI-convention name as `values.diType` (additive). V3 collapses
-// WebView/Game/Guide/Image into a single tile type; this mapping uses the generic
-// `DG.WebView` for all of them.
+// For V2-plugin compatibility. V2 uses two `type` conventions in component-resource
+// notification payloads depending on the operation kind:
+//   - OPERATIONAL ops (titleChange, calculate, edit formula, attributeChange, change
+//     column width, resize column, etc.) — emitted via inline `executeNotification`
+//     blocks — carry the SC class name (e.g. `"DG.Calculator"`,
+//     apps/dg/components/calculator/calculator.js:99 emits `type: 'DG.Calculator'`).
+//   - LIFECYCLE ops (create, delete, hide, show) — emitted via the
+//     `DG.UndoHistory.makeComponentNotification(op, type)` helper — carry the lowercase
+//     DI-convention name (e.g. `"calculator"`).
+// V2's `get component/<id>` API responses use the lowercase DI name too (translated by
+// data_interactive_phone_handler.js:1718). Arguably V2's notification path should have
+// used the same translation table the API path does for all ops, but that's water under
+// the bridge — V2 plugins in the wild filter on whichever string V2 actually sent.
+// V3's `tileNotification` mirrors V2's per-op convention so V2 plugins match, and always
+// adds the DI name as the additive `values.diType` so V3-aware plugins don't have to
+// know V2's two conventions. This map provides the SC name for operational ops; the
+// existing kComponentTypeV3ToV2Map provides the DI name (used for both API responses and
+// for the lifecycle-op `type` value). V3 collapses WebView/Game/Guide/Image into a single
+// tile type; this mapping uses the generic `DG.WebView` for all of them.
 export const kComponentTypeV3ToV2SCNameMap: Record<string, string> = {
   [kCalculatorTileType]: "DG.Calculator",
   [kCaseTableTileType]: "DG.CaseTable",

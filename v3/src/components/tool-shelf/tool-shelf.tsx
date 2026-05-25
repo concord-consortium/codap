@@ -15,8 +15,10 @@ import GuideIcon from "../../assets/icons/icon-guide.svg"
 import { DEBUG_UNDO } from "../../lib/debug"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { IDocumentModel } from "../../models/document/document"
+import { isFreeTileLayout } from "../../models/document/free-tile-row"
+import { getTileContentInfo } from "../../models/tiles/tile-content-info"
 import { ITileModel } from "../../models/tiles/tile-model"
-import { createTileNotification } from "../../models/tiles/tile-notifications"
+import { componentShowHideNotification, createTileNotification } from "../../models/tiles/tile-notifications"
 import { persistentState } from "../../models/persistent-state"
 import { uiState } from "../../models/ui-state"
 import { t } from "../../utilities/translation/translate"
@@ -133,13 +135,24 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
 
   function handleTileButtonClick(tileType: string) {
     const tileInfo = getTileComponentInfo(tileType)
+    const isSingleton = !!getTileContentInfo(tileType)?.isSingleton
     const { undoStringKey = "", redoStringKey = "" } = tileInfo?.shelf || {}
     let tile: Maybe<ITileModel>
+    // For singletons, V2 emits `hide`/`show` rather than `create` (the operation reflects
+    // the resulting visible state, not whether the tile was newly created). For
+    // non-singletons V2 emits `create`. We mirror that per-op convention (CODAP-1353).
+    let resultingShowHide: "show" | "hide" | undefined
     document?.content?.applyModelChange(() => {
       tile = document?.content?.createOrShowTile?.(tileType, { animateCreation: true })
       if (tile) tileInfo?.shelf?.afterCreate?.(tile.content)
+      if (isSingleton && tile) {
+        const layout = document?.content?.getTileLayoutById(tile.id)
+        resultingShowHide = isFreeTileLayout(layout) && layout.isHidden ? "hide" : "show"
+      }
     }, {
-      notify: () => createTileNotification(tile),
+      notify: () => isSingleton
+        ? componentShowHideNotification(tile, resultingShowHide ?? "show")
+        : createTileNotification(tile),
       undoStringKey,
       redoStringKey,
       log: logMessageWithReplacement("Create component: %@", {tileType}, "component")

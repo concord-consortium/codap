@@ -1,10 +1,22 @@
 import { ITileModel } from "./tile-model"
-import { createTileNotification, deleteTileNotification, updateTileNotification } from "./tile-notifications"
+import {
+  componentShowHideNotification, createTileNotification, deleteTileNotification, updateTileNotification
+} from "./tile-notifications"
+
+jest.mock("./tile-content-info", () => ({
+  getTileContentInfo: jest.fn((type: string) => {
+    // The calculator is V3's only singleton today; Graph and other types are non-singleton.
+    if (type === "Calculator") return { isSingleton: true }
+    return { isSingleton: false }
+  })
+}))
 
 const v3TileType = "Graph"
-// V2 component-resource notifications carry the SC class name (`DG.GraphView` for graph)
-// in `values.type`; V3 mirrors this for V2-plugin compatibility and adds the
-// DI-convention name as `values.diType`.
+// V2 uses two `type` conventions depending on the operation: lifecycle ops
+// (create/delete/hide/show) carry the lowercase DI-convention name (`graph`);
+// operational ops (titleChange, attributeChange, etc.) carry the SC class name
+// (`DG.GraphView`). V3 mirrors this per-op and always emits the DI name as the
+// additive `diType` field.
 const v2SCType = "DG.GraphView"
 const diType = "graph"
 const v3Id = "TILE12345"
@@ -22,7 +34,8 @@ describe("createTileNotification", () => {
     expect(notification?.message.resource).toBe("component")
     expect(notification?.message.values.operation).toBe("create")
     expect(notification?.message.values.id).toBe(v2Id)
-    expect(notification?.message.values.type).toBe(v2SCType)
+    // `create` is a lifecycle op — V2 emits the lowercase name here.
+    expect(notification?.message.values.type).toBe(diType)
     expect(notification?.message.values.diType).toBe(diType)
   })
 
@@ -51,7 +64,8 @@ describe("deleteTileNotification", () => {
     expect(notification?.message.values.id).toBe(v2Id)
     expect(notification?.message.values.name).toBe(tileTitle)
     expect(notification?.message.values.title).toBe(tileTitle)
-    expect(notification?.message.values.type).toBe(v2SCType)
+    // `delete` is a lifecycle op — V2 emits the lowercase name here.
+    expect(notification?.message.values.type).toBe(diType)
     expect(notification?.message.values.diType).toBe(diType)
   })
 })
@@ -105,5 +119,34 @@ describe("titleChange notification envelope", () => {
     expect((notification?.message as any).type).toBeUndefined()
     expect(notification?.message.values.type).toBe(v2SCType)
     expect(notification?.message.values.diType).toBe(diType)
+  })
+})
+
+describe("componentShowHideNotification (singleton lifecycle)", () => {
+  it("emits `show` with the lowercase DI name as `type` for a singleton tile", () => {
+    // Calculator is V3's only singleton; v2Id constant is shared across this file.
+    const calcTile = { id: "CALC1", content: { type: "Calculator" } } as ITileModel
+    const notification = componentShowHideNotification(calcTile, "show")
+    expect(notification?.message.action).toBe("notify")
+    expect(notification?.message.resource).toBe("component")
+    expect(notification?.message.values.operation).toBe("show")
+    expect(notification?.message.values.type).toBe("calculator")  // lifecycle ops use DI name
+    expect(notification?.message.values.diType).toBe("calculator")
+  })
+
+  it("emits `hide` for a singleton tile", () => {
+    const calcTile = { id: "CALC1", content: { type: "Calculator" } } as ITileModel
+    const notification = componentShowHideNotification(calcTile, "hide")
+    expect(notification?.message.values.operation).toBe("hide")
+    expect(notification?.message.values.type).toBe("calculator")
+  })
+
+  it("returns undefined for non-singleton tiles (e.g. Graph)", () => {
+    const graphTile = { id: v3Id, content: { type: v3TileType } } as ITileModel
+    expect(componentShowHideNotification(graphTile, "hide")).toBeUndefined()
+  })
+
+  it("returns undefined when no tile is provided", () => {
+    expect(componentShowHideNotification(undefined, "show")).toBeUndefined()
   })
 })
