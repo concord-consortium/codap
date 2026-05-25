@@ -74,7 +74,7 @@ describe.each([
       test('hash preserved verbatim, no ?lang= for English', () => {
         const res = handler(makeEvent('/app/static/dg/en/cert/index.html'))
         expect(runClientScript(res.body, { hash: '#file=googleDrive:abcd1234' }))
-          .toBe('https://codap.concord.org/app/#file=googleDrive:abcd1234')
+          .toBe('/app/#file=googleDrive:abcd1234')
       })
 
       test('R17a -- path lang wins, query lang stripped, others verbatim', () => {
@@ -83,43 +83,43 @@ describe.each([
           search: '?lang=es&launchFromLara=true&documentServer=https://example.com',
           hash: '#shared=xyz'
         }))
-          .toBe('https://codap.concord.org/app/?lang=fr&launchFromLara=true' +
+          .toBe('/app/?lang=fr&launchFromLara=true' +
                 '&documentServer=https://example.com#shared=xyz')
       })
 
       test('R17a/GR2 -- lang-only query yields no trailing &', () => {
         const res = handler(makeEvent('/app/static/dg/fr/cert/index.html'))
         expect(runClientScript(res.body, { search: '?lang=es' }))
-          .toBe('https://codap.concord.org/app/?lang=fr')
+          .toBe('/app/?lang=fr')
       })
 
       test('GR3 -- duplicate non-lang params preserved in order', () => {
         const res = handler(makeEvent('/app/static/dg/fr/cert/index.html'))
         expect(runClientScript(res.body, { search: '?foo=1&foo=2' }))
-          .toBe('https://codap.concord.org/app/?lang=fr&foo=1&foo=2')
+          .toBe('/app/?lang=fr&foo=1&foo=2')
       })
 
       test('no query, no hash: /app -> /app/', () => {
         const res = handler(makeEvent('/app'))
-        expect(runClientScript(res.body)).toBe('https://codap.concord.org/app/')
+        expect(runClientScript(res.body)).toBe('/app/')
       })
 
       test('English path with a non-lang query: query preserved verbatim, no ?lang=', () => {
         const res = handler(makeEvent('/app/static/dg/en/cert/'))
         expect(runClientScript(res.body, { search: '?foo=bar&baz=qux' }))
-          .toBe('https://codap.concord.org/app/?foo=bar&baz=qux')
+          .toBe('/app/?foo=bar&baz=qux')
       })
 
       test('/v3 collapses to /app/, preserves query + hash', () => {
         const res = handler(makeEvent('/v3/some/deep/path'))
         expect(runClientScript(res.body, { search: '?x=1', hash: '#h=v' }))
-          .toBe('https://codap.concord.org/app/?x=1#h=v')
+          .toBe('/app/?x=1#h=v')
       })
 
       test('R5 -- /releases/{name}/static/dg/{lang}/cert preserves lang', () => {
         const res = handler(makeEvent('/releases/latest/static/dg/zh-Hans/cert/index.html'))
         expect(runClientScript(res.body, { hash: '#k=v' }))
-          .toBe('https://codap.concord.org/app/?lang=zh-Hans#k=v')
+          .toBe('/app/?lang=zh-Hans#k=v')
       })
 
       // R17a (verbatim-preservation half): when the path matches R1, R2, R4, or R6a (no
@@ -129,25 +129,25 @@ describe.each([
       test('R17a -- R1 /app with ?lang= preserves it verbatim', () => {
         const res = handler(makeEvent('/app'))
         expect(runClientScript(res.body, { search: '?lang=fr' }))
-          .toBe('https://codap.concord.org/app/?lang=fr')
+          .toBe('/app/?lang=fr')
       })
 
       test('R17a -- R2 (English V2 path) preserves an incoming ?lang= verbatim', () => {
         const res = handler(makeEvent('/app/static/dg/en/cert/index.html'))
         expect(runClientScript(res.body, { search: '?lang=fr&foo=bar' }))
-          .toBe('https://codap.concord.org/app/?lang=fr&foo=bar')
+          .toBe('/app/?lang=fr&foo=bar')
       })
 
       test('R17a -- R4 /releases/{name}/ preserves an incoming ?lang= verbatim', () => {
         const res = handler(makeEvent('/releases/latest/'))
         expect(runClientScript(res.body, { search: '?lang=de' }))
-          .toBe('https://codap.concord.org/app/?lang=de')
+          .toBe('/app/?lang=de')
       })
 
       test('R17a -- R6a /v3 preserves an incoming ?lang= verbatim', () => {
         const res = handler(makeEvent('/v3'))
         expect(runClientScript(res.body, { search: '?lang=de&x=1' }))
-          .toBe('https://codap.concord.org/app/?lang=de&x=1')
+          .toBe('/app/?lang=de&x=1')
       })
     })
   })
@@ -220,7 +220,7 @@ describe.each([
       expect(res.body).toContain('<title>CODAP</title>')
       expect(res.body).toContain('<p role="status">Loading CODAP...</p>')   // WCAG-I1
       expect(res.body).toContain('<noscript>')
-      expect(res.body).toContain('<a href="https://codap.concord.org/app/">Open CODAP</a>')
+      expect(res.body).toContain('<a href="/app/">Open CODAP</a>')
     })
 
     test('the R26b marker appears exactly once', () => {
@@ -236,7 +236,7 @@ describe.each([
       expect(logs).toHaveLength(1)
       expect(logs[0]).toMatch(/^codap-redirect tag=app-lang /)
       // logged destination is server-side: path lang wins, query lang dropped (R30 / CR11)
-      expect(logs[0]).toContain('dest=https://codap.concord.org/app/?lang=fr&foo=bar')
+      expect(logs[0]).toContain('dest=/app/?lang=fr&foo=bar')
     })
 
     test('no-match line records the post-/app-strip newuri', () => {

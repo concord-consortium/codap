@@ -12,8 +12,15 @@
 // other non-matching paths pass through to origin unchanged.
 
 // --- Configuration constants (R21, R23) -------------------------------------------------
-var V3_BASE_URL = 'https://codap.concord.org/app'   // R21 -- no trailing slash
-var V3_DEST = V3_BASE_URL + '/'                     // redirect lands here (Q8 = trailing slash)
+// V3_BASE_URL is a HOST-PRESERVING relative path. The browser resolves it against the
+// current origin, so a redirect from `https://codap2to3.concord.org/app` lands on
+// `https://codap2to3.concord.org/app/` (V3 on the temp subdomain) and a redirect from
+// `https://codap.concord.org/app` lands on `https://codap.concord.org/app/` (V3 on prod,
+// post-flip). Post-flip the canonical V3 URL is still `https://codap.concord.org/app/`;
+// the function just no longer hardcodes the host so pre-flip testing on the temp
+// subdomain actually reaches V3 instead of being bounced to prod (which is still V2).
+var V3_BASE_URL = '/app'                            // R21 -- host-preserving relative; no trailing slash
+var V3_DEST = V3_BASE_URL + '/'                     // redirect lands here (Q8 = trailing slash) => '/app/'
 var LOG_ENABLED = false                             // R23 -- per-match logging; false in committed source
 
 // --- Path-match patterns ----------------------------------------------------------------

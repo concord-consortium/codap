@@ -64,8 +64,9 @@ freshness-sensitive checks so the signatures reflect current reality:
       run report supersedes the PREFLIGHT step 12 report as G1/G2 evidence.
 - [ ] **G6 Drive double-click** -- click a sample Drive double-click URL pointing at
       the temp subdomain (`https://codap2to3.concord.org/app/static/dg/en/cert/index.html#file=googleDrive:<id>`);
-      confirm the redirect lands at `codap.concord.org/app/#file=googleDrive:<id>` and
-      the document opens. New screenshot supersedes the PREFLIGHT step 13 evidence.
+      per R21 host-preserving, the redirect lands at `codap2to3.concord.org/app/#file=googleDrive:<id>`
+      (same temp origin) and V3 + Drive OAuth open the document. New screenshot
+      supersedes the PREFLIGHT step 13 evidence.
 - [ ] **Canary health** -- both `codap-v2-v3-v3-reachability` and
       `codap-v2-v3-redirect-correctness` canaries report `SuccessPercent` at or near
       100 over the last hour (CloudWatch console -> Synthetics or the soak dashboard).

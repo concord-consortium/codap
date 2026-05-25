@@ -9,12 +9,12 @@
 
 const redirectBase = (Cypress.env('redirectBaseUrl') as string) || 'https://codap2to3.concord.org'
 
-// Expected V3 destination after redirect. Per R21 it's https://codap.concord.org/app/ post
-// flip; pre-flip the function is attached on the clone whose temp subdomain is
-// redirectBase, but the function returns its destination as the production hostname
-// (V3_BASE_URL is the canonical post-flip host). We assert against that production
-// destination by default but allow override for environments that haven't flipped yet.
-const v3Dest = (Cypress.env('redirectV3Destination') as string) || 'https://codap.concord.org/app/'
+// Expected V3 destination after redirect. Per R21 (host-preserving), the function emits
+// a relative '/app/' path; the browser resolves it against the current origin. So a test
+// against the temp subdomain expects the destination on the temp subdomain, and a test
+// against prod expects the destination on prod. Default tracks redirectBase; override
+// with redirectV3Destination for unusual cross-host scenarios.
+const v3Dest = (Cypress.env('redirectV3Destination') as string) || `${redirectBase}/app/`
 
 interface PositiveRow {
   uri: string
@@ -112,8 +112,15 @@ describe(`CODAP-1323 R28 positive matrix -- V2 URLs redirect to V3 (${redirectBa
     const expectedUrl = expectedDestination(row)
     it(`${row.uri}${row.query || ''}${row.hash || ''} -> ${expectedUrl}`, () => {
       cy.visit(url, { failOnStatusCode: false })
-      // Wait for the client-side redirect: location settles at expectedUrl.
-      cy.location('href', { timeout: 15000 }).should('eq', expectedUrl)
+      // Wait for the client-side redirect: location settles at expectedUrl. Compare
+      // decoded forms because the browser URL-canonicalizes special chars in query
+      // values (e.g. `documentServer=https://example.com` becomes
+      // `documentServer=https%3A%2F%2Fexample.com` in window.location.href), while
+      // the function preserves the original verbatim (R15). decodeURIComponent
+      // normalizes both sides.
+      cy.location('href', { timeout: 15000 }).should((href: string) => {
+        expect(decodeURIComponent(href)).to.equal(decodeURIComponent(expectedUrl))
+      })
     })
   })
 
@@ -204,16 +211,23 @@ const negativeMatrix: NegativeRow[] = [
   { url: `${redirectBase}/app/extn/plugins/TP-Sampler/index.html`, origin: 'tp-sampler' }
 ]
 
-// Origin-identifying signals (QA-I1 marker map). The exact strings here are TBD on the
-// first conformance run -- update them once the operator has captured actual responses.
+// Origin-identifying signals (QA-I1 marker map). Markers chosen to work whether the
+// origin returns its expected content (prod) or a host-mismatch error (temp subdomain
+// pre-flip, where WP Engine doesn't recognize codap2to3.concord.org and V2 paths may
+// 404 with empty bodies). Server-header markers are reliable across both cases;
+// body markers are reserved for origins that always return identifiable content.
 const ORIGIN_SIGNALS: Record<ExpectedOrigin, Partial<NegativeRow>> = {
   marketing: {
-    headerMatches: { name: 'x-powered-by', pattern: /WP Engine/i }
+    // WP Engine fronts the marketing site with nginx; the server header is present
+    // even on host-mismatch 404s from the temp subdomain. `x-powered-by: WP Engine`
+    // only appears when WP recognizes the host (prod), not on temp.
+    headerMatches: { name: 'server', pattern: /nginx/i }
   },
   v2: {
-    // V2's codap server / SproutCore index includes the SproutCore loader; this
-    // distinctive marker pins V2 origin without depending on exact V2 build details.
-    bodyContains: 'SC.Page'
+    // V2 origin is Apache/2.4.65 (Debian); the Server header is present on every
+    // response (200/301/404/empty-body), so this marker is reliable regardless of
+    // whether the specific path has V2 content.
+    headerMatches: { name: 'server', pattern: /Apache/i }
   },
   'v3-s3': {
     // S3 website endpoints set a Server header containing "AmazonS3" on both 200 and 404
@@ -221,8 +235,10 @@ const ORIGIN_SIGNALS: Record<ExpectedOrigin, Partial<NegativeRow>> = {
     headerMatches: { name: 'server', pattern: /AmazonS3/i }
   },
   'tp-sampler': {
-    // TP-Sampler is served from S3 too -- but with its own distinctive index content.
-    bodyContains: 'TP-Sampler'
+    // TP-Sampler is served from S3 with its own minimal index containing the literal
+    // `<title>Sampler</title>` -- the only V2-shape page that doesn't carry V2's
+    // Apache marker (it's served from S3, not codap-server.concord.org).
+    bodyContains: '<title>Sampler</title>'
   }
 }
 

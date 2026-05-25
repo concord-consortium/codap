@@ -219,18 +219,17 @@ This step is **manual** (no script). In the Google Cloud Console, open the CODAP
 OAuth client and add `https://codap2to3.concord.org` to **Authorized JavaScript origins**.
 Tick the matching box in the RUNBOOK's "Pre-flip manual prerequisites".
 
-**Authorized redirect URIs do NOT need a new entry.** Three scenarios cover all of the
+**Authorized redirect URIs do NOT need a new entry.** Two scenarios cover all of the
 pre-flip Drive testing on the temp subdomain; only the JavaScript-origin path needs
 authorization:
 
-- **G6 Drive double-click test (R27 Path A)** -- the URL the tester clicks lives on
-  `codap2to3.concord.org`, but the function intercepts it with a synthetic redirect to
-  `codap.concord.org/app/`. The V3 SPA loads at the **prod** origin and runs the OAuth
-  popup from `codap.concord.org` (already authorized). The temp subdomain isn't involved
-  in OAuth at all.
-- **Tester loads V3 directly at `https://codap2to3.concord.org/app/`** -- V3 SPA loads at
-  the temp origin; GIS popup runs from `codap2to3.concord.org`. **This is the case that
-  requires the new Authorized JavaScript origin.**
+- **V3-on-temp (any path that lands at `https://codap2to3.concord.org/app/...`)** --
+  whether the tester arrives by the function's redirect (G6 Test A: V2-shape URL that
+  the function intercepts and redirects to the same origin's `/app/` per R21
+  host-preserving) or directly (G6 Test B: `https://codap2to3.concord.org/app/...`),
+  the V3 SPA loads at the **temp origin** and the GIS popup runs from
+  `codap2to3.concord.org`. **This is the case that requires the new Authorized
+  JavaScript origin.**
 - **V2 SproutCore via the temp subdomain** -- impossible. Every V2-shape URL on the temp
   subdomain is intercepted by the function and redirected away; V2's redirect-based OAuth
   flow never starts there. So no V2-style redirect URI mirror is needed.
@@ -248,12 +247,18 @@ origins (out of scope of this story).
 
 ## 12. Run the Cypress conformance suite (G1 + G2 gates)
 
-The conformance spec is excluded from the v3 default `specPattern`; run it on demand:
+The conformance spec is excluded from the v3 default `specPattern` AND `excludeSpecPattern`;
+both must be overridden on the command line. Also requires `npm start` to be running
+(some tests use a local harness page that iframes the temp subdomain):
 
 ```bash
 cd ../../../v3
 npm install
-npx cypress run --spec cypress/e2e/v2-v3-redirect.spec.ts \
+# In a separate terminal, leave this running:
+#   npm start    # webpack dev server at http://localhost:8080
+npx cypress run \
+  --spec cypress/e2e/v2-v3-redirect.spec.ts \
+  --config 'excludeSpecPattern=[]' \
   --env redirectBaseUrl=https://codap2to3.concord.org
 ```
 
@@ -264,11 +269,36 @@ G1/G2 evidence.
 
 ## 13. Drive double-click validation (G6 gate)
 
-Manual end-to-end check (R27 Path A): in a browser, click a sample Drive double-click
-URL pointing at the temp subdomain (`https://codap2to3.concord.org/app/static/dg/en/cert/index.html#file=googleDrive:<id>`).
-Confirm the redirect lands at `https://codap.concord.org/app/#file=googleDrive:<id>` and
-the document opens. Screenshot the URL bar after redirect + the loaded document for the
-G6 evidence row.
+Manual end-to-end check (R27 Path A). Per R21 the function uses a host-preserving
+relative `/app/` destination, so a V2-shape URL on `codap2to3.concord.org` redirects
+to V3 on `codap2to3.concord.org` (not bounced to prod), and the Drive OAuth flow runs
+against the JS origin authorized in Step 11.
+
+Do **both** of these to fully exercise the path:
+
+**Test A -- V2-shape URL exercises the function intercept + redirect**:
+1. Open `https://codap2to3.concord.org/app/static/dg/en/cert/index.html#file=googleDrive:<id>`.
+2. Confirm the URL bar redirects to `https://codap2to3.concord.org/app/#file=googleDrive:<id>`
+   (same temp origin, `/app/` canonical, hash preserved).
+3. Confirm the V3 SPA loads (page title "CODAP V3").
+4. Confirm Drive OAuth runs (popup) and the document opens.
+5. Screenshot URL bar after redirect + loaded document.
+
+This proves: the function fires on V2-shape URLs, the hash is preserved, the relative
+destination resolves to the temp origin, and V3 + Drive OAuth work end-to-end.
+
+**Test B -- V3-direct URL skips the function**:
+1. Open `https://codap2to3.concord.org/app/#file=googleDrive:<id>` (no V2-shape prefix,
+   so the function falls through; V3 SPA loads directly from the V3 S3 origin).
+2. Confirm the URL bar does not change (no redirect).
+3. Confirm the V3 SPA loads and the Drive OAuth + document open as in Test A.
+
+This proves: V3 itself works on the temp origin without involving the function at all.
+A failure of Test B with Test A passing would point at a function bug; a failure of
+both points at V3 or OAuth.
+
+Post-flip, both tests end up on `codap.concord.org/app/`. Both screenshots together
+form the G6 evidence row in RUNBOOK.
 
 ---
 
