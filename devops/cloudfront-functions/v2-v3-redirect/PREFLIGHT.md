@@ -5,7 +5,8 @@ distribution at the temp subdomain `codap2to3.concord.org` and verifies it is re
 flip day. Run every step here BEFORE following [`RUNBOOK.md`](RUNBOOK.md).
 
 - This document = **how to stand things up** (one-time setup, all running scripts).
-- [`RUNBOOK.md`](RUNBOOK.md) = **how to flip and roll back** (the day-of procedure).
+- [`RUNBOOK.md`](RUNBOOK.md) = **how to flip and roll back** (the day-of procedure),
+  including the freshness re-check checklist to run within ~48h of flip.
 
 If anything in this pipeline disagrees with a script's behavior, the script is
 authoritative -- pause and reconcile before proceeding.
@@ -163,12 +164,15 @@ flip day. Commit the completed record; it is the auditable R26c artifact.
 ```
 
 This creates the seven R26b checks (5 alarms + 2 canaries) and a soak dashboard. Both
-canaries are created targeting `$TEMP_SUBDOMAIN`; they are re-pointed to
-`codap.concord.org` as part of `RUNBOOK.md` (DO-F2).
+canaries are created targeting `$TEMP_SUBDOMAIN` so they monitor the redirect through
+the pre-flip testing soak; they are re-pointed to `codap.concord.org` as part of
+`RUNBOOK.md` (DO-F2).
 
 `SYNTHETICS_ROLE_ARN` and `SYNTHETICS_ARTIFACT_BUCKET` must be set in `config.env`
-for canary creation to be automated; if not set, create them in the AWS console using
-the handler files in [`canaries/`](canaries/) and the schedule `rate(1 minute)`.
+for canary creation to be automated; if not set, create the role + bucket first (see
+[`PLAYBOOK.md`](PLAYBOOK.md) for one CLI recipe) or create the canaries directly via
+the AWS Synthetics console using the handler files in [`canaries/`](canaries/) and
+the schedule `rate(1 minute)`.
 
 ---
 
@@ -249,6 +253,7 @@ G6 evidence row.
 
 ## Done
 
-All G1 - G6 evidence collected. Proceed to [`RUNBOOK.md`](RUNBOOK.md): fill in G7 / G8
-(sibling stories) and G9 (rollback authorities), get every G-row signed, then run
-`./flip.sh --confirm`.
+All G1 - G6 evidence collected. Proceed to [`RUNBOOK.md`](RUNBOOK.md): re-run the
+"Freshness re-checks (within 48h of flip)" subsection so the G1/G2/G6 evidence reflects
+the current v3 build and current prod state, fill in G7 / G8 (sibling stories) and G9
+(rollback authorities), get every G-row signed, then run `./flip.sh --confirm`.

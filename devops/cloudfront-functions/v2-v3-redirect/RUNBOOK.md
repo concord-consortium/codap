@@ -6,8 +6,10 @@ is the source of truth for **what must be true**.
 
 > **Run [`PREFLIGHT.md`](PREFLIGHT.md) first.** It walks through every script in the
 > correct order to stand up the cloned distribution at the temp subdomain, deploy
-> monitoring, and collect G1 – G6 evidence. This RUNBOOK assumes that pipeline is done
-> and only handles the flip itself + everything after.
+> monitoring (5 alarms + 2 canaries + dashboard), and collect G1 - G6 evidence. This
+> RUNBOOK assumes that pipeline is done and only handles the flip itself + everything
+> after -- but the "Freshness re-checks (within 48h of flip)" subsection below re-runs
+> the freshness-sensitive parts so the operator isn't trusting weeks-old signatures.
 
 Keep this document open during flip and rollback. If anything in this runbook disagrees
 with the script behavior, the script is authoritative -- pause and reconcile before
@@ -46,6 +48,30 @@ method used per check; this row reflects the actual run.
 | `4xxErrorRate` | 10x curl to known-404 paths against clone | _______________ |
 | `v3-reachability` canary | Re-pointed at an unreachable host briefly | _______________ |
 | `redirect-correctness` canary | Re-pointed at an unreachable host briefly | _______________ |
+
+---
+
+## Freshness re-checks (within 48h of flip)
+
+PREFLIGHT may have run weeks ago. Before signing the G-rows below, re-run the
+freshness-sensitive checks so the signatures reflect current reality:
+
+- [ ] **`./verify-clone.sh`** -- both parts PASS. Catches any drift on prod or the
+      clone since PREFLIGHT step 5.
+- [ ] **Cypress G1/G2** -- `npx cypress run --spec cypress/e2e/v2-v3-redirect.spec.ts
+      --env redirectBaseUrl=https://codap2to3.concord.org` from `v3/`. Every R28
+      positive and R29 negative row still passes against the current v3 build. This
+      run report supersedes the PREFLIGHT step 12 report as G1/G2 evidence.
+- [ ] **G6 Drive double-click** -- click a sample Drive double-click URL pointing at
+      the temp subdomain (`https://codap2to3.concord.org/app/static/dg/en/cert/index.html#file=googleDrive:<id>`);
+      confirm the redirect lands at `codap.concord.org/app/#file=googleDrive:<id>` and
+      the document opens. New screenshot supersedes the PREFLIGHT step 13 evidence.
+- [ ] **Canary health** -- both `codap-v2-v3-v3-reachability` and
+      `codap-v2-v3-redirect-correctness` canaries report `SuccessPercent` at or near
+      100 over the last hour (CloudWatch console -> Synthetics or the soak dashboard).
+- [ ] **`source ./config.env`** -- `CLONE_DIST_ID`, `CLONE_DIST_DOMAIN`, and
+      `TEMP_SUBDOMAIN` still match the clone in CloudFront and the A record in
+      Route 53 (sanity check).
 
 ---
 

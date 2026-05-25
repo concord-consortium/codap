@@ -161,7 +161,7 @@ else
       --artifact-s3-location "s3://$SYNTHETICS_ARTIFACT_BUCKET/codap-v2-v3-$canary/" \
       --execution-role-arn "$SYNTHETICS_ROLE_ARN" \
       --schedule "Expression=rate(1 minute)" \
-      --runtime-version "syn-nodejs-puppeteer-7.0" \
+      --runtime-version "syn-nodejs-puppeteer-15.1" \
       --run-config "EnvironmentVariables={CANARY_TARGET_HOST=$TEMP_SUBDOMAIN}" \
       --region "$REGION_US_E1" \
       2>/dev/null \
