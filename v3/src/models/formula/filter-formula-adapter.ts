@@ -99,6 +99,7 @@ export class FilterFormulaAdapter extends FormulaManagerAdapter {
 
     try {
       const compiledFormula = math.compile(formula.canonical)
+      formulaScope.setCompiledFormula(compiledFormula)
       return casesToRecalculate.map((c, idx) => {
         formulaScope.setCasePointer(idx)
         const formulaValue = compiledFormula.evaluate(formulaScope)
