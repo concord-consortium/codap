@@ -2,6 +2,7 @@ import {observer} from "mobx-react-lite"
 import { t } from "../../../../utilities/translation/translate"
 import { ITileModel } from "../../../../models/tiles/tile-model"
 import {isGraphContentModel} from "../../models/graph-content-model"
+import { changeBackgroundColorNotification } from "../../graph-notifications"
 import {InspectorPalette} from "../../../inspector-panel"
 import FormatIcon from "../../../../assets/icons/inspector-panel/format-icon.svg"
 import {DisplayItemFormatControl} from "../../../data-display/inspector/display-item-format-control"
@@ -32,6 +33,7 @@ export const PointFormatPalette = observer(function PointFormatPalette({id, tile
   const handleBackgroundColorChange = (color: string) => {
     graphModel.applyModelChange(() => graphModel.setPlotBackgroundColor(color),
     {
+      notify: () => changeBackgroundColorNotification(tile, color),
       undoStringKey: "DG.Undo.graph.changeBackgroundColor",
       redoStringKey: "DG.Redo.graph.changeBackgroundColor",
       log: "Changed background color"
