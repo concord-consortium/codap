@@ -12,7 +12,7 @@ import { useTileSelectionContext } from "../../hooks/use-tile-selection-context"
 import { mstReaction } from "../../utilities/mst-reaction"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { isTextModel, modelValueToEditorValue } from "./text-model"
-import { commitEditNotification } from "./text-notifications"
+import { commitEditNotification, editTextNotification } from "./text-notifications"
 import { TextTileInspectorContent } from "./text-tile-inspector-content"
 
 import "@concord-consortium/slate-editor/dist/index.css"
@@ -127,6 +127,16 @@ export const TextTile = observer(function TextTile({ tile }: ITileBaseProps) {
 
   function handleChange() {
     textModel?.incEditorChange()
+    // Fire an "edit text" notification on every content-changing edit (matching V2's
+    // `observes('theText')` behavior) so plugins listening for live edits can react immediately.
+    // Selection-only changes also trigger Slate's onChange, so we filter those out.
+    const isContentChange = editor.operations.some(op => op.type !== "set_selection")
+    if (isContentChange) {
+      const notification = editTextNotification(tile)
+      if (notification) {
+        textModel?.tileEnv?.notify?.(notification.message, () => null)
+      }
+    }
   }
 
   function handleBlur() {
