@@ -28,6 +28,8 @@ registerAdornmentContentInfo({
   plots: ["dotPlot"],
   prefix: kStandardDeviationPrefix,
   modelClass: StandardDeviationAdornmentModel,
+  // V2 op string (univariate_adornment_base_model.js togglePlottedStDev ~:397/321).
+  notificationOperation: "togglePlottedStDev",
   undoRedoKeys: {
     undoAdd: kStandardDeviationUndoAddKey,
     redoAdd: kStandardDeviationRedoAddKey,

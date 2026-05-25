@@ -2,8 +2,9 @@ import {
   add2ndAxisAttributeNotification, addAxisAttributeNotification, addMovableValueNotification,
   changeBackgroundColorNotification, dragBinBoundaryNotification, dragMovableLineNotification,
   dragMovablePointNotification, dragMovableValueNotification, removeMovableValueNotification,
-  repositionEquationNotification, swapCategoriesNotification, toggleBackgroundTransparencyNotification,
-  toggleMeasuresForSelectionNotification, toggleNumberToggleNotification
+  repositionEquationNotification, setNumStdErrsNotification, swapCategoriesNotification,
+  toggleBackgroundTransparencyNotification, toggleMeasuresForSelectionNotification,
+  toggleNumberToggleNotification, toggleShowICINotification, toggleShowOutliersNotification
 } from "./graph-notifications"
 
 const v2Id = 77001
@@ -186,6 +187,49 @@ describe("dragMovableLineNotification", () => {
   it("returns undefined for non-graph tiles", () => {
     const calcTile = { id: "CALC1", content: { type: "Calculator" } } as any
     expect(dragMovableLineNotification(calcTile)).toBeUndefined()
+  })
+})
+
+describe("setNumStdErrsNotification", () => {
+  it("emits 'setNumStdErrs' with the new value in `to`", () => {
+    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    const notification = setNumStdErrsNotification(tile, 2.5)
+    expect(notification?.message.values.operation).toBe("setNumStdErrs")
+    expect(notification?.message.values.to).toBe(2.5)
+    expect(notification?.message.values.type).toBe(v2SCType)
+  })
+
+  it("returns undefined for non-graph tiles", () => {
+    const calcTile = { id: "CALC1", content: { type: "Calculator" } } as any
+    expect(setNumStdErrsNotification(calcTile, 1)).toBeUndefined()
+  })
+})
+
+describe("toggleShowOutliersNotification", () => {
+  it("emits 'toggle show outliers' with isChecked", () => {
+    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    const notification = toggleShowOutliersNotification(tile, true)
+    expect(notification?.message.values.operation).toBe("toggle show outliers")
+    expect(notification?.message.values.isChecked).toBe(true)
+  })
+
+  it("returns undefined for non-graph tiles", () => {
+    const calcTile = { id: "CALC1", content: { type: "Calculator" } } as any
+    expect(toggleShowOutliersNotification(calcTile, true)).toBeUndefined()
+  })
+})
+
+describe("toggleShowICINotification", () => {
+  it("emits the V3-only `toggle show ICI` op (not V2's wrong-op `toggle show outliers`)", () => {
+    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    const notification = toggleShowICINotification(tile, true)
+    expect(notification?.message.values.operation).toBe("toggle show ICI")
+    expect(notification?.message.values.isChecked).toBe(true)
+  })
+
+  it("returns undefined for non-graph tiles", () => {
+    const calcTile = { id: "CALC1", content: { type: "Calculator" } } as any
+    expect(toggleShowICINotification(calcTile, true)).toBeUndefined()
   })
 })
 

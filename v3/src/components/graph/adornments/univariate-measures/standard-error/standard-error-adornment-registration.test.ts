@@ -17,4 +17,9 @@ describe("StandardErrorRegistration", () => {
     expect(standardErrorComponentInfo?.Component).toBeDefined()
     expect(standardErrorComponentInfo?.type).toBe(kStandardErrorType)
   })
+
+  it("registers notificationOperation for 'togglePlottedStErr'", () => {
+    const info = getAdornmentContentInfo(kStandardErrorType)
+    expect(info?.notificationOperation).toBe("togglePlottedStErr")
+  })
 })

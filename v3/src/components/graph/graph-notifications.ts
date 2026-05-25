@@ -111,6 +111,36 @@ export function removeMovableValueNotification(graphTile: ITileModel | undefined
   return updateTileNotification("remove movable value", {}, graphTile)
 }
 
+// V2 emits `setNumStdErrs` from apps/dg/components/graph/plots/univariate_adornment_base_model.js
+// (~:357) when the user changes the number of standard errors in the std-err adornment's number
+// input. V2's payload is bare (the new value lives only in the log). V3 carries the new value
+// in `to` so plugins can react without re-querying. No-ops for non-graph tiles.
+export function setNumStdErrsNotification(graphTile: ITileModel | undefined, to: number) {
+  if (graphTile?.content.type !== kGraphTileType) return
+  return updateTileNotification("setNumStdErrs", { to }, graphTile)
+}
+
+// V2 emits `toggle show outliers` from apps/dg/components/graph/plots/univariate_adornment_base_model.js
+// (~:462) when the user toggles the box-plot "Show Outliers" sub-option. V3 also carries
+// `{ isChecked }` matching the adornment-checkbox convention.
+// V2 ALSO emits `'toggle show outliers'` from `toggleShowICI` (~:511) — a wrong-op bug
+// (audit §3.5). V3 does NOT replicate that; the ICI toggle uses `toggleShowICINotification`.
+// No-ops for non-graph tiles.
+export function toggleShowOutliersNotification(graphTile: ITileModel | undefined, isChecked: boolean) {
+  if (graphTile?.content.type !== kGraphTileType) return
+  return updateTileNotification("toggle show outliers", { isChecked }, graphTile)
+}
+
+// V3-only op. V2 incorrectly emits `'toggle show outliers'` for the ICI sub-option toggle
+// (audit §3.5 bug at univariate_adornment_base_model.js:~511); V3 uses the clarifying op
+// `'toggle show ICI'` so plugins can distinguish outliers vs ICI events. ICI is a research/
+// developer-only feature gated by the `iciEnabled` document flag, so the V2-compat audience
+// is narrow. No-ops for non-graph tiles.
+export function toggleShowICINotification(graphTile: ITileModel | undefined, isChecked: boolean) {
+  if (graphTile?.content.type !== kGraphTileType) return
+  return updateTileNotification("toggle show ICI", { isChecked }, graphTile)
+}
+
 // V2 emits `drag bin boundary` from both apps/dg/components/graph/plots/binned_plot_view.js
 // (~:210) and histogram_view.js (~:261) via identical `markBinParamsChange` functions, fired on
 // drag-end after a user adjusts a histogram/binned-dot-plot bin boundary. V2's payload is bare

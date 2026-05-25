@@ -17,4 +17,9 @@ describe("NormalCurveRegistration", () => {
     expect(standardErrorComponentInfo?.Component).toBeDefined()
     expect(standardErrorComponentInfo?.type).toBe(kNormalCurveType)
   })
+
+  it("registers notificationOperation for 'togglePlottedNormal'", () => {
+    const info = getAdornmentContentInfo(kNormalCurveType)
+    expect(info?.notificationOperation).toBe("togglePlottedNormal")
+  })
 })

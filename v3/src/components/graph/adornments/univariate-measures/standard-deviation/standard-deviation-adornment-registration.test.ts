@@ -17,4 +17,9 @@ describe("StandardDeviationRegistration", () => {
     expect(standardDeviationComponentInfo?.Component).toBeDefined()
     expect(standardDeviationComponentInfo?.type).toBe(kStandardDeviationType)
   })
+
+  it("registers notificationOperation for 'togglePlottedStDev'", () => {
+    const info = getAdornmentContentInfo(kStandardDeviationType)
+    expect(info?.notificationOperation).toBe("togglePlottedStDev")
+  })
 })

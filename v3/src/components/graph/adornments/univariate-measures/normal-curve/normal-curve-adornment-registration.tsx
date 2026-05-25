@@ -31,6 +31,8 @@ registerAdornmentContentInfo({
   plots: ["dotPlot"],
   prefix: kNormalCurvePrefix,
   modelClass: NormalCurveAdornmentModel,
+  // V2 op string (univariate_adornment_base_model.js togglePlottedNormal ~:425/321).
+  notificationOperation: "togglePlottedNormal",
   undoRedoKeys: {
     undoAdd: kNormalCurveUndoAddKey,
     redoAdd: kNormalCurveRedoAddKey,

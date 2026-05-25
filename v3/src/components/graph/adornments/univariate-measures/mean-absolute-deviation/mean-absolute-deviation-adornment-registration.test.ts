@@ -17,4 +17,9 @@ describe("MeanAbsoluteDeviationRegistration", () => {
     expect(standardDeviationComponentInfo?.Component).toBeDefined()
     expect(standardDeviationComponentInfo?.type).toBe(kMeanAbsoluteDeviationType)
   })
+
+  it("registers notificationOperation for 'togglePlottedMad'", () => {
+    const info = getAdornmentContentInfo(kMeanAbsoluteDeviationType)
+    expect(info?.notificationOperation).toBe("togglePlottedMad")
+  })
 })
