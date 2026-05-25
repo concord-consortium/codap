@@ -1,4 +1,6 @@
-import { changeBackgroundColorNotification } from "./graph-notifications"
+import {
+  changeBackgroundColorNotification, toggleBackgroundTransparencyNotification
+} from "./graph-notifications"
 
 const v2Id = 77001
 // V2 component-resource notifications carry the SC class name (`DG.GraphView`) in
@@ -39,5 +41,28 @@ describe("changeBackgroundColorNotification", () => {
 
   it("returns undefined when the graph tile is missing", () => {
     expect(changeBackgroundColorNotification(undefined, "#ff8800")).toBeUndefined()
+  })
+})
+
+describe("toggleBackgroundTransparencyNotification", () => {
+  it("emits 'toggle background transparency' with the resulting state", () => {
+    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    const notification = toggleBackgroundTransparencyNotification(tile, true)
+    expect(notification?.message.action).toBe("notify")
+    expect(notification?.message.resource).toBe("component")
+    expect(notification?.message.values.operation).toBe("toggle background transparency")
+    expect(notification?.message.values.to).toBe(true)
+    expect(notification?.message.values.id).toBe(v2Id)
+    expect(notification?.message.values.type).toBe(v2SCType)
+    expect(notification?.message.values.diType).toBe(diType)
+  })
+
+  it("returns undefined for non-graph tiles", () => {
+    const calcTile = { id: "CALC1", content: { type: "Calculator" } } as any
+    expect(toggleBackgroundTransparencyNotification(calcTile, true)).toBeUndefined()
+  })
+
+  it("returns undefined when the graph tile is missing", () => {
+    expect(toggleBackgroundTransparencyNotification(undefined, false)).toBeUndefined()
   })
 })

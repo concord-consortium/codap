@@ -11,3 +11,12 @@ export function changeBackgroundColorNotification(graphTile: ITileModel | undefi
   if (graphTile?.content.type !== kGraphTileType) return
   return updateTileNotification("change background color", { to }, graphTile)
 }
+
+// V2 emits { action:'notify', resource:'component', values:{ operation:'toggle background transparency',
+// type:'DG.GraphView' } } from apps/dg/components/graph/graph_controller.js (transparency-checkbox
+// valueDidChange ~line 837). V3 additionally carries `to: <boolean>` for the resulting state.
+// No-ops for non-graph tiles so it's safe to call from generic notify callbacks.
+export function toggleBackgroundTransparencyNotification(graphTile: ITileModel | undefined, to: boolean) {
+  if (graphTile?.content.type !== kGraphTileType) return
+  return updateTileNotification("toggle background transparency", { to }, graphTile)
+}
