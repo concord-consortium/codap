@@ -1,6 +1,7 @@
 import { makeAutoObservable } from "mobx"
 import { measureText } from "../../../../hooks/use-measure-text"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
+import { INotify } from "../../../../models/history/history-service"
 import { missingColor } from "../../../../utilities/color-utils"
 import { axisGap, labelPaddingY } from "../../../axis/axis-types"
 import { getStringBounds } from "../../../axis/axis-utils"
@@ -181,7 +182,8 @@ export class CategoricalLegendModel {
   }
 
   onDragEnd(
-    dataConfiguration: IDataConfigurationModel | undefined, d: Key
+    dataConfiguration: IDataConfigurationModel | undefined, d: Key,
+    options?: { notify?: INotify }
   ) {
     const categories = dataConfiguration?.categoryArrayForAttrRole('legend') || []
     const dI = this.dragInfo
@@ -212,6 +214,7 @@ export class CategoricalLegendModel {
         categorySet?.move(dI.category, beforeCategory)
         dI.category = ""
       }, {
+        notify: options?.notify,
         undoStringKey: 'DG.Undo.graph.swapCategories',
         redoStringKey: 'DG.Redo.graph.swapCategories',
         log: logMessageWithReplacement(

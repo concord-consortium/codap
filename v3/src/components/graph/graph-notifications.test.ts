@@ -1,6 +1,6 @@
 import {
   add2ndAxisAttributeNotification, addAxisAttributeNotification,
-  changeBackgroundColorNotification, toggleBackgroundTransparencyNotification
+  changeBackgroundColorNotification, swapCategoriesNotification, toggleBackgroundTransparencyNotification
 } from "./graph-notifications"
 
 const v2Id = 77001
@@ -100,6 +100,35 @@ describe("add2ndAxisAttributeNotification", () => {
 
   it("returns undefined when the graph tile is missing", () => {
     expect(add2ndAxisAttributeNotification(undefined, sampleValues)).toBeUndefined()
+  })
+})
+
+describe("swapCategoriesNotification", () => {
+  it("emits 'swap categories' with the originating place (axis variant)", () => {
+    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    const notification = swapCategoriesNotification(tile, "bottom")
+    expect(notification?.message.action).toBe("notify")
+    expect(notification?.message.resource).toBe("component")
+    expect(notification?.message.values.operation).toBe("swap categories")
+    expect(notification?.message.values.place).toBe("bottom")
+    expect(notification?.message.values.type).toBe(v2SCType)
+    expect(notification?.message.values.diType).toBe(diType)
+  })
+
+  it("emits 'swap categories' with place='legend' for the legend variant", () => {
+    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    const notification = swapCategoriesNotification(tile, "legend")
+    expect(notification?.message.values.operation).toBe("swap categories")
+    expect(notification?.message.values.place).toBe("legend")
+  })
+
+  it("returns undefined for non-graph tiles (so the shared sub-axis hook and legend are safe for maps)", () => {
+    const mapTile = { id: "MAP1", content: { type: "Map" } } as any
+    expect(swapCategoriesNotification(mapTile, "legend")).toBeUndefined()
+  })
+
+  it("returns undefined when the tile is missing", () => {
+    expect(swapCategoriesNotification(undefined, "left")).toBeUndefined()
   })
 })
 
