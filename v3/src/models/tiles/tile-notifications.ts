@@ -1,5 +1,5 @@
 import {
-  kComponentTypeV3ToV2Map, kComponentTypeV3ToV2SCNameMap
+  kComponentTypeV3ToV2Map, kV2DITypeToLifecycleNameMap, kV2DITypeToSCNameMap
 } from "../../data-interactive/data-interactive-component-types"
 import { notification } from "../../data-interactive/notification-utils"
 import { toV2Id } from "../../utilities/codap-utils"
@@ -9,13 +9,13 @@ import { ITileModel } from "./tile-model"
 // For V2-plugin compatibility, V2 emits the `type` field with one of two conventions
 // depending on the operation:
 //   - LIFECYCLE ops (create, delete, hide, show) — emitted via V2's
-//     DG.UndoHistory.makeComponentNotification(op, type) helper — use the lowercase
-//     DI-convention name (e.g. 'calculator', 'graph', 'table').
+//     `DG.UndoHistory.makeComponentNotification(op, type)` helper — carry the lowercase
+//     DI-convention name in MOST cases, but V2 sometimes uses a different lowercase name
+//     for the lifecycle path (see kV2DITypeToLifecycleNameMap).
 //   - OPERATIONAL ops (titleChange, calculate, edit formula, attributeChange, change
 //     column width, resize column, etc.) — emitted via inline `executeNotification`
-//     blocks — use the SC class name (e.g. 'DG.Calculator', 'DG.GraphView',
-//     'DG.CaseTable').
-// V3 mirrors this per-op convention so V2 plugins filtering on either form match. The
+//     blocks — carry the SC class name (e.g. 'DG.Calculator', 'DG.GraphView').
+// V3 mirrors V2's per-op convention so V2 plugins filtering on either form match. The
 // additive `diType` field always carries the DI name regardless, so V3-aware plugins
 // don't need to know V2's two conventions.
 const kLifecycleOps = new Set(["create", "delete", "hide", "show"])
@@ -25,9 +25,17 @@ export const tileNotification = (
 ) => {
   const isTitleChange = operation === "titleChange"
   const resource = isTitleChange ? `component[${toV2Id(tile.id)}]` : "component"
-  const v2SCType = kComponentTypeV3ToV2SCNameMap[tile.content.type]
-  const diType = kComponentTypeV3ToV2Map[tile.content.type]
-  const v2Type = kLifecycleOps.has(operation) ? diType : v2SCType
+  // Source of truth for the DI type is `getV2Type(content)` when available — matches the
+  // pattern used by component-handler / component-list-handler / data-display-handler for
+  // API responses, so notifications and API responses stay consistent (e.g. a WebView
+  // plugin tile resolves to `'game'` in both places).
+  const diType = getTileContentInfo(tile.content.type)?.getV2Type?.(tile.content)
+    ?? kComponentTypeV3ToV2Map[tile.content.type]
+  const v2SCType = kV2DITypeToSCNameMap[diType]
+  // V2 sometimes uses a different lifecycle-notification `type` than its DI-API type
+  // (case-table → 'table'; calculator → 'calcView'). Default to the DI name.
+  const v2LifecycleType = kV2DITypeToLifecycleNameMap[diType] ?? diType
+  const v2Type = kLifecycleOps.has(operation) ? v2LifecycleType : v2SCType
 
   values.operation = operation
   values.id = toV2Id(tile.id)
