@@ -51,10 +51,11 @@ aws route53 list-resource-record-sets --hosted-zone-id "$HOSTED_ZONE_ID" --outpu
   echo "## CAA records at concord.org (apex)"
   echo
   echo '```text'
-  dig CAA concord.org +short || echo "(dig failed or returned empty)"
+  dig CAA concord.org +short | grep . \
+    || echo "(no CAA records on apex -- any authorized CA may issue, no ACM-blocking risk)"
   echo '```'
   echo
-  echo "Any CAA value that does not authorize Amazon (`amazon.com`, `amazontrust.com`)"
+  echo 'Any CAA value that does not authorize Amazon (`amazon.com`, `amazontrust.com`)'
   echo "would block ACM renewal of the wildcard certificate covering the temp subdomain."
   echo
   echo "## DNSSEC status"
