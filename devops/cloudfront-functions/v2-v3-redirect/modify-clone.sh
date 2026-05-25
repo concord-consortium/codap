@@ -142,7 +142,28 @@ jq --arg fnArn "$FUNCTION_ARN" \
          new_behavior("/v3";                       $v3Origin; true),
          new_behavior("/v3/*";                     $v3Origin; true)
        ] + .CacheBehaviors.Items
+   # Idempotency: on a re-run, the prepended new behaviors already exist further down
+   # in the array from the previous run. Dedup by PathPattern, keep first occurrence
+   # so the freshly-prepended copy wins and precedence is preserved (head = highest).
+   | .CacheBehaviors.Items |= (
+       reduce .[] as $b ([];
+         if any(.[]; .PathPattern == $b.PathPattern) then . else . + [$b] end
+       )
+     )
    | .CacheBehaviors.Quantity = (.CacheBehaviors.Items | length)
+
+   # On every V3-pointing behavior, drop the legacy "forward all headers" setting
+   # (Headers.Items=["*"]) inherited from the /app/* template. The V3 origin is an
+   # S3-website endpoint, which uses the request Host header for bucket resolution --
+   # forwarding the viewer Host (codap2to3.concord.org / codap.concord.org) would make
+   # S3 look for a bucket of that name and return NoSuchBucket. CloudFront uses the
+   # origin DomainName as Host when no Host is forwarded, which is what S3-website wants.
+   # V2-pointing carve-outs keep their forwarded headers (custom V2 origin accepts Host).
+   | .CacheBehaviors.Items |= map(
+       if .TargetOriginId == $v3Origin and (.ForwardedValues // null) != null then
+         .ForwardedValues.Headers = {Quantity: 0, Items: []}
+       else . end
+     )
    ' artifacts/clone-config-current.json > artifacts/clone-config-modified.json
 
 echo "Modified config written to artifacts/clone-config-modified.json"

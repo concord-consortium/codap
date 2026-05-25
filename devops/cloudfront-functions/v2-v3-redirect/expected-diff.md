@@ -38,6 +38,20 @@ prose around it is for the human reviewer who signs G-criteria.
 + .CacheBehaviors.Items[?(@.PathPattern=='/app')].FunctionAssociations.Items
 + .CacheBehaviors.Items[?(@.PathPattern=='/app/*')].FunctionAssociations.Items
 + .CacheBehaviors.Items[?(@.PathPattern=='/releases/*')].FunctionAssociations.Items
+
+# ForwardedValues.Headers cleared on V3-pointing behaviors. Prod /app, /app/*,
+# /releases/* forward Host (Items=["*"]) to the V2 custom origin; on the clone those
+# behaviors point at S3-website, which uses the request Host for bucket resolution --
+# so the clone clears Headers (Quantity 1->0, Items ["*"]->absent) and CloudFront
+# falls back to the origin DomainName as Host. See modify-clone.sh. The `~` entries
+# cover the Quantity change via prefix; the `-` entries cover the Items removal
+# (CloudFront strips Items entirely from the response when Quantity=0).
+~ .CacheBehaviors.Items[?(@.PathPattern=='/app')].ForwardedValues.Headers
+~ .CacheBehaviors.Items[?(@.PathPattern=='/app/*')].ForwardedValues.Headers
+~ .CacheBehaviors.Items[?(@.PathPattern=='/releases/*')].ForwardedValues.Headers
+- .CacheBehaviors.Items[?(@.PathPattern=='/app')].ForwardedValues.Headers.Items
+- .CacheBehaviors.Items[?(@.PathPattern=='/app/*')].ForwardedValues.Headers.Items
+- .CacheBehaviors.Items[?(@.PathPattern=='/releases/*')].ForwardedValues.Headers.Items
 ~ .CacheBehaviors.Items[?(@.PathPattern=='/app')].ResponseHeadersPolicyId
 ~ .CacheBehaviors.Items[?(@.PathPattern=='/app/*')].ResponseHeadersPolicyId
 ~ .CacheBehaviors.Items[?(@.PathPattern=='/releases/*')].ResponseHeadersPolicyId
