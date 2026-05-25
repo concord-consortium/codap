@@ -33,7 +33,7 @@ fi
 aws route53 list-resource-record-sets --hosted-zone-id "$HOSTED_ZONE_ID" --output json \
   | jq -r '
       .ResourceRecordSets[]
-      | select(.Name | endswith(".codap.concord.org.") or . == "codap.concord.org.")
+      | select((.Name | endswith(".codap.concord.org.")) or .Name == "codap.concord.org.")
       | {
           name: (.Name | sub("\\.$"; "")),
           type: .Type,
