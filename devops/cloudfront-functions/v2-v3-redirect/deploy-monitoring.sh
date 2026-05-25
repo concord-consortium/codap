@@ -29,16 +29,45 @@ fi
 
 # ---------------------------------------------------------------------------
 # 1) FunctionExecutionErrors alarm
+#
+# CloudFront publishes FunctionExecutionErrors only when value > 0 (no zero-fills).
+# A plain `--namespace ... --metric-name ... --statistic Sum --treat-missing-data
+# notBreaching` alarm on a sparse counter latches in ALARM after firing because there
+# is no fresh datapoint that satisfies "<= 0" to clear it -- a documented AWS quirk.
+# Use metric math with `FILL(m1, 0)` so missing periods become 0 and the alarm
+# auto-recovers after errors stop.
 # ---------------------------------------------------------------------------
 echo "1) FunctionExecutionErrors alarm"
+FN_EXEC_ERRORS_METRICS=$(cat <<JSON
+[
+  {
+    "Id": "m1",
+    "MetricStat": {
+      "Metric": {
+        "Namespace": "AWS/CloudFront",
+        "MetricName": "FunctionExecutionErrors",
+        "Dimensions": [
+          {"Name": "FunctionName", "Value": "$FUNCTION_NAME"},
+          {"Name": "Region", "Value": "Global"}
+        ]
+      },
+      "Period": 60,
+      "Stat": "Sum"
+    },
+    "ReturnData": false
+  },
+  {
+    "Id": "filled",
+    "Expression": "FILL(m1, 0)",
+    "ReturnData": true
+  }
+]
+JSON
+)
 aws cloudwatch put-metric-alarm \
   --alarm-name "codap-v2-v3-redirect-FunctionExecutionErrors" \
   --alarm-description "high-severity: redirect function uncaught exceptions" \
-  --namespace "AWS/CloudFront" \
-  --metric-name "FunctionExecutionErrors" \
-  --dimensions "Name=FunctionName,Value=$FUNCTION_NAME" "Name=Region,Value=Global" \
-  --statistic Sum \
-  --period 60 \
+  --metrics "$FN_EXEC_ERRORS_METRICS" \
   --evaluation-periods 1 \
   --threshold 0 \
   --comparison-operator GreaterThanThreshold \
@@ -65,13 +94,32 @@ aws logs put-metric-filter \
     "metricName=ErrorFallthroughCount,metricNamespace=$METRIC_NAMESPACE,metricValue=1,defaultValue=0" \
   --region "$REGION_US_E1"
 
+ERROR_FALLTHROUGH_METRICS=$(cat <<JSON
+[
+  {
+    "Id": "m1",
+    "MetricStat": {
+      "Metric": {
+        "Namespace": "$METRIC_NAMESPACE",
+        "MetricName": "ErrorFallthroughCount"
+      },
+      "Period": 60,
+      "Stat": "Sum"
+    },
+    "ReturnData": false
+  },
+  {
+    "Id": "filled",
+    "Expression": "FILL(m1, 0)",
+    "ReturnData": true
+  }
+]
+JSON
+)
 aws cloudwatch put-metric-alarm \
   --alarm-name "codap-v2-v3-redirect-error-fallthrough" \
   --alarm-description "high-severity: redirect function caught-exception fallthrough (R18b)" \
-  --namespace "$METRIC_NAMESPACE" \
-  --metric-name "ErrorFallthroughCount" \
-  --statistic Sum \
-  --period 60 \
+  --metrics "$ERROR_FALLTHROUGH_METRICS" \
   --evaluation-periods 1 \
   --threshold 0 \
   --comparison-operator GreaterThanThreshold \
@@ -82,14 +130,36 @@ aws cloudwatch put-metric-alarm \
 # 3) FunctionThrottles alarm
 # ---------------------------------------------------------------------------
 echo "3) FunctionThrottles alarm"
+FN_THROTTLES_METRICS=$(cat <<JSON
+[
+  {
+    "Id": "m1",
+    "MetricStat": {
+      "Metric": {
+        "Namespace": "AWS/CloudFront",
+        "MetricName": "FunctionThrottles",
+        "Dimensions": [
+          {"Name": "FunctionName", "Value": "$FUNCTION_NAME"},
+          {"Name": "Region", "Value": "Global"}
+        ]
+      },
+      "Period": 60,
+      "Stat": "Sum"
+    },
+    "ReturnData": false
+  },
+  {
+    "Id": "filled",
+    "Expression": "FILL(m1, 0)",
+    "ReturnData": true
+  }
+]
+JSON
+)
 aws cloudwatch put-metric-alarm \
   --alarm-name "codap-v2-v3-redirect-FunctionThrottles" \
   --alarm-description "high-severity: redirect function throttled" \
-  --namespace "AWS/CloudFront" \
-  --metric-name "FunctionThrottles" \
-  --dimensions "Name=FunctionName,Value=$FUNCTION_NAME" "Name=Region,Value=Global" \
-  --statistic Sum \
-  --period 60 \
+  --metrics "$FN_THROTTLES_METRICS" \
   --evaluation-periods 1 \
   --threshold 0 \
   --comparison-operator GreaterThanThreshold \
