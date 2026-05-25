@@ -139,19 +139,28 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
   function handleTileButtonClick(tileType: string) {
     const tileInfo = getTileComponentInfo(tileType)
     const isSingleton = !!getTileContentInfo(tileType)?.isSingleton
+    const diType = kComponentTypeV3ToV2Map[tileType]
+    // Only take the V2-compat singleton path when the tile is both a singleton AND has
+    // a V2 type mapping. Singletons without a V2 mapping (e.g. test-only tile types or
+    // future tile types not yet registered with V2) fall back to the generic
+    // create-notification path so we don't generate broken
+    // `DG.Undo.toggleComponent.{add,delete}.<V3-name>` translation keys or emit
+    // notifications with undefined `type`/`diType`.
+    const useSingletonV2Path = isSingleton && !!diType
+
     let undoStringKey = tileInfo?.shelf?.undoStringKey ?? ""
     let redoStringKey = tileInfo?.shelf?.redoStringKey ?? ""
     let log: ReturnType<typeof logMessageWithReplacement> | string =
       logMessageWithReplacement("Create component: %@", {tileType}, "component")
 
-    // For singletons, V2 emits `hide`/`show` rather than `create` (the op reflects the
-    // resulting visible state, not whether the tile was newly created). Compute the
-    // resulting state ahead of time so we can pick V2's matching add/delete undo strings
-    // and log message — `DG.{Undo,Redo}.toggleComponent.{add,delete}.{lifecycleName}` per
-    // document_controller.js:1644-1666. lifecycleName comes from the V2 lifecycle-name
-    // override (calculator → 'calcView') with DI-name fallback.
+    // For singletons with a V2 mapping, V2 emits `hide`/`show` rather than `create` (the
+    // op reflects the resulting visible state). Compute the resulting state ahead of time
+    // so we can pick V2's matching add/delete undo strings — `DG.{Undo,Redo}.
+    // toggleComponent.{add,delete}.{lifecycleName}` per document_controller.js:1644-1666.
+    // lifecycleName comes from the V2 lifecycle-name override (calculator → 'calcView')
+    // with DI-name fallback.
     let resultingShowHide: "show" | "hide" | undefined
-    if (isSingleton) {
+    if (useSingletonV2Path) {
       const existingTiles = document?.content?.getTilesOfType(tileType) ?? []
       if (existingTiles.length > 0) {
         const existingLayout = document?.content?.getTileLayoutById(existingTiles[0].id)
@@ -159,8 +168,8 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
       } else {
         resultingShowHide = "show"
       }
-      const diType = kComponentTypeV3ToV2Map[tileType]
-      const lifecycleName = (diType && kV2DITypeToLifecycleNameMap[diType]) ?? diType ?? tileType
+      // diType is guaranteed truthy here (gated by useSingletonV2Path).
+      const lifecycleName = kV2DITypeToLifecycleNameMap[diType!] ?? diType!
       const action = resultingShowHide === "hide" ? "delete" : "add"
       undoStringKey = `DG.Undo.toggleComponent.${action}.${lifecycleName}`
       redoStringKey = `DG.Redo.toggleComponent.${action}.${lifecycleName}`
@@ -174,7 +183,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
       tile = document?.content?.createOrShowTile?.(tileType, { animateCreation: true })
       if (tile) tileInfo?.shelf?.afterCreate?.(tile.content)
     }, {
-      notify: () => isSingleton
+      notify: () => useSingletonV2Path
         ? componentShowHideNotification(tile, resultingShowHide ?? "show")
         : createTileNotification(tile),
       undoStringKey,
