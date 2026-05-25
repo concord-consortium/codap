@@ -16,4 +16,9 @@ describe("Movable line registration", () => {
     expect(movableLineComponentInfo?.Component).toBeDefined()
     expect(movableLineComponentInfo?.type).toBe(kMovableLineType)
   })
+
+  it("registers notificationOperation for 'toggle movable line'", () => {
+    const movableLineContentInfo = getAdornmentContentInfo(kMovableLineType)
+    expect(movableLineContentInfo?.notificationOperation).toBe("toggle movable line")
+  })
 })

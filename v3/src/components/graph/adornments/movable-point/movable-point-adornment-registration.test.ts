@@ -16,4 +16,9 @@ describe("Movable point registration", () => {
     expect(movablePointComponentInfo?.Component).toBeDefined()
     expect(movablePointComponentInfo?.type).toBe(kMovablePointType)
   })
+
+  it("registers notificationOperation for 'toggle movable point'", () => {
+    const movablePointContentInfo = getAdornmentContentInfo(kMovablePointType)
+    expect(movablePointContentInfo?.notificationOperation).toBe("toggle movable point")
+  })
 })

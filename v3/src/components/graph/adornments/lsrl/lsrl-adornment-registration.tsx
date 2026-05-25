@@ -1,6 +1,8 @@
 import { observer } from "mobx-react-lite"
 import { registerAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
+import { useTileModelContext } from "../../../../hooks/use-tile-model-context"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
+import { updateTileNotification } from "../../../../models/tiles/tile-notifications"
 import { t } from "../../../../utilities/translation/translate"
 import { PaletteCheckbox } from "../../../palette-checkbox"
 import { If } from "../../../common/if"
@@ -21,6 +23,7 @@ function logLSRLToggle(action: "hide" | "show") {
 
 const Controls = observer(function Controls() {
   const graphModel = useGraphContentModelContext()
+  const { tile } = useTileModelContext()
   const adornmentsStore = graphModel.adornmentsStore
   const existingAdornment = adornmentsStore.findAdornmentOfType<ILSRLAdornmentModel>(kLSRLType)
   const interceptLocked = adornmentsStore?.interceptLocked
@@ -36,10 +39,16 @@ const Controls = observer(function Controls() {
       redoRemove: componentContentInfo.undoRedoKeys?.redoRemove
     }
 
+    // V2 emits `toggle LSRL` from apps/dg/components/graph/plots/scatter_plot_model.js
+    // (toggleLSRLLine ~:336). Match the adornment-checkbox convention with `{ isChecked }`.
+    const notify = tile
+      ? () => updateTileNotification("toggle LSRL", { isChecked: checked }, tile)
+      : undefined
+
     if (checked) {
       graphModel.applyModelChange(
-        () => adornmentsStore.addAdornment(adornment, graphModel.getUpdateCategoriesOptions()),
-        {
+        () => adornmentsStore.addAdornment(adornment, graphModel.getUpdateCategoriesOptions()), {
+          notify,
           undoStringKey: undoRedoKeys.undoAdd || "",
           redoStringKey: undoRedoKeys.redoAdd || "",
           log: logLSRLToggle("show")
@@ -47,8 +56,8 @@ const Controls = observer(function Controls() {
       )
     } else {
       graphModel.applyModelChange(
-        () => adornmentsStore.hideAdornment(adornment.type),
-        {
+        () => adornmentsStore.hideAdornment(adornment.type), {
+          notify,
           undoStringKey: undoRedoKeys.undoRemove || "",
           redoStringKey: undoRedoKeys.redoRemove || "",
           log: logLSRLToggle("hide")
