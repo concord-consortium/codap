@@ -32,3 +32,16 @@ export function resizeColumnsNotification(tile?: ITileModel) {
   if (tile?.content.type !== kCaseTableTileType) return
   return updateTileNotification("resize columns", {}, tile)
 }
+
+// V2 emits `expand/collapse all` (with the literal `/` in the op name) from
+// apps/dg/components/case_table/case_table_view.js (~:2172) on the table-spacer
+// expand-all-or-collapse-all button. A single op covers both directions, and V2's
+// payload carries no expand/collapse discriminator. V3 adds an additive `to` field —
+// the resulting state ("expanded" or "collapsed") — following the discriminator pattern
+// established in PR #2592 (e.g. background image `to: "added"|"removed"`). V2 plugins
+// ignore the extra field; V3-aware plugins can branch on it without inferring state.
+// Payload: { operation:'expand/collapse all', type:'DG.CaseTable', to:'expanded'|'collapsed' }.
+export function expandCollapseAllNotification(tile?: ITileModel, to?: "expanded" | "collapsed") {
+  if (tile?.content.type !== kCaseTableTileType) return
+  return updateTileNotification("expand/collapse all", to ? { to } : {}, tile)
+}

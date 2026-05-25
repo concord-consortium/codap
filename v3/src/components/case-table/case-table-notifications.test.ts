@@ -1,5 +1,5 @@
 import {
-  openCaseTableNotification, resizeColumnNotification, resizeColumnsNotification
+  expandCollapseAllNotification, openCaseTableNotification, resizeColumnNotification, resizeColumnsNotification
 } from "./case-table-notifications"
 
 const v2Id = 77501
@@ -84,5 +84,41 @@ describe("resizeColumnsNotification", () => {
 
   it("returns undefined when no tile is provided", () => {
     expect(resizeColumnsNotification(undefined)).toBeUndefined()
+  })
+})
+
+describe("expandCollapseAllNotification", () => {
+  it("emits an 'expand/collapse all' notification with `to: expanded` for case-table tiles", () => {
+    const tile = { id: "TABLE1", content: { type: "CaseTable" } } as any
+    const notification = expandCollapseAllNotification(tile, "expanded")
+    expect(notification?.message.action).toBe("notify")
+    expect(notification?.message.resource).toBe("component")
+    expect(notification?.message.values.operation).toBe("expand/collapse all")
+    expect(notification?.message.values.to).toBe("expanded")
+    expect(notification?.message.values.id).toBe(v2Id)
+    expect(notification?.message.values.type).toBe(v2SCType)
+    expect(notification?.message.values.diType).toBe(diType)
+  })
+
+  it("emits `to: collapsed` for the collapse direction", () => {
+    const tile = { id: "TABLE1", content: { type: "CaseTable" } } as any
+    const notification = expandCollapseAllNotification(tile, "collapsed")
+    expect(notification?.message.values.to).toBe("collapsed")
+  })
+
+  it("omits `to` when no direction is provided", () => {
+    const tile = { id: "TABLE1", content: { type: "CaseTable" } } as any
+    const notification = expandCollapseAllNotification(tile)
+    expect(notification?.message.values.operation).toBe("expand/collapse all")
+    expect(notification?.message.values.to).toBeUndefined()
+  })
+
+  it("returns undefined for non-case-table tiles (e.g. case card)", () => {
+    const cardTile = { id: "CARD1", content: { type: "CaseCard" } } as any
+    expect(expandCollapseAllNotification(cardTile, "expanded")).toBeUndefined()
+  })
+
+  it("returns undefined when no tile is provided", () => {
+    expect(expandCollapseAllNotification(undefined, "expanded")).toBeUndefined()
   })
 })
