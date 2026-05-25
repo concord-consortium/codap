@@ -45,3 +45,15 @@ export function expandCollapseAllNotification(tile?: ITileModel, to?: "expanded"
   if (tile?.content.type !== kCaseTableTileType) return
   return updateTileNotification("expand/collapse all", to ? { to } : {}, tile)
 }
+
+// V2 emits `join` on the component resource from apps/dg/utilities/data_context_utilities.js
+// (~:924) when a user joins attributes from another dataset into a destination case table
+// (drag-drop on an attribute header). V2's payload has a documented bug: `type: DG.CaseTable`
+// is the SC class OBJECT, not the string — what plugins actually receive is malformed (audit
+// §3.5). V3 emits the well-formed string via `updateTileNotification`, which the lifecycle/
+// operational logic in `tileNotification` routes as an operational op (so `type` becomes
+// `'DG.CaseTable'`). No-ops for non-case-table tiles.
+export function joinNotification(destCaseTableTile?: ITileModel) {
+  if (destCaseTableTile?.content.type !== kCaseTableTileType) return
+  return updateTileNotification("join", {}, destCaseTableTile)
+}

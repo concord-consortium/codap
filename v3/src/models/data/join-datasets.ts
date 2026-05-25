@@ -1,3 +1,5 @@
+import { joinNotification } from "../../components/case-table/case-table-notifications"
+import { ITileModel } from "../tiles/tile-model"
 import { IAttribute } from "./attribute"
 import { ICollectionModel } from "./collection"
 import { IDataSet } from "./data-set"
@@ -16,6 +18,12 @@ export interface IJoinSourceToDestCollectionParams {
   destCollection: ICollectionModel
   /** The attribute ID in the destination that serves as the join key */
   destKeyAttributeId: string
+  /**
+   * The destination case-table tile this join was initiated from, if any. When provided,
+   * a `join` notification is emitted on its component resource for V2-plugin compatibility
+   * (CODAP-1353). No-ops for non-case-table tiles.
+   */
+  destTile?: ITileModel
 }
 
 /**
@@ -37,7 +45,8 @@ export function joinSourceToDestCollection(params: IJoinSourceToDestCollectionPa
     sourceKeyAttributeId,
     destDataSet,
     destCollection,
-    destKeyAttributeId
+    destKeyAttributeId,
+    destTile
   } = params
 
   // Get the source collection containing the key attribute
@@ -106,9 +115,12 @@ export function joinSourceToDestCollection(params: IJoinSourceToDestCollectionPa
     {
       undoStringKey: t("DG.Undo.DataContext.join", { vars: [sourceDataSetName, destDataSetName] }),
       redoStringKey: t("DG.Redo.DataContext.join", { vars: [sourceDataSetName, destDataSetName] }),
-      notify: () => [
-        createAttributesNotification(createdAttributes, destDataSet),
-        dependentCasesNotification(destDataSet)
+      notify: [
+        // `joinNotification` no-ops for non-case-table tiles, so it's safe to include
+        // here even when the join was initiated outside a case-table context.
+        () => createAttributesNotification(createdAttributes, destDataSet),
+        () => dependentCasesNotification(destDataSet),
+        () => joinNotification(destTile)
       ],
       log: `Joined ${sourceCollection.name} to ${destCollection.name}`
     }

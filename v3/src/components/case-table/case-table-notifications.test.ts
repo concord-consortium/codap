@@ -1,5 +1,6 @@
 import {
-  expandCollapseAllNotification, openCaseTableNotification, resizeColumnNotification, resizeColumnsNotification
+  expandCollapseAllNotification, joinNotification, openCaseTableNotification, resizeColumnNotification,
+  resizeColumnsNotification
 } from "./case-table-notifications"
 
 const v2Id = 77501
@@ -120,5 +121,27 @@ describe("expandCollapseAllNotification", () => {
 
   it("returns undefined when no tile is provided", () => {
     expect(expandCollapseAllNotification(undefined, "expanded")).toBeUndefined()
+  })
+})
+
+describe("joinNotification", () => {
+  it("emits a 'join' notification on the destination case-table tile", () => {
+    const destTile = { id: "TABLE1", content: { type: "CaseTable" } } as any
+    const notification = joinNotification(destTile)
+    expect(notification?.message.action).toBe("notify")
+    expect(notification?.message.resource).toBe("component")
+    expect(notification?.message.values.operation).toBe("join")
+    expect(notification?.message.values.id).toBe(v2Id)
+    expect(notification?.message.values.type).toBe(v2SCType)
+    expect(notification?.message.values.diType).toBe(diType)
+  })
+
+  it("returns undefined for non-case-table tiles (e.g. case card)", () => {
+    const cardTile = { id: "CARD1", content: { type: "CaseCard" } } as any
+    expect(joinNotification(cardTile)).toBeUndefined()
+  })
+
+  it("returns undefined when no tile is provided", () => {
+    expect(joinNotification(undefined)).toBeUndefined()
   })
 })
