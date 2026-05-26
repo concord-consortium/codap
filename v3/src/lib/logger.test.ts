@@ -7,6 +7,7 @@ describe("isProductionLogHost", () => {
     expect(isProductionLogHost("codap.concord.org", "/")).toBe(true)
     expect(isProductionLogHost("codap.concord.org", "")).toBe(true)
     expect(isProductionLogHost("codap.concord.org", "/some/spa/route")).toBe(true)
+    expect(isProductionLogHost("codap2to3.concord.org", "/")).toBe(true)
     expect(isProductionLogHost("codap3.concord.org", "/")).toBe(true)
     expect(isProductionLogHost("CODAP.CONCORD.ORG", "/")).toBe(true)
   })
@@ -14,6 +15,7 @@ describe("isProductionLogHost", () => {
   it("excludes beta, staging, and branch deploy paths", () => {
     expect(isProductionLogHost("codap.concord.org", "/beta/")).toBe(false)
     expect(isProductionLogHost("codap.concord.org", "/beta/index.html")).toBe(false)
+    expect(isProductionLogHost("codap2to3.concord.org", "/beta/")).toBe(false)
     expect(isProductionLogHost("codap3.concord.org", "/staging/")).toBe(false)
     expect(isProductionLogHost("codap3.concord.org", "/branch/main/")).toBe(false)
     expect(isProductionLogHost("codap3.concord.org", "/branch/feature-x/index.html")).toBe(false)
