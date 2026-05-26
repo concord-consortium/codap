@@ -1,5 +1,29 @@
 # Changelog
 
+## Version 3.0.0-rc.2912 - May 26, 2026
+
+### ✨ Features & Improvements:
+- **CODAP-1310:** Improved V2 plugin event compatibility (notifications and log events)
+- **CODAP-1326:** Production release configuration: log destination, default extension, auto-save behavior
+- **CODAP-1338:** Plugins can use Bluetooth, fullscreen, clipboard, and other browser features
+- **CODAP-1351:** Improved V2 plugin event compatibility (graph adornments and plot actions)
+- **CODAP-1352:** Improved V2 plugin event compatibility (map actions)
+- **CODAP-1353:** Improved V2 plugin event compatibility (case table, case card, slider, etc.)
+
+### 🐞 Bug Fixes:
+- **CODAP-1277:** Fix undo of case table cell edit
+- **CODAP-1299:** Clicking white space on the right side of the case table now deselects cases
+- **CODAP-1348:** Story Builder moments now restore formula-computed attribute values correctly
+- **CODAP-1357:** Cross-attribute formulas using `prev()` no longer trigger a circular-reference error
+- **CODAP-1358:** Formulas using `next(self)` for reverse-cumulative calculations now work
+- **CODAP-1360:** Editing a text component now dirties the enclosing Story Builder moment
+
+### Asset Sizes
+|      File |          Size | % Change from Previous Release |
+|-----------|---------------|--------------------------------|
+|  main.css |  240772 bytes |                          0.02% |
+|  index.js | 7812561 bytes |                          0.28% |
+
 ## Version 3.0.0-beta.2897 - May 21, 2026
 
 ### ✨ Features & Improvements:
