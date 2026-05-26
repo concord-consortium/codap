@@ -84,14 +84,14 @@ The `en` ↔ `en-US` mismatch is handled inside V3 already — `languages.ts` re
 
 **Deployment and flip-day mechanics**
 
-- Function code deployed to a test distribution first; verify hash + query-string preservation across the full path matrix.
-- Once verified, function deployed to the production distribution but **gated** so it doesn't fire until flip day (e.g., associated with a non-default behavior, or guarded by a feature flag inside the function).
-- Flip-day activation is a single configuration change — associate the function with the production cache behavior, or flip the gate.
+- Function code is attached to a **cloned copy** of the production CloudFront distribution. The clone is served at the temp subdomain `codap2to3.concord.org` for staged validation while production continues serving V2 from the original distribution unchanged.
+- A full preflight pipeline (stand up clone, deploy the monitoring stack of 5 alarms + 2 canaries + dashboard, run Cypress redirect specs against the clone, verify function size/utilization, exercise alarm induction, validate Drive double-click on the temp subdomain) runs against the clone before flip day. Details in [`devops/cloudfront-functions/v2-v3-redirect/PREFLIGHT.md`](../../devops/cloudfront-functions/v2-v3-redirect/PREFLIGHT.md).
+- Flip-day activation is a CloudFront `associate-alias` swap (moves `codap.concord.org` from the prod distribution onto the clone) plus a Route 53 ALIAS swap, executed by `flip.sh --confirm`. After the swap the clone *is* production; the original distribution becomes idle and is retired after the post-flip soak.
 - No EC2 changes for the redirect mechanism. No HTML-file cache invalidation needed (function returns fresh HTML per request).
 
 **Rollback**
 
-If something breaks on flip day, detach the function from the production behavior — single CloudFront console action. Traffic resumes passing through to EC2, restoring V2 at every V2 URL. No cache invalidation required.
+If something breaks on flip day, a named rollback authority runs `rollback.sh --confirm` from the same directory which reverses the `associate-alias` and Route 53 swap back to the original distribution. The original distribution remains intact and one swap away during the post-flip soak.
 
 #### `/~user/...` tilde paths — not supported, no work item
 
@@ -195,16 +195,30 @@ Test-area checklist. Stories created on demand for areas that need scheduled wor
 
 ## Phase 3 — Flip
 
-Activation of work prepared in Phase 1. By this point V3 is released and all redirect rules are staged. The flip is a coordinated sequence of activation steps; ordering matters between the V3 redirect activation and the V2 final-build deployment.
+Activation of work prepared in Phase 1. By this point V3 is released and the redirect mechanism is fully validated on a cloned CloudFront distribution at the temp subdomain `codap2to3.concord.org`. The flip is a coordinated sequence of activation steps; ordering matters between the V3 redirect activation and the V2 final-build deployment.
 
-**Already live before Phase 3:** V3 writing native V3 format; V2 application preserved at `codap.concord.org/v2/` (per the SageModeler precursor work in Phase 1).
+The operational source of truth for **who does what and when** on flip day is the runbook at [`devops/cloudfront-functions/v2-v3-redirect/RUNBOOK.md`](../../devops/cloudfront-functions/v2-v3-redirect/RUNBOOK.md). The checklist below orients the broader release; consult the runbook before executing.
 
+**Already live before Phase 3:**
+
+- V3 writing native V3 format
+- V2 application preserved at `codap.concord.org/v2/` (per the SageModeler precursor work in Phase 1)
+- Cloned CloudFront distribution (CODAP-1323) deployed at the temp subdomain with the redirect function attached, monitoring stack live, and all preflight validations complete
+
+**Flip-day sequence:**
+
+- [ ] **Pre-flip freshness re-checks** (within 48h of flip): `verify-clone.sh` PASS, Cypress redirect specs pass against the temp subdomain, Drive double-click on the temp subdomain succeeds, both canaries report `PASSED` against the temp subdomain, `config.env` still matches the live clone. See RUNBOOK "Freshness re-checks".
+- [ ] Rollback authorities (R25c) confirmed with names + contact details in RUNBOOK "Rollback authorities".
 - [ ] Restore V3 release-announcement banner content: copy `s3://codap-resources/notifications/v3-release-announcement.json` into `v3-announcement-banner.json` (during the pre-release period, `v3-announcement-banner.json` holds beta-period content; this step swaps it for the release-period content). See `s3://codap-resources/notifications/README.md` for details.
-- [ ] **Activate V2 → V3 redirects** (attach the gated CloudFront Function to the production `codap.concord.org` cache behavior, or flip the in-function gate). At this point, `/app` and other V2 paths redirect to V3.
-- [ ] **Immediately after** the V3 redirect activation: deploy the V2 final release with V3-doc detection. **This must follow the V3 flip** — the V3-doc detection error message in the V2 build links to `https://codap.concord.org/app` to direct users to V3, and that link only resolves to V3 after the redirects are active.
-- [ ] Verify Google Drive double-click works through the CloudFront Function (Drive Open URL pattern → V3 with hash preserved); Drive config cleanup (Option B) deferred to Phase 4
-- [ ] Content team updates "Launch CODAP" button destination on the marketing site
+- [ ] **Activate V2 → V3 redirects** — from `devops/cloudfront-functions/v2-v3-redirect/`, run `./flip.sh --confirm`. The script (1) moves the `codap.concord.org` CloudFront alias from prod `E3H9X49AG3GYSO` onto the clone, (2) waits for the clone to reach `Deployed`, then (3) UPSERTs the Route 53 ALIAS to the clone domain. A brief `403` window between steps 1 and 3 is expected. The script is resumable; if it aborts mid-flip, re-run forward or run `rollback.sh --confirm` — both close the window.
+- [ ] **Immediately after** the redirect activation, deploy the V2 final release with V3-doc detection. **This must follow the V3 flip** — the V3-doc detection error message in the V2 build links to `https://codap.concord.org/app` to direct users to V3, and that link only resolves to V3 after the redirects are active.
+- [ ] **Re-point Synthetics canaries** from the temp subdomain to `codap.concord.org`. AWS Synthetics' `UpdateCanary` silently drops env vars, so this is delete + recreate via `deploy-monitoring.sh` (after updating the canary handler fallback string). See RUNBOOK "Canary re-pointing".
+- [ ] **Post-flip first-hour active-watch** (R31b): primary rollback authority watches the dashboard continuously with no concurrent work, sweeps alarm state every 5 minutes, runs a 30-minute `curl -I` spot-check on `https://codap.concord.org/app/static/dg/en/cert/index.html` (response body should contain `<!-- codap-redirect -->`), and confirms both canaries report `PASSED` against the new target.
+- [ ] Verify Google Drive double-click works through the CloudFront Function on production (Drive Open URL pattern → V3 with hash preserved). Drive config cleanup (Option B) deferred to Phase 4.
+- [ ] Content team updates "Launch CODAP" button destination on the marketing site.
 - [ ] User-facing launch communications — *[needs story]*
+
+**Rollback.** A named rollback authority may run `./rollback.sh --confirm` from `devops/cloudfront-functions/v2-v3-redirect/` to reverse the flip — symmetric to `flip.sh`, also resumable. Declare rollback "complete" when error-rate metrics return to baseline (DNS TTL is 60s but ISP / corporate resolvers occasionally hold past TTL).
 
 ## Phase 4 — Post-release
 
@@ -220,6 +234,7 @@ Activation of work prepared in Phase 1. By this point V3 is released and all red
 
 ### Cleanup
 
+- [ ] **Retire old prod CloudFront distribution `E3H9X49AG3GYSO`** — After the 14-day post-flip soak completes with the error rate at baseline and no open rollback-trigger incidents, detach the `codap.concord.org` alias from the old distribution and disable it. Hold disabled for 90 days as one-click rollback insurance, then permanently delete. Commands and exit conditions in RUNBOOK "Post-soak old-distribution disposition". — *[needs story; small]*
 - [ ] **Update Google Drive "Open URL" config to V3 directly** (Option B from CODAP-1094) — Once the cutover is stable (a couple weeks of soak), update the Drive Open URL in the Google Cloud Console from `http://codap.concord.org/app/static/dg/en/cert/index.html#file=googleDrive:{ids}` to `https://codap3.concord.org/`. Removes the long-term `codap.concord.org` dependency for Drive double-click. Per CODAP-1094 research, no Google re-verification required. Single Google admin action. — *[needs story; small]*
 - [ ] **New LARA library interactives pointing at V3 directly** — A LARA admin creates a new library interactive entry (or updates the existing entry) to point at `codap3.concord.org/` instead of a `codap.concord.org/...` URL. Authors picking the entry in LARA's picker get V3 directly without going through the CloudFront redirect. Existing activities continue to use whatever library entry they were authored with (which still redirects correctly via the CloudFront Function). Includes the sub-task from the original endgame doc: "ensure that a new iFrame interactive can be created and used successfully using V3 embed URLs." Owned by the LARA/Portal team, not CODAP team. — *[needs story; small]*
 
