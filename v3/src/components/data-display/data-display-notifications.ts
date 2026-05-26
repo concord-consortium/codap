@@ -17,3 +17,16 @@ import { GraphPlace } from "../axis-graph-shared"
 export function swapCategoriesNotification(tile: ITileModel | undefined, place: GraphPlace) {
   return updateTileNotification("swap categories", { place }, tile)
 }
+
+// V2 emits `change point size` from apps/dg/components/map/map_controller.js (~:492) when
+// the user moves the point-size slider in the map inspector. Bare V2 payload
+// (`type: "DG.MapView"`, no value). V3 additionally carries `to: <multiplier>` so plugins
+// see the new value without re-querying.
+//
+// V3's point-size slider lives in data-display/inspector/ and is shared between graph and
+// map. V2 graph does NOT emit this op, but V3 emits unconditionally from the shared slider
+// (V3-additive for graph). Callers in data-display are responsible for invoking only where
+// appropriate; the helper itself does not branch on tile type.
+export function changePointSizeNotification(tile: ITileModel | undefined, to: number) {
+  return updateTileNotification("change point size", { to }, tile)
+}

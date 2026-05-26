@@ -1,6 +1,8 @@
 import { observer } from "mobx-react-lite"
 import { Label, Slider, SliderThumb, SliderTrack } from "react-aria-components"
+import { useTileModelContext } from "../../../hooks/use-tile-model-context"
 import { t } from "../../../utilities/translation/translate"
+import { changePointSizeNotification } from "../data-display-notifications"
 import { PointDisplayType } from "../data-display-types"
 import { IDisplayItemDescriptionModel } from "../models/display-item-description-model"
 
@@ -12,6 +14,7 @@ interface IPointSizeSliderProps {
 export const PointSizeSlider = observer(function PointSizeSlider(
   { displayItemDescription, pointDisplayType }: IPointSizeSliderProps
 ) {
+  const { tile } = useTileModelContext()
   return (
     <Slider
       minValue={0}
@@ -23,6 +26,7 @@ export const PointSizeSlider = observer(function PointSizeSlider(
         displayItemDescription.applyModelChange(
           () => displayItemDescription.setPointSizeMultiplier(val),
           {
+            notify: () => changePointSizeNotification(tile, val),
             undoStringKey: "DG.Undo.graph.changePointSize",
             redoStringKey: "DG.Redo.graph.changePointSize",
             log: "Changed point size"

@@ -1,4 +1,4 @@
-import { swapCategoriesNotification } from "./data-display-notifications"
+import { changePointSizeNotification, swapCategoriesNotification } from "./data-display-notifications"
 
 // V2 component-resource notifications carry the SC class name (`DG.GraphView` / `DG.MapView`)
 // in `values.type`; V3 adds the DI-convention name as `values.diType`. The mock resolves both
@@ -49,5 +49,28 @@ describe("swapCategoriesNotification", () => {
 
   it("returns undefined when the tile is missing", () => {
     expect(swapCategoriesNotification(undefined, "left")).toBeUndefined()
+  })
+})
+
+describe("changePointSizeNotification", () => {
+  it("emits 'change point size' with the new multiplier on map", () => {
+    const tile = { id: "MAP1", content: { type: "Map" } } as any
+    const notification = changePointSizeNotification(tile, 1.4)
+    expect(notification?.message.values.operation).toBe("change point size")
+    expect(notification?.message.values.to).toBe(1.4)
+    expect(notification?.message.values.type).toBe("DG.MapView")
+    expect(notification?.message.values.diType).toBe("map")
+  })
+
+  it("emits 'change point size' on graph too (V3-additive — V2 graph does not, but the slider is shared)", () => {
+    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    const notification = changePointSizeNotification(tile, 0.8)
+    expect(notification?.message.values.operation).toBe("change point size")
+    expect(notification?.message.values.to).toBe(0.8)
+    expect(notification?.message.values.type).toBe("DG.GraphView")
+  })
+
+  it("returns undefined when the tile is missing", () => {
+    expect(changePointSizeNotification(undefined, 1.0)).toBeUndefined()
   })
 })
