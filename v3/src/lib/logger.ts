@@ -15,6 +15,19 @@ const logManagerUrl: Record<LoggerEnvironment, string> = {
   production: "https://logger.concord.org/logs"
 }
 
+const kProductionHostNames = ["codap.concord.org", "codap3.concord.org"]
+const kNonProductionPathSegments = ["beta", "staging", "branch"]
+
+// Hostname allowlist + path blacklist that route log traffic to the production
+// log server. Real user traffic on these hosts is durable; everything else
+// (branch deploys, beta/staging channels, localhost) goes to the dev server.
+export function isProductionLogHost(hostname: string, pathname: string): boolean {
+  const host = hostname.toLowerCase()
+  if (!kProductionHostNames.includes(host)) return false
+  const firstSegment = pathname.split("/").filter(Boolean)[0]
+  return !kNonProductionPathSegments.includes(firstSegment)
+}
+
 export interface LogMessage {
   // these top-level properties are treated specially by the log-ingester:
   // https://github.com/concord-consortium/log-ingester/blob/a8b16fdb02f4cef1f06965a55c5ec6c1f5d3ae1b/canonicalize.js#L3
@@ -222,9 +235,9 @@ export class Logger {
 }
 
 function sendToLoggingService(data: LogMessage) {
-  // const isProduction = user.portal === productionPortal || data.parameters?.portal === productionPortal
-  // const url = logManagerUrl[isProduction ? "production" : "dev"]
-  const url = logManagerUrl.dev
+  const isProduction = typeof window !== "undefined" &&
+    isProductionLogHost(window.location.hostname, window.location.pathname)
+  const url = logManagerUrl[isProduction ? "production" : "dev"]
 
   if (!Logger.isLoggingEnabled || !DEBUG_LOG_TO_SERVER) return
 

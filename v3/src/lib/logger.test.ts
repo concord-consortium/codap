@@ -1,6 +1,32 @@
 import mockXhr from "xhr-mock"
-import { Logger, LogMessage } from "./logger"
+import { isProductionLogHost, Logger, LogMessage } from "./logger"
 import { IDocumentModel } from "../models/document/document"
+
+describe("isProductionLogHost", () => {
+  it("routes the production hosts at the root path to production", () => {
+    expect(isProductionLogHost("codap.concord.org", "/")).toBe(true)
+    expect(isProductionLogHost("codap.concord.org", "")).toBe(true)
+    expect(isProductionLogHost("codap.concord.org", "/some/spa/route")).toBe(true)
+    expect(isProductionLogHost("codap3.concord.org", "/")).toBe(true)
+    expect(isProductionLogHost("CODAP.CONCORD.ORG", "/")).toBe(true)
+  })
+
+  it("excludes beta, staging, and branch deploy paths", () => {
+    expect(isProductionLogHost("codap.concord.org", "/beta/")).toBe(false)
+    expect(isProductionLogHost("codap.concord.org", "/beta/index.html")).toBe(false)
+    expect(isProductionLogHost("codap3.concord.org", "/staging/")).toBe(false)
+    expect(isProductionLogHost("codap3.concord.org", "/branch/main/")).toBe(false)
+    expect(isProductionLogHost("codap3.concord.org", "/branch/feature-x/index.html")).toBe(false)
+  })
+
+  it("excludes non-production hosts", () => {
+    expect(isProductionLogHost("localhost", "/")).toBe(false)
+    expect(isProductionLogHost("127.0.0.1", "/")).toBe(false)
+    expect(isProductionLogHost("learn.concord.org", "/")).toBe(false)
+    expect(isProductionLogHost("staging.concord.org", "/")).toBe(false)
+    expect(isProductionLogHost("", "/")).toBe(false)
+  })
+})
 
 describe("Logger", () => {
   beforeEach(() => {

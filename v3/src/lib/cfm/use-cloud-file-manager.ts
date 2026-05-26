@@ -10,7 +10,6 @@ import { persistentState } from "../../models/persistent-state"
 import { gLocale } from "../../utilities/translation/locale"
 import { t } from "../../utilities/translation/translate"
 import { hasInteractiveApiContext, removeDevUrlParams } from "../../utilities/url-params"
-import { CONFIG_SAVE_AS_V2 } from "../config"
 import { DEBUG_CFM_LOCAL_STORAGE } from "../debug"
 import { Logger } from "../logger"
 import { handleLogLaraData } from "./cfm-log-utils"
@@ -352,7 +351,7 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, hookOptions?: IUs
       mimeType: 'application/json',
       localFileMimeType: 'application/octet-stream',
       readableMimeTypes: ['application/x-codap-document'],
-      extension: CONFIG_SAVE_AS_V2 ? "codap" : "codap3",
+      extension: "codap",
       readableExtensions: ["json", "", "codap", "codap3"],
       enableLaraSharing: true,
       log(_event: string, _eventData: any) {

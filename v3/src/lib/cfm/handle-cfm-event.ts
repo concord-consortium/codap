@@ -5,9 +5,8 @@ import pkg from "../../../package.json"
 import { appState } from "../../models/app-state"
 import { uiState } from "../../models/ui-state"
 import { t } from "../../utilities/translation/translate"
-import { hasInteractiveApiContext, removeDevUrlParams, urlParams } from "../../utilities/url-params"
+import { removeDevUrlParams, urlParams } from "../../utilities/url-params"
 import { displayVersion } from "../../utilities/version-utils"
-import { isCodapV2Document } from "../../v2/codap-v2-types"
 import { DEBUG_CFM_EVENTS, DEBUG_CFM_NO_AUTO_SAVE } from "../debug"
 import { Logger } from "../logger"
 import { wrapCfmCallback } from "./cfm-utils"
@@ -103,48 +102,12 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
         const clonedCfmSharedMetadata = cloneDeep(cfmSharedMetadata)
 
         const resolvedDocument = await resolveDocument(content, metadata)
-
-        let shouldAutoSaveDocument = true
-        if (isCodapV2Document(resolvedDocument)) {
-          // Disable autoSave for v2 documents that were not saved by CODAP v3
-          // This disabling of autoSave might be temporary until we are confident that
-          // CODAPv3 won't break v2 documents. If this disabling becomes permanent we
-          // should use a more advanced mechanism to determine which application saved
-          // the document. In the meantime we just look at the appVersion. If it isn't
-          // a v3 appVersion, then we assume this is a v2 document.
-          // If CFM file menu is hidden because the app is launched in embedded-LARA context
-          // (interactiveApi, launchFromLara, or lara URL params; see hasInteractiveApiContext)
-          // then we keep autoSave enabled.
-          // Note: if auto save is disabled by the debug flag DEBUG_CFM_NO_AUTO_SAVE,
-          // that will override this, and is handled by the value of kCFMAutoSaveInterval
-          // computed above.
-          // Note: in some v2 documents the appVersion is not set
-          const loadedDocumentWasSavedByV3 = !!resolvedDocument.appVersion?.startsWith("3.")
-          shouldAutoSaveDocument = loadedDocumentWasSavedByV3 || hasInteractiveApiContext()
-          if (!shouldAutoSaveDocument) {
-            // eslint-disable-next-line no-console
-            console.log("Disabling autoSave for v2 document that was saved by CODAPv2",
-              { appVersion: resolvedDocument.appVersion })
-            // NOTE: Whether the document is saved automatically depends on more factors.
-            // For example the CFM provider has to support autoSave.
-            cfmClient.autoSave(kCFMAutoSaveDisabledInterval)
-          }
-          // If shouldAutoSaveDocument is true, we do not enable autoSave yet.
-          // At this point the appState.document will still be the original document
-          // not the new one we are trying to open. The new document gets set by
-          // setDocument below. If autoSave is enabled before this, the CFM might decide
-          // to save the original document before the new document is set. The original
-          // document might be one that we don't want to autoSave.
-        }
         await appState.setDocument(resolvedDocument, metadata)
 
-        // Now that the new document is set as the appState.document, it is
-        // safe to enable autoSave.
-        // Note: appState.document.version will always start with '3." here because
-        // the conversion from v2 to v3 documents does not migrate the appVersion.
-        if (shouldAutoSaveDocument) {
-          cfmClient.autoSave(kCFMAutoSaveInterval)
-        }
+        // Enable autoSave only after the new document is set as appState.document.
+        // Otherwise the CFM might save the previous document while the new one is
+        // still loading.
+        cfmClient.autoSave(kCFMAutoSaveInterval)
 
         // acknowledge a successful open and return shared metadata
         event.callback(null, clonedCfmSharedMetadata)
