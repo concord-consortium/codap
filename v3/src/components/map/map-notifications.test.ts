@@ -1,4 +1,7 @@
-import { changeBaseMapNotification, changeGridSizeNotification } from "./map-notifications"
+import {
+  changeBaseMapNotification, changeGridSizeNotification,
+  hideSelectedCasesNotification, hideUnselectedCasesNotification, showAllCasesNotification
+} from "./map-notifications"
 
 const v2Id = 77001
 // V2 component-resource notifications for the map carry `DG.MapView` in `values.type`;
@@ -59,5 +62,49 @@ describe("changeGridSizeNotification", () => {
 
   it("returns undefined when the tile is missing", () => {
     expect(changeGridSizeNotification(undefined, 0.5, 1.2)).toBeUndefined()
+  })
+})
+
+describe("hideSelectedCasesNotification", () => {
+  it("emits map-specific 'hide selected cases' with numberHidden (graph-parity)", () => {
+    const tile = { id: "MAP1", content: { type: "Map" } } as any
+    const notification = hideSelectedCasesNotification(tile, 3)
+    expect(notification?.message.values.operation).toBe("hide selected cases")
+    expect(notification?.message.values.numberHidden).toBe(3)
+    expect(notification?.message.values.type).toBe(v2SCType)
+  })
+
+  it("returns undefined for non-map tiles", () => {
+    const graphTile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    expect(hideSelectedCasesNotification(graphTile, 3)).toBeUndefined()
+  })
+})
+
+describe("hideUnselectedCasesNotification", () => {
+  it("emits map-specific 'hide unselected cases' with numberHidden (graph-parity)", () => {
+    const tile = { id: "MAP1", content: { type: "Map" } } as any
+    const notification = hideUnselectedCasesNotification(tile, 7)
+    expect(notification?.message.values.operation).toBe("hide unselected cases")
+    expect(notification?.message.values.numberHidden).toBe(7)
+    expect(notification?.message.values.type).toBe(v2SCType)
+  })
+
+  it("returns undefined for non-map tiles", () => {
+    const graphTile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    expect(hideUnselectedCasesNotification(graphTile, 7)).toBeUndefined()
+  })
+})
+
+describe("showAllCasesNotification (map)", () => {
+  it("emits map-specific 'show all cases' (space-separated, distinct from graph's camelCase op)", () => {
+    const tile = { id: "MAP1", content: { type: "Map" } } as any
+    const notification = showAllCasesNotification(tile)
+    expect(notification?.message.values.operation).toBe("show all cases")
+    expect(notification?.message.values.type).toBe(v2SCType)
+  })
+
+  it("returns undefined for non-map tiles", () => {
+    const graphTile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    expect(showAllCasesNotification(graphTile)).toBeUndefined()
   })
 })

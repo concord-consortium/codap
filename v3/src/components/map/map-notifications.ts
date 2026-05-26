@@ -22,3 +22,28 @@ export function changeGridSizeNotification(mapTile: ITileModel | undefined, from
   if (mapTile?.content.type !== kMapTileType) return
   return updateTileNotification("change grid size", { from, to }, mapTile)
 }
+
+// V2 emits `hide selected cases`, `hide unselected cases`, and `show all cases` from
+// apps/dg/components/map/map_model.js (:534, :562, :598). These are MAP-SPECIFIC op strings
+// (with spaces) — distinct from the graph's `hideSelected`/`hideUnselected`/`showAllCases`
+// (camelCase) emitted from graph_map_common/data_layer_model.js. V3 must preserve the map's
+// spaced strings so V2 plugins listening for the map ops continue to match.
+//
+// V2 emits a bare payload for all three. V3 additionally carries `numberHidden` on the two
+// hide ops for parity with the graph's analogous notifications (V2 graph already does this;
+// the map's omission is a V2 inconsistency, additive in V3 so plugins can ignore).
+// No-ops for non-map tiles.
+export function hideSelectedCasesNotification(mapTile: ITileModel | undefined, numberHidden: number) {
+  if (mapTile?.content.type !== kMapTileType) return
+  return updateTileNotification("hide selected cases", { numberHidden }, mapTile)
+}
+
+export function hideUnselectedCasesNotification(mapTile: ITileModel | undefined, numberHidden: number) {
+  if (mapTile?.content.type !== kMapTileType) return
+  return updateTileNotification("hide unselected cases", { numberHidden }, mapTile)
+}
+
+export function showAllCasesNotification(mapTile: ITileModel | undefined) {
+  if (mapTile?.content.type !== kMapTileType) return
+  return updateTileNotification("show all cases", {}, mapTile)
+}
