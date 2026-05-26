@@ -1,6 +1,5 @@
 import { ITileModel } from "../../models/tiles/tile-model"
 import { updateTileNotification } from "../../models/tiles/tile-notifications"
-import { GraphPlace } from "../axis-graph-shared"
 import { kGraphTileType } from "./graph-defs"
 import { IAttrChangeValues } from "./models/graph-notification-utils"
 
@@ -192,17 +191,4 @@ export function dragBinBoundaryNotification(
 export function repositionEquationNotification(graphTile: ITileModel | undefined, adornment: string) {
   if (graphTile?.content.type !== kGraphTileType) return
   return updateTileNotification("reposition equation", { adornment }, graphTile)
-}
-
-// V2 emits `swap categories` from apps/dg/components/graph/axes/cell_axis_view.js (endDrag
-// ~:198) when a user finishes dragging a category label on a graph's categorical axis to a
-// new position. V2's analogous LEGEND swap command at apps/dg/components/graph_map_common/
-// legend/categories_view.js ~:120 has no `executeNotification` block — a V2 oversight (the
-// undo/redo strings line up; only the notification is missing). V3 fires the same op from
-// both code paths, additionally carrying `place` so plugins can distinguish axis vs legend
-// (and which axis). No-ops for non-graph tiles — the axis hook and legend component are
-// shared with the map tile, which V2 also did not emit for.
-export function swapCategoriesNotification(graphTile: ITileModel | undefined, place: GraphPlace) {
-  if (graphTile?.content.type !== kGraphTileType) return
-  return updateTileNotification("swap categories", { place }, graphTile)
 }
