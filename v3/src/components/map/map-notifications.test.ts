@@ -1,5 +1,5 @@
 import {
-  changeBaseMapNotification, changeGridSizeNotification,
+  changeBaseMapNotification, changeGridSizeNotification, changeMapCoordinatesNotification,
   hideSelectedCasesNotification, hideUnselectedCasesNotification, showAllCasesNotification
 } from "./map-notifications"
 
@@ -106,5 +106,25 @@ describe("showAllCasesNotification (map)", () => {
   it("returns undefined for non-map tiles", () => {
     const graphTile = { id: "GRAPH1", content: { type: "Graph" } } as any
     expect(showAllCasesNotification(graphTile)).toBeUndefined()
+  })
+})
+
+describe("changeMapCoordinatesNotification", () => {
+  it("emits 'change map coordinates' with center and zoom", () => {
+    const tile = { id: "MAP1", content: { type: "Map" } } as any
+    const notification = changeMapCoordinatesNotification(tile, { lat: 42.5, lng: -71.3 }, 12)
+    expect(notification?.message.values.operation).toBe("change map coordinates")
+    expect(notification?.message.values.center).toEqual({ lat: 42.5, lng: -71.3 })
+    expect(notification?.message.values.zoom).toBe(12)
+    expect(notification?.message.values.type).toBe(v2SCType)
+  })
+
+  it("returns undefined for non-map tiles", () => {
+    const graphTile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    expect(changeMapCoordinatesNotification(graphTile, { lat: 0, lng: 0 }, 1)).toBeUndefined()
+  })
+
+  it("returns undefined when the tile is missing", () => {
+    expect(changeMapCoordinatesNotification(undefined, { lat: 0, lng: 0 }, 1)).toBeUndefined()
   })
 })

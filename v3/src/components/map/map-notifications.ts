@@ -47,3 +47,22 @@ export function showAllCasesNotification(mapTile: ITileModel | undefined) {
   if (mapTile?.content.type !== kMapTileType) return
   return updateTileNotification("show all cases", {}, mapTile)
 }
+
+// V2 emits `change map coordinates` from apps/dg/components/map/map_view.js (~:570) when
+// leaflet's `moveend` event fires after a user-driven pan/zoom OR a programmatic rescale
+// (fitBounds). Bare V2 payload (`type: "DG.MapView"`, no center/zoom). V3 additionally
+// carries the resulting `center: {lat, lng}` and `zoom: number` so plugins can see the new
+// view without re-querying.
+//
+// V3 emits ONLY when the sync is undoable (originated from startLeafletInteraction with
+// undo/redo string keys — user pan/zoom or programmatic rescale). The non-undoable sync
+// path handles tiny float-precision round-trips after restoring a saved view; V2 wouldn't
+// fire for those either. No-ops for non-map tiles.
+export function changeMapCoordinatesNotification(
+  mapTile: ITileModel | undefined,
+  center: { lat: number, lng: number },
+  zoom: number
+) {
+  if (mapTile?.content.type !== kMapTileType) return
+  return updateTileNotification("change map coordinates", { center, zoom }, mapTile)
+}
