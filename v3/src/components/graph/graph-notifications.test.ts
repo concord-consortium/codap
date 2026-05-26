@@ -3,7 +3,7 @@ import {
   changeBackgroundColorNotification, displayOnlySelectedNotification, dragBinBoundaryNotification,
   dragMovableLineNotification, dragMovablePointNotification, dragMovableValueNotification,
   editPlotFormulaNotification, removeMovableValueNotification, repositionEquationNotification,
-  setNumStdErrsNotification, showAllCasesNotification, swapCategoriesNotification,
+  setNumStdErrsNotification, showAllCasesNotification,
   toggleBackgroundTransparencyNotification, toggleMeasuresForSelectionNotification,
   toggleNumberToggleNotification, toggleShowICINotification, toggleShowOutliersNotification
 } from "./graph-notifications"
@@ -342,35 +342,6 @@ describe("repositionEquationNotification", () => {
   it("returns undefined for non-graph tiles", () => {
     const calcTile = { id: "CALC1", content: { type: "Calculator" } } as any
     expect(repositionEquationNotification(calcTile, "lsrl")).toBeUndefined()
-  })
-})
-
-describe("swapCategoriesNotification", () => {
-  it("emits 'swap categories' with the originating place (axis variant)", () => {
-    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
-    const notification = swapCategoriesNotification(tile, "bottom")
-    expect(notification?.message.action).toBe("notify")
-    expect(notification?.message.resource).toBe("component")
-    expect(notification?.message.values.operation).toBe("swap categories")
-    expect(notification?.message.values.place).toBe("bottom")
-    expect(notification?.message.values.type).toBe(v2SCType)
-    expect(notification?.message.values.diType).toBe(diType)
-  })
-
-  it("emits 'swap categories' with place='legend' for the legend variant", () => {
-    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
-    const notification = swapCategoriesNotification(tile, "legend")
-    expect(notification?.message.values.operation).toBe("swap categories")
-    expect(notification?.message.values.place).toBe("legend")
-  })
-
-  it("returns undefined for non-graph tiles (so the shared sub-axis hook and legend are safe for maps)", () => {
-    const mapTile = { id: "MAP1", content: { type: "Map" } } as any
-    expect(swapCategoriesNotification(mapTile, "legend")).toBeUndefined()
-  })
-
-  it("returns undefined when the tile is missing", () => {
-    expect(swapCategoriesNotification(undefined, "left")).toBeUndefined()
   })
 })
 

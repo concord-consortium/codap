@@ -1,10 +1,14 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { Radio, RadioGroup } from "react-aria-components"
+import { useTileModelContext } from "../../../hooks/use-tile-model-context"
 import { t } from "../../../utilities/translation/translate"
 import { If } from "../../common/if"
 import { PaletteCheckbox } from "../../palette-checkbox"
 import { IMapPointLayerModel, isMapPointDisplayType } from "../../map/models/map-point-layer-model"
+import {
+  changeStrokeColorAndAlphaNotification, toggleStrokeSameAsFillNotification
+} from "../data-display-notifications"
 import { PointDisplayType } from "../data-display-types"
 import { IDataConfigurationModel } from "../models/data-configuration-model"
 import { IDisplayItemDescriptionModel } from "../models/display-item-description-model"
@@ -33,6 +37,7 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
     dataConfiguration, displayItemDescription, mapPointLayerModel, pointDisplayType,
     isTransparent, onBackgroundTransparencyChange, plotBackgroundColor, onBackgroundColorChange
   } = props
+  const { tile } = useTileModelContext()
   const legendAttrID = dataConfiguration.attributeID("legend")
   const attrType = dataConfiguration.attributeType("legend")
 
@@ -53,6 +58,7 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
     displayItemDescription.applyModelChange(
       () => displayItemDescription.setPointStrokeColor(color),
       {
+        notify: () => changeStrokeColorAndAlphaNotification(tile, color),
         undoStringKey: "DG.Undo.graph.changeStrokeColor",
         redoStringKey: "DG.Redo.graph.changeStrokeColor",
         log: "Changed stroke color"
@@ -120,6 +126,7 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
           displayItemDescription.applyModelChange(
             () => displayItemDescription.setPointStrokeSameAsFill(checked),
             {
+              notify: () => toggleStrokeSameAsFillNotification(tile, checked),
               undoStringKey: "DG.Undo.graph.changeStrokeColor",
               redoStringKey: "DG.Redo.graph.changeStrokeColor",
               log: "Changed stroke color"

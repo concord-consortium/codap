@@ -2,13 +2,16 @@ import {MutableRefObject, useRef} from "react"
 import {Portal, Slider, SliderTrack, SliderFilledTrack, SliderThumb,} from "@chakra-ui/react"
 import {IMapContentModel} from "../models/map-content-model"
 import {isMapPointLayerModel} from "../models/map-point-layer-model"
+import {changeGridSizeNotification} from "../map-notifications"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
+import { useTileModelContext } from "../../../hooks/use-tile-model-context"
 
 export const MapGridSlider = function MapGridSlider(props: {
   mapModel: IMapContentModel
   mapRef: MutableRefObject<HTMLDivElement | null>
 }) {
   const {mapModel, mapRef} = props
+  const { tile } = useTileModelContext()
 
   const getAverageGridMultiplier = () => {
     const gridMultipliers = mapModel.layers
@@ -28,6 +31,7 @@ export const MapGridSlider = function MapGridSlider(props: {
   }
 
   const handleChangeEnd = (value: number) => {
+    const from = prevGridMultiplier.current
     mapModel.applyModelChange(() => {
         mapModel.layers.forEach(layer => {
           if (isMapPointLayerModel(layer) && layer.gridModel.isVisible) {
@@ -36,10 +40,11 @@ export const MapGridSlider = function MapGridSlider(props: {
         })
       },
       {
+        notify: () => changeGridSizeNotification(tile, from, value),
         undoStringKey: "DG.Undo.map.changeGridSize",
         redoStringKey: "DG.Redo.map.changeGridSize",
         log: logStringifiedObjectMessage("Map grid size changed: %@",
-                {from: prevGridMultiplier.current, to: value})
+                {from, to: value})
       }
     )
     prevGridMultiplier.current = value

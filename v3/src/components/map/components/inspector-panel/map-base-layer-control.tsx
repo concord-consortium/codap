@@ -3,6 +3,7 @@ import {observer} from "mobx-react-lite"
 import {t} from "../../../../utilities/translation/translate"
 import {ITileModel} from "../../../../models/tiles/tile-model"
 import {BaseMapKey} from "../../map-types"
+import {changeBaseMapNotification} from "../../map-notifications"
 import {isMapContentModel} from "../../models/map-content-model"
 import { logMessageWithReplacement, logStringifiedObjectMessage } from "../../../../lib/log-message"
 import {PaletteCheckbox} from "../../../palette-checkbox"
@@ -40,6 +41,7 @@ export const MapBaseLayerControl = observer(function MapBaseLayerControl(
     mapModel.applyModelChange(
       () => mapModel.setBaseMapLayerName(layerName),
       {
+        notify: () => changeBaseMapNotification(tile, layerName),
         undoStringKey: "V3.Undo.map.inspector.changeMapBaseLayer",
         redoStringKey: "V3.Redo.map.inspector.changeMapBaseLayer",
         log: logStringifiedObjectMessage("Map base layer changed: %@", {value: layerName}),

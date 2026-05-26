@@ -8,6 +8,7 @@ import {withoutUndo} from "../../../models/history/without-undo"
 import {ISharedDataSet, kSharedDataSetType, SharedDataSet} from "../../../models/shared/shared-data-set"
 import { getDataSetFromId } from "../../../models/shared/shared-data-utils"
 import {ITileContentModel, ITileContentSnapshot} from "../../../models/tiles/tile-content"
+import { getTileModel } from "../../../models/tiles/tile-model"
 import { getFormulaManager } from "../../../models/tiles/tile-environment"
 import { getCollectionAttrs } from "../../../models/data/data-set-utils"
 import { typeV3Id } from "../../../utilities/codap-utils"
@@ -16,6 +17,7 @@ import {IDataConfigurationModel} from "../../data-display/models/data-configurat
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
 import { IDataDisplayLayerModel } from "../../data-display/models/data-display-layer-model"
 import {kMapModelName, kMapTileType} from "../map-defs"
+import { changeMapCoordinatesNotification } from "../map-notifications"
 import {ILatLngSnapshot, LatLngModel} from "../map-model-types"
 import {BaseMapKey, BaseMapKeys, kMapBoundsExtensionFactor} from "../map-types"
 import { DataSetMapAttributes } from "../utilities/data-set-map-attributes"
@@ -293,6 +295,11 @@ export const MapContentModel = DataDisplayContentModel
               self.applyModelChange(() => {
                 self.syncCenterAndZoomFromMap()
               }, {
+                notify: () => changeMapCoordinatesNotification(
+                  getTileModel(self),
+                  { lat: self.center.lat, lng: self.center.lng },
+                  self.zoom
+                ),
                 log: self.leafletMapState.log,
                 undoStringKey: self.leafletMapState.undoStringKey,
                 redoStringKey: self.leafletMapState.redoStringKey

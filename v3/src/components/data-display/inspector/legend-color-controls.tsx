@@ -3,12 +3,16 @@ import React, { useRef, useState } from "react"
 import {
   Button, ListBox, ListBoxItem, Popover, Select, SelectValue
 } from "react-aria-components"
+import { useTileModelContext } from "../../../hooks/use-tile-model-context"
 import { AttributeBinningTypes, AttributeBinningType } from "../../../models/shared/data-set-metadata"
 import {
   kDefaultHighAttributeColor, kDefaultLowAttributeColor
 } from "../../../models/shared/data-set-metadata-constants"
 import { t } from "../../../utilities/translation/translate"
 import { PaletteCheckbox } from "../../palette-checkbox"
+import {
+  changeAttributeColorNotification, changePointColorAndAlphaNotification, changePointColorNotification
+} from "../data-display-notifications"
 import { IDataConfigurationModel } from "../models/data-configuration-model"
 import { IDisplayItemDescriptionModel } from "../models/display-item-description-model"
 import { PointColorSetting } from "./point-color-setting"
@@ -21,6 +25,7 @@ interface ILegendColorControlsProps {
 export const LegendColorControls = observer(function LegendColorControls(
   { dataConfiguration, displayItemDescription }: ILegendColorControlsProps
 ) {
+  const { tile } = useTileModelContext()
   const legendAttrID = dataConfiguration.attributeID("legend")
   const attrType = dataConfiguration.attributeType("legend")
   const categoriesRef = useRef<string[] | undefined>()
@@ -32,6 +37,7 @@ export const LegendColorControls = observer(function LegendColorControls(
     displayItemDescription.applyModelChange(() => {
       displayItemDescription.setPointColor(color)
     }, {
+      notify: () => changePointColorAndAlphaNotification(tile, color),
       undoStringKey: "DG.Undo.graph.changePointColor",
       redoStringKey: "DG.Redo.graph.changePointColor",
       log: attrType === "categorical" ? "Changed categorical point color" : "Changed point color"
@@ -42,6 +48,7 @@ export const LegendColorControls = observer(function LegendColorControls(
     dataConfiguration.applyModelChange(
       () => dataConfiguration.setLegendColorForCategory(cat, color),
       {
+        notify: () => changePointColorNotification(tile, color, cat),
         undoStringKey: "DG.Undo.graph.changePointColor",
         redoStringKey: "DG.Redo.graph.changePointColor",
         log: "Changed categorical point color"
@@ -53,6 +60,7 @@ export const LegendColorControls = observer(function LegendColorControls(
     metadata?.applyModelChange(() => {
       metadata.setAttributeColor(legendAttrID, color, "low")
     }, {
+      notify: () => changeAttributeColorNotification(tile, color, "low"),
       undoStringKey: "DG.Undo.graph.changeAttributeColor",
       redoStringKey: "DG.Redo.graph.changeAttributeColor",
       log: "Changed attribute color"
@@ -63,6 +71,7 @@ export const LegendColorControls = observer(function LegendColorControls(
     metadata?.applyModelChange(() => {
       metadata.setAttributeColor(legendAttrID, color, "high")
     }, {
+      notify: () => changeAttributeColorNotification(tile, color, "high"),
       undoStringKey: "DG.Undo.graph.changeAttributeColor",
       redoStringKey: "DG.Redo.graph.changeAttributeColor",
       log: "Changed attribute color"
