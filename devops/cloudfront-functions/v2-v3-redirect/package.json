@@ -1,0 +1,19 @@
+{
+  "name": "codap-v2-v3-redirect",
+  "version": "0.0.0",
+  "private": true,
+  "description": "CODAP-1323 V2 -> V3 redirect CloudFront Function and its tooling.",
+  "scripts": {
+    "test": "jest",
+    "build": "bash ./build-function.sh"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "terser": "^5.31.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": ["<rootDir>/v2-v3-redirect.test.js"],
+    "globalSetup": "<rootDir>/jest.globalSetup.js"
+  }
+}

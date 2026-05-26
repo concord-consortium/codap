@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>v2->v3 redirect iframe harness</title>
+</head>
+<body>
+  <!-- The Cypress v2-v3-redirect spec injects the iframe src via cy.visit's qs and the
+       harness page sets it on this iframe. The iframe lets the client-side redirect run
+       within an iframe context. The spec asserts only the iframe's final src/location -- it
+       does NOT exercise postMessage / iframe-phone (QA-I3, out of scope for this story). -->
+  <h1>v2-&gt;v3 redirect iframe harness</h1>
+  <p>Loads <code>?embed=&lt;url&gt;</code> in the iframe below.</p>
+  <iframe id="embed" data-cy="embed-iframe" width="800" height="600"></iframe>
+  <script>
+    (function () {
+      var u = new URL(window.location.href);
+      var embed = u.searchParams.get('embed');
+      if (embed) {
+        document.getElementById('embed').src = embed;
+      }
+    })();
+  </script>
+</body>
+</html>
