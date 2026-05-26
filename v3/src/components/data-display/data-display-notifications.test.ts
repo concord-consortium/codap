@@ -1,6 +1,6 @@
 import {
   changePointColorAndAlphaNotification, changePointColorNotification, changePointSizeNotification,
-  swapCategoriesNotification, toggleStrokeSameAsFillNotification
+  changeStrokeColorAndAlphaNotification, swapCategoriesNotification, toggleStrokeSameAsFillNotification
 } from "./data-display-notifications"
 
 // V2 component-resource notifications carry the SC class name (`DG.GraphView` / `DG.MapView`)
@@ -126,5 +126,19 @@ describe("changePointColorAndAlphaNotification (non-categorical)", () => {
 
   it("returns undefined when the tile is missing", () => {
     expect(changePointColorAndAlphaNotification(undefined, "#000000")).toBeUndefined()
+  })
+})
+
+describe("changeStrokeColorAndAlphaNotification", () => {
+  it("emits V2's compound op 'change changeStrokeColor' with color", () => {
+    const tile = { id: "MAP1", content: { type: "Map" } } as any
+    const notification = changeStrokeColorAndAlphaNotification(tile, "#00ff00")
+    expect(notification?.message.values.operation).toBe("change changeStrokeColor")
+    expect(notification?.message.values.color).toBe("#00ff00")
+    expect(notification?.message.values.type).toBe("DG.MapView")
+  })
+
+  it("returns undefined when the tile is missing", () => {
+    expect(changeStrokeColorAndAlphaNotification(undefined, "#000000")).toBeUndefined()
   })
 })

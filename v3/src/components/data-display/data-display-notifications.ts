@@ -64,3 +64,11 @@ export function changePointColorNotification(
 export function changePointColorAndAlphaNotification(tile: ITileModel | undefined, color: string) {
   return updateTileNotification("change changePointColor", { color }, tile)
 }
+
+// V2 emits the compound op `"change changeStrokeColor"` (same factory at map_controller.js
+// ~:327, op at :337) when the user picks a stroke color in the point-layer inspector. As
+// with changePointColor, the op string is leaky V2 internal nomenclature — preserved for
+// compat. V2 payload is bare; V3 additionally carries `{ color }`.
+export function changeStrokeColorAndAlphaNotification(tile: ITileModel | undefined, color: string) {
+  return updateTileNotification("change changeStrokeColor", { color }, tile)
+}
