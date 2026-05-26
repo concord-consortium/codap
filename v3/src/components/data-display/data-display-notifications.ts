@@ -30,3 +30,16 @@ export function swapCategoriesNotification(tile: ITileModel | undefined, place: 
 export function changePointSizeNotification(tile: ITileModel | undefined, to: number) {
   return updateTileNotification("change point size", { to }, tile)
 }
+
+// V2 emits `toggle stroke same as fill` from apps/dg/components/map/map_controller.js at
+// TWO sites (~:640 point-layer checkbox, ~:862 polygon-layer checkbox) — both fire the
+// same op string with a bare payload. V3 has a single shared PaletteCheckbox in
+// data-display-inspector/display-item-format-control.tsx that handles both layer types,
+// so there's only one V3 wiring site. V3 additionally carries `{ isChecked }` matching
+// the AdornmentCheckbox convention CODAP-1351 used for other boolean toggles.
+//
+// V2 graph does NOT emit this op; V3 emits unconditionally from the shared checkbox
+// (V3-additive for graph). Same no-tile-type-guard pattern as changePointSizeNotification.
+export function toggleStrokeSameAsFillNotification(tile: ITileModel | undefined, isChecked: boolean) {
+  return updateTileNotification("toggle stroke same as fill", { isChecked }, tile)
+}

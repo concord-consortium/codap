@@ -1,4 +1,6 @@
-import { changePointSizeNotification, swapCategoriesNotification } from "./data-display-notifications"
+import {
+  changePointSizeNotification, swapCategoriesNotification, toggleStrokeSameAsFillNotification
+} from "./data-display-notifications"
 
 // V2 component-resource notifications carry the SC class name (`DG.GraphView` / `DG.MapView`)
 // in `values.type`; V3 adds the DI-convention name as `values.diType`. The mock resolves both
@@ -72,5 +74,27 @@ describe("changePointSizeNotification", () => {
 
   it("returns undefined when the tile is missing", () => {
     expect(changePointSizeNotification(undefined, 1.0)).toBeUndefined()
+  })
+})
+
+describe("toggleStrokeSameAsFillNotification", () => {
+  it("emits 'toggle stroke same as fill' with isChecked on map", () => {
+    const tile = { id: "MAP1", content: { type: "Map" } } as any
+    const notification = toggleStrokeSameAsFillNotification(tile, true)
+    expect(notification?.message.values.operation).toBe("toggle stroke same as fill")
+    expect(notification?.message.values.isChecked).toBe(true)
+    expect(notification?.message.values.type).toBe("DG.MapView")
+  })
+
+  it("emits on graph too (V3-additive — shared checkbox)", () => {
+    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    const notification = toggleStrokeSameAsFillNotification(tile, false)
+    expect(notification?.message.values.operation).toBe("toggle stroke same as fill")
+    expect(notification?.message.values.isChecked).toBe(false)
+    expect(notification?.message.values.type).toBe("DG.GraphView")
+  })
+
+  it("returns undefined when the tile is missing", () => {
+    expect(toggleStrokeSameAsFillNotification(undefined, true)).toBeUndefined()
   })
 })
