@@ -9,6 +9,10 @@ import { theme } from "./theme"
 
 import "./index.scss"
 
+// Log the launch URL so testers can confirm where CODAP landed after any redirects.
+// eslint-disable-next-line no-console
+console.log(`CODAP launched at ${window.location.hostname}${window.location.pathname}${window.location.search}`)
+
 // https://reactjs.org/blog/2022/03/08/react-18-upgrade-guide.html#updates-to-client-rendering-apis
 const container = document.getElementById(kCodapAppElementId)
 const root = createRoot(container!)

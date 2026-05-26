@@ -15,7 +15,7 @@ const logManagerUrl: Record<LoggerEnvironment, string> = {
   production: "https://logger.concord.org/logs"
 }
 
-const kProductionHostNames = ["codap.concord.org", "codap3.concord.org"]
+const kProductionHostNames = ["codap.concord.org", "codap2to3.concord.org", "codap3.concord.org"]
 const kNonProductionPathSegments = ["beta", "staging", "branch"]
 
 // Hostname allowlist + path blacklist that route log traffic to the production
