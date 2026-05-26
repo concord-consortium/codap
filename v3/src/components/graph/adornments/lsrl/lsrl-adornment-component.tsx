@@ -1,12 +1,14 @@
 import { drag, select, Selection } from "d3"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef } from "react"
+import { useTileModelContext } from "../../../../hooks/use-tile-model-context"
 import { LogMessageFn, logModelChangeFn } from "../../../../lib/log-message"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { mstReaction } from "../../../../utilities/mst-reaction"
 import { safeGetSnapshot } from "../../../../utilities/mst-utils"
 import { t } from "../../../../utilities/translation/translate"
 import { kMain } from "../../../data-display/data-display-types"
+import { repositionEquationNotification } from "../../graph-notifications"
 import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
 import { useAdornmentCategories } from "../../hooks/use-adornment-categories"
 import { useAdornmentCells } from "../../hooks/use-adornment-cells"
@@ -50,6 +52,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
   const graphModel = useGraphContentModelContext()
   const dataConfig = useGraphDataConfigurationContext()
   const layout = useGraphLayoutContext()
+  const { tile } = useTileModelContext()
   const adornmentsStore = graphModel?.adornmentsStore
   const showSumSquares = graphModel?.adornmentsStore.showSquaresOfResiduals
   const { xAttrId, yAttrId, xAttrName, yAttrName, xScale, yScale } = useAdornmentAttributes()
@@ -130,18 +133,16 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
           // compute proportional position of center of label within container
           const x = (left + equationBounds.width / 2) / containerBounds.width
           const y = (top + equationBounds.height / 2) / containerBounds.height
-          graphModel.applyModelChange(
-            () => model.setLabelEquationCoords(cellKey, category, { x, y}),
-            {
-              undoStringKey: "DG.Undo.graph.repositionEquation",
-              redoStringKey: "DG.Redo.graph.repositionEquation",
-              log: logFn.current
-            }
-          )
+          graphModel.applyModelChange(() => model.setLabelEquationCoords(cellKey, category, { x, y }), {
+            notify: () => repositionEquationNotification(tile, "lsrl"),
+            undoStringKey: "DG.Undo.graph.repositionEquation",
+            redoStringKey: "DG.Redo.graph.repositionEquation",
+            log: logFn.current
+          })
         }
       }
     }
-  }, [cellKey, equationContainerSelector, graphModel, model])
+  }, [cellKey, equationContainerSelector, graphModel, model, tile])
 
   const updateEquations = useCallback(() => {
     const lines = getLines()

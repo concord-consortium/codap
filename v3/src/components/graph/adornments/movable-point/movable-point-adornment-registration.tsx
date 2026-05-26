@@ -25,6 +25,9 @@ registerAdornmentContentInfo({
   plots: ['scatterPlot'],
   prefix: kMovablePointPrefix,
   modelClass: MovablePointAdornmentModel,
+  // V2 emits `toggle movable point` from apps/dg/components/graph/plots/scatter_plot_model.js
+  // (toggleMovablePoint ~:232). AdornmentCheckbox forwards with `{ isChecked }`.
+  notificationOperation: "toggle movable point",
   undoRedoKeys: {
     undoAdd: kMovablePointUndoAddKey,
     redoAdd: kMovablePointRedoAddKey,

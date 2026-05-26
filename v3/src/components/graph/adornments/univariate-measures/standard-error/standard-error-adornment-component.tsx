@@ -4,10 +4,13 @@ import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
 import { t } from "../../../../../utilities/translation/translate"
 import { measureText } from "../../../../../hooks/use-measure-text"
+import { useTileModelContext } from "../../../../../hooks/use-tile-model-context"
 import { IAdornmentComponentProps } from "../../adornment-component-info"
 import { UnivariateMeasureAdornmentHelper } from "../univariate-measure-adornment-helper"
+import { repositionEquationNotification } from "../../../graph-notifications"
 import { useAdornmentAttributes } from "../../../hooks/use-adornment-attributes"
 import { useAdornmentCells } from "../../../hooks/use-adornment-cells"
+import { useGraphContentModelContext } from "../../../hooks/use-graph-content-model-context"
 import { ILabel } from "../univariate-measure-adornment-types"
 import { IStandardErrorAdornmentModel } from "./standard-error-adornment-model"
 import { IMeasureInstance } from "../univariate-measure-adornment-model"
@@ -29,6 +32,8 @@ export const StandardErrorAdornmentComponent = observer(
   function StandardErrorAdornmentComponent(props: IAdornmentComponentProps) {
     const {cellKey = {}, cellCoords, containerId, plotWidth, xAxis, yAxis, spannerRef} = props
     const model = props.model as IStandardErrorAdornmentModel
+    const graphModel = useGraphContentModelContext()
+    const { tile } = useTileModelContext()
     const {
       dataConfig, layout, adornmentsStore,
       numericAttrId, showLabel, isVerticalRef, valueRef,
@@ -102,7 +107,14 @@ export const StandardErrorAdornmentComponent = observer(
       labelObj.label.call(
         drag<HTMLDivElement, unknown>()
           .on("drag", (e) => helper.handleMoveLabel(e, labelId))
-          .on("end", (e) => helper.handleEndMoveLabel(e, labelId))
+          .on("end", (e) => {
+            graphModel.applyModelChange(() => helper.handleEndMoveLabel(e, labelId), {
+              notify: () => repositionEquationNotification(tile, model.type),
+              undoStringKey: "DG.Undo.graph.repositionEquation",
+              redoStringKey: "DG.Redo.graph.repositionEquation",
+              log: "Moved equation label"
+            })
+          })
       )
 
       labelObj.label.on("mouseover", () => highlightCovers(true))
@@ -111,8 +123,8 @@ export const StandardErrorAdornmentComponent = observer(
       selectionsObj.errorBarHoverCover?.on("mouseover", () => highlightLabel(labelId, true))
         .on("mouseout", () => highlightLabel(labelId, false))
 
-    }, [containerId, dataConfig, defaultLabelTopOffset, helper, highlightCovers, highlightLabel,
-        isVerticalRef, labelRef, model, numericAttrId])
+    }, [containerId, dataConfig, defaultLabelTopOffset, graphModel, helper, highlightCovers,
+        highlightLabel, isVerticalRef, labelRef, model, numericAttrId, tile])
 
     const addTextTip = useCallback((plotValue: number, textContent: string, valueObj: IStandardErrorSelections) => {
       const measure = model?.measures.get(helper.instanceKey)

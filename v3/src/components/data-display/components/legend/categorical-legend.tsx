@@ -3,9 +3,12 @@ import {useCallback, useEffect, useMemo, useRef, useState} from "react"
 import {mstReaction} from "../../../../utilities/mst-reaction"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { setSelectedCases, selectCases } from "../../../../models/data/data-set-utils"
+import { getTileModel } from "../../../../models/tiles/tile-model"
 import {axisGap} from "../../../axis/axis-types"
+import { swapCategoriesNotification } from "../../../graph/graph-notifications"
 import { transitionDuration } from "../../data-display-types"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
+import { useDataDisplayModelContextMaybe } from "../../hooks/use-data-display-model"
 import {useDataDisplayLayout} from "../../hooks/use-data-display-layout"
 import { IBaseLegendProps } from "./legend-common"
 import { CategoricalLegendModel, keySize, padding, labelHeight, Key } from "./categorical-legend-model"
@@ -18,6 +21,7 @@ export const CategoricalLegend =
   function CategoricalLegend({layerIndex, setDesiredExtent}: IBaseLegendProps) {
 
     const dataConfiguration = useDataConfigurationContext()
+    const displayModel = useDataDisplayModelContextMaybe()
     const dataDisplayLayout = useDataDisplayLayout()
     const duration = useRef(0)
     const keysElt = useRef(null)
@@ -83,14 +87,17 @@ export const CategoricalLegend =
 
       const onDragEnd = (event: any, d: Key) => {
         duration.current = transitionDuration
-        legendModel.onDragEnd(dataConfiguration, d)
+        const tile = displayModel ? getTileModel(displayModel) : undefined
+        legendModel.onDragEnd(dataConfiguration, d, {
+          notify: () => swapCategoriesNotification(tile, "legend")
+        })
       }
 
       return drag<SVGGElement, Key>()
         .on("start", onDragStart)
         .on("drag", onDrag)
         .on("end", onDragEnd)
-    }, [dataConfiguration, legendModel])
+    }, [dataConfiguration, displayModel, legendModel])
 
     useEffect(() => { return mstAutorun(function d3Render() {
       if (!keysElt.current) return

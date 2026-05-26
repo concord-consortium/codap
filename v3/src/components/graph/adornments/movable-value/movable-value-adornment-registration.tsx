@@ -1,8 +1,10 @@
 import { registerAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
+import { useTileModelContext } from "../../../../hooks/use-tile-model-context"
 import { isFiniteNumber } from "../../../../utilities/math-utils"
 import { stringToCellKey } from "../../utilities/cell-key-utils"
 import { t } from "../../../../utilities/translation/translate"
 import { ICodapV2MovableValueAdornmentInstance } from "../../../../v2/codap-v2-types"
+import { addMovableValueNotification, removeMovableValueNotification } from "../../graph-notifications"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { registerAdornmentComponentInfo } from "../adornment-component-info"
 import { exportAdornmentBase, getAdornmentContentInfo, registerAdornmentContentInfo } from "../adornment-content-info"
@@ -19,6 +21,7 @@ import {
 
 const Controls = () => {
   const graphModel = useGraphContentModelContext()
+  const { tile } = useTileModelContext()
   const adornmentsStore = graphModel.adornmentsStore
 
   const handleAddMovableValue = () => {
@@ -27,30 +30,26 @@ const Controls = () => {
     const adornment = existingAdornment ?? componentContentInfo.modelClass.create() as IMovableValueAdornmentModel
     const options: IUpdateCategoriesOptions = { ...graphModel.getUpdateCategoriesOptions(), addMovableValue: true }
 
-    graphModel.applyModelChange(
-      () => adornmentsStore.addAdornment(adornment, options),
-      {
-        undoStringKey: kMovableValueUndoAddKey,
-        redoStringKey: kMovableValueRedoAddKey,
-        log: `Added movable value`
-      }
-    )
+    graphModel.applyModelChange(() => adornmentsStore.addAdornment(adornment, options), {
+      notify: () => addMovableValueNotification(tile),
+      undoStringKey: kMovableValueUndoAddKey,
+      redoStringKey: kMovableValueRedoAddKey,
+      log: `Added movable value`
+    })
   }
 
   const handleRemoveMovableValue = () => {
     const adornment = adornmentsStore.findAdornmentOfType<IMovableValueAdornmentModel>(kMovableValueType)
 
-    graphModel.applyModelChange(
-      () => {
-          adornmentsStore.updateAdornment(() => { adornment?.deleteValue() })
-          if (!adornment?.hasValues) adornment?.setVisibility(false)
-      },
-      {
-        undoStringKey: kMovableValueUndoRemoveKey,
-        redoStringKey: kMovableValueRedoRemoveKey,
-        log: `Removed movable value`
-      }
-    )
+    graphModel.applyModelChange(() => {
+      adornmentsStore.updateAdornment(() => { adornment?.deleteValue() })
+      if (!adornment?.hasValues) adornment?.setVisibility(false)
+    }, {
+      notify: () => removeMovableValueNotification(tile),
+      undoStringKey: kMovableValueUndoRemoveKey,
+      redoStringKey: kMovableValueRedoRemoveKey,
+      log: `Removed movable value`
+    })
   }
 
   return (
