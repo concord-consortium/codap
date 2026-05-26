@@ -24,6 +24,7 @@ import { CollectionTable } from "./collection-table"
 import { CaseTableAnnounceContext } from "./use-case-table-announce"
 import { useCaseTableModel } from "./use-case-table-model"
 import { useSyncScrolling } from "./use-sync-scrolling"
+import { useWhiteSpaceClick } from "./use-white-space-click"
 
 import "./case-table.scss"
 
@@ -34,6 +35,7 @@ export const CaseTable = observer(function CaseTable() {
   const data = useDataSetContext()
   const tableModel = useCaseTableModel()
   const tileSelection = useTileSelectionContext()
+  const { handleWhiteSpaceClick } = useWhiteSpaceClick()
   const contentRef = useRef<HTMLDivElement>(null)
   const lastNewCollectionDrop = useRef<{ newCollectionId: string, beforeCollectionId: string } | undefined>()
   const [statusMessage, setStatusMessage] = useState("")
@@ -172,6 +174,11 @@ export const CaseTable = observer(function CaseTable() {
     if (!tableModel || !data) return null
 
     const collections = data.collections
+    const handleContentClick = (event: React.MouseEvent<HTMLDivElement>) => {
+      if (tileSelection.isTileSelected() && event.target === contentRef.current) {
+        handleWhiteSpaceClick()
+      }
+    }
     const handleHorizontalScroll: React.UIEventHandler<HTMLDivElement> = () => {
       tableModel.setHorizontalScrollOffset(contentRef.current?.scrollLeft ?? 0)
     }
@@ -180,7 +187,8 @@ export const CaseTable = observer(function CaseTable() {
       <div ref={handleTableRef} className="case-table" data-testid="case-table">
         <CaseTableAnnounceContext.Provider value={announce}>
           {data.hasFilterFormula && <FilterFormulaBar />}
-          <div className="case-table-content" ref={contentRef} onScroll={handleHorizontalScroll}>
+          <div className="case-table-content" ref={contentRef}
+               onScroll={handleHorizontalScroll} onClick={handleContentClick}>
             <AttributeHeaderDividerContext.Provider value={contentRef}>
               {collections.map((collection, i) => {
                 const key = collection.id
@@ -191,7 +199,8 @@ export const CaseTable = observer(function CaseTable() {
                       <CollectionTable collectionIndex={i} onMount={handleCollectionTableMount}
                         onNewCollectionDrop={handleNewCollectionDrop} onTableScroll={handleTableScroll}
                         onScrollClosestRowIntoView={handleScrollClosestRowIntoView}
-                        onScrollRowRangeIntoView={handleScrollRowRangeIntoView} />
+                        onScrollRowRangeIntoView={handleScrollRowRangeIntoView}
+                        onWhiteSpaceClick={handleWhiteSpaceClick} />
                     </CollectionContext.Provider>
                   </ParentCollectionContext.Provider>
                 )

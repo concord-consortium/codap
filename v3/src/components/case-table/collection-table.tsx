@@ -43,7 +43,6 @@ import { useMarqueeSelection } from "./use-marquee-selection"
 import { useRows } from "./use-rows"
 import { useSelectedCell } from "./use-selected-cell"
 import { useSelectedRows } from "./use-selected-rows"
-import { useWhiteSpaceClick } from "./use-white-space-click"
 
 import "react-data-grid/lib/styles.css"
 import styles from "./case-table-shared.scss"
@@ -62,10 +61,12 @@ interface IProps {
   onTableScroll: OnTableScrollFn
   onScrollClosestRowIntoView: OnScrollRowsIntoViewFn
   onScrollRowRangeIntoView: OnScrollRowsIntoViewFn
+  onWhiteSpaceClick: () => void
 }
 export const CollectionTable = observer(function CollectionTable(props: IProps) {
   const {
-    collectionIndex, onMount, onNewCollectionDrop, onScrollClosestRowIntoView, onScrollRowRangeIntoView, onTableScroll
+    collectionIndex, onMount, onNewCollectionDrop, onScrollClosestRowIntoView, onScrollRowRangeIntoView,
+    onTableScroll, onWhiteSpaceClick
   } = props
   const data = useDataSetContext()
   const collectionId = useCollectionContext()
@@ -76,7 +77,6 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const visibleAttributes = useVisibleAttributes(collectionId)
   const { selectedRows, setSelectedRows, handleCellClick } =
     useSelectedRows({ gridRef, onScrollClosestRowIntoView, onScrollRowRangeIntoView })
-  const { handleWhiteSpaceClick } = useWhiteSpaceClick({ gridRef })
   const { isTileSelected } = useTileSelectionContext()
   const initialPointerDownPosition = useRef({ x: 0, y: 0 })
   const kPointerMovementThreshold = 3
@@ -387,7 +387,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
     // the grid element is the target when clicking outside the cells (otherwise, the cell is the target)
     if (isTileSelected() && event.target === gridRef.current?.element) {
-      handleWhiteSpaceClick()
+      onWhiteSpaceClick()
       initialPointerDownPosition.current = { x: 0, y: 0 }
     }
   }
@@ -430,7 +430,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   return (
     <div className={clsx("collection-table", `collection-${collectionId}`, { "no-attributes": !hasVisibleAttributes })}>
       <CollectionTableSpacer gridElt={gridRef.current?.element}
-        onWhiteSpaceClick={handleWhiteSpaceClick} onDrop={handleNewCollectionDrop} />
+        onWhiteSpaceClick={onWhiteSpaceClick} onDrop={handleNewCollectionDrop} />
       <div className="collection-table-and-title" ref={setNodeRef} onClick={handleClick}
             onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp}>
         <CollectionTitle onAddNewAttribute={handleAddNewAttribute} showCount={true} collectionIndex={collectionIndex}/>
