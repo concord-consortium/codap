@@ -72,3 +72,15 @@ export function changePointColorAndAlphaNotification(tile: ITileModel | undefine
 export function changeStrokeColorAndAlphaNotification(tile: ITileModel | undefined, color: string) {
   return updateTileNotification("change changeStrokeColor", { color }, tile)
 }
+
+// V2 emits `change attribute color` from apps/dg/components/map/map_controller.js (~:370,
+// via createSetAttributeColorCommand factory) when the user picks a color for the LOW or
+// HIGH end of the numeric attribute color spectrum. V2 fires the same op for both ends
+// with a bare payload — the "low"/"high" distinction lives only in V2's log message, not
+// in the notification. V3 additionally carries `{ color, end }` so plugins can tell which
+// end was changed.
+export function changeAttributeColorNotification(
+  tile: ITileModel | undefined, color: string, end: "low" | "high"
+) {
+  return updateTileNotification("change attribute color", { color, end }, tile)
+}

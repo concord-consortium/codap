@@ -1,6 +1,7 @@
 import {
-  changePointColorAndAlphaNotification, changePointColorNotification, changePointSizeNotification,
-  changeStrokeColorAndAlphaNotification, swapCategoriesNotification, toggleStrokeSameAsFillNotification
+  changeAttributeColorNotification, changePointColorAndAlphaNotification, changePointColorNotification,
+  changePointSizeNotification, changeStrokeColorAndAlphaNotification, swapCategoriesNotification,
+  toggleStrokeSameAsFillNotification
 } from "./data-display-notifications"
 
 // V2 component-resource notifications carry the SC class name (`DG.GraphView` / `DG.MapView`)
@@ -140,5 +141,26 @@ describe("changeStrokeColorAndAlphaNotification", () => {
 
   it("returns undefined when the tile is missing", () => {
     expect(changeStrokeColorAndAlphaNotification(undefined, "#000000")).toBeUndefined()
+  })
+})
+
+describe("changeAttributeColorNotification", () => {
+  it("emits 'change attribute color' with color and end='low'", () => {
+    const tile = { id: "MAP1", content: { type: "Map" } } as any
+    const notification = changeAttributeColorNotification(tile, "#abcdef", "low")
+    expect(notification?.message.values.operation).toBe("change attribute color")
+    expect(notification?.message.values.color).toBe("#abcdef")
+    expect(notification?.message.values.end).toBe("low")
+    expect(notification?.message.values.type).toBe("DG.MapView")
+  })
+
+  it("emits 'change attribute color' with end='high'", () => {
+    const tile = { id: "MAP1", content: { type: "Map" } } as any
+    const notification = changeAttributeColorNotification(tile, "#123456", "high")
+    expect(notification?.message.values.end).toBe("high")
+  })
+
+  it("returns undefined when the tile is missing", () => {
+    expect(changeAttributeColorNotification(undefined, "#000000", "low")).toBeUndefined()
   })
 })

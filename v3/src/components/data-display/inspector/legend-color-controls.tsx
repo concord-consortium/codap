@@ -11,7 +11,7 @@ import {
 import { t } from "../../../utilities/translation/translate"
 import { PaletteCheckbox } from "../../palette-checkbox"
 import {
-  changePointColorAndAlphaNotification, changePointColorNotification
+  changeAttributeColorNotification, changePointColorAndAlphaNotification, changePointColorNotification
 } from "../data-display-notifications"
 import { IDataConfigurationModel } from "../models/data-configuration-model"
 import { IDisplayItemDescriptionModel } from "../models/display-item-description-model"
@@ -60,6 +60,7 @@ export const LegendColorControls = observer(function LegendColorControls(
     metadata?.applyModelChange(() => {
       metadata.setAttributeColor(legendAttrID, color, "low")
     }, {
+      notify: () => changeAttributeColorNotification(tile, color, "low"),
       undoStringKey: "DG.Undo.graph.changeAttributeColor",
       redoStringKey: "DG.Redo.graph.changeAttributeColor",
       log: "Changed attribute color"
@@ -70,6 +71,7 @@ export const LegendColorControls = observer(function LegendColorControls(
     metadata?.applyModelChange(() => {
       metadata.setAttributeColor(legendAttrID, color, "high")
     }, {
+      notify: () => changeAttributeColorNotification(tile, color, "high"),
       undoStringKey: "DG.Undo.graph.changeAttributeColor",
       redoStringKey: "DG.Redo.graph.changeAttributeColor",
       log: "Changed attribute color"
