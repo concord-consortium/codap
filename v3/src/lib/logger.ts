@@ -239,9 +239,11 @@ function sendToLoggingService(data: LogMessage) {
     isProductionLogHost(window.location.hostname, window.location.pathname)
   const url = logManagerUrl[isProduction ? "production" : "dev"]
 
-  if (!Logger.isLoggingEnabled || !DEBUG_LOG_TO_SERVER) return
-
+  // Trace before the early-exit so DEBUG_LOGGER can see the destination URL.
+  // DEBUG_LOGGER on => DEBUG_LOG_TO_SERVER off => we return below without sending.
   debugLog(DEBUG_LOGGER, "Logger#sendToLoggingService sending", data, "to", url)
+
+  if (!Logger.isLoggingEnabled || !DEBUG_LOG_TO_SERVER) return
 
   const request = new XMLHttpRequest()
 
