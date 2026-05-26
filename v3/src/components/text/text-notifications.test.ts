@@ -65,7 +65,8 @@ describe("editTextNotification", () => {
     expect(notification?.message.resource).toBe("component")
     expect(notification?.message.values.operation).toBe("edit text")
     expect(notification?.message.values.id).toBe(v2Id)
-    expect(notification?.message.values.type).toBe(v2Type)
+    expect(notification?.message.values.type).toBe(v2SCType)
+    expect(notification?.message.values.diType).toBe(diType)
   })
 
   it("returns undefined when tile is missing", () => {
