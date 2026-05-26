@@ -1,4 +1,4 @@
-import { changeBaseMapNotification } from "./map-notifications"
+import { changeBaseMapNotification, changeGridSizeNotification } from "./map-notifications"
 
 const v2Id = 77001
 // V2 component-resource notifications for the map carry `DG.MapView` in `values.type`;
@@ -38,5 +38,26 @@ describe("changeBaseMapNotification", () => {
 
   it("returns undefined when the tile is missing", () => {
     expect(changeBaseMapNotification(undefined, "streets")).toBeUndefined()
+  })
+})
+
+describe("changeGridSizeNotification", () => {
+  it("emits 'change grid size' with from/to values", () => {
+    const tile = { id: "MAP1", content: { type: "Map" } } as any
+    const notification = changeGridSizeNotification(tile, 0.5, 1.2)
+    expect(notification?.message.values.operation).toBe("change grid size")
+    expect(notification?.message.values.from).toBe(0.5)
+    expect(notification?.message.values.to).toBe(1.2)
+    expect(notification?.message.values.type).toBe(v2SCType)
+    expect(notification?.message.values.diType).toBe(diType)
+  })
+
+  it("returns undefined for non-map tiles", () => {
+    const graphTile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    expect(changeGridSizeNotification(graphTile, 0.5, 1.2)).toBeUndefined()
+  })
+
+  it("returns undefined when the tile is missing", () => {
+    expect(changeGridSizeNotification(undefined, 0.5, 1.2)).toBeUndefined()
   })
 })
