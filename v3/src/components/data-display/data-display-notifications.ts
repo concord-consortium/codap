@@ -43,3 +43,24 @@ export function changePointSizeNotification(tile: ITileModel | undefined, to: nu
 export function toggleStrokeSameAsFillNotification(tile: ITileModel | undefined, isChecked: boolean) {
   return updateTileNotification("toggle stroke same as fill", { isChecked }, tile)
 }
+
+// V2 emits `change point color` from apps/dg/components/map/map_controller.js (~:294, inside
+// `setCategoryColor`) when the user picks a color for a single category in a categorical
+// legend. Bare V2 payload (`type: "DG.MapView"`, no color/category). V3 additionally carries
+// `{ color, category }` so plugins can see which category got which color without
+// re-querying.
+export function changePointColorNotification(
+  tile: ITileModel | undefined, color: string, category: string
+) {
+  return updateTileNotification("change point color", { color, category }, tile)
+}
+
+// V2 emits the COMPOUND op string `"change " + <internalName>` from the factory
+// `createSetColorAndAlphaCommand` at apps/dg/components/map/map_controller.js (~:327, op at
+// :337). For the non-categorical point color picker, V2 invokes the factory with the
+// `"changePointColor"` internal command name, producing the op string
+// `"change changePointColor"`. The op string is leaky V2 nomenclature — preserved for V2
+// compat. Bare V2 payload; V3 additionally carries `{ color }`.
+export function changePointColorAndAlphaNotification(tile: ITileModel | undefined, color: string) {
+  return updateTileNotification("change changePointColor", { color }, tile)
+}
