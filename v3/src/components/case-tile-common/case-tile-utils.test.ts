@@ -6,7 +6,7 @@ import { uiState } from "../../models/ui-state"
 import { setupTestDataset } from "../../test/dataset-test-utils"
 import { kCaseTableTileType } from "../case-table/case-table-defs"
 import "../case-table/case-table-registration"
-import { createOrShowTableOrCardForDataset } from "./case-tile-utils"
+import { applyCaseValueChanges, createOrShowTableOrCardForDataset } from "./case-tile-utils"
 
 describe("createOrShowTableOrCardForDataset", () => {
   const documentContent = appState.document.content!
@@ -60,5 +60,58 @@ describe("createOrShowTableOrCardForDataset", () => {
     createOrShowTableOrCardForDataset(sharedDataSet, kCaseTableTileType)
     expect((tileLayout as IFreeTileLayout).isMinimized).toBeFalsy()
     expect(uiState.focusedTile).toBe(tile.id)
+  })
+})
+
+describe("applyCaseValueChanges", () => {
+  it("creates an undo entry and updates the value when a value changes", () => {
+    const { dataset, a3 } = setupTestDataset()
+    const itemId = dataset.getItemAtIndex(0)!.__id__
+    const spy = jest.spyOn(dataset, "applyModelChange")
+
+    applyCaseValueChanges(dataset, [{ __id__: itemId, [a3.id]: 99 }], undefined, [a3.id])
+
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(dataset.getStrValue(itemId, a3.id)).toBe("99")
+  })
+
+  it("skips no-op changes when values match current (the CODAP-1277 regression)", () => {
+    const { dataset, a3 } = setupTestDataset()
+    const itemId = dataset.getItemAtIndex(0)!.__id__
+    const currentValue = dataset.getStrValue(itemId, a3.id)
+    const spy = jest.spyOn(dataset, "applyModelChange")
+
+    applyCaseValueChanges(dataset, [{ __id__: itemId, [a3.id]: currentValue }], undefined, [a3.id])
+
+    expect(spy).not.toHaveBeenCalled()
+  })
+
+  it("only checks attributes listed in affectedAttributes", () => {
+    const { dataset, a3, a4 } = setupTestDataset()
+    const itemId = dataset.getItemAtIndex(0)!.__id__
+    const a3Current = dataset.getStrValue(itemId, a3.id)
+    const spy = jest.spyOn(dataset, "applyModelChange")
+
+    // a4 carries a different value, but affectedAttributes restricts the check to a3 (matches),
+    // so the call is treated as a no-op and skipped.
+    applyCaseValueChanges(
+      dataset,
+      [{ __id__: itemId, [a3.id]: a3Current, [a4.id]: 999 }],
+      undefined,
+      [a3.id]
+    )
+
+    expect(spy).not.toHaveBeenCalled()
+  })
+
+  it("checks all attributes in the case when affectedAttributes is omitted", () => {
+    const { dataset, a4 } = setupTestDataset()
+    const itemId = dataset.getItemAtIndex(0)!.__id__
+    const spy = jest.spyOn(dataset, "applyModelChange")
+
+    applyCaseValueChanges(dataset, [{ __id__: itemId, [a4.id]: 999 }])
+
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(dataset.getStrValue(itemId, a4.id)).toBe("999")
   })
 })

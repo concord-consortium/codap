@@ -169,6 +169,23 @@ export function toggleCardTable(documentContent: IDocumentContentModel, tileID: 
 export function applyCaseValueChanges(
   data: IDataSet, cases: ICase[], log?: ILogMessage | LogMessageFn, affectedAttributes?: string[]
 ) {
+  // Skip no-op changes: when an editor commits a row whose values haven't actually
+  // been edited (e.g. the auto-advanced cell editor on Enter being closed by a blur),
+  // RDG still routes the close through onRowsChange. Without this guard, every such
+  // commit creates a phantom undo entry that the user has to skip past.
+  const hasChanges = cases.some(aCase => {
+    const attrIds = affectedAttributes?.length
+      ? affectedAttributes
+      : Object.keys(aCase).filter(k => k !== "__id__")
+    return attrIds.some(attrId => {
+      const newValue = aCase[attrId]
+      if (newValue === undefined) return false
+      const newStr = newValue === null ? "" : String(newValue)
+      const currentStr = data.getStrValue(aCase.__id__, attrId)
+      return newStr !== currentStr
+    })
+  })
+  if (!hasChanges) return
   const updatedCaseIds = cases.map(aCase => aCase.__id__)
   const newCaseIds: string[] = []
   data.applyModelChange(() => {
