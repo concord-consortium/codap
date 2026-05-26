@@ -18,6 +18,10 @@ export interface ILocalAttributeDependency {
   type: "localAttribute"
   attrId: string
   aggregate?: boolean
+  // True when every reference to this attribute in the formula is inside a function with
+  // `selfReferenceAllowed` (currently only `prev()`). Such edges are ignored by cycle detection
+  // because `prev()` reads the previous case's value and breaks any row-level cycle.
+  selfReferenceAllowed?: boolean
 }
 export function isLocalAttributeDependency(dep?: IFormulaDependency): dep is ILocalAttributeDependency {
   return dep?.type === "localAttribute"

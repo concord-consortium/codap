@@ -21,6 +21,7 @@ import {
   kWebViewTileType, WebViewSubType
 } from "./web-view-defs"
 import { isWebViewModel, IWebViewSnapshot, WebViewModel } from "./web-view-model"
+import { kSubTypeToV2TypeMap, webViewV2Type } from "./web-view-types"
 import { WebViewComponent } from "./web-view"
 import { WebViewInspector } from "./web-view-inspector"
 import { WebViewTitleBar } from "./web-view-title-bar"
@@ -53,7 +54,7 @@ registerTileContentInfo({
   defaultContent: () => ({ type: kWebViewTileType }),
   defaultName: () => t("DG.WebView.defaultTitle"),
   getTitle: (tile) => tile.title || t("DG.WebView.defaultTitle"),
-  getV2Type: (content) => isWebViewModel(content) && content.isPlugin ? kV2GameType : kV2WebViewType
+  getV2Type: webViewV2Type
 })
 
 registerTileComponentInfo({
@@ -290,12 +291,7 @@ const webViewComponentHandler: DIComponentHandler = {
 
   get(content) {
     if (isWebViewModel(content)) {
-      const subTypeToV2TypeMap: Record<WebViewSubType, string> = {
-        guide: kV2GuideViewType,
-        image: kV2ImageComponentViewType,
-        plugin: kV2GameType
-      }
-      const type = (content.subType && subTypeToV2TypeMap[content.subType]) ?? kV2WebViewType
+      const type = (content.subType && kSubTypeToV2TypeMap[content.subType]) ?? kV2WebViewType
 
       // Return guide-specific properties
       if (content.isGuide) {

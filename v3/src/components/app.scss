@@ -20,14 +20,6 @@
     width: 100%;
     height: 100%;
 
-    &.beta {
-      top: vars.$beta-banner-height;
-
-      .app-container {
-        height: calc(100% - vars.$menu-bar-height - vars.$beta-banner-height);
-      }
-    }
-
     .app-container {
       display: flex;
       flex-direction: column;
@@ -54,10 +46,6 @@
 
     > .log-monitor {
       padding-top: vars.$menu-bar-height;
-    }
-
-    .codap-app.beta ~ .log-monitor {
-      padding-top: calc(vars.$menu-bar-height + vars.$beta-banner-height);
     }
   }
 
@@ -105,12 +93,29 @@
   pointer-events: auto;
   background-color: #77777780;
   z-index: 200;
-  &.beta {
-    top: vars.$beta-banner-height;
-    height: calc(100vh - vars.$beta-banner-height);
-  }
   &.show-highlight {
     border: 3px solid yellow;
+  }
+}
+
+html.has-announcement-banner {
+  #codap-app-id {
+    .codap-app {
+      top: vars.$announcement-banner-height;
+
+      .app-container {
+        height: calc(100% - vars.$menu-bar-height - vars.$announcement-banner-height);
+      }
+    }
+
+    .codap-app ~ .log-monitor {
+      padding-top: calc(vars.$menu-bar-height + vars.$announcement-banner-height);
+    }
+  }
+
+  #user-entry-drop-overlay {
+    top: vars.$announcement-banner-height;
+    height: calc(100vh - vars.$announcement-banner-height);
   }
 }
 

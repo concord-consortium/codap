@@ -1,9 +1,11 @@
 import { useState } from "react"
 import { observer } from "mobx-react-lite"
 import { Button, useDisclosure } from "@chakra-ui/react"
+import { useTileModelContext } from "../../../../hooks/use-tile-model-context"
 import { t } from "../../../../utilities/translation/translate"
 import { logStringifiedObjectMessage } from "../../../../lib/log-message"
 import { EditFormulaModal } from "../../../common/edit-formula-modal"
+import { editPlotFormulaNotification } from "../../graph-notifications"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { IAdornmentBannerComponentProps } from "../adornment-component-info"
 import { IPlottedFunctionAdornmentModel } from "./plotted-function-adornment-model"
@@ -15,6 +17,7 @@ export const PlottedFunctionAdornmentBanner = observer(function PlottedFunctionA
 ) {
   const model = props.model as IPlottedFunctionAdornmentModel
   const graphModel = useGraphContentModelContext()
+  const { tile } = useTileModelContext()
   const dataset = graphModel.dataset
   const yAttrID = graphModel.dataConfiguration.attributeID('y')
   const yAttrName = dataset?.getAttribute(yAttrID)?.name ?? t("DG.PlottedFunction.formulaPrompt")
@@ -38,14 +41,12 @@ export const PlottedFunctionAdornmentBanner = observer(function PlottedFunctionA
 
   const handleEditExpressionClose = (newExpression: string) => {
     handleCloseModal()
-    graphModel.applyModelChange(
-      () => model.setExpression(newExpression),
-      {
-        undoStringKey: "DG.Undo.graph.changePlotFunction",
-        redoStringKey: "DG.Redo.graph.changePlotFunction",
-        log: logStringifiedObjectMessage("Change plotted function: %@", {from: expression, to: newExpression})
-      }
-    )
+    graphModel.applyModelChange(() => model.setExpression(newExpression), {
+      notify: () => editPlotFormulaNotification(tile, "plottedFunction", expression, newExpression),
+      undoStringKey: "DG.Undo.graph.changePlotFunction",
+      redoStringKey: "DG.Redo.graph.changePlotFunction",
+      log: logStringifiedObjectMessage("Change plotted function: %@", {from: expression, to: newExpression})
+    })
   }
 
   return (

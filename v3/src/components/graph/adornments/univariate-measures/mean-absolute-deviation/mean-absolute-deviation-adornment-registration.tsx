@@ -28,6 +28,8 @@ registerAdornmentContentInfo({
   plots: ["dotPlot"],
   prefix: kMeanAbsoluteDeviationPrefix,
   modelClass: MeanAbsoluteDeviationAdornmentModel,
+  // V2 op string (univariate_adornment_base_model.js togglePlottedMad ~:411/321).
+  notificationOperation: "togglePlottedMad",
   exporter: (model, options) => {
     const adornment = isMeanAbsoluteDeviationAdornment(model) ? model : undefined
     return adornment

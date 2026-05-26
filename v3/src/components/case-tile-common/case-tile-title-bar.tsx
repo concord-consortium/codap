@@ -13,6 +13,7 @@ import { kCaseCardTileType } from "../case-card/case-card-defs"
 import { kCaseTableTileType } from "../case-table/case-table-defs"
 import { ComponentTitleBar } from "../component-title-bar"
 import { ITileTitleBarProps } from "../tiles/tile-base-props"
+import { toggleCardTableNotification } from "./case-tile-notifications"
 import { toggleCardTable } from "./case-tile-utils"
 
 import "../component-title-bar.scss"
@@ -92,6 +93,7 @@ export const CaseTileTitleBar =
           newTileId = toggleCardTable(documentContent, tile.id)?.id
         }
       }, {
+        notify: () => toggleCardTableNotification(tile),
         log: logMessageWithReplacement("Toggle component: %@", {componentType: suffix}, "table"),
         undoStringKey: `DG.Undo.component.toggle${suffix}`,
         redoStringKey: `DG.Redo.component.toggle${suffix}`
@@ -120,13 +122,14 @@ export const CaseTileTitleBar =
     const handleChangeTitle = (newTitle?: string) => {
       if (newTitle !== undefined) {
         // case table title reflects DataSet title
+        const oldTitle = data?.title ?? ""
         data?.applyModelChange(() => {
           data.setTitle(newTitle)
         }, {
           notify: () => updateDataContextNotification(data),
           undoStringKey: "DG.Undo.component.componentTitleChange",
           redoStringKey: "DG.Redo.component.componentTitleChange",
-          log: logMessageWithReplacement("Title changed to: %@", {newTitle}, "component")
+          log: logMessageWithReplacement("Change title '%@' to '%@'", {from: oldTitle, to: newTitle}, "component")
         })
       }
     }
@@ -138,9 +141,9 @@ export const CaseTileTitleBar =
       }, {
         undoStringKey: `V3.Undo.case${suffix}.hide`,
         redoStringKey: `V3.Redo.case${suffix}.hide`,
-        log: logMessageWithReplacement("Close component: %@", { type: tileInfo.toggleSuffix }, "component")
+        log: logMessageWithReplacement("Close component: %@", {tileType: tile?.content.type}, "component")
       })
-    }, [documentContent, tile?.id, tileInfo])
+    }, [documentContent, tile?.content.type, tile?.id, tileInfo])
 
     const { Icon, otherSuffix } = tileInfo
     const translationKey = `DG.DocumentController.toggleToCase${otherSuffix}`

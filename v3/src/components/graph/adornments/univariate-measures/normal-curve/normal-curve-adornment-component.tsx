@@ -5,8 +5,10 @@ import { clsx } from "clsx"
 import { t } from "../../../../../utilities/translation/translate"
 import { getDocumentContentPropertyFromNode } from "../../../../../utilities/mst-utils"
 import { measureText } from "../../../../../hooks/use-measure-text"
+import { useTileModelContext } from "../../../../../hooks/use-tile-model-context"
 import { fitGaussianLM, normal, sqrtTwoPi } from "../../../../../utilities/math-utils"
 import { getDomainExtentForPixelWidth } from "../../../../axis/axis-utils"
+import { repositionEquationNotification } from "../../../graph-notifications"
 import { useGraphContentModelContext } from "../../../hooks/use-graph-content-model-context"
 import { isBinnedPlotModel } from "../../../plots/histogram/histogram-model"
 import { curveBasis } from "../../../utilities/graph-utils"
@@ -40,6 +42,7 @@ export const NormalCurveAdornmentComponent = observer(
       xAxis, yAxis, spannerRef
     } = props
     const graphModel = useGraphContentModelContext()
+    const { tile } = useTileModelContext()
     const model = props.model as INormalCurveAdornmentModel
     const {
       dataConfig, layout, adornmentsStore,
@@ -47,8 +50,9 @@ export const NormalCurveAdornmentComponent = observer(
       labelRef, defaultLabelTopOffset
     } = useAdornmentAttributes()
     const helper = useMemo(() => {
-      return new UnivariateMeasureAdornmentHelper(cellKey, isVerticalRef, layout, model, containerId)
-    }, [cellKey, containerId, isVerticalRef, layout, model])
+      return new UnivariateMeasureAdornmentHelper(cellKey, isVerticalRef, layout, model, containerId,
+        undefined, xAxis, yAxis)
+    }, [cellKey, containerId, isVerticalRef, layout, model, xAxis, yAxis])
     const isHistogram = graphModel.plotType === "histogram"
     const binnedPlot = isBinnedPlotModel(graphModel.plot) ? graphModel.plot : undefined
     const useGaussianFit = isHistogram && getDocumentContentPropertyFromNode(graphModel, "gaussianFitEnabled")
@@ -139,7 +143,14 @@ export const NormalCurveAdornmentComponent = observer(
       labelObj.label.call(
         drag<HTMLDivElement, unknown>()
           .on("drag", (e) => helper.handleMoveLabel(e, labelId))
-          .on("end", (e) => helper.handleEndMoveLabel(e, labelId))
+          .on("end", (e) => {
+            graphModel.applyModelChange(() => helper.handleEndMoveLabel(e, labelId), {
+              notify: () => repositionEquationNotification(tile, model.type),
+              undoStringKey: "DG.Undo.graph.repositionEquation",
+              redoStringKey: "DG.Redo.graph.repositionEquation",
+              log: "Moved equation label"
+            })
+          })
       )
 
       labelObj.label.on("mouseover", () => highlightCovers(true))
@@ -148,8 +159,8 @@ export const NormalCurveAdornmentComponent = observer(
       selectionsObj.normalCurveHoverCover?.on("mouseover", () => highlightLabel(labelId, true))
         .on("mouseout", () => highlightLabel(labelId, false))
 
-    }, [containerId, dataConfig, defaultLabelTopOffset, helper, highlightCovers, highlightLabel,
-        isVerticalRef, labelRef, model, numericAttrId])
+    }, [containerId, dataConfig, defaultLabelTopOffset, graphModel, helper, highlightCovers,
+        highlightLabel, isVerticalRef, labelRef, model, numericAttrId, tile])
 
     const addTextTip = useCallback((plotValue: number, textContent: string, valueObj: INormalCurveSelections) => {
       const measure = model?.measures.get(helper.instanceKey)
@@ -305,7 +316,8 @@ export const NormalCurveAdornmentComponent = observer(
       const numericAttr = dataConfig?.dataset?.attrFromID(numericAttrId) ?? null
       const numericAttrUnits = numericAttr?.units
       const meanDisplayValue = helper.formatValueForScale(mean)
-      const sdDisplayValue = helper.formatValueForScale(stdDev)
+      // Standard deviation is a *duration* on a date axis, not an absolute date.
+      const sdDisplayValue = helper.formatDateDurationForScale(stdDev)
 
       addNormalCurve(selectionsObj)
 

@@ -9,3 +9,8 @@ export function commitEditNotification(textModel: ITextModel, tile?: ITileModel)
     text: JSON.stringify(textModel.value)
   }, tile)
 }
+
+export function editTextNotification(tile?: ITileModel) {
+  if (!tile) return
+  return updateTileNotification("edit text", {}, tile)
+}

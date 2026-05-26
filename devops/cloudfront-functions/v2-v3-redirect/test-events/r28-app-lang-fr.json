@@ -1,0 +1,21 @@
+{
+  "version": "1.0",
+  "context": {
+    "eventType": "viewer-request",
+    "requestId": "test-r28-app-lang-fr"
+  },
+  "viewer": { "ip": "127.0.0.1" },
+  "request": {
+    "method": "GET",
+    "uri": "/app/static/dg/fr/cert/index.html",
+    "querystring": {
+      "lang":             { "value": "es" },
+      "launchFromLara":   { "value": "true" },
+      "documentServer":   { "value": "https://example.com" }
+    },
+    "headers": {
+      "host": { "value": "codap.concord.org" }
+    },
+    "cookies": {}
+  }
+}

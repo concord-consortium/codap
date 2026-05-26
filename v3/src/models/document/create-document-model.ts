@@ -1,4 +1,4 @@
-import { reaction } from "mobx"
+import { comparer, reaction } from "mobx"
 import { addDisposer, onAction } from "mobx-state-tree"
 import { Logger } from "../../lib/logger"
 import { createFormulaAdapters } from "../formula/formula-adapter-registry"
@@ -47,8 +47,22 @@ export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
   if (document.content) {
     sharedModelManager.setDocument(document.content)
   }
-  sharedModelManager.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType)
-    .forEach((model: ISharedDataSet) => formulaManager.addDataSet(model.dataSet))
+
+  // Keep the formula manager's set of datasets synchronized with the document's shared
+  // datasets. A reaction (rather than a one-time registration) is required because
+  // datasets can be added to the document after creation by paths that bypass the
+  // explicit formulaManager.addDataSet() calls -- notably applySnapshot() when a Story
+  // Builder "moment" is restored, and undo of a dataset deletion. An unregistered dataset
+  // is invisible to the formula adapters, so its formula attributes are never recomputed:
+  // after a moment restore they come back empty (the values are not serialized), and after
+  // an undo the formula is left stale (CODAP-1348). Dataset removal is handled by a
+  // disposer installed by addDataSet().
+  addDisposer(document, reaction(
+    () => sharedModelManager.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType)
+            .map((model: ISharedDataSet) => model.dataSet),
+    dataSets => dataSets.forEach(dataSet => formulaManager.addDataSet(dataSet)),
+    { name: "createDocumentModel.syncFormulaManagerDataSets", equals: comparer.shallow, fireImmediately: true }
+  ))
 
   // configure logging
   fullEnvironment.log = function({ message, args, category }) {

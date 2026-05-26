@@ -22,22 +22,17 @@ mockCanvas.width = 100
 mockCanvas.height = 100
 mockCanvas.getBoundingClientRect = jest.fn(() => mockRect())
 
-// Mock renderer with PIXI-specific properties accessed via (renderer as any) in image-utils.ts
-// and canvas property for the new exportGraphToPng approach
+// Mock renderer simulating a PIXI/WebGL renderer: snapshotCanvas() returns an extracted canvas
+const mockExtractedCanvas = (() => {
+  const canvas = document.createElement("canvas")
+  canvas.toDataURL = jest.fn(() => "data:image/png;base64,")
+  canvas.width = 100
+  canvas.height = 100
+  return canvas
+})()
 const mockRenderer = {
   canvas: mockCanvas,
-  renderer: {
-    extract: {
-      canvas: jest.fn(() => {
-        const canvas = document.createElement("canvas")
-        canvas.toDataURL = jest.fn(() => "data:image/png;base64,")
-        canvas.width = 100
-        canvas.height = 100
-        return canvas
-      })
-    }
-  },
-  stage: {}
+  snapshotCanvas: jest.fn(() => mockExtractedCanvas)
 } as unknown as PointRendererBase
 
 beforeAll(() => {
@@ -205,9 +200,10 @@ describe("exportGraphToPng", () => {
   })
 
   it("should use canvas directly for non-PIXI renderer", async () => {
+    // Canvas-2D renderer: snapshotCanvas() returns the live canvas (the base-class default)
     const canvasOnlyRenderer = {
       canvas: mockCanvas,
-      // No renderer.extract or stage — triggers the Canvas 2D fallback path
+      snapshotCanvas: jest.fn(() => mockCanvas)
     } as unknown as PointRendererBase
     const result = await exportGraphToPng({
       ...defaultOptions,
@@ -247,12 +243,7 @@ describe("exportGraphToPng", () => {
     const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {})
     const failingRenderer = {
       canvas: mockCanvas,
-      renderer: {
-        extract: {
-          canvas: jest.fn(() => { throw new Error("WebGL context lost") })
-        }
-      },
-      stage: {}
+      snapshotCanvas: jest.fn(() => { throw new Error("WebGL context lost") })
     } as unknown as PointRendererBase
     const result = await exportGraphToPng({
       ...defaultOptions,

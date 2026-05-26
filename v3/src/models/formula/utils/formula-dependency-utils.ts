@@ -1,8 +1,8 @@
 import { parse, isFunctionNode } from "mathjs/number"
 import type { MathNode } from "mathjs"
-import { IFormulaDependency, isLocalAttributeDependency } from "../formula-types"
+import { IFormulaDependency, ILocalAttributeDependency, isLocalAttributeDependency } from "../formula-types"
 import { typedFnRegistry } from "../functions/math"
-import { basicCanonicalNameToDependency } from "./name-mapping-utils"
+import { basicCanonicalNameToDependency, localAttrIdToCanonical } from "./name-mapping-utils"
 import { isNonFunctionSymbolNode } from "./mathjs-utils"
 
 export const ifSelfReference = (dependency?: IFormulaDependency, formulaAttributeId?: string) =>
@@ -34,7 +34,22 @@ export const getFormulaDependencies = (formulaCanonical: string, formulaAttribut
         }
       })
     }
-    if (isFunctionNode(node) && typedFnRegistry[node.fn.name]?.selfReferenceAllowed || parent?.isSelfReferenceAllowed) {
+    if (isFunctionNode(node) && typedFnRegistry[node.fn.name]?.selfReferenceAllowed) {
+      const semiAggregate = typedFnRegistry[node.fn.name].isSemiAggregate
+      if (semiAggregate) {
+        // Only the row-shifted args (marked aggregate in isSemiAggregate) are cycle-safe.
+        // E.g. prev()'s defaultValue is evaluated in the current-case context and is NOT
+        // row-shifted, so deps appearing only there should not be treated as cycle-safe.
+        semiAggregate.forEach((isAggregateArgument, index) => {
+          if (node.args[index] && isAggregateArgument) {
+            (node.args[index] as IExtendedMathNode).isSelfReferenceAllowed = true
+          }
+        })
+      } else {
+        (node as IExtendedMathNode).isSelfReferenceAllowed = true
+      }
+    }
+    if (parent?.isSelfReferenceAllowed) {
       node.isSelfReferenceAllowed = true
     }
     const isDescendantOfAggregateFunc = !!node.isDescendantOfAggregateFunc
@@ -45,15 +60,34 @@ export const getFormulaDependencies = (formulaCanonical: string, formulaAttribut
         dependency.aggregate = true
       }
       const isSelfReference = ifSelfReference(dependency, formulaAttributeId)
-      // Note that when self reference is allowed, we should NOT add the attribute to the dependency list.
-      // This would create cycle in observers and trigger an error even earlier, when we check for this scenario.
-      const isPresent = result.some((dep) => {
-        return isLocalAttributeDependency(dep) &&
-                isLocalAttributeDependency(dependency) &&
-                dep.attrId === dependency.attrId
-      })
-      if (dependency && (!isSelfReference || !isSelfReferenceAllowed) && !isPresent) {
-        result.push(dependency)
+      // Direct self-reference inside prev() (e.g. CumulativeValue = Value + prev(CumulativeValue, 0))
+      // is dropped from the dependency list - prev() breaks the row-level cycle, and adding the
+      // attribute would create an observer cycle that recalculates the formula from its own output.
+      const skipDirectSelfRef = isSelfReference && isSelfReferenceAllowed
+      if (dependency && !skipDirectSelfRef) {
+        const existing = isLocalAttributeDependency(dependency)
+          ? result.find((dep): dep is ILocalAttributeDependency =>
+              isLocalAttributeDependency(dep) && dep.attrId === dependency.attrId)
+          : undefined
+        if (existing) {
+          // Merge aggregate flag - if any reference is in an aggregate context, the dep is aggregate.
+          if (isLocalAttributeDependency(dependency) && dependency.aggregate) {
+            existing.aggregate = true
+          }
+          // If the same attribute is referenced outside a selfReferenceAllowed function anywhere
+          // in the formula, the dependency cannot be treated as cycle-safe.
+          if (!isSelfReferenceAllowed) {
+            existing.selfReferenceAllowed = false
+          }
+        } else {
+          if (isLocalAttributeDependency(dependency) && isSelfReferenceAllowed) {
+            // Cross-attribute reference inside prev() (e.g. sunny = prev(rainy), rainy = prev(sunny)).
+            // Keep the dependency so observers fire when the referenced attribute changes, but mark
+            // it so the cycle detector ignores it - prev() breaks the row-level cycle.
+            dependency.selfReferenceAllowed = true
+          }
+          result.push(dependency)
+        }
       }
     }
 
@@ -76,4 +110,54 @@ export const getFormulaDependencies = (formulaCanonical: string, formulaAttribut
   }
   formulaTree.traverse(visitNode)
   return result
+}
+
+// Iteration direction implied by the formula's self-references inside prev()/next() calls.
+// - "forward": only prev(self) appears - outer recalc loop iterates 0..n-1 so each prev() reads a cached value
+// - "reverse": only next(self) appears - outer loop iterates n-1..0 so each next() reads a cached value
+// - "mixed":  both prev(self) and next(self) appear - single-pass evaluation cannot satisfy both;
+//            caller should reject the formula since it would require iterative resolution
+// - "none":   no self-references through prev()/next() - direction does not matter
+export type SelfReferenceDirection = "forward" | "reverse" | "mixed" | "none"
+
+const subtreeReferencesSymbol = (root: MathNode, canonicalSymbolName: string): boolean => {
+  let found = false
+  root.traverse((node) => {
+    if (found) return
+    if (node.type === "SymbolNode" && (node as any).name === canonicalSymbolName) {
+      found = true
+    }
+  })
+  return found
+}
+
+export const getSelfReferenceDirection = (
+  formulaCanonical: string, formulaAttributeId: string
+): SelfReferenceDirection => {
+  if (!formulaCanonical || !formulaAttributeId) return "none"
+  const formulaTree = parse(formulaCanonical)
+  const canonicalAttrName = localAttrIdToCanonical(formulaAttributeId)
+  let hasPrevSelf = false
+  let hasNextSelf = false
+  formulaTree.traverse((node) => {
+    if (!isFunctionNode(node)) return
+    const fnName = node.fn.name
+    if (fnName !== "prev" && fnName !== "next") return
+    // Only the row-shifted (aggregate) args carry the self-reference cycle; defaultValue is
+    // evaluated in the current-case context and a self-ref there is a real cycle (caught by
+    // the static detector), not a recurrence to be iterated.
+    const semiAggregate = typedFnRegistry[fnName]?.isSemiAggregate
+    if (!semiAggregate) return
+    semiAggregate.forEach((isAggregate, index) => {
+      if (!isAggregate || !node.args[index]) return
+      if (subtreeReferencesSymbol(node.args[index], canonicalAttrName)) {
+        if (fnName === "prev") hasPrevSelf = true
+        else hasNextSelf = true
+      }
+    })
+  })
+  if (hasPrevSelf && hasNextSelf) return "mixed"
+  if (hasNextSelf) return "reverse"
+  if (hasPrevSelf) return "forward"
+  return "none"
 }

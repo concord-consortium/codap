@@ -142,7 +142,7 @@ describe("UIState", () => {
       const uiState = new UIState()
       expect(uiState.shouldRenderMenuBar).toBe(true)
       expect(uiState.shouldRenderToolShelf).toBe(true)
-      expect(uiState.shouldRenderBetaBanner).toBe(true)
+      expect(uiState.shouldRenderAnnouncementBanner).toBe(true)
     })
 
     it("should hide chrome when componentMode=yes", () => {
@@ -150,7 +150,7 @@ describe("UIState", () => {
       const uiState = new UIState()
       expect(uiState.shouldRenderMenuBar).toBe(false)
       expect(uiState.shouldRenderToolShelf).toBe(false)
-      expect(uiState.shouldRenderBetaBanner).toBe(false)
+      expect(uiState.shouldRenderAnnouncementBanner).toBe(false)
     })
 
     it("should still hide toolShelf in standalone mode", () => {
@@ -158,7 +158,13 @@ describe("UIState", () => {
       const uiState = new UIState()
       expect(uiState.shouldRenderMenuBar).toBe(true)
       expect(uiState.shouldRenderToolShelf).toBe(false)
-      expect(uiState.shouldRenderBetaBanner).toBe(true)
+      expect(uiState.shouldRenderAnnouncementBanner).toBe(true)
+    })
+
+    it("should hide AnnouncementBanner when interactiveApi URL param is present", () => {
+      setUrlParams("?interactiveApi=true")
+      const uiState = new UIState()
+      expect(uiState.shouldRenderAnnouncementBanner).toBe(false)
     })
   })
 
@@ -256,7 +262,7 @@ describe("UIState", () => {
       const uiState = new UIState()
       expect(uiState.shouldRenderMenuBar).toBe(false)
       expect(uiState.shouldRenderToolShelf).toBe(false)
-      expect(uiState.shouldRenderBetaBanner).toBe(false)
+      expect(uiState.shouldRenderAnnouncementBanner).toBe(false)
     })
 
     it("should allow component interactions when embeddedMode=yes (unlike componentMode)", () => {
@@ -324,7 +330,7 @@ describe("UIState", () => {
       const uiState = new UIState()
       expect(uiState.shouldRenderMenuBar).toBe(true)
       expect(uiState.shouldRenderToolShelf).toBe(true)
-      expect(uiState.shouldRenderBetaBanner).toBe(true)
+      expect(uiState.shouldRenderAnnouncementBanner).toBe(true)
     })
 
     it("should allow component interactions when only embeddedServer=yes", () => {

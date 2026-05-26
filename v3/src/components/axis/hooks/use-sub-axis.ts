@@ -2,12 +2,14 @@ import { MutableRefObject, useCallback, useEffect, useMemo, useRef } from "react
 import { BaseType, drag, extent, select, Selection } from "d3"
 import { comparer, reaction } from "mobx"
 import { logMessageWithReplacement } from "../../../lib/log-message"
+import { getTileModel } from "../../../models/tiles/tile-model"
 import { mstAutorun } from "../../../utilities/mst-autorun"
 import { mstReaction } from "../../../utilities/mst-reaction"
 import { isAliveSafe } from "../../../utilities/mst-utils"
 import { translate } from "../../../utilities/translation/translate"
 import { isVertical } from "../../axis-graph-shared"
 import { axisPlaceToAttrRole, kOther } from "../../data-display/data-display-types"
+import { swapCategoriesNotification } from "../../data-display/data-display-notifications"
 import { useDataDisplayAnimation } from "../../data-display/hooks/use-data-display-animation"
 import { useDataDisplayModelContextMaybe } from "../../data-display/hooks/use-data-display-model"
 import { kDefaultFontHeight } from "../axis-constants"
@@ -147,6 +149,8 @@ export const useSubAxis = ({
         displayModel?.applyModelChange(() => {
           categorySet?.move(dI.catName, dI.currentDragPositionCatName)
         }, {
+          notify: () => swapCategoriesNotification(
+                          displayModel ? getTileModel(displayModel) : undefined, axisPlace),
           undoStringKey: "DG.Undo.graph.swapCategories",
           redoStringKey: "DG.Redo.graph.swapCategories",
           log: logMessageWithReplacement(

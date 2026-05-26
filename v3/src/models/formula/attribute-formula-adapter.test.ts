@@ -44,6 +44,45 @@ describe("AttributeFormulaAdapter", () => {
       adapter.recalculateFormula(context, extraMetadata, "ALL_CASES")
       expect(dataSet.getValueAtItemIndex(0, attribute.id)).toEqual(3)
     })
+
+    it("handles next(self) on large datasets without stack overflow (CODAP-1358)", () => {
+      // Recursive next(self) evaluation would add ~10 stack frames per case, hitting the
+      // ~10k JS stack limit around 1000 cases. With iterative reverse-order evaluation, the
+      // outer loop fills the cache before each next() read, so depth stays O(1).
+      const N = 2000
+      const formulaManager = new FormulaManager()
+      const dataSet = createDataSet({
+        attributes: [{ name: "x", formula: { display: `caseIndex = ${N} ? 1 : next(x, 0) + 1` } }]
+      }, {formulaManager})
+      dataSet.addCases(Array.from({ length: N }, (_, i) => ({ __id__: `c${i}` })))
+      const adapter = new AttributeFormulaAdapter(formulaManager.getAdapterApi())
+      formulaManager.addDataSet(dataSet)
+      formulaManager.addAdapters([adapter])
+
+      const xAttr = dataSet.attributes[0]
+      // Reverse-counting: case 1 -> N, case 2 -> N-1, ..., case N -> 1
+      expect(dataSet.getValueAtItemIndex(0, xAttr.id)).toEqual(N)
+      expect(dataSet.getValueAtItemIndex(N - 1, xAttr.id)).toEqual(1)
+      expect(dataSet.getValueAtItemIndex(Math.floor(N / 2), xAttr.id)).toEqual(N - Math.floor(N / 2))
+    })
+
+    it("rejects formulas that mix prev(self) and next(self) with a formula error (CODAP-1358)", () => {
+      // Such a formula would require iterative resolution (cannot be satisfied in a single
+      // forward or reverse pass). Until that's supported (see CODAP-1359 follow-up), reject
+      // at recalculation time with a clear error rather than silently computing wrong values
+      // or stack-overflowing on the runtime guard.
+      const formulaManager = new FormulaManager()
+      const dataSet = createDataSet({
+        attributes: [{ name: "x", formula: { display: "prev(x, 0) + next(x, 0)" } }]
+      }, {formulaManager})
+      dataSet.addCases([{ __id__: "1" }, { __id__: "2" }, { __id__: "3" }])
+      const adapter = new AttributeFormulaAdapter(formulaManager.getAdapterApi())
+      formulaManager.addDataSet(dataSet)
+      formulaManager.addAdapters([adapter])
+
+      const xAttr = dataSet.attributes[0]
+      expect(dataSet.getValueAtItemIndex(0, xAttr.id)).toMatch(/prev.*next|next.*prev/)
+    })
   })
 
   describe("setError", () => {
@@ -122,6 +161,68 @@ describe("AttributeFormulaAdapter", () => {
       const extraMetadata = metadataMap.get(aAttr.formula!.id)!
       const error = adapter.getFormulaError(context, extraMetadata)
       expect(error).toBeUndefined()
+    })
+
+    it("should not report false cycle when two attributes reference each other only via prev() (CODAP-1357)", () => {
+      // Markov-style mutual recurrence: each attribute references the other only through prev().
+      // prev() reads the previous case, so this is not a runtime cycle.
+      const { dataSet, adapter, contextMap, metadataMap } = getCycleTestEnv([
+        { name: "sunny", formula: "caseIndex=1 ? 3600 : 5/6 * prev(sunny) + 4/6 * prev(rainy)" },
+        { name: "rainy", formula: "caseIndex=1 ? 0 : 1/6 * prev(sunny) + 2/6 * prev(rainy)" }
+      ])
+      const sunnyAttr = dataSet.attributes[0]
+      const sunnyError = adapter.getFormulaError(
+        contextMap.get(sunnyAttr.formula!.id)!, metadataMap.get(sunnyAttr.formula!.id)!)
+      expect(sunnyError).toBeUndefined()
+      const rainyAttr = dataSet.attributes[1]
+      const rainyError = adapter.getFormulaError(
+        contextMap.get(rainyAttr.formula!.id)!, metadataMap.get(rainyAttr.formula!.id)!)
+      expect(rainyError).toBeUndefined()
+    })
+
+    it("should not report false cycle when two attributes reference each other only via next() (CODAP-1358)", () => {
+      // Symmetric counterpart to the prev() case: each attribute references the other only
+      // through next(). next() reads the next case, so this is not a runtime cycle.
+      const { dataSet, adapter, contextMap, metadataMap } = getCycleTestEnv([
+        { name: "a", formula: "caseIndex=27 ? 1 : next(a, 0) + next(b, 0)" },
+        { name: "b", formula: "caseIndex=27 ? 1 : next(a, 0) + next(b, 0)" }
+      ])
+      const aAttr = dataSet.attributes[0]
+      const aError = adapter.getFormulaError(
+        contextMap.get(aAttr.formula!.id)!, metadataMap.get(aAttr.formula!.id)!)
+      expect(aError).toBeUndefined()
+      const bAttr = dataSet.attributes[1]
+      const bError = adapter.getFormulaError(
+        contextMap.get(bAttr.formula!.id)!, metadataMap.get(bAttr.formula!.id)!)
+      expect(bError).toBeUndefined()
+    })
+
+    it("should still detect cycle when a prev() cross-reference is paired with a direct reference", () => {
+      // A = prev(B) + B  (B is referenced both inside and outside prev)
+      // B = A            (B depends directly on A)
+      // This is a real cycle: B[N] needs A[N], A[N] needs B[N].
+      const { dataSet, adapter, contextMap, metadataMap } = getCycleTestEnv([
+        { name: "A", formula: "prev(B) + B" },
+        { name: "B", formula: "A" }
+      ])
+      const aAttr = dataSet.attributes[0]
+      const error = adapter.getFormulaError(
+        contextMap.get(aAttr.formula!.id)!, metadataMap.get(aAttr.formula!.id)!)
+      expect(error).toMatch(/Circular reference/)
+    })
+
+    it("should detect cycle when a prev() defaultValue arg references an attr that closes the cycle", () => {
+      // A = prev(B, B): B in the expression arg is row-shifted, but B in the defaultValue arg
+      // is evaluated in the current-case context (see prev() in local-lookup-functions.ts),
+      // so it is NOT cycle-safe. With B = A, this is a real cycle on case 1.
+      const { dataSet, adapter, contextMap, metadataMap } = getCycleTestEnv([
+        { name: "A", formula: "prev(B, B)" },
+        { name: "B", formula: "A" }
+      ])
+      const aAttr = dataSet.attributes[0]
+      const error = adapter.getFormulaError(
+        contextMap.get(aAttr.formula!.id)!, metadataMap.get(aAttr.formula!.id)!)
+      expect(error).toMatch(/Circular reference/)
     })
   })
 

@@ -1,7 +1,9 @@
 import { useState } from "react"
 import { Radio, RadioGroup } from "react-aria-components"
 import { registerAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
+import { useTileModelContext } from "../../../../hooks/use-tile-model-context"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
+import { updateTileNotification } from "../../../../models/tiles/tile-notifications"
 import { t } from "../../../../utilities/translation/translate"
 import { PaletteCheckbox } from "../../../palette-checkbox"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
@@ -19,6 +21,7 @@ import { kCountClass, kCountLabelKey, kCountPrefix, kCountType, kPercentLabelKey
 const Controls = () => {
   const graphModel = useGraphContentModelContext()
   const dataConfig = useGraphDataConfigurationContext()
+  const { tile } = useTileModelContext()
   const adornmentsStore = graphModel.adornmentsStore
   const existingAdornment = adornmentsStore.findAdornmentOfType<ICountAdornmentModel>(kCountType)
   const leftBottomCategoricalAttrCount = dataConfig?.leftBottomCategoricalAttrCount ?? 0
@@ -39,36 +42,41 @@ const Controls = () => {
     const existingCountAdornment = adornmentsStore.findAdornmentOfType<ICountAdornmentModel>(kCountType)
     const componentContentInfo = getAdornmentContentInfo(kCountType)
     const adornment = existingCountAdornment ?? componentContentInfo.modelClass.create() as ICountAdornmentModel
-    const undoAddKey = checkBoxType === "count" ? "DG.Undo.graph.showCount" : "DG.Undo.graph.showPercent"
-    const redoAddKey = checkBoxType === "count" ? "DG.Redo.graph.showCount" : "DG.Redo.graph.showPercent"
-    const undoRemoveKey = checkBoxType === "count" ? "DG.Undo.graph.hideCount" : "DG.Undo.graph.hidePercent"
-    const redoRemoveKey = checkBoxType === "count" ? "DG.Redo.graph.hideCount" : "DG.Redo.graph.hidePercent"
+    const isCount = checkBoxType === "count"
+    const undoAddKey = isCount ? "DG.Undo.graph.showCount" : "DG.Undo.graph.showPercent"
+    const redoAddKey = isCount ? "DG.Redo.graph.showCount" : "DG.Redo.graph.showPercent"
+    const undoRemoveKey = isCount ? "DG.Undo.graph.hideCount" : "DG.Undo.graph.hidePercent"
+    const redoRemoveKey = isCount ? "DG.Redo.graph.hideCount" : "DG.Redo.graph.hidePercent"
 
-    const setShowAdornment = checkBoxType === "count"
+    const setShowAdornment = isCount
       ? () => adornment.setShowCount(checked)
       : () => handleShowPercent(adornment, checked)
 
+    // V2 emits `toggle plotted Count` / `toggle plotted Percent` from
+    // apps/dg/components/graph/plots/plot_model.js (togglePlottedCount(iWhat) ~:465).
+    // Op string is `'toggle plotted ' + iWhat` where iWhat is `'Count'` or `'Percent'`.
+    const notificationOp = isCount ? "toggle plotted Count" : "toggle plotted Percent"
+    const notify = tile
+      ? () => updateTileNotification(notificationOp, { isChecked: checked }, tile)
+      : undefined
+
     if (checked) {
-      graphModel.applyModelChange(
-        () => {
-          adornmentsStore.addAdornment(adornment, graphModel.getUpdateCategoriesOptions())
-          setShowAdornment()
-        },
-        {
-          undoStringKey: undoAddKey,
-          redoStringKey: redoAddKey,
-          log: logMessageWithReplacement("Show %@", {adornmentType: checkBoxType === "count" ? "count" : "percent"})
-        }
-      )
+      graphModel.applyModelChange(() => {
+        adornmentsStore.addAdornment(adornment, graphModel.getUpdateCategoriesOptions())
+        setShowAdornment()
+      }, {
+        notify,
+        undoStringKey: undoAddKey,
+        redoStringKey: redoAddKey,
+        log: logMessageWithReplacement("Show %@", {adornmentType: isCount ? "count" : "percent"})
+      })
     } else {
-      graphModel.applyModelChange(
-        () => adornmentsStore.updateAdornment(setShowAdornment),
-        {
-          undoStringKey: undoRemoveKey,
-          redoStringKey: redoRemoveKey,
-          log: logMessageWithReplacement("Hide %@", {adornmentType: checkBoxType === "count" ? "count" : "percent"})
-        }
-      )
+      graphModel.applyModelChange(() => adornmentsStore.updateAdornment(setShowAdornment), {
+        notify,
+        undoStringKey: undoRemoveKey,
+        redoStringKey: redoRemoveKey,
+        log: logMessageWithReplacement("Hide %@", {adornmentType: isCount ? "count" : "percent"})
+      })
     }
   }
 

@@ -95,8 +95,10 @@ export function getAdornmentsMenuItemsFromTheStore(theStore: IAdornmentsBaseStor
           theStore.toggleShowLabels()
         }, {
           notify: tile
-            ? updateGraphAdornmentNotification("toggle showing labels",
-              (theStore.showMeasureLabels), tile)
+            // operation names the action; isChecked is the resulting (post-toggle) state
+            ? updateGraphAdornmentNotification(
+              theStore.showMeasureLabels ? "hide measure labels" : "show measure labels",
+              !theStore.showMeasureLabels, tile)
             : undefined,
           undoStringKey: theStore.showMeasureLabels ? "DG.Undo.graph.hideMeasureLabels"
             : "DG.Undo.graph.showMeasureLabels",
@@ -127,8 +129,8 @@ export function getAdornmentsMenuItemsFromTheStore(theStore: IAdornmentsBaseStor
             theStore.toggleShowConnectingLines()
           }, {
             notify: tile
-              ? updateGraphAdornmentNotification("toggle show connecting lines",
-                (theStore.showConnectingLines), tile)
+              ? updateGraphAdornmentNotification("toggle connecting line",
+                !theStore.showConnectingLines, tile)
               : undefined,
             undoStringKey: theStore.showConnectingLines ? "DG.Undo.graph.hideConnectingLine"
               : "DG.Undo.graph.showConnectingLine",
@@ -156,8 +158,8 @@ export function getAdornmentsMenuItemsFromTheStore(theStore: IAdornmentsBaseStor
             theStore.toggleInterceptLocked()
           }, {
             notify: tile
-              ? updateGraphAdornmentNotification("toggle intercept locked",
-                (theStore.interceptLocked), tile)
+              ? updateGraphAdornmentNotification("toggle lock intercept",
+                !theStore.interceptLocked, tile)
               : undefined,
             undoStringKey: theStore.interceptLocked ? "DG.Undo.graph.unlockIntercept"
               : "DG.Undo.graph.lockIntercept",
@@ -188,8 +190,8 @@ export function getAdornmentsMenuItemsFromTheStore(theStore: IAdornmentsBaseStor
           theStore.toggleShowSquaresOfResiduals()
         }, {
           notify: tile
-            ? updateGraphAdornmentNotification("toggle showSquares",
-              (theStore.showSquaresOfResiduals), tile)
+            ? updateGraphAdornmentNotification("toggle show squares",
+              !theStore.showSquaresOfResiduals, tile)
             : undefined,
           undoStringKey: theStore.showSquaresOfResiduals ? "DG.Undo.graph.hideSquares"
             : "DG.Undo.graph.showSquares",

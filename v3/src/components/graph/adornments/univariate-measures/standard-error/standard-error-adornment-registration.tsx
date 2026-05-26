@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect } from "react"
 import { Button, Group, Input, NumberField } from "react-aria-components"
 import { registerAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
+import { useTileModelContext } from "../../../../../hooks/use-tile-model-context"
 import { logMessageWithReplacement } from "../../../../../lib/log-message"
 import { translate } from "../../../../../utilities/translation/translate"
+import { setNumStdErrsNotification } from "../../../graph-notifications"
 import { useGraphContentModelContext } from "../../../hooks/use-graph-content-model-context"
 import { registerAdornmentComponentInfo } from "../../adornment-component-info"
 import { registerAdornmentContentInfo } from "../../adornment-content-info"
@@ -21,30 +23,30 @@ import {
 
 const Controls = () => {
   const graphModel = useGraphContentModelContext()
+  const { tile } = useTileModelContext()
   const adornmentsStore = graphModel.adornmentsStore
   const existingAdornment =
     adornmentsStore.findAdornmentOfType<IStandardErrorAdornmentModel>(kStandardErrorType)
 
   const handleBlur = useCallback(() => {
     if (existingAdornment) {
-      graphModel.applyModelChange(
-        () => {
-          const numStErrs = existingAdornment.numStErrs  // Can be NaN if user cleared value
-          if (isFinite(numStErrs)) {
-            existingAdornment.setNumStErrs(numStErrs)
-          }
-          else {
-            existingAdornment?.setDynamicNumStErrs(undefined)
-          }
-        },
-        {
-          undoStringKey: 'DG.Undo.graph.setNumStErrs',
-          redoStringKey: 'DG.Undo.graph.setNumStErrs',
-          log: logMessageWithReplacement("Set standard error to %@", {numStErrs: existingAdornment.numStErrs})
+      const numStErrs = existingAdornment.numStErrs  // Can be NaN if user cleared value
+      const isValid = isFinite(numStErrs)
+      graphModel.applyModelChange(() => {
+        if (isValid) {
+          existingAdornment.setNumStErrs(numStErrs)
         }
-      )
+        else {
+          existingAdornment.setDynamicNumStErrs(undefined)
+        }
+      }, {
+        notify: isValid ? () => setNumStdErrsNotification(tile, numStErrs) : undefined,
+        undoStringKey: 'DG.Undo.graph.setNumStErrs',
+        redoStringKey: 'DG.Redo.graph.setNumStErrs',
+        log: logMessageWithReplacement("Set standard error to %@", {numStErrs})
+      })
     }
-  }, [existingAdornment, graphModel])
+  }, [existingAdornment, graphModel, tile])
 
   useEffect(() => {
     // Return a cleanup function that will be called when the component is unmounted
@@ -103,6 +105,8 @@ registerAdornmentContentInfo({
   plots: ["dotPlot"],
   prefix: kStandardErrorPrefix,
   modelClass: StandardErrorAdornmentModel,
+  // V2 op string (univariate_adornment_base_model.js togglePlottedStErr ~:404/321).
+  notificationOperation: "togglePlottedStErr",
   undoRedoKeys: {
     undoAdd: kStandardErrorUndoAddKey,
     redoAdd: kStandardErrorRedoAddKey,

@@ -58,6 +58,14 @@ jest.mock("pixi.js", () => {
   class MockRenderer {
     view = { canvas: document.createElement("canvas") }
     gl = { isContextLost: () => false }
+    extract = {
+      canvas: jest.fn(() => {
+        const canvas = document.createElement("canvas")
+        canvas.width = 200
+        canvas.height = 150
+        return canvas
+      })
+    }
     resize() {}
     render() {}
     generateTexture() { return new MockTexture() }
@@ -568,6 +576,38 @@ describe("PixiPointRenderer", () => {
       expect(sharedState.getPoint(id2)?.subPlotNum).toBe(4)
       expect(sharedState.getPoint(id3)?.subPlotNum).toBe(8)
 
+      pixiRenderer.dispose()
+    })
+  })
+
+  describe("snapshotCanvas", () => {
+    it("returns null when renderer is not initialized", () => {
+      const pixiRenderer = new PixiPointRenderer()
+      expect(pixiRenderer.snapshotCanvas()).toBeNull()
+    })
+
+    it("returns the canvas extracted from PIXI's extract API when initialized", async () => {
+      const pixiRenderer = new PixiPointRenderer()
+      await pixiRenderer.init()
+      const snapshot = pixiRenderer.snapshotCanvas()
+      expect(snapshot).not.toBeNull()
+      expect(snapshot?.width).toBe(200)
+      expect(snapshot?.height).toBe(150)
+      pixiRenderer.dispose()
+    })
+
+    it("returns null and warns when the extract call throws", async () => {
+      const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {})
+      const pixiRenderer = new PixiPointRenderer()
+      await pixiRenderer.init()
+      const mockExtract = (pixiRenderer as any).renderer.extract.canvas as jest.Mock
+      mockExtract.mockImplementationOnce(() => { throw new Error("WebGL context lost") })
+      expect(pixiRenderer.snapshotCanvas()).toBeNull()
+      expect(warnSpy).toHaveBeenCalledWith(
+        "[PixiPointRenderer] snapshotCanvas extract failed:",
+        expect.any(Error)
+      )
+      warnSpy.mockRestore()
       pixiRenderer.dispose()
     })
   })

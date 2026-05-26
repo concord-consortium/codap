@@ -40,9 +40,8 @@ import { registerTileTypes } from "../register-tile-types"
 import { importSample, sampleData } from "../sample-data"
 import { t } from "../utilities/translation/translate"
 import { urlParams } from "../utilities/url-params"
-import { isBeta } from "../utilities/version-utils"
-import { BetaBanner } from "./beta/beta-banner"
 import { If } from "./common/if"
+import { AnnouncementBanner } from "./announcement-banner/announcement-banner"
 import { kCodapAppElementId, kUserEntryDropOverlay } from "./constants"
 import { Container } from "./container/container"
 import { MenuBar, kMenuBarElementId } from "./menu-bar/menu-bar"
@@ -228,16 +227,15 @@ export const App = observer(function App() {
     clsx("app-container", { "vertical-toolbar": persistentState.toolbarPosition === "Left" })
   const appClasses = clsx("codap-app", {
     "minimal-chrome": uiState.minimalChrome,
-    "inbounds-mode": uiState.inboundsMode,
-    beta: isBeta()
+    "inbounds-mode": uiState.inboundsMode
   })
   return (
     <CodapDndContext>
       <DocumentContentContext.Provider value={appState.document.content}>
         <CfmContext.Provider value={cfm}>
           <ProgressContext.Provider value={progressContextValue}>
-            <If condition={isBeta() && uiState.shouldRenderBetaBanner}>
-              <BetaBanner />
+            <If condition={uiState.shouldRenderAnnouncementBanner}>
+              <AnnouncementBanner />
             </If>
             <SectionNavigationProvider>
               <div
@@ -273,7 +271,7 @@ export const App = observer(function App() {
             </SectionNavigationProvider>
             <If condition={isOpenUserEntry}>
               <div id={`${kUserEntryDropOverlay}`} ref={userEntryOverlayRef}
-                className={clsx({ "show-highlight": isOpenUserEntry && isDragOver, beta: isBeta() })}
+                className={clsx({ "show-highlight": isOpenUserEntry && isDragOver })}
               >
                 <UserEntryModal
                   isOpen={isOpenUserEntry}

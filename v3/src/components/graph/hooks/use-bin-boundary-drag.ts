@@ -3,11 +3,13 @@ import { comparer } from "mobx"
 import { useCallback, useEffect, useRef } from "react"
 import { clsx } from "clsx"
 import { LogMessageFn, logModelChangeFn } from "../../../lib/log-message"
+import { getTileModel } from "../../../models/tiles/tile-model"
 import { isFiniteNumber, roundToPrecision } from "../../../utilities/math-utils"
 import { mstReaction } from "../../../utilities/mst-reaction"
 import { t } from "../../../utilities/translation/translate"
 import { AxisPlace } from "../../axis/axis-types"
 import { getDomainExtentForPixelWidth } from "../../axis/axis-utils"
+import { dragBinBoundaryNotification } from "../graph-notifications"
 import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
 import { IGraphContentModel } from "../models/graph-content-model"
 import { GraphLayout } from "../models/graph-layout"
@@ -148,25 +150,27 @@ export function useBinBoundaryDrag({
       drawBinBoundaries()
       addBinBoundaryDragHandlers()
     }
-    binnedPlot.applyModelChange(
-      () => {
-        if (binnedPlot.binAlignment != null && binnedPlot.binWidth != null) {
-          binnedPlot.endBinBoundaryDrag(binnedPlot.binAlignment, binnedPlot.binWidth)
-          // Update axis domain as part of the same undo entry (skipped during drag)
-          const { totalNumberOfBins, minBinEdge } = binnedPlot.binDetails()
-          if (isFiniteNumber(minBinEdge) && isFiniteNumber(totalNumberOfBins)) {
-            const axisModel = graphModel.getNumericAxis(primaryPlace)
-            axisModel?.setAllowRangeToShrink(true)
-            axisModel?.setDomain(minBinEdge, minBinEdge + binnedPlot.binWidth * totalNumberOfBins)
-          }
+    binnedPlot.applyModelChange(() => {
+      if (binnedPlot.binAlignment != null && binnedPlot.binWidth != null) {
+        binnedPlot.endBinBoundaryDrag(binnedPlot.binAlignment, binnedPlot.binWidth)
+        // Update axis domain as part of the same undo entry (skipped during drag)
+        const { totalNumberOfBins, minBinEdge } = binnedPlot.binDetails()
+        if (isFiniteNumber(minBinEdge) && isFiniteNumber(totalNumberOfBins)) {
+          const axisModel = graphModel.getNumericAxis(primaryPlace)
+          axisModel?.setAllowRangeToShrink(true)
+          axisModel?.setDomain(minBinEdge, minBinEdge + binnedPlot.binWidth * totalNumberOfBins)
         }
-        lowerBoundaryRef.current = 0
-      }, {
-        undoStringKey: "DG.Undo.graph.dragBinBoundary",
-        redoStringKey: "DG.Redo.graph.dragBinBoundary",
-        log: logFn.current
       }
-    )
+      lowerBoundaryRef.current = 0
+    }, {
+      notify: () => dragBinBoundaryNotification(getTileModel(graphModel), {
+        alignment: binnedPlot.binAlignment,
+        width: binnedPlot.binWidth
+      }),
+      undoStringKey: "DG.Undo.graph.dragBinBoundary",
+      redoStringKey: "DG.Redo.graph.dragBinBoundary",
+      log: logFn.current
+    })
   }, [addBinBoundaryDragHandlers, binnedPlot, drawBinBoundaries, graphModel, primaryPlace])
 
   // If the pixel width of binWidth would be less than kMinBinScreenWidth, set it to kMinBinScreenWidth.

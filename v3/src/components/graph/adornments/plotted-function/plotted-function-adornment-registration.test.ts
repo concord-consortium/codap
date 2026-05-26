@@ -17,4 +17,9 @@ describe("PlottedFunctionRegistration", () => {
     expect(plottedFunctionComponentInfo?.BannerComponent).toBeDefined()
     expect(plottedFunctionComponentInfo?.type).toBe(kPlottedFunctionType)
   })
+
+  it("registers notificationOperation for 'toggle plot function'", () => {
+    const plottedFunctionContentInfo = getAdornmentContentInfo(kPlottedFunctionType)
+    expect(plottedFunctionContentInfo?.notificationOperation).toBe("toggle plot function")
+  })
 })

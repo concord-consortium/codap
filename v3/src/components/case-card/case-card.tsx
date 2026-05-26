@@ -13,7 +13,9 @@ import { ICoreNotification } from "../../data-interactive/notification-core-type
 import { IDataSet } from "../../models/data/data-set"
 import { ICollectionModel } from "../../models/data/collection"
 import { createCollectionNotification, deleteCollectionNotification } from "../../models/data/data-set-notifications"
+import { getTileModel } from "../../models/tiles/tile-model"
 import { logMessageWithReplacement } from "../../lib/log-message"
+import { changeColumnWidthNotification } from "./case-card-notifications"
 
 import "./case-card.scss"
 
@@ -63,6 +65,7 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
       data.applyModelChange(() => {
         cardModel.setAttributeColumnWidth(collectionId, widthPct)
       }, {
+        notify: () => changeColumnWidthNotification(getTileModel(cardModel)),
         undoStringKey: "DG.Undo.caseCard.columnWidthChange",
         redoStringKey: "DG.Redo.caseCard.columnWidthChange",
         log: logMessageWithReplacement(

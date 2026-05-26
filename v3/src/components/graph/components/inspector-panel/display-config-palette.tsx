@@ -178,8 +178,8 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
         setBinOption(option, value)
       }, {
         log: logMessageWithReplacement(
-                    "Changed %@ from %@ to %@",
-                    { option, [`${option}Initial`]: initialValue, [option]: value }),
+                    "change %@ from %@ to %@",
+                    { changedProperty: option, fromValue: initialValue, toValue: value }),
         undoStringKey: option === "binWidth" ? "DG.Undo.graph.changeBinWidth" : "DG.Undo.graph.changeBinAlignment",
         redoStringKey: option === "binWidth" ? "DG.Redo.graph.changeBinWidth" : "DG.Redo.graph.changeBinAlignment",
         notify: tile ? tileNotification(`change bin parameter`, {}, tile) : undefined
@@ -205,8 +205,8 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
       setBinOption(option, value)
     }, {
       log: logMessageWithReplacement(
-                  "Changed %@ from %@ to %@",
-                  { option, [`${option}Initial`]: initialValue, [option]: value }),
+                  "change %@ from %@ to %@",
+                  { changedProperty: option, fromValue: initialValue, toValue: value }),
       undoStringKey: option === "binWidth" ? "DG.Undo.graph.changeBinWidth" : "DG.Undo.graph.changeBinAlignment",
       redoStringKey: option === "binWidth" ? "DG.Redo.graph.changeBinWidth" : "DG.Redo.graph.changeBinAlignment",
       notify: tile ? tileNotification(`change bin parameter`, {}, tile) : undefined
@@ -217,6 +217,12 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
     const [undoStringKey, redoStringKey] = fuseIntoBars
       ? ["DG.Undo.graph.fuseDotsToRectangles", "DG.Redo.graph.fuseDotsToRectangles"]
       : ["DG.Undo.graph.dissolveRectanglesToDots", "DG.Redo.graph.dissolveRectanglesToDots"]
+    // A binned plot (binnedDotPlot / histogram) fuses dots into a histogram; an unbinned plot
+    // fuses dots into bars. V2 emits a distinct operation for each, but neither operation name
+    // states the direction — add a `to` discriminator naming the destination state.
+    const isBinned = !!graphModel?.plot.isBinned
+    const fuseOperation = isBinned ? "toggle between histogram and dots" : "switch bar and dot"
+    const to = fuseIntoBars ? (isBinned ? "histogram" : "bars") : "dots"
 
     graphModel?.applyModelChange(() => {
         graphModel?.fusePointsIntoBars(fuseIntoBars)
@@ -224,7 +230,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
       },
       { undoStringKey, redoStringKey,
         log: logMessageWithReplacement("toggleShowAs: %@", { type: fuseIntoBars ? "BarChart" : "DotChart" }),
-        notify: tile ? tileNotification(`toggle between bars and dots`, {}, tile) : undefined
+        notify: tile ? tileNotification(fuseOperation, { to }, tile) : undefined
       }
     )
   }
@@ -235,8 +241,8 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
     } else {
       barChart?.applyModelChange(() => barChart?.setBreakdownType(breakdownType), {
         log: logMessageWithReplacement(
-          "Changed %@ from %@ to %@",
-          {option: "breakdownType", [`breakdownTypeInitial`]: barChart?.breakdownType, breakdownType}),
+          "change %@ from %@ to %@",
+          {changedProperty: "breakdownType", fromValue: barChart?.breakdownType, toValue: breakdownType}),
         undoStringKey: "DG.Undo.graph.changeBreakdownType",
         redoStringKey: "DG.Redo.graph.changeBreakdownType",
         notify: tile ? tileNotification(

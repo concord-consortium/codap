@@ -473,7 +473,10 @@ export const DataConfigurationModel = types
         const caseDataArray = self.getUnsortedCaseDataArray(caseArrayNumber),
           legendAttrID = self.attributeID('legend')
         if (legendAttrID) {
-          if (self.attributeType("legend") === "numeric") {
+          const legendType = self.attributeType("legend")
+          if (legendType === "numeric" || legendType === "date") {
+            // dataDisplayGetNumericValue returns epoch-seconds for date attrs, so the same
+            // numeric comparator orders date legends chronologically.
             caseDataArray.sort((cd1: CaseData, cd2: CaseData) => {
               const cd1Value = dataDisplayGetNumericValue(self.dataset, cd1.caseID, legendAttrID, true) ?? NaN,
                 cd2Value = dataDisplayGetNumericValue(self.dataset, cd2.caseID, legendAttrID, true) ?? NaN

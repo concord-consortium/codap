@@ -1,13 +1,13 @@
 import { makeAutoObservable } from "mobx"
 import { measureText } from "../../../../hooks/use-measure-text"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
+import { INotify } from "../../../../models/history/history-service"
 import { missingColor } from "../../../../utilities/color-utils"
-import { axisGap } from "../../../axis/axis-types"
+import { axisGap, labelPaddingY } from "../../../axis/axis-types"
 import { getStringBounds } from "../../../axis/axis-utils"
 import { kMain, kDataDisplayFont } from "../../data-display-types"
 import { IDataConfigurationModel } from "../../models/data-configuration-model"
 import { DataDisplayLayout } from "../../models/data-display-layout"
-import { kLegendLabelTopPadding } from "./legend-common"
 
 import vars from "../../../vars.scss"
 
@@ -28,7 +28,9 @@ interface Layout {
 
 export const keySize = 15
 export const padding = 5
-export const labelHeight = getStringBounds('Wy', vars.labelFont).height + axisGap + kLegendLabelTopPadding
+// y-coordinate at which the first row of category keys is drawn. Sits axisGap below the
+// attribute label's background rect, whose height is labelText + 2 * labelPaddingY.
+export const labelHeight = getStringBounds('Wy', vars.labelFont).height + 2 * labelPaddingY + axisGap
 
 export class CategoricalLegendModel {
   dragInfo = {
@@ -180,7 +182,8 @@ export class CategoricalLegendModel {
   }
 
   onDragEnd(
-    dataConfiguration: IDataConfigurationModel | undefined, d: Key
+    dataConfiguration: IDataConfigurationModel | undefined, d: Key,
+    options?: { notify?: INotify }
   ) {
     const categories = dataConfiguration?.categoryArrayForAttrRole('legend') || []
     const dI = this.dragInfo
@@ -211,6 +214,7 @@ export class CategoricalLegendModel {
         categorySet?.move(dI.category, beforeCategory)
         dI.category = ""
       }, {
+        notify: options?.notify,
         undoStringKey: 'DG.Undo.graph.swapCategories',
         redoStringKey: 'DG.Redo.graph.swapCategories',
         log: logMessageWithReplacement(

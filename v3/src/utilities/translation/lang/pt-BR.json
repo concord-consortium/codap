@@ -1366,8 +1366,8 @@
     "V3.ToolButtonData.errorTesterButton.toolTip": "Make an error tester",
     "V3.Undo.errorTester.create": "Undo adding error tester",
     "V3.Redo.errorTester.create": "Redo adding error tester",
-    "V3.AppController.optionMenuItems.positionToolShelfLeft": "Toolbar Position: Top",
-    "V3.AppController.optionMenuItems.positionToolShelfTop": "Toolbar Position: Left",
+    "V3.AppController.optionMenuItems.positionToolShelfLeft": "Toolbar Position: Move to the top",
+    "V3.AppController.optionMenuItems.positionToolShelfTop": "Toolbar Position: Move to the left",
     "DG.SliderView.playButton": "Play slider",
     "DG.SliderView.pauseButton": "Pause slider",
     "DG.SliderView.sliderName": "Slider name",
@@ -1471,5 +1471,7 @@
     "V3.Inspector.colorPicker.color.pink": "Pink",
     "V3.Inspector.colorPicker.color.lightBlue": "Light blue",
     "V3.Inspector.colorPicker.color.lightGreen": "Light green",
-    "V3.Component.resizeComponent.ariaLabel": "Resize Component"
+    "V3.Component.resizeComponent.ariaLabel": "Resize Component",
+    "V3.AppController.optionMenuItems.graphicsAccelerationOn": "Graphics Acceleration: Turn off",
+    "V3.AppController.optionMenuItems.graphicsAccelerationOff": "Graphics Acceleration: Turn on"
 }

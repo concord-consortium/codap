@@ -46,6 +46,9 @@ export interface IAdornmentContentInfo {
   parentType?: ParentAdornmentType
   type: string
   undoRedoKeys?: IAdornmentUndoRedoKeys
+  // When set, AdornmentCheckbox emits a `component`-resource notification with this operation
+  // string each time the adornment is toggled (matches V2 togglePlottedMean / togglePlottedMedian).
+  notificationOperation?: string
   exporter?: (model: IAdornmentModel, options: IAdornmentExporterOptions) => Maybe<V2AdornmentExportResult>
 }
 

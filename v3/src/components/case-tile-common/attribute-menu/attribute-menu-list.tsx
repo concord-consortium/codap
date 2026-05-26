@@ -10,11 +10,13 @@ import {
 } from "../../../models/data/data-set-notifications"
 import { IAttributeChangeResult } from "../../../models/data/data-set-types"
 import { sortItemsWithCustomUndoRedo } from "../../../models/data/data-set-undo"
+import { getTileModel } from "../../../models/tiles/tile-model"
 import { uiState } from "../../../models/ui-state"
 import {
   allowAttributeDeletion, preventCollectionReorg, preventTopLevelReorg
 } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
+import { resizeColumnNotification } from "../../case-table/case-table-notifications"
 import { kCellPadding } from "../../case-table/case-table-types"
 import { useCaseTableModel } from "../../case-table/use-case-table-model"
 import { findLongestContentWidth } from "../attribute-format-utils"
@@ -88,6 +90,7 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
             tableModel?.setColumnWidth(attributeId, longestContentWidth)
           }
         }, {
+          notify: () => resizeColumnNotification(tableModel ? getTileModel(tableModel) : undefined),
           undoStringKey: "DG.Undo.caseTable.resizeColumn",
           redoStringKey: "DG.Redo.caseTable.resizeColumn",
           log: logStringifiedObjectMessage("Fit column width: %@",

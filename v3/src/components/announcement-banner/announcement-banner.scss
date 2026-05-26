@@ -1,0 +1,110 @@
+@use "../vars";
+
+$announcement-banner-bg: #fbe5b3;
+$announcement-banner-fg: #242424;
+$announcement-banner-link: #0057b8;
+$announcement-banner-button-bg: #242424;
+$announcement-banner-button-fg: #ffffff;
+
+.announcement-banner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: vars.$announcement-banner-height;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  font-size: 14px;
+  gap: 16px;
+  box-sizing: border-box;
+  background-color: $announcement-banner-bg;
+  color: $announcement-banner-fg;
+
+  .announcement-banner-message {
+    flex: 1;
+    line-height: 1.4;
+
+    a {
+      text-decoration: underline;
+      color: $announcement-banner-link;
+
+      &:hover {
+        opacity: 0.8;
+      }
+
+      &:focus {
+        outline: 2px solid currentColor;
+        outline-offset: 1px;
+      }
+    }
+  }
+
+  .announcement-banner-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .announcement-banner-button {
+    background-color: $announcement-banner-button-bg;
+    color: $announcement-banner-button-fg;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 13px;
+    white-space: nowrap;
+    padding: 4px 8px;
+
+    &:hover {
+      opacity: 0.9;
+    }
+
+    &:focus {
+      outline: 2px solid currentColor;
+      outline-offset: 2px;
+    }
+  }
+
+  .announcement-banner-dont-show {
+    background: transparent;
+    border: 1px solid $announcement-banner-fg;
+    color: $announcement-banner-fg;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    white-space: nowrap;
+
+    &:hover {
+      opacity: 0.8;
+    }
+
+    &:focus {
+      outline: 2px solid currentColor;
+      outline-offset: 2px;
+    }
+  }
+
+  .announcement-banner-close {
+    background: transparent;
+    border: none;
+    color: $announcement-banner-fg;
+    font-size: 20px;
+    line-height: 1;
+    padding: 4px 8px;
+    cursor: pointer;
+    opacity: 0.8;
+
+    &:hover {
+      opacity: 1;
+    }
+
+    &:focus {
+      outline: 2px solid currentColor;
+      outline-offset: 2px;
+    }
+  }
+}

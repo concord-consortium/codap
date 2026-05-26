@@ -6,12 +6,13 @@ import { observer } from "mobx-react-lite"
 import { addDisposer, onPatch } from "mobx-state-tree"
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { useMemo } from "use-memo-one"
+import { logMessageWithReplacement } from "../../lib/log-message"
 import { useTileInspectorContext } from "../../hooks/use-tile-inspector-context"
 import { useTileSelectionContext } from "../../hooks/use-tile-selection-context"
 import { mstReaction } from "../../utilities/mst-reaction"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { isTextModel, modelValueToEditorValue } from "./text-model"
-import { commitEditNotification } from "./text-notifications"
+import { commitEditNotification, editTextNotification } from "./text-notifications"
 import { TextTileInspectorContent } from "./text-tile-inspector-content"
 
 import "@concord-consortium/slate-editor/dist/index.css"
@@ -126,6 +127,16 @@ export const TextTile = observer(function TextTile({ tile }: ITileBaseProps) {
 
   function handleChange() {
     textModel?.incEditorChange()
+    // Fire an "edit text" notification on every content-changing edit (matching V2's
+    // `observes('theText')` behavior) so plugins listening for live edits can react immediately.
+    // Selection-only changes also trigger Slate's onChange, so we filter those out.
+    const isContentChange = editor.operations.some(op => op.type !== "set_selection")
+    if (isContentChange) {
+      const notification = editTextNotification(tile)
+      if (notification) {
+        textModel?.tileEnv?.notify?.(notification.message, () => null)
+      }
+    }
   }
 
   function handleBlur() {
@@ -139,7 +150,9 @@ export const TextTile = observer(function TextTile({ tile }: ITileBaseProps) {
         // log only when the text actually changed, e.g. not on style changes
         // Note that logging of text changes was commented out in v2 in build 0601. ¯\_(ツ)_/¯
         // For now, we log just the text content, not the full JSON-stringified slate value.
-        log: textDidChange ? () => `Edited text component: ${textModel.textContent}` : undefined,
+        log: textDidChange
+          ? () => logMessageWithReplacement("Edited text component", { text: textModel.textContent })
+          : undefined,
         undoStringKey: "DG.Undo.textComponent.edit",
         redoStringKey: "DG.Redo.textComponent.edit",
         notify: textDidChange ? () => commitEditNotification(textModel, tile) : undefined

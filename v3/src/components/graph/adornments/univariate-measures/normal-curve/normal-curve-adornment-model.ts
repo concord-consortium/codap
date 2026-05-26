@@ -1,6 +1,7 @@
 import { mean, std } from "mathjs/number"
 import { observable } from "mobx"
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
+import { isNumericAttributeType } from "../../../../../models/data/attribute-types"
 import { IGraphDataConfigurationModel } from "../../../models/graph-data-configuration-model"
 import { IAdornmentModel, IUpdateCategoriesOptions } from "../../adornment-models"
 import { UnivariateMeasureAdornmentModel } from "../univariate-measure-adornment-model"
@@ -129,7 +130,7 @@ type CurveParamInstance = {
     updateCategories(options: IUpdateCategoriesOptions) {
       const { dataConfig, resetPoints } = options
       const { xAttrId, yAttrId, xAttrType } = dataConfig.getCategoriesOptions()
-      const attrId = xAttrId && xAttrType === "numeric" ? xAttrId : yAttrId
+      const attrId = xAttrId && isNumericAttributeType(xAttrType) ? xAttrId : yAttrId
       dataConfig.getAllCellKeys().forEach(cellKey => {
         const instanceKey = self.instanceKey(cellKey)
         const { sampleMean, sampleStdDev } = self.computeCurveParamValue(attrId, cellKey, dataConfig)

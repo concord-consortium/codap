@@ -15,10 +15,6 @@ context("componentMode URL parameter", () => {
     it("should hide the tool shelf in component mode", () => {
       cy.get("[data-testid=tool-shelf]").should("not.exist")
     })
-
-    it("should hide the beta banner in component mode", () => {
-      cy.get("[data-testid=beta-banner]").should("not.exist")
-    })
   })
 
   describe("component interactions", () => {

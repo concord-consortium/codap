@@ -1,9 +1,11 @@
-import { kV2TextDIType } from "./text-defs"
 import { TextModel } from "./text-model"
-import { commitEditNotification } from "./text-notifications"
+import { commitEditNotification, editTextNotification } from "./text-notifications"
 
 const v2Id = 12345
-const v2Type = kV2TextDIType
+// V2 component-resource notifications carry the SC class name (`DG.TextView`) in
+// `values.type`; V3 adds the DI-convention name as `values.diType`.
+const v2SCType = "DG.TextView"
+const diType = "text"
 
 jest.mock("../../models/tiles/tile-notifications", () => ({
   updateTileNotification: jest.fn((updateType: string, values: any, tileModel: any) => {
@@ -16,7 +18,8 @@ jest.mock("../../models/tiles/tile-notifications", () => ({
           operation: updateType,
           ...values,
           id: v2Id,
-          type: v2Type
+          type: v2SCType,
+          diType
         }
       }
     }
@@ -36,7 +39,8 @@ describe("commitEditNotification", () => {
     expect(notification?.message.values.operation).toBe("commitEdit")
     expect(notification?.message.values.title).toBe("Notes")
     expect(notification?.message.values.id).toBe(v2Id)
-    expect(notification?.message.values.type).toBe(v2Type)
+    expect(notification?.message.values.type).toBe(v2SCType)
+    expect(notification?.message.values.diType).toBe(diType)
     // V2 contract: text is JSON.stringify of the slate exchange value, not plain text
     const text = notification?.message.values.text
     expect(typeof text).toBe("string")
@@ -48,5 +52,24 @@ describe("commitEditNotification", () => {
   it("returns undefined when tile is missing", () => {
     const textModel = TextModel.create()
     expect(commitEditNotification(textModel, undefined)).toBeUndefined()
+  })
+})
+
+describe("editTextNotification", () => {
+  it("emits an 'edit text' notification", () => {
+    const tile = { title: "Notes", content: TextModel.create() } as any
+
+    const notification = editTextNotification(tile)
+
+    expect(notification?.message.action).toBe("notify")
+    expect(notification?.message.resource).toBe("component")
+    expect(notification?.message.values.operation).toBe("edit text")
+    expect(notification?.message.values.id).toBe(v2Id)
+    expect(notification?.message.values.type).toBe(v2SCType)
+    expect(notification?.message.values.diType).toBe(diType)
+  })
+
+  it("returns undefined when tile is missing", () => {
+    expect(editTextNotification(undefined)).toBeUndefined()
   })
 })

@@ -155,6 +155,68 @@ describe("local lookup functions", () => {
         20, 10, 10, 5, 7, 25, "", ""
       ])
     })
+
+    it("supports self reference for reverse-counting formulas (CODAP-1358)", () => {
+      // Reverse counting: last case is 1, each earlier case is next(self) + 1.
+      // This exercises recursive evaluation of next(self) without depending on data values.
+      const options = { formulaAttrName: "LifeSpan" }
+      const result = evaluateForAllCases(
+        "caseIndex = 27 ? 1 : next(LifeSpan, 0) + 1", options
+      )
+      // 27 cases: 27, 26, 25, ..., 2, 1
+      const expected = Array.from({ length: 27 }, (_, i) => 27 - i)
+      expect(result).toEqual(expected)
+    })
+
+    it("does not infinitely recurse when a self-reference returns to the current case", () => {
+      // prev(next(self, 0), 0) shifts case pointer -1 then +1, returning to the current case
+      // during evaluation. Without a per-casePointer re-entry guard in getLocalValue, the
+      // recursive eval would loop indefinitely and stack-overflow.
+      const options = { formulaAttrName: "LifeSpan" }
+      expect(() => evaluateForAllCases("prev(next(LifeSpan, 0), 0)", options)).not.toThrow()
+    })
+
+    it("evaluates next() with a filter correctly across all cases", () => {
+      // Exercises the with-filter cache across multiple sequential evaluations (the existing
+      // single-case `evaluate()` tests don't share scope state across cases).
+      const result = evaluateForAllCases("next(LifeSpan, 0, Diet = 'both')")
+      // Mirrors the single-case results from "supports the filter argument" - each case sees
+      // the next LifeSpan whose Diet is 'both'. Final cases without a forward match get the
+      // default value of 0.
+      expect(result[0]).toBe(40)
+      expect(result[1]).toBe(40)
+      expect(result[5]).toBe(9)
+      expect(result[6]).toBe(9)
+      expect(result[11]).toBe(3)
+      expect(result[12]).toBe(3)
+    })
+
+    it("evaluates next() with a filter correctly when called from descending casePointers", () => {
+      // Directly exercises the with-filter cache under reverse-direction casePointer access -
+      // the cacheSetAtCasePointer guard must invalidate the entry when we cross below the
+      // case where it was set, or earlier-case calls would reuse a stale (later) match.
+      const { dataSetsByName, dataSets, globalValueManager } = getFormulaTestEnv()
+      const localDataSet = dataSetsByName.Mammals
+      const caseIds = localDataSet.items.map(c => c.__id__)
+      const scope = new FormulaMathJsScope({
+        localDataSet, dataSets, globalValueManager, caseIds, childMostCollectionCaseIds: caseIds
+      })
+      const displayNameMap = getDisplayNameMap({ localDataSet, dataSets, globalValueManager })
+      const compiledFormula = math.compile(
+        displayToCanonical("next(LifeSpan, 0, Diet = 'both')", displayNameMap)
+      )
+      // Call in descending order, matching reverse iteration. The expected values are the
+      // same as forward-order calls because the answer is a function of casePointer alone,
+      // not call order - so any deviation means the cache mis-fired.
+      const descending: any[] = new Array(caseIds.length)
+      for (let i = caseIds.length - 1; i >= 0; i--) {
+        scope.setCasePointer(i)
+        descending[i] = compiledFormula.evaluate(scope)
+      }
+      expect(descending[0]).toBe(40)
+      expect(descending[5]).toBe(9)
+      expect(descending[11]).toBe(3)
+    })
   })
 
   it("implements caching that ensures O(n) complexity", () => {

@@ -14,6 +14,8 @@ import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { IAttribute } from "../../models/data/attribute"
 import { IDataSet } from "../../models/data/data-set"
 import { createAttributesNotification } from "../../models/data/data-set-notifications"
+import { getTileModel } from "../../models/tiles/tile-model"
+import { resizeColumnNotification } from "./case-table-notifications"
 import {
   collectionCaseIdFromIndex, collectionCaseIndexFromId, isAnyChildSelected, selectCases, setSelectedCases
 } from "../../models/data/data-set-utils"
@@ -41,7 +43,6 @@ import { useMarqueeSelection } from "./use-marquee-selection"
 import { useRows } from "./use-rows"
 import { useSelectedCell } from "./use-selected-cell"
 import { useSelectedRows } from "./use-selected-rows"
-import { useWhiteSpaceClick } from "./use-white-space-click"
 
 import "react-data-grid/lib/styles.css"
 import styles from "./case-table-shared.scss"
@@ -60,10 +61,12 @@ interface IProps {
   onTableScroll: OnTableScrollFn
   onScrollClosestRowIntoView: OnScrollRowsIntoViewFn
   onScrollRowRangeIntoView: OnScrollRowsIntoViewFn
+  onWhiteSpaceClick: () => void
 }
 export const CollectionTable = observer(function CollectionTable(props: IProps) {
   const {
-    collectionIndex, onMount, onNewCollectionDrop, onScrollClosestRowIntoView, onScrollRowRangeIntoView, onTableScroll
+    collectionIndex, onMount, onNewCollectionDrop, onScrollClosestRowIntoView, onScrollRowRangeIntoView,
+    onTableScroll, onWhiteSpaceClick
   } = props
   const data = useDataSetContext()
   const collectionId = useCollectionContext()
@@ -74,7 +77,6 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const visibleAttributes = useVisibleAttributes(collectionId)
   const { selectedRows, setSelectedRows, handleCellClick } =
     useSelectedRows({ gridRef, onScrollClosestRowIntoView, onScrollRowRangeIntoView })
-  const { handleWhiteSpaceClick } = useWhiteSpaceClick({ gridRef })
   const { isTileSelected } = useTileSelectionContext()
   const initialPointerDownPosition = useRef({ x: 0, y: 0 })
   const kPointerMovementThreshold = 3
@@ -223,6 +225,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         caseTableModel?.applyModelChange(() => {
           caseTableModel?.columnWidths.set(attrId, newWidth)
         }, {
+          notify: () => resizeColumnNotification(caseTableModel ? getTileModel(caseTableModel) : undefined),
           log: {message: "Resize one case table column", args:{}, category: "table"},
           undoStringKey: "DG.Undo.caseTable.resizeOneColumn",
           redoStringKey: "DG.Redo.caseTable.resizeOneColumn"
@@ -244,7 +247,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       notify: () => createAttributesNotification(attribute ? [attribute] : [], data),
       undoStringKey: "DG.Undo.caseTable.createAttribute",
       redoStringKey: "DG.Redo.caseTable.createAttribute",
-      log: logStringifiedObjectMessage("Create attribute: %@",
+      log: logStringifiedObjectMessage("attributeCreate: %@",
               {name: "newAttr", collection: data?.getCollection(collectionId)?.name, formula: ""}, "data")
     })
   }, [collectionId, data])
@@ -384,7 +387,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
     // the grid element is the target when clicking outside the cells (otherwise, the cell is the target)
     if (isTileSelected() && event.target === gridRef.current?.element) {
-      handleWhiteSpaceClick()
+      onWhiteSpaceClick()
       initialPointerDownPosition.current = { x: 0, y: 0 }
     }
   }
@@ -427,7 +430,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   return (
     <div className={clsx("collection-table", `collection-${collectionId}`, { "no-attributes": !hasVisibleAttributes })}>
       <CollectionTableSpacer gridElt={gridRef.current?.element}
-        onWhiteSpaceClick={handleWhiteSpaceClick} onDrop={handleNewCollectionDrop} />
+        onWhiteSpaceClick={onWhiteSpaceClick} onDrop={handleNewCollectionDrop} />
       <div className="collection-table-and-title" ref={setNodeRef} onClick={handleClick}
             onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp}>
         <CollectionTitle onAddNewAttribute={handleAddNewAttribute} showCount={true} collectionIndex={collectionIndex}/>

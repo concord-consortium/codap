@@ -1,5 +1,50 @@
 # Changelog
 
+## Version 3.0.0-beta.2897 - May 21, 2026
+
+### ✨ Features & Improvements:
+- **CODAP-1319:** Update the announcement banner at the top of CODAP v3
+- **CODAP-1339:** Add a Graphics Acceleration toggle to the Settings menu
+
+### 🐞 Bug Fixes:
+- **CODAP-1318:** Include points in map PNG image exports
+- **CODAP-1328:** Support date axes in univariate and count adornments
+- **CODAP-1329:** Sort date-typed legend attributes chronologically
+- **CODAP-1340:** Fix doubled image scaling when exporting a map
+- **CODAP-1341:** Fix missing drop shadow and focus outline on CFM menus
+- **CODAP-1344:** Reduce excess space between the x-axis label and the legend
+- **CODAP-1345:** Restore the missing case card inspector panel
+
+### Asset Sizes
+|      File |          Size | % Change from Previous Release |
+|-----------|---------------|--------------------------------|
+|  main.css |  240732 bytes |                          0.57% |
+|  index.js | 7790976 bytes |                          0.13% |
+
+## Version 3.0.0-beta.2885 - May 15, 2026
+
+### 🐞 Bug Fixes:
+- **CODAP-1270:** Fix right y-axis display when switching attributes
+- **CODAP-1272:** Keep inspector menu open when dismissing the color palette
+- **CODAP-1297:** Keep missing-value points hidden after undoing an axis attribute change
+- **CODAP-1298:** Keep the movable line's pivot stable when rotated past vertical
+- **CODAP-1303:** Temporarily disable the Map draw tool
+- **CODAP-1306:** Preserve Story Builder moment descriptions when editing text
+- **CODAP-1307:** Prevent Story Builder moments from being wrongly marked unsaved
+- **CODAP-1308:** Prevent V2 documents from showing "Unsaved" right after opening
+- **CODAP-1314:** Show a slope-only LSRL equation when the x-axis is date-time
+- **CODAP-1320:** Render the movable line on a date-time x-axis
+- **NASAEARTH-27:** Fix bug that prevented NASA Earth Data plugin from placing multiple pins
+
+### 🛠️ Under the Hood:
+- **CODAP-1324:** Support launchFromLara/lara/interactiveApi URL parameters
+
+### Asset Sizes
+|      File |          Size | % Change from Previous Release |
+|-----------|---------------|--------------------------------|
+|  main.css |  239363 bytes |                          0.00% |
+|  index.js | 7780569 bytes |                          0.05% |
+
 ## Version 3.0.0-beta.2870 - May 5, 2026
 
 ### ✨ Features & Improvements:

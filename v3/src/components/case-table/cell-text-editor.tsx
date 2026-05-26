@@ -3,7 +3,7 @@ import { clsx } from "clsx"
 import { textEditorClassname } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useLoggingContext } from "../../hooks/use-log-context"
-import { logStringifiedObjectMessage } from "../../lib/log-message"
+import { logMessageWithReplacement } from "../../lib/log-message"
 import { selectAllCases } from "../../models/data/data-set-utils"
 import { uiState } from "../../models/ui-state"
 import { blockAPIRequestsWhileEditing } from "../../utilities/plugin-utils"
@@ -50,8 +50,10 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
   const handleChange = (value: string) => {
     valueRef.current = value
     onRowChange({ ...row, [column.key]: value })
-    setPendingLogMessage("editCellValue", logStringifiedObjectMessage("editCellValue: %@",
-      {attrId: column.key, caseId: row.__id__, from: initialValueRef.current, to: valueRef.current }))
+    setPendingLogMessage("editCellValue", logMessageWithReplacement(
+      "editValue: { collection: %@, case: %@, attribute: '%@', old: '%@', new: '%@' }",
+      { collection: data?.getCollectionForAttribute(column.key)?.name, case: row.__id__,
+        attribute: column.key, old: initialValueRef.current, new: valueRef.current }))
     if (blockAPIRequests && value !== initialValueRef.current) {
       // Only block API requests if the user has actually changed the value.
       uiState.setIsEditingBlockingCell()

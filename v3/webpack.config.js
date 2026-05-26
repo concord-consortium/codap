@@ -75,6 +75,13 @@ module.exports = (env, argv) => {
         overlay: {
           errors: true,
           warnings: false,
+          // Filter out the benign "ResizeObserver loop completed with undelivered
+          // notifications" warning Chrome dispatches as a runtime error. The
+          // browser silently recovers next frame, so it shouldn't block the dev UI.
+          runtimeErrors: (error) => {
+            const message = error instanceof Error ? error.message : String(error ?? "")
+            return !message.startsWith("ResizeObserver loop")
+          },
         },
       }
     },

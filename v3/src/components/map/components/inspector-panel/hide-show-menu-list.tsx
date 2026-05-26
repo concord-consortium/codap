@@ -11,6 +11,9 @@ import {t} from "../../../../utilities/translation/translate"
 import { EditFormulaModal } from "../../../common/edit-formula-modal"
 import { InspectorMenuContent } from "../../../inspector-panel"
 import { IMapContentModel, isMapContentModel } from "../../models/map-content-model"
+import {
+  hideSelectedCasesNotification, hideUnselectedCasesNotification, showAllCasesNotification
+} from "../../map-notifications"
 
 interface IProps {
   tile?: ITileModel
@@ -47,6 +50,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
     mapModel?.applyModelChange(
       () => mapModel?.hideSelectedCases(),
       {
+        notify: () => hideSelectedCasesNotification(tile, numSelected),
         undoStringKey: "DG.Undo.hideSelectedCases",
         redoStringKey: "DG.Redo.hideSelectedCases",
         log: logMessageWithReplacement("Hide %@ selected cases", {numSelected})
@@ -58,6 +62,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
     mapModel?.applyModelChange(
       () => mapModel?.hideUnselectedCases(),
       {
+        notify: () => hideUnselectedCasesNotification(tile, numUnselected),
         undoStringKey: "DG.Undo.hideUnselectedCases",
         redoStringKey: "DG.Redo.hideUnselectedCases",
         log: logMessageWithReplacement(`Hide %@ unselected cases`, {numUnselected})
@@ -69,6 +74,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
     mapModel?.applyModelChange(
       () => mapModel?.clearHiddenCases(),
       {
+        notify: () => showAllCasesNotification(tile),
         undoStringKey: "DG.Undo.showAllCases",
         redoStringKey: "DG.Redo.showAllCases",
         log: {message: "Show all cases", args: {}, category: "data"}

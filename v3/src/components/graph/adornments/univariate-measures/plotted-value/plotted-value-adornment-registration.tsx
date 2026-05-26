@@ -31,6 +31,10 @@ registerAdornmentContentInfo({
   plots: ["dotPlot", "scatterPlot"],
   prefix: kPlottedValuePrefix,
   modelClass: PlottedValueAdornmentModel,
+  // V2 emits `toggle plotted value` from apps/dg/components/graph/plots/plot_model.js
+  // (togglePlottedValue ~:421). AdornmentCheckbox forwards this as the V2 op string,
+  // with `{ isChecked }` carrying the resulting state.
+  notificationOperation: "toggle plotted value",
   undoRedoKeys: {
     undoAdd: kPlottedValueUndoAddKey,
     redoAdd: kPlottedValueRedoAddKey,

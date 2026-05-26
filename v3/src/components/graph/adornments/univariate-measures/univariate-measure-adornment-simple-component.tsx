@@ -4,20 +4,25 @@ import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
 import { t } from "../../../../utilities/translation/translate"
 import { isFiniteNumber } from "../../../../utilities/math-utils"
+import { useTileModelContext } from "../../../../hooks/use-tile-model-context"
 import { IMeasureInstance, IUnivariateMeasureAdornmentModel } from "./univariate-measure-adornment-model"
 import { measureText } from "../../../../hooks/use-measure-text"
 import { IAdornmentComponentProps } from "../adornment-component-info"
 import { IValue } from "./univariate-measure-adornment-types"
 import { UnivariateMeasureAdornmentHelper } from "./univariate-measure-adornment-helper"
 import { UnivariateMeasureAdornmentBaseComponent } from "./univariate-measure-adornment-base-component"
+import { repositionEquationNotification } from "../../graph-notifications"
 import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
 import { useAdornmentCells } from "../../hooks/use-adornment-cells"
+import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 
 export const UnivariateMeasureAdornmentSimpleComponent = observer(
   function UnivariateMeasureAdornmentSimpleComponent (props: IAdornmentComponentProps) {
     const {cellKey={}, containerId,
       xAxis, yAxis, spannerRef, labelsDivRef} = props
     const model = props.model as IUnivariateMeasureAdornmentModel
+    const graphModel = useGraphContentModelContext()
+    const { tile } = useTileModelContext()
     const {
       dataConfig, layout, adornmentsStore,
       numericAttrId, showLabel, isVerticalRef, valueRef,
@@ -25,8 +30,8 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
     const { cellCounts } = useAdornmentCells(model, cellKey)
     const helper = useMemo(() => {
       return new UnivariateMeasureAdornmentHelper(cellKey, isVerticalRef, layout, model,
-        containerId, defaultLabelTopOffset)
-    }, [cellKey, containerId, defaultLabelTopOffset, isVerticalRef, layout, model])
+        containerId, defaultLabelTopOffset, xAxis, yAxis)
+    }, [cellKey, containerId, defaultLabelTopOffset, isVerticalRef, layout, model, xAxis, yAxis])
     const isBlockingOtherMeasure = dataConfig &&
       helper.blocksOtherMeasure({adornmentsStore, attrId: numericAttrId, dataConfig})
     const valueObjRef = useRef<IValue>({})
@@ -83,7 +88,17 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
       valueObj.label.call(
         drag<HTMLDivElement, unknown>()
           .on("drag", (e) => helper.handleMoveLabel(e, labelId))
-          .on("end", (e) => helper.handleEndMoveLabel(e, labelId))
+          .on("end", (e) => {
+            // V2 wraps equation-label drag-end in a Command with undo/redo/log/notify;
+            // V3 historically did not, leaving the move non-undoable. Wrap here so the
+            // user can undo the label move and so V2 plugins see `reposition equation`.
+            graphModel.applyModelChange(() => helper.handleEndMoveLabel(e, labelId), {
+              notify: () => repositionEquationNotification(tile, model.type),
+              undoStringKey: "DG.Undo.graph.repositionEquation",
+              redoStringKey: "DG.Redo.graph.repositionEquation",
+              log: "Moved equation label"
+            })
+          })
       )
 
       valueObj.label.on("mouseover", () => highlightCovers(true))
@@ -100,7 +115,8 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
         .on("mouseout", () => highlightLabel(labelId, false))
 
     },
-      [containerId, dataConfig, helper, highlightCovers, highlightLabel, labelsDivRef])
+      [containerId, dataConfig, graphModel, helper, highlightCovers, highlightLabel,
+       labelsDivRef, model.type, tile])
 
     const addTextTip = useCallback((plotValue: number, textContent: string, valueObj: IValue, range?: number) => {
       if (!spannerRef?.current) return

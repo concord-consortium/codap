@@ -789,7 +789,7 @@
     "DG.ScatterPlotModel.daysLabel": "per day", // used in equation for line when x is a datetime axis
     "DG.ScatterPlotModel.hoursLabel": "per hour", // used in equation for line when x is a datetime axis
     "DG.ScatterPlotModel.minutesLabel": "per minute", // used in equation for line when x is a datetime axis
-    "DG.ScatterPlotModel.secondsLabel": "per seconds", // used in equation for line when x is a datetime axis
+    "DG.ScatterPlotModel.secondsLabel": "per second", // used in equation for line when x is a datetime axis
     "DG.ScatterPlotModel.LSRLCIBandInfo": "Shaded regions shows the range\n in which the true regression line\n lies at 95% confidence level.",
 
     // DG.BarChartModel
@@ -1549,6 +1549,7 @@
     // V3 formula strings that are not present in V2 and will eventually require translation.
     "V3.formula.error.invalidParentAttrRef": "invalid reference to parent attribute '%@' within aggregate function",
     "V3.formula.error.cycle": "Circular reference: formula refers to its own attribute either directly or indirectly",
+    "V3.formula.error.mixedSelfRef": "Formula uses both prev() and next() on its own attribute, which requires iterative resolution and is not yet supported",
     "V3.formula.error.stringConstantArg": "The '%@()' function expects %@ argument to be a string constant",
     "V3.formula.error.caseDependentNotSupported": "This formula scope does not support case-dependent formulas",
 
@@ -1647,6 +1648,8 @@
     "V3.Undo.errorTester.create": "Undo adding error tester",
     "V3.Redo.errorTester.create": "Redo adding error tester",
 
-    "V3.AppController.optionMenuItems.positionToolShelfLeft": "Toolbar Position: Top",
-    "V3.AppController.optionMenuItems.positionToolShelfTop": "Toolbar Position: Left"
+    "V3.AppController.optionMenuItems.positionToolShelfLeft": "Toolbar Position: Move to the top",
+    "V3.AppController.optionMenuItems.positionToolShelfTop": "Toolbar Position: Move to the left",
+    "V3.AppController.optionMenuItems.graphicsAccelerationOn": "Graphics Acceleration: Turn off",
+    "V3.AppController.optionMenuItems.graphicsAccelerationOff": "Graphics Acceleration: Turn on"
 }

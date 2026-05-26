@@ -2,8 +2,12 @@ import {drag, select, Selection} from "d3"
 import {autorun} from "mobx"
 import { observer } from "mobx-react-lite"
 import {useCallback, useEffect, useRef} from "react"
+import { useTileModelContext } from "../../../../hooks/use-tile-model-context"
+import { isNumericAttributeType } from "../../../../models/data/attribute-types"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 import {useAxisLayoutContext} from "../../../axis/models/axis-layout-context"
+import { IDateAxisModel, isDateAxisModel } from "../../../axis/models/numeric-axis-models"
+import { dragMovableValueNotification } from "../../graph-notifications"
 import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
 import { useAdornmentCells } from "../../hooks/use-adornment-cells"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
@@ -27,13 +31,14 @@ export const MovableValueAdornment = observer(function MovableValueAdornment(pro
   const layout = useAxisLayoutContext()
   const graphModel = useGraphContentModelContext()
   const dataConfig = useGraphDataConfigurationContext()
+  const { tile } = useTileModelContext()
   const { xAttrType, xScale, yScale } = useAdornmentAttributes()
   const { cellCounts, classFromKey, instanceKey } = useAdornmentCells(model, cellKey)
   const [left, right] = xScale?.range() || [0, 1]
   const [bottom, top] = yScale?.range() || [0, 1]
   const valueRef = useRef<SVGSVGElement>(null)
   const valueObjects = useRef<IValueObject[]>([])
-  const isVertical = useRef(!!(xAttrType && xAttrType === "numeric"))
+  const isVertical = useRef(isNumericAttributeType(xAttrType))
 
   const getValues = useCallback(() => {
     const { values } = model
@@ -84,7 +89,11 @@ export const MovableValueAdornment = observer(function MovableValueAdornment(pro
   const refreshValue = useCallback((value: number, valueObjIndex: number) => {
     if (!value || !valueObjects.current[valueObjIndex]) return
     const multiScale = isVertical.current ? layout.getAxisMultiScale("bottom") : layout.getAxisMultiScale("left")
-    const displayValue = multiScale ? multiScale.formatValueForScale(value) : valueLabelString(value)
+    const primaryAxis = isVertical.current ? xAxis : yAxis
+    const dateAxis: IDateAxisModel | undefined = isDateAxisModel(primaryAxis) ? primaryAxis : undefined
+    const displayValue = multiScale
+      ? multiScale.formatValueForScale(value, !!dateAxis, dateAxis?.precisionForDisplay)
+      : valueLabelString(value)
     const { line, cover, rect, valueLabel } = valueObjects.current[valueObjIndex]
     if (!line || !cover || !rect || !valueLabel) return
 
@@ -113,14 +122,14 @@ export const MovableValueAdornment = observer(function MovableValueAdornment(pro
       .classed("vertical", isVertical.current)
       .classed("horizontal", !isVertical.current)
       .html(displayValue)
-  }, [determineLineCoords, layout])
+  }, [determineLineCoords, layout, xAxis, yAxis])
 
   const handleDrag = useCallback((event: MouseEvent, index: number) => {
     const values = getValues()
     const preDragValue = values?.[index]
     const axisMin = isVertical.current ? xScale.domain()[0] : yScale.domain()[0]
     const axisMax = isVertical.current ? xScale.domain()[1] : yScale.domain()[1]
-    let newValue = xAttrType === "numeric"
+    let newValue = isNumericAttributeType(xAttrType)
       ? xScale.invert(event.x) * cellCounts.x
       : yScale.invert(event.y) * cellCounts.y
 
@@ -139,15 +148,14 @@ export const MovableValueAdornment = observer(function MovableValueAdornment(pro
                                 ? Math.round(model.values.get(instanceKey)![dragIndex] * 10) / 10
                                 : 'undefined'
       const logToValue = Math.round(dragValue *10)/10
-      graphModel.applyModelChange(
-        () => model.endDrag(dragValue, instanceKey, dragIndex),
-        { undoStringKey: "DG.Undo.graph.moveMovableValue",
-          redoStringKey: "DG.Redo.graph.moveMovableValue",
-          log: logMessageWithReplacement("Moved value from %@ to %@", {from: logFromValue, to: logToValue})
-        }
-      )
+      graphModel.applyModelChange(() => model.endDrag(dragValue, instanceKey, dragIndex), {
+        notify: () => dragMovableValueNotification(tile),
+        undoStringKey: "DG.Undo.graph.moveMovableValue",
+        redoStringKey: "DG.Redo.graph.moveMovableValue",
+        log: logMessageWithReplacement("Moved value from %@ to %@", {from: logFromValue, to: logToValue})
+      })
     }
-  }, [graphModel, instanceKey, model])
+  }, [graphModel, instanceKey, model, tile])
 
   // Add drag behaviors to the line cover
   const addDragHandlers = useCallback(() => {
@@ -192,7 +200,7 @@ export const MovableValueAdornment = observer(function MovableValueAdornment(pro
   useEffect(function refreshAxisChange() {
     return autorun(() => {
       getAxisDomains(xAxis, yAxis)
-      isVertical.current = dataConfig?.attributeType("x") === "numeric"
+      isVertical.current = isNumericAttributeType(dataConfig?.attributeType("x"))
       adjustAllValues()
       renderFills()
     }, { name: "MovableValue.refreshAxisChange" })
@@ -215,7 +223,11 @@ export const MovableValueAdornment = observer(function MovableValueAdornment(pro
         const { x1, x2, y1, y2 } = determineLineCoords(values[i])
         const orientationClass = isVertical.current ? "vertical" : "horizontal"
         const multiScale = isVertical.current ? layout.getAxisMultiScale("bottom") : layout.getAxisMultiScale("left")
-        const displayValue = multiScale ? multiScale.formatValueForScale(values[i]) : valueLabelString(values[i])
+        const primaryAxis = isVertical.current ? xAxis : yAxis
+        const dateAxis: IDateAxisModel | undefined = isDateAxisModel(primaryAxis) ? primaryAxis : undefined
+        const displayValue = multiScale
+          ? multiScale.formatValueForScale(values[i], !!dateAxis, dateAxis?.precisionForDisplay)
+          : valueLabelString(values[i])
 
         newValueObject.rect = selection.append("rect")
           .attr("class", `movable-value-rect ${orientationClass}`)
@@ -244,7 +256,7 @@ export const MovableValueAdornment = observer(function MovableValueAdornment(pro
         renderFills()
       }
     }, { name: "MovableValue.createElements" })
-  }, [addDragHandlers, containerId, determineLineCoords, getValues, layout, renderFills])
+  }, [addDragHandlers, containerId, determineLineCoords, getValues, layout, renderFills, xAxis, yAxis])
 
   return (
     <svg

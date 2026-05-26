@@ -1,6 +1,6 @@
 {
   "name": "codap3",
-  "version": "3.0.0-beta.2870",
+  "version": "3.0.0-beta.2897",
   "description": "Common Online Data Analysis Platform v3",
   "main": "index.js",
   "browser": {
@@ -101,7 +101,10 @@
   "nyc": {
     "extends": "@istanbuljs/nyc-config-typescript",
     "all": true,
-    "report-dir": "coverage-cypress"
+    "report-dir": "coverage-cypress",
+    "include": [
+      "src/**/*.{ts,tsx,js,jsx}"
+    ]
   },
   "overrides": {
     "mobx-state-tree": "npm:@concord-consortium/mobx-state-tree"
@@ -197,7 +200,7 @@
     "@codemirror/commands": "^6.10.3",
     "@codemirror/language": "^6.12.3",
     "@codemirror/view": "^6.41.1",
-    "@concord-consortium/cloud-file-manager": "~2.2.11",
+    "@concord-consortium/cloud-file-manager": "~2.2.12",
     "@concord-consortium/log-monitor": "^1.0.0",
     "@concord-consortium/mobx-state-tree": "^6.0.0-cc.1",
     "@concord-consortium/slate-editor": "^0.12.0",

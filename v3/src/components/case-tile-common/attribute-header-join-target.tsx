@@ -6,6 +6,7 @@ import { flip, offset, shift, useFloating } from "@floating-ui/react"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { getDragAttributeInfo, useTileDroppable } from "../../hooks/use-drag-drop"
+import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { getJoinTip, joinSourceToDestCollection } from "../../models/data/join-datasets"
 import { kJoinTargetDropZoneBaseId } from "../case-table/case-table-drag-drop"
 import { If } from "../common/if"
@@ -32,6 +33,7 @@ function AttributeHeaderJoinTarget_({
 }: IAttributeHeaderJoinTargetProps) {
   const collectionId = useCollectionContext()
   const destDataSet = useDataSetContext()
+  const { tile: destTile } = useTileModelContext()
   const containerRef = useContext(AttributeHeaderDividerContext)
   const containerElt = containerRef.current
   const { active } = useDndContext()
@@ -72,7 +74,8 @@ function AttributeHeaderJoinTarget_({
       sourceKeyAttributeId: dropSourceAttributeId,
       destDataSet,
       destCollection,
-      destKeyAttributeId: attributeId
+      destKeyAttributeId: attributeId,
+      destTile
     })
   })
 

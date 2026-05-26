@@ -30,6 +30,16 @@ Cypress.on("uncaught:exception", err => !err.message.includes("ResizeObserver"))
 
 Cypress.on("uncaught:exception", err => !err.message.includes("not a function"))
 
+// Suppress the AnnouncementBanner during Cypress runs. The banner is fetched
+// from S3 on mount and, if successful, adds a 50px top offset to the workspace.
+// That offset can cause unrelated visibility/position assertions to fail (e.g.
+// position: fixed elements get covered by shifted tool-shelf items). Returning
+// 404 makes fetchBannerConfig fail silently and the banner doesn't render.
+// eslint-disable-next-line mocha/no-top-level-hooks
+beforeEach(() => {
+  cy.intercept("GET", "**/notifications/v3-announcement-banner.json", { statusCode: 404 })
+})
+
 // Capture console.log/warn/error from the application and display in Cypress command log
 // This is useful for debugging CI-specific test failures
 Cypress.on("window:before:load", (win) => {

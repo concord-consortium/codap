@@ -29,6 +29,9 @@ registerAdornmentContentInfo({
   plots: ["scatterPlot"],
   prefix: kPlottedFunctionPrefix,
   modelClass: PlottedFunctionAdornmentModel,
+  // V2 emits `toggle plot function` from apps/dg/components/graph/plots/scatter_plot_model.js
+  // (togglePlotFunction ~:461). AdornmentCheckbox forwards with `{ isChecked }`.
+  notificationOperation: "toggle plot function",
   undoRedoKeys: {
     undoAdd: kPlottedFunctionUndoAddKey,
     redoAdd: kPlottedFunctionRedoAddKey,

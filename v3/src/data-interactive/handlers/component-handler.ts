@@ -1,4 +1,7 @@
 import { isCaseTableModel } from "../../components/case-table/case-table-model"
+import {
+  openCaseTableNotification, resizeColumnsNotification
+} from "../../components/case-table/case-table-notifications"
 import { resizeAllColumns } from "../../components/case-table/case-table-utils"
 import { isGraphContentModel } from "../../components/graph/models/graph-content-model"
 import { isMapContentModel } from "../../components/map/models/map-content-model"
@@ -90,10 +93,12 @@ export const diComponentHandler: DIHandler = {
           }
         }
       }, {
-        // Wrap in a function so it runs AFTER applyModelChange's actionFn assigns `tile`.
-        // Evaluating createTileNotification(tile) inline would call it with tile=undefined,
-        // producing no notification (createTileNotification returns undefined for falsy tile).
-        notify: () => createTileNotification(tile),
+        // Wrap each helper in a function so it runs AFTER applyModelChange's actionFn assigns
+        // `tile`. Evaluating notifications inline would call them with tile=undefined,
+        // producing no notification (the helpers return undefined for falsy tile).
+        // openCaseTableNotification no-ops for non-case-table tiles, so it's safe to call
+        // unconditionally here (V2-plugin compat for the case-table create path, CODAP-1353).
+        notify: [() => createTileNotification(tile), () => openCaseTableNotification(tile)],
         // Don't echo the create back to the requesting plugin — Story Builder otherwise treats
         // notifications about its own DI-API actions as document edits and marks the current
         // moment as unsaved (CODAP-1307).
@@ -169,7 +174,24 @@ export const diComponentHandler: DIHandler = {
         } else if (isMapContentModel(content)) {
           content.rescale()
         } else if (isCaseTableModel(content)) {
-          resizeAllColumns(content)
+          // V2's resize-all path (case_table_controller.js:1136) is undoable and emits
+          // `resize columns`. Mirror that here so plugin-initiated rescales are also
+          // undoable and visible to V2 plugins (CODAP-1353). Graph/Map rescales above are
+          // not yet wrapped — deferred to CODAP-1351 / CODAP-1352.
+          //
+          // Don't echo the notification back to the requesting plugin — Story Builder
+          // otherwise treats notifications about its own DI-API actions as document edits
+          // and marks the current moment as unsaved (CODAP-1307), matching the pattern
+          // used by the create/update/delete handlers in this file.
+          content.applyModelChange(() => {
+            resizeAllColumns(content)
+          }, {
+            notify: () => resizeColumnsNotification(component),
+            excludeTileId: resources.interactiveFrame?.id,
+            log: {message: "Resize all columns", args:{}, category: "table"},
+            undoStringKey: "DG.Undo.caseTable.resizeColumns",
+            redoStringKey: "DG.Redo.caseTable.resizeColumns"
+          })
         } else {
           return errorResult(t("V3.DI.Error.componentDoesNotSupportRescale"))
         }

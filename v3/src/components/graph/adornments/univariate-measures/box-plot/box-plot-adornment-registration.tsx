@@ -1,9 +1,14 @@
 import { observer } from "mobx-react-lite"
 import { registerAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
+import { useTileModelContext } from "../../../../../hooks/use-tile-model-context"
 import { logMessageWithReplacement } from "../../../../../lib/log-message"
+import { updateTileNotification } from "../../../../../models/tiles/tile-notifications"
 import { getDocumentContentPropertyFromNode } from "../../../../../utilities/mst-utils"
 import { t } from "../../../../../utilities/translation/translate"
 import { PaletteCheckbox } from "../../../../palette-checkbox"
+import {
+  toggleShowICINotification, toggleShowOutliersNotification
+} from "../../../graph-notifications"
 import { useGraphContentModelContext } from "../../../hooks/use-graph-content-model-context"
 import { registerAdornmentComponentInfo } from "../../adornment-component-info"
 import { getAdornmentContentInfo, registerAdornmentContentInfo } from "../../adornment-content-info"
@@ -18,6 +23,7 @@ import {
 
 const Controls = observer(function Controls() {
   const graphModel = useGraphContentModelContext()
+  const { tile } = useTileModelContext()
   const adornmentsStore = graphModel.adornmentsStore
   const existingAdornment = adornmentsStore.findAdornmentOfType<IBoxPlotAdornmentModel>(kBoxPlotType)
   const showICIOption = getDocumentContentPropertyFromNode(graphModel, "iciEnabled") || existingAdornment?.showICI
@@ -32,11 +38,15 @@ const Controls = observer(function Controls() {
       undoRemove: componentContentInfo.undoRedoKeys?.undoRemove,
       redoRemove: componentContentInfo.undoRedoKeys?.redoRemove
     }
+    // V2 op: `togglePlottedBoxPlot` (univariate_adornment_base_model.js toggleAverage ~:321).
+    const notify = tile
+      ? () => updateTileNotification("togglePlottedBoxPlot", { isChecked: checked }, tile)
+      : undefined
 
     if (checked) {
       graphModel.applyModelChange(
-        () => adornmentsStore.addAdornment(adornment, graphModel.getUpdateCategoriesOptions()),
-        {
+        () => adornmentsStore.addAdornment(adornment, graphModel.getUpdateCategoriesOptions()), {
+          notify,
           undoStringKey: undoRedoKeys.undoAdd || "",
           redoStringKey: undoRedoKeys.redoAdd || "",
           log: logMessageWithReplacement("Added %@", {adornmentType: adornment.type})
@@ -44,8 +54,8 @@ const Controls = observer(function Controls() {
       )
     } else {
       graphModel.applyModelChange(
-        () => adornmentsStore.hideAdornment(adornment.type),
-        {
+        () => adornmentsStore.hideAdornment(adornment.type), {
+          notify,
           undoStringKey: undoRedoKeys.undoRemove || "",
           redoStringKey: undoRedoKeys.redoRemove || "",
           log: logMessageWithReplacement("Removed %@", {adornmentType: adornment.type})
@@ -55,11 +65,25 @@ const Controls = observer(function Controls() {
   }
 
   const handleShowOutliersSetting = (checked: boolean) => {
-    existingAdornment?.setShowOutliers(checked)
+    // V3 pre-existing bug: this previously bypassed applyModelChange (no undo/redo/log).
+    // Wrap now so the toggle is undoable AND so V2 plugins see `toggle show outliers`.
+    graphModel.applyModelChange(() => existingAdornment?.setShowOutliers(checked), {
+      notify: () => toggleShowOutliersNotification(tile, checked),
+      undoStringKey: checked ? "DG.Undo.graph.showOutliers" : "DG.Undo.graph.hideOutliers",
+      redoStringKey: checked ? "DG.Redo.graph.showOutliers" : "DG.Redo.graph.hideOutliers",
+      log: logMessageWithReplacement("%@ outliers", {action: checked ? "Show" : "Hide"})
+    })
   }
 
   const handleShowIciSetting = (checked: boolean) => {
-    existingAdornment?.setShowICI(checked)
+    // V3 pre-existing bug: this previously bypassed applyModelChange. Wrap and emit the V3-clarified
+    // op `toggle show ICI` (V2 emits the wrong `toggle show outliers` op here — audit §3.5 bug).
+    graphModel.applyModelChange(() => existingAdornment?.setShowICI(checked), {
+      notify: () => toggleShowICINotification(tile, checked),
+      undoStringKey: checked ? "DG.Undo.graph.showICI" : "DG.Undo.graph.hideICI",
+      redoStringKey: checked ? "DG.Redo.graph.showICI" : "DG.Redo.graph.hideICI",
+      log: logMessageWithReplacement("%@ ICI", {action: checked ? "Show" : "Hide"})
+    })
   }
 
   const renderShowOutliers = () => {

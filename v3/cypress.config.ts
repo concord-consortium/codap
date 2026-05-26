@@ -17,6 +17,9 @@ export default defineConfig({
     },
     env: {
         coverage: false,
+        // CODAP-1323 conformance suite (R28/R29) -- the spec targets the pre-flip temp
+        // subdomain. Override on the CLI with --env redirectBaseUrl=https://<host>.
+        redirectBaseUrl: 'https://codap2to3.concord.org',
     },
     e2e: {
         // We've imported your old cypress plugins here.
@@ -50,6 +53,11 @@ export default defineConfig({
                 });
         },
         baseUrl: 'http://localhost:8080',
-        specPattern: 'cypress/e2e/**/*.{js,jsx,ts,tsx}'
+        // Excludes the CODAP-1323 v2-v3-redirect conformance spec from the default /
+        // regression specPattern (its temp subdomain exists only pre-flip; running it
+        // outside that window would always fail). Run on demand with
+        //   npx cypress run --spec cypress/e2e/v2-v3-redirect.spec.ts --env redirectBaseUrl=...
+        specPattern: 'cypress/e2e/**/*.{js,jsx,ts,tsx}',
+        excludeSpecPattern: ['**/v2-v3-redirect.spec.ts']
     },
 })

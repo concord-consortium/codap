@@ -9,7 +9,7 @@ import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { t } from "../../../../utilities/translation/translate"
 import { isFiniteNumber } from "../../../../utilities/math-utils"
 import { mstReaction } from "../../../../utilities/mst-reaction"
-import { isNumericAxisModel } from "../../../axis/models/numeric-axis-models"
+import { isAnyNumericAxisModel } from "../../../axis/models/numeric-axis-models"
 import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
 import { useAdornmentCells } from "../../hooks/use-adornment-cells"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
@@ -31,6 +31,10 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
   const { xScale, yScale } = useAdornmentAttributes()
   const dataConfig = useGraphDataConfigurationContext()
   const showMeasuresForSelection = !!dataConfig?.showMeasuresForSelection
+  // Observe the selection count so the component re-renders on selection change.
+  // The useEffect below recomputes count values on every render but is not itself reactive,
+  // so without this read the per-cell counts go stale when the user selects/deselects cases.
+  const _selectionCount = showMeasuresForSelection ? dataConfig?.selection.length ?? 0 : 0
   const graphModel = useGraphContentModelContext()
   const isBinnedPlot = isBinnedDotPlotModel(graphModel.plot)
   const adornmentsStore = graphModel?.adornmentsStore
@@ -205,7 +209,7 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
 
   useEffect(function respondToAxisDomainChange() {
     return mstReaction(
-      () => isNumericAxisModel(primaryAxisModel) ? primaryAxisModel?.domain.slice() : null,
+      () => isAnyNumericAxisModel(primaryAxisModel) ? primaryAxisModel?.domain.slice() : null,
       () => {
         forceUpdate()
       }, { name: "CountAdornment.respondToAxisDomainChange", equals: comparer.structural }, model

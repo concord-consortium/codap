@@ -1,6 +1,7 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { JsonNumber } from "../../../../utilities/json-number"
 import { IAxisModel } from "../../../axis/models/axis-model"
+import { isAnyNumericAxisModel } from "../../../axis/models/numeric-axis-models"
 import { Point } from "../../../data-display/data-display-types"
 import { migrateInstanceKeyMap, stringToCellKey } from "../../utilities/cell-key-utils"
 import { computeSlopeAndIntercept } from "../../utilities/graph-utils"
@@ -97,7 +98,10 @@ export const MovableLineAdornmentModel = AdornmentModel
 .actions(self => ({
   updateCategories(options: IUpdateCategoriesOptions) {
     const { resetPoints, dataConfig, interceptLocked, xAxis, yAxis } = options
-    if (dataConfig.xAndYAreNumeric) {
+    // Accept date/count/percent axes alongside numeric — mirrors the gate used by
+    // movable-point and movable-value, and aligns with V2's behavior of allowing a
+    // movable line on a date-time scatterplot.
+    if (isAnyNumericAxisModel(xAxis) && isAnyNumericAxisModel(yAxis)) {
       dataConfig.getAllCellKeys().forEach(cellKey => {
         const instanceKey = self.instanceKey(cellKey)
         if (!self.lines.get(instanceKey) || resetPoints) {
