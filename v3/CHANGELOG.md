@@ -1,5 +1,16 @@
 # Changelog
 
+## Version 3.0.0-rc.2914 - May 26, 2026
+
+### 🛠️ Under the Hood:
+- **CODAP-1326:** Route codap2to3.concord.org traffic to the production log server; log launch URL at startup
+
+### Asset Sizes
+|      File |          Size | % Change from Previous Release |
+|-----------|---------------|--------------------------------|
+|  main.css |  240772 bytes |                          0.00% |
+|  index.js | 7812720 bytes |                         <0.01% |
+
 ## Version 3.0.0-rc.2912 - May 26, 2026
 
 ### ✨ Features & Improvements:
