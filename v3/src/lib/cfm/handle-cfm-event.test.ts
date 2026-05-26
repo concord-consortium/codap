@@ -151,8 +151,10 @@ describe("handleCFMEvent", () => {
     expect(ImportV2Document.importV2Document).toHaveBeenCalledTimes(1)
     // No error and no shared data
     expect(cfmEvent.callback).toHaveBeenCalledWith(null, {})
-    // autoSave should be disabled for v2 documents with an appVersion other than 3.x
-    expect(mockCfmClient.autoSave).toHaveBeenCalledWith(-1)
+    // V3 owns the .codap extension; v2 docs get auto-saved like any other doc, which on
+    // the next save converts them to v3 format in place (see CODAP-1326).
+    expect(mockCfmClient.autoSave).not.toHaveBeenCalledWith(-1)
+    expect(mockCfmClient.autoSave).toHaveBeenCalledWith(kCFMAutoSaveInterval)
     spy.mockRestore()
   })
 
@@ -234,76 +236,6 @@ describe("handleCFMEvent", () => {
     // No error and the sharing info is returned
     expect(cfmEvent.callback).toHaveBeenCalledWith(null, mockSharingInfo)
     spy.mockRestore()
-  })
-
-  describe("openedFile + embedded LARA context", () => {
-    let savedUrlParams: any
-
-    beforeEach(() => {
-      // Snapshot the *current* params, then actively clear the three we care about so
-      // leftover state from a prior test elsewhere can't make our negative assertions
-      // pass for the wrong reason.
-      savedUrlParams = { ...urlParamsModule.urlParams }
-      delete urlParamsModule.urlParams.interactiveApi
-      delete urlParamsModule.urlParams.launchFromLara
-      delete urlParamsModule.urlParams.lara
-    })
-
-    afterEach(() => {
-      // Restore each param we may have touched
-      delete urlParamsModule.urlParams.interactiveApi
-      delete urlParamsModule.urlParams.launchFromLara
-      delete urlParamsModule.urlParams.lara
-      Object.assign(urlParamsModule.urlParams, savedUrlParams)
-    })
-
-    const v2Doc = {
-      appName: "DG",
-      appVersion: "2.0.0",
-      appBuildNum: "555",
-      components: [],
-      contexts: []
-    } as unknown as ICodapV2DocumentJson
-
-    const makeEvent = () => ({
-      type: "openedFile",
-      data: { content: v2Doc, metadata: { filename: "file.codap" } },
-      callback: jest.fn() as ClientEventCallback
-    } as CloudFileManagerClientEvent)
-
-    // Each test verifies BOTH paths of the autoSave gate:
-    //   1. The "disable" branch (autoSave(-1)) is NOT called
-    //   2. The "enable" branch (autoSave(kCFMAutoSaveInterval)) IS called
-    // This matches the assertion style used by "handles the openedFile message with
-    // a v2 document saved by v3" at the top of this test file and catches both
-    // "called with wrong interval" and "never called" regressions.
-
-    it("keeps autoSave enabled for v2 doc when interactiveApi is present", async () => {
-      urlParamsModule.urlParams.interactiveApi = null  // present without value
-      const mockCfmClient =
-        { closeFile: jest.fn(), autoSave: jest.fn() } as unknown as CloudFileManagerClient
-      await handleCFMEvent(mockCfmClient, makeEvent())
-      expect(mockCfmClient.autoSave).not.toHaveBeenCalledWith(-1)
-      expect(mockCfmClient.autoSave).toHaveBeenCalledWith(kCFMAutoSaveInterval)
-    })
-
-    it("keeps autoSave enabled for v2 doc when launchFromLara is present with a value", async () => {
-      urlParamsModule.urlParams.launchFromLara = "base64payload"
-      const mockCfmClient =
-        { closeFile: jest.fn(), autoSave: jest.fn() } as unknown as CloudFileManagerClient
-      await handleCFMEvent(mockCfmClient, makeEvent())
-      expect(mockCfmClient.autoSave).not.toHaveBeenCalledWith(-1)
-      expect(mockCfmClient.autoSave).toHaveBeenCalledWith(kCFMAutoSaveInterval)
-    })
-
-    it("keeps autoSave enabled for v2 doc when lara is present with a value", async () => {
-      urlParamsModule.urlParams.lara = "1"
-      const mockCfmClient =
-        { closeFile: jest.fn(), autoSave: jest.fn() } as unknown as CloudFileManagerClient
-      await handleCFMEvent(mockCfmClient, makeEvent())
-      expect(mockCfmClient.autoSave).not.toHaveBeenCalledWith(-1)
-      expect(mockCfmClient.autoSave).toHaveBeenCalledWith(kCFMAutoSaveInterval)
-    })
   })
 
   describe("`openedFile` message with invalid documents", () => {
