@@ -47,12 +47,15 @@ context("Case table keyboard data entry (CODAP-1365)", () => {
     })
 
     it("Tab from the input row's first column commits a new case and moves to the next cell", () => {
-      // Scroll the input row into view via the index menu.
-      table.openInputRowIndexMenu()
-      // Close the menu — we just wanted to ensure the input row is rendered.
-      cy.realPress("Escape")
-      // Get the input row's first attribute cell. The input row has data-case-id="__input__".
-      cy.get('[data-case-id="__input__"] [aria-colindex="2"]').as("inputA").dblclick()
+      // Use Cmd+End to scroll to the last data row — RDG's row virtualization means
+      // setting scrollTop directly doesn't always render the input row, so we let our
+      // own keyboard handler (which uses collectionTableModel.scrollRowToBottom) do it.
+      table.getGridCell(2, 2).click()
+      cy.realPress(["Meta", "End"])
+      // Input row is just below the last data row — should now be in the DOM.
+      // force: true because the row virtualization may re-render the input row mid-click.
+      cy.get('[data-case-id="__input__"] [aria-colindex="2"]', { timeout: 4000 })
+        .dblclick({ force: true })
       cy.get(editor).should("be.focused").type("test-mammal")
       cy.realPress("Tab")
       // After commit + nav: editor is open on the NEW case's colindex 3 (Order).
