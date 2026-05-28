@@ -6,7 +6,7 @@ import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { uiState } from "../../models/ui-state"
 import { blockAPIRequestsWhileEditing } from "../../utilities/plugin-utils"
-import { kInputRowKey, TCellSelectArgs, TColumn, TRow } from "./case-table-types"
+import { TCellSelectArgs, TColumn, TRow } from "./case-table-types"
 import { useCollectionTableModel } from "./use-collection-table-model"
 
 interface ISelectedCell {
@@ -26,15 +26,17 @@ interface IPendingNavigation {
 export interface INavigationOptions {
   // Default true to preserve existing call sites (Enter/Tab from EDIT mode).
   enterEdit?: boolean
-  // When true, only stash pendingNavigation; don't call attemptNavigation synchronously.
-  // Instead, navFlushCounter is bumped via setTimeout(0) so that by the time the useEffect
-  // fires, the debounced post-commit rows update (use-rows.ts resetRowCacheAndSyncRows)
-  // has settled and RDG's `rows` prop is current. Used by the EDIT-mode commit-and-navigate
-  // path where calling selectCell synchronously would set RDG's originalRow to a stale row
-  // identity and the subsequent rows-prop change would trip RDG's guard at bundle.js:2643
-  // and unmount the editor. See CODAP-1365.
+  // Defer navigation until after the post-commit rows update has propagated.
+  // Used by the EDIT-mode commit-and-navigate path. See CODAP-1365.
   defer?: boolean
 }
+
+// Fallback delay for the no-op commit case (e.g. Tab from an unchanged cell):
+// no MST mutation, no rows change, no mstReaction firing — so we trigger via a
+// timer. 50ms is well past the use-rows.ts debounce (0ms) without being percep-
+// tible. For row-change cases, the mstReaction fires earlier and clears the
+// pending nav; the timer then runs as a no-op.
+const NO_OP_COMMIT_NAV_DELAY_MS = 50
 
 // Editable column predicate: the index column and formula/readonly attribute columns
 // have no renderEditCell, while editable attribute columns set it to a cell editor
@@ -71,12 +73,11 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
   const selectedCell = useRef<Maybe<ISelectedCell>>()
   const pendingNavigation = useRef<IPendingNavigation | null>(null)
   const blockUpdateSelectedCell = useRef(false)
-  // Bumped by navigateToNext{Cell,Row} when called with { defer: true } so that the
-  // retry useEffect below re-runs even when `rows` didn't change. This covers the
-  // case where args.onClose commits a no-op edit and applyCaseValueChanges short-
-  // circuits — without a rows reassignment the useEffect would never fire and
-  // pendingNavigation would be orphaned. See CODAP-1365.
+  // Bumped (by the rows mstReaction below and the no-op-commit fallback timer)
+  // to force the retry useEffect to re-run when pendingNavigation needs to be flushed.
+  // See CODAP-1365.
   const [navFlushCounter, setNavFlushCounter] = useState(0)
+  const deferredNavTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { tileId } = useTileModelContext()
   const tileIsFocused = tileId === uiState.focusedTile
 
@@ -88,6 +89,23 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
                               ? { columnId, rowId, rowIdx: args.rowIdx }
                               : undefined
     }
+  }, [])
+
+  // Fallback for the no-op commit case (deferred nav from EDIT mode where the
+  // commit didn't actually change rows — e.g. Tab from an unchanged cell).
+  // mstReaction below covers the row-change path; this timer covers the case
+  // when no rows update is coming. Cleared in the unmount effect below.
+  const scheduleNoOpCommitFallback = useCallback(() => {
+    if (deferredNavTimer.current != null) clearTimeout(deferredNavTimer.current)
+    deferredNavTimer.current = setTimeout(() => {
+      deferredNavTimer.current = null
+      setNavFlushCounter(c => c + 1)
+    }, NO_OP_COMMIT_NAV_DELAY_MS)
+  }, [])
+
+  // Clear any pending fallback timer on unmount to avoid a setState-on-unmounted warning.
+  useEffect(() => () => {
+    if (deferredNavTimer.current != null) clearTimeout(deferredNavTimer.current)
   }, [])
 
   // Attempts to navigate to the pending position if the target row exists.
@@ -112,18 +130,15 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
       const nav = { idx, rowIdx, enterEdit: options.enterEdit ?? true }
       pendingNavigation.current = nav
       if (options.defer) {
-        // setTimeout(0) defers the trigger until after any debounced post-commit rows
-        // update has run (use-rows.ts uses useDebouncedCallback which queues setTimeout(0)).
-        setTimeout(() => setNavFlushCounter(c => c + 1), 0)
+        scheduleNoOpCommitFallback()
         return
       }
-      // Navigate synchronously so a keystroke between the Enter handler and selection
-      // move cannot enter edit mode on the old cell. If the target row doesn't exist yet
-      // (e.g. input row just created a new case and the grid hasn't re-rendered),
-      // attemptNavigation returns false and the useEffect fallback will handle it.
+      // Sync nav so a keystroke between Enter and the selection move can't enter edit
+      // mode on the old cell. If the target row doesn't exist yet (e.g. just-created
+      // input row), attemptNavigation defers; the rows-dep useEffect retries on update.
       attemptNavigation(nav, rows)
     }
-  }, [attemptNavigation, columns, rows])
+  }, [attemptNavigation, columns, rows, scheduleNoOpCommitFallback])
 
   const navigateToNextCell = useCallback((back = false, options: INavigationOptions = {}) => {
     if (!selectedCell.current?.columnId) return
@@ -156,13 +171,11 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
     const nav = { idx: targetIdx, rowIdx: targetRowIdx, enterEdit: options.enterEdit ?? true }
     pendingNavigation.current = nav
     if (options.defer) {
-      // See navigateToNextRow for rationale on setTimeout(0) here.
-      setTimeout(() => setNavFlushCounter(c => c + 1), 0)
+      scheduleNoOpCommitFallback()
       return
     }
-    // Navigate synchronously; see navigateToNextRow for rationale.
     attemptNavigation(nav, rows)
-  }, [attemptNavigation, columns, rows])
+  }, [attemptNavigation, columns, rows, scheduleNoOpCommitFallback])
 
   const navigateToFirstEditableInRow = useCallback((rowIdx: number, options: INavigationOptions = {}) => {
     const idx = findFirstEditableIdx(columns)
@@ -191,13 +204,14 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
   const navigateToLastEditableCell = useCallback((options: INavigationOptions = {}) => {
     const idx = findLastEditableIdx(columns)
     if (idx == null) return
-    // Last data row, not the input row.
-    const dataRowCount = rows?.filter(r => r.__id__ !== kInputRowKey).length ?? 0
+    // Last data row, not the input row. collectionTableModel.rows is data-only;
+    // the React `rows` passed into the hook has the input row appended.
+    const dataRowCount = collectionTableModel?.rows?.length ?? 0
     const rowIdx = Math.max(0, dataRowCount - 1)
     const nav = { idx, rowIdx, enterEdit: options.enterEdit ?? false }
     pendingNavigation.current = nav
     attemptNavigation(nav, rows)
-  }, [attemptNavigation, columns, rows])
+  }, [attemptNavigation, collectionTableModel, columns, rows])
 
   const refreshSelectedCell = useCallback(() => {
     if (selectedCell.current) {
@@ -231,10 +245,22 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
     }
   }, [blockingDataset, refreshSelectedCellDebounced])
 
-  // Retries pending navigation when rows change (e.g. after a commit that adds a case
-  // shifts the target row index) or when navFlushCounter bumps from a defer:true call
-  // (a setTimeout(0) deferred trigger that ensures the rows-update debounce in
-  // use-rows.ts has settled before we attempt to navigate). See CODAP-1365.
+  // When collectionTableModel.rows changes (post-commit syncRowsToRdg → resetRows),
+  // bump the flush counter to re-run the retry effect with the latest React rows.
+  // Watching the MST observable directly is more deterministic than relying on
+  // setTimeout ordering vs. the debounced rows update in use-rows.ts.
+  useEffect(() => {
+    if (!collectionTableModel) return
+    return reaction(
+      () => collectionTableModel.rows,
+      () => { if (pendingNavigation.current) setNavFlushCounter(c => c + 1) },
+      { name: "useSelectedCell.rowsChanged" }
+    )
+  }, [collectionTableModel])
+
+  // Retries pending navigation when rows change (row-change commits) or when
+  // navFlushCounter is bumped (rows-change reaction above, or no-op-commit
+  // fallback timer). See CODAP-1365.
   useEffect(() => {
     if (pendingNavigation.current && rows) {
       attemptNavigation(pendingNavigation.current, rows)

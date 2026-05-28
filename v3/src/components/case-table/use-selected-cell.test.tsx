@@ -10,9 +10,11 @@ jest.mock("../../utilities/plugin-utils", () => ({
 }))
 
 const mockScrollRowIntoView = jest.fn()
+const mockModelState: { rows: TRow[] } = { rows: [] }
 jest.mock("./use-collection-table-model", () => ({
   useCollectionTableModel: () => ({
-    scrollRowIntoView: (...args: any[]) => mockScrollRowIntoView(...args)
+    scrollRowIntoView: (...args: any[]) => mockScrollRowIntoView(...args),
+    get rows() { return mockModelState.rows }
   })
 }))
 
@@ -33,6 +35,7 @@ describe("useSelectedCell", () => {
     mockScrollRowIntoView.mockReset()
     columns = []
     rows = []
+    mockModelState.rows = []
   })
 
   afterEach(() => {
@@ -329,6 +332,9 @@ describe("useSelectedCell", () => {
       { name: "Index", key: "__index__" },
       { name: "a", key: "a", renderEditCell: () => null }
     ]
+    // collectionTableModel.rows holds data rows only (no input row); the React
+    // `rows` passed to the hook has the input row appended at the end.
+    mockModelState.rows = [{ __id__: "row-0" }, { __id__: "row-1" }]
     rows = [
       { __id__: "row-0" },
       { __id__: "row-1" },
