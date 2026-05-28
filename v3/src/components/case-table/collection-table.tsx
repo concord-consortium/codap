@@ -268,7 +268,11 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     }
   }, [collectionTableModel?.rows, collectionTableModel?.inputRowIndex, showInputRow])
 
-  const { handleSelectedCellChange, navigateToNextCell, navigateToNextRow } = useSelectedCell(gridRef, columns, rows)
+  const {
+    handleSelectedCellChange, navigateToNextCell, navigateToNextRow,
+    navigateToFirstEditableInRow, navigateToLastEditableInRow,
+    navigateToFirstEditableCell, navigateToLastEditableCell
+  } = useSelectedCell(gridRef, columns, rows)
 
   const handleCellKeyDown = useCallback((args: TCellKeyDownArgs, event: CellKeyboardEvent) => {
     // During an active DnDKit drag (mouse, pointer, or keyboard), prevent RDG from navigating
@@ -309,22 +313,105 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       // cell navigation when focus is inside a popover portal — let the popover handle it.
       const activeElement = document.activeElement
       if (activeElement && !event.currentTarget.contains(activeElement)) return
-      // complete the cell edit
-      args.onClose(true)
-      // prevent RDG from handling the event
+      // Suppress RDG and browser defaults BEFORE committing. args.onClose below unmounts
+      // the editor input synchronously (via flushSync); if preventDefault runs after that,
+      // Chrome applies the Tab/Shift-Tab default focus move (to the next/previous tabbable
+      // on the page — e.g. the resize widget) before our deferred navigation can take over.
+      // See CODAP-1365.
       event.preventGridDefault()
+      if (event.key === "Tab") event.preventDefault()
+      // Complete the cell edit. The second argument (shouldFocusCell=false) prevents RDG
+      // from queueing a focus-grab on the cell wrapper after the flushSync commit, which
+      // would race with — and steal focus from — the editor input that our subsequent
+      // navigateToNextCell/Row opens on the target cell.
+      args.onClose(true, false)
+      // Defer the navigation. The post-commit rows update is propagated via a debounced
+      // syncRowsToRdg (use-rows.ts), so it doesn't reach React synchronously inside the
+      // flushSync. navigateToNextCell/Row with { defer: true } stashes pendingNavigation
+      // and bumps navFlushCounter via setTimeout(0), which fires AFTER the debounced
+      // rows update has settled. See CODAP-1365.
       if (["Enter", "ArrowUp", "ArrowDown"].includes(event.key)) {
         const reverse = event.shiftKey || event.key === "ArrowUp"
-        navigateToNextRow(reverse)
+        navigateToNextRow(reverse, { defer: true })
       }
       if (event.key === "Tab") {
-        // Prevent the browser's native Tab focus movement, which in Safari can move focus
-        // to other components (e.g. text component) instead of letting our custom navigation
-        // handle it. RDG's navigate() normally calls preventDefault(), but since we called
-        // preventGridDefault() above, RDG's navigate() is skipped entirely.
-        event.preventDefault()
-        navigateToNextCell(event.shiftKey)
+        navigateToNextCell(event.shiftKey, { defer: true })
       }
+    }
+    // SELECT mode Tab/Shift-Tab: move to the next editable cell, staying in SELECT mode.
+    // Without this branch, RDG's default Tab handling lets focus escape the grid entirely.
+    if (args.mode === "SELECT" && event.key === "Tab") {
+      event.preventGridDefault()
+      event.preventDefault()
+      navigateToNextCell(event.shiftKey, { enterEdit: false })
+      return
+    }
+    // SELECT mode Escape: blur the focused cell so focus exits the grid.
+    // RDG's default for Escape in SELECT mode only clears the copied-cell marker;
+    // it doesn't move focus. See CODAP-1365.
+    if (args.mode === "SELECT" && event.key === "Escape") {
+      event.preventGridDefault()
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur()
+      }
+      return
+    }
+    // SELECT mode PageUp/PageDown: scroll the grid by ~one viewport without changing
+    // the selected cell. RDG's default moves selection by a page; per spec, only the
+    // scroll position changes (focused cell may scroll out of view). Uses the
+    // CollectionTableModel's scrollRowToTop/scrollRowToBottom (which work with RDG's
+    // virtualization) rather than native scrollTop, which doesn't reflect the full
+    // virtual height with row virtualization. See CODAP-1365.
+    if (args.mode === "SELECT" && (event.key === "PageUp" || event.key === "PageDown")) {
+      event.preventGridDefault()
+      event.preventDefault()
+      if (collectionTableModel && rows) {
+        const firstVisible = collectionTableModel.firstVisibleRowIndex
+        const lastVisible = collectionTableModel.lastVisibleRowIndex
+        if (event.key === "PageDown") {
+          // Make the current last-visible row the new top, scrolling forward by one viewport.
+          collectionTableModel.scrollRowToTop(Math.min(rows.length - 1, lastVisible))
+        } else {
+          // Make the current first-visible row the new bottom, scrolling back by one viewport.
+          collectionTableModel.scrollRowToBottom(Math.max(0, firstVisible))
+        }
+      }
+      return
+    }
+    // SELECT mode Home/End: move to first/last editable cell in the row, skipping the
+    // index column and any non-editable attribute columns. With Cmd/Ctrl held, extend
+    // to first/last editable cell of the collection, and also update the case selection
+    // to the target row's case (otherwise the highlighted row stays where it was while
+    // the cell focus moves elsewhere). RDG's defaults land on idx 0 (index column,
+    // non-editable) for Home and the absolute last column for End. See CODAP-1365.
+    if (args.mode === "SELECT" && (event.key === "Home" || event.key === "End")) {
+      event.preventGridDefault()
+      event.preventDefault()
+      const extendToCollection = event.metaKey || event.ctrlKey
+      if (event.key === "Home") {
+        if (extendToCollection) {
+          navigateToFirstEditableCell()
+          const firstRowId = rows?.[0]?.__id__
+          if (firstRowId && firstRowId !== kInputRowKey && data) {
+            setSelectedCases([firstRowId], data)
+          }
+        } else {
+          navigateToFirstEditableInRow(args.rowIdx)
+        }
+      } else {
+        if (extendToCollection) {
+          navigateToLastEditableCell()
+          // Last data row (not the input row).
+          const dataRows = rows?.filter(r => r.__id__ !== kInputRowKey) ?? []
+          const lastDataRowId = dataRows[dataRows.length - 1]?.__id__
+          if (lastDataRowId && data) {
+            setSelectedCases([lastDataRowId], data)
+          }
+        } else {
+          navigateToLastEditableInRow(args.rowIdx)
+        }
+      }
+      return
     }
     if ((event.key === "ArrowDown" || event.key === "ArrowUp")) {
       const caseId = args.row.__id__
@@ -371,7 +458,11 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         }
       }
     }
-  }, [active, collection, collectionId, data, navigateToNextCell, navigateToNextRow, onScrollRowRangeIntoView])
+  }, [active, collection, collectionId, collectionTableModel, data,
+      navigateToNextCell, navigateToNextRow,
+      navigateToFirstEditableInRow, navigateToLastEditableInRow,
+      navigateToFirstEditableCell, navigateToLastEditableCell,
+      onScrollRowRangeIntoView, rows])
 
   const handleClick = (event: React.PointerEvent<HTMLDivElement>) => {
     // See if mouse has moved beyond kMouseMovementThreshold since initial mousedown

@@ -136,8 +136,8 @@ describe("useSelectedCell", () => {
     // move selection synchronously for the same reason as navigateToNextRow.
     columns = [
       { name: "Index", key: "__index__" },
-      { name: "Column1", key: "column-1" },
-      { name: "Column2", key: "column-2" }
+      { name: "Column1", key: "column-1", renderEditCell: () => null },
+      { name: "Column2", key: "column-2", renderEditCell: () => null }
     ]
     rows = [{ __id__: "row-0" }, { __id__: "row-1" }]
     const { result } =
@@ -163,10 +163,194 @@ describe("useSelectedCell", () => {
     expect(gridRef.current.selectCell).toHaveBeenCalledTimes(1)
   })
 
+  it("navigateToNextCell with { enterEdit: false } lands the target cell in SELECT mode", () => {
+    columns = [
+      { name: "Index", key: "__index__" },
+      { name: "a", key: "a", renderEditCell: () => null },
+      { name: "b", key: "b", renderEditCell: () => null }
+    ]
+    rows = [{ __id__: "row-0" }]
+    const { result } =
+      renderHook(() => useSelectedCell(gridRef, columns, rows), {
+        wrapper: ({ children }) => (
+          <DataSetContext.Provider value={data}>{children}</DataSetContext.Provider>
+        )
+      })
+    result.current.handleSelectedCellChange({
+      rowIdx: 0, row: rows[0], column: columns[1] as TCalculatedColumn
+    })
+
+    result.current.navigateToNextCell(false, { enterEdit: false })
+
+    expect(gridRef.current.selectCell).toHaveBeenCalledWith({ idx: 2, rowIdx: 0 }, false)
+  })
+
+  it("navigateToNextCell skips non-editable columns when stepping right", () => {
+    // Formula attribute between two editable attributes.
+    columns = [
+      { name: "Index", key: "__index__" },
+      { name: "a", key: "a", renderEditCell: () => null },
+      { name: "f", key: "f" },
+      { name: "b", key: "b", renderEditCell: () => null }
+    ]
+    rows = [{ __id__: "row-0" }]
+    const { result } =
+      renderHook(() => useSelectedCell(gridRef, columns, rows), {
+        wrapper: ({ children }) => (
+          <DataSetContext.Provider value={data}>{children}</DataSetContext.Provider>
+        )
+      })
+    result.current.handleSelectedCellChange({
+      rowIdx: 0, row: rows[0], column: columns[1] as TCalculatedColumn
+    })
+
+    result.current.navigateToNextCell()
+
+    // Should skip "f" (no renderEditCell) and land on "b" at idx 3.
+    expect(gridRef.current.selectCell).toHaveBeenCalledWith({ idx: 3, rowIdx: 0 }, true)
+  })
+
+  it("navigateToNextCell skips non-editable columns when stepping left", () => {
+    columns = [
+      { name: "Index", key: "__index__" },
+      { name: "a", key: "a", renderEditCell: () => null },
+      { name: "f", key: "f" },
+      { name: "b", key: "b", renderEditCell: () => null }
+    ]
+    rows = [{ __id__: "row-0" }]
+    const { result } =
+      renderHook(() => useSelectedCell(gridRef, columns, rows), {
+        wrapper: ({ children }) => (
+          <DataSetContext.Provider value={data}>{children}</DataSetContext.Provider>
+        )
+      })
+    result.current.handleSelectedCellChange({
+      rowIdx: 0, row: rows[0], column: columns[3] as TCalculatedColumn
+    })
+
+    result.current.navigateToNextCell(true)
+
+    // Should skip "f" and land on "a" at idx 1.
+    expect(gridRef.current.selectCell).toHaveBeenCalledWith({ idx: 1, rowIdx: 0 }, true)
+  })
+
+  it("navigateToNextCell wraps Tab at end of row to first editable cell of next row", () => {
+    columns = [
+      { name: "Index", key: "__index__" },
+      { name: "a", key: "a", renderEditCell: () => null },
+      { name: "b", key: "b", renderEditCell: () => null }
+    ]
+    rows = [{ __id__: "row-0" }, { __id__: "row-1" }]
+    const { result } =
+      renderHook(() => useSelectedCell(gridRef, columns, rows), {
+        wrapper: ({ children }) => (
+          <DataSetContext.Provider value={data}>{children}</DataSetContext.Provider>
+        )
+      })
+    result.current.handleSelectedCellChange({
+      rowIdx: 0, row: rows[0], column: columns[2] as TCalculatedColumn
+    })
+
+    result.current.navigateToNextCell()
+
+    // From last column of row 0, Tab wraps to first editable (idx 1) of row 1.
+    expect(gridRef.current.selectCell).toHaveBeenCalledWith({ idx: 1, rowIdx: 1 }, true)
+  })
+
+  it("navigateToNextCell wraps Shift-Tab at start of row to last editable cell of previous row", () => {
+    columns = [
+      { name: "Index", key: "__index__" },
+      { name: "a", key: "a", renderEditCell: () => null },
+      { name: "b", key: "b", renderEditCell: () => null }
+    ]
+    rows = [{ __id__: "row-0" }, { __id__: "row-1" }]
+    const { result } =
+      renderHook(() => useSelectedCell(gridRef, columns, rows), {
+        wrapper: ({ children }) => (
+          <DataSetContext.Provider value={data}>{children}</DataSetContext.Provider>
+        )
+      })
+    result.current.handleSelectedCellChange({
+      rowIdx: 1, row: rows[1], column: columns[1] as TCalculatedColumn
+    })
+
+    result.current.navigateToNextCell(true)
+
+    // From first editable column of row 1, Shift-Tab wraps to last editable (idx 2) of row 0.
+    expect(gridRef.current.selectCell).toHaveBeenCalledWith({ idx: 2, rowIdx: 0 }, true)
+  })
+
+  it("navigateToNextCell does nothing at the top-left editable cell on Shift-Tab", () => {
+    columns = [
+      { name: "Index", key: "__index__" },
+      { name: "a", key: "a", renderEditCell: () => null },
+      { name: "b", key: "b", renderEditCell: () => null }
+    ]
+    rows = [{ __id__: "row-0" }]
+    const { result } =
+      renderHook(() => useSelectedCell(gridRef, columns, rows), {
+        wrapper: ({ children }) => (
+          <DataSetContext.Provider value={data}>{children}</DataSetContext.Provider>
+        )
+      })
+    result.current.handleSelectedCellChange({
+      rowIdx: 0, row: rows[0], column: columns[1] as TCalculatedColumn
+    })
+
+    result.current.navigateToNextCell(true)
+
+    expect(gridRef.current.selectCell).not.toHaveBeenCalled()
+  })
+
+  it("navigateToFirstEditableInRow / navigateToLastEditableInRow target the row's editable extremes", () => {
+    columns = [
+      { name: "Index", key: "__index__" },
+      { name: "a", key: "a", renderEditCell: () => null },
+      { name: "f", key: "f" },
+      { name: "b", key: "b", renderEditCell: () => null }
+    ]
+    rows = [{ __id__: "row-0" }, { __id__: "row-1" }]
+    const { result } =
+      renderHook(() => useSelectedCell(gridRef, columns, rows), {
+        wrapper: ({ children }) => (
+          <DataSetContext.Provider value={data}>{children}</DataSetContext.Provider>
+        )
+      })
+
+    result.current.navigateToFirstEditableInRow(1)
+    expect(gridRef.current.selectCell).toHaveBeenLastCalledWith({ idx: 1, rowIdx: 1 }, false)
+
+    result.current.navigateToLastEditableInRow(1)
+    expect(gridRef.current.selectCell).toHaveBeenLastCalledWith({ idx: 3, rowIdx: 1 }, false)
+  })
+
+  it("navigateToLastEditableCell skips the input row", () => {
+    columns = [
+      { name: "Index", key: "__index__" },
+      { name: "a", key: "a", renderEditCell: () => null }
+    ]
+    rows = [
+      { __id__: "row-0" },
+      { __id__: "row-1" },
+      { __id__: "__input__" }
+    ]
+    const { result } =
+      renderHook(() => useSelectedCell(gridRef, columns, rows), {
+        wrapper: ({ children }) => (
+          <DataSetContext.Provider value={data}>{children}</DataSetContext.Provider>
+        )
+      })
+
+    result.current.navigateToLastEditableCell()
+
+    // Two data rows + input row → last data row is rowIdx 1.
+    expect(gridRef.current.selectCell).toHaveBeenLastCalledWith({ idx: 1, rowIdx: 1 }, false)
+  })
+
   it("defers navigation via useEffect when target row doesn't exist yet", () => {
     columns = [
       { name: "Index", key: "__index__" },
-      { name: "Column1", key: "column-1" }
+      { name: "Column1", key: "column-1", renderEditCell: () => null }
     ]
     rows = [
       { __id__: "row-0" },
