@@ -268,62 +268,109 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     }
   }, [collectionTableModel?.rows, collectionTableModel?.inputRowIndex, showInputRow])
 
-  const { handleSelectedCellChange, navigateToNextCell, navigateToNextRow } = useSelectedCell(gridRef, columns, rows)
+  const {
+    handleSelectedCellChange, navigateToNextCell, navigateToNextRow,
+    navigateToFirstEditableInRow, navigateToLastEditableInRow,
+    navigateToFirstEditableCell, navigateToLastEditableCell
+  } = useSelectedCell(gridRef, columns, rows)
 
   const handleCellKeyDown = useCallback((args: TCellKeyDownArgs, event: CellKeyboardEvent) => {
-    // During an active DnDKit drag (mouse, pointer, or keyboard), prevent RDG from navigating
-    // cells on arrow keys. DnDKit's sensors handle movement at the document level —
-    // preventGridDefault() stops RDG's navigate() call without affecting the native event,
-    // so DnDKit still fires. This applies to both data cells and, via an RDG patch, header
-    // cells (rowIdx < 0).
+    // During an active DnDKit drag, suppress RDG's arrow-key cell navigation so DnDKit's
+    // document-level sensors handle the keystrokes instead.
     if (active && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
       event.preventGridDefault()
       return
     }
     if (args.rowIdx < 0) return
 
-    // Open the index column menu via keyboard. RDG keeps focus on the cell div rather than
-    // the MenuButton inside it, so we find and click the MenuButton programmatically.
-    // Only intercept the event when a MenuButton is found — collapsed rows and other index
-    // cells without menus should let the event fall through to their own handlers.
-    if (args.mode === "SELECT" && args.column.key === kIndexColumnKey
-        && ["Enter", " "].includes(event.key)) {
-      const grid = event.currentTarget as HTMLElement
-      const cell = grid.querySelector<HTMLElement>(`.rowId-${args.row.__id__}`)
-      const menuButton = cell?.querySelector<HTMLElement>('button[data-testid="codap-index-content-button"]')
-      if (menuButton) {
+    if (args.mode === "EDIT") {
+      if (["Enter", "Tab", "ArrowUp", "ArrowDown"].includes(event.key)) {
+        // Color-picker popover renders in a portal outside the grid but React still
+        // bubbles its keys through this handler. Let the popover handle them.
+        const activeElement = document.activeElement
+        if (activeElement && !event.currentTarget.contains(activeElement)) return
+        // preventDefault must run BEFORE args.onClose — that call's flushSync unmounts
+        // the editor input, and Chrome then applies the Tab default (focus to the next
+        // tabbable, e.g. the tile's resize widget) before our deferred nav can run.
         event.preventGridDefault()
-        menuButton.click()
-        return
+        if (event.key === "Tab") event.preventDefault()
+        // shouldFocusCell=false: prevent RDG's post-commit cell-wrapper focus from
+        // racing with the editor input's autofocus on the navigation target.
+        args.onClose(true, false)
+        // defer:true: the rows update from the commit propagates asynchronously
+        // (debounced syncRowsToRdg in use-rows.ts), so wait for it.
+        if (["Enter", "ArrowUp", "ArrowDown"].includes(event.key)) {
+          const reverse = event.shiftKey || event.key === "ArrowUp"
+          navigateToNextRow(reverse, { defer: true })
+        } else if (event.key === "Tab") {
+          navigateToNextCell(event.shiftKey, { defer: true })
+        }
       }
-    }
-    // By default in RDG, the enter/return key simply enters/exits edit mode without moving the
-    // selected cell. In CODAP, the enter/return key should accept the edit _and_ advance to the
-    // next row. To achieve this in RDG, we provide this callback, which is called before RDG
-    // handles the event internally. If we get an enter/return key while in edit mode, we handle
-    // it ourselves and call `preventGridDefault()` to prevent RDG from handling the event itself.
-    if (args.mode === "EDIT" && ["Enter", "Tab", "ArrowUp", "ArrowDown"].includes(event.key)) {
-      // React synthetic events bubble through the React component tree, not the DOM tree.
-      // When a color picker popover is open, its portal DOM is outside the grid, but React
-      // still bubbles keydown events up through the component tree to this handler. Skip
-      // cell navigation when focus is inside a popover portal — let the popover handle it.
-      const activeElement = document.activeElement
-      if (activeElement && !event.currentTarget.contains(activeElement)) return
-      // complete the cell edit
-      args.onClose(true)
-      // prevent RDG from handling the event
-      event.preventGridDefault()
-      if (["Enter", "ArrowUp", "ArrowDown"].includes(event.key)) {
-        const reverse = event.shiftKey || event.key === "ArrowUp"
-        navigateToNextRow(reverse)
-      }
-      if (event.key === "Tab") {
-        // Prevent the browser's native Tab focus movement, which in Safari can move focus
-        // to other components (e.g. text component) instead of letting our custom navigation
-        // handle it. RDG's navigate() normally calls preventDefault(), but since we called
-        // preventGridDefault() above, RDG's navigate() is skipped entirely.
+      // Fall through to the ArrowUp/Down case-selection block below (intentional).
+    } else if (args.mode === "SELECT") {
+      // Open the index column menu programmatically — RDG keeps focus on the cell div,
+      // not the MenuButton inside it.
+      if (args.column.key === kIndexColumnKey && ["Enter", " "].includes(event.key)) {
+        const grid = event.currentTarget as HTMLElement
+        const cell = grid.querySelector<HTMLElement>(`.rowId-${args.row.__id__}`)
+        const menuButton = cell?.querySelector<HTMLElement>('button[data-testid="codap-index-content-button"]')
+        if (menuButton) {
+          event.preventGridDefault()
+          menuButton.click()
+          return
+        }
+      } else if (event.key === "Tab") {
+        // RDG's default lets focus escape the grid; route through our nav.
+        event.preventGridDefault()
         event.preventDefault()
-        navigateToNextCell(event.shiftKey)
+        navigateToNextCell(event.shiftKey, { enterEdit: false })
+        return
+      } else if (event.key === "Escape") {
+        // RDG's default only clears the copied-cell marker; per spec we blur the cell.
+        event.preventGridDefault()
+        if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
+        return
+      } else if (event.key === "PageUp" || event.key === "PageDown") {
+        // Per spec, scroll only — don't change the selected cell. RDG's default moves
+        // selection. Uses CollectionTableModel methods (work with RDG's virtualization).
+        event.preventGridDefault()
+        event.preventDefault()
+        if (collectionTableModel && rows) {
+          const firstVisible = collectionTableModel.firstVisibleRowIndex
+          const lastVisible = collectionTableModel.lastVisibleRowIndex
+          if (event.key === "PageDown") {
+            collectionTableModel.scrollRowToTop(Math.min(rows.length - 1, lastVisible))
+          } else {
+            collectionTableModel.scrollRowToBottom(Math.max(0, firstVisible))
+          }
+        }
+        return
+      } else if (event.key === "Home" || event.key === "End") {
+        // RDG's defaults land on the (non-editable) index column for Home and the
+        // absolute last column for End. With Cmd/Ctrl, extend to the first/last cell
+        // of the collection and follow the cell focus with the case selection.
+        event.preventGridDefault()
+        event.preventDefault()
+        const extendToCollection = event.metaKey || event.ctrlKey
+        const modelRows = collectionTableModel?.rows
+        if (event.key === "Home") {
+          if (extendToCollection) {
+            navigateToFirstEditableCell()
+            const firstRowId = modelRows?.[0]?.__id__
+            if (firstRowId && data) setSelectedCases([firstRowId], data)
+          } else {
+            navigateToFirstEditableInRow(args.rowIdx)
+          }
+        } else {
+          if (extendToCollection) {
+            navigateToLastEditableCell()
+            const lastRowId = modelRows?.[modelRows.length - 1]?.__id__
+            if (lastRowId && data) setSelectedCases([lastRowId], data)
+          } else {
+            navigateToLastEditableInRow(args.rowIdx)
+          }
+        }
+        return
       }
     }
     if ((event.key === "ArrowDown" || event.key === "ArrowUp")) {
@@ -371,7 +418,11 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         }
       }
     }
-  }, [active, collection, collectionId, data, navigateToNextCell, navigateToNextRow, onScrollRowRangeIntoView])
+  }, [active, collection, collectionId, collectionTableModel, data,
+      navigateToNextCell, navigateToNextRow,
+      navigateToFirstEditableInRow, navigateToLastEditableInRow,
+      navigateToFirstEditableCell, navigateToLastEditableCell,
+      onScrollRowRangeIntoView, rows])
 
   const handleClick = (event: React.PointerEvent<HTMLDivElement>) => {
     // See if mouse has moved beyond kMouseMovementThreshold since initial mousedown
