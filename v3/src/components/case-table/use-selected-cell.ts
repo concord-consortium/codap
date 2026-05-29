@@ -113,6 +113,13 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
   // Skips navigation entirely if a newer navigation has been requested.
   const attemptNavigation = useCallback((nav: IPendingNavigation, currentRows?: TRow[]) => {
     if (pendingNavigation.current !== nav) return false
+    // Guard against a stale selectedCell.columnId whose column has been removed
+    // (e.g. attribute deleted while a cell in that column was selected) — columns.findIndex
+    // returns -1 and propagates here. RDG's behavior on a negative idx is undefined.
+    if (nav.idx < 0) {
+      pendingNavigation.current = null
+      return false
+    }
     const rowCount = currentRows?.length ?? 0
     if (nav.rowIdx < rowCount) {
       pendingNavigation.current = null
@@ -196,18 +203,32 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
   const navigateToFirstEditableCell = useCallback((options: INavigationOptions = {}) => {
     const idx = findFirstEditableIdx(columns)
     if (idx == null) return
-    const nav = { idx, rowIdx: 0, enterEdit: options.enterEdit ?? false }
+    // The React `rows` array splices the input row into the model's data-only rows
+    // at collectionTableModel.inputRowIndex, so React rows[0] isn't necessarily the
+    // first data row. Look up by the data row's __id__ instead.
+    const firstDataRowId = collectionTableModel?.rows?.[0]?.__id__
+    const rowIdx = firstDataRowId != null
+      ? rows?.findIndex(r => r.__id__ === firstDataRowId) ?? -1
+      : -1
+    if (rowIdx < 0) return
+    const nav = { idx, rowIdx, enterEdit: options.enterEdit ?? false }
     pendingNavigation.current = nav
     attemptNavigation(nav, rows)
-  }, [attemptNavigation, columns, rows])
+  }, [attemptNavigation, collectionTableModel, columns, rows])
 
   const navigateToLastEditableCell = useCallback((options: INavigationOptions = {}) => {
     const idx = findLastEditableIdx(columns)
     if (idx == null) return
-    // Last data row, not the input row. collectionTableModel.rows is data-only;
-    // the React `rows` passed into the hook has the input row appended.
-    const dataRowCount = collectionTableModel?.rows?.length ?? 0
-    const rowIdx = Math.max(0, dataRowCount - 1)
+    // Same rationale as navigateToFirstEditableCell: derive React rowIdx from
+    // the data row's __id__ so the input row's drag position can't shift us.
+    const modelRows = collectionTableModel?.rows
+    const lastDataRowId = modelRows && modelRows.length > 0
+      ? modelRows[modelRows.length - 1].__id__
+      : undefined
+    const rowIdx = lastDataRowId != null
+      ? rows?.findIndex(r => r.__id__ === lastDataRowId) ?? -1
+      : -1
+    if (rowIdx < 0) return
     const nav = { idx, rowIdx, enterEdit: options.enterEdit ?? false }
     pendingNavigation.current = nav
     attemptNavigation(nav, rows)

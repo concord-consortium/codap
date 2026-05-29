@@ -353,6 +353,88 @@ describe("useSelectedCell", () => {
     expect(gridRef.current.selectCell).toHaveBeenLastCalledWith({ idx: 1, rowIdx: 1 }, false)
   })
 
+  it("first/last editable cell skip the input row when it's been dragged off the end", () => {
+    columns = [
+      { name: "Index", key: "__index__" },
+      { name: "a", key: "a", renderEditCell: () => null }
+    ]
+    // Model has 3 data rows; the input row is spliced in the middle of the React `rows`
+    // (e.g. user dragged it via the index menu's "Move Data Entry Row Here").
+    mockModelState.rows = [{ __id__: "row-0" }, { __id__: "row-1" }, { __id__: "row-2" }]
+    rows = [
+      { __id__: "row-0" },
+      { __id__: "__input__" },
+      { __id__: "row-1" },
+      { __id__: "row-2" }
+    ]
+    const { result } =
+      renderHook(() => useSelectedCell(gridRef, columns, rows), {
+        wrapper: ({ children }) => (
+          <DataSetContext.Provider value={data}>{children}</DataSetContext.Provider>
+        )
+      })
+
+    result.current.navigateToFirstEditableCell()
+    // first data row "row-0" is at React rowIdx 0
+    expect(gridRef.current.selectCell).toHaveBeenLastCalledWith({ idx: 1, rowIdx: 0 }, false)
+
+    result.current.navigateToLastEditableCell()
+    // last data row "row-2" is at React rowIdx 3 (after the spliced input row)
+    expect(gridRef.current.selectCell).toHaveBeenLastCalledWith({ idx: 1, rowIdx: 3 }, false)
+  })
+
+  it("first editable cell skips the input row when it's been dragged to the top", () => {
+    columns = [
+      { name: "Index", key: "__index__" },
+      { name: "a", key: "a", renderEditCell: () => null }
+    ]
+    mockModelState.rows = [{ __id__: "row-0" }, { __id__: "row-1" }]
+    rows = [
+      { __id__: "__input__" },
+      { __id__: "row-0" },
+      { __id__: "row-1" }
+    ]
+    const { result } =
+      renderHook(() => useSelectedCell(gridRef, columns, rows), {
+        wrapper: ({ children }) => (
+          <DataSetContext.Provider value={data}>{children}</DataSetContext.Provider>
+        )
+      })
+
+    result.current.navigateToFirstEditableCell()
+    // first data row "row-0" is at React rowIdx 1 (input row is at 0)
+    expect(gridRef.current.selectCell).toHaveBeenLastCalledWith({ idx: 1, rowIdx: 1 }, false)
+  })
+
+  it("attemptNavigation guards against a stale columnId (deleted attribute)", () => {
+    // Selected cell references a column that's been removed from the columns array.
+    // navigateToNextRow's columns.findIndex returns -1; the guard prevents passing
+    // idx:-1 to RDG's selectCell (where behavior is undefined).
+    columns = [
+      { name: "Index", key: "__index__" },
+      { name: "b", key: "b", renderEditCell: () => null }
+    ]
+    rows = [{ __id__: "row-0" }, { __id__: "row-1" }]
+    const { result } =
+      renderHook(() => useSelectedCell(gridRef, columns, rows), {
+        wrapper: ({ children }) => (
+          <DataSetContext.Provider value={data}>{children}</DataSetContext.Provider>
+        )
+      })
+
+    // Manually seed a stale selectedCell whose columnId is no longer in `columns`.
+    result.current.handleSelectedCellChange({
+      rowIdx: 0,
+      row: rows[0],
+      column: { key: "deleted-column" } as TCalculatedColumn
+    })
+
+    result.current.navigateToNextRow()
+
+    // No selectCell call — the negative idx was guarded.
+    expect(gridRef.current.selectCell).not.toHaveBeenCalled()
+  })
+
   it("defers navigation via useEffect when target row doesn't exist yet", () => {
     columns = [
       { name: "Index", key: "__index__" },
