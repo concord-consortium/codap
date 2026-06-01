@@ -6,6 +6,7 @@ import { PixiTransition, TransitionPropMap, TransitionProp } from "../pixi/pixi-
 import { PointerState } from "../models/pointer-state"
 import {
   circleAnchor,
+  getRendererForEvent,
   hBarAnchor,
   PointRendererBase
 } from "./point-renderer-base"
@@ -550,16 +551,24 @@ export class PixiPointRenderer extends PointRendererBase {
 
     this.background.eventMode = "static"
 
+    // Skip federated events whose native event we dispatched, to avoid infinite recursion
+    // in Safari (CODAP-1367), where synthetic events re-enter PIXI's EventSystem.
+    const isOwnDispatchedEvent = (event: PIXI.FederatedPointerEvent) =>
+      !!event.nativeEvent && !!getRendererForEvent(event.nativeEvent as Event)
+
     this.background.on("click", (event: PIXI.FederatedPointerEvent) => {
+      if (isOwnDispatchedEvent(event)) return
       this.dispatchEvent(getElementUnderCanvas(event), new MouseEvent("click", event), event)
     })
 
     this.background.on("pointerdown", (event: PIXI.FederatedPointerEvent) => {
+      if (isOwnDispatchedEvent(event)) return
       this.dispatchEvent(getElementUnderCanvas(event), new PointerEvent("pointerdown", event), event)
     })
 
     let mouseoverElement: Element | null = null
     this.background.on("mousemove", (event: PIXI.FederatedPointerEvent) => {
+      if (isOwnDispatchedEvent(event)) return
       const elementUnderneath = getElementUnderCanvas(event)
 
       // Dispatch mousemove on every move to enable cursor updates (e.g., for zoom mode)
@@ -585,6 +594,7 @@ export class PixiPointRenderer extends PointRendererBase {
     })
 
     this.background.on("mouseout", (event: PIXI.FederatedPointerEvent) => {
+      if (isOwnDispatchedEvent(event)) return
       this.dispatchEvent(mouseoverElement, new MouseEvent("mouseout", event), event)
       mouseoverElement = null
     })
