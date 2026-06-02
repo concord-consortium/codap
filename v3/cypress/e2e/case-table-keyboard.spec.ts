@@ -126,7 +126,7 @@ context("Case table keyboard data entry (CODAP-1365)", () => {
       // actually lands on the cell. cy.click()'s synthetic events don't always
       // fire focus the way native interaction does.
       table.getGridCell(2, 2).realClick()
-      cy.get(selectedCell).should("have.attr", "aria-colindex", "2")
+      cy.focused().should("have.attr", "aria-colindex", "2")
       cy.realPress("Escape")
       // After Escape, no element inside the grid has focus.
       cy.document().its("activeElement").its("tagName").should("eq", "BODY")

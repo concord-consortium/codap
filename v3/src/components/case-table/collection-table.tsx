@@ -281,6 +281,22 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       event.preventGridDefault()
       return
     }
+    // Escape in SELECT mode blurs the focused cell (RDG's default only clears the copied-cell
+    // marker). Handle it BEFORE the `rowIdx < 0` guard below: under heavy load (e.g. code-coverage
+    // instrumentation on CI) RDG can momentarily report the selected position's rowIdx as negative
+    // right after a click while the cell is already focused. The guard would then skip the blur
+    // entirely, leaving focus trapped on the cell.
+    if (args.mode === "SELECT" && event.key === "Escape") {
+      // Only blur when focus is actually inside the grid: keys from portaled UI (e.g. the
+      // index-column menu) can bubble into this handler, and we must not steal their focus
+      // (mirrors the EDIT-mode portal guard below).
+      const activeElement = document.activeElement
+      if (activeElement instanceof HTMLElement && event.currentTarget.contains(activeElement)) {
+        event.preventGridDefault()
+        activeElement.blur()
+      }
+      return
+    }
     if (args.rowIdx < 0) return
 
     if (args.mode === "EDIT") {
@@ -324,11 +340,6 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         event.preventGridDefault()
         event.preventDefault()
         navigateToNextCell(event.shiftKey, { enterEdit: false })
-        return
-      } else if (event.key === "Escape") {
-        // RDG's default only clears the copied-cell marker; per spec we blur the cell.
-        event.preventGridDefault()
-        if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
         return
       } else if (event.key === "PageUp" || event.key === "PageDown") {
         // Per spec, scroll only — don't change the selected cell. RDG's default moves
