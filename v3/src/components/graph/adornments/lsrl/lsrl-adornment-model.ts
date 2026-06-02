@@ -145,7 +145,9 @@ export const LSRLAdornmentModel = AdornmentModel
     casesInPlot.forEach(caseId => {
       const caseValueX = dataDisplayGetNumericValue(dataset, caseId, xAttrId)
       const caseValueY = dataDisplayGetNumericValue(dataset, caseId, yAttrId)
-      const caseValueLegend = dataset?.getValue(caseId, legendAttrId)
+      // `cat` is a string (from categoryArrayForAttrRole), so use getStrValue here to
+      // match correctly when the legend attribute is numeric used as categorical.
+      const caseValueLegend = dataset?.getStrValue(caseId, legendAttrId ?? "")
       const isValidX = isFiniteNumber(caseValueX)
       const isValidY = isFiniteNumber(caseValueY)
       const categoryMatch = cat === kMain || caseValueLegend === cat

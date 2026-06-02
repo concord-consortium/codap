@@ -262,6 +262,45 @@ describe("LSRLAdornmentModel", () => {
       expect(lSRL.labels.has(instanceKey3)).toBe(false)
     })
 
+    it("filters cases by category when the legend attribute is numeric (used as categorical)", () => {
+      // CODAP-1373: a numeric attribute used as a categorical legend stores its values as numbers,
+      // but `categoryArrayForAttrRole` returns string category labels (via getStrValue). The
+      // `getCaseValues` comparison must normalize both sides to strings or no cases match.
+      const xAttrId = "xId"
+      const yAttrId = "yId"
+      const legendAttrId = "legId"
+      const cases = [
+        { id: "c1", x: 10, y: 100, legend: 1 },
+        { id: "c2", x: 20, y: 200, legend: 2 },
+        { id: "c3", x: 30, y: 300, legend: 1 },
+        { id: "c4", x: 40, y: 400, legend: 2 }
+      ]
+      const findCase = (id: string) => cases.find(c => c.id === id)!
+      const getNum = (caseId: string, attrId: string) => {
+        const c = findCase(caseId)
+        return attrId === xAttrId ? c.x : attrId === yAttrId ? c.y : c.legend
+      }
+      const dataset = {
+        getAttribute: () => ({ type: "numeric" }),
+        getNumeric: (caseId: string, attrId: string) => getNum(caseId, attrId),
+        getValue: (caseId: string, attrId: string) => getNum(caseId, attrId), // numeric attr → number
+        getStrValue: (caseId: string, attrId: string) => String(getNum(caseId, attrId))
+      }
+      const dataConfig = {
+        dataset,
+        attributeID: (role: string) => role === "legend" ? legendAttrId : undefined,
+        subPlotCases: () => cases.map(c => c.id),
+        filterCasesForDisplay: (ids: string[]) => ids
+      } as unknown as IGraphDataConfigurationModel
+
+      const lSRL = LSRLAdornmentModel.create()
+      const cat1Values = lSRL.getCaseValues(xAttrId, yAttrId, {}, dataConfig, "1")
+      const cat2Values = lSRL.getCaseValues(xAttrId, yAttrId, {}, dataConfig, "2")
+
+      expect(cat1Values).toEqual([{ x: 10, y: 100 }, { x: 30, y: 300 }])
+      expect(cat2Values).toEqual([{ x: 20, y: 200 }, { x: 40, y: 400 }])
+    })
+
     it("removes stale legend categories within a cell", () => {
       const lSRL = LSRLAdornmentModel.create()
 
