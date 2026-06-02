@@ -140,6 +140,8 @@ context("Case table keyboard data entry (CODAP-1365)", () => {
         win.document.addEventListener("focusin", (e: any) => win.__focusLog.push(`focusin  ${d(e.target)}`), true)
         win.document.addEventListener("focusout",
           (e: any) => win.__focusLog.push(`focusout ${d(e.target)} -> ${d(e.relatedTarget)}`), true)
+        win.document.addEventListener("keydown",
+          (e: any) => win.__focusLog.push(`keydown ${e.key} target=${d(e.target)} defPrev=${e.defaultPrevented}`), true)
       })
 
       // Use realClick (a real DOM click via the native event system) so focus
@@ -156,7 +158,9 @@ context("Case table keyboard data entry (CODAP-1365)", () => {
           ? `${el.tagName}.${(`${el.className}` || "").split(" ")[0]}` +
             `[col=${el.getAttribute?.("aria-colindex") || ""}][tid=${el.getAttribute?.("data-testid") || ""}]`
           : String(el)
-        const msg = `FINAL activeElement=${d(ae)}\n--- focusLog ---\n${(win.__focusLog || []).join("\n")}\n---`
+        const escLog = win.__escLog || "(handler never recorded Escape)"
+        const msg = `FINAL activeElement=${d(ae)}\n--- escLog ---\n${escLog}` +
+          `\n--- focusLog ---\n${(win.__focusLog || []).join("\n")}\n---`
         expect(ae.tagName, msg).to.eq("BODY")
       })
     })

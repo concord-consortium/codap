@@ -62,7 +62,9 @@ jobs:
       fail-fast: false
       matrix:
         # run multiple copies of the current job in parallel [1, ..., n]
-        containers: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+        # TEMP (CODAP-1376): single container while iterating on the Escape-blur flake.
+        # Restore to [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] before merge.
+        containers: [1]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -80,28 +82,23 @@ jobs:
           wait-on: 'http://localhost:8080'
           # add timeout of 5 minutes to start
           wait-on-timeout: 300
-          # only record the results to dashboard.cypress.io if CYPRESS_RECORD_KEY is set
-          record: ${{ !!secrets.CYPRESS_RECORD_KEY }}
-          # only do parallel if we have a record key
-          parallel: ${{ !!secrets.CYPRESS_RECORD_KEY }}
+          # TEMP (CODAP-1376): record/parallel off and run only the spec under investigation for
+          # fast iteration. Restore record/parallel to ${{ !!secrets.CYPRESS_RECORD_KEY }}, drop the
+          # spec line, and restore the 'Regression Tests' group before merge.
+          record: false
+          parallel: false
           browser: chrome
-          # TODO: this currently will re-run the smoke test, once we have a dedicated smoke
-          # test that should be excluded
-          # spec: cypress/e2e/**
-          group: 'Regression Tests'
+          spec: 'cypress/e2e/case-table-keyboard.spec.ts'
         env:
           # pass the Dashboard record key as an environment variable
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           # pass GitHub token to allow accurately detecting a build vs a re-run build
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # turn on code coverage when running npm start
-          # so far we've been using a webpack coverage-istanbul-loader for this
-          # but there has been work on using the code coverage support in the browser directly,
-          # which should be much faster
-          CODE_COVERAGE: true
+          # TEMP (CODAP-1376): coverage off for faster iteration. Restore both to true before merge.
+          CODE_COVERAGE: false
           # Also turn on the code coverage tasks in cypress itself, these are disabled
           # by default.
-          CYPRESS_coverage: true
+          CYPRESS_coverage: false
           # Have webpack skip eslint checking, that was already done by the build step
           SKIP_ESLINT: true
       - name: Upload coverage to Codecov
