@@ -1,7 +1,8 @@
 import { getSnapshot } from "mobx-state-tree"
 import { appState } from "../../models/app-state"
 import { IFreeTileLayout, isFreeTileLayout } from "../../models/document/free-tile-row"
-import { getMetadataFromDataSet, getSharedDataSets } from "../../models/shared/shared-data-utils"
+import { ISharedDataSet } from "../../models/shared/shared-data-set"
+import { getMetadataFromDataSet } from "../../models/shared/shared-data-utils"
 import { uiState } from "../../models/ui-state"
 import { setupTestDataset } from "../../test/dataset-test-utils"
 import { kCaseCardTileType } from "../case-card/case-card-defs"
@@ -12,14 +13,17 @@ import { applyCaseValueChanges, createOrShowTableOrCardForDataset, toggleCardTab
 
 describe("createOrShowTableOrCardForDataset", () => {
   const documentContent = appState.document.content!
+  // appState.document is a singleton that persists across tests, so datasets created here accumulate.
+  // Capture the dataset created for *this* test (a pristine one with no tiles yet) instead of reaching
+  // for getSharedDataSets(...)[0], which would target the first dataset created in the whole file.
+  let sharedDataSet: ISharedDataSet
 
   beforeEach(() => {
     const { dataset } = setupTestDataset()
-    documentContent.createDataSet(getSnapshot(dataset))
+    sharedDataSet = documentContent.createDataSet(getSnapshot(dataset)).sharedDataSet
   })
 
   it("does not hide an already-visible table when called again", () => {
-    const sharedDataSet = getSharedDataSets(documentContent)[0]
     const tile = createOrShowTableOrCardForDataset(sharedDataSet, kCaseTableTileType)!
     expect(tile).toBeDefined()
     expect(documentContent.isTileHidden(tile.id)).toBe(false)
@@ -32,7 +36,6 @@ describe("createOrShowTableOrCardForDataset", () => {
   })
 
   it("finds existing table via caseTableTileId when lastShownTableOrCardTileId is not set", () => {
-    const sharedDataSet = getSharedDataSets(documentContent)[0]
     const tile = createOrShowTableOrCardForDataset(sharedDataSet, kCaseTableTileType)!
     expect(tile).toBeDefined()
 
@@ -48,7 +51,6 @@ describe("createOrShowTableOrCardForDataset", () => {
   })
 
   it("unminimizes a minimized table when selected from the menu", () => {
-    const sharedDataSet = getSharedDataSets(documentContent)[0]
     const tile = createOrShowTableOrCardForDataset(sharedDataSet, kCaseTableTileType)!
     expect(tile).toBeDefined()
 
@@ -65,7 +67,6 @@ describe("createOrShowTableOrCardForDataset", () => {
   })
 
   it("re-opens the last-shown card view when called with no tileType (CODAP-1370)", () => {
-    const sharedDataSet = getSharedDataSets(documentContent)[0]
     const table = createOrShowTableOrCardForDataset(sharedDataSet, kCaseTableTileType)!
     // Toggle to case card view: hides the table, shows/creates the card, lastShown = card
     const card = toggleCardTable(documentContent, table.id)!
@@ -86,7 +87,6 @@ describe("createOrShowTableOrCardForDataset", () => {
   })
 
   it("shows the explicitly requested type, ignoring the last-shown view (plugin path)", () => {
-    const sharedDataSet = getSharedDataSets(documentContent)[0]
     const table = createOrShowTableOrCardForDataset(sharedDataSet, kCaseTableTileType)!
     // Toggle to card view so lastShownTableOrCardTileId points at the card
     const card = toggleCardTable(documentContent, table.id)!

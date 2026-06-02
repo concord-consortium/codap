@@ -95,17 +95,21 @@ export function createTableOrCardForDataset (
   return tile
 }
 
-// Makes an existing (possibly hidden/minimized) tile visible and focused. Returns the tile.
+// Makes an existing (possibly hidden/minimized) tile visible and focused. Returns the tile, or
+// undefined if no tile with the given id exists. Resolves the tile once (via getTile, which also
+// accepts v2 numeric ids) and uses its canonical id for the subsequent layout/visibility calls.
 function showExistingTile(content: IDocumentContentModel, tileId: string) {
-  if (content.isTileHidden(tileId)) {
-    content.toggleNonDestroyableTileVisibility(tileId)
+  const tile = content.getTile(tileId)
+  if (!tile) return undefined
+  if (content.isTileHidden(tile.id)) {
+    content.toggleNonDestroyableTileVisibility(tile.id)
   }
-  const tileLayout = content.getTileLayoutById(tileId)
+  const tileLayout = content.getTileLayoutById(tile.id)
   if (isFreeTileLayout(tileLayout) && tileLayout.isMinimized) {
     tileLayout.setMinimized(false)
   }
-  uiState.setFocusedTile(tileId)
-  return content.tileMap.get(tileId)
+  uiState.setFocusedTile(tile.id)
+  return tile
 }
 
 // Shows the case table or card for a dataset, creating it if necessary.
@@ -125,17 +129,15 @@ export function createOrShowTableOrCardForDataset (
     // Restore mode: re-show whatever table/card was last visible for this dataset.
     const lastShownId = metadata.lastShownTableOrCardTileId
       || metadata.caseTableTileId || metadata.caseCardTileId
-    if (lastShownId && content.getTile(lastShownId)) {
-      return showExistingTile(content, lastShownId)
-    }
+    const restored = lastShownId ? showExistingTile(content, lastShownId) : undefined
+    if (restored) return restored
     return createTableOrCardForDataset(sharedDataSet, metadata, kCaseTableTileType, options)
   }
 
   // Ensure-type mode: show/create a tile of exactly the requested type.
   const sameTypeId = tileType === kCaseTableTileType ? metadata.caseTableTileId : metadata.caseCardTileId
-  if (sameTypeId && content.getTile(sameTypeId)) {
-    return showExistingTile(content, sameTypeId)
-  }
+  const shown = sameTypeId ? showExistingTile(content, sameTypeId) : undefined
+  if (shown) return shown
   // The requested type doesn't exist yet; if the other type does, toggle to the requested type.
   const otherTypeId = tileType === kCaseTableTileType ? metadata.caseCardTileId : metadata.caseTableTileId
   if (otherTypeId && content.getTile(otherTypeId)) {
