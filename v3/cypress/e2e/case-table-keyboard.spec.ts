@@ -126,7 +126,13 @@ context("Case table keyboard data entry (CODAP-1365)", () => {
       // actually lands on the cell. cy.click()'s synthetic events don't always
       // fire focus the way native interaction does.
       table.getGridCell(2, 2).realClick()
-      cy.get(selectedCell).should("have.attr", "aria-colindex", "2")
+      // Wait for DOM focus — not just the selection model — to settle on the cell.
+      // RDG's selectCell focuses the cell wrapper asynchronously, so asserting only
+      // aria-selected races ahead of that: realPress("Escape") could then dispatch to
+      // <body> before the cell is focused, and Escape's blur handler only runs when the
+      // keydown reaches the grid. Asserting cy.focused() retries until focus genuinely
+      // lands, which removes the race and makes the post-Escape assertion meaningful.
+      cy.focused().should("have.attr", "aria-colindex", "2")
       cy.realPress("Escape")
       // After Escape, no element inside the grid has focus.
       cy.document().its("activeElement").its("tagName").should("eq", "BODY")
