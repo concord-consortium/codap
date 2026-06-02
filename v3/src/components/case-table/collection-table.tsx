@@ -275,17 +275,20 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   } = useSelectedCell(gridRef, columns, rows)
 
   const handleCellKeyDown = useCallback((args: TCellKeyDownArgs, event: CellKeyboardEvent) => {
-    // TEMP (CODAP-1376) debug: record entry into the handler for Escape.
-    if (event.key === "Escape" && (window as any).Cypress) {
-      const ae = document.activeElement as any
-      ;(window as any).__escLog = `enter handleCellKeyDown: mode=${args.mode} rowIdx=${args.rowIdx} ` +
-        `active=${!!active} ae=${ae?.tagName}.${(`${ae?.className}` || "").split(" ")[0]}` +
-        `[col=${ae?.getAttribute?.("aria-colindex") || ""}]`
-    }
     // During an active DnDKit drag, suppress RDG's arrow-key cell navigation so DnDKit's
     // document-level sensors handle the keystrokes instead.
     if (active && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
       event.preventGridDefault()
+      return
+    }
+    // Escape in SELECT mode blurs the focused cell (RDG's default only clears the copied-cell
+    // marker). Handle it BEFORE the `rowIdx < 0` guard below: under heavy load (e.g. code-coverage
+    // instrumentation on CI) RDG can momentarily report the selected position's rowIdx as negative
+    // right after a click while the cell is already focused. The guard would then skip the blur
+    // entirely, leaving focus trapped on the cell.
+    if (args.mode === "SELECT" && event.key === "Escape") {
+      event.preventGridDefault()
+      if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
       return
     }
     if (args.rowIdx < 0) return
@@ -331,21 +334,6 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         event.preventGridDefault()
         event.preventDefault()
         navigateToNextCell(event.shiftKey, { enterEdit: false })
-        return
-      } else if (event.key === "Escape") {
-        // RDG's default only clears the copied-cell marker; per spec we blur the cell.
-        // TEMP (CODAP-1376) debug: record that we reached the SELECT/Escape blur branch.
-        if ((window as any).Cypress) {
-          const beforeAe = document.activeElement as any
-          ;(window as any).__escLog = `${(window as any).__escLog || ""} | SELECT/Escape branch; ` +
-            `beforeBlur=${beforeAe?.tagName} isHTMLEl=${document.activeElement instanceof HTMLElement}`
-        }
-        event.preventGridDefault()
-        if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
-        if ((window as any).Cypress) {
-          const afterAe = document.activeElement as any
-          ;(window as any).__escLog = `${(window as any).__escLog || ""} -> afterBlur=${afterAe?.tagName}`
-        }
         return
       } else if (event.key === "PageUp" || event.key === "PageDown") {
         // Per spec, scroll only — don't change the selected cell. RDG's default moves

@@ -122,47 +122,14 @@ context("Case table keyboard data entry (CODAP-1365)", () => {
     })
 
     it("Escape in SELECT mode blurs the focused cell", () => {
-      // TEMP (CODAP-1376) instrumentation: this test passes locally but fails on CI with
-      // activeElement === DIV after Escape. Capture focus events and the call stack of every
-      // programmatic .focus() so the CI failure message reveals what re-focuses the grid.
-      cy.window().then((win: any) => {
-        win.__focusLog = []
-        const d = (el: any) => el
-          ? `${el.tagName}.${(`${el.className}` || "").split(" ")[0]}` +
-            `[col=${el.getAttribute?.("aria-colindex") || ""}][tid=${el.getAttribute?.("data-testid") || ""}]`
-          : String(el)
-        const origFocus = win.HTMLElement.prototype.focus
-        win.HTMLElement.prototype.focus = function (...args: any[]) {
-          const stack = (new Error().stack || "").split("\n").slice(1, 7).map((s: string) => s.trim()).join("  |  ")
-          win.__focusLog.push(`focus() -> ${d(this)}  @@  ${stack}`)
-          return origFocus.apply(this, args)
-        }
-        win.document.addEventListener("focusin", (e: any) => win.__focusLog.push(`focusin  ${d(e.target)}`), true)
-        win.document.addEventListener("focusout",
-          (e: any) => win.__focusLog.push(`focusout ${d(e.target)} -> ${d(e.relatedTarget)}`), true)
-        win.document.addEventListener("keydown",
-          (e: any) => win.__focusLog.push(`keydown ${e.key} target=${d(e.target)} defPrev=${e.defaultPrevented}`), true)
-      })
-
       // Use realClick (a real DOM click via the native event system) so focus
       // actually lands on the cell. cy.click()'s synthetic events don't always
       // fire focus the way native interaction does.
       table.getGridCell(2, 2).realClick()
       cy.focused().should("have.attr", "aria-colindex", "2")
       cy.realPress("Escape")
-      // Allow any async re-focus to occur, then assert with the captured focus log in the message.
-      cy.wait(300)
-      cy.window().then((win: any) => {
-        const ae = win.document.activeElement
-        const d = (el: any) => el
-          ? `${el.tagName}.${(`${el.className}` || "").split(" ")[0]}` +
-            `[col=${el.getAttribute?.("aria-colindex") || ""}][tid=${el.getAttribute?.("data-testid") || ""}]`
-          : String(el)
-        const escLog = win.__escLog || "(handler never recorded Escape)"
-        const msg = `FINAL activeElement=${d(ae)}\n--- escLog ---\n${escLog}` +
-          `\n--- focusLog ---\n${(win.__focusLog || []).join("\n")}\n---`
-        expect(ae.tagName, msg).to.eq("BODY")
-      })
+      // After Escape, no element inside the grid has focus.
+      cy.document().its("activeElement").its("tagName").should("eq", "BODY")
     })
   })
 
