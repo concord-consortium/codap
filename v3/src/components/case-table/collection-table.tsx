@@ -287,8 +287,14 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     // right after a click while the cell is already focused. The guard would then skip the blur
     // entirely, leaving focus trapped on the cell.
     if (args.mode === "SELECT" && event.key === "Escape") {
-      event.preventGridDefault()
-      if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
+      // Only blur when focus is actually inside the grid: keys from portaled UI (e.g. the
+      // index-column menu) can bubble into this handler, and we must not steal their focus
+      // (mirrors the EDIT-mode portal guard below).
+      const activeElement = document.activeElement
+      if (activeElement instanceof HTMLElement && event.currentTarget.contains(activeElement)) {
+        event.preventGridDefault()
+        activeElement.blur()
+      }
       return
     }
     if (args.rowIdx < 0) return
