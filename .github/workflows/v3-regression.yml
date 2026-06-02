@@ -94,11 +94,11 @@ jobs:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           # pass GitHub token to allow accurately detecting a build vs a re-run build
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # TEMP (CODAP-1376): coverage off for faster iteration. Restore both to true before merge.
-          CODE_COVERAGE: false
+          # TEMP (CODAP-1376): coverage back ON to isolate it as the flake trigger (single spec/container).
+          CODE_COVERAGE: true
           # Also turn on the code coverage tasks in cypress itself, these are disabled
           # by default.
-          CYPRESS_coverage: false
+          CYPRESS_coverage: true
           # Have webpack skip eslint checking, that was already done by the build step
           SKIP_ESLINT: true
       - name: Upload coverage to Codecov
