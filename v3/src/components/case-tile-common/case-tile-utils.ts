@@ -95,34 +95,53 @@ export function createTableOrCardForDataset (
   return tile
 }
 
+// Makes an existing (possibly hidden/minimized) tile visible and focused. Returns the tile.
+function showExistingTile(content: IDocumentContentModel, tileId: string) {
+  if (content.isTileHidden(tileId)) {
+    content.toggleNonDestroyableTileVisibility(tileId)
+  }
+  const tileLayout = content.getTileLayoutById(tileId)
+  if (isFreeTileLayout(tileLayout) && tileLayout.isMinimized) {
+    tileLayout.setMinimized(false)
+  }
+  uiState.setFocusedTile(tileId)
+  return content.tileMap.get(tileId)
+}
+
+// Shows the case table or card for a dataset, creating it if necessary.
+// When `tileType` is omitted (e.g. the tool-shelf "Tables" menu), the last-shown table/card view is
+// restored as-is — fixing CODAP-1370, where re-opening a closed card incorrectly reverted to the table.
+// When `tileType` is provided (e.g. a plugin creating a specific component), a tile of exactly that
+// type is shown/created, regardless of which view was shown last.
 export function createOrShowTableOrCardForDataset (
-  sharedDataSet: ISharedDataSet, tileType: kCardOrTableTileType = kCaseTableTileType, options?: INewTileOptions
+  sharedDataSet: ISharedDataSet, tileType?: kCardOrTableTileType, options?: INewTileOptions
 ) {
   const document = appState.document
   const { content } = document
   const metadata = getMetadataFromDataSet(sharedDataSet.dataSet)
-  if (!sharedDataSet || !metadata) return
+  if (!sharedDataSet || !metadata || !content) return
 
-  const existingTileId = metadata.lastShownTableOrCardTileId
-    || (tileType === kCaseTableTileType ? metadata.caseTableTileId : metadata.caseCardTileId)
-  if (existingTileId) { // We already have a case card/table so make sure it's visible and has focus
-    const existingTile = content?.getTile(existingTileId)
-    if (existingTile?.content.type === tileType) {
-      if (content?.isTileHidden(existingTileId)) {
-        content?.toggleNonDestroyableTileVisibility(existingTileId)
-      }
-      const tileLayout = content?.getTileLayoutById(existingTileId)
-      if (isFreeTileLayout(tileLayout) && tileLayout.isMinimized) {
-        tileLayout.setMinimized(false)
-      }
-      uiState.setFocusedTile(existingTileId)
-      return content?.tileMap.get(existingTileId)
-    } else if (content) {
-      return toggleCardTable(content, existingTileId, options)
+  if (tileType == null) {
+    // Restore mode: re-show whatever table/card was last visible for this dataset.
+    const lastShownId = metadata.lastShownTableOrCardTileId
+      || metadata.caseTableTileId || metadata.caseCardTileId
+    if (lastShownId && content.getTile(lastShownId)) {
+      return showExistingTile(content, lastShownId)
     }
-  } else {  // We don't already have a card/table for this dataset
-    return createTableOrCardForDataset(sharedDataSet, metadata, tileType, options)
+    return createTableOrCardForDataset(sharedDataSet, metadata, kCaseTableTileType, options)
   }
+
+  // Ensure-type mode: show/create a tile of exactly the requested type.
+  const sameTypeId = tileType === kCaseTableTileType ? metadata.caseTableTileId : metadata.caseCardTileId
+  if (sameTypeId && content.getTile(sameTypeId)) {
+    return showExistingTile(content, sameTypeId)
+  }
+  // The requested type doesn't exist yet; if the other type does, toggle to the requested type.
+  const otherTypeId = tileType === kCaseTableTileType ? metadata.caseCardTileId : metadata.caseTableTileId
+  if (otherTypeId && content.getTile(otherTypeId)) {
+    return toggleCardTable(content, otherTypeId, options)
+  }
+  return createTableOrCardForDataset(sharedDataSet, metadata, tileType, options)
 }
 
 // TileID is that of a case table or case card tile. Toggle its visibility and create and/or show the other.
