@@ -122,20 +122,43 @@ context("Case table keyboard data entry (CODAP-1365)", () => {
     })
 
     it("Escape in SELECT mode blurs the focused cell", () => {
+      // TEMP (CODAP-1376) instrumentation: this test passes locally but fails on CI with
+      // activeElement === DIV after Escape. Capture focus events and the call stack of every
+      // programmatic .focus() so the CI failure message reveals what re-focuses the grid.
+      cy.window().then((win: any) => {
+        win.__focusLog = []
+        const d = (el: any) => el
+          ? `${el.tagName}.${(`${el.className}` || "").split(" ")[0]}` +
+            `[col=${el.getAttribute?.("aria-colindex") || ""}][tid=${el.getAttribute?.("data-testid") || ""}]`
+          : String(el)
+        const origFocus = win.HTMLElement.prototype.focus
+        win.HTMLElement.prototype.focus = function (...args: any[]) {
+          const stack = (new Error().stack || "").split("\n").slice(1, 7).map((s: string) => s.trim()).join("  |  ")
+          win.__focusLog.push(`focus() -> ${d(this)}  @@  ${stack}`)
+          return origFocus.apply(this, args)
+        }
+        win.document.addEventListener("focusin", (e: any) => win.__focusLog.push(`focusin  ${d(e.target)}`), true)
+        win.document.addEventListener("focusout",
+          (e: any) => win.__focusLog.push(`focusout ${d(e.target)} -> ${d(e.relatedTarget)}`), true)
+      })
+
       // Use realClick (a real DOM click via the native event system) so focus
       // actually lands on the cell. cy.click()'s synthetic events don't always
       // fire focus the way native interaction does.
       table.getGridCell(2, 2).realClick()
-      // Wait for DOM focus — not just the selection model — to settle on the cell.
-      // RDG's selectCell focuses the cell wrapper asynchronously, so asserting only
-      // aria-selected races ahead of that: realPress("Escape") could then dispatch to
-      // <body> before the cell is focused, and Escape's blur handler only runs when the
-      // keydown reaches the grid. Asserting cy.focused() retries until focus genuinely
-      // lands, which removes the race and makes the post-Escape assertion meaningful.
       cy.focused().should("have.attr", "aria-colindex", "2")
       cy.realPress("Escape")
-      // After Escape, no element inside the grid has focus.
-      cy.document().its("activeElement").its("tagName").should("eq", "BODY")
+      // Allow any async re-focus to occur, then assert with the captured focus log in the message.
+      cy.wait(300)
+      cy.window().then((win: any) => {
+        const ae = win.document.activeElement
+        const d = (el: any) => el
+          ? `${el.tagName}.${(`${el.className}` || "").split(" ")[0]}` +
+            `[col=${el.getAttribute?.("aria-colindex") || ""}][tid=${el.getAttribute?.("data-testid") || ""}]`
+          : String(el)
+        const msg = `FINAL activeElement=${d(ae)}\n--- focusLog ---\n${(win.__focusLog || []).join("\n")}\n---`
+        expect(ae.tagName, msg).to.eq("BODY")
+      })
     })
   })
 
