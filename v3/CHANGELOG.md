@@ -1,5 +1,20 @@
 # Changelog
 
+## Version 3.0.0-rc.2921 - June 3, 2026
+
+### 🐞 Bug Fixes:
+- **CODAP-1365:** Case table data entry now matches V2 behavior
+- **CODAP-1367:** Fix map being undraggable in Safari
+- **CODAP-1370:** Restore Case Card view when reopening a closed table
+- **CODAP-1373:** Fix least squares line disappearing when the legend attribute is numeric
+- **CODAP-1375:** Support hiding all attributes in a collection
+
+### Asset Sizes
+|      File |          Size | % Change from Previous Release |
+|-----------|---------------|--------------------------------|
+|  main.css |  240732 bytes |                         -0.02% |
+|  index.js | 7816850 bytes |                          0.05% |
+
 ## Version 3.0.0-rc.2914 - May 26, 2026
 
 ### 🛠️ Under the Hood:
