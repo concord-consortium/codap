@@ -95,34 +95,55 @@ export function createTableOrCardForDataset (
   return tile
 }
 
+// Makes an existing (possibly hidden/minimized) tile visible and focused. Returns the tile, or
+// undefined if no tile with the given id exists. Resolves the tile once (via getTile, which also
+// accepts v2 numeric ids) and uses its canonical id for the subsequent layout/visibility calls.
+function showExistingTile(content: IDocumentContentModel, tileId: string) {
+  const tile = content.getTile(tileId)
+  if (!tile) return undefined
+  if (content.isTileHidden(tile.id)) {
+    content.toggleNonDestroyableTileVisibility(tile.id)
+  }
+  const tileLayout = content.getTileLayoutById(tile.id)
+  if (isFreeTileLayout(tileLayout) && tileLayout.isMinimized) {
+    tileLayout.setMinimized(false)
+  }
+  uiState.setFocusedTile(tile.id)
+  return tile
+}
+
+// Shows the case table or card for a dataset, creating it if necessary.
+// When `tileType` is omitted (e.g. the tool-shelf "Tables" menu), the last-shown table/card view is
+// restored as-is — fixing CODAP-1370, where re-opening a closed card incorrectly reverted to the table.
+// When `tileType` is provided (e.g. a plugin creating a specific component), a tile of exactly that
+// type is shown/created, regardless of which view was shown last.
 export function createOrShowTableOrCardForDataset (
-  sharedDataSet: ISharedDataSet, tileType: kCardOrTableTileType = kCaseTableTileType, options?: INewTileOptions
+  sharedDataSet: ISharedDataSet, tileType?: kCardOrTableTileType, options?: INewTileOptions
 ) {
   const document = appState.document
   const { content } = document
   const metadata = getMetadataFromDataSet(sharedDataSet.dataSet)
-  if (!sharedDataSet || !metadata) return
+  if (!sharedDataSet || !metadata || !content) return
 
-  const existingTileId = metadata.lastShownTableOrCardTileId
-    || (tileType === kCaseTableTileType ? metadata.caseTableTileId : metadata.caseCardTileId)
-  if (existingTileId) { // We already have a case card/table so make sure it's visible and has focus
-    const existingTile = content?.getTile(existingTileId)
-    if (existingTile?.content.type === tileType) {
-      if (content?.isTileHidden(existingTileId)) {
-        content?.toggleNonDestroyableTileVisibility(existingTileId)
-      }
-      const tileLayout = content?.getTileLayoutById(existingTileId)
-      if (isFreeTileLayout(tileLayout) && tileLayout.isMinimized) {
-        tileLayout.setMinimized(false)
-      }
-      uiState.setFocusedTile(existingTileId)
-      return content?.tileMap.get(existingTileId)
-    } else if (content) {
-      return toggleCardTable(content, existingTileId, options)
-    }
-  } else {  // We don't already have a card/table for this dataset
-    return createTableOrCardForDataset(sharedDataSet, metadata, tileType, options)
+  if (tileType == null) {
+    // Restore mode: re-show whatever table/card was last visible for this dataset.
+    const lastShownId = metadata.lastShownTableOrCardTileId
+      || metadata.caseTableTileId || metadata.caseCardTileId
+    const restored = lastShownId ? showExistingTile(content, lastShownId) : undefined
+    if (restored) return restored
+    return createTableOrCardForDataset(sharedDataSet, metadata, kCaseTableTileType, options)
   }
+
+  // Ensure-type mode: show/create a tile of exactly the requested type.
+  const sameTypeId = tileType === kCaseTableTileType ? metadata.caseTableTileId : metadata.caseCardTileId
+  const shown = sameTypeId ? showExistingTile(content, sameTypeId) : undefined
+  if (shown) return shown
+  // The requested type doesn't exist yet; if the other type does, toggle to the requested type.
+  const otherTypeId = tileType === kCaseTableTileType ? metadata.caseCardTileId : metadata.caseTableTileId
+  if (otherTypeId && content.getTile(otherTypeId)) {
+    return toggleCardTable(content, otherTypeId, options)
+  }
+  return createTableOrCardForDataset(sharedDataSet, metadata, tileType, options)
 }
 
 // TileID is that of a case table or case card tile. Toggle its visibility and create and/or show the other.
