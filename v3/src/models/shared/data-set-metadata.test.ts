@@ -152,7 +152,8 @@ describe("DataSetMetadata", () => {
     expect(tree.metadata.isHidden("aId")).toBe(false)
     expect(tree.metadata.attributes.get("aId")?.hidden).toBeUndefined()
 
-    // hiding the last attribute in a collection shows all attributes
+    // hiding every attribute in a collection leaves them all hidden (CODAP-1375): the case
+    // table renders such a collection's grid with only the index column rather than auto-showing them.
     tree.metadata.setIsHidden("aId", true)
     tree.metadata.setIsHidden("bId", true)
     expect(tree.metadata.isHidden("aId")).toBe(true)
@@ -160,6 +161,12 @@ describe("DataSetMetadata", () => {
     expect(tree.metadata.isHidden("cId")).toBe(false)
 
     tree.metadata.setIsHidden("cId", true)
+    expect(tree.metadata.isHidden("aId")).toBe(true)
+    expect(tree.metadata.isHidden("bId")).toBe(true)
+    expect(tree.metadata.isHidden("cId")).toBe(true)
+
+    // showAllAttributes() remains the way to recover them
+    tree.metadata.showAllAttributes()
     expect(tree.metadata.isHidden("aId")).toBe(false)
     expect(tree.metadata.isHidden("bId")).toBe(false)
     expect(tree.metadata.isHidden("cId")).toBe(false)

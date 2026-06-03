@@ -8,7 +8,6 @@ import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useTileDroppable } from "../../hooks/use-drag-drop"
 import { useTileSelectionContext } from "../../hooks/use-tile-selection-context"
-import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
 import { registerCanAutoScrollCallback } from "../../lib/dnd-kit/dnd-can-auto-scroll"
 import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { IAttribute } from "../../models/data/attribute"
@@ -74,7 +73,6 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const caseTableModel = useCaseTableModel()
   const collectionTableModel = useCollectionTableModel()
   const gridRef = useRef<DataGridHandle>(null)
-  const visibleAttributes = useVisibleAttributes(collectionId)
   const { selectedRows, setSelectedRows, handleCellClick } =
     useSelectedRows({ gridRef, onScrollClosestRowIntoView, onScrollRowRangeIntoView })
   const { isTileSelected } = useTileSelectionContext()
@@ -90,6 +88,28 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       onMount(collectionId)
     }
   }, [collectionId, collectionTableModel, gridRef.current?.element, onMount])
+
+  useEffect(() => {
+    return registerCanAutoScrollCallback((element) => {
+      // prevent auto-scroll on grid since there's nothing droppable in the grid
+      return element !== gridRef.current?.element
+    })
+  }, [])
+
+  // Mark non-editable cells with aria-readonly (RDG doesn't support this natively)
+  useEffect(() => {
+    gridRef.current?.element?.querySelectorAll('[role="gridcell"]').forEach(cell => {
+      if (cell.classList.contains("readonly-cell")) {
+        cell.setAttribute("aria-readonly", "true")
+      } else {
+        cell.removeAttribute("aria-readonly")
+      }
+    })
+  })
+
+  // columns
+  const indexColumn = useIndexColumn()
+  const columns = useColumns({ data, indexColumn: caseTableModel?.isIndexHidden ? undefined : indexColumn })
 
   // RDG assigns tabindex="0" to the first header cell for Tab entry into the grid.
   // Since that cell is the inert index column header, the grid has no focusable entry point.
@@ -114,9 +134,13 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     // the attribute header cell → second focusin (target=descendant) sets grid.tabIndex = -1.
     const handleFocusIn = (e: FocusEvent) => {
       if (e.target === grid) {
-        // Tab entered on the grid element itself → forward to the first attribute header.
+        // Tab entered on the grid element itself → forward to the first attribute header, but
+        // only when one exists (an index-only grid with all attributes hidden has no attribute
+        // column, so firstAttrIdx would be out of range).
         const firstAttrIdx = isIndexHidden ? 0 : 1
-        gridRef.current?.selectCell({ idx: firstAttrIdx, rowIdx: -1 })
+        if (firstAttrIdx < columns.length) {
+          gridRef.current?.selectCell({ idx: firstAttrIdx, rowIdx: -1 })
+        }
       } else {
         // A descendant of the grid received focus → disable the grid's tab stop so
         // Shift+Tab from within skips the grid element.
@@ -137,29 +161,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       grid.removeEventListener("focusin", handleFocusIn)
       grid.removeEventListener("focusout", handleFocusOut)
     }
-  }, [gridRef.current?.element, isIndexHidden])
-
-  useEffect(() => {
-    return registerCanAutoScrollCallback((element) => {
-      // prevent auto-scroll on grid since there's nothing droppable in the grid
-      return element !== gridRef.current?.element
-    })
-  }, [])
-
-  // Mark non-editable cells with aria-readonly (RDG doesn't support this natively)
-  useEffect(() => {
-    gridRef.current?.element?.querySelectorAll('[role="gridcell"]').forEach(cell => {
-      if (cell.classList.contains("readonly-cell")) {
-        cell.setAttribute("aria-readonly", "true")
-      } else {
-        cell.removeAttribute("aria-readonly")
-      }
-    })
-  })
-
-  // columns
-  const indexColumn = useIndexColumn()
-  const columns = useColumns({ data, indexColumn: caseTableModel?.isIndexHidden ? undefined : indexColumn })
+  }, [gridRef.current?.element, isIndexHidden, columns.length])
 
   // rows
   const { handleRowsChange } = useRows(gridRef.current?.element ?? null)
@@ -484,19 +486,21 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   if (!data || !rows) return null
 
-  const hasVisibleAttributes = visibleAttributes.length > 0
   const dragId = String(active?.id)
-  const showDragOverlay = hasVisibleAttributes && dragId.includes(kInputRowKey) && dragId.includes(collectionId)
+  const showDragOverlay = dragId.includes(kInputRowKey) && dragId.includes(collectionId)
   const gridAriaLabel = t("V3.CaseTable.gridAriaLabel", { vars: [collection?.name ?? ""] })
   const gridInstructionsId = `sr-grid-instructions-${collectionId}`
   return (
-    <div className={clsx("collection-table", `collection-${collectionId}`, { "no-attributes": !hasVisibleAttributes })}>
+    <div className={clsx("collection-table", `collection-${collectionId}`, { "no-attributes": columns.length === 0 })}>
       <CollectionTableSpacer gridElt={gridRef.current?.element}
         onWhiteSpaceClick={onWhiteSpaceClick} onDrop={handleNewCollectionDrop} />
       <div className="collection-table-and-title" ref={setNodeRef} onClick={handleClick}
             onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp}>
         <CollectionTitle onAddNewAttribute={handleAddNewAttribute} showCount={true} collectionIndex={collectionIndex}/>
-        <If condition={hasVisibleAttributes}>
+        {/* A collection with all attributes hidden still renders its grid showing just the index
+            column (matching V2), so the parent/child relationship lines have cells to connect to.
+            Guard against the rare case of no columns at all (e.g. index column also hidden). */}
+        <If condition={columns.length > 0}>
           <VisuallyHidden id={gridInstructionsId}>
             {t("V3.CaseTable.gridEditInstructions")}
           </VisuallyHidden>

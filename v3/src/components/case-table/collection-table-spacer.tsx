@@ -19,6 +19,7 @@ import { kInputRowKey } from "./case-table-types"
 import { CurvedSplineFill } from "./curved-spline-fill"
 import { CurvedSplineStroke } from "./curved-spline-stroke"
 import { useCaseTableAnnounce } from "./use-case-table-announce"
+import { useCaseTableModel } from "./use-case-table-model"
 import { useCollectionTableModel } from "./use-collection-table-model"
 
 const kRelationDefaultFillColor = "#ffffff" // white
@@ -54,12 +55,21 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
   const parentCollectionId = useParentCollectionContext()
   const parentCollection = parentCollectionId ? data?.getCollection(parentCollectionId) : undefined
   const parentTableModel = useCollectionTableModel(parentCollectionId)
-  const visibleParentAttributes = useVisibleAttributes(parentCollectionId)
   const parentScrollTop = parentTableModel?.scrollTop ?? 0
   const announce = useCaseTableAnnounce()
   const childCollectionId = useCollectionContext()
   const childTableModel = useCollectionTableModel()
   const parentMost = !parentCollection
+  // The relationship lines connect parent grid cells to child grid cells, so only draw them when
+  // both adjacent collections actually render a grid. A collection renders a grid when it has at
+  // least one column — the index column (shown unless hidden for the whole table) or a visible
+  // attribute. (A collection with the index hidden and all attributes hidden renders no grid.)
+  const caseTableModel = useCaseTableModel()
+  const isIndexHidden = caseTableModel?.isIndexHidden ?? false
+  const visibleParentAttributes = useVisibleAttributes(parentCollectionId)
+  const visibleChildAttributes = useVisibleAttributes(childCollectionId)
+  const parentHasGrid = !isIndexHidden || visibleParentAttributes.length > 0
+  const childHasGrid = !isIndexHidden || visibleChildAttributes.length > 0
   const preventCollectionDrop = preventCollectionReorg(data, childCollectionId)
   const { active, isOver, setNodeRef } = useTileDroppable(`new-collection-${childCollectionId}`, _active => {
     if (!preventCollectionDrop) {
@@ -201,7 +211,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
 
   return (
     <div className={classes} ref={handleRef} onClick={handleBackgroundClick}>
-      {parentCollectionId && parentTableModel && childTableModel && visibleParentAttributes.length > 0 &&
+      {parentCollectionId && parentTableModel && childTableModel && parentHasGrid && childHasGrid &&
         <>
           <div className="spacer-top">
             {<ExpandCollapseButton isCollapsed={everyCaseIsCollapsed || false} onClick={handleExpandCollapseAllClick}
