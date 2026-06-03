@@ -6,7 +6,6 @@ import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useDataSetMetadata } from "../../hooks/use-data-set-metadata"
 import { getDragAttributeInfo, useTileDroppable } from "../../hooks/use-drag-drop"
 import { measureText } from "../../hooks/use-measure-text"
-import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { IDataSet } from "../../models/data/data-set"
@@ -54,7 +53,6 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
   const parentCollectionId = useParentCollectionContext()
   const parentCollection = parentCollectionId ? data?.getCollection(parentCollectionId) : undefined
   const parentTableModel = useCollectionTableModel(parentCollectionId)
-  const visibleParentAttributes = useVisibleAttributes(parentCollectionId)
   const parentScrollTop = parentTableModel?.scrollTop ?? 0
   const announce = useCaseTableAnnounce()
   const childCollectionId = useCollectionContext()
@@ -201,7 +199,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
 
   return (
     <div className={classes} ref={handleRef} onClick={handleBackgroundClick}>
-      {parentCollectionId && parentTableModel && childTableModel && visibleParentAttributes.length > 0 &&
+      {parentCollectionId && parentTableModel && childTableModel &&
         <>
           <div className="spacer-top">
             {<ExpandCollapseButton isCollapsed={everyCaseIsCollapsed || false} onClick={handleExpandCollapseAllClick}

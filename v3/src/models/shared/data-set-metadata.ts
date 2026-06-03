@@ -1,4 +1,4 @@
-import { comparer, observable, reaction, when } from "mobx"
+import { observable, when } from "mobx"
 import {
   addDisposer, applySnapshot, getEnv, getSnapshot, getType, hasEnv, IAnyStateTreeNode, Instance,
   ISerializedActionCall, resolveIdentifier, SnapshotIn, types
@@ -567,30 +567,6 @@ export const DataSetMetadata = SharedModel
         )
       }
       return categorySet
-    }
-  }))
-  .actions(self => ({
-    afterCreate() {
-      // if all attributes in a collection are hidden, show the remaining attributes
-      addDisposer(self, reaction(
-        () => self.data?.collections.map(collection => {
-          return collection.attributes.map(attr => ({
-            attrId: attr?.id,
-            isHidden: attr?.id ? self.isHidden(attr.id) : false
-          }))
-        }) ?? [],
-        (collections) => {
-          collections.forEach(collection => {
-            if (collection.length > 0 && collection.every(({ isHidden }) => isHidden)) {
-              collection.forEach(({ attrId }) => attrId && self.setIsHidden(attrId, false))
-            }
-          })
-        }, {
-          name: "DataSetMetadata.afterCreate.reaction [show remaining hidden attributes in a collection]",
-          fireImmediately: true,
-          equals: comparer.structural
-        }
-      ))
     }
   }))
   .actions(applyModelChange)
