@@ -6,6 +6,7 @@ import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useDataSetMetadata } from "../../hooks/use-data-set-metadata"
 import { getDragAttributeInfo, useTileDroppable } from "../../hooks/use-drag-drop"
 import { measureText } from "../../hooks/use-measure-text"
+import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { IDataSet } from "../../models/data/data-set"
@@ -18,6 +19,7 @@ import { kInputRowKey } from "./case-table-types"
 import { CurvedSplineFill } from "./curved-spline-fill"
 import { CurvedSplineStroke } from "./curved-spline-stroke"
 import { useCaseTableAnnounce } from "./use-case-table-announce"
+import { useCaseTableModel } from "./use-case-table-model"
 import { useCollectionTableModel } from "./use-collection-table-model"
 
 const kRelationDefaultFillColor = "#ffffff" // white
@@ -58,6 +60,16 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
   const childCollectionId = useCollectionContext()
   const childTableModel = useCollectionTableModel()
   const parentMost = !parentCollection
+  // The relationship lines connect parent grid cells to child grid cells, so only draw them when
+  // both adjacent collections actually render a grid. A collection renders a grid when it has at
+  // least one column — the index column (shown unless hidden for the whole table) or a visible
+  // attribute. (A collection with the index hidden and all attributes hidden renders no grid.)
+  const caseTableModel = useCaseTableModel()
+  const isIndexHidden = caseTableModel?.isIndexHidden ?? false
+  const visibleParentAttributes = useVisibleAttributes(parentCollectionId)
+  const visibleChildAttributes = useVisibleAttributes(childCollectionId)
+  const parentHasGrid = !isIndexHidden || visibleParentAttributes.length > 0
+  const childHasGrid = !isIndexHidden || visibleChildAttributes.length > 0
   const preventCollectionDrop = preventCollectionReorg(data, childCollectionId)
   const { active, isOver, setNodeRef } = useTileDroppable(`new-collection-${childCollectionId}`, _active => {
     if (!preventCollectionDrop) {
@@ -199,7 +211,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
 
   return (
     <div className={classes} ref={handleRef} onClick={handleBackgroundClick}>
-      {parentCollectionId && parentTableModel && childTableModel &&
+      {parentCollectionId && parentTableModel && childTableModel && parentHasGrid && childHasGrid &&
         <>
           <div className="spacer-top">
             {<ExpandCollapseButton isCollapsed={everyCaseIsCollapsed || false} onClick={handleExpandCollapseAllClick}

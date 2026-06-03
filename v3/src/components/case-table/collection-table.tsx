@@ -8,7 +8,6 @@ import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useTileDroppable } from "../../hooks/use-drag-drop"
 import { useTileSelectionContext } from "../../hooks/use-tile-selection-context"
-import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
 import { registerCanAutoScrollCallback } from "../../lib/dnd-kit/dnd-can-auto-scroll"
 import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { IAttribute } from "../../models/data/attribute"
@@ -74,7 +73,6 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const caseTableModel = useCaseTableModel()
   const collectionTableModel = useCollectionTableModel()
   const gridRef = useRef<DataGridHandle>(null)
-  const visibleAttributes = useVisibleAttributes(collectionId)
   const { selectedRows, setSelectedRows, handleCellClick } =
     useSelectedRows({ gridRef, onScrollClosestRowIntoView, onScrollRowRangeIntoView })
   const { isTileSelected } = useTileSelectionContext()
@@ -484,9 +482,8 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   if (!data || !rows) return null
 
-  const hasVisibleAttributes = visibleAttributes.length > 0
   const dragId = String(active?.id)
-  const showDragOverlay = hasVisibleAttributes && dragId.includes(kInputRowKey) && dragId.includes(collectionId)
+  const showDragOverlay = dragId.includes(kInputRowKey) && dragId.includes(collectionId)
   const gridAriaLabel = t("V3.CaseTable.gridAriaLabel", { vars: [collection?.name ?? ""] })
   const gridInstructionsId = `sr-grid-instructions-${collectionId}`
   return (
