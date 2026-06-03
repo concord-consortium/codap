@@ -89,6 +89,28 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     }
   }, [collectionId, collectionTableModel, gridRef.current?.element, onMount])
 
+  useEffect(() => {
+    return registerCanAutoScrollCallback((element) => {
+      // prevent auto-scroll on grid since there's nothing droppable in the grid
+      return element !== gridRef.current?.element
+    })
+  }, [])
+
+  // Mark non-editable cells with aria-readonly (RDG doesn't support this natively)
+  useEffect(() => {
+    gridRef.current?.element?.querySelectorAll('[role="gridcell"]').forEach(cell => {
+      if (cell.classList.contains("readonly-cell")) {
+        cell.setAttribute("aria-readonly", "true")
+      } else {
+        cell.removeAttribute("aria-readonly")
+      }
+    })
+  })
+
+  // columns
+  const indexColumn = useIndexColumn()
+  const columns = useColumns({ data, indexColumn: caseTableModel?.isIndexHidden ? undefined : indexColumn })
+
   // RDG assigns tabindex="0" to the first header cell for Tab entry into the grid.
   // Since that cell is the inert index column header, the grid has no focusable entry point.
   // Make the grid element a Tab entry point that uses RDG's selectCell API to focus the first
@@ -112,9 +134,13 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     // the attribute header cell → second focusin (target=descendant) sets grid.tabIndex = -1.
     const handleFocusIn = (e: FocusEvent) => {
       if (e.target === grid) {
-        // Tab entered on the grid element itself → forward to the first attribute header.
+        // Tab entered on the grid element itself → forward to the first attribute header, but
+        // only when one exists (an index-only grid with all attributes hidden has no attribute
+        // column, so firstAttrIdx would be out of range).
         const firstAttrIdx = isIndexHidden ? 0 : 1
-        gridRef.current?.selectCell({ idx: firstAttrIdx, rowIdx: -1 })
+        if (firstAttrIdx < columns.length) {
+          gridRef.current?.selectCell({ idx: firstAttrIdx, rowIdx: -1 })
+        }
       } else {
         // A descendant of the grid received focus → disable the grid's tab stop so
         // Shift+Tab from within skips the grid element.
@@ -135,29 +161,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       grid.removeEventListener("focusin", handleFocusIn)
       grid.removeEventListener("focusout", handleFocusOut)
     }
-  }, [gridRef.current?.element, isIndexHidden])
-
-  useEffect(() => {
-    return registerCanAutoScrollCallback((element) => {
-      // prevent auto-scroll on grid since there's nothing droppable in the grid
-      return element !== gridRef.current?.element
-    })
-  }, [])
-
-  // Mark non-editable cells with aria-readonly (RDG doesn't support this natively)
-  useEffect(() => {
-    gridRef.current?.element?.querySelectorAll('[role="gridcell"]').forEach(cell => {
-      if (cell.classList.contains("readonly-cell")) {
-        cell.setAttribute("aria-readonly", "true")
-      } else {
-        cell.removeAttribute("aria-readonly")
-      }
-    })
-  })
-
-  // columns
-  const indexColumn = useIndexColumn()
-  const columns = useColumns({ data, indexColumn: caseTableModel?.isIndexHidden ? undefined : indexColumn })
+  }, [gridRef.current?.element, isIndexHidden, columns.length])
 
   // rows
   const { handleRowsChange } = useRows(gridRef.current?.element ?? null)
