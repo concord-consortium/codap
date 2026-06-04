@@ -137,15 +137,32 @@
       .legend-range-inputs {
         margin: 2px 0 0 12px;
 
+        // Override the base .inline-input-group (gray background, borderless input)
+        // so the legend-range fields read as bordered number inputs, matching the
+        // bin-width control in display-config-palette.
         .inline-input-group {
-          display: flex;
-          flex-direction: row;
+          background: transparent;
           align-items: center;
-          gap: 6px;
           margin: 3px 0;
 
+          .form-label {
+            flex: 0 0 36px;
+            font-weight: normal;
+          }
+
           .form-input {
-            min-width: 3ch;
+            border: 1px solid vars.$charcoal-light-1;
+            border-radius: 3px;
+            min-width: 36px;
+
+            &:focus {
+              border-color: vars.$focus-border-color;
+            }
+
+            &:focus-visible {
+              outline: 2px solid vars.$focus-outline-color;
+              outline-offset: -2px;
+            }
           }
         }
       }
