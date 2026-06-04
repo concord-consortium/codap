@@ -1,6 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
+import { scaleQuantize } from "d3"
 import { LegendColorControls, LegendBinsSelect, LegendRangeInputs } from "./legend-color-controls"
+
+const kColors = ["#a", "#b", "#c", "#d", "#e"]
 
 // Mock translation to return the key
 jest.mock("../../../utilities/translation/translate", () => ({
@@ -32,6 +35,7 @@ const createMockDataConfig = (overrides?: Record<string, unknown>) => ({
   attributeType: jest.fn(() => undefined),
   categoryArrayForAttrRole: jest.fn(() => []),
   numericValuesForAttrRole: jest.fn(() => [0, 10, 20, 40]),
+  legendNumericColorScale: scaleQuantize([0, 40], kColors),
   metadata: {
     getAttributeColorRange: jest.fn(() => ({ low: "#0000FF", high: "#FF0000" })),
     getAttributeBinningType: jest.fn(() => "quantize"),
@@ -241,13 +245,35 @@ describe("LegendRangeInputs", () => {
     expect(screen.getByTestId("legend-range-max-input")).toHaveValue("25")
   })
 
-  it("displays very small values as plain decimals, not scientific notation", () => {
-    const config = createMockDataConfig()
-    config.metadata.getAttributeLegendRange = jest.fn(() => ({ min: 0.0000001, max: 40 }))
+  it("formats inputs with the legend's label precision, not excessive decimals", () => {
+    // Default (data-derived) bounds like random() values would otherwise show ~10 digits in the
+    // input. Format them with the same decimal count the legend labels use (binBoundaryDecimalPlaces
+    // over the scale boundaries) so the inputs match the labels. Here the 0.5488.../0.7151...
+    // boundaries round to 2 decimals.
+    const lo = 0.5488135039273248, hi = 0.7151893663724195
+    const config = createMockDataConfig({
+      numericValuesForAttrRole: jest.fn(() => [lo, hi]),
+      legendNumericColorScale: scaleQuantize([lo, hi], kColors)
+    })
     render(<LegendRangeInputs dataConfiguration={config as any} />)
 
-    // String(1e-7) would render "1e-7", which the input filter (no "e") could not round-trip
-    expect(screen.getByTestId("legend-range-min-input")).toHaveValue("0.0000001")
+    expect(screen.getByTestId("legend-range-min-input")).toHaveValue("0.55")
+    expect(screen.getByTestId("legend-range-max-input")).toHaveValue("0.72")
+  })
+
+  it("formats inputs as plain decimals without scientific notation", () => {
+    // The .Nf format used for the inputs never produces exponent notation, so a tiny value that
+    // String() would render as "1e-7" stays editable. Over a tiny data range it keeps real digits.
+    const lo = 0.0000001, hi = 0.0000005
+    const config = createMockDataConfig({
+      numericValuesForAttrRole: jest.fn(() => [lo, hi]),
+      legendNumericColorScale: scaleQuantize([lo, hi], kColors)
+    })
+    render(<LegendRangeInputs dataConfiguration={config as any} />)
+
+    const minValue = screen.getByTestId("legend-range-min-input").getAttribute("value") ?? ""
+    expect(minValue).not.toMatch(/e/i)        // no exponent notation
+    expect(minValue).toMatch(/^0\.0+1/)       // plain decimal form, e.g. "0.0000001"
   })
 
   it("caps pasted input at the maximum character length", async () => {

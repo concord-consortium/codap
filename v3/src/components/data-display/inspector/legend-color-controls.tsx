@@ -1,5 +1,5 @@
 import { clsx } from "clsx"
-import { extent } from "d3"
+import { extent, format, max as d3Max, min as d3Min } from "d3"
 import { observer } from "mobx-react-lite"
 import React, { useEffect, useId, useRef, useState } from "react"
 import {
@@ -10,8 +10,10 @@ import { AttributeBinningTypes, AttributeBinningType } from "../../../models/sha
 import {
   kDefaultHighAttributeColor, kDefaultLowAttributeColor
 } from "../../../models/shared/data-set-metadata-constants"
+import { binBoundaryDecimalPlaces } from "../../../utilities/math-utils"
 import { t } from "../../../utilities/translation/translate"
 import { PaletteCheckbox } from "../../palette-checkbox"
+import { getScaleThresholds } from "../components/legend/choropleth-legend/choropleth-legend"
 import {
   changeAttributeColorNotification, changePointColorAndAlphaNotification, changePointColorNotification
 } from "../data-display-notifications"
@@ -231,11 +233,27 @@ export const LegendBinsSelect = observer(function LegendBinsSelect(
 const kLegendRangeMaxCharacters = 12
 const kLegendRangeBufferChars = 2 // accounts for input field padding
 
-// Strips floating-point noise (e.g. 0.30000000000000004 -> "0.3") while preserving
-// integers and ordinary decimals. Uses a plain-decimal representation (no scientific
-// notation) so very small/large values stay editable — the input filter rejects "e".
-function formatLegendBound(value?: number) {
+// The number of decimal places the legend uses for its boundary labels, so the Min/Max inputs
+// match the legend labels rather than showing raw ~10-digit data values (e.g. random() defaults).
+// Returns undefined when the scale is empty/degenerate; the caller then falls back to a plain form.
+function legendBoundaryDecimals(dataConfiguration: IDataConfigurationModel) {
+  const scale = dataConfiguration.legendNumericColorScale
+  const domain = scale?.domain() ?? []
+  if (domain.length === 0 || isNaN(Number(domain[0]))) return undefined
+  const lo = Number(d3Min(domain as Iterable<number>))
+  const hi = Number(d3Max(domain as Iterable<number>))
+  // Mirror choropleth-legend's boundary set so the input precision matches the rendered labels.
+  const fullBoundaries = [lo, ...getScaleThresholds(scale), hi]
+  return binBoundaryDecimalPlaces(fullBoundaries)
+}
+
+// Formats a legend bound for display in the Min/Max inputs. With a known decimal count (from the
+// legend) it uses a fixed-decimal form matching the labels; otherwise it strips floating-point
+// noise (e.g. 0.30000000000000004 -> "0.3") without scientific notation (the input filter rejects
+// "e"), keeping very small/large values editable.
+function formatLegendBound(value?: number, decimals?: number) {
   if (value == null) return ""
+  if (decimals != null) return format(`.${decimals}f`)(value)
   const rounded = parseFloat(value.toPrecision(10))
   return rounded.toLocaleString("en-US", { useGrouping: false, maximumFractionDigits: 20 })
 }
@@ -269,8 +287,9 @@ export const LegendRangeInputs = observer(function LegendRangeInputs(
   const [dataMin, dataMax] = extent(dataConfiguration.numericValuesForAttrRole("legend") ?? [])
   const effectiveMin = overrideMin ?? dataMin
   const effectiveMax = overrideMax ?? dataMax
-  const displayMin = formatLegendBound(effectiveMin)
-  const displayMax = formatLegendBound(effectiveMax)
+  const decimals = legendBoundaryDecimals(dataConfiguration)
+  const displayMin = formatLegendBound(effectiveMin, decimals)
+  const displayMax = formatLegendBound(effectiveMax, decimals)
   // While the quantiles are locked the legend scale is frozen, so edits here have no
   // effect; disable the inputs to reflect that.
   const isLocked = !!dataConfiguration.legendQuantilesAreLocked
