@@ -13,65 +13,81 @@ export const isBoundaryAttribute = (attribute: IAttribute) => {
           kPolygonNames.includes(attribute.title.toLowerCase())
 }
 
+// Normalize a longitude to the canonical [-180, 180] range so that inputs like
+// 200° (= -160°) are treated identically to their canonical equivalents.
+// In-range values are returned as-is to avoid floating-point drift from the
+// modulo arithmetic. Callers must pre-filter non-finite inputs: ±Infinity falls
+// into the modulo branch and produces NaN.
+const canonicalizeLongitude = (lng: number) => {
+  if (lng >= -180 && lng <= 180) return lng
+  return ((lng + 180) % 360 + 360) % 360 - 180
+}
+
 /**
- * Finds the smallest contiguous longitude range by adjusting for
- * date line crossing. Sorts and mutates the input array.
+ * Finds the smallest contiguous longitude arc that contains every input value,
+ * accounting for the international date line and inputs outside [-180, 180].
+ *
+ * The arc is the complement of the largest cyclic gap between consecutive
+ * (sorted, canonicalized) longitudes. When the largest gap straddles the date
+ * line, the returned arc is the simple sorted min/max; otherwise the returned
+ * `max` exceeds 180° to represent an arc that wraps east across the date line.
+ *
+ * Callers that render data on top of a Leaflet map should use
+ * `shiftLongitudeIntoView` when projecting point coordinates so that points
+ * in the canonical world copy still render inside a dateline-crossing view.
  */
 export const getRationalLongitudeBounds = (longs: number[]) => {
-  longs.sort((v1: number, v2: number) => (v1 - v2))
-  let tLength = longs.length,
-    tMin = longs[0],
-    tMax = longs[tLength - 1],
-    tMedian
-  while (tMax - tMin > 180) {
-    tMin = Math.min(tMin, longs[0])
-    tMax = Math.max(tMax, longs[tLength - 1])
-    tMedian = longs[Math.floor(tLength / 2)]
-    if (tMax - tMedian > tMedian - tMin) {
-      tMax -= 360
-      if (tMax < longs[tLength - 2]) {
-        tMin = Math.min(tMin, tMax)
-        tMax = longs[tLength - 2]
-        longs.pop()
-      }
-    } else {
-      tMin += 360
-      if (tMin > longs[1]) {
-        tMax = Math.max(tMax, tMin)
-        tMin = longs[1]
-        longs.shift()
-      }
-    }
-    tLength = longs.length
-    if (tMax < tMin) {
-      const tTemp = tMax
-      tMax = tMin
-      tMin = tTemp
+  const sorted: number[] = []
+  for (const lng of longs) {
+    if (isFiniteNumber(lng)) sorted.push(canonicalizeLongitude(lng))
+  }
+  sorted.sort((a, b) => a - b)
+  const n = sorted.length
+  if (n === 0) return {min: NaN, max: NaN}
+  if (n === 1) return {min: sorted[0], max: sorted[0]}
+  let maxGap = -Infinity, maxGapIdx = 0
+  for (let i = 0; i < n - 1; i++) {
+    const gap = sorted[i + 1] - sorted[i]
+    if (gap > maxGap) {
+      maxGap = gap
+      maxGapIdx = i
     }
   }
-  return {min: tMin, max: tMax}
+  // Gap from the easternmost point east across the date line back to the westernmost.
+  const wrapGap = (sorted[0] + 360) - sorted[n - 1]
+  if (wrapGap >= maxGap) {
+    return {min: sorted[0], max: sorted[n - 1]}
+  }
+  return {min: sorted[maxGapIdx + 1], max: sorted[maxGapIdx] + 360}
+}
+
+/**
+ * Shifts a longitude into the [west, east] viewport by adding or subtracting
+ * whole rotations of 360°, mirroring CODAP V2's behavior. This lets a point at
+ * a canonical longitude render inside a dateline-crossing map view (where the
+ * viewport's east bound may exceed 180°).
+ */
+export const shiftLongitudeIntoView = (lng: number, west: number, east: number) => {
+  if (lng < west) return lng + Math.ceil((west - lng) / 360) * 360
+  if (lng > east) return lng - Math.ceil((lng - east) / 360) * 360
+  return lng
 }
 
 /**
  * Computes LatLngBounds from arrays of latitude and longitude values,
- * handling the international date line when longitude values span > 180°.
+ * handling the international date line and longitude values outside [-180, 180].
  */
 export const computeBoundsFromCoordinates = (lats: number[], lngs: number[]): LatLngBounds | undefined => {
   if (lats.length === 0 || lngs.length === 0) {
     return undefined
   }
   // Use a for loop instead of Math.min/max(...array) to avoid call stack overflow with large arrays
-  let latMin = Infinity, latMax = -Infinity, lngMin = Infinity, lngMax = -Infinity
+  let latMin = Infinity, latMax = -Infinity
   for (const lat of lats) { if (lat < latMin) latMin = lat; if (lat > latMax) latMax = lat }
-  for (const lng of lngs) { if (lng < lngMin) lngMin = lng; if (lng > lngMax) lngMax = lng }
-  if (lngMax - lngMin > 180) {
-    const rationalLngs = getRationalLongitudeBounds([...lngs])
-    if (isFiniteNumber(rationalLngs.min) && isFiniteNumber(rationalLngs.max)) {
-      lngMin = rationalLngs.min
-      lngMax = rationalLngs.max
-    }
-  }
-  return latLngBounds([{lat: latMin, lng: lngMin}, {lat: latMax, lng: lngMax}])
+  if (!isFiniteNumber(latMin) || !isFiniteNumber(latMax)) return undefined
+  const lngBounds = getRationalLongitudeBounds(lngs)
+  if (!isFiniteNumber(lngBounds.min) || !isFiniteNumber(lngBounds.max)) return undefined
+  return latLngBounds([{lat: latMin, lng: lngBounds.min}, {lat: latMax, lng: lngBounds.max}])
 }
 
 /**
@@ -116,7 +132,9 @@ export const expandLatLngBounds = (bounds: LatLngBounds, fraction: number) => {
     latDelta = bounds.getNorth() - bounds.getSouth(),
     lngDelta = bounds.getEast() - bounds.getWest(),
     newLatDelta = latDelta * fraction,
-    newLngDelta = lngDelta * fraction,
+    // Once the longitude arc spans the full globe, further expansion would
+    // wrap past the original bounds and confuse Leaflet's fitBounds.
+    newLngDelta = Math.min(lngDelta * fraction, 360),
     southWest = {lat: center.lat - newLatDelta / 2, lng: center.lng - newLngDelta / 2},
     northEast = {lat: center.lat + newLatDelta / 2, lng: center.lng + newLngDelta / 2}
   return latLngBounds([southWest, northEast])

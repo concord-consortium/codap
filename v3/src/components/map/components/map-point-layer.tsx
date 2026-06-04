@@ -25,6 +25,7 @@ import { IPoint, IPointMetadata, PixiPointRenderer, useLayerRenderer } from "../
 import {useMapClickWithDoubleClickZoom} from "../hooks/use-map-click-with-double-click-zoom"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {IMapPointLayerModel} from "../models/map-point-layer-model"
+import {shiftLongitudeIntoView} from "../utilities/map-utils"
 import {MapPointGrid} from "./map-point-grid"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import { useConnectingLines } from "../../data-display/hooks/use-connecting-lines"
@@ -61,10 +62,14 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
     const {latId, longId} = mapLayerModel.pointAttributes || {}
     if (!dataset || !latId || !longId) return
 
+    const mapBounds = leafletMap.getBounds()
+    const west = mapBounds.getWest()
+    const east = mapBounds.getEast()
     const getCoords = (anID: string) => {
       const long = dataset.getNumeric(anID, longId) || 0,
         lat = dataset?.getNumeric(anID, latId) || 0
-      return leafletMap.latLngToContainerPoint([lat, long])
+      const shiftedLong = shiftLongitudeIntoView(long, west, east)
+      return leafletMap.latLngToContainerPoint([lat, shiftedLong])
     },
     getScreenX = (anID: string) => {
       const coords = getCoords(anID)
@@ -195,13 +200,17 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
       // Add the data to the heatmap
       const { latId, longId } = mapLayerModel.pointAttributes || {}
       if (!latId || !longId) return
+      const mapBounds = leafletMap.getBounds()
+      const west = mapBounds.getWest()
+      const east = mapBounds.getEast()
       dataConfiguration.joinedCaseDataArrays.forEach(c => {
         const { caseID } = c
         const value = dataset.getNumeric(caseID, legendAttributeId) || minValue
         const normalizedValue = (value - minValue) / (maxValue - minValue)
         const long = dataset.getNumeric(caseID, longId) || 0
         const lat = dataset.getNumeric(caseID, latId) || 0
-        const point = leafletMap.latLngToContainerPoint([lat, long])
+        const shiftedLong = shiftLongitudeIntoView(long, west, east)
+        const point = leafletMap.latLngToContainerPoint([lat, shiftedLong])
         simpleheatRef.current?.add([point.x * scaleX, point.y * scaleY, normalizedValue])
       })
     }
@@ -291,11 +300,15 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
 
   const displayPoints = displayType === "points" && pointsAreVisible && layerIsVisible
   const refreshPoints = useDebouncedCallback(async (selectedOnly: boolean) => {
+    const mapBounds = leafletMap.getBounds()
+    const west = mapBounds.getWest()
+    const east = mapBounds.getEast()
     const {pointSizeMultiplier, pointStrokeColor} = pointDescription,
       getCoords = (anID: string) => {
         const long = longId ? dataset?.getNumeric(anID, longId) || 0 : 0,
           lat = latId ? dataset?.getNumeric(anID, latId) || 0 : 0
-        return leafletMap.latLngToContainerPoint([lat, long])
+        const shiftedLong = shiftLongitudeIntoView(long, west, east)
+        return leafletMap.latLngToContainerPoint([lat, shiftedLong])
       },
       getScreenX = (anID: string) => {
         const coords = getCoords(anID)
