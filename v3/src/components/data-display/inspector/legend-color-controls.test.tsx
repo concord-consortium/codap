@@ -208,6 +208,13 @@ describe("LegendRangeInputs", () => {
     jest.clearAllMocks()
   })
 
+  it("exposes the Min/Max inputs as a group named by the section heading", () => {
+    const config = createMockDataConfig()
+    render(<LegendRangeInputs dataConfiguration={config as any} />)
+
+    expect(screen.getByRole("group", { name: "V3.Inspector.graph.legendRange" })).toBeInTheDocument()
+  })
+
   it("renders labeled Min and Max inputs", () => {
     const config = createMockDataConfig()
     render(<LegendRangeInputs dataConfiguration={config as any} />)

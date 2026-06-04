@@ -1,7 +1,7 @@
 import { clsx } from "clsx"
 import { extent } from "d3"
 import { observer } from "mobx-react-lite"
-import React, { useEffect, useRef, useState } from "react"
+import React, { useEffect, useId, useRef, useState } from "react"
 import {
   Button, Input, Label, ListBox, ListBoxItem, Popover, Select, SelectValue, TextField
 } from "react-aria-components"
@@ -200,8 +200,9 @@ export const LegendBinsSelect = observer(function LegendBinsSelect(
   }
 
   return (
-    <div className={clsx("legend-bins-row", { disabled: isLocked })} aria-disabled={isLocked || undefined}>
-      <label className="form-label legend-bins-menu">{t("V3.Inspector.graph.legendBins")}</label>
+    <div className={clsx("legend-bins-row", { disabled: isLocked })}>
+      {/* not a <label>: it names no single control; the Select carries its own aria-label */}
+      <span className="form-label legend-bins-menu">{t("V3.Inspector.graph.legendBins")}</span>
       <Select
         aria-label={t("V3.Inspector.graph.legendBins")}
         value={binningType}
@@ -257,6 +258,7 @@ interface ILegendRangeInputsProps {
 export const LegendRangeInputs = observer(function LegendRangeInputs(
   { dataConfiguration }: ILegendRangeInputsProps
 ) {
+  const headingId = useId()
   const legendAttrID = dataConfiguration.attributeID("legend")
   const metadata = dataConfiguration.metadata
   const { min: overrideMin, max: overrideMax } = metadata?.getAttributeLegendRange(legendAttrID) ?? {}
@@ -360,8 +362,14 @@ export const LegendRangeInputs = observer(function LegendRangeInputs(
   )
 
   return (
-    <div className={clsx("legend-range-section", { disabled: isLocked })} aria-disabled={isLocked || undefined}>
-      <label className="form-label legend-range-label">{t("V3.Inspector.graph.legendRange")}</label>
+    <div
+      role="group"
+      aria-labelledby={headingId}
+      className={clsx("legend-range-section", { disabled: isLocked })}
+      aria-disabled={isLocked || undefined}
+    >
+      {/* a group heading, not a <label>: it names the Min/Max group, not one control */}
+      <div id={headingId} className="form-label legend-range-label">{t("V3.Inspector.graph.legendRange")}</div>
       <div className="legend-range-inputs">
         <div className="inline-input-group" data-testid="legend-range-min-setting">
           {renderInput("min", minInput, setMinInput)}
