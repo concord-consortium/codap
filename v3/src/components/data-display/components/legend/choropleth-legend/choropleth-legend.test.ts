@@ -10,12 +10,12 @@ jest.mock("../../../../../hooks/use-measure-text", () => ({
 
 const colors = ["#a", "#b", "#c", "#d", "#e"]
 
-function renderLegend(domain: [number, number], width: number) {
+function renderLegend(domain: [number, number], width: number, useGrouping = false) {
   // The <g> stays detached: d3 renders into it and we read it via querySelectorAll, neither of which
   // needs it in the document (measureTextExtent is mocked), so nothing leaks into document.body.
   const g = document.createElementNS("http://www.w3.org/2000/svg", "g")
   choroplethLegend(scaleQuantize(domain, colors), g, {
-    width, marginLeft: 6, marginRight: 6, marginTop: 20, ticks: 5,
+    width, marginLeft: 6, marginRight: 6, marginTop: 20, ticks: 5, useGrouping,
     clickHandler: () => undefined, casesInBinSelectedHandler: () => false
   })
   const texts = (selector: string) =>
@@ -83,6 +83,21 @@ describe("choroplethLegend", () => {
   it("shows interior labels once there is room beside the endpoints", () => {
     const { tickLabels } = renderLegend([1, 110], 500)
     expect(tickLabels.length).toBe(4)
+  })
+
+  it("groups thousands in all labels when grouping is enabled (e.g. large quantities)", () => {
+    const { tickLabels, endpointLabels, tooltips } = renderLegend([0, 10000], 500, true)
+    expect(tickLabels).toEqual(["2,000", "4,000", "6,000", "8,000"])
+    expect(endpointLabels.map(t => t.textContent)).toEqual(["0", "10,000"])
+    expect(tooltips[tooltips.length - 1]).toBe("8,000 - 10,000")
+  })
+
+  it("suppresses thousands grouping for year-like values when grouping is disabled", () => {
+    // Years are typed numeric (not date), so isDate is false; the caller disables grouping via the
+    // attribute's year-type inference so "1996" does not render as "1,996".
+    const { tickLabels, endpointLabels } = renderLegend([1990, 2020], 500, false)
+    expect(tickLabels).toEqual(["1996", "2002", "2008", "2014"])
+    expect(endpointLabels.map(t => t.textContent)).toEqual(["1990", "2020"])
   })
 
   it("renders interior tick labels without any tick marks (matching the markless narrow case)", () => {

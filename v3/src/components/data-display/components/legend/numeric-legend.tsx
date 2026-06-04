@@ -40,9 +40,14 @@ export const NumericLegend =
       if (!choroplethElt || !dataConfiguration) return
 
       setDesiredExtent(layerIndex, computeDesiredExtent())
+      // Group thousands (e.g. "10,000") for ordinary numeric legends, but not for year-like
+      // attributes — years are typed numeric (not date), so isDate won't catch them. This mirrors
+      // getNumFormatterForAttribute, which suppresses grouping for inferred year types.
+      const legendAttr = dataConfiguration.dataset?.attrFromID(legendAttrID)
       choroplethLegend(dataConfiguration.legendNumericColorScale, choroplethElt,
         {
           isDate: dataConfiguration.attributeType('legend') === 'date',
+          useGrouping: !legendAttr?.isInferredYearType(),
           width: tileWidth,
           marginLeft: 6, marginTop: labelHeight + 2 * labelPaddingY, marginRight: 6, ticks: 5,
           clickHandler: (bin: number, extend: boolean) => {
@@ -62,7 +67,7 @@ export const NumericLegend =
     },
     [dataConfiguration]
   ),
-  [choroplethElt, dataConfiguration, getLabelHeight, setDesiredExtent, tileWidth, layerIndex])
+  [choroplethElt, dataConfiguration, getLabelHeight, layerIndex, legendAttrID, setDesiredExtent, tileWidth])
 
   // Reactions to check
   // - changing attribute by menu

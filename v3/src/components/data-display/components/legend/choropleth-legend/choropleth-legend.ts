@@ -17,6 +17,10 @@ const kLegendLabelGap = 4
 
 export type ChoroplethLegendProps = {
   isDate?: boolean,
+  // When true, format numeric labels with thousands separators (e.g. "10,000"). The caller disables
+  // this for year-like attributes (which are typed numeric, not date) so years render as "2024", not
+  // "2,024" — matching how CODAP formats numbers elsewhere (see getNumFormatterForAttribute).
+  useGrouping?: boolean,
   width?: number,
   rectHeight?: number,
   transform?: string,
@@ -55,7 +59,7 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
   }
 
   const {
-      isDate, transform = '', width = 320,
+      isDate, useGrouping = false, transform = '', width = 320,
       marginTop = 0, marginRight = 0, marginLeft = 0,
       ticks = 5, clickHandler, casesInBinSelectedHandler
     } = props,
@@ -80,7 +84,7 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
     decimalPlaces = binBoundaryDecimalPlaces(fullBoundaries),
     formatBoundary = isDate
       ? (value: number) => formatDate(value * 1000, datePrecision) ?? ''
-      : format(`.${decimalPlaces}f`)
+      : format(`${useGrouping ? ',' : ''}.${decimalPlaces}f`)
 
   const legendScale = scaleLinear()
       .domain([-1, scale.range().length - 1])
