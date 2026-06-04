@@ -130,6 +130,13 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
     .append('title')
     .text((color) => {
       const bin = scale.range().indexOf(color)
+      const lastBin = scale.range().length - 1
+      // Bins are half-open [binMin, binMax) and the scale clamps out-of-range values into the end
+      // bins, so the first bin covers everything below its upper threshold and the last everything
+      // at-or-above its lower threshold. Show those open-ended (rather than the [min, max] domain),
+      // which is only correct once the user can narrow the range (CODAP-1292).
+      if (lastBin > 0 && bin === 0) return `< ${formatBoundary(fullBoundaries[1])}`
+      if (lastBin > 0 && bin === lastBin) return `≥ ${formatBoundary(fullBoundaries[bin])}`
       return `${formatBoundary(fullBoundaries[bin])} - ${formatBoundary(fullBoundaries[bin + 1])}`
     })
 

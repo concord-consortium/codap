@@ -37,10 +37,22 @@ describe("choroplethLegend", () => {
   })
 
   it("formats bin tooltips with enough precision for a narrow range", () => {
+    // The first and last bins are open-ended ("< t1" / "≥ t_last"): the bins are half-open
+    // [binMin, binMax) and scaleQuantize/scaleQuantile clamp out-of-range values into the ends, so
+    // the first bin covers everything below t1 and the last everything at-or-above t_last, not just
+    // [min, max]. (Matters when the legend range is narrowed; see CODAP-1292.)
     const { tooltips } = renderLegend([100, 110], 400)
     expect(tooltips).toEqual([
-      "100 - 102", "102 - 104", "104 - 106", "106 - 108", "108 - 110"
+      "< 102", "102 - 104", "104 - 106", "106 - 108", "≥ 108"
     ])
+  })
+
+  it("always shows the first and last bin tooltips as open-ended", () => {
+    // Even when the legend range equals the data extent, the end bins clamp out-of-range values,
+    // so '<'/'≥' describe their true coverage. The actual min/max remain visible as endpoint labels.
+    const { tooltips } = renderLegend([0, 10], 400)
+    expect(tooltips[0]).toBe("< 2")
+    expect(tooltips[tooltips.length - 1]).toBe("≥ 8")
   })
 
   it("renders endpoint labels with an explicit fill so they are visible alongside axis ticks", () => {
@@ -89,7 +101,7 @@ describe("choroplethLegend", () => {
     const { tickLabels, endpointLabels, tooltips } = renderLegend([0, 10000], 500, true)
     expect(tickLabels).toEqual(["2,000", "4,000", "6,000", "8,000"])
     expect(endpointLabels.map(t => t.textContent)).toEqual(["0", "10,000"])
-    expect(tooltips[tooltips.length - 1]).toBe("8,000 - 10,000")
+    expect(tooltips[tooltips.length - 1]).toBe("≥ 8,000") // last bin is open-ended
   })
 
   it("suppresses thousands grouping for year-like values when grouping is disabled", () => {
