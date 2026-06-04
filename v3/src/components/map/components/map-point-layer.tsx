@@ -58,13 +58,10 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
 
   const { wrapClickHandler } = useMapClickWithDoubleClickZoom(leafletMap)
 
-  const connectingLine = useCallback((caseID: string) => {
+  const connectingLine = useCallback((caseID: string, west: number, east: number) => {
     const {latId, longId} = mapLayerModel.pointAttributes || {}
     if (!dataset || !latId || !longId) return
 
-    const mapBounds = leafletMap.getBounds()
-    const west = mapBounds.getWest()
-    const east = mapBounds.getEast()
     const getCoords = (anID: string) => {
       const long = dataset.getNumeric(anID, longId) || 0,
         lat = dataset?.getNumeric(anID, latId) || 0
@@ -92,12 +89,16 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
 
   const connectingLinesForCases = useCallback(() => {
     const lineDescriptions: IConnectingLineDescription[] = []
+    // Compute the viewport bounds once per refresh; they're constant across all cases.
+    const mapBounds = leafletMap.getBounds()
+    const west = mapBounds.getWest()
+    const east = mapBounds.getEast()
     dataConfiguration?.getCaseDataArray(0).forEach(c => {
-        const cLine = connectingLine(c.caseID)
+        const cLine = connectingLine(c.caseID, west, east)
         cLine && lineDescriptions.push(cLine)
     })
     return lineDescriptions
-  }, [connectingLine, dataConfiguration])
+  }, [connectingLine, dataConfiguration, leafletMap])
 
   const handleConnectingLinesClick = useCallback(() => {
     // temporarily ignore leaflet clicks to prevent the map click handler

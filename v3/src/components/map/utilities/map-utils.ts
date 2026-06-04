@@ -38,13 +38,24 @@ const canonicalizeLongitude = (lng: number) => {
  */
 export const getRationalLongitudeBounds = (longs: number[]) => {
   const sorted: number[] = []
+  let canonMin = Infinity, canonMax = -Infinity
   for (const lng of longs) {
-    if (isFiniteNumber(lng)) sorted.push(canonicalizeLongitude(lng))
+    if (isFiniteNumber(lng)) {
+      const canon = canonicalizeLongitude(lng)
+      sorted.push(canon)
+      if (canon < canonMin) canonMin = canon
+      if (canon > canonMax) canonMax = canon
+    }
   }
-  sorted.sort((a, b) => a - b)
   const n = sorted.length
   if (n === 0) return {min: NaN, max: NaN}
   if (n === 1) return {min: sorted[0], max: sorted[0]}
+  // Fast path: when the canonical span is within 180°, the wrap gap (360 - span)
+  // necessarily exceeds every interior gap, so the smallest enclosing arc is just
+  // the canonical min/max. Skip the O(n log n) sort entirely. This also mirrors
+  // V2, which only invoked the date-line algorithm when the span exceeded 180°.
+  if (canonMax - canonMin <= 180) return {min: canonMin, max: canonMax}
+  sorted.sort((a, b) => a - b)
   let maxGap = -Infinity, maxGapIdx = 0
   for (let i = 0; i < n - 1; i++) {
     const gap = sorted[i + 1] - sorted[i]
