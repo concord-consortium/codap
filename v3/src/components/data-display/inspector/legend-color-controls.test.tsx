@@ -241,6 +241,40 @@ describe("LegendRangeInputs", () => {
     expect(screen.getByTestId("legend-range-max-input")).toHaveValue("25")
   })
 
+  it("displays very small values as plain decimals, not scientific notation", () => {
+    const config = createMockDataConfig()
+    config.metadata.getAttributeLegendRange = jest.fn(() => ({ min: 0.0000001, max: 40 }))
+    render(<LegendRangeInputs dataConfiguration={config as any} />)
+
+    // String(1e-7) would render "1e-7", which the input filter (no "e") could not round-trip
+    expect(screen.getByTestId("legend-range-min-input")).toHaveValue("0.0000001")
+  })
+
+  it("caps pasted input at the maximum character length", async () => {
+    const user = userEvent.setup()
+    const config = createMockDataConfig()
+    render(<LegendRangeInputs dataConfiguration={config as any} />)
+
+    const minInput = screen.getByTestId("legend-range-min-input")
+    await user.clear(minInput)
+    await user.click(minInput)
+    await user.paste("123456789012345") // 15 digits -> capped to 12
+    expect(minInput).toHaveValue("123456789012")
+  })
+
+  it("does not write an override when blurring without changing the value", async () => {
+    const user = userEvent.setup()
+    const config = createMockDataConfig()
+    render(<LegendRangeInputs dataConfiguration={config as any} />)
+
+    const minInput = screen.getByTestId("legend-range-min-input")
+    // focus then blur the pre-filled (data-extent) value without editing it
+    await user.click(minInput)
+    await user.tab()
+    expect(config.metadata.setAttributeLegendMin).not.toHaveBeenCalled()
+    expect(config.metadata.applyModelChange).not.toHaveBeenCalled()
+  })
+
   it("commits a valid min on Enter via applyModelChange", async () => {
     const user = userEvent.setup()
     const config = createMockDataConfig()

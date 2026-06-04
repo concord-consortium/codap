@@ -232,12 +232,16 @@ const kLegendRangeMaxCharacters = 12
 const kLegendRangeBufferChars = 2 // accounts for input field padding
 
 // Strips floating-point noise (e.g. 0.30000000000000004 -> "0.3") while preserving
-// integers and ordinary decimals.
+// integers and ordinary decimals. Uses a plain-decimal representation (no scientific
+// notation) so very small/large values stay editable — the input filter rejects "e".
 function formatLegendBound(value?: number) {
-  return value == null ? "" : String(parseFloat(value.toPrecision(10)))
+  if (value == null) return ""
+  const rounded = parseFloat(value.toPrecision(10))
+  return rounded.toLocaleString("en-US", { useGrouping: false, maximumFractionDigits: 20 })
 }
 
-// Allows an optional leading minus, digits, and a single decimal point.
+// Allows an optional leading minus, digits, and a single decimal point, capping the
+// length so paste/drag/programmatic input honors the same limit as typing.
 function filterLegendRangeInput(value: string): string {
   let filtered = value.replace(/[^0-9.-]/g, "")
   const isNegative = filtered.startsWith("-")
@@ -246,7 +250,7 @@ function filterLegendRangeInput(value: string): string {
   if (parts.length > 2) {
     filtered = `${parts.shift()}.${parts.join("")}`
   }
-  return isNegative ? `-${filtered}` : filtered
+  return `${isNegative ? "-" : ""}${filtered}`.slice(0, kLegendRangeMaxCharacters)
 }
 
 type LegendBound = "min" | "max"
@@ -286,6 +290,10 @@ export const LegendRangeInputs = observer(function LegendRangeInputs(
 
   const commit = (bound: LegendBound, rawText: string) => {
     const text = rawText.trim()
+    // No change from what's shown: don't write anything. This avoids creating a spurious
+    // override (e.g. pinning the range to the live data extent) on a plain focus/blur, and
+    // avoids redundant undo steps when the same value is re-entered.
+    if (text === (bound === "min" ? displayMin : displayMax)) return
     const setBound = (boundValue?: number) => {
       if (bound === "min") metadata?.setAttributeLegendMin(legendAttrID, boundValue)
       else metadata?.setAttributeLegendMax(legendAttrID, boundValue)
