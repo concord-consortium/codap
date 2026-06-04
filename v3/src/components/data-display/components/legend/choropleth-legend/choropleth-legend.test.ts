@@ -11,8 +11,9 @@ jest.mock("../../../../../hooks/use-measure-text", () => ({
 const colors = ["#a", "#b", "#c", "#d", "#e"]
 
 function renderLegend(domain: [number, number], width: number) {
+  // The <g> stays detached: d3 renders into it and we read it via querySelectorAll, neither of which
+  // needs it in the document (measureTextExtent is mocked), so nothing leaks into document.body.
   const g = document.createElementNS("http://www.w3.org/2000/svg", "g")
-  document.body.appendChild(g)
   choroplethLegend(scaleQuantize(domain, colors), g, {
     width, marginLeft: 6, marginRight: 6, marginTop: 20, ticks: 5,
     clickHandler: () => undefined, casesInBinSelectedHandler: () => false
