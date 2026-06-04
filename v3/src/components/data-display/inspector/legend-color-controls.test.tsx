@@ -301,6 +301,24 @@ describe("LegendRangeInputs", () => {
     expect(config.metadata.applyModelChange).not.toHaveBeenCalled()
   })
 
+  it("does not write an override when the typed value equals the bound in a different form", async () => {
+    const user = userEvent.setup()
+    // [5, 7] data formats the min as "5.0" (1 decimal), but typing the equivalent "5" must still be
+    // treated as no change — otherwise it would create a spurious override pinned to the data extent.
+    const config = createMockDataConfig({
+      numericValuesForAttrRole: jest.fn(() => [5, 7]),
+      legendNumericColorScale: scaleQuantize([5, 7], kColors)
+    })
+    render(<LegendRangeInputs dataConfiguration={config as any} />)
+
+    const minInput = screen.getByTestId("legend-range-min-input")
+    expect(minInput).toHaveValue("5.0")
+    await user.clear(minInput)
+    await user.type(minInput, "5{enter}")
+    expect(config.metadata.setAttributeLegendMin).not.toHaveBeenCalled()
+    expect(config.metadata.applyModelChange).not.toHaveBeenCalled()
+  })
+
   it("commits a valid min on Enter via applyModelChange", async () => {
     const user = userEvent.setup()
     const config = createMockDataConfig()

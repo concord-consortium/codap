@@ -340,6 +340,11 @@ export const LegendRangeInputs = observer(function LegendRangeInputs(
       return
     }
     const value = Number(text)
+    // Numeric no-op: with label-precision formatting the display ("5.0") can differ from an
+    // equivalent typed value ("5"), so the string check above misses it. Treat a value equal to the
+    // current effective bound as no change to avoid a spurious override (and undo step) on re-entry.
+    const currentEffective = bound === "min" ? effectiveMin : effectiveMax
+    if (Number.isFinite(value) && value === currentEffective) return
     // Validate a typed value against the other effective bound; invalid values silently revert.
     const other = bound === "min" ? effectiveMax : effectiveMin
     const valid = Number.isFinite(value) &&
