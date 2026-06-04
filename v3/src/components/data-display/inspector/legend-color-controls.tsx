@@ -369,7 +369,7 @@ export const LegendRangeInputs = observer(function LegendRangeInputs(
       aria-disabled={isLocked || undefined}
     >
       {/* a group heading, not a <label>: it names the Min/Max group, not one control */}
-      <div id={headingId} className="form-label legend-range-label">{t("V3.Inspector.graph.legendRange")}</div>
+      <div id={headingId} className="form-label">{t("V3.Inspector.graph.legendRange")}</div>
       <div className="legend-range-inputs">
         <div className="inline-input-group" data-testid="legend-range-min-setting">
           {renderInput("min", minInput, setMinInput)}
