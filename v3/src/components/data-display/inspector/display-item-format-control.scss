@@ -126,5 +126,29 @@
     .num-color-setting {
       margin: 3px 0;
     }
+
+    .legend-range-section {
+      margin: 4px 0;
+
+      .legend-range-label {
+        font-weight: bold;
+      }
+
+      .legend-range-inputs {
+        margin: 2px 0 0 12px;
+
+        .inline-input-group {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          gap: 6px;
+          margin: 3px 0;
+
+          .form-input {
+            min-width: 3ch;
+          }
+        }
+      }
+    }
   }
 }

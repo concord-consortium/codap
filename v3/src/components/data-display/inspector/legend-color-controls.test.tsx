@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { LegendColorControls, LegendBinsSelect } from "./legend-color-controls"
+import { LegendColorControls, LegendBinsSelect, LegendRangeInputs } from "./legend-color-controls"
 
 // Mock translation to return the key
 jest.mock("../../../utilities/translation/translate", () => ({
@@ -31,11 +31,15 @@ const createMockDataConfig = (overrides?: Record<string, unknown>) => ({
   attributeID: jest.fn(() => "attr-1"),
   attributeType: jest.fn(() => undefined),
   categoryArrayForAttrRole: jest.fn(() => []),
+  numericValuesForAttrRole: jest.fn(() => [0, 10, 20, 40]),
   metadata: {
     getAttributeColorRange: jest.fn(() => ({ low: "#0000FF", high: "#FF0000" })),
     getAttributeBinningType: jest.fn(() => "quantize"),
+    getAttributeLegendRange: jest.fn((): { min?: number, max?: number } => ({ min: undefined, max: undefined })),
     setAttributeColor: jest.fn(),
     setAttributeBinningType: jest.fn(),
+    setAttributeLegendMin: jest.fn(),
+    setAttributeLegendMax: jest.fn(),
     applyModelChange: jest.fn((fn: () => void) => fn())
   },
   getLegendColorForCategory: jest.fn((cat: string) => cat === "cat-a" ? "#FF0000" : "#00FF00"),
@@ -189,5 +193,108 @@ describe("LegendBinsSelect", () => {
     render(<LegendBinsSelect dataConfiguration={config as any} />)
 
     expect(screen.getByRole("button", { name: /V3.Inspector.graph.legendBins/i })).toBeInTheDocument()
+  })
+})
+
+describe("LegendRangeInputs", () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  it("renders labeled Min and Max inputs", () => {
+    const config = createMockDataConfig()
+    render(<LegendRangeInputs dataConfiguration={config as any} />)
+
+    expect(screen.getByText("V3.Inspector.graph.legendRange")).toBeInTheDocument()
+    expect(screen.getByTestId("legend-range-min-input")).toBeInTheDocument()
+    expect(screen.getByTestId("legend-range-max-input")).toBeInTheDocument()
+  })
+
+  it("pre-fills inputs with the data extent when no override is set", () => {
+    const config = createMockDataConfig()
+    render(<LegendRangeInputs dataConfiguration={config as any} />)
+
+    expect(screen.getByTestId("legend-range-min-input")).toHaveValue("0")
+    expect(screen.getByTestId("legend-range-max-input")).toHaveValue("40")
+  })
+
+  it("pre-fills inputs with override values when set", () => {
+    const config = createMockDataConfig()
+    config.metadata.getAttributeLegendRange = jest.fn(() => ({ min: 5, max: 25 }))
+    render(<LegendRangeInputs dataConfiguration={config as any} />)
+
+    expect(screen.getByTestId("legend-range-min-input")).toHaveValue("5")
+    expect(screen.getByTestId("legend-range-max-input")).toHaveValue("25")
+  })
+
+  it("commits a valid min on Enter via applyModelChange", async () => {
+    const user = userEvent.setup()
+    const config = createMockDataConfig()
+    render(<LegendRangeInputs dataConfiguration={config as any} />)
+
+    const minInput = screen.getByTestId("legend-range-min-input")
+    await user.clear(minInput)
+    await user.type(minInput, "10{enter}")
+    expect(config.metadata.applyModelChange).toHaveBeenCalled()
+    expect(config.metadata.setAttributeLegendMin).toHaveBeenCalledWith("attr-1", 10)
+  })
+
+  it("commits a valid max on blur via applyModelChange", async () => {
+    const user = userEvent.setup()
+    const config = createMockDataConfig()
+    render(<LegendRangeInputs dataConfiguration={config as any} />)
+
+    const maxInput = screen.getByTestId("legend-range-max-input")
+    await user.clear(maxInput)
+    await user.type(maxInput, "30")
+    await user.tab()
+    expect(config.metadata.setAttributeLegendMax).toHaveBeenCalledWith("attr-1", 30)
+  })
+
+  it("commits negative values", async () => {
+    const user = userEvent.setup()
+    const config = createMockDataConfig()
+    render(<LegendRangeInputs dataConfiguration={config as any} />)
+
+    const minInput = screen.getByTestId("legend-range-min-input")
+    await user.clear(minInput)
+    await user.type(minInput, "-5{enter}")
+    expect(config.metadata.setAttributeLegendMin).toHaveBeenCalledWith("attr-1", -5)
+  })
+
+  it("silently reverts the min field when the typed value is >= the max", async () => {
+    const user = userEvent.setup()
+    const config = createMockDataConfig()
+    render(<LegendRangeInputs dataConfiguration={config as any} />)
+
+    const minInput = screen.getByTestId("legend-range-min-input")
+    await user.clear(minInput)
+    await user.type(minInput, "50{enter}") // 50 >= data max of 40
+    expect(config.metadata.setAttributeLegendMin).not.toHaveBeenCalled()
+    expect(minInput).toHaveValue("0") // reverted to previous committed value
+  })
+
+  it("clears the override when the field is emptied and committed", async () => {
+    const user = userEvent.setup()
+    const config = createMockDataConfig()
+    config.metadata.getAttributeLegendRange = jest.fn(() => ({ min: 5, max: 25 }))
+    render(<LegendRangeInputs dataConfiguration={config as any} />)
+
+    const minInput = screen.getByTestId("legend-range-min-input")
+    await user.clear(minInput)
+    await user.type(minInput, "{enter}")
+    expect(config.metadata.setAttributeLegendMin).toHaveBeenCalledWith("attr-1", undefined)
+  })
+
+  it("cancels the in-progress edit on Escape", async () => {
+    const user = userEvent.setup()
+    const config = createMockDataConfig()
+    render(<LegendRangeInputs dataConfiguration={config as any} />)
+
+    const minInput = screen.getByTestId("legend-range-min-input")
+    await user.clear(minInput)
+    await user.type(minInput, "7{escape}")
+    expect(config.metadata.setAttributeLegendMin).not.toHaveBeenCalled()
+    expect(minInput).toHaveValue("0")
   })
 })

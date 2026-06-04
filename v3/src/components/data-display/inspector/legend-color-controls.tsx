@@ -1,7 +1,8 @@
+import { extent } from "d3"
 import { observer } from "mobx-react-lite"
-import React, { useRef, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import {
-  Button, ListBox, ListBoxItem, Popover, Select, SelectValue
+  Button, Input, Label, ListBox, ListBoxItem, Popover, Select, SelectValue, TextField
 } from "react-aria-components"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
 import { AttributeBinningTypes, AttributeBinningType } from "../../../models/shared/data-set-metadata"
@@ -217,6 +218,137 @@ export const LegendBinsSelect = observer(function LegendBinsSelect(
           </ListBox>
         </Popover>
       </Select>
+    </div>
+  )
+})
+
+const kLegendRangeMaxCharacters = 12
+const kLegendRangeBufferChars = 2 // accounts for input field padding
+
+// Strips floating-point noise (e.g. 0.30000000000000004 -> "0.3") while preserving
+// integers and ordinary decimals.
+function formatLegendBound(value?: number) {
+  return value == null ? "" : String(parseFloat(value.toPrecision(10)))
+}
+
+// Allows an optional leading minus, digits, and a single decimal point.
+function filterLegendRangeInput(value: string): string {
+  let filtered = value.replace(/[^0-9.-]/g, "")
+  const isNegative = filtered.startsWith("-")
+  filtered = filtered.replace(/-/g, "")
+  const parts = filtered.split(".")
+  if (parts.length > 2) {
+    filtered = `${parts.shift()}.${parts.join("")}`
+  }
+  return isNegative ? `-${filtered}` : filtered
+}
+
+type LegendBound = "min" | "max"
+
+interface ILegendRangeInputsProps {
+  dataConfiguration: IDataConfigurationModel
+}
+
+export const LegendRangeInputs = observer(function LegendRangeInputs(
+  { dataConfiguration }: ILegendRangeInputsProps
+) {
+  const legendAttrID = dataConfiguration.attributeID("legend")
+  const metadata = dataConfiguration.metadata
+  const { min: overrideMin, max: overrideMax } = metadata?.getAttributeLegendRange(legendAttrID) ?? {}
+  const [dataMin, dataMax] = extent(dataConfiguration.numericValuesForAttrRole("legend") ?? [])
+  const effectiveMin = overrideMin ?? dataMin
+  const effectiveMax = overrideMax ?? dataMax
+  const displayMin = formatLegendBound(effectiveMin)
+  const displayMax = formatLegendBound(effectiveMax)
+
+  const [minInput, setMinInput] = useState(displayMin)
+  const [maxInput, setMaxInput] = useState(displayMax)
+
+  // Sync local state when the committed/displayed value changes (e.g. undo/redo, or a
+  // live data extent change while no override is in effect).
+  useEffect(() => setMinInput(displayMin), [displayMin])
+  useEffect(() => setMaxInput(displayMax), [displayMax])
+
+  const revert = (bound: LegendBound) => {
+    if (bound === "min") setMinInput(displayMin)
+    else setMaxInput(displayMax)
+  }
+
+  const commit = (bound: LegendBound, rawText: string) => {
+    const text = rawText.trim()
+    const setBound = (boundValue?: number) => {
+      if (bound === "min") metadata?.setAttributeLegendMin(legendAttrID, boundValue)
+      else metadata?.setAttributeLegendMax(legendAttrID, boundValue)
+    }
+    if (text === "") {
+      // Clearing always succeeds, reverting that bound to the live data extent.
+      metadata?.applyModelChange(() => setBound(undefined), {
+        undoStringKey: bound === "min" ? "V3.Undo.legend.clearLegendMin" : "V3.Undo.legend.clearLegendMax",
+        redoStringKey: bound === "min" ? "V3.Redo.legend.clearLegendMin" : "V3.Redo.legend.clearLegendMax",
+        log: bound === "min" ? "Clear legend min" : "Clear legend max"
+      })
+      return
+    }
+    const value = Number(text)
+    // Validate a typed value against the other effective bound; invalid values silently revert.
+    const other = bound === "min" ? effectiveMax : effectiveMin
+    const valid = Number.isFinite(value) &&
+      (other == null || (bound === "min" ? value < other : value > other))
+    if (!valid) {
+      revert(bound)
+      return
+    }
+    metadata?.applyModelChange(() => setBound(value), {
+      undoStringKey: bound === "min" ? "V3.Undo.legend.setLegendMin" : "V3.Undo.legend.setLegendMax",
+      redoStringKey: bound === "min" ? "V3.Redo.legend.setLegendMin" : "V3.Redo.legend.setLegendMax",
+      log: bound === "min" ? "Set legend min" : "Set legend max"
+    })
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, bound: LegendBound) => {
+    if (e.key === "Enter") {
+      e.preventDefault()
+      commit(bound, e.currentTarget.value)
+    } else if (e.key === "Escape") {
+      e.preventDefault()
+      revert(bound)
+    } else {
+      // Cap the number of characters, but allow deletion/navigation keys and overwriting a selection.
+      const allowedKeys = new Set(["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Home", "End", "Tab"])
+      const isAllowedKey = allowedKeys.has(e.key) || e.ctrlKey || e.metaKey
+      const hasSelection = e.currentTarget.selectionStart !== e.currentTarget.selectionEnd
+      if (e.currentTarget.value.length >= kLegendRangeMaxCharacters && !isAllowedKey && !hasSelection) {
+        e.preventDefault()
+      }
+    }
+  }
+
+  const renderInput = (bound: LegendBound, text: string, onChange: (v: string) => void) => (
+    <TextField value={text} onChange={(v) => onChange(filterLegendRangeInput(v))}>
+      <Label className="form-label">
+        {t(`V3.Inspector.graph.legendRange.${bound}`)}
+      </Label>
+      <Input
+        className="form-input"
+        data-testid={`legend-range-${bound}-input`}
+        style={{ width: `${text.length + kLegendRangeBufferChars}ch` }}
+        onKeyDown={(e) => handleKeyDown(e, bound)}
+        onBlur={(e) => commit(bound, e.target.value)}
+      />
+    </TextField>
+  )
+
+  return (
+    <div className="legend-range-section">
+      <label className="form-label legend-range-label">{t("V3.Inspector.graph.legendRange")}</label>
+      <div className="legend-range-inputs">
+        <div className="inline-input-group" data-testid="legend-range-min-setting">
+          {renderInput("min", minInput, setMinInput)}
+        </div>
+        <div className="inline-input-group" data-testid="legend-range-max-setting">
+          {renderInput("max", maxInput, setMaxInput)}
+        </div>
+      </div>
     </div>
   )
 })

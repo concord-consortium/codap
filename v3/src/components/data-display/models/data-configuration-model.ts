@@ -557,19 +557,28 @@ export const DataConfigurationModel = types
       const values = self.numericValuesForAttrRole("legend") ?? []
 
       const legendAttrId = self.attributeID("legend")
+      const { min: overrideMin, max: overrideMax } =
+        self.metadata?.getAttributeLegendRange(legendAttrId) ?? {}
       const binningType = self.metadata?.getAttributeBinningType(legendAttrId)
       switch (binningType) {
         case "quantize": {
-          const extents = extent(values)
-          if (extents[0] == null || extents[1] == null) {
+          const dataExtent = extent(values)
+          const effectiveMin = overrideMin ?? dataExtent[0]
+          const effectiveMax = overrideMax ?? dataExtent[1]
+          if (effectiveMin == null || effectiveMax == null) {
             return scaleQuantize([], self.choroplethColors)
           }
-          return scaleQuantize(extents, self.choroplethColors)
-
+          // scaleQuantize maps out-of-domain values to the nearest range extreme automatically
+          return scaleQuantize([effectiveMin, effectiveMax], self.choroplethColors)
         }
         case "quantile":
-        default:
-          return scaleQuantile(values, self.choroplethColors)
+        default: {
+          const filtered = overrideMin == null && overrideMax == null
+            ? values
+            : values.filter(v =>
+                (overrideMin == null || v >= overrideMin) && (overrideMax == null || v <= overrideMax))
+          return scaleQuantile(filtered, self.choroplethColors)
+        }
       }
     },
   }))
