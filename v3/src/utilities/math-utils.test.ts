@@ -1,6 +1,7 @@
 import {FormatLocaleDefinition, format, formatLocale} from "d3-format"
 import {
   between,
+  binBoundaryDecimalPlaces,
   checkNumber,
   chooseDecimalPlaces,
   extractNumeric,
@@ -167,6 +168,27 @@ describe("math-utils", () => {
       expect(chooseDecimalPlaces(0.91234, 0, 1)).toBe("0.912")
     })
 
+  })
+
+  describe("binBoundaryDecimalPlaces", () => {
+    it("uses 0 decimals when integer boundaries are already distinct", () => {
+      // the narrow-range legend case: boundaries 100..110 by 2 are distinct as integers
+      expect(binBoundaryDecimalPlaces([100, 102, 104, 106, 108, 110])).toBe(0)
+      expect(binBoundaryDecimalPlaces([0, 25, 50, 75, 100])).toBe(0)
+    })
+
+    it("adds just enough decimals to keep closely-spaced boundaries distinct", () => {
+      expect(binBoundaryDecimalPlaces([0, 0.3, 0.6])).toBe(1)
+      expect(binBoundaryDecimalPlaces([0, 0.01, 0.02])).toBe(2)
+    })
+
+    it("does not hang on duplicate adjacent boundaries", () => {
+      expect(binBoundaryDecimalPlaces([100, 100, 110])).toBe(0)
+    })
+
+    it("respects the maxDecimals cap", () => {
+      expect(binBoundaryDecimalPlaces([0, 1e-30], 6)).toBe(6)
+    })
   })
 })
 
