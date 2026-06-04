@@ -1,3 +1,4 @@
+import { clsx } from "clsx"
 import { extent } from "d3"
 import { observer } from "mobx-react-lite"
 import React, { useEffect, useRef, useState } from "react"
@@ -182,6 +183,9 @@ export const LegendBinsSelect = observer(function LegendBinsSelect(
   const legendAttrID = dataConfiguration.attributeID("legend")
   const metadata = dataConfiguration.metadata
   const binningType = metadata?.getAttributeBinningType(legendAttrID)
+  // While the quantiles are locked the legend scale is frozen, so this control has no
+  // effect; disable it to reflect that.
+  const isLocked = !!dataConfiguration.legendQuantilesAreLocked
 
   const handleAttributeBinningTypeChange = (key: React.Key | null) => {
     if (key == null) return
@@ -196,11 +200,12 @@ export const LegendBinsSelect = observer(function LegendBinsSelect(
   }
 
   return (
-    <div className="legend-bins-row">
+    <div className={clsx("legend-bins-row", { disabled: isLocked })} aria-disabled={isLocked || undefined}>
       <label className="form-label legend-bins-menu">{t("V3.Inspector.graph.legendBins")}</label>
       <Select
         aria-label={t("V3.Inspector.graph.legendBins")}
         value={binningType}
+        isDisabled={isLocked}
         onChange={handleAttributeBinningTypeChange}
         data-testid="legend-bins-type-select"
       >
@@ -260,6 +265,9 @@ export const LegendRangeInputs = observer(function LegendRangeInputs(
   const effectiveMax = overrideMax ?? dataMax
   const displayMin = formatLegendBound(effectiveMin)
   const displayMax = formatLegendBound(effectiveMax)
+  // While the quantiles are locked the legend scale is frozen, so edits here have no
+  // effect; disable the inputs to reflect that.
+  const isLocked = !!dataConfiguration.legendQuantilesAreLocked
 
   const [minInput, setMinInput] = useState(displayMin)
   const [maxInput, setMaxInput] = useState(displayMax)
@@ -337,7 +345,7 @@ export const LegendRangeInputs = observer(function LegendRangeInputs(
   }
 
   const renderInput = (bound: LegendBound, text: string, onChange: (v: string) => void) => (
-    <TextField value={text} onChange={(v) => onChange(filterLegendRangeInput(v))}>
+    <TextField value={text} isDisabled={isLocked} onChange={(v) => onChange(filterLegendRangeInput(v))}>
       <Label className="form-label">
         {t(`V3.Inspector.graph.legendRange.${bound}`)}
       </Label>
@@ -352,7 +360,7 @@ export const LegendRangeInputs = observer(function LegendRangeInputs(
   )
 
   return (
-    <div className="legend-range-section">
+    <div className={clsx("legend-range-section", { disabled: isLocked })} aria-disabled={isLocked || undefined}>
       <label className="form-label legend-range-label">{t("V3.Inspector.graph.legendRange")}</label>
       <div className="legend-range-inputs">
         <div className="inline-input-group" data-testid="legend-range-min-setting">

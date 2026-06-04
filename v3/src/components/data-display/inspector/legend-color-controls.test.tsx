@@ -194,6 +194,13 @@ describe("LegendBinsSelect", () => {
 
     expect(screen.getByRole("button", { name: /V3.Inspector.graph.legendBins/i })).toBeInTheDocument()
   })
+
+  it("disables the select when the legend quantiles are locked", () => {
+    const config = createMockDataConfig({ legendQuantilesAreLocked: true })
+    render(<LegendBinsSelect dataConfiguration={config as any} />)
+
+    expect(screen.getByRole("button", { name: /V3.Inspector.graph.legendBins/i })).toBeDisabled()
+  })
 })
 
 describe("LegendRangeInputs", () => {
@@ -325,5 +332,13 @@ describe("LegendRangeInputs", () => {
     await user.type(maxInput, "{enter}")
     expect(config.metadata.setAttributeLegendMax).toHaveBeenCalledWith("attr-1", undefined)
     expect(config.metadata.setAttributeLegendMin).not.toHaveBeenCalled()
+  })
+
+  it("disables the Min and Max inputs when the legend quantiles are locked", () => {
+    const config = createMockDataConfig({ legendQuantilesAreLocked: true })
+    render(<LegendRangeInputs dataConfiguration={config as any} />)
+
+    expect(screen.getByTestId("legend-range-min-input")).toBeDisabled()
+    expect(screen.getByTestId("legend-range-max-input")).toBeDisabled()
   })
 })

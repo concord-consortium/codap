@@ -80,7 +80,9 @@
     }
 
     .stroke-section,
-    .color-picker-row {
+    .color-picker-row,
+    .legend-bins-row,
+    .legend-range-section {
       &.disabled {
         opacity: 0.5;
         pointer-events: none;
