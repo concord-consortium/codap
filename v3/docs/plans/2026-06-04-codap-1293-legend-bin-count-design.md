@@ -132,6 +132,27 @@ No behavioral change. Locking freezes the current scale (which now reflects N bi
 Number-of-Bins control is disabled while locked, consistent with the bins dropdown and the
 range inputs.
 
+#### Why the lock stays on `DataConfigurationModel` (not in per-attribute metadata)
+
+It is reasonable to ask why `numberOfBins`/`legendMin`/`legendMax`/`binningType` live in
+per-attribute `AttributeScale` metadata while `legendQuantilesAreLocked` + `legendQuantiles`
+remain on the per-display `DataConfigurationModel`. The boundary is deliberate:
+
+- The metadata fields are **display-independent inputs** to the scale — configuration knobs.
+  Sharing them per attribute across every tile that uses the attribute as a legend is a
+  feature (set the range/type/count once, it applies everywhere).
+- The lock is a **display-specific cached output**: `legendQuantiles` are the *frozen
+  threshold values* captured from `getScaleThresholds(self.legendNumericColorScale)`. That
+  scale is built from `numericValuesForAttrRole("legend")`, which is filtered **per display**
+  (hidden cases, `displayOnlySelectedCases`, …). The same attribute used as a legend in a
+  graph and a map can legitimately have different frozen thresholds, so a single per-attribute
+  copy could not represent both. The locked flag and the thresholds are coupled and move
+  together.
+
+This also keeps the lock's V2 round-trip 1:1 (V2 stores `legendQuantilesAreLocked` +
+`legendQuantiles` on the per-display `plot_data_configuration`). We diverge from V2's
+per-display model only for the *count*, because the count is a shared input worth sharing.
+
 ## Data flow
 
 ```
