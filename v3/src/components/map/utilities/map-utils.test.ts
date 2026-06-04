@@ -170,7 +170,7 @@ describe("shiftLongitudeIntoView", () => {
   it("applies multiple rotations when a single 360° shift is not enough", () => {
     // A point at -500° is two full rotations west of the viewport.
     expect(shiftLongitudeIntoView(-500, 175, 201)).toBe(220)
-    // And a point at +700° is two rotations east.
+    // And a point at +700° is three rotations east (700 - 3×360 = -380).
     expect(shiftLongitudeIntoView(700, -185, -159)).toBe(-380)
   })
 })
