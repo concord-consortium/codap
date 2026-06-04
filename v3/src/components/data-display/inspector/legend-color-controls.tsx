@@ -281,8 +281,21 @@ export const LegendRangeInputs = observer(function LegendRangeInputs(
       else metadata?.setAttributeLegendMax(legendAttrID, boundValue)
     }
     if (text === "") {
+      // Clearing reverts this bound to the live data extent. If that leaves the *other*
+      // override orphaned (it no longer brackets the data, so the range would go reversed),
+      // clear it too so the displayed range and the legend never show min > max.
+      const otherOverride = bound === "min" ? overrideMax : overrideMin
+      const revertedDataBound = bound === "min" ? dataMin : dataMax
+      const otherOrphaned = otherOverride != null && revertedDataBound != null &&
+        (bound === "min" ? otherOverride <= revertedDataBound : otherOverride >= revertedDataBound)
       // Clearing always succeeds, reverting that bound to the live data extent.
-      metadata?.applyModelChange(() => setBound(undefined), {
+      metadata?.applyModelChange(() => {
+        setBound(undefined)
+        if (otherOrphaned) {
+          if (bound === "min") metadata.setAttributeLegendMax(legendAttrID, undefined)
+          else metadata.setAttributeLegendMin(legendAttrID, undefined)
+        }
+      }, {
         undoStringKey: bound === "min" ? "V3.Undo.legend.clearLegendMin" : "V3.Undo.legend.clearLegendMax",
         redoStringKey: bound === "min" ? "V3.Redo.legend.clearLegendMin" : "V3.Redo.legend.clearLegendMax",
         log: bound === "min" ? "Clear legend min" : "Clear legend max"

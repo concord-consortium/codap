@@ -563,8 +563,15 @@ export const DataConfigurationModel = types
       switch (binningType) {
         case "quantize": {
           const dataExtent = extent(values)
-          const effectiveMin = overrideMin ?? dataExtent[0]
-          const effectiveMax = overrideMax ?? dataExtent[1]
+          let effectiveMin = overrideMin ?? dataExtent[0]
+          let effectiveMax = overrideMax ?? dataExtent[1]
+          // A reversed/degenerate effective range can arise when one override is left orphaned
+          // (the other bound was cleared) or when the data changed beneath a stored override.
+          // Fall back to the live data extent in that case.
+          if (effectiveMin != null && effectiveMax != null && effectiveMin >= effectiveMax) {
+            effectiveMin = dataExtent[0]
+            effectiveMax = dataExtent[1]
+          }
           if (effectiveMin == null || effectiveMax == null) {
             return scaleQuantize([], self.choroplethColors)
           }
@@ -577,7 +584,10 @@ export const DataConfigurationModel = types
             ? values
             : values.filter(v =>
                 (overrideMin == null || v >= overrideMin) && (overrideMax == null || v <= overrideMax))
-          return scaleQuantile(filtered, self.choroplethColors)
+          // If the override range excludes every value (orphaned/stale override, or the data
+          // moved outside the range), train on the full value set rather than producing an
+          // all-first-color scale.
+          return scaleQuantile(filtered.length > 0 ? filtered : values, self.choroplethColors)
         }
       }
     },

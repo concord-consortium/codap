@@ -567,4 +567,15 @@ describe("DataConfigurationModel legend range overrides", () => {
     tree.metadata.setAttributeLegendMax("legId", 20)
     expect(tree.config.legendNumericColorScale.domain()).toEqual([0, 10, 20])
   })
+  it("falls back to the data extent when overrides leave the quantize range reversed", () => {
+    // an override min above the data, with max cleared, would leave a reversed [50, 40] range
+    tree.metadata.setAttributeLegendMin("legId", 50)
+    expect(tree.config.legendNumericColorScale.domain()).toEqual([0, 40])
+  })
+  it("trains on all values when the override range excludes everything in quantile mode", () => {
+    tree.metadata.setAttributeBinningType("legId", "quantile")
+    // an override min above every value would yield an empty trained set; fall back to all values
+    tree.metadata.setAttributeLegendMin("legId", 100)
+    expect(tree.config.legendNumericColorScale.domain()).toEqual([0, 10, 20, 40])
+  })
 })

@@ -297,4 +297,33 @@ describe("LegendRangeInputs", () => {
     expect(config.metadata.setAttributeLegendMin).not.toHaveBeenCalled()
     expect(minInput).toHaveValue("0")
   })
+
+  it("also clears the other override when clearing one would leave it orphaned", async () => {
+    const user = userEvent.setup()
+    const config = createMockDataConfig()
+    // both overrides sit above the data extent ([0, 40]); clearing max reverts it to the data
+    // max of 40, which would leave min=50 orphaned (a reversed range), so min is cleared too
+    config.metadata.getAttributeLegendRange = jest.fn(() => ({ min: 50, max: 200 }))
+    render(<LegendRangeInputs dataConfiguration={config as any} />)
+
+    const maxInput = screen.getByTestId("legend-range-max-input")
+    await user.clear(maxInput)
+    await user.type(maxInput, "{enter}")
+    expect(config.metadata.setAttributeLegendMax).toHaveBeenCalledWith("attr-1", undefined)
+    expect(config.metadata.setAttributeLegendMin).toHaveBeenCalledWith("attr-1", undefined)
+  })
+
+  it("leaves the other override in place when clearing one keeps the range valid", async () => {
+    const user = userEvent.setup()
+    const config = createMockDataConfig()
+    // min=10 still brackets the data extent ([0, 40]) after max reverts to 40, so it stays
+    config.metadata.getAttributeLegendRange = jest.fn(() => ({ min: 10, max: 25 }))
+    render(<LegendRangeInputs dataConfiguration={config as any} />)
+
+    const maxInput = screen.getByTestId("legend-range-max-input")
+    await user.clear(maxInput)
+    await user.type(maxInput, "{enter}")
+    expect(config.metadata.setAttributeLegendMax).toHaveBeenCalledWith("attr-1", undefined)
+    expect(config.metadata.setAttributeLegendMin).not.toHaveBeenCalled()
+  })
 })
