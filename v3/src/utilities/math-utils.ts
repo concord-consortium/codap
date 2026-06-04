@@ -1,10 +1,4 @@
-import {FormatLocaleDefinition, formatLocale} from "d3-format"
-
 export const sqrtTwoPi = Math.sqrt(2 * Math.PI)
-
-// locale which uses ASCII minus sign and ignores grouping and currency
-const asciiLocale = formatLocale({ minus: "-" } as FormatLocaleDefinition)
-const asciiFormat = asciiLocale.format
 
 export function between(num: number, min: number, max: number) {
   return min < max ? (min <= num && num <= max) : (max <= num && num <= min)
@@ -39,24 +33,6 @@ export function roundToPrecision(num: number, precision: number) {
     // For 1000: mantissa "1" (0 decimals), exponent 3 → 0 - 3 = -3 ✓
     return mantissaDecimals - exponent
   }
-
-/* Given two numbers, determine the least number of significant figures needed for their display to distinguish
-* between them. */
-export function neededSignificantDigits(num1: number, num2: number) {
-  let significantDigits = 0,
-    f: ReturnType<typeof asciiFormat>,
-    done = false
-  while (!done) {
-    f = asciiFormat(`.${significantDigits}r`)
-    const num1str = f(num1),
-      num2str = f(num2)
-    done = num1str !== num2str
-    if (!done) {
-      significantDigits++
-    }
-  }
-  return significantDigits
-}
 
 /* Given a n1 < n < n2, return a string representation of n with an appropriate precision. */
 export function chooseDecimalPlaces(n: number, lower: number, upper: number) {
@@ -94,79 +70,23 @@ export function chooseDecimalPlaces(n: number, lower: number, upper: number) {
 }
 
 /**
- * Given an array of numbers, return a new array of significant digits needed for each number in the array to
- * distinguish it from the numbers on either side of it. For the first and last numbers, the number of significant
- * digits needed only need consider the second and second to last numbers, respectively. Use
- * `neededSignificantDigits` to determine the number of significant digits needed for each pair of numbers.
+ * Given a sorted array of bin-boundary values, return the single number of decimal places to use
+ * when formatting ALL of them so that adjacent boundaries remain distinct. Applying one decimal-place
+ * count to every label keeps them visually consistent (e.g. "0.0, 0.5, 1.0" rather than a ragged mix
+ * like "0, 0.5, 1.00"), while using no more precision than the closest pair of boundaries requires.
+ * Genuinely-equal adjacent boundaries are ignored (no number of decimals can separate them), so the
+ * result stays minimal and the loop always terminates; `maxDecimals` is a final safety bound.
  */
-export function neededSignificantDigitsArray(numbers: number[]) {
-  return numbers.map((num, index) => {
-    if (index === 0) {
-      return neededSignificantDigits(numbers[1], num)
-    } else if (index === numbers.length - 1) {
-      return neededSignificantDigits(numbers[numbers.length - 2], num)
-    } else {
-      return Math.max(neededSignificantDigits(numbers[index - 1], num),
-        neededSignificantDigits(numbers[index + 1], num))
-    }
-  })
-}
-
-/**
- * Given an array of bin boundary values and an array of numbers, return a new array of significant digits
- * needed for each bin boundary value to distinguish it from the numbers on either side of it in the array.
- * Both the array of bin boundary values and the array of numbers is assumed to be sorted.
- */
-export function neededSigDigitsArrayForBinBoundaries(binBoundaries: number[], values: number[]) {
-
-  const sigDigits = (n1: number, n2: number, operator: '<' | '>' | '<=' | '>=') => {
-    let significantDigits = 0,
-      f: ReturnType<typeof asciiFormat>,
-      done = false
-    while (!done) {
-      f = asciiFormat(`.${significantDigits}r`)
-      const n1String = f(n1),
-        n1AfterFormatting = Number(n1String)
-      switch (operator) {
-        case '<':
-          done = n1AfterFormatting < n2
-          break
-        case ">":
-          done = n1AfterFormatting > n2
-          break
-        case "<=":
-          done = n1AfterFormatting <= n2
-          break
-        case ">=":
-          done = n1AfterFormatting >= n2
-      }
-      if (!done) {
-        significantDigits++
-      }
-    }
-    return significantDigits
-
+export function binBoundaryDecimalPlaces(boundaries: number[], maxDecimals = 12) {
+  const adjacentBoundariesDistinct = (places: number) =>
+    boundaries.every((value, i) =>
+      i === 0 || value === boundaries[i - 1] ||
+        value.toFixed(places) !== boundaries[i - 1].toFixed(places))
+  let decimals = 0
+  while (decimals < maxDecimals && !adjacentBoundariesDistinct(decimals)) {
+    decimals++
   }
-
-  const lastBinBoundaryIndex = binBoundaries.length - 1,
-    lastValuesIndex = values.length - 1
-  return binBoundaries.map((boundaryValue, index) => {
-    const
-      leftValue = index === 0 ? boundaryValue
-        : values.find((value, i) => {
-          return i < lastValuesIndex && value < boundaryValue && values[i + 1] >= boundaryValue
-        }),
-      rightValue = index === lastBinBoundaryIndex ? boundaryValue
-        : values.find((value, i) => {
-          return i > 0 && value > boundaryValue && values[i - 1] <= boundaryValue
-        })
-    const
-      leftDigits = leftValue !== undefined ? sigDigits(leftValue, boundaryValue,
-        index === 0 ? '<=' : '<') : 0,
-      rightDigits = rightValue !== undefined ? sigDigits(rightValue, boundaryValue,
-        index === lastBinBoundaryIndex ? '>=' : '>') : 0
-    return Math.max(leftDigits, rightDigits)
-  })
+  return decimals
 }
 
 export function isFiniteNumber(x: any): x is number {

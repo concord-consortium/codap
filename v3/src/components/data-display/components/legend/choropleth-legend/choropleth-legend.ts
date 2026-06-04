@@ -4,12 +4,23 @@ import { measureTextExtent } from "../../../../../hooks/use-measure-text"
 import {
   determineLevels, formatDate, kDatePrecisionNone, mapLevelToPrecision
 } from "../../../../../utilities/date-utils"
-import { neededSigDigitsArrayForBinBoundaries } from "../../../../../utilities/math-utils"
+import { binBoundaryDecimalPlaces } from "../../../../../utilities/math-utils"
 import { kChoroplethHeight, kDataDisplayFont } from "../../../data-display-types"
+
+// Gap (px) below the color bar before the label text. Used both as the axis tickPadding for the
+// interior tick labels and as the `y` of the min/max endpoint labels; the endpoint labels also copy
+// d3's `dy` of "0.71em", so endpoint and interior labels share an identical baseline.
+const kLegendLabelPadding = 6
+const kLegendLabelBaselineDy = "0.71em"
+// Minimum horizontal gap (px) required between adjacent legend labels before interior labels show.
+const kLegendLabelGap = 4
 
 export type ChoroplethLegendProps = {
   isDate?: boolean,
-  tickSize?: number,
+  // When true, format numeric labels with thousands separators (e.g. "10,000"). The caller disables
+  // this for year-like attributes (which are typed numeric, not date) so years render as "2024", not
+  // "2,024" — matching how CODAP formats numbers elsewhere (see getNumFormatterForAttribute).
+  useGrouping?: boolean,
   width?: number,
   rectHeight?: number,
   transform?: string,
@@ -48,14 +59,12 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
   }
 
   const {
-      isDate, tickSize = 6, transform = '', width = 320,
+      isDate, useGrouping = false, transform = '', width = 320,
       marginTop = 0, marginRight = 0, marginLeft = 0,
       ticks = 5, clickHandler, casesInBinSelectedHandler
     } = props,
     minValue = min(scale.domain()) ?? 0,
     maxValue = max(scale.domain()) ?? 0
-
-  const tickFormatSpec = '.2r'
 
   select(choroplethElt).selectAll("*").remove()
   const svg = select(choroplethElt).append("svg")
@@ -66,23 +75,39 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
 
   const thresholds = getScaleThresholds(scale),
     fullBoundaries = [minValue, ...thresholds, maxValue],
-    domainValues = scale.domain(),
-    significantDigits = neededSigDigitsArrayForBinBoundaries(fullBoundaries, domainValues),
     dateLevels = isDate ? determineLevels(minValue, maxValue) : {increment: 1, outerLevel: 0, innerLevel: 0},
-    datePrecision = isDate ? mapLevelToPrecision(dateLevels.innerLevel + 1) : kDatePrecisionNone
-
-  const thresholdFormat = isDate ? (date: number) => formatDate(date * 1000, datePrecision) ?? ''
-    : format(tickFormatSpec)
+    datePrecision = isDate ? mapLevelToPrecision(dateLevels.innerLevel + 1) : kDatePrecisionNone,
+    // Format every boundary (tick labels, tooltips, and the min/max endpoint labels) with a single,
+    // shared number of decimal places. This keeps labels visually consistent (e.g. "0.0, 0.5, 1.0"
+    // rather than "0, 0.5, 1.00") and stops a narrow range like 100–110 from collapsing to
+    // "100, 100, 110" the way a fixed 2-significant-figure format did.
+    decimalPlaces = binBoundaryDecimalPlaces(fullBoundaries),
+    formatBoundary = isDate
+      ? (value: number) => formatDate(value * 1000, datePrecision) ?? ''
+      : format(`${useGrouping ? ',' : ''}.${decimalPlaces}f`)
 
   const legendScale = scaleLinear()
       .domain([-1, scale.range().length - 1])
       .rangeRound([marginLeft, width - marginRight]),
     tickValues = range(thresholds.length),
-    tickFormat = (i: NumberValue) => thresholdFormat(thresholds[Number(i)]),
-    minMaxFormat = isDate ? thresholdFormat
-      : (d: number, i: number) => format(`.${significantDigits[i === 0 ? 0 : 5]}r`)(d),
-    minStringWidth = measureTextExtent(minMaxFormat(minValue, 0), kDataDisplayFont).width,
-    onlyShowMinMax = minStringWidth > 3 * width / 20 - 10
+    tickFormat = (i: NumberValue) => formatBoundary(thresholds[Number(i)])
+
+  // Show the interior threshold labels only if they fit without colliding with each other or with
+  // the left/right-justified min/max endpoint labels; otherwise show just the endpoints. (The
+  // endpoints are always shown, justified to the bar edges; interior labels are centered on their
+  // boundaries.)
+  const labelWidth = (value: number) => measureTextExtent(formatBoundary(value), kDataDisplayFont).width,
+    interiorCenters = tickValues.map(i => legendScale(i)),
+    interiorWidths = thresholds.map(labelWidth),
+    lastIndex = interiorCenters.length - 1,
+    fitBesideEndpoints = interiorCenters.length === 0 || (
+      interiorCenters[0] - interiorWidths[0] / 2 >= marginLeft + labelWidth(minValue) + kLegendLabelGap &&
+      interiorCenters[lastIndex] + interiorWidths[lastIndex] / 2 <=
+        (width - marginRight) - labelWidth(maxValue) - kLegendLabelGap),
+    interiorLabelsFit = interiorCenters.every((center, i) =>
+      i === 0 || center - interiorWidths[i] / 2 >=
+        interiorCenters[i - 1] + interiorWidths[i - 1] / 2 + kLegendLabelGap),
+    onlyShowMinMax = !(fitBesideEndpoints && interiorLabelsFit)
 
   svg.append("g")
     .selectAll("rect")
@@ -105,7 +130,7 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
     .append('title')
     .text((color) => {
       const bin = scale.range().indexOf(color)
-      return `${thresholdFormat(fullBoundaries[bin])} - ${thresholdFormat(fullBoundaries[bin + 1])}`
+      return `${formatBoundary(fullBoundaries[bin])} - ${formatBoundary(fullBoundaries[bin + 1])}`
     })
 
 
@@ -116,8 +141,15 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
     legendAxis.call(axisBottom(legendScale)
       .ticks(ticks)
       .tickFormat(tickFormat)
-      .tickSize(tickSize)
+      // tickSize 0 removes the tick-line allowance from the label offset; tickPadding then sets the
+      // gap below the bar (we strip the now-zero-length lines and domain below anyway).
+      .tickSize(0)
+      .tickPadding(kLegendLabelPadding)
       .tickValues(tickValues))
+    // Show only the interior threshold labels: strip the tick lines and the domain path so no tick
+    // marks render, matching the markless narrow (endpoints-only) case.
+    legendAxis.selectAll('.tick line').remove()
+    legendAxis.select('.domain').remove()
   }
 
   svg.select('.legend-axis')
@@ -128,10 +160,17 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
     .join(
       (enter) =>
         enter.append('text')
-          .attr('y', kChoroplethHeight)
+          // The min/max labels live inside the .legend-axis group. When interior ticks render, d3's
+          // axisBottom sets fill:none on that group (overriding it only on its own tick texts), so
+          // without an explicit fill these endpoint labels would inherit fill:none and disappear.
+          .attr('fill', 'currentColor')
+          .attr('y', kLegendLabelPadding)
+          .attr('dy', kLegendLabelBaselineDy)
+          // Justify min to the bar's left edge and max to its right edge so both stay within the
+          // legend bounds (rather than the SVG edges, which sit marginLeft/marginRight outside the bar).
           .style('text-anchor', (d, i) => i ? 'end' : 'start')
-          .attr('x', (d, i) => i * width)
-          .text(minMaxFormat)
+          .attr('x', (d, i) => i ? width - marginRight : marginLeft)
+          .text(formatBoundary)
     )
 
   return svg.node()
