@@ -149,6 +149,91 @@ firing.
 
 ---
 
+## Recipe 6 -- Prod config changed: re-mirror the clone
+
+The clone (`$CLONE_DIST_ID`) was a one-time snapshot of prod (`$PROD_DIST_ID`,
+`E3H9X49AG3GYSO`) taken by `clone-distribution.sh`. When someone edits the LIVE prod
+distribution afterward (a new cache behavior, an origin change, a cache-policy swap on
+the WordPress default behavior, etc.), the clone goes **stale**. Neither
+`clone-distribution.sh` (it skips the create when `CLONE_DIST_ID` is already set) nor
+`modify-clone.sh` (it transforms the clone's *own* current config, not prod's) pulls
+those upstream changes in. `verify-clone.sh` is the **detector**, not the fixer.
+
+### Step 1 -- scope the drift (always do this first)
+
+```bash
+./verify-clone.sh
+```
+
+Part 1 prints `UNEXPECTED ...` lines for every difference not in
+[`expected-diff.md`](expected-diff.md). Each is a prod-vs-clone delta that is **not** one
+of the clone's intended modifications -- i.e. genuine drift. The captured configs are in
+`artifacts/prod-norm.json` and `artifacts/clone-norm.json`; diff any path to see the old
+vs new values, e.g.:
+
+```bash
+jq '.DefaultCacheBehavior' artifacts/prod-norm.json
+jq '.DefaultCacheBehavior' artifacts/clone-norm.json
+```
+
+**Before changing anything, confirm the blast radius.** A drift that lands only in
+`DefaultCacheBehavior` (whose `TargetOriginId` is `codap.wpengine.com`) affects only the
+WordPress marketing site -- every app path (`/app`, `/app/*`, `/releases/*`, `/v2`,
+`/v3`, plugins, `beta*`, `version*`, ...) is served by an *explicit* cache behavior and
+never falls through to the default. Drift inside one of those explicit behaviors is an
+app-affecting change and warrants more care.
+
+### Step 2 -- pick the fix by drift size
+
+**Isolated drift (a few behaviors / fields) -> surgical in-place update.** Keeps the same
+`$CLONE_DIST_ID`, temp subdomain, and monitoring. `get-distribution-config` on the clone,
+jq the drifted paths to match prod's new values, `update-distribution` with the clone's
+`--if-match` ETag, wait, re-verify. Example (the 2026-06 WordPress default-behavior
+modernization -- legacy `ForwardedValues`+TTLs replaced by managed policies):
+
+```bash
+source ./config.env
+aws cloudfront get-distribution-config --id "$CLONE_DIST_ID" > artifacts/clone-resync.json
+ETAG=$(jq -r '.ETag' artifacts/clone-resync.json)
+jq '.DistributionConfig
+    | .DefaultCacheBehavior.CachePolicyId = "88577110-a827-41e3-bd31-43015cb69a1f"   # codap_concord_org_cache
+    | .DefaultCacheBehavior.OriginRequestPolicyId = "216adef6-5c7f-47e4-b989-5492eafa07d3"  # Managed-AllViewer
+    | del(.DefaultCacheBehavior.ForwardedValues, .DefaultCacheBehavior.MinTTL,
+          .DefaultCacheBehavior.DefaultTTL, .DefaultCacheBehavior.MaxTTL)' \
+  artifacts/clone-resync.json > artifacts/clone-resync-config.json
+aws cloudfront update-distribution --id "$CLONE_DIST_ID" --if-match "$ETAG" \
+  --distribution-config file://artifacts/clone-resync-config.json
+aws cloudfront wait distribution-deployed --id "$CLONE_DIST_ID"
+./verify-clone.sh
+```
+
+Generalize the `jq` to whatever paths Step 1 flagged. The goal is to make the clone match
+prod on the drifted paths so `verify-clone.sh` returns to zero `UNEXPECTED` lines.
+
+**Broad drift (new origins, many behaviors, structural changes) -> recreate the clone.**
+Cheaper to rebuild than to hand-patch. Clear `CLONE_DIST_ID` / `CLONE_DIST_DOMAIN` /
+`RHP_*` in `config.env`, then re-run the PREFLIGHT pipeline:
+`./clone-distribution.sh` -> wait -> `./setup-temp-subdomain.sh` (re-point the temp
+subdomain A record at the new clone) -> `./modify-clone.sh` -> wait -> `./verify-clone.sh`.
+Delete the old clone distribution afterward. This mints a **new** `$CLONE_DIST_ID`
+(persisted to `config.env`); the temp subdomain and monitoring canaries follow the
+hostname, not the id, so they keep working once DNS is re-pointed.
+
+### Step 3 -- decide whether prod's change also belongs in `modify-clone.sh`
+
+If the drift is a NEW pattern that the cutover should treat specially (swap origin /
+attach the function / carve out), fold it into `modify-clone.sh` and `expected-diff.md`
+per Recipe 1 or 2 -- otherwise the next recreate would lose it. A pure WordPress-default
+modernization needs neither: it's not an app behavior, so re-mirroring is enough.
+
+### Then
+
+Re-run the RUNBOOK "Freshness re-checks (within 48h of flip)" if a flip is imminent --
+`verify-clone.sh` plus the Cypress G1/G2 conformance run -- so the gate evidence reflects
+current prod.
+
+---
+
 ## When to add a new recipe to this file
 
 If you do the same multi-file update twice in a row, write it down. Recipes here should
