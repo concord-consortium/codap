@@ -111,6 +111,12 @@ const AttributeScale = types.model("AttributeScale", {
   legendMax: types.maybe(types.number)
 })
 
+// True when none of the scale's fields are set, so it can be removed rather than left to
+// serialize as a stray empty `scale: {}` block.
+function isAttributeScaleEmpty(scale?: Instance<typeof AttributeScale>) {
+  return scale != null && scale.binningType == null && scale.legendMin == null && scale.legendMax == null
+}
+
 export const AttributeMetadata = types.model("AttributeMetadata", {
   // boolean properties
   hidden: typeOptionalBoolean(),
@@ -507,6 +513,7 @@ export const DataSetMetadata = SharedModel
         attrMetadata.scale = AttributeScale.create({ legendMin: value })
       } else {
         attrMetadata.scale.legendMin = value
+        if (isAttributeScaleEmpty(attrMetadata.scale)) attrMetadata.scale = undefined
       }
     },
     setAttributeLegendMax(attrId: string, value?: number) {
@@ -517,6 +524,7 @@ export const DataSetMetadata = SharedModel
         attrMetadata.scale = AttributeScale.create({ legendMax: value })
       } else {
         attrMetadata.scale.legendMax = value
+        if (isAttributeScaleEmpty(attrMetadata.scale)) attrMetadata.scale = undefined
       }
     },
     setDeletedFormula(attrId: string, formula: Maybe<string>) {
