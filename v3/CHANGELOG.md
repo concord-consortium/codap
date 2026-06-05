@@ -1,5 +1,17 @@
 # Changelog
 
+## Version 3.0.0 - June 7, 2026
+
+### 🐞 Bug Fixes:
+- **CODAP-1381:** Fix numeric legend label rendering
+- **CODAP-1384:** Fix map rescale to include all points, including across the date line
+
+### Asset Sizes
+|      File |          Size | % Change from Previous Release |
+|-----------|---------------|--------------------------------|
+|  main.css |  240732 bytes |                          0.00% |
+|  index.js | 7819296 bytes |                          0.03% |
+
 ## Version 3.0.0-rc.2921 - June 3, 2026
 
 ### 🐞 Bug Fixes:
