@@ -397,6 +397,8 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   displayOnlySelected?: boolean
   legendRole: number
   legendAttributeType: number
+  // V2 wire format for the legend bin count; round-trips to/from V3's per-attribute
+  // AttributeScale.binCount (V3 has no corresponding model field — see codap-v2-type-utils.ts).
   numberOfLegendQuantiles?: number
   legendQuantilesAreLocked?: boolean
   legendQuantiles?: number[] | null[] // null occurs in some documents, presumably as a result of a bug
