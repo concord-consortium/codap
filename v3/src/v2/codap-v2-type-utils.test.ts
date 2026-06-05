@@ -1,4 +1,6 @@
-import { exportLegendQuantileStorage } from "./codap-v2-type-utils"
+import {
+  applyImportedLegendBinCount, exportLegendQuantileStorage, importLegendLockProps
+} from "./codap-v2-type-utils"
 
 const stubConfig = (over: Partial<{
   legendType: string, legendBinCount: number, locked: boolean, quantiles: number[]
@@ -49,5 +51,40 @@ describe("exportLegendQuantileStorage (native V2 graph storage)", () => {
   it("emits locked quantiles", () => {
     expect(exportLegendQuantileStorage(stubConfig({ locked: true, quantiles: [2, 4] }), { v2Native: true }))
       .toEqual({ numberOfLegendQuantiles: 5, legendQuantilesAreLocked: true, legendQuantiles: [2, 4] })
+  })
+})
+
+describe("importLegendLockProps", () => {
+  it("keeps only lock props for the config snapshot (no numberOfLegendQuantiles)", () => {
+    const props = { numberOfLegendQuantiles: 8, legendQuantilesAreLocked: true, legendQuantiles: [2, 4] }
+    expect(importLegendLockProps(props)).toEqual({ legendQuantilesAreLocked: true, legendQuantiles: [2, 4] })
+  })
+  it("returns empty when nothing is locked", () => {
+    expect(importLegendLockProps({ numberOfLegendQuantiles: 5 })).toEqual({})
+  })
+  it("omits invalid (null-containing) quantiles while keeping the lock flag", () => {
+    expect(importLegendLockProps({ legendQuantilesAreLocked: true, legendQuantiles: [2, null] as any }))
+      .toEqual({ legendQuantilesAreLocked: true })
+  })
+})
+
+describe("applyImportedLegendBinCount", () => {
+  it("sets binCount on the legend attribute for a non-default count", () => {
+    const setAttributeBinCount = jest.fn()
+    applyImportedLegendBinCount({ numberOfLegendQuantiles: 8 }, "legId", { setAttributeBinCount })
+    expect(setAttributeBinCount).toHaveBeenCalledWith("legId", 8)
+  })
+  it("does nothing for the default count of 5", () => {
+    const setAttributeBinCount = jest.fn()
+    applyImportedLegendBinCount({ numberOfLegendQuantiles: 5 }, "legId", { setAttributeBinCount })
+    expect(setAttributeBinCount).not.toHaveBeenCalled()
+  })
+  it("does nothing without a legend attribute id", () => {
+    const setAttributeBinCount = jest.fn()
+    applyImportedLegendBinCount({ numberOfLegendQuantiles: 8 }, undefined, { setAttributeBinCount })
+    expect(setAttributeBinCount).not.toHaveBeenCalled()
+  })
+  it("does nothing without metadata", () => {
+    expect(() => applyImportedLegendBinCount({ numberOfLegendQuantiles: 8 }, "legId", undefined)).not.toThrow()
   })
 })

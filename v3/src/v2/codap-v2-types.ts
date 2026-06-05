@@ -457,7 +457,15 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   // v3 extensions
   v3?: {
     filterFormula?: string
-  }
+  } & ICodapV2LegendQuantileV3Extensions
+}
+
+// Legend quantile properties that v3 can write into a v3 extension namespace. For graphs these
+// also appear at the native top level; for maps the v3 namespace is the only place they are stored.
+export interface ICodapV2LegendQuantileV3Extensions {
+  numberOfLegendQuantiles?: number
+  legendQuantilesAreLocked?: boolean
+  legendQuantiles?: number[] | null[] // null occurs in some documents, presumably as a result of a bug
 }
 
 // This is differentiated from the current storage because it has no
@@ -522,7 +530,7 @@ export interface ICodapV2MapLayerBaseStorage {
   // v3 extensions
   v3?: {
     filterFormula?: string
-  }
+  } & ICodapV2LegendQuantileV3Extensions
 }
 
 export interface ICodapV2MapPointLayerStorage extends ICodapV2MapLayerBaseStorage {

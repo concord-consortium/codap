@@ -105,6 +105,31 @@ export function importLegendQuantileProps(props?: IImportLegendQuantileProps) {
   return exportLegendQuantileProps(validateImportLegendQuantileProps(props))
 }
 
+// Lock props for the DataConfiguration snapshot. The bin count is handled separately
+// (applyImportedLegendBinCount) because it lives in per-attribute metadata, not the config.
+export function importLegendLockProps(props?: IImportLegendQuantileProps) {
+  if (!props?.legendQuantilesAreLocked) return {}
+  const validQuantiles = !!props.legendQuantiles?.length &&
+    props.legendQuantiles.every((q: number | null) => q != null)
+  return {
+    legendQuantilesAreLocked: true,
+    ...(validQuantiles ? { legendQuantiles: props.legendQuantiles as number[] } : {})
+  }
+}
+
+interface ILegendBinCountTarget {
+  setAttributeBinCount(attrId: string, value?: number): void
+}
+// Maps V2's numberOfLegendQuantiles onto the legend attribute's per-attribute bin count, skipping
+// the default of 5 (so common V2 docs create no metadata).
+export function applyImportedLegendBinCount(
+  props: IImportLegendQuantileProps | undefined, legendAttrId: string | undefined, metadata?: ILegendBinCountTarget
+) {
+  const count = props?.numberOfLegendQuantiles
+  if (!metadata || !legendAttrId || count == null || count === 5) return
+  metadata.setAttributeBinCount(legendAttrId, count)
+}
+
 // In v2, graphs save/restore legend quantile properties, but maps do not.
 // Therefore, we provide an option to include legend quantiles when exporting v3 extension properties.
 interface IExportV3PropsOptions {
@@ -140,7 +165,9 @@ export function importV3Properties(props?: IImportV3Properties, options?: IImpor
   return props?.filterFormula || hasLegendQuantiles(props)
           ? {
               ...(props?.filterFormula ? { filterFormula: { display: props.filterFormula } } : {}),
-              ...importLegendQuantileProps(props)
+              // the bin count moves to per-attribute metadata via applyImportedLegendBinCount;
+              // the config snapshot keeps only the lock props
+              ...importLegendLockProps(props)
             }
           : {}
 }
