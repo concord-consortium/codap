@@ -28,6 +28,11 @@ export type ChoroplethLegendProps = {
   marginRight?: number,
   marginLeft?: number,
   ticks?: number,
+  // Effective legend extent to display as the min/max endpoint labels. A quantile scale's domain is
+  // its training samples, whose extent need not match a user-set Min/Max range; when provided these
+  // override the domain-derived endpoints so the legend matches the range the user set (CODAP-1292).
+  legendMin?: number,
+  legendMax?: number,
   clickHandler: (bin: number, extend: boolean) => void,
   casesInBinSelectedHandler: (bin: number) => boolean
 }
@@ -61,10 +66,12 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
   const {
       isDate, useGrouping = false, transform = '', width = 320,
       marginTop = 0, marginRight = 0, marginLeft = 0,
-      ticks = 5, clickHandler, casesInBinSelectedHandler
+      ticks = 5, legendMin, legendMax, clickHandler, casesInBinSelectedHandler
     } = props,
-    minValue = min(scale.domain()) ?? 0,
-    maxValue = max(scale.domain()) ?? 0
+    // Prefer the caller-provided effective range; fall back to the scale domain's extent (a quantile
+    // scale's domain is its training samples, so its extent can differ from the user-set range).
+    minValue = legendMin ?? min(scale.domain()) ?? 0,
+    maxValue = legendMax ?? max(scale.domain()) ?? 0
 
   select(choroplethElt).selectAll("*").remove()
   const svg = select(choroplethElt).append("svg")

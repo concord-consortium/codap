@@ -1,5 +1,5 @@
 /* eslint-disable testing-library/render-result-naming-convention */
-import { scaleQuantize } from "d3"
+import { scaleQuantile, scaleQuantize } from "d3"
 import { choroplethLegend } from "./choropleth-legend"
 
 // jest-canvas-mock's measureText returns 0-width, which defeats the label-collision logic; mock the
@@ -110,6 +110,22 @@ describe("choroplethLegend", () => {
     const { tickLabels, endpointLabels } = renderLegend([1990, 2020], 500, false)
     expect(tickLabels).toEqual(["1996", "2002", "2008", "2014"])
     expect(endpointLabels.map(t => t.textContent)).toEqual(["1990", "2020"])
+  })
+
+  it("uses the provided legend min/max for endpoint labels instead of the scale-domain extent", () => {
+    // A quantile scale's domain is its training samples, whose extent (101.1..107.2) differs from the
+    // user-set legend range (101..108). The endpoints should reflect the provided range, not the data
+    // extent, so the legend matches the Min/Max inputs (CODAP-1292).
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g")
+    const scale = scaleQuantile([101.1, 103, 105, 107.2], colors)
+    choroplethLegend(scale, g, {
+      width: 400, marginLeft: 6, marginRight: 6, marginTop: 20, ticks: 5,
+      legendMin: 101, legendMax: 108,
+      clickHandler: () => undefined, casesInBinSelectedHandler: () => false
+    })
+    const endpoints = Array.from(g.querySelectorAll<SVGTextElement>(".legend-axis-label text"))
+      .map(t => parseFloat(t.textContent ?? ""))
+    expect(endpoints).toEqual([101, 108])
   })
 
   it("renders interior tick labels without any tick marks (matching the markless narrow case)", () => {

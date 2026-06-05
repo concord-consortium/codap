@@ -44,11 +44,15 @@ export const NumericLegend =
       // attributes — years are typed numeric (not date), so isDate won't catch them. This mirrors
       // getNumFormatterForAttribute, which suppresses grouping for inferred year types.
       const legendAttr = dataConfiguration.dataset?.attrFromID(legendAttrID)
+      // Display the effective legend range (override ?? data extent) as the endpoint labels so the
+      // legend matches the user-set Min/Max even in quantile mode (whose trained domain is the data
+      // quantiles, not the override range).
+      const { min: legendMin, max: legendMax } = dataConfiguration.legendNumericRange
       choroplethLegend(dataConfiguration.legendNumericColorScale, choroplethElt,
         {
           isDate: dataConfiguration.attributeType('legend') === 'date',
           useGrouping: !legendAttr?.isInferredYearType(),
-          width: tileWidth,
+          width: tileWidth, legendMin, legendMax,
           marginLeft: 6, marginTop: labelHeight + 2 * labelPaddingY, marginRight: 6, ticks: 5,
           clickHandler: (bin: number, extend: boolean) => {
             const dataset = dataConfiguration.dataset

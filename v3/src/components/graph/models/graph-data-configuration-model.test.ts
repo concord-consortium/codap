@@ -578,4 +578,26 @@ describe("DataConfigurationModel legend range overrides", () => {
     tree.metadata.setAttributeLegendMin("legId", 100)
     expect(tree.config.legendNumericColorScale.domain()).toEqual([0, 10, 20, 40])
   })
+
+  it("reports the effective legend display range (override, else data extent)", () => {
+    // no override -> the data extent
+    expect(tree.config.legendNumericRange).toEqual({ min: 0, max: 40 })
+    tree.metadata.setAttributeLegendMin("legId", 10)
+    tree.metadata.setAttributeLegendMax("legId", 20)
+    expect(tree.config.legendNumericRange).toEqual({ min: 10, max: 20 })
+  })
+
+  it("reports the display range independent of binning type (quantile too)", () => {
+    // In quantile mode the trained domain is the data quantiles, but the display range should still
+    // reflect the user-set override so the legend endpoints match the Min/Max inputs (CODAP-1292).
+    tree.metadata.setAttributeBinningType("legId", "quantile")
+    tree.metadata.setAttributeLegendMin("legId", 5)
+    tree.metadata.setAttributeLegendMax("legId", 35)
+    expect(tree.config.legendNumericRange).toEqual({ min: 5, max: 35 })
+  })
+
+  it("falls back to the data extent when the override range is reversed", () => {
+    tree.metadata.setAttributeLegendMin("legId", 50) // above the data, with max cleared
+    expect(tree.config.legendNumericRange).toEqual({ min: 0, max: 40 })
+  })
 })

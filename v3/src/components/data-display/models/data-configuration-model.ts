@@ -526,6 +526,26 @@ export const DataConfigurationModel = types
     }
   }))
   .views(self => ({
+    // The effective numeric-legend display range: the per-attribute Min/Max override where set, else
+    // the live data extent. A reversed/degenerate effective range (e.g. an orphaned override after
+    // the other bound was cleared) falls back to the data extent. This drives both the quantize color
+    // scale's domain and the legend's displayed endpoint labels, so the legend always matches the
+    // Min/Max the user set -- including in quantile mode, whose trained domain is the data quantiles
+    // rather than the override (CODAP-1292).
+    get legendNumericRange(): { min?: number, max?: number } {
+      const values = self.numericValuesForAttrRole("legend") ?? []
+      const [dataMin, dataMax] = extent(values)
+      const legendAttrId = self.attributeID("legend")
+      const { min: overrideMin, max: overrideMax } =
+        self.metadata?.getAttributeLegendRange(legendAttrId) ?? {}
+      let min = overrideMin ?? dataMin
+      let max = overrideMax ?? dataMax
+      if (min != null && max != null && min >= max) {
+        min = dataMin
+        max = dataMax
+      }
+      return { min, max }
+    },
     get legendNumericColorScale() {
       // TODO: Handle the displayOnlySelectedCases better. What we would like to do is
       // to basically ignore displayOnlySelectedCases when computing the legend bins.
@@ -562,16 +582,9 @@ export const DataConfigurationModel = types
       const binningType = self.metadata?.getAttributeBinningType(legendAttrId)
       switch (binningType) {
         case "quantize": {
-          const dataExtent = extent(values)
-          let effectiveMin = overrideMin ?? dataExtent[0]
-          let effectiveMax = overrideMax ?? dataExtent[1]
-          // A reversed/degenerate effective range can arise when one override is left orphaned
-          // (the other bound was cleared) or when the data changed beneath a stored override.
-          // Fall back to the live data extent in that case.
-          if (effectiveMin != null && effectiveMax != null && effectiveMin >= effectiveMax) {
-            effectiveMin = dataExtent[0]
-            effectiveMax = dataExtent[1]
-          }
+          // Use the shared effective display range (override ?? data extent, with reversed-range
+          // fallback) so the quantize domain and the legend's displayed endpoints stay in lockstep.
+          const { min: effectiveMin, max: effectiveMax } = this.legendNumericRange
           if (effectiveMin == null || effectiveMax == null) {
             return scaleQuantize([], self.choroplethColors)
           }
