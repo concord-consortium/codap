@@ -1,3 +1,4 @@
+import { AttributeBinningType } from "../../models/shared/data-set-metadata"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { updateTileNotification } from "../../models/tiles/tile-notifications"
 import { GraphPlace } from "../axis-graph-shared"
@@ -108,7 +109,7 @@ export function changeLegendRangeNotification(
 // Emitted when the user changes the numeric-legend bins type (Linear/Quantile, i.e. the
 // quantize/quantile binning type).
 export function changeLegendBinsTypeNotification(
-  tile: ITileModel | undefined, binningType: string
+  tile: ITileModel | undefined, binningType: AttributeBinningType
 ) {
   return updateTileNotification("change legend bins type", { binningType }, tile)
 }

@@ -303,6 +303,23 @@ describe("DataSetMetadata", () => {
     expect(tree.metadata.attributes.get("aId")?.scale).toBeUndefined()
   })
 
+  it("normalizes a fractional bin count to an integer", () => {
+    tree.metadata.setAttributeBinCount("aId", 3.7)
+    expect(tree.metadata.getAttributeBinCount("aId")).toBe(4)
+  })
+
+  it("floors the stored bin count at 2", () => {
+    tree.metadata.setAttributeBinCount("aId", 1)
+    expect(tree.metadata.getAttributeBinCount("aId")).toBe(2)
+  })
+
+  it("treats a non-finite bin count as clearing the override", () => {
+    tree.metadata.setAttributeBinCount("aId", 8)
+    tree.metadata.setAttributeBinCount("aId", NaN)
+    expect(tree.metadata.getAttributeBinCount("aId")).toBeUndefined()
+    expect(tree.metadata.attributes.get("aId")?.scale).toBeUndefined()
+  })
+
   it("does not create attribute metadata when clearing an unset bin count", () => {
     expect(tree.metadata.attributes.get("cId")).toBeUndefined()
     tree.metadata.setAttributeBinCount("cId", undefined)

@@ -530,7 +530,11 @@ export const DataConfigurationModel = types
       const cap = Math.min(values.length, new Set(values).size)
       if (cap < 2) return 1
       const legendAttrId = self.attributeID("legend")
-      const requested = self.metadata?.getAttributeBinCount(legendAttrId) ?? kDefaultLegendBinCount
+      // Coerce to a finite integer so the reported count matches the rendered color-ramp length
+      // (getChoroplethColors truncates a fractional length); a non-finite stored value (e.g. from a
+      // legacy/hand-edited snapshot that bypassed the normalizing setter) falls back to the default.
+      const stored = self.metadata?.getAttributeBinCount(legendAttrId)
+      const requested = stored != null && Number.isFinite(stored) ? Math.round(stored) : kDefaultLegendBinCount
       return Math.max(2, Math.min(requested, cap))
     },
     get choroplethColors() {

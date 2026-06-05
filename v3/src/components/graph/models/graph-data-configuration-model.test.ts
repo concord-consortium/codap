@@ -628,4 +628,14 @@ describe("DataConfigurationModel legend range overrides", () => {
     tree.metadata.setAttributeBinCount("legId", 1)
     expect(tree.config.legendNumericColorScale.range().length).toBe(2)
   })
+
+  it("coerces a fractional stored bin count to an integer", () => {
+    // A fractional value can only reach the model by bypassing the (normalizing) setter -- e.g.
+    // restoring a hand-edited/legacy snapshot. Patch one in directly to exercise the getter.
+    tree.metadata.setAttributeBinCount("legId", 3)
+    applyPatch(tree.metadata, { op: "replace", path: "/attributes/legId/scale/binCount", value: 2.6 })
+    // the reported count is an integer, matching the rendered color-ramp length
+    expect(tree.config.legendBinCount).toBe(3)
+    expect(tree.config.legendNumericColorScale.range().length).toBe(3)
+  })
 })

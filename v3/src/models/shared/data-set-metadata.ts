@@ -534,13 +534,16 @@ export const DataSetMetadata = SharedModel
       }
     },
     setAttributeBinCount(attrId: string, value?: number) {
+      // Normalize: a non-finite value clears the override; otherwise store a finite integer >= 2.
+      // (Keeps the stored value serializable and consistent with the rendered color-ramp length.)
+      const binCount = value != null && Number.isFinite(value) ? Math.max(2, Math.round(value)) : undefined
       // avoid creating metadata just to clear a bin count that was never set
-      if (value == null && self.attributes.get(attrId)?.scale == null) return
+      if (binCount == null && self.attributes.get(attrId)?.scale == null) return
       const attrMetadata = self.requireAttributeMetadata(attrId)
       if (!attrMetadata.scale) {
-        attrMetadata.scale = AttributeScale.create({ binCount: value })
+        attrMetadata.scale = AttributeScale.create({ binCount })
       } else {
-        attrMetadata.scale.binCount = value
+        attrMetadata.scale.binCount = binCount
         if (isAttributeScaleEmpty(attrMetadata.scale)) attrMetadata.scale = undefined
       }
     },
