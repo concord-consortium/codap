@@ -32,8 +32,10 @@ import {
 } from "../data-display-types"
 import { dataDisplayGetNumericValue } from "../data-display-value-utils"
 
-// Default number of bins/colors for a numeric legend. A per-attribute override equal to this is
-// treated as "no override" so it isn't stored redundantly in the metadata.
+// Default number of bins/colors for a numeric legend. The inspector control treats an override
+// equal to this default as "no override" and clears it rather than storing it redundantly; the
+// metadata layer itself does not special-case the default, so a value of 5 set directly (e.g. via
+// a patch/import/plugin) is stored as-is.
 export const kDefaultLegendBinCount = 5
 
 export const AttributeDescription = types

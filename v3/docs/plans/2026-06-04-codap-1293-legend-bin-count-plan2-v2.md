@@ -2,15 +2,13 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Round-trip the numeric-legend bin count through V2 documents (V2 `numberOfLegendQuantiles` ↔ V3 per-attribute `numberOfBins`) for both graphs and maps, and remove the now-dead `numberOfLegendQuantiles` field from the V3 model.
+**Goal:** Round-trip the numeric-legend bin count through V2 documents (V2 `numberOfLegendQuantiles` ↔ V3 per-attribute `binCount`) for both graphs and maps, and remove the now-dead `numberOfLegendQuantiles` field from the V3 model.
 
-**Architecture:** V2's `numberOfLegendQuantiles` *is* the legend bin count (read by V2's renderer; default 5; no V2 UI). V3 currently imports it into a write-only model field and ignores it. After Plan 1, the bin count lives per-attribute as `AttributeScale.numberOfBins` and drives the color ramp. This plan rewires V2 import to set that metadata field and V2 export to derive `numberOfLegendQuantiles` from it, then deletes the dead model field. The lock feature (`legendQuantilesAreLocked` + `legendQuantiles`) is untouched.
+**Architecture:** V2's `numberOfLegendQuantiles` *is* the legend bin count (read by V2's renderer; default 5; no V2 UI). V3 currently imports it into a write-only model field and ignores it. After Plan 1, the bin count lives per-attribute as `AttributeScale.binCount` and drives the color ramp. This plan rewires V2 import to set that metadata field and V2 export to derive `numberOfLegendQuantiles` from it, then deletes the dead model field. The lock feature (`legendQuantilesAreLocked` + `legendQuantiles`) is untouched.
 
 **Tech Stack:** TypeScript, MobX-State-Tree, Jest. V2 import/export layer in `src/v2/` + `src/components/{graph,map}/v2-*`.
 
-**Prerequisite:** Plan 1 (`2026-06-04-codap-1293-legend-bin-count-plan.md`) must be complete — this plan references `getAttributeNumberOfBins`/`setAttributeNumberOfBins` (metadata), `legendBinCount` (data-configuration view), and the fact that `numberOfBins` drives the bin count.
-
-**Spec:** `v3/docs/plans/2026-06-04-codap-1293-legend-bin-count-design.md` (§5 V2 import/export, §1/§2 removal)
+**Prerequisite:** Plan 1 (the V3 feature) is complete and merged — this plan builds on `getAttributeBinCount`/`setAttributeBinCount` (metadata), `legendBinCount` (data-configuration view), and the fact that `AttributeScale.binCount` drives the bin count. (Plan 1's design/implementation docs were removed once shipped; see the code and the Background section below.)
 
 ---
 
@@ -33,14 +31,14 @@
 **Design decisions for this plan:**
 1. **Source of the exported count:** the legend attribute's effective bin count, `dataConfiguration.legendBinCount` (already clamped to `[2, cap]`). Export it as `numberOfLegendQuantiles`.
 2. **Export gating:** only emit the legend-quantile block when there is a **numeric legend** AND (`legendBinCount !== 5` OR `legendQuantilesAreLocked`). This keeps default (5, unlocked) graphs noise-free while preserving the lock round-trip and bin-count fidelity. (V2's own default is 5, so omission is lossless.)
-3. **Import mapping:** set the legend attribute's `numberOfBins` from `componentStorage.numberOfLegendQuantiles` only when it is present and `!== 5` (mirrors Plan-1 "no metadata for defaults").
+3. **Import mapping:** set the legend attribute's `binCount` from `componentStorage.numberOfLegendQuantiles` only when it is present and `!== 5` (mirrors Plan-1 "no metadata for defaults").
 4. **Lock import** (`legendQuantilesAreLocked` + `legendQuantiles`) stays in the DataConfiguration snapshot exactly as today; only `numberOfLegendQuantiles` moves out of the config and into per-attribute metadata.
 
 Run `npm`/`jest`/`lint` from `/v3`; `git` from the repo root.
 
 ---
 
-## Task 1: Export `numberOfBins` as V2 `numberOfLegendQuantiles`
+## Task 1: Export `binCount` as V2 `numberOfLegendQuantiles`
 
 **Files:**
 - Modify: `src/v2/codap-v2-type-utils.ts`
@@ -100,7 +98,7 @@ interface ILegendQuantileSource {
 }
 
 // Derives the V2 legend-quantile storage from a data configuration. The bin count is sourced from
-// the per-attribute numberOfBins (via legendBinCount). Emitted only for a numeric legend whose count
+// the per-attribute binCount (via legendBinCount). Emitted only for a numeric legend whose count
 // differs from V2's default of 5, or when the quantiles are locked (V2 needs the frozen thresholds).
 export function exportLegendQuantileStorage(dataConfig: ILegendQuantileSource) {
   const isNumericLegend = dataConfig.attributeType("legend") === "numeric"
@@ -135,7 +133,7 @@ git commit -m "CODAP-1293: export legend bin count as V2 numberOfLegendQuantiles
 
 ---
 
-## Task 2: Import V2 `numberOfLegendQuantiles` → legend attr `numberOfBins`
+## Task 2: Import V2 `numberOfLegendQuantiles` → legend attr `binCount`
 
 **Files:**
 - Modify: `src/v2/codap-v2-type-utils.ts`
@@ -161,20 +159,20 @@ describe("importLegendLockProps", () => {
 })
 
 describe("applyImportedLegendBinCount", () => {
-  it("sets numberOfBins on the legend attribute for a non-default count", () => {
-    const setAttributeNumberOfBins = jest.fn()
-    applyImportedLegendBinCount({ numberOfLegendQuantiles: 8 }, "legId", { setAttributeNumberOfBins } as any)
-    expect(setAttributeNumberOfBins).toHaveBeenCalledWith("legId", 8)
+  it("sets binCount on the legend attribute for a non-default count", () => {
+    const setAttributeBinCount = jest.fn()
+    applyImportedLegendBinCount({ numberOfLegendQuantiles: 8 }, "legId", { setAttributeBinCount } as any)
+    expect(setAttributeBinCount).toHaveBeenCalledWith("legId", 8)
   })
   it("does nothing for the default count of 5", () => {
-    const setAttributeNumberOfBins = jest.fn()
-    applyImportedLegendBinCount({ numberOfLegendQuantiles: 5 }, "legId", { setAttributeNumberOfBins } as any)
-    expect(setAttributeNumberOfBins).not.toHaveBeenCalled()
+    const setAttributeBinCount = jest.fn()
+    applyImportedLegendBinCount({ numberOfLegendQuantiles: 5 }, "legId", { setAttributeBinCount } as any)
+    expect(setAttributeBinCount).not.toHaveBeenCalled()
   })
   it("does nothing without a legend attribute id", () => {
-    const setAttributeNumberOfBins = jest.fn()
-    applyImportedLegendBinCount({ numberOfLegendQuantiles: 8 }, undefined, { setAttributeNumberOfBins } as any)
-    expect(setAttributeNumberOfBins).not.toHaveBeenCalled()
+    const setAttributeBinCount = jest.fn()
+    applyImportedLegendBinCount({ numberOfLegendQuantiles: 8 }, undefined, { setAttributeBinCount } as any)
+    expect(setAttributeBinCount).not.toHaveBeenCalled()
   })
 })
 ```
@@ -202,7 +200,7 @@ export function importLegendLockProps(props?: IImportLegendQuantileProps) {
 }
 
 interface ILegendBinCountTarget {
-  setAttributeNumberOfBins(attrId: string, value?: number): void
+  setAttributeBinCount(attrId: string, value?: number): void
 }
 // Maps V2's numberOfLegendQuantiles onto the legend attribute's per-attribute bin count, skipping
 // the default of 5 (so common V2 docs create no metadata).
@@ -211,7 +209,7 @@ export function applyImportedLegendBinCount(
 ) {
   const count = props?.numberOfLegendQuantiles
   if (!metadata || !legendAttrId || count == null || count === 5) return
-  metadata.setAttributeNumberOfBins(legendAttrId, count)
+  metadata.setAttributeBinCount(legendAttrId, count)
 }
 ```
 
@@ -244,7 +242,7 @@ Expected: PASS / clean.
 cd /Users/kswenson/Development/cc-dev/codap
 git add v3/src/v2/codap-v2-type-utils.ts v3/src/v2/codap-v2-type-utils.test.ts \
         v3/src/components/graph/v2-graph-importer.ts v3/src/components/map/v2-map-importer.ts
-git commit -m "CODAP-1293: import V2 numberOfLegendQuantiles as per-attribute numberOfBins"
+git commit -m "CODAP-1293: import V2 numberOfLegendQuantiles as per-attribute binCount"
 ```
 
 ---
@@ -300,24 +298,24 @@ git commit -m "CODAP-1293: remove dead numberOfLegendQuantiles model field"
 
 - [ ] **Step 1: Write a graph round-trip test**
 
-Add a test that: builds a graph with a numeric legend, sets `numberOfBins` to 8 on the legend attribute, exports to V2, and asserts `componentStorage.numberOfLegendQuantiles === 8`. Then re-imports that storage and asserts the legend attribute's `numberOfBins` is 8 again. (Model the setup on the existing graph exporter/importer tests in the repo.)
+Add a test that: builds a graph with a numeric legend, sets `binCount` to 8 on the legend attribute, exports to V2, and asserts `componentStorage.numberOfLegendQuantiles === 8`. Then re-imports that storage and asserts the legend attribute's `binCount` is 8 again. (Model the setup on the existing graph exporter/importer tests in the repo.)
 
 ```ts
 // Pseudocode shape — adapt to the existing test harness/builders:
-// 1. create dataset + numeric legend attribute, metadata.setAttributeNumberOfBins(legId, 8)
+// 1. create dataset + numeric legend attribute, metadata.setAttributeBinCount(legId, 8)
 // 2. const storage = v2GraphExporter(...).componentStorage
 //    expect(storage.numberOfLegendQuantiles).toBe(8)
 // 3. import storage via v2GraphImporter(...), then
-//    expect(importedMetadata.getAttributeNumberOfBins(legId)).toBe(8)
+//    expect(importedMetadata.getAttributeBinCount(legId)).toBe(8)
 ```
 
 - [ ] **Step 2: Write a map round-trip test**
 
-Same as Step 1 but for the map (the count lives under `componentStorage.<layer>.v3.numberOfLegendQuantiles`). Assert export writes it under the `v3` namespace and import restores `numberOfBins`.
+Same as Step 1 but for the map (the count lives under `componentStorage.<layer>.v3.numberOfLegendQuantiles`). Assert export writes it under the `v3` namespace and import restores `binCount`.
 
 - [ ] **Step 3: Write a default round-trip test**
 
-A numeric legend with the default bin count (no `numberOfBins` override) exports **no** `numberOfLegendQuantiles` (Task 1 gating) and imports back to `numberOfBins === undefined` (effective 5).
+A numeric legend with the default bin count (no `binCount` override) exports **no** `numberOfLegendQuantiles` (Task 1 gating) and imports back to `binCount === undefined` (effective 5).
 
 - [ ] **Step 4: Run tests to verify they fail, then pass**
 
@@ -352,5 +350,5 @@ git push -u origin CODAP-1293-legend-bin-count
 
 - **Dual export path (graph):** a graph with `axisTypes` embeds the legend block into both the native top-level and the `v3` namespace. After Task 1 both route through `exportLegendQuantileStorage`, so they stay consistent, but the round-trip test (Task 4 Step 1) should assert the **top-level** value specifically and tolerate the `v3` duplicate.
 - **Import precedence (graph):** the graph imports the count from both native (`componentStorage.numberOfLegendQuantiles`) and `v3` (`v3.numberOfLegendQuantiles`). `applyImportedLegendBinCount` is idempotent for equal values; if they ever disagree, the later call wins. Native V2 docs only have the top-level value; V3-exported docs have both with the same value.
-- **`legendQuantiles` interplay:** the lock path is unchanged. `numberOfBins` and the frozen `legendQuantiles` are independent; do not let the count removal touch the lock serialization.
+- **`legendQuantiles` interplay:** the lock path is unchanged. `binCount` and the frozen `legendQuantiles` are independent; do not let the count removal touch the lock serialization.
 - **Do not remove `numberOfLegendQuantiles` from `codap-v2-types.ts`** — that is the V2 file format and must stay for import parsing.
