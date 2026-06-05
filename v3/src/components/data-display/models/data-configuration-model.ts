@@ -518,10 +518,22 @@ export const DataConfigurationModel = types
     get caseDataHash() {
       return hashStringSets(self.filteredCases.map(cases => cases.caseIds))
     },
+    // Effective number of legend bins: the per-attribute override (default 5), clamped to
+    // [2, cap] where cap = min(#points, #distinct values). A degenerate legend (<=1 distinct
+    // value) collapses to a single bin/color.
+    get legendBinCount() {
+      const values = self.numericValuesForAttrRole("legend") ?? []
+      const cap = Math.min(values.length, new Set(values).size)
+      if (cap < 2) return 1
+      const legendAttrId = self.attributeID("legend")
+      const requested = self.metadata?.getAttributeBinCount(legendAttrId) ?? 5
+      return Math.max(2, Math.min(requested, cap))
+    },
     get choroplethColors() {
       return getChoroplethColors(
         self.lowColor,
-        self.highColor
+        self.highColor,
+        this.legendBinCount
       )
     }
   }))
