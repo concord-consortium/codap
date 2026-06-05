@@ -53,6 +53,41 @@ function hasLegendQuantiles(props?: IExportLegendQuantileProps | IImportLegendQu
          (!!props?.legendQuantiles?.length && props?.legendQuantiles.every((q: number | null) => q != null))
 }
 
+interface ILegendQuantileSource {
+  attributeType(role: string): string | undefined
+  legendBinCount: number
+  legendQuantilesAreLocked?: boolean
+  legendQuantiles: number[]
+}
+
+interface IExportLegendQuantileStorageOptions {
+  // The native V2 graph storage always wrote numberOfLegendQuantiles/legendQuantilesAreLocked
+  // (defaulting to 5/false), so set this for that path to preserve round-trip fidelity. The V3
+  // extension namespace (v3:) and maps omit the block for a default (5, unlocked) legend.
+  v2Native?: boolean
+}
+// Derives the V2 legend-quantile storage from a data configuration. The bin count is sourced from
+// the per-attribute binCount (via legendBinCount); for a non-numeric or absent legend it falls back
+// to V2's default of 5 (legendBinCount collapses to 1 when the legend isn't numeric). For the v3
+// extension namespace (and maps) the block is emitted only when the count differs from V2's default
+// of 5 or the quantiles are locked; the native V2 graph path (v2Native) always emits it.
+// Defensive: some callers (e.g. the data-interactive data-context export) pass a bare DataSet that
+// has neither attributeType nor legendBinCount; for those this returns {} rather than throwing.
+export function exportLegendQuantileStorage(
+  dataConfig: ILegendQuantileSource, options?: IExportLegendQuantileStorageOptions
+) {
+  if (typeof dataConfig?.attributeType !== "function") return {}
+  const isNumericLegend = dataConfig.attributeType("legend") === "numeric"
+  const locked = dataConfig.legendQuantilesAreLocked ?? false
+  const count = isNumericLegend ? dataConfig.legendBinCount : 5
+  if (!options?.v2Native && count === 5 && !locked) return {}
+  return {
+    numberOfLegendQuantiles: count,
+    legendQuantilesAreLocked: locked,
+    ...(locked ? { legendQuantiles: [...dataConfig.legendQuantiles] } : {})
+  }
+}
+
 export function exportLegendQuantileProps(props?: IExportLegendQuantileProps) {
   return hasLegendQuantiles(props)
           ? {
@@ -79,13 +114,14 @@ interface IExportV3PropsOptions {
 export function exportV3Properties(props: IExportV3Properties, options?: IExportV3PropsOptions) {
   const { axisTypes, includeLegendQuantiles } = options || {}
   const _hasFilter = hasFilterFormula(props)
-  const _hasLegendQuantiles = includeLegendQuantiles && hasLegendQuantiles(props)
+  const legendStorage = exportLegendQuantileStorage(props as unknown as ILegendQuantileSource)
+  const _hasLegendQuantiles = !!includeLegendQuantiles && Object.keys(legendStorage).length > 0
   const _hasAxisTypes = axisTypes && (Object.keys(axisTypes).length > 0)
   return _hasFilter || _hasLegendQuantiles || _hasAxisTypes
           ? {
               v3: {
                 ...(_hasFilter ? { filterFormula: props.filterFormula?.display } : {}),
-                ...exportLegendQuantileProps(props),
+                ...legendStorage,
                 ...(axisTypes ? { axisTypes } : {})
               }
             }
