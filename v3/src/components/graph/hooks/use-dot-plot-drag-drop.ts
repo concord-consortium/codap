@@ -3,7 +3,6 @@ import { useRef, useState } from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { appState } from "../../../models/app-state"
 import { ICase } from "../../../models/data/data-set-types"
-import { toNonEmptyValue } from "../../../utilities/math-utils"
 import { getDomainExtentForPixelWidth } from "../../axis/axis-utils"
 import { handleClickOnCase } from "../../data-display/data-display-utils"
 import { dataDisplayGetNumericValue } from "../../data-display/data-display-value-utils"
@@ -22,7 +21,9 @@ export const useDotPlotDragDrop = () => {
   const primaryPlace = primaryIsBottom ? "bottom" : "left"
   const primaryAxisScale = layout.getAxisScale(primaryPlace) as ScaleLinear<number, number>
   const primaryAttrID = dataConfig?.attributeID(primaryAttrRole) ?? ""
-  const selectedDataObjects = useRef<Record<string, number>>({})
+  // Store original string values; restoring a date attribute with numeric epoch-seconds
+  // would flip its inferred type away from date (CODAP-1388).
+  const selectedDataObjects = useRef<Record<string, string>>({})
   const [dragID, setDragID] = useState('')
   const currPos = useRef(0)
   const didDrag = useRef(false)
@@ -43,10 +44,13 @@ export const useDotPlotDragDrop = () => {
     setDragID(() => tItsID)
     currPos.current = primaryIsBottom ? event.clientX : event.clientY
     handleClickOnCase(event, tItsID, dataset)
-    // Record the current values, so we can change them during the drag and restore them when done
+    // Record the current values, so we can change them during the drag and restore them when done.
+    // Reset first so the map only holds values for the current selection (no stale entries from
+    // a prior drag, which could otherwise be restored if the selection changes).
+    selectedDataObjects.current = {}
     const {selection} = dataConfig || {}
     selection?.forEach((anID: string) => {
-      const itsValue = toNonEmptyValue(dataDisplayGetNumericValue(dataset, anID, primaryAttrID))
+      const itsValue = dataset?.getStrValue(anID, primaryAttrID)
       if (itsValue != null) {
         selectedDataObjects.current[anID] = itsValue
       }
