@@ -5,6 +5,7 @@
 ### 🐞 Bug Fixes:
 - **CODAP-1381:** Fix numeric legend label rendering
 - **CODAP-1384:** Fix map rescale to include all points, including across the date line
+- **CODAP-1388:** Fix dragging dot plot points corrupting date values
 
 ### Asset Sizes
 |      File |          Size | % Change from Previous Release |
