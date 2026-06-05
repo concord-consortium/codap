@@ -1,4 +1,6 @@
 import { joinNotification } from "../../components/case-table/case-table-notifications"
+import { safeSymbolName } from "../formula/utils/name-mapping-utils"
+import { escapeBacktickString } from "../formula/utils/string-utils"
 import { ITileModel } from "../tiles/tile-model"
 import { IAttribute } from "./attribute"
 import { ICollectionModel } from "./collection"
@@ -6,6 +8,13 @@ import { IDataSet } from "./data-set"
 import { createAttributesNotification, dependentCasesNotification } from "./data-set-notifications"
 import { uniqueName } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
+
+// Wraps an attribute name in backticks if it contains characters that aren't valid in
+// a bare formula identifier (spaces, leading digit, punctuation, etc.). Any backticks
+// or backslashes in the name are escaped so the wrapped form parses correctly.
+function asFormulaIdentifier(name: string) {
+  return name === safeSymbolName(name) ? name : `\`${escapeBacktickString(name)}\``
+}
 
 export interface IJoinSourceToDestCollectionParams {
   /** The source dataset containing the attributes to join */
@@ -92,8 +101,11 @@ export function joinSourceToDestCollection(params: IJoinSourceToDestCollectionPa
 
         // Create the lookupByKey formula
         // Format: lookupByKey("dataSetName", "attributeName", "keyAttributeName", localKeyAttribute)
+        // The first three arguments are string constants; the fourth is a symbol referencing
+        // a local attribute, so it must be wrapped in backticks when the name contains
+        // characters that aren't valid in a bare formula identifier (e.g. spaces).
         const formula = `lookupByKey("${sourceDataSetName}", "${sourceAttr.name}", ` +
-          `"${sourceKeyAttrName}", ${destKeyAttrName})`
+          `"${sourceKeyAttrName}", ${asFormulaIdentifier(destKeyAttrName)})`
 
         // Add the new attribute to the destination collection
         const newAttr = destDataSet.addAttribute(
