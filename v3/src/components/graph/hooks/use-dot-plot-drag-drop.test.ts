@@ -68,6 +68,23 @@ describe("useDotPlotDragDrop", () => {
     expect(dataset.getStrValue("c1", "wId")).toBe("2020-01-01")
   })
 
+  it("restores every selected case when multiple points are dragged", () => {
+    const dataset = DataSet.create({})
+    dataset.addAttribute({ id: "wId", name: "when" })
+    dataset.addCases(toCanonical(dataset, [
+      { __id__: "c1", when: "2020-01-01" },
+      { __id__: "c2", when: "2021-06-15" },
+      { __id__: "c3", when: "2022-12-31" }
+    ]))
+
+    dragRoundTrip(dataset, "wId", ["c1", "c2", "c3"], "c1")
+
+    expect(dataset.getAttribute("wId")!.type).toBe("date")
+    expect(dataset.getStrValue("c1", "wId")).toBe("2020-01-01")
+    expect(dataset.getStrValue("c2", "wId")).toBe("2021-06-15")
+    expect(dataset.getStrValue("c3", "wId")).toBe("2022-12-31")
+  })
+
   it("restores a numeric attribute's value unchanged after a drag round-trip", () => {
     const dataset = DataSet.create({})
     dataset.addAttribute({ id: "xId", name: "x" })

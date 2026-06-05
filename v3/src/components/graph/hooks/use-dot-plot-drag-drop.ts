@@ -44,7 +44,10 @@ export const useDotPlotDragDrop = () => {
     setDragID(() => tItsID)
     currPos.current = primaryIsBottom ? event.clientX : event.clientY
     handleClickOnCase(event, tItsID, dataset)
-    // Record the current values, so we can change them during the drag and restore them when done
+    // Record the current values, so we can change them during the drag and restore them when done.
+    // Reset first so the map only holds values for the current selection (no stale entries from
+    // a prior drag, which could otherwise be restored if the selection changes).
+    selectedDataObjects.current = {}
     const {selection} = dataConfig || {}
     selection?.forEach((anID: string) => {
       const itsValue = dataset?.getStrValue(anID, primaryAttrID)
