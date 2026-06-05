@@ -84,3 +84,30 @@ export function changeAttributeColorNotification(
 ) {
   return updateTileNotification("change attribute color", { color, end }, tile)
 }
+
+// The numeric-legend range/bins controls (CODAP-1292/1293) are V3-only — V2 had no inspector
+// UI for them, so there is no V2 op string to match. These V3-additive notifications let plugins
+// observe legend-configuration edits. The controls are shared between graph and map, so the
+// helpers carry no tile-type assumptions (the caller wires them only on a numeric legend).
+
+// Emitted when the user changes the number of bins for a numeric legend. Carries the effective
+// (clamped) bin count.
+export function changeLegendBinCountNotification(tile: ITileModel | undefined, binCount: number) {
+  return updateTileNotification("change legend bin count", { binCount }, tile)
+}
+
+// Emitted when the user edits the numeric-legend range (Min/Max). Carries the resulting effective
+// bounds; either may be undefined when that bound falls back to the data extent.
+export function changeLegendRangeNotification(
+  tile: ITileModel | undefined, min?: number, max?: number
+) {
+  return updateTileNotification("change legend range", { min, max }, tile)
+}
+
+// Emitted when the user changes the numeric-legend bins type (Linear/Quantile, i.e. the
+// quantize/quantile binning type).
+export function changeLegendBinsTypeNotification(
+  tile: ITileModel | undefined, binningType: string
+) {
+  return updateTileNotification("change legend bins type", { binningType }, tile)
+}

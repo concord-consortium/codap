@@ -3,7 +3,7 @@ import { extent, format, max as d3Max, min as d3Min } from "d3"
 import { observer } from "mobx-react-lite"
 import React, { useEffect, useId, useRef, useState } from "react"
 import {
-  Button, Input, Label, ListBox, ListBoxItem, Popover, Select, SelectValue, TextField
+  Button, Group, Input, Label, ListBox, ListBoxItem, NumberField, Popover, Select, SelectValue, TextField
 } from "react-aria-components"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
 import { AttributeBinningTypes, AttributeBinningType } from "../../../models/shared/data-set-metadata"
@@ -15,7 +15,8 @@ import { t } from "../../../utilities/translation/translate"
 import { PaletteCheckbox } from "../../palette-checkbox"
 import { getScaleThresholds } from "../components/legend/choropleth-legend/choropleth-legend"
 import {
-  changeAttributeColorNotification, changePointColorAndAlphaNotification, changePointColorNotification
+  changeAttributeColorNotification, changeLegendBinCountNotification, changeLegendBinsTypeNotification,
+  changeLegendRangeNotification, changePointColorAndAlphaNotification, changePointColorNotification
 } from "../data-display-notifications"
 import { IDataConfigurationModel } from "../models/data-configuration-model"
 import { IDisplayItemDescriptionModel } from "../models/display-item-description-model"
@@ -182,6 +183,7 @@ interface ILegendBinsSelectProps {
 export const LegendBinsSelect = observer(function LegendBinsSelect(
   { dataConfiguration }: ILegendBinsSelectProps
 ) {
+  const { tile } = useTileModelContext()
   const legendAttrID = dataConfiguration.attributeID("legend")
   const metadata = dataConfiguration.metadata
   const binningType = metadata?.getAttributeBinningType(legendAttrID)
@@ -195,6 +197,7 @@ export const LegendBinsSelect = observer(function LegendBinsSelect(
     metadata?.applyModelChange(() => {
       metadata.setAttributeBinningType(legendAttrID, selected)
     }, {
+      notify: () => changeLegendBinsTypeNotification(tile, selected),
       undoStringKey: "V3.Undo.graph.changeAttributeBinningType",
       redoStringKey: "V3.Redo.graph.changeAttributeBinningType",
       log: "Changed attribute binning type"
@@ -227,6 +230,59 @@ export const LegendBinsSelect = observer(function LegendBinsSelect(
         </Popover>
       </Select>
     </div>
+  )
+})
+
+interface ILegendBinCountInputProps {
+  dataConfiguration: IDataConfigurationModel
+}
+
+export const LegendBinCountInput = observer(function LegendBinCountInput(
+  { dataConfiguration }: ILegendBinCountInputProps
+) {
+  const { tile } = useTileModelContext()
+  const legendAttrID = dataConfiguration.attributeID("legend")
+  const metadata = dataConfiguration.metadata
+  const values = dataConfiguration.numericValuesForAttrRole("legend") ?? []
+  const cap = Math.min(values.length, new Set(values).size)
+  // While the quantiles are locked the legend scale is frozen, so this control has no effect.
+  const isLocked = !!dataConfiguration.legendQuantilesAreLocked
+  const isDisabled = isLocked || cap < 2
+  // The effective (clamped) bin count, so the field reflects what the legend actually renders.
+  const value = dataConfiguration.legendBinCount
+
+  const commit = (n: number) => {
+    if (!Number.isFinite(n)) return
+    // The model clamps too (legendBinCount), but constrain here so the committed value matches.
+    const clamped = Math.max(2, Math.min(Math.round(n), cap))
+    if (clamped === value) return // no change
+    metadata?.applyModelChange(() => metadata.setAttributeBinCount(legendAttrID, clamped), {
+      notify: () => changeLegendBinCountNotification(tile, clamped),
+      undoStringKey: "V3.Undo.legend.setLegendBinCount",
+      redoStringKey: "V3.Redo.legend.setLegendBinCount",
+      log: "Set legend bin count"
+    })
+  }
+
+  return (
+    <NumberField
+      className={clsx("legend-bin-count-field", { disabled: isDisabled })}
+      aria-label={t("V3.Inspector.graph.legendBinCount")}
+      minValue={2}
+      maxValue={Math.max(2, cap)}
+      step={1}
+      formatOptions={{ maximumFractionDigits: 0 }}
+      isDisabled={isDisabled}
+      value={value}
+      onChange={(n) => commit(n)}
+    >
+      <Label className="form-label legend-bin-count-label">{t("V3.Inspector.graph.legendBinCount")}</Label>
+      <Group className="legend-bin-count-group">
+        <Input className="form-input" data-testid="legend-bin-count-input" />
+        <Button slot="decrement" className="legend-bin-count-stepper">−</Button>
+        <Button slot="increment" className="legend-bin-count-stepper">+</Button>
+      </Group>
+    </NumberField>
   )
 })
 
@@ -280,11 +336,21 @@ interface ILegendRangeInputsProps {
 export const LegendRangeInputs = observer(function LegendRangeInputs(
   { dataConfiguration }: ILegendRangeInputsProps
 ) {
+  const { tile } = useTileModelContext()
   const headingId = useId()
   const legendAttrID = dataConfiguration.attributeID("legend")
   const metadata = dataConfiguration.metadata
   const { min: overrideMin, max: overrideMax } = metadata?.getAttributeLegendRange(legendAttrID) ?? {}
   const [dataMin, dataMax] = extent(dataConfiguration.numericValuesForAttrRole("legend") ?? [])
+
+  // Reports the resulting effective bounds (override ?? data extent) after a range edit. Re-reads
+  // the model because it runs inside applyModelChange, after the change is applied (closure vars
+  // captured at render are stale at that point).
+  const notifyRangeChange = () => {
+    const { min, max } = metadata?.getAttributeLegendRange(legendAttrID) ?? {}
+    const [liveMin, liveMax] = extent(dataConfiguration.numericValuesForAttrRole("legend") ?? [])
+    return changeLegendRangeNotification(tile, min ?? liveMin, max ?? liveMax)
+  }
   const effectiveMin = overrideMin ?? dataMin
   const effectiveMax = overrideMax ?? dataMax
   const decimals = legendBoundaryDecimals(dataConfiguration)
@@ -333,6 +399,7 @@ export const LegendRangeInputs = observer(function LegendRangeInputs(
           else metadata.setAttributeLegendMin(legendAttrID, undefined)
         }
       }, {
+        notify: notifyRangeChange,
         undoStringKey: bound === "min" ? "V3.Undo.legend.clearLegendMin" : "V3.Undo.legend.clearLegendMax",
         redoStringKey: bound === "min" ? "V3.Redo.legend.clearLegendMin" : "V3.Redo.legend.clearLegendMax",
         log: bound === "min" ? "Clear legend min" : "Clear legend max"
@@ -354,6 +421,7 @@ export const LegendRangeInputs = observer(function LegendRangeInputs(
       return
     }
     metadata?.applyModelChange(() => setBound(value), {
+      notify: notifyRangeChange,
       undoStringKey: bound === "min" ? "V3.Undo.legend.setLegendMin" : "V3.Undo.legend.setLegendMax",
       redoStringKey: bound === "min" ? "V3.Redo.legend.setLegendMin" : "V3.Redo.legend.setLegendMax",
       log: bound === "min" ? "Set legend min" : "Set legend max"

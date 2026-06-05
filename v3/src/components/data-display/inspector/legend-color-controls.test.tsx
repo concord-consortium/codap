@@ -1,7 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { scaleQuantize } from "d3"
-import { LegendColorControls, LegendBinsSelect, LegendRangeInputs } from "./legend-color-controls"
+import {
+  LegendColorControls, LegendBinsSelect, LegendBinCountInput, LegendRangeInputs
+} from "./legend-color-controls"
 
 const kColors = ["#a", "#b", "#c", "#d", "#e"]
 
@@ -44,11 +46,15 @@ const createMockDataConfig = (overrides?: Record<string, unknown>) => ({
     setAttributeBinningType: jest.fn(),
     setAttributeLegendMin: jest.fn(),
     setAttributeLegendMax: jest.fn(),
+    getAttributeBinCount: jest.fn((): number | undefined => undefined),
+    setAttributeBinCount: jest.fn(),
     applyModelChange: jest.fn((fn: () => void) => fn())
   },
   getLegendColorForCategory: jest.fn((cat: string) => cat === "cat-a" ? "#FF0000" : "#00FF00"),
   setLegendColorForCategory: jest.fn(),
   legendQuantilesAreLocked: false,
+  // 4 distinct values in numericValuesForAttrRole -> cap 4, so the default of 5 clamps to 4
+  legendBinCount: 4,
   setLegendQuantilesAreLocked: jest.fn(),
   applyModelChange: jest.fn((fn: () => void) => fn()),
   ...overrides
@@ -425,5 +431,47 @@ describe("LegendRangeInputs", () => {
 
     expect(screen.getByTestId("legend-range-min-input")).toBeDisabled()
     expect(screen.getByTestId("legend-range-max-input")).toBeDisabled()
+  })
+})
+
+describe("LegendBinCountInput", () => {
+  beforeEach(() => jest.clearAllMocks())
+
+  // 6 distinct values -> cap 6, so a default/effective count of 5 is representable
+  const fiveBinConfig = (overrides?: Record<string, unknown>) => createMockDataConfig({
+    numericValuesForAttrRole: jest.fn(() => [0, 10, 20, 30, 40, 50]),
+    legendBinCount: 5,
+    ...overrides
+  })
+
+  it("renders the Number of Bins spinner with the effective bin count", () => {
+    const config = fiveBinConfig()
+    render(<LegendBinCountInput dataConfiguration={config as any} />)
+    expect(screen.getByText("V3.Inspector.graph.legendBinCount")).toBeInTheDocument()
+    expect(screen.getByTestId("legend-bin-count-input")).toHaveValue("5")
+  })
+
+  it("reflects the stored bin count", () => {
+    const config = fiveBinConfig({ legendBinCount: 3 })
+    config.metadata.getAttributeBinCount = jest.fn(() => 3)
+    render(<LegendBinCountInput dataConfiguration={config as any} />)
+    expect(screen.getByTestId("legend-bin-count-input")).toHaveValue("3")
+  })
+
+  it("commits a changed bin count via applyModelChange", async () => {
+    const user = userEvent.setup()
+    const config = fiveBinConfig()
+    render(<LegendBinCountInput dataConfiguration={config as any} />)
+    const input = screen.getByTestId("legend-bin-count-input")
+    await user.clear(input)
+    await user.type(input, "3{enter}")
+    expect(config.metadata.applyModelChange).toHaveBeenCalled()
+    expect(config.metadata.setAttributeBinCount).toHaveBeenCalledWith("attr-1", 3)
+  })
+
+  it("is disabled when the legend quantiles are locked", () => {
+    const config = fiveBinConfig({ legendQuantilesAreLocked: true })
+    render(<LegendBinCountInput dataConfiguration={config as any} />)
+    expect(screen.getByTestId("legend-bin-count-input")).toBeDisabled()
   })
 })

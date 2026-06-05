@@ -82,6 +82,7 @@
     .stroke-section,
     .color-picker-row,
     .legend-bins-row,
+    .legend-bin-count-field,
     .legend-range-section {
       &.disabled {
         opacity: 0.5;
@@ -95,6 +96,73 @@
       align-items: center;
       gap: 6px;
       margin: 4px 0;
+    }
+
+    .legend-bin-count-field {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 6px;
+      margin: 4px 0;
+
+      .legend-bin-count-label {
+        font-weight: normal;
+      }
+
+      .legend-bin-count-group {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        border: 1px solid vars.$charcoal-light-1;
+        border-radius: 3px;
+        overflow: hidden;
+
+        &[data-focus-within] {
+          border-color: vars.$focus-border-color;
+        }
+
+        .form-input {
+          width: 40px;
+          border: none;
+          text-align: center;
+          font-size: 12px;
+          padding: 1px 2px;
+          outline: none;
+
+          &:focus-visible {
+            outline: 2px solid vars.$focus-outline-color;
+            outline-offset: -2px;
+          }
+        }
+
+        .legend-bin-count-stepper {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 18px;
+          height: 22px;
+          border: none;
+          border-left: 1px solid vars.$charcoal-light-1;
+          background: vars.$palette-hover-bg;
+          cursor: pointer;
+          font-size: 12px;
+          padding: 0;
+
+          &:hover {
+            background: vars.$teal-light3;
+          }
+
+          &[data-focus-visible] {
+            outline: 2px solid vars.$focus-outline-color;
+            outline-offset: -2px;
+          }
+
+          &[data-disabled] {
+            cursor: default;
+            opacity: 0.5;
+          }
+        }
+      }
     }
 
     .cat-color-setting {
