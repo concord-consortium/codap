@@ -474,4 +474,26 @@ describe("LegendBinCountInput", () => {
     render(<LegendBinCountInput dataConfiguration={config as any} />)
     expect(screen.getByTestId("legend-bin-count-input")).toBeDisabled()
   })
+
+  it("clears the override (stores undefined) when set back to the default", async () => {
+    const user = userEvent.setup()
+    const config = fiveBinConfig({ legendBinCount: 3 })
+    config.metadata.getAttributeBinCount = jest.fn(() => 3)
+    render(<LegendBinCountInput dataConfiguration={config as any} />)
+    const input = screen.getByTestId("legend-bin-count-input")
+    await user.clear(input)
+    await user.type(input, "5{enter}")
+    expect(config.metadata.setAttributeBinCount).toHaveBeenCalledWith("attr-1", undefined)
+  })
+
+  it("reflects a single-bin degenerate legend (<2 distinct values) in the disabled field", () => {
+    const config = fiveBinConfig({
+      numericValuesForAttrRole: jest.fn(() => [5]),
+      legendBinCount: 1
+    })
+    render(<LegendBinCountInput dataConfiguration={config as any} />)
+    const input = screen.getByTestId("legend-bin-count-input")
+    expect(input).toBeDisabled()
+    expect(input).toHaveValue("1")
+  })
 })

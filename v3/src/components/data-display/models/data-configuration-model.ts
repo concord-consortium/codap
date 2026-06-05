@@ -32,6 +32,10 @@ import {
 } from "../data-display-types"
 import { dataDisplayGetNumericValue } from "../data-display-value-utils"
 
+// Default number of bins/colors for a numeric legend. A per-attribute override equal to this is
+// treated as "no override" so it isn't stored redundantly in the metadata.
+export const kDefaultLegendBinCount = 5
+
 export const AttributeDescription = types
   .model('AttributeDescription', {
     attributeID: types.string,
@@ -518,15 +522,15 @@ export const DataConfigurationModel = types
     get caseDataHash() {
       return hashStringSets(self.filteredCases.map(cases => cases.caseIds))
     },
-    // Effective number of legend bins: the per-attribute override (default 5), clamped to
-    // [2, cap] where cap = min(#points, #distinct values). A degenerate legend (<=1 distinct
-    // value) collapses to a single bin/color.
+    // Effective number of legend bins: the per-attribute override (default kDefaultLegendBinCount),
+    // clamped to [2, cap] where cap = min(#points, #distinct values). A degenerate legend (<=1
+    // distinct value) collapses to a single bin/color.
     get legendBinCount() {
       const values = self.numericValuesForAttrRole("legend") ?? []
       const cap = Math.min(values.length, new Set(values).size)
       if (cap < 2) return 1
       const legendAttrId = self.attributeID("legend")
-      const requested = self.metadata?.getAttributeBinCount(legendAttrId) ?? 5
+      const requested = self.metadata?.getAttributeBinCount(legendAttrId) ?? kDefaultLegendBinCount
       return Math.max(2, Math.min(requested, cap))
     },
     get choroplethColors() {

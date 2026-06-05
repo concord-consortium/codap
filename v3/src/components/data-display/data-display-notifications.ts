@@ -97,7 +97,8 @@ export function changeLegendBinCountNotification(tile: ITileModel | undefined, b
 }
 
 // Emitted when the user edits the numeric-legend range (Min/Max). Carries the resulting effective
-// bounds; either may be undefined when that bound falls back to the data extent.
+// bounds (the user override, else the live data extent); a bound is undefined only when the legend
+// attribute has no numeric values (so the data extent itself is undefined).
 export function changeLegendRangeNotification(
   tile: ITileModel | undefined, min?: number, max?: number
 ) {

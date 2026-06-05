@@ -18,7 +18,7 @@ import {
   changeAttributeColorNotification, changeLegendBinCountNotification, changeLegendBinsTypeNotification,
   changeLegendRangeNotification, changePointColorAndAlphaNotification, changePointColorNotification
 } from "../data-display-notifications"
-import { IDataConfigurationModel } from "../models/data-configuration-model"
+import { IDataConfigurationModel, kDefaultLegendBinCount } from "../models/data-configuration-model"
 import { IDisplayItemDescriptionModel } from "../models/display-item-description-model"
 import { PointColorSetting } from "./point-color-setting"
 
@@ -255,8 +255,14 @@ export const LegendBinCountInput = observer(function LegendBinCountInput(
     if (!Number.isFinite(n)) return
     // The model clamps too (legendBinCount), but constrain here so the committed value matches.
     const clamped = Math.max(2, Math.min(Math.round(n), cap))
-    if (clamped === value) return // no change
-    metadata?.applyModelChange(() => metadata.setAttributeBinCount(legendAttrID, clamped), {
+    // Storing the default is redundant; clear the override at the default so the attribute truly
+    // reverts to default and leaves no stray metadata. Compare against the *stored* value (not the
+    // effective/clamped one) so an explicit re-entry that differs from what's stored is still
+    // recorded (e.g. typing the displayed value when the default was clamped down by a low cap).
+    const target = clamped === kDefaultLegendBinCount ? undefined : clamped
+    const stored = metadata?.getAttributeBinCount(legendAttrID)
+    if (target === stored) return // no change to stored metadata
+    metadata?.applyModelChange(() => metadata.setAttributeBinCount(legendAttrID, target), {
       notify: () => changeLegendBinCountNotification(tile, clamped),
       undoStringKey: "V3.Undo.legend.setLegendBinCount",
       redoStringKey: "V3.Redo.legend.setLegendBinCount",
@@ -268,7 +274,9 @@ export const LegendBinCountInput = observer(function LegendBinCountInput(
     <NumberField
       className={clsx("legend-bin-count-field", { disabled: isDisabled })}
       aria-label={t("V3.Inspector.graph.legendBinCount")}
-      minValue={2}
+      // A degenerate legend (<2 distinct values) renders a single bin; allow the (disabled) field
+      // to reflect that 1 rather than clamping the display up to 2.
+      minValue={cap < 2 ? 1 : 2}
       maxValue={Math.max(2, cap)}
       step={1}
       formatOptions={{ maximumFractionDigits: 0 }}
