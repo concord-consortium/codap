@@ -1,4 +1,4 @@
-import { parseColor, parseColorToHex } from "./color-utils"
+import { getChoroplethColors, parseColor, parseColorToHex } from "./color-utils"
 
 describe("Color utilities", () => {
   it("parseColor works as expected without color names", () => {
@@ -117,5 +117,23 @@ describe("Color utilities", () => {
     expect(parseColorToHex("hsl(100, 50%, 50%, 0.5)", { colorNames: true })).toBe("#6abf4080")
     // projects out-of-range hue to valid range
     expect(parseColorToHex("hsl(460, 50%, 50%)", { colorNames: true })).toBe("#6abf40")
+  })
+})
+
+describe("getChoroplethColors", () => {
+  it("defaults to five colors with the original endpoints", () => {
+    const colors = getChoroplethColors("#000000", "#ffffff")
+    expect(colors).toHaveLength(5)
+    expect(colors[0]).toBe("#000000")
+    expect(colors[4]).toBe("#ffffff")
+  })
+
+  it("returns the requested number of colors, endpoints included", () => {
+    expect(getChoroplethColors("#000000", "#ffffff", 2)).toEqual(["#000000", "#ffffff"])
+    const three = getChoroplethColors("#000000", "#ffffff", 3)
+    expect(three).toHaveLength(3)
+    expect(three[0]).toBe("#000000")
+    expect(three[2]).toBe("#ffffff")
+    expect(getChoroplethColors("#000000", "#ffffff", 7)).toHaveLength(7)
   })
 })
