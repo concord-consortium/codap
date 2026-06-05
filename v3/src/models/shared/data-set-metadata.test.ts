@@ -218,6 +218,77 @@ describe("DataSetMetadata", () => {
     expect(tree.metadata.attributes.get("aId")?.deletedFormula).toBe("foo")
   })
 
+  it("stores legend range overrides per attribute", () => {
+    // no override by default
+    expect(tree.metadata.getAttributeLegendMin("aId")).toBeUndefined()
+    expect(tree.metadata.getAttributeLegendMax("aId")).toBeUndefined()
+    expect(tree.metadata.getAttributeLegendRange("aId")).toEqual({ min: undefined, max: undefined })
+
+    // set min and max independently
+    tree.metadata.setAttributeLegendMin("aId", 5)
+    expect(tree.metadata.getAttributeLegendMin("aId")).toBe(5)
+    expect(tree.metadata.getAttributeLegendMax("aId")).toBeUndefined()
+    expect(tree.metadata.getAttributeLegendRange("aId")).toEqual({ min: 5, max: undefined })
+
+    tree.metadata.setAttributeLegendMax("aId", 40)
+    expect(tree.metadata.getAttributeLegendRange("aId")).toEqual({ min: 5, max: 40 })
+
+    // overrides coexist with binningType in the same scale object
+    tree.metadata.setAttributeBinningType("aId", "quantize")
+    expect(tree.metadata.getAttributeBinningType("aId")).toBe("quantize")
+    expect(tree.metadata.getAttributeLegendRange("aId")).toEqual({ min: 5, max: 40 })
+
+    // different attributes hold independent overrides
+    tree.metadata.setAttributeLegendMin("bId", -10)
+    expect(tree.metadata.getAttributeLegendMin("bId")).toBe(-10)
+    expect(tree.metadata.getAttributeLegendMin("aId")).toBe(5)
+
+    // clearing a bound with undefined removes just that override
+    tree.metadata.setAttributeLegendMin("aId", undefined)
+    expect(tree.metadata.getAttributeLegendMin("aId")).toBeUndefined()
+    expect(tree.metadata.getAttributeLegendMax("aId")).toBe(40)
+    tree.metadata.setAttributeLegendMax("aId", undefined)
+    expect(tree.metadata.getAttributeLegendRange("aId")).toEqual({ min: undefined, max: undefined })
+  })
+
+  it("does not create attribute metadata when clearing an unset legend bound", () => {
+    expect(tree.metadata.attributes.get("cId")).toBeUndefined()
+    tree.metadata.setAttributeLegendMin("cId", undefined)
+    tree.metadata.setAttributeLegendMax("cId", undefined)
+    expect(tree.metadata.attributes.get("cId")).toBeUndefined()
+  })
+
+  it("removes the scale node once it is left empty by clearing both legend bounds", () => {
+    tree.metadata.setAttributeLegendMin("aId", 5)
+    tree.metadata.setAttributeLegendMax("aId", 40)
+    expect(tree.metadata.attributes.get("aId")?.scale).toBeDefined()
+
+    // clearing both bounds leaves no scale fields set, so the scale node is removed entirely
+    // rather than serialized as a stray empty `scale: {}` block
+    tree.metadata.setAttributeLegendMin("aId", undefined)
+    tree.metadata.setAttributeLegendMax("aId", undefined)
+    expect(tree.metadata.attributes.get("aId")?.scale).toBeUndefined()
+    expect((getSnapshot(tree.metadata).attributes as any).aId?.scale).toBeUndefined()
+  })
+
+  it("keeps the scale node when a binning type remains after clearing legend bounds", () => {
+    tree.metadata.setAttributeBinningType("aId", "quantize")
+    tree.metadata.setAttributeLegendMin("aId", 5)
+    tree.metadata.setAttributeLegendMin("aId", undefined)
+    // binningType is still set, so the scale node must survive
+    expect(tree.metadata.attributes.get("aId")?.scale).toBeDefined()
+    expect(tree.metadata.getAttributeBinningType("aId")).toBe("quantize")
+  })
+
+  it("serializes legend range overrides through a snapshot round-trip", () => {
+    tree.metadata.setAttributeLegendMin("aId", 5)
+    tree.metadata.setAttributeLegendMax("aId", 40)
+
+    const snapshot = getSnapshot(tree.metadata)
+    const restored = DataSetMetadata.create(cloneDeep(snapshot))
+    expect(restored.getAttributeLegendRange("aId")).toEqual({ min: 5, max: 40 })
+  })
+
   it("responds appropriately when no DataSet is associated", () => {
     tree.metadata.setData()
     // ignores collapse calls before DataSet is associated

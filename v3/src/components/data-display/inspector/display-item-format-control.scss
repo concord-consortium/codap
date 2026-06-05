@@ -80,7 +80,9 @@
     }
 
     .stroke-section,
-    .color-picker-row {
+    .color-picker-row,
+    .legend-bins-row,
+    .legend-range-section {
       &.disabled {
         opacity: 0.5;
         pointer-events: none;
@@ -125,6 +127,43 @@
 
     .num-color-setting {
       margin: 3px 0;
+    }
+
+    .legend-range-section {
+      margin: 4px 0;
+
+      .legend-range-inputs {
+        margin: 2px 0 0 12px;
+
+        // Override the base .inline-input-group (gray background, borderless input)
+        // so the legend-range fields read as bordered number inputs, matching the
+        // bin-width control in display-config-palette.
+        .inline-input-group {
+          background: transparent;
+          align-items: center;
+          margin: 3px 0;
+
+          .form-label {
+            flex: 0 0 36px;
+            font-weight: normal;
+          }
+
+          .form-input {
+            border: 1px solid vars.$charcoal-light-1;
+            border-radius: 3px;
+            min-width: 36px;
+
+            &:focus {
+              border-color: vars.$focus-border-color;
+            }
+
+            &:focus-visible {
+              outline: 2px solid vars.$focus-outline-color;
+              outline-offset: -2px;
+            }
+          }
+        }
+      }
     }
   }
 }

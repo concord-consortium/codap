@@ -105,8 +105,17 @@ export type AttributeBinningType = typeof AttributeBinningTypes[number]
 // It is currently only used by the numeric legend to determine how to
 // construct the choropleth scale
 const AttributeScale = types.model("AttributeScale", {
-  binningType: types.maybe(types.enumeration(AttributeBinningTypes))
+  binningType: types.maybe(types.enumeration(AttributeBinningTypes)),
+  // user-specified overrides for the numeric legend range; undefined falls back to the data extent
+  legendMin: types.maybe(types.number),
+  legendMax: types.maybe(types.number)
 })
+
+// True when none of the scale's fields are set, so it can be removed rather than left to
+// serialize as a stray empty `scale: {}` block.
+function isAttributeScaleEmpty(scale?: Instance<typeof AttributeScale>) {
+  return scale != null && scale.binningType == null && scale.legendMin == null && scale.legendMax == null
+}
 
 export const AttributeMetadata = types.model("AttributeMetadata", {
   // boolean properties
@@ -298,6 +307,16 @@ export const DataSetMetadata = SharedModel
     getAttributeBinningType(attrId: string) {
       return self.attributes.get(attrId)?.scale?.binningType || "quantile"
     },
+    getAttributeLegendMin(attrId: string) {
+      return self.attributes.get(attrId)?.scale?.legendMin
+    },
+    getAttributeLegendMax(attrId: string) {
+      return self.attributes.get(attrId)?.scale?.legendMax
+    },
+    getAttributeLegendRange(attrId: string) {
+      const scale = self.attributes.get(attrId)?.scale
+      return { min: scale?.legendMin, max: scale?.legendMax }
+    },
     getAttributeDeletedFormula(attrId: string) {
       return self.attributes.get(attrId)?.deletedFormula
     }
@@ -484,6 +503,28 @@ export const DataSetMetadata = SharedModel
         attrMetadata.scale = scale
       } else {
         scale.binningType = binningType
+      }
+    },
+    setAttributeLegendMin(attrId: string, value?: number) {
+      // avoid creating metadata just to clear an override that was never set
+      if (value == null && self.attributes.get(attrId)?.scale == null) return
+      const attrMetadata = self.requireAttributeMetadata(attrId)
+      if (!attrMetadata.scale) {
+        attrMetadata.scale = AttributeScale.create({ legendMin: value })
+      } else {
+        attrMetadata.scale.legendMin = value
+        if (isAttributeScaleEmpty(attrMetadata.scale)) attrMetadata.scale = undefined
+      }
+    },
+    setAttributeLegendMax(attrId: string, value?: number) {
+      // avoid creating metadata just to clear an override that was never set
+      if (value == null && self.attributes.get(attrId)?.scale == null) return
+      const attrMetadata = self.requireAttributeMetadata(attrId)
+      if (!attrMetadata.scale) {
+        attrMetadata.scale = AttributeScale.create({ legendMax: value })
+      } else {
+        attrMetadata.scale.legendMax = value
+        if (isAttributeScaleEmpty(attrMetadata.scale)) attrMetadata.scale = undefined
       }
     },
     setDeletedFormula(attrId: string, formula: Maybe<string>) {

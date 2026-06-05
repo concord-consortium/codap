@@ -26,7 +26,8 @@ jest.mock("./point-size-slider", () => ({
 
 jest.mock("./legend-color-controls", () => ({
   LegendColorControls: () => <div data-testid="legend-color-controls">LegendColorControls</div>,
-  LegendBinsSelect: () => <div data-testid="legend-bins-select">LegendBinsSelect</div>
+  LegendBinsSelect: () => <div data-testid="legend-bins-select">LegendBinsSelect</div>,
+  LegendRangeInputs: () => <div data-testid="legend-range-inputs">LegendRangeInputs</div>
 }))
 
 jest.mock("./plot-background-controls", () => ({
@@ -104,9 +105,10 @@ describe("DisplayItemFormatControl", () => {
     )
 
     expect(screen.getByTestId("legend-bins-select")).toBeInTheDocument()
+    expect(screen.getByTestId("legend-range-inputs")).toBeInTheDocument()
   })
 
-  it("hides LegendBinsSelect when legend attribute is not numeric", () => {
+  it("hides LegendBinsSelect and LegendRangeInputs when legend attribute is not numeric", () => {
     const desc = createMockDescription()
     const config = createMockDataConfig({
       attributeType: jest.fn(() => "categorical")
@@ -119,6 +121,7 @@ describe("DisplayItemFormatControl", () => {
     )
 
     expect(screen.queryByTestId("legend-bins-select")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("legend-range-inputs")).not.toBeInTheDocument()
   })
 
   describe("stroke controls", () => {

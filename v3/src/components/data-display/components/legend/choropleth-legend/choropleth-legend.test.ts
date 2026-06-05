@@ -1,5 +1,5 @@
 /* eslint-disable testing-library/render-result-naming-convention */
-import { scaleQuantize } from "d3"
+import { scaleQuantile, scaleQuantize } from "d3"
 import { choroplethLegend } from "./choropleth-legend"
 
 // jest-canvas-mock's measureText returns 0-width, which defeats the label-collision logic; mock the
@@ -37,10 +37,22 @@ describe("choroplethLegend", () => {
   })
 
   it("formats bin tooltips with enough precision for a narrow range", () => {
+    // The first and last bins are open-ended ("< t1" / "≥ t_last"): the bins are half-open
+    // [binMin, binMax) and scaleQuantize/scaleQuantile clamp out-of-range values into the ends, so
+    // the first bin covers everything below t1 and the last everything at-or-above t_last, not just
+    // [min, max]. (Matters when the legend range is narrowed; see CODAP-1292.)
     const { tooltips } = renderLegend([100, 110], 400)
     expect(tooltips).toEqual([
-      "100 - 102", "102 - 104", "104 - 106", "106 - 108", "108 - 110"
+      "< 102", "102 - 104", "104 - 106", "106 - 108", "≥ 108"
     ])
+  })
+
+  it("always shows the first and last bin tooltips as open-ended", () => {
+    // Even when the legend range equals the data extent, the end bins clamp out-of-range values,
+    // so '<'/'≥' describe their true coverage. The actual min/max remain visible as endpoint labels.
+    const { tooltips } = renderLegend([0, 10], 400)
+    expect(tooltips[0]).toBe("< 2")
+    expect(tooltips[tooltips.length - 1]).toBe("≥ 8")
   })
 
   it("renders endpoint labels with an explicit fill so they are visible alongside axis ticks", () => {
@@ -89,7 +101,7 @@ describe("choroplethLegend", () => {
     const { tickLabels, endpointLabels, tooltips } = renderLegend([0, 10000], 500, true)
     expect(tickLabels).toEqual(["2,000", "4,000", "6,000", "8,000"])
     expect(endpointLabels.map(t => t.textContent)).toEqual(["0", "10,000"])
-    expect(tooltips[tooltips.length - 1]).toBe("8,000 - 10,000")
+    expect(tooltips[tooltips.length - 1]).toBe("≥ 8,000") // last bin is open-ended
   })
 
   it("suppresses thousands grouping for year-like values when grouping is disabled", () => {
@@ -98,6 +110,22 @@ describe("choroplethLegend", () => {
     const { tickLabels, endpointLabels } = renderLegend([1990, 2020], 500, false)
     expect(tickLabels).toEqual(["1996", "2002", "2008", "2014"])
     expect(endpointLabels.map(t => t.textContent)).toEqual(["1990", "2020"])
+  })
+
+  it("uses the provided legend min/max for endpoint labels instead of the scale-domain extent", () => {
+    // A quantile scale's domain is its training samples, whose extent (101.1..107.2) differs from the
+    // user-set legend range (101..108). The endpoints should reflect the provided range, not the data
+    // extent, so the legend matches the Min/Max inputs (CODAP-1292).
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g")
+    const scale = scaleQuantile([101.1, 103, 105, 107.2], colors)
+    choroplethLegend(scale, g, {
+      width: 400, marginLeft: 6, marginRight: 6, marginTop: 20, ticks: 5,
+      legendMin: 101, legendMax: 108,
+      clickHandler: () => undefined, casesInBinSelectedHandler: () => false
+    })
+    const endpoints = Array.from(g.querySelectorAll<SVGTextElement>(".legend-axis-label text"))
+      .map(t => parseFloat(t.textContent ?? ""))
+    expect(endpoints).toEqual([101, 108])
   })
 
   it("renders interior tick labels without any tick marks (matching the markless narrow case)", () => {
