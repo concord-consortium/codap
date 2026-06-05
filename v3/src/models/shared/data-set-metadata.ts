@@ -108,13 +108,16 @@ const AttributeScale = types.model("AttributeScale", {
   binningType: types.maybe(types.enumeration(AttributeBinningTypes)),
   // user-specified overrides for the numeric legend range; undefined falls back to the data extent
   legendMin: types.maybe(types.number),
-  legendMax: types.maybe(types.number)
+  legendMax: types.maybe(types.number),
+  // user-specified number of legend bins; undefined falls back to the default (5)
+  binCount: types.maybe(types.number)
 })
 
 // True when none of the scale's fields are set, so it can be removed rather than left to
 // serialize as a stray empty `scale: {}` block.
 function isAttributeScaleEmpty(scale?: Instance<typeof AttributeScale>) {
-  return scale != null && scale.binningType == null && scale.legendMin == null && scale.legendMax == null
+  return scale != null && scale.binningType == null && scale.legendMin == null &&
+    scale.legendMax == null && scale.binCount == null
 }
 
 export const AttributeMetadata = types.model("AttributeMetadata", {
@@ -316,6 +319,9 @@ export const DataSetMetadata = SharedModel
     getAttributeLegendRange(attrId: string) {
       const scale = self.attributes.get(attrId)?.scale
       return { min: scale?.legendMin, max: scale?.legendMax }
+    },
+    getAttributeBinCount(attrId: string) {
+      return self.attributes.get(attrId)?.scale?.binCount
     },
     getAttributeDeletedFormula(attrId: string) {
       return self.attributes.get(attrId)?.deletedFormula
@@ -524,6 +530,17 @@ export const DataSetMetadata = SharedModel
         attrMetadata.scale = AttributeScale.create({ legendMax: value })
       } else {
         attrMetadata.scale.legendMax = value
+        if (isAttributeScaleEmpty(attrMetadata.scale)) attrMetadata.scale = undefined
+      }
+    },
+    setAttributeBinCount(attrId: string, value?: number) {
+      // avoid creating metadata just to clear a bin count that was never set
+      if (value == null && self.attributes.get(attrId)?.scale == null) return
+      const attrMetadata = self.requireAttributeMetadata(attrId)
+      if (!attrMetadata.scale) {
+        attrMetadata.scale = AttributeScale.create({ binCount: value })
+      } else {
+        attrMetadata.scale.binCount = value
         if (isAttributeScaleEmpty(attrMetadata.scale)) attrMetadata.scale = undefined
       }
     },
