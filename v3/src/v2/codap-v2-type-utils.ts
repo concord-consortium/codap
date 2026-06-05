@@ -14,8 +14,6 @@ interface IImportLegendQuantileProps extends IBaseLegendQuantileProps {
   legendQuantiles?: number[] | null[] // null occurs in some documents, presumably as a result of a bug
 }
 
-type IValidImportLegendQuantileProps = IExportLegendQuantileProps
-
 interface IExportV3Properties extends IExportLegendQuantileProps {
   filterFormula?: IFormula
 }
@@ -30,21 +28,6 @@ interface IImportV3Properties extends IImportLegendQuantileProps {
 
 function hasFilterFormula(props: IExportV3Properties): boolean {
   return !!props.filterFormula?.display
-}
-
-function validateImportLegendQuantileProps(props: IImportLegendQuantileProps): IValidImportLegendQuantileProps {
-  if (!hasLegendQuantiles(props)) return {}
-  const numberOfLegendQuantiles = props.numberOfLegendQuantiles
-  if (numberOfLegendQuantiles == null) return {}
-  if (props.legendQuantiles?.length && props.legendQuantiles?.some((q: number | null) => q == null)) {
-    // if any quantile values are invalid, we ignore the quantiles
-    return {}
-  }
-  return {
-    numberOfLegendQuantiles,
-    legendQuantilesAreLocked: props.legendQuantilesAreLocked ?? false,
-    ...(props.legendQuantiles?.length ? { legendQuantiles: props.legendQuantiles as number[] } : {})
-  }
 }
 
 function hasLegendQuantiles(props?: IExportLegendQuantileProps | IImportLegendQuantileProps): boolean {
@@ -86,23 +69,6 @@ export function exportLegendQuantileStorage(
     legendQuantilesAreLocked: locked,
     ...(locked ? { legendQuantiles: [...dataConfig.legendQuantiles] } : {})
   }
-}
-
-export function exportLegendQuantileProps(props?: IExportLegendQuantileProps) {
-  return hasLegendQuantiles(props)
-          ? {
-              numberOfLegendQuantiles: props?.numberOfLegendQuantiles ?? 0,
-              legendQuantilesAreLocked: props?.legendQuantilesAreLocked ?? false,
-              // legendQuantiles are only stored if they are locked
-              ...(props?.legendQuantilesAreLocked ? { legendQuantiles: props?.legendQuantiles ?? [] } : {})
-            }
-          : {}
-}
-
-export function importLegendQuantileProps(props?: IImportLegendQuantileProps) {
-  if (!props) return {}
-  // because the types are simple, we can use the same function for import and export
-  return exportLegendQuantileProps(validateImportLegendQuantileProps(props))
 }
 
 // Lock props for the DataConfiguration snapshot. The bin count is handled separately

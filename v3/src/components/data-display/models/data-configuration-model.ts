@@ -106,7 +106,6 @@ export const DataConfigurationModel = types
     hiddenCases: types.array(types.string),
     displayOnlySelectedCases: types.maybe(types.boolean),
     filterFormula: types.maybe(Formula),
-    numberOfLegendQuantiles: types.maybe(types.number),
     legendQuantilesAreLocked: types.maybe(types.boolean),
     legendQuantiles: types.array(types.number)
   })
@@ -939,9 +938,6 @@ export const DataConfigurationModel = types
     },
   }))
   .actions(self => ({
-    setNumberOfLegendQuantiles(numQuantiles: number | undefined) {
-      self.numberOfLegendQuantiles = numQuantiles
-    },
     setLegendQuantiles(quantiles: number[]) {
       self.legendQuantiles.replace(quantiles)
     },
@@ -953,13 +949,11 @@ export const DataConfigurationModel = types
         const scale = self.legendNumericColorScale
         const thresholds = getScaleThresholds(scale)
         this.setLegendQuantiles(thresholds)
-        this.setNumberOfLegendQuantiles(thresholds.length)
         self._legendNumericColorScale = scale
       }
       else {
         self._legendNumericColorScale = null
         this.setLegendQuantiles([])
-        this.setNumberOfLegendQuantiles(undefined)
       }
       self.legendQuantilesAreLocked = areLocked
     },
