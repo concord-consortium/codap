@@ -105,8 +105,13 @@ interface IExportV3PropsOptions {
 export function exportV3Properties(props: IExportV3Properties, options?: IExportV3PropsOptions) {
   const { axisTypes, includeLegendQuantiles } = options || {}
   const _hasFilter = hasFilterFormula(props)
-  const legendStorage = exportLegendQuantileStorage(props as unknown as ILegendQuantileSource)
-  const _hasLegendQuantiles = !!includeLegendQuantiles && Object.keys(legendStorage).length > 0
+  // Only write legend quantile props into the v3 namespace when explicitly requested (maps). Graphs
+  // round-trip the bin count via the native top-level numberOfLegendQuantiles, so a v3 copy would be
+  // redundant noise here.
+  const legendStorage = includeLegendQuantiles
+                          ? exportLegendQuantileStorage(props as unknown as ILegendQuantileSource)
+                          : {}
+  const _hasLegendQuantiles = Object.keys(legendStorage).length > 0
   const _hasAxisTypes = axisTypes && (Object.keys(axisTypes).length > 0)
   return _hasFilter || _hasLegendQuantiles || _hasAxisTypes
           ? {
