@@ -3,7 +3,9 @@ import {isAlive} from "mobx-state-tree"
 import { useCallback, useEffect, useRef } from "react"
 import {useDebouncedCallback} from "use-debounce"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import {isCaseValueChangeAction, isSetComputedCaseValuesAction} from "../../../models/data/data-set-actions"
+import {
+  isCaseValueChangeAction, isSelectionAction, isSetComputedCaseValuesAction
+} from "../../../models/data/data-set-actions"
 import {mstAutorun} from "../../../utilities/mst-autorun"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
@@ -91,7 +93,8 @@ export const useRendererDragHandlers = (
 
 export interface IPlotResponderProps {
   refreshPointPositions: (selectedOnly: boolean) => void
-  refreshPointSelection: () => void
+  // caseIds, when provided, restyles only those cases' points (delta path); omitted restyles all.
+  refreshPointSelection: (caseIds?: Set<string>) => void
   renderer?: PointRendererBase
 }
 
@@ -309,19 +312,35 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     )
   }, [layout, callRefreshPointPositions])
 
-  // Coalesce rapid selection changes into a single point-selection refresh per animation frame.
-  // During a marquee drag, pointermove fires multiple times per frame and each incremental
-  // selectCases synchronously re-styles the entire point set (setPointSelection). Batching the
-  // refresh to one call per frame — the cadence at which the renderer actually paints — collapses
-  // that redundant work, which dominates marquee-selection time on large datasets.
+  // Coalesce rapid selection changes into a single point-selection refresh per animation frame, and
+  // restyle only the points whose selection actually changed (the delta) rather than the entire
+  // dataset. During a marquee drag, pointermove fires ~once per frame and each incremental selectCases
+  // would otherwise synchronously re-style every point — the dominant cost on large datasets.
+  //
+  // A ref holds the latest refreshPointSelection so the scheduler/listener identities stay stable
+  // (the reaction doesn't re-subscribe when the renderer changes) and a pending frame always runs
+  // against the current renderer.
+  const refreshPointSelectionRef = useRef(refreshPointSelection)
+  refreshPointSelectionRef.current = refreshPointSelection
   const selectionRefreshRafRef = useRef<number>()
-  const refreshPointSelectionCoalesced = useCallback(() => {
+  const pendingSelectionDeltaRef = useRef<Set<string>>(new Set())
+  const pendingFullSelectionRefreshRef = useRef(false)
+
+  const scheduleSelectionRefresh = useCallback(() => {
     if (selectionRefreshRafRef.current != null) return
     selectionRefreshRafRef.current = requestAnimationFrame(() => {
       selectionRefreshRafRef.current = undefined
-      refreshPointSelection()
+      if (pendingFullSelectionRefreshRef.current) {
+        pendingFullSelectionRefreshRef.current = false
+        pendingSelectionDeltaRef.current.clear()
+        refreshPointSelectionRef.current()
+      } else {
+        const delta = pendingSelectionDeltaRef.current
+        pendingSelectionDeltaRef.current = new Set()
+        refreshPointSelectionRef.current(delta)
+      }
     })
-  }, [refreshPointSelection])
+  }, [])
 
   // Cancel any pending selection refresh on unmount.
   useEffect(() => {
@@ -335,16 +354,23 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
 
   // respond to selection changes
   useEffect(function respondToSelectionChanges() {
-    if (dataset) {
-      return mstReaction(
-        () => dataset?.selectionChanges,
-        () => {
-          refreshPointSelectionCoalesced()
-        },
-        {name: "useSubAxis.respondToSelectionChanges"}, dataConfiguration
-      )
-    }
-  }, [dataConfiguration, dataset, refreshPointSelectionCoalesced])
+    if (!dataset) return
+    const disposer = onAnyAction(dataset, action => {
+      if (!isSelectionAction(action)) return
+      if (action.name === "selectCases") {
+        // selectCases carries the exact set of cases whose selection toggled (args[0]) — restyle just
+        // those. setSelectedCases (replace) and selectAll change an unknown/large set, so fall through
+        // to a full restyle below.
+        const caseIds: string[] = action.args?.[0] ?? []
+        if (caseIds.length === 0) return
+        caseIds.forEach(id => pendingSelectionDeltaRef.current.add(id))
+      } else {
+        pendingFullSelectionRefreshRef.current = true
+      }
+      scheduleSelectionRefresh()
+    })
+    return () => disposer?.()
+  }, [dataset, scheduleSelectionRefresh])
 
   // respond to value changes
   useEffect(() => {

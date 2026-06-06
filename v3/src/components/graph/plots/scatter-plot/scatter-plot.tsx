@@ -166,15 +166,17 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
 
   useRendererDragHandlers(renderer, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
-  const refreshPointSelection = useCallback(() => {
-    prf.measure("Graph.refreshPointSelection", () => {
+  // When caseIds is provided, only those cases' points are restyled (delta path used during a
+  // marquee drag); otherwise every point is restyled.
+  const refreshPointSelection = useCallback((caseIds?: Set<string>) => {
+    prf.measure(caseIds ? "Graph.refreshPointSelection[delta]" : "Graph.refreshPointSelection", () => {
       const {pointColor, pointStrokeColor} = graphModel.pointDescription
       dataConfiguration && setPointSelection(
         {
           renderer, dataConfiguration, pointRadius: graphModel.getPointRadius(),
           selectedPointRadius: selectedPointRadiusRef.current,
           pointColor, pointStrokeColor, getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex
-        })
+        }, caseIds, dataConfiguration.numberOfPlots)
     })
   }, [dataConfiguration, graphModel, renderer])
 

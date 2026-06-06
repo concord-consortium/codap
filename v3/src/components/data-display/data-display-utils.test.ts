@@ -46,9 +46,9 @@ describe("setPointSelection", () => {
 
     // Create mock points with metadata
     const mockPoints = [
-      { point: { id: 1 }, metadata: { caseID: caseIdFromItemId("c1"), plotNum: 0 } },
-      { point: { id: 2 }, metadata: { caseID: caseIdFromItemId("c2"), plotNum: 0 } },
-      { point: { id: 3 }, metadata: { caseID: caseIdFromItemId("c3"), plotNum: 0 } }
+      { point: { id: "1" }, metadata: { caseID: caseIdFromItemId("c1"), plotNum: 0 } },
+      { point: { id: "2" }, metadata: { caseID: caseIdFromItemId("c2"), plotNum: 0 } },
+      { point: { id: "3" }, metadata: { caseID: caseIdFromItemId("c3"), plotNum: 0 } }
     ]
 
     mockRenderer = {
@@ -60,6 +60,9 @@ describe("setPointSelection", () => {
       }),
       setPointRaised: jest.fn((point: unknown, raised: boolean) => {
         raisedPoints.set(point, raised)
+      }),
+      getPointForCaseData: jest.fn(({ caseID, plotNum }: { caseID: string, plotNum: number }) => {
+        return mockPoints.find(p => p.metadata.caseID === caseID && p.metadata.plotNum === plotNum)?.point
       })
     }
   })
@@ -236,5 +239,47 @@ describe("setPointSelection", () => {
     })
 
     getLegendColorSpy.mockRestore()
+  })
+
+  it("restyles only the specified cases when caseIdsToUpdate is provided (delta path)", () => {
+    const caseIdFromItemId = (itemId: string) => tree.data.getItemChildCaseId(itemId)!
+    const c2 = caseIdFromItemId("c2")
+    tree.data.setSelectedCases([c2])
+
+    setPointSelection({
+      renderer: mockRenderer as PointRendererBase,
+      dataConfiguration: tree.config,
+      pointRadius: 5,
+      selectedPointRadius: 7,
+      pointColor: "#ffffff",
+      pointStrokeColor: "#000000"
+    }, new Set([c2]), tree.config.numberOfPlots)
+
+    // Delta path looks points up by case data rather than iterating every point.
+    expect(mockRenderer.forEachPoint).not.toHaveBeenCalled()
+    expect(mockRenderer.getPointForCaseData).toHaveBeenCalled()
+
+    // Only c2's single point is restyled, not all three.
+    expect(styleUpdates.size).toBe(1)
+    expect(raisedPoints.size).toBe(1)
+    const [style] = Array.from(styleUpdates.values())
+    expect(style.fill).toBe(defaultSelectedColor)
+    expect(style.radius).toBe(7)
+    expect(Array.from(raisedPoints.values())[0]).toBe(true)
+  })
+
+  it("restyles every point when caseIdsToUpdate is omitted (full path)", () => {
+    setPointSelection({
+      renderer: mockRenderer as PointRendererBase,
+      dataConfiguration: tree.config,
+      pointRadius: 5,
+      selectedPointRadius: 7,
+      pointColor: "#ffffff",
+      pointStrokeColor: "#000000"
+    })
+
+    expect(mockRenderer.forEachPoint).toHaveBeenCalled()
+    expect(mockRenderer.getPointForCaseData).not.toHaveBeenCalled()
+    expect(styleUpdates.size).toBe(3)
   })
 })

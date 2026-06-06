@@ -16,7 +16,7 @@ import {
 } from "./data-display-types"
 import {IDataConfigurationModel } from "./models/data-configuration-model"
 import {CaseDataWithSubPlot} from "./d3-types"
-import { getRendererForEvent, IPointStyle, PointRendererBase } from "./renderer"
+import { getRendererForEvent, IPoint, IPointStyle, PointRendererBase } from "./renderer"
 
 export const maxWidthOfStringsD3 = (strings: Iterable<string>) => {
   let maxWidth = 0
@@ -114,7 +114,17 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
   dataConfiguration.setPointsNeedUpdating(false)
 }
 
-export function setPointSelection(props: ISetPointSelection) {
+/**
+ * Updates the selection styling (fill/stroke/radius/raised) of plotted points.
+ *
+ * By default every point is restyled. When `caseIdsToUpdate` is provided, only the points for those
+ * cases are restyled — the "delta" path used during a marquee drag, where only a handful of points
+ * change selection state per frame. Because a case can be plotted once per plot (e.g. multiple
+ * y-attributes), each case is looked up across `numberOfPlots` plots.
+ */
+export function setPointSelection(
+  props: ISetPointSelection, caseIdsToUpdate?: Iterable<string>, numberOfPlots = 1
+) {
   const { renderer, dataConfiguration, pointRadius, selectedPointRadius,
     pointColor, pointStrokeColor, getPointColorAtIndex } = props
   const dataset = dataConfiguration.dataset
@@ -122,30 +132,46 @@ export function setPointSelection(props: ISetPointSelection) {
   if (!renderer) {
     return
   }
-  prf.measure("Graph.setPointSelection", () => {
-    renderer.forEachPoint((point, metadata) => {
-      const { caseID, plotNum } = metadata
-      const isSelected = !!dataset?.isCaseSelected(caseID)
-      // Determine fill color based on legend or plotNum; no-legend selected points override to blue below
-      let fill: string
-      if (legendID) {
-        fill = dataConfiguration?.getLegendColorForCase(caseID)
-      } else {
-        fill = plotNum && getPointColorAtIndex ? getPointColorAtIndex(plotNum) : pointColor
+
+  const stylePoint = (point: IPoint, caseID: string, plotNum: number) => {
+    const isSelected = !!dataset?.isCaseSelected(caseID)
+    // Determine fill color based on legend or plotNum; no-legend selected points override to blue below
+    let fill: string
+    if (legendID) {
+      fill = dataConfiguration?.getLegendColorForCase(caseID)
+    } else {
+      fill = plotNum && getPointColorAtIndex ? getPointColorAtIndex(plotNum) : pointColor
+    }
+    // When there's no legend, use blue fill for selection instead of a colored stroke
+    const useSelectionFill = isSelected && !legendID
+    const style: Partial<IPointStyle> = {
+      fill: useSelectionFill ? defaultSelectedColor : fill,
+      radius: isSelected ? selectedPointRadius : pointRadius,
+      stroke: isSelected && !useSelectionFill ? defaultSelectedStroke : pointStrokeColor,
+      strokeWidth: isSelected && !useSelectionFill ? defaultSelectedStrokeWidth : defaultStrokeWidth,
+      strokeOpacity: isSelected && !useSelectionFill ? defaultSelectedStrokeOpacity : defaultStrokeOpacity
+    }
+    renderer.setPointStyle(point, style)
+    renderer.setPointRaised(point, isSelected)
+  }
+
+  if (caseIdsToUpdate) {
+    // Delta path: restyle only the points whose selection changed.
+    prf.measure("Graph.setPointSelection[delta]", () => {
+      for (const caseID of caseIdsToUpdate) {
+        for (let plotNum = 0; plotNum < numberOfPlots; ++plotNum) {
+          const point = renderer.getPointForCaseData({ plotNum, caseID })
+          if (point) stylePoint(point, caseID, plotNum)
+        }
       }
-      // When there's no legend, use blue fill for selection instead of a colored stroke
-      const useSelectionFill = isSelected && !legendID
-      const style: Partial<IPointStyle> = {
-        fill: useSelectionFill ? defaultSelectedColor : fill,
-        radius: isSelected ? selectedPointRadius : pointRadius,
-        stroke: isSelected && !useSelectionFill ? defaultSelectedStroke : pointStrokeColor,
-        strokeWidth: isSelected && !useSelectionFill ? defaultSelectedStrokeWidth : defaultStrokeWidth,
-        strokeOpacity: isSelected && !useSelectionFill ? defaultSelectedStrokeOpacity : defaultStrokeOpacity
-      }
-      renderer.setPointStyle(point, style)
-      renderer.setPointRaised(point, isSelected)
     })
-  })
+  } else {
+    prf.measure("Graph.setPointSelection", () => {
+      renderer.forEachPoint((point, metadata) => {
+        stylePoint(point, metadata.caseID, metadata.plotNum)
+      })
+    })
+  }
 }
 
 export function rectNormalize(iRect: rTreeRect) {
