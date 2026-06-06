@@ -89,6 +89,26 @@ export function binBoundaryDecimalPlaces(boundaries: number[], maxDecimals = 12)
   return decimals
 }
 
+/**
+ * The significant-figures dual of `binBoundaryDecimalPlaces`. Log-spaced bin boundaries differ from
+ * their neighbor by a constant *ratio*, so a single uniform significant-figure count distinguishes
+ * every adjacent pair (just as a single decimal-place count does for the constant-*difference* linear
+ * case). Returns the minimum such count, ignoring genuinely-equal adjacent boundaries (no precision
+ * can separate them); `maxSigFigs` is a final safety bound. `toPrecision` requires at least 1
+ * significant figure, so the search starts at 1.
+ */
+export function binBoundarySignificantFigures(boundaries: number[], maxSigFigs = 12) {
+  const adjacentBoundariesDistinct = (sig: number) =>
+    boundaries.every((value, i) =>
+      i === 0 || value === boundaries[i - 1] ||
+        value.toPrecision(sig) !== boundaries[i - 1].toPrecision(sig))
+  let sigFigs = 1
+  while (sigFigs < maxSigFigs && !adjacentBoundariesDistinct(sigFigs)) {
+    sigFigs++
+  }
+  return sigFigs
+}
+
 export function isFiniteNumber(x: any): x is number {
   return x != null && Number.isFinite(x)
 }

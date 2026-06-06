@@ -2,6 +2,7 @@ import {FormatLocaleDefinition, format, formatLocale} from "d3-format"
 import {
   between,
   binBoundaryDecimalPlaces,
+  binBoundarySignificantFigures,
   checkNumber,
   chooseDecimalPlaces,
   extractNumeric,
@@ -188,6 +189,23 @@ describe("math-utils", () => {
 
     it("respects the maxDecimals cap", () => {
       expect(binBoundaryDecimalPlaces([0, 1e-30], 6)).toBe(6)
+    })
+  })
+
+  describe("binBoundarySignificantFigures", () => {
+    it("returns the minimum uniform significant figures that keep adjacent boundaries distinct", () => {
+      // ratio 10: 1 sig fig already distinguishes ("1", "1e+1", "1e+2")
+      expect(binBoundarySignificantFigures([1, 10, 100])).toBe(1)
+      // ratio 1.1: need 2 sig figs ("100","110","120") — 1 sig fig collapses all to "1e+2"
+      expect(binBoundarySignificantFigures([100, 110, 121])).toBe(2)
+    })
+
+    it("ignores genuinely-equal adjacent boundaries", () => {
+      expect(binBoundarySignificantFigures([5, 5, 10])).toBe(1)
+    })
+
+    it("respects the maxSigFigs cap", () => {
+      expect(binBoundarySignificantFigures([1, 1.0000000001], 4)).toBe(4)
     })
   })
 })
