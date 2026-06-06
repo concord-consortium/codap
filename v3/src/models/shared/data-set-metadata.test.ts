@@ -218,6 +218,13 @@ describe("DataSetMetadata", () => {
     expect(tree.metadata.attributes.get("aId")?.deletedFormula).toBe("foo")
   })
 
+  it("round-trips a logarithmic binning type through the scale block", () => {
+    tree.metadata.setAttributeBinningType("aId", "logarithmic")
+    expect(tree.metadata.getAttributeBinningType("aId")).toBe("logarithmic")
+    const restored = DataSetMetadata.create(cloneDeep(getSnapshot(tree.metadata)))
+    expect(restored.getAttributeBinningType("aId")).toBe("logarithmic")
+  })
+
   it("stores legend range overrides per attribute", () => {
     // no override by default
     expect(tree.metadata.getAttributeLegendMin("aId")).toBeUndefined()
