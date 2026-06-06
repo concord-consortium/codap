@@ -765,7 +765,12 @@ export const DataConfigurationModel = types
       getCasesForLegendBin(bin: number) {
         const scale = self.legendNumericColorScale
         const thresholds = getScaleThresholds(scale)
-        const min = bin === 0 ? -Infinity : thresholds[bin - 1]
+        // In logarithmic mode, values <= 0 are "missing" (not in any bin), so the first bin starts
+        // just above 0 rather than at -Infinity; otherwise the first bin captures everything below
+        // its upper threshold, including the non-positive values colored as missing.
+        const min = bin === 0
+          ? (self.legendIsLogarithmic ? Number.MIN_VALUE : -Infinity)
+          : thresholds[bin - 1]
         const max = bin === thresholds.length ? Infinity : thresholds[bin]
         return self.getCasesInLegendRange(min, max)
       }

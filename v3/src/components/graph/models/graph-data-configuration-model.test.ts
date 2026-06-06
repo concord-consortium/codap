@@ -680,4 +680,20 @@ describe("DataConfigurationModel legend range overrides", () => {
     tree.metadata.setAttributeLegendMax("legId", -1)
     expect(tree.config.legendNumericColorScale.domain()).toHaveLength(0)
   })
+
+  it("excludes non-positive cases from the first bin when logarithmic", () => {
+    // a negative case (case ids are auto-generated, so assert on values rather than a literal id)
+    tree.data.addCases(toCanonical(tree.data, [{ leg: -7 }]))
+    tree.metadata.setAttributeBinningType("legId", "logarithmic")
+    const firstThreshold = tree.config.legendNumericColorScale.domain()[0]
+    const bin0Cases = tree.config.getCasesForLegendBin(0)
+    // every case in the first bin must be a positive value below the first threshold; the
+    // non-positive case (and the zero from beforeEach) must be excluded as "missing".
+    expect(bin0Cases.length).toBeGreaterThan(0)
+    bin0Cases.forEach(id => {
+      const v = tree.data.getNumeric(id, "legId")!
+      expect(v).toBeGreaterThan(0)
+      expect(v).toBeLessThan(firstThreshold)
+    })
+  })
 })
