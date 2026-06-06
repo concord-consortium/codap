@@ -567,6 +567,35 @@ export const DataConfigurationModel = types
       }
       return { min, max }
     },
+    // The positive log domain for a logarithmic legend: upper bound = Max override (if positive) else
+    // data max; lower bound = a positive Min override, else the smallest positive value within the
+    // range (a Min override <= 0 is invalid for a log scale and ignored). Returns {} when no positive
+    // range exists (degenerate -> single bin).
+    get legendLogDomain(): { min?: number, max?: number } {
+      const values = self.numericValuesForAttrRole("legend") ?? []
+      const legendAttrId = self.attributeID("legend")
+      const { min: overrideMin, max: overrideMax } =
+        self.metadata?.getAttributeLegendRange(legendAttrId) ?? {}
+      const [, dataMax] = extent(values)
+      const max = overrideMax != null ? overrideMax : dataMax
+      if (max == null || max <= 0) return {}
+      let min: number | undefined
+      if (overrideMin != null && overrideMin > 0) {
+        min = overrideMin
+      } else {
+        const positives = values.filter(v => v > 0 && v <= max)
+        min = positives.length ? Math.min(...positives) : undefined
+      }
+      if (min == null || min >= max) return {}
+      return { min, max }
+    },
+    get legendIsLogarithmic(): boolean {
+      return self.metadata?.getAttributeBinningType(self.attributeID("legend")) === "logarithmic"
+    },
+    // Endpoint labels to display: the log domain in logarithmic mode, else the linear/quantile range.
+    get legendDisplayRange(): { min?: number, max?: number } {
+      return this.legendIsLogarithmic ? this.legendLogDomain : this.legendNumericRange
+    },
     get legendNumericColorScale() {
       // TODO: Handle the displayOnlySelectedCases better. What we would like to do is
       // to basically ignore displayOnlySelectedCases when computing the legend bins.
@@ -612,6 +641,19 @@ export const DataConfigurationModel = types
           // scaleQuantize maps out-of-domain values to the nearest range extreme automatically
           return scaleQuantize([effectiveMin, effectiveMax], self.choroplethColors)
         }
+        case "logarithmic": {
+          const { min: logMin, max: logMax } = this.legendLogDomain
+          const colors = self.choroplethColors
+          // Degenerate range -> single bin (threshold scale with no cut points, one color).
+          if (logMin == null || logMax == null) {
+            return scaleThreshold<number, string>().domain([]).range([colors[0]])
+          }
+          const n = colors.length // == legendBinCount
+          const ratio = logMax / logMin
+          // n-1 equal-ratio cut points: t_i = logMin * ratio^(i/n)
+          const thresholds = Array.from({ length: n - 1 }, (_, i) => logMin * Math.pow(ratio, (i + 1) / n))
+          return scaleThreshold<number, string>().domain(thresholds).range(colors)
+        }
         case "quantile":
         default: {
           const filtered = overrideMin == null && overrideMax == null
@@ -634,6 +676,9 @@ export const DataConfigurationModel = types
       },
 
       getLegendColorForNumericValue(value: number): string {
+        // A log scale is undefined for values <= 0; color them as missing rather than letting the
+        // threshold scale place them in the lowest bin.
+        if (self.legendIsLogarithmic && value <= 0) return missingColor
         return self.legendNumericColorScale(value)
       },
 
