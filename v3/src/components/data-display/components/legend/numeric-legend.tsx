@@ -53,7 +53,7 @@ export const NumericLegend =
         {
           isDate: dataConfiguration.attributeType('legend') === 'date',
           useGrouping: !legendAttr?.isInferredYearType(),
-          useSignificantFigures: dataConfiguration.legendIsLogarithmic,
+          logarithmic: dataConfiguration.legendIsLogarithmic,
           width: tileWidth, legendMin, legendMax,
           marginLeft: 6, marginTop: labelHeight + 2 * labelPaddingY, marginRight: 6, ticks: 5,
           clickHandler: (bin: number, extend: boolean) => {

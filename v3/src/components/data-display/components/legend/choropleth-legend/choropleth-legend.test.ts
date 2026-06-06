@@ -137,7 +137,7 @@ describe("choroplethLegend", () => {
     const scale = scaleThreshold<number, string>().domain(thresholds).range(colors.slice(0, n))
     choroplethLegend(scale, g, {
       width: 600, marginLeft: 6, marginRight: 6, marginTop: 20, ticks: 5,
-      legendMin: logMin, legendMax: logMax, useSignificantFigures: true,
+      legendMin: logMin, legendMax: logMax, logarithmic: true,
       clickHandler: () => undefined, casesInBinSelectedHandler: () => false
     })
     const tickLabels = Array.from(g.querySelectorAll(".legend-axis .tick text")).map(t => t.textContent)
@@ -147,6 +147,23 @@ describe("choroplethLegend", () => {
     // ("300", "3000") rather than the decimal-place rounding a linear legend would use ("316", "3162").
     expect(tickLabels).toEqual(["300", "1000", "3000"])
     expect(endpoints).toEqual(["100", "10000"])
+  })
+
+  it("labels the lowest log bin as open-above-zero so missing non-positive values aren't implied", () => {
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g")
+    const logMin = 100, logMax = 10000, n = 4
+    const thresholds = Array.from({ length: n - 1 }, (_, i) => logMin * Math.pow(logMax / logMin, (i + 1) / n))
+    const scale = scaleThreshold<number, string>().domain(thresholds).range(colors.slice(0, n))
+    choroplethLegend(scale, g, {
+      width: 600, marginLeft: 6, marginRight: 6, marginTop: 20, ticks: 5,
+      legendMin: logMin, legendMax: logMax, logarithmic: true,
+      clickHandler: () => undefined, casesInBinSelectedHandler: () => false
+    })
+    const tooltips = Array.from(g.querySelectorAll("title")).map(t => t.textContent)
+    // First bin is open above zero (values <= 0 are missing, not in the bin), not "< 300".
+    expect(tooltips[0]).toBe(">0 - 300")
+    // The top bin stays open-ended upward (above-max positives still clamp into it).
+    expect(tooltips[tooltips.length - 1]).toBe("≥ 3000")
   })
 
   it("renders interior tick labels without any tick marks (matching the markless narrow case)", () => {

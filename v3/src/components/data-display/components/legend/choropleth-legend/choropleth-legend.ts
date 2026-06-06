@@ -21,10 +21,12 @@ export type ChoroplethLegendProps = {
   // this for year-like attributes (which are typed numeric, not date) so years render as "2024", not
   // "2,024" — matching how CODAP formats numbers elsewhere (see getNumFormatterForAttribute).
   useGrouping?: boolean,
-  // When true, format numeric labels with a uniform number of significant figures rather than a
-  // uniform number of decimal places. Used for logarithmic (equal-ratio) bins, whose boundaries span
-  // orders of magnitude; significant figures is the log-scale dual of fixed decimal places.
-  useSignificantFigures?: boolean,
+  // When true, the legend renders a logarithmic (equal-ratio) scale. This (a) formats numeric labels
+  // with a uniform number of significant figures rather than decimal places, since the boundaries
+  // span orders of magnitude (significant figures is the log dual of fixed decimal places); and
+  // (b) labels the lowest bin as open-above-zero (">0 - t₁") rather than "< t₁", because values <= 0
+  // are excluded as missing rather than clamped into the first bin.
+  logarithmic?: boolean,
   width?: number,
   rectHeight?: number,
   transform?: string,
@@ -70,7 +72,7 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
   }
 
   const {
-      isDate, useGrouping = false, useSignificantFigures = false, transform = '', width = 320,
+      isDate, useGrouping = false, logarithmic = false, transform = '', width = 320,
       marginTop = 0, marginRight = 0, marginLeft = 0,
       ticks = 5, legendMin, legendMax, clickHandler, casesInBinSelectedHandler
     } = props,
@@ -100,7 +102,7 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
     sigFigs = binBoundarySignificantFigures(fullBoundaries),
     formatBoundary = isDate
       ? (value: number) => formatDate(value * 1000, datePrecision) ?? ''
-      : useSignificantFigures
+      : logarithmic
         ? format(`${useGrouping ? ',' : ''}.${sigFigs}r`)
         : format(`${useGrouping ? ',' : ''}.${decimalPlaces}f`)
 
@@ -153,7 +155,13 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
       // bins, so the first bin covers everything below its upper threshold and the last everything
       // at-or-above its lower threshold. Show those open-ended (rather than the [min, max] domain),
       // which is only correct once the user can narrow the range (CODAP-1292).
-      if (lastBin > 0 && bin === 0) return `< ${formatBoundary(fullBoundaries[1])}`
+      // In logarithmic mode values <= 0 are excluded as missing rather than clamped into the first
+      // bin, so label it open-above-zero (">0 - t₁") rather than the unbounded "< t₁".
+      if (lastBin > 0 && bin === 0) {
+        return logarithmic
+          ? `>0 - ${formatBoundary(fullBoundaries[1])}`
+          : `< ${formatBoundary(fullBoundaries[1])}`
+      }
       if (lastBin > 0 && bin === lastBin) return `≥ ${formatBoundary(fullBoundaries[bin])}`
       return `${formatBoundary(fullBoundaries[bin])} - ${formatBoundary(fullBoundaries[bin + 1])}`
     })
