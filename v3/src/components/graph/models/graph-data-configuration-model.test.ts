@@ -673,12 +673,26 @@ describe("DataConfigurationModel legend range overrides", () => {
     expect(tree.config.getLegendColorForNumericValue(15)).not.toBe(missingColor)
   })
 
-  it("degenerates to a single bin when there are no positive values in range", () => {
-    tree.data.addCases(toCanonical(tree.data, [{ __id__: "c5", leg: -3 }]))
+  it("falls back to the positive data extent when a logarithmic override range is reversed", () => {
     tree.metadata.setAttributeBinningType("legId", "logarithmic")
-    // override the max below the smallest positive so no positive value remains in range
-    tree.metadata.setAttributeLegendMax("legId", -1)
-    expect(tree.config.legendNumericColorScale.domain()).toHaveLength(0)
+    tree.metadata.setAttributeLegendMin("legId", 100)
+    tree.metadata.setAttributeLegendMax("legId", 40) // reversed (min >= max)
+    // rather than blanking the legend, fall back to the positive data extent [smallest positive, max]
+    expect(tree.config.legendDisplayRange).toEqual({ min: 10, max: 40 })
+  })
+
+  it("degenerates to a single bin when the data has no positive values", () => {
+    // build a dataset with only non-positive legend values (the honest degenerate condition)
+    const t = TreeModel.create({ data: {}, metadata: {}, config: {} })
+    t.data.addAttribute({ id: "legId", name: "leg" })
+    t.metadata.setData(t.data)
+    t.data.addCases(toCanonical(t.data, [
+      { __id__: "n1", leg: 0 }, { __id__: "n2", leg: -3 }, { __id__: "n3", leg: -10 }
+    ]))
+    t.config.setDataset(t.data, t.metadata)
+    t.config.setAttribute("legend", { attributeID: "legId" })
+    t.metadata.setAttributeBinningType("legId", "logarithmic")
+    expect(t.config.legendNumericColorScale.domain()).toHaveLength(0)
   })
 
   it("excludes non-positive cases from the first bin when logarithmic", () => {

@@ -567,33 +567,37 @@ export const DataConfigurationModel = types
       }
       return { min, max }
     },
-    // The positive log domain for a logarithmic legend: upper bound = Max override (if positive) else
-    // data max; lower bound = a positive Min override, else the smallest positive value within the
-    // range (a Min override <= 0 is invalid for a log scale and ignored). Returns {} when no positive
-    // range exists (degenerate -> single bin).
+    // The positive log domain for a logarithmic legend: upper bound = a positive Max override else the
+    // positive data max; lower bound = a positive Min override else the smallest positive value within
+    // the range (an override <= 0 is invalid for a log scale and ignored). An invalid/reversed override
+    // (min >= max) falls back to the positive data extent rather than blanking the legend (mirroring
+    // legendNumericRange); only a data set with no usable positive range (<= 1 distinct positive value)
+    // returns {} (degenerate -> single bin / blank legend).
     get legendLogDomain(): { min?: number, max?: number } {
       const values = self.numericValuesForAttrRole("legend") ?? []
       const legendAttrId = self.attributeID("legend")
       const { min: overrideMin, max: overrideMax } =
         self.metadata?.getAttributeLegendRange(legendAttrId) ?? {}
       const [, dataMax] = extent(values)
-      const max = overrideMax != null ? overrideMax : dataMax
-      if (max == null || max <= 0) return {}
-      let min: number | undefined
-      if (overrideMin != null && overrideMin > 0) {
-        min = overrideMin
-      } else {
-        // Find the smallest positive value in range with a single pass; a spread (Math.min(...values))
-        // would expand the whole array into call arguments and can overflow for large datasets.
-        let smallestPositive: number | undefined
+      // Smallest positive value <= cap, found in a single pass; a spread (Math.min(...values)) would
+      // expand the whole array into call arguments and can overflow for large datasets.
+      const smallestPositiveUpTo = (cap: number) => {
+        let smallest: number | undefined
         for (const v of values) {
-          if (v > 0 && v <= max && (smallestPositive == null || v < smallestPositive)) {
-            smallestPositive = v
-          }
+          if (v > 0 && v <= cap && (smallest == null || v < smallest)) smallest = v
         }
-        min = smallestPositive
+        return smallest
       }
-      if (min == null || min >= max) return {}
+      let max = overrideMax != null && overrideMax > 0 ? overrideMax : dataMax
+      let min = overrideMin != null && overrideMin > 0
+        ? overrideMin
+        : max != null ? smallestPositiveUpTo(max) : undefined
+      // A reversed/invalid override range falls back to the positive data extent rather than blanking.
+      if (min == null || max == null || max <= 0 || min >= max) {
+        max = dataMax
+        min = max != null && max > 0 ? smallestPositiveUpTo(max) : undefined
+      }
+      if (min == null || max == null || max <= 0 || min >= max) return {}
       return { min, max }
     },
     get legendIsLogarithmic(): boolean {
