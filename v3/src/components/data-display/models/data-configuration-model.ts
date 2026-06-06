@@ -583,8 +583,15 @@ export const DataConfigurationModel = types
       if (overrideMin != null && overrideMin > 0) {
         min = overrideMin
       } else {
-        const positives = values.filter(v => v > 0 && v <= max)
-        min = positives.length ? Math.min(...positives) : undefined
+        // Find the smallest positive value in range with a single pass; a spread (Math.min(...values))
+        // would expand the whole array into call arguments and can overflow for large datasets.
+        let smallestPositive: number | undefined
+        for (const v of values) {
+          if (v > 0 && v <= max && (smallestPositive == null || v < smallestPositive)) {
+            smallestPositive = v
+          }
+        }
+        min = smallestPositive
       }
       if (min == null || min >= max) return {}
       return { min, max }
