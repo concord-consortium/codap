@@ -163,18 +163,23 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   // may have a stale closure capturing the old renderer reference.
   // See: https://www.pivotaltracker.com/story/show/188333898
   useEffect(() => {
-    // Only call matchCirclesToData when the renderer actually changes (not when callbacks change)
     // This prevents startAnimation from being called during axis dragging when callbacks are recreated
     const rendererChanged = renderer !== prevRendererRef.current
     prevRendererRef.current = renderer
 
-    if (rendererChanged) {
-      callMatchCirclesToData()
-      // Update masks with new renderer. Only needed when the renderer actually changes;
-      // running it on every callback-identity change reapplies masks against stale
-      // state.subPlotNum values mid-category-reorder (see respondToCategorySetChanges).
-      updateCellMasks({ dataConfig: dataConfiguration, layout, renderer })
-    }
+    // Only refresh when the renderer actually becomes available or changes. This effect re-runs
+    // whenever one of its callback deps changes identity, which happens on every selection-driven
+    // re-render during a marquee drag; previously the unconditional refreshPointPositions/
+    // refreshPointSelection below did a full O(all points) restyle on each such re-run, swamping
+    // the per-delta selection refresh. Actual data/selection/layout changes are handled by the
+    // dedicated reactions below; this effect is solely for renderer availability/switch.
+    if (!rendererChanged) return
+
+    callMatchCirclesToData()
+    // Update masks with new renderer. Only needed when the renderer actually changes;
+    // running it on every callback-identity change reapplies masks against stale
+    // state.subPlotNum values mid-category-reorder (see respondToCategorySetChanges).
+    updateCellMasks({ dataConfig: dataConfiguration, layout, renderer })
     // Call refreshPointPositions directly to ensure it uses the new renderer
     refreshPointPositions(false)
     // Defer refreshPointSelection to run after any other synchronous matchCirclesToData calls
