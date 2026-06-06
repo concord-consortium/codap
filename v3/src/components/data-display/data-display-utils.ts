@@ -6,6 +6,7 @@ import {
   defaultStrokeOpacity, defaultStrokeWidth
 } from "../../utilities/color-utils"
 import {between} from "../../utilities/math-utils"
+import { prf } from "../../utilities/profiler"
 import { IBarCover } from "../graph/graphing-types"
 import {isGraphDataConfigurationModel} from "../graph/models/graph-data-configuration-model"
 import {ISetPointSelection} from "../graph/utilities/graph-utils"
@@ -121,27 +122,29 @@ export function setPointSelection(props: ISetPointSelection) {
   if (!renderer) {
     return
   }
-  renderer.forEachPoint((point, metadata) => {
-    const { caseID, plotNum } = metadata
-    const isSelected = !!dataset?.isCaseSelected(caseID)
-    // Determine fill color based on legend or plotNum; no-legend selected points override to blue below
-    let fill: string
-    if (legendID) {
-      fill = dataConfiguration?.getLegendColorForCase(caseID)
-    } else {
-      fill = plotNum && getPointColorAtIndex ? getPointColorAtIndex(plotNum) : pointColor
-    }
-    // When there's no legend, use blue fill for selection instead of a colored stroke
-    const useSelectionFill = isSelected && !legendID
-    const style: Partial<IPointStyle> = {
-      fill: useSelectionFill ? defaultSelectedColor : fill,
-      radius: isSelected ? selectedPointRadius : pointRadius,
-      stroke: isSelected && !useSelectionFill ? defaultSelectedStroke : pointStrokeColor,
-      strokeWidth: isSelected && !useSelectionFill ? defaultSelectedStrokeWidth : defaultStrokeWidth,
-      strokeOpacity: isSelected && !useSelectionFill ? defaultSelectedStrokeOpacity : defaultStrokeOpacity
-    }
-    renderer.setPointStyle(point, style)
-    renderer.setPointRaised(point, isSelected)
+  prf.measure("Graph.setPointSelection", () => {
+    renderer.forEachPoint((point, metadata) => {
+      const { caseID, plotNum } = metadata
+      const isSelected = !!dataset?.isCaseSelected(caseID)
+      // Determine fill color based on legend or plotNum; no-legend selected points override to blue below
+      let fill: string
+      if (legendID) {
+        fill = dataConfiguration?.getLegendColorForCase(caseID)
+      } else {
+        fill = plotNum && getPointColorAtIndex ? getPointColorAtIndex(plotNum) : pointColor
+      }
+      // When there's no legend, use blue fill for selection instead of a colored stroke
+      const useSelectionFill = isSelected && !legendID
+      const style: Partial<IPointStyle> = {
+        fill: useSelectionFill ? defaultSelectedColor : fill,
+        radius: isSelected ? selectedPointRadius : pointRadius,
+        stroke: isSelected && !useSelectionFill ? defaultSelectedStroke : pointStrokeColor,
+        strokeWidth: isSelected && !useSelectionFill ? defaultSelectedStrokeWidth : defaultStrokeWidth,
+        strokeOpacity: isSelected && !useSelectionFill ? defaultSelectedStrokeOpacity : defaultStrokeOpacity
+      }
+      renderer.setPointStyle(point, style)
+      renderer.setPointRaised(point, isSelected)
+    })
   })
 }
 

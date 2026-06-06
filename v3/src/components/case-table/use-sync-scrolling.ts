@@ -1,4 +1,5 @@
 import { useCallback } from "react"
+import { prf } from "../../utilities/profiler"
 import { OnTableScrollFn } from "./case-table-types"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useCaseTableModel } from "./use-case-table-model"
@@ -16,32 +17,34 @@ export function useSyncScrolling() {
    * avoid getting into feedback loops.
    */
   const syncTableScroll = useCallback((collectionId: string) => {
-    const collectionTableModel = tableModel?.getCollectionTableModel(collectionId)
-    if (!tableModel || !collectionTableModel) return
+    prf.measure("Table.syncTableScroll", () => {
+      const collectionTableModel = tableModel?.getCollectionTableModel(collectionId)
+      if (!tableModel || !collectionTableModel) return
 
-    // identify collections to be synchronized
-    const { collectionIds = [] } = data || {}
-    const triggerCollectionIndex = collectionIds.findIndex(id => id === collectionId)
+      // identify collections to be synchronized
+      const { collectionIds = [] } = data || {}
+      const triggerCollectionIndex = collectionIds.findIndex(id => id === collectionId)
 
-    // synchronize parent tables in succession
-    for (let i = triggerCollectionIndex - 1; i >= 0; --i) {
-      const parentCollectionId = collectionIds[i]
-      const parentTableModel = tableModel.getCollectionTableModel(parentCollectionId)
-      const childTableModel = tableModel.getCollectionTableModel(collectionIds[i + 1])
-      if (parentTableModel && childTableModel) {
-        parentTableModel.scrollToAlignWithChild(childTableModel)
+      // synchronize parent tables in succession
+      for (let i = triggerCollectionIndex - 1; i >= 0; --i) {
+        const parentCollectionId = collectionIds[i]
+        const parentTableModel = tableModel.getCollectionTableModel(parentCollectionId)
+        const childTableModel = tableModel.getCollectionTableModel(collectionIds[i + 1])
+        if (parentTableModel && childTableModel) {
+          parentTableModel.scrollToAlignWithChild(childTableModel)
+        }
       }
-    }
 
-    // synchronize child tables in succession
-    for (let i = triggerCollectionIndex + 1; i < collectionIds.length; ++i) {
-      const childCollectionId = collectionIds[i]
-      const childTableModel = tableModel.getCollectionTableModel(childCollectionId)
-      const parentTableModel = tableModel.getCollectionTableModel(collectionIds[i - 1])
-      if (childTableModel && parentTableModel) {
-        childTableModel.scrollToAlignWithParent(parentTableModel)
+      // synchronize child tables in succession
+      for (let i = triggerCollectionIndex + 1; i < collectionIds.length; ++i) {
+        const childCollectionId = collectionIds[i]
+        const childTableModel = tableModel.getCollectionTableModel(childCollectionId)
+        const parentTableModel = tableModel.getCollectionTableModel(collectionIds[i - 1])
+        if (childTableModel && parentTableModel) {
+          childTableModel.scrollToAlignWithParent(parentTableModel)
+        }
       }
-    }
+    })
   }, [data, tableModel])
 
   const handleTableScroll = useCallback<OnTableScrollFn>((event, collectionId, element) => {

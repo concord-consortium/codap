@@ -5,6 +5,7 @@ import {
 } from "../../../utilities/color-utils"
 import { DateUnit, getDateUnitLabel } from "../../../utilities/date-utils"
 import { isFiniteNumber } from "../../../utilities/math-utils"
+import { prf } from "../../../utilities/profiler"
 import { t } from "../../../utilities/translation/translate"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {IAxisModel} from "../../axis/models/axis-model"
@@ -556,38 +557,42 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
         renderer.anchor = anchor
       }
       // Points that still have the default (0, 0) position will be set to their assigned position before transition.
-      renderer.forEachPoint((point, metadata) => {
-        if (pointHasDefaultPosition(metadata)) {
-          const { caseID, plotNum } = metadata
-          const screenX = getScreenX(caseID) || 0
-          const screenY = getScreenY(caseID, plotNum) || 0
-          renderer.setPointPosition(point, screenX, screenY)
-          renderer.setPointScale(point, 0)
-        }
-      })
-      renderer.transition(() => {
+      prf.measure("Graph.setPointCoordinates[default]", () => {
         renderer.forEachPoint((point, metadata) => {
-          const { caseID, plotNum } = metadata
-          const style = {
-            radius: dataset?.isCaseSelected(caseID) ? selectedPointRadius : pointRadius,
-            fill: lookupLegendColor(metadata),
-            stroke: getLegendColor && dataset?.isCaseSelected(caseID)
-              ? defaultSelectedStroke : pointStrokeColor,
-            strokeWidth: getLegendColor && dataset?.isCaseSelected(caseID)
-              ? defaultSelectedStrokeWidth : defaultStrokeWidth,
-            // Points are circles by default but can be changed to bars, so we need to set a width and height. If
-            // getWidth and getHeight are not provided, we use pointRadius * 2 for these values.
-            width: getWidth?.(caseID) ?? pointRadius * 2,
-            height: getHeight?.(caseID, plotNum) ?? pointRadius * 2
+          if (pointHasDefaultPosition(metadata)) {
+            const { caseID, plotNum } = metadata
+            const screenX = getScreenX(caseID) || 0
+            const screenY = getScreenY(caseID, plotNum) || 0
+            renderer.setPointPosition(point, screenX, screenY)
+            renderer.setPointScale(point, 0)
           }
-          renderer.setPointStyle(point, style)
-          renderer.setPositionOrTransition(point, style, getScreenX(caseID) || 0, getScreenY(caseID, plotNum) || 0)
-        }, { selectedOnly })
-      }, { duration: getAnimationEnabled() ? transitionDuration : 0 })
+        })
+      })
+      prf.measure("Graph.setPointCoordinates[transition]", () => {
+        renderer.transition(() => {
+          renderer.forEachPoint((point, metadata) => {
+            const { caseID, plotNum } = metadata
+            const style = {
+              radius: dataset?.isCaseSelected(caseID) ? selectedPointRadius : pointRadius,
+              fill: lookupLegendColor(metadata),
+              stroke: getLegendColor && dataset?.isCaseSelected(caseID)
+                ? defaultSelectedStroke : pointStrokeColor,
+              strokeWidth: getLegendColor && dataset?.isCaseSelected(caseID)
+                ? defaultSelectedStrokeWidth : defaultStrokeWidth,
+              // Points are circles by default but can be changed to bars, so we need to set a width and height. If
+              // getWidth and getHeight are not provided, we use pointRadius * 2 for these values.
+              width: getWidth?.(caseID) ?? pointRadius * 2,
+              height: getHeight?.(caseID, plotNum) ?? pointRadius * 2
+            }
+            renderer.setPointStyle(point, style)
+            renderer.setPositionOrTransition(point, style, getScreenX(caseID) || 0, getScreenY(caseID, plotNum) || 0)
+          }, { selectedOnly })
+        }, { duration: getAnimationEnabled() ? transitionDuration : 0 })
+      })
     }
   }
 
-  setPoints()
+  prf.measure("Graph.setPointCoordinates", setPoints)
 }
 
 

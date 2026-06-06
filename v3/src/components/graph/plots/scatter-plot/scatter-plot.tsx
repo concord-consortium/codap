@@ -5,6 +5,7 @@ import {useDataSetContext} from "../../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 import {appState} from "../../../../models/app-state"
 import {ICase} from "../../../../models/data/data-set-types"
+import { prf } from "../../../../utilities/profiler"
 import {
   firstVisibleParentAttribute, idOfChildmostCollectionForAttributes
 } from "../../../../models/data/data-set-utils"
@@ -166,13 +167,15 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
   useRendererDragHandlers(renderer, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointSelection = useCallback(() => {
-    const {pointColor, pointStrokeColor} = graphModel.pointDescription
-    dataConfiguration && setPointSelection(
-      {
-        renderer, dataConfiguration, pointRadius: graphModel.getPointRadius(),
-        selectedPointRadius: selectedPointRadiusRef.current,
-        pointColor, pointStrokeColor, getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex
-      })
+    prf.measure("Graph.refreshPointSelection", () => {
+      const {pointColor, pointStrokeColor} = graphModel.pointDescription
+      dataConfiguration && setPointSelection(
+        {
+          renderer, dataConfiguration, pointRadius: graphModel.getPointRadius(),
+          selectedPointRadius: selectedPointRadiusRef.current,
+          pointColor, pointStrokeColor, getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex
+        })
+    })
   }, [dataConfiguration, graphModel, renderer])
 
   // Accept showLines parameter to avoid stale closure issues during rapid state changes

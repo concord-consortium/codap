@@ -3,6 +3,7 @@ import { symParent } from "../../models/data/data-set-types"
 import { IDataSetMetadata } from "../../models/shared/data-set-metadata"
 import { getNumericCssVariable } from "../../utilities/css-utils"
 import { uniqueId } from "../../utilities/js-utils"
+import { prf } from "../../utilities/profiler"
 import { IScrollOptions, kDefaultRowHeaderHeight, kDefaultRowHeight, TRow } from "./case-table-types"
 
 const kDefaultRowCount = 12
@@ -246,13 +247,15 @@ export class CollectionTableModel {
 
   setElementScrollTop(scrollTop: number, options?: IScrollOptions) {
     if (this.element) {
-      wrapScrollBehavior(this.element, element => {
-        this.scrollStep = this.lastScrollStep = 0
-        element.scrollTop = scrollTop
-        if (options?.disableScrollSync) {
-          this.disableSyncScrollingResponse()
-        }
-      }, options)
+      prf.measure("Table.setElementScrollTop", () => {
+        wrapScrollBehavior(this.element!, element => {
+          this.scrollStep = this.lastScrollStep = 0
+          element.scrollTop = scrollTop
+          if (options?.disableScrollSync) {
+            this.disableSyncScrollingResponse()
+          }
+        }, options)
+      })
     }
   }
 
@@ -324,32 +327,34 @@ export class CollectionTableModel {
 
   scrollClosestRowIntoView(rowIndices: number[], options?: IScrollOptions) {
     if (!this.element) return
-    const viewTop = this.scrollTop
-    const viewBottom = viewTop + this.gridBodyHeight
-    let closestRow = -1
-    let distance = Infinity
-    for (let i = 0; i < rowIndices.length; ++i) {
-      const rowIndex = rowIndices[i]
-      const rowTop = this.getRowTop(rowIndex)
-      const rowBottom = this.getRowBottom(rowIndex)
-      // at least one row is already visible, no scroll required
-      if (rowTop >= viewTop && rowBottom <= viewBottom) return
-      if (rowTop < viewTop) {
-        if (viewTop - rowTop < distance) {
-          closestRow = rowIndex
-          distance = viewTop - rowTop
+    prf.measure("Table.scrollClosestRowIntoView", () => {
+      const viewTop = this.scrollTop
+      const viewBottom = viewTop + this.gridBodyHeight
+      let closestRow = -1
+      let distance = Infinity
+      for (let i = 0; i < rowIndices.length; ++i) {
+        const rowIndex = rowIndices[i]
+        const rowTop = this.getRowTop(rowIndex)
+        const rowBottom = this.getRowBottom(rowIndex)
+        // at least one row is already visible, no scroll required
+        if (rowTop >= viewTop && rowBottom <= viewBottom) return
+        if (rowTop < viewTop) {
+          if (viewTop - rowTop < distance) {
+            closestRow = rowIndex
+            distance = viewTop - rowTop
+          }
+        }
+        if (rowBottom > viewBottom) {
+          if (rowBottom - viewBottom < distance) {
+            closestRow = rowIndex
+            distance = rowTop - viewBottom
+          }
         }
       }
-      if (rowBottom > viewBottom) {
-        if (rowBottom - viewBottom < distance) {
-          closestRow = rowIndex
-          distance = rowTop - viewBottom
-        }
+      if (closestRow >= 0) {
+        this.scrollRowIntoView(closestRow, options)
       }
-    }
-    if (closestRow >= 0) {
-      this.scrollRowIntoView(closestRow, options)
-    }
+    })
   }
 
   /**
