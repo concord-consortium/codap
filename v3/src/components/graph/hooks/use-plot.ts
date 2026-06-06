@@ -309,18 +309,42 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     )
   }, [layout, callRefreshPointPositions])
 
+  // Coalesce rapid selection changes into a single point-selection refresh per animation frame.
+  // During a marquee drag, pointermove fires multiple times per frame and each incremental
+  // selectCases synchronously re-styles the entire point set (setPointSelection). Batching the
+  // refresh to one call per frame — the cadence at which the renderer actually paints — collapses
+  // that redundant work, which dominates marquee-selection time on large datasets.
+  const selectionRefreshRafRef = useRef<number>()
+  const refreshPointSelectionCoalesced = useCallback(() => {
+    if (selectionRefreshRafRef.current != null) return
+    selectionRefreshRafRef.current = requestAnimationFrame(() => {
+      selectionRefreshRafRef.current = undefined
+      refreshPointSelection()
+    })
+  }, [refreshPointSelection])
+
+  // Cancel any pending selection refresh on unmount.
+  useEffect(() => {
+    return () => {
+      if (selectionRefreshRafRef.current != null) {
+        cancelAnimationFrame(selectionRefreshRafRef.current)
+        selectionRefreshRafRef.current = undefined
+      }
+    }
+  }, [])
+
   // respond to selection changes
   useEffect(function respondToSelectionChanges() {
     if (dataset) {
       return mstReaction(
         () => dataset?.selectionChanges,
         () => {
-          refreshPointSelection()
+          refreshPointSelectionCoalesced()
         },
         {name: "useSubAxis.respondToSelectionChanges"}, dataConfiguration
       )
     }
-  }, [dataConfiguration, dataset, refreshPointSelection])
+  }, [dataConfiguration, dataset, refreshPointSelectionCoalesced])
 
   // respond to value changes
   useEffect(() => {
