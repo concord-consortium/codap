@@ -1368,6 +1368,7 @@
     "V3.Inspector.graph.legendBins": "Legend Bins",
     "V3.Inspector.graph.legendBins.quantize": "Linear",
     "V3.Inspector.graph.legendBins.quantile": "Quantile",
+    "V3.Inspector.graph.legendBins.logarithmic": "Logarithmic",
     "V3.Inspector.graph.legendBinCount": "Number of Bins",
     "V3.Inspector.graph.legendRange": "Legend Range",
     "V3.Inspector.graph.legendRange.min": "Min",

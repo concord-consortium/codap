@@ -211,6 +211,18 @@ describe("LegendBinsSelect", () => {
 
     expect(screen.getByRole("button", { name: /V3.Inspector.graph.legendBins/i })).toBeDisabled()
   })
+
+  it("offers a Logarithmic option that commits the binning type", async () => {
+    const user = userEvent.setup()
+    const config = createMockDataConfig()
+    render(<LegendBinsSelect dataConfiguration={config as any} />)
+
+    // open the dropdown and choose Logarithmic (translation is mocked to return the key)
+    await user.click(screen.getByRole("button", { name: /V3.Inspector.graph.legendBins/i }))
+    await user.click(screen.getByRole("option", { name: "V3.Inspector.graph.legendBins.logarithmic" }))
+
+    expect(config.metadata.setAttributeBinningType).toHaveBeenCalledWith("attr-1", "logarithmic")
+  })
 })
 
 describe("LegendRangeInputs", () => {
