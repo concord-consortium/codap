@@ -4,7 +4,7 @@ import { measureTextExtent } from "../../../../../hooks/use-measure-text"
 import {
   determineLevels, formatDate, kDatePrecisionNone, mapLevelToPrecision
 } from "../../../../../utilities/date-utils"
-import { binBoundaryDecimalPlaces } from "../../../../../utilities/math-utils"
+import { binBoundaryDecimalPlaces, binBoundarySignificantFigures } from "../../../../../utilities/math-utils"
 import { kChoroplethHeight, kDataDisplayFont } from "../../../data-display-types"
 
 // Gap (px) below the color bar before the label text. Used both as the axis tickPadding for the
@@ -21,6 +21,10 @@ export type ChoroplethLegendProps = {
   // this for year-like attributes (which are typed numeric, not date) so years render as "2024", not
   // "2,024" — matching how CODAP formats numbers elsewhere (see getNumFormatterForAttribute).
   useGrouping?: boolean,
+  // When true, format numeric labels with a uniform number of significant figures rather than a
+  // uniform number of decimal places. Used for logarithmic (equal-ratio) bins, whose boundaries span
+  // orders of magnitude; significant figures is the log-scale dual of fixed decimal places.
+  useSignificantFigures?: boolean,
   width?: number,
   rectHeight?: number,
   transform?: string,
@@ -48,6 +52,8 @@ function isScaleQuantize(scale: ChoroplethScale): scale is ScaleQuantize<string>
 }
 
 export function getScaleThresholds(scale: ChoroplethScale) {
+  // The remaining case is ScaleThreshold, whose domain() IS its array of cut points (used by the
+  // logarithmic legend).
   return isScaleQuantile(scale) ? scale.quantiles()
     : isScaleQuantize(scale) ? scale.thresholds()
       : scale.domain()
@@ -64,7 +70,7 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
   }
 
   const {
-      isDate, useGrouping = false, transform = '', width = 320,
+      isDate, useGrouping = false, useSignificantFigures = false, transform = '', width = 320,
       marginTop = 0, marginRight = 0, marginLeft = 0,
       ticks = 5, legendMin, legendMax, clickHandler, casesInBinSelectedHandler
     } = props,
@@ -89,9 +95,14 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
     // rather than "0, 0.5, 1.00") and stops a narrow range like 100–110 from collapsing to
     // "100, 100, 110" the way a fixed 2-significant-figure format did.
     decimalPlaces = binBoundaryDecimalPlaces(fullBoundaries),
+    // Logarithmic (equal-ratio) boundaries span orders of magnitude, so format them with a uniform
+    // number of significant figures (the log-scale dual of the linear case's uniform decimal places).
+    sigFigs = binBoundarySignificantFigures(fullBoundaries),
     formatBoundary = isDate
       ? (value: number) => formatDate(value * 1000, datePrecision) ?? ''
-      : format(`${useGrouping ? ',' : ''}.${decimalPlaces}f`)
+      : useSignificantFigures
+        ? format(`${useGrouping ? ',' : ''}.${sigFigs}r`)
+        : format(`${useGrouping ? ',' : ''}.${decimalPlaces}f`)
 
   const legendScale = scaleLinear()
       .domain([-1, scale.range().length - 1])
