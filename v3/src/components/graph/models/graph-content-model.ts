@@ -248,9 +248,11 @@ export const GraphContentModel = DataDisplayContentModel
         }
       }))
 
-      // When showMeasuresForSelection is true, update adornments when selection changes
+      // When showMeasuresForSelection is true, update adornments when selection changes. Only observe
+      // the (O(N)) selection while the flag is on, so an ordinary marquee selection doesn't recompute
+      // and structurally-compare the full selection on every move when measures-for-selection is off.
       addDisposer(self, mstReaction(() => {
-        return self.dataConfiguration.selection
+        return self.dataConfiguration.showMeasuresForSelection ? self.dataConfiguration.selection : undefined
       },
         () => {
           if (self.dataConfiguration.showMeasuresForSelection) {
