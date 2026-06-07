@@ -5,12 +5,13 @@ import { t } from "../../utilities/translation/translate"
 import { IDataSetMetadata } from "../shared/data-set-metadata"
 import { getMetadataFromDataSet } from "../shared/shared-data-utils"
 import { INotify } from "../history/history-service"
+import { getTileEnvironment } from "../tiles/tile-environment"
 import { IAttribute } from "./attribute"
 import { ICollectionModel } from "./collection"
 import { IDataSet } from "./data-set"
 import {
   createCasesNotification, deleteCasesNotification, deleteCollectionNotification, dependentCasesNotification,
-  moveAttributeNotification, selectCasesNotification
+  moveAttributeNotification, selectCasesNotification, selectCasesNotificationForDelta
 } from "./data-set-notifications"
 import { IAttributeChangeResult, IMoveAttributeOptions } from "./data-set-types"
 
@@ -180,6 +181,23 @@ export function selectAndDeselectCases(addCaseIds: string[], removeCaseIds: stri
     data?.selectCases(addCaseIds)
     data?.selectCases(removeCaseIds, false)
   }, data, true)
+}
+
+// Performance-mode marquee path: update the (volatile) selection via raw selectCases actions and
+// notify plugins directly from the known delta, skipping the applyModelChange + selectCasesNotification
+// wrapper. selectCases still mutates the Set, bumps selectionChanges, and fires onAnyAction, so graph
+// and table reactivity are unchanged. Selection is volatile/not undoable and is serialized at save
+// time, so no model "commit" is needed at drag end.
+export function selectAndDeselectCasesInteractive(
+  addCaseIds: string[], removeCaseIds: string[], data?: IDataSet
+) {
+  if (!data) return
+  addCaseIds.length && data.selectCases(addCaseIds)
+  removeCaseIds.length && data.selectCases(removeCaseIds, false)
+  const note = selectCasesNotificationForDelta(data, addCaseIds, removeCaseIds)
+  if (note) {
+    getTileEnvironment(data)?.notify?.(note.message, note.callback ?? (() => null))
+  }
 }
 
 // Set aside helper functions

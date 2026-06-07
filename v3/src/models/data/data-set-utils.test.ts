@@ -3,9 +3,10 @@ import { AppHistoryService } from "../history/app-history-service"
 import { DataSetMetadata } from "../shared/data-set-metadata"
 import { IAttribute } from "./attribute"
 import { CollectionModel, ICollectionModel } from "./collection"
-import { DataSet, IDataSet } from "./data-set"
+import { DataSet, IDataSet, toCanonical } from "./data-set"
 import {
-  getCaseNameForCount, getCollectionAttrs, getNextCase, getPreviousCase, moveAttribute, rerandomizeAllAttributes
+  getCaseNameForCount, getCollectionAttrs, getNextCase, getPreviousCase, moveAttribute, rerandomizeAllAttributes,
+  selectAndDeselectCasesInteractive
 } from "./data-set-utils"
 
 jest.mock("../tiles/tile-environment", () => {
@@ -168,5 +169,53 @@ describe("DataSetUtils", () => {
     // Last parent case selected, parent collection
     expect(getNextCase(dataset, c2, c2CaseLast.__id__)).toBeUndefined()
     expect(getPreviousCase(dataset, c2, c2CaseLast.__id__)).toBe(c2Case3)
+  })
+})
+
+describe("selectAndDeselectCasesInteractive", () => {
+  function makeDataSet(notify?: jest.Mock) {
+    const data = DataSet.create({ name: "data" }, notify ? { notify } : undefined)
+    data.addAttribute({ id: "aId", name: "a" })
+    data.addCases(toCanonical(data, [
+      { __id__: "i1", a: 1 }, { __id__: "i2", a: 2 }, { __id__: "i3", a: 3 }
+    ]))
+    data.validateCases() // cases are lazily validated; needed before caseInfoMap/getItemChildCaseId resolve
+    return data
+  }
+  const caseId = (data: ReturnType<typeof makeDataSet>, itemId: string) => data.getItemChildCaseId(itemId)!
+
+  it("mutates selection and notifies plugins WITHOUT applyModelChange", () => {
+    const notify = jest.fn()
+    const data = makeDataSet(notify)
+    const applyModelChangeSpy = jest.spyOn(data, "applyModelChange")
+    const c1 = caseId(data, "i1"), c2 = caseId(data, "i2")
+
+    selectAndDeselectCasesInteractive([c1, c2], [], data)
+
+    expect(data.isCaseSelected(c1)).toBe(true)
+    expect(data.isCaseSelected(c2)).toBe(true)
+    expect(applyModelChangeSpy).not.toHaveBeenCalled()
+    expect(notify).toHaveBeenCalledTimes(1)
+    expect(notify.mock.calls[0][0].values.operation).toBe("selectCases")
+  })
+
+  it("deselects the remove delta and notifies", () => {
+    const notify = jest.fn()
+    const data = makeDataSet(notify)
+    const c1 = caseId(data, "i1")
+    data.selectCases([c1]) // pre-select via raw action
+    notify.mockClear()
+
+    selectAndDeselectCasesInteractive([], [c1], data)
+
+    expect(data.isCaseSelected(c1)).toBe(false)
+    expect(notify).toHaveBeenCalledTimes(1)
+  })
+
+  it("does not notify when both deltas are empty", () => {
+    const notify = jest.fn()
+    const data = makeDataSet(notify)
+    selectAndDeselectCasesInteractive([], [], data)
+    expect(notify).not.toHaveBeenCalled()
   })
 })
