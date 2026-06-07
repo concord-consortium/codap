@@ -1,4 +1,5 @@
 import {comparer, reaction} from "mobx"
+import { prf } from "../../../utilities/profiler"
 import {addDisposer, getSnapshot, Instance, SnapshotIn, types} from "mobx-state-tree"
 import { AttributeType, isCategoricalAttributeType } from "../../../models/data/attribute-types"
 import {IDataSet} from "../../../models/data/data-set"
@@ -236,7 +237,9 @@ export const GraphDataConfigurationModel = DataConfigurationModel
      */
     get selection() {
       if (!self.dataset || !self.filteredCases?.[0]) return []
-      return Array.from(self.graphCaseIDs).filter(caseId => self.dataset?.isCaseSelected(caseId))
+      // Profiled: this is O(graph cases); guard against consumers that observe it per selection change.
+      return prf.measure("DataConfig.selection[graph]", () =>
+        Array.from(self.graphCaseIDs).filter(caseId => self.dataset?.isCaseSelected(caseId)))
     }
   }))
   .views(self => (
