@@ -317,16 +317,23 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     )
   }, [layout, callRefreshPointPositions])
 
-  // Coalesce rapid selection changes into a single point-selection refresh per animation frame, and
-  // restyle only the points whose selection actually changed (the delta) rather than the entire
-  // dataset. During a marquee drag, pointermove fires ~once per frame and each incremental selectCases
-  // would otherwise synchronously re-style every point — the dominant cost on large datasets.
+  // Coalesce rapid selection changes into a single point-selection refresh per animation frame.
   //
-  // A ref holds the latest refreshPointSelection so the scheduler/listener identities stay stable
-  // (the reaction doesn't re-subscribe when the renderer changes) and a pending frame always runs
-  // against the current renderer.
+  // The TRIGGER is a reaction on dataset.selectionChanges, which fires for EVERY selection change —
+  // including ones that don't flow through a named selection action (e.g. a snapshot/"moment" restore
+  // that replaces the selection and resets selectionChanges). A separate onAnyAction listener supplies
+  // an optional DELTA HINT: when a selectCases action toggles only plotted (childmost) points we
+  // restyle just those; any other case — a non-selectCases action, a selectCases on non-plotted ids
+  // (e.g. a parent/legend selection that expands to child items), or a change with no captured action —
+  // falls back to a full restyle. Full restyle is the safe default; the delta is purely an
+  // optimization for the marquee hot path.
+  //
+  // Refs hold the latest refreshPointSelection and renderer so the reaction/listener identities stay
+  // stable and a pending frame always runs against the current renderer.
   const refreshPointSelectionRef = useRef(refreshPointSelection)
   refreshPointSelectionRef.current = refreshPointSelection
+  const rendererRef = useRef(renderer)
+  rendererRef.current = renderer
   const selectionRefreshRafRef = useRef<number>()
   const pendingSelectionDeltaRef = useRef<Set<string>>(new Set())
   const pendingFullSelectionRefreshRef = useRef(false)
@@ -335,14 +342,18 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     if (selectionRefreshRafRef.current != null) return
     selectionRefreshRafRef.current = requestAnimationFrame(() => {
       selectionRefreshRafRef.current = undefined
-      if (pendingFullSelectionRefreshRef.current) {
-        pendingFullSelectionRefreshRef.current = false
-        pendingSelectionDeltaRef.current.clear()
-        refreshPointSelectionRef.current()
-      } else {
-        const delta = pendingSelectionDeltaRef.current
-        pendingSelectionDeltaRef.current = new Set()
+      const delta = pendingSelectionDeltaRef.current
+      const full = pendingFullSelectionRefreshRef.current
+      pendingSelectionDeltaRef.current = new Set()
+      pendingFullSelectionRefreshRef.current = false
+      // Delta restyle only when we captured a non-empty delta of plotted points and nothing this
+      // frame forced a full refresh. An empty delta without a full flag means the selection changed
+      // via a path we couldn't attribute to a selectCases delta (e.g. a snapshot restore) → restyle
+      // all points.
+      if (!full && delta.size > 0) {
         refreshPointSelectionRef.current(delta)
+      } else {
+        refreshPointSelectionRef.current()
       }
     })
   }, [])
@@ -357,25 +368,40 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     }
   }, [])
 
-  // respond to selection changes
+  // Trigger: every selection change schedules a coalesced refresh. Observing selectionChanges (rather
+  // than only selection actions) ensures non-action changes — e.g. a snapshot restore that replaces
+  // the selection — still restyle the points.
   useEffect(function respondToSelectionChanges() {
+    if (!dataset) return
+    return mstReaction(
+      () => dataset.selectionChanges,
+      () => scheduleSelectionRefresh(),
+      { name: "usePlot.respondToSelectionChanges" }, dataConfiguration
+    )
+  }, [dataConfiguration, dataset, scheduleSelectionRefresh])
+
+  // Delta hint: when a selectCases action toggles only plotted (childmost) points, remember just those
+  // so the coalesced refresh can restyle them instead of every point. selectCases on non-plotted ids
+  // (which expand to child items, e.g. a parent/legend selection), setSelectedCases, and selectAll
+  // force a full restyle so no affected point is missed.
+  useEffect(function captureSelectionDelta() {
     if (!dataset) return
     const disposer = onAnyAction(dataset, action => {
       if (!isSelectionAction(action)) return
       if (action.name === "selectCases") {
-        // selectCases carries the exact set of cases whose selection toggled (args[0]) — restyle just
-        // those. setSelectedCases (replace) and selectAll change an unknown/large set, so fall through
-        // to a full restyle below.
         const caseIds: string[] = action.args?.[0] ?? []
         if (caseIds.length === 0) return
-        caseIds.forEach(id => pendingSelectionDeltaRef.current.add(id))
+        if (caseIds.every(id => rendererRef.current?.getPointForCaseData({ plotNum: 0, caseID: id }))) {
+          caseIds.forEach(id => pendingSelectionDeltaRef.current.add(id))
+        } else {
+          pendingFullSelectionRefreshRef.current = true
+        }
       } else {
         pendingFullSelectionRefreshRef.current = true
       }
-      scheduleSelectionRefresh()
     })
     return () => disposer?.()
-  }, [dataset, scheduleSelectionRefresh])
+  }, [dataset])
 
   // respond to value changes
   useEffect(() => {
