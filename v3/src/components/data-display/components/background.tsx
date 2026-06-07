@@ -7,7 +7,8 @@ import { isKeyDown } from "../../../hooks/use-key-states"
 import {appState} from "../../../models/app-state"
 import {Logger} from "../../../lib/logger"
 import {IDataSet} from "../../../models/data/data-set"
-import {selectAllCases, selectAndDeselectCases} from "../../../models/data/data-set-utils"
+import {selectAllCases, selectAndDeselectCases, selectAndDeselectCasesInteractive}
+  from "../../../models/data/data-set-utils"
 import { getTileModel } from "../../../models/tiles/tile-model"
 import {defaultBackgroundColor} from "../../../utilities/color-utils"
 import { mstReaction } from "../../../utilities/mst-reaction"
@@ -161,7 +162,12 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
       prf.measure("Graph.dragMarquee[selectCases]", () => {
         Object.values(datasetsMap).forEach((selectionSpec) => {
           const {dataset, caseIDsToSelect, caseIDsToDeselect} = selectionSpec
-          selectAndDeselectCases(caseIDsToSelect, caseIDsToDeselect, dataset)
+          if (appState.isPerformanceMode) {
+            // Fast path: volatile selection + direct per-move notification, no applyModelChange.
+            selectAndDeselectCasesInteractive(caseIDsToSelect, caseIDsToDeselect, dataset)
+          } else {
+            selectAndDeselectCases(caseIDsToSelect, caseIDsToDeselect, dataset)
+          }
         })
       })
 
