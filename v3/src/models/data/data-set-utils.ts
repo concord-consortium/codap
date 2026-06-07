@@ -192,9 +192,14 @@ export function selectAndDeselectCasesInteractive(
   addCaseIds: string[], removeCaseIds: string[], data?: IDataSet
 ) {
   if (!data) return
+  // Notify only about cases whose selection state actually changes (mirrors selectCasesNotification's
+  // before/after diff), computed before mutating — an oscillating/overlapping marquee can re-include
+  // already-selected (or already-deselected) ids, which should not be reported to plugins.
+  const addedCaseIds = addCaseIds.filter(id => !data.isCaseSelected(id))
+  const removedCaseIds = removeCaseIds.filter(id => data.isCaseSelected(id))
   addCaseIds.length && data.selectCases(addCaseIds)
   removeCaseIds.length && data.selectCases(removeCaseIds, false)
-  const note = selectCasesNotificationForDelta(data, addCaseIds, removeCaseIds)
+  const note = selectCasesNotificationForDelta(data, addedCaseIds, removedCaseIds)
   if (note) {
     getTileEnvironment(data)?.notify?.(note.message, note.callback ?? (() => null))
   }

@@ -218,4 +218,16 @@ describe("selectAndDeselectCasesInteractive", () => {
     selectAndDeselectCasesInteractive([], [], data)
     expect(notify).not.toHaveBeenCalled()
   })
+
+  it("does not notify for cases whose selection state does not actually change", () => {
+    const notify = jest.fn()
+    const data = makeDataSet(notify)
+    const c1 = caseId(data, "i1")
+    data.selectCases([c1]) // pre-select c1
+    notify.mockClear()
+    // re-adding an already-selected case (e.g. an oscillating marquee) is not a real change
+    selectAndDeselectCasesInteractive([c1], [], data)
+    expect(notify).not.toHaveBeenCalled()
+    expect(data.isCaseSelected(c1)).toBe(true)
+  })
 })
