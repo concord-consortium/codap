@@ -204,7 +204,9 @@ aws cloudwatch put-metric-alarm \
 
 # ---------------------------------------------------------------------------
 # 6) CloudWatch Synthetics canaries -- one for V3 reachability, one for redirect.
-#    Both target $TEMP_SUBDOMAIN pre-flip (DO-F2; flip.sh post-flip step re-points them).
+#    Canaries probe $CANARY_TARGET_HOST (config.env), defaulting to $TEMP_SUBDOMAIN when
+#    unset. Pre-flip leave it at the temp subdomain; post-flip set CANARY_TARGET_HOST=
+#    codap.concord.org and delete+recreate so the soak monitors the real host (DO-F2).
 #    Creating canaries requires an IAM role with the Synthetics policy and an S3 bucket
 #    for artifacts; both must be provided via config.env (SYNTHETICS_ROLE_ARN /
 #    SYNTHETICS_ARTIFACT_BUCKET). The canaries can also be created/edited from the
@@ -225,6 +227,14 @@ else
     (cd "$pkgdir" && zip -qr "$zip_path" .)
     rm -rf "$pkgdir"
 
+    # Upload the code package to S3 and reference it by S3Bucket/S3Key. We do NOT pass
+    # ZipFile=fileb://... inside the --code shorthand: the AWS CLI only expands fileb://
+    # when it is the ENTIRE value of a parameter, not for a member of key=value shorthand,
+    # so an inline ZipFile would upload the literal path string and Lambda fails with
+    # "Could not unzip uploaded file". The S3 reference avoids blob handling entirely.
+    code_key="code/codap-v2-v3-$canary.zip"
+    aws s3 cp "$zip_path" "s3://$SYNTHETICS_ARTIFACT_BUCKET/$code_key" --region "$REGION_US_E1"
+
     # Check existence first. UpdateCanary silently drops EnvironmentVariables (the API
     # returns success and LastModified updates, but env vars never persist), so re-running
     # this script against an existing canary cannot reliably re-point CANARY_TARGET_HOST.
@@ -238,14 +248,14 @@ else
     fi
     aws synthetics create-canary \
       --name "codap-v2-v3-$canary" \
-      --code "Handler=$canary.handler,ZipFile=fileb://$zip_path" \
+      --code "Handler=$canary.handler,S3Bucket=$SYNTHETICS_ARTIFACT_BUCKET,S3Key=$code_key" \
       --artifact-s3-location "s3://$SYNTHETICS_ARTIFACT_BUCKET/codap-v2-v3-$canary/" \
       --execution-role-arn "$SYNTHETICS_ROLE_ARN" \
       --schedule "Expression=rate(1 minute)" \
       --runtime-version "syn-nodejs-puppeteer-15.1" \
-      --run-config "EnvironmentVariables={CANARY_TARGET_HOST=$TEMP_SUBDOMAIN}" \
+      --run-config "EnvironmentVariables={CANARY_TARGET_HOST=${CANARY_TARGET_HOST:-$TEMP_SUBDOMAIN}}" \
       --region "$REGION_US_E1"
-    echo "    canary codap-v2-v3-$canary created (target $TEMP_SUBDOMAIN)"
+    echo "    canary codap-v2-v3-$canary created (target ${CANARY_TARGET_HOST:-$TEMP_SUBDOMAIN})"
   done
 fi
 
