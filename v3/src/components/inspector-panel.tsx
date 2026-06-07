@@ -1,5 +1,7 @@
 import { clsx } from "clsx"
-import React, { forwardRef, ReactNode, useCallback, useEffect, useRef, useState } from "react"
+import React, {
+  createContext, forwardRef, ReactNode, useCallback, useContext, useEffect, useRef, useState
+} from "react"
 import { Button, Menu, MenuTrigger, Popover, Tooltip, TooltipTrigger } from "react-aria-components"
 
 import { kInspectorPaletteAriaRole } from "../accessibility-constants"
@@ -12,6 +14,12 @@ import { useOutsidePointerDown } from "../hooks/use-outside-pointer-down"
 import { isWithinBounds, getPaletteTopPosition } from "../utilities/view-utils"
 
 import "./inspector-panel.scss"
+
+// Tracks whether the enclosing InspectorMenu is currently open. Menu content can read this to skip
+// expensive, selection-dependent work (e.g. O(N) selected/unselected case computations) while the
+// menu is closed — otherwise an always-mounted menu observer recomputes on every selection change.
+const InspectorMenuOpenContext = createContext(false)
+export const useInspectorMenuOpen = () => useContext(InspectorMenuOpenContext)
 
 // Returns an aria-label for icon-only inspector buttons/menus.
 // When a visible text label exists, returns undefined (the label provides the accessible name).
@@ -191,9 +199,11 @@ export const InspectorMenu = ({
   const { triggerRef, onMouseMove, onFocus } = useMouseTooltipRef()
   const [tooltipOpen, setTooltipOpen] = useState(false)
   const menuOpenRef = useRef(false)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   const handleMenuOpenChange = useCallback((openMenu: boolean) => {
     menuOpenRef.current = openMenu
+    setMenuOpen(openMenu)
     if (openMenu) {
       // Close any tooltips when a menu opens.
       setTooltipOpen(false)
@@ -223,7 +233,9 @@ export const InspectorMenu = ({
           {renderIcon(icon, hasVisibleLabel)}
           {label && <span className="inspector-button-label">{label}</span>}
         </Button>
-        {children}
+        <InspectorMenuOpenContext.Provider value={menuOpen}>
+          {children}
+        </InspectorMenuOpenContext.Provider>
       </MenuTrigger>
       <Tooltip
         className="inspector-tooltip"

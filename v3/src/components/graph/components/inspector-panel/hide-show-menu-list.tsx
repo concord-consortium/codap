@@ -14,7 +14,7 @@ import {
 import { EditFormulaModal } from "../../../common/edit-formula-modal"
 import { DataSetContext } from "../../../../hooks/use-data-set-context"
 import { useInspectorFormulaString } from "../../../../hooks/use-inspector-formula-string"
-import { InspectorMenuContent } from "../../../inspector-panel"
+import { InspectorMenuContent, useInspectorMenuOpen } from "../../../inspector-panel"
 
 interface IProps {
   tile?: ITileModel
@@ -23,6 +23,7 @@ interface IProps {
 export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProps) {
   const graphModel = tile && isAlive(tile) && isGraphContentModel(tile?.content) ? tile?.content : undefined
   const dataConfig = graphModel?.dataConfiguration
+  const menuOpen = useInspectorMenuOpen()
   const { isOpen, onClose, onOpen } = useDisclosure()
 
   const hideSelectedCases = () => {
@@ -122,11 +123,14 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
     })
   }
 
-  const numSelected = dataConfig?.selection.length ?? 0,
+  // Only read the O(N) selection-dependent counts while the menu is open. Otherwise this observer
+  // re-renders and recomputes selection/unselectedCases on every selection change (e.g. each marquee
+  // move) even while the menu is closed.
+  const numSelected = menuOpen ? (dataConfig?.selection.length ?? 0) : 0,
     hideSelectedIsDisabled = numSelected === 0,
     hideSelectedString = (numSelected === 1) ? t("DG.DataDisplayMenu.hideSelectedSing")
       : t("DG.DataDisplayMenu.hideSelectedPlural"),
-    numUnselected = dataConfig?.unselectedCases.length ?? 0,
+    numUnselected = menuOpen ? (dataConfig?.unselectedCases.length ?? 0) : 0,
     hideUnselectedIsDisabled = numUnselected === 0,
     hideUnselectedString = numUnselected === 1 ? t("DG.DataDisplayMenu.hideUnselectedSing")
       : t("DG.DataDisplayMenu.hideUnselectedPlural"),
