@@ -12,7 +12,9 @@ import {
 import { PointDisplayType } from "../data-display-types"
 import { IDataConfigurationModel } from "../models/data-configuration-model"
 import { IDisplayItemDescriptionModel } from "../models/display-item-description-model"
-import { LegendBinsSelect, LegendColorControls, LegendRangeInputs } from "./legend-color-controls"
+import {
+  LegendBinCountInput, LegendBinsSelect, LegendColorControls, LegendRangeInputs
+} from "./legend-color-controls"
 import { PlotBackgroundControls } from "./plot-background-controls"
 import { PointColorSetting } from "./point-color-setting"
 import { PointSizeSlider } from "./point-size-slider"
@@ -107,6 +109,7 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
 
       <If condition={attrType === "numeric"}>
         <LegendBinsSelect dataConfiguration={dataConfiguration} />
+        <LegendBinCountInput dataConfiguration={dataConfiguration} />
         <LegendRangeInputs dataConfiguration={dataConfiguration} />
       </If>
 

@@ -27,6 +27,7 @@ jest.mock("./point-size-slider", () => ({
 jest.mock("./legend-color-controls", () => ({
   LegendColorControls: () => <div data-testid="legend-color-controls">LegendColorControls</div>,
   LegendBinsSelect: () => <div data-testid="legend-bins-select">LegendBinsSelect</div>,
+  LegendBinCountInput: () => <div data-testid="legend-bin-count-input">LegendBinCountInput</div>,
   LegendRangeInputs: () => <div data-testid="legend-range-inputs">LegendRangeInputs</div>
 }))
 
@@ -105,6 +106,7 @@ describe("DisplayItemFormatControl", () => {
     )
 
     expect(screen.getByTestId("legend-bins-select")).toBeInTheDocument()
+    expect(screen.getByTestId("legend-bin-count-input")).toBeInTheDocument()
     expect(screen.getByTestId("legend-range-inputs")).toBeInTheDocument()
   })
 
@@ -121,6 +123,7 @@ describe("DisplayItemFormatControl", () => {
     )
 
     expect(screen.queryByTestId("legend-bins-select")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("legend-bin-count-input")).not.toBeInTheDocument()
     expect(screen.queryByTestId("legend-range-inputs")).not.toBeInTheDocument()
   })
 

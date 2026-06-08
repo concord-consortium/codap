@@ -5,7 +5,7 @@ import { toV2Id } from "../../utilities/codap-utils"
 import { defaultBackgroundColor, removeAlphaFromColor } from "../../utilities/color-utils"
 import { V2TileExportFn } from "../../v2/codap-v2-tile-exporters"
 import { CodapV2PlotType, guidLink, ICodapV2Adornment, ICodapV2GraphStorage, IGuidLink } from "../../v2/codap-v2-types"
-import { exportLegendQuantileProps, exportV3Properties, V2PlaceToV3AxisTypeMap } from "../../v2/codap-v2-type-utils"
+import { exportLegendQuantileStorage, exportV3Properties, V2PlaceToV3AxisTypeMap } from "../../v2/codap-v2-type-utils"
 import { AxisModelType, IAxisModel } from "../axis/models/axis-model"
 import { isAnyCategoricalAxisModel } from "../axis/models/categorical-axis-models"
 import { isAnyNumericAxisModel, isCountAxisModel, isPercentAxisModel } from "../axis/models/numeric-axis-models"
@@ -318,7 +318,7 @@ export const v2GraphExporter: V2TileExportFn = ({ tile }) => {
     isTransparent: graph.isTransparent,
     enableNumberToggle: graph.showParentToggles,
     numberToggleLastMode: graph.showOnlyLastCase,
-    ...exportLegendQuantileProps(graph.dataConfiguration),
+    ...exportLegendQuantileStorage(graph.dataConfiguration, { v2Native: true }),
     // attribute roles and types
     ...getAttrRoleAndType(graph, "x", "x"),
     ...getAttrRoleAndType(graph, "y", "y"),

@@ -600,4 +600,42 @@ describe("DataConfigurationModel legend range overrides", () => {
     tree.metadata.setAttributeLegendMin("legId", 50) // above the data, with max cleared
     expect(tree.config.legendNumericRange).toEqual({ min: 0, max: 40 })
   })
+
+  it("defaults to the smaller of 5 and the distinct-value count", () => {
+    // only 4 distinct legend values, so the default of 5 clamps to 4
+    expect(tree.config.legendNumericColorScale.range().length).toBe(4)
+  })
+
+  it("uses 5 bins by default once there are at least 5 distinct values", () => {
+    tree.data.addCases(toCanonical(tree.data, [
+      { __id__: "c5", leg: 60 }, { __id__: "c6", leg: 80 }
+    ]))
+    expect(tree.config.legendNumericColorScale.range().length).toBe(5)
+  })
+
+  it("uses the per-attribute bin count for the number of legend bins", () => {
+    tree.metadata.setAttributeBinCount("legId", 3)
+    expect(tree.config.legendNumericColorScale.range().length).toBe(3)
+  })
+
+  it("clamps the bin count to the number of distinct values", () => {
+    // 4 distinct values -> cannot exceed 4 bins even if more are requested
+    tree.metadata.setAttributeBinCount("legId", 10)
+    expect(tree.config.legendNumericColorScale.range().length).toBe(4)
+  })
+
+  it("floors the bin count at 2", () => {
+    tree.metadata.setAttributeBinCount("legId", 1)
+    expect(tree.config.legendNumericColorScale.range().length).toBe(2)
+  })
+
+  it("coerces a fractional stored bin count to an integer", () => {
+    // A fractional value can only reach the model by bypassing the (normalizing) setter -- e.g.
+    // restoring a hand-edited/legacy snapshot. Patch one in directly to exercise the getter.
+    tree.metadata.setAttributeBinCount("legId", 3)
+    applyPatch(tree.metadata, { op: "replace", path: "/attributes/legId/scale/binCount", value: 2.6 })
+    // the reported count is an integer, matching the rendered color-ramp length
+    expect(tree.config.legendBinCount).toBe(3)
+    expect(tree.config.legendNumericColorScale.range().length).toBe(3)
+  })
 })

@@ -1,5 +1,6 @@
 import {
-  changeAttributeColorNotification, changePointColorAndAlphaNotification, changePointColorNotification,
+  changeAttributeColorNotification, changeLegendBinCountNotification, changeLegendBinsTypeNotification,
+  changeLegendRangeNotification, changePointColorAndAlphaNotification, changePointColorNotification,
   changePointSizeNotification, changeStrokeColorAndAlphaNotification, swapCategoriesNotification,
   toggleStrokeSameAsFillNotification
 } from "./data-display-notifications"
@@ -162,5 +163,61 @@ describe("changeAttributeColorNotification", () => {
 
   it("returns undefined when the tile is missing", () => {
     expect(changeAttributeColorNotification(undefined, "#000000", "low")).toBeUndefined()
+  })
+})
+
+describe("changeLegendBinCountNotification", () => {
+  it("emits 'change legend bin count' with the effective count for graph", () => {
+    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    const notification = changeLegendBinCountNotification(tile, 3)
+    expect(notification?.message.values.operation).toBe("change legend bin count")
+    expect(notification?.message.values.binCount).toBe(3)
+    expect(notification?.message.values.type).toBe("DG.GraphView")
+    expect(notification?.message.values.diType).toBe("graph")
+  })
+
+  it("emits 'change legend bin count' for map", () => {
+    const tile = { id: "MAP1", content: { type: "Map" } } as any
+    const notification = changeLegendBinCountNotification(tile, 7)
+    expect(notification?.message.values.binCount).toBe(7)
+    expect(notification?.message.values.type).toBe("DG.MapView")
+  })
+
+  it("returns undefined when the tile is missing", () => {
+    expect(changeLegendBinCountNotification(undefined, 3)).toBeUndefined()
+  })
+})
+
+describe("changeLegendRangeNotification", () => {
+  it("emits 'change legend range' with both bounds", () => {
+    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    const notification = changeLegendRangeNotification(tile, 10, 20)
+    expect(notification?.message.values.operation).toBe("change legend range")
+    expect(notification?.message.values.min).toBe(10)
+    expect(notification?.message.values.max).toBe(20)
+  })
+
+  it("carries undefined for a bound that falls back to the data extent", () => {
+    const tile = { id: "MAP1", content: { type: "Map" } } as any
+    const notification = changeLegendRangeNotification(tile, undefined, 20)
+    expect(notification?.message.values.min).toBeUndefined()
+    expect(notification?.message.values.max).toBe(20)
+  })
+
+  it("returns undefined when the tile is missing", () => {
+    expect(changeLegendRangeNotification(undefined, 0, 1)).toBeUndefined()
+  })
+})
+
+describe("changeLegendBinsTypeNotification", () => {
+  it("emits 'change legend bins type' with the binning type", () => {
+    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    const notification = changeLegendBinsTypeNotification(tile, "quantize")
+    expect(notification?.message.values.operation).toBe("change legend bins type")
+    expect(notification?.message.values.binningType).toBe("quantize")
+  })
+
+  it("returns undefined when the tile is missing", () => {
+    expect(changeLegendBinsTypeNotification(undefined, "quantile")).toBeUndefined()
   })
 })

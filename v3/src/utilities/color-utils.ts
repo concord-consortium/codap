@@ -163,8 +163,10 @@ export function lowColorFromBase(baseColor: string, lightness = 0.92, satScale =
   return hex.toLowerCase() === "#ffffff" ? "#f7f9fb" : hex
 }
 
-// Returns an array of five colors transitioning between color1 and color2
-export function getChoroplethColors(color1: string, color2: string) {
-  const midColor = (percentage: number) => interpolateColors(color1, color2, percentage)
-  return [color1, midColor(.25), midColor(.5), midColor(.75), color2]
+// Returns `count` colors evenly interpolated between color1 and color2 (endpoints included).
+// Defaults to five colors, preserving the original behavior for callers that don't pass a count.
+export function getChoroplethColors(color1: string, color2: string, count = 5) {
+  if (count <= 1) return [color1]
+  return Array.from({ length: count }, (_, i) =>
+    i === 0 ? color1 : i === count - 1 ? color2 : interpolateColors(color1, color2, i / (count - 1)))
 }

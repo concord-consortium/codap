@@ -189,3 +189,49 @@ describe("imports/exports to current v2 map documents", () => {
     })
   })
 })
+
+describe("V2 map legend bin count round-trip", () => {
+  // No existing map fixture has a numeric legend, so we configure one programmatically (export) or
+  // inject one into the v2 storage (import). Maps store the count only under the layer's v3 namespace.
+  beforeEach(() => {
+    resetMocks()
+  })
+
+  it("exports a non-default legend bin count under the layer's v3 namespace", () => {
+    const { v2Document } = loadCodapDocument("roller-coasters-map-layer-formats.codap")
+    const v2MapTile = v2Document.components.find(c => c.type === "DG.MapView")!
+    const tile = v2MapImporter({ v2Component: v2MapTile, v2Document, ...mockImporterArgs })
+    const content = isMapContentModel(tile?.content) ? tile.content : undefined
+    const layer = content!.layers.find((l: any) => l.type === "mapPointLayer")! as any
+    const dataConfig = layer.dataConfiguration
+    const numericAttr = dataConfig.dataset.attributes.find((a: any) => a?.type === "numeric")
+    dataConfig.setAttribute("legend", { attributeID: numericAttr.id, type: "numeric" })
+    dataConfig.metadata.setAttributeBinCount(numericAttr.id, 3)
+
+    const out = v2MapExporter({ tile: tile! })
+    const layerModels = (out!.componentStorage as any).mapModelStorage.layerModels
+    const exportedLayer = layerModels.find((l: any) => l.v3?.numberOfLegendQuantiles != null)
+    expect(exportedLayer?.v3?.numberOfLegendQuantiles).toBe(3)
+  })
+
+  it("imports a layer's v3 numberOfLegendQuantiles onto the legend attribute's binCount", () => {
+    const { v2Document } = loadCodapDocument("roller-coasters-map-layer-formats.codap")
+    const v2MapTile = v2Document.components.find(c => c.type === "DG.MapView")!
+    // give the first layer a numeric legend with a non-default bin count
+    let attrGuid: number | undefined
+    v2Document.guidMap.forEach((entry, guid) => {
+      if (attrGuid == null && entry.type === "DG.Attribute") attrGuid = guid
+    })
+    const layer = (v2MapTile.componentStorage as any).mapModelStorage.layerModels[0]
+    layer._links_.legendAttr = { type: "DG.Attribute", id: attrGuid }
+    layer.legendAttributeType = 1
+    layer.v3 = { numberOfLegendQuantiles: 8 }
+
+    const tile = v2MapImporter({ v2Component: v2MapTile, v2Document, ...mockImporterArgs })
+    const content = isMapContentModel(tile?.content) ? tile.content : undefined
+    const layerWithLegend = content!.layers.find((l: any) => l.dataConfiguration?.attributeID("legend"))! as any
+    const dataConfig = layerWithLegend.dataConfiguration
+    const legendId = dataConfig.attributeID("legend")
+    expect(dataConfig.metadata.getAttributeBinCount(legendId)).toBe(8)
+  })
+})

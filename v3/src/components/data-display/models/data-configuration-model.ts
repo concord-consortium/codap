@@ -32,6 +32,12 @@ import {
 } from "../data-display-types"
 import { dataDisplayGetNumericValue } from "../data-display-value-utils"
 
+// Default number of bins/colors for a numeric legend. The inspector control treats an override
+// equal to this default as "no override" and clears it rather than storing it redundantly; the
+// metadata layer itself does not special-case the default, so a value of 5 set directly (e.g. via
+// a patch/import/plugin) is stored as-is.
+export const kDefaultLegendBinCount = 5
+
 export const AttributeDescription = types
   .model('AttributeDescription', {
     attributeID: types.string,
@@ -100,7 +106,6 @@ export const DataConfigurationModel = types
     hiddenCases: types.array(types.string),
     displayOnlySelectedCases: types.maybe(types.boolean),
     filterFormula: types.maybe(Formula),
-    numberOfLegendQuantiles: types.maybe(types.number),
     legendQuantilesAreLocked: types.maybe(types.boolean),
     legendQuantiles: types.array(types.number)
   })
@@ -518,10 +523,26 @@ export const DataConfigurationModel = types
     get caseDataHash() {
       return hashStringSets(self.filteredCases.map(cases => cases.caseIds))
     },
+    // Effective number of legend bins: the per-attribute override (default kDefaultLegendBinCount),
+    // clamped to [2, cap] where cap = min(#points, #distinct values). A degenerate legend (<=1
+    // distinct value) collapses to a single bin/color.
+    get legendBinCount() {
+      const values = self.numericValuesForAttrRole("legend") ?? []
+      const cap = Math.min(values.length, new Set(values).size)
+      if (cap < 2) return 1
+      const legendAttrId = self.attributeID("legend")
+      // Coerce to a finite integer so the reported count matches the rendered color-ramp length
+      // (getChoroplethColors truncates a fractional length); a non-finite stored value (e.g. from a
+      // legacy/hand-edited snapshot that bypassed the normalizing setter) falls back to the default.
+      const stored = self.metadata?.getAttributeBinCount(legendAttrId)
+      const requested = stored != null && Number.isFinite(stored) ? Math.round(stored) : kDefaultLegendBinCount
+      return Math.max(2, Math.min(requested, cap))
+    },
     get choroplethColors() {
       return getChoroplethColors(
         self.lowColor,
-        self.highColor
+        self.highColor,
+        this.legendBinCount
       )
     }
   }))
@@ -917,9 +938,6 @@ export const DataConfigurationModel = types
     },
   }))
   .actions(self => ({
-    setNumberOfLegendQuantiles(numQuantiles: number | undefined) {
-      self.numberOfLegendQuantiles = numQuantiles
-    },
     setLegendQuantiles(quantiles: number[]) {
       self.legendQuantiles.replace(quantiles)
     },
@@ -931,13 +949,11 @@ export const DataConfigurationModel = types
         const scale = self.legendNumericColorScale
         const thresholds = getScaleThresholds(scale)
         this.setLegendQuantiles(thresholds)
-        this.setNumberOfLegendQuantiles(thresholds.length)
         self._legendNumericColorScale = scale
       }
       else {
         self._legendNumericColorScale = null
         this.setLegendQuantiles([])
-        this.setNumberOfLegendQuantiles(undefined)
       }
       self.legendQuantilesAreLocked = areLocked
     },

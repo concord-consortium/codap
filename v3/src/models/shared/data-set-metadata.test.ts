@@ -289,6 +289,51 @@ describe("DataSetMetadata", () => {
     expect(restored.getAttributeLegendRange("aId")).toEqual({ min: 5, max: 40 })
   })
 
+  it("stores a per-attribute legend bin count", () => {
+    expect(tree.metadata.getAttributeBinCount("aId")).toBeUndefined()
+    tree.metadata.setAttributeBinCount("aId", 8)
+    expect(tree.metadata.getAttributeBinCount("aId")).toBe(8)
+  })
+
+  it("clears the bin count and removes the scale node once it is empty", () => {
+    tree.metadata.setAttributeBinCount("aId", 8)
+    expect(tree.metadata.attributes.get("aId")?.scale).toBeDefined()
+    tree.metadata.setAttributeBinCount("aId", undefined)
+    expect(tree.metadata.getAttributeBinCount("aId")).toBeUndefined()
+    expect(tree.metadata.attributes.get("aId")?.scale).toBeUndefined()
+  })
+
+  it("normalizes a fractional bin count to an integer", () => {
+    tree.metadata.setAttributeBinCount("aId", 3.7)
+    expect(tree.metadata.getAttributeBinCount("aId")).toBe(4)
+  })
+
+  it("floors the stored bin count at 2", () => {
+    tree.metadata.setAttributeBinCount("aId", 1)
+    expect(tree.metadata.getAttributeBinCount("aId")).toBe(2)
+  })
+
+  it("treats a non-finite bin count as clearing the override", () => {
+    tree.metadata.setAttributeBinCount("aId", 8)
+    tree.metadata.setAttributeBinCount("aId", NaN)
+    expect(tree.metadata.getAttributeBinCount("aId")).toBeUndefined()
+    expect(tree.metadata.attributes.get("aId")?.scale).toBeUndefined()
+  })
+
+  it("does not create attribute metadata when clearing an unset bin count", () => {
+    expect(tree.metadata.attributes.get("cId")).toBeUndefined()
+    tree.metadata.setAttributeBinCount("cId", undefined)
+    expect(tree.metadata.attributes.get("cId")).toBeUndefined()
+  })
+
+  it("keeps the scale node when a bin count remains after clearing legend bounds", () => {
+    tree.metadata.setAttributeBinCount("aId", 8)
+    tree.metadata.setAttributeLegendMin("aId", 5)
+    tree.metadata.setAttributeLegendMin("aId", undefined)
+    expect(tree.metadata.attributes.get("aId")?.scale).toBeDefined()
+    expect(tree.metadata.getAttributeBinCount("aId")).toBe(8)
+  })
+
   it("responds appropriately when no DataSet is associated", () => {
     tree.metadata.setData()
     // ignores collapse calls before DataSet is associated
