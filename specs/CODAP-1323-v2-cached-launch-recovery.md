@@ -106,21 +106,25 @@ universal.
 
 ### 3.4 Which build was cached (and the concurrent V2 `latest` promotion)
 
-Pre-cutover, `/app` served the **Feb 20** build: `/releases/latest` and `/v2` both resolve to
-it (confirmed by matching `ETag` mtime tokens), while the May 22 build (`build_0745`) sits at
-its own path. Pointing `latest`→`build_0745` — making May 22 the **official** V2 release — is
-a **planned part of today's release**, concurrent with V3 going live; it had simply not yet
-landed when this analysis was captured (it is not a failed step).
+Pre-cutover, `/app` served the **Feb 20** build (`build_0744`): `/releases/latest` and `/v2`
+resolved to it, while the May 22 build (`build_0745`) sat at its own path. Pointing
+`latest`→`build_0745` — making May 22 the **official** V2 release — was part of today's
+release, concurrent with V3 going live; it had simply not yet landed when this analysis was
+captured (it was not a failed step). It has since **landed**: `latest` (and the `/v2` and
+`/app` origin symlinks that follow it) now resolve to `build_0745`, and `codap.concord.org/v2`
+serves it (verified after a `/v2/*` CloudFront invalidation).
 
 Two consequences for this recovery, neither of which changes the design:
 
-- The cached-and-broken documents are **Feb-20-dated**, which sets the heuristic-freshness
-  window (~10 days) and therefore the recovery's teardown horizon (§9).
+- The cached-and-broken documents are **Feb-20-dated** (`build_0744`), which sets the
+  heuristic-freshness window (~10 days) and therefore the recovery's teardown horizon (§9).
+  Note `build_0744`'s and `build_0745`'s entry shell/config are byte-identical (§5.2), so the
+  promotion does not change the cached-shell population the recovery serves.
 - Because the recovery pins to the explicit immutable `build_0745` path (not the mutable
-  `latest` symlink — see §5.2), it is **unaffected by the timing of the `latest`
-  promotion**, and a recovered user lands on the same V2 build that becomes the official
-  `latest` today. The promotion itself changes `/v2` and `/releases/latest`, not `/app`, so
-  it neither causes nor fixes the cached-`/app` failure.
+  `latest` symlink — see §5.2), it is **unaffected by the `latest` promotion**, and a
+  recovered user lands on the same V2 build that is now the official `latest`. The promotion
+  changes `/v2` and `/releases/latest`, not `/app`, so it neither causes nor fixes the
+  cached-`/app` failure.
 
 ---
 
@@ -218,9 +222,9 @@ facts that make this safe:
   `javascript-packed.js` differs (2 774 685 vs 2 775 174 B). The shell is a build-agnostic
   bootstrap that loads a stable-named packed bundle, so a cached Feb 20 shell boots the
   May 22 app cleanly — there is no cross-build mismatch at the shell level.
-- Pinning to an explicit build (not `latest`) **decouples** this recovery from the concurrent
-  `latest`→`build_0745` promotion (§11, planned for today): that promotion won't disturb the
-  carve-outs, and a recovered user lands on the same build that becomes the official `latest`.
+- Pinning to an explicit build (not `latest`) **decouples** this recovery from the
+  `latest`→`build_0745` promotion (§11, now landed): that promotion does not disturb the
+  carve-outs, and a recovered user lands on the same build that is now the official `latest`.
 
 Residual (negligible) risk: a user with the Feb 20 *packed JS* cached but the *shell*
 evicted, who then loads a resource that changed between builds. Requires the 2.77 MB file to
@@ -383,11 +387,11 @@ instead of hanging.
    carve-outs match the other behaviors on the response-headers policy).
 3. **Confirm the teardown date** once the actual last-pre-cutover traffic is known; adjust
    §9 if `/app` turns out to have served a build with a more recent `Last-Modified`.
-4. **Concurrent V2 `latest` promotion** (§3.4): pointing `/releases/latest`→`build_0745` —
-   the official May 22 V2 release — is planned for **today**, alongside the V3 go-live (with a
-   `/releases/latest/*` + `/v2/*` invalidation if those are edge-cached). It is **independent
-   of** this recovery, which pins `build_0745` explicitly and behaves identically before or
-   after the promotion. No action needed here beyond confirming the promotion lands.
+4. **V2 `latest` promotion — landed** (§3.4): `/releases/latest` was repointed to `build_0745`
+   (the official May 22 V2 release) on flip day, alongside the V3 go-live, and `/v2/*` was
+   invalidated on the live distribution. It is **independent of** this recovery, which pins
+   `build_0745` explicitly and behaves identically regardless. No further action — noted for
+   context.
 
 ---
 
