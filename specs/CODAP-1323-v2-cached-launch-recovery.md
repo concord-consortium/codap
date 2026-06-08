@@ -19,9 +19,9 @@ Some users — on some browsers — report that CODAP now **fails to launch (han
 
 1. Lays out the **failure analysis** — the specific chain of conditions under which a
    *cached* V2 app fails to launch after the cutover (Section 3).
-2. Gives an engineer a concrete way to **verify that assumed failure mode** before
-   implementing anything — the diagnosis here is well-supported by response evidence but
-   has **not** been reproduced end-to-end in a browser (Section 4).
+2. Gives an engineer a concrete way to **verify that failure mode** before implementing
+   anything (Section 4). It has now been **reproduced end-to-end in a browser** (2026-06-08,
+   via §4.2 DevTools Local Overrides), confirming the §3 mechanism.
 3. Proposes a **recovery** that lets a stale cached V2 app **finish booting and keep
    running V2** until its cached HTML naturally expires, at which point it migrates to V3 on
    its own — with no forced redirect and no change for fresh V3 users (Sections 5–7).
@@ -84,10 +84,18 @@ bookmarks). The failure is a **side effect** on already-cached V2 apps, analyzed
 
 A browser that still holds the V2 shell from before the flip serves it **from cache without
 revalidating** (it's heuristically fresh). The shell then re-requests `javascript-packed.js`
-and gets back an **HTML page instead of JavaScript** → the script fails to parse/execute
-(`Uncaught SyntaxError: Unexpected token '<'`) → SproutCore never initializes → the app
-hangs on a blank / "Loading" screen. (`codap-config.js` independently 404s.) Clearing the
-cache forces the shell URL to revalidate, which now resolves to V3, and the app loads.
+(plus the packed stylesheets and `codap-lib-bundle.js.ignore`) and gets back an **HTML page
+instead of JavaScript**. Because the synthetic response is served as `text/html`, the browser
+**refuses to execute it under strict MIME-type checking** (`Refused to execute script … because
+its MIME type ('text/html') is not executable`) rather than attempting to parse it — so `DG` is
+never defined (`Uncaught ReferenceError: DG is not defined`) → SproutCore never initializes →
+the app hangs on a blank / "Loading" screen. (`codap-config.js` independently 404s.) Clearing
+the cache forces the shell URL to revalidate, which now resolves to V3, and the app loads.
+
+> The earlier draft predicted a parse-time `Uncaught SyntaxError: Unexpected token '<'`. The
+> browser-reproduced reality (§4.2, 2026-06-08) is the **strict-MIME refusal** above — execution
+> is blocked before any parse — but the cause (`.js` URL → `text/html`) and outcome (`DG`
+> undefined → hang) are identical.
 
 ### 3.3 Why only *some* users / *some* browsers
 
@@ -130,9 +138,9 @@ Two consequences for this recovery, neither of which changes the design:
 
 ## 4. Verifying the failure mode (do this before implementing)
 
-The diagnosis in §3 is supported by response evidence but has **not** been reproduced in a
-browser. An engineer picking this up should confirm the assumption first. Three levels, in
-increasing fidelity:
+The diagnosis in §3 was reproduced in a browser on **2026-06-08** via §4.2 (DevTools Local
+Overrides), confirming the mechanism. The procedures below remain useful to re-confirm before
+deploying or after any function change. Three levels, in increasing fidelity:
 
 ### 4.1 Confirm the server-side smoking gun (seconds, no browser)
 
@@ -163,9 +171,31 @@ This recreates "stale V2 shell at the `/app` URL + live post-cutover endpoints":
 3. Override **only** `https://codap.concord.org/app/static/dg/en/cert/index.html` with
    `shell.html`. Leave the asset URLs (`javascript-packed.js`, `codap-config.js`)
    **un-overridden** so they hit the live function.
-4. Navigate to the overridden URL. **Expected:** Console shows
-   `Uncaught SyntaxError: Unexpected token '<'` from `javascript-packed.js`, the Network tab
-   shows that request returning `text/html`, and the app hangs — i.e. the production symptom.
+4. **Relax CSP on the overridden response** so the failure you observe is the production
+   MIME/404 symptom and not a Content-Security-Policy block masking it. Alongside the override,
+   create a `.headers` file in the same override folder as the shell — i.e.
+   `…/codap.concord.org/app/static/dg/en/cert/.headers` — with:
+   ```json
+   [
+     {
+       "applyTo": "*",
+       "headers": [
+         {
+           "name": "Content-Security-Policy",
+           "value": "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; img-src * data:;"
+         }
+       ]
+     }
+   ]
+   ```
+   (DevTools Overrides applies `.headers` to matching responses; `applyTo: "*"` covers the shell
+   and its subresources in that directory.)
+5. Navigate to the overridden URL. **Expected** (reproduced 2026-06-08): the Network tab shows
+   `javascript-packed.js` returning `text/html`; the Console shows
+   `Refused to execute script … because its MIME type ('text/html') is not executable, and
+   strict MIME type checking is enabled` (for `javascript-packed.js`, `codap-lib-bundle.js.ignore`,
+   and the packed stylesheets), a `404` for `codap-config.js`, and `Uncaught ReferenceError: DG is
+   not defined`; the app hangs — i.e. the production symptom.
 
 ### 4.3 Reproduce the *cache* path faithfully — local MITM proxy (optional)
 
@@ -380,8 +410,9 @@ instead of hanging.
 
 ## 11. Open items for the implementing engineer
 
-1. **Verify the failure mode** per Section 4 before deploying. The whole change assumes the
-   §3 mechanism.
+1. **Verify the failure mode** per Section 4 — **done** (2026-06-08, §4.2 Local Overrides): the
+   browser reproduces the hang, confirming the §3 mechanism. Re-confirm with §4.1 before
+   deploying if the redirect function has changed since.
 2. **`config.env` inputs** (git-ignored): confirm the V2 origin is the auto-detected
    "codap server" origin in `modify-clone.sh`, and whether `RHP_REQUIRED=true` (so the
    carve-outs match the other behaviors on the response-headers policy).

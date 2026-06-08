@@ -229,6 +229,36 @@ describe.each([
     })
   })
 
+  describe('CODAP-1323 cached-launch recovery -- clear-site-data on subresource redirects', () => {
+    // A redirect-matched *subresource* (the asset a stale cached V2 shell re-fetches) carries
+    // `clear-site-data: "cache"` so the browser evicts that shell; a *navigation* must not, so
+    // the synthetic->V3 redirect (and the post-recovery V3 load) keeps the cache intact.
+    test.each([
+      '/app/static/dg/en/cert/javascript-packed.js',
+      '/app/static/dg/en/cert/stylesheet-packed-0.css',
+      '/app/static/dg/en/cert/resources/build/codap-lib-bundle.js.ignore',
+      '/app/static/dg/fr/cert/javascript-packed.js'
+    ])('%s (subresource) -> clear-site-data "cache"', (uri) => {
+      const res = handler(makeEvent(uri))
+      expect(res.statusCode).toBe(200)                                  // still the synthetic page
+      expect(res.headers['clear-site-data'].value).toBe('"cache"')
+    })
+
+    test.each([
+      '/app',                                       // R1 exact (extensionless)
+      '/v3',                                         // R6a (extensionless)
+      '/v3/some/deep/path',                          // R6a deep nav (extensionless)
+      '/app/static/dg/en/cert/index.html',          // cert shell (.html)
+      '/app/static/dg/en/cert/',                     // cert dir (trailing slash)
+      '/app/static/dg/en/cert',                      // cert dir (slashless, extensionless)
+      '/releases/latest/'                            // R4 (trailing slash)
+    ])('%s (navigation) -> NO clear-site-data', (uri) => {
+      const res = handler(makeEvent(uri))
+      expect(res.statusCode).toBe(200)                                  // synthetic page, clean redirect
+      expect(res.headers['clear-site-data']).toBeUndefined()
+    })
+  })
+
   describe('logging + exception paths (R23, R30, R18b -- SE-J1)', () => {
     test('per-match redirect line: tag + R17a-processed destination (LOG_ENABLED=true)', () => {
       const { handler: h, logs } = loadHandlerCapturingLogs(sourceFile)

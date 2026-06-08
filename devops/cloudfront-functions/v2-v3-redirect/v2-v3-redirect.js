@@ -32,6 +32,13 @@ var RE_APP_LANG  = /^\/app\/static\/dg\/([A-Za-z]{2,3}(?:-[A-Za-z]{2,4})?)\/cert
 var RE_REL_LANG  = /^\/releases\/[^/]+\/static\/dg\/([A-Za-z]{2,3}(?:-[A-Za-z]{2,4})?)\/cert(?:\/.*)?$/
 var RE_RELEASES  = /^\/releases\/[^/]+(?:\/.*)?$/
 var RE_V3        = /^\/v3(?:\/.*)?$/   // R6a -- /v3 and /v3/* are an alias of current V3 (/app/)
+// CODAP-1323 cached-launch recovery: a redirect-matched path that is a *document* navigation
+// -- a trailing slash, an extensionless last segment (/app, /v3, /v3/deep/path, .../cert), or
+// /index.html (or any .html). These keep a clean synthetic->V3 redirect. Anything else under a
+// redirect match has a real file extension, i.e. it is a subresource (.js/.css/.ignore/...) a
+// stale cached V2 shell re-fetches; its synthetic response carries `clear-site-data: "cache"`
+// to evict that shell (see handler). Only genuine subresources clear -- never a navigation.
+var RE_NAV       = /(\/[^/.]*|\.html)$/
 
 // --- Synthetic-response HTML (R19, R19a-c, R20, R20a) -----------------------------------
 // Static body text only (R19a). The single request-derived value, {lang}, is embedded ONLY
@@ -146,19 +153,23 @@ function logDestination(lang, rawQuery) {
   return V3_DEST + '?' + out.join('&')
 }
 
-function buildResponse(lang) {
+function buildResponse(lang, addClearCache) {
+  var headers = {
+    'content-type':           { value: 'text/html; charset=utf-8' },
+    'cache-control':          { value: 'no-store' },
+    'content-security-policy':{ value: "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'" },
+    'x-content-type-options': { value: 'nosniff' }
+    // 'strict-transport-security' is added here ONLY if R26a's synthetic-response check
+    // (Step 5) finds the response-headers policy does not cover this synthetic response
+    // (R20a HSTS contingency / CR8).
+  }
+  if (addClearCache) {
+    headers['clear-site-data'] = { value: '"cache"' }
+  }
   return {
     statusCode: 200,
     statusDescription: 'OK',
-    headers: {
-      'content-type':           { value: 'text/html; charset=utf-8' },
-      'cache-control':          { value: 'no-store' },
-      'content-security-policy':{ value: "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'" },
-      'x-content-type-options': { value: 'nosniff' }
-      // 'strict-transport-security' is added here ONLY if R26a's synthetic-response check
-      // (Step 5) finds the response-headers policy does not cover this synthetic response
-      // (R20a HSTS contingency / CR8).
-    },
+    headers: headers,
     body: HTML_HEAD + jsStringEscape(lang) + HTML_TAIL
   }
 }
@@ -211,7 +222,10 @@ function handler(event) {
                   ' qs=' + logSafe(rawQuery) +
                   ' action=redirect dest=' + logSafe(logDestination(lang, rawQuery)))
     }
-    return buildResponse(lang)
+
+    var addClearCache = !RE_NAV.test(uri)
+
+    return buildResponse(lang, addClearCache)
   } catch (e) {
     // R18b -- a caught error returns a valid `request`, which CloudFront counts as a
     // SUCCESSFUL execution: it does NOT register on FunctionExecutionErrors. This log line
