@@ -881,8 +881,9 @@ export const DataConfigurationModel = types
         // rather than animating. This is essential while data streams in (e.g. one case at a
         // time via a plugin): otherwise each added case restarts a fresh transition every frame,
         // and because the transition clock resets each time, existing points never advance toward
-        // their new positions until streaming stops. matchCirclesToData consumes this flag to skip
-        // startAnimation. (See updateFilterFormulaResults for the analogous slider/filter case.)
+        // their new positions until streaming stops. matchCirclesToData consumes this flag to stop
+        // any in-flight animation and skip startAnimation. (See updateFilterFormulaResults for the
+        // analogous slider/filter case.)
         self.suppressAnimation = true
         this.invalidateCases()
       }
