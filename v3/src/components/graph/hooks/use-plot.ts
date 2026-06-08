@@ -103,6 +103,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   const { refreshPointPositions, refreshPointSelection, renderer} = props,
     graphModel = useGraphContentModelContext(),
     startAnimation = graphModel.startAnimation,
+    stopAnimation = graphModel.stopAnimation,
     layout = useGraphLayoutContext(),
     dataConfiguration = graphModel.dataConfiguration,
     legendAttrID = dataConfiguration?.attributeID("legend"),
@@ -145,10 +146,10 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
         pointDisplayType: graphModel.plot.displayType,
         pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
         renderer,
-        startAnimation, instanceId
+        startAnimation, stopAnimation, instanceId
       })
     }
-  }, [dataConfiguration, graphModel, instanceId, renderer, startAnimation])
+  }, [dataConfiguration, graphModel, instanceId, renderer, startAnimation, stopAnimation])
 
   // Track the previous renderer to detect actual renderer changes
   const prevRendererRef = useRef<typeof renderer>(undefined)

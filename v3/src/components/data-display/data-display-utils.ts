@@ -83,12 +83,13 @@ export interface IMatchCirclesProps {
   pointDisplayType?: PointDisplayType
   pointStrokeColor: string
   startAnimation: () => void
+  stopAnimation?: () => void
   instanceId: string | undefined
   renderer: PointRendererBase
 }
 
 export function matchCirclesToData(props: IMatchCirclesProps) {
-  const { dataConfiguration, renderer, startAnimation, pointRadius, pointColor, pointStrokeColor,
+  const { dataConfiguration, renderer, startAnimation, stopAnimation, pointRadius, pointColor, pointStrokeColor,
           pointDisplayType = "points" } = props
   // TODO: eliminate dependence on GraphDataConfigurationModel
   const allCaseData: CaseDataWithSubPlot[] = isGraphDataConfigurationModel(dataConfiguration)
@@ -98,6 +99,10 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
   // Skip animation when filter formula results were just recalculated (e.g., slider value changed),
   // so points/bars update instantly instead of animating in/out.
   if (dataConfiguration.suppressAnimation) {
+    // Actively stop any in-flight animation (its 2s timer may have been armed earlier, e.g. during
+    // initial plot setup, and outlive a fast streaming burst). Skipping startAnimation alone leaves
+    // that timer running, so point refreshes still get duration>0 transitions and freeze.
+    stopAnimation?.()
     dataConfiguration.setSuppressAnimation(false)
   } else {
     startAnimation()
