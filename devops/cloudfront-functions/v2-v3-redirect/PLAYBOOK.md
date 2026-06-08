@@ -234,6 +234,50 @@ current prod.
 
 ---
 
+## Recipe 7 -- Enable / tear down the TEMPORARY V2 cached-launch recovery
+
+Background and full failure analysis:
+[`../../../specs/CODAP-1323-v2-cached-launch-recovery.md`](../../../specs/CODAP-1323-v2-cached-launch-recovery.md).
+After the flip, a stale **cached** V2 shell re-requests its assets under `/app/static/*` and
+`/app/codap-config.js`; the redirect function returns synthetic HTML there, so the shell
+hangs on launch. This recipe routes those paths to the V2 origin (pinned build) so the
+cached app finishes booting; it is removed once pre-cutover shells age out of caches
+(~2-3 weeks).
+
+### Enable
+
+```bash
+# 1. Deploy + publish the recovery function to LIVE.
+( cd ../v2-asset-recovery && ./deploy-function.sh )      # FUNCTION_NAME defaults to codap-app-v2-recovery
+
+# 2. Turn the carve-outs on and apply to the clone.
+#    In config.env:  RECOVERY_APP_V2_ASSETS=true   (and RECOVERY_FUNCTION_NAME=codap-app-v2-recovery)
+./modify-clone.sh
+aws cloudfront wait distribution-deployed --id "$CLONE_DIST_ID"
+./verify-clone.sh                                        # expect zero unexpected diffs (entries already allowlisted)
+
+# 3. Spot-check (was text/html / 404 before):
+curl -sI https://codap.concord.org/app/static/dg/en/cert/javascript-packed.js | grep -i content-type   # text/javascript
+curl -sI https://codap.concord.org/app/codap-config.js | grep -i '^HTTP'                                 # 200
+curl -sI https://codap.concord.org/app/ | grep -i cache-control                                          # no-cache (V3 intact)
+```
+
+### Tear down (~2-3 weeks post-cutover)
+
+```bash
+# In config.env:  RECOVERY_APP_V2_ASSETS=false
+./modify-clone.sh                                        # strips the three /app/* carve-outs
+aws cloudfront wait distribution-deployed --id "$CLONE_DIST_ID"
+./verify-clone.sh
+# Optional: aws cloudfront delete-function --name codap-app-v2-recovery --if-match <etag>
+```
+
+Leave the `expected-diff.md` recovery entries in place (harmless when the behaviors are
+absent). If `modify-clone.sh` was touched, update `expected-diff.md` and re-mirror notes
+per Recipe 1's tail.
+
+---
+
 ## When to add a new recipe to this file
 
 If you do the same multi-file update twice in a row, write it down. Recipes here should

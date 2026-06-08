@@ -1,0 +1,12 @@
+{
+  "version": "1.0",
+  "context": { "eventType": "viewer-request", "requestId": "test-app-extn-plugin" },
+  "viewer": { "ip": "127.0.0.1" },
+  "request": {
+    "method": "GET",
+    "uri": "/app/extn/plugins/noaa-codap-plugin/index.html",
+    "querystring": {},
+    "headers": { "host": { "value": "codap.concord.org" } },
+    "cookies": {}
+  }
+}

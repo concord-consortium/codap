@@ -1,0 +1,12 @@
+{
+  "version": "1.0",
+  "context": { "eventType": "viewer-request", "requestId": "test-app-static-packed-js" },
+  "viewer": { "ip": "127.0.0.1" },
+  "request": {
+    "method": "GET",
+    "uri": "/app/static/dg/en/cert/javascript-packed.js",
+    "querystring": {},
+    "headers": { "host": { "value": "codap.concord.org" } },
+    "cookies": {}
+  }
+}

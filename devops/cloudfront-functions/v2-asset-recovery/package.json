@@ -1,0 +1,21 @@
+{
+  "name": "codap-app-v2-recovery",
+  "version": "0.0.0",
+  "private": true,
+  "description": "CODAP-1323 V2 cached-launch recovery CloudFront Function (temporary, post-cutover).",
+  "scripts": {
+    "test": "jest",
+    "build": "bash ./build-function.sh"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "terser": "^5.31.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "<rootDir>/v2-asset-recovery.test.js"
+    ],
+    "globalSetup": "<rootDir>/jest.globalSetup.js"
+  }
+}

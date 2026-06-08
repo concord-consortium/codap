@@ -66,6 +66,19 @@ prose around it is for the human reviewer who signs G-criteria.
 + .CacheBehaviors.Items[?(@.PathPattern=='/v3')]
 + .CacheBehaviors.Items[?(@.PathPattern=='/v3/*')]
 
+# 3a. TEMPORARY V2 cached-launch recovery carve-outs (CODAP-1323 follow-on; spec
+#     specs/CODAP-1323-v2-cached-launch-recovery.md). Present ONLY when modify-clone.sh runs
+#     with RECOVERY_APP_V2_ASSETS=true; absent (and harmless to leave allowlisted) otherwise.
+#     They route the V2 asset paths under /app to the V2 origin via the recovery function so
+#     stale cached V2 shells can finish booting. Remove these lines when the feature is
+#     permanently retired.
++ .CacheBehaviors.Items[?(@.PathPattern=='/app/static/*')]
++ .CacheBehaviors.Items[?(@.PathPattern=='/app/codap-config.js')]
++ .CacheBehaviors.Items[?(@.PathPattern=='/app/extn/*')]
++ .CacheBehaviors.Items[?(@.PathPattern=='/app/static/*')].FunctionAssociations.Items
++ .CacheBehaviors.Items[?(@.PathPattern=='/app/codap-config.js')].FunctionAssociations.Items
++ .CacheBehaviors.Items[?(@.PathPattern=='/app/extn/*')].FunctionAssociations.Items
+
 # 4. CacheBehaviors.Quantity changes with the new behaviors.
 ~ .CacheBehaviors.Quantity
 
@@ -105,6 +118,13 @@ prose around it is for the human reviewer who signs G-criteria.
   The clone uses the structurally-identical `S3-CORS` (`d41b1d60-f629-4499-93ba-a45153f58bbc`)
   -- same TTL bounds, cache key, and forwarded headers/cookies/querystrings; only Name and
   Comment differ. Caching behavior on these plugin-asset paths is unchanged.
+- **TEMPORARY V2 cached-launch recovery carve-outs** (`/app/static/*`,
+  `/app/codap-config.js`, `/app/extn/*`) -- present only when `modify-clone.sh` runs with
+  `RECOVERY_APP_V2_ASSETS=true`. They route to the **V2 origin** with the **recovery
+  function** (`codap-app-v2-recovery`, distinct from the redirect function) attached, at
+  higher precedence than `/app/*`, so stale cached V2 shells can finish booting after the
+  cutover. See `specs/CODAP-1323-v2-cached-launch-recovery.md`. Removed at teardown by
+  setting the flag back to `false` and re-running `modify-clone.sh`.
 
 Any other difference -- a different policy id, an unexpected pattern, a touched origin,
 a change to the default cache behavior, an alteration to `/v2`, `/v2/*`, `/~user/*`,

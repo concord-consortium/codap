@@ -84,10 +84,34 @@ else
   echo "RHP_REQUIRED=false -- no response-headers policy attached"
 fi
 
+# V2 cached-launch recovery carve-outs (TEMPORARY; CODAP-1323 follow-on). Spec:
+# specs/CODAP-1323-v2-cached-launch-recovery.md. Gated off by default. When
+# RECOVERY_APP_V2_ASSETS=true, three head-of-array carve-outs route the V2 asset paths under
+# /app (/app/static/*, /app/codap-config.js, /app/extn/*) to the V2 origin via the SEPARATE
+# recovery function ($RECOVERY_FUNCTION_NAME), so stale cached V2 shells can finish booting.
+# Set the flag back to false and re-run to remove them at teardown.
+RECOVERY_APP_V2_ASSETS="${RECOVERY_APP_V2_ASSETS:-false}"
+RECOVERY_FN_ARN=""
+RECOVERY_ENABLED_JSON=false
+if [ "$RECOVERY_APP_V2_ASSETS" = "true" ]; then
+  RECOVERY_ENABLED_JSON=true
+  RECOVERY_FN_ARN=$(aws cloudfront describe-function --name "${RECOVERY_FUNCTION_NAME:-codap-app-v2-recovery}" \
+    --stage LIVE --query 'FunctionSummary.FunctionMetadata.FunctionARN' --output text 2>/dev/null || echo "")
+  if [ -z "$RECOVERY_FN_ARN" ] || [ "$RECOVERY_FN_ARN" = "None" ]; then
+    echo "FAIL: RECOVERY_APP_V2_ASSETS=true but ${RECOVERY_FUNCTION_NAME:-codap-app-v2-recovery} is not published to LIVE -- run ../v2-asset-recovery/deploy-function.sh first"
+    exit 1
+  fi
+  echo "RECOVERY_APP_V2_ASSETS=true -- adding /app V2 asset recovery carve-outs (fn ARN: $RECOVERY_FN_ARN)"
+else
+  echo "RECOVERY_APP_V2_ASSETS=false -- no V2 asset recovery carve-outs (teardown removes any present)"
+fi
+
 jq --arg fnArn "$FUNCTION_ARN" \
    --arg v3Origin "$V3_S3_ORIGIN_ID" \
    --arg v2Origin "$V2_ORIGIN_ID" \
    --arg rhpId   "$RHP_TO_USE" \
+   --arg recoveryFnArn "$RECOVERY_FN_ARN" \
+   --argjson recoveryEnabled "$RECOVERY_ENABLED_JSON" \
    '
    # Cache-policy id used by the existing /app behavior (so new behaviors stay consistent).
    (.CacheBehaviors.Items[]? | select(.PathPattern == "/app/*") | .CachePolicyId // "") as $cpid
@@ -122,6 +146,17 @@ jq --arg fnArn "$FUNCTION_ARN" \
        | (if with_fn then attach_fn(.) else . + { FunctionAssociations: { Quantity: 0 } } end)
        | maybe_rhp(.) ;
 
+   # V2 cached-launch recovery carve-out: V2 origin + the SEPARATE recovery function, which
+   # strips /app and pins build_0745 (it never redirects). Spec:
+   # specs/CODAP-1323-v2-cached-launch-recovery.md. Only invoked when $recoveryEnabled.
+   def new_behavior_recovery(path; origin):
+       ($template + { PathPattern: path, TargetOriginId: origin })
+       | .FunctionAssociations = {
+           Quantity: 1,
+           Items: [{ FunctionARN: $recoveryFnArn, EventType: "viewer-request" }]
+         }
+       | maybe_rhp(.) ;
+
    # Mutate existing /app, /app/*, /releases/* behaviors.
    .CacheBehaviors.Items |= map(
        if .PathPattern == "/app" or .PathPattern == "/app/*" or .PathPattern == "/releases/*"
@@ -131,17 +166,35 @@ jq --arg fnArn "$FUNCTION_ARN" \
      )
 
    # New carve-outs (V2 origin, no function attached) -- inserted at the head of the array.
+   # First strip any existing V2 cached-launch recovery carve-outs so this script is
+   # idempotent AND supports teardown: when $recoveryEnabled is false they are removed and
+   # not re-added; when true they are removed then re-prepended fresh. These exact patterns
+   # are created only by this feature, so filtering them is safe (CODAP-1323 follow-on).
+   | .CacheBehaviors.Items |= map(select(
+       (.PathPattern != "/app/static/*")
+       and (.PathPattern != "/app/codap-config.js")
+       and (.PathPattern != "/app/extn/*")
+     ))
    | .CacheBehaviors.Items =
-       [
-         new_behavior("/releases/.gapikey";        $v2Origin; false),
-         new_behavior("/releases/staging";         $v2Origin; false),
-         new_behavior("/releases/staging/*";       $v2Origin; false),
-         new_behavior("/releases/zips/*";          $v2Origin; false),
-         new_behavior("/releases/var/*";           $v2Origin; false),
-         new_behavior("/releases/apple-touch-icon.png"; $v2Origin; false),
-         new_behavior("/v3";                       $v3Origin; true),
-         new_behavior("/v3/*";                     $v3Origin; true)
-       ] + .CacheBehaviors.Items
+       (
+         [
+           new_behavior("/releases/.gapikey";        $v2Origin; false),
+           new_behavior("/releases/staging";         $v2Origin; false),
+           new_behavior("/releases/staging/*";       $v2Origin; false),
+           new_behavior("/releases/zips/*";          $v2Origin; false),
+           new_behavior("/releases/var/*";           $v2Origin; false),
+           new_behavior("/releases/apple-touch-icon.png"; $v2Origin; false),
+           new_behavior("/v3";                       $v3Origin; true),
+           new_behavior("/v3/*";                     $v3Origin; true)
+         ]
+         # Temporary V2 cached-launch recovery carve-outs (V2 origin + recovery function).
+         # Non-overlapping with the carve-outs above and ahead of the general /app/* pattern.
+         + (if $recoveryEnabled then [
+             new_behavior_recovery("/app/static/*";        $v2Origin),
+             new_behavior_recovery("/app/codap-config.js"; $v2Origin),
+             new_behavior_recovery("/app/extn/*";          $v2Origin)
+           ] else [] end)
+       ) + .CacheBehaviors.Items
    # Idempotency: on a re-run, the prepended new behaviors already exist further down
    # in the array from the previous run. Dedup by PathPattern, keep first occurrence
    # so the freshly-prepended copy wins and precedence is preserved (head = highest).
