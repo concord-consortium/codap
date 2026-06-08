@@ -104,15 +104,23 @@ item to be evicted while the small (~11 KB) shell survives — which is exactly 
 combination. This is why the symptom is intermittent across users and browsers rather than
 universal.
 
-### 3.4 A complicating finding (does not change the fix, but the engineer should know)
+### 3.4 Which build was cached (and the concurrent V2 `latest` promotion)
 
-`/app` was **supposed** to serve the May 22 build (`build_0745`) but the promotion to
-`latest` apparently never ran: `/releases/latest` and `/v2` both still resolve to the
-**Feb 20** build (confirmed by matching `ETag` mtime tokens), while `build_0745` (May 22)
-sits at its own path. So the cached-and-broken documents are **Feb-20-dated**, which sets the
-heuristic-freshness window (~10 days) and therefore the recovery's teardown horizon (§9).
-Fixing the `latest` promotion is **separate** from this recovery and is noted as an open
-item (§11).
+Pre-cutover, `/app` served the **Feb 20** build: `/releases/latest` and `/v2` both resolve to
+it (confirmed by matching `ETag` mtime tokens), while the May 22 build (`build_0745`) sits at
+its own path. Pointing `latest`→`build_0745` — making May 22 the **official** V2 release — is
+a **planned part of today's release**, concurrent with V3 going live; it had simply not yet
+landed when this analysis was captured (it is not a failed step).
+
+Two consequences for this recovery, neither of which changes the design:
+
+- The cached-and-broken documents are **Feb-20-dated**, which sets the heuristic-freshness
+  window (~10 days) and therefore the recovery's teardown horizon (§9).
+- Because the recovery pins to the explicit immutable `build_0745` path (not the mutable
+  `latest` symlink — see §5.2), it is **unaffected by the timing of the `latest`
+  promotion**, and a recovered user lands on the same V2 build that becomes the official
+  `latest` today. The promotion itself changes `/v2` and `/releases/latest`, not `/app`, so
+  it neither causes nor fixes the cached-`/app` failure.
 
 ---
 
@@ -210,8 +218,9 @@ facts that make this safe:
   `javascript-packed.js` differs (2 774 685 vs 2 775 174 B). The shell is a build-agnostic
   bootstrap that loads a stable-named packed bundle, so a cached Feb 20 shell boots the
   May 22 app cleanly — there is no cross-build mismatch at the shell level.
-- Pinning to an explicit build (not `latest`) **decouples** this recovery from the separate
-  `latest`→`build_0745` promotion fix (§11): fixing `latest` won't disturb the carve-outs.
+- Pinning to an explicit build (not `latest`) **decouples** this recovery from the concurrent
+  `latest`→`build_0745` promotion (§11, planned for today): that promotion won't disturb the
+  carve-outs, and a recovered user lands on the same build that becomes the official `latest`.
 
 Residual (negligible) risk: a user with the Feb 20 *packed JS* cached but the *shell*
 evicted, who then loads a resource that changed between builds. Requires the 2.77 MB file to
@@ -374,10 +383,11 @@ instead of hanging.
    carve-outs match the other behaviors on the response-headers policy).
 3. **Confirm the teardown date** once the actual last-pre-cutover traffic is known; adjust
    §9 if `/app` turns out to have served a build with a more recent `Last-Modified`.
-4. **Separate fix — the `latest` promotion that never ran** (§3.4): `/releases/latest` and
-   `/v2` still serve the Feb 20 build instead of `build_0745`. Decide whether to repoint
-   `latest`→`build_0745` (with a `/releases/latest/*` + `/v2/*` invalidation). Independent of
-   this recovery.
+4. **Concurrent V2 `latest` promotion** (§3.4): pointing `/releases/latest`→`build_0745` —
+   the official May 22 V2 release — is planned for **today**, alongside the V3 go-live (with a
+   `/releases/latest/*` + `/v2/*` invalidation if those are edge-cached). It is **independent
+   of** this recovery, which pins `build_0745` explicitly and behaves identically before or
+   after the promotion. No action needed here beyond confirming the promotion lands.
 
 ---
 
