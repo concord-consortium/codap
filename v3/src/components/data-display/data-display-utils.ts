@@ -83,7 +83,7 @@ export interface IMatchCirclesProps {
   pointDisplayType?: PointDisplayType
   pointStrokeColor: string
   startAnimation: () => void
-  stopAnimation?: () => void
+  stopAnimation: () => void
   instanceId: string | undefined
   renderer: PointRendererBase
 }
@@ -102,7 +102,7 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
     // Actively stop any in-flight animation (its 2s timer may have been armed earlier, e.g. during
     // initial plot setup, and outlive a fast streaming burst). Skipping startAnimation alone leaves
     // that timer running, so point refreshes still get duration>0 transitions and freeze.
-    stopAnimation?.()
+    stopAnimation()
     dataConfiguration.setSuppressAnimation(false)
   } else {
     startAnimation()
