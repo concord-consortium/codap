@@ -95,7 +95,7 @@ const ColorRangeModel = types.model("ColorRangeModel", {
   }
 }))
 
-export const AttributeBinningTypes = ["quantize", "quantile"] as const
+export const AttributeBinningTypes = ["quantize", "quantile", "logarithmic"] as const
 export type AttributeBinningType = typeof AttributeBinningTypes[number]
 
 // This is an object so it can be expanded in the future to store

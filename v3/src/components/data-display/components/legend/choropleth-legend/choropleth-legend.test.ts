@@ -1,5 +1,5 @@
 /* eslint-disable testing-library/render-result-naming-convention */
-import { scaleQuantile, scaleQuantize } from "d3"
+import { scaleQuantile, scaleQuantize, scaleThreshold } from "d3"
 import { choroplethLegend } from "./choropleth-legend"
 
 // jest-canvas-mock's measureText returns 0-width, which defeats the label-collision logic; mock the
@@ -126,6 +126,44 @@ describe("choroplethLegend", () => {
     const endpoints = Array.from(g.querySelectorAll<SVGTextElement>(".legend-axis-label text"))
       .map(t => parseFloat(t.textContent ?? ""))
     expect(endpoints).toEqual([101, 108])
+  })
+
+  it("formats logarithmic legend labels with uniform significant figures", () => {
+    // A scaleThreshold with log-spaced (equal-ratio) boundaries is the logarithmic legend's scale.
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g")
+    // range [100, 10000], 4 bins -> 3 equal-ratio thresholds (~316, 1000, ~3162)
+    const logMin = 100, logMax = 10000, n = 4
+    const thresholds = Array.from({ length: n - 1 }, (_, i) => logMin * Math.pow(logMax / logMin, (i + 1) / n))
+    const scale = scaleThreshold<number, string>().domain(thresholds).range(colors.slice(0, n))
+    choroplethLegend(scale, g, {
+      width: 600, marginLeft: 6, marginRight: 6, marginTop: 20, ticks: 5,
+      legendMin: logMin, legendMax: logMax, logarithmic: true,
+      clickHandler: () => undefined, casesInBinSelectedHandler: () => false
+    })
+    const tickLabels = Array.from(g.querySelectorAll(".legend-axis .tick text")).map(t => t.textContent)
+    const endpoints = Array.from(g.querySelectorAll<SVGTextElement>(".legend-axis-label text"))
+      .map(t => t.textContent)
+    // 1 sig fig already distinguishes every boundary; labels round to uniform significant figures
+    // ("300", "3000") rather than the decimal-place rounding a linear legend would use ("316", "3162").
+    expect(tickLabels).toEqual(["300", "1000", "3000"])
+    expect(endpoints).toEqual(["100", "10000"])
+  })
+
+  it("labels the lowest log bin as open-above-zero so missing non-positive values aren't implied", () => {
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g")
+    const logMin = 100, logMax = 10000, n = 4
+    const thresholds = Array.from({ length: n - 1 }, (_, i) => logMin * Math.pow(logMax / logMin, (i + 1) / n))
+    const scale = scaleThreshold<number, string>().domain(thresholds).range(colors.slice(0, n))
+    choroplethLegend(scale, g, {
+      width: 600, marginLeft: 6, marginRight: 6, marginTop: 20, ticks: 5,
+      legendMin: logMin, legendMax: logMax, logarithmic: true,
+      clickHandler: () => undefined, casesInBinSelectedHandler: () => false
+    })
+    const tooltips = Array.from(g.querySelectorAll("title")).map(t => t.textContent)
+    // First bin is open above zero (values <= 0 are missing, not in the bin), not "< 300".
+    expect(tooltips[0]).toBe(">0 - 300")
+    // The top bin stays open-ended upward (above-max positives still clamp into it).
+    expect(tooltips[tooltips.length - 1]).toBe("≥ 3000")
   })
 
   it("renders interior tick labels without any tick marks (matching the markless narrow case)", () => {

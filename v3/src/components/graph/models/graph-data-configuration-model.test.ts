@@ -2,6 +2,7 @@ import { reaction } from "mobx"
 import {applyPatch, Instance, types} from "mobx-state-tree"
 import { DataSet, toCanonical } from "../../../models/data/data-set"
 import {DataSetMetadata} from "../../../models/shared/data-set-metadata"
+import { missingColor } from "../../../utilities/color-utils"
 import { kMain } from "../../data-display/data-display-types"
 import {GraphDataConfigurationModel, isGraphDataConfigurationModel} from "./graph-data-configuration-model"
 
@@ -637,5 +638,76 @@ describe("DataConfigurationModel legend range overrides", () => {
     // the reported count is an integer, matching the rendered color-ramp length
     expect(tree.config.legendBinCount).toBe(3)
     expect(tree.config.legendNumericColorScale.range().length).toBe(3)
+  })
+
+  it("builds a scaleThreshold with equal-ratio cut points in logarithmic mode", () => {
+    // legend values 0,10,20,40 from beforeEach; smallest positive is 10, max is 40
+    tree.metadata.setAttributeBinningType("legId", "logarithmic")
+    tree.metadata.setAttributeBinCount("legId", 2)
+    // 2 bins -> 1 threshold at the geometric midpoint of [10, 40] = 20
+    const thresholds = tree.config.legendNumericColorScale.domain()
+    expect(thresholds).toHaveLength(1)
+    expect(thresholds[0]).toBeCloseTo(20, 6)
+  })
+
+  it("floors the log domain to the smallest positive value (ignoring non-positive data)", () => {
+    tree.metadata.setAttributeBinningType("legId", "logarithmic")
+    // smallest positive value (10), not the data min (0), is the low endpoint
+    expect(tree.config.legendDisplayRange).toEqual({ min: 10, max: 40 })
+  })
+
+  it("ignores a Min override <= 0 in logarithmic mode but honors a positive Min and the Max", () => {
+    tree.metadata.setAttributeBinningType("legId", "logarithmic")
+    tree.metadata.setAttributeLegendMin("legId", -5)   // invalid for log -> ignored
+    expect(tree.config.legendDisplayRange.min).toBe(10) // falls back to smallest positive
+    tree.metadata.setAttributeLegendMin("legId", 5)     // positive override honored
+    tree.metadata.setAttributeLegendMax("legId", 30)
+    expect(tree.config.legendDisplayRange).toEqual({ min: 5, max: 30 })
+  })
+
+  it("colors non-positive values as missing in logarithmic mode", () => {
+    tree.metadata.setAttributeBinningType("legId", "logarithmic")
+    expect(tree.config.getLegendColorForNumericValue(-1)).toBe(missingColor)
+    expect(tree.config.getLegendColorForNumericValue(0)).toBe(missingColor)
+    // a positive value gets a real bin color, not the missing color
+    expect(tree.config.getLegendColorForNumericValue(15)).not.toBe(missingColor)
+  })
+
+  it("falls back to the positive data extent when a logarithmic override range is reversed", () => {
+    tree.metadata.setAttributeBinningType("legId", "logarithmic")
+    tree.metadata.setAttributeLegendMin("legId", 100)
+    tree.metadata.setAttributeLegendMax("legId", 40) // reversed (min >= max)
+    // rather than blanking the legend, fall back to the positive data extent [smallest positive, max]
+    expect(tree.config.legendDisplayRange).toEqual({ min: 10, max: 40 })
+  })
+
+  it("degenerates to a single bin when the data has no positive values", () => {
+    // build a dataset with only non-positive legend values (the honest degenerate condition)
+    const t = TreeModel.create({ data: {}, metadata: {}, config: {} })
+    t.data.addAttribute({ id: "legId", name: "leg" })
+    t.metadata.setData(t.data)
+    t.data.addCases(toCanonical(t.data, [
+      { __id__: "n1", leg: 0 }, { __id__: "n2", leg: -3 }, { __id__: "n3", leg: -10 }
+    ]))
+    t.config.setDataset(t.data, t.metadata)
+    t.config.setAttribute("legend", { attributeID: "legId" })
+    t.metadata.setAttributeBinningType("legId", "logarithmic")
+    expect(t.config.legendNumericColorScale.domain()).toHaveLength(0)
+  })
+
+  it("excludes non-positive cases from the first bin when logarithmic", () => {
+    // a negative case (case ids are auto-generated, so assert on values rather than a literal id)
+    tree.data.addCases(toCanonical(tree.data, [{ leg: -7 }]))
+    tree.metadata.setAttributeBinningType("legId", "logarithmic")
+    const firstThreshold = tree.config.legendNumericColorScale.domain()[0]
+    const bin0Cases = tree.config.getCasesForLegendBin(0)
+    // every case in the first bin must be a positive value below the first threshold; the
+    // non-positive case (and the zero from beforeEach) must be excluded as "missing".
+    expect(bin0Cases.length).toBeGreaterThan(0)
+    bin0Cases.forEach(id => {
+      const v = tree.data.getNumeric(id, "legId")!
+      expect(v).toBeGreaterThan(0)
+      expect(v).toBeLessThan(firstThreshold)
+    })
   })
 })

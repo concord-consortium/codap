@@ -567,6 +567,46 @@ export const DataConfigurationModel = types
       }
       return { min, max }
     },
+    // The positive log domain for a logarithmic legend: upper bound = a positive Max override else the
+    // positive data max; lower bound = a positive Min override else the smallest positive value within
+    // the range (an override <= 0 is invalid for a log scale and ignored). An invalid/reversed override
+    // (min >= max) falls back to the positive data extent rather than blanking the legend (mirroring
+    // legendNumericRange); only a data set with no usable positive range (<= 1 distinct positive value)
+    // returns {} (degenerate -> single bin / blank legend).
+    get legendLogDomain(): { min?: number, max?: number } {
+      const values = self.numericValuesForAttrRole("legend") ?? []
+      const legendAttrId = self.attributeID("legend")
+      const { min: overrideMin, max: overrideMax } =
+        self.metadata?.getAttributeLegendRange(legendAttrId) ?? {}
+      const [, dataMax] = extent(values)
+      // Smallest positive value <= cap, found in a single pass; a spread (Math.min(...values)) would
+      // expand the whole array into call arguments and can overflow for large datasets.
+      const smallestPositiveUpTo = (cap: number) => {
+        let smallest: number | undefined
+        for (const v of values) {
+          if (v > 0 && v <= cap && (smallest == null || v < smallest)) smallest = v
+        }
+        return smallest
+      }
+      let max = overrideMax != null && overrideMax > 0 ? overrideMax : dataMax
+      let min = overrideMin != null && overrideMin > 0
+        ? overrideMin
+        : max != null ? smallestPositiveUpTo(max) : undefined
+      // A reversed/invalid override range falls back to the positive data extent rather than blanking.
+      if (min == null || max == null || max <= 0 || min >= max) {
+        max = dataMax
+        min = max != null && max > 0 ? smallestPositiveUpTo(max) : undefined
+      }
+      if (min == null || max == null || max <= 0 || min >= max) return {}
+      return { min, max }
+    },
+    get legendIsLogarithmic(): boolean {
+      return self.metadata?.getAttributeBinningType(self.attributeID("legend")) === "logarithmic"
+    },
+    // Endpoint labels to display: the log domain in logarithmic mode, else the linear/quantile range.
+    get legendDisplayRange(): { min?: number, max?: number } {
+      return this.legendIsLogarithmic ? this.legendLogDomain : this.legendNumericRange
+    },
     get legendNumericColorScale() {
       // TODO: Handle the displayOnlySelectedCases better. What we would like to do is
       // to basically ignore displayOnlySelectedCases when computing the legend bins.
@@ -612,6 +652,19 @@ export const DataConfigurationModel = types
           // scaleQuantize maps out-of-domain values to the nearest range extreme automatically
           return scaleQuantize([effectiveMin, effectiveMax], self.choroplethColors)
         }
+        case "logarithmic": {
+          const { min: logMin, max: logMax } = this.legendLogDomain
+          const colors = self.choroplethColors
+          // Degenerate range -> single bin (threshold scale with no cut points, one color).
+          if (logMin == null || logMax == null) {
+            return scaleThreshold<number, string>().domain([]).range([colors[0]])
+          }
+          const n = colors.length // == legendBinCount
+          const ratio = logMax / logMin
+          // n-1 equal-ratio cut points: t_i = logMin * ratio^(i/n)
+          const thresholds = Array.from({ length: n - 1 }, (_, i) => logMin * Math.pow(ratio, (i + 1) / n))
+          return scaleThreshold<number, string>().domain(thresholds).range(colors)
+        }
         case "quantile":
         default: {
           const filtered = overrideMin == null && overrideMax == null
@@ -634,6 +687,9 @@ export const DataConfigurationModel = types
       },
 
       getLegendColorForNumericValue(value: number): string {
+        // A log scale is undefined for values <= 0; color them as missing rather than letting the
+        // threshold scale place them in the lowest bin.
+        if (self.legendIsLogarithmic && value <= 0) return missingColor
         return self.legendNumericColorScale(value)
       },
 
@@ -720,7 +776,12 @@ export const DataConfigurationModel = types
       getCasesForLegendBin(bin: number) {
         const scale = self.legendNumericColorScale
         const thresholds = getScaleThresholds(scale)
-        const min = bin === 0 ? -Infinity : thresholds[bin - 1]
+        // In logarithmic mode, values <= 0 are "missing" (not in any bin), so the first bin starts
+        // just above 0 rather than at -Infinity; otherwise the first bin captures everything below
+        // its upper threshold, including the non-positive values colored as missing.
+        const min = bin === 0
+          ? (self.legendIsLogarithmic ? Number.MIN_VALUE : -Infinity)
+          : thresholds[bin - 1]
         const max = bin === thresholds.length ? Infinity : thresholds[bin]
         return self.getCasesInLegendRange(min, max)
       }

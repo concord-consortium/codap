@@ -4,7 +4,7 @@ import { measureTextExtent } from "../../../../../hooks/use-measure-text"
 import {
   determineLevels, formatDate, kDatePrecisionNone, mapLevelToPrecision
 } from "../../../../../utilities/date-utils"
-import { binBoundaryDecimalPlaces } from "../../../../../utilities/math-utils"
+import { binBoundaryDecimalPlaces, binBoundarySignificantFigures } from "../../../../../utilities/math-utils"
 import { kChoroplethHeight, kDataDisplayFont } from "../../../data-display-types"
 
 // Gap (px) below the color bar before the label text. Used both as the axis tickPadding for the
@@ -21,6 +21,12 @@ export type ChoroplethLegendProps = {
   // this for year-like attributes (which are typed numeric, not date) so years render as "2024", not
   // "2,024" — matching how CODAP formats numbers elsewhere (see getNumFormatterForAttribute).
   useGrouping?: boolean,
+  // When true, the legend renders a logarithmic (equal-ratio) scale. This (a) formats numeric labels
+  // with a uniform number of significant figures rather than decimal places, since the boundaries
+  // span orders of magnitude (significant figures is the log dual of fixed decimal places); and
+  // (b) labels the lowest bin as open-above-zero (">0 - t₁") rather than "< t₁", because values <= 0
+  // are excluded as missing rather than clamped into the first bin.
+  logarithmic?: boolean,
   width?: number,
   rectHeight?: number,
   transform?: string,
@@ -48,6 +54,8 @@ function isScaleQuantize(scale: ChoroplethScale): scale is ScaleQuantize<string>
 }
 
 export function getScaleThresholds(scale: ChoroplethScale) {
+  // The remaining case is ScaleThreshold, whose domain() IS its array of cut points (used by the
+  // logarithmic legend).
   return isScaleQuantile(scale) ? scale.quantiles()
     : isScaleQuantize(scale) ? scale.thresholds()
       : scale.domain()
@@ -64,7 +72,7 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
   }
 
   const {
-      isDate, useGrouping = false, transform = '', width = 320,
+      isDate, useGrouping = false, logarithmic = false, transform = '', width = 320,
       marginTop = 0, marginRight = 0, marginLeft = 0,
       ticks = 5, legendMin, legendMax, clickHandler, casesInBinSelectedHandler
     } = props,
@@ -89,9 +97,14 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
     // rather than "0, 0.5, 1.00") and stops a narrow range like 100–110 from collapsing to
     // "100, 100, 110" the way a fixed 2-significant-figure format did.
     decimalPlaces = binBoundaryDecimalPlaces(fullBoundaries),
+    // Logarithmic (equal-ratio) boundaries span orders of magnitude, so format them with a uniform
+    // number of significant figures (the log-scale dual of the linear case's uniform decimal places).
+    sigFigs = binBoundarySignificantFigures(fullBoundaries),
     formatBoundary = isDate
       ? (value: number) => formatDate(value * 1000, datePrecision) ?? ''
-      : format(`${useGrouping ? ',' : ''}.${decimalPlaces}f`)
+      : logarithmic
+        ? format(`${useGrouping ? ',' : ''}.${sigFigs}r`)
+        : format(`${useGrouping ? ',' : ''}.${decimalPlaces}f`)
 
   const legendScale = scaleLinear()
       .domain([-1, scale.range().length - 1])
@@ -142,7 +155,13 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
       // bins, so the first bin covers everything below its upper threshold and the last everything
       // at-or-above its lower threshold. Show those open-ended (rather than the [min, max] domain),
       // which is only correct once the user can narrow the range (CODAP-1292).
-      if (lastBin > 0 && bin === 0) return `< ${formatBoundary(fullBoundaries[1])}`
+      // In logarithmic mode values <= 0 are excluded as missing rather than clamped into the first
+      // bin, so label it open-above-zero (">0 - t₁") rather than the unbounded "< t₁".
+      if (lastBin > 0 && bin === 0) {
+        return logarithmic
+          ? `>0 - ${formatBoundary(fullBoundaries[1])}`
+          : `< ${formatBoundary(fullBoundaries[1])}`
+      }
       if (lastBin > 0 && bin === lastBin) return `≥ ${formatBoundary(fullBoundaries[bin])}`
       return `${formatBoundary(fullBoundaries[bin])} - ${formatBoundary(fullBoundaries[bin + 1])}`
     })
