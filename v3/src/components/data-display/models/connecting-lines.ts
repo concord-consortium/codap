@@ -51,6 +51,11 @@ export interface IConnectingLinesRenderInput {
 
 type StyleInput = Pick<IConnectingLinesRenderInput, "svg" | "showConnectingLines" | "style">
 
+// A line is styled as selected only when every case on it is selected.
+function groupAllSelected(group: ILineGroup, style: IConnectingLinesStyle) {
+  return group.caseIds.length > 0 && group.caseIds.every(id => style.isCaseSelected(id))
+}
+
 export class ConnectingLines {
   private svg: SVGGElement | undefined
   private groups = new Map<string, ILineGroup>()
@@ -100,8 +105,13 @@ export class ConnectingLines {
     return caseList.slice(prev)
   }
 
-  restyleSelection(_input: StyleInput) {
-    // Implemented in Task 3.
+  restyleSelection(input: StyleInput) {
+    if (!input.svg || !input.showConnectingLines) return
+    select(input.svg).selectAll<SVGPathElement, ILineGroup>("path.connecting-line")
+      .each(function (d) {
+        const sel = groupAllSelected(d, input.style)
+        select(this).classed("selected", sel).attr("stroke-width", sel ? 4 : 2)
+      })
   }
 
   destroy() {
@@ -167,10 +177,6 @@ export class ConnectingLines {
     return results
   }
 
-  private allSelected(group: ILineGroup, style: IConnectingLinesStyle) {
-    return group.caseIds.length > 0 && group.caseIds.every(id => style.isCaseSelected(id))
-  }
-
   private join(input: IConnectingLinesRenderInput, data: ILineGroup[]) {
     const area = select(input.svg)
     const lineGen = d3Line().curve(curveLinear)
@@ -205,8 +211,8 @@ export class ConnectingLines {
     // style
     merged
       .attr("stroke", d => input.style.getGroupColor(d))
-      .attr("stroke-width", d => this.allSelected(d, input.style) ? 4 : 2)
-      .classed("selected", d => this.allSelected(d, input.style))
+      .attr("stroke-width", d => groupAllSelected(d, input.style) ? 4 : 2)
+      .classed("selected", d => groupAllSelected(d, input.style))
 
     // interaction (rebound each render so closures stay fresh; datum carries caseIds/primaryValue)
     merged

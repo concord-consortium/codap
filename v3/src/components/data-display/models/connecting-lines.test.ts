@@ -134,4 +134,24 @@ describe("ConnectingLines", () => {
     cl.render(makeInput(svg, ["c2", "c1", "c3"], coords, { getLineForCase }))
     expect(getLineForCase).toHaveBeenCalledTimes(3)
   })
+
+  it("restyleSelection updates selected styling without recomputing coords", () => {
+    const svg = makeSvg()
+    const cl = new ConnectingLines()
+    const coords: Record<string, [number, number]> = { c1: [0, 0], c2: [10, 10] }
+    const getLineForCase = jest.fn((caseID: string) =>
+      coords[caseID] ? { caseData: { __id__: caseID }, lineCoords: coords[caseID] } : undefined)
+    cl.render(makeInput(svg, ["c1", "c2"], coords, { getLineForCase }))
+    getLineForCase.mockClear()
+
+    cl.restyleSelection({
+      svg, showConnectingLines: true,
+      style: { getGroupColor: () => "#f00", isCaseSelected: () => true }
+    })
+
+    const path = svg.querySelector("path.connecting-line")!
+    expect(path.classList.contains("selected")).toBe(true)
+    expect(path.getAttribute("stroke-width")).toBe("4")
+    expect(getLineForCase).not.toHaveBeenCalled()
+  })
 })
