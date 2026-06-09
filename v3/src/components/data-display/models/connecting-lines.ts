@@ -201,7 +201,10 @@ export class ConnectingLines {
       .attr("fill", "none")
       .attr("stroke-linejoin", "round")
       .style("cursor", "pointer")
-    if (input.dataTip) enter.call(input.dataTip)
+    // Attach the tooltip only when paths actually enter: d3-tip's getSVGNode dereferences
+    // selection.node(), which is null for an empty enter selection (e.g. incremental updates with no
+    // new groups), throwing "Cannot read properties of null (reading 'tagName')".
+    if (input.dataTip && !enter.empty()) enter.call(input.dataTip)
 
     const merged = enter.merge(sel)
 

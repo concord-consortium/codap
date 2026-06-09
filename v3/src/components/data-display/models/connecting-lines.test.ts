@@ -135,6 +135,25 @@ describe("ConnectingLines", () => {
     expect(getLineForCase).toHaveBeenCalledTimes(3)
   })
 
+  it("attaches the tooltip on entering paths but not on an incremental render with no new groups", () => {
+    const svg = makeSvg()
+    const cl = new ConnectingLines()
+    const coords: Record<string, [number, number]> = { c1: [0, 0], c2: [10, 10], c3: [20, 20] }
+    // d3-tip is applied via selection.call(tip); calling it on an empty enter selection throws
+    // (it dereferences selection.node()). Track and assert it is only called when paths enter.
+    const tipCall = jest.fn()
+    const tipMethods = { show: jest.fn(), hide: jest.fn(), attr: jest.fn(), html: jest.fn() }
+    const dataTip = Object.assign(tipCall, tipMethods) as unknown as IConnectingLinesRenderInput["dataTip"]
+
+    cl.render(makeInput(svg, ["c1", "c2"], coords, { dataTip }))
+    expect(tipCall).toHaveBeenCalledTimes(1) // one group entered
+
+    tipCall.mockClear()
+    // Append c3 to the same (only) group -> no new path enters -> tooltip must NOT be re-applied.
+    cl.render(makeInput(svg, ["c1", "c2", "c3"], coords, { dataTip }))
+    expect(tipCall).not.toHaveBeenCalled()
+  })
+
   it("restyleSelection updates selected styling without recomputing coords", () => {
     const svg = makeSvg()
     const cl = new ConnectingLines()
