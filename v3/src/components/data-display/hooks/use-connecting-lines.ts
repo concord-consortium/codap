@@ -16,6 +16,9 @@ interface IMouseOverProps {
 
 interface IDrawLines {
   allLineCaseIds: Record<string, string[]>
+  // When true, fade the lines in/out (an actual show/hide toggle). When false (e.g. a streaming
+  // case add or selection restyle), draw at full opacity with no transition.
+  animateChange?: boolean
   getLegendColor?: (caseID: string) => string | undefined
   lineGroups: Record<string, IConnectingLineDescription[]>
   parentAttrID?: string
@@ -25,6 +28,8 @@ interface IDrawLines {
 }
 
 interface IPrepareLineProps {
+  // See IDrawLines.animateChange.
+  animateChange?: boolean
   cellKey?: Record<string, string>
   connectingLines: IConnectingLineDescription[]
   getLegendColor?: (caseID: string) => string | undefined
@@ -36,7 +41,6 @@ interface IPrepareLineProps {
 
 interface IProps {
   clientType: "graph" | "map"
-  connectingLinesActivatedRef: React.MutableRefObject<boolean>
   connectingLinesSvg: SVGGElement | null
   renderer?: PointRendererBase
   yAttrCount?: number
@@ -46,7 +50,7 @@ interface IProps {
 
 export const useConnectingLines = (props: IProps) => {
   const {
-    clientType, connectingLinesSvg, connectingLinesActivatedRef, renderer, yAttrCount = 0,
+    clientType, connectingLinesSvg, renderer, yAttrCount = 0,
     isCaseInSubPlot, onConnectingLinesClick
   } = props
   const dataConfig = useDataConfigurationContext()
@@ -99,7 +103,7 @@ export const useConnectingLines = (props: IProps) => {
   const drawConnectingLines = useCallback((drawLinesProps: IDrawLines) => {
     if (!connectingLinesSvg) return
 
-    const { allLineCaseIds, getLegendColor, lineGroups, parentAttrName, pointColorAtIndex,
+    const { allLineCaseIds, animateChange, getLegendColor, lineGroups, parentAttrName, pointColorAtIndex,
             showConnectingLines } = drawLinesProps
     const curve = line().curve(curveLinear)
 
@@ -119,7 +123,7 @@ export const useConnectingLines = (props: IProps) => {
       const legendColor = firstCaseId ? getLegendColor?.(firstCaseId) : undefined
       const color = legendColor ?? pointColorAtIndex(cases[0].plotNum || 0)
 
-      connectingLinesArea
+      const path = connectingLinesArea
         .append("path")
         .data([allLineCoords])
         .attr("d", (d: any) => curve(d))
@@ -136,25 +140,35 @@ export const useConnectingLines = (props: IProps) => {
         .attr("stroke-width", allCasesSelected ? 4 : 2)
         .attr("stroke-linejoin", "round")
         .style("cursor", "pointer")
-        .style("opacity", connectingLinesActivatedRef.current ? 1 : 0)
-        .transition()
-        .duration(transitionDuration)
-        .style("opacity", showConnectingLines ? 1 : 0)
-        // Use regular function to access `this` (the path element that finished transitioning)
-        .on("end", function() {
-          connectingLinesActivatedRef.current = showConnectingLines
-          // Remove only this specific path when hiding (not all paths) to avoid race conditions
-          // where a stale "hide" transition callback could remove paths from a newer "show" transition
-          if (!showConnectingLines) {
-            select(this).remove()
-          }
-        })
+
+      if (animateChange) {
+        // Show/hide toggle: fade in (or fade out then remove). The caller owns connectingLinesActivatedRef
+        // and updates it synchronously after this render, so a streaming case add that arrives mid-fade is
+        // treated as a non-animated update and won't restart the fade (which previously left lines invisible).
+        path
+          .style("opacity", showConnectingLines ? 0 : 1)
+          .transition()
+          .duration(transitionDuration)
+          .style("opacity", showConnectingLines ? 1 : 0)
+          // Use regular function to access `this` (the path element that finished transitioning)
+          .on("end", function() {
+            // Remove only this specific path when hiding (not all paths) to avoid race conditions
+            // where a stale "hide" transition callback could remove paths from a newer "show" transition
+            if (!showConnectingLines) {
+              select(this).remove()
+            }
+          })
+      } else {
+        // Non-toggle update (streaming add, selection restyle): appear immediately at full opacity, no fade.
+        path.style("opacity", showConnectingLines ? 1 : 0)
+      }
     }
-  }, [clientType, connectingLinesActivatedRef, connectingLinesArea, connectingLinesSvg,
+  }, [clientType, connectingLinesArea, connectingLinesSvg,
       dataTip, dataset, handleConnectingLinesClick, handleConnectingLinesMouseOut, handleConnectingLinesMouseOver])
 
   const prepareConnectingLines = useCallback((prepareLineProps: IPrepareLineProps) => {
-    const { connectingLines, parentAttrID, cellKey, parentAttrName, showConnectingLines } = prepareLineProps
+    const { animateChange, connectingLines, parentAttrID, cellKey, parentAttrName, showConnectingLines } =
+      prepareLineProps
     if (!dataConfig) return
 
     // In a graph, each plot can have multiple groups of connecting lines. The number of groups is determined by the
@@ -186,7 +200,7 @@ export const useConnectingLines = (props: IProps) => {
       }
     })
 
-    return { allLineCaseIds, lineGroups, parentAttrID, parentAttrName, showConnectingLines }
+    return { allLineCaseIds, animateChange, lineGroups, parentAttrID, parentAttrName, showConnectingLines }
   }, [dataConfig, isCaseInSubPlot, yAttrCount])
 
   const renderConnectingLines = useCallback((renderLineProps: IPrepareLineProps) => {

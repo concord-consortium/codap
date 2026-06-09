@@ -113,7 +113,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
 
   const { renderConnectingLines } = useConnectingLines({
     clientType: "map", renderer, connectingLinesSvg: connectingLinesRef.current,
-    connectingLinesActivatedRef, onConnectingLinesClick: handleConnectingLinesClick
+    onConnectingLinesClick: handleConnectingLinesClick
   })
 
   // Configure renderer with map-specific options when it becomes available
@@ -264,6 +264,10 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
     const parentAttrName = parentAttr?.name
     const pointColorAtIndex = mapModel.pointDescription.pointColorAtIndex
 
+    // Only fade the lines in/out on an actual show/hide toggle; otherwise (e.g. streaming case adds)
+    // draw at full opacity so a never-completing fade doesn't leave the lines invisible.
+    const animateChange = connectingLinesActivatedRef.current !== showConnectingLines
+
     // Remove all existing connecting lines before rendering new ones to prevent duplicates
     if (connectingLinesRef.current) {
       const connectingLinesArea = select(connectingLinesRef.current)
@@ -271,8 +275,13 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
     }
 
     renderConnectingLines({
-      connectingLines, getLegendColor, parentAttrID, parentAttrName, pointColorAtIndex, showConnectingLines
+      animateChange, connectingLines, getLegendColor, parentAttrID, parentAttrName, pointColorAtIndex,
+      showConnectingLines
     })
+
+    // The hook no longer mutates this ref; update it synchronously so subsequent refreshes are treated
+    // as non-animated updates.
+    connectingLinesActivatedRef.current = showConnectingLines
   }, [connectingLinesForCases, dataConfiguration, dataset, getLegendColor, mapModel.pointDescription.pointColorAtIndex,
       renderConnectingLines, showConnectingLines])
 

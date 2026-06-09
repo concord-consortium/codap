@@ -72,7 +72,7 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
   }, [dataConfiguration])
 
   const { renderConnectingLines } = useConnectingLines({
-    clientType: "graph", renderer, connectingLinesSvg: connectingLinesRef.current, connectingLinesActivatedRef,
+    clientType: "graph", renderer, connectingLinesSvg: connectingLinesRef.current,
     yAttrCount: dataConfiguration?.yAttributeIDs?.length, isCaseInSubPlot
   })
 
@@ -192,6 +192,12 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
     const kPointSizeReductionFactor = 0.5
     const getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
 
+    // Only fade the lines in/out when the shown state actually changes (a user show/hide toggle).
+    // Streaming case adds call this repeatedly with showLines unchanged; fading every time restarts a
+    // 1000ms transition that never completes, leaving the lines invisible during streaming.
+    const wasActivated = connectingLinesActivatedRef.current
+    const animateChange = wasActivated !== showLines
+
     // Remove all existing connecting lines before rendering new ones to prevent duplicates
     if (connectingLinesRef.current) {
       const connectingLinesArea = select(connectingLinesRef.current)
@@ -200,20 +206,25 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
 
     cellKeys?.forEach((cellKey) => {
       renderConnectingLines({
-        cellKey, connectingLines, getLegendColor, parentAttrID, parentAttrName, pointColorAtIndex,
+        animateChange, cellKey, connectingLines, getLegendColor, parentAttrID, parentAttrName, pointColorAtIndex,
         showConnectingLines: showLines
       })
     })
 
     // Decrease point size when Connecting Lines are first activated so the lines are easier to see, and
     // revert to original point size when Connecting Lines are deactivated.
-    if (!connectingLinesActivatedRef.current && showLines && !pointsHaveBeenReduced) {
+    if (!wasActivated && showLines && !pointsHaveBeenReduced) {
       pointDescription.setPointSizeMultiplier(pointSizeMultiplier * kPointSizeReductionFactor)
       pointDescription.setPointsHaveBeenReduced(true)
     } else if (!showLines && pointsHaveBeenReduced) {
       pointDescription.setPointSizeMultiplier(pointSizeMultiplier / kPointSizeReductionFactor)
       pointDescription.setPointsHaveBeenReduced(false)
     }
+
+    // The hook no longer mutates this ref (it did so asynchronously from the fade "end" callback, which
+    // never fired during streaming). Update it synchronously now so subsequent refreshes — including
+    // streamed adds that arrive mid-fade — are treated as non-animated updates.
+    connectingLinesActivatedRef.current = showLines
   }, [layout, dataConfiguration, dataset, legendAttrID, renderConnectingLines, graphModel])
 
   const refreshSquares = useCallback(() => {
