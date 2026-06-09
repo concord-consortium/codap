@@ -56,7 +56,8 @@ export default defineConfig({
         // Excludes the CODAP-1323 v2-v3-redirect conformance spec from the default /
         // regression specPattern (its temp subdomain exists only pre-flip; running it
         // outside that window would always fail). Run on demand with
-        //   npx cypress run --spec cypress/e2e/v2-v3-redirect.spec.ts --env redirectBaseUrl=...
+        //   npx cypress run --spec cypress/e2e/v2-v3-redirect.spec.ts \
+        //     --config excludeSpecPattern=**/__none__.ts --env redirectBaseUrl=...
         specPattern: 'cypress/e2e/**/*.{js,jsx,ts,tsx}',
         excludeSpecPattern: ['**/v2-v3-redirect.spec.ts']
     },

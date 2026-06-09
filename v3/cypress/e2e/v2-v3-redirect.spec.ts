@@ -1,8 +1,11 @@
 // CODAP-1323 conformance suite (R28 / R29). Drives a real browser through the full
 // positive / negative matrix against the pre-flip temp subdomain. Excluded from the
-// default specPattern (it requires the temp subdomain). Run on demand:
+// default specPattern (it requires the temp subdomain). Run on demand -- the
+// --config override defeats excludeSpecPattern so the spec is discoverable, and
+// the dev server must be running (localhost:8080) for the iframe-embed cases:
 //
 //   npx cypress run --spec cypress/e2e/v2-v3-redirect.spec.ts \
+//     --config excludeSpecPattern=**/__none__.ts \
 //     --env redirectBaseUrl=https://codap2to3.concord.org
 //
 // Produces the G1 / G2 evidence in the RUNBOOK.
