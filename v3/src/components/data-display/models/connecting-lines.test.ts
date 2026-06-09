@@ -88,4 +88,50 @@ describe("ConnectingLines", () => {
     cl.destroy()
     expect(svg.querySelectorAll("path.connecting-line").length).toBe(0)
   })
+
+  it("only computes coords for newly appended cases when the signature is unchanged", () => {
+    const svg = makeSvg()
+    const cl = new ConnectingLines()
+    const coords: Record<string, [number, number]> = { c1: [0, 0], c2: [10, 10], c3: [20, 20] }
+    const getLineForCase = jest.fn((caseID: string) =>
+      coords[caseID] ? { caseData: { __id__: caseID }, lineCoords: coords[caseID] } : undefined)
+
+    cl.render(makeInput(svg, ["c1", "c2"], coords, { getLineForCase }))
+    getLineForCase.mockClear()
+
+    // Same signature, one appended case -> incremental: getLineForCase called for c3 only.
+    cl.render(makeInput(svg, ["c1", "c2", "c3"], coords, { getLineForCase }))
+    expect(getLineForCase).toHaveBeenCalledTimes(1)
+    expect(getLineForCase).toHaveBeenCalledWith("c3", 0)
+    expect(svg.querySelector("path.connecting-line")!.getAttribute("d")).toBe("M0,0L10,10L20,20")
+  })
+
+  it("full-recomputes when the signature changes", () => {
+    const svg = makeSvg()
+    const cl = new ConnectingLines()
+    const coords: Record<string, [number, number]> = { c1: [0, 0], c2: [10, 10], c3: [20, 20] }
+    const getLineForCase = jest.fn((caseID: string) =>
+      coords[caseID] ? { caseData: { __id__: caseID }, lineCoords: coords[caseID] } : undefined)
+
+    cl.render(makeInput(svg, ["c1", "c2"], coords, { getLineForCase }))
+    getLineForCase.mockClear()
+
+    cl.render(makeInput(svg, ["c1", "c2", "c3"], coords, { getLineForCase, scaleSignature: "sig-2" }))
+    expect(getLineForCase).toHaveBeenCalledTimes(3) // all cases recomputed
+  })
+
+  it("falls back to full recompute when the appended-tail heuristic fails (reorder)", () => {
+    const svg = makeSvg()
+    const cl = new ConnectingLines()
+    const coords: Record<string, [number, number]> = { c1: [0, 0], c2: [10, 10], c3: [20, 20] }
+    const getLineForCase = jest.fn((caseID: string) =>
+      coords[caseID] ? { caseData: { __id__: caseID }, lineCoords: coords[caseID] } : undefined)
+
+    cl.render(makeInput(svg, ["c1", "c2"], coords, { getLineForCase }))
+    getLineForCase.mockClear()
+
+    // length grew but the previous tail (c2) is no longer at index 1 -> not a pure append.
+    cl.render(makeInput(svg, ["c2", "c1", "c3"], coords, { getLineForCase }))
+    expect(getLineForCase).toHaveBeenCalledTimes(3)
+  })
 })

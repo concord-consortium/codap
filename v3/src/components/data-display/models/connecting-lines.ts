@@ -59,6 +59,7 @@ export class ConnectingLines {
   private lastTailCaseId: string | undefined
 
   render(input: IConnectingLinesRenderInput) {
+    const svgChanged = input.svg !== this.svg
     this.svg = input.svg
     if (!input.showConnectingLines) {
       // Fade/remove any existing paths, then reset so the next show rebuilds from scratch.
@@ -66,13 +67,37 @@ export class ConnectingLines {
       this.reset(input.svg)
       return
     }
-    // Task 2 adds the incremental fast path here; for now always rebuild.
-    this.rebuildAll(input)
+
+    const sigUnchanged = input.scaleSignature === this.lastScaleSignature
+    const newCases = this.detectAppend(input.caseList)
+    const canIncremental = !svgChanged && sigUnchanged && newCases !== undefined
+
+    if (canIncremental) {
+      const numPlots = Math.max(input.classify.yAttrCount, 1)
+      newCases.forEach(c => {
+        for (let plotNum = 0; plotNum < numPlots; plotNum++) {
+          this.addCase(c.caseID, plotNum, input)
+        }
+      })
+    } else {
+      this.rebuildAll(input)
+    }
+
     this.lastScaleSignature = input.scaleSignature
     this.lastCaseCount = input.caseList.length
     this.lastTailCaseId = input.caseList[input.caseList.length - 1]?.caseID
     this.join(input, [...this.groups.values()])
     this.groups.forEach(g => { g.dirty = false })
+  }
+
+  // Returns the appended cases when caseList is the previous list plus a tail; otherwise undefined.
+  // O(1): checks length growth and that the previous tail case is still at the previous last index.
+  private detectAppend(caseList: Array<{ caseID: string }>): Array<{ caseID: string }> | undefined {
+    const prev = this.lastCaseCount
+    if (prev === 0) return undefined
+    if (caseList.length <= prev) return undefined
+    if (caseList[prev - 1]?.caseID !== this.lastTailCaseId) return undefined
+    return caseList.slice(prev)
   }
 
   restyleSelection(_input: StyleInput) {
