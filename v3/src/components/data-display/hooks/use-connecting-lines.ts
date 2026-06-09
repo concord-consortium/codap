@@ -44,7 +44,7 @@ interface IProps {
   connectingLinesSvg: SVGGElement | null
   renderer?: PointRendererBase
   yAttrCount?: number
-  isCaseInSubPlot?: (cellKey: Record<string, string>, caseData: Record<string, any>) => void
+  isCaseInSubPlot?: (cellKey: Record<string, string>, caseData: Record<string, any>) => boolean
   onConnectingLinesClick?: (event: MouseEvent) => void
 }
 
