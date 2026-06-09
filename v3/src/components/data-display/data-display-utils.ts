@@ -6,6 +6,7 @@ import {
   defaultStrokeOpacity, defaultStrokeWidth
 } from "../../utilities/color-utils"
 import {between} from "../../utilities/math-utils"
+import { prf } from "../../utilities/profiler" // PERF-DBG
 import { IBarCover } from "../graph/graphing-types"
 import {isGraphDataConfigurationModel} from "../graph/models/graph-data-configuration-model"
 import {ISetPointSelection} from "../graph/utilities/graph-utils"
@@ -108,11 +109,13 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
     startAnimation()
   }
 
-  renderer?.matchPointsToData(dataConfiguration.dataset?.id ?? '', allCaseData, pointDisplayType, {
-    radius: pointRadius,
-    fill: pointColor,
-    stroke: pointStrokeColor,
-    strokeWidth: defaultStrokeWidth
+  prf.measure("Render.matchPointsToData", () => { // PERF-DBG
+    renderer?.matchPointsToData(dataConfiguration.dataset?.id ?? '', allCaseData, pointDisplayType, {
+      radius: pointRadius,
+      fill: pointColor,
+      stroke: pointStrokeColor,
+      strokeWidth: defaultStrokeWidth
+    })
   })
 
   dataConfiguration.setPointsNeedUpdating(false)

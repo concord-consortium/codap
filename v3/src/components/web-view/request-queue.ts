@@ -1,7 +1,9 @@
 import { action, makeObservable, observable } from "mobx"
 import { DIRequest, DIRequestCallback } from "../../data-interactive/data-interactive-types"
 
-type RequestPair = { request: DIRequest, callback: DIRequestCallback }
+// PERF-DBG: enqueuedAt/seq let the processor measure receive->respond latency (temporary diagnostic)
+type RequestPair = { request: DIRequest, callback: DIRequestCallback, enqueuedAt?: number, seq?: number }
+let reqDbgSeq = 0 // PERF-DBG
 export class RequestQueue {
   @observable.shallow
   requestQueue: Array<RequestPair> = []
@@ -16,6 +18,8 @@ export class RequestQueue {
 
   @action
   push(pair: RequestPair) {
+    pair.enqueuedAt = performance.now() // PERF-DBG
+    pair.seq = ++reqDbgSeq // PERF-DBG
     this.requestQueue.push(pair)
   }
 
