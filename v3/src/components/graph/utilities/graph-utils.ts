@@ -5,7 +5,6 @@ import {
 } from "../../../utilities/color-utils"
 import { DateUnit, getDateUnitLabel } from "../../../utilities/date-utils"
 import { isFiniteNumber } from "../../../utilities/math-utils"
-import { prf } from "../../../utilities/profiler" // PERF-DBG
 import { t } from "../../../utilities/translation/translate"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {IAxisModel} from "../../axis/models/axis-model"
@@ -588,7 +587,7 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
     }
   }
 
-  prf.measure("Render.setPointCoordinates", setPoints) // PERF-DBG
+  setPoints()
 }
 
 
