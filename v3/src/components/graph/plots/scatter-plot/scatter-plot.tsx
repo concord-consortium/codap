@@ -1,5 +1,5 @@
 import {ScaleLinear, select} from "d3"
-import { autorun } from "mobx"
+import { autorun, untracked } from "mobx"
 import { observer } from "mobx-react-lite"
 import {useCallback, useEffect, useRef, useState} from "react"
 import {useDataSetContext} from "../../../../hooks/use-data-set-context"
@@ -324,11 +324,18 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
   // during rapid state changes (e.g., during undo when renderer is also changing).
   useEffect(function updateConnectingLines() {
     return autorun(() => {
-      // Read showConnectingLines directly from store inside autorun to create a reactive dependency
+      // Observe only the things that should trigger a connecting-lines refresh here: the show/hide
+      // toggle and selection (for highlighting). Deliberately do NOT observe case positions — adding
+      // a case must not rebuild every line from this autorun (that caused ~4x O(N) rebuilds per
+      // streamed case). Per-add updates flow through the rAF-coalesced refreshPointPositions path.
+      // The rebuild reads case positions, so run it untracked to keep this autorun from subscribing
+      // to them.
       const currentShowConnectingLines = adornmentsStore.showConnectingLines
-      refreshConnectingLines(currentShowConnectingLines)
+      // Touch selectionChanges so lines re-style on selection without subscribing to positions.
+      void dataConfiguration?.dataset?.selectionChanges
+      untracked(() => refreshConnectingLines(currentShowConnectingLines))
     }, { name: "ScatterDots.updateConnectingLines" })
-  }, [adornmentsStore, dataConfiguration?.selection, refreshConnectingLines])
+  }, [adornmentsStore, dataConfiguration, refreshConnectingLines])
 
   usePlotResponders({renderer, refreshPointPositions, refreshPointSelection})
 
