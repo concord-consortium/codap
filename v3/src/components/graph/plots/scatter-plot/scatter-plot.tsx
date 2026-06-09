@@ -169,7 +169,7 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
   // When caseIds is provided, only those cases' points are restyled (delta path used during a
   // marquee drag); otherwise every point is restyled.
   const refreshPointSelection = useCallback((caseIds?: Set<string>) => {
-    prf.measure(caseIds ? "Graph.refreshPointSelection[delta]" : "Graph.refreshPointSelection", () => {
+    prf.measure("Graph.refreshPointSelection", () => {
       const {pointColor, pointStrokeColor} = graphModel.pointDescription
       dataConfiguration && setPointSelection(
         {

@@ -155,23 +155,21 @@ export function setPointSelection(
     renderer.setPointRaised(point, isSelected)
   }
 
-  if (caseIdsToUpdate) {
-    // Delta path: restyle only the points whose selection changed.
-    prf.measure("Graph.setPointSelection[delta]", () => {
+  prf.measure("Graph.setPointSelection", () => {
+    if (caseIdsToUpdate) {
+      // Delta path: restyle only the points whose selection changed.
       for (const caseID of caseIdsToUpdate) {
         for (let plotNum = 0; plotNum < numberOfPlots; ++plotNum) {
           const point = renderer.getPointForCaseData({ plotNum, caseID })
           if (point) stylePoint(point, caseID, plotNum)
         }
       }
-    })
-  } else {
-    prf.measure("Graph.setPointSelection", () => {
+    } else {
       renderer.forEachPoint((point, metadata) => {
         stylePoint(point, metadata.caseID, metadata.plotNum)
       })
-    })
-  }
+    }
+  })
 }
 
 export function rectNormalize(iRect: rTreeRect) {

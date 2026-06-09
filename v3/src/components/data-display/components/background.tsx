@@ -135,22 +135,18 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
       width.current = width.current + event.dx
       height.current = height.current + event.dy
       const marqueeRect = marqueeState.marqueeRect
-      prf.measure("Graph.dragMarquee[setRect]", () => {
-        marqueeState.setMarqueeRect({
-          x: marqueeRect.x, y: marqueeRect.y,
-          width: marqueeRect.width + event.dx,
-          height: marqueeRect.height + event.dy
-        })
+      marqueeState.setMarqueeRect({
+        x: marqueeRect.x, y: marqueeRect.y,
+        width: marqueeRect.width + event.dx,
+        height: marqueeRect.height + event.dy
       })
       const currentRect = rectNormalize({
         x: startX.current, y: startY.current,
         w: width.current,
         h: height.current
       })
-      const { newSelection, newDeselection } = prf.measure("Graph.dragMarquee[diff]", () => ({
-        newSelection: getCasesForDelta(selectionTree.current, currentRect, previousMarqueeRect.current!),
-        newDeselection: getCasesForDelta(selectionTree.current, previousMarqueeRect.current!, currentRect)
-      }))
+      const newSelection = getCasesForDelta(selectionTree.current, currentRect, previousMarqueeRect.current)
+      const newDeselection = getCasesForDelta(selectionTree.current, previousMarqueeRect.current, currentRect)
       // Stash the caseIDs to select and deselect for each dataset
       newSelection.forEach((caseObject: caseObject) => {
         datasetsMap[caseObject.datasetID].caseIDsToSelect.push(caseObject.caseID)
@@ -159,16 +155,14 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
         datasetsMap[caseObject.datasetID].caseIDsToDeselect.push(caseObject.caseID)
       })
       // Apply the selections and de-selections for each dataset
-      prf.measure("Graph.dragMarquee[selectCases]", () => {
-        Object.values(datasetsMap).forEach((selectionSpec) => {
-          const {dataset, caseIDsToSelect, caseIDsToDeselect} = selectionSpec
-          if (appState.isPerformanceMode) {
-            // Fast path: volatile selection + direct per-move notification, no applyModelChange.
-            selectAndDeselectCasesInteractive(caseIDsToSelect, caseIDsToDeselect, dataset)
-          } else {
-            selectAndDeselectCases(caseIDsToSelect, caseIDsToDeselect, dataset)
-          }
-        })
+      Object.values(datasetsMap).forEach((selectionSpec) => {
+        const {dataset, caseIDsToSelect, caseIDsToDeselect} = selectionSpec
+        if (appState.isPerformanceMode) {
+          // Fast path: volatile selection + direct per-move notification, no applyModelChange.
+          selectAndDeselectCasesInteractive(caseIDsToSelect, caseIDsToDeselect, dataset)
+        } else {
+          selectAndDeselectCases(caseIDsToSelect, caseIDsToDeselect, dataset)
+        }
       })
 
       clearDatasetsMapArrays()
