@@ -4,6 +4,7 @@ import { appState } from "../models/app-state"
 import { SharedDataSet } from "../models/shared/shared-data-set"
 import { uiState } from "../models/ui-state"
 import { setupTestDataset } from "../test/dataset-test-utils"
+import { registerDIHandler } from "./data-interactive-handler"
 import { setupRequestQueueProcessor } from "./data-interactive-request-processor"
 import { DIRequest, DIRequestResponse, DISuccessResult } from "./data-interactive-types"
 
@@ -136,6 +137,38 @@ describe("setupRequestQueueProcessor", () => {
 
     expect(order).toEqual(["create1", "get", "create2"])
     expect((getResponse as DISuccessResult)?.success).toBe(true)
+  })
+
+  it("responds with an error when a handler throws, and continues processing", async () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {})
+    registerDIHandler("testThrower", { get: () => { throw new Error("handler boom") } })
+    const responses: DIRequestResponse[] = []
+    queue.push({ request: { action: "get", resource: "testThrower" }, callback: r => responses.push(r) })
+    queue.push({ request: createItemRequest({ a1: "a", a2: "x", a3: 600 }), callback: r => responses.push(r) })
+
+    await jest.runAllTimersAsync()
+
+    expect(responses.length).toBe(2)
+    expect((responses[0] as DISuccessResult).success).toBe(false)
+    expect((responses[1] as DISuccessResult).success).toBe(true)
+    expect(warnSpy).toHaveBeenCalledTimes(1)
+    warnSpy.mockRestore()
+  })
+
+  it("a throwing response callback does not prevent later responses", async () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {})
+    const responses: DIRequestResponse[] = []
+    // these two creates coalesce into one batch; the first member's callback throws
+    queue.push({ request: createItemRequest({ a1: "a", a2: "x", a3: 700 }),
+      callback: () => { throw new Error("callback boom") } })
+    queue.push({ request: createItemRequest({ a1: "b", a2: "y", a3: 701 }), callback: r => responses.push(r) })
+
+    await jest.runAllTimersAsync()
+
+    expect(responses.length).toBe(1)
+    expect((responses[0] as DISuccessResult).success).toBe(true)
+    expect(warnSpy).toHaveBeenCalledTimes(1)
+    warnSpy.mockRestore()
   })
 
   it("responds to each request individually when the batched create cannot proceed", async () => {

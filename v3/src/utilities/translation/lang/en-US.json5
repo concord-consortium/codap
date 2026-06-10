@@ -1568,6 +1568,7 @@
     // V3 data interactive (plugin) error messages.
     // These should probably not be translated because plugins might be looking for specific
     // values.
+    "V3.DI.Error.exceptionProcessingRequest": "An error occurred while processing the request.",
     "V3.DI.Error.noAction": "No action to process.",
     "V3.DI.Error.unsupportedAction": "Unsupported action: %@/%@",
     "V3.DI.Error.undefinedResponse": "Action handler returned undefined.",

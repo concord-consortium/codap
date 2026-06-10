@@ -15,10 +15,12 @@ import { dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
  * is the single-segment case.
  */
 export function createItemsInSegments(dataContext: IDataSet, segments: DIItemValues[][]): DIHandlerFnResult[] {
-  // Normalize all segments' items into one flat array, remembering each segment's range.
+  // Normalize all segments' items into one flat array, remembering each segment's range
+  // and each item's segment (for O(1) attribution of new cases below).
   const items: DIItem[] = []
   const segmentRanges: Array<{ start: number, count: number }> = []
-  segments.forEach(segment => {
+  const segmentIndexByItemIndex: number[] = []
+  segments.forEach((segment, segmentIndex) => {
     const start = items.length
     // Some plugins (Collaborative) create items with values like [{ values: { ... } }] instead of
     // like [{ ... }], so we accommodate that extra layer of indirection here.
@@ -37,6 +39,7 @@ export function createItemsInSegments(dataContext: IDataSet, segments: DIItemVal
         newItem.__id__ = toV3ItemId(id)
       }
       items.push(newItem)
+      segmentIndexByItemIndex.push(segmentIndex)
     })
     segmentRanges.push({ start, count: items.length - start })
   })
@@ -83,8 +86,6 @@ export function createItemsInSegments(dataContext: IDataSet, segments: DIItemVal
   // join the existing case without reporting it.
   const itemIndexMap = new Map<string, number>()
   itemIDs.forEach((itemID, index) => itemIndexMap.set(itemID, index))
-  const segmentIndexForItemIndex = (itemIndex: number) =>
-    segmentRanges.findIndex(({ start, count }) => itemIndex >= start && itemIndex < start + count)
 
   const segmentCaseIDs: number[][] = segmentRanges.map(() => [])
   for (const collectionId in newCaseIds) {
@@ -96,8 +97,8 @@ export function createItemsInSegments(dataContext: IDataSet, segments: DIItemVal
       }, Infinity)
       // a new case with no contributing batch item shouldn't occur during pure adds;
       // attribute to the first segment if it ever does
-      const segmentIndex = isFinite(earliestItemIndex) ? segmentIndexForItemIndex(earliestItemIndex) : 0
-      segmentCaseIDs[Math.max(0, segmentIndex)].push(toV2Id(caseId))
+      const segmentIndex = isFinite(earliestItemIndex) ? segmentIndexByItemIndex[earliestItemIndex] : 0
+      segmentCaseIDs[segmentIndex].push(toV2Id(caseId))
     })
   }
 

@@ -8,7 +8,7 @@ import { t } from "../utilities/translation/translate"
 import { isV2CaseTableComponent } from "./data-interactive-component-types"
 import { getDIHandler } from "./data-interactive-handler"
 import {
-  DIAction, DIHandlerFnResult, DIRequest, DIRequestResponse
+  DIAction, DIHandlerFnResult, DIRequest, DIRequestCallback, DIRequestResponse
 } from "./data-interactive-types"
 import { createItemsInSegments } from "./handlers/item-handler"
 import { errorResult } from "./handlers/di-results"
@@ -132,6 +132,16 @@ export function setupRequestQueueProcessor(
   let drainTimer: ReturnType<typeof setTimeout> | undefined
   let isDraining = false
 
+  // Deliver a response to a plugin, guarding against a throwing callback so that one
+  // misbehaving consumer can't prevent later responses from being delivered.
+  function respond(callback: DIRequestCallback, result: DIRequestResponse) {
+    try {
+      callback(result)
+    } catch (error) {
+      console.warn(`${name} exception in response callback`, error)
+    }
+  }
+
   // Process a single request just as the pre-coalescing implementation did,
   // returning whether the request may have modified table data.
   async function processSingleRequest({ request, callback }: RequestPair): Promise<boolean> {
@@ -139,7 +149,15 @@ export function setupRequestQueueProcessor(
 
     onProcessingStart?.()
 
-    const result = await processRequest(request, processOptions)
+    // A throwing handler shouldn't leave the request without a response (the plugin would
+    // wait out its request timer) or interrupt the drain — respond with an error instead.
+    let result: DIRequestResponse
+    try {
+      result = await processRequest(request, processOptions)
+    } catch (error) {
+      console.warn(`${name} exception processing request`, error)
+      result = errorResult(t("V3.DI.Error.exceptionProcessingRequest"))
+    }
 
     // Check if any action may have modified table data
     let tableModified = false
@@ -157,7 +175,7 @@ export function setupRequestQueueProcessor(
     }
 
     debugLog(DEBUG_PLUGINS, `${name} responding with`, result)
-    callback(result)
+    respond(callback, result)
 
     onRequestProcessed?.(request, result)
 
@@ -187,7 +205,7 @@ export function setupRequestQueueProcessor(
         debugLog(DEBUG_PLUGINS, `${name} processing (coalesced): ${JSON.stringify(member.request)}`)
         onProcessingStart?.()
         debugLog(DEBUG_PLUGINS, `${name} responding with`, results?.[index])
-        member.callback(results[index])
+        respond(member.callback, results[index])
         onRequestProcessed?.(member.request, results[index])
       })
       // a successful coalesced run is by definition a table-modifying create
