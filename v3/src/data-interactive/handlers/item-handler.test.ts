@@ -159,6 +159,30 @@ describe("createItemsInSegments", () => {
     expect(results[1].caseIDs?.length).toBe(1)
   })
 
+  it("does not re-report pre-existing parent cases when new items join them", () => {
+    const { dataset, c1, c2 } = setupTestDataset()
+    const c1Before = new Set(c1.caseIds)
+    const c2Before = new Set(c2.caseIds)
+
+    // segment 0 joins the EXISTING (a1="a", a2="x") parent/middle cases — only its leaf case is
+    // new; segment 1 introduces a wholly new (a1="c", a2="q") hierarchy — new parent, middle, leaf
+    const segments: DIItemValues[][] = [
+      [{ a1: "a", a2: "x", a3: 99 }],
+      [{ a1: "c", a2: "q", a3: 100 }]
+    ]
+    const results = createItemsInSegments(dataset, segments) as DISuccessResult[]
+
+    // segment 0 reports only its own new leaf case (existing parent/middle cases are not re-reported)
+    expect(results[0].caseIDs?.length).toBe(1)
+    // segment 1 reports its new parent + middle + leaf cases
+    expect(results[1].caseIDs?.length).toBe(3)
+
+    // no pre-existing parent/middle case id appears in any segment's reported caseIDs
+    const reported = new Set([...(results[0].caseIDs ?? []), ...(results[1].caseIDs ?? [])])
+    c1.caseIds.filter(id => c1Before.has(id)).forEach(id => expect(reported.has(toV2Id(id))).toBe(false))
+    c2.caseIds.filter(id => c2Before.has(id)).forEach(id => expect(reported.has(toV2Id(id))).toBe(false))
+  })
+
   it("returns per-segment results equivalent to sequential creates", () => {
     const { dataset: seqData } = setupTestDataset()
     const { dataset: batchData } = setupTestDataset()
