@@ -12,6 +12,7 @@ import {
 } from "./data-interactive-types"
 import { errorResult } from "./handlers/di-results"
 import { parseResourceSelector, resolveResources } from "./resource-parser"
+import { prf } from "../utilities/profiler" // PERF-DBG
 
 import "./register-handlers"
 
@@ -39,14 +40,16 @@ export async function processAction(
     values.dataContext = values.name
   }
 
+  // PERF-DBG: split resolve vs handler to locate per-request cost
   const resourceSelector = parseResourceSelector(action.resource)
-  const resources = resolveResources(resourceSelector, action.action, tile, cfm)
+  const resources = prf.measure("DI.processAction[resolve]", () =>
+    resolveResources(resourceSelector, action.action, tile, cfm))
   const type = resourceSelector.type ?? ""
   const a = action.action
   const func = getDIHandler(type)?.[a]
   if (!func) return errorResult(t("V3.DI.Error.unsupportedAction", { vars: [a, type] }))
 
-  const actionResult = await func?.(resources, action.values)
+  const actionResult = await prf.measure("DI.processAction[handler]", () => func?.(resources, action.values))
   return actionResult ?? errorResult(t("V3.DI.Error.undefinedResponse"))
 }
 
@@ -115,12 +118,31 @@ export function setupRequestQueueProcessor(
       uiState.captureEditingStateBeforeInterruption()
       let tableModified = false
 
-      requestQueue.processItems(async ({ request, callback }) => {
+      requestQueue.processItems(async ({ request, callback, enqueuedAt, seq }) => {
         debugLog(DEBUG_PLUGINS, `${name} processing: ${JSON.stringify(request)}`)
 
         onProcessingStart?.()
 
-        const result = await processRequest(request, processOptions)
+        // PERF-DBG: measure receive->respond latency to detect "falling behind" during streaming
+        const reqDbgStart = performance.now()
+        const reqDbgQueueWait = enqueuedAt != null ? reqDbgStart - enqueuedAt : 0
+        const reqDbgDescribe = (r: DIRequest) => Array.isArray(r)
+          ? `batch(${r.length}):${(r[0] as any)?.action} ${(r[0] as any)?.resource}`
+          : `${(r as any)?.action} ${(r as any)?.resource}`
+
+        // PERF-DBG: syncMs = synchronous prefix of processRequest (before its promise is returned);
+        // asyncMs = the await remainder (microtasks + any rendering that runs before resolution)
+        const reqDbgPromise = processRequest(request, processOptions)
+        const reqDbgSyncEnd = performance.now()
+        const result = await reqDbgPromise
+
+        // PERF-DBG
+        const reqDbgNow = performance.now()
+        // eslint-disable-next-line no-console
+        console.log(`[REQ-DBG] seq=${seq} ${reqDbgDescribe(request)} ` +
+          `queueWaitMs=${reqDbgQueueWait.toFixed(1)} processMs=${(reqDbgNow - reqDbgStart).toFixed(1)} ` +
+          `syncMs=${(reqDbgSyncEnd - reqDbgStart).toFixed(1)} asyncMs=${(reqDbgNow - reqDbgSyncEnd).toFixed(1)} ` +
+          `totalMs=${(enqueuedAt != null ? reqDbgNow - enqueuedAt : 0).toFixed(1)} backlog=${requestQueue.length}`)
 
         // Check if any action may have modified table data
         if (Array.isArray(request) && Array.isArray(result)) {

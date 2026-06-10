@@ -1,4 +1,5 @@
 import { createCasesNotification } from "../../models/data/data-set-notifications"
+import { prf } from "../../utilities/profiler" // PERF-DBG
 import { toV2Id, toV3ItemId } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources, DIValues } from "../data-interactive-types"
@@ -35,26 +36,34 @@ export const diItemHandler: DIHandler = {
 
     const newCaseIds: Record<string, string[]> = {}
     let itemIDs: string[] = []
+    // PERF-DBG: prf.measure breakdown of the per-request create cost (run prf.start()/prf.stop() in console)
+    prf.measure("DIItem.create[applyModelChange]", () => {
     dataContext.applyModelChange(() => {
       // Get case ids from before new items are added
       const oldCaseIds: Record<string, Set<string>> = {}
-      dataContext.collections.forEach(collection => {
-        oldCaseIds[collection.id] = new Set(collection.caseIds)
+      prf.measure("DIItem.create[oldCaseIds]", () => {
+        dataContext.collections.forEach(collection => {
+          oldCaseIds[collection.id] = new Set(collection.caseIds)
+        })
       })
 
       // Add items and update cases
-      itemIDs = dataContext.addCases(items, { canonicalize: true })
+      itemIDs = prf.measure("DIItem.create[addCases]", () =>
+        dataContext.addCases(items, { canonicalize: true }))
+      // (DataSet.validateCases is already prf-instrumented internally)
       dataContext.validateCases()
 
       // Find newly added cases by comparing current cases to previous cases
-      dataContext.collections.forEach(collection => {
-        newCaseIds[collection.id] = []
-        collection.caseIds.forEach(caseId => {
-          if (!oldCaseIds[collection.id].has(caseId)) newCaseIds[collection.id].push(caseId)
+      prf.measure("DIItem.create[diff]", () => {
+        dataContext.collections.forEach(collection => {
+          newCaseIds[collection.id] = []
+          collection.caseIds.forEach(caseId => {
+            if (!oldCaseIds[collection.id].has(caseId)) newCaseIds[collection.id].push(caseId)
+          })
         })
       })
     }, {
-      notify: () => {
+      notify: () => prf.measure("DIItem.create[notify]", () => {
         const notifications = []
         for (const collectionId in newCaseIds) {
           const caseIds = newCaseIds[collectionId]
@@ -63,7 +72,8 @@ export const diItemHandler: DIHandler = {
           }
         }
         return notifications
-      }
+      })
+    })
     })
 
     let caseIDs: string[] = []
