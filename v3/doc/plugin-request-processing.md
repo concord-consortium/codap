@@ -122,7 +122,7 @@ processing would have returned:
 - **`itemIDs`** — positional: `addCases` returns item ids in input order, so segment *k*
   gets its slice.
 - **`caseIDs`** — each *new* case is attributed to the segment containing its earliest
-  contributing item (via `caseInfoMap.get(caseId).childItemIds`). This reproduces sequential
+  contributing item (via `caseInfoMap.get(caseId)?.childItemIds`). This reproduces sequential
   semantics exactly: in the childmost collection, cases map 1:1 to items; in parent
   collections, a new case is reported by the first request whose item formed it, and later
   requests join the existing case without re-reporting it. During pure adds every new case
