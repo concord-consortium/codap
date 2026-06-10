@@ -159,6 +159,36 @@ describe("createItemsInSegments", () => {
     expect(results[1].caseIDs?.length).toBe(1)
   })
 
+  it("attributes a shared case to the earliest contributing segment when that is not segment 0", () => {
+    const { dataset, c1 } = setupTestDataset()
+    const c1Before = new Set(c1.caseIds)
+    // seg0 creates parent "p"; seg1 creates parent "q"; seg2 JOINS parent "q" (created by seg1).
+    // The shared parent "q" must be attributed to seg1 — the earliest contributor — not seg2.
+    const segments: DIItemValues[][] = [
+      [{ a1: "p", a2: "m", a3: 1 }],
+      [{ a1: "q", a2: "n", a3: 2 }],
+      [{ a1: "q", a2: "r", a3: 3 }]
+    ]
+    const results = createItemsInSegments(dataset, segments) as DISuccessResult[]
+
+    // two new parent cases were created: "p" (seg0) and "q" (seg1, joined by seg2)
+    const newC1CaseIds = c1.caseIds.filter(id => !c1Before.has(id)).map(toV2Id)
+    expect(newC1CaseIds.length).toBe(2)
+
+    // Counts encode the attribution: seg0 owns parent "p" + middle + leaf (3); seg1 owns parent
+    // "q" + middle + leaf (3); seg2 only its own middle + leaf (2). If parent "q" were
+    // mis-attributed to seg2, these would read 3 / 2 / 3 instead.
+    expect(results[0].caseIDs?.length).toBe(3)
+    expect(results[1].caseIDs?.length).toBe(3)
+    expect(results[2].caseIDs?.length).toBe(2)
+
+    // each new parent case is reported exactly once across all segments (no double-report, no drop)
+    const allReported = [
+      ...(results[0].caseIDs ?? []), ...(results[1].caseIDs ?? []), ...(results[2].caseIDs ?? [])
+    ]
+    newC1CaseIds.forEach(id => expect(allReported.filter(reported => reported === id).length).toBe(1))
+  })
+
   it("does not re-report pre-existing parent cases when new items join them", () => {
     const { dataset, c1, c2 } = setupTestDataset()
     const c1Before = new Set(c1.caseIds)

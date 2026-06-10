@@ -16,11 +16,10 @@ import { dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
  */
 export function createItemsInSegments(dataContext: IDataSet, segments: DIItemValues[][]): DIHandlerFnResult[] {
   // Normalize all segments' items into one flat array, remembering each segment's range
-  // and each item's segment (for O(1) attribution of new cases below).
+  // (used both to slice itemIDs per segment and to map each item back to its segment below).
   const items: DIItem[] = []
   const segmentRanges: Array<{ start: number, count: number }> = []
-  const segmentIndexByItemIndex: number[] = []
-  segments.forEach((segment, segmentIndex) => {
+  segments.forEach(segment => {
     const start = items.length
     // Some plugins (Collaborative) create items with values like [{ values: { ... } }] instead of
     // like [{ ... }], so we accommodate that extra layer of indirection here. Only a non-null,
@@ -40,7 +39,6 @@ export function createItemsInSegments(dataContext: IDataSet, segments: DIItemVal
         newItem.__id__ = toV3ItemId(id)
       }
       items.push(newItem)
-      segmentIndexByItemIndex.push(segmentIndex)
     })
     segmentRanges.push({ start, count: items.length - start })
   })
@@ -84,22 +82,24 @@ export function createItemsInSegments(dataContext: IDataSet, segments: DIItemVal
   // Attribute each new case to the segment containing its earliest contributing item.
   // This matches sequential semantics: under one-create-at-a-time processing, a new
   // parent case is reported by the first request whose item forms it; later requests
-  // join the existing case without reporting it.
-  const itemIndexMap = new Map<string, number>()
-  itemIDs.forEach((itemID, index) => itemIndexMap.set(itemID, index))
+  // join the existing case without reporting it. Items were appended in segment order, so
+  // a case's earliest contributing item is simply the one in its lowest-numbered segment.
+  const segmentByItemId = new Map<string, number>()
+  segmentRanges.forEach(({ start, count }, segmentIndex) => {
+    for (let i = start; i < start + count; ++i) segmentByItemId.set(itemIDs[i], segmentIndex)
+  })
 
   const segmentCaseIDs: number[][] = segmentRanges.map(() => [])
   for (const collectionId in newCaseIds) {
     newCaseIds[collectionId].forEach(caseId => {
       const childItemIds = dataContext.caseInfoMap.get(caseId)?.childItemIds ?? []
-      const earliestItemIndex = childItemIds.reduce<number>((earliest, itemId) => {
-        const index = itemIndexMap.get(itemId)
-        return index != null && index < earliest ? index : earliest
+      const earliestSegment = childItemIds.reduce<number>((earliest, itemId) => {
+        const segment = segmentByItemId.get(itemId)
+        return segment != null && segment < earliest ? segment : earliest
       }, Infinity)
       // a new case with no contributing batch item shouldn't occur during pure adds;
       // attribute to the first segment if it ever does
-      const segmentIndex = isFinite(earliestItemIndex) ? segmentIndexByItemIndex[earliestItemIndex] : 0
-      segmentCaseIDs[segmentIndex].push(toV2Id(caseId))
+      segmentCaseIDs[isFinite(earliestSegment) ? earliestSegment : 0].push(toV2Id(caseId))
     })
   }
 
