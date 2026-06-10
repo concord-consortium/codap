@@ -93,6 +93,83 @@ describe("joinSourceToDestCollection", () => {
     expect(dataAttr?.formula?.display).toBe('lookupByKey("Source", "Data", "Key", Key)')
   })
 
+  it("wraps the destination key attribute in backticks when its name needs escaping", () => {
+    const sourceData = createDataSetWithHistory("Source")
+    sourceData.addAttribute({ name: "Key" })
+    sourceData.addAttribute({ name: "value" })
+
+    const destData = createDataSetWithHistory("Destination")
+    // Destination key attribute has a space, so it must be backtick-wrapped in the formula
+    destData.addAttribute({ name: "Attribute Name" })
+
+    const sourceKeyAttr = sourceData.getAttributeByName("Key")
+    const destKeyAttr = destData.getAttributeByName("Attribute Name")
+    const destCollection = destData.getCollectionForAttribute(destKeyAttr!.id)
+
+    joinSourceToDestCollection({
+      sourceDataSet: sourceData,
+      sourceKeyAttributeId: sourceKeyAttr!.id,
+      destDataSet: destData,
+      destCollection: destCollection!,
+      destKeyAttributeId: destKeyAttr!.id
+    })
+
+    const valueAttr = destData.getAttributeByName("value")
+    expect(valueAttr).toBeDefined()
+    expect(valueAttr?.formula?.display)
+      .toBe('lookupByKey("Source", "value", "Key", `Attribute Name`)')
+  })
+
+  it("escapes backticks and backslashes inside a wrapped destination key name", () => {
+    const sourceData = createDataSetWithHistory("Source")
+    sourceData.addAttribute({ name: "Key" })
+    sourceData.addAttribute({ name: "value" })
+
+    const destData = createDataSetWithHistory("Destination")
+    destData.addAttribute({ name: "weird`name\\here" })
+
+    const sourceKeyAttr = sourceData.getAttributeByName("Key")
+    const destKeyAttr = destData.getAttributeByName("weird`name\\here")
+    const destCollection = destData.getCollectionForAttribute(destKeyAttr!.id)
+
+    joinSourceToDestCollection({
+      sourceDataSet: sourceData,
+      sourceKeyAttributeId: sourceKeyAttr!.id,
+      destDataSet: destData,
+      destCollection: destCollection!,
+      destKeyAttributeId: destKeyAttr!.id
+    })
+
+    const valueAttr = destData.getAttributeByName("value")
+    expect(valueAttr?.formula?.display)
+      .toBe('lookupByKey("Source", "value", "Key", `weird\\`name\\\\here`)')
+  })
+
+  it("leaves a safe destination key attribute name unwrapped", () => {
+    const sourceData = createDataSetWithHistory("Source")
+    sourceData.addAttribute({ name: "Key" })
+    sourceData.addAttribute({ name: "value" })
+
+    const destData = createDataSetWithHistory("Destination")
+    destData.addAttribute({ name: "PlainName" })
+
+    const sourceKeyAttr = sourceData.getAttributeByName("Key")
+    const destKeyAttr = destData.getAttributeByName("PlainName")
+    const destCollection = destData.getCollectionForAttribute(destKeyAttr!.id)
+
+    joinSourceToDestCollection({
+      sourceDataSet: sourceData,
+      sourceKeyAttributeId: sourceKeyAttr!.id,
+      destDataSet: destData,
+      destCollection: destCollection!,
+      destKeyAttributeId: destKeyAttr!.id
+    })
+
+    const valueAttr = destData.getAttributeByName("value")
+    expect(valueAttr?.formula?.display)
+      .toBe('lookupByKey("Source", "value", "Key", PlainName)')
+  })
+
   it("returns nothing when source collection has only the key attribute", () => {
     const sourceData = createDataSetWithHistory("Source")
     sourceData.addAttribute({ name: "OnlyKey" })
