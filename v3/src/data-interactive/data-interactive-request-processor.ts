@@ -259,6 +259,9 @@ export function setupRequestQueueProcessor(
     }
   }
 
+  // Single-timer invariant: at most one drain timer is ever pending, and `drainTimer` always
+  // holds it (scheduleDrain only schedules when it's null; drain() nulls it on entry). This is
+  // what makes disposal safe without a separate "disposed" flag — see the disposer below.
   function scheduleDrain() {
     if (drainTimer == null) {
       drainTimer = setTimeout(drain, 0)
@@ -278,6 +281,15 @@ export function setupRequestQueueProcessor(
   )
 
   return () => {
+    // Clearing the one pending timer (the single-timer invariant guarantees there is at most
+    // one, always in drainTimer) plus disposing the reaction is sufficient to fully stop
+    // processing — no "disposed" guard is needed. A drain that is already mid-await when this
+    // runs finishes its current work unit (its callbacks are wrapped in respond()'s try/catch,
+    // so a torn-down endpoint can't throw past them); it does NOT leak a follow-up timer:
+    // takeItems() mutates the queue length, which synchronously re-fires the reaction and
+    // schedules the next timer *before* the await, so drainTimer is already non-null by the
+    // time the trailing scheduleDrain() in drain()'s finally runs — making that call a no-op.
+    // We clear that timer here, and the now-disposed reaction can't schedule another.
     if (drainTimer != null) clearTimeout(drainTimer)
     reactionDisposer()
   }
