@@ -73,15 +73,23 @@ export const getRationalLongitudeBounds = (longs: number[]) => {
 }
 
 /**
- * Shifts a longitude into the [west, east] viewport by adding or subtracting
- * whole rotations of 360°, mirroring CODAP V2's behavior. This lets a point at
- * a canonical longitude render inside a dateline-crossing map view (where the
- * viewport's east bound may exceed 180°).
+ * Shifts a longitude to the 360° world copy nearest the [west, east] viewport.
+ * This lets a point at a canonical longitude render inside a dateline-crossing
+ * map view (where the viewport's east bound may exceed 180°): the nearest copy is
+ * the one inside the viewport when the point is reachable, otherwise the closest
+ * copy, so the point renders just off-screen rather than a full turn away.
+ *
+ * Must pick the *nearest* copy, not the first copy inside the bounds. CODAP-1384
+ * introduced a Math.ceil version (modeled on V2's point projection) and applied it
+ * to connecting-line coordinates too — but a point a fraction of a degree outside a
+ * normal viewport was flung a whole 360° away, projecting to ~±infinity pixels and
+ * mangling the lines (CODAP-1412). V2 itself avoided this: it shifted only point
+ * circles (where an off-screen point is invisible anyway) and drew connecting lines
+ * from the raw, unshifted longitude.
  */
 export const shiftLongitudeIntoView = (lng: number, west: number, east: number) => {
-  if (lng < west) return lng + Math.ceil((west - lng) / 360) * 360
-  if (lng > east) return lng - Math.ceil((lng - east) / 360) * 360
-  return lng
+  const center = (west + east) / 2
+  return lng + Math.round((center - lng) / 360) * 360
 }
 
 /**
