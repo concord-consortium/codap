@@ -33,6 +33,17 @@ export interface IConnectingLineDescription {
   plotNum?: number
 }
 
+// Minimal shape of a d3-v6-tip instance (the module ships no types — see global.d.ts). A tip is a
+// function applied to a selection via `selection.call(tip)`; `show`/`hide` are invoked from hover
+// handlers, and `attr`/`html` configure it at construction. Builder methods return the tip for chaining.
+export interface ID3Tip {
+  (selection: any): void
+  show(html: string, target: EventTarget | null): ID3Tip
+  hide(): ID3Tip
+  attr(name: string, value: string): ID3Tip
+  html(accessor: (d: any) => string): ID3Tip
+}
+
 export interface ICaseSubsetDescription {
   category?: string
   cellKey: Record<string, string>
