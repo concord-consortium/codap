@@ -197,6 +197,23 @@ describe("createItemsInSegments", () => {
     disposer()
   })
 
+  it("treats a non-wrapper `values` property as item data without crashing", () => {
+    const { dataset, a1 } = setupTestDataset()
+    // Neither of these is the Collaborative `{ values: {...} }` wrapper: `values: null` would
+    // previously hit `typeof null === "object"` and crash on the `__id__` access below it;
+    // `values: [...]` would be misread as the wrapper. The item itself should be used in both.
+    const segments: DIItemValues[][] = [
+      [{ a1: "n", a2: "x", a3: 7, values: null } as any],
+      [{ a1: "r", a2: "y", a3: 8, values: [1, 2] }]
+    ]
+    let results: DISuccessResult[] | undefined
+    expect(() => { results = createItemsInSegments(dataset, segments) as DISuccessResult[] }).not.toThrow()
+    expect(results?.[0].success).toBe(true)
+    expect(results?.[1].success).toBe(true)
+    expect(a1.value(6)).toBe("n")
+    expect(a1.value(7)).toBe("r")
+  })
+
   it("honors Collaborative-style values and explicit ids within segments", () => {
     const { dataset, a1 } = setupTestDataset()
     const id = "segTestId1"

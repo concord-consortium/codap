@@ -23,14 +23,15 @@ export function createItemsInSegments(dataContext: IDataSet, segments: DIItemVal
   segments.forEach((segment, segmentIndex) => {
     const start = items.length
     // Some plugins (Collaborative) create items with values like [{ values: { ... } }] instead of
-    // like [{ ... }], so we accommodate that extra layer of indirection here.
+    // like [{ ... }], so we accommodate that extra layer of indirection here. Only a non-null,
+    // non-array object is the wrapper shape: guard against null (typeof null === "object") and
+    // against an array so a malformed request can't crash on the __id__ access below.
     segment.forEach(item => {
-      let newItem: DIItem
-      if (typeof item.values === "object") {
-        newItem = item.values as DIItem
-      } else {
-        newItem = item
-      }
+      const wrapped = item.values
+      const newItem: DIItem =
+        wrapped != null && typeof wrapped === "object" && !Array.isArray(wrapped)
+          ? wrapped as DIItem
+          : item
 
       // If an id is specified, we need to put it in the right format
       // The Collaborative plugin makes use of this feature
