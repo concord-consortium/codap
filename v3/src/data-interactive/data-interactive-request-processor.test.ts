@@ -66,21 +66,62 @@ describe("setupRequestQueueProcessor", () => {
     actionDisposer()
   })
 
-  it("caps coalesced batches at 10 and processes one batch per drain tick", async () => {
+  it("processes one batch of at least 5 creates per drain tick", async () => {
     const { actionNames, actionDisposer } = trackTopLevelActions()
     const responses: DIRequestResponse[] = []
     for (let i = 0; i < 25; ++i) {
       queue.push({ request: createItemRequest({ a1: "a", a2: "x", a3: 100 + i }), callback: r => responses.push(r) })
     }
 
-    // the first drain tick processes only the first capped batch...
+    // the first drain tick processes only the first batch...
     await jest.advanceTimersToNextTimerAsync()
-    expect(responses.length).toBe(10)
+    expect(responses.length).toBe(5)
 
     // ...subsequent ticks process the rest
     await jest.runAllTimersAsync()
     expect(responses.length).toBe(25)
-    expect(actionNames.filter(actionName => actionName === "applyModelChange").length).toBe(3)
+    expect(actionNames.filter(actionName => actionName === "applyModelChange").length).toBe(5)
+    actionDisposer()
+  })
+
+  it("grows the batch size in proportion to the backlog", async () => {
+    const { actionNames, actionDisposer } = trackTopLevelActions()
+    const responses: DIRequestResponse[] = []
+    for (let i = 0; i < 150; ++i) {
+      queue.push({ request: createItemRequest({ a1: "a", a2: "x", a3: 300 + i }), callback: r => responses.push(r) })
+    }
+
+    // the first drain tick takes ceil(150/10) = 15 requests to begin catching up...
+    await jest.advanceTimersToNextTimerAsync()
+    expect(responses.length).toBe(15)
+
+    // ...batches shrink toward the minimum as the backlog drains:
+    // 15, 14, 13, 11, 10, 9, 8, 7, 7, 6, then ten 5s = 20 batches in all
+    await jest.runAllTimersAsync()
+    expect(responses.length).toBe(150)
+    expect(actionNames.filter(actionName => actionName === "applyModelChange").length).toBe(20)
+    actionDisposer()
+  })
+
+  it("drains a backlog whose head request has waited too long in a single batch", async () => {
+    const { actionNames, actionDisposer } = trackTopLevelActions()
+    const responses: DIRequestResponse[] = []
+
+    // requests accumulate, unprocessed, while a blocking cell edit is in progress
+    uiState.setIsEditingCell(true)
+    uiState.setIsEditingBlockingCell()
+    for (let i = 0; i < 50; ++i) {
+      queue.push({ request: createItemRequest({ a1: "a", a2: "x", a3: 500 + i }), callback: r => responses.push(r) })
+    }
+    await jest.advanceTimersByTimeAsync(1000)
+    expect(responses.length).toBe(0)
+
+    // once unblocked, the queue's age demands a single catch-up batch rather than
+    // the ten batches that backlog-proportional sizing alone would produce
+    uiState.setIsEditingCell(false)
+    await jest.runAllTimersAsync()
+    expect(responses.length).toBe(50)
+    expect(actionNames.filter(actionName => actionName === "applyModelChange").length).toBe(1)
     actionDisposer()
   })
 

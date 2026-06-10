@@ -85,11 +85,21 @@ function mayHaveModifiedTable(action: DIAction, result: DIHandlerFnResult): bool
     !["component", "global", "interactiveFrame"].includes(type)
 }
 
-// Maximum number of create-item requests merged into one batched model change. Bounds the
-// synchronous cost of a batch and, since the drain processes one batch per macrotask,
-// preserves the visible sense of streaming (points/rows appear in chunks, not all at once).
-// A fixed cap for now; could become adaptive (e.g. backlog-proportional) if needed.
-const kMaxCoalescedCreateRequests = 10
+// The batch size — the number of create-item requests merged into one batched model change —
+// adapts to the backlog and to how long requests have been waiting. Each drain tick takes up
+// to 1/kCoalesceBacklogDivisor of the queued requests, with a floor of
+// kMinCoalescedCreateRequests. Since the drain processes one batch per macrotask, small
+// batches preserve the visible sense of streaming (points/rows appear in chunks), while a
+// large backlog grows the batch so processing keeps up with the stream. Machine speed is
+// adapted to implicitly: on a slower machine each tick takes longer, more requests accumulate
+// between ticks, and the batch grows accordingly. In addition, as the head request's queue
+// wait approaches kCoalesceMaxQueueWaitMs, the batch ramps up to the entire backlog — timely
+// acknowledgment (plugin request timers are conventionally ~2s) outranks streaming
+// granularity. Because a flood's tail requests have been waiting since the flood began, this
+// also accelerates the drain's tail rather than dribbling it out at the minimum batch size.
+const kMinCoalescedCreateRequests = 5
+const kCoalesceBacklogDivisor = 10
+const kCoalesceMaxQueueWaitMs = 1000
 
 export interface SetupRequestProcessorOptions extends ProcessActionOptions {
   /** Name for the reaction (for debugging) */
@@ -229,10 +239,19 @@ export function setupRequestQueueProcessor(
 
       // Take ONE work unit per drain tick, leaving the rest in the queue, so the browser can
       // render between batches (preserving the visible sense of streaming) and requests that
-      // arrive between ticks can coalesce into later batches.
+      // arrive between ticks can coalesce into later batches. The batch size adapts to the
+      // backlog and the head request's queue wait (see kCoalesceBacklogDivisor above).
       // DEBUG_NO_COALESCE ("noCoalesce" debug flag) limits runs to one request, processing
       // every request individually for A/B comparison (page reload required to change).
-      const maxRunLength = DEBUG_NO_COALESCE ? 1 : kMaxCoalescedCreateRequests
+      const headEnqueuedAt = requestQueue.items[0]?.enqueuedAt
+      const headWaitMs = headEnqueuedAt != null ? performance.now() - headEnqueuedAt : 0
+      const urgency = Math.min(1, headWaitMs / kCoalesceMaxQueueWaitMs)
+      const maxRunLength = DEBUG_NO_COALESCE
+        ? 1
+        : Math.max(
+            kMinCoalescedCreateRequests,
+            Math.ceil(requestQueue.length / kCoalesceBacklogDivisor),
+            Math.ceil(requestQueue.length * urgency))
       const unit = takeNextWorkUnit(requestQueue.items, maxRunLength)
       if (!unit) return
       requestQueue.takeItems(workUnitSize(unit))
