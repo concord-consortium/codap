@@ -14,7 +14,6 @@ import { createItemsInSegments } from "./handlers/item-handler"
 import { errorResult } from "./handlers/di-results"
 import { RequestWorkUnit, takeNextWorkUnit, workUnitSize } from "./request-coalescer"
 import { parseResourceSelector, resolveResources } from "./resource-parser"
-import { prf } from "../utilities/profiler" // PERF-DBG
 
 import "./register-handlers"
 
@@ -42,16 +41,14 @@ export async function processAction(
     values.dataContext = values.name
   }
 
-  // PERF-DBG: split resolve vs handler to locate per-request cost
   const resourceSelector = parseResourceSelector(action.resource)
-  const resources = prf.measure("DI.processAction[resolve]", () =>
-    resolveResources(resourceSelector, action.action, tile, cfm))
+  const resources = resolveResources(resourceSelector, action.action, tile, cfm)
   const type = resourceSelector.type ?? ""
   const a = action.action
   const func = getDIHandler(type)?.[a]
   if (!func) return errorResult(t("V3.DI.Error.unsupportedAction", { vars: [a, type] }))
 
-  const actionResult = await prf.measure("DI.processAction[handler]", () => func?.(resources, action.values))
+  const actionResult = await func(resources, action.values)
   return actionResult ?? errorResult(t("V3.DI.Error.undefinedResponse"))
 }
 
@@ -137,31 +134,12 @@ export function setupRequestQueueProcessor(
 
   // Process a single request just as the pre-coalescing implementation did,
   // returning whether the request may have modified table data.
-  async function processSingleRequest({ request, callback, enqueuedAt, seq }: RequestPair): Promise<boolean> {
+  async function processSingleRequest({ request, callback }: RequestPair): Promise<boolean> {
     debugLog(DEBUG_PLUGINS, `${name} processing: ${JSON.stringify(request)}`)
 
     onProcessingStart?.()
 
-    // PERF-DBG: measure receive->respond latency to detect "falling behind" during streaming
-    const reqDbgStart = performance.now()
-    const reqDbgQueueWait = enqueuedAt != null ? reqDbgStart - enqueuedAt : 0
-    const reqDbgDescribe = (r: DIRequest) => Array.isArray(r)
-      ? `batch(${r.length}):${(r[0] as any)?.action} ${(r[0] as any)?.resource}`
-      : `${(r as any)?.action} ${(r as any)?.resource}`
-
-    // PERF-DBG: syncMs = synchronous prefix of processRequest (before its promise is returned);
-    // asyncMs = the await remainder (microtasks + any rendering that runs before resolution)
-    const reqDbgPromise = processRequest(request, processOptions)
-    const reqDbgSyncEnd = performance.now()
-    const result = await reqDbgPromise
-
-    // PERF-DBG
-    const reqDbgNow = performance.now()
-    // eslint-disable-next-line no-console
-    console.log(`[REQ-DBG] seq=${seq} ${reqDbgDescribe(request)} ` +
-      `queueWaitMs=${reqDbgQueueWait.toFixed(1)} processMs=${(reqDbgNow - reqDbgStart).toFixed(1)} ` +
-      `syncMs=${(reqDbgSyncEnd - reqDbgStart).toFixed(1)} asyncMs=${(reqDbgNow - reqDbgSyncEnd).toFixed(1)} ` +
-      `totalMs=${(enqueuedAt != null ? reqDbgNow - enqueuedAt : 0).toFixed(1)} backlog=${requestQueue.length}`)
+    const result = await processRequest(request, processOptions)
 
     // Check if any action may have modified table data
     let tableModified = false
@@ -192,7 +170,6 @@ export function setupRequestQueueProcessor(
   // processing the members individually for exact sequential semantics.
   async function processCoalescedRun(unit: Extract<RequestWorkUnit<RequestPair>, { type: "coalesced" }>) {
     const { resource, members, segments } = unit
-    const reqDbgStart = performance.now() // PERF-DBG
 
     const { dataContext } = resolveResources(
       parseResourceSelector(resource), "create", processOptions.tile, processOptions.cfm)
@@ -213,11 +190,6 @@ export function setupRequestQueueProcessor(
         member.callback(results[index])
         onRequestProcessed?.(member.request, results[index])
       })
-      // PERF-DBG
-      const reqDbgNow = performance.now()
-      // eslint-disable-next-line no-console
-      console.log(`[REQ-DBG] coalesced(${members.length}) seq=${members[0].seq}..${members[members.length - 1].seq} ` +
-        `create ${resource} processMs=${(reqDbgNow - reqDbgStart).toFixed(1)} backlog=${requestQueue.length}`)
       // a successful coalesced run is by definition a table-modifying create
       return true
     }

@@ -3,9 +3,7 @@ import { DIRequest, DIRequestCallback } from "../../data-interactive/data-intera
 
 // enqueuedAt is the performance.now() timestamp when the request was queued; the request
 // processor uses the head request's wait time to size coalesced batches (CODAP-1408)
-// PERF-DBG: seq lets the processor log per-request latency (temporary diagnostic)
-export type RequestPair = { request: DIRequest, callback: DIRequestCallback, enqueuedAt?: number, seq?: number }
-let reqDbgSeq = 0 // PERF-DBG
+export type RequestPair = { request: DIRequest, callback: DIRequestCallback, enqueuedAt?: number }
 export class RequestQueue {
   @observable.shallow
   requestQueue: Array<RequestPair> = []
@@ -21,7 +19,6 @@ export class RequestQueue {
   @action
   push(pair: RequestPair) {
     pair.enqueuedAt = performance.now()
-    pair.seq = ++reqDbgSeq // PERF-DBG
     this.requestQueue.push(pair)
   }
 

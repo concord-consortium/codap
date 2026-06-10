@@ -14,19 +14,15 @@ describe("setupRequestQueueProcessor", () => {
 
   let queue: RequestQueue
   let disposer: (() => void) | undefined
-  let consoleSpy: jest.SpyInstance
 
   beforeEach(() => {
     jest.useFakeTimers()
-    // silence the temporary [REQ-DBG] instrumentation logging
-    consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {})
     queue = new RequestQueue()
     disposer = setupRequestQueueProcessor(queue)
   })
 
   afterEach(() => {
     disposer?.()
-    consoleSpy.mockRestore()
     jest.useRealTimers()
   })
 
