@@ -3,6 +3,7 @@ import { tip as d3tip } from "d3-v6-tip"
 import { autorun, untracked } from "mobx"
 import { observer } from "mobx-react-lite"
 import {useCallback, useEffect, useRef, useState} from "react"
+import { useMemo } from "use-memo-one"
 import {useDataSetContext} from "../../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 import {appState} from "../../../../models/app-state"
@@ -77,10 +78,12 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
   if (!connectingLinesInstanceRef.current) connectingLinesInstanceRef.current = new ConnectingLines()
   useEffect(() => () => connectingLinesInstanceRef.current?.destroy(), [])
 
-  const dataTip = useRef<ID3Tip>(
+  // useMemo from use-memo-one (stable, lifetime-guaranteed) so the d3-tip is created exactly once
+  // rather than re-evaluated on every render (which would build a throwaway tip per streamed case).
+  const dataTip = useMemo<ID3Tip>(() =>
     d3tip().attr("class", "graph-d3-tip").attr("data-testid", "graph-connecting-lines-data-tip")
       .html((d: string) => `<p>${d}</p>`)
-  ).current
+  , [])
 
   const handleConnectingLinesClick = useCallback((event: MouseEvent, caseIDs: string[]) => {
     const linesPath = event.target && select(event.target as HTMLElement)
