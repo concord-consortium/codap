@@ -88,6 +88,10 @@ export const getRationalLongitudeBounds = (longs: number[]) => {
  * from the raw, unshifted longitude.
  */
 export const shiftLongitudeIntoView = (lng: number, west: number, east: number) => {
+  // A longitude already in view never needs shifting. This also avoids a tie at the
+  // antimeridian: in a whole-world view [-180, 180] the rounding below would otherwise
+  // map -180 to 180 (Math.round(0.5) === 1) and split lines crossing the dateline.
+  if (lng >= west && lng <= east) return lng
   const center = (west + east) / 2
   return lng + Math.round((center - lng) / 360) * 360
 }

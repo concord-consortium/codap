@@ -144,6 +144,13 @@ describe("shiftLongitudeIntoView", () => {
     expect(shiftLongitudeIntoView(-50, -180, 180)).toBe(-50)
   })
 
+  it("leaves the antimeridian endpoints unshifted in a whole-world view (no dateline split)", () => {
+    // [-180, 180] spans exactly 360°: rounding (center - lng)/360 would tie at lng = -180 and shift
+    // it to 180, jumping a dateline-crossing connecting line across the whole map. Endpoints stay put.
+    expect(shiftLongitudeIntoView(-180, -180, 180)).toBe(-180)
+    expect(shiftLongitudeIntoView(180, -180, 180)).toBe(180)
+  })
+
   it("leaves a point just outside a normal viewport at its nearest world copy (CODAP-1412)", () => {
     // Regression: a point a fraction of a degree outside a narrow, non-dateline viewport must NOT be
     // flung a whole 360° away (which projected it to ~±infinity pixels and broke connecting lines).
