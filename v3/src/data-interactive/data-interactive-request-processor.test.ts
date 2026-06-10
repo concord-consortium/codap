@@ -12,6 +12,8 @@ describe("setupRequestQueueProcessor", () => {
   const { content } = appState.document
   content?.createDataSet(getSnapshot(setupTestDataset().dataset))
   const dataset = content!.getFirstSharedModelByType(SharedDataSet)!.dataSet
+  // use the actual name in resource strings in case createDataSet renamed for uniqueness
+  const datasetName = dataset.name
 
   let queue: RequestQueue
   let disposer: (() => void) | undefined
@@ -27,7 +29,7 @@ describe("setupRequestQueueProcessor", () => {
     jest.useRealTimers()
   })
 
-  function createItemRequest(values: object, resource = "dataContext[data].item"): DIRequest {
+  function createItemRequest(values: object, resource = `dataContext[${datasetName}].item`): DIRequest {
     return { action: "create", resource, values }
   }
 
@@ -128,7 +130,7 @@ describe("setupRequestQueueProcessor", () => {
     let getResponse: DIRequestResponse | undefined
     queue.push({ request: createItemRequest({ a1: "a", a2: "x", a3: 10 }), callback: () => order.push("create1") })
     queue.push({
-      request: { action: "get", resource: "dataContext[data]" },
+      request: { action: "get", resource: `dataContext[${datasetName}]` },
       callback: response => { order.push("get"); getResponse = response }
     })
     queue.push({ request: createItemRequest({ a1: "b", a2: "y", a3: 11 }), callback: () => order.push("create2") })
