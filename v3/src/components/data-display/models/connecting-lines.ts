@@ -49,10 +49,15 @@ export interface IConnectingLinesRenderInput {
   dataTip?: ID3Tip
 }
 
-type StyleInput = Pick<IConnectingLinesRenderInput, "svg" | "showConnectingLines" | "style">
+// restyleSelection only reads isCaseSelected, so it accepts a narrowed style (no getGroupColor needed).
+type StyleInput = {
+  svg: SVGGElement
+  showConnectingLines: boolean
+  style: Pick<IConnectingLinesStyle, "isCaseSelected">
+}
 
 // A line is styled as selected only when every case on it is selected.
-function groupAllSelected(group: ILineGroup, style: IConnectingLinesStyle) {
+function groupAllSelected(group: ILineGroup, style: Pick<IConnectingLinesStyle, "isCaseSelected">) {
   return group.caseIds.length > 0 && group.caseIds.every(id => style.isCaseSelected(id))
 }
 

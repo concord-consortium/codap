@@ -165,7 +165,7 @@ describe("ConnectingLines", () => {
 
     cl.restyleSelection({
       svg, showConnectingLines: true,
-      style: { getGroupColor: () => "#f00", isCaseSelected: () => true }
+      style: { isCaseSelected: () => true }
     })
 
     const path = svg.querySelector("path.connecting-line")!

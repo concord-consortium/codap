@@ -405,11 +405,13 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
         connectingLinesInstanceRef.current?.restyleSelection({
           svg: connectingLinesRef.current,
           showConnectingLines: true,
-          style: { getGroupColor: () => "", isCaseSelected: (id) => !!dataset?.isCaseSelected(id) }
+          // Read selection from the same dataset we subscribe to above, so the observed and read
+          // targets stay aligned even if dataConfiguration.dataset transiently differs from context.
+          style: { isCaseSelected: (id) => !!dataConfiguration?.dataset?.isCaseSelected(id) }
         })
       })
     }, { name: "ScatterDots.restyleConnectingLinesSelection" })
-  }, [adornmentsStore, dataConfiguration, dataset])
+  }, [adornmentsStore, dataConfiguration])
 
   usePlotResponders({renderer, refreshPointPositions, refreshPointSelection})
 
