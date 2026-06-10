@@ -1,5 +1,4 @@
 import iframePhone, { getIFrameEndpoint } from "iframe-phone"
-import { IReactionDisposer } from "mobx"
 import { RequestQueue } from "../../components/web-view/request-queue"
 import { DIMessage } from "../../data-interactive/iframe-phone-types"
 import { setupRequestQueueProcessor } from "../../data-interactive/data-interactive-request-processor"
@@ -42,7 +41,7 @@ export function initializeEmbeddedServer(): EmbeddedModeHandler | null {
   debugLog(DEBUG_PLUGINS, "Initializing embedded server for parent communication")
 
   let isPhoneInUse = false
-  let disposer: IReactionDisposer | null = null
+  let disposer: (() => void) | null = null
   const requestQueue = new RequestQueue()
 
   const handler: iframePhone.IframePhoneRpcEndpointHandlerFn =

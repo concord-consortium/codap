@@ -1,7 +1,7 @@
 import { CloudFileManager } from "@concord-consortium/cloud-file-manager"
-import { reaction, IReactionDisposer } from "mobx"
-import { RequestQueue } from "../components/web-view/request-queue"
-import { DEBUG_PLUGINS, debugLog } from "../lib/debug"
+import { reaction } from "mobx"
+import { RequestPair, RequestQueue } from "../components/web-view/request-queue"
+import { DEBUG_NO_COALESCE, DEBUG_PLUGINS, debugLog } from "../lib/debug"
 import { ITileModel } from "../models/tiles/tile-model"
 import { uiState } from "../models/ui-state"
 import { t } from "../utilities/translation/translate"
@@ -10,7 +10,9 @@ import { getDIHandler } from "./data-interactive-handler"
 import {
   DIAction, DIHandlerFnResult, DIRequest, DIRequestResponse
 } from "./data-interactive-types"
+import { createItemsInSegments } from "./handlers/item-handler"
 import { errorResult } from "./handlers/di-results"
+import { RequestWorkUnit, takeNextWorkUnit, workUnitSize } from "./request-coalescer"
 import { parseResourceSelector, resolveResources } from "./resource-parser"
 import { prf } from "../utilities/profiler" // PERF-DBG
 
@@ -83,6 +85,12 @@ function mayHaveModifiedTable(action: DIAction, result: DIHandlerFnResult): bool
     !["component", "global", "interactiveFrame"].includes(type)
 }
 
+// Maximum number of create-item requests merged into one batched model change. Bounds the
+// synchronous cost of a batch and, since the drain processes one batch per macrotask,
+// preserves the visible sense of streaming (points/rows appear in chunks, not all at once).
+// A fixed cap for now; could become adaptive (e.g. backlog-proportional) if needed.
+const kMaxCoalescedCreateRequests = 10
+
 export interface SetupRequestProcessorOptions extends ProcessActionOptions {
   /** Name for the reaction (for debugging) */
   name?: string
@@ -94,12 +102,19 @@ export interface SetupRequestProcessorOptions extends ProcessActionOptions {
 
 /**
  * Set up a reaction to process requests from a queue.
- * Returns a disposer function to clean up the reaction.
+ *
+ * The drain is deferred by a macrotask (setTimeout 0) rather than performed inline by the
+ * reaction. Plugin requests arrive one per postMessage event, so an inline drain would always
+ * see a single request; deferring lets already-delivered message events accumulate in the
+ * queue, where consecutive single-item create requests can then be coalesced into one batched
+ * model change — one round of tile reactivity per batch instead of per item (CODAP-1408).
+ *
+ * Returns a disposer function to clean up the reaction (and any pending drain).
  */
 export function setupRequestQueueProcessor(
   requestQueue: RequestQueue,
   options: SetupRequestProcessorOptions = {}
-): IReactionDisposer {
+): () => void {
   const {
     name = "DataInteractive request processor",
     onProcessingStart,
@@ -107,65 +122,154 @@ export function setupRequestQueueProcessor(
     ...processOptions
   } = options
 
-  return reaction(
+  let drainTimer: ReturnType<typeof setTimeout> | undefined
+  let isDraining = false
+
+  // Process a single request just as the pre-coalescing implementation did,
+  // returning whether the request may have modified table data.
+  async function processSingleRequest({ request, callback, enqueuedAt, seq }: RequestPair): Promise<boolean> {
+    debugLog(DEBUG_PLUGINS, `${name} processing: ${JSON.stringify(request)}`)
+
+    onProcessingStart?.()
+
+    // PERF-DBG: measure receive->respond latency to detect "falling behind" during streaming
+    const reqDbgStart = performance.now()
+    const reqDbgQueueWait = enqueuedAt != null ? reqDbgStart - enqueuedAt : 0
+    const reqDbgDescribe = (r: DIRequest) => Array.isArray(r)
+      ? `batch(${r.length}):${(r[0] as any)?.action} ${(r[0] as any)?.resource}`
+      : `${(r as any)?.action} ${(r as any)?.resource}`
+
+    // PERF-DBG: syncMs = synchronous prefix of processRequest (before its promise is returned);
+    // asyncMs = the await remainder (microtasks + any rendering that runs before resolution)
+    const reqDbgPromise = processRequest(request, processOptions)
+    const reqDbgSyncEnd = performance.now()
+    const result = await reqDbgPromise
+
+    // PERF-DBG
+    const reqDbgNow = performance.now()
+    // eslint-disable-next-line no-console
+    console.log(`[REQ-DBG] seq=${seq} ${reqDbgDescribe(request)} ` +
+      `queueWaitMs=${reqDbgQueueWait.toFixed(1)} processMs=${(reqDbgNow - reqDbgStart).toFixed(1)} ` +
+      `syncMs=${(reqDbgSyncEnd - reqDbgStart).toFixed(1)} asyncMs=${(reqDbgNow - reqDbgSyncEnd).toFixed(1)} ` +
+      `totalMs=${(enqueuedAt != null ? reqDbgNow - enqueuedAt : 0).toFixed(1)} backlog=${requestQueue.length}`)
+
+    // Check if any action may have modified table data
+    let tableModified = false
+    if (Array.isArray(request) && Array.isArray(result)) {
+      for (let i = 0; i < request.length; i++) {
+        if (mayHaveModifiedTable(request[i], result[i])) {
+          tableModified = true
+          break
+        }
+      }
+    } else if (!Array.isArray(request) && !Array.isArray(result)) {
+      if (mayHaveModifiedTable(request, result)) {
+        tableModified = true
+      }
+    }
+
+    debugLog(DEBUG_PLUGINS, `${name} responding with`, result)
+    callback(result)
+
+    onRequestProcessed?.(request, result)
+
+    return tableModified
+  }
+
+  // Execute a coalesced run of create-item requests as one batched model change, responding
+  // to each member with its own per-segment result. If the batched create cannot proceed
+  // (unresolvable dataContext, unexpected error, per-segment failure), fall back to
+  // processing the members individually for exact sequential semantics.
+  async function processCoalescedRun(unit: Extract<RequestWorkUnit<RequestPair>, { type: "coalesced" }>) {
+    const { resource, members, segments } = unit
+    const reqDbgStart = performance.now() // PERF-DBG
+
+    const { dataContext } = resolveResources(
+      parseResourceSelector(resource), "create", processOptions.tile, processOptions.cfm)
+    let results: DIHandlerFnResult[] | undefined
+    if (dataContext) {
+      try {
+        results = createItemsInSegments(dataContext, segments)
+      } catch (error) {
+        debugLog(DEBUG_PLUGINS, `${name} batched create failed; processing individually`, error)
+      }
+    }
+
+    if (results?.length === members.length && results.every(result => result.success)) {
+      members.forEach((member, index) => {
+        debugLog(DEBUG_PLUGINS, `${name} processing (coalesced): ${JSON.stringify(member.request)}`)
+        onProcessingStart?.()
+        debugLog(DEBUG_PLUGINS, `${name} responding with`, results?.[index])
+        member.callback(results[index])
+        onRequestProcessed?.(member.request, results[index])
+      })
+      // PERF-DBG
+      const reqDbgNow = performance.now()
+      // eslint-disable-next-line no-console
+      console.log(`[REQ-DBG] coalesced(${members.length}) seq=${members[0].seq}..${members[members.length - 1].seq} ` +
+        `create ${resource} processMs=${(reqDbgNow - reqDbgStart).toFixed(1)} backlog=${requestQueue.length}`)
+      // a successful coalesced run is by definition a table-modifying create
+      return true
+    }
+
+    let tableModified = false
+    for (const member of members) {
+      tableModified = (await processSingleRequest(member)) || tableModified
+    }
+    return tableModified
+  }
+
+  async function drain() {
+    drainTimer = undefined
+    // if a drain is already in progress, its trailing check will reschedule as needed
+    if (isDraining || uiState.isEditingBlockingCell || requestQueue.length === 0) return
+    isDraining = true
+    try {
+      uiState.captureEditingStateBeforeInterruption()
+
+      // Take ONE work unit per drain tick, leaving the rest in the queue, so the browser can
+      // render between batches (preserving the visible sense of streaming) and requests that
+      // arrive between ticks can coalesce into later batches.
+      // DEBUG_NO_COALESCE ("noCoalesce" debug flag) limits runs to one request, processing
+      // every request individually for A/B comparison (page reload required to change).
+      const maxRunLength = DEBUG_NO_COALESCE ? 1 : kMaxCoalescedCreateRequests
+      const unit = takeNextWorkUnit(requestQueue.items, maxRunLength)
+      if (!unit) return
+      requestQueue.takeItems(workUnitSize(unit))
+
+      const tableModified = unit.type === "coalesced"
+        ? await processCoalescedRun(unit)
+        : await processSingleRequest(unit.item)
+
+      if (tableModified) uiState.incrementInterruptionCount()
+    } finally {
+      isDraining = false
+      // pushes that arrived during the drain re-fire the reaction, but any drain it scheduled
+      // while we were draining bailed above, so check for leftover work here
+      if (requestQueue.length > 0 && !uiState.isEditingBlockingCell) scheduleDrain()
+    }
+  }
+
+  function scheduleDrain() {
+    if (drainTimer == null) {
+      drainTimer = setTimeout(drain, 0)
+    }
+  }
+
+  const reactionDisposer = reaction(
     () => ({
       canProcessRequest: !uiState.isEditingBlockingCell,
       queueLength: requestQueue.length
     }),
     ({ canProcessRequest, queueLength }) => {
       if (!canProcessRequest || queueLength === 0) return
-
-      uiState.captureEditingStateBeforeInterruption()
-      let tableModified = false
-
-      requestQueue.processItems(async ({ request, callback, enqueuedAt, seq }) => {
-        debugLog(DEBUG_PLUGINS, `${name} processing: ${JSON.stringify(request)}`)
-
-        onProcessingStart?.()
-
-        // PERF-DBG: measure receive->respond latency to detect "falling behind" during streaming
-        const reqDbgStart = performance.now()
-        const reqDbgQueueWait = enqueuedAt != null ? reqDbgStart - enqueuedAt : 0
-        const reqDbgDescribe = (r: DIRequest) => Array.isArray(r)
-          ? `batch(${r.length}):${(r[0] as any)?.action} ${(r[0] as any)?.resource}`
-          : `${(r as any)?.action} ${(r as any)?.resource}`
-
-        // PERF-DBG: syncMs = synchronous prefix of processRequest (before its promise is returned);
-        // asyncMs = the await remainder (microtasks + any rendering that runs before resolution)
-        const reqDbgPromise = processRequest(request, processOptions)
-        const reqDbgSyncEnd = performance.now()
-        const result = await reqDbgPromise
-
-        // PERF-DBG
-        const reqDbgNow = performance.now()
-        // eslint-disable-next-line no-console
-        console.log(`[REQ-DBG] seq=${seq} ${reqDbgDescribe(request)} ` +
-          `queueWaitMs=${reqDbgQueueWait.toFixed(1)} processMs=${(reqDbgNow - reqDbgStart).toFixed(1)} ` +
-          `syncMs=${(reqDbgSyncEnd - reqDbgStart).toFixed(1)} asyncMs=${(reqDbgNow - reqDbgSyncEnd).toFixed(1)} ` +
-          `totalMs=${(enqueuedAt != null ? reqDbgNow - enqueuedAt : 0).toFixed(1)} backlog=${requestQueue.length}`)
-
-        // Check if any action may have modified table data
-        if (Array.isArray(request) && Array.isArray(result)) {
-          for (let i = 0; i < request.length; i++) {
-            if (mayHaveModifiedTable(request[i], result[i])) {
-              tableModified = true
-              break
-            }
-          }
-        } else if (!Array.isArray(request) && !Array.isArray(result)) {
-          if (mayHaveModifiedTable(request, result)) {
-            tableModified = true
-          }
-        }
-
-        debugLog(DEBUG_PLUGINS, `${name} responding with`, result)
-        callback(result)
-
-        onRequestProcessed?.(request, result)
-      })
-
-      if (tableModified) uiState.incrementInterruptionCount()
+      scheduleDrain()
     },
     { name }
   )
+
+  return () => {
+    if (drainTimer != null) clearTimeout(drainTimer)
+    reactionDisposer()
+  }
 }

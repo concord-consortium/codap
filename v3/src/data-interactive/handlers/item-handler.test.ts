@@ -1,8 +1,8 @@
 import { toV2Id } from "../../utilities/codap-utils"
 import { DISuccessResult } from "../data-interactive-types"
-import { DIFullCase, DIItem, DIUpdateItemResult } from "../data-interactive-data-set-types"
+import { DIFullCase, DIItem, DIItemValues, DIUpdateItemResult } from "../data-interactive-data-set-types"
 import { setupTestDataset } from "../../test/dataset-test-utils"
-import { diItemHandler } from "./item-handler"
+import { createItemsInSegments, diItemHandler } from "./item-handler"
 
 
 describe("DataInteractive ItemHandler", () => {
@@ -112,5 +112,80 @@ describe("DataInteractive ItemHandler", () => {
     const multipleValues = multipleResult.values as DIUpdateItemResult
     expect(multipleValues.changedCases?.includes(toV2Id(itemId))).toBe(true)
     expect(multipleValues.changedCases?.includes(toV2Id(item2Id))).toBe(true)
+  })
+})
+
+describe("createItemsInSegments", () => {
+  it("slices itemIDs positionally per segment", () => {
+    const { dataset } = setupTestDataset()
+    const segments: DIItemValues[][] = [
+      [{ a1: "a", a2: "x", a3: 7 }],
+      [{ a1: "b", a2: "y", a3: 8 }, { a1: "a", a2: "z", a3: 9 }]
+    ]
+    const results = createItemsInSegments(dataset, segments) as DISuccessResult[]
+    expect(results.length).toBe(2)
+    expect(results[0].success).toBe(true)
+    expect(results[1].success).toBe(true)
+    expect(results[0].itemIDs).toEqual([toV2Id(dataset.items[6].__id__)])
+    expect(results[1].itemIDs).toEqual([toV2Id(dataset.items[7].__id__), toV2Id(dataset.items[8].__id__)])
+  })
+
+  it("attributes new parent cases to the earliest contributing segment", () => {
+    const { dataset, c1, c2 } = setupTestDataset()
+    const c1CaseIdsBefore = new Set(c1.caseIds)
+    const c2CaseIdsBefore = new Set(c2.caseIds)
+    // both segments share the NEW parent value a1="c"; segment 0 should own the new parent case
+    const segments: DIItemValues[][] = [
+      [{ a1: "c", a2: "x", a3: 7 }],
+      [{ a1: "c", a2: "x", a3: 8 }]
+    ]
+    const results = createItemsInSegments(dataset, segments) as DISuccessResult[]
+
+    const newC1CaseIds = c1.caseIds.filter(id => !c1CaseIdsBefore.has(id)).map(toV2Id)
+    const newC2CaseIds = c2.caseIds.filter(id => !c2CaseIdsBefore.has(id)).map(toV2Id)
+    expect(newC1CaseIds.length).toBe(1)
+    expect(newC2CaseIds.length).toBe(1)
+
+    // segment 0 reports the new parent and middle cases plus its child case (3 cases)
+    expect(results[0].caseIDs).toContain(newC1CaseIds[0])
+    expect(results[0].caseIDs).toContain(newC2CaseIds[0])
+    expect(results[0].caseIDs?.length).toBe(3)
+    // segment 1 joins the existing new cases, reporting only its own child case
+    expect(results[1].caseIDs).not.toContain(newC1CaseIds[0])
+    expect(results[1].caseIDs).not.toContain(newC2CaseIds[0])
+    expect(results[1].caseIDs?.length).toBe(1)
+  })
+
+  it("returns per-segment results equivalent to sequential creates", () => {
+    const { dataset: seqData } = setupTestDataset()
+    const { dataset: batchData } = setupTestDataset()
+    const seg0: DIItemValues[] = [{ a1: "c", a2: "x", a3: 7 }]
+    const seg1: DIItemValues[] = [{ a1: "c", a2: "y", a3: 8 }, { a1: "a", a2: "x", a3: 9 }]
+
+    // sequential reference: one handler create per segment
+    const seqResults = [
+      diItemHandler.create?.({ dataContext: seqData }, seg0) as DISuccessResult,
+      diItemHandler.create?.({ dataContext: seqData }, seg1) as DISuccessResult
+    ]
+    const batchResults = createItemsInSegments(batchData, [seg0, seg1]) as DISuccessResult[]
+
+    batchResults.forEach((result, i) => {
+      expect(result.success).toBe(true)
+      expect(result.itemIDs?.length).toBe(seqResults[i].itemIDs?.length)
+      expect(result.caseIDs?.length).toBe(seqResults[i].caseIDs?.length)
+    })
+  })
+
+  it("honors Collaborative-style values and explicit ids within segments", () => {
+    const { dataset, a1 } = setupTestDataset()
+    const id = "segTestId1"
+    const segments: DIItemValues[][] = [
+      [{ id, values: { a1: "g", a2: "t", a3: 10 } }]
+    ]
+    const results = createItemsInSegments(dataset, segments) as DISuccessResult[]
+    expect(results[0].success).toBe(true)
+    expect(dataset.items[6].__id__).toBe(id)
+    expect(results[0].itemIDs).toEqual([toV2Id(id)])
+    expect(a1.value(6)).toBe("g")
   })
 })

@@ -1,23 +1,29 @@
+import { IDataSet } from "../../models/data/data-set"
 import { createCasesNotification } from "../../models/data/data-set-notifications"
 import { prf } from "../../utilities/profiler" // PERF-DBG
 import { toV2Id, toV3ItemId } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
-import { DIHandler, DIResources, DIValues } from "../data-interactive-types"
+import { DIHandler, DIHandlerFnResult, DIResources, DIValues } from "../data-interactive-types"
 import { DIItem, DIItemValues, DINewCase } from "../data-interactive-data-set-types"
 import { deleteItem, getItem, updateCaseBy, updateCasesBy } from "./handler-functions"
 import { dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
 
-export const diItemHandler: DIHandler = {
-  create(resources: DIResources, values?: DIValues) {
-    const { dataContext } = resources
-    if (!dataContext) return dataContextNotFoundResult
-    if (!values) return valuesRequiredResult
-
-    const _items = (Array.isArray(values) ? values : [values]) as DIItemValues[]
-    const items: DIItem[] = []
+/**
+ * Create the items of all segments in a single batched model change (one addCases, one
+ * validateCases, one notification batch) and return one result per segment, equivalent to
+ * processing each segment as its own create request. Used by the request coalescer to merge
+ * consecutive streamed single-item create requests (CODAP-1408); the item handler's `create`
+ * is the single-segment case.
+ */
+export function createItemsInSegments(dataContext: IDataSet, segments: DIItemValues[][]): DIHandlerFnResult[] {
+  // Normalize all segments' items into one flat array, remembering each segment's range.
+  const items: DIItem[] = []
+  const segmentRanges: Array<{ start: number, count: number }> = []
+  segments.forEach(segment => {
+    const start = items.length
     // Some plugins (Collaborative) create items with values like [{ values: { ... } }] instead of
     // like [{ ... }], so we accommodate that extra layer of indirection here.
-    _items.forEach(item => {
+    segment.forEach(item => {
       let newItem: DIItem
       if (typeof item.values === "object") {
         newItem = item.values as DIItem
@@ -33,58 +39,90 @@ export const diItemHandler: DIHandler = {
       }
       items.push(newItem)
     })
+    segmentRanges.push({ start, count: items.length - start })
+  })
 
-    const newCaseIds: Record<string, string[]> = {}
-    let itemIDs: string[] = []
-    // PERF-DBG: prf.measure breakdown of the per-request create cost (run prf.start()/prf.stop() in console)
-    prf.measure("DIItem.create[applyModelChange]", () => {
-    dataContext.applyModelChange(() => {
-      // Get case ids from before new items are added
-      const oldCaseIds: Record<string, Set<string>> = {}
-      prf.measure("DIItem.create[oldCaseIds]", () => {
-        dataContext.collections.forEach(collection => {
-          oldCaseIds[collection.id] = new Set(collection.caseIds)
+  const newCaseIds: Record<string, string[]> = {}
+  let itemIDs: string[] = []
+  // PERF-DBG: prf.measure breakdown of the per-request create cost (run prf.start()/prf.stop() in console)
+  prf.measure("DIItem.create[applyModelChange]", () => {
+  dataContext.applyModelChange(() => {
+    // Get case ids from before new items are added
+    const oldCaseIds: Record<string, Set<string>> = {}
+    prf.measure("DIItem.create[oldCaseIds]", () => {
+      dataContext.collections.forEach(collection => {
+        oldCaseIds[collection.id] = new Set(collection.caseIds)
+      })
+    })
+
+    // Add items and update cases
+    itemIDs = prf.measure("DIItem.create[addCases]", () =>
+      dataContext.addCases(items, { canonicalize: true }))
+    // (DataSet.validateCases is already prf-instrumented internally)
+    dataContext.validateCases()
+
+    // Find newly added cases by comparing current cases to previous cases
+    prf.measure("DIItem.create[diff]", () => {
+      dataContext.collections.forEach(collection => {
+        newCaseIds[collection.id] = []
+        collection.caseIds.forEach(caseId => {
+          if (!oldCaseIds[collection.id].has(caseId)) newCaseIds[collection.id].push(caseId)
         })
       })
-
-      // Add items and update cases
-      itemIDs = prf.measure("DIItem.create[addCases]", () =>
-        dataContext.addCases(items, { canonicalize: true }))
-      // (DataSet.validateCases is already prf-instrumented internally)
-      dataContext.validateCases()
-
-      // Find newly added cases by comparing current cases to previous cases
-      prf.measure("DIItem.create[diff]", () => {
-        dataContext.collections.forEach(collection => {
-          newCaseIds[collection.id] = []
-          collection.caseIds.forEach(caseId => {
-            if (!oldCaseIds[collection.id].has(caseId)) newCaseIds[collection.id].push(caseId)
-          })
-        })
-      })
-    }, {
-      notify: () => prf.measure("DIItem.create[notify]", () => {
-        const notifications = []
-        for (const collectionId in newCaseIds) {
-          const caseIds = newCaseIds[collectionId]
-          if (caseIds.length > 0) {
-            notifications.push(createCasesNotification(caseIds, dataContext))
-          }
+    })
+  }, {
+    notify: () => prf.measure("DIItem.create[notify]", () => {
+      const notifications = []
+      for (const collectionId in newCaseIds) {
+        const caseIds = newCaseIds[collectionId]
+        if (caseIds.length > 0) {
+          notifications.push(createCasesNotification(caseIds, dataContext))
         }
-        return notifications
-      })
+      }
+      return notifications
     })
-    })
+  })
+  })
 
-    let caseIDs: string[] = []
-    for (const collectionId in newCaseIds) {
-      caseIDs = caseIDs.concat(newCaseIds[collectionId])
-    }
-    return {
-      success: true,
-      caseIDs: caseIDs.map(caseID => toV2Id(caseID)),
-      itemIDs: itemIDs.map(itemID => toV2Id(itemID))
-    }
+  // Attribute each new case to the segment containing its earliest contributing item.
+  // This matches sequential semantics: under one-create-at-a-time processing, a new
+  // parent case is reported by the first request whose item forms it; later requests
+  // join the existing case without reporting it.
+  const itemIndexMap = new Map<string, number>()
+  itemIDs.forEach((itemID, index) => itemIndexMap.set(itemID, index))
+  const segmentIndexForItemIndex = (itemIndex: number) =>
+    segmentRanges.findIndex(({ start, count }) => itemIndex >= start && itemIndex < start + count)
+
+  const segmentCaseIDs: number[][] = segmentRanges.map(() => [])
+  for (const collectionId in newCaseIds) {
+    newCaseIds[collectionId].forEach(caseId => {
+      const childItemIds = dataContext.caseInfoMap.get(caseId)?.childItemIds ?? []
+      const earliestItemIndex = childItemIds.reduce<number>((earliest, itemId) => {
+        const index = itemIndexMap.get(itemId)
+        return index != null && index < earliest ? index : earliest
+      }, Infinity)
+      // a new case with no contributing batch item shouldn't occur during pure adds;
+      // attribute to the first segment if it ever does
+      const segmentIndex = isFinite(earliestItemIndex) ? segmentIndexForItemIndex(earliestItemIndex) : 0
+      segmentCaseIDs[Math.max(0, segmentIndex)].push(toV2Id(caseId))
+    })
+  }
+
+  return segmentRanges.map(({ start, count }, index) => ({
+    success: true as const,
+    caseIDs: segmentCaseIDs[index],
+    itemIDs: itemIDs.slice(start, start + count).map(itemID => toV2Id(itemID))
+  }))
+}
+
+export const diItemHandler: DIHandler = {
+  create(resources: DIResources, values?: DIValues) {
+    const { dataContext } = resources
+    if (!dataContext) return dataContextNotFoundResult
+    if (!values) return valuesRequiredResult
+
+    const items = (Array.isArray(values) ? values : [values]) as DIItemValues[]
+    return createItemsInSegments(dataContext, [items])[0]
   },
 
   delete(resources: DIResources, values?: DIValues) {
