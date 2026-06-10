@@ -251,7 +251,7 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
         handleConnectingLinesClick, handleConnectingLinesMouseOver, handleConnectingLinesMouseOut])
 
   // Accept showLines parameter to avoid stale closure issues during rapid state changes
-  const refreshConnectingLines = useCallback(async (showLines: boolean) => {
+  const refreshConnectingLines = useCallback((showLines: boolean) => {
     if (!showLines && !connectingLinesActivatedRef.current) return
     const instance = connectingLinesInstanceRef.current
     // Only fade the lines in/out when the shown state actually changes (a user show/hide toggle);

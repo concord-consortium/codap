@@ -170,9 +170,15 @@ export class ConnectingLines {
       const include = !cellKey || (isCaseInSubPlot?.(cellKey, caseData) ?? true)
       if (!include) continue
       let groupKey = parentValue ?? "0"
-      if (cellKey && yAttrCount > 1) groupKey = String(plotNum)
+      // When there are multiple y-attrs the line is keyed by plot number and mixes parent-attribute
+      // values, so a single parentValue would mislead the hover tooltip — omit it in that mode.
+      let primaryValue = parentValue
+      if (cellKey && yAttrCount > 1) {
+        groupKey = String(plotNum)
+        primaryValue = undefined
+      }
       const cellStr = cellKey ? JSON.stringify(cellKey) : ""
-      results.push({ key: `${cellStr}::${groupKey}`, primaryValue: parentValue })
+      results.push({ key: `${cellStr}::${groupKey}`, primaryValue })
     }
     return results
   }
