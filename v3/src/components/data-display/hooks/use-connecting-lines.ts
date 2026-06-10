@@ -142,7 +142,7 @@ export const useConnectingLines = (props: IProps) => {
         .style("cursor", "pointer")
 
       if (animateChange) {
-        // Show/hide toggle: fade in (or fade out then remove). The caller owns connectingLinesActivatedRef
+        // Show/hide toggle: fade in (or fade out then remove). The caller owns the activation state
         // and updates it synchronously after this render, so a streaming case add that arrives mid-fade is
         // treated as a non-animated update and won't restart the fade (which previously left lines invisible).
         path
