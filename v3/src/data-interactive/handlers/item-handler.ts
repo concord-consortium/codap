@@ -55,9 +55,12 @@ export function createItemsInSegments(dataContext: IDataSet, segments: DIItemVal
       })
     })
 
-    // Add items and update cases
+    // Add items and update cases. A multi-segment batch is a coalesced run of streamed
+    // create requests, so observers (e.g. graphs) should snap rather than animate; a
+    // single create request — even one with many items — animates as an ordinary add.
+    const suppressAnimation = segments.length > 1
     itemIDs = prf.measure("DIItem.create[addCases]", () =>
-      dataContext.addCases(items, { canonicalize: true }))
+      dataContext.addCases(items, { canonicalize: true, suppressAnimation }))
     // (DataSet.validateCases is already prf-instrumented internally)
     dataContext.validateCases()
 

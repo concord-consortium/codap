@@ -6,7 +6,7 @@ import {
 } from "mobx-state-tree"
 import {AttributeType, attributeTypes} from "../../../models/data/attribute-types"
 import {DataSet, IDataSet} from "../../../models/data/data-set"
-import {isCaseValueChangeAction} from "../../../models/data/data-set-actions"
+import {isAddCasesAction, isCaseValueChangeAction} from "../../../models/data/data-set-actions"
 import {ICase} from "../../../models/data/data-set-types"
 import {idOfChildmostCollectionForAttributes} from "../../../models/data/data-set-utils"
 import {FilteredCases, IFilteredChangedCases} from "../../../models/data/filtered-cases"
@@ -877,14 +877,19 @@ export const DataConfigurationModel = types
       // addCases and removeCases don't currently self-invalidate, so we have to do it here.
       const cacheClearingActions = ["addCases", "removeCases"]
       if (cacheClearingActions.includes(actionCall.name)) {
-        // Suppress animation when cases are added or removed so points/bars update instantly
-        // rather than animating. This is essential while data streams in (e.g. one case at a
-        // time via a plugin): otherwise each added case restarts a fresh transition every frame,
-        // and because the transition clock resets each time, existing points never advance toward
-        // their new positions until streaming stops. matchCirclesToData consumes this flag to stop
-        // any in-flight animation and skip startAnimation. (See updateFilterFormulaResults for the
+        // Suppress animation when cases are removed, or added as part of a high-speed stream
+        // (the addCases suppressAnimation option, e.g. coalesced plugin creates, CODAP-1408),
+        // so points/bars update instantly rather than animating. This is essential while data
+        // streams in: otherwise each added case restarts a fresh transition every frame, and
+        // because the transition clock resets each time, existing points never advance toward
+        // their new positions until streaming stops. Individual adds (user-entered rows, paced
+        // plugin creates) animate as usual. matchCirclesToData consumes this flag to stop any
+        // in-flight animation and skip startAnimation. (See updateFilterFormulaResults for the
         // analogous slider/filter case.)
-        self.suppressAnimation = true
+        const suppressOnAdd = isAddCasesAction(actionCall) && actionCall.args[1]?.suppressAnimation
+        if (actionCall.name === "removeCases" || suppressOnAdd) {
+          self.suppressAnimation = true
+        }
         this.invalidateCases()
       }
       // forward all actions from dataset except "setCaseValues" which requires intervention

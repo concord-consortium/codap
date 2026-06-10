@@ -1,7 +1,10 @@
+import { isAddCasesAction } from "../../models/data/data-set-actions"
+import { IAddCasesOptions } from "../../models/data/data-set-types"
+import { setupTestDataset } from "../../test/dataset-test-utils"
 import { toV2Id } from "../../utilities/codap-utils"
+import { onAnyAction } from "../../utilities/mst-utils"
 import { DISuccessResult } from "../data-interactive-types"
 import { DIFullCase, DIItem, DIItemValues, DIUpdateItemResult } from "../data-interactive-data-set-types"
-import { setupTestDataset } from "../../test/dataset-test-utils"
 import { createItemsInSegments, diItemHandler } from "./item-handler"
 
 
@@ -174,6 +177,24 @@ describe("createItemsInSegments", () => {
       expect(result.itemIDs?.length).toBe(seqResults[i].itemIDs?.length)
       expect(result.caseIDs?.length).toBe(seqResults[i].caseIDs?.length)
     })
+  })
+
+  it("suppresses animation for coalesced (multi-segment) batches only", () => {
+    const { dataset } = setupTestDataset()
+    const addCasesOptions: Array<IAddCasesOptions | undefined> = []
+    const disposer = onAnyAction(dataset, action => {
+      if (isAddCasesAction(action)) addCasesOptions.push(action.args[1])
+    })
+
+    // a single segment — even with multiple items — animates as an ordinary add
+    createItemsInSegments(dataset, [[{ a1: "a", a3: 7 }, { a1: "b", a3: 8 }]])
+    expect(addCasesOptions[0]?.suppressAnimation).toBeFalsy()
+
+    // a coalesced run (multiple segments) is a high-speed stream: suppress animation
+    createItemsInSegments(dataset, [[{ a1: "a", a3: 9 }], [{ a1: "b", a3: 10 }]])
+    expect(addCasesOptions[1]?.suppressAnimation).toBe(true)
+
+    disposer()
   })
 
   it("honors Collaborative-style values and explicit ids within segments", () => {
