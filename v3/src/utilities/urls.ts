@@ -13,14 +13,13 @@ export function safeParseUrl(url: string): URL | undefined {
 }
 
 /**
- * Replacement for URL.canParse(), which isn't available in older browsers (e.g. Chrome < 120,
- * the last version supported on macOS Mojave). Returns true if the string can be parsed as an
- * absolute URL. Like URL.canParse() with no base, relative paths return false.
+ * Replacement for URL.canParse(), which isn't supported in some browsers we still target
+ * (added in Chrome 120 / Safari 17). Returns true if the string can be parsed as an absolute
+ * URL; like URL.canParse() with no base, relative paths return false.
  */
 export function canParseUrl(url: string): boolean {
   try {
-    // eslint-disable-next-line no-new
-    new URL(url)
+    void new URL(url)
     return true
   } catch {
     return false
