@@ -21,7 +21,7 @@ import {getChoroplethColors, missingColor, parseColor} from "../../../utilities/
 import { numericSortComparator } from "../../../utilities/data-utils"
 import { stringValuesToDateSeconds } from "../../../utilities/date-utils"
 import {hashStringSets, typedId, uniqueId} from "../../../utilities/js-utils"
-import { isFiniteNumber } from "../../../utilities/math-utils"
+import { equalFrequencyBins, isFiniteNumber } from "../../../utilities/math-utils"
 import { cachedFnWithArgsFactory, onAnyAction } from "../../../utilities/mst-utils"
 import { AxisPlace } from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
@@ -635,12 +635,7 @@ export const DataConfigurationModel = types
       if (self.legendQuantilesAreLocked && self._legendNumericColorScale) {
         return self._legendNumericColorScale
       }
-      const values = self.numericValuesForAttrRole("legend") ?? []
-
-      const legendAttrId = self.attributeID("legend")
-      const { min: overrideMin, max: overrideMax } =
-        self.metadata?.getAttributeLegendRange(legendAttrId) ?? {}
-      const binningType = self.metadata?.getAttributeBinningType(legendAttrId)
+      const binningType = self.metadata?.getAttributeBinningType(self.attributeID("legend"))
       switch (binningType) {
         case "quantize": {
           // Use the shared effective display range (override ?? data extent, with reversed-range
@@ -666,17 +661,53 @@ export const DataConfigurationModel = types
           return scaleThreshold<number, string>().domain(thresholds).range(colors)
         }
         case "quantile":
-        default: {
-          const filtered = overrideMin == null && overrideMax == null
-            ? values
-            : values.filter(v =>
-                (overrideMin == null || v >= overrideMin) && (overrideMax == null || v <= overrideMax))
-          // If the override range excludes every value (orphaned/stale override, or the data
-          // moved outside the range), train on the full value set rather than producing an
-          // all-first-color scale.
-          return scaleQuantile(filtered.length > 0 ? filtered : values, self.choroplethColors)
-        }
+        default:
+          // d3 quantile scale for non-degenerate data; equal-frequency repair when ties collapse it.
+          return this.legendQuantileScaleAndExtents.scale
       }
+    },
+    // Quantile binning, including the degenerate-tie repair. Computed once and shared by the color
+    // scale (which needs the scale) and the legend (which needs per-bin data extents for labels).
+    // d3's scaleQuantile is used unchanged for non-degenerate data (byte-identical to V2); when
+    // ties collapse the quantile boundaries into empty bins, a scaleThreshold built from the
+    // most-equal partition groups replaces it so distinct values get distinct colors and no bin
+    // is empty.
+    get legendQuantileScaleAndExtents(): {
+      scale: ScaleQuantile<string> | ScaleThreshold<number, string>,
+      extents?: Array<{ min: number, max: number }>
+    } {
+      const legendAttrId = self.attributeID("legend")
+      const values = self.numericValuesForAttrRole("legend") ?? []
+      const { min: overrideMin, max: overrideMax } =
+        self.metadata?.getAttributeLegendRange(legendAttrId) ?? {}
+      const filtered = overrideMin == null && overrideMax == null
+        ? values
+        : values.filter(v =>
+            (overrideMin == null || v >= overrideMin) && (overrideMax == null || v <= overrideMax))
+      // If the override range excludes every value (orphaned/stale override, or the data moved
+      // outside the range), train on the full value set rather than producing an all-first-color scale.
+      const trained = filtered.length > 0 ? filtered : values
+      const scale = scaleQuantile(trained, self.choroplethColors)
+      // Degenerate iff [min, ...quantiles] is not strictly increasing: a duplicate boundary means a
+      // bin has no values. (The last bin always contains the max, so only the lower boundaries matter.)
+      const boundaries = [scale.domain()[0], ...scale.quantiles()]
+      const degenerate = trained.length > 0 &&
+        boundaries.some((b, i) => i > 0 && b <= boundaries[i - 1])
+      if (!degenerate) return { scale }
+      const bins = equalFrequencyBins(trained, self.legendBinCount)
+      const thresholds = bins.slice(1).map(b => b.min)
+      const threshScale = scaleThreshold<number, string>().domain(thresholds).range(self.choroplethColors)
+      return { scale: threshScale, extents: bins.map(b => ({ min: b.min, max: b.max })) }
+    },
+    // Per-bin data extents for labeling the legend, defined only for the degenerate quantile case
+    // (where bins must be labeled from the data, e.g. "1" or "2 - 3"). undefined everywhere else,
+    // so the return value doubles as the "is degenerate" signal the legend keys off. Locked legends
+    // use their frozen threshold labels, so they opt out here.
+    get legendBinDataExtents(): Array<{ min: number, max: number }> | undefined {
+      if (self.legendQuantilesAreLocked) return undefined
+      const binningType = self.metadata?.getAttributeBinningType(self.attributeID("legend"))
+      if (binningType != null && binningType !== "quantile") return undefined
+      return this.legendQuantileScaleAndExtents.extents
     },
   }))
   .views(self => (
