@@ -173,5 +173,34 @@ describe("choroplethLegend", () => {
     expect(narrow.tickMarkCount).toBe(0)
     expect(narrow.hasAxisDomain).toBe(false)
   })
+
+  it("labels degenerate bins from per-bin data extents", () => {
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g")
+    // three single-value bins {1}{2}{3}: thresholds at the group mins [2, 3]
+    const scale = scaleThreshold<number, string>().domain([2, 3]).range(colors.slice(0, 3))
+    choroplethLegend(scale, g, {
+      width: 400, marginLeft: 6, marginRight: 6, marginTop: 20, ticks: 5,
+      legendMin: 1, legendMax: 3,
+      binDataExtents: [{ min: 1, max: 1 }, { min: 2, max: 2 }, { min: 3, max: 3 }],
+      clickHandler: () => undefined, casesInBinSelectedHandler: () => false
+    })
+    const tooltips = Array.from(g.querySelectorAll("title")).map(t => t.textContent)
+    // single-value bins read as a bare value, not a "1 - 1" range
+    expect(tooltips).toEqual(["1", "2", "3"])
+  })
+
+  it("labels a multi-value degenerate bin as a range", () => {
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g")
+    // {1}{2,3}{4,5}: thresholds at [2, 4]
+    const scale = scaleThreshold<number, string>().domain([2, 4]).range(colors.slice(0, 3))
+    choroplethLegend(scale, g, {
+      width: 400, marginLeft: 6, marginRight: 6, marginTop: 20, ticks: 5,
+      legendMin: 1, legendMax: 5,
+      binDataExtents: [{ min: 1, max: 1 }, { min: 2, max: 3 }, { min: 4, max: 5 }],
+      clickHandler: () => undefined, casesInBinSelectedHandler: () => false
+    })
+    const tooltips = Array.from(g.querySelectorAll("title")).map(t => t.textContent)
+    expect(tooltips).toEqual(["1", "2 - 3", "4 - 5"])
+  })
 })
 /* eslint-enable testing-library/render-result-naming-convention */

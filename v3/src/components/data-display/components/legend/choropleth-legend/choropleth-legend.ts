@@ -39,6 +39,10 @@ export type ChoroplethLegendProps = {
   // override the domain-derived endpoints so the legend matches the range the user set (CODAP-1292).
   legendMin?: number,
   legendMax?: number,
+  // Per-bin data extents (min..max of the values in each bin). Provided only for the degenerate
+  // quantile case, where bins are labeled from the data: a single value when min === max (e.g.
+  // "1"), else a range ("2 - 3"). When absent, bin tooltips use the threshold-derived boundaries.
+  binDataExtents?: Array<{ min: number, max: number }>,
   clickHandler: (bin: number, extend: boolean) => void,
   casesInBinSelectedHandler: (bin: number) => boolean
 }
@@ -74,7 +78,7 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
   const {
       isDate, useGrouping = false, logarithmic = false, transform = '', width = 320,
       marginTop = 0, marginRight = 0, marginLeft = 0,
-      ticks = 5, legendMin, legendMax, clickHandler, casesInBinSelectedHandler
+      ticks = 5, legendMin, legendMax, binDataExtents, clickHandler, casesInBinSelectedHandler
     } = props,
     // Prefer the caller-provided effective range; fall back to the scale domain's extent (a quantile
     // scale's domain is its training samples, so its extent can differ from the user-set range).
@@ -150,6 +154,14 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
     .append('title')
     .text((color) => {
       const bin = scale.range().indexOf(color)
+      // Degenerate quantile bins are labeled from their data: a single value when min === max
+      // (e.g. "1"), else a range ("2 - 3").
+      const extent = binDataExtents?.[bin]
+      if (extent) {
+        return extent.min === extent.max
+          ? formatBoundary(extent.min)
+          : `${formatBoundary(extent.min)} - ${formatBoundary(extent.max)}`
+      }
       // Every bin is a plain [low - high] range. Out-of-range values (and <= 0 in logarithmic mode)
       // are treated as missing rather than clamped into the end bins, so the first and last bins are
       // bounded by the legend's min/max like any interior bin.
