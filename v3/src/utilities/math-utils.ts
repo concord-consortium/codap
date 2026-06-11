@@ -121,8 +121,10 @@ export interface IEqualFrequencyBin {
  * most-equal contiguous partition: the quantile goal of equal counts, relaxed only as far as
  * indivisible ties force it. It is order-independent (a top-heavy tie is balanced the same as a
  * bottom-heavy one) and reduces to standard equal-count quantile groups when there are no ties.
- * Computed with an O(nBins * D^2) dynamic program over the D distinct values; D is small in the
- * degenerate path (heavy ties => few distinct values), so this is cheap.
+ * Computed with a dynamic program over the D distinct values, accelerated with a divide-and-conquer
+ * optimization (the squared-sum cost is convex, so the optimal boundary is monotonic) to
+ * O(nBins * D log D) — so it stays efficient even when degeneracy coincides with a large number of
+ * distinct values (e.g. one dominant tie plus a long tail of unique values).
  *
  * Returns `min(nBins, number of distinct values)` bins (so a value is never split across bins);
  * an empty input yields no bins. Callers that need exactly `nBins` bins should pass a count no
@@ -149,17 +151,34 @@ export function equalFrequencyBins(values: number[], nBins: number): IEqualFrequ
   const dp: number[][] = Array.from({ length: n + 1 }, () => Array(m + 1).fill(Infinity))
   const arg: number[][] = Array.from({ length: n + 1 }, () => Array(m + 1).fill(-1))
   dp[0][0] = 0
-  for (let k = 1; k <= n; k++) {
-    // i >= k so each of the k bins gets at least one distinct value; j >= k-1 likewise for the rest
-    for (let i = k; i <= m; i++) {
-      for (let j = k - 1; j < i; j++) {
-        const prev = dp[k - 1][j]
-        if (prev === Infinity) continue
-        const segment = prefix[i] - prefix[j]
-        const total = prev + segment * segment
-        if (total < dp[k][i]) { dp[k][i] = total; arg[k][i] = j }
-      }
+  // Fill row k for i in [iLo, iHi] knowing the optimal boundary lies in [jLo, jHi]. The squared-sum
+  // cost is convex, so the optimal boundary is monotonic non-decreasing in i; divide-and-conquer on
+  // that property reduces each row from O(D^2) to O(D log D). Ties pick the smallest boundary (the
+  // ascending scan with a strict `<`), matching a plain left-to-right DP.
+  const fillRow = (k: number, iLo: number, iHi: number, jLo: number, jHi: number) => {
+    if (iLo > iHi) return
+    const iMid = Math.floor((iLo + iHi) / 2)
+    let bestJ = -1
+    let best = Infinity
+    const jStart = Math.max(jLo, k - 1)
+    const jEnd = Math.min(jHi, iMid - 1)
+    for (let j = jStart; j <= jEnd; j++) {
+      const prev = dp[k - 1][j]
+      if (prev === Infinity) continue
+      const segment = prefix[iMid] - prefix[j]
+      const total = prev + segment * segment
+      if (total < best) { best = total; bestJ = j }
     }
+    dp[k][iMid] = best
+    arg[k][iMid] = bestJ
+    const leftHi = bestJ < 0 ? jHi : bestJ
+    const rightLo = bestJ < 0 ? jLo : bestJ
+    fillRow(k, iLo, iMid - 1, jLo, leftHi)
+    fillRow(k, iMid + 1, iHi, rightLo, jHi)
+  }
+  for (let k = 1; k <= n; k++) {
+    // i >= k so each of the k bins gets at least one distinct value; j (the prior boundary) <= m-1
+    fillRow(k, k, m, k - 1, m - 1)
   }
 
   // reconstruct group boundaries: bounds = [0, b1, ..., m]; group g spans distinct[bounds[g]..bounds[g+1])

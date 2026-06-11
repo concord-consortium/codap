@@ -294,4 +294,46 @@ describe("equalFrequencyBins", () => {
   it("returns an empty array for empty input", () => {
     expect(equalFrequencyBins([], 3)).toEqual([])
   })
+
+  it("matches the brute-force optimal cost on random tie-heavy inputs", () => {
+    // Independent O(nBins * D^2) reference for the minimal sum of squared bin counts.
+    const bruteOptimalCost = (values: number[], nBins: number) => {
+      const sorted = [...values].sort((a, b) => a - b)
+      const counts: number[] = []
+      let prev: number | undefined
+      for (const v of sorted) {
+        if (v === prev) counts[counts.length - 1]++
+        else { counts.push(1); prev = v }
+      }
+      const m = counts.length
+      const n = Math.min(nBins, m)
+      if (n <= 0) return 0
+      const p = [0]
+      for (let k = 0; k < m; k++) p.push(p[k] + counts[k])
+      const dp = Array.from({ length: n + 1 }, () => Array(m + 1).fill(Infinity))
+      dp[0][0] = 0
+      for (let k = 1; k <= n; k++) {
+        for (let i = k; i <= m; i++) {
+          for (let j = k - 1; j < i; j++) {
+            if (dp[k - 1][j] === Infinity) continue
+            const seg = p[i] - p[j]
+            dp[k][i] = Math.min(dp[k][i], dp[k - 1][j] + seg * seg)
+          }
+        }
+      }
+      return dp[n][m]
+    }
+    const costOf = (bins: Array<{ count: number }>) => bins.reduce((sum, b) => sum + b.count * b.count, 0)
+
+    for (let trial = 0; trial < 300; trial++) {
+      const len = 1 + Math.floor(Math.random() * 40)
+      // small value range => lots of ties (the degenerate regime this helper targets)
+      const values = Array.from({ length: len }, () => Math.floor(Math.random() * 8))
+      const nBins = 1 + Math.floor(Math.random() * 6)
+      const bins = equalFrequencyBins(values, nBins)
+      // total count is preserved and the partition is cost-optimal
+      expect(costOf(bins)).toBe(bruteOptimalCost(values, nBins))
+      expect(bins.reduce((sum, b) => sum + b.count, 0)).toBe(values.length)
+    }
+  })
 })
