@@ -302,8 +302,12 @@ describe("equalFrequencyBins", () => {
       const counts: number[] = []
       let prev: number | undefined
       for (const v of sorted) {
-        if (v === prev) counts[counts.length - 1]++
-        else { counts.push(1); prev = v }
+        if (v === prev) {
+          counts[counts.length - 1]++
+        } else {
+          counts.push(1)
+          prev = v
+        }
       }
       const m = counts.length
       const n = Math.min(nBins, m)
@@ -325,11 +329,19 @@ describe("equalFrequencyBins", () => {
     }
     const costOf = (bins: Array<{ count: number }>) => bins.reduce((sum, b) => sum + b.count * b.count, 0)
 
+    // Deterministic LCG (Numerical Recipes constants) so any failure is reproducible. State stays
+    // below 2^32 and state*1664525 stays within Number.MAX_SAFE_INTEGER, so no bitwise ops needed.
+    let state = 123456789
+    const rand = () => {
+      state = (state * 1664525 + 1013904223) % 4294967296
+      return state / 4294967296
+    }
+
     for (let trial = 0; trial < 300; trial++) {
-      const len = 1 + Math.floor(Math.random() * 40)
+      const len = 1 + Math.floor(rand() * 40)
       // small value range => lots of ties (the degenerate regime this helper targets)
-      const values = Array.from({ length: len }, () => Math.floor(Math.random() * 8))
-      const nBins = 1 + Math.floor(Math.random() * 6)
+      const values = Array.from({ length: len }, () => Math.floor(rand() * 8))
+      const nBins = 1 + Math.floor(rand() * 6)
       const bins = equalFrequencyBins(values, nBins)
       // total count is preserved and the partition is cost-optimal
       expect(costOf(bins)).toBe(bruteOptimalCost(values, nBins))
