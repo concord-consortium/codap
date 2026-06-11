@@ -189,6 +189,20 @@ describe("choroplethLegend", () => {
     expect(tooltips).toEqual(["1", "2", "3"])
   })
 
+  it("uses the bin index (not color lookup) so duplicate colors map to the right bin", () => {
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g")
+    // all bins share one color (lowColor === highColor); indexOf(color) would return 0 for every rect
+    const scale = scaleThreshold<number, string>().domain([2, 3]).range(["#x", "#x", "#x"])
+    choroplethLegend(scale, g, {
+      width: 400, marginLeft: 6, marginRight: 6, marginTop: 20, ticks: 5,
+      legendMin: 1, legendMax: 3,
+      binDataExtents: [{ min: 1, max: 1 }, { min: 2, max: 2 }, { min: 3, max: 3 }],
+      clickHandler: () => undefined, casesInBinSelectedHandler: () => false
+    })
+    const tooltips = Array.from(g.querySelectorAll("title")).map(t => t.textContent)
+    expect(tooltips).toEqual(["1", "2", "3"]) // not ["1", "1", "1"]
+  })
+
   it("labels a multi-value degenerate bin as a range", () => {
     const g = document.createElementNS("http://www.w3.org/2000/svg", "g")
     // {1}{2,3}{4,5}: thresholds at [2, 4]

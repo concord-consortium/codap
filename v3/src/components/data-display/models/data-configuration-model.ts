@@ -821,10 +821,13 @@ export const DataConfigurationModel = types
         const thresholds = getScaleThresholds(scale)
         // Out-of-range values are "missing" (not in any bin), so the end bins are bounded by the
         // effective legend range rather than ±Infinity: the first bin starts at the range min and
-        // the last bin ends at the range max, inclusive (the max is a real, plottable value).
+        // the last bin ends at the range max, inclusive (the max is a real, plottable value). In
+        // logarithmic mode with a degenerate domain (no rangeMin) the first bin still starts just
+        // above 0, since non-positive values are missing rather than part of the bin.
         const { min: rangeMin, max: rangeMax } = self.legendDisplayRange
         const isLastBin = bin === thresholds.length
-        const min = bin === 0 ? (rangeMin ?? -Infinity) : thresholds[bin - 1]
+        const firstBinMin = rangeMin ?? (self.legendIsLogarithmic ? Number.MIN_VALUE : -Infinity)
+        const min = bin === 0 ? firstBinMin : thresholds[bin - 1]
         const max = isLastBin ? (rangeMax ?? Infinity) : thresholds[bin]
         return self.getCasesInLegendRange(min, max, isLastBin)
       }

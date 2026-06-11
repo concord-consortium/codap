@@ -133,27 +133,27 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
         interiorCenters[i - 1] + interiorWidths[i - 1] / 2 + kLegendLabelGap),
     onlyShowMinMax = !(fitBesideEndpoints && interiorLabelsFit)
 
+  // Bind each rect to its bin index (not its color): the index is the unambiguous bin identifier,
+  // whereas looking a color up in scale.range() is O(n) and returns the wrong bin when the ramp
+  // contains duplicate colors (e.g. lowColor === highColor).
+  const colors = scale.range()
   svg.append("g")
     .selectAll("rect")
-    .data(scale.range())
+    .data(colors.map((_, i) => i))
     .join("rect")
     .attr('class', 'choropleth-rect')
-    .classed('legend-rect-selected',
-      (color) => {
-        return casesInBinSelectedHandler(scale.range().indexOf(color))
-      })
+    .classed('legend-rect-selected', bin => casesInBinSelectedHandler(bin))
     .attr('transform', transform)
-    .attr("x", (d, i) => legendScale(i - 1))
+    .attr("x", bin => legendScale(bin - 1))
     .attr("y", marginTop)
-    .attr("width", (d, i) => legendScale(i) - legendScale(i - 1))
+    .attr("width", bin => legendScale(bin) - legendScale(bin - 1))
     .attr("height", kChoroplethHeight /*height - marginTop - marginBottom*/)
-    .attr("fill", (d: string) => d)
-    .on('click', (event, color) => {
-      clickHandler(scale.range().indexOf(color), event.shiftKey)
+    .attr("fill", bin => colors[bin])
+    .on('click', (event, bin) => {
+      clickHandler(bin, event.shiftKey)
     })
     .append('title')
-    .text((color) => {
-      const bin = scale.range().indexOf(color)
+    .text(bin => {
       // Degenerate quantile bins are labeled from their data: a single value when min === max
       // (e.g. "1"), else a range ("2 - 3").
       const extent = binDataExtents?.[bin]

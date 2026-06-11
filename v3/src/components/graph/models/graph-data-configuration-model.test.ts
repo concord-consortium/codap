@@ -844,6 +844,21 @@ describe("DataConfigurationModel legend range overrides", () => {
     expect(t.config.getLegendColorForNumericValue(5)).toBe(missingColor)
   })
 
+  it("excludes non-positive cases from the single bin of a degenerate logarithmic legend", () => {
+    // <= 1 distinct positive value -> degenerate log domain ({}), single-bin scale.
+    const t = TreeModel.create({ data: {}, metadata: {}, config: {} })
+    t.data.addAttribute({ id: "legId", name: "leg" })
+    t.metadata.setData(t.data)
+    t.data.addCases(toCanonical(t.data, [{ leg: 5 }, { leg: 5 }, { leg: -1 }]))
+    t.config.setDataset(t.data, t.metadata)
+    t.config.setAttribute("legend", { attributeID: "legId" })
+    t.metadata.setAttributeBinningType("legId", "logarithmic")
+    expect(t.config.legendLogDomain).toEqual({})
+    // clicking the single bin must not select the non-positive (missing-colored) case
+    const binValues = t.config.getCasesForLegendBin(0).map((id: string) => t.data.getNumeric(id, "legId"))
+    expect(binValues).toEqual([5, 5])
+  })
+
   it("colors all-equal positive values with the single bin in logarithmic mode", () => {
     // all values the same positive number -> degenerate log domain ({}), single-bin scale.
     // The value should get that bin's color, not the missing color (CODAP-1409 review fix).
