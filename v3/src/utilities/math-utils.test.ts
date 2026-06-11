@@ -281,4 +281,17 @@ describe("equalFrequencyBins", () => {
       { min: 2, max: 3, count: 2 }
     ])
   })
+
+  it("returns at most one bin per distinct value when asked for more bins than exist", () => {
+    // [1,1,1,2] has 2 distinct values; asking for 5 bins yields 2 (no crash)
+    const bins = equalFrequencyBins([1, 1, 1, 2], 5)
+    expect(bins).toEqual([
+      { min: 1, max: 1, count: 3 },
+      { min: 2, max: 2, count: 1 }
+    ])
+  })
+
+  it("returns an empty array for empty input", () => {
+    expect(equalFrequencyBins([], 3)).toEqual([])
+  })
 })

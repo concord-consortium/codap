@@ -696,7 +696,13 @@ export const DataConfigurationModel = types
       if (!degenerate) return { scale }
       const bins = equalFrequencyBins(trained, self.legendBinCount)
       const thresholds = bins.slice(1).map(b => b.min)
-      const threshScale = scaleThreshold<number, string>().domain(thresholds).range(self.choroplethColors)
+      // bins.length can be < legendBinCount when an override leaves fewer distinct values than the
+      // bin-count cap; size the color ramp to the actual bin count so the threshold scale's range
+      // length matches its domain.
+      const colors = bins.length === self.legendBinCount
+        ? self.choroplethColors
+        : getChoroplethColors(self.lowColor, self.highColor, bins.length)
+      const threshScale = scaleThreshold<number, string>().domain(thresholds).range(colors)
       return { scale: threshScale, extents: bins.map(b => ({ min: b.min, max: b.max })) }
     },
     // Per-bin data extents for labeling the legend, defined only for the degenerate quantile case
@@ -718,12 +724,15 @@ export const DataConfigurationModel = types
       },
 
       getLegendColorForNumericValue(value: number): string {
-        // Values outside the effective legend range are "missing" rather than clamped into an end
-        // bin. legendDisplayRange is the same range used for the endpoint labels, so colors and
-        // labels stay in lockstep: the log domain (whose min is positive, so values <= 0 fall
-        // outside) in logarithmic mode, else the user-set/data linear or quantile range.
+        // A log scale is undefined for values <= 0; they are always missing, including when the log
+        // domain is degenerate (<= 1 distinct positive value) and legendDisplayRange is empty.
+        if (self.legendIsLogarithmic && value <= 0) return missingColor
+        // When the effective range is defined, values outside it are "missing" rather than clamped
+        // into an end bin. legendDisplayRange is the same range used for the endpoint labels, so
+        // colors and labels stay in lockstep. A degenerate domain yields no min/max but still
+        // produces a valid single-bin scale, so skip the check there and let the scale color it.
         const { min, max } = self.legendDisplayRange
-        if (min == null || max == null || value < min || value > max) return missingColor
+        if (min != null && max != null && (value < min || value > max)) return missingColor
         return self.legendNumericColorScale(value)
       },
 

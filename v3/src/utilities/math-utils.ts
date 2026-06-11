@@ -116,16 +116,17 @@ export interface IEqualFrequencyBin {
 }
 
 /**
- * Partition `values` into `nBins` contiguous, non-empty bins whose case counts are as equal as
- * possible (minimizing the sum of squared bin counts), keeping equal values in the same bin.
- * This is the most-equal contiguous partition: the quantile goal of equal counts, relaxed only
- * as far as indivisible ties force it. It is order-independent (a top-heavy tie is balanced the
- * same as a bottom-heavy one) and reduces to standard equal-count quantile groups when there are
- * no ties. Computed with an O(nBins * D^2) dynamic program over the D distinct values; D is small
- * in the degenerate path (heavy ties => few distinct values), so this is cheap.
+ * Partition `values` into contiguous, non-empty bins whose case counts are as equal as possible
+ * (minimizing the sum of squared bin counts), keeping equal values in the same bin. This is the
+ * most-equal contiguous partition: the quantile goal of equal counts, relaxed only as far as
+ * indivisible ties force it. It is order-independent (a top-heavy tie is balanced the same as a
+ * bottom-heavy one) and reduces to standard equal-count quantile groups when there are no ties.
+ * Computed with an O(nBins * D^2) dynamic program over the D distinct values; D is small in the
+ * degenerate path (heavy ties => few distinct values), so this is cheap.
  *
- * Precondition: `nBins >= 1` and the number of distinct values is `>= nBins` (the legend's
- * bin-count cap guarantees this), so every returned bin is non-empty.
+ * Returns `min(nBins, number of distinct values)` bins (so a value is never split across bins);
+ * an empty input yields no bins. Callers that need exactly `nBins` bins should pass a count no
+ * greater than the number of distinct values.
  */
 export function equalFrequencyBins(values: number[], nBins: number): IEqualFrequencyBin[] {
   const sorted = [...values].sort((a, b) => a - b)
@@ -138,16 +139,20 @@ export function equalFrequencyBins(values: number[], nBins: number): IEqualFrequ
   }
 
   const m = distinct.length
+  // a value can't be split across bins, so never make more bins than there are distinct values
+  const n = Math.min(nBins, m)
+  if (n <= 0) return []
+
   // prefix[k] = number of cases in the first k distinct values
   const prefix = [0]
   for (let k = 0; k < m; k++) prefix.push(prefix[k] + distinct[k].count)
 
   // dp[k][i] = min sum-of-squared-counts to split the first i distinct values into k bins;
   // arg[k][i] = the boundary (count of distinct values before the last bin) achieving it.
-  const dp: number[][] = Array.from({ length: nBins + 1 }, () => Array(m + 1).fill(Infinity))
-  const arg: number[][] = Array.from({ length: nBins + 1 }, () => Array(m + 1).fill(-1))
+  const dp: number[][] = Array.from({ length: n + 1 }, () => Array(m + 1).fill(Infinity))
+  const arg: number[][] = Array.from({ length: n + 1 }, () => Array(m + 1).fill(-1))
   dp[0][0] = 0
-  for (let k = 1; k <= nBins; k++) {
+  for (let k = 1; k <= n; k++) {
     // i >= k so each of the k bins gets at least one distinct value; j >= k-1 likewise for the rest
     for (let i = k; i <= m; i++) {
       for (let j = k - 1; j < i; j++) {
@@ -163,14 +168,14 @@ export function equalFrequencyBins(values: number[], nBins: number): IEqualFrequ
   // reconstruct group boundaries: bounds = [0, b1, ..., m]; group g spans distinct[bounds[g]..bounds[g+1])
   const bounds = [m]
   let cut = m
-  for (let k = nBins; k >= 1; k--) {
+  for (let k = n; k >= 1; k--) {
     const j = arg[k][cut]
     bounds.unshift(j)
     cut = j
   }
 
   const bins: IEqualFrequencyBin[] = []
-  for (let g = 0; g < nBins; g++) {
+  for (let g = 0; g < n; g++) {
     const lo = bounds[g]
     const hi = bounds[g + 1]
     bins.push({ min: distinct[lo].value, max: distinct[hi - 1].value, count: prefix[hi] - prefix[lo] })
