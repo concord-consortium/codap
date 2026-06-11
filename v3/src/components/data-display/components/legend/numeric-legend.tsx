@@ -55,6 +55,7 @@ export const NumericLegend =
           useGrouping: !legendAttr?.isInferredYearType(),
           logarithmic: dataConfiguration.legendIsLogarithmic,
           width: tileWidth, legendMin, legendMax,
+          binDataExtents: dataConfiguration.legendBinDataExtents,
           marginLeft: 6, marginTop: labelHeight + 2 * labelPaddingY, marginRight: 6, ticks: 5,
           clickHandler: (bin: number, extend: boolean) => {
             const dataset = dataConfiguration.dataset
