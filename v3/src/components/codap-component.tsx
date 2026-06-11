@@ -87,8 +87,12 @@ export const CodapComponent = observer(function CodapComponent(props: IProps) {
     onTabTrapReady?.(handleTabTrap)
   }, [handleTabTrap, onTabTrapReady])
 
-  // Clean up last-focused tracking when tile unmounts
-  useEffect(() => () => clearLastFocusedForTile(tile.id), [tile.id])
+  // Clean up last-focused tracking when tile unmounts. Capture the id while the tile is still
+  // alive so the cleanup doesn't read it off an already-destroyed MST node (which would warn).
+  useEffect(() => {
+    const tileId = tile.id
+    return () => clearLastFocusedForTile(tileId)
+  }, [tile.id])
 
   const focused = uiState.isFocusedTile(tile.id) || uiState.isHoveredTile(tile.id)
 

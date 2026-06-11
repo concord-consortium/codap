@@ -1,5 +1,4 @@
 import {ScaleLinear, select} from "d3"
-import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
 import {useCallback, useEffect, useRef, useState} from "react"
 import {useDataSetContext} from "../../../../hooks/use-data-set-context"
@@ -9,6 +8,7 @@ import {ICase} from "../../../../models/data/data-set-types"
 import {
   firstVisibleParentAttribute, idOfChildmostCollectionForAttributes
 } from "../../../../models/data/data-set-utils"
+import { mstAutorun } from "../../../../utilities/mst-autorun"
 import {ScaleNumericBaseType} from "../../../axis/axis-types"
 import { getDomainExtentForPixelWidth } from "../../../axis/axis-utils"
 import { CaseData } from "../../../data-display/d3-types"
@@ -310,12 +310,15 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
   // Call refreshSquares when Squares of Residuals option is switched on and when a
   // Movable Line adornment is being dragged.
   useEffect(function updateSquares() {
-    return autorun(() => {
+    return mstAutorun(() => {
       if (adornmentsStore.showSquaresOfResiduals) {
         refreshSquares()
       }
-    }, { name: "ScatterDots.updateSquares" })
-  }, [adornmentsStore.showSquaresOfResiduals, refreshSquares])
+    }, { name: "ScatterDots.updateSquares" }, graphModel)
+    // showSquaresOfResiduals is observed inside the autorun, so it's intentionally not an effect
+    // dependency — keeping it here would recreate the mstAutorun on every toggle, accumulating
+    // no-op addDisposer entries on graphModel until it's destroyed.
+  }, [adornmentsStore, graphModel, refreshSquares])
 
   // Call refreshConnectingLines when Connecting Lines option is switched on and when all
   // points are selected.
@@ -323,12 +326,20 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
   // we always get the current value, rather than relying on closures which can become stale
   // during rapid state changes (e.g., during undo when renderer is also changing).
   useEffect(function updateConnectingLines() {
-    return autorun(() => {
+    return mstAutorun(() => {
       // Read showConnectingLines directly from store inside autorun to create a reactive dependency
       const currentShowConnectingLines = adornmentsStore.showConnectingLines
+      // Observe selection inside the autorun (rather than via the effect dependencies) so the lines
+      // restyle on selection change without tearing down and reinstalling the autorun each time.
+      // (drawConnectingLines styles selected lines, so the lines genuinely depend on selection.)
+      // Only observe it when lines are shown: when hidden, selection has no effect on rendering, so
+      // tracking it would just cause wasted reruns (incl. the O(N) selection computation).
+      if (currentShowConnectingLines) {
+        dataConfiguration?.selection // eslint-disable-line @typescript-eslint/no-unused-expressions
+      }
       refreshConnectingLines(currentShowConnectingLines)
-    }, { name: "ScatterDots.updateConnectingLines" })
-  }, [adornmentsStore, dataConfiguration?.selection, refreshConnectingLines])
+    }, { name: "ScatterDots.updateConnectingLines" }, graphModel)
+  }, [adornmentsStore, dataConfiguration, graphModel, refreshConnectingLines])
 
   usePlotResponders({renderer, refreshPointPositions, refreshPointSelection})
 
