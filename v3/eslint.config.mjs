@@ -110,6 +110,14 @@ export default [
       "no-constant-binary-expression": "error",
       "no-debugger": "off",
       "no-duplicate-imports": "error",
+      "no-restricted-properties": ["error",
+        // URL.canParse/URL.parse aren't supported in browsers we still target (e.g. Chrome <120,
+        // Safari <17). See CODAP-1401. Use the helpers in utilities/urls instead.
+        { object: "URL", property: "canParse",
+          message: "URL.canParse() is unsupported in older browsers; use canParseUrl() from utilities/urls." },
+        { object: "URL", property: "parse",
+          message: "URL.parse() is unsupported in older browsers; use safeParseUrl() from utilities/urls." }
+      ],
       "no-sequences": "error",
       "no-shadow": "off", // superseded by @typescript-eslint/no-shadow
       "no-unneeded-ternary": "error",

@@ -12,6 +12,20 @@ export function safeParseUrl(url: string): URL | undefined {
   }
 }
 
+/**
+ * Replacement for URL.canParse(), which isn't supported in some browsers we still target
+ * (added in Chrome 120 / Safari 17). Returns true if the string can be parsed as an absolute
+ * URL; like URL.canParse() with no base, relative paths return false.
+ */
+export function canParseUrl(url: string): boolean {
+  try {
+    void new URL(url)
+    return true
+  } catch {
+    return false
+  }
+}
+
 export function getExtensionFromUrl(url: string): string | undefined {
   const pathParts = safeParseUrl(url)?.pathname.toLowerCase().split(".") ?? []
   return pathParts.length > 1 ? pathParts[pathParts.length - 1] : undefined

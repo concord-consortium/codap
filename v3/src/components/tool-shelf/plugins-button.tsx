@@ -11,6 +11,7 @@ import { useRemotePluginsConfig } from "../../hooks/use-remote-plugins-config"
 import { DEBUG_PLUGINS } from "../../lib/debug"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { persistentState } from "../../models/persistent-state"
+import { canParseUrl } from "../../utilities/urls"
 import { getSpecialLangFontClassName, t } from "../../utilities/translation/translate"
 import { kWebViewTileType } from "../web-view/web-view-defs"
 import { isWebViewModel } from "../web-view/web-view-model"
@@ -67,7 +68,7 @@ function PluginItem({ onClose, pluginData }: IPluginItemProps) {
     if (!pluginData) return
     documentContent?.applyModelChange(
       () => {
-        const url = URL.canParse(pluginData.path) ? pluginData.path : processWebViewUrl(`${kRootPluginsUrl}${path}`)
+        const url = canParseUrl(pluginData.path) ? pluginData.path : processWebViewUrl(`${kRootPluginsUrl}${path}`)
         const options = { height, width }
         const tile = documentContent?.createOrShowTile?.(kWebViewTileType, options)
         if (isWebViewModel(tile?.content)) {
