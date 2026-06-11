@@ -109,6 +109,75 @@ export function binBoundarySignificantFigures(boundaries: number[], maxSigFigs =
   return sigFigs
 }
 
+export interface IEqualFrequencyBin {
+  min: number
+  max: number
+  count: number
+}
+
+/**
+ * Partition `values` into `nBins` contiguous, non-empty bins whose case counts are as equal as
+ * possible (minimizing the sum of squared bin counts), keeping equal values in the same bin.
+ * This is the most-equal contiguous partition: the quantile goal of equal counts, relaxed only
+ * as far as indivisible ties force it. It is order-independent (a top-heavy tie is balanced the
+ * same as a bottom-heavy one) and reduces to standard equal-count quantile groups when there are
+ * no ties. Computed with an O(nBins * D^2) dynamic program over the D distinct values; D is small
+ * in the degenerate path (heavy ties => few distinct values), so this is cheap.
+ *
+ * Precondition: `nBins >= 1` and the number of distinct values is `>= nBins` (the legend's
+ * bin-count cap guarantees this), so every returned bin is non-empty.
+ */
+export function equalFrequencyBins(values: number[], nBins: number): IEqualFrequencyBin[] {
+  const sorted = [...values].sort((a, b) => a - b)
+  // collapse to distinct values with counts (single pass over the sorted array)
+  const distinct: Array<{ value: number, count: number }> = []
+  for (const v of sorted) {
+    const last = distinct[distinct.length - 1]
+    if (last?.value === v) last.count++
+    else distinct.push({ value: v, count: 1 })
+  }
+
+  const m = distinct.length
+  // prefix[k] = number of cases in the first k distinct values
+  const prefix = [0]
+  for (let k = 0; k < m; k++) prefix.push(prefix[k] + distinct[k].count)
+
+  // dp[k][i] = min sum-of-squared-counts to split the first i distinct values into k bins;
+  // arg[k][i] = the boundary (count of distinct values before the last bin) achieving it.
+  const dp: number[][] = Array.from({ length: nBins + 1 }, () => Array(m + 1).fill(Infinity))
+  const arg: number[][] = Array.from({ length: nBins + 1 }, () => Array(m + 1).fill(-1))
+  dp[0][0] = 0
+  for (let k = 1; k <= nBins; k++) {
+    // i >= k so each of the k bins gets at least one distinct value; j >= k-1 likewise for the rest
+    for (let i = k; i <= m; i++) {
+      for (let j = k - 1; j < i; j++) {
+        const prev = dp[k - 1][j]
+        if (prev === Infinity) continue
+        const segment = prefix[i] - prefix[j]
+        const total = prev + segment * segment
+        if (total < dp[k][i]) { dp[k][i] = total; arg[k][i] = j }
+      }
+    }
+  }
+
+  // reconstruct group boundaries: bounds = [0, b1, ..., m]; group g spans distinct[bounds[g]..bounds[g+1])
+  const bounds = [m]
+  let cut = m
+  for (let k = nBins; k >= 1; k--) {
+    const j = arg[k][cut]
+    bounds.unshift(j)
+    cut = j
+  }
+
+  const bins: IEqualFrequencyBin[] = []
+  for (let g = 0; g < nBins; g++) {
+    const lo = bounds[g]
+    const hi = bounds[g + 1]
+    bins.push({ min: distinct[lo].value, max: distinct[hi - 1].value, count: prefix[hi] - prefix[lo] })
+  }
+  return bins
+}
+
 export function isFiniteNumber(x: any): x is number {
   return x != null && Number.isFinite(x)
 }

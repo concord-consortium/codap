@@ -5,6 +5,7 @@ import {
   binBoundarySignificantFigures,
   checkNumber,
   chooseDecimalPlaces,
+  equalFrequencyBins,
   extractNumeric,
   fitGaussianLM,
   isFiniteNumber,
@@ -228,5 +229,56 @@ describe("fitGaussianLM", () => {
 
     expect(result.mu).toBeCloseTo(mu, 6)
     expect(result.sigma).toBeCloseTo(sigma, 6)
+  })
+})
+
+describe("equalFrequencyBins", () => {
+  it("reduces to equal-count quantile groups when there are no ties", () => {
+    const bins = equalFrequencyBins([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], 3)
+    expect(bins).toEqual([
+      { min: 1, max: 4, count: 4 },
+      { min: 5, max: 8, count: 4 },
+      { min: 9, max: 12, count: 4 }
+    ])
+  })
+
+  it("keeps a dominant tie in its own bin so distinct values stay distinct", () => {
+    // eight 1s, one 2, one 3 -> {1}{2}{3}, counts (8,1,1)
+    const bins = equalFrequencyBins([1, 1, 1, 1, 1, 1, 1, 1, 2, 3], 3)
+    expect(bins).toEqual([
+      { min: 1, max: 1, count: 8 },
+      { min: 2, max: 2, count: 1 },
+      { min: 3, max: 3, count: 1 }
+    ])
+  })
+
+  it("balances the remainder after a dominant tie anchors the first bin", () => {
+    // eight 1s, then 2,3,4,5 -> {1}{2,3}{4,5}, counts (8,2,2)
+    const bins = equalFrequencyBins([1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 4, 5], 3)
+    expect(bins).toEqual([
+      { min: 1, max: 1, count: 8 },
+      { min: 2, max: 3, count: 2 },
+      { min: 4, max: 5, count: 2 }
+    ])
+  })
+
+  it("balances a top-heavy tie symmetrically (not the lopsided greedy result)", () => {
+    // 1,2,3,4 then eight 5s -> {1,2}{3,4}{5x8}, counts (2,2,8). A bottom-up greedy would
+    // over-merge the early bins to (3,1,8); the most-equal partition keeps it balanced.
+    const bins = equalFrequencyBins([1, 2, 3, 4, 5, 5, 5, 5, 5, 5, 5, 5], 3)
+    expect(bins).toEqual([
+      { min: 1, max: 2, count: 2 },
+      { min: 3, max: 4, count: 2 },
+      { min: 5, max: 5, count: 8 }
+    ])
+  })
+
+  it("sorts unsorted input before binning", () => {
+    const bins = equalFrequencyBins([3, 1, 2, 1, 1], 2)
+    // sorted [1,1,1,2,3]; most-equal partition is {1,1,1}{2,3}
+    expect(bins).toEqual([
+      { min: 1, max: 1, count: 3 },
+      { min: 2, max: 3, count: 2 }
+    ])
   })
 })
