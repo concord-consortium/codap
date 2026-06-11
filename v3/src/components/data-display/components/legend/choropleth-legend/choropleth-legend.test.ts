@@ -192,7 +192,7 @@ describe("choroplethLegend", () => {
   it("uses the bin index (not color lookup) so duplicate colors map to the right bin", () => {
     const g = document.createElementNS("http://www.w3.org/2000/svg", "g")
     // all bins share one color (lowColor === highColor); indexOf(color) would return 0 for every rect
-    const scale = scaleThreshold<number, string>().domain([2, 3]).range(["#x", "#x", "#x"])
+    const scale = scaleThreshold<number, string>().domain([2, 3]).range(["#aaa", "#aaa", "#aaa"])
     choroplethLegend(scale, g, {
       width: 400, marginLeft: 6, marginRight: 6, marginTop: 20, ticks: 5,
       legendMin: 1, legendMax: 3,

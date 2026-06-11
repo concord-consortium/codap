@@ -129,14 +129,11 @@ export interface IEqualFrequencyBin {
  * greater than the number of distinct values.
  */
 export function equalFrequencyBins(values: number[], nBins: number): IEqualFrequencyBin[] {
-  const sorted = [...values].sort((a, b) => a - b)
-  // collapse to distinct values with counts (single pass over the sorted array)
-  const distinct: Array<{ value: number, count: number }> = []
-  for (const v of sorted) {
-    const last = distinct[distinct.length - 1]
-    if (last?.value === v) last.count++
-    else distinct.push({ value: v, count: 1 })
-  }
+  // count occurrences in one O(n) pass, then sort only the distinct values (O(n + D log D)) rather
+  // than sorting all n values up front
+  const counts = new Map<number, number>()
+  for (const v of values) counts.set(v, (counts.get(v) ?? 0) + 1)
+  const distinct = [...counts.keys()].sort((a, b) => a - b).map(value => ({ value, count: counts.get(value)! }))
 
   const m = distinct.length
   // a value can't be split across bins, so never make more bins than there are distinct values
