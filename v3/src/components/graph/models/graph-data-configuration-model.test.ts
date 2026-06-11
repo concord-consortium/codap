@@ -548,15 +548,43 @@ describe("DataConfigurationModel legend range overrides", () => {
     expect(tree.config.legendNumericColorScale.domain()).toEqual([10, 20])
   })
 
-  it("clamps out-of-range values to the end-bin colors in quantize mode", () => {
+  it("colors out-of-range values as missing in quantize mode", () => {
     tree.metadata.setAttributeLegendMin("legId", 10)
     tree.metadata.setAttributeLegendMax("legId", 20)
-    // a value above the override max gets the same color as the max
-    expect(tree.config.getLegendColorForNumericValue(100))
-      .toBe(tree.config.getLegendColorForNumericValue(20))
-    // a value below the override min gets the same color as the min
-    expect(tree.config.getLegendColorForNumericValue(-100))
-      .toBe(tree.config.getLegendColorForNumericValue(10))
+    // values outside the user-set range are treated as missing rather than clamped into an end bin
+    expect(tree.config.getLegendColorForNumericValue(100)).toBe(missingColor)
+    expect(tree.config.getLegendColorForNumericValue(-100)).toBe(missingColor)
+    // the inclusive endpoints (and an interior value) still get real bin colors
+    expect(tree.config.getLegendColorForNumericValue(10)).not.toBe(missingColor)
+    expect(tree.config.getLegendColorForNumericValue(15)).not.toBe(missingColor)
+    expect(tree.config.getLegendColorForNumericValue(20)).not.toBe(missingColor)
+  })
+
+  it("colors out-of-range values as missing in quantile mode", () => {
+    tree.metadata.setAttributeBinningType("legId", "quantile")
+    tree.metadata.setAttributeLegendMin("legId", 10)
+    tree.metadata.setAttributeLegendMax("legId", 20)
+    // the override excludes 0 and 40, which become missing rather than clamping to an end bin
+    expect(tree.config.getLegendColorForNumericValue(0)).toBe(missingColor)
+    expect(tree.config.getLegendColorForNumericValue(40)).toBe(missingColor)
+    expect(tree.config.getLegendColorForNumericValue(10)).not.toBe(missingColor)
+    expect(tree.config.getLegendColorForNumericValue(20)).not.toBe(missingColor)
+  })
+
+  it("excludes out-of-range cases from the end bins, keeping the inclusive endpoints", () => {
+    // case ids are auto-generated, so assert on the binned values rather than literal ids
+    tree.metadata.setAttributeLegendMin("legId", 10)
+    tree.metadata.setAttributeLegendMax("legId", 20)
+    const binCount = tree.config.legendNumericColorScale.range().length
+    const binnedValues = new Set<number>()
+    for (let bin = 0; bin < binCount; bin++) {
+      tree.config.getCasesForLegendBin(bin).forEach((id: string) => {
+        binnedValues.add(tree.data.getNumeric(id, "legId")!)
+      })
+    }
+    // 0 and 40 are outside [10, 20] and must not be selectable via any bin; the inclusive
+    // endpoints 10 and 20 land in the first and last bins respectively.
+    expect([...binnedValues].sort((a, b) => a - b)).toEqual([10, 20])
   })
 
   it("filters trained values to the override range in quantile mode", () => {
@@ -665,12 +693,18 @@ describe("DataConfigurationModel legend range overrides", () => {
     expect(tree.config.legendDisplayRange).toEqual({ min: 5, max: 30 })
   })
 
-  it("colors non-positive values as missing in logarithmic mode", () => {
+  it("colors non-positive and out-of-range values as missing in logarithmic mode", () => {
     tree.metadata.setAttributeBinningType("legId", "logarithmic")
+    // non-positive values are outside the positive log domain -> missing
     expect(tree.config.getLegendColorForNumericValue(-1)).toBe(missingColor)
     expect(tree.config.getLegendColorForNumericValue(0)).toBe(missingColor)
-    // a positive value gets a real bin color, not the missing color
+    // a positive value within the domain [10, 40] gets a real bin color
     expect(tree.config.getLegendColorForNumericValue(15)).not.toBe(missingColor)
+    // positive values outside the domain are also missing (unified with quantize/quantile)
+    tree.metadata.setAttributeLegendMin("legId", 15)
+    tree.metadata.setAttributeLegendMax("legId", 30)
+    expect(tree.config.getLegendColorForNumericValue(10)).toBe(missingColor)  // below min
+    expect(tree.config.getLegendColorForNumericValue(40)).toBe(missingColor)  // above max
   })
 
   it("falls back to the positive data extent when a logarithmic override range is reversed", () => {

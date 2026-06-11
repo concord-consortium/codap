@@ -21,11 +21,11 @@ export type ChoroplethLegendProps = {
   // this for year-like attributes (which are typed numeric, not date) so years render as "2024", not
   // "2,024" — matching how CODAP formats numbers elsewhere (see getNumFormatterForAttribute).
   useGrouping?: boolean,
-  // When true, the legend renders a logarithmic (equal-ratio) scale. This (a) formats numeric labels
-  // with a uniform number of significant figures rather than decimal places, since the boundaries
-  // span orders of magnitude (significant figures is the log dual of fixed decimal places); and
-  // (b) labels the lowest bin as open-above-zero (">0 - t₁") rather than "< t₁", because values <= 0
-  // are excluded as missing rather than clamped into the first bin.
+  // When true, the legend renders a logarithmic (equal-ratio) scale, formatting numeric labels with a
+  // uniform number of significant figures rather than decimal places, since the boundaries span
+  // orders of magnitude (significant figures is the log dual of fixed decimal places). Bin tooltips
+  // are plain ranges like the linear/quantile cases; values outside the positive log domain (including
+  // <= 0) are missing rather than clamped into an end bin.
   logarithmic?: boolean,
   width?: number,
   rectHeight?: number,
@@ -150,19 +150,9 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
     .append('title')
     .text((color) => {
       const bin = scale.range().indexOf(color)
-      const lastBin = scale.range().length - 1
-      // Bins are half-open [binMin, binMax) and the scale clamps out-of-range values into the end
-      // bins, so the first bin covers everything below its upper threshold and the last everything
-      // at-or-above its lower threshold. Show those open-ended (rather than the [min, max] domain),
-      // which is only correct once the user can narrow the range (CODAP-1292).
-      // In logarithmic mode values <= 0 are excluded as missing rather than clamped into the first
-      // bin, so label it open-above-zero (">0 - t₁") rather than the unbounded "< t₁".
-      if (lastBin > 0 && bin === 0) {
-        return logarithmic
-          ? `>0 - ${formatBoundary(fullBoundaries[1])}`
-          : `< ${formatBoundary(fullBoundaries[1])}`
-      }
-      if (lastBin > 0 && bin === lastBin) return `≥ ${formatBoundary(fullBoundaries[bin])}`
+      // Every bin is a plain [low - high] range. Out-of-range values (and <= 0 in logarithmic mode)
+      // are treated as missing rather than clamped into the end bins, so the first and last bins are
+      // bounded by the legend's min/max like any interior bin.
       return `${formatBoundary(fullBoundaries[bin])} - ${formatBoundary(fullBoundaries[bin + 1])}`
     })
 

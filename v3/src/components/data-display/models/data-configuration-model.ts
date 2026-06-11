@@ -687,9 +687,12 @@ export const DataConfigurationModel = types
       },
 
       getLegendColorForNumericValue(value: number): string {
-        // A log scale is undefined for values <= 0; color them as missing rather than letting the
-        // threshold scale place them in the lowest bin.
-        if (self.legendIsLogarithmic && value <= 0) return missingColor
+        // Values outside the effective legend range are "missing" rather than clamped into an end
+        // bin. legendDisplayRange is the same range used for the endpoint labels, so colors and
+        // labels stay in lockstep: the log domain (whose min is positive, so values <= 0 fall
+        // outside) in logarithmic mode, else the user-set/data linear or quantile range.
+        const { min, max } = self.legendDisplayRange
+        if (min == null || max == null || value < min || value > max) return missingColor
         return self.legendNumericColorScale(value)
       },
 
@@ -758,14 +761,14 @@ export const DataConfigurationModel = types
         },
         name: "allCasesForCategoryAreSelected"
       }),
-      getCasesInLegendRange(min: number, max: number) {
+      getCasesInLegendRange(min: number, max: number, inclusiveMax = false) {
         const dataset = self.dataset
         const legendID = self.attributeID('legend')
         const typeIsNumeric = self.attributeType('legend') === 'numeric'
         return legendID
           ? self.getCaseDataArray(0).filter((aCaseData: CaseData) => {
             const value = dataDisplayGetNumericValue(dataset, aCaseData.caseID, legendID, typeIsNumeric)
-            return value != null && value >= min && value < max
+            return value != null && value >= min && (inclusiveMax ? value <= max : value < max)
           }).map((aCaseData: CaseData) => aCaseData.caseID)
           : []
 
@@ -776,14 +779,14 @@ export const DataConfigurationModel = types
       getCasesForLegendBin(bin: number) {
         const scale = self.legendNumericColorScale
         const thresholds = getScaleThresholds(scale)
-        // In logarithmic mode, values <= 0 are "missing" (not in any bin), so the first bin starts
-        // just above 0 rather than at -Infinity; otherwise the first bin captures everything below
-        // its upper threshold, including the non-positive values colored as missing.
-        const min = bin === 0
-          ? (self.legendIsLogarithmic ? Number.MIN_VALUE : -Infinity)
-          : thresholds[bin - 1]
-        const max = bin === thresholds.length ? Infinity : thresholds[bin]
-        return self.getCasesInLegendRange(min, max)
+        // Out-of-range values are "missing" (not in any bin), so the end bins are bounded by the
+        // effective legend range rather than ±Infinity: the first bin starts at the range min and
+        // the last bin ends at the range max, inclusive (the max is a real, plottable value).
+        const { min: rangeMin, max: rangeMax } = self.legendDisplayRange
+        const isLastBin = bin === thresholds.length
+        const min = bin === 0 ? (rangeMin ?? -Infinity) : thresholds[bin - 1]
+        const max = isLastBin ? (rangeMax ?? Infinity) : thresholds[bin]
+        return self.getCasesInLegendRange(min, max, isLastBin)
       }
     }))
   .views(self => (
