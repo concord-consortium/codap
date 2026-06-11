@@ -315,7 +315,10 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
         refreshSquares()
       }
     }, { name: "ScatterDots.updateSquares" }, graphModel)
-  }, [adornmentsStore.showSquaresOfResiduals, graphModel, refreshSquares])
+    // showSquaresOfResiduals is observed inside the autorun, so it's intentionally not an effect
+    // dependency — keeping it here would recreate the mstAutorun on every toggle, accumulating
+    // no-op addDisposer entries on graphModel until it's destroyed.
+  }, [adornmentsStore, graphModel, refreshSquares])
 
   // Call refreshConnectingLines when Connecting Lines option is switched on and when all
   // points are selected.
