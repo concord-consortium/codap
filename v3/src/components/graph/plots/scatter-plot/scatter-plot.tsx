@@ -332,8 +332,8 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
       // Observe selection inside the autorun (rather than via the effect dependencies) so the lines
       // restyle on selection change without tearing down and reinstalling the autorun each time.
       // (drawConnectingLines styles selected lines, so the lines genuinely depend on selection.)
-      // Only observe it when lines are shown: when hidden, refreshConnectingLines is a no-op, so
-      // tracking selection would just cause wasted reruns (incl. the O(N) selection computation).
+      // Only observe it when lines are shown: when hidden, selection has no effect on rendering, so
+      // tracking it would just cause wasted reruns (incl. the O(N) selection computation).
       if (currentShowConnectingLines) {
         dataConfiguration?.selection // eslint-disable-line @typescript-eslint/no-unused-expressions
       }
