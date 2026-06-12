@@ -1,5 +1,22 @@
 # Changelog
 
+## Version 3.0.1 - June 12, 2026
+
+### 🐞 Bug Fixes:
+- **CODAP-1385:** Fix numeric legend transparency affecting only one quintile
+- **CODAP-1399:** Fix join failing when destination attribute name contains spaces
+- **CODAP-1401:** Fix Plugins menu not working in older browsers
+- **CODAP-1412:** Fix map connecting lines for points outside the visible area
+
+### 🛠️ Under the Hood:
+- **CODAP-1406:** Eliminate console warnings when closing a graph
+
+### Asset Sizes
+|      File |          Size | % Change from Previous Release |
+|-----------|---------------|--------------------------------|
+|  main.css |  240772 bytes |                          0.02% |
+|  index.js | 7819617 bytes |                         <0.01% |
+
 ## Version 3.0.0 - June 7, 2026
 
 ### 🐞 Bug Fixes:
