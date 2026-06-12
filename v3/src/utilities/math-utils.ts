@@ -171,6 +171,9 @@ export function equalFrequencyBins(values: number[], nBins: number): IEqualFrequ
     }
     dp[k][iMid] = best
     arg[k][iMid] = bestJ
+    // Monotonicity invariant: the optimal boundary is non-decreasing in i, so every i < iMid has its
+    // optimum at j <= bestJ (search [jLo, bestJ]) and every i > iMid at j >= bestJ (search [bestJ, jHi]).
+    // That halving of both the row and the j-range per level is what yields the O(D log D) bound.
     const leftHi = bestJ < 0 ? jHi : bestJ
     const rightLo = bestJ < 0 ? jLo : bestJ
     fillRow(k, iLo, iMid - 1, jLo, leftHi)

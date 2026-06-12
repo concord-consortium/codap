@@ -348,4 +348,40 @@ describe("equalFrequencyBins", () => {
       expect(bins.reduce((sum, b) => sum + b.count, 0)).toBe(values.length)
     }
   })
+
+  it("stays internally consistent at large distinct-value counts (exercises divide-and-conquer)", () => {
+    // The brute-force test above caps at D <= 8, which never stresses the O(D log D) divide-and-conquer
+    // path. Here D runs into the hundreds; without an independent optimum to compare against we assert
+    // the structural invariants the partition must satisfy: every distinct value lands in exactly one
+    // contiguous, non-empty bin, total count is preserved, and bin count is min(nBins, distinctCount).
+    let state = 987654321
+    const rand = () => {
+      state = (state * 1664525 + 1013904223) % 4294967296
+      return state / 4294967296
+    }
+
+    for (let trial = 0; trial < 50; trial++) {
+      const len = 200 + Math.floor(rand() * 500)
+      // wide range => hundreds of distinct values, with a sprinkling of ties
+      const values = Array.from({ length: len }, () => Math.floor(rand() * 500))
+      const distinct = new Set(values).size
+      const nBins = 1 + Math.floor(rand() * 20)
+      const bins = equalFrequencyBins(values, nBins)
+
+      // exactly min(nBins, distinctCount) bins, each non-empty
+      expect(bins.length).toBe(Math.min(nBins, distinct))
+      bins.forEach(b => expect(b.count).toBeGreaterThan(0))
+      // total count preserved
+      expect(bins.reduce((sum, b) => sum + b.count, 0)).toBe(len)
+      // each bin's own extent is ordered
+      bins.forEach(b => expect(b.min).toBeLessThanOrEqual(b.max))
+      // bins are contiguous & non-overlapping (a distinct value is never split): every bin's max is
+      // strictly below the next bin's min
+      const adjacentGaps = bins.slice(1).map((b, i) => b.min - bins[i].max)
+      adjacentGaps.forEach(gap => expect(gap).toBeGreaterThan(0))
+      // the partition spans the full data range
+      expect(bins[0].min).toBe(Math.min(...values))
+      expect(bins[bins.length - 1].max).toBe(Math.max(...values))
+    }
+  })
 })

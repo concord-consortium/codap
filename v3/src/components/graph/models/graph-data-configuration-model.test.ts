@@ -914,4 +914,33 @@ describe("DataConfigurationModel legend range overrides", () => {
     expect("quantiles" in t.config.legendNumericColorScale).toBe(true)
     expect(t.config.legendBinDataExtents).toBeUndefined()
   })
+
+  it("keeps a locked quantile scale when the data later becomes degenerate (no repair)", () => {
+    // start non-degenerate: six distinct values, then lock the quantiles to freeze the scale
+    const t = TreeModel.create({ data: {}, metadata: {}, config: {} })
+    t.data.addAttribute({ id: "legId", name: "leg" })
+    t.metadata.setData(t.data)
+    t.data.addCases(toCanonical(t.data, [
+      { __id__: "c1", leg: 1 }, { __id__: "c2", leg: 2 }, { __id__: "c3", leg: 3 },
+      { __id__: "c4", leg: 4 }, { __id__: "c5", leg: 5 }, { __id__: "c6", leg: 6 }
+    ]))
+    t.config.setDataset(t.data, t.metadata)
+    t.config.setAttribute("legend", { attributeID: "legId" })
+    t.metadata.setAttributeBinningType("legId", "quantile")
+    t.metadata.setAttributeBinCount("legId", 3)
+    t.config.setLegendQuantilesAreLocked(true)
+    const frozen = t.config.legendNumericColorScale
+    expect(t.config.legendBinDataExtents).toBeUndefined()
+
+    // make the data degenerate (four 1s plus 2 and 3) — unlocked this would trigger the threshold repair
+    const caseId = (itemId: string) => t.data.getItemChildCaseId(itemId)!
+    t.data.setCaseValues([
+      { __id__: caseId("c4"), legId: 1 },
+      { __id__: caseId("c5"), legId: 1 },
+      { __id__: caseId("c6"), legId: 1 }
+    ])
+    // the frozen scale is still used (same instance) and the repair's bin extents stay opted out
+    expect(t.config.legendNumericColorScale).toBe(frozen)
+    expect(t.config.legendBinDataExtents).toBeUndefined()
+  })
 })

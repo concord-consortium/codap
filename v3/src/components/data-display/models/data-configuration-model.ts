@@ -826,6 +826,7 @@ export const DataConfigurationModel = types
         // above 0, since non-positive values are missing rather than part of the bin.
         const { min: rangeMin, max: rangeMax } = self.legendDisplayRange
         const isLastBin = bin === thresholds.length
+        // Number.MIN_VALUE is the smallest *positive* double, so it floors the first log bin just above 0.
         const firstBinMin = rangeMin ?? (self.legendIsLogarithmic ? Number.MIN_VALUE : -Infinity)
         const min = bin === 0 ? firstBinMin : thresholds[bin - 1]
         const max = isLastBin ? (rangeMax ?? Infinity) : thresholds[bin]
