@@ -37,22 +37,19 @@ describe("choroplethLegend", () => {
   })
 
   it("formats bin tooltips with enough precision for a narrow range", () => {
-    // The first and last bins are open-ended ("< t1" / "≥ t_last"): the bins are half-open
-    // [binMin, binMax) and scaleQuantize/scaleQuantile clamp out-of-range values into the ends, so
-    // the first bin covers everything below t1 and the last everything at-or-above t_last, not just
-    // [min, max]. (Matters when the legend range is narrowed; see CODAP-1292.)
+    // Every bin (including the first and last) is shown as a plain [low - high] range. Out-of-range
+    // values are now treated as missing rather than clamped into the end bins (CODAP-1409), so the
+    // end bins cover only [min, t1] and [t_last, max].
     const { tooltips } = renderLegend([100, 110], 400)
     expect(tooltips).toEqual([
-      "< 102", "102 - 104", "104 - 106", "106 - 108", "≥ 108"
+      "100 - 102", "102 - 104", "104 - 106", "106 - 108", "108 - 110"
     ])
   })
 
-  it("always shows the first and last bin tooltips as open-ended", () => {
-    // Even when the legend range equals the data extent, the end bins clamp out-of-range values,
-    // so '<'/'≥' describe their true coverage. The actual min/max remain visible as endpoint labels.
+  it("shows the first and last bin tooltips as plain ranges bounded by the legend min/max", () => {
     const { tooltips } = renderLegend([0, 10], 400)
-    expect(tooltips[0]).toBe("< 2")
-    expect(tooltips[tooltips.length - 1]).toBe("≥ 8")
+    expect(tooltips[0]).toBe("0 - 2")
+    expect(tooltips[tooltips.length - 1]).toBe("8 - 10")
   })
 
   it("renders endpoint labels with an explicit fill so they are visible alongside axis ticks", () => {
@@ -101,7 +98,7 @@ describe("choroplethLegend", () => {
     const { tickLabels, endpointLabels, tooltips } = renderLegend([0, 10000], 500, true)
     expect(tickLabels).toEqual(["2,000", "4,000", "6,000", "8,000"])
     expect(endpointLabels.map(t => t.textContent)).toEqual(["0", "10,000"])
-    expect(tooltips[tooltips.length - 1]).toBe("≥ 8,000") // last bin is open-ended
+    expect(tooltips[tooltips.length - 1]).toBe("8,000 - 10,000") // plain range, grouped
   })
 
   it("suppresses thousands grouping for year-like values when grouping is disabled", () => {
@@ -149,7 +146,7 @@ describe("choroplethLegend", () => {
     expect(endpoints).toEqual(["100", "10000"])
   })
 
-  it("labels the lowest log bin as open-above-zero so missing non-positive values aren't implied", () => {
+  it("shows logarithmic bin tooltips as plain ranges bounded by the log domain", () => {
     const g = document.createElementNS("http://www.w3.org/2000/svg", "g")
     const logMin = 100, logMax = 10000, n = 4
     const thresholds = Array.from({ length: n - 1 }, (_, i) => logMin * Math.pow(logMax / logMin, (i + 1) / n))
@@ -160,10 +157,10 @@ describe("choroplethLegend", () => {
       clickHandler: () => undefined, casesInBinSelectedHandler: () => false
     })
     const tooltips = Array.from(g.querySelectorAll("title")).map(t => t.textContent)
-    // First bin is open above zero (values <= 0 are missing, not in the bin), not "< 300".
-    expect(tooltips[0]).toBe(">0 - 300")
-    // The top bin stays open-ended upward (above-max positives still clamp into it).
-    expect(tooltips[tooltips.length - 1]).toBe("≥ 3000")
+    // Out-of-domain values (including <= 0) are missing, so the end bins are plain ranges bounded by
+    // the positive log domain.
+    expect(tooltips[0]).toBe("100 - 300")
+    expect(tooltips[tooltips.length - 1]).toBe("3000 - 10000")
   })
 
   it("renders interior tick labels without any tick marks (matching the markless narrow case)", () => {
@@ -175,6 +172,49 @@ describe("choroplethLegend", () => {
     const narrow = renderLegend([100, 110], 60)
     expect(narrow.tickMarkCount).toBe(0)
     expect(narrow.hasAxisDomain).toBe(false)
+  })
+
+  it("labels degenerate bins from per-bin data extents", () => {
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g")
+    // three single-value bins {1}{2}{3}: thresholds at the group mins [2, 3]
+    const scale = scaleThreshold<number, string>().domain([2, 3]).range(colors.slice(0, 3))
+    choroplethLegend(scale, g, {
+      width: 400, marginLeft: 6, marginRight: 6, marginTop: 20, ticks: 5,
+      legendMin: 1, legendMax: 3,
+      binDataExtents: [{ min: 1, max: 1 }, { min: 2, max: 2 }, { min: 3, max: 3 }],
+      clickHandler: () => undefined, casesInBinSelectedHandler: () => false
+    })
+    const tooltips = Array.from(g.querySelectorAll("title")).map(t => t.textContent)
+    // single-value bins read as a bare value, not a "1 - 1" range
+    expect(tooltips).toEqual(["1", "2", "3"])
+  })
+
+  it("uses the bin index (not color lookup) so duplicate colors map to the right bin", () => {
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g")
+    // all bins share one color (lowColor === highColor); indexOf(color) would return 0 for every rect
+    const scale = scaleThreshold<number, string>().domain([2, 3]).range(["#aaa", "#aaa", "#aaa"])
+    choroplethLegend(scale, g, {
+      width: 400, marginLeft: 6, marginRight: 6, marginTop: 20, ticks: 5,
+      legendMin: 1, legendMax: 3,
+      binDataExtents: [{ min: 1, max: 1 }, { min: 2, max: 2 }, { min: 3, max: 3 }],
+      clickHandler: () => undefined, casesInBinSelectedHandler: () => false
+    })
+    const tooltips = Array.from(g.querySelectorAll("title")).map(t => t.textContent)
+    expect(tooltips).toEqual(["1", "2", "3"]) // not ["1", "1", "1"]
+  })
+
+  it("labels a multi-value degenerate bin as a range", () => {
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g")
+    // {1}{2,3}{4,5}: thresholds at [2, 4]
+    const scale = scaleThreshold<number, string>().domain([2, 4]).range(colors.slice(0, 3))
+    choroplethLegend(scale, g, {
+      width: 400, marginLeft: 6, marginRight: 6, marginTop: 20, ticks: 5,
+      legendMin: 1, legendMax: 5,
+      binDataExtents: [{ min: 1, max: 1 }, { min: 2, max: 3 }, { min: 4, max: 5 }],
+      clickHandler: () => undefined, casesInBinSelectedHandler: () => false
+    })
+    const tooltips = Array.from(g.querySelectorAll("title")).map(t => t.textContent)
+    expect(tooltips).toEqual(["1", "2 - 3", "4 - 5"])
   })
 })
 /* eslint-enable testing-library/render-result-naming-convention */

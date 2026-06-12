@@ -548,15 +548,43 @@ describe("DataConfigurationModel legend range overrides", () => {
     expect(tree.config.legendNumericColorScale.domain()).toEqual([10, 20])
   })
 
-  it("clamps out-of-range values to the end-bin colors in quantize mode", () => {
+  it("colors out-of-range values as missing in quantize mode", () => {
     tree.metadata.setAttributeLegendMin("legId", 10)
     tree.metadata.setAttributeLegendMax("legId", 20)
-    // a value above the override max gets the same color as the max
-    expect(tree.config.getLegendColorForNumericValue(100))
-      .toBe(tree.config.getLegendColorForNumericValue(20))
-    // a value below the override min gets the same color as the min
-    expect(tree.config.getLegendColorForNumericValue(-100))
-      .toBe(tree.config.getLegendColorForNumericValue(10))
+    // values outside the user-set range are treated as missing rather than clamped into an end bin
+    expect(tree.config.getLegendColorForNumericValue(100)).toBe(missingColor)
+    expect(tree.config.getLegendColorForNumericValue(-100)).toBe(missingColor)
+    // the inclusive endpoints (and an interior value) still get real bin colors
+    expect(tree.config.getLegendColorForNumericValue(10)).not.toBe(missingColor)
+    expect(tree.config.getLegendColorForNumericValue(15)).not.toBe(missingColor)
+    expect(tree.config.getLegendColorForNumericValue(20)).not.toBe(missingColor)
+  })
+
+  it("colors out-of-range values as missing in quantile mode", () => {
+    tree.metadata.setAttributeBinningType("legId", "quantile")
+    tree.metadata.setAttributeLegendMin("legId", 10)
+    tree.metadata.setAttributeLegendMax("legId", 20)
+    // the override excludes 0 and 40, which become missing rather than clamping to an end bin
+    expect(tree.config.getLegendColorForNumericValue(0)).toBe(missingColor)
+    expect(tree.config.getLegendColorForNumericValue(40)).toBe(missingColor)
+    expect(tree.config.getLegendColorForNumericValue(10)).not.toBe(missingColor)
+    expect(tree.config.getLegendColorForNumericValue(20)).not.toBe(missingColor)
+  })
+
+  it("excludes out-of-range cases from the end bins, keeping the inclusive endpoints", () => {
+    // case ids are auto-generated, so assert on the binned values rather than literal ids
+    tree.metadata.setAttributeLegendMin("legId", 10)
+    tree.metadata.setAttributeLegendMax("legId", 20)
+    const binCount = tree.config.legendNumericColorScale.range().length
+    const binnedValues = new Set<number>()
+    for (let bin = 0; bin < binCount; bin++) {
+      tree.config.getCasesForLegendBin(bin).forEach((id: string) => {
+        binnedValues.add(tree.data.getNumeric(id, "legId")!)
+      })
+    }
+    // 0 and 40 are outside [10, 20] and must not be selectable via any bin; the inclusive
+    // endpoints 10 and 20 land in the first and last bins respectively.
+    expect([...binnedValues].sort((a, b) => a - b)).toEqual([10, 20])
   })
 
   it("filters trained values to the override range in quantile mode", () => {
@@ -665,12 +693,18 @@ describe("DataConfigurationModel legend range overrides", () => {
     expect(tree.config.legendDisplayRange).toEqual({ min: 5, max: 30 })
   })
 
-  it("colors non-positive values as missing in logarithmic mode", () => {
+  it("colors non-positive and out-of-range values as missing in logarithmic mode", () => {
     tree.metadata.setAttributeBinningType("legId", "logarithmic")
+    // non-positive values are outside the positive log domain -> missing
     expect(tree.config.getLegendColorForNumericValue(-1)).toBe(missingColor)
     expect(tree.config.getLegendColorForNumericValue(0)).toBe(missingColor)
-    // a positive value gets a real bin color, not the missing color
+    // a positive value within the domain [10, 40] gets a real bin color
     expect(tree.config.getLegendColorForNumericValue(15)).not.toBe(missingColor)
+    // positive values outside the domain are also missing (unified with quantize/quantile)
+    tree.metadata.setAttributeLegendMin("legId", 15)
+    tree.metadata.setAttributeLegendMax("legId", 30)
+    expect(tree.config.getLegendColorForNumericValue(10)).toBe(missingColor)  // below min
+    expect(tree.config.getLegendColorForNumericValue(40)).toBe(missingColor)  // above max
   })
 
   it("falls back to the positive data extent when a logarithmic override range is reversed", () => {
@@ -709,5 +743,204 @@ describe("DataConfigurationModel legend range overrides", () => {
       expect(v).toBeGreaterThan(0)
       expect(v).toBeLessThan(firstThreshold)
     })
+  })
+
+  it("leaves non-degenerate quantile binning as a d3 quantile scale", () => {
+    // six distinct values, 3 bins -> standard quantiles, no degeneracy, scale stays a ScaleQuantile
+    const t = TreeModel.create({ data: {}, metadata: {}, config: {} })
+    t.data.addAttribute({ id: "legId", name: "leg" })
+    t.metadata.setData(t.data)
+    t.data.addCases(toCanonical(t.data, [
+      { leg: 1 }, { leg: 2 }, { leg: 3 }, { leg: 4 }, { leg: 5 }, { leg: 6 }
+    ]))
+    t.config.setDataset(t.data, t.metadata)
+    t.config.setAttribute("legend", { attributeID: "legId" })
+    t.metadata.setAttributeBinningType("legId", "quantile")
+    t.metadata.setAttributeBinCount("legId", 3)
+    // a ScaleQuantile exposes quantiles(); a repaired ScaleThreshold does not
+    expect("quantiles" in t.config.legendNumericColorScale).toBe(true)
+    expect(t.config.legendBinDataExtents).toBeUndefined()
+  })
+
+  it("repairs degenerate quantile binning so distinct values get distinct colors", () => {
+    // eight 1s, one 2, one 3; 3 bins. d3 collapses all into the last bin/color.
+    const t = TreeModel.create({ data: {}, metadata: {}, config: {} })
+    t.data.addAttribute({ id: "legId", name: "leg" })
+    t.metadata.setData(t.data)
+    const cases = []
+    for (let i = 0; i < 8; i++) cases.push({ leg: 1 })
+    cases.push({ leg: 2 }); cases.push({ leg: 3 })
+    t.data.addCases(toCanonical(t.data, cases))
+    t.config.setDataset(t.data, t.metadata)
+    t.config.setAttribute("legend", { attributeID: "legId" })
+    t.metadata.setAttributeBinningType("legId", "quantile")
+    t.metadata.setAttributeBinCount("legId", 3)
+    const c1 = t.config.getLegendColorForNumericValue(1)
+    const c2 = t.config.getLegendColorForNumericValue(2)
+    const c3 = t.config.getLegendColorForNumericValue(3)
+    // three distinct colors, none missing
+    expect(new Set([c1, c2, c3]).size).toBe(3)
+    expect(c1).not.toBe(missingColor)
+    // bins partition the data by value, each non-empty
+    const v0 = t.config.getCasesForLegendBin(0).map((id: string) => t.data.getNumeric(id, "legId"))
+    const v1 = t.config.getCasesForLegendBin(1).map((id: string) => t.data.getNumeric(id, "legId"))
+    const v2 = t.config.getCasesForLegendBin(2).map((id: string) => t.data.getNumeric(id, "legId"))
+    expect(v0).toEqual([1, 1, 1, 1, 1, 1, 1, 1])
+    expect(v1).toEqual([2])
+    expect(v2).toEqual([3])
+  })
+
+  it("exposes per-bin data extents for a degenerate quantile legend", () => {
+    const t = TreeModel.create({ data: {}, metadata: {}, config: {} })
+    t.data.addAttribute({ id: "legId", name: "leg" })
+    t.metadata.setData(t.data)
+    const cases = []
+    for (let i = 0; i < 8; i++) cases.push({ leg: 1 })
+    cases.push({ leg: 2 }); cases.push({ leg: 3 })
+    t.data.addCases(toCanonical(t.data, cases))
+    t.config.setDataset(t.data, t.metadata)
+    t.config.setAttribute("legend", { attributeID: "legId" })
+    t.metadata.setAttributeBinningType("legId", "quantile")
+    t.metadata.setAttributeBinCount("legId", 3)
+    expect(t.config.legendBinDataExtents).toEqual([
+      { min: 1, max: 1 }, { min: 2, max: 2 }, { min: 3, max: 3 }
+    ])
+  })
+
+  it("does not expose bin extents for quantize or logarithmic legends", () => {
+    const t = TreeModel.create({ data: {}, metadata: {}, config: {} })
+    t.data.addAttribute({ id: "legId", name: "leg" })
+    t.metadata.setData(t.data)
+    t.data.addCases(toCanonical(t.data, [{ leg: 1 }, { leg: 2 }, { leg: 3 }]))
+    t.config.setDataset(t.data, t.metadata)
+    t.config.setAttribute("legend", { attributeID: "legId" })
+    t.metadata.setAttributeBinningType("legId", "quantize")
+    expect(t.config.legendBinDataExtents).toBeUndefined()
+    t.metadata.setAttributeBinningType("legId", "logarithmic")
+    expect(t.config.legendBinDataExtents).toBeUndefined()
+  })
+
+  it("handles an override that leaves fewer distinct values than the bin count", () => {
+    // 6 distinct values -> the bin-count cap allows the default 5 bins
+    const t = TreeModel.create({ data: {}, metadata: {}, config: {} })
+    t.data.addAttribute({ id: "legId", name: "leg" })
+    t.metadata.setData(t.data)
+    t.data.addCases(toCanonical(t.data, [
+      { leg: 1 }, { leg: 1 }, { leg: 1 }, { leg: 2 }, { leg: 3 }, { leg: 4 }, { leg: 5 }, { leg: 6 }
+    ]))
+    t.config.setDataset(t.data, t.metadata)
+    t.config.setAttribute("legend", { attributeID: "legId" })
+    t.metadata.setAttributeBinningType("legId", "quantile")
+    t.metadata.setAttributeBinCount("legId", 5)
+    // narrow to [1, 2]: trained = [1,1,1,2] has only 2 distinct values (with ties)
+    t.metadata.setAttributeLegendMin("legId", 1)
+    t.metadata.setAttributeLegendMax("legId", 2)
+    // repairs to 2 bins without crashing; the scale has 2 colors, not 5
+    expect(() => t.config.legendNumericColorScale).not.toThrow()
+    expect(t.config.legendNumericColorScale.range().length).toBe(2)
+    expect(t.config.legendBinDataExtents).toEqual([{ min: 1, max: 1 }, { min: 2, max: 2 }])
+    // the two in-range values get distinct colors; an out-of-range value is missing
+    expect(t.config.getLegendColorForNumericValue(1)).not.toBe(t.config.getLegendColorForNumericValue(2))
+    expect(t.config.getLegendColorForNumericValue(5)).toBe(missingColor)
+  })
+
+  it("excludes non-positive cases from the single bin of a degenerate logarithmic legend", () => {
+    // <= 1 distinct positive value -> degenerate log domain ({}), single-bin scale.
+    const t = TreeModel.create({ data: {}, metadata: {}, config: {} })
+    t.data.addAttribute({ id: "legId", name: "leg" })
+    t.metadata.setData(t.data)
+    t.data.addCases(toCanonical(t.data, [{ leg: 5 }, { leg: 5 }, { leg: -1 }]))
+    t.config.setDataset(t.data, t.metadata)
+    t.config.setAttribute("legend", { attributeID: "legId" })
+    t.metadata.setAttributeBinningType("legId", "logarithmic")
+    expect(t.config.legendLogDomain).toEqual({})
+    // clicking the single bin must not select the non-positive (missing-colored) case
+    const binValues = t.config.getCasesForLegendBin(0).map((id: string) => t.data.getNumeric(id, "legId"))
+    expect(binValues).toEqual([5, 5])
+  })
+
+  it("colors all-equal positive values with the single bin in logarithmic mode", () => {
+    // all values the same positive number -> degenerate log domain ({}), single-bin scale.
+    // The value should get that bin's color, not the missing color (CODAP-1409 review fix).
+    const t = TreeModel.create({ data: {}, metadata: {}, config: {} })
+    t.data.addAttribute({ id: "legId", name: "leg" })
+    t.metadata.setData(t.data)
+    t.data.addCases(toCanonical(t.data, [{ leg: 5 }, { leg: 5 }, { leg: 5 }]))
+    t.config.setDataset(t.data, t.metadata)
+    t.config.setAttribute("legend", { attributeID: "legId" })
+    t.metadata.setAttributeBinningType("legId", "logarithmic")
+    expect(t.config.legendLogDomain).toEqual({})
+    expect(t.config.getLegendColorForNumericValue(5)).not.toBe(missingColor)
+    // non-positive values are still missing in logarithmic mode
+    expect(t.config.getLegendColorForNumericValue(-1)).toBe(missingColor)
+    expect(t.config.getLegendColorForNumericValue(0)).toBe(missingColor)
+  })
+
+  it("switches between standard and repaired quantile bins as the data changes", () => {
+    // start non-degenerate: six distinct values
+    const t = TreeModel.create({ data: {}, metadata: {}, config: {} })
+    t.data.addAttribute({ id: "legId", name: "leg" })
+    t.metadata.setData(t.data)
+    t.data.addCases(toCanonical(t.data, [
+      { __id__: "c1", leg: 1 }, { __id__: "c2", leg: 2 }, { __id__: "c3", leg: 3 },
+      { __id__: "c4", leg: 4 }, { __id__: "c5", leg: 5 }, { __id__: "c6", leg: 6 }
+    ]))
+    t.config.setDataset(t.data, t.metadata)
+    t.config.setAttribute("legend", { attributeID: "legId" })
+    t.metadata.setAttributeBinningType("legId", "quantile")
+    t.metadata.setAttributeBinCount("legId", 3)
+    const caseId = (itemId: string) => t.data.getItemChildCaseId(itemId)!
+    expect("quantiles" in t.config.legendNumericColorScale).toBe(true)   // d3 quantile scale
+    expect(t.config.legendBinDataExtents).toBeUndefined()
+
+    // make it degenerate: four 1s plus 2 and 3
+    t.data.setCaseValues([
+      { __id__: caseId("c4"), legId: 1 },
+      { __id__: caseId("c5"), legId: 1 },
+      { __id__: caseId("c6"), legId: 1 }
+    ])
+    // values are now [1,1,1,1,2,3]
+    expect("quantiles" in t.config.legendNumericColorScale).toBe(false)  // repaired threshold scale
+    expect(t.config.legendBinDataExtents).toEqual([
+      { min: 1, max: 1 }, { min: 2, max: 2 }, { min: 3, max: 3 }
+    ])
+
+    // restore distinct values -> back to a standard quantile scale
+    t.data.setCaseValues([
+      { __id__: caseId("c4"), legId: 4 },
+      { __id__: caseId("c5"), legId: 5 },
+      { __id__: caseId("c6"), legId: 6 }
+    ])
+    expect("quantiles" in t.config.legendNumericColorScale).toBe(true)
+    expect(t.config.legendBinDataExtents).toBeUndefined()
+  })
+
+  it("keeps a locked quantile scale when the data later becomes degenerate (no repair)", () => {
+    // start non-degenerate: six distinct values, then lock the quantiles to freeze the scale
+    const t = TreeModel.create({ data: {}, metadata: {}, config: {} })
+    t.data.addAttribute({ id: "legId", name: "leg" })
+    t.metadata.setData(t.data)
+    t.data.addCases(toCanonical(t.data, [
+      { __id__: "c1", leg: 1 }, { __id__: "c2", leg: 2 }, { __id__: "c3", leg: 3 },
+      { __id__: "c4", leg: 4 }, { __id__: "c5", leg: 5 }, { __id__: "c6", leg: 6 }
+    ]))
+    t.config.setDataset(t.data, t.metadata)
+    t.config.setAttribute("legend", { attributeID: "legId" })
+    t.metadata.setAttributeBinningType("legId", "quantile")
+    t.metadata.setAttributeBinCount("legId", 3)
+    t.config.setLegendQuantilesAreLocked(true)
+    const frozen = t.config.legendNumericColorScale
+    expect(t.config.legendBinDataExtents).toBeUndefined()
+
+    // make the data degenerate (four 1s plus 2 and 3) — unlocked this would trigger the threshold repair
+    const caseId = (itemId: string) => t.data.getItemChildCaseId(itemId)!
+    t.data.setCaseValues([
+      { __id__: caseId("c4"), legId: 1 },
+      { __id__: caseId("c5"), legId: 1 },
+      { __id__: caseId("c6"), legId: 1 }
+    ])
+    // the frozen scale is still used (same instance) and the repair's bin extents stay opted out
+    expect(t.config.legendNumericColorScale).toBe(frozen)
+    expect(t.config.legendBinDataExtents).toBeUndefined()
   })
 })

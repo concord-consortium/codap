@@ -109,6 +109,99 @@ export function binBoundarySignificantFigures(boundaries: number[], maxSigFigs =
   return sigFigs
 }
 
+export interface IEqualFrequencyBin {
+  min: number
+  max: number
+  count: number
+}
+
+/**
+ * Partition `values` into contiguous, non-empty bins whose case counts are as equal as possible
+ * (minimizing the sum of squared bin counts), keeping equal values in the same bin. This is the
+ * most-equal contiguous partition: the quantile goal of equal counts, relaxed only as far as
+ * indivisible ties force it. It is order-independent (a top-heavy tie is balanced the same as a
+ * bottom-heavy one) and reduces to standard equal-count quantile groups when there are no ties.
+ * Computed with a dynamic program over the D distinct values, accelerated with a divide-and-conquer
+ * optimization (the squared-sum cost is convex, so the optimal boundary is monotonic) to
+ * O(nBins * D log D) — so it stays efficient even when degeneracy coincides with a large number of
+ * distinct values (e.g. one dominant tie plus a long tail of unique values).
+ *
+ * Returns `min(nBins, number of distinct values)` bins (so a value is never split across bins);
+ * an empty input yields no bins. Callers that need exactly `nBins` bins should pass a count no
+ * greater than the number of distinct values.
+ */
+export function equalFrequencyBins(values: number[], nBins: number): IEqualFrequencyBin[] {
+  // count occurrences in one O(n) pass, then sort only the distinct values (O(n + D log D)) rather
+  // than sorting all n values up front
+  const counts = new Map<number, number>()
+  for (const v of values) counts.set(v, (counts.get(v) ?? 0) + 1)
+  const distinct = [...counts.keys()].sort((a, b) => a - b).map(value => ({ value, count: counts.get(value)! }))
+
+  const m = distinct.length
+  // a value can't be split across bins, so never make more bins than there are distinct values
+  const n = Math.min(nBins, m)
+  if (n <= 0) return []
+
+  // prefix[k] = number of cases in the first k distinct values
+  const prefix = [0]
+  for (let k = 0; k < m; k++) prefix.push(prefix[k] + distinct[k].count)
+
+  // dp[k][i] = min sum-of-squared-counts to split the first i distinct values into k bins;
+  // arg[k][i] = the boundary (count of distinct values before the last bin) achieving it.
+  const dp: number[][] = Array.from({ length: n + 1 }, () => Array(m + 1).fill(Infinity))
+  const arg: number[][] = Array.from({ length: n + 1 }, () => Array(m + 1).fill(-1))
+  dp[0][0] = 0
+  // Fill row k for i in [iLo, iHi] knowing the optimal boundary lies in [jLo, jHi]. The squared-sum
+  // cost is convex, so the optimal boundary is monotonic non-decreasing in i; divide-and-conquer on
+  // that property reduces each row from O(D^2) to O(D log D). Ties pick the smallest boundary (the
+  // ascending scan with a strict `<`), matching a plain left-to-right DP.
+  const fillRow = (k: number, iLo: number, iHi: number, jLo: number, jHi: number) => {
+    if (iLo > iHi) return
+    const iMid = Math.floor((iLo + iHi) / 2)
+    let bestJ = -1
+    let best = Infinity
+    const jStart = Math.max(jLo, k - 1)
+    const jEnd = Math.min(jHi, iMid - 1)
+    for (let j = jStart; j <= jEnd; j++) {
+      const prev = dp[k - 1][j]
+      if (prev === Infinity) continue
+      const segment = prefix[iMid] - prefix[j]
+      const total = prev + segment * segment
+      if (total < best) { best = total; bestJ = j }
+    }
+    dp[k][iMid] = best
+    arg[k][iMid] = bestJ
+    // Monotonicity invariant: the optimal boundary is non-decreasing in i, so every i < iMid has its
+    // optimum at j <= bestJ (search [jLo, bestJ]) and every i > iMid at j >= bestJ (search [bestJ, jHi]).
+    // That halving of both the row and the j-range per level is what yields the O(D log D) bound.
+    const leftHi = bestJ < 0 ? jHi : bestJ
+    const rightLo = bestJ < 0 ? jLo : bestJ
+    fillRow(k, iLo, iMid - 1, jLo, leftHi)
+    fillRow(k, iMid + 1, iHi, rightLo, jHi)
+  }
+  for (let k = 1; k <= n; k++) {
+    // i >= k so each of the k bins gets at least one distinct value; j (the prior boundary) <= m-1
+    fillRow(k, k, m, k - 1, m - 1)
+  }
+
+  // reconstruct group boundaries: bounds = [0, b1, ..., m]; group g spans distinct[bounds[g]..bounds[g+1])
+  const bounds = [m]
+  let cut = m
+  for (let k = n; k >= 1; k--) {
+    const j = arg[k][cut]
+    bounds.unshift(j)
+    cut = j
+  }
+
+  const bins: IEqualFrequencyBin[] = []
+  for (let g = 0; g < n; g++) {
+    const lo = bounds[g]
+    const hi = bounds[g + 1]
+    bins.push({ min: distinct[lo].value, max: distinct[hi - 1].value, count: prefix[hi] - prefix[lo] })
+  }
+  return bins
+}
+
 export function isFiniteNumber(x: any): x is number {
   return x != null && Number.isFinite(x)
 }

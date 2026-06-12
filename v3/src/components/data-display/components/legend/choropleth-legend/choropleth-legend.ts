@@ -21,11 +21,11 @@ export type ChoroplethLegendProps = {
   // this for year-like attributes (which are typed numeric, not date) so years render as "2024", not
   // "2,024" — matching how CODAP formats numbers elsewhere (see getNumFormatterForAttribute).
   useGrouping?: boolean,
-  // When true, the legend renders a logarithmic (equal-ratio) scale. This (a) formats numeric labels
-  // with a uniform number of significant figures rather than decimal places, since the boundaries
-  // span orders of magnitude (significant figures is the log dual of fixed decimal places); and
-  // (b) labels the lowest bin as open-above-zero (">0 - t₁") rather than "< t₁", because values <= 0
-  // are excluded as missing rather than clamped into the first bin.
+  // When true, the legend renders a logarithmic (equal-ratio) scale, formatting numeric labels with a
+  // uniform number of significant figures rather than decimal places, since the boundaries span
+  // orders of magnitude (significant figures is the log dual of fixed decimal places). Bin tooltips
+  // are plain ranges like the linear/quantile cases; values outside the positive log domain (including
+  // <= 0) are missing rather than clamped into an end bin.
   logarithmic?: boolean,
   width?: number,
   rectHeight?: number,
@@ -39,6 +39,10 @@ export type ChoroplethLegendProps = {
   // override the domain-derived endpoints so the legend matches the range the user set (CODAP-1292).
   legendMin?: number,
   legendMax?: number,
+  // Per-bin data extents (min..max of the values in each bin). Provided only for the degenerate
+  // quantile case, where bins are labeled from the data: a single value when min === max (e.g.
+  // "1"), else a range ("2 - 3"). When absent, bin tooltips use the threshold-derived boundaries.
+  binDataExtents?: Array<{ min: number, max: number }>,
   clickHandler: (bin: number, extend: boolean) => void,
   casesInBinSelectedHandler: (bin: number) => boolean
 }
@@ -74,7 +78,7 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
   const {
       isDate, useGrouping = false, logarithmic = false, transform = '', width = 320,
       marginTop = 0, marginRight = 0, marginLeft = 0,
-      ticks = 5, legendMin, legendMax, clickHandler, casesInBinSelectedHandler
+      ticks = 5, legendMin, legendMax, binDataExtents, clickHandler, casesInBinSelectedHandler
     } = props,
     // Prefer the caller-provided effective range; fall back to the scale domain's extent (a quantile
     // scale's domain is its training samples, so its extent can differ from the user-set range).
@@ -129,40 +133,38 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
         interiorCenters[i - 1] + interiorWidths[i - 1] / 2 + kLegendLabelGap),
     onlyShowMinMax = !(fitBesideEndpoints && interiorLabelsFit)
 
+  // Bind each rect to its bin index (not its color): the index is the unambiguous bin identifier,
+  // whereas looking a color up in scale.range() is O(n) and returns the wrong bin when the ramp
+  // contains duplicate colors (e.g. lowColor === highColor).
+  const colors = scale.range()
   svg.append("g")
     .selectAll("rect")
-    .data(scale.range())
+    .data(colors.map((_, i) => i))
     .join("rect")
     .attr('class', 'choropleth-rect')
-    .classed('legend-rect-selected',
-      (color) => {
-        return casesInBinSelectedHandler(scale.range().indexOf(color))
-      })
+    .classed('legend-rect-selected', bin => casesInBinSelectedHandler(bin))
     .attr('transform', transform)
-    .attr("x", (d, i) => legendScale(i - 1))
+    .attr("x", bin => legendScale(bin - 1))
     .attr("y", marginTop)
-    .attr("width", (d, i) => legendScale(i) - legendScale(i - 1))
+    .attr("width", bin => legendScale(bin) - legendScale(bin - 1))
     .attr("height", kChoroplethHeight /*height - marginTop - marginBottom*/)
-    .attr("fill", (d: string) => d)
-    .on('click', (event, color) => {
-      clickHandler(scale.range().indexOf(color), event.shiftKey)
+    .attr("fill", bin => colors[bin])
+    .on('click', (event, bin) => {
+      clickHandler(bin, event.shiftKey)
     })
     .append('title')
-    .text((color) => {
-      const bin = scale.range().indexOf(color)
-      const lastBin = scale.range().length - 1
-      // Bins are half-open [binMin, binMax) and the scale clamps out-of-range values into the end
-      // bins, so the first bin covers everything below its upper threshold and the last everything
-      // at-or-above its lower threshold. Show those open-ended (rather than the [min, max] domain),
-      // which is only correct once the user can narrow the range (CODAP-1292).
-      // In logarithmic mode values <= 0 are excluded as missing rather than clamped into the first
-      // bin, so label it open-above-zero (">0 - t₁") rather than the unbounded "< t₁".
-      if (lastBin > 0 && bin === 0) {
-        return logarithmic
-          ? `>0 - ${formatBoundary(fullBoundaries[1])}`
-          : `< ${formatBoundary(fullBoundaries[1])}`
+    .text(bin => {
+      // Degenerate quantile bins are labeled from their data: a single value when min === max
+      // (e.g. "1"), else a range ("2 - 3").
+      const extent = binDataExtents?.[bin]
+      if (extent) {
+        return extent.min === extent.max
+          ? formatBoundary(extent.min)
+          : `${formatBoundary(extent.min)} - ${formatBoundary(extent.max)}`
       }
-      if (lastBin > 0 && bin === lastBin) return `≥ ${formatBoundary(fullBoundaries[bin])}`
+      // Every bin is a plain [low - high] range. Out-of-range values (and <= 0 in logarithmic mode)
+      // are treated as missing rather than clamped into the end bins, so the first and last bins are
+      // bounded by the legend's min/max like any interior bin.
       return `${formatBoundary(fullBoundaries[bin])} - ${formatBoundary(fullBoundaries[bin + 1])}`
     })
 
