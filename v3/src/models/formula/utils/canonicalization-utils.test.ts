@@ -60,6 +60,12 @@ describe("makeDisplayNamesSafe", () => {
   it("leaves an unterminated backtick untouched", () => {
     expect(makeDisplayNamesSafe("a + `unterminated")).toEqual("a + `unterminated")
   })
+  it("leaves an empty backtick pair untouched", () => {
+    expect(makeDisplayNamesSafe("a + `` + b")).toEqual("a + `` + b")
+  })
+  it("processes delimited names while leaving a lone escaped backtick untouched", () => {
+    expect(makeDisplayNamesSafe("`My Attr` + \\` + `Other`")).toEqual("My_Attr + \\` + Other")
+  })
   it("treats an escaped backslash followed by a backtick as an opening delimiter", () => {
     // `\\` is an escaped (literal) backslash, so the following backtick DOES open a delimited name.
     // The old one-char lookbehind regex incorrectly treated this backtick as escaped and left it unprocessed.
