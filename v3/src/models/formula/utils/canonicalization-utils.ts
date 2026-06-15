@@ -18,8 +18,52 @@ export const safeSymbolNameFromDisplayFormula = (name: string) =>
 export const makeDisplayNamesSafe = (formula: string) => {
   // Names between `` are symbols that require special processing, as otherwise they could not be parsed by Mathjs,
   // eg. names with spaces or names that start with a number. Also, it's necessary to ignore escaped backticks.
-  return formula
-    .replace(/(?<!\\)`((?:[^`\\]|\\.)+)`/g, (_, match) => safeSymbolNameFromDisplayFormula(match))
+  //
+  // We scan linearly rather than using a regex with a negative lookbehind (`(?<!\\)`), because JavaScriptCore
+  // (Safari < 16.4, including the system WebKit on iPad Air 2 / mini 4) throws a SyntaxError on lookbehind, which
+  // crashes the formula engine on load. The scanner is also faster (no backtracking) and more correct than the
+  // one-char lookbehind: an escaped backslash (`\\`) followed by a backtick correctly opens a delimited name,
+  // whereas the lookbehind treated that backtick as escaped and left the name unprocessed.
+  let result = ""
+  let i = 0
+  while (i < formula.length) {
+    const char = formula[i]
+    // Outside a delimited name, copy escape pairs (e.g. \\ or \`) untouched so the second char can't open a name.
+    if (char === "\\" && i + 1 < formula.length) {
+      result += char + formula[i + 1]
+      i += 2
+      continue
+    }
+    if (char === "`") {
+      // Scan ahead for the matching unescaped closing backtick, copying escape pairs as part of the name.
+      let inner = ""
+      let j = i + 1
+      let closed = false
+      while (j < formula.length) {
+        const innerChar = formula[j]
+        if (innerChar === "\\" && j + 1 < formula.length) {
+          inner += innerChar + formula[j + 1]
+          j += 2
+          continue
+        }
+        if (innerChar === "`") {
+          closed = true
+          break
+        }
+        inner += innerChar
+        j += 1
+      }
+      // Only replace a non-empty, properly terminated name; otherwise emit the backtick unchanged.
+      if (closed && inner.length > 0) {
+        result += safeSymbolNameFromDisplayFormula(inner)
+        i = j + 1
+        continue
+      }
+    }
+    result += char
+    i += 1
+  }
+  return result
 }
 
 interface IReplacement {
