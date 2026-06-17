@@ -47,6 +47,30 @@ describe("makeDisplayNamesSafe", () => {
     // \` and \\ treated as one symbol - unescaping is done in safeSymbolNameFromDisplayFormula
     expect(makeDisplayNamesSafe("`Attr\\\\Name` + `Attr\\`Name 2`")).toEqual("Attr_Name + Attr_Name_2")
   })
+  it("handles a backtick-delimited name at the very start of the formula", () => {
+    expect(makeDisplayNamesSafe("`Attribute Name` + 1")).toEqual("Attribute_Name + 1")
+  })
+  it("handles adjacent backtick-delimited names", () => {
+    expect(makeDisplayNamesSafe("`A`+`B`")).toEqual("A+B")
+  })
+  it("ignores an escaped backtick so it does not open a delimited name", () => {
+    // a lone escaped backtick is not a delimiter; the text is left untouched
+    expect(makeDisplayNamesSafe("a + \\` + b")).toEqual("a + \\` + b")
+  })
+  it("leaves an unterminated backtick untouched", () => {
+    expect(makeDisplayNamesSafe("a + `unterminated")).toEqual("a + `unterminated")
+  })
+  it("leaves an empty backtick pair untouched", () => {
+    expect(makeDisplayNamesSafe("a + `` + b")).toEqual("a + `` + b")
+  })
+  it("processes delimited names while leaving a lone escaped backtick untouched", () => {
+    expect(makeDisplayNamesSafe("`My Attr` + \\` + `Other`")).toEqual("My_Attr + \\` + Other")
+  })
+  it("treats an escaped backslash followed by a backtick as an opening delimiter", () => {
+    // `\\` is an escaped (literal) backslash, so the following backtick DOES open a delimited name.
+    // The old one-char lookbehind regex incorrectly treated this backtick as escaped and left it unprocessed.
+    expect(makeDisplayNamesSafe("\\\\`Name`")).toEqual("\\\\Name")
+  })
 })
 
 describe("customizeDisplayFormula", () => {
