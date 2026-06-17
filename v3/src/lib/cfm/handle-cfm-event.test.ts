@@ -124,7 +124,9 @@ describe("handleCFMEvent", () => {
     const spy = jest.spyOn(urlParamsModule, "removeDevUrlParams")
     // Opening any file should suppress the user entry modal so it doesn't linger
     // in front of a still-loading document (e.g. a CFM `#shared=` shared document).
-    const hideModalSpy = jest.spyOn(uiState, "setHideUserEntryModal")
+    // Mock the implementation so the spy asserts the call without mutating the
+    // global `uiState` singleton.
+    const hideModalSpy = jest.spyOn(uiState, "setHideUserEntryModal").mockImplementation(() => {})
     const mockCfmEventArg = mockCfmEvent as unknown as CloudFileManagerClientEvent
     await handleCFMEvent(mockCfmClient, mockCfmEventArg)
     expect(spy).toHaveBeenCalledTimes(1)
