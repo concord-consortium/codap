@@ -106,7 +106,7 @@ describe("App user entry modal visibility", () => {
   afterEach(() => {
     setUrlParams("")
     // Reset the flag flipped below so it doesn't leak into other tests in this file.
-    ;(uiState as any)._hideUserEntryModal = false
+    uiState.setHideUserEntryModal(false)
     spySetMenuBarInfo?.mockRestore()
     spySetMenuBarInfo = undefined
     cfm = undefined

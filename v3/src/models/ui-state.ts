@@ -236,8 +236,8 @@ export class UIState {
   }
 
   @action
-  setHideUserEntryModal() {
-    this._hideUserEntryModal = true
+  setHideUserEntryModal(hidden = true) {
+    this._hideUserEntryModal = hidden
   }
 
   get focusedTile() {
