@@ -4,6 +4,7 @@ import {
 } from "@concord-consortium/cloud-file-manager"
 import { getSnapshot } from "mobx-state-tree"
 import { appState } from "../../models/app-state"
+import { uiState } from "../../models/ui-state"
 import { createCodapDocument, isCodapDocument } from "../../models/codap/create-codap-document"
 import { ICodapV2DocumentJson } from "../../v2/codap-v2-types"
 import * as ImportV2Document from "../../v2/import-v2-document"
@@ -121,10 +122,15 @@ describe("handleCFMEvent", () => {
       callback: jest.fn()
     }
     const spy = jest.spyOn(urlParamsModule, "removeDevUrlParams")
+    // Opening any file should suppress the user entry modal so it doesn't linger
+    // in front of a still-loading document (e.g. a CFM `#shared=` shared document).
+    const hideModalSpy = jest.spyOn(uiState, "setHideUserEntryModal")
     const mockCfmEventArg = mockCfmEvent as unknown as CloudFileManagerClientEvent
     await handleCFMEvent(mockCfmClient, mockCfmEventArg)
     expect(spy).toHaveBeenCalledTimes(1)
+    expect(hideModalSpy).toHaveBeenCalledTimes(1)
     spy.mockRestore()
+    hideModalSpy.mockRestore()
   })
 
   it("handles the `openedFile` message with a v2 document", async () => {

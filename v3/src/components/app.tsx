@@ -77,6 +77,11 @@ export const App = observer(function App() {
   // or plugin using url params
   const {isOpen: isOpenUserEntry, onOpen: onOpenUserEntry, onClose: onCloseUserEntry}
     = useDisclosure({defaultIsOpen: true})
+  // The disclosure tracks user-initiated open/close, but `uiState.hideUserEntryModal`
+  // overrides it whenever a document is auto-opening at startup (e.g. a shared document
+  // loaded via the CFM or the `url` param). Reading it here (App is an observer) keeps the
+  // modal hidden reactively for the entire load, rather than only after `openedFile`.
+  const showUserEntry = isOpenUserEntry && !uiState.hideUserEntryModal
   const [isDragOver, setIsDragOver] = useState(false)
   const userEntryOverlayRef = useRef<HTMLDivElement>(null)
   const cfmRef = useRef<CloudFileManager | null>(null)
@@ -137,7 +142,7 @@ export const App = observer(function App() {
   cfmRef.current = cfm
 
   useDropHandler({
-    selector: isOpenUserEntry ? `#${kUserEntryDropOverlay}` : `#${kCodapAppElementId}`,
+    selector: showUserEntry ? `#${kUserEntryDropOverlay}` : `#${kCodapAppElementId}`,
     onDrop: handleDrop,
     onSetIsDragOver: setIsDragOver
   })
@@ -200,10 +205,6 @@ export const App = observer(function App() {
             if (isWebViewModel(plugin?.content)) plugin.content.setUrl(di)
           })
         })
-      }
-
-      if (uiState.hideUserEntryModal) {
-        onCloseUserEntry()
       }
 
       appState.enableDocumentMonitoring()
@@ -269,12 +270,12 @@ export const App = observer(function App() {
                 </If>
               </div>
             </SectionNavigationProvider>
-            <If condition={isOpenUserEntry}>
+            <If condition={showUserEntry}>
               <div id={`${kUserEntryDropOverlay}`} ref={userEntryOverlayRef}
-                className={clsx({ "show-highlight": isOpenUserEntry && isDragOver })}
+                className={clsx({ "show-highlight": showUserEntry && isDragOver })}
               >
                 <UserEntryModal
-                  isOpen={isOpenUserEntry}
+                  isOpen={showUserEntry}
                   onClose={onCloseUserEntry}
                   containerRef={userEntryOverlayRef}
                 />

@@ -90,10 +90,16 @@ export class UIState {
   constructor() {
     const {
       componentMode, dashboard, di, embeddedMode, embeddedServer, hideSplashScreen,
-      hideUndoRedoInComponent, inbounds, noEntryModal, sample, standalone, suppressUnsavedWarning
+      hideUndoRedoInComponent, inbounds, noEntryModal, sample, standalone, suppressUnsavedWarning, url
     } = urlParams
     this._hideSplashScreen = booleanParam(hideSplashScreen)
-    this._hideUserEntryModal = !!sample || booleanParam(dashboard) || !!di || booleanParam(noEntryModal)
+    // Suppress the user entry modal whenever a document is known to be auto-opening at
+    // startup, so it never appears in front of a still-loading document. `url` covers the
+    // `?url=` document parameter; `hasInteractiveApiContext()` covers Activity Player / LARA
+    // launches. CFM-initiated opens (e.g. `#shared=` links) are handled separately by hiding
+    // the modal on the CFM `willOpenFile` event.
+    this._hideUserEntryModal = !!sample || booleanParam(dashboard) || !!di ||
+      booleanParam(noEntryModal) || !!url || hasInteractiveApiContext()
 
     // Initialize standalone mode
     this._standaloneMode = booleanParam(standalone)
