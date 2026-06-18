@@ -1,4 +1,4 @@
-/* eslint-disable testing-library/no-node-access, testing-library/no-container */
+/* eslint-disable testing-library/no-node-access */
 import { act, render } from "@testing-library/react"
 import React from "react"
 import { DataSet } from "../../../models/data/data-set"
@@ -143,4 +143,4 @@ describe("GraphAttributeLabel Y2 (rightNumeric) color", () => {
     expect(style).not.toContain("fill:")
   })
 })
-/* eslint-enable testing-library/no-node-access, testing-library/no-container */
+/* eslint-enable testing-library/no-node-access */
