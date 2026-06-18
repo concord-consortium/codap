@@ -122,6 +122,16 @@
   @include vars.drop-zone-states;
 }
 
+.add-attribute-plus {
+  position: absolute;
+  top: 50%;
+  left: 6px;
+  transform: translateY(-50%);
+  // saturated yellow-gold so the "+" stands out against the translucent yellow drop highlight
+  color: #e6b800;
+  pointer-events: none;
+}
+
 .above-points-group {
   outline: none;
 }

@@ -37,10 +37,38 @@ export const dndDetectCollision: CollisionDetection = (args) => {
 
   // check for registered tile-specific collision handlers
   if (sortedCollisions.length > 0) {
-    // find the prefix for the first tile collision
-    const prefix = `${sortedCollisions[0].id}`.match(prefixRegex)?.[0]
-    if (prefix) {
-      // find all collisions for the first tile
+    // data-tile-z-index doesn't always reflect actual visual stacking (overlapping tiles
+    // can be in separate CSS stacking contexts), so when tiles overlap in screen space we
+    // use elementFromPoint to find the visually-topmost tile and try its prefix first.
+    // Without this, dragging from one tile (e.g., the case table) into an overlapping tile
+    // (e.g., a graph) can let the source tile's droppables win at positions the user sees
+    // as inside the destination tile.
+    //
+    // We can't extract the prefix from the tile root <div>'s id, because tile DOM ids are
+    // ULIDs (GRAPH_xxxx) while droppable prefixes use a separate instance-id convention
+    // ("graph-1"). Instead we walk sortedCollisions (already sorted by z-index) and pick the
+    // first whose droppable's DOM node contains the topmost element under the cursor.
+    const candidatePrefixes: string[] = []
+    if (args.pointerCoordinates) {
+      const { x, y } = args.pointerCoordinates
+      const topEl = document.elementFromPoint(x, y)
+      if (topEl) {
+        for (const collision of sortedCollisions) {
+          const node = collision.data?.droppableContainer.node.current
+          if (node?.contains(topEl)) {
+            const prefix = `${collision.id}`.match(prefixRegex)?.[0]
+            if (prefix) {
+              candidatePrefixes.push(prefix)
+              break
+            }
+          }
+        }
+      }
+    }
+    const firstPrefix = `${sortedCollisions[0].id}`.match(prefixRegex)?.[0]
+    if (firstPrefix && !candidatePrefixes.includes(firstPrefix)) candidatePrefixes.push(firstPrefix)
+
+    for (const prefix of candidatePrefixes) {
       const tileCollisions = sortedCollisions.filter(c => `${c.id}`.startsWith(prefix))
       for (const collision of tileCollisions) {
         const { id: collisionId } = collision
