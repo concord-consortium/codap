@@ -23,7 +23,11 @@ jest.mock("../../data-display/components/attribute-label", () => {
       props: { place: string, refreshLabel: () => void },
       ref: React.ForwardedRef<SVGGElement>
     ) {
-      ReactModule.useEffect(() => autorun(() => props.refreshLabel()), [props])
+      const { refreshLabel } = props
+      ReactModule.useEffect(() => {
+        const disposer = autorun(() => refreshLabel())
+        return disposer
+      }, [refreshLabel])
       return <g ref={ref} data-testid={`attribute-label-${props.place}`} />
     })
   }
@@ -79,9 +83,14 @@ describe("GraphAttributeLabel Y2 (rightNumeric) color", () => {
   const labelFill = (container: HTMLElement, place: string) =>
     container.querySelector(`[data-testid='attribute-label-${place}'] text`)?.getAttribute("style") ?? ""
 
+  // jsdom doesn't implement getBBox, which renderLabelBackground (called by refreshAxisTitle) needs.
+  // Save and restore the original so we don't pollute other test files sharing this Jest worker.
+  const originalGetBBox = (SVGElement.prototype as any).getBBox
   beforeAll(() => {
-    // jsdom doesn't implement getBBox, which renderLabelBackground (called by refreshAxisTitle) needs.
     ;(SVGElement.prototype as any).getBBox = () => ({ x: 0, y: 0, width: 0, height: 0 })
+  })
+  afterAll(() => {
+    ;(SVGElement.prototype as any).getBBox = originalGetBBox
   })
 
   beforeEach(() => {
