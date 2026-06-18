@@ -134,13 +134,34 @@ describe("GraphAttributeLabel Y2 (rightNumeric) color", () => {
     expect(labelFill(container, "rightNumeric")).toContain("fill: #abcdef")
   })
 
-  it("does not set an inline fill on a primary (non-rightNumeric) label", () => {
+  it("does not set an inline fill on the left label when no Y2 attribute is present", () => {
     const { container } = renderLabel("left")
     // The label text is rendered (non-empty inline style) but carries no fill, so it falls back
     // to its CSS class color rather than a point color.
     const style = labelFill(container, "left")
     expect(style).not.toBe("")
     expect(style).not.toContain("fill:")
+  })
+
+  it("colors the single-Y left label to match its points when a Y2 attribute is present", () => {
+    // With one primary Y attribute, the Y attribute's plot index is 0.
+    pointDescription.setPointColor("#abc123", 0)
+    dataConfiguration.setAttribute("rightNumeric", { attributeID: "y2Id" })
+
+    const { container } = renderLabel("left")
+    expect(pointDescription.pointColorAtIndex(0)).toBe("#abc123")
+    expect(labelFill(container, "left")).toContain(`fill: ${pointDescription.pointColorAtIndex(0)}`)
+  })
+
+  it("updates the single-Y left label color when the Y point color changes", () => {
+    pointDescription.setPointColor("#abc123", 0)
+    dataConfiguration.setAttribute("rightNumeric", { attributeID: "y2Id" })
+
+    const { container } = renderLabel("left")
+    expect(labelFill(container, "left")).toContain("fill: #abc123")
+
+    act(() => pointDescription.setPointColor("#fedcba", 0))
+    expect(labelFill(container, "left")).toContain("fill: #fedcba")
   })
 })
 /* eslint-enable testing-library/no-node-access */

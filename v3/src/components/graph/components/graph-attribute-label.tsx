@@ -207,12 +207,18 @@ export const GraphAttributeLabel =
       }
 
       const {labelFont, className, unusedClassName, visibility} = getClickHereCue(),
-        // Y2 (rightNumeric) label takes the color of its points, matching V2 behavior.
-        // Its plot index sits after all primary Y attributes.
-        labelColor = place === 'rightNumeric' && dataConfiguration?.hasY2Attribute
-          ? graphModel.pointDescription.pointColorAtIndex(
-              dataConfiguration.yAttributeDescriptionsExcludingY2.length)
-          : null,
+        // When a Y2 (rightNumeric) attribute is present, both labels take their points' color
+        // (matching V2). The Y2 label's plot index sits after all primary Y attributes; with a
+        // single Y, the left label uses index 0. The multi-Y case is handled by
+        // SingleYAttributeLabel, which renders each label with its own color.
+        labelColor = !dataConfiguration?.hasY2Attribute
+          ? null
+          : place === 'rightNumeric'
+            ? graphModel.pointDescription.pointColorAtIndex(
+                dataConfiguration.yAttributeDescriptionsExcludingY2.length)
+            : place === 'left' && dataConfiguration.yAttributeDescriptionsExcludingY2.length === 1
+              ? graphModel.pointDescription.pointColorAtIndex(0)
+              : null,
         bounds = layout.getComputedBounds(place),
         layoutIsVertical = isVertical(place),
         halfRange = layoutIsVertical ? bounds.height / 2 : bounds.width / 2,
