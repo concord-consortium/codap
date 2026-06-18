@@ -206,12 +206,12 @@ export const GraphAttributeLabel =
           .text(label)
       }
 
-      const {labelFont, className, unusedClassName, useClickHereCue, visibility} = getClickHereCue(),
+      const {labelFont, className, unusedClassName, visibility} = getClickHereCue(),
         // Y2 (rightNumeric) label takes the color of its points, matching V2 behavior.
         // Its plot index sits after all primary Y attributes.
-        labelColor = place === 'rightNumeric' && !useClickHereCue
+        labelColor = place === 'rightNumeric' && dataConfiguration?.hasY2Attribute
           ? graphModel.pointDescription.pointColorAtIndex(
-              dataConfiguration?.yAttributeDescriptionsExcludingY2.length ?? 0)
+              dataConfiguration.yAttributeDescriptionsExcludingY2.length)
           : null,
         bounds = layout.getComputedBounds(place),
         layoutIsVertical = isVertical(place),
@@ -260,8 +260,7 @@ export const GraphAttributeLabel =
         gSelection, textSelector: `text.${className}`,
         transform: labelTransform + tRotation, visibility
       })
-    }, [dataConfiguration?.yAttributeDescriptionsExcludingY2.length, getClickHereCue, getLabel,
-        graphModel.pointDescription, isTileSelected, layout, place])
+    }, [dataConfiguration, getClickHereCue, getLabel, graphModel, isTileSelected, layout, place])
 
     const plotDefinedAxisClickHandler = graphModel.plot.axisLabelClickHandler(graphPlaceToAttrRole[place])
 
