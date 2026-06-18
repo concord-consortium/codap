@@ -127,8 +127,7 @@
   top: 50%;
   left: 6px;
   transform: translateY(-50%);
-  // saturated yellow-gold so the "+" stands out against the translucent yellow drop highlight
-  color: #e6b800;
+  color: vars.$drop-zone-plus-color;
   pointer-events: none;
 }
 
