@@ -23,6 +23,14 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
   const tileContentModel = tile?.content
   const webViewModel = isWebViewModel(tileContentModel) ? tileContentModel : undefined
   const url = webViewModel?.url
+  // The iframe loads `iframeSrc` (see web-view.tsx), which appends locale params when
+  // `needsLocaleReload` is true. That flag can flip from false to true at runtime when a
+  // generic web view (e.g. an interactive added by drag/drop or URL import) is promoted to a
+  // plugin after its handshake — which mutates the iframe src and forces a reload WITHOUT
+  // changing `url`. Tracking it here re-runs the effect below so the connection is
+  // re-established and `codap-present` is re-sent to the reloaded iframe; otherwise the
+  // reloaded plugin never learns it is embedded in CODAP. (CODAP-1424)
+  const needsLocaleReload = webViewModel?.needsLocaleReload
   const cfm = useCfmContext()
 
   // Counter incremented when a localized plugin needs to reload due to a locale change.
@@ -97,5 +105,5 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
         phone.disconnect()
       }
     }
-  }, [cfm, iframeRef, localeVersion, tile, url, webViewModel])
+  }, [cfm, iframeRef, localeVersion, needsLocaleReload, tile, url, webViewModel])
 }
