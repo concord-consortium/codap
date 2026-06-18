@@ -449,5 +449,29 @@ describe("UIState", () => {
       const uiState = new UIState()
       expect(uiState.hideUserEntryModal).toBe(true)
     })
+
+    it("should be true when a document url is specified", () => {
+      setUrlParams("?url=https://example.com/shared.codap")
+      const uiState = new UIState()
+      expect(uiState.hideUserEntryModal).toBe(true)
+    })
+
+    it("should be true when interactiveApi is present (Activity Player context)", () => {
+      setUrlParams("?interactiveApi")
+      const uiState = new UIState()
+      expect(uiState.hideUserEntryModal).toBe(true)
+    })
+
+    it("should be true when launchFromLara has a value", () => {
+      setUrlParams("?launchFromLara=abc123")
+      const uiState = new UIState()
+      expect(uiState.hideUserEntryModal).toBe(true)
+    })
+
+    it("should be true when lara has a value", () => {
+      setUrlParams("?lara=true")
+      const uiState = new UIState()
+      expect(uiState.hideUserEntryModal).toBe(true)
+    })
   })
 })
