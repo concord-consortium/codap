@@ -37,12 +37,15 @@ export const dndDetectCollision: CollisionDetection = (args) => {
 
   // check for registered tile-specific collision handlers
   if (sortedCollisions.length > 0) {
-    // data-tile-z-index doesn't always reflect actual visual stacking (overlapping tiles
-    // can be in separate CSS stacking contexts), so when tiles overlap in screen space we
-    // use elementFromPoint to find the visually-topmost tile and try its prefix first.
-    // Without this, dragging from one tile (e.g., the case table) into an overlapping tile
-    // (e.g., a graph) can let the source tile's droppables win at positions the user sees
-    // as inside the destination tile.
+    // pointerWithin returns droppables whose measured *rects* contain the cursor, and sorting by
+    // data-tile-z-index orders the tiles correctly by paint order. The problem isn't the ordering:
+    // the drag source tile (e.g., a case table) is raised to the top z-index when it's focused at
+    // drag start, so it legitimately sorts above the destination tile (e.g., a graph) it's dragged
+    // onto. At cursor positions where the source tile's droppable rect extends past its painted
+    // area into the destination tile, the source's droppables still win even though the user sees
+    // the destination under the cursor -- causing the drop highlight to flicker. z-index can't
+    // disambiguate this (the ordering is already correct), so we use elementFromPoint to find the
+    // actually-painted topmost tile and try its prefix first.
     //
     // We can't extract the prefix from the tile root <div>'s id, because tile DOM ids are
     // ULIDs (GRAPH_xxxx) while droppable prefixes use a separate instance-id convention
