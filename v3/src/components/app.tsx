@@ -1,4 +1,3 @@
-import { useDisclosure } from "@chakra-ui/react"
 import { CloudFileManager } from "@concord-consortium/cloud-file-manager"
 import { clsx } from "clsx"
 import { autorun, reaction } from "mobx"
@@ -75,13 +74,13 @@ export const App = observer(function App() {
   // default behavior is to show the user entry modal when CODAP is loaded
   // We close the modal if user imports, drags a document, opens a document
   // or plugin using url params
-  const {isOpen: isOpenUserEntry, onOpen: onOpenUserEntry, onClose: onCloseUserEntry}
-    = useDisclosure({defaultIsOpen: true})
-  // The disclosure tracks user-initiated open/close, but `uiState.hideUserEntryModal`
+  const [userDismissedEntry, setUserDismissedEntry] = useState(false)
+  const onCloseUserEntry = useCallback(() => setUserDismissedEntry(true), [])
+  // `userDismissedEntry` tracks the user dismissing the modal, while `uiState.hideUserEntryModal`
   // overrides it whenever a document is auto-opening at startup (e.g. a shared document
   // loaded via the CFM or the `url` param). Reading it here (App is an observer) keeps the
   // modal hidden reactively for the entire load, rather than only after `openedFile`.
-  const showUserEntry = isOpenUserEntry && !uiState.hideUserEntryModal
+  const showUserEntry = !userDismissedEntry && !uiState.hideUserEntryModal
   const [isDragOver, setIsDragOver] = useState(false)
   const userEntryOverlayRef = useRef<HTMLDivElement>(null)
   const cfmRef = useRef<CloudFileManager | null>(null)
@@ -218,7 +217,7 @@ export const App = observer(function App() {
     }
 
     initialize()
-  }, [cfm, cfmReadyPromise, onCloseUserEntry, onOpenUserEntry])
+  }, [cfm, cfmReadyPromise])
 
   const { fallbackRender } = useUncaughtErrorHandler(cfm)
 
