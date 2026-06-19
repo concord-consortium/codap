@@ -200,12 +200,25 @@ export const GraphAttributeLabel =
           .attr('data-testid', className)
           .attr("transform", labelTransform + tRotation)
           .style('visibility', visibility)
+          .style('fill', labelColor)
           .attr('x', tX)
           .attr('y', tY)
           .text(label)
       }
 
       const {labelFont, className, unusedClassName, visibility} = getClickHereCue(),
+        // When a Y2 (rightNumeric) attribute is present, both labels take their points' color
+        // (matching V2). The Y2 label's plot index sits after all primary Y attributes; with a
+        // single Y, the left label uses index 0. The multi-Y case is handled by
+        // SingleYAttributeLabel, which renders each label with its own color.
+        labelColor = !dataConfiguration?.hasY2Attribute
+          ? null
+          : place === 'rightNumeric'
+            ? graphModel.pointDescription.pointColorAtIndex(
+                dataConfiguration.yAttributeDescriptionsExcludingY2.length)
+            : place === 'left' && dataConfiguration.yAttributeDescriptionsExcludingY2.length === 1
+              ? graphModel.pointDescription.pointColorAtIndex(0)
+              : null,
         bounds = layout.getComputedBounds(place),
         layoutIsVertical = isVertical(place),
         halfRange = layoutIsVertical ? bounds.height / 2 : bounds.width / 2,
@@ -253,7 +266,7 @@ export const GraphAttributeLabel =
         gSelection, textSelector: `text.${className}`,
         transform: labelTransform + tRotation, visibility
       })
-    }, [getClickHereCue, getLabel, isTileSelected, layout, place])
+    }, [dataConfiguration, getClickHereCue, getLabel, graphModel, isTileSelected, layout, place])
 
     const plotDefinedAxisClickHandler = graphModel.plot.axisLabelClickHandler(graphPlaceToAttrRole[place])
 
