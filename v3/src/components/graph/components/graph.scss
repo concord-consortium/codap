@@ -122,6 +122,15 @@
   @include vars.drop-zone-states;
 }
 
+.add-attribute-plus {
+  position: absolute;
+  top: 50%;
+  left: 6px;
+  transform: translateY(-50%);
+  color: vars.$drop-zone-plus-color;
+  pointer-events: none;
+}
+
 .above-points-group {
   outline: none;
 }

@@ -407,6 +407,44 @@ export const Graph = observer(function Graph({
     }
   }
 
+  // Drop-zone flags and insets. Drive both the axis rendering and the add-attribute zones.
+  // Only apply insets when the drop zones would actually accept the currently dragged attribute.
+  const { active } = useDndContext()
+  const { dataSet: dragDataSet, attributeId: dragAttrId } = getDragAttributeInfo(active) || {}
+  const isDropAllowed = graphModel.dataConfiguration.placeCanAcceptAttributeIDDrop
+  const hasTopAxis = !!graphModel.getAxis("top")
+  const hasTopDropZone = plotType !== "casePlot"
+    && !hasTopAxis
+    && !!dragAttrId
+    && isDropAllowed("top", dragDataSet, dragAttrId)
+  const hasYPlusDropZone = plotType === "scatterPlot"
+    && !!dragAttrId
+    && isDropAllowed("yPlus", dragDataSet, dragAttrId)
+  const hasRightDropZone = plotType !== "casePlot" && (
+    (!graphModel.getAxis("rightCat")
+      && !!dragAttrId
+      && isDropAllowed("rightCat", dragDataSet, dragAttrId)) ||
+    (plotType === "scatterPlot" && !graphModel.getAxis("rightNumeric")
+      && !!dragAttrId
+      && isDropAllowed("rightNumeric", dragDataSet, dragAttrId))
+  )
+  // Vertical overlap between the top yPlus/top strip (y=0..kDropZoneSize) and the plot.
+  // Plot.top and left-axis.top are always equal (both = bannersHeight + topAxisHeight), so a
+  // single overlap value drives both the plot-drop-zone inset and the left-axis inset. When
+  // a top axis pushes that boundary below the strip, the overlap is 0 and nothing shrinks.
+  const topStripOverlap = Math.max(0, kDropZoneSize + kDropZoneGap - layout.getComputedBounds("plot").top)
+  const leftAxisTopInset = hasYPlusDropZone ? topStripOverlap : 0
+  // Only inset by the portion of the right-edge drop zone that would actually overlap.
+  const rightAxisExtent =
+    layout.getDesiredExtent('rightNumeric') + layout.getDesiredExtent('rightCat')
+  const rightDropZoneInset = hasRightDropZone
+    ? Math.max(0, kDropZoneSize + kDropZoneGap - rightAxisExtent)
+    : 0
+  const plotDropInsets: IDropInsets = {
+    ...((hasTopDropZone || hasYPlusDropZone) && topStripOverlap > 0 ? { top: topStripOverlap } : {}),
+    ...(rightDropZoneInset > 0 ? { right: rightDropZoneInset } : {})
+  }
+
   const renderGraphAxes = () => {
     // Render horizontal axes first so vertical axes (and their labels) appear on top
     // of the full-width horizontal axis backgrounds
@@ -421,37 +459,9 @@ export const Graph = observer(function Graph({
                         onDropAttribute={handleChangeAttribute}
                         onRemoveAttribute={handleRemoveAttribute}
                         onTreatAttributeAs={handleTreatAttrAs}
+                        topInset={place === 'left' ? leftAxisTopInset : undefined}
       />
     })
-  }
-
-  // Compute insets for the plot drop zone so it doesn't overlap adjacent add-attribute drop zones.
-  // Only apply insets when the drop zones would actually accept the currently dragged attribute.
-  const { active } = useDndContext()
-  const { dataSet: dragDataSet, attributeId: dragAttrId } = getDragAttributeInfo(active) || {}
-  const isDropAllowed = graphModel.dataConfiguration.placeCanAcceptAttributeIDDrop
-  const hasTopDropZone = plotType !== "casePlot"
-    && !graphModel.getAxis("top")
-    && !!dragAttrId
-    && isDropAllowed("top", dragDataSet, dragAttrId)
-  const hasRightDropZone = plotType !== "casePlot" && (
-    (!graphModel.getAxis("rightCat")
-      && !!dragAttrId
-      && isDropAllowed("rightCat", dragDataSet, dragAttrId)) ||
-    (plotType === "scatterPlot" && !graphModel.getAxis("rightNumeric")
-      && !!dragAttrId
-      && isDropAllowed("rightNumeric", dragDataSet, dragAttrId))
-  )
-  // Only inset by the portion of the right-edge drop zone that would actually overlap the
-  // plot drop zone.
-  const rightAxisExtent =
-    layout.getDesiredExtent('rightNumeric') + layout.getDesiredExtent('rightCat')
-  const rightDropZoneInset = hasRightDropZone
-    ? Math.max(0, kDropZoneSize + kDropZoneGap - rightAxisExtent)
-    : 0
-  const plotDropInsets: IDropInsets = {
-    ...(hasTopDropZone ? { top: kDropZoneSize + kDropZoneGap } : {}),
-    ...(rightDropZoneInset > 0 ? { right: rightDropZoneInset } : {})
   }
 
   const renderDroppableAddAttributes = () => {
@@ -468,6 +478,7 @@ export const Graph = observer(function Graph({
               place={place}
               plotType={plotType}
               hasRightDropZone={hasRightDropZone}
+              hasTopAxis={hasTopAxis}
               onDrop={handleChangeAttribute.bind(null, place)}
             />
           )
