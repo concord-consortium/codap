@@ -136,7 +136,7 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
       // Treat a fixed dimension as already complete so we don't warn (and never set the flag) for those tiles.
       const widthIncomplete = !info?.isFixedWidth && element?.offsetWidth !== width
       const heightIncomplete = !info?.isFixedHeight && element?.offsetHeight !== height
-      if (widthIncomplete && heightIncomplete) {
+      if (widthIncomplete || heightIncomplete) {
         // This has never been seen in practice, but if it does happen we probably want to know about it.
         // Perhaps some browser will not run the transitions to the exact final size which would then break the
         // transitionComplete logic.
