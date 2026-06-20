@@ -1,5 +1,23 @@
 # Changelog
 
+## Version 3.0.2 - June 21, 2026
+
+### 🐞 Bug Fixes:
+- **CODAP-1415:** Fix formula engine crash on Safari versions before 16.4
+- **CODAP-1419:** Show the "+" sign when dragging a second attribute to the y-axis
+- **CODAP-1420:** Color the Y2 attribute label to match its points in a scatter plot
+- **CODAP-1422:** Don't show the user entry dialog while a document is loading
+- **CODAP-1424:** Reconnect communication for plugins added by drag/drop or URL import
+
+### 🛠️ Under the Hood:
+- **CODAP-1418:** dataContextFromURL no longer auto-creates a case-table tile
+
+### Asset Sizes
+|      File |          Size | % Change from Previous Release |
+|-----------|---------------|--------------------------------|
+|  main.css |  240888 bytes |                          0.05% |
+|  index.js | 7821976 bytes |                          0.03% |
+
 ## Version 3.0.1 - June 12, 2026
 
 ### 🐞 Bug Fixes:
