@@ -13,7 +13,7 @@ import { DataSet } from "../../models/data/data-set"
 import {
   dataContextCountChangedNotification, dataContextDeletedNotification
 } from "../../models/data/data-set-notifications"
-import { kSharedDataSetType, SharedDataSet } from "../../models/shared/shared-data-set"
+import { ISharedDataSet, kSharedDataSetType, SharedDataSet } from "../../models/shared/shared-data-set"
 import { getFormulaManager, getSharedModelManager } from "../../models/tiles/tile-environment"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { createTileNotification } from "../../models/tiles/tile-notifications"
@@ -32,6 +32,35 @@ import TableIcon from "../../assets/icons/icon-table.svg"
 import TrashIcon from "../../assets/icons/icon-trash.svg"
 
 import "../tool-shelf/tool-shelf.scss"
+
+// Open (or re-show) the table/card for an existing dataset, emitting the V2-compatible
+// notifications. A component `create` notification fires only when this actually creates a
+// new tile — mirroring V2's `caseTable.open` command, which emits `create` only when no
+// table view already exists (apps/dg/controllers/app_controller.js:122, guarded by
+// `foundView`). Plugins that detect table creation (e.g. onboarding's "make a table" task)
+// rely on that `create`; the `open case table` notification is additionally emitted for
+// V2-plugin compat (CODAP-1353). Exported for testing. CODAP-1418.
+export function openTableOrCardForDatasetWithNotifications(dataset: ISharedDataSet) {
+  const document = appState.document
+  const { content } = document
+  if (!content) return
+  let tile: Maybe<ITileModel>
+  // Capture existing tiles so we can tell whether opening created a new tile or re-showed
+  // an existing one, and only fire `create` for a brand-new tile.
+  const priorTileIds = new Set(content.tileMap.keys())
+  document.applyModelChange(() => {
+    tile = createOrShowTableOrCardForDataset(dataset)
+  }, {
+    notify: [
+      () => (tile && !priorTileIds.has(tile.id) ? createTileNotification(tile) : undefined),
+      () => openCaseTableNotification(tile)
+    ],
+    undoStringKey: "DG.Undo.caseTable.open",
+    redoStringKey: "DG.Redo.caseTable.open",
+    log: "Create caseTable component"
+  })
+  return tile
+}
 
 interface ICaseTableToolShelfMenuListProps {
   setMenuIsOpen: (isOpen: boolean) => void
@@ -122,20 +151,10 @@ const CaseTableToolShelfMenuList = observer(
         {datasets.map((dataset) => {
           // case table title reflects DataSet title
           const tileTitle = dataset.dataSet.displayTitle
-          // Wrap createOrShow in applyModelChange so the V2-compat `open case table`
-          // notification fires for V2 plugins (CODAP-1353). V2's bulk-open path is undoable
-          // (DG.UndoHistory.execute in document_controller.js:1064), so mirror that here.
-          const handleOpenTableForDataset = () => {
-            let tile: Maybe<ITileModel>
-            document.applyModelChange(() => {
-              tile = createOrShowTableOrCardForDataset(dataset)
-            }, {
-              notify: () => openCaseTableNotification(tile),
-              undoStringKey: "DG.Undo.caseTable.open",
-              redoStringKey: "DG.Redo.caseTable.open",
-              log: "Create caseTable component"
-            })
-          }
+          // See openTableOrCardForDatasetWithNotifications: opening an existing dataset's table
+          // emits a component `create` notification when it creates a new tile (CODAP-1418),
+          // plus the V2-compat `open case table` notification (CODAP-1353).
+          const handleOpenTableForDataset = () => openTableOrCardForDatasetWithNotifications(dataset)
           return (
             <MenuItem key={`${dataset.dataSet.id}`} className="tool-shelf-menu-item table-menu-item"
               onClick={handleOpenTableForDataset} data-testid={`tool-shelf-table-${tileTitle}`}>

@@ -32,7 +32,8 @@ export const diDataContextFromURLHandler: DIAsyncHandler = {
             const filename = getFilenameFromUrl(url)
             const ds = convertParsedCsvToDataSet(results, filename || url)
             if (ds) {
-              appState.document.content?.importDataSet(ds, { createDefaultTile: true })
+              if (values.title && typeof values.title === "string") ds.setTitle(values.title)
+              appState.document.content?.importDataSet(ds, { createDefaultTile: false })
               resolve({
                 success: true,
                 values: basicDataSetInfo(ds)
