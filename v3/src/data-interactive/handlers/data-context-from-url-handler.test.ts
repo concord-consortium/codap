@@ -91,11 +91,12 @@ describe("DataInteractive DataContextHandler", () => {
         onComplete(parseResult, "")
       })
 
+      const tablesBefore = content.getTilesOfType(kCaseTableTileType).length
       const result = await handler.create!({}, {URL: "https://example.com/mammals.csv"})
       expect(result.success).toBe(true)
       expect(importSpy).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ createDefaultTile: false }))
-      // No case table tile should result from the import.
-      expect(content.getTilesOfType(kCaseTableTileType).length).toBe(0)
+      // The import should not add a case table tile.
+      expect(content.getTilesOfType(kCaseTableTileType).length).toBe(tablesBefore)
       importSpy.mockRestore()
     })
 

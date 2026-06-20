@@ -40,7 +40,7 @@ import "../tool-shelf/tool-shelf.scss"
 // `foundView`). Plugins that detect table creation (e.g. onboarding's "make a table" task)
 // rely on that `create`; the `open case table` notification is additionally emitted for
 // V2-plugin compat (CODAP-1353). Exported for testing. CODAP-1418.
-export function openTableForDatasetWithNotifications(dataset: ISharedDataSet) {
+export function openTableOrCardForDatasetWithNotifications(dataset: ISharedDataSet) {
   const document = appState.document
   const { content } = document
   if (!content) return
@@ -151,10 +151,10 @@ const CaseTableToolShelfMenuList = observer(
         {datasets.map((dataset) => {
           // case table title reflects DataSet title
           const tileTitle = dataset.dataSet.displayTitle
-          // See openTableForDatasetWithNotifications: opening an existing dataset's table
+          // See openTableOrCardForDatasetWithNotifications: opening an existing dataset's table
           // emits a component `create` notification when it creates a new tile (CODAP-1418),
           // plus the V2-compat `open case table` notification (CODAP-1353).
-          const handleOpenTableForDataset = () => openTableForDatasetWithNotifications(dataset)
+          const handleOpenTableForDataset = () => openTableOrCardForDatasetWithNotifications(dataset)
           return (
             <MenuItem key={`${dataset.dataSet.id}`} className="tool-shelf-menu-item table-menu-item"
               onClick={handleOpenTableForDataset} data-testid={`tool-shelf-table-${tileTitle}`}>
