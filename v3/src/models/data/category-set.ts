@@ -248,15 +248,19 @@ export const CategorySet = types.model("CategorySet", {
     // don't change at that moment, and any subsequent recomputation goes through setComputedValues
     // which will bump changeCount and trigger this reaction.
     // The accessor guards against an invalid attribute reference (which can occur briefly while
-    // the attribute is being destroyed); the reaction is auto-disposed when this CategorySet
-    // is destroyed via the onInvalidated → removeCategorySet chain.
+    // the attribute is being destroyed). The reaction is disposed when this CategorySet is
+    // destroyed; for a provisional CategorySet (a standalone node held in a volatile map, which
+    // is never itself destroyed) we also dispose it when its provisional DataSet is destroyed.
+    // Otherwise the orphaned reaction would fire during teardown and resolve `attribute` through
+    // the now-dead DataSet, logging an MST use-after-free warning (CODAP-1234).
+    const provisionalDataSet = getProvisionalDataSet(self)
     mstReaction(
       () => isValidReference(() => self.attribute) ? self.attribute.changeCount : undefined,
       changeCount => {
         if (changeCount != null) self.invalidate()
       },
       { name: "CategorySet.invalidateOnAttributeChangeCount" },
-      self
+      provisionalDataSet ? [self, provisionalDataSet] : self
     )
   },
   move(value: string, beforeValue?: string) {
