@@ -12,6 +12,7 @@ import { onAnyAction } from "../../utilities/mst-utils"
 import { prf } from "../../utilities/profiler"
 import { kIndexColumnKey } from "../case-tile-common/case-tile-types"
 import { kInputRowKey, OnScrollRowsIntoViewFn, TCellClickArgs } from "./case-table-types"
+import { scrollChildCollectionsToSelectedCases } from "./sync-selection-scroll"
 import { useCollectionTableModel } from "./use-collection-table-model"
 
 interface UseSelectedRows {
@@ -123,12 +124,22 @@ export const useSelectedRows = (props: UseSelectedRows) => {
                                        .filter(index => index != null)
             const isSelecting = ((action.name === "selectCases") && action.args[1]) || true
             isSelecting && caseIndices.length && onScrollClosestRowIntoView(collectionId, caseIndices)
+
+            // For a single, non-extending selection, cascade the scroll to descendant collections
+            // so they also scroll to show the selection's descendants. This handles selection from
+            // any source (graph, plugin, programmatic), mirroring the case-table cell-click path
+            // which previously had its own copy of this cascade. See CODAP-1234.
+            if (action.name === "setSelectedCases" && caseIndices.length === 1) {
+              const myCaseIds = caseIds.filter((id: string) =>
+                collectionCaseIndexFromId(id, data, collectionId) != null)
+              scrollChildCollectionsToSelectedCases(data, collectionId, myCaseIds, onScrollRowRangeIntoView)
+            }
           }
         }
       })
     })
     return () => disposer?.()
-  }, [collectionId, collectionTableModel, data, onScrollClosestRowIntoView,
+  }, [collectionId, collectionTableModel, data, onScrollClosestRowIntoView, onScrollRowRangeIntoView,
       syncRowSelectionToDom, syncRowSelectionToRdg])
 
   // anchor row for shift-selection
@@ -174,34 +185,13 @@ export const useSelectedRows = (props: UseSelectedRows) => {
     // In this case, we match the v2 behavior in that clicking on a single row when multiple rows
     // are selected deselects other rows.
     else {
-      let caseIds = [caseId]
-      setSelectedCases(caseIds, data)
+      // Selecting a single case. The onAnyAction selection reaction (above) cascades the scroll
+      // to descendant collections via scrollChildCollectionsToSelectedCases, so we don't repeat
+      // that here. See CODAP-1234.
+      setSelectedCases([caseId], data)
       anchorCase.current = caseId
-
-      // loop through collections and scroll newly selected child cases into view
-      const collection = data?.getCollection(collectionId)
-      for (let childCollection = collection?.child; childCollection; childCollection = childCollection?.child) {
-        const childCaseIds: string[] = []
-        const childIndices: number[] = []
-        caseIds.forEach(id => {
-          const caseInfo = data?.caseInfoMap.get(id)
-          caseInfo?.childCaseIds?.forEach(childCaseId => {
-            childCaseIds.push(childCaseId)
-            const caseIndex = collectionCaseIndexFromId(childCaseId, data, childCollection.id)
-            if (caseIndex != null) {
-              childIndices.push(caseIndex)
-            }
-          })
-        })
-        // scroll to newly selected child cases (if any)
-        if (childIndices.length) {
-          onScrollRowRangeIntoView(childCollection.id, childIndices, { disableScrollSync: true })
-        }
-        // advance to child cases in next collection
-        caseIds = childCaseIds
-      }
     }
-  }, [collectionId, data, onScrollRowRangeIntoView])
+  }, [collectionId, data])
 
   return { selectedRows, setSelectedRows, handleCellClick }
 }
