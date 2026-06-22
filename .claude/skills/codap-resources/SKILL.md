@@ -75,11 +75,11 @@ After updating cached assets (plugins, documents, boundaries), invalidate the Cl
 
 **There are three distributions, and the one you invalidate depends on how the asset is consumed:**
 
-| Distribution | Serves | Invalidation path |
-|--------------|--------|-------------------|
-| `E1RS9TZVZBEEEC` | `codap-resources.concord.org` (direct bucket access) | `/<folder>/*` |
-| `E7WVRGISCR2VR` | `codap3.concord.org` | `/codap-resources/<folder>/*` |
-| `E26XOJN7T3CJO` | `codap.concord.org`, `codap2to3.concord.org` | `/codap-resources/<folder>/*` |
+| Distribution | Serves | Viewer path | **Invalidation path** |
+|--------------|--------|-------------|------------------------|
+| `E1RS9TZVZBEEEC` | `codap-resources.concord.org` (direct bucket access) | `/<folder>/...` | `/<folder>/*` |
+| `E7WVRGISCR2VR` | `codap3.concord.org` | `/codap-resources/<folder>/...` | `/<folder>/*` |
+| `E26XOJN7T3CJO` | `codap.concord.org`, `codap2to3.concord.org` | `/codap-resources/<folder>/...` | `/<folder>/*` |
 
 > ⚠️ **Production V3 does NOT load assets from `codap-resources.concord.org`.** It loads them
 > from a **relative** `/codap-resources/...` path (see `kCodapResourcesUrl` in
@@ -89,17 +89,31 @@ After updating cached assets (plugins, documents, boundaries), invalidate the Cl
 > leaves production users on stale files.** Anything production V3 loads (plugins,
 > example-document guides, boundaries) needs the app distributions invalidated too.
 
+> 🛑 **On the app distributions, invalidate the STRIPPED path (`/<folder>/*`), NOT
+> `/codap-resources/<folder>/*`.** The `/codap-resources/*` behavior has a viewer-request
+> CloudFront function (`StripCodapResourcesPrefix`) that rewrites the URI
+> `/codap-resources/...` → `/...` **before** the cache key is computed. Objects are therefore
+> cached under the stripped key (e.g. `/plugins/onboarding/strings.json`). An invalidation for
+> `/codap-resources/plugins/onboarding/*` matches nothing — it reports `Completed` while
+> purging zero objects, and stale content keeps being served. Always invalidate the
+> post-rewrite path: `/plugins/onboarding/*`.
+
 ```bash
-# codap-resources.concord.org (direct bucket access)
+# codap-resources.concord.org (direct bucket access — no prefix function)
 aws cloudfront create-invalidation --distribution-id E1RS9TZVZBEEEC \
   --paths "/<folder>/*"
 
-# production app hosts (what V3 users actually hit) — repeat for both
+# production app hosts (what V3 users actually hit) — use the STRIPPED path, repeat for both
 aws cloudfront create-invalidation --distribution-id E7WVRGISCR2VR \
-  --paths "/codap-resources/<folder>/*"
+  --paths "/<folder>/*"
 aws cloudfront create-invalidation --distribution-id E26XOJN7T3CJO \
-  --paths "/codap-resources/<folder>/*"
+  --paths "/<folder>/*"
 ```
+
+To confirm an invalidation actually took effect (not just `Completed`), re-request the asset
+and check the response: `x-cache: Miss from cloudfront` on the first hit plus the expected
+`last-modified`/content means the edge refetched. A `Hit` with stale `last-modified` after a
+`Completed` invalidation is the tell-tale sign you invalidated the wrong (pre-rewrite) path.
 
 ### List contents of a folder
 
@@ -225,10 +239,11 @@ Read `~/.codap-build.rc` to get `CODAP_SERVER` (defaults to `codap-server.concor
    ```bash
    aws cloudfront create-invalidation --distribution-id E1RS9TZVZBEEEC \
      --paths "/plugins/TP-Sampler/*"
+   # app distributions: STRIPPED path (the StripCodapResourcesPrefix function), NOT /codap-resources/...
    aws cloudfront create-invalidation --distribution-id E7WVRGISCR2VR \
-     --paths "/codap-resources/plugins/TP-Sampler/*"
+     --paths "/plugins/TP-Sampler/*"
    aws cloudfront create-invalidation --distribution-id E26XOJN7T3CJO \
-     --paths "/codap-resources/plugins/TP-Sampler/*"
+     --paths "/plugins/TP-Sampler/*"
    ```
 
 7. **Clean up the temp directory:**
