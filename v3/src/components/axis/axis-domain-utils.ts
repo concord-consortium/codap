@@ -61,10 +61,13 @@ export function setNiceDomain(values: number[], axisModel: IBaseNumericAxisModel
     else if (!axisModel.allowRangeToShrink) {
       // Don't widen a bound on a side where the data doesn't exceed it. This lets plugin-set
       // bounds survive subsequent data additions (CODAP-1421) and mirrors V2's setDataMinAndMax,
-      // which leaves bounds alone when current bounds already encompass the data.
-      if (minValue >= axisModel.min) niceMin = axisModel.min
-      if (maxValue <= axisModel.max) niceMax = axisModel.max
-      if (niceMin === axisModel.min && niceMax === axisModel.max) return
+      // which leaves bounds alone when current bounds already encompass the data. We compare
+      // against the current domain (which accounts for any dynamic bounds, e.g. during a drag)
+      // rather than the static min/max, matching the reference used in use-sub-axis and setDomain.
+      const [domainMin, domainMax] = axisModel.domain
+      if (minValue >= domainMin) niceMin = domainMin
+      if (maxValue <= domainMax) niceMax = domainMax
+      if (niceMin === domainMin && niceMax === domainMax) return
     }
     axisModel.setDomain(niceMin, niceMax)
   }
