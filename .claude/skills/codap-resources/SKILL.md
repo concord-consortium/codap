@@ -73,9 +73,32 @@ Add `--delete` to remove S3 files that no longer exist locally. Omit it to prese
 
 After updating cached assets (plugins, documents, boundaries), invalidate the CloudFront cache so changes are served immediately. Not needed for `notifications/` since those use no-cache headers.
 
+**There are three distributions, and the one you invalidate depends on how the asset is consumed:**
+
+| Distribution | Serves | Invalidation path |
+|--------------|--------|-------------------|
+| `E1RS9TZVZBEEEC` | `codap-resources.concord.org` (direct bucket access) | `/<folder>/*` |
+| `E7WVRGISCR2VR` | `codap3.concord.org` | `/codap-resources/<folder>/*` |
+| `E26XOJN7T3CJO` | `codap.concord.org`, `codap2to3.concord.org` | `/codap-resources/<folder>/*` |
+
+> ⚠️ **Production V3 does NOT load assets from `codap-resources.concord.org`.** It loads them
+> from a **relative** `/codap-resources/...` path (see `kCodapResourcesUrl` in
+> `v3/src/constants.ts`, which resolves to `"/codap-resources"` when not in local dev). That
+> path is served by the **app** distributions — `E7WVRGISCR2VR` (codap3) and `E26XOJN7T3CJO`
+> (codap / codap2to3) — each with its own edge cache. **Invalidating only `E1RS9TZVZBEEEC`
+> leaves production users on stale files.** Anything production V3 loads (plugins,
+> example-document guides, boundaries) needs the app distributions invalidated too.
+
 ```bash
+# codap-resources.concord.org (direct bucket access)
 aws cloudfront create-invalidation --distribution-id E1RS9TZVZBEEEC \
   --paths "/<folder>/*"
+
+# production app hosts (what V3 users actually hit) — repeat for both
+aws cloudfront create-invalidation --distribution-id E7WVRGISCR2VR \
+  --paths "/codap-resources/<folder>/*"
+aws cloudfront create-invalidation --distribution-id E26XOJN7T3CJO \
+  --paths "/codap-resources/<folder>/*"
 ```
 
 ### List contents of a folder
@@ -90,7 +113,24 @@ Use `--cache-control "no-cache, no-store, must-revalidate"` for any asset that:
 - May be updated frequently
 - Must take effect immediately after changes (e.g., banners, feature flags, notifications)
 
-Static assets (plugins, documents, boundaries) can use default caching.
+Immutable, content-hashed files (webpack chunks with a hash in the filename) can use default
+caching — their name changes when the content changes.
+
+**But mutable, unversioned plugin entry files** — `index.html`, and any top-level
+same-named-across-deploys files like `onboarding.js`, `strings.json`, `init_*.js`,
+`task_descriptions*.js` — should be uploaded with `--cache-control "no-cache"` so browsers
+revalidate via ETag and pick up changes immediately instead of waiting out CloudFront's (and
+the browser's heuristic) default TTL:
+
+```bash
+aws s3 cp onboarding.js s3://codap-resources/plugins/onboarding/onboarding.js \
+  --acl public-read --cache-control "no-cache"
+```
+
+Without this, different entry files age out of cache at different times and a deploy can leave
+users on a **half-updated plugin** — e.g. a new `onboarding.js` that references string keys a
+stale `strings.json` doesn't have yet, so lookups return raw keys like
+`~onboarding1.mammals.table.title` instead of the translated text.
 
 ## Syncing from V2 Build
 
@@ -103,6 +143,16 @@ The V2 build stores these assets under `extn/` in the release directory:
 | `extn/plugins/` | `s3://codap-resources/plugins/` |
 | `extn/example-documents/` | `s3://codap-resources/example-documents/` |
 | `extn/boundaries/` | `s3://codap-resources/boundaries/` |
+
+### Plugins to exclude from sync
+
+The V2 build still ships some plugin folders that are no longer used. **Skip these** when syncing `plugins/` — they're dead weight and uploading them just wastes bandwidth and pollutes S3.
+
+| Folder | Why it's dead | Use instead |
+|--------|---------------|-------------|
+| `NOAA-weather/` | Renamed; V2's plugin map points to `noaa-codap-plugin/`. V3 has an explicit URL rewriter at `v3/src/components/web-view/web-view-utils.ts:28` that translates `/plugins/NOAA-weather/...` → `/plugins/noaa-codap-plugin/...` so old saved documents still load. | `noaa-codap-plugin/` |
+
+When using `aws s3 sync ... s3://codap-resources/plugins/`, pass `--exclude "NOAA-weather/*"` (repeat `--exclude` for any others added in future).
 
 ### Sync workflow
 
@@ -169,10 +219,16 @@ Read `~/.codap-build.rc` to get `CODAP_SERVER` (defaults to `codap-server.concor
    This step is not needed for example documents or boundaries since they don't
    have entry-point files with hashed references.
 
-6. **Invalidate CloudFront cache:**
+6. **Invalidate CloudFront cache** on every distribution that serves the asset — see the
+   [CloudFront Invalidation](#cloudfront-invalidation) section. For a plugin, that means the
+   direct distribution **and** the two app distributions production V3 actually loads from:
    ```bash
    aws cloudfront create-invalidation --distribution-id E1RS9TZVZBEEEC \
      --paths "/plugins/TP-Sampler/*"
+   aws cloudfront create-invalidation --distribution-id E7WVRGISCR2VR \
+     --paths "/codap-resources/plugins/TP-Sampler/*"
+   aws cloudfront create-invalidation --distribution-id E26XOJN7T3CJO \
+     --paths "/codap-resources/plugins/TP-Sampler/*"
    ```
 
 7. **Clean up the temp directory:**
