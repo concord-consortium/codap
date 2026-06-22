@@ -122,7 +122,9 @@ export const useSelectedRows = (props: UseSelectedRows) => {
             const caseIds = action.args[0]
             const caseIndices = caseIds.map(id => collectionCaseIndexFromId(id, data, collectionId))
                                        .filter(index => index != null)
-            const isSelecting = ((action.name === "selectCases") && action.args[1]) || true
+            // `selectCases` carries an explicit select/deselect flag (default true); deselection
+            // should not scroll. Other selection actions (setSelectedCases, etc.) are always selecting.
+            const isSelecting = action.name === "selectCases" ? (action.args[1] ?? true) : true
             isSelecting && caseIndices.length && onScrollClosestRowIntoView(collectionId, caseIndices)
 
             // For a single, non-extending selection, cascade the scroll to descendant collections
