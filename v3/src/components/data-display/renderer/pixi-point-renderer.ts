@@ -11,6 +11,7 @@ import {
   PointRendererBase
 } from "./point-renderer-base"
 import { PointsState } from "./points-state"
+import { coalesceBars, IBarPiece } from "./bar-coalescing"
 import {
   IBackgroundEventDistributionOptions,
   IPoint,
@@ -67,6 +68,14 @@ export class PixiPointRenderer extends PointRendererBase {
   // Sprite management
   private sprites = new Map<string, PIXI.Sprite>()
   private textures = new Map<string, PIXI.Texture>()
+
+  // Bars are drawn by coalescing contiguous same-fill cases into one solid segment rect each
+  // (see updateBarsLayer / bar-coalescing) rather than one sprite per case. The per-case sprites
+  // are hidden (renderable = false) while this layer is active; they remain in the scene only
+  // because points mode and the points<->bars fuse transition still use them. Bar clicks are
+  // handled separately by the SVG bar covers (see renderBarCovers), not these sprites.
+  private barsGraphics = new PIXI.Graphics()
+  private barsLayerActive = false
 
   // Transition state
   private displayTypeTransitionState: IDisplayTypeTransitionState = { isActive: false }
@@ -196,6 +205,12 @@ export class PixiPointRenderer extends PointRendererBase {
     this.stage.addChild(this.background)
     this.stage.addChild(this.pointsContainer)
     this.pointsContainer.sortableChildren = true
+    // Coalesced-bars layer: drawn on top of the (hidden) per-case sprites when in bars mode.
+    // pointsContainer has no transform, so the stage shares its coordinate space. eventMode "none"
+    // keeps this layer from swallowing pointer events (e.g. empty-space clicks that should reach
+    // the background to deselect); bar clicks are handled by the SVG bar covers above the canvas.
+    this.barsGraphics.eventMode = "none"
+    this.stage.addChild(this.barsGraphics)
 
     if (options?.backgroundEventDistribution) {
       this.doSetupBackgroundEventDistribution(options.backgroundEventDistribution)
@@ -613,7 +628,48 @@ export class PixiPointRenderer extends PointRendererBase {
       this.ticker.stop()
       this.cleanupUnusedTextures()
     }
+    this.updateBarsLayer()
     this.renderer.render(this.stage)
+  }
+
+  // Rebuilds the coalesced-bars layer from the current point state. When fully in bars mode, each
+  // bar's contiguous same-fill cases are merged into one solid segment rect (with its stroke), and
+  // the per-case sprites are hidden from rendering (renderable = false). In points mode or during
+  // the points<->bars transition, the layer is cleared and the sprites render normally. Bar clicks
+  // are handled by the SVG bar covers, so hiding the sprites doesn't affect selection. See
+  // CODAP-1234.
+  private updateBarsLayer(): void {
+    const useCoalesced = this._displayType === "bars" && !this.displayTypeTransitionState.isActive
+    if (!useCoalesced) {
+      if (this.barsLayerActive) {
+        this.barsGraphics.clear()
+        this.sprites.forEach(sprite => { sprite.renderable = true })
+        this.barsLayerActive = false
+      }
+      return
+    }
+
+    const pieces: IBarPiece[] = []
+    this.state.forEach(pointState => {
+      const { style } = pointState
+      if (!pointState.isVisible || style.width == null || style.height == null) return
+      pieces.push({
+        x: pointState.x, y: pointState.y, scale: pointState.scale,
+        width: style.width, height: style.height,
+        fill: style.fill, stroke: style.stroke,
+        strokeWidth: style.strokeWidth, strokeOpacity: style.strokeOpacity ?? 0.4
+      })
+    })
+
+    this.barsGraphics.clear()
+    for (const run of coalesceBars(pieces, this._anchor)) {
+      this.barsGraphics.rect(run.left, run.top, run.width, run.height).fill(run.fill)
+      if (run.strokeWidth > 0) {
+        this.barsGraphics.stroke({ color: run.stroke, width: run.strokeWidth, alpha: run.strokeOpacity })
+      }
+    }
+    this.sprites.forEach(sprite => { sprite.renderable = false })
+    this.barsLayerActive = true
   }
 
   private syncFromState(): void {
