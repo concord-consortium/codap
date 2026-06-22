@@ -33,11 +33,11 @@ export function scrollChildCollectionsToSelectedCases(
         }
       })
     })
-    // scroll to newly selected child cases (if any). `scrollBehavior: "auto"` makes the table
-    // jump directly to the target instead of smooth-scrolling across the entire dataset (which
-    // is both slow and distracting for deep selections); `disableScrollSync` avoids feedback.
+    // scroll to newly selected child cases (if any). `disableScrollSync` avoids feedback; the
+    // scroll model picks the behavior by distance (instant for far selections — avoiding a slow
+    // animation across the dataset — smooth for nearby ones), so we don't force it here.
     if (childIndices.length) {
-      onScrollRowRangeIntoView(childCollection.id, childIndices, { disableScrollSync: true, scrollBehavior: "auto" })
+      onScrollRowRangeIntoView(childCollection.id, childIndices, { disableScrollSync: true })
     }
     // advance to child cases in next collection
     caseIds = childCaseIds

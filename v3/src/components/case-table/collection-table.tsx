@@ -404,38 +404,19 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
               selectCases([nextCaseId], data)
             }
           } else {
-            let caseIds = [nextCaseId]
+            // The onAnyAction selection reaction (useSelectedRows) cascades the scroll to
+            // descendant collections for this single setSelectedCases selection, so we don't
+            // repeat that here. See CODAP-1234.
             setSelectedCases([nextCaseId], data)
-            // loop through collections and scroll newly selected child cases into view
-            for (let childCollection = collection?.child; childCollection; childCollection = childCollection?.child) {
-              const childCaseIds: string[] = []
-              const childIndices: number[] = []
-              caseIds.forEach(id => {
-                const caseInfo = data?.caseInfoMap.get(id)
-                caseInfo?.childCaseIds?.forEach(childCaseId => {
-                  childCaseIds.push(childCaseId)
-                  const caseIndex = collectionCaseIndexFromId(childCaseId, data, childCollection.id)
-                  if (caseIndex != null) {
-                    childIndices.push(caseIndex)
-                  }
-                })
-              })
-              // scroll to newly selected child cases (if any)
-              if (childIndices.length) {
-                onScrollRowRangeIntoView(childCollection.id, childIndices, { disableScrollSync: true })
-              }
-              // advance to child cases in next collection
-              caseIds = childCaseIds
-            }
           }
         }
       }
     }
-  }, [active, collection, collectionId, collectionTableModel, data,
+  }, [active, collectionId, collectionTableModel, data,
       navigateToNextCell, navigateToNextRow,
       navigateToFirstEditableInRow, navigateToLastEditableInRow,
       navigateToFirstEditableCell, navigateToLastEditableCell,
-      onScrollRowRangeIntoView, rows])
+      rows])
 
   const handleClick = (event: React.PointerEvent<HTMLDivElement>) => {
     // See if mouse has moved beyond kMouseMovementThreshold since initial mousedown

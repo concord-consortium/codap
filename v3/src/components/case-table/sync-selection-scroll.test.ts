@@ -39,10 +39,10 @@ describe("scrollChildCollectionsToSelectedCases", () => {
     expect(calls[0].rowIndices).toEqual([0, 1, 2])
     // a=1 has 9 c-grandchildren at leaf-collection rows 0..8
     expect(calls[1].rowIndices).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8])
-    // disables scroll sync to avoid feedback loops, and uses "auto" (not smooth) so the child
-    // tables jump straight to the selection instead of animating across thousands of rows
-    expect(calls[0].options).toEqual({ disableScrollSync: true, scrollBehavior: "auto" })
-    expect(calls[1].options).toEqual({ disableScrollSync: true, scrollBehavior: "auto" })
+    // disables scroll sync to avoid feedback loops; the scroll model chooses smooth vs instant by
+    // distance, so the helper no longer forces a scroll behavior
+    expect(calls[0].options).toEqual({ disableScrollSync: true })
+    expect(calls[1].options).toEqual({ disableScrollSync: true })
   })
 
   it("scrolls to the descendants of a non-first parent (mid-data selection)", () => {
