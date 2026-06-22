@@ -48,8 +48,8 @@ export function setNiceDomain(values: number[], axisModel: IBaseNumericAxisModel
   else if (isAnyNumericAxisModel(axisModel)) {
     const [minValue, maxValue] = extent(values, d => d) as [number, number]
     let {min: niceMin, max: niceMax} = computeNiceNumericBounds(minValue, maxValue)
-    // When clamping, the domain should start at 0 unless there are negative values.
     if (options?.clampPosMinAtZero) {
+      // When clamping, the domain should start at 0 unless there are negative values.
       if (minValue >= 0) {
         niceMin = 0
       }
@@ -57,6 +57,14 @@ export function setNiceDomain(values: number[], axisModel: IBaseNumericAxisModel
         niceMax = 0
       }
       axisModel.setAllowRangeToShrink(true)
+    }
+    else if (!axisModel.allowRangeToShrink) {
+      // Don't widen a bound on a side where the data doesn't exceed it. This lets plugin-set
+      // bounds survive subsequent data additions (CODAP-1421) and mirrors V2's setDataMinAndMax,
+      // which leaves bounds alone when current bounds already encompass the data.
+      if (minValue >= axisModel.min) niceMin = axisModel.min
+      if (maxValue <= axisModel.max) niceMax = axisModel.max
+      if (niceMin === axisModel.min && niceMax === axisModel.max) return
     }
     axisModel.setDomain(niceMin, niceMax)
   }

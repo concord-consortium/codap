@@ -410,8 +410,15 @@ export const useSubAxis = ({
       const [minValue, maxValue] = extent(numericValues, d => d) as [number, number]
       const niceBounds = computeNiceNumericBounds(minValue, maxValue)
       if (!allowToShrink) {
-        niceBounds.min = Math.min(niceBounds.min, currentAxisDomain[0])
-        niceBounds.max = Math.max(niceBounds.max, currentAxisDomain[1])
+        // Don't widen a bound on a side where the data doesn't exceed it. Matches the
+        // setNiceDomain logic (CODAP-1421) so plugin-set bounds survive data adds without
+        // a brief visual flash of the wider d3 scale.
+        niceBounds.min = minValue >= currentAxisDomain[0]
+                          ? currentAxisDomain[0]
+                          : Math.min(niceBounds.min, currentAxisDomain[0])
+        niceBounds.max = maxValue <= currentAxisDomain[1]
+                          ? currentAxisDomain[1]
+                          : Math.max(niceBounds.max, currentAxisDomain[1])
       }
       if (domainsAreDifferent(currentAxisDomain, [niceBounds.min, niceBounds.max]) ||
         domainsAreDifferent(multiScale?.numericDomain ?? [NaN, NaN], [niceBounds.min, niceBounds.max])) {
