@@ -141,9 +141,26 @@ aws s3 cp onboarding.js s3://codap-resources/plugins/onboarding/onboarding.js \
   --acl public-read --cache-control "no-cache"
 ```
 
-Without this, different entry files age out of cache at different times and a deploy can leave
-users on a **half-updated plugin** — e.g. a new `onboarding.js` that references string keys a
-stale `strings.json` doesn't have yet, so lookups return raw keys like
+**`no-cache` does NOT mean "don't cache" — it means "cache, but revalidate before reusing."**
+It does not force a full download on every load:
+- **First load:** the browser downloads the file and stores it along with its `ETag` (the
+  content fingerprint S3 returns).
+- **Later loads:** the browser sends a conditional request (`If-None-Match: <etag>`). If the
+  file is unchanged, the server returns **`304 Not Modified`** with an **empty body** and the
+  browser reuses its cached copy — a tiny header-only round-trip, no payload. Only when the
+  content actually changed does the server return `200` with the new body.
+
+So the cost is one lightweight revalidation per load (a `304` when nothing changed), and the
+benefit is that a deploy is picked up on the **next** load. Contrast:
+- `no-store` — never cache; full download every time (heavier than needed here).
+- `max-age=N` / immutable — no revalidation round-trip at all; correct only for
+  **content-hashed** files (the chunk's filename changes when its content does).
+- *(no `Cache-Control`)* — browsers fall back to **heuristic** freshness (~10% of age since
+  `Last-Modified`); a year-old `Last-Modified` ⇒ ~weeks of staleness. This is the bug to avoid.
+
+Without `no-cache`, different entry files age out of cache at different times and a deploy can
+leave users on a **half-updated plugin** — e.g. a new `onboarding.js` that references string
+keys a stale `strings.json` doesn't have yet, so lookups return raw keys like
 `~onboarding1.mammals.table.title` instead of the translated text.
 
 ## Syncing from V2 Build
