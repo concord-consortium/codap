@@ -316,10 +316,15 @@ branch must be created before any commits (translations, version files, etc.).
      `sync_terms=0`, but worth noting)
    - Unexpected value changes to existing keys
 
-   Ask the user to approve the push before proceeding. If the diff is empty
-   (no changes), note that and ask whether to skip the push.
+   **Decide whether to push — based solely on whether English strings changed:**
+   - **No value changes AND no new keys** (English strings unchanged): **skip the
+     push entirely — do not ask.** There is nothing to upload, so the push (2b)
+     would be a no-op. Note that English is unchanged and go straight to the
+     mandatory pull (2c).
+   - **There ARE English string changes** (new keys or changed values): show the
+     diff and ask the user to approve the push before proceeding to 2b.
 
-   **2b. Push English strings to POEditor:**
+   **2b. Push English strings to POEditor** (only when 2a found English changes):
    ```bash
    ./scripts/strings-push-project.sh
    ```
@@ -334,6 +339,11 @@ branch must be created before any commits (translations, version files, etc.).
    ```
    This pulls translated strings for all supported languages. Report results to the
    user (the streaming output may be collapsed in the UI).
+
+   **Always run the pull — never skip it and never ask whether to pull.** Every
+   build must pull from POEditor, because translators may have added or updated
+   non-English strings since the last release even when the English strings are
+   unchanged. (The push in 2b is conditional; this pull is not.)
 
    **2d. Verify and commit pulled translations:**
 
@@ -667,9 +677,13 @@ Follow the same working directory rules as Phase 3.
    git checkout -b release-{new-version}
    ```
 
-2. **Sync translations (only if needed):**
-   - Only perform the translation sync (Phase 3, step 2) if the bug fix introduced new or changed translatable strings.
-   - For most bug fixes, this can be skipped. Ask the user if unsure.
+2. **Sync translations:**
+   - **Always pull** translations from POEditor (Phase 3, step 2c) — every build
+     must pull, since translators may have added or updated non-English strings
+     even when the English strings are unchanged. Do not skip this.
+   - **Only push** English strings (Phase 3, steps 2a–2b) if the bug fix introduced
+     new or changed translatable strings. For most bug fixes there are none, so the
+     push is skipped — but the pull still runs.
 
 3. **Update package.json:**
    ```bash
