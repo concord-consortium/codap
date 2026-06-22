@@ -246,7 +246,31 @@ Read `~/.codap-build.rc` to get `CODAP_SERVER` (defaults to `codap-server.concor
      --paths "/plugins/TP-Sampler/*"
    ```
 
-7. **Clean up the temp directory:**
+7. **Verify the invalidation actually purged (required — do NOT skip):**
+
+   A `Completed` status does **not** mean anything was purged — CloudFront reports no
+   match/purge count, so a wrong-path (no-op) invalidation looks identical to a real one.
+   The only reliable check is to re-request the asset on each app host and confirm the edge
+   refetched. Request an entry file that changed (e.g. a plugin's `index.html` or, for the
+   onboarding plugin, `strings.json`):
+
+   ```bash
+   for host in codap.concord.org codap3.concord.org; do
+     echo "--- $host ---"
+     curl -sI "https://$host/codap-resources/plugins/TP-Sampler/index.html" \
+       | grep -iE "x-cache|last-modified"
+   done
+   ```
+
+   **Expect:** `x-cache: Miss from cloudfront` on the first request after the invalidation,
+   plus the **new** `last-modified` (or the new content). ✅
+
+   **Red flag:** `x-cache: Hit from cloudfront` with a **stale** `last-modified` after a
+   `Completed` invalidation means you invalidated the wrong path (most often the pre-rewrite
+   `/codap-resources/...` instead of the stripped `/...` — see the CloudFront Invalidation
+   section). Re-invalidate with the correct path and re-verify.
+
+8. **Clean up the temp directory:**
    ```bash
    rm -rf /tmp/codap-sync/
    ```
