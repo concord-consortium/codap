@@ -105,6 +105,30 @@ describe("DataInteractive ComponentHandler Graph", () => {
     handler.delete!({ component: tileModel })
     expect(documentContent.tileMap.size).toBe(0)
 
+    // Create a graph with explicit axis bounds (CODAP-1421 — V2 parity with xLowerBound/etc.
+    // in componentStorage at create time)
+    const boundsCreateResult = create({}, {
+      type: "graph", dataContext: "data", xAttributeName: "a3", yAttributeName: "a4",
+      rightNumericAttributeName: "a3",
+      xLowerBound: -2, xUpperBound: 12, yLowerBound: -10, yUpperBound: 2,
+      y2LowerBound: -1, y2UpperBound: 9
+    })
+    expect(boundsCreateResult.success).toBe(true)
+    const boundsTile = documentContent.tileMap.get(
+      toV3Id(kGraphIdPrefix, (boundsCreateResult.values as DIComponentInfo).id!))!
+    const boundsContent = boundsTile.content as IGraphContentModel
+    const boundsXAxis = boundsContent.getAxis("bottom") as IBaseNumericAxisModel
+    const boundsYAxis = boundsContent.getAxis("left") as IBaseNumericAxisModel
+    const boundsY2Axis = boundsContent.getAxis("rightNumeric") as IBaseNumericAxisModel
+    expect(boundsXAxis.min).toBe(-2)
+    expect(boundsXAxis.max).toBe(12)
+    expect(boundsYAxis.min).toBe(-10)
+    expect(boundsYAxis.max).toBe(2)
+    expect(boundsY2Axis.min).toBe(-1)
+    expect(boundsY2Axis.max).toBe(9)
+    handler.delete!({ component: boundsTile })
+    expect(documentContent.tileMap.size).toBe(0)
+
     // Create a graph with multiple y attributes using ids
     const displayOnlySelectedCases = true
     const filterFormula = "a3 > 1"
