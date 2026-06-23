@@ -209,6 +209,10 @@ export class PixiPointRenderer extends PointRendererBase {
     // pointsContainer has no transform, so the stage shares its coordinate space. eventMode "none"
     // keeps this layer from swallowing pointer events (e.g. empty-space clicks that should reach
     // the background to deselect); bar clicks are handled by the SVG bar covers above the canvas.
+    // NOTE: unlike the per-case sprites (masked per subplot via subPlotMasks), this single layer is
+    // not subplot-clipped. Coalesced bars are sized by the secondary axis to fit their cell, so
+    // they don't bleed into adjacent split-plot cells in practice; per-subplot masking is a
+    // deferred robustness follow-up.
     this.barsGraphics.eventMode = "none"
     this.stage.addChild(this.barsGraphics)
 
@@ -639,7 +643,10 @@ export class PixiPointRenderer extends PointRendererBase {
   // are handled by the SVG bar covers, so hiding the sprites doesn't affect selection. See
   // CODAP-1234.
   private updateBarsLayer(): void {
-    const useCoalesced = this._displayType === "bars" && !this.displayTypeTransitionState.isActive
+    // Only coalesce when cases are fused into shared stacked bars (bar chart/histogram), and not
+    // mid-transition. Non-fused "bars" (each case its own bar) keep per-case sprite rendering.
+    const useCoalesced = this._displayType === "bars" && this._pointsFusedIntoBars &&
+      !this.displayTypeTransitionState.isActive
     if (!useCoalesced) {
       if (this.barsLayerActive) {
         this.barsGraphics.clear()

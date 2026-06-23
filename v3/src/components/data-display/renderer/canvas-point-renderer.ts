@@ -485,9 +485,11 @@ export class CanvasPointRenderer extends PointRendererBase {
         this.ctx.clip()
       }
 
-      // Draw each point. Bars are drawn by coalescing contiguous same-fill cases into one solid
-      // segment rect each (see drawBars), rather than one rect per case.
-      if (this._displayType === "bars") {
+      // Draw each point. Bars whose cases are fused into shared stacked bars (bar chart/histogram)
+      // are drawn by coalescing contiguous same-fill cases into one solid segment rect each (see
+      // drawBars), rather than one rect per case. Non-fused bars (each case its own bar) fall
+      // through to per-case drawing.
+      if (this._displayType === "bars" && this._pointsFusedIntoBars) {
         this.drawBars(points)
       } else {
         for (const pointState of points) {

@@ -64,12 +64,14 @@ export function coalesceBarRuns(barPieces: IBarPiece[], anchor: { x: number; y: 
  * renderers; each renderer maps its own point state into `IBarPiece`s and draws the returned runs.
  */
 export function coalesceBars(barPieces: IBarPiece[], anchor: { x: number; y: number }): IBarRun[] {
+  // Group by the exact primary (x) coordinate: all cases in one fused bar share an identical
+  // computed x, and using the exact value avoids merging distinct, sub-pixel-spaced bars (which
+  // rounding to an integer key would collapse together).
   const piecesByBar = new Map<number, IBarPiece[]>()
   for (const piece of barPieces) {
-    const key = Math.round(piece.x)
-    const bar = piecesByBar.get(key) ?? []
+    const bar = piecesByBar.get(piece.x) ?? []
     bar.push(piece)
-    piecesByBar.set(key, bar)
+    piecesByBar.set(piece.x, bar)
   }
   const runs: IBarRun[] = []
   piecesByBar.forEach(bar => runs.push(...coalesceBarRuns(bar, anchor)))
