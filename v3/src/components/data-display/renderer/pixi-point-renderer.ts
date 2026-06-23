@@ -697,9 +697,13 @@ export class PixiPointRenderer extends PointRendererBase {
       const pieces = piecesBySubplot.get(subplot)
       if (!pieces) return
       for (const run of coalesceBars(pieces, this._anchor, this._barStackAxis)) {
-        graphics.rect(run.left, run.top, run.width, run.height).fill(run.fill)
+        // chain fill/stroke onto the same rect() command, matching getRectTexture's usage
         if (run.strokeWidth > 0) {
-          graphics.stroke({ color: run.stroke, width: run.strokeWidth, alpha: run.strokeOpacity })
+          graphics.rect(run.left, run.top, run.width, run.height)
+            .fill(run.fill)
+            .stroke({ color: run.stroke, width: run.strokeWidth, alpha: run.strokeOpacity })
+        } else {
+          graphics.rect(run.left, run.top, run.width, run.height).fill(run.fill)
         }
       }
     })
