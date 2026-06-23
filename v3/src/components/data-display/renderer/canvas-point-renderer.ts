@@ -488,8 +488,9 @@ export class CanvasPointRenderer extends PointRendererBase {
       // Draw each point. Bars whose cases are fused into shared stacked bars (bar chart/histogram)
       // are drawn by coalescing contiguous same-fill cases into one solid segment rect each (see
       // drawBars), rather than one rect per case. Non-fused bars (each case its own bar) fall
-      // through to per-case drawing.
-      if (this._displayType === "bars" && this._pointsFusedIntoBars) {
+      // through to per-case drawing, as do bars mid-transition: coalescing assumes stable geometry,
+      // so during a transition (e.g. the points<->bars fuse) we draw per case so the animation plays.
+      if (this._displayType === "bars" && this._pointsFusedIntoBars && !this.anyTransitionActive) {
         this.drawBars(points)
       } else {
         for (const pointState of points) {
