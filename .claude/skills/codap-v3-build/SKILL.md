@@ -17,8 +17,8 @@ Interactive workflow for CODAP v3 releases. Guides you through Jira setup, relea
 | 2 | `/codap-v3-build notes` | Prepare release notes (interactive) |
 | 3 | `/codap-v3-build files` | Update version files |
 | 4 | `/codap-v3-build pr` | Create release PR |
-| 5 | `/codap-v3-build tag` | Tag and create GitHub release |
-| 6 | `/codap-v3-build deploy [version]` | Deploy to staging/production |
+| 5 | `/codap-v3-build tag` | Tag the release (triggers S3 build) |
+| 6 | `/codap-v3-build deploy [version]` | Deploy to staging/production, publish GitHub release |
 | fix | `/codap-v3-build fix {old-version}` | Revise release after staging QA failure |
 
 ## Getting Started
@@ -31,8 +31,8 @@ When invoked, introduce the skill:
 > 2. **Prepare Release Notes** - Interactive walkthrough to create CHANGELOG entry
 > 3. **Update Version Files** - Update package.json, versions.md, CHANGELOG.md
 > 4. **Create Release PR** - Build, capture asset sizes, create PR
-> 5. **Tag and Release** - After PR merge, create git tag and GitHub release
-> 6. **Deploy** - Stage, QA, deploy to production
+> 5. **Tag** - After PR merge, create git tag (triggers the S3 build)
+> 6. **Deploy** - Stage, QA, deploy to production, then publish the GitHub release
 >
 > Are you ready to proceed?
 
@@ -316,10 +316,15 @@ branch must be created before any commits (translations, version files, etc.).
      `sync_terms=0`, but worth noting)
    - Unexpected value changes to existing keys
 
-   Ask the user to approve the push before proceeding. If the diff is empty
-   (no changes), note that and ask whether to skip the push.
+   **Decide whether to push — based solely on whether English strings changed:**
+   - **No value changes AND no new keys** (English strings unchanged): **skip the
+     push entirely — do not ask.** There is nothing to upload, so the push (2b)
+     would be a no-op. Note that English is unchanged and go straight to the
+     mandatory pull (2c).
+   - **There ARE English string changes** (new keys or changed values): show the
+     diff and ask the user to approve the push before proceeding to 2b.
 
-   **2b. Push English strings to POEditor:**
+   **2b. Push English strings to POEditor** (only when 2a found English changes):
    ```bash
    ./scripts/strings-push-project.sh
    ```
@@ -334,6 +339,11 @@ branch must be created before any commits (translations, version files, etc.).
    ```
    This pulls translated strings for all supported languages. Report results to the
    user (the streaming output may be collapsed in the UI).
+
+   **Always run the pull — never skip it and never ask whether to pull.** Every
+   build must pull from POEditor, because translators may have added or updated
+   non-English strings since the last release even when the English strings are
+   unchanged. (The push in 2b is conditional; this pull is not.)
 
    **2d. Verify and commit pulled translations:**
 
@@ -441,9 +451,16 @@ branch must be created before any commits (translations, version files, etc.).
    >
    > After CI passes and PR is reviewed/merged, run `/codap-v3-build tag` to continue.
 
-## Phase 5: Tag and Release
+## Phase 5: Tag
 
-**Goal:** After PR merge, create git tag and GitHub release.
+**Goal:** After PR merge, create the git tag that triggers the S3 build.
+
+> **Do NOT create the GitHub release here.** Publishing the GitHub release at tag
+> time confused external users: they saw a published release for a version that
+> was not yet available in production (staging QA can take 1+ days). The GitHub
+> release is created later, in Phase 6, only **after** the build is live in
+> production. The tag still must be pushed now, because the tag push is what
+> triggers the CI build that deploys to S3 (needed for staging).
 
 **Prerequisite:** Release PR must be merged.
 
@@ -461,15 +478,11 @@ branch must be created before any commits (translations, version files, etc.).
    git push origin {version}
    ```
 
-3. **Create GitHub release:**
-   ```bash
-   gh release create {version} \
-     --title "Version {version}" \
-     --notes "{release_notes_from_phase_2}"
-   ```
+   The tag push triggers a CI build that deploys to S3. The GitHub release is
+   **not** created until after the production deploy (Phase 6).
 
-4. **Inform user and wait for S3 deploy:**
-   > **Tag pushed and GitHub release created.**
+3. **Inform user and wait for S3 deploy:**
+   > **Tag pushed.** (The GitHub release will be created later, after the production deploy, so external users don't see a release for a version that isn't live yet.)
    >
    > Watch GitHub Actions: https://github.com/concord-consortium/codap/actions
    >
@@ -482,7 +495,7 @@ branch must be created before any commits (translations, version files, etc.).
 
 ## Phase 6: Deploy
 
-**Goal:** Stage, test, deploy to production and beta, finalize Jira.
+**Goal:** Stage, test, deploy to production and beta, publish the GitHub release, finalize Jira.
 
 ### Steps
 
@@ -556,7 +569,11 @@ branch must be created before any commits (translations, version files, etc.).
    >
    > If you'd prefer to complete deployment separately, see manual instructions below.
 
-4. **After QA approval, deploy to production and beta, then finalize Jira.**
+4. **After QA approval:** deploy to production and beta, **then publish the GitHub
+   release** (now that the build is live in production), and finalize Jira. See the
+   Manual Completion Instructions below for the exact commands, and run them in that
+   order — the GitHub release should not be published until the production deploy
+   has succeeded.
 
 ### Manual Completion Instructions
 
@@ -573,6 +590,16 @@ Or use GitHub UI: https://github.com/concord-consortium/codap/actions/workflows/
 gh workflow run release-v3-beta.yml -f version={version}
 ```
 Or use GitHub UI: https://github.com/concord-consortium/codap/actions/workflows/release-v3-beta.yml
+
+**Publish the GitHub release** (only after the production deploy has succeeded):
+```bash
+gh release create {version} \
+  --title "Version {version}" \
+  --notes "{release_notes_from_phase_2}"
+```
+Creating the GitHub release now — rather than at tag time (Phase 5) — ensures
+external users only see a published release once the version is actually available
+in production.
 
 **Finalize Jira release:**
 1. Go to CODAPv3 project in Jira
@@ -667,9 +694,13 @@ Follow the same working directory rules as Phase 3.
    git checkout -b release-{new-version}
    ```
 
-2. **Sync translations (only if needed):**
-   - Only perform the translation sync (Phase 3, step 2) if the bug fix introduced new or changed translatable strings.
-   - For most bug fixes, this can be skipped. Ask the user if unsure.
+2. **Sync translations:**
+   - **Always pull** translations from POEditor (Phase 3, step 2c) — every build
+     must pull, since translators may have added or updated non-English strings
+     even when the English strings are unchanged. Do not skip this.
+   - **Only push** English strings (Phase 3, steps 2a–2b) if the bug fix introduced
+     new or changed translatable strings. For most bug fixes there are none, so the
+     push is skipped — but the pull still runs.
 
 3. **Update package.json:**
    ```bash
@@ -733,26 +764,29 @@ Follow the same process as Phase 4:
    git pull
    ```
 
-2. **Delete old GitHub release and tag:**
+2. **Delete the old tag:**
    ```bash
-   gh release delete {old-version} --yes
    git push origin --delete {old-version}
    git tag -d {old-version}
    ```
 
-   These are safe to delete because:
-   - The release was never deployed to production or beta
-   - The tag points to a known-buggy build
-   - No external consumers depend on it
+   The tag is safe to delete because it points to a known-buggy build that was
+   never deployed to production or beta and that no external consumer depends on.
 
-3. **Create new tag and GitHub release:**
+   **No GitHub release to delete:** under the current flow the GitHub release is
+   only created after a production deploy (Phase 6). Since `{old-version}` failed
+   staging QA, it never reached production and never had a release published. (If
+   one somehow exists, remove it with `gh release delete {old-version} --yes`.)
+
+3. **Create the new tag:**
    ```bash
    git tag -a {new-version} -m "Version {new-version}"
    git push origin {new-version}
-   gh release create {new-version} \
-     --title "Version {new-version}" \
-     --notes "{release_notes}"
    ```
+
+   As in Phase 5, do **not** create the GitHub release here. The tag push triggers
+   the S3 build; the GitHub release for `{new-version}` is published only after the
+   revised build reaches production (Step 6 / the deploy phase).
 
 4. **Delete old release branch** (optional cleanup):
    ```bash
@@ -761,7 +795,7 @@ Follow the same process as Phase 4:
    ```
 
 5. **Inform user and wait for S3 deploy:**
-   > **Old release cleaned up. New tag and GitHub release created.**
+   > **Old tag cleaned up. New tag created.** (The GitHub release will be created later, after the revised build reaches production.)
    >
    > Watch GitHub Actions: https://github.com/concord-consortium/codap/actions
    >
