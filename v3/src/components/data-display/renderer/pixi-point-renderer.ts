@@ -660,9 +660,11 @@ export class PixiPointRenderer extends PointRendererBase {
   // CODAP-1234.
   private updateBarsLayer(): void {
     // Only coalesce when cases are fused into shared stacked bars (bar chart/histogram), and not
-    // mid-transition. Non-fused "bars" (each case its own bar) keep per-case sprite rendering.
+    // during any transition. Coalescing assumes stable geometry, so while a transition is running
+    // (the points<->bars fuse, or position/axis animations) we keep per-case sprite rendering so
+    // the animation plays. Non-fused "bars" (each case its own bar) also stay per-case.
     const useCoalesced = this._displayType === "bars" && this._pointsFusedIntoBars &&
-      !this.displayTypeTransitionState.isActive
+      !this.anyTransitionActive
     if (!useCoalesced) {
       if (this.barsLayerActive) {
         this.barsGraphicsBySubplot.forEach(graphics => graphics.clear())
