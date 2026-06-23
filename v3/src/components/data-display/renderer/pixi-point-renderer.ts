@@ -244,11 +244,15 @@ export class PixiPointRenderer extends PointRendererBase {
     this.ticker.destroy()
     this.renderer?.destroy()
     this.renderer = undefined
-    // Destroy masks and the per-subplot bar layers before stage
+    // Destroy the per-subplot bar layers (clearing their mask refs) before the masks they use,
+    // then the masks, then the stage.
+    this.barsGraphicsBySubplot.forEach(graphics => {
+      graphics.mask = null
+      graphics.destroy()
+    })
+    this.barsGraphicsBySubplot = []
     this.subPlotMasks.forEach(mask => mask.destroy())
     this.subPlotMasks = []
-    this.barsGraphicsBySubplot.forEach(graphics => graphics.destroy())
-    this.barsGraphicsBySubplot = []
     this.stage.destroy()
     this.textures.forEach(texture => texture.destroy())
     this.textures.clear()
