@@ -69,7 +69,7 @@ export class PixiPointRenderer extends PointRendererBase {
   private sprites = new Map<string, PIXI.Sprite>()
   private textures = new Map<string, PIXI.Texture>()
 
-  // Bars are drawn by coalescing contiguous same-fill cases into one solid segment rect each
+  // Bars are drawn by coalescing contiguous same-style cases into one solid segment rect each
   // (see updateBarsLayer / bar-coalescing) rather than one sprite per case. There is one Graphics
   // per subplot cell (created in doResize, masked to its cell) so split-plot cells coalesce and
   // clip independently. The per-case sprites are hidden (renderable = false) while this layer is
@@ -672,7 +672,7 @@ export class PixiPointRenderer extends PointRendererBase {
   }
 
   // Rebuilds the coalesced-bars layer from the current point state. When fully in bars mode, each
-  // bar's contiguous same-fill cases are merged into one solid segment rect (with its stroke), and
+  // bar's contiguous same-style cases are merged into one solid segment rect (with its stroke), and
   // the per-case sprites are hidden from rendering (renderable = false). In points mode or during
   // the points<->bars transition, the layer is cleared and the sprites render normally. Bar clicks
   // are handled by the SVG bar covers, so hiding the sprites doesn't affect selection. See

@@ -506,7 +506,7 @@ export class CanvasPointRenderer extends PointRendererBase {
     this.hitTester?.updateFromPoints(sortedPoints, this._displayType, this._anchor)
   }
 
-  // Draws bars by coalescing each bar's contiguous same-fill cases into a single solid segment
+  // Draws bars by coalescing each bar's contiguous same-style cases into a single solid segment
   // rectangle (with that segment's stroke), instead of one rect per case. This avoids the
   // undesirable per-case separator lines and the sub-pixel fill washout that occur when hundreds
   // of cases stack into one bar. Per-case hit-testing is unaffected (it uses the point positions).
