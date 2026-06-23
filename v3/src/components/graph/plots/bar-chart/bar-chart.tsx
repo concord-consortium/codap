@@ -88,8 +88,8 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, render
         : []
       const primCatsCount = primCatsArray.length
       const legendCats = dataConfig.categorySetForAttrRole("legend")?.values ?? []
-      // sortLegendCategories returns a sorted copy: `legendCats` is the CategorySet's shared
-      // observable array, so sorting it in place would corrupt its canonical ordering and index map.
+      // sortLegendCategories returns a sorted copy so we don't mutate the categories array
+      // returned by the CategorySet (which is a readonly memoized computed value).
       const sortedLegendCats = sortLegendCategories(legendCats, dataConfig.attributeType("legend"))
       Object.entries(catMap).forEach(([primeCat, secCats]) => {
         Object.entries(secCats).forEach(([secCat, primSplitCats]) => {

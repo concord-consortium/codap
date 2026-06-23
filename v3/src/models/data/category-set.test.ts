@@ -32,11 +32,10 @@ describe("CategorySet", () => {
     // attribute reference resolves to the free attribute
     expect(categories.attribute.name).toBe("aFree")
 
-    // attribute value changes trigger invalidation for provisional category sets
-    const provisionalSpy = jest.spyOn(categories, "invalidate")
+    // attribute value changes are picked up by provisional category sets
+    expect(categories.valuesArray).toEqual([])
     data.attributes[0].addValue("a")
-    expect(provisionalSpy).toHaveBeenCalledTimes(1)
-    provisionalSpy.mockRestore()
+    expect(categories.valuesArray).toEqual(["a"])
 
     const tree = Tree.create({
       attribute: Attribute.create({ id: "aId", name: "aTree" }),
@@ -47,11 +46,10 @@ describe("CategorySet", () => {
     // attribute reference resolves to attribute in tree
     expect(tree.categories.attribute.name).toBe("aTree")
 
-    // attribute value changes trigger invalidation for attached category sets
-    const attachedSpy = jest.spyOn(tree.categories, "invalidate")
+    // attribute value changes are picked up by attached category sets
+    expect(tree.categories.valuesArray).toEqual([])
     tree.attribute.addValue("a")
-    expect(attachedSpy).toHaveBeenCalledTimes(1)
-    attachedSpy.mockRestore()
+    expect(tree.categories.valuesArray).toEqual(["a"])
 
     // assigning a new attribute sets the attribute id
     tree.setAttribute(Attribute.create({ id: "bId", name: "bTree" }))
@@ -185,11 +183,12 @@ describe("CategorySet", () => {
     expect(categories.lastMove?.fromIndex).toBe(originalFromIndex)
   })
 
-  // Regression test: formula-computed values are written via Attribute.setComputedValues, which
-  // is a volatile method that doesn't fire its own MST action. The CategorySet must still invalidate
-  // and pick up the new categories — otherwise categorical scales backed by formula attributes are
-  // empty, points get NaN positions, and graphs render blank.
-  it("invalidates when formula-computed values are written via setComputedValues", () => {
+  // Regression test (CODAP-1280): formula-computed values are written via
+  // Attribute.setComputedValues, which is a volatile method that doesn't fire its own MST
+  // action — it bumps changeCount. The CategorySet's `values` view depends on changeCount,
+  // so it must pick up the new categories. Otherwise categorical scales backed by formula
+  // attributes are empty, points get NaN positions, and graphs render blank.
+  it("re-derives when formula-computed values are written via setComputedValues", () => {
     const a = Attribute.create({ name: "a", values: ["a", "a", "a", "a"] })
     const tree = Tree.create({
       attribute: a,
