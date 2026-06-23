@@ -1,5 +1,4 @@
 import { extent, ScaleQuantile, scaleQuantile, ScaleQuantize, scaleQuantize, scaleThreshold, ScaleThreshold } from "d3"
-import { prf } from "../../../utilities/profiler"
 import {comparer, observable, reaction} from "mobx"
 import {
   addDisposer, getEnv, getSnapshot, hasEnv, IAnyStateTreeNode, Instance, ISerializedActionCall,
@@ -351,9 +350,8 @@ export const DataConfigurationModel = types
      */
     get unselectedCases() {
       if (!self.dataset) return []
-      // Profiled: this is O(visible cases); guard against consumers that observe it per selection change.
-      return prf.measure("DataConfig.unselectedCases", () =>
-        Array.from(this.visibleCaseIds).filter(caseId => !self.dataset?.isCaseSelected(caseId)))
+      // O(visible cases): avoid observing this per selection change (see the flag-gated reactions).
+      return Array.from(this.visibleCaseIds).filter(caseId => !self.dataset?.isCaseSelected(caseId))
     }
   }))
   .views(self => ({

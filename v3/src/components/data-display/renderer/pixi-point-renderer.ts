@@ -1,6 +1,5 @@
 import * as PIXI from "pixi.js"
 import { isFiniteNumber } from "../../../utilities/math-utils"
-import { prf } from "../../../utilities/profiler"
 import { CaseDataWithSubPlot } from "../d3-types"
 import { PointDisplayType, transitionDuration } from "../data-display-types"
 import { PixiTransition, TransitionPropMap, TransitionProp } from "../pixi/pixi-transition"
@@ -669,9 +668,7 @@ export class PixiPointRenderer extends PointRendererBase {
       this.cleanupUnusedTextures()
     }
     this.updateBarsLayer()
-    prf.measure("Graph.pixiRender", () => {
-      this.renderer?.render(this.stage)
-    })
+    this.renderer.render(this.stage)
   }
 
   // Rebuilds the coalesced-bars layer from the current point state. When fully in bars mode, each

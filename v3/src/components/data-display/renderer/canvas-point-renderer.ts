@@ -10,7 +10,6 @@
  * Canvas 2D contexts are virtually unlimited.
  */
 
-import { prf } from "../../../utilities/profiler"
 import { CaseDataWithSubPlot } from "../d3-types"
 import { PointDisplayType, transitionDuration } from "../data-display-types"
 import { coalesceBars, IBarPiece, pointStateToBarPiece } from "./bar-coalescing"
@@ -446,9 +445,7 @@ export class CanvasPointRenderer extends PointRendererBase {
 
     // Render if needed
     if (this.needsRedraw) {
-      prf.measure("Graph.canvasRender", () => {
-        this.drawAllPoints()
-      })
+      this.drawAllPoints()
       this.needsRedraw = false
     }
 

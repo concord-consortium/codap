@@ -11,7 +11,6 @@ import {selectAllCases, selectAndDeselectCases} from "../../../models/data/data-
 import { getTileModel } from "../../../models/tiles/tile-model"
 import {defaultBackgroundColor} from "../../../utilities/color-utils"
 import { mstReaction } from "../../../utilities/mst-reaction"
-import { prf } from "../../../utilities/profiler"
 import { useGraphLayoutContext } from "../../graph/hooks/use-graph-layout-context"
 import { kZoomInFactor, kZoomOutFactor, zoomAxis } from "../../axis/axis-utils"
 import { isAnyNumericAxisModel } from "../../axis/models/numeric-axis-models"
@@ -121,47 +120,45 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
   const onDrag = useCallback((event: { dx: number; dy: number }) => {
     if ((event.dx === 0 && event.dy === 0) || datasetsArray.length === 0) return
 
-    prf.measure("Graph.dragMarquee", () => {
-      if (needsToClearSelection.current) {
-        datasetsArray.forEach(data => {
-          if (data.selection.size > 0) selectAllCases(data, false)
-        })
-        needsToClearSelection.current = false
-      }
+    if (needsToClearSelection.current) {
+      datasetsArray.forEach(data => {
+        if (data.selection.size > 0) selectAllCases(data, false)
+      })
+      needsToClearSelection.current = false
+    }
 
-      previousMarqueeRect.current = rectNormalize(
-        {x: startX.current, y: startY.current, w: width.current, h: height.current})
-      width.current = width.current + event.dx
-      height.current = height.current + event.dy
-      const marqueeRect = marqueeState.marqueeRect
-      marqueeState.setMarqueeRect({
-        x: marqueeRect.x, y: marqueeRect.y,
-        width: marqueeRect.width + event.dx,
-        height: marqueeRect.height + event.dy
-      })
-      const currentRect = rectNormalize({
-        x: startX.current, y: startY.current,
-        w: width.current,
-        h: height.current
-      })
-      const newSelection = getCasesForDelta(selectionTree.current, currentRect, previousMarqueeRect.current)
-      const newDeselection = getCasesForDelta(selectionTree.current, previousMarqueeRect.current, currentRect)
-      // Stash the caseIDs to select and deselect for each dataset
-      newSelection.forEach((caseObject: caseObject) => {
-        datasetsMap[caseObject.datasetID].caseIDsToSelect.push(caseObject.caseID)
-      })
-      newDeselection.forEach((caseObject: caseObject) => {
-        datasetsMap[caseObject.datasetID].caseIDsToDeselect.push(caseObject.caseID)
-      })
-      // Apply the selections and de-selections for each dataset. selectAndDeselectCases uses a
-      // volatile selection + direct per-move delta notification (no applyModelChange).
-      Object.values(datasetsMap).forEach((selectionSpec) => {
-        const {dataset, caseIDsToSelect, caseIDsToDeselect} = selectionSpec
-        selectAndDeselectCases(caseIDsToSelect, caseIDsToDeselect, dataset)
-      })
-
-      clearDatasetsMapArrays()
+    previousMarqueeRect.current = rectNormalize(
+      {x: startX.current, y: startY.current, w: width.current, h: height.current})
+    width.current = width.current + event.dx
+    height.current = height.current + event.dy
+    const marqueeRect = marqueeState.marqueeRect
+    marqueeState.setMarqueeRect({
+      x: marqueeRect.x, y: marqueeRect.y,
+      width: marqueeRect.width + event.dx,
+      height: marqueeRect.height + event.dy
     })
+    const currentRect = rectNormalize({
+      x: startX.current, y: startY.current,
+      w: width.current,
+      h: height.current
+    })
+    const newSelection = getCasesForDelta(selectionTree.current, currentRect, previousMarqueeRect.current)
+    const newDeselection = getCasesForDelta(selectionTree.current, previousMarqueeRect.current, currentRect)
+    // Stash the caseIDs to select and deselect for each dataset
+    newSelection.forEach((caseObject: caseObject) => {
+      datasetsMap[caseObject.datasetID].caseIDsToSelect.push(caseObject.caseID)
+    })
+    newDeselection.forEach((caseObject: caseObject) => {
+      datasetsMap[caseObject.datasetID].caseIDsToDeselect.push(caseObject.caseID)
+    })
+    // Apply the selections and de-selections for each dataset. selectAndDeselectCases uses a
+    // volatile selection + direct per-move delta notification (no applyModelChange).
+    Object.values(datasetsMap).forEach((selectionSpec) => {
+      const {dataset, caseIDsToSelect, caseIDsToDeselect} = selectionSpec
+      selectAndDeselectCases(caseIDsToSelect, caseIDsToDeselect, dataset)
+    })
+
+    clearDatasetsMapArrays()
   }, [clearDatasetsMapArrays, datasetsArray, datasetsMap, marqueeState])
 
   const onDragEnd = useCallback(() => {

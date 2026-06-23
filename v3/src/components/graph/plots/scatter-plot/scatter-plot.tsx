@@ -5,7 +5,6 @@ import {useDataSetContext} from "../../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 import {appState} from "../../../../models/app-state"
 import {ICase} from "../../../../models/data/data-set-types"
-import { prf } from "../../../../utilities/profiler"
 import {
   firstVisibleParentAttribute, idOfChildmostCollectionForAttributes
 } from "../../../../models/data/data-set-utils"
@@ -169,15 +168,13 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
   // When caseIds is provided, only those cases' points are restyled (delta path used during a
   // marquee drag); otherwise every point is restyled.
   const refreshPointSelection = useCallback((caseIds?: Set<string>) => {
-    prf.measure("Graph.refreshPointSelection", () => {
-      const {pointColor, pointStrokeColor} = graphModel.pointDescription
-      dataConfiguration && setPointSelection(
-        {
-          renderer, dataConfiguration, pointRadius: graphModel.getPointRadius(),
-          selectedPointRadius: selectedPointRadiusRef.current,
-          pointColor, pointStrokeColor, getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex
-        }, caseIds, dataConfiguration.numberOfPlots)
-    })
+    const {pointColor, pointStrokeColor} = graphModel.pointDescription
+    dataConfiguration && setPointSelection(
+      {
+        renderer, dataConfiguration, pointRadius: graphModel.getPointRadius(),
+        selectedPointRadius: selectedPointRadiusRef.current,
+        pointColor, pointStrokeColor, getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex
+      }, caseIds, dataConfiguration.numberOfPlots)
   }, [dataConfiguration, graphModel, renderer])
 
   // Accept showLines parameter to avoid stale closure issues during rapid state changes

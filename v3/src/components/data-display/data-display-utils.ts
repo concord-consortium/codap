@@ -6,7 +6,6 @@ import {
   defaultStrokeOpacity, defaultStrokeWidth
 } from "../../utilities/color-utils"
 import {between} from "../../utilities/math-utils"
-import { prf } from "../../utilities/profiler"
 import { IBarCover } from "../graph/graphing-types"
 import {isGraphDataConfigurationModel} from "../graph/models/graph-data-configuration-model"
 import {ISetPointSelection} from "../graph/utilities/graph-utils"
@@ -155,21 +154,19 @@ export function setPointSelection(
     renderer.setPointRaised(point, isSelected)
   }
 
-  prf.measure("Graph.setPointSelection", () => {
-    if (caseIdsToUpdate) {
-      // Delta path: restyle only the points whose selection changed.
-      for (const caseID of caseIdsToUpdate) {
-        for (let plotNum = 0; plotNum < numberOfPlots; ++plotNum) {
-          const point = renderer.getPointForCaseData({ plotNum, caseID })
-          if (point) stylePoint(point, caseID, plotNum)
-        }
+  if (caseIdsToUpdate) {
+    // Delta path: restyle only the points whose selection changed.
+    for (const caseID of caseIdsToUpdate) {
+      for (let plotNum = 0; plotNum < numberOfPlots; ++plotNum) {
+        const point = renderer.getPointForCaseData({ plotNum, caseID })
+        if (point) stylePoint(point, caseID, plotNum)
       }
-    } else {
-      renderer.forEachPoint((point, metadata) => {
-        stylePoint(point, metadata.caseID, metadata.plotNum)
-      })
     }
-  })
+  } else {
+    renderer.forEachPoint((point, metadata) => {
+      stylePoint(point, metadata.caseID, metadata.plotNum)
+    })
+  }
 }
 
 export function rectNormalize(iRect: rTreeRect) {
