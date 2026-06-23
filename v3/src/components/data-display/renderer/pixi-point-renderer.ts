@@ -322,7 +322,17 @@ export class PixiPointRenderer extends PointRendererBase {
   // events (empty-space clicks should reach the background to deselect; bar clicks are handled by
   // the SVG bar covers). pointsContainer has no transform, so the stage shares its coordinate space.
   private rebuildBarsGraphics(): void {
-    this.barsGraphicsBySubplot.forEach(graphics => graphics.destroy())
+    // Remove the old layers from the stage and clear their masks now (so they are no longer
+    // collected for rendering), but defer destroy() to the next frame: an in-flight render this
+    // frame may still reference them, and rendering a destroyed Graphics throws (null GPU context).
+    // This mirrors the deferred destruction of the subplot masks in doResize. See CODAP-1234.
+    const oldGraphics = this.barsGraphicsBySubplot
+    oldGraphics.forEach(graphics => {
+      graphics.mask = null
+      this.stage.removeChild(graphics)
+    })
+    requestAnimationFrame(() => oldGraphics.forEach(graphics => graphics.destroy()))
+
     this.barsGraphicsBySubplot = this.subPlotMasks.map(mask => {
       const graphics = new PIXI.Graphics()
       graphics.eventMode = "none"
@@ -532,9 +542,13 @@ export class PixiPointRenderer extends PointRendererBase {
   }
 
   protected doRemoveMasks(): void {
-    // Clear sprite mask references
+    // Clear sprite and coalesced-bars-layer mask references before the masks are destroyed, so
+    // nothing renders a destroyed mask (which throws on a null GPU context).
     this.sprites.forEach(sprite => {
       sprite.mask = null
+    })
+    this.barsGraphicsBySubplot.forEach(graphics => {
+      graphics.mask = null
     })
     // Defer destruction of old masks
     const oldMasks = this.subPlotMasks
