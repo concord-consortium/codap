@@ -243,19 +243,24 @@ export const CategorySet = types.model("CategorySet", {
     // Invalidate the cached categories whenever the attribute's values change.
     // Reacting to changeCount (the canonical "values changed" signal) covers all value-mutation
     // paths, including the volatile setComputedValues path used by formula evaluation, which
-    // doesn't fire its own MST action. Note: clearFormula/setDisplayExpression don't bump
-    // changeCount, but they don't need to invalidate the cache either — the values themselves
-    // don't change at that moment, and any subsequent recomputation goes through setComputedValues
-    // which will bump changeCount and trigger this reaction.
+    // doesn't fire its own MST action.
     // The accessor guards against an invalid attribute reference (which can occur briefly while
     // the attribute is being destroyed); the reaction is auto-disposed when this CategorySet
     // is destroyed via the onInvalidated → removeCategorySet chain.
+    // fireImmediately is required: CategorySets are typically created inside an MST action
+    // (afterCreate runs as one), so mobx defers the reaction's initial accessor invocation
+    // until after the surrounding action(s) complete. If formula recomputation runs in that
+    // window — which it does for a provisional CategorySet created while a doc is still
+    // loading and the formula adapter setTimeout hasn't fired yet (CODAP-1429) — the deferred
+    // accessor call captures the post-recompute changeCount as its baseline, so the effect
+    // never fires for the very change we needed to react to. fireImmediately makes the effect
+    // run on the first invocation regardless, so the (already-stale) cache is invalidated.
     mstReaction(
       () => isValidReference(() => self.attribute) ? self.attribute.changeCount : undefined,
       changeCount => {
         if (changeCount != null) self.invalidate()
       },
-      { name: "CategorySet.invalidateOnAttributeChangeCount" },
+      { name: "CategorySet.invalidateOnAttributeChangeCount", fireImmediately: true },
       self
     )
   },

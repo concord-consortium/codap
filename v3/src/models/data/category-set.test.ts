@@ -1,3 +1,4 @@
+import { runInAction } from "mobx"
 import { applySnapshot, getSnapshot, types } from "mobx-state-tree"
 import { kellyColors } from "../../utilities/color-utils"
 import { Attribute, IAttribute } from "./attribute"
@@ -183,6 +184,36 @@ describe("CategorySet", () => {
     // simulate a formula recomputing the values
     a.setComputedValues([0, 1, 2, 3], ["x", "y", "x", "y"])
     expect(categories.valuesArray).toEqual(["x", "y"])
+  })
+
+  // CODAP-1429 regression: when CategorySet construction, the initial empty refresh,
+  // and the value-mutating setComputedValues all happen inside the SAME outermost
+  // mobx batch (which is what happens in the running app: the case-table renderer
+  // creates a provisional CategorySet for an attribute whose formula adapter hasn't
+  // run yet, reads `.valuesArray` (caching empty `_values`), and then the deferred
+  // formula adapter recomputes and bumps `changeCount`), mobx defers the reaction's
+  // initial accessor invocation until the outermost batch ends. Without
+  // `fireImmediately`, that deferred first invocation captures the post-mutation
+  // changeCount as its baseline — so the effect never fires for the change we needed
+  // to react to, and the empty cached categories stick around.
+  it("invalidates when creation, initial refresh, and setComputedValues happen in same batch", () => {
+    const a = Attribute.create({ name: "a", values: ["", "", "", ""] })
+    let categories: ICategorySet | undefined
+    runInAction(() => {
+      const tree = Tree.create({
+        attribute: a,
+        categories: { attribute: a.id }
+      })
+      categories = tree.categories
+      // Trigger the initial refresh while strValues is still empty (the case-table
+      // renderer does this during document load).
+      expect(categories.valuesArray).toEqual([])
+      // Now the deferred formula adapter populates the values.
+      a.setComputedValues([0, 1, 2, 3], ["A", "B", "A", "B"])
+    })
+
+    expect(a.strValues).toEqual(["A", "B", "A", "B"])
+    expect(categories?.valuesArray).toEqual(["A", "B"])
   })
 
   it("handles volatile category drags", () => {
