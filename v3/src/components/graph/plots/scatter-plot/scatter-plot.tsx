@@ -322,6 +322,15 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
     // no-op addDisposer entries on graphModel until it's destroyed.
   }, [adornmentsStore, graphModel, refreshSquares])
 
+  // The squares <g> elements are conditionally mounted (only while shown), so their refs attach
+  // after React commits. The updateSquares mstAutorun fires synchronously when showSquaresOfResiduals
+  // flips — before those refs exist — so it draws into a null ref on the toggle-on / show-adornment
+  // transition. This post-commit effect redraws once the <g> is mounted. (Steady-state updates such
+  // as dragging a line keep flowing through the mstAutorun, whose <g> is already mounted.)
+  useEffect(function drawSquaresAfterMount() {
+    if (showSquares) refreshSquares()
+  }, [showSquares, movableLine?.isVisible, lsrl?.isVisible, plottedFunctionModel?.isVisible, refreshSquares])
+
   // Call refreshConnectingLines when Connecting Lines option is switched on and when all
   // points are selected.
   // NOTE: We observe adornmentsStore.showConnectingLines directly inside the autorun to ensure
