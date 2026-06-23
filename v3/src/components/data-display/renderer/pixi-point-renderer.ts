@@ -70,11 +70,13 @@ export class PixiPointRenderer extends PointRendererBase {
   private textures = new Map<string, PIXI.Texture>()
 
   // Bars are drawn by coalescing contiguous same-fill cases into one solid segment rect each
-  // (see updateBarsLayer / bar-coalescing) rather than one sprite per case. The per-case sprites
-  // are hidden (renderable = false) while this layer is active; they remain in the scene only
-  // because points mode and the points<->bars fuse transition still use them. Bar clicks are
-  // handled separately by the SVG bar covers (see renderBarCovers), not these sprites.
-  private barsGraphics = new PIXI.Graphics()
+  // (see updateBarsLayer / bar-coalescing) rather than one sprite per case. There is one Graphics
+  // per subplot cell (created in doResize, masked to its cell) so split-plot cells coalesce and
+  // clip independently. The per-case sprites are hidden (renderable = false) while this layer is
+  // active; they remain in the scene only because points mode and the points<->bars fuse
+  // transition still use them. Bar clicks are handled separately by the SVG bar covers (see
+  // renderBarCovers), not these sprites.
+  private barsGraphicsBySubplot: PIXI.Graphics[] = []
   private barsLayerActive = false
 
   // Transition state
@@ -205,16 +207,8 @@ export class PixiPointRenderer extends PointRendererBase {
     this.stage.addChild(this.background)
     this.stage.addChild(this.pointsContainer)
     this.pointsContainer.sortableChildren = true
-    // Coalesced-bars layer: drawn on top of the (hidden) per-case sprites when in bars mode.
-    // pointsContainer has no transform, so the stage shares its coordinate space. eventMode "none"
-    // keeps this layer from swallowing pointer events (e.g. empty-space clicks that should reach
-    // the background to deselect); bar clicks are handled by the SVG bar covers above the canvas.
-    // NOTE: unlike the per-case sprites (masked per subplot via subPlotMasks), this single layer is
-    // not subplot-clipped. Coalesced bars are sized by the secondary axis to fit their cell, so
-    // they don't bleed into adjacent split-plot cells in practice; per-subplot masking is a
-    // deferred robustness follow-up.
-    this.barsGraphics.eventMode = "none"
-    this.stage.addChild(this.barsGraphics)
+    // The coalesced-bars layers (one per subplot cell, masked to that cell) are created in
+    // doResize once the subplot masks exist.
 
     if (options?.backgroundEventDistribution) {
       this.doSetupBackgroundEventDistribution(options.backgroundEventDistribution)
@@ -250,9 +244,11 @@ export class PixiPointRenderer extends PointRendererBase {
     this.ticker.destroy()
     this.renderer?.destroy()
     this.renderer = undefined
-    // Destroy masks before stage
+    // Destroy masks and the per-subplot bar layers before stage
     this.subPlotMasks.forEach(mask => mask.destroy())
     this.subPlotMasks = []
+    this.barsGraphicsBySubplot.forEach(graphics => graphics.destroy())
+    this.barsGraphicsBySubplot = []
     this.stage.destroy()
     this.textures.forEach(texture => texture.destroy())
     this.textures.clear()
@@ -311,8 +307,28 @@ export class PixiPointRenderer extends PointRendererBase {
 
     // Re-apply masks to existing sprites based on their subPlotNum in state
     this.reapplyMasksFromState()
+    // Rebuild the per-subplot coalesced-bars layers to match the new masks
+    this.rebuildBarsGraphics()
     // Trigger a render after masks are reapplied
     this.doStartRendering()
+  }
+
+  // (Re)creates one coalesced-bars Graphics per subplot cell, each masked to that cell, so split
+  // plots coalesce and clip per cell. eventMode "none" keeps the layer from swallowing pointer
+  // events (empty-space clicks should reach the background to deselect; bar clicks are handled by
+  // the SVG bar covers). pointsContainer has no transform, so the stage shares its coordinate space.
+  private rebuildBarsGraphics(): void {
+    this.barsGraphicsBySubplot.forEach(graphics => graphics.destroy())
+    this.barsGraphicsBySubplot = this.subPlotMasks.map(mask => {
+      const graphics = new PIXI.Graphics()
+      graphics.eventMode = "none"
+      graphics.mask = mask
+      this.stage.addChild(graphics)
+      return graphics
+    })
+    // sprites render normally until the next updateBarsLayer decides to hide them
+    this.sprites.forEach(sprite => { sprite.renderable = true })
+    this.barsLayerActive = false
   }
 
   /**
@@ -649,32 +665,42 @@ export class PixiPointRenderer extends PointRendererBase {
       !this.displayTypeTransitionState.isActive
     if (!useCoalesced) {
       if (this.barsLayerActive) {
-        this.barsGraphics.clear()
+        this.barsGraphicsBySubplot.forEach(graphics => graphics.clear())
         this.sprites.forEach(sprite => { sprite.renderable = true })
         this.barsLayerActive = false
       }
       return
     }
 
-    const pieces: IBarPiece[] = []
+    // Group pieces by subplot so each cell coalesces independently: bars in different split-plot
+    // cells must not be merged even when they share a primary coordinate (and each cell's layer is
+    // masked to its cell). Each subplot's runs are drawn into its own masked Graphics.
+    const piecesBySubplot = new Map<number, IBarPiece[]>()
     this.state.forEach(pointState => {
       const { style } = pointState
       if (!pointState.isVisible || style.width == null || style.height == null) return
+      const subplot = pointState.subPlotNum ?? 0
+      const pieces = piecesBySubplot.get(subplot) ?? []
       pieces.push({
         x: pointState.x, y: pointState.y, scale: pointState.scale,
         width: style.width, height: style.height,
         fill: style.fill, stroke: style.stroke,
         strokeWidth: style.strokeWidth, strokeOpacity: style.strokeOpacity ?? 0.4
       })
+      piecesBySubplot.set(subplot, pieces)
     })
 
-    this.barsGraphics.clear()
-    for (const run of coalesceBars(pieces, this._anchor, this._barStackAxis)) {
-      this.barsGraphics.rect(run.left, run.top, run.width, run.height).fill(run.fill)
-      if (run.strokeWidth > 0) {
-        this.barsGraphics.stroke({ color: run.stroke, width: run.strokeWidth, alpha: run.strokeOpacity })
+    this.barsGraphicsBySubplot.forEach((graphics, subplot) => {
+      graphics.clear()
+      const pieces = piecesBySubplot.get(subplot)
+      if (!pieces) return
+      for (const run of coalesceBars(pieces, this._anchor, this._barStackAxis)) {
+        graphics.rect(run.left, run.top, run.width, run.height).fill(run.fill)
+        if (run.strokeWidth > 0) {
+          graphics.stroke({ color: run.stroke, width: run.strokeWidth, alpha: run.strokeOpacity })
+        }
       }
-    }
+    })
     this.sprites.forEach(sprite => { sprite.renderable = false })
     this.barsLayerActive = true
   }
