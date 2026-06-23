@@ -524,7 +524,7 @@ export class CanvasPointRenderer extends PointRendererBase {
         strokeWidth: p.style.strokeWidth, strokeOpacity: p.style.strokeOpacity ?? 0.4
       })
     }
-    for (const run of coalesceBars(pieces, this._anchor)) {
+    for (const run of coalesceBars(pieces, this._anchor, this._barStackAxis)) {
       ctx.fillStyle = run.fill
       ctx.fillRect(run.left, run.top, run.width, run.height)
       if (run.strokeWidth > 0) {

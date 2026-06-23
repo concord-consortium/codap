@@ -79,3 +79,57 @@ describe("coalesceBars", () => {
     expect(coalesceBars([], anchor)).toEqual([])
   })
 })
+
+// horizontal bars (primaryIsBottom === false): cases in a bar share y and stack along x
+function hpiece(x: number, fill: string, overrides: Partial<IBarPiece> = {}): IBarPiece {
+  return {
+    x, y: 10, scale: 1, width: 1, height: 4,
+    fill, stroke: "#ffffff", strokeWidth: 1, strokeOpacity: 0.4,
+    ...overrides
+  }
+}
+
+describe("coalesceBarRuns with stackAxis='x' (horizontal bars)", () => {
+  it("merges a uniform-fill bar into a single run extending along x", () => {
+    const runs = coalesceBarRuns([hpiece(0, "#e6805b"), hpiece(1, "#e6805b"), hpiece(2, "#e6805b")], anchor, "x")
+    // anchor {0,0}: left = x, top = y; run extends in x from 0 to 3, cross-axis height stays 4
+    expect(runs).toEqual([
+      { left: 0, top: 10, width: 3, height: 4, fill: "#e6805b", stroke: "#ffffff", strokeWidth: 1, strokeOpacity: 0.4 }
+    ])
+  })
+
+  it("splits into runs at fill boundaries, expanding along x", () => {
+    const runs = coalesceBarRuns([hpiece(0, "#4682b4"), hpiece(1, "#4682b4"), hpiece(2, "#e6805b")], anchor, "x")
+    expect(runs).toEqual([
+      { left: 0, top: 10, width: 2, height: 4, fill: "#4682b4", stroke: "#ffffff", strokeWidth: 1, strokeOpacity: 0.4 },
+      { left: 2, top: 10, width: 1, height: 4, fill: "#e6805b", stroke: "#ffffff", strokeWidth: 1, strokeOpacity: 0.4 }
+    ])
+  })
+
+  it("sorts pieces by x before merging", () => {
+    const runs = coalesceBarRuns([hpiece(2, "#e6805b"), hpiece(0, "#4682b4"), hpiece(1, "#4682b4")], anchor, "x")
+    expect(runs.map(r => [r.fill, r.left, r.width])).toEqual([
+      ["#4682b4", 0, 2],
+      ["#e6805b", 2, 1]
+    ])
+  })
+})
+
+describe("coalesceBars with stackAxis='x' (horizontal bars)", () => {
+  it("groups pieces into bars by y, coalescing each along x", () => {
+    // bar at y=10 (two #e6805b) and bar at y=50 (two #4682b4), interleaved in input order;
+    // both bars start at the same baseline x — must NOT be merged across the two rows
+    const pieces: IBarPiece[] = [
+      hpiece(0, "#e6805b", { y: 10 }),
+      hpiece(0, "#4682b4", { y: 50 }),
+      hpiece(1, "#e6805b", { y: 10 }),
+      hpiece(1, "#4682b4", { y: 50 })
+    ]
+    const runs = coalesceBars(pieces, anchor, "x")
+    expect(runs).toHaveLength(2)
+    expect(runs).toEqual(expect.arrayContaining([
+      { left: 0, top: 10, width: 2, height: 4, fill: "#e6805b", stroke: "#ffffff", strokeWidth: 1, strokeOpacity: 0.4 },
+      { left: 0, top: 50, width: 2, height: 4, fill: "#4682b4", stroke: "#ffffff", strokeWidth: 1, strokeOpacity: 0.4 }
+    ]))
+  })
+})

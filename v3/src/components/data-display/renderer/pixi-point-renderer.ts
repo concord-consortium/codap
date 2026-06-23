@@ -669,7 +669,7 @@ export class PixiPointRenderer extends PointRendererBase {
     })
 
     this.barsGraphics.clear()
-    for (const run of coalesceBars(pieces, this._anchor)) {
+    for (const run of coalesceBars(pieces, this._anchor, this._barStackAxis)) {
       this.barsGraphics.rect(run.left, run.top, run.width, run.height).fill(run.fill)
       if (run.strokeWidth > 0) {
         this.barsGraphics.stroke({ color: run.stroke, width: run.strokeWidth, alpha: run.strokeOpacity })

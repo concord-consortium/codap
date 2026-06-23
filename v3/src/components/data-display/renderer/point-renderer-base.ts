@@ -49,6 +49,9 @@ export abstract class PointRendererBase {
   protected _isVisible = true
   protected _displayType: PointDisplayType = "points"
   protected _pointsFusedIntoBars = false
+  // axis along which fused-bar cases stack: "y" for vertical bars (primary axis on bottom),
+  // "x" for horizontal bars (primary axis on left). Used by bar coalescing.
+  protected _barStackAxis: "x" | "y" = "y"
   protected _anchor = circleAnchor
   protected animationFrames = new Map<AnimationFrameRequestId, number>()
 
@@ -236,6 +239,14 @@ export abstract class PointRendererBase {
 
   set pointsFusedIntoBars(value: boolean) {
     this._pointsFusedIntoBars = value
+  }
+
+  get barStackAxis(): "x" | "y" {
+    return this._barStackAxis
+  }
+
+  set barStackAxis(value: "x" | "y") {
+    this._barStackAxis = value
   }
 
   get anchor(): { x: number; y: number } {
