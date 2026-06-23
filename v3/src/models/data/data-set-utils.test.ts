@@ -6,7 +6,7 @@ import { CollectionModel, ICollectionModel } from "./collection"
 import { DataSet, IDataSet, toCanonical } from "./data-set"
 import {
   getCaseNameForCount, getCollectionAttrs, getNextCase, getPreviousCase, moveAttribute, rerandomizeAllAttributes,
-  selectAndDeselectCasesInteractive
+  selectAndDeselectCases
 } from "./data-set-utils"
 
 jest.mock("../tiles/tile-environment", () => {
@@ -172,7 +172,7 @@ describe("DataSetUtils", () => {
   })
 })
 
-describe("selectAndDeselectCasesInteractive", () => {
+describe("selectAndDeselectCases", () => {
   function makeDataSet(notify?: jest.Mock) {
     const data = DataSet.create({ name: "data" }, notify ? { notify } : undefined)
     data.addAttribute({ id: "aId", name: "a" })
@@ -190,7 +190,7 @@ describe("selectAndDeselectCasesInteractive", () => {
     const applyModelChangeSpy = jest.spyOn(data, "applyModelChange")
     const c1 = caseId(data, "i1"), c2 = caseId(data, "i2")
 
-    selectAndDeselectCasesInteractive([c1, c2], [], data)
+    selectAndDeselectCases([c1, c2], [], data)
 
     expect(data.isCaseSelected(c1)).toBe(true)
     expect(data.isCaseSelected(c2)).toBe(true)
@@ -206,7 +206,7 @@ describe("selectAndDeselectCasesInteractive", () => {
     data.selectCases([c1]) // pre-select via raw action
     notify.mockClear()
 
-    selectAndDeselectCasesInteractive([], [c1], data)
+    selectAndDeselectCases([], [c1], data)
 
     expect(data.isCaseSelected(c1)).toBe(false)
     expect(notify).toHaveBeenCalledTimes(1)
@@ -215,7 +215,7 @@ describe("selectAndDeselectCasesInteractive", () => {
   it("does not notify when both deltas are empty", () => {
     const notify = jest.fn()
     const data = makeDataSet(notify)
-    selectAndDeselectCasesInteractive([], [], data)
+    selectAndDeselectCases([], [], data)
     expect(notify).not.toHaveBeenCalled()
   })
 
@@ -226,7 +226,7 @@ describe("selectAndDeselectCasesInteractive", () => {
     data.selectCases([c1]) // pre-select c1
     notify.mockClear()
     // re-adding an already-selected case (e.g. an oscillating marquee) is not a real change
-    selectAndDeselectCasesInteractive([c1], [], data)
+    selectAndDeselectCases([c1], [], data)
     expect(notify).not.toHaveBeenCalled()
     expect(data.isCaseSelected(c1)).toBe(true)
   })

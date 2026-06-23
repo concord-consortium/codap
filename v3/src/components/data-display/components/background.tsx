@@ -7,8 +7,7 @@ import { isKeyDown } from "../../../hooks/use-key-states"
 import {appState} from "../../../models/app-state"
 import {Logger} from "../../../lib/logger"
 import {IDataSet} from "../../../models/data/data-set"
-import {selectAllCases, selectAndDeselectCases, selectAndDeselectCasesInteractive}
-  from "../../../models/data/data-set-utils"
+import {selectAllCases, selectAndDeselectCases} from "../../../models/data/data-set-utils"
 import { getTileModel } from "../../../models/tiles/tile-model"
 import {defaultBackgroundColor} from "../../../utilities/color-utils"
 import { mstReaction } from "../../../utilities/mst-reaction"
@@ -154,15 +153,11 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
       newDeselection.forEach((caseObject: caseObject) => {
         datasetsMap[caseObject.datasetID].caseIDsToDeselect.push(caseObject.caseID)
       })
-      // Apply the selections and de-selections for each dataset
+      // Apply the selections and de-selections for each dataset. selectAndDeselectCases uses a
+      // volatile selection + direct per-move delta notification (no applyModelChange).
       Object.values(datasetsMap).forEach((selectionSpec) => {
         const {dataset, caseIDsToSelect, caseIDsToDeselect} = selectionSpec
-        if (appState.isPerformanceMode) {
-          // Fast path: volatile selection + direct per-move notification, no applyModelChange.
-          selectAndDeselectCasesInteractive(caseIDsToSelect, caseIDsToDeselect, dataset)
-        } else {
-          selectAndDeselectCases(caseIDsToSelect, caseIDsToDeselect, dataset)
-        }
+        selectAndDeselectCases(caseIDsToSelect, caseIDsToDeselect, dataset)
       })
 
       clearDatasetsMapArrays()

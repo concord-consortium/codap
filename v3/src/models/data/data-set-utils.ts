@@ -176,19 +176,13 @@ export function setOrExtendSelection(caseIds: string[], data?: IDataSet, extend 
   else setSelectedCases(caseIds, data)
 }
 
-export function selectAndDeselectCases(addCaseIds: string[], removeCaseIds: string[], data?: IDataSet) {
-  selectWithNotification(() => {
-    data?.selectCases(addCaseIds)
-    data?.selectCases(removeCaseIds, false)
-  }, data, true)
-}
-
-// Performance-mode marquee path: update the (volatile) selection via raw selectCases actions and
-// notify plugins directly from the known delta, skipping the applyModelChange + selectCasesNotification
-// wrapper. selectCases still mutates the Set, bumps selectionChanges, and fires onAnyAction, so graph
-// and table reactivity are unchanged. Selection is volatile/not undoable and is serialized at save
-// time, so no model "commit" is needed at drag end.
-export function selectAndDeselectCasesInteractive(
+// Marquee selection path: update the (volatile) selection via raw selectCases actions and notify
+// plugins directly from the known delta, rather than wrapping in applyModelChange + the O(selection)
+// before/after snapshot of selectCasesNotification. selectCases still mutates the Set, bumps
+// selectionChanges, and fires onAnyAction, so graph and table reactivity are unchanged. Selection is
+// volatile/not undoable and is serialized at save time, so no model "commit" is needed at drag end.
+// The delta notification (childmost cases only) also matches V2's marquee selectCases notification.
+export function selectAndDeselectCases(
   addCaseIds: string[], removeCaseIds: string[], data?: IDataSet
 ) {
   if (!data) return
