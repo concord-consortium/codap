@@ -11,7 +11,7 @@ import {
   PointRendererBase
 } from "./point-renderer-base"
 import { PointsState } from "./points-state"
-import { coalesceBars, IBarPiece } from "./bar-coalescing"
+import { coalesceBars, IBarPiece, pointStateToBarPiece } from "./bar-coalescing"
 import {
   IBackgroundEventDistributionOptions,
   IPoint,
@@ -282,12 +282,10 @@ export class PixiPointRenderer extends PointRendererBase {
     this.sprites.forEach(sprite => {
       sprite.mask = null
     })
-    // Defer destruction of old masks
+    // Defer destruction of old masks (see deferDestroy)
     const oldMasks = this.subPlotMasks
     this.subPlotMasks = []
-    requestAnimationFrame(() => {
-      oldMasks.forEach(mask => mask.destroy())
-    })
+    this.deferDestroy(oldMasks)
 
     // Create new masks
     for (let top = 0; top < topCats; ++top) {
@@ -321,17 +319,22 @@ export class PixiPointRenderer extends PointRendererBase {
   // plots coalesce and clip per cell. eventMode "none" keeps the layer from swallowing pointer
   // events (empty-space clicks should reach the background to deselect; bar clicks are handled by
   // the SVG bar covers). pointsContainer has no transform, so the stage shares its coordinate space.
+  // Destroy PIXI objects on the next animation frame rather than synchronously: an in-flight render
+  // this frame may still reference them, and rendering a destroyed object throws (null GPU context).
+  // Used when swapping out subplot masks and the per-subplot bar layers. See CODAP-1234.
+  private deferDestroy(objects: Array<{ destroy(): void }>): void {
+    requestAnimationFrame(() => objects.forEach(obj => obj.destroy()))
+  }
+
   private rebuildBarsGraphics(): void {
     // Remove the old layers from the stage and clear their masks now (so they are no longer
-    // collected for rendering), but defer destroy() to the next frame: an in-flight render this
-    // frame may still reference them, and rendering a destroyed Graphics throws (null GPU context).
-    // This mirrors the deferred destruction of the subplot masks in doResize. See CODAP-1234.
+    // collected for rendering), but defer destroy() to the next frame (see deferDestroy).
     const oldGraphics = this.barsGraphicsBySubplot
     oldGraphics.forEach(graphics => {
       graphics.mask = null
       this.stage.removeChild(graphics)
     })
-    requestAnimationFrame(() => oldGraphics.forEach(graphics => graphics.destroy()))
+    this.deferDestroy(oldGraphics)
 
     this.barsGraphicsBySubplot = this.subPlotMasks.map(mask => {
       const graphics = new PIXI.Graphics()
@@ -550,12 +553,10 @@ export class PixiPointRenderer extends PointRendererBase {
     this.barsGraphicsBySubplot.forEach(graphics => {
       graphics.mask = null
     })
-    // Defer destruction of old masks
+    // Defer destruction of old masks (see deferDestroy)
     const oldMasks = this.subPlotMasks
     this.subPlotMasks = []
-    requestAnimationFrame(() => {
-      oldMasks.forEach(mask => mask.destroy())
-    })
+    this.deferDestroy(oldMasks)
     // Trigger a render to show sprites without masks
     this.doStartRendering()
   }
@@ -677,12 +678,9 @@ export class PixiPointRenderer extends PointRendererBase {
   // are handled by the SVG bar covers, so hiding the sprites doesn't affect selection. See
   // CODAP-1234.
   private updateBarsLayer(): void {
-    // Only coalesce when cases are fused into shared stacked bars (bar chart/histogram), and not
-    // during any transition. Coalescing assumes stable geometry, so while a transition is running
-    // (the points<->bars fuse, or position/axis animations) we keep per-case sprite rendering so
-    // the animation plays. Non-fused "bars" (each case its own bar) also stay per-case.
-    const useCoalesced = this._displayType === "bars" && this._pointsFusedIntoBars &&
-      !this.anyTransitionActive
+    // Coalesce only fused bars and not mid-transition (see shouldCoalesceBars); otherwise keep
+    // per-case sprite rendering so transitions animate and non-fused "bars" draw per case.
+    const useCoalesced = this.shouldCoalesceBars
     if (!useCoalesced) {
       if (this.barsLayerActive) {
         this.barsGraphicsBySubplot.forEach(graphics => graphics.clear())
@@ -697,16 +695,11 @@ export class PixiPointRenderer extends PointRendererBase {
     // masked to its cell). Each subplot's runs are drawn into its own masked Graphics.
     const piecesBySubplot = new Map<number, IBarPiece[]>()
     this.state.forEach(pointState => {
-      const { style } = pointState
-      if (!pointState.isVisible || style.width == null || style.height == null) return
+      const piece = pointStateToBarPiece(pointState)
+      if (!piece) return
       const subplot = pointState.subPlotNum ?? 0
       const pieces = piecesBySubplot.get(subplot) ?? []
-      pieces.push({
-        x: pointState.x, y: pointState.y, scale: pointState.scale,
-        width: style.width, height: style.height,
-        fill: style.fill, stroke: style.stroke,
-        strokeWidth: style.strokeWidth, strokeOpacity: style.strokeOpacity ?? 0.4
-      })
+      pieces.push(piece)
       piecesBySubplot.set(subplot, pieces)
     })
 

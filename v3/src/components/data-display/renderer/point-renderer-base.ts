@@ -257,6 +257,16 @@ export abstract class PointRendererBase {
     this._anchor = value
   }
 
+  /**
+   * Whether the renderer should draw fused bars as coalesced same-style segments rather than
+   * per-case rects/sprites: only for bar charts/histograms whose cases are fused into shared
+   * stacked bars, and not mid-transition (coalescing assumes stable geometry, so during a
+   * transition we keep per-case rendering so the animation plays). Shared by both renderers.
+   */
+  protected get shouldCoalesceBars(): boolean {
+    return this._displayType === "bars" && this._pointsFusedIntoBars && !this.anyTransitionActive
+  }
+
   // ===== Template methods (shared logic + delegation) =====
 
   /**
@@ -333,6 +343,13 @@ export abstract class PointRendererBase {
     // (e.g., PixiPointRenderer's display type transition), so defer the assignment.
     this.doMatchPointsToData(datasetID, caseData, displayType, style)
     this._displayType = displayType
+    // The bar-only state is set imperatively by the bar-chart/histogram plot components and is
+    // never otherwise reset; clear it whenever we leave bars mode so a reused renderer can't carry
+    // a stale fuse flag / stack axis into a non-bars plot. See CODAP-1234.
+    if (displayType !== "bars") {
+      this._pointsFusedIntoBars = false
+      this._barStackAxis = "y"
+    }
   }
 
   /**

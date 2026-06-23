@@ -30,6 +30,33 @@ describe("coalesceBarRuns", () => {
     ])
   })
 
+  it("splits a same-fill run where a selected case carries a distinct selection stroke (legend mode)", () => {
+    // With a legend, selection is encoded only in the stroke (the fill stays the legend color). A
+    // selected case between unselected same-fill cases must remain its own run so its selection
+    // stroke survives — grouping by fill alone would drop it, hiding the selection. See CODAP-1234.
+    const runs = coalesceBarRuns([
+      piece(0, "#e6805b"),
+      piece(1, "#e6805b", { stroke: "#ff0000", strokeWidth: 2, strokeOpacity: 1 }),
+      piece(2, "#e6805b")
+    ], anchor)
+    expect(runs).toEqual([
+      { left: 10, top: 0, width: 4, height: 1, fill: "#e6805b", stroke: "#ffffff", strokeWidth: 1, strokeOpacity: 0.4 },
+      { left: 10, top: 1, width: 4, height: 1, fill: "#e6805b", stroke: "#ff0000", strokeWidth: 2, strokeOpacity: 1 },
+      { left: 10, top: 2, width: 4, height: 1, fill: "#e6805b", stroke: "#ffffff", strokeWidth: 1, strokeOpacity: 0.4 }
+    ])
+  })
+
+  it("still merges contiguous cases that share both fill and stroke (selection coalesces too)", () => {
+    const selected = { stroke: "#ff0000", strokeWidth: 2, strokeOpacity: 1 }
+    const runs = coalesceBarRuns([
+      piece(0, "#e6805b", selected), piece(1, "#e6805b", selected), piece(2, "#e6805b")
+    ], anchor)
+    expect(runs).toEqual([
+      { left: 10, top: 0, width: 4, height: 2, fill: "#e6805b", stroke: "#ff0000", strokeWidth: 2, strokeOpacity: 1 },
+      { left: 10, top: 2, width: 4, height: 1, fill: "#e6805b", stroke: "#ffffff", strokeWidth: 1, strokeOpacity: 0.4 }
+    ])
+  })
+
   it("produces one run per interleaved single-case run", () => {
     const runs = coalesceBarRuns([piece(0, "#4682b4"), piece(1, "#e6805b"), piece(2, "#4682b4")], anchor)
     expect(runs.map(r => r.fill)).toEqual(["#4682b4", "#e6805b", "#4682b4"])
@@ -102,6 +129,19 @@ describe("coalesceBarRuns with stackAxis='x' (horizontal bars)", () => {
     const runs = coalesceBarRuns([hpiece(0, "#4682b4"), hpiece(1, "#4682b4"), hpiece(2, "#e6805b")], anchor, "x")
     expect(runs).toEqual([
       { left: 0, top: 10, width: 2, height: 4, fill: "#4682b4", stroke: "#ffffff", strokeWidth: 1, strokeOpacity: 0.4 },
+      { left: 2, top: 10, width: 1, height: 4, fill: "#e6805b", stroke: "#ffffff", strokeWidth: 1, strokeOpacity: 0.4 }
+    ])
+  })
+
+  it("splits a same-fill run where a selected case carries a distinct selection stroke (legend mode)", () => {
+    const runs = coalesceBarRuns([
+      hpiece(0, "#e6805b"),
+      hpiece(1, "#e6805b", { stroke: "#ff0000", strokeWidth: 2, strokeOpacity: 1 }),
+      hpiece(2, "#e6805b")
+    ], anchor, "x")
+    expect(runs).toEqual([
+      { left: 0, top: 10, width: 1, height: 4, fill: "#e6805b", stroke: "#ffffff", strokeWidth: 1, strokeOpacity: 0.4 },
+      { left: 1, top: 10, width: 1, height: 4, fill: "#e6805b", stroke: "#ff0000", strokeWidth: 2, strokeOpacity: 1 },
       { left: 2, top: 10, width: 1, height: 4, fill: "#e6805b", stroke: "#ffffff", strokeWidth: 1, strokeOpacity: 0.4 }
     ])
   })

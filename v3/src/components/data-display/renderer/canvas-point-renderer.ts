@@ -12,7 +12,7 @@
 
 import { CaseDataWithSubPlot } from "../d3-types"
 import { PointDisplayType, transitionDuration } from "../data-display-types"
-import { coalesceBars, IBarPiece } from "./bar-coalescing"
+import { coalesceBars, IBarPiece, pointStateToBarPiece } from "./bar-coalescing"
 import { CanvasHitTester, CanvasTransitionManager } from "./canvas"
 import {
   circleAnchor,
@@ -486,11 +486,10 @@ export class CanvasPointRenderer extends PointRendererBase {
       }
 
       // Draw each point. Bars whose cases are fused into shared stacked bars (bar chart/histogram)
-      // are drawn by coalescing contiguous same-fill cases into one solid segment rect each (see
+      // are drawn by coalescing contiguous same-style cases into one solid segment rect each (see
       // drawBars), rather than one rect per case. Non-fused bars (each case its own bar) fall
-      // through to per-case drawing, as do bars mid-transition: coalescing assumes stable geometry,
-      // so during a transition (e.g. the points<->bars fuse) we draw per case so the animation plays.
-      if (this._displayType === "bars" && this._pointsFusedIntoBars && !this.anyTransitionActive) {
+      // through to per-case drawing, as do bars mid-transition (see shouldCoalesceBars).
+      if (this.shouldCoalesceBars) {
         this.drawBars(points)
       } else {
         for (const pointState of points) {
@@ -517,13 +516,8 @@ export class CanvasPointRenderer extends PointRendererBase {
     if (!ctx) return
     const pieces: IBarPiece[] = []
     for (const p of points) {
-      if (!p.isVisible || p.style.width == null || p.style.height == null) continue
-      pieces.push({
-        x: p.x, y: p.y, scale: p.scale,
-        width: p.style.width, height: p.style.height,
-        fill: p.style.fill, stroke: p.style.stroke,
-        strokeWidth: p.style.strokeWidth, strokeOpacity: p.style.strokeOpacity ?? 0.4
-      })
+      const piece = pointStateToBarPiece(p)
+      if (piece) pieces.push(piece)
     }
     for (const run of coalesceBars(pieces, this._anchor, this._barStackAxis)) {
       ctx.fillStyle = run.fill
