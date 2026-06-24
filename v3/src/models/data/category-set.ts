@@ -1,12 +1,9 @@
 import { uniq } from "lodash"
-import { observable, runInAction } from "mobx"
 import {
-  addDisposer, getEnv, hasEnv, IAnyStateTreeNode, Instance, isValidReference,
-  onPatch, resolveIdentifier, SnapshotIn, types
+  getEnv, hasEnv, IAnyStateTreeNode, Instance, resolveIdentifier, SnapshotIn, types
 } from "mobx-state-tree"
 import { kellyColors } from "../../utilities/color-utils"
 import { compareValues } from "../../utilities/data-utils"
-import { mstReaction } from "../../utilities/mst-reaction"
 import { gLocale } from "../../utilities/translation/locale"
 import { Attribute, IAttribute } from "./attribute"
 import { IDataSet } from "./data-set"
@@ -39,6 +36,90 @@ export function createProvisionalCategorySet(data: IDataSet | undefined, attrId:
   return CategorySet.create({ attribute: attrId }, { provisionalDataSet: data })
 }
 
+// Apply the user-recorded category moves to a freshly-sorted values array. Each move records
+// neighbor categories (`after`/`before`) so a re-derivation can place the moved category back
+// into approximately its user-chosen slot, even after other categories have come or gone.
+function applyMoves(values: string[], moves: readonly ICategoryMove[]): string[] {
+  if (moves.length === 0) return values
+
+  const result = values.slice()
+  const indexMap = new Map<string, number>()
+  function rebuildIndexMap() {
+    indexMap.clear()
+    result.forEach((v, i) => indexMap.set(v, i))
+  }
+  function moveValueToIndex(value: string, dstIndex: number) {
+    const valueIndex = indexMap.get(value)
+    if (valueIndex != null && valueIndex !== dstIndex) {
+      result.splice(valueIndex, 1)
+      result.splice(dstIndex, 0, value)
+      rebuildIndexMap()
+    }
+  }
+  // if the source index is after the destination index, adjust the destination index
+  const afterDstIndex = (srcIndex: number, afterIndex: number) =>
+    srcIndex > afterIndex ? afterIndex + 1 : afterIndex
+  // if the source index is before the destination index, adjust the destination index
+  const beforeDstIndex = (srcIndex: number, beforeIndex: number) =>
+    srcIndex < beforeIndex ? beforeIndex - 1 : beforeIndex
+
+  rebuildIndexMap()
+  moves.forEach(move => {
+    const valueIndex = indexMap.get(move.value)
+    // the value associated with this category move is no longer one of the categories
+    if (valueIndex == null) return
+
+    const afterIndex = move.after ? indexMap.get(move.after) : undefined
+    const beforeIndex = move.before ? indexMap.get(move.before) : undefined
+    // both neighboring categories still exist?
+    if ((afterIndex != null) && (beforeIndex != null)) {
+      // category is already (at least approximately) where it should be
+      if ((valueIndex >= afterIndex) && (valueIndex <= beforeIndex)) return
+
+      // move it next to the category closest to its original position
+      const moveRatio = move.toIndex / move.length
+      const afterRatio = afterIndex / result.length
+      const beforeRatio = beforeIndex / result.length
+      const afterDistance = Math.abs(moveRatio - afterRatio)
+      const beforeDistance = Math.abs(moveRatio - beforeRatio)
+      const dstIndex = afterDistance < beforeDistance
+        ? afterDstIndex(valueIndex, afterIndex)
+        : beforeDstIndex(valueIndex, beforeIndex)
+      moveValueToIndex(move.value, dstIndex)
+    }
+    else if (afterIndex != null) {
+      moveValueToIndex(move.value, afterDstIndex(valueIndex, afterIndex))
+    }
+    else if (beforeIndex != null) {
+      moveValueToIndex(move.value, beforeDstIndex(valueIndex, beforeIndex))
+    }
+    else {
+      // neither category neighbor still exists
+      const moveRatio = move.toIndex / move.length
+      // if it was moved near the beginning, put it at the beginning
+      if (moveRatio <= 0.2) {
+        moveValueToIndex(move.value, 0)
+      }
+      // if it was moved near the end, put it at the end
+      else if (moveRatio >= 0.8) {
+        moveValueToIndex(move.value, result.length - 1)
+      }
+      // else just punt for now
+    }
+  })
+  return result
+}
+
+// While a category drag is in progress, slot the dragged category into its in-flight position.
+function applyDrag(values: string[], dragCategory: string, dragCategoryIndex: number): string[] {
+  const fromIndex = values.indexOf(dragCategory)
+  if (fromIndex < 0 || fromIndex === dragCategoryIndex) return values
+  const result = values.slice()
+  result.splice(fromIndex, 1)
+  result.splice(dragCategoryIndex, 0, dragCategory)
+  return result
+}
+
 export const CategorySet = types.model("CategorySet", {
   // Customize the reference lookup so that provisional category sets are looked up directly in the DataSet.
   // Otherwise, references can only be resolved once the CategorySet has been added to the document, which
@@ -66,139 +147,55 @@ export const CategorySet = types.model("CategorySet", {
   dragCategory: undefined as Maybe<string>,
   dragCategoryIndex: -1
 }))
-.actions(self => ({
-  onAttributeInvalidated(handler: (attrId: string) => void) {
-    self.handleAttributeInvalidated = handler
+.views(self => ({
+  // Categories are derived directly from the attribute's values plus user moves and the in-flight
+  // drag state. MST views are MobX computeds, so the result is cached and re-derived only when one
+  // of the tracked dependencies changes. The deliberate read of `attribute.changeCount` establishes
+  // a dependency on element mutations in `strValues` (which is a volatile array — element-level
+  // mutations like setComputedValues bump changeCount but don't fire on the array reference).
+  // This is the simpler successor to a manual cache + reaction that previously lived here; that
+  // pattern was fragile because mobx defers a reaction's initial accessor invocation past mutations
+  // landing in the same outer batch (CODAP-1429).
+  get values(): readonly string[] {
+    const attr = self.attribute
+    // DO NOT REMOVE: this read tracks element-level mutations in attr.strValues (a volatile
+    // array whose mutations bump changeCount but don't fire on the array reference). Without
+    // it, formula recomputes via setComputedValues would not re-derive the categories.
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    attr.changeCount
+    const sorted = uniq(attr.strValues.filter(v => v != null && v !== ""))
+                    .sort((a, b) => compareValues(a, b, gLocale.compareStrings))
+    const reordered = applyMoves(sorted, self.moves)
+    return self.dragCategory != null
+      ? applyDrag(reordered, self.dragCategory, self.dragCategoryIndex)
+      : reordered
   }
 }))
-.extend(self => {
-  // map from category value to index
-  const _indexMap = new Map<string, number>()
-  const observableValues = observable.array<string>()
-  let _values: string[] = []
-  const _isValid = observable.box(false)
-
-  function rebuildIndexMap() {
-    _indexMap.clear()
-    _values.forEach((value, index) => {
-      _indexMap.set(value, index)
-    })
+.views(self => ({
+  get indexMap(): ReadonlyMap<string, number> {
+    const map = new Map<string, number>()
+    self.values.forEach((v, i) => map.set(v, i))
+    return map
   }
-
-  function moveValueToIndex(value: string, dstIndex: number) {
-    const valueIndex = _indexMap.get(value)
-    if (valueIndex != null && valueIndex !== dstIndex) {
-      // remove value from current position
-      _values.splice(valueIndex, 1)
-      // insert value in new position
-      _values.splice(dstIndex, 0, value)
-      // update the index map
-      rebuildIndexMap()
-    }
+}))
+.views(self => ({
+  index(value: string): number | undefined {
+    return self.indexMap.get(value)
+  },
+  get valuesArray(): string[] {
+    return Array.from(self.values)
+  },
+  // list of actions that indicate deliberate action by the user
+  // used to determine when to move provisional category sets into the document
+  get userActionNames() {
+    return ["move", "setColorForCategory", "storeCurrentColorForCategory"]
+  },
+  get lastMove() {
+    return self.moves.length > 0
+            ? self.moves[self.moves.length - 1]
+            : undefined
   }
-
-  function afterDstIndex(srcIndex: number, afterIndex: number) {
-    // if the source index is after the destination index, we need to adjust the destination index
-    return srcIndex > afterIndex ? afterIndex + 1 : afterIndex
-  }
-
-  function beforeDstIndex(srcIndex: number, beforeIndex: number) {
-    // if the source index is before the destination index, we need to adjust the destination index
-    return srcIndex < beforeIndex ? beforeIndex - 1 : beforeIndex
-  }
-
-  function refresh() {
-    if (!_isValid.get()) {
-      // build default category set order (sorted alphanumerically)
-      _values = uniq(self.attribute.strValues.filter(value => value != null && value !== ""))
-      _values.sort((a, b) => compareValues(a, b, gLocale.compareStrings))
-      rebuildIndexMap()
-
-      // apply category moves
-      self.moves.forEach(move => {
-        const valueIndex = _indexMap.get(move.value)
-        // the value associated with this category move is no longer one of the categories
-        if (valueIndex == null) return
-
-        const afterIndex = move.after ? _indexMap.get(move.after) : undefined
-        const beforeIndex = move.before ? _indexMap.get(move.before) : undefined
-        // both neighboring categories still exist?
-        if ((afterIndex != null) && (beforeIndex != null)) {
-          // category is already (at least approximately) where it should be
-          if ((valueIndex >= afterIndex) && (valueIndex <= beforeIndex)) return
-
-          // move it next to the category closest to its original position
-          const moveRatio = move.toIndex / move.length
-          const afterRatio = afterIndex / _values.length
-          const beforeRatio = beforeIndex / _values.length
-          const afterDistance = Math.abs(moveRatio - afterRatio)
-          const beforeDistance = Math.abs(moveRatio - beforeRatio)
-          const dstIndex = afterDistance < beforeDistance
-                            ? afterDstIndex(valueIndex, afterIndex)
-                            : beforeDstIndex(valueIndex, beforeIndex)
-          moveValueToIndex(move.value, dstIndex)
-        }
-        else if (afterIndex != null) {
-          moveValueToIndex(move.value, afterDstIndex(valueIndex, afterIndex))
-        }
-        else if (beforeIndex != null) {
-          moveValueToIndex(move.value, beforeDstIndex(valueIndex, beforeIndex))
-        }
-        else {
-          // neither category neighbor still exists
-          const moveRatio = move.toIndex / move.length
-          // if it was moved near the beginning, put it at the beginning
-          if (moveRatio <= 0.2) {
-            moveValueToIndex(move.value, 0)
-          }
-          // if it was moved near the end, put it at the end
-          else if (moveRatio >= 0.8) {
-            moveValueToIndex(move.value, move.length - 1)
-          }
-          else {
-            // just punt for now
-          }
-        }
-      })
-
-      // move the currently dragged category into position
-      if (self.dragCategory) {
-        const dragCategoryIndex = _indexMap.get(self.dragCategory)
-        if (dragCategoryIndex != null && self.dragCategoryIndex !== dragCategoryIndex) {
-          moveValueToIndex(self.dragCategory, self.dragCategoryIndex)
-        }
-      }
-
-      runInAction(() => {
-        observableValues.replace(_values)
-        _isValid.set(true)
-      })
-    }
-  }
-
-  return {
-    views: {
-      get values() {
-        refresh()
-        return observableValues
-      },
-      index(value: string) {
-        refresh()
-        return _indexMap.get(value)
-      }
-    },
-    actions: {
-      invalidate() {
-        _isValid.set(false)
-      },
-      setDragCategory(category?: string, index = -1) {
-        self.dragCategory = category
-        self.dragCategoryIndex = index
-        _isValid.set(false)
-      }
-    }
-  }
-})
+}))
 .views(self => ({
   get colorMap() {
     const colorForCategory = (category: string, index: number) => {
@@ -214,54 +211,17 @@ export const CategorySet = types.model("CategorySet", {
   }
 }))
 .views(self => ({
-  get valuesArray() {
-    return Array.from(self.values)
-  },
-  get userActionNames() {
-    // list of actions that indicate deliberate action by the user
-    // used to determine when to move provisional category sets into the document
-    return ["move", "setColorForCategory", "storeCurrentColorForCategory"]
-  },
-  get lastMove() {
-    return self.moves.length > 0
-            ? self.moves[self.moves.length - 1]
-            : undefined
-  },
   colorForCategory(category: string) {
     return self.colorMap[category]
   }
 }))
 .actions(self => ({
-  afterCreate() {
-    addDisposer(self, onPatch(self, patch => {
-      // invalidate the categories when the moves are changed
-      if (patch.path.includes("/moves")) {
-        self.invalidate()
-      }
-    }))
-
-    // Invalidate the cached categories whenever the attribute's values change.
-    // Reacting to changeCount (the canonical "values changed" signal) covers all value-mutation
-    // paths, including the volatile setComputedValues path used by formula evaluation, which
-    // doesn't fire its own MST action. Note: clearFormula/setDisplayExpression don't bump
-    // changeCount, but they don't need to invalidate the cache either — the values themselves
-    // don't change at that moment, and any subsequent recomputation goes through setComputedValues
-    // which will bump changeCount and trigger this reaction.
-    // The accessor guards against an invalid attribute reference (which can occur briefly while
-    // the attribute is being destroyed). The reaction is disposed when this CategorySet is
-    // destroyed; for a provisional CategorySet (a standalone node held in a volatile map, which
-    // is never itself destroyed) we also dispose it when its provisional DataSet is destroyed.
-    // Otherwise the orphaned reaction would fire during teardown and resolve `attribute` through
-    // the now-dead DataSet, logging an MST use-after-free warning (CODAP-1234).
-    const provisionalDataSet = getProvisionalDataSet(self)
-    mstReaction(
-      () => isValidReference(() => self.attribute) ? self.attribute.changeCount : undefined,
-      changeCount => {
-        if (changeCount != null) self.invalidate()
-      },
-      { name: "CategorySet.invalidateOnAttributeChangeCount" },
-      provisionalDataSet ? [self, provisionalDataSet] : self
-    )
+  onAttributeInvalidated(handler: (attrId: string) => void) {
+    self.handleAttributeInvalidated = handler
+  },
+  setDragCategory(category?: string, index = -1) {
+    self.dragCategory = category
+    self.dragCategoryIndex = index
   },
   move(value: string, beforeValue?: string) {
     const fromIndex = self.index(value)

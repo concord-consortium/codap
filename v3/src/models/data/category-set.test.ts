@@ -1,3 +1,4 @@
+import { autorun, runInAction } from "mobx"
 import { applySnapshot, destroy, getSnapshot, types } from "mobx-state-tree"
 import { kellyColors } from "../../utilities/color-utils"
 import { jestSpyConsole } from "../../test/jest-spy-console"
@@ -32,11 +33,10 @@ describe("CategorySet", () => {
     // attribute reference resolves to the free attribute
     expect(categories.attribute.name).toBe("aFree")
 
-    // attribute value changes trigger invalidation for provisional category sets
-    const provisionalSpy = jest.spyOn(categories, "invalidate")
+    // attribute value changes are picked up by provisional category sets
+    expect(categories.valuesArray).toEqual([])
     data.attributes[0].addValue("a")
-    expect(provisionalSpy).toHaveBeenCalledTimes(1)
-    provisionalSpy.mockRestore()
+    expect(categories.valuesArray).toEqual(["a"])
 
     const tree = Tree.create({
       attribute: Attribute.create({ id: "aId", name: "aTree" }),
@@ -47,11 +47,10 @@ describe("CategorySet", () => {
     // attribute reference resolves to attribute in tree
     expect(tree.categories.attribute.name).toBe("aTree")
 
-    // attribute value changes trigger invalidation for attached category sets
-    const attachedSpy = jest.spyOn(tree.categories, "invalidate")
+    // attribute value changes are picked up by attached category sets
+    expect(tree.categories.valuesArray).toEqual([])
     tree.attribute.addValue("a")
-    expect(attachedSpy).toHaveBeenCalledTimes(1)
-    attachedSpy.mockRestore()
+    expect(tree.categories.valuesArray).toEqual(["a"])
 
     // assigning a new attribute sets the attribute id
     tree.setAttribute(Attribute.create({ id: "bId", name: "bTree" }))
@@ -185,11 +184,34 @@ describe("CategorySet", () => {
     expect(categories.lastMove?.fromIndex).toBe(originalFromIndex)
   })
 
-  // Regression test: formula-computed values are written via Attribute.setComputedValues, which
-  // is a volatile method that doesn't fire its own MST action. The CategorySet must still invalidate
-  // and pick up the new categories — otherwise categorical scales backed by formula attributes are
-  // empty, points get NaN positions, and graphs render blank.
-  it("invalidates when formula-computed values are written via setComputedValues", () => {
+  // Documents move-to-end behavior. `move()` initializes the destination index to
+  // `values.length - 1` only when no (or a non-existent) `beforeValue` is given, and the
+  // `fromIndex < toIndex` decrement is in a mutually-exclusive `else if` branch — so the
+  // end case is never decremented and a category reliably lands at the true end.
+  it("moves a category to the end for an omitted or non-existent beforeValue", () => {
+    // omitted beforeValue -> move to end
+    const a = Attribute.create({ name: "a", values: ["a", "b", "c", "d"] })
+    const treeA = Tree.create({ attribute: a, categories: { attribute: a.id } })
+    expect(treeA.categories.valuesArray).toEqual(["a", "b", "c", "d"])
+    treeA.categories.move("b") // no beforeValue
+    expect(treeA.categories.valuesArray).toEqual(["a", "c", "d", "b"])
+    expect(treeA.categories.lastMove)
+      .toEqual({ value: "b", fromIndex: 1, toIndex: 3, length: 4, after: "d", before: undefined })
+
+    // non-existent beforeValue -> also move to end
+    const b = Attribute.create({ name: "b", values: ["a", "b", "c", "d"] })
+    const treeB = Tree.create({ attribute: b, categories: { attribute: b.id } })
+    treeB.categories.move("a", "bogus")
+    expect(treeB.categories.valuesArray).toEqual(["b", "c", "d", "a"])
+    expect(treeB.categories.lastMove?.toIndex).toBe(3)
+  })
+
+  // Regression test (CODAP-1280): formula-computed values are written via
+  // Attribute.setComputedValues, which is a volatile method that doesn't fire its own MST
+  // action — it bumps changeCount. The CategorySet's `values` view depends on changeCount,
+  // so it must pick up the new categories. Otherwise categorical scales backed by formula
+  // attributes are empty, points get NaN positions, and graphs render blank.
+  it("re-derives when formula-computed values are written via setComputedValues", () => {
     const a = Attribute.create({ name: "a", values: ["a", "a", "a", "a"] })
     const tree = Tree.create({
       attribute: a,
@@ -201,6 +223,87 @@ describe("CategorySet", () => {
     // simulate a formula recomputing the values
     a.setComputedValues([0, 1, 2, 3], ["x", "y", "x", "y"])
     expect(categories.valuesArray).toEqual(["x", "y"])
+  })
+
+  // CODAP-1429 regression: the originating bug occurred when CategorySet construction, the
+  // initial empty read, and the value-mutating setComputedValues all happened inside the SAME
+  // outermost mobx batch (the document-load pattern: the case-table renderer creates a
+  // provisional CategorySet for a formula attribute whose adapter hasn't run yet, reads its
+  // categories while strValues is still empty, and then the deferred formula adapter recomputes
+  // and bumps changeCount). The previous manual cache + mstReaction implementation failed here
+  // because mobx defers a reaction's initial accessor invocation to the end of the batch, so the
+  // deferred baseline captured the post-mutation changeCount and the invalidation never fired,
+  // leaving the empty categories cached. The computed `values` view has no such batch-timing
+  // window — it establishes its dependencies on whatever state is current at read time — so it
+  // re-derives correctly even when everything happens in one batch.
+  it("re-derives when creation, initial read, and setComputedValues happen in the same batch", () => {
+    const a = Attribute.create({ name: "a", values: ["", "", "", ""] })
+    let categories: ICategorySet | undefined
+    runInAction(() => {
+      const tree = Tree.create({
+        attribute: a,
+        categories: { attribute: a.id }
+      })
+      categories = tree.categories
+      // initial read while strValues is still empty (the case-table renderer does this during load)
+      expect(categories.valuesArray).toEqual([])
+      // the deferred formula adapter populates the values within the same batch
+      a.setComputedValues([0, 1, 2, 3], ["A", "B", "A", "B"])
+    })
+
+    expect(a.strValues).toEqual(["A", "B", "A", "B"])
+    expect(categories?.valuesArray).toEqual(["A", "B"])
+  })
+
+  // The categories list is a MobX computed (an MST view). A computed only memoizes — and only
+  // matters reactively — while it's observed; accessed imperatively it simply recomputes on every
+  // read, so imperative `expect(categories.values)` assertions would pass even if the view weren't
+  // reactive at all. This test observes `values` from an autorun and asserts the autorun re-runs
+  // for each kind of dependency change, which is the actual guarantee the refactor relies on (and
+  // the one that, if broken — e.g. by dropping the deliberate `attribute.changeCount` read — would
+  // reintroduce the CODAP-1429 / CODAP-1280 class of stale-categories bugs).
+  it("notifies observers when the derived categories change", () => {
+    const a = Attribute.create({ name: "a", values: ["b", "a"] })
+    const tree = Tree.create({
+      attribute: a,
+      categories: { attribute: a.id }
+    })
+    const categories = tree.categories
+
+    const observed: string[][] = []
+    const dispose = autorun(() => observed.push(Array.from(categories.values)))
+    expect(observed).toEqual([["a", "b"]])
+
+    // adding a value bumps changeCount and re-derives
+    a.addValue("c")
+    expect(observed).toHaveLength(2)
+    expect(observed[1]).toEqual(["a", "b", "c"])
+
+    // a formula recompute via the volatile setComputedValues (bumps changeCount) re-derives
+    a.setComputedValues([0, 1, 2], ["x", "y", "z"])
+    expect(observed).toHaveLength(3)
+    expect(observed[2]).toEqual(["x", "y", "z"])
+
+    // a user re-ordering re-derives
+    categories.move("z", "x") // move z before x
+    expect(observed).toHaveLength(4)
+    expect(observed[3]).toEqual(["z", "x", "y"])
+
+    // an in-flight drag re-derives
+    categories.setDragCategory("y", 0)
+    expect(observed).toHaveLength(5)
+    expect(observed[4]).toEqual(["y", "z", "x"])
+
+    dispose()
+  })
+
+  it("excludes blank values from the derived categories", () => {
+    const a = Attribute.create({ name: "a", values: ["a", "", "b", "", "a"] })
+    const tree = Tree.create({
+      attribute: a,
+      categories: { attribute: a.id }
+    })
+    expect(tree.categories.valuesArray).toEqual(["a", "b"])
   })
 
   it("handles volatile category drags", () => {
