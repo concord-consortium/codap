@@ -84,23 +84,30 @@ export function createItemsInSegments(dataContext: IDataSet, segments: DIItemVal
   // parent case is reported by the first request whose item forms it; later requests
   // join the existing case without reporting it. Items were appended in segment order, so
   // a case's earliest contributing item is simply the one in its lowest-numbered segment.
-  const segmentByItemId = new Map<string, number>()
-  segmentRanges.forEach(({ start, count }, segmentIndex) => {
-    for (let i = start; i < start + count; ++i) segmentByItemId.set(itemIDs[i], segmentIndex)
-  })
-
   const segmentCaseIDs: number[][] = segmentRanges.map(() => [])
-  for (const collectionId in newCaseIds) {
-    newCaseIds[collectionId].forEach(caseId => {
-      const childItemIds = dataContext.caseInfoMap.get(caseId)?.childItemIds ?? []
-      const earliestSegment = childItemIds.reduce<number>((earliest, itemId) => {
-        const segment = segmentByItemId.get(itemId)
-        return segment != null && segment < earliest ? segment : earliest
-      }, Infinity)
-      // a new case with no contributing batch item shouldn't occur during pure adds;
-      // attribute to the first segment if it ever does
-      segmentCaseIDs[isFinite(earliestSegment) ? earliestSegment : 0].push(toV2Id(caseId))
+  if (segments.length > 1) {
+    const segmentByItemId = new Map<string, number>()
+    segmentRanges.forEach(({ start, count }, segmentIndex) => {
+      for (let i = start; i < start + count; ++i) segmentByItemId.set(itemIDs[i], segmentIndex)
     })
+    for (const collectionId in newCaseIds) {
+      newCaseIds[collectionId].forEach(caseId => {
+        const childItemIds = dataContext.caseInfoMap.get(caseId)?.childItemIds ?? []
+        const earliestSegment = childItemIds.reduce<number>((earliest, itemId) => {
+          const segment = segmentByItemId.get(itemId)
+          return segment != null && segment < earliest ? segment : earliest
+        }, Infinity)
+        // a new case with no contributing batch item shouldn't occur during pure adds;
+        // attribute to the first segment if it ever does
+        segmentCaseIDs[isFinite(earliestSegment) ? earliestSegment : 0].push(toV2Id(caseId))
+      })
+    }
+  } else {
+    // Single segment (the ordinary, non-coalesced create path): every new case trivially
+    // belongs to segment 0, so skip the per-item attribution map and reduce entirely.
+    for (const collectionId in newCaseIds) {
+      newCaseIds[collectionId].forEach(caseId => segmentCaseIDs[0].push(toV2Id(caseId)))
+    }
   }
 
   return segmentRanges.map(({ start, count }, index) => ({
