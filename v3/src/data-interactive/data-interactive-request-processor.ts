@@ -145,7 +145,7 @@ export function setupRequestQueueProcessor(
   // Process a single request just as the pre-coalescing implementation did,
   // returning whether the request may have modified table data.
   async function processSingleRequest({ request, callback }: RequestPair): Promise<boolean> {
-    debugLog(DEBUG_PLUGINS, `${name} processing: ${JSON.stringify(request)}`)
+    debugLog(DEBUG_PLUGINS, `${name} processing:`, request)
 
     onProcessingStart?.()
 
@@ -208,6 +208,7 @@ export function setupRequestQueueProcessor(
     // respond with an error to each member instead. results is undefined when the create
     // threw; the not-all-success branch is currently unreachable (createItemsInSegments
     // returns all-success or throws) but is handled the same way for safety.
+    onProcessingStart?.()
     let results: DIHandlerFnResult[] | undefined
     try {
       results = createItemsInSegments(dataContext, segments)
@@ -217,7 +218,6 @@ export function setupRequestQueueProcessor(
     const succeeded = results?.length === members.length && results.every(result => result.success)
     members.forEach((member, index) => {
       debugLog(DEBUG_PLUGINS, `${name} processing (coalesced):`, member.request)
-      onProcessingStart?.()
       const result = succeeded ? results![index] : errorResult(t("V3.DI.Error.exceptionProcessingRequest"))
       debugLog(DEBUG_PLUGINS, `${name} responding with`, result)
       respond(member.callback, result)

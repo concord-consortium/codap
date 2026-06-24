@@ -131,10 +131,17 @@ processing would have returned:
 
 ## Failure handling
 
-If a batched create cannot proceed — the dataContext doesn't resolve, the call throws, or any
-segment reports failure — the run's members are processed individually through the normal
-single-request path, preserving exact sequential semantics (including per-request error
-messages). A coalescing bug therefore degrades to "no worse than unbatched."
+If the **dataContext doesn't resolve**, the batched create never runs and nothing is mutated,
+so the run's members are processed individually through the normal single-request path,
+preserving exact sequential semantics (including each member's per-request
+`dataContextNotFoundResult`). A coalescing bug in this case therefore degrades to "no worse
+than unbatched."
+
+If the dataContext **does** resolve but the batched create then throws (or reports a
+non-success result), the cases may already have been committed inside the non-transactional
+`applyModelChange`. The members are therefore **not** retried individually — re-processing them
+would re-add the committed cases (silent data duplication). Instead each member receives a
+per-request error response.
 
 ## Plugin-visible semantics
 
