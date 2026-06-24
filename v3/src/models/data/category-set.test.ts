@@ -1,4 +1,4 @@
-import { runInAction } from "mobx"
+import { autorun, runInAction } from "mobx"
 import { applySnapshot, destroy, getSnapshot, types } from "mobx-state-tree"
 import { kellyColors } from "../../utilities/color-utils"
 import { jestSpyConsole } from "../../test/jest-spy-console"
@@ -231,6 +231,57 @@ describe("CategorySet", () => {
 
     expect(a.strValues).toEqual(["A", "B", "A", "B"])
     expect(categories?.valuesArray).toEqual(["A", "B"])
+  })
+
+  // The categories list is a MobX computed (an MST view). A computed only memoizes — and only
+  // matters reactively — while it's observed; accessed imperatively it simply recomputes on every
+  // read, so imperative `expect(categories.values)` assertions would pass even if the view weren't
+  // reactive at all. This test observes `values` from an autorun and asserts the autorun re-runs
+  // for each kind of dependency change, which is the actual guarantee the refactor relies on (and
+  // the one that, if broken — e.g. by dropping the deliberate `attribute.changeCount` read — would
+  // reintroduce the CODAP-1429 / CODAP-1280 class of stale-categories bugs).
+  it("notifies observers when the derived categories change", () => {
+    const a = Attribute.create({ name: "a", values: ["b", "a"] })
+    const tree = Tree.create({
+      attribute: a,
+      categories: { attribute: a.id }
+    })
+    const categories = tree.categories
+
+    const observed: string[][] = []
+    const dispose = autorun(() => observed.push(Array.from(categories.values)))
+    expect(observed).toEqual([["a", "b"]])
+
+    // adding a value bumps changeCount and re-derives
+    a.addValue("c")
+    expect(observed).toHaveLength(2)
+    expect(observed[1]).toEqual(["a", "b", "c"])
+
+    // a formula recompute via the volatile setComputedValues (bumps changeCount) re-derives
+    a.setComputedValues([0, 1, 2], ["x", "y", "z"])
+    expect(observed).toHaveLength(3)
+    expect(observed[2]).toEqual(["x", "y", "z"])
+
+    // a user re-ordering re-derives
+    categories.move("z", "x") // move z before x
+    expect(observed).toHaveLength(4)
+    expect(observed[3]).toEqual(["z", "x", "y"])
+
+    // an in-flight drag re-derives
+    categories.setDragCategory("y", 0)
+    expect(observed).toHaveLength(5)
+    expect(observed[4]).toEqual(["y", "z", "x"])
+
+    dispose()
+  })
+
+  it("excludes blank values from the derived categories", () => {
+    const a = Attribute.create({ name: "a", values: ["a", "", "b", "", "a"] })
+    const tree = Tree.create({
+      attribute: a,
+      categories: { attribute: a.id }
+    })
+    expect(tree.categories.valuesArray).toEqual(["a", "b"])
   })
 
   it("handles volatile category drags", () => {
