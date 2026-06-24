@@ -256,9 +256,20 @@ export class CollectionTableModel {
     }
   }
 
+  // Chooses the scroll animation behavior for a target position. A caller-supplied behavior always
+  // wins; otherwise we modulate by distance: short scrolls (within one visible page) animate
+  // smoothly (a nicer experience, e.g. for arrow-key navigation to a neighboring row), while longer
+  // scrolls jump instantly to avoid a slow, distracting animation across many rows (e.g. selecting a
+  // distant case in a graph). See CODAP-1234.
+  scrollBehaviorForTarget(scrollTop: number, options?: IScrollOptions): "auto" | "smooth" {
+    if (options?.scrollBehavior) return options.scrollBehavior
+    return Math.abs(scrollTop - this.scrollTop) > this.gridBodyHeight ? "auto" : "smooth"
+  }
+
   @action setTargetScrollTop(scrollTop: number, options?: IScrollOptions) {
     this.targetScrollTop = scrollTop
-    this.setElementScrollTop(scrollTop, options)
+    const scrollBehavior = this.scrollBehaviorForTarget(scrollTop, options)
+    this.setElementScrollTop(scrollTop, { ...options, scrollBehavior })
   }
 
   syncScrollTopToElement() {

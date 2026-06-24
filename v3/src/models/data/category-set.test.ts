@@ -1,5 +1,6 @@
-import { applySnapshot, getSnapshot, types } from "mobx-state-tree"
+import { applySnapshot, destroy, getSnapshot, types } from "mobx-state-tree"
 import { kellyColors } from "../../utilities/color-utils"
+import { jestSpyConsole } from "../../test/jest-spy-console"
 import { Attribute, IAttribute } from "./attribute"
 import { CategorySet, ICategorySet, createProvisionalCategorySet, getProvisionalDataSet } from "./category-set"
 import { DataSet } from "./data-set"
@@ -61,6 +62,23 @@ describe("CategorySet", () => {
     const c = Attribute.create({ id: "cId", name: "c" }, undefined)
     expect(getProvisionalDataSet(c)).toBeUndefined()
     expect(getProvisionalDataSet(null)).toBeUndefined()
+  })
+
+  it("disposes its attribute-change reaction when its provisional DataSet is destroyed", async () => {
+    const data = DataSet.create()
+    data.addAttribute({ id: "aId", name: "aFree" })
+    const categories = createProvisionalCategorySet(data, "aId")
+    // accessing the attribute establishes the reaction's dependency on the (live) DataSet
+    expect(categories.attribute.name).toBe("aFree")
+
+    // Destroying the DataSet (as happens when a document is replaced on load) must dispose the
+    // CategorySet's invalidate-on-change reaction. Otherwise the orphaned reaction fires during
+    // teardown and resolves `attribute` through the now-dead DataSet, logging an MST
+    // "no longer part of a state tree" use-after-free warning via console.warn.
+    await jestSpyConsole("warn", spy => {
+      destroy(data)
+      expect(spy).not.toHaveBeenCalled()
+    })
   })
 
   it("constructs categories, allows them to be moved, and responds to changes", () => {
