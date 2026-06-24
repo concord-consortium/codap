@@ -184,6 +184,28 @@ describe("CategorySet", () => {
     expect(categories.lastMove?.fromIndex).toBe(originalFromIndex)
   })
 
+  // Documents move-to-end behavior. `move()` initializes the destination index to
+  // `values.length - 1` only when no (or a non-existent) `beforeValue` is given, and the
+  // `fromIndex < toIndex` decrement is in a mutually-exclusive `else if` branch — so the
+  // end case is never decremented and a category reliably lands at the true end.
+  it("moves a category to the end for an omitted or non-existent beforeValue", () => {
+    // omitted beforeValue -> move to end
+    const a = Attribute.create({ name: "a", values: ["a", "b", "c", "d"] })
+    const treeA = Tree.create({ attribute: a, categories: { attribute: a.id } })
+    expect(treeA.categories.valuesArray).toEqual(["a", "b", "c", "d"])
+    treeA.categories.move("b") // no beforeValue
+    expect(treeA.categories.valuesArray).toEqual(["a", "c", "d", "b"])
+    expect(treeA.categories.lastMove)
+      .toEqual({ value: "b", fromIndex: 1, toIndex: 3, length: 4, after: "d", before: undefined })
+
+    // non-existent beforeValue -> also move to end
+    const b = Attribute.create({ name: "b", values: ["a", "b", "c", "d"] })
+    const treeB = Tree.create({ attribute: b, categories: { attribute: b.id } })
+    treeB.categories.move("a", "bogus")
+    expect(treeB.categories.valuesArray).toEqual(["b", "c", "d", "a"])
+    expect(treeB.categories.lastMove?.toIndex).toBe(3)
+  })
+
   // Regression test (CODAP-1280): formula-computed values are written via
   // Attribute.setComputedValues, which is a volatile method that doesn't fire its own MST
   // action — it bumps changeCount. The CategorySet's `values` view depends on changeCount,
