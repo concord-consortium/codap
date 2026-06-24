@@ -1,3 +1,4 @@
+import { runInAction } from "mobx"
 import { applySnapshot, destroy, getSnapshot, types } from "mobx-state-tree"
 import { kellyColors } from "../../utilities/color-utils"
 import { jestSpyConsole } from "../../test/jest-spy-console"
@@ -200,6 +201,36 @@ describe("CategorySet", () => {
     // simulate a formula recomputing the values
     a.setComputedValues([0, 1, 2, 3], ["x", "y", "x", "y"])
     expect(categories.valuesArray).toEqual(["x", "y"])
+  })
+
+  // CODAP-1429 regression: the originating bug occurred when CategorySet construction, the
+  // initial empty read, and the value-mutating setComputedValues all happened inside the SAME
+  // outermost mobx batch (the document-load pattern: the case-table renderer creates a
+  // provisional CategorySet for a formula attribute whose adapter hasn't run yet, reads its
+  // categories while strValues is still empty, and then the deferred formula adapter recomputes
+  // and bumps changeCount). The previous manual cache + mstReaction implementation failed here
+  // because mobx defers a reaction's initial accessor invocation to the end of the batch, so the
+  // deferred baseline captured the post-mutation changeCount and the invalidation never fired,
+  // leaving the empty categories cached. The computed `values` view has no such batch-timing
+  // window — it establishes its dependencies on whatever state is current at read time — so it
+  // re-derives correctly even when everything happens in one batch.
+  it("re-derives when creation, initial read, and setComputedValues happen in the same batch", () => {
+    const a = Attribute.create({ name: "a", values: ["", "", "", ""] })
+    let categories: ICategorySet | undefined
+    runInAction(() => {
+      const tree = Tree.create({
+        attribute: a,
+        categories: { attribute: a.id }
+      })
+      categories = tree.categories
+      // initial read while strValues is still empty (the case-table renderer does this during load)
+      expect(categories.valuesArray).toEqual([])
+      // the deferred formula adapter populates the values within the same batch
+      a.setComputedValues([0, 1, 2, 3], ["A", "B", "A", "B"])
+    })
+
+    expect(a.strValues).toEqual(["A", "B", "A", "B"])
+    expect(categories?.valuesArray).toEqual(["A", "B"])
   })
 
   it("handles volatile category drags", () => {
