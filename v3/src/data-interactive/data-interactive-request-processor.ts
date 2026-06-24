@@ -183,40 +183,48 @@ export function setupRequestQueueProcessor(
   }
 
   // Execute a coalesced run of create-item requests as one batched model change, responding
-  // to each member with its own per-segment result. If the batched create cannot proceed
-  // (unresolvable dataContext, unexpected error, per-segment failure), fall back to
-  // processing the members individually for exact sequential semantics.
+  // to each member with its own per-segment result.
   async function processCoalescedRun(unit: Extract<RequestWorkUnit<RequestPair>, { type: "coalesced" }>) {
     const { resource, members, segments } = unit
 
     const { dataContext } = resolveResources(
       parseResourceSelector(resource), "create", processOptions.tile, processOptions.cfm)
-    let results: DIHandlerFnResult[] | undefined
-    if (dataContext) {
-      try {
-        results = createItemsInSegments(dataContext, segments)
-      } catch (error) {
-        debugLog(DEBUG_PLUGINS, `${name} batched create failed; processing individually`, error)
+
+    // When the dataContext can't be resolved, the batched create never runs and nothing is
+    // mutated, so it's safe to process the members individually for exact per-request semantics
+    // (each gets its own dataContextNotFoundResult).
+    if (!dataContext) {
+      let tableModified = false
+      for (const member of members) {
+        tableModified = (await processSingleRequest(member)) || tableModified
       }
+      return tableModified
     }
 
-    if (results?.length === members.length && results.every(result => result.success)) {
-      members.forEach((member, index) => {
-        debugLog(DEBUG_PLUGINS, `${name} processing (coalesced): ${JSON.stringify(member.request)}`)
-        onProcessingStart?.()
-        debugLog(DEBUG_PLUGINS, `${name} responding with`, results?.[index])
-        respond(member.callback, results[index])
-        onRequestProcessed?.(member.request, results[index])
-      })
-      // a successful coalesced run is by definition a table-modifying create
-      return true
+    // Once the dataContext resolves, the batched create mutates the dataset inside a single
+    // applyModelChange, which is NOT transactional on throw — so a failure may leave cases
+    // already committed. We must therefore never fall back to re-processing the members
+    // individually here (that would re-add the committed cases — silent data duplication);
+    // respond with an error to each member instead. results is undefined when the create
+    // threw; the not-all-success branch is currently unreachable (createItemsInSegments
+    // returns all-success or throws) but is handled the same way for safety.
+    let results: DIHandlerFnResult[] | undefined
+    try {
+      results = createItemsInSegments(dataContext, segments)
+    } catch (error) {
+      console.warn(`${name} exception in coalesced create`, error)
     }
-
-    let tableModified = false
-    for (const member of members) {
-      tableModified = (await processSingleRequest(member)) || tableModified
-    }
-    return tableModified
+    const succeeded = results?.length === members.length && results.every(result => result.success)
+    members.forEach((member, index) => {
+      debugLog(DEBUG_PLUGINS, `${name} processing (coalesced):`, member.request)
+      onProcessingStart?.()
+      const result = succeeded ? results![index] : errorResult(t("V3.DI.Error.exceptionProcessingRequest"))
+      debugLog(DEBUG_PLUGINS, `${name} responding with`, result)
+      respond(member.callback, result)
+      onRequestProcessed?.(member.request, result)
+    })
+    // the batched create may have modified the table even when it ultimately failed
+    return true
   }
 
   async function drain() {

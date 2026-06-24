@@ -5,6 +5,7 @@ import { SharedDataSet } from "../models/shared/shared-data-set"
 import { uiState } from "../models/ui-state"
 import { setupTestDataset } from "../test/dataset-test-utils"
 import { registerDIHandler } from "./data-interactive-handler"
+import * as itemHandler from "./handlers/item-handler"
 import { setupRequestQueueProcessor } from "./data-interactive-request-processor"
 import { DIRequest, DIRequestResponse, DISuccessResult } from "./data-interactive-types"
 
@@ -184,6 +185,37 @@ describe("setupRequestQueueProcessor", () => {
 
     expect(responses.length).toBe(2)
     responses.forEach(response => expect((response as DISuccessResult).success).toBe(false))
+  })
+
+  it("does not re-add cases when the batched create throws after committing", async () => {
+    // applyModelChange is not transactional on throw: a batched create can commit its cases
+    // and then fail (e.g. validateCases or the notification builder throws). The processor
+    // must NOT fall back to processing the members individually in that case, since that
+    // would add the already-committed cases a second time (CODAP-1408 data-duplication risk).
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {})
+    const itemCountBefore = dataset.items.length
+    // Spy only intercepts the processor's exported-binding call; the per-member fallback's
+    // diItemHandler.create calls the module-local createItemsInSegments, which is unaffected —
+    // so on the buggy code the fallback would really re-add these cases.
+    const createSpy = jest.spyOn(itemHandler, "createItemsInSegments").mockImplementation((dc, segments) => {
+      dc.addCases(segments.flat().map(() => ({})))
+      throw new Error("post-commit boom")
+    })
+
+    const responses: DIRequestResponse[] = []
+    queue.push({ request: createItemRequest({ a1: "a", a2: "x", a3: 800 }), callback: r => responses.push(r) })
+    queue.push({ request: createItemRequest({ a1: "b", a2: "y", a3: 801 }), callback: r => responses.push(r) })
+
+    await jest.runAllTimersAsync()
+
+    // each member is answered exactly once, with an error rather than a phantom success
+    expect(responses.length).toBe(2)
+    responses.forEach(response => expect((response as DISuccessResult).success).toBe(false))
+    // the committed cases are not duplicated by a fallback re-add
+    expect(dataset.items.length).toBe(itemCountBefore + 2)
+
+    createSpy.mockRestore()
+    warnSpy.mockRestore()
   })
 
   it("waits for blocking cell edits to finish, then drains the accumulated queue coalesced", async () => {
