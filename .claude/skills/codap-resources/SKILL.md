@@ -163,10 +163,87 @@ leave users on a **half-updated plugin** — e.g. a new `onboarding.js` that ref
 keys a stale `strings.json` doesn't have yet, so lookups return raw keys like
 `~onboarding1.mammals.table.title` instead of the translated text.
 
-## Syncing from V2 Build
+## Deploying Plugins and Example Documents
 
-During the V2-to-V3 transition, the V2 build on `codap-server.concord.org` is the source of truth for plugins and example documents. CODAP V3 accesses these assets from S3 rather than bundling them in the build. After a V2 build is deployed, the relevant assets can be synced from the server to S3.
+CODAP V3 loads these assets from S3 (`s3://codap-resources/`) rather than bundling
+them in the build. There are two ways assets get there:
 
+- **Direct-to-S3 (current, preferred)** — copy a plugin's files straight from its
+  source repo to S3. This is the normal path going forward.
+- **Syncing from a V2 build (historical / bulk)** — described further below, kept
+  for context and for the occasional bulk re-sync of many plugins at once.
+
+Before the release of V3, certain static/built-in plugins were deployed as part of
+the V2 build on `codap-server.concord.org`, then manually copied to S3 for
+compatibility with V3. With the release of V3 we are no longer performing regular
+V2 builds, so the direct-to-S3 path below is required for routine plugin updates.
+
+### Direct-to-S3 deploy (no V2 build)
+
+Use this for a targeted update to a single plugin from its source repo (sibling
+repos under `codap-build/`, e.g. `codap-data-interactives`).
+
+Many static plugins are served as **raw source with no build step** — e.g. Simmer
+at `eepsmedia/plugins/simmer/`, whose `index.html` loads `src/*.js` directly via
+script tags. For these the source folder *is* the deployable artifact: copy the
+changed file(s) straight to S3, no build required.
+
+1. **Identify the S3 location.** Plugins live under
+   `s3://codap-resources/plugins/<path>/`, mirroring the build's layout. The path
+   can be nested — e.g. eepsmedia plugins are at
+   `s3://codap-resources/plugins/eepsmedia/plugins/<name>/`. Confirm with
+   `aws s3 ls`, and diff the deployed file against your local copy first so you
+   know exactly what will change.
+
+2. **Copy the changed file(s).** For mutable entry files (`index.html`, top-level
+   `*.js` / `strings.json`) add `--cache-control "no-cache"` (see
+   [When to Use No-Cache](#when-to-use-no-cache)):
+
+   ```bash
+   aws s3 cp eepsmedia/plugins/simmer/index.html \
+     s3://codap-resources/plugins/eepsmedia/plugins/simmer/index.html \
+     --acl public-read --cache-control "no-cache"
+   ```
+
+   For a whole-folder update use `aws s3 sync ... --size-only` (see
+   [Sync a folder](#sync-a-folder-plugins-examples-etc)); for webpack-built plugins
+   remember to `cp` `index.html` explicitly afterward (hashed chunks).
+
+3. **Invalidate CloudFront** on all three distributions at the STRIPPED path — see
+   [CloudFront Invalidation](#cloudfront-invalidation):
+
+   ```bash
+   aws cloudfront create-invalidation --distribution-id E1RS9TZVZBEEEC \
+     --paths "/plugins/eepsmedia/plugins/simmer/*"
+   aws cloudfront create-invalidation --distribution-id E7WVRGISCR2VR \
+     --paths "/plugins/eepsmedia/plugins/simmer/*"
+   aws cloudfront create-invalidation --distribution-id E26XOJN7T3CJO \
+     --paths "/plugins/eepsmedia/plugins/simmer/*"
+   ```
+
+4. **Verify** the edge refetched (required — a `Completed` status alone proves
+   nothing):
+
+   ```bash
+   for host in codap.concord.org codap3.concord.org; do
+     echo "--- $host ---"
+     curl -sI "https://$host/codap-resources/plugins/eepsmedia/plugins/simmer/index.html" \
+       | grep -iE "x-cache|last-modified"
+   done
+   ```
+
+   Expect `x-cache: Miss from cloudfront` plus the new `last-modified` on the first
+   request after the invalidation.
+
+### Syncing from a V2 build (historical / bulk)
+
+> **Note:** This path predates regular V3 releases and is retained for context and
+> for bulk re-syncing many plugins from a known build at once. For a routine
+> single-plugin update, use [Direct-to-S3 deploy](#direct-to-s3-deploy-no-v2-build)
+> above instead.
+
+When a V2 build was the source of truth for plugins and example documents, the
+relevant assets were synced from `codap-server.concord.org` to S3 after each build.
 The V2 build stores these assets under `extn/` in the release directory:
 
 | Server path | S3 destination |
