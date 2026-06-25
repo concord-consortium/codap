@@ -131,6 +131,7 @@ export function setupRequestQueueProcessor(
 
   let drainTimer: ReturnType<typeof setTimeout> | undefined
   let isDraining = false
+  let disposed = false
 
   // Deliver a response to a plugin, guarding against a throwing callback so that one
   // misbehaving consumer can't prevent later responses from being delivered.
@@ -230,7 +231,7 @@ export function setupRequestQueueProcessor(
   async function drain() {
     drainTimer = undefined
     // if a drain is already in progress, its trailing check will reschedule as needed
-    if (isDraining || uiState.isEditingBlockingCell || requestQueue.length === 0) return
+    if (disposed || isDraining || uiState.isEditingBlockingCell || requestQueue.length === 0) return
     isDraining = true
     try {
       uiState.captureEditingStateBeforeInterruption()
@@ -268,10 +269,11 @@ export function setupRequestQueueProcessor(
   }
 
   // Single-timer invariant: at most one drain timer is ever pending, and `drainTimer` always
-  // holds it (scheduleDrain only schedules when it's null; drain() nulls it on entry). This is
-  // what makes disposal safe without a separate "disposed" flag — see the disposer below.
+  // holds it (scheduleDrain only schedules when it's null; drain() nulls it on entry). The
+  // `disposed` guard stops the trailing scheduleDrain() in drain()'s finally from re-arming a
+  // timer after teardown — see the disposer below.
   function scheduleDrain() {
-    if (drainTimer == null) {
+    if (!disposed && drainTimer == null) {
       drainTimer = setTimeout(drain, 0)
     }
   }
@@ -289,16 +291,18 @@ export function setupRequestQueueProcessor(
   )
 
   return () => {
-    // Clearing the one pending timer (the single-timer invariant guarantees there is at most
-    // one, always in drainTimer) plus disposing the reaction is sufficient to fully stop
-    // processing — no "disposed" guard is needed. A drain that is already mid-await when this
-    // runs finishes its current work unit (its callbacks are wrapped in respond()'s try/catch,
-    // so a torn-down endpoint can't throw past them); it does NOT leak a follow-up timer:
-    // takeItems() mutates the queue length, which synchronously re-fires the reaction and
-    // schedules the next timer *before* the await, so drainTimer is already non-null by the
-    // time the trailing scheduleDrain() in drain()'s finally runs — making that call a no-op.
-    // We clear that timer here, and the now-disposed reaction can't schedule another.
+    // Fully stop processing: set `disposed` so any in-flight drain's trailing scheduleDrain()
+    // (in its finally) is a no-op, clear the one pending timer (the single-timer invariant
+    // guarantees there is at most one, always in drainTimer), and dispose the reaction so it
+    // can't schedule another. A drain that is already mid-await when this runs finishes its
+    // current work unit — its callbacks are wrapped in respond()'s try/catch, so a torn-down
+    // endpoint can't throw past them — but won't start a new one. (The `disposed` guard is
+    // necessary: when takeItems() empties the queue, the reaction doesn't re-arm a timer before
+    // the await, so without the guard the finally's scheduleDrain() could process a request
+    // that arrived after disposal.)
+    disposed = true
     if (drainTimer != null) clearTimeout(drainTimer)
+    drainTimer = undefined
     reactionDisposer()
   }
 }

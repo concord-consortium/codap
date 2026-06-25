@@ -218,6 +218,32 @@ describe("setupRequestQueueProcessor", () => {
     warnSpy.mockRestore()
   })
 
+  it("does not drain again after disposal when a request arrives mid-process", async () => {
+    // Race guard: a drain that is mid-await when the processor is disposed must not let its
+    // trailing scheduleDrain() (in drain()'s finally) process a request that arrived after
+    // disposal. Hold a single get handler mid-await, dispose, push a request, then release.
+    let release = () => {}
+    const gate = new Promise<void>(resolve => { release = resolve })
+    registerDIHandler("gatedTester", { get: async () => { await gate; return { success: true } } })
+    const responses: DIRequestResponse[] = []
+
+    // this get is taken and drains the queue to empty, then awaits the gated handler
+    queue.push({ request: { action: "get", resource: "gatedTester" }, callback: r => responses.push(r) })
+    await jest.advanceTimersByTimeAsync(0) // let the drain start and reach the await
+
+    // tear down the processor while the drain is mid-await
+    disposer?.()
+    disposer = undefined
+    // a request arrives after disposal (e.g. an in-flight postMessage)
+    queue.push({ request: createItemRequest({ a1: "z" }), callback: r => responses.push(r) })
+
+    release()
+    await jest.runAllTimersAsync()
+
+    // the gated get completes; the post-disposal request is NOT processed
+    expect(responses.length).toBe(1)
+  })
+
   it("waits for blocking cell edits to finish, then drains the accumulated queue coalesced", async () => {
     const { actionNames, actionDisposer } = trackTopLevelActions()
     const responses: DIRequestResponse[] = []
