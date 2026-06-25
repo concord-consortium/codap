@@ -266,9 +266,11 @@ describe("DataConfigurationModel", () => {
     expect(handleAction).toHaveBeenCalled()
   })
 
-  it("suppresses animation when cases are added or removed", () => {
-    // Streaming cases in (e.g. via a plugin) must not animate existing points: each added case
-    // would otherwise restart a transition every frame, freezing points until streaming stops.
+  it("suppresses animation when requested for added cases and always for removed cases", () => {
+    // High-speed streams (e.g. coalesced plugin creates, CODAP-1408) must not animate existing
+    // points: each added case would otherwise restart a transition every frame, freezing points
+    // until streaming stops. Individual adds (user-entered rows, paced plugin creates) animate
+    // as usual, so suppression is opt-in via the addCases suppressAnimation option.
     // matchCirclesToData consumes this flag to skip startAnimation so points snap to position.
     const config = tree.config
     config.setDataset(tree.data, tree.metadata)
@@ -276,11 +278,17 @@ describe("DataConfigurationModel", () => {
 
     expect(config.suppressAnimation).toBe(false)
 
+    // an ordinary add (e.g. a user-entered row) animates
     tree.data.addCases(toCanonical(tree.data, [{ __id__: "c4", n: "n1", x: 4, y: 4 }]))
+    expect(config.suppressAnimation).toBe(false)
+
+    // a streaming add asks for suppression
+    tree.data.addCases(toCanonical(tree.data, [{ __id__: "c5", n: "n1", x: 5, y: 5 }]),
+      { suppressAnimation: true })
     expect(config.suppressAnimation).toBe(true)
 
     config.setSuppressAnimation(false)
-    tree.data.removeCases(["c4"])
+    tree.data.removeCases(["c4", "c5"])
     expect(config.suppressAnimation).toBe(true)
   })
 

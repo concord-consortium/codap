@@ -1,28 +1,36 @@
+import { IDataSet } from "../../models/data/data-set"
 import { createCasesNotification } from "../../models/data/data-set-notifications"
 import { toV2Id, toV3ItemId } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
-import { DIHandler, DIResources, DIValues } from "../data-interactive-types"
+import { DIHandler, DIHandlerFnResult, DIResources, DIValues } from "../data-interactive-types"
 import { DIItem, DIItemValues, DINewCase } from "../data-interactive-data-set-types"
 import { deleteItem, getItem, updateCaseBy, updateCasesBy } from "./handler-functions"
 import { dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
 
-export const diItemHandler: DIHandler = {
-  create(resources: DIResources, values?: DIValues) {
-    const { dataContext } = resources
-    if (!dataContext) return dataContextNotFoundResult
-    if (!values) return valuesRequiredResult
-
-    const _items = (Array.isArray(values) ? values : [values]) as DIItemValues[]
-    const items: DIItem[] = []
+/**
+ * Create the items of all segments in a single batched model change (one addCases, one
+ * validateCases, one notification batch) and return one result per segment, equivalent to
+ * processing each segment as its own create request. Used by the request coalescer to merge
+ * consecutive streamed single-item create requests (CODAP-1408); the item handler's `create`
+ * is the single-segment case.
+ */
+export function createItemsInSegments(dataContext: IDataSet, segments: DIItemValues[][]): DIHandlerFnResult[] {
+  // Normalize all segments' items into one flat array, remembering each segment's range
+  // (used both to slice itemIDs per segment and to map each item back to its segment below).
+  const items: DIItem[] = []
+  const segmentRanges: Array<{ start: number, count: number }> = []
+  segments.forEach(segment => {
+    const start = items.length
     // Some plugins (Collaborative) create items with values like [{ values: { ... } }] instead of
-    // like [{ ... }], so we accommodate that extra layer of indirection here.
-    _items.forEach(item => {
-      let newItem: DIItem
-      if (typeof item.values === "object") {
-        newItem = item.values as DIItem
-      } else {
-        newItem = item
-      }
+    // like [{ ... }], so we accommodate that extra layer of indirection here. Only a non-null,
+    // non-array object is the wrapper shape: guard against null (typeof null === "object") and
+    // against an array so a malformed request can't crash on the __id__ access below.
+    segment.forEach(item => {
+      const wrapped = item.values
+      const newItem: DIItem =
+        wrapped != null && typeof wrapped === "object" && !Array.isArray(wrapped)
+          ? wrapped as DIItem
+          : item
 
       // If an id is specified, we need to put it in the right format
       // The Collaborative plugin makes use of this feature
@@ -32,49 +40,91 @@ export const diItemHandler: DIHandler = {
       }
       items.push(newItem)
     })
+    segmentRanges.push({ start, count: items.length - start })
+  })
 
-    const newCaseIds: Record<string, string[]> = {}
-    let itemIDs: string[] = []
-    dataContext.applyModelChange(() => {
-      // Get case ids from before new items are added
-      const oldCaseIds: Record<string, Set<string>> = {}
-      dataContext.collections.forEach(collection => {
-        oldCaseIds[collection.id] = new Set(collection.caseIds)
-      })
-
-      // Add items and update cases
-      itemIDs = dataContext.addCases(items, { canonicalize: true })
-      dataContext.validateCases()
-
-      // Find newly added cases by comparing current cases to previous cases
-      dataContext.collections.forEach(collection => {
-        newCaseIds[collection.id] = []
-        collection.caseIds.forEach(caseId => {
-          if (!oldCaseIds[collection.id].has(caseId)) newCaseIds[collection.id].push(caseId)
-        })
-      })
-    }, {
-      notify: () => {
-        const notifications = []
-        for (const collectionId in newCaseIds) {
-          const caseIds = newCaseIds[collectionId]
-          if (caseIds.length > 0) {
-            notifications.push(createCasesNotification(caseIds, dataContext))
-          }
-        }
-        return notifications
-      }
+  const newCaseIds: Record<string, string[]> = {}
+  let itemIDs: string[] = []
+  dataContext.applyModelChange(() => {
+    // Get case ids from before new items are added
+    const oldCaseIds: Record<string, Set<string>> = {}
+    dataContext.collections.forEach(collection => {
+      oldCaseIds[collection.id] = new Set(collection.caseIds)
     })
 
-    let caseIDs: string[] = []
+    // Add items and update cases. A multi-segment batch is a coalesced run of streamed
+    // create requests, so observers (e.g. graphs) should snap rather than animate; a
+    // single create request — even one with many items — animates as an ordinary add.
+    const suppressAnimation = segments.length > 1
+    itemIDs = dataContext.addCases(items, { canonicalize: true, suppressAnimation })
+    dataContext.validateCases()
+
+    // Find newly added cases by comparing current cases to previous cases
+    dataContext.collections.forEach(collection => {
+      newCaseIds[collection.id] = []
+      collection.caseIds.forEach(caseId => {
+        if (!oldCaseIds[collection.id].has(caseId)) newCaseIds[collection.id].push(caseId)
+      })
+    })
+  }, {
+    notify: () => {
+      const notifications = []
+      for (const collectionId in newCaseIds) {
+        const caseIds = newCaseIds[collectionId]
+        if (caseIds.length > 0) {
+          notifications.push(createCasesNotification(caseIds, dataContext))
+        }
+      }
+      return notifications
+    }
+  })
+
+  // Attribute each new case to the segment containing its earliest contributing item.
+  // This matches sequential semantics: under one-create-at-a-time processing, a new
+  // parent case is reported by the first request whose item forms it; later requests
+  // join the existing case without reporting it. Items were appended in segment order, so
+  // a case's earliest contributing item is simply the one in its lowest-numbered segment.
+  const segmentCaseIDs: number[][] = segmentRanges.map(() => [])
+  if (segments.length > 1) {
+    const segmentByItemId = new Map<string, number>()
+    segmentRanges.forEach(({ start, count }, segmentIndex) => {
+      for (let i = start; i < start + count; ++i) segmentByItemId.set(itemIDs[i], segmentIndex)
+    })
     for (const collectionId in newCaseIds) {
-      caseIDs = caseIDs.concat(newCaseIds[collectionId])
+      newCaseIds[collectionId].forEach(caseId => {
+        const childItemIds = dataContext.caseInfoMap.get(caseId)?.childItemIds ?? []
+        const earliestSegment = childItemIds.reduce<number>((earliest, itemId) => {
+          const segment = segmentByItemId.get(itemId)
+          return segment != null && segment < earliest ? segment : earliest
+        }, Infinity)
+        // a new case with no contributing batch item shouldn't occur during pure adds;
+        // attribute to the first segment if it ever does
+        segmentCaseIDs[isFinite(earliestSegment) ? earliestSegment : 0].push(toV2Id(caseId))
+      })
     }
-    return {
-      success: true,
-      caseIDs: caseIDs.map(caseID => toV2Id(caseID)),
-      itemIDs: itemIDs.map(itemID => toV2Id(itemID))
+  } else {
+    // Single segment (the ordinary, non-coalesced create path): every new case trivially
+    // belongs to segment 0, so skip the per-item attribution map and reduce entirely.
+    for (const collectionId in newCaseIds) {
+      newCaseIds[collectionId].forEach(caseId => segmentCaseIDs[0].push(toV2Id(caseId)))
     }
+  }
+
+  return segmentRanges.map(({ start, count }, index) => ({
+    success: true as const,
+    caseIDs: segmentCaseIDs[index],
+    itemIDs: itemIDs.slice(start, start + count).map(itemID => toV2Id(itemID))
+  }))
+}
+
+export const diItemHandler: DIHandler = {
+  create(resources: DIResources, values?: DIValues) {
+    const { dataContext } = resources
+    if (!dataContext) return dataContextNotFoundResult
+    if (!values) return valuesRequiredResult
+
+    const items = (Array.isArray(values) ? values : [values]) as DIItemValues[]
+    return createItemsInSegments(dataContext, [items])[0]
   },
 
   delete(resources: DIResources, values?: DIValues) {

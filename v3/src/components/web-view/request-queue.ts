@@ -1,7 +1,9 @@
 import { action, makeObservable, observable } from "mobx"
 import { DIRequest, DIRequestCallback } from "../../data-interactive/data-interactive-types"
 
-type RequestPair = { request: DIRequest, callback: DIRequestCallback }
+// enqueuedAt is the performance.now() timestamp when the request was queued; the request
+// processor uses the head request's wait time to size coalesced batches (CODAP-1408)
+export type RequestPair = { request: DIRequest, callback: DIRequestCallback, enqueuedAt?: number }
 export class RequestQueue {
   @observable.shallow
   requestQueue: Array<RequestPair> = []
@@ -16,6 +18,7 @@ export class RequestQueue {
 
   @action
   push(pair: RequestPair) {
+    pair.enqueuedAt = performance.now()
     this.requestQueue.push(pair)
   }
 
@@ -25,28 +28,16 @@ export class RequestQueue {
     this.requestQueue.splice(0)
   }
 
+  get items(): readonly RequestPair[] {
+    return this.requestQueue
+  }
+
   /**
-   * Process all of the current items in the array. A copy of the current items
-   * is made and the current items are cleared.
-   *
-   * processItems does not wait for async processor functions. It will call the processor
-   * function for every item even if one of them is waiting for something to finish.
-   *
-   * The approach copying the array and then clearing it means the array is only
-   * updated one time. So if this function is observed, it will only trigger a single
-   * update.
-   *
-   * @param processor
+   * Remove and return the first `count` items in the queue.
    */
-  processItems(processor: (item: RequestPair) => void) {
-    // copy the items
-    const items = this.requestQueue.slice(0)
-    // clear the items to prepare for the next one to be added
-    this.clear()
-    // Call the processor for each item
-    for (const item of items) {
-      processor(item)
-    }
+  @action
+  takeItems(count: number): RequestPair[] {
+    return this.requestQueue.splice(0, count)
   }
 
 }
