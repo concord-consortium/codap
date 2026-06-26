@@ -150,6 +150,29 @@ export const collectPolygonVertexLngs = (leafletMap: LeafletMap | undefined, lng
   leafletMap?.eachLayer((layer: any) => collectFromLayer(layer))
 }
 
+/**
+ * Shifts a LatLngBounds by whole 360° world copies so its center longitude lands in the
+ * canonical [-180, 180] range. computeBoundsFromCoordinates can return a compact
+ * dateline-crossing arc whose east edge exceeds 180° (e.g. ~[172, 293] for US data that
+ * includes Alaska's Aleutians). Point layers cope with such an arc by shifting each point
+ * into the viewport via shiftLongitudeIntoView, but polygon (boundary) features render once
+ * at their raw canonical coordinates and never shift. Fitting the map to an east>180° box
+ * therefore parks the viewport a world copy east of the polygons, leaving the map blank.
+ * Keeping the fitted center canonical positions the viewport over the world copy where the
+ * polygons are actually drawn. This is a no-op for an already-canonical center, and for
+ * dateline-crossing data it only changes which (geographically identical) world copy the map
+ * centers on, so point rendering is unaffected.
+ */
+export const wrapBoundsToCanonicalCenter = (bounds: LatLngBounds): LatLngBounds => {
+  const west = bounds.getWest(), east = bounds.getEast(), centerLng = (west + east) / 2
+  if (centerLng >= -180 && centerLng <= 180) return bounds
+  const shift = -Math.round(centerLng / 360) * 360
+  return latLngBounds([
+    {lat: bounds.getSouth(), lng: west + shift},
+    {lat: bounds.getNorth(), lng: east + shift}
+  ])
+}
+
 export const expandLatLngBounds = (bounds: LatLngBounds, fraction: number) => {
   const center = bounds.getCenter(),
     latDelta = bounds.getNorth() - bounds.getSouth(),

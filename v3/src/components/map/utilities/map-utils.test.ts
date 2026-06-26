@@ -1,5 +1,6 @@
+import { latLngBounds } from "leaflet"
 import {
-  computeBoundsFromCoordinates, getRationalLongitudeBounds, shiftLongitudeIntoView
+  computeBoundsFromCoordinates, getRationalLongitudeBounds, shiftLongitudeIntoView, wrapBoundsToCanonicalCenter
 } from "./map-utils"
 
 describe("getRationalLongitudeBounds", () => {
@@ -194,5 +195,44 @@ describe("shiftLongitudeIntoView", () => {
     // A point at +700° lands at its nearest world copy of the viewport: 700 - 2×360 = -20
     // (139° from the viewport), which is closer than the next copy at -380 (195° away).
     expect(shiftLongitudeIntoView(700, -185, -159)).toBe(-20)
+  })
+})
+
+describe("wrapBoundsToCanonicalCenter", () => {
+  it("leaves bounds whose center is already canonical unchanged", () => {
+    const bounds = latLngBounds([{lat: 30, lng: -125}, {lat: 50, lng: -67}])
+    const result = wrapBoundsToCanonicalCenter(bounds)
+    expect(result.getWest()).toBe(-125)
+    expect(result.getEast()).toBe(-67)
+    expect(result.getSouth()).toBe(30)
+    expect(result.getNorth()).toBe(50)
+  })
+
+  it("shifts a world-copy-+1 arc back to the canonical world copy (CODAP-1434)", () => {
+    // ~US bounds including Alaska's Aleutians: the compact dateline arc is [172, 293],
+    // centered at 232.5° (one world copy east). Polygons render at canonical longitudes,
+    // so the fit center must come back to -127.5° or the map is blank.
+    const bounds = latLngBounds([{lat: 18.9, lng: 172.5}, {lat: 71.4, lng: 293.1}])
+    const result = wrapBoundsToCanonicalCenter(bounds)
+    expect(result.getWest()).toBeCloseTo(-187.5)
+    expect(result.getEast()).toBeCloseTo(-66.9)
+    // center now canonical
+    expect((result.getWest() + result.getEast()) / 2).toBeCloseTo(-127.2)
+    // latitudes preserved
+    expect(result.getSouth()).toBeCloseTo(18.9)
+    expect(result.getNorth()).toBeCloseTo(71.4)
+  })
+
+  it("preserves the longitude span when shifting", () => {
+    const bounds = latLngBounds([{lat: 0, lng: 172}, {lat: 10, lng: 293}])
+    const result = wrapBoundsToCanonicalCenter(bounds)
+    expect(result.getEast() - result.getWest()).toBeCloseTo(293 - 172)
+  })
+
+  it("wraps a center beyond +180 by exactly one world copy", () => {
+    // center 200° -> -160°
+    const bounds = latLngBounds([{lat: 0, lng: 190}, {lat: 10, lng: 210}])
+    const result = wrapBoundsToCanonicalCenter(bounds)
+    expect((result.getWest() + result.getEast()) / 2).toBeCloseTo(-160)
   })
 })
