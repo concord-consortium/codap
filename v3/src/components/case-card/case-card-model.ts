@@ -73,17 +73,22 @@ export const CaseCardModel = TileContentModel
     },
     // Summarizes the values of `cases` for `attr`. In a hierarchical dataset the caller
     // passes only the cases that belong to the currently-viewed parent, so a summarized
-    // child collection reflects that parent's children, not the whole collection.
+    // child collection reflects that parent's children, not the whole collection. When
+    // there is a selection, the summary narrows further to the selected cases, matching
+    // the selection-aware case count shown in the header.
     summarizedValues(attr: IAttribute, cases: readonly ICase[]) {
       // Establish a MobX dependency on the attribute's mutation counter so this view
       // re-evaluates when individual values change. Volatile strValues/numValues are
       // not deep-observable; changeCount is bumped by setValue/setComputedValues.
       // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       attr.changeCount
+      const summaryCases = (self.data?.selection.size ?? 0) > 0
+        ? cases.filter(c => self.data?.isAnyChildItemSelected(c.__id__))
+        : cases
       // Returns a string summarizing the values of the attribute over the given cases
       if (attr.isNumeric) {
         const numericValues: number[] = []
-        cases.forEach(c => {
+        summaryCases.forEach(c => {
           const value = self.data?.getNumeric(c.__id__, attr.id)
           if (isFiniteNumber(value)) numericValues.push(value)
         })
@@ -97,7 +102,7 @@ export const CaseCardModel = TileContentModel
         const attrUnits = attr.units ? ` ${attr.units}` : ""
         return `${valueString}${attrUnits}`
       } else {
-        const allValues = cases.map(c => self.data?.getValue(c.__id__, attr.id))
+        const allValues = summaryCases.map(c => self.data?.getValue(c.__id__, attr.id))
         const uniqueValues = new Set(allValues)
         if (uniqueValues.size > 2) {
           return `${uniqueValues.size} values`

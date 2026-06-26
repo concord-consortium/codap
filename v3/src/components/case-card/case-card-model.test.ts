@@ -129,4 +129,32 @@ describe("CaseCardModel summarizedValues hierarchical filtering", () => {
     expect(cardContent.summarizedValues(colorAttr, groupAChildren)).toBe("red, blue")
     expect(cardContent.summarizedValues(colorAttr, groupBChildren)).toBe("green")
   })
+
+  // When a subset of the viewed parent's children is selected, the summary narrows to the
+  // selected cases (consistent with the selection-aware header count and legacy v2).
+  it("restricts the summary to the selected subset of the viewed parent's children", () => {
+    const { cardContent, data } = setupCardWithDataSet()
+    const groupAttr = data.addAttribute({ name: "group" })
+    const xAttr = data.addAttribute({ name: "x" })
+    data.addCases(toCanonical(data, [
+      { group: "A", x: 1 },
+      { group: "A", x: 5 },
+      { group: "A", x: 9 },
+      { group: "B", x: 100 }
+    ]))
+    data.moveAttributeToNewCollection(groupAttr.id)
+    data.validateCases()
+
+    const parentCollection = data.collections[0]
+    const parentCases = data.getCasesForCollection(parentCollection.id)
+    const groupAChildren = cardContent.groupChildCases(parentCases[0].__id__) ?? []
+    expect(groupAChildren.length).toBe(3)
+
+    // with no selection, the summary covers all of the parent's children
+    expect(cardContent.summarizedValues(xAttr, groupAChildren)).toBe("1-9")
+
+    // select only the x=1 and x=5 children
+    data.setSelectedCases([groupAChildren[0].__id__, groupAChildren[1].__id__])
+    expect(cardContent.summarizedValues(xAttr, groupAChildren)).toBe("1-5")
+  })
 })
