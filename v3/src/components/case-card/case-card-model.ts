@@ -90,15 +90,21 @@ export const CaseCardModel = TileContentModel
         : collection.cases
       // Returns a string summarizing the values of the attribute over the given cases
       if (attr.isNumeric) {
-        const numericValues: number[] = []
+        // Track min/max incrementally rather than building an array and spreading it into
+        // Math.min/Math.max, which can overflow the call stack on very large collections.
+        let minValue = Infinity
+        let maxValue = -Infinity
+        let hasNumericValue = false
         summaryCases.forEach(c => {
           const value = self.data?.getNumeric(c.__id__, attr.id)
-          if (isFiniteNumber(value)) numericValues.push(value)
+          if (isFiniteNumber(value)) {
+            if (value < minValue) minValue = value
+            if (value > maxValue) maxValue = value
+            hasNumericValue = true
+          }
         })
-        if (numericValues.length === 0) return ""
+        if (!hasNumericValue) return ""
         const formatter = getNumFormatterForAttribute(attr)
-        const minValue = Math.min(...numericValues)
-        const maxValue = Math.max(...numericValues)
         const minValueStr = formatter?.(minValue) ?? minValue.toString()
         const maxValueStr = formatter?.(maxValue) ?? maxValue.toString()
         const valueString = minValueStr === maxValueStr ? minValueStr : `${minValueStr}-${maxValueStr}`
