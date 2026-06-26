@@ -101,11 +101,13 @@ describe("CaseCardModel summarizedValues hierarchical filtering", () => {
     const parentCases = data.getCasesForCollection(parentCollection.id)
     expect(parentCases.length).toBe(2)
 
-    const groupAChildren = cardContent.groupChildCases(parentCases[0].__id__) ?? []
-    const groupBChildren = cardContent.groupChildCases(parentCases[1].__id__) ?? []
+    const childrenOfGroup = (group: string) => {
+      const parent = parentCases.find(c => data.getStrValue(c.__id__, groupAttr.id) === group)
+      return parent ? cardContent.groupChildCases(parent.__id__) ?? [] : []
+    }
 
-    expect(cardContent.summarizedValues(xAttr, groupAChildren)).toBe("1-5")
-    expect(cardContent.summarizedValues(xAttr, groupBChildren)).toBe("10-20")
+    expect(cardContent.summarizedValues(xAttr, childrenOfGroup("A"))).toBe("1-5")
+    expect(cardContent.summarizedValues(xAttr, childrenOfGroup("B"))).toBe("10-20")
   })
 
   it("restricts a categorical summary to the children of the viewed parent case", () => {
@@ -123,11 +125,14 @@ describe("CaseCardModel summarizedValues hierarchical filtering", () => {
 
     const parentCollection = data.collections[0]
     const parentCases = data.getCasesForCollection(parentCollection.id)
-    const groupAChildren = cardContent.groupChildCases(parentCases[0].__id__) ?? []
-    const groupBChildren = cardContent.groupChildCases(parentCases[1].__id__) ?? []
 
-    expect(cardContent.summarizedValues(colorAttr, groupAChildren)).toBe("red, blue")
-    expect(cardContent.summarizedValues(colorAttr, groupBChildren)).toBe("green")
+    const childrenOfGroup = (group: string) => {
+      const parent = parentCases.find(c => data.getStrValue(c.__id__, groupAttr.id) === group)
+      return parent ? cardContent.groupChildCases(parent.__id__) ?? [] : []
+    }
+
+    expect(cardContent.summarizedValues(colorAttr, childrenOfGroup("A"))).toBe("red, blue")
+    expect(cardContent.summarizedValues(colorAttr, childrenOfGroup("B"))).toBe("green")
   })
 
   // When a subset of the viewed parent's children is selected, the summary narrows to the
@@ -147,14 +152,19 @@ describe("CaseCardModel summarizedValues hierarchical filtering", () => {
 
     const parentCollection = data.collections[0]
     const parentCases = data.getCasesForCollection(parentCollection.id)
-    const groupAChildren = cardContent.groupChildCases(parentCases[0].__id__) ?? []
+    const groupA = parentCases.find(c => data.getStrValue(c.__id__, groupAttr.id) === "A")!
+    const groupAChildren = cardContent.groupChildCases(groupA.__id__) ?? []
     expect(groupAChildren.length).toBe(3)
 
     // with no selection, the summary covers all of the parent's children
     expect(cardContent.summarizedValues(xAttr, groupAChildren)).toBe("1-9")
 
     // select only the x=1 and x=5 children
-    data.setSelectedCases([groupAChildren[0].__id__, groupAChildren[1].__id__])
+    const selected = groupAChildren.filter(c => {
+      const x = data.getNumeric(c.__id__, xAttr.id)
+      return x === 1 || x === 5
+    })
+    data.setSelectedCases(selected.map(c => c.__id__))
     expect(cardContent.summarizedValues(xAttr, groupAChildren)).toBe("1-5")
   })
 })

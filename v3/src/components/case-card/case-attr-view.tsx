@@ -19,7 +19,7 @@ interface ICaseAttrViewProps {
   attr: IAttribute
   // the cases that feed a summary cell — restricted to the currently-viewed parent's
   // children in a hierarchical dataset
-  cases?: IGroupedCase[]
+  cases: IGroupedCase[]
   getDividerBounds?: GetDividerBoundsFn
   groupedCase?: IGroupedCase
   isCollectionSummarized: boolean
@@ -43,7 +43,7 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   attr?.changeCount
   const cellStrValue = isCollectionSummarized
-                        ? cardModel?.summarizedValues(attr, cases ?? [])
+                        ? cardModel?.summarizedValues(attr, cases)
                         : data?.getStrValue(caseId, id)
   const displayStrValue = cellStrValue ?? ""
   const displayNumValue = cellStrValue ? Number(cellStrValue) : NaN

@@ -26,7 +26,7 @@ interface ICaseAttrsViewProps {
   caseItem?: IGroupedCase
   // the cases for this collection in the current navigation context (i.e. the children of
   // the currently-viewed parent case); used to compute summaries restricted to that parent
-  cases?: IGroupedCase[]
+  cases: IGroupedCase[]
   collection?: ICollectionModel
   onResizeColumn?: (collectionId: string, widthPct: number, isComplete?: boolean) => void
 }
