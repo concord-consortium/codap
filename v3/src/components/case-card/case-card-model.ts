@@ -1,6 +1,7 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { IAttribute } from "../../models/data/attribute"
-import { ICase, ICaseCreation } from "../../models/data/data-set-types"
+import { ICollectionModel } from "../../models/data/collection"
+import { ICaseCreation } from "../../models/data/data-set-types"
 import { isFiniteNumber } from "../../utilities/math-utils"
 import { getTileCaseMetadata, getTileDataSet } from "../../models/shared/shared-data-tile-utils"
 import { ISharedModel } from "../../models/shared/shared-model"
@@ -71,20 +72,21 @@ export const CaseCardModel = TileContentModel
         .map(childCaseId => self.data?.caseInfoMap.get(childCaseId)?.groupedCase)
         .filter(groupedCase => !!groupedCase)
     },
-    // Summarizes the values of `cases` for `attr`. In a hierarchical dataset the caller
-    // passes only the cases that belong to the currently-viewed parent, so a summarized
-    // child collection reflects that parent's children, not the whole collection. When
-    // there is a selection, the summary narrows further to the selected cases, matching
-    // the selection-aware case count shown in the header.
-    summarizedValues(attr: IAttribute, cases: readonly ICase[]) {
+    // Summarizes the values of `attr` over `collection`. With no selection the summary
+    // covers the whole collection (the global "Summarize Dataset" state); when there is a
+    // selection it narrows to the collection's cases that have a selected descendant item.
+    // Because selecting/navigating to a parent selects all of its descendants, this yields
+    // exactly the viewed parent's children, mirroring the selection-aware header count and
+    // matching legacy v2 behavior.
+    summarizedValues(attr: IAttribute, collection: ICollectionModel) {
       // Establish a MobX dependency on the attribute's mutation counter so this view
       // re-evaluates when individual values change. Volatile strValues/numValues are
       // not deep-observable; changeCount is bumped by setValue/setComputedValues.
       // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       attr.changeCount
       const summaryCases = (self.data?.selection.size ?? 0) > 0
-        ? cases.filter(c => self.data?.isAnyChildItemSelected(c.__id__))
-        : cases
+        ? collection.cases.filter(c => self.data?.isAnyChildItemSelected(c.__id__))
+        : collection.cases
       // Returns a string summarizing the values of the attribute over the given cases
       if (attr.isNumeric) {
         const numericValues: number[] = []

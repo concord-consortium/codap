@@ -24,9 +24,6 @@ const kTableMarginOffset = 10
 
 interface ICaseAttrsViewProps {
   caseItem?: IGroupedCase
-  // the cases for this collection in the current navigation context (i.e. the children of
-  // the currently-viewed parent case); used to compute summaries restricted to that parent
-  cases: IGroupedCase[]
   collection?: ICollectionModel
   onResizeColumn?: (collectionId: string, widthPct: number, isComplete?: boolean) => void
 }
@@ -71,7 +68,7 @@ function getNextAttrId(attrs: readonly IAttribute[], currentAttrId: string): May
 }
 
 export const CaseAttrsView = observer(function CaseAttrsView(
-  { caseItem, cases, collection, onResizeColumn }: ICaseAttrsViewProps
+  { caseItem, collection, onResizeColumn }: ICaseAttrsViewProps
 ) {
   const cardModel = useCaseCardModel()
   const isCollectionSummarized = !!collection?.cases && collection.cases.length > 0 &&
@@ -158,7 +155,7 @@ export const CaseAttrsView = observer(function CaseAttrsView(
                 <CaseAttrView
                   key={`${attr.id}-${isCollectionSummarized ? "summary" : caseItem?.__id__}`}
                   attr={attr}
-                  cases={cases}
+                  collection={collection}
                   getDividerBounds={getDividerBounds}
                   groupedCase={caseItem}
                   isCollectionSummarized={isCollectionSummarized}

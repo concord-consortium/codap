@@ -207,7 +207,6 @@ const SingleCaseView = observer(function SingleCaseView({
       <div className="case-card-attributes">
         <CaseAttrsView
           caseItem={displayedCase}
-          cases={cases}
           collection={collection}
           onResizeColumn={onResizeColumn}
         />
