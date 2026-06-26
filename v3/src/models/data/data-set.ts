@@ -1114,14 +1114,17 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
         return index != null ? this.getNumericAtItemIndex(index, attributeID) : undefined
       },
       getNumericAtItemIndex(index: number, attributeID: string) {
+        const attr = self.getAttribute(attributeID)
         if (self.isCaching()) {
           const itemId = self.items[index]?.__id__
           const cachedItem = self.itemCache.get(itemId)
           if (cachedItem && Object.prototype.hasOwnProperty.call(cachedItem, attributeID)) {
-            return Number(cachedItem[attributeID])
+            // Parse the cached value the same way the attribute does, so blanks become NaN
+            // (not 0, as Number("") would) and numeric-with-units values are handled.
+            const cachedValue = cachedItem[attributeID]
+            return attr ? attr.toNumeric(String(cachedValue ?? "")) : Number(cachedValue)
           }
         }
-        const attr = self.getAttribute(attributeID)
         return attr?.numValue(index)
       },
       getItem,
