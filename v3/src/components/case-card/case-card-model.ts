@@ -75,9 +75,10 @@ export const CaseCardModel = TileContentModel
     // Summarizes the values of `attr` over `collection`. With no selection the summary
     // covers the whole collection (the global "Summarize Dataset" state); when there is a
     // selection it narrows to the collection's cases that have a selected descendant item.
-    // Because selecting/navigating to a parent selects all of its descendants, this yields
-    // exactly the viewed parent's children, mirroring the selection-aware header count and
-    // matching legacy v2 behavior.
+    // Because selecting/navigating to a parent selects all of its descendants, single-parent
+    // navigation yields exactly that parent's children (with multiple parents selected it
+    // covers every case with a selected descendant). This mirrors the selection-aware header
+    // count and matches legacy v2 behavior. Empty values are excluded, as in v2.
     summarizedValues(attr: IAttribute, collection: ICollectionModel) {
       // Establish a MobX dependency on the attribute's mutation counter so this view
       // re-evaluates when individual values change. Volatile strValues/numValues are
@@ -104,7 +105,9 @@ export const CaseCardModel = TileContentModel
         const attrUnits = attr.units ? ` ${attr.units}` : ""
         return `${valueString}${attrUnits}`
       } else {
-        const allValues = summaryCases.map(c => self.data?.getValue(c.__id__, attr.id))
+        const allValues = summaryCases
+          .map(c => self.data?.getValue(c.__id__, attr.id))
+          .filter(value => value != null && value !== "")
         const uniqueValues = new Set(allValues)
         if (uniqueValues.size > 2) {
           return `${uniqueValues.size} values`

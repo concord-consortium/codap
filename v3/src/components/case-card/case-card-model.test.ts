@@ -244,6 +244,18 @@ describe("CaseCardModel summarizedValues selection and edge cases", () => {
     expect(cardContent.summarizedValues(xAttr, collection)).toBe("2-3")
   })
 
+  // Empty values are excluded from a categorical summary (matching v2 and the numeric branch).
+  it("excludes empty values from a categorical summary", () => {
+    const { cardContent, data } = setupCardWithDataSet()
+    const cAttr = data.addAttribute({ name: "color" })
+    data.addCases(toCanonical(data, [{ color: "red" }, { color: "" }, { color: "blue" }]))
+    data.validateCases()
+    const collection = data.collections[0]
+
+    // the blank value is ignored; only "red" and "blue" are summarized
+    expect(cardContent.summarizedValues(cAttr, collection)).toBe("red, blue")
+  })
+
   // When the summarized cases have no finite numeric values, the numeric summary is empty.
   it("returns an empty numeric summary when the selected cases have no numeric values", () => {
     const { cardContent, data } = setupCardWithDataSet()
