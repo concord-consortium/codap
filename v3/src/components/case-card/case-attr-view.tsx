@@ -3,7 +3,6 @@ import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useState } from "react"
 import { IAttribute } from "../../models/data/attribute"
-import { ICollectionModel } from "../../models/data/collection"
 import { ICase, IGroupedCase } from "../../models/data/data-set-types"
 import { isFiniteNumber } from "../../utilities/math-utils"
 import { renderAttributeValue } from "../case-tile-common/attribute-format-utils"
@@ -18,7 +17,9 @@ import "./case-attr-view.scss"
 
 interface ICaseAttrViewProps {
   attr: IAttribute
-  collection: ICollectionModel
+  // the cases that feed a summary cell — restricted to the currently-viewed parent's
+  // children in a hierarchical dataset
+  cases?: IGroupedCase[]
   getDividerBounds?: GetDividerBoundsFn
   groupedCase?: IGroupedCase
   isCollectionSummarized: boolean
@@ -29,7 +30,7 @@ interface ICaseAttrViewProps {
 
 export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrViewProps) {
   const {
-    attr, collection, getDividerBounds, groupedCase, isCollectionSummarized,
+    attr, cases, getDividerBounds, groupedCase, isCollectionSummarized,
     onAttrKeyDown, onSetContentElt, onSetBeginEditingFn
   } = props
   const { id, units } = attr || {}
@@ -42,7 +43,7 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   attr?.changeCount
   const cellStrValue = isCollectionSummarized
-                        ? cardModel?.summarizedValues(attr, collection)
+                        ? cardModel?.summarizedValues(attr, cases ?? [])
                         : data?.getStrValue(caseId, id)
   const displayStrValue = cellStrValue ?? ""
   const displayNumValue = cellStrValue ? Number(cellStrValue) : NaN

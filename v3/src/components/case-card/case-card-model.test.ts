@@ -32,21 +32,22 @@ describe("CaseCardModel reactivity", () => {
     const xAttr = data.addAttribute({ name: "x" })
     data.addCases(toCanonical(data, [{ x: 1 }, { x: 2 }, { x: 3 }]))
     const collection = data.collections[0]
+    const cases = data.getCasesForCollection(collection.id)
 
     const summaryListener = jest.fn()
     const dispose = reaction(
-      () => cardContent.summarizedValues(xAttr, collection),
+      () => cardContent.summarizedValues(xAttr, cases),
       () => summaryListener()
     )
 
-    expect(cardContent.summarizedValues(xAttr, collection)).toBe("1-3")
+    expect(cardContent.summarizedValues(xAttr, cases)).toBe("1-3")
     expect(summaryListener).toHaveBeenCalledTimes(0)
 
     // Simulate a slider-driven formula recompute mutating one case's value.
     const firstCaseId = data.items[0].__id__
     data.setComputedCaseValues([{ __id__: firstCaseId, [xAttr.id]: 99 }], [xAttr.id])
 
-    expect(cardContent.summarizedValues(xAttr, collection)).toBe("2-99")
+    expect(cardContent.summarizedValues(xAttr, cases)).toBe("2-99")
     expect(summaryListener).toHaveBeenCalledTimes(1)
 
     dispose()
@@ -58,22 +59,74 @@ describe("CaseCardModel reactivity", () => {
     data.addCases(toCanonical(data, [{ color: "red" }, { color: "red" }, { color: "blue" }]))
     data.validateCases()
     const collection = data.collections[0]
+    const cases = data.getCasesForCollection(collection.id)
 
     const summaryListener = jest.fn()
     const dispose = reaction(
-      () => cardContent.summarizedValues(cAttr, collection),
+      () => cardContent.summarizedValues(cAttr, cases),
       () => summaryListener()
     )
 
-    expect(cardContent.summarizedValues(cAttr, collection)).toBe("red, blue")
+    expect(cardContent.summarizedValues(cAttr, cases)).toBe("red, blue")
     expect(summaryListener).toHaveBeenCalledTimes(0)
 
     const lastCaseId = data.items[2].__id__
     data.setComputedCaseValues([{ __id__: lastCaseId, [cAttr.id]: "green" }], [cAttr.id])
 
-    expect(cardContent.summarizedValues(cAttr, collection)).toBe("red, green")
+    expect(cardContent.summarizedValues(cAttr, cases)).toBe("red, green")
     expect(summaryListener).toHaveBeenCalledTimes(1)
 
     dispose()
+  })
+})
+
+describe("CaseCardModel summarizedValues hierarchical filtering", () => {
+  // In a hierarchical dataset, when the user navigates to a single parent case, a
+  // summarized child collection must reflect only that parent's children, not all the
+  // cases in the child collection.
+  it("restricts a numeric summary to the children of the viewed parent case", () => {
+    const { cardContent, data } = setupCardWithDataSet()
+    const groupAttr = data.addAttribute({ name: "group" })
+    const xAttr = data.addAttribute({ name: "x" })
+    data.addCases(toCanonical(data, [
+      { group: "A", x: 1 },
+      { group: "A", x: 5 },
+      { group: "B", x: 10 },
+      { group: "B", x: 20 }
+    ]))
+    data.moveAttributeToNewCollection(groupAttr.id)
+    data.validateCases()
+
+    const parentCollection = data.collections[0]
+    const parentCases = data.getCasesForCollection(parentCollection.id)
+    expect(parentCases.length).toBe(2)
+
+    const groupAChildren = cardContent.groupChildCases(parentCases[0].__id__) ?? []
+    const groupBChildren = cardContent.groupChildCases(parentCases[1].__id__) ?? []
+
+    expect(cardContent.summarizedValues(xAttr, groupAChildren)).toBe("1-5")
+    expect(cardContent.summarizedValues(xAttr, groupBChildren)).toBe("10-20")
+  })
+
+  it("restricts a categorical summary to the children of the viewed parent case", () => {
+    const { cardContent, data } = setupCardWithDataSet()
+    const groupAttr = data.addAttribute({ name: "group" })
+    const colorAttr = data.addAttribute({ name: "color" })
+    data.addCases(toCanonical(data, [
+      { group: "A", color: "red" },
+      { group: "A", color: "blue" },
+      { group: "B", color: "green" },
+      { group: "B", color: "green" }
+    ]))
+    data.moveAttributeToNewCollection(groupAttr.id)
+    data.validateCases()
+
+    const parentCollection = data.collections[0]
+    const parentCases = data.getCasesForCollection(parentCollection.id)
+    const groupAChildren = cardContent.groupChildCases(parentCases[0].__id__) ?? []
+    const groupBChildren = cardContent.groupChildCases(parentCases[1].__id__) ?? []
+
+    expect(cardContent.summarizedValues(colorAttr, groupAChildren)).toBe("red, blue")
+    expect(cardContent.summarizedValues(colorAttr, groupBChildren)).toBe("green")
   })
 })

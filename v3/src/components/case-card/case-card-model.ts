@@ -1,7 +1,7 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { IAttribute } from "../../models/data/attribute"
-import { ICollectionModel } from "../../models/data/collection"
-import { ICaseCreation } from "../../models/data/data-set-types"
+import { ICase, ICaseCreation } from "../../models/data/data-set-types"
+import { isFiniteNumber } from "../../utilities/math-utils"
 import { getTileCaseMetadata, getTileDataSet } from "../../models/shared/shared-data-tile-utils"
 import { ISharedModel } from "../../models/shared/shared-model"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
@@ -71,15 +71,23 @@ export const CaseCardModel = TileContentModel
         .map(childCaseId => self.data?.caseInfoMap.get(childCaseId)?.groupedCase)
         .filter(groupedCase => !!groupedCase)
     },
-    summarizedValues(attr: IAttribute, collection: ICollectionModel) {
+    // Summarizes the values of `cases` for `attr`. In a hierarchical dataset the caller
+    // passes only the cases that belong to the currently-viewed parent, so a summarized
+    // child collection reflects that parent's children, not the whole collection.
+    summarizedValues(attr: IAttribute, cases: readonly ICase[]) {
       // Establish a MobX dependency on the attribute's mutation counter so this view
       // re-evaluates when individual values change. Volatile strValues/numValues are
       // not deep-observable; changeCount is bumped by setValue/setComputedValues.
       // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       attr.changeCount
-      // Returns a string summarizing the selected values of the attribute
+      // Returns a string summarizing the values of the attribute over the given cases
       if (attr.isNumeric) {
-        const numericValues = attr.numValues.filter((_v, i) => attr.isValueNumeric(i))
+        const numericValues: number[] = []
+        cases.forEach(c => {
+          const value = self.data?.getNumeric(c.__id__, attr.id)
+          if (isFiniteNumber(value)) numericValues.push(value)
+        })
+        if (numericValues.length === 0) return ""
         const formatter = getNumFormatterForAttribute(attr)
         const minValue = Math.min(...numericValues)
         const maxValue = Math.max(...numericValues)
@@ -89,16 +97,13 @@ export const CaseCardModel = TileContentModel
         const attrUnits = attr.units ? ` ${attr.units}` : ""
         return `${valueString}${attrUnits}`
       } else {
-        const selectedCases = self.data?.selection
-        const casesToUse = selectedCases && selectedCases.size >= 1
-          ? Array.from(selectedCases).map((id) => ({ __id__: id }))
-          : collection.cases
-        const allValues = casesToUse.map(c => self.data?.getValue(c.__id__, attr.id))
+        const allValues = cases.map(c => self.data?.getValue(c.__id__, attr.id))
         const uniqueValues = new Set(allValues)
         if (uniqueValues.size > 2) {
           return `${uniqueValues.size} values`
         } else {
           const uniqueValuesArray = Array.from(uniqueValues)
+          if (uniqueValuesArray.length === 0) return ""
           if (uniqueValuesArray.length === 2) {
             return `${uniqueValuesArray[0]}, ${uniqueValuesArray[1]}`
           }
