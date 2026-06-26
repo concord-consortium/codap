@@ -170,6 +170,9 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, render
       renderBarCovers({ barCovers, barCoversRef, graphModel, primaryAttrRole })
     }
 
+    // tell the renderer which axis bar cases stack along, so bar coalescing groups bars correctly
+    // for both vertical (primary axis on bottom) and horizontal (primary axis on left) orientations
+    if (renderer) renderer.barStackAxis = primaryIsBottom ? "y" : "x"
     const anchor = circleAnchor
     setPointCoordinates({
       anchor, dataset, pointRadius, selectedPointRadius: graphModel.getPointRadius('select'),

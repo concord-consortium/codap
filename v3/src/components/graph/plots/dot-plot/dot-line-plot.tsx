@@ -161,6 +161,12 @@ export const DotLinePlot = observer(function DotLinePlot({ renderer }: IPlotProp
         ? primaryIsBottom ? hBarAnchor : vBarAnchor
         : circleAnchor
 
+      // Dot/line plots are never fused bars ("bar for each point" draws each case as its own bar),
+      // so clear the fuse flag explicitly. A reused renderer can switch here from a fused histogram
+      // without leaving bars mode (displayType stays "bars"), and bar coalescing must not apply.
+      // See CODAP-1234.
+      if (renderer) renderer.pointsFusedIntoBars = false
+
       setPointCoordinates({
         pointRadius: graphModel.getPointRadius(),
         selectedPointRadius: graphModel.getPointRadius('select'),

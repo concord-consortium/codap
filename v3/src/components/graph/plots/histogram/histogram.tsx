@@ -186,6 +186,9 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, rend
       addHistogramBinDragHandlers()
     }
 
+    // tell the renderer which axis bar cases stack along, so bar coalescing groups bars correctly
+    // for both vertical (primary axis on bottom) and horizontal (primary axis on left) orientations
+    if (renderer) renderer.barStackAxis = primaryIsBottom ? "y" : "x"
     setPointCoordinates({
       anchor: circleAnchor,
       pointRadius: graphModel.getPointRadius(),

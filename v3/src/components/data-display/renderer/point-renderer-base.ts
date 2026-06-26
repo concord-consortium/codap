@@ -49,6 +49,9 @@ export abstract class PointRendererBase {
   protected _isVisible = true
   protected _displayType: PointDisplayType = "points"
   protected _pointsFusedIntoBars = false
+  // axis along which fused-bar cases stack: "y" for vertical bars (primary axis on bottom),
+  // "x" for horizontal bars (primary axis on left). Used by bar coalescing.
+  protected _barStackAxis: "x" | "y" = "y"
   protected _anchor = circleAnchor
   protected animationFrames = new Map<AnimationFrameRequestId, number>()
 
@@ -238,12 +241,30 @@ export abstract class PointRendererBase {
     this._pointsFusedIntoBars = value
   }
 
+  get barStackAxis(): "x" | "y" {
+    return this._barStackAxis
+  }
+
+  set barStackAxis(value: "x" | "y") {
+    this._barStackAxis = value
+  }
+
   get anchor(): { x: number; y: number } {
     return this._anchor
   }
 
   set anchor(value: { x: number; y: number }) {
     this._anchor = value
+  }
+
+  /**
+   * Whether the renderer should draw fused bars as coalesced same-style segments rather than
+   * per-case rects/sprites: only for bar charts/histograms whose cases are fused into shared
+   * stacked bars, and not mid-transition (coalescing assumes stable geometry, so during a
+   * transition we keep per-case rendering so the animation plays). Shared by both renderers.
+   */
+  protected get shouldCoalesceBars(): boolean {
+    return this._displayType === "bars" && this._pointsFusedIntoBars && !this.anyTransitionActive
   }
 
   // ===== Template methods (shared logic + delegation) =====
@@ -322,6 +343,13 @@ export abstract class PointRendererBase {
     // (e.g., PixiPointRenderer's display type transition), so defer the assignment.
     this.doMatchPointsToData(datasetID, caseData, displayType, style)
     this._displayType = displayType
+    // The bar-only state is set imperatively by the bar-chart/histogram plot components and is
+    // never otherwise reset; clear it whenever we leave bars mode so a reused renderer can't carry
+    // a stale fuse flag / stack axis into a non-bars plot. See CODAP-1234.
+    if (displayType !== "bars") {
+      this._pointsFusedIntoBars = false
+      this._barStackAxis = "y"
+    }
   }
 
   /**
