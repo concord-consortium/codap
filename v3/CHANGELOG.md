@@ -1,5 +1,27 @@
 # Changelog
 
+## Version 3.0.3 - June 29, 2026
+
+### ✨ Features & Improvements:
+- **CODAP-1313:** Improve marquee-selection performance on large datasets
+
+### 🐞 Bug Fixes:
+- **CODAP-1234:** Fix selection scrolling in table and bar chart rendering
+- **CODAP-1421:** Preserve plugin-set axis bounds across data updates
+- **CODAP-1428:** Restrict case card child summaries to the viewed parent
+- **CODAP-1430:** Fix bugs with categorical charts of computed attributes
+- **CODAP-1432:** Fix the broken Simmer plugin
+- **CODAP-1434:** Fix missing map boundaries when data crosses the antimeridian
+
+### 🛠️ Under the Hood:
+- **CODAP-1426:** Eliminate spurious console warnings for fixed-size tiles
+
+### Asset Sizes
+|      File |          Size | % Change from Previous Release |
+|-----------|---------------|--------------------------------|
+|  main.css |  240848 bytes |                         -0.02% |
+|  index.js | 7830684 bytes |                          0.11% |
+
 ## Version 3.0.2 - June 21, 2026
 
 ### 🐞 Bug Fixes:
