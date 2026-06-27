@@ -138,12 +138,12 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
       height: marqueeRect.height + event.dy
     })
     const currentRect = rectNormalize({
-        x: startX.current, y: startY.current,
-        w: width.current,
-        h: height.current
-      }),
-      newSelection = getCasesForDelta(selectionTree.current, currentRect, previousMarqueeRect.current),
-      newDeselection = getCasesForDelta(selectionTree.current, previousMarqueeRect.current, currentRect)
+      x: startX.current, y: startY.current,
+      w: width.current,
+      h: height.current
+    })
+    const newSelection = getCasesForDelta(selectionTree.current, currentRect, previousMarqueeRect.current)
+    const newDeselection = getCasesForDelta(selectionTree.current, previousMarqueeRect.current, currentRect)
     // Stash the caseIDs to select and deselect for each dataset
     newSelection.forEach((caseObject: caseObject) => {
       datasetsMap[caseObject.datasetID].caseIDsToSelect.push(caseObject.caseID)
@@ -151,7 +151,8 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
     newDeselection.forEach((caseObject: caseObject) => {
       datasetsMap[caseObject.datasetID].caseIDsToDeselect.push(caseObject.caseID)
     })
-    // Apply the selections and de-selections for each dataset
+    // Apply the selections and de-selections for each dataset. selectAndDeselectCases uses a
+    // volatile selection + direct per-move delta notification (no applyModelChange).
     Object.values(datasetsMap).forEach((selectionSpec) => {
       const {dataset, caseIDsToSelect, caseIDsToDeselect} = selectionSpec
       selectAndDeselectCases(caseIDsToSelect, caseIDsToDeselect, dataset)

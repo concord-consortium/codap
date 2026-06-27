@@ -15,7 +15,7 @@ import {
 } from "./data-display-types"
 import {IDataConfigurationModel } from "./models/data-configuration-model"
 import {CaseDataWithSubPlot} from "./d3-types"
-import { getRendererForEvent, IPointStyle, PointRendererBase } from "./renderer"
+import { getRendererForEvent, IPoint, IPointStyle, PointRendererBase } from "./renderer"
 
 export const maxWidthOfStringsD3 = (strings: Iterable<string>) => {
   let maxWidth = 0
@@ -113,7 +113,17 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
   dataConfiguration.setPointsNeedUpdating(false)
 }
 
-export function setPointSelection(props: ISetPointSelection) {
+/**
+ * Updates the selection styling (fill/stroke/radius/raised) of plotted points.
+ *
+ * By default every point is restyled. When `caseIdsToUpdate` is provided, only the points for those
+ * cases are restyled — the "delta" path used during a marquee drag, where only a handful of points
+ * change selection state per frame. Because a case can be plotted once per plot (e.g. multiple
+ * y-attributes), each case is looked up across `numberOfPlots` plots.
+ */
+export function setPointSelection(
+  props: ISetPointSelection, caseIdsToUpdate?: Iterable<string>, numberOfPlots = 1
+) {
   const { renderer, dataConfiguration, pointRadius, selectedPointRadius,
     pointColor, pointStrokeColor, getPointColorAtIndex } = props
   const dataset = dataConfiguration.dataset
@@ -121,8 +131,8 @@ export function setPointSelection(props: ISetPointSelection) {
   if (!renderer) {
     return
   }
-  renderer.forEachPoint((point, metadata) => {
-    const { caseID, plotNum } = metadata
+
+  const stylePoint = (point: IPoint, caseID: string, plotNum: number) => {
     const isSelected = !!dataset?.isCaseSelected(caseID)
     // Determine fill color based on legend or plotNum; no-legend selected points override to blue below
     let fill: string
@@ -142,7 +152,21 @@ export function setPointSelection(props: ISetPointSelection) {
     }
     renderer.setPointStyle(point, style)
     renderer.setPointRaised(point, isSelected)
-  })
+  }
+
+  if (caseIdsToUpdate) {
+    // Delta path: restyle only the points whose selection changed.
+    for (const caseID of caseIdsToUpdate) {
+      for (let plotNum = 0; plotNum < numberOfPlots; ++plotNum) {
+        const point = renderer.getPointForCaseData({ plotNum, caseID })
+        if (point) stylePoint(point, caseID, plotNum)
+      }
+    }
+  } else {
+    renderer.forEachPoint((point, metadata) => {
+      stylePoint(point, metadata.caseID, metadata.plotNum)
+    })
+  }
 }
 
 export function rectNormalize(iRect: rTreeRect) {

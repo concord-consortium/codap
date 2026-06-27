@@ -236,6 +236,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
      */
     get selection() {
       if (!self.dataset || !self.filteredCases?.[0]) return []
+      // O(graph cases): avoid observing this per selection change (see the flag-gated reactions).
       return Array.from(self.graphCaseIDs).filter(caseId => self.dataset?.isCaseSelected(caseId))
     }
   }))

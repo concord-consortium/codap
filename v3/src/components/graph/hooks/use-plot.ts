@@ -3,7 +3,9 @@ import {isAlive} from "mobx-state-tree"
 import { useCallback, useEffect, useRef } from "react"
 import {useDebouncedCallback} from "use-debounce"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import {isCaseValueChangeAction, isSetComputedCaseValuesAction} from "../../../models/data/data-set-actions"
+import {
+  isCaseValueChangeAction, isSelectionAction, isSetComputedCaseValuesAction
+} from "../../../models/data/data-set-actions"
 import {mstAutorun} from "../../../utilities/mst-autorun"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
@@ -91,7 +93,8 @@ export const useRendererDragHandlers = (
 
 export interface IPlotResponderProps {
   refreshPointPositions: (selectedOnly: boolean) => void
-  refreshPointSelection: () => void
+  // caseIds, when provided, restyles only those cases' points (delta path); omitted restyles all.
+  refreshPointSelection: (caseIds?: Set<string>) => void
   renderer?: PointRendererBase
 }
 
@@ -160,18 +163,23 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   // may have a stale closure capturing the old renderer reference.
   // See: https://www.pivotaltracker.com/story/show/188333898
   useEffect(() => {
-    // Only call matchCirclesToData when the renderer actually changes (not when callbacks change)
     // This prevents startAnimation from being called during axis dragging when callbacks are recreated
     const rendererChanged = renderer !== prevRendererRef.current
     prevRendererRef.current = renderer
 
-    if (rendererChanged) {
-      callMatchCirclesToData()
-      // Update masks with new renderer. Only needed when the renderer actually changes;
-      // running it on every callback-identity change reapplies masks against stale
-      // state.subPlotNum values mid-category-reorder (see respondToCategorySetChanges).
-      updateCellMasks({ dataConfig: dataConfiguration, layout, renderer })
-    }
+    // Only refresh when the renderer actually becomes available or changes. This effect re-runs
+    // whenever one of its callback deps changes identity, which happens on every selection-driven
+    // re-render during a marquee drag; previously the unconditional refreshPointPositions/
+    // refreshPointSelection below did a full O(all points) restyle on each such re-run, swamping
+    // the per-delta selection refresh. Actual data/selection/layout changes are handled by the
+    // dedicated reactions below; this effect is solely for renderer availability/switch.
+    if (!rendererChanged) return
+
+    callMatchCirclesToData()
+    // Update masks with new renderer. Only needed when the renderer actually changes;
+    // running it on every callback-identity change reapplies masks against stale
+    // state.subPlotNum values mid-category-reorder (see respondToCategorySetChanges).
+    updateCellMasks({ dataConfig: dataConfiguration, layout, renderer })
     // Call refreshPointPositions directly to ensure it uses the new renderer
     refreshPointPositions(false)
     // Defer refreshPointSelection to run after any other synchronous matchCirclesToData calls
@@ -309,18 +317,91 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     )
   }, [layout, callRefreshPointPositions])
 
-  // respond to selection changes
-  useEffect(function respondToSelectionChanges() {
-    if (dataset) {
-      return mstReaction(
-        () => dataset?.selectionChanges,
-        () => {
-          refreshPointSelection()
-        },
-        {name: "useSubAxis.respondToSelectionChanges"}, dataConfiguration
-      )
+  // Coalesce rapid selection changes into a single point-selection refresh per animation frame.
+  //
+  // The TRIGGER is a reaction on dataset.selectionChanges, which fires for EVERY selection change —
+  // including ones that don't flow through a named selection action (e.g. a snapshot/"moment" restore
+  // that replaces the selection and resets selectionChanges). A separate onAnyAction listener supplies
+  // an optional DELTA HINT: when a selectCases action toggles only plotted (childmost) points we
+  // restyle just those; any other case — a non-selectCases action, a selectCases on non-plotted ids
+  // (e.g. a parent/legend selection that expands to child items), or a change with no captured action —
+  // falls back to a full restyle. Full restyle is the safe default; the delta is purely an
+  // optimization for the marquee hot path.
+  //
+  // Refs hold the latest refreshPointSelection and renderer so the reaction/listener identities stay
+  // stable and a pending frame always runs against the current renderer.
+  const refreshPointSelectionRef = useRef(refreshPointSelection)
+  refreshPointSelectionRef.current = refreshPointSelection
+  const rendererRef = useRef(renderer)
+  rendererRef.current = renderer
+  const selectionRefreshRafRef = useRef<number>()
+  const pendingSelectionDeltaRef = useRef<Set<string>>(new Set())
+  const pendingFullSelectionRefreshRef = useRef(false)
+
+  const scheduleSelectionRefresh = useCallback(() => {
+    if (selectionRefreshRafRef.current != null) return
+    selectionRefreshRafRef.current = requestAnimationFrame(() => {
+      selectionRefreshRafRef.current = undefined
+      const delta = pendingSelectionDeltaRef.current
+      const full = pendingFullSelectionRefreshRef.current
+      pendingSelectionDeltaRef.current = new Set()
+      pendingFullSelectionRefreshRef.current = false
+      // Delta restyle only when we captured a non-empty delta of plotted points and nothing this
+      // frame forced a full refresh. An empty delta without a full flag means the selection changed
+      // via a path we couldn't attribute to a selectCases delta (e.g. a snapshot restore) → restyle
+      // all points.
+      if (!full && delta.size > 0) {
+        refreshPointSelectionRef.current(delta)
+      } else {
+        refreshPointSelectionRef.current()
+      }
+    })
+  }, [])
+
+  // Cancel any pending selection refresh on unmount.
+  useEffect(() => {
+    return () => {
+      if (selectionRefreshRafRef.current != null) {
+        cancelAnimationFrame(selectionRefreshRafRef.current)
+        selectionRefreshRafRef.current = undefined
+      }
     }
-  }, [dataConfiguration, dataset, refreshPointSelection])
+  }, [])
+
+  // Trigger: every selection change schedules a coalesced refresh. Observing selectionChanges (rather
+  // than only selection actions) ensures non-action changes — e.g. a snapshot restore that replaces
+  // the selection — still restyle the points.
+  useEffect(function respondToSelectionChanges() {
+    if (!dataset) return
+    return mstReaction(
+      () => dataset.selectionChanges,
+      () => scheduleSelectionRefresh(),
+      { name: "usePlot.respondToSelectionChanges" }, dataConfiguration
+    )
+  }, [dataConfiguration, dataset, scheduleSelectionRefresh])
+
+  // Delta hint: when a selectCases action toggles only plotted (childmost) points, remember just those
+  // so the coalesced refresh can restyle them instead of every point. selectCases on non-plotted ids
+  // (which expand to child items, e.g. a parent/legend selection), setSelectedCases, and selectAll
+  // force a full restyle so no affected point is missed.
+  useEffect(function captureSelectionDelta() {
+    if (!dataset) return
+    const disposer = onAnyAction(dataset, action => {
+      if (!isSelectionAction(action)) return
+      if (action.name === "selectCases") {
+        const caseIds: string[] = action.args?.[0] ?? []
+        if (caseIds.length === 0) return
+        if (caseIds.every(id => rendererRef.current?.getPointForCaseData({ plotNum: 0, caseID: id }))) {
+          caseIds.forEach(id => pendingSelectionDeltaRef.current.add(id))
+        } else {
+          pendingFullSelectionRefreshRef.current = true
+        }
+      } else {
+        pendingFullSelectionRefreshRef.current = true
+      }
+    })
+    return () => disposer?.()
+  }, [dataset])
 
   // respond to value changes
   useEffect(() => {

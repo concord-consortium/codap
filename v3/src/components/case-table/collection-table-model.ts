@@ -343,7 +343,7 @@ export class CollectionTableModel {
       if (rowBottom > viewBottom) {
         if (rowBottom - viewBottom < distance) {
           closestRow = rowIndex
-          distance = rowTop - viewBottom
+          distance = rowBottom - viewBottom
         }
       }
     }

@@ -165,14 +165,16 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
 
   useRendererDragHandlers(renderer, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
-  const refreshPointSelection = useCallback(() => {
+  // When caseIds is provided, only those cases' points are restyled (delta path used during a
+  // marquee drag); otherwise every point is restyled.
+  const refreshPointSelection = useCallback((caseIds?: Set<string>) => {
     const {pointColor, pointStrokeColor} = graphModel.pointDescription
     dataConfiguration && setPointSelection(
       {
         renderer, dataConfiguration, pointRadius: graphModel.getPointRadius(),
         selectedPointRadius: selectedPointRadiusRef.current,
         pointColor, pointStrokeColor, getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex
-      })
+      }, caseIds, dataConfiguration.numberOfPlots)
   }, [dataConfiguration, graphModel, renderer])
 
   // Accept showLines parameter to avoid stale closure issues during rapid state changes
@@ -319,6 +321,15 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
     // dependency — keeping it here would recreate the mstAutorun on every toggle, accumulating
     // no-op addDisposer entries on graphModel until it's destroyed.
   }, [adornmentsStore, graphModel, refreshSquares])
+
+  // The squares <g> elements are conditionally mounted (only while shown), so their refs attach
+  // after React commits. The updateSquares mstAutorun fires synchronously when showSquaresOfResiduals
+  // flips — before those refs exist — so it draws into a null ref on the toggle-on / show-adornment
+  // transition. This post-commit effect redraws once the <g> is mounted. (Steady-state updates such
+  // as dragging a line keep flowing through the mstAutorun, whose <g> is already mounted.)
+  useEffect(function drawSquaresAfterMount() {
+    if (showSquares) refreshSquares()
+  }, [showSquares, movableLine?.isVisible, lsrl?.isVisible, plottedFunctionModel?.isVisible, refreshSquares])
 
   // Call refreshConnectingLines when Connecting Lines option is switched on and when all
   // points are selected.

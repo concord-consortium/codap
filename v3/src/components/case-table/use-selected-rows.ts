@@ -69,6 +69,32 @@ export const useSelectedRows = (props: UseSelectedRows) => {
     })
   }, [collectionId, data])
 
+  // Coalesce RDG selection syncs to one per animation frame. A marquee drag fires a selectCases
+  // action ~twice per move, each of which would otherwise synchronously rebuild the full selected-id
+  // Set — the dominant table cost during marquee selection. Batching to one rebuild per frame
+  // collapses that redundant work. A ref holds the latest sync so the scheduler identity stays
+  // stable (the onAnyAction listener doesn't re-subscribe on every collection/data change).
+  const syncRowSelectionToRdgRef = useRef(syncRowSelectionToRdg)
+  syncRowSelectionToRdgRef.current = syncRowSelectionToRdg
+  const syncRowSelectionRafRef = useRef<number>()
+  const scheduleSyncRowSelectionToRdg = useCallback(() => {
+    if (syncRowSelectionRafRef.current != null) return
+    syncRowSelectionRafRef.current = requestAnimationFrame(() => {
+      syncRowSelectionRafRef.current = undefined
+      syncRowSelectionToRdgRef.current()
+    })
+  }, [])
+
+  // Cancel any pending selection sync on unmount.
+  useEffect(() => {
+    return () => {
+      if (syncRowSelectionRafRef.current != null) {
+        cancelAnimationFrame(syncRowSelectionRafRef.current)
+        syncRowSelectionRafRef.current = undefined
+      }
+    }
+  }, [])
+
   // synchronize initial selection on mount
   useEffect(() => {
     let timeoutId: number | undefined
@@ -116,7 +142,7 @@ export const useSelectedRows = (props: UseSelectedRows) => {
             syncRowSelectionToDom()
           }
           else {
-            syncRowSelectionToRdg()
+            scheduleSyncRowSelectionToRdg()
           }
           if (isPartialSelectionAction(action)) {
             const caseIds = action.args[0]
@@ -142,7 +168,7 @@ export const useSelectedRows = (props: UseSelectedRows) => {
     })
     return () => disposer?.()
   }, [collectionId, collectionTableModel, data, onScrollClosestRowIntoView, onScrollRowRangeIntoView,
-      syncRowSelectionToDom, syncRowSelectionToRdg])
+      syncRowSelectionToDom, scheduleSyncRowSelectionToRdg])
 
   // anchor row for shift-selection
   const anchorCase = useRef<string | null>(null)
