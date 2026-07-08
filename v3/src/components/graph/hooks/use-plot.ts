@@ -413,7 +413,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
           // formula recalculations on unrelated attributes.
           if (isSetComputedCaseValuesAction(action)) {
             const affectedAttrs = action.args[1]
-            const plottedAttrs = dataConfiguration?.uniqueAttributes
+            const plottedAttrs = dataConfiguration?.plottedAttributeIDs
             if (affectedAttrs && plottedAttrs &&
                 !affectedAttrs.some(attrId => plottedAttrs.includes(attrId))) {
               return

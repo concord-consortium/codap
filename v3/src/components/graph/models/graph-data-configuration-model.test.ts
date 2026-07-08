@@ -120,6 +120,28 @@ describe("DataConfigurationModel", () => {
     ])
   })
 
+  it("plottedAttributeIDs includes 2nd-y and y2 attributes that uniqueAttributes omits", () => {
+    const config = tree.config
+    config.setDataset(tree.data, tree.metadata)
+    tree.data.addAttribute({ id: "y2Id", name: "y2" })
+    tree.data.addAttribute({ id: "yRightId", name: "yRight" })
+    config.setAttribute("x", { attributeID: "xId" })
+    config.setAttribute("y", { attributeID: "yId" })
+    config.addYAttribute({ attributeID: "y2Id" })          // 2nd attribute on the left y axis
+    config.setY2Attribute({ attributeID: "yRightId" })     // right (y2) vertical axis attribute
+
+    // uniqueAttributes omits the 2nd left-y attribute and the rightNumeric (y2) attribute
+    expect(config.uniqueAttributes).not.toContain("y2Id")
+    expect(config.uniqueAttributes).not.toContain("yRightId")
+
+    // plottedAttributeIDs includes x, first-y, 2nd-y, and y2, with no duplicates
+    expect(config.plottedAttributeIDs).toContain("xId")
+    expect(config.plottedAttributeIDs).toContain("yId")
+    expect(config.plottedAttributeIDs).toContain("y2Id")
+    expect(config.plottedAttributeIDs).toContain("yRightId")
+    expect(config.plottedAttributeIDs.length).toBe(new Set(config.plottedAttributeIDs).size)
+  })
+
   it("behaves as expected with scatter plot and explicit caption attribute", () => {
     const config = tree.config
     config.setDataset(tree.data, tree.metadata)

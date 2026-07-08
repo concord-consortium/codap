@@ -46,6 +46,10 @@ export interface AxisBounds {
 
 export interface IAxisDomainOptions {
   clampPosMinAtZero?: boolean
+  // When set, the domain is only ever grown to fit the data, never shrunk. This preserves a
+  // larger user/plugin-set bound even for clamped (count/percent) axes, which otherwise refit
+  // tightly to the data on every change.
+  growOnly?: boolean
 }
 
 export type TickFormatter = (value: number) => string

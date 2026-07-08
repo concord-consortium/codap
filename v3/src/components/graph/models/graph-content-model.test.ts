@@ -241,4 +241,125 @@ describe("GraphContentModel", () => {
       diComponentHandler.delete!({ component: tile })
     })
   })
+
+  // These tests write values via setComputedCaseValues (the attribute-formula path) and rely on the
+  // casesChangeCount reaction to rescale — they don't call rescaleNumericAxesForValueChange directly.
+  describe("rescale on value change", () => {
+    // Builds a scatter graph over testCases (a3 on x, a4 on first y) plus an extra numeric attribute
+    // "yr" (values 11..16) that callers can assign to a role via extraValues (e.g. y2AttributeName).
+    const createGraph = async (datasetName: string, extraValues: Record<string, any> = {}) => {
+      const documentContent = appState.document.content!
+      const { dataset: _dataset } = setupTestDataset({ datasetName })
+      const dataset = documentContent.createDataSet(getSnapshot(_dataset)).sharedDataSet.dataSet
+      dataset.addAttribute({ name: "yr" })
+      dataset.addCases(testCases.map((c, i) => ({ ...c, yr: 11 + i })), { canonicalize: true })
+      dataset.validateCases()
+      const result = diComponentHandler.create!(
+        {}, { type: "graph", dataContext: datasetName, xAttributeName: "a3", yAttributeName: "a4", ...extraValues }
+      )
+      const tile = documentContent.tileMap.get(
+        toV3Id(kGraphIdPrefix, (result.values as DIComponentInfo).id!)
+      )!
+      const content = tile.content as IGraphContentModel
+      // Let afterAttachToDocument's awaits resolve so axes are set up.
+      await new Promise(resolve => setTimeout(resolve, 0))
+      const firstCaseId = content.graphPointLayerModel.dataConfiguration.getCaseDataArray(0)[0].caseID
+      return { dataset, tile, content, firstCaseId }
+    }
+
+    it("grows the left y axis to fit a first-y value that moved outside the current domain", async () => {
+      (isInquirySpaceMode as jest.Mock).mockReturnValue(false)
+      const { dataset, tile, content, firstCaseId } = await createGraph("rescaleLeftData")
+      const yAxis = content.getAxis("left") as IBaseNumericAxisModel
+      const initialMax = yAxis.max
+      const a4 = dataset.getAttributeByName("a4")!
+      dataset.setComputedCaseValues([{ __id__: firstCaseId, [a4.id]: 100 }], [a4.id])
+
+      expect(yAxis.max).toBeGreaterThan(initialMax)
+      expect(yAxis.max).toBeGreaterThanOrEqual(100)
+
+      diComponentHandler.delete!({ component: tile })
+    })
+
+    it("is grow-only: leaves the domain unchanged when values stay within it", async () => {
+      (isInquirySpaceMode as jest.Mock).mockReturnValue(false)
+      const { dataset, tile, content, firstCaseId } = await createGraph("rescaleGrowOnlyData")
+      const yAxis = content.getAxis("left") as IBaseNumericAxisModel
+      const initialMin = yAxis.min
+      const initialMax = yAxis.max
+      const a4 = dataset.getAttributeByName("a4")!
+      // a4 values are -1..-6; set one to -3, still well within the existing domain
+      dataset.setComputedCaseValues([{ __id__: firstCaseId, [a4.id]: -3 }], [a4.id])
+
+      expect(yAxis.min).toBe(initialMin)
+      expect(yAxis.max).toBe(initialMax)
+
+      diComponentHandler.delete!({ component: tile })
+    })
+
+    // A numeric attribute assigned only to the y2/rightNumeric axis (not to x or first-y).
+    it("grows the right (y2) axis when a y2-only attribute's values move outside the domain", async () => {
+      (isInquirySpaceMode as jest.Mock).mockReturnValue(false)
+      const { dataset, tile, content, firstCaseId } = await createGraph("rescaleY2Data", { y2AttributeName: "yr" })
+      const y2Axis = content.getAxis("rightNumeric") as IBaseNumericAxisModel
+      expect(y2Axis).toBeDefined()
+      const initialMax = y2Axis.max
+      expect(initialMax).toBeLessThan(100)
+      // Read the values first, as the live app does while rendering, so the cache holds pre-change
+      // values that the rescale must see invalidated in order to grow.
+      const dataConfig = content.graphPointLayerModel.dataConfiguration
+      expect(dataConfig.numericValuesForAttrRole("rightNumeric")).not.toContain(100)
+      const yr = dataset.getAttributeByName("yr")!
+      dataset.setComputedCaseValues([{ __id__: firstCaseId, [yr.id]: 100 }], [yr.id])
+
+      expect(y2Axis.max).toBeGreaterThan(initialMax)
+      expect(y2Axis.max).toBeGreaterThanOrEqual(100)
+
+      diComponentHandler.delete!({ component: tile })
+    })
+
+    // A bar chart's count axis is a clamped (clampPosMinAtZero) axis, which refits tightly to the
+    // data. The value-change rescale must still be grow-only for it, or a user/plugin-set count-axis
+    // max would be silently discarded whenever a plotted value changes (e.g. a formula recalculates).
+    it("does not shrink a bar chart's count axis (grow-only) when a value changes", async () => {
+      (isInquirySpaceMode as jest.Mock).mockReturnValue(false)
+      const documentContent = appState.document.content!
+      const { dataset: _dataset } = setupTestDataset({ datasetName: "barChartCountData" })
+      const dataset = documentContent.createDataSet(getSnapshot(_dataset)).sharedDataSet.dataSet
+      dataset.addCases(testCases, { canonicalize: true })
+      dataset.validateCases()
+      const result = diComponentHandler.create!(
+        {}, { type: "graph", dataContext: "barChartCountData", xAttributeName: "a1" }
+      )
+      const tile = documentContent.tileMap.get(
+        toV3Id(kGraphIdPrefix, (result.values as DIComponentInfo).id!)
+      )!
+      const content = tile.content as IGraphContentModel
+      await new Promise(resolve => setTimeout(resolve, 0))
+      // Fuse points into bars to make a bar chart; this establishes a count axis on the secondary
+      // (left) place.
+      content.fusePointsIntoBars(true)
+      await new Promise(resolve => setTimeout(resolve, 0))
+      expect(content.plotType).toBe("barChart")
+
+      // The tallest bar is 3 cases, so the count axis auto-fits to a small max. Simulate the user
+      // dragging it well above that.
+      const countAxis = content.getAxis("left") as IBaseNumericAxisModel
+      expect(countAxis.type).toBe("count")
+      expect(countAxis.max).toBeLessThan(20)
+      countAxis.setDomain(0, 20)
+      expect(countAxis.max).toBe(20)
+
+      // Change a value to bump casesChangeCount and fire the rescale reaction.
+      const firstCaseId = content.graphPointLayerModel.dataConfiguration.getCaseDataArray(0)[0].caseID
+      const a3 = dataset.getAttributeByName("a3")!
+      dataset.setComputedCaseValues([{ __id__: firstCaseId, [a3.id]: 2 }], [a3.id])
+
+      // Grow-only: the user's larger max survives; it is not snapped back to fit the bars.
+      expect(countAxis.min).toBe(0)
+      expect(countAxis.max).toBe(20)
+
+      diComponentHandler.delete!({ component: tile })
+    })
+  })
 })

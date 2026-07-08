@@ -56,7 +56,12 @@ export function setNiceDomain(values: number[], axisModel: IBaseNumericAxisModel
       else if (maxValue <= 0) {
         niceMax = 0
       }
-      axisModel.setAllowRangeToShrink(true)
+      // Allowing the range to shrink refits the axis tightly to the data. Grow-only callers must
+      // not do this, or a larger user/plugin-set bound would be silently discarded on a data change;
+      // leaving allowRangeToShrink false lets setDomain's grow-only clamp preserve that bound.
+      if (!options.growOnly) {
+        axisModel.setAllowRangeToShrink(true)
+      }
     }
     else if (!axisModel.allowRangeToShrink) {
       // Don't widen a bound on a side where the data doesn't exceed it. This lets plugin-set

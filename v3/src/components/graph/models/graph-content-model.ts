@@ -193,6 +193,22 @@ export const GraphContentModel = DataDisplayContentModel
         self.axes.set(place, axis)
       }
     },
+    // Grows numeric axes to fit data that has moved past them, while leaving user/plugin-set bounds
+    // and already-fitting axes untouched. Passes growOnly so that clamped (count/percent) axes, which
+    // otherwise refit tightly to the data, are also only grown and never shrunk.
+    growNumericAxesToFit() {
+      AxisPlaces.forEach((axisPlace: AxisPlace) => {
+        const axis = self.getAxis(axisPlace),
+          role = axisPlaceToAttrRole[axisPlace]
+        if (isAnyNumericAxisModel(axis)) {
+          // A binned plot's primary axis owns [minBinEdge, maxBinEdge] and resyncs itself; niceing it
+          // here would extend it past the bins.
+          if (self.plot.hasBinnedNumericAxis && axisPlace === self.primaryPlace) return
+          const numericValues = self.plot.numericValuesForRole(role)
+          setNiceDomain(numericValues, axis, { ...self.plot.axisDomainOptions, growOnly: true })
+        }
+      })
+    },
     async afterAttachToDocument() {
       if (!self.tileEnv?.sharedModelManager?.isReady) {
         await when(() => !!self.tileEnv?.sharedModelManager?.isReady)
@@ -217,36 +233,32 @@ export const GraphContentModel = DataDisplayContentModel
         self.adornmentsStore.updateAdornments(updateCategoriesOptions)
       }, {name: "GraphContentModel.afterAttachToDocument.updateAdornments"}, self.dataConfiguration))
 
-      // Expand numeric axis domains when new cases are added (e.g., via plugin API)
+      // Binned plots own [minBinEdge, maxBinEdge] on the primary axis; when cases are added, let the
+      // plot resync its own domain (and grow bins to fit new data) before the casesChangeCount reaction
+      // below grows the remaining numeric axes (which skips the binned primary).
       addDisposer(self, self.dataConfiguration.onAction((actionCall) => {
-        if (actionCall.name === "addCases") {
-          // Binned plots own [minBinEdge, maxBinEdge] on the primary axis; running
-          // setNiceDomain on it would re-nice the domain past the bins and produce
-          // the half-bin sliver at top/bottom (CODAP-1281). Let the plot resync
-          // its own domain (and grow bins to fit new data), then skip the binned
-          // primary axis below.
-          if (self.plot.hasBinnedNumericAxis) {
-            // The captured self doesn't satisfy IAxisProviderBase here because
-            // setAxisHelper is defined in the same .actions block as this callback,
-            // so it isn't visible on self yet. The cast through unknown is required;
-            // at runtime self does provide every method on the interface.
-            self.plot.respondToPlotChange({
-              axisProvider: self as unknown as IAxisProviderBase,
-              primaryPlace: self.primaryPlace,
-              secondaryPlace: self.secondaryPlace
-            })
-          }
-          AxisPlaces.forEach((axisPlace: AxisPlace) => {
-            const axis = self.getAxis(axisPlace),
-              role = axisPlaceToAttrRole[axisPlace]
-            if (isAnyNumericAxisModel(axis)) {
-              if (self.plot.hasBinnedNumericAxis && axisPlace === self.primaryPlace) return
-              const numericValues = self.plot.numericValuesForRole(role)
-              setNiceDomain(numericValues, axis, self.plot.axisDomainOptions)
-            }
+        if (actionCall.name === "addCases" && self.plot.hasBinnedNumericAxis) {
+          // The captured self doesn't satisfy IAxisProviderBase here because
+          // setAxisHelper is defined in the same .actions block as this callback,
+          // so it isn't visible on self yet. The cast through unknown is required;
+          // at runtime self does provide every method on the interface.
+          self.plot.respondToPlotChange({
+            axisProvider: self as unknown as IAxisProviderBase,
+            primaryPlace: self.primaryPlace,
+            secondaryPlace: self.secondaryPlace
           })
         }
       }))
+
+      // Grow-fit numeric axes when cases are added/removed or their values change. Driven by
+      // casesChangeCount, which clearCasesCache bumps after invalidating the numeric-values cache, so
+      // the rescale reads current values rather than the stale cache a synchronous action response
+      // would see. addCases bumps casesChangeCount too, so this also covers the case-addition path.
+      addDisposer(self, mstReaction(
+        () => self.dataConfiguration.casesChangeCount,
+        () => this.growNumericAxesToFit(),
+        {name: "GraphContentModel.afterAttachToDocument.rescaleOnValueChange"}, self.dataConfiguration
+      ))
 
       // When showMeasuresForSelection is true, update adornments when selection changes. Only observe
       // the (O(N)) selection while the flag is on, so an ordinary marquee selection doesn't recompute
