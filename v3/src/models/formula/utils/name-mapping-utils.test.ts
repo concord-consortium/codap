@@ -63,7 +63,7 @@ describe("safeSymbolName", () => {
     expect(safeSymbolName("Attribute Name")).toEqual("Attribute_u20_Name")
     expect(safeSymbolName("1")).toEqual("_1")
     expect(safeSymbolName("1a")).toEqual("_1a")
-    expect(safeSymbolName("Attribute 🙃 Test")).toEqual("Attribute_u20__ud83d__ude43__u20_Test")
+    expect(safeSymbolName("Attribute 🙃 Test")).toEqual("Attribute_u20__u1f643__u20_Test")
     expect(safeSymbolName("Attribute`Test")).toEqual("Attribute_u60_Test")
     expect(safeSymbolName("Attribute\\Test")).toEqual("Attribute_u5c_Test")
     expect(safeSymbolName("Attribute\\\\Test")).toEqual("Attribute_u5c__u5c_Test")
