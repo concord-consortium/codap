@@ -72,6 +72,10 @@ export function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
 
   const setupAxis = (place: AxisPlace) => {
     if (!graphModel) return
+    // The lower plot's y-axis has no owning attribute — it is created and managed by an adornment
+    // (see CODAP-1445 / Residual Plot). Auto-configuring it from y-attribute state would corrupt
+    // the axis (create a categorical model that then flips the y attribute type back to categorical).
+    if (place === 'leftLower') return
     const dataConfig = graphModel.dataConfiguration
     const isPrimaryPlace = place === graphModel.primaryPlace
     const isSecondaryPlace = place === graphModel.secondaryPlace

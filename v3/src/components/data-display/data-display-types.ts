@@ -85,6 +85,9 @@ export const attrRoleToGraphPlace: Partial<Record<GraphAttrRole, GraphPlace>> = 
 export const axisPlaceToAttrRole: Record<AxisPlace, GraphAttrRole> = {
   bottom: "x",
   left: "y",
+  // The "leftLower" axis has no owning attribute — it is driven by an adornment (e.g. Residual Plot).
+  // Map it to "y" so that any residual code paths that read the role for it see a sensible fallback.
+  leftLower: "y",
   top: "topSplit",
   rightCat: "rightSplit",
   rightNumeric: "rightNumeric"

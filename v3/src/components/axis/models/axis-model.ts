@@ -21,7 +21,7 @@ export const AxisModel = types.model("AxisModel", {
   }))
   .views(self => ({
     get orientation(): AxisOrientation {
-      return ['left', 'rightCat', 'rightNumeric'].includes(self.place)
+      return ['left', 'leftLower', 'rightCat', 'rightNumeric'].includes(self.place)
         ? "vertical" : "horizontal"
     },
     get isUpdatingDynamically() {
