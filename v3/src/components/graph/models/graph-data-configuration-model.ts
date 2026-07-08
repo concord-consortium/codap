@@ -311,7 +311,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     get numericAttrs(): Array<{ role: AttrRole, attrId: string }> {
       const roles: Array<Maybe<AttrRole>> = [self.primaryRole, self.secondaryRole, "topSplit", "rightSplit"]
       const entries = roles.filter((role): role is AttrRole => !!role).filter(role => {
-        return self.attributeType(role) === "numeric"
+        return isNumericAttributeType(self.attributeType(role))
       }).map(role => ({ role, attrId: self.attributeID(role) }))
       // The 'y' role above captures only the first y attribute; add the remaining left-y attributes
       // and the y2/rightNumeric attribute so their value changes are observed and invalidate caches.
