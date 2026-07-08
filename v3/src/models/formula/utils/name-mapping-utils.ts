@@ -13,8 +13,18 @@ export const safeSymbolName = (name: string) =>
   name
     // Math.js does not allow to use symbols that start with a number, so we need to add a prefix.
     .replace(/^(\d+)/, '_$1')
-    // We also need to escape all the symbols that are not allowed in Math.js.
-    .replace(/[^a-zA-Z0-9_]/g, "_")
+    // Escape characters that aren't allowed in Math.js symbols. Each such character is encoded by its
+    // code point (the `u` flag makes the match code-point-aware, so an astral character such as an emoji
+    // encodes as a single unit) rather than collapsed to a single "_", so that distinct names (e.g. two
+    // names that differ only in their non-ASCII characters) produce distinct safe symbols. Collapsing
+    // them to "_" caused name->id map collisions, so a formula could resolve to the wrong attribute.
+    //
+    // This cannot be perfectly injective: the result must be a valid Math.js identifier, and a name that
+    // is already a valid identifier must map to itself (so it resolves when typed without backticks). An
+    // unsafe name can therefore still collide with a literal name equal to its encoded form (e.g. "a b"
+    // and "a_u20_b"). Eliminating that would require resolving names to canonical ids without routing
+    // through a safe symbol at all, but such collisions are vanishingly unlikely in practice.
+    .replace(/[^a-zA-Z0-9_]/gu, char => `_u${char.codePointAt(0)!.toString(16)}_`)
 
 export const localAttrIdToCanonical = (attrId: string) => `${CANONICAL_NAME}${LOCAL_ATTR}${attrId}`
 

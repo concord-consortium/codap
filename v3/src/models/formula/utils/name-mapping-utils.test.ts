@@ -60,15 +60,43 @@ describe("rmCanonicalPrefix", () => {
 describe("safeSymbolName", () => {
   it("converts strings that are not parsable by Mathjs to valid symbol names", () => {
     expect(safeSymbolName("Valid_Name_Should_Not_Be_Changed")).toEqual("Valid_Name_Should_Not_Be_Changed")
-    expect(safeSymbolName("Attribute Name")).toEqual("Attribute_Name")
+    expect(safeSymbolName("Attribute Name")).toEqual("Attribute_u20_Name")
     expect(safeSymbolName("1")).toEqual("_1")
     expect(safeSymbolName("1a")).toEqual("_1a")
-    expect(safeSymbolName("Attribute 🙃 Test")).toEqual("Attribute____Test")
-    expect(safeSymbolName("Attribute`Test")).toEqual("Attribute_Test")
-    expect(safeSymbolName("Attribute\\Test")).toEqual("Attribute_Test")
-    expect(safeSymbolName("Attribute\\\\Test")).toEqual("Attribute__Test")
-    expect(safeSymbolName("Attribute\\`Test")).toEqual("Attribute__Test")
-    expect(safeSymbolName("Attribute\\\\\\`Test")).toEqual("Attribute____Test")
+    expect(safeSymbolName("Attribute 🙃 Test")).toEqual("Attribute_u20__u1f643__u20_Test")
+    expect(safeSymbolName("Attribute`Test")).toEqual("Attribute_u60_Test")
+    expect(safeSymbolName("Attribute\\Test")).toEqual("Attribute_u5c_Test")
+    expect(safeSymbolName("Attribute\\\\Test")).toEqual("Attribute_u5c__u5c_Test")
+    expect(safeSymbolName("Attribute\\`Test")).toEqual("Attribute_u5c__u60_Test")
+    expect(safeSymbolName("Attribute\\\\\\`Test")).toEqual("Attribute_u5c__u5c__u5c__u60_Test")
+  })
+  it("does not collapse distinct non-ASCII names to the same safe symbol", () => {
+    // Names that differ only in non-ASCII characters must map to distinct safe symbols, otherwise
+    // their name->id map entries collide and a formula referencing one attribute resolves to the other.
+    // The two Chinese names below differ only in their first character (男 vs 女).
+    expect(safeSymbolName("男且喜欢")).not.toEqual(safeSymbolName("女且喜欢"))
+    expect(safeSymbolName("café")).not.toEqual(safeSymbolName("cafe"))
+    expect(safeSymbolName("a b")).not.toEqual(safeSymbolName("a_b"))
+  })
+})
+
+describe("getDisplayNameMap with names differing only in non-ASCII characters", () => {
+  it("maps each attribute to a distinct canonical name", () => {
+    const dataSet = createDataSet({
+      id: "dataSet",
+      name: "dataSet",
+      attributes: [
+        { id: "ATTR_MALE", name: "男且喜欢" },
+        { id: "ATTR_FEMALE", name: "女且喜欢" },
+      ]
+    })
+    const nameMap = getDisplayNameMap({
+      localDataSet: dataSet,
+      dataSets: new Map([[dataSet.id, dataSet]]),
+    })
+    const canonicalNames = Object.values(nameMap.localNames)
+    expect(canonicalNames).toContain(localAttrIdToCanonical("ATTR_MALE"))
+    expect(canonicalNames).toContain(localAttrIdToCanonical("ATTR_FEMALE"))
   })
 })
 
