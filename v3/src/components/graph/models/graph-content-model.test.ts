@@ -317,5 +317,49 @@ describe("GraphContentModel", () => {
 
       diComponentHandler.delete!({ component: tile })
     })
+
+    // A bar chart's count axis is a clamped (clampPosMinAtZero) axis, which refits tightly to the
+    // data. The value-change rescale must still be grow-only for it, or a user/plugin-set count-axis
+    // max would be silently discarded whenever a plotted value changes (e.g. a formula recalculates).
+    it("does not shrink a bar chart's count axis (grow-only) when a value changes", async () => {
+      (isInquirySpaceMode as jest.Mock).mockReturnValue(false)
+      const documentContent = appState.document.content!
+      const { dataset: _dataset } = setupTestDataset({ datasetName: "barChartCountData" })
+      const dataset = documentContent.createDataSet(getSnapshot(_dataset)).sharedDataSet.dataSet
+      dataset.addCases(testCases, { canonicalize: true })
+      dataset.validateCases()
+      const result = diComponentHandler.create!(
+        {}, { type: "graph", dataContext: "barChartCountData", xAttributeName: "a1" }
+      )
+      const tile = documentContent.tileMap.get(
+        toV3Id(kGraphIdPrefix, (result.values as DIComponentInfo).id!)
+      )!
+      const content = tile.content as IGraphContentModel
+      await new Promise(resolve => setTimeout(resolve, 0))
+      // Fuse points into bars to make a bar chart; this establishes a count axis on the secondary
+      // (left) place.
+      content.fusePointsIntoBars(true)
+      await new Promise(resolve => setTimeout(resolve, 0))
+      expect(content.plotType).toBe("barChart")
+
+      // The tallest bar is 3 cases, so the count axis auto-fits to a small max. Simulate the user
+      // dragging it well above that.
+      const countAxis = content.getAxis("left") as IBaseNumericAxisModel
+      expect(countAxis.type).toBe("count")
+      expect(countAxis.max).toBeLessThan(20)
+      countAxis.setDomain(0, 20)
+      expect(countAxis.max).toBe(20)
+
+      // Change a value to bump casesChangeCount and fire the rescale reaction.
+      const firstCaseId = content.graphPointLayerModel.dataConfiguration.getCaseDataArray(0)[0].caseID
+      const a3 = dataset.getAttributeByName("a3")!
+      dataset.setComputedCaseValues([{ __id__: firstCaseId, [a3.id]: 2 }], [a3.id])
+
+      // Grow-only: the user's larger max survives; it is not snapped back to fit the bars.
+      expect(countAxis.min).toBe(0)
+      expect(countAxis.max).toBe(20)
+
+      diComponentHandler.delete!({ component: tile })
+    })
   })
 })

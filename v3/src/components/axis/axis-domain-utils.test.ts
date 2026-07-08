@@ -38,4 +38,19 @@ describe("setNiceDomain", () => {
     expect(axis.min).toBe(0)
     expect(axis.max).toBeLessThan(100)
   })
+
+  it("does not shrink a clamped axis when growOnly is set and the data already fits", () => {
+    const axis = NumericAxisModel.create({ place: "bottom", min: 0, max: 100 })
+    setNiceDomain([3, 7], axis, { clampPosMinAtZero: true, growOnly: true })
+    // Grow-only: a larger user/plugin-set bound survives rather than being refit tightly.
+    expect(axis.min).toBe(0)
+    expect(axis.max).toBe(100)
+  })
+
+  it("still grows a clamped axis when growOnly is set and the data exceeds the current max", () => {
+    const axis = NumericAxisModel.create({ place: "bottom", min: 0, max: 10 })
+    setNiceDomain([3, 50], axis, { clampPosMinAtZero: true, growOnly: true })
+    expect(axis.min).toBe(0)
+    expect(axis.max).toBeGreaterThanOrEqual(50)
+  })
 })
