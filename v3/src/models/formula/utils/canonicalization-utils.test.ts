@@ -34,21 +34,21 @@ const displayNameMapExample: DisplayNameMap = {
 describe("safeSymbolNameFromDisplayFormula", () => {
   it("unescapes special characters and converts strings that are not parsable by Mathjs to valid symbol names", () => {
     // \\ and \` treated as one character
-    expect(safeSymbolNameFromDisplayFormula("Attribute\\Test")).toEqual("Attribute_Test")
-    expect(safeSymbolNameFromDisplayFormula("Attribute\\\\Test")).toEqual("Attribute_Test")
-    expect(safeSymbolNameFromDisplayFormula("Attribute\\`Test")).toEqual("Attribute_Test")
-    expect(safeSymbolNameFromDisplayFormula("Attribute\\\\\\`Test")).toEqual("Attribute__Test")
+    expect(safeSymbolNameFromDisplayFormula("Attribute\\Test")).toEqual("Attribute_u5c_Test")
+    expect(safeSymbolNameFromDisplayFormula("Attribute\\\\Test")).toEqual("Attribute_u5c_Test")
+    expect(safeSymbolNameFromDisplayFormula("Attribute\\`Test")).toEqual("Attribute_u60_Test")
+    expect(safeSymbolNameFromDisplayFormula("Attribute\\\\\\`Test")).toEqual("Attribute_u5c__u60_Test")
   })
 })
 
 describe("makeDisplayNamesSafe", () => {
   it("replaces all the symbols enclosed between `` with safe symbol names", () => {
-    expect(makeDisplayNamesSafe("mean(`Attribute Name`)")).toEqual("mean(Attribute_Name)")
+    expect(makeDisplayNamesSafe("mean(`Attribute Name`)")).toEqual("mean(Attribute_u20_Name)")
     // \` and \\ treated as one symbol - unescaping is done in safeSymbolNameFromDisplayFormula
-    expect(makeDisplayNamesSafe("`Attr\\\\Name` + `Attr\\`Name 2`")).toEqual("Attr_Name + Attr_Name_2")
+    expect(makeDisplayNamesSafe("`Attr\\\\Name` + `Attr\\`Name 2`")).toEqual("Attr_u5c_Name + Attr_u60_Name_u20_2")
   })
   it("handles a backtick-delimited name at the very start of the formula", () => {
-    expect(makeDisplayNamesSafe("`Attribute Name` + 1")).toEqual("Attribute_Name + 1")
+    expect(makeDisplayNamesSafe("`Attribute Name` + 1")).toEqual("Attribute_u20_Name + 1")
   })
   it("handles adjacent backtick-delimited names", () => {
     expect(makeDisplayNamesSafe("`A`+`B`")).toEqual("A+B")
@@ -64,7 +64,7 @@ describe("makeDisplayNamesSafe", () => {
     expect(makeDisplayNamesSafe("a + `` + b")).toEqual("a + `` + b")
   })
   it("processes delimited names while leaving a lone escaped backtick untouched", () => {
-    expect(makeDisplayNamesSafe("`My Attr` + \\` + `Other`")).toEqual("My_Attr + \\` + Other")
+    expect(makeDisplayNamesSafe("`My Attr` + \\` + `Other`")).toEqual("My_u20_Attr + \\` + Other")
   })
   it("treats an escaped backslash followed by a backtick as an opening delimiter", () => {
     // `\\` is an escaped (literal) backslash, so the following backtick DOES open a delimited name.
@@ -212,6 +212,24 @@ describe("displayToCanonical", () => {
       expect(displayToCanonical(
         "mean(`mean\\`attribute\\\\🙃`) + 'mean'", testDisplayMap
       )).toEqual('mean(__CANONICAL_NAME__LOCAL_ATTR_ATTR_MEAN) + "mean"')
+    })
+  })
+  describe("when two attribute names differ only in non-ASCII characters", () => {
+    // The two Chinese names differ only in their first character (男 vs 女). Each must resolve to its own
+    // attribute; previously both mangled to the same safe symbol and collided in the name map, so a formula
+    // referencing one attribute was evaluated against the other.
+    const testDisplayMap: DisplayNameMap = {
+      localNames: {
+        [safeSymbolName("男且喜欢")]: "__CANONICAL_NAME__LOCAL_ATTR_ATTR_MALE",
+        [safeSymbolName("女且喜欢")]: "__CANONICAL_NAME__LOCAL_ATTR_ATTR_FEMALE",
+      },
+      dataSet: {}
+    }
+    it("resolves each name to its own attribute", () => {
+      expect(displayToCanonical("count(`男且喜欢` = 'true')", testDisplayMap))
+        .toEqual('count(__CANONICAL_NAME__LOCAL_ATTR_ATTR_MALE == "true")')
+      expect(displayToCanonical("count(`女且喜欢` = 'true')", testDisplayMap))
+        .toEqual('count(__CANONICAL_NAME__LOCAL_ATTR_ATTR_FEMALE == "true")')
     })
   })
   describe("when string constant includes special characters", () => {

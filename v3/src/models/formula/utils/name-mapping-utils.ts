@@ -13,8 +13,11 @@ export const safeSymbolName = (name: string) =>
   name
     // Math.js does not allow to use symbols that start with a number, so we need to add a prefix.
     .replace(/^(\d+)/, '_$1')
-    // We also need to escape all the symbols that are not allowed in Math.js.
-    .replace(/[^a-zA-Z0-9_]/g, "_")
+    // Escape characters that aren't allowed in Math.js symbols. Each such character is encoded by its
+    // code point rather than collapsed to a single "_", so that distinct names (e.g. two names that
+    // differ only in their non-ASCII characters) always produce distinct safe symbols. Collapsing them
+    // to "_" caused name->id map collisions, so a formula could resolve to the wrong attribute.
+    .replace(/[^a-zA-Z0-9_]/g, char => `_u${char.codePointAt(0)!.toString(16)}_`)
 
 export const localAttrIdToCanonical = (attrId: string) => `${CANONICAL_NAME}${LOCAL_ATTR}${attrId}`
 
