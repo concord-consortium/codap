@@ -4,8 +4,8 @@ import { createDataSet } from "../../../models/data/data-set-conversion"
 import { DataSetMetadata } from "../../../models/shared/data-set-metadata"
 import { isEmptyAxisModel } from "../../axis/models/axis-model"
 import { isCategoricalAxisModel } from "../../axis/models/categorical-axis-models"
-import { isNumericAxisModel } from "../../axis/models/numeric-axis-models"
-import { AxisPlace } from "../../axis/axis-types"
+import { isNumericAxisModel, NumericAxisModel } from "../../axis/models/numeric-axis-models"
+import { AxisPlace, AxisPlaces } from "../../axis/axis-types"
 import { attrRoleToGraphPlace, GraphAttrRole } from "../../data-display/data-display-types"
 import { GraphContentModel } from "./graph-content-model"
 import { GraphController } from "./graph-controller"
@@ -308,6 +308,43 @@ describe("GraphController", () => {
     setAttributeId("y", "cId")
     expect(model.dataConfiguration.attributeID("rightNumeric")).toBe("")
     expect(model.axes.get("rightNumeric")).toBeUndefined()
+  })
+
+  // CODAP-1445 split-plot infrastructure. Simulates what the future Residual Plot adornment
+  // will do: flip the layout's showLowerPlot flag and register a NumericAxisModel at leftLower.
+  // The existing axis rendering pipeline should pick it up without any further wiring.
+  it("supports a numeric axis at leftLower for split-plot rendering", () => {
+    ;({ tree, model, controller, data } = setup())
+    controller.layout.setTileExtent(400, 300)
+    setAttributeId("x", "xId")
+    setAttributeId("y", "yId")
+    expect(model.plotType).toBe("scatterPlot")
+
+    // Activate the split and register the lower axis. syncAxisScalesWithModel is what a
+    // controller would call after any axis-model change.
+    controller.layout.setShowLowerPlot(true)
+    model.setAxis("leftLower", NumericAxisModel.create({ place: "leftLower", min: -50, max: 50 }))
+    controller.syncAxisScalesWithModel()
+
+    // Scale plumbing for leftLower is linear, sized to the lower region, with the expected domain.
+    const leftLowerScale = controller.layout.getAxisMultiScale("leftLower")
+    expect(leftLowerScale.scaleType).toBe("linear")
+    expect(leftLowerScale.length).toBe(controller.layout.getLowerPlotBounds().height)
+    expect(controller.layout.getNumericScale("leftLower")?.domain()).toEqual([-50, 50])
+
+    // renderGraphAxes in graph.tsx filters AxisPlaces by getAxis(place) — leftLower is now included.
+    const renderablePlaces = AxisPlaces.filter(place => !!model.getAxis(place))
+    expect(renderablePlaces).toContain("leftLower")
+
+    // Coordinate helper maps values into the lower region using absolute tile-y.
+    const bounds = controller.layout.computedBounds
+    expect(controller.layout.getLowerYCoord(0))
+      .toBeCloseTo(bounds.lowerPlot.top + bounds.lowerPlot.height / 2, 5)
+
+    // Toggling off collapses the lower region to zero size; the upper 'left' scale restores.
+    controller.layout.setShowLowerPlot(false)
+    expect(controller.layout.getLowerPlotBounds().height).toBe(0)
+    expect(controller.layout.getAxisMultiScale("left").length).toBe(controller.layout.plotHeight)
   })
 
   it("preserves rightNumeric when setAttributeType is called directly", () => {

@@ -11,6 +11,7 @@ import {
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import {ScaleNumericBaseType} from "../../../axis/axis-types"
 import { getDomainExtentForPixelWidth } from "../../../axis/axis-utils"
+import { If } from "../../../common/if"
 import { CaseData } from "../../../data-display/d3-types"
 import { handleClickOnCase, setPointSelection } from "../../../data-display/data-display-utils"
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
@@ -360,6 +361,11 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
         <clipPath id={`plot-clip-${instanceId}`}>
           <rect width={layout.plotWidth} height={layout.plotHeight} />
         </clipPath>
+        <If condition={layout.showLowerPlot}>
+          <clipPath id={`plot-clip-lower-${instanceId}`}>
+            <rect width={layout.getLowerPlotBounds().width} height={layout.getLowerPlotBounds().height} />
+          </clipPath>
+        </If>
       </defs>
       <g
         className="connecting-lines"
