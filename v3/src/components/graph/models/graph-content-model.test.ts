@@ -241,4 +241,81 @@ describe("GraphContentModel", () => {
       diComponentHandler.delete!({ component: tile })
     })
   })
+
+  // These tests write values via setComputedCaseValues (the attribute-formula path) and rely on the
+  // casesChangeCount reaction to rescale — they don't call rescaleNumericAxesForValueChange directly.
+  describe("rescale on value change", () => {
+    // Builds a scatter graph over testCases (a3 on x, a4 on first y) plus an extra numeric attribute
+    // "yr" (values 11..16) that callers can assign to a role via extraValues (e.g. y2AttributeName).
+    const createGraph = async (datasetName: string, extraValues: Record<string, any> = {}) => {
+      const documentContent = appState.document.content!
+      const { dataset: _dataset } = setupTestDataset({ datasetName })
+      const dataset = documentContent.createDataSet(getSnapshot(_dataset)).sharedDataSet.dataSet
+      dataset.addAttribute({ name: "yr" })
+      dataset.addCases(testCases.map((c, i) => ({ ...c, yr: 11 + i })), { canonicalize: true })
+      dataset.validateCases()
+      const result = diComponentHandler.create!(
+        {}, { type: "graph", dataContext: datasetName, xAttributeName: "a3", yAttributeName: "a4", ...extraValues }
+      )
+      const tile = documentContent.tileMap.get(
+        toV3Id(kGraphIdPrefix, (result.values as DIComponentInfo).id!)
+      )!
+      const content = tile.content as IGraphContentModel
+      // Let afterAttachToDocument's awaits resolve so axes are set up.
+      await new Promise(resolve => setTimeout(resolve, 0))
+      const firstCaseId = content.graphPointLayerModel.dataConfiguration.getCaseDataArray(0)[0].caseID
+      return { dataset, tile, content, firstCaseId }
+    }
+
+    it("grows the left y axis to fit a first-y value that moved outside the current domain", async () => {
+      (isInquirySpaceMode as jest.Mock).mockReturnValue(false)
+      const { dataset, tile, content, firstCaseId } = await createGraph("rescaleLeftData")
+      const yAxis = content.getAxis("left") as IBaseNumericAxisModel
+      const initialMax = yAxis.max
+      const a4 = dataset.getAttributeByName("a4")!
+      dataset.setComputedCaseValues([{ __id__: firstCaseId, [a4.id]: 100 }], [a4.id])
+
+      expect(yAxis.max).toBeGreaterThan(initialMax)
+      expect(yAxis.max).toBeGreaterThanOrEqual(100)
+
+      diComponentHandler.delete!({ component: tile })
+    })
+
+    it("is grow-only: leaves the domain unchanged when values stay within it", async () => {
+      (isInquirySpaceMode as jest.Mock).mockReturnValue(false)
+      const { dataset, tile, content, firstCaseId } = await createGraph("rescaleGrowOnlyData")
+      const yAxis = content.getAxis("left") as IBaseNumericAxisModel
+      const initialMin = yAxis.min
+      const initialMax = yAxis.max
+      const a4 = dataset.getAttributeByName("a4")!
+      // a4 values are -1..-6; set one to -3, still well within the existing domain
+      dataset.setComputedCaseValues([{ __id__: firstCaseId, [a4.id]: -3 }], [a4.id])
+
+      expect(yAxis.min).toBe(initialMin)
+      expect(yAxis.max).toBe(initialMax)
+
+      diComponentHandler.delete!({ component: tile })
+    })
+
+    // A numeric attribute assigned only to the y2/rightNumeric axis (not to x or first-y).
+    it("grows the right (y2) axis when a y2-only attribute's values move outside the domain", async () => {
+      (isInquirySpaceMode as jest.Mock).mockReturnValue(false)
+      const { dataset, tile, content, firstCaseId } = await createGraph("rescaleY2Data", { y2AttributeName: "yr" })
+      const y2Axis = content.getAxis("rightNumeric") as IBaseNumericAxisModel
+      expect(y2Axis).toBeDefined()
+      const initialMax = y2Axis.max
+      expect(initialMax).toBeLessThan(100)
+      // Read the values first, as the live app does while rendering, so the cache holds pre-change
+      // values that the rescale must see invalidated in order to grow.
+      const dataConfig = content.graphPointLayerModel.dataConfiguration
+      expect(dataConfig.numericValuesForAttrRole("rightNumeric")).not.toContain(100)
+      const yr = dataset.getAttributeByName("yr")!
+      dataset.setComputedCaseValues([{ __id__: firstCaseId, [yr.id]: 100 }], [yr.id])
+
+      expect(y2Axis.max).toBeGreaterThan(initialMax)
+      expect(y2Axis.max).toBeGreaterThanOrEqual(100)
+
+      diComponentHandler.delete!({ component: tile })
+    })
+  })
 })

@@ -1,6 +1,6 @@
 import {comparer, reaction} from "mobx"
 import {addDisposer, getSnapshot, Instance, SnapshotIn, types} from "mobx-state-tree"
-import { AttributeType, isCategoricalAttributeType } from "../../../models/data/attribute-types"
+import { AttributeType, isCategoricalAttributeType, isNumericAttributeType } from "../../../models/data/attribute-types"
 import {IDataSet} from "../../../models/data/data-set"
 import {typedId} from "../../../utilities/js-utils"
 import { isFiniteNumber } from "../../../utilities/math-utils"
@@ -63,6 +63,11 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     // Includes rightNumeric if present
     get yAttributeIDs() {
       return this.yAttributeDescriptions.map((d: IAttributeDescriptionSnapshot) => d.attributeID)
+    },
+    // Every plotted attribute ID. Unlike `uniqueAttributes`, includes the additional left-y and the
+    // y2/rightNumeric attributes, which the `attributeDescriptions` override below omits.
+    get plottedAttributeIDs() {
+      return Array.from(new Set<string>([...self.uniqueAttributes, ...this.yAttributeIDs]))
     },
     /**
      * No attribute descriptions beyond the first for y are returned.
@@ -305,9 +310,18 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     },
     get numericAttrs(): Array<{ role: AttrRole, attrId: string }> {
       const roles: Array<Maybe<AttrRole>> = [self.primaryRole, self.secondaryRole, "topSplit", "rightSplit"]
-      return roles.filter(role => !!role).filter(role => {
+      const entries = roles.filter((role): role is AttrRole => !!role).filter(role => {
         return self.attributeType(role) === "numeric"
       }).map(role => ({ role, attrId: self.attributeID(role) }))
+      // The 'y' role above captures only the first y attribute; add the remaining left-y attributes
+      // and the y2/rightNumeric attribute so their value changes are observed and invalidate caches.
+      self.yAttributeIDs.forEach(attrId => {
+        const attr = attrId ? self.dataset?.getAttribute(attrId) : undefined
+        if (attrId && isNumericAttributeType(attr?.type) && !entries.some(e => e.attrId === attrId)) {
+          entries.push({ role: "y", attrId })
+        }
+      })
+      return entries
     },
     get numberOfHorizontalRegions() {
       return self.primaryRole === 'x'
