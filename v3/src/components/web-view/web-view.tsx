@@ -160,7 +160,8 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
   const rawIframeSrc = isWebViewModel(webViewModel) && webViewModel.needsLocaleReload
     ? appendLocaleParam(appendLangParam(webViewModel.url, gLocale.currentBaseLanguage), gLocale.current)
     : isWebViewModel(webViewModel) ? webViewModel.url : ""
-  // Load the url only when its scheme is supported; otherwise fall back to an empty src.
+  // Security backstop: never load an unsafe-scheme URL (e.g. javascript:) into the iframe,
+  // regardless of how it was set (inspector input, plugin API, launch param, saved doc).
   const iframeSrc = isSafeWebViewUrl(rawIframeSrc) ? rawIframeSrc : ""
 
   useEffect(() => {

@@ -247,38 +247,43 @@ describe("appendLocaleParam", () => {
   })
 })
 
-describe("isSafeWebViewUrl", () => {
-  it("allows allowlisted schemes (http, https, data, blob, about)", () => {
+describe("isSafeWebViewUrl (XSS guard)", () => {
+  it("allows http and https URLs", () => {
     expect(isSafeWebViewUrl("https://example.com/plugin/index.html")).toBe(true)
     expect(isSafeWebViewUrl("http://example.com")).toBe(true)
+  })
+  it("allows data:, blob:, and about: URLs", () => {
     expect(isSafeWebViewUrl("data:text/html,<p>hi</p>")).toBe(true)
     expect(isSafeWebViewUrl("blob:https://example.com/1234")).toBe(true)
     expect(isSafeWebViewUrl("about:blank")).toBe(true)
   })
-  it("allows empty and scheme-less (relative) URLs", () => {
+  it("treats empty and scheme-less (relative) URLs as safe", () => {
     expect(isSafeWebViewUrl("")).toBe(true)
     expect(isSafeWebViewUrl("../plugin/index.html")).toBe(true)
     expect(isSafeWebViewUrl("example.com/path")).toBe(true)
     expect(isSafeWebViewUrl("//example.com/path")).toBe(true)
   })
-  it("rejects URLs whose scheme is not in the allowlist", () => {
+  it("rejects javascript: URLs", () => {
     expect(isSafeWebViewUrl("javascript:alert(1)")).toBe(false)
-    expect(isSafeWebViewUrl("vbscript:msgbox(1)")).toBe(false)
-    expect(isSafeWebViewUrl("file:///etc/passwd")).toBe(false)
   })
-  it("extracts the scheme the way browsers do, ignoring case", () => {
+  it("rejects javascript: URLs regardless of case", () => {
     expect(isSafeWebViewUrl("JavaScript:alert(1)")).toBe(false)
     expect(isSafeWebViewUrl("JAVASCRIPT:alert(1)")).toBe(false)
   })
-  it("ignores leading whitespace and control characters when reading the scheme", () => {
+  it("rejects javascript: URLs with leading whitespace or control characters", () => {
     expect(isSafeWebViewUrl("   javascript:alert(1)")).toBe(false)
     expect(isSafeWebViewUrl("\x01javascript:alert(1)")).toBe(false)
     expect(isSafeWebViewUrl("\t javascript:alert(1)")).toBe(false)
   })
-  it("strips embedded tab/newline/CR before reading the scheme", () => {
+  it("rejects javascript: URLs with embedded tab/newline/CR in the scheme", () => {
+    // Browsers strip tab/LF/CR from anywhere in a URL, so these are still executable.
     expect(isSafeWebViewUrl("java\tscript:alert(1)")).toBe(false)
     expect(isSafeWebViewUrl("java\nscript:alert(1)")).toBe(false)
     expect(isSafeWebViewUrl("java\rscript:alert(1)")).toBe(false)
     expect(isSafeWebViewUrl("javascript\n:alert(1)")).toBe(false)
+  })
+  it("rejects vbscript: and other non-allowlisted schemes", () => {
+    expect(isSafeWebViewUrl("vbscript:msgbox(1)")).toBe(false)
+    expect(isSafeWebViewUrl("file:///etc/passwd")).toBe(false)
   })
 })
