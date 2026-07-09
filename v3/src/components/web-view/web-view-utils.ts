@@ -138,6 +138,31 @@ export function appendLocaleParam(url: string, locale: string): string {
   return setUrlQueryParam(url, "locale", locale)
 }
 
+// URL schemes supported as a WebView <iframe> src. A URL that carries an explicit scheme is
+// loaded only if that scheme is in this allowlist; empty and scheme-less (relative) URLs are
+// treated as supported. http/https are the normal cases; data/blob support locally-generated
+// content; about covers about:blank.
+const kSafeWebViewUrlSchemes = new Set(["http", "https", "data", "blob", "about"])
+
+/**
+ * Returns true if the URL can be loaded as a WebView <iframe> src.
+ * Empty and scheme-less (relative) URLs are allowed; a URL with an explicit scheme is allowed
+ * only if that scheme is in the allowlist. The scheme is extracted the way browsers parse it:
+ * tab/LF/CR are stripped from anywhere in the URL and leading C0 control characters and spaces
+ * are ignored, so variants like " http:", "HTTP:", and "ht\ttp:" are normalized before the
+ * scheme is read.
+ */
+export function isSafeWebViewUrl(url: string): boolean {
+  if (!url) return true
+  // Browsers remove all tab/LF/CR characters from anywhere in a URL and ignore leading C0
+  // control characters and spaces, so mirror that before extracting the scheme.
+  // eslint-disable-next-line no-control-regex
+  const sanitized = url.replace(/[\t\n\r]/g, "").replace(/^[\x00-\x20]+/, "")
+  const match = /^([a-z][a-z0-9+.-]*):/i.exec(sanitized)
+  if (!match) return true // no explicit scheme → relative URL, resolved against our own origin
+  return kSafeWebViewUrlSchemes.has(match[1].toLowerCase())
+}
+
 export function normalizeUrlScheme(url: string): string {
   url = url.trim()
   if (url.startsWith("//")) {

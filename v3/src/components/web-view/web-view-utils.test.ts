@@ -1,7 +1,7 @@
 import { kCodapResourcesUrl, kRootDataGamesPluginUrl, kRootGuideUrl, kRootPluginsUrl } from "../../constants"
 import {
-  appendLangParam, appendLocaleParam, getNameFromURL, kRelativeGuideRoot, kRelativePluginRoot, kRelativeURLRoot,
-  normalizeUrlScheme, processWebViewUrl
+  appendLangParam, appendLocaleParam, getNameFromURL, isSafeWebViewUrl, kRelativeGuideRoot, kRelativePluginRoot,
+  kRelativeURLRoot, normalizeUrlScheme, processWebViewUrl
 } from "./web-view-utils"
 
 const kTestUrls: Array<{ original: string, processed: string }> = [
@@ -244,5 +244,41 @@ describe("appendLocaleParam", () => {
   it("collapses duplicate param entries to a single value (matches URLSearchParams.set)", () => {
     expect(appendLocaleParam("../plugin/index.html?locale=en-US&locale=fr", "es"))
       .toBe("../plugin/index.html?locale=es")
+  })
+})
+
+describe("isSafeWebViewUrl", () => {
+  it("allows allowlisted schemes (http, https, data, blob, about)", () => {
+    expect(isSafeWebViewUrl("https://example.com/plugin/index.html")).toBe(true)
+    expect(isSafeWebViewUrl("http://example.com")).toBe(true)
+    expect(isSafeWebViewUrl("data:text/html,<p>hi</p>")).toBe(true)
+    expect(isSafeWebViewUrl("blob:https://example.com/1234")).toBe(true)
+    expect(isSafeWebViewUrl("about:blank")).toBe(true)
+  })
+  it("allows empty and scheme-less (relative) URLs", () => {
+    expect(isSafeWebViewUrl("")).toBe(true)
+    expect(isSafeWebViewUrl("../plugin/index.html")).toBe(true)
+    expect(isSafeWebViewUrl("example.com/path")).toBe(true)
+    expect(isSafeWebViewUrl("//example.com/path")).toBe(true)
+  })
+  it("rejects URLs whose scheme is not in the allowlist", () => {
+    expect(isSafeWebViewUrl("javascript:alert(1)")).toBe(false)
+    expect(isSafeWebViewUrl("vbscript:msgbox(1)")).toBe(false)
+    expect(isSafeWebViewUrl("file:///etc/passwd")).toBe(false)
+  })
+  it("extracts the scheme the way browsers do, ignoring case", () => {
+    expect(isSafeWebViewUrl("JavaScript:alert(1)")).toBe(false)
+    expect(isSafeWebViewUrl("JAVASCRIPT:alert(1)")).toBe(false)
+  })
+  it("ignores leading whitespace and control characters when reading the scheme", () => {
+    expect(isSafeWebViewUrl("   javascript:alert(1)")).toBe(false)
+    expect(isSafeWebViewUrl("\x01javascript:alert(1)")).toBe(false)
+    expect(isSafeWebViewUrl("\t javascript:alert(1)")).toBe(false)
+  })
+  it("strips embedded tab/newline/CR before reading the scheme", () => {
+    expect(isSafeWebViewUrl("java\tscript:alert(1)")).toBe(false)
+    expect(isSafeWebViewUrl("java\nscript:alert(1)")).toBe(false)
+    expect(isSafeWebViewUrl("java\rscript:alert(1)")).toBe(false)
+    expect(isSafeWebViewUrl("javascript\n:alert(1)")).toBe(false)
   })
 })
