@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 3.0.4 - July 10, 2026
+
+### 🐞 Bug Fixes:
+- **CODAP-1438:** Validate WebView URL schemes
+
 ## Version 3.0.3 - June 29, 2026
 
 ### ✨ Features & Improvements:

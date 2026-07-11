@@ -10,7 +10,7 @@ import { useDataInteractiveController } from "./use-data-interactive-controller"
 import { kWebViewBodyClass } from "./web-view-defs"
 import { WebViewDropOverlay } from "./web-view-drop-overlay"
 import { isWebViewModel } from "./web-view-model"
-import { appendLangParam, appendLocaleParam } from "./web-view-utils"
+import { appendLangParam, appendLocaleParam, isSafeWebViewUrl } from "./web-view-utils"
 
 import "./web-view.scss"
 
@@ -157,9 +157,11 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
   // `lang` is the 2-letter base language to match V2 behavior; some plugins (e.g. Simmer)
   // crash if given a region-qualified locale they don't have strings for. Plugins that need
   // region or script information (e.g. zh-Hans vs zh-TW) can read `locale` instead.
-  const iframeSrc = isWebViewModel(webViewModel) && webViewModel.needsLocaleReload
+  const rawIframeSrc = isWebViewModel(webViewModel) && webViewModel.needsLocaleReload
     ? appendLocaleParam(appendLangParam(webViewModel.url, gLocale.currentBaseLanguage), gLocale.current)
     : isWebViewModel(webViewModel) ? webViewModel.url : ""
+  // Load the url only when its scheme is supported; otherwise fall back to an empty src.
+  const iframeSrc = isSafeWebViewUrl(rawIframeSrc) ? rawIframeSrc : ""
 
   useEffect(() => {
     return () => {
