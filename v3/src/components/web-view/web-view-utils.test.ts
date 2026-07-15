@@ -257,7 +257,7 @@ describe("isSafeWebViewUrl (XSS guard)", () => {
     expect(isSafeWebViewUrl("blob:https://example.com/1234")).toBe(true)
     expect(isSafeWebViewUrl("about:blank")).toBe(true)
   })
-  it("treats empty and scheme-less (relative) URLs as safe", () => {
+  it("treats empty, relative, and scheme-relative URLs as safe", () => {
     expect(isSafeWebViewUrl("")).toBe(true)
     expect(isSafeWebViewUrl("../plugin/index.html")).toBe(true)
     expect(isSafeWebViewUrl("example.com/path")).toBe(true)
