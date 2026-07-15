@@ -57,4 +57,20 @@ describe("WebViewUrlModal URL validation", () => {
     fireEvent.keyUp(screen.getByTestId("web-view-url-input"), { key: "Enter" })
     expect(onAccept).not.toHaveBeenCalled()
   })
+
+  it("treats whitespace-only input as empty: OK disabled, no error, not accepted", () => {
+    const { onAccept } = renderModal()
+    typeUrl("   ")
+    expect(screen.queryByTestId("web-view-url-error")).not.toBeInTheDocument()
+    expect(screen.getByTestId("OK-button")).toBeDisabled()
+    fireEvent.click(screen.getByTestId("OK-button"))
+    expect(onAccept).not.toHaveBeenCalled()
+  })
+
+  it("trims surrounding whitespace before accepting", () => {
+    const { onAccept } = renderModal()
+    typeUrl("  https://example.com  ")
+    fireEvent.click(screen.getByTestId("OK-button"))
+    expect(onAccept).toHaveBeenCalledWith("https://example.com")
+  })
 })

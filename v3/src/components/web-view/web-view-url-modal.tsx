@@ -27,19 +27,21 @@ export const WebViewUrlModal = ({
 
   // Reject URLs with an unsafe scheme (e.g. javascript:) to prevent XSS.
   // Scheme-less input (e.g. "codap.concord.org") is allowed; it is prefixed with https:// downstream.
-  const isUrlSafe = isSafeWebViewUrl(value)
+  // Trim first so whitespace-only input is treated as empty (never accepted as a broken "https://").
+  const trimmedValue = value.trim()
+  const isUrlSafe = isSafeWebViewUrl(trimmedValue)
 
   const applyValue = () => {
-    if (value !== "") {
+    if (trimmedValue !== "") {
       if (!isUrlSafe) return // keep the modal open so the user can see/fix the error
-      onAccept(value)
+      onAccept(trimmedValue)
     }
 
     closeModal()
   }
 
   const closeModal = () => {
-    if (value === "" && currentValue === "") {
+    if (trimmedValue === "" && currentValue === "") {
       onRemoveEmptyWebView()
     }
 
@@ -65,7 +67,7 @@ export const WebViewUrlModal = ({
     tooltip: t("DG.DocumentController.enterViewWebPageOKTip"),
     onClick: applyValue,
     default: true,
-    disabled: !value || !isUrlSafe
+    disabled: !trimmedValue || !isUrlSafe
   }]
 
   return (
@@ -90,7 +92,7 @@ export const WebViewUrlModal = ({
       </ModalHeader>
       <ModalBody>
         <FormControl display="flex" flexDirection="column" data-testid="web-view-url-form"
-          isInvalid={value !== "" && !isUrlSafe}>
+          isInvalid={trimmedValue !== "" && !isUrlSafe}>
           <FormLabel className="web-view-url-prompt">
             {t("DG.DocumentController.enterURLPrompt")}
             <Input

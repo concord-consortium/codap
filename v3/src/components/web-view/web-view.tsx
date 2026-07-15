@@ -172,10 +172,12 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
     }
   }, [])
 
-  // Announce loading state when iframe src changes
+  // Announce loading state when iframe src changes. Key off iframeSrc (not webViewModel.url):
+  // when the security backstop blanks an unsafe URL, iframeSrc is "" and the iframe never loads,
+  // so clear the status instead of leaving screen readers stuck announcing "loading".
   useEffect(() => {
-    if (isWebViewModel(webViewModel) && !webViewModel.isImage && webViewModel.url) {
-      setLoadingStatus(t("V3.WebView.loading"))
+    if (isWebViewModel(webViewModel) && !webViewModel.isImage) {
+      setLoadingStatus(iframeSrc ? t("V3.WebView.loading") : "")
     }
   }, [iframeSrc, webViewModel])
 
