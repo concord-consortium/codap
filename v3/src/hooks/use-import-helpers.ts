@@ -3,6 +3,7 @@ import { useCallback } from "react"
 import { kTitleBarHeight } from "../components/constants"
 import { kWebViewTileType, WebViewSubType } from "../components/web-view/web-view-defs"
 import { isWebViewModel } from "../components/web-view/web-view-model"
+import { isSafeWebViewUrl } from "../components/web-view/web-view-utils"
 import { IImportedFile } from "../lib/cfm/use-cloud-file-manager"
 import { logStringifiedObjectMessage } from "../lib/log-message"
 import { appState } from "../models/app-state"
@@ -21,6 +22,7 @@ import {
   getImportableFileTypeFromDataTransferFile, getImportableFileTypeFromFile, getImportableFileTypeFromUrl,
   ImportableFileType, stripExtensionFromFilename
 } from "../utilities/importable-files"
+import { t } from "../utilities/translation/translate"
 
 const USE_IMPORTER_PLUGIN_FOR_CSV_FILE = true
 
@@ -50,6 +52,12 @@ interface IProps {
 
 export function useImportHelpers({ cfmRef, onCloseUserEntry }: IProps) {
   const loadWebView = useCallback((url: string, subType?: WebViewSubType, tileOptions?: INewTileOptions) => {
+    // Don't create a web view for a URL whose scheme isn't supported (e.g. javascript:); tell the
+    // user instead of silently producing a blank tile. (The iframe src is also guarded at render time.)
+    if (!isSafeWebViewUrl(url)) {
+      appState.alert(t("V3.WebView.Modal.invalidUrl"), t("V3.WebView.iframeTitle.webPage"))
+      return
+    }
     const tile = appState.document.content?.createOrShowTile(kWebViewTileType, tileOptions)
     if (isWebViewModel(tile?.content)) {
       subType && tile.content.setSubType(subType)

@@ -10,7 +10,7 @@ import { useDataInteractiveController } from "./use-data-interactive-controller"
 import { kWebViewBodyClass } from "./web-view-defs"
 import { WebViewDropOverlay } from "./web-view-drop-overlay"
 import { isWebViewModel } from "./web-view-model"
-import { appendLangParam, appendLocaleParam } from "./web-view-utils"
+import { appendLangParam, appendLocaleParam, isSafeWebViewUrl } from "./web-view-utils"
 
 import "./web-view.scss"
 
@@ -157,9 +157,12 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
   // `lang` is the 2-letter base language to match V2 behavior; some plugins (e.g. Simmer)
   // crash if given a region-qualified locale they don't have strings for. Plugins that need
   // region or script information (e.g. zh-Hans vs zh-TW) can read `locale` instead.
-  const iframeSrc = isWebViewModel(webViewModel) && webViewModel.needsLocaleReload
+  const rawIframeSrc = isWebViewModel(webViewModel) && webViewModel.needsLocaleReload
     ? appendLocaleParam(appendLangParam(webViewModel.url, gLocale.currentBaseLanguage), gLocale.current)
     : isWebViewModel(webViewModel) ? webViewModel.url : ""
+  // Security backstop: never load an unsafe-scheme URL (e.g. javascript:) into the iframe,
+  // regardless of how it was set (inspector input, plugin API, launch param, saved doc).
+  const iframeSrc = isSafeWebViewUrl(rawIframeSrc) ? rawIframeSrc : ""
 
   useEffect(() => {
     return () => {
@@ -169,10 +172,12 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
     }
   }, [])
 
-  // Announce loading state when iframe src changes
+  // Announce loading state when iframe src changes. Key off iframeSrc (not webViewModel.url):
+  // when the security backstop blanks an unsafe URL, iframeSrc is "" and the iframe never loads,
+  // so clear the status instead of leaving screen readers stuck announcing "loading".
   useEffect(() => {
-    if (isWebViewModel(webViewModel) && !webViewModel.isImage && webViewModel.url) {
-      setLoadingStatus(t("V3.WebView.loading"))
+    if (isWebViewModel(webViewModel) && !webViewModel.isImage) {
+      setLoadingStatus(iframeSrc ? t("V3.WebView.loading") : "")
     }
   }, [iframeSrc, webViewModel])
 
