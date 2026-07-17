@@ -127,8 +127,12 @@ Wait for user confirmation before starting Phase 1.
    MCP; it is only the version object itself that is out of reach.
 
    - **Check whether it already exists first** — Jira automation may have created the
-     version (and a `Release {version}` tracking issue) ahead of time. You can see
-     existing versions via the `fixVersions` field on issues (JQL).
+     version (and a `Release {version}` tracking issue) ahead of time. **Ask the user to
+     check Jira → CODAP → Releases**; that is the only reliable check. Querying the
+     `fixVersions` field via JQL is a weak fallback: it can only surface versions already
+     assigned to at least one issue, so a freshly created version with nothing assigned to
+     it — the very case this step is looking for — will not appear. Absence from JQL is
+     **not** evidence the version is missing.
    - If it exists, confirm its release date matches the date agreed in step 8; if it
      doesn't, ask the user to correct it.
    - If it doesn't exist, ask the user to create it with the agreed name, dates, and
@@ -698,7 +702,9 @@ To complete deployment in Claude Code after QA:
 When invoked, introduce the situation:
 
 > A bug was found during staging QA for **{old-version}** and a fix has been merged.
-> This workflow will create a revised release with an updated version number.
+> This workflow will create a revised release. In the pre-release phase that means a new
+> version number; in the production phase the version stays the same and only the build
+> number and tag move (see Step 1.3).
 >
 > I'll walk you through:
 > 1. Determine the new version number and release date
@@ -740,6 +746,13 @@ When invoked, introduce the situation:
    > deploy. Read the steps below with that in mind and skip the version-migration
    > parts; they apply only in the pre-release phase.
    >
+   > **The steps below are written in `{old-version}` → `{new-version}` terms, which
+   > collapses in the production phase** — the two are the same string. Read every
+   > `{new-version}` as `{version}`. One concrete consequence: `release-{version}` is the
+   > branch name the original release already used, so it will still exist locally and on
+   > the remote. Pick a distinct branch name for the respin (e.g. `release-{version}-fix`)
+   > rather than trying to reuse or force-push the original.
+   >
    > This production-phase path has **not yet been exercised** as of 3.0.5. Confirm the
    > approach with the user before running it rather than assuming these notes are
    > complete.
@@ -748,9 +761,22 @@ When invoked, introduce the situation:
    - The original release date (from Phase 1) may no longer be appropriate if QA and the fix took multiple days.
    - Show the original release date and today's date.
    - Ask the user to confirm or update the release date.
-   - This date will be used in CHANGELOG.md, versions.md, and the Jira release.
+   - This date is used in CHANGELOG.md and the Jira release — plus `versions.md` in the
+     pre-release phase, where the row's version string changes. In the production phase
+     the `versions.md` row already carries the right version, so it needs an edit only if
+     the date itself changed.
 
-5. **Confirm with user:**
+5. **Confirm with user** — use the wording for the current phase:
+
+   **Production phase** (version unchanged — do not present this as a version change):
+   > The fix is on main. The version stays **{version}**; the respin changes only the
+   > build number ({old-build} → {new-build}) and moves the `{version}` tag to the new
+   > increment commit.
+   > Release date: **{release-date}**
+   >
+   > Does this look correct?
+
+   **Pre-release phase** (version changes):
    > The fix is on main. New version will be **{new-version}** (old was {old-version}).
    > Release date: **{release-date}**
    >
