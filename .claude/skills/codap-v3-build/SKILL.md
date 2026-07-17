@@ -63,6 +63,9 @@ Wait for user confirmation before starting Phase 1.
    cat v3/build_number.json
    ```
 
+   Needed for the version string only in the pre-release phase (see step 6), but always
+   worth showing as context.
+
 4. **Get previous release tag:**
    ```bash
    git tag --sort=-creatordate | head -5
@@ -73,9 +76,32 @@ Wait for user confirmation before starting Phase 1.
    - Show current build number from `build_number.json`
 
 6. **Determine recommended version string:**
-   - Use build number **+ 1** (build number auto-increments when release PR merges)
-   - Match previous release pattern (e.g., `-beta`, `-pre`)
-   - Example: If build number is `2662`, recommend `3.0.0-beta.2663`
+
+   CODAP v3 has **two versioning conventions**, one per development phase. Identify the
+   current phase from the newest release tag, then apply that phase's rule.
+
+   ```bash
+   git tag --sort=-creatordate | head -3
+   ```
+
+   | Phase | You are here when… | Version format | Rule |
+   |-------|--------------------|----------------|------|
+   | **Production release** | The newest release tag is plain semver with **no** prerelease suffix (`3.0.4`, `3.1.2`) | `MAJOR.MINOR.PATCH` | Increment from the last released version: **patch** for bug fixes, **minor** for new features, **major** for breaking changes. Example: after `3.0.4` → `3.0.5`. |
+   | **Pre-release development** | The newest release tag carries a prerelease suffix (`-beta`, `-rc`, `-pre`) | `{major}.{minor}.{patch}-{suffix}.{buildNumber}` | Use build number **+ 1** (it auto-increments when the release PR merges), carrying over the previous tag's version prefix and suffix. Example: newest tag `3.0.0-beta.2662` with build `2662` → `3.0.0-beta.2663`. |
+
+   **The build number is part of the version string ONLY in the pre-release phase.**
+   In the production phase the build number still exists and still increments, but it is
+   independent of the version — do **not** derive the version from `build_number.json`.
+   (At the 3.0.5 release the build number was 2956, heading to 2957 on merge, while the
+   version was `3.0.5`. The two are unrelated and will never match again.)
+
+   CODAP v3 entered the production phase at `3.0.0` on 2026-06-04. The pre-release rule
+   is retained because the project may re-enter a pre-release phase for a future major
+   version (e.g. a `4.0.0-beta.N` series), at which point it applies again.
+
+   **Which component to bump** is a judgment call about the release's contents, not a
+   mechanical rule — propose one and confirm it with the user along with the rest of the
+   Jira release details (step 8).
 
 7. **Get previous release date from Jira** (for start date default)
 
@@ -83,7 +109,7 @@ Wait for user confirmation before starting Phase 1.
 
    | Field | Default | Options |
    |-------|---------|---------|
-   | Version name | Based on previous release pattern + new build number | Match previous pattern (e.g., `-beta`, `-rc`, or release) |
+   | Version name | The phase-appropriate next version from step 6 | Production phase: patch / minor / major bump. Pre-release phase: previous suffix + new build number |
    | Start date | Previous release date | User can modify |
    | Release date | Today's date | Today / Tomorrow / Custom future date |
    | Description | `Version {version}` | User can modify |
@@ -93,7 +119,23 @@ Wait for user confirmation before starting Phase 1.
    - versions.md entry date
    - Jira release date
 
-9. **Create Jira release version** using Atlassian MCP tools (status: `Unreleased`)
+9. **Ensure the Jira release version exists** (status: `Unreleased`).
+
+   **The Atlassian MCP tools cannot create a version or edit its release date** — they
+   expose no version-management tool. This step is the user's to perform, in the Jira UI
+   (CODAP → Releases). Setting issue Fix Versions (Phase 2, step 9) works fine through
+   MCP; it is only the version object itself that is out of reach.
+
+   - **Check whether it already exists first** — Jira automation may have created the
+     version (and a `Release {version}` tracking issue) ahead of time. You can see
+     existing versions via the `fixVersions` field on issues (JQL).
+   - If it exists, confirm its release date matches the date agreed in step 8; if it
+     doesn't, ask the user to correct it.
+   - If it doesn't exist, ask the user to create it with the agreed name, dates, and
+     description, and to confirm once done.
+
+   The date only has to be correct before the release is marked `Released` in Phase 6, so
+   this need not block the rest of the workflow.
 
 ## Phase 2: Prepare Release Notes
 
@@ -224,7 +266,7 @@ Wait for user confirmation before starting Phase 1.
 
     > Use the Task tool to update Fix Versions for all approved stories. Provide the subagent with:
     > - The list of CODAP-XXX story IDs to update
-    > - The version string to set (e.g., `3.0.0-beta.2664`)
+    > - The version string to set (e.g., `3.0.5`)
     >
     > The subagent should report back ONLY:
     > - Success/failure count (e.g., "Updated 8/10 stories successfully")
@@ -251,7 +293,7 @@ branch must be created before any commits (translations, version files, etc.).
    ```
 
    **Branch naming rules:**
-   - Pattern: `release-{version}` where `{version}` is from Phase 1 (e.g., `release-3.0.0-beta.2664`)
+   - Pattern: `release-{version}` where `{version}` is from Phase 1 (e.g., `release-3.0.5`)
    - Do NOT use `/` in branch names
    - Do NOT invent your own pattern
 
@@ -462,7 +504,8 @@ branch must be created before any commits (translations, version files, etc.).
 > production. The tag still must be pushed now, because the tag push is what
 > triggers the CI build that deploys to S3 (needed for staging).
 
-**Prerequisite:** Release PR must be merged.
+**Prerequisite:** Release PR must be merged, **and** the automatic "Increment the
+build number" commit that follows the merge must have landed on `main` (see step 2).
 
 ### Steps
 
@@ -472,16 +515,48 @@ branch must be created before any commits (translations, version files, etc.).
    git pull
    ```
 
-2. **Create and push annotated tag:**
+2. **Verify the build-number increment commit has landed — do NOT skip this:**
+
+   Merging the release PR triggers an automation that pushes an
+   "Increment the build number" commit to `main`. **That increment commit is the one
+   to tag** — not the `Release {version}` merge commit.
+
+   ```bash
+   git log --oneline -2
+   ```
+
+   The output must show the increment commit sitting on top of the release merge:
+   ```
+   f999f1445 Increment the build number     <- tag THIS one (HEAD)
+   936451ef5 Release {version} (#NNNN)
+   ```
+
+   If `HEAD` is still the `Release {version}` merge commit, the automation has not
+   pushed yet. **Wait, re-run `git pull`, and check again** until the increment
+   commit appears.
+
+   > **Why this matters:** tagging immediately after the merge, before the increment
+   > lands, points the tag at the release merge commit instead. This has happened
+   > before. The resulting build carries the wrong build number, and undoing it means
+   > deleting the tag and its S3 deploy. Every correct release tag (3.0.0 through
+   > 3.0.3) points at an "Increment the build number" commit — use that as your check.
+
+3. **Create and push annotated tag:**
    ```bash
    git tag -a {version} -m "Version {version}"
    git push origin {version}
    ```
 
+   Confirm the tag landed on the increment commit before moving on:
+   ```bash
+   git log -1 --format='%h %s' {version}
+   # expected: <sha> Increment the build number
+   ```
+
    The tag push triggers a CI build that deploys to S3. The GitHub release is
    **not** created until after the production deploy (Phase 6).
 
-3. **Inform user and wait for S3 deploy:**
+4. **Inform user and wait for S3 deploy:**
    > **Tag pushed.** (The GitHub release will be created later, after the production deploy, so external users don't see a release for a version that isn't live yet.)
    >
    > Watch GitHub Actions: https://github.com/concord-consortium/codap/actions
@@ -551,7 +626,7 @@ branch must be created before any commits (translations, version files, etc.).
    ```
 
    **Rules:**
-   - Use the version number from this release (e.g., `3.0.0-beta.2664`)
+   - Use the version number from this release (e.g., `3.0.5`)
    - Include only the sections that have items (Features, Bug Fixes, Under the Hood)
    - Use the same titles and order as in CHANGELOG.md (including emoji prefixes in section headers)
    - Each item on its own line, prefixed with `- **CODAP-XXX:**` — every section, every item, no exceptions
@@ -618,7 +693,7 @@ To complete deployment in Claude Code after QA:
 
 **Trigger:** A show-stopper bug is found during Phase 6 staging QA, and a fix has been merged to `main`.
 
-**Invocation:** `/codap-v3-build fix {old-version}` (e.g., `/codap-v3-build fix 3.0.0-beta.2803`)
+**Invocation:** `/codap-v3-build fix {old-version}` (e.g., `/codap-v3-build fix 3.0.5`)
 
 When invoked, introduce the situation:
 
@@ -649,11 +724,25 @@ When invoked, introduce the situation:
 
    Confirm with the user that the expected fix commit(s) appear in the log.
 
-3. **Determine new version number:**
-   - Current build number is N (from `build_number.json`)
-   - The release PR will increment it once more when merged → version is **N + 1**
-   - Example: If build number is `2804`, new version is `3.0.0-beta.2805`
-   - Match the version pattern of `{old-version}` (same prefix, new build number)
+3. **Determine the new version number — this is phase-dependent** (see Phase 1, step 6,
+   for how to identify the phase):
+
+   | Phase | Revised release version |
+   |-------|-------------------------|
+   | **Production release** | **The version does not change.** `{old-version}` is reused as-is. Only the build number changes (it increments when the revised release PR merges), and the build number is not part of the version. The respin is reflected in the CHANGELOG, not the version string. |
+   | **Pre-release development** | The version **does** change, because the build number is part of it. Current build number is N; the release PR increments it once more on merge → new version is **N + 1**, matching `{old-version}`'s prefix. Example: build `2804` → `3.0.0-beta.2805`. |
+
+   > **The production-phase rule reshapes this whole workflow.** With the version
+   > unchanged there is no "old vs new version" to reconcile: `versions.md` needs no
+   > edit, the Jira release needs no rename, and `npm version` is a no-op. What still
+   > must happen is re-tagging — delete the `{version}` tag and recreate it on the new
+   > increment commit (Step 5) — plus any CHANGELOG corrections and a fresh staging
+   > deploy. Read the steps below with that in mind and skip the version-migration
+   > parts; they apply only in the pre-release phase.
+   >
+   > This production-phase path has **not yet been exercised** as of 3.0.5. Confirm the
+   > approach with the user before running it rather than assuming these notes are
+   > complete.
 
 4. **Confirm release date:**
    - The original release date (from Phase 1) may no longer be appropriate if QA and the fix took multiple days.
@@ -756,13 +845,20 @@ Follow the same process as Phase 4:
 
 ### Step 5: After PR Merge — Clean Up and Re-tag
 
-**Prerequisite:** Release PR must be merged.
+**Prerequisite:** Release PR must be merged, **and** the automatic "Increment the
+build number" commit that follows the merge must have landed on `main`.
 
-1. **Checkout main and pull:**
+1. **Checkout main, pull, and wait for the increment commit:**
    ```bash
    git checkout main
    git pull
+   git log --oneline -2
    ```
+
+   As in Phase 5, the new tag must point at the **"Increment the build number"**
+   commit that the merge automation pushes after the release merge — not at the
+   `Release {new-version}` merge commit itself. If `HEAD` is still the release merge,
+   wait, `git pull` again, and re-check until the increment commit appears.
 
 2. **Delete the old tag:**
    ```bash
@@ -782,6 +878,8 @@ Follow the same process as Phase 4:
    ```bash
    git tag -a {new-version} -m "Version {new-version}"
    git push origin {new-version}
+   git log -1 --format='%h %s' {new-version}
+   # expected: <sha> Increment the build number
    ```
 
    As in Phase 5, do **not** create the GitHub release here. The tag push triggers
@@ -850,7 +948,7 @@ Follow the same process as Phase 4:
 
 | File | Purpose |
 |------|---------|
-| `v3/build_number.json` | Current build number |
+| `v3/build_number.json` | Current build number. Part of the version string **only** in the pre-release phase (Phase 1, step 6). In the production phase it is independent of the version, but its auto-increment commit is always the tag target (Phase 5). |
 | `v3/package.json` | Version field |
 | `v3/versions.md` | Version history table |
 | `v3/CHANGELOG.md` | Release notes |
