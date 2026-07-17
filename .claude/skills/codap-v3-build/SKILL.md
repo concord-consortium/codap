@@ -99,6 +99,15 @@ Wait for user confirmation before starting Phase 1.
    is retained because the project may re-enter a pre-release phase for a future major
    version (e.g. a `4.0.0-beta.N` series), at which point it applies again.
 
+   > **Exception — starting a new prerelease series.** Inferring the phase from the newest
+   > tag is reliable *within* a phase but blind to the moment you deliberately switch. When
+   > the next major begins its prerelease series, the newest tag is still production semver
+   > (e.g. `3.1.4`), so the rule above would wrongly say "production, bump the patch"
+   > instead of `4.0.0-beta.N`. A tag can't signal an intent to change phase. So before
+   > applying the rule, **ask the user whether this release starts a new prerelease series
+   > for a new major version.** If yes, switch to the pre-release convention and confirm
+   > the intended prefix (`4.0.0`) and suffix (`-beta`) with them rather than inferring.
+
    **Which component to bump** is a judgment call about the release's contents, not a
    mechanical rule — propose one and confirm it with the user along with the rest of the
    Jira release details (step 8).
@@ -748,10 +757,16 @@ When invoked, introduce the situation:
    >
    > **The steps below are written in `{old-version}` → `{new-version}` terms, which
    > collapses in the production phase** — the two are the same string. Read every
-   > `{new-version}` as `{version}`. One concrete consequence: `release-{version}` is the
-   > branch name the original release already used, so it will still exist locally and on
-   > the remote. Pick a distinct branch name for the respin (e.g. `release-{version}-fix`)
-   > rather than trying to reuse or force-push the original.
+   > `{new-version}` as `{version}`.
+   >
+   > **This creates a branch-name collision in the commands below.** They create and push
+   > `release-{new-version}`, which in the production phase is `release-{version}` — the
+   > branch the original release already used, still present locally and on the remote.
+   > **Choose a distinct respin branch name (e.g. `release-{version}-fix`) and substitute
+   > it for `release-{new-version}` everywhere it appears below.** This note calls that name
+   > `{respin-branch}`; in the pre-release phase `{respin-branch}` is just
+   > `release-{new-version}` (no collision, since the version is new). Do not reuse or
+   > force-push the original release branch.
    >
    > This production-phase path has **not yet been exercised** as of 3.0.5. Confirm the
    > approach with the user before running it rather than assuming these notes are
@@ -804,9 +819,10 @@ Ask the user:
 
 Follow the same working directory rules as Phase 3.
 
-1. **Create release branch:**
+1. **Create release branch** (`{respin-branch}` — see the collision note in Step 1.3; in
+   the pre-release phase this is `release-{new-version}`):
    ```bash
-   git checkout -b release-{new-version}
+   git checkout -b {respin-branch}
    ```
 
 2. **Sync translations:**
@@ -856,13 +872,17 @@ Follow the same process as Phase 4:
    cd /path/to/codap
    git add v3/CHANGELOG.md
    git commit --amend --no-edit
-   git push -u origin release-{new-version}
+   git push -u origin {respin-branch}
    gh pr create \
      --title "Release {new-version}" \
      --body "{release_notes}" \
      --label "v3" \
      --label "run regression"
    ```
+
+   (`{respin-branch}` is the distinct respin branch from Step 1.3; in the pre-release
+   phase it is `release-{new-version}`. The PR **title** still uses `{new-version}`, which
+   equals `{version}` in the production phase.)
 
 4. **Inform user:**
    > **PR created:** {url}
@@ -912,10 +932,22 @@ build number" commit that follows the merge must have landed on `main`.
    the S3 build; the GitHub release for `{new-version}` is published only after the
    revised build reaches production (Step 6 / the deploy phase).
 
-4. **Delete old release branch** (optional cleanup):
+4. **Delete the merged release branch(es)** (optional cleanup):
+
+   **Pre-release phase** — the buggy release's branch:
    ```bash
    git push origin --delete release-{old-version}
    git branch -d release-{old-version}
+   ```
+
+   **Production phase** — `release-{old-version}` is `release-{version}`, the *original*
+   release's branch (already merged for the first attempt), and `{respin-branch}` is the
+   branch this workflow just merged. Both are now merged and can be removed; the respin
+   branch is the one that would otherwise dangle:
+   ```bash
+   git push origin --delete {respin-branch} && git branch -d {respin-branch}
+   # optionally also remove the original release branch if it still exists:
+   git push origin --delete release-{version} 2>/dev/null; git branch -d release-{version} 2>/dev/null || true
    ```
 
 5. **Inform user and wait for S3 deploy:**
