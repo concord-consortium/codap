@@ -1,5 +1,27 @@
 # Changelog
 
+## Version 3.0.5 - July 18, 2026
+
+### ✨ Features & Improvements:
+- Improved Persian (Farsi) translations
+
+### 🐞 Bug Fixes:
+- **CODAP-1438:** Harden WebView URL validation in the edit dialog and on drag/drop
+- **CODAP-1439:** Update graphs immediately when a calculated attribute's formula changes
+- **CODAP-1440:** Fix formula evaluation for attribute names with non-ASCII characters
+- **CODAP-1444:** Update graphs when a slider changes a computed second-y attribute
+
+### Asset Sizes
+|      File |          Size | % Change from Previous Release |
+|-----------|---------------|--------------------------------|
+|  main.css |  240888 bytes |                          0.02% |
+|  index.js | 7835030 bytes |                          0.06% |
+
+## Version 3.0.4 - July 10, 2026
+
+### 🐞 Bug Fixes:
+- **CODAP-1438:** Validate WebView URL schemes
+
 ## Version 3.0.3 - June 29, 2026
 
 ### ✨ Features & Improvements:
