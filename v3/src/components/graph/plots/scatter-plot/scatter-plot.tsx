@@ -31,6 +31,8 @@ import {useGraphDataConfigurationContext} from "../../hooks/use-graph-data-confi
 import {useGraphLayoutContext} from "../../hooks/use-graph-layout-context"
 import {useRendererDragHandlers, usePlotResponders} from "../../hooks/use-plot"
 import { setPointCoordinates } from "../../utilities/graph-utils"
+import { NumericAxisModel } from "../../../axis/models/numeric-axis-models"
+import { residualPlotIsApplicable } from "./residual-plot-utils"
 import { scatterPlotFuncs } from "./scatter-plot-utils"
 
 export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProps) {
@@ -331,6 +333,26 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
   useEffect(function drawSquaresAfterMount() {
     if (showSquares) refreshSquares()
   }, [showSquares, movableLine?.isVisible, lsrl?.isVisible, plottedFunctionModel?.isVisible, refreshSquares])
+
+  // Sync the split-plot layout and lower y-axis registration with the Residual Plot store boolean
+  // and its applicability. When applicable and toggled on, activate the lower plot region and register
+  // a NumericAxisModel at "leftLower" so the axis renders. When toggled off or constraints break, tear
+  // down. The store boolean persists as user intent (mirroring Squares of Residuals); this reaction
+  // owns the derived layout/axis state.
+  useEffect(function syncResidualPlotActivation() {
+    return mstAutorun(() => {
+      const isActive = adornmentsStore.showResidualPlot && residualPlotIsApplicable(graphModel)
+      if (isActive) {
+        if (!layout.showLowerPlot) layout.setShowLowerPlot(true)
+        if (!graphModel.getAxis("leftLower")) {
+          graphModel.setAxis("leftLower", NumericAxisModel.create({ place: "leftLower", min: -1, max: 1 }))
+        }
+      } else {
+        if (layout.showLowerPlot) layout.setShowLowerPlot(false)
+        if (graphModel.getAxis("leftLower")) graphModel.removeAxis("leftLower")
+      }
+    }, { name: "ScatterPlot.syncResidualPlotActivation" }, graphModel)
+  }, [adornmentsStore, graphModel, layout])
 
   // Call refreshConnectingLines when Connecting Lines option is switched on and when all
   // points are selected.
