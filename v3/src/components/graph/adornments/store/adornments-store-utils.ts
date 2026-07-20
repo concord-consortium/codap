@@ -202,6 +202,32 @@ export function getAdornmentsMenuItemsFromTheStore(theStore: IAdornmentsBaseStor
         })
       }
     })
+    // Residual Plot follows the Squares of Residuals pattern. Enabled only when exactly one of movable line,
+    // least squares line, or plotted function is visible. Phase 3 extends the check to include axis-type and
+    // legend constraints via residualPlotIsApplicable().
+    const activeLineCount = (movableLineVisible ? 1 : 0) + (lsrlVisible ? 1 : 0) + (plottedFunctionVisible ? 1 : 0)
+    addItemIfCondition(true, {
+      checked: theStore.showResidualPlot,
+      disabled: activeLineCount !== 1,
+      title: "V3.Inspector.graphResidualPlot",
+      type: "control",
+      clickHandler: () => {
+        theStore.applyModelChange(() => {
+          theStore.toggleShowResidualPlot()
+        }, {
+          notify: tile
+            ? updateGraphAdornmentNotification("toggle show residual plot",
+              !theStore.showResidualPlot, tile)
+            : undefined,
+          undoStringKey: theStore.showResidualPlot ? "V3.Undo.graph.hideResidualPlot"
+            : "V3.Undo.graph.showResidualPlot",
+          redoStringKey: theStore.showResidualPlot ? "V3.Redo.graph.hideResidualPlot"
+            : "V3.Redo.graph.showResidualPlot",
+          log: logMessageWithReplacement("%@ residual plot",
+            {action: theStore.showResidualPlot ? "Hide" : "Show"}, "plot")
+        })
+      }
+    })
   }
 
   return measureMenuItems
