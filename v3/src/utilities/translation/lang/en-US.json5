@@ -1638,6 +1638,7 @@
     "V3.graphLSRL.showR": "Show r",
     "V3.graphLSRL.showRSquared": "Show r\u00B2",
     "V3.Inspector.graphResidualPlot": "Residual Plot",
+    "V3.ResidualPlot.axisLabel": "Residuals",
     "V3.Undo.graph.showResidualPlot": "Undo showing residual plot",
     "V3.Redo.graph.showResidualPlot": "Redo showing residual plot",
     "V3.Undo.graph.hideResidualPlot": "Undo hiding residual plot",

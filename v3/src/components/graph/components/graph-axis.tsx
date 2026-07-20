@@ -108,7 +108,9 @@ export const GraphAxis = observer(function GraphAxis(
         onRemoveAttribute={onRemoveAttribute}
         onTreatAttributeAs={onTreatAttributeAs}
       />
-      {onDropAttribute &&
+      {/* leftLower is the Residual Plot's lower y-axis. It has no attribute to drop onto and no
+          interactive menu — omit the drop zone. */}
+      {onDropAttribute && place !== 'leftLower' &&
         <DroppableAxis
             place={place}
             dropId={droppableId}

@@ -151,20 +151,17 @@ export const Graph = observer(function Graph({
       // - https://github.com/bkrem/react-d3-tree/issues/284
       select(belowPointsGroupRef.current).attr("transform", translate)
       select(abovePointsGroupRef.current).attr("transform", translate)
-      // Position the HTML host (absolute) to overlay the plot area. When the split plot is
-      // active, the host spans both the upper and lower regions so a residual adornment can
-      // render into either. When inactive, lowerPlot.height is 0 so this collapses to the
-      // original upper-region-only sizing.
+      // Position the HTML host (absolute) to overlay the upper plot area only. CODAP-1445 originally
+      // had this span both regions in anticipation of a second Pixi renderer for residual points;
+      // that plan was revised to SVG-based residual rendering, so extending the host into the lower
+      // region only blocks pointer events on the SVG residual points below.
       const host = pixiContainerRef.current
       if (host) {
-        const lowerHeight = layout.getLowerPlotBounds().height
-        const w = Math.max(0, layout.plotWidth)
-        const h = Math.max(0, layout.plotHeight + lowerHeight)
         host.style.position = "absolute"
         host.style.left = `${x}px`
         host.style.top = `${y}px`
-        host.style.width = `${w}px`
-        host.style.height = `${h}px`
+        host.style.width = `${Math.max(0, layout.plotWidth)}px`
+        host.style.height = `${Math.max(0, layout.plotHeight)}px`
         host.style.pointerEvents = "auto"
       }
 

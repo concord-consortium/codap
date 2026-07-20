@@ -131,11 +131,24 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
       {x: startX.current, y: startY.current, w: width.current, h: height.current})
     width.current = width.current + event.dx
     height.current = height.current + event.dy
-    const marqueeRect = marqueeState.marqueeRect
+    // Visual clamp: when the Residual Plot's split is active, the marquee should not extend into
+    // the lower region — there are no cases in the upper R-tree that live below the upper region,
+    // so a marquee drawn there would visually promise a selection it can never make. showLowerPlot
+    // is only defined on GraphLayout; on other layouts (e.g. map) this is undefined and no clamp
+    // applies. Coord system: marqueeState.y is plot-area-relative (0 = top of upper region), so
+    // the upper region's bottom edge is at y = graphLayout.plotHeight.
+    let clampedHeight = height.current
+    if ((graphLayout as any)?.showLowerPlot) {
+      const plotBottom = graphLayout.plotHeight
+      const rectBottom = startY.current + height.current
+      if (height.current > 0 && rectBottom > plotBottom) {
+        clampedHeight = plotBottom - startY.current
+      }
+    }
     marqueeState.setMarqueeRect({
-      x: marqueeRect.x, y: marqueeRect.y,
-      width: marqueeRect.width + event.dx,
-      height: marqueeRect.height + event.dy
+      x: startX.current, y: startY.current,
+      width: width.current,
+      height: clampedHeight
     })
     const currentRect = rectNormalize({
       x: startX.current, y: startY.current,
@@ -159,7 +172,7 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
     })
 
     clearDatasetsMapArrays()
-  }, [clearDatasetsMapArrays, datasetsArray, datasetsMap, marqueeState])
+  }, [clearDatasetsMapArrays, datasetsArray, datasetsMap, graphLayout, marqueeState])
 
   const onDragEnd = useCallback(() => {
     const numCases = datasetsArray.reduce((sum, data) => sum + data.selection.size, 0)

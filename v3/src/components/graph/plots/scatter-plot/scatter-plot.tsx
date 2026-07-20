@@ -1,4 +1,5 @@
-import {ScaleLinear, select} from "d3"
+import {format, ScaleLinear, select} from "d3"
+import { tip as d3tip } from "d3-v6-tip"
 import { observer } from "mobx-react-lite"
 import {useCallback, useEffect, useRef, useState} from "react"
 import {useDataSetContext} from "../../../../hooks/use-data-set-context"
@@ -6,7 +7,7 @@ import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 import {appState} from "../../../../models/app-state"
 import {ICase} from "../../../../models/data/data-set-types"
 import {
-  firstVisibleParentAttribute, idOfChildmostCollectionForAttributes
+  firstVisibleParentAttribute, idOfChildmostCollectionForAttributes, selectAllCases
 } from "../../../../models/data/data-set-utils"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import {ScaleNumericBaseType} from "../../../axis/axis-types"
@@ -31,8 +32,14 @@ import {useGraphDataConfigurationContext} from "../../hooks/use-graph-data-confi
 import {useGraphLayoutContext} from "../../hooks/use-graph-layout-context"
 import {useRendererDragHandlers, usePlotResponders} from "../../hooks/use-plot"
 import { setPointCoordinates } from "../../utilities/graph-utils"
-import { NumericAxisModel } from "../../../axis/models/numeric-axis-models"
-import { residualPlotIsApplicable } from "./residual-plot-utils"
+import { isNumericAxisModel, NumericAxisModel } from "../../../axis/models/numeric-axis-models"
+import {
+  defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeOpacity, defaultSelectedStrokeWidth,
+  defaultStrokeOpacity, defaultStrokeWidth
+} from "../../../../utilities/color-utils"
+import {
+  computeResiduals, getPredictor, IResidualPoint, residualDomain, residualPlotIsApplicable
+} from "./residual-plot-utils"
 import { scatterPlotFuncs } from "./scatter-plot-utils"
 
 export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProps) {
@@ -66,6 +73,7 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
   const movableLineSquaresRef = useRef<SVGGElement>(null)
   const lsrlSquaresRef = useRef<SVGGElement>(null)
   const functionSquaresRef = useRef<SVGGElement>(null)
+  const residualPointsRef = useRef<SVGGElement>(null)
 
   const connectingLinesRef = useRef<SVGGElement>(null)
   const connectingLinesActivatedRef = useRef(false)
@@ -168,6 +176,83 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
 
   useRendererDragHandlers(renderer, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
+  // Hover tooltip for residual points. Matches the "graph-d3-tip" styling used by other adornment
+  // hovers so the tip visually reads like the main plot's data tips. The `no-svg-export` class
+  // keeps it out of image exports.
+  const residualDataTipRef = useRef(
+    d3tip().attr("class", "graph-d3-tip no-svg-export")
+      .attr("data-testid", "residual-data-tip")
+      .html((d: string) => `<p>${d}</p>`)
+  )
+
+  const renderResidualPoints = useCallback((residuals: IResidualPoint[]) => {
+    const g = residualPointsRef.current
+    if (!g) return
+    const { getXCoord } = scatterPlotFuncs(layout, dataConfiguration)
+    const lowerScale = layout.getAxisScale("leftLower") as ScaleLinear<number, number> | undefined
+    if (!lowerScale) {
+      select(g).selectAll("circle").remove()
+      return
+    }
+    const pointRadius = graphModel.getPointRadius()
+    const selectedRadius = graphModel.getPointRadius('select')
+    const { pointColor, pointStrokeColor } = graphModel.pointDescription
+    const getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
+    const plotHeight = layout.plotHeight
+    // Mirrors setPointSelection styling in data-display-utils.ts. Without a legend, selected points
+    // get a solid blue fill; with a legend, they keep the category color and get a highlighted stroke.
+    const styleFor = (caseID: string) => {
+      const isSelected = !!dataset?.isCaseSelected(caseID)
+      const legendColor = getLegendColor?.(caseID)
+      const baseFill = legendColor ?? pointColor
+      const useSelectionFill = isSelected && !legendAttrID
+      return {
+        fill: useSelectionFill ? defaultSelectedColor : baseFill,
+        radius: isSelected ? selectedRadius : pointRadius,
+        stroke: isSelected && !useSelectionFill ? defaultSelectedStroke : pointStrokeColor,
+        strokeWidth: isSelected && !useSelectionFill ? defaultSelectedStrokeWidth : defaultStrokeWidth,
+        strokeOpacity: isSelected && !useSelectionFill ? defaultSelectedStrokeOpacity : defaultStrokeOpacity
+      }
+    }
+    // Hover tip: "<xAttrName>: <xValue><br/>Residual: <value>". Numeric formatting mirrors the
+    // main plot's data tip (three significant figures via d3.format('.3~f')).
+    const xAttrID = dataConfiguration?.attributeID("x") ?? ""
+    const xAttr = dataset?.getAttribute(xAttrID)
+    const xAttrName = xAttr?.name ?? ""
+    const float = format(".3~f")
+    const tipTextFor = (d: IResidualPoint) => {
+      const xValue = dataset?.getValue(d.caseID, xAttrID)
+      const xValueStr = typeof xValue === "number" && isFinite(xValue)
+        ? float(xValue) : (xValue != null ? String(xValue) : "")
+      const residualStr = isFinite(d.residual) ? float(d.residual) : String(d.residual)
+      return `${xAttrName}: ${xValueStr}<br/>Residual: ${residualStr}`
+    }
+    const dataTip = residualDataTipRef.current
+    // Install the tip on the parent SVG so absolute positioning works.
+    select(g).call(dataTip)
+    select(g).selectAll<SVGCircleElement, IResidualPoint>("circle")
+      .data(residuals, d => d.caseID)
+      .join("circle")
+      .attr("data-testid", d => `residual-point-${d.caseID}`)
+      .attr("cx", d => getXCoord(d.caseID))
+      .attr("cy", d => plotHeight + lowerScale(d.residual))
+      .attr("r", d => styleFor(d.caseID).radius)
+      .attr("fill", d => styleFor(d.caseID).fill)
+      .attr("stroke", d => styleFor(d.caseID).stroke)
+      .attr("stroke-width", d => styleFor(d.caseID).strokeWidth)
+      .attr("stroke-opacity", d => styleFor(d.caseID).strokeOpacity)
+      .style("cursor", "pointer")
+      .on("mouseover", function(event, d) { dataTip.show(tipTextFor(d), this) })
+      .on("mouseout", () => dataTip.hide())
+      .on("click", (event, d) => {
+        // handleClickOnCase honors shift/meta/ctrl for extend selection, matching the upper plot.
+        // stopPropagation prevents the click from bubbling to the residual-plot-background rect,
+        // whose handler would immediately deselect everything the click just selected.
+        event.stopPropagation()
+        if (dataset) handleClickOnCase(event, d.caseID, dataset)
+      })
+  }, [layout, dataConfiguration, graphModel, legendAttrID, dataset])
+
   // When caseIds is provided, only those cases' points are restyled (delta path used during a
   // marquee drag); otherwise every point is restyled.
   const refreshPointSelection = useCallback((caseIds?: Set<string>) => {
@@ -178,7 +263,16 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
         selectedPointRadius: selectedPointRadiusRef.current,
         pointColor, pointStrokeColor, getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex
       }, caseIds, dataConfiguration.numberOfPlots)
-  }, [dataConfiguration, graphModel, renderer])
+    // Restyle the residual points too so their selection halo tracks the upper plot's.
+    // renderResidualPoints re-runs the full D3 join; the delta path (caseIds) is a Pixi-only
+    // optimization that doesn't apply to our SVG circles, so full restyle is fine here.
+    if (adornmentsStore.showResidualPlot && residualPlotIsApplicable(adornmentsStore, dataConfiguration)) {
+      const predictor = getPredictor(adornmentsStore, dataConfiguration)
+      if (predictor && dataConfiguration) {
+        renderResidualPoints(computeResiduals(dataConfiguration, predictor))
+      }
+    }
+  }, [adornmentsStore, dataConfiguration, graphModel, renderer, renderResidualPoints])
 
   // Accept showLines parameter to avoid stale closure issues during rapid state changes
   const refreshConnectingLines = useCallback(async (showLines: boolean) => {
@@ -309,8 +403,19 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
       refreshAllPointPositions(selectedOnly)
     }
     showSquares && refreshSquares()
-  }, [adornmentsStore, showSquares, refreshConnectingLines, refreshSquares, refreshPointPositionsPerfMode,
-      refreshAllPointPositions])
+    // Piggyback residual-point refresh here so live drag updates flow through. During drag the
+    // dataset is caching (setCaseValues writes only to the cache, which is a plain JS Map — reads
+    // don't establish MobX deps, so our mstAutorun doesn't re-fire). usePlotResponders wires an
+    // onAnyAction listener that calls refreshPointPositions on every setCaseValues, so this path
+    // fires per drag frame and reads current cached values via computeResiduals.
+    if (adornmentsStore.showResidualPlot && residualPlotIsApplicable(adornmentsStore, dataConfiguration)) {
+      const predictor = getPredictor(adornmentsStore, dataConfiguration)
+      if (predictor && dataConfiguration) {
+        renderResidualPoints(computeResiduals(dataConfiguration, predictor))
+      }
+    }
+  }, [adornmentsStore, dataConfiguration, refreshConnectingLines, refreshSquares,
+      refreshPointPositionsPerfMode, refreshAllPointPositions, renderResidualPoints, showSquares])
 
   // Call refreshSquares when Squares of Residuals option is switched on and when a
   // Movable Line adornment is being dragged.
@@ -334,25 +439,58 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
     if (showSquares) refreshSquares()
   }, [showSquares, movableLine?.isVisible, lsrl?.isVisible, plottedFunctionModel?.isVisible, refreshSquares])
 
-  // Sync the split-plot layout and lower y-axis registration with the Residual Plot store boolean
-  // and its applicability. When applicable and toggled on, activate the lower plot region and register
-  // a NumericAxisModel at "leftLower" so the axis renders. When toggled off or constraints break, tear
-  // down. The store boolean persists as user intent (mirroring Squares of Residuals); this reaction
-  // owns the derived layout/axis state.
-  useEffect(function syncResidualPlotActivation() {
+  // Sync the split-plot layout, lower y-axis registration, and residual point rendering with the
+  // Residual Plot store boolean and applicability. When active, activate the split layout, ensure a
+  // NumericAxisModel at "leftLower" with the auto-scaled residual domain, and paint the residual
+  // points. When inactive, tear the split down and clear the points. The store boolean persists as
+  // user intent (mirroring Squares of Residuals); this reaction owns the derived state.
+  useEffect(function syncResidualPlot() {
     return mstAutorun(() => {
-      const isActive = adornmentsStore.showResidualPlot && residualPlotIsApplicable(graphModel)
-      if (isActive) {
-        if (!layout.showLowerPlot) layout.setShowLowerPlot(true)
-        if (!graphModel.getAxis("leftLower")) {
-          graphModel.setAxis("leftLower", NumericAxisModel.create({ place: "leftLower", min: -1, max: 1 }))
-        }
-      } else {
+      const isActive = adornmentsStore.showResidualPlot && residualPlotIsApplicable(adornmentsStore, dataConfiguration)
+      if (!isActive) {
         if (layout.showLowerPlot) layout.setShowLowerPlot(false)
         if (graphModel.getAxis("leftLower")) graphModel.removeAxis("leftLower")
+        if (residualPointsRef.current) select(residualPointsRef.current).selectAll("circle").remove()
+        return
       }
-    }, { name: "ScatterPlot.syncResidualPlotActivation" }, graphModel)
-  }, [adornmentsStore, graphModel, layout])
+      const predictor = getPredictor(adornmentsStore, dataConfiguration)
+      if (!predictor || !dataConfiguration) return
+      const residuals = computeResiduals(dataConfiguration, predictor)
+      const [minY, maxY] = residualDomain(residuals)
+      if (!layout.showLowerPlot) layout.setShowLowerPlot(true)
+      let axis = graphModel.getAxis("leftLower")
+      if (!axis || !isNumericAxisModel(axis)) {
+        graphModel.setAxis("leftLower", NumericAxisModel.create({ place: "leftLower", min: minY, max: maxY }))
+        axis = graphModel.getAxis("leftLower")
+      }
+      if (axis && isNumericAxisModel(axis)) {
+        if (axis.min !== minY || axis.max !== maxY) {
+          // setDomain is grow-only by default; the Residual Plot's domain must be able to shrink as
+          // the line moves closer to fit. Allow shrinking for this one call (the flag auto-resets).
+          axis.setAllowRangeToShrink(true)
+          axis.setDomain(minY, maxY)
+        }
+      }
+      // The graph-controller's installAxisReaction only watches "left" and "bottom"; changes to the
+      // "leftLower" axis model do not automatically push through to the MultiScale that owns the D3
+      // scale used for pixel mapping. Sync explicitly.
+      layout.setAxisScaleType("leftLower", "linear")
+      layout.getAxisMultiScale("leftLower").setNumericDomain([minY, maxY])
+      renderResidualPoints(residuals)
+    }, { name: "ScatterPlot.syncResidualPlot" }, graphModel)
+  }, [adornmentsStore, dataConfiguration, graphModel, layout, renderResidualPoints])
+
+  // Post-mount effect: the residual points <g> is conditionally mounted on layout.showLowerPlot,
+  // so its ref is null the first time the autorun runs (state flips and JSX re-renders in the same
+  // tick). This redraws once the group is committed.
+  useEffect(function drawResidualPointsAfterMount() {
+    if (!layout.showLowerPlot || !adornmentsStore.showResidualPlot) return
+    if (!residualPlotIsApplicable(adornmentsStore, dataConfiguration)) return
+    const predictor = getPredictor(adornmentsStore, dataConfiguration)
+    if (!predictor || !dataConfiguration) return
+    renderResidualPoints(computeResiduals(dataConfiguration, predictor))
+  }, [layout.showLowerPlot, adornmentsStore, adornmentsStore.showResidualPlot, dataConfiguration,
+      graphModel, renderResidualPoints])
 
   // Call refreshConnectingLines when Connecting Lines option is switched on and when all
   // points are selected.
@@ -385,7 +523,12 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
         </clipPath>
         <If condition={layout.showLowerPlot}>
           <clipPath id={`plot-clip-lower-${instanceId}`}>
-            <rect width={layout.getLowerPlotBounds().width} height={layout.getLowerPlotBounds().height} />
+            {/* Positioned at the top of the lower region within the plot-area SVG (whose origin is
+                the upper region's top-left), so consumers rendering at y = plotHeight + Δ fall
+                inside the clip. Width matches the plot area for the same reason. */}
+            <rect x={0} y={layout.plotHeight}
+                  width={layout.getLowerPlotBounds().width}
+                  height={layout.getLowerPlotBounds().height} />
           </clipPath>
         </If>
       </defs>
@@ -410,6 +553,31 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
           ref={lsrlSquaresRef}
         />
       }
+      <If condition={layout.showLowerPlot}>
+        {/* Transparent background rect for the lower plot region. Captures clicks in the residual
+            plot's white space and deselects all cases (unless a modifier key is held), mirroring
+            the upper plot's background behavior wired via useRendererPointerDownDeselect. */}
+        <rect
+          data-testid={`residual-plot-background-${instanceId}`}
+          className="residual-plot-background"
+          x={0}
+          y={layout.plotHeight}
+          width={layout.getLowerPlotBounds().width}
+          height={layout.getLowerPlotBounds().height}
+          fill="transparent"
+          onClick={(event) => {
+            if (!event.shiftKey && !event.metaKey && !event.ctrlKey && dataset) {
+              selectAllCases(dataset, false)
+            }
+          }}
+        />
+        <g
+          data-testid={`residual-points-${instanceId}`}
+          className="residual-points"
+          clipPath={`url(#plot-clip-lower-${instanceId})`}
+          ref={residualPointsRef}
+        />
+      </If>
       { plottedFunctionModel?.isVisible && showSquares &&
         <g
           data-testid={`function-squares-${instanceId}`}

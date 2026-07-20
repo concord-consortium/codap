@@ -37,7 +37,12 @@ export const SubAxis = observer(function SubAxis({
   return (
     <g className='sub-axis-wrapper' ref={subWrapperElt}>
       <g className='axis' ref={subAxisEltRef}/>
+      {/* leftLower is the Residual Plot's auto-scaled lower y-axis. Any user drag would be
+          immediately overwritten by the next residual recompute (line change, point drag, data
+          edit), so surface no drag handles. Ticks still render through the normal numeric-axis
+          rendering path — hasDraggableNumericAxis is unchanged, only the drag rects are skipped. */}
       {isAnyNumericAxisModel(axisModel) && axisProvider.hasDraggableNumericAxis(axisModel) &&
+        axisPlace !== "leftLower" &&
         <NumericAxisDragRects
           axisModel={axisModel}
           axisWrapperElt={subWrapperElt.current}

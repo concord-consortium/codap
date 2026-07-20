@@ -376,6 +376,11 @@ export const useSubAxis = ({
 
   const updateDomainAndRenderSubAxis = useCallback(() => {
     const axisModel = axisProvider?.getAxis?.(axisPlace)
+    // The Residual Plot's leftLower axis has no owning attribute — its domain is set externally
+    // by the ScatterPlot component from computed residuals. The axisPlaceToAttrRole["leftLower"]
+    // = "y" is a TypeScript-exhaustiveness placeholder; reading numeric values for that role
+    // would clobber the residual domain with the y attribute's data extent.
+    if (axisPlace === 'leftLower') return
     const role = axisPlaceToAttrRole[axisPlace],
       attrID = dataConfig?.attributeID(role)
     if (!attrID) {
