@@ -46,9 +46,9 @@ export function residualPlotIsApplicable(
 }
 
 // A predictor maps an x-value to a predicted y-value. Returns NaN when the prediction is undefined
-// (e.g. plotted function throws or produces a non-finite result). The Residual Plot only depends on
-// the top-level cell (no categorical axes / no legend at v1), so slope/intercept and formula are
-// read from the single "{}" cell.
+// (e.g. plotted function throws or produces a non-finite result). The Residual Plot's v1
+// constraints exclude legend / categorical axes, so slope/intercept and formula are always read
+// from the single default cell (whose instance key is kDefaultCellKey / "__EMPTY__").
 export type Predictor = (x: number) => number
 
 export function getPredictor(

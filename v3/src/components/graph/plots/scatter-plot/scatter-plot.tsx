@@ -10,6 +10,7 @@ import {
   firstVisibleParentAttribute, idOfChildmostCollectionForAttributes, selectAllCases
 } from "../../../../models/data/data-set-utils"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
+import { t } from "../../../../utilities/translation/translate"
 import {ScaleNumericBaseType} from "../../../axis/axis-types"
 import { getDomainExtentForPixelWidth } from "../../../axis/axis-utils"
 import { If } from "../../../common/if"
@@ -178,12 +179,17 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
 
   // Hover tooltip for residual points. Matches the "graph-d3-tip" styling used by other adornment
   // hovers so the tip visually reads like the main plot's data tips. The `no-svg-export` class
-  // keeps it out of image exports.
+  // keeps it out of image exports. Disposed on unmount so the DOM node d3-tip attaches to
+  // document.body doesn't leak across scatter-plot mounts.
   const residualDataTipRef = useRef(
     d3tip().attr("class", "graph-d3-tip no-svg-export")
       .attr("data-testid", "residual-data-tip")
       .html((d: string) => `<p>${d}</p>`)
   )
+  useEffect(() => {
+    const tip = residualDataTipRef.current
+    return () => { tip.destroy?.() }
+  }, [])
 
   const renderResidualPoints = useCallback((residuals: IResidualPoint[]) => {
     const g = residualPointsRef.current
@@ -225,7 +231,7 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
       const xValueStr = typeof xValue === "number" && isFinite(xValue)
         ? float(xValue) : (xValue != null ? String(xValue) : "")
       const residualStr = isFinite(d.residual) ? float(d.residual) : String(d.residual)
-      return `${xAttrName}: ${xValueStr}<br/>Residual: ${residualStr}`
+      return `${xAttrName}: ${xValueStr}<br/>${t("V3.ResidualPlot.dataTip.residual")}: ${residualStr}`
     }
     const dataTip = residualDataTipRef.current
     // Install the tip on the parent SVG so absolute positioning works.
@@ -253,6 +259,19 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
       })
   }, [layout, dataConfiguration, graphModel, legendAttrID, dataset])
 
+  // Recompute and repaint the residual points if the Residual Plot is active and all applicability
+  // constraints hold. Single entry-point used by every code path that needs to refresh the residual
+  // rendering — the sync autorun, the post-mount effect, the upper-plot's refreshPointPositions
+  // (drag caching), and refreshPointSelection (selection halo sync). No-op when inactive.
+  const renderResidualsIfActive = useCallback(() => {
+    if (!adornmentsStore.showResidualPlot) return
+    if (!residualPlotIsApplicable(adornmentsStore, dataConfiguration)) return
+    if (!dataConfiguration) return
+    const predictor = getPredictor(adornmentsStore, dataConfiguration)
+    if (!predictor) return
+    renderResidualPoints(computeResiduals(dataConfiguration, predictor))
+  }, [adornmentsStore, dataConfiguration, renderResidualPoints])
+
   // When caseIds is provided, only those cases' points are restyled (delta path used during a
   // marquee drag); otherwise every point is restyled.
   const refreshPointSelection = useCallback((caseIds?: Set<string>) => {
@@ -266,13 +285,8 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
     // Restyle the residual points too so their selection halo tracks the upper plot's.
     // renderResidualPoints re-runs the full D3 join; the delta path (caseIds) is a Pixi-only
     // optimization that doesn't apply to our SVG circles, so full restyle is fine here.
-    if (adornmentsStore.showResidualPlot && residualPlotIsApplicable(adornmentsStore, dataConfiguration)) {
-      const predictor = getPredictor(adornmentsStore, dataConfiguration)
-      if (predictor && dataConfiguration) {
-        renderResidualPoints(computeResiduals(dataConfiguration, predictor))
-      }
-    }
-  }, [adornmentsStore, dataConfiguration, graphModel, renderer, renderResidualPoints])
+    renderResidualsIfActive()
+  }, [dataConfiguration, graphModel, renderer, renderResidualsIfActive])
 
   // Accept showLines parameter to avoid stale closure issues during rapid state changes
   const refreshConnectingLines = useCallback(async (showLines: boolean) => {
@@ -407,15 +421,10 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
     // dataset is caching (setCaseValues writes only to the cache, which is a plain JS Map — reads
     // don't establish MobX deps, so our mstAutorun doesn't re-fire). usePlotResponders wires an
     // onAnyAction listener that calls refreshPointPositions on every setCaseValues, so this path
-    // fires per drag frame and reads current cached values via computeResiduals.
-    if (adornmentsStore.showResidualPlot && residualPlotIsApplicable(adornmentsStore, dataConfiguration)) {
-      const predictor = getPredictor(adornmentsStore, dataConfiguration)
-      if (predictor && dataConfiguration) {
-        renderResidualPoints(computeResiduals(dataConfiguration, predictor))
-      }
-    }
-  }, [adornmentsStore, dataConfiguration, refreshConnectingLines, refreshSquares,
-      refreshPointPositionsPerfMode, refreshAllPointPositions, renderResidualPoints, showSquares])
+    // fires per drag frame and reads current cached values via renderResidualsIfActive.
+    renderResidualsIfActive()
+  }, [adornmentsStore, refreshConnectingLines, refreshSquares,
+      refreshPointPositionsPerfMode, refreshAllPointPositions, renderResidualsIfActive, showSquares])
 
   // Call refreshSquares when Squares of Residuals option is switched on and when a
   // Movable Line adornment is being dragged.
@@ -444,6 +453,13 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
   // NumericAxisModel at "leftLower" with the auto-scaled residual domain, and paint the residual
   // points. When inactive, tear the split down and clear the points. The store boolean persists as
   // user intent (mirroring Squares of Residuals); this reaction owns the derived state.
+  //
+  // Load-bearing pattern: every mutation below is preceded by a read-and-compare guard
+  // (`if (!layout.showLowerPlot)`, `if (axis.min !== minY || ...)`, etc.). MobX would otherwise
+  // re-fire this autorun on its own mutations because it reads the same observables it writes
+  // (layout.showLowerPlot, axis.min/max, etc.). The guards make each mutation idempotent so a
+  // re-fire converges immediately. Do NOT remove any guard without adding equivalent protection —
+  // an unguarded write here creates an infinite reaction loop.
   useEffect(function syncResidualPlot() {
     return mstAutorun(() => {
       const isActive = adornmentsStore.showResidualPlot && residualPlotIsApplicable(adornmentsStore, dataConfiguration)
@@ -484,13 +500,8 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
   // so its ref is null the first time the autorun runs (state flips and JSX re-renders in the same
   // tick). This redraws once the group is committed.
   useEffect(function drawResidualPointsAfterMount() {
-    if (!layout.showLowerPlot || !adornmentsStore.showResidualPlot) return
-    if (!residualPlotIsApplicable(adornmentsStore, dataConfiguration)) return
-    const predictor = getPredictor(adornmentsStore, dataConfiguration)
-    if (!predictor || !dataConfiguration) return
-    renderResidualPoints(computeResiduals(dataConfiguration, predictor))
-  }, [layout.showLowerPlot, adornmentsStore, adornmentsStore.showResidualPlot, dataConfiguration,
-      graphModel, renderResidualPoints])
+    renderResidualsIfActive()
+  }, [layout.showLowerPlot, adornmentsStore.showResidualPlot, renderResidualsIfActive])
 
   // Call refreshConnectingLines when Connecting Lines option is switched on and when all
   // points are selected.

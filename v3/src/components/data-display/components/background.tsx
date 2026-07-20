@@ -133,12 +133,13 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
     height.current = height.current + event.dy
     // Visual clamp: when the Residual Plot's split is active, the marquee should not extend into
     // the lower region — there are no cases in the upper R-tree that live below the upper region,
-    // so a marquee drawn there would visually promise a selection it can never make. showLowerPlot
-    // is only defined on GraphLayout; on other layouts (e.g. map) this is undefined and no clamp
-    // applies. Coord system: marqueeState.y is plot-area-relative (0 = top of upper region), so
-    // the upper region's bottom edge is at y = graphLayout.plotHeight.
+    // so a marquee drawn there would visually promise a selection it can never make. useGraphLayoutContext
+    // types the layout as GraphLayout; when Background is rendered in a non-graph tile (e.g. map)
+    // the runtime layout doesn't have showLowerPlot and this evaluates falsy, so no clamp applies.
+    // Coord system: marqueeState.y is plot-area-relative (0 = top of upper region), so the upper
+    // region's bottom edge is at y = graphLayout.plotHeight.
     let clampedHeight = height.current
-    if ((graphLayout as any)?.showLowerPlot) {
+    if (graphLayout?.showLowerPlot) {
       const plotBottom = graphLayout.plotHeight
       const rectBottom = startY.current + height.current
       if (height.current > 0 && rectBottom > plotBottom) {

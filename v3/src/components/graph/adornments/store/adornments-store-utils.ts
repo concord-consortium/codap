@@ -2,6 +2,8 @@ import { logMessageWithReplacement } from "../../../../lib/log-message"
 import { ITileModel } from "../../../../models/tiles/tile-model"
 import { updateTileNotification } from "../../../../models/tiles/tile-notifications"
 import { PlotType } from "../../graphing-types"
+import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
+import { residualPlotIsApplicable } from "../../plots/scatter-plot/residual-plot-utils"
 import { getAdornmentComponentInfo, IAdornmentComponentInfo } from "../adornment-component-info"
 import { getAdornmentContentInfo, IAdornmentContentInfo } from "../adornment-content-info"
 import { getMeasuresForPlot, IMeasure, RulerStateKey } from "../adornment-ui-types"
@@ -202,25 +204,16 @@ export function getAdornmentsMenuItemsFromTheStore(theStore: IAdornmentsBaseStor
         })
       }
     })
-    // Residual Plot follows the Squares of Residuals pattern. Enabled only when the full applicability
-    // check passes: numeric x/y axes, exactly one y attribute, no right numeric / top-split /
-    // right-split / legend attributes, and exactly one of movable line, LSRL, or plotted function is
-    // visible. Inlined here rather than importing residualPlotIsApplicable from scatter-plot/ to avoid
-    // a cycle (scatter-plot/residual-plot-utils → graph-content-model → adornments-store → this file).
-    // Uses `any` for the tile content since IGraphContentModel isn't importable here for the same
-    // reason; the properties accessed match GraphDataConfigurationModel's public API.
-    const graphContent = tile?.content as any
-    const dataConfig = graphContent?.dataConfiguration
-    const activeLineCount = (movableLineVisible ? 1 : 0) + (lsrlVisible ? 1 : 0) + (plottedFunctionVisible ? 1 : 0)
-    const residualPlotApplicable = !!dataConfig
-      && activeLineCount === 1
-      && dataConfig.attributeType?.("x") === "numeric"
-      && dataConfig.attributeType?.("y") === "numeric"
-      && dataConfig.yAttributeIDs?.length === 1
-      && !dataConfig.attributeID?.("rightNumeric")
-      && !dataConfig.attributeID?.("topSplit")
-      && !dataConfig.attributeID?.("rightSplit")
-      && !dataConfig.attributeID?.("legend")
+    // Residual Plot follows the Squares of Residuals pattern. Enabled only when the full
+    // applicability check passes: numeric x/y axes, exactly one y attribute, no right numeric /
+    // top-split / right-split / legend attributes, and exactly one of movable line, LSRL, or
+    // plotted function is visible. Delegates to residualPlotIsApplicable so the menu-item gating
+    // and the render-path gating (in ScatterPlot) share one predicate.
+    const tileContent = tile?.content
+    const dataConfig = tileContent && "dataConfiguration" in tileContent
+      ? (tileContent as { dataConfiguration?: IGraphDataConfigurationModel }).dataConfiguration
+      : undefined
+    const residualPlotApplicable = residualPlotIsApplicable(theStore, dataConfig)
     addItemIfCondition(true, {
       checked: theStore.showResidualPlot,
       disabled: !residualPlotApplicable,
