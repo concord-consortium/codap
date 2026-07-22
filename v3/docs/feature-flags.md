@@ -16,7 +16,7 @@ export const kFeatureFlags = {
     description: "Residual plots on the graph",
     owner: "ESTEEM",
     added: "2026-07-22",
-    expires: "2027-01-22"
+    expires: "2027-07-31"
   }
 } as const satisfies Record<string, IFeatureFlagInfo>
 ```
