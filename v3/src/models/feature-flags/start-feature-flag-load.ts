@@ -7,4 +7,5 @@ import { featureFlagManager } from "./feature-flag-manager"
  * waiting for React to mount. Kept separate from the manager so that importing
  * the manager — in tests, or from a model — never starts a network request.
  */
-featureFlagManager.loadServerConfig(fetchFeatureFlagConfig)
+// intentionally fire-and-forget; loadServerConfig fails open and never rejects
+void featureFlagManager.loadServerConfig(fetchFeatureFlagConfig)

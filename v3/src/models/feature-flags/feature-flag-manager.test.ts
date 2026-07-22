@@ -94,6 +94,14 @@ describe("FeatureFlagManager", () => {
     expect(manager.isFeatureEnabled(kFlag)).toBe(true)
   })
 
+  // called fire-and-forget at module load, so a rejection must not escape
+  it("fails open when the config loader rejects", async () => {
+    const manager = new FeatureFlagManager()
+    manager.setDocumentFlags([kFlag])
+    await expect(manager.loadServerConfig(async () => { throw new Error("boom") })).resolves.toBeUndefined()
+    expect(manager.isFeatureEnabled(kFlag)).toBe(true)
+  })
+
   describe("urlEnabledFlags", () => {
     it("reports flags this session enabled via the url", () => {
       setUrlParams(`?features=${kFlag}`)

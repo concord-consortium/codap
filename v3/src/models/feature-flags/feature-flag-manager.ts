@@ -35,7 +35,17 @@ export class FeatureFlagManager {
    * "server off is absolute" a real guarantee rather than an aspiration.
    */
   async loadServerConfig(fetchConfig: () => Promise<FeatureFlagConfig>) {
-    this.setServerConfig(await fetchConfig())
+    // fail open: the default fetchConfig already swallows its own errors, but a
+    // rejection here would surface as an unhandled promise rejection at module
+    // load, so guarantee an empty config rather than trust every future caller
+    let config: FeatureFlagConfig = {}
+    try {
+      config = await fetchConfig()
+    }
+    catch {
+      // leave config empty
+    }
+    this.setServerConfig(config)
   }
 
   @action
