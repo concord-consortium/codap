@@ -84,8 +84,14 @@ export const AdornmentsBaseStore = types.model("AdornmentsBaseStore", {
   toggleShowResidualPlot() {
     self.showResidualPlot = !self.showResidualPlot
   },
+  setShowResidualPlot(show: boolean) {
+    self.showResidualPlot = show
+  },
   toggleShowSquaresOfResiduals() {
     self.showSquaresOfResiduals = !self.showSquaresOfResiduals
+  },
+  setShowSquaresOfResiduals(show: boolean) {
+    self.showSquaresOfResiduals = show
   },
   showAdornment(adornment: IAdornmentModel, type: string) {
     const adornmentExists = self.adornments.find(a => a.type === type)
