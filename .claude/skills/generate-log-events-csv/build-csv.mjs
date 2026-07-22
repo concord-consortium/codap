@@ -7,7 +7,8 @@
 //
 // Merge rules, keyed on the Event string:
 //   - Event present in both code and CSV -> keep the CSV's curated Placeholders,
-//     Value, Parameters, and Description (human-authored / type-annotated).
+//     Parameters, and Description (human-authored / type-annotated). Value is always
+//     emptied, for parity with the other Concord log dictionaries.
 //   - Event found in code but not in CSV (NEW) -> add a row using the extractor's
 //     best-effort Placeholders/Parameters, empty Value, and an EMPTY Description that a
 //     human/Claude must fill in. Reported under "NEW".
@@ -60,7 +61,7 @@ function csvField(v) {
 function serializeCSV(records) {
   const lines = [COLUMNS.join(",")]
   for (const r of records) lines.push(COLUMNS.map(c => csvField(r[c])).join(","))
-  return lines.join("\r\n") + "\r\n"
+  return lines.join("\n") + "\n"
 }
 
 // --- load existing CSV (tolerant of an extra legacy Source column) ----------
