@@ -75,6 +75,12 @@ describe("AppState", () => {
 })
 
 describe("AppState feature flags", () => {
+  afterEach(() => {
+    // setDocument enables document monitoring; tear it down so its observers
+    // don't leak into later tests
+    appState.disableDocumentMonitoring()
+  })
+
   it("grants the open document's feature flags", async () => {
     await appState.setDocument({
       type: "CODAP", key: "test-flags", content: { featureFlags: ["residualPlot"] }
