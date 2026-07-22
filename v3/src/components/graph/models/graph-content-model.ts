@@ -37,6 +37,9 @@ import { IGetTipTextProps } from "../../data-display/data-tip-types"
 import { AxisHelper } from "../../axis/helper-models/axis-helper"
 import { IAxisProviderBase } from "../../axis/models/axis-provider"
 import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment-models"
+import { kLSRLType } from "../adornments/lsrl/lsrl-adornment-types"
+import { kMovableLineType } from "../adornments/movable-line/movable-line-adornment-types"
+import { kPlottedFunctionType } from "../adornments/plotted-function/plotted-function-adornment-types"
 import {AdornmentsStore} from "../adornments/store/adornments-store"
 import { isUnivariateMeasureAdornment } from "../adornments/univariate-measures/univariate-measure-adornment-model"
 import {kGraphTileType} from "../graph-defs"
@@ -44,6 +47,7 @@ import { CatMapType, CellType, PlotType } from "../graphing-types"
 import { CasePlotModel } from "../plots/case-plot/case-plot-model"
 import { IPlotGraphApi } from "../plots/plot-model"
 import { IPlotModelUnionSnapshot, PlotModelUnion } from "../plots/plot-model-union"
+import { residualPlotIsApplicable } from "../plots/scatter-plot/residual-plot-utils"
 import {GraphPointLayerModel, IGraphPointLayerModel, kGraphPointLayerType} from "./graph-point-layer-model"
 
 export interface GraphProperties {
@@ -281,6 +285,56 @@ export const GraphContentModel = DataDisplayContentModel
           }
       }, {name: "GraphContentModel.afterAttachToDocument.updateAdornments", equals: comparer.structural},
         self.dataConfiguration))
+
+      // CODAP-1459: V2 parity — Movable Line, LSRL, and Plotted Function apply only when
+      // both x and y are numeric. When either becomes non-numeric (e.g. y-axis attribute
+      // swapped to categorical), hide these adornments so they don't silently reappear when
+      // both axes are numeric again. Without this, isVisible persists through the swap and
+      // the line re-renders as soon as the axes become numeric-numeric — V2 required the
+      // user to re-check them.
+      mstReaction(
+        () => self.dataConfiguration.attributeType("x") === "numeric" &&
+              self.dataConfiguration.attributeType("y") === "numeric",
+        (numericXY) => {
+          if (!numericXY) {
+            self.adornmentsStore.hideAdornment(kMovableLineType)
+            self.adornmentsStore.hideAdornment(kLSRLType)
+            self.adornmentsStore.hideAdornment(kPlottedFunctionType)
+          }
+        },
+        { name: "GraphContentModel.afterAttachToDocument.hideLinesOnNonNumericAxes" },
+        self)
+
+      // CODAP-1459: V2 parity — when no line/curve adornment is visible, uncheck Squares
+      // of Residuals rather than leaving it checked-but-disabled. The paired residual-plot
+      // clearing for this same scenario falls out of the residualPlotIsApplicable reaction
+      // below (which also returns false when no line is visible).
+      mstReaction(
+        () => self.adornmentsStore.isShowingAdornment(kMovableLineType) ||
+              self.adornmentsStore.isShowingAdornment(kLSRLType) ||
+              self.adornmentsStore.isShowingAdornment(kPlottedFunctionType),
+        (anyLineVisible) => {
+          if (!anyLineVisible && self.adornmentsStore.showSquaresOfResiduals) {
+            self.adornmentsStore.setShowSquaresOfResiduals(false)
+          }
+        },
+        { name: "GraphContentModel.afterAttachToDocument.syncSquaresOfResidualsGate" },
+        self)
+
+      // CODAP-1459: uncheck Residual Plot whenever its applicability disappears — no visible
+      // line, non-numeric x/y, extra y attribute, right-numeric / top-split / right-split /
+      // legend attribute added. The Jira spec covers only the "no line visible" case; this
+      // reaction extends the same pattern to every applicability constraint so the boolean
+      // stays consistent with the enabled state of its menu item.
+      mstReaction(
+        () => residualPlotIsApplicable(self.adornmentsStore, self.dataConfiguration),
+        (isApplicable) => {
+          if (!isApplicable && self.adornmentsStore.showResidualPlot) {
+            self.adornmentsStore.setShowResidualPlot(false)
+          }
+        },
+        { name: "GraphContentModel.afterAttachToDocument.syncResidualPlotGate" },
+        self)
 
       // When a univariate adornment becomes visible and needs to be recomputed, update it
       mstReaction(

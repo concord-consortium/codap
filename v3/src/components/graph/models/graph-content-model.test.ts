@@ -6,6 +6,8 @@ import { setupTestDataset, testCases } from "../../../test/dataset-test-utils"
 import { toV3Id } from "../../../utilities/codap-utils"
 import { isInquirySpaceMode } from "../../../utilities/url-params"
 import { IBaseNumericAxisModel } from "../../axis/models/base-numeric-axis-model"
+import { MovableLineAdornmentModel } from "../adornments/movable-line/movable-line-adornment-model"
+import { kMovableLineType } from "../adornments/movable-line/movable-line-adornment-types"
 import { kGraphIdPrefix } from "../graph-defs"
 import { GraphContentModel, IGraphContentModel } from "./graph-content-model"
 
@@ -358,6 +360,120 @@ describe("GraphContentModel", () => {
       // Grow-only: the user's larger max survives; it is not snapped back to fit the bars.
       expect(countAxis.min).toBe(0)
       expect(countAxis.max).toBe(20)
+
+      diComponentHandler.delete!({ component: tile })
+    })
+  })
+
+  // CODAP-1459: V2 parity — the Squares of Residuals and Residual Plot booleans must not
+  // linger checked-but-disabled. When the possibility of showing squares disappears (no
+  // visible line/curve adornment), both flags are cleared; when the Residual Plot's stricter
+  // applicability lapses (e.g. legend attribute added), the Residual Plot flag is cleared.
+  describe("Squares of Residuals / Residual Plot reactive gates", () => {
+    const createScatter = async (datasetName: string, extra: Record<string, any> = {}) => {
+      const documentContent = appState.document.content!
+      const { dataset: _dataset } = setupTestDataset({ datasetName })
+      const dataset = documentContent.createDataSet(getSnapshot(_dataset)).sharedDataSet.dataSet
+      dataset.addCases(testCases, { canonicalize: true })
+      dataset.validateCases()
+      const result = diComponentHandler.create!(
+        {}, { type: "graph", dataContext: datasetName, xAttributeName: "a3", yAttributeName: "a4", ...extra }
+      )
+      const tile = documentContent.tileMap.get(
+        toV3Id(kGraphIdPrefix, (result.values as DIComponentInfo).id!)
+      )!
+      const content = tile.content as IGraphContentModel
+      await new Promise(resolve => setTimeout(resolve, 0))
+      return { dataset, tile, content }
+    }
+
+    it("clears showSquaresOfResiduals when the last visible line adornment is hidden", async () => {
+      (isInquirySpaceMode as jest.Mock).mockReturnValue(false)
+      const { tile, content } = await createScatter("squaresGateHideLine")
+      const store = content.adornmentsStore
+      const movableLine = MovableLineAdornmentModel.create()
+      store.addAdornment(movableLine, content.getUpdateCategoriesOptions())
+      store.setShowSquaresOfResiduals(true)
+      expect(store.isShowingAdornment(kMovableLineType)).toBe(true)
+      expect(store.showSquaresOfResiduals).toBe(true)
+
+      store.hideAdornment(kMovableLineType)
+
+      expect(store.isShowingAdornment(kMovableLineType)).toBe(false)
+      expect(store.showSquaresOfResiduals).toBe(false)
+
+      diComponentHandler.delete!({ component: tile })
+    })
+
+    it("clears showResidualPlot when the last visible line adornment is hidden", async () => {
+      (isInquirySpaceMode as jest.Mock).mockReturnValue(false)
+      const { tile, content } = await createScatter("residualGateHideLine")
+      const store = content.adornmentsStore
+      const movableLine = MovableLineAdornmentModel.create()
+      store.addAdornment(movableLine, content.getUpdateCategoriesOptions())
+      store.setShowResidualPlot(true)
+      expect(store.showResidualPlot).toBe(true)
+
+      store.hideAdornment(kMovableLineType)
+
+      expect(store.showResidualPlot).toBe(false)
+
+      diComponentHandler.delete!({ component: tile })
+    })
+
+    // V2 required the user to re-check the line after a categorical detour; V3 without this
+    // reaction would silently re-show it as soon as both axes were numeric again.
+    it("hides Movable Line when y-axis is swapped to categorical, and keeps it hidden after swap back to numeric",
+       async () => {
+      (isInquirySpaceMode as jest.Mock).mockReturnValue(false)
+      const { dataset, tile, content } = await createScatter("lineHideRoundTrip")
+      const store = content.adornmentsStore
+      const movableLine = MovableLineAdornmentModel.create()
+      store.addAdornment(movableLine, content.getUpdateCategoriesOptions())
+      store.setShowResidualPlot(true)
+      const dataConfig = content.graphPointLayerModel.dataConfiguration
+      const a1 = dataset.getAttributeByName("a1")!   // categorical
+      const a4 = dataset.getAttributeByName("a4")!   // numeric
+      expect(dataConfig.attributeType("y")).toBe("numeric")
+      expect(store.isShowingAdornment(kMovableLineType)).toBe(true)
+
+      // Swap y to categorical — line hides, residual plot clears.
+      dataConfig.setAttribute("y", { attributeID: a1.id })
+      await new Promise(resolve => setTimeout(resolve, 0))
+      expect(dataConfig.attributeType("y")).not.toBe("numeric")
+      expect(store.isShowingAdornment(kMovableLineType)).toBe(false)
+      expect(store.showResidualPlot).toBe(false)
+
+      // Swap y back to numeric — the line stays hidden and the residual plot stays off
+      // (user must re-check them explicitly).
+      dataConfig.setAttribute("y", { attributeID: a4.id })
+      await new Promise(resolve => setTimeout(resolve, 0))
+      expect(dataConfig.attributeType("y")).toBe("numeric")
+      expect(store.isShowingAdornment(kMovableLineType)).toBe(false)
+      expect(store.showResidualPlot).toBe(false)
+
+      diComponentHandler.delete!({ component: tile })
+    })
+
+    // A legend attribute makes residualPlotIsApplicable false while leaving Movable Line
+    // visible — so the squares gate does not fire, but the residual plot gate should.
+    it("clears showResidualPlot when a legend attribute makes it inapplicable, but keeps Squares", async () => {
+      (isInquirySpaceMode as jest.Mock).mockReturnValue(false)
+      const { tile, content } = await createScatter("residualGateLegend")
+      const store = content.adornmentsStore
+      const movableLine = MovableLineAdornmentModel.create()
+      store.addAdornment(movableLine, content.getUpdateCategoriesOptions())
+      store.setShowSquaresOfResiduals(true)
+      store.setShowResidualPlot(true)
+
+      // Assign a legend attribute — residualPlotIsApplicable returns false, but a line
+      // is still visible so the squares possibility survives.
+      const dataConfig = content.graphPointLayerModel.dataConfiguration
+      dataConfig.setAttribute("legend", { attributeID: dataConfig.attributeID("y") })
+
+      expect(store.isShowingAdornment(kMovableLineType)).toBe(true)
+      expect(store.showSquaresOfResiduals).toBe(true)
+      expect(store.showResidualPlot).toBe(false)
 
       diComponentHandler.delete!({ component: tile })
     })
