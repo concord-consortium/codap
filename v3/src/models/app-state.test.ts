@@ -6,6 +6,7 @@ import { appState } from "./app-state"
 import { isCodapDocument } from "./codap/create-codap-document"
 import { DocumentModel } from "./document/document"
 import { serializeDocument } from "./document/serialize-document"
+import { featureFlagManager } from "./feature-flags/feature-flag-manager"
 
 describe("AppState", () => {
   it("works when performance mode enabled", () => {
@@ -70,5 +71,22 @@ describe("AppState", () => {
       expect(treeManager.revisionId).toBe("")
       expect(dirty).toHaveBeenLastCalledWith(false)
     })
+  })
+})
+
+describe("AppState feature flags", () => {
+  it("grants the open document's feature flags", async () => {
+    await appState.setDocument({
+      type: "CODAP", key: "test-flags", content: { featureFlags: ["residualPlot"] }
+    })
+    expect(featureFlagManager.isFeatureEnabled("residualPlot")).toBe(true)
+  })
+
+  it("revokes grants when a document without them is opened", async () => {
+    await appState.setDocument({
+      type: "CODAP", key: "test-flags-2", content: { featureFlags: ["residualPlot"] }
+    })
+    await appState.setDocument({ type: "CODAP", key: "test-flags-3", content: {} })
+    expect(featureFlagManager.isFeatureEnabled("residualPlot")).toBe(false)
   })
 })
