@@ -1,0 +1,136 @@
+Event,Placeholders,Value,Parameters,Description
+%@ all,state,,{ state: string },When the user expands or collapses all parent-case groups at once.
+%@ background image from axes,"isLocked ? ""unlocked"" : ""locked""",,,User locks or unlocks the background image to the graph axes.
+%@ case %@,"state, parentCaseId",,"{ state: string, parentCaseId: string }",When the user expands or collapses a single parent-case group.
+%@ connecting lines,action,,{action: string},User shows or hides connecting lines on a scatter plot.
+%@ ICI,action,,{action: string},User shows or hides the box plot informal confidence interval.
+%@ line intercept,action,,{action: string},User locks or unlocks the line intercept on a scatter plot.
+%@ measure labels,action,,{action: string},User shows or hides measure labels from the graph measures menu.
+%@ outliers,action,,{action: string},User shows or hides box plot outliers.
+%@ squares of residuals,action,,{action: string},User shows or hides squares of residuals on a scatter plot.
+<plugin-defined>,"positional replaceArgs (0, 1, ...)",,{ [index: string]: string|number|boolean },Arbitrary event emitted by an embedded plugin/iframe via the data-interactive logMessage API; event name and parameters are plugin-defined.
+Add Plugin: %@,"name, url",,"{ name: string, url: string }",User adds a plugin by choosing it from the plugins menu.
+Add toggle component: %@,lifecycleName,,,Showed a singleton toggle component (e.g. calculator) from the tool shelf
+Added %@,adornmentType / type,,{adornmentType: string},User adds the box plot adornment via its checkbox.
+added background image,,,,User adds a background image to the graph.
+Added movable value,,,,User clicks Add in the movable value adornment controls.
+Attribute assigned: %@,"{attribute, axis}",,"{attribute: string, axis: string}",User assigns an attribute to a graph axis by drag-and-drop.
+Attribute removed: %@,"{attribute, axis}",,"{attribute: string, axis: string}",User removes an attribute from a graph axis by drag-and-drop.
+attributeCreate: %@,"{ name, collection, formula }",,"{ name: string, collection: string, formula: string }",User adds a new attribute to a collection from the ruler (data set) menu.
+"Axis domain change: lower: %@, upper: %@","lower, upper",,"{ lower: number, upper: number }",When the user finishes dragging or dilating a numeric axis to change its bounds.
+"Axis zoom: lower: %@, upper: %@","lower, upper",,"{ lower: number, upper: number }",When the user option-clicks (or shift-option-clicks) a numeric axis to zoom it in or out.
+Calculation done: %@ = %@,"calcValue, solution",,"{ calcValue: string, solution: string }",When the user successfully evaluates an expression in the calculator.
+Calculation error: %@ = %@,"calcValue, error",,"{ calcValue: string, error: string }",When the user evaluates a calculator expression that produces an error.
+Calculator value cleared,,,,User clears the calculator display (C button or Escape key).
+change %@ from %@ to %@,"changedProperty, fromValue, toValue",,"{changedProperty: string, fromValue: number, toValue: number}",User changes the bin width or alignment by leaving the input field.
+Change bar chart to computed by pre-existing formula,,,,Switched a bar chart's bar lengths to be computed by an already-existing formula attribute
+Change case card column width for collection '%@' to '%@'%,"collection, width",,"{ collection: string, width: number }",When the user finishes resizing a column in the case card.
+Change collection name from %@ to %@,"nameInitial, name",,{ name: string },User renames a collection by editing its title.
+Change computed bar length function: %@,"{from, to}",,"{from: string, to: string}",User edits the bar chart's computed bar-length formula and applies it.
+Change filter formula to %@,formula,,{ formula: string },User changes the graph's hide/show filter formula.
+Change plotted function: %@,"{from, to}",,"{from: string, to: string}",User edits a plotted function's formula and applies it.
+Change plotted value from %@ to %@,"expression, newExpression",,"{expression: string, newExpression: string}",User edits a plotted value's formula and applies it.
+Change row height,,,,User finishes dragging a row divider to change the case table row height.
+Change title '%@' to '%@',"from, to",,"{ from: string, to: string }",User renames a case table or case card via its title bar.
+Change web view URL: %@,url,,{ url: string },User changes the address of a web page tile using its inspector.
+Changed attribute binning type,,,,User changes the legend bins (binning type) selection for a numeric legend.
+Changed attribute color,,,,User changes the high-end color of a numeric legend attribute's color range.
+Changed background color,,,,Logged when the user picks a new plot background color in the point format palette.
+Changed categorical point color,,,,User changes the color assigned to a specific legend category.
+Changed point color,,,,User changes the overall point color when the legend attribute is not categorical.
+Changed point size,,,,User finishes dragging the point-size slider in the format inspector.
+Changed point type,,,,User changes the map point display type (points vs heatmap) in the format inspector.
+Changed stroke color,,,,User changes the point stroke color in the format inspector.
+Clear formula for attribute %@,name,,{ name: string },User chooses the delete-formula menu item to remove an attribute's formula.
+Close calculator,,,{ type: string },When the user closes the calculator tile using its title-bar close button.
+Close component: %@,tileType,,{ tileType: string },User closes a component tile from the workspace.
+Create %@ cases in table,count,,{ count: number },When the user creates one or more new cases via the case-table input row.
+Create caseTable component,,,,User opens (or re-shows) the table/card for an existing dataset from the table tool-shelf menu.
+"Create collection: name: %@, attribute: %@","name, attribute",,"{ name: string, attribute: string }",When the user drags an attribute in the case card to create a new collection.
+Create component: %@,tileType,,{ tileType: string },"User creates a new component (graph, table, map, etc.) from the tool shelf."
+Create New Empty DataSet,,,,"User chooses ""New"" in the table tool-shelf menu to create a new empty dataset and case table."
+Delete %@ cases,numCases,,{ numCases: number },User deletes one or more cases from the data.
+Delete all cases,,,,Logged when a plugin requests deletion of all cases in a data context via the data interactive API (allCases delete).
+Delete attribute %@,name,,{ name: string },User chooses the delete-attribute menu item to remove an attribute from the data.
+Delete dataset: %@,"{ id, name }",,"{ id: string, name: string }",When the user confirms deleting a dataset in the delete-dataset dialog.
+Disable Measures For Selection,,,,"User disables ""Show Measures for Selection"" from the graph's hide/show menu."
+Disable Number Toggle,,,,User turns off the parent-case number toggle from the graph's hide/show menu.
+Disable only showing last parent toggle,,,,"User unchecks the ""last"" checkbox in the parent-toggles bar to stop showing only the last parent case."
+Display only selected cases,,,,"Logged when the user chooses ""Display Only Selected Cases"" from the graph's hide/show (View) menu."
+"dragBinBoundary from { alignment: %@, width: %@ } to { alignment: %@, width: %@ }","alignmentInitial, widthInitial, alignment, width",,"{alignment: number, width: number}",User drags a bin boundary to change the bin width and alignment.
+dragMovableLine: '%@',equation,,{ equation: string },User finishes dragging (translating) the movable line to a new position.
+Edit attribute formula: %@,"{ name, collection, formula }",,"{ name: string, collection: string, formula: string }",User applies a formula to an attribute in the edit-formula dialog.
+Edit attribute: %@,name,,{ name: string },"User applies changes in the edit-attribute-properties dialog (name, description, unit, type, precision, or editability)."
+Edited text component,,,{ text: string },"User edits the content of a text component and clicks away, committing the change."
+"editValue: { collection: %@, case: %@, attribute: '%@', old: '%@', new: '%@' }","collection, case, attribute, old, new",,"{ collection: string, case: string, attribute: string, old: string, new: string }",When the user edits a color-valued cell in the case table.
+Enable Measures For Selection,,,,"User enables ""Show Measures for Selection"" from the graph's hide/show menu."
+Enable Number Toggle,,,,User turns on the parent-case number toggle from the graph's hide/show menu.
+Enable only showing last parent toggle,,,,"User checks the ""last"" checkbox in the parent-toggles bar to show only the last parent case."
+Expanded component,,,,User expands (restores) a minimized component from its title bar.
+Fit column width: %@,"{ collection, attribute }",,"{ collection: string, attribute: string }",User chooses the resize/fit-width menu item on an attribute column so it widens to fit its content.
+Hide %@,adornmentType,,{ adornmentType: string },User unchecks the count or percent checkbox to hide counts or percentages on the graph.
+Hide %@ selected cases,length / numSelected,,{ numSelected: number },User hides the selected cases in the graph.
+Hide %@ unselected cases,numUnselected,,{ numUnselected: number },User hides all cases that are not currently selected on the map.
+Hide all cases from parent toggles,,,,Logged when the user clicks the hide-all toggle in the parent-toggles bar to hide all cases.
+Hide attribute %@,name,,{ name: string },User chooses the hide-attribute menu item to hide an attribute column.
+Hide percent adornment,,,,Count adornment auto-hides the percent option when the plot configuration no longer supports percent.
+Imported data set: %@,{ datasetName },,{ datasetName: string },"User imports a data set, for example from a CSV file or dropped file."
+insert %@ cases,numCases,,{ numCases: number },User inserts one or more new cases into a table.
+Joined %@ to %@,"sourceCollectionName, destCollectionName",,,"Logged when the user drops an attribute from one table onto an attribute in another, joining the source collection into the destination collection."
+laraData,,,{ [key: string]: unknown },CODAP receives run/embedding data from the hosting LARA environment.
+legendAttributeChange: %@,{to_attribute},,{ to_attribute: string },User changes or drops the attribute used for the map legend.
+Made plot background %@,"""transparent"" or ""opaque""",,,Logged when the user toggles the graph's plot background between transparent and opaque in the point format palette.
+Map base layer changed: %@,{value},,{ value: string },"User selects a different base map type (oceans, topo, or streets)."
+Map base layer visibility changed: %@,visibility,,{ visibility: boolean },User toggles whether the base map layer is shown.
+Map grid size changed: %@,"{from, to}",,"{ from: number, to: number }",User drags the grid-size slider to change the map grid cell size.
+Map layer changed: %@ %@,"op, type",,"{ op: string, type: string }",User shows or hides one of the map's data layers.
+mapAction: %@,{mapAction},,{ mapAction: string },User shows or hides the grid overlay on a map point layer.
+marqueeSelection: %@,numCases,,{ numCases: number },"User finishes a rubber-band (marquee) drag over the plot background, selecting at least one case."
+marqueeToolSelect: %@,{marqueeMode},,{ marqueeMode: string },User toggles the marquee (rubber-band) selection tool on the map.
+Minimized component,,,,User minimizes a component from its title bar.
+"Move point from (%@, %@) to (%@, %@)","xInitial, yInitial, x, y",,"{ xInitial: number, yInitial: number, x: number, y: number }",User finishes dragging the movable point to a new location on the graph.
+Moved attribute %@ to %@ collection,"attrId, collection",,"{ attrId: string, collection: string }",User moves an attribute into a different collection.
+Moved category %@ into position of %@,"movedCategory, targetCategory",,"{ movedCategory: string, targetCategory: string }","User drags a legend category key to a new position, reordering the legend categories."
+Moved component %@,"{ tileType, tileId }",,"{ tileType: string, tileId: string }",User drags a component to a new position in the workspace.
+"Moved equation from (%@, %@) to (%@, %@)","xInitial, yInitial, x, y",,"{ x: number, y: number }",User drags the least-squares line's equation label to reposition it.
+Moved equation label,,,,Logged when the user drags a univariate-measure adornment's equation label to a new position and releases (drag end).
+Moved value from %@ to %@,"from, to",,"{ from: number, to: number }",User finishes dragging a movable value line to a new value.
+Opened document,,,"{ filename?: string, url?: string }",A document is opened from a file or URL.
+plotAxisAttributeChangeType: %@,"{axis, attribute, numeric}",,"{axis: string, attribute: string, numeric: boolean}",User changes whether an axis attribute is treated as numeric or categorical.
+Recover formula for attribute %@,name,,{ name: string },User chooses the recover-formula menu item to restore a previously deleted attribute formula.
+Remove legend attribute,,,,User removes the attribute assigned to the graph/map legend.
+Remove toggle component: %@,lifecycleName,,,Hid a singleton toggle component (e.g. calculator) from the tool shelf
+Removed %@,adornmentType / type,,{adornmentType: string},User removes the box plot adornment via its checkbox.
+removed background image,,,,User removes the graph's background image.
+Removed movable value,,,,User clicks Remove in the movable value adornment controls.
+Rescale axes from data,,,,Logged when the user clicks the Rescale button in the graph inspector to refit the axes to the data.
+Resize all columns,,,,"Logged when a plugin sends an autoScale notification to a case-table component, resizing all its columns."
+Resize one case table column,,,,User finishes dragging a case table column divider to resize a single column.
+Resized component: %@,tileID,,{ tileID: string },User resizes a component by dragging a handle or using arrow keys.
+Restore set aside cases,,,,Logged when previously set-aside (hidden) cases are restored to view.
+Set legend quantiles to be %@ed,"prefix (""lock"" or ""unlock""), giving ""locked"" or ""unlocked""",,,"User toggles the ""lock legend quantiles"" checkbox for a numeric legend."
+Set standard error to %@,numStErrs,,{numStErrs: number},User changes the number of standard errors for the standard error adornment.
+Show %@,adornmentType / type,,{ adornmentType: string },User checks the count or percent checkbox to show counts or percentages on the graph.
+Show all cases,,,,"Logged when the user chooses ""Show All Cases"" from the graph's hide/show (View) menu."
+Show all cases from parent toggles,,,,"Logged when the user clicks the show-all toggle in the parent-toggles bar while cases are hidden, revealing all cases."
+Show all hidden attributes,,,,"User selects ""Show all hidden attributes"" in the hide/show inspector menu."
+Show guide page: %@,url,,{ url: string },"User selects a page from the guide menu, navigating the guide to that page."
+Show web view: %@,url,,{ url: string },"A web page tile is shown or created, such as when a URL is dropped or opened."
+sliderAnimationDirection: %@,"{name, direction}",,"{ name: string, direction: string }",User changes the slider animation direction.
+sliderChangeMaximum: %@,"{name, max}",,"{ name: string, max: number }",User changes the maximum value of the slider's axis.
+sliderChangeMinimum: %@,"{name, min}",,"{ name: string, min: number }",User changes the minimum value of the slider's axis.
+sliderDateMultipleOfUnit: %@,"{name, dateMultipleOfUnit}",,"{ name: string, dateMultipleOfUnit: string }",User changes the date unit used for the slider's multiples restriction.
+sliderEdit: { expression: %@ = %@ },"name, value",,"{ name: string, value: number }",User types a new value into the slider's editable value field.
+sliderMaxPerSecond: %@,"{name, maxPerSecond}",,"{ name: string, maxPerSecond: number }",User changes the slider animation speed in frames per second.
+sliderMultiplesOf: %@,"{name, restrictMultiplesOf}",,"{ name: string, restrictMultiplesOf: number }",User sets the value that the slider is restricted to multiples of.
+sliderRepetitionMode: %@,"{name, mode}",,"{ name: string, mode: string }",User changes the slider animation repetition mode.
+sliderScaleType: %@,"{name, scaleType}",,"{ name: string, scaleType: string }",User changes the slider's scale type between numeric and date.
+sliderThumbDrag: { name: %@ = value: %@ },"name, value",,"{ name: string, value: number }",User drags the slider thumb to change the slider value.
+Sort cases by attribute: %@,"{ attributeId, attribute }",,"{ attributeId: string, attribute: string }",User sorts the cases by the values of a chosen attribute.
+Toggle component: %@,componentType,,{ componentType: string },User confirms switching a case tile between table and card view.
+Toggle parent group visibility,,,,Logged when the user clicks an individual parent-case button in the parent-toggles bar to show or hide that group.
+toggleLSRL %@,action,,{ action: string },User checks or unchecks the least-squares line (LSRL) checkbox to show or hide it.
+toggleShowAs: %@,logString / type,,{logString: string},"User switches the univariate plot display between points, bins, dot plot, or line plot."
+Treat attribute as %@,treatAs,,"{ treatAs: string, _attrId: string, _place: string }",User chooses to treat the legend attribute as categorical or numeric.
+update checkbox case: %@ state: %@ to %@,"caseId, attrId, ""checked"" or ""unchecked""",,,"Toggled a boolean checkbox cell for a case, setting an attribute to checked or unchecked"
+WebView initialized,,,{ url: string },Logged when the data-interactive controller establishes a connection to a web view / plugin iframe (on iframe load or reconnect).

@@ -1534,6 +1534,7 @@
     "V3.WebView.Inspector.URL": "URL",
     "V3.WebView.Modal.PlaceholderText": "URL",
     "V3.WebView.Modal.okBtnTitle": "OK",
+    "V3.WebView.Modal.invalidUrl": "That web address can’t be loaded. Try an address like https://codap.concord.org.",
     "V3.Undo.webView.show": "Undo adding web page component",
     "V3.Redo.webView.show": "Redo adding web page component",
     "V3.Undo.webView.changeUrl": "Undo changing web page url",
