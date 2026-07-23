@@ -143,7 +143,10 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
       const plotBottom = graphLayout.plotHeight
       const rectBottom = startY.current + height.current
       if (height.current > 0 && rectBottom > plotBottom) {
-        clampedHeight = plotBottom - startY.current
+        // Math.max guards the case where the drag started at/below the upper region's bottom edge
+        // (startY.current >= plotBottom): plotBottom - startY.current would be negative, and an SVG
+        // rect with negative height is invalid.
+        clampedHeight = Math.max(0, plotBottom - startY.current)
       }
     }
     marqueeState.setMarqueeRect({

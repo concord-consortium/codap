@@ -282,12 +282,15 @@ describe("getPredictor", () => {
     expect(getPredictor(store, config)).toBeNull()
   })
 
+  // The default (single, no-split) cell key is "__EMPTY__" — what instanceKey({}) resolves to in
+  // production. Keying the map with "__EMPTY__" (rather than the literal "{}") means these tests fail
+  // if production ever hard-codes "{}" instead of calling instanceKey({}).
   it("evaluates the plotted function from the default cell", () => {
     const store = fakeStoreWithAdornments({
       pf: true,
       pfModel: {
-        instanceKey: () => "{}",
-        plottedFunctions: new Map([["{}", { formulaFunction: (x: number) => x * x }]])
+        instanceKey: () => "__EMPTY__",
+        plottedFunctions: new Map([["__EMPTY__", { formulaFunction: (x: number) => x * x }]])
       }
     })
     const predictor = getPredictor(store, fakeConfigWithData([]))
@@ -298,8 +301,8 @@ describe("getPredictor", () => {
     const store = fakeStoreWithAdornments({
       pf: true,
       pfModel: {
-        instanceKey: () => "{}",
-        plottedFunctions: new Map([["{}", { formulaFunction: () => { throw new Error("boom") } }]])
+        instanceKey: () => "__EMPTY__",
+        plottedFunctions: new Map([["__EMPTY__", { formulaFunction: () => { throw new Error("boom") } }]])
       }
     })
     const predictor = getPredictor(store, fakeConfigWithData([]))
