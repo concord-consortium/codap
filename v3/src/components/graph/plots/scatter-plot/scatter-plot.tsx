@@ -1,5 +1,6 @@
 import {format, ScaleLinear, select} from "d3"
 import { tip as d3tip } from "d3-v6-tip"
+import { untracked } from "mobx"
 import { observer } from "mobx-react-lite"
 import {useCallback, useEffect, useRef, useState} from "react"
 import {useDataSetContext} from "../../../../hooks/use-data-set-context"
@@ -35,11 +36,7 @@ import {useRendererDragHandlers, usePlotResponders} from "../../hooks/use-plot"
 import { setPointCoordinates } from "../../utilities/graph-utils"
 import { isNumericAxisModel, NumericAxisModel } from "../../../axis/models/numeric-axis-models"
 import {
-  defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeOpacity, defaultSelectedStrokeWidth,
-  defaultStrokeOpacity, defaultStrokeWidth
-} from "../../../../utilities/color-utils"
-import {
-  computeResiduals, getPredictor, IResidualPoint, residualDomain, residualPlotIsApplicable
+  computeResiduals, getPredictor, IResidualPoint, residualDomain, residualPlotIsApplicable, residualPointStyle
 } from "./residual-plot-utils"
 import { scatterPlotFuncs } from "./scatter-plot-utils"
 
@@ -191,6 +188,42 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
     return () => { tip.destroy?.() }
   }, [])
 
+  // Selection-dependent styling for one residual point. Reads the dataset selection (observable),
+  // so callers in a reactive context must apply it via untracked (see renderResidualPoints) to avoid
+  // subscribing to selection. Delegates the pure decision to residualPointStyle (unit-tested).
+  const styleFor = useCallback((caseID: string) => {
+    const isSelected = !!dataset?.isCaseSelected(caseID)
+    const legendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase(caseID) : undefined
+    const { pointColor, pointStrokeColor } = graphModel.pointDescription
+    return residualPointStyle({
+      isSelected, hasLegend: !!legendAttrID, legendColor, pointColor, pointStrokeColor,
+      pointRadius: graphModel.getPointRadius(), selectedRadius: graphModel.getPointRadius('select')
+    })
+  }, [dataset, legendAttrID, dataConfiguration, graphModel])
+
+  // Selection-only restyle: re-set the selection-dependent attrs on the existing circles. No data
+  // join, no residual/predictor recompute. This is what a selection change triggers (via
+  // refreshPointSelection) so selecting cases no longer re-runs the whole residual pipeline.
+  const applyResidualStyles = useCallback((g: SVGGElement) => {
+    select(g).selectAll<SVGCircleElement, IResidualPoint>("circle")
+      .attr("r", d => styleFor(d.caseID).radius)
+      .attr("fill", d => styleFor(d.caseID).fill)
+      .attr("stroke", d => styleFor(d.caseID).stroke)
+      .attr("stroke-width", d => styleFor(d.caseID).strokeWidth)
+      .attr("stroke-opacity", d => styleFor(d.caseID).strokeOpacity)
+  }, [styleFor])
+
+  // Restyle residual points to track the current selection. Called by refreshPointSelection on every
+  // selection change. Cheap (attrs only) and does not touch the split layout or the leftLower axis.
+  const restyleResidualSelection = useCallback(() => {
+    const g = residualPointsRef.current
+    if (g) applyResidualStyles(g)
+  }, [applyResidualStyles])
+
+  // Geometry + structure paint: the data join, positions, hover tip, and click handling. Selection
+  // styling is applied at the end under untracked so that the syncResidualPlot autorun (which calls
+  // this) does not subscribe to the selection set — otherwise every selection change would re-fire
+  // the autorun and recompute the predictor/residuals purely to update halos.
   const renderResidualPoints = useCallback((residuals: IResidualPoint[]) => {
     const g = residualPointsRef.current
     if (!g) return
@@ -200,26 +233,7 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
       select(g).selectAll("circle").remove()
       return
     }
-    const pointRadius = graphModel.getPointRadius()
-    const selectedRadius = graphModel.getPointRadius('select')
-    const { pointColor, pointStrokeColor } = graphModel.pointDescription
-    const getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
     const plotHeight = layout.plotHeight
-    // Mirrors setPointSelection styling in data-display-utils.ts. Without a legend, selected points
-    // get a solid blue fill; with a legend, they keep the category color and get a highlighted stroke.
-    const styleFor = (caseID: string) => {
-      const isSelected = !!dataset?.isCaseSelected(caseID)
-      const legendColor = getLegendColor?.(caseID)
-      const baseFill = legendColor ?? pointColor
-      const useSelectionFill = isSelected && !legendAttrID
-      return {
-        fill: useSelectionFill ? defaultSelectedColor : baseFill,
-        radius: isSelected ? selectedRadius : pointRadius,
-        stroke: isSelected && !useSelectionFill ? defaultSelectedStroke : pointStrokeColor,
-        strokeWidth: isSelected && !useSelectionFill ? defaultSelectedStrokeWidth : defaultStrokeWidth,
-        strokeOpacity: isSelected && !useSelectionFill ? defaultSelectedStrokeOpacity : defaultStrokeOpacity
-      }
-    }
     // Hover tip: "<xAttrName>: <xValue><br/>Residual: <value>". Numeric formatting mirrors the
     // main plot's data tip (three significant figures via d3.format('.3~f')).
     const xAttrID = dataConfiguration?.attributeID("x") ?? ""
@@ -242,11 +256,6 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
       .attr("data-testid", d => `residual-point-${d.caseID}`)
       .attr("cx", d => getXCoord(d.caseID))
       .attr("cy", d => plotHeight + lowerScale(d.residual))
-      .attr("r", d => styleFor(d.caseID).radius)
-      .attr("fill", d => styleFor(d.caseID).fill)
-      .attr("stroke", d => styleFor(d.caseID).stroke)
-      .attr("stroke-width", d => styleFor(d.caseID).strokeWidth)
-      .attr("stroke-opacity", d => styleFor(d.caseID).strokeOpacity)
       .style("cursor", "pointer")
       .on("mouseover", function(event, d) { dataTip.show(tipTextFor(d), this) })
       .on("mouseout", () => dataTip.hide())
@@ -257,7 +266,9 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
         event.stopPropagation()
         if (dataset) handleClickOnCase(event, d.caseID, dataset)
       })
-  }, [layout, dataConfiguration, graphModel, legendAttrID, dataset])
+    // Apply current selection styling to the (possibly new) circles without subscribing to selection.
+    untracked(() => applyResidualStyles(g))
+  }, [layout, dataConfiguration, dataset, applyResidualStyles])
 
   // Recompute and repaint the residual points if the Residual Plot is active and all applicability
   // constraints hold. Single entry-point used by every code path that needs to refresh the residual
@@ -282,11 +293,12 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
         selectedPointRadius: selectedPointRadiusRef.current,
         pointColor, pointStrokeColor, getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex
       }, caseIds, dataConfiguration.numberOfPlots)
-    // Restyle the residual points too so their selection halo tracks the upper plot's.
-    // renderResidualPoints re-runs the full D3 join; the delta path (caseIds) is a Pixi-only
-    // optimization that doesn't apply to our SVG circles, so full restyle is fine here.
-    renderResidualsIfActive()
-  }, [dataConfiguration, graphModel, renderer, renderResidualsIfActive])
+    // Restyle the residual points so their selection halo tracks the upper plot's. This is a
+    // style-only pass (no predictor/residual recompute, no data join), so selecting cases doesn't
+    // re-run the residual pipeline. The caseIds delta is a Pixi-only optimization that doesn't apply
+    // to our SVG circles, so we restyle all of them.
+    restyleResidualSelection()
+  }, [dataConfiguration, graphModel, renderer, restyleResidualSelection])
 
   // Accept showLines parameter to avoid stale closure issues during rapid state changes
   const refreshConnectingLines = useCallback(async (showLines: boolean) => {

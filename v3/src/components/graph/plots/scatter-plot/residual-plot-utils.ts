@@ -9,6 +9,10 @@ import { leastSquaresLinearRegression } from "../../utilities/graph-utils"
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
 import { Point } from "../../../data-display/data-display-types"
 import { isFiniteNumber } from "../../../../utilities/math-utils"
+import {
+  defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeOpacity, defaultSelectedStrokeWidth,
+  defaultStrokeOpacity, defaultStrokeWidth
+} from "../../../../utilities/color-utils"
 
 export type ActiveLineKind = "movableLine" | "lsrl" | "plottedFunction"
 
@@ -130,6 +134,44 @@ export function computeResiduals(
     result.push({ caseID, x, residual: y - predicted })
   }
   return result
+}
+
+export interface IResidualPointStyle {
+  fill: string
+  radius: number
+  stroke: string
+  strokeWidth: number
+  strokeOpacity: number
+}
+
+export interface IResidualPointStyleParams {
+  isSelected: boolean
+  hasLegend: boolean
+  legendColor?: string
+  pointColor: string
+  pointStrokeColor: string
+  pointRadius: number
+  selectedRadius: number
+}
+
+// Selection-dependent styling for a single residual point. Mirrors setPointSelection in
+// data-display-utils.ts: without a legend, selected points get a solid blue fill; with a legend,
+// they keep the category color and get a highlighted stroke. Kept pure (no dataset/observable reads)
+// so the selection restyle path can be exercised in isolation and the component's paint can apply it
+// under mobx.untracked without subscribing the syncResidualPlot autorun to selection.
+export function residualPointStyle(params: IResidualPointStyleParams): IResidualPointStyle {
+  const {
+    isSelected, hasLegend, legendColor, pointColor, pointStrokeColor, pointRadius, selectedRadius
+  } = params
+  const baseFill = legendColor ?? pointColor
+  const useSelectionFill = isSelected && !hasLegend
+  return {
+    fill: useSelectionFill ? defaultSelectedColor : baseFill,
+    radius: isSelected ? selectedRadius : pointRadius,
+    stroke: isSelected && !useSelectionFill ? defaultSelectedStroke : pointStrokeColor,
+    strokeWidth: isSelected && !useSelectionFill ? defaultSelectedStrokeWidth : defaultStrokeWidth,
+    strokeOpacity: isSelected && !useSelectionFill ? defaultSelectedStrokeOpacity : defaultStrokeOpacity
+  }
 }
 
 // Auto-scaled domain for the lower y-axis. Always includes 0 (the "on the line" position) and adds

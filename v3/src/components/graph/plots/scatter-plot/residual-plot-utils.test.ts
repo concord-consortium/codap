@@ -4,7 +4,11 @@ import { kMovableLineType } from "../../adornments/movable-line/movable-line-ado
 import { kPlottedFunctionType } from "../../adornments/plotted-function/plotted-function-adornment-types"
 import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
 import {
-  getActiveLineKind, IResidualPoint, residualDomain, residualPlotIsApplicable
+  defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeOpacity, defaultSelectedStrokeWidth,
+  defaultStrokeOpacity, defaultStrokeWidth
+} from "../../../../utilities/color-utils"
+import {
+  getActiveLineKind, IResidualPoint, residualDomain, residualPlotIsApplicable, residualPointStyle
 } from "./residual-plot-utils"
 
 // Tiny fake store: just enough of IAdornmentsBaseStore for the applicability + kind checks.
@@ -150,5 +154,52 @@ describe("residualDomain", () => {
     ]
     const [min, max] = residualDomain(residuals)
     expect(min).toBeLessThan(max)
+  })
+})
+
+describe("residualPointStyle", () => {
+  const base = {
+    hasLegend: false, legendColor: undefined as string | undefined,
+    pointColor: "#111111", pointStrokeColor: "#222222", pointRadius: 3, selectedRadius: 5
+  }
+
+  it("uses the point color and default stroke when unselected (no legend)", () => {
+    expect(residualPointStyle({ ...base, isSelected: false })).toEqual({
+      fill: "#111111", radius: 3,
+      stroke: "#222222", strokeWidth: defaultStrokeWidth, strokeOpacity: defaultStrokeOpacity
+    })
+  })
+
+  it("uses the solid selection fill and grows the radius when selected without a legend", () => {
+    const style = residualPointStyle({ ...base, isSelected: true })
+    expect(style.fill).toBe(defaultSelectedColor)
+    expect(style.radius).toBe(5)
+    // With the solid selection fill there is no highlighted stroke — it stays the default.
+    expect(style.stroke).toBe("#222222")
+    expect(style.strokeWidth).toBe(defaultStrokeWidth)
+    expect(style.strokeOpacity).toBe(defaultStrokeOpacity)
+  })
+
+  it("keeps the legend color as fill when unselected with a legend", () => {
+    expect(residualPointStyle({ ...base, hasLegend: true, legendColor: "#abcdef", isSelected: false }))
+      .toEqual({
+        fill: "#abcdef", radius: 3,
+        stroke: "#222222", strokeWidth: defaultStrokeWidth, strokeOpacity: defaultStrokeOpacity
+      })
+  })
+
+  it("keeps the legend color as fill and applies the highlight stroke when selected with a legend", () => {
+    const style = residualPointStyle({ ...base, hasLegend: true, legendColor: "#abcdef", isSelected: true })
+    // With a legend the category color is preserved; selection shows through the stroke, not the fill.
+    expect(style.fill).toBe("#abcdef")
+    expect(style.radius).toBe(5)
+    expect(style.stroke).toBe(defaultSelectedStroke)
+    expect(style.strokeWidth).toBe(defaultSelectedStrokeWidth)
+    expect(style.strokeOpacity).toBe(defaultSelectedStrokeOpacity)
+  })
+
+  it("falls back to the point color when a legend is present but no color resolves", () => {
+    expect(residualPointStyle({ ...base, hasLegend: true, legendColor: undefined, isSelected: false }).fill)
+      .toBe("#111111")
   })
 })

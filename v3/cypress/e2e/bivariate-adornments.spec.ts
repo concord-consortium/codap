@@ -393,4 +393,27 @@ context("Graph adornments", () => {
     cy.get("*[data-testid^=residual-points-]").should("not.exist")
     cy.get(".axis-wrapper.leftLower").should("not.exist")
   })
+  it("restyles residual points to reflect selection without tearing down the residual plot", () => {
+    c.selectTile("graph", 0)
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
+    cy.dragAttributeToTarget("table", "Speed", "left")
+    graph.getDisplayValuesButton().click()
+    cy.get("[data-testid=adornment-checkbox-movable-line]").click()
+    cy.get("[data-testid=adornment-checkbox-residual-plot]").click()
+    cy.get("*[data-testid^=residual-points-]").find("circle").should("have.length.at.least", 1)
+
+    // A residual point starts unselected — its fill is not the solid selection color.
+    cy.get("*[data-testid^=residual-point-]").first().should("not.have.attr", "fill", "#4682b4")
+
+    // Clicking it selects the case: the selection-only restyle path gives it the selection fill,
+    // and the residual plot is not torn down (points and lower axis still present).
+    cy.get("*[data-testid^=residual-point-]").first().click()
+    cy.get("*[data-testid^=residual-point-]").first().should("have.attr", "fill", "#4682b4")
+    cy.get("*[data-testid^=residual-points-]").find("circle").should("have.length.at.least", 1)
+    cy.get(".axis-wrapper.leftLower").should("exist")
+
+    // Clicking the residual-plot background deselects all cases, reverting the styling.
+    cy.get("[data-testid^=residual-plot-background-]").click("topLeft")
+    cy.get("*[data-testid^=residual-point-]").first().should("not.have.attr", "fill", "#4682b4")
+  })
 })
