@@ -12,10 +12,6 @@ async function getGeoRaster(mapModel: IMapContentModel) {
   try {
     const geoImage = new GeoImage()
     await geoImage.loadFromUrl(url)
-    if (url !== mapModel.geoRaster?.url) {
-      // The URL has changed since we started the fetch.
-      return
-    }
 
     const { width, height } = geoImage
 
@@ -76,12 +72,66 @@ function findGeoRasterLayer(mapModel: IMapContentModel) {
 }
 
 /**
- * Creates or updates a GeoRaster layer. If the url in the model changes while
- * it is being processed, the function will return undefined.
+ * Wraps an async `render` in a coalescing driver that applies back-pressure: at most one render
+ * runs at a time. Requests that arrive while a render is in flight do not start a second concurrent
+ * render — they set a "dirty" flag so the running driver performs exactly one more render when the
+ * current one finishes, picking up the latest state. Any number of requests during a render collapse
+ * into a single follow-up. `render` is expected to handle its own errors.
  *
- * @returns A promise that resolves to a Leaflet layer or undefined if the there's an error
+ * During slider animation this turns "fire a fetch/render on every tick and discard the frames that
+ * get overtaken" into "render as fast as the pipeline sustains, showing each frame that is started";
+ * the frames skipped while a render is in flight are coalesced and never fetched.
  */
-export async function createOrUpdateLeafletGeoRasterLayer(mapModel: IMapContentModel) {
+export function makeCoalescingRunner(render: () => Promise<void>): () => Promise<void> {
+  let running = false
+  let dirty = false
+  return async function request() {
+    dirty = true
+    if (running) return
+    running = true
+    try {
+      while (dirty) {
+        dirty = false
+        await render()
+      }
+    } finally {
+      running = false
+    }
+  }
+}
+
+// One coalescing runner per map so concurrent geoRaster updates to the same map serialize while
+// updates to different maps stay independent. Keyed weakly so runners are collected with their map.
+const geoRasterRunners = new WeakMap<IMapContentModel, () => Promise<void>>()
+
+/**
+ * Called by the map's autorun whenever geoRaster (or its url) changes. Routes through a per-map
+ * coalescing runner (see makeCoalescingRunner) so that, during animation, a new fetch/render never
+ * starts while one is in flight; intermediate frames are coalesced (never fetched) and the runner
+ * renders only the latest once the current frame completes.
+ */
+export function createOrUpdateLeafletGeoRasterLayer(mapModel: IMapContentModel): Promise<void> {
+  // The observing MST autorun re-subscribes to whatever is read synchronously on each call. Read the
+  // url here so the subscription is renewed every time — including calls where the coalescing runner
+  // returns early because a render is already in flight (and so never reaches the url read inside
+  // renderGeoRasterOnce). Without this the autorun would stop firing and the map would freeze after
+  // the first coalesced frame.
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+  mapModel.geoRaster?.url
+  let run = geoRasterRunners.get(mapModel)
+  if (!run) {
+    run = makeCoalescingRunner(() => renderGeoRasterOnce(mapModel))
+    geoRasterRunners.set(mapModel, run)
+  }
+  return run()
+}
+
+/**
+ * Renders the map's current geoRaster once. Always renders the frame it fetches (it does not bail if
+ * the url advances mid-fetch) so no started frame is wasted; the coalescing runner is responsible for
+ * following up with the latest url afterward.
+ */
+async function renderGeoRasterOnce(mapModel: IMapContentModel) {
   try {
 
     if (!mapModel.leafletMap) {
@@ -97,17 +147,16 @@ export async function createOrUpdateLeafletGeoRasterLayer(mapModel: IMapContentM
       return
     }
 
-    const { url, opacity } = mapModel.geoRaster
+    const { opacity } = mapModel.geoRaster
 
     const georaster = await getGeoRaster(mapModel)
     if (!georaster) {
-      // The georaster could not be created perhaps because the URL changed
+      // The georaster could not be created
       return
     }
 
-    if (url !== mapModel.geoRaster?.url) {
-      // The URL has changed since we started getting the geoRaster.
-      // Bail out, so we don't take time away from processing the new one.
+    if (!mapModel.geoRaster) {
+      // The raster was removed while we were fetching; the runner's follow-up render drops the layer.
       return
     }
 
@@ -117,6 +166,7 @@ export async function createOrUpdateLeafletGeoRasterLayer(mapModel: IMapContentM
     let currentLayer = findGeoRasterLayer(mapModel)
 
     if (currentLayer) {
+      // The steady-state animation path: reuse the existing layer and redraw its tiles.
       if (currentLayer.updateGeoraster(georaster, opacity)) {
         // We were able to update the existing layer with the new GeoRaster
         return
