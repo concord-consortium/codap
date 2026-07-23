@@ -367,7 +367,7 @@ describe("GraphContentModel", () => {
     })
   })
 
-  // CODAP-1459: V2 parity — the Squares of Residuals and Residual Plot booleans must not
+  // V2 parity: the Squares of Residuals and Residual Plot booleans must not
   // linger checked-but-disabled. When the possibility of showing squares disappears (no
   // visible line/curve adornment), both flags are cleared; when the Residual Plot's stricter
   // applicability lapses (e.g. legend attribute added), the Residual Plot flag is cleared.

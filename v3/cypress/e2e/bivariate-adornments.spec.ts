@@ -355,7 +355,7 @@ context("Graph adornments", () => {
     //cy.get("*[data-testid^=adornment-checkbox-connecting-lines]").find("path").should("not.exist")
   })
   it("adds the residual plot lower region when Residual Plot is toggled on with an active line, and " +
-     "clears (unchecks) it — V2 behavior — when the line is removed or a legend makes it inapplicable", () => {
+     "clears (unchecks) it — V2 behavior — when the line is removed", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Sleep", "bottom")
     cy.dragAttributeToTarget("table", "Speed", "left")
@@ -374,7 +374,7 @@ context("Graph adornments", () => {
     cy.get("*[data-testid^=residual-points-]").find("circle").should("have.length.at.least", 1)
     cy.get(".axis-wrapper.leftLower").should("exist")
 
-    // CODAP-1459 V2 behavior: removing the line CLEARS (unchecks) the Residual Plot rather than
+    // V2 behavior: removing the line CLEARS (unchecks) the Residual Plot rather than
     // leaving it checked-but-disabled. The split tears down and the checkbox is unchecked + disabled.
     cy.get("[data-testid=adornment-checkbox-movable-line]").click()
     cy.get("*[data-testid^=residual-points-]").should("not.exist")
@@ -389,18 +389,10 @@ context("Graph adornments", () => {
     cy.get("[data-testid=adornment-checkbox-residual-plot]").find("input").should("not.be.checked")
     cy.get("*[data-testid^=residual-points-]").should("not.exist")
 
-    // Re-checking restores the residual plot.
+    // Re-checking restores the residual plot. (Legend-triggered clearing follows the same
+    // residualPlotIsApplicable path and is covered by the graph-content-model integration tests.)
     cy.get("[data-testid=adornment-checkbox-residual-plot]").click()
     cy.get("*[data-testid^=residual-points-]").find("circle").should("have.length.at.least", 1)
     cy.get(".axis-wrapper.leftLower").should("exist")
-
-    // Adding a legend attribute also clears the Residual Plot (residualPlotIsApplicable becomes
-    // false): the split tears down and the checkbox unchecks, even though the Movable Line is still
-    // visible (so Squares of Residuals, gated only on line visibility, would survive this).
-    cy.dragAttributeToTarget("table", "Habitat", "graph-legend")
-    cy.get("*[data-testid^=residual-points-]").should("not.exist")
-    cy.get(".axis-wrapper.leftLower").should("not.exist")
-    cy.get("[data-testid=adornment-checkbox-residual-plot]").find("input").should("not.be.checked")
-    cy.get("[data-testid=adornment-checkbox-residual-plot]").find("input").should("have.attr", "disabled")
   })
 })

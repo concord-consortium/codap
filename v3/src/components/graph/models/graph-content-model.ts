@@ -286,7 +286,7 @@ export const GraphContentModel = DataDisplayContentModel
       }, {name: "GraphContentModel.afterAttachToDocument.updateAdornments", equals: comparer.structural},
         self.dataConfiguration))
 
-      // CODAP-1459: V2 parity — Movable Line, LSRL, and Plotted Function apply only when
+      // V2 parity: Movable Line, LSRL, and Plotted Function apply only when
       // both x and y are numeric. When either becomes non-numeric (e.g. y-axis attribute
       // swapped to categorical), hide these adornments so they don't silently reappear when
       // both axes are numeric again. Without this, isVisible persists through the swap and
@@ -305,7 +305,7 @@ export const GraphContentModel = DataDisplayContentModel
         { name: "GraphContentModel.afterAttachToDocument.hideLinesOnNonNumericAxes" },
         self)
 
-      // CODAP-1459: V2 parity — when no line/curve adornment is visible, uncheck Squares
+      // V2 parity: when no line/curve adornment is visible, uncheck Squares
       // of Residuals rather than leaving it checked-but-disabled. The paired residual-plot
       // clearing for this same scenario falls out of the residualPlotIsApplicable reaction
       // below (which also returns false when no line is visible).
@@ -321,7 +321,7 @@ export const GraphContentModel = DataDisplayContentModel
         { name: "GraphContentModel.afterAttachToDocument.syncSquaresOfResidualsGate" },
         self)
 
-      // CODAP-1459: uncheck Residual Plot whenever its applicability disappears — no visible
+      // Uncheck Residual Plot whenever its applicability disappears — no visible
       // line, non-numeric x/y, extra y attribute, right-numeric / top-split / right-split /
       // legend attribute added. The Jira spec covers only the "no line visible" case; this
       // reaction extends the same pattern to every applicability constraint so the boolean
