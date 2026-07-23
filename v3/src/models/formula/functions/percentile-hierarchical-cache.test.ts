@@ -8,11 +8,11 @@ import { FormulaManager } from "../formula-manager"
 // so the first group's sorted values leaked into the others and every group reported the first group's percentile.
 
 // Builds a two-level hierarchy: a parent "group" collection over a child collection holding `value`. Each entry in
-// `groups` becomes one parent case whose children all share that group's value. The parent-level formula attributes
+// `groups` becomes one parent case whose children hold that group's `values`. The parent-level formula attributes
 // reference the child `value` attribute, so they are evaluated once per parent group.
 const buildHierarchy = (
   formulaAttrs: Array<{ name: string, display: string }>,
-  groups: Array<{ name: string, value: number, count: number }>
+  groups: Array<{ name: string, values: number[] }>
 ) => {
   const formulaManager = new FormulaManager()
   const dataSet = createDataSet({
@@ -24,8 +24,8 @@ const buildHierarchy = (
   }, { formulaManager })
 
   // Cases must use canonical (attribute-ID-keyed) format; here the ids match the attribute names.
-  const cases = groups.flatMap(({ name, value, count }) =>
-    Array.from({ length: count }, (_, i) => ({ __id__: `${name}${i}`, group: name, value }))
+  const cases = groups.flatMap(({ name, values }) =>
+    values.map((value, i) => ({ __id__: `${name}${i}`, group: name, value }))
   )
   dataSet.addCases(cases)
 
@@ -54,8 +54,8 @@ describe("percentile() in a hierarchical (parent-child) context", () => {
         { name: "ptileV", display: "percentile(value, 0.5)" }
       ],
       [
-        { name: "A", value: 10, count: 16 },
-        { name: "B", value: -10, count: 24 }
+        { name: "A", values: Array(16).fill(10) },
+        { name: "B", values: Array(24).fill(-10) }
       ]
     )
     const medV = dataSet.attrIDFromName("medV")!
@@ -71,20 +71,22 @@ describe("percentile() in a hierarchical (parent-child) context", () => {
   })
 
   it("computes distinct percentiles across three groups with differing spreads", () => {
-    // Three groups with distinct value ranges confirm each group caches its own sorted values, independent of
-    // evaluation order. Each group's 25th percentile falls a quarter of the way through its own sorted values.
+    // Each group holds a different spread of values, so its 25th percentile is a genuine position within its own
+    // sorted distribution (interpolated when the index falls between two values). Distinct per-group results confirm
+    // each group caches its own sorted values, independent of evaluation order.
     const dataSet = buildHierarchy(
       [{ name: "q1", display: "percentile(value, 0.25)" }],
       [
-        { name: "A", value: 100, count: 5 },  // all 100 -> q1 = 100
-        { name: "B", value: 200, count: 5 },  // all 200 -> q1 = 200
-        { name: "C", value: 300, count: 5 }   // all 300 -> q1 = 300
+        // q1 index = (n - 1) * 0.25
+        { name: "A", values: [0, 4, 8, 12] },            // index 0.75 -> 0.75*4 + 0.25*0 = 3
+        { name: "B", values: [100, 200, 300, 400, 500] }, // index 1.0  -> exactly 200
+        { name: "C", values: [20, 40, 60] }              // index 0.5  -> 0.5*40 + 0.5*20 = 30
       ]
     )
     const q1 = dataSet.attrIDFromName("q1")!
 
-    expect(dataSet.getValueAtItemIndex(0, q1)).toEqual(100)   // group A
-    expect(dataSet.getValueAtItemIndex(5, q1)).toEqual(200)   // group B
-    expect(dataSet.getValueAtItemIndex(10, q1)).toEqual(300)  // group C
+    expect(dataSet.getValueAtItemIndex(0, q1)).toEqual(3)    // group A (items 0-3)
+    expect(dataSet.getValueAtItemIndex(4, q1)).toEqual(200)  // group B (items 4-8)
+    expect(dataSet.getValueAtItemIndex(9, q1)).toEqual(30)   // group C (items 9-11)
   })
 })
