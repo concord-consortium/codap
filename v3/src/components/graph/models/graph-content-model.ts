@@ -140,7 +140,10 @@ export const GraphContentModel = DataDisplayContentModel
       return self.dataConfiguration.attributeID(place) ?? ''
     },
     axisShouldShowGridLines(place: AxisPlace) {
-      return ["left", "bottom"].includes(place) && self.plot.showGridLines
+      // "leftLower" is the Residual Plot's y-axis; its horizontal grid lines extend right into
+      // the residual area and are gated on the main plot's showGridLines toggle so the whole
+      // graph (upper + residual) responds to a single control.
+      return ["left", "bottom", "leftLower"].includes(place) && self.plot.showGridLines
     },
     axisShouldShowZeroLine(place: AxisPlace) {
       // Some axes (e.g. the Residual Plot's lower y-axis) always show a horizontal reference line at

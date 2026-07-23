@@ -320,7 +320,7 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
     }
 
     select(groupElement)
-      .selectAll<SVGRectElement, number>('rect')
+      .selectAll<SVGRectElement, number>('rect.plot-cell-background')
       .data(range(numRows * numColumns))
       .join('rect')
       .attr('class', 'plot-cell-background')
@@ -376,6 +376,26 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
           .classed('zoom-in', false)
           .classed('zoom-out', false)
       })
+
+    // CODAP-1446: subtle gray backing for the Residual Plot region so it reads as its own
+    // subplot (like categorical-split cells do) instead of a transparent strip below the axis
+    // gap. Uses the same darker shade as the alternating checkerboard. `pointer-events: none`
+    // keeps clicks passing through to the residual hit-rect and points rendered above.
+    if (graphLayout?.showLowerPlot) {
+      const lowerBounds = graphLayout.getComputedBounds('lowerPlot')
+      select(groupElement)
+        .append('rect')
+        .attr('class', 'residual-plot-background')
+        .attr('data-testid', 'residual-plot-background')
+        .attr('transform', transform)
+        .attr('x', lowerBounds.left - left)
+        .attr('y', lowerBounds.top - top)
+        .attr('width', lowerBounds.width)
+        .attr('height', lowerBounds.height)
+        .style('fill', darkBgColor)
+        .style('fill-opacity', fillOpacity)
+        .style('pointer-events', 'none')
+    }
   }, [layout, dataDisplayModel, bgRef, graphLayout, onDragStart, onDrag, onDragEnd, handleOptionClickZoom,
       updateBackgroundCursor])
 
@@ -412,6 +432,18 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
       }, {name: "renderBackground", equals: comparer.structural, fireImmediately: true}, dataDisplayModel
     )
   }, [dataDisplayModel, renderBackground])
+
+  // CODAP-1446: none of the reactions above observe layout.showLowerPlot or the derived
+  // lowerPlot bounds, so toggling the Residual Plot wouldn't otherwise redraw the backing.
+  useEffect(function respondToLowerPlotChange() {
+    if (!graphLayout) return
+    return mstReaction(
+      () => [graphLayout.showLowerPlot, graphLayout.plotHeight, graphLayout.plotWidth] as const,
+      () => {
+        renderBackground()
+      }, {name: "renderBackground.lowerPlot", equals: comparer.structural}, dataDisplayModel
+    )
+  }, [dataDisplayModel, graphLayout, renderBackground])
 
   return (
     <g className='background-group-element' ref={bgRef}/>
