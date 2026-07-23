@@ -506,9 +506,17 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
       }
       // The graph-controller's installAxisReaction only watches "left" and "bottom"; changes to the
       // "leftLower" axis model do not automatically push through to the MultiScale that owns the D3
-      // scale used for pixel mapping. Sync explicitly.
-      layout.setAxisScaleType("leftLower", "linear")
-      layout.getAxisMultiScale("leftLower").setNumericDomain([minY, maxY])
+      // scale used for pixel mapping. Sync explicitly — guarded like the mutations above so a re-fire
+      // with an unchanged scale type / domain is a no-op (setNumericDomain would otherwise write a
+      // fresh array every run and churn the domain observable during e.g. movable-line drag). Guard
+      // on the MultiScale's own domain, not the axis model's: on first activation the model already
+      // carries [minY, maxY], so an axis-based guard would wrongly skip the initial MultiScale sync.
+      const multiScale = layout.getAxisMultiScale("leftLower")
+      if (multiScale.scaleType !== "linear") layout.setAxisScaleType("leftLower", "linear")
+      const [curMin, curMax] = multiScale.numericDomain
+      if (curMin !== minY || curMax !== maxY) {
+        multiScale.setNumericDomain([minY, maxY])
+      }
       renderResidualPoints(residuals)
     }, { name: "ScatterPlot.syncResidualPlot" }, graphModel)
   }, [adornmentsStore, dataConfiguration, graphModel, layout, renderResidualPoints])
