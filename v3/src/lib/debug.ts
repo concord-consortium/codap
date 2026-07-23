@@ -30,7 +30,7 @@ export const DEBUG_EVENT_MODIFICATION = debugContains("eventModification")
 export const DEBUG_FORMULAS = debugContains("formulas")
 export const DEBUG_HISTORY = debugContains("history")
 export const DEBUG_LOGGER = debugContains("logger")
-// Split-plot infrastructure smoke test (CODAP-1445): flips GraphLayout.showLowerPlot on for every
+// Split-plot infrastructure smoke test: flips GraphLayout.showLowerPlot on for every
 // graph on mount so the 2:1 upper/lower geometry is visible without a residual adornment.
 export const DEBUG_LOWER_PLOT = debugContains("lowerPlot")
 export const DEBUG_MAP = debugContains("map")

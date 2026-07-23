@@ -12,8 +12,9 @@ import { GraphPlace, isVertical } from "../../axis-graph-shared"
 import { labelMargin, labelPaddingY } from "../../axis/axis-types"
 import { getStringBounds, renderLabelBackground } from "../../axis/axis-utils"
 import { AttributeLabel } from "../../data-display/components/attribute-label"
-import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
+import { getAxisPlaceTraits, graphPlaceToAttrRole } from "../../data-display/data-display-types"
 import { ClickableAxisLabel } from "./clickable-axis-label"
+import { StaticAxisLabel } from "./static-axis-label"
 
 import vars from "../../vars.scss"
 
@@ -175,6 +176,11 @@ export const GraphAttributeLabel =
     }, [dataConfiguration, graphModel, isTileSelected, place])
 
     const getLabel = useCallback(() => {
+      // Axes with a fixed label (e.g. the Residual Plot's lower y-axis) have no owning attribute.
+      const fixedLabelKey = getAxisPlaceTraits(place).fixedLabelKey
+      if (fixedLabelKey) {
+        return t(fixedLabelKey)
+      }
       const {useClickHereCue} = getClickHereCue()
       if (useClickHereCue) {
         return t('DG.AxisView.emptyGraphCue')
@@ -235,7 +241,7 @@ export const GraphAttributeLabel =
         // bottom can spill 0.25–0.5 px past the bounds edge and be clipped by the legend's
         // background.
         bottomLabelCenter = labelPaddingY + labelBounds.height / 2 + 1,
-        tX = place === 'left' ? labelCenter
+        tX = place === 'left' || place === 'leftLower' ? labelCenter
           : place === 'legend' ? bounds.left
             : ['rightNumeric', 'rightCat'].includes(place) ? bounds.width - labelCenter
               : halfRange,
@@ -262,15 +268,24 @@ export const GraphAttributeLabel =
             update.call(updateTextSelection),
           )
 
-      renderLabelBackground({
-        gSelection, textSelector: `text.${className}`,
-        transform: labelTransform + tRotation, visibility
-      })
+      // Non-interactive axes (e.g. the Residual Plot's) skip the label background / dropdown caret —
+      // there's no menu to open.
+      if (getAxisPlaceTraits(place).isInteractive) {
+        renderLabelBackground({
+          gSelection, textSelector: `text.${className}`,
+          transform: labelTransform + tRotation, visibility
+        })
+      }
     }, [dataConfiguration, getClickHereCue, getLabel, graphModel, isTileSelected, layout, place])
 
     const plotDefinedAxisClickHandler = graphModel.plot.axisLabelClickHandler(graphPlaceToAttrRole[place])
 
     const renderAxisLabel = () => {
+      // Non-interactive axes (e.g. the Residual Plot's lower y-axis) have a fixed label and no
+      // attribute-assignment menu — render a static, non-interactive label.
+      if (!getAxisPlaceTraits(place).isInteractive) {
+        return <StaticAxisLabel ref={labelRef} place={place} refreshLabel={refreshAxisTitle} />
+      }
       return plotDefinedAxisClickHandler
         ? <ClickableAxisLabel
           ref={labelRef}

@@ -131,11 +131,28 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
       {x: startX.current, y: startY.current, w: width.current, h: height.current})
     width.current = width.current + event.dx
     height.current = height.current + event.dy
-    const marqueeRect = marqueeState.marqueeRect
+    // Visual clamp: when the Residual Plot's split is active, the marquee should not extend into
+    // the lower region — there are no cases in the upper R-tree that live below the upper region,
+    // so a marquee drawn there would visually promise a selection it can never make. useGraphLayoutContext
+    // types the layout as GraphLayout; when Background is rendered in a non-graph tile (e.g. map)
+    // the runtime layout doesn't have showLowerPlot and this evaluates falsy, so no clamp applies.
+    // Coord system: marqueeState.y is plot-area-relative (0 = top of upper region), so the upper
+    // region's bottom edge is at y = graphLayout.plotHeight.
+    let clampedHeight = height.current
+    if (graphLayout?.showLowerPlot) {
+      const plotBottom = graphLayout.plotHeight
+      const rectBottom = startY.current + height.current
+      if (height.current > 0 && rectBottom > plotBottom) {
+        // Math.max guards the case where the drag started at/below the upper region's bottom edge
+        // (startY.current >= plotBottom): plotBottom - startY.current would be negative, and an SVG
+        // rect with negative height is invalid.
+        clampedHeight = Math.max(0, plotBottom - startY.current)
+      }
+    }
     marqueeState.setMarqueeRect({
-      x: marqueeRect.x, y: marqueeRect.y,
-      width: marqueeRect.width + event.dx,
-      height: marqueeRect.height + event.dy
+      x: startX.current, y: startY.current,
+      width: width.current,
+      height: clampedHeight
     })
     const currentRect = rectNormalize({
       x: startX.current, y: startY.current,
@@ -159,7 +176,7 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
     })
 
     clearDatasetsMapArrays()
-  }, [clearDatasetsMapArrays, datasetsArray, datasetsMap, marqueeState])
+  }, [clearDatasetsMapArrays, datasetsArray, datasetsMap, graphLayout, marqueeState])
 
   const onDragEnd = useCallback(() => {
     const numCases = datasetsArray.reduce((sum, data) => sum + data.selection.size, 0)
@@ -303,7 +320,7 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
     }
 
     select(groupElement)
-      .selectAll<SVGRectElement, number>('rect')
+      .selectAll<SVGRectElement, number>('rect.plot-cell-background')
       .data(range(numRows * numColumns))
       .join('rect')
       .attr('class', 'plot-cell-background')
@@ -359,6 +376,26 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
           .classed('zoom-in', false)
           .classed('zoom-out', false)
       })
+
+    // Subtle gray backing so the Residual Plot region reads as its own subplot, matching the
+    // darker shade used by the alternating checkerboard on categorical-split cells.
+    // `pointer-events: none` keeps clicks passing through to the residual hit-rect and points
+    // rendered above.
+    if (graphLayout?.showLowerPlot) {
+      const lowerBounds = graphLayout.getComputedBounds('lowerPlot')
+      select(groupElement)
+        .append('rect')
+        .attr('class', 'residual-plot-background')
+        .attr('data-testid', 'residual-plot-background')
+        .attr('transform', transform)
+        .attr('x', lowerBounds.left - left)
+        .attr('y', lowerBounds.top - top)
+        .attr('width', lowerBounds.width)
+        .attr('height', lowerBounds.height)
+        .style('fill', darkBgColor)
+        .style('fill-opacity', fillOpacity)
+        .style('pointer-events', 'none')
+    }
   }, [layout, dataDisplayModel, bgRef, graphLayout, onDragStart, onDrag, onDragEnd, handleOptionClickZoom,
       updateBackgroundCursor])
 
@@ -395,6 +432,18 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
       }, {name: "renderBackground", equals: comparer.structural, fireImmediately: true}, dataDisplayModel
     )
   }, [dataDisplayModel, renderBackground])
+
+  // None of the reactions above observe layout.showLowerPlot or the derived lowerPlot bounds,
+  // so toggling the Residual Plot needs an explicit trigger for the backing to redraw.
+  useEffect(function respondToLowerPlotChange() {
+    if (!graphLayout) return
+    return mstReaction(
+      () => [graphLayout.showLowerPlot, graphLayout.plotHeight, graphLayout.plotWidth] as const,
+      () => {
+        renderBackground()
+      }, {name: "renderBackground.lowerPlot", equals: comparer.structural}, dataDisplayModel
+    )
+  }, [dataDisplayModel, graphLayout, renderBackground])
 
   return (
     <g className='background-group-element' ref={bgRef}/>

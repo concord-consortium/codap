@@ -1,5 +1,5 @@
 import React from "react"
-import {AxisPlace} from "../axis/axis-types"
+import {AxisPlace, isAxisPlace} from "../axis/axis-types"
 import {GraphPlace} from "../axis-graph-shared"
 import { ICase } from "../../models/data/data-set-types"
 
@@ -92,6 +92,40 @@ export const axisPlaceToAttrRole: Record<AxisPlace, GraphAttrRole> = {
   rightCat: "rightSplit",
   rightNumeric: "rightNumeric"
 }
+
+// Per-axis-place behavioral traits, consolidating decisions that clients would otherwise make with
+// scattered `place === 'leftLower'` checks. Today only "leftLower" (the Residual Plot's
+// adornment-owned, non-interactive lower y-axis) diverges from the default. This table is a
+// stepping stone toward the axes owning these properties themselves (cf. PlotModel's property
+// getters); when that happens these rows migrate onto the axis model and getAxisPlaceTraits(place)
+// becomes axis.traits. Purely place-intrinsic geometry (orientation, render side, length) stays in
+// its existing per-place tables and is intentionally not represented here.
+export interface IAxisPlaceTraits {
+  isAdornmentOwned: boolean   // no owning attribute; an adornment manages its scale/domain
+  isInteractive: boolean      // supports drag rects, a drop zone, and an attribute-assignment menu
+  fixedLabelKey?: string      // fixed translation-key label instead of an attribute-derived name
+  alwaysShowsZeroLine: boolean // unconditionally draws a reference line at 0 (not gated on plot state)
+}
+
+// The default row: an ordinary attribute-owned, interactive axis with no fixed label or forced
+// zero line. Also returned for non-axis GraphPlaces (legend/plot/yPlus), which are never axes.
+const kDefaultAxisPlaceTraits: IAxisPlaceTraits =
+  { isAdornmentOwned: false, isInteractive: true, alwaysShowsZeroLine: false }
+
+const axisPlaceTraits: Record<AxisPlace, IAxisPlaceTraits> = {
+  bottom:       kDefaultAxisPlaceTraits,
+  left:         kDefaultAxisPlaceTraits,
+  leftLower:    { isAdornmentOwned: true,  isInteractive: false, alwaysShowsZeroLine: true,
+                  fixedLabelKey: "V3.ResidualPlot.axisLabel" },
+  top:          kDefaultAxisPlaceTraits,
+  rightCat:     kDefaultAxisPlaceTraits,
+  rightNumeric: kDefaultAxisPlaceTraits
+}
+
+// Accepts any GraphPlace so callers that carry the wider type (e.g. axis labels) need no narrowing;
+// non-axis places fall back to the default traits.
+export const getAxisPlaceTraits = (place: GraphPlace): IAxisPlaceTraits =>
+  isAxisPlace(place) ? axisPlaceTraits[place] : kDefaultAxisPlaceTraits
 
 export const graphPlaceToAttrRole: Record<GraphPlace, GraphAttrRole> = {
   ...axisPlaceToAttrRole,

@@ -354,4 +354,68 @@ context("Graph adornments", () => {
     //toolbar.getRedoTool().click()
     //cy.get("*[data-testid^=adornment-checkbox-connecting-lines]").find("path").should("not.exist")
   })
+  it("adds the residual plot lower region when Residual Plot is toggled on with an active line, and " +
+     "matches the Squares-of-Residuals checked-but-grayed pattern when the line is removed", () => {
+    c.selectTile("graph", 0)
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
+    cy.dragAttributeToTarget("table", "Speed", "left")
+    graph.getDisplayValuesButton().click()
+
+    // Residual Plot is present but disabled with no line/function active.
+    cy.get("[data-testid=adornment-checkbox-residual-plot]").should("be.visible")
+    cy.get("[data-testid=adornment-checkbox-residual-plot]").find("input").should("have.attr", "disabled")
+    cy.get("*[data-testid^=residual-points-]").should("not.exist")
+
+    // Adding a Movable Line enables Residual Plot.
+    cy.get("[data-testid=adornment-checkbox-movable-line]").click()
+    cy.get("[data-testid=adornment-checkbox-residual-plot]").find("input").should("not.have.attr", "disabled")
+
+    // Toggling Residual Plot on splits the plot: lower "Residuals" axis + one residual point per case.
+    cy.get("[data-testid=adornment-checkbox-residual-plot]").click()
+    cy.get("*[data-testid^=residual-points-]").should("exist")
+    cy.get("*[data-testid^=residual-points-]").find("circle").should("have.length.at.least", 1)
+    cy.get(".axis-wrapper.leftLower").should("exist")
+
+    // Removing the line hides the residual points, but the Residual Plot checkbox stays checked and
+    // becomes disabled (mirroring Squares of Residuals).
+    cy.get("[data-testid=adornment-checkbox-movable-line]").click()
+    cy.get("*[data-testid^=residual-points-]").should("not.exist")
+    cy.get("[data-testid=adornment-checkbox-residual-plot]").find("input").should("be.checked")
+    cy.get("[data-testid=adornment-checkbox-residual-plot]").find("input").should("have.attr", "disabled")
+
+    // Bringing the line back re-renders the residual plot without needing to re-check the box.
+    cy.get("[data-testid=adornment-checkbox-movable-line]").click()
+    cy.get("*[data-testid^=residual-points-]").should("exist")
+    cy.get("*[data-testid^=residual-points-]").find("circle").should("have.length.at.least", 1)
+
+    // Toggling Residual Plot off tears down the split.
+    cy.get("[data-testid=adornment-checkbox-residual-plot]").click()
+    cy.get("*[data-testid^=residual-points-]").should("not.exist")
+    cy.get(".axis-wrapper.leftLower").should("not.exist")
+  })
+  it("restyles residual points to reflect selection without tearing down the residual plot", () => {
+    c.selectTile("graph", 0)
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
+    cy.dragAttributeToTarget("table", "Speed", "left")
+    graph.getDisplayValuesButton().click()
+    cy.get("[data-testid=adornment-checkbox-movable-line]").click()
+    cy.get("[data-testid=adornment-checkbox-residual-plot]").click()
+    cy.get("*[data-testid^=residual-points-]").find("circle").should("have.length.at.least", 1)
+
+    // A residual point starts unselected — its fill is not the solid selection color.
+    cy.get("*[data-testid^=residual-point-]").first().should("not.have.attr", "fill", "#4682b4")
+
+    // Clicking it selects the case: the selection-only restyle path gives it the selection fill,
+    // and the residual plot is not torn down (points and lower axis still present). force: residual
+    // points can overlap (cases with near-identical residuals), so the target may be covered by a
+    // sibling circle — force the click on the specific first circle.
+    cy.get("*[data-testid^=residual-point-]").first().click({ force: true })
+    cy.get("*[data-testid^=residual-point-]").first().should("have.attr", "fill", "#4682b4")
+    cy.get("*[data-testid^=residual-points-]").find("circle").should("have.length.at.least", 1)
+    cy.get(".axis-wrapper.leftLower").should("exist")
+
+    // Clicking the residual-plot background deselects all cases, reverting the styling.
+    cy.get("[data-testid^=residual-plot-background-]").click("topLeft", { force: true })
+    cy.get("*[data-testid^=residual-point-]").first().should("not.have.attr", "fill", "#4682b4")
+  })
 })

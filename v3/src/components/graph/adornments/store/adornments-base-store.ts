@@ -20,6 +20,7 @@ export const AdornmentsBaseStore = types.model("AdornmentsBaseStore", {
   interceptLocked: false,
   showConnectingLines: false,
   showMeasureLabels: false,
+  showResidualPlot: false,
   showSquaresOfResiduals: false
 })
 .views(self => ({
@@ -79,6 +80,9 @@ export const AdornmentsBaseStore = types.model("AdornmentsBaseStore", {
   },
   toggleShowLabels() {
     self.showMeasureLabels = !self.showMeasureLabels
+  },
+  toggleShowResidualPlot() {
+    self.showResidualPlot = !self.showResidualPlot
   },
   toggleShowSquaresOfResiduals() {
     self.showSquaresOfResiduals = !self.showSquaresOfResiduals
