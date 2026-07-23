@@ -8,7 +8,8 @@ import {
   defaultStrokeOpacity, defaultStrokeWidth
 } from "../../../../utilities/color-utils"
 import {
-  getActiveLineKind, IResidualPoint, residualDomain, residualPlotIsApplicable, residualPointStyle
+  computeResiduals, getActiveLineKind, getPredictor, IResidualPoint, Predictor,
+  residualDomain, residualPlotIsApplicable, residualPointStyle
 } from "./residual-plot-utils"
 
 // Tiny fake store: just enough of IAdornmentsBaseStore for the applicability + kind checks.
@@ -201,5 +202,139 @@ describe("residualPointStyle", () => {
   it("falls back to the point color when a legend is present but no color resolves", () => {
     expect(residualPointStyle({ ...base, hasLegend: true, legendColor: undefined, isSelected: false }).fill)
       .toBe("#111111")
+  })
+})
+
+// A fake store that also answers findAdornmentOfType, for the predictor tests. Movable-line and
+// plotted-function predictors read their model via findAdornmentOfType; the LSRL predictor computes
+// from the data instead, so it only needs isShowingAdornment + interceptLocked.
+function fakeStoreWithAdornments(opts: {
+  ml?: boolean; lsrl?: boolean; pf?: boolean; mlModel?: unknown; pfModel?: unknown; interceptLocked?: boolean
+} = {}): IAdornmentsBaseStore {
+  return {
+    isShowingAdornment(type: string) {
+      if (type === kMovableLineType) return !!opts.ml
+      if (type === kLSRLType) return !!opts.lsrl
+      if (type === kPlottedFunctionType) return !!opts.pf
+      return false
+    },
+    findAdornmentOfType(type: string) {
+      if (type === kMovableLineType) return opts.mlModel
+      if (type === kPlottedFunctionType) return opts.pfModel
+      return undefined
+    },
+    interceptLocked: !!opts.interceptLocked
+  } as unknown as IAdornmentsBaseStore
+}
+
+// A fake data config backed by per-case numeric values, for computeResiduals / LSRL predictor.
+// dataDisplayGetNumericValue reads dataset.getAttribute(id).type and dataset.getNumeric(caseID, id);
+// an undefined value models a non-numeric/missing cell (filtered out).
+const kXId = "xId", kYId = "yId"
+function fakeConfigWithData(
+  cases: Array<{ caseID: string; x?: number; y?: number }>
+): IGraphDataConfigurationModel {
+  const numeric: Record<string, Record<string, number | undefined>> = {}
+  cases.forEach(c => { numeric[c.caseID] = { [kXId]: c.x, [kYId]: c.y } })
+  const dataset = {
+    getAttribute: () => ({ type: "numeric" }),
+    getNumeric: (caseID: string, attrID: string) => numeric[caseID]?.[attrID]
+  }
+  return {
+    dataset,
+    attributeID: (role: string) => role === "x" ? kXId : role === "y" ? kYId : "",
+    getCaseDataArray: () => cases.map(c => ({ caseID: c.caseID }))
+  } as unknown as IGraphDataConfigurationModel
+}
+
+describe("getPredictor", () => {
+  it("returns null when no line is active", () => {
+    expect(getPredictor(fakeStoreWithAdornments(), fakeConfigWithData([]))).toBeNull()
+  })
+
+  it("builds a slope/intercept predictor from the movable line", () => {
+    const store = fakeStoreWithAdornments({ ml: true, mlModel: { lineDescriptions: [{ slope: 2, intercept: 1 }] } })
+    const predictor = getPredictor(store, fakeConfigWithData([]))
+    expect(predictor).not.toBeNull()
+    expect(predictor?.(3)).toBe(7)   // 2*3 + 1
+    expect(predictor?.(0)).toBe(1)
+  })
+
+  it("returns null when the movable line has no description", () => {
+    const store = fakeStoreWithAdornments({ ml: true, mlModel: { lineDescriptions: [] } })
+    expect(getPredictor(store, fakeConfigWithData([]))).toBeNull()
+  })
+
+  it("computes the LSRL fresh from the current data", () => {
+    const store = fakeStoreWithAdornments({ lsrl: true })
+    // Perfectly linear y = 2x, so slope 2 / intercept 0.
+    const config = fakeConfigWithData([
+      { caseID: "a", x: 1, y: 2 }, { caseID: "b", x: 2, y: 4 }, { caseID: "c", x: 3, y: 6 }
+    ])
+    const predictor = getPredictor(store, config)
+    expect(predictor).not.toBeNull()
+    expect(predictor?.(10)).toBeCloseTo(20, 5)
+  })
+
+  it("returns null for the LSRL when there are fewer than two finite points", () => {
+    const store = fakeStoreWithAdornments({ lsrl: true })
+    const config = fakeConfigWithData([{ caseID: "a", x: 1, y: 2 }, { caseID: "b", x: undefined, y: 4 }])
+    expect(getPredictor(store, config)).toBeNull()
+  })
+
+  it("evaluates the plotted function from the default cell", () => {
+    const store = fakeStoreWithAdornments({
+      pf: true,
+      pfModel: {
+        instanceKey: () => "{}",
+        plottedFunctions: new Map([["{}", { formulaFunction: (x: number) => x * x }]])
+      }
+    })
+    const predictor = getPredictor(store, fakeConfigWithData([]))
+    expect(predictor?.(4)).toBe(16)
+  })
+
+  it("returns NaN (not throw) when the plotted function throws", () => {
+    const store = fakeStoreWithAdornments({
+      pf: true,
+      pfModel: {
+        instanceKey: () => "{}",
+        plottedFunctions: new Map([["{}", { formulaFunction: () => { throw new Error("boom") } }]])
+      }
+    })
+    const predictor = getPredictor(store, fakeConfigWithData([]))
+    expect(predictor).not.toBeNull()
+    expect(Number.isNaN(predictor?.(1) as number)).toBe(true)
+  })
+})
+
+describe("computeResiduals", () => {
+  const identity: Predictor = (x: number) => x
+
+  it("returns y - predicted for each case", () => {
+    const config = fakeConfigWithData([{ caseID: "a", x: 1, y: 5 }, { caseID: "b", x: 2, y: 5 }])
+    expect(computeResiduals(config, identity)).toEqual([
+      { caseID: "a", x: 1, residual: 4 },   // 5 - 1
+      { caseID: "b", x: 2, residual: 3 }    // 5 - 2
+    ])
+  })
+
+  it("skips cases with a non-finite x or y", () => {
+    const config = fakeConfigWithData([
+      { caseID: "a", x: 1, y: 5 }, { caseID: "b", x: undefined, y: 5 }, { caseID: "c", x: 3, y: undefined }
+    ])
+    expect(computeResiduals(config, () => 0)).toEqual([{ caseID: "a", x: 1, residual: 5 }])
+  })
+
+  it("skips cases whose predicted value is non-finite", () => {
+    const config = fakeConfigWithData([{ caseID: "a", x: 1, y: 5 }])
+    expect(computeResiduals(config, () => NaN)).toEqual([])
+  })
+
+  it("returns an empty array when there is no dataset", () => {
+    const config = {
+      dataset: undefined, attributeID: () => "id", getCaseDataArray: () => []
+    } as unknown as IGraphDataConfigurationModel
+    expect(computeResiduals(config, identity)).toEqual([])
   })
 })
