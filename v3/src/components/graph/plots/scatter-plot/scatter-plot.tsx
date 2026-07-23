@@ -479,15 +479,26 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
   // an unguarded write here creates an infinite reaction loop.
   useEffect(function syncResidualPlot() {
     return mstAutorun(() => {
-      const isActive = adornmentsStore.showResidualPlot && residualPlotIsApplicable(adornmentsStore, dataConfiguration)
-      if (!isActive) {
+      // Tear the split down: collapse the lower region, drop the leftLower axis, clear the points.
+      // Idempotent (each mutation is guarded), so calling it when already inactive is a no-op.
+      const teardown = () => {
         if (layout.showLowerPlot) layout.setShowLowerPlot(false)
         if (graphModel.getAxis("leftLower")) graphModel.removeAxis("leftLower")
         if (residualPointsRef.current) select(residualPointsRef.current).selectAll("circle").remove()
+      }
+      const isActive = adornmentsStore.showResidualPlot && residualPlotIsApplicable(adornmentsStore, dataConfiguration)
+      if (!isActive) {
+        teardown()
         return
       }
+      // Applicability doesn't guarantee the line is computable (e.g. an LSRL with < 2 finite points,
+      // or a plotted function not yet populated). If there's no predictor, tear down rather than
+      // leaving stale residual UI on screen.
       const predictor = getPredictor(adornmentsStore, dataConfiguration)
-      if (!predictor || !dataConfiguration) return
+      if (!predictor || !dataConfiguration) {
+        teardown()
+        return
+      }
       const residuals = computeResiduals(dataConfiguration, predictor)
       const [minY, maxY] = residualDomain(residuals)
       if (!layout.showLowerPlot) layout.setShowLowerPlot(true)
