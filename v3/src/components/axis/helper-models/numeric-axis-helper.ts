@@ -46,10 +46,10 @@ export class NumericAxisHelper extends AxisHelper {
     select(this.subAxisElt).selectAll('.zero, .grid').remove()
     const tickLength = this.perpendicularExtent
     const gridAxis = this.axis(numericScale).tickSizeInner(-tickLength)
-    // Match the axis's tick marks. d3's default tick count is ~10, which produces different
-    // "nice" step sizes than computeBestNumberOfVerticalAxisTicks / nonDraggableAxisTicks pick
-    // for a given range — so unless we pass the axis's own tickValues in, grid lines land on
-    // e.g. 20-unit steps while tick marks land on 50-unit steps (CODAP-1446 residual plot).
+    // Match the axis's tick marks. d3's default tick count (~10) produces different "nice"
+    // step sizes than computeBestNumberOfVerticalAxisTicks / nonDraggableAxisTicks pick for a
+    // given range, so the grid axis needs the axis's own tickValues to keep grid lines aligned
+    // with tick marks.
     if (tickValues) gridAxis.tickValues(tickValues)
     select(this.subAxisElt).append('g')
       .attr('class', 'grid')

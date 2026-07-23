@@ -377,10 +377,10 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
           .classed('zoom-out', false)
       })
 
-    // CODAP-1446: subtle gray backing for the Residual Plot region so it reads as its own
-    // subplot (like categorical-split cells do) instead of a transparent strip below the axis
-    // gap. Uses the same darker shade as the alternating checkerboard. `pointer-events: none`
-    // keeps clicks passing through to the residual hit-rect and points rendered above.
+    // Subtle gray backing so the Residual Plot region reads as its own subplot, matching the
+    // darker shade used by the alternating checkerboard on categorical-split cells.
+    // `pointer-events: none` keeps clicks passing through to the residual hit-rect and points
+    // rendered above.
     if (graphLayout?.showLowerPlot) {
       const lowerBounds = graphLayout.getComputedBounds('lowerPlot')
       select(groupElement)
@@ -433,8 +433,8 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
     )
   }, [dataDisplayModel, renderBackground])
 
-  // CODAP-1446: none of the reactions above observe layout.showLowerPlot or the derived
-  // lowerPlot bounds, so toggling the Residual Plot wouldn't otherwise redraw the backing.
+  // None of the reactions above observe layout.showLowerPlot or the derived lowerPlot bounds,
+  // so toggling the Residual Plot needs an explicit trigger for the backing to redraw.
   useEffect(function respondToLowerPlotChange() {
     if (!graphLayout) return
     return mstReaction(
