@@ -472,6 +472,7 @@ describe("GraphContentModel", () => {
       // is still visible so the squares possibility survives.
       const dataConfig = content.graphPointLayerModel.dataConfiguration
       dataConfig.setAttribute("legend", { attributeID: dataConfig.attributeID("y") })
+      await new Promise(resolve => setTimeout(resolve, 0))
 
       expect(store.isShowingAdornment(kMovableLineType)).toBe(true)
       expect(store.showSquaresOfResiduals).toBe(true)
