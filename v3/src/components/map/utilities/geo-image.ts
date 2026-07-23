@@ -64,6 +64,17 @@ export class GeoImage {
     return `rgb(${imageData[start]},${imageData[start+1]},${imageData[start+2]})`
   }
 
+  /**
+   * The raw RGBA source pixels (call prepare() first). Callers index it directly as
+   * (y * width + x) * 4, avoiding the per-pixel "rgb(...)" string that getColorAt builds.
+   */
+  public get pixelData(): Uint8ClampedArray {
+    if (!this.imageData) {
+      throw new Error("Image data not available, need to call prepare() first")
+    }
+    return this.imageData
+  }
+
   private makeSureImageIsReady(): asserts this is { img: HTMLImageElement } {
     if (!this.img) {
       throw new Error("Image not loaded")
