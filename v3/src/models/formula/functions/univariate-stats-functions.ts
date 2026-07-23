@@ -111,7 +111,10 @@ export const univariateStatsFunctions: Record<string, IFormulaMathjsFunction> = 
       const scope = getRootScope(currentScope)
       const [expressionArg, percentileArg, filterArg] = args
 
-      const caseGroupId = scope.getCaseGroupId()
+      // Use the aggregate group id so each parent case caches its own sorted values. When the formula lives in a
+      // parent collection and references a child attribute, the same-level group id collapses every top-level parent
+      // group to a single key, which would cause one group's values to be reused for the others.
+      const caseGroupId = scope.getCaseAggregateGroupId()
       const cacheKey = `percentile(${args.toString()})-${caseGroupId}`
       let cached = scope.getCached<IPercentileFunctionCache>(cacheKey)
 
