@@ -193,6 +193,13 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
   // subscribing to selection. Delegates the pure decision to residualPointStyle (unit-tested).
   const styleFor = useCallback((caseID: string) => {
     const isSelected = !!dataset?.isCaseSelected(caseID)
+    // The legend handling here is intentionally retained even though residualPlotIsApplicable
+    // currently excludes legends (so legendAttrID is always undefined in this path today). Coloring
+    // each residual point by its legend category is structurally/mathematically well-defined — each
+    // point's residual is taken against its own category's line, and the adornments already store a
+    // line per cell — so this is kept ready for a future legend-supporting version rather than
+    // removed as dead code. (Enabling it also means dropping the legend exclusion and making the
+    // predictor cell-aware; see getPredictor/computeResiduals in residual-plot-utils.)
     const legendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase(caseID) : undefined
     const { pointColor, pointStrokeColor } = graphModel.pointDescription
     return residualPointStyle({
