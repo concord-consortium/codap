@@ -406,14 +406,16 @@ context("Graph adornments", () => {
     cy.get("*[data-testid^=residual-point-]").first().should("not.have.attr", "fill", "#4682b4")
 
     // Clicking it selects the case: the selection-only restyle path gives it the selection fill,
-    // and the residual plot is not torn down (points and lower axis still present).
-    cy.get("*[data-testid^=residual-point-]").first().click()
+    // and the residual plot is not torn down (points and lower axis still present). force: residual
+    // points can overlap (cases with near-identical residuals), so the target may be covered by a
+    // sibling circle — force the click on the specific first circle.
+    cy.get("*[data-testid^=residual-point-]").first().click({ force: true })
     cy.get("*[data-testid^=residual-point-]").first().should("have.attr", "fill", "#4682b4")
     cy.get("*[data-testid^=residual-points-]").find("circle").should("have.length.at.least", 1)
     cy.get(".axis-wrapper.leftLower").should("exist")
 
     // Clicking the residual-plot background deselects all cases, reverting the styling.
-    cy.get("[data-testid^=residual-plot-background-]").click("topLeft")
+    cy.get("[data-testid^=residual-plot-background-]").click("topLeft", { force: true })
     cy.get("*[data-testid^=residual-point-]").first().should("not.have.attr", "fill", "#4682b4")
   })
 })
