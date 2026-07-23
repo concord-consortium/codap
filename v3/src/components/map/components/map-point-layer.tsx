@@ -283,12 +283,14 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
         renderer,
         pointRadius: mapLayerModel.getPointRadius(),
         instanceId: dataConfiguration.id,
-        pointColor: pointDescription?.pointColor,
-        pointStrokeColor: pointDescription?.pointStrokeColor,
-        startAnimation: mapModel.startAnimation
+        pointColor: pointDescription.pointColor,
+        pointStrokeColor: pointDescription.pointStrokeColor,
+        startAnimation: mapModel.startAnimation,
+        stopAnimation: mapModel.stopAnimation
       })
     }
-  }, [dataConfiguration, layout, mapLayerModel, mapModel.startAnimation, pointDescription, renderer])
+  }, [dataConfiguration, layout, mapLayerModel, mapModel.startAnimation, mapModel.stopAnimation,
+      pointDescription, renderer])
 
   const refreshPointSelection = useCallback(() => {
     const {pointColor, pointStrokeColor} = pointDescription,

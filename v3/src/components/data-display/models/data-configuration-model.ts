@@ -878,6 +878,14 @@ export const DataConfigurationModel = types
       // addCases and removeCases don't currently self-invalidate, so we have to do it here.
       const cacheClearingActions = ["addCases", "removeCases"]
       if (cacheClearingActions.includes(actionCall.name)) {
+        // Suppress animation when cases are added or removed so points/bars update instantly
+        // rather than animating. This is essential while data streams in (e.g. one case at a
+        // time via a plugin): otherwise each added case restarts a fresh transition every frame,
+        // and because the transition clock resets each time, existing points never advance toward
+        // their new positions until streaming stops. matchCirclesToData consumes this flag to stop
+        // any in-flight animation and skip startAnimation. (See updateFilterFormulaResults for the
+        // analogous slider/filter case.)
+        self.suppressAnimation = true
         this.invalidateCases()
       }
       // forward all actions from dataset except "setCaseValues" which requires intervention
