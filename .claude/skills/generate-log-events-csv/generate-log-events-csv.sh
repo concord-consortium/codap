@@ -33,7 +33,10 @@ trap 'rm -f "$TMP"' EXIT
 node "$SKILL_DIR/extract-log-events.mjs" > "$TMP"
 
 # 2) Merge with the committed CSV, preserving curated fields; report new/removed events.
-node "$SKILL_DIR/build-csv.mjs" "$@" "$TMP" "$CSV"
+# Positional args (the extraction JSON and the CSV path) come first so a stray non-flag
+# argument to this script can't displace them; build-csv.mjs reads flags such as --check
+# from anywhere in the argument list.
+node "$SKILL_DIR/build-csv.mjs" "$TMP" "$CSV" "$@"
 
 # 3) Final step (skipped in --check mode): copy the data rows (no header) to the system
 #    clipboard as tab-separated text, ready to paste into the Google Sheet at cell A2.

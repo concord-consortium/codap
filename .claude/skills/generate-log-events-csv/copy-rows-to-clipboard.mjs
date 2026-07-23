@@ -45,7 +45,12 @@ function parseCSV(text) {
 
 const rows = parseCSV(readFileSync(csvPath, "utf8")).filter(r => r.some(f => f !== ""))
 const dataRows = rows.slice(1) // drop header
-const tsv = dataRows.map(r => r.join("\t")).join("\n")
+// Columns are tab-delimited and rows newline-delimited, so collapse any tab or newline
+// inside a field (e.g. an accidentally multi-line Description) to a single space; that
+// keeps the paste aligned to columns instead of spilling into extra cells/rows.
+const tsv = dataRows
+  .map(r => r.map(f => f.replace(/[\t\r\n]+/g, " ")).join("\t"))
+  .join("\n")
 
 // Try a clipboard command, returning true on success and false if it is not installed.
 // stdout/stderr are ignored so that a daemonizing clipboard tool (xclip keeps running to
