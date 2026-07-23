@@ -1,7 +1,9 @@
-import { applySnapshot, getSnapshot } from "mobx-state-tree"
+import { when } from "mobx"
+import { applySnapshot, getSnapshot, Instance } from "mobx-state-tree"
 import { diComponentHandler } from "../../../data-interactive/handlers/component-handler"
 import { DIComponentInfo } from "../../../data-interactive/data-interactive-types"
 import { appState } from "../../../models/app-state"
+import { TreeManager } from "../../../models/history/tree-manager"
 import { setupTestDataset, testCases } from "../../../test/dataset-test-utils"
 import { toV3Id } from "../../../utilities/codap-utils"
 import { isInquirySpaceMode } from "../../../utilities/url-params"
@@ -475,6 +477,48 @@ describe("GraphContentModel", () => {
       expect(store.showSquaresOfResiduals).toBe(true)
       expect(store.showResidualPlot).toBe(false)
 
+      diComponentHandler.delete!({ component: tile })
+    })
+
+    // The reactive clear (setShowResidualPlot(false)) fires from a reaction triggered by the
+    // line-removal action. Because the removal goes through applyModelChange — which folds response
+    // actions into the same history entry — a single undo must restore BOTH the line and the
+    // Residual Plot flag, not leave them in an intermediate state.
+    it("undoes a line removal and its reactive Residual Plot clear as one atomic history entry", async () => {
+      (isInquirySpaceMode as jest.Mock).mockReturnValue(false)
+      const { tile, content } = await createScatter("residualUndoAtomic")
+      const store = content.adornmentsStore
+      const movableLine = MovableLineAdornmentModel.create()
+      store.addAdornment(movableLine, content.getUpdateCategoriesOptions())
+      store.setShowResidualPlot(true)
+      expect(store.isShowingAdornment(kMovableLineType)).toBe(true)
+      expect(store.showResidualPlot).toBe(true)
+
+      // Record history from here (setup above is untracked).
+      const manager = appState.document.treeManagerAPI as Instance<typeof TreeManager>
+      appState.document.treeMonitor!.enableMonitoring()
+      await when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
+
+      // Remove the line the way the checkbox does — via applyModelChange. The syncResidualPlotGate
+      // reaction fires within this action and clears showResidualPlot.
+      store.applyModelChange(() => store.hideAdornment(kMovableLineType), {
+        undoStringKey: "V3.Undo.graph.hideMovableLine",
+        redoStringKey: "V3.Redo.graph.hideMovableLine"
+      })
+      await when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
+
+      expect(store.isShowingAdornment(kMovableLineType)).toBe(false)
+      expect(store.showResidualPlot).toBe(false)
+
+      // A single undo restores BOTH the line and the Residual Plot flag (atomic).
+      expect(appState.document.canUndo).toBe(true)
+      appState.document.undoLastAction()
+      await when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
+
+      expect(store.isShowingAdornment(kMovableLineType)).toBe(true)
+      expect(store.showResidualPlot).toBe(true)
+
+      appState.document.treeMonitor!.disableMonitoring()
       diComponentHandler.delete!({ component: tile })
     })
   })
