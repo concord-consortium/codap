@@ -18,6 +18,9 @@ export interface IApplyModelChangeOptions {
   // undo/redo strings indicate undo-ability; if not provided, the action is not undoable
   undoStringKey?: string
   redoStringKey?: string
+  // suppress the "withoutUndo called by a child action" warning, for an action deliberately invoked
+  // both at the top level and nested inside another action (e.g. the slider reset at a loop boundary)
+  suppressWarning?: boolean
 }
 
 export interface IWithoutUndoOptions {
