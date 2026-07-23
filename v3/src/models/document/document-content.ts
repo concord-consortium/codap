@@ -1,4 +1,4 @@
-import { Instance, SnapshotIn } from "mobx-state-tree"
+import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { getRegisteredEmbeddedModeHandler } from "../../lib/embedded-mode/embedded-mode-registry"
 import { kWebViewTileType } from "../../components/web-view/web-view-defs"
@@ -51,6 +51,18 @@ export interface IImportDataSetOptions {
 
 export const DocumentContentModel = BaseDocumentContentModel
   .named("DocumentContent")
+  .props({
+    /*
+     * Feature flags this document grants to whoever opens it, which makes a shared
+     * document a distribution channel for a piloted feature. Written in the save
+     * path rather than on load; see AppState.getDocumentSnapshot(). Grants are a
+     * one-way door — the only exits are the server kill switch and eventual
+     * deletion of the flag from the registry, after which the name here is inert.
+     */
+    // types.maybe rather than types.array so that documents without grants — the
+    // overwhelming majority — don't all carry an empty array
+    featureFlags: types.maybe(types.array(types.string))
+  })
   .volatile(() => ({
     _gaussianFitEnabled: false
   }))
