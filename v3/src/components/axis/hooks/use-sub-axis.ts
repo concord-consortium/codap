@@ -8,7 +8,7 @@ import { mstReaction } from "../../../utilities/mst-reaction"
 import { isAliveSafe } from "../../../utilities/mst-utils"
 import { translate } from "../../../utilities/translation/translate"
 import { isVertical } from "../../axis-graph-shared"
-import { axisPlaceToAttrRole, kOther } from "../../data-display/data-display-types"
+import { axisPlaceToAttrRole, getAxisPlaceTraits, kOther } from "../../data-display/data-display-types"
 import { swapCategoriesNotification } from "../../data-display/data-display-notifications"
 import { useDataDisplayAnimation } from "../../data-display/hooks/use-data-display-animation"
 import { useDataDisplayModelContextMaybe } from "../../data-display/hooks/use-data-display-model"
@@ -376,11 +376,10 @@ export const useSubAxis = ({
 
   const updateDomainAndRenderSubAxis = useCallback(() => {
     const axisModel = axisProvider?.getAxis?.(axisPlace)
-    // The Residual Plot's leftLower axis has no owning attribute — its domain is set externally
-    // by the ScatterPlot component from computed residuals. The axisPlaceToAttrRole["leftLower"]
-    // = "y" is a TypeScript-exhaustiveness placeholder; reading numeric values for that role
-    // would clobber the residual domain with the y attribute's data extent.
-    if (axisPlace === 'leftLower') return
+    // Adornment-owned axes (e.g. the Residual Plot's leftLower) have no owning attribute — their
+    // domain is set externally (the axisPlaceToAttrRole entry is only a TS-exhaustiveness
+    // placeholder). Reading numeric values for that role would clobber the externally-set domain.
+    if (getAxisPlaceTraits(axisPlace).isAdornmentOwned) return
     const role = axisPlaceToAttrRole[axisPlace],
       attrID = dataConfig?.attributeID(role)
     if (!attrID) {

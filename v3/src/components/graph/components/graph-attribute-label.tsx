@@ -12,7 +12,7 @@ import { GraphPlace, isVertical } from "../../axis-graph-shared"
 import { labelMargin, labelPaddingY } from "../../axis/axis-types"
 import { getStringBounds, renderLabelBackground } from "../../axis/axis-utils"
 import { AttributeLabel } from "../../data-display/components/attribute-label"
-import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
+import { getAxisPlaceTraits, graphPlaceToAttrRole } from "../../data-display/data-display-types"
 import { ClickableAxisLabel } from "./clickable-axis-label"
 import { StaticAxisLabel } from "./static-axis-label"
 
@@ -176,9 +176,10 @@ export const GraphAttributeLabel =
     }, [dataConfiguration, graphModel, isTileSelected, place])
 
     const getLabel = useCallback(() => {
-      // The Residual Plot's lower y-axis has no owning attribute; its label is fixed.
-      if (place === 'leftLower') {
-        return t('V3.ResidualPlot.axisLabel')
+      // Axes with a fixed label (e.g. the Residual Plot's lower y-axis) have no owning attribute.
+      const fixedLabelKey = getAxisPlaceTraits(place).fixedLabelKey
+      if (fixedLabelKey) {
+        return t(fixedLabelKey)
       }
       const {useClickHereCue} = getClickHereCue()
       if (useClickHereCue) {
@@ -267,9 +268,9 @@ export const GraphAttributeLabel =
             update.call(updateTextSelection),
           )
 
-      // leftLower is the Residual Plot's non-interactive axis. Skip the label background /
-      // dropdown caret — there's no menu to open.
-      if (place !== 'leftLower') {
+      // Non-interactive axes (e.g. the Residual Plot's) skip the label background / dropdown caret —
+      // there's no menu to open.
+      if (getAxisPlaceTraits(place).isInteractive) {
         renderLabelBackground({
           gSelection, textSelector: `text.${className}`,
           transform: labelTransform + tRotation, visibility
@@ -280,9 +281,9 @@ export const GraphAttributeLabel =
     const plotDefinedAxisClickHandler = graphModel.plot.axisLabelClickHandler(graphPlaceToAttrRole[place])
 
     const renderAxisLabel = () => {
-      // leftLower is the Residual Plot's lower y-axis. Its label is fixed ("Residuals") and it
-      // has no attribute assignment menu — render a static, non-interactive label.
-      if (place === 'leftLower') {
+      // Non-interactive axes (e.g. the Residual Plot's lower y-axis) have a fixed label and no
+      // attribute-assignment menu — render a static, non-interactive label.
+      if (!getAxisPlaceTraits(place).isInteractive) {
         return <StaticAxisLabel ref={labelRef} place={place} refreshLabel={refreshAxisTitle} />
       }
       return plotDefinedAxisClickHandler

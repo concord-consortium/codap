@@ -30,7 +30,7 @@ import {
 import { CaseData } from "../../data-display/d3-types"
 import { BackgroundLockInfo, DataDisplayContentModel } from "../../data-display/models/data-display-content-model"
 import {
-  attrRoleToAxisPlace, axisPlaceToAttrRole, GraphAttrRole, kMain, kOther, PrimaryAttrRoles
+  attrRoleToAxisPlace, axisPlaceToAttrRole, getAxisPlaceTraits, GraphAttrRole, kMain, kOther, PrimaryAttrRoles
 } from "../../data-display/data-display-types"
 import { computePointRadius } from "../../data-display/data-display-utils"
 import { IGetTipTextProps } from "../../data-display/data-tip-types"
@@ -143,10 +143,10 @@ export const GraphContentModel = DataDisplayContentModel
       return ["left", "bottom"].includes(place) && self.plot.showGridLines
     },
     axisShouldShowZeroLine(place: AxisPlace) {
-      // The Residual Plot's lower y-axis always shows a horizontal reference line at residual=0
-      // (styled like the upper plot's zero line). It's central to the interpretation of the plot,
-      // so we don't gate it on plot.showZeroLine.
-      if (place === 'leftLower') return true
+      // Some axes (e.g. the Residual Plot's lower y-axis) always show a horizontal reference line at
+      // 0, styled like the upper plot's zero line — it's central to interpreting the plot, so it's
+      // not gated on plot.showZeroLine.
+      if (getAxisPlaceTraits(place).alwaysShowsZeroLine) return true
       return ['left', 'bottom'].includes(place) && self.plot.showZeroLine
     },
     placeCanAcceptAttributeIDDrop(place: GraphPlace,
@@ -202,10 +202,10 @@ export const GraphContentModel = DataDisplayContentModel
     // otherwise refit tightly to the data, are also only grown and never shrunk.
     growNumericAxesToFit() {
       AxisPlaces.forEach((axisPlace: AxisPlace) => {
-        // The lower-plot axis (Residual Plot) has no owning attribute — its domain is managed
-        // externally by ScatterPlot from computed residuals. Skip it here to avoid clobbering
-        // with the y attribute's data extent (via the "y" placeholder role).
-        if (axisPlace === 'leftLower') return
+        // Adornment-owned axes (e.g. the Residual Plot) have no owning attribute — their domain is
+        // managed externally. Skip them here to avoid clobbering with the y attribute's data extent
+        // (via the "y" placeholder role).
+        if (getAxisPlaceTraits(axisPlace).isAdornmentOwned) return
         const axis = self.getAxis(axisPlace),
           role = axisPlaceToAttrRole[axisPlace]
         if (isAnyNumericAxisModel(axis)) {
@@ -560,8 +560,8 @@ export const GraphContentModel = DataDisplayContentModel
         this.incrementChangeCount()
       } else {
         AxisPlaces.forEach((axisPlace: AxisPlace) => {
-          // See growNumericAxesToFit — leftLower is externally managed by ScatterPlot.
-          if (axisPlace === 'leftLower') return
+          // See growNumericAxesToFit — adornment-owned axes are managed externally, not from attributes.
+          if (getAxisPlaceTraits(axisPlace).isAdornmentOwned) return
           const axis = self.getAxis(axisPlace),
             role = axisPlaceToAttrRole[axisPlace]
           if (isAnyNumericAxisModel(axis)) {
