@@ -209,8 +209,8 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
   }, [dataset, legendAttrID, dataConfiguration, graphModel])
 
   // Selection-only restyle: re-set the selection-dependent attrs on the existing circles. No data
-  // join, no residual/predictor recompute. This is what a selection change triggers (via
-  // refreshPointSelection) so selecting cases no longer re-runs the whole residual pipeline.
+  // join, no residual/predictor recompute — a selection change (via refreshPointSelection) updates
+  // styling without re-running the residual pipeline.
   // Compute the style once per circle (styleFor does selection/legend lookups) rather than per attr.
   const applyResidualStyles = useCallback((g: SVGGElement) => {
     select(g).selectAll<SVGCircleElement, IResidualPoint>("circle")

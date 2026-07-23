@@ -151,10 +151,9 @@ export const Graph = observer(function Graph({
       // - https://github.com/bkrem/react-d3-tree/issues/284
       select(belowPointsGroupRef.current).attr("transform", translate)
       select(abovePointsGroupRef.current).attr("transform", translate)
-      // Position the HTML host (absolute) to overlay the upper plot area only. CODAP-1445 originally
-      // had this span both regions in anticipation of a second Pixi renderer for residual points;
-      // that plan was revised to SVG-based residual rendering, so extending the host into the lower
-      // region only blocks pointer events on the SVG residual points below.
+      // Position the (absolutely-positioned) Pixi host to overlay the upper plot area only. Residual
+      // points render as SVG in the lower region, so the host must not extend over them — that would
+      // block pointer events on those SVG points.
       const host = pixiContainerRef.current
       if (host) {
         host.style.position = "absolute"
