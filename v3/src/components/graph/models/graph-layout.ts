@@ -12,6 +12,10 @@ interface BannerRegistration {
   order: number
 }
 
+// When showLowerPlot is on, the plot area splits with the upper region getting (1 - kLowerPlotFraction)
+// of the height and the lower region getting kLowerPlotFraction. Hardcoded per CODAP-1445 spec.
+export const kLowerPlotFraction = 1 / 3
+
 export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
   // actual measured sizes of axis elements
   @observable axisBounds: Map<AxisPlace, AxisBounds> = new Map()
@@ -19,6 +23,9 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
   desiredExtentsFromComponents: Map<GraphExtentsPlace, number> = new Map() // not necessarily the extent they get
   // Dynamic banner registration - allows any client to register a banner with a height and order
   @observable bannerHeights: Map<string, BannerRegistration> = new Map()
+  // When true, splits the plot area into an upper (2/3) and lower (1/3) region — infrastructure
+  // for the future Residual Plot adornment. See CODAP-1445. Default off preserves all existing behavior.
+  @observable showLowerPlot = false
   private disposer?: () => void
 
   constructor() {
@@ -70,7 +77,23 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
   }
 
   getAxisLength(place: AxisPlace) {
+    if (place === 'leftLower') return this.getLowerPlotBounds().height
     return isVertical(place) ? this.plotHeight : this.plotWidth
+  }
+
+  getLowerPlotBounds(): Bounds {
+    return this.getComputedBounds('lowerPlot')
+  }
+
+  /**
+   * Map a numeric value to a y-pixel in the lower plot region, in the tile's outer coordinate space
+   * (i.e. add this to nothing — it's already an absolute y within the tile). Returns undefined if
+   * the lower scale isn't numeric or has no domain yet.
+   */
+  getLowerYCoord(value: number): number | undefined {
+    const scale = this.getNumericScale('leftLower')
+    if (!scale) return undefined
+    return this.getLowerPlotBounds().top + scale(value)
   }
 
   getAxisBounds(place: AxisPlace) {
@@ -104,8 +127,16 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
 
   @action setAxisScaleType(place: AxisPlace, scale: IScaleType) {
     this.getAxisMultiScale(place)?.setScaleType(scale)
-    const length = isVertical(place) ? this.plotHeight : this.plotWidth
-    this.getAxisMultiScale(place)?.setLength(length)
+    this.getAxisMultiScale(place)?.setLength(this.getAxisLength(place))
+  }
+
+  @action setShowLowerPlot(show: boolean) {
+    if (this.showLowerPlot === show) return
+    this.showLowerPlot = show
+    // computedBounds reacts automatically via @observable, but the axis scale ranges are pull-updated
+    // via updateScaleRanges — trigger it so the upper 'left' scale shrinks (or restores) and
+    // 'leftLower' picks up its non-zero range.
+    this.updateScaleRanges(this.plotWidth, this.plotHeight)
   }
 
   @action resetAxisScale(place: AxisPlace) {
@@ -156,6 +187,7 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
     const labelHeight = measureTextExtent('Xy', vars.labelFont).height
     switch (place) {
       case 'left':
+      case 'leftLower':
       case 'rightNumeric':
       case 'rightCat': {
         extent = Math.max(minimumExtent, Math.min(extent, labelHeight + 2 * this.tileWidth / 5))
@@ -172,8 +204,11 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
   }
 
   updateScaleRanges(plotWidth: number, plotHeight: number) {
+    const lowerHeight = this.getLowerPlotBounds().height
     AxisPlaces.forEach(place => {
-      const length = isVertical(place) ? plotHeight : plotWidth
+      const length = place === 'leftLower'
+        ? lowerHeight
+        : isVertical(place) ? plotHeight : plotWidth
       this.getAxisMultiScale(place)?.setLength(length)
     })
   }
@@ -191,7 +226,7 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
    * We set the computedBounds only once at the end so there should be only one notification to respond to.
    */
   @override get computedBounds() {
-    const {desiredExtents, tileWidth, tileHeight} = this,
+    const {desiredExtents, tileWidth, tileHeight, showLowerPlot} = this,
       topAxisHeight = desiredExtents.get('top') ?? 0,
       bannersHeight = this.totalBannersHeight,
       leftAxisWidth = desiredExtents.get('left') ?? 20,
@@ -200,13 +235,24 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
       v2AxisWidth = desiredExtents.get('rightNumeric') ?? 0,
       rightAxisWidth = desiredExtents.get('rightCat') ?? 0,
       plotWidth = tileWidth - leftAxisWidth - v2AxisWidth - rightAxisWidth,
-      plotHeight = tileHeight - bannersHeight - topAxisHeight - bottomAxisHeight - legendHeight,
+      fullPlotHeight = tileHeight - bannersHeight - topAxisHeight - bottomAxisHeight - legendHeight,
+      lowerPlotHeight = showLowerPlot ? Math.round(fullPlotHeight * kLowerPlotFraction) : 0,
+      plotHeight = fullPlotHeight - lowerPlotHeight,
+      plotTop = bannersHeight + topAxisHeight,
+      lowerPlotTop = plotTop + plotHeight,
       newBounds: Record<GraphExtentsPlace, Bounds> = {
         left: {
           left: 0,
-          top: bannersHeight + topAxisHeight,
+          top: plotTop,
           width: leftAxisWidth,
           height: plotHeight
+        },
+        leftLower: {
+          left: 0,
+          top: lowerPlotTop,
+          // Zero width when inactive so no code path can accidentally size against it.
+          width: showLowerPlot ? leftAxisWidth : 0,
+          height: lowerPlotHeight
         },
         banners: {
           left: leftAxisWidth,
@@ -222,13 +268,19 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
         },
         plot: {
           left: leftAxisWidth,
-          top: bannersHeight + topAxisHeight,
+          top: plotTop,
           width: plotWidth,
           height: plotHeight
         },
+        lowerPlot: {
+          left: leftAxisWidth,
+          top: lowerPlotTop,
+          width: showLowerPlot ? plotWidth : 0,
+          height: lowerPlotHeight
+        },
         bottom: {
           left: leftAxisWidth,
-          top: bannersHeight + topAxisHeight + plotHeight,
+          top: lowerPlotTop + lowerPlotHeight,
           width: plotWidth,
           height: bottomAxisHeight
         },
@@ -240,19 +292,19 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
         },
         rightNumeric: {
           left: leftAxisWidth + plotWidth,
-          top: bannersHeight + topAxisHeight,
+          top: plotTop,
           width: v2AxisWidth,
           height: plotHeight
         },
         rightCat: {
           left: leftAxisWidth + plotWidth,
-          top: bannersHeight + topAxisHeight,
+          top: plotTop,
           width: rightAxisWidth,
           height: plotHeight
         },
         yPlus: {
           left: 0,
-          top: bannersHeight + topAxisHeight,
+          top: plotTop,
           width: leftAxisWidth,
           height: plotHeight
         } // This value is not used

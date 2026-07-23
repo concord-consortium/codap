@@ -151,11 +151,15 @@ export const Graph = observer(function Graph({
       // - https://github.com/bkrem/react-d3-tree/issues/284
       select(belowPointsGroupRef.current).attr("transform", translate)
       select(abovePointsGroupRef.current).attr("transform", translate)
-      // Position the HTML host (absolute) to overlay the plot area
+      // Position the HTML host (absolute) to overlay the plot area. When the split plot is
+      // active, the host spans both the upper and lower regions so a residual adornment can
+      // render into either. When inactive, lowerPlot.height is 0 so this collapses to the
+      // original upper-region-only sizing.
       const host = pixiContainerRef.current
       if (host) {
+        const lowerHeight = layout.getLowerPlotBounds().height
         const w = Math.max(0, layout.plotWidth)
-        const h = Math.max(0, layout.plotHeight)
+        const h = Math.max(0, layout.plotHeight + lowerHeight)
         host.style.position = "absolute"
         host.style.left = `${x}px`
         host.style.top = `${y}px`
@@ -166,7 +170,8 @@ export const Graph = observer(function Graph({
 
       updateCellMasks({ dataConfig: graphModel.dataConfiguration, layout, renderer })
     }
-  }, [dataset, graphModel.dataConfiguration, layout, layout.plotHeight, layout.plotWidth, renderer, xScale])
+  }, [dataset, graphModel.dataConfiguration, layout, layout.plotHeight, layout.plotWidth,
+      layout.showLowerPlot, renderer, xScale])
 
   useEffect(function handleSubPlotsUpdate() {
     return mstReaction(
