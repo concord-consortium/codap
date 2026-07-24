@@ -3,6 +3,7 @@ import {applyPatch, Instance, types} from "mobx-state-tree"
 import { DataSet, toCanonical } from "../../../models/data/data-set"
 import {DataSetMetadata} from "../../../models/shared/data-set-metadata"
 import { kMain } from "../../data-display/data-display-types"
+import { matchCirclesToData } from "../../data-display/data-display-utils"
 import {GraphDataConfigurationModel, isGraphDataConfigurationModel} from "./graph-data-configuration-model"
 
 const TreeModel = types.model("Tree", {
@@ -285,6 +286,55 @@ describe("DataConfigurationModel", () => {
       { __id__: caseIdFromItemId("c3")!, xId: 3.3 }
     ])
     expect(handleAction).toHaveBeenCalled()
+  })
+
+  it("suppresses animation when cases are added or removed", () => {
+    // Streaming cases in (e.g. via a plugin) must not animate existing points: each added case
+    // would otherwise restart a transition every frame, freezing points until streaming stops.
+    // matchCirclesToData consumes this flag to skip startAnimation so points snap to position.
+    const config = tree.config
+    config.setDataset(tree.data, tree.metadata)
+    config.setAttribute("x", { attributeID: "xId" })
+
+    expect(config.suppressAnimation).toBe(false)
+
+    tree.data.addCases(toCanonical(tree.data, [{ __id__: "c4", n: "n1", x: 4, y: 4 }]))
+    expect(config.suppressAnimation).toBe(true)
+
+    config.setSuppressAnimation(false)
+    tree.data.removeCases(["c4"])
+    expect(config.suppressAnimation).toBe(true)
+  })
+
+  it("matchCirclesToData stops in-flight animation (not just skips starting) when suppressed", () => {
+    // When cases stream in, an animation timer armed earlier (e.g. during initial plot setup) can
+    // still be running. Merely skipping startAnimation isn't enough — the points would keep getting
+    // duration>0 transitions and freeze. Suppression must actively stop the in-flight animation so
+    // the ensuing point refresh snaps (duration 0).
+    const config = tree.config
+    config.setDataset(tree.data, tree.metadata)
+    const startAnimation = jest.fn()
+    const stopAnimation = jest.fn()
+    const renderer = { matchPointsToData: jest.fn() } as any
+
+    // Not suppressed: starts animation, does not stop it.
+    matchCirclesToData({
+      dataConfiguration: config, renderer, pointRadius: 5,
+      pointColor: "#000", pointStrokeColor: "#000", startAnimation, stopAnimation, instanceId: "test"
+    })
+    expect(startAnimation).toHaveBeenCalledTimes(1)
+    expect(stopAnimation).not.toHaveBeenCalled()
+
+    // Suppressed: stops the in-flight animation and does NOT start a new one; flag is consumed.
+    startAnimation.mockClear()
+    config.setSuppressAnimation(true)
+    matchCirclesToData({
+      dataConfiguration: config, renderer, pointRadius: 5,
+      pointColor: "#000", pointStrokeColor: "#000", startAnimation, stopAnimation, instanceId: "test"
+    })
+    expect(startAnimation).not.toHaveBeenCalled()
+    expect(stopAnimation).toHaveBeenCalledTimes(1)
+    expect(config.suppressAnimation).toBe(false)
   })
 
   it("only allows x and y as primary place", () => {

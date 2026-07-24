@@ -74,10 +74,11 @@ export class GraphController {
         {pointColor, pointStrokeColor} = graphModel.pointDescription,
         pointRadius = graphModel.getPointRadius(),
         pointDisplayType = graphModel.plot.displayType,
-        startAnimation = graphModel.startAnimation
+        startAnimation = graphModel.startAnimation,
+        stopAnimation = graphModel.stopAnimation
       dataConfiguration && matchCirclesToData({
         dataConfiguration, renderer, pointDisplayType,
-        pointRadius, startAnimation, instanceId, pointColor, pointStrokeColor
+        pointRadius, startAnimation, stopAnimation, instanceId, pointColor, pointStrokeColor
       })
     }
   }
