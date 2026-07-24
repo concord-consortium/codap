@@ -495,12 +495,18 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
   }, [mapLayerModel, refreshHeatmap, refreshPoints])
 
   // Call refreshConnectingLines when Connecting Lines option is switched on and when all
-  // points are selected.
+  // points are selected. Observe selection INSIDE the autorun (only when lines are shown) so the lines
+  // restyle on selection change without putting dataConfiguration.selection — an O(visible cases) array
+  // that is rebuilt on every selection change — in the effect dependencies. Doing the latter made
+  // MapPointLayer observe selection and re-render (and tear down/recreate this autorun) on every marquee
+  // move. Cf. the same pattern in scatter-plot.tsx.
   useEffect(function updateConnectingLines() {
     return mstAutorun(() => {
+      // Touch selection (only when lines are shown) so the autorun re-runs when it changes.
+      if (showConnectingLines) void dataConfiguration.selection
       refreshConnectingLines()
     }, { name: "MapPointLayer.updateConnectingLines" }, mapLayerModel)
-  }, [dataConfiguration.selection, mapLayerModel, refreshConnectingLines, showConnectingLines])
+  }, [dataConfiguration, mapLayerModel, refreshConnectingLines, showConnectingLines])
 
   const getTipAttrs = useCallback((plotNum: number) => {
     const dataConfig = mapLayerModel.dataConfiguration
