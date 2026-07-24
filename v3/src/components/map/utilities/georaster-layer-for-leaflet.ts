@@ -13,6 +13,7 @@ import * as L from "leaflet"
 import type { Coords, DoneCallback, LatLngBounds } from "leaflet"
 import { GeoExtent } from "./geo-extent"
 import snap from "snap-bbox"
+import { paintRasterSample } from "./raster-paint"
 
 import type {
   CustomCSSStyleDeclaration,
@@ -435,51 +436,65 @@ export class GeoRasterLayerClass extends L.GridLayer {
           // Perhaps that won't be faster due to the overhead of the drawImage.
           // An additional optimization because of the projections we are supporting, is to copy
           // each horizontal row of raster pixels at the same time using drawImage.
-          for (let h = 0; h < numberOfSamplesDown; h++) {
-            const yCenterInMapPixels = yTopOfInnerTile + (h + 0.5) * heightOfSampleInScreenPixels
-            const latWestPoint = L.point(xLeftOfInnerTile, yCenterInMapPixels)
-            const { lat } = map.unproject(latWestPoint, zoom)
-            if (lat > yMinOfLayer && lat < yMaxOfLayer) {
-              const yInTilePixels = Math.round(h * heightOfSampleInScreenPixels) + Math.min(padding.top, 0)
+          // The per-tile pixel-sampling loop: one map.unproject() per sample in each direction to find
+          // the source raster pixel, then paint that sample's screen rect. Rather than build an
+          // "rgb(...)" string per sample and call fillStyle/fillRect (a CSS-color parse and a canvas
+          // call per sample), we copy the source RGBA bytes straight into a destination ImageData
+          // buffer and blit the whole tile once with putImageData.
+          if (context) {
+            const srcImage = this.georaster.image
+            const srcPixels = srcImage.pixelData
+            const srcRowWidth = srcImage.width
+            const destWidth = context.canvas.width
+            const destHeight = context.canvas.height
+            const out = context.createImageData(destWidth, destHeight)
+            const dest = out.data
+            for (let h = 0; h < numberOfSamplesDown; h++) {
+              const yCenterInMapPixels = yTopOfInnerTile + (h + 0.5) * heightOfSampleInScreenPixels
+              const latWestPoint = L.point(xLeftOfInnerTile, yCenterInMapPixels)
+              const { lat } = map.unproject(latWestPoint, zoom)
+              if (lat > yMinOfLayer && lat < yMaxOfLayer) {
+                const yInTilePixels = Math.round(h * heightOfSampleInScreenPixels) + Math.min(padding.top, 0)
 
-              let yInRasterPixels = 0
-              if (this.projection === EPSG4326) {
-                yInRasterPixels = Math.floor((yMaxOfLayer - lat) / pixelHeight)
-              }
+                let yInRasterPixels = 0
+                if (this.projection === EPSG4326) {
+                  yInRasterPixels = Math.floor((yMaxOfLayer - lat) / pixelHeight)
+                }
 
-              for (let w = 0; w < numberOfSamplesAcross; w++) {
-                const latLngPoint = L.point(
-                  xLeftOfInnerTile + (w + 0.5) * widthOfSampleInScreenPixels,
-                  yCenterInMapPixels
-                )
-                const { lng: xOfLayer } = map.unproject(latLngPoint, zoom)
-                if (xOfLayer > xMinOfLayer && xOfLayer < xMaxOfLayer) {
-                  let xInRasterPixels = 0
-                  if (this.projection === EPSG4326) {
-                    xInRasterPixels = Math.floor((xOfLayer - xMinOfLayer) / pixelWidth)
-                  } else {
-                    throw new Error(
-                      `[georaster-layer-for-leaflet] projection ${this.projection} is not supported`)
-                  }
+                for (let w = 0; w < numberOfSamplesAcross; w++) {
+                  const latLngPoint = L.point(
+                    xLeftOfInnerTile + (w + 0.5) * widthOfSampleInScreenPixels,
+                    yCenterInMapPixels
+                  )
+                  const { lng: xOfLayer } = map.unproject(latLngPoint, zoom)
+                  if (xOfLayer > xMinOfLayer && xOfLayer < xMaxOfLayer) {
+                    let xInRasterPixels = 0
+                    if (this.projection === EPSG4326) {
+                      xInRasterPixels = Math.floor((xOfLayer - xMinOfLayer) / pixelWidth)
+                    } else {
+                      throw new Error(
+                        `[georaster-layer-for-leaflet] projection ${this.projection} is not supported`)
+                    }
 
-                  // x-axis coordinate of the starting point of the rectangle representing the raster pixel
-                  const x = Math.round(w * widthOfSampleInScreenPixels) + Math.min(padding.left, 0)
+                    // x-axis coordinate of the starting point of the rectangle representing the raster pixel
+                    const x = Math.round(w * widthOfSampleInScreenPixels) + Math.min(padding.left, 0)
 
-                  // y-axis coordinate of the starting point of the rectangle representing the raster pixel
-                  const y = yInTilePixels
+                    // y-axis coordinate of the starting point of the rectangle representing the raster pixel
+                    const y = yInTilePixels
 
-                  // how many real screen pixels does a pixel of the sampled raster take up
-                  const width = widthOfSampleInScreenPixelsInt
-                  const height = heightOfSampleInScreenPixelsInt
+                    // how many real screen pixels does a pixel of the sampled raster take up
+                    const width = widthOfSampleInScreenPixelsInt
+                    const height = heightOfSampleInScreenPixelsInt
 
-                  const color = this.georaster.image.getColorAt(xInRasterPixels, yInRasterPixels)
-                  if (color && context) {
-                    context.fillStyle = color
-                    context.fillRect(x, y, width, height)
+                    // Copy the source pixel's RGB into the destination buffer over the sample's
+                    // screen rect (clamped to the canvas the way fillRect would clip).
+                    paintRasterSample(dest, destWidth, destHeight, srcPixels, srcRowWidth,
+                      xInRasterPixels, yInRasterPixels, x, y, width, height)
                   }
                 }
               }
             }
+            context.putImageData(out, 0, 0)
           }
 
           tile.style.visibility = "visible" // set to default
