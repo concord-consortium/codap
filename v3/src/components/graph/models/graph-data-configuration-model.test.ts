@@ -256,6 +256,60 @@ describe("DataConfigurationModel", () => {
     disposer()
   })
 
+  describe("category selection caching (caseIdsForCategory / allCasesForCategoryAreSelected)", () => {
+    const setupLegend = () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      // clean categorical cases, each with an x value so none are filtered out as non-plottable
+      tree.data.addCases(toCanonical(tree.data, [
+        { __id__: "d1", n: "a", x: 1 },
+        { __id__: "d2", n: "a", x: 2 },
+        { __id__: "d3", n: "b", x: 3 }
+      ]))
+      config.setAttribute("x", { attributeID: "xId" })
+      config.setAttribute("legend", { attributeID: "nId" })
+      return { config, d1: caseIdFromItemId("d1")!, d2: caseIdFromItemId("d2")!, d3: caseIdFromItemId("d3")! }
+    }
+
+    it("caseIdsForCategory groups cases by legend value", () => {
+      const { config, d1, d2, d3 } = setupLegend()
+      expect([...config.caseIdsForCategory("a")].sort()).toEqual([d1, d2].sort())
+      expect(config.caseIdsForCategory("b")).toEqual([d3])
+      expect(config.caseIdsForCategory("nonexistent")).toEqual([])
+    })
+
+    it("caseIdsForCategory is stable across selection changes but updates when cases change", () => {
+      const { config, d1, d2 } = setupLegend()
+      expect([...config.caseIdsForCategory("a")].sort()).toEqual([d1, d2].sort())
+      // a selection change must NOT re-group (this is the whole point of the cache split)
+      tree.data.setSelectedCases([d1])
+      expect([...config.caseIdsForCategory("a")].sort()).toEqual([d1, d2].sort())
+      // adding a case to the category DOES update the grouping
+      tree.data.addCases(toCanonical(tree.data, [{ __id__: "d4", n: "a", x: 4 }]))
+      const d4 = caseIdFromItemId("d4")!
+      expect([...config.caseIdsForCategory("a")].sort()).toEqual([d1, d2, d4].sort())
+    })
+
+    it("allCasesForCategoryAreSelected reflects the current selection", () => {
+      const { config, d1, d2, d3 } = setupLegend()
+      expect(config.allCasesForCategoryAreSelected("a")).toBe(false)
+      // only one of the two "a" cases selected
+      tree.data.setSelectedCases([d1])
+      expect(config.allCasesForCategoryAreSelected("a")).toBe(false)
+      // both "a" cases selected
+      tree.data.setSelectedCases([d1, d2])
+      expect(config.allCasesForCategoryAreSelected("a")).toBe(true)
+      // single-case "b" category
+      tree.data.setSelectedCases([d3])
+      expect(config.allCasesForCategoryAreSelected("b")).toBe(true)
+      expect(config.allCasesForCategoryAreSelected("a")).toBe(false)
+      // deselecting updates the result (cache invalidated on selection change)
+      tree.data.setSelectedCases([])
+      expect(config.allCasesForCategoryAreSelected("a")).toBe(false)
+      expect(config.allCasesForCategoryAreSelected("b")).toBe(false)
+    })
+  })
+
   it("calls action listeners when appropriate", () => {
     const config = tree.config
     config.setDataset(tree.data, tree.metadata)
