@@ -179,6 +179,16 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
 
   useRendererPointerDownDeselect(rendererArray, dataDisplayModel)
 
+  // If this component unmounts mid-drag (e.g. the tile is closed), onDragEnd may not run to restore
+  // point hit-testing. Restore it on unmount so points aren't left non-interactive on a renderer that
+  // outlives this marquee overlay. The ref keeps the cleanup on the current renderers while running
+  // only on unmount.
+  const rendererArrayRef = useRef(rendererArray)
+  rendererArrayRef.current = rendererArray
+  useEffect(() => {
+    return () => rendererArrayRef.current.forEach(renderer => renderer?.setPointsInteractive(true))
+  }, [])
+
   // Check if graph has at least one numeric axis that can be zoomed
   const hasNumericAxis = useCallback(() => {
     const xAxisModel = dataDisplayModel.getAxis('bottom')
