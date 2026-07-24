@@ -4,7 +4,9 @@ import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements
 
 context("Graph adornments", () => {
   beforeEach(function () {
-    const queryParams = "?sample=mammals&dashboard&mouseSensor&suppressUnsavedWarning"
+    // The Residual Plot menu item is gated behind the residualPlot feature flag; enable it via the
+    // URL pilot channel so the residual-plot tests below can reach the affordance.
+    const queryParams = "?sample=mammals&dashboard&mouseSensor&suppressUnsavedWarning&features=residualPlot"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(2500)
