@@ -19,13 +19,14 @@ export class AppHistoryService implements IHistoryService {
   }
 
   handleApplyModelChange(options?: IApplyModelChangeOptions) {
-    const { log, notify, notifyTileId, excludeTileId, noDirty, undoStringKey, redoStringKey } = options || {}
+    const { log, notify, notifyTileId, excludeTileId, noDirty, undoStringKey, redoStringKey, suppressWarning } =
+      options || {}
 
     // Add strings to undoable action or keep out of the undo stack
     if (undoStringKey != null && redoStringKey != null) {
       withUndoRedoStrings(undoStringKey, redoStringKey)
     } else {
-      withoutUndo({ noDirty })
+      withoutUndo({ noDirty, suppressWarning })
     }
 
     // Send log message to logger

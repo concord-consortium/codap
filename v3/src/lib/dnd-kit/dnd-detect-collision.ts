@@ -37,10 +37,41 @@ export const dndDetectCollision: CollisionDetection = (args) => {
 
   // check for registered tile-specific collision handlers
   if (sortedCollisions.length > 0) {
-    // find the prefix for the first tile collision
-    const prefix = `${sortedCollisions[0].id}`.match(prefixRegex)?.[0]
-    if (prefix) {
-      // find all collisions for the first tile
+    // pointerWithin returns droppables whose measured *rects* contain the cursor, and sorting by
+    // data-tile-z-index orders the tiles correctly by paint order. The problem isn't the ordering:
+    // the drag source tile (e.g., a case table) is raised to the top z-index when it's focused at
+    // drag start, so it legitimately sorts above the destination tile (e.g., a graph) it's dragged
+    // onto. At cursor positions where the source tile's droppable rect extends past its painted
+    // area into the destination tile, the source's droppables still win even though the user sees
+    // the destination under the cursor -- causing the drop highlight to flicker. z-index can't
+    // disambiguate this (the ordering is already correct), so we use elementFromPoint to find the
+    // actually-painted topmost tile and try its prefix first.
+    //
+    // We can't extract the prefix from the tile root <div>'s id, because tile DOM ids are
+    // ULIDs (GRAPH_xxxx) while droppable prefixes use a separate instance-id convention
+    // ("graph-1"). Instead we walk sortedCollisions (already sorted by z-index) and pick the
+    // first whose droppable's DOM node contains the topmost element under the cursor.
+    const candidatePrefixes: string[] = []
+    if (args.pointerCoordinates) {
+      const { x, y } = args.pointerCoordinates
+      const topEl = document.elementFromPoint(x, y)
+      if (topEl) {
+        for (const collision of sortedCollisions) {
+          const node = collision.data?.droppableContainer.node.current
+          if (node?.contains(topEl)) {
+            const prefix = `${collision.id}`.match(prefixRegex)?.[0]
+            if (prefix) {
+              candidatePrefixes.push(prefix)
+              break
+            }
+          }
+        }
+      }
+    }
+    const firstPrefix = `${sortedCollisions[0].id}`.match(prefixRegex)?.[0]
+    if (firstPrefix && !candidatePrefixes.includes(firstPrefix)) candidatePrefixes.push(firstPrefix)
+
+    for (const prefix of candidatePrefixes) {
       const tileCollisions = sortedCollisions.filter(c => `${c.id}`.startsWith(prefix))
       for (const collision of tileCollisions) {
         const { id: collisionId } = collision

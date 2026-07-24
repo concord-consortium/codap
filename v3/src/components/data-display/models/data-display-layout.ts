@@ -8,7 +8,7 @@ export interface ITileSize {
   tileHeight: number
 }
 
-export type GraphExtentsPlace = GraphPlace | "banners"
+export type GraphExtentsPlace = GraphPlace | "banners" | "lowerPlot"
 
 export interface Bounds {
   left: number
@@ -63,9 +63,11 @@ export class DataDisplayLayout {
       legendHeight = desiredExtents.get('legend') ?? 0
     return {
       left: {left: 0, top: 0, width: 0, height: tileHeight - legendHeight},
+      leftLower: {left: 0, top: 0, width: 0, height: 0},
       banners: {left: 0, top: 0, width: tileWidth, height: 0},
       top: {left: 0, top: 0, width: tileWidth, height: 0},
       plot: {left: 0, top: 0, width: tileWidth, height: tileHeight - legendHeight},  // So map can use this
+      lowerPlot: {left: 0, top: 0, width: 0, height: 0},
       bottom: {left: 0, top: tileHeight - legendHeight, width: tileWidth, height: 0},
       legend: {left: 6, top: tileHeight - legendHeight, width: tileWidth - 6, height: legendHeight},
       rightNumeric: {left: tileWidth, top: 0, width: 0, height: tileWidth},

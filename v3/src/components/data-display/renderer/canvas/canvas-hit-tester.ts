@@ -6,6 +6,7 @@
  */
 
 import { PointDisplayType } from "../../data-display-types"
+import { anchoredBarRect } from "../bar-coalescing"
 import { IPointState } from "../point-renderer-types"
 
 /**
@@ -172,14 +173,8 @@ export class CanvasHitTester {
 
     if (displayType === "bars" && style.width !== undefined && style.height !== undefined) {
       // Bar/rectangle
-      const w = style.width * scale
-      const h = style.height * scale
-      return {
-        x: x - anchor.x * w,
-        y: y - anchor.y * h,
-        width: w,
-        height: h
-      }
+      const { left, top, width, height } = anchoredBarRect(x, y, style.width, style.height, scale, anchor)
+      return { x: left, y: top, width, height }
     } else {
       // Circle/point
       const r = style.radius * scale

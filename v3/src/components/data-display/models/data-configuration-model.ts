@@ -350,6 +350,7 @@ export const DataConfigurationModel = types
      */
     get unselectedCases() {
       if (!self.dataset) return []
+      // O(visible cases): avoid observing this per selection change (see the flag-gated reactions).
       return Array.from(this.visibleCaseIds).filter(caseId => !self.dataset?.isCaseSelected(caseId))
     }
   }))

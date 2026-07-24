@@ -155,6 +155,12 @@ export function deleteCasesNotification(data: IDataSet, cases?: ICase[]) {
 
 // selectCasesNotification returns a function that will later be called to determine if the selection
 // actually changed and a notification is necessary to broadcast
+function convertCaseIdsToV2FullCases(dataset: IDataSet, caseIds: string[]) {
+  const adapter = getDataSetNotificationAdapter()
+  const caseGroups = caseIds.map(caseId => dataset.caseInfoMap.get(caseId)?.groupedCase).filter(c => !!c)
+  return caseGroups.map(groupedCase => adapter.convertCase(groupedCase, dataset))
+}
+
 export function selectCasesNotification(dataset: IDataSet, extend?: boolean) {
   const getSelectedCaseIds = (selectedItemIds: Set<string>) => {
     const caseIds: string[] = []
@@ -170,8 +176,6 @@ export function selectCasesNotification(dataset: IDataSet, extend?: boolean) {
   const oldSelectedCaseIds = getSelectedCaseIds(oldSelectedItemIdSet)
   const oldSelectedCaseIdSet = new Set(oldSelectedCaseIds)
 
-  const adapter = getDataSetNotificationAdapter()
-
   return () => {
     const newSelectedItemIds = Array.from(dataset.selection)
     const newSelectedItemIdSet = new Set(newSelectedItemIds)
@@ -183,18 +187,28 @@ export function selectCasesNotification(dataset: IDataSet, extend?: boolean) {
     // Only send a notification if the selection has actually changed
     if (addedCaseIds.length === 0 && removedCaseIds.length === 0) return
 
-    const convertCaseIdsToV2FullCases = (_caseIds: string[]) => {
-      const caseGroups = _caseIds.map(caseId => dataset.caseInfoMap.get(caseId)?.groupedCase).filter(c => !!c)
-      return caseGroups.map(groupedCase => adapter.convertCase(groupedCase, dataset))
-    }
-
     const caseIds = extend ? addedCaseIds : newSelectedCaseIds
-    const _cases = convertCaseIdsToV2FullCases(caseIds)
+    const _cases = convertCaseIdsToV2FullCases(dataset, caseIds)
     // V2 expects cases to be undefined (not an empty array) if there are no cases selected
     const cases = _cases.length > 0 ? _cases : undefined
     const removedCases = extend && removedCaseIds.length > 0
-      ? convertCaseIdsToV2FullCases(removedCaseIds) : []
+      ? convertCaseIdsToV2FullCases(dataset, removedCaseIds) : []
     const result = { success: true, cases, removedCases, extend: !!extend }
     return dataSetNotification("selectCases", result, dataset)
   }
+}
+
+// Builds a selectCases notification from an explicit delta of case ids (extend semantics), avoiding
+// selectCasesNotification's O(selection) before/after snapshot. Used by the performance-mode marquee
+// path, which already knows exactly which cases were added/removed each move.
+export function selectCasesNotificationForDelta(
+  dataset: IDataSet, addedCaseIds: string[], removedCaseIds: string[]
+) {
+  if (addedCaseIds.length === 0 && removedCaseIds.length === 0) return undefined
+  const _cases = convertCaseIdsToV2FullCases(dataset, addedCaseIds)
+  // V2 expects cases to be undefined (not an empty array) if there are no cases selected
+  const cases = _cases.length > 0 ? _cases : undefined
+  const removedCases = removedCaseIds.length > 0 ? convertCaseIdsToV2FullCases(dataset, removedCaseIds) : []
+  const result = { success: true, cases, removedCases, extend: true }
+  return dataSetNotification("selectCases", result, dataset)
 }

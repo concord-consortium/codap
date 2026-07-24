@@ -67,6 +67,10 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
       break
     }
     case "willOpenFile":
+      // Hide the user entry modal as soon as a file open begins, so it doesn't linger in
+      // front of a still-loading document (e.g. a CFM `#shared=` shared document, which is
+      // fetched over the network). This fires before the load completes, unlike `openedFile`.
+      uiState.setHideUserEntryModal()
       removeDevUrlParams()
       break
     // case "newedFile":

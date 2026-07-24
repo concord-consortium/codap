@@ -1,4 +1,5 @@
 import { getAdornmentsMenuItemsFromTheStore, IMeasureMenuItem } from "./adornments-store-utils"
+import { featureFlagManager } from "../../../../models/feature-flags/feature-flag-manager"
 import { updateTileNotification } from "../../../../models/tiles/tile-notifications"
 
 jest.mock("../../../../models/tiles/tile-notifications", () => ({
@@ -58,5 +59,36 @@ describe("adornment notification operation names match V2", () => {
     const items = getAdornmentsMenuItemsFromTheStore(buildStore(), tile, "scatterPlot", false)
     findItem(items, "DG.Inspector.graphSquares").clickHandler?.()
     expect(updateTileNotification).toHaveBeenCalledWith("toggle show squares", { isChecked: true }, tile)
+  })
+})
+
+describe("residual plot menu item is gated behind the residualPlot feature flag", () => {
+  const tile = { id: "TILE1", content: { type: "Graph" } } as any
+
+  function buildStore() {
+    return {
+      showMeasureLabels: false,
+      showConnectingLines: false,
+      interceptLocked: false,
+      showSquaresOfResiduals: false,
+      showResidualPlot: false,
+      isShowingAdornment: () => false,
+      applyModelChange: jest.fn(),
+      toggleShowResidualPlot: jest.fn()
+    } as any
+  }
+
+  afterEach(() => featureFlagManager.setServerConfig({}))
+
+  it("omits the Residual Plot item when the flag is disabled", () => {
+    featureFlagManager.setServerConfig({})
+    const items = getAdornmentsMenuItemsFromTheStore(buildStore(), tile, "scatterPlot", false)
+    expect(findItem(items, "V3.Inspector.graphResidualPlot")).toBeUndefined()
+  })
+
+  it("includes the Residual Plot item when the flag is enabled", () => {
+    featureFlagManager.setServerConfig({ residualPlot: "on" })
+    const items = getAdornmentsMenuItemsFromTheStore(buildStore(), tile, "scatterPlot", false)
+    expect(findItem(items, "V3.Inspector.graphResidualPlot")).toBeDefined()
   })
 })

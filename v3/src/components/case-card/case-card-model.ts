@@ -2,6 +2,7 @@ import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { IAttribute } from "../../models/data/attribute"
 import { ICollectionModel } from "../../models/data/collection"
 import { ICaseCreation } from "../../models/data/data-set-types"
+import { isFiniteNumber } from "../../utilities/math-utils"
 import { getTileCaseMetadata, getTileDataSet } from "../../models/shared/shared-data-tile-utils"
 import { ISharedModel } from "../../models/shared/shared-model"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
@@ -71,34 +72,54 @@ export const CaseCardModel = TileContentModel
         .map(childCaseId => self.data?.caseInfoMap.get(childCaseId)?.groupedCase)
         .filter(groupedCase => !!groupedCase)
     },
+    // Summarizes the values of `attr` over `collection`. With no selection the summary
+    // covers the whole collection (the global "Summarize Dataset" state); when there is a
+    // selection it narrows to the collection's cases that have a selected descendant item.
+    // Because selecting/navigating to a parent selects all of its descendants, single-parent
+    // navigation yields exactly that parent's children (with multiple parents selected it
+    // covers every case with a selected descendant). This mirrors the selection-aware header
+    // count and matches legacy v2 behavior. Empty values are excluded, as in v2.
     summarizedValues(attr: IAttribute, collection: ICollectionModel) {
       // Establish a MobX dependency on the attribute's mutation counter so this view
       // re-evaluates when individual values change. Volatile strValues/numValues are
       // not deep-observable; changeCount is bumped by setValue/setComputedValues.
       // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       attr.changeCount
-      // Returns a string summarizing the selected values of the attribute
+      const summaryCases = (self.data?.selection.size ?? 0) > 0
+        ? collection.cases.filter(c => self.data?.isAnyChildItemSelected(c.__id__))
+        : collection.cases
+      // Returns a string summarizing the values of the attribute over the given cases
       if (attr.isNumeric) {
-        const numericValues = attr.numValues.filter((_v, i) => attr.isValueNumeric(i))
+        // Track min/max incrementally rather than building an array and spreading it into
+        // Math.min/Math.max, which can overflow the call stack on very large collections.
+        let minValue = Infinity
+        let maxValue = -Infinity
+        let hasNumericValue = false
+        summaryCases.forEach(c => {
+          const value = self.data?.getNumeric(c.__id__, attr.id)
+          if (isFiniteNumber(value)) {
+            if (value < minValue) minValue = value
+            if (value > maxValue) maxValue = value
+            hasNumericValue = true
+          }
+        })
+        if (!hasNumericValue) return ""
         const formatter = getNumFormatterForAttribute(attr)
-        const minValue = Math.min(...numericValues)
-        const maxValue = Math.max(...numericValues)
         const minValueStr = formatter?.(minValue) ?? minValue.toString()
         const maxValueStr = formatter?.(maxValue) ?? maxValue.toString()
         const valueString = minValueStr === maxValueStr ? minValueStr : `${minValueStr}-${maxValueStr}`
         const attrUnits = attr.units ? ` ${attr.units}` : ""
         return `${valueString}${attrUnits}`
       } else {
-        const selectedCases = self.data?.selection
-        const casesToUse = selectedCases && selectedCases.size >= 1
-          ? Array.from(selectedCases).map((id) => ({ __id__: id }))
-          : collection.cases
-        const allValues = casesToUse.map(c => self.data?.getValue(c.__id__, attr.id))
+        const allValues = summaryCases
+          .map(c => self.data?.getValue(c.__id__, attr.id))
+          .filter(value => value != null && value !== "")
         const uniqueValues = new Set(allValues)
         if (uniqueValues.size > 2) {
           return `${uniqueValues.size} values`
         } else {
           const uniqueValuesArray = Array.from(uniqueValues)
+          if (uniqueValuesArray.length === 0) return ""
           if (uniqueValuesArray.length === 2) {
             return `${uniqueValuesArray[0]}, ${uniqueValuesArray[1]}`
           }

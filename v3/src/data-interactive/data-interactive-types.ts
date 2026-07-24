@@ -106,6 +106,7 @@ export interface DILogMessage {
 
 export interface DIUrl {
   URL: string
+  title?: string
 }
 export interface DIDataDisplay {
   exportDataUri?: string

@@ -7,6 +7,10 @@ import { App } from "./components/app"
 import { kCodapAppElementId } from "./components/constants"
 import { theme } from "./theme"
 
+// starts the feature-flag config fetch at module load, so it races the document
+// load rather than waiting for React to mount
+import "./models/feature-flags/start-feature-flag-load"
+
 import "./index.scss"
 
 // Log the launch URL so testers can confirm where CODAP landed after any redirects.

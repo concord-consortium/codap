@@ -30,13 +30,16 @@ import {
 import { CaseData } from "../../data-display/d3-types"
 import { BackgroundLockInfo, DataDisplayContentModel } from "../../data-display/models/data-display-content-model"
 import {
-  attrRoleToAxisPlace, axisPlaceToAttrRole, GraphAttrRole, kMain, kOther, PrimaryAttrRoles
+  attrRoleToAxisPlace, axisPlaceToAttrRole, getAxisPlaceTraits, GraphAttrRole, kMain, kOther, PrimaryAttrRoles
 } from "../../data-display/data-display-types"
 import { computePointRadius } from "../../data-display/data-display-utils"
 import { IGetTipTextProps } from "../../data-display/data-tip-types"
 import { AxisHelper } from "../../axis/helper-models/axis-helper"
 import { IAxisProviderBase } from "../../axis/models/axis-provider"
 import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment-models"
+import { kLSRLType } from "../adornments/lsrl/lsrl-adornment-types"
+import { kMovableLineType } from "../adornments/movable-line/movable-line-adornment-types"
+import { kPlottedFunctionType } from "../adornments/plotted-function/plotted-function-adornment-types"
 import {AdornmentsStore} from "../adornments/store/adornments-store"
 import { isUnivariateMeasureAdornment } from "../adornments/univariate-measures/univariate-measure-adornment-model"
 import {kGraphTileType} from "../graph-defs"
@@ -44,6 +47,7 @@ import { CatMapType, CellType, PlotType } from "../graphing-types"
 import { CasePlotModel } from "../plots/case-plot/case-plot-model"
 import { IPlotGraphApi } from "../plots/plot-model"
 import { IPlotModelUnionSnapshot, PlotModelUnion } from "../plots/plot-model-union"
+import { residualPlotIsApplicable } from "../plots/scatter-plot/residual-plot-utils"
 import {GraphPointLayerModel, IGraphPointLayerModel, kGraphPointLayerType} from "./graph-point-layer-model"
 
 export interface GraphProperties {
@@ -140,9 +144,16 @@ export const GraphContentModel = DataDisplayContentModel
       return self.dataConfiguration.attributeID(place) ?? ''
     },
     axisShouldShowGridLines(place: AxisPlace) {
-      return ["left", "bottom"].includes(place) && self.plot.showGridLines
+      // "leftLower" is the Residual Plot's y-axis; its horizontal grid lines extend right into
+      // the residual area and are gated on the main plot's showGridLines toggle so the whole
+      // graph (upper + residual) responds to a single control.
+      return ["left", "bottom", "leftLower"].includes(place) && self.plot.showGridLines
     },
     axisShouldShowZeroLine(place: AxisPlace) {
+      // Some axes (e.g. the Residual Plot's lower y-axis) always show a horizontal reference line at
+      // 0, styled like the upper plot's zero line — it's central to interpreting the plot, so it's
+      // not gated on plot.showZeroLine.
+      if (getAxisPlaceTraits(place).alwaysShowsZeroLine) return true
       return ['left', 'bottom'].includes(place) && self.plot.showZeroLine
     },
     placeCanAcceptAttributeIDDrop(place: GraphPlace,
@@ -193,6 +204,26 @@ export const GraphContentModel = DataDisplayContentModel
         self.axes.set(place, axis)
       }
     },
+    // Grows numeric axes to fit data that has moved past them, while leaving user/plugin-set bounds
+    // and already-fitting axes untouched. Passes growOnly so that clamped (count/percent) axes, which
+    // otherwise refit tightly to the data, are also only grown and never shrunk.
+    growNumericAxesToFit() {
+      AxisPlaces.forEach((axisPlace: AxisPlace) => {
+        // Adornment-owned axes (e.g. the Residual Plot) have no owning attribute — their domain is
+        // managed externally. Skip them here to avoid clobbering with the y attribute's data extent
+        // (via the "y" placeholder role).
+        if (getAxisPlaceTraits(axisPlace).isAdornmentOwned) return
+        const axis = self.getAxis(axisPlace),
+          role = axisPlaceToAttrRole[axisPlace]
+        if (isAnyNumericAxisModel(axis)) {
+          // A binned plot's primary axis owns [minBinEdge, maxBinEdge] and resyncs itself; niceing it
+          // here would extend it past the bins.
+          if (self.plot.hasBinnedNumericAxis && axisPlace === self.primaryPlace) return
+          const numericValues = self.plot.numericValuesForRole(role)
+          setNiceDomain(numericValues, axis, { ...self.plot.axisDomainOptions, growOnly: true })
+        }
+      })
+    },
     async afterAttachToDocument() {
       if (!self.tileEnv?.sharedModelManager?.isReady) {
         await when(() => !!self.tileEnv?.sharedModelManager?.isReady)
@@ -217,40 +248,38 @@ export const GraphContentModel = DataDisplayContentModel
         self.adornmentsStore.updateAdornments(updateCategoriesOptions)
       }, {name: "GraphContentModel.afterAttachToDocument.updateAdornments"}, self.dataConfiguration))
 
-      // Expand numeric axis domains when new cases are added (e.g., via plugin API)
+      // Binned plots own [minBinEdge, maxBinEdge] on the primary axis; when cases are added, let the
+      // plot resync its own domain (and grow bins to fit new data) before the casesChangeCount reaction
+      // below grows the remaining numeric axes (which skips the binned primary).
       addDisposer(self, self.dataConfiguration.onAction((actionCall) => {
-        if (actionCall.name === "addCases") {
-          // Binned plots own [minBinEdge, maxBinEdge] on the primary axis; running
-          // setNiceDomain on it would re-nice the domain past the bins and produce
-          // the half-bin sliver at top/bottom (CODAP-1281). Let the plot resync
-          // its own domain (and grow bins to fit new data), then skip the binned
-          // primary axis below.
-          if (self.plot.hasBinnedNumericAxis) {
-            // The captured self doesn't satisfy IAxisProviderBase here because
-            // setAxisHelper is defined in the same .actions block as this callback,
-            // so it isn't visible on self yet. The cast through unknown is required;
-            // at runtime self does provide every method on the interface.
-            self.plot.respondToPlotChange({
-              axisProvider: self as unknown as IAxisProviderBase,
-              primaryPlace: self.primaryPlace,
-              secondaryPlace: self.secondaryPlace
-            })
-          }
-          AxisPlaces.forEach((axisPlace: AxisPlace) => {
-            const axis = self.getAxis(axisPlace),
-              role = axisPlaceToAttrRole[axisPlace]
-            if (isAnyNumericAxisModel(axis)) {
-              if (self.plot.hasBinnedNumericAxis && axisPlace === self.primaryPlace) return
-              const numericValues = self.plot.numericValuesForRole(role)
-              setNiceDomain(numericValues, axis, self.plot.axisDomainOptions)
-            }
+        if (actionCall.name === "addCases" && self.plot.hasBinnedNumericAxis) {
+          // The captured self doesn't satisfy IAxisProviderBase here because
+          // setAxisHelper is defined in the same .actions block as this callback,
+          // so it isn't visible on self yet. The cast through unknown is required;
+          // at runtime self does provide every method on the interface.
+          self.plot.respondToPlotChange({
+            axisProvider: self as unknown as IAxisProviderBase,
+            primaryPlace: self.primaryPlace,
+            secondaryPlace: self.secondaryPlace
           })
         }
       }))
 
-      // When showMeasuresForSelection is true, update adornments when selection changes
+      // Grow-fit numeric axes when cases are added/removed or their values change. Driven by
+      // casesChangeCount, which clearCasesCache bumps after invalidating the numeric-values cache, so
+      // the rescale reads current values rather than the stale cache a synchronous action response
+      // would see. addCases bumps casesChangeCount too, so this also covers the case-addition path.
+      addDisposer(self, mstReaction(
+        () => self.dataConfiguration.casesChangeCount,
+        () => this.growNumericAxesToFit(),
+        {name: "GraphContentModel.afterAttachToDocument.rescaleOnValueChange"}, self.dataConfiguration
+      ))
+
+      // When showMeasuresForSelection is true, update adornments when selection changes. Only observe
+      // the (O(N)) selection while the flag is on, so an ordinary marquee selection doesn't recompute
+      // and structurally-compare the full selection on every move when measures-for-selection is off.
       addDisposer(self, mstReaction(() => {
-        return self.dataConfiguration.selection
+        return self.dataConfiguration.showMeasuresForSelection ? self.dataConfiguration.selection : undefined
       },
         () => {
           if (self.dataConfiguration.showMeasuresForSelection) {
@@ -259,6 +288,56 @@ export const GraphContentModel = DataDisplayContentModel
           }
       }, {name: "GraphContentModel.afterAttachToDocument.updateAdornments", equals: comparer.structural},
         self.dataConfiguration))
+
+      // V2 parity: Movable Line, LSRL, and Plotted Function apply only when
+      // both x and y are numeric. When either becomes non-numeric (e.g. y-axis attribute
+      // swapped to categorical), hide these adornments so they don't silently reappear when
+      // both axes are numeric again. Without this, isVisible persists through the swap and
+      // the line re-renders as soon as the axes become numeric-numeric — V2 required the
+      // user to re-check them.
+      mstReaction(
+        () => self.dataConfiguration.attributeType("x") === "numeric" &&
+              self.dataConfiguration.attributeType("y") === "numeric",
+        (numericXY) => {
+          if (!numericXY) {
+            self.adornmentsStore.hideAdornment(kMovableLineType)
+            self.adornmentsStore.hideAdornment(kLSRLType)
+            self.adornmentsStore.hideAdornment(kPlottedFunctionType)
+          }
+        },
+        { name: "GraphContentModel.afterAttachToDocument.hideLinesOnNonNumericAxes" },
+        self)
+
+      // V2 parity: when no line/curve adornment is visible, uncheck Squares
+      // of Residuals rather than leaving it checked-but-disabled. The paired residual-plot
+      // clearing for this same scenario falls out of the residualPlotIsApplicable reaction
+      // below (which also returns false when no line is visible).
+      mstReaction(
+        () => self.adornmentsStore.isShowingAdornment(kMovableLineType) ||
+              self.adornmentsStore.isShowingAdornment(kLSRLType) ||
+              self.adornmentsStore.isShowingAdornment(kPlottedFunctionType),
+        (anyLineVisible) => {
+          if (!anyLineVisible && self.adornmentsStore.showSquaresOfResiduals) {
+            self.adornmentsStore.setShowSquaresOfResiduals(false)
+          }
+        },
+        { name: "GraphContentModel.afterAttachToDocument.syncSquaresOfResidualsGate" },
+        self)
+
+      // Uncheck Residual Plot whenever its applicability disappears — no visible
+      // line, non-numeric x/y, extra y attribute, right-numeric / top-split / right-split /
+      // legend attribute added. The Jira spec covers only the "no line visible" case; this
+      // reaction extends the same pattern to every applicability constraint so the boolean
+      // stays consistent with the enabled state of its menu item.
+      mstReaction(
+        () => residualPlotIsApplicable(self.adornmentsStore, self.dataConfiguration),
+        (isApplicable) => {
+          if (!isApplicable && self.adornmentsStore.showResidualPlot) {
+            self.adornmentsStore.setShowResidualPlot(false)
+          }
+        },
+        { name: "GraphContentModel.afterAttachToDocument.syncResidualPlotGate" },
+        self)
 
       // When a univariate adornment becomes visible and needs to be recomputed, update it
       mstReaction(
@@ -538,6 +617,8 @@ export const GraphContentModel = DataDisplayContentModel
         this.incrementChangeCount()
       } else {
         AxisPlaces.forEach((axisPlace: AxisPlace) => {
+          // See growNumericAxesToFit — adornment-owned axes are managed externally, not from attributes.
+          if (getAxisPlaceTraits(axisPlace).isAdornmentOwned) return
           const axis = self.getAxis(axisPlace),
             role = axisPlaceToAttrRole[axisPlace]
           if (isAnyNumericAxisModel(axis)) {

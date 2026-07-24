@@ -20,6 +20,7 @@ export const AdornmentsBaseStore = types.model("AdornmentsBaseStore", {
   interceptLocked: false,
   showConnectingLines: false,
   showMeasureLabels: false,
+  showResidualPlot: false,
   showSquaresOfResiduals: false
 })
 .views(self => ({
@@ -80,8 +81,17 @@ export const AdornmentsBaseStore = types.model("AdornmentsBaseStore", {
   toggleShowLabels() {
     self.showMeasureLabels = !self.showMeasureLabels
   },
+  toggleShowResidualPlot() {
+    self.showResidualPlot = !self.showResidualPlot
+  },
+  setShowResidualPlot(show: boolean) {
+    self.showResidualPlot = show
+  },
   toggleShowSquaresOfResiduals() {
     self.showSquaresOfResiduals = !self.showSquaresOfResiduals
+  },
+  setShowSquaresOfResiduals(show: boolean) {
+    self.showSquaresOfResiduals = show
   },
   showAdornment(adornment: IAdornmentModel, type: string) {
     const adornmentExists = self.adornments.find(a => a.type === type)

@@ -1,7 +1,10 @@
 import { logMessageWithReplacement } from "../../../../lib/log-message"
+import { isFeatureEnabled } from "../../../../models/feature-flags/feature-flag-manager"
 import { ITileModel } from "../../../../models/tiles/tile-model"
 import { updateTileNotification } from "../../../../models/tiles/tile-notifications"
 import { PlotType } from "../../graphing-types"
+import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
+import { residualPlotIsApplicable } from "../../plots/scatter-plot/residual-plot-utils"
 import { getAdornmentComponentInfo, IAdornmentComponentInfo } from "../adornment-component-info"
 import { getAdornmentContentInfo, IAdornmentContentInfo } from "../adornment-content-info"
 import { getMeasuresForPlot, IMeasure, RulerStateKey } from "../adornment-ui-types"
@@ -199,6 +202,41 @@ export function getAdornmentsMenuItemsFromTheStore(theStore: IAdornmentsBaseStor
             : "DG.Redo.graph.showSquares",
           log: logMessageWithReplacement("%@ squares of residuals",
             {action: theStore.showSquaresOfResiduals ? "Hide" : "Show"}, "plot")
+        })
+      }
+    })
+    // Residual Plot follows the Squares of Residuals pattern. The menu item appears only when the
+    // residualPlot feature flag is enabled; the render path in ScatterPlot keys off the persisted
+    // showResidualPlot state rather than the flag, so a document that already has the residual plot
+    // on still opens and renders when the flag is off. Enabled only when the full applicability
+    // check passes: numeric x/y axes, exactly one y attribute, no right numeric / top-split /
+    // right-split / legend attributes, and exactly one of movable line, LSRL, or plotted function
+    // is visible. Delegates to residualPlotIsApplicable so the menu-item gating and the render-path
+    // gating (in ScatterPlot) share one predicate.
+    const tileContent = tile?.content
+    const dataConfig = tileContent && "dataConfiguration" in tileContent
+      ? (tileContent as { dataConfiguration?: IGraphDataConfigurationModel }).dataConfiguration
+      : undefined
+    const residualPlotApplicable = residualPlotIsApplicable(theStore, dataConfig)
+    addItemIfCondition(isFeatureEnabled("residualPlot"), {
+      checked: theStore.showResidualPlot,
+      disabled: !residualPlotApplicable,
+      title: "V3.Inspector.graphResidualPlot",
+      type: "control",
+      clickHandler: () => {
+        theStore.applyModelChange(() => {
+          theStore.toggleShowResidualPlot()
+        }, {
+          notify: tile
+            ? updateGraphAdornmentNotification("toggle show residual plot",
+              !theStore.showResidualPlot, tile)
+            : undefined,
+          undoStringKey: theStore.showResidualPlot ? "V3.Undo.graph.hideResidualPlot"
+            : "V3.Undo.graph.showResidualPlot",
+          redoStringKey: theStore.showResidualPlot ? "V3.Redo.graph.hideResidualPlot"
+            : "V3.Redo.graph.showResidualPlot",
+          log: logMessageWithReplacement("%@ residual plot",
+            {action: theStore.showResidualPlot ? "Hide" : "Show"}, "plot")
         })
       }
     })

@@ -9,6 +9,7 @@ jest.mock("d3", () => ({
     selectAll: jest.fn().mockReturnValue({
       remove: jest.fn()
     }),
+    select: jest.fn().mockReturnThis(),
     attr: jest.fn().mockReturnThis(),
     append: jest.fn().mockReturnThis(),
     style: jest.fn().mockReturnThis(),
@@ -60,6 +61,40 @@ describe("NumericAxisHelper", () => {
 
   it("should return correct newRange", () => {
     expect(numericAxisHelper.newRange).toEqual([100, 0])
+  })
+
+  describe("renderScatterPlotGridLines tick alignment", () => {
+    let gridAxis: { tickSizeInner: jest.Mock; tickValues: jest.Mock }
+    let axisFn: jest.Mock
+
+    beforeEach(() => {
+      gridAxis = {
+        tickSizeInner: jest.fn().mockReturnThis(),
+        tickValues: jest.fn().mockReturnThis()
+      }
+      axisFn = jest.fn().mockReturnValue(gridAxis)
+      // `axis` is a getter returning a d3 axis generator; d3 is mocked out here, so stub it
+      // to hand back a spy-able grid axis.
+      Object.defineProperty(numericAxisHelper, "axis", { value: axisFn, configurable: true })
+      // A scale whose domain doesn't straddle zero, so the zero-line branch is skipped and
+      // `axis()` is invoked only for the grid axis, keeping the assertions unambiguous.
+      const scale = {
+        copy: jest.fn().mockReturnThis(),
+        range: jest.fn().mockReturnThis(),
+        domain: jest.fn().mockReturnValue([10, 200])
+      }
+      numericAxisHelper.multiScale = { cellLength: 100, scale } as any
+    })
+
+    it("applies the axis's tick values to the grid axis so grid lines coincide with tick marks", () => {
+      numericAxisHelper.renderScatterPlotGridLines([50, 100, 150])
+      expect(gridAxis.tickValues).toHaveBeenCalledWith([50, 100, 150])
+    })
+
+    it("leaves the grid axis on d3's default ticks when no tick values are supplied", () => {
+      numericAxisHelper.renderScatterPlotGridLines()
+      expect(gridAxis.tickValues).not.toHaveBeenCalled()
+    })
   })
 
   // todo: fix this test

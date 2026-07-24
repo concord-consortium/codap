@@ -21,7 +21,9 @@ import { changeMapCoordinatesNotification } from "../map-notifications"
 import {ILatLngSnapshot, LatLngModel} from "../map-model-types"
 import {BaseMapKey, BaseMapKeys, kMapBoundsExtensionFactor} from "../map-types"
 import { DataSetMapAttributes } from "../utilities/data-set-map-attributes"
-import { collectPolygonVertexLngs, computeBoundsFromCoordinates, expandLatLngBounds } from "../utilities/map-utils"
+import {
+  collectPolygonVertexLngs, computeBoundsFromCoordinates, expandLatLngBounds, wrapBoundsToCanonicalCenter
+} from "../utilities/map-utils"
 import {LeafletMapState} from "./leaflet-map-state"
 import { IMapLayerModel, isMapLayerModel } from "./map-layer-model"
 import { isMapPinLayerModel, MapPinLayerModel } from "./map-pin-layer-model"
@@ -237,8 +239,9 @@ export const MapContentModel = DataDisplayContentModel
     rescale(undoStringKey = "", redoStringKey = "") {
       const bounds = self.latLongBounds
       if (bounds) {
+        const expanded = wrapBoundsToCanonicalCenter(expandLatLngBounds(bounds, kMapBoundsExtensionFactor))
         self.leafletMapState.adjustMapView({
-          fitBounds: expandLatLngBounds(bounds, kMapBoundsExtensionFactor),
+          fitBounds: expanded,
           animate: !!undoStringKey && !!redoStringKey,
           undoStringKey, redoStringKey
         })

@@ -6,8 +6,9 @@ export const labelMargin = 13   // whitespace outside the label background rect 
 export const labelPaddingX = 8  // horizontal padding inside the label background rect (between rect edge and text)
 export const labelPaddingY = 4  // vertical padding inside the label background rect (between rect edge and text)
 
-// "rightCat" and "top" can only be categorical axes. "rightNumeric" can only be numeric
-export const AxisPlaces = ["bottom", "left", "rightCat", "top", "rightNumeric"] as const
+// "rightCat" and "top" can only be categorical axes. "rightNumeric" and "leftLower" can only be numeric.
+// "leftLower" is the numeric y-axis for the optional split-plot lower region (see GraphLayout.showLowerPlot).
+export const AxisPlaces = ["bottom", "left", "leftLower", "rightCat", "top", "rightNumeric"] as const
 export type AxisPlace = typeof AxisPlaces[number]
 
 export function isAxisPlace(place: string): place is AxisPlace {
@@ -27,6 +28,7 @@ export const axisPlaceToAxisFn = (place: AxisPlace) => {
   return {
     bottom: axisBottom,
     left: axisLeft,
+    leftLower: axisLeft,
     rightCat: axisRight,
     rightNumeric: axisRight,
     top: axisTop
@@ -46,6 +48,10 @@ export interface AxisBounds {
 
 export interface IAxisDomainOptions {
   clampPosMinAtZero?: boolean
+  // When set, the domain is only ever grown to fit the data, never shrunk. This preserves a
+  // larger user/plugin-set bound even for clamped (count/percent) axes, which otherwise refit
+  // tightly to the data on every change.
+  growOnly?: boolean
 }
 
 export type TickFormatter = (value: number) => string

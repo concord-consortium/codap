@@ -1,4 +1,7 @@
-import { getDropPriority } from "./use-import-helpers"
+import { renderHook } from "@testing-library/react"
+import { kWebViewTileType } from "../components/web-view/web-view-defs"
+import { appState } from "../models/app-state"
+import { getDropPriority, useImportHelpers } from "./use-import-helpers"
 
 // Helper to create a mock DataTransferItemList from an array of {kind, type} objects
 function mockItems(items: Array<{ kind: string, type: string }>): DataTransferItemList {
@@ -75,5 +78,40 @@ describe("getDropPriority", () => {
   it("returns 'none' for an empty items list", () => {
     const items = mockItems([])
     expect(getDropPriority(items)).toBe("none")
+  })
+})
+
+describe("useImportHelpers loadWebView URL scheme guard", () => {
+  const renderImportHelpers = () =>
+    renderHook(() => useImportHelpers({ cfmRef: { current: null }, onCloseUserEntry: () => undefined }))
+
+  it("alerts and does not create a web view for an unsafe-scheme dropped URL", () => {
+    const alertSpy = jest.spyOn(appState, "alert").mockImplementation(() => undefined)
+    const createSpy = jest.spyOn(appState.document.content!, "createOrShowTile")
+      .mockImplementation(() => undefined)
+    const { result } = renderImportHelpers()
+
+    result.current.handleUrlImported("javascript:alert(1)")
+
+    expect(alertSpy).toHaveBeenCalled()
+    expect(createSpy).not.toHaveBeenCalled()
+
+    createSpy.mockRestore()
+    alertSpy.mockRestore()
+  })
+
+  it("creates a web view for a supported-scheme dropped URL", () => {
+    const alertSpy = jest.spyOn(appState, "alert").mockImplementation(() => undefined)
+    const createSpy = jest.spyOn(appState.document.content!, "createOrShowTile")
+      .mockImplementation(() => undefined)
+    const { result } = renderImportHelpers()
+
+    result.current.handleUrlImported("https://example.com/plugin/index")
+
+    expect(createSpy).toHaveBeenCalledWith(kWebViewTileType, undefined)
+    expect(alertSpy).not.toHaveBeenCalled()
+
+    createSpy.mockRestore()
+    alertSpy.mockRestore()
   })
 })

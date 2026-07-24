@@ -57,7 +57,7 @@ export class AxisHelper {
   get initialTransform() {
     const axisBounds = this.layout.getComputedBounds(this.axisPlace)
     if (!axisBounds) throw new Error("AxisLayout can't compute bounds")
-    return (this.axisPlace === 'left')
+    return (this.axisPlace === 'left' || this.axisPlace === 'leftLower')
       ? `translate(${axisBounds.left + axisBounds.width}, ${axisBounds.top})`
       : (this.axisPlace === 'top')
         ? `translate(${axisBounds.left}, ${axisBounds.top + axisBounds.height})`

@@ -21,6 +21,8 @@ import { IDocumentModel } from "./document/document"
 import {
   ISerializedDocument, ISerializedV3Document, serializeCodapDocument, serializeDocument
 } from "./document/serialize-document"
+import { addFeatureFlagGrants } from "./feature-flags/feature-flag-document"
+import { featureFlagManager } from "./feature-flags/feature-flag-manager"
 import { TreeManagerType } from "./history/tree-manager"
 import { ISharedDataSet, kSharedDataSetType, SharedDataSet } from "./shared/shared-data-set"
 import { getSharedModelManager } from "./tiles/tile-environment"
@@ -45,6 +47,7 @@ class AppState {
   private cfm: CloudFileManager | undefined
   private dirtyMonitorDisposer: (() => void) | undefined
   private titleMonitorDisposer: (() => void) | undefined
+  private featureFlagMonitorDisposer: (() => void) | undefined
   private pendingDirtyResetTimeout: ReturnType<typeof setTimeout> | undefined
 
   constructor() {
@@ -88,6 +91,7 @@ class AppState {
     if (revisionId) {
       snapshot.revisionId = revisionId
     }
+    addFeatureFlagGrants(snapshot)
 
     return snapshot
   }
@@ -196,6 +200,16 @@ class AppState {
       )
     }
 
+    // Push the open document's feature-flag grants into the flag manager. The
+    // manager deliberately imports nothing from app-state or document-content so
+    // that it stays a leaf in the dependency graph, so the grants come to it
+    // rather than it reaching for them.
+    if (!this.featureFlagMonitorDisposer) {
+      this.featureFlagMonitorDisposer = autorun(() => {
+        featureFlagManager.setDocumentFlags(this.currentDocument?.content?.featureFlags ?? [])
+      })
+    }
+
     // TODO: look for tests of opening documents so we can update them to check
     // the title
     if (!this.titleMonitorDisposer) {
@@ -218,6 +232,8 @@ class AppState {
     this.dirtyMonitorDisposer = undefined
     this.titleMonitorDisposer?.()
     this.titleMonitorDisposer = undefined
+    this.featureFlagMonitorDisposer?.()
+    this.featureFlagMonitorDisposer = undefined
   }
 
   @action

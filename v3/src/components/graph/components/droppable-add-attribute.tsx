@@ -16,10 +16,11 @@ interface IAddAttributeProps {
   place: GraphPlace
   plotType: PlotType
   hasRightDropZone?: boolean
+  hasTopAxis?: boolean
   onDrop: (dataSet: IDataSet, attributeId: string) => void
 }
 
-export const DroppableAddAttribute = ({place, hasRightDropZone, onDrop}: IAddAttributeProps) => {
+export const DroppableAddAttribute = ({place, hasRightDropZone, hasTopAxis, onDrop}: IAddAttributeProps) => {
   const layout = useGraphLayoutContext()
   const graphID = useInstanceIdContext(),
     dataConfiguration = useGraphDataConfigurationContext(),
@@ -57,21 +58,43 @@ export const DroppableAddAttribute = ({place, hasRightDropZone, onDrop}: IAddAtt
     if (placeKey === "right") {
       return { height: Math.max(0, plotBounds.height - kDropZoneGap), top: plotBounds.top + kDropZoneGap }
     }
-    if (placeKey === "top" || placeKey === "yPlus") {
-      // Only inset by the portion of the right-edge drop zone that would actually overlap the
-      // top drop zone.
-      const rightAxisExtent =
-        layout.getDesiredExtent('rightNumeric') + layout.getDesiredExtent('rightCat')
-      const rightInset = hasRightDropZone
-        ? Math.max(0, kDropZoneSize + kDropZoneGap - rightAxisExtent)
-        : 0
+    // Only inset by the portion of the right-edge drop zone that would actually overlap.
+    const rightAxisExtent =
+      layout.getDesiredExtent('rightNumeric') + layout.getDesiredExtent('rightCat')
+    const rightInset = hasRightDropZone
+      ? Math.max(0, kDropZoneSize + kDropZoneGap - rightAxisExtent)
+      : 0
+    if (placeKey === "yPlus" && hasTopAxis) {
+      // A top axis already occupies the wide strip across the top of the plot, so narrow
+      // the yPlus drop zone to just the y-axis column. Makes it clear the drop will add
+      // another y attribute rather than a top-axis category.
+      return { width: Math.max(0, plotBounds.left - kDropZoneGap), left: 0 }
+    }
+    if (placeKey === "yPlus") {
+      // Span the entire top of the graph including the y-axis column, matching v2's
+      // full-width strip and giving the "+" a place to sit over the y-axis.
+      return { width: Math.max(0, plotBounds.left + plotBounds.width - kDropZoneGap - rightInset), left: 0 }
+    }
+    if (placeKey === "top") {
+      // Plot-split (categorical) is bounded by the plot area only.
       return { width: Math.max(0, plotBounds.width - kDropZoneGap - rightInset), left: plotBounds.left + kDropZoneGap }
     }
   })()
 
+  // "+" only on yPlus (multi-y numeric on scatterplot).
+  const showPlusIcon = place === 'yPlus'
+  // Half the drop-zone height. Set inline to override `.graph-plot svg { width/height: 100% }`.
+  const kPlusSize = kDropZoneSize / 2
+  const plusStyle: CSSProperties = { width: kPlusSize, height: kPlusSize }
+
   return isActive ? (
     <div ref={setNodeRef} id={droppableId} className={className} style={style}
       data-testid={`add-attribute-drop-${place}`}>
+      {showPlusIcon && (
+        <svg className="add-attribute-plus" style={plusStyle} viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 3v18M3 12h18" stroke="currentColor" strokeWidth="6"/>
+        </svg>
+      )}
       <DropHint hintText={hintString} isVisible={isOver}/>
     </div>
   ) : null

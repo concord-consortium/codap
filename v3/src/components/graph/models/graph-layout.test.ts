@@ -26,10 +26,15 @@ describe("GraphLayout", () => {
 
     it("should initialize axis scales for all axis places", () => {
       expect(layout.getAxisMultiScale("left")).toBeDefined()
+      expect(layout.getAxisMultiScale("leftLower")).toBeDefined()
       expect(layout.getAxisMultiScale("bottom")).toBeDefined()
       expect(layout.getAxisMultiScale("top")).toBeDefined()
       expect(layout.getAxisMultiScale("rightCat")).toBeDefined()
       expect(layout.getAxisMultiScale("rightNumeric")).toBeDefined()
+    })
+
+    it("should default showLowerPlot to false", () => {
+      expect(layout.showLowerPlot).toBe(false)
     })
   })
 
@@ -321,7 +326,113 @@ describe("GraphLayout", () => {
     it("should return arrays of category values from all scales", () => {
       const arrays = layout.categorySetArrays
       expect(Array.isArray(arrays)).toBe(true)
-      expect(arrays.length).toBe(5) // one for each axis place
+      expect(arrays.length).toBe(6) // one for each axis place
+    })
+  })
+
+  describe("split-plot layout (showLowerPlot)", () => {
+    beforeEach(() => {
+      layout.setTileExtent(400, 300)
+    })
+
+    it("does not affect computedBounds when off", () => {
+      // Capture bounds with flag off
+      const off = layout.computedBounds
+      // Toggle on and off — bounds should match the original
+      layout.setShowLowerPlot(true)
+      layout.setShowLowerPlot(false)
+      const restored = layout.computedBounds
+      expect(restored.plot).toEqual(off.plot)
+      expect(restored.left).toEqual(off.left)
+      expect(restored.bottom).toEqual(off.bottom)
+    })
+
+    it("reports zero-sized leftLower/lowerPlot bounds when off", () => {
+      const bounds = layout.computedBounds
+      expect(bounds.lowerPlot.width).toBe(0)
+      expect(bounds.lowerPlot.height).toBe(0)
+      expect(bounds.leftLower.width).toBe(0)
+      expect(bounds.leftLower.height).toBe(0)
+    })
+
+    it("splits the plot area 2:1 when on", () => {
+      // With defaults (left=20, bottom=20), full plot height = 300 - 20 = 280.
+      // Lower = round(280 * 1/3) = 93, upper = 280 - 93 = 187.
+      layout.setShowLowerPlot(true)
+      const bounds = layout.computedBounds
+      expect(bounds.plot.height).toBe(187)
+      expect(bounds.lowerPlot.height).toBe(93)
+      expect(bounds.plot.top + bounds.plot.height).toBe(bounds.lowerPlot.top)
+      // Upper + lower still fills the full plot height
+      expect(bounds.plot.height + bounds.lowerPlot.height).toBe(280)
+    })
+
+    it("places the bottom axis below the lower region when on", () => {
+      layout.setShowLowerPlot(true)
+      const bounds = layout.computedBounds
+      expect(bounds.bottom.top).toBe(bounds.lowerPlot.top + bounds.lowerPlot.height)
+    })
+
+    it("positions leftLower directly below left with matching width", () => {
+      layout.setDesiredExtent("left", 50)
+      layout.setShowLowerPlot(true)
+      const bounds = layout.computedBounds
+      expect(bounds.leftLower.width).toBe(50)
+      expect(bounds.leftLower.left).toBe(0)
+      expect(bounds.leftLower.top).toBe(bounds.left.top + bounds.left.height)
+      expect(bounds.leftLower.height).toBe(bounds.lowerPlot.height)
+    })
+
+    it("shrinks the left axis scale to the upper region when toggled on", () => {
+      // Full plot height = 280
+      layout.setAxisScaleType("left", "linear")
+      layout.setAxisScaleType("leftLower", "linear")
+      expect(layout.getAxisMultiScale("left").length).toBe(280)
+      expect(layout.getAxisMultiScale("leftLower").length).toBe(0)
+      layout.setShowLowerPlot(true)
+      expect(layout.getAxisMultiScale("left").length).toBe(187)
+      expect(layout.getAxisMultiScale("leftLower").length).toBe(93)
+    })
+
+    it("restores the left axis scale length when toggled off", () => {
+      layout.setAxisScaleType("left", "linear")
+      layout.setShowLowerPlot(true)
+      layout.setShowLowerPlot(false)
+      expect(layout.getAxisMultiScale("left").length).toBe(280)
+      expect(layout.getAxisMultiScale("leftLower").length).toBe(0)
+    })
+
+    it("getAxisLength returns the lower region height for leftLower", () => {
+      layout.setShowLowerPlot(true)
+      expect(layout.getAxisLength("leftLower")).toBe(93)
+      expect(layout.getAxisLength("left")).toBe(187)
+    })
+
+    it("getLowerYCoord returns undefined until a numeric domain is set", () => {
+      layout.setShowLowerPlot(true)
+      // Scale defaults to ordinal; numericScale is undefined
+      expect(layout.getLowerYCoord(0)).toBeUndefined()
+    })
+
+    it("getLowerYCoord maps values into the lower region using absolute tile y", () => {
+      layout.setShowLowerPlot(true)
+      layout.setAxisScaleType("leftLower", "linear")
+      const scale = layout.getAxisMultiScale("leftLower")
+      scale.setNumericDomain([-50, 50])
+      const bounds = layout.computedBounds
+      // Value at top of domain (50) should map to lowerPlot.top; bottom of domain (-50) to bottom edge.
+      expect(layout.getLowerYCoord(50)).toBeCloseTo(bounds.lowerPlot.top, 5)
+      expect(layout.getLowerYCoord(-50)).toBeCloseTo(bounds.lowerPlot.top + bounds.lowerPlot.height, 5)
+      // Zero maps to the middle
+      expect(layout.getLowerYCoord(0)).toBeCloseTo(bounds.lowerPlot.top + bounds.lowerPlot.height / 2, 5)
+    })
+
+    it("setShowLowerPlot is idempotent", () => {
+      layout.setShowLowerPlot(true)
+      const bounds1 = layout.computedBounds
+      layout.setShowLowerPlot(true)
+      const bounds2 = layout.computedBounds
+      expect(bounds1).toEqual(bounds2)
     })
   })
 

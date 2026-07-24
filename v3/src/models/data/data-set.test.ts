@@ -755,6 +755,22 @@ test("Caching mode", () => {
   expect(ds.isCaching()).toBe(false)
 })
 
+test("getNumeric parses blank cached values as NaN (does not coerce '' to 0)", () => {
+  const ds = DataSet.create({ name: "data" })
+  ds.addAttribute({ name: "num" })
+  const numAttrID = ds.attributes[0].id
+  ds.addCases(toCanonical(ds, [{ num: 5 }]))
+  const id = ds.items[0].__id__
+
+  ds.beginCaching()
+  ds.setCaseValues([{ __id__: id, [numAttrID]: "" }])
+  expect(ds.itemCache.get(id)?.[numAttrID]).toBe("")
+  // a blank cached value must be NaN, consistent with the non-caching path (attr.numValue),
+  // rather than Number("") === 0
+  expect(ds.getNumeric(id, numAttrID)).toBeNaN()
+  ds.endCaching(false)
+})
+
 test("snapshot processing", () => {
   const ds = DataSet.create({ name: "data" })
 

@@ -1,6 +1,20 @@
-import { getExtensionFromUrl, safeParseUrl } from "./urls"
+import { canParseUrl, getExtensionFromUrl, safeParseUrl } from "./urls"
 
 describe("urls", () => {
+  describe("canParseUrl", () => {
+    it("returns true for absolute URLs", () => {
+      expect(canParseUrl("https://example.com/plugins/Sampler/")).toBe(true)
+      expect(canParseUrl("http://localhost:8080/foo")).toBe(true)
+      expect(canParseUrl("data:image/png;base64,abc123")).toBe(true)
+    })
+
+    it("returns false for relative paths (no base provided)", () => {
+      expect(canParseUrl("Sampler/")).toBe(false)
+      expect(canParseUrl("/codap-resources/plugins/Foo/index.html")).toBe(false)
+      expect(canParseUrl("")).toBe(false)
+    })
+  })
+
   describe("safeParseUrl", () => {
     it("parses absolute URLs", () => {
       const url = safeParseUrl("https://example.com/path/file.html")

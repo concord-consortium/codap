@@ -1,4 +1,5 @@
 import { appState } from "../../models/app-state"
+import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { gDataBroker } from "../../models/data/data-broker"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { CsvParseResult, downloadCsvFile } from "../../utilities/csv-import"
@@ -74,6 +75,46 @@ describe("DataInteractive DataContextHandler", () => {
       expect(result.values).toMatchObject({
         name: "https://example.com/"
       })
+    })
+
+    it("imports the dataset without creating a default (case table) tile", async () => {
+      gDataBroker.setSharedModelManager(getSharedModelManager(appState.document)!)
+      const content = appState.document.content!
+      const importSpy = jest.spyOn(content, "importDataSet")
+
+      mockedDownloadCsvFile.mockImplementation((url, onComplete, onError) => {
+        const parseResult: CsvParseResult = {
+            data: [{col1: "value1"}],
+            errors: [],
+            meta: { delimiter: "", linebreak: "", aborted: false, truncated: false, cursor: 0 }
+        }
+        onComplete(parseResult, "")
+      })
+
+      const tablesBefore = content.getTilesOfType(kCaseTableTileType).length
+      const result = await handler.create!({}, {URL: "https://example.com/mammals.csv"})
+      expect(result.success).toBe(true)
+      expect(importSpy).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ createDefaultTile: false }))
+      // The import should not add a case table tile.
+      expect(content.getTilesOfType(kCaseTableTileType).length).toBe(tablesBefore)
+      importSpy.mockRestore()
+    })
+
+    it("applies a supplied title to the imported dataset", async () => {
+      gDataBroker.setSharedModelManager(getSharedModelManager(appState.document)!)
+
+      mockedDownloadCsvFile.mockImplementation((url, onComplete, onError) => {
+        const parseResult: CsvParseResult = {
+            data: [{col1: "value1"}],
+            errors: [],
+            meta: { delimiter: "", linebreak: "", aborted: false, truncated: false, cursor: 0 }
+        }
+        onComplete(parseResult, "")
+      })
+
+      const result = await handler.create!({}, {URL: "https://example.com/mammals.csv", title: "Mammals"})
+      expect(result.success).toBe(true)
+      expect(gDataBroker.last?.title).toBe("Mammals")
     })
   })
 })

@@ -29,14 +29,31 @@ export class NumericAxisHelper extends AxisHelper {
     return this.isVertical ? [this.rangeMax, this.rangeMin] : [this.rangeMin, this.rangeMax]
   }
 
-  renderScatterPlotGridLines() {
+  // Length of the vertical extent for grid / zero lines drawn from a horizontal axis. When the
+  // Residual Plot split is active, extend through both the upper region ("left") and the lower
+  // region ("leftLower") so the x=0 reference and gridlines are continuous across regions.
+  // getAxisLength("leftLower") returns 0 when the split is off, so this is a no-op otherwise.
+  get perpendicularExtent() {
+    const other = otherPlace(this.axisPlace)
+    const base = this.layout.getAxisLength(other) ?? 0
+    if (other === 'left') return base + (this.layout.getAxisLength('leftLower') ?? 0)
+    return base
+  }
+
+  renderScatterPlotGridLines(tickValues?: number[]) {
     const d3Scale: AxisScaleType = this.multiScale?.scale.copy().range(this.newRange) as AxisScaleType,
       numericScale = d3Scale as unknown as ScaleLinear<number, number>
     select(this.subAxisElt).selectAll('.zero, .grid').remove()
-    const tickLength = this.layout.getAxisLength(otherPlace(this.axisPlace)) ?? 0
+    const tickLength = this.perpendicularExtent
+    const gridAxis = this.axis(numericScale).tickSizeInner(-tickLength)
+    // Match the axis's tick marks. d3's default tick count (~10) produces different "nice"
+    // step sizes than computeBestNumberOfVerticalAxisTicks / nonDraggableAxisTicks pick for a
+    // given range, so the grid axis needs the axis's own tickValues to keep grid lines aligned
+    // with tick marks.
+    if (tickValues) gridAxis.tickValues(tickValues)
     select(this.subAxisElt).append('g')
       .attr('class', 'grid')
-      .call(this.axis(numericScale).tickSizeInner(-tickLength))
+      .call(gridAxis)
     select(this.subAxisElt).select('.grid').selectAll('text').remove()
     if (between(0, numericScale.domain()[0], numericScale.domain()[1])) {
       select(this.subAxisElt).append('g')
@@ -50,7 +67,7 @@ export class NumericAxisHelper extends AxisHelper {
     const d3Scale: AxisScaleType = this.multiScale?.scale.copy().range(this.newRange) as AxisScaleType,
       numericScale = d3Scale as unknown as ScaleLinear<number, number>
     select(this.subAxisElt).selectAll('.zero, .grid').remove()
-    const tickLength = this.layout.getAxisLength(otherPlace(this.axisPlace)) ?? 0
+    const tickLength = this.perpendicularExtent
     if (between(0, numericScale.domain()[0], numericScale.domain()[1])) {
       select(this.subAxisElt).append('g')
         .attr('class', 'zero')
@@ -73,17 +90,20 @@ export class NumericAxisHelper extends AxisHelper {
 
     const axisScale = this.axis(numericScale).tickSizeOuter(0).tickFormat(format('.9'))
     const duration = this.isAnimating() ? transitionDuration : 0
+    let tickValues: number[]
     if (!hasDraggableNumericAxis) {
       const formatter = (value: number) => this.multiScale?.formatValueForScale(value) ?? ""
-      const {tickValues, tickLabels} = this.axisProvider.nonDraggableAxisTicks(formatter) ||
-      {tickValues: [], tickLabels: []}
+      const {tickValues: nonDraggableTickValues, tickLabels} =
+        this.axisProvider.nonDraggableAxisTicks(formatter) || {tickValues: [], tickLabels: []}
+      tickValues = nonDraggableTickValues
       axisScale.tickValues(tickValues)
       axisScale.tickFormat((d, i) => tickLabels[i])
     }
     else {
       const numberOfTicks = this.isVertical ? computeBestNumberOfVerticalAxisTicks(numericScale)
         : computeBestNumberOfTicks(numericScale)
-      axisScale.tickValues(numericScale.ticks(numberOfTicks))
+      tickValues = numericScale.ticks(numberOfTicks)
+      axisScale.tickValues(tickValues)
     }
     if (this.axisModel.integersOnly) {
       // Note: This has the desirable effect of removing the decimal point from the tick labels,
@@ -109,7 +129,7 @@ export class NumericAxisHelper extends AxisHelper {
         .style("stroke-opacity", "0.7")
 
       this.showZeroAxisLine && this.renderZeroAxisLine()
-      this.showScatterPlotGridLines && this.renderScatterPlotGridLines()
+      this.showScatterPlotGridLines && this.renderScatterPlotGridLines(tickValues)
 
       if (this.axisModel.place === 'bottom' && !hasDraggableNumericAxis && this.multiScale && this.displayModel) {
         const formatter = (value: number) => this.multiScale?.formatValueForScale(value) || ""

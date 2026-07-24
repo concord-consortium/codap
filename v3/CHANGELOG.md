@@ -1,5 +1,84 @@
 # Changelog
 
+## Version 3.0.5 - July 18, 2026
+
+### ✨ Features & Improvements:
+- Improved Persian (Farsi) translations
+
+### 🐞 Bug Fixes:
+- **CODAP-1438:** Harden WebView URL validation in the edit dialog and on drag/drop
+- **CODAP-1439:** Update graphs immediately when a calculated attribute's formula changes
+- **CODAP-1440:** Fix formula evaluation for attribute names with non-ASCII characters
+- **CODAP-1444:** Update graphs when a slider changes a computed second-y attribute
+
+### Asset Sizes
+|      File |          Size | % Change from Previous Release |
+|-----------|---------------|--------------------------------|
+|  main.css |  240888 bytes |                          0.02% |
+|  index.js | 7835030 bytes |                          0.06% |
+
+## Version 3.0.4 - July 10, 2026
+
+### 🐞 Bug Fixes:
+- **CODAP-1438:** Validate WebView URL schemes
+
+## Version 3.0.3 - June 29, 2026
+
+### ✨ Features & Improvements:
+- **CODAP-1313:** Improve marquee-selection performance on large datasets
+
+### 🐞 Bug Fixes:
+- **CODAP-1234:** Fix selection scrolling in table and bar chart rendering
+- **CODAP-1421:** Preserve plugin-set axis bounds across data updates
+- **CODAP-1428:** Restrict case card child summaries to the viewed parent
+- **CODAP-1430:** Fix bugs with categorical charts of computed attributes
+- **CODAP-1432:** Fix the broken Simmer plugin
+- **CODAP-1434:** Fix missing map boundaries when data crosses the antimeridian
+
+### 🛠️ Under the Hood:
+- **CODAP-1426:** Eliminate spurious console warnings for fixed-size tiles
+
+### Asset Sizes
+|      File |          Size | % Change from Previous Release |
+|-----------|---------------|--------------------------------|
+|  main.css |  240848 bytes |                         -0.02% |
+|  index.js | 7830684 bytes |                          0.11% |
+
+## Version 3.0.2 - June 21, 2026
+
+### 🐞 Bug Fixes:
+- **CODAP-1415:** Fix formula engine crash on Safari versions before 16.4
+- **CODAP-1419:** Show the "+" sign when dragging a second attribute to the y-axis
+- **CODAP-1420:** Color the Y2 attribute label to match its points in a scatter plot
+- **CODAP-1422:** Don't show the user entry dialog while a document is loading
+- **CODAP-1424:** Reconnect communication for plugins added by drag/drop or URL import
+
+### 🛠️ Under the Hood:
+- **CODAP-1418:** dataContextFromURL no longer auto-creates a case-table tile
+
+### Asset Sizes
+|      File |          Size | % Change from Previous Release |
+|-----------|---------------|--------------------------------|
+|  main.css |  240888 bytes |                          0.05% |
+|  index.js | 7821976 bytes |                          0.03% |
+
+## Version 3.0.1 - June 12, 2026
+
+### 🐞 Bug Fixes:
+- **CODAP-1385:** Fix numeric legend transparency affecting only one quintile
+- **CODAP-1399:** Fix join failing when destination attribute name contains spaces
+- **CODAP-1401:** Fix Plugins menu not working in older browsers
+- **CODAP-1412:** Fix map connecting lines for points outside the visible area
+
+### 🛠️ Under the Hood:
+- **CODAP-1406:** Eliminate console warnings when closing a graph
+
+### Asset Sizes
+|      File |          Size | % Change from Previous Release |
+|-----------|---------------|--------------------------------|
+|  main.css |  240772 bytes |                          0.02% |
+|  index.js | 7819617 bytes |                         <0.01% |
+
 ## Version 3.0.0 - June 7, 2026
 
 ### 🐞 Bug Fixes:

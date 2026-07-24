@@ -76,7 +76,8 @@ export const graphComponentHandler: DIComponentHandler = {
       backgroundColor, dataContext: _dataContext, displayOnlySelectedCases, enableNumberToggle: showParentToggles,
       filterFormula, hiddenCases: _hiddenCases, numberToggleLastMode: showOnlyLastCase, pointColor,
       pointSize, showMeasuresForSelection, strokeColor, strokeSameAsFill, transparent,
-      yAttributeID, yAttributeIDs, yAttributeName, yAttributeNames, yAttributeType
+      xLowerBound, xUpperBound, yAttributeID, yAttributeIDs, yAttributeName, yAttributeNames, yAttributeType,
+      yLowerBound, yUpperBound, y2LowerBound, y2UpperBound
     } = values as V2Graph
     const attributeInfo = getAttributeInfo(values)
 
@@ -180,6 +181,21 @@ export const graphComponentHandler: DIComponentHandler = {
     const graphModel = GraphContentModel.create(graphContent, { provisionalDataSet, provisionalMetadata })
     graphModel.dataConfiguration.synchronizeFilteredCases()  // kludgy workaround to ensure axis bounds will be correct
     syncModelWithAttributeConfiguration(graphModel, new GraphLayout())
+
+    // Apply plugin-supplied axis bounds at create time, matching V2's behavior of restoring
+    // xLowerBound/xUpperBound/yLowerBound/yUpperBound/y2LowerBound/y2UpperBound from componentStorage
+    // (CODAP-1421).
+    const applyBoundsAtCreate = (place: AxisPlace, lower?: number, upper?: number) => {
+      if (lower == null && upper == null) return
+      const axis = graphModel.getAxis(place)
+      if (isAnyNumericAxisModel(axis)) {
+        if (lower != null) axis.setMinimum(lower)
+        if (upper != null) axis.setMaximum(upper)
+      }
+    }
+    applyBoundsAtCreate("bottom", xLowerBound, xUpperBound)
+    applyBoundsAtCreate("left", yLowerBound, yUpperBound)
+    applyBoundsAtCreate("rightNumeric", y2LowerBound, y2UpperBound)
 
     // Layers will get mangled in the model because it's not in the same tree as the dataset,
     // so we mostly use the constructed layers. However, the primaryRole is determined in the model,

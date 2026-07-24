@@ -246,6 +246,18 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
     )
   }, [refreshPolygonStyles, mapLayerModel])
 
+  // The numeric-legend gradient (low/high colors set via the Layers palette) is observed by the
+  // legend itself but not by the polygon fills, so dragging the color/transparency slider would
+  // update the legend bar without refilling the polygons until a pan/zoom/resize forced a redraw.
+  useEffect(function respondToLegendColorRangeChange() {
+    return mstReaction(
+      () => dataConfiguration.choroplethColors,
+      () => refreshPolygonStyles(),
+      {name: "MapPolygonLayer.respondToLegendColorRangeChange", equals: comparer.structural},
+      dataConfiguration
+    )
+  }, [dataConfiguration, refreshPolygonStyles])
+
   // Clean up Leaflet features when model is destroyed or component unmounts
   useEffect(function cleanupOnUnmount() {
     const cleanup = () => {

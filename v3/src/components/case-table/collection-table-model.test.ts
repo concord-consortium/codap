@@ -41,4 +41,21 @@ describe("CollectionTableModel", () => {
 
     disposer()
   })
+
+  it("modulates scroll behavior by distance: smooth within one page, instant beyond", () => {
+    const m = new CollectionTableModel("id")
+    const page = m.gridBodyHeight // one visible page (default height; current scrollTop is 0)
+    expect(page).toBeGreaterThan(0)
+
+    // scrolls within one page animate smoothly
+    expect(m.scrollBehaviorForTarget(page / 2)).toBe("smooth")
+    expect(m.scrollBehaviorForTarget(page)).toBe("smooth")
+    // scrolls farther than one page jump instantly to avoid a long, laggy animation
+    expect(m.scrollBehaviorForTarget(page + 1)).toBe("auto")
+    expect(m.scrollBehaviorForTarget(page * 10)).toBe("auto")
+
+    // an explicitly requested behavior always wins
+    expect(m.scrollBehaviorForTarget(page * 10, { scrollBehavior: "smooth" })).toBe("smooth")
+    expect(m.scrollBehaviorForTarget(0, { scrollBehavior: "auto" })).toBe("auto")
+  })
 })

@@ -1,9 +1,10 @@
 import {
-  Button, FormControl, FormLabel, Input, ModalBody, ModalFooter, ModalHeader, Tooltip
+  Button, FormControl, FormErrorMessage, FormLabel, Input, ModalBody, ModalFooter, ModalHeader, Tooltip
 } from "@chakra-ui/react"
 import React, { useRef, useState } from "react"
 import { CodapModal } from "../codap-modal"
 import { t } from "../../utilities/translation/translate"
+import { isSafeWebViewUrl } from "./web-view-utils"
 import MediaToolIcon from "../../assets/icons/icon-media-tool.svg"
 
 interface IProps {
@@ -24,16 +25,23 @@ export const WebViewUrlModal = ({
   const inputRef = useRef<HTMLInputElement | null>(null)
   const [value, setValue] = useState(currentValue)
 
+  // Reject URLs with an unsafe scheme (e.g. javascript:) to prevent XSS.
+  // Scheme-less input (e.g. "codap.concord.org") is allowed; it is prefixed with https:// downstream.
+  // Trim first so whitespace-only input is treated as empty (never accepted as a broken "https://").
+  const trimmedValue = value.trim()
+  const isUrlSafe = isSafeWebViewUrl(trimmedValue)
+
   const applyValue = () => {
-    if (value !== "") {
-      onAccept(value)
+    if (trimmedValue !== "") {
+      if (!isUrlSafe) return // keep the modal open so the user can see/fix the error
+      onAccept(trimmedValue)
     }
 
     closeModal()
   }
 
   const closeModal = () => {
-    if (value === "" && currentValue === "") {
+    if (trimmedValue === "" && currentValue === "") {
       onRemoveEmptyWebView()
     }
 
@@ -59,7 +67,7 @@ export const WebViewUrlModal = ({
     tooltip: t("DG.DocumentController.enterViewWebPageOKTip"),
     onClick: applyValue,
     default: true,
-    disabled: !value
+    disabled: !trimmedValue || !isUrlSafe
   }]
 
   return (
@@ -83,7 +91,8 @@ export const WebViewUrlModal = ({
         <div className="codap-header-title"/>
       </ModalHeader>
       <ModalBody>
-        <FormControl display="flex" flexDirection="column" data-testid="web-view-url-form">
+        <FormControl display="flex" flexDirection="column" data-testid="web-view-url-form"
+          isInvalid={trimmedValue !== "" && !isUrlSafe}>
           <FormLabel className="web-view-url-prompt">
             {t("DG.DocumentController.enterURLPrompt")}
             <Input
@@ -96,6 +105,9 @@ export const WebViewUrlModal = ({
               value={value}
             />
           </FormLabel>
+          <FormErrorMessage data-testid="web-view-url-error">
+            {t("V3.WebView.Modal.invalidUrl")}
+          </FormErrorMessage>
         </FormControl>
       </ModalBody>
       <ModalFooter mt="-5">

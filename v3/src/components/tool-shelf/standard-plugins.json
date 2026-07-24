@@ -166,7 +166,7 @@
       {
         "title": "Simmer",
         "description": "Create block programmed simulations that generate data.",
-        "path": "https://codap.xyz/plugins/simmer/",
+        "path": "/eepsmedia/plugins/simmer/index.html",
         "icon": "SimmerIcon",
         "width": 800,
         "height": 555,

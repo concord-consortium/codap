@@ -7,7 +7,7 @@ import { getTileInfo } from "../../../models/document/tile-utils"
 import { useDataDisplayLayout } from "../../data-display/hooks/use-data-display-layout"
 import { kTitleBarHeight } from "../../constants"
 import { kDefaultMapZoomForGeoLocation, kMapBoundsExtensionFactor, kMaxZoomForFitBounds } from "../map-types"
-import { expandLatLngBounds } from "../utilities/map-utils"
+import { expandLatLngBounds, wrapBoundsToCanonicalCenter } from "../utilities/map-utils"
 import { useMapModelContext } from "./use-map-model-context"
 
 export function useMapModel() {
@@ -84,7 +84,7 @@ export function useMapModel() {
       // DataDisplayLayout, but it needs the legends to be rendered to know their height.
       const height = Math.max(0, dimensions.height - kTitleBarHeight)
 
-      const extendedBounds = expandLatLngBounds(bounds, kMapBoundsExtensionFactor)
+      const extendedBounds = wrapBoundsToCanonicalCenter(expandLatLngBounds(bounds, kMapBoundsExtensionFactor))
 
       const div = document.createElement('div')
       div.style.width = `${width}px`

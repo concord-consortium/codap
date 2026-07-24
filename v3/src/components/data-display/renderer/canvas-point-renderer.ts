@@ -12,6 +12,7 @@
 
 import { CaseDataWithSubPlot } from "../d3-types"
 import { PointDisplayType, transitionDuration } from "../data-display-types"
+import { coalesceBars, IBarPiece, pointStateToBarPiece } from "./bar-coalescing"
 import { CanvasHitTester, CanvasTransitionManager } from "./canvas"
 import {
   circleAnchor,
@@ -484,10 +485,17 @@ export class CanvasPointRenderer extends PointRendererBase {
         this.ctx.clip()
       }
 
-      // Draw each point
-      for (const pointState of points) {
-        if (pointState.isVisible) {
-          this.drawPoint(pointState)
+      // Draw each point. Bars whose cases are fused into shared stacked bars (bar chart/histogram)
+      // are drawn by coalescing contiguous same-style cases into one solid segment rect each (see
+      // drawBars), rather than one rect per case. Non-fused bars (each case its own bar) fall
+      // through to per-case drawing, as do bars mid-transition (see shouldCoalesceBars).
+      if (this.shouldCoalesceBars) {
+        this.drawBars(points)
+      } else {
+        for (const pointState of points) {
+          if (pointState.isVisible) {
+            this.drawPoint(pointState)
+          }
         }
       }
 
@@ -496,6 +504,32 @@ export class CanvasPointRenderer extends PointRendererBase {
 
     // Update hit tester with current positions
     this.hitTester?.updateFromPoints(sortedPoints, this._displayType, this._anchor)
+  }
+
+  // Draws bars by coalescing each bar's contiguous same-style cases into a single solid segment
+  // rectangle (with that segment's stroke), instead of one rect per case. This avoids the
+  // undesirable per-case separator lines and the sub-pixel fill washout that occur when hundreds
+  // of cases stack into one bar. Per-case hit-testing is unaffected (it uses the point positions).
+  // See CODAP-1234.
+  private drawBars(points: IPointState[]): void {
+    const ctx = this.ctx
+    if (!ctx) return
+    const pieces: IBarPiece[] = []
+    for (const p of points) {
+      const piece = pointStateToBarPiece(p)
+      if (piece) pieces.push(piece)
+    }
+    for (const run of coalesceBars(pieces, this._anchor, this._barStackAxis)) {
+      ctx.fillStyle = run.fill
+      ctx.fillRect(run.left, run.top, run.width, run.height)
+      if (run.strokeWidth > 0) {
+        ctx.strokeStyle = run.stroke
+        ctx.lineWidth = run.strokeWidth
+        ctx.globalAlpha = run.strokeOpacity
+        ctx.strokeRect(run.left, run.top, run.width, run.height)
+        ctx.globalAlpha = 1
+      }
+    }
   }
 
   private drawPoint(point: IPointState): void {

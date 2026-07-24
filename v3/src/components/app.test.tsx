@@ -2,6 +2,7 @@ import { CloudFileManager, CloudFileManagerClientEvent } from "@concord-consorti
 import { act, render, screen } from "@testing-library/react"
 import { ReactNode } from "react"
 import { Root } from "react-dom/client"
+import { uiState } from "../models/ui-state"
 import { prf } from "../utilities/profiler"
 import { setUrlParams } from "../utilities/url-params"
 import { App } from "./app"
@@ -50,6 +51,13 @@ jest.mock("./tool-shelf/tool-shelf", () => ({
   ToolShelf: () => null
 }))
 
+// Mock the `UserEntryModal` to avoid Chakra Modal/focus-lock act() warnings. The overlay
+// element whose visibility we assert is rendered by `App` itself (gated by `showUserEntry`),
+// not by the modal, so this preserves the behavior under test. The modal has its own test.
+jest.mock("./menu-bar/user-entry-modal", () => ({
+  UserEntryModal: () => <div data-testid="mock-user-entry-modal" />
+}))
+
 describe.skip("App component", () => {
 
   afterEach(() => {
@@ -92,4 +100,28 @@ describe.skip("App component", () => {
     expect(screen.getByTestId("codap-app")).toBeInTheDocument()
   })
 
+})
+
+describe("App user entry modal visibility", () => {
+  afterEach(() => {
+    setUrlParams("")
+    // Reset the flag flipped below so it doesn't leak into other tests in this file.
+    uiState.setHideUserEntryModal(false)
+    spySetMenuBarInfo?.mockRestore()
+    spySetMenuBarInfo = undefined
+    cfm = undefined
+  })
+
+  it("hides the user entry modal reactively when uiState.hideUserEntryModal becomes true", () => {
+    setUrlParams("")
+    render(<App/>)
+    // With no auto-open params, the user entry modal is shown initially
+    expect(screen.getByTestId("mock-user-entry-modal")).toBeInTheDocument()
+    // When a document starts loading (e.g. CFM willOpenFile sets this flag), the modal
+    // should disappear immediately, before the document finishes loading.
+    act(() => {
+      uiState.setHideUserEntryModal()
+    })
+    expect(screen.queryByTestId("mock-user-entry-modal")).not.toBeInTheDocument()
+  })
 })

@@ -1475,5 +1475,6 @@
     "V3.AppController.optionMenuItems.graphicsAccelerationOn": "Graphics Acceleration: Turn off",
     "V3.AppController.optionMenuItems.graphicsAccelerationOff": "Graphics Acceleration: Turn on",
     "DG.AppController.openDocument.error.v3Format": "This document was created with a newer version of CODAP. To open it, use the latest version of CODAP at <a href=\"https://codap.concord.org/app\" target=\"_blank\" rel=\"noopener noreferrer\">https://codap.concord.org/app</a>.",
-    "V3.formula.error.mixedSelfRef": "Formula uses both prev() and next() on its own attribute, which requires iterative resolution and is not yet supported"
+    "V3.formula.error.mixedSelfRef": "Formula uses both prev() and next() on its own attribute, which requires iterative resolution and is not yet supported",
+    "V3.WebView.Modal.invalidUrl": "That web address can’t be loaded. Try an address like https://codap.concord.org."
 }

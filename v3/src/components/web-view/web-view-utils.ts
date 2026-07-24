@@ -138,6 +138,34 @@ export function appendLocaleParam(url: string, locale: string): string {
   return setUrlQueryParam(url, "locale", locale)
 }
 
+// URL schemes that are safe to load into the WebView <iframe> src. Anything with an explicit
+// scheme outside this allowlist is rejected — notably `javascript:` and `vbscript:`, which
+// execute in the parent document's origin and enable DOM-based XSS / page takeover.
+// `http`/`https` are the normal cases. `data:` loads in an opaque origin and `blob:` in the origin
+// of whatever created the blob — for user-typed or plugin-supplied URLs, neither is CODAP's origin,
+// so the iframe cannot reach the parent DOM. `about` covers about:blank.
+const kSafeWebViewUrlSchemes = new Set(["http", "https", "data", "blob", "about"])
+
+/**
+ * Returns true if the URL is safe to assign to a WebView <iframe> src.
+ * Empty and scheme-less (relative) URLs are safe; a URL with an explicit scheme is safe only if
+ * that scheme is in the allowlist. The scheme is extracted the way browsers parse it: tab/LF/CR
+ * are stripped from anywhere in the URL and leading C0 control characters and spaces are ignored,
+ * so obfuscations like " javascript:", "JavaScript:", and "java\tscript:" are all detected.
+ */
+export function isSafeWebViewUrl(url: string): boolean {
+  if (!url) return true
+  // Browsers remove all tab/LF/CR characters from anywhere in a URL and ignore leading C0
+  // control characters and spaces, so mirror that before extracting the scheme.
+  // eslint-disable-next-line no-control-regex
+  const sanitized = url.replace(/[\t\n\r]/g, "").replace(/^[\x00-\x20]+/, "")
+  const match = /^([a-z][a-z0-9+.-]*):/i.exec(sanitized)
+  // No explicit scheme (a relative or scheme-relative URL) → allowed: it loads as ordinary content,
+  // not as script in CODAP's origin.
+  if (!match) return true
+  return kSafeWebViewUrlSchemes.has(match[1].toLowerCase())
+}
+
 export function normalizeUrlScheme(url: string): string {
   url = url.trim()
   if (url.startsWith("//")) {

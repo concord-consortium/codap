@@ -48,15 +48,31 @@ export function setNiceDomain(values: number[], axisModel: IBaseNumericAxisModel
   else if (isAnyNumericAxisModel(axisModel)) {
     const [minValue, maxValue] = extent(values, d => d) as [number, number]
     let {min: niceMin, max: niceMax} = computeNiceNumericBounds(minValue, maxValue)
-    // When clamping, the domain should start at 0 unless there are negative values.
     if (options?.clampPosMinAtZero) {
+      // When clamping, the domain should start at 0 unless there are negative values.
       if (minValue >= 0) {
         niceMin = 0
       }
       else if (maxValue <= 0) {
         niceMax = 0
       }
-      axisModel.setAllowRangeToShrink(true)
+      // Allowing the range to shrink refits the axis tightly to the data. Grow-only callers must
+      // not do this, or a larger user/plugin-set bound would be silently discarded on a data change;
+      // leaving allowRangeToShrink false lets setDomain's grow-only clamp preserve that bound.
+      if (!options.growOnly) {
+        axisModel.setAllowRangeToShrink(true)
+      }
+    }
+    else if (!axisModel.allowRangeToShrink) {
+      // Don't widen a bound on a side where the data doesn't exceed it. This lets plugin-set
+      // bounds survive subsequent data additions (CODAP-1421) and mirrors V2's setDataMinAndMax,
+      // which leaves bounds alone when current bounds already encompass the data. We compare
+      // against the current domain (which accounts for any dynamic bounds, e.g. during a drag)
+      // rather than the static min/max, matching the reference used in use-sub-axis and setDomain.
+      const [domainMin, domainMax] = axisModel.domain
+      if (minValue >= domainMin) niceMin = domainMin
+      if (maxValue <= domainMax) niceMax = domainMax
+      if (niceMin === domainMin && niceMax === domainMax) return
     }
     axisModel.setDomain(niceMin, niceMax)
   }

@@ -1,5 +1,6 @@
+import { latLngBounds } from "leaflet"
 import {
-  computeBoundsFromCoordinates, getRationalLongitudeBounds, shiftLongitudeIntoView
+  computeBoundsFromCoordinates, getRationalLongitudeBounds, shiftLongitudeIntoView, wrapBoundsToCanonicalCenter
 } from "./map-utils"
 
 describe("getRationalLongitudeBounds", () => {
@@ -144,6 +145,27 @@ describe("shiftLongitudeIntoView", () => {
     expect(shiftLongitudeIntoView(-50, -180, 180)).toBe(-50)
   })
 
+  it("leaves the antimeridian endpoints unshifted in a whole-world view (no dateline split)", () => {
+    // [-180, 180] spans exactly 360°: rounding (center - lng)/360 would tie at lng = -180 and shift
+    // it to 180, jumping a dateline-crossing connecting line across the whole map. Endpoints stay put.
+    expect(shiftLongitudeIntoView(-180, -180, 180)).toBe(-180)
+    expect(shiftLongitudeIntoView(180, -180, 180)).toBe(180)
+  })
+
+  it("leaves a point just outside a normal viewport at its nearest world copy (CODAP-1412)", () => {
+    // Regression: a point a fraction of a degree outside a narrow, non-dateline viewport must NOT be
+    // flung a whole 360° away (which projected it to ~±infinity pixels and broke connecting lines).
+    expect(shiftLongitudeIntoView(14.97, 13, 14.8)).toBeCloseTo(14.97)   // just east of east bound
+    expect(shiftLongitudeIntoView(12.5, 13, 14.8)).toBeCloseTo(12.5)     // just west of west bound
+  })
+
+  it("keeps a point far outside a normal viewport at its true longitude (CODAP-1412)", () => {
+    // The point stays in the same world copy as the viewport, so a connecting line to it heads off
+    // in the correct direction (off the near edge) rather than being clamped or wrapped to the far side.
+    expect(shiftLongitudeIntoView(30, 13, 14.8)).toBe(30)     // far east — line should exit the east edge
+    expect(shiftLongitudeIntoView(-10, 13, 14.8)).toBe(-10)   // far west — line should exit the west edge
+  })
+
   it("shifts a negative-canonical longitude into a dateline-crossing viewport", () => {
     // Viewport showing the Russia + Hawaii cluster crossing the dateline.
     // Canonical -159° belongs in the next world copy of this viewport.
@@ -170,7 +192,47 @@ describe("shiftLongitudeIntoView", () => {
   it("applies multiple rotations when a single 360° shift is not enough", () => {
     // A point at -500° is two full rotations west of the viewport.
     expect(shiftLongitudeIntoView(-500, 175, 201)).toBe(220)
-    // And a point at +700° is three rotations east (700 - 3×360 = -380).
-    expect(shiftLongitudeIntoView(700, -185, -159)).toBe(-380)
+    // A point at +700° lands at its nearest world copy of the viewport: 700 - 2×360 = -20
+    // (139° from the viewport), which is closer than the next copy at -380 (195° away).
+    expect(shiftLongitudeIntoView(700, -185, -159)).toBe(-20)
+  })
+})
+
+describe("wrapBoundsToCanonicalCenter", () => {
+  it("leaves bounds whose center is already canonical unchanged", () => {
+    const bounds = latLngBounds([{lat: 30, lng: -125}, {lat: 50, lng: -67}])
+    const result = wrapBoundsToCanonicalCenter(bounds)
+    expect(result.getWest()).toBe(-125)
+    expect(result.getEast()).toBe(-67)
+    expect(result.getSouth()).toBe(30)
+    expect(result.getNorth()).toBe(50)
+  })
+
+  it("shifts a world-copy-+1 arc back to the canonical world copy (CODAP-1434)", () => {
+    // ~US bounds including Alaska's Aleutians: the compact dateline arc is [172, 293],
+    // centered at 232.5° (one world copy east). Polygons render at canonical longitudes,
+    // so the fit center must come back to -127.5° or the map is blank.
+    const bounds = latLngBounds([{lat: 18.9, lng: 172.5}, {lat: 71.4, lng: 293.1}])
+    const result = wrapBoundsToCanonicalCenter(bounds)
+    expect(result.getWest()).toBeCloseTo(-187.5)
+    expect(result.getEast()).toBeCloseTo(-66.9)
+    // center now canonical
+    expect((result.getWest() + result.getEast()) / 2).toBeCloseTo(-127.2)
+    // latitudes preserved
+    expect(result.getSouth()).toBeCloseTo(18.9)
+    expect(result.getNorth()).toBeCloseTo(71.4)
+  })
+
+  it("preserves the longitude span when shifting", () => {
+    const bounds = latLngBounds([{lat: 0, lng: 172}, {lat: 10, lng: 293}])
+    const result = wrapBoundsToCanonicalCenter(bounds)
+    expect(result.getEast() - result.getWest()).toBeCloseTo(293 - 172)
+  })
+
+  it("wraps a center beyond +180 by exactly one world copy", () => {
+    // center 200° -> -160°
+    const bounds = latLngBounds([{lat: 0, lng: 190}, {lat: 10, lng: 210}])
+    const result = wrapBoundsToCanonicalCenter(bounds)
+    expect((result.getWest() + result.getEast()) / 2).toBeCloseTo(-160)
   })
 })

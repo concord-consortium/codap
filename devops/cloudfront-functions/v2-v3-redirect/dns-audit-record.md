@@ -42,6 +42,6 @@ through the DNSSEC chain too. If signing is enabled, escalate before flip.
 
 ## Sign-off
 
-Auditor (name): _______________   Date: ____________
+Auditor (name): Doug Martin   Date: June 7, 2026
 
-Every row classified, no row remains `unhandled-action-required` at flip time:  [ ]
+Every row classified, no row remains `unhandled-action-required` at flip time:  [x]

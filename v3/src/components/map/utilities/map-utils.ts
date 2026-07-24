@@ -73,15 +73,27 @@ export const getRationalLongitudeBounds = (longs: number[]) => {
 }
 
 /**
- * Shifts a longitude into the [west, east] viewport by adding or subtracting
- * whole rotations of 360°, mirroring CODAP V2's behavior. This lets a point at
- * a canonical longitude render inside a dateline-crossing map view (where the
- * viewport's east bound may exceed 180°).
+ * Shifts a longitude to the 360° world copy nearest the [west, east] viewport.
+ * This lets a point at a canonical longitude render inside a dateline-crossing
+ * map view (where the viewport's east bound may exceed 180°): the nearest copy is
+ * the one inside the viewport when the point is reachable, otherwise the closest
+ * copy, so the point renders just off-screen rather than a full turn away.
+ *
+ * Must pick the *nearest* copy, not the first copy inside the bounds. CODAP-1384
+ * introduced a Math.ceil version (modeled on V2's point projection) and applied it
+ * to connecting-line coordinates too — but a point a fraction of a degree outside a
+ * normal viewport was flung a whole 360° away, projecting to ~±infinity pixels and
+ * mangling the lines (CODAP-1412). V2 itself avoided this: it shifted only point
+ * circles (where an off-screen point is invisible anyway) and drew connecting lines
+ * from the raw, unshifted longitude.
  */
 export const shiftLongitudeIntoView = (lng: number, west: number, east: number) => {
-  if (lng < west) return lng + Math.ceil((west - lng) / 360) * 360
-  if (lng > east) return lng - Math.ceil((lng - east) / 360) * 360
-  return lng
+  // A longitude already in view never needs shifting. This also avoids a tie at the
+  // antimeridian: in a whole-world view [-180, 180] the rounding below would otherwise
+  // map -180 to 180 (Math.round(0.5) === 1) and split lines crossing the dateline.
+  if (lng >= west && lng <= east) return lng
+  const center = (west + east) / 2
+  return lng + Math.round((center - lng) / 360) * 360
 }
 
 /**
@@ -136,6 +148,29 @@ export const collectPolygonVertexLngs = (leafletMap: LeafletMap | undefined, lng
     }
   }
   leafletMap?.eachLayer((layer: any) => collectFromLayer(layer))
+}
+
+/**
+ * Shifts a LatLngBounds by whole 360° world copies so its center longitude lands in the
+ * canonical [-180, 180] range. computeBoundsFromCoordinates can return a compact
+ * dateline-crossing arc whose east edge exceeds 180° (e.g. ~[172, 293] for US data that
+ * includes Alaska's Aleutians). Point layers cope with such an arc by shifting each point
+ * into the viewport via shiftLongitudeIntoView, but polygon (boundary) features render once
+ * at their raw canonical coordinates and never shift. Fitting the map to an east>180° box
+ * therefore parks the viewport a world copy east of the polygons, leaving the map blank.
+ * Keeping the fitted center canonical positions the viewport over the world copy where the
+ * polygons are actually drawn. This is a no-op for an already-canonical center, and for
+ * dateline-crossing data it only changes which (geographically identical) world copy the map
+ * centers on, so point rendering is unaffected.
+ */
+export const wrapBoundsToCanonicalCenter = (bounds: LatLngBounds): LatLngBounds => {
+  const west = bounds.getWest(), east = bounds.getEast(), centerLng = (west + east) / 2
+  if (centerLng >= -180 && centerLng <= 180) return bounds
+  const shift = -Math.round(centerLng / 360) * 360
+  return latLngBounds([
+    {lat: bounds.getSouth(), lng: west + shift},
+    {lat: bounds.getNorth(), lng: east + shift}
+  ])
 }
 
 export const expandLatLngBounds = (bounds: LatLngBounds, fraction: number) => {

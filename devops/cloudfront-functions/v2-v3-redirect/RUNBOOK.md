@@ -56,21 +56,21 @@ method used per check; this row reflects the actual run.
 PREFLIGHT may have run weeks ago. Before signing the G-rows below, re-run the
 freshness-sensitive checks so the signatures reflect current reality:
 
-- [ ] **`./verify-clone.sh`** -- both parts PASS. Catches any drift on prod or the
+- [x] **`./verify-clone.sh`** -- both parts PASS. Catches any drift on prod or the
       clone since PREFLIGHT step 5.
-- [ ] **Cypress G1/G2** -- `npx cypress run --spec cypress/e2e/v2-v3-redirect.spec.ts
-      --env redirectBaseUrl=https://codap2to3.concord.org` from `v3/`. Every R28
+- [x] **Cypress G1/G2** -- `npx cypress run --spec cypress/e2e/v2-v3-redirect.spec.ts --config excludeSpecPattern=**/__none__.ts --env redirectBaseUrl=https://codap2to3.concord.org
+` from `v3/`. Every R28
       positive and R29 negative row still passes against the current v3 build. This
       run report supersedes the PREFLIGHT step 12 report as G1/G2 evidence.
-- [ ] **G6 Drive double-click** -- click a sample Drive double-click URL pointing at
+- [x] **G6 Drive double-click** -- click a sample Drive double-click URL pointing at
       the temp subdomain (`https://codap2to3.concord.org/app/static/dg/en/cert/index.html#file=googleDrive:<id>`);
       per R21 host-preserving, the redirect lands at `codap2to3.concord.org/app/#file=googleDrive:<id>`
       (same temp origin) and V3 + Drive OAuth open the document. New screenshot
       supersedes the PREFLIGHT step 13 evidence.
-- [ ] **Canary health** -- both `codap-v2-v3-v3-reachability` and
+- [x] **Canary health** -- both `codap-v2-v3-v3-reachability` and
       `codap-v2-v3-redirect-correctness` canaries report `SuccessPercent` at or near
       100 over the last hour (CloudWatch console -> Synthetics or the soak dashboard).
-- [ ] **`source ./config.env`** -- `CLONE_DIST_ID`, `CLONE_DIST_DOMAIN`, and
+- [x] **`source ./config.env`** -- `CLONE_DIST_ID`, `CLONE_DIST_DOMAIN`, and
       `TEMP_SUBDOMAIN` still match the clone in CloudFront and the A record in
       Route 53 (sanity check).
 
@@ -81,20 +81,54 @@ freshness-sensitive checks so the signatures reflect current reality:
 Each item is a non-scripted action that must be completed (and the box ticked) before any
 G-criterion is signed.
 
-- [ ] **Authorize `codap2to3.concord.org` in the Google Cloud Console for the CODAP Drive
+- [x] **Authorize `codap2to3.concord.org` in the Google Cloud Console for the CODAP Drive
       OAuth client** (R27 clone step 6a / X1). Required so the G6 Drive double-click
       validation (Path A) can run pre-flip. Post-flip follow-up: remove the temp host from
       the authorized list (out of scope of this story).
-- [ ] **DNS audit record classification complete** (`dns-audit-record.md`, R26c). Every
+- [x] **DNS audit record classification complete** (`dns-audit-record.md`, R26c). Every
       row classified as `irrelevant` / `handled` / `unhandled-action-required`; no row
       remains `unhandled-action-required` at flip time.
-- [ ] **Rollback authorities confirmed (R25c)** -- names and contact details filled into
+- [x] **`associate-alias` ownership-verification TXT record staged.** `flip.sh` Step 1
+      calls `aws cloudfront associate-alias`, which refuses to move an in-use alias unless
+      a domain-ownership TXT record exists -- otherwise it fails with
+      `IllegalUpdate: Invalid or missing alias DNS TXT records`. (CloudFront requires this
+      on the CLI path even for same-account moves; the console does not.) The record is
+      named `_<alias>` and its value is the **target** distribution's CloudFront domain.
+      For the forward flip the target is the clone, so create:
+
+      ```bash
+      aws route53 change-resource-record-sets \
+        --hosted-zone-id Z2P4W3M7MDAUV6 \
+        --change-batch '{
+          "Comment": "CODAP-1323 associate-alias ownership verification for codap.concord.org -> clone",
+          "Changes": [{
+            "Action": "UPSERT",
+            "ResourceRecordSet": {
+              "Name": "_codap.concord.org",
+              "Type": "TXT",
+              "TTL": 60,
+              "ResourceRecords": [{ "Value": "\"dh9ebe3cljnnu.cloudfront.net\"" }]
+            }
+          }]
+        }'
+      ```
+
+      Then wait for the change to reach `INSYNC` (`aws route53 wait
+      resource-record-sets-changed --id <change-id>`) and confirm it resolves on public
+      DNS (`dig +short TXT _codap.concord.org @8.8.8.8`) before running `flip.sh` --
+      CloudFront verifies against public DNS, so allow ~60s for propagation. The record is
+      only consumed at associate-alias time and may be removed after the flip lands.
+      **Rollback note (R25):** `rollback.sh` Step 1 issues the same `associate-alias` back
+      to prod and needs the same record pointing at the **prod** domain
+      (`_codap.concord.org TXT "d13zmjbnp90bac.cloudfront.net"`). Before relying on
+      rollback, UPSERT the record to the prod value (or carry both values on the record).
+- [x] **Rollback authorities confirmed (R25c)** -- names and contact details filled into
       the "Rollback authorities" section below.
-- [ ] **`LOG_ENABLED` review** -- confirm `v2-v3-redirect.js` has `LOG_ENABLED = false`
+- [x] **`LOG_ENABLED` review** -- confirm `v2-v3-redirect.js` has `LOG_ENABLED = false`
       in the committed source. Any temporary `true` from debugging must be reverted
       BEFORE the artifact is rebuilt for flip (see "LOG_ENABLED enable/revert protocol"
       below).
-- [ ] **Synthetics canaries pointing at the temp subdomain** (`$TEMP_SUBDOMAIN`,
+- [x] **Synthetics canaries pointing at the temp subdomain** (`$TEMP_SUBDOMAIN`,
       `codap2to3.concord.org`). They are re-pointed to `codap.concord.org` *after* the
       flip (DO-F2; see the "Canary re-pointing" section below).
 
@@ -151,6 +185,69 @@ Run from `devops/cloudfront-functions/v2-v3-redirect/`. **Only a named rollback 
 2. `aws cloudfront wait distribution-deployed --id "$PROD_DIST_ID"`
 3. Route 53 UPSERT `codap.concord.org` ALIAS back to `$PROD_DIST_DOMAIN`.
 
+### DNS prerequisite before rollback (do this NOW, not mid-incident)
+
+Step 1 above (`associate-alias`) will fail with
+`IllegalUpdate: Invalid or missing alias DNS TXT records` unless the
+`_codap.concord.org` ownership-verification TXT record points at the **prod** distribution
+domain. This is the mirror of the pre-flip TXT prerequisite, but with the *target* now
+being prod instead of the clone (see "Pre-flip manual prerequisites").
+
+The forward flip stages this record with the **clone** value
+(`dh9ebe3cljnnu.cloudfront.net`). That value does **not** satisfy a rollback -- a rollback
+moves the alias back to prod, so the record must carry the **prod** domain
+(`d13zmjbnp90bac.cloudfront.net`). If you wait until you actually need to roll back, you
+will hit this error at the worst possible moment.
+
+**Mitigation -- stage the prod value before the flip window opens.** Either:
+
+- UPSERT the record to carry **both** values, so flip and rollback both verify:
+
+  ```bash
+  aws route53 change-resource-record-sets \
+    --hosted-zone-id Z2P4W3M7MDAUV6 \
+    --change-batch '{
+      "Comment": "CODAP-1323 associate-alias ownership verification (clone + prod)",
+      "Changes": [{
+        "Action": "UPSERT",
+        "ResourceRecordSet": {
+          "Name": "_codap.concord.org",
+          "Type": "TXT",
+          "TTL": 60,
+          "ResourceRecords": [
+            { "Value": "\"dh9ebe3cljnnu.cloudfront.net\"" },
+            { "Value": "\"d13zmjbnp90bac.cloudfront.net\"" }
+          ]
+        }
+      }]
+    }'
+  ```
+
+- **or**, if you prefer a single value, swap the record to the prod value as the first
+  action of a rollback (before `rollback.sh`):
+
+  ```bash
+  aws route53 change-resource-record-sets \
+    --hosted-zone-id Z2P4W3M7MDAUV6 \
+    --change-batch '{
+      "Changes": [{
+        "Action": "UPSERT",
+        "ResourceRecordSet": {
+          "Name": "_codap.concord.org",
+          "Type": "TXT",
+          "TTL": 60,
+          "ResourceRecords": [{ "Value": "\"d13zmjbnp90bac.cloudfront.net\"" }]
+        }
+      }]
+    }'
+  ```
+
+Either way, wait for `INSYNC` and confirm public resolution
+(`dig +short TXT _codap.concord.org @8.8.8.8`) before running `rollback.sh`; CloudFront
+verifies against public DNS, so allow ~60s for propagation. The single-value path adds a
+DNS change (plus its propagation wait) to the rollback critical path, which is why staging
+both values up front is preferred.
+
 **R25 propagation caveat** -- declare rollback "complete" when error-rate metrics return
 to baseline, NOT when this script exits. DNS propagation typically completes within 60
 seconds (TTL = 60s) but ISP / corporate resolvers occasionally hold past TTL.
@@ -186,36 +283,42 @@ R26b).
 
 **Re-pointing is delete + recreate, not update-canary.** AWS Synthetics' `UpdateCanary`
 silently drops `EnvironmentVariables` (the API returns success and LastModified updates,
-but env vars never persist). The handler `process.env.CANARY_TARGET_HOST || 'codap2to3.concord.org'`
-also has the temp subdomain hard-coded as a fallback, so even if `update-canary` appeared
-to work, the canary would silently keep hitting the temp subdomain.
+but env vars never persist), so the target host can only be changed by recreating the
+canary.
 
-The reliable procedure is to delete each canary and re-create it via `deploy-monitoring.sh`
-with `CANARY_TARGET_HOST` overridden on the command line. **First update**
-[`canaries/v3-reachability.js`](canaries/) and [`canaries/redirect-correctness.js`](canaries/)
-to change the fallback string from `codap2to3.concord.org` to `codap.concord.org`
-(committing the change so the canaries reflect the post-flip world), then:
+`deploy-monitoring.sh` sets the canary's `CANARY_TARGET_HOST` environment variable from the
+`CANARY_TARGET_HOST` value in `config.env` (falling back to `$TEMP_SUBDOMAIN` when unset).
+That injected env var takes precedence over the `process.env.CANARY_TARGET_HOST || '...'`
+fallback hard-coded in [`canaries/v3-reachability.js`](canaries/) and
+[`canaries/redirect-correctness.js`](canaries/) -- so the **only** thing that controls the
+target is `config.env`; editing the source fallback has no effect on a canary created by
+the script.
+
+The reliable procedure is to set the target in `config.env`, then delete and recreate:
 
 ```bash
-# 1. Delete both canaries (recreating preserves the alarms + dashboard which only
+# 1. Point future canaries at the production host.
+#    Edit config.env:  CANARY_TARGET_HOST=codap.concord.org
+
+# 2. Delete both canaries (recreating preserves the alarms + dashboard which only
 #    reference canary names, not their lifecycle).
 for canary in codap-v2-v3-v3-reachability codap-v2-v3-redirect-correctness; do
   aws synthetics stop-canary --name "$canary" --region us-east-1 || true
   aws synthetics delete-canary --name "$canary" --region us-east-1
 done
 
-# 2. Wait until both fully delete (DELETING -> 404).
+# 3. Wait until both fully delete (DELETING -> 404).
 for canary in codap-v2-v3-v3-reachability codap-v2-v3-redirect-correctness; do
   until ! aws synthetics get-canary --name "$canary" --region us-east-1 >/dev/null 2>&1; do
     sleep 5
   done
 done
 
-# 3. Recreate via deploy-monitoring.sh -- it picks up the updated fallback target
-#    in canaries/*.js and creates fresh canaries pointing at codap.concord.org.
+# 4. Recreate via deploy-monitoring.sh -- it reads CANARY_TARGET_HOST from config.env
+#    and creates fresh canaries pointing at codap.concord.org.
 ./deploy-monitoring.sh
 
-# 4. Start the freshly-created canaries (create leaves them in READY, not RUNNING).
+# 5. Start the freshly-created canaries (create leaves them in READY, not RUNNING).
 for canary in codap-v2-v3-v3-reachability codap-v2-v3-redirect-correctness; do
   aws synthetics start-canary --name "$canary" --region us-east-1
 done

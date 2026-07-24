@@ -15,7 +15,7 @@ import {IDataSet} from "../../../models/data/data-set"
 import {AxisPlace} from "../../axis/axis-types"
 import {Axis} from "../../axis/components/axis"
 import {GraphPlace} from "../../axis-graph-shared"
-import {axisPlaceToAttrRole} from "../../data-display/data-display-types"
+import {axisPlaceToAttrRole, getAxisPlaceTraits} from "../../data-display/data-display-types"
 import {kGraphClassSelector} from "../graphing-types"
 import {DroppableAxis} from "./droppable-axis"
 import {GraphAttributeLabel} from "./graph-attribute-label"
@@ -25,12 +25,14 @@ interface IProps {
   onDropAttribute?: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
   onRemoveAttribute?: (place: GraphPlace, attrId: string) => void
   onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: AttributeType) => void
+  // forwarded to DroppableAxis to avoid overlap with adjacent add-attribute drop zones
+  topInset?: number
 }
 
 const trueFn = () => true
 
 export const GraphAxis = observer(function GraphAxis(
-  {place, onDropAttribute, onRemoveAttribute, onTreatAttributeAs}: IProps) {
+  {place, onDropAttribute, onRemoveAttribute, onTreatAttributeAs, topInset}: IProps) {
   const dataConfig = useGraphDataConfigurationContext(),
     isDropAllowed = dataConfig?.placeCanAcceptAttributeIDDrop ?? trueFn,
     graphModel = useGraphContentModelContext(),
@@ -106,7 +108,9 @@ export const GraphAxis = observer(function GraphAxis(
         onRemoveAttribute={onRemoveAttribute}
         onTreatAttributeAs={onTreatAttributeAs}
       />
-      {onDropAttribute &&
+      {/* Non-interactive axes (e.g. the Residual Plot's lower y-axis) have no attribute to drop onto
+          and no interactive menu — omit the drop zone. */}
+      {onDropAttribute && getAxisPlaceTraits(place).isInteractive &&
         <DroppableAxis
             place={place}
             dropId={droppableId}
@@ -114,6 +118,7 @@ export const GraphAxis = observer(function GraphAxis(
             portal={parentEltRef.current}
             target={wrapperElt}
             onIsActive={handleIsActive}
+            topInset={topInset}
         />}
     </g>
   )

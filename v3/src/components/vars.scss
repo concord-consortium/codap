@@ -54,6 +54,8 @@ $tile-border-color: #0081a9;
 $focus-border-color: #1c9fc7;
 $focus-outline-color: #0957d0;
 $drop-highlight-color: rgba(255, 229, 0, 0.55);
+// saturated yellow-gold "+" indicator that stands out against the translucent yellow drop highlight
+$drop-zone-plus-color: #e6b800;
 
 @mixin focus-outline($offset: -2px, $radius: 2px) {
   border-radius: $radius;

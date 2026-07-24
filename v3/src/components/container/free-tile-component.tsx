@@ -130,8 +130,13 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
 
     const handleTransitionEnd = () => {
       // Because the transitions of left, top, width, and height, in theory might finish at different times we wait for
-      // the width and height to be complete before setting the transitionComplete flag.
-      if (element?.offsetWidth !== width && element?.offsetHeight !== height) {
+      // the width and height to be complete before setting the transitionComplete flag. Fixed-size tiles (e.g. the
+      // calculator) have their width/height removed from the inline style (see above), so the element sizes to its
+      // content — including the title bar and borders — and its offset dimensions never match the model's width/height.
+      // Treat a fixed dimension as already complete so we don't warn (and never set the flag) for those tiles.
+      const widthIncomplete = !info?.isFixedWidth && element?.offsetWidth !== width
+      const heightIncomplete = !info?.isFixedHeight && element?.offsetHeight !== height
+      if (widthIncomplete || heightIncomplete) {
         // This has never been seen in practice, but if it does happen we probably want to know about it.
         // Perhaps some browser will not run the transitions to the exact final size which would then break the
         // transitionComplete logic.
@@ -157,7 +162,8 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
     element?.addEventListener("transitionend", handleTransitionEnd)
 
     return () => element?.removeEventListener("transitionend", handleTransitionEnd)
-  }, [tile, tileId, disableAnimation, row.animateCreationTiles, width, height])
+  }, [tile, tileId, disableAnimation, row.animateCreationTiles, width, height,
+      info?.isFixedWidth, info?.isFixedHeight])
 
   if (!info || (isHidden && !info.renderWhenHidden)) return null
 

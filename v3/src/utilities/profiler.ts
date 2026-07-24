@@ -118,6 +118,9 @@ class Profiler {
   }
 
   end(path: string) {
+    // Avoid the string-split + map lookups when profiling is off; measure() is on hot paths
+    // (per-frame renders, per-marquee-move selection) where this would be steady overhead.
+    if (!this.isProfiling) return
     const [component, part] = path.split(".")
     const entry = this.profile.get(component)?.get(part)
     if (!entry) {
@@ -129,6 +132,9 @@ class Profiler {
   }
 
   measure<T>(path: string, callback: () => T) {
+    // Fast path when profiling is off: skip begin/end and the try/finally entirely so instrumented
+    // hot paths (per-frame renders, per-marquee-move selection) pay no per-call overhead.
+    if (!this.isProfiling) return callback()
     try {
       this.begin(path)
       return callback()

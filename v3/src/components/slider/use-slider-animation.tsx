@@ -61,17 +61,22 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
     if (!sliderModel || !isAlive(sliderModel)) return 0
     const [axisMin, axisMax] = getAxisDomain()
     const sign = animationDirection === "lowToHigh" ? 1 : -1
-    const testValue = val || sliderModel.value + sign * (sliderModel.increment ?? 0)
+    const testValue = val ?? sliderModel.value + sign * (sliderModel.increment ?? 0)
+    // During animation, resetSlider runs both at the top level and nested inside the value-change
+    // applyModelChange (validateValue calls it at a loop boundary), so suppress the child-action
+    // warning; the change is non-undoable either way.
     if (animationDirection === "lowToHigh" && testValue >= axisMax) {
       sliderModel.applyModelChange(
         () => sliderModel.setValue(axisMin),
-        { noDirty: true, notify: () => valueChangeNotification(sliderModel.value, sliderModel.name) }
+        { noDirty: true, suppressWarning: true,
+          notify: () => valueChangeNotification(sliderModel.value, sliderModel.name) }
       )
     }
     if (animationDirection === "highToLow" && testValue <= axisMin) {
       sliderModel.applyModelChange(
         () => sliderModel.setValue(axisMax),
-        { noDirty: true, notify: () => valueChangeNotification(sliderModel.value, sliderModel.name) }
+        { noDirty: true, suppressWarning: true,
+          notify: () => valueChangeNotification(sliderModel.value, sliderModel.name) }
       )
     }
     return sliderModel.value

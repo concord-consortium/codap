@@ -10,6 +10,7 @@ const axisPlaceToOrientationMap: Record<OrientableGraphPlace, AxisOrientation> =
   "bottom": "horizontal",
   "top": "horizontal",
   "left": "vertical",
+  "leftLower": "vertical",
   "rightCat": "vertical",
   "rightNumeric": "vertical",
   "yPlus": "vertical"
