@@ -116,8 +116,7 @@ export function createOrUpdateLeafletGeoRasterLayer(mapModel: IMapContentModel):
   // returns early because a render is already in flight (and so never reaches the url read inside
   // renderGeoRasterOnce). Without this the autorun would stop firing and the map would freeze after
   // the first coalesced frame.
-  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-  mapModel.geoRaster?.url
+  void mapModel.geoRaster?.url
   let run = geoRasterRunners.get(mapModel)
   if (!run) {
     run = makeCoalescingRunner(() => renderGeoRasterOnce(mapModel))
@@ -196,6 +195,6 @@ async function renderGeoRasterOnce(mapModel: IMapContentModel) {
     layer.addTo(mapModel.leafletMap)
 
   } catch (error) {
-    console.error("Error initializing GeoRasterLayer", error)
+    console.error("Error rendering geoRaster", error)
   }
 }
