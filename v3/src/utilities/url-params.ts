@@ -84,6 +84,14 @@ export interface UrlParams {
    */
   errorTester?: string | null
   /*
+   * Enables or disables in-development features for this session only; the setting
+   * lives in the URL and nowhere else. Names are matched against the feature-flag
+   * registry (src/models/feature-flags/) and ignored if unrecognized.
+   * value: comma-separated flag names, each optionally prefixed with "-" to disable,
+   *   e.g. "residualPlot,-someOtherFeature"
+   */
+  features?: string | null
+  /*
    * [V2] When present enables the gaussian fit feature of the normal curve adornment.
    * value: ignored
    */
