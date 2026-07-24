@@ -290,13 +290,13 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
     }
   }, [dataConfiguration, layout, mapLayerModel, mapModel.startAnimation, pointDescription, renderer])
 
-  const refreshPointSelection = useCallback(() => {
+  const refreshPointSelection = useCallback((caseIdsToUpdate?: Iterable<string>) => {
     const {pointColor, pointStrokeColor} = pointDescription,
       selectedPointRadius = mapLayerModel.getPointRadius('select')
     dataConfiguration && setPointSelection({
       renderer, dataConfiguration, pointRadius: mapLayerModel.getPointRadius(),
       selectedPointRadius, pointColor, pointStrokeColor
-    })
+    }, caseIdsToUpdate)
   }, [pointDescription, mapLayerModel, dataConfiguration, renderer])
 
   const displayPoints = displayType === "points" && pointsAreVisible && layerIsVisible
@@ -358,7 +358,20 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
     if (dataset) {
       const disposer = onAnyAction(dataset, action => {
         if (isSelectionAction(action)) {
-          refreshPointSelection()
+          // A selectCases action carries exactly the case IDs whose selection state toggled, so restyle
+          // just those points — the marquee hot path, where only a handful of points change per drag
+          // move. Other selection actions (selectAll, setSelectedCases) and selectCases on ids that
+          // aren't all plotted points (e.g. a parent/legend selection that expands to child items) fall
+          // back to a full restyle so no affected point is missed.
+          let caseIdsToUpdate: string[] | undefined
+          if (action.name === "selectCases") {
+            const caseIds: string[] = action.args?.[0] ?? []
+            if (caseIds.length > 0 &&
+                caseIds.every(id => renderer?.getPointForCaseData({ plotNum: 0, caseID: id }))) {
+              caseIdsToUpdate = caseIds
+            }
+          }
+          refreshPointSelection(caseIdsToUpdate)
         } else if (isCaseValueChangeAction(action)) {
           // assumes that if we're caching then only selected cases are being updated
           refreshPoints(dataset.isCaching())
@@ -370,7 +383,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
       })
       return () => disposer()
     }
-  }, [dataset, refreshPoints, refreshHeatmap, refreshPointSelection])
+  }, [dataset, refreshPoints, refreshHeatmap, refreshPointSelection, renderer])
 
   // Refresh points when the renderer changes (e.g., after reacquiring a WebGL context)
   useEffect(function refreshPointsOnRendererChange() {
