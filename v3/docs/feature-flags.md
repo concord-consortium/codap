@@ -132,10 +132,14 @@ feature has shipped broadly.
   everybody anyway, and recording them would bake a grant into every document
   saved during the general-availability window, resurrecting the feature for those
   documents after it's later turned off.
-- An explicit `?features=-foo` does **not** strip an existing grant. Disabling is
-  session-scoped, and the document may still contain artifacts of the feature.
-- So grants are a one-way door. The exits are the server kill switch and eventual
-  deletion of the flag.
+- An explicit `?features=-foo` turns the feature off for the session — the URL
+  beats a document grant (resolution rule 2 over rule 4) — but the save path only
+  ever adds grants, so `-foo` does **not** remove the grant already stored in the
+  document. Reopen without it and the feature is back. Disabling is session-scoped,
+  and the document may still contain artifacts of the feature regardless.
+- So a persisted grant is a one-way door: the exits that remove it are the server
+  kill switch and eventual deletion of the flag. A URL `-foo` is a session escape,
+  not an exit — it leaves the grant in place.
 - Unknown flag names, from any source, resolve to off and are ignored — which is
   what gives old documents a harmless afterlife once a flag is deleted.
 - The union happens in the save path, not on load. Writing to the document on load
@@ -161,5 +165,6 @@ can be reminded when a flag is overdue.
 - A lint rule enforcing the affordance rule.
 - Round-tripping `featureFlags` through v2 documents. Saving as v2 is a developer
   debug option (`debug=saveAsV2`), so v2 saves currently drop grants.
-- A developer escape hatch for overriding a server `off` locally.
+- A developer escape hatch for overriding a server `off` locally. (Overriding a
+  document grant already works: `?features=-foo` disables it for the session.)
 - Exposing flags to plugins through the Data Interactive API.
