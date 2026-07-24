@@ -78,7 +78,7 @@ export const useAxis = (axisPlace: AxisPlace) => {
     const isColor = isColorAxisModel(_axisModel) || axisAttributeType === 'color'
     const isBinned = _axisModel ? axisProvider?.hasBinnedNumericAxis(_axisModel) : false
     const labelFont = vars.labelFont,
-      isVertical = ['left', 'rightNumeric'].includes(axisPlace),
+      isVertical = ['left', 'leftLower', 'rightNumeric'].includes(axisPlace),
       axisTitleHeight = getStringBounds("Xy", labelFont).height,
       numbersHeight = getStringBounds('0').height,
       repetitions = multiScale?.repetitions ?? 1,

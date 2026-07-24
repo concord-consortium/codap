@@ -1,5 +1,6 @@
 import { observer } from "mobx-react-lite"
 import {useRef} from "react"
+import { getAxisPlaceTraits } from "../../data-display/data-display-types"
 import {AxisPlace} from "../axis-types"
 import {useAxisProviderContext} from "../hooks/use-axis-provider-context"
 import {useSubAxis} from "../hooks/use-sub-axis"
@@ -37,7 +38,12 @@ export const SubAxis = observer(function SubAxis({
   return (
     <g className='sub-axis-wrapper' ref={subWrapperElt}>
       <g className='axis' ref={subAxisEltRef}/>
+      {/* Non-interactive axes (e.g. the Residual Plot's auto-scaled lower y-axis) surface no drag
+          handles — any user drag would be immediately overwritten by the next recompute. Ticks still
+          render through the normal numeric-axis path (hasDraggableNumericAxis is unchanged); only the
+          drag rects are skipped. */}
       {isAnyNumericAxisModel(axisModel) && axisProvider.hasDraggableNumericAxis(axisModel) &&
+        getAxisPlaceTraits(axisPlace).isInteractive &&
         <NumericAxisDragRects
           axisModel={axisModel}
           axisWrapperElt={subWrapperElt.current}

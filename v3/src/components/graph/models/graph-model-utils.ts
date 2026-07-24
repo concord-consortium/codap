@@ -9,7 +9,7 @@ import {
 import {
   DateAxisModel, isAnyNumericAxisModel, isDateAxisModel, isNumericAxisModel, NumericAxisModel
 } from "../../axis/models/numeric-axis-models"
-import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
+import { getAxisPlaceTraits, graphPlaceToAttrRole } from "../../data-display/data-display-types"
 import { IGraphContentModel } from "./graph-content-model"
 import { GraphLayout } from "./graph-layout"
 
@@ -72,10 +72,10 @@ export function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
 
   const setupAxis = (place: AxisPlace) => {
     if (!graphModel) return
-    // The lower plot's y-axis has no owning attribute — it is created and managed by an adornment
-    // (see CODAP-1445 / Residual Plot). Auto-configuring it from y-attribute state would corrupt
-    // the axis (create a categorical model that then flips the y attribute type back to categorical).
-    if (place === 'leftLower') return
+    // Adornment-owned axes (e.g. the Residual Plot's lower y-axis) have no owning attribute — they
+    // are created and managed by an adornment. Auto-configuring one from y-attribute state would
+    // corrupt it (create a categorical model that then flips the y attribute type back to categorical).
+    if (getAxisPlaceTraits(place).isAdornmentOwned) return
     const dataConfig = graphModel.dataConfiguration
     const isPrimaryPlace = place === graphModel.primaryPlace
     const isSecondaryPlace = place === graphModel.secondaryPlace

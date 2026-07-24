@@ -8,7 +8,7 @@ import { mstReaction } from "../../../utilities/mst-reaction"
 import { isAliveSafe } from "../../../utilities/mst-utils"
 import { translate } from "../../../utilities/translation/translate"
 import { isVertical } from "../../axis-graph-shared"
-import { axisPlaceToAttrRole, kOther } from "../../data-display/data-display-types"
+import { axisPlaceToAttrRole, getAxisPlaceTraits, kOther } from "../../data-display/data-display-types"
 import { swapCategoriesNotification } from "../../data-display/data-display-notifications"
 import { useDataDisplayAnimation } from "../../data-display/hooks/use-data-display-animation"
 import { useDataDisplayModelContextMaybe } from "../../data-display/hooks/use-data-display-model"
@@ -376,6 +376,10 @@ export const useSubAxis = ({
 
   const updateDomainAndRenderSubAxis = useCallback(() => {
     const axisModel = axisProvider?.getAxis?.(axisPlace)
+    // Adornment-owned axes (e.g. the Residual Plot's leftLower) have no owning attribute — their
+    // domain is set externally (the axisPlaceToAttrRole entry is only a TS-exhaustiveness
+    // placeholder). Reading numeric values for that role would clobber the externally-set domain.
+    if (getAxisPlaceTraits(axisPlace).isAdornmentOwned) return
     const role = axisPlaceToAttrRole[axisPlace],
       attrID = dataConfig?.attributeID(role)
     if (!attrID) {

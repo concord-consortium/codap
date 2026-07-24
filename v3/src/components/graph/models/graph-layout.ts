@@ -13,7 +13,7 @@ interface BannerRegistration {
 }
 
 // When showLowerPlot is on, the plot area splits with the upper region getting (1 - kLowerPlotFraction)
-// of the height and the lower region getting kLowerPlotFraction. Hardcoded per CODAP-1445 spec.
+// of the height and the lower region getting kLowerPlotFraction. Hardcoded per the Residual Plot design.
 export const kLowerPlotFraction = 1 / 3
 
 export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
@@ -24,7 +24,7 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
   // Dynamic banner registration - allows any client to register a banner with a height and order
   @observable bannerHeights: Map<string, BannerRegistration> = new Map()
   // When true, splits the plot area into an upper (2/3) and lower (1/3) region — infrastructure
-  // for the future Residual Plot adornment. See CODAP-1445. Default off preserves all existing behavior.
+  // for the future Residual Plot adornment. Default off preserves all existing behavior.
   @observable showLowerPlot = false
   private disposer?: () => void
 

@@ -310,7 +310,7 @@ describe("GraphController", () => {
     expect(model.axes.get("rightNumeric")).toBeUndefined()
   })
 
-  // CODAP-1445 split-plot infrastructure. Simulates what the future Residual Plot adornment
+  // Split-plot infrastructure. Simulates what the future Residual Plot adornment
   // will do: flip the layout's showLowerPlot flag and register a NumericAxisModel at leftLower.
   // The existing axis rendering pipeline should pick it up without any further wiring.
   it("supports a numeric axis at leftLower for split-plot rendering", () => {
