@@ -54,19 +54,9 @@ export class GeoImage {
 
   }
 
-  public getColorAt(x: number, y: number) {
-    // Get pixel data
-    const start = (y * this.canvas!.width + x) * 4
-    const { imageData } = this
-    if (!imageData) {
-      throw new Error("Image data not available, need to call prepare() first")
-    }
-    return `rgb(${imageData[start]},${imageData[start+1]},${imageData[start+2]})`
-  }
-
   /**
-   * The raw RGBA source pixels (call prepare() first). Callers index it directly as
-   * (y * width + x) * 4, avoiding the per-pixel "rgb(...)" string that getColorAt builds.
+   * The raw RGBA source pixels (call prepare() first). Callers index the buffer directly as
+   * (y * width + x) * 4 for fast per-pixel access.
    */
   public get pixelData(): Uint8ClampedArray {
     if (!this.imageData) {

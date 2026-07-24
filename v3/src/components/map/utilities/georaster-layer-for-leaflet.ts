@@ -13,6 +13,7 @@ import * as L from "leaflet"
 import type { Coords, DoneCallback, LatLngBounds } from "leaflet"
 import { GeoExtent } from "./geo-extent"
 import snap from "snap-bbox"
+import { paintRasterSample } from "./raster-paint"
 
 import type {
   CustomCSSStyleDeclaration,
@@ -485,23 +486,10 @@ export class GeoRasterLayerClass extends L.GridLayer {
                     const width = widthOfSampleInScreenPixelsInt
                     const height = heightOfSampleInScreenPixelsInt
 
-                    // Read the source pixel's RGB once, then fill the sample's screen rect in the
-                    // destination buffer. Clamp to the canvas the way fillRect would clip.
-                    const s = (yInRasterPixels * srcRowWidth + xInRasterPixels) * 4
-                    const r = srcPixels[s], g = srcPixels[s + 1], b = srcPixels[s + 2]
-                    const xStart = Math.max(x, 0)
-                    const yStart = Math.max(y, 0)
-                    const xEnd = Math.min(x + width, destWidth)
-                    const yEnd = Math.min(y + height, destHeight)
-                    for (let py = yStart; py < yEnd; py++) {
-                      let di = (py * destWidth + xStart) * 4
-                      for (let px = xStart; px < xEnd; px++) {
-                        dest[di++] = r
-                        dest[di++] = g
-                        dest[di++] = b
-                        dest[di++] = 255
-                      }
-                    }
+                    // Copy the source pixel's RGB into the destination buffer over the sample's
+                    // screen rect (clamped to the canvas the way fillRect would clip).
+                    paintRasterSample(dest, destWidth, destHeight, srcPixels, srcRowWidth,
+                      xInRasterPixels, yInRasterPixels, x, y, width, height)
                   }
                 }
               }
