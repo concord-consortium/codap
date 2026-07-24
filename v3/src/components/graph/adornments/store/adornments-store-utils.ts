@@ -1,4 +1,5 @@
 import { logMessageWithReplacement } from "../../../../lib/log-message"
+import { isFeatureEnabled } from "../../../../models/feature-flags/feature-flag-manager"
 import { ITileModel } from "../../../../models/tiles/tile-model"
 import { updateTileNotification } from "../../../../models/tiles/tile-notifications"
 import { PlotType } from "../../graphing-types"
@@ -204,17 +205,20 @@ export function getAdornmentsMenuItemsFromTheStore(theStore: IAdornmentsBaseStor
         })
       }
     })
-    // Residual Plot follows the Squares of Residuals pattern. Enabled only when the full
-    // applicability check passes: numeric x/y axes, exactly one y attribute, no right numeric /
-    // top-split / right-split / legend attributes, and exactly one of movable line, LSRL, or
-    // plotted function is visible. Delegates to residualPlotIsApplicable so the menu-item gating
-    // and the render-path gating (in ScatterPlot) share one predicate.
+    // Residual Plot follows the Squares of Residuals pattern. The menu item appears only when the
+    // residualPlot feature flag is enabled; the render path in ScatterPlot keys off the persisted
+    // showResidualPlot state rather than the flag, so a document that already has the residual plot
+    // on still opens and renders when the flag is off. Enabled only when the full applicability
+    // check passes: numeric x/y axes, exactly one y attribute, no right numeric / top-split /
+    // right-split / legend attributes, and exactly one of movable line, LSRL, or plotted function
+    // is visible. Delegates to residualPlotIsApplicable so the menu-item gating and the render-path
+    // gating (in ScatterPlot) share one predicate.
     const tileContent = tile?.content
     const dataConfig = tileContent && "dataConfiguration" in tileContent
       ? (tileContent as { dataConfiguration?: IGraphDataConfigurationModel }).dataConfiguration
       : undefined
     const residualPlotApplicable = residualPlotIsApplicable(theStore, dataConfig)
-    addItemIfCondition(true, {
+    addItemIfCondition(isFeatureEnabled("residualPlot"), {
       checked: theStore.showResidualPlot,
       disabled: !residualPlotApplicable,
       title: "V3.Inspector.graphResidualPlot",
