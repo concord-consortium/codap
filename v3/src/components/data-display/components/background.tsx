@@ -105,6 +105,9 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
 
   const onDragStart = useCallback((event: PointerEvent) => {
     appState.beginPerformance()
+    // Skip point hit-testing for the duration of the drag: the marquee selects via the R-tree below,
+    // so the pointer event system hit-testing every point sprite on each pointermove is pure overhead.
+    rendererArray.forEach(renderer => renderer?.setPointsInteractive(false))
     selectionTree.current = prepareTree(rendererArray)
     // Event coordinates are window coordinates. To convert them to SVG coordinates, we need to subtract the
     // bounding rect of the SVG element.
@@ -168,9 +171,11 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
     }
     marqueeState.setMarqueeRect({x: 0, y: 0, width: 0, height: 0})
     selectionTree.current = null
+    // Restore point hit-testing now that the drag is over (hover/click behavior).
+    rendererArray.forEach(renderer => renderer?.setPointsInteractive(true))
     dataDisplayModel.setMarqueeMode("unclicked")
     appState.endPerformance()
-  }, [dataDisplayModel, datasetsArray, marqueeState])
+  }, [dataDisplayModel, datasetsArray, marqueeState, rendererArray])
 
   useRendererPointerDownDeselect(rendererArray, dataDisplayModel)
 

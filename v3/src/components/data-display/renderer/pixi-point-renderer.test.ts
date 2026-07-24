@@ -96,6 +96,25 @@ describe("PixiPointRenderer", () => {
     subPlotNum
   })
 
+  describe("setPointsInteractive", () => {
+    it("toggles hit-testing of the points container", async () => {
+      const pixiRenderer = new PixiPointRenderer(new PointsState())
+      await pixiRenderer.init()
+      const container = (pixiRenderer as any).pointsContainer
+
+      pixiRenderer.setPointsInteractive(false)
+      expect(container.interactiveChildren).toBe(false)
+
+      pixiRenderer.setPointsInteractive(true)
+      expect(container.interactiveChildren).toBe(true)
+    })
+
+    it("is a harmless no-op on renderers that don't override it", () => {
+      const nullRenderer = new NullPointRenderer(new PointsState())
+      expect(() => nullRenderer.setPointsInteractive(false)).not.toThrow()
+    })
+  })
+
   describe("orphan sprite cleanup", () => {
     it("removes sprites that have no corresponding state entry after shared state is modified externally", async () => {
       // This test reproduces the race condition where:
