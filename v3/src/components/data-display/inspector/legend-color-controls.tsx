@@ -6,6 +6,7 @@ import {
   Button, Group, Input, Label, ListBox, ListBoxItem, NumberField, Popover, Select, SelectValue, TextField
 } from "react-aria-components"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
+import { isFeatureEnabled } from "../../../models/feature-flags/feature-flag-manager"
 import { AttributeBinningTypes, AttributeBinningType } from "../../../models/shared/data-set-metadata"
 import {
   kDefaultHighAttributeColor, kDefaultLowAttributeColor
@@ -190,6 +191,9 @@ export const LegendBinsSelect = observer(function LegendBinsSelect(
   // While the quantiles are locked the legend scale is frozen, so this control has no
   // effect; disable it to reflect that.
   const isLocked = !!dataConfiguration.legendQuantilesAreLocked
+  const binningTypes = isFeatureEnabled("legendLogarithmic")
+    ? AttributeBinningTypes
+    : AttributeBinningTypes.filter(type => type !== "logarithmic")
 
   const handleAttributeBinningTypeChange = (key: React.Key | null) => {
     if (key == null) return
@@ -221,7 +225,7 @@ export const LegendBinsSelect = observer(function LegendBinsSelect(
         </Button>
         <Popover>
           <ListBox>
-            {AttributeBinningTypes.map(_binningType =>
+            {binningTypes.map(_binningType =>
               <ListBoxItem key={_binningType} id={_binningType}>
                 {t(`V3.Inspector.graph.legendBins.${_binningType}`)}
               </ListBoxItem>

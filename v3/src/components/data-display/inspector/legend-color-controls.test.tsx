@@ -1,6 +1,7 @@
-import { fireEvent, render, screen } from "@testing-library/react"
+import { act, fireEvent, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { scaleQuantize } from "d3"
+import { featureFlagManager } from "../../../models/feature-flags/feature-flag-manager"
 import {
   LegendColorControls, LegendBinsSelect, LegendBinCountInput, LegendRangeInputs
 } from "./legend-color-controls"
@@ -190,6 +191,11 @@ describe("LegendColorControls", () => {
 })
 
 describe("LegendBinsSelect", () => {
+  afterEach(() => {
+    // wrap in act so the reactive re-render from clearing flags doesn't warn
+    act(() => featureFlagManager.setServerConfig({}))
+  })
+
   it("renders select with label", () => {
     const config = createMockDataConfig()
     render(<LegendBinsSelect dataConfiguration={config as any} />)
@@ -212,7 +218,8 @@ describe("LegendBinsSelect", () => {
     expect(screen.getByRole("button", { name: /V3.Inspector.graph.legendBins/i })).toBeDisabled()
   })
 
-  it("offers a Logarithmic option that commits the binning type", async () => {
+  it("offers a Logarithmic option that commits the binning type when the flag is on", async () => {
+    featureFlagManager.setServerConfig({ legendLogarithmic: "on" })
     const user = userEvent.setup()
     const config = createMockDataConfig()
     render(<LegendBinsSelect dataConfiguration={config as any} />)
@@ -222,6 +229,19 @@ describe("LegendBinsSelect", () => {
     await user.click(screen.getByRole("option", { name: "V3.Inspector.graph.legendBins.logarithmic" }))
 
     expect(config.metadata.setAttributeBinningType).toHaveBeenCalledWith("attr-1", "logarithmic")
+  })
+
+  it("omits the Logarithmic option when the flag is off", async () => {
+    const user = userEvent.setup()
+    const config = createMockDataConfig()
+    render(<LegendBinsSelect dataConfiguration={config as any} />)
+
+    await user.click(screen.getByRole("button", { name: /V3.Inspector.graph.legendBins/i }))
+    // the other binning types remain available
+    expect(screen.getByRole("option", { name: "V3.Inspector.graph.legendBins.quantile" })).toBeInTheDocument()
+    // logarithmic does not
+    expect(screen.queryByRole("option", { name: "V3.Inspector.graph.legendBins.logarithmic" }))
+      .not.toBeInTheDocument()
   })
 })
 
