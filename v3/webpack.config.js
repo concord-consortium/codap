@@ -8,6 +8,27 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const ESLintPlugin = require('eslint-webpack-plugin')
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
+const ts = require('typescript')
+
+// swc-loader doesn't read tsconfig.json, and defaults to ES5 if no target is specified. Our
+// support floor (Chrome 109, Safari/iOS 15.4) handles ES2020 syntax natively, so that default
+// is bloat downloaded by every user and benefiting none of them. Rather than hard-coding a
+// second target that can drift from tsconfig's, derive it from tsconfig.json.
+// `ts.readConfigFile()` is used instead of `require()` because tsconfig.json contains comments.
+function swcTargetFromTsConfig() {
+  const tsconfigPath = path.resolve(__dirname, 'tsconfig.json')
+  const { config, error } = ts.readConfigFile(tsconfigPath, ts.sys.readFile)
+  if (error) {
+    throw new Error(`Unable to read ${tsconfigPath}: ${ts.flattenDiagnosticMessageText(error.messageText, ' ')}`)
+  }
+  // tsconfig targets are case-insensitive; swc targets are lower case
+  const target = String(config?.compilerOptions?.target).toLowerCase()
+  // fail loudly rather than silently falling back to swc's ES5 default
+  if (!/^es(20\d\d|next)$/.test(target)) {
+    throw new Error(`Unsupported tsconfig.json compilerOptions.target for swc-loader: ${target}`)
+  }
+  return target
+}
 
 // DEPLOY_PATH is set by the s3-deploy-action its value will be:
 // `branch/[branch-name]/` or `version/[tag-name]/`
@@ -120,6 +141,7 @@ module.exports = (env, argv) => {
             loader: "swc-loader",
             options: {
               jsc: {
+                target: swcTargetFromTsConfig(),
                 parser: {
                   syntax: "typescript",
                   decorators: true,
