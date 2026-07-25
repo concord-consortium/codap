@@ -10,22 +10,29 @@ const ESLintPlugin = require('eslint-webpack-plugin')
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
 const ts = require('typescript')
 
+const TSCONFIG_PATH = path.resolve(__dirname, 'tsconfig.json')
+
 // swc-loader doesn't read tsconfig.json, and defaults to ES5 if no target is specified. Our
 // support floor (Chrome 109, Safari/iOS 15.4) handles ES2020 syntax natively, so that default
 // is bloat downloaded by every user and benefiting none of them. Rather than hard-coding a
-// second target that can drift from tsconfig's, derive it from tsconfig.json.
-// `ts.readConfigFile()` is used instead of `require()` because tsconfig.json contains comments.
+// second target that can drift from tsconfig's, derive it from tsconfig.json. Note that
+// TSCONFIG_PATH is also listed in `cache.buildDependencies` below, so that changing the target
+// invalidates the persistent cache. `ts.readConfigFile()` is used instead of `require()`
+// because tsconfig.json contains comments.
 function swcTargetFromTsConfig() {
-  const tsconfigPath = path.resolve(__dirname, 'tsconfig.json')
-  const { config, error } = ts.readConfigFile(tsconfigPath, ts.sys.readFile)
+  const { config, error } = ts.readConfigFile(TSCONFIG_PATH, ts.sys.readFile)
   if (error) {
-    throw new Error(`Unable to read ${tsconfigPath}: ${ts.flattenDiagnosticMessageText(error.messageText, ' ')}`)
+    throw new Error(`Unable to read ${TSCONFIG_PATH}: ${ts.flattenDiagnosticMessageText(error.messageText, ' ')}`)
+  }
+  // fail loudly rather than silently falling back to swc's ES5 default
+  const tsTarget = config?.compilerOptions?.target
+  if (!tsTarget) {
+    throw new Error(`No compilerOptions.target in ${TSCONFIG_PATH}; swc-loader would fall back to ES5`)
   }
   // tsconfig targets are case-insensitive; swc targets are lower case
-  const target = String(config?.compilerOptions?.target).toLowerCase()
-  // fail loudly rather than silently falling back to swc's ES5 default
+  const target = String(tsTarget).toLowerCase()
   if (!/^es(20\d\d|next)$/.test(target)) {
-    throw new Error(`Unsupported tsconfig.json compilerOptions.target for swc-loader: ${target}`)
+    throw new Error(`Unsupported tsconfig.json compilerOptions.target for swc-loader: ${tsTarget}`)
   }
   return target
 }
@@ -121,7 +128,8 @@ module.exports = (env, argv) => {
     },
     cache: {
       buildDependencies: {
-        config: [__filename],
+        // tsconfig.json is a build dependency because swc-loader's target is derived from it
+        config: [__filename, TSCONFIG_PATH],
       },
       cacheDirectory: path.resolve(__dirname, `${CACHE_DIRECTORY}/webpack`),
       type: 'filesystem',
