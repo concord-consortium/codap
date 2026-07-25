@@ -5,7 +5,7 @@ import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
 import {
   isV2MapComponent, isV2MapCurrentStorage, isV2MapPointLayerStorage, isV2MapPolygonLayerStorage
 } from "../../v2/codap-v2-types"
-import { importV3Properties } from "../../v2/codap-v2-type-utils"
+import { applyImportedLegendBinCount, importV3Properties } from "../../v2/codap-v2-type-utils"
 import {v3TypeFromV2TypeIndex} from "../../v2/codap-v2-data-context-types"
 import {AttrRole} from "../data-display/data-display-types"
 import { v2DataDisplayPostImportSnapshotProcessor } from "../data-display/v2-data-display-import-utils"
@@ -57,6 +57,10 @@ export function v2MapImporter({v2Component, v2Document, getCaseData, insertTile}
         type: v3LegendType
       }
     }
+
+    // Maps carry the legend bin count only in the v3 extension namespace; apply it to the legend
+    // attribute's per-attribute metadata (the config snapshot keeps only the lock props).
+    applyImportedLegendBinCount(v3, v3LegendAttrId, sharedMetadata)
 
     const hiddenCases = hiddenCaseIds.map(id => `CASE${id}`)
 

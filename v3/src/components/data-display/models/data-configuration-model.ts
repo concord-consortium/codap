@@ -21,7 +21,7 @@ import {getChoroplethColors, missingColor, parseColor} from "../../../utilities/
 import { numericSortComparator } from "../../../utilities/data-utils"
 import { stringValuesToDateSeconds } from "../../../utilities/date-utils"
 import {hashStringSets, typedId, uniqueId} from "../../../utilities/js-utils"
-import { isFiniteNumber } from "../../../utilities/math-utils"
+import { equalFrequencyBins, isFiniteNumber } from "../../../utilities/math-utils"
 import { cachedFnWithArgsFactory, onAnyAction } from "../../../utilities/mst-utils"
 import { AxisPlace } from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
@@ -31,6 +31,12 @@ import {
   AttrRole, GraphAttrRole, TipAttrRoles, graphPlaceToAttrRole, kOther, kMain, GraphSplitAttrRoles
 } from "../data-display-types"
 import { dataDisplayGetNumericValue } from "../data-display-value-utils"
+
+// Default number of bins/colors for a numeric legend. The inspector control treats an override
+// equal to this default as "no override" and clears it rather than storing it redundantly; the
+// metadata layer itself does not special-case the default, so a value of 5 set directly (e.g. via
+// a patch/import/plugin) is stored as-is.
+export const kDefaultLegendBinCount = 5
 
 export const AttributeDescription = types
   .model('AttributeDescription', {
@@ -100,7 +106,6 @@ export const DataConfigurationModel = types
     hiddenCases: types.array(types.string),
     displayOnlySelectedCases: types.maybe(types.boolean),
     filterFormula: types.maybe(Formula),
-    numberOfLegendQuantiles: types.maybe(types.number),
     legendQuantilesAreLocked: types.maybe(types.boolean),
     legendQuantiles: types.array(types.number)
   })
@@ -519,14 +524,90 @@ export const DataConfigurationModel = types
     get caseDataHash() {
       return hashStringSets(self.filteredCases.map(cases => cases.caseIds))
     },
+    // Effective number of legend bins: the per-attribute override (default kDefaultLegendBinCount),
+    // clamped to [2, cap] where cap = min(#points, #distinct values). A degenerate legend (<=1
+    // distinct value) collapses to a single bin/color.
+    get legendBinCount() {
+      const values = self.numericValuesForAttrRole("legend") ?? []
+      const cap = Math.min(values.length, new Set(values).size)
+      if (cap < 2) return 1
+      const legendAttrId = self.attributeID("legend")
+      // Coerce to a finite integer so the reported count matches the rendered color-ramp length
+      // (getChoroplethColors truncates a fractional length); a non-finite stored value (e.g. from a
+      // legacy/hand-edited snapshot that bypassed the normalizing setter) falls back to the default.
+      const stored = self.metadata?.getAttributeBinCount(legendAttrId)
+      const requested = stored != null && Number.isFinite(stored) ? Math.round(stored) : kDefaultLegendBinCount
+      return Math.max(2, Math.min(requested, cap))
+    },
     get choroplethColors() {
       return getChoroplethColors(
         self.lowColor,
-        self.highColor
+        self.highColor,
+        this.legendBinCount
       )
     }
   }))
   .views(self => ({
+    // The effective numeric-legend display range: the per-attribute Min/Max override where set, else
+    // the live data extent. A reversed/degenerate effective range (e.g. an orphaned override after
+    // the other bound was cleared) falls back to the data extent. This drives both the quantize color
+    // scale's domain and the legend's displayed endpoint labels, so the legend always matches the
+    // Min/Max the user set -- including in quantile mode, whose trained domain is the data quantiles
+    // rather than the override (CODAP-1292).
+    get legendNumericRange(): { min?: number, max?: number } {
+      const values = self.numericValuesForAttrRole("legend") ?? []
+      const [dataMin, dataMax] = extent(values)
+      const legendAttrId = self.attributeID("legend")
+      const { min: overrideMin, max: overrideMax } =
+        self.metadata?.getAttributeLegendRange(legendAttrId) ?? {}
+      let min = overrideMin ?? dataMin
+      let max = overrideMax ?? dataMax
+      if (min != null && max != null && min >= max) {
+        min = dataMin
+        max = dataMax
+      }
+      return { min, max }
+    },
+    // The positive log domain for a logarithmic legend: upper bound = a positive Max override else the
+    // positive data max; lower bound = a positive Min override else the smallest positive value within
+    // the range (an override <= 0 is invalid for a log scale and ignored). An invalid/reversed override
+    // (min >= max) falls back to the positive data extent rather than blanking the legend (mirroring
+    // legendNumericRange); only a data set with no usable positive range (<= 1 distinct positive value)
+    // returns {} (degenerate -> single bin / blank legend).
+    get legendLogDomain(): { min?: number, max?: number } {
+      const values = self.numericValuesForAttrRole("legend") ?? []
+      const legendAttrId = self.attributeID("legend")
+      const { min: overrideMin, max: overrideMax } =
+        self.metadata?.getAttributeLegendRange(legendAttrId) ?? {}
+      const [, dataMax] = extent(values)
+      // Smallest positive value <= cap, found in a single pass; a spread (Math.min(...values)) would
+      // expand the whole array into call arguments and can overflow for large datasets.
+      const smallestPositiveUpTo = (cap: number) => {
+        let smallest: number | undefined
+        for (const v of values) {
+          if (v > 0 && v <= cap && (smallest == null || v < smallest)) smallest = v
+        }
+        return smallest
+      }
+      let max = overrideMax != null && overrideMax > 0 ? overrideMax : dataMax
+      let min = overrideMin != null && overrideMin > 0
+        ? overrideMin
+        : max != null ? smallestPositiveUpTo(max) : undefined
+      // A reversed/invalid override range falls back to the positive data extent rather than blanking.
+      if (min == null || max == null || max <= 0 || min >= max) {
+        max = dataMax
+        min = max != null && max > 0 ? smallestPositiveUpTo(max) : undefined
+      }
+      if (min == null || max == null || max <= 0 || min >= max) return {}
+      return { min, max }
+    },
+    get legendIsLogarithmic(): boolean {
+      return self.metadata?.getAttributeBinningType(self.attributeID("legend")) === "logarithmic"
+    },
+    // Endpoint labels to display: the log domain in logarithmic mode, else the linear/quantile range.
+    get legendDisplayRange(): { min?: number, max?: number } {
+      return this.legendIsLogarithmic ? this.legendLogDomain : this.legendNumericRange
+    },
     get legendNumericColorScale() {
       // TODO: Handle the displayOnlySelectedCases better. What we would like to do is
       // to basically ignore displayOnlySelectedCases when computing the legend bins.
@@ -555,23 +636,85 @@ export const DataConfigurationModel = types
       if (self.legendQuantilesAreLocked && self._legendNumericColorScale) {
         return self._legendNumericColorScale
       }
-      const values = self.numericValuesForAttrRole("legend") ?? []
-
-      const legendAttrId = self.attributeID("legend")
-      const binningType = self.metadata?.getAttributeBinningType(legendAttrId)
+      const binningType = self.metadata?.getAttributeBinningType(self.attributeID("legend"))
       switch (binningType) {
         case "quantize": {
-          const extents = extent(values)
-          if (extents[0] == null || extents[1] == null) {
+          // Use the shared effective display range (override ?? data extent, with reversed-range
+          // fallback) so the quantize domain and the legend's displayed endpoints stay in lockstep.
+          const { min: effectiveMin, max: effectiveMax } = this.legendNumericRange
+          if (effectiveMin == null || effectiveMax == null) {
             return scaleQuantize([], self.choroplethColors)
           }
-          return scaleQuantize(extents, self.choroplethColors)
-
+          // scaleQuantize maps out-of-domain values to the nearest range extreme automatically
+          return scaleQuantize([effectiveMin, effectiveMax], self.choroplethColors)
+        }
+        case "logarithmic": {
+          const { min: logMin, max: logMax } = this.legendLogDomain
+          const colors = self.choroplethColors
+          // Degenerate range -> single bin (threshold scale with no cut points, one color).
+          if (logMin == null || logMax == null) {
+            return scaleThreshold<number, string>().domain([]).range([colors[0]])
+          }
+          const n = colors.length // == legendBinCount
+          const ratio = logMax / logMin
+          // n-1 equal-ratio cut points: t_i = logMin * ratio^(i/n)
+          const thresholds = Array.from({ length: n - 1 }, (_, i) => logMin * Math.pow(ratio, (i + 1) / n))
+          return scaleThreshold<number, string>().domain(thresholds).range(colors)
         }
         case "quantile":
         default:
-          return scaleQuantile(values, self.choroplethColors)
+          // d3 quantile scale for non-degenerate data; equal-frequency repair when ties collapse it.
+          return this.legendQuantileScaleAndExtents.scale
       }
+    },
+    // Quantile binning, including the degenerate-tie repair. Computed once and shared by the color
+    // scale (which needs the scale) and the legend (which needs per-bin data extents for labels).
+    // d3's scaleQuantile is used unchanged for non-degenerate data (byte-identical to V2); when
+    // ties collapse the quantile boundaries into empty bins, a scaleThreshold built from the
+    // most-equal partition groups replaces it so distinct values get distinct colors and no bin
+    // is empty.
+    get legendQuantileScaleAndExtents(): {
+      scale: ScaleQuantile<string> | ScaleThreshold<number, string>,
+      extents?: Array<{ min: number, max: number }>
+    } {
+      const legendAttrId = self.attributeID("legend")
+      const values = self.numericValuesForAttrRole("legend") ?? []
+      const { min: overrideMin, max: overrideMax } =
+        self.metadata?.getAttributeLegendRange(legendAttrId) ?? {}
+      const filtered = overrideMin == null && overrideMax == null
+        ? values
+        : values.filter(v =>
+            (overrideMin == null || v >= overrideMin) && (overrideMax == null || v <= overrideMax))
+      // If the override range excludes every value (orphaned/stale override, or the data moved
+      // outside the range), train on the full value set rather than producing an all-first-color scale.
+      const trained = filtered.length > 0 ? filtered : values
+      const scale = scaleQuantile(trained, self.choroplethColors)
+      // Degenerate iff [min, ...quantiles] is not strictly increasing: a duplicate boundary means a
+      // bin has no values. (The last bin always contains the max, so only the lower boundaries matter.)
+      const boundaries = [scale.domain()[0], ...scale.quantiles()]
+      const degenerate = trained.length > 0 &&
+        boundaries.some((b, i) => i > 0 && b <= boundaries[i - 1])
+      if (!degenerate) return { scale }
+      const bins = equalFrequencyBins(trained, self.legendBinCount)
+      const thresholds = bins.slice(1).map(b => b.min)
+      // bins.length can be < legendBinCount when an override leaves fewer distinct values than the
+      // bin-count cap; size the color ramp to the actual bin count so the threshold scale's range
+      // length matches its domain.
+      const colors = bins.length === self.legendBinCount
+        ? self.choroplethColors
+        : getChoroplethColors(self.lowColor, self.highColor, bins.length)
+      const threshScale = scaleThreshold<number, string>().domain(thresholds).range(colors)
+      return { scale: threshScale, extents: bins.map(b => ({ min: b.min, max: b.max })) }
+    },
+    // Per-bin data extents for labeling the legend, defined only for the degenerate quantile case
+    // (where bins must be labeled from the data, e.g. "1" or "2 - 3"). undefined everywhere else,
+    // so the return value doubles as the "is degenerate" signal the legend keys off. Locked legends
+    // use their frozen threshold labels, so they opt out here.
+    get legendBinDataExtents(): Array<{ min: number, max: number }> | undefined {
+      if (self.legendQuantilesAreLocked) return undefined
+      const binningType = self.metadata?.getAttributeBinningType(self.attributeID("legend"))
+      if (binningType != null && binningType !== "quantile") return undefined
+      return this.legendQuantileScaleAndExtents.extents
     },
   }))
   .views(self => (
@@ -582,6 +725,15 @@ export const DataConfigurationModel = types
       },
 
       getLegendColorForNumericValue(value: number): string {
+        // A log scale is undefined for values <= 0; they are always missing, including when the log
+        // domain is degenerate (<= 1 distinct positive value) and legendDisplayRange is empty.
+        if (self.legendIsLogarithmic && value <= 0) return missingColor
+        // When the effective range is defined, values outside it are "missing" rather than clamped
+        // into an end bin. legendDisplayRange is the same range used for the endpoint labels, so
+        // colors and labels stay in lockstep. A degenerate domain yields no min/max but still
+        // produces a valid single-bin scale, so skip the check there and let the scale color it.
+        const { min, max } = self.legendDisplayRange
+        if (min != null && max != null && (value < min || value > max)) return missingColor
         return self.legendNumericColorScale(value)
       },
 
@@ -650,14 +802,14 @@ export const DataConfigurationModel = types
         },
         name: "allCasesForCategoryAreSelected"
       }),
-      getCasesInLegendRange(min: number, max: number) {
+      getCasesInLegendRange(min: number, max: number, inclusiveMax = false) {
         const dataset = self.dataset
         const legendID = self.attributeID('legend')
         const typeIsNumeric = self.attributeType('legend') === 'numeric'
         return legendID
           ? self.getCaseDataArray(0).filter((aCaseData: CaseData) => {
             const value = dataDisplayGetNumericValue(dataset, aCaseData.caseID, legendID, typeIsNumeric)
-            return value != null && value >= min && value < max
+            return value != null && value >= min && (inclusiveMax ? value <= max : value < max)
           }).map((aCaseData: CaseData) => aCaseData.caseID)
           : []
 
@@ -668,9 +820,18 @@ export const DataConfigurationModel = types
       getCasesForLegendBin(bin: number) {
         const scale = self.legendNumericColorScale
         const thresholds = getScaleThresholds(scale)
-        const min = bin === 0 ? -Infinity : thresholds[bin - 1]
-        const max = bin === thresholds.length ? Infinity : thresholds[bin]
-        return self.getCasesInLegendRange(min, max)
+        // Out-of-range values are "missing" (not in any bin), so the end bins are bounded by the
+        // effective legend range rather than ±Infinity: the first bin starts at the range min and
+        // the last bin ends at the range max, inclusive (the max is a real, plottable value). In
+        // logarithmic mode with a degenerate domain (no rangeMin) the first bin still starts just
+        // above 0, since non-positive values are missing rather than part of the bin.
+        const { min: rangeMin, max: rangeMax } = self.legendDisplayRange
+        const isLastBin = bin === thresholds.length
+        // Number.MIN_VALUE is the smallest *positive* double, so it floors the first log bin just above 0.
+        const firstBinMin = rangeMin ?? (self.legendIsLogarithmic ? Number.MIN_VALUE : -Infinity)
+        const min = bin === 0 ? firstBinMin : thresholds[bin - 1]
+        const max = isLastBin ? (rangeMax ?? Infinity) : thresholds[bin]
+        return self.getCasesInLegendRange(min, max, isLastBin)
       }
     }))
   .views(self => (
@@ -899,9 +1060,6 @@ export const DataConfigurationModel = types
     },
   }))
   .actions(self => ({
-    setNumberOfLegendQuantiles(numQuantiles: number | undefined) {
-      self.numberOfLegendQuantiles = numQuantiles
-    },
     setLegendQuantiles(quantiles: number[]) {
       self.legendQuantiles.replace(quantiles)
     },
@@ -913,13 +1071,11 @@ export const DataConfigurationModel = types
         const scale = self.legendNumericColorScale
         const thresholds = getScaleThresholds(scale)
         this.setLegendQuantiles(thresholds)
-        this.setNumberOfLegendQuantiles(thresholds.length)
         self._legendNumericColorScale = scale
       }
       else {
         self._legendNumericColorScale = null
         this.setLegendQuantiles([])
-        this.setNumberOfLegendQuantiles(undefined)
       }
       self.legendQuantilesAreLocked = areLocked
     },

@@ -4,7 +4,7 @@ import { measureTextExtent } from "../../../../../hooks/use-measure-text"
 import {
   determineLevels, formatDate, kDatePrecisionNone, mapLevelToPrecision
 } from "../../../../../utilities/date-utils"
-import { binBoundaryDecimalPlaces } from "../../../../../utilities/math-utils"
+import { binBoundaryDecimalPlaces, binBoundarySignificantFigures } from "../../../../../utilities/math-utils"
 import { kChoroplethHeight, kDataDisplayFont } from "../../../data-display-types"
 
 // Gap (px) below the color bar before the label text. Used both as the axis tickPadding for the
@@ -21,6 +21,12 @@ export type ChoroplethLegendProps = {
   // this for year-like attributes (which are typed numeric, not date) so years render as "2024", not
   // "2,024" — matching how CODAP formats numbers elsewhere (see getNumFormatterForAttribute).
   useGrouping?: boolean,
+  // When true, the legend renders a logarithmic (equal-ratio) scale, formatting numeric labels with a
+  // uniform number of significant figures rather than decimal places, since the boundaries span
+  // orders of magnitude (significant figures is the log dual of fixed decimal places). Bin tooltips
+  // are plain ranges like the linear/quantile cases; values outside the positive log domain (including
+  // <= 0) are missing rather than clamped into an end bin.
+  logarithmic?: boolean,
   width?: number,
   rectHeight?: number,
   transform?: string,
@@ -28,6 +34,15 @@ export type ChoroplethLegendProps = {
   marginRight?: number,
   marginLeft?: number,
   ticks?: number,
+  // Effective legend extent to display as the min/max endpoint labels. A quantile scale's domain is
+  // its training samples, whose extent need not match a user-set Min/Max range; when provided these
+  // override the domain-derived endpoints so the legend matches the range the user set (CODAP-1292).
+  legendMin?: number,
+  legendMax?: number,
+  // Per-bin data extents (min..max of the values in each bin). Provided only for the degenerate
+  // quantile case, where bins are labeled from the data: a single value when min === max (e.g.
+  // "1"), else a range ("2 - 3"). When absent, bin tooltips use the threshold-derived boundaries.
+  binDataExtents?: Array<{ min: number, max: number }>,
   clickHandler: (bin: number, extend: boolean) => void,
   casesInBinSelectedHandler: (bin: number) => boolean
 }
@@ -43,6 +58,8 @@ function isScaleQuantize(scale: ChoroplethScale): scale is ScaleQuantize<string>
 }
 
 export function getScaleThresholds(scale: ChoroplethScale) {
+  // The remaining case is ScaleThreshold, whose domain() IS its array of cut points (used by the
+  // logarithmic legend).
   return isScaleQuantile(scale) ? scale.quantiles()
     : isScaleQuantize(scale) ? scale.thresholds()
       : scale.domain()
@@ -59,12 +76,14 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
   }
 
   const {
-      isDate, useGrouping = false, transform = '', width = 320,
+      isDate, useGrouping = false, logarithmic = false, transform = '', width = 320,
       marginTop = 0, marginRight = 0, marginLeft = 0,
-      ticks = 5, clickHandler, casesInBinSelectedHandler
+      ticks = 5, legendMin, legendMax, binDataExtents, clickHandler, casesInBinSelectedHandler
     } = props,
-    minValue = min(scale.domain()) ?? 0,
-    maxValue = max(scale.domain()) ?? 0
+    // Prefer the caller-provided effective range; fall back to the scale domain's extent (a quantile
+    // scale's domain is its training samples, so its extent can differ from the user-set range).
+    minValue = legendMin ?? min(scale.domain()) ?? 0,
+    maxValue = legendMax ?? max(scale.domain()) ?? 0
 
   select(choroplethElt).selectAll("*").remove()
   const svg = select(choroplethElt).append("svg")
@@ -82,9 +101,14 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
     // rather than "0, 0.5, 1.00") and stops a narrow range like 100–110 from collapsing to
     // "100, 100, 110" the way a fixed 2-significant-figure format did.
     decimalPlaces = binBoundaryDecimalPlaces(fullBoundaries),
+    // Logarithmic (equal-ratio) boundaries span orders of magnitude, so format them with a uniform
+    // number of significant figures (the log-scale dual of the linear case's uniform decimal places).
+    sigFigs = binBoundarySignificantFigures(fullBoundaries),
     formatBoundary = isDate
       ? (value: number) => formatDate(value * 1000, datePrecision) ?? ''
-      : format(`${useGrouping ? ',' : ''}.${decimalPlaces}f`)
+      : logarithmic
+        ? format(`${useGrouping ? ',' : ''}.${sigFigs}r`)
+        : format(`${useGrouping ? ',' : ''}.${decimalPlaces}f`)
 
   const legendScale = scaleLinear()
       .domain([-1, scale.range().length - 1])
@@ -109,27 +133,38 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
         interiorCenters[i - 1] + interiorWidths[i - 1] / 2 + kLegendLabelGap),
     onlyShowMinMax = !(fitBesideEndpoints && interiorLabelsFit)
 
+  // Bind each rect to its bin index (not its color): the index is the unambiguous bin identifier,
+  // whereas looking a color up in scale.range() is O(n) and returns the wrong bin when the ramp
+  // contains duplicate colors (e.g. lowColor === highColor).
+  const colors = scale.range()
   svg.append("g")
     .selectAll("rect")
-    .data(scale.range())
+    .data(colors.map((_, i) => i))
     .join("rect")
     .attr('class', 'choropleth-rect')
-    .classed('legend-rect-selected',
-      (color) => {
-        return casesInBinSelectedHandler(scale.range().indexOf(color))
-      })
+    .classed('legend-rect-selected', bin => casesInBinSelectedHandler(bin))
     .attr('transform', transform)
-    .attr("x", (d, i) => legendScale(i - 1))
+    .attr("x", bin => legendScale(bin - 1))
     .attr("y", marginTop)
-    .attr("width", (d, i) => legendScale(i) - legendScale(i - 1))
+    .attr("width", bin => legendScale(bin) - legendScale(bin - 1))
     .attr("height", kChoroplethHeight /*height - marginTop - marginBottom*/)
-    .attr("fill", (d: string) => d)
-    .on('click', (event, color) => {
-      clickHandler(scale.range().indexOf(color), event.shiftKey)
+    .attr("fill", bin => colors[bin])
+    .on('click', (event, bin) => {
+      clickHandler(bin, event.shiftKey)
     })
     .append('title')
-    .text((color) => {
-      const bin = scale.range().indexOf(color)
+    .text(bin => {
+      // Degenerate quantile bins are labeled from their data: a single value when min === max
+      // (e.g. "1"), else a range ("2 - 3").
+      const extent = binDataExtents?.[bin]
+      if (extent) {
+        return extent.min === extent.max
+          ? formatBoundary(extent.min)
+          : `${formatBoundary(extent.min)} - ${formatBoundary(extent.max)}`
+      }
+      // Every bin is a plain [low - high] range. Out-of-range values (and <= 0 in logarithmic mode)
+      // are treated as missing rather than clamped into the end bins, so the first and last bins are
+      // bounded by the legend's min/max like any interior bin.
       return `${formatBoundary(fullBoundaries[bin])} - ${formatBoundary(fullBoundaries[bin + 1])}`
     })
 

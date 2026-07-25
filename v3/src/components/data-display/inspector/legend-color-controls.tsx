@@ -1,19 +1,24 @@
+import { clsx } from "clsx"
+import { extent, format, max as d3Max, min as d3Min } from "d3"
 import { observer } from "mobx-react-lite"
-import React, { useRef, useState } from "react"
+import React, { useEffect, useId, useRef, useState } from "react"
 import {
-  Button, ListBox, ListBoxItem, Popover, Select, SelectValue
+  Button, Group, Input, Label, ListBox, ListBoxItem, NumberField, Popover, Select, SelectValue, TextField
 } from "react-aria-components"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
 import { AttributeBinningTypes, AttributeBinningType } from "../../../models/shared/data-set-metadata"
 import {
   kDefaultHighAttributeColor, kDefaultLowAttributeColor
 } from "../../../models/shared/data-set-metadata-constants"
+import { binBoundaryDecimalPlaces } from "../../../utilities/math-utils"
 import { t } from "../../../utilities/translation/translate"
 import { PaletteCheckbox } from "../../palette-checkbox"
+import { getScaleThresholds } from "../components/legend/choropleth-legend/choropleth-legend"
 import {
-  changeAttributeColorNotification, changePointColorAndAlphaNotification, changePointColorNotification
+  changeAttributeColorNotification, changeLegendBinCountNotification, changeLegendBinsTypeNotification,
+  changeLegendRangeNotification, changePointColorAndAlphaNotification, changePointColorNotification
 } from "../data-display-notifications"
-import { IDataConfigurationModel } from "../models/data-configuration-model"
+import { IDataConfigurationModel, kDefaultLegendBinCount } from "../models/data-configuration-model"
 import { IDisplayItemDescriptionModel } from "../models/display-item-description-model"
 import { PointColorSetting } from "./point-color-setting"
 
@@ -178,9 +183,13 @@ interface ILegendBinsSelectProps {
 export const LegendBinsSelect = observer(function LegendBinsSelect(
   { dataConfiguration }: ILegendBinsSelectProps
 ) {
+  const { tile } = useTileModelContext()
   const legendAttrID = dataConfiguration.attributeID("legend")
   const metadata = dataConfiguration.metadata
   const binningType = metadata?.getAttributeBinningType(legendAttrID)
+  // While the quantiles are locked the legend scale is frozen, so this control has no
+  // effect; disable it to reflect that.
+  const isLocked = !!dataConfiguration.legendQuantilesAreLocked
 
   const handleAttributeBinningTypeChange = (key: React.Key | null) => {
     if (key == null) return
@@ -188,6 +197,7 @@ export const LegendBinsSelect = observer(function LegendBinsSelect(
     metadata?.applyModelChange(() => {
       metadata.setAttributeBinningType(legendAttrID, selected)
     }, {
+      notify: () => changeLegendBinsTypeNotification(tile, selected),
       undoStringKey: "V3.Undo.graph.changeAttributeBinningType",
       redoStringKey: "V3.Redo.graph.changeAttributeBinningType",
       log: "Changed attribute binning type"
@@ -195,11 +205,13 @@ export const LegendBinsSelect = observer(function LegendBinsSelect(
   }
 
   return (
-    <div className="legend-bins-row">
-      <label className="form-label legend-bins-menu">{t("V3.Inspector.graph.legendBins")}</label>
+    <div className={clsx("legend-bins-row", { disabled: isLocked })}>
+      {/* not a <label>: it names no single control; the Select carries its own aria-label */}
+      <span className="form-label legend-bins-menu">{t("V3.Inspector.graph.legendBins")}</span>
       <Select
         aria-label={t("V3.Inspector.graph.legendBins")}
         value={binningType}
+        isDisabled={isLocked}
         onChange={handleAttributeBinningTypeChange}
         data-testid="legend-bins-type-select"
       >
@@ -217,6 +229,263 @@ export const LegendBinsSelect = observer(function LegendBinsSelect(
           </ListBox>
         </Popover>
       </Select>
+    </div>
+  )
+})
+
+interface ILegendBinCountInputProps {
+  dataConfiguration: IDataConfigurationModel
+}
+
+export const LegendBinCountInput = observer(function LegendBinCountInput(
+  { dataConfiguration }: ILegendBinCountInputProps
+) {
+  const { tile } = useTileModelContext()
+  const legendAttrID = dataConfiguration.attributeID("legend")
+  const metadata = dataConfiguration.metadata
+  const values = dataConfiguration.numericValuesForAttrRole("legend") ?? []
+  const cap = Math.min(values.length, new Set(values).size)
+  // While the quantiles are locked the legend scale is frozen, so this control has no effect.
+  const isLocked = !!dataConfiguration.legendQuantilesAreLocked
+  const isDisabled = isLocked || cap < 2
+  // The effective (clamped) bin count, so the field reflects what the legend actually renders.
+  const value = dataConfiguration.legendBinCount
+
+  const commit = (n: number) => {
+    if (!Number.isFinite(n)) return
+    // The model clamps too (legendBinCount), but constrain here so the committed value matches.
+    const clamped = Math.max(2, Math.min(Math.round(n), cap))
+    // Storing the default is redundant; clear the override at the default so the attribute truly
+    // reverts to default and leaves no stray metadata. Compare against the *stored* value (not the
+    // effective/clamped one) so an explicit re-entry that differs from what's stored is still
+    // recorded (e.g. typing the displayed value when the default was clamped down by a low cap).
+    const target = clamped === kDefaultLegendBinCount ? undefined : clamped
+    const stored = metadata?.getAttributeBinCount(legendAttrID)
+    if (target === stored) return // no change to stored metadata
+    metadata?.applyModelChange(() => metadata.setAttributeBinCount(legendAttrID, target), {
+      notify: () => changeLegendBinCountNotification(tile, clamped),
+      undoStringKey: "V3.Undo.legend.setLegendBinCount",
+      redoStringKey: "V3.Redo.legend.setLegendBinCount",
+      log: "Set legend bin count"
+    })
+  }
+
+  return (
+    <NumberField
+      className={clsx("legend-bin-count-field", { disabled: isDisabled })}
+      aria-label={t("V3.Inspector.graph.legendBinCount")}
+      // A degenerate legend (<2 distinct values) renders a single bin; allow the (disabled) field
+      // to reflect that 1 rather than clamping the display up to 2.
+      minValue={cap < 2 ? 1 : 2}
+      maxValue={Math.max(2, cap)}
+      step={1}
+      formatOptions={{ maximumFractionDigits: 0 }}
+      isDisabled={isDisabled}
+      value={value}
+      onChange={(n) => commit(n)}
+    >
+      <Label className="form-label legend-bin-count-label">{t("V3.Inspector.graph.legendBinCount")}</Label>
+      <Group className="legend-bin-count-group">
+        <Input className="form-input" data-testid="legend-bin-count-input" />
+        <Button slot="decrement" className="legend-bin-count-stepper">−</Button>
+        <Button slot="increment" className="legend-bin-count-stepper">+</Button>
+      </Group>
+    </NumberField>
+  )
+})
+
+const kLegendRangeMaxCharacters = 12
+const kLegendRangeBufferChars = 2 // accounts for input field padding
+
+// The number of decimal places the legend uses for its boundary labels, so the Min/Max inputs
+// match the legend labels rather than showing raw ~10-digit data values (e.g. random() defaults).
+// Returns undefined when the scale is empty/degenerate; the caller then falls back to a plain form.
+function legendBoundaryDecimals(dataConfiguration: IDataConfigurationModel) {
+  const scale = dataConfiguration.legendNumericColorScale
+  const domain = scale?.domain() ?? []
+  if (domain.length === 0 || isNaN(Number(domain[0]))) return undefined
+  const lo = Number(d3Min(domain as Iterable<number>))
+  const hi = Number(d3Max(domain as Iterable<number>))
+  // Mirror choropleth-legend's boundary set so the input precision matches the rendered labels.
+  const fullBoundaries = [lo, ...getScaleThresholds(scale), hi]
+  return binBoundaryDecimalPlaces(fullBoundaries)
+}
+
+// Formats a legend bound for display in the Min/Max inputs. With a known decimal count (from the
+// legend) it uses a fixed-decimal form matching the labels; otherwise it strips floating-point
+// noise (e.g. 0.30000000000000004 -> "0.3") without scientific notation (the input filter rejects
+// "e"), keeping very small/large values editable.
+function formatLegendBound(value?: number, decimals?: number) {
+  if (value == null) return ""
+  if (decimals != null) return format(`.${decimals}f`)(value)
+  const rounded = parseFloat(value.toPrecision(10))
+  return rounded.toLocaleString("en-US", { useGrouping: false, maximumFractionDigits: 20 })
+}
+
+// Allows an optional leading minus, digits, and a single decimal point, capping the
+// length so paste/drag/programmatic input honors the same limit as typing.
+function filterLegendRangeInput(value: string): string {
+  let filtered = value.replace(/[^0-9.-]/g, "")
+  const isNegative = filtered.startsWith("-")
+  filtered = filtered.replace(/-/g, "")
+  const parts = filtered.split(".")
+  if (parts.length > 2) {
+    filtered = `${parts.shift()}.${parts.join("")}`
+  }
+  return `${isNegative ? "-" : ""}${filtered}`.slice(0, kLegendRangeMaxCharacters)
+}
+
+type LegendBound = "min" | "max"
+
+interface ILegendRangeInputsProps {
+  dataConfiguration: IDataConfigurationModel
+}
+
+export const LegendRangeInputs = observer(function LegendRangeInputs(
+  { dataConfiguration }: ILegendRangeInputsProps
+) {
+  const { tile } = useTileModelContext()
+  const headingId = useId()
+  const legendAttrID = dataConfiguration.attributeID("legend")
+  const metadata = dataConfiguration.metadata
+  const { min: overrideMin, max: overrideMax } = metadata?.getAttributeLegendRange(legendAttrID) ?? {}
+  const [dataMin, dataMax] = extent(dataConfiguration.numericValuesForAttrRole("legend") ?? [])
+
+  // Reports the resulting effective bounds (override ?? data extent) after a range edit. Re-reads
+  // the model because it runs inside applyModelChange, after the change is applied (closure vars
+  // captured at render are stale at that point).
+  const notifyRangeChange = () => {
+    const { min, max } = metadata?.getAttributeLegendRange(legendAttrID) ?? {}
+    const [liveMin, liveMax] = extent(dataConfiguration.numericValuesForAttrRole("legend") ?? [])
+    return changeLegendRangeNotification(tile, min ?? liveMin, max ?? liveMax)
+  }
+  const effectiveMin = overrideMin ?? dataMin
+  const effectiveMax = overrideMax ?? dataMax
+  const decimals = legendBoundaryDecimals(dataConfiguration)
+  const displayMin = formatLegendBound(effectiveMin, decimals)
+  const displayMax = formatLegendBound(effectiveMax, decimals)
+  // While the quantiles are locked the legend scale is frozen, so edits here have no
+  // effect; disable the inputs to reflect that.
+  const isLocked = !!dataConfiguration.legendQuantilesAreLocked
+
+  const [minInput, setMinInput] = useState(displayMin)
+  const [maxInput, setMaxInput] = useState(displayMax)
+
+  // Sync local state when the committed/displayed value changes (e.g. undo/redo, or a
+  // live data extent change while no override is in effect).
+  useEffect(() => setMinInput(displayMin), [displayMin])
+  useEffect(() => setMaxInput(displayMax), [displayMax])
+
+  const revert = (bound: LegendBound) => {
+    if (bound === "min") setMinInput(displayMin)
+    else setMaxInput(displayMax)
+  }
+
+  const commit = (bound: LegendBound, rawText: string) => {
+    const text = rawText.trim()
+    // No change from what's shown: don't write anything. This avoids creating a spurious
+    // override (e.g. pinning the range to the live data extent) on a plain focus/blur, and
+    // avoids redundant undo steps when the same value is re-entered.
+    if (text === (bound === "min" ? displayMin : displayMax)) return
+    const setBound = (boundValue?: number) => {
+      if (bound === "min") metadata?.setAttributeLegendMin(legendAttrID, boundValue)
+      else metadata?.setAttributeLegendMax(legendAttrID, boundValue)
+    }
+    if (text === "") {
+      // Clearing reverts this bound to the live data extent. If that leaves the *other*
+      // override orphaned (it no longer brackets the data, so the range would go reversed),
+      // clear it too so the displayed range and the legend never show min > max.
+      const otherOverride = bound === "min" ? overrideMax : overrideMin
+      const revertedDataBound = bound === "min" ? dataMin : dataMax
+      const otherOrphaned = otherOverride != null && revertedDataBound != null &&
+        (bound === "min" ? otherOverride <= revertedDataBound : otherOverride >= revertedDataBound)
+      // Clearing always succeeds, reverting that bound to the live data extent.
+      metadata?.applyModelChange(() => {
+        setBound(undefined)
+        if (otherOrphaned) {
+          if (bound === "min") metadata.setAttributeLegendMax(legendAttrID, undefined)
+          else metadata.setAttributeLegendMin(legendAttrID, undefined)
+        }
+      }, {
+        notify: notifyRangeChange,
+        undoStringKey: bound === "min" ? "V3.Undo.legend.clearLegendMin" : "V3.Undo.legend.clearLegendMax",
+        redoStringKey: bound === "min" ? "V3.Redo.legend.clearLegendMin" : "V3.Redo.legend.clearLegendMax",
+        log: bound === "min" ? "Clear legend min" : "Clear legend max"
+      })
+      return
+    }
+    const value = Number(text)
+    // Numeric no-op: with label-precision formatting the display ("5.0") can differ from an
+    // equivalent typed value ("5"), so the string check above misses it. Treat a value equal to the
+    // current effective bound as no change to avoid a spurious override (and undo step) on re-entry.
+    const currentEffective = bound === "min" ? effectiveMin : effectiveMax
+    if (Number.isFinite(value) && value === currentEffective) return
+    // Validate a typed value against the other effective bound; invalid values silently revert.
+    const other = bound === "min" ? effectiveMax : effectiveMin
+    const valid = Number.isFinite(value) &&
+      (other == null || (bound === "min" ? value < other : value > other))
+    if (!valid) {
+      revert(bound)
+      return
+    }
+    metadata?.applyModelChange(() => setBound(value), {
+      notify: notifyRangeChange,
+      undoStringKey: bound === "min" ? "V3.Undo.legend.setLegendMin" : "V3.Undo.legend.setLegendMax",
+      redoStringKey: bound === "min" ? "V3.Redo.legend.setLegendMin" : "V3.Redo.legend.setLegendMax",
+      log: bound === "min" ? "Set legend min" : "Set legend max"
+    })
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, bound: LegendBound) => {
+    if (e.key === "Enter") {
+      e.preventDefault()
+      commit(bound, e.currentTarget.value)
+    } else if (e.key === "Escape") {
+      e.preventDefault()
+      revert(bound)
+    } else {
+      // Cap the number of characters, but allow deletion/navigation keys and overwriting a selection.
+      const allowedKeys = new Set(["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Home", "End", "Tab"])
+      const isAllowedKey = allowedKeys.has(e.key) || e.ctrlKey || e.metaKey
+      const hasSelection = e.currentTarget.selectionStart !== e.currentTarget.selectionEnd
+      if (e.currentTarget.value.length >= kLegendRangeMaxCharacters && !isAllowedKey && !hasSelection) {
+        e.preventDefault()
+      }
+    }
+  }
+
+  const renderInput = (bound: LegendBound, text: string, onChange: (v: string) => void) => (
+    <TextField value={text} isDisabled={isLocked} onChange={(v) => onChange(filterLegendRangeInput(v))}>
+      <Label className="form-label">
+        {t(`V3.Inspector.graph.legendRange.${bound}`)}
+      </Label>
+      <Input
+        className="form-input"
+        data-testid={`legend-range-${bound}-input`}
+        style={{ width: `${text.length + kLegendRangeBufferChars}ch` }}
+        onKeyDown={(e) => handleKeyDown(e, bound)}
+        onBlur={(e) => commit(bound, e.target.value)}
+      />
+    </TextField>
+  )
+
+  return (
+    <div
+      role="group"
+      aria-labelledby={headingId}
+      className={clsx("legend-range-section", { disabled: isLocked })}
+      aria-disabled={isLocked || undefined}
+    >
+      {/* a group heading, not a <label>: it names the Min/Max group, not one control */}
+      <div id={headingId} className="form-label">{t("V3.Inspector.graph.legendRange")}</div>
+      <div className="legend-range-inputs">
+        <div className="inline-input-group" data-testid="legend-range-min-setting">
+          {renderInput("min", minInput, setMinInput)}
+        </div>
+        <div className="inline-input-group" data-testid="legend-range-max-setting">
+          {renderInput("max", maxInput, setMaxInput)}
+        </div>
+      </div>
     </div>
   )
 })

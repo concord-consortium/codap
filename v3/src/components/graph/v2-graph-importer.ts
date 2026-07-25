@@ -7,7 +7,9 @@ import {defaultBackgroundColor, parseColorToHex} from "../../utilities/color-uti
 import {v3TypeFromV2TypeIndex} from "../../v2/codap-v2-data-context-types"
 import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
 import { IGuidLink, isV2GraphComponent } from "../../v2/codap-v2-types"
-import { importLegendQuantileProps, importV3Properties, V2PlaceToV3AxisTypeMap } from "../../v2/codap-v2-type-utils"
+import {
+  applyImportedLegendBinCount, importLegendLockProps, importV3Properties, V2PlaceToV3AxisTypeMap
+} from "../../v2/codap-v2-type-utils"
 import {GraphAttrRole, PrimaryAttrRole, axisPlaceToAttrRole} from "../data-display/data-display-types"
 import {
   GraphAttributeDescriptionsMapSnapshot, IAttributeDescriptionSnapshot
@@ -193,6 +195,12 @@ export function v2GraphImporter({v2Component, v2Document, getCaseData, insertTil
   }
   const adornmentsStore = v2AdornmentImporter(adornmentImporterProps)
 
+  // The legend bin count lives in per-attribute metadata, not the config snapshot. Apply it from
+  // both the native V2 storage and the v3 extension namespace (idempotent for equal values).
+  const legendAttrId = _attributeDescriptions.legend?.attributeID
+  applyImportedLegendBinCount(v2Component.componentStorage, legendAttrId, sharedMetadata)
+  applyImportedLegendBinCount(v3, legendAttrId, sharedMetadata)
+
   const content: IGraphContentModelSnapshot = {
     type: kGraphTileType,
     adornmentsStore,
@@ -225,7 +233,7 @@ export function v2GraphImporter({v2Component, v2Document, getCaseData, insertTil
         _yAttributeDescriptions,
         displayOnlySelectedCases: displayOnlySelected,
         showMeasuresForSelection: enableMeasuresForSelection || undefined,
-        ...importLegendQuantileProps(v2Component.componentStorage),
+        ...importLegendLockProps(v2Component.componentStorage),
         ...v3Properties
       }
     }]

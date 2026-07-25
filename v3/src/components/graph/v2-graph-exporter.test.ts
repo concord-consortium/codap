@@ -6,7 +6,8 @@ import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { safeJsonParse } from "../../utilities/js-utils"
 import { CodapV2DataSetImporter, getCaseDataFromV2ContextGuid } from "../../v2/codap-v2-data-set-importer"
 import { CodapV2Document } from "../../v2/codap-v2-document"
-import { ICodapV2DocumentJson, ICodapV2GraphComponent } from "../../v2/codap-v2-types"
+import { ICodapV2DocumentJson, ICodapV2GraphComponent, isV2GraphComponent } from "../../v2/codap-v2-types"
+import { isGraphContentModel } from "./models/graph-content-model"
 import { v2GraphExporter } from "./v2-graph-exporter"
 import { v2GraphImporter } from "./v2-graph-importer"
 import "./graph-registration"
@@ -335,5 +336,63 @@ describe("V2GraphImporter", () => {
                                 kOptionalNull)
       expect(v2GraphTileOutStorage).toEqual(v2GraphTileStorage)
     })
+  })
+})
+
+describe("V2 graph legend bin count round-trip", () => {
+  beforeEach(() => resetMocks())
+
+  // Imports the speed-legend document (numeric legends) and returns the first imported graph tile
+  // whose legend is numeric, along with its data configuration.
+  function importNumericLegendGraph() {
+    const { v2Document } = loadCodapDocument("mammals-all-speed-legends.codap")
+    const v2GraphTiles = v2Document.components.filter(c => c.type === "DG.GraphView")
+    for (const v2GraphTile of v2GraphTiles) {
+      const tile = v2GraphImporter({ v2Component: v2GraphTile, v2Document, ...mockImporterArgs })
+      const content = isGraphContentModel(tile?.content) ? tile.content : undefined
+      const dataConfig = content?.dataConfiguration
+      if (dataConfig?.attributeType("legend") === "numeric") return { tile: tile!, dataConfig }
+    }
+    throw new Error("no numeric-legend graph found in fixture")
+  }
+
+  it("exports a non-default legend bin count as numberOfLegendQuantiles", () => {
+    const { tile, dataConfig } = importNumericLegendGraph()
+    const legendId = dataConfig.attributeID("legend")
+    dataConfig.metadata!.setAttributeBinCount(legendId, 8)
+    const out = v2GraphExporter({ tile })
+    expect((out?.componentStorage as any)?.numberOfLegendQuantiles).toBe(8)
+  })
+
+  it("exports the default count of 5 (lossless) when there is no override", () => {
+    const { tile, dataConfig } = importNumericLegendGraph()
+    const legendId = dataConfig.attributeID("legend")
+    expect(dataConfig.metadata!.getAttributeBinCount(legendId)).toBeUndefined()
+    const out = v2GraphExporter({ tile })
+    expect((out?.componentStorage as any)?.numberOfLegendQuantiles).toBe(5)
+  })
+
+  it("imports numberOfLegendQuantiles onto the legend attribute's binCount", () => {
+    const { v2Document } = loadCodapDocument("mammals-all-speed-legends.codap")
+    const v2GraphTile = v2Document.components.find((c): c is ICodapV2GraphComponent =>
+      isV2GraphComponent(c) && c.componentStorage.legendAttributeType === 1)!
+    v2GraphTile.componentStorage.numberOfLegendQuantiles = 8
+    const tile = v2GraphImporter({ v2Component: v2GraphTile, v2Document, ...mockImporterArgs })
+    const content = isGraphContentModel(tile?.content) ? tile.content : undefined
+    const dataConfig = content!.dataConfiguration
+    const legendId = dataConfig.attributeID("legend")
+    expect(dataConfig.metadata!.getAttributeBinCount(legendId)).toBe(8)
+  })
+
+  it("imports the default count of 5 without creating metadata", () => {
+    const { v2Document } = loadCodapDocument("mammals-all-speed-legends.codap")
+    const v2GraphTile = v2Document.components.find((c): c is ICodapV2GraphComponent =>
+      isV2GraphComponent(c) && c.componentStorage.legendAttributeType === 1)!
+    // fixture already stores numberOfLegendQuantiles: 5
+    const tile = v2GraphImporter({ v2Component: v2GraphTile, v2Document, ...mockImporterArgs })
+    const content = isGraphContentModel(tile?.content) ? tile.content : undefined
+    const dataConfig = content!.dataConfiguration
+    const legendId = dataConfig.attributeID("legend")
+    expect(dataConfig.metadata!.getAttributeBinCount(legendId)).toBeUndefined()
   })
 })
