@@ -3,12 +3,13 @@ import { tip as d3tip } from "d3-v6-tip"
 import { untracked } from "mobx"
 import { observer } from "mobx-react-lite"
 import {useCallback, useEffect, useRef, useState} from "react"
+import { useMemo } from "use-memo-one"
 import {useDataSetContext} from "../../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 import {appState} from "../../../../models/app-state"
 import {ICase} from "../../../../models/data/data-set-types"
 import {
-  firstVisibleParentAttribute, idOfChildmostCollectionForAttributes, selectAllCases
+  firstVisibleParentAttribute, idOfChildmostCollectionForAttributes, selectAllCases, selectCases, setSelectedCases
 } from "../../../../models/data/data-set-utils"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { t } from "../../../../utilities/translation/translate"
@@ -16,9 +17,12 @@ import {ScaleNumericBaseType} from "../../../axis/axis-types"
 import { getDomainExtentForPixelWidth } from "../../../axis/axis-utils"
 import { If } from "../../../common/if"
 import { CaseData } from "../../../data-display/d3-types"
+import { ID3Tip } from "../../../data-display/data-display-types"
 import { handleClickOnCase, setPointSelection } from "../../../data-display/data-display-utils"
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
-import { useConnectingLines } from "../../../data-display/hooks/use-connecting-lines"
+import {
+  ConnectingLines, IConnectingLinesRenderInput
+} from "../../../data-display/models/connecting-lines"
 import {useDataDisplayAnimation} from "../../../data-display/hooks/use-data-display-animation"
 import { IPoint, IPointMetadata } from "../../../data-display/renderer"
 import { ILSRLAdornmentModel } from "../../adornments/lsrl/lsrl-adornment-model"
@@ -38,7 +42,7 @@ import { isNumericAxisModel, NumericAxisModel } from "../../../axis/models/numer
 import {
   computeResiduals, getPredictor, IResidualPoint, residualDomain, residualPlotIsApplicable, residualPointStyle
 } from "./residual-plot-utils"
-import { scatterPlotFuncs } from "./scatter-plot-utils"
+import { connectingLinesSignature, scatterPlotFuncs } from "./scatter-plot-utils"
 
 export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProps) {
   const graphModel = useGraphContentModelContext(),
@@ -76,14 +80,44 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
   const connectingLinesRef = useRef<SVGGElement>(null)
   const connectingLinesActivatedRef = useRef(false)
 
-  const isCaseInSubPlot = useCallback((cellKey: Record<string, string>, caseData: Record<string, any>) => {
-    return dataConfiguration?.isCaseInSubPlot(cellKey, caseData)
-  }, [dataConfiguration])
+  // The ConnectingLines instance persists across renders; it owns the line DOM and the coord cache.
+  const connectingLinesInstanceRef = useRef<ConnectingLines>()
+  if (!connectingLinesInstanceRef.current) connectingLinesInstanceRef.current = new ConnectingLines()
+  useEffect(() => () => connectingLinesInstanceRef.current?.destroy(), [])
 
-  const { renderConnectingLines } = useConnectingLines({
-    clientType: "graph", renderer, connectingLinesSvg: connectingLinesRef.current, connectingLinesActivatedRef,
-    yAttrCount: dataConfiguration?.yAttributeIDs?.length, isCaseInSubPlot
-  })
+  // useMemo from use-memo-one (stable, lifetime-guaranteed) so the d3-tip is created exactly once
+  // rather than re-evaluated on every render (which would build a throwaway tip per streamed case).
+  const dataTip = useMemo<ID3Tip>(() =>
+    d3tip().attr("class", "graph-d3-tip").attr("data-testid", "graph-connecting-lines-data-tip")
+      .html((d: string) => `<p>${d}</p>`)
+  , [])
+
+  const handleConnectingLinesClick = useCallback((event: MouseEvent, caseIDs: string[]) => {
+    const linesPath = event.target && select(event.target as HTMLElement)
+    if (linesPath) {
+      const areLineCasesSelected = caseIDs.every(caseID => dataset?.isCaseSelected(caseID))
+      if (areLineCasesSelected || event.shiftKey) {
+        selectCases(caseIDs, dataset, !areLineCasesSelected)
+      } else {
+        setSelectedCases(caseIDs, dataset)
+      }
+    }
+  }, [dataset])
+
+  const handleConnectingLinesMouseOver = useCallback(
+    (args: { event: MouseEvent, caseIds: string[], parentAttrName?: string, primaryAttrValue?: string }) => {
+      const { event, caseIds, parentAttrName, primaryAttrValue } = args
+      if (renderer?.canvas) renderer.canvas.style.cursor = "pointer"
+      if (!parentAttrName || !primaryAttrValue) return
+      const datasetName = dataset?.displayTitle ?? ""
+      const vars = [parentAttrName, primaryAttrValue, caseIds?.length ?? 0, datasetName]
+      dataTip.show(t("DG.DataTip.connectingLine", { vars }), event.target)
+    }, [dataTip, dataset, renderer])
+
+  const handleConnectingLinesMouseOut = useCallback(() => {
+    if (renderer?.canvas) renderer.canvas.style.cursor = ""
+    dataTip.hide()
+  }, [dataTip, renderer])
 
   secondaryAttrIDsRef.current = dataConfiguration?.yAttributeIDs || []
   selectedPointRadiusRef.current = graphModel.getPointRadius('select')
@@ -259,9 +293,9 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
       const residualStr = isFinite(d.residual) ? float(d.residual) : String(d.residual)
       return `${xAttrName}: ${xValueStr}<br/>${t("V3.ResidualPlot.dataTip.residual")}: ${residualStr}`
     }
-    const dataTip = residualDataTipRef.current
+    const residualTip = residualDataTipRef.current
     // Install the tip on the parent SVG so absolute positioning works.
-    select(g).call(dataTip)
+    select(g).call(residualTip)
     select(g).selectAll<SVGCircleElement, IResidualPoint>("circle")
       .data(residuals, d => d.caseID)
       .join("circle")
@@ -269,8 +303,8 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
       .attr("cx", d => getXCoord(d.caseID))
       .attr("cy", d => plotHeight + lowerScale(d.residual))
       .style("cursor", "pointer")
-      .on("mouseover", function(event, d) { dataTip.show(tipTextFor(d), this) })
-      .on("mouseout", () => dataTip.hide())
+      .on("mouseover", function(event, d) { residualTip.show(tipTextFor(d), this) })
+      .on("mouseout", () => residualTip.hide())
       .on("click", (event, d) => {
         // handleClickOnCase honors shift/meta/ctrl for extend selection, matching the upper plot.
         // stopPropagation prevents the click from bubbling to the residual-plot-background rect,
@@ -312,46 +346,78 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
     restyleResidualSelection()
   }, [dataConfiguration, graphModel, renderer, restyleResidualSelection])
 
+  // Assembles the plain-data render input the ConnectingLines class consumes. The class decides
+  // whether to recompute all coordinates or only the newly appended ones (streaming fast path).
+  const buildConnectingLinesInput = useCallback(
+    (showLines: boolean, animateChange: boolean): IConnectingLinesRenderInput | undefined => {
+      if (!connectingLinesRef.current) return undefined
+      const funcs = scatterPlotFuncs(layout, dataConfiguration)
+      const childmostCollectionId =
+        idOfChildmostCollectionForAttributes(dataConfiguration?.attributes ?? [], dataset)
+      const parentAttr = firstVisibleParentAttribute(dataset, childmostCollectionId)
+      const cellKeys = dataConfiguration?.getAllCellKeys()
+      const pointDescription = graphModel.pointDescription
+      const getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
+      return {
+        svg: connectingLinesRef.current,
+        clientType: "graph",
+        showConnectingLines: showLines,
+        animateChange,
+        caseList: dataConfiguration?.getCaseDataArray(0) ?? [],
+        scaleSignature: connectingLinesSignature(layout, dataConfiguration, parentAttr?.id, cellKeys),
+        getLineForCase: (caseID: string, plotNum: number) => funcs.connectingLine(caseID, plotNum),
+        classify: {
+          parentAttrID: parentAttr?.id, parentAttrName: parentAttr?.name,
+          yAttrCount: dataConfiguration?.yAttributeIDs?.length ?? 0, cellKeys,
+          isCaseInSubPlot: (cellKey, caseData) => !!dataConfiguration?.isCaseInSubPlot(cellKey, caseData)
+        },
+        style: {
+          getGroupColor: (group) => {
+            const legendColor = group.firstCaseId ? getLegendColor?.(group.firstCaseId) : undefined
+            return legendColor ?? pointDescription.pointColorAtIndex(group.plotNum || 0)
+          },
+          isCaseSelected: (id) => !!dataset?.isCaseSelected(id)
+        },
+        handlers: {
+          onClick: handleConnectingLinesClick,
+          onMouseOver: handleConnectingLinesMouseOver,
+          onMouseOut: handleConnectingLinesMouseOut
+        },
+        dataTip
+      }
+    }, [layout, dataConfiguration, dataset, graphModel, legendAttrID, dataTip,
+        handleConnectingLinesClick, handleConnectingLinesMouseOver, handleConnectingLinesMouseOut])
+
   // Accept showLines parameter to avoid stale closure issues during rapid state changes
-  const refreshConnectingLines = useCallback(async (showLines: boolean) => {
+  const refreshConnectingLines = useCallback((showLines: boolean) => {
     if (!showLines && !connectingLinesActivatedRef.current) return
-    const { connectingLinesForCases } = scatterPlotFuncs(layout, dataConfiguration)
-    const connectingLines = connectingLinesForCases()
-    const childmostCollectionId = idOfChildmostCollectionForAttributes(dataConfiguration?.attributes ?? [], dataset)
-    const parentAttr = firstVisibleParentAttribute(dataset, childmostCollectionId)
-    const parentAttrID = parentAttr?.id
-    const parentAttrName = parentAttr?.name
-    const cellKeys = dataConfiguration?.getAllCellKeys()
-    const pointDescription = graphModel.pointDescription
-    const pointColorAtIndex = pointDescription.pointColorAtIndex
-    const pointSizeMultiplier = pointDescription.pointSizeMultiplier
-    const pointsHaveBeenReduced = pointDescription.pointsHaveBeenReduced
-    const kPointSizeReductionFactor = 0.5
-    const getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
+    const instance = connectingLinesInstanceRef.current
+    // Only fade the lines in/out when the shown state actually changes (a user show/hide toggle);
+    // streaming adds keep showLines unchanged and must not restart the fade.
+    const wasActivated = connectingLinesActivatedRef.current
+    const input = buildConnectingLinesInput(showLines, wasActivated !== showLines)
+    if (!instance || !input) return
 
-    // Remove all existing connecting lines before rendering new ones to prevent duplicates
-    if (connectingLinesRef.current) {
-      const connectingLinesArea = select(connectingLinesRef.current)
-      connectingLinesArea.selectAll("path").remove()
-    }
-
-    cellKeys?.forEach((cellKey) => {
-      renderConnectingLines({
-        cellKey, connectingLines, getLegendColor, parentAttrID, parentAttrName, pointColorAtIndex,
-        showConnectingLines: showLines
-      })
-    })
+    instance.render(input)
 
     // Decrease point size when Connecting Lines are first activated so the lines are easier to see, and
     // revert to original point size when Connecting Lines are deactivated.
-    if (!connectingLinesActivatedRef.current && showLines && !pointsHaveBeenReduced) {
+    const pointDescription = graphModel.pointDescription
+    const pointSizeMultiplier = pointDescription.pointSizeMultiplier
+    const pointsHaveBeenReduced = pointDescription.pointsHaveBeenReduced
+    const kPointSizeReductionFactor = 0.5
+    if (!wasActivated && showLines && !pointsHaveBeenReduced) {
       pointDescription.setPointSizeMultiplier(pointSizeMultiplier * kPointSizeReductionFactor)
       pointDescription.setPointsHaveBeenReduced(true)
     } else if (!showLines && pointsHaveBeenReduced) {
       pointDescription.setPointSizeMultiplier(pointSizeMultiplier / kPointSizeReductionFactor)
       pointDescription.setPointsHaveBeenReduced(false)
     }
-  }, [layout, dataConfiguration, dataset, legendAttrID, renderConnectingLines, graphModel])
+
+    // Update synchronously so subsequent refreshes — including streamed adds that arrive mid-fade —
+    // are treated as non-animated updates.
+    connectingLinesActivatedRef.current = showLines
+  }, [buildConnectingLinesInput, graphModel])
 
   const refreshSquares = useCallback(() => {
 
@@ -546,26 +612,33 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
     renderResidualsIfActive()
   }, [layout.showLowerPlot, adornmentsStore.showResidualPlot, renderResidualsIfActive])
 
-  // Call refreshConnectingLines when Connecting Lines option is switched on and when all
-  // points are selected.
-  // NOTE: We observe adornmentsStore.showConnectingLines directly inside the autorun to ensure
-  // we always get the current value, rather than relying on closures which can become stale
-  // during rapid state changes (e.g., during undo when renderer is also changing).
+  // Show/hide toggle: full render (with fade). Observe only showConnectingLines — adding a case must
+  // not rebuild lines from here (that caused ~4x O(N) rebuilds per streamed case); per-add updates
+  // flow through the rAF-coalesced refreshPointPositions path. The render reads case positions, so
+  // run it untracked to keep this autorun from subscribing to them.
   useEffect(function updateConnectingLines() {
     return mstAutorun(() => {
-      // Read showConnectingLines directly from store inside autorun to create a reactive dependency
       const currentShowConnectingLines = adornmentsStore.showConnectingLines
-      // Observe selection inside the autorun (rather than via the effect dependencies) so the lines
-      // restyle on selection change without tearing down and reinstalling the autorun each time.
-      // (drawConnectingLines styles selected lines, so the lines genuinely depend on selection.)
-      // Only observe it when lines are shown: when hidden, selection has no effect on rendering, so
-      // tracking it would just cause wasted reruns (incl. the O(N) selection computation).
-      if (currentShowConnectingLines) {
-        dataConfiguration?.selection // eslint-disable-line @typescript-eslint/no-unused-expressions
-      }
-      refreshConnectingLines(currentShowConnectingLines)
+      untracked(() => refreshConnectingLines(currentShowConnectingLines))
     }, { name: "ScatterDots.updateConnectingLines" }, graphModel)
-  }, [adornmentsStore, dataConfiguration, graphModel, refreshConnectingLines])
+  }, [adornmentsStore, graphModel, refreshConnectingLines])
+
+  // Selection change while shown: restyle existing lines only (no coordinate recompute / geometry).
+  useEffect(function restyleConnectingLinesSelection() {
+    return mstAutorun(() => {
+      void dataConfiguration?.dataset?.selectionChanges
+      untracked(() => {
+        if (!adornmentsStore.showConnectingLines || !connectingLinesRef.current) return
+        connectingLinesInstanceRef.current?.restyleSelection({
+          svg: connectingLinesRef.current,
+          showConnectingLines: true,
+          // Read selection from the same dataset we subscribe to above, so the observed and read
+          // targets stay aligned even if dataConfiguration.dataset transiently differs from context.
+          style: { isCaseSelected: (id) => !!dataConfiguration?.dataset?.isCaseSelected(id) }
+        })
+      })
+    }, { name: "ScatterDots.restyleConnectingLinesSelection" }, graphModel)
+  }, [adornmentsStore, dataConfiguration, graphModel])
 
   usePlotResponders({renderer, refreshPointPositions, refreshPointSelection})
 

@@ -142,6 +142,32 @@ export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraph
     return squares
   }
 
-  return { getXCoord, getYCoord, residualSquaresForLines, connectingLinesForCases,
+  return { getXCoord, getYCoord, residualSquaresForLines, connectingLinesForCases, connectingLine,
     residualSquaresForFunction}
+}
+
+// Builds a string that changes whenever anything affecting connecting-line coordinates or grouping
+// changes: numeric axis domains (rescale), axis lengths (resize), categorical multiscale change
+// counts, band repetitions, and the grouping inputs (parent attribute, y-attr count, cell keys).
+// An unchanged signature means the ConnectingLines coordinate cache is still valid.
+export function connectingLinesSignature(
+  layout: GraphLayout,
+  dataConfiguration?: IGraphDataConfigurationModel,
+  parentAttrID?: string,
+  cellKeys?: Array<Record<string, string>>
+) {
+  const domain = (place: "bottom" | "left" | "rightNumeric") => {
+    const scale = layout.getAxisScale(place) as ScaleLinear<number, number> | undefined
+    return scale?.domain ? JSON.stringify(scale.domain()) : ""
+  }
+  const changeCounts = (["bottom", "left", "top", "rightCat", "rightNumeric"] as const)
+    .map(place => layout.getAxisMultiScale(place)?.changeCount ?? -1)
+  return [
+    layout.getAxisLength("bottom"), layout.getAxisLength("left"),
+    ...changeCounts,
+    domain("bottom"), domain("left"), domain("rightNumeric"),
+    parentAttrID ?? "",
+    dataConfiguration?.yAttributeIDs?.length ?? 0,
+    JSON.stringify(cellKeys ?? [])
+  ].join("|")
 }
