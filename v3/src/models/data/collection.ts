@@ -693,9 +693,14 @@ export const CollectionModel = V2Model
     // DataSet.prepareSnapshot() calls validateCases() before delegating to its collections, and
     // validateCases() regroups every collection, not just the childmost one. Hidden/set-aside
     // cases are grouped like any other (with isHidden set), so their mappings are retained.
+    // We iterate the (live) caseGroupMap rather than filtering the (historical) groupKeyCaseIds
+    // so that the work is proportional to the number of current groups rather than to the full
+    // history. Every caseGroupMap key is guaranteed to have a mapping, because updateCaseGroups
+    // calls groupKeyCaseId() -- which creates the mapping -- before adding the caseGroupMap entry.
     const groupKeyCaseIds: Array<[string, string]> = []
-    self.groupKeyCaseIds.forEach((caseId, groupKey) => {
-      if (self.caseGroupMap.has(groupKey)) groupKeyCaseIds.push([groupKey, caseId])
+    self.caseGroupMap.forEach((caseGroup, groupKey) => {
+      const caseId = self.groupKeyCaseIds.get(groupKey)
+      if (caseId) groupKeyCaseIds.push([groupKey, caseId])
     })
     self._groupKeyCaseIds = groupKeyCaseIds
   },
