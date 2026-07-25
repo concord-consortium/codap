@@ -59,3 +59,11 @@ export function isFeatureFlagName(name: string): name is FeatureFlagName {
 }
 
 export const kFeatureFlagNames = Object.keys(kFeatureFlags) as FeatureFlagName[]
+
+export function isFeatureFlagOwner(name: string): boolean {
+  return kFeatureFlagNames.some(flag => kFeatureFlags[flag].owner === name)
+}
+
+export function flagsForOwner(owner: string): FeatureFlagName[] {
+  return kFeatureFlagNames.filter(flag => kFeatureFlags[flag].owner === owner)
+}
