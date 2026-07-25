@@ -102,6 +102,46 @@ describe("FeatureFlagManager", () => {
     expect(manager.isFeatureEnabled(kFlag)).toBe(true)
   })
 
+  describe("owner-group expansion", () => {
+    it("enables every flag owned by the named project", () => {
+      setUrlParams("?features=MappingTime")
+      const manager = new FeatureFlagManager()
+      expect(manager.isFeatureEnabled("legendRange")).toBe(true)
+      expect(manager.isFeatureEnabled("legendBinCount")).toBe(true)
+      expect(manager.isFeatureEnabled("legendLogarithmic")).toBe(true)
+    })
+
+    it("disables every flag owned by the project when prefixed with -", () => {
+      setUrlParams("?features=-MappingTime")
+      const manager = new FeatureFlagManager()
+      manager.setDocumentFlags(["legendRange", "legendBinCount", "legendLogarithmic"])
+      expect(manager.isFeatureEnabled("legendRange")).toBe(false)
+      expect(manager.isFeatureEnabled("legendBinCount")).toBe(false)
+      expect(manager.isFeatureEnabled("legendLogarithmic")).toBe(false)
+    })
+
+    it("lets a later token override a member of the group", () => {
+      setUrlParams("?features=MappingTime,-legendLogarithmic")
+      const manager = new FeatureFlagManager()
+      expect(manager.isFeatureEnabled("legendRange")).toBe(true)
+      expect(manager.isFeatureEnabled("legendBinCount")).toBe(true)
+      expect(manager.isFeatureEnabled("legendLogarithmic")).toBe(false)
+    })
+
+    it("records the expanded concrete flag names for document persistence", () => {
+      setUrlParams("?features=MappingTime")
+      const manager = new FeatureFlagManager()
+      expect([...manager.urlEnabledFlags].sort())
+        .toEqual(["legendBinCount", "legendLogarithmic", "legendRange"])
+    })
+
+    it("ignores a token that is neither a flag name nor an owner", () => {
+      setUrlParams("?features=NoSuchProject")
+      const manager = new FeatureFlagManager()
+      expect(manager.urlEnabledFlags).toEqual([])
+    })
+  })
+
   describe("urlEnabledFlags", () => {
     it("reports flags this session enabled via the url", () => {
       setUrlParams(`?features=${kFlag}`)
