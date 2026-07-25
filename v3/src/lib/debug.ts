@@ -34,6 +34,7 @@ export const DEBUG_LOGGER = debugContains("logger")
 // graph on mount so the 2:1 upper/lower geometry is visible without a residual adornment.
 export const DEBUG_LOWER_PLOT = debugContains("lowerPlot")
 export const DEBUG_MAP = debugContains("map")
+export const DEBUG_NO_COALESCE = debugContains("noCoalesce")
 export const DEBUG_PIXI_POINTS = debugContains("pixiPoints")
 export const DEBUG_PLUGINS = debugContains("plugins")
 export const DEBUG_RENDERERS = debugContains("renderers")

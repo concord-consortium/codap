@@ -40,6 +40,10 @@ export interface IAddCasesOptions {
   after?: string;
   // if true, property names are attribute names rather than ids
   canonicalize?: boolean;
+  // if true, observers (e.g. graphs) should not animate in response to this add — used for
+  // high-speed streams (e.g. coalesced plugin creates, CODAP-1408) where per-add animation
+  // restarts would freeze existing points; individual adds animate as usual
+  suppressAnimation?: boolean;
 }
 
 export interface IMoveItemsOptions {
