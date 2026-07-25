@@ -1,5 +1,6 @@
-import { render, screen } from "@testing-library/react"
+import { act, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
+import { featureFlagManager } from "../../../models/feature-flags/feature-flag-manager"
 import { DisplayItemFormatControl } from "./display-item-format-control"
 
 // Mock translation to return the key
@@ -64,6 +65,12 @@ describe("DisplayItemFormatControl", () => {
     jest.clearAllMocks()
   })
 
+  afterEach(() => {
+    // wrap in act so the reactive re-render from clearing flags, on any component
+    // still mounted at teardown, doesn't warn about updates outside act()
+    act(() => featureFlagManager.setServerConfig({}))
+  })
+
   it("renders slider, legend controls, and stroke section", () => {
     const desc = createMockDescription()
     const config = createMockDataConfig()
@@ -93,7 +100,8 @@ describe("DisplayItemFormatControl", () => {
     expect(screen.queryByTestId("point-size-slider")).not.toBeInTheDocument()
   })
 
-  it("shows LegendBinsSelect when legend attribute is numeric", () => {
+  it("shows the flagged numeric legend controls when their flags are on", () => {
+    featureFlagManager.setServerConfig({ legendBinCount: "on", legendRange: "on" })
     const desc = createMockDescription()
     const config = createMockDataConfig({
       attributeType: jest.fn(() => "numeric")
@@ -108,6 +116,25 @@ describe("DisplayItemFormatControl", () => {
     expect(screen.getByTestId("legend-bins-select")).toBeInTheDocument()
     expect(screen.getByTestId("legend-bin-count-input")).toBeInTheDocument()
     expect(screen.getByTestId("legend-range-inputs")).toBeInTheDocument()
+  })
+
+  it("hides the flagged numeric legend controls when their flags are off", () => {
+    const desc = createMockDescription()
+    const config = createMockDataConfig({
+      attributeType: jest.fn(() => "numeric")
+    })
+    render(
+      <DisplayItemFormatControl
+        dataConfiguration={config as any}
+        displayItemDescription={desc as any}
+      />
+    )
+
+    // the always-on binning-type selector remains for numeric legends
+    expect(screen.getByTestId("legend-bins-select")).toBeInTheDocument()
+    // the flagged controls do not
+    expect(screen.queryByTestId("legend-bin-count-input")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("legend-range-inputs")).not.toBeInTheDocument()
   })
 
   it("hides LegendBinsSelect and LegendRangeInputs when legend attribute is not numeric", () => {

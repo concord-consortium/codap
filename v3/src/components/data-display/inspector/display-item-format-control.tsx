@@ -2,6 +2,7 @@ import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { Radio, RadioGroup } from "react-aria-components"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
+import { isFeatureEnabled } from "../../../models/feature-flags/feature-flag-manager"
 import { t } from "../../../utilities/translation/translate"
 import { If } from "../../common/if"
 import { PaletteCheckbox } from "../../palette-checkbox"
@@ -109,8 +110,12 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
 
       <If condition={attrType === "numeric"}>
         <LegendBinsSelect dataConfiguration={dataConfiguration} />
-        <LegendBinCountInput dataConfiguration={dataConfiguration} />
-        <LegendRangeInputs dataConfiguration={dataConfiguration} />
+        <If condition={isFeatureEnabled("legendBinCount")}>
+          <LegendBinCountInput dataConfiguration={dataConfiguration} />
+        </If>
+        <If condition={isFeatureEnabled("legendRange")}>
+          <LegendRangeInputs dataConfiguration={dataConfiguration} />
+        </If>
       </If>
 
       <div className={clsx("stroke-section", { disabled: displayItemDescription.pointStrokeSameAsFill })}
