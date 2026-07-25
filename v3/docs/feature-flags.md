@@ -80,6 +80,20 @@ deliberately not a sticky per-browser opt-in, so "what is this user actually
 running?" always has an answer — which matters the first time a pilot teacher
 files a bug report.
 
+An owner name enables every flag that project owns, so a pilot for a whole
+project needs one token rather than a list:
+
+```
+?features=MappingTime                       enable every MappingTime flag
+?features=-MappingTime                       disable every MappingTime flag
+?features=MappingTime,-legendLogarithmic     the whole group except one
+```
+
+A token is matched as a flag name first and an owner name second, so a flag name
+always wins on the (convention-avoided) chance the two collide. The document a
+pilot user saves records the individual flags the group expanded to, not the
+owner name, so the grant survives later changes to the project's flag set.
+
 ### By server config — general availability and the kill switch
 
 `https://codap-resources.concord.org/config/v3-feature-flags.json`
