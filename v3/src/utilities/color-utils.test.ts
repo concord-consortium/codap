@@ -150,3 +150,21 @@ describe("Color utilities", () => {
     expect(fading).toEqual(["#ff0000ff", "#ff0000bf", "#ff000080", "#ff000040", "#ff000000"])
   })
 })
+
+describe("getChoroplethColors", () => {
+  it("defaults to five colors with the original endpoints", () => {
+    const colors = getChoroplethColors("#000000", "#ffffff")
+    expect(colors).toHaveLength(5)
+    expect(colors[0]).toBe("#000000")
+    expect(colors[4]).toBe("#ffffff")
+  })
+
+  it("returns the requested number of colors, endpoints included", () => {
+    expect(getChoroplethColors("#000000", "#ffffff", 2)).toEqual(["#000000", "#ffffff"])
+    const three = getChoroplethColors("#000000", "#ffffff", 3)
+    expect(three).toHaveLength(3)
+    expect(three[0]).toBe("#000000")
+    expect(three[2]).toBe("#ffffff")
+    expect(getChoroplethColors("#000000", "#ffffff", 7)).toHaveLength(7)
+  })
+})

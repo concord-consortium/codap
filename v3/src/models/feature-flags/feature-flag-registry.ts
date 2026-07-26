@@ -26,6 +26,24 @@ export interface IFeatureFlagInfo {
  * `never`, which would make every call to isFeatureEnabled() a type error.
  */
 export const kFeatureFlags = {
+  legendBinCount: {
+    description: "Number-of-bins control for numeric legends",
+    owner: "MappingTime",
+    added: "2026-07-24",
+    expires: "2027-07-31"
+  },
+  legendLogarithmic: {
+    description: "Logarithmic binning option for numeric legends",
+    owner: "MappingTime",
+    added: "2026-07-24",
+    expires: "2027-07-31"
+  },
+  legendRange: {
+    description: "User-editable Min/Max range for numeric legends",
+    owner: "MappingTime",
+    added: "2026-07-24",
+    expires: "2027-07-31"
+  },
   residualPlot: {
     description: "Residual plots on the graph",
     owner: "ESTEEM",
@@ -41,3 +59,11 @@ export function isFeatureFlagName(name: string): name is FeatureFlagName {
 }
 
 export const kFeatureFlagNames = Object.keys(kFeatureFlags) as FeatureFlagName[]
+
+export function isFeatureFlagOwner(name: string): boolean {
+  return kFeatureFlagNames.some(flag => kFeatureFlags[flag].owner === name)
+}
+
+export function flagsForOwner(owner: string): FeatureFlagName[] {
+  return kFeatureFlagNames.filter(flag => kFeatureFlags[flag].owner === owner)
+}

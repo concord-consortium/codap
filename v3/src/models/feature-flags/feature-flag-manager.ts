@@ -1,7 +1,7 @@
 import { action, makeObservable, observable } from "mobx"
 import { urlParams } from "../../utilities/url-params"
 import { FeatureFlagConfig, FeatureFlagDirective } from "./feature-flag-config"
-import { FeatureFlagName, isFeatureFlagName } from "./feature-flag-registry"
+import { FeatureFlagName, flagsForOwner, isFeatureFlagName, isFeatureFlagOwner } from "./feature-flag-registry"
 
 export class FeatureFlagManager {
   @observable.shallow
@@ -21,8 +21,15 @@ export class FeatureFlagManager {
       const trimmed = entry.trim()
       if (!trimmed) return
       const enabled = !trimmed.startsWith("-")
-      const name = enabled ? trimmed : trimmed.slice(1)
-      if (isFeatureFlagName(name)) flags.set(name, enabled)
+      const token = enabled ? trimmed : trimmed.slice(1)
+      // A flag name is tried first, so a flag name always wins over an owner name
+      // on the (convention-avoided) chance the two collide. An owner token expands
+      // to every flag that project owns.
+      if (isFeatureFlagName(token)) {
+        flags.set(token, enabled)
+      } else if (isFeatureFlagOwner(token)) {
+        flagsForOwner(token).forEach(name => flags.set(name, enabled))
+      }
     })
     return flags
   }
