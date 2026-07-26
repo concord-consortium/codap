@@ -66,6 +66,15 @@ function isValidEvent(event: any, ref: React.RefObject<HTMLElement>) {
   // color picker (Chakra portal) or a React Aria Select popover.
   if (target.closest('.chakra-portal, .react-aria-Popover')) return false
 
+  // A React Aria popover open anywhere owns pointer dismissal: the click that
+  // dismisses it should not also fire this hook's handler, which consumers use to
+  // close a dialog, menu, or inspector palette. A *modal* popover renders a
+  // viewport-covering underlay to capture that dismiss click; the underlay is a
+  // classless <div>, so the check above can't match it. So while any popover is
+  // open, suppress the handler for every consumer of this hook (document-wide, not
+  // just the palette) — it fires again on the next click, once the popover is gone.
+  if (getOwnerDocument(target).querySelector('.react-aria-Popover')) return false
+
   // Note: If ref.current is undefined, isValidEvent will return true
   // so useOutsidePointerDown will call the callback. The code using
   // this hasn't been reviewed to see if this behavior is relied on.
