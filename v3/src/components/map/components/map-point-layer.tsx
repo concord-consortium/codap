@@ -301,13 +301,13 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
   }, [dataConfiguration, layout, mapLayerModel, mapModel.startAnimation, mapModel.stopAnimation,
       pointDescription, renderer])
 
-  const refreshPointSelection = useCallback(() => {
+  const refreshPointSelection = useCallback((caseIdsToUpdate?: Iterable<string>) => {
     const {pointColor, pointStrokeColor} = pointDescription,
       selectedPointRadius = mapLayerModel.getPointRadius('select')
     dataConfiguration && setPointSelection({
       renderer, dataConfiguration, pointRadius: mapLayerModel.getPointRadius(),
       selectedPointRadius, pointColor, pointStrokeColor
-    })
+    }, caseIdsToUpdate)
   }, [pointDescription, mapLayerModel, dataConfiguration, renderer])
 
   const displayPoints = displayType === "points" && pointsAreVisible && layerIsVisible
@@ -369,7 +369,20 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
     if (dataset) {
       const disposer = onAnyAction(dataset, action => {
         if (isSelectionAction(action)) {
-          refreshPointSelection()
+          // A selectCases action carries exactly the case IDs whose selection state toggled, so restyle
+          // just those points — the marquee hot path, where only a handful of points change per drag
+          // move. Other selection actions (selectAll, setSelectedCases) and selectCases on ids that
+          // aren't all plotted points (e.g. a parent/legend selection that expands to child items) fall
+          // back to a full restyle so no affected point is missed.
+          let caseIdsToUpdate: string[] | undefined
+          if (action.name === "selectCases") {
+            const caseIds: string[] = action.args?.[0] ?? []
+            if (caseIds.length > 0 &&
+                caseIds.every(id => renderer?.getPointForCaseData({ plotNum: 0, caseID: id }))) {
+              caseIdsToUpdate = caseIds
+            }
+          }
+          refreshPointSelection(caseIdsToUpdate)
         } else if (isCaseValueChangeAction(action)) {
           // assumes that if we're caching then only selected cases are being updated
           refreshPoints(dataset.isCaching())
@@ -381,7 +394,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
       })
       return () => disposer()
     }
-  }, [dataset, refreshPoints, refreshHeatmap, refreshPointSelection])
+  }, [dataset, refreshPoints, refreshHeatmap, refreshPointSelection, renderer])
 
   // Refresh points when the renderer changes (e.g., after reacquiring a WebGL context)
   useEffect(function refreshPointsOnRendererChange() {
@@ -493,12 +506,18 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
   }, [mapLayerModel, refreshHeatmap, refreshPoints])
 
   // Call refreshConnectingLines when Connecting Lines option is switched on and when all
-  // points are selected.
+  // points are selected. Observe selection INSIDE the autorun (only when lines are shown) so the lines
+  // restyle on selection change without putting dataConfiguration.selection — an O(visible cases) array
+  // that is rebuilt on every selection change — in the effect dependencies. Doing the latter made
+  // MapPointLayer observe selection and re-render (and tear down/recreate this autorun) on every marquee
+  // move. Cf. the same pattern in scatter-plot.tsx.
   useEffect(function updateConnectingLines() {
     return mstAutorun(() => {
+      // Touch selection (only when lines are shown) so the autorun re-runs when it changes.
+      if (showConnectingLines) void dataConfiguration.selection
       refreshConnectingLines()
     }, { name: "MapPointLayer.updateConnectingLines" }, mapLayerModel)
-  }, [dataConfiguration.selection, mapLayerModel, refreshConnectingLines, showConnectingLines])
+  }, [dataConfiguration, mapLayerModel, refreshConnectingLines, showConnectingLines])
 
   const getTipAttrs = useCallback((plotNum: number) => {
     const dataConfig = mapLayerModel.dataConfiguration

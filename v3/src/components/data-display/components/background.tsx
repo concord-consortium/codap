@@ -105,6 +105,9 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
 
   const onDragStart = useCallback((event: PointerEvent) => {
     appState.beginPerformance()
+    // Skip point hit-testing for the duration of the drag: the marquee selects via the R-tree below,
+    // so the pointer event system hit-testing every point sprite on each pointermove is pure overhead.
+    rendererArray.forEach(renderer => renderer?.setPointsInteractive(false))
     selectionTree.current = prepareTree(rendererArray)
     // Event coordinates are window coordinates. To convert them to SVG coordinates, we need to subtract the
     // bounding rect of the SVG element.
@@ -185,11 +188,23 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
     }
     marqueeState.setMarqueeRect({x: 0, y: 0, width: 0, height: 0})
     selectionTree.current = null
+    // Restore point hit-testing now that the drag is over (hover/click behavior).
+    rendererArray.forEach(renderer => renderer?.setPointsInteractive(true))
     dataDisplayModel.setMarqueeMode("unclicked")
     appState.endPerformance()
-  }, [dataDisplayModel, datasetsArray, marqueeState])
+  }, [dataDisplayModel, datasetsArray, marqueeState, rendererArray])
 
   useRendererPointerDownDeselect(rendererArray, dataDisplayModel)
+
+  // If this component unmounts mid-drag (e.g. the tile is closed), onDragEnd may not run to restore
+  // point hit-testing. Restore it on unmount so points aren't left non-interactive on a renderer that
+  // outlives this marquee overlay. The ref keeps the cleanup on the current renderers while running
+  // only on unmount.
+  const rendererArrayRef = useRef(rendererArray)
+  rendererArrayRef.current = rendererArray
+  useEffect(() => {
+    return () => rendererArrayRef.current.forEach(renderer => renderer?.setPointsInteractive(true))
+  }, [])
 
   // Check if graph has at least one numeric axis that can be zoomed
   const hasNumericAxis = useCallback(() => {

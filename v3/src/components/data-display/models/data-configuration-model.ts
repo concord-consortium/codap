@@ -548,6 +548,22 @@ export const DataConfigurationModel = types
     }
   }))
   .views(self => ({
+    // The case ids whose legend value is `cat`. Grouping cases by legend value is O(cases) (a
+    // getStrValue per case), so it is cached here and invalidated via clearCasesCache (data/legend/
+    // case changes) — but NOT on selection changes, since category membership doesn't depend on the
+    // selection. allCasesForCategoryAreSelected then only pays the cheap per-case isCaseSelected check
+    // on each selection change (e.g. every marquee move) instead of re-grouping every case.
+    caseIdsForCategory: cachedFnWithArgsFactory<(cat: string) => string[]>({
+      key: (cat: string) => cat,
+      calculate: (cat: string) => {
+        const dataset = self.dataset
+        const legendID = self.attributeID('legend')
+        return (legendID && self.getCaseDataArray(0).filter((aCaseData: CaseData) =>
+          dataset?.getStrValue(aCaseData.caseID, legendID) === cat
+        ).map((aCaseData: CaseData) => aCaseData.caseID)) || []
+      },
+      name: "caseIdsForCategory"
+    }),
     // The effective numeric-legend display range: the per-attribute Min/Max override where set, else
     // the live data extent. A reversed/degenerate effective range (e.g. an orphaned override after
     // the other bound was cleared) falls back to the data extent. This drives both the quantize color
@@ -794,11 +810,8 @@ export const DataConfigurationModel = types
         key: (cat: string) => cat,
         calculate: (cat: string) => {
           const dataset = self.dataset
-          const legendID = self.attributeID('legend')
-          const selection = (legendID && self.getCaseDataArray(0).filter((aCaseData: CaseData) =>
-            dataset?.getStrValue(aCaseData.caseID, legendID) === cat
-          ).map((aCaseData: CaseData) => aCaseData.caseID)) ?? []
-          return selection.length > 0 && (selection as Array<string>).every(anID => dataset?.isCaseSelected(anID))
+          const caseIds = self.caseIdsForCategory(cat)
+          return caseIds.length > 0 && caseIds.every((anID: string) => dataset?.isCaseSelected(anID))
         },
         name: "allCasesForCategoryAreSelected"
       }),
@@ -933,6 +946,7 @@ export const DataConfigurationModel = types
       self.valuesForAttrRole.invalidateAll()
       self.numericValuesForAttribute.invalidateAll()
       self.categoryArrayForAttrRole.invalidateAll()
+      self.caseIdsForCategory.invalidateAll()
       self.allCasesForCategoryAreSelected.invalidateAll()
       self.getCaseDataArray.invalidateAll()
       // increment observable change count

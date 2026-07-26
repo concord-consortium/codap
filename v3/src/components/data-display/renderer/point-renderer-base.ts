@@ -321,6 +321,14 @@ export abstract class PointRendererBase {
   }
 
   /**
+   * Enable or disable hit-testing of the plotted points. Disabled during a marquee drag so the pointer
+   * event system doesn't hit-test every point on each pointermove — the marquee selects via its own
+   * R-tree, so point hit-testing is pure overhead while dragging. Renderers that support it override;
+   * the default is a no-op.
+   */
+  setPointsInteractive(_interactive: boolean): void {}
+
+  /**
    * Start the rendering loop
    */
   startRendering(): void {
