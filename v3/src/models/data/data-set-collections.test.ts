@@ -1,5 +1,5 @@
 import { reaction } from "mobx"
-import { types } from "mobx-state-tree"
+import { getSnapshot, types } from "mobx-state-tree"
 import { ICollectionModel } from "./collection"
 import { DataSet, IDataSet } from "./data-set"
 
@@ -349,6 +349,32 @@ describe("DataSet collections", () => {
     const parentCollection = data.collections[0]
     expect(parentCollection.caseGroups.length).toBe(3) // 3 unique values of "a"
     expect(data.childCollection.caseGroups.length).toBe(27)
+  })
+
+  it("serializes group key mappings for surviving cases but not for removed ones", () => {
+    data.moveAttributeToNewCollection("aId")
+    data.validateCases()
+    const [parentCollection] = data.collections
+    const origParentCaseIds = [...parentCollection.caseIds]
+    expect(origParentCaseIds.length).toBe(3)
+
+    // remove the nine items whose "a" value is 3
+    const removedItemIds = data.itemIds.filter(itemId => itemId.startsWith("3-"))
+    expect(removedItemIds.length).toBe(9)
+    data.removeCases(removedItemIds)
+
+    data.prepareSnapshot()
+    const snapshot = getSnapshot(data)
+    data.completeSnapshot()
+
+    // the removed parent case and its items are no longer serialized
+    expect(snapshot.collections[0]._groupKeyCaseIds?.length).toBe(2)
+    expect(snapshot.collections[1]._groupKeyCaseIds?.length).toBe(18)
+
+    // ...and the surviving cases keep their ids when the document is reloaded
+    const reloaded = DataSet.create(snapshot)
+    reloaded.validateCases()
+    expect(reloaded.collections[0].caseIds).toEqual(origParentCaseIds.slice(0, 2))
   })
 
   it("getCasesForCollection implicitly validates after hierarchical change", () => {

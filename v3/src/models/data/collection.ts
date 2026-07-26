@@ -681,7 +681,28 @@ export const CollectionModel = V2Model
     ))
   },
   prepareSnapshot() {
-    self._groupKeyCaseIds = Array.from(self.groupKeyCaseIds.entries())
+    // Only the mappings for the current groupings are serialized. The volatile map is
+    // deliberately _not_ pruned here -- retaining the full history of mappings is what allows
+    // case ids to survive hierarchy changes within a session (see the reaction in afterCreate).
+    // Serializing that history, however, can dominate the size of a saved document for datasets
+    // that churn through large numbers of items (e.g. the Sampler plugin, which can accumulate
+    // tens of thousands of dead mappings in a document with no remaining data). The cost of
+    // pruning the serialized copy is that a hierarchy change which straddles a save/load will
+    // generate new case ids rather than restoring the previous ones.
+    // caseGroupMap is keyed by group key and is up to date whenever this runs, because
+    // DataSet.prepareSnapshot() calls validateCases() before delegating to its collections, and
+    // validateCases() regroups every collection, not just the childmost one. Hidden/set-aside
+    // cases are grouped like any other (with isHidden set), so their mappings are retained.
+    // We iterate the (live) caseGroupMap rather than filtering the (historical) groupKeyCaseIds
+    // so that the work is proportional to the number of current groups rather than to the full
+    // history. The case id comes from the case group rather than from groupKeyCaseIds because
+    // the group's own id is what a reloaded document needs to reproduce; the two are always in
+    // sync (groupKeyCaseIds is only written where the corresponding groupedCase.__id__ is set).
+    const groupKeyCaseIds: Array<[string, string]> = []
+    self.caseGroupMap.forEach((caseGroup, groupKey) => {
+      groupKeyCaseIds.push([groupKey, caseGroup.groupedCase.__id__])
+    })
+    self._groupKeyCaseIds = groupKeyCaseIds
   },
   completeSnapshot() {
   },

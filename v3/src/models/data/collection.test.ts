@@ -435,6 +435,67 @@ describe("CollectionModel", () => {
     expect(c1.groupKeyCaseIds.get(makeGroupKey(["c", "d"]))).toBe("case6")
   })
 
+  it("prepareSnapshot only serializes group key mappings for cases that still exist", () => {
+    const c1 = CollectionModel.create({ name: "c1" })
+    let items = ["i0", "i1", "i2"]
+    const hiddenItems = new Set<string>(["i2"])
+    const itemData: IItemData = {
+      itemIds: () => items,
+      isHidden: (itemId: string) => hiddenItems.has(itemId),
+      getValue: (itemId: string) => itemId,
+      addItemInfo: () => null,
+      invalidate: () => null
+    }
+    syncCollectionLinks([c1], itemData)
+
+    c1.updateCaseGroups()
+    c1.completeCaseGroups(undefined)
+    const caseIdForItem = new Map(items.map(itemId => [itemId, c1.groupKeyCaseIds.get(itemId)!]))
+    expect(c1.groupKeyCaseIds.size).toBe(3)
+
+    // remove the first item and regroup
+    items = ["i1", "i2"]
+    c1.updateCaseGroups()
+    c1.completeCaseGroups(undefined)
+    // the volatile map deliberately retains the mapping for the removed item
+    expect(c1.groupKeyCaseIds.size).toBe(3)
+
+    // ...but the removed item's mapping isn't serialized, while the hidden case's mapping is
+    c1.prepareSnapshot()
+    expect(c1._groupKeyCaseIds).toEqual([
+      ["i1", caseIdForItem.get("i1")],
+      ["i2", caseIdForItem.get("i2")]
+    ])
+  })
+
+  it("prepareSnapshot leaves the volatile map intact so re-added items keep their case ids", () => {
+    const c1 = CollectionModel.create({ name: "c1" })
+    let items = ["i0", "i1"]
+    const itemData: IItemData = {
+      itemIds: () => items,
+      isHidden: () => false,
+      getValue: (itemId: string) => itemId,
+      addItemInfo: () => null,
+      invalidate: () => null
+    }
+    syncCollectionLinks([c1], itemData)
+
+    c1.updateCaseGroups()
+    c1.completeCaseGroups(undefined)
+    const origCaseIdForItem0 = c1.groupKeyCaseIds.get("i0")!
+
+    // remove an item, serialize (which prunes the serialized copy), then add the item back
+    items = ["i1"]
+    c1.updateCaseGroups()
+    c1.completeCaseGroups(undefined)
+    c1.prepareSnapshot()
+    items = ["i0", "i1"]
+    c1.updateCaseGroups()
+    c1.completeCaseGroups(undefined)
+
+    expect(c1.groupKeyCaseIds.get("i0")).toBe(origCaseIdForItem0)
+  })
+
   it("invalidateCaseGroups followed by invalidateCaseGroupsForNewCases still results in full rebuild", () => {
     const c1 = CollectionModel.create({ name: "c1" })
     const itemData: IItemData = {
