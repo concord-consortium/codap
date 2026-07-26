@@ -84,7 +84,7 @@ An owner name enables every flag that project owns, so a pilot for a whole
 project needs one token rather than a list:
 
 ```
-?features=MappingTime                       enable every MappingTime flag
+?features=MappingTime                        enable every MappingTime flag
 ?features=-MappingTime                       disable every MappingTime flag
 ?features=MappingTime,-legendLogarithmic     the whole group except one
 ```

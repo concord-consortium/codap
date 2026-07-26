@@ -1,4 +1,6 @@
-import { flagsForOwner, isFeatureFlagName, isFeatureFlagOwner, kFeatureFlags } from "./feature-flag-registry"
+import {
+  flagsForOwner, isFeatureFlagName, isFeatureFlagOwner, kFeatureFlagNames, kFeatureFlags
+} from "./feature-flag-registry"
 
 const kLegendFlags = ["legendBinCount", "legendLogarithmic", "legendRange"] as const
 
@@ -24,5 +26,14 @@ describe("owner helpers", () => {
 
   it("returns an empty array for an unknown owner", () => {
     expect(flagsForOwner("NoSuchProject")).toEqual([])
+  })
+
+  /*
+   * A url token is matched as a flag name before an owner name, so a name that is
+   * both would silently never expand to its group. Nothing in the type system
+   * enforces the two namespaces staying disjoint, so assert the convention here.
+   */
+  it("keeps flag names and owner names disjoint", () => {
+    kFeatureFlagNames.forEach(name => expect(isFeatureFlagOwner(name)).toBe(false))
   })
 })
