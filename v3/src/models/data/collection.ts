@@ -695,12 +695,12 @@ export const CollectionModel = V2Model
     // cases are grouped like any other (with isHidden set), so their mappings are retained.
     // We iterate the (live) caseGroupMap rather than filtering the (historical) groupKeyCaseIds
     // so that the work is proportional to the number of current groups rather than to the full
-    // history. Every caseGroupMap key is guaranteed to have a mapping, because updateCaseGroups
-    // calls groupKeyCaseId() -- which creates the mapping -- before adding the caseGroupMap entry.
+    // history. The case id comes from the case group rather than from groupKeyCaseIds because
+    // the group's own id is what a reloaded document needs to reproduce; the two are always in
+    // sync (groupKeyCaseIds is only written where the corresponding groupedCase.__id__ is set).
     const groupKeyCaseIds: Array<[string, string]> = []
     self.caseGroupMap.forEach((caseGroup, groupKey) => {
-      const caseId = self.groupKeyCaseIds.get(groupKey)
-      if (caseId) groupKeyCaseIds.push([groupKey, caseId])
+      groupKeyCaseIds.push([groupKey, caseGroup.groupedCase.__id__])
     })
     self._groupKeyCaseIds = groupKeyCaseIds
   },
