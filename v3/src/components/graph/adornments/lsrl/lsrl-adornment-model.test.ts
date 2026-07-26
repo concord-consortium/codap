@@ -331,4 +331,64 @@ describe("LSRLAdornmentModel", () => {
       expect(updatedLinesInCell?.has("cat3")).toBe(false)
     })
   })
+
+  describe("computeValues", () => {
+    const xAttrId = "xId"
+    const yAttrId = "yId"
+
+    // dataConfig backed by a minimal fake dataset so the case values can be specified directly
+    function createMockDataConfigForPoints(points: { x: number, y: number }[]) {
+      const caseIds = points.map((_, index) => `c${index}`)
+      const getNum = (caseId: string, attrId: string) => {
+        const point = points[caseIds.indexOf(caseId)]
+        return attrId === xAttrId ? point.x : point.y
+      }
+      const dataset = {
+        getAttribute: () => ({ type: "numeric" }),
+        getNumeric: (caseId: string, attrId: string) => getNum(caseId, attrId),
+        getStrValue: (caseId: string, attrId: string) => String(getNum(caseId, attrId))
+      }
+      return {
+        dataset,
+        attributeID: () => undefined,
+        subPlotCases: () => caseIds,
+        filterCasesForDisplay: (ids: string[]) => ids
+      } as unknown as IGraphDataConfigurationModel
+    }
+
+    it("computes the line fitting the cases in the plot", () => {
+      const lSRL = LSRLAdornmentModel.create()
+      const dataConfig = createMockDataConfigForPoints([{ x: 1, y: 2 }, { x: 2, y: 4 }, { x: 3, y: 6 }])
+      const { intercept, slope } = lSRL.computeValues(xAttrId, yAttrId, {}, dataConfig, false, kMain)
+      expect(slope).toBeCloseTo(2)
+      expect(intercept).toBeCloseTo(0)
+    })
+
+    // With identical (or vertically aligned) points no line can be fit, so the line's values must be
+    // left undefined rather than NaN, which rendered as a bogus "x = (not a number)" equation.
+    it("returns no line values when the cases all have the same coordinates", () => {
+      const lSRL = LSRLAdornmentModel.create()
+      const dataConfig = createMockDataConfigForPoints([{ x: 5, y: 10 }, { x: 5, y: 10 }])
+      const { intercept, rSquared, sdResiduals, slope } =
+        lSRL.computeValues(xAttrId, yAttrId, {}, dataConfig, false, kMain)
+      expect(slope).toBeUndefined()
+      expect(intercept).toBeUndefined()
+      expect(rSquared).toBeUndefined()
+      expect(sdResiduals).toBeUndefined()
+    })
+
+    it("stores an invalid line when no line can be fit", () => {
+      const lSRL = LSRLAdornmentModel.create()
+      const dataConfig = createMockDataConfigForPoints([{ x: 5, y: 10 }, { x: 5, y: 10 }])
+      const instanceKey = lSRL.instanceKey({})
+      const { intercept, rSquared, sdResiduals, slope } =
+        lSRL.computeValues(xAttrId, yAttrId, {}, dataConfig, false, kMain)
+      lSRL.updateLines({ category: kMain, intercept, rSquared, sdResiduals, slope }, instanceKey)
+
+      const line = lSRL.lines.get(instanceKey)?.get(kMain)
+      expect(line?.slope).toBeUndefined()
+      expect(line?.intercept).toBeUndefined()
+      expect(line?.isValid).toBe(false)
+    })
+  })
 })

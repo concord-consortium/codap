@@ -738,17 +738,25 @@ export const leastSquaresLinearRegression = (iValues: Point[], iInterceptLocked:
   const tRegression: IRegression = {}
   const tBiStats = computeBivariateStats(iValues)
   if (tBiStats.count > 1) {
+    // No least squares line can be fit when the slope works out to 0/0, e.g. when the points are
+    // identical or vertically aligned (or, with the intercept locked, all at the origin). The slope and
+    // intercept are left undefined in that case so clients neither draw a line nor show an equation.
     if (iInterceptLocked) {
-      tRegression.slope = (tBiStats.sumOfProductDiffs + tBiStats.xMean * tBiStats.ySum) /
+      const tSlope = (tBiStats.sumOfProductDiffs + tBiStats.xMean * tBiStats.ySum) /
           (tBiStats.xSumSquaredDeviations + tBiStats.xMean * tBiStats.xSum)
+      if (!isFiniteNumber(tSlope)) return tRegression
+      tRegression.slope = tSlope
       tRegression.intercept = 0
     } else {
       tRegression.count = tBiStats.count
       tRegression.xMean = tBiStats.xMean
       tRegression.yMean = tBiStats.yMean
       tRegression.xSumSquaredDeviations = tBiStats.xSumSquaredDeviations
-      tRegression.slope = tBiStats.sumOfProductDiffs / tBiStats.xSumSquaredDeviations
-      tRegression.intercept = tBiStats.yMean - tRegression.slope * tBiStats.xMean
+      const tSlope = tBiStats.sumOfProductDiffs / tBiStats.xSumSquaredDeviations
+      const tIntercept = tBiStats.yMean - tSlope * tBiStats.xMean
+      if (!isFiniteNumber(tSlope) || !isFiniteNumber(tIntercept)) return tRegression
+      tRegression.slope = tSlope
+      tRegression.intercept = tIntercept
       tRegression.rSquared = (tBiStats.sumOfProductDiffs * tBiStats.sumOfProductDiffs) /
           (tBiStats.xSumSquaredDeviations * tBiStats.ySumSquaredDeviations)
 
