@@ -566,6 +566,12 @@ export class PixiPointRenderer extends PointRendererBase {
     this.doStartRendering()
   }
 
+  // One flag skips hit-testing of every point sprite (each has eventMode "static"); the background
+  // stays interactive so the marquee's pointer passthrough is unaffected.
+  override setPointsInteractive(interactive: boolean): void {
+    this.pointsContainer.interactiveChildren = interactive
+  }
+
   protected async doSetAllPointsScale(scale: number, duration: number): Promise<void> {
     return this.doTransition(() => {
       this.sprites.forEach(sprite => {
