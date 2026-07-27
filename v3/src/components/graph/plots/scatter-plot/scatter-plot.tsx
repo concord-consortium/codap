@@ -9,7 +9,7 @@ import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 import {appState} from "../../../../models/app-state"
 import {ICase} from "../../../../models/data/data-set-types"
 import {
-  firstVisibleParentAttribute, idOfChildmostCollectionForAttributes, selectAllCases, selectCases, setSelectedCases
+  firstVisibleParentAttribute, idOfChildmostCollectionForAttributes, selectCases, setSelectedCases
 } from "../../../../models/data/data-set-utils"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { t } from "../../../../utilities/translation/translate"
@@ -24,6 +24,7 @@ import {
   ConnectingLines, IConnectingLinesRenderInput
 } from "../../../data-display/models/connecting-lines"
 import {useDataDisplayAnimation} from "../../../data-display/hooks/use-data-display-animation"
+import {useMarqueeStateContext} from "../../../data-display/hooks/use-marquee-state"
 import { IPoint, IPointMetadata } from "../../../data-display/renderer"
 import { ILSRLAdornmentModel } from "../../adornments/lsrl/lsrl-adornment-model"
 import { IMovableLineAdornmentModel } from "../../adornments/movable-line/movable-line-adornment-model"
@@ -40,6 +41,7 @@ import {useRendererDragHandlers, usePlotResponders} from "../../hooks/use-plot"
 import { setPointCoordinates } from "../../utilities/graph-utils"
 import { connectingLinesSignature, scatterPlotFuncs } from "./scatter-plot-utils"
 import { useResidualPlot } from "./use-residual-plot"
+import { useResidualMarquee } from "./use-residual-marquee"
 
 export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProps) {
   const graphModel = useGraphContentModelContext(),
@@ -75,6 +77,11 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
 
   const { residualPointsRef, renderResidualsIfActive, restyleResidualSelection } = useResidualPlot({
     graphModel, dataConfiguration, dataset, layout, legendAttrID
+  })
+
+  const marqueeState = useMarqueeStateContext()
+  const residualMarquee = useResidualMarquee({
+    layout, dataConfiguration, dataset, adornmentsStore, marqueeState
   })
 
   const connectingLinesRef = useRef<SVGGElement>(null)
@@ -486,9 +493,9 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
         />
       }
       <If condition={layout.showLowerPlot}>
-        {/* Transparent background rect for the lower plot region. Captures clicks in the residual
-            plot's white space and deselects all cases (unless a modifier key is held), mirroring
-            the upper plot's background behavior wired via useRendererPointerDownDeselect. */}
+        {/* Transparent hit rect for the lower plot region. A drag marquee-selects the residual points
+            (useResidualMarquee); a click in the white space deselects all cases unless a modifier key
+            is held, mirroring the upper plot's background behavior. */}
         <rect
           data-testid={`residual-plot-background-${instanceId}`}
           className="residual-plot-background"
@@ -497,11 +504,8 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
           width={layout.getLowerPlotBounds().width}
           height={layout.getLowerPlotBounds().height}
           fill="transparent"
-          onClick={(event) => {
-            if (!event.shiftKey && !event.metaKey && !event.ctrlKey && dataset) {
-              selectAllCases(dataset, false)
-            }
-          }}
+          onPointerDown={residualMarquee.onPointerDown}
+          onClick={residualMarquee.onClick}
         />
         <g
           data-testid={`residual-points-${instanceId}`}

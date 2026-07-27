@@ -33,6 +33,7 @@ import {GraphAttrRole, graphPlaceToAttrRole, kPortalClass} from "../../data-disp
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {isSetAttributeIDAction} from "../../data-display/models/display-model-actions"
 import {MarqueeState} from "../../data-display/models/marquee-state"
+import {MarqueeStateContext} from "../../data-display/hooks/use-marquee-state"
 import { setNumberOfCategoriesLimit } from "../../axis/axis-utils"
 import {Adornments} from "../adornments/components/adornments"
 import {IPlotProps, kDropZoneGap, kDropZoneSize, kGraphClass, PlotType} from "../graphing-types"
@@ -504,6 +505,7 @@ export const Graph = observer(function Graph({
 
   return (
     <GraphDataConfigurationContext.Provider value={graphModel.dataConfiguration}>
+      <MarqueeStateContext.Provider value={marqueeState}>
       <div className={clsx(kGraphClass, kPortalClass)} ref={mySetGraphRef} data-testid="graph">
         {graphModel.showParentToggles && <ParentToggles/>}
         <svg className='graph-svg' ref={svgRef}>
@@ -571,6 +573,7 @@ export const Graph = observer(function Graph({
           getTipText={graphModel.getTipText}
         />
       </div>
+      </MarqueeStateContext.Provider>
     </GraphDataConfigurationContext.Provider>
   )
 })
