@@ -422,4 +422,36 @@ context("Graph adornments", () => {
     cy.get("[data-testid^=residual-plot-background-]").click("topLeft", { force: true })
     cy.get("*[data-testid^=residual-point-]").first().should("not.have.attr", "fill", "#4682b4")
   })
+
+  it("marquee-selects residual points with a drag over the residual strip", () => {
+    c.selectTile("graph", 0)
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
+    cy.dragAttributeToTarget("table", "Speed", "left")
+    graph.getDisplayValuesButton().click()
+    cy.get("[data-testid=adornment-checkbox-movable-line]").click()
+    cy.get("[data-testid=adornment-checkbox-residual-plot]").click()
+    cy.get("*[data-testid^=residual-points-]").find("circle").should("have.length.at.least", 1)
+
+    // No residual point carries the solid selection fill before the drag.
+    cy.get('*[data-testid^=residual-point-][fill="#4682b4"]').should("not.exist")
+
+    // Drag a marquee across the whole residual strip. pointermove/pointerup are dispatched on the
+    // document so they reach the window-level listeners the marquee attaches on pointerdown.
+    cy.get("[data-testid^=residual-plot-background-]").first().then($rect => {
+      const r = $rect[0].getBoundingClientRect()
+      const x1 = r.left + 4
+      const y1 = r.top + 4
+      const x2 = r.right - 4
+      const y2 = r.bottom - 4
+      cy.wrap($rect).trigger("pointerdown", { clientX: x1, clientY: y1, force: true })
+      cy.document().trigger("pointermove", { clientX: (x1 + x2) / 2, clientY: (y1 + y2) / 2 })
+      cy.document().trigger("pointermove", { clientX: x2, clientY: y2 })
+      cy.document().trigger("pointerup", { clientX: x2, clientY: y2 })
+    })
+
+    // The marquee covered the strip, so at least one residual point is now selected (selection fill),
+    // and the residual plot is not torn down.
+    cy.get('*[data-testid^=residual-point-][fill="#4682b4"]').should("have.length.at.least", 1)
+    cy.get("*[data-testid^=residual-points-]").find("circle").should("have.length.at.least", 1)
+  })
 })
