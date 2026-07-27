@@ -15,7 +15,7 @@ import { useGraphLayoutContext } from "../../graph/hooks/use-graph-layout-contex
 import { kZoomInFactor, kZoomOutFactor, zoomAxis } from "../../axis/axis-utils"
 import { isAnyNumericAxisModel } from "../../axis/models/numeric-axis-models"
 import {rTreeRect} from "../data-display-types"
-import {rectangleSubtract, rectNormalize} from "../data-display-utils"
+import {CaseObject, getCasesForDelta, rectNormalize, RTree} from "../data-display-utils"
 import {useDataDisplayLayout} from "../hooks/use-data-display-layout"
 import {useDataDisplayModelContext} from "../hooks/use-data-display-model"
 import {useRendererPointerDownDeselect} from "../hooks/use-renderer-pointer-down-deselect"
@@ -25,13 +25,6 @@ import { BackgroundPassThroughEvent, PointRendererArray } from "../renderer"
 interface IProps {
   marqueeState: MarqueeState
   rendererArray: PointRendererArray
-}
-
-type RTree = ReturnType<typeof RTreeLib>
-
-interface caseObject {
-  datasetID: string
-  caseID: string
 }
 
 interface SelectionSpec {
@@ -59,18 +52,6 @@ const prepareTree = (rendererArray: PointRendererArray): RTree => {
     })
   })
   return selectionTree
-}
-
-const getCasesForDelta = (tree: RTree | null, newRect: rTreeRect, prevRect: rTreeRect) => {
-  if (!tree) return []
-
-  const diffRects = rectangleSubtract(newRect, prevRect)
-  let caseObjects: caseObject[] = []
-  diffRects.forEach(aRect => {
-    const newlyFoundCaseObjects = tree.search(aRect)
-    caseObjects = caseObjects.concat(newlyFoundCaseObjects)
-  })
-  return caseObjects
 }
 
 export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((props, ref) => {
@@ -165,10 +146,10 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
     const newSelection = getCasesForDelta(selectionTree.current, currentRect, previousMarqueeRect.current)
     const newDeselection = getCasesForDelta(selectionTree.current, previousMarqueeRect.current, currentRect)
     // Stash the caseIDs to select and deselect for each dataset
-    newSelection.forEach((caseObject: caseObject) => {
+    newSelection.forEach((caseObject: CaseObject) => {
       datasetsMap[caseObject.datasetID].caseIDsToSelect.push(caseObject.caseID)
     })
-    newDeselection.forEach((caseObject: caseObject) => {
+    newDeselection.forEach((caseObject: CaseObject) => {
       datasetsMap[caseObject.datasetID].caseIDsToDeselect.push(caseObject.caseID)
     })
     // Apply the selections and de-selections for each dataset. selectAndDeselectCases uses a

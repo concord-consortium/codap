@@ -1,3 +1,4 @@
+import RTreeLib from "rtree"
 import {measureText} from "../../hooks/use-measure-text"
 import {IDataSet} from "../../models/data/data-set"
 import { selectCases, setOrExtendSelection } from "../../models/data/data-set-utils"
@@ -239,6 +240,26 @@ export function rectangleSubtract(iA: rTreeRect, iB: rTreeRect) {
   }
 
   return result
+}
+
+export type RTree = ReturnType<typeof RTreeLib>
+
+export interface CaseObject {
+  datasetID: string
+  caseID: string
+}
+
+// Delta hit-test: the caseObjects that fall in newRect but not prevRect, found by searching only the
+// difference region(s). Proportional to what changed, not to the total point count. Shared by the
+// graph/map background marquee and the residual-plot marquee.
+export const getCasesForDelta = (tree: RTree | null, newRect: rTreeRect, prevRect: rTreeRect): CaseObject[] => {
+  if (!tree) return []
+  const diffRects = rectangleSubtract(newRect, prevRect)
+  let caseObjects: CaseObject[] = []
+  diffRects.forEach(aRect => {
+    caseObjects = caseObjects.concat(tree.search(aRect))
+  })
+  return caseObjects
 }
 
 export function rectToTreeRect(rect: Rect) {
