@@ -506,73 +506,73 @@ export const Graph = observer(function Graph({
   return (
     <GraphDataConfigurationContext.Provider value={graphModel.dataConfiguration}>
       <MarqueeStateContext.Provider value={marqueeState}>
-      <div className={clsx(kGraphClass, kPortalClass)} ref={mySetGraphRef} data-testid="graph">
-        {graphModel.showParentToggles && <ParentToggles/>}
-        <svg className='graph-svg' ref={svgRef}>
-          <Background
-            ref={backgroundSvgRef}
-            marqueeState={marqueeState}
-            rendererArray={rendererArray}
-          />
+        <div className={clsx(kGraphClass, kPortalClass)} ref={mySetGraphRef} data-testid="graph">
+          {graphModel.showParentToggles && <ParentToggles/>}
+          <svg className='graph-svg' ref={svgRef}>
+            <Background
+              ref={backgroundSvgRef}
+              marqueeState={marqueeState}
+              rendererArray={rendererArray}
+            />
 
-          {renderGraphAxes()}
-          {/*
-            Note that this division into plotArea1 and plotArea2 SVG group elements, along with the separate handling of
-            the Pixi container, is due to a Safari-specific bug. Apparently, Safari renders the position of foreign
-            element content incorrectly if it or its parent is translated. The only workaround, as of January 2024, is
-            to use the X and Y attributes of the foreignElement tag itself. See:
-            - https://www.pivotaltracker.com/story/show/186784214
-            - https://bugs.webkit.org/show_bug.cgi?id=219978
-            - https://github.com/bkrem/react-d3-tree/issues/284
-          */}
-          <g className="below-points-group" ref={belowPointsGroupRef}>
-            {/* Components rendered below the dots/points should be added to this group. */}
-            {renderDisplayOnlySelectedWarning()}
-            {renderPlotComponent()}
-          </g>
-        </svg>
-        {/* HTML host for Pixi canvas to avoid Safari foreignObject issues */}
-        <div ref={pixiContainerRef} className="pixi-points-host" />
-        {/* Renderer type indicator (developer only - enable with localStorage debug="renderers") */}
-        <If condition={DEBUG_RENDERERS && !!rendererType && rendererType !== "null"}>
-          <div
-            className="renderer-type-indicator"
-            style={{ bottom: layout.getComputedBounds("legend").height + 4 }}
-            title={rendererType === "webgl"
-              ? "WebGL renderer (click to switch)"
-              : "Canvas 2D renderer (click to switch)"}
-            onClick={onToggleRendererType}
-          >
-            {rendererType === "webgl" ? "GL" : "2D"}
-          </div>
-        </If>
-        <svg className="overlay-svg">
-          <g className="above-points-group" ref={abovePointsGroupRef}>
-            {/* Components rendered on top of the dots/points should be added to this group. */}
-            <Marquee marqueeState={marqueeState}/>
-          </g>
+            {renderGraphAxes()}
+            {/*
+              Note that this division into plotArea1 and plotArea2 SVG group elements, along with the separate handling
+              of the Pixi container, is due to a Safari-specific bug. Apparently, Safari renders the position of foreign
+              element content incorrectly if it or its parent is translated. The only workaround, as of January 2024, is
+              to use the X and Y attributes of the foreignElement tag itself. See:
+              - https://www.pivotaltracker.com/story/show/186784214
+              - https://bugs.webkit.org/show_bug.cgi?id=219978
+              - https://github.com/bkrem/react-d3-tree/issues/284
+            */}
+            <g className="below-points-group" ref={belowPointsGroupRef}>
+              {/* Components rendered below the dots/points should be added to this group. */}
+              {renderDisplayOnlySelectedWarning()}
+              {renderPlotComponent()}
+            </g>
+          </svg>
+          {/* HTML host for Pixi canvas to avoid Safari foreignObject issues */}
+          <div ref={pixiContainerRef} className="pixi-points-host" />
+          {/* Renderer type indicator (developer only - enable with localStorage debug="renderers") */}
+          <If condition={DEBUG_RENDERERS && !!rendererType && rendererType !== "null"}>
+            <div
+              className="renderer-type-indicator"
+              style={{ bottom: layout.getComputedBounds("legend").height + 4 }}
+              title={rendererType === "webgl"
+                ? "WebGL renderer (click to switch)"
+                : "Canvas 2D renderer (click to switch)"}
+              onClick={onToggleRendererType}
+            >
+              {rendererType === "webgl" ? "GL" : "2D"}
+            </div>
+          </If>
+          <svg className="overlay-svg">
+            <g className="above-points-group" ref={abovePointsGroupRef}>
+              {/* Components rendered on top of the dots/points should be added to this group. */}
+              <Marquee marqueeState={marqueeState}/>
+            </g>
 
-          <DroppablePlot
-            graphElt={graphRef.current}
-            plotElt={backgroundSvgRef.current}
-            insets={plotDropInsets}
+            <DroppablePlot
+              graphElt={graphRef.current}
+              plotElt={backgroundSvgRef.current}
+              insets={plotDropInsets}
+              onDropAttribute={handleChangeAttribute}
+            />
+          </svg>
+          <MultiLegend
+            divElt={graphRef.current}
             onDropAttribute={handleChangeAttribute}
           />
-        </svg>
-        <MultiLegend
-          divElt={graphRef.current}
-          onDropAttribute={handleChangeAttribute}
-        />
-        <Adornments/>
-        {renderDroppableAddAttributes()}
-        <DataTip
-          dataConfiguration={graphModel.dataConfiguration}
-          dataset={dataset}
-          getTipAttrs={getTipAttrs}
-          renderer={renderer}
-          getTipText={graphModel.getTipText}
-        />
-      </div>
+          <Adornments/>
+          {renderDroppableAddAttributes()}
+          <DataTip
+            dataConfiguration={graphModel.dataConfiguration}
+            dataset={dataset}
+            getTipAttrs={getTipAttrs}
+            renderer={renderer}
+            getTipText={graphModel.getTipText}
+          />
+        </div>
       </MarqueeStateContext.Provider>
     </GraphDataConfigurationContext.Provider>
   )
