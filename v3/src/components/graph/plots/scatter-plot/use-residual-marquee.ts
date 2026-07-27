@@ -65,6 +65,9 @@ export function useResidualMarquee(props: IUseResidualMarquee) {
     prevRectRef.current = undefined
     needsClearRef.current = !event.shiftKey
     draggingRef.current = false
+    // Clear any stale suppression from a prior drag that ended without a trailing click (e.g. pointerup
+    // off the rect), so suppression only ever applies to the click immediately following a drag.
+    suppressClickRef.current = false
 
     const lowerBounds = layout.getLowerPlotBounds()
     const region = { top: layout.plotHeight, bottom: layout.plotHeight + lowerBounds.height, right: lowerBounds.width }
