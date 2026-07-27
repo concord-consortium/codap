@@ -435,5 +435,21 @@ describe("LSRLAdornmentModel", () => {
       expect(upperPoints).toHaveLength(0)
       expect(lowerPoints).toHaveLength(0)
     })
+
+    // The guard reads `line?.intercept` before `line.slope`; the leading `||` operand short-circuits
+    // so the unchained accesses are never evaluated when there is no line for the category.
+    it("returns no bounds without throwing when there is no line for the category", () => {
+      const points = [{ x: 1, y: 2 }, { x: 2, y: 4.5 }, { x: 3, y: 5.5 }, { x: 4, y: 8 }]
+      const lSRL = LSRLAdornmentModel.create()
+      expect(() => lSRL.confidenceValues(2.5, points, {}, kMain)).not.toThrow()
+      expect(lSRL.confidenceValues(2.5, points, {}, kMain)).toBeUndefined()
+    })
+
+    it("returns no bounds without throwing when the category has no line of its own", () => {
+      const points = [{ x: 1, y: 2 }, { x: 2, y: 4.5 }, { x: 3, y: 5.5 }, { x: 4, y: 8 }]
+      const lSRL = createLSRLWithLine(points)
+      expect(() => lSRL.confidenceValues(2.5, points, {}, "someOtherCategory")).not.toThrow()
+      expect(lSRL.confidenceValues(2.5, points, {}, "someOtherCategory")).toBeUndefined()
+    })
   })
 })
