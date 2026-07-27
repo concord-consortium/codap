@@ -1,5 +1,30 @@
 # Changelog
 
+## Version 3.1.0-beta.1 - July 26, 2026
+
+### ✨ Features & Improvements:
+- **CODAP-1404:** Graph connecting lines stay responsive as data streams in
+- **CODAP-1408:** Data streamed from plugins is batched for better responsiveness
+- **CODAP-1454:** Reduce bundle size via build configuration
+- **CODAP-1465:** Map raster layers render faster and animate smoothly
+- **CODAP-1466:** Faster marquee selection in maps and graphs
+
+### 🐞 Bug Fixes:
+- **CODAP-1403:** Graph points now track the expanding axes as data streams in
+- **CODAP-1409:** Fix numeric legend binning when quantiles are degenerate
+- **CODAP-1458:** Fix documents saving much larger than their content warrants
+- **CODAP-1464:** Fix incorrect percentile() results across grouped data
+- **CODAP-1468:** Menus in inspector palettes now close without closing the palette
+
+### 🛠️ Under the Hood:
+- **CODAP-1448:** Add a feature-flag system for gating in-development features
+
+### Asset Sizes
+|      File |          Size | % Change from Previous Release |
+|-----------|---------------|--------------------------------|
+|  main.css |  243735 bytes |                          1.18% |
+|  index.js | 7206477 bytes |                         -8.02% |
+
 ## Version 3.0.5 - July 18, 2026
 
 ### ✨ Features & Improvements:
