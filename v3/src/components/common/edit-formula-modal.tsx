@@ -5,6 +5,7 @@ import React, { useCallback, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
 import { isCommandKeyDown } from "../../utilities/platform-utils"
+import { stripLabelDecoration } from "../../utilities/translation/strip-label-decoration"
 import { t } from "../../utilities/translation/translate"
 import { FormulaEditor } from "./formula-editor"
 import { FormulaEditorContext, useFormulaEditorState } from "./formula-editor-context"
@@ -218,7 +219,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
                 size="xs" ml="5" onClick={handleInsertValuesOpen} data-testid="formula-insert-value-button"
                 aria-expanded={showValuesMenu} aria-haspopup="menu"
               >
-                {t("DG.AttrFormView.operandMenuTitle")}
+                {stripLabelDecoration(t("DG.AttrFormView.operandMenuTitle"))}
               </Button>
               {showValuesMenu &&
                 <InsertValuesMenu buttonRef={insertValueButtonRef} onClose={handleInsertValuesClose} />
@@ -230,7 +231,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
                 size="xs" ml="5" onClick={handleInsertFunctionsOpen} data-testid="formula-insert-function-button"
                 aria-expanded={showFunctionMenu} aria-haspopup="menu"
               >
-                {t("DG.AttrFormView.functionMenuTitle")}
+                {stripLabelDecoration(t("DG.AttrFormView.functionMenuTitle"))}
               </Button>
               {showFunctionMenu &&
                 <InsertFunctionMenu buttonRef={insertFunctionButtonRef} onClose={handleInsertFunctionsClose} />

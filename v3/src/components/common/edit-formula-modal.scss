@@ -24,12 +24,22 @@ $edit-formula-modal-min-width-px: #{$edit-formula-modal-min-width}px;
     flex-grow: 1;
     align-items: flex-start;
 
+    .attr-name-form-label {
+      align-items: center;
+      width: 100%;
+    }
+    // The label sizes to its text and the input absorbs the remainder, so that a long
+    // translation widens the label instead of wrapping onto a second line. A wrapped label
+    // grows the form control and pushes the insert buttons out of the modal body.
     .title-label {
-      width: 97px;
+      flex: 0 0 auto;
+      margin-right: 5px;
+      white-space: nowrap;
     }
     .attr-name-input {
       border: 1px solid vars.$charcoal-light-2;
-      width: 270px;
+      flex: 1 1 auto;
+      min-width: 0;
       margin-right: 3px;
       margin-left: 0;
       padding-left: 5px;
@@ -63,8 +73,12 @@ $edit-formula-modal-min-width-px: #{$edit-formula-modal-min-width}px;
   .formula-insert-buttons-container {
     position: relative;
     bottom: 0;
+    // never give up height or width to the formula editor above; the buttons are the
+    // first thing clipped when the body overflows
+    flex-shrink: 0;
 
     .formula-editor-button {
+      flex-shrink: 0;
       padding: 0 10px;
       &:hover {
         background: vars.$codap-teal-lighter;
