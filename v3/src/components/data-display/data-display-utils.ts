@@ -1,4 +1,3 @@
-import RTreeLib from "rtree"
 import {measureText} from "../../hooks/use-measure-text"
 import {IDataSet} from "../../models/data/data-set"
 import { selectCases, setOrExtendSelection } from "../../models/data/data-set-utils"
@@ -242,11 +241,16 @@ export function rectangleSubtract(iA: rTreeRect, iB: rTreeRect) {
   return result
 }
 
-export type RTree = ReturnType<typeof RTreeLib>
-
 export interface CaseObject {
   datasetID: string
   caseID: string
+}
+
+// Minimal structural view of the rtree instance needed for marquee delta hit-testing. Declaring it
+// here (rather than `ReturnType<typeof RTreeLib>`) keeps the runtime `rtree` import out of this
+// widely-imported module; the tree is constructed by callers that already depend on rtree.
+export interface RTree {
+  search(rect: rTreeRect): CaseObject[]
 }
 
 // Delta hit-test: the caseObjects that fall in newRect but not prevRect, found by searching only the

@@ -99,6 +99,9 @@ export function useResidualMarquee(props: IUseResidualMarquee) {
     const onUp = () => {
       window.removeEventListener("pointermove", onMove)
       window.removeEventListener("pointerup", onUp)
+      // pointercancel (touch/gesture cancellation) also ends the drag, so the listeners and marquee
+      // rect don't leak until a later pointerup that may never come.
+      window.removeEventListener("pointercancel", onUp)
       marqueeState.setMarqueeRect({ x: 0, y: 0, width: 0, height: 0 })
       treeRef.current = null
       if (draggingRef.current) {
@@ -110,6 +113,7 @@ export function useResidualMarquee(props: IUseResidualMarquee) {
 
     window.addEventListener("pointermove", onMove)
     window.addEventListener("pointerup", onUp)
+    window.addEventListener("pointercancel", onUp)
   }, [adornmentsStore, dataConfiguration, dataset, layout, marqueeState])
 
   const onClick = useCallback((event: React.MouseEvent<SVGRectElement>) => {
