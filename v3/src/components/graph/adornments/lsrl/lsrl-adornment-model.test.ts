@@ -391,4 +391,49 @@ describe("LSRLAdornmentModel", () => {
       expect(line?.isValid).toBe(false)
     })
   })
+
+  describe("confidenceValues", () => {
+    function createLSRLWithLine(points: { x: number, y: number }[]) {
+      const lSRL = LSRLAdornmentModel.create()
+      const { intercept, rSquared, sdResiduals, slope } = (() => {
+        // compute directly from the points, bypassing dataConfig
+        const n = points.length
+        const xMean = points.reduce((s, p) => s + p.x, 0) / n
+        const yMean = points.reduce((s, p) => s + p.y, 0) / n
+        const sxy = points.reduce((s, p) => s + (p.x - xMean) * (p.y - yMean), 0)
+        const sxx = points.reduce((s, p) => s + (p.x - xMean) ** 2, 0)
+        const m = sxy / sxx
+        return { intercept: yMean - m * xMean, rSquared: 1, sdResiduals: 0, slope: m }
+      })()
+      lSRL.updateLines({ category: kMain, intercept, rSquared, sdResiduals, slope }, lSRL.instanceKey({}))
+      return lSRL
+    }
+
+    it("computes confidence bounds when there are enough degrees of freedom", () => {
+      const points = [{ x: 1, y: 2 }, { x: 2, y: 4.5 }, { x: 3, y: 5.5 }, { x: 4, y: 8 }]
+      const lSRL = createLSRLWithLine(points)
+      const bounds = lSRL.confidenceValues(2.5, points, {}, kMain)
+      expect(bounds).toBeDefined()
+      expect(Number.isFinite(bounds?.lower)).toBe(true)
+      expect(Number.isFinite(bounds?.upper)).toBe(true)
+    })
+
+    // With two points the fit has zero degrees of freedom, so mse is 0/0. Returning bounds at all
+    // would push NaN into the confidence band path coordinates.
+    it("returns no bounds when there are only two points", () => {
+      const points = [{ x: 1, y: 2 }, { x: 3, y: 7 }]
+      const lSRL = createLSRLWithLine(points)
+      expect(lSRL.confidenceValues(2, points, {}, kMain)).toBeUndefined()
+    })
+
+    it("returns no confidence band points when there are only two points", () => {
+      const points = [{ x: 1, y: 2 }, { x: 3, y: 7 }]
+      const lSRL = createLSRLWithLine(points)
+      const scale = Object.assign((v: number) => v, { invert: (v: number) => v }) as any
+      const { upperPoints, lowerPoints } =
+        lSRL.confidenceBandsPoints(0, 10, 1, 1, 1, points, scale, scale, {}, kMain)
+      expect(upperPoints).toHaveLength(0)
+      expect(lowerPoints).toHaveLength(0)
+    })
+  })
 })

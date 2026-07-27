@@ -179,9 +179,11 @@ export const LSRLAdornmentModel = AdornmentModel
   ) {
     const line = self.lines.get(self.instanceKey(cellKey))?.get(legendCat)
     const { count, mse, xSumSquaredDeviations, xMean } = leastSquaresLinearRegression(caseValues, isInterceptLocked)
+    // Finiteness rather than nullness: with only two points the fit has no degrees of freedom, so
+    // mse is 0/0, and returning bounds anyway would push NaN into the confidence band coordinates.
     if (
-      line?.intercept == null || line.slope == null || count == null || mse == null || xMean == null ||
-      xSumSquaredDeviations == null
+      !isFiniteNumber(line?.intercept) || !isFiniteNumber(line.slope) || !isFiniteNumber(count) ||
+      !isFiniteNumber(mse) || !isFiniteNumber(xMean) || !isFiniteNumber(xSumSquaredDeviations)
     ) return
     const tAt0975ForD = tAt0975ForDf(count - 2)
     const tYHat = line.intercept + line.slope * iX

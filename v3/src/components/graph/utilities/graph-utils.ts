@@ -453,9 +453,9 @@ export const lsrlEquationString = (props: ILsrlEquationString) => {
   const formattedIntercept = formatEquationValue(intercept, neededFractionDigits.interceptDigits, interceptUnits)
   const formattedSlope = formatEquationValue(slope, neededFractionDigits.slopeDigits, slopeUnits, true)
   const formattedSumOfSquares = formatEquationValue(sumOfSquares || 0, sumOfSquares && sumOfSquares > 100 ? 0 : 3)
-  const formattedRSquared = formatEquationValue(rSquared || 0, 3)
-  const formattedSeSlope = seSlope != null ? formatEquationValue(seSlope, 3) : ""
-  const formattedSeIntercept = seIntercept != null ? formatEquationValue(seIntercept, 3) : ""
+  const formattedRSquared = isFiniteNumber(rSquared) ? formatEquationValue(rSquared, 3) : ""
+  const formattedSeSlope = isFiniteNumber(seSlope) ? formatEquationValue(seSlope, 3) : ""
+  const formattedSeIntercept = isFiniteNumber(seIntercept) ? formatEquationValue(seIntercept, 3) : ""
   const xAttrString = attrNames.x.length > 1 ? `(<em>${attrNames.x}</em>)` : `<em>${attrNames.x}</em>`
   const interceptDisplaysAsZero = formatValue(intercept, neededFractionDigits.interceptDigits) === "0"
   const interceptString = !interceptDisplaysAsZero ? ` ${intercept > 0 ? "+" : ""} ${formattedIntercept}` : ""
@@ -465,16 +465,21 @@ export const lsrlEquationString = (props: ILsrlEquationString) => {
     : slopeIsFinite
       ? `<em>${attrNames.y}</em> = ${formattedSlope} ${xAttrString}${interceptString}`
       : `<em>${slope === 0 ? attrNames.y : attrNames.x}</em> = ${formattedIntercept}`
-  const rValue = rSquared != null && slope != null ? Math.sign(slope) * Math.sqrt(rSquared) : undefined
-  const formattedR = rValue != null ? formatEquationValue(rValue, 4) : ""
-  const rPart = showR && !interceptLocked && rValue != null ? `<br />r = ${formattedR}` : ""
-  const seSlopePart = showConfidenceBands && !interceptLocked ? `<br />σ<sub>slope</sub> = ${formattedSeSlope}` : ""
-  const seInterceptPart = showConfidenceBands && !interceptLocked
+  // Statistics that aren't estimable are omitted rather than displayed. rSquared is 0/0 when the
+  // y values don't vary, and the standard errors are 0/0 when the fit has no degrees of freedom.
+  const rValue = isFiniteNumber(rSquared) && isFiniteNumber(slope)
+                  ? Math.sign(slope) * Math.sqrt(rSquared)
+                  : undefined
+  const formattedR = isFiniteNumber(rValue) ? formatEquationValue(rValue, 4) : ""
+  const rPart = showR && !interceptLocked && isFiniteNumber(rValue) ? `<br />r = ${formattedR}` : ""
+  const seSlopePart = showConfidenceBands && !interceptLocked && isFiniteNumber(seSlope)
+    ? `<br />σ<sub>slope</sub> = ${formattedSeSlope}` : ""
+  const seInterceptPart = showConfidenceBands && !interceptLocked && isFiniteNumber(seIntercept)
     ? `<br />σ<sub>intercept</sub> = ${formattedSeIntercept}` : ""
   const squaresPart = isFiniteNumber(sumOfSquares)
     ? `<br />${t("DG.ScatterPlotModel.sumSquares")} = ${formattedSumOfSquares}`
     : ""
-  const rSquaredPart = showRSquared && !interceptLocked && rSquared != null
+  const rSquaredPart = showRSquared && !interceptLocked && isFiniteNumber(rSquared)
     ? `<br />r<sup>2</sup> = ${formattedRSquared}` : ""
 
   return `${equationPart}${rPart}${rSquaredPart}${seSlopePart}${seInterceptPart}${squaresPart}`

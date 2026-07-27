@@ -27,9 +27,11 @@ describe("stats-utils", () => {
     expect(rSquared(values)).toBe(1)
     expect(linRegrIntercept(values)).toBe(0)
     expect(linRegrSlope(values)).toBe(1)
+    // The standard errors are not estimable with two points: the fit has zero degrees of freedom,
+    // so they are undefined rather than zero. V2 returns NaN here as well.
     const { stdErrSlope, stdErrIntercept } = linRegrStdErrSlopeAndIntercept(values)
-    expect(stdErrIntercept).toBe(0)
-    expect(stdErrSlope).toBe(0)
+    expect(stdErrIntercept).toBeNaN()
+    expect(stdErrSlope).toBeNaN()
   })
 
   it("matches results from NIST Norris data set", () => {
