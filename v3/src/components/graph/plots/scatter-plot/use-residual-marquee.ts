@@ -52,10 +52,15 @@ export function useResidualMarquee(props: IUseResidualMarquee) {
     positions.forEach(p => tree.insert({ x: p.x, y: p.y, w: 1, h: 1 }, { datasetID: dataset.id, caseID: p.caseID }))
     treeRef.current = tree
 
-    // Window coords → graph-SVG frame (the frame the residual points are drawn in and the marquee
-    // rect is rendered in). ownerSVGElement is the .graph-svg that hosts the residual points.
-    const svgRect = event.currentTarget.ownerSVGElement?.getBoundingClientRect()
-    startRef.current = { x: event.clientX - (svgRect?.left ?? 0), y: event.clientY - (svgRect?.top ?? 0) }
+    // Window coords → plot-area frame (the frame the residual points are drawn in and the marquee
+    // rect is rendered in — origin at the plot's left edge, inside the axes). Anchor to this hit
+    // rect's own box: it is drawn at frame (0, plotHeight) in the same group as the residual points,
+    // so its screen top-left maps to frame (0, plotHeight) regardless of the axis margins.
+    const rectBounds = event.currentTarget.getBoundingClientRect()
+    startRef.current = {
+      x: event.clientX - rectBounds.left,
+      y: event.clientY - rectBounds.top + layout.plotHeight
+    }
     sizeRef.current = { w: 0, h: 0 }
     prevRectRef.current = undefined
     needsClearRef.current = !event.shiftKey
