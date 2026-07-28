@@ -6,10 +6,10 @@ import { boundaryManager } from "../../models/boundaries/boundary-manager"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { getGlobalValueManager } from "../../models/global/global-value-manager"
 import { useFormulaEditorContext } from "./formula-editor-context"
+import { useFormulaMenuPlacement } from "./use-formula-menu-placement"
 
 import "./formula-insert-menus.scss"
 
-const kMenuGap = 3
 const kMaxHeight = 470
 
 interface IProps {
@@ -31,12 +31,12 @@ export const InsertValuesMenu = ({ buttonRef, onClose }: IProps) => {
       .map(attr => attr?.name)
       .filter(name => name !== undefined)
   )
-  const attributeNames = dataSet?.attributes.map(attr => attr.name)
   const globalsNames = getGlobalsNames(dataSet)
   const constants = ["e", "false", "true", "π"]
   const containerRef = useRef<HTMLDivElement>(null)
   const scrollableContainerRef = useRef<HTMLDivElement>(null)
   const [, setScrollPosition] = useState(0)
+  const menuStyle = useFormulaMenuPlacement(buttonRef, containerRef, kMaxHeight, scrollableContainerRef)
 
   const insertValueToFormula = (value: string) => {
     // if the name begins with a digit or has any non-alphanumeric chars, wrap it in backticks
@@ -49,33 +49,6 @@ export const InsertValuesMenu = ({ buttonRef, onClose }: IProps) => {
     // strip the category prefix (e.g. "attr:", "const:") to get the actual value
     const value = String(key).replace(/^[^:]+:/, "")
     insertValueToFormula(value)
-  }
-
-  function getListContainerStyle() {
-    // calculate the top of the list container based on the height of the list. The list should be
-    // nearly centered on the button that opens it.
-    // The list should not extend beyond the top or bottom of the window.
-    const listEl = containerRef.current
-    const button = buttonRef.current
-
-    const allNames = [...(attributeNames ?? []), ...boundaryManager.boundaryKeys, ...globalsNames]
-    const maxItemLength = allNames.length > 0 ? Math.max(...allNames.map(n => n.length)) : 0
-
-    let top = 0
-    if (button && listEl) {
-      const buttonRect = button.getBoundingClientRect()
-      const buttonBottom = buttonRect.bottom || 0
-      const listHeight = listEl.offsetHeight || 0
-      const spaceBelow = window.innerHeight - buttonBottom
-
-      if (spaceBelow >= listHeight) {
-        top = buttonRect.height + kMenuGap
-      } else {
-        top = spaceBelow - listHeight
-      }
-      return { top, height: kMaxHeight, width: 40 + 10 * maxItemLength }
-    }
-    return {}
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -129,7 +102,7 @@ export const InsertValuesMenu = ({ buttonRef, onClose }: IProps) => {
 
   return (
     <div ref={containerRef} className="formula-operand-list-container" data-testid="formula-value-list"
-        style={getListContainerStyle()} onKeyDown={handleKeyDown}>
+        style={menuStyle} onKeyDown={handleKeyDown}>
       { isScrollable && canScrollUp &&
         <div className="scroll-arrow" aria-hidden="true" onPointerOver={() => handleScroll("up")}>
           <span>▲</span>

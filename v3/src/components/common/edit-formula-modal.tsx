@@ -108,9 +108,11 @@ export const EditFormulaModal = observer(function EditFormulaModal({
     setShowFunctionMenu(false)
   }
 
-  const handleInsertValuesOpen = (e: React.MouseEvent) => {
+  // Clicks on the button are kept from the modal's own click handler, so the button itself has to
+  // close the menu it opened.
+  const handleInsertValuesToggle = (e: React.MouseEvent) => {
     e.stopPropagation()
-    setShowValuesMenu(true)
+    setShowValuesMenu(current => !current)
     setShowFunctionMenu(false)
   }
 
@@ -119,9 +121,9 @@ export const EditFormulaModal = observer(function EditFormulaModal({
     insertValueButtonRef.current?.focus()
   }
 
-  const handleInsertFunctionsOpen = (e: React.MouseEvent) => {
+  const handleInsertFunctionsToggle = (e: React.MouseEvent) => {
     e.stopPropagation()
-    setShowFunctionMenu(true)
+    setShowFunctionMenu(current => !current)
     setShowValuesMenu(false)
   }
 
@@ -295,7 +297,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
             <div className="formula-insert-button-wrapper">
               <button ref={insertValueButtonRef} type="button"
                 className={clsx("formula-editor-button", "insert-value", {"menu-open": showValuesMenu})}
-                onClick={handleInsertValuesOpen} data-testid="formula-insert-value-button"
+                onClick={handleInsertValuesToggle} data-testid="formula-insert-value-button"
                 aria-expanded={showValuesMenu} aria-haspopup="menu"
               >
                 <span className="formula-editor-button-label">
@@ -310,7 +312,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
             <div className="formula-insert-button-wrapper">
               <button ref={insertFunctionButtonRef} type="button"
                 className={clsx("formula-editor-button", "insert-function", {"menu-open": showFunctionMenu})}
-                onClick={handleInsertFunctionsOpen} data-testid="formula-insert-function-button"
+                onClick={handleInsertFunctionsToggle} data-testid="formula-insert-function-button"
                 aria-expanded={showFunctionMenu} aria-haspopup="menu"
               >
                 <span className="formula-editor-button-label">

@@ -125,6 +125,39 @@ describe("EditFormulaModal", () => {
     expect(screen.getByTestId("formula-editor-resize-corner")).toHaveClass("component-resize-handle")
   })
 
+  it("closes the Insert Value menu when its button is clicked again", async () => {
+    const { user } = setup()
+    const button = screen.getByTestId("formula-insert-value-button")
+
+    await user.click(button)
+    expect(screen.getByTestId("formula-value-list")).toBeInTheDocument()
+
+    await user.click(button)
+    expect(screen.queryByTestId("formula-value-list")).not.toBeInTheDocument()
+  })
+
+  it("closes the Insert Function menu when its button is clicked again", async () => {
+    const { user } = setup()
+    const button = screen.getByTestId("formula-insert-function-button")
+
+    await user.click(button)
+    expect(screen.getByTestId("formula-function-category-list")).toBeInTheDocument()
+
+    await user.click(button)
+    expect(screen.queryByTestId("formula-function-category-list")).not.toBeInTheDocument()
+  })
+
+  it("swaps menus when the other insert button is clicked", async () => {
+    const { user } = setup()
+
+    await user.click(screen.getByTestId("formula-insert-value-button"))
+    expect(screen.getByTestId("formula-value-list")).toBeInTheDocument()
+
+    await user.click(screen.getByTestId("formula-insert-function-button"))
+    expect(screen.queryByTestId("formula-value-list")).not.toBeInTheDocument()
+    expect(screen.getByTestId("formula-function-category-list")).toBeInTheDocument()
+  })
+
   it("strips the trailing colon from field labels", () => {
     setup({ titleLabel: "Attribute Name:", formulaPrompt: "Formula:" })
     expect(screen.getByText("Attribute Name")).toBeInTheDocument()
