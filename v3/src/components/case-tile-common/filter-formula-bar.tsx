@@ -31,7 +31,6 @@ export const FilterFormulaBar = () => {
     onClose()
   }
 
-  // computed before the early return so the hook is called unconditionally
   const modalTitle = useInspectorFormulaTitle(data?.filterFormula?.display)
 
   if (!data) return null

@@ -12,9 +12,9 @@ export function stripTrailingEllipsis(label: string) {
 /**
  * Removes a trailing colon from a label.
  *
- * Field prompts are stored with a colon ("Attribute Name:") because they were rendered inline with
- * their field. The formula editor stacks the label above its field, where the colon is not wanted.
- * Deriving it from the existing string keeps the translations.
+ * Field prompts are stored with a colon ("Attribute Name:"), which suits the callers that render
+ * them inline with their field. The formula editor stacks the label above its field, where the
+ * colon is unwanted. Deriving it from the existing string keeps the translations.
  */
 export function stripTrailingColon(label: string) {
   return label.replace(/\s*[:：]\s*$/, "")

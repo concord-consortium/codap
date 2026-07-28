@@ -37,7 +37,8 @@ export const EditFormulaModal = observer(function EditFormulaModal({
   titlePlaceholder, value
 }: IProps) {
   const minWidth = +styles.editFormulaModalMinWidth
-  // without a name row the modal is shorter by that row's height
+  // Fallback floor for resizing, used only when the content height cannot be measured. A modal
+  // with no name row is shorter by that row's height.
   const minHeight = titleInput != null
                       ? +styles.editFormulaModalMinHeight
                       : +styles.editFormulaModalFilterMinHeight
@@ -51,11 +52,14 @@ export const EditFormulaModal = observer(function EditFormulaModal({
   const formulaEditorState = useFormulaEditorState(value ?? "")
   const { editorApi, formula, setFormula } = formulaEditorState
   const formulaLabelId = useId()
-  // Set once the user drags the formula field's resize grip. Until then the modal takes its
-  // default size, which depends on whether a name row is present — and that is not known on the
-  // first render, since callers derive titleInput from a model that may still be resolving.
+  // Set once the user drags the formula field's resize grip; until then the modal is sized by
+  // its content.
   const [userSize, setUserSize] = useState<{ width: number, height: number }>()
   const dimensions = userSize ?? { width: minWidth, height: minHeight }
+  // The height the modal takes from its content, measured when a resize first begins. Dragging
+  // shorter than this would leave the formula field — which has a two-row minimum — overflowing
+  // its container and covering the controls beneath it.
+  const contentHeightRef = useRef<number>()
   const [title, setTitle] = useState(titleInput ?? "")
   const isAutoCompleteMenuOpen = useRef(false)
   // Sync formula and title state from props using React's recommended
@@ -87,6 +91,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
     isAutoCompleteMenuOpen.current = false
     onClose?.()
     setUserSize(undefined)
+    contentHeightRef.current = undefined
   }
 
   // Empties the formula without applying it or dismissing the modal, so the user can start over.
@@ -176,10 +181,13 @@ export const EditFormulaModal = observer(function EditFormulaModal({
 
     let resizingWidth = startWidth, resizingHeight = startHeight
 
-    // Before the first resize the modal is sized by its content, which can be shorter than the
-    // nominal minimum; clamping to the measured size keeps the first drag from jumping.
+    // Before the first resize the modal is still sized by its content, so that first drag is the
+    // opportunity to record the content height.
+    if (contentHeightRef.current == null && !userSize) {
+      contentHeightRef.current = startHeight
+    }
     const widthFloor = Math.min(minWidth, startWidth)
-    const heightFloor = Math.min(minHeight, startHeight)
+    const heightFloor = contentHeightRef.current ?? Math.min(minHeight, startHeight)
 
     const onPointerMove = (pointerMoveEvent: { pageX: number; pageY: number }) => {
       const xDelta = pointerMoveEvent.pageX - startPosition.x
@@ -194,7 +202,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
     }
     document.body.addEventListener("pointermove", onPointerMove, { capture: true })
     document.body.addEventListener("pointerup", onPointerUp, { capture: true })
-  }, [dimensions.height, dimensions.width, minHeight, minWidth])
+  }, [dimensions.height, dimensions.width, minHeight, minWidth, userSize])
 
   return (
     <FormulaEditorContext.Provider value={formulaEditorState}>
