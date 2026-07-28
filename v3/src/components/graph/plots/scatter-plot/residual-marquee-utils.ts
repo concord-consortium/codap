@@ -23,6 +23,8 @@ export function buildResidualPositions(
   return positions
 }
 
+// The region's left edge is always 0, so it isn't carried here: the residual hit rect is drawn at
+// x=0 in the same group as the residual points, which puts the frame's origin at the plot's left edge.
 export interface ILowerRegion {
   top: number
   bottom: number

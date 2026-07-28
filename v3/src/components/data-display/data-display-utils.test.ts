@@ -1,11 +1,11 @@
 import { Instance, types } from "mobx-state-tree"
+import RTreeLib from "rtree"
 import { DataSet, toCanonical } from "../../models/data/data-set"
 import { DataSetMetadata } from "../../models/shared/data-set-metadata"
 import {
   defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeOpacity, defaultSelectedStrokeWidth,
   defaultStrokeOpacity, defaultStrokeWidth
 } from "../../utilities/color-utils"
-import RTreeLib from "rtree"
 import { GraphDataConfigurationModel } from "../graph/models/graph-data-configuration-model"
 import { IPointStyle, PointRendererBase } from "./renderer"
 import { getCasesForDelta, setPointSelection } from "./data-display-utils"

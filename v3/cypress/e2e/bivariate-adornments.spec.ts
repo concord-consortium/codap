@@ -454,4 +454,47 @@ context("Graph adornments", () => {
     cy.get('*[data-testid^=residual-point-][fill="#4682b4"]').should("have.length.at.least", 1)
     cy.get("*[data-testid^=residual-points-]").find("circle").should("have.length.at.least", 1)
   })
+
+  it("adds to the existing selection when the residual marquee is shift-dragged", () => {
+    c.selectTile("graph", 0)
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
+    cy.dragAttributeToTarget("table", "Speed", "left")
+    graph.getDisplayValuesButton().click()
+    cy.get("[data-testid=adornment-checkbox-movable-line]").click()
+    cy.get("[data-testid=adornment-checkbox-residual-plot]").click()
+    cy.get("*[data-testid^=residual-points-]").find("circle").should("have.length.at.least", 1)
+
+    // Drags a marquee over a horizontal slice of the residual strip, expressed as fractions of its
+    // width. pointermove/pointerup go to the document so they reach the marquee's window listeners.
+    const dragSlice = (fromFraction: number, toFraction: number, shiftKey: boolean) => {
+      cy.get("[data-testid^=residual-plot-background-]").first().then($rect => {
+        const r = $rect[0].getBoundingClientRect()
+        const x = (fraction: number) => r.left + (r.right - r.left) * fraction
+        const [x1, y1, x2, y2] = [x(fromFraction), r.top + 4, x(toFraction), r.bottom - 4]
+        cy.wrap($rect).trigger("pointerdown", { clientX: x1, clientY: y1, shiftKey, force: true })
+        cy.document().trigger("pointermove", { clientX: (x1 + x2) / 2, clientY: (y1 + y2) / 2, shiftKey })
+        cy.document().trigger("pointermove", { clientX: x2, clientY: y2, shiftKey })
+        cy.document().trigger("pointerup", { clientX: x2, clientY: y2, shiftKey })
+      })
+    }
+    const selectedPoints = () => cy.get('*[data-testid^=residual-point-][fill="#4682b4"]')
+
+    // Establish a selection by marqueeing the left half of the strip.
+    dragSlice(0.01, 0.5, false)
+    selectedPoints().should("have.length.at.least", 1)
+    selectedPoints().then($selected => {
+      const leftCount = $selected.length
+      const leftIds = [...$selected].map(el => el.getAttribute("data-testid"))
+
+      // Shift-dragging the right half adds to that selection rather than replacing it: every
+      // left-half point stays selected and the total grows.
+      dragSlice(0.51, 0.99, true)
+      selectedPoints().should("have.length.greaterThan", leftCount)
+      leftIds.forEach(id => cy.get(`*[data-testid="${id}"]`).should("have.attr", "fill", "#4682b4"))
+
+      // Without Shift the same drag replaces the selection, so the left-half points are dropped.
+      dragSlice(0.51, 0.99, false)
+      leftIds.forEach(id => cy.get(`*[data-testid="${id}"]`).should("not.have.attr", "fill", "#4682b4"))
+    })
+  })
 })

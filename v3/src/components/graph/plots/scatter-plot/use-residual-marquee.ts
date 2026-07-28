@@ -32,7 +32,6 @@ export function useResidualMarquee(props: IUseResidualMarquee) {
   const { layout, dataConfiguration, dataset, adornmentsStore, marqueeState } = props
   const treeRef = useRef<ReturnType<typeof RTreeLib> | null>(null)
   const startRef = useRef({ x: 0, y: 0 })
-  const sizeRef = useRef({ w: 0, h: 0 })
   const prevRectRef = useRef<rTreeRect | undefined>(undefined)
   const needsClearRef = useRef(false)
   const draggingRef = useRef(false)
@@ -61,7 +60,6 @@ export function useResidualMarquee(props: IUseResidualMarquee) {
       x: event.clientX - rectBounds.left,
       y: event.clientY - rectBounds.top + layout.plotHeight
     }
-    sizeRef.current = { w: 0, h: 0 }
     prevRectRef.current = undefined
     needsClearRef.current = !event.shiftKey
     draggingRef.current = false
@@ -72,15 +70,14 @@ export function useResidualMarquee(props: IUseResidualMarquee) {
     const lowerBounds = layout.getLowerPlotBounds()
     const region = { top: layout.plotHeight, bottom: layout.plotHeight + lowerBounds.height, right: lowerBounds.width }
 
-    const prev = { x: event.clientX, y: event.clientY }
+    const startClientX = event.clientX
+    const startClientY = event.clientY
     const onMove = (moveEvent: PointerEvent) => {
-      sizeRef.current.w += moveEvent.clientX - prev.x
-      sizeRef.current.h += moveEvent.clientY - prev.y
-      prev.x = moveEvent.clientX
-      prev.y = moveEvent.clientY
-      if (!draggingRef.current &&
-          Math.abs(sizeRef.current.w) < kMarqueeDragThreshold &&
-          Math.abs(sizeRef.current.h) < kMarqueeDragThreshold) {
+      // Net displacement from pointerdown. The rect is anchored at the pointerdown point
+      // (startRef), so this displacement is its signed width/height.
+      const w = moveEvent.clientX - startClientX
+      const h = moveEvent.clientY - startClientY
+      if (!draggingRef.current && Math.abs(w) < kMarqueeDragThreshold && Math.abs(h) < kMarqueeDragThreshold) {
         return // below threshold: still a click, not a drag
       }
       draggingRef.current = true
@@ -88,8 +85,7 @@ export function useResidualMarquee(props: IUseResidualMarquee) {
         if (dataset.selection.size > 0) selectAllCases(dataset, false)
         needsClearRef.current = false
       }
-      const rawRect = rectNormalize(
-        { x: startRef.current.x, y: startRef.current.y, w: sizeRef.current.w, h: sizeRef.current.h })
+      const rawRect = rectNormalize({ x: startRef.current.x, y: startRef.current.y, w, h })
       const rect = clampRectToLowerRegion(rawRect, region)
       marqueeState.setMarqueeRect({ x: rect.x, y: rect.y, width: rect.w, height: rect.h })
       const prevRect = prevRectRef.current ?? { x: rect.x, y: rect.y, w: 0, h: 0 }
