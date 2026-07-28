@@ -88,9 +88,12 @@ export interface UrlParams {
    * lives in the URL and nowhere else. Names are matched against the feature-flag
    * registry (src/models/feature-flags/) and ignored if unrecognized.
    * value: comma-separated flag names, each optionally prefixed with "-" to disable,
-   *   e.g. "residualPlot,-someOtherFeature"
+   *   e.g. "residualPlot,-someOtherFeature". The parameter may also be repeated,
+   *   e.g. "?features=residualPlot&features=-someOtherFeature", in which case
+   *   query-string parses it as an array of the individual occurrences. An
+   *   occurrence written without a value is null, so the entries are nullable.
    */
-  features?: string | null
+  features?: string | (string | null)[] | null
   /*
    * [V2] When present enables the gaussian fit feature of the normal curve adornment.
    * value: ignored
@@ -269,9 +272,12 @@ export let urlParams: UrlParams = queryString.parse(getSearchParams())
 
 export const setUrlParams = (search: string) => urlParams = queryString.parse(search)
 
-export function booleanParam(param?: string | null): boolean {
+export function booleanParam(param?: string | (string | null)[] | null): boolean {
   // undefined => param is absent, which is treated as false
   if (param === undefined) return false
+  // query-string yields an array when the param appears more than once; the last
+  // occurrence wins, so that appending to a url overrides what it already said
+  if (Array.isArray(param)) return param.length > 0 && booleanParam(param[param.length - 1])
   // null => param is present without argument, which is treated as true
   if (param === null) return true
   // treat "false", "no", and "0" as false, everything else as true

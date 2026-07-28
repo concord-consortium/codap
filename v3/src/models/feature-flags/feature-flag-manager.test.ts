@@ -142,6 +142,44 @@ describe("FeatureFlagManager", () => {
     })
   })
 
+  // query-string yields an array rather than a string when a url parameter
+  // appears more than once, a form users reach for as readily as the
+  // comma-separated one
+  describe("repeated features parameter", () => {
+    it("combines the tokens of every occurrence", () => {
+      setUrlParams("?features=MappingTime&features=ESTEEM")
+      const manager = new FeatureFlagManager()
+      expect(manager.isFeatureEnabled("legendRange")).toBe(true)
+      expect(manager.isFeatureEnabled("residualPlot")).toBe(true)
+    })
+
+    it("applies a - prefix appearing in a later occurrence", () => {
+      setUrlParams("?features=MappingTime&features=-legendLogarithmic")
+      const manager = new FeatureFlagManager()
+      expect(manager.isFeatureEnabled("legendRange")).toBe(true)
+      expect(manager.isFeatureEnabled("legendLogarithmic")).toBe(false)
+    })
+
+    // an occurrence with no value parses as null rather than a string
+    it("ignores an occurrence that carries no value", () => {
+      setUrlParams("?features&features=residualPlot")
+      const manager = new FeatureFlagManager()
+      expect(manager.isFeatureEnabled("residualPlot")).toBe(true)
+    })
+
+    it("enables nothing when no occurrence carries a value", () => {
+      setUrlParams("?features&features")
+      const manager = new FeatureFlagManager()
+      expect(manager.urlEnabledFlags).toEqual([])
+    })
+
+    it("records the flags of every occurrence for document persistence", () => {
+      setUrlParams("?features=residualPlot&features=legendRange")
+      const manager = new FeatureFlagManager()
+      expect([...manager.urlEnabledFlags].sort()).toEqual(["legendRange", "residualPlot"])
+    })
+  })
+
   describe("urlEnabledFlags", () => {
     it("reports flags this session enabled via the url", () => {
       setUrlParams(`?features=${kFlag}`)

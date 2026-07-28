@@ -60,6 +60,22 @@ describe("urlParams", () => {
     expect(booleanParam("unexpected")).toBe(true)
   })
 
+  // query-string yields an array rather than a string when a parameter appears
+  // more than once; a repeated param must not throw, because these are read
+  // during startup where a throw keeps the document from displaying at all
+  it("booleanParam takes the last occurrence of a repeated param", () => {
+    const { booleanParam } = require("./url-params")
+
+    expect(booleanParam(["true", "false"])).toBe(false)
+    expect(booleanParam(["false", "true"])).toBe(true)
+    expect(booleanParam(["true"])).toBe(true)
+    expect(booleanParam([])).toBe(false)      // no occurrence carries a value
+    // an occurrence written without a value parses as null, which reads as true
+    // for the same reason a lone "?inbounds" does
+    expect(booleanParam(["false", null])).toBe(true)
+    expect(booleanParam([null, "false"])).toBe(false)
+  })
+
   it("removeDevUrlParams strips appropriate dev-only params", () => {
     // In Jest 30+ with jsdom 25+, we can only change the path/search, not the origin
     setLocation("http://localhost/?sample=mammals&dashboard")
