@@ -241,6 +241,31 @@ export function rectangleSubtract(iA: rTreeRect, iB: rTreeRect) {
   return result
 }
 
+export interface CaseObject {
+  datasetID: string
+  caseID: string
+}
+
+// Minimal structural view of the rtree instance needed for marquee delta hit-testing. Declaring it
+// here (rather than `ReturnType<typeof RTreeLib>`) keeps the runtime `rtree` import out of this
+// widely-imported module; the tree is constructed by callers that already depend on rtree.
+export interface RTree {
+  search(rect: rTreeRect): CaseObject[]
+}
+
+// Delta hit-test: the caseObjects that fall in newRect but not prevRect, found by searching only the
+// difference region(s). Proportional to what changed, not to the total point count. Shared by the
+// graph/map background marquee and the residual-plot marquee.
+export const getCasesForDelta = (tree: RTree | null, newRect: rTreeRect, prevRect: rTreeRect): CaseObject[] => {
+  if (!tree) return []
+  const diffRects = rectangleSubtract(newRect, prevRect)
+  let caseObjects: CaseObject[] = []
+  diffRects.forEach(aRect => {
+    caseObjects = caseObjects.concat(tree.search(aRect))
+  })
+  return caseObjects
+}
+
 export function rectToTreeRect(rect: Rect) {
   return {
     x: rect.x,

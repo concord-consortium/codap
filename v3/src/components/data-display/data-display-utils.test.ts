@@ -1,4 +1,5 @@
 import { Instance, types } from "mobx-state-tree"
+import RTreeLib from "rtree"
 import { DataSet, toCanonical } from "../../models/data/data-set"
 import { DataSetMetadata } from "../../models/shared/data-set-metadata"
 import {
@@ -7,7 +8,7 @@ import {
 } from "../../utilities/color-utils"
 import { GraphDataConfigurationModel } from "../graph/models/graph-data-configuration-model"
 import { IPointStyle, PointRendererBase } from "./renderer"
-import { setPointSelection } from "./data-display-utils"
+import { getCasesForDelta, setPointSelection } from "./data-display-utils"
 
 const TreeModel = types.model("Tree", {
   data: DataSet,
@@ -281,5 +282,21 @@ describe("setPointSelection", () => {
     expect(mockRenderer.forEachPoint).toHaveBeenCalled()
     expect(mockRenderer.getPointForCaseData).not.toHaveBeenCalled()
     expect(styleUpdates.size).toBe(3)
+  })
+})
+
+describe("getCasesForDelta", () => {
+  it("returns only cases inside the newly-entered region", () => {
+    const tree = RTreeLib(10)
+    tree.insert({ x: 5, y: 5, w: 1, h: 1 }, { datasetID: "d", caseID: "a" })
+    tree.insert({ x: 50, y: 50, w: 1, h: 1 }, { datasetID: "d", caseID: "b" })
+    const prev = { x: 0, y: 0, w: 10, h: 10 }   // contains "a" only
+    const next = { x: 0, y: 0, w: 100, h: 100 } // contains "a" and "b"
+    const entered = getCasesForDelta(tree, next, prev)
+    expect(entered.map(c => c.caseID)).toEqual(["b"])
+  })
+
+  it("returns [] when the tree is null", () => {
+    expect(getCasesForDelta(null, { x: 0, y: 0, w: 1, h: 1 }, { x: 0, y: 0, w: 1, h: 1 })).toEqual([])
   })
 })
