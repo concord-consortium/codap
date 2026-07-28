@@ -301,10 +301,16 @@ context("Formula Engine", () => {
         cy.get("[data-testid=formula-insert-function-button]").should("have.focus")
         // Tab to Cancel button
         cy.realPress("Tab")
-        cy.focused().should("contain.text", "Cancel")
+        cy.get("[data-testid=Cancel-button]").should("have.focus")
+        // Tab to Clear button
+        cy.realPress("Tab")
+        cy.get("[data-testid=Clear-button]").should("have.focus")
         // Tab to Apply button
         cy.realPress("Tab")
-        cy.focused().should("contain.text", "Apply")
+        cy.get("[data-testid=Apply-button]").should("have.focus")
+        // Tab wraps to the close button in the header
+        cy.realPress("Tab")
+        cy.get("[data-testid=formula-modal-close-button]").should("have.focus")
         // Tab to attribute name input
         cy.realPress("Tab")
         cy.get("[data-testid=attr-name-input]").should("have.focus")
@@ -318,12 +324,18 @@ context("Formula Engine", () => {
         // Shift+Tab to attribute name input
         cy.realPress(["Shift", "Tab"])
         cy.get("[data-testid=attr-name-input]").should("have.focus")
-        // Shift+Tab to Apply button
+        // Shift+Tab to the close button in the header
         cy.realPress(["Shift", "Tab"])
-        cy.focused().should("contain.text", "Apply")
+        cy.get("[data-testid=formula-modal-close-button]").should("have.focus")
+        // Shift+Tab wraps to the Apply button
+        cy.realPress(["Shift", "Tab"])
+        cy.get("[data-testid=Apply-button]").should("have.focus")
+        // Shift+Tab to Clear button
+        cy.realPress(["Shift", "Tab"])
+        cy.get("[data-testid=Clear-button]").should("have.focus")
         // Shift+Tab to Cancel button
         cy.realPress(["Shift", "Tab"])
-        cy.focused().should("contain.text", "Cancel")
+        cy.get("[data-testid=Cancel-button]").should("have.focus")
         // Shift+Tab to Insert Function menu button
         cy.realPress(["Shift", "Tab"])
         cy.get("[data-testid=formula-insert-function-button]").should("have.focus")
