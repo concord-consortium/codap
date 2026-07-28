@@ -26,10 +26,12 @@ $formula-button-default-active: #72bfca;
 $formula-control-height: 30px;
 $formula-side-padding: 15px;
 $formula-label-color: #222; // the `labelText` color the Chakra button variants used
+// 4.02:1 against the #f0f0f0 modal body, so control boundaries meet WCAG 1.4.11's 3:1
+$formula-control-border: #767676;
 
 @mixin formula-button {
   align-items: center;
-  border: 1px solid lightgray;
+  border: 1px solid $formula-control-border;
   border-radius: 4px;
   color: $formula-label-color;
   cursor: pointer;
@@ -43,6 +45,35 @@ $formula-label-color: #222; // the `labelText` color the Chakra button variants 
 
   &:focus-visible {
     @include vars.focus-outline;
+  }
+}
+
+.formula-modal-header-wrapper {
+  flex-shrink: 0;
+  position: relative;
+
+  // Positioned over the header rather than inside it: the header is the dialog's
+  // aria-labelledby target, and anything within it becomes part of the dialog's name.
+  .formula-modal-close-button {
+    align-items: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    font-size: 20px;
+    // 24px of target around a 20px glyph, per WCAG 2.2 target size
+    height: 24px;
+    justify-content: center;
+    line-height: 1;
+    padding: 0;
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    width: 24px;
+
+    &:focus-visible {
+      @include vars.focus-outline;
+    }
   }
 }
 
@@ -64,21 +95,11 @@ $formula-label-color: #222; // the `labelText` color the Chakra button variants 
   padding: 0;
 
   .formula-modal-title {
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    margin: 0;
     padding-left: $formula-side-padding;
-  }
-
-  .formula-modal-close-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 20px;
-    line-height: 1;
-    margin-right: 5px;
-    padding: 0 5px;
-
-    &:focus-visible {
-      @include vars.focus-outline;
-    }
   }
 }
 
@@ -124,7 +145,7 @@ $formula-label-color: #222; // the `labelText` color the Chakra button variants 
         width: 100%;
       }
       .attr-name-input {
-        border: 1px solid vars.$charcoal-light-2;
+        border: 1px solid $formula-control-border;
         border-radius: 2px;
         flex: 1 1 auto;
         // the ModalBody theme sets a "medium" weight that the input would otherwise inherit
@@ -167,7 +188,7 @@ $formula-label-color: #222; // the `labelText` color the Chakra button variants 
           min-width: 0;
 
           .cm-editor {
-            border: 1px solid vars.$charcoal-light-2;
+            border: 1px solid $formula-control-border;
             border-radius: 2px;
             height: 100%;
             width: 100%;
@@ -179,17 +200,20 @@ $formula-label-color: #222; // the `labelText` color the Chakra button variants 
         }
 
         // Sizing the formula field sizes the modal, so this is the modal's only resize grip.
+        // 24px of target around a 12px icon, per WCAG 2.2 target size. The box is transparent and
+        // the icon stays pinned to the corner, so only the hit area grows.
         .formula-editor-resize-corner {
-          align-items: center;
-          bottom: 1px;
-          color: vars.$charcoal-light-1;
+          align-items: flex-end;
+          bottom: 0;
+          color: $formula-control-border;
           cursor: se-resize;
           display: flex;
-          height: 14px;
-          justify-content: center;
+          height: 24px;
+          justify-content: flex-end;
+          padding: 0 1px 1px 0;
           position: absolute;
-          right: 1px;
-          width: 14px;
+          right: 0;
+          width: 24px;
 
           svg {
             height: 12px;
@@ -228,7 +252,7 @@ $formula-label-color: #222; // the `labelText` color the Chakra button variants 
       // the caret sits in its own segment, per the spec's select-style control
       .formula-editor-button-caret {
         align-items: center;
-        border-left: 1px solid lightgray;
+        border-left: 1px solid $formula-control-border;
         display: flex;
         font-size: 10px;
         height: 100%;

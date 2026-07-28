@@ -37,6 +37,9 @@ interface IProps {
   // options default to true if not specified
   options?: Partial<ICompletionOptions>
   isAutoCompleteMenuOpen: React.MutableRefObject<boolean>
+  // id of the element naming the editor. CodeMirror's editable region is a contenteditable div,
+  // which a wrapping <label> cannot name, so the association is made here instead.
+  labelId?: string
 }
 
 /*
@@ -239,12 +242,13 @@ function cmMoveFocus(view: EditorView, forward: boolean): boolean {
 /*
  * editor configuration
  */
-function cmExtensionsSetup() {
+function cmExtensionsSetup(labelId?: string) {
   let keymaps: KeyBinding[] = []
   keymaps = keymaps.concat(closeBracketsKeymap)
   keymaps = keymaps.concat(defaultKeymap)
   keymaps = keymaps.concat(completionKeymap)
   const extensions: Extension[] = [
+    ...(labelId ? [EditorView.contentAttributes.of({ "aria-labelledby": labelId })] : []),
     cmDataSetState,
     cmOptionsState,
     drawSelection(),
@@ -270,12 +274,12 @@ function cmExtensionsSetup() {
   return extensions.filter(Boolean)
 }
 
-export function FormulaEditor({ options: _options, isAutoCompleteMenuOpen }: IProps) {
+export function FormulaEditor({ options: _options, isAutoCompleteMenuOpen, labelId }: IProps) {
   const dataSet = useDataSetContext()
   const jsonOptions = JSON.stringify(_options ?? {})
   const options = useMemo(() => JSON.parse(jsonOptions), [jsonOptions])
   const cmRef = useRef<ReactCodeMirrorRef>(null)
-  const extensions = useMemo(() => cmExtensionsSetup(), [])
+  const extensions = useMemo(() => cmExtensionsSetup(labelId), [labelId])
   const { formula, setFormula, setEditorApi } = useFormulaEditorContext()
 
   useEffect(() => {

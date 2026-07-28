@@ -136,6 +136,23 @@ describe("EditFormulaModal", () => {
     expect(screen.getByTestId("formula-modal-header")).toHaveTextContent("Add Filter Formula")
   })
 
+  it("names the dialog with the title alone", () => {
+    // Chakra points aria-labelledby at the header, and the accessible name is computed from that
+    // element's whole subtree, so the close button must stay outside it.
+    setup({ modalTitle: "Add Filter Formula" })
+    const header = screen.getByTestId("formula-modal-header")
+    expect(header).toHaveTextContent("Add Filter Formula")
+    expect(header).not.toContainElement(screen.getByTestId("formula-modal-close-button"))
+    expect(screen.getByRole("dialog", { name: "Add Filter Formula" })).toBeInTheDocument()
+  })
+
+  it("gives the attribute input a single accessible name, from its label", () => {
+    setup({ titleLabel: "Attribute Name:" })
+    expect(screen.getByRole("textbox", { name: "Attribute Name" })).toHaveAttribute(
+      "data-testid", "attr-name-input"
+    )
+  })
+
   it("empties the formula when Clear is pressed", async () => {
     const { user, applyFormula } = setup({ value: "Height * 2" })
 

@@ -1,5 +1,5 @@
 import { ModalBody, ModalFooter, ModalHeader } from "@chakra-ui/react"
-import React, { useCallback, useRef, useState } from "react"
+import React, { useCallback, useId, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
 import { isCommandKeyDown } from "../../utilities/platform-utils"
@@ -49,7 +49,8 @@ export const EditFormulaModal = observer(function EditFormulaModal({
   const [showValuesMenu, setShowValuesMenu] = useState(false)
   const [showFunctionMenu, setShowFunctionMenu] = useState(false)
   const formulaEditorState = useFormulaEditorState(value ?? "")
-  const { formula, setFormula } = formulaEditorState
+  const { editorApi, formula, setFormula } = formulaEditorState
+  const formulaLabelId = useId()
   // Set once the user drags the formula field's resize grip. Until then the modal takes its
   // default size, which depends on whether a name row is present — and that is not known on the
   // first render, since callers derive titleInput from a model that may still be resolving.
@@ -93,6 +94,8 @@ export const EditFormulaModal = observer(function EditFormulaModal({
     setShowValuesMenu(false)
     setShowFunctionMenu(false)
     setFormula("")
+    // Return to the now-empty field, so the effect of the button is evident without sight of it.
+    editorApi?.focus()
   }
 
   const handleModalWhitespaceClick = () => {
@@ -210,14 +213,20 @@ export const EditFormulaModal = observer(function EditFormulaModal({
         modalHeight={userSize ? `${userSize.height}px` : "auto"}
         onClick={handleModalWhitespaceClick}
       >
-        {/* ModalHeader wires the dialog's aria-labelledby to the title. */}
-        <ModalHeader className="formula-modal-header" data-testid="formula-modal-header">
-          <span className="formula-modal-title">{modalTitle}</span>
+        {/*
+          Chakra points the dialog's aria-labelledby at ModalHeader, and the accessible name is
+          computed from its whole subtree — so the close button sits outside it, or the dialog
+          announces as "Edit Formula Close".
+        */}
+        <div className="formula-modal-header-wrapper">
+          <ModalHeader className="formula-modal-header" data-testid="formula-modal-header">
+            <h2 className="formula-modal-title">{modalTitle}</h2>
+          </ModalHeader>
           <button type="button" className="formula-modal-close-button" onClick={closeModal}
                   aria-label={t("V3.AttrFormView.closeBtnLabel")} data-testid="formula-modal-close-button">
-            ×
+            <span aria-hidden="true">×</span>
           </button>
-        </ModalHeader>
+        </div>
         <ModalBody className="formula-modal-body" onKeyDown={handleKeyDown}>
           {/*
             TODO: rename the `attr-name-form-label` and `attr-name-input` className/data-testid
@@ -243,18 +252,22 @@ export const EditFormulaModal = observer(function EditFormulaModal({
                     onChange={e => setTitle(e.target.value)}
                     placeholder={titlePlaceholder}
                     data-testid="attr-name-input"
-                    aria-label={stripTrailingColon(titleLabel)}
                   />
-                  <span className="attr-name-equals">=</span>
+                  {/* decorative: the label wraps the input, so this would otherwise land in its name */}
+                  <span className="attr-name-equals" aria-hidden="true">=</span>
                 </span>
               </label>
             }
             <label ref={formulaEditorContainerRef} className="formula-editor-container" tabIndex={-1}>
-              <span className="formula-field-label">
+              {/*
+                A <label> only names labelable elements, and the editor's editable region is a
+                contenteditable div, so the label is wired to it by id instead.
+              */}
+              <span className="formula-field-label" id={formulaLabelId}>
                 {stripTrailingColon(formulaPrompt ?? t("DG.AttrFormView.formulaPrompt"))}
               </span>
               <span className="formula-editor-frame">
-                <FormulaEditor isAutoCompleteMenuOpen={isAutoCompleteMenuOpen}/>
+                <FormulaEditor labelId={formulaLabelId} isAutoCompleteMenuOpen={isAutoCompleteMenuOpen}/>
                 {/*
                   Sizing the formula field resizes the modal that sizes it. The
                   `component-resize-handle` class is what CodapModal's drag handler looks for to
