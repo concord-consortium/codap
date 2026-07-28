@@ -88,9 +88,11 @@ export interface UrlParams {
    * lives in the URL and nowhere else. Names are matched against the feature-flag
    * registry (src/models/feature-flags/) and ignored if unrecognized.
    * value: comma-separated flag names, each optionally prefixed with "-" to disable,
-   *   e.g. "residualPlot,-someOtherFeature"
+   *   e.g. "residualPlot,-someOtherFeature". The parameter may also be repeated,
+   *   e.g. "?features=residualPlot&features=-someOtherFeature", in which case
+   *   query-string parses it as an array of the individual occurrences.
    */
-  features?: string | null
+  features?: string | string[] | null
   /*
    * [V2] When present enables the gaussian fit feature of the normal curve adornment.
    * value: ignored
