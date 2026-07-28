@@ -1,8 +1,8 @@
 import {ptInRect} from "../../data-display/data-display-utils"
 import { GraphLayout } from "../models/graph-layout"
 import {
-  dateTimeSlopeUnit, equationString, formatDateDuration, formatValue, kMinus, lineToAxisIntercepts,
-  lsrlEquationString, valueLabelString
+  dateTimeSlopeUnit, equationString, formatDateDuration, formatValue, kMinus, leastSquaresLinearRegression,
+  lineToAxisIntercepts, lsrlEquationString, valueLabelString
 } from "./graph-utils"
 
 describe("formatValue", () => {
@@ -166,6 +166,59 @@ describe("formatDateDuration", () => {
     // 0.99998 rounds to "1" for display, so the unit should be singular too.
     expect(formatDateDuration(0.99998, 60)).toBe("1 second")
     expect(formatDateDuration(1.001, 60)).toBe("1 second")
+  })
+})
+
+describe("leastSquaresLinearRegression", () => {
+  it("computes slope, intercept and rSquared for a set of points", () => {
+    const result = leastSquaresLinearRegression([{x: 1, y: 2}, {x: 2, y: 4}, {x: 3, y: 6}], false)
+    expect(result.slope).toBeCloseTo(2)
+    expect(result.intercept).toBeCloseTo(0)
+    expect(result.rSquared).toBeCloseTo(1)
+  })
+
+  it("returns no line when there are fewer than two points", () => {
+    const result = leastSquaresLinearRegression([{x: 1, y: 2}], false)
+    expect(result.slope).toBeUndefined()
+    expect(result.intercept).toBeUndefined()
+  })
+
+  // No least squares line can be fit when the x values don't vary, since the slope would be
+  // 0/0. Leaving slope and intercept undefined keeps NaNs out of the line and its equation.
+  it("returns no line when all of the points have the same coordinates", () => {
+    const result = leastSquaresLinearRegression([{x: 5, y: 10}, {x: 5, y: 10}], false)
+    expect(result.slope).toBeUndefined()
+    expect(result.intercept).toBeUndefined()
+    expect(result.rSquared).toBeUndefined()
+    expect(result.sdResiduals).toBeUndefined()
+  })
+
+  it("returns no line when the points are vertically aligned", () => {
+    const result = leastSquaresLinearRegression([{x: 5, y: 10}, {x: 5, y: 20}, {x: 5, y: 30}], false)
+    expect(result.slope).toBeUndefined()
+    expect(result.intercept).toBeUndefined()
+    expect(result.rSquared).toBeUndefined()
+    expect(result.sdResiduals).toBeUndefined()
+  })
+
+  it("returns a horizontal line when the points are horizontally aligned", () => {
+    const result = leastSquaresLinearRegression([{x: 1, y: 10}, {x: 2, y: 10}, {x: 3, y: 10}], false)
+    expect(result.slope).toBeCloseTo(0)
+    expect(result.intercept).toBeCloseTo(10)
+  })
+
+  describe("with the intercept locked", () => {
+    it("computes a slope through the origin", () => {
+      const result = leastSquaresLinearRegression([{x: 5, y: 10}, {x: 5, y: 10}], true)
+      expect(result.slope).toBeCloseTo(2)
+      expect(result.intercept).toEqual(0)
+    })
+
+    it("returns no line when all of the points are at the origin", () => {
+      const result = leastSquaresLinearRegression([{x: 0, y: 0}, {x: 0, y: 0}], true)
+      expect(result.slope).toBeUndefined()
+      expect(result.intercept).toBeUndefined()
+    })
   })
 })
 
