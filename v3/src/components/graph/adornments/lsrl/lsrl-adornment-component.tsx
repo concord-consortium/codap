@@ -213,16 +213,16 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
     const tPixelMin = xScale(xMin)
     const tPixelMax = xScale(xMax)
     const kPixelGap = 1
-    let upperPath = ""
-    let lowerPath = ""
     const { upperPoints, lowerPoints } = model.confidenceBandsPoints(
       tPixelMin, tPixelMax, cellCounts.x, cellCounts.y, kPixelGap, caseValues, xScale, yScale, cellKey, category
     )
-    if (upperPoints.length > 0) {
-      // Accomplish spline interpolation
-      upperPath = `M${upperPoints[0].x}, ${upperPoints[0].y}${curveBasis(upperPoints)}`
-      lowerPath = `M${lowerPoints[0].x}, ${lowerPoints[0].y}${curveBasis(lowerPoints)}`
-    }
+    // There are no points when the bands can't be estimated, e.g. when the fit has no degrees of
+    // freedom. Returning null paths clears the band elements rather than assigning them empty paths.
+    if (upperPoints.length === 0) return { upperPath: null, lowerPath: null, combinedPath: null }
+
+    // Accomplish spline interpolation
+    const upperPath = `M${upperPoints[0].x}, ${upperPoints[0].y}${curveBasis(upperPoints)}`
+    const lowerPath = `M${lowerPoints[0].x}, ${lowerPoints[0].y}${curveBasis(lowerPoints)}`
     const combinedPath = `${upperPath}${lowerPath.replace("M", "L")}Z`
 
     return { upperPath, lowerPath, combinedPath }
@@ -243,9 +243,10 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
 
     const caseValues = model.getCaseValues(xAttrId, yAttrId, cellKey, dataConfig, line.category)
     const { upperPath, lowerPath, combinedPath } = confidenceBandPaths(caseValues, line.category)
-    lineObj?.confidenceBandCurve?.attr("d", `${upperPath}${lowerPath}`)
+    const curvePath = upperPath != null && lowerPath != null ? `${upperPath}${lowerPath}` : null
+    lineObj?.confidenceBandCurve?.attr("d", curvePath)
       .style("stroke-dasharray", "4,3")
-    lineObj?.confidenceBandCover?.attr("d", `${upperPath}${lowerPath}`)
+    lineObj?.confidenceBandCover?.attr("d", curvePath)
     lineObj?.confidenceBandShading?.attr("d", combinedPath)
 
     lineObj?.confidenceBandShading?.on("mouseover", (e) => toggleConfidenceBandTip(e, true))

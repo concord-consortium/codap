@@ -292,6 +292,39 @@ describe("lsrlEquationString", () => {
     expect(result).not.toContain("r<sup>2</sup>")
   })
 
+  // Undefined statistics are omitted rather than displayed. rSquared is 0/0 when the y values
+  // don't vary, so the line itself is valid while the correlation is not.
+  describe("undefined statistics", () => {
+    it("should omit r and r² when rSquared is not a number", () => {
+      const result = lsrlEquationString({
+        caseValues: [], slope: 0, intercept: 5, rSquared: NaN, attrNames, units, layout,
+        showR: true, showRSquared: true
+      })
+      expect(result).toBe('<em>Speed</em> = 5')
+      expect(result).not.toContain("r =")
+      expect(result).not.toContain("r<sup>2</sup>")
+      expect(result).not.toContain("not a number")
+    })
+
+    it("should omit σslope and σintercept when they are not numbers", () => {
+      const result = lsrlEquationString({
+        caseValues: [], slope: 2.5, intercept: -0.5, rSquared: 1, attrNames, units, layout,
+        showConfidenceBands: true, seSlope: NaN, seIntercept: NaN
+      })
+      expect(result).not.toContain("σ")
+      expect(result).not.toContain("not a number")
+    })
+
+    it("should still show σslope and σintercept when they are finite", () => {
+      const result = lsrlEquationString({
+        caseValues: [], slope: 2.5, intercept: -0.5, rSquared: 1, attrNames, units, layout,
+        showConfidenceBands: true, seSlope: 0.15, seIntercept: 0.5
+      })
+      expect(result).toContain("σ<sub>slope</sub> = 0.15")
+      expect(result).toContain("σ<sub>intercept</sub> = 0.5")
+    })
+  })
+
   describe("date-time x-axis", () => {
     const oneDay = 86400
     it("uses slope-only form and still appends r² and sum-of-squares", () => {

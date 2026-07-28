@@ -204,8 +204,8 @@ export function linRegrStdErrSlopeAndIntercept(xyValues: XYValues): StdErrLSRRes
   const result = { stdErrSlope: NaN, stdErrIntercept: NaN }
   const { count, sumSquaredErrors, xMean, xSumSquaredDeviations } = leastSquaresLinearRegression(xyValues)
   if (!count || xMean == null || xSumSquaredDeviations == null) return result
-  // no error if only two points
-  if (count === 2) return { stdErrSlope: 0, stdErrIntercept: 0 }
+  // With two points the fit has zero degrees of freedom, so the standard errors aren't estimable
+  // and are left NaN rather than reported as zero.
   if (count > 2) {
     result.stdErrSlope = Math.sqrt((sumSquaredErrors / (count - 2)) / xSumSquaredDeviations)
     result.stdErrIntercept = Math.sqrt(sumSquaredErrors / (count - 2)) *
