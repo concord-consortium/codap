@@ -70,6 +70,10 @@ describe("urlParams", () => {
     expect(booleanParam(["false", "true"])).toBe(true)
     expect(booleanParam(["true"])).toBe(true)
     expect(booleanParam([])).toBe(false)      // no occurrence carries a value
+    // an occurrence written without a value parses as null, which reads as true
+    // for the same reason a lone "?inbounds" does
+    expect(booleanParam(["false", null])).toBe(true)
+    expect(booleanParam([null, "false"])).toBe(false)
   })
 
   it("removeDevUrlParams strips appropriate dev-only params", () => {

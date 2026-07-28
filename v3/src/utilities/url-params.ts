@@ -90,9 +90,10 @@ export interface UrlParams {
    * value: comma-separated flag names, each optionally prefixed with "-" to disable,
    *   e.g. "residualPlot,-someOtherFeature". The parameter may also be repeated,
    *   e.g. "?features=residualPlot&features=-someOtherFeature", in which case
-   *   query-string parses it as an array of the individual occurrences.
+   *   query-string parses it as an array of the individual occurrences. An
+   *   occurrence written without a value is null, so the entries are nullable.
    */
-  features?: string | string[] | null
+  features?: string | (string | null)[] | null
   /*
    * [V2] When present enables the gaussian fit feature of the normal curve adornment.
    * value: ignored
@@ -271,7 +272,7 @@ export let urlParams: UrlParams = queryString.parse(getSearchParams())
 
 export const setUrlParams = (search: string) => urlParams = queryString.parse(search)
 
-export function booleanParam(param?: string | string[] | null): boolean {
+export function booleanParam(param?: string | (string | null)[] | null): boolean {
   // undefined => param is absent, which is treated as false
   if (param === undefined) return false
   // query-string yields an array when the param appears more than once; the last

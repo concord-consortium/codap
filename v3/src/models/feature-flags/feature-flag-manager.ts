@@ -19,9 +19,10 @@ export class FeatureFlagManager {
     // query-string yields an array rather than a string when `features` appears
     // more than once in the url. The repeated and comma-separated forms mean the
     // same thing, so flatten to a single token list; tokens stay in url order,
-    // which is what lets a later one override an earlier one.
+    // which is what lets a later one override an earlier one. An occurrence
+    // written without a value parses as null and names no flag, so it drops out.
     const occurrences = urlParams.features == null ? [] : [urlParams.features].flat()
-    occurrences.flatMap(occurrence => occurrence.split(",")).forEach(entry => {
+    occurrences.flatMap(occurrence => occurrence?.split(",") ?? []).forEach(entry => {
       const trimmed = entry.trim()
       if (!trimmed) return
       const enabled = !trimmed.startsWith("-")

@@ -160,6 +160,19 @@ describe("FeatureFlagManager", () => {
       expect(manager.isFeatureEnabled("legendLogarithmic")).toBe(false)
     })
 
+    // an occurrence with no value parses as null rather than a string
+    it("ignores an occurrence that carries no value", () => {
+      setUrlParams("?features&features=residualPlot")
+      const manager = new FeatureFlagManager()
+      expect(manager.isFeatureEnabled("residualPlot")).toBe(true)
+    })
+
+    it("enables nothing when no occurrence carries a value", () => {
+      setUrlParams("?features&features")
+      const manager = new FeatureFlagManager()
+      expect(manager.urlEnabledFlags).toEqual([])
+    })
+
     it("records the flags of every occurrence for document persistence", () => {
       setUrlParams("?features=residualPlot&features=legendRange")
       const manager = new FeatureFlagManager()
