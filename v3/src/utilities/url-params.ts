@@ -271,9 +271,12 @@ export let urlParams: UrlParams = queryString.parse(getSearchParams())
 
 export const setUrlParams = (search: string) => urlParams = queryString.parse(search)
 
-export function booleanParam(param?: string | null): boolean {
+export function booleanParam(param?: string | string[] | null): boolean {
   // undefined => param is absent, which is treated as false
   if (param === undefined) return false
+  // query-string yields an array when the param appears more than once; the last
+  // occurrence wins, so that appending to a url overrides what it already said
+  if (Array.isArray(param)) return param.length > 0 && booleanParam(param[param.length - 1])
   // null => param is present without argument, which is treated as true
   if (param === null) return true
   // treat "false", "no", and "0" as false, everything else as true
