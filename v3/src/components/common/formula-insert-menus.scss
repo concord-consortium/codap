@@ -10,8 +10,8 @@
   overflow-y: auto;
   position: absolute;
   max-height: 380px;
-  // aligned with the button, and spaced from it by the same gap the values menu uses, which
-  // both menus set as `top` when they measure the button
+  // aligned with the button's left edge; the placement hook sets top or bottom so the menu sits
+  // flush against the button, as the values menu does
   left: 0;
   cursor: pointer;
 
