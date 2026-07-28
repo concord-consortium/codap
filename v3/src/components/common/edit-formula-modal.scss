@@ -1,125 +1,277 @@
 @use "../vars";
-$edit-formula-modal-min-height: 180;
-$edit-formula-modal-min-height-px: #{$edit-formula-modal-min-height}px;
-$edit-formula-modal-min-width: 400;
+// How small the user may drag the modal. The size it opens at comes from its content, not from
+// these: the formula field's two-row minimum sets that.
+$edit-formula-modal-min-height: 280;
+// same, for callers that edit only a formula and so get no name row
+$edit-formula-modal-filter-min-height: 218;
+$edit-formula-modal-min-width: 450;
 $edit-formula-modal-min-width-px: #{$edit-formula-modal-min-width}px;
 
 // https://mattferderer.com/use-sass-variables-in-typescript-and-javascript
 :export {
   editFormulaModalMinHeight: $edit-formula-modal-min-height;
+  editFormulaModalFilterMinHeight: $edit-formula-modal-filter-min-height;
   editFormulaModalMinWidth: $edit-formula-modal-min-width;
 }
 
-.formula-modal-body {
-  cursor: default;
+$formula-header-face: #a5e3f6;
+// button faces, matching the Chakra `v3*` variants these buttons replaced
+$formula-button-face: #d3f4ff;
+$formula-button-face-hover: #bbefff;
+$formula-button-face-active: #a5e3f6;
+$formula-button-default-face: #bbefff;
+$formula-button-default-hover: #93d5e4;
+$formula-button-default-active: #72bfca;
+
+$formula-control-height: 30px;
+$formula-side-padding: 15px;
+$formula-label-color: #222; // the `labelText` color the Chakra button variants used
+
+@mixin formula-button {
+  align-items: center;
+  border: 1px solid lightgray;
+  border-radius: 4px;
+  color: $formula-label-color;
+  cursor: pointer;
   display: flex;
-  flex-direction: column;
-  height: inherit;
-  margin-bottom: 10px;
-  min-height: 72px;
-  min-width: $edit-formula-modal-min-width-px;
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 500;
+  height: $formula-control-height;
+  justify-content: center;
+  white-space: nowrap;
 
-  .formula-form-control {
-    display: flex;
-    flex-grow: 1;
-    align-items: flex-start;
-
-    .attr-name-form-label {
-      align-items: center;
-      width: 100%;
-    }
-    // The label sizes to its text and the input absorbs the remainder, so that a long
-    // translation widens the label instead of wrapping onto a second line. A wrapped label
-    // grows the form control and pushes the insert buttons out of the modal body.
-    .title-label {
-      flex: 0 0 auto;
-      margin-right: 5px;
-      white-space: nowrap;
-    }
-    .attr-name-input {
-      border: 1px solid vars.$charcoal-light-2;
-      flex: 1 1 auto;
-      min-width: 0;
-      margin-right: 3px;
-      margin-left: 0;
-      padding-left: 5px;
-
-      &:focus-visible {
-        @include vars.focus-outline;
-      }
-    }
-    .formula-editor-container {
-      display: flex;
-      height: 100%;
-      width: 100%;
-
-      .formula-editor-input {
-        width: calc(100% - 50px); //50px is to account for modal margins and paddings
-
-        .cm-editor {
-          border: 1px solid vars.$charcoal-light-2;
-          height: 100%;
-          width: 100%;
-
-          &.cm-focused {
-            @include vars.focus-outline;
-          }
-        }
-      }
-    }
-
-  }
-
-  .formula-insert-buttons-container {
-    position: relative;
-    bottom: 0;
-    // never give up height or width to the formula editor above; the buttons are the
-    // first thing clipped when the body overflows
-    flex-shrink: 0;
-
-    .formula-editor-button {
-      flex-shrink: 0;
-      padding: 0 10px;
-      &:hover {
-        background: vars.$codap-teal-lighter;
-      }
-      &:active, &.menu-open {
-        background: vars.$codap-teal-dark;
-        color: white;
-      }
-      &:focus-visible {
-        @include vars.focus-outline;
-      }
-      &.insert-value {
-        margin-left: 0;
-      }
-    }
-  }
-}
-
-.formula-modal-footer {
-  cursor: default;
-  border-radius: 6px;
-  position: relative;
-  bottom: 0;
-  right: 0;
-
-  button:focus-visible {
+  &:focus-visible {
     @include vars.focus-outline;
   }
 }
 
-.codap-modal-corner {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  height: 24px;
-  width: 24px;
-  cursor: se-resize;
+// two classes, to override Chakra's single-class ModalHeader defaults
+.chakra-modal__header.formula-modal-header {
+  align-items: center;
+  background-color: $formula-header-face;
+  box-shadow: none;
+  display: flex;
+  flex-direction: row;
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 500;
+  height: 34px;
+  justify-content: space-between;
+  // min-height as well as height: the modal content is a flex column, and without this the
+  // header gives up space whenever the content wants more than the modal's current height
+  min-height: 34px;
+  padding: 0;
+
+  .formula-modal-title {
+    padding-left: $formula-side-padding;
+  }
+
+  .formula-modal-close-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    margin-right: 5px;
+    padding: 0 5px;
+
+    &:focus-visible {
+      @include vars.focus-outline;
+    }
+  }
 }
-.component-resize-handle {
-  fill: #d3d3d3;
-  &:hover {
-    fill: white;
+
+// three classes, to beat codap-modal.scss's `.chakra-modal__content .chakra-modal__body`
+// as well as Chakra's own single-class defaults
+.codap-modal-content .chakra-modal__body.formula-modal-body {
+  cursor: default;
+  display: flex;
+  flex-direction: column;
+  // min-height:0 lets this flex child shrink below its content size, so the editor inside
+  // absorbs the overflow rather than pushing the insert buttons past the bottom edge
+  min-height: 0;
+  flex: 1 1 auto;
+  padding: 10px $formula-side-padding 0;
+
+  .formula-form-control {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+
+    // Labels sit above their fields, so a long translation lengthens the label's own line
+    // instead of competing with the field for width.
+    .formula-field-label {
+      color: $formula-label-color;
+      flex: 0 0 auto;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 5px;
+    }
+
+    .attr-name-form-label {
+      display: flex;
+      flex-direction: column;
+      flex: 0 0 auto;
+      margin-bottom: 10px;
+      width: 100%;
+
+      .attr-name-input-row {
+        align-items: center;
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+      }
+      .attr-name-input {
+        border: 1px solid vars.$charcoal-light-2;
+        border-radius: 2px;
+        flex: 1 1 auto;
+        // the ModalBody theme sets a "medium" weight that the input would otherwise inherit
+        font-size: 14px;
+        font-weight: normal;
+        height: $formula-control-height;
+        min-width: 0;
+        padding-left: 5px;
+
+        &:focus-visible {
+          @include vars.focus-outline;
+        }
+      }
+      .attr-name-equals {
+        flex: 0 0 auto;
+        margin-left: 8px;
+      }
+    }
+
+    .formula-editor-container {
+      display: flex;
+      flex: 1 1 auto;
+      flex-direction: column;
+      min-height: 0;
+      width: 100%;
+
+      .formula-editor-frame {
+        display: flex;
+        flex: 1 1 auto;
+        // two rows of the monospace formula text. With the modal's height left to the content,
+        // this is what establishes the default size; once the user resizes, the modal has an
+        // explicit height and the field flexes to fill it, never dropping below two rows.
+        min-height: 48px;
+        position: relative;
+        width: 100%;
+
+        .formula-editor-input {
+          flex: 1 1 auto;
+          min-height: 0;
+          min-width: 0;
+
+          .cm-editor {
+            border: 1px solid vars.$charcoal-light-2;
+            border-radius: 2px;
+            height: 100%;
+            width: 100%;
+
+            &.cm-focused {
+              @include vars.focus-outline;
+            }
+          }
+        }
+
+        // Sizing the formula field sizes the modal, so this is the modal's only resize grip.
+        .formula-editor-resize-corner {
+          align-items: center;
+          bottom: 1px;
+          color: vars.$charcoal-light-1;
+          cursor: se-resize;
+          display: flex;
+          height: 14px;
+          justify-content: center;
+          position: absolute;
+          right: 1px;
+          width: 14px;
+
+          svg {
+            height: 12px;
+            width: 12px;
+          }
+          &:hover {
+            color: vars.$charcoal-dark-1;
+          }
+        }
+      }
+    }
+  }
+
+  .formula-insert-buttons-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 20px;
+    margin-top: 10px;
+    // never give up height to the formula editor above; the buttons are the
+    // first thing clipped when the body overflows
+    flex-shrink: 0;
+
+    .formula-insert-button-wrapper {
+      position: relative;
+    }
+
+    .formula-editor-button {
+      @include formula-button;
+      background: $formula-button-face;
+      padding: 0;
+
+      .formula-editor-button-label {
+        padding: 0 8px 0 10px;
+      }
+      // the caret sits in its own segment, per the spec's select-style control
+      .formula-editor-button-caret {
+        align-items: center;
+        border-left: 1px solid lightgray;
+        display: flex;
+        font-size: 10px;
+        height: 100%;
+        justify-content: center;
+        width: 24px;
+      }
+
+      &:hover {
+        background: $formula-button-face-hover;
+      }
+      &:active, &.menu-open {
+        background: $formula-button-face-active;
+      }
+    }
+  }
+}
+
+.codap-modal-content .chakra-modal__footer.formula-modal-footer {
+  cursor: default;
+  gap: 10px;
+  padding: 10px $formula-side-padding 15px;
+
+  .formula-modal-footer-button {
+    @include formula-button;
+    background: white;
+    padding: 0 12px;
+
+    &:hover {
+      background: $formula-button-face-hover;
+    }
+    &:active {
+      background: $formula-button-face-active;
+    }
+
+    &.apply-button {
+      background: $formula-button-default-face;
+
+      &:hover {
+        background: $formula-button-default-hover;
+      }
+      &:active {
+        background: $formula-button-default-active;
+      }
+    }
   }
 }

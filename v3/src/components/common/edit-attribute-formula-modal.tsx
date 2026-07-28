@@ -9,6 +9,7 @@ import { getMetadataFromDataSet, getSharedDataSets } from "../../models/shared/s
 import { uiState } from "../../models/ui-state"
 import { t } from "../../utilities/translation/translate"
 import { editFormulaNotification } from "./edit-formula-notifications"
+import { stripTrailingEllipsis } from "../../utilities/translation/label-utils"
 import { EditFormulaModal } from "./edit-formula-modal"
 
 export const EditAttributeFormulaModal = observer(function EditAttributeFormulaModal() {
@@ -62,6 +63,7 @@ export const EditAttributeFormulaModal = observer(function EditAttributeFormulaM
         finalFocusRef={finalFocusRef}
         formulaPrompt={t("DG.AttrFormView.formulaPrompt")}
         isOpen={!!uiState.editFormulaAttributeId}
+        modalTitle={stripTrailingEllipsis(t("DG.TableController.headerMenuItems.editFormula"))}
         onClose={() => uiState.setEditFormulaAttributeId()}
         titleInput={attribute?.name}
         titleLabel={t("DG.AttrFormView.attrNamePrompt")}

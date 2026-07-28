@@ -20,8 +20,6 @@ import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { getGlobalValueManager } from "../../models/global/global-value-manager"
 import { FormulaEditorApi, useFormulaEditorContext } from "./formula-editor-context"
 
-import styles from './edit-formula-modal.scss'
-
 interface ICompletionOptions {
   attributes: boolean
   boundaries: boolean
@@ -38,7 +36,6 @@ const kAllOptions: ICompletionOptions = {
 interface IProps {
   // options default to true if not specified
   options?: Partial<ICompletionOptions>
-  editorHeight?: number
   isAutoCompleteMenuOpen: React.MutableRefObject<boolean>
 }
 
@@ -273,9 +270,7 @@ function cmExtensionsSetup() {
   return extensions.filter(Boolean)
 }
 
-export function FormulaEditor({
-  options: _options, editorHeight = +styles.editFormulaModalMinHeight, isAutoCompleteMenuOpen
-}: IProps) {
+export function FormulaEditor({ options: _options, isAutoCompleteMenuOpen }: IProps) {
   const dataSet = useDataSetContext()
   const jsonOptions = JSON.stringify(_options ?? {})
   const options = useMemo(() => JSON.parse(jsonOptions), [jsonOptions])
@@ -335,8 +330,10 @@ export function FormulaEditor({
 
   // .input-element indicates to CodapModal not to drag the modal from within the element
   const classes = "formula-editor-input input-element"
-  return <CodeMirror ref={cmRef} className={classes} data-testid="formula-editor-input" height="70px"
-                     basicSetup={false} extensions={extensions} style={{height: editorHeight}}
+  // The editor fills the space the modal's flex layout gives it, so that a taller header or a
+  // wrapped label cannot push it — or the controls below it — outside the modal body.
+  return <CodeMirror ref={cmRef} className={classes} data-testid="formula-editor-input" height="100%"
+                     basicSetup={false} extensions={extensions}
                      onCreateEditor={handleCreateEditor}
                      value={formula} onChange={handleFormulaChange} />
 }

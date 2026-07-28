@@ -4,6 +4,7 @@ import { isAlive } from "mobx-state-tree"
 import { useMemo } from "react"
 import { useDataSetMetadata } from "../../hooks/use-data-set-metadata"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { useInspectorFormulaTitle } from "../../hooks/use-inspector-formula-string"
 import { hideAttributeNotification } from "../../models/data/data-set-notifications"
 import { addSetAsideCases, restoreSetAsideCases } from "../../models/data/data-set-utils"
 import { t } from "../../utilities/translation/translate"
@@ -90,6 +91,8 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
     }
   ], [data, hiddenAttributeCount, hiddenAttributes, itemCount, metadata, onOpen, selectionCount, setAsideCount])
 
+  const modalTitle = useInspectorFormulaTitle(data?.filterFormula?.display)
+
   if (data && !isAlive(data)) return null
 
   return (
@@ -100,6 +103,7 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
         <EditFormulaModal
           applyFormula={data.setFilterFormula}
           isOpen={isOpen}
+          modalTitle={modalTitle}
           onClose={onClose}
           titleLabel={t("V3.hideShowMenu.filterFormulaPrompt")}
           value={data.filterFormula?.display}

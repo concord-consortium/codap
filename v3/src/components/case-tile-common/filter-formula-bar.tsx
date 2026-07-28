@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useDisclosure } from "@chakra-ui/react"
 import { t } from "../../utilities/translation/translate"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { useInspectorFormulaTitle } from "../../hooks/use-inspector-formula-string"
 import { EditFormulaModal } from "../common/edit-formula-modal"
 
 import "./filter-formula-bar.scss"
@@ -30,6 +31,9 @@ export const FilterFormulaBar = () => {
     onClose()
   }
 
+  // computed before the early return so the hook is called unconditionally
+  const modalTitle = useInspectorFormulaTitle(data?.filterFormula?.display)
+
   if (!data) return null
   const filterFormula = data.filterFormula?.display
 
@@ -47,6 +51,7 @@ export const FilterFormulaBar = () => {
         <EditFormulaModal
           applyFormula={handleSubmitEditFormula}
           isOpen={isOpen}
+          modalTitle={modalTitle}
           onClose={handleCloseModal}
           titleLabel={t("V3.hideShowMenu.filterFormulaPrompt")}
           value={filterFormula}
