@@ -242,6 +242,7 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, render
             applyFormula={handleEditExpressionClose}
             formulaPrompt={t("DG.BarChartFunction.formulaPrompt")}
             isOpen={barChartModel.formulaEditorIsOpen}
+            modalTitle={t("DG.BarChartFunction.namePrompt")}
             onClose={handleCloseModal}
             titleLabel={t("DG.BarChartFunction.namePrompt")}
             value={barChartModel.formula?.display}

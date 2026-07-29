@@ -1,5 +1,5 @@
 import React from "react"
-import { render, screen, within } from "@testing-library/react"
+import { render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { tileNotification } from "../../../../models/tiles/tile-notifications"
 import { DisplayConfigPalette } from "./display-config-palette"
@@ -208,9 +208,21 @@ describe("DisplayConfigPalette", () => {
         <DisplayConfigPalette tile={tile} setShowPalette={mockSetShowPalette} />
       )
 
-      const binWidthInput = within(screen.getByTestId("graph-bin-width-setting")).getByRole("textbox")
-      await user.clear(binWidthInput)
-      await user.type(binWidthInput, "20{Enter}")
+      const binWidthInput =
+        within(screen.getByTestId("graph-bin-width-setting")).getByRole<HTMLInputElement>("textbox")
+      // On mount the palette focuses this field and selects its text, two animation frames later.
+      // Typing before that lands lets the select() swallow what was typed, leaving only the last
+      // character. Wait for the selection, then type over it instead of clearing first.
+      await waitFor(() => {
+        expect(binWidthInput).toHaveFocus()
+        expect(binWidthInput.selectionStart).toBe(0)
+        expect(binWidthInput.selectionEnd).toBe(binWidthInput.value.length)
+      })
+      // type() clicks first, which collapses that selection, so state the replacement explicitly
+      await user.type(binWidthInput, "20{Enter}", {
+        initialSelectionStart: 0,
+        initialSelectionEnd: binWidthInput.value.length
+      })
 
       expect(mockLogMessageWithReplacement).toHaveBeenCalledWith(
         "change %@ from %@ to %@",

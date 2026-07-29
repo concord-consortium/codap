@@ -13,7 +13,7 @@ import {
 } from "../../graph-notifications"
 import { EditFormulaModal } from "../../../common/edit-formula-modal"
 import { DataSetContext } from "../../../../hooks/use-data-set-context"
-import { useInspectorFormulaString } from "../../../../hooks/use-inspector-formula-string"
+import { useInspectorFormulaString, useInspectorFormulaTitle } from "../../../../hooks/use-inspector-formula-string"
 import { InspectorMenuContent, useInspectorMenuOpen } from "../../../inspector-panel"
 
 interface IProps {
@@ -143,6 +143,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
       : t("DG.DataDisplayMenu.enableMeasuresForSelection"),
     displayOnlySelectedIsDisabled = dataConfig?.displayOnlySelectedCases
     const addOrEditFormulaString = useInspectorFormulaString(dataConfig?.filterFormula?.display)
+    const modalTitle = useInspectorFormulaTitle(dataConfig?.filterFormula?.display)
 
   return (
     <>
@@ -177,6 +178,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
           <EditFormulaModal
             applyFormula={applyFilterFormula}
             isOpen={isOpen}
+            modalTitle={modalTitle}
             onClose={handleEditFormulaClose}
             titleLabel={t("V3.hideShowMenu.filterFormulaPrompt")}
             value={dataConfig.filterFormula?.display} />

@@ -75,6 +75,7 @@ export const PlottedFunctionAdornmentBanner = observer(function PlottedFunctionA
           applyFormula={handleEditExpressionClose}
           formulaPrompt={`${yAttrName} =`}
           isOpen={isOpen}
+          modalTitle={t("DG.PlottedFunction.namePrompt")}
           onClose={handleCloseModal}
           titleLabel={t("DG.PlottedFunction.namePrompt")}
           value={expression}

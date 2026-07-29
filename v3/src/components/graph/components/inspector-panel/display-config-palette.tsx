@@ -267,7 +267,13 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
   useEffect(() => {
     if (plotIsBinned) {
       // Use requestAnimationFrame to wait for the bin settings to render,
-      // then a second frame to ensure focus doesn't reset the selection
+      // then a second frame to ensure focus doesn't reset the selection.
+      //
+      // This races anything typed before the second frame lands: select() then covers those
+      // characters and the next keystroke replaces them, so the field keeps only what was typed
+      // last. Someone who clicks into the field and types immediately can lose input this way,
+      // and a test must wait for the selection before typing. Deriving the selection from a
+      // rendered/ready signal rather than a frame count would remove the race.
       requestAnimationFrame(() => {
         binWidthInputRef.current?.focus()
         requestAnimationFrame(() => {

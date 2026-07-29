@@ -70,6 +70,7 @@ export const PlottedValueAdornmentBanner = observer(function PlottedValueAdornme
           applyFormula={handleEditExpressionClose}
           formulaPrompt={t("DG.PlottedValue.formulaPrompt")}
           isOpen={isOpen}
+          modalTitle={t("DG.PlottedValue.namePrompt")}
           onClose={handleCloseModal}
           titleLabel={t("DG.PlottedValue.namePrompt")}
           value={expression}

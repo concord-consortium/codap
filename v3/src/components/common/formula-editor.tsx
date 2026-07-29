@@ -20,8 +20,6 @@ import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { getGlobalValueManager } from "../../models/global/global-value-manager"
 import { FormulaEditorApi, useFormulaEditorContext } from "./formula-editor-context"
 
-import styles from './edit-formula-modal.scss'
-
 interface ICompletionOptions {
   attributes: boolean
   boundaries: boolean
@@ -38,8 +36,10 @@ const kAllOptions: ICompletionOptions = {
 interface IProps {
   // options default to true if not specified
   options?: Partial<ICompletionOptions>
-  editorHeight?: number
   isAutoCompleteMenuOpen: React.MutableRefObject<boolean>
+  // id of the element naming the editor. CodeMirror's editable region is a contenteditable div,
+  // which a wrapping <label> cannot name, so the association is made here instead.
+  labelId?: string
 }
 
 /*
@@ -242,12 +242,13 @@ function cmMoveFocus(view: EditorView, forward: boolean): boolean {
 /*
  * editor configuration
  */
-function cmExtensionsSetup() {
+function cmExtensionsSetup(labelId?: string) {
   let keymaps: KeyBinding[] = []
   keymaps = keymaps.concat(closeBracketsKeymap)
   keymaps = keymaps.concat(defaultKeymap)
   keymaps = keymaps.concat(completionKeymap)
   const extensions: Extension[] = [
+    ...(labelId ? [EditorView.contentAttributes.of({ "aria-labelledby": labelId })] : []),
     cmDataSetState,
     cmOptionsState,
     drawSelection(),
@@ -273,14 +274,12 @@ function cmExtensionsSetup() {
   return extensions.filter(Boolean)
 }
 
-export function FormulaEditor({
-  options: _options, editorHeight = +styles.editFormulaModalMinHeight, isAutoCompleteMenuOpen
-}: IProps) {
+export function FormulaEditor({ options: _options, isAutoCompleteMenuOpen, labelId }: IProps) {
   const dataSet = useDataSetContext()
   const jsonOptions = JSON.stringify(_options ?? {})
   const options = useMemo(() => JSON.parse(jsonOptions), [jsonOptions])
   const cmRef = useRef<ReactCodeMirrorRef>(null)
-  const extensions = useMemo(() => cmExtensionsSetup(), [])
+  const extensions = useMemo(() => cmExtensionsSetup(labelId), [labelId])
   const { formula, setFormula, setEditorApi } = useFormulaEditorContext()
 
   useEffect(() => {
@@ -335,8 +334,10 @@ export function FormulaEditor({
 
   // .input-element indicates to CodapModal not to drag the modal from within the element
   const classes = "formula-editor-input input-element"
-  return <CodeMirror ref={cmRef} className={classes} data-testid="formula-editor-input" height="70px"
-                     basicSetup={false} extensions={extensions} style={{height: editorHeight}}
+  // The editor fills the space the modal's flex layout gives it, so that a taller header or a
+  // wrapped label cannot push it — or the controls below it — outside the modal body.
+  return <CodeMirror ref={cmRef} className={classes} data-testid="formula-editor-input" height="100%"
+                     basicSetup={false} extensions={extensions}
                      onCreateEditor={handleCreateEditor}
                      value={formula} onChange={handleFormulaChange} />
 }

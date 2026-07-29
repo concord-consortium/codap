@@ -3,10 +3,10 @@ import { Menu, MenuItem } from "react-aria-components"
 
 import { functionCategoryInfoArray, FunctionInfo } from "../../lib/functions"
 import { useFormulaEditorContext } from "./formula-editor-context"
+import { useFormulaMenuPlacement } from "./use-formula-menu-placement"
 
 import "./formula-insert-menus.scss"
 
-const kMenuGap = 3
 const kMaxMenuHeight = 380  // matches max-height in formula-insert-menus.scss
 
 // Focus a menu item by data-name, or fall back to the first menu item
@@ -27,31 +27,12 @@ export const InsertFunctionMenu = ({ buttonRef, onClose }: IProps) => {
   const [functionMenuView, setFunctionMenuView] = useState<"category" | "list" | "info">("category")
   const [selectedCategory, setSelectedCategory] = useState("")
   const [selectedFunction, setSelectedFunction] = useState("")
-  const [menuPosition, setMenuPosition] = useState<React.CSSProperties>({})
   const containerRef = useRef<HTMLDivElement>(null)
   // Track last-focused keys for restoring focus on back navigation
   const lastFocusedCategoryRef = useRef("")
   const lastFocusedFunctionRef = useRef("")
 
-  const getFunctionMenuPosition = useCallback((): React.CSSProperties => {
-    const buttonEl = buttonRef.current
-
-    if (buttonEl) {
-      const buttonRect = buttonEl.getBoundingClientRect()
-      // Calculate available space above and below the button to determine where to position the menu
-      const spaceBelow = window.innerHeight - buttonRect.bottom
-      const spaceAbove = buttonRect.top
-      if (spaceBelow < kMaxMenuHeight && spaceAbove >= kMaxMenuHeight) {
-        return { bottom: buttonRect.height + kMenuGap }
-      }
-      return { top: buttonRect.height + kMenuGap }
-    }
-    return {}
-  }, [buttonRef])
-
-  useEffect(() => {
-    setMenuPosition(getFunctionMenuPosition())
-  }, [getFunctionMenuPosition])
+  const menuPosition = useFormulaMenuPlacement(buttonRef, containerRef, kMaxMenuHeight)
 
   // Focus management when views change
   useEffect(() => {

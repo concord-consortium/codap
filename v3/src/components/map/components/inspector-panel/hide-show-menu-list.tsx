@@ -3,7 +3,7 @@ import {observer} from "mobx-react-lite"
 import {isAlive} from "mobx-state-tree"
 import { MenuItem } from "react-aria-components"
 import { DataSetContext } from "../../../../hooks/use-data-set-context"
-import { useInspectorFormulaString } from "../../../../hooks/use-inspector-formula-string"
+import { useInspectorFormulaString, useInspectorFormulaTitle } from "../../../../hooks/use-inspector-formula-string"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 import {ITileContentModel} from "../../../../models/tiles/tile-content"
 import {ITileModel} from "../../../../models/tiles/tile-model"
@@ -45,6 +45,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
                               ? t("DG.DataDisplayMenu.hideUnselectedSing")
                               : t("DG.DataDisplayMenu.hideUnselectedPlural")
   const addOrEditFormulaString = useInspectorFormulaString(dataConfig?.filterFormula?.display)
+  const modalTitle = useInspectorFormulaTitle(dataConfig?.filterFormula?.display)
 
   const hideSelectedCases = () => {
     mapModel?.applyModelChange(
@@ -116,6 +117,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
           <EditFormulaModal
             applyFormula={applyFilterFormula}
             isOpen={isOpen}
+            modalTitle={modalTitle}
             onClose={onClose}
             titleLabel={t("V3.hideShowMenu.filterFormulaPrompt")}
             value={dataConfig.filterFormula?.display} />

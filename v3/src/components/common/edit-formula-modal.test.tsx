@@ -20,6 +20,7 @@ jest.mock("./formula-editor", () => ({
 type ModalProps = ComponentProps<typeof EditFormulaModal>
 
 const baseProps: Omit<ModalProps, "applyFormula"> = {
+  modalTitle: "Edit Formula",
   titleLabel: "Attribute name",
   onClose: () => {},
   value: "",
@@ -101,9 +102,121 @@ describe("EditFormulaModal", () => {
     expect(screen.getByTestId("attr-name-input")).not.toBeDisabled()
   })
 
-  it("disables the title input when no titleInput prop is provided (e.g. filter formula)", () => {
+  it("omits the title row entirely when no titleInput prop is provided (e.g. filter formula)", () => {
     setup({ titleInput: undefined, titleLabel: "Filter formula" })
-    expect(screen.getByTestId("attr-name-input")).toBeDisabled()
+    expect(screen.queryByTestId("attr-name-input")).not.toBeInTheDocument()
+  })
+
+  it("adds the title row when titleInput arrives after the first render", () => {
+    // Callers derive titleInput from a model that may still be resolving, so the first render
+    // can legitimately have no title. Anything derived from its presence — including the modal's
+    // default height — has to follow when it shows up.
+    const { props, rerender } = setup({ titleInput: undefined })
+    expect(screen.queryByTestId("attr-name-input")).not.toBeInTheDocument()
+
+    rerender(<EditFormulaModal {...props} applyFormula={jest.fn()} titleInput="Design" />)
+    expect(screen.getByTestId("attr-name-input")).toHaveValue("Design")
+  })
+
+  it("marks the resize grip so CodapModal does not also drag the modal", () => {
+    // CodapModal's drag handler skips pointers inside `.component-resize-handle`. Without the
+    // class the modal drags while it resizes, moving the corner at twice the pointer's speed.
+    setup()
+    expect(screen.getByTestId("formula-editor-resize-corner")).toHaveClass("component-resize-handle")
+  })
+
+  it("closes the Insert Value menu when its button is clicked again", async () => {
+    const { user } = setup()
+    const button = screen.getByTestId("formula-insert-value-button")
+
+    await user.click(button)
+    expect(screen.getByTestId("formula-value-list")).toBeInTheDocument()
+
+    await user.click(button)
+    expect(screen.queryByTestId("formula-value-list")).not.toBeInTheDocument()
+  })
+
+  it("closes the Insert Function menu when its button is clicked again", async () => {
+    const { user } = setup()
+    const button = screen.getByTestId("formula-insert-function-button")
+
+    await user.click(button)
+    expect(screen.getByTestId("formula-function-category-list")).toBeInTheDocument()
+
+    await user.click(button)
+    expect(screen.queryByTestId("formula-function-category-list")).not.toBeInTheDocument()
+  })
+
+  it("swaps menus when the other insert button is clicked", async () => {
+    const { user } = setup()
+
+    await user.click(screen.getByTestId("formula-insert-value-button"))
+    expect(screen.getByTestId("formula-value-list")).toBeInTheDocument()
+
+    await user.click(screen.getByTestId("formula-insert-function-button"))
+    expect(screen.queryByTestId("formula-value-list")).not.toBeInTheDocument()
+    expect(screen.getByTestId("formula-function-category-list")).toBeInTheDocument()
+  })
+
+  it("strips the trailing colon from field labels", () => {
+    setup({ titleLabel: "Attribute Name:", formulaPrompt: "Formula:" })
+    expect(screen.getByText("Attribute Name")).toBeInTheDocument()
+    expect(screen.getByText("Formula")).toBeInTheDocument()
+  })
+
+  it("shows the modal title in the header", () => {
+    setup({ modalTitle: "Add Filter Formula" })
+    expect(screen.getByTestId("formula-modal-header")).toHaveTextContent("Add Filter Formula")
+  })
+
+  it("names the dialog with the title alone", () => {
+    // Chakra points aria-labelledby at the header, and the accessible name is computed from that
+    // element's whole subtree, so the close button must stay outside it.
+    setup({ modalTitle: "Add Filter Formula" })
+    const header = screen.getByTestId("formula-modal-header")
+    expect(header).toHaveTextContent("Add Filter Formula")
+    expect(header).not.toContainElement(screen.getByTestId("formula-modal-close-button"))
+    expect(screen.getByRole("dialog", { name: "Add Filter Formula" })).toBeInTheDocument()
+  })
+
+  it("gives the attribute input a single accessible name, from its label", () => {
+    setup({ titleLabel: "Attribute Name:" })
+    expect(screen.getByRole("textbox", { name: "Attribute Name" })).toHaveAttribute(
+      "data-testid", "attr-name-input"
+    )
+  })
+
+  it("empties the formula when Clear is pressed", async () => {
+    const { user, applyFormula } = setup({ value: "Height * 2" })
+
+    await user.click(screen.getByRole("button", { name: "Clear" }))
+    await user.click(screen.getByRole("button", { name: "Apply" }))
+
+    expect(applyFormula).toHaveBeenLastCalledWith("", "A")
+  })
+
+  it("does not close the modal or apply the formula when Clear is pressed", async () => {
+    const onClose = jest.fn()
+    const { user, applyFormula } = setup({ value: "Height * 2", onClose })
+
+    await user.click(screen.getByRole("button", { name: "Clear" }))
+
+    expect(onClose).not.toHaveBeenCalled()
+    expect(applyFormula).not.toHaveBeenCalled()
+  })
+
+  it("leaves the title untouched when Clear is pressed", async () => {
+    const { user, applyFormula } = setup({ value: "Height * 2" })
+
+    const input = await screen.findByDisplayValue("A")
+    await user.clear(input)
+    await user.type(input, "renamed")
+
+    await user.click(screen.getByRole("button", { name: "Clear" }))
+    await user.click(screen.getByRole("button", { name: "Apply" }))
+
+    // Clear applies to the formula only; an in-session name edit survives it
+    expect(applyFormula).toHaveBeenLastCalledWith("", "renamed")
   })
 
   it("passes the in-session edited attribute name (trimmed) to applyFormula", async () => {
