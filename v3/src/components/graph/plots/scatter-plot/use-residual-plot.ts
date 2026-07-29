@@ -1,10 +1,11 @@
-import { format, ScaleLinear, select } from "d3"
+import { active, format, ScaleLinear, select } from "d3"
 import { tip as d3tip } from "d3-v6-tip"
 import { untracked } from "mobx"
 import { useCallback, useEffect, useRef } from "react"
 import { IDataSet } from "../../../../models/data/data-set"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { t } from "../../../../utilities/translation/translate"
+import { transitionDuration } from "../../../data-display/data-display-types"
 import { handleClickOnCase } from "../../../data-display/data-display-utils"
 import { isNumericAxisModel, NumericAxisModel } from "../../../axis/models/numeric-axis-models"
 import { IGraphContentModel } from "../../models/graph-content-model"
@@ -30,6 +31,10 @@ export function useResidualPlot(props: IUseResidualPlot) {
   const { graphModel, dataConfiguration, dataset, layout, legendAttrID } = props
   const adornmentsStore = graphModel.adornmentsStore
   const residualPointsRef = useRef<SVGGElement>(null)
+  // Attribute IDs at the last active render. Used by the syncResidualPlot autorun to detect an x/y
+  // attribute change since its previous fire so renderResidualPoints can transition cx/cy instead
+  // of snapping. Reset to null on teardown so re-activation doesn't trigger a spurious animation.
+  const prevRenderedAttrIDsRef = useRef<{ x?: string, y?: string } | null>(null)
 
   // Hover tooltip for residual points. Matches the "graph-d3-tip" styling used by other adornment
   // hovers so the tip visually reads like the main plot's data tips. The `no-svg-export` class
@@ -69,12 +74,32 @@ export function useResidualPlot(props: IUseResidualPlot) {
   // join, no residual/predictor recompute — a selection change (via refreshPointSelection) updates
   // styling without re-running the residual pipeline.
   // Compute the style once per circle (styleFor does selection/legend lookups) rather than per attr.
+  //
+  // Radius handling: circles that come in at r=0 (enter selection in renderResidualPoints, marking
+  // "newly-appeared point") animate up to their assigned radius via a named "radius" transition
+  // that survives the "cxcy" interrupt in the snap path of renderResidualPoints. Existing circles
+  // snap. If a "radius" transition is in flight (typical when a debounced piggyback re-runs
+  // applyResidualStyles right after the enter, or when the user drags a point within ~1s of
+  // showing the residual plot), leave r alone — snapping via .attr would flash the point at its
+  // full radius before the fade-in resumes. We can't redirect the transition target either;
+  // once the transition is past its "starting" phase, .attr on it throws "too late; already
+  // running", and the point-radius-changed-mid-fade case (which the redirect would handle) is
+  // rare enough that finishing at the old target is acceptable — the next applyResidualStyles
+  // after the fade-in completes will snap to the current radius.
   const applyResidualStyles = useCallback((g: SVGGElement) => {
     select(g).selectAll<SVGCircleElement, IResidualPoint>("circle")
       .each(function (d) {
         const style = styleFor(d.caseID)
-        select(this)
-          .attr("r", style.radius)
+        const sel = select(this)
+        if (!active(this, "radius")) {
+          const currentR = +sel.attr("r")
+          if (currentR === 0 && style.radius > 0) {
+            sel.transition("radius").duration(transitionDuration).attr("r", style.radius)
+          } else {
+            sel.attr("r", style.radius)
+          }
+        }
+        sel
           .attr("fill", style.fill)
           .attr("stroke", style.stroke)
           .attr("stroke-width", style.strokeWidth)
@@ -93,7 +118,17 @@ export function useResidualPlot(props: IUseResidualPlot) {
   // styling is applied at the end under untracked so that the syncResidualPlot autorun (which calls
   // this) does not subscribe to the selection set — otherwise every selection change would re-fire
   // the autorun and recompute the predictor/residuals purely to update halos.
-  const renderResidualPoints = useCallback((residuals: IResidualPoint[]) => {
+  //
+  // animateCxCy is set by callers who know the context. The autorun sets it iff an x/y attribute
+  // just changed; the piggyback from scatter-plot passes isAnimating() so refreshes during the
+  // main plot's animation window animate along. All other paths (drag, movable-line drag,
+  // mount-after-commit, etc.) leave it false and get an immediate snap. Snap uses
+  // .interrupt("cxcy") so a previous cx/cy transition (e.g., an attribute change still in flight
+  // when the user starts dragging a line) is killed rather than continuing to fight the snap on
+  // every tick. The name is scoped so the enter-circle "radius" fade-in survives — otherwise the
+  // debounced piggyback that follows a case-add would cancel the r=0→full transition and cause a
+  // visible flash of the new point at full radius.
+  const renderResidualPoints = useCallback((residuals: IResidualPoint[], animateCxCy = false) => {
     const g = residualPointsRef.current
     if (!g) return
     const { getXCoord } = scatterPlotFuncs(layout, dataConfiguration)
@@ -119,12 +154,17 @@ export function useResidualPlot(props: IUseResidualPlot) {
     const residualTip = residualDataTipRef.current
     // Install the tip on the parent SVG so absolute positioning works.
     select(g).call(residualTip)
-    select(g).selectAll<SVGCircleElement, IResidualPoint>("circle")
+    const selection = select(g).selectAll<SVGCircleElement, IResidualPoint>("circle")
       .data(residuals, d => d.caseID)
-      .join("circle")
+    selection.exit().remove()
+    // Enter: new circles at their final cx/cy with r=0. applyResidualStyles below transitions r up
+    // to the assigned radius (see currentR===0 branch there), so newly-appeared residual points
+    // fade in from a dot the way newly-appeared main-plot points do.
+    selection.enter().append("circle")
       .attr("data-testid", d => `residual-point-${d.caseID}`)
       .attr("cx", d => getXCoord(d.caseID))
       .attr("cy", d => plotHeight + lowerScale(d.residual))
+      .attr("r", 0)
       .style("cursor", "pointer")
       .on("mouseover", function(event, d) { residualTip.show(tipTextFor(d), this) })
       .on("mouseout", () => residualTip.hide())
@@ -135,21 +175,34 @@ export function useResidualPlot(props: IUseResidualPlot) {
         event.stopPropagation()
         if (dataset) handleClickOnCase(event, d.caseID, dataset)
       })
-    // Apply current selection styling to the (possibly new) circles without subscribing to selection.
+    // Update-only cx/cy: animate when the caller asks for it; snap otherwise. New circles already
+    // have their final positions from the enter block, so excluding them here avoids a spurious
+    // transition-from-undefined.
+    if (animateCxCy) {
+      selection.transition("cxcy").duration(transitionDuration)
+        .attr("cx", d => getXCoord(d.caseID))
+        .attr("cy", d => plotHeight + lowerScale(d.residual))
+    } else {
+      selection.interrupt("cxcy")
+        .attr("cx", d => getXCoord(d.caseID))
+        .attr("cy", d => plotHeight + lowerScale(d.residual))
+    }
+    // Apply current selection styling to enter+update circles without subscribing to selection.
+    // Enter circles (r=0) get their r transitioned up here.
     untracked(() => applyResidualStyles(g))
   }, [layout, dataConfiguration, dataset, applyResidualStyles])
 
   // Recompute and repaint the residual points if the Residual Plot is active and all applicability
-  // constraints hold. Single entry-point used by every code path that needs to refresh the residual
-  // rendering — the sync autorun, the post-mount effect, the upper-plot's refreshPointPositions
-  // (drag caching), and refreshPointSelection (selection halo sync). No-op when inactive.
-  const renderResidualsIfActive = useCallback(() => {
+  // constraints hold. Used by the post-mount effect and by scatter-plot's refreshPointPositions
+  // piggyback (drag frames + attribute-change refreshes). Callers pass animateCxCy=true to have
+  // cx/cy transition; the default snaps. No-op when inactive.
+  const renderResidualsIfActive = useCallback((animateCxCy = false) => {
     if (!adornmentsStore.showResidualPlot) return
     if (!residualPlotIsApplicable(adornmentsStore, dataConfiguration)) return
     if (!dataConfiguration) return
     const predictor = getPredictor(adornmentsStore, dataConfiguration)
     if (!predictor) return
-    renderResidualPoints(computeResiduals(dataConfiguration, predictor))
+    renderResidualPoints(computeResiduals(dataConfiguration, predictor), animateCxCy)
   }, [adornmentsStore, dataConfiguration, renderResidualPoints])
 
   // Sync the split-plot layout, lower y-axis registration, and residual point rendering with the
@@ -172,6 +225,9 @@ export function useResidualPlot(props: IUseResidualPlot) {
         if (layout.showLowerPlot) layout.setShowLowerPlot(false)
         if (graphModel.getAxis("leftLower")) graphModel.removeAxis("leftLower")
         if (residualPointsRef.current) select(residualPointsRef.current).selectAll("circle").remove()
+        // Forget the last-rendered attribute IDs so re-activation doesn't wrongly detect an
+        // attribute change and start an animation with no old points to animate from.
+        prevRenderedAttrIDsRef.current = null
       }
       const isActive = adornmentsStore.showResidualPlot && residualPlotIsApplicable(adornmentsStore, dataConfiguration)
       if (!isActive) {
@@ -215,7 +271,18 @@ export function useResidualPlot(props: IUseResidualPlot) {
       if (curMin !== minY || curMax !== maxY) {
         multiScale.setNumericDomain([minY, maxY])
       }
-      renderResidualPoints(residuals)
+      // Compare x/y attribute IDs against the last fire; when they've changed, ask
+      // renderResidualPoints to transition cx/cy so the residual points slide to their new
+      // positions alongside the main plot's animation. Any other trigger for this autorun
+      // (movable-line drag, LSRL change, category-set change, etc.) leaves attrsChanged false,
+      // giving an immediate snap — critical so a movable-line drag started within the main plot's
+      // 2s animation window doesn't get its residuals lagging 1s behind the line.
+      const xAttrID = dataConfiguration.attributeID("x")
+      const yAttrID = dataConfiguration.attributeID("y")
+      const prevAttrIDs = prevRenderedAttrIDsRef.current
+      const attrsChanged = !!prevAttrIDs && (prevAttrIDs.x !== xAttrID || prevAttrIDs.y !== yAttrID)
+      prevRenderedAttrIDsRef.current = { x: xAttrID, y: yAttrID }
+      renderResidualPoints(residuals, attrsChanged)
     }, { name: "ScatterPlot.syncResidualPlot" }, graphModel)
   }, [adornmentsStore, dataConfiguration, graphModel, layout, renderResidualPoints])
 

@@ -79,6 +79,14 @@ export const useSubAxis = ({
 
     renderSubAxis = useCallback(() => {
       const axisModel = axisProvider.getAxis?.(axisPlace)
+      // Silent skip when no axis is registered at this place — expected during the render
+      // window that follows removing an axis (e.g., a residual-plot toggle-off, or an undo of
+      // a residual-plot-show action): observable reads in reactions above still fire before
+      // React unmounts the SubAxis, and they call renderSubAxis with no axis to render.
+      // Warn only when we do have an axis reference that has gone defunct — that's a genuinely
+      // suspect condition worth surfacing. Matches the undefined/defunct split in
+      // installDomainSync below.
+      if (!axisModel) return
       if (!isAliveSafe(axisModel)) {
         console.warn("useSubAxis.renderSubAxis skipping rendering of defunct axis model:", axisPlace)
         return
@@ -86,7 +94,7 @@ export const useSubAxis = ({
       const multiScale = layout.getAxisMultiScale(axisPlace)
       if (!multiScale) return // no scale, no axis (But this shouldn't happen)
 
-      axisModel && axisProvider.getAxisHelper(axisModel.place, subAxisIndex)?.render()
+      axisProvider.getAxisHelper(axisModel.place, subAxisIndex)?.render()
     }, [axisPlace, axisProvider, layout, subAxisIndex]),
 
     onDragStart = useCallback((event: any) => {
