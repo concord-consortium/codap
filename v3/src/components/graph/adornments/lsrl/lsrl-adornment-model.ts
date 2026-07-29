@@ -158,6 +158,10 @@ export const LSRLAdornmentModel = AdornmentModel
     return caseValues
   },
   getLegendCategories(dataConfig: IGraphDataConfigurationModel) {
+    // A continuous (numeric or date) legend must produce a single LSRL over all cases; otherwise
+    // categoryArrayForAttrRole returns one entry per unique legend value, yielding one LSRL per case.
+    const legendType = dataConfig.attributeType("legend")
+    if (legendType && legendType !== "categorical") return [kMain]
     return dataConfig.categoryArrayForAttrRole("legend")
   },
   get lineDescriptions() {

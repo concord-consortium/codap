@@ -143,13 +143,15 @@ describe("LSRLAdornmentModel", () => {
     function createMockDataConfig(options: {
       cellKeys: Record<string, string>[],
       legendCategories: string[],
+      legendType?: "categorical" | "numeric" | "date",
       xAttrId?: string,
       yAttrId?: string
     }) {
-      const { cellKeys, legendCategories, xAttrId = "xAttr", yAttrId = "yAttr" } = options
+      const { cellKeys, legendCategories, legendType, xAttrId = "xAttr", yAttrId = "yAttr" } = options
       return {
         getAllCellKeys: () => cellKeys,
         categoryArrayForAttrRole: (role: string) => role === "legend" ? legendCategories : [],
+        attributeType: (role: string) => role === "legend" ? legendType : undefined,
         getCategoriesOptions: () => ({
           xAttrId,
           yAttrId,
@@ -299,6 +301,28 @@ describe("LSRLAdornmentModel", () => {
 
       expect(cat1Values).toEqual([{ x: 10, y: 100 }, { x: 30, y: 300 }])
       expect(cat2Values).toEqual([{ x: 20, y: 200 }, { x: 40, y: 400 }])
+    })
+
+    // CODAP-1480: dragging a numeric attribute into the middle of a scatterplot creates a
+    // continuous (color-gradient) legend. categoryArrayForAttrRole then returns one entry per
+    // unique numeric value, so without the fix the adornment would create one LSRL per case.
+    it("produces a single LSRL keyed by kMain when the legend is numeric", () => {
+      const lSRL = LSRLAdornmentModel.create()
+      const cellKey = { xAttr: "A" }
+      const instanceKey = lSRL.instanceKey(cellKey)
+
+      // Pretend the numeric legend has many unique values — the fix must ignore them.
+      const mockDataConfig = createMockDataConfig({
+        cellKeys: [cellKey],
+        legendCategories: ["1.1", "2.2", "3.3", "4.4", "5.5"],
+        legendType: "numeric"
+      })
+
+      lSRL.updateCategories({ dataConfig: mockDataConfig })
+
+      const linesInCell = lSRL.lines.get(instanceKey)
+      expect(linesInCell?.size).toEqual(1)
+      expect(linesInCell?.has(kMain)).toBe(true)
     })
 
     it("removes stale legend categories within a cell", () => {
