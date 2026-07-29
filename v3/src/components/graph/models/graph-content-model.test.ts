@@ -370,7 +370,8 @@ describe("GraphContentModel", () => {
   // V2 parity: the Squares of Residuals and Residual Plot booleans must not
   // linger checked-but-disabled. When the possibility of showing squares disappears (no
   // visible line/curve adornment), both flags are cleared; when the Residual Plot's stricter
-  // applicability lapses (e.g. legend attribute added), the Residual Plot flag is cleared.
+  // applicability lapses (e.g. the y attribute becomes non-numeric), the Residual Plot flag is
+  // cleared.
   describe("Squares of Residuals / Residual Plot reactive gates", () => {
     const createScatter = async (datasetName: string, extra: Record<string, any> = {}) => {
       const documentContent = appState.document.content!
@@ -457,9 +458,10 @@ describe("GraphContentModel", () => {
       diComponentHandler.delete!({ component: tile })
     })
 
-    // A legend attribute makes residualPlotIsApplicable false while leaving Movable Line
-    // visible — so the squares gate does not fire, but the residual plot gate should.
-    it("clears showResidualPlot when a legend attribute makes it inapplicable, but keeps Squares", async () => {
+    // With a single-line adornment (movable line, plotted function, or LSRL under a
+    // non-categorical legend), adding a legend does not disqualify the residual plot — only one
+    // residual set is being plotted. Squares survive too.
+    it("keeps showResidualPlot when a legend is added and only a movable line is active", async () => {
       (isInquirySpaceMode as jest.Mock).mockReturnValue(false)
       const { tile, content } = await createScatter("residualGateLegend")
       const store = content.adornmentsStore
@@ -468,15 +470,15 @@ describe("GraphContentModel", () => {
       store.setShowSquaresOfResiduals(true)
       store.setShowResidualPlot(true)
 
-      // Assign a legend attribute — residualPlotIsApplicable returns false, but a line
-      // is still visible so the squares possibility survives.
+      // Assign the (numeric) y attribute as the legend. Movable line is a single line regardless
+      // of the legend, so the residual plot's applicability holds.
       const dataConfig = content.graphPointLayerModel.dataConfiguration
       dataConfig.setAttribute("legend", { attributeID: dataConfig.attributeID("y") })
       await new Promise(resolve => setTimeout(resolve, 0))
 
       expect(store.isShowingAdornment(kMovableLineType)).toBe(true)
       expect(store.showSquaresOfResiduals).toBe(true)
-      expect(store.showResidualPlot).toBe(false)
+      expect(store.showResidualPlot).toBe(true)
 
       diComponentHandler.delete!({ component: tile })
     })

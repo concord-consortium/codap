@@ -8,6 +8,7 @@ import { kPlottedFunctionType } from "../../adornments/plotted-function/plotted-
 import { leastSquaresLinearRegression } from "../../utilities/graph-utils"
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
 import { Point } from "../../../data-display/data-display-types"
+import { isCategoricalAttributeType } from "../../../../models/data/attribute-types"
 import { isFiniteNumber } from "../../../../utilities/math-utils"
 import {
   defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeOpacity, defaultSelectedStrokeWidth,
@@ -32,12 +33,18 @@ export function getActiveLineKind(store: IAdornmentsBaseStore): ActiveLineKind |
 //   - Numeric attribute on left y-axis, exactly one y attribute (no y+)
 //   - No attribute on the right numeric (Y2) axis
 //   - No attribute on the top or right split axes (categorical splitters)
-//   - No legend attribute
 //   - Exactly one of {movable line, LSRL, plotted function} visible
+//   - Legend is allowed when exactly one line's residuals are being plotted: movable line and
+//     plotted function are always a single line; LSRL is single only when the legend isn't
+//     categorical (a categorical legend produces one LSRL per category). "Categorical" here uses
+//     isCategoricalAttributeType, which treats checkbox and color legends as categorical too —
+//     matching the rest of the graph code and preventing LSRL + checkbox/color from slipping
+//     through and producing multiple residual sets.
 export function residualPlotIsApplicable(
   store: IAdornmentsBaseStore, dataConfig?: IGraphDataConfigurationModel
 ): boolean {
-  if (getActiveLineKind(store) === null) return false
+  const kind = getActiveLineKind(store)
+  if (kind === null) return false
   if (!dataConfig) return false
   if (dataConfig.attributeType("x") !== "numeric") return false
   if (dataConfig.attributeType("y") !== "numeric") return false
@@ -45,7 +52,8 @@ export function residualPlotIsApplicable(
   if (dataConfig.attributeID("rightNumeric")) return false
   if (dataConfig.attributeID("topSplit")) return false
   if (dataConfig.attributeID("rightSplit")) return false
-  if (dataConfig.attributeID("legend")) return false
+  if (dataConfig.attributeID("legend") && kind === "lsrl" &&
+      isCategoricalAttributeType(dataConfig.attributeType("legend"))) return false
   return true
 }
 

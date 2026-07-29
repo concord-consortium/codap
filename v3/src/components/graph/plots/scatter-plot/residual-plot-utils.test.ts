@@ -36,14 +36,20 @@ interface IFakeConfigOptions {
   topSplit?: string
   rightSplit?: string
   legend?: string
+  legendType?: string
 }
 function fakeConfig(opts: IFakeConfigOptions = {}): IGraphDataConfigurationModel {
   const {
     xType = "numeric", yType = "numeric", yAttrCount = 1,
-    rightNumeric = "", topSplit = "", rightSplit = "", legend = ""
+    rightNumeric = "", topSplit = "", rightSplit = "", legend = "", legendType = ""
   } = opts
   return {
-    attributeType: (role: string) => role === "x" ? xType : role === "y" ? yType : "",
+    attributeType: (role: string) => {
+      if (role === "x") return xType
+      if (role === "y") return yType
+      if (role === "legend") return legendType
+      return ""
+    },
     yAttributeIDs: Array.from({length: yAttrCount}, (_, i) => `y${i}`),
     attributeID: (role: string) => {
       if (role === "rightNumeric") return rightNumeric
@@ -104,8 +110,45 @@ describe("residualPlotIsApplicable", () => {
   it("returns false when a rightSplit (right categorical) attribute is present", () => {
     expect(residualPlotIsApplicable(fakeStore({ml: true}), fakeConfig({rightSplit: "attr-right"}))).toBe(false)
   })
-  it("returns false when a legend attribute is present", () => {
-    expect(residualPlotIsApplicable(fakeStore({ml: true}), fakeConfig({legend: "attr-legend"}))).toBe(false)
+  // A legend no longer disables the residual plot outright — only when it would
+  // create more than one line's residuals (LSRL + categorical legend).
+  it("returns true with movable line + categorical legend (single line regardless of legend)", () => {
+    expect(residualPlotIsApplicable(
+      fakeStore({ml: true}), fakeConfig({legend: "attr-legend", legendType: "categorical"})
+    )).toBe(true)
+  })
+  it("returns true with plotted function + categorical legend (single line regardless of legend)", () => {
+    expect(residualPlotIsApplicable(
+      fakeStore({pf: true}), fakeConfig({legend: "attr-legend", legendType: "categorical"})
+    )).toBe(true)
+  })
+  it("returns true with LSRL + numeric legend (a continuous legend leaves a single LSRL)", () => {
+    expect(residualPlotIsApplicable(
+      fakeStore({lsrl: true}), fakeConfig({legend: "attr-legend", legendType: "numeric"})
+    )).toBe(true)
+  })
+  it("returns true with LSRL + date legend (a continuous legend leaves a single LSRL)", () => {
+    expect(residualPlotIsApplicable(
+      fakeStore({lsrl: true}), fakeConfig({legend: "attr-legend", legendType: "date"})
+    )).toBe(true)
+  })
+  it("returns false with LSRL + categorical legend (one LSRL per category = multiple residual sets)", () => {
+    expect(residualPlotIsApplicable(
+      fakeStore({lsrl: true}), fakeConfig({legend: "attr-legend", legendType: "categorical"})
+    )).toBe(false)
+  })
+  // checkbox and color are treated as categorical by isCategoricalAttributeType (see
+  // attribute-types.ts) — LSRL under either produces multiple LSRLs the same way, so residual
+  // plot must be blocked. Pinning here prevents a regression back to a bare === "categorical" check.
+  it("returns false with LSRL + checkbox legend (checkbox is treated as categorical)", () => {
+    expect(residualPlotIsApplicable(
+      fakeStore({lsrl: true}), fakeConfig({legend: "attr-legend", legendType: "checkbox"})
+    )).toBe(false)
+  })
+  it("returns false with LSRL + color legend (color is treated as categorical)", () => {
+    expect(residualPlotIsApplicable(
+      fakeStore({lsrl: true}), fakeConfig({legend: "attr-legend", legendType: "color"})
+    )).toBe(false)
   })
   it("returns false when two lines are active (even with all other constraints met)", () => {
     expect(residualPlotIsApplicable(fakeStore({ml: true, lsrl: true}), fakeConfig())).toBe(false)
