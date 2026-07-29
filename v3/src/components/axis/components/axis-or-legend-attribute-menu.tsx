@@ -248,10 +248,16 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
     setIsMenuOpen(true)
   }
 
-  function handleCloseMenu() {
+  // Chakra invokes this from its own event handlers (Escape, item selection, outside click),
+  // so the menu state stays in sync without updating during the Menu's render.
+  function resetMenuState() {
     setOpenCollectionId(null)
-    onCloseMenuRef.current?.()
     setIsMenuOpen(false)
+  }
+
+  function handleCloseMenu() {
+    onCloseMenuRef.current?.()
+    resetMenuState()
   }
 
   // Sync menu-open class with actual menu state, and clean up all visual state classes on close/unmount
@@ -396,11 +402,8 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
 
   return (
     <div className={clsx("axis-legend-attribute-menu", place)} ref={menuRef} title={description + clickLabel}>
-      <Menu placement="auto" onOpen={handleOpenMenu}>
+      <Menu placement="auto" onOpen={handleOpenMenu} onClose={resetMenuState}>
         {({ isOpen, onClose }) => {
-          if (isOpen !== isMenuOpen) {
-            setIsMenuOpen(isOpen)
-          }
           onCloseMenuRef.current = onClose
           return (
             <div className={`attribute-label-menu ${place}`}
