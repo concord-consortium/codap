@@ -8,6 +8,7 @@ import { kPlottedFunctionType } from "../../adornments/plotted-function/plotted-
 import { leastSquaresLinearRegression } from "../../utilities/graph-utils"
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
 import { Point } from "../../../data-display/data-display-types"
+import { isCategoricalAttributeType } from "../../../../models/data/attribute-types"
 import { isFiniteNumber } from "../../../../utilities/math-utils"
 import {
   defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeOpacity, defaultSelectedStrokeWidth,
@@ -35,7 +36,10 @@ export function getActiveLineKind(store: IAdornmentsBaseStore): ActiveLineKind |
 //   - Exactly one of {movable line, LSRL, plotted function} visible
 //   - Legend is allowed when exactly one line's residuals are being plotted: movable line and
 //     plotted function are always a single line; LSRL is single only when the legend isn't
-//     categorical (a categorical legend produces one LSRL per category).
+//     categorical (a categorical legend produces one LSRL per category). "Categorical" here uses
+//     isCategoricalAttributeType, which treats checkbox and color legends as categorical too —
+//     matching the rest of the graph code and preventing LSRL + checkbox/color from slipping
+//     through and producing multiple residual sets.
 export function residualPlotIsApplicable(
   store: IAdornmentsBaseStore, dataConfig?: IGraphDataConfigurationModel
 ): boolean {
@@ -49,7 +53,7 @@ export function residualPlotIsApplicable(
   if (dataConfig.attributeID("topSplit")) return false
   if (dataConfig.attributeID("rightSplit")) return false
   if (dataConfig.attributeID("legend") && kind === "lsrl" &&
-      dataConfig.attributeType("legend") === "categorical") return false
+      isCategoricalAttributeType(dataConfig.attributeType("legend"))) return false
   return true
 }
 

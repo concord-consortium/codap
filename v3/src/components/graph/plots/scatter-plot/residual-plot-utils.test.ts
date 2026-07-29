@@ -137,6 +137,19 @@ describe("residualPlotIsApplicable", () => {
       fakeStore({lsrl: true}), fakeConfig({legend: "attr-legend", legendType: "categorical"})
     )).toBe(false)
   })
+  // checkbox and color are treated as categorical by isCategoricalAttributeType (see
+  // attribute-types.ts) — LSRL under either produces multiple LSRLs the same way, so residual
+  // plot must be blocked. Pinning here prevents a regression back to a bare === "categorical" check.
+  it("returns false with LSRL + checkbox legend (checkbox is treated as categorical)", () => {
+    expect(residualPlotIsApplicable(
+      fakeStore({lsrl: true}), fakeConfig({legend: "attr-legend", legendType: "checkbox"})
+    )).toBe(false)
+  })
+  it("returns false with LSRL + color legend (color is treated as categorical)", () => {
+    expect(residualPlotIsApplicable(
+      fakeStore({lsrl: true}), fakeConfig({legend: "attr-legend", legendType: "color"})
+    )).toBe(false)
+  })
   it("returns false when two lines are active (even with all other constraints met)", () => {
     expect(residualPlotIsApplicable(fakeStore({ml: true, lsrl: true}), fakeConfig())).toBe(false)
   })
