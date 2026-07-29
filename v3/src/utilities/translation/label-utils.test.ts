@@ -32,7 +32,23 @@ describe("stripTrailingEllipsis", () => {
   })
 
   it("removes a single-character ellipsis", () => {
+    // e.g. the Japanese translation
     expect(stripTrailingEllipsis("Edit Formula…")).toBe("Edit Formula")
+    expect(stripTrailingEllipsis("式を編集する…")).toBe("式を編集する")
+  })
+
+  it("removes a two-dot ellipsis", () => {
+    // e.g. the Hebrew translation
+    expect(stripTrailingEllipsis("ערוך נוסחה..")).toBe("ערוך נוסחה")
+  })
+
+  it("removes an ellipsis followed by whitespace", () => {
+    // e.g. the Thai translation
+    expect(stripTrailingEllipsis("แก้ไขสูตร... ")).toBe("แก้ไขสูตร")
+  })
+
+  it("leaves a single trailing period alone", () => {
+    expect(stripTrailingEllipsis("Edit Formula.")).toBe("Edit Formula.")
   })
 
   it("removes trailing whitespace after the ellipsis", () => {

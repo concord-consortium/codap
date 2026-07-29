@@ -95,10 +95,14 @@ export const InsertValuesMenu = ({ buttonRef, onClose }: IProps) => {
     }
   }, [])
 
-  const isScrollable = scrollableContainerRef.current && scrollableContainerRef.current.scrollHeight > kMaxHeight
-  const canScrollUp = scrollableContainerRef.current && scrollableContainerRef.current.scrollTop > 0
-  const canScrollDown = scrollableContainerRef.current &&
-          (scrollableContainerRef.current.scrollHeight - scrollableContainerRef.current.scrollTop + 20 > kMaxHeight)
+  // Measured against the list's own box rather than the nominal maximum, since the placement hook
+  // caps the menu to the space available, which is often less. These read refs during render, so
+  // they depend on something else re-rendering: the placement hook settling, or a scroll.
+  const scrollEl = scrollableContainerRef.current
+  const isScrollable = !!scrollEl && scrollEl.scrollHeight > scrollEl.clientHeight
+  const canScrollUp = !!scrollEl && scrollEl.scrollTop > 0
+  // the -1 absorbs the fractional pixel a scrolled-to-bottom list can report
+  const canScrollDown = !!scrollEl && scrollEl.scrollTop + scrollEl.clientHeight < scrollEl.scrollHeight - 1
 
   return (
     <div ref={containerRef} className="formula-operand-list-container" data-testid="formula-value-list"

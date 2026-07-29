@@ -4,9 +4,12 @@
  * Menu items that open a dialog end with an ellipsis by convention ("Edit Formula..."), but the
  * dialog's own title bar shows the same text without it. Deriving the title from the menu string
  * keeps the two in sync and reuses the existing translation.
+ *
+ * Any run of two or more dots counts, since the translations are not consistent about it: Hebrew
+ * uses two, Japanese uses the single ellipsis character, and Thai adds a trailing space.
  */
 export function stripTrailingEllipsis(label: string) {
-  return label.replace(/(\.\.\.|…)\s*$/, "")
+  return label.replace(/\s*(\.{2,}|…)\s*$/, "")
 }
 
 /**

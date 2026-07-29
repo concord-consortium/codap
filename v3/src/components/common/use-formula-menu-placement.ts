@@ -41,7 +41,13 @@ export function useFormulaMenuPlacement(
     const observer = new ResizeObserver(place)
     observer.observe(menuEl)
     if (scrollRef?.current) observer.observe(scrollRef.current)
-    return () => observer.disconnect()
+    // Resizing the window changes the space available without resizing either observed element,
+    // so the window height the placement was computed against would otherwise go stale.
+    window.addEventListener("resize", place)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener("resize", place)
+    }
   }, [buttonRef, menuRef, maxHeight, scrollRef])
 
   return placement
