@@ -71,11 +71,10 @@ export const AttributeHeader = observer(function AttributeHeader({
   }
   const { attributes, listeners, setNodeRef: setDragNodeRef } = useDraggableAttribute(draggableOptions)
   const draggableProps = draggable ? { ...attributes, ...listeners } : {}
-  // TODO: we really should only enable the outside pointer down listener when the menu is open.
-  // Closing an already-closed menu is a no-op, so leaving it enabled is harmless but wasteful.
   useOutsidePointerDown({
     ref: menuListRef,
     handler: () => onCloseMenuRef.current?.(),
+    enabled: isMenuOpenState,
     info: {name: "AttributeHeader menuList", attributeId, attrName}
    })
 
