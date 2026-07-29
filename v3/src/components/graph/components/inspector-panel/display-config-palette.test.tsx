@@ -209,7 +209,7 @@ describe("DisplayConfigPalette", () => {
       )
 
       const binWidthInput =
-        within(screen.getByTestId("graph-bin-width-setting")).getByRole("textbox") as HTMLInputElement
+        within(screen.getByTestId("graph-bin-width-setting")).getByRole<HTMLInputElement>("textbox")
       // On mount the palette focuses this field and selects its text, two animation frames later.
       // Typing before that lands lets the select() swallow what was typed, leaving only the last
       // character. Wait for the selection, then type over it instead of clearing first.

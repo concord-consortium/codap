@@ -181,8 +181,6 @@ export const EditFormulaModal = observer(function EditFormulaModal({
     const startHeight = modalRect?.height ?? dimensions.height
     const startPosition = {x: e.pageX, y: e.pageY}
 
-    let resizingWidth = startWidth, resizingHeight = startHeight
-
     // Before the first resize the modal is still sized by its content, so that first drag is the
     // opportunity to record the content height.
     if (contentHeightRef.current == null && !userSize) {
@@ -194,9 +192,9 @@ export const EditFormulaModal = observer(function EditFormulaModal({
     const onPointerMove = (pointerMoveEvent: { pageX: number; pageY: number }) => {
       const xDelta = pointerMoveEvent.pageX - startPosition.x
       const yDelta = pointerMoveEvent.pageY - startPosition.y
-      resizingWidth = Math.max(startWidth + xDelta, widthFloor)
-      resizingHeight = Math.max(startHeight + yDelta, heightFloor)
-      setUserSize({width: Math.round(resizingWidth), height: Math.round(resizingHeight)})
+      const width = Math.max(startWidth + xDelta, widthFloor)
+      const height = Math.max(startHeight + yDelta, heightFloor)
+      setUserSize({width: Math.round(width), height: Math.round(height)})
     }
     const onPointerUp = () => {
       document.body.removeEventListener("pointermove", onPointerMove, { capture: true })

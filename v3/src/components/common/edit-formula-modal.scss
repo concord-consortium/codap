@@ -5,7 +5,6 @@ $edit-formula-modal-min-height: 280;
 // same, for callers that edit only a formula and so get no name row
 $edit-formula-modal-filter-min-height: 218;
 $edit-formula-modal-min-width: 450;
-$edit-formula-modal-min-width-px: #{$edit-formula-modal-min-width}px;
 
 // https://mattferderer.com/use-sass-variables-in-typescript-and-javascript
 :export {
@@ -14,19 +13,21 @@ $edit-formula-modal-min-width-px: #{$edit-formula-modal-min-width}px;
   editFormulaModalMinWidth: $edit-formula-modal-min-width;
 }
 
-$formula-header-face: #a5e3f6;
+// Named for what they are used for, and valued from the shared palette so they follow it.
+$formula-header-face: vars.$accent-light-2;
 // button faces, matching the Chakra `v3*` variants these buttons replaced
-$formula-button-face: #d3f4ff;
-$formula-button-face-hover: #bbefff;
-$formula-button-face-active: #a5e3f6;
-$formula-button-default-face: #bbefff;
-$formula-button-default-hover: #93d5e4;
-$formula-button-default-active: #72bfca;
+$formula-button-face: vars.$icon-fill-light;
+$formula-button-face-hover: vars.$accent-light-3;
+$formula-button-face-active: vars.$accent-light-2;
+$formula-button-default-face: vars.$accent-light-3;
+$formula-button-default-hover: vars.$teal-light3;
+$formula-button-default-active: vars.$codap-teal-light;
 
 $formula-control-height: 30px;
 $formula-side-padding: 15px;
-$formula-label-color: #222; // the `labelText` color the Chakra button variants used
-// 4.02:1 against the #f0f0f0 modal body, so control boundaries meet WCAG 1.4.11's 3:1
+$formula-label-color: vars.$default-font-color;
+// No palette equivalent: chosen for contrast, 4.02:1 against the #f0f0f0 modal body, so that
+// control boundaries meet WCAG 1.4.11's 3:1.
 $formula-control-border: #767676;
 
 @mixin formula-button {
