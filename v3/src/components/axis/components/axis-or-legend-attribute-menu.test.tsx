@@ -125,20 +125,22 @@ describe("AxisOrLegendAttributeMenu", () => {
   it("opens and closes the menu without triggering a render-phase state update", async () => {
     const user = userEvent.setup()
     const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => null)
-    renderMenu()
-    const button = screen.getByTestId("axis-legend-attribute-button-bottom")
+    try {
+      renderMenu()
+      const button = screen.getByTestId("axis-legend-attribute-button-bottom")
 
-    await user.click(button)
-    expect(button).toHaveAttribute("aria-expanded", "true")
+      await user.click(button)
+      expect(button).toHaveAttribute("aria-expanded", "true")
 
-    await user.keyboard("{Escape}")
-    expect(button).toHaveAttribute("aria-expanded", "false")
+      await user.keyboard("{Escape}")
+      expect(button).toHaveAttribute("aria-expanded", "false")
 
-    const renderPhaseWarnings = consoleErrorSpy.mock.calls
-      .filter(args => String(args[0]).includes("Cannot update a component"))
-    expect(renderPhaseWarnings).toEqual([])
-
-    consoleErrorSpy.mockRestore()
+      const renderPhaseWarnings = consoleErrorSpy.mock.calls
+        .filter(args => String(args[0]).includes("Cannot update a component"))
+      expect(renderPhaseWarnings).toEqual([])
+    } finally {
+      consoleErrorSpy.mockRestore()
+    }
   })
 
   describe("aria-label", () => {

@@ -43,19 +43,21 @@ describe("AttributeHeader", () => {
     const user = userEvent.setup()
     const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => null)
 
-    const { attribute } = renderAttributeHeader()
-    const button = screen.getByTestId(`codap-attribute-button ${attribute.name}`)
-    await user.click(button)
-    expect(button).toHaveAttribute("aria-expanded", "true")
+    try {
+      const { attribute } = renderAttributeHeader()
+      const button = screen.getByTestId(`codap-attribute-button ${attribute.name}`)
+      await user.click(button)
+      expect(button).toHaveAttribute("aria-expanded", "true")
 
-    await user.keyboard("{Escape}")
-    expect(button).toHaveAttribute("aria-expanded", "false")
+      await user.keyboard("{Escape}")
+      expect(button).toHaveAttribute("aria-expanded", "false")
 
-    const renderPhaseWarnings = consoleErrorSpy.mock.calls
-      .filter(args => String(args[0]).includes("Cannot update a component"))
-    expect(renderPhaseWarnings).toEqual([])
-
-    consoleErrorSpy.mockRestore()
+      const renderPhaseWarnings = consoleErrorSpy.mock.calls
+        .filter(args => String(args[0]).includes("Cannot update a component"))
+      expect(renderPhaseWarnings).toEqual([])
+    } finally {
+      consoleErrorSpy.mockRestore()
+    }
   })
 
   it("notifies the parent when the menu opens and closes", async () => {
