@@ -458,7 +458,7 @@ describe("GraphContentModel", () => {
       diComponentHandler.delete!({ component: tile })
     })
 
-    // CODAP-1479: with a single-line adornment (movable line, plotted function, or LSRL under a
+    // With a single-line adornment (movable line, plotted function, or LSRL under a
     // non-categorical legend), adding a legend does not disqualify the residual plot — only one
     // residual set is being plotted. Squares survive too.
     it("keeps showResidualPlot when a legend is added and only a movable line is active", async () => {

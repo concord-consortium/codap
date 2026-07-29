@@ -110,7 +110,7 @@ describe("residualPlotIsApplicable", () => {
   it("returns false when a rightSplit (right categorical) attribute is present", () => {
     expect(residualPlotIsApplicable(fakeStore({ml: true}), fakeConfig({rightSplit: "attr-right"}))).toBe(false)
   })
-  // CODAP-1479: a legend no longer disables the residual plot outright — only when it would
+  // A legend no longer disables the residual plot outright — only when it would
   // create more than one line's residuals (LSRL + categorical legend).
   it("returns true with movable line + categorical legend (single line regardless of legend)", () => {
     expect(residualPlotIsApplicable(
