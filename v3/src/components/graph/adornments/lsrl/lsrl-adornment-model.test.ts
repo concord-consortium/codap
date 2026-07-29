@@ -265,7 +265,7 @@ describe("LSRLAdornmentModel", () => {
     })
 
     it("filters cases by category when the legend attribute is numeric (used as categorical)", () => {
-      // CODAP-1373: a numeric attribute used as a categorical legend stores its values as numbers,
+      // A numeric attribute used as a categorical legend stores its values as numbers,
       // but `categoryArrayForAttrRole` returns string category labels (via getStrValue). The
       // `getCaseValues` comparison must normalize both sides to strings or no cases match.
       const xAttrId = "xId"
@@ -303,7 +303,7 @@ describe("LSRLAdornmentModel", () => {
       expect(cat2Values).toEqual([{ x: 20, y: 200 }, { x: 40, y: 400 }])
     })
 
-    // CODAP-1480: dragging a numeric attribute into the middle of a scatterplot creates a
+    // Dragging a numeric attribute into the middle of a scatterplot creates a
     // continuous (color-gradient) legend. categoryArrayForAttrRole then returns one entry per
     // unique numeric value, so without the fix the adornment would create one LSRL per case.
     it("produces a single LSRL keyed by kMain when the legend is numeric", () => {
