@@ -32,12 +32,15 @@ export function getActiveLineKind(store: IAdornmentsBaseStore): ActiveLineKind |
 //   - Numeric attribute on left y-axis, exactly one y attribute (no y+)
 //   - No attribute on the right numeric (Y2) axis
 //   - No attribute on the top or right split axes (categorical splitters)
-//   - No legend attribute
 //   - Exactly one of {movable line, LSRL, plotted function} visible
+//   - Legend is allowed when exactly one line's residuals are being plotted: movable line and
+//     plotted function are always a single line; LSRL is single only when the legend isn't
+//     categorical (a categorical legend produces one LSRL per category).
 export function residualPlotIsApplicable(
   store: IAdornmentsBaseStore, dataConfig?: IGraphDataConfigurationModel
 ): boolean {
-  if (getActiveLineKind(store) === null) return false
+  const kind = getActiveLineKind(store)
+  if (kind === null) return false
   if (!dataConfig) return false
   if (dataConfig.attributeType("x") !== "numeric") return false
   if (dataConfig.attributeType("y") !== "numeric") return false
@@ -45,7 +48,8 @@ export function residualPlotIsApplicable(
   if (dataConfig.attributeID("rightNumeric")) return false
   if (dataConfig.attributeID("topSplit")) return false
   if (dataConfig.attributeID("rightSplit")) return false
-  if (dataConfig.attributeID("legend")) return false
+  if (dataConfig.attributeID("legend") && kind === "lsrl" &&
+      dataConfig.attributeType("legend") === "categorical") return false
   return true
 }
 
