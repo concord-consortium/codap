@@ -400,6 +400,33 @@ describe("AxisOrLegendAttributeMenu", () => {
       expect(onChangeAttribute).toHaveBeenCalledWith("bottom", mockDataSet, "attr2")
     })
 
+    it("resets the menu state when an attribute is selected from an open menu", async () => {
+      const user = userEvent.setup()
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+      const svgTarget = document.createElementNS("http://www.w3.org/2000/svg", "g")
+      svg.appendChild(svgTarget)
+      document.body.appendChild(svg)
+
+      try {
+        renderMenu({ place: "bottom", target: svgTarget })
+        const button = screen.getByTestId("axis-legend-attribute-button-bottom")
+        await user.click(button)
+        expect(button).toHaveAttribute("aria-expanded", "true")
+        expect(svgTarget.classList.contains("menu-open")).toBe(true)
+
+        // Selecting an attribute closes the menu via handleCloseMenu, which relies on
+        // Chakra invoking the onClose prop to reset our state.
+        const menuItems = screen.getAllByRole("menuitem", { hidden: true })
+        const weightItem = menuItems.find(item => item.textContent === "Weight")
+        await user.click(weightItem!)
+
+        expect(button).toHaveAttribute("aria-expanded", "false")
+        expect(svgTarget.classList.contains("menu-open")).toBe(false)
+      } finally {
+        svg.remove()
+      }
+    })
+
     it("shows 'No attributes available' when no datasets exist", () => {
       mockGetDataSetsReturn = []
       mockDataConfiguration.attributeID = () => ""

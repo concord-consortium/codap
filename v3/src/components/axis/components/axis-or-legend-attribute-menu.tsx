@@ -255,9 +255,9 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
     setIsMenuOpen(false)
   }
 
+  // Chakra's onClose prop fires unconditionally, so closing the menu resets our state too.
   function handleCloseMenu() {
     onCloseMenuRef.current?.()
-    resetMenuState()
   }
 
   // Sync menu-open class with actual menu state, and clean up all visual state classes on close/unmount
