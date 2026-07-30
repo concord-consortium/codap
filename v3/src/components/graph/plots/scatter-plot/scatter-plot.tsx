@@ -76,7 +76,7 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
   const functionSquaresRef = useRef<SVGGElement>(null)
 
   const { residualPointsRef, renderResidualsIfActive, restyleResidualSelection } = useResidualPlot({
-    graphModel, dataConfiguration, dataset, layout, legendAttrID
+    graphModel, dataConfiguration, dataset, layout, legendAttrID, isAnimating
   })
 
   const marqueeState = useMarqueeStateContext()
