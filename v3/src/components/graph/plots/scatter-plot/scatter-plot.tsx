@@ -76,7 +76,7 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
   const functionSquaresRef = useRef<SVGGElement>(null)
 
   const { residualPointsRef, renderResidualsIfActive, restyleResidualSelection } = useResidualPlot({
-    graphModel, dataConfiguration, dataset, layout, legendAttrID
+    graphModel, dataConfiguration, dataset, layout, legendAttrID, isAnimating
   })
 
   const marqueeState = useMarqueeStateContext()
@@ -398,9 +398,12 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
     // don't establish MobX deps, so our mstAutorun doesn't re-fire). usePlotResponders wires an
     // onAnyAction listener that calls refreshPointPositions on every setCaseValues, so this path
     // fires per drag frame and reads current cached values via renderResidualsIfActive.
-    renderResidualsIfActive()
-  }, [adornmentsStore, refreshConnectingLines, refreshSquares,
-      refreshPointPositionsPerfMode, refreshAllPointPositions, renderResidualsIfActive, showSquares])
+    // Pass isAnimating() so debounced refreshes fired during the main plot's animation window
+    // (attribute change) animate the residual points along; drag/other refreshes see false and
+    // snap. The syncResidualPlot autorun independently animates the attribute-change case.
+    renderResidualsIfActive(isAnimating())
+  }, [adornmentsStore, refreshConnectingLines, refreshSquares, refreshPointPositionsPerfMode,
+      refreshAllPointPositions, renderResidualsIfActive, showSquares, isAnimating])
 
   // Call refreshSquares when Squares of Residuals option is switched on and when a
   // Movable Line adornment is being dragged.

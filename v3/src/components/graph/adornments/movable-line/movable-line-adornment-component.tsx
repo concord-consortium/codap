@@ -13,6 +13,7 @@ import { useAdornmentCells } from "../../hooks/use-adornment-cells"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import {useGraphDataConfigurationContext} from "../../hooks/use-graph-data-configuration-context"
 import { useGraphLayoutContext } from "../../hooks/use-graph-layout-context"
+import { useDataDisplayAnimation } from "../../../data-display/hooks/use-data-display-animation"
 import { isDateAxisModel } from "../../../axis/models/numeric-axis-models"
 import {
   calculateSumOfSquares, computeSlopeAndIntercept, equationString, IAxisIntercepts, lineToAxisIntercepts
@@ -58,6 +59,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
   const { tile } = useTileModelContext()
   const instanceId = useInstanceIdContext()
   const adornmentsStore = graphModel.adornmentsStore
+  const { stopAnimation } = useDataDisplayAnimation()
   const { xAttrId, xAttrName, yAttrId, yAttrName, xScale, yScale } = useAdornmentAttributes()
   const { classFromKey, instanceKey } = useAdornmentCells(model, cellKey)
   const { xSubAxesCount, ySubAxesCount } = useAdornmentCategories()
@@ -400,14 +402,21 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
 
   // Add the behaviors to the line segments
   useEffect(function addBehaviors() {
+    // Dragging the line ends any animation in progress, matching the point drag, dot-plot drag, and
+    // axis drag. Anything that tracks the line — the Residual Plot's points, most visibly — has to
+    // follow the cursor in real time, so a drag that began inside an earlier change's animation
+    // window must not leave those followers easing toward a position the line has already left.
     const behaviors: { [index: string]: any } = {
       lower: drag()
+        .on("start", stopAnimation)
         .on("drag", (e) => handleRotation(e, "lower"))
         .on("end", (e) => handleRotation(e, "lower", true)),
       middle: drag()
+        .on("start", stopAnimation)
         .on("drag", (e) => handleTranslate(e))
         .on("end", (e) => handleTranslate(e, true)),
       upper: drag()
+        .on("start", stopAnimation)
         .on("drag", (e) => handleRotation(e, "upper"))
         .on("end", (e) => handleRotation(e, "upper", true)),
       equation: drag()
@@ -425,7 +434,8 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
     !interceptLocked && lineObject.middle?.call(behaviors.middle)
     lineObject.upper?.call(behaviors.upper)
     lineObject.equation?.call(behaviors.equation)
-  }, [lineObject, handleTranslate, handleRotation, handleMoveEquation, interceptLocked, model.lines, instanceKey])
+  }, [lineObject, handleTranslate, handleRotation, handleMoveEquation, interceptLocked, model.lines, instanceKey,
+      stopAnimation])
 
   // Build the line and its cover segments and handles just once
   useEffect(function createElements() {
