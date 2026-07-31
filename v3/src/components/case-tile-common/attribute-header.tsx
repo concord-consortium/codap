@@ -52,7 +52,6 @@ export const AttributeHeader = observer(function AttributeHeader({
   const inputRef = useRef<HTMLInputElement | null>(null)
   const contentRef = useRef<HTMLDivElement | null>(null)
   const menuListRef = useRef<HTMLDivElement | null>(null)
-  const isMenuOpen = useRef(false)
   const [isMenuOpenState, setIsMenuOpenState] = useState(false)
   const [editingAttrId, setEditingAttrId] = useState("")
   const [editingAttrName, setEditingAttrName] = useState("")
@@ -72,12 +71,10 @@ export const AttributeHeader = observer(function AttributeHeader({
   }
   const { attributes, listeners, setNodeRef: setDragNodeRef } = useDraggableAttribute(draggableOptions)
   const draggableProps = draggable ? { ...attributes, ...listeners } : {}
-  // TODO: we really should only enable the outside pointer down listener when the menu is open.
-  // However there doesn't seem to be simple way to do that.
-  // `isMenuOpen` is a ref so we won't be re-rendered when that changes.
   useOutsidePointerDown({
     ref: menuListRef,
     handler: () => onCloseMenuRef.current?.(),
+    enabled: isMenuOpenState,
     info: {name: "AttributeHeader menuList", attributeId, attrName}
    })
 
@@ -248,6 +245,11 @@ export const AttributeHeader = observer(function AttributeHeader({
     )
   }, [attribute?.description, attribute?.formula, attrName])
 
+  // Chakra calls these from its event handlers, so tracking the menu state here keeps the
+  // update out of the render pass of the `Menu` that owns the disclosure.
+  const handleMenuOpen = useCallback(() => setIsMenuOpenState(true), [])
+  const handleMenuClose = useCallback(() => setIsMenuOpenState(false), [])
+
   // Notify parent of menu open/close as a side effect (not during render).
   // Skip the initial mount (isMenuOpenState starts false) to avoid a spurious onCloseMenu call.
   const didMount = useRef(false)
@@ -266,12 +268,10 @@ export const AttributeHeader = observer(function AttributeHeader({
   const isIndex = attributeId === kIndexColumnKey
   const headerContentClasses = clsx("codap-column-header-content", { "index-column-header": isIndex })
   return (
-    <Menu isLazy>
+    <Menu isLazy onOpen={handleMenuOpen} onClose={handleMenuClose}>
       {({ isOpen, onClose }) => {
         const tooltipDisabled = disableTooltip || dragging || isOpen || modalIsOpen || editingAttrId === attributeId
-        isMenuOpen.current = isOpen
         onCloseMenuRef.current = onClose
-        if (isOpen !== isMenuOpenState) setIsMenuOpenState(isOpen)
         return (
           <Tooltip label={renderTooltipLabel} fontSize="12px" color="white"
               openDelay={1000} placement="bottom" bottom="15px" left="15px" isDisabled={tooltipDisabled}

@@ -120,6 +120,29 @@ describe("AxisOrLegendAttributeMenu", () => {
     mockUseDndContext.mockReturnValue({ active: null })
   })
 
+  // React warns about render-phase updates only once per rendering component per module
+  // registry, so this must precede any other test in this file that opens the menu.
+  it("opens and closes the menu without triggering a render-phase state update", async () => {
+    const user = userEvent.setup()
+    const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => null)
+    try {
+      renderMenu()
+      const button = screen.getByTestId("axis-legend-attribute-button-bottom")
+
+      await user.click(button)
+      expect(button).toHaveAttribute("aria-expanded", "true")
+
+      await user.keyboard("{Escape}")
+      expect(button).toHaveAttribute("aria-expanded", "false")
+
+      const renderPhaseWarnings = consoleErrorSpy.mock.calls
+        .filter(args => String(args[0]).includes("Cannot update a component"))
+      expect(renderPhaseWarnings).toEqual([])
+    } finally {
+      consoleErrorSpy.mockRestore()
+    }
+  })
+
   describe("aria-label", () => {
     it("sets aria-label describing the axis when an attribute is assigned", () => {
       renderMenu({ place: "bottom" })
@@ -375,6 +398,33 @@ describe("AxisOrLegendAttributeMenu", () => {
       expect(weightItem).toBeDefined()
       await user.click(weightItem!)
       expect(onChangeAttribute).toHaveBeenCalledWith("bottom", mockDataSet, "attr2")
+    })
+
+    it("resets the menu state when an attribute is selected from an open menu", async () => {
+      const user = userEvent.setup()
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+      const svgTarget = document.createElementNS("http://www.w3.org/2000/svg", "g")
+      svg.appendChild(svgTarget)
+      document.body.appendChild(svg)
+
+      try {
+        renderMenu({ place: "bottom", target: svgTarget })
+        const button = screen.getByTestId("axis-legend-attribute-button-bottom")
+        await user.click(button)
+        expect(button).toHaveAttribute("aria-expanded", "true")
+        expect(svgTarget.classList.contains("menu-open")).toBe(true)
+
+        // Selecting an attribute closes the menu via handleCloseMenu, which relies on
+        // Chakra invoking the onClose prop to reset our state.
+        const menuItems = screen.getAllByRole("menuitem", { hidden: true })
+        const weightItem = menuItems.find(item => item.textContent === "Weight")
+        await user.click(weightItem!)
+
+        expect(button).toHaveAttribute("aria-expanded", "false")
+        expect(svgTarget.classList.contains("menu-open")).toBe(false)
+      } finally {
+        svg.remove()
+      }
     })
 
     it("shows 'No attributes available' when no datasets exist", () => {
