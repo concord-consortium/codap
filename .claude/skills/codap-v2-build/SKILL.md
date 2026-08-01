@@ -152,7 +152,7 @@ Wait for user confirmation before starting Phase 1.
    Check that `node_modules` exists in repositories that need it:
    - `codap`
    - `cloud-file-manager`
-   - `codap-data-interactives` (and subdirectories: `DrawTool`, `eepsmedia/plugins/scrambler`, `Importer`, `Sonify`, `TP-Sampler`)
+   - `codap-data-interactives` (and subdirectories: `DrawTool`, `Importer`, `Sonify`, `TP-Sampler`)
    - `codap-transformers`
    - `noaa-codap-plugin`
    - `story-builder`
@@ -299,9 +299,12 @@ Wait for user confirmation before starting Phase 1.
    **4b. Propagate to plugins:**
 
    Explain to the user:
-   > Some CODAP plugins (Importer, TP-Sampler, Scrambler, Story Builder) also have
+   > Some CODAP plugins (Importer, TP-Sampler, Story Builder) also have
    > translatable strings in the same POEditor project. We pull the plugin-specific
    > strings to their respective repositories.
+   >
+   > Scrambler and Testimate used to be pulled here too. They moved to the
+   > eepsmedia repo (CODAP-1423) and are now translated from there.
 
    Read the API token from `~/.porc` and pass to the script:
    ```bash
@@ -470,6 +473,10 @@ Explain to the user:
 
    Monitor output for errors. In particular, check for plugin build failures — the `bin/build` script in `codap-data-interactives` reports failed plugins to stderr (e.g., `ERROR - Failed to build ../noaa-codap-plugin`) but continues building the remaining plugins. If any plugin builds failed, stop and investigate before proceeding.
 
+   `bin/build` also ends with a large `WARNING: THE eepsmedia PLUGINS WERE NOT BUILT` banner on
+   stderr. **This is not a build failure** and does not need investigating — it is an expected
+   reminder that those four plugins must be copied in by hand at Step 9.
+
    After completion, verify the zip file exists:
    ```bash
    ls -lh codap_build_XXXX.zip
@@ -502,13 +509,15 @@ Explain to the user:
 
    Explain to the user:
    > The `makeExtn` step builds four plugins from sibling repositories (`onboarding`, `codap-transformers`, `story-builder`, `noaa-codap-plugin`). These builds can fail silently because the build script does not use `set -e`. We verify that all expected plugin folders exist in the deployed build.
+   >
+   > We also check `eepsmedia`, which is a different case: it is not built at all any more (see the next step), so it is *expected* to be missing until we copy it in.
 
    Check that all expected plugin folders are present:
    ```bash
-   ssh codap-server.concord.org "for d in onboarding codap-transformers story-builder noaa-codap-plugin; do [ -d /var/www/html/releases/build_XXXX/extn/plugins/\$d ] && echo \"\$d: OK\" || echo \"\$d: MISSING\"; done"
+   ssh codap-server.concord.org "for d in onboarding codap-transformers story-builder noaa-codap-plugin eepsmedia; do [ -d /var/www/html/releases/build_XXXX/extn/plugins/\$d ] && echo \"\$d: OK\" || echo \"\$d: MISSING\"; done"
    ```
 
-   If any are missing, the plugin build failed silently during `makeExtn`. Investigate by checking the build output for errors. Common causes:
+   `eepsmedia: MISSING` is expected on a fresh build — handle it in Step 9. For the other four, missing means the plugin build failed silently during `makeExtn`. Investigate by checking the build output for errors. Common causes:
    - **noaa-codap-plugin:** Missing peer dependencies (`@emotion/react`, `@emotion/styled`). Fix: use `npm ci` instead of `npm install` in `codap-data-interactives/bin/build` (already fixed as of 2026-02-13).
    - **General:** Stale `node_modules` in a sibling repo. Fix: `rm -rf node_modules && npm ci` in the affected repo, then rebuild.
 
@@ -517,7 +526,56 @@ Explain to the user:
    ssh codap-server.concord.org "sudo cp -r /var/www/html/releases/build_PPPP/extn/plugins/<plugin-name> /var/www/html/releases/build_XXXX/extn/plugins/<plugin-name>"
    ```
 
-9. **Verify deployment:**
+9. **Copy in the eepsmedia plugins (REQUIRED — they are not built):**
+
+   Explain to the user:
+   > Choosy, Scrambler, Simmer and Testimate moved to the
+   > [eepsmedia repo](https://github.com/concord-consortium/eepsmedia) on 2026-07-31 (CODAP-1423)
+   > and deploy themselves to S3 for CODAP V3. The V2 build no longer produces them, but they are
+   > still listed in `published-plugins.json` — deliberately, because that file describes what a V2
+   > build *should* contain, and delisting them would silently drop them from the plugin menu.
+   >
+   > The consequence is that every V2 build needs these four folders copied in by hand. Nothing
+   > fails loudly if this is skipped: the build works, but those four plugins 404 from CODAP's
+   > plugin menu. `codap-data-interactives/bin/build` prints a warning banner at the end of its run
+   > as a reminder.
+
+   Copy the whole `eepsmedia` tree from the previous release:
+   ```bash
+   ssh codap-server.concord.org "sudo rsync -a --delete /var/www/html/releases/build_PPPP/extn/plugins/eepsmedia/ /var/www/html/releases/build_XXXX/extn/plugins/eepsmedia/"
+   ```
+
+   If no previous release has it (first build after the extraction), pull from S3 instead — the
+   bucket layout mirrors the eepsmedia repo root:
+   ```bash
+   aws s3 sync s3://codap-resources/plugins/eepsmedia/ ./eepsmedia/
+   scp -r ./eepsmedia codap-server.concord.org:
+   ssh codap-server.concord.org "sudo rsync -a --delete ~/eepsmedia/ /var/www/html/releases/build_XXXX/extn/plugins/eepsmedia/ && rm -rf ~/eepsmedia"
+   ```
+
+   **Mind the trailing slashes** — they make `rsync` copy the *contents* of the source into the
+   destination. `rsync` is used here rather than `cp -r` or `mv` because those nest the source
+   inside the destination when it already exists, producing
+   `extn/plugins/eepsmedia/eepsmedia/...` if this step is re-run after a partial copy. With the
+   trailing slashes and `--delete`, the step is idempotent and safe to run as many times as needed.
+
+   Verify the result — note the capital C in `Choosy`, which is case-sensitive on Linux:
+   ```bash
+   ssh codap-server.concord.org "ls /var/www/html/releases/build_XXXX/extn/plugins/eepsmedia/ && for d in Choosy scrambler simmer testimate; do [ -d /var/www/html/releases/build_XXXX/extn/plugins/eepsmedia/plugins/\$d ] && echo \"\$d: OK\" || echo \"\$d: MISSING\"; done"
+   ```
+
+   Expected layout:
+   ```
+   extn/plugins/eepsmedia/common/
+   extn/plugins/eepsmedia/plugins/{Choosy,scrambler,simmer,testimate}/
+   ```
+
+   **Do not fix this by editing `published-plugins.json` or `data_interactive_map.json`** in
+   `codap-data-interactives`. Removing the entries makes the warning go away but silently drops the
+   plugins from the V2 plugin menu, which is the failure this step exists to prevent. See
+   `eepsmedia/README.md` in that repo.
+
+10. **Verify deployment:**
 
    Ask the user to open the build and verify that it looks correct:
    > The build is now live at `https://codap.concord.org/releases/build_XXXX/`
@@ -526,13 +584,17 @@ Explain to the user:
 
    **Wait for the user to confirm the build looks good before proceeding.** Do not move on to the summary or Phase 4 until the user has acknowledged that the build works.
 
-10. **Summary:**
+   Include the eepsmedia plugins in the spot check — Choosy is `"visible": "false"` so it will not
+   appear in the plugin menu, but Scrambler, Simmer and Testimate should all open.
+
+11. **Summary:**
 
    > **Build and deployment complete.**
    >
    > - Build number: XXXX
    > - Zip file: codap_build_XXXX.zip
    > - Deployed to: codap-server.concord.org
+   > - eepsmedia plugins: copied in [from build_PPPP / from S3]
    > - URL: https://codap.concord.org/releases/build_XXXX/
    >
    > Ready for Phase 4: Post-Build. Run `/codap-v2-build post` or say "continue" to proceed.
@@ -585,7 +647,7 @@ Explain to the user:
 | `codap` | `master` | Main CODAP v2 application |
 | `cloud-file-manager` | `v1.9.x` | File storage integration (CFM) |
 | `codap-data` | `master` | Example documents and boundary files |
-| `codap-data-interactives` | `master` | Standard plugins |
+| `codap-data-interactives` | `master` | Standard plugins (no longer includes the eepsmedia plugins — see Phase 3, Step 9) |
 | `codap-transformers` | `main` | Transformer plugin |
 | `noaa-codap-plugin` | `main` | NOAA weather plugin |
 | `story-builder` | `master` | Story Builder plugin |

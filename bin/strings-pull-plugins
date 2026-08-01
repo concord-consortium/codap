@@ -4,11 +4,14 @@
 #
 # This invokes each plugin repo's own strings:pull script, which downloads
 # translations from POEditor project #125447 and filters for the plugin's
-# string prefix (e.g. DG.plugin.Scrambler, DG.plugin.StoryBuilder).
+# string prefix (e.g. DG.plugin.Importer, DG.plugin.StoryBuilder).
 #
 # Affected repos:
-#   codap-data-interactives — Importer, TP-Sampler, Scrambler
+#   codap-data-interactives — Importer, TP-Sampler
 #   story-builder           — Story Builder
+#
+# Scrambler and Testimate moved to the eepsmedia repo (CODAP-1423) and are no
+# longer covered here; they are translated from that repo.
 #
 # Usage: ./bin/strings-pull-plugins --APIToken=XXXX
 #   (all arguments are passed through to each repo's strings:pull script)
