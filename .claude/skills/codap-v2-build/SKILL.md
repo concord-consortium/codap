@@ -542,7 +542,7 @@ Explain to the user:
 
    Copy the whole `eepsmedia` tree from the previous release:
    ```bash
-   ssh codap-server.concord.org "sudo cp -r /var/www/html/releases/build_PPPP/extn/plugins/eepsmedia /var/www/html/releases/build_XXXX/extn/plugins/eepsmedia"
+   ssh codap-server.concord.org "sudo rsync -a --delete /var/www/html/releases/build_PPPP/extn/plugins/eepsmedia/ /var/www/html/releases/build_XXXX/extn/plugins/eepsmedia/"
    ```
 
    If no previous release has it (first build after the extraction), pull from S3 instead — the
@@ -550,8 +550,14 @@ Explain to the user:
    ```bash
    aws s3 sync s3://codap-resources/plugins/eepsmedia/ ./eepsmedia/
    scp -r ./eepsmedia codap-server.concord.org:
-   ssh codap-server.concord.org "sudo mv ~/eepsmedia /var/www/html/releases/build_XXXX/extn/plugins/eepsmedia"
+   ssh codap-server.concord.org "sudo rsync -a --delete ~/eepsmedia/ /var/www/html/releases/build_XXXX/extn/plugins/eepsmedia/ && rm -rf ~/eepsmedia"
    ```
+
+   **Mind the trailing slashes** — they make `rsync` copy the *contents* of the source into the
+   destination. `rsync` is used here rather than `cp -r` or `mv` because those nest the source
+   inside the destination when it already exists, producing
+   `extn/plugins/eepsmedia/eepsmedia/...` if this step is re-run after a partial copy. With the
+   trailing slashes and `--delete`, the step is idempotent and safe to run as many times as needed.
 
    Verify the result — note the capital C in `Choosy`, which is case-sensitive on Linux:
    ```bash
