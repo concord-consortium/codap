@@ -44,8 +44,14 @@ export const kFeatureFlags = {
     added: "2026-07-24",
     expires: "2027-07-31"
   },
+  /*
+   * DEPRECATED — gates nothing. The residual plot shipped enabled, and its gate was removed
+   * rather than switched on by server config, so that the feature cannot silently fail off
+   * when the config fetch fails. The entry is retained only because the feature-flag tests
+   * use this name as their sample flag; delete it once they are repointed at a live flag.
+   */
   residualPlot: {
-    description: "Residual plots on the graph",
+    description: "Residual plots on the graph (deprecated — no longer gates anything)",
     owner: "ESTEEM",
     added: "2026-07-22",
     expires: "2027-07-31"
