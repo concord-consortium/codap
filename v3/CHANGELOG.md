@@ -1,29 +1,37 @@
 # Changelog
 
-## Version 3.1.0-beta.1 - July 26, 2026
+## Version 3.1.0 - August 5, 2026
 
 ### ✨ Features & Improvements:
 - **CODAP-1404:** Graph connecting lines stay responsive as data streams in
 - **CODAP-1408:** Data streamed from plugins is batched for better responsiveness
+- **CODAP-1446:** Add Residual Plot option for scatter plots
 - **CODAP-1454:** Reduce bundle size via build configuration
 - **CODAP-1465:** Map raster layers render faster and animate smoothly
 - **CODAP-1466:** Faster marquee selection in maps and graphs
+- **CODAP-1470:** Refreshed formula editor interface
 
 ### 🐞 Bug Fixes:
 - **CODAP-1403:** Graph points now track the expanding axes as data streams in
 - **CODAP-1409:** Fix numeric legend binning when quantiles are degenerate
 - **CODAP-1458:** Fix documents saving much larger than their content warrants
+- **CODAP-1459:** Squares of Residuals becomes unchecked when no line is present
+- **CODAP-1461:** No LSRL equation is shown when no line can be fit
 - **CODAP-1464:** Fix incorrect percentile() results across grouped data
 - **CODAP-1468:** Menus in inspector palettes now close without closing the palette
+- **CODAP-1471:** LSRL no longer displays NaN for statistics that can't be computed
+- **CODAP-1475:** Repeating a URL parameter no longer crashes the document
+- **CODAP-1480:** A numeric legend now fits a single LSRL rather than one per value
 
 ### 🛠️ Under the Hood:
 - **CODAP-1448:** Add a feature-flag system for gating in-development features
+- **CODAP-1477:** Eliminate a React render-phase update warning from attribute menus
 
 ### Asset Sizes
 |      File |          Size | % Change from Previous Release |
 |-----------|---------------|--------------------------------|
-|  main.css |  243735 bytes |                          1.18% |
-|  index.js | 7206477 bytes |                         -8.02% |
+|  main.css |  248776 bytes |                          3.27% |
+|  index.js | 7238597 bytes |                         -7.61% |
 
 ## Version 3.0.5 - July 18, 2026
 
