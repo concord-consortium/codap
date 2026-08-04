@@ -505,16 +505,16 @@ export const Attribute = V2Model.named("Attribute").props({
       }
       self.incChangeCount()
     },
+    // Grows in place rather than building a replacement array. Appending items calls this for
+    // every attribute, so reallocating would make each append cost the full attribute length.
+    // Growing in place also keeps `strValues` and `values` the same array in production, where
+    // they're shared (in development `values` is frozen and cleared during initialization).
     setLength(length: number) {
-      if (self.strValues.length < length) {
-        self.strValues = self.strValues.concat(new Array(length - self.strValues.length).fill(""))
-        if (isProduction()) {
-          // in production mode, `strValues` shares the `values` array since it isn't frozen
-          self.values = self.strValues
-        }
+      for (let i = self.strValues.length; i < length; ++i) {
+        self.strValues.push("")
       }
-      if (self.numValues.length < length) {
-        self.numValues = self.numValues.concat(new Array(length - self.numValues.length).fill(NaN))
+      for (let i = self.numValues.length; i < length; ++i) {
+        self.numValues.push(NaN)
       }
     },
     removeValues(index: number, count = 1) {
