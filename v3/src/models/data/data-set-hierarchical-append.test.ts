@@ -83,6 +83,27 @@ describe("DataSet hierarchical append", () => {
     expect(appended).toEqual(lookupMapsOf(data))
   })
 
+  // A case whose only item is hidden has no visible item to be keyed by, so the child case
+  // map has to fall back to the hidden one. Setting an item aside and removing it leaves the
+  // id set aside, so an item re-added under it is hidden as soon as its case is created.
+  it("keys an appended case that is hidden by its hidden item", () => {
+    const data = makeSamplerDataSet()
+    addSample(data, 0)
+    data.hideCasesOrItems(["e1-s0-i0"])
+    data.validateCases()
+    data.removeCases(["e1-s0-i0"])
+    data.validateCases()
+
+    data.addCases([{ __id__: "e1-s0-i0", expId: "1", sampId: "9", outId: "0" }])
+    data.validateCases()
+    expect(data.isItemHidden("e1-s0-i0")).toBe(true)
+
+    const appended = lookupMapsOf(data)
+    data.invalidateCases()
+    data.validateCases()
+    expect(appended).toEqual(lookupMapsOf(data))
+  })
+
   it("maps only the new items to their child cases when appending", () => {
     const data = makeSamplerDataSet()
     for (let sample = 0; sample < 5; ++sample) addSample(data, sample)

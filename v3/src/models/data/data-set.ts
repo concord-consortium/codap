@@ -795,6 +795,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       }
       return newCaseIds
     })
+    const childCollectionIndex = self.collections.length - 1
     self.collections.forEach((collection, index) => {
       // complete the case groups, including sorting child collection cases into groups
       const parentCaseGroups = index > 0 ? self.collections[index - 1].caseGroups : undefined
@@ -805,16 +806,16 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       // full rebuild populates), so these ids are the ones the case groups ended up with.
       newCaseIdsByCollection[index].forEach(caseId => {
         const caseGroup = collection.getCaseGroup(caseId)
-        if (caseGroup) self.caseInfoMap.set(caseGroup.groupedCase.__id__, caseGroup)
+        if (!caseGroup) return
+        self.caseInfoMap.set(caseGroup.groupedCase.__id__, caseGroup)
+        // The childmost collection groups by item id (Collection.groupKey), so each of its new
+        // cases holds exactly one appended item and is keyed by it. Items the append didn't
+        // add keep the mapping they already had.
+        if (index === childCollectionIndex) {
+          const itemId = caseGroup.childItemIds[0] ?? caseGroup.hiddenChildItemIds[0]
+          if (itemId != null) self.itemIdChildCaseMap.set(itemId, caseGroup)
+        }
       })
-    })
-    // Map each new item to its child case. The childmost collection groups by item id
-    // (Collection.groupKey), so every appended item forms a case of its own and there is no
-    // existing mapping for it to invalidate — items the append didn't add keep theirs.
-    itemIds.forEach(itemId => {
-      const childCaseId = self.getItemChildCaseId(itemId)
-      const caseGroup = childCaseId ? self.childCollection.getCaseGroup(childCaseId) : undefined
-      if (caseGroup) self.itemIdChildCaseMap.set(itemId, caseGroup)
     })
   }
 }))
