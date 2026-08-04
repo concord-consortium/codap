@@ -149,6 +149,9 @@ export const Attribute = V2Model.named("Attribute").props({
       return importValueToString(value)
     },
     get isNumeric() {
+      // Values live in a volatile array whose contents aren't observable, so like `length` and
+      // `type` this depends on changeCount to know when they've changed.
+      void self.changeCount
       // An attribute is considered numeric if any of its values is a number.
       return self.numValues.some(value => !isNaN(value))
     },

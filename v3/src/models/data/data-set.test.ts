@@ -1,5 +1,5 @@
 import { isEqual, isEqualWith } from "lodash"
-import { autorun } from "mobx"
+import { autorun, reaction } from "mobx"
 import { applyAction, clone, destroy, getSnapshot, onAction, onSnapshot } from "mobx-state-tree"
 import { uniqueName } from "../../utilities/js-utils"
 import { onAnyAction } from "../../utilities/mst-utils"
@@ -1315,4 +1315,25 @@ test("removeAttribute invalidates cases", () => {
   // re-validate and verify validationCount incremented
   data.validateCases()
   expect(data.validationCount).toBe(validationCountBefore + 1)
+})
+
+test("appended items that make an attribute numeric notify isNumeric observers", () => {
+  const data = DataSet.create()
+  data.addAttribute({ id: "nId", name: "n" })
+  data.addCases([{ __id__: "i0", nId: "" }])
+  data.validateCases()
+  const attr = data.getAttribute("nId")!
+
+  const observed: boolean[] = []
+  const dispose = reaction(() => attr.isNumeric, isNumeric => observed.push(isNumeric),
+    { fireImmediately: true })
+  expect(observed).toEqual([false])
+
+  // addCases grows every attribute and then writes the values supplied, in one action
+  data.addCases([{ __id__: "i1", nId: 5 }])
+  data.validateCases()
+
+  expect(attr.isNumeric).toBe(true)
+  expect(observed).toEqual([false, true])
+  dispose()
 })
