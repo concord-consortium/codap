@@ -70,6 +70,19 @@ describe("DataSet hierarchical append", () => {
     expect(writes.sets.length).toBe(4)
   })
 
+  it("leaves the case lookup maps as a full regroup would after appending", () => {
+    const data = makeSamplerDataSet()
+    for (let sample = 0; sample < 3; ++sample) addSample(data, sample)
+    // a second experiment, so the maps span more than one branch of the hierarchy
+    addSample(data, 0, { experiment: "2" })
+
+    const appended = lookupMapsOf(data)
+    data.invalidateCases()
+    data.validateCases()
+
+    expect(appended).toEqual(lookupMapsOf(data))
+  })
+
   it("maps only the new items to their child cases when appending", () => {
     const data = makeSamplerDataSet()
     for (let sample = 0; sample < 5; ++sample) addSample(data, sample)
@@ -93,6 +106,18 @@ describe("DataSet hierarchical append", () => {
       caseIdToIndex: [...collection.caseIdToIndexMap.entries()],
       nonEmptyCaseIds: collection.nonEmptyCases.map(aCase => aCase.__id__)
     }))
+  }
+
+  // The dataset-level lookup maps every selection, notification and plugin request goes
+  // through. Compared by content rather than by identity, since a regroup builds fresh
+  // CaseInfo objects for the same cases.
+  function lookupMapsOf(data: IDataSet) {
+    return {
+      caseInfo: [...data.caseInfoMap.entries()]
+        .map(([caseId, info]) => `${caseId} -> ${info.collectionId}/${info.groupedCase.__id__}`).sort(),
+      itemIdChildCase: [...data.itemIdChildCaseMap.entries()]
+        .map(([itemId, info]) => `${itemId} -> ${info.groupedCase.__id__}`).sort()
+    }
   }
 
   function regroupFromScratch(data: IDataSet) {
@@ -151,6 +176,30 @@ describe("DataSet hierarchical append", () => {
     expect(data.childCollection.caseIds).not.toContain(
       data.getItemChildCaseId("e1-s0-i0")
     )
+
+    const appended = groupingOf(data)
+    expect(appended).toEqual(regroupFromScratch(data))
+  })
+
+  // One request that adds items for two samples at once -- the shape the Sampler produces
+  // when a batch is coalesced -- is the only way the childmost collection sees new cases
+  // under more than one parent in a single pass, which is what the per-parent index
+  // arithmetic exists for.
+  it("indexes appended cases per parent when one batch spans two parents", () => {
+    const data = makeSamplerDataSet()
+    addSample(data, 0)
+
+    data.addCases([
+      { __id__: "e1-s1-i0", expId: "1", sampId: "1", outId: "0" },
+      { __id__: "e1-s1-i1", expId: "1", sampId: "1", outId: "1" },
+      { __id__: "e1-s2-i0", expId: "1", sampId: "2", outId: "0" },
+      { __id__: "e1-s2-i1", expId: "1", sampId: "2", outId: "1" }
+    ])
+    data.validateCases()
+
+    // sample 0 has three items, samples 1 and 2 have two each; each is indexed from 0
+    expect(data.childCollection.caseGroups.map(group => group.groupedCase[symIndex]))
+      .toEqual([0, 1, 2, 0, 1, 0, 1])
 
     const appended = groupingOf(data)
     expect(appended).toEqual(regroupFromScratch(data))
