@@ -31,6 +31,23 @@ function trackValueReads(data: IDataSet) {
   return readItemIds
 }
 
+// Records the keys written to a map, so a test can report how much of it an operation
+// rewrote rather than just whether the end state is right.
+function trackWrites<V>(map: Map<string, V>) {
+  const record = { sets: [] as string[], clears: 0 }
+  const set = map.set.bind(map)
+  const clear = map.clear.bind(map)
+  map.set = (key: string, value: V) => {
+    record.sets.push(key)
+    return set(key, value)
+  }
+  map.clear = () => {
+    ++record.clears
+    clear()
+  }
+  return record
+}
+
 describe("DataSet hierarchical append", () => {
   it("doesn't read values for existing items when appending a new sample", () => {
     const data = makeSamplerDataSet()
@@ -40,6 +57,28 @@ describe("DataSet hierarchical append", () => {
     addSample(data, 5)
 
     expect([...new Set(readItemIds)].sort()).toEqual(["e1-s5-i0", "e1-s5-i1", "e1-s5-i2"])
+  })
+
+  it("registers only the new cases in the case info map when appending", () => {
+    const data = makeSamplerDataSet()
+    for (let sample = 0; sample < 5; ++sample) addSample(data, sample)
+
+    const writes = trackWrites(data.caseInfoMap)
+    addSample(data, 5)
+
+    // one new sample case and three new item cases; the experiment case already exists
+    expect(writes.sets.length).toBe(4)
+  })
+
+  it("maps only the new items to their child cases when appending", () => {
+    const data = makeSamplerDataSet()
+    for (let sample = 0; sample < 5; ++sample) addSample(data, sample)
+
+    const writes = trackWrites(data.itemIdChildCaseMap)
+    addSample(data, 5)
+
+    expect(writes.clears).toBe(0)
+    expect(writes.sets).toEqual(["e1-s5-i0", "e1-s5-i1", "e1-s5-i2"])
   })
 
   // Everything about a collection that case grouping is responsible for producing. A full

@@ -780,22 +780,33 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     // state and signal observers via _cacheVersion before the data is fully rebuilt.
     if (!self.isValidCases) return
 
-    self.collections.forEach((collection, index) => {
+    const newCaseIdsByCollection = self.collections.map(collection => {
       // update the cases (additive — only processes new itemIds)
       const { newCaseIds } = collection.updateCaseGroups(itemIds)
       // tell collection about new cases for additive completion
       collection.invalidateCaseGroupsForNewCases(newCaseIds)
+      return newCaseIds
     })
     self.collections.forEach((collection, index) => {
       // complete the case groups, including sorting child collection cases into groups
       const parentCaseGroups = index > 0 ? self.collections[index - 1].caseGroups : undefined
       collection.completeCaseGroups(parentCaseGroups)
-      // update the caseGroupMap
-      collection.caseGroupMap.forEach(group => self.caseInfoMap.set(group.groupedCase.__id__, group))
+      // Register the new cases. Cases the append didn't create are already registered, and
+      // their CaseInfo is updated in place rather than replaced, so their entries stay valid.
+      // The additive path never remaps case ids (remapping requires prevCaseIds, which only a
+      // full rebuild populates), so these ids are the ones the case groups ended up with.
+      newCaseIdsByCollection[index].forEach(caseId => {
+        const caseGroup = collection.getCaseGroup(caseId)
+        if (caseGroup) self.caseInfoMap.set(caseGroup.groupedCase.__id__, caseGroup)
+      })
     })
-    self.itemIdChildCaseMap.clear()
-    Array.from(self.childCollection.caseGroupMap.values()).forEach(caseGroup => {
-      self.itemIdChildCaseMap.set(caseGroup.childItemIds[0] ?? caseGroup.hiddenChildItemIds[0], caseGroup)
+    // Map each new item to its child case. The childmost collection groups by item id
+    // (Collection.groupKey), so every appended item forms a case of its own and there is no
+    // existing mapping for it to invalidate — items the append didn't add keep theirs.
+    itemIds.forEach(itemId => {
+      const childCaseId = self.getItemChildCaseId(itemId)
+      const caseGroup = childCaseId ? self.childCollection.getCaseGroup(childCaseId) : undefined
+      if (caseGroup) self.itemIdChildCaseMap.set(itemId, caseGroup)
     })
   }
 }))
