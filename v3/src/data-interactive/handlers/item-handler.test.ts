@@ -159,6 +159,45 @@ describe("createItemsInSegments", () => {
     expect(results[1].caseIDs?.length).toBe(1)
   })
 
+  it("does not report a new case that is hidden", () => {
+    const { dataset } = setupTestDataset()
+    const itemId = dataset.items[0].__id__
+
+    // Setting an item aside and then removing it leaves its id set aside, so an item
+    // re-created under that id is hidden as soon as its case is formed.
+    dataset.hideCasesOrItems([itemId])
+    dataset.validateCases()
+    dataset.removeCases([itemId])
+    dataset.validateCases()
+
+    const results = createItemsInSegments(dataset, [[
+      { __id__: itemId, a1: "hidden", a2: "hidden", a3: 99 }
+    ]]) as DISuccessResult[]
+
+    expect(dataset.isItemHidden(itemId)).toBe(true)
+    expect(results[0].caseIDs).toEqual([])
+  })
+
+  it("reports new case ids in collection order rather than the order the items arrived", () => {
+    const { dataset, c2 } = setupTestDataset()
+    const c2Before = new Set(c2.caseIds)
+
+    // The first item joins the later parent "b" and the second the earlier parent "a", so
+    // the case the second item forms precedes the case the first item forms.
+    const results = createItemsInSegments(dataset, [[
+      { a1: "b", a2: "later", a3: 7 },
+      { a1: "a", a2: "earlier", a3: 8 }
+    ]]) as DISuccessResult[]
+
+    const newC2CaseIds = c2.caseIds.filter(caseId => !c2Before.has(caseId))
+    expect(newC2CaseIds.length).toBe(2)
+
+    const reported = results[0].caseIDs ?? []
+    const positions = newC2CaseIds.map(caseId => reported.indexOf(toV2Id(caseId)))
+    expect(positions.every(position => position >= 0)).toBe(true)
+    expect(positions).toEqual([...positions].sort((a, b) => a - b))
+  })
+
   it("attributes a shared case to the earliest contributing segment when that is not segment 0", () => {
     const { dataset, c1 } = setupTestDataset()
     const c1Before = new Set(c1.caseIds)

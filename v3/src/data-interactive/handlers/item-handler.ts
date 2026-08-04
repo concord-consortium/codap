@@ -46,12 +46,6 @@ export function createItemsInSegments(dataContext: IDataSet, segments: DIItemVal
   const newCaseIds: Record<string, string[]> = {}
   let itemIDs: string[] = []
   dataContext.applyModelChange(() => {
-    // Get case ids from before new items are added
-    const oldCaseIds: Record<string, Set<string>> = {}
-    dataContext.collections.forEach(collection => {
-      oldCaseIds[collection.id] = new Set(collection.caseIds)
-    })
-
     // Add items and update cases. A multi-segment batch is a coalesced run of streamed
     // create requests, so observers (e.g. graphs) should snap rather than animate; a
     // single create request — even one with many items — animates as an ordinary add.
@@ -59,12 +53,28 @@ export function createItemsInSegments(dataContext: IDataSet, segments: DIItemVal
     itemIDs = dataContext.addCases(items, { canonicalize: true, suppressAnimation })
     dataContext.validateCases()
 
-    // Find newly added cases by comparing current cases to previous cases
-    dataContext.collections.forEach(collection => {
-      newCaseIds[collection.id] = []
-      collection.caseIds.forEach(caseId => {
-        if (!oldCaseIds[collection.id].has(caseId)) newCaseIds[collection.id].push(caseId)
+    // Find the cases this request created. Only cases containing one of the new items can
+    // be new, and such a case is new precisely when the first item in it is one of them --
+    // a case that already existed keeps whichever item it already held at the front. That
+    // makes this proportional to the number of items added rather than to the size of the
+    // dataset, which matters for plugins that stream items into a large data context.
+    const addedItemIds = new Set(itemIDs)
+    dataContext.collections.forEach((collection, collectionIndex) => {
+      const caseIds = new Set<string>()
+      itemIDs.forEach(itemId => {
+        const caseId = dataContext.getItemCaseIds(itemId)[collectionIndex]
+        if (caseId == null || caseIds.has(caseId)) return
+        const caseInfo = dataContext.caseInfoMap.get(caseId)
+        const firstItemId = caseInfo?.childItemIds[0] ?? caseInfo?.hiddenChildItemIds[0]
+        if (firstItemId != null && addedItemIds.has(firstItemId)) caseIds.add(caseId)
       })
+      // Report them in the collection's case order, as a scan of its case ids would. Cases
+      // with no index of their own (hidden ones) aren't in that list and aren't reported.
+      newCaseIds[collection.id] = Array.from(caseIds)
+        .map(caseId => ({ caseId, index: collection.getCaseIndex(caseId) ?? -1 }))
+        .filter(({ index }) => index >= 0)
+        .sort((a, b) => a.index - b.index)
+        .map(({ caseId }) => caseId)
     })
   }, {
     notify: () => {
