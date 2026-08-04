@@ -45,14 +45,6 @@ export function createItemsInSegments(dataContext: IDataSet, segments: DIItemVal
 
   const newCaseIds: Record<string, string[]> = {}
   let itemIDs: string[] = []
-  // Ids the request supplied for items the data context already holds. A plugin that manages
-  // its own ids (the Collaborative plugin) can re-send one, e.g. on a replayed sync message;
-  // the cases around such an item already exist, so they are not created by this request.
-  const resentItemIds = new Set(
-    items
-      .map(item => item.__id__)
-      .filter((itemId): itemId is string => typeof itemId === "string" && dataContext.hasItem(itemId))
-  )
 
   dataContext.applyModelChange(() => {
     // Add items and update cases. A multi-segment batch is a coalesced run of streamed
@@ -62,31 +54,15 @@ export function createItemsInSegments(dataContext: IDataSet, segments: DIItemVal
     itemIDs = dataContext.addCases(items, { canonicalize: true, suppressAnimation })
     dataContext.validateCases()
 
-    // Find the cases this request created. Only a case holding one of the new items can be
-    // new, and such a case is new precisely when the first item in it is one of them -- a
-    // case that already existed keeps whichever item it already held at the front. That makes
-    // this proportional to the number of items added rather than to the size of the dataset,
-    // which matters for plugins that stream items into a large data context.
-    const creatingItemIds = new Set(itemIDs.filter(itemId => !resentItemIds.has(itemId)))
-    const caseIdsByCollection = new Map<string, Set<string>>()
-    itemIDs.forEach(itemId => {
-      // An item's case ids are collected per collection as it is grouped, so read the
-      // collection from the case itself rather than assuming a position in this list.
-      dataContext.getItemCaseIds(itemId).forEach(caseId => {
-        const caseInfo = dataContext.caseInfoMap.get(caseId)
-        if (!caseInfo) return
-        const firstItemId = caseInfo.childItemIds[0] ?? caseInfo.hiddenChildItemIds[0]
-        if (firstItemId == null || !creatingItemIds.has(firstItemId)) return
-        const caseIds = caseIdsByCollection.get(caseInfo.collectionId)
-        if (caseIds) caseIds.add(caseId)
-        else caseIdsByCollection.set(caseInfo.collectionId, new Set([caseId]))
-      })
-    })
-
+    // The cases this request created, as reported by the add itself -- which knows exactly
+    // which case ids it minted, and costs nothing proportional to the size of the dataset.
+    // It reports nothing when grouping had to start over, in which case there is no cheap
+    // answer to be had.
+    const created = dataContext.newCaseIdsForLastAppend ?? {}
     dataContext.collections.forEach(collection => {
       // Report them in the collection's case order, as a scan of its case ids would. Cases
       // with no index of their own (hidden ones) aren't in that list and aren't reported.
-      newCaseIds[collection.id] = Array.from(caseIdsByCollection.get(collection.id) ?? [])
+      newCaseIds[collection.id] = (created[collection.id] ?? [])
         .map(caseId => ({ caseId, index: collection.getCaseIndex(caseId) ?? -1 }))
         .filter(({ index }) => index >= 0)
         .sort((a, b) => a.index - b.index)

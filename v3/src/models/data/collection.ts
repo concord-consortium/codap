@@ -304,9 +304,7 @@ export const CollectionModel = V2Model
 .views(self => ({
   // Passing itemIds regroups just those items instead of starting from scratch, which is how
   // appended items are handled; omitting them rebuilds the collection from all of its items.
-  // Insertions currently take the rebuild path. Handling them incrementally is the opportunity
-  // still open here, and it would want the insert position rather than a flag, since which
-  // existing cases have to shift depends on where the items landed.
+  // Insertions take the rebuild path.
   //
   // Note that appending items does not imply appending cases: a child collection orders its
   // cases by parent case and then by position within the parent, so items added at the end of
@@ -385,13 +383,11 @@ export const CollectionModel = V2Model
             else {
               // The case was grouped in an earlier pass, so it has no entry here and its parent
               // has never been told about it — it was hidden the last time the parent collected
-              // its children. Register it so it is added to the parent below.
-              const parentCaseId = self.parent?.groupKeyCaseId(self.parentGroupKey(itemId))
-              if (parentCaseId) {
-                parentChildIdMap.set(caseId, { parentCaseId, isHidden: false })
-              }
+              // its children. Where it belongs among its siblings follows from item order,
+              // which only a regroup from scratch can work out, so report it and let the caller
+              // start over rather than appending it to the end of its parent's children.
+              unhiddenCaseIds.push(caseId)
             }
-            unhiddenCaseIds.push(caseId)
             caseGroup.groupedCase[symIndex] = newCaseIndex
             caseGroup.isHidden = false
           }
@@ -702,6 +698,16 @@ export const CollectionModel = V2Model
                 .filter(aCase => !!aCase)
 
           _needsFullRebuild = false
+        }
+        // UNCHANGED: no case was added here, so the cached contents still hold. The case
+        // groups themselves may have been mutated in place, though — a descendant collection
+        // adds to their childCaseIds — so hand out fresh arrays, because the rebuild path
+        // treats a new array identity as the signal that something changed and consumers
+        // identity-compare on that basis.
+        else {
+          _caseGroups = [..._caseGroups]
+          _cases = [..._cases]
+          _nonEmptyCases = [..._nonEmptyCases]
         }
 
         _caseIdsHash = hashStringSet(self.caseIds)

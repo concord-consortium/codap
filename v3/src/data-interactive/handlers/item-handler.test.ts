@@ -159,6 +159,22 @@ describe("createItemsInSegments", () => {
     expect(results[1].caseIDs?.length).toBe(1)
   })
 
+  it("reports the cases a re-sent item id creates when its grouping values are new", () => {
+    const { dataset } = setupTestDataset()
+    const existingItemId = dataset.items[0].__id__
+    const before = dataset.collections.map(collection => new Set(collection.caseIds))
+
+    // re-sending an id moves that item to a new group, forming cases that really are new
+    const results = createItemsInSegments(dataset, [[
+      { id: toV2Id(existingItemId), values: { a1: "brandNewA1", a2: "brandNewA2", a3: 42 } }
+    ]]) as DISuccessResult[]
+
+    const created = dataset.collections.flatMap((collection, index) =>
+      collection.caseIds.filter(caseId => !before[index].has(caseId)))
+    expect(created.length).toBeGreaterThan(0)
+    created.forEach(caseId => expect(results[0].caseIDs).toContain(toV2Id(caseId)))
+  })
+
   it("does not report pre-existing cases when an item id is re-sent", () => {
     const { dataset } = setupTestDataset()
     const existingItemId = dataset.items[0].__id__

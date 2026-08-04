@@ -73,9 +73,10 @@ describe("DataSet hierarchical append", () => {
 
     expect(writes.clears).toBe(0)
     expect(writes.sets).toEqual([])
-    // its cached arrays are reused rather than rebuilt, so identity-comparing reactions
-    // on them don't fire for an append that didn't touch this collection
-    expect(data.collections[1].caseGroups).toBe(caseGroupsBefore)
+    // its cases are reused rather than re-derived, but the array is still handed out fresh:
+    // a descendant added children to those case groups, and consumers identity-compare
+    expect(data.collections[1].caseGroups).not.toBe(caseGroupsBefore)
+    expect(data.collections[1].caseGroups).toEqual(caseGroupsBefore)
 
     const appended = groupingOf(data)
     expect(appended).toEqual(regroupFromScratch(data))
@@ -292,6 +293,31 @@ describe("DataSet hierarchical append", () => {
 
     const middle = data.collections[1]
     expect(middle.cases.length).toBe(middle.caseIds.length)
+
+    const appended = groupingOf(data)
+    expect(appended).toEqual(regroupFromScratch(data))
+  })
+
+  // The un-hidden case belongs at its item-order position among its siblings, which is before
+  // a sibling that already existed -- not appended after it.
+  it("orders a case that an appended item un-hides by item order, not by when it reappeared", () => {
+    const data = DataSet.create()
+    data.addAttribute({ id: "gId", name: "g" })
+    data.addAttribute({ id: "mId", name: "m" })
+    data.addAttribute({ id: "vId", name: "v" })
+    data.addCollection({ attributes: ["gId"] })
+    data.addCollection({ attributes: ["mId"] })
+
+    data.addCases([
+      { __id__: "i1", gId: "1", mId: "1", vId: "a" },
+      { __id__: "i2", gId: "1", mId: "2", vId: "b" }
+    ])
+    data.validateCases()
+    data.hideCasesOrItems(["i1"])   // hides the m=1 case, the FIRST of the two
+    data.validateCases()
+
+    data.addCases([{ __id__: "i3", gId: "1", mId: "1", vId: "c" }])
+    data.validateCases()
 
     const appended = groupingOf(data)
     expect(appended).toEqual(regroupFromScratch(data))

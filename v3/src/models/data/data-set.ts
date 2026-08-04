@@ -183,6 +183,14 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   // contains all items and child cases, including hidden ones
   itemIdChildCaseMap: new Map<string, CaseInfo>(),
 
+  // The cases created by the most recent addCases, keyed by collection id. Callers that need
+  // to report what a request created (e.g. the data interactive item handler) can read this
+  // immediately afterwards instead of comparing case ids before and after, which costs a walk
+  // of the whole dataset. Undefined when the last addCases couldn't say -- because it inserted
+  // rather than appended, or because grouping had to start over -- in which case there is no
+  // cheap answer and none is claimed.
+  newCaseIdsForLastAppend: undefined as Maybe<Record<string, string[]>>,
+
   // incremented when collection parent/child links are updated
   // Init: updated by initializeVolatileState
   syncCollectionLinksCount: 0,
@@ -780,21 +788,24 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     // state and signal observers via _cacheVersion before the data is fully rebuilt.
     if (!self.isValidCases) return
 
-    const newCaseIdsByCollection = self.collections.map(collection => {
+    const newCaseIdsByCollection: string[][] = []
+    for (const collection of self.collections) {
       // update the cases (additive — only processes new itemIds)
       const { newCaseIds, unhiddenCaseIds } = collection.updateCaseGroups(itemIds)
       if (unhiddenCaseIds.length) {
-        // An appended item made an existing case visible again. That case isn't one of the new
-        // ones, so additive completion would leave it out of the cached case arrays while it
-        // sits in caseIds; rebuild the collection instead so the two agree.
-        collection.invalidateCaseGroups()
+        // An appended item made an existing case visible again. It isn't one of the new cases,
+        // and where it belongs among its siblings follows from item order, so no additive
+        // completion can place it correctly. Abandon the additive pass and regroup the whole
+        // dataset. This needs set-aside items to reach at all, so correctness is worth the
+        // full pass.
+        self.newCaseIdsForLastAppend = undefined
+        self.invalidateCases()
+        return
       }
-      else {
-        // tell collection about new cases for additive completion
-        collection.invalidateCaseGroupsForNewCases(newCaseIds)
-      }
-      return newCaseIds
-    })
+      // tell collection about new cases for additive completion
+      collection.invalidateCaseGroupsForNewCases(newCaseIds)
+      newCaseIdsByCollection.push(newCaseIds)
+    }
     const childCollectionIndex = self.collections.length - 1
     self.collections.forEach((collection, index) => {
       // complete the case groups, including sorting child collection cases into groups
@@ -817,6 +828,11 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
         }
       })
     })
+    const createdCaseIds: Record<string, string[]> = {}
+    self.collections.forEach((collection, index) => {
+      createdCaseIds[collection.id] = newCaseIdsByCollection[index]
+    })
+    self.newCaseIdsForLastAppend = createdCaseIds
   }
 }))
 .views(self => ({
@@ -1294,6 +1310,8 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       addCases(cases: ICaseCreation[], options?: IAddCasesOptions) {
         const { before, after } = options || {}
         let didAppendItems = false
+        // only the additive path below can report what it created
+        self.newCaseIdsForLastAppend = undefined
 
         const beforePosition = before
           ? self.getItemIndex(before) ?? self.getItemIndex(self.caseInfoMap.get(before)?.childItemIds[0] ?? "")
