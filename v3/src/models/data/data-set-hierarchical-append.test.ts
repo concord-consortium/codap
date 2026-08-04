@@ -156,6 +156,67 @@ describe("DataSet hierarchical append", () => {
     expect(appended).toEqual(regroupFromScratch(data))
   })
 
+  // Appending an item to a case whose items were all hidden makes that case visible again.
+  // The case already exists, so it isn't among the new cases the additive path is told about,
+  // and its parent has never been told about it either -- it was hidden when the parent last
+  // collected its children. Both collections have to end up as a full regroup would.
+  it("restores a case that an appended item un-hides, in a middle collection", () => {
+    const data = DataSet.create()
+    data.addAttribute({ id: "gId", name: "g" })
+    data.addAttribute({ id: "mId", name: "m" })
+    data.addAttribute({ id: "outId", name: "out" })
+    data.addCollection({ attributes: ["gId"] })
+    data.addCollection({ attributes: ["mId"] })
+
+    data.addCases([
+      { __id__: "i1", gId: "1", mId: "1", outId: "a" },
+      { __id__: "i2", gId: "1", mId: "2", outId: "b" }
+    ])
+    data.validateCases()
+    data.hideCasesOrItems(["i2"])
+    data.validateCases()
+
+    // i3 un-hides the m=2 case; i4 creates a new m=3 case
+    data.addCases([
+      { __id__: "i3", gId: "1", mId: "2", outId: "c" },
+      { __id__: "i4", gId: "1", mId: "3", outId: "d" }
+    ])
+    data.validateCases()
+
+    const middle = data.collections[1]
+    expect(middle.cases.length).toBe(middle.caseIds.length)
+
+    const appended = groupingOf(data)
+    expect(appended).toEqual(regroupFromScratch(data))
+  })
+
+  it("restores a case that an appended item un-hides, in a top-level collection", () => {
+    const data = DataSet.create()
+    data.addAttribute({ id: "expId", name: "experiment" })
+    data.addAttribute({ id: "outId", name: "output" })
+    data.addCollection({ attributes: ["expId"] })
+
+    data.addCases([
+      { __id__: "i1", expId: "1", outId: "a" },
+      { __id__: "i2", expId: "2", outId: "b" }
+    ])
+    data.validateCases()
+    data.hideCasesOrItems(["i2"])
+    data.validateCases()
+
+    data.addCases([
+      { __id__: "i3", expId: "2", outId: "c" },
+      { __id__: "i4", expId: "3", outId: "d" }
+    ])
+    data.validateCases()
+
+    const parent = data.collections[0]
+    expect(parent.cases.length).toBe(parent.caseIds.length)
+
+    const appended = groupingOf(data)
+    expect(appended).toEqual(regroupFromScratch(data))
+  })
+
   it("orders appended cases correctly when they join an existing, earlier parent", () => {
     const data = makeSamplerDataSet()
     addSample(data, 0, { experiment: "1" })

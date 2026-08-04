@@ -322,6 +322,8 @@ export const CollectionModel = V2Model
     }
 
     const newCaseIds: string[] = []
+    // cases that already existed but became visible during this pass
+    const unhiddenCaseIds: string[] = []
     // key is child caseId
     const parentChildIdMap = new Map<string, { parentCaseId: string, isHidden: boolean }>()
     const itemInfo: Array<{itemId: string, caseId: string}> = []
@@ -377,7 +379,19 @@ export const CollectionModel = V2Model
             const parentChildInfo = parentChildIdMap.get(caseId)
             self.caseIds.push(caseId)
             self.caseIdToIndexMap.set(caseId, newCaseIndex)
-            parentChildInfo && (parentChildInfo.isHidden = false)
+            if (parentChildInfo) {
+              parentChildInfo.isHidden = false
+            }
+            else {
+              // The case was grouped in an earlier pass, so it has no entry here and its parent
+              // has never been told about it — it was hidden the last time the parent collected
+              // its children. Register it so it is added to the parent below.
+              const parentCaseId = self.parent?.groupKeyCaseId(self.parentGroupKey(itemId))
+              if (parentCaseId) {
+                parentChildIdMap.set(caseId, { parentCaseId, isHidden: false })
+              }
+            }
+            unhiddenCaseIds.push(caseId)
             caseGroup.groupedCase[symIndex] = newCaseIndex
             caseGroup.isHidden = false
           }
@@ -448,7 +462,7 @@ export const CollectionModel = V2Model
     })
     self.clearPrevCases()
 
-    return { newCaseIds }
+    return { newCaseIds, unhiddenCaseIds }
   }
 }))
 .views(self => ({
@@ -529,8 +543,16 @@ export const CollectionModel = V2Model
       const parentCaseId = group.groupedCase[symParent]
       return parentCaseId != null ? self.parent?.getCaseIndex(parentCaseId) : undefined
     }
+    // Where the existing cases end. If the last one's parent can't be located there is no
+    // baseline to compare against, so fall back to re-sorting rather than assume the append
+    // belongs at the end.
+    let parentIndex = -1
     const lastCompleted = _caseGroups[_caseGroups.length - 1]
-    let parentIndex = lastCompleted ? parentIndexOf(lastCompleted) ?? -1 : -1
+    if (lastCompleted) {
+      const lastParentIndex = parentIndexOf(lastCompleted)
+      if (lastParentIndex == null) return false
+      parentIndex = lastParentIndex
+    }
     return groups.every(group => {
       const groupParentIndex = parentIndexOf(group)
       if (groupParentIndex == null || groupParentIndex < parentIndex) return false

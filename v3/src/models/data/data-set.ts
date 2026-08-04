@@ -782,9 +782,17 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
 
     const newCaseIdsByCollection = self.collections.map(collection => {
       // update the cases (additive — only processes new itemIds)
-      const { newCaseIds } = collection.updateCaseGroups(itemIds)
-      // tell collection about new cases for additive completion
-      collection.invalidateCaseGroupsForNewCases(newCaseIds)
+      const { newCaseIds, unhiddenCaseIds } = collection.updateCaseGroups(itemIds)
+      if (unhiddenCaseIds.length) {
+        // An appended item made an existing case visible again. That case isn't one of the new
+        // ones, so additive completion would leave it out of the cached case arrays while it
+        // sits in caseIds; rebuild the collection instead so the two agree.
+        collection.invalidateCaseGroups()
+      }
+      else {
+        // tell collection about new cases for additive completion
+        collection.invalidateCaseGroupsForNewCases(newCaseIds)
+      }
       return newCaseIds
     })
     self.collections.forEach((collection, index) => {
