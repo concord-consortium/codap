@@ -512,6 +512,27 @@ export const CollectionModel = V2Model
   let _needsFullRebuild = true   // starts true: no valid data yet
   let _pendingNewCaseIds: string[] | undefined
 
+  // Cases in a child collection are ordered by parent case, then by position within the
+  // parent. New cases are always pushed onto the end of their parent's childCaseIds, so an
+  // append extends the existing order — rather than inserting into the middle of it — only
+  // when each new case's parent is at or after the parent of the case that currently sits
+  // last. Streamed appends (a plugin adding samples to the newest experiment) satisfy this;
+  // adding to an older parent doesn't, and has to fall back to re-sorting the collection.
+  const appendExtendsOrder = (groups: CaseInfo[]) => {
+    const parentIndexOf = (group: CaseInfo) => {
+      const parentCaseId = group.groupedCase[symParent]
+      return parentCaseId != null ? self.parent?.getCaseIndex(parentCaseId) : undefined
+    }
+    const lastCompleted = _caseGroups[_caseGroups.length - 1]
+    let parentIndex = lastCompleted ? parentIndexOf(lastCompleted) ?? -1 : -1
+    return groups.every(group => {
+      const groupParentIndex = parentIndexOf(group)
+      if (groupParentIndex == null || groupParentIndex < parentIndex) return false
+      parentIndex = groupParentIndex
+      return true
+    })
+  }
+
   return {
     views: {
       get caseGroups() {
@@ -536,49 +557,82 @@ export const CollectionModel = V2Model
         return _caseIdsOrderedHash
       },
       completeCaseGroups(parentCases: Maybe<CaseInfo[]>) {
-        if (parentCases) {
-          self.caseIds.splice(0, self.caseIds.length)
-          // sort cases by parent cases
-          parentCases.forEach(parentCase => {
-            const childCaseIds = parentCase.childCaseIds ?? []
-            // update indices
-            childCaseIds.forEach((childCaseId, index) => {
-              const caseGroup = self.getCaseGroup(childCaseId)
-              caseGroup && (caseGroup.groupedCase[symIndex] = index)
-            })
-            // append case ids in grouped order
-            self.caseIds.push(...childCaseIds)
-          })
-          // rebuild the case id to index map, since the order of child cases may have changed
-          self.caseIdToIndexMap.clear()
-          self.caseIds.forEach((caseId, index) => {
-            self.caseIdToIndexMap.set(caseId, index)
-          })
-        }
-
         const newCaseIds = _pendingNewCaseIds
         _pendingNewCaseIds = undefined
 
-        // APPEND path: top-level collection with only new cases added
-        // Uses concatenation (not mutation) so consumers holding old references see a new array.
-        // Note: newCaseIds can be an empty array (e.g., when re-adding previously deleted items
-        // whose group key mappings still exist), so check length to fall through to REBUILD.
-        if (!parentCases && !_needsFullRebuild && newCaseIds?.length) {
-          // Exclude hidden-only case groups so this branch matches REBUILD's walk of
-          // self.caseIds (which already excludes them).
-          const newCaseGroups = newCaseIds
-                                  .map(caseId => self.getCaseGroup(caseId))
-                                  .filter((group): group is CaseInfo => !!group && !group.isHidden)
-          _caseGroups = [..._caseGroups, ...newCaseGroups]
+        // The case groups for the newly added cases. Hidden-only groups are excluded so this
+        // matches REBUILD's walk of self.caseIds (which already excludes them), which means
+        // the result can be empty even when newCaseIds isn't (e.g. when re-adding previously
+        // deleted items whose group key mappings still exist).
+        const newCaseGroups = !_needsFullRebuild && newCaseIds?.length
+          ? newCaseIds
+              .map(caseId => self.getCaseGroup(caseId))
+              .filter((group): group is CaseInfo => !!group && !group.isHidden)
+          : undefined
 
-          const newCases = newCaseGroups.map(group => group.groupedCase)
+        // The groups to complete additively, or undefined to rebuild the caches from scratch.
+        // A child collection appends only when its own case list grew and the new cases sort
+        // to the end; a top-level collection completes additively regardless, since an append
+        // that contributed no visible cases leaves its existing completion correct as-is.
+        const appendedCaseGroups = parentCases
+          ? newCaseGroups?.length && appendExtendsOrder(newCaseGroups) ? newCaseGroups : undefined
+          : newCaseGroups
+
+        if (parentCases) {
+          if (appendedCaseGroups) {
+            // The appended cases occupy the tail of their parent's childCaseIds, so their
+            // index within the parent counts back from the end of that list. Every other case
+            // in the collection keeps the position it already had.
+            const groupsByParent = new Map<string, CaseInfo[]>()
+            appendedCaseGroups.forEach(group => {
+              const parentCaseId = group.groupedCase[symParent]
+              if (parentCaseId == null) return
+              const groups = groupsByParent.get(parentCaseId)
+              if (groups) groups.push(group)
+              else groupsByParent.set(parentCaseId, [group])
+            })
+            groupsByParent.forEach((groups, parentCaseId) => {
+              const childCaseIds = self.parent?.getCaseGroup(parentCaseId)?.childCaseIds ?? []
+              const firstNewIndex = childCaseIds.length - groups.length
+              groups.forEach((group, index) => {
+                group.groupedCase[symIndex] = firstNewIndex + index
+              })
+            })
+          }
+          else {
+            self.caseIds.splice(0, self.caseIds.length)
+            // sort cases by parent cases
+            parentCases.forEach(parentCase => {
+              const childCaseIds = parentCase.childCaseIds ?? []
+              // update indices
+              childCaseIds.forEach((childCaseId, index) => {
+                const caseGroup = self.getCaseGroup(childCaseId)
+                caseGroup && (caseGroup.groupedCase[symIndex] = index)
+              })
+              // append case ids in grouped order
+              self.caseIds.push(...childCaseIds)
+            })
+            // rebuild the case id to index map, since the order of child cases may have changed
+            self.caseIdToIndexMap.clear()
+            self.caseIds.forEach((caseId, index) => {
+              self.caseIdToIndexMap.set(caseId, index)
+            })
+          }
+        }
+
+        // APPEND path: only new cases were added
+        // Uses concatenation (not mutation) so consumers holding old references see a new array.
+        if (appendedCaseGroups) {
+          _caseGroups = [..._caseGroups, ...appendedCaseGroups]
+
+          const newCases = appendedCaseGroups.map(group => group.groupedCase)
           _cases = [..._cases, ...newCases]
 
           // Parent collections: every case is non-empty by definition (isNonEmptyCaseGroup
           // short-circuits to true), so reuse newCases rather than running the filter.
           const newNonEmptyCases = self.child
             ? newCases
-            : newCaseGroups
+            : appendedCaseGroups
                 .filter(group => self.isNonEmptyCaseGroup(group))
                 .map(group => group.groupedCase)
           _nonEmptyCases = [..._nonEmptyCases, ...newNonEmptyCases]
