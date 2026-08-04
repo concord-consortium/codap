@@ -159,6 +159,44 @@ describe("createItemsInSegments", () => {
     expect(results[1].caseIDs?.length).toBe(1)
   })
 
+  it("does not report pre-existing cases when an item id is re-sent", () => {
+    const { dataset } = setupTestDataset()
+    const existingItemId = dataset.items[0].__id__
+
+    // The Collaborative plugin supplies its own ids; a replayed or duplicated sync message
+    // re-sends one CODAP already holds. No case is created, so none should be reported.
+    const results = createItemsInSegments(dataset, [[
+      { id: toV2Id(existingItemId), values: { a1: "a", a2: "x", a3: 42 } }
+    ]]) as DISuccessResult[]
+
+    expect(results[0].caseIDs).toEqual([])
+  })
+
+  it("reports each new case for its own collection when an item id repeats in one request", () => {
+    const { dataset } = setupTestDataset()
+    const c1Before = new Set(dataset.collections[0].caseIds)
+    const c2Before = new Set(dataset.collections[1].caseIds)
+    const c3Before = new Set(dataset.collections[2].caseIds)
+
+    const results = createItemsInSegments(dataset, [[
+      { __id__: "dup", a1: "new", a2: "n1", a3: 1 },
+      { __id__: "dup", a1: "new", a2: "n2", a3: 2 }
+    ]]) as DISuccessResult[]
+
+    const reported = new Set(results[0].caseIDs ?? [])
+    const newIn = (collection: { caseIds: string[] }, before: Set<string>) =>
+      collection.caseIds.filter(caseId => !before.has(caseId))
+
+    // every case this request created is reported, in whichever collection it belongs to
+    const created = [
+      ...newIn(dataset.collections[0], c1Before),
+      ...newIn(dataset.collections[1], c2Before),
+      ...newIn(dataset.collections[2], c3Before)
+    ]
+    expect(created.length).toBeGreaterThan(0)
+    created.forEach(caseId => expect(reported.has(toV2Id(caseId))).toBe(true))
+  })
+
   it("does not report a new case that is hidden", () => {
     const { dataset } = setupTestDataset()
     const itemId = dataset.items[0].__id__
