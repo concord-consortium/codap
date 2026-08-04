@@ -560,22 +560,30 @@ export const CollectionModel = V2Model
         const newCaseIds = _pendingNewCaseIds
         _pendingNewCaseIds = undefined
 
-        // The case groups for the newly added cases. Hidden-only groups are excluded so this
-        // matches REBUILD's walk of self.caseIds (which already excludes them), which means
-        // the result can be empty even when newCaseIds isn't (e.g. when re-adding previously
-        // deleted items whose group key mappings still exist).
-        const newCaseGroups = !_needsFullRebuild && newCaseIds?.length
+        const newGroups = !_needsFullRebuild && newCaseIds?.length
           ? newCaseIds
               .map(caseId => self.getCaseGroup(caseId))
-              .filter((group): group is CaseInfo => !!group && !group.isHidden)
+              .filter((group): group is CaseInfo => !!group)
           : undefined
+
+        // Hidden-only groups are excluded so this matches REBUILD's walk of self.caseIds
+        // (which already excludes them), which means the result can be empty even when
+        // newCaseIds isn't (e.g. when re-adding previously deleted items whose group key
+        // mappings still exist).
+        const newCaseGroups = newGroups?.filter(group => !group.isHidden)
 
         // The groups to complete additively, or undefined to rebuild the caches from scratch.
         // A child collection appends only when its own case list grew and the new cases sort
         // to the end; a top-level collection completes additively regardless, since an append
         // that contributed no visible cases leaves its existing completion correct as-is.
+        // A child collection also rebuilds when any of the new cases is hidden: its REBUILD
+        // repopulates caseIdToIndexMap from caseIds and so drops the placeholder index a
+        // hidden case is given, and appending has no equivalent step.
         const appendedCaseGroups = parentCases
-          ? newCaseGroups?.length && appendExtendsOrder(newCaseGroups) ? newCaseGroups : undefined
+          ? newCaseGroups?.length && newCaseGroups.length === newGroups?.length &&
+              appendExtendsOrder(newCaseGroups)
+              ? newCaseGroups
+              : undefined
           : newCaseGroups
 
         if (parentCases) {

@@ -76,6 +76,47 @@ describe("DataSet hierarchical append", () => {
     expect(appended).toEqual(regroupFromScratch(data))
   })
 
+  it("excludes an appended case with no values from nonEmptyCases", () => {
+    const data = makeSamplerDataSet()
+    addSample(data, 0)
+
+    // no value for the childmost collection's attribute, so this forms an empty case
+    data.addCases([{ __id__: "e1-s1-empty", expId: "1", sampId: "1", outId: "" }])
+    data.validateCases()
+
+    expect(data.childCollection.cases.length).toBe(4)
+    expect(data.childCollection.nonEmptyCases.length).toBe(3)
+
+    const appended = groupingOf(data)
+    expect(appended).toEqual(regroupFromScratch(data))
+  })
+
+  it("excludes an appended case that is hidden", () => {
+    const data = makeSamplerDataSet()
+    addSample(data, 0)
+
+    // Setting an item aside and then removing it leaves its id set aside, so an item later
+    // re-added under that id is already hidden by the time its case group is created.
+    data.hideCasesOrItems(["e1-s0-i0"])
+    data.validateCases()
+    data.removeCases(["e1-s0-i0"])
+    data.validateCases()
+
+    data.addCases([
+      { __id__: "e1-s0-i0", expId: "1", sampId: "1", outId: "0" },
+      { __id__: "e1-s1-i1", expId: "1", sampId: "1", outId: "1" }
+    ])
+    data.validateCases()
+
+    expect(data.isItemHidden("e1-s0-i0")).toBe(true)
+    expect(data.childCollection.caseIds).not.toContain(
+      data.getItemChildCaseId("e1-s0-i0")
+    )
+
+    const appended = groupingOf(data)
+    expect(appended).toEqual(regroupFromScratch(data))
+  })
+
   it("orders appended cases correctly when they join an existing, earlier parent", () => {
     const data = makeSamplerDataSet()
     addSample(data, 0, { experiment: "1" })
