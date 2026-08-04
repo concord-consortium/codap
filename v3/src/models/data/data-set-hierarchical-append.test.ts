@@ -59,6 +59,43 @@ describe("DataSet hierarchical append", () => {
     expect([...new Set(readItemIds)].sort()).toEqual(["e1-s5-i0", "e1-s5-i1", "e1-s5-i2"])
   })
 
+  // Streaming into an existing sample of an existing experiment adds no case to either
+  // parent collection, so nothing about them changes and re-sorting them is wasted work --
+  // work proportional to how many cases they already hold.
+  it("doesn't re-sort a parent collection when an append adds no case to it", () => {
+    const data = makeSamplerDataSet()
+    for (let sample = 0; sample < 5; ++sample) addSample(data, sample)
+
+    const caseGroupsBefore = data.collections[1].caseGroups
+    const writes = trackWrites(data.collections[1].caseIdToIndexMap)
+    data.addCases([{ __id__: "extra-0", expId: "1", sampId: "4", outId: "9" }])
+    data.validateCases()
+
+    expect(writes.clears).toBe(0)
+    expect(writes.sets).toEqual([])
+    // its cached arrays are reused rather than rebuilt, so identity-comparing reactions
+    // on them don't fire for an append that didn't touch this collection
+    expect(data.collections[1].caseGroups).toBe(caseGroupsBefore)
+
+    const appended = groupingOf(data)
+    expect(appended).toEqual(regroupFromScratch(data))
+  })
+
+  // The childmost collection can't take that shortcut: its cases are non-empty or not
+  // according to their item's values, and re-sending an item id writes new values into a
+  // case that already exists — so nothing new is added, but emptiness still changes.
+  it("recomputes emptiness when a re-sent item id fills in a previously empty case", () => {
+    const data = makeSamplerDataSet()
+    data.addCases([{ __id__: "i0", expId: "1", sampId: "0", outId: "" }])
+    data.validateCases()
+    expect(data.childCollection.nonEmptyCases.length).toBe(0)
+
+    data.addCases([{ __id__: "i0", expId: "1", sampId: "0", outId: "5" }])
+    data.validateCases()
+
+    expect(data.childCollection.nonEmptyCases.length).toBe(1)
+  })
+
   it("registers only the new cases in the case info map when appending", () => {
     const data = makeSamplerDataSet()
     for (let sample = 0; sample < 5; ++sample) addSample(data, sample)

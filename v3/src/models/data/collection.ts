@@ -594,6 +594,14 @@ export const CollectionModel = V2Model
               .filter((group): group is CaseInfo => !!group)
           : undefined
 
+        // A collection that had no case added to it is left exactly as it was — same cases,
+        // same order, same indices, with only the contents of existing case groups mutated in
+        // place, which the version bump at the end reports. A parent collection can reuse its
+        // caches on that basis, since its nonEmptyCases simply mirror its cases. The childmost
+        // collection cannot: emptiness there is derived from item values, and re-sending an
+        // item id writes new values into a case that already exists.
+        const mustRecompute = _needsFullRebuild || newCaseIds?.length !== 0 || !self.child
+
         // Hidden-only groups are excluded so this matches REBUILD's walk of self.caseIds
         // (which already excludes them), which means the result can be empty even when
         // newCaseIds isn't (e.g. when re-adding previously deleted items whose group key
@@ -614,7 +622,7 @@ export const CollectionModel = V2Model
               : undefined
           : newCaseGroups
 
-        if (parentCases) {
+        if (parentCases && mustRecompute) {
           if (appendedCaseGroups) {
             // The appended cases occupy the tail of their parent's childCaseIds, so their
             // index within the parent counts back from the end of that list. Every other case
@@ -674,7 +682,7 @@ export const CollectionModel = V2Model
           _nonEmptyCases = [..._nonEmptyCases, ...newNonEmptyCases]
         }
         // REBUILD path: full recompute from volatile state
-        else {
+        else if (mustRecompute) {
           _caseGroups = self.caseIds
                           .map(caseId => self.getCaseGroup(caseId))
                           .filter(group => !!group)
