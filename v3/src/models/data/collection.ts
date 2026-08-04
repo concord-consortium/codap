@@ -302,10 +302,18 @@ export const CollectionModel = V2Model
   }
 }))
 .views(self => ({
-  updateCaseGroups(itemIds?: string[], isAppending?: boolean) {
-    // For now, we treat appending items as a special case for which we don't need to start
-    // from scratch. Eventually, we may be able to handle inserting items efficiently as well.
-    const isAppendingItems = !!itemIds && !!isAppending
+  // Passing itemIds regroups just those items instead of starting from scratch, which is how
+  // appended items are handled; omitting them rebuilds the collection from all of its items.
+  // Insertions currently take the rebuild path. Handling them incrementally is the opportunity
+  // still open here, and it would want the insert position rather than a flag, since which
+  // existing cases have to shift depends on where the items landed.
+  //
+  // Note that appending items does not imply appending cases: a child collection orders its
+  // cases by parent case and then by position within the parent, so items added at the end of
+  // the item list still belong in the middle of that order whenever they join an older parent.
+  // completeCaseGroups works that out from the parents' case indices; no caller of this method
+  // is in a position to tell it in advance.
+  updateCaseGroups(itemIds?: string[]) {
     // newCaseIds semantics differ between rebuild and additive paths — see the push site.
     const isFullRebuild = !itemIds
     if (!itemIds) {
@@ -438,11 +446,9 @@ export const CollectionModel = V2Model
         }
       }
     })
-    if (!isAppendingItems) {
-      self.clearPrevCases()
-    }
+    self.clearPrevCases()
 
-    return { isAppendingItems, newCaseIds }
+    return { newCaseIds }
   }
 }))
 .views(self => ({
