@@ -513,7 +513,9 @@ export const Attribute = V2Model.named("Attribute").props({
     // Growing in place also keeps `strValues` and `values` the same array in production, where
     // they're shared (in development `values` is frozen and cleared during initialization).
     // Because the arrays are volatile, mutating their contents is not itself observable — only
-    // changeCount is — so growing them has to report the change explicitly.
+    // changeCount is — so growing them has to report the change explicitly. Note that growth is
+    // therefore visible only to views that read changeCount, as `length`, `type` and `isNumeric`
+    // do; the per-index accessors don't, and so don't react to it.
     setLength(length: number) {
       const didGrow = self.strValues.length < length || self.numValues.length < length
       for (let i = self.strValues.length; i < length; ++i) {

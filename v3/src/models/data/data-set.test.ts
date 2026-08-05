@@ -1337,3 +1337,79 @@ test("appended items that make an attribute numeric notify isNumeric observers",
   expect(observed).toEqual([false, true])
   dispose()
 })
+
+describe("caseIdsCreatedByLastAppend", () => {
+  function makeGrouped() {
+    const data = DataSet.create()
+    data.addAttribute({ id: "pId", name: "p" })
+    data.addAttribute({ id: "vId", name: "v" })
+    data.addCollection({ attributes: ["pId"] })
+    data.addCases([{ __id__: "i0", pId: "a", vId: "1" }], { canonicalize: false })
+    data.validateCases()
+    return data
+  }
+
+
+  // Both of the ways it can answer have to go stale together: the ids either would report
+  // can name cases that no longer exist once anything else changes the dataset.
+  it("stops reporting once something other than an append changes the dataset", () => {
+    const data = makeGrouped()
+    data.addCases([{ __id__: "i1", pId: "b", vId: "2" }], { canonicalize: false })
+    data.validateCases()
+
+    // don't read before the change: reading consumes the answer, which would make this pass
+    // whether or not the change discarded it
+    data.removeCases(["i0"])
+    expect(data.takeCaseIdsCreatedByLastAppend()).toBeUndefined()
+  })
+
+  // addCases leaves grouping alone, so a caller that appends while the dataset is invalid
+  // gets no report -- not an empty one. (Whether those items are grouped at all in this
+  // state is CODAP-1486; callers that need an answer, like the item handler, validate first.)
+  it("declines to answer when it appended without grouping the items", () => {
+    const data = makeGrouped()
+    data.invalidateCases(false)
+    data.addCases([{ __id__: "i1", pId: "b", vId: "2" }], { canonicalize: false })
+    data.validateCases()
+
+    expect(data.takeCaseIdsCreatedByLastAppend()).toBeUndefined()
+  })
+
+  it("reports every collection's new case, not just the childmost", () => {
+    const data = makeGrouped()
+    data.addCases([{ __id__: "i1", pId: "b", vId: "2" }], { canonicalize: false })
+    data.validateCases()
+
+    // a new parent value forms one case in each of the two collections
+    const reported = Object.values(data.takeCaseIdsCreatedByLastAppend() ?? {}).flat()
+    expect(reported).toHaveLength(2)
+  })
+
+  it("answers only once, so a later reader can't be handed a stale answer", () => {
+    const data = makeGrouped()
+    data.addCases([{ __id__: "i1", pId: "b", vId: "2" }], { canonicalize: false })
+
+    expect(data.takeCaseIdsCreatedByLastAppend()).toBeDefined()
+    expect(data.takeCaseIdsCreatedByLastAppend()).toBeUndefined()
+  })
+
+  it("stops reporting once a snapshot replaces the dataset", () => {
+    const data = makeGrouped()
+    data.addCases([{ __id__: "i1", pId: "b", vId: "2" }], { canonicalize: false })
+
+    // the ids would name cases from the replaced dataset
+    data.afterApplySnapshot()
+    expect(data.takeCaseIdsCreatedByLastAppend()).toBeUndefined()
+  })
+
+  // Inserting regroups from scratch, so it can't name what it produced. It has to say so
+  // rather than answer emptily -- a caller told "nothing was created" acts on that.
+  it("declines to answer after an insert rather than reporting nothing", () => {
+    const data = makeGrouped()
+    data.addCases([{ __id__: "i1", pId: "b", vId: "2" }], { canonicalize: false, before: "i0" })
+    data.validateCases()
+
+    expect(data.getItemCaseIds("i1").length).toBeGreaterThan(0)   // cases really were made
+    expect(data.takeCaseIdsCreatedByLastAppend()).toBeUndefined()
+  })
+})

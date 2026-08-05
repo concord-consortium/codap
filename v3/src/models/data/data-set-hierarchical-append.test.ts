@@ -240,8 +240,8 @@ describe("DataSet hierarchical append", () => {
     expect(appended).toEqual(regroupFromScratch(data))
   })
 
-  // One request that adds items for two samples at once -- the shape the Sampler produces
-  // when a batch is coalesced -- is the only way the childmost collection sees new cases
+  // One request that adds items for two samples at once — the shape the Sampler produces
+  // when a batch is coalesced — is the only way the childmost collection sees new cases
   // under more than one parent in a single pass, which is what the per-parent index
   // arithmetic exists for.
   it("indexes appended cases per parent when one batch spans two parents", () => {
@@ -266,7 +266,7 @@ describe("DataSet hierarchical append", () => {
 
   // Appending an item to a case whose items were all hidden makes that case visible again.
   // The case already exists, so it isn't among the new cases the additive path is told about,
-  // and its parent has never been told about it either -- it was hidden when the parent last
+  // and its parent has never been told about it either — it was hidden when the parent last
   // collected its children. Both collections have to end up as a full regroup would.
   it("restores a case that an appended item un-hides, in a middle collection", () => {
     const data = DataSet.create()
@@ -299,7 +299,7 @@ describe("DataSet hierarchical append", () => {
   })
 
   // The un-hidden case belongs at its item-order position among its siblings, which is before
-  // a sibling that already existed -- not appended after it.
+  // a sibling that already existed — not appended after it.
   it("orders a case that an appended item un-hides by item order, not by when it reappeared", () => {
     const data = DataSet.create()
     data.addAttribute({ id: "gId", name: "g" })

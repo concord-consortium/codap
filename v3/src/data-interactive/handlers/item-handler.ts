@@ -47,6 +47,13 @@ export function createItemsInSegments(dataContext: IDataSet, segments: DIItemVal
   let itemIDs: string[] = []
 
   dataContext.applyModelChange(() => {
+    // Bring grouping up to date before adding, so the add can group the new items additively
+    // and say which cases it created. Left invalid, it would defer to a full rebuild that
+    // knows only the end state, and the request would report nothing while cases existed.
+    // Ordinary plugin traffic arrives here invalid: deleteItem, deleteCaseBy and
+    // itemSearch.delete all removeCases without revalidating.
+    if (!dataContext.isValidCases) dataContext.validateCases()
+
     // Add items and update cases. A multi-segment batch is a coalesced run of streamed
     // create requests, so observers (e.g. graphs) should snap rather than animate; a
     // single create request — even one with many items — animates as an ordinary add.
@@ -54,11 +61,9 @@ export function createItemsInSegments(dataContext: IDataSet, segments: DIItemVal
     itemIDs = dataContext.addCases(items, { canonicalize: true, suppressAnimation })
     dataContext.validateCases()
 
-    // The cases this request created, as reported by the add itself -- which knows exactly
-    // which case ids it minted, and costs nothing proportional to the size of the dataset.
-    // It reports nothing when grouping had to start over, in which case there is no cheap
-    // answer to be had.
-    const created = dataContext.newCaseIdsForLastAppend ?? {}
+    // The cases this request created, as reported by the add itself. The additive path knows
+    // exactly which case ids it minted; the paths that regroup work it out by comparison.
+    const created = dataContext.takeCaseIdsCreatedByLastAppend() ?? {}
     dataContext.collections.forEach(collection => {
       // Report them in the collection's case order, as a scan of its case ids would. Cases
       // with no index of their own (hidden ones) aren't in that list and aren't reported.

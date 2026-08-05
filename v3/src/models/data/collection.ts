@@ -596,7 +596,8 @@ export const CollectionModel = V2Model
         // caches on that basis, since its nonEmptyCases simply mirror its cases. The childmost
         // collection cannot: emptiness there is derived from item values, and re-sending an
         // item id writes new values into a case that already exists.
-        const mustRecompute = _needsFullRebuild || newCaseIds?.length !== 0 || !self.child
+        const mustRecompute =
+          _needsFullRebuild || newCaseIds == null || newCaseIds.length > 0 || !self.child
 
         // Hidden-only groups are excluded so this matches REBUILD's walk of self.caseIds
         // (which already excludes them), which means the result can be empty even when
@@ -632,7 +633,15 @@ export const CollectionModel = V2Model
               else groupsByParent.set(parentCaseId, [group])
             })
             groupsByParent.forEach((groups, parentCaseId) => {
-              const childCaseIds = self.parent?.getCaseGroup(parentCaseId)?.childCaseIds ?? []
+              const childCaseIds = self.parent?.getCaseGroup(parentCaseId)?.childCaseIds
+              // Without the parent's children there is no way to say where these cases sit
+              // among their siblings, and counting back from an empty list would give them
+              // negative indices. Leave the indices updateCaseGroups assigned and report it,
+              // as addChildCase already does for the same condition.
+              if (!childCaseIds) {
+                console.warn("CollectionModel.completeCaseGroups -- missing parent case:", parentCaseId)
+                return
+              }
               const firstNewIndex = childCaseIds.length - groups.length
               groups.forEach((group, index) => {
                 group.groupedCase[symIndex] = firstNewIndex + index
