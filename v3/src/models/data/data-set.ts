@@ -1385,7 +1385,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
           if (!afterCase?.childItemIds.length) return
           const afterCaseItemId = afterCase.childItemIds[afterCase.childItemIds.length - 1]
           const afterCaseItemIndex = self.getItemIndex(afterCaseItemId)
-          if (afterCaseItemIndex) return afterCaseItemIndex + 1
+          if (afterCaseItemIndex != null) return afterCaseItemIndex + 1
         }
         const afterPosition = getAfterPosition()
         const insertPosition = beforePosition ?? afterPosition ?? self._itemIds.length

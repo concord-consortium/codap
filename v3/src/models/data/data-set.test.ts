@@ -1413,3 +1413,16 @@ describe("caseIdsCreatedByLastAppend", () => {
     expect(data.takeCaseIdsCreatedByLastAppend()).toBeUndefined()
   })
 })
+
+test("addCases inserts after a case whose last item is the first item", () => {
+  const data = DataSet.create()
+  data.addAttribute({ id: "pId", name: "p" })
+  data.addCases([{ __id__: "i0", pId: "a" }, { __id__: "i1", pId: "b" }], { canonicalize: false })
+  data.validateCases()
+
+  // index 0 is a valid position to insert after, so it must not be mistaken for "no position"
+  const firstCaseId = data.getItemChildCaseId("i0")!
+  data.addCases([{ __id__: "iX", pId: "c" }], { canonicalize: false, after: firstCaseId })
+
+  expect(data.itemIds).toEqual(["i0", "iX", "i1"])
+})
