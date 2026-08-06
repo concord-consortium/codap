@@ -52,7 +52,7 @@ export function createItemsInSegments(dataContext: IDataSet, segments: DIItemVal
     // knows only the end state, and the request would report nothing while cases existed.
     // Ordinary plugin traffic arrives here invalid: deleteItem, deleteCaseBy and
     // itemSearch.delete all removeCases without revalidating.
-    if (!dataContext.isValidCases) dataContext.validateCases()
+    dataContext.validateCases()
 
     // Add items and update cases. A multi-segment batch is a coalesced run of streamed
     // create requests, so observers (e.g. graphs) should snap rather than animate; a

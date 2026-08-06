@@ -1338,7 +1338,7 @@ test("appended items that make an attribute numeric notify isNumeric observers",
   dispose()
 })
 
-describe("caseIdsCreatedByLastAppend", () => {
+describe("takeCaseIdsCreatedByLastAppend", () => {
   function makeGrouped() {
     const data = DataSet.create()
     data.addAttribute({ id: "pId", name: "p" })
@@ -1348,7 +1348,6 @@ describe("caseIdsCreatedByLastAppend", () => {
     data.validateCases()
     return data
   }
-
 
   // Both of the ways it can answer have to go stale together: the ids either would report
   // can name cases that no longer exist once anything else changes the dataset.
@@ -1364,7 +1363,7 @@ describe("caseIdsCreatedByLastAppend", () => {
   })
 
   // addCases leaves grouping alone, so a caller that appends while the dataset is invalid
-  // gets no report -- not an empty one. (Whether those items are grouped at all in this
+  // gets no report — not an empty one. (Whether those items are grouped at all in this
   // state is CODAP-1486; callers that need an answer, like the item handler, validate first.)
   it("declines to answer when it appended without grouping the items", () => {
     const data = makeGrouped()
@@ -1403,7 +1402,7 @@ describe("caseIdsCreatedByLastAppend", () => {
   })
 
   // Inserting regroups from scratch, so it can't name what it produced. It has to say so
-  // rather than answer emptily -- a caller told "nothing was created" acts on that.
+  // rather than answer emptily — a caller told "nothing was created" acts on that.
   it("declines to answer after an insert rather than reporting nothing", () => {
     const data = makeGrouped()
     data.addCases([{ __id__: "i1", pId: "b", vId: "2" }], { canonicalize: false, before: "i0" })

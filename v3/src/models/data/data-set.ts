@@ -183,18 +183,6 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   // contains all items and child cases, including hidden ones
   itemIdChildCaseMap: new Map<string, CaseInfo>(),
 
-  // The cases created by the most recent append, keyed by collection id, when the additive
-  // path was able to say so directly. Read it through takeCaseIdsCreatedByLastAppend(), which
-  // also covers the un-hide fallback. Only valid until the next change to the dataset;
-  // invalidating the cases clears it.
-  newCaseIdsForLastAppend: undefined as Maybe<Record<string, string[]>>,
-
-  // Case ids per collection as they stood immediately before an append that had to abandon
-  // its additive pass. Diffing against these once grouping has been rebuilt recovers the
-  // answer; it costs a walk of the dataset, but only on a path that is regrouping it anyway.
-  // Only recorded from a valid starting point, so the ids are the ones that really were there.
-  appendBaselineCaseIds: undefined as Maybe<Record<string, string[]>>,
-
   // incremented when collection parent/child links are updated
   // Init: updated by initializeVolatileState
   syncCollectionLinksCount: 0,
@@ -239,6 +227,15 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   let _needsRegrouping = false
   let _needsValueRevalidation = false
   let _isValidItemIds = false
+  // What the most recent append can say about the cases it created, reachable only through
+  // the three actions below. Held here rather than as props so that reading really does
+  // consume: a direct reader could otherwise take the answer repeatedly, or find undefined and
+  // mistake "the append couldn't say" for "the append created nothing".
+  //   _appendReport   — the ids the additive pass minted, when it was able to report directly
+  //   _appendBaseline — what each collection held before an append that abandoned that pass,
+  //                     to be diffed against once grouping has been rebuilt
+  let _appendReport: Maybe<Record<string, string[]>>
+  let _appendBaseline: Maybe<Record<string, string[]>>
   // Item IDs removed during validation — flushed by setValidCases() in its runInAction
   let _pendingSelectionDeletes: string[] = []
 
@@ -341,11 +338,30 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       }
     },
     actions: {
+      clearAppendReport() {
+        _appendReport = undefined
+        _appendBaseline = undefined
+      },
+      setAppendReport(report: Record<string, string[]>) {
+        _appendReport = report
+      },
+      setAppendBaseline(baseline: Record<string, string[]>) {
+        _appendBaseline = baseline
+      },
+      // Hands over whatever the last append can say and forgets it, so the answer is consumed
+      // by whoever asks first rather than left to be read again after the dataset has moved on.
+      takeAppendReport() {
+        const report = _appendReport
+        const baseline = _appendBaseline
+        _appendReport = undefined
+        _appendBaseline = undefined
+        return { report, baseline }
+      },
       invalidateCases(regrouping = true) {
         prf.measure("DataSet.invalidateCases", () => {
           // any change to the dataset makes a previous append's report obsolete
-          self.newCaseIdsForLastAppend = undefined
-          self.appendBaselineCaseIds = undefined
+          _appendReport = undefined
+          _appendBaseline = undefined
           _isValidCases = false
           if (regrouping) {
             _needsRegrouping = true
@@ -812,11 +828,12 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
         // those to recover what each held beforehand. Collections after this one haven't been
         // touched yet. Regrouping loses that history, and callers still need to know what the
         // append produced.
+        const bailIndex = newCaseIdsByCollection.length
         const baseline: Record<string, string[]> = {}
         self.collections.forEach((processed, index) => {
-          const added = index < newCaseIdsByCollection.length
+          const added = index < bailIndex
             ? new Set(newCaseIdsByCollection[index])
-            : processed === collection
+            : index === bailIndex
               ? new Set([...newCaseIds, ...unhiddenCaseIds])
               : undefined
           baseline[processed.id] = added
@@ -825,7 +842,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
         })
         // invalidating clears both fields, so record the baseline after it
         self.invalidateCases()
-        self.appendBaselineCaseIds = baseline
+        self.setAppendBaseline(baseline)
         // leave the dataset grouped: an append shouldn't hand back a dataset that is both
         // invalid and holding case ids its cached case arrays don't know about
         self.validateCases()
@@ -861,7 +878,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     self.collections.forEach((collection, index) => {
       createdCaseIds[collection.id] = newCaseIdsByCollection[index]
     })
-    self.newCaseIdsForLastAppend = createdCaseIds
+    self.setAppendReport(createdCaseIds)
   }
 }))
 .views(self => ({
@@ -876,28 +893,29 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
 }))
 .actions(self => ({
   // The cases the most recent addCases created, keyed by collection id. Appending reports
-  // this directly, having brought grouping up to date first so it could. The un-hide fallback
-  // abandons that pass, so it records what it started from and the answer is recovered by
-  // comparison once grouping is rebuilt. Inserting regroups from scratch and can't say, and
-  // returns undefined rather than an empty answer — "couldn't tell" must never be mistaken
-  // for "created nothing".
+  // this directly, the caller having brought grouping up to date first so it could. The
+  // un-hide fallback abandons that pass, so it records what it started from and the answer is
+  // recovered by comparison once grouping is rebuilt. Inserting regroups from scratch and
+  // can't say, and returns undefined rather than an empty answer — "couldn't tell" must never
+  // be mistaken for "created nothing".
   //
   // Answers at most once, for the addCases immediately preceding it, and returns undefined
   // otherwise: reading consumes the answer, and any intervening change to the cases discards
   // it. That way the ids can never name cases that have since gone, without depending on an
   // audit of which mutations could invalidate them.
   takeCaseIdsCreatedByLastAppend(): Maybe<Record<string, string[]>> {
-    const { newCaseIdsForLastAppend, appendBaselineCaseIds } = self
-    self.newCaseIdsForLastAppend = undefined
-    self.appendBaselineCaseIds = undefined
+    const { report, baseline } = self.takeAppendReport()
 
-    if (newCaseIdsForLastAppend) return newCaseIdsForLastAppend
-    if (!appendBaselineCaseIds) return undefined
+    if (report) return report
+    if (!baseline) return undefined
 
+    // belt and braces: every path that records a baseline validates before returning, and the
+    // only caller validates too, so this should always be a no-op — but the diff below is
+    // meaningless against grouping that hasn't caught up
     self.validateCases()
     const created: Record<string, string[]> = {}
     self.collections.forEach(collection => {
-      const before = new Set(appendBaselineCaseIds[collection.id] ?? [])
+      const before = new Set(baseline[collection.id] ?? [])
       created[collection.id] = collection.caseIds.filter(caseId => !before.has(caseId))
     })
     return created
@@ -1367,8 +1385,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
         const { before, after } = options || {}
         let didAppendItems = false
         // only the paths below can report what this append created
-        self.newCaseIdsForLastAppend = undefined
-        self.appendBaselineCaseIds = undefined
+        self.clearAppendReport()
 
         const beforePosition = before
           ? self.getItemIndex(before) ?? self.getItemIndex(self.caseInfoMap.get(before)?.childItemIds[0] ?? "")

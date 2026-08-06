@@ -158,7 +158,7 @@ describe("createItemsInSegments", () => {
   it("doesn't report a surviving parent case when an append joins it", () => {
     const { dataset } = setupTestDataset()
     // delete one item of the a1="b" group, leaving that parent case alive, and don't
-    // revalidate -- so the append below runs the same newly-taken path as the tests around it
+    // revalidate — so the append below runs the same newly-taken path as the tests around it
     diItemHandler.delete?.({ dataContext: dataset, item: dataset.items[1] })
     expect(dataset.isValidCases).toBe(false)
 

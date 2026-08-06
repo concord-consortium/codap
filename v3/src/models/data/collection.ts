@@ -634,11 +634,11 @@ export const CollectionModel = V2Model
             })
             groupsByParent.forEach((groups, parentCaseId) => {
               const childCaseIds = self.parent?.getCaseGroup(parentCaseId)?.childCaseIds
-              // Without the parent's children there is no way to say where these cases sit
-              // among their siblings, and counting back from an empty list would give them
-              // negative indices. Leave the indices updateCaseGroups assigned and report it,
-              // as addChildCase already does for the same condition.
-              if (!childCaseIds) {
+              // Without the parent's children — or with fewer of them than we are placing —
+              // there is no way to say where these cases sit among their siblings, and counting
+              // back would give them negative indices. Leave the indices updateCaseGroups
+              // assigned and report it, as addChildCase already does for the same condition.
+              if (!childCaseIds || childCaseIds.length < groups.length) {
                 console.warn("CollectionModel.completeCaseGroups -- missing parent case:", parentCaseId)
                 return
               }

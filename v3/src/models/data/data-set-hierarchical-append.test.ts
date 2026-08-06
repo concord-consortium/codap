@@ -289,6 +289,12 @@ describe("DataSet hierarchical append", () => {
       { __id__: "i3", gId: "1", mId: "2", outId: "c" },
       { __id__: "i4", gId: "1", mId: "3", outId: "d" }
     ])
+    // the append leaves the dataset grouped rather than handing back one that is invalid and
+    // holding case ids its cached case arrays don't know about — asserted before validating
+    expect(data.isValidCases).toBe(true)
+    data.collections.forEach(collection =>
+      expect(collection.cases.length).toBe(collection.caseIds.length))
+
     data.validateCases()
 
     const middle = data.collections[1]
