@@ -418,6 +418,22 @@ describe("Attribute", () => {
     a.completeSnapshot()
   })
 
+  it("notifies observers when setLength grows the attribute", () => {
+    const a = Attribute.create({ name: "a", values: ["1"] })
+    const observed: number[] = []
+    const dispose = reaction(() => a.length, length => observed.push(length), { fireImmediately: true })
+    expect(observed).toEqual([1])
+
+    a.setLength(3)
+    expect(a.strValues).toEqual(["1", "", ""])
+    expect(observed).toEqual([1, 3])
+
+    // no growth, so nothing to report
+    a.setLength(3)
+    expect(observed).toEqual([1, 3])
+    dispose()
+  })
+
   describe("string hashing for serialization", () => {
     const shortValue = "a".repeat(kHashMapSizeThreshold - 1) // 63 chars, below threshold
     const longValue = "b".repeat(kHashMapSizeThreshold) // 64 chars, at threshold

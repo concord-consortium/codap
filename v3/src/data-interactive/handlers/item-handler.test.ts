@@ -1,5 +1,6 @@
 import { isAddCasesAction } from "../../models/data/data-set-actions"
 import { IAddCasesOptions } from "../../models/data/data-set-types"
+import { IDataSet } from "../../models/data/data-set"
 import { setupTestDataset } from "../../test/dataset-test-utils"
 import { toV2Id } from "../../utilities/codap-utils"
 import { onAnyAction } from "../../utilities/mst-utils"
@@ -119,6 +120,82 @@ describe("DataInteractive ItemHandler", () => {
 })
 
 describe("createItemsInSegments", () => {
+  // Ground truth, independent of how the handler works it out: a case belongs to a request
+  // exactly when every item in it came from that request. Deriving the expectation from the
+  // dataset's own caseIds would share whatever staleness the implementation has.
+  function casesCreatedBy(dataset: IDataSet, itemIds: string[]) {
+    dataset.validateCases()
+    const added = new Set(itemIds)
+    const created: string[] = []
+    dataset.caseInfoMap.forEach((caseInfo, caseId) => {
+      const items = [...caseInfo.childItemIds, ...caseInfo.hiddenChildItemIds]
+      if (items.length === 0 || !items.every(itemId => added.has(itemId))) return
+      // a case with no visible items has no index and is deliberately not reported
+      if (caseInfo.childItemIds.length === 0) return
+      created.push(caseId)
+    })
+    return created
+  }
+
+  it("reports every case created after the group's items were deleted", () => {
+    const { dataset } = setupTestDataset()
+    // a plugin deletes a whole group, then re-creates it; deleting doesn't revalidate
+    dataset.items.filter((_, index) => index % 2 === 1)
+      .forEach(item => diItemHandler.delete?.({ dataContext: dataset, item }))
+    expect(dataset.isValidCases).toBe(false)   // the path under test
+
+    const results = createItemsInSegments(dataset, [[
+      { a1: "b", a2: "y", a3: 100 }
+    ]]) as DISuccessResult[]
+
+    const newItemId = dataset.items[dataset.items.length - 1].__id__
+    const created = casesCreatedBy(dataset, [newItemId])
+    expect(created.length).toBe(3)
+    expect(results[0].caseIDs).toHaveLength(created.length)
+    created.forEach(caseId => expect(results[0].caseIDs).toContain(toV2Id(caseId)))
+  })
+
+  it("doesn't report a surviving parent case when an append joins it", () => {
+    const { dataset } = setupTestDataset()
+    // delete one item of the a1="b" group, leaving that parent case alive, and don't
+    // revalidate — so the append below runs the same newly-taken path as the tests around it
+    diItemHandler.delete?.({ dataContext: dataset, item: dataset.items[1] })
+    expect(dataset.isValidCases).toBe(false)
+
+    const results = createItemsInSegments(dataset, [[
+      { a1: "b", a2: "y", a3: 100 }
+    ]]) as DISuccessResult[]
+
+    const newItemId = dataset.items[dataset.items.length - 1].__id__
+    const created = casesCreatedBy(dataset, [newItemId])
+    // the a1="b" parent and the (b,y) middle case both survive, so only the leaf is new
+    expect(created.length).toBe(1)
+    expect(results[0].caseIDs).toHaveLength(1)
+    created.forEach(caseId => expect(results[0].caseIDs).toContain(toV2Id(caseId)))
+  })
+
+  it("reports only the new cases when a snapshot has just replaced the dataset", () => {
+    const { dataset, a1 } = setupTestDataset()
+    // prepareSnapshot first, as serializing a document does; without it afterApplySnapshot
+    // rebuilds the volatile values from an already-cleared frozen array and blanks them all,
+    // so the test would run against an empty dataset rather than a restored one
+    dataset.prepareSnapshot()
+    dataset.afterApplySnapshot()
+    dataset.completeSnapshot()
+    expect(a1.strValues).toEqual(["a", "b", "a", "b", "a", "b"])
+    expect(dataset.isValidCases).toBe(false)
+
+    const results = createItemsInSegments(dataset, [[
+      { a1: "zz", a2: "zz", a3: 200 }
+    ]]) as DISuccessResult[]
+
+    const newItemId = dataset.items[dataset.items.length - 1].__id__
+    const created = casesCreatedBy(dataset, [newItemId])
+    expect(created.length).toBe(3)
+    expect(results[0].caseIDs).toHaveLength(created.length)
+    created.forEach(caseId => expect(results[0].caseIDs).toContain(toV2Id(caseId)))
+  })
+
   it("slices itemIDs positionally per segment", () => {
     const { dataset } = setupTestDataset()
     const segments: DIItemValues[][] = [
@@ -157,6 +234,172 @@ describe("createItemsInSegments", () => {
     expect(results[1].caseIDs).not.toContain(newC1CaseIds[0])
     expect(results[1].caseIDs).not.toContain(newC2CaseIds[0])
     expect(results[1].caseIDs?.length).toBe(1)
+  })
+
+  // The fast path can't always say what it created. When it can't, the answer has to be
+  // worked out rather than assumed to be "nothing" — the cases exist either way, and a
+  // plugin told otherwise silently diverges from CODAP.
+  it("reports created cases when the data context is invalid on arrival", () => {
+    const { dataset } = setupTestDataset()
+    // deleteItem/deleteCaseBy/itemSearch.delete all removeCases without revalidating, so a
+    // plugin that deletes and then creates arrives here with grouping invalid
+    dataset.removeCases([dataset.items[0].__id__])
+    const before = dataset.collections.map(collection => new Set(collection.caseIds))
+
+    const results = createItemsInSegments(dataset, [[
+      { a1: "qq", a2: "qq", a3: 300 }
+    ]]) as DISuccessResult[]
+
+    const created = dataset.collections.flatMap((collection, index) =>
+      collection.caseIds.filter(caseId => !before[index].has(caseId)))
+    expect(created.length).toBeGreaterThan(0)
+    created.forEach(caseId => expect(results[0].caseIDs).toContain(toV2Id(caseId)))
+    // and nothing beyond them: reporting a case the request didn't produce sends the plugin
+    // a createCases notification for a case it already has
+    expect(results[0].caseIDs).toHaveLength(created.length)
+  })
+
+  it("reports created cases when an appended item un-hides a case", () => {
+    const { dataset } = setupTestDataset()
+    const bItemIds = dataset.items.filter((_, index) => index % 2 === 1).map(item => item.__id__)
+    dataset.hideCasesOrItems(bItemIds)
+    dataset.validateCases()
+    const before = dataset.collections.map(collection => new Set(collection.caseIds))
+
+    // the first item un-hides the "b" branch; the second forms an unrelated new branch
+    const results = createItemsInSegments(dataset, [[
+      { a1: "b", a2: "y", a3: 100 },
+      { a1: "zz", a2: "zz", a3: 200 }
+    ]]) as DISuccessResult[]
+
+    const created = dataset.collections.flatMap((collection, index) =>
+      collection.caseIds.filter(caseId => !before[index].has(caseId)))
+    expect(created.length).toBeGreaterThan(0)
+    created.forEach(caseId => expect(results[0].caseIDs).toContain(toV2Id(caseId)))
+    // and nothing beyond them: reporting a case the request didn't produce sends the plugin
+    // a createCases notification for a case it already has
+    expect(results[0].caseIDs).toHaveLength(created.length)
+  })
+
+  // The un-hidden case can turn up in a collection whose ancestors have already been grouped
+  // and already gained cases of their own, so recovering what they started from means
+  // discounting those.
+  it("reports created cases when an un-hidden case follows a new case in an outer collection", () => {
+    const { dataset } = setupTestDataset()
+    // item 2 is the only (a, z) item, so hiding it hides that middle case while its parent
+    // case "a" stays visible through items 0 and 4
+    dataset.hideCasesOrItems([dataset.items[2].__id__])
+    dataset.validateCases()
+    const before = dataset.collections.map(collection => new Set(collection.caseIds))
+
+    const results = createItemsInSegments(dataset, [[
+      { a1: "NEW", a2: "n", a3: 1 },   // forms a new case in the outermost collection
+      { a1: "a", a2: "z", a3: 9 }      // un-hides the middle case, in a later collection
+    ]]) as DISuccessResult[]
+
+    const created = dataset.collections.flatMap((collection, index) =>
+      collection.caseIds.filter(caseId => !before[index].has(caseId)))
+    expect(created.length).toBeGreaterThan(0)
+    created.forEach(caseId => expect(results[0].caseIDs).toContain(toV2Id(caseId)))
+    // and nothing beyond them: reporting a case the request didn't produce sends the plugin
+    // a createCases notification for a case it already has
+    expect(results[0].caseIDs).toHaveLength(created.length)
+  })
+
+  it("reports the cases a re-sent item id creates when its grouping values are new", () => {
+    const { dataset } = setupTestDataset()
+    const existingItemId = dataset.items[0].__id__
+    const before = dataset.collections.map(collection => new Set(collection.caseIds))
+
+    // re-sending an id moves that item to a new group, forming cases that really are new
+    const results = createItemsInSegments(dataset, [[
+      { id: toV2Id(existingItemId), values: { a1: "brandNewA1", a2: "brandNewA2", a3: 42 } }
+    ]]) as DISuccessResult[]
+
+    const created = dataset.collections.flatMap((collection, index) =>
+      collection.caseIds.filter(caseId => !before[index].has(caseId)))
+    expect(created.length).toBeGreaterThan(0)
+    created.forEach(caseId => expect(results[0].caseIDs).toContain(toV2Id(caseId)))
+    // and nothing beyond them: reporting a case the request didn't produce sends the plugin
+    // a createCases notification for a case it already has
+    expect(results[0].caseIDs).toHaveLength(created.length)
+  })
+
+  it("does not report pre-existing cases when an item id is re-sent", () => {
+    const { dataset } = setupTestDataset()
+    const existingItemId = dataset.items[0].__id__
+
+    // The Collaborative plugin supplies its own ids; a replayed or duplicated sync message
+    // re-sends one CODAP already holds. No case is created, so none should be reported.
+    const results = createItemsInSegments(dataset, [[
+      { id: toV2Id(existingItemId), values: { a1: "a", a2: "x", a3: 42 } }
+    ]]) as DISuccessResult[]
+
+    expect(results[0].caseIDs).toEqual([])
+  })
+
+  it("reports each new case for its own collection when an item id repeats in one request", () => {
+    const { dataset } = setupTestDataset()
+    const c1Before = new Set(dataset.collections[0].caseIds)
+    const c2Before = new Set(dataset.collections[1].caseIds)
+    const c3Before = new Set(dataset.collections[2].caseIds)
+
+    const results = createItemsInSegments(dataset, [[
+      { __id__: "dup", a1: "new", a2: "n1", a3: 1 },
+      { __id__: "dup", a1: "new", a2: "n2", a3: 2 }
+    ]]) as DISuccessResult[]
+
+    const reported = new Set(results[0].caseIDs ?? [])
+    const newIn = (collection: { caseIds: string[] }, before: Set<string>) =>
+      collection.caseIds.filter(caseId => !before.has(caseId))
+
+    // every case this request created is reported, in whichever collection it belongs to
+    const created = [
+      ...newIn(dataset.collections[0], c1Before),
+      ...newIn(dataset.collections[1], c2Before),
+      ...newIn(dataset.collections[2], c3Before)
+    ]
+    expect(created.length).toBeGreaterThan(0)
+    created.forEach(caseId => expect(reported.has(toV2Id(caseId))).toBe(true))
+  })
+
+  it("does not report a new case that is hidden", () => {
+    const { dataset } = setupTestDataset()
+    const itemId = dataset.items[0].__id__
+
+    // Setting an item aside and then removing it leaves its id set aside, so an item
+    // re-created under that id is hidden as soon as its case is formed.
+    dataset.hideCasesOrItems([itemId])
+    dataset.validateCases()
+    dataset.removeCases([itemId])
+    dataset.validateCases()
+
+    const results = createItemsInSegments(dataset, [[
+      { __id__: itemId, a1: "hidden", a2: "hidden", a3: 99 }
+    ]]) as DISuccessResult[]
+
+    expect(dataset.isItemHidden(itemId)).toBe(true)
+    expect(results[0].caseIDs).toEqual([])
+  })
+
+  it("reports new case ids in collection order rather than the order the items arrived", () => {
+    const { dataset, c2 } = setupTestDataset()
+    const c2Before = new Set(c2.caseIds)
+
+    // The first item joins the later parent "b" and the second the earlier parent "a", so
+    // the case the second item forms precedes the case the first item forms.
+    const results = createItemsInSegments(dataset, [[
+      { a1: "b", a2: "later", a3: 7 },
+      { a1: "a", a2: "earlier", a3: 8 }
+    ]]) as DISuccessResult[]
+
+    const newC2CaseIds = c2.caseIds.filter(caseId => !c2Before.has(caseId))
+    expect(newC2CaseIds.length).toBe(2)
+
+    const reported = results[0].caseIDs ?? []
+    const positions = newC2CaseIds.map(caseId => reported.indexOf(toV2Id(caseId)))
+    expect(positions.every(position => position >= 0)).toBe(true)
+    expect(positions).toEqual([...positions].sort((a, b) => a - b))
   })
 
   it("attributes a shared case to the earliest contributing segment when that is not segment 0", () => {

@@ -149,6 +149,9 @@ export const Attribute = V2Model.named("Attribute").props({
       return importValueToString(value)
     },
     get isNumeric() {
+      // Values live in a volatile array whose contents aren't observable, so like `length` and
+      // `type` this depends on changeCount to know when they've changed.
+      void self.changeCount
       // An attribute is considered numeric if any of its values is a number.
       return self.numValues.some(value => !isNaN(value))
     },
@@ -505,17 +508,23 @@ export const Attribute = V2Model.named("Attribute").props({
       }
       self.incChangeCount()
     },
+    // Grows in place rather than building a replacement array. Appending items calls this for
+    // every attribute, so reallocating would make each append cost the full attribute length.
+    // Growing in place also keeps `strValues` and `values` the same array in production, where
+    // they're shared (in development `values` is frozen and cleared during initialization).
+    // Because the arrays are volatile, mutating their contents is not itself observable — only
+    // changeCount is — so growing them has to report the change explicitly. Note that growth is
+    // therefore visible only to views that read changeCount, as `length`, `type` and `isNumeric`
+    // do; the per-index accessors don't, and so don't react to it.
     setLength(length: number) {
-      if (self.strValues.length < length) {
-        self.strValues = self.strValues.concat(new Array(length - self.strValues.length).fill(""))
-        if (isProduction()) {
-          // in production mode, `strValues` shares the `values` array since it isn't frozen
-          self.values = self.strValues
-        }
+      const didGrow = self.strValues.length < length || self.numValues.length < length
+      for (let i = self.strValues.length; i < length; ++i) {
+        self.strValues.push("")
       }
-      if (self.numValues.length < length) {
-        self.numValues = self.numValues.concat(new Array(length - self.numValues.length).fill(NaN))
+      for (let i = self.numValues.length; i < length; ++i) {
+        self.numValues.push(NaN)
       }
+      if (didGrow) self.incChangeCount()
     },
     removeValues(index: number, count = 1) {
       if ((index != null) && (index < self.strValues.length) && (count > 0)) {

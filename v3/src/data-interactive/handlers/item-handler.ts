@@ -45,12 +45,14 @@ export function createItemsInSegments(dataContext: IDataSet, segments: DIItemVal
 
   const newCaseIds: Record<string, string[]> = {}
   let itemIDs: string[] = []
+
   dataContext.applyModelChange(() => {
-    // Get case ids from before new items are added
-    const oldCaseIds: Record<string, Set<string>> = {}
-    dataContext.collections.forEach(collection => {
-      oldCaseIds[collection.id] = new Set(collection.caseIds)
-    })
+    // Bring grouping up to date before adding, so the add can group the new items additively
+    // and say which cases it created. Left invalid, it would defer to a full rebuild that
+    // knows only the end state, and the request would report nothing while cases existed.
+    // Ordinary plugin traffic arrives here invalid: deleteItem, deleteCaseBy and
+    // itemSearch.delete all removeCases without revalidating.
+    dataContext.validateCases()
 
     // Add items and update cases. A multi-segment batch is a coalesced run of streamed
     // create requests, so observers (e.g. graphs) should snap rather than animate; a
@@ -59,12 +61,17 @@ export function createItemsInSegments(dataContext: IDataSet, segments: DIItemVal
     itemIDs = dataContext.addCases(items, { canonicalize: true, suppressAnimation })
     dataContext.validateCases()
 
-    // Find newly added cases by comparing current cases to previous cases
+    // The cases this request created, as reported by the add itself. The additive path knows
+    // exactly which case ids it minted; the paths that regroup work it out by comparison.
+    const created = dataContext.takeCaseIdsCreatedByLastAppend() ?? {}
     dataContext.collections.forEach(collection => {
-      newCaseIds[collection.id] = []
-      collection.caseIds.forEach(caseId => {
-        if (!oldCaseIds[collection.id].has(caseId)) newCaseIds[collection.id].push(caseId)
-      })
+      // Report them in the collection's case order, as a scan of its case ids would. Cases
+      // with no index of their own (hidden ones) aren't in that list and aren't reported.
+      newCaseIds[collection.id] = (created[collection.id] ?? [])
+        .map(caseId => ({ caseId, index: collection.getCaseIndex(caseId) ?? -1 }))
+        .filter(({ index }) => index >= 0)
+        .sort((a, b) => a.index - b.index)
+        .map(({ caseId }) => caseId)
     })
   }, {
     notify: () => {
