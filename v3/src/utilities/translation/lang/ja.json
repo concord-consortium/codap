@@ -1018,7 +1018,7 @@
     "DG.plugin.Sampler.password-options.password-failed": "パスワードが間違っています。",
     "DG.plugin.Sampler.options.reload": "デフォルト設定を再ロードする",
     "DG.plugin.Sampler.about.paragraph1": "CODAP サンプラー プラグインは、ミキサーに配置されたアイテムをランダムに選択したり、スピナーのセクター サイズに基づいてアイテムを選択したり、データのコレクションからケースを選択したりできます。",
-    "DG.plugin.Sampler.about.item1": "<b><n> を選択します。項目</b>はサンプルサイズを決定します。",
+    "DG.plugin.Sampler.about.item1": "<b>&lt;n&gt; を選択します。項目</b>はサンプルサイズを決定します。",
     "DG.plugin.Sampler.about.item2": "<b>&lt;n&gt; を収集しますサンプル</b> は、特定の実験で繰り返すサンプルの数を制御します。",
     "DG.plugin.Sampler.about.paragraph2.1": "サンプリングの速度や、置換ありまたは置換なしでサンプリングするかどうかを制御できます ([オプション] タブ)。サンプラーから生成されたデータは階層テーブルに表示されます。最上位レベルは実験 (シミュレーションの 1 回の完全な実行) を表し、実験全体に関する統計量を計算できます。次のレベルには各サンプルに関する情報が含まれており、各サンプルに関する統計を計算できます。項目レベルには、サンプラーから抽出された個々の値が表示されます。これ",
     "DG.plugin.Sampler.about.paragraph2.2": "サンプラーの基本について説明します。",
