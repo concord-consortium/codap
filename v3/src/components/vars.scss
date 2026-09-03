@@ -89,9 +89,10 @@ $palette-pointer-size: 10px;
 $palette-color-row-height: 30px;
 $palette-color-row-margin: 4px;
 
-// Legend-category rows are the same height but sit a little further apart.
-$palette-category-row-margin: 6px;
-$palette-category-row-height: $palette-color-row-height + 2 * $palette-category-row-margin; // 42px
+// Legend-category rows are the same height but sit a little further apart. The rows are flex
+// items, so these margins do not collapse and neighbouring rows sit 2 * this value apart.
+$palette-category-row-margin: 3px;
+$palette-category-row-height: $palette-color-row-height + 2 * $palette-category-row-margin; // 36px
 
 // The scrolling legend-category list shows 2.5 rows, so half of the third row is always visible
 // when there is one. Stopping flush at a whole row leaves no indication that the list scrolls.
