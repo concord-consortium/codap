@@ -314,4 +314,76 @@ describe("DisplayItemFormatControl", () => {
       expect(screen.queryByTestId("plot-background-controls")).not.toBeInTheDocument()
     })
   })
+
+  describe("section headers", () => {
+    const renderSectioned = (props?: Record<string, unknown>) => render(
+      <DisplayItemFormatControl
+        dataConfiguration={createMockDataConfig() as any}
+        displayItemDescription={createMockDescription() as any}
+        showSectionHeaders={true}
+        onBackgroundTransparencyChange={jest.fn()}
+        onBackgroundColorChange={jest.fn()}
+        {...props}
+      />
+    )
+
+    it("renders no headings or regions when showSectionHeaders is not set", () => {
+      // The map layers palette relies on this: it heads each layer with the layer's own name and
+      // repeats these controls per layer, so it must get the flat layout.
+      render(
+        <DisplayItemFormatControl
+          dataConfiguration={createMockDataConfig() as any}
+          displayItemDescription={createMockDescription() as any}
+          onBackgroundTransparencyChange={jest.fn()}
+          onBackgroundColorChange={jest.fn()}
+        />
+      )
+
+      expect(screen.queryByRole("heading")).not.toBeInTheDocument()
+      expect(screen.queryByRole("region")).not.toBeInTheDocument()
+      // The controls themselves are unaffected.
+      expect(screen.getByTestId("point-size-slider")).toBeInTheDocument()
+      expect(screen.getByTestId("plot-background-controls")).toBeInTheDocument()
+    })
+
+    it("renders both section headings when showSectionHeaders is set", () => {
+      renderSectioned()
+
+      expect(screen.getByRole("heading", { name: "V3.Inspector.section.dataPoints" })).toBeInTheDocument()
+      expect(screen.getByRole("heading", { name: "V3.Inspector.section.graph" })).toBeInTheDocument()
+    })
+
+    it("exposes each section as a region labelled by its heading", () => {
+      renderSectioned()
+
+      // aria-labelledby has to resolve for the section to be announced as a named region.
+      const dataPoints = screen.getByRole("region", { name: "V3.Inspector.section.dataPoints" })
+      const graph = screen.getByRole("region", { name: "V3.Inspector.section.graph" })
+      expect(dataPoints).toBeInTheDocument()
+      expect(graph).toBeInTheDocument()
+      expect(dataPoints).not.toBe(graph)
+    })
+
+    it("puts the point controls in Data Points and the background controls in Graph", () => {
+      renderSectioned()
+
+      const dataPoints = screen.getByRole("region", { name: "V3.Inspector.section.dataPoints" })
+      const graph = screen.getByRole("region", { name: "V3.Inspector.section.graph" })
+
+      expect(dataPoints).toContainElement(screen.getByTestId("point-size-slider"))
+      expect(dataPoints).toContainElement(screen.getByTestId("legend-color-controls"))
+      expect(dataPoints).toContainElement(screen.getByTestId("stroke-same-as-fill-checkbox"))
+      expect(dataPoints).not.toContainElement(screen.getByTestId("plot-background-controls"))
+
+      expect(graph).toContainElement(screen.getByTestId("plot-background-controls"))
+      expect(graph).not.toContainElement(screen.getByTestId("point-size-slider"))
+    })
+
+    it("omits the Graph section when there are no background controls to put in it", () => {
+      renderSectioned({ onBackgroundTransparencyChange: undefined, onBackgroundColorChange: undefined })
+
+      expect(screen.getByRole("heading", { name: "V3.Inspector.section.dataPoints" })).toBeInTheDocument()
+      expect(screen.queryByRole("heading", { name: "V3.Inspector.section.graph" })).not.toBeInTheDocument()
+    })
+  })
 })

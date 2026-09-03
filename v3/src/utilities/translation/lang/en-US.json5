@@ -1005,6 +1005,8 @@
     "V3.Inspector.colorPicker.color.lightGreen": "Light green",
 
     // Graph/Map Inspector
+    "V3.Inspector.section.dataPoints": "Data Points",
+    "V3.Inspector.section.graph": "Graph",
     "DG.Inspector.strokeSameAsFill": "Border color same as fill",
     "DG.Inspector.lockLegendQuantiles": "Lock legend color bins",
     "DG.Inspector.lockLegendQuantilesTooltip": "When checked, the color bins will not change when the values change.",
