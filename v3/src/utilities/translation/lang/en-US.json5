@@ -1389,6 +1389,8 @@
     "V3.Redo.graph.uncheckLastParentOnly": "Redo unchecking \"Last\" checkbox",
     "V3.Undo.graph.changeAttributeBinningType": "Undo changing attribute binning type",
     "V3.Redo.graph.changeAttributeBinningType": "Redo changing attribute binning type",
+    "V3.Undo.graph.changePointShape": "Undo changing data shape",
+    "V3.Redo.graph.changePointShape": "Redo changing data shape",
     "V3.Undo.legend.setLegendMin": "Undo setting legend minimum",
     "V3.Redo.legend.setLegendMin": "Redo setting legend minimum",
     "V3.Undo.legend.setLegendMax": "Undo setting legend maximum",

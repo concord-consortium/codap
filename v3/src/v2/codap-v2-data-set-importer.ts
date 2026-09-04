@@ -208,14 +208,16 @@ export class CodapV2DataSetImporter {
   importCategories(data: IDataSet, metadata: IDataSetMetadata, attributes: ICodapV2Attribute[]) {
     attributes.forEach(v2Attr => {
       const {
-        guid, colormap, _categoryMap
+        guid, colormap, _categoryMap, v3
       } = v2Attr
       const attribute = data.getAttribute(toV3AttrId(guid))
       if (attribute) {
         const categorySetInput: Maybe<V2CategorySetInput> = _categoryMap || colormap
-        if (categorySetInput) {
+        // Shapes can be the only thing to restore, so they warrant a category set on their own.
+        const categoryShapes = v3?.categoryShapes
+        if (categorySetInput || categoryShapes) {
           // create CategorySet if necessary
-          const categorySetSnap = importV2CategorySet(attribute, categorySetInput)
+          const categorySetSnap = importV2CategorySet(attribute, categorySetInput, categoryShapes)
           if (categorySetSnap) {
             metadata.setCategorySet(attribute.id, categorySetSnap)
           }

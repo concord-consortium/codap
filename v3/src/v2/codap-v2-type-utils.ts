@@ -1,5 +1,6 @@
 import { AxisModelType } from "../components/axis/models/axis-model"
 import { IFormula } from "../models/formula/formula"
+import { kDefaultPointShape } from "../utilities/point-shape-utils"
 
 interface IBaseLegendQuantileProps {
   numberOfLegendQuantiles?: number
@@ -24,6 +25,7 @@ export type V2PlaceToV3AxisTypeMap = Partial<Record<string, AxisModelType>>
 interface IImportV3Properties extends IImportLegendQuantileProps {
   axisTypes?: V2PlaceToV3AxisTypeMap
   filterFormula?: string
+  pointShape?: string
 }
 
 function hasFilterFormula(props: IExportV3Properties): boolean {
@@ -101,9 +103,12 @@ export function applyImportedLegendBinCount(
 interface IExportV3PropsOptions {
   axisTypes?: V2PlaceToV3AxisTypeMap
   includeLegendQuantiles?: boolean
+  // The shape used when no legend attribute assigns one per category. Per-category shapes are
+  // attribute state and travel on the attribute's own v3 namespace instead.
+  pointShape?: string
 }
 export function exportV3Properties(props: IExportV3Properties, options?: IExportV3PropsOptions) {
-  const { axisTypes, includeLegendQuantiles } = options || {}
+  const { axisTypes, includeLegendQuantiles, pointShape } = options || {}
   const _hasFilter = hasFilterFormula(props)
   // Only write legend quantile props into the v3 namespace when explicitly requested (maps). Graphs
   // round-trip the bin count via the native top-level numberOfLegendQuantiles, so a v3 copy would be
@@ -113,12 +118,15 @@ export function exportV3Properties(props: IExportV3Properties, options?: IExport
                           : {}
   const _hasLegendQuantiles = Object.keys(legendStorage).length > 0
   const _hasAxisTypes = axisTypes && (Object.keys(axisTypes).length > 0)
-  return _hasFilter || _hasLegendQuantiles || _hasAxisTypes
+  // Only a non-default shape is worth writing; a document that never used the feature gains nothing.
+  const _hasPointShape = pointShape != null && pointShape !== kDefaultPointShape
+  return _hasFilter || _hasLegendQuantiles || _hasAxisTypes || _hasPointShape
           ? {
               v3: {
                 ...(_hasFilter ? { filterFormula: props.filterFormula?.display } : {}),
                 ...legendStorage,
-                ...(axisTypes ? { axisTypes } : {})
+                ...(axisTypes ? { axisTypes } : {}),
+                ...(_hasPointShape ? { pointShape } : {})
               }
             }
           : {}

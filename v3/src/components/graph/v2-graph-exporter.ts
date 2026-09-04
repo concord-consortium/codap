@@ -335,7 +335,10 @@ export const v2GraphExporter: V2TileExportFn = ({ tile }) => {
     // plot models
     ...getPlotModels(graph),
     // v3 extensions
-    ...exportV3Properties(graph.dataConfiguration, { axisTypes: getV3AxisTypes(graph) })
+    ...exportV3Properties(graph.dataConfiguration, {
+      axisTypes: getV3AxisTypes(graph),
+      pointShape: graph.pointDescription.pointShape
+    })
   }
 
   return { type: "DG.GraphView", componentStorage }

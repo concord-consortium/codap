@@ -459,6 +459,9 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   // v3 extensions
   v3?: {
     filterFormula?: string
+    // The point shape used when no legend attribute assigns one per category. Per-category
+    // shapes are attribute state and live on the attribute's own v3 namespace.
+    pointShape?: string
   } & ICodapV2LegendQuantileV3Extensions
 }
 

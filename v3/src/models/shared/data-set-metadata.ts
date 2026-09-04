@@ -597,7 +597,13 @@ export const DataSetMetadata = SharedModel
     }
   }))
   .actions(self => ({
-    // moves a category set from the provisional map to the official one
+    /*
+     * Moves a category set from the provisional map to the official one.
+     *
+     * The official set is built from a snapshot, so it is a different instance than the
+     * provisional one it replaces. Anything still holding the provisional reference goes on
+     * writing to an object that is no longer in the tree, and those writes are silently lost.
+     */
     promoteProvisionalCategorySet(categorySet: ICategorySet) {
       const attrId = categorySet.attribute.id
       self.setCategorySet(attrId, getSnapshot(categorySet))
@@ -606,7 +612,15 @@ export const DataSetMetadata = SharedModel
     }
   }))
   .views(self => ({
-    // returns an existing category set (if available) or creates a new provisional one (for valid attributes)
+    /*
+     * Returns an existing category set (if available) or creates a new provisional one (for valid
+     * attributes).
+     *
+     * Resolve the set again for each modification rather than holding the result across them. The
+     * first change promotes a provisional set, and promotion replaces the instance, so a cached
+     * reference is stale from then on. The per-category setters on the data configuration call
+     * through here every time for this reason.
+     */
     getCategorySet(attrId: string, createIfMissing = true): Maybe<ICategorySet> {
       let categorySet = self.attributes.get(attrId)?.categories ?? self.provisionalCategories.get(attrId)
       if (!categorySet && self.data?.attrFromID(attrId)) {
@@ -619,7 +633,7 @@ export const DataSetMetadata = SharedModel
         })
         // promote provisional category sets when they are modified by the user
         when(
-          () => !!categorySet?.moves.length || !!categorySet?.colors.size,
+          () => !!categorySet?.moves.length || !!categorySet?.colors.size || !!categorySet?.shapes.size,
           () => {
             if (categorySet && self.provisionalCategories.has(attrId)) {
               self.promoteProvisionalCategorySet(categorySet)

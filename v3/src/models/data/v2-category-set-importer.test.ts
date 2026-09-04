@@ -60,4 +60,50 @@ describe("importV2CategorySet", () => {
       { value: "e", fromIndex: 3, toIndex: 0, before: "d", length: 4 }
     ])
   })
+
+  describe("point shapes", () => {
+    const makeAttribute = () => Attribute.create({
+      id: "aId", name: "a", values: ["land", "water", "land"]
+    })
+
+    it("imports assigned shapes", () => {
+      const result = importV2CategorySet(makeAttribute(), undefined, { land: "star", water: "diamond" })
+      expect(result?.shapes).toEqual({ land: "star", water: "diamond" })
+    })
+
+    it("creates a category set when shapes are the only thing to restore", () => {
+      // no colors and no order, so nothing else would justify a category set
+      const result = importV2CategorySet(makeAttribute(), undefined, { land: "star" })
+      expect(result).toBeDefined()
+      expect(result?.shapes).toEqual({ land: "star" })
+    })
+
+    it("returns nothing when there is no shape, color or move to restore", () => {
+      expect(importV2CategorySet(makeAttribute(), undefined, {})).toBeUndefined()
+      expect(importV2CategorySet(makeAttribute(), undefined, undefined)).toBeUndefined()
+    })
+
+    it("drops the default, which is stored as absence", () => {
+      const result = importV2CategorySet(makeAttribute(), undefined, { land: "circle", water: "star" })
+      expect(result?.shapes).toEqual({ water: "star" })
+    })
+
+    it("drops a shape this build does not recognize", () => {
+      // a document written by a newer build must not inject an unknown value into the model
+      const result = importV2CategorySet(makeAttribute(), undefined, { land: "hexagon", water: "star" })
+      expect(result?.shapes).toEqual({ water: "star" })
+    })
+
+    it("keeps a shape for a category not currently in the data", () => {
+      /*
+       * Deliberate, and deliberately unlike colors: every shape entry is a user assignment, so
+       * there is no auto-generated noise to age out. A category whose cases are deleted and later
+       * restored -- a sampler re-run, say -- gets the shape its user chose back. v2 keeps its own
+       * assignments for absent categories for the same reason.
+       */
+      const result = importV2CategorySet(makeAttribute(), undefined, { land: "star", lava: "plus" })
+      expect(result?.shapes).toEqual({ land: "star", lava: "plus" })
+    })
+  })
+
 })

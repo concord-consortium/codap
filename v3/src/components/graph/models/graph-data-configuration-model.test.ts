@@ -1078,3 +1078,46 @@ describe("DataConfigurationModel legend range overrides", () => {
     expect(t.config.legendBinDataExtents).toBeUndefined()
   })
 })
+
+describe("DataConfigurationModel legend point shapes", () => {
+  beforeEach(() => {
+    tree = TreeModel.create({ data: {}, metadata: {}, config: {} })
+    tree.data.addAttribute({ id: "legId", name: "leg" })
+    tree.metadata.setData(tree.data)
+    tree.data.addCases(toCanonical(tree.data, [
+      { __id__: "c1", leg: "land" },
+      { __id__: "c2", leg: "water" }
+    ]))
+    tree.config.setDataset(tree.data, tree.metadata)
+    tree.config.setAttribute("legend", { attributeID: "legId" })
+  })
+
+  it("reports the default shape before anything is assigned", () => {
+    expect(tree.config.attributeType("legend")).toBe("categorical")
+    expect(tree.config.getLegendShapeForCategory("land")).toBe("circle")
+    expect(tree.config.getLegendShapeForCategory("water")).toBe("circle")
+  })
+
+  it("round-trips a shape through the category set", () => {
+    tree.config.setLegendShapeForCategory("land", "star")
+    expect(tree.config.getLegendShapeForCategory("land")).toBe("star")
+    // sibling categories are unaffected
+    expect(tree.config.getLegendShapeForCategory("water")).toBe("circle")
+  })
+
+  it("stores the shape on the shared category set, not on the configuration", () => {
+    // two configurations over the same legend attribute must agree, which is the reason
+    // per-category shape lives on the attribute's category set
+    tree.config.setLegendShapeForCategory("land", "diamond")
+    const categorySet = tree.metadata.getCategorySet("legId")
+    expect(categorySet?.shapeForCategory("land")).toBe("diamond")
+  })
+
+  it("falls back to the default when there is no legend attribute", () => {
+    tree.config.setAttribute("legend", { attributeID: "" })
+    // no category set to consult, so reads resolve rather than returning undefined
+    expect(tree.config.getLegendShapeForCategory("land")).toBe("circle")
+    // and assignment is a no-op rather than a crash
+    expect(() => tree.config.setLegendShapeForCategory("land", "star")).not.toThrow()
+  })
+})

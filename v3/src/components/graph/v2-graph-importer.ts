@@ -4,6 +4,7 @@ import {AxisPlace} from "../axis/axis-types"
 import { ITileModel, ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import {toV3AttrId, toV3Id} from "../../utilities/codap-utils"
 import {defaultBackgroundColor, parseColorToHex} from "../../utilities/color-utils"
+import {pointShapeOrDefault} from "../../utilities/point-shape-utils"
 import {v3TypeFromV2TypeIndex} from "../../v2/codap-v2-data-context-types"
 import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
 import { IGuidLink, isV2GraphComponent } from "../../v2/codap-v2-types"
@@ -219,7 +220,9 @@ export function v2GraphImporter({v2Component, v2Document, getCaseData, insertTil
       _itemStrokeColor: strokeColor ? parseColorToHex(strokeColor, {colorNames: true, alpha: strokeTransparency})
                                     : strokeColor,
       _pointSizeMultiplier: pointSizeMultiplier,
-      _itemStrokeSameAsFill: strokeSameAsFill
+      _itemStrokeSameAsFill: strokeSameAsFill,
+      // Absent for documents v2 wrote, and for anything v2 re-saved; those import as the default.
+      _itemShape: pointShapeOrDefault(v3?.pointShape)
     },
     layers: [{
       type: kGraphPointLayerType,

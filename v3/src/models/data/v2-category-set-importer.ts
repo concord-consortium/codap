@@ -1,6 +1,7 @@
 import { colord } from "colord"
 import { kellyColors } from "../../utilities/color-utils"
 import { compareValues } from "../../utilities/data-utils"
+import { isPointShape, kDefaultPointShape } from "../../utilities/point-shape-utils"
 import { gLocale } from "../../utilities/translation/locale"
 import { CodapV2ColorMap, ICodapV2CategoryMap, isV2CategoryMap } from "../../v2/codap-v2-data-context-types"
 import { IAttribute } from "./attribute"
@@ -9,10 +10,27 @@ import { MinimalMovesFinder } from "./minimal-moves-finder"
 
 export type V2CategorySetInput = CodapV2ColorMap | ICodapV2CategoryMap
 
-export function importV2CategorySet(attribute: IAttribute, input: V2CategorySetInput): Maybe<ICategorySetSnapshot> {
+export function importV2CategorySet(
+  attribute: IAttribute, input: Maybe<V2CategorySetInput>, categoryShapes?: Record<string, string>
+): Maybe<ICategorySetSnapshot> {
   let moves: ICategoryMove[] = []
   // map from category string to hex color string
   const colors: Record<string, string> = {}
+
+  /*
+   * Shapes come from the attribute's v3 namespace, and are taken as given rather than filtered
+   * against the categories currently in the data.
+   *
+   * Every entry here is a deliberate user assignment. Colors differ: some paths assign them
+   * automatically by category position, which is why the color loop below only keeps a color
+   * that differs from the one that position would have produced. Shapes have no such generated
+   * noise to age out, so a category whose cases are deleted and later restored keeps the shape
+   * the user chose for it — which is also what v2 does, deliberately, for the same reason.
+   */
+  const shapes: Record<string, string> = {}
+  Object.entries(categoryShapes ?? {}).forEach(([category, shape]) => {
+    if (isPointShape(shape) && shape !== kDefaultPointShape) shapes[category] = shape
+  })
 
   let colorMap: CodapV2ColorMap = {}
 
@@ -44,7 +62,7 @@ export function importV2CategorySet(attribute: IAttribute, input: V2CategorySetI
     moves = minMovesFinder.minMoves()
   }
   else {
-    colorMap = input
+    colorMap = input ?? {}
   }
 
   // V2 assigns colors to categories in the order they appear in the data.
@@ -64,11 +82,12 @@ export function importV2CategorySet(attribute: IAttribute, input: V2CategorySetI
     }
   }
 
-  if (moves.length > 0 || Object.keys(colors).length > 0) {
+  if (moves.length > 0 || Object.keys(colors).length > 0 || Object.keys(shapes).length > 0) {
     return {
       attribute: attribute.id,
       moves,
-      colors
+      colors,
+      shapes
     }
   }
 }
