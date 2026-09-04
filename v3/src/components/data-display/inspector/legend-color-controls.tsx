@@ -12,16 +12,20 @@ import {
   kDefaultHighAttributeColor, kDefaultLowAttributeColor
 } from "../../../models/shared/data-set-metadata-constants"
 import { binBoundaryDecimalPlaces } from "../../../utilities/math-utils"
+import { PointShape } from "../../../utilities/point-shape-utils"
 import { t } from "../../../utilities/translation/translate"
+import { If } from "../../common/if"
 import { PaletteCheckbox } from "../../palette-checkbox"
 import { getScaleThresholds } from "../components/legend/choropleth-legend/choropleth-legend"
 import {
   changeAttributeColorNotification, changeLegendBinCountNotification, changeLegendBinsTypeNotification,
-  changeLegendRangeNotification, changePointColorAndAlphaNotification, changePointColorNotification
+  changeLegendRangeNotification, changePointColorAndAlphaNotification, changePointColorNotification,
+  changePointShapeNotification
 } from "../data-display-notifications"
 import { IDataConfigurationModel, kDefaultLegendBinCount } from "../models/data-configuration-model"
 import { IDisplayItemDescriptionModel } from "../models/display-item-description-model"
 import { PointColorSetting } from "./point-color-setting"
+import { PointShapeSetting } from "./point-shape-setting"
 
 interface ILegendColorControlsProps {
   dataConfiguration: IDataConfigurationModel
@@ -48,6 +52,30 @@ export const LegendColorControls = observer(function LegendColorControls(
       redoStringKey: "DG.Redo.graph.changePointColor",
       log: attrType === "categorical" ? "Changed categorical point color" : "Changed point color"
     })
+  }
+
+  const handlePointShapeChange = (shape: PointShape) => {
+    displayItemDescription.applyModelChange(
+      () => displayItemDescription.setPointShape(shape),
+      {
+        notify: () => changePointShapeNotification(tile, shape),
+        undoStringKey: "V3.Undo.graph.changePointShape",
+        redoStringKey: "V3.Redo.graph.changePointShape",
+        log: "Changed point shape"
+      }
+    )
+  }
+
+  const handleCatPointShapeChange = (shape: PointShape, cat: string) => {
+    dataConfiguration.applyModelChange(
+      () => dataConfiguration.setLegendShapeForCategory(cat, shape),
+      {
+        notify: () => changePointShapeNotification(tile, shape, cat),
+        undoStringKey: "V3.Undo.graph.changePointShape",
+        redoStringKey: "V3.Redo.graph.changePointShape",
+        log: "Changed category point shape"
+      }
+    )
   }
 
   const handleCatPointColorChange = (color: string, cat: string) => {
@@ -102,6 +130,7 @@ export const LegendColorControls = observer(function LegendColorControls(
         categories={categoriesRef.current}
         dataConfiguration={dataConfiguration}
         onCatPointColorChange={handleCatPointColorChange}
+        onCatPointShapeChange={handleCatPointShapeChange}
       />
     )
   }
@@ -137,9 +166,19 @@ export const LegendColorControls = observer(function LegendColorControls(
 
   if (attrType === "color") return null
 
+  // With no legend attribute there are no categories to list, so the same two controls apply to
+  // every point and sit in a single row.
+  const showShape = isFeatureEnabled("pointShapes")
+  const singleRowLabel = showShape ? t("V3.Inspector.points") : t("DG.Inspector.color")
   return (
     <div className="palette-row color-picker-row">
-      <label className="form-label color-picker">{t("DG.Inspector.color")}</label>
+      <label className="form-label color-picker">{singleRowLabel}</label>
+      <If condition={showShape}>
+        <PointShapeSetting propertyLabel={t("V3.Inspector.pointShape")}
+                          shape={displayItemDescription.pointShape}
+                          color={displayItemDescription.pointColor}
+                          onShapeChange={handlePointShapeChange}/>
+      </If>
       <PointColorSetting propertyLabel={t("DG.Inspector.color")}
                         onColorChange={(color) => handlePointColorChange(color)}
                         swatchBackgroundColor={displayItemDescription.pointColor}/>
@@ -151,10 +190,11 @@ interface ICategoricalColorControlsProps {
   categories?: string[]
   dataConfiguration: IDataConfigurationModel
   onCatPointColorChange: (color: string, cat: string) => void
+  onCatPointShapeChange: (shape: PointShape, cat: string) => void
 }
 
 const CategoricalColorControls = observer(function CategoricalColorControls(
-  { categories, dataConfiguration, onCatPointColorChange }: ICategoricalColorControlsProps
+  { categories, dataConfiguration, onCatPointColorChange, onCatPointShapeChange }: ICategoricalColorControlsProps
 ) {
   const [scrollVersion, setScrollVersion] = useState(0)
 
@@ -167,6 +207,13 @@ const CategoricalColorControls = observer(function CategoricalColorControls(
       {categories?.map(category => (
         <div key={category} className="palette-row color-picker-row cat-color-picker">
           <label className="form-label color-picker">{category}</label>
+          <If condition={isFeatureEnabled("pointShapes")}>
+            <PointShapeSetting propertyLabel={category}
+              closeTrigger={scrollVersion}
+              shape={dataConfiguration.getLegendShapeForCategory(category)}
+              color={dataConfiguration.getLegendColorForCategory(category)}
+              onShapeChange={(shape) => onCatPointShapeChange(shape, category)}/>
+          </If>
           <PointColorSetting key={category} propertyLabel={category}
             closeTrigger={scrollVersion}
             onColorChange={(color) => onCatPointColorChange(color, category)}

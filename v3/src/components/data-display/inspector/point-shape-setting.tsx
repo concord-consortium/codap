@@ -1,0 +1,121 @@
+import { clsx } from "clsx"
+import { observer } from "mobx-react-lite"
+import React, { useEffect, useState } from "react"
+import { Button, ListBox, ListBoxItem, Popover, Select, SelectValue } from "react-aria-components"
+import CircleIcon from "../../../assets/icons/point-shapes/point-circle.nosvgo.svg"
+import DiamondIcon from "../../../assets/icons/point-shapes/point-diamond.nosvgo.svg"
+import PlusIcon from "../../../assets/icons/point-shapes/point-plus.nosvgo.svg"
+import SquareIcon from "../../../assets/icons/point-shapes/point-square.nosvgo.svg"
+import StarIcon from "../../../assets/icons/point-shapes/point-star.nosvgo.svg"
+import TriangleIcon from "../../../assets/icons/point-shapes/point-triangle.nosvgo.svg"
+import XIcon from "../../../assets/icons/point-shapes/point-x.nosvgo.svg"
+import { PointShape, PointShapes } from "../../../utilities/point-shape-utils"
+import { t } from "../../../utilities/translation/translate"
+
+const kShapeIcons: Record<PointShape, React.FC<React.SVGProps<SVGSVGElement>>> = {
+  circle: CircleIcon,
+  square: SquareIcon,
+  triangle: TriangleIcon,
+  diamond: DiamondIcon,
+  star: StarIcon,
+  plus: PlusIcon,
+  x: XIcon
+}
+
+export function shapeLabel(shape: PointShape) {
+  return t(`V3.Inspector.pointShape.${shape}`)
+}
+
+type IShapeIconProps = React.SVGProps<SVGSVGElement> & {
+  shape: PointShape
+}
+
+// The glyph is decorative: the control that renders it supplies the accessible name. Its fill is
+// currentColor, so whatever sets `color` on it — the row passes the category's color — tints it.
+function ShapeIcon({ shape, ...svgProps }: IShapeIconProps) {
+  const Icon = kShapeIcons[shape]
+  return <Icon aria-hidden="true" focusable="false" {...svgProps} />
+}
+
+interface IPointShapeSettingProps {
+  // changes to this value close an open menu, so a menu cannot be left floating over a scrolled row
+  closeTrigger?: number
+  color?: string
+  disabled?: boolean
+  onShapeChange: (shape: PointShape) => void
+  propertyLabel: string
+  shape: PointShape
+}
+
+export const PointShapeSetting = observer(function PointShapeSetting({
+  closeTrigger, color, disabled, onShapeChange, propertyLabel, shape
+}: IPointShapeSettingProps) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  useEffect(() => {
+    if (closeTrigger != null) setIsOpen(false)
+  }, [closeTrigger])
+
+  const handleChange = (key: React.Key | null) => {
+    if (key == null) return
+    onShapeChange(key as PointShape)
+  }
+
+  return (
+    <Select
+      aria-label={propertyLabel}
+      isDisabled={disabled}
+      isOpen={isOpen}
+      onOpenChange={setIsOpen}
+      onSelectionChange={handleChange}
+      selectedKey={shape}
+      data-testid="point-shape-select"
+    >
+      {/*
+        * Icon only. With an icon and a text label the category name is squeezed to about 55px and
+        * a value like "water" truncates; the open menu carries the labels instead.
+        */}
+      <Button className={clsx("point-shape-thumb", { open: isOpen })} excludeFromTabOrder={disabled}>
+        {/* The span is a plain 24x24 flex item; the glyph is pinned inside it with inset: 0
+            rather than laid out, so nothing about how an svg participates in flex layout can
+            displace it. */}
+        <span className="point-shape-thumb-value">
+          <ShapeIcon shape={shape} className="point-shape-thumb-glyph"
+            data-testid="point-shape-glyph" style={{ color }} />
+        </span>
+        {/*
+          * Names the current shape for assistive technology, and gives the aria-labelledby that
+          * react-aria puts on the trigger a real element to point at. Without it that reference
+          * dangles, and the accessible name survives only by falling back to aria-label.
+          *
+          * Text only. Rendering the selected item's own children would put a second copy of the
+          * glyph in here, and this span is positioned absolutely, so those copies would escape
+          * the button and pile up over the palette.
+          */}
+        <SelectValue className="codap-visually-hidden">
+          {({ selectedText }) => selectedText}
+        </SelectValue>
+        {/* A real element, as in the prototype, rather than a pseudo-element: a zero-size bordered
+            ::after collapses wherever box-sizing is border-box. */}
+        <span className="point-shape-arrow" aria-hidden="true" />
+      </Button>
+      <Popover className={({ defaultClassName }) => `${defaultClassName} point-shape-popover`}>
+        <ListBox>
+          {PointShapes.map(_shape => (
+            <ListBoxItem key={_shape} id={_shape} textValue={shapeLabel(_shape)}>
+              {/* Same containment as the trigger: the span is the flex item, the glyph is
+                  pinned inside it. */}
+              <span className="point-shape-item-glyph">
+                <ShapeIcon shape={_shape} className="point-shape-item-svg"
+                  data-testid="point-shape-glyph" style={{ color }} />
+              </span>
+              <span className="point-shape-item-label">{shapeLabel(_shape)}</span>
+            </ListBoxItem>
+          ))}
+        </ListBox>
+      </Popover>
+    </Select>
+  )
+})
+
+PointShapeSetting.displayName = "PointShapeSetting"

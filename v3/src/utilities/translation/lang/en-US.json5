@@ -1005,6 +1005,15 @@
     "V3.Inspector.colorPicker.color.lightGreen": "Light green",
 
     // Graph/Map Inspector
+    "V3.Inspector.pointShape": "Shape",
+    "V3.Inspector.pointShape.circle": "Circle",
+    "V3.Inspector.pointShape.square": "Square",
+    "V3.Inspector.pointShape.triangle": "Triangle",
+    "V3.Inspector.pointShape.diamond": "Diamond",
+    "V3.Inspector.pointShape.star": "Star",
+    "V3.Inspector.pointShape.plus": "Plus",
+    "V3.Inspector.pointShape.x": "X",
+    "V3.Inspector.points": "Points",
     "V3.Inspector.section.dataPoints": "Data Points",
     "V3.Inspector.section.graph": "Graph",
     "DG.Inspector.strokeSameAsFill": "Border color same as fill",

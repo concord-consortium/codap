@@ -18,11 +18,6 @@
     outline-offset: 2px;
   }
 
-  &.categorical {
-    position: absolute;
-    right: 2px;
-  }
-
   .color-picker-thumb-swatch {
     width: 24px;
     height: 24px;
@@ -65,6 +60,142 @@
   &.open::after {
     border-top: none;
     border-bottom: 4px solid vars.$palette-icon-color;
+  }
+}
+
+// Note the selector: a plain className on a react-aria component REPLACES its default class, so
+// this trigger carries `point-shape-thumb` and NOT `react-aria-Button`. Adding `.react-aria-Button`
+// here would match nothing and leave the glyph unsized, which renders it at container size. That
+// replacement is also why the trigger escapes the shared `.react-aria-Select .react-aria-Button`
+// styling in inspector-panel.scss, whose min-width suits a text-bearing select rather than an
+// icon-only one.
+.codap-inspector-palette .palette-form .react-aria-Select {
+  .point-shape-thumb {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    // Less left padding than right: the glyph already carries the artboard's own margin on its
+    // left (a circle spans 16 of the 24 units, the room the star needs), while the disclosure
+    // arrow has no such inset and needs the space.
+    gap: 4px;
+    // contains the absolutely-positioned visually-hidden value, so it cannot escape to the palette
+    position: relative;
+    // Geometry mirrors .color-picker-thumb beside it -- same padding, same gap, same 24px inner
+    // element -- so the two controls in a row are the same size. Height is left to the content, as
+    // it is there, rather than fixed, so they cannot drift apart.
+    padding: 3px;
+    margin: 2px 1px;
+    border: none;
+    background-color: vars.$palette-hover-bg;
+    border-radius: 3px;
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: 2px solid vars.$focus-outline-color;
+      outline-offset: 2px;
+    }
+
+    // A plain box of the intended size, matching the 24px colour swatch beside it. It is the
+    // flex item; the glyph inside is positioned rather than laid out.
+    .point-shape-thumb-value {
+      position: relative;
+      display: block;
+      width: 24px;
+      height: 24px;
+      flex: 0 0 auto;
+      align-self: center;
+    }
+
+    // Pinned to its container rather than laid out. Placement by flex layout put the svg outside
+    // its parent's box, so it is taken out of that path entirely: inset: 0 fixes all four edges,
+    // which no alignment or intrinsic-sizing behaviour can override.
+    .point-shape-thumb-glyph {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    // Matches the color picker's disclosure arrow, so the two controls in a row read as a pair.
+    // margin-left auto pins it right and leaves the glyph left-packed, the way the prototype
+    // flexes its .select-value and .select-arrow. Sized by border rather than width/height, so
+    // box-sizing is set explicitly -- under border-box a zero-size bordered box collapses.
+    .point-shape-arrow {
+      box-sizing: content-box;
+      display: block;
+      margin-left: auto;
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 4px solid vars.$palette-icon-color;
+      flex: 0 0 auto;
+      align-self: center;
+      transition: transform 0.15s ease;
+    }
+
+    &.open .point-shape-arrow {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+// Values follow the prototype's .pt-popover / .pt-listbox so the open menu matches the design.
+.point-shape-popover {
+  background: vars.$palette-bg;
+  border: 1px solid vars.$charcoal-light-1;
+  border-radius: 3px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+  padding: 6px 2px;
+  overflow-y: auto;
+
+  .react-aria-ListBox {
+    font-size: 14px;
+    outline: none;
+  }
+
+  .react-aria-ListBoxItem {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 10px;
+    cursor: pointer;
+    outline: none;
+    white-space: nowrap;
+
+    &[data-focused], &[data-hovered] {
+      background-color: vars.$charcoal-light-5;
+    }
+
+    // the current shape is the one the trigger already shows; bold marks it in the list
+    &[data-selected] {
+      font-weight: bold;
+    }
+
+    &[data-focus-visible] {
+      outline: 2px solid vars.$focus-outline-color;
+      outline-offset: -2px;
+    }
+
+    // A plain 24px box, as in the prototype's `.pt-listbox .shape-glyph { flex: 0 0 24px }`.
+    .point-shape-item-glyph {
+      position: relative;
+      display: block;
+      width: 24px;
+      height: 24px;
+      flex: 0 0 auto;
+    }
+
+    // Pinned rather than laid out, for the same reason as the trigger's glyph.
+    .point-shape-item-svg {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   }
 }
 
@@ -215,6 +346,22 @@
       .cat-color-picker {
         flex-shrink: 0; // rows keep their height, so the list scrolls rather than compressing
         margin: vars.$palette-category-row-margin 0;
+        gap: 4px;
+
+        // Only the label may shrink; the controls keep their size.
+        .react-aria-Select {
+          flex: 0 0 auto;
+        }
+
+        // Absorbs the free space so the controls align across rows rather than each starting
+        // wherever its category name happens to end. Truncates rather than pushing them out.
+        .form-label.color-picker {
+          flex: 1;
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
       }
     }
 

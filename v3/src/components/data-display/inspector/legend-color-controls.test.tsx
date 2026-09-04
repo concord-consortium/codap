@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react"
+import { act, fireEvent, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { scaleQuantize } from "d3"
 import { featureFlagManager } from "../../../models/feature-flags/feature-flag-manager"
@@ -29,6 +29,8 @@ jest.mock("./point-color-setting", () => ({
 const createMockDescription = (overrides?: Record<string, unknown>) => ({
   pointColor: "#0000FF",
   setPointColor: jest.fn(),
+  setPointShape: jest.fn(),
+  pointShape: "circle",
   applyModelChange: jest.fn((fn: () => void) => fn()),
   ...overrides
 })
@@ -53,6 +55,8 @@ const createMockDataConfig = (overrides?: Record<string, unknown>) => ({
   },
   getLegendColorForCategory: jest.fn((cat: string) => cat === "cat-a" ? "#FF0000" : "#00FF00"),
   setLegendColorForCategory: jest.fn(),
+  getLegendShapeForCategory: jest.fn(() => "circle"),
+  setLegendShapeForCategory: jest.fn(),
   legendQuantilesAreLocked: false,
   // 4 distinct values in numericValuesForAttrRole -> cap 4, so the default of 5 clamps to 4
   legendBinCount: 4,
@@ -527,5 +531,138 @@ describe("LegendBinCountInput", () => {
     const input = screen.getByTestId("legend-bin-count-input")
     expect(input).toBeDisabled()
     expect(input).toHaveValue("1")
+  })
+
+})
+
+describe("point shape controls", () => {
+  afterEach(() => {
+    act(() => featureFlagManager.setServerConfig({}))
+  })
+
+  const categoricalConfig = (overrides?: Record<string, unknown>) => createMockDataConfig({
+    attributeType: jest.fn(() => "categorical"),
+    categoryArrayForAttrRole: jest.fn(() => ["cat-a", "cat-b"]),
+    ...overrides
+  })
+
+  it("renders no shape control when the flag is off", () => {
+    const desc = createMockDescription()
+    const config = categoricalConfig()
+    render(<LegendColorControls dataConfiguration={config as any} displayItemDescription={desc as any} />)
+
+    expect(screen.queryByTestId("point-shape-select")).not.toBeInTheDocument()
+    // the color controls are untouched by the gate
+    expect(screen.getByTestId("color-swatch-cat-a")).toBeInTheDocument()
+  })
+
+  it("renders one shape control per category when the flag is on", () => {
+    featureFlagManager.setServerConfig({ pointShapes: "on" })
+    const desc = createMockDescription()
+    const config = categoricalConfig()
+    render(<LegendColorControls dataConfiguration={config as any} displayItemDescription={desc as any} />)
+
+    expect(screen.getAllByTestId("point-shape-select")).toHaveLength(2)
+  })
+
+  it("commits a chosen shape to the category", async () => {
+    featureFlagManager.setServerConfig({ pointShapes: "on" })
+    const user = userEvent.setup()
+    const desc = createMockDescription()
+    const config = categoricalConfig()
+    render(<LegendColorControls dataConfiguration={config as any} displayItemDescription={desc as any} />)
+
+    // the row control is icon only, so it is named for its category; the open menu carries labels
+      await user.click(
+        within(screen.getAllByTestId("point-shape-select")[0]).getByRole("button"))
+    await user.click(screen.getByRole("option", { name: "V3.Inspector.pointShape.star" }))
+
+    expect(config.setLegendShapeForCategory).toHaveBeenCalledWith("cat-a", "star")
+    expect(config.applyModelChange).toHaveBeenCalled()
+  })
+
+  it("offers all seven shapes in the open menu", async () => {
+    featureFlagManager.setServerConfig({ pointShapes: "on" })
+    const user = userEvent.setup()
+    const desc = createMockDescription()
+    const config = categoricalConfig({ categoryArrayForAttrRole: jest.fn(() => ["cat-a"]) })
+    render(<LegendColorControls dataConfiguration={config as any} displayItemDescription={desc as any} />)
+
+      await user.click(
+        within(screen.getAllByTestId("point-shape-select")[0]).getByRole("button"))
+    expect(screen.getAllByRole("option")).toHaveLength(7)
+  })
+
+  it("names the control for assistive technology without showing a label", () => {
+    // Icon only visually, but a screen reader needs both the current shape and what it applies to.
+    // getByRole computes the full accessible name, so this also proves the aria-labelledby that
+    // react-aria puts on the trigger resolves: if it dangled, the name would fall back to the
+    // aria-label alone and the shape would be missing from it.
+    featureFlagManager.setServerConfig({ pointShapes: "on" })
+    const desc = createMockDescription()
+    const config = createMockDataConfig({
+      attributeType: jest.fn(() => "categorical"),
+      categoryArrayForAttrRole: jest.fn(() => ["cat-a"])
+    })
+    render(<LegendColorControls dataConfiguration={config as any} displayItemDescription={desc as any} />)
+
+    const shapeControl = within(screen.getAllByTestId("point-shape-select")[0])
+    expect(shapeControl.getByRole("button", { name: /cat-a/ })).toBeInTheDocument()
+    expect(shapeControl.getByRole("button", { name: /V3\.Inspector\.pointShape\.circle/ }))
+      .toBeInTheDocument()
+  })
+
+  it("renders exactly one glyph in the trigger", () => {
+    /*
+     * SelectValue renders the selected item's children by default, which would put a second copy
+     * of the glyph inside the trigger. That copy is positioned absolutely (visually-hidden), so it
+     * escapes the button and stacks over the palette. The value renders as text only for this
+     * reason.
+     */
+    featureFlagManager.setServerConfig({ pointShapes: "on" })
+    const desc = createMockDescription()
+    const config = createMockDataConfig({
+      attributeType: jest.fn(() => "categorical"),
+      categoryArrayForAttrRole: jest.fn(() => ["cat-a"])
+    })
+    render(<LegendColorControls dataConfiguration={config as any} displayItemDescription={desc as any} />)
+
+    const trigger = within(screen.getAllByTestId("point-shape-select")[0]).getByRole("button")
+    expect(within(trigger).getAllByTestId("point-shape-glyph")).toHaveLength(1)
+  })
+
+  describe("with no legend attribute", () => {
+    it("keeps today's single color row when the flag is off", () => {
+      const desc = createMockDescription()
+      const config = createMockDataConfig()
+      render(<LegendColorControls dataConfiguration={config as any} displayItemDescription={desc as any} />)
+
+      expect(screen.queryByTestId("point-shape-select")).not.toBeInTheDocument()
+      expect(screen.getByText("DG.Inspector.color", { selector: "label" })).toBeInTheDocument()
+    })
+
+    it("collapses to a single Points row with both controls when the flag is on", () => {
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const desc = createMockDescription()
+      const config = createMockDataConfig()
+      render(<LegendColorControls dataConfiguration={config as any} displayItemDescription={desc as any} />)
+
+      expect(screen.getByText("V3.Inspector.points")).toBeInTheDocument()
+      expect(screen.getByTestId("point-shape-select")).toBeInTheDocument()
+      expect(screen.getByTestId("color-swatch-DG.Inspector.color")).toBeInTheDocument()
+    })
+
+    it("commits a chosen shape to the display description", async () => {
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const user = userEvent.setup()
+      const desc = createMockDescription()
+      const config = createMockDataConfig()
+      render(<LegendColorControls dataConfiguration={config as any} displayItemDescription={desc as any} />)
+
+      await user.click(screen.getByRole("button", { name: /V3.Inspector.pointShape/i }))
+      await user.click(screen.getByRole("option", { name: "V3.Inspector.pointShape.diamond" }))
+
+      expect(desc.setPointShape).toHaveBeenCalledWith("diamond")
+    })
   })
 })
