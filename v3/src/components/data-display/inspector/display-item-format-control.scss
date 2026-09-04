@@ -148,6 +148,9 @@
   border-radius: 3px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
   padding: 6px 2px;
+  // Caps its own height so a menu that cannot flip still fits, scrolling rather than running off
+  // the bottom of the window.
+  max-height: 60vh;
   overflow-y: auto;
 
   .react-aria-ListBox {

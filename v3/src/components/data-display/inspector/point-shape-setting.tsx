@@ -1,6 +1,6 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { Button, ListBox, ListBoxItem, Popover, Select, SelectValue } from "react-aria-components"
 import CircleIcon from "../../../assets/icons/point-shapes/point-circle.nosvgo.svg"
 import DiamondIcon from "../../../assets/icons/point-shapes/point-diamond.nosvgo.svg"
@@ -51,9 +51,16 @@ export const PointShapeSetting = observer(function PointShapeSetting({
   closeTrigger, color, disabled, onShapeChange, propertyLabel, shape
 }: IPointShapeSettingProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const lastCloseTrigger = useRef(closeTrigger)
 
+  // Closes the menu when the surrounding list scrolls, so it cannot be left floating away from
+  // its row. Compares against the previous value rather than firing on every render, so mounting
+  // does not count as a scroll.
   useEffect(() => {
-    if (closeTrigger != null) setIsOpen(false)
+    if (closeTrigger !== lastCloseTrigger.current) {
+      lastCloseTrigger.current = closeTrigger
+      setIsOpen(false)
+    }
   }, [closeTrigger])
 
   const handleChange = (key: React.Key | null) => {
@@ -99,7 +106,20 @@ export const PointShapeSetting = observer(function PointShapeSetting({
             ::after collapses wherever box-sizing is border-box. */}
         <span className="point-shape-arrow" aria-hidden="true" />
       </Button>
-      <Popover className={({ defaultClassName }) => `${defaultClassName} point-shape-popover`}>
+      {/*
+        * WORKAROUND -- remove shouldFlip once popover flipping is fixed, and let the menu flip.
+        *
+        * A menu react-aria decides to flip above the trigger does not render at all. That leaves
+        * the control unusable rather than merely awkward: with the palette near the bottom of the
+        * window there is no room below, so the menu could never be opened. Pinned below the
+        * trigger it always appears, clipping and scrolling within its own max-height, which is
+        * the lesser failure.
+        *
+        * The colour picker in this same palette disables flipping for the same reason, so the
+        * fault lies in how popovers position within the palette rather than in this control.
+        */}
+      <Popover shouldFlip={false}
+        className={({ defaultClassName }) => `${defaultClassName} point-shape-popover`}>
         <ListBox>
           {PointShapes.map(_shape => (
             <ListBoxItem key={_shape} id={_shape} textValue={shapeLabel(_shape)}>
