@@ -741,9 +741,11 @@ export const DataConfigurationModel = types
         return categorySet?.colorForCategory(cat) ?? missingColor
       },
 
-      getLegendShapeForCategory(cat: string): PointShape {
+      // `shapeIfUnset` is the display's own shape, so a category the user has not assigned one to
+      // keeps drawing whatever the plot drew before a legend was added.
+      getLegendShapeForCategory(cat: string, shapeIfUnset: PointShape = kDefaultPointShape): PointShape {
         const categorySet = self.categorySetForAttrRole('legend')
-        return categorySet?.shapeForCategory(cat) ?? kDefaultPointShape
+        return categorySet?.shapeForCategory(cat, shapeIfUnset) ?? shapeIfUnset
       },
 
       getLegendColorForNumericValue(value: number): string {
@@ -975,7 +977,7 @@ export const DataConfigurationModel = types
         const legendValue = self.dataset?.getStrValue(id, legendID)
         if (!legendValue) return shapeIfNoCategory
 
-        return self.getLegendShapeForCategory(legendValue)
+        return self.getLegendShapeForCategory(legendValue, shapeIfNoCategory)
       }
     }))
   .actions(self => ({

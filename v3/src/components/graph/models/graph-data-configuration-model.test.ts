@@ -1113,6 +1113,32 @@ describe("DataConfigurationModel legend point shapes", () => {
     expect(categorySet?.shapeForCategory("land")).toBe("diamond")
   })
 
+  it("inherits the display's shape for a category with none of its own", () => {
+    /*
+     * A shape chosen before a legend existed must survive the legend being added. Colors are
+     * replaced by something meaningful when a legend takes over -- distinct palette colors per
+     * category -- but there is no shape palette, so replacing shapes with the bare default would
+     * discard the user's choice and hand back nothing.
+     */
+    expect(tree.config.getLegendShapeForCategory("land", "star")).toBe("star")
+    expect(tree.config.getLegendShapeForCategory("water", "star")).toBe("star")
+  })
+
+  it("prefers a category's own shape over the inherited one", () => {
+    tree.config.setLegendShapeForCategory("land", "diamond")
+    expect(tree.config.getLegendShapeForCategory("land", "star")).toBe("diamond")
+    // its siblings still inherit
+    expect(tree.config.getLegendShapeForCategory("water", "star")).toBe("star")
+  })
+
+  it("resolves a case to the inherited shape when its category has none", () => {
+    const caseId = tree.data.itemIds[0]
+    expect(tree.config.getLegendShapeForCase(caseId, "plus")).toBe("plus")
+
+    tree.config.setLegendShapeForCategory("land", "x")
+    expect(tree.config.getLegendShapeForCase(caseId, "plus")).toBe("x")
+  })
+
   it("falls back to the default when there is no legend attribute", () => {
     tree.config.setAttribute("legend", { attributeID: "" })
     // no category set to consult, so reads resolve rather than returning undefined
