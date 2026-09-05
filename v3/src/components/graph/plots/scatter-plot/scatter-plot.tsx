@@ -218,12 +218,13 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
   // When caseIds is provided, only those cases' points are restyled (delta path used during a
   // marquee drag); otherwise every point is restyled.
   const refreshPointSelection = useCallback((caseIds?: Set<string>) => {
-    const {pointColor, pointStrokeColor} = graphModel.pointDescription
+    const {pointColor, pointStrokeColor, pointShape} = graphModel.pointDescription
     dataConfiguration && setPointSelection(
       {
         renderer, dataConfiguration, pointRadius: graphModel.getPointRadius(),
         selectedPointRadius: selectedPointRadiusRef.current,
-        pointColor, pointStrokeColor, getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex
+        pointColor, pointStrokeColor, pointShape,
+        getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex
       }, caseIds, dataConfiguration.numberOfPlots)
     // Restyle the residual points so their selection halo tracks the upper plot's. This is a
     // style-only pass (no predictor/residual recompute, no data join), so selecting cases doesn't

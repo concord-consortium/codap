@@ -297,6 +297,30 @@
       }
     }
 
+    // A row carrying both a shape control and a color control -- every category row, and the
+    // single Points row shown when there is no legend attribute. Without this the row distributes
+    // with space-between and each control starts wherever its label happens to end, so the rows
+    // do not line up with each other.
+    .cat-color-picker,
+    .color-picker-row.shape-row {
+      gap: 4px;
+
+      // Only the label may shrink; the controls keep their size.
+      .react-aria-Select {
+        flex: 0 0 auto;
+      }
+
+      // Absorbs the free space, which pins both controls to the right edge. Truncates rather than
+      // pushing them out of view.
+      .form-label.color-picker {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
     .cat-color-setting {
       // A flex column, so the rows are flex items whose vertical margins do not collapse and each
       // row occupies the full height the 2.5-row limit below is derived from. The list ends
@@ -333,22 +357,6 @@
       .cat-color-picker {
         flex-shrink: 0; // rows keep their height, so the list scrolls rather than compressing
         margin: vars.$palette-category-row-margin 0;
-        gap: 4px;
-
-        // Only the label may shrink; the controls keep their size.
-        .react-aria-Select {
-          flex: 0 0 auto;
-        }
-
-        // Absorbs the free space so the controls align across rows rather than each starting
-        // wherever its category name happens to end. Truncates rather than pushing them out.
-        .form-label.color-picker {
-          flex: 1;
-          min-width: 0;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
       }
     }
 

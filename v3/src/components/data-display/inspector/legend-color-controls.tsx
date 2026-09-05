@@ -224,7 +224,8 @@ export const LegendColorControls = observer(function LegendColorControls(
   // every point and sit in a single row.
   const singleRowLabel = showShape ? t("V3.Inspector.points") : t("DG.Inspector.color")
   return (
-    <div className="palette-row color-picker-row">
+    // shape-row marks a row carrying both controls, so it aligns them the way the category rows do
+    <div className={clsx("palette-row", "color-picker-row", { "shape-row": showShape })}>
       <label className="form-label color-picker">{singleRowLabel}</label>
       <If condition={showShape}>
         <PointShapeSetting propertyLabel={t("V3.Inspector.pointShape")}
