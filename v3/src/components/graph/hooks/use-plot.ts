@@ -453,6 +453,16 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       }, {name: "usePlot [legendColorChange]"}, graphModel)
   }, [graphModel, callRefreshPointPositions])
 
+  // A shape change alters only how each point is drawn, so a restyle suffices; positions and masks
+  // are untouched, unlike a legend colour change which can also change which points are plotted.
+  useEffect(() => {
+    return mstReaction(
+      () => graphModel.dataConfiguration.legendShapeDomain,
+      () => {
+        refreshPointSelection()
+      }, {name: "usePlot [legendShapeChange]"}, graphModel)
+  }, [graphModel, refreshPointSelection])
+
   // respond to pointsNeedUpdating becoming false; that is when the points have been updated
   // Happens when the number of plots has changed for now. Possibly other situations in the future.
   useEffect(() => {

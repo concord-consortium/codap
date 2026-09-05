@@ -414,6 +414,17 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
       {name: "MapPointLayer [legendColorChange]", fireImmediately: true}, dataConfiguration)
   }, [dataConfiguration, refreshHeatmap, refreshPoints])
 
+  // A shape change alters only how each point is drawn, so the points are restyled without
+  // touching the heatmap, which has no notion of shape.
+  useEffect(() => {
+    return mstReaction(
+      () => dataConfiguration?.legendShapeDomain,
+      () => {
+        refreshPoints(false)
+      },
+      {name: "MapPointLayer [legendShapeChange]"}, dataConfiguration)
+  }, [dataConfiguration, refreshPoints])
+
   // Changes in layout or map pan/zoom require repositioning points
   useEffect(function setupResponsesToLayoutChanges() {
     return reaction(

@@ -890,6 +890,16 @@ export const DataConfigurationModel = types
        * For categorical it is a map of categories to colors
        * The color type is not handled yet.
        */
+      /*
+       * Changes identity when any category's shape changes, so a display can react to it the way
+       * it reacts to legendColorDomain. Only categorical legends carry shapes; the rest have no
+       * categories to assign one to, so there is nothing to observe.
+       */
+      get legendShapeDomain() {
+        const legendType = self.attributeType('legend')
+        if (legendType !== 'categorical' && legendType !== 'checkbox') return undefined
+        return self.categorySetForAttrRole('legend')?.shapeMap
+      },
       get legendColorDomain() {
         const legendType = self.attributeType('legend')
         switch (legendType) {
