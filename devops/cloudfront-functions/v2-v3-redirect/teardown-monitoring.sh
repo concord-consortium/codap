@@ -37,6 +37,9 @@ ALARMS=(
   "codap-v2-v3-redirect-4xxErrorRate"
 )
 
+# How long to wait for a canary to reach a state delete-canary accepts.
+CANARY_SETTLE_TIMEOUT_SECS=300
+
 APPLY=false
 [ "${1:-}" = "--apply" ] && APPLY=true
 
@@ -47,6 +50,21 @@ run() {
   else
     echo "  [dry-run] $*"
   fi
+}
+
+canary_state() {
+  aws synthetics get-canary --name "$1" --region "$REGION_US_E1" \
+    --query "Canary.Status.State" --output text
+}
+
+# CanaryState is one of CREATING, READY, STARTING, RUNNING, UPDATING, STOPPING,
+# STOPPED, ERROR, DELETING. delete-canary is only accepted once the canary has
+# come to rest; every other state is either running or mid-transition.
+canary_settled() {
+  case "$1" in
+    READY|STOPPED|ERROR) return 0 ;;
+    *) return 1 ;;
+  esac
 }
 
 $APPLY || echo "DRY RUN. Re-run with --apply to actually delete."
@@ -75,21 +93,27 @@ for canary in v3-reachability redirect-correctness; do
     echo "    canary $name not present, skipping"
     continue
   fi
-  state=$(aws synthetics get-canary --name "$name" --region "$REGION_US_E1" \
-    --query "Canary.Status.State" --output text)
+  state=$(canary_state "$name")
   if [ "$state" = "RUNNING" ]; then
     run aws synthetics stop-canary --name "$name" --region "$REGION_US_E1"
-    if $APPLY; then
-      echo -n "    waiting for $name to stop"
-      for _ in $(seq 1 60); do
-        state=$(aws synthetics get-canary --name "$name" --region "$REGION_US_E1" \
-          --query "Canary.Status.State" --output text)
-        [ "$state" != "RUNNING" ] && [ "$state" != "STOPPING" ] && break
-        echo -n "."
-        sleep 5
-      done
-      echo " $state"
-    fi
+  fi
+  # Any unsettled state has to be waited out, including a canary that was already
+  # STOPPING or mid-transition before this script ran.
+  if $APPLY && ! canary_settled "$state"; then
+    echo -n "    waiting for $name to settle (was $state)"
+    deadline=$((SECONDS + CANARY_SETTLE_TIMEOUT_SECS))
+    while ! canary_settled "$state"; do
+      if [ "$SECONDS" -ge "$deadline" ]; then
+        echo
+        echo "FAIL: canary $name is still $state after ${CANARY_SETTLE_TIMEOUT_SECS}s."
+        echo "      delete-canary would be rejected. Re-run once it has settled."
+        exit 1
+      fi
+      echo -n "."
+      sleep 5
+      state=$(canary_state "$name")
+    done
+    echo " $state"
   fi
   run aws synthetics delete-canary --name "$name" --delete-lambda --region "$REGION_US_E1"
 done
@@ -98,12 +122,14 @@ done
 # delete+recreate leaves a log group per generation. Discover by prefix so the
 # orphans from earlier generations are caught too.
 echo "5) canary Lambda log groups"
-mapfile -t CANARY_LOG_GROUPS < <(
-  aws logs describe-log-groups \
-    --log-group-name-prefix "$CANARY_LOG_PREFIX" \
-    --region "$REGION_US_E1" \
-    --query "logGroups[].logGroupName" --output text | tr '\t' '\n'
-)
+# mapfile succeeds whatever the command feeding it did, so a failed AWS listing
+# would arrive here as "nothing to delete" and the teardown would report success
+# with the resources still in place. Capture first so set -e sees the failure.
+canary_log_groups=$(aws logs describe-log-groups \
+  --log-group-name-prefix "$CANARY_LOG_PREFIX" \
+  --region "$REGION_US_E1" \
+  --query "logGroups[].logGroupName" --output text)
+mapfile -t CANARY_LOG_GROUPS < <(printf '%s\n' "$canary_log_groups" | tr '\t' '\n')
 for lg in "${CANARY_LOG_GROUPS[@]}"; do
   [ -z "$lg" ] && continue
   run aws logs delete-log-group --log-group-name "$lg" --region "$REGION_US_E1"
@@ -125,18 +151,16 @@ if [ -z "${SYNTHETICS_ROLE_ARN:-}" ]; then
   echo "    SYNTHETICS_ROLE_ARN not set in config.env, skipping"
 else
   role_name="${SYNTHETICS_ROLE_ARN##*/}"
-  mapfile -t INLINE_POLICIES < <(
-    aws iam list-role-policies --role-name "$role_name" \
-      --query "PolicyNames" --output text | tr '\t' '\n'
-  )
+  inline_policies=$(aws iam list-role-policies --role-name "$role_name" \
+    --query "PolicyNames" --output text)
+  mapfile -t INLINE_POLICIES < <(printf '%s\n' "$inline_policies" | tr '\t' '\n')
   for policy in "${INLINE_POLICIES[@]}"; do
     [ -z "$policy" ] && continue
     run aws iam delete-role-policy --role-name "$role_name" --policy-name "$policy"
   done
-  mapfile -t ATTACHED_POLICIES < <(
-    aws iam list-attached-role-policies --role-name "$role_name" \
-      --query "AttachedPolicies[].PolicyArn" --output text | tr '\t' '\n'
-  )
+  attached_policies=$(aws iam list-attached-role-policies --role-name "$role_name" \
+    --query "AttachedPolicies[].PolicyArn" --output text)
+  mapfile -t ATTACHED_POLICIES < <(printf '%s\n' "$attached_policies" | tr '\t' '\n')
   for arn in "${ATTACHED_POLICIES[@]}"; do
     [ -z "$arn" ] && continue
     run aws iam detach-role-policy --role-name "$role_name" --policy-arn "$arn"
