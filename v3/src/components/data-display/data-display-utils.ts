@@ -130,7 +130,7 @@ export function setPointSelection(
   props: ISetPointSelection, caseIdsToUpdate?: Iterable<string>, numberOfPlots = 1
 ) {
   const { renderer, dataConfiguration, pointRadius, selectedPointRadius,
-    pointColor, pointStrokeColor, getPointColorAtIndex } = props
+    pointColor, pointStrokeColor, pointShape, getPointColorAtIndex } = props
   const dataset = dataConfiguration.dataset
   const legendID = dataConfiguration.attributeID('legend')
   if (!renderer) {
@@ -149,6 +149,9 @@ export function setPointSelection(
     // When there's no legend, use blue fill for selection instead of a colored stroke
     const useSelectionFill = isSelected && !legendID
     const style: Partial<IPointStyle> = {
+      // Mirrors the fill above: the legend assigns it per case where it can, and the display's own
+      // shape applies everywhere else.
+      shape: dataConfiguration.getLegendShapeForCase(caseID, pointShape),
       fill: useSelectionFill ? defaultSelectedColor : fill,
       radius: isSelected ? selectedPointRadius : pointRadius,
       stroke: isSelected && !useSelectionFill ? defaultSelectedStroke : pointStrokeColor,

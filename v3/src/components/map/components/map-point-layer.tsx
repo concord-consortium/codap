@@ -302,11 +302,11 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
       pointDescription, renderer])
 
   const refreshPointSelection = useCallback((caseIdsToUpdate?: Iterable<string>) => {
-    const {pointColor, pointStrokeColor} = pointDescription,
+    const {pointColor, pointStrokeColor, pointShape} = pointDescription,
       selectedPointRadius = mapLayerModel.getPointRadius('select')
     dataConfiguration && setPointSelection({
       renderer, dataConfiguration, pointRadius: mapLayerModel.getPointRadius(),
-      selectedPointRadius, pointColor, pointStrokeColor
+      selectedPointRadius, pointColor, pointStrokeColor, pointShape
     }, caseIdsToUpdate)
   }, [pointDescription, mapLayerModel, dataConfiguration, renderer])
 

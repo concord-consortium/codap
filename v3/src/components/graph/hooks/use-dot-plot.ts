@@ -69,7 +69,7 @@ export const useDotPlot = (renderer?: PointRendererBase) => {
   const secondaryMax = Number(secondaryAxisScale.range()[secondaryRangeIndex])
   const secondarySign = primaryIsBottom ? -1 : 1
   const baseCoord = primaryIsBottom ? secondaryMax : 0
-  const {pointColor, pointStrokeColor} = graphModel.pointDescription
+  const {pointColor, pointStrokeColor, pointShape} = graphModel.pointDescription
   const pointDisplayType = graphModel.plot.displayType
   const { isAnimating } = useDataDisplayAnimation()
 
@@ -77,10 +77,11 @@ export const useDotPlot = (renderer?: PointRendererBase) => {
     const pointRadius = graphModel.getPointRadius()
     const selectedPointRadius = graphModel.getPointRadius('select')
     dataConfig && setPointSelection({
-      renderer, dataConfiguration: dataConfig, pointRadius, pointColor, pointStrokeColor, selectedPointRadius,
+      renderer, dataConfiguration: dataConfig, pointRadius, pointColor, pointStrokeColor, pointShape,
+      selectedPointRadius,
       pointDisplayType
     })
-  }, [dataConfig, graphModel, renderer, pointColor, pointStrokeColor, pointDisplayType])
+  }, [dataConfig, graphModel, renderer, pointColor, pointStrokeColor, pointShape, pointDisplayType])
 
   const getPrimaryScreenCoord = useCallback((anID: string) => {
     const computePrimaryCoordProps: IComputePrimaryCoord = {

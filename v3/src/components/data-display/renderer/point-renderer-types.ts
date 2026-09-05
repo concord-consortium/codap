@@ -1,5 +1,6 @@
 import { CaseData, CaseDataWithSubPlot } from "../d3-types"
 import { PointDisplayType } from "../data-display-types"
+import { PointShape } from "../../../utilities/point-shape-utils"
 
 /**
  * Opaque point handle - consumers don't need to know the underlying implementation
@@ -14,6 +15,9 @@ export interface IPoint {
  */
 export interface IPointStyle {
   radius: number
+  // Absent means the default. Optional so every existing caller that builds a style keeps working
+  // and keeps drawing circles.
+  shape?: PointShape
   fill: string
   stroke: string
   strokeWidth: number

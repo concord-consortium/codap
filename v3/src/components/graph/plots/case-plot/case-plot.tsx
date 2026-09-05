@@ -77,11 +77,11 @@ export const CasePlot = function CasePlot({ renderer }: IPlotProps) {
   useRendererDragHandlers(renderer, { start: onDragStart, drag: onDrag, end: onDragEnd })
 
   const refreshPointSelection = useCallback(() => {
-    const {pointColor, pointStrokeColor} = graphModel.pointDescription,
+    const {pointColor, pointStrokeColor, pointShape} = graphModel.pointDescription,
       selectedPointRadius = graphModel.getPointRadius('select')
       dataConfiguration && setPointSelection({
         renderer, dataConfiguration, pointRadius: graphModel.getPointRadius(), selectedPointRadius,
-        pointColor, pointStrokeColor
+        pointColor, pointStrokeColor, pointShape
       })
   }, [graphModel, dataConfiguration, renderer])
 

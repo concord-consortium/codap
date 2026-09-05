@@ -15,6 +15,7 @@ import {IDataConfigurationModel} from "../../data-display/models/data-configurat
 import { PointRendererBase } from "../../data-display/renderer"
 import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
 import { GraphLayout } from "../models/graph-layout"
+import { PointShape } from "../../../utilities/point-shape-utils"
 
 /**
  * Utility routines having to do with graph entities
@@ -503,6 +504,9 @@ export interface ISetPointSelection {
   selectedPointRadius: number,
   pointColor: string,
   pointStrokeColor: string,
+  // The shape used where the legend assigns none -- no legend attribute, or a legend whose type
+  // carries no categories. Optional so callers that predate shapes keep drawing circles.
+  pointShape?: PointShape,
   pointDisplayType?: PointDisplayType,
   getPointColorAtIndex?: (index: number) => string
 }

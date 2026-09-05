@@ -945,6 +945,27 @@ export const DataConfigurationModel = types
           default:
             return ''
         }
+      },
+      /*
+       * The shape for a case, mirroring getLegendColorForCase.
+       *
+       * Only categorical legends carry shapes. A numeric or date legend has no categories to assign
+       * one to, and a colour legend supplies its own colours; those all resolve to the default so
+       * every point in such a plot shares one shape. Callers pass the display's own shape as
+       * `shapeIfNoCategory`, which is what a plot with no legend attribute uses throughout.
+       */
+      getLegendShapeForCase(id: string, shapeIfNoCategory: PointShape = kDefaultPointShape): PointShape {
+        const legendID = self.attributeID('legend')
+        const legendAttribute = self.dataset?.getAttribute(legendID)
+        if (!id || !legendID || !legendAttribute) return shapeIfNoCategory
+
+        const legendType = self.attributeType('legend')
+        if (legendType !== 'categorical' && legendType !== 'checkbox') return shapeIfNoCategory
+
+        const legendValue = self.dataset?.getStrValue(id, legendID)
+        if (!legendValue) return shapeIfNoCategory
+
+        return self.getLegendShapeForCategory(legendValue)
       }
     }))
   .actions(self => ({
