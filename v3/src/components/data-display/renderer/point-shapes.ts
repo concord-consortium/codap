@@ -100,13 +100,13 @@ const kShapeDefs: Record<PointShape, IShapeDef> = {
       const s = K.triangle * r
       const h = s * Math.sqrt(3) / 2
       /*
-       * Centred on its centre of area, not its bounding box. An equilateral triangle's centroid
-       * sits h/6 below its box centre, so box-centring makes it read as sitting low: switching a
+       * Centered on its center of area, not its bounding box. An equilateral triangle's centroid
+       * sits h/6 below its box center, so box-centering makes it read as sitting low: switching a
        * category from another shape to this one visibly shifts its points down.
        *
-       * The prototype centres it on the box instead, for a predictable hit area and a shared
+       * The prototype centers it on the box instead, for a predictable hit area and a shared
        * baseline with the square. That trades a visible positional bias for an alignment nicety,
-       * and in a scatterplot position is the data. Every shape now sits on its centre of area.
+       * and in a scatterplot position is the data. Every shape now sits on its center of area.
        */
       return { kind: "polygon", points: [
         { x: 0, y: -2 * h / 3 }, { x: s / 2, y: h / 3 }, { x: -s / 2, y: h / 3 }

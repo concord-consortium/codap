@@ -454,7 +454,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   }, [graphModel, callRefreshPointPositions])
 
   // A shape change alters only how each point is drawn, so a restyle suffices; positions and masks
-  // are untouched, unlike a legend colour change which can also change which points are plotted.
+  // are untouched, unlike a legend color change which can also change which points are plotted.
   useEffect(() => {
     return mstReaction(
       () => graphModel.dataConfiguration.legendShapeDomain,

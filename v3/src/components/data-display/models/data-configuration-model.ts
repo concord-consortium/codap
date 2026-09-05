@@ -960,7 +960,7 @@ export const DataConfigurationModel = types
        * The shape for a case, mirroring getLegendColorForCase.
        *
        * Only categorical legends carry shapes. A numeric or date legend has no categories to assign
-       * one to, and a colour legend supplies its own colours; those all resolve to the default so
+       * one to, and a color legend supplies its own colors; those all resolve to the default so
        * every point in such a plot shares one shape. Callers pass the display's own shape as
        * `shapeIfNoCategory`, which is what a plot with no legend attribute uses throughout.
        */

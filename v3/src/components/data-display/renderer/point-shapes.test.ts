@@ -117,10 +117,10 @@ describe("point shape geometry", () => {
     })
   })
 
-  it("centres every shape on its centre of area", () => {
+  it("centers every shape on its center of area", () => {
     /*
      * The invariant that matters: a point drawn at a position must not read as sitting off it. An
-     * equilateral triangle centred on its bounding box instead sits h/6 low, which is visible as a
+     * equilateral triangle centered on its bounding box instead sits h/6 low, which is visible as a
      * downward jump when a category is switched to it.
      */
     PointShapes.filter(s => s !== "circle").forEach(shape => {
@@ -132,8 +132,8 @@ describe("point shape geometry", () => {
     })
   })
 
-  it("leaves the bounding box off centre where centring the ink requires it", () => {
-    // A consequence of the above, not a defect: for the triangle and the star the box centre is
+  it("leaves the bounding box off center where centering the ink requires it", () => {
+    // A consequence of the above, not a defect: for the triangle and the star the box center is
     // not the centroid. Anything deriving a hit area must use the drawn box rather than assume
     // the shape is symmetric about its position.
     const offCentre = ["triangle", "star"] as const
@@ -144,7 +144,7 @@ describe("point shape geometry", () => {
       expect((Math.max(...ys) + Math.min(...ys)) / 2).not.toBeCloseTo(0, 2)
     })
 
-    // and every other shape is symmetric, so its box centre and centroid agree
+    // and every other shape is symmetric, so its box center and centroid agree
     PointShapes.filter(s => s !== "circle" && !offCentre.includes(s as any)).forEach(shape => {
       const geometry = pointShapeGeometry(shape, 8)
       if (geometry.kind !== "polygon") throw new Error(`${shape} should be a polygon`)

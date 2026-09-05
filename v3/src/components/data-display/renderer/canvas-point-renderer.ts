@@ -49,7 +49,7 @@ interface ISubPlotClipRect {
  * Canvas 2D point renderer implementing the PointRendererBase interface.
  */
 /*
- * Traces a point's outline onto the context, centred on the current origin. Leaves the path open
+ * Traces a point's outline onto the context, centered on the current origin. Leaves the path open
  * for the caller to fill and stroke, so the two share one path rather than tracing it twice.
  */
 function tracePointShape(ctx: CanvasRenderingContext2D, shape: PointShape, radius: number) {
