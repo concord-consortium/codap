@@ -29,6 +29,21 @@ function polygonArea(points: IShapePoint[]) {
   return Math.abs(sum) / 2
 }
 
+// Area-weighted centroid, also by the shoelace formula.
+function polygonCentroid(points: IShapePoint[]) {
+  let a = 0, cx = 0, cy = 0
+  for (let i = 0; i < points.length; i++) {
+    const p = points[i]
+    const q = points[(i + 1) % points.length]
+    const cross = p.x * q.y - q.x * p.y
+    a += cross
+    cx += (p.x + q.x) * cross
+    cy += (p.y + q.y) * cross
+  }
+  a /= 2
+  return { x: cx / (6 * a), y: cy / (6 * a) }
+}
+
 function polygonExtent(points: IShapePoint[]) {
   const xs = points.map(p => p.x)
   const ys = points.map(p => p.y)
@@ -102,34 +117,40 @@ describe("point shape geometry", () => {
     })
   })
 
-  it("centers every shape horizontally on the origin", () => {
+  it("centres every shape on its centre of area", () => {
+    /*
+     * The invariant that matters: a point drawn at a position must not read as sitting off it. An
+     * equilateral triangle centred on its bounding box instead sits h/6 low, which is visible as a
+     * downward jump when a category is switched to it.
+     */
     PointShapes.filter(s => s !== "circle").forEach(shape => {
       const geometry = pointShapeGeometry(shape, 8)
       if (geometry.kind !== "polygon") throw new Error(`${shape} should be a polygon`)
-      const xs = geometry.points.map(p => p.x)
-      expect((Math.max(...xs) + Math.min(...xs)) / 2).toBeCloseTo(0, 6)
+      const centroid = polygonCentroid(geometry.points)
+      expect(centroid.x).toBeCloseTo(0, 6)
+      expect(centroid.y).toBeCloseTo(0, 6)
     })
   })
 
-  it("centers every shape but the star vertically too", () => {
-    /*
-     * The star is centered on its circumcircle rather than its bounding box: with a vertex at the
-     * top it reaches -R upward but only R*cos(36) down, so its box sits slightly low. That is how
-     * a star is conventionally drawn, and it is what the prototype does. The triangle, by contrast,
-     * is deliberately box-centered so it shares a visual baseline with the square.
-     */
-    PointShapes.filter(s => s !== "circle" && s !== "star").forEach(shape => {
+  it("leaves the bounding box off centre where centring the ink requires it", () => {
+    // A consequence of the above, not a defect: for the triangle and the star the box centre is
+    // not the centroid. Anything deriving a hit area must use the drawn box rather than assume
+    // the shape is symmetric about its position.
+    const offCentre = ["triangle", "star"] as const
+    offCentre.forEach(shape => {
+      const geometry = pointShapeGeometry(shape, 8)
+      if (geometry.kind !== "polygon") throw new Error(`${shape} should be a polygon`)
+      const ys = geometry.points.map(p => p.y)
+      expect((Math.max(...ys) + Math.min(...ys)) / 2).not.toBeCloseTo(0, 2)
+    })
+
+    // and every other shape is symmetric, so its box centre and centroid agree
+    PointShapes.filter(s => s !== "circle" && !offCentre.includes(s as any)).forEach(shape => {
       const geometry = pointShapeGeometry(shape, 8)
       if (geometry.kind !== "polygon") throw new Error(`${shape} should be a polygon`)
       const ys = geometry.points.map(p => p.y)
       expect((Math.max(...ys) + Math.min(...ys)) / 2).toBeCloseTo(0, 6)
     })
-
-    const star = pointShapeGeometry("star", 8)
-    if (star.kind !== "polygon") throw new Error("star should be a polygon")
-    const starYs = star.points.map(p => p.y)
-    // the top vertex sits on the circumcircle, so the outline reaches exactly -R
-    expect(Math.min(...starYs)).toBeCloseTo(-1.420 * 8, 6)
   })
 
   it("scales linearly with the radius", () => {
