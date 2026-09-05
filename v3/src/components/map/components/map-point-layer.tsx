@@ -414,16 +414,24 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
       {name: "MapPointLayer [legendColorChange]", fireImmediately: true}, dataConfiguration)
   }, [dataConfiguration, refreshHeatmap, refreshPoints])
 
-  // A shape change alters only how each point is drawn, so the points are restyled without
-  // touching the heatmap, which has no notion of shape.
+  /*
+   * A shape change alters only how each point is drawn, so the points are restyled without touching
+   * the heatmap, which has no notion of shape.
+   *
+   * It has to go through refreshPointSelection: that is the only path that writes the shape into a
+   * point's style. refreshPoints sets the radius, fill and stroke but not the shape, and style
+   * updates merge, so refreshing after a shape change leaves the old shape in place. Both shape
+   * sources are observed here -- the per-category shapes, and the layer's own, which is what a
+   * layer with no legend attribute draws throughout.
+   */
   useEffect(() => {
     return mstReaction(
-      () => dataConfiguration?.legendShapeDomain,
+      () => [dataConfiguration?.legendShapeDomain, mapLayerModel.pointDescription.pointShape],
       () => {
-        refreshPoints(false)
+        refreshPointSelection()
       },
-      {name: "MapPointLayer [legendShapeChange]"}, dataConfiguration)
-  }, [dataConfiguration, refreshPoints])
+      {name: "MapPointLayer [shapeChange]", equals: comparer.structural}, dataConfiguration)
+  }, [dataConfiguration, mapLayerModel, refreshPointSelection])
 
   // Changes in layout or map pan/zoom require repositioning points
   useEffect(function setupResponsesToLayoutChanges() {

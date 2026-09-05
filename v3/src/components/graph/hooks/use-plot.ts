@@ -453,14 +453,23 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       }, {name: "usePlot [legendColorChange]"}, graphModel)
   }, [graphModel, callRefreshPointPositions])
 
-  // A shape change alters only how each point is drawn, so a restyle suffices; positions and masks
-  // are untouched, unlike a legend color change which can also change which points are plotted.
+  /*
+   * A shape change alters only how each point is drawn, so a restyle suffices; positions and masks
+   * are untouched, unlike a legend color change which can also change which points are plotted.
+   *
+   * It has to be a restyle rather than a reposition: only setPointSelection writes the shape into
+   * a point's style. setPointCoordinates, which the reposition path uses, sets the fill but not the
+   * shape, and style updates merge -- so repositioning after a shape change leaves the old shape in
+   * place. That is why both shape sources are observed here rather than alongside the other point
+   * properties: the per-category shapes, and the display's own, which is what a plot with no legend
+   * attribute draws throughout.
+   */
   useEffect(() => {
     return mstReaction(
-      () => graphModel.dataConfiguration.legendShapeDomain,
+      () => [graphModel.dataConfiguration.legendShapeDomain, graphModel.pointDescription.pointShape],
       () => {
         refreshPointSelection()
-      }, {name: "usePlot [legendShapeChange]"}, graphModel)
+      }, {name: "usePlot [shapeChange]", equals: comparer.structural}, graphModel)
   }, [graphModel, refreshPointSelection])
 
   // respond to pointsNeedUpdating becoming false; that is when the points have been updated
