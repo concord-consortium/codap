@@ -14,11 +14,13 @@ env:
 jobs:
   release:
     runs-on: ubuntu-latest
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.V3_AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.V3_AWS_SECRET_ACCESS_KEY }}
-      AWS_DEFAULT_REGION: us-east-1
+    permissions:
+      id-token: write
     steps:
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::612297603577:role/codap
+          aws-region: us-east-1
       - run: >
           aws s3 cp
           s3://${{ env.BUCKET }}/${{ env.PREFIX }}/version/${{ github.event.inputs.version }}/${{ env.SRC_FILE }}
