@@ -94,6 +94,19 @@ describe("importV2CategorySet", () => {
       expect(result?.shapes).toEqual({ water: "star" })
     })
 
+    it("restores a category whose value is a reserved object key", () => {
+      // assignment into a plain object would set the prototype instead of an own property, so the
+      // shape for such a category would be dropped on import
+      const attribute = Attribute.create({ id: "aId", name: "a", values: ["__proto__", "land"] })
+      // built by parsing, as it would be arriving from a v2 document: an object literal with a
+      // `__proto__` key sets the prototype instead, so it would not exercise the case at all
+      const categoryShapes = JSON.parse('{"__proto__":"star","land":"plus"}')
+      const result = importV2CategorySet(attribute, undefined, categoryShapes)
+
+      expect(Object.keys(result?.shapes ?? {}).sort()).toEqual(["__proto__", "land"])
+      expect(result?.shapes?.__proto__).toBe("star")
+    })
+
     it("keeps a shape for a category not currently in the data", () => {
       /*
        * Deliberate, and deliberately unlike colors: every shape entry is a user assignment, so

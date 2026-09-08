@@ -218,14 +218,21 @@ export const CategorySet = types.model("CategorySet", {
   shapeForCategory(category: string): PointShape {
     return pointShapeOrDefault(self.shapes.get(category))
   },
-  // Only the categories carrying an explicit shape. Categories at the default are omitted, so
-  // exports stay empty until a user actually assigns one.
+  /*
+   * Only the categories carrying an explicit shape. Categories at the default are omitted, so
+   * exports stay empty until a user actually assigns one.
+   *
+   * Built with fromEntries rather than by assignment: a category value of `__proto__` assigned
+   * with `map[category] =` sets the prototype instead of defining an own property, so that
+   * category's shape would vanish from the export. Category values come from the data and can be
+   * any string.
+   */
   get shapeMap(): Record<string, PointShape> {
-    const map: Record<string, PointShape> = {}
+    const entries: Array<[string, PointShape]> = []
     self.shapes.forEach((shape, category) => {
-      map[category] = pointShapeOrDefault(shape)
+      entries.push([String(category), pointShapeOrDefault(shape)])
     })
-    return map
+    return Object.fromEntries(entries)
   }
 }))
 .actions(self => ({

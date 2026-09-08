@@ -27,10 +27,12 @@ export function importV2CategorySet(
    * noise to age out, so a category whose cases are deleted and later restored keeps the shape
    * the user chose for it — which is also what v2 does, deliberately, for the same reason.
    */
-  const shapes: Record<string, string> = {}
-  Object.entries(categoryShapes ?? {}).forEach(([category, shape]) => {
-    if (isPointShape(shape) && shape !== kDefaultPointShape) shapes[category] = shape
-  })
+  // fromEntries rather than assignment: `shapes[category] =` with a category value of `__proto__`
+  // sets the prototype instead of defining an own property, losing that category's shape.
+  const shapes: Record<string, string> = Object.fromEntries(
+    Object.entries(categoryShapes ?? {})
+      .filter(([, shape]) => isPointShape(shape) && shape !== kDefaultPointShape)
+  )
 
   let colorMap: CodapV2ColorMap = {}
 

@@ -14,6 +14,29 @@ describe("DisplayItemDescriptionModel point shape", () => {
     expect(description.pointShape).toBe("triangle")
   })
 
+  it("stores the default as absence, so an unused document does not gain the field", () => {
+    /*
+     * V3 saves the serialized snapshot, so a materialized default would mean that merely opening
+     * and saving a document that never used shapes changes it. Asserted against the JSON rather
+     * than the snapshot object: `maybe` leaves the key present with an undefined value in memory,
+     * and it is stringify dropping it that keeps the saved document unchanged.
+     */
+    const description = DisplayItemDescriptionModel.create()
+    const serialized = JSON.parse(JSON.stringify(getSnapshot(description)))
+    expect(serialized).not.toHaveProperty("_itemShape")
+    expect(description.pointShape).toBe("circle")
+  })
+
+  it("removes the stored shape when it is set back to the default", () => {
+    const description = DisplayItemDescriptionModel.create()
+    description.setPointShape("star")
+    expect(getSnapshot(description)._itemShape).toBe("star")
+
+    description.setPointShape("circle")
+    expect(JSON.parse(JSON.stringify(getSnapshot(description)))).not.toHaveProperty("_itemShape")
+    expect(description.pointShape).toBe("circle")
+  })
+
   it("persists the shape in the snapshot", () => {
     const description = DisplayItemDescriptionModel.create()
     description.setPointShape("plus")

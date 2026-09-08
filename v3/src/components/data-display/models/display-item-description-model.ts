@@ -6,9 +6,15 @@ import {kDefaultPointShape, PointShape, pointShapeOrDefault} from "../../../util
 export const DisplayItemDescriptionModel = types
   .model("DisplayItemDescriptionModel", {
     _itemColors: types.optional(types.array(types.string), [defaultPointColor]),
-    // The shape used when no legend attribute assigns one per category. Scalar rather than an
-    // array like _itemColors: color varies per plot index for multi-y plots, shape does not.
-    _itemShape: types.optional(types.string, kDefaultPointShape),
+    /*
+     * The shape used when no legend attribute assigns one per category. Scalar rather than an
+     * array like _itemColors: color varies per plot index for multi-y plots, shape does not.
+     *
+     * `maybe` rather than `optional` with a default, so the default is stored as absence and a
+     * document that never used shapes does not gain the field when it is opened and saved. That
+     * matches how per-category shapes are stored, and the getter below resolves the absence.
+     */
+    _itemShape: types.maybe(types.string),
     _itemStrokeColor: defaultStrokeColor,
     _itemStrokeSameAsFill: false,
     _pointSizeMultiplier: 1, // Not used when item is a polygon in which case it is set to -1
@@ -22,7 +28,8 @@ export const DisplayItemDescriptionModel = types
       self._itemColors[plotIndex] = color
     },
     setPointShape(shape: PointShape) {
-      self._itemShape = shape
+      // Absence means the default, as it does for a category's shape.
+      self._itemShape = shape === kDefaultPointShape ? undefined : shape
     },
     setPointStrokeColor(color: string) {
       self._itemStrokeColor = color
