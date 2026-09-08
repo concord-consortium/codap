@@ -14,8 +14,10 @@ export function importV2CategorySet(
   attribute: IAttribute, input: Maybe<V2CategorySetInput>, categoryShapes?: Record<string, string>
 ): Maybe<ICategorySetSnapshot> {
   let moves: ICategoryMove[] = []
-  // map from category string to hex color string
-  const colors: Record<string, string> = {}
+  // category string to hex color string, collected as entries and built at the end: category
+  // values come from the data, and assigning `colors["__proto__"]` would set the prototype rather
+  // than define an own property, losing that category's color
+  const colorEntries: Array<[string, string]> = []
 
   /*
    * Shapes come from the attribute's v3 namespace, and are taken as given rather than filtered
@@ -72,19 +74,22 @@ export function importV2CategorySet(
   for (let i = 0; i < sortedOrder.length; ++i) {
     const category = sortedOrder[i]
     const defaultColor = kellyColors[i % kellyColors.length]
-    const importColor = colorMap[category]
+    // hasOwn rather than a bare lookup: for a category named `constructor` or `toString` with no
+    // entry, a plain object returns the inherited member, which is truthy and is not a color
+    const importColor = Object.prototype.hasOwnProperty.call(colorMap, category) ? colorMap[category] : undefined
     if (importColor) {
       const importColorStr = typeof importColor === "string" ? importColor : importColor.colorString
       const defaultColorD = colord(defaultColor)
       const importColorD = colord(importColorStr)
       // if the v2 color is different than the default color, store it as a color change
       if (defaultColorD.toHex() !== importColorD.toHex()) {
-        colors[category] = importColorD.toHex()
+        colorEntries.push([category, importColorD.toHex()])
       }
     }
   }
 
-  if (moves.length > 0 || Object.keys(colors).length > 0 || Object.keys(shapes).length > 0) {
+  const colors: Record<string, string> = Object.fromEntries(colorEntries)
+  if (moves.length > 0 || colorEntries.length > 0 || Object.keys(shapes).length > 0) {
     return {
       attribute: attribute.id,
       moves,

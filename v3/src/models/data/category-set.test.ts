@@ -437,4 +437,39 @@ describe("CategorySet", () => {
     })
   })
 
+
+  describe("category values that collide with object keys", () => {
+    // Category values come from the data and can be any string, including ones that mean something
+    // to a plain JavaScript object.
+    const makeSet = (values: string[]) => {
+      const tree = Tree.create({
+        attribute: Attribute.create({ id: "aId", name: "a" }),
+        categories: { attribute: "aId" }
+      })
+      values.forEach(v => tree.attribute.addValue(v))
+      return tree.categories
+    }
+
+    it("keeps a color assigned to a category named __proto__", () => {
+      const categories = makeSet(["__proto__", "b"])
+      runInAction(() => categories.setColorForCategory("__proto__", "#ff0000"))
+
+      expect(categories.colorForCategory("__proto__")).toBe("#ff0000")
+      expect(Object.keys(categories.colorMap)).toContain("__proto__")
+    })
+
+    it("does not report an inherited member as a color", () => {
+      // on a normal object, colorMap["constructor"] would return a function
+      const categories = makeSet(["a"])
+      expect(typeof categories.colorForCategory("constructor")).not.toBe("function")
+      expect(categories.colorForCategory("constructor")).toBeUndefined()
+    })
+
+    it("assigns a color to a category named constructor like any other", () => {
+      const categories = makeSet(["constructor", "b"])
+      runInAction(() => categories.setColorForCategory("constructor", "#00ff00"))
+      expect(categories.colorForCategory("constructor")).toBe("#00ff00")
+    })
+  })
+
 })

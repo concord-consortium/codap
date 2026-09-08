@@ -204,8 +204,15 @@ export const CategorySet = types.model("CategorySet", {
     // We intentionally create a new non-observable map here.
     // This way this map object can be observed and if it changes a user knows the
     // colors or categories have changed
-    const map: Record<string, string> = {}
-    self.values.forEach((category, index) => map[category] = colorForCategory(category, index))
+    //
+    // Null-prototyped and built from entries because category values come from the data and can be
+    // any string. Assigning `map["__proto__"]` sets the prototype rather than defining an own
+    // property, losing that category's color; and reading `map["constructor"]` off a normal object
+    // returns an inherited function rather than undefined for a category that has none.
+    const entries = self.values.map(
+      (category, index) => [category, colorForCategory(category, index)] as const
+    )
+    const map: Record<string, string> = Object.assign(Object.create(null), Object.fromEntries(entries))
     return map
   }
 }))

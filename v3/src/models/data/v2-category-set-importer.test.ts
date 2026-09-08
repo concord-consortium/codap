@@ -66,6 +66,17 @@ describe("importV2CategorySet", () => {
       id: "aId", name: "a", values: ["land", "water", "land"]
     })
 
+    it("does not invent a color for a category named after an inherited member", () => {
+      // colorMap comes from a v2 document, so a bare `colorMap["constructor"]` returns the
+      // inherited function -- truthy, and not a color -- for a category the map has no entry for
+      const attribute = Attribute.create({ id: "aId", name: "a", values: ["constructor", "land"] })
+      const result = importV2CategorySet(attribute, createCategoryMap(["constructor", "land"], {}))
+
+      // own keys, not toHaveProperty: that would find the inherited constructor and fail whatever
+      // the code does -- the same hazard this test is about
+      expect(Object.keys(result?.colors ?? {})).not.toContain("constructor")
+    })
+
     it("imports assigned shapes", () => {
       const result = importV2CategorySet(makeAttribute(), undefined, { land: "star", water: "diamond" })
       expect(result?.shapes).toEqual({ land: "star", water: "diamond" })
