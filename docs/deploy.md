@@ -2,7 +2,7 @@
 
 S3 deployment is handled by GitHub Actions. Pushes are deployed to `models-resources/codap-dev/` by the `s3-deploy` job in [`ci.yml`](../.github/workflows/ci.yml), and are served from https://codap-dev.concord.org/.
 
-This covers development and branch builds only. Production v2 releases are assembled and copied to `codap-server.concord.org` by hand. See[formal-build-process.md](formal-build-process.md) for that process.
+This covers development and branch builds only. Production v2 releases are assembled and copied to `codap-server.concord.org` by hand. See [formal-build-process.md](formal-build-process.md) for that process.
 
 ## AWS Access
 
