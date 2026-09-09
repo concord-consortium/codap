@@ -410,7 +410,7 @@ describe("setPointCoordinates point shapes", () => {
    * from. A shape supplied only by the selection-restyle path leaves every new point a circle until
    * something unrelated restyles it -- adding a case to a plot with shapes is enough to show it.
    */
-  const makeRenderer = (caseIDs: string[]) => {
+  const stubPointTarget = (caseIDs: string[]) => {
     const styles: Record<string, IPointStyle> = {}
     return {
       styles,
@@ -428,7 +428,7 @@ describe("setPointCoordinates point shapes", () => {
 
   const run = (renderer: any, getLegendShape?: (anID: string) => any) => {
     setPointCoordinates({
-      renderer: renderer as any,
+      renderer,
       pointRadius: 5,
       selectedPointRadius: 7,
       pointColor: "#123456",
@@ -441,18 +441,18 @@ describe("setPointCoordinates point shapes", () => {
   }
 
   it("styles each point with the shape it resolves for that case", () => {
-    const renderer = makeRenderer(["c1", "c2"])
-    run(renderer, (anID: string) => (anID === "c1" ? "star" : "triangle"))
+    const target = stubPointTarget(["c1", "c2"])
+    run(target, (anID: string) => (anID === "c1" ? "star" : "triangle"))
 
-    expect(renderer.styles.c1.shape).toBe("star")
-    expect(renderer.styles.c2.shape).toBe("triangle")
+    expect(target.styles.c1.shape).toBe("star")
+    expect(target.styles.c2.shape).toBe("triangle")
   })
 
   it("leaves the shape alone when no resolver is supplied", () => {
     // callers that predate shapes must keep drawing whatever the renderer already had
-    const renderer = makeRenderer(["c1"])
-    run(renderer, undefined)
+    const target = stubPointTarget(["c1"])
+    run(target, undefined)
 
-    expect(renderer.styles.c1).not.toHaveProperty("shape")
+    expect(target.styles.c1).not.toHaveProperty("shape")
   })
 })
