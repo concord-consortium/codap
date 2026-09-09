@@ -1,4 +1,4 @@
-# Update codap3.concord.org/index-staging.html and codap3.cocnord.org/staging
+# Update codap3.concord.org/index-staging.html and codap3.concord.org/staging
 name: Release v3 Staging
 on:
   workflow_dispatch:

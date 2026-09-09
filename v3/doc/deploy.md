@@ -2,7 +2,7 @@
 
 S3 deployment is handled by GitHub Actions. Pushes are deployed to `models-resources/codap3/` by the `s3-deploy` job in [`v3.yml`](../../.github/workflows/v3.yml).
 
-A released version is promoted to the top-level `index.html` by [`release-v3-production.yml`](../../.github/workflows/release-v3-production.yml) via `workflow_dispatch`. The same promotion is available for the staging, beta, and ai4vs entry points via [`release-v3-staging.yml`](../../.github/workflows/release-v3-staging.yml), [`release-v3-beta.yml`](../../.github/workflows/release-v3-beta.yml), and [`release-v3-ai4vs.yml`](../../.github/workflows/release-v3-ai4vs.yml).
+A released version is promoted to the top-level `index.html` by [`release-v3-production.yml`](../../.github/workflows/release-v3-production.yml) via `workflow_dispatch`. [`release-v3-beta.yml`](../../.github/workflows/release-v3-beta.yml) and [`release-v3-ai4vs.yml`](../../.github/workflows/release-v3-ai4vs.yml) promote a version the same way, to `beta` and `ai4vs`. [`release-v3-staging.yml`](../../.github/workflows/release-v3-staging.yml) copies to two destinations, `index-staging.html` and `staging`, in two separate steps.
 
 See the Deployment section of the [README](../README.md) for the full release process.
 
