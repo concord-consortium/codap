@@ -458,12 +458,14 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
    * A shape change alters only how each point is drawn, so a restyle suffices; positions and masks
    * are untouched, unlike a legend color change which can also change which points are plotted.
    *
-   * It has to be a restyle rather than a reposition: only setPointSelection writes the shape into
-   * a point's style. setPointCoordinates, which the reposition path uses, sets the fill but not the
-   * shape, and style updates merge -- so repositioning after a shape change leaves the old shape in
-   * place. That is why both shape sources are observed here rather than alongside the other point
-   * properties: the per-category shapes, and the display's own, which is what a plot with no legend
-   * attribute draws throughout.
+   * The restyle path is used because it is the cheaper of the two that can carry a shape, not
+   * because it is the only one: setPointCoordinates writes the shape as well, so that a point
+   * created by it is not drawn as a circle. Repositioning every point to change how they are drawn
+   * would be wasted work.
+   *
+   * Both shape sources are observed rather than sitting alongside the other point properties: the
+   * per-category shapes, and the display's own, which is what a plot with no legend attribute
+   * draws throughout.
    */
   useEffect(() => {
     return mstReaction(

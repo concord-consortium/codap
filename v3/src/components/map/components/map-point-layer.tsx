@@ -424,11 +424,10 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
    * A shape change alters only how each point is drawn, so the points are restyled without touching
    * the heatmap, which has no notion of shape.
    *
-   * It has to go through refreshPointSelection: that is the only path that writes the shape into a
-   * point's style. refreshPoints sets the radius, fill and stroke but not the shape, and style
-   * updates merge, so refreshing after a shape change leaves the old shape in place. Both shape
-   * sources are observed here -- the per-category shapes, and the layer's own, which is what a
-   * layer with no legend attribute draws throughout.
+   * It goes through refreshPointSelection because that restyles without the heatmap work, not
+   * because it is the only path carrying a shape: refreshPoints writes one too, so that a point it
+   * creates is not drawn as a circle. Both shape sources are observed here -- the per-category
+   * shapes, and the layer's own, which is what a layer with no legend attribute draws throughout.
    */
   useEffect(() => {
     return mstReaction(

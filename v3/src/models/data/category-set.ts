@@ -291,8 +291,6 @@ export const CategorySet = types.model("CategorySet", {
       self.colors.delete(value)
     }
   },
-  // Storing the default is stored as absence, so a document only carries the shapes a user chose
-  // and a category reverted to circle round-trips as an unset entry.
   /*
    * Every choice is stored, circle included. Absence means the category has no shape of its own and
    * inherits the display's, which is not the same as having been set to a circle: with a display
