@@ -28,6 +28,8 @@ jest.mock("./point-color-setting", () => ({
 
 const createMockDescription = (overrides?: Record<string, unknown>) => ({
   pointColor: "#0000FF",
+  // the real model always has one; a negative value is the polygon sentinel
+  pointSizeMultiplier: 1,
   setPointColor: jest.fn(),
   setPointShape: jest.fn(),
   pointShape: "circle",
@@ -629,6 +631,47 @@ describe("point shape controls", () => {
 
     const trigger = within(screen.getAllByTestId("point-shape-select")[0]).getByRole("button")
     expect(within(trigger).getAllByTestId("point-shape-glyph")).toHaveLength(1)
+  })
+
+  describe("polygon layers", () => {
+    // The map mounts these controls for polygon layers, which mark themselves with a negative
+    // point size -- the sentinel that already hides the Point Size slider. A polygon has no point
+    // to shape.
+    const polygonDescription = () => createMockDescription({ pointSizeMultiplier: -1 })
+
+    it("offers no shape control for a polygon layer with no legend", () => {
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const config = createMockDataConfig()
+      render(
+        <LegendColorControls
+          dataConfiguration={config as any}
+          displayItemDescription={polygonDescription() as any}
+        />
+      )
+
+      expect(screen.queryByTestId("point-shape-select")).not.toBeInTheDocument()
+      // and the row keeps its own label rather than being relabelled "Points"
+      expect(screen.getByText("DG.Inspector.color", { selector: "label" })).toBeInTheDocument()
+      // the color control is unaffected -- a polygon still has a fill
+      expect(screen.getByTestId("color-swatch-DG.Inspector.color")).toBeInTheDocument()
+    })
+
+    it("offers no shape control in a polygon layer's category rows", () => {
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const config = createMockDataConfig({
+        attributeType: jest.fn(() => "categorical"),
+        categoryArrayForAttrRole: jest.fn(() => ["cat-a", "cat-b"])
+      })
+      render(
+        <LegendColorControls
+          dataConfiguration={config as any}
+          displayItemDescription={polygonDescription() as any}
+        />
+      )
+
+      expect(screen.queryByTestId("point-shape-select")).not.toBeInTheDocument()
+      expect(screen.getByTestId("color-swatch-cat-a")).toBeInTheDocument()
+    })
   })
 
   describe("with no legend attribute", () => {

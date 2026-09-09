@@ -38,6 +38,13 @@ export const LegendColorControls = observer(function LegendColorControls(
   const { tile } = useTileModelContext()
   const legendAttrID = dataConfiguration.attributeID("legend")
   const attrType = dataConfiguration.attributeType("legend")
+  /*
+   * Polygons have no point to shape. The map mounts these controls for its polygon layers too, and
+   * a polygon layer marks itself with a negative point size -- the same sentinel that already hides
+   * the Point Size slider. Without this the controls would offer a shape that cannot affect
+   * anything, and relabel a polygon fill row as "Points".
+   */
+  const showShape = isFeatureEnabled("pointShapes") && displayItemDescription.pointSizeMultiplier >= 0
   const categoriesRef = useRef<string[] | undefined>()
   categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole("legend")
   const metadata = dataConfiguration.metadata
@@ -129,6 +136,7 @@ export const LegendColorControls = observer(function LegendColorControls(
       <CategoricalColorControls
         categories={categoriesRef.current}
         dataConfiguration={dataConfiguration}
+        showShape={showShape}
         onCatPointColorChange={handleCatPointColorChange}
         onCatPointShapeChange={handleCatPointShapeChange}
       />
@@ -168,7 +176,6 @@ export const LegendColorControls = observer(function LegendColorControls(
 
   // With no legend attribute there are no categories to list, so the same two controls apply to
   // every point and sit in a single row.
-  const showShape = isFeatureEnabled("pointShapes")
   const singleRowLabel = showShape ? t("V3.Inspector.points") : t("DG.Inspector.color")
   return (
     <div className="palette-row color-picker-row">
@@ -189,12 +196,15 @@ export const LegendColorControls = observer(function LegendColorControls(
 interface ICategoricalColorControlsProps {
   categories?: string[]
   dataConfiguration: IDataConfigurationModel
+  showShape: boolean
   onCatPointColorChange: (color: string, cat: string) => void
   onCatPointShapeChange: (shape: PointShape, cat: string) => void
 }
 
 const CategoricalColorControls = observer(function CategoricalColorControls(
-  { categories, dataConfiguration, onCatPointColorChange, onCatPointShapeChange }: ICategoricalColorControlsProps
+  {
+    categories, dataConfiguration, showShape, onCatPointColorChange, onCatPointShapeChange
+  }: ICategoricalColorControlsProps
 ) {
   const [scrollVersion, setScrollVersion] = useState(0)
 
@@ -207,7 +217,7 @@ const CategoricalColorControls = observer(function CategoricalColorControls(
       {categories?.map(category => (
         <div key={category} className="palette-row color-picker-row cat-color-picker">
           <label className="form-label color-picker">{category}</label>
-          <If condition={isFeatureEnabled("pointShapes")}>
+          <If condition={showShape}>
             <PointShapeSetting propertyLabel={category}
               closeTrigger={scrollVersion}
               shape={dataConfiguration.getLegendShapeForCategory(category)}
