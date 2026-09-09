@@ -234,8 +234,8 @@ export const CategorySet = types.model("CategorySet", {
     return isPointShape(stored) ? stored : shapeIfUnset
   },
   /*
-   * Only the categories carrying an explicit shape. Categories at the default are omitted, so
-   * exports stay empty until a user actually assigns one.
+   * Only the categories carrying a shape of their own. A category the user has never assigned is
+   * absent, so exports stay empty until one is actually chosen.
    *
    * Built with fromEntries: assignment would set the prototype for a category named `__proto__`.
    */
@@ -293,12 +293,13 @@ export const CategorySet = types.model("CategorySet", {
   },
   // Storing the default is stored as absence, so a document only carries the shapes a user chose
   // and a category reverted to circle round-trips as an unset entry.
+  /*
+   * Every choice is stored, circle included. Absence means the category has no shape of its own and
+   * inherits the display's, which is not the same as having been set to a circle: with a display
+   * shape of star, dropping a circle here would read back as star and make circle unselectable.
+   */
   setShapeForCategory(value: string, shape: PointShape) {
-    if (shape && shape !== kDefaultPointShape) {
-      self.shapes.set(value, shape)
-    } else {
-      self.shapes.delete(value)
-    }
+    self.shapes.set(value, shape)
   },
   storeCurrentColorForCategory(value: string) {
     const color = self.colorForCategory(value)
