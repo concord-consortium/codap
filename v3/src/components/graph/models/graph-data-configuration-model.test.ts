@@ -1139,6 +1139,28 @@ describe("DataConfigurationModel legend point shapes", () => {
     expect(tree.config.getLegendShapeForCase(caseId, "plus")).toBe("x")
   })
 
+  it("falls back rather than speaking for a group when the legend is below the plotted cases", () => {
+    /*
+     * With the legend attribute in a more childmost collection than the plotted cases, a point
+     * stands for several children at once and getStrValue would resolve through an arbitrary one of
+     * them, so that child's shape would be attributed to the whole group. The color path already
+     * refuses this; the shape path has to agree with it.
+     */
+    tree.data.addAttribute({ id: "xId", name: "x" })
+    tree.data.setCaseValues([
+      { __id__: "c1", xId: "shared" },
+      { __id__: "c2", xId: "shared" }
+    ])
+    tree.config.setAttribute("x", { attributeID: "xId" })
+    // x becomes the parent collection, leaving the legend childmost
+    tree.data.moveAttributeToNewCollection("xId")
+    expect(tree.config.legendCollectionIsMoreChildmost).toBe(true)
+
+    tree.config.setLegendShapeForCategory("land", "diamond")
+    const parentCaseId = tree.data.items[0].__id__
+    expect(tree.config.getLegendShapeForCase(parentCaseId, "star")).toBe("star")
+  })
+
   it("falls back to the default when there is no legend attribute", () => {
     tree.config.setAttribute("legend", { attributeID: "" })
     // no category set to consult, so reads resolve rather than returning undefined

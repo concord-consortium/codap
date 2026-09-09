@@ -919,16 +919,20 @@ export const DataConfigurationModel = types
             return 0
         }
       },
+      /*
+       * Whether the legend attribute lives in a collection more childmost than the plotted cases.
+       * A point then stands for several children at once, and resolving the legend through any one
+       * of them would attribute that child's value to the whole group, so callers fall back.
+       */
+      get legendCollectionIsMoreChildmost(): boolean {
+        const legendID = self.attributeID('legend')
+        const legendCollectionID = self.dataset?.getCollectionForAttribute(legendID)?.id
+        const legendCollectionIndex = self.dataset?.getCollectionIndex(legendCollectionID) ?? 0
+        const childmostCollectionID = idOfChildmostCollectionForAttributes(self.axisAttributeIDs, self.dataset)
+        const childmostCollectionIndex = self.dataset?.getCollectionIndex(childmostCollectionID) ?? 0
+        return legendCollectionIndex > childmostCollectionIndex
+      },
       getLegendColorForCase(id: string, colorIfMissing = missingColor): string {
-
-        const collectionOfLegendIsMoreChildmost = () => {
-          const legendCollectionID = self.dataset?.getCollectionForAttribute(legendID)?.id,
-            legendCollectionIndex = self.dataset?.getCollectionIndex(legendCollectionID) ?? 0,
-            childmostCollectionID = idOfChildmostCollectionForAttributes(self.axisAttributeIDs, self.dataset),
-            childmostCollectionIndex = self.dataset?.getCollectionIndex(childmostCollectionID) ?? 0
-          return legendCollectionIndex > childmostCollectionIndex
-        }
-
         const legendID = self.attributeID('legend')
         // todo: When user deletes we are not currently deleting the legend attribute ID. But we should.
         const legendAttribute = self.dataset?.getAttribute(legendID)
@@ -936,7 +940,7 @@ export const DataConfigurationModel = types
           return ''
         }
         const legendType = self.attributeType('legend')
-        if (collectionOfLegendIsMoreChildmost()) {
+        if (this.legendCollectionIsMoreChildmost) {
           return colorIfMissing
         }
         const legendValue = self.dataset?.getStrValue(id, legendID)
@@ -973,6 +977,9 @@ export const DataConfigurationModel = types
 
         const legendType = self.attributeType('legend')
         if (legendType !== 'categorical' && legendType !== 'checkbox') return shapeIfNoCategory
+
+        // as for color: a legend below the plotted cases cannot speak for a parent-level point
+        if (this.legendCollectionIsMoreChildmost) return shapeIfNoCategory
 
         const legendValue = self.dataset?.getStrValue(id, legendID)
         if (!legendValue) return shapeIfNoCategory
