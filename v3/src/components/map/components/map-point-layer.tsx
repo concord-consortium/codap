@@ -293,6 +293,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
         pointRadius: mapLayerModel.getPointRadius(),
         instanceId: dataConfiguration.id,
         pointColor: pointDescription.pointColor,
+        pointShape: pointDescription.pointShape,
         pointStrokeColor: pointDescription.pointStrokeColor,
         startAnimation: mapModel.startAnimation,
         stopAnimation: mapModel.stopAnimation

@@ -6,6 +6,7 @@ import {
   defaultStrokeOpacity, defaultStrokeWidth
 } from "../../utilities/color-utils"
 import {between} from "../../utilities/math-utils"
+import { kDefaultPointShape, PointShape } from "../../utilities/point-shape-utils"
 import { IBarCover } from "../graph/graphing-types"
 import {isGraphDataConfigurationModel} from "../graph/models/graph-data-configuration-model"
 import {ISetPointSelection} from "../graph/utilities/graph-utils"
@@ -80,6 +81,12 @@ export interface IMatchCirclesProps {
   dataConfiguration: IDataConfigurationModel
   pointRadius: number
   pointColor: string
+  /*
+   * The shape a point is created with, as pointColor is the color it is created with. The refresh
+   * that follows resolves the per-case shape; this is what the point is drawn as until it does, and
+   * several callers create points without refreshing in the same breath.
+   */
+  pointShape?: PointShape
   pointDisplayType?: PointDisplayType
   pointStrokeColor: string
   startAnimation: () => void
@@ -90,7 +97,7 @@ export interface IMatchCirclesProps {
 
 export function matchCirclesToData(props: IMatchCirclesProps) {
   const { dataConfiguration, renderer, startAnimation, stopAnimation, pointRadius, pointColor, pointStrokeColor,
-          pointDisplayType = "points" } = props
+          pointShape = kDefaultPointShape, pointDisplayType = "points" } = props
   // TODO: eliminate dependence on GraphDataConfigurationModel
   const allCaseData: CaseDataWithSubPlot[] = isGraphDataConfigurationModel(dataConfiguration)
     ? dataConfiguration.caseDataWithSubPlot
@@ -111,6 +118,7 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
   renderer?.matchPointsToData(dataConfiguration.dataset?.id ?? '', allCaseData, pointDisplayType, {
     radius: pointRadius,
     fill: pointColor,
+    shape: pointShape,
     stroke: pointStrokeColor,
     strokeWidth: defaultStrokeWidth
   })
