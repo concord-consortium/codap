@@ -1139,6 +1139,20 @@ describe("DataConfigurationModel legend point shapes", () => {
     expect(tree.config.getLegendShapeForCase(caseId, "plus")).toBe("x")
   })
 
+  it("works when called as a detached reference, which is how the plots call it", () => {
+    /*
+     * A plot hands these to setPointCoordinates as bare function references --
+     * `getLegendColor = dataConfig.getLegendColorForCase` -- and calls them unbound, so `this`
+     * inside them is undefined. Anything they need from the model has to come through `self`.
+     */
+    const caseId = tree.data.items[0].__id__
+    const getShape = tree.config.getLegendShapeForCase
+    const getColor = tree.config.getLegendColorForCase
+
+    expect(() => getShape(caseId, "star")).not.toThrow()
+    expect(() => getColor(caseId)).not.toThrow()
+  })
+
   it("falls back rather than speaking for a group when the legend is below the plotted cases", () => {
     /*
      * With the legend attribute in a more childmost collection than the plotted cases, a point

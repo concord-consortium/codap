@@ -860,6 +860,24 @@ export const DataConfigurationModel = types
       casesInBinAreSelected(quantile: number): boolean {
         const selection = self.getCasesForLegendBin(quantile)
         return !!(selection.length > 0 && selection?.every((anID: string) => self.dataset?.isCaseSelected(anID)))
+      },
+      /*
+       * Whether the legend attribute lives in a collection more childmost than the plotted cases.
+       * A point then stands for several children at once, and resolving the legend through any one
+       * of them would attribute that child's value to the whole group, so callers fall back.
+       *
+       * Lives a block above the two views that use it so they can reach it through `self`. They are
+       * routinely passed around as detached function references -- a plot hands
+       * `dataConfig.getLegendColorForCase` to setPointCoordinates, which calls it bare -- so `this`
+       * inside them is undefined and cannot be used to reach a sibling view.
+       */
+      get legendCollectionIsMoreChildmost(): boolean {
+        const legendID = self.attributeID('legend')
+        const legendCollectionID = self.dataset?.getCollectionForAttribute(legendID)?.id
+        const legendCollectionIndex = self.dataset?.getCollectionIndex(legendCollectionID) ?? 0
+        const childmostCollectionID = idOfChildmostCollectionForAttributes(self.axisAttributeIDs, self.dataset)
+        const childmostCollectionIndex = self.dataset?.getCollectionIndex(childmostCollectionID) ?? 0
+        return legendCollectionIndex > childmostCollectionIndex
       }
     }))
   .views(self => (
@@ -919,19 +937,6 @@ export const DataConfigurationModel = types
             return 0
         }
       },
-      /*
-       * Whether the legend attribute lives in a collection more childmost than the plotted cases.
-       * A point then stands for several children at once, and resolving the legend through any one
-       * of them would attribute that child's value to the whole group, so callers fall back.
-       */
-      get legendCollectionIsMoreChildmost(): boolean {
-        const legendID = self.attributeID('legend')
-        const legendCollectionID = self.dataset?.getCollectionForAttribute(legendID)?.id
-        const legendCollectionIndex = self.dataset?.getCollectionIndex(legendCollectionID) ?? 0
-        const childmostCollectionID = idOfChildmostCollectionForAttributes(self.axisAttributeIDs, self.dataset)
-        const childmostCollectionIndex = self.dataset?.getCollectionIndex(childmostCollectionID) ?? 0
-        return legendCollectionIndex > childmostCollectionIndex
-      },
       getLegendColorForCase(id: string, colorIfMissing = missingColor): string {
         const legendID = self.attributeID('legend')
         // todo: When user deletes we are not currently deleting the legend attribute ID. But we should.
@@ -940,7 +945,7 @@ export const DataConfigurationModel = types
           return ''
         }
         const legendType = self.attributeType('legend')
-        if (this.legendCollectionIsMoreChildmost) {
+        if (self.legendCollectionIsMoreChildmost) {
           return colorIfMissing
         }
         const legendValue = self.dataset?.getStrValue(id, legendID)
@@ -979,7 +984,7 @@ export const DataConfigurationModel = types
         if (legendType !== 'categorical' && legendType !== 'checkbox') return shapeIfNoCategory
 
         // as for color: a legend below the plotted cases cannot speak for a parent-level point
-        if (this.legendCollectionIsMoreChildmost) return shapeIfNoCategory
+        if (self.legendCollectionIsMoreChildmost) return shapeIfNoCategory
 
         const legendValue = self.dataset?.getStrValue(id, legendID)
         if (!legendValue) return shapeIfNoCategory
