@@ -633,6 +633,157 @@ describe("point shape controls", () => {
     expect(within(trigger).getAllByTestId("point-shape-glyph")).toHaveLength(1)
   })
 
+  describe("legends with no categories", () => {
+    /*
+     * A numeric or color legend has nothing to attach a per-category shape to, but the display's
+     * own shape still governs every point. Without the control the property goes on applying with
+     * no way to reach it -- a shape chosen before the legend was added gets stuck.
+     */
+    it("offers the display shape control for a numeric legend", () => {
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const config = createMockDataConfig({ attributeType: jest.fn(() => "numeric") })
+      render(
+        <LegendColorControls
+          dataConfiguration={config as any}
+          displayItemDescription={createMockDescription() as any}
+        />
+      )
+
+      expect(screen.getByTestId("point-shape-select")).toBeInTheDocument()
+      // the legend's own colour controls are still there
+      expect(screen.getByTestId("color-swatch-DG.Inspector.legendColorLow")).toBeInTheDocument()
+    })
+
+    it("offers the display shape control for a color legend", () => {
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const config = createMockDataConfig({ attributeType: jest.fn(() => "color") })
+      render(
+        <LegendColorControls
+          dataConfiguration={config as any}
+          displayItemDescription={createMockDescription() as any}
+        />
+      )
+
+      expect(screen.getByTestId("point-shape-select")).toBeInTheDocument()
+    })
+
+    it("commits a shape chosen against a numeric legend to the display", async () => {
+      const user = userEvent.setup()
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const desc = createMockDescription()
+      const config = createMockDataConfig({ attributeType: jest.fn(() => "numeric") })
+      render(<LegendColorControls dataConfiguration={config as any} displayItemDescription={desc as any} />)
+
+      await user.click(screen.getByRole("button", { name: /V3.Inspector.pointShape/i }))
+      await user.click(screen.getByRole("option", { name: "V3.Inspector.pointShape.square" }))
+
+      expect(desc.setPointShape).toHaveBeenCalledWith("square")
+    })
+
+    it("offers no shape control for a numeric legend when the flag is off", () => {
+      featureFlagManager.setServerConfig({ pointShapes: "off" })
+      const config = createMockDataConfig({ attributeType: jest.fn(() => "numeric") })
+      render(
+        <LegendColorControls
+          dataConfiguration={config as any}
+          displayItemDescription={createMockDescription() as any}
+        />
+      )
+
+      expect(screen.queryByTestId("point-shape-select")).not.toBeInTheDocument()
+    })
+  })
+
+  /* eslint-disable testing-library/no-node-access, testing-library/no-container */
+  // A gradient definition is aria-hidden and has no role to query by: it exists only as a paint
+  // server for the glyph, so the accessible queries these rules steer toward have nothing to find.
+  describe("numeric legend gradient", () => {
+    const scaleOf = (...colors: string[]) => ({ legendNumericColorScale: { range: () => colors } })
+
+    it("paints the trigger with the colors the legend actually uses", () => {
+      /*
+       * Hard stops from the scale's own range rather than a ramp interpolated between the low and
+       * high swatches: the scale is quantized, so points only ever take these discrete colors and
+       * a smooth ramp would show shades nothing in the plot has.
+       */
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const config = createMockDataConfig({
+        attributeType: jest.fn(() => "numeric"),
+        ...scaleOf("#111111", "#222222")
+      })
+      const { container } = render(
+        <LegendColorControls
+          dataConfiguration={config as any}
+          displayItemDescription={createMockDescription() as any}
+        />
+      )
+
+      const stops = Array.from(container.querySelectorAll("linearGradient stop"))
+      // two stops per color, so each band ends where the next begins
+      expect(stops.map(stop => stop.getAttribute("stop-color")))
+        .toEqual(["#111111", "#111111", "#222222", "#222222"])
+      expect(stops.map(stop => stop.getAttribute("offset")))
+        .toEqual(["0%", "50%", "50%", "100%"])
+    })
+
+    it("points the trigger's glyph at that gradient", () => {
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const config = createMockDataConfig({
+        attributeType: jest.fn(() => "numeric"),
+        ...scaleOf("#111111", "#222222")
+      })
+      const { container } = render(
+        <LegendColorControls
+          dataConfiguration={config as any}
+          displayItemDescription={createMockDescription() as any}
+        />
+      )
+
+      const gradientId = container.querySelector("linearGradient")?.getAttribute("id")
+      expect(gradientId).toBeTruthy()
+      const glyph = screen.getByTestId("point-shape-glyph")
+      expect(glyph.style.getPropertyValue("--point-shape-fill")).toBe(`url(#${gradientId})`)
+    })
+
+    it("leaves the glyph on a solid color when the legend has no scale", () => {
+      // nothing to build a gradient from, so the custom property stays unset and the fill falls
+      // back to currentColor
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const config = createMockDataConfig({
+        attributeType: jest.fn(() => "numeric"),
+        legendNumericColorScale: undefined
+      })
+      const { container } = render(
+        <LegendColorControls
+          dataConfiguration={config as any}
+          displayItemDescription={createMockDescription() as any}
+        />
+      )
+
+      expect(container.querySelector("linearGradient")).toBeNull()
+      expect(screen.getByTestId("point-shape-glyph").style.getPropertyValue("--point-shape-fill")).toBe("")
+    })
+
+    it("does not gradient the per-category glyphs, which have colors of their own", () => {
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const config = createMockDataConfig({
+        attributeType: jest.fn(() => "categorical"),
+        categoryArrayForAttrRole: jest.fn(() => ["cat-a"]),
+        ...scaleOf("#111111", "#222222")
+      })
+      const { container } = render(
+        <LegendColorControls
+          dataConfiguration={config as any}
+          displayItemDescription={createMockDescription() as any}
+        />
+      )
+
+      expect(container.querySelector("linearGradient")).toBeNull()
+    })
+  })
+
+  /* eslint-enable testing-library/no-node-access, testing-library/no-container */
+
   describe("polygon layers", () => {
     // The map mounts these controls for polygon layers, which mark themselves with a negative
     // point size -- the sentinel that already hides the Point Size slider. A polygon has no point

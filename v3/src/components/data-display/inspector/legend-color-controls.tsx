@@ -131,6 +131,58 @@ export const LegendColorControls = observer(function LegendColorControls(
     )
   }
 
+  /*
+   * The colors the legend actually paints points with, as hard-stopped gradient bands. Taken from
+   * the scale rather than interpolated between the low and high swatches: the scale is quantized or
+   * quantiled, so points only ever take these discrete colors and a smooth ramp would show shades
+   * nothing in the plot has. Few bins therefore read as visible bands, which is honest.
+   */
+  const legendBandColors: string[] = attrType === "numeric"
+    ? (dataConfiguration.legendNumericColorScale?.range() ?? [])
+    : []
+  const legendBandStops = legendBandColors.flatMap((bandColor, i) => [
+    { color: bandColor, offset: i / legendBandColors.length },
+    { color: bandColor, offset: (i + 1) / legendBandColors.length }
+  ])
+
+  // Unique per control instance, so two graphs with different legends do not share one definition.
+  const gradientId = `point-shape-legend-${useId()}`
+
+  /*
+   * Shape is a display-level property whenever the legend cannot assign one per category: a numeric
+   * or color legend has no categories to attach a shape to, so a single shape applies to every
+   * point, exactly as it does with no legend at all. The control has to stay in the palette for
+   * those, or a shape chosen before the legend was added becomes unreachable while it goes on
+   * governing what is drawn.
+   */
+  const displayShapeRow = showShape
+    ? (
+        <div className="palette-row color-picker-row shape-row">
+          <label className="form-label color-picker">{t("V3.Inspector.points")}</label>
+          {/*
+            * Zero-sized: it contributes only the paint server the glyph refers to. A gradient has
+            * to live in an svg in the same document, but nothing about it is meant to be seen.
+            */}
+          <If condition={legendBandStops.length > 0}>
+            <svg width="0" height="0" aria-hidden="true" focusable="false" className="point-shape-gradient-defs">
+              <defs>
+                <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
+                  {legendBandStops.map((stop, i) => (
+                    <stop key={i} offset={`${stop.offset * 100}%`} stopColor={stop.color} />
+                  ))}
+                </linearGradient>
+              </defs>
+            </svg>
+          </If>
+          <PointShapeSetting propertyLabel={t("V3.Inspector.pointShape")}
+                            shape={displayItemDescription.pointShape}
+                            color={displayItemDescription.pointColor}
+                            fillGradientId={legendBandStops.length > 0 ? gradientId : undefined}
+                            onShapeChange={handlePointShapeChange}/>
+        </div>
+      )
+    : null
+
   if (attrType === "categorical") {
     return (
       <CategoricalColorControls
@@ -146,6 +198,7 @@ export const LegendColorControls = observer(function LegendColorControls(
   if (attrType === "numeric") {
     return (
       <>
+        {displayShapeRow}
         <div className="num-color-setting">
           <div className="palette-row color-picker-row">
             <label className="form-label color-picker">{t("DG.Inspector.legendColor")}</label>
@@ -172,7 +225,7 @@ export const LegendColorControls = observer(function LegendColorControls(
     )
   }
 
-  if (attrType === "color") return null
+  if (attrType === "color") return displayShapeRow
 
   // With no legend attribute there are no categories to list, so the same two controls apply to
   // every point and sit in a single row.

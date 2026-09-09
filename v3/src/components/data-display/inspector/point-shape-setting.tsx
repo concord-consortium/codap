@@ -41,6 +41,13 @@ interface IPointShapeSettingProps {
   // changes to this value close an open menu, so a menu cannot be left floating over a scrolled row
   closeTrigger?: number
   color?: string
+  /*
+   * Paints the trigger's glyph with the gradient of this id instead of a solid color, for a legend
+   * whose points span a range rather than sharing one color. Only the trigger takes it: the menu's
+   * seven options are a choice of shape, and giving each the same gradient would say nothing while
+   * costing every one of them its legibility at this size.
+   */
+  fillGradientId?: string
   disabled?: boolean
   onShapeChange: (shape: PointShape) => void
   propertyLabel: string
@@ -48,7 +55,7 @@ interface IPointShapeSettingProps {
 }
 
 export const PointShapeSetting = observer(function PointShapeSetting({
-  closeTrigger, color, disabled, onShapeChange, propertyLabel, shape
+  closeTrigger, color, disabled, fillGradientId, onShapeChange, propertyLabel, shape
 }: IPointShapeSettingProps) {
   const [isOpen, setIsOpen] = useState(false)
   const lastCloseTrigger = useRef(closeTrigger)
@@ -87,8 +94,15 @@ export const PointShapeSetting = observer(function PointShapeSetting({
             rather than laid out, so nothing about how an svg participates in flex layout can
             displace it. */}
         <span className="point-shape-thumb-value">
+          {/*
+            * The glyph's fill is `currentColor`, which cannot hold a gradient, so the stylesheet
+            * points the path at a custom property instead. Setting it here overrides the solid
+            * color for this one glyph; leaving it unset falls back to `currentColor` and every
+            * other glyph is untouched.
+            */}
           <ShapeIcon shape={shape} className="point-shape-thumb-glyph"
-            data-testid="point-shape-glyph" style={{ color }} />
+            data-testid="point-shape-glyph"
+            style={{ color, ...(fillGradientId ? { "--point-shape-fill": `url(#${fillGradientId})` } : {}) }} />
         </span>
         {/*
           * Names the current shape for assistive technology, and gives the aria-labelledby that

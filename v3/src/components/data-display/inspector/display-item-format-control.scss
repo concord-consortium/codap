@@ -115,6 +115,16 @@
       display: block;
       width: 100%;
       height: 100%;
+
+      // The glyph's own fill is `currentColor`, which cannot hold a gradient. Routing the fill
+      // through a custom property lets a caller point it at a paint server instead, for a legend
+      // whose points span a range of colors rather than sharing one. A rule on the path is what
+      // makes this possible at all: the fill is a presentation attribute on the path itself, so an
+      // inherited value would lose to it. Unset everywhere else, and the fallback keeps every other
+      // glyph on `currentColor`.
+      path {
+        fill: var(--point-shape-fill, currentColor);
+      }
     }
 
     // Matches the color picker's disclosure arrow, so the two controls in a row read as a pair.
