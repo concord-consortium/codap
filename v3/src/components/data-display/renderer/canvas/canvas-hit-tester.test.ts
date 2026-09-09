@@ -1,4 +1,5 @@
 import { CanvasHitTester } from "./canvas-hit-tester"
+import { PointShape, PointShapes } from "../../../../utilities/point-shape-utils"
 import { IPointState, IPointStyle } from "../point-renderer-types"
 
 describe("CanvasHitTester", () => {
@@ -30,6 +31,92 @@ describe("CanvasHitTester", () => {
 
   const circleAnchor = { x: 0.5, y: 0.5 }
   const barAnchor = { x: 0, y: 1 }
+
+
+  describe("point shapes", () => {
+    const shapedPoint = (shape: PointShape, x: number, y: number) =>
+      createPointState("p1", x, y, { style: { ...defaultStyle, shape } })
+
+    it("responds to a click on a star's tip, which lies outside the point radius", () => {
+      // The tip reaches 1.42r, so a radius-sized hit area would leave the drawn ink dead.
+      const hitTester = new CanvasHitTester()
+      hitTester.updateFromPoints([shapedPoint("star", 100, 100)], "points", circleAnchor)
+
+      expect(hitTester.hitTest(100, 100 - 13)).toBe("p1")
+    })
+
+    it("responds to a click on a triangle's apex", () => {
+      /*
+       * The triangle is centered on its centroid, so the apex is further from the point than half
+       * the shape's width. Filing it in the grid by half its width put the apex in a cell the
+       * point was not listed under, and the click found nothing at all.
+       */
+      const hitTester = new CanvasHitTester()
+      hitTester.updateFromPoints([shapedPoint("triangle", 100, 100)], "points", circleAnchor)
+
+      expect(hitTester.hitTest(100, 100 - 14)).toBe("p1")
+    })
+
+    it("ignores a click in the gap between a star's arms", () => {
+      const hitTester = new CanvasHitTester()
+      hitTester.updateFromPoints([shapedPoint("star", 100, 100)], "points", circleAnchor)
+
+      // 13px out along an inner vertex, where the outline reaches under 7
+      const rad = -54 * Math.PI / 180
+      expect(hitTester.hitTest(100 + Math.cos(rad) * 13, 100 + Math.sin(rad) * 13)).toBeUndefined()
+    })
+
+    it("keeps every shape at least as easy to hit as a circle", () => {
+      PointShapes.forEach(shape => {
+        const hitTester = new CanvasHitTester()
+        hitTester.updateFromPoints([shapedPoint(shape, 100, 100)], "points", circleAnchor)
+
+        for (let deg = 0; deg < 360; deg += 15) {
+          const rad = deg * Math.PI / 180
+          const x = 100 + Math.cos(rad) * 9.9
+          const y = 100 + Math.sin(rad) * 9.9
+          expect(hitTester.hitTest(x, y)).toBe("p1")
+        }
+      })
+    })
+
+    it("files a shape in the grid by its reach, not by the point radius", () => {
+      /*
+       * At the default cell size the +/-1 cell margin hitTest already searches is far wider than
+       * any shape's overhang, so mis-filing a star is invisible. That is a property of the current
+       * tuning rather than of the code: the cell size is a constructor argument, and points scale
+       * with the size slider. Tuned here so the grid, not the margin, decides.
+       */
+      const hitTester = new CanvasHitTester(8)
+      const big = createPointState("p1", 200, 200, { style: { ...defaultStyle, radius: 40, shape: "star" } })
+      hitTester.updateFromPoints([big], "points", circleAnchor)
+
+      // the tip reaches 56.8; a grid filed by the radius alone stops at 40 and never offers it
+      expect(hitTester.hitTest(200, 200 - 54)).toBe("p1")
+    })
+
+    it("treats a point with no shape as a circle", () => {
+      // every style that predates shapes omits it, and those points must hit exactly as before
+      const hitTester = new CanvasHitTester()
+      hitTester.updateFromPoints([createPointState("p1", 100, 100)], "points", circleAnchor)
+
+      expect(hitTester.hitTest(100, 95)).toBe("p1")
+      expect(hitTester.hitTest(100, 100 - 13)).toBeUndefined()
+    })
+
+    it("hits the shape actually drawn rather than the one beside it", () => {
+      // a star's tip overlaps the cell of its neighbor, so the grid alone cannot decide
+      const hitTester = new CanvasHitTester()
+      hitTester.updateFromPoints([
+        shapedPoint("star", 100, 100),
+        createPointState("p2", 130, 100, { style: { ...defaultStyle, shape: "circle" } })
+      ], "points", circleAnchor)
+
+      expect(hitTester.hitTest(100, 100 - 13)).toBe("p1")
+      expect(hitTester.hitTest(130, 100)).toBe("p2")
+      expect(hitTester.hitTest(115, 100)).toBeUndefined()
+    })
+  })
 
   describe("construction", () => {
     it("creates hit tester with default cell size", () => {

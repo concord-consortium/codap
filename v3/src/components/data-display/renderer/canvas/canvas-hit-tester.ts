@@ -5,8 +5,10 @@
  * The grid is rebuilt after each render from current point positions.
  */
 
+import { kDefaultPointShape, PointShape } from "../../../../utilities/point-shape-utils"
 import { PointDisplayType } from "../../data-display-types"
 import { anchoredBarRect } from "../bar-coalescing"
+import { isPointInShape, pointShapeBoundingRadius } from "../point-shapes"
 import { IPointState } from "../point-renderer-types"
 
 /**
@@ -28,12 +30,14 @@ interface IHitTestBounds {
   y: number
   width: number
   height: number
-  /** For circles: center x */
+  /** For points: center x */
   centerX?: number
-  /** For circles: center y */
+  /** For points: center y */
   centerY?: number
-  /** For circles: radius (for precise circle hit testing) */
+  /** For points: the point radius (for precise hit testing; not the box, which a shape may exceed) */
   radius?: number
+  /** For points: the drawn shape, tested against directly */
+  shape?: PointShape
 }
 
 /**
@@ -176,16 +180,21 @@ export class CanvasHitTester {
       const { left, top, width, height } = anchoredBarRect(x, y, style.width, style.height, scale, anchor)
       return { x: left, y: top, width, height }
     } else {
-      // Circle/point
+      // Point. The box has to cover the drawn shape, which for everything but a circle reaches
+      // further than the radius, or a star's tips would fall in grid cells the point is not filed
+      // under and a click on one would find nothing.
       const r = style.radius * scale
+      const shape = style.shape ?? kDefaultPointShape
+      const reach = pointShapeBoundingRadius(shape, r)
       return {
-        x: x - r,
-        y: y - r,
-        width: r * 2,
-        height: r * 2,
+        x: x - reach,
+        y: y - reach,
+        width: reach * 2,
+        height: reach * 2,
         centerX: x,
         centerY: y,
-        radius: r
+        radius: r,
+        shape
       }
     }
   }
@@ -218,11 +227,10 @@ export class CanvasHitTester {
   }
 
   private containsPoint(bounds: IHitTestBounds, px: number, py: number): boolean {
-    // For circles, use precise distance check
+    // For points, test the drawn shape rather than the box the grid files it under
     if (bounds.radius !== undefined && bounds.centerX !== undefined && bounds.centerY !== undefined) {
-      const dx = px - bounds.centerX
-      const dy = py - bounds.centerY
-      return (dx * dx + dy * dy) <= (bounds.radius * bounds.radius)
+      return isPointInShape(bounds.shape ?? kDefaultPointShape, bounds.radius,
+                            px - bounds.centerX, py - bounds.centerY)
     }
 
     // For rectangles, use bounding box
