@@ -1,6 +1,7 @@
 import { PointShapes } from "../../../utilities/point-shape-utils"
 import {
-  IShapePoint, pointShapeArea, pointShapeBoundingRadius, pointShapeExtent, pointShapeGeometry
+  IShapePoint, isPointInShape, pointShapeArea, pointShapeBoundingRadius, pointShapeExtent,
+  pointShapeGeometry
 } from "./point-shapes"
 
 /*
@@ -136,8 +137,8 @@ describe("point shape geometry", () => {
     // A consequence of the above, not a defect: for the triangle and the star the box center is
     // not the centroid. Anything deriving a hit area must use the drawn box rather than assume
     // the shape is symmetric about its position.
-    const offCentre = ["triangle", "star"] as const
-    offCentre.forEach(shape => {
+    const offCenter = ["triangle", "star"] as const
+    offCenter.forEach(shape => {
       const geometry = pointShapeGeometry(shape, 8)
       if (geometry.kind !== "polygon") throw new Error(`${shape} should be a polygon`)
       const ys = geometry.points.map(p => p.y)
@@ -145,7 +146,7 @@ describe("point shape geometry", () => {
     })
 
     // and every other shape is symmetric, so its box center and centroid agree
-    PointShapes.filter(s => s !== "circle" && !offCentre.includes(s as any)).forEach(shape => {
+    PointShapes.filter(s => s !== "circle" && !offCenter.includes(s as any)).forEach(shape => {
       const geometry = pointShapeGeometry(shape, 8)
       if (geometry.kind !== "polygon") throw new Error(`${shape} should be a polygon`)
       const ys = geometry.points.map(p => p.y)
@@ -177,13 +178,85 @@ describe("point shape geometry", () => {
       expect(pointShapeBoundingRadius("star", 8)).toBeGreaterThan(10)
     })
 
-    it("covers the drawn extent of every shape", () => {
-      PointShapes.forEach(shape => {
-        const { w, h } = pointShapeExtent(shape, 8)
-        const radius = pointShapeBoundingRadius(shape, 8)
-        expect(radius).toBeGreaterThanOrEqual(w / 2 - 1e-9)
-        expect(radius).toBeGreaterThanOrEqual(h / 2 - 1e-9)
+    it("reaches every vertex of every shape", () => {
+      /*
+       * Asserted against the vertices rather than the extent. The extent is the size of the drawn
+       * box and cannot see where that box sits, so comparing against half of it is satisfied by any
+       * value big enough for a symmetric shape while still falling short on an asymmetric one.
+       */
+      PointShapes.filter(s => s !== "circle").forEach(shape => {
+        const geometry = pointShapeGeometry(shape, 8)
+        if (geometry.kind !== "polygon") throw new Error(`${shape} should be a polygon`)
+        const furthest = Math.max(...geometry.points.map(p => Math.hypot(p.x, p.y)))
+        expect(pointShapeBoundingRadius(shape, 8)).toBeGreaterThanOrEqual(furthest - 1e-9)
       })
+    })
+
+    it("reaches the triangle's apex, which is further out than half its width", () => {
+      // The triangle is centered on its centroid, so its box hangs low and half its width stops
+      // short of the apex. A hit area sized that way does not respond to a click on the apex.
+      const geometry = pointShapeGeometry("triangle", 8)
+      if (geometry.kind !== "polygon") throw new Error("triangle should be a polygon")
+      const apex = geometry.points.reduce((a, p) => (p.y < a.y ? p : a))
+      const apexDistance = Math.hypot(apex.x, apex.y)
+
+      expect(apexDistance).toBeGreaterThan(pointShapeExtent("triangle", 8).w / 2)
+      expect(pointShapeBoundingRadius("triangle", 8)).toBeGreaterThanOrEqual(apexDistance - 1e-9)
+    })
+  })
+
+  describe("containment", () => {
+    const r = 8
+
+    it("puts the center of every shape inside it", () => {
+      PointShapes.forEach(shape => expect(isPointInShape(shape, r, 0, 0)).toBe(true))
+    })
+
+    it("never makes a shape harder to hit than the circle it replaced", () => {
+      /*
+       * The guarantee that lets shape be a free choice: a plus is narrower than a circle across its
+       * notches and a star is narrower between its arms, so testing the ink alone would shrink the
+       * target for anyone who picked one.
+       */
+      PointShapes.forEach(shape => {
+        for (let deg = 0; deg < 360; deg += 15) {
+          const rad = deg * Math.PI / 180
+          const d = r * 0.99
+          expect(isPointInShape(shape, r, Math.cos(rad) * d, Math.sin(rad) * d)).toBe(true)
+        }
+      })
+    })
+
+    it("includes the ink that reaches past the circle", () => {
+      // each of these is beyond r, so it is the outline rather than the circle answering
+      // a star's tip points straight up
+      expect(isPointInShape("star", r, 0, -1.3 * r)).toBe(true)
+      // a square's corner
+      expect(isPointInShape("square", r, 0.8 * r, 0.8 * r)).toBe(true)
+      // a triangle's apex
+      expect(isPointInShape("triangle", r, 0, -1.4 * r)).toBe(true)
+    })
+
+    it("excludes the gaps between a star's arms", () => {
+      // 1.3r along the direction of an inner vertex, which the outline reaches only to 0.68r
+      const rad = -54 * Math.PI / 180
+      expect(isPointInShape("star", r, Math.cos(rad) * 1.3 * r, Math.sin(rad) * 1.3 * r)).toBe(false)
+    })
+
+    it("excludes everything beyond the shape", () => {
+      PointShapes.forEach(shape => {
+        const beyond = pointShapeBoundingRadius(shape, r) + 0.01
+        for (let deg = 0; deg < 360; deg += 15) {
+          const rad = deg * Math.PI / 180
+          expect(isPointInShape(shape, r, Math.cos(rad) * beyond, Math.sin(rad) * beyond)).toBe(false)
+        }
+      })
+    })
+
+    it("scales with the radius", () => {
+      // a click that lands on a star's tip at r = 16 lands outside it at r = 4
+      expect(isPointInShape("star", 16, 0, -1.3 * 16)).toBe(true)
+      expect(isPointInShape("star", 4, 0, -1.3 * 16)).toBe(false)
     })
   })
 })

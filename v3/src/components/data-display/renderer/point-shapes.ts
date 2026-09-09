@@ -191,11 +191,46 @@ export function pointShapeExtent(shape: PointShape, r: number): IShapeExtent {
 }
 
 /*
- * The distance from the center to the furthest point of the outline. The cheap basis for a
- * shape-aware hit test: it never reports a hit short of the drawn ink, though it is generous in
- * the concave regions of a plus or an X.
+ * The distance from the center to the furthest point of the outline, measured from the vertices
+ * rather than the extent. The extent is the size of the drawn box, and for the triangle and the
+ * star that box is not centered on the point, so half of its larger side falls short of the ink:
+ * a triangle's apex sits at 2h/3 from the centroid while half its width is only s/2. Hit testing
+ * uses this to find candidates, so falling short means a click on the apex finds nothing.
  */
 export function pointShapeBoundingRadius(shape: PointShape, r: number): number {
-  const { w, h } = pointShapeExtent(shape, r)
-  return Math.max(w, h) / 2
+  const geometry = pointShapeGeometry(shape, r)
+  if (geometry.kind === "circle") return geometry.radius
+  return geometry.points.reduce((max, p) => Math.max(max, Math.hypot(p.x, p.y)), 0)
+}
+
+// Even-odd ray casting. Vertices are in shape-local coordinates, as is (x, y).
+function isPointInPolygon(points: IShapePoint[], x: number, y: number): boolean {
+  let inside = false
+  for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+    const { x: xi, y: yi } = points[i]
+    const { x: xj, y: yj } = points[j]
+    const straddlesRay = (yi > y) !== (yj > y)
+    if (straddlesRay && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
+      inside = !inside
+    }
+  }
+  return inside
+}
+
+/*
+ * Whether (dx, dy), relative to the point's center, is on the point.
+ *
+ * The drawn ink, unioned with the circle of radius r that CODAP has always used. Shape is a second
+ * encoding channel, so choosing one must not make a point harder to click than it was as a circle:
+ * testing the ink alone would open dead zones between a star's arms and in the notches of a plus,
+ * where the shape is narrower than the circle it replaced. The union keeps every shape at least as
+ * easy to hit as a circle while adding the ink that extends past it -- a star's tips, a square's
+ * corners, a triangle's apex -- so the target matches what is drawn wherever that is generous, and
+ * matches the old circle wherever it is not.
+ */
+export function isPointInShape(shape: PointShape, r: number, dx: number, dy: number): boolean {
+  if (dx * dx + dy * dy <= r * r) return true
+
+  const geometry = pointShapeGeometry(shape, r)
+  return geometry.kind === "circle" ? false : isPointInPolygon(geometry.points, dx, dy)
 }
