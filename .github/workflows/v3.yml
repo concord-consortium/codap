@@ -195,11 +195,19 @@ jobs:
       - jest
       - cypress
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+      deployments: write
     steps:
       - uses: actions/download-artifact@v4
         with:
           name: build
           path: v3/dist
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::612297603577:role/codap
+          aws-region: us-east-1
       - uses: concord-consortium/s3-deploy-action@v1
         id: s3-deploy
         with:
@@ -207,8 +215,6 @@ jobs:
           bucket: models-resources
           prefix: codap3
           workingDirectory: v3
-          awsAccessKeyId: ${{ secrets.V3_AWS_ACCESS_KEY_ID }}
-          awsSecretAccessKey: ${{ secrets.V3_AWS_SECRET_ACCESS_KEY }}
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           deployRunUrl: https://codap3.concord.org/__deployPath__/
           # Parameters to GHActions have to be strings, so a regular yaml array cannot

@@ -71,6 +71,8 @@ V3 pull requests should target the `main` branch and should apply the `v3` label
 
 ## Deployment
 
+S3 deployment is handled by GitHub Actions using OIDC for AWS authentication. See [deploy-setup.md in starter-projects](https://github.com/concord-consortium/starter-projects/blob/main/doc/deploy-setup.md) for how the AWS side is set up, and [doc/deploy.md](doc/deploy.md) for how deploys work in this repo.
+
 Production releases to S3 are based on the contents of the `/dist` folder and are built automatically by GitHub Actions for each branch pushed to GitHub and each merge into the `main` branch.
 
 Production releases are deployed to the root at http://codap3.concord.org.
