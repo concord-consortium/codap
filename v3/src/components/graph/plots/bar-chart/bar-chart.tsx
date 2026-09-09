@@ -39,6 +39,11 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, render
     const pointRadius = graphModel.getPointRadius()
     const legendAttrID = dataConfig?.attributeID('legend')
     const getLegendColor = legendAttrID ? dataConfig?.getLegendColorForCase : undefined
+    // Resolved here, alongside the color, so a point created by this path is drawn with its shape
+    // rather than as a circle until something later restyles it.
+    const shapeIfNoCategory = graphModel.pointDescription.pointShape
+    const getLegendShape = (anID: string) =>
+      dataConfig?.getLegendShapeForCase(anID, shapeIfNoCategory) ?? shapeIfNoCategory
     const pointDisplayType = "bars"
     const isFormulaDriven = barChartModel.breakdownType === "formula"
 
@@ -177,7 +182,8 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, render
     setPointCoordinates({
       anchor, dataset, pointRadius, selectedPointRadius: graphModel.getPointRadius('select'),
       renderer, selectedOnly, pointColor, pointStrokeColor, pointDisplayType,
-      getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating, getWidth, getHeight
+      getScreenX, getScreenY, getLegendColor, getLegendShape, getAnimationEnabled: isAnimating,
+      getWidth, getHeight
     })
   }, [abovePointsGroupRef, barChartModel, dataset, graphLayout, graphModel, isAnimating, layout,
     renderer, primaryScreenCoord, secondaryScreenCoord, subPlotCells])

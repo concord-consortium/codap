@@ -525,6 +525,12 @@ export interface ISetPointCoordinates {
   getScreenX: ((anID: string) => number | null)
   getScreenY: ((anID: string, plotNum?:number) => number | null)
   getLegendColor?: ((anID: string) => string)
+  /*
+   * The shape for a case, resolved at call time like getLegendColor. This path creates points as
+   * well as moving them, so a shape supplied only by the restyle path would leave every newly
+   * created point a circle until something unrelated restyled it.
+   */
+  getLegendShape?: ((anID: string) => PointShape)
   getAnimationEnabled: () => boolean
   getWidth?: (anID: string) => number | null
   getHeight?: (anID: string, plotNum?:number) => number | null
@@ -533,8 +539,8 @@ export interface ISetPointCoordinates {
 export function setPointCoordinates(props: ISetPointCoordinates) {
   const {
     anchor, dataset, renderer, selectedOnly = false, pointRadius, selectedPointRadius,
-    pointStrokeColor, pointColor, getPointColorAtIndex, getScreenX, getScreenY, getLegendColor, getAnimationEnabled,
-    getWidth, getHeight
+    pointStrokeColor, pointColor, getPointColorAtIndex, getScreenX, getScreenY, getLegendColor, getLegendShape,
+    getAnimationEnabled, getWidth, getHeight
   } = props
 
   const lookupLegendColor = (caseData: CaseData): string => {
@@ -587,7 +593,8 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
             // Points are circles by default but can be changed to bars, so we need to set a width and height. If
             // getWidth and getHeight are not provided, we use pointRadius * 2 for these values.
             width: getWidth?.(caseID) ?? pointRadius * 2,
-            height: getHeight?.(caseID, plotNum) ?? pointRadius * 2
+            height: getHeight?.(caseID, plotNum) ?? pointRadius * 2,
+            ...(getLegendShape ? { shape: getLegendShape(caseID) } : {})
           }
           renderer.setPointStyle(point, style)
           renderer.setPositionOrTransition(point, style, getScreenX(caseID) || 0, getScreenY(caseID, plotNum) || 0)

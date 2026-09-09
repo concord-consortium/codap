@@ -346,6 +346,10 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
     const {latId, longId} = mapLayerModel.pointAttributes || {}
     if (!latId || !longId) return
 
+    // Resolved here, alongside the color, so a point created by this path is drawn with its shape
+    // rather than as a circle until something later restyles it.
+    const shapeIfNoCategory = pointDescription.pointShape
+
     prf.measure("Map.refreshPoints[forEachPoint]", () => {
       renderer.forEachPoint((point: IPoint, metadata: IPointMetadata) => {
         const {caseID} = metadata
@@ -353,6 +357,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
         renderer.setPointStyle(point, {
           radius: dataset?.isCaseSelected(caseID) ? selectedPointRadius : pointRadius,
           fill: lookupLegendColor(metadata),
+          shape: dataConfiguration.getLegendShapeForCase(caseID, shapeIfNoCategory),
           stroke: getLegendColor && dataset?.isCaseSelected(caseID)
             ? defaultSelectedStroke : pointStrokeColor,
           strokeWidth: getLegendColor && dataset?.isCaseSelected(caseID)

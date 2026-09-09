@@ -349,10 +349,16 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
       {pointColor, pointStrokeColor} = graphModel.pointDescription,
       getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
 
+    // Resolved here, alongside the color, so a point created by this path is drawn with its shape
+    // rather than as a circle until something later restyles it.
+    const shapeIfNoCategory = graphModel.pointDescription.pointShape
+    const getLegendShape = (anID: string) =>
+      dataConfiguration?.getLegendShapeForCase(anID, shapeIfNoCategory) ?? shapeIfNoCategory
+
     setPointCoordinates({
       dataset, renderer, pointRadius: graphModel.getPointRadius(),
       selectedPointRadius: selectedPointRadiusRef.current,
-      selectedOnly, getScreenX, getScreenY, getLegendColor,
+      selectedOnly, getScreenX, getScreenY, getLegendColor, getLegendShape,
       getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex,
       pointColor, pointStrokeColor, getAnimationEnabled: isAnimating
     })

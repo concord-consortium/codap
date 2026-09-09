@@ -101,9 +101,16 @@ export const CasePlot = function CasePlot({ renderer }: IPlotProps) {
       getLegendColor = dataConfiguration?.attributeID('legend')
         ? dataConfiguration?.getLegendColorForCase : undefined
 
+    // Resolved here, alongside the color, so a point created by this path is drawn with its shape
+    // rather than as a circle until something later restyles it.
+    const shapeIfNoCategory = graphModel.pointDescription.pointShape
+    const getLegendShape = (anID: string) =>
+      dataConfiguration?.getLegendShapeForCase(anID, shapeIfNoCategory) ?? shapeIfNoCategory
+
     setPointCoordinates({
       dataset, pointRadius, selectedPointRadius, renderer, selectedOnly,
-      pointColor, pointStrokeColor, getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating
+      pointColor, pointStrokeColor, getScreenX, getScreenY, getLegendColor, getLegendShape,
+      getAnimationEnabled: isAnimating
     })
   }, [renderer, graphModel, layout, dataConfiguration, dataset, isAnimating])
 

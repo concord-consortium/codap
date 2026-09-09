@@ -20,6 +20,11 @@ export const DotChart = observer(function DotChart({ renderer }: IPlotProps) {
     const pointRadius = graphModel.getPointRadius()
     const legendAttrID = dataConfig?.attributeID('legend')
     const getLegendColor = legendAttrID ? dataConfig?.getLegendColorForCase : undefined
+    // Resolved here, alongside the color, so a point created by this path is drawn with its shape
+    // rather than as a circle until something later restyles it.
+    const shapeIfNoCategory = graphModel.pointDescription.pointShape
+    const getLegendShape = (anID: string) =>
+      dataConfig?.getLegendShapeForCase(anID, shapeIfNoCategory) ?? shapeIfNoCategory
 
     const getPrimaryScreenCoord = (anID: string) => primaryScreenCoord({cellIndices, numPointsInRow}, anID)
     const getSecondaryScreenCoord = (anID: string) => secondaryScreenCoord({cellIndices, overlap}, anID)
@@ -29,7 +34,8 @@ export const DotChart = observer(function DotChart({ renderer }: IPlotProps) {
     const anchor = circleAnchor
     setPointCoordinates({
       anchor, dataset, pointRadius, selectedPointRadius: graphModel.getPointRadius('select'), renderer, selectedOnly,
-      pointColor, pointStrokeColor, getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating
+      pointColor, pointStrokeColor, getScreenX, getScreenY, getLegendColor, getLegendShape,
+      getAnimationEnabled: isAnimating
     })
   }, [dataset, graphModel, isAnimating, renderer, primaryScreenCoord, secondaryScreenCoord, subPlotCells])
 

@@ -41,12 +41,17 @@ export const BinnedDotPlot = observer(function BinnedDotPlot({renderer, abovePoi
 
     const getLegendColor = dataConfig?.attributeID("legend")
       ? dataConfig?.getLegendColorForCase : undefined
+    // Resolved here, alongside the color, so a point created by this path is drawn with its shape
+    // rather than as a circle until something later restyles it.
+    const shapeIfNoCategory = graphModel.pointDescription.pointShape
+    const getLegendShape = (anID: string) =>
+      dataConfig?.getLegendShapeForCase(anID, shapeIfNoCategory) ?? shapeIfNoCategory
 
     setPointCoordinates({
       pointRadius: graphModel.getPointRadius(),
       selectedPointRadius: graphModel.getPointRadius("select"),
       renderer, selectedOnly, pointColor, pointStrokeColor,
-      getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating,
+      getScreenX, getScreenY, getLegendColor, getLegendShape, getAnimationEnabled: isAnimating,
       pointDisplayType, anchor: circleAnchor, dataset
     })
   }, [addBinBoundaryDragHandlers, binnedPlot, dataConfig, dataset, drawBinBoundaries,

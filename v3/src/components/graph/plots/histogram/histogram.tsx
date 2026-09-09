@@ -139,6 +139,11 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, rend
     const getScreenX = primaryIsBottom ? getPrimaryScreenCoord : getSecondaryScreenCoord
     const getScreenY = primaryIsBottom ? getSecondaryScreenCoord : getPrimaryScreenCoord
     const getLegendColor = dataConfig?.attributeID("legend") ? dataConfig?.getLegendColorForCase : undefined
+    // Resolved here, alongside the color, so a point created by this path is drawn with its shape
+    // rather than as a circle until something later restyles it.
+    const shapeIfNoCategory = graphModel.pointDescription.pointShape
+    const getLegendShape = (anID: string) =>
+      dataConfig?.getLegendShapeForCase(anID, shapeIfNoCategory) ?? shapeIfNoCategory
 
     // build and render bar cover elements that will handle click events for the fused points
     if (dataConfig && abovePointsGroupRef?.current) {
@@ -194,7 +199,7 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, rend
       pointRadius: graphModel.getPointRadius(),
       selectedPointRadius: graphModel.getPointRadius("select"),
       renderer, selectedOnly, pointColor, pointStrokeColor, getWidth, getHeight,
-      getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating,
+      getScreenX, getScreenY, getLegendColor, getLegendShape, getAnimationEnabled: isAnimating,
       pointDisplayType: "bars", dataset
     })
   }, [abovePointsGroupRef, addHistogramBinDragHandlers, binnedPlot, dataConfig, dataset,

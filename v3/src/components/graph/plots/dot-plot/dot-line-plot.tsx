@@ -156,6 +156,11 @@ export const DotLinePlot = observer(function DotLinePlot({ renderer }: IPlotProp
 
       const getLegendColor = dataConfig?.attributeID('legend')
         ? dataConfig?.getLegendColorForCase : undefined
+    // Resolved here, alongside the color, so a point created by this path is drawn with its shape
+    // rather than as a circle until something later restyles it.
+    const shapeIfNoCategory = graphModel.pointDescription.pointShape
+    const getLegendShape = (anID: string) =>
+      dataConfig?.getLegendShapeForCase(anID, shapeIfNoCategory) ?? shapeIfNoCategory
 
       const anchor = pointDisplayType === "bars"
         ? primaryIsBottom ? hBarAnchor : vBarAnchor
@@ -171,7 +176,7 @@ export const DotLinePlot = observer(function DotLinePlot({ renderer }: IPlotProp
         pointRadius: graphModel.getPointRadius(),
         selectedPointRadius: graphModel.getPointRadius('select'),
         renderer, selectedOnly, pointColor, pointStrokeColor,
-        getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating,
+        getScreenX, getScreenY, getLegendColor, getLegendShape, getAnimationEnabled: isAnimating,
         pointDisplayType, getWidth, getHeight, anchor, dataset
       })
     },
