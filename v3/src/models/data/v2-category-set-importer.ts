@@ -1,7 +1,7 @@
 import { colord } from "colord"
 import { kellyColors } from "../../utilities/color-utils"
 import { compareValues } from "../../utilities/data-utils"
-import { isPointShape, kDefaultPointShape } from "../../utilities/point-shape-utils"
+import { isPointShape } from "../../utilities/point-shape-utils"
 import { gLocale } from "../../utilities/translation/locale"
 import { CodapV2ColorMap, ICodapV2CategoryMap, isV2CategoryMap } from "../../v2/codap-v2-data-context-types"
 import { IAttribute } from "./attribute"
@@ -21,14 +21,15 @@ export function importV2CategorySet(
 
   /*
    * Taken as given rather than filtered against the categories currently in the data: every entry
-   * is a deliberate assignment, so a category whose cases are deleted and later restored keeps the
-   * shape the user chose for it. Nothing generates a shape, so there is no automatic value to age
-   * out the way the color loop below ages one out.
+   * is a deliberate assignment, circle included -- absence means a category inherits the display's
+   * shape, so an explicit circle is a real choice and dropping it would put that category back on
+   * whatever the display is set to. Nothing generates a shape, so there is no automatic value to
+   * age out the way the color loop below ages one out.
    */
   // fromEntries: assignment would set the prototype for a category named `__proto__`.
   const shapes: Record<string, string> = Object.fromEntries(
     Object.entries(categoryShapes ?? {})
-      .filter(([, shape]) => isPointShape(shape) && shape !== kDefaultPointShape)
+      .filter(([, shape]) => isPointShape(shape))
   )
 
   let colorMap: CodapV2ColorMap = {}

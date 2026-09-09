@@ -88,9 +88,15 @@ describe("importV2CategorySet", () => {
       expect(importV2CategorySet(makeAttribute(), undefined, undefined)).toBeUndefined()
     })
 
-    it("drops the default, which is stored as absence", () => {
+    it("keeps an explicitly chosen circle, which absence does not stand for", () => {
+      /*
+       * Absence means the category inherits the display's shape, so a circle in the document is a
+       * choice the user made and not a value to age out. Dropping it here would reinstate the
+       * inherited shape on reload -- a category deliberately set to circle would come back as star
+       * on a display whose shape is star, which is the whole reason the setter stores it.
+       */
       const result = importV2CategorySet(makeAttribute(), undefined, { land: "circle", water: "star" })
-      expect(result?.shapes).toEqual({ water: "star" })
+      expect(result?.shapes).toEqual({ land: "circle", water: "star" })
     })
 
     it("drops a shape this build does not recognize", () => {

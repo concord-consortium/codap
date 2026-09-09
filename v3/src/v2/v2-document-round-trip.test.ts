@@ -118,6 +118,31 @@ describe("v2 document round-trip of point shapes", () => {
     expect(restoredSet.shapeForCategory("land")).toBe("plus")
   })
 
+  it("brings an explicitly chosen circle back through the round trip", async () => {
+    /*
+     * Absence means the category inherits the display's shape, so a circle has to survive as a
+     * stored value rather than being treated as "nothing to save". Dropped anywhere along the way,
+     * the category comes back inheriting -- showing the display's shape instead of the circle the
+     * user picked. Asserted through the full trip because export and import each decide separately
+     * what is worth keeping.
+     */
+    const { document, data, attrId } = documentWithCategories()
+    // re-read between mutations: the first promotes the provisional set, replacing the instance
+    getMetadataFromDataSet(data)!.getCategorySet(attrId)!.setShapeForCategory("water", "star")
+    getMetadataFromDataSet(data)!.getCategorySet(attrId)!.setShapeForCategory("land", "circle")
+
+    const { restoredData } = await roundTrip(document)
+    const restoredAttr = restoredData.attrFromName("habitat")!
+    const restoredSet = getMetadataFromDataSet(restoredData)!.getCategorySet(restoredAttr.id)!
+
+    // asked for the inherited shape a star display would give it, so an entry that survived as
+    // circle is distinguishable from one that was dropped
+    expect(restoredSet.shapeForCategory("land", "star")).toBe("circle")
+    expect(restoredSet.shapeForCategory("water", "star")).toBe("star")
+    // never assigned, so it still inherits
+    expect(restoredSet.shapeForCategory("both", "star")).toBe("star")
+  })
+
   it("adds nothing to the v2 JSON when no shape is assigned", async () => {
     const { document, data, attrId } = documentWithCategories()
     getMetadataFromDataSet(data)!.getCategorySet(attrId)!.setColorForCategory("land", "#123456")
