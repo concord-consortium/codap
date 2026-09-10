@@ -28,7 +28,11 @@
     font: 12px sans-serif;
   }
 
-  rect:not(.attribute-label-bg) {
+  // The key shape is listed alongside the rects because this is a type selector: a categorical key
+  // is drawn as a path, and would otherwise lose the border and the softening every other legend
+  // swatch has.
+  rect:not(.attribute-label-bg),
+  .legend-key-shape {
     opacity: 0.85;
     stroke: #315B7D;
   }
