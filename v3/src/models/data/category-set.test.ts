@@ -406,21 +406,6 @@ describe("CategorySet", () => {
     })
 
 
-    it("keeps a category whose value is a reserved object key", () => {
-      // `map["__proto__"] = x` sets the prototype rather than defining an own property, so a
-      // category with that value would silently vanish from the export. Category values come from
-      // the data and can be any string.
-      const categories = makeSet(["__proto__", "b"])
-      runInAction(() => {
-        categories.setShapeForCategory("__proto__", "star")
-        categories.setShapeForCategory("b", "plus")
-      })
-
-      expect(categories.shapeForCategory("__proto__")).toBe("star")
-      expect(Object.keys(categories.shapeMap).sort()).toEqual(["__proto__", "b"])
-      expect(categories.shapeMap.__proto__).toBe("star")
-    })
-
     it("is observable, so the renderer re-reads when a shape changes", () => {
       const categories = makeSet(["a"])
       const fn = jest.fn()
@@ -456,6 +441,18 @@ describe("CategorySet", () => {
 
       expect(categories.colorForCategory("__proto__")).toBe("#ff0000")
       expect(Object.keys(categories.colorMap)).toContain("__proto__")
+    })
+
+    it("keeps a shape assigned to a category named __proto__", () => {
+      const categories = makeSet(["__proto__", "b"])
+      runInAction(() => {
+        categories.setShapeForCategory("__proto__", "star")
+        categories.setShapeForCategory("b", "plus")
+      })
+
+      expect(categories.shapeForCategory("__proto__")).toBe("star")
+      expect(Object.keys(categories.shapeMap).sort()).toEqual(["__proto__", "b"])
+      expect(categories.shapeMap.__proto__).toBe("star")
     })
 
     it("does not report an inherited member as a color", () => {

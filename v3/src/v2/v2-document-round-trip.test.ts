@@ -1,6 +1,6 @@
 import { createCodapDocument } from "../models/codap/create-codap-document"
 import { DataBroker } from "../models/data/data-broker"
-import { PointShape } from "../utilities/point-shape-utils"
+import { kDefaultPointShape, PointShape } from "../utilities/point-shape-utils"
 import { createDataSet } from "../models/data/data-set-conversion"
 import { serializeCodapV2Document } from "../models/document/serialize-document"
 import { kSharedDataSetType, SharedDataSet } from "../models/shared/shared-data-set"
@@ -101,7 +101,7 @@ describe("v2 document round-trip of point shapes", () => {
     expect(restoredSet.shapeForCategory("land")).toBe("star")
     expect(restoredSet.shapeForCategory("water")).toBe("diamond")
     // a category left at the default comes back at the default
-    expect(restoredSet.shapeForCategory("both")).toBe("circle")
+    expect(restoredSet.shapeForCategory("both")).toBe(kDefaultPointShape)
   })
 
   it("preserves shapes alongside colors without either disturbing the other", async () => {

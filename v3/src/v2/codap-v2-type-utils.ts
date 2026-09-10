@@ -103,8 +103,6 @@ export function applyImportedLegendBinCount(
 interface IExportV3PropsOptions {
   axisTypes?: V2PlaceToV3AxisTypeMap
   includeLegendQuantiles?: boolean
-  // The shape used when no legend attribute assigns one per category. Per-category shapes are
-  // attribute state and travel on the attribute's own v3 namespace instead.
   pointShape?: string
 }
 export function exportV3Properties(props: IExportV3Properties, options?: IExportV3PropsOptions) {

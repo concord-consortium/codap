@@ -213,7 +213,6 @@ export class CodapV2DataSetImporter {
       const attribute = data.getAttribute(toV3AttrId(guid))
       if (attribute) {
         const categorySetInput: Maybe<V2CategorySetInput> = _categoryMap || colormap
-        // Shapes can be the only thing to restore, so they warrant a category set on their own.
         const categoryShapes = v3?.categoryShapes
         if (categorySetInput || categoryShapes) {
           // create CategorySet if necessary

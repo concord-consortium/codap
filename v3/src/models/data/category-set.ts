@@ -140,8 +140,7 @@ export const CategorySet = types.model("CategorySet", {
   }),
   // user color assignments to categories in an attribute
   colors: types.map(types.string),
-  // user point-shape assignments to categories in an attribute. Stored as strings for the same
-  // reason as colors: the map holds whatever a saved document carries, and reads resolve it.
+  // user point-shape assignments to categories in an attribute
   shapes: types.map(types.string),
   // user category re-orderings
   moves: types.array(types.frozen<ICategoryMove>())
@@ -229,10 +228,7 @@ export const CategorySet = types.model("CategorySet", {
    * Only the categories carrying an explicit shape. Categories at the default are omitted, so
    * exports stay empty until a user actually assigns one.
    *
-   * Built with fromEntries rather than by assignment: a category value of `__proto__` assigned
-   * with `map[category] =` sets the prototype instead of defining an own property, so that
-   * category's shape would vanish from the export. Category values come from the data and can be
-   * any string.
+   * Built with fromEntries: assignment would set the prototype for a category named `__proto__`.
    */
   get shapeMap(): Record<string, PointShape> {
     const entries: Array<[string, PointShape]> = []

@@ -77,16 +77,10 @@ describe("importV2CategorySet", () => {
       expect(Object.keys(result?.colors ?? {})).not.toContain("constructor")
     })
 
-    it("imports assigned shapes", () => {
+    it("imports assigned shapes, which alone justify a category set", () => {
+      // no colors and no order here, so nothing but the shapes could have created the set
       const result = importV2CategorySet(makeAttribute(), undefined, { land: "star", water: "diamond" })
       expect(result?.shapes).toEqual({ land: "star", water: "diamond" })
-    })
-
-    it("creates a category set when shapes are the only thing to restore", () => {
-      // no colors and no order, so nothing else would justify a category set
-      const result = importV2CategorySet(makeAttribute(), undefined, { land: "star" })
-      expect(result).toBeDefined()
-      expect(result?.shapes).toEqual({ land: "star" })
     })
 
     it("returns nothing when there is no shape, color or move to restore", () => {

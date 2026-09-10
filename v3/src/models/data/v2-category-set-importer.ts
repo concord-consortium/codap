@@ -20,17 +20,12 @@ export function importV2CategorySet(
   const colorEntries: Array<[string, string]> = []
 
   /*
-   * Shapes come from the attribute's v3 namespace, and are taken as given rather than filtered
-   * against the categories currently in the data.
-   *
-   * Every entry here is a deliberate user assignment. Colors differ: some paths assign them
-   * automatically by category position, which is why the color loop below only keeps a color
-   * that differs from the one that position would have produced. Shapes have no such generated
-   * noise to age out, so a category whose cases are deleted and later restored keeps the shape
-   * the user chose for it — which is also what v2 does, deliberately, for the same reason.
+   * Taken as given rather than filtered against the categories currently in the data: every entry
+   * is a deliberate assignment, so a category whose cases are deleted and later restored keeps the
+   * shape the user chose for it. Nothing generates a shape, so there is no automatic value to age
+   * out the way the color loop below ages one out.
    */
-  // fromEntries rather than assignment: `shapes[category] =` with a category value of `__proto__`
-  // sets the prototype instead of defining an own property, losing that category's shape.
+  // fromEntries: assignment would set the prototype for a category named `__proto__`.
   const shapes: Record<string, string> = Object.fromEntries(
     Object.entries(categoryShapes ?? {})
       .filter(([, shape]) => isPointShape(shape) && shape !== kDefaultPointShape)

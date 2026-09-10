@@ -12,8 +12,10 @@ export type PointShape = typeof PointShapes[number]
 
 export const kDefaultPointShape: PointShape = "circle"
 
+const kPointShapeSet: ReadonlySet<string> = new Set(PointShapes)
+
 export function isPointShape(value?: string): value is PointShape {
-  return PointShapes.includes(value as PointShape)
+  return kPointShapeSet.has(value as PointShape)
 }
 
 /*
