@@ -371,7 +371,7 @@ context("Graph adornments", () => {
     cy.get("[data-testid=adornment-checkbox-movable-line]").click()
     cy.get("[data-testid=adornment-checkbox-residual-plot]").find("input").should("not.have.attr", "disabled")
     cy.get("[data-testid=adornment-checkbox-residual-plot]").click()
-    cy.get("*[data-testid^=residual-points-]").find("circle").should("have.length.at.least", 1)
+    cy.get("*[data-testid^=residual-points-]").find("path").should("have.length.at.least", 1)
     cy.get(".axis-wrapper.leftLower").should("exist")
 
     // V2 behavior: removing the line CLEARS (unchecks) the Residual Plot rather than
@@ -392,7 +392,7 @@ context("Graph adornments", () => {
     // Re-checking restores the residual plot. (Legend-triggered clearing follows the same
     // residualPlotIsApplicable path and is covered by the graph-content-model integration tests.)
     cy.get("[data-testid=adornment-checkbox-residual-plot]").click()
-    cy.get("*[data-testid^=residual-points-]").find("circle").should("have.length.at.least", 1)
+    cy.get("*[data-testid^=residual-points-]").find("path").should("have.length.at.least", 1)
     cy.get(".axis-wrapper.leftLower").should("exist")
   })
   it("restyles residual points to reflect selection without tearing down the residual plot", () => {
@@ -402,7 +402,7 @@ context("Graph adornments", () => {
     graph.getDisplayValuesButton().click()
     cy.get("[data-testid=adornment-checkbox-movable-line]").click()
     cy.get("[data-testid=adornment-checkbox-residual-plot]").click()
-    cy.get("*[data-testid^=residual-points-]").find("circle").should("have.length.at.least", 1)
+    cy.get("*[data-testid^=residual-points-]").find("path").should("have.length.at.least", 1)
 
     // A residual point starts unselected — its fill is not the solid selection color.
     cy.get("*[data-testid^=residual-point-]").first().should("not.have.attr", "fill", "#4682b4")
@@ -413,7 +413,7 @@ context("Graph adornments", () => {
     // sibling circle — force the click on the specific first circle.
     cy.get("*[data-testid^=residual-point-]").first().click({ force: true })
     cy.get("*[data-testid^=residual-point-]").first().should("have.attr", "fill", "#4682b4")
-    cy.get("*[data-testid^=residual-points-]").find("circle").should("have.length.at.least", 1)
+    cy.get("*[data-testid^=residual-points-]").find("path").should("have.length.at.least", 1)
     cy.get(".axis-wrapper.leftLower").should("exist")
 
     // Clicking the residual-plot background deselects all cases, reverting the styling.
@@ -428,7 +428,7 @@ context("Graph adornments", () => {
     graph.getDisplayValuesButton().click()
     cy.get("[data-testid=adornment-checkbox-movable-line]").click()
     cy.get("[data-testid=adornment-checkbox-residual-plot]").click()
-    cy.get("*[data-testid^=residual-points-]").find("circle").should("have.length.at.least", 1)
+    cy.get("*[data-testid^=residual-points-]").find("path").should("have.length.at.least", 1)
 
     // No residual point carries the solid selection fill before the drag.
     cy.get('*[data-testid^=residual-point-][fill="#4682b4"]').should("not.exist")
@@ -450,7 +450,7 @@ context("Graph adornments", () => {
     // The marquee covered the strip, so at least one residual point is now selected (selection fill),
     // and the residual plot is not torn down.
     cy.get('*[data-testid^=residual-point-][fill="#4682b4"]').should("have.length.at.least", 1)
-    cy.get("*[data-testid^=residual-points-]").find("circle").should("have.length.at.least", 1)
+    cy.get("*[data-testid^=residual-points-]").find("path").should("have.length.at.least", 1)
   })
 
   it("adds to the existing selection when the residual marquee is shift-dragged", () => {
@@ -460,7 +460,7 @@ context("Graph adornments", () => {
     graph.getDisplayValuesButton().click()
     cy.get("[data-testid=adornment-checkbox-movable-line]").click()
     cy.get("[data-testid=adornment-checkbox-residual-plot]").click()
-    cy.get("*[data-testid^=residual-points-]").find("circle").should("have.length.at.least", 1)
+    cy.get("*[data-testid^=residual-points-]").find("path").should("have.length.at.least", 1)
 
     // Drags a marquee over a horizontal slice of the residual strip, expressed as fractions of its
     // width. pointermove/pointerup go to the document so they reach the marquee's window listeners.

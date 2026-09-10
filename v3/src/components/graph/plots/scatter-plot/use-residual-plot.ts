@@ -1,4 +1,4 @@
-import { active, format, ScaleLinear, select } from "d3"
+import { active, format, interpolateNumber, ScaleLinear, select } from "d3"
 import { tip as d3tip } from "d3-v6-tip"
 import { untracked } from "mobx"
 import { useCallback, useEffect, useRef } from "react"
@@ -7,6 +7,7 @@ import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { t } from "../../../../utilities/translation/translate"
 import { transitionDuration } from "../../../data-display/data-display-types"
 import { handleClickOnCase } from "../../../data-display/data-display-utils"
+import { pointShapePathData } from "../../../data-display/renderer/point-shapes"
 import { isNumericAxisModel, NumericAxisModel } from "../../../axis/models/numeric-axis-models"
 import { IGraphContentModel } from "../../models/graph-content-model"
 import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
@@ -78,25 +79,29 @@ export function useResidualPlot(props: IUseResidualPlot) {
   // subscribing to selection. Delegates the pure decision to residualPointStyle (unit-tested).
   const styleFor = useCallback((caseID: string) => {
     const isSelected = !!dataset?.isCaseSelected(caseID)
-    // The legend handling here is intentionally retained even though residualPlotIsApplicable
-    // currently excludes legends (so legendAttrID is always undefined in this path today). Coloring
-    // each residual point by its legend category is structurally/mathematically well-defined — each
-    // point's residual is taken against its own category's line, and the adornments already store a
-    // line per cell — so this is kept ready for a future legend-supporting version rather than
-    // removed as dead code. (Enabling it also means dropping the legend exclusion and making the
+    // residualPlotIsApplicable turns the plot off for a categorical legend only when the line is an
+    // LSRL, so this runs whenever the line is a movable line or a plotted function. Each point's
+    // residual is taken against its own category's line and the adornments store a line per cell,
+    // so coloring by category is well defined. (Allowing it for an LSRL as well means making the
     // predictor cell-aware; see getPredictor/computeResiduals in residual-plot-utils.)
     const legendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase(caseID) : undefined
-    const { pointColor, pointStrokeColor } = graphModel.pointDescription
-    return residualPointStyle({
-      isSelected, hasLegend: !!legendAttrID, legendColor, pointColor, pointStrokeColor,
-      pointRadius: graphModel.getPointRadius(), selectedRadius: graphModel.getPointRadius('select')
-    })
+    const { pointColor, pointStrokeColor, pointShape } = graphModel.pointDescription
+    // Resolved here rather than inside residualPointStyle, which decides how a style is derived; the
+    // shape is carried through unchanged, so it would only be passing itself along.
+    const shape = dataConfiguration?.getLegendShapeForCase(caseID, pointShape) ?? pointShape
+    return {
+      ...residualPointStyle({
+        isSelected, hasLegend: !!legendAttrID, legendColor, pointColor, pointStrokeColor,
+        pointRadius: graphModel.getPointRadius(), selectedRadius: graphModel.getPointRadius('select')
+      }),
+      shape
+    }
   }, [dataset, legendAttrID, dataConfiguration, graphModel])
 
-  // Selection-only restyle: re-set the selection-dependent attrs on the existing circles. No data
+  // Selection-only restyle: re-set the selection-dependent attrs on the existing points. No data
   // join, no residual/predictor recompute — a selection change (via refreshPointSelection) updates
   // styling without re-running the residual pipeline.
-  // Compute the style once per circle (styleFor does selection/legend lookups) rather than per attr.
+  // Compute the style once per point (styleFor does selection/legend lookups) rather than per attr.
   //
   // Radius handling: circles that come in at r=0 (enter selection in renderResidualPoints, marking
   // "newly-appeared point") animate up to their assigned radius via a named "radius" transition
@@ -110,16 +115,21 @@ export function useResidualPlot(props: IUseResidualPlot) {
   // rare enough that finishing at the old target is acceptable — the next applyResidualStyles
   // after the fade-in completes will snap to the current radius.
   const applyResidualStyles = useCallback((g: SVGGElement) => {
-    select(g).selectAll<SVGCircleElement, IResidualPoint>("circle")
+    select(g).selectAll<SVGPathElement, IResidualPoint>("path")
       .each(function (d) {
         const style = styleFor(d.caseID)
         const sel = select(this)
         if (!active(this, "radius")) {
-          const currentR = +sel.attr("r")
+          const currentR = +sel.attr("data-r")
           if (currentR === 0 && style.radius > 0) {
-            sel.transition("radius").duration(transitionDuration).attr("r", style.radius)
+            // The outline is regenerated at each step rather than the point being scaled up: a
+            // scale would take the stroke with it, and the stroke is what marks a point selected.
+            const grow = interpolateNumber(currentR, style.radius)
+            sel.transition("radius").duration(transitionDuration)
+              .attrTween("d", () => (tt: number) => pointShapePathData(style.shape, grow(tt)))
+              .attr("data-r", style.radius)
           } else {
-            sel.attr("r", style.radius)
+            sel.attr("d", pointShapePathData(style.shape, style.radius)).attr("data-r", style.radius)
           }
         }
         sel
@@ -162,7 +172,7 @@ export function useResidualPlot(props: IUseResidualPlot) {
     const { getXCoord } = scatterPlotFuncs(layout, dataConfiguration)
     const lowerScale = layout.getAxisScale("leftLower") as ScaleLinear<number, number> | undefined
     if (!lowerScale) {
-      select(g).selectAll("circle").remove()
+      select(g).selectAll("path").remove()
       lastRenderedPositionsRef.current = null
       return
     }
@@ -188,17 +198,21 @@ export function useResidualPlot(props: IUseResidualPlot) {
     }))
     const positionsChanged = !samePositions(lastRenderedPositionsRef.current, positioned)
     lastRenderedPositionsRef.current = new Map(positioned.map(d => [d.caseID, d]))
-    const selection = select(g).selectAll<SVGCircleElement, IPositionedResidualPoint>("circle")
+    const selection = select(g).selectAll<SVGPathElement, IPositionedResidualPoint>("path")
       .data(positioned, d => d.caseID)
     selection.exit().remove()
-    // Enter: new circles at their final cx/cy with r=0. applyResidualStyles below transitions r up
-    // to the assigned radius (see currentR===0 branch there), so newly-appeared residual points
-    // fade in from a dot the way newly-appeared main-plot points do.
-    const enterSelection = selection.enter().append("circle")
+    /*
+     * Enter: new points at their final position with a radius of 0. applyResidualStyles below grows
+     * them to the assigned radius (see the currentR===0 branch there), so newly-appeared residual
+     * points fade in from nothing the way newly-appeared main-plot points do.
+     *
+     * The radius lives on data-r because a shape is drawn as an outline, which has no radius to read
+     * back the way a circle does. Everything downstream reads it from there.
+     */
+    const enterSelection = selection.enter().append("path")
       .attr("data-testid", d => `residual-point-${d.caseID}`)
-      .attr("cx", d => d.cx)
-      .attr("cy", d => d.cy)
-      .attr("r", 0)
+      .attr("transform", d => `translate(${d.cx}, ${d.cy})`)
+      .attr("data-r", 0)
     // Cursor and handlers are bound on enter+update every paint. tipTextFor closes over the x
     // attribute's ID and name as of this paint, and the join is keyed by case ID, so circles survive
     // an attribute change — handlers left in place from an earlier paint would report the previous x
@@ -222,16 +236,14 @@ export function useResidualPlot(props: IUseResidualPlot) {
     if (positionsChanged) {
       if (animateCxCy) {
         selection.transition("cxcy").duration(transitionDuration)
-          .attr("cx", d => d.cx)
-          .attr("cy", d => d.cy)
+          .attr("transform", d => `translate(${d.cx}, ${d.cy})`)
       } else {
         selection.interrupt("cxcy")
-          .attr("cx", d => d.cx)
-          .attr("cy", d => d.cy)
+          .attr("transform", d => `translate(${d.cx}, ${d.cy})`)
       }
     }
-    // Apply current selection styling to enter+update circles without subscribing to selection.
-    // Enter circles (r=0) get their r transitioned up here.
+    // Apply current selection styling to enter+update points without subscribing to selection.
+    // Entering points (radius 0) are grown to their radius here.
     untracked(() => applyResidualStyles(g))
   }, [layout, dataConfiguration, dataset, applyResidualStyles])
 
@@ -267,7 +279,7 @@ export function useResidualPlot(props: IUseResidualPlot) {
       const teardown = () => {
         if (layout.showLowerPlot) layout.setShowLowerPlot(false)
         if (graphModel.getAxis("leftLower")) graphModel.removeAxis("leftLower")
-        if (residualPointsRef.current) select(residualPointsRef.current).selectAll("circle").remove()
+        if (residualPointsRef.current) select(residualPointsRef.current).selectAll("path").remove()
         // Forget the last-rendered positions so the first paint after re-activation isn't mistaken
         // for a no-op and skipped.
         lastRenderedPositionsRef.current = null
