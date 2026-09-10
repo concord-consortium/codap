@@ -18,20 +18,20 @@ export const MapLegendHelper = {
     mle.getCategoricalLegendCategory(name).click()
   },
   selectCategoryColorForCategoricalLegend(name: string) {
-    mle.getCategoricalLegendCategory(name).parent().find("rect").click()
+    mle.getCategoricalLegendCategory(name).parent().find(".legend-key-shape").click()
   },
   unselectLegendCategory() {
     mle.getMapTile().find(".map-dot-area").eq(0).click({force:true})
   },
   verifyCategoricalLegendKeySelected(name: string, num: number) {
-    mle.getCategoricalLegendCategory(name).parent().find("rect").should("have.class", "legend-rect-selected")
+    mle.getCategoricalLegendCategory(name).parent().find(".legend-key-shape").should("have.class", "legend-rect-selected")
   },
   verifyNumericLegendKeySelected(num: number) {
     mle.getNumericLegendCategories().should("have.class", "legend-rect-selected")
   },
   verifyNoLegendCategorySelectedForCategoricalLegend() {
     mle.getCategoricalLegendCategories().each($category => {
-      cy.wrap($category).find("rect").should("not.have.class", "legend-rect-selected")
+      cy.wrap($category).find(".legend-key-shape").should("not.have.class", "legend-rect-selected")
     })
   },
   verifyNoLegendCategorySelectedForNumericLegend() {

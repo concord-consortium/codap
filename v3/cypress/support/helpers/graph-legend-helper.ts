@@ -24,20 +24,20 @@ export const GraphLegendHelper = {
     gle.getCategoricalLegendCategory(name).click()
   },
   selectCategoryColorForCategoricalLegend(name: string) {
-    gle.getCategoricalLegendCategory(name).parent().find("rect").click()
+    gle.getCategoricalLegendCategory(name).parent().find(".legend-key-shape").click()
   },
   unselectLegendCategory() {
         gle.getGraphTile().find(".plot-cell-background").eq(0).click({force:true})
   },
   verifyCategoricalLegendKeySelected(name: string) {
-    gle.getCategoricalLegendCategory(name).parent().find("rect").should("have.class", "legend-rect-selected")
+    gle.getCategoricalLegendCategory(name).parent().find(".legend-key-shape").should("have.class", "legend-rect-selected")
   },
   verifyNumericLegendKeySelected() {
     gle.getNumericLegendCategories().should("have.class", "legend-rect-selected")
   },
   verifyNoLegendCategorySelectedForCategoricalLegend() {
     gle.getCategoricalLegendCategories().each($category => {
-      cy.wrap($category).find("rect").should("not.have.class", "legend-rect-selected")
+      cy.wrap($category).find(".legend-key-shape").should("not.have.class", "legend-rect-selected")
     })
   },
   verifyNoLegendCategorySelectedForNumericLegend() {
