@@ -1,7 +1,7 @@
 import { PointShapes } from "../../../utilities/point-shape-utils"
 import {
   IShapePoint, isPointInShape, pointShapeArea, pointShapeBoundingRadius, pointShapeExtent,
-  pointShapeGeometry
+  pointShapeGeometry, pointShapeSymmetricExtent
 } from "./point-shapes"
 
 /*
@@ -202,6 +202,48 @@ describe("point shape geometry", () => {
 
       expect(apexDistance).toBeGreaterThan(pointShapeExtent("triangle", 8).w / 2)
       expect(pointShapeBoundingRadius("triangle", 8)).toBeGreaterThanOrEqual(apexDistance - 1e-9)
+    })
+  })
+
+  describe("symmetric extent", () => {
+    it("contains the whole outline, centered on the point", () => {
+      PointShapes.filter(s => s !== "circle").forEach(shape => {
+        const geometry = pointShapeGeometry(shape, 8)
+        if (geometry.kind !== "polygon") throw new Error(`${shape} should be a polygon`)
+        const { w, h } = pointShapeSymmetricExtent(shape, 8)
+        geometry.points.forEach(({ x, y }) => {
+          expect(Math.abs(x)).toBeLessThanOrEqual(w / 2 + 1e-9)
+          expect(Math.abs(y)).toBeLessThanOrEqual(h / 2 + 1e-9)
+        })
+      })
+    })
+
+    it("is larger than the drawn box exactly where the box is off center", () => {
+      /*
+       * The triangle and the star hang off center because they are centered on their ink. A
+       * renderer positioning them by the middle of a box has to use this larger box, or it puts
+       * the middle of the drawn ink somewhere other than the point.
+       */
+      const offCenter = ["triangle", "star"] as const
+      offCenter.forEach(shape => {
+        expect(pointShapeSymmetricExtent(shape, 8).h).toBeGreaterThan(pointShapeExtent(shape, 8).h)
+      })
+
+      PointShapes.filter(s => !offCenter.includes(s as any)).forEach(shape => {
+        const symmetric = pointShapeSymmetricExtent(shape, 8)
+        const drawn = pointShapeExtent(shape, 8)
+        expect(symmetric.w).toBeCloseTo(drawn.w, 6)
+        expect(symmetric.h).toBeCloseTo(drawn.h, 6)
+      })
+    })
+
+    it("scales linearly with the radius", () => {
+      PointShapes.forEach(shape => {
+        const small = pointShapeSymmetricExtent(shape, 3)
+        const large = pointShapeSymmetricExtent(shape, 12)
+        expect(large.w / small.w).toBeCloseTo(4, 6)
+        expect(large.h / small.h).toBeCloseTo(4, 6)
+      })
     })
   })
 

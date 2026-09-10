@@ -188,11 +188,32 @@ export function pointShapeExtent(shape: PointShape, r: number): IShapeExtent {
 }
 
 /*
+ * The smallest box centered on the point that contains the drawn shape, which for a triangle or a
+ * star is larger than the box that hugs the ink.
+ *
+ * What a renderer needs when it positions a shape by the middle of a box -- drawing into a texture
+ * and anchoring it at 0.5, 0.5 does exactly that -- since the drawn box is not centered on the
+ * point it belongs to.
+ */
+export function pointShapeSymmetricExtent(shape: PointShape, r: number): IShapeExtent {
+  const geometry = pointShapeGeometry(shape, r)
+  if (geometry.kind === "circle") return { w: 2 * geometry.radius, h: 2 * geometry.radius }
+
+  let maxAbsX = 0
+  let maxAbsY = 0
+  geometry.points.forEach(({ x, y }) => {
+    maxAbsX = Math.max(maxAbsX, Math.abs(x))
+    maxAbsY = Math.max(maxAbsY, Math.abs(y))
+  })
+  return { w: 2 * maxAbsX, h: 2 * maxAbsY }
+}
+
+/*
  * The distance from the center to the furthest vertex, which is what hit testing needs.
  *
- * Measured from the vertices rather than from the extent: the extent is the size of the drawn box,
- * and a triangle's box is not centered on the point, so half its larger side stops short of the ink
- * -- the apex sits at 2h/3 while half the width is s/2. A hit area sized that way misses the apex.
+ * Measured from the vertices rather than from the extent: a triangle's box is not centered on the
+ * point, so half its larger side stops short of the ink -- the apex sits at 2h/3 while half the
+ * width is s/2. A hit area sized that way misses the apex.
  */
 export function pointShapeBoundingRadius(shape: PointShape, r: number): number {
   const geometry = pointShapeGeometry(shape, r)
