@@ -84,6 +84,26 @@ $palette-header-height: 34px;
 $palette-hover-bg: $icon-fill-light; // #d3f4ff
 $palette-icon-color: $accent; // #006c8e
 $palette-pointer-size: 10px;
+
+// A color-picker row (a label plus a swatch) and the vertical margin around it.
+$palette-color-row-height: 30px;
+$palette-color-row-margin: 4px;
+
+// Legend-category rows are the same height but sit a little further apart. The rows are flex
+// items, so these margins do not collapse and neighbouring rows sit 2 * this value apart.
+$palette-category-row-margin: 3px;
+$palette-category-row-height: $palette-color-row-height + 2 * $palette-category-row-margin; // 36px
+
+// The scrolling legend-category list shows 2.5 rows, so half of the third row is always visible
+// when there is one. Stopping flush at a whole row leaves no indication that the list scrolls.
+// Derived from the row height rather than fixed, so the two cannot drift apart.
+$palette-category-rows-visible: 2.5;
+$palette-category-list-height: $palette-category-row-height * $palette-category-rows-visible; // 105px
+
+// The graph Format palette is wider than the default palette: a category name needs about 128px
+// to show ~16 characters, and most real category values do not fit in the ~11 that 220px allows.
+$palette-min-width: 220px;
+$palette-min-width-wide: 256px;
 $menu-item-hover-bg: #edf2f7;
 $menu-border-color: #e2e8f0;
 

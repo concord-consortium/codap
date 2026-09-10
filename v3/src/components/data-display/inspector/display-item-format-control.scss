@@ -70,6 +70,20 @@
 
 .codap-inspector-palette {
   .palette-form {
+    .palette-section {
+      & + .palette-section {
+        margin-top: 10px;
+      }
+
+      .palette-section-title {
+        font-size: 14px;
+        font-weight: bold;
+        margin: 0 0 4px;
+        padding-bottom: 2px;
+        border-bottom: 1px solid vars.$charcoal-light-5;
+      }
+    }
+
     .slider-row {
       gap: 10px;
 
@@ -166,8 +180,15 @@
     }
 
     .cat-color-setting {
-      height: 75px;
-      overflow-y: scroll;
+      // A flex column, so the rows are flex items whose vertical margins do not collapse and each
+      // row occupies the full height the 2.5-row limit below is derived from. The list ends
+      // halfway through the third row, and that half row is what signals there is more to scroll
+      // to. max-height rather than height so a one- or two-category list takes only the space it
+      // needs.
+      display: flex;
+      flex-direction: column;
+      max-height: vars.$palette-category-list-height;
+      overflow-y: auto;
 
       // Force vertical scrollbar visibility for Chrome/Safari so users know
       // the list is scrollable when there are more than 3 categories
@@ -188,8 +209,12 @@
       scrollbar-width: thin;
       scrollbar-color: gray lightgray;
 
+      // Overrides the shared .color-picker-row margin, which has equal specificity and so wins or
+      // loses on emit order alone. The 2.5-row height above is derived from the same variable, so
+      // the list height tracks whatever this is set to.
       .cat-color-picker {
-        margin: 6px 0;
+        flex-shrink: 0; // rows keep their height, so the list scrolls rather than compressing
+        margin: vars.$palette-category-row-margin 0;
       }
     }
 
