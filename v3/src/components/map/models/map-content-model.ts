@@ -13,6 +13,7 @@ import { getFormulaManager } from "../../../models/tiles/tile-environment"
 import { getCollectionAttrs } from "../../../models/data/data-set-utils"
 import { typeV3Id } from "../../../utilities/codap-utils"
 import {GraphPlace} from "../../axis-graph-shared"
+import {IDisplayItemDescriptionModel} from "../../data-display/models/display-item-description-model"
 import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
 import { IDataDisplayLayerModel } from "../../data-display/models/data-display-layer-model"
@@ -169,6 +170,17 @@ export const MapContentModel = DataDisplayContentModel
         }
       })
       return dataConfigurations
+    },
+    /*
+     * A map draws each layer from that layer's own description, so a caller asking about a
+     * particular configuration gets its layer's rather than the map's. The map's own is the answer
+     * only when no layer claims the configuration.
+     */
+    displayItemDescriptionFor(dataConfig?: IDataConfigurationModel): IDisplayItemDescriptionModel {
+      const layer = dataConfig
+        ? self.layers.find(l => isMapLayerModel(l) && l.dataConfiguration === dataConfig)
+        : undefined
+      return (isMapLayerModel(layer) ? layer.displayItemDescription : undefined) ?? self.pointDescription
     }
   }))
   .actions(self => ({

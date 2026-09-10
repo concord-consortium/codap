@@ -126,9 +126,12 @@ export const CategoricalLegend =
 
       const dI = legendModel.dragInfo
 
+      // Asked of the display rather than read off it: a map keeps a description per layer, so the
+      // shape a key falls back to has to be the one its own layer draws points with.
       const keyShape = (category: string) =>
         dataConfiguration?.getLegendShapeForCategory(
-          category, displayModel?.pointDescription.pointShape) ?? kDefaultPointShape
+          category,
+          displayModel?.displayItemDescriptionFor(dataConfiguration).pointShape) ?? kDefaultPointShape
 
       // The box the shape is drawn in, which for a triangle or a star is not centered on the shape's
       // own origin, so its offset comes out of the placement.

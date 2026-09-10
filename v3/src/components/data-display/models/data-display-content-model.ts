@@ -25,7 +25,7 @@ import { MarqueeMode } from "../data-display-types"
 import { IGetTipTextProps, IShowDataTipProps } from "../data-tip-types"
 import { IDataConfigurationModel } from "./data-configuration-model"
 import {DataDisplayLayerModelUnion} from "./data-display-layer-union"
-import {DisplayItemDescriptionModel} from "./display-item-description-model"
+import {DisplayItemDescriptionModel, IDisplayItemDescriptionModel} from "./display-item-description-model"
 import { IBaseDataDisplayModel } from "./base-data-display-content-model"
 import { DataDisplayRenderState } from "./data-display-render-state"
 
@@ -77,6 +77,15 @@ export const DataDisplayContentModel = TileContentModel
     get dataConfiguration(): IDataConfigurationModel | undefined {
       // derived models should override
       return undefined
+    },
+    /*
+     * How the points plotted from `dataConfig` are described. A graph draws every point from one
+     * description, so the tile's own is the answer; a map keeps one per layer and overrides this.
+     * Callers that need to agree with what is rendered -- a legend key showing the shape its points
+     * are drawn with -- have to ask rather than read `pointDescription` directly.
+     */
+    displayItemDescriptionFor(dataConfig?: IDataConfigurationModel): IDisplayItemDescriptionModel {
+      return self.pointDescription
     },
     get datasetsArray(): IDataSet[] {
       // derived models should override
