@@ -24,7 +24,8 @@ export const MapLegendHelper = {
     mle.getMapTile().find(".map-dot-area").eq(0).click({force:true})
   },
   verifyCategoricalLegendKeySelected(name: string, num: number) {
-    mle.getCategoricalLegendCategory(name).parent().find(".legend-key-shape").should("have.class", "legend-rect-selected")
+    mle.getCategoricalLegendCategory(name).parent().find(".legend-key-shape")
+      .should("have.class", "legend-rect-selected")
   },
   verifyNumericLegendKeySelected(num: number) {
     mle.getNumericLegendCategories().should("have.class", "legend-rect-selected")

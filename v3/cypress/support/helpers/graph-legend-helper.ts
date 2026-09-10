@@ -30,7 +30,8 @@ export const GraphLegendHelper = {
         gle.getGraphTile().find(".plot-cell-background").eq(0).click({force:true})
   },
   verifyCategoricalLegendKeySelected(name: string) {
-    gle.getCategoricalLegendCategory(name).parent().find(".legend-key-shape").should("have.class", "legend-rect-selected")
+    gle.getCategoricalLegendCategory(name).parent().find(".legend-key-shape")
+      .should("have.class", "legend-rect-selected")
   },
   verifyNumericLegendKeySelected() {
     gle.getNumericLegendCategories().should("have.class", "legend-rect-selected")
