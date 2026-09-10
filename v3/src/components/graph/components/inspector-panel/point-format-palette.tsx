@@ -47,7 +47,7 @@ export const PointFormatPalette = observer(function PointFormatPalette({id, tile
     <InspectorPalette
       id={id}
       title={t("DG.Inspector.styles")}
-      className="point-format-palette"
+      paletteClassName="point-format-palette"
       Icon={<FormatIcon/>}
       setShowPalette={setShowPalette}
       panelRect={panelRect}

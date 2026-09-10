@@ -28,9 +28,7 @@ interface IPaletteSectionProps {
   children: ReactNode
 }
 
-// Groups controls under a heading when given a title, and renders them bare otherwise. The map
-// layers palette heads each layer with the layer's own name and repeats these controls per layer,
-// so a second heading inside each one would be noise; it opts out by passing no title.
+// Groups controls under a heading when given a title, and renders them bare otherwise.
 function PaletteSection({ title, children }: IPaletteSectionProps) {
   const titleId = useId()
 
@@ -53,6 +51,8 @@ interface IDisplayItemFormatControlProps {
   onBackgroundTransparencyChange?: (isTransparent: boolean) => void
   plotBackgroundColor?: string
   onBackgroundColorChange?: (color: string) => void
+  // The map layers palette omits this: it repeats these controls per layer under the layer's own
+  // name, so a heading inside each would be noise.
   showSectionHeaders?: boolean
 }
 
@@ -67,9 +67,6 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
   const { tile } = useTileModelContext()
   const legendAttrID = dataConfiguration.attributeID("legend")
   const attrType = dataConfiguration.attributeType("legend")
-  // Only the graph Format palette is sectioned. The map layers palette renders these controls once
-  // per layer under the layer's own name, and has no background controls to put in a second
-  // section, so it opts out and keeps the flat layout.
   const dataPointsTitle = showSectionHeaders ? t("V3.Inspector.section.dataPoints") : undefined
   const graphTitle = showSectionHeaders ? t("V3.Inspector.section.graph") : undefined
 

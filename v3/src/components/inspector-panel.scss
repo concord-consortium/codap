@@ -138,8 +138,7 @@ $inspector-panel-border-width: 2px;
   min-height: 50px;
   font-weight: normal;
 
-  // Scoped to the graph Format palette. The shared min-width above applies to every inspector
-  // palette in the app, so widening it there would widen the map and case table palettes too.
+  // Widening the shared min-width above would widen the map and case table palettes too.
   &.point-format-palette {
     min-width: vars.$palette-min-width-wide;
   }

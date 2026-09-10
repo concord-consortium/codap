@@ -269,14 +269,13 @@ interface IInspectorPalette {
   Icon?: ReactNode
   id?: string
   title: string
-  // Applied to the palette element, so an individual palette can override shared palette styling.
-  className?: string
+  paletteClassName?: string
   panelRect?: DOMRect
   buttonRect?: DOMRect
   setShowPalette: (palette: string | undefined) => void
 }
 
-export const InspectorPalette = ({children, Icon, id, title, className, panelRect, buttonRect,
+export const InspectorPalette = ({children, Icon, id, title, paletteClassName, panelRect, buttonRect,
      setShowPalette}:IInspectorPalette) => {
   const pointerSize = 10
   const panelTop = panelRect?.top || 0
@@ -344,7 +343,7 @@ export const InspectorPalette = ({children, Icon, id, title, className, panelRec
     <div className="codap-inspector-palette-wrapper" style={wrapperStyle}>
       <div ref={pointerRef} className={`palette-pointer ${inBounds ? "arrow-left" : "arrow-right"}`}
           style={{top: pointerTop - (paletteTop || 0), ...pointerStyle}} />
-      <div ref={paletteRef} className={clsx("codap-inspector-palette", className)} id={id} tabIndex={-1}
+      <div ref={paletteRef} className={clsx("codap-inspector-palette", paletteClassName)} id={id} tabIndex={-1}
           role={kInspectorPaletteAriaRole} aria-labelledby={headerId}
           data-testid="codap-inspector-palette" onKeyDown={handleKeyDown}>
         <PaletteHeader id={headerId} Icon={Icon} title={title} />
