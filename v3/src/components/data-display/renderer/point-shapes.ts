@@ -187,6 +187,63 @@ export function pointShapeExtent(shape: PointShape, r: number): IShapeExtent {
   return kShapeDefs[shape].extent(r)
 }
 
+// Rounded, so a path attribute is not pages of floating point noise.
+const round = (n: number) => Math.round(n * 1000) / 1000
+
+/*
+ * The outline as an SVG path, for the surfaces that draw with SVG rather than into a canvas or a
+ * texture. The circle is emitted as a pair of arcs, since one arc cannot close a full circle.
+ */
+export function pointShapePathData(shape: PointShape, r: number): string {
+  const geometry = pointShapeGeometry(shape, r)
+  if (geometry.kind === "circle") {
+    const d = round(geometry.radius)
+    return `M ${-d} 0 A ${d} ${d} 0 1 0 ${d} 0 A ${d} ${d} 0 1 0 ${-d} 0 Z`
+  }
+  return `${geometry.points.map(({ x, y }, i) =>
+    `${i === 0 ? "M" : "L"} ${round(x)} ${round(y)}`).join(" ")} Z`
+}
+
+// The radius at which the shape's larger drawn dimension is exactly `extent`.
+function radiusFillingExtent(shape: PointShape, extent: number): number {
+  const { w, h } = pointShapeExtent(shape, 1)
+  return extent / Math.max(w, h)
+}
+
+/*
+ * The radius to draw a shape at inside a box of `extent`: the one it would be drawn at on a plot,
+ * reduced only where that would take it outside the box.
+ *
+ * The radius is shared on a plot so that every shape carries about the same visual weight and
+ * points can be compared. Holding it wherever the box allows keeps that relationship -- a square
+ * still reads as lighter than a circle, rather than being inflated past it to fill the corners.
+ *
+ * The pointier shapes cannot be held: a star is half again as wide as the circle it replaces, so it
+ * gives up weight to fit. That leaves them visibly lighter than the round shapes, which is the
+ * price of a common footprint.
+ */
+export function pointShapeRadiusWithinExtent(shape: PointShape, extent: number): number {
+  // extent / 2 is the radius at which a circle fills the box, which is the shared plot radius
+  return Math.min(extent / 2, radiusFillingExtent(shape, extent))
+}
+
+/*
+ * The center of the drawn box, which is the origin for every shape but the triangle and the star --
+ * those sit on their center of area, so their outline reaches further one way than the other.
+ *
+ * A caller that wants the ink centered in a box, rather than the shape sitting on a position, takes
+ * this out of its placement. A legend key wants the former; a plotted point wants the latter,
+ * because there its position is the data.
+ */
+export function pointShapeBoxCenter(shape: PointShape, r: number): IShapePoint {
+  const geometry = pointShapeGeometry(shape, r)
+  if (geometry.kind === "circle") return { x: 0, y: 0 }
+
+  const xs = geometry.points.map(p => p.x)
+  const ys = geometry.points.map(p => p.y)
+  return { x: (Math.max(...xs) + Math.min(...xs)) / 2, y: (Math.max(...ys) + Math.min(...ys)) / 2 }
+}
+
 /*
  * The smallest box centered on the point that contains the drawn shape, which for a triangle or a
  * star is larger than the box that hugs the ink.
