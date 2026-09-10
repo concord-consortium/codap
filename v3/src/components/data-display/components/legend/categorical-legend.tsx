@@ -133,8 +133,7 @@ export const CategoricalLegend =
           category,
           displayModel?.displayItemDescriptionFor(dataConfiguration).pointShape) ?? kDefaultPointShape
 
-      // The box the shape is drawn in, which for a triangle or a star is not centered on the shape's
-      // own origin, so its offset comes out of the placement.
+      // The box is what gets centered in the key, so its own offset comes out of the placement.
       const keyOffset = (category: string) => {
         const shape = keyShape(category)
         const center = pointShapeBoxCenter(shape, pointShapeRadiusWithinExtent(shape, keySize))

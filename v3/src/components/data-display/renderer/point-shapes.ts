@@ -214,13 +214,10 @@ function radiusFillingExtent(shape: PointShape, extent: number): number {
  * The radius to draw a shape at inside a box of `extent`: the one it would be drawn at on a plot,
  * reduced only where that would take it outside the box.
  *
- * The radius is shared on a plot so that every shape carries about the same visual weight and
- * points can be compared. Holding it wherever the box allows keeps that relationship -- a square
- * still reads as lighter than a circle, rather than being inflated past it to fill the corners.
- *
- * The pointier shapes cannot be held: a star is half again as wide as the circle it replaces, so it
- * gives up weight to fit. That leaves them visibly lighter than the round shapes, which is the
- * price of a common footprint.
+ * Holding the plot radius keeps the relative weights the constants above tune -- a square still
+ * reads as lighter than a circle rather than being inflated past it to fill the corners. Only the
+ * pointier shapes have to give that up to fit, which leaves them visibly lighter. That is the price
+ * of a common footprint, and it is deliberate.
  */
 export function pointShapeRadiusWithinExtent(shape: PointShape, extent: number): number {
   // extent / 2 is the radius at which a circle fills the box, which is the shared plot radius
@@ -228,12 +225,11 @@ export function pointShapeRadiusWithinExtent(shape: PointShape, extent: number):
 }
 
 /*
- * The center of the drawn box, which is the origin for every shape but the triangle and the star --
- * those sit on their center of area, so their outline reaches further one way than the other.
+ * The center of the drawn box, which is the origin for every shape but the triangle and the star.
  *
- * A caller that wants the ink centered in a box, rather than the shape sitting on a position, takes
- * this out of its placement. A legend key wants the former; a plotted point wants the latter,
- * because there its position is the data.
+ * Taken out of the placement by a caller that wants the ink centered in a box rather than the shape
+ * sitting on a position. A legend key wants the former; a plotted point wants the latter, because
+ * there its position is the data.
  */
 export function pointShapeBoxCenter(shape: PointShape, r: number): IShapePoint {
   const geometry = pointShapeGeometry(shape, r)
