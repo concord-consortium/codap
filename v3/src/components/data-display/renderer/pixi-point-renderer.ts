@@ -24,9 +24,14 @@ import {
 } from "./point-renderer-types"
 
 /*
- * The region of the shape's own coordinates that becomes the texture, centered on the point so the
- * sprite's anchor lands on it. Padded by the stroke, which straddles the outline and would
- * otherwise be clipped at the widest vertices.
+ * The region of the shape's own coordinates that becomes the texture.
+ *
+ * A sprite draws its texture around its anchor, which for points is the middle of the texture, so
+ * the texture has to be centered on the point rather than on the ink. Left to size itself it takes
+ * the bounds of the ink, and a triangle's ink sits high -- centering that would draw the triangle
+ * low by about a third of its radius.
+ *
+ * Padded by the stroke, which straddles the outline and would otherwise clip at the widest vertices.
  */
 function symmetricFrame(shape: PointShape, radius: number, strokeWidth: number): PIXI.Rectangle {
   const { w, h } = pointShapeSymmetricExtent(shape, radius)
@@ -876,13 +881,8 @@ export class PixiPointRenderer extends PointRendererBase {
       .fill(fill)
       .stroke({ color: stroke, width: strokeWidth, alpha: strokeOpacity ?? 0.4 })
 
-    /*
-     * A texture is drawn into the sprite around its anchor, which for points is the middle of the
-     * texture, so the texture has to be centered on the point's own origin. Left to size itself the
-     * texture takes the bounds of the ink, and a triangle's ink sits above its center of area --
-     * centering that box would draw the triangle low by about a third of its radius. Circles keep
-     * the self-sizing path they have always used.
-     */
+    // Circles keep the self-sizing path they have always used; everything else needs an explicit
+    // frame, for the reason given on symmetricFrame.
     const frame = geometry.kind === "circle" ? undefined : symmetricFrame(shape, radius, strokeWidth)
     return this.generateTexture(graphics, key, frame)
   }
