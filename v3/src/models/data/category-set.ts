@@ -4,6 +4,7 @@ import {
 } from "mobx-state-tree"
 import { kellyColors } from "../../utilities/color-utils"
 import { compareValues } from "../../utilities/data-utils"
+import { kDefaultPointShape, PointShape, pointShapeOrDefault } from "../../utilities/point-shape-utils"
 import { gLocale } from "../../utilities/translation/locale"
 import { Attribute, IAttribute } from "./attribute"
 import { IDataSet } from "./data-set"
@@ -139,6 +140,8 @@ export const CategorySet = types.model("CategorySet", {
   }),
   // user color assignments to categories in an attribute
   colors: types.map(types.string),
+  // user point-shape assignments to categories in an attribute
+  shapes: types.map(types.string),
   // user category re-orderings
   moves: types.array(types.frozen<ICategoryMove>())
 })
@@ -185,11 +188,6 @@ export const CategorySet = types.model("CategorySet", {
   get valuesArray(): string[] {
     return Array.from(self.values)
   },
-  // list of actions that indicate deliberate action by the user
-  // used to determine when to move provisional category sets into the document
-  get userActionNames() {
-    return ["move", "setColorForCategory", "storeCurrentColorForCategory"]
-  },
   get lastMove() {
     return self.moves.length > 0
             ? self.moves[self.moves.length - 1]
@@ -205,14 +203,39 @@ export const CategorySet = types.model("CategorySet", {
     // We intentionally create a new non-observable map here.
     // This way this map object can be observed and if it changes a user knows the
     // colors or categories have changed
-    const map: Record<string, string> = {}
-    self.values.forEach((category, index) => map[category] = colorForCategory(category, index))
+    //
+    // Null-prototyped and built from entries because category values come from the data and can be
+    // any string. Assigning `map["__proto__"]` sets the prototype rather than defining an own
+    // property, losing that category's color; and reading `map["constructor"]` off a normal object
+    // returns an inherited function rather than undefined for a category that has none.
+    const entries = self.values.map(
+      (category, index) => [category, colorForCategory(category, index)] as const
+    )
+    const map: Record<string, string> = Object.assign(Object.create(null), Object.fromEntries(entries))
     return map
   }
 }))
 .views(self => ({
   colorForCategory(category: string) {
     return self.colorMap[category]
+  },
+  // Unlike colors, which cycle through a palette by category index, every category starts at the
+  // same default shape, so there is no index-derived fallback to compute.
+  shapeForCategory(category: string): PointShape {
+    return pointShapeOrDefault(self.shapes.get(category))
+  },
+  /*
+   * Only the categories carrying an explicit shape. Categories at the default are omitted, so
+   * exports stay empty until a user actually assigns one.
+   *
+   * Built with fromEntries: assignment would set the prototype for a category named `__proto__`.
+   */
+  get shapeMap(): Record<string, PointShape> {
+    const entries: Array<[string, PointShape]> = []
+    self.shapes.forEach((shape, category) => {
+      entries.push([String(category), pointShapeOrDefault(shape)])
+    })
+    return Object.fromEntries(entries)
   }
 }))
 .actions(self => ({
@@ -257,6 +280,15 @@ export const CategorySet = types.model("CategorySet", {
       self.colors.set(value, color)
     } else {
       self.colors.delete(value)
+    }
+  },
+  // Storing the default is stored as absence, so a document only carries the shapes a user chose
+  // and a category reverted to circle round-trips as an unset entry.
+  setShapeForCategory(value: string, shape: PointShape) {
+    if (shape && shape !== kDefaultPointShape) {
+      self.shapes.set(value, shape)
+    } else {
+      self.shapes.delete(value)
     }
   },
   storeCurrentColorForCategory(value: string) {

@@ -396,3 +396,71 @@ describe("V2 graph legend bin count round-trip", () => {
     expect(dataConfig.metadata!.getAttributeBinCount(legendId)).toBeUndefined()
   })
 })
+
+describe("V2 graph point shape round-trip", () => {
+  beforeEach(() => resetMocks())
+
+  // Imports the diet-legend document and returns the first graph tile with a categorical legend.
+  function importCategoricalLegendGraph() {
+    const { v2Document } = loadCodapDocument("mammals-all-diet-legends.codap")
+    const v2GraphTiles = v2Document.components.filter(c => c.type === "DG.GraphView")
+    for (const v2GraphTile of v2GraphTiles) {
+      const tile = v2GraphImporter({ v2Component: v2GraphTile, v2Document, ...mockImporterArgs })
+      const content = isGraphContentModel(tile?.content) ? tile.content : undefined
+      if (content?.dataConfiguration.attributeType("legend") === "categorical") {
+        return { tile: tile!, content }
+      }
+    }
+    throw new Error("no categorical-legend graph found in fixture")
+  }
+
+  it("writes no v3 pointShape when the graph uses the default", () => {
+    const { tile, content } = importCategoricalLegendGraph()
+    expect(content.pointDescription.pointShape).toBe("circle")
+    const out = v2GraphExporter({ tile })
+    // documents that never used the feature gain nothing
+    expect((out?.componentStorage as any)?.v3?.pointShape).toBeUndefined()
+  })
+
+  it("exports a non-default shape into the v3 namespace", () => {
+    const { tile, content } = importCategoricalLegendGraph()
+    content.pointDescription.setPointShape("star")
+    const out = v2GraphExporter({ tile })
+    expect((out?.componentStorage as any)?.v3?.pointShape).toBe("star")
+  })
+
+  it("keeps the shape out of v2's own storage keys", () => {
+    // v2 has no field for shape; anything we add outside the v3 namespace would be unrecognized
+    const { tile, content } = importCategoricalLegendGraph()
+    content.pointDescription.setPointShape("diamond")
+    const storage = v2GraphExporter({ tile })?.componentStorage as any
+    const { v3, ...v2Native } = storage
+    expect(JSON.stringify(v2Native)).not.toContain("diamond")
+  })
+
+  it("imports a shape written by v3", () => {
+    const { v2Document } = loadCodapDocument("mammals-all-diet-legends.codap")
+    const v2GraphTile = v2Document.components.find(c => c.type === "DG.GraphView")!
+    const withShape = {
+      ...v2GraphTile,
+      componentStorage: { ...v2GraphTile.componentStorage, v3: { pointShape: "plus" } }
+    } as typeof v2GraphTile
+    const tile = v2GraphImporter({ v2Component: withShape, v2Document, ...mockImporterArgs })
+    const content = isGraphContentModel(tile?.content) ? tile.content : undefined
+    expect(content?.pointDescription.pointShape).toBe("plus")
+  })
+
+  it("imports as the default when v2 wrote the document", () => {
+    // a document v2 saved has no v3 namespace at all, and one v2 re-saved has dropped it
+    const { v2Document } = loadCodapDocument("mammals-all-diet-legends.codap")
+    const v2GraphTile = v2Document.components.find(c => c.type === "DG.GraphView")!
+    const { v3, ...storageWithoutV3 } = v2GraphTile.componentStorage as any
+    const tile = v2GraphImporter({
+      v2Component: { ...v2GraphTile, componentStorage: storageWithoutV3 },
+      v2Document,
+      ...mockImporterArgs
+    })
+    const content = isGraphContentModel(tile?.content) ? tile.content : undefined
+    expect(content?.pointDescription.pointShape).toBe("circle")
+  })
+})

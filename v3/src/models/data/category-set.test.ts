@@ -5,7 +5,6 @@ import { jestSpyConsole } from "../../test/jest-spy-console"
 import { Attribute, IAttribute } from "./attribute"
 import { CategorySet, ICategorySet, createProvisionalCategorySet, getProvisionalDataSet } from "./category-set"
 import { DataSet } from "./data-set"
-import { onAnyAction } from "../../utilities/mst-utils"
 
 describe("CategorySet", () => {
   const Tree = types.model("Tree", {
@@ -353,25 +352,121 @@ describe("CategorySet", () => {
     expect(handleAttributeInvalidated).toHaveBeenCalledWith(cId)
   })
 
-  it("identifies actions that indicate user modification of category sets", () => {
-    const a = Attribute.create({ name: "a", values: ["a", "b", "c"] })
-    const tree = Tree.create({ attribute: a, categories: { attribute: a.id } })
+  describe("per-category point shapes", () => {
+    const makeSet = (values: string[]) => {
+      const tree = Tree.create({
+        attribute: Attribute.create({ id: "aId", name: "a" }),
+        categories: { attribute: "aId" }
+      })
+      values.forEach(v => tree.attribute.addValue(v))
+      return tree.categories
+    }
 
-    const fn = jest.fn()
-    const disposer = onAnyAction(tree.categories, action => {
-      if (tree.categories.userActionNames.includes(action.name)) {
-        fn()
-      }
+    it("defaults every category to circle", () => {
+      const categories = makeSet(["a", "b"])
+      expect(categories.shapeForCategory("a")).toBe("circle")
+      expect(categories.shapeForCategory("b")).toBe("circle")
+      // a category that does not exist still resolves rather than returning undefined
+      expect(categories.shapeForCategory("nope")).toBe("circle")
     })
-    tree.categories.move("c", "a")
-    expect(fn).toHaveBeenCalledTimes(1)
-    tree.categories.setColorForCategory("a", "red")
-    expect(fn).toHaveBeenCalledTimes(2)
-    expect(tree.categories.colorForCategory("a")).toBe("red")
-    expect(fn).toHaveBeenCalledTimes(2)
-    tree.categories.storeAllCurrentColors()
-    expect(fn).toHaveBeenCalledTimes(4)
 
-    disposer()
+    it("stores an assigned shape", () => {
+      const categories = makeSet(["a", "b"])
+      runInAction(() => categories.setShapeForCategory("a", "star"))
+      expect(categories.shapeForCategory("a")).toBe("star")
+      // assigning one category leaves the others alone
+      expect(categories.shapeForCategory("b")).toBe("circle")
+    })
+
+    it("stores the default as absence, so unused documents carry nothing", () => {
+      const categories = makeSet(["a"])
+      runInAction(() => categories.setShapeForCategory("a", "star"))
+      expect(getSnapshot(categories).shapes).toEqual({ a: "star" })
+
+      // reverting to the default removes the entry rather than recording "circle"
+      runInAction(() => categories.setShapeForCategory("a", "circle"))
+      expect(getSnapshot(categories).shapes).toEqual({})
+      expect(categories.shapeForCategory("a")).toBe("circle")
+    })
+
+    it("resolves an unrecognized stored shape to the default", () => {
+      const categories = makeSet(["a"])
+      // simulates a document written by a build that knows a shape this one does not
+      applySnapshot(categories, { ...getSnapshot(categories), shapes: { a: "hexagon" } })
+      expect(categories.shapeForCategory("a")).toBe("circle")
+    })
+
+    it("exposes only explicitly assigned shapes via shapeMap", () => {
+      const categories = makeSet(["a", "b", "c"])
+      expect(categories.shapeMap).toEqual({})
+
+      runInAction(() => categories.setShapeForCategory("b", "diamond"))
+      // b only -- a and c are at the default and must not appear
+      expect(categories.shapeMap).toEqual({ b: "diamond" })
+    })
+
+
+    it("is observable, so the renderer re-reads when a shape changes", () => {
+      const categories = makeSet(["a"])
+      const fn = jest.fn()
+      const disposer = autorun(() => {
+        categories.shapeForCategory("a")
+        fn()
+      })
+      expect(fn).toHaveBeenCalledTimes(1)
+
+      runInAction(() => categories.setShapeForCategory("a", "plus"))
+      expect(fn).toHaveBeenCalledTimes(2)
+
+      disposer()
+    })
   })
+
+
+  describe("category values that collide with object keys", () => {
+    // Category values come from the data and can be any string, including ones that mean something
+    // to a plain JavaScript object.
+    const makeSet = (values: string[]) => {
+      const tree = Tree.create({
+        attribute: Attribute.create({ id: "aId", name: "a" }),
+        categories: { attribute: "aId" }
+      })
+      values.forEach(v => tree.attribute.addValue(v))
+      return tree.categories
+    }
+
+    it("keeps a color assigned to a category named __proto__", () => {
+      const categories = makeSet(["__proto__", "b"])
+      runInAction(() => categories.setColorForCategory("__proto__", "#ff0000"))
+
+      expect(categories.colorForCategory("__proto__")).toBe("#ff0000")
+      expect(Object.keys(categories.colorMap)).toContain("__proto__")
+    })
+
+    it("keeps a shape assigned to a category named __proto__", () => {
+      const categories = makeSet(["__proto__", "b"])
+      runInAction(() => {
+        categories.setShapeForCategory("__proto__", "star")
+        categories.setShapeForCategory("b", "plus")
+      })
+
+      expect(categories.shapeForCategory("__proto__")).toBe("star")
+      expect(Object.keys(categories.shapeMap).sort()).toEqual(["__proto__", "b"])
+      expect(categories.shapeMap.__proto__).toBe("star")
+    })
+
+    it("does not report an inherited member as a color", () => {
+      // on a normal object, colorMap["constructor"] would return a function
+      const categories = makeSet(["a"])
+      expect(typeof categories.colorForCategory("constructor")).not.toBe("function")
+      expect(categories.colorForCategory("constructor")).toBeUndefined()
+    })
+
+    it("assigns a color to a category named constructor like any other", () => {
+      const categories = makeSet(["constructor", "b"])
+      runInAction(() => categories.setColorForCategory("constructor", "#00ff00"))
+      expect(categories.colorForCategory("constructor")).toBe("#00ff00")
+    })
+  })
+
 })

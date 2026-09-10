@@ -60,4 +60,68 @@ describe("importV2CategorySet", () => {
       { value: "e", fromIndex: 3, toIndex: 0, before: "d", length: 4 }
     ])
   })
+
+  describe("point shapes", () => {
+    const makeAttribute = () => Attribute.create({
+      id: "aId", name: "a", values: ["land", "water", "land"]
+    })
+
+    it("does not invent a color for a category named after an inherited member", () => {
+      // colorMap comes from a v2 document, so a bare `colorMap["constructor"]` returns the
+      // inherited function -- truthy, and not a color -- for a category the map has no entry for
+      const attribute = Attribute.create({ id: "aId", name: "a", values: ["constructor", "land"] })
+      const result = importV2CategorySet(attribute, createCategoryMap(["constructor", "land"], {}))
+
+      // own keys, not toHaveProperty: that would find the inherited constructor and fail whatever
+      // the code does -- the same hazard this test is about
+      expect(Object.keys(result?.colors ?? {})).not.toContain("constructor")
+    })
+
+    it("imports assigned shapes, which alone justify a category set", () => {
+      // no colors and no order here, so nothing but the shapes could have created the set
+      const result = importV2CategorySet(makeAttribute(), undefined, { land: "star", water: "diamond" })
+      expect(result?.shapes).toEqual({ land: "star", water: "diamond" })
+    })
+
+    it("returns nothing when there is no shape, color or move to restore", () => {
+      expect(importV2CategorySet(makeAttribute(), undefined, {})).toBeUndefined()
+      expect(importV2CategorySet(makeAttribute(), undefined, undefined)).toBeUndefined()
+    })
+
+    it("drops the default, which is stored as absence", () => {
+      const result = importV2CategorySet(makeAttribute(), undefined, { land: "circle", water: "star" })
+      expect(result?.shapes).toEqual({ water: "star" })
+    })
+
+    it("drops a shape this build does not recognize", () => {
+      // a document written by a newer build must not inject an unknown value into the model
+      const result = importV2CategorySet(makeAttribute(), undefined, { land: "hexagon", water: "star" })
+      expect(result?.shapes).toEqual({ water: "star" })
+    })
+
+    it("restores a category whose value is a reserved object key", () => {
+      // assignment into a plain object would set the prototype instead of an own property, so the
+      // shape for such a category would be dropped on import
+      const attribute = Attribute.create({ id: "aId", name: "a", values: ["__proto__", "land"] })
+      // built by parsing, as it would be arriving from a v2 document: an object literal with a
+      // `__proto__` key sets the prototype instead, so it would not exercise the case at all
+      const categoryShapes = JSON.parse('{"__proto__":"star","land":"plus"}')
+      const result = importV2CategorySet(attribute, undefined, categoryShapes)
+
+      expect(Object.keys(result?.shapes ?? {}).sort()).toEqual(["__proto__", "land"])
+      expect(result?.shapes?.__proto__).toBe("star")
+    })
+
+    it("keeps a shape for a category not currently in the data", () => {
+      /*
+       * Deliberate, and deliberately unlike colors: every shape entry is a user assignment, so
+       * there is no auto-generated noise to age out. A category whose cases are deleted and later
+       * restored -- a sampler re-run, say -- gets the shape its user chose back. v2 keeps its own
+       * assignments for absent categories for the same reason.
+       */
+      const result = importV2CategorySet(makeAttribute(), undefined, { land: "star", lava: "plus" })
+      expect(result?.shapes).toEqual({ land: "star", lava: "plus" })
+    })
+  })
+
 })

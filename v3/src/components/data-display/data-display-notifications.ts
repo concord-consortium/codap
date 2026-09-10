@@ -1,6 +1,7 @@
 import { AttributeBinningType } from "../../models/shared/data-set-metadata"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { updateTileNotification } from "../../models/tiles/tile-notifications"
+import { PointShape } from "../../utilities/point-shape-utils"
 import { GraphPlace } from "../axis-graph-shared"
 
 // Shared notification helpers for the graph and map tiles (the V3 "data-display" tiles).
@@ -54,6 +55,14 @@ export function changePointColorNotification(
   tile: ITileModel | undefined, color: string, category: string
 ) {
   return updateTileNotification("change point color", { color, category }, tile)
+}
+
+// Shape has no V2 counterpart, so there is no legacy op string to match. `category` is undefined
+// when no legend attribute is assigned and the shape applies to every point.
+export function changePointShapeNotification(
+  tile: ITileModel | undefined, shape: PointShape, category?: string
+) {
+  return updateTileNotification("change point shape", { shape, category }, tile)
 }
 
 // V2 emits the COMPOUND op string `"change " + <internalName>` from the factory

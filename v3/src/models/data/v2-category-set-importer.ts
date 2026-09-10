@@ -1,6 +1,7 @@
 import { colord } from "colord"
 import { kellyColors } from "../../utilities/color-utils"
 import { compareValues } from "../../utilities/data-utils"
+import { isPointShape, kDefaultPointShape } from "../../utilities/point-shape-utils"
 import { gLocale } from "../../utilities/translation/locale"
 import { CodapV2ColorMap, ICodapV2CategoryMap, isV2CategoryMap } from "../../v2/codap-v2-data-context-types"
 import { IAttribute } from "./attribute"
@@ -9,10 +10,26 @@ import { MinimalMovesFinder } from "./minimal-moves-finder"
 
 export type V2CategorySetInput = CodapV2ColorMap | ICodapV2CategoryMap
 
-export function importV2CategorySet(attribute: IAttribute, input: V2CategorySetInput): Maybe<ICategorySetSnapshot> {
+export function importV2CategorySet(
+  attribute: IAttribute, input: Maybe<V2CategorySetInput>, categoryShapes?: Record<string, string>
+): Maybe<ICategorySetSnapshot> {
   let moves: ICategoryMove[] = []
-  // map from category string to hex color string
-  const colors: Record<string, string> = {}
+  // category string to hex color string, collected as entries and built at the end: category
+  // values come from the data, and assigning `colors["__proto__"]` would set the prototype rather
+  // than define an own property, losing that category's color
+  const colorEntries: Array<[string, string]> = []
+
+  /*
+   * Taken as given rather than filtered against the categories currently in the data: every entry
+   * is a deliberate assignment, so a category whose cases are deleted and later restored keeps the
+   * shape the user chose for it. Nothing generates a shape, so there is no automatic value to age
+   * out the way the color loop below ages one out.
+   */
+  // fromEntries: assignment would set the prototype for a category named `__proto__`.
+  const shapes: Record<string, string> = Object.fromEntries(
+    Object.entries(categoryShapes ?? {})
+      .filter(([, shape]) => isPointShape(shape) && shape !== kDefaultPointShape)
+  )
 
   let colorMap: CodapV2ColorMap = {}
 
@@ -44,7 +61,7 @@ export function importV2CategorySet(attribute: IAttribute, input: V2CategorySetI
     moves = minMovesFinder.minMoves()
   }
   else {
-    colorMap = input
+    colorMap = input ?? {}
   }
 
   // V2 assigns colors to categories in the order they appear in the data.
@@ -52,23 +69,27 @@ export function importV2CategorySet(attribute: IAttribute, input: V2CategorySetI
   for (let i = 0; i < sortedOrder.length; ++i) {
     const category = sortedOrder[i]
     const defaultColor = kellyColors[i % kellyColors.length]
-    const importColor = colorMap[category]
+    // hasOwn rather than a bare lookup: for a category named `constructor` or `toString` with no
+    // entry, a plain object returns the inherited member, which is truthy and is not a color
+    const importColor = Object.prototype.hasOwnProperty.call(colorMap, category) ? colorMap[category] : undefined
     if (importColor) {
       const importColorStr = typeof importColor === "string" ? importColor : importColor.colorString
       const defaultColorD = colord(defaultColor)
       const importColorD = colord(importColorStr)
       // if the v2 color is different than the default color, store it as a color change
       if (defaultColorD.toHex() !== importColorD.toHex()) {
-        colors[category] = importColorD.toHex()
+        colorEntries.push([category, importColorD.toHex()])
       }
     }
   }
 
-  if (moves.length > 0 || Object.keys(colors).length > 0) {
+  const colors: Record<string, string> = Object.fromEntries(colorEntries)
+  if (moves.length > 0 || colorEntries.length > 0 || Object.keys(shapes).length > 0) {
     return {
       attribute: attribute.id,
       moves,
-      colors
+      colors,
+      shapes
     }
   }
 }

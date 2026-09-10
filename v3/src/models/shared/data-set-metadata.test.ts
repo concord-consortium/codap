@@ -531,4 +531,43 @@ describe("DataSetMetadata", () => {
     expect(tree.metadata.caseCardTileId).toBe("foo-card")
     expect(tree.metadata.lastShownTableOrCardTileId).toBe("foo-table")
   })
+    /*
+     * A category set starts provisional so that merely looking at an attribute does not dirty the
+     * document. It is promoted when the user changes something that has to persist. Choosing a
+     * point shape is such a change, and it can be the only one a user makes.
+     */
+  it("promotes a provisional category set when only a shape is assigned", () => {
+    const categorySet = tree.metadata.getCategorySet("aId")!
+    expect(tree.metadata.attributes.size).toBe(0)
+    expect(tree.metadata.provisionalCategories.size).toBe(1)
+
+    categorySet.setShapeForCategory("1", "star")
+
+    expect(tree.metadata.attributes.size).toBe(1)
+    expect(tree.metadata.provisionalCategories.size).toBe(0)
+    // the promoted set carries the shape, so it survives into the saved document
+    expect(tree.metadata.getCategorySet("aId")?.shapeForCategory("1")).toBe("star")
+  })
+
+  it("promotes a provisional category set when categories are reordered", () => {
+    // moves are the other change that has to persist; kept alongside the shape and color cases
+    // so the set of changes that count as user modification is covered in one place
+    const categorySet = tree.metadata.getCategorySet("aId")!
+    expect(tree.metadata.provisionalCategories.size).toBe(1)
+
+    categorySet.move("3", "1")
+
+    expect(tree.metadata.attributes.size).toBe(1)
+    expect(tree.metadata.provisionalCategories.size).toBe(0)
+  })
+
+  it("does not promote for a shape set back to the default", () => {
+    const categorySet = tree.metadata.getCategorySet("aId")!
+    // the default is stored as absence, so this leaves nothing worth persisting
+    categorySet.setShapeForCategory("1", "circle")
+
+    expect(tree.metadata.attributes.size).toBe(0)
+    expect(tree.metadata.provisionalCategories.size).toBe(1)
+  })
+
 })

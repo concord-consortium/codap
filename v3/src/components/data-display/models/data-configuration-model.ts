@@ -22,6 +22,7 @@ import { numericSortComparator } from "../../../utilities/data-utils"
 import { stringValuesToDateSeconds } from "../../../utilities/date-utils"
 import {hashStringSets, typedId, uniqueId} from "../../../utilities/js-utils"
 import { equalFrequencyBins, isFiniteNumber } from "../../../utilities/math-utils"
+import { kDefaultPointShape, PointShape } from "../../../utilities/point-shape-utils"
 import { cachedFnWithArgsFactory, onAnyAction } from "../../../utilities/mst-utils"
 import { AxisPlace } from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
@@ -740,6 +741,11 @@ export const DataConfigurationModel = types
         return categorySet?.colorForCategory(cat) ?? missingColor
       },
 
+      getLegendShapeForCategory(cat: string): PointShape {
+        const categorySet = self.categorySetForAttrRole('legend')
+        return categorySet?.shapeForCategory(cat) ?? kDefaultPointShape
+      },
+
       getLegendColorForNumericValue(value: number): string {
         // A log scale is undefined for values <= 0; they are always missing, including when the log
         // domain is degenerate (<= 1 distinct positive value) and legendDisplayRange is empty.
@@ -1096,6 +1102,10 @@ export const DataConfigurationModel = types
     setLegendColorForCategory(cat: string, color: string) {
       const categorySet = self.categorySetForAttrRole('legend')
       categorySet?.setColorForCategory(cat, color)
+    },
+    setLegendShapeForCategory(cat: string, shape: PointShape) {
+      const categorySet = self.categorySetForAttrRole('legend')
+      categorySet?.setShapeForCategory(cat, shape)
     },
     setNumberOfCategoriesLimitForRole(role: AttrRole, limit: number | undefined) {
       if (limit !== undefined && limit <= 0) {
