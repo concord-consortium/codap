@@ -3,18 +3,16 @@ import { PointShape } from "../../../utilities/point-shape-utils"
 /*
  * The geometry of the seven point shapes, as a function of the point radius.
  *
- * One source for every surface that draws a shape: the canvas renderer, the PIXI renderer and the
- * legend keys. Ported from the design prototype's js/shapes.js, which states the same contract --
- * "ONE source of geometry for every place a shape appears" -- and whose constants these are.
+ * One source for every surface that draws a shape. Ported from the design prototype's js/shapes.js,
+ * whose constants these are.
  *
- * Circle is the reference and is unchanged from what CODAP has always drawn: radius r. Every other
- * shape is normalized to about 90% of the circle's area. Equal area is deliberately not the target:
- * straight edges and points read heavier than a circle of identical ink, so a small negative
- * correction is what makes a triangle look like the same size point as a circle. The bounding boxes
- * therefore differ between shapes, and that is intentional.
+ * Circle is the reference, unchanged from what CODAP has always drawn: radius r. Every other shape
+ * is normalized to about 90% of the circle's area rather than to equal area, because straight edges
+ * and points read heavier than a circle of identical ink. Their bounding boxes therefore differ,
+ * which is intentional.
  *
- * Do not re-derive these constants. They are tuned, and the relative visual weight of the set
- * depends on them.
+ * Do not re-derive the constants. They are tuned, and the relative weight of the set depends on
+ * them.
  */
 const K = {
   square: 1.700,    // side
@@ -100,13 +98,13 @@ const kShapeDefs: Record<PointShape, IShapeDef> = {
       const s = K.triangle * r
       const h = s * Math.sqrt(3) / 2
       /*
-       * Centered on its center of area, not its bounding box. An equilateral triangle's centroid
-       * sits h/6 below its box center, so box-centering makes it read as sitting low: switching a
-       * category from another shape to this one visibly shifts its points down.
+       * Centered on its center of area, not its bounding box: a centroid sits h/6 below the box
+       * center, so box-centering makes the triangle read as sitting low, and switching a category
+       * to it visibly shifts the points down.
        *
-       * The prototype centers it on the box instead, for a predictable hit area and a shared
-       * baseline with the square. That trades a visible positional bias for an alignment nicety,
-       * and in a scatterplot position is the data. Every shape now sits on its center of area.
+       * The prototype centers on the box, buying a predictable hit area and a shared baseline with
+       * the square. On a plot a position is the data, so the bias costs more than the alignment
+       * gains.
        */
       return { kind: "polygon", points: [
         { x: 0, y: -2 * h / 3 }, { x: s / 2, y: h / 3 }, { x: -s / 2, y: h / 3 }
@@ -182,20 +180,19 @@ export function pointShapeArea(shape: PointShape, r: number): number {
 }
 
 /*
- * The drawn bounding box, which is NOT 2r for anything but the circle -- a star is about 35% wider
- * than a circle of the same visual weight. Hit testing needs this rather than the radius, or the
- * points of a star are drawn outside the region that responds to a click.
+ * The drawn bounding box, which is NOT 2r for anything but the circle: a star is about 35% wider
+ * than the circle it replaces. Used to size a shape against a box, and to check the normalization.
  */
 export function pointShapeExtent(shape: PointShape, r: number): IShapeExtent {
   return kShapeDefs[shape].extent(r)
 }
 
 /*
- * The distance from the center to the furthest point of the outline, measured from the vertices
- * rather than the extent. The extent is the size of the drawn box, and for the triangle and the
- * star that box is not centered on the point, so half of its larger side falls short of the ink:
- * a triangle's apex sits at 2h/3 from the centroid while half its width is only s/2. Hit testing
- * uses this to find candidates, so falling short means a click on the apex finds nothing.
+ * The distance from the center to the furthest vertex, which is what hit testing needs.
+ *
+ * Measured from the vertices rather than from the extent: the extent is the size of the drawn box,
+ * and a triangle's box is not centered on the point, so half its larger side stops short of the ink
+ * -- the apex sits at 2h/3 while half the width is s/2. A hit area sized that way misses the apex.
  */
 export function pointShapeBoundingRadius(shape: PointShape, r: number): number {
   const geometry = pointShapeGeometry(shape, r)

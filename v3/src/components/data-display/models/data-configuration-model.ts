@@ -866,10 +866,9 @@ export const DataConfigurationModel = types
        * A point then stands for several children at once, and resolving the legend through any one
        * of them would attribute that child's value to the whole group, so callers fall back.
        *
-       * Lives a block above the two views that use it so they can reach it through `self`. They are
-       * routinely passed around as detached function references -- a plot hands
-       * `dataConfig.getLegendColorForCase` to setPointCoordinates, which calls it bare -- so `this`
-       * inside them is undefined and cannot be used to reach a sibling view.
+       * Must stay a block above the views that use it, so they reach it through `self`. They are
+       * passed around as detached function references -- a plot hands `getLegendColorForCase` to
+       * setPointCoordinates, which calls it bare -- so `this` inside them is undefined.
        */
       get legendCollectionIsMoreChildmost(): boolean {
         const legendID = self.attributeID('legend')
@@ -910,11 +909,8 @@ export const DataConfigurationModel = types
        * For categorical it is a map of categories to colors
        * The color type is not handled yet.
        */
-      /*
-       * Changes identity when any category's shape changes, so a display can react to it the way
-       * it reacts to legendColorDomain. Only categorical legends carry shapes; the rest have no
-       * categories to assign one to, so there is nothing to observe.
-       */
+      // Changes identity when any category's shape changes, so a display can react to it the way it
+      // reacts to legendColorDomain.
       get legendShapeDomain() {
         const legendType = self.attributeType('legend')
         if (legendType !== 'categorical' && legendType !== 'checkbox') return undefined
@@ -970,10 +966,9 @@ export const DataConfigurationModel = types
       /*
        * The shape for a case, mirroring getLegendColorForCase.
        *
-       * Only categorical legends carry shapes. A numeric or date legend has no categories to assign
-       * one to, and a color legend supplies its own colors; those all resolve to the default so
-       * every point in such a plot shares one shape. Callers pass the display's own shape as
-       * `shapeIfNoCategory`, which is what a plot with no legend attribute uses throughout.
+       * Only a categorical legend has categories to carry shapes, so every other kind resolves to
+       * `shapeIfNoCategory` -- the display's own shape, which is also what a plot with no legend
+       * attribute draws throughout.
        */
       getLegendShapeForCase(id: string, shapeIfNoCategory: PointShape = kDefaultPointShape): PointShape {
         const legendID = self.attributeID('legend')

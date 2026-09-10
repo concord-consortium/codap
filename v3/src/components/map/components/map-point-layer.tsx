@@ -420,15 +420,8 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
       {name: "MapPointLayer [legendColorChange]", fireImmediately: true}, dataConfiguration)
   }, [dataConfiguration, refreshHeatmap, refreshPoints])
 
-  /*
-   * A shape change alters only how each point is drawn, so the points are restyled without touching
-   * the heatmap, which has no notion of shape.
-   *
-   * It goes through refreshPointSelection because that restyles without the heatmap work, not
-   * because it is the only path carrying a shape: refreshPoints writes one too, so that a point it
-   * creates is not drawn as a circle. Both shape sources are observed here -- the per-category
-   * shapes, and the layer's own, which is what a layer with no legend attribute draws throughout.
-   */
+  // A shape change alters only how each point is drawn, so the points are restyled without touching
+  // the heatmap, which has no notion of shape.
   useEffect(() => {
     return mstReaction(
       () => [dataConfiguration?.legendShapeDomain, mapLayerModel.pointDescription.pointShape],
