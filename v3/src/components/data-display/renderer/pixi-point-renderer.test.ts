@@ -18,6 +18,7 @@ jest.mock("pixi.js", () => {
     destroy() { this.children = [] }
   }
   class MockSprite {
+    hitArea: any = null
     anchor = { x: 0, y: 0, copyFrom(p: any) { this.x = p.x; this.y = p.y } }
     position = { x: 0, y: 0, set(x: number, y: number) { this.x = x; this.y = y } }
     scale = { x: 1, y: 1, set(x: number, y: number) { this.x = x; this.y = y } }
@@ -39,8 +40,11 @@ jest.mock("pixi.js", () => {
   }
   class MockGraphics {
     boundsArea: any = null
-    rect() { return this }
-    circle() { return this }
+    // records what was traced, so a test can tell a polygon from an arc
+    traced: Array<{ op: string, args: any[] }> = []
+    rect(...args: any[]) { this.traced.push({ op: "rect", args }); return this }
+    circle(...args: any[]) { this.traced.push({ op: "circle", args }); return this }
+    poly(...args: any[]) { this.traced.push({ op: "poly", args }); return this }
     fill() { return this }
     stroke() { return this }
     destroy() {}
@@ -68,7 +72,12 @@ jest.mock("pixi.js", () => {
     }
     resize() {}
     render() {}
-    generateTexture() { return new MockTexture() }
+    // keeps every call, so a test can inspect the graphics traced and the frame requested
+    generateTextureCalls: any[] = []
+    generateTexture(options: any) {
+      this.generateTextureCalls.push(options)
+      return new MockTexture()
+    }
     destroy() {}
   }
   return {
@@ -94,6 +103,107 @@ describe("PixiPointRenderer", () => {
     plotNum,
     caseID,
     subPlotNum
+  })
+
+  describe("point shapes", () => {
+    const setUp = async (style: IPointStyle) => {
+      const pixiRenderer = new PixiPointRenderer(new PointsState())
+      await pixiRenderer.init()
+      pixiRenderer.matchPointsToData("dataset1", [createCaseData(0, "case1")], "points", style)
+      const renderer = (pixiRenderer as any).renderer
+      const sprite = (pixiRenderer as any).sprites.get(
+        (pixiRenderer as any).state.getPointIdForCaseData(createCaseData(0, "case1"))
+      )
+      return { pixiRenderer, renderer, sprite }
+    }
+
+    const lastTexture = (renderer: any) =>
+      renderer.generateTextureCalls[renderer.generateTextureCalls.length - 1]
+
+    it("traces the shape's polygon rather than an arc", async () => {
+      const { renderer } = await setUp({ ...defaultStyle, shape: "square" })
+      const traced = lastTexture(renderer).target.traced.map((t: any) => t.op)
+
+      expect(traced).toContain("poly")
+      expect(traced).not.toContain("circle")
+    })
+
+    it("still draws a circle as an arc, as it always has", async () => {
+      // the shape CODAP has always drawn keeps its own path, including sizing its own texture
+      const { renderer } = await setUp(defaultStyle)
+      const call = lastTexture(renderer)
+
+      expect(call.target.traced.map((t: any) => t.op)).toContain("circle")
+      expect(call.frame).toBeUndefined()
+    })
+
+    it("centers a triangle's texture on the point rather than on its ink", async () => {
+      /*
+       * The sprite's anchor sits at the middle of its texture, so a texture sized to the ink would
+       * put the middle of a triangle's ink on the point -- and a triangle is centered on its center
+       * of area, which is not the middle of its outline. It would be drawn low.
+       */
+      const { renderer } = await setUp({ ...defaultStyle, shape: "triangle" })
+      const { frame } = lastTexture(renderer)
+
+      expect(frame).toBeDefined()
+      expect(frame.x + frame.width / 2).toBeCloseTo(0, 6)
+      expect(frame.y + frame.height / 2).toBeCloseTo(0, 6)
+    })
+
+    it("gives two shapes two textures rather than sharing one", async () => {
+      // the texture cache keys on the whole style, so a shape cannot collide with another
+      const { pixiRenderer, renderer } = await setUp({ ...defaultStyle, shape: "square" })
+      const before = renderer.generateTextureCalls.length
+      const pointId = (pixiRenderer as any).sprites.keys().next().value
+      ;(pixiRenderer as any).doSetPointStyle(pointId, { shape: "star" })
+
+      expect(renderer.generateTextureCalls.length).toBe(before + 1)
+      expect(lastTexture(renderer).target.traced.map((t: any) => t.op)).toContain("poly")
+    })
+
+    describe("hit area", () => {
+      it("tests the drawn shape rather than the sprite's rectangle", async () => {
+        const { sprite } = await setUp({ ...defaultStyle, shape: "star", radius: 8 })
+
+        // straight up along a tip, past the radius but on the ink
+        expect(sprite.hitArea.contains(0, -10)).toBe(true)
+        // the same distance out between two arms, where the star is not drawn
+        const rad = -54 * Math.PI / 180
+        expect(sprite.hitArea.contains(Math.cos(rad) * 10, Math.sin(rad) * 10)).toBe(false)
+      })
+
+      it("keeps every shape at least as easy to hit as a circle", async () => {
+        const { sprite } = await setUp({ ...defaultStyle, shape: "plus", radius: 8 })
+
+        for (let deg = 0; deg < 360; deg += 30) {
+          const rad = deg * Math.PI / 180
+          expect(sprite.hitArea.contains(Math.cos(rad) * 7.9, Math.sin(rad) * 7.9)).toBe(true)
+        }
+      })
+
+      it("follows the shape when the style changes", async () => {
+        const { pixiRenderer, sprite } = await setUp({ ...defaultStyle, shape: "circle", radius: 8 })
+        expect(sprite.hitArea.contains(0, -10)).toBe(false)
+
+        const pointId = (pixiRenderer as any).sprites.keys().next().value
+        ;(pixiRenderer as any).doSetPointStyle(pointId, { shape: "star" })
+
+        // the tip is on the ink now, so the same click that missed the circle hits the star
+        expect(sprite.hitArea.contains(0, -10)).toBe(true)
+      })
+
+      it("leaves bars to the sprite's own rectangular test", async () => {
+        // a bar is a rectangle, which is exactly what a sprite hit tests against by default
+        const pixiRenderer = new PixiPointRenderer(new PointsState())
+        await pixiRenderer.init()
+        pixiRenderer.matchPointsToData("dataset1", [createCaseData(0, "case1")], "bars",
+          { ...defaultStyle, width: 20, height: 40 })
+        const sprite = (pixiRenderer as any).sprites.values().next().value
+
+        expect(sprite.hitArea).toBeNull()
+      })
+    })
   })
 
   describe("setPointsInteractive", () => {
