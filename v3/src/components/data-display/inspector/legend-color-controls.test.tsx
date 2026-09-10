@@ -745,6 +745,35 @@ describe("point shape controls", () => {
       expect(glyph.style.getPropertyValue("--point-shape-fill")).toBe(`url(#${gradientId})`)
     })
 
+    it("paints the menu's options with the gradient too", async () => {
+      /*
+       * Each option previews the points that choosing it would produce. With a numeric legend that
+       * preview is the range, and painting them the display's own color would show a color no point
+       * on the plot has -- whatever the color had been before the legend was applied.
+       */
+      const user = userEvent.setup()
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const config = createMockDataConfig({
+        attributeType: jest.fn(() => "numeric"),
+        ...scaleOf("#111111", "#222222")
+      })
+      const { container } = render(
+        <LegendColorControls
+          dataConfiguration={config as any}
+          displayItemDescription={createMockDescription({ pointColor: "#ff00ff" }) as any}
+        />
+      )
+      const gradientId = container.querySelector("linearGradient")?.getAttribute("id")
+
+      await user.click(within(screen.getByTestId("point-shape-select")).getByRole("button"))
+
+      const optionGlyphs = screen.getAllByRole("option").map(o => within(o).getByTestId("point-shape-glyph"))
+      expect(optionGlyphs).toHaveLength(7)
+      optionGlyphs.forEach(glyph => {
+        expect(glyph.style.getPropertyValue("--point-shape-fill")).toBe(`url(#${gradientId})`)
+      })
+    })
+
     it("leaves the glyph on a solid color when the legend has no scale", () => {
       // nothing to build a gradient from, so the custom property stays unset and the fill falls
       // back to currentColor

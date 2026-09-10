@@ -42,10 +42,10 @@ interface IPointShapeSettingProps {
   closeTrigger?: number
   color?: string
   /*
-   * Paints the trigger's glyph with the gradient of this id instead of a solid color, for a legend
-   * whose points span a range rather than sharing one color. Only the trigger takes it: the menu's
-   * seven options are a choice of shape, and giving each the same gradient would say nothing while
-   * costing every one of them its legibility at this size.
+   * Paints the glyphs with the gradient of this id instead of a solid color, for a legend whose
+   * points span a range rather than sharing one. The menu takes it as well as the trigger: each
+   * option previews the points that choosing it would produce, and with such a legend that preview
+   * is the range, not any one color of it.
    */
   fillGradientId?: string
   disabled?: boolean
@@ -57,6 +57,12 @@ interface IPointShapeSettingProps {
 export const PointShapeSetting = observer(function PointShapeSetting({
   closeTrigger, color, disabled, fillGradientId, onShapeChange, propertyLabel, shape
 }: IPointShapeSettingProps) {
+  /*
+   * The glyph's fill is `currentColor`, which cannot hold a gradient, so the stylesheet points the
+   * path at a custom property instead. Setting it here overrides the solid color; leaving it unset
+   * falls back to `currentColor`, which is what every glyph outside a numeric legend uses.
+   */
+  const glyphStyle = { color, ...(fillGradientId ? { "--point-shape-fill": `url(#${fillGradientId})` } : {}) }
   const [isOpen, setIsOpen] = useState(false)
   const lastCloseTrigger = useRef(closeTrigger)
 
@@ -94,15 +100,8 @@ export const PointShapeSetting = observer(function PointShapeSetting({
             rather than laid out, so nothing about how an svg participates in flex layout can
             displace it. */}
         <span className="point-shape-thumb-value">
-          {/*
-            * The glyph's fill is `currentColor`, which cannot hold a gradient, so the stylesheet
-            * points the path at a custom property instead. Setting it here overrides the solid
-            * color for this one glyph; leaving it unset falls back to `currentColor` and every
-            * other glyph is untouched.
-            */}
           <ShapeIcon shape={shape} className="point-shape-thumb-glyph"
-            data-testid="point-shape-glyph"
-            style={{ color, ...(fillGradientId ? { "--point-shape-fill": `url(#${fillGradientId})` } : {}) }} />
+            data-testid="point-shape-glyph" style={glyphStyle} />
         </span>
         {/*
           * Names the current shape for assistive technology, and gives the aria-labelledby that
@@ -141,7 +140,7 @@ export const PointShapeSetting = observer(function PointShapeSetting({
                   pinned inside it. */}
               <span className="point-shape-item-glyph">
                 <ShapeIcon shape={_shape} className="point-shape-item-svg"
-                  data-testid="point-shape-glyph" style={{ color }} />
+                  data-testid="point-shape-glyph" style={glyphStyle} />
               </span>
               <span className="point-shape-item-label">{shapeLabel(_shape)}</span>
             </ListBoxItem>
