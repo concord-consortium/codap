@@ -5,14 +5,8 @@ import { getMetadataFromDataSet } from "../models/shared/shared-data-utils"
 import { getSharedModelManager } from "../models/tiles/tile-environment"
 import { convertAttributeToV2 } from "./data-interactive-type-utils"
 
-/*
- * Point shapes are exported in the attribute's v3 namespace rather than in _categoryMap.
- *
- * That is a hard constraint, not a preference. V2's updateCategoryMap (attribute_model.js) treats
- * every key of _categoryMap except __order, stroke-color and stroke-transparency as a category:
- * it appends unknown keys to __order and writes the result back out. A shapes key placed there
- * would show up as a phantom category in the user's legend and be persisted by a v2 re-save.
- */
+// Shapes are exported in the attribute's v3 namespace rather than in _categoryMap; see the v3 field
+// on ICodapV2Attribute for why that is a constraint rather than a preference.
 describe("point shape v2 export", () => {
   let dataSet: ReturnType<typeof DataSet.create>
 

@@ -137,8 +137,6 @@ describe("v2 document round-trip of point shapes", () => {
     expect(v2Attr).toBeDefined()
     expect(v2Attr.v3?.categoryShapes).toEqual({ land: "star" })
 
-    // v2 appends any unrecognized _categoryMap key to __order and saves it back, so a shape
-    // there would surface as a phantom category in the user's legend
     expect(JSON.stringify(v2Attr._categoryMap)).not.toContain("star")
     expect(v2Attr._categoryMap.__order).toEqual(["both", "land", "water"])
   })

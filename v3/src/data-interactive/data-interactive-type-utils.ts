@@ -122,9 +122,8 @@ export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataS
     ...(high ? { "high-attribute-color": high } : {})
   } as ICodapV2CategoryMap
   const categoryMap = categorySet ? { _categoryMap } : undefined
-  // Shapes travel in the v3 namespace rather than _categoryMap, which v2 reads as categories.
-  // Omitted entirely when no category carries an explicit shape, so documents that never used
-  // the feature gain nothing.
+  // Omitted entirely when no category carries a shape, so a document that never used the feature
+  // gains nothing.
   const shapeMap = categorySet?.shapeMap ?? {}
   const v3 = Object.keys(shapeMap).length > 0 ? { v3: { categoryShapes: shapeMap } } : undefined
 

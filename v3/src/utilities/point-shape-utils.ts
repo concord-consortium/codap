@@ -1,10 +1,8 @@
 /*
- * The shapes a data point can take.
+ * The shapes a data point can take, in menu order.
  *
- * This list is the single source of order for the shape menu, and the type it produces is the
- * contract the model, the renderers and the legend keys all share. It lives in utilities rather
- * than under data-display so that the models layer can reference it without importing from
- * components, the way color-utils already serves both.
+ * In utilities rather than under data-display so the models layer can reference it without
+ * importing from components, the way color-utils already serves both.
  */
 export const PointShapes = ["circle", "square", "triangle", "diamond", "star", "plus", "x"] as const
 
