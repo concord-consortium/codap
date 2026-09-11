@@ -51,7 +51,9 @@ const createMockDescription = (overrides?: Record<string, unknown>) => ({
   setPointStrokeColor: jest.fn(),
   setPointStrokeSameAsFill: jest.fn(),
   applyModelChange: jest.fn((fn: () => void) => fn()),
-  ...overrides
+  ...overrides,
+  // derived as it is on the real model, so a test that sets a negative size gets a polygon
+  get isPolygon(): boolean { return this.pointSizeMultiplier < 0 }
 })
 
 const createMockDataConfig = (overrides?: Record<string, unknown>) => ({

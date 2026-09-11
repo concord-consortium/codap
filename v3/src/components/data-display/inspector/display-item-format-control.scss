@@ -1,12 +1,15 @@
 @use "../../vars";
 
-.color-picker-thumb {
+/*
+ * The geometry that makes the two controls in a palette row the same size. Height is left to the
+ * content rather than fixed, so they cannot drift apart.
+ */
+@mixin palette-thumb {
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 4px;
-  height: auto !important;
-  padding: 3px !important;
+  padding: 3px;
   margin: 2px 1px;
   border: none;
   background-color: vars.$palette-hover-bg;
@@ -17,6 +20,33 @@
     outline: 2px solid vars.$focus-outline-color;
     outline-offset: 2px;
   }
+}
+
+// A 24px box holding a glyph, which is pinned to its edges rather than laid out, so nothing about
+// how an svg participates in flex layout can displace it.
+@mixin glyph-box {
+  position: relative;
+  display: block;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+}
+
+@mixin pinned-glyph {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.color-picker-thumb {
+  @include palette-thumb;
+  // This one is a react-aria Button, so the shared `.react-aria-Select .react-aria-Button` rules in
+  // inspector-panel.scss set its height and padding and have to be overridden. The shape control's
+  // trigger passes a plain className, which replaces that class, so it needs no override.
+  height: auto !important;
+  padding: 3px !important;
 
   .color-picker-thumb-swatch {
     width: 24px;
@@ -71,56 +101,21 @@
 // icon-only one.
 .codap-inspector-palette .palette-form .react-aria-Select {
   .point-shape-thumb {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    // Less left padding than right: the glyph already carries the artboard's own margin on its
-    // left (a circle spans 16 of the 24 units, the room the star needs), while the disclosure
-    // arrow has no such inset and needs the space.
-    gap: 4px;
+    @include palette-thumb;
     // contains the absolutely-positioned visually-hidden value, so it cannot escape to the palette
     position: relative;
-    // Geometry mirrors .color-picker-thumb beside it -- same padding, same gap, same 24px inner
-    // element -- so the two controls in a row are the same size. Height is left to the content, as
-    // it is there, rather than fixed, so they cannot drift apart.
-    padding: 3px;
-    margin: 2px 1px;
-    border: none;
-    background-color: vars.$palette-hover-bg;
-    border-radius: 3px;
-    cursor: pointer;
 
-    &:focus-visible {
-      outline: 2px solid vars.$focus-outline-color;
-      outline-offset: 2px;
-    }
-
-    // A plain box of the intended size, matching the 24px colour swatch beside it. It is the
-    // flex item; the glyph inside is positioned rather than laid out.
     .point-shape-thumb-value {
-      position: relative;
-      display: block;
-      width: 24px;
-      height: 24px;
-      flex: 0 0 auto;
-      align-self: center;
+      @include glyph-box;
     }
 
-    // Pinned to its container rather than laid out. Placement by flex layout put the svg outside
-    // its parent's box, so it is taken out of that path entirely: inset: 0 fixes all four edges,
-    // which no alignment or intrinsic-sizing behaviour can override.
     .point-shape-thumb-glyph {
-      position: absolute;
-      inset: 0;
-      display: block;
-      width: 100%;
-      height: 100%;
+      @include pinned-glyph;
     }
 
     // Matches the color picker's disclosure arrow, so the two controls in a row read as a pair.
-    // margin-left auto pins it right and leaves the glyph left-packed, the way the prototype
-    // flexes its .select-value and .select-arrow. Sized by border rather than width/height, so
-    // box-sizing is set explicitly -- under border-box a zero-size bordered box collapses.
+    // Sized by border rather than width/height, so box-sizing is set explicitly -- under
+    // border-box a zero-size bordered box collapses.
     .point-shape-arrow {
       box-sizing: content-box;
       display: block;
@@ -141,7 +136,6 @@
   }
 }
 
-// Values follow the prototype's .pt-popover / .pt-listbox so the open menu matches the design.
 .point-shape-popover {
   background: vars.$palette-bg;
   border: 1px solid vars.$charcoal-light-1;
@@ -182,22 +176,12 @@
       outline-offset: -2px;
     }
 
-    // A plain 24px box, as in the prototype's `.pt-listbox .shape-glyph { flex: 0 0 24px }`.
     .point-shape-item-glyph {
-      position: relative;
-      display: block;
-      width: 24px;
-      height: 24px;
-      flex: 0 0 auto;
+      @include glyph-box;
     }
 
-    // Pinned rather than laid out, for the same reason as the trigger's glyph.
     .point-shape-item-svg {
-      position: absolute;
-      inset: 0;
-      display: block;
-      width: 100%;
-      height: 100%;
+      @include pinned-glyph;
     }
   }
 }

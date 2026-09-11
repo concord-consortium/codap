@@ -38,13 +38,8 @@ export const LegendColorControls = observer(function LegendColorControls(
   const { tile } = useTileModelContext()
   const legendAttrID = dataConfiguration.attributeID("legend")
   const attrType = dataConfiguration.attributeType("legend")
-  /*
-   * Polygons have no point to shape. The map mounts these controls for its polygon layers too, and
-   * a polygon layer marks itself with a negative point size -- the same sentinel that already hides
-   * the Point Size slider. Without this the controls would offer a shape that cannot affect
-   * anything, and relabel a polygon fill row as "Points".
-   */
-  const showShape = isFeatureEnabled("pointShapes") && displayItemDescription.pointSizeMultiplier >= 0
+  // The map mounts these controls for its polygon layers too, and a polygon has no point to shape.
+  const showShape = isFeatureEnabled("pointShapes") && !displayItemDescription.isPolygon
   const categoriesRef = useRef<string[] | undefined>()
   categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole("legend")
   const metadata = dataConfiguration.metadata
@@ -144,6 +139,7 @@ export const LegendColorControls = observer(function LegendColorControls(
     { color: bandColor, offset: i / legendBandColors.length },
     { color: bandColor, offset: (i + 1) / legendBandColors.length }
   ])
+  const hasFillGradient = legendBandStops.length > 0
 
   // Unique per control instance, so two graphs with different legends do not share one definition.
   const gradientId = `point-shape-legend-${useId()}`
@@ -159,11 +155,8 @@ export const LegendColorControls = observer(function LegendColorControls(
     ? (
         <div className="palette-row color-picker-row shape-row">
           <label className="form-label color-picker">{t("V3.Inspector.points")}</label>
-          {/*
-            * Zero-sized: it contributes only the paint server the glyph refers to. A gradient has
-            * to live in an svg in the same document, but nothing about it is meant to be seen.
-            */}
-          <If condition={legendBandStops.length > 0}>
+          {/* A gradient has to live in an svg in the same document; this one only carries it. */}
+          <If condition={hasFillGradient}>
             <svg width="0" height="0" aria-hidden="true" focusable="false" className="point-shape-gradient-defs">
               <defs>
                 <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
@@ -177,7 +170,7 @@ export const LegendColorControls = observer(function LegendColorControls(
           <PointShapeSetting propertyLabel={t("V3.Inspector.pointShape")}
                             shape={displayItemDescription.pointShape}
                             color={displayItemDescription.pointColor}
-                            fillGradientId={legendBandStops.length > 0 ? gradientId : undefined}
+                            fillGradientId={hasFillGradient ? gradientId : undefined}
                             onShapeChange={handlePointShapeChange}/>
         </div>
       )
@@ -255,9 +248,8 @@ interface ICategoricalColorControlsProps {
 }
 
 const CategoricalColorControls = observer(function CategoricalColorControls(
-  {
-    categories, dataConfiguration, showShape, onCatPointColorChange, onCatPointShapeChange
-  }: ICategoricalColorControlsProps
+  { categories, dataConfiguration, showShape, onCatPointColorChange, onCatPointShapeChange }:
+    ICategoricalColorControlsProps
 ) {
   const [scrollVersion, setScrollVersion] = useState(0)
 

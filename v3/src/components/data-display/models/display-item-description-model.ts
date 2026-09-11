@@ -67,6 +67,10 @@ export const DisplayItemDescriptionModel = types
     get itemStrokeSameAsFill() {
       return self._itemStrokeSameAsFill
     },
+    // A polygon layer marks itself by setting a negative point size, since it has no point to size.
+    get isPolygon() {
+      return this.pointSizeMultiplier < 0
+    },
   }))
   .views(self => ({
     // Convenience methods referring to points, especially for use by graphs

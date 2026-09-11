@@ -91,32 +91,21 @@ export const PointShapeSetting = observer(function PointShapeSetting({
       selectedKey={shape}
       data-testid="point-shape-select"
     >
-      {/*
-        * Icon only. With an icon and a text label the category name is squeezed to about 55px and
-        * a value like "water" truncates; the open menu carries the labels instead.
-        */}
       <Button className={clsx("point-shape-thumb", { open: isOpen })} excludeFromTabOrder={disabled}>
-        {/* The span is a plain 24x24 flex item; the glyph is pinned inside it with inset: 0
-            rather than laid out, so nothing about how an svg participates in flex layout can
-            displace it. */}
         <span className="point-shape-thumb-value">
           <ShapeIcon shape={shape} className="point-shape-thumb-glyph"
             data-testid="point-shape-glyph" style={glyphStyle} />
         </span>
         {/*
-          * Names the current shape for assistive technology, and gives the aria-labelledby that
-          * react-aria puts on the trigger a real element to point at. Without it that reference
-          * dangles, and the accessible name survives only by falling back to aria-label.
+          * The element react-aria's aria-labelledby on the trigger points at. Without it that
+          * reference has no target and the trigger is named only by its aria-label fallback.
           *
-          * Text only. Rendering the selected item's own children would put a second copy of the
-          * glyph in here, and this span is positioned absolutely, so those copies would escape
-          * the button and pile up over the palette.
+          * Renders text, not the selected item's children: those include the glyph, and this span
+          * is positioned absolutely, so a second copy would escape the button.
           */}
         <SelectValue className="codap-visually-hidden">
           {({ selectedText }) => selectedText}
         </SelectValue>
-        {/* A real element, as in the prototype, rather than a pseudo-element: a zero-size bordered
-            ::after collapses wherever box-sizing is border-box. */}
         <span className="point-shape-arrow" aria-hidden="true" />
       </Button>
       {/*
@@ -132,12 +121,10 @@ export const PointShapeSetting = observer(function PointShapeSetting({
         * fault lies in how popovers position within the palette rather than in this control.
         */}
       <Popover shouldFlip={false}
-        className={({ defaultClassName }) => `${defaultClassName} point-shape-popover`}>
+        className={({ defaultClassName }) => clsx(defaultClassName, "point-shape-popover")}>
         <ListBox>
           {PointShapes.map(_shape => (
             <ListBoxItem key={_shape} id={_shape} textValue={shapeLabel(_shape)}>
-              {/* Same containment as the trigger: the span is the flex item, the glyph is
-                  pinned inside it. */}
               <span className="point-shape-item-glyph">
                 <ShapeIcon shape={_shape} className="point-shape-item-svg"
                   data-testid="point-shape-glyph" style={glyphStyle} />

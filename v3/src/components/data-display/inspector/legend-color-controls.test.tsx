@@ -28,13 +28,14 @@ jest.mock("./point-color-setting", () => ({
 
 const createMockDescription = (overrides?: Record<string, unknown>) => ({
   pointColor: "#0000FF",
-  // the real model always has one; a negative value is the polygon sentinel
   pointSizeMultiplier: 1,
   setPointColor: jest.fn(),
   setPointShape: jest.fn(),
   pointShape: "circle",
   applyModelChange: jest.fn((fn: () => void) => fn()),
-  ...overrides
+  ...overrides,
+  // derived as it is on the real model, so a test that sets a negative size gets a polygon
+  get isPolygon(): boolean { return this.pointSizeMultiplier < 0 }
 })
 
 const createMockDataConfig = (overrides?: Record<string, unknown>) => ({
@@ -855,7 +856,7 @@ describe("point shape controls", () => {
   })
 
   describe("with no legend attribute", () => {
-    it("keeps today's single color row when the flag is off", () => {
+    it("keeps a single color row when the flag is off", () => {
       const desc = createMockDescription()
       const config = createMockDataConfig()
       render(<LegendColorControls dataConfiguration={config as any} displayItemDescription={desc as any} />)

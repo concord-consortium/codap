@@ -23,7 +23,7 @@ export const MapPolygonLayerModel = MapLayerModel
   }))
   .actions(self => ({
     afterCreate() {
-      // Set pointSizeMultiplier to -1 so that DisplayItemFormatControlPanel knows it's a polygon
+      // a negative point size is what makes displayItemDescription.isPolygon true
       self.displayItemDescription.setPointSizeMultiplier(-1)
     },
     setBoundaryAttribute(dataSet: IDataSet, boundaryAttrId: string) {
