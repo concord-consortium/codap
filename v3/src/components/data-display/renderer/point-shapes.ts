@@ -1,10 +1,11 @@
 import { PointShape } from "../../../utilities/point-shape-utils"
+import { Extent, Point } from "../data-display-types"
 
 /*
  * The geometry of the seven point shapes, as a function of the point radius.
  *
- * One source for every surface that draws a shape. Ported from the design prototype's js/shapes.js,
- * whose constants these are.
+ * One source for every surface that draws a shape. The constants come from the design prototype
+ * the feature was specified from, and are tuned rather than derived.
  *
  * Circle is the reference, unchanged from what CODAP has always drawn: radius r. Every other shape
  * is normalized to about 90% of the circle's area rather than to equal area, because straight edges
@@ -26,16 +27,6 @@ const K = {
 
 const kDegToRad = Math.PI / 180
 
-export interface IShapePoint {
-  x: number
-  y: number
-}
-
-export interface IShapeExtent {
-  w: number
-  h: number
-}
-
 /*
  * A circle is an arc rather than a vertex list, so callers switch on `kind` instead of receiving a
  * polygonal approximation. Both renderers can draw an arc directly, and approximating one would
@@ -43,12 +34,12 @@ export interface IShapeExtent {
  */
 export type PointShapeGeometry =
   | { kind: "circle", radius: number }
-  | { kind: "polygon", points: IShapePoint[] }
+  | { kind: "polygon", points: Point[] }
 
-// Vertices of a plus: an arm half-width `a` and half-length `L`, optionally rotated. X is this
-// same outline turned 45 degrees -- same ink, same weight, one set of numbers to maintain.
-function crossPoints(a: number, l: number, rotationDeg = 0): IShapePoint[] {
-  const pts: IShapePoint[] = [
+// Vertices of a plus and X: an arm half-width `a` and half-length `L`, optionally rotated.
+// Plus is the default; X is this same outline turned 45 degrees.
+function crossPoints(a: number, l: number, rotationDeg = 0): Point[] {
+  const pts: Point[] = [
     { x: -a, y: -l }, { x: a, y: -l }, { x: a, y: -a }, { x: l, y: -a },
     { x: l, y: a }, { x: a, y: a }, { x: a, y: l }, { x: -a, y: l },
     { x: -a, y: a }, { x: -l, y: a }, { x: -l, y: -a }, { x: -a, y: -a }
@@ -61,8 +52,8 @@ function crossPoints(a: number, l: number, rotationDeg = 0): IShapePoint[] {
 }
 
 // Ten alternating vertices, starting at the top and stepping 36 degrees.
-function starPoints(outerRadius: number, innerRatio: number): IShapePoint[] {
-  const pts: IShapePoint[] = []
+function starPoints(outerRadius: number, innerRatio: number): Point[] {
+  const pts: Point[] = []
   for (let i = 0; i < 10; i++) {
     const angle = (-90 + i * 36) * kDegToRad
     const radius = i % 2 === 0 ? outerRadius : outerRadius * innerRatio
@@ -74,7 +65,7 @@ function starPoints(outerRadius: number, innerRatio: number): IShapePoint[] {
 interface IShapeDef {
   geometry: (r: number) => PointShapeGeometry
   area: (r: number) => number
-  extent: (r: number) => IShapeExtent
+  extent: (r: number) => Extent
 }
 
 const kShapeDefs: Record<PointShape, IShapeDef> = {
@@ -101,10 +92,7 @@ const kShapeDefs: Record<PointShape, IShapeDef> = {
        * Centered on its center of area, not its bounding box: a centroid sits h/6 below the box
        * center, so box-centering makes the triangle read as sitting low, and switching a category
        * to it visibly shifts the points down.
-       *
-       * The prototype centers on the box, buying a predictable hit area and a shared baseline with
-       * the square. On a plot a position is the data, so the bias costs more than the alignment
-       * gains.
+
        */
       return { kind: "polygon", points: [
         { x: 0, y: -2 * h / 3 }, { x: s / 2, y: h / 3 }, { x: -s / 2, y: h / 3 }
@@ -180,10 +168,9 @@ export function pointShapeArea(shape: PointShape, r: number): number {
 }
 
 /*
- * The drawn bounding box, which is NOT 2r for anything but the circle: a star is about 35% wider
- * than the circle it replaces. Used to size a shape against a box, and to check the normalization.
+ * The drawn bounding box. Used to size a shape against a box, and to check the normalization.
  */
-export function pointShapeExtent(shape: PointShape, r: number): IShapeExtent {
+export function pointShapeExtent(shape: PointShape, r: number): Extent {
   return kShapeDefs[shape].extent(r)
 }
 
@@ -201,7 +188,7 @@ export function pointShapeBoundingRadius(shape: PointShape, r: number): number {
 }
 
 // Even-odd ray casting. Vertices are in shape-local coordinates, as is (x, y).
-function isPointInPolygon(points: IShapePoint[], x: number, y: number): boolean {
+function isPointInPolygon(points: Point[], x: number, y: number): boolean {
   let inside = false
   for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
     const { x: xi, y: yi } = points[i]
@@ -215,7 +202,7 @@ function isPointInPolygon(points: IShapePoint[], x: number, y: number): boolean 
 }
 
 /*
- * Whether (dx, dy), relative to the point's center, is on the point.
+ * Whether (dx, dy), relative to a plotted point's center, hits it.
  *
  * The drawn ink, unioned with the circle of radius r that CODAP has always used. Shape is a second
  * encoding channel, so choosing one must not make a point harder to click than it was as a circle:

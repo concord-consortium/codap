@@ -16,7 +16,7 @@ import { prf } from "../../../utilities/profiler"
 import {DataTip} from "../../data-display/components/data-tip"
 import {CaseData} from "../../data-display/d3-types"
 import {
-  computePointRadius, handleClickOnCase, matchCirclesToData, setPointSelection
+  computePointRadius, handleClickOnCase, legendShapeGetter, matchCirclesToData, setPointSelection
 } from "../../data-display/data-display-utils"
 import { IConnectingLineDescription } from "../../data-display/data-display-types"
 import {isDisplayItemVisualPropsAction} from "../../data-display/models/display-model-actions"
@@ -347,9 +347,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
     const {latId, longId} = mapLayerModel.pointAttributes || {}
     if (!latId || !longId) return
 
-    // Resolved here, alongside the color, so a point created by this path is drawn with its shape
-    // rather than as a circle until something later restyles it.
-    const shapeIfNoCategory = pointDescription.pointShape
+    const getLegendShape = legendShapeGetter(dataConfiguration, pointDescription)
 
     prf.measure("Map.refreshPoints[forEachPoint]", () => {
       renderer.forEachPoint((point: IPoint, metadata: IPointMetadata) => {
@@ -358,7 +356,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
         renderer.setPointStyle(point, {
           radius: dataset?.isCaseSelected(caseID) ? selectedPointRadius : pointRadius,
           fill: lookupLegendColor(metadata),
-          shape: dataConfiguration.getLegendShapeForCase(caseID, shapeIfNoCategory),
+          shape: getLegendShape(caseID),
           stroke: getLegendColor && dataset?.isCaseSelected(caseID)
             ? defaultSelectedStroke : pointStrokeColor,
           strokeWidth: getLegendColor && dataset?.isCaseSelected(caseID)

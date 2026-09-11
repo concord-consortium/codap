@@ -15,6 +15,7 @@ import {
   pointRadiusSelectionAddend, Rect, rTreeRect
 } from "./data-display-types"
 import {IDataConfigurationModel } from "./models/data-configuration-model"
+import { IDisplayItemDescriptionModel } from "./models/display-item-description-model"
 import {CaseDataWithSubPlot} from "./d3-types"
 import { getRendererForEvent, IPoint, IPointStyle, PointRendererBase } from "./renderer"
 
@@ -77,15 +78,25 @@ export const handleClickOnBar = ({ event, dataConfig, barCover }: IHandleClickOn
   setOrExtendSelection(barCover.caseIDs, dataConfig.dataset, extendSelection)
 }
 
+/*
+ * The shape for each case: the one its legend category carries, and the display's own wherever the
+ * legend assigns none. Every path that draws points needs this, so it is built here rather than
+ * rebuilt identically at each of them.
+ */
+export function legendShapeGetter(
+  dataConfig: IDataConfigurationModel | undefined, displayItemDescription: IDisplayItemDescriptionModel
+): (caseID: string) => PointShape {
+  const shapeIfNoCategory = displayItemDescription.pointShape
+  return (caseID: string) =>
+    dataConfig?.getLegendShapeForCase(caseID, shapeIfNoCategory) ?? shapeIfNoCategory
+}
+
 export interface IMatchCirclesProps {
   dataConfiguration: IDataConfigurationModel
   pointRadius: number
   pointColor: string
-  /*
-   * The shape a point is created with, as pointColor is the color it is created with. The refresh
-   * that follows resolves the per-case shape; this is what the point is drawn as until it does, and
-   * several callers create points without refreshing in the same breath.
-   */
+  // The shape a point is created with, as pointColor is the color it is created with. Several
+  // callers create points without refreshing in the same breath.
   pointShape?: PointShape
   pointDisplayType?: PointDisplayType
   pointStrokeColor: string
@@ -157,8 +168,6 @@ export function setPointSelection(
     // When there's no legend, use blue fill for selection instead of a colored stroke
     const useSelectionFill = isSelected && !legendID
     const style: Partial<IPointStyle> = {
-      // Mirrors the fill above: the legend assigns it per case where it can, and the display's own
-      // shape applies everywhere else.
       shape: dataConfiguration.getLegendShapeForCase(caseID, pointShape),
       fill: useSelectionFill ? defaultSelectedColor : fill,
       radius: isSelected ? selectedPointRadius : pointRadius,

@@ -19,13 +19,8 @@ export function importV2CategorySet(
   // than define an own property, losing that category's color
   const colorEntries: Array<[string, string]> = []
 
-  /*
-   * Taken as given rather than filtered against the categories currently in the data: every entry
-   * is a deliberate assignment, circle included -- absence means a category inherits the display's
-   * shape, so an explicit circle is a real choice and dropping it would put that category back on
-   * whatever the display is set to. Nothing generates a shape, so there is no automatic value to
-   * age out the way the color loop below ages one out.
-   */
+  // Not filtered against the categories currently in the data, unlike the color loop below: nothing
+  // generates a shape, so there is no automatic value to age out.
   // fromEntries: assignment would set the prototype for a category named `__proto__`.
   const shapes: Record<string, string> = Object.fromEntries(
     Object.entries(categoryShapes ?? {})

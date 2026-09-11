@@ -11,6 +11,7 @@ import { useDotPlot } from "../../hooks/use-dot-plot"
 import { useDotPlotDragDrop } from "../../hooks/use-dot-plot-drag-drop"
 import { useRendererDragHandlers, usePlotResponders } from "../../hooks/use-plot"
 import { setPointCoordinates } from "../../utilities/graph-utils"
+import { legendShapeGetter } from "../../../data-display/data-display-utils"
 import {
   computeBinPlacements, computePrimaryCoord, computeSecondaryCoord, IComputePrimaryCoord
 } from "./dot-plot-utils"
@@ -156,11 +157,6 @@ export const DotLinePlot = observer(function DotLinePlot({ renderer }: IPlotProp
 
       const getLegendColor = dataConfig?.attributeID('legend')
         ? dataConfig?.getLegendColorForCase : undefined
-    // Resolved here, alongside the color, so a point created by this path is drawn with its shape
-    // rather than as a circle until something later restyles it.
-    const shapeIfNoCategory = graphModel.pointDescription.pointShape
-    const getLegendShape = (anID: string) =>
-      dataConfig?.getLegendShapeForCase(anID, shapeIfNoCategory) ?? shapeIfNoCategory
 
       const anchor = pointDisplayType === "bars"
         ? primaryIsBottom ? hBarAnchor : vBarAnchor
@@ -176,7 +172,8 @@ export const DotLinePlot = observer(function DotLinePlot({ renderer }: IPlotProp
         pointRadius: graphModel.getPointRadius(),
         selectedPointRadius: graphModel.getPointRadius('select'),
         renderer, selectedOnly, pointColor, pointStrokeColor,
-        getScreenX, getScreenY, getLegendColor, getLegendShape, getAnimationEnabled: isAnimating,
+        getScreenX, getScreenY, getLegendColor, 
+      getLegendShape: legendShapeGetter(dataConfig, graphModel.pointDescription), getAnimationEnabled: isAnimating,
         pointDisplayType, getWidth, getHeight, anchor, dataset
       })
     },

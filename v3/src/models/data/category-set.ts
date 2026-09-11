@@ -291,11 +291,8 @@ export const CategorySet = types.model("CategorySet", {
       self.colors.delete(value)
     }
   },
-  /*
-   * Every choice is stored, circle included. Absence means the category has no shape of its own and
-   * inherits the display's, which is not the same as having been set to a circle: with a display
-   * shape of star, dropping a circle here would read back as star and make circle unselectable.
-   */
+  // Stores every choice, circle included: absence means the category inherits the display's shape,
+  // so dropping a circle here would read back as whatever the display is set to.
   setShapeForCategory(value: string, shape: PointShape) {
     self.shapes.set(value, shape)
   },

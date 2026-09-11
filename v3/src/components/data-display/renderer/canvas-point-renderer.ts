@@ -585,7 +585,6 @@ export class CanvasPointRenderer extends PointRendererBase {
         this.ctx.strokeRect(rectX, rectY, width, height)
       }
     } else {
-      // Draw the point's shape, which is a circle unless the legend assigns another
       tracePointShape(this.ctx, style.shape ?? kDefaultPointShape, radius)
       this.ctx.fillStyle = fill
       this.ctx.fill()
