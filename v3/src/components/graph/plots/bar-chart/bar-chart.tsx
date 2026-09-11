@@ -8,6 +8,7 @@ import { useTileModelContext } from "../../../../hooks/use-tile-model-context"
 import { tileNotification } from "../../../../models/tiles/tile-notifications"
 import { EditFormulaModal } from "../../../common/edit-formula-modal"
 import { kMain } from "../../../data-display/data-display-types"
+import { legendShapeGetter } from "../../../data-display/data-display-utils"
 import { circleAnchor } from "../../../data-display/renderer"
 import { IBarCover, IPlotProps } from "../../graphing-types"
 import { useChartDots } from "../../hooks/use-chart-dots"
@@ -177,7 +178,9 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, render
     setPointCoordinates({
       anchor, dataset, pointRadius, selectedPointRadius: graphModel.getPointRadius('select'),
       renderer, selectedOnly, pointColor, pointStrokeColor, pointDisplayType,
-      getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating, getWidth, getHeight
+      getScreenX, getScreenY, getLegendColor,
+      getLegendShape: legendShapeGetter(dataConfig, graphModel.pointDescription), getAnimationEnabled: isAnimating,
+      getWidth, getHeight
     })
   }, [abovePointsGroupRef, barChartModel, dataset, graphLayout, graphModel, isAnimating, layout,
     renderer, primaryScreenCoord, secondaryScreenCoord, subPlotCells])

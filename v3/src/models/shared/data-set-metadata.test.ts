@@ -561,13 +561,13 @@ describe("DataSetMetadata", () => {
     expect(tree.metadata.provisionalCategories.size).toBe(0)
   })
 
-  it("does not promote for a shape set back to the default", () => {
+  it("promotes for an explicitly chosen circle", () => {
     const categorySet = tree.metadata.getCategorySet("aId")!
-    // the default is stored as absence, so this leaves nothing worth persisting
+    // circle is a choice like any other and has to survive a reload, so it is worth persisting
     categorySet.setShapeForCategory("1", "circle")
 
-    expect(tree.metadata.attributes.size).toBe(0)
-    expect(tree.metadata.provisionalCategories.size).toBe(1)
+    expect(tree.metadata.attributes.size).toBe(1)
+    expect(tree.metadata.provisionalCategories.size).toBe(0)
   })
 
 })

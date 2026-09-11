@@ -11,6 +11,7 @@ import { useDotPlot } from "../../hooks/use-dot-plot"
 import { useDotPlotDragDrop } from "../../hooks/use-dot-plot-drag-drop"
 import { useRendererDragHandlers, usePlotResponders } from "../../hooks/use-plot"
 import { setPointCoordinates } from "../../utilities/graph-utils"
+import { legendShapeGetter } from "../../../data-display/data-display-utils"
 import {
   computeBinPlacements, computePrimaryCoord, computeSecondaryCoord, IComputePrimaryCoord
 } from "./dot-plot-utils"
@@ -171,7 +172,8 @@ export const DotLinePlot = observer(function DotLinePlot({ renderer }: IPlotProp
         pointRadius: graphModel.getPointRadius(),
         selectedPointRadius: graphModel.getPointRadius('select'),
         renderer, selectedOnly, pointColor, pointStrokeColor,
-        getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating,
+        getScreenX, getScreenY, getLegendColor, 
+      getLegendShape: legendShapeGetter(dataConfig, graphModel.pointDescription), getAnimationEnabled: isAnimating,
         pointDisplayType, getWidth, getHeight, anchor, dataset
       })
     },

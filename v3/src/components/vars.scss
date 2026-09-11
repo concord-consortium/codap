@@ -90,7 +90,7 @@ $palette-color-row-height: 30px;
 $palette-color-row-margin: 4px;
 
 // Legend-category rows are the same height but sit a little further apart. The rows are flex
-// items, so these margins do not collapse and neighbouring rows sit 2 * this value apart.
+// items, so these margins do not collapse and neighboring rows sit 2 * this value apart.
 $palette-category-row-margin: 3px;
 $palette-category-row-height: $palette-color-row-height + 2 * $palette-category-row-margin; // 36px
 

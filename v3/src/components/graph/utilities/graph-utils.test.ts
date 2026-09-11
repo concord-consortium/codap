@@ -1,8 +1,9 @@
 import {ptInRect} from "../../data-display/data-display-utils"
 import { GraphLayout } from "../models/graph-layout"
+import { IPointStyle } from "../../data-display/renderer/point-renderer-types"
 import {
   dateTimeSlopeUnit, equationString, formatDateDuration, formatValue, kMinus, leastSquaresLinearRegression,
-  lineToAxisIntercepts, lsrlEquationString, valueLabelString
+  lineToAxisIntercepts, lsrlEquationString, setPointCoordinates, valueLabelString
 } from "./graph-utils"
 
 describe("formatValue", () => {
@@ -401,4 +402,57 @@ describe("lineToAxisIntercepts", () => {
       .toBe(false)
   })
 
+})
+
+describe("setPointCoordinates point shapes", () => {
+  /*
+   * This path both creates and moves points, so it is what a newly created point gets its style
+   * from. A shape supplied only by the selection-restyle path leaves every new point a circle until
+   * something unrelated restyles it -- adding a case to a plot with shapes is enough to show it.
+   */
+  const stubPointTarget = (caseIDs: string[]) => {
+    const styles: Record<string, IPointStyle> = {}
+    return {
+      styles,
+      anchor: { x: 0.5, y: 0.5 },
+      forEachPoint: (fn: (point: any, metadata: any) => void) => {
+        caseIDs.forEach((caseID, i) => fn({ id: caseID }, { caseID, plotNum: 0, x: 10, y: 10 }))
+      },
+      transition: (fn: () => void) => fn(),
+      setPointPosition: jest.fn(),
+      setPointScale: jest.fn(),
+      setPositionOrTransition: jest.fn(),
+      setPointStyle: (point: any, style: IPointStyle) => { styles[point.id] = style }
+    }
+  }
+
+  const run = (renderer: any, getLegendShape?: (anID: string) => any) => {
+    setPointCoordinates({
+      renderer,
+      pointRadius: 5,
+      selectedPointRadius: 7,
+      pointColor: "#123456",
+      pointStrokeColor: "#000000",
+      getScreenX: () => 20,
+      getScreenY: () => 30,
+      getLegendShape,
+      getAnimationEnabled: () => false
+    })
+  }
+
+  it("styles each point with the shape it resolves for that case", () => {
+    const target = stubPointTarget(["c1", "c2"])
+    run(target, (anID: string) => (anID === "c1" ? "star" : "triangle"))
+
+    expect(target.styles.c1.shape).toBe("star")
+    expect(target.styles.c2.shape).toBe("triangle")
+  })
+
+  it("leaves the shape alone when no resolver is supplied", () => {
+    // callers that predate shapes must keep drawing whatever the renderer already had
+    const target = stubPointTarget(["c1"])
+    run(target, undefined)
+
+    expect(target.styles.c1).not.toHaveProperty("shape")
+  })
 })

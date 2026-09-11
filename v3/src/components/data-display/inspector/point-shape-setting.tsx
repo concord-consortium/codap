@@ -117,7 +117,7 @@ export const PointShapeSetting = observer(function PointShapeSetting({
         * trigger it always appears, clipping and scrolling within its own max-height, which is
         * the lesser failure.
         *
-        * The colour picker in this same palette disables flipping for the same reason, so the
+        * The color picker in this same palette disables flipping for the same reason, so the
         * fault lies in how popovers position within the palette rather than in this control.
         */}
       <Popover shouldFlip={false}

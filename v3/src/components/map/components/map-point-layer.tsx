@@ -16,7 +16,7 @@ import { prf } from "../../../utilities/profiler"
 import {DataTip} from "../../data-display/components/data-tip"
 import {CaseData} from "../../data-display/d3-types"
 import {
-  computePointRadius, handleClickOnCase, matchCirclesToData, setPointSelection
+  computePointRadius, handleClickOnCase, legendShapeGetter, matchCirclesToData, setPointSelection
 } from "../../data-display/data-display-utils"
 import { IConnectingLineDescription } from "../../data-display/data-display-types"
 import {isDisplayItemVisualPropsAction} from "../../data-display/models/display-model-actions"
@@ -293,6 +293,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
         pointRadius: mapLayerModel.getPointRadius(),
         instanceId: dataConfiguration.id,
         pointColor: pointDescription.pointColor,
+        pointShape: pointDescription.pointShape,
         pointStrokeColor: pointDescription.pointStrokeColor,
         startAnimation: mapModel.startAnimation,
         stopAnimation: mapModel.stopAnimation
@@ -302,11 +303,11 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
       pointDescription, renderer])
 
   const refreshPointSelection = useCallback((caseIdsToUpdate?: Iterable<string>) => {
-    const {pointColor, pointStrokeColor} = pointDescription,
+    const {pointColor, pointStrokeColor, pointShape} = pointDescription,
       selectedPointRadius = mapLayerModel.getPointRadius('select')
     dataConfiguration && setPointSelection({
       renderer, dataConfiguration, pointRadius: mapLayerModel.getPointRadius(),
-      selectedPointRadius, pointColor, pointStrokeColor
+      selectedPointRadius, pointColor, pointStrokeColor, pointShape
     }, caseIdsToUpdate)
   }, [pointDescription, mapLayerModel, dataConfiguration, renderer])
 
@@ -346,6 +347,8 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
     const {latId, longId} = mapLayerModel.pointAttributes || {}
     if (!latId || !longId) return
 
+    const getLegendShape = legendShapeGetter(dataConfiguration, pointDescription)
+
     prf.measure("Map.refreshPoints[forEachPoint]", () => {
       renderer.forEachPoint((point: IPoint, metadata: IPointMetadata) => {
         const {caseID} = metadata
@@ -353,6 +356,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
         renderer.setPointStyle(point, {
           radius: dataset?.isCaseSelected(caseID) ? selectedPointRadius : pointRadius,
           fill: lookupLegendColor(metadata),
+          shape: getLegendShape(caseID),
           stroke: getLegendColor && dataset?.isCaseSelected(caseID)
             ? defaultSelectedStroke : pointStrokeColor,
           strokeWidth: getLegendColor && dataset?.isCaseSelected(caseID)
@@ -413,6 +417,17 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
       },
       {name: "MapPointLayer [legendColorChange]", fireImmediately: true}, dataConfiguration)
   }, [dataConfiguration, refreshHeatmap, refreshPoints])
+
+  // A shape change alters only how each point is drawn, so the points are restyled without touching
+  // the heatmap, which has no notion of shape.
+  useEffect(() => {
+    return mstReaction(
+      () => [dataConfiguration?.legendShapeDomain, mapLayerModel.pointDescription.pointShape],
+      () => {
+        refreshPointSelection()
+      },
+      {name: "MapPointLayer [shapeChange]", equals: comparer.structural}, dataConfiguration)
+  }, [dataConfiguration, mapLayerModel, refreshPointSelection])
 
   // Changes in layout or map pan/zoom require repositioning points
   useEffect(function setupResponsesToLayoutChanges() {

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef } from "react"
 import { createPortal } from "react-dom"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { GraphAttrRole } from "../../../data-display/data-display-types"
+import { legendShapeGetter } from "../../../data-display/data-display-utils"
 import { circleAnchor } from "../../../data-display/renderer"
 import { IBarCover, IPlotProps } from "../../graphing-types"
 import { useBinBoundaryDrag } from "../../hooks/use-bin-boundary-drag"
@@ -194,7 +195,8 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, rend
       pointRadius: graphModel.getPointRadius(),
       selectedPointRadius: graphModel.getPointRadius("select"),
       renderer, selectedOnly, pointColor, pointStrokeColor, getWidth, getHeight,
-      getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating,
+      getScreenX, getScreenY, getLegendColor, 
+      getLegendShape: legendShapeGetter(dataConfig, graphModel.pointDescription), getAnimationEnabled: isAnimating,
       pointDisplayType: "bars", dataset
     })
   }, [abovePointsGroupRef, addHistogramBinDragHandlers, binnedPlot, dataConfig, dataset,

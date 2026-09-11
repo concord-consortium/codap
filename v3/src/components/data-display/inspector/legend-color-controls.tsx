@@ -182,6 +182,9 @@ export const LegendColorControls = observer(function LegendColorControls(
         categories={categoriesRef.current}
         dataConfiguration={dataConfiguration}
         showShape={showShape}
+        // A category with no shape of its own draws the display's, so the control has to show that
+        // rather than the bare default, or it would disagree with the plot.
+        shapeIfUnset={displayItemDescription.pointShape}
         onCatPointColorChange={handleCatPointColorChange}
         onCatPointShapeChange={handleCatPointShapeChange}
       />
@@ -224,7 +227,8 @@ export const LegendColorControls = observer(function LegendColorControls(
   // every point and sit in a single row.
   const singleRowLabel = showShape ? t("V3.Inspector.points") : t("DG.Inspector.color")
   return (
-    <div className="palette-row color-picker-row">
+    // shape-row marks a row carrying both controls, so it aligns them the way the category rows do
+    <div className={clsx("palette-row", "color-picker-row", { "shape-row": showShape })}>
       <label className="form-label color-picker">{singleRowLabel}</label>
       <If condition={showShape}>
         <PointShapeSetting propertyLabel={t("V3.Inspector.pointShape")}
@@ -243,12 +247,13 @@ interface ICategoricalColorControlsProps {
   categories?: string[]
   dataConfiguration: IDataConfigurationModel
   showShape: boolean
+  shapeIfUnset: PointShape
   onCatPointColorChange: (color: string, cat: string) => void
   onCatPointShapeChange: (shape: PointShape, cat: string) => void
 }
 
 const CategoricalColorControls = observer(function CategoricalColorControls(
-  { categories, dataConfiguration, showShape, onCatPointColorChange, onCatPointShapeChange }:
+  { categories, dataConfiguration, showShape, shapeIfUnset, onCatPointColorChange, onCatPointShapeChange }:
     ICategoricalColorControlsProps
 ) {
   const [scrollVersion, setScrollVersion] = useState(0)
@@ -265,7 +270,7 @@ const CategoricalColorControls = observer(function CategoricalColorControls(
           <If condition={showShape}>
             <PointShapeSetting propertyLabel={category}
               closeTrigger={scrollVersion}
-              shape={dataConfiguration.getLegendShapeForCategory(category)}
+              shape={dataConfiguration.getLegendShapeForCategory(category, shapeIfUnset)}
               color={dataConfiguration.getLegendColorForCategory(category)}
               onShapeChange={(shape) => onCatPointShapeChange(shape, category)}/>
           </If>

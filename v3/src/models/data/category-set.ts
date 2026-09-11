@@ -4,7 +4,7 @@ import {
 } from "mobx-state-tree"
 import { kellyColors } from "../../utilities/color-utils"
 import { compareValues } from "../../utilities/data-utils"
-import { kDefaultPointShape, PointShape, pointShapeOrDefault } from "../../utilities/point-shape-utils"
+import { isPointShape, kDefaultPointShape, PointShape, pointShapeOrDefault } from "../../utilities/point-shape-utils"
 import { gLocale } from "../../utilities/translation/locale"
 import { Attribute, IAttribute } from "./attribute"
 import { IDataSet } from "./data-set"
@@ -219,14 +219,23 @@ export const CategorySet = types.model("CategorySet", {
   colorForCategory(category: string) {
     return self.colorMap[category]
   },
-  // Unlike colors, which cycle through a palette by category index, every category starts at the
-  // same default shape, so there is no index-derived fallback to compute.
-  shapeForCategory(category: string): PointShape {
-    return pointShapeOrDefault(self.shapes.get(category))
+  /*
+   * Unlike colors, which cycle through a palette by category index, there is no shape palette --
+   * every category would otherwise start at the same shape, so there is no index-derived fallback
+   * to compute.
+   *
+   * A category with no shape of its own inherits `shapeIfUnset`, which callers set to the
+   * display's own shape. That is what keeps a shape chosen before a legend existed from being
+   * discarded the moment one is added: colors are replaced by something meaningful when a legend
+   * takes over, but shapes would be replaced by nothing.
+   */
+  shapeForCategory(category: string, shapeIfUnset: PointShape = kDefaultPointShape): PointShape {
+    const stored = self.shapes.get(category)
+    return isPointShape(stored) ? stored : shapeIfUnset
   },
   /*
-   * Only the categories carrying an explicit shape. Categories at the default are omitted, so
-   * exports stay empty until a user actually assigns one.
+   * Only the categories carrying a shape of their own. A category the user has never assigned is
+   * absent, so exports stay empty until one is actually chosen.
    *
    * Built with fromEntries: assignment would set the prototype for a category named `__proto__`.
    */
@@ -282,14 +291,10 @@ export const CategorySet = types.model("CategorySet", {
       self.colors.delete(value)
     }
   },
-  // Storing the default is stored as absence, so a document only carries the shapes a user chose
-  // and a category reverted to circle round-trips as an unset entry.
+  // Stores every choice, circle included: absence means the category inherits the display's shape,
+  // so dropping a circle here would read back as whatever the display is set to.
   setShapeForCategory(value: string, shape: PointShape) {
-    if (shape && shape !== kDefaultPointShape) {
-      self.shapes.set(value, shape)
-    } else {
-      self.shapes.delete(value)
-    }
+    self.shapes.set(value, shape)
   },
   storeCurrentColorForCategory(value: string) {
     const color = self.colorForCategory(value)

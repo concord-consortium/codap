@@ -378,15 +378,26 @@ describe("CategorySet", () => {
       expect(categories.shapeForCategory("b")).toBe("circle")
     })
 
-    it("stores the default as absence, so unused documents carry nothing", () => {
+    it("carries nothing for a category whose shape was never chosen", () => {
+      const categories = makeSet(["a"])
+      expect(getSnapshot(categories).shapes).toEqual({})
+      // absent means the category has none of its own, so it takes what it is given
+      expect(categories.shapeForCategory("a", "star")).toBe("star")
+    })
+
+    it("stores an explicitly chosen circle, which absence does not stand for", () => {
+      /*
+       * Absence means "inherit the display's shape", so it cannot double as "circle". Dropping the
+       * entry here would read back as the display's shape and leave circle unselectable for a
+       * category whenever the display was set to anything else.
+       */
       const categories = makeSet(["a"])
       runInAction(() => categories.setShapeForCategory("a", "star"))
       expect(getSnapshot(categories).shapes).toEqual({ a: "star" })
 
-      // reverting to the default removes the entry rather than recording "circle"
       runInAction(() => categories.setShapeForCategory("a", "circle"))
-      expect(getSnapshot(categories).shapes).toEqual({})
-      expect(categories.shapeForCategory("a")).toBe("circle")
+      expect(getSnapshot(categories).shapes).toEqual({ a: "circle" })
+      expect(categories.shapeForCategory("a", "star")).toBe("circle")
     })
 
     it("resolves an unrecognized stored shape to the default", () => {

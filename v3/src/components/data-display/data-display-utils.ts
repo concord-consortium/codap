@@ -6,6 +6,7 @@ import {
   defaultStrokeOpacity, defaultStrokeWidth
 } from "../../utilities/color-utils"
 import {between} from "../../utilities/math-utils"
+import { kDefaultPointShape, PointShape } from "../../utilities/point-shape-utils"
 import { IBarCover } from "../graph/graphing-types"
 import {isGraphDataConfigurationModel} from "../graph/models/graph-data-configuration-model"
 import {ISetPointSelection} from "../graph/utilities/graph-utils"
@@ -14,6 +15,7 @@ import {
   pointRadiusSelectionAddend, Rect, rTreeRect
 } from "./data-display-types"
 import {IDataConfigurationModel } from "./models/data-configuration-model"
+import { IDisplayItemDescriptionModel } from "./models/display-item-description-model"
 import {CaseDataWithSubPlot} from "./d3-types"
 import { getRendererForEvent, IPoint, IPointStyle, PointRendererBase } from "./renderer"
 
@@ -76,10 +78,26 @@ export const handleClickOnBar = ({ event, dataConfig, barCover }: IHandleClickOn
   setOrExtendSelection(barCover.caseIDs, dataConfig.dataset, extendSelection)
 }
 
+/*
+ * The shape for each case: the one its legend category carries, and the display's own wherever the
+ * legend assigns none. Every path that draws points needs this, so it is built here rather than
+ * rebuilt identically at each of them.
+ */
+export function legendShapeGetter(
+  dataConfig: IDataConfigurationModel | undefined, displayItemDescription: IDisplayItemDescriptionModel
+): (caseID: string) => PointShape {
+  const shapeIfNoCategory = displayItemDescription.pointShape
+  return (caseID: string) =>
+    dataConfig?.getLegendShapeForCase(caseID, shapeIfNoCategory) ?? shapeIfNoCategory
+}
+
 export interface IMatchCirclesProps {
   dataConfiguration: IDataConfigurationModel
   pointRadius: number
   pointColor: string
+  // The shape a point is created with, as pointColor is the color it is created with. Several
+  // callers create points without refreshing in the same breath.
+  pointShape?: PointShape
   pointDisplayType?: PointDisplayType
   pointStrokeColor: string
   startAnimation: () => void
@@ -90,7 +108,7 @@ export interface IMatchCirclesProps {
 
 export function matchCirclesToData(props: IMatchCirclesProps) {
   const { dataConfiguration, renderer, startAnimation, stopAnimation, pointRadius, pointColor, pointStrokeColor,
-          pointDisplayType = "points" } = props
+          pointShape = kDefaultPointShape, pointDisplayType = "points" } = props
   // TODO: eliminate dependence on GraphDataConfigurationModel
   const allCaseData: CaseDataWithSubPlot[] = isGraphDataConfigurationModel(dataConfiguration)
     ? dataConfiguration.caseDataWithSubPlot
@@ -111,6 +129,7 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
   renderer?.matchPointsToData(dataConfiguration.dataset?.id ?? '', allCaseData, pointDisplayType, {
     radius: pointRadius,
     fill: pointColor,
+    shape: pointShape,
     stroke: pointStrokeColor,
     strokeWidth: defaultStrokeWidth
   })
@@ -130,7 +149,7 @@ export function setPointSelection(
   props: ISetPointSelection, caseIdsToUpdate?: Iterable<string>, numberOfPlots = 1
 ) {
   const { renderer, dataConfiguration, pointRadius, selectedPointRadius,
-    pointColor, pointStrokeColor, getPointColorAtIndex } = props
+    pointColor, pointStrokeColor, pointShape, getPointColorAtIndex } = props
   const dataset = dataConfiguration.dataset
   const legendID = dataConfiguration.attributeID('legend')
   if (!renderer) {
@@ -149,6 +168,7 @@ export function setPointSelection(
     // When there's no legend, use blue fill for selection instead of a colored stroke
     const useSelectionFill = isSelected && !legendID
     const style: Partial<IPointStyle> = {
+      shape: dataConfiguration.getLegendShapeForCase(caseID, pointShape),
       fill: useSelectionFill ? defaultSelectedColor : fill,
       radius: isSelected ? selectedPointRadius : pointRadius,
       stroke: isSelected && !useSelectionFill ? defaultSelectedStroke : pointStrokeColor,

@@ -11,6 +11,7 @@ import { useDotPlotDragDrop } from "../../hooks/use-dot-plot-drag-drop"
 import {useRendererDragHandlers, usePlotResponders} from "../../hooks/use-plot"
 import { setPointCoordinates } from "../../utilities/graph-utils"
 import { isBinnedDotPlotModel } from "./binned-dot-plot-model"
+import { legendShapeGetter } from "../../../data-display/data-display-utils"
 
 export const BinnedDotPlot = observer(function BinnedDotPlot({renderer, abovePointsGroupRef}: IPlotProps) {
   const { dataset, dataConfig, getPrimaryScreenCoord, getSecondaryScreenCoord, graphModel, isAnimating, layout,
@@ -46,7 +47,8 @@ export const BinnedDotPlot = observer(function BinnedDotPlot({renderer, abovePoi
       pointRadius: graphModel.getPointRadius(),
       selectedPointRadius: graphModel.getPointRadius("select"),
       renderer, selectedOnly, pointColor, pointStrokeColor,
-      getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating,
+      getScreenX, getScreenY, getLegendColor, 
+      getLegendShape: legendShapeGetter(dataConfig, graphModel.pointDescription), getAnimationEnabled: isAnimating,
       pointDisplayType, anchor: circleAnchor, dataset
     })
   }, [addBinBoundaryDragHandlers, binnedPlot, dataConfig, dataset, drawBinBoundaries,
