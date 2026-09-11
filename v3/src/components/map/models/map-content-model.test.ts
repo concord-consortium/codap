@@ -279,6 +279,57 @@ describe("MapContentModel", () => {
     })
   })
 
+  describe("displayItemDescriptionFor", () => {
+    /*
+     * A map draws each layer from that layer's own description. Anything that has to agree with what
+     * is rendered -- a legend key showing the shape its points are drawn with -- gets the wrong
+     * answer from the map's own description, which nothing on the map is drawn from.
+     */
+    const addPointDataSet = async (name: string) => {
+      const dataSet = DataSet.create({ name })
+      dataSet.addAttribute({ id: `lat-${name}`, name: "Latitude" })
+      dataSet.addAttribute({ id: `long-${name}`, name: "Longitude" })
+      const sharedDataSet = SharedDataSet.create()
+      sharedDataSet.setDataSet(dataSet)
+      const metadata = DataSetMetadata.create({ data: dataSet.id })
+      sharedModelManager.addSharedModel(sharedDataSet)
+      sharedModelManager.addSharedModel(metadata)
+      await new Promise(resolve => setTimeout(resolve, 0))
+      return dataSet
+    }
+
+    it("returns the layer's own description, not the map's", async () => {
+      await addPointDataSet("points")
+      const layer = mapContent.layers[0]
+      if (!isMapPointLayerModel(layer)) throw new Error("expected a point layer")
+
+      layer.displayItemDescription.setPointShape("star")
+
+      expect(mapContent.displayItemDescriptionFor(layer.dataConfiguration).pointShape).toBe("star")
+      // the map's own description is untouched, which is why reading it directly was wrong
+      expect(mapContent.pointDescription.pointShape).toBe("circle")
+    })
+
+    it("keeps two layers apart", async () => {
+      await addPointDataSet("first")
+      await addPointDataSet("second")
+      expect(mapContent.layers.length).toBe(2)
+      const [one, two] = mapContent.layers
+      if (!isMapPointLayerModel(one) || !isMapPointLayerModel(two)) throw new Error("expected point layers")
+
+      one.displayItemDescription.setPointShape("triangle")
+      two.displayItemDescription.setPointShape("diamond")
+
+      expect(mapContent.displayItemDescriptionFor(one.dataConfiguration).pointShape).toBe("triangle")
+      expect(mapContent.displayItemDescriptionFor(two.dataConfiguration).pointShape).toBe("diamond")
+    })
+
+    it("falls back to the map's own description for an unknown configuration", () => {
+      mapContent.pointDescription.setPointShape("plus")
+      expect(mapContent.displayItemDescriptionFor(undefined).pointShape).toBe("plus")
+    })
+  })
+
   describe("titleCollection (CODAP-1249)", () => {
     // Each map layer's palette label should reflect the *collection* holding the
     // layer's spatial attributes (matching v2 behavior), not the dataset name.

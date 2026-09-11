@@ -1,7 +1,8 @@
 import { PointShapes } from "../../../utilities/point-shape-utils"
 import {
-  IShapePoint, isPointInShape, pointShapeArea, pointShapeBoundingRadius, pointShapeExtent,
-  pointShapeGeometry, pointShapeSymmetricExtent
+  IShapePoint, isPointInShape, pointShapeArea, pointShapeBoundingRadius, pointShapeBoxCenter,
+  pointShapeExtent, pointShapeGeometry, pointShapePathData, pointShapeRadiusWithinExtent,
+  pointShapeSymmetricExtent
 } from "./point-shapes"
 
 /*
@@ -202,6 +203,88 @@ describe("point shape geometry", () => {
 
       expect(apexDistance).toBeGreaterThan(pointShapeExtent("triangle", 8).w / 2)
       expect(pointShapeBoundingRadius("triangle", 8)).toBeGreaterThanOrEqual(apexDistance - 1e-9)
+    })
+  })
+
+  describe("SVG path", () => {
+    it("closes a path for every shape", () => {
+      PointShapes.forEach(shape => {
+        const d = pointShapePathData(shape, 8)
+        expect(d.startsWith("M ")).toBe(true)
+        expect(d.trimEnd().endsWith("Z")).toBe(true)
+      })
+    })
+
+    it("traces one line per vertex of a polygon", () => {
+      PointShapes.filter(s => s !== "circle").forEach(shape => {
+        const geometry = pointShapeGeometry(shape, 8)
+        if (geometry.kind !== "polygon") throw new Error(`${shape} should be a polygon`)
+        const d = pointShapePathData(shape, 8)
+        expect((d.match(/L /g) ?? []).length).toBe(geometry.points.length - 1)
+      })
+    })
+
+    it("draws the circle with arcs, since one arc cannot close a full circle", () => {
+      const d = pointShapePathData("circle", 8)
+      expect((d.match(/A /g) ?? []).length).toBe(2)
+      expect(d).not.toContain("L ")
+    })
+  })
+
+  describe("fitting a box", () => {
+    it("keeps every shape inside the box", () => {
+      PointShapes.forEach(shape => {
+        const { w, h } = pointShapeExtent(shape, pointShapeRadiusWithinExtent(shape, 15))
+        expect(Math.max(w, h)).toBeLessThanOrEqual(15 + 1e-9)
+      })
+    })
+
+    it("holds the plot radius for a shape that already fits", () => {
+      /*
+       * The square is the one this is visible on: it is narrower than the circle at the same radius,
+       * so filling the box would scale it up past the circle and make the lighter shape read as the
+       * heavier one. Its normalized size is the honest one and the box does not force a change.
+       */
+      expect(pointShapeRadiusWithinExtent("square", 15)).toBeCloseTo(7.5, 6)
+      expect(pointShapeRadiusWithinExtent("circle", 15)).toBeCloseTo(7.5, 6)
+      expect(pointShapeExtent("square", pointShapeRadiusWithinExtent("square", 15)).w).toBeLessThan(15)
+    })
+
+    it("shrinks only the shapes that would not fit", () => {
+      // at the shared radius these reach outside the box and would run into the rows either side
+      const tooWide = ["triangle", "diamond", "star", "plus", "x"] as const
+      tooWide.forEach(shape => {
+        const r = pointShapeRadiusWithinExtent(shape, 15)
+        expect(r).toBeLessThan(7.5)
+        // and exactly as far as it takes, so they still fill the box
+        expect(Math.max(...Object.values(pointShapeExtent(shape, r)))).toBeCloseTo(15, 6)
+      })
+    })
+
+    it("centers the drawn box for the shapes whose ink sits off center", () => {
+      const offCenter = ["triangle", "star"] as const
+      offCenter.forEach(shape => {
+        expect(Math.abs(pointShapeBoxCenter(shape, 8).y)).toBeGreaterThan(0.5)
+      })
+
+      PointShapes.filter(s => !offCenter.includes(s as any)).forEach(shape => {
+        const { x, y } = pointShapeBoxCenter(shape, 8)
+        expect(x).toBeCloseTo(0, 6)
+        expect(y).toBeCloseTo(0, 6)
+      })
+    })
+
+    it("puts the box exactly on the target once the center is taken out", () => {
+      // what a caller placing a shape in a box actually does, checked end to end
+      PointShapes.forEach(shape => {
+        const r = pointShapeRadiusWithinExtent(shape, 15)
+        const center = pointShapeBoxCenter(shape, r)
+        const geometry = pointShapeGeometry(shape, r)
+        if (geometry.kind === "circle") return
+
+        const ys = geometry.points.map(p => p.y - center.y)
+        expect(Math.max(...ys) + Math.min(...ys)).toBeCloseTo(0, 6)
+      })
     })
   })
 
