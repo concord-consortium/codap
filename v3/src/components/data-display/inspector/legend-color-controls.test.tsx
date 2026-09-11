@@ -651,7 +651,7 @@ describe("point shape controls", () => {
       )
 
       expect(screen.getByTestId("point-shape-select")).toBeInTheDocument()
-      // the legend's own colour controls are still there
+      // the legend's own color controls are still there
       expect(screen.getByTestId("color-swatch-DG.Inspector.legendColorLow")).toBeInTheDocument()
     })
 
