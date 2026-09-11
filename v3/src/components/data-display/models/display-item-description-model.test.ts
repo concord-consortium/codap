@@ -53,6 +53,22 @@ describe("DisplayItemDescriptionModel point shape", () => {
     expect(description.pointShape).toBe("circle")
   })
 
+  it("reports a polygon by its negative point size", () => {
+    /*
+     * A polygon layer has no point to size, so it sets a negative size to say so, and the inspector
+     * reads that to hide the controls a polygon cannot use. Named here rather than compared at each
+     * of those, which is how one of them came to offer a shape a polygon could not take.
+     */
+    const description = DisplayItemDescriptionModel.create()
+    expect(description.isPolygon).toBe(false)
+
+    description.setPointSizeMultiplier(-1)
+    expect(description.isPolygon).toBe(true)
+
+    description.setPointSizeMultiplier(1)
+    expect(description.isPolygon).toBe(false)
+  })
+
   it("is independent of point color", () => {
     // shape is a second encoding channel, so setting one must not disturb the other
     const description = DisplayItemDescriptionModel.create()

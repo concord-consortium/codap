@@ -123,7 +123,7 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
           </RadioGroup>
         </If>
 
-        <If condition={displayItemDescription.pointSizeMultiplier >= 0}>
+        <If condition={!displayItemDescription.isPolygon}>
           <PointSizeSlider
             displayItemDescription={displayItemDescription}
             pointDisplayType={pointDisplayType}

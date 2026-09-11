@@ -1,12 +1,15 @@
 @use "../../vars";
 
-.color-picker-thumb {
+/*
+ * The geometry that makes the two controls in a palette row the same size. Height is left to the
+ * content rather than fixed, so they cannot drift apart.
+ */
+@mixin palette-thumb {
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 4px;
-  height: auto !important;
-  padding: 3px !important;
+  padding: 3px;
   margin: 2px 1px;
   border: none;
   background-color: vars.$palette-hover-bg;
@@ -17,11 +20,33 @@
     outline: 2px solid vars.$focus-outline-color;
     outline-offset: 2px;
   }
+}
 
-  &.categorical {
-    position: absolute;
-    right: 2px;
-  }
+// A 24px box holding a glyph, which is pinned to its edges rather than laid out, so nothing about
+// how an svg participates in flex layout can displace it.
+@mixin glyph-box {
+  position: relative;
+  display: block;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+}
+
+@mixin pinned-glyph {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.color-picker-thumb {
+  @include palette-thumb;
+  // This one is a react-aria Button, so the shared `.react-aria-Select .react-aria-Button` rules in
+  // inspector-panel.scss set its height and padding and have to be overridden. The shape control's
+  // trigger passes a plain className, which replaces that class, so it needs no override.
+  height: auto !important;
+  padding: 3px !important;
 
   .color-picker-thumb-swatch {
     width: 24px;
@@ -65,6 +90,99 @@
   &.open::after {
     border-top: none;
     border-bottom: 4px solid vars.$palette-icon-color;
+  }
+}
+
+// Note the selector: a plain className on a react-aria component REPLACES its default class, so
+// this trigger carries `point-shape-thumb` and NOT `react-aria-Button`. Adding `.react-aria-Button`
+// here would match nothing and leave the glyph unsized, which renders it at container size. That
+// replacement is also why the trigger escapes the shared `.react-aria-Select .react-aria-Button`
+// styling in inspector-panel.scss, whose min-width suits a text-bearing select rather than an
+// icon-only one.
+.codap-inspector-palette .palette-form .react-aria-Select {
+  .point-shape-thumb {
+    @include palette-thumb;
+    // contains the absolutely-positioned visually-hidden value, so it cannot escape to the palette
+    position: relative;
+
+    .point-shape-thumb-value {
+      @include glyph-box;
+    }
+
+    .point-shape-thumb-glyph {
+      @include pinned-glyph;
+    }
+
+    // Matches the color picker's disclosure arrow, so the two controls in a row read as a pair.
+    // Sized by border rather than width/height, so box-sizing is set explicitly -- under
+    // border-box a zero-size bordered box collapses.
+    .point-shape-arrow {
+      box-sizing: content-box;
+      display: block;
+      margin-left: auto;
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 4px solid vars.$palette-icon-color;
+      flex: 0 0 auto;
+      align-self: center;
+      transition: transform 0.15s ease;
+    }
+
+    &.open .point-shape-arrow {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+.point-shape-popover {
+  background: vars.$palette-bg;
+  border: 1px solid vars.$charcoal-light-1;
+  border-radius: 3px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+  padding: 6px 2px;
+  // Caps its own height so a menu that cannot flip still fits, scrolling rather than running off
+  // the bottom of the window.
+  max-height: 60vh;
+  overflow-y: auto;
+
+  .react-aria-ListBox {
+    font-size: 14px;
+    outline: none;
+  }
+
+  .react-aria-ListBoxItem {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 10px;
+    cursor: pointer;
+    outline: none;
+    white-space: nowrap;
+
+    &[data-focused], &[data-hovered] {
+      background-color: vars.$charcoal-light-5;
+    }
+
+    // the current shape is the one the trigger already shows; bold marks it in the list
+    &[data-selected] {
+      font-weight: bold;
+    }
+
+    &[data-focus-visible] {
+      outline: 2px solid vars.$focus-outline-color;
+      outline-offset: -2px;
+    }
+
+    .point-shape-item-glyph {
+      @include glyph-box;
+    }
+
+    .point-shape-item-svg {
+      @include pinned-glyph;
+    }
   }
 }
 
@@ -215,6 +333,22 @@
       .cat-color-picker {
         flex-shrink: 0; // rows keep their height, so the list scrolls rather than compressing
         margin: vars.$palette-category-row-margin 0;
+        gap: 4px;
+
+        // Only the label may shrink; the controls keep their size.
+        .react-aria-Select {
+          flex: 0 0 auto;
+        }
+
+        // Absorbs the free space so the controls align across rows rather than each starting
+        // wherever its category name happens to end. Truncates rather than pushing them out.
+        .form-label.color-picker {
+          flex: 1;
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
       }
     }
 
@@ -259,4 +393,15 @@
       }
     }
   }
+}
+
+// Lets a caller paint a glyph with a gradient. The fill is a presentation attribute on the path
+// itself, so an inherited value would lose to it and only a rule on the path can win; and it is
+// `currentColor`, which cannot hold a gradient, so the value comes from a custom property instead.
+// The trigger and the menu are listed together because the menu is rendered in a portal, outside
+// the palette these are otherwise scoped to. Unset by default, so the fallback leaves every glyph
+// on `currentColor`.
+.point-shape-thumb-glyph path,
+.point-shape-item-svg path {
+  fill: var(--point-shape-fill, currentColor);
 }

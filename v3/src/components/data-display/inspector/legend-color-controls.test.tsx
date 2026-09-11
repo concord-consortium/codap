@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react"
+import { act, fireEvent, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { scaleQuantize } from "d3"
 import { featureFlagManager } from "../../../models/feature-flags/feature-flag-manager"
@@ -28,9 +28,14 @@ jest.mock("./point-color-setting", () => ({
 
 const createMockDescription = (overrides?: Record<string, unknown>) => ({
   pointColor: "#0000FF",
+  pointSizeMultiplier: 1,
   setPointColor: jest.fn(),
+  setPointShape: jest.fn(),
+  pointShape: "circle",
   applyModelChange: jest.fn((fn: () => void) => fn()),
-  ...overrides
+  ...overrides,
+  // derived as it is on the real model, so a test that sets a negative size gets a polygon
+  get isPolygon(): boolean { return this.pointSizeMultiplier < 0 }
 })
 
 const createMockDataConfig = (overrides?: Record<string, unknown>) => ({
@@ -53,6 +58,8 @@ const createMockDataConfig = (overrides?: Record<string, unknown>) => ({
   },
   getLegendColorForCategory: jest.fn((cat: string) => cat === "cat-a" ? "#FF0000" : "#00FF00"),
   setLegendColorForCategory: jest.fn(),
+  getLegendShapeForCategory: jest.fn(() => "circle"),
+  setLegendShapeForCategory: jest.fn(),
   legendQuantilesAreLocked: false,
   // 4 distinct values in numericValuesForAttrRole -> cap 4, so the default of 5 clamps to 4
   legendBinCount: 4,
@@ -527,5 +534,359 @@ describe("LegendBinCountInput", () => {
     const input = screen.getByTestId("legend-bin-count-input")
     expect(input).toBeDisabled()
     expect(input).toHaveValue("1")
+  })
+
+})
+
+describe("point shape controls", () => {
+  afterEach(() => {
+    act(() => featureFlagManager.setServerConfig({}))
+  })
+
+  const categoricalConfig = (overrides?: Record<string, unknown>) => createMockDataConfig({
+    attributeType: jest.fn(() => "categorical"),
+    categoryArrayForAttrRole: jest.fn(() => ["cat-a", "cat-b"]),
+    ...overrides
+  })
+
+  it("renders no shape control when the flag is off", () => {
+    const desc = createMockDescription()
+    const config = categoricalConfig()
+    render(<LegendColorControls dataConfiguration={config as any} displayItemDescription={desc as any} />)
+
+    expect(screen.queryByTestId("point-shape-select")).not.toBeInTheDocument()
+    // the color controls are untouched by the gate
+    expect(screen.getByTestId("color-swatch-cat-a")).toBeInTheDocument()
+  })
+
+  it("renders one shape control per category when the flag is on", () => {
+    featureFlagManager.setServerConfig({ pointShapes: "on" })
+    const desc = createMockDescription()
+    const config = categoricalConfig()
+    render(<LegendColorControls dataConfiguration={config as any} displayItemDescription={desc as any} />)
+
+    expect(screen.getAllByTestId("point-shape-select")).toHaveLength(2)
+  })
+
+  it("commits a chosen shape to the category", async () => {
+    featureFlagManager.setServerConfig({ pointShapes: "on" })
+    const user = userEvent.setup()
+    const desc = createMockDescription()
+    const config = categoricalConfig()
+    render(<LegendColorControls dataConfiguration={config as any} displayItemDescription={desc as any} />)
+
+    // the row control is icon only, so it is named for its category; the open menu carries labels
+      await user.click(
+        within(screen.getAllByTestId("point-shape-select")[0]).getByRole("button"))
+    await user.click(screen.getByRole("option", { name: "V3.Inspector.pointShape.star" }))
+
+    expect(config.setLegendShapeForCategory).toHaveBeenCalledWith("cat-a", "star")
+    expect(config.applyModelChange).toHaveBeenCalled()
+  })
+
+  it("offers all seven shapes in the open menu", async () => {
+    featureFlagManager.setServerConfig({ pointShapes: "on" })
+    const user = userEvent.setup()
+    const desc = createMockDescription()
+    const config = categoricalConfig({ categoryArrayForAttrRole: jest.fn(() => ["cat-a"]) })
+    render(<LegendColorControls dataConfiguration={config as any} displayItemDescription={desc as any} />)
+
+      await user.click(
+        within(screen.getAllByTestId("point-shape-select")[0]).getByRole("button"))
+    expect(screen.getAllByRole("option")).toHaveLength(7)
+  })
+
+  it("names the control for assistive technology without showing a label", () => {
+    // Icon only visually, but a screen reader needs both the current shape and what it applies to.
+    // getByRole computes the full accessible name, so this also proves the aria-labelledby that
+    // react-aria puts on the trigger resolves: if it dangled, the name would fall back to the
+    // aria-label alone and the shape would be missing from it.
+    featureFlagManager.setServerConfig({ pointShapes: "on" })
+    const desc = createMockDescription()
+    const config = createMockDataConfig({
+      attributeType: jest.fn(() => "categorical"),
+      categoryArrayForAttrRole: jest.fn(() => ["cat-a"])
+    })
+    render(<LegendColorControls dataConfiguration={config as any} displayItemDescription={desc as any} />)
+
+    const shapeControl = within(screen.getAllByTestId("point-shape-select")[0])
+    expect(shapeControl.getByRole("button", { name: /cat-a/ })).toBeInTheDocument()
+    expect(shapeControl.getByRole("button", { name: /V3\.Inspector\.pointShape\.circle/ }))
+      .toBeInTheDocument()
+  })
+
+  it("renders exactly one glyph in the trigger", () => {
+    /*
+     * SelectValue renders the selected item's children by default, which would put a second copy
+     * of the glyph inside the trigger. That copy is positioned absolutely (visually-hidden), so it
+     * escapes the button and stacks over the palette. The value renders as text only for this
+     * reason.
+     */
+    featureFlagManager.setServerConfig({ pointShapes: "on" })
+    const desc = createMockDescription()
+    const config = createMockDataConfig({
+      attributeType: jest.fn(() => "categorical"),
+      categoryArrayForAttrRole: jest.fn(() => ["cat-a"])
+    })
+    render(<LegendColorControls dataConfiguration={config as any} displayItemDescription={desc as any} />)
+
+    const trigger = within(screen.getAllByTestId("point-shape-select")[0]).getByRole("button")
+    expect(within(trigger).getAllByTestId("point-shape-glyph")).toHaveLength(1)
+  })
+
+  describe("legends with no categories", () => {
+    /*
+     * A numeric or color legend has nothing to attach a per-category shape to, but the display's
+     * own shape still governs every point. Without the control the property goes on applying with
+     * no way to reach it -- a shape chosen before the legend was added gets stuck.
+     */
+    it("offers the display shape control for a numeric legend", () => {
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const config = createMockDataConfig({ attributeType: jest.fn(() => "numeric") })
+      render(
+        <LegendColorControls
+          dataConfiguration={config as any}
+          displayItemDescription={createMockDescription() as any}
+        />
+      )
+
+      expect(screen.getByTestId("point-shape-select")).toBeInTheDocument()
+      // the legend's own colour controls are still there
+      expect(screen.getByTestId("color-swatch-DG.Inspector.legendColorLow")).toBeInTheDocument()
+    })
+
+    it("offers the display shape control for a color legend", () => {
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const config = createMockDataConfig({ attributeType: jest.fn(() => "color") })
+      render(
+        <LegendColorControls
+          dataConfiguration={config as any}
+          displayItemDescription={createMockDescription() as any}
+        />
+      )
+
+      expect(screen.getByTestId("point-shape-select")).toBeInTheDocument()
+    })
+
+    it("commits a shape chosen against a numeric legend to the display", async () => {
+      const user = userEvent.setup()
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const desc = createMockDescription()
+      const config = createMockDataConfig({ attributeType: jest.fn(() => "numeric") })
+      render(<LegendColorControls dataConfiguration={config as any} displayItemDescription={desc as any} />)
+
+      await user.click(screen.getByRole("button", { name: /V3.Inspector.pointShape/i }))
+      await user.click(screen.getByRole("option", { name: "V3.Inspector.pointShape.square" }))
+
+      expect(desc.setPointShape).toHaveBeenCalledWith("square")
+    })
+
+    it("offers no shape control for a numeric legend when the flag is off", () => {
+      featureFlagManager.setServerConfig({ pointShapes: "off" })
+      const config = createMockDataConfig({ attributeType: jest.fn(() => "numeric") })
+      render(
+        <LegendColorControls
+          dataConfiguration={config as any}
+          displayItemDescription={createMockDescription() as any}
+        />
+      )
+
+      expect(screen.queryByTestId("point-shape-select")).not.toBeInTheDocument()
+    })
+  })
+
+  /* eslint-disable testing-library/no-node-access, testing-library/no-container */
+  // A gradient definition is aria-hidden and has no role to query by: it exists only as a paint
+  // server for the glyph, so the accessible queries these rules steer toward have nothing to find.
+  describe("numeric legend gradient", () => {
+    const scaleOf = (...colors: string[]) => ({ legendNumericColorScale: { range: () => colors } })
+
+    it("paints the trigger with the colors the legend actually uses", () => {
+      /*
+       * Hard stops from the scale's own range rather than a ramp interpolated between the low and
+       * high swatches: the scale is quantized, so points only ever take these discrete colors and
+       * a smooth ramp would show shades nothing in the plot has.
+       */
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const config = createMockDataConfig({
+        attributeType: jest.fn(() => "numeric"),
+        ...scaleOf("#111111", "#222222")
+      })
+      const { container } = render(
+        <LegendColorControls
+          dataConfiguration={config as any}
+          displayItemDescription={createMockDescription() as any}
+        />
+      )
+
+      const stops = Array.from(container.querySelectorAll("linearGradient stop"))
+      // two stops per color, so each band ends where the next begins
+      expect(stops.map(stop => stop.getAttribute("stop-color")))
+        .toEqual(["#111111", "#111111", "#222222", "#222222"])
+      expect(stops.map(stop => stop.getAttribute("offset")))
+        .toEqual(["0%", "50%", "50%", "100%"])
+    })
+
+    it("points the trigger's glyph at that gradient", () => {
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const config = createMockDataConfig({
+        attributeType: jest.fn(() => "numeric"),
+        ...scaleOf("#111111", "#222222")
+      })
+      const { container } = render(
+        <LegendColorControls
+          dataConfiguration={config as any}
+          displayItemDescription={createMockDescription() as any}
+        />
+      )
+
+      const gradientId = container.querySelector("linearGradient")?.getAttribute("id")
+      expect(gradientId).toBeTruthy()
+      const glyph = screen.getByTestId("point-shape-glyph")
+      expect(glyph.style.getPropertyValue("--point-shape-fill")).toBe(`url(#${gradientId})`)
+    })
+
+    it("paints the menu's options with the gradient too", async () => {
+      /*
+       * Each option previews the points that choosing it would produce. With a numeric legend that
+       * preview is the range, and painting them the display's own color would show a color no point
+       * on the plot has -- whatever the color had been before the legend was applied.
+       */
+      const user = userEvent.setup()
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const config = createMockDataConfig({
+        attributeType: jest.fn(() => "numeric"),
+        ...scaleOf("#111111", "#222222")
+      })
+      const { container } = render(
+        <LegendColorControls
+          dataConfiguration={config as any}
+          displayItemDescription={createMockDescription({ pointColor: "#ff00ff" }) as any}
+        />
+      )
+      const gradientId = container.querySelector("linearGradient")?.getAttribute("id")
+
+      await user.click(within(screen.getByTestId("point-shape-select")).getByRole("button"))
+
+      const optionGlyphs = screen.getAllByRole("option").map(o => within(o).getByTestId("point-shape-glyph"))
+      expect(optionGlyphs).toHaveLength(7)
+      optionGlyphs.forEach(glyph => {
+        expect(glyph.style.getPropertyValue("--point-shape-fill")).toBe(`url(#${gradientId})`)
+      })
+    })
+
+    it("leaves the glyph on a solid color when the legend has no scale", () => {
+      // nothing to build a gradient from, so the custom property stays unset and the fill falls
+      // back to currentColor
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const config = createMockDataConfig({
+        attributeType: jest.fn(() => "numeric"),
+        legendNumericColorScale: undefined
+      })
+      const { container } = render(
+        <LegendColorControls
+          dataConfiguration={config as any}
+          displayItemDescription={createMockDescription() as any}
+        />
+      )
+
+      expect(container.querySelector("linearGradient")).toBeNull()
+      expect(screen.getByTestId("point-shape-glyph").style.getPropertyValue("--point-shape-fill")).toBe("")
+    })
+
+    it("does not gradient the per-category glyphs, which have colors of their own", () => {
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const config = createMockDataConfig({
+        attributeType: jest.fn(() => "categorical"),
+        categoryArrayForAttrRole: jest.fn(() => ["cat-a"]),
+        ...scaleOf("#111111", "#222222")
+      })
+      const { container } = render(
+        <LegendColorControls
+          dataConfiguration={config as any}
+          displayItemDescription={createMockDescription() as any}
+        />
+      )
+
+      expect(container.querySelector("linearGradient")).toBeNull()
+    })
+  })
+
+  /* eslint-enable testing-library/no-node-access, testing-library/no-container */
+
+  describe("polygon layers", () => {
+    // The map mounts these controls for polygon layers, which mark themselves with a negative
+    // point size -- the sentinel that already hides the Point Size slider. A polygon has no point
+    // to shape.
+    const polygonDescription = () => createMockDescription({ pointSizeMultiplier: -1 })
+
+    it("offers no shape control for a polygon layer with no legend", () => {
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const config = createMockDataConfig()
+      render(
+        <LegendColorControls
+          dataConfiguration={config as any}
+          displayItemDescription={polygonDescription() as any}
+        />
+      )
+
+      expect(screen.queryByTestId("point-shape-select")).not.toBeInTheDocument()
+      // and the row keeps its own label rather than being relabelled "Points"
+      expect(screen.getByText("DG.Inspector.color", { selector: "label" })).toBeInTheDocument()
+      // the color control is unaffected -- a polygon still has a fill
+      expect(screen.getByTestId("color-swatch-DG.Inspector.color")).toBeInTheDocument()
+    })
+
+    it("offers no shape control in a polygon layer's category rows", () => {
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const config = createMockDataConfig({
+        attributeType: jest.fn(() => "categorical"),
+        categoryArrayForAttrRole: jest.fn(() => ["cat-a", "cat-b"])
+      })
+      render(
+        <LegendColorControls
+          dataConfiguration={config as any}
+          displayItemDescription={polygonDescription() as any}
+        />
+      )
+
+      expect(screen.queryByTestId("point-shape-select")).not.toBeInTheDocument()
+      expect(screen.getByTestId("color-swatch-cat-a")).toBeInTheDocument()
+    })
+  })
+
+  describe("with no legend attribute", () => {
+    it("keeps a single color row when the flag is off", () => {
+      const desc = createMockDescription()
+      const config = createMockDataConfig()
+      render(<LegendColorControls dataConfiguration={config as any} displayItemDescription={desc as any} />)
+
+      expect(screen.queryByTestId("point-shape-select")).not.toBeInTheDocument()
+      expect(screen.getByText("DG.Inspector.color", { selector: "label" })).toBeInTheDocument()
+    })
+
+    it("collapses to a single Points row with both controls when the flag is on", () => {
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const desc = createMockDescription()
+      const config = createMockDataConfig()
+      render(<LegendColorControls dataConfiguration={config as any} displayItemDescription={desc as any} />)
+
+      expect(screen.getByText("V3.Inspector.points")).toBeInTheDocument()
+      expect(screen.getByTestId("point-shape-select")).toBeInTheDocument()
+      expect(screen.getByTestId("color-swatch-DG.Inspector.color")).toBeInTheDocument()
+    })
+
+    it("commits a chosen shape to the display description", async () => {
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const user = userEvent.setup()
+      const desc = createMockDescription()
+      const config = createMockDataConfig()
+      render(<LegendColorControls dataConfiguration={config as any} displayItemDescription={desc as any} />)
+
+      await user.click(screen.getByRole("button", { name: /V3.Inspector.pointShape/i }))
+      await user.click(screen.getByRole("option", { name: "V3.Inspector.pointShape.diamond" }))
+
+      expect(desc.setPointShape).toHaveBeenCalledWith("diamond")
+    })
   })
 })
