@@ -419,6 +419,25 @@ export const DataConfigurationModel = types
   }))
   .views(self => ({
     /**
+     * Normalizes a categories limit so that limits which cannot affect the result all collapse to
+     * the same value (undefined).
+     *
+     * The limit only changes what categoryArrayForAttrRole returns when there are MORE categories
+     * than the limit — that is the only case where the kOther clamp below applies. Axis code
+     * recomputes the limit from the axis length on every layout change
+     * (floor(axisLength / kDefaultFontHeight)), so during a component resize it ticks over roughly
+     * every 12 pixels. Each distinct value invalidates the subPlotCases cache, and recomputing that
+     * is O(cells x cases) — which is why resizing a graph with categorical axes gets slower with
+     * each added dimension. Collapsing every "long enough to show them all" limit to undefined
+     * keeps those no-op changes from invalidating anything.
+     */
+    effectiveCategoriesLimitForRole(role: AttrRole, limit: number | undefined) {
+      if (limit == null || limit <= 0) return undefined
+      const categoryCount = self.categorySetForAttrRole(role)?.values.length
+      if (categoryCount != null && limit >= categoryCount) return undefined
+      return limit
+    },
+    /**
      * @param role
      * @param emptyCategoryArray
      */
@@ -1098,9 +1117,7 @@ export const DataConfigurationModel = types
       categorySet?.setColorForCategory(cat, color)
     },
     setNumberOfCategoriesLimitForRole(role: AttrRole, limit: number | undefined) {
-      if (limit !== undefined && limit <= 0) {
-        limit = undefined
-      }
+      limit = self.effectiveCategoriesLimitForRole(role, limit)
       self.numberOfCategoriesLimitByRole.set(role, limit)
       self.categoryArrayForAttrRole.invalidate(role)
     },

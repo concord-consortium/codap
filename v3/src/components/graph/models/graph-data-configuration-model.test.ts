@@ -74,6 +74,58 @@ describe("DataConfigurationModel", () => {
     ])
   })
 
+  // Regression: the categories limit is derived from the axis length
+  // (floor(axisLength / kDefaultFontHeight)), so it ticks over every ~12px while a component is
+  // being resized. It only changes any result when it is SMALLER than the number of categories, but
+  // it used to be stored verbatim, and every distinct value invalidated the subPlotCases cache —
+  // whose rebuild is O(cells x cases). That is what made resizing a categorical graph crawl.
+  describe("categories limit normalization (resize performance)", () => {
+    const sweepAxisLengths = (config: typeof tree.config, from: number, to: number) => {
+      const kFontHeight = 12
+      for (let axisLength = from; axisLength <= to; axisLength += kFontHeight) {
+        config.setNumberOfCategoriesLimitForRole("x", Math.floor(axisLength / kFontHeight))
+      }
+    }
+
+    it("does not invalidate subplot caches for limits that cannot change the result", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "nId" })
+
+      // prime the caches, then watch for recomputation
+      const before = config.caseDataWithSubPlot.map(d => ({ ...d }))
+      let recomputes = 0
+      const dispose = reaction(() => config.caseDataWithSubPlot, () => { recomputes++ })
+
+      // simulate dragging the resize handle across a 300px range; every limit here is far larger
+      // than the handful of categories, so none of them can affect the plotted result
+      sweepAxisLengths(config, 300, 600)
+
+      // no cache invalidation, and the plotted result is unchanged
+      expect(recomputes).toBe(0)
+      expect(config.numberOfCategoriesLimitByRole.get("x")).toBeUndefined()
+      expect(config.caseDataWithSubPlot.map(d => ({ ...d }))).toEqual(before)
+      dispose()
+    })
+
+    it("still applies a limit that is smaller than the number of categories", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "nId" })
+
+      const allCategories = config.categoryArrayForAttrRole("x")
+      expect(allCategories.length).toBeGreaterThan(1)
+
+      // a limit below the category count must still clamp (and introduce the kOther bucket)
+      config.setNumberOfCategoriesLimitForRole("x", 1)
+      expect(config.categoryArrayForAttrRole("x").length).toBe(1)
+
+      // and releasing the limit restores the full set
+      config.setNumberOfCategoriesLimitForRole("x", allCategories.length)
+      expect(config.categoryArrayForAttrRole("x")).toEqual(allCategories)
+    })
+  })
+
   it("behaves as expected with dot chart on x axis", () => {
     const config = tree.config
     config.setDataset(tree.data, tree.metadata)
