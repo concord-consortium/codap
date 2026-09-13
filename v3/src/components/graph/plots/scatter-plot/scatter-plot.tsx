@@ -18,7 +18,7 @@ import { getDomainExtentForPixelWidth } from "../../../axis/axis-utils"
 import { If } from "../../../common/if"
 import { CaseData } from "../../../data-display/d3-types"
 import { ID3Tip } from "../../../data-display/data-display-types"
-import { handleClickOnCase, setPointSelection } from "../../../data-display/data-display-utils"
+import { handleClickOnCase, setPointSelection, legendShapeGetter } from "../../../data-display/data-display-utils"
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
 import {
   ConnectingLines, IConnectingLinesRenderInput
@@ -349,16 +349,12 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
       {pointColor, pointStrokeColor} = graphModel.pointDescription,
       getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
 
-    // Resolved here, alongside the color, so a point created by this path is drawn with its shape
-    // rather than as a circle until something later restyles it.
-    const shapeIfNoCategory = graphModel.pointDescription.pointShape
-    const getLegendShape = (anID: string) =>
-      dataConfiguration?.getLegendShapeForCase(anID, shapeIfNoCategory) ?? shapeIfNoCategory
 
     setPointCoordinates({
       dataset, renderer, pointRadius: graphModel.getPointRadius(),
       selectedPointRadius: selectedPointRadiusRef.current,
-      selectedOnly, getScreenX, getScreenY, getLegendColor, getLegendShape,
+      selectedOnly, getScreenX, getScreenY, getLegendColor, 
+      getLegendShape: legendShapeGetter(dataConfiguration, graphModel.pointDescription),
       getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex,
       pointColor, pointStrokeColor, getAnimationEnabled: isAnimating
     })
