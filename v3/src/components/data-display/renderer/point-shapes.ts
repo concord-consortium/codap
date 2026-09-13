@@ -168,18 +168,41 @@ export function pointShapeArea(shape: PointShape, r: number): number {
 }
 
 /*
- * The drawn bounding box. Used to size a shape against a box, and to check the normalization.
+ * The drawn bounding box. Used to check the tuning of the constants above, not to size anything --
+ * for a triangle or a star this box is not centered on the point, so a renderer positioning a shape
+ * by the middle of a box wants pointShapeSymmetricExtent instead.
  */
 export function pointShapeExtent(shape: PointShape, r: number): Extent {
   return kShapeDefs[shape].extent(r)
 }
 
 /*
+ * The smallest box centered on the point that contains the drawn shape, which for a triangle or a
+ * star is larger than the box that hugs the ink.
+ *
+ * What a renderer needs when it positions a shape by the middle of a box -- drawing into a texture
+ * and anchoring it at 0.5, 0.5 does exactly that -- since the drawn box is not centered on the
+ * point it belongs to.
+ */
+export function pointShapeSymmetricExtent(shape: PointShape, r: number): Extent {
+  const geometry = pointShapeGeometry(shape, r)
+  if (geometry.kind === "circle") return { w: 2 * geometry.radius, h: 2 * geometry.radius }
+
+  let maxAbsX = 0
+  let maxAbsY = 0
+  geometry.points.forEach(({ x, y }) => {
+    maxAbsX = Math.max(maxAbsX, Math.abs(x))
+    maxAbsY = Math.max(maxAbsY, Math.abs(y))
+  })
+  return { w: 2 * maxAbsX, h: 2 * maxAbsY }
+}
+
+/*
  * The distance from the center to the furthest vertex, which is what hit testing needs.
  *
- * Measured from the vertices rather than from the extent: the extent is the size of the drawn box,
- * and a triangle's box is not centered on the point, so half its larger side stops short of the ink
- * -- the apex sits at 2h/3 while half the width is s/2. A hit area sized that way misses the apex.
+ * Measured from the vertices rather than from the extent: a triangle's box is not centered on the
+ * point, so half its larger side stops short of the ink -- the apex sits at 2h/3 while half the
+ * width is s/2. A hit area sized that way misses the apex.
  */
 export function pointShapeBoundingRadius(shape: PointShape, r: number): number {
   const geometry = pointShapeGeometry(shape, r)
@@ -213,8 +236,20 @@ function isPointInPolygon(points: Point[], x: number, y: number): boolean {
  * matches the old circle wherever it is not.
  */
 export function isPointInShape(shape: PointShape, r: number, dx: number, dy: number): boolean {
+  return isPointInShapeGeometry(pointShapeGeometry(shape, r), r, dx, dy)
+}
+
+/*
+ * The same test against an outline the caller already has.
+ *
+ * For a caller that tests one point over and over, building the outline every time costs more than
+ * the test does -- a star's is ten sin/cos pairs and an allocation. Such a caller holds its geometry
+ * and comes here, so the containment itself is still written once.
+ */
+export function isPointInShapeGeometry(
+  geometry: PointShapeGeometry, r: number, dx: number, dy: number
+): boolean {
   if (dx * dx + dy * dy <= r * r) return true
 
-  const geometry = pointShapeGeometry(shape, r)
   return geometry.kind === "circle" ? false : isPointInPolygon(geometry.points, dx, dy)
 }

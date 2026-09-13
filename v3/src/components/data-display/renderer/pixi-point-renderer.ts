@@ -12,6 +12,11 @@ import {
 } from "./point-renderer-base"
 import { PointsState } from "./points-state"
 import { coalesceBars, IBarPiece, pointStateToBarPiece } from "./bar-coalescing"
+import { kDefaultPointShape, PointShape } from "../../../utilities/point-shape-utils"
+import {
+  isPointInShapeGeometry, PointShapeGeometry, pointShapeBoundingRadius, pointShapeGeometry,
+  pointShapeSymmetricExtent
+} from "./point-shapes"
 import {
   IBackgroundEventDistributionOptions,
   IPoint,
@@ -20,6 +25,75 @@ import {
   IPointStyle,
   RendererCapability
 } from "./point-renderer-types"
+
+/*
+ * The region of the shape's own coordinates that becomes the texture.
+ *
+ * A sprite draws its texture around its anchor, which for points is the middle of the texture, so
+ * the texture has to be centered on the point rather than on the ink. Left to size itself it takes
+ * the bounds of the ink, and a triangle's ink sits high -- centering that would draw the triangle
+ * low by about a third of its radius.
+ *
+ * Padded by the stroke, which straddles the outline and would otherwise clip at the widest vertices.
+ *
+ * Rounded up to whole units, because generateTexture truncates the frame's width and height to
+ * integers but translates by the origin it was given: a frame 15.6 wide becomes a 15-wide texture
+ * holding the shape's center at 7.8, while the anchor puts the texture's own center at 7.5, so the
+ * shape draws 0.3px right of the position it is hit tested at. How far off depends on the shape, so
+ * a point given a new shape lands somewhere slightly different than it sat before. Rounding up
+ * rather than to nearest keeps the full stroke padding.
+ */
+function symmetricFrame(shape: PointShape, radius: number, strokeWidth: number): PIXI.Rectangle {
+  const { w, h } = pointShapeSymmetricExtent(shape, radius)
+  const paddedW = Math.ceil(w + 2 * strokeWidth)
+  const paddedH = Math.ceil(h + 2 * strokeWidth)
+  return new PIXI.Rectangle(-paddedW / 2, -paddedH / 2, paddedW, paddedH)
+}
+
+/*
+ * Hit tests a sprite against the shape drawn on it rather than the rectangle of its texture, which
+ * is what a sprite falls back to and is looser than even the circle CODAP has always drawn.
+ *
+ * PIXI hands `contains` the pointer in the sprite's own coordinates, where the origin is the point's
+ * position, so these are the same offsets the canvas hit tester works in and both renderers agree
+ * on what counts as a hit.
+ *
+ * Everything this needs is held rather than derived, because PIXI's hitPruneFn calls `contains` on
+ * every interactive sprite with no cheaper bounds test of its own, and the sprites are all
+ * interactive: one pointer move over a dense plot is one call per point. Building a star's outline
+ * on each of them costs about 0.9ms across 5,000 points, nearly all of it spent answering misses.
+ */
+class PointShapeHitArea {
+  private geometry: PointShapeGeometry
+  // beyond this nothing can be on the point, which is the answer for nearly every call
+  private reachSq: number
+
+  constructor(public shape: PointShape, public radius: number) {
+    this.geometry = pointShapeGeometry(shape, radius)
+    this.reachSq = PointShapeHitArea.reachSqFor(shape, radius)
+  }
+
+  update(shape: PointShape, radius: number): void {
+    if (shape === this.shape && radius === this.radius) return
+
+    this.shape = shape
+    this.radius = radius
+    this.geometry = pointShapeGeometry(shape, radius)
+    this.reachSq = PointShapeHitArea.reachSqFor(shape, radius)
+  }
+
+  contains(x: number, y: number): boolean {
+    if (x * x + y * y > this.reachSq) return false
+    return isPointInShapeGeometry(this.geometry, this.radius, x, y)
+  }
+
+  // the ink can stop short of r -- a plus does, in its notches -- and the containment test answers
+  // for the circle there, so the reach is whichever of the two goes further
+  private static reachSqFor(shape: PointShape, radius: number): number {
+    const reach = Math.max(radius, pointShapeBoundingRadius(shape, radius))
+    return reach * reach
+  }
+}
 
 const DEFAULT_Z_INDEX = 0
 const RAISED_Z_INDEX = 100
@@ -450,7 +524,7 @@ export class PixiPointRenderer extends PointRendererBase {
     // Create sprites for added points (skip any already created by syncFromState above)
     added.forEach(pointId => {
       if (!this.sprites.has(pointId)) {
-        const sprite = this.getNewSprite(pointId, texture)
+        const sprite = this.getNewSprite(pointId, texture, style)
         this.pointsContainer.addChild(sprite)
         this.sprites.set(pointId, sprite)
       }
@@ -458,8 +532,13 @@ export class PixiPointRenderer extends PointRendererBase {
 
     // Update existing sprites
     this.sprites.forEach((sprite, pointId) => {
-      if (!added.includes(pointId) && sprite.texture !== texture) {
-        sprite.texture = texture
+      if (!added.includes(pointId)) {
+        if (sprite.texture !== texture) {
+          sprite.texture = texture
+        }
+        // against the uniform style, which is the one that drew the texture just assigned -- a
+        // point's own stored style can still be the one it had under the previous display type
+        this.syncHitArea(sprite, style)
       }
     })
 
@@ -501,6 +580,7 @@ export class PixiPointRenderer extends PointRendererBase {
     if (sprite.texture !== texture) {
       sprite.texture = texture
     }
+    this.syncHitArea(sprite, newStyle)
 
     this.doStartRendering()
   }
@@ -739,7 +819,7 @@ export class PixiPointRenderer extends PointRendererBase {
       if (!this.sprites.has(pointState.id)) {
         try {
           const texture = this.getPointTexture(pointState.style)
-          const sprite = this.getNewSprite(pointState.id, texture)
+          const sprite = this.getNewSprite(pointState.id, texture, pointState.style)
           sprite.position.set(pointState.x, pointState.y)
           sprite.scale.set(pointState.scale)
           sprite.zIndex = pointState.isRaised ? RAISED_Z_INDEX : DEFAULT_Z_INDEX
@@ -752,12 +832,30 @@ export class PixiPointRenderer extends PointRendererBase {
     })
   }
 
-  private getNewSprite(pointId: string, texture: PIXI.Texture): PIXI.Sprite {
+  private getNewSprite(pointId: string, texture: PIXI.Texture, style: IPointStyle): PIXI.Sprite {
     const sprite = new PIXI.Sprite(texture)
     sprite.anchor.copyFrom(this._anchor)
     sprite.zIndex = DEFAULT_Z_INDEX
+    this.syncHitArea(sprite, style)
     this.setupSpriteInteractivity(pointId, sprite)
     return sprite
+  }
+
+  /*
+   * Bars keep the sprite's own rectangular test, which is what a bar is. Only a point carries a
+   * shape to test against.
+   */
+  private syncHitArea(sprite: PIXI.Sprite, style: IPointStyle): void {
+    if (this._displayType !== "points") {
+      sprite.hitArea = null
+      return
+    }
+    const shape = style.shape ?? kDefaultPointShape
+    if (sprite.hitArea instanceof PointShapeHitArea) {
+      sprite.hitArea.update(shape, style.radius)
+    } else {
+      sprite.hitArea = new PointShapeHitArea(shape, style.radius)
+    }
   }
 
   private setPointXyProperty(prop: TransitionProp, sprite: PIXI.Sprite, x: number, y: number): void {
@@ -802,10 +900,10 @@ export class PixiPointRenderer extends PointRendererBase {
   private getPointTexture(style: IPointStyle, includeDimensions = false): PIXI.Texture {
     return this._displayType === "bars"
       ? this.getRectTexture(style, includeDimensions)
-      : this.getCircleTexture(style)
+      : this.getShapeTexture(style)
   }
 
-  private getCircleTexture(style: IPointStyle): PIXI.Texture {
+  private getShapeTexture(style: IPointStyle): PIXI.Texture {
     const { radius, fill, stroke, strokeWidth, strokeOpacity } = style
     const key = this.textureKey(style)
 
@@ -813,12 +911,25 @@ export class PixiPointRenderer extends PointRendererBase {
       return this.textures.get(key) as PIXI.Texture
     }
 
+    const shape = style.shape ?? kDefaultPointShape
+    const geometry = pointShapeGeometry(shape, radius)
     const graphics = new PIXI.Graphics()
-      .circle(0, 0, radius)
+    if (geometry.kind === "circle") {
+      graphics.circle(0, 0, geometry.radius)
+    } else {
+      graphics.poly(geometry.points.flatMap(({ x, y }) => [x, y]))
+    }
+    graphics
       .fill(fill)
-      .stroke({ color: stroke, width: strokeWidth, alpha: strokeOpacity ?? 0.4 })
+      // Rounded joins, matching the canvas renderer: PIXI would otherwise miter, which at the
+      // star's 36-degree tips reaches past the stroke padding and clips, and grows the spikes the
+      // canvas renderer already rounds away there and at the X's corners.
+      .stroke({ color: stroke, width: strokeWidth, alpha: strokeOpacity ?? 0.4, join: "round" })
 
-    return this.generateTexture(graphics, key)
+    // Circles keep the self-sizing path they have always used; everything else needs an explicit
+    // frame, for the reason given on symmetricFrame.
+    const frame = geometry.kind === "circle" ? undefined : symmetricFrame(shape, radius, strokeWidth)
+    return this.generateTexture(graphics, key, frame)
   }
 
   private getRectTexture(style: IPointStyle, includeDimensions = false): PIXI.Texture {
@@ -849,13 +960,14 @@ export class PixiPointRenderer extends PointRendererBase {
     return this.generateTexture(graphics, key)
   }
 
-  private generateTexture(graphics: PIXI.Graphics, key: string): PIXI.Texture {
+  private generateTexture(graphics: PIXI.Graphics, key: string, frame?: PIXI.Rectangle): PIXI.Texture {
     if (!this.renderer) {
       throw new Error("PixiPointRenderer renderer not initialized")
     }
     const texture = this.renderer.generateTexture({
       target: graphics,
       resolution: devicePixelRatio * MAX_SPRITE_SCALE,
+      ...(frame ? { frame } : {})
     })
 
     this.textures.set(key, texture)
@@ -910,8 +1022,19 @@ export class PixiPointRenderer extends PointRendererBase {
 
     if (!isBar && !isPoint) return
 
-    const newWidth = isBar ? width - 1 : radius * 2
-    const newHeight = isBar ? height - 1 : radius * 2
+    /*
+     * Points animate to the size of the texture that is about to replace the bar's, rather than to
+     * 2r. The texture is the shape's symmetric extent plus its stroke -- about 2.7r wide for a star
+     * -- and it arrives at scale 1, so animating to 2r ends the transition with the sprite jumping
+     * to its real size. Circles were off by the stroke alone, which is why this went unnoticed.
+     */
+    const destPointState = isPoint ? this.state.getPoint(pointId) : undefined
+    const destTexture = destPointState
+      ? this.getPointTexture({ ...destPointState.style, ...style }, true)
+      : undefined
+
+    const newWidth = isBar ? width - 1 : destTexture?.width ?? radius * 2
+    const newHeight = isBar ? height - 1 : destTexture?.height ?? radius * 2
 
     const scaleXFactor = newWidth / sprite.width
     const scaleYFactor = newHeight / sprite.height
@@ -927,6 +1050,8 @@ export class PixiPointRenderer extends PointRendererBase {
     if (pointState) {
       const newStyle = { ...pointState.style, ...style }
       const texture = this.getPointTexture(newStyle, true)
+      // the display type has changed by now, so what the sprite should be hit tested against has too
+      this.syncHitArea(sprite, newStyle)
 
       if (sprite.texture !== texture) {
         sprite.texture = texture
