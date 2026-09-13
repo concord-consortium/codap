@@ -862,6 +862,15 @@ export const DataConfigurationModel = types
         return !!(selection.length > 0 && selection?.every((anID: string) => self.dataset?.isCaseSelected(anID)))
       },
       /*
+       * Whether the legend assigns per-category state. Note this is narrower than
+       * isCategoricalAttributeType, which counts a color legend too: that one gives each case a
+       * color of its own, so there are no categories to hang a color or a shape on.
+       */
+      get legendHasCategories(): boolean {
+        const legendType = self.attributeType('legend')
+        return legendType === 'categorical' || legendType === 'checkbox'
+      },
+      /*
        * Whether the legend attribute lives in a collection more childmost than the plotted cases.
        * A point then stands for several children at once, and resolving the legend through any one
        * of them would attribute that child's value to the whole group, so callers fall back.
@@ -912,8 +921,7 @@ export const DataConfigurationModel = types
       // Changes identity when any category's shape changes, so a display can react to it the way it
       // reacts to legendColorDomain.
       get legendShapeDomain() {
-        const legendType = self.attributeType('legend')
-        if (legendType !== 'categorical' && legendType !== 'checkbox') return undefined
+        if (!self.legendHasCategories) return undefined
         return self.categorySetForAttrRole('legend')?.shapeMap
       },
       get legendColorDomain() {
@@ -963,22 +971,15 @@ export const DataConfigurationModel = types
             return ''
         }
       },
-      /*
-       * The shape for a case, mirroring getLegendColorForCase.
-       *
-       * Only a categorical legend has categories to carry shapes, so every other kind resolves to
-       * `shapeIfNoCategory` -- the display's own shape, which is also what a plot with no legend
-       * attribute draws throughout.
-       */
+      // `shapeIfNoCategory` is the display's own shape, which is what a plot with no legend draws
+      // throughout.
       getLegendShapeForCase(id: string, shapeIfNoCategory: PointShape = kDefaultPointShape): PointShape {
         const legendID = self.attributeID('legend')
         const legendAttribute = self.dataset?.getAttribute(legendID)
         if (!id || !legendID || !legendAttribute) return shapeIfNoCategory
 
-        const legendType = self.attributeType('legend')
-        if (legendType !== 'categorical' && legendType !== 'checkbox') return shapeIfNoCategory
+        if (!self.legendHasCategories) return shapeIfNoCategory
 
-        // as for color: a legend below the plotted cases cannot speak for a parent-level point
         if (self.legendCollectionIsMoreChildmost) return shapeIfNoCategory
 
         const legendValue = self.dataset?.getStrValue(id, legendID)

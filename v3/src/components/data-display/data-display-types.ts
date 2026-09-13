@@ -4,6 +4,8 @@ import {GraphPlace} from "../axis-graph-shared"
 import { ICase } from "../../models/data/data-set-types"
 
 export type Point = { x: number, y: number }
+// width and height without a position, for sizing something against a box
+export type Extent = { w: number, h: number }
 export type CPLine = { slope: number, intercept: number, pivot1?: Point, pivot2?: Point }
 export const kNullPoint = {x: -999, y: -999}
 

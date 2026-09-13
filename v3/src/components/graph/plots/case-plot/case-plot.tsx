@@ -3,7 +3,7 @@ import {useCallback, useEffect, useRef, useState} from "react"
 import {useDataSetContext} from "../../../../hooks/use-data-set-context"
 import {mstReaction} from "../../../../utilities/mst-reaction"
 import { CaseData } from "../../../data-display/d3-types"
-import {handleClickOnCase, setPointSelection} from "../../../data-display/data-display-utils"
+import {handleClickOnCase, setPointSelection, legendShapeGetter } from "../../../data-display/data-display-utils"
 import {useDataDisplayAnimation} from "../../../data-display/hooks/use-data-display-animation"
 import { IPoint, IPointMetadata } from "../../../data-display/renderer"
 import { IPlotProps } from "../../graphing-types"
@@ -101,15 +101,11 @@ export const CasePlot = function CasePlot({ renderer }: IPlotProps) {
       getLegendColor = dataConfiguration?.attributeID('legend')
         ? dataConfiguration?.getLegendColorForCase : undefined
 
-    // Resolved here, alongside the color, so a point created by this path is drawn with its shape
-    // rather than as a circle until something later restyles it.
-    const shapeIfNoCategory = graphModel.pointDescription.pointShape
-    const getLegendShape = (anID: string) =>
-      dataConfiguration?.getLegendShapeForCase(anID, shapeIfNoCategory) ?? shapeIfNoCategory
 
     setPointCoordinates({
       dataset, pointRadius, selectedPointRadius, renderer, selectedOnly,
-      pointColor, pointStrokeColor, getScreenX, getScreenY, getLegendColor, getLegendShape,
+      pointColor, pointStrokeColor, getScreenX, getScreenY, getLegendColor, 
+      getLegendShape: legendShapeGetter(dataConfiguration, graphModel.pointDescription),
       getAnimationEnabled: isAnimating
     })
   }, [renderer, graphModel, layout, dataConfiguration, dataset, isAnimating])

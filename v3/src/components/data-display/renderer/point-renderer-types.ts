@@ -15,8 +15,6 @@ export interface IPoint {
  */
 export interface IPointStyle {
   radius: number
-  // Absent means the default. Optional so every existing caller that builds a style keeps working
-  // and keeps drawing circles.
   shape?: PointShape
   fill: string
   stroke: string
