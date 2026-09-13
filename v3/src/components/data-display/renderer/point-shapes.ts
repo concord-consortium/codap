@@ -168,7 +168,9 @@ export function pointShapeArea(shape: PointShape, r: number): number {
 }
 
 /*
- * The drawn bounding box. Used to size a shape against a box, and to check the normalization.
+ * The drawn bounding box. Used to check the tuning of the constants above, not to size anything --
+ * for a triangle or a star this box is not centered on the point, so a renderer positioning a shape
+ * by the middle of a box wants pointShapeSymmetricExtent instead.
  */
 export function pointShapeExtent(shape: PointShape, r: number): Extent {
   return kShapeDefs[shape].extent(r)
@@ -234,8 +236,20 @@ function isPointInPolygon(points: Point[], x: number, y: number): boolean {
  * matches the old circle wherever it is not.
  */
 export function isPointInShape(shape: PointShape, r: number, dx: number, dy: number): boolean {
+  return isPointInShapeGeometry(pointShapeGeometry(shape, r), r, dx, dy)
+}
+
+/*
+ * The same test against an outline the caller already has.
+ *
+ * For a caller that tests one point over and over, building the outline every time costs more than
+ * the test does -- a star's is ten sin/cos pairs and an allocation. Such a caller holds its geometry
+ * and comes here, so the containment itself is still written once.
+ */
+export function isPointInShapeGeometry(
+  geometry: PointShapeGeometry, r: number, dx: number, dy: number
+): boolean {
   if (dx * dx + dy * dy <= r * r) return true
 
-  const geometry = pointShapeGeometry(shape, r)
   return geometry.kind === "circle" ? false : isPointInPolygon(geometry.points, dx, dy)
 }
