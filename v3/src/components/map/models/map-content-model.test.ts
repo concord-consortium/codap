@@ -330,6 +330,41 @@ describe("MapContentModel", () => {
     })
   })
 
+  describe("drawsShapedItemsFor", () => {
+    it("says a point layer draws shaped items", async () => {
+      const dataSet = DataSet.create({ name: "points" })
+      dataSet.addAttribute({ id: "lat", name: "Latitude" })
+      dataSet.addAttribute({ id: "long", name: "Longitude" })
+      const sharedDataSet = SharedDataSet.create()
+      sharedDataSet.setDataSet(dataSet)
+      sharedModelManager.addSharedModel(sharedDataSet)
+      sharedModelManager.addSharedModel(DataSetMetadata.create({ data: dataSet.id }))
+      await new Promise(resolve => setTimeout(resolve, 0))
+
+      const layer = mapContent.layers[0]
+      expect(mapContent.drawsShapedItemsFor(layer.dataConfiguration)).toBe(true)
+    })
+
+    it("says a polygon layer does not, since a boundary has no point to shape", async () => {
+      /*
+       * Without this the legend would resolve a category's assigned shape for a polygon layer --
+       * and the shape lives on the CategorySet, which is shared across tiles, so a star chosen in
+       * a graph would reach a map's boundary legend. The inspector already refuses the case.
+       */
+      const dataSet = DataSet.create({ name: "boundaries" })
+      dataSet.addAttribute({ id: "boundary", name: "Boundary", userType: "boundary" })
+      const sharedDataSet = SharedDataSet.create()
+      sharedDataSet.setDataSet(dataSet)
+      sharedModelManager.addSharedModel(sharedDataSet)
+      sharedModelManager.addSharedModel(DataSetMetadata.create({ data: dataSet.id }))
+      await new Promise(resolve => setTimeout(resolve, 0))
+
+      const layer = mapContent.layers.find(l => isMapPolygonLayerModel(l))
+      if (!layer) throw new Error("expected a polygon layer")
+      expect(mapContent.drawsShapedItemsFor(layer.dataConfiguration)).toBe(false)
+    })
+  })
+
   describe("titleCollection (CODAP-1249)", () => {
     // Each map layer's palette label should reflect the *collection* holding the
     // layer's spatial attributes (matching v2 behavior), not the dataset name.

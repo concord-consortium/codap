@@ -116,6 +116,12 @@ export const CategoricalLegend =
               .attr('data-testid', 'legend-key')
               .on('click', handleLegendKeyClick)
               .call(dragBehavior)
+            // An invisible full-box target under the key. A path takes pointer events on its ink
+            // alone, which for a star leaves a core under 8px across to click or start a drag from.
+            group.append('rect')
+              .attr('class', 'legend-key-target')
+              .attr('width', keySize)
+              .attr('height', keySize)
             group.append('path')
               .attr('class', 'legend-key-shape')
             group.append('text')
@@ -126,12 +132,19 @@ export const CategoricalLegend =
 
       const dI = legendModel.dragInfo
 
+      // A display drawing no shaped point -- boundaries, or points fused into bars -- gets a plain
+      // square, since a category's assigned shape would describe something that isn't drawn. The
+      // shape lives on the shared CategorySet, so without this a star chosen in a graph would
+      // appear on a map's boundary legend for the same attribute.
+      const keysAreShaped = displayModel?.drawsShapedItemsFor(dataConfiguration) ?? true
+
       // Asked of the display rather than read off it: a map keeps a description per layer, so the
       // shape a key falls back to has to be the one its own layer draws points with.
-      const keyShape = (category: string) =>
-        dataConfiguration?.getLegendShapeForCategory(
-          category,
-          displayModel?.displayItemDescriptionFor(dataConfiguration).pointShape) ?? kDefaultPointShape
+      const keyShape = (category: string) => keysAreShaped
+        ? dataConfiguration?.getLegendShapeForCategory(
+            category,
+            displayModel?.displayItemDescriptionFor(dataConfiguration).pointShape) ?? kDefaultPointShape
+        : "square"
 
       // The box is what gets centered in the key, so its own offset comes out of the placement.
       const keyOffset = (category: string) => {
@@ -139,6 +152,26 @@ export const CategoricalLegend =
         const center = pointShapeBoxCenter(shape, pointShapeRadiusWithinExtent(shape, keySize))
         return { x: keySize / 2 - center.x, y: keySize / 2 - center.y }
       }
+
+      // Where the key's box sits. The drawn shape is offset within the box, but the box itself is
+      // what the label sits beside and what the pointer target covers.
+      const cellPosition = (d: Key) => {
+        const isDragging = dI.category === d.category
+        const x = isDragging
+          ? dI.currentDragPosition.x - dI.initialOffset.x
+          : axisGap + (d.column || 0) * legendModel.layoutData.columnWidth
+        const y = labelHeight + (isDragging
+          ? dI.currentDragPosition.y - dI.initialOffset.y
+          : (d.row || 0) * (keySize + padding))
+        return { x, y }
+      }
+
+      keysSelection.select('rect')
+        .transition().duration(duration.current)
+        .attr('transform', (d) => {
+          const { x, y } = cellPosition(d)
+          return `translate(${x}, ${y})`
+        })
 
       keysSelection.select('path')
         .classed('legend-rect-selected', (d) => {
@@ -157,14 +190,9 @@ export const CategoricalLegend =
           duration.current = 0
         })
         .attr('transform', (d) => {
+          const { x, y } = cellPosition(d)
           const offset = keyOffset(d.category)
-          const x = (dI.category === d.category
-            ? dI.currentDragPosition.x - dI.initialOffset.x
-            : axisGap + (d.column || 0) * legendModel.layoutData.columnWidth) + offset.x
-          const y = labelHeight + (dI.category === d.category
-            ? dI.currentDragPosition.y - dI.initialOffset.y
-            : (d.row || 0) * (keySize + padding)) + offset.y
-          return `translate(${x}, ${y})`
+          return `translate(${x + offset.x}, ${y + offset.y})`
         })
       keysSelection.select('text')
         .text((d) => d.category)
@@ -172,16 +200,8 @@ export const CategoricalLegend =
         .on('end', () => {
           duration.current = 0
         })
-        .attr('x', (d) => {
-          return keySize + 3 + (dI.category === d.category
-            ? dI.currentDragPosition.x - dI.initialOffset.x
-            : axisGap + (d.column || 0) * legendModel.layoutData.columnWidth)
-        })
-        .attr('y', (d) => {
-          return labelHeight + 0.8 * keySize + (dI.category === d.category
-            ? dI.currentDragPosition.y - dI.initialOffset.y
-            : (d.row || 0)* (keySize + padding))
-        })
+        .attr('x', (d) => keySize + 3 + cellPosition(d).x)
+        .attr('y', (d) => 0.8 * keySize + cellPosition(d).y)
     }, {name: "CategoricalLegend d3 render"}, dataConfiguration) },
       // The display's own shape is read inside the autorun, which tracks it itself. Listing it here
       // would tear the autorun down and rebuild it every time a shape changed, which is both wasted

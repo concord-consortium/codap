@@ -134,6 +134,14 @@ export const DataDisplayContentModel = TileContentModel
     }
   }))
   .views(self => ({
+    /*
+     * Whether what is drawn from `dataConfig` carries a point shape, which is what tells a legend
+     * key whether to show one. A polygon layer draws boundaries and has no point to shape; a graph
+     * that has fused its points into bars overrides this for the same reason.
+     */
+    drawsShapedItemsFor(dataConfig?: IDataConfigurationModel): boolean {
+      return !self.displayItemDescriptionFor(dataConfig).isPolygon
+    },
     getTipText(props: IGetTipTextProps) {
       const { attributeIDs, caseID, dataset } = props
       // derived models may override in certain circumstances
