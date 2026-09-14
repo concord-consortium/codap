@@ -525,4 +525,22 @@ describe("GraphContentModel", () => {
       diComponentHandler.delete!({ component: tile })
     })
   })
+
+  describe("drawsShapedItemsFor", () => {
+    // A legend key shows a point's shape, so it has to stop showing one where no point is drawn.
+    it("says a plot of points draws shaped items", () => {
+      const content = GraphContentModel.create({})
+      expect(content.plot.displayType).toBe("points")
+      expect(content.drawsShapedItemsFor(content.dataConfiguration)).toBe(true)
+    })
+
+    it("says points fused into bars do not", () => {
+      const content = GraphContentModel.create({})
+      content.setPlotType("barChart")
+
+      expect(content.plot.displayType).toBe("bars")
+      expect(content.drawsShapedItemsFor(content.dataConfiguration)).toBe(false)
+    })
+  })
+
 })
