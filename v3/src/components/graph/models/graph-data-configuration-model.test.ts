@@ -1211,6 +1211,17 @@ describe("DataConfigurationModel legend point shapes", () => {
       expect(tree.config.legendAttributeIsInoperable).toBe(false)
     })
 
+    it("does not report a deleted attribute as inoperable", () => {
+      /*
+       * Deleting an attribute leaves its ID behind in the legend description (see the todo in
+       * getLegendColorForCase), and no collection holds it, so the allowed-check says no. Without
+       * a liveness check that reads as inoperable and the legend renders a nameless message.
+       */
+      tree.config.setAttribute("legend", { attributeID: "goneId" })
+
+      expect(tree.config.legendAttributeIsInoperable).toBe(false)
+    })
+
     it("reports nothing assigned when there is no legend attribute", () => {
       tree.config.setAttribute("legend", { attributeID: "" })
 

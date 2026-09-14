@@ -265,7 +265,14 @@ export const DataConfigurationModel = types
      */
     get legendAttributeIsInoperable(): boolean {
       const attrID = this.assignedLegendAttributeID
-      return !!attrID && !self.isAttributeAllowedForNonAxisRole(attrID)
+      /*
+       * Deleting an attribute leaves its ID behind in the description -- see the todo in
+       * getLegendColorForCase -- and no collection holds it, so the allowed-check below says no.
+       * Without this the legend would explain itself over a name that is no longer there.
+       */
+      if (!attrID || !self.dataset?.getAttribute(attrID)) return false
+
+      return !self.isAttributeAllowedForNonAxisRole(attrID)
     },
     _caseHasValidValuesForDescriptions(data: IDataSet, caseID: string,
                                        descriptions: AttributeDescriptionsMapSnapshot) {

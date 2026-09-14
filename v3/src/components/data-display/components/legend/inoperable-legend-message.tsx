@@ -61,7 +61,9 @@ export const InoperableLegendMessage = observer(function InoperableLegendMessage
     <text className="legend-inoperable-message" data-testid="legend-inoperable-message"
       x={axisGap} y={labelHeight + padding}>
       {lines.map((line, i) => (
-        <tspan key={line} x={axisGap} dy={i === 0 ? 0 : kLineHeight}>{line}</tspan>
+        // Keyed by position: a wrapped line has no identity apart from where it sits, and two of
+        // them can hold the same text once an attribute name repeats a word or the tile narrows.
+        <tspan key={i} x={axisGap} dy={i === 0 ? 0 : kLineHeight}>{line}</tspan>
       ))}
     </text>
   )
