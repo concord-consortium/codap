@@ -229,7 +229,7 @@ export const ScatterPlot = observer(function ScatterPlot({ renderer }: IPlotProp
     // Restyle the residual points so their selection halo tracks the upper plot's. This is a
     // style-only pass (no predictor/residual recompute, no data join), so selecting cases doesn't
     // re-run the residual pipeline. The caseIds delta is a Pixi-only optimization that doesn't apply
-    // to our SVG circles, so we restyle all of them.
+    // to our SVG residual points, so we restyle all of them.
     restyleResidualSelection()
   }, [dataConfiguration, graphModel, renderer, restyleResidualSelection])
 
