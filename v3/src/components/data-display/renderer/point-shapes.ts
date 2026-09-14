@@ -14,6 +14,20 @@ import { Extent, Point } from "../data-display-types"
  *
  * Do not re-derive the constants. They are tuned, and the relative weight of the set depends on
  * them.
+ *
+ * Two things every surface drawing these has had to be told separately, so they are written down
+ * here rather than in any one of them. The drawing APIs have no common call site, so this is a
+ * checklist for the next surface rather than something this module can enforce.
+ *
+ * 1. Round the stroke joins. A star's tips are about 50 degrees and an X's corners are sharper; a
+ *    miter runs roughly 2.4x the stroke width past them, so the default grows spikes that the plot
+ *    does not have. Canvas sets lineJoin, PIXI passes join, SVG sets stroke-linejoin.
+ *
+ * 2. Make the hit target at least the circle of radius r -- what isPointInShape unions with the ink,
+ *    and why. A plus's ink reaches only 58% of r toward its notches, so testing the ink alone makes
+ *    a point that chose one measurably harder to click than the circle it replaced. Surfaces that
+ *    hit test in code call isPointInShape; an SVG surface needs an unpainted circle behind the
+ *    outline, since a path takes pointer events on its ink.
  */
 const K = {
   square: 1.700,    // side

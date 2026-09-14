@@ -421,6 +421,43 @@ context("Graph adornments", () => {
     cy.get("*[data-testid^=residual-point-]").first().should("not.have.attr", "fill", "#4682b4")
   })
 
+  it("selects a residual point from a notch its ink does not reach", () => {
+    /*
+     * A path takes pointer events on its ink alone, so a plus -- whose arms reach only 58% of the
+     * radius toward the diagonals -- would be harder to hit than the circle it replaced, and the
+     * click would fall through to the background, whose handler deselects everything. An unpainted
+     * circle behind the outline restores the floor the canvas and PIXI renderers hit test against.
+     */
+    // The shape control is behind the pointShapes flag, which the shared beforeEach does not set.
+    cy.visit(`${Cypress.config("index")}?sample=mammals&dashboard&mouseSensor` +
+      `&suppressUnsavedWarning&features=pointShapes`)
+    cy.wait(2500)
+    c.selectTile("graph", 0)
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
+    cy.dragAttributeToTarget("table", "Speed", "left")
+    graph.getDisplayStylesButton().click()
+    cy.get("[data-testid=point-shape-select]").click()
+    cy.contains("[role=option]", "Plus").click()
+    graph.getDisplayValuesButton().click()
+    cy.get("[data-testid=adornment-checkbox-movable-line]").click()
+    cy.get("[data-testid=adornment-checkbox-residual-plot]").click()
+    cy.get("*[data-testid^=residual-points-]").find("path").should("have.length.at.least", 1)
+    cy.get('*[data-testid^=residual-point-][fill="#4682b4"]').should("not.exist")
+
+    // A point diagonally inside the radius but outside the arms. The click goes through the page so
+    // the browser's own hit testing decides what it lands on.
+    cy.get("*[data-testid^=residual-point-]").first().parent().find("circle").then($target => {
+      const r = +($target.attr("r") ?? 0)
+      const box = $target[0].getBoundingClientRect()
+      const cx = box.left + box.width / 2
+      const cy0 = box.top + box.height / 2
+      const offset = r * 0.62 / Math.SQRT2
+      cy.get("body").click(cx + offset, cy0 + offset)
+    })
+
+    cy.get('*[data-testid^=residual-point-][fill="#4682b4"]').should("have.length.at.least", 1)
+  })
+
   it("marquee-selects residual points with a drag over the residual strip", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Sleep", "bottom")
