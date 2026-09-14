@@ -133,7 +133,12 @@ export const LegendColorControls = observer(function LegendColorControls(
    * quantiled, so points only ever take these discrete colors and a smooth ramp would show shades
    * nothing in the plot has. Few bins therefore read as visible bands, which is honest.
    */
-  const legendBandColors: string[] = attrType === "numeric"
+  /*
+   * No gradient for a legend this display cannot honor: the points are all drawn in the
+   * missing-value color, so a band of the legend's colors would promise exactly what glyphColor
+   * below exists to stop promising -- and the gradient wins, since it paints the glyph's fill.
+   */
+  const legendBandColors: string[] = attrType === "numeric" && !dataConfiguration.legendAttributeIsInoperable
     ? (dataConfiguration.legendNumericColorScale?.range() ?? [])
     : []
   const legendBandStops = legendBandColors.flatMap((bandColor, i) => [

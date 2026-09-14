@@ -930,6 +930,38 @@ describe("point shape controls", () => {
       expect(glyph).toHaveStyle({ color: missingColor })
     })
 
+    it("draws no gradient on the glyph for a numeric legend it cannot honor", () => {
+      /*
+       * A numeric legend supplies a band of colors for the glyph's fill, and that fill wins over
+       * the color prop -- so without suppressing it the glyph would show the legend's colors while
+       * every point is drawn in the missing-value color.
+       */
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const desc = createMockDescription()
+      const config = inoperableConfig({ attributeType: jest.fn(() => "numeric") })
+      render(<LegendColorControls dataConfiguration={config as any}
+        displayItemDescription={desc as any} />)
+
+      // the gradient is applied through this custom property, which overrides the solid color
+      const glyph = within(screen.getByTestId("point-shape-select")).getAllByTestId("point-shape-glyph")[0]
+      expect(glyph.style.getPropertyValue("--point-shape-fill")).toBe("")
+      expect(glyph).toHaveStyle({ color: missingColor })
+    })
+
+    it("still draws the gradient for a numeric legend it can honor", () => {
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const desc = createMockDescription()
+      const config = inoperableConfig({
+        attributeType: jest.fn(() => "numeric"),
+        legendAttributeIsInoperable: false
+      })
+      render(<LegendColorControls dataConfiguration={config as any}
+        displayItemDescription={desc as any} />)
+
+      const glyph = within(screen.getByTestId("point-shape-select")).getAllByTestId("point-shape-glyph")[0]
+      expect(glyph.style.getPropertyValue("--point-shape-fill")).toMatch(/^url\(#/)
+    })
+
     it("leaves the rows alone when the legend is one the display can honor", () => {
       featureFlagManager.setServerConfig({ pointShapes: "on" })
       const desc = createMockDescription()

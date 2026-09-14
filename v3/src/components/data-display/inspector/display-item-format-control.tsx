@@ -135,7 +135,9 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
           displayItemDescription={displayItemDescription}
         />
 
-        <If condition={attrType === "numeric"}>
+        {/* Not for a legend this display cannot honor: every point is drawn in the missing-value
+            color, so binning and range have nothing to act on. */}
+        <If condition={attrType === "numeric" && !dataConfiguration.legendAttributeIsInoperable}>
           <LegendBinsSelect dataConfiguration={dataConfiguration} />
           <If condition={isFeatureEnabled("legendBinCount")}>
             <LegendBinCountInput dataConfiguration={dataConfiguration} />
