@@ -11,6 +11,7 @@ import { AttributeBinningTypes, AttributeBinningType } from "../../../models/sha
 import {
   kDefaultHighAttributeColor, kDefaultLowAttributeColor
 } from "../../../models/shared/data-set-metadata-constants"
+import { missingColor } from "../../../utilities/color-utils"
 import { binBoundaryDecimalPlaces } from "../../../utilities/math-utils"
 import { PointShape } from "../../../utilities/point-shape-utils"
 import { t } from "../../../utilities/translation/translate"
@@ -151,6 +152,14 @@ export const LegendColorControls = observer(function LegendColorControls(
    * those, or a shape chosen before the legend was added becomes unreachable while it goes on
    * governing what is drawn.
    */
+  /*
+   * The glyph shows what the points are actually drawn as. A legend this display cannot honor draws
+   * them in the missing-value color whatever the point color says, so tinting the glyph with the
+   * point color would promise something the plot does not do.
+   */
+  const glyphColor = dataConfiguration.legendAttributeIsInoperable
+    ? missingColor : displayItemDescription.pointColor
+
   const displayShapeRow = showShape
     ? (
         <div className="palette-row color-picker-row shape-row">
@@ -169,12 +178,20 @@ export const LegendColorControls = observer(function LegendColorControls(
           </If>
           <PointShapeSetting propertyLabel={t("V3.Inspector.pointShape")}
                             shape={displayItemDescription.pointShape}
-                            color={displayItemDescription.pointColor}
+                            color={glyphColor}
                             fillGradientId={hasFillGradient ? gradientId : undefined}
                             onShapeChange={handlePointShapeChange}/>
         </div>
       )
     : null
+
+  /*
+   * A legend this display cannot honor gets no per-category rows. The graph reaches here with
+   * attrType still "categorical" -- its attributeDescriptionForRole override keeps the description
+   * the base filters out -- so without this check the palette offers colors and shapes for
+   * categories that cannot reach the points. The legend itself says why.
+   */
+  if (dataConfiguration.legendAttributeIsInoperable) return displayShapeRow
 
   if (attrType === "categorical") {
     return (

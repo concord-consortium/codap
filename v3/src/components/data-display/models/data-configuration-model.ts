@@ -247,6 +247,26 @@ export const DataConfigurationModel = types
     }
   }))
   .views(self => ({
+    /*
+     * The legend attribute the user assigned, whether or not this display can honor it.
+     *
+     * Read off the description rather than through `attributeID`, which answers differently by
+     * display: the base filters an unusable legend out, while GraphDataConfigurationModel's
+     * override does not. The assignment is the user's intent either way, and the legend has to be
+     * able to name it -- and offer to remove it -- rather than drop it silently.
+     */
+    get assignedLegendAttributeID(): string {
+      return self._attributeDescriptions.get("legend")?.attributeID ?? ""
+    },
+    /*
+     * Whether that attribute is one this display cannot color or shape points by, because it lives
+     * in a collection more childmost than the plotted cases -- a point then stands for several of
+     * its values at once, which is why those points draw in the missing-value color.
+     */
+    get legendAttributeIsInoperable(): boolean {
+      const attrID = this.assignedLegendAttributeID
+      return !!attrID && !self.isAttributeAllowedForNonAxisRole(attrID)
+    },
     _caseHasValidValuesForDescriptions(data: IDataSet, caseID: string,
                                        descriptions: AttributeDescriptionsMapSnapshot) {
       return Object.entries(descriptions).every(([role, {attributeID}]) => {

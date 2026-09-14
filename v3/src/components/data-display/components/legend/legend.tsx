@@ -7,6 +7,7 @@ import { IDataConfigurationModel } from "../../models/data-configuration-model"
 import { LegendAttributeLabel } from "./legend-attribute-label"
 import { CategoricalLegend } from "./categorical-legend"
 import { ColorLegend } from "./color-legend"
+import { InoperableLegendMessage } from "./inoperable-legend-message"
 import { IBaseLegendProps } from "./legend-common"
 import { NumericLegend } from "./numeric-legend"
 
@@ -38,18 +39,26 @@ export const Legend = observer(function Legend({
   const dataConfiguration = useDataConfigurationContext(),
     legendID = dataConfiguration?.attributeID("legend"),
     legendRef = useRef() as React.RefObject<SVGSVGElement>
-  if (!dataConfiguration?.isAttributeAllowedForNonAxisRole(legendID)) return null
+  /*
+   * An assigned attribute this display cannot honor still gets a legend -- the label and the
+   * message, in place of the keys. Returning null for it hid the fact that the drop was accepted,
+   * and the remove action lives on the label, so there was no way back from the graph.
+   */
+  const isInoperable = !!dataConfiguration?.legendAttributeIsInoperable
+  if (!isInoperable && !dataConfiguration?.isAttributeAllowedForNonAxisRole(legendID)) return null
   const attrType = dataConfiguration?.attributeType('legend'),
     LegendComponent = dataConfiguration && legendComponentManager.getLegendComponent(dataConfiguration)
 
   // Only show the legend if there is a legend role specified in the dataConfiguration
-  return attrType ? (
+  return attrType || isInoperable ? (
     <>
       <svg ref={legendRef} className='legend-component' data-testid='legend-component'>
         <LegendAttributeLabel
           onChangeAttribute={onDropAttribute}
         />
-        {LegendComponent && <LegendComponent layerIndex={layerIndex} setDesiredExtent={setDesiredExtent} />}
+        {isInoperable
+          ? <InoperableLegendMessage layerIndex={layerIndex} setDesiredExtent={setDesiredExtent} />
+          : LegendComponent && <LegendComponent layerIndex={layerIndex} setDesiredExtent={setDesiredExtent} />}
       </svg>
     </>
   ) : null

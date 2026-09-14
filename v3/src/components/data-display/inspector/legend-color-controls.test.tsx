@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { scaleQuantize } from "d3"
 import { featureFlagManager } from "../../../models/feature-flags/feature-flag-manager"
+import { missingColor } from "../../../utilities/color-utils"
 import {
   LegendColorControls, LegendBinsSelect, LegendBinCountInput, LegendRangeInputs
 } from "./legend-color-controls"
@@ -889,4 +890,54 @@ describe("point shape controls", () => {
       expect(desc.setPointShape).toHaveBeenCalledWith("diamond")
     })
   })
+
+  describe("a legend the display cannot honor", () => {
+    const inoperableConfig = (overrides?: Record<string, unknown>) => createMockDataConfig({
+      // the graph reaches the palette with the type still resolved, which is why the rows appeared
+      attributeType: jest.fn(() => "categorical"),
+      categoryArrayForAttrRole: jest.fn(() => ["cat-a", "cat-b"]),
+      legendAttributeIsInoperable: true,
+      ...overrides
+    })
+
+    it("offers no per-category rows, since nothing they set can reach the points", () => {
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const desc = createMockDescription()
+      render(<LegendColorControls dataConfiguration={inoperableConfig() as any}
+        displayItemDescription={desc as any} />)
+
+      expect(screen.queryByTestId("color-swatch-cat-a")).not.toBeInTheDocument()
+      expect(screen.queryByTestId("color-swatch-cat-b")).not.toBeInTheDocument()
+    })
+
+    it("keeps the display-wide shape control, which does still reach them", () => {
+      // getLegendShapeForCase falls back to the display's own shape in this state
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const desc = createMockDescription()
+      render(<LegendColorControls dataConfiguration={inoperableConfig() as any}
+        displayItemDescription={desc as any} />)
+
+      expect(screen.getAllByTestId("point-shape-select")).toHaveLength(1)
+    })
+
+    it("draws the shape glyph in the missing-value color the points are drawn in", () => {
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const desc = createMockDescription()
+      render(<LegendColorControls dataConfiguration={inoperableConfig() as any}
+        displayItemDescription={desc as any} />)
+
+      const glyph = within(screen.getByTestId("point-shape-select")).getAllByTestId("point-shape-glyph")[0]
+      expect(glyph).toHaveStyle({ color: missingColor })
+    })
+
+    it("leaves the rows alone when the legend is one the display can honor", () => {
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const desc = createMockDescription()
+      render(<LegendColorControls dataConfiguration={inoperableConfig({ legendAttributeIsInoperable: false }) as any}
+        displayItemDescription={desc as any} />)
+
+      expect(screen.getByTestId("color-swatch-cat-a")).toBeInTheDocument()
+    })
+  })
+
 })

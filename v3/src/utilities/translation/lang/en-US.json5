@@ -1671,6 +1671,10 @@
     "V3.graphLSRL.showR": "Show r",
     "V3.graphLSRL.showRSquared": "Show r\u00B2",
     "V3.Inspector.graphResidualPlot": "Residual Plot",
+    // Shown where the legend keys would be, when the legend attribute belongs to a collection more
+    // childmost than the plotted cases. The check is structural -- it does not look at whether the
+    // values actually differ within a case -- so the wording says "can span". %@ is the attribute.
+    "V3.Legend.attributeNotOperable": "Each point can span multiple %@ values, so it can't be used to distinguish them.",
     "V3.ResidualPlot.axisLabel": "Residuals",
     "V3.ResidualPlot.dataTip.residual": "Residual",
     "V3.Undo.graph.showResidualPlot": "Undo showing residual plot",
