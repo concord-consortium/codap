@@ -26,8 +26,37 @@ export const GraphLegendHelper = {
   selectCategoryColorForCategoricalLegend(name: string) {
     gle.getCategoricalLegendCategory(name).parent().find(".legend-key-shape").click()
   },
+  /*
+   * Clicks the top-right corner of the key's box, which no shape's ink reaches -- it is 9px from the
+   * center of a circle drawn at radius 7.5. The click goes through the page rather than through the
+   * target element, so it is the browser's own hit testing that has to land on the target; clicking
+   * the element directly would pass whether or not a user could reach that corner.
+   *
+   * The left corners are no good for this: the tile's resize border overlays them.
+   */
+  selectCategoryKeyCornerForCategoricalLegend(name: string) {
+    gle.getCategoricalLegendCategory(name).parent().find(".legend-key-target").then($target => {
+      const box = $target[0].getBoundingClientRect()
+      const x = box.right - 1
+      const y = box.top + 1
+      cy.document().then(doc => {
+        expect(doc.elementFromPoint(x, y), "element under the key's empty corner")
+          .to.have.class("legend-key-target")
+      })
+      cy.get("body").click(x, y)
+    })
+  },
   unselectLegendCategory() {
         gle.getGraphTile().find(".plot-cell-background").eq(0).click({force:true})
+  },
+  // A circle is the only key drawn as arcs, so the arc command tells the two apart without pinning
+  // down the exact path data.
+  verifyCategoricalLegendKeyIsCircle(name: string, isCircle: boolean) {
+    gle.getCategoricalLegendCategory(name).parent().find(".legend-key-shape")
+      .should($path => {
+        const d = $path.attr("d") ?? ""
+        expect(/[Aa]/.test(d), `key for ${name} drawn as arcs`).to.equal(isCircle)
+      })
   },
   verifyCategoricalLegendKeySelected(name: string) {
     gle.getCategoricalLegendCategory(name).parent().find(".legend-key-shape")

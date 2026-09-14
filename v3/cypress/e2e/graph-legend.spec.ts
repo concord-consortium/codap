@@ -576,6 +576,29 @@ context("Test selecting and selecting categories in legend", () => {
     // ah.openAxisAttributeMenu("bottom")
     // ah.removeAttributeFromAxis(arrayOfAttributes[8], "bottom")
   })
+  it("will draw square keys once the points are fused into bars", () => {
+    // A bar carries no shape, so a key showing one would describe something that isn't drawn.
+    cy.dragAttributeToTarget("table", arrayOfAttributes[8], "bottom") // Diet => x-axis
+    glh.dragAttributeToPlot(arrayOfAttributes[7]) // Habitat => plot area
+    glh.verifyCategoricalLegendKeyIsCircle(arrayOfValues[7].values[0], true)
+
+    graph.getDisplayConfigButton().click()
+    cy.get("[data-testid=bar-chart-checkbox]").click()
+    cy.get("[data-testid=bar-cover]").should("exist")
+
+    glh.verifyCategoricalLegendKeyIsCircle(arrayOfValues[7].values[0], false)
+  })
+  it("will select a category from the unpainted part of its key box", () => {
+    /*
+     * The key is drawn as a path, which takes pointer events on its ink alone, so the corner of the
+     * box stopped selecting when the key stopped being a rect. A star's ink covers under 40% of the
+     * box; an invisible target behind the key keeps all of it clickable, for dragging as well.
+     */
+    cy.dragAttributeToTarget("table", arrayOfAttributes[8], "bottom") // Diet => x-axis
+    glh.dragAttributeToPlot(arrayOfAttributes[7]) // Habitat => plot area
+    glh.selectCategoryKeyCornerForCategoricalLegend(arrayOfValues[7].values[0])
+    glh.verifyCategoricalLegendKeySelected(arrayOfValues[7].values[0])
+  })
 })
 context("Test changing legend colors", () => {
   describe("Test changing legend colors for categorical legend", () => {

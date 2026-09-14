@@ -31,10 +31,25 @@
   // The key shape is listed alongside the rects because this is a type selector: a categorical key
   // is drawn as a path, and would otherwise lose the border and the softening every other legend
   // swatch has.
-  rect:not(.attribute-label-bg),
+  // The key target is excluded rather than overridden: it exists only to catch pointer events, and
+  // picking up this border would draw a visible box around every key.
+  rect:not(.attribute-label-bg):not(.legend-key-target),
   .legend-key-shape {
     opacity: 0.85;
     stroke: #315B7D;
+  }
+
+  // pointer-events rather than a fill, so it catches clicks and drags without painting anything.
+  .legend-key-target {
+    fill: none;
+    pointer-events: all;
+  }
+
+  // Rounded joins, as both point renderers draw: SVG otherwise miters, which spikes the star's
+  // 50-degree tips and the X's corners well past the stroke, and a key would stop looking like the
+  // points it stands for. Not shared with the rects above, whose square corners should stay square.
+  .legend-key-shape {
+    stroke-linejoin: round;
   }
 
 }

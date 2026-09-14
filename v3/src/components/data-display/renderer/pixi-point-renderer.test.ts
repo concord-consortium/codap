@@ -1,3 +1,4 @@
+import { PointShapes } from "../../../utilities/point-shape-utils"
 import { CaseDataWithSubPlot } from "../d3-types"
 import { NullPointRenderer } from "./null-point-renderer"
 import { PixiPointRenderer } from "./pixi-point-renderer"
@@ -46,7 +47,8 @@ jest.mock("pixi.js", () => {
     circle(...args: any[]) { this.traced.push({ op: "circle", args }); return this }
     poly(...args: any[]) { this.traced.push({ op: "poly", args }); return this }
     fill() { return this }
-    stroke() { return this }
+    strokeOptions: any = null
+    stroke(options: any) { this.strokeOptions = options; return this }
     destroy() {}
   }
   class MockTicker {
@@ -57,6 +59,9 @@ jest.mock("pixi.js", () => {
     destroy() {}
   }
   class MockTexture {
+    // what a real texture reports at scale 1: the frame it was generated from, or nothing when the
+    // graphics sized it themselves
+    constructor(public width?: number, public height?: number) {}
     destroy() {}
   }
   class MockRenderer {
@@ -76,7 +81,7 @@ jest.mock("pixi.js", () => {
     generateTextureCalls: any[] = []
     generateTexture(options: any) {
       this.generateTextureCalls.push(options)
-      return new MockTexture()
+      return new MockTexture(options.frame?.width, options.frame?.height)
     }
     destroy() {}
   }
@@ -151,6 +156,31 @@ describe("PixiPointRenderer", () => {
       expect(frame.y + frame.height / 2).toBeCloseTo(0, 6)
     })
 
+    it("frames every shape on whole units, which is all generateTexture can honor", async () => {
+      /*
+       * It truncates the frame's width and height but translates by the origin it was given, so a
+       * fractional frame leaves the shape drawn off the center its anchor assumes it is on.
+       */
+      for (const shape of PointShapes.filter(s => s !== "circle")) {
+        const { renderer } = await setUp({ ...defaultStyle, shape, radius: 7 })
+        const { frame } = lastTexture(renderer)
+
+        expect(frame.width).toBe(Math.trunc(frame.width))
+        expect(frame.height).toBe(Math.trunc(frame.height))
+        // and centered on the point, which is what the frame is there for
+        expect(frame.x + frame.width / 2).toBeCloseTo(0, 6)
+        expect(frame.y + frame.height / 2).toBeCloseTo(0, 6)
+      }
+    })
+
+    it("rounds the stroke joins, as the canvas renderer does", async () => {
+      // a miter on the star's 36-degree tips reaches past the stroke padding and clips, and draws
+      // the spikes the canvas renderer rounds away there and at the X's corners
+      const { renderer } = await setUp({ ...defaultStyle, shape: "star" })
+
+      expect(lastTexture(renderer).target.strokeOptions.join).toBe("round")
+    })
+
     it("gives two shapes two textures rather than sharing one", async () => {
       // the texture cache keys on the whole style, so a shape cannot collide with another
       const { pixiRenderer, renderer } = await setUp({ ...defaultStyle, shape: "square" })
@@ -160,6 +190,33 @@ describe("PixiPointRenderer", () => {
 
       expect(renderer.generateTextureCalls.length).toBe(before + 1)
       expect(lastTexture(renderer).target.traced.map((t: any) => t.op)).toContain("poly")
+    })
+
+    it("sizes the bars-to-points transition from the texture that replaces the bar", async () => {
+      /*
+       * The new texture arrives at scale 1, so the transition has to land on its real size. A
+       * star's is about 2.7r across; animating to 2r left the sprite to jump the rest of the way
+       * once the bar's texture was swapped in.
+       */
+      const style: IPointStyle = { ...defaultStyle, shape: "star", radius: 8, width: 20, height: 40 }
+      const pixiRenderer = new PixiPointRenderer(new PointsState())
+      await pixiRenderer.init()
+      const caseData = [createCaseData(0, "case1")]
+      pixiRenderer.matchPointsToData("dataset1", caseData, "bars", style)
+      pixiRenderer.matchPointsToData("dataset1", caseData, "points", style)
+
+      const renderer = (pixiRenderer as any).renderer
+      const pointId = (pixiRenderer as any).sprites.keys().next().value
+      const sprite = (pixiRenderer as any).sprites.get(pointId)
+      ;(pixiRenderer as any).doSetPositionOrTransition(pointId, style, 5, 5)
+
+      const target = (pixiRenderer as any).targetProp.scale.get(sprite)
+      const { frame } = lastTexture(renderer)
+      expect(frame).toBeDefined()
+      expect(target.x * sprite.width).toBeCloseTo(frame.width, 6)
+      expect(target.y * sprite.height).toBeCloseTo(frame.height, 6)
+      // which is not the 2r it used to animate to
+      expect(frame.width).toBeGreaterThan(2 * style.radius)
     })
 
     describe("hit area", () => {
@@ -173,13 +230,37 @@ describe("PixiPointRenderer", () => {
         expect(sprite.hitArea.contains(Math.cos(rad) * 10, Math.sin(rad) * 10)).toBe(false)
       })
 
-      it("keeps every shape at least as easy to hit as a circle", async () => {
+      it("applies the circle floor to a shape narrower than it", async () => {
+        // point-shapes.test.ts holds the floor across all seven shapes; what this checks is that a
+        // sprite reaches it, which a plus does at every angle through its notches
         const { sprite } = await setUp({ ...defaultStyle, shape: "plus", radius: 8 })
 
         for (let deg = 0; deg < 360; deg += 30) {
           const rad = deg * Math.PI / 180
           expect(sprite.hitArea.contains(Math.cos(rad) * 7.9, Math.sin(rad) * 7.9)).toBe(true)
         }
+      })
+
+      it("follows the radius when it changes", async () => {
+        // the outline and the reach it rejects against are held, so both have to be rebuilt here
+        const { pixiRenderer, sprite } = await setUp({ ...defaultStyle, shape: "circle", radius: 4 })
+        expect(sprite.hitArea.contains(0, -6)).toBe(false)
+
+        const pointId = (pixiRenderer as any).sprites.keys().next().value
+        ;(pixiRenderer as any).doSetPointStyle(pointId, { radius: 8 })
+
+        expect(sprite.hitArea.contains(0, -6)).toBe(true)
+      })
+
+      it("re-tests existing sprites against the shape they are redrawn with", async () => {
+        // matchPointsToData hands every existing sprite one texture; the hit area has to follow it
+        const { pixiRenderer, sprite } = await setUp({ ...defaultStyle, shape: "circle", radius: 8 })
+        expect(sprite.hitArea.contains(0, -10)).toBe(false)
+
+        pixiRenderer.matchPointsToData("dataset1", [createCaseData(0, "case1")], "points",
+          { ...defaultStyle, shape: "star", radius: 8 })
+
+        expect(sprite.hitArea.contains(0, -10)).toBe(true)
       })
 
       it("follows the shape when the style changes", async () => {
