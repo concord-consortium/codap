@@ -274,6 +274,19 @@ export const DataConfigurationModel = types
 
       return !self.isAttributeAllowedForNonAxisRole(attrID)
     },
+    /*
+     * Whether every point drawn from this configuration takes the missing-value color because of
+     * that, which is narrower and is what a control showing or setting a point's color needs.
+     *
+     * The difference is the display. A graph goes on routing through the legend it cannot honor,
+     * because GraphDataConfigurationModel keeps the description the base filters out, so
+     * getLegendColorForCase runs and every point comes back gray. The base filters the assignment
+     * to "", so a map never consults the legend at all and its points keep the display's own color
+     * -- where hiding the color control would take away something that still works.
+     */
+    get allPointsTakeMissingColor(): boolean {
+      return !!self.attributeID("legend") && this.legendAttributeIsInoperable
+    },
     _caseHasValidValuesForDescriptions(data: IDataSet, caseID: string,
                                        descriptions: AttributeDescriptionsMapSnapshot) {
       return Object.entries(descriptions).every(([role, {attributeID}]) => {

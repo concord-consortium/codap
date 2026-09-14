@@ -138,7 +138,7 @@ export const LegendColorControls = observer(function LegendColorControls(
    * missing-value color, so a band of the legend's colors would promise exactly what glyphColor
    * below exists to stop promising -- and the gradient wins, since it paints the glyph's fill.
    */
-  const legendBandColors: string[] = attrType === "numeric" && !dataConfiguration.legendAttributeIsInoperable
+  const legendBandColors: string[] = attrType === "numeric" && !dataConfiguration.allPointsTakeMissingColor
     ? (dataConfiguration.legendNumericColorScale?.range() ?? [])
     : []
   const legendBandStops = legendBandColors.flatMap((bandColor, i) => [
@@ -162,7 +162,7 @@ export const LegendColorControls = observer(function LegendColorControls(
    * them in the missing-value color whatever the point color says, so tinting the glyph with the
    * point color would promise something the plot does not do.
    */
-  const glyphColor = dataConfiguration.legendAttributeIsInoperable
+  const glyphColor = dataConfiguration.allPointsTakeMissingColor
     ? missingColor : displayItemDescription.pointColor
 
   const displayShapeRow = showShape
@@ -196,7 +196,7 @@ export const LegendColorControls = observer(function LegendColorControls(
    * the base filters out -- so without this check the palette offers colors and shapes for
    * categories that cannot reach the points. The legend itself says why.
    */
-  if (dataConfiguration.legendAttributeIsInoperable) return displayShapeRow
+  if (dataConfiguration.allPointsTakeMissingColor) return displayShapeRow
 
   if (attrType === "categorical") {
     return (
