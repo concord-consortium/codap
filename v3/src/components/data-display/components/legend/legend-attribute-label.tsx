@@ -114,6 +114,9 @@ export const LegendAttributeLabel =
         onChangeAttribute={onChangeAttribute}
         onRemoveAttribute={handleRemoveAttribute}
         onTreatAttributeAs={handleTreatAttributeAs}
+        // The menu resolves the attribute itself otherwise, and reads "" for one this display
+        // cannot honor -- which reads as no attribute, so it offers no way to remove it.
+        attrIdOverride={dataConfiguration.assignedLegendAttributeID}
       />
     )
   }

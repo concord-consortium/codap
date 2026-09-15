@@ -357,6 +357,39 @@ describe("MapContentModel", () => {
       expect(layer.dataConfiguration.assignedLegendAttributeID).toBe("leg")
       expect(layer.dataConfiguration.legendAttributeIsInoperable).toBe(true)
     })
+
+    it("prefers a layer that can honor the attribute over one that cannot", async () => {
+      /*
+       * Closeness alone is not enough: the layer nearest the legend's collection can be one that
+       * cannot honor it. Each moveAttributeToNewCollection appends a collection, so moving in this
+       * order builds [f0][boundary][legend][f3][lat, long] -- the boundary one collection above the
+       * legend and unable to honor it, lat two below and able to.
+       */
+      const dataSet = DataSet.create({ name: "both" })
+      ;["f0", "bnd", "leg", "f3", "lat", "long"].forEach(id => {
+        dataSet.addAttribute({ id, name: id, userType: id === "bnd" ? "boundary" : undefined })
+      })
+      const sharedDataSet = SharedDataSet.create()
+      sharedDataSet.setDataSet(dataSet)
+      sharedModelManager.addSharedModel(sharedDataSet)
+      sharedModelManager.addSharedModel(DataSetMetadata.create({ data: dataSet.id }))
+      await new Promise(resolve => setTimeout(resolve, 0))
+
+      ;["f0", "bnd", "leg", "f3"].forEach(id => dataSet.moveAttributeToNewCollection(id))
+      const indexOf = (id: string) =>
+        dataSet.collections.findIndex(col => !!col.getAttribute(id))
+      expect(indexOf("bnd")).toBe(1)
+      expect(indexOf("leg")).toBe(2)
+      expect(indexOf("lat")).toBe(4)
+
+      mapContent.setLegendAttribute(dataSet.id, "leg")
+
+      // the polygon layer is nearer the legend, but cannot honor it
+      const pointLayer = mapContent.layers.find(l => isMapPointLayerModel(l))
+      const polygonLayer = mapContent.layers.find(l => isMapPolygonLayerModel(l))
+      expect(polygonLayer?.dataConfiguration.assignedLegendAttributeID).toBe("")
+      expect(pointLayer?.dataConfiguration.assignedLegendAttributeID).toBe("leg")
+    })
   })
 
   describe("drawsShapedItemsFor", () => {

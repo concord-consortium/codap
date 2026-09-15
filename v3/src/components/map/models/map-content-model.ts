@@ -215,11 +215,16 @@ export const MapContentModel = DataDisplayContentModel
        * would not spare the user the state, since moving a position attribute to a parent
        * collection reaches it after the assignment is made.
        *
-       * Sorted by distance from the legend's collection, so the closest layer to it wins.
+       * A layer that can honor the attribute is preferred over one that cannot, and among equals
+       * the one whose collection is closest to the legend's wins. A layer that cannot honor it is
+       * the fallback rather than the answer.
        */
+      const canHonor = (layer: IDataDisplayLayerModel) =>
+        getGisCollectionIndex(layer as IMapLayerModel) >= legendCollectionIndex
       const candidateLayers = self.layers.slice()
           .filter(layer => layerIsMapLayerAndIsVisible(layer) && layer.data?.id === datasetID)
           .sort((layerA, layerB) => {
+        if (canHonor(layerA) !== canHonor(layerB)) return canHonor(layerA) ? -1 : 1
         const aIndex = getGisCollectionIndex(layerA as IMapLayerModel),
           bIndex = getGisCollectionIndex(layerB as IMapLayerModel)
         return Math.abs(aIndex - legendCollectionIndex) - Math.abs(bIndex - legendCollectionIndex)

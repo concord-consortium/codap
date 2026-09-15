@@ -140,7 +140,13 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
 
   // Manage the heatmap
   const { isVisible: layerIsVisible, pointsAreVisible, displayType } = mapLayerModel
-  const displayHeatmap = displayType === "heatmap" && pointsAreVisible && layerIsVisible && legendAttributeId
+  /*
+   * A heatmap weights cases by the legend attribute, so it needs one that resolves per case. Where
+   * it does not -- no legend, or one this layer cannot honor -- the layer draws points instead of
+   * drawing nothing, since displayType alone would leave it blank.
+   */
+  const canDrawHeatmap = !!legendAttributeId
+  const displayHeatmap = displayType === "heatmap" && canDrawHeatmap && pointsAreVisible && layerIsVisible
   // Since the canvas is only rendered when the heatmap is visible,
   // we need to initialize simpleheat with it whenever displayHeatmap becomes true.
   useEffect(() => {
@@ -311,7 +317,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
     }, caseIdsToUpdate)
   }, [pointDescription, mapLayerModel, dataConfiguration, renderer])
 
-  const displayPoints = displayType === "points" && pointsAreVisible && layerIsVisible
+  const displayPoints = (displayType === "points" || !canDrawHeatmap) && pointsAreVisible && layerIsVisible
   const refreshPoints = useDebouncedCallback(async (selectedOnly: boolean) => {
     const mapBounds = leafletMap.getBounds()
     const west = mapBounds.getWest()
@@ -484,7 +490,14 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
   useEffect(function respondToLayerVisibilityChange() {
     return mstReaction(() => {
         return {
-          reactionDisplayPoints: mapLayerModel.displayType === "points",
+          /*
+           * Matches displayPoints above: a layer set to a heatmap it cannot draw shows points
+           * instead. The legend attribute is read here rather than captured outside, so that a
+           * legend becoming unusable re-fires this and makes the renderer visible again --
+           * refreshPoints cannot, since it returns early while the renderer is hidden.
+           */
+          reactionDisplayPoints: mapLayerModel.displayType === "points" ||
+            !dataConfiguration.attributeID('legend'),
           reactionLayerIsVisible: mapLayerModel.isVisible,
           reactionPointsAreVisible: mapLayerModel.pointsAreVisible
         }
@@ -503,7 +516,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
       },
       {name: "MapPointLayer.respondToLayerVisibilityChange"}, mapLayerModel
     )
-  }, [mapLayerModel, refreshHeatmap, refreshPoints, renderer])
+  }, [dataConfiguration, mapLayerModel, refreshHeatmap, refreshPoints, renderer])
 
   // respond to point properties change
   useEffect(function respondToPointVisualChange() {
