@@ -274,19 +274,6 @@ export const DataConfigurationModel = types
 
       return !self.isAttributeAllowedForNonAxisRole(attrID)
     },
-    /*
-     * Whether every point drawn from this configuration takes the missing-value color because of
-     * that, which is narrower and is what a control showing or setting a point's color needs.
-     *
-     * The difference is the display. A graph goes on routing through the legend it cannot honor,
-     * because GraphDataConfigurationModel keeps the description the base filters out, so
-     * getLegendColorForCase runs and every point comes back gray. The base filters the assignment
-     * to "", so a map never consults the legend at all and its points keep the display's own color
-     * -- where hiding the color control would take away something that still works.
-     */
-    get allPointsTakeMissingColor(): boolean {
-      return !!self.attributeID("legend") && this.legendAttributeIsInoperable
-    },
     _caseHasValidValuesForDescriptions(data: IDataSet, caseID: string,
                                        descriptions: AttributeDescriptionsMapSnapshot) {
       return Object.entries(descriptions).every(([role, {attributeID}]) => {
@@ -982,6 +969,15 @@ export const DataConfigurationModel = types
         }
       },
       getLegendColorForCase(id: string, colorIfMissing = missingColor): string {
+        /*
+         * Answered before the checks below, which read attributeID and so answer differently by
+         * display: the base filters an unusable assignment out, a graph's override keeps it. Without
+         * this a map would fall through to its own point color and draw normally colored points
+         * under a legend saying the attribute cannot distinguish them.
+         */
+        if (id && self.legendAttributeIsInoperable) {
+          return colorIfMissing
+        }
         const legendID = self.attributeID('legend')
         // todo: When user deletes we are not currently deleting the legend attribute ID. But we should.
         const legendAttribute = self.dataset?.getAttribute(legendID)

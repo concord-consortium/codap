@@ -130,7 +130,7 @@ describe("DisplayItemFormatControl", () => {
     const desc = createMockDescription()
     const config = createMockDataConfig({
       attributeType: jest.fn(() => "numeric"),
-      allPointsTakeMissingColor: true
+      legendAttributeIsInoperable: true
     })
     render(
       <DisplayItemFormatControl

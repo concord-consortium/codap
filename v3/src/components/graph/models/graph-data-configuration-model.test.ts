@@ -1211,23 +1211,13 @@ describe("DataConfigurationModel legend point shapes", () => {
       expect(tree.config.legendAttributeIsInoperable).toBe(false)
     })
 
-    it("says the points take the missing color, because a graph still routes through the legend", () => {
-      /*
-       * The narrower of the two views. GraphDataConfigurationModel keeps the description the base
-       * filters out, so attributeID still answers and getLegendColorForCase runs and grays every
-       * point -- which is what makes hiding the palette's color controls correct here.
-       */
+    it("draws its points in the missing-value color", () => {
+      // the base configuration reaches the same answer by a different route; see
+      // data-configuration-legend-operability.test.ts
       makeLegendChildmost()
 
       expect(tree.config.attributeID("legend")).toBe("legId")
-      expect(tree.config.allPointsTakeMissingColor).toBe(true)
-    })
-
-    it("says they do not once the legend is honorable again", () => {
-      makeLegendChildmost()
-      tree.config.setAttribute("x", { attributeID: "legId" })
-
-      expect(tree.config.allPointsTakeMissingColor).toBe(false)
+      expect(tree.config.getLegendColorForCase(tree.data.items[0].__id__)).toBe(missingColor)
     })
 
     it("does not report a deleted attribute as inoperable", () => {

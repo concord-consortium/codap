@@ -330,6 +330,35 @@ describe("MapContentModel", () => {
     })
   })
 
+  describe("setLegendAttribute", () => {
+    it("takes an attribute more childmost than the layer's position attributes", async () => {
+      /*
+       * The layer cannot color by it -- each point stands for several of its values -- but it takes
+       * it and says so, as a graph does. Discarding it here would be silent, and would not spare
+       * the user the state anyway: moving lat to a parent collection reaches it after the fact.
+       */
+      const dataSet = DataSet.create({ name: "points" })
+      dataSet.addAttribute({ id: "lat", name: "Latitude" })
+      dataSet.addAttribute({ id: "long", name: "Longitude" })
+      dataSet.addAttribute({ id: "leg", name: "Habitat" })
+      const sharedDataSet = SharedDataSet.create()
+      sharedDataSet.setDataSet(dataSet)
+      sharedModelManager.addSharedModel(sharedDataSet)
+      sharedModelManager.addSharedModel(DataSetMetadata.create({ data: dataSet.id }))
+      await new Promise(resolve => setTimeout(resolve, 0))
+
+      // lat and long move to a parent collection, leaving the legend attribute childmost
+      dataSet.moveAttributeToNewCollection("lat")
+      dataSet.moveAttribute("long", { collection: dataSet.collections[0].id })
+
+      mapContent.setLegendAttribute(dataSet.id, "leg")
+
+      const layer = mapContent.layers[0]
+      expect(layer.dataConfiguration.assignedLegendAttributeID).toBe("leg")
+      expect(layer.dataConfiguration.legendAttributeIsInoperable).toBe(true)
+    })
+  })
+
   describe("drawsShapedItemsFor", () => {
     it("says a point layer draws shaped items", async () => {
       const dataSet = DataSet.create({ name: "points" })

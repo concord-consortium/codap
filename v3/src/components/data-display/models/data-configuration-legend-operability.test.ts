@@ -1,5 +1,6 @@
 import { Instance, types } from "@concord-consortium/mobx-state-tree"
 import { DataSet, toCanonical } from "../../../models/data/data-set"
+import { missingColor } from "../../../utilities/color-utils"
 import { DataSetMetadata } from "../../../models/shared/data-set-metadata"
 import { DataConfigurationModel } from "./data-configuration-model"
 
@@ -47,16 +48,16 @@ describe("a legend attribute the base configuration cannot honor", () => {
     expect(tree.config.assignedLegendAttributeID).toBe("legId")
   })
 
-  it("does not report the points as taking the missing color", () => {
+  it("draws its points in the missing-value color, as a graph does", () => {
     /*
-     * The base filters the unusable assignment out of attributeID, so nothing consults the legend
-     * and the points keep the display's own color. A palette control setting that color still does
-     * something, and hiding it would take away a working control -- on a polygon layer, the only
-     * one in its section.
+     * The base filters the unusable assignment out of attributeID, so the checks inside
+     * getLegendColorForCase that read it would fall through and hand back nothing -- and the map
+     * would draw normally colored points under a legend saying the attribute cannot distinguish
+     * them. The inoperable state is answered ahead of those checks so both displays agree.
      */
     makeLegendChildmost()
 
     expect(tree.config.attributeID("legend")).toBe("")
-    expect(tree.config.allPointsTakeMissingColor).toBe(false)
+    expect(tree.config.getLegendColorForCase("c1")).toBe(missingColor)
   })
 })
