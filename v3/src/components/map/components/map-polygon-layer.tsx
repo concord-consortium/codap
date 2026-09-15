@@ -42,6 +42,12 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
     if (!dataset || !isAlive(mapLayerModel)) return
 
     const selectedCases = dataConfiguration.selection,
+      /*
+       * A legend the layer cannot honor does not count as a legend here, where on a point layer it
+       * does. A map carries one legend with no way to assign one per layer, so it reads as
+       * belonging to the points, and boundaries keep their own color rather than going gray with
+       * them. Gray points on gray boundaries would say less than gray points on colored ones.
+       */
       hasLegend = !!dataConfiguration.attributeID('legend')
     Object.values(mapLayerModel.features).forEach((feature) => {
       const

@@ -247,6 +247,33 @@ export const DataConfigurationModel = types
     }
   }))
   .views(self => ({
+    /*
+     * The legend attribute the user assigned, whether or not this display can honor it.
+     *
+     * Read off the description rather than through `attributeID`, which answers differently by
+     * display: the base filters an unusable legend out, while GraphDataConfigurationModel's
+     * override does not. The assignment is the user's intent either way, and the legend has to be
+     * able to name it -- and offer to remove it -- rather than drop it silently.
+     */
+    get assignedLegendAttributeID(): string {
+      return self._attributeDescriptions.get("legend")?.attributeID ?? ""
+    },
+    /*
+     * Whether that attribute is one this display cannot color or shape points by, because it lives
+     * in a collection more childmost than the plotted cases -- a point then stands for several of
+     * its values at once, which is why those points draw in the missing-value color.
+     */
+    get legendAttributeIsInoperable(): boolean {
+      const attrID = this.assignedLegendAttributeID
+      /*
+       * Deleting an attribute leaves its ID behind in the description -- see the todo in
+       * getLegendColorForCase -- and no collection holds it, so the allowed-check below says no.
+       * Without this the legend would explain itself over a name that is no longer there.
+       */
+      if (!attrID || !self.dataset?.getAttribute(attrID)) return false
+
+      return !self.isAttributeAllowedForNonAxisRole(attrID)
+    },
     _caseHasValidValuesForDescriptions(data: IDataSet, caseID: string,
                                        descriptions: AttributeDescriptionsMapSnapshot) {
       return Object.entries(descriptions).every(([role, {attributeID}]) => {
@@ -942,6 +969,15 @@ export const DataConfigurationModel = types
         }
       },
       getLegendColorForCase(id: string, colorIfMissing = missingColor): string {
+        /*
+         * Answered before the checks below, which read attributeID and so answer differently by
+         * display: the base filters an unusable assignment out, a graph's override keeps it. Without
+         * this a map would fall through to its own point color and draw normally colored points
+         * under a legend saying the attribute cannot distinguish them.
+         */
+        if (id && self.legendAttributeIsInoperable) {
+          return colorIfMissing
+        }
         const legendID = self.attributeID('legend')
         // todo: When user deletes we are not currently deleting the legend attribute ID. But we should.
         const legendAttribute = self.dataset?.getAttribute(legendID)
@@ -949,9 +985,6 @@ export const DataConfigurationModel = types
           return ''
         }
         const legendType = self.attributeType('legend')
-        if (self.legendCollectionIsMoreChildmost) {
-          return colorIfMissing
-        }
         const legendValue = self.dataset?.getStrValue(id, legendID)
         if (!legendValue) {
           return colorIfMissing
@@ -980,6 +1013,9 @@ export const DataConfigurationModel = types
 
         if (!self.legendHasCategories) return shapeIfNoCategory
 
+        // This is the live check for shape, where the color path's equivalent is unreachable: color
+        // answers the inoperable case up front, and this returns on an empty legendID before it
+        // could. Both amount to falling back rather than speaking for a group.
         if (self.legendCollectionIsMoreChildmost) return shapeIfNoCategory
 
         const legendValue = self.dataset?.getStrValue(id, legendID)

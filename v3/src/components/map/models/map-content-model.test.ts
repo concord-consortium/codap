@@ -330,6 +330,68 @@ describe("MapContentModel", () => {
     })
   })
 
+  describe("setLegendAttribute", () => {
+    it("takes an attribute more childmost than the layer's position attributes", async () => {
+      /*
+       * The layer cannot color by it -- each point stands for several of its values -- but it takes
+       * it and says so, as a graph does. Discarding it here would be silent, and would not spare
+       * the user the state anyway: moving lat to a parent collection reaches it after the fact.
+       */
+      const dataSet = DataSet.create({ name: "points" })
+      dataSet.addAttribute({ id: "lat", name: "Latitude" })
+      dataSet.addAttribute({ id: "long", name: "Longitude" })
+      dataSet.addAttribute({ id: "leg", name: "Habitat" })
+      const sharedDataSet = SharedDataSet.create()
+      sharedDataSet.setDataSet(dataSet)
+      sharedModelManager.addSharedModel(sharedDataSet)
+      sharedModelManager.addSharedModel(DataSetMetadata.create({ data: dataSet.id }))
+      await new Promise(resolve => setTimeout(resolve, 0))
+
+      // lat and long move to a parent collection, leaving the legend attribute childmost
+      dataSet.moveAttributeToNewCollection("lat")
+      dataSet.moveAttribute("long", { collection: dataSet.collections[0].id })
+
+      mapContent.setLegendAttribute(dataSet.id, "leg")
+
+      const layer = mapContent.layers[0]
+      expect(layer.dataConfiguration.assignedLegendAttributeID).toBe("leg")
+      expect(layer.dataConfiguration.legendAttributeIsInoperable).toBe(true)
+    })
+
+    it("prefers a layer that can honor the attribute over one that cannot", async () => {
+      /*
+       * Closeness alone is not enough: the layer nearest the legend's collection can be one that
+       * cannot honor it. Each moveAttributeToNewCollection appends a collection, so moving in this
+       * order builds [f0][boundary][legend][f3][lat, long] -- the boundary one collection above the
+       * legend and unable to honor it, lat two below and able to.
+       */
+      const dataSet = DataSet.create({ name: "both" })
+      ;["f0", "bnd", "leg", "f3", "lat", "long"].forEach(id => {
+        dataSet.addAttribute({ id, name: id, userType: id === "bnd" ? "boundary" : undefined })
+      })
+      const sharedDataSet = SharedDataSet.create()
+      sharedDataSet.setDataSet(dataSet)
+      sharedModelManager.addSharedModel(sharedDataSet)
+      sharedModelManager.addSharedModel(DataSetMetadata.create({ data: dataSet.id }))
+      await new Promise(resolve => setTimeout(resolve, 0))
+
+      ;["f0", "bnd", "leg", "f3"].forEach(id => dataSet.moveAttributeToNewCollection(id))
+      const indexOf = (id: string) =>
+        dataSet.collections.findIndex(col => !!col.getAttribute(id))
+      expect(indexOf("bnd")).toBe(1)
+      expect(indexOf("leg")).toBe(2)
+      expect(indexOf("lat")).toBe(4)
+
+      mapContent.setLegendAttribute(dataSet.id, "leg")
+
+      // the polygon layer is nearer the legend, but cannot honor it
+      const pointLayer = mapContent.layers.find(l => isMapPointLayerModel(l))
+      const polygonLayer = mapContent.layers.find(l => isMapPolygonLayerModel(l))
+      expect(polygonLayer?.dataConfiguration.assignedLegendAttributeID).toBe("")
+      expect(pointLayer?.dataConfiguration.assignedLegendAttributeID).toBe("leg")
+    })
+  })
+
   describe("drawsShapedItemsFor", () => {
     it("says a point layer draws shaped items", async () => {
       const dataSet = DataSet.create({ name: "points" })

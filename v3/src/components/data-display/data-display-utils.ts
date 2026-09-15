@@ -152,6 +152,14 @@ export function setPointSelection(
     pointColor, pointStrokeColor, pointShape, getPointColorAtIndex } = props
   const dataset = dataConfiguration.dataset
   const legendID = dataConfiguration.attributeID('legend')
+  /*
+   * A legend the display cannot honor counts as having one here. Its ID reads "" on a map, because
+   * the base configuration filters an unusable assignment out, so testing the ID alone would send
+   * map points down the no-legend path and paint them the display's color -- while the map's own
+   * refresh painted them the missing-value color, and the legend said the attribute cannot
+   * distinguish them. The two paths have to agree.
+   */
+  const hasLegendInEffect = !!legendID || dataConfiguration.legendAttributeIsInoperable
   if (!renderer) {
     return
   }
@@ -160,13 +168,13 @@ export function setPointSelection(
     const isSelected = !!dataset?.isCaseSelected(caseID)
     // Determine fill color based on legend or plotNum; no-legend selected points override to blue below
     let fill: string
-    if (legendID) {
+    if (hasLegendInEffect) {
       fill = dataConfiguration?.getLegendColorForCase(caseID)
     } else {
       fill = plotNum && getPointColorAtIndex ? getPointColorAtIndex(plotNum) : pointColor
     }
     // When there's no legend, use blue fill for selection instead of a colored stroke
-    const useSelectionFill = isSelected && !legendID
+    const useSelectionFill = isSelected && !hasLegendInEffect
     const style: Partial<IPointStyle> = {
       shape: dataConfiguration.getLegendShapeForCase(caseID, pointShape),
       fill: useSelectionFill ? defaultSelectedColor : fill,

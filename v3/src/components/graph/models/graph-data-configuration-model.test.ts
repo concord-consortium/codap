@@ -1175,6 +1175,70 @@ describe("DataConfigurationModel legend point shapes", () => {
     expect(tree.config.getLegendShapeForCase(parentCaseId, "star")).toBe("star")
   })
 
+  describe("an assigned legend attribute this display cannot honor", () => {
+    // The same hierarchy as the fallback test above: x in the parent, legend left childmost.
+    const makeLegendChildmost = () => {
+      tree.data.addAttribute({ id: "xId", name: "x" })
+      tree.data.setCaseValues([
+        { __id__: "c1", xId: "shared" },
+        { __id__: "c2", xId: "shared" }
+      ])
+      tree.config.setAttribute("x", { attributeID: "xId" })
+      tree.data.moveAttributeToNewCollection("xId")
+    }
+
+    it("is reported as inoperable rather than dropped", () => {
+      /*
+       * The graph's attributeDescriptionForRole override keeps the description the base filters
+       * out, so neither attributeID nor attributeType can answer this on its own.
+       */
+      expect(tree.config.legendAttributeIsInoperable).toBe(false)
+
+      makeLegendChildmost()
+
+      expect(tree.config.legendAttributeIsInoperable).toBe(true)
+      // the assignment is still the user's, and the legend has to be able to name it to remove it
+      expect(tree.config.assignedLegendAttributeID).toBe("legId")
+    })
+
+    it("is not reported inoperable once the plotted cases reach it again", () => {
+      makeLegendChildmost()
+      expect(tree.config.legendAttributeIsInoperable).toBe(true)
+
+      // plotting a childmost attribute puts the legend back within reach
+      tree.config.setAttribute("x", { attributeID: "legId" })
+
+      expect(tree.config.legendAttributeIsInoperable).toBe(false)
+    })
+
+    it("draws its points in the missing-value color", () => {
+      // the base configuration reaches the same answer by a different route; see
+      // data-configuration-legend-operability.test.ts
+      makeLegendChildmost()
+
+      expect(tree.config.attributeID("legend")).toBe("legId")
+      expect(tree.config.getLegendColorForCase(tree.data.items[0].__id__)).toBe(missingColor)
+    })
+
+    it("does not report a deleted attribute as inoperable", () => {
+      /*
+       * Deleting an attribute leaves its ID behind in the legend description (see the todo in
+       * getLegendColorForCase), and no collection holds it, so the allowed-check says no. Without
+       * a liveness check that reads as inoperable and the legend renders a nameless message.
+       */
+      tree.config.setAttribute("legend", { attributeID: "goneId" })
+
+      expect(tree.config.legendAttributeIsInoperable).toBe(false)
+    })
+
+    it("reports nothing assigned when there is no legend attribute", () => {
+      tree.config.setAttribute("legend", { attributeID: "" })
+
+      expect(tree.config.assignedLegendAttributeID).toBe("")
+      expect(tree.config.legendAttributeIsInoperable).toBe(false)
+    })
+  })
+
   it("falls back to the default when there is no legend attribute", () => {
     tree.config.setAttribute("legend", { attributeID: "" })
     // no category set to consult, so reads resolve rather than returning undefined

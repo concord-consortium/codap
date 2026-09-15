@@ -120,6 +120,30 @@ describe("DisplayItemFormatControl", () => {
     expect(screen.getByTestId("legend-range-inputs")).toBeInTheDocument()
   })
 
+  it("hides the numeric legend controls for a legend the display cannot honor", () => {
+    /*
+     * Every point is drawn in the missing-value color in that state, so binning and range have
+     * nothing to act on. The palette drops its own rows for it; these are its siblings and need
+     * the same gate.
+     */
+    featureFlagManager.setServerConfig({ legendBinCount: "on", legendRange: "on" })
+    const desc = createMockDescription()
+    const config = createMockDataConfig({
+      attributeType: jest.fn(() => "numeric"),
+      legendAttributeIsInoperable: true
+    })
+    render(
+      <DisplayItemFormatControl
+        dataConfiguration={config as any}
+        displayItemDescription={desc as any}
+      />
+    )
+
+    expect(screen.queryByTestId("legend-bins-select")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("legend-bin-count-input")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("legend-range-inputs")).not.toBeInTheDocument()
+  })
+
   it("hides the flagged numeric legend controls when their flags are off", () => {
     const desc = createMockDescription()
     const config = createMockDataConfig({

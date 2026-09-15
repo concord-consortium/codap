@@ -11,6 +11,7 @@ import { AttributeBinningTypes, AttributeBinningType } from "../../../models/sha
 import {
   kDefaultHighAttributeColor, kDefaultLowAttributeColor
 } from "../../../models/shared/data-set-metadata-constants"
+import { missingColor } from "../../../utilities/color-utils"
 import { binBoundaryDecimalPlaces } from "../../../utilities/math-utils"
 import { PointShape } from "../../../utilities/point-shape-utils"
 import { t } from "../../../utilities/translation/translate"
@@ -40,6 +41,15 @@ export const LegendColorControls = observer(function LegendColorControls(
   const attrType = dataConfiguration.attributeType("legend")
   // The map mounts these controls for its polygon layers too, and a polygon has no point to shape.
   const showShape = isFeatureEnabled("pointShapes") && !displayItemDescription.isPolygon
+  /*
+   * Whether a legend this display cannot honor actually reaches what it draws. It does for points,
+   * which take the missing-value color; it does not for boundaries, which keep their own color --
+   * see map-polygon-layer, where that is deliberate. Controls setting a color are live in the
+   * second case and inert in the first.
+   */
+  const itemsTakeMissingColor =
+    dataConfiguration.legendAttributeIsInoperable && !displayItemDescription.isPolygon
+
   const categoriesRef = useRef<string[] | undefined>()
   categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole("legend")
   const metadata = dataConfiguration.metadata
@@ -132,7 +142,12 @@ export const LegendColorControls = observer(function LegendColorControls(
    * quantiled, so points only ever take these discrete colors and a smooth ramp would show shades
    * nothing in the plot has. Few bins therefore read as visible bands, which is honest.
    */
-  const legendBandColors: string[] = attrType === "numeric"
+  /*
+   * No gradient for a legend this display cannot honor: the points are all drawn in the
+   * missing-value color, so a band of the legend's colors would promise exactly what glyphColor
+   * below exists to stop promising -- and the gradient wins, since it paints the glyph's fill.
+   */
+  const legendBandColors: string[] = attrType === "numeric" && !itemsTakeMissingColor
     ? (dataConfiguration.legendNumericColorScale?.range() ?? [])
     : []
   const legendBandStops = legendBandColors.flatMap((bandColor, i) => [
@@ -151,6 +166,10 @@ export const LegendColorControls = observer(function LegendColorControls(
    * those, or a shape chosen before the legend was added becomes unreachable while it goes on
    * governing what is drawn.
    */
+  // The glyph shows what is actually drawn, so tinting it with the point color where the points
+  // take the missing-value color would promise something the plot does not do.
+  const glyphColor = itemsTakeMissingColor ? missingColor : displayItemDescription.pointColor
+
   const displayShapeRow = showShape
     ? (
         <div className="palette-row color-picker-row shape-row">
@@ -169,12 +188,20 @@ export const LegendColorControls = observer(function LegendColorControls(
           </If>
           <PointShapeSetting propertyLabel={t("V3.Inspector.pointShape")}
                             shape={displayItemDescription.pointShape}
-                            color={displayItemDescription.pointColor}
+                            color={glyphColor}
                             fillGradientId={hasFillGradient ? gradientId : undefined}
                             onShapeChange={handlePointShapeChange}/>
         </div>
       )
     : null
+
+  /*
+   * A legend this display cannot honor gets no per-category rows. The graph reaches here with
+   * attrType still "categorical" -- its attributeDescriptionForRole override keeps the description
+   * the base filters out -- so without this check the palette offers colors and shapes for
+   * categories that cannot reach the points. The legend itself says why.
+   */
+  if (itemsTakeMissingColor) return displayShapeRow
 
   if (attrType === "categorical") {
     return (

@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { scaleQuantize } from "d3"
 import { featureFlagManager } from "../../../models/feature-flags/feature-flag-manager"
+import { missingColor } from "../../../utilities/color-utils"
 import {
   LegendColorControls, LegendBinsSelect, LegendBinCountInput, LegendRangeInputs
 } from "./legend-color-controls"
@@ -889,4 +890,140 @@ describe("point shape controls", () => {
       expect(desc.setPointShape).toHaveBeenCalledWith("diamond")
     })
   })
+
+  describe("a legend the display cannot honor", () => {
+    const inoperableConfig = (overrides?: Record<string, unknown>) => createMockDataConfig({
+      // the graph reaches the palette with the type still resolved, which is why the rows appeared
+      attributeType: jest.fn(() => "categorical"),
+      categoryArrayForAttrRole: jest.fn(() => ["cat-a", "cat-b"]),
+      legendAttributeIsInoperable: true,
+      ...overrides
+    })
+
+    it("offers no per-category rows, since nothing they set can reach the points", () => {
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const desc = createMockDescription()
+      render(<LegendColorControls dataConfiguration={inoperableConfig() as any}
+        displayItemDescription={desc as any} />)
+
+      expect(screen.queryByTestId("color-swatch-cat-a")).not.toBeInTheDocument()
+      expect(screen.queryByTestId("color-swatch-cat-b")).not.toBeInTheDocument()
+    })
+
+    it("keeps the display-wide shape control, which does still reach them", () => {
+      // getLegendShapeForCase falls back to the display's own shape in this state
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const desc = createMockDescription()
+      render(<LegendColorControls dataConfiguration={inoperableConfig() as any}
+        displayItemDescription={desc as any} />)
+
+      expect(screen.getAllByTestId("point-shape-select")).toHaveLength(1)
+    })
+
+    it("draws the shape glyph in the missing-value color the points are drawn in", () => {
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const desc = createMockDescription()
+      render(<LegendColorControls dataConfiguration={inoperableConfig() as any}
+        displayItemDescription={desc as any} />)
+
+      const glyph = within(screen.getByTestId("point-shape-select")).getAllByTestId("point-shape-glyph")[0]
+      expect(glyph).toHaveStyle({ color: missingColor })
+    })
+
+    it("draws no gradient on the glyph for a numeric legend it cannot honor", () => {
+      /*
+       * A numeric legend supplies a band of colors for the glyph's fill, and that fill wins over
+       * the color prop -- so without suppressing it the glyph would show the legend's colors while
+       * every point is drawn in the missing-value color.
+       */
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const desc = createMockDescription()
+      const config = inoperableConfig({ attributeType: jest.fn(() => "numeric") })
+      render(<LegendColorControls dataConfiguration={config as any}
+        displayItemDescription={desc as any} />)
+
+      // the gradient is applied through this custom property, which overrides the solid color
+      const glyph = within(screen.getByTestId("point-shape-select")).getAllByTestId("point-shape-glyph")[0]
+      expect(glyph.style.getPropertyValue("--point-shape-fill")).toBe("")
+      expect(glyph).toHaveStyle({ color: missingColor })
+    })
+
+    it("still draws the gradient for a numeric legend it can honor", () => {
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const desc = createMockDescription()
+      const config = inoperableConfig({
+        attributeType: jest.fn(() => "numeric"),
+        legendAttributeIsInoperable: false
+      })
+      render(<LegendColorControls dataConfiguration={config as any}
+        displayItemDescription={desc as any} />)
+
+      const glyph = within(screen.getByTestId("point-shape-select")).getAllByTestId("point-shape-glyph")[0]
+      expect(glyph.style.getPropertyValue("--point-shape-fill")).toMatch(/^url\(#/)
+    })
+
+    it("drops the color control for a display with no legend type resolved, as a map has", () => {
+      /*
+       * A map reaches this with attributeType undefined, because the base configuration filters the
+       * unusable assignment out -- but its points are drawn in the missing-value color just as a
+       * graph's are, so a color control here would set something nothing reads.
+       */
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const desc = createMockDescription()
+      const config = createMockDataConfig({
+        attributeType: jest.fn(() => undefined),
+        legendAttributeIsInoperable: true
+      })
+      render(<LegendColorControls dataConfiguration={config as any}
+        displayItemDescription={desc as any} />)
+
+      expect(screen.queryByTestId("color-swatch-DG.Inspector.color")).not.toBeInTheDocument()
+      expect(screen.getByTestId("point-shape-select")).toBeInTheDocument()
+    })
+
+    it("keeps the color control on a polygon layer, which still draws in its own color", () => {
+      /*
+       * Boundaries deliberately ignore a legend the layer cannot honor -- see map-polygon-layer --
+       * so the color that governs them is still this one. A polygon has no shape control to fall
+       * back on, so dropping the color control would leave the section with nothing in it.
+       */
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const desc = createMockDescription({ pointSizeMultiplier: -1 })
+      const config = createMockDataConfig({
+        attributeType: jest.fn(() => undefined),
+        legendAttributeIsInoperable: true
+      })
+      render(<LegendColorControls dataConfiguration={config as any}
+        displayItemDescription={desc as any} />)
+
+      expect(screen.getByTestId("color-swatch-DG.Inspector.color")).toBeInTheDocument()
+    })
+
+    it("drops the color control with the shape flag off, which is how it ships", () => {
+      // showShape is false without the flag, so the shape row is null and the early return hands
+      // back nothing -- correct for points, which are gray, but only if they really are the case
+      const desc = createMockDescription()
+      const config = createMockDataConfig({
+        attributeType: jest.fn(() => "categorical"),
+        categoryArrayForAttrRole: jest.fn(() => ["cat-a", "cat-b"]),
+        legendAttributeIsInoperable: true
+      })
+      render(<LegendColorControls dataConfiguration={config as any}
+        displayItemDescription={desc as any} />)
+
+      expect(screen.queryByTestId("color-swatch-DG.Inspector.color")).not.toBeInTheDocument()
+      expect(screen.queryByTestId("color-swatch-cat-a")).not.toBeInTheDocument()
+      expect(screen.queryByTestId("point-shape-select")).not.toBeInTheDocument()
+    })
+
+    it("leaves the rows alone when the legend is one the display can honor", () => {
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const desc = createMockDescription()
+      render(<LegendColorControls dataConfiguration={inoperableConfig({ legendAttributeIsInoperable: false }) as any}
+        displayItemDescription={desc as any} />)
+
+      expect(screen.getByTestId("color-swatch-cat-a")).toBeInTheDocument()
+    })
+  })
+
 })
