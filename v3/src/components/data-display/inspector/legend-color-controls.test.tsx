@@ -981,6 +981,41 @@ describe("point shape controls", () => {
       expect(screen.getByTestId("point-shape-select")).toBeInTheDocument()
     })
 
+    it("keeps the color control on a polygon layer, which still draws in its own color", () => {
+      /*
+       * Boundaries deliberately ignore a legend the layer cannot honor -- see map-polygon-layer --
+       * so the color that governs them is still this one. A polygon has no shape control to fall
+       * back on, so dropping the color control would leave the section with nothing in it.
+       */
+      featureFlagManager.setServerConfig({ pointShapes: "on" })
+      const desc = createMockDescription({ pointSizeMultiplier: -1 })
+      const config = createMockDataConfig({
+        attributeType: jest.fn(() => undefined),
+        legendAttributeIsInoperable: true
+      })
+      render(<LegendColorControls dataConfiguration={config as any}
+        displayItemDescription={desc as any} />)
+
+      expect(screen.getByTestId("color-swatch-DG.Inspector.color")).toBeInTheDocument()
+    })
+
+    it("drops the color control with the shape flag off, which is how it ships", () => {
+      // showShape is false without the flag, so the shape row is null and the early return hands
+      // back nothing -- correct for points, which are gray, but only if they really are the case
+      const desc = createMockDescription()
+      const config = createMockDataConfig({
+        attributeType: jest.fn(() => "categorical"),
+        categoryArrayForAttrRole: jest.fn(() => ["cat-a", "cat-b"]),
+        legendAttributeIsInoperable: true
+      })
+      render(<LegendColorControls dataConfiguration={config as any}
+        displayItemDescription={desc as any} />)
+
+      expect(screen.queryByTestId("color-swatch-DG.Inspector.color")).not.toBeInTheDocument()
+      expect(screen.queryByTestId("color-swatch-cat-a")).not.toBeInTheDocument()
+      expect(screen.queryByTestId("point-shape-select")).not.toBeInTheDocument()
+    })
+
     it("leaves the rows alone when the legend is one the display can honor", () => {
       featureFlagManager.setServerConfig({ pointShapes: "on" })
       const desc = createMockDescription()

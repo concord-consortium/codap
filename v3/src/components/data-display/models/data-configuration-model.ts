@@ -985,9 +985,6 @@ export const DataConfigurationModel = types
           return ''
         }
         const legendType = self.attributeType('legend')
-        if (self.legendCollectionIsMoreChildmost) {
-          return colorIfMissing
-        }
         const legendValue = self.dataset?.getStrValue(id, legendID)
         if (!legendValue) {
           return colorIfMissing
@@ -1016,6 +1013,9 @@ export const DataConfigurationModel = types
 
         if (!self.legendHasCategories) return shapeIfNoCategory
 
+        // This is the live check for shape, where the color path's equivalent is unreachable: color
+        // answers the inoperable case up front, and this returns on an empty legendID before it
+        // could. Both amount to falling back rather than speaking for a group.
         if (self.legendCollectionIsMoreChildmost) return shapeIfNoCategory
 
         const legendValue = self.dataset?.getStrValue(id, legendID)

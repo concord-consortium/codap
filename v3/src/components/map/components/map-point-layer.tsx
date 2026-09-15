@@ -133,7 +133,13 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
   // which case the additional validation via the DataSet would be unnecessary.
   const legendAttributeId = dataConfiguration.attributeID('legend')
   const legendAttribute = dataset?.getAttribute(legendAttributeId)
-  const getLegendColor = legendAttribute ? dataConfiguration?.getLegendColorForCase : undefined
+  /*
+   * A legend this layer cannot honor counts here too. Its ID reads "" -- the base configuration
+   * filters an unusable assignment out -- so testing the attribute alone leaves connecting lines
+   * to fall back to the plot color while the points they join are drawn in the missing-value one.
+   */
+  const getLegendColor = legendAttribute || dataConfiguration.legendAttributeIsInoperable
+    ? dataConfiguration?.getLegendColorForCase : undefined
   const lookupLegendColor = (aCaseData: CaseData) => {
     return dataConfiguration.getLegendColorForCase(aCaseData.caseID) || pointDescription.pointColor
   }
@@ -145,7 +151,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
    * it does not -- no legend, or one this layer cannot honor -- the layer draws points instead of
    * drawing nothing, since displayType alone would leave it blank.
    */
-  const canDrawHeatmap = !!legendAttributeId
+  const canDrawHeatmap = !!legendAttributeId && !dataConfiguration.legendAttributeIsInoperable
   const displayHeatmap = displayType === "heatmap" && canDrawHeatmap && pointsAreVisible && layerIsVisible
   // Since the canvas is only rendered when the heatmap is visible,
   // we need to initialize simpleheat with it whenever displayHeatmap becomes true.

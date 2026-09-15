@@ -533,7 +533,9 @@ export const MapContentModel = DataDisplayContentModel
     placeCanAcceptAttributeIDDrop(place: GraphPlace, dataset: IDataSet, attributeID: string | undefined) {
       if (dataset && attributeID) {
         const foundLayer = self.layers.find(layer => layer.data === dataset)
-        return !!foundLayer && foundLayer.dataConfiguration.attributeID('legend') !== attributeID
+        // Compared against the assigned attribute rather than attributeID, which reads "" for one
+        // the layer cannot honor -- so the map would offer to accept the attribute it already holds.
+        return !!foundLayer && foundLayer.dataConfiguration.assignedLegendAttributeID !== attributeID
       }
       return false
     },

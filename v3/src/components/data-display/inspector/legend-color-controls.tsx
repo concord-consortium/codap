@@ -41,6 +41,15 @@ export const LegendColorControls = observer(function LegendColorControls(
   const attrType = dataConfiguration.attributeType("legend")
   // The map mounts these controls for its polygon layers too, and a polygon has no point to shape.
   const showShape = isFeatureEnabled("pointShapes") && !displayItemDescription.isPolygon
+  /*
+   * Whether a legend this display cannot honor actually reaches what it draws. It does for points,
+   * which take the missing-value color; it does not for boundaries, which keep their own color --
+   * see map-polygon-layer, where that is deliberate. Controls setting a color are live in the
+   * second case and inert in the first.
+   */
+  const itemsTakeMissingColor =
+    dataConfiguration.legendAttributeIsInoperable && !displayItemDescription.isPolygon
+
   const categoriesRef = useRef<string[] | undefined>()
   categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole("legend")
   const metadata = dataConfiguration.metadata
@@ -138,7 +147,7 @@ export const LegendColorControls = observer(function LegendColorControls(
    * missing-value color, so a band of the legend's colors would promise exactly what glyphColor
    * below exists to stop promising -- and the gradient wins, since it paints the glyph's fill.
    */
-  const legendBandColors: string[] = attrType === "numeric" && !dataConfiguration.legendAttributeIsInoperable
+  const legendBandColors: string[] = attrType === "numeric" && !itemsTakeMissingColor
     ? (dataConfiguration.legendNumericColorScale?.range() ?? [])
     : []
   const legendBandStops = legendBandColors.flatMap((bandColor, i) => [
@@ -157,13 +166,9 @@ export const LegendColorControls = observer(function LegendColorControls(
    * those, or a shape chosen before the legend was added becomes unreachable while it goes on
    * governing what is drawn.
    */
-  /*
-   * The glyph shows what the points are actually drawn as. A legend this display cannot honor draws
-   * them in the missing-value color whatever the point color says, so tinting the glyph with the
-   * point color would promise something the plot does not do.
-   */
-  const glyphColor = dataConfiguration.legendAttributeIsInoperable
-    ? missingColor : displayItemDescription.pointColor
+  // The glyph shows what is actually drawn, so tinting it with the point color where the points
+  // take the missing-value color would promise something the plot does not do.
+  const glyphColor = itemsTakeMissingColor ? missingColor : displayItemDescription.pointColor
 
   const displayShapeRow = showShape
     ? (
@@ -196,7 +201,7 @@ export const LegendColorControls = observer(function LegendColorControls(
    * the base filters out -- so without this check the palette offers colors and shapes for
    * categories that cannot reach the points. The legend itself says why.
    */
-  if (dataConfiguration.legendAttributeIsInoperable) return displayShapeRow
+  if (itemsTakeMissingColor) return displayShapeRow
 
   if (attrType === "categorical") {
     return (

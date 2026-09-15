@@ -39,13 +39,11 @@ export const Legend = observer(function Legend({
   const dataConfiguration = useDataConfigurationContext(),
     legendID = dataConfiguration?.attributeID("legend"),
     legendRef = useRef() as React.RefObject<SVGSVGElement>
-  /*
-   * An assigned attribute this display cannot honor still gets a legend -- the label and the
-   * message, in place of the keys. Returning null for it hid the fact that the drop was accepted,
-   * and the remove action lives on the label, so there was no way back from the graph.
-   */
+  // Show a legend when this display can use the attribute, and also when it cannot but the user
+  // assigned one anyway, since that case still needs the label, the remove action, and the message.
   const isInoperable = !!dataConfiguration?.legendAttributeIsInoperable
-  if (!isInoperable && !dataConfiguration?.isAttributeAllowedForNonAxisRole(legendID)) return null
+  const canShowLegend = isInoperable || !!dataConfiguration?.isAttributeAllowedForNonAxisRole(legendID)
+  if (!canShowLegend) return null
   const attrType = dataConfiguration?.attributeType('legend'),
     LegendComponent = dataConfiguration && legendComponentManager.getLegendComponent(dataConfiguration)
 
