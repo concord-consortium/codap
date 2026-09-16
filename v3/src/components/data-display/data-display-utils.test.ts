@@ -8,7 +8,7 @@ import {
 } from "../../utilities/color-utils"
 import { GraphDataConfigurationModel } from "../graph/models/graph-data-configuration-model"
 import { IPointStyle, PointRendererBase } from "./renderer"
-import { getCasesForDelta, setPointSelection } from "./data-display-utils"
+import { getCasesForDelta, matchCirclesToData, setPointSelection } from "./data-display-utils"
 
 const TreeModel = types.model("Tree", {
   data: DataSet,
@@ -298,5 +298,70 @@ describe("getCasesForDelta", () => {
 
   it("returns [] when the tree is null", () => {
     expect(getCasesForDelta(null, { x: 0, y: 0, w: 1, h: 1 }, { x: 0, y: 0, w: 1, h: 1 })).toEqual([])
+  })
+})
+
+describe("matchCirclesToData", () => {
+  /*
+   * This is where a point is created, and several callers create points without refreshing in the
+   * same breath -- they rely on the resulting case-data change to trigger a refresh later. A point
+   * born without a shape is drawn as a circle until that happens.
+   */
+  it("creates points with the display's shape, as it does with its color", () => {
+    const tree = TreeModel.create({ data: {}, metadata: {}, config: {} })
+    tree.data.addAttribute({ id: "xId", name: "x" })
+    tree.metadata.setData(tree.data)
+    tree.data.addCases(toCanonical(tree.data, [{ __id__: "c1", x: 1 }]))
+    tree.config.setDataset(tree.data, tree.metadata)
+
+    let defaultStyle: Partial<IPointStyle> | undefined
+    const renderer = {
+      matchPointsToData: (_dataId: string, _cases: any, _type: any, style: Partial<IPointStyle>) => {
+        defaultStyle = style
+      }
+    } as unknown as PointRendererBase
+
+    matchCirclesToData({
+      dataConfiguration: tree.config,
+      renderer,
+      pointRadius: 5,
+      pointColor: "#123456",
+      pointShape: "star",
+      pointStrokeColor: "#000000",
+      startAnimation: jest.fn(),
+      stopAnimation: jest.fn(),
+      instanceId: "test"
+    })
+
+    expect(defaultStyle?.shape).toBe("star")
+    expect(defaultStyle?.fill).toBe("#123456")
+  })
+
+  it("creates circles when no shape is supplied", () => {
+    const tree = TreeModel.create({ data: {}, metadata: {}, config: {} })
+    tree.data.addAttribute({ id: "xId", name: "x" })
+    tree.metadata.setData(tree.data)
+    tree.data.addCases(toCanonical(tree.data, [{ __id__: "c1", x: 1 }]))
+    tree.config.setDataset(tree.data, tree.metadata)
+
+    let defaultStyle: Partial<IPointStyle> | undefined
+    const renderer = {
+      matchPointsToData: (_dataId: string, _cases: any, _type: any, style: Partial<IPointStyle>) => {
+        defaultStyle = style
+      }
+    } as unknown as PointRendererBase
+
+    matchCirclesToData({
+      dataConfiguration: tree.config,
+      renderer,
+      pointRadius: 5,
+      pointColor: "#123456",
+      pointStrokeColor: "#000000",
+      startAnimation: jest.fn(),
+      stopAnimation: jest.fn(),
+      instanceId: "test"
+    })
+
+    expect(defaultStyle?.shape).toBe("circle")
   })
 })

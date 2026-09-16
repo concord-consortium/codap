@@ -28,9 +28,33 @@
     font: 12px sans-serif;
   }
 
-  rect:not(.attribute-label-bg) {
+  // Hanging, because the message is positioned by its top edge the way the keys are.
+  .legend-inoperable-message {
+    fill: #555555;
+    dominant-baseline: hanging;
+  }
+
+  // The key shape is listed alongside the rects because this is a type selector: a categorical key
+  // is drawn as a path, and would otherwise lose the border and the softening every other legend
+  // swatch has.
+  // The key target is excluded rather than overridden: it exists only to catch pointer events, and
+  // picking up this border would draw a visible box around every key.
+  rect:not(.attribute-label-bg):not(.legend-key-target),
+  .legend-key-shape {
     opacity: 0.85;
     stroke: #315B7D;
+  }
+
+  // pointer-events rather than a fill, so it catches clicks and drags without painting anything.
+  .legend-key-target {
+    fill: none;
+    pointer-events: all;
+  }
+
+  // Required of every surface that draws a shape (see point-shapes.ts), so a key keeps looking like
+  // the points it stands for. Not shared with the rects above, whose square corners should stay so.
+  .legend-key-shape {
+    stroke-linejoin: round;
   }
 
 }

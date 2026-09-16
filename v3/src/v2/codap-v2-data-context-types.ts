@@ -55,6 +55,20 @@ export interface ICodapV2Attribute {
   precision?: number | string | null
   unit?: string | null
   decimals?: string
+  /*
+   * v3-specific enhancements, for attribute state v2 has no field of its own for.
+   *
+   * This is deliberately not folded into _categoryMap. V2 treats every key of that map except
+   * `__order`, `stroke-color` and `stroke-transparency` as a category: it appends unknown keys to
+   * __order and writes the result back out, so an extra key there becomes a phantom category in
+   * the user's legend and is persisted. An unknown key here is merely mixed onto the SproutCore
+   * model and dropped by the attribute's toArchive allowlist, so v2 is unaffected and a v2
+   * re-save loses the value rather than corrupting the document.
+   */
+  v3?: {
+    // per-legend-category point shapes, keyed by category value; unset categories use the default
+    categoryShapes?: Record<string, string>
+  }
 }
 
 export const v3TypeFromV2TypeIndex: Array<AttributeType | undefined> = [

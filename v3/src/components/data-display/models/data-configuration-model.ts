@@ -22,6 +22,7 @@ import { numericSortComparator } from "../../../utilities/data-utils"
 import { stringValuesToDateSeconds } from "../../../utilities/date-utils"
 import {hashStringSets, typedId, uniqueId} from "../../../utilities/js-utils"
 import { equalFrequencyBins, isFiniteNumber } from "../../../utilities/math-utils"
+import { kDefaultPointShape, PointShape } from "../../../utilities/point-shape-utils"
 import { cachedFnWithArgsFactory, onAnyAction } from "../../../utilities/mst-utils"
 import { AxisPlace } from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
@@ -246,6 +247,33 @@ export const DataConfigurationModel = types
     }
   }))
   .views(self => ({
+    /*
+     * The legend attribute the user assigned, whether or not this display can honor it.
+     *
+     * Read off the description rather than through `attributeID`, which answers differently by
+     * display: the base filters an unusable legend out, while GraphDataConfigurationModel's
+     * override does not. The assignment is the user's intent either way, and the legend has to be
+     * able to name it -- and offer to remove it -- rather than drop it silently.
+     */
+    get assignedLegendAttributeID(): string {
+      return self._attributeDescriptions.get("legend")?.attributeID ?? ""
+    },
+    /*
+     * Whether that attribute is one this display cannot color or shape points by, because it lives
+     * in a collection more childmost than the plotted cases -- a point then stands for several of
+     * its values at once, which is why those points draw in the missing-value color.
+     */
+    get legendAttributeIsInoperable(): boolean {
+      const attrID = this.assignedLegendAttributeID
+      /*
+       * Deleting an attribute leaves its ID behind in the description -- see the todo in
+       * getLegendColorForCase -- and no collection holds it, so the allowed-check below says no.
+       * Without this the legend would explain itself over a name that is no longer there.
+       */
+      if (!attrID || !self.dataset?.getAttribute(attrID)) return false
+
+      return !self.isAttributeAllowedForNonAxisRole(attrID)
+    },
     _caseHasValidValuesForDescriptions(data: IDataSet, caseID: string,
                                        descriptions: AttributeDescriptionsMapSnapshot) {
       return Object.entries(descriptions).every(([role, {attributeID}]) => {
@@ -740,6 +768,13 @@ export const DataConfigurationModel = types
         return categorySet?.colorForCategory(cat) ?? missingColor
       },
 
+      // `shapeIfUnset` is the display's own shape, so a category the user has not assigned one to
+      // keeps drawing whatever the plot drew before a legend was added.
+      getLegendShapeForCategory(cat: string, shapeIfUnset: PointShape = kDefaultPointShape): PointShape {
+        const categorySet = self.categorySetForAttrRole('legend')
+        return categorySet?.shapeForCategory(cat, shapeIfUnset) ?? shapeIfUnset
+      },
+
       getLegendColorForNumericValue(value: number): string {
         // A log scale is undefined for values <= 0; they are always missing, including when the log
         // domain is degenerate (<= 1 distinct positive value) and legendDisplayRange is empty.
@@ -852,6 +887,32 @@ export const DataConfigurationModel = types
       casesInBinAreSelected(quantile: number): boolean {
         const selection = self.getCasesForLegendBin(quantile)
         return !!(selection.length > 0 && selection?.every((anID: string) => self.dataset?.isCaseSelected(anID)))
+      },
+      /*
+       * Whether the legend assigns per-category state. Note this is narrower than
+       * isCategoricalAttributeType, which counts a color legend too: that one gives each case a
+       * color of its own, so there are no categories to hang a color or a shape on.
+       */
+      get legendHasCategories(): boolean {
+        const legendType = self.attributeType('legend')
+        return legendType === 'categorical' || legendType === 'checkbox'
+      },
+      /*
+       * Whether the legend attribute lives in a collection more childmost than the plotted cases.
+       * A point then stands for several children at once, and resolving the legend through any one
+       * of them would attribute that child's value to the whole group, so callers fall back.
+       *
+       * Must stay a block above the views that use it, so they reach it through `self`. They are
+       * passed around as detached function references -- a plot hands `getLegendColorForCase` to
+       * setPointCoordinates, which calls it bare -- so `this` inside them is undefined.
+       */
+      get legendCollectionIsMoreChildmost(): boolean {
+        const legendID = self.attributeID('legend')
+        const legendCollectionID = self.dataset?.getCollectionForAttribute(legendID)?.id
+        const legendCollectionIndex = self.dataset?.getCollectionIndex(legendCollectionID) ?? 0
+        const childmostCollectionID = idOfChildmostCollectionForAttributes(self.axisAttributeIDs, self.dataset)
+        const childmostCollectionIndex = self.dataset?.getCollectionIndex(childmostCollectionID) ?? 0
+        return legendCollectionIndex > childmostCollectionIndex
       }
     }))
   .views(self => (
@@ -884,6 +945,12 @@ export const DataConfigurationModel = types
        * For categorical it is a map of categories to colors
        * The color type is not handled yet.
        */
+      // Changes identity when any category's shape changes, so a display can react to it the way it
+      // reacts to legendColorDomain.
+      get legendShapeDomain() {
+        if (!self.legendHasCategories) return undefined
+        return self.categorySetForAttrRole('legend')?.shapeMap
+      },
       get legendColorDomain() {
         const legendType = self.attributeType('legend')
         switch (legendType) {
@@ -902,15 +969,15 @@ export const DataConfigurationModel = types
         }
       },
       getLegendColorForCase(id: string, colorIfMissing = missingColor): string {
-
-        const collectionOfLegendIsMoreChildmost = () => {
-          const legendCollectionID = self.dataset?.getCollectionForAttribute(legendID)?.id,
-            legendCollectionIndex = self.dataset?.getCollectionIndex(legendCollectionID) ?? 0,
-            childmostCollectionID = idOfChildmostCollectionForAttributes(self.axisAttributeIDs, self.dataset),
-            childmostCollectionIndex = self.dataset?.getCollectionIndex(childmostCollectionID) ?? 0
-          return legendCollectionIndex > childmostCollectionIndex
+        /*
+         * Answered before the checks below, which read attributeID and so vary by display (see
+         * assignedLegendAttributeID). Without this a map would fall through to its own point color
+         * and draw normally colored points under a legend saying the attribute cannot distinguish
+         * them.
+         */
+        if (id && self.legendAttributeIsInoperable) {
+          return colorIfMissing
         }
-
         const legendID = self.attributeID('legend')
         // todo: When user deletes we are not currently deleting the legend attribute ID. But we should.
         const legendAttribute = self.dataset?.getAttribute(legendID)
@@ -918,9 +985,6 @@ export const DataConfigurationModel = types
           return ''
         }
         const legendType = self.attributeType('legend')
-        if (collectionOfLegendIsMoreChildmost()) {
-          return colorIfMissing
-        }
         const legendValue = self.dataset?.getStrValue(id, legendID)
         if (!legendValue) {
           return colorIfMissing
@@ -939,6 +1003,25 @@ export const DataConfigurationModel = types
           default:
             return ''
         }
+      },
+      // `shapeIfNoCategory` is the display's own shape, which is what a plot with no legend draws
+      // throughout.
+      getLegendShapeForCase(id: string, shapeIfNoCategory: PointShape = kDefaultPointShape): PointShape {
+        const legendID = self.attributeID('legend')
+        const legendAttribute = self.dataset?.getAttribute(legendID)
+        if (!id || !legendID || !legendAttribute) return shapeIfNoCategory
+
+        if (!self.legendHasCategories) return shapeIfNoCategory
+
+        // This is the live check for shape, where the color path's equivalent is unreachable: color
+        // answers the inoperable case up front, and this returns on an empty legendID before it
+        // could. Both amount to falling back rather than speaking for a group.
+        if (self.legendCollectionIsMoreChildmost) return shapeIfNoCategory
+
+        const legendValue = self.dataset?.getStrValue(id, legendID)
+        if (!legendValue) return shapeIfNoCategory
+
+        return self.getLegendShapeForCategory(legendValue, shapeIfNoCategory)
       }
     }))
   .actions(self => ({
@@ -1096,6 +1179,10 @@ export const DataConfigurationModel = types
     setLegendColorForCategory(cat: string, color: string) {
       const categorySet = self.categorySetForAttrRole('legend')
       categorySet?.setColorForCategory(cat, color)
+    },
+    setLegendShapeForCategory(cat: string, shape: PointShape) {
+      const categorySet = self.categorySetForAttrRole('legend')
+      categorySet?.setShapeForCategory(cat, shape)
     },
     setNumberOfCategoriesLimitForRole(role: AttrRole, limit: number | undefined) {
       if (limit !== undefined && limit <= 0) {

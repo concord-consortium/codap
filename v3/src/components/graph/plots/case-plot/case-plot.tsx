@@ -3,7 +3,7 @@ import {useCallback, useEffect, useRef, useState} from "react"
 import {useDataSetContext} from "../../../../hooks/use-data-set-context"
 import {mstReaction} from "../../../../utilities/mst-reaction"
 import { CaseData } from "../../../data-display/d3-types"
-import {handleClickOnCase, setPointSelection} from "../../../data-display/data-display-utils"
+import {handleClickOnCase, setPointSelection, legendShapeGetter } from "../../../data-display/data-display-utils"
 import {useDataDisplayAnimation} from "../../../data-display/hooks/use-data-display-animation"
 import { IPoint, IPointMetadata } from "../../../data-display/renderer"
 import { IPlotProps } from "../../graphing-types"
@@ -77,11 +77,11 @@ export const CasePlot = function CasePlot({ renderer }: IPlotProps) {
   useRendererDragHandlers(renderer, { start: onDragStart, drag: onDrag, end: onDragEnd })
 
   const refreshPointSelection = useCallback(() => {
-    const {pointColor, pointStrokeColor} = graphModel.pointDescription,
+    const {pointColor, pointStrokeColor, pointShape} = graphModel.pointDescription,
       selectedPointRadius = graphModel.getPointRadius('select')
       dataConfiguration && setPointSelection({
         renderer, dataConfiguration, pointRadius: graphModel.getPointRadius(), selectedPointRadius,
-        pointColor, pointStrokeColor
+        pointColor, pointStrokeColor, pointShape
       })
   }, [graphModel, dataConfiguration, renderer])
 
@@ -101,9 +101,12 @@ export const CasePlot = function CasePlot({ renderer }: IPlotProps) {
       getLegendColor = dataConfiguration?.attributeID('legend')
         ? dataConfiguration?.getLegendColorForCase : undefined
 
+
     setPointCoordinates({
       dataset, pointRadius, selectedPointRadius, renderer, selectedOnly,
-      pointColor, pointStrokeColor, getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating
+      pointColor, pointStrokeColor, getScreenX, getScreenY, getLegendColor, 
+      getLegendShape: legendShapeGetter(dataConfiguration, graphModel.pointDescription),
+      getAnimationEnabled: isAnimating
     })
   }, [renderer, graphModel, layout, dataConfiguration, dataset, isAnimating])
 

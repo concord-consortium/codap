@@ -146,6 +146,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
         dataConfiguration,
         pointRadius: graphModel.getPointRadius(),
         pointColor: graphModel.pointDescription.pointColor,
+        pointShape: graphModel.pointDescription.pointShape,
         pointDisplayType: graphModel.plot.displayType,
         pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
         renderer,
@@ -452,6 +453,16 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
         callRefreshPointPositions({ updateMasks: true })
       }, {name: "usePlot [legendColorChange]"}, graphModel)
   }, [graphModel, callRefreshPointPositions])
+
+  // A shape change alters only how each point is drawn, so a restyle suffices: positions and masks
+  // are untouched, unlike a legend color change, which can also change which points are plotted.
+  useEffect(() => {
+    return mstReaction(
+      () => [graphModel.dataConfiguration.legendShapeDomain, graphModel.pointDescription.pointShape],
+      () => {
+        refreshPointSelection()
+      }, {name: "usePlot [shapeChange]", equals: comparer.structural}, graphModel)
+  }, [graphModel, refreshPointSelection])
 
   // respond to pointsNeedUpdating becoming false; that is when the points have been updated
   // Happens when the number of plots has changed for now. Possibly other situations in the future.

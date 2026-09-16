@@ -597,7 +597,8 @@ export const DataSetMetadata = SharedModel
     }
   }))
   .actions(self => ({
-    // moves a category set from the provisional map to the official one
+    // Moves a category set from the provisional map to the official one, replacing the instance:
+    // the official set is built from a snapshot.
     promoteProvisionalCategorySet(categorySet: ICategorySet) {
       const attrId = categorySet.attribute.id
       self.setCategorySet(attrId, getSnapshot(categorySet))
@@ -606,7 +607,14 @@ export const DataSetMetadata = SharedModel
     }
   }))
   .views(self => ({
-    // returns an existing category set (if available) or creates a new provisional one (for valid attributes)
+    /*
+     * Returns an existing category set (if available) or creates a new provisional one (for valid
+     * attributes).
+     *
+     * Call this again for each modification rather than holding the result across them: the first
+     * change promotes a provisional set, which replaces the instance, and writes through a stale
+     * reference are silently lost.
+     */
     getCategorySet(attrId: string, createIfMissing = true): Maybe<ICategorySet> {
       let categorySet = self.attributes.get(attrId)?.categories ?? self.provisionalCategories.get(attrId)
       if (!categorySet && self.data?.attrFromID(attrId)) {
@@ -619,7 +627,7 @@ export const DataSetMetadata = SharedModel
         })
         // promote provisional category sets when they are modified by the user
         when(
-          () => !!categorySet?.moves.length || !!categorySet?.colors.size,
+          () => !!categorySet?.moves.length || !!categorySet?.colors.size || !!categorySet?.shapes.size,
           () => {
             if (categorySet && self.provisionalCategories.has(attrId)) {
               self.promoteProvisionalCategorySet(categorySet)

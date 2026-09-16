@@ -1,7 +1,8 @@
 import {
   changeAttributeColorNotification, changeLegendBinCountNotification, changeLegendBinsTypeNotification,
   changeLegendRangeNotification, changePointColorAndAlphaNotification, changePointColorNotification,
-  changePointSizeNotification, changeStrokeColorAndAlphaNotification, swapCategoriesNotification,
+  changePointShapeNotification, changePointSizeNotification, changeStrokeColorAndAlphaNotification,
+  swapCategoriesNotification,
   toggleStrokeSameAsFillNotification
 } from "./data-display-notifications"
 
@@ -54,6 +55,38 @@ describe("swapCategoriesNotification", () => {
 
   it("returns undefined when the tile is missing", () => {
     expect(swapCategoriesNotification(undefined, "left")).toBeUndefined()
+  })
+})
+
+describe("changePointShapeNotification", () => {
+  it("emits 'change point shape' with the category when one is assigned", () => {
+    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    const notification = changePointShapeNotification(tile, "star", "water")
+    expect(notification?.message.values.operation).toBe("change point shape")
+    expect(notification?.message.values.shape).toBe("star")
+    expect(notification?.message.values.category).toBe("water")
+    expect(notification?.message.values.type).toBe("DG.GraphView")
+  })
+
+  it("omits the category when the shape applies to every point", () => {
+    // no legend attribute: one shape for the whole display, so there is no category to name
+    const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+    const notification = changePointShapeNotification(tile, "diamond")
+    expect(notification?.message.values.operation).toBe("change point shape")
+    expect(notification?.message.values.shape).toBe("diamond")
+    expect(notification?.message.values.category).toBeUndefined()
+  })
+
+  it("emits on map as well as graph, since both display shapes", () => {
+    const tile = { id: "MAP1", content: { type: "Map" } } as any
+    const notification = changePointShapeNotification(tile, "plus", "land")
+    expect(notification?.message.values.operation).toBe("change point shape")
+    expect(notification?.message.values.type).toBe("DG.MapView")
+    expect(notification?.message.values.diType).toBe("map")
+  })
+
+  it("returns undefined when the tile is missing", () => {
+    expect(changePointShapeNotification(undefined, "star")).toBeUndefined()
   })
 })
 

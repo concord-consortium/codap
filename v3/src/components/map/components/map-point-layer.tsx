@@ -16,7 +16,7 @@ import { prf } from "../../../utilities/profiler"
 import {DataTip} from "../../data-display/components/data-tip"
 import {CaseData} from "../../data-display/d3-types"
 import {
-  computePointRadius, handleClickOnCase, matchCirclesToData, setPointSelection
+  computePointRadius, handleClickOnCase, legendShapeGetter, matchCirclesToData, setPointSelection
 } from "../../data-display/data-display-utils"
 import { IConnectingLineDescription } from "../../data-display/data-display-types"
 import {isDisplayItemVisualPropsAction} from "../../data-display/models/display-model-actions"
@@ -133,14 +133,26 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
   // which case the additional validation via the DataSet would be unnecessary.
   const legendAttributeId = dataConfiguration.attributeID('legend')
   const legendAttribute = dataset?.getAttribute(legendAttributeId)
-  const getLegendColor = legendAttribute ? dataConfiguration?.getLegendColorForCase : undefined
+  /*
+   * A legend this layer cannot honor counts here too. Its ID reads "" -- the base configuration
+   * filters an unusable assignment out -- so testing the attribute alone leaves connecting lines
+   * to fall back to the plot color while the points they join are drawn in the missing-value one.
+   */
+  const getLegendColor = legendAttribute || dataConfiguration.legendAttributeIsInoperable
+    ? dataConfiguration?.getLegendColorForCase : undefined
   const lookupLegendColor = (aCaseData: CaseData) => {
     return dataConfiguration.getLegendColorForCase(aCaseData.caseID) || pointDescription.pointColor
   }
 
   // Manage the heatmap
   const { isVisible: layerIsVisible, pointsAreVisible, displayType } = mapLayerModel
-  const displayHeatmap = displayType === "heatmap" && pointsAreVisible && layerIsVisible && legendAttributeId
+  /*
+   * A heatmap weights cases by the legend attribute, so it needs one that resolves per case. Where
+   * it does not -- no legend, or one this layer cannot honor -- the layer draws points instead of
+   * drawing nothing, since displayType alone would leave it blank.
+   */
+  const canDrawHeatmap = !!legendAttributeId && !dataConfiguration.legendAttributeIsInoperable
+  const displayHeatmap = displayType === "heatmap" && canDrawHeatmap && pointsAreVisible && layerIsVisible
   // Since the canvas is only rendered when the heatmap is visible,
   // we need to initialize simpleheat with it whenever displayHeatmap becomes true.
   useEffect(() => {
@@ -293,6 +305,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
         pointRadius: mapLayerModel.getPointRadius(),
         instanceId: dataConfiguration.id,
         pointColor: pointDescription.pointColor,
+        pointShape: pointDescription.pointShape,
         pointStrokeColor: pointDescription.pointStrokeColor,
         startAnimation: mapModel.startAnimation,
         stopAnimation: mapModel.stopAnimation
@@ -302,15 +315,15 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
       pointDescription, renderer])
 
   const refreshPointSelection = useCallback((caseIdsToUpdate?: Iterable<string>) => {
-    const {pointColor, pointStrokeColor} = pointDescription,
+    const {pointColor, pointStrokeColor, pointShape} = pointDescription,
       selectedPointRadius = mapLayerModel.getPointRadius('select')
     dataConfiguration && setPointSelection({
       renderer, dataConfiguration, pointRadius: mapLayerModel.getPointRadius(),
-      selectedPointRadius, pointColor, pointStrokeColor
+      selectedPointRadius, pointColor, pointStrokeColor, pointShape
     }, caseIdsToUpdate)
   }, [pointDescription, mapLayerModel, dataConfiguration, renderer])
 
-  const displayPoints = displayType === "points" && pointsAreVisible && layerIsVisible
+  const displayPoints = (displayType === "points" || !canDrawHeatmap) && pointsAreVisible && layerIsVisible
   const refreshPoints = useDebouncedCallback(async (selectedOnly: boolean) => {
     const mapBounds = leafletMap.getBounds()
     const west = mapBounds.getWest()
@@ -346,6 +359,8 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
     const {latId, longId} = mapLayerModel.pointAttributes || {}
     if (!latId || !longId) return
 
+    const getLegendShape = legendShapeGetter(dataConfiguration, pointDescription)
+
     prf.measure("Map.refreshPoints[forEachPoint]", () => {
       renderer.forEachPoint((point: IPoint, metadata: IPointMetadata) => {
         const {caseID} = metadata
@@ -353,6 +368,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
         renderer.setPointStyle(point, {
           radius: dataset?.isCaseSelected(caseID) ? selectedPointRadius : pointRadius,
           fill: lookupLegendColor(metadata),
+          shape: getLegendShape(caseID),
           stroke: getLegendColor && dataset?.isCaseSelected(caseID)
             ? defaultSelectedStroke : pointStrokeColor,
           strokeWidth: getLegendColor && dataset?.isCaseSelected(caseID)
@@ -414,6 +430,17 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
       {name: "MapPointLayer [legendColorChange]", fireImmediately: true}, dataConfiguration)
   }, [dataConfiguration, refreshHeatmap, refreshPoints])
 
+  // A shape change alters only how each point is drawn, so the points are restyled without touching
+  // the heatmap, which has no notion of shape.
+  useEffect(() => {
+    return mstReaction(
+      () => [dataConfiguration?.legendShapeDomain, mapLayerModel.pointDescription.pointShape],
+      () => {
+        refreshPointSelection()
+      },
+      {name: "MapPointLayer [shapeChange]", equals: comparer.structural}, dataConfiguration)
+  }, [dataConfiguration, mapLayerModel, refreshPointSelection])
+
   // Changes in layout or map pan/zoom require repositioning points
   useEffect(function setupResponsesToLayoutChanges() {
     return reaction(
@@ -469,7 +496,14 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
   useEffect(function respondToLayerVisibilityChange() {
     return mstReaction(() => {
         return {
-          reactionDisplayPoints: mapLayerModel.displayType === "points",
+          /*
+           * Matches displayPoints above: a layer set to a heatmap it cannot draw shows points
+           * instead. The legend attribute is read here rather than captured outside, so that a
+           * legend becoming unusable re-fires this and makes the renderer visible again --
+           * refreshPoints cannot, since it returns early while the renderer is hidden.
+           */
+          reactionDisplayPoints: mapLayerModel.displayType === "points" ||
+            !dataConfiguration.attributeID('legend'),
           reactionLayerIsVisible: mapLayerModel.isVisible,
           reactionPointsAreVisible: mapLayerModel.pointsAreVisible
         }
@@ -488,7 +522,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
       },
       {name: "MapPointLayer.respondToLayerVisibilityChange"}, mapLayerModel
     )
-  }, [mapLayerModel, refreshHeatmap, refreshPoints, renderer])
+  }, [dataConfiguration, mapLayerModel, refreshHeatmap, refreshPoints, renderer])
 
   // respond to point properties change
   useEffect(function respondToPointVisualChange() {

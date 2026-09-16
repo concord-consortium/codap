@@ -25,7 +25,9 @@ export const LegendAttributeLabel =
 
     const refreshLegendTitle = useCallback(() => {
       const dataset = dataConfiguration?.dataset,
-        attributeID = dataConfiguration?.attributeID('legend'),
+        // The assigned attribute rather than attributeID('legend'), which reports "" for one this
+        // display cannot honor -- the label has to name it in order to offer removing it.
+        attributeID = dataConfiguration?.assignedLegendAttributeID,
         attributeName = (attributeID ? dataset?.attrFromID(attributeID)?.name : '') ?? '',
         attributeUnits = (attributeID ? dataset?.attrFromID(attributeID)?.units : '') ?? '',
         labelFont = vars.labelFont,
@@ -112,6 +114,9 @@ export const LegendAttributeLabel =
         onChangeAttribute={onChangeAttribute}
         onRemoveAttribute={handleRemoveAttribute}
         onTreatAttributeAs={handleTreatAttributeAs}
+        // The menu resolves the attribute itself otherwise, and reads "" for one this display
+        // cannot honor -- which reads as no attribute, so it offers no way to remove it.
+        attrIdOverride={dataConfiguration.assignedLegendAttributeID}
       />
     )
   }

@@ -4,6 +4,7 @@ import {
 } from "mobx-state-tree"
 import { kellyColors } from "../../utilities/color-utils"
 import { compareValues } from "../../utilities/data-utils"
+import { isPointShape, kDefaultPointShape, PointShape, pointShapeOrDefault } from "../../utilities/point-shape-utils"
 import { gLocale } from "../../utilities/translation/locale"
 import { Attribute, IAttribute } from "./attribute"
 import { IDataSet } from "./data-set"
@@ -139,6 +140,8 @@ export const CategorySet = types.model("CategorySet", {
   }),
   // user color assignments to categories in an attribute
   colors: types.map(types.string),
+  // user point-shape assignments to categories in an attribute
+  shapes: types.map(types.string),
   // user category re-orderings
   moves: types.array(types.frozen<ICategoryMove>())
 })
@@ -185,11 +188,6 @@ export const CategorySet = types.model("CategorySet", {
   get valuesArray(): string[] {
     return Array.from(self.values)
   },
-  // list of actions that indicate deliberate action by the user
-  // used to determine when to move provisional category sets into the document
-  get userActionNames() {
-    return ["move", "setColorForCategory", "storeCurrentColorForCategory"]
-  },
   get lastMove() {
     return self.moves.length > 0
             ? self.moves[self.moves.length - 1]
@@ -205,14 +203,48 @@ export const CategorySet = types.model("CategorySet", {
     // We intentionally create a new non-observable map here.
     // This way this map object can be observed and if it changes a user knows the
     // colors or categories have changed
-    const map: Record<string, string> = {}
-    self.values.forEach((category, index) => map[category] = colorForCategory(category, index))
+    //
+    // Null-prototyped and built from entries because category values come from the data and can be
+    // any string. Assigning `map["__proto__"]` sets the prototype rather than defining an own
+    // property, losing that category's color; and reading `map["constructor"]` off a normal object
+    // returns an inherited function rather than undefined for a category that has none.
+    const entries = self.values.map(
+      (category, index) => [category, colorForCategory(category, index)] as const
+    )
+    const map: Record<string, string> = Object.assign(Object.create(null), Object.fromEntries(entries))
     return map
   }
 }))
 .views(self => ({
   colorForCategory(category: string) {
     return self.colorMap[category]
+  },
+  /*
+   * Unlike colors, which cycle through a palette by category index, there is no shape palette --
+   * every category would otherwise start at the same shape, so there is no index-derived fallback
+   * to compute.
+   *
+   * A category with no shape of its own inherits `shapeIfUnset`, which callers set to the
+   * display's own shape. That is what keeps a shape chosen before a legend existed from being
+   * discarded the moment one is added: colors are replaced by something meaningful when a legend
+   * takes over, but shapes would be replaced by nothing.
+   */
+  shapeForCategory(category: string, shapeIfUnset: PointShape = kDefaultPointShape): PointShape {
+    const stored = self.shapes.get(category)
+    return isPointShape(stored) ? stored : shapeIfUnset
+  },
+  /*
+   * Only the categories carrying a shape of their own. A category the user has never assigned is
+   * absent, so exports stay empty until one is actually chosen.
+   *
+   * Built with fromEntries: assignment would set the prototype for a category named `__proto__`.
+   */
+  get shapeMap(): Record<string, PointShape> {
+    const entries: Array<[string, PointShape]> = []
+    self.shapes.forEach((shape, category) => {
+      entries.push([String(category), pointShapeOrDefault(shape)])
+    })
+    return Object.fromEntries(entries)
   }
 }))
 .actions(self => ({
@@ -258,6 +290,11 @@ export const CategorySet = types.model("CategorySet", {
     } else {
       self.colors.delete(value)
     }
+  },
+  // Stores every choice, circle included: absence means the category inherits the display's shape,
+  // so dropping a circle here would read back as whatever the display is set to.
+  setShapeForCategory(value: string, shape: PointShape) {
+    self.shapes.set(value, shape)
   },
   storeCurrentColorForCategory(value: string) {
     const color = self.colorForCategory(value)
