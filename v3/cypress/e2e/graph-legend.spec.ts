@@ -599,6 +599,58 @@ context("Test selecting and selecting categories in legend", () => {
     glh.selectCategoryKeyCornerForCategoricalLegend(arrayOfValues[7].values[0])
     glh.verifyCategoricalLegendKeySelected(arrayOfValues[7].values[0])
   })
+
+  /*
+   * A legend key selects cases elsewhere rather than being selected itself, so a plain click
+   * replaces the selection and a modifier click toggles one category in or out. The command key is
+   * platform-exclusive -- cmd on a Mac, ctrl everywhere else -- so the two are tested apart: the
+   * platform's own key toggles, and the other platform's key carries no selection meaning.
+   */
+  const cmdModifier = Cypress.platform === "darwin" ? "metaKey" : "ctrlKey"
+  const foreignModifier = Cypress.platform === "darwin" ? "ctrlKey" : "metaKey"
+
+  const plotHabitatAgainstDiet = () => {
+    cy.dragAttributeToTarget("table", arrayOfAttributes[8], "bottom") // Diet => x-axis
+    glh.dragAttributeToPlot(arrayOfAttributes[7]) // Habitat => plot area
+  }
+
+  it("will keep a category selected when its key is clicked a second time", () => {
+    plotHabitatAgainstDiet()
+    glh.selectCategoryNameForCategoricalLegend(arrayOfValues[7].values[0])
+    glh.verifyCategoricalLegendKeySelected(arrayOfValues[7].values[0])
+    glh.selectCategoryNameForCategoricalLegend(arrayOfValues[7].values[0])
+    glh.verifyCategoricalLegendKeySelected(arrayOfValues[7].values[0])
+  })
+
+  it("will add and remove a category with a shift click", () => {
+    plotHabitatAgainstDiet()
+    glh.selectCategoryNameForCategoricalLegend(arrayOfValues[7].values[0])
+    glh.modifierClickCategoryForCategoricalLegend(arrayOfValues[7].values[1], "shiftKey")
+    glh.verifyCategoricalLegendKeySelected(arrayOfValues[7].values[0])
+    glh.verifyCategoricalLegendKeySelected(arrayOfValues[7].values[1])
+    glh.modifierClickCategoryForCategoricalLegend(arrayOfValues[7].values[1], "shiftKey")
+    glh.verifyCategoricalLegendKeySelected(arrayOfValues[7].values[0])
+    glh.verifyCategoricalLegendKeyNotSelected(arrayOfValues[7].values[1])
+  })
+
+  it("will add and remove a category with the platform command key", () => {
+    plotHabitatAgainstDiet()
+    glh.selectCategoryNameForCategoricalLegend(arrayOfValues[7].values[0])
+    glh.modifierClickCategoryForCategoricalLegend(arrayOfValues[7].values[1], cmdModifier)
+    glh.verifyCategoricalLegendKeySelected(arrayOfValues[7].values[0])
+    glh.verifyCategoricalLegendKeySelected(arrayOfValues[7].values[1])
+    glh.modifierClickCategoryForCategoricalLegend(arrayOfValues[7].values[1], cmdModifier)
+    glh.verifyCategoricalLegendKeySelected(arrayOfValues[7].values[0])
+    glh.verifyCategoricalLegendKeyNotSelected(arrayOfValues[7].values[1])
+  })
+
+  it("will replace the selection when the other platform's command key is held", () => {
+    plotHabitatAgainstDiet()
+    glh.selectCategoryNameForCategoricalLegend(arrayOfValues[7].values[0])
+    glh.modifierClickCategoryForCategoricalLegend(arrayOfValues[7].values[1], foreignModifier)
+    glh.verifyCategoricalLegendKeyNotSelected(arrayOfValues[7].values[0])
+    glh.verifyCategoricalLegendKeySelected(arrayOfValues[7].values[1])
+  })
 })
 context("Test changing legend colors", () => {
   describe("Test changing legend colors for categorical legend", () => {
