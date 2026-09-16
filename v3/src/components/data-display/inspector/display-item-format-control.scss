@@ -42,9 +42,8 @@
 
 .color-picker-thumb {
   @include palette-thumb;
-  // This one is a react-aria Button, so the shared `.react-aria-Select .react-aria-Button` rules in
-  // inspector-panel.scss set its height and padding and have to be overridden. The shape control's
-  // trigger passes a plain className, which replaces that class, so it needs no override.
+  // A react-aria Button, so the shared `.react-aria-Select .react-aria-Button` rules in
+  // inspector-panel.scss set its height and padding and have to be overridden.
   height: auto !important;
   padding: 3px !important;
 

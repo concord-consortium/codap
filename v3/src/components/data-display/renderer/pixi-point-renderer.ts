@@ -52,7 +52,7 @@ function symmetricFrame(shape: PointShape, radius: number, strokeWidth: number):
 
 /*
  * Hit tests a sprite against the shape drawn on it rather than the rectangle of its texture, which
- * is what a sprite falls back to and is looser than even the circle CODAP has always drawn.
+ * is what a sprite falls back to and is looser than even the circle itself.
  *
  * PIXI hands `contains` the pointer in the sprite's own coordinates, where the origin is the point's
  * position, so these are the same offsets the canvas hit tester works in and both renderers agree
@@ -921,13 +921,12 @@ export class PixiPointRenderer extends PointRendererBase {
     }
     graphics
       .fill(fill)
-      // Rounded joins, matching the canvas renderer: PIXI would otherwise miter, which at the
-      // star's 36-degree tips reaches past the stroke padding and clips, and grows the spikes the
-      // canvas renderer already rounds away there and at the X's corners.
+      // Rounded joins are required of every surface (see point-shapes.ts), and doubly so here: a
+      // miter at a star's tips also reaches past the stroke padding below and clips.
       .stroke({ color: stroke, width: strokeWidth, alpha: strokeOpacity ?? 0.4, join: "round" })
 
-    // Circles keep the self-sizing path they have always used; everything else needs an explicit
-    // frame, for the reason given on symmetricFrame.
+    // Circles size their own texture; everything else needs an explicit frame, for the reason
+    // given on symmetricFrame.
     const frame = geometry.kind === "circle" ? undefined : symmetricFrame(shape, radius, strokeWidth)
     return this.generateTexture(graphics, key, frame)
   }
@@ -1025,8 +1024,8 @@ export class PixiPointRenderer extends PointRendererBase {
     /*
      * Points animate to the size of the texture that is about to replace the bar's, rather than to
      * 2r. The texture is the shape's symmetric extent plus its stroke -- about 2.7r wide for a star
-     * -- and it arrives at scale 1, so animating to 2r ends the transition with the sprite jumping
-     * to its real size. Circles were off by the stroke alone, which is why this went unnoticed.
+     * -- and it arrives at scale 1, so animating to 2r would end the transition with the sprite
+     * jumping to its real size.
      */
     const destPointState = isPoint ? this.state.getPoint(pointId) : undefined
     const destTexture = destPointState

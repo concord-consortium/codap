@@ -970,10 +970,10 @@ export const DataConfigurationModel = types
       },
       getLegendColorForCase(id: string, colorIfMissing = missingColor): string {
         /*
-         * Answered before the checks below, which read attributeID and so answer differently by
-         * display: the base filters an unusable assignment out, a graph's override keeps it. Without
-         * this a map would fall through to its own point color and draw normally colored points
-         * under a legend saying the attribute cannot distinguish them.
+         * Answered before the checks below, which read attributeID and so vary by display (see
+         * assignedLegendAttributeID). Without this a map would fall through to its own point color
+         * and draw normally colored points under a legend saying the attribute cannot distinguish
+         * them.
          */
         if (id && self.legendAttributeIsInoperable) {
           return colorIfMissing

@@ -593,8 +593,7 @@ export class CanvasPointRenderer extends PointRendererBase {
         this.ctx.strokeStyle = effectiveStroke
         this.ctx.lineWidth = strokeWidth / effectiveScale // Compensate for scale
         this.ctx.globalAlpha = strokeOpacity ?? 0.4
-        // Rounds the joins, without which the star's 36-degree points and the X's corners grow
-        // spikes at small radii under the default miter.
+        // Required of every surface that draws a shape; see point-shapes.ts.
         this.ctx.lineJoin = "round"
         this.ctx.stroke()
       }

@@ -379,7 +379,7 @@ describe("DisplayItemFormatControl", () => {
       expect(screen.getByRole("heading", { name: "V3.Inspector.section.graph" })).toBeInTheDocument()
     })
 
-    it("exposes each section as a region labelled by its heading", () => {
+    it("exposes each section as a region labeled by its heading", () => {
       renderSectioned()
 
       // aria-labelledby has to resolve for the section to be announced as a named region.

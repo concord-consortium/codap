@@ -30,13 +30,11 @@ interface IHitTestBounds {
   y: number
   width: number
   height: number
-  /** For points: center x */
+  /** Points only: the shape drawn about (centerX, centerY), hit tested directly. Its radius is the
+   *  point's, not the box above, which a shape may exceed. */
   centerX?: number
-  /** For points: center y */
   centerY?: number
-  /** For points: the point radius (for precise hit testing; not the box, which a shape may exceed) */
   radius?: number
-  /** For points: the drawn shape, tested against directly */
   shape?: PointShape
 }
 

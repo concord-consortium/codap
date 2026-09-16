@@ -18,7 +18,6 @@ import {
 } from "./residual-plot-utils"
 import { scatterPlotFuncs } from "./scatter-plot-utils"
 
-// What drawing an outline needs off a point's style; the rest of it is fill and stroke.
 interface IPointShapeStyle {
   shape: PointShape
   radius: number
@@ -50,9 +49,8 @@ export function drawShape(
  *
  * The tween draws the shape it was scheduled with, and every restyle while it runs leaves the
  * outline alone, so `styleNow` is consulted once more at the end. Without that, a category given a
- * new shape during the second a point takes to fade in keeps the old one until something unrelated
- * repaints it. A radius that finishes slightly stale is cosmetic; a stale shape names a wrong
- * category, which is the whole thing shape is here to encode.
+ * new shape during the second a point takes to fade in keeps the old one -- naming the wrong
+ * category -- until something unrelated repaints it.
  */
 export function growPointIn(
   sel: Selection<SVGPathElement, any, any, any>,
@@ -192,8 +190,7 @@ export function useResidualPlot(props: IUseResidualPlot) {
           .attr("stroke", style.stroke)
           .attr("stroke-width", style.strokeWidth)
           .attr("stroke-opacity", style.strokeOpacity)
-          // Rounded, as all three of the other surfaces draw. SVG otherwise miters, which spikes a
-          // star's tips -- furthest at the stroke width of 2 a selected point carries.
+          // Required of every surface that draws a shape; see point-shapes.ts.
           .attr("stroke-linejoin", "round")
       })
   }, [styleFor])
@@ -267,11 +264,10 @@ export function useResidualPlot(props: IUseResidualPlot) {
      * The radius lives on data-r because a shape is drawn as an outline, which has no radius to read
      * back the way a circle does. Everything downstream reads it from there.
      *
-     * Each point is a group holding an unpainted circle and the outline. A path takes pointer events
-     * on its ink alone, which would make a plus or a star harder to hit than the circle CODAP has
-     * always drawn -- a click in a plus's notch would miss the point and reach the background, whose
-     * handler deselects everything. The circle restores that floor and the ink adds the tips beyond
-     * it, which together is what isPointInShape gives the canvas and PIXI renderers.
+     * Each point is a group holding an unpainted circle and the outline. That is how an SVG surface
+     * floors the hit target at the circle of radius r (see point-shapes.ts): a path alone takes
+     * pointer events on its ink, so a click in a plus's notch would miss the point and reach the
+     * background, whose handler deselects everything.
      */
     const enterSelection = selection.enter().append("g")
       .attr("class", "residual-point")

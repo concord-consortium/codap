@@ -91,9 +91,9 @@ describe("growPointIn", () => {
   })
 
   /*
-   * The bug this guards: the tween closes over the shape it was scheduled with, and a restyle while
-   * it runs deliberately leaves the outline alone, so a shape chosen mid-fade used to be discarded
-   * and the point stayed wrong until something unrelated repainted it.
+   * The tween closes over the shape it was scheduled with, and a restyle while it runs deliberately
+   * leaves the outline alone, so without the final consult a shape chosen mid-fade would be
+   * discarded and the point would stay wrong until something unrelated repainted it.
    */
   it("takes a shape chosen while it was running", async () => {
     const path = makePath()

@@ -4,30 +4,24 @@ import { Extent, Point } from "../data-display-types"
 /*
  * The geometry of the seven point shapes, as a function of the point radius.
  *
- * One source for every surface that draws a shape. The constants come from the design prototype
- * the feature was specified from, and are tuned rather than derived.
+ * One source for every surface that draws a shape. The constants come from the design prototype the
+ * feature was specified from: do not re-derive them, as the relative weight of the set depends on
+ * the tuning.
  *
- * Circle is the reference, unchanged from what CODAP has always drawn: radius r. Every other shape
- * is normalized to about 90% of the circle's area rather than to equal area, because straight edges
- * and points read heavier than a circle of identical ink. Their bounding boxes therefore differ,
- * which is intentional.
+ * Circle is the reference: radius r. Every other shape is normalized to about 90% of the circle's
+ * area rather than to equal area, because straight edges and points read heavier than a circle of
+ * identical ink. Their bounding boxes therefore differ, which is intentional.
  *
- * Do not re-derive the constants. They are tuned, and the relative weight of the set depends on
- * them.
+ * Two requirements every surface that draws these must meet. The drawing APIs have no common call
+ * site, so this is a checklist rather than something this module can enforce.
  *
- * Two things every surface drawing these has had to be told separately, so they are written down
- * here rather than in any one of them. The drawing APIs have no common call site, so this is a
- * checklist for the next surface rather than something this module can enforce.
+ * 1. Round the stroke joins. A star's tips are about 50 degrees, where a miter runs roughly 2.4x
+ *    the stroke width past the vertex, so the default grows spikes the plot does not have. Canvas
+ *    sets lineJoin, PIXI passes join, SVG sets stroke-linejoin.
  *
- * 1. Round the stroke joins. A star's tips are about 50 degrees and an X's corners are sharper; a
- *    miter runs roughly 2.4x the stroke width past them, so the default grows spikes that the plot
- *    does not have. Canvas sets lineJoin, PIXI passes join, SVG sets stroke-linejoin.
- *
- * 2. Make the hit target at least the circle of radius r -- what isPointInShape unions with the ink,
- *    and why. A plus's ink reaches only 58% of r toward its notches, so testing the ink alone makes
- *    a point that chose one measurably harder to click than the circle it replaced. Surfaces that
- *    hit test in code call isPointInShape; an SVG surface needs an unpainted circle behind the
- *    outline, since a path takes pointer events on its ink.
+ * 2. Make the hit target at least the circle of radius r. Surfaces that hit test in code get this
+ *    from isPointInShape, which explains why; an SVG surface needs an unpainted circle behind the
+ *    outline, since a path takes pointer events on its ink alone.
  */
 const K = {
   square: 1.700,    // side
@@ -106,7 +100,6 @@ const kShapeDefs: Record<PointShape, IShapeDef> = {
        * Centered on its center of area, not its bounding box: a centroid sits h/6 below the box
        * center, so box-centering makes the triangle read as sitting low, and switching a category
        * to it visibly shifts the points down.
-
        */
       return { kind: "polygon", points: [
         { x: 0, y: -2 * h / 3 }, { x: s / 2, y: h / 3 }, { x: -s / 2, y: h / 3 }
@@ -219,8 +212,7 @@ function radiusFillingExtent(shape: PointShape, extent: number): number {
  *
  * Holding the plot radius keeps the relative weights the constants above tune -- a square still
  * reads as lighter than a circle rather than being inflated past it to fill the corners. Only the
- * pointier shapes have to give that up to fit, which leaves them visibly lighter. That is the price
- * of a common footprint, and it is deliberate.
+ * pointier shapes have to give that up to fit, which leaves them visibly lighter.
  */
 export function pointShapeRadiusWithinExtent(shape: PointShape, extent: number): number {
   // extent / 2 is the radius at which a circle fills the box, which is the shared plot radius
@@ -294,24 +286,20 @@ function isPointInPolygon(points: Point[], x: number, y: number): boolean {
 /*
  * Whether (dx, dy), relative to a plotted point's center, hits it.
  *
- * The drawn ink, unioned with the circle of radius r that CODAP has always used. Shape is a second
- * encoding channel, so choosing one must not make a point harder to click than it was as a circle:
- * testing the ink alone would open dead zones between a star's arms and in the notches of a plus,
- * where the shape is narrower than the circle it replaced. The union keeps every shape at least as
- * easy to hit as a circle while adding the ink that extends past it -- a star's tips, a square's
- * corners, a triangle's apex -- so the target matches what is drawn wherever that is generous, and
- * matches the old circle wherever it is not.
+ * The drawn ink, unioned with the circle of radius r. Shape is a second encoding channel, so
+ * choosing one must not make a point harder to click: a plus's ink reaches only 58% of r toward its
+ * notches and a star is narrower between its arms, so testing the ink alone opens dead zones there.
+ * The union keeps every shape at least as easy to hit as a circle while adding the ink that reaches
+ * past it -- a star's tips, a square's corners, a triangle's apex.
  */
 export function isPointInShape(shape: PointShape, r: number, dx: number, dy: number): boolean {
   return isPointInShapeGeometry(pointShapeGeometry(shape, r), r, dx, dy)
 }
 
 /*
- * The same test against an outline the caller already has.
- *
- * For a caller that tests one point over and over, building the outline every time costs more than
- * the test does -- a star's is ten sin/cos pairs and an allocation. Such a caller holds its geometry
- * and comes here, so the containment itself is still written once.
+ * The same test against an outline the caller already has, for a caller that tests one point over
+ * and over: building a star's outline is ten sin/cos pairs and an allocation, more than the test
+ * itself costs.
  */
 export function isPointInShapeGeometry(
   geometry: PointShapeGeometry, r: number, dx: number, dy: number

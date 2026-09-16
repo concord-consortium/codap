@@ -51,9 +51,8 @@
     pointer-events: all;
   }
 
-  // Rounded joins, as both point renderers draw: SVG otherwise miters, which spikes the star's
-  // 50-degree tips and the X's corners well past the stroke, and a key would stop looking like the
-  // points it stands for. Not shared with the rects above, whose square corners should stay square.
+  // Required of every surface that draws a shape (see point-shapes.ts), so a key keeps looking like
+  // the points it stands for. Not shared with the rects above, whose square corners should stay so.
   .legend-key-shape {
     stroke-linejoin: round;
   }

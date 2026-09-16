@@ -133,8 +133,7 @@ describe("PixiPointRenderer", () => {
       expect(traced).not.toContain("circle")
     })
 
-    it("still draws a circle as an arc, as it always has", async () => {
-      // the shape CODAP has always drawn keeps its own path, including sizing its own texture
+    it("draws a circle as an arc, sizing its own texture", async () => {
       const { renderer } = await setUp(defaultStyle)
       const call = lastTexture(renderer)
 
@@ -174,8 +173,6 @@ describe("PixiPointRenderer", () => {
     })
 
     it("rounds the stroke joins, as the canvas renderer does", async () => {
-      // a miter on the star's 36-degree tips reaches past the stroke padding and clips, and draws
-      // the spikes the canvas renderer rounds away there and at the X's corners
       const { renderer } = await setUp({ ...defaultStyle, shape: "star" })
 
       expect(lastTexture(renderer).target.strokeOptions.join).toBe("round")
@@ -215,7 +212,7 @@ describe("PixiPointRenderer", () => {
       expect(frame).toBeDefined()
       expect(target.x * sprite.width).toBeCloseTo(frame.width, 6)
       expect(target.y * sprite.height).toBeCloseTo(frame.height, 6)
-      // which is not the 2r it used to animate to
+      // and the frame is wider than 2r, so the two targets are genuinely distinguishable
       expect(frame.width).toBeGreaterThan(2 * style.radius)
     })
 
