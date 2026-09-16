@@ -1,7 +1,7 @@
 import { observer } from "mobx-react-lite"
 import { useCallback, useEffect } from "react"
 import { mstReaction } from "../../../../utilities/mst-reaction"
-import { handleClickOnCase } from "../../../data-display/data-display-utils"
+import { handleClickOnCase, legendShapeGetter } from "../../../data-display/data-display-utils"
 import { circleAnchor, IPoint, IPointMetadata } from "../../../data-display/renderer"
 import { IPlotProps } from "../../graphing-types"
 import { useChartDots } from "../../hooks/use-chart-dots"
@@ -29,7 +29,9 @@ export const DotChart = observer(function DotChart({ renderer }: IPlotProps) {
     const anchor = circleAnchor
     setPointCoordinates({
       anchor, dataset, pointRadius, selectedPointRadius: graphModel.getPointRadius('select'), renderer, selectedOnly,
-      pointColor, pointStrokeColor, getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating
+      pointColor, pointStrokeColor, getScreenX, getScreenY, getLegendColor, 
+      getLegendShape: legendShapeGetter(dataConfig, graphModel.pointDescription),
+      getAnimationEnabled: isAnimating
     })
   }, [dataset, graphModel, isAnimating, renderer, primaryScreenCoord, secondaryScreenCoord, subPlotCells])
 

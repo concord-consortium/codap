@@ -7,6 +7,7 @@ import { IDataConfigurationModel } from "../../models/data-configuration-model"
 import { LegendAttributeLabel } from "./legend-attribute-label"
 import { CategoricalLegend } from "./categorical-legend"
 import { ColorLegend } from "./color-legend"
+import { InoperableLegendMessage } from "./inoperable-legend-message"
 import { IBaseLegendProps } from "./legend-common"
 import { NumericLegend } from "./numeric-legend"
 
@@ -38,18 +39,24 @@ export const Legend = observer(function Legend({
   const dataConfiguration = useDataConfigurationContext(),
     legendID = dataConfiguration?.attributeID("legend"),
     legendRef = useRef() as React.RefObject<SVGSVGElement>
-  if (!dataConfiguration?.isAttributeAllowedForNonAxisRole(legendID)) return null
+  // Show a legend when this display can use the attribute, and also when it cannot but the user
+  // assigned one anyway, since that case still needs the label, the remove action, and the message.
+  const isInoperable = !!dataConfiguration?.legendAttributeIsInoperable
+  const canShowLegend = isInoperable || !!dataConfiguration?.isAttributeAllowedForNonAxisRole(legendID)
+  if (!canShowLegend) return null
   const attrType = dataConfiguration?.attributeType('legend'),
     LegendComponent = dataConfiguration && legendComponentManager.getLegendComponent(dataConfiguration)
 
   // Only show the legend if there is a legend role specified in the dataConfiguration
-  return attrType ? (
+  return attrType || isInoperable ? (
     <>
       <svg ref={legendRef} className='legend-component' data-testid='legend-component'>
         <LegendAttributeLabel
           onChangeAttribute={onDropAttribute}
         />
-        {LegendComponent && <LegendComponent layerIndex={layerIndex} setDesiredExtent={setDesiredExtent} />}
+        {isInoperable
+          ? <InoperableLegendMessage layerIndex={layerIndex} setDesiredExtent={setDesiredExtent} />
+          : LegendComponent && <LegendComponent layerIndex={layerIndex} setDesiredExtent={setDesiredExtent} />}
       </svg>
     </>
   ) : null

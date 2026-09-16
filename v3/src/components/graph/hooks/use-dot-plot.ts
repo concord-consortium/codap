@@ -76,11 +76,21 @@ export const useDotPlot = (renderer?: PointRendererBase) => {
   const refreshPointSelection = useCallback(() => {
     const pointRadius = graphModel.getPointRadius()
     const selectedPointRadius = graphModel.getPointRadius('select')
+    /*
+     * Read the appearance from the model here rather than closing over the values destructured
+     * above. A restyle can be driven by a reaction, which runs when the model changes and before
+     * the re-render that would rebuild this callback; a captured value restyles the plot to the
+     * appearance it had before that change, so each change only appears when the next one is made.
+     * The other plot types read these at call time for the same reason.
+     */
+    const { pointColor: color, pointStrokeColor: strokeColor, pointShape: shape } = graphModel.pointDescription
     dataConfig && setPointSelection({
-      renderer, dataConfiguration: dataConfig, pointRadius, pointColor, pointStrokeColor, selectedPointRadius,
-      pointDisplayType
+      renderer, dataConfiguration: dataConfig, pointRadius,
+      pointColor: color, pointStrokeColor: strokeColor, pointShape: shape,
+      selectedPointRadius,
+      pointDisplayType: graphModel.plot.displayType
     })
-  }, [dataConfig, graphModel, renderer, pointColor, pointStrokeColor, pointDisplayType])
+  }, [dataConfig, graphModel, renderer])
 
   const getPrimaryScreenCoord = useCallback((anID: string) => {
     const computePrimaryCoordProps: IComputePrimaryCoord = {

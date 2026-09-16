@@ -77,7 +77,7 @@ export class GraphController {
         startAnimation = graphModel.startAnimation,
         stopAnimation = graphModel.stopAnimation
       dataConfiguration && matchCirclesToData({
-        dataConfiguration, renderer, pointDisplayType,
+        dataConfiguration, renderer, pointDisplayType, pointShape: graphModel.pointDescription.pointShape,
         pointRadius, startAnimation, stopAnimation, instanceId, pointColor, pointStrokeColor
       })
     }

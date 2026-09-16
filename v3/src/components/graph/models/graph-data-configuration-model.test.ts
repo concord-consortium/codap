@@ -1078,3 +1078,172 @@ describe("DataConfigurationModel legend range overrides", () => {
     expect(t.config.legendBinDataExtents).toBeUndefined()
   })
 })
+
+describe("DataConfigurationModel legend point shapes", () => {
+  beforeEach(() => {
+    tree = TreeModel.create({ data: {}, metadata: {}, config: {} })
+    tree.data.addAttribute({ id: "legId", name: "leg" })
+    tree.metadata.setData(tree.data)
+    tree.data.addCases(toCanonical(tree.data, [
+      { __id__: "c1", leg: "land" },
+      { __id__: "c2", leg: "water" }
+    ]))
+    tree.config.setDataset(tree.data, tree.metadata)
+    tree.config.setAttribute("legend", { attributeID: "legId" })
+  })
+
+  it("reports the default shape before anything is assigned", () => {
+    expect(tree.config.attributeType("legend")).toBe("categorical")
+    expect(tree.config.getLegendShapeForCategory("land")).toBe("circle")
+    expect(tree.config.getLegendShapeForCategory("water")).toBe("circle")
+  })
+
+  it("round-trips a shape through the category set", () => {
+    tree.config.setLegendShapeForCategory("land", "star")
+    expect(tree.config.getLegendShapeForCategory("land")).toBe("star")
+    // sibling categories are unaffected
+    expect(tree.config.getLegendShapeForCategory("water")).toBe("circle")
+  })
+
+  it("stores the shape on the shared category set, not on the configuration", () => {
+    // two configurations over the same legend attribute must agree, which is the reason
+    // per-category shape lives on the attribute's category set
+    tree.config.setLegendShapeForCategory("land", "diamond")
+    const categorySet = tree.metadata.getCategorySet("legId")
+    expect(categorySet?.shapeForCategory("land")).toBe("diamond")
+  })
+
+  it("inherits the display's shape for a category with none of its own", () => {
+    /*
+     * A shape chosen before a legend existed must survive the legend being added. Colors are
+     * replaced by something meaningful when a legend takes over -- distinct palette colors per
+     * category -- but there is no shape palette, so replacing shapes with the bare default would
+     * discard the user's choice and hand back nothing.
+     */
+    expect(tree.config.getLegendShapeForCategory("land", "star")).toBe("star")
+    expect(tree.config.getLegendShapeForCategory("water", "star")).toBe("star")
+  })
+
+  it("prefers a category's own shape over the inherited one", () => {
+    tree.config.setLegendShapeForCategory("land", "diamond")
+    expect(tree.config.getLegendShapeForCategory("land", "star")).toBe("diamond")
+    // its siblings still inherit
+    expect(tree.config.getLegendShapeForCategory("water", "star")).toBe("star")
+  })
+
+  it("resolves a case to the inherited shape when its category has none", () => {
+    const caseId = tree.data.itemIds[0]
+    expect(tree.config.getLegendShapeForCase(caseId, "plus")).toBe("plus")
+
+    tree.config.setLegendShapeForCategory("land", "x")
+    expect(tree.config.getLegendShapeForCase(caseId, "plus")).toBe("x")
+  })
+
+  it("works when called as a detached reference, which is how the plots call it", () => {
+    /*
+     * A plot hands these to setPointCoordinates as bare function references --
+     * `getLegendColor = dataConfig.getLegendColorForCase` -- and calls them unbound, so `this`
+     * inside them is undefined. Anything they need from the model has to come through `self`.
+     */
+    const caseId = tree.data.items[0].__id__
+    const getShape = tree.config.getLegendShapeForCase
+    const getColor = tree.config.getLegendColorForCase
+
+    expect(() => getShape(caseId, "star")).not.toThrow()
+    expect(() => getColor(caseId)).not.toThrow()
+  })
+
+  it("falls back rather than speaking for a group when the legend is below the plotted cases", () => {
+    /*
+     * With the legend attribute in a more childmost collection than the plotted cases, a point
+     * stands for several children at once and getStrValue would resolve through an arbitrary one of
+     * them, so that child's shape would be attributed to the whole group. The color path already
+     * refuses this; the shape path has to agree with it.
+     */
+    tree.data.addAttribute({ id: "xId", name: "x" })
+    tree.data.setCaseValues([
+      { __id__: "c1", xId: "shared" },
+      { __id__: "c2", xId: "shared" }
+    ])
+    tree.config.setAttribute("x", { attributeID: "xId" })
+    // x becomes the parent collection, leaving the legend childmost
+    tree.data.moveAttributeToNewCollection("xId")
+    expect(tree.config.legendCollectionIsMoreChildmost).toBe(true)
+
+    tree.config.setLegendShapeForCategory("land", "diamond")
+    const parentCaseId = tree.data.items[0].__id__
+    expect(tree.config.getLegendShapeForCase(parentCaseId, "star")).toBe("star")
+  })
+
+  describe("an assigned legend attribute this display cannot honor", () => {
+    // The same hierarchy as the fallback test above: x in the parent, legend left childmost.
+    const makeLegendChildmost = () => {
+      tree.data.addAttribute({ id: "xId", name: "x" })
+      tree.data.setCaseValues([
+        { __id__: "c1", xId: "shared" },
+        { __id__: "c2", xId: "shared" }
+      ])
+      tree.config.setAttribute("x", { attributeID: "xId" })
+      tree.data.moveAttributeToNewCollection("xId")
+    }
+
+    it("is reported as inoperable rather than dropped", () => {
+      /*
+       * The graph's attributeDescriptionForRole override keeps the description the base filters
+       * out, so neither attributeID nor attributeType can answer this on its own.
+       */
+      expect(tree.config.legendAttributeIsInoperable).toBe(false)
+
+      makeLegendChildmost()
+
+      expect(tree.config.legendAttributeIsInoperable).toBe(true)
+      // the assignment is still the user's, and the legend has to be able to name it to remove it
+      expect(tree.config.assignedLegendAttributeID).toBe("legId")
+    })
+
+    it("is not reported inoperable once the plotted cases reach it again", () => {
+      makeLegendChildmost()
+      expect(tree.config.legendAttributeIsInoperable).toBe(true)
+
+      // plotting a childmost attribute puts the legend back within reach
+      tree.config.setAttribute("x", { attributeID: "legId" })
+
+      expect(tree.config.legendAttributeIsInoperable).toBe(false)
+    })
+
+    it("draws its points in the missing-value color", () => {
+      // the base configuration reaches the same answer by a different route; see
+      // data-configuration-legend-operability.test.ts
+      makeLegendChildmost()
+
+      expect(tree.config.attributeID("legend")).toBe("legId")
+      expect(tree.config.getLegendColorForCase(tree.data.items[0].__id__)).toBe(missingColor)
+    })
+
+    it("does not report a deleted attribute as inoperable", () => {
+      /*
+       * Deleting an attribute leaves its ID behind in the legend description (see the todo in
+       * getLegendColorForCase), and no collection holds it, so the allowed-check says no. Without
+       * a liveness check that reads as inoperable and the legend renders a nameless message.
+       */
+      tree.config.setAttribute("legend", { attributeID: "goneId" })
+
+      expect(tree.config.legendAttributeIsInoperable).toBe(false)
+    })
+
+    it("reports nothing assigned when there is no legend attribute", () => {
+      tree.config.setAttribute("legend", { attributeID: "" })
+
+      expect(tree.config.assignedLegendAttributeID).toBe("")
+      expect(tree.config.legendAttributeIsInoperable).toBe(false)
+    })
+  })
+
+  it("falls back to the default when there is no legend attribute", () => {
+    tree.config.setAttribute("legend", { attributeID: "" })
+    // no category set to consult, so reads resolve rather than returning undefined
+    expect(tree.config.getLegendShapeForCategory("land")).toBe("circle")
+    // and assignment is a no-op rather than a crash
+    expect(() => tree.config.setLegendShapeForCategory("land", "star")).not.toThrow()
+  })
+})

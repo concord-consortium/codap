@@ -11,17 +11,22 @@ import { AttributeBinningTypes, AttributeBinningType } from "../../../models/sha
 import {
   kDefaultHighAttributeColor, kDefaultLowAttributeColor
 } from "../../../models/shared/data-set-metadata-constants"
+import { missingColor } from "../../../utilities/color-utils"
 import { binBoundaryDecimalPlaces } from "../../../utilities/math-utils"
+import { PointShape } from "../../../utilities/point-shape-utils"
 import { t } from "../../../utilities/translation/translate"
+import { If } from "../../common/if"
 import { PaletteCheckbox } from "../../palette-checkbox"
 import { getScaleThresholds } from "../components/legend/choropleth-legend/choropleth-legend"
 import {
   changeAttributeColorNotification, changeLegendBinCountNotification, changeLegendBinsTypeNotification,
-  changeLegendRangeNotification, changePointColorAndAlphaNotification, changePointColorNotification
+  changeLegendRangeNotification, changePointColorAndAlphaNotification, changePointColorNotification,
+  changePointShapeNotification
 } from "../data-display-notifications"
 import { IDataConfigurationModel, kDefaultLegendBinCount } from "../models/data-configuration-model"
 import { IDisplayItemDescriptionModel } from "../models/display-item-description-model"
 import { PointColorSetting } from "./point-color-setting"
+import { PointShapeSetting } from "./point-shape-setting"
 
 interface ILegendColorControlsProps {
   dataConfiguration: IDataConfigurationModel
@@ -34,6 +39,17 @@ export const LegendColorControls = observer(function LegendColorControls(
   const { tile } = useTileModelContext()
   const legendAttrID = dataConfiguration.attributeID("legend")
   const attrType = dataConfiguration.attributeType("legend")
+  // The map mounts these controls for its polygon layers too, and a polygon has no point to shape.
+  const showShape = isFeatureEnabled("pointShapes") && !displayItemDescription.isPolygon
+  /*
+   * Whether a legend this display cannot honor actually reaches what it draws. It does for points,
+   * which take the missing-value color; it does not for boundaries, which keep their own color --
+   * see map-polygon-layer, where that is deliberate. Controls setting a color are live in the
+   * second case and inert in the first.
+   */
+  const itemsTakeMissingColor =
+    dataConfiguration.legendAttributeIsInoperable && !displayItemDescription.isPolygon
+
   const categoriesRef = useRef<string[] | undefined>()
   categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole("legend")
   const metadata = dataConfiguration.metadata
@@ -48,6 +64,30 @@ export const LegendColorControls = observer(function LegendColorControls(
       redoStringKey: "DG.Redo.graph.changePointColor",
       log: attrType === "categorical" ? "Changed categorical point color" : "Changed point color"
     })
+  }
+
+  const handlePointShapeChange = (shape: PointShape) => {
+    displayItemDescription.applyModelChange(
+      () => displayItemDescription.setPointShape(shape),
+      {
+        notify: () => changePointShapeNotification(tile, shape),
+        undoStringKey: "V3.Undo.graph.changePointShape",
+        redoStringKey: "V3.Redo.graph.changePointShape",
+        log: "Changed point shape"
+      }
+    )
+  }
+
+  const handleCatPointShapeChange = (shape: PointShape, cat: string) => {
+    dataConfiguration.applyModelChange(
+      () => dataConfiguration.setLegendShapeForCategory(cat, shape),
+      {
+        notify: () => changePointShapeNotification(tile, shape, cat),
+        undoStringKey: "V3.Undo.graph.changePointShape",
+        redoStringKey: "V3.Redo.graph.changePointShape",
+        log: "Changed category point shape"
+      }
+    )
   }
 
   const handleCatPointColorChange = (color: string, cat: string) => {
@@ -96,12 +136,84 @@ export const LegendColorControls = observer(function LegendColorControls(
     )
   }
 
+  /*
+   * The colors the legend actually paints points with, as hard-stopped gradient bands. Taken from
+   * the scale rather than interpolated between the low and high swatches: the scale is quantized or
+   * quantiled, so points only ever take these discrete colors and a smooth ramp would show shades
+   * nothing in the plot has. Few bins therefore read as visible bands, which is honest.
+   */
+  /*
+   * No gradient for a legend this display cannot honor: the points are all drawn in the
+   * missing-value color, so a band of the legend's colors would promise exactly what glyphColor
+   * below exists to stop promising -- and the gradient wins, since it paints the glyph's fill.
+   */
+  const legendBandColors: string[] = attrType === "numeric" && !itemsTakeMissingColor
+    ? (dataConfiguration.legendNumericColorScale?.range() ?? [])
+    : []
+  const legendBandStops = legendBandColors.flatMap((bandColor, i) => [
+    { color: bandColor, offset: i / legendBandColors.length },
+    { color: bandColor, offset: (i + 1) / legendBandColors.length }
+  ])
+  const hasFillGradient = legendBandStops.length > 0
+
+  // Unique per control instance, so two graphs with different legends do not share one definition.
+  const gradientId = `point-shape-legend-${useId()}`
+
+  /*
+   * Shape is a display-level property whenever the legend cannot assign one per category: a numeric
+   * or color legend has no categories to attach a shape to, so a single shape applies to every
+   * point, exactly as it does with no legend at all. The control has to stay in the palette for
+   * those, or a shape chosen before the legend was added becomes unreachable while it goes on
+   * governing what is drawn.
+   */
+  // The glyph shows what is actually drawn, so tinting it with the point color where the points
+  // take the missing-value color would promise something the plot does not do.
+  const glyphColor = itemsTakeMissingColor ? missingColor : displayItemDescription.pointColor
+
+  const displayShapeRow = showShape
+    ? (
+        <div className="palette-row color-picker-row shape-row">
+          <label className="form-label color-picker">{t("V3.Inspector.points")}</label>
+          {/* A gradient has to live in an svg in the same document; this one only carries it. */}
+          <If condition={hasFillGradient}>
+            <svg width="0" height="0" aria-hidden="true" focusable="false" className="point-shape-gradient-defs">
+              <defs>
+                <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
+                  {legendBandStops.map((stop, i) => (
+                    <stop key={i} offset={`${stop.offset * 100}%`} stopColor={stop.color} />
+                  ))}
+                </linearGradient>
+              </defs>
+            </svg>
+          </If>
+          <PointShapeSetting propertyLabel={t("V3.Inspector.pointShape")}
+                            shape={displayItemDescription.pointShape}
+                            color={glyphColor}
+                            fillGradientId={hasFillGradient ? gradientId : undefined}
+                            onShapeChange={handlePointShapeChange}/>
+        </div>
+      )
+    : null
+
+  /*
+   * A legend this display cannot honor gets no per-category rows. The graph reaches here with
+   * attrType still "categorical" -- its attributeDescriptionForRole override keeps the description
+   * the base filters out -- so without this check the palette offers colors and shapes for
+   * categories that cannot reach the points. The legend itself says why.
+   */
+  if (itemsTakeMissingColor) return displayShapeRow
+
   if (attrType === "categorical") {
     return (
       <CategoricalColorControls
         categories={categoriesRef.current}
         dataConfiguration={dataConfiguration}
+        showShape={showShape}
+        // A category with no shape of its own draws the display's, so the control has to show that
+        // rather than the bare default, or it would disagree with the plot.
+        shapeIfUnset={displayItemDescription.pointShape}
         onCatPointColorChange={handleCatPointColorChange}
+        onCatPointShapeChange={handleCatPointShapeChange}
       />
     )
   }
@@ -109,6 +221,7 @@ export const LegendColorControls = observer(function LegendColorControls(
   if (attrType === "numeric") {
     return (
       <>
+        {displayShapeRow}
         <div className="num-color-setting">
           <div className="palette-row color-picker-row">
             <label className="form-label color-picker">{t("DG.Inspector.legendColor")}</label>
@@ -135,11 +248,21 @@ export const LegendColorControls = observer(function LegendColorControls(
     )
   }
 
-  if (attrType === "color") return null
+  if (attrType === "color") return displayShapeRow
 
+  // With no legend attribute there are no categories to list, so the same two controls apply to
+  // every point and sit in a single row.
+  const singleRowLabel = showShape ? t("V3.Inspector.points") : t("DG.Inspector.color")
   return (
-    <div className="palette-row color-picker-row">
-      <label className="form-label color-picker">{t("DG.Inspector.color")}</label>
+    // shape-row marks a row carrying both controls, so it aligns them the way the category rows do
+    <div className={clsx("palette-row", "color-picker-row", { "shape-row": showShape })}>
+      <label className="form-label color-picker">{singleRowLabel}</label>
+      <If condition={showShape}>
+        <PointShapeSetting propertyLabel={t("V3.Inspector.pointShape")}
+                          shape={displayItemDescription.pointShape}
+                          color={displayItemDescription.pointColor}
+                          onShapeChange={handlePointShapeChange}/>
+      </If>
       <PointColorSetting propertyLabel={t("DG.Inspector.color")}
                         onColorChange={(color) => handlePointColorChange(color)}
                         swatchBackgroundColor={displayItemDescription.pointColor}/>
@@ -150,11 +273,15 @@ export const LegendColorControls = observer(function LegendColorControls(
 interface ICategoricalColorControlsProps {
   categories?: string[]
   dataConfiguration: IDataConfigurationModel
+  showShape: boolean
+  shapeIfUnset: PointShape
   onCatPointColorChange: (color: string, cat: string) => void
+  onCatPointShapeChange: (shape: PointShape, cat: string) => void
 }
 
 const CategoricalColorControls = observer(function CategoricalColorControls(
-  { categories, dataConfiguration, onCatPointColorChange }: ICategoricalColorControlsProps
+  { categories, dataConfiguration, showShape, shapeIfUnset, onCatPointColorChange, onCatPointShapeChange }:
+    ICategoricalColorControlsProps
 ) {
   const [scrollVersion, setScrollVersion] = useState(0)
 
@@ -167,6 +294,13 @@ const CategoricalColorControls = observer(function CategoricalColorControls(
       {categories?.map(category => (
         <div key={category} className="palette-row color-picker-row cat-color-picker">
           <label className="form-label color-picker">{category}</label>
+          <If condition={showShape}>
+            <PointShapeSetting propertyLabel={category}
+              closeTrigger={scrollVersion}
+              shape={dataConfiguration.getLegendShapeForCategory(category, shapeIfUnset)}
+              color={dataConfiguration.getLegendColorForCategory(category)}
+              onShapeChange={(shape) => onCatPointShapeChange(shape, category)}/>
+          </If>
           <PointColorSetting key={category} propertyLabel={category}
             closeTrigger={scrollVersion}
             onColorChange={(color) => onCatPointColorChange(color, category)}

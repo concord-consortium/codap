@@ -134,9 +134,14 @@ $inspector-panel-border-width: 2px;
   overflow: hidden;
   font-family: Roboto, "museo-sans", sans-serif;
   font-size: 14px;
-  min-width: 220px;
+  min-width: vars.$palette-min-width;
   min-height: 50px;
   font-weight: normal;
+
+  // Widening the shared min-width above would widen the map and case table palettes too.
+  &.point-format-palette {
+    min-width: vars.$palette-min-width-wide;
+  }
 
   &:focus-visible {
     outline: 2px solid vars.$focus-outline-color;
@@ -191,10 +196,10 @@ $inspector-panel-border-width: 2px;
       &.color-picker-row {
         display: flex;
         flex-direction: row;
-        height: 30px;
+        height: vars.$palette-color-row-height;
         justify-content: space-between;
         padding-right: 5px;
-        margin: 4px 0;
+        margin: vars.$palette-color-row-margin 0;
       }
     }
 

@@ -865,6 +865,10 @@ export const GraphContentModel = DataDisplayContentModel
       } else {
         return self.caseTipText(attributeIDs, caseID, dataset)
       }
+    },
+    // A bar is not a point and carries no shape, so its legend key falls back to a square.
+    drawsShapedItemsFor(): boolean {
+      return self.plot.displayType !== "bars"
     }
   }))
   // performs the specified action so that response actions are included and undo/redo strings assigned

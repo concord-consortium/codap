@@ -8,10 +8,27 @@ import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 import {IDataSet} from "../../../../models/data/data-set"
 import {GraphPlace} from "../../../axis-graph-shared"
 import {GraphAttrRole} from "../../data-display-types"
+import {IBaseLayerModel} from "../../models/base-data-display-content-model"
 import {DataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {useDataDisplayLayout} from "../../hooks/use-data-display-layout"
 import {DroppableSvg} from "../droppable-svg"
 import {Legend} from "./legend"
+
+/*
+ * Whether a layer should be given a legend area.
+ *
+ * Graphs have one layer and it is always visible. Maps have several, and only the visible ones get
+ * a legend -- with one addition: a layer whose assigned legend attribute this display cannot honor
+ * counts as having one. Its `attributeID` reads "" in that state, because the base configuration
+ * filters an unusable assignment out, so testing that alone drops the layer before Legend runs and
+ * leaves the attribute the user assigned invisible and unremovable. That is the situation Legend
+ * now renders a message for, and it can only do so if the layer gets here.
+ */
+export function layerHasLegendToShow(layer: IBaseLayerModel): boolean {
+  const { dataConfiguration } = layer
+  return !!(dataConfiguration.attributeID("legend") || dataConfiguration.legendAttributeIsInoperable) &&
+    layer.isVisible
+}
 
 interface IMultiLegendProps {
   divElt: HTMLDivElement | null
@@ -32,11 +49,7 @@ export const MultiLegend = observer(function MultiLegend({divElt, onDropAttribut
     extentsRef = useRef([] as number[])
 
   const legendBoundsTop = layout?.computedBounds?.legend?.top ?? 0
-  // Graphs have only one layer and it's always visible. Maps have multiple layers and we only want to display legends
-  // for map layers that are visible.
-  const layersWithLegendsArray = Array.from(dataDisplayModel.layers).filter(layer =>
-    layer.dataConfiguration.attributeID('legend') && layer.isVisible
-  )
+  const layersWithLegendsArray = Array.from(dataDisplayModel.layers).filter(layerHasLegendToShow)
   const handleIsActive = (active: Active) => {
       const {dataSet, attributeId: droppedAttrId} = getDragAttributeInfo(active) || {}
         return isDropAllowed('legend', dataSet, droppedAttrId)

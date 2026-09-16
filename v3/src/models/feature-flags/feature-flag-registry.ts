@@ -44,6 +44,12 @@ export const kFeatureFlags = {
     added: "2026-07-24",
     expires: "2027-07-31"
   },
+  pointShapes: {
+    description: "Per-legend-category point shapes on the graph and map",
+    owner: "LEADS",
+    added: "2026-09-04",
+    expires: "2027-09-30"
+  },
   /*
    * DEPRECATED — gates nothing. The residual plot shipped enabled, and its gate was removed
    * rather than switched on by server config, so that the feature cannot silently fail off

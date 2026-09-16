@@ -34,11 +34,12 @@ export const useChartDots = (renderer?: PointRendererBase) => {
     baselineOffset = 0.5
 
   const refreshPointSelection = useCallback(() => {
-    const {pointColor, pointStrokeColor} = graphModel.pointDescription
+    const {pointColor, pointStrokeColor, pointShape} = graphModel.pointDescription
     const pointRadius = graphModel.getPointRadius()
     const selectedPointRadius = graphModel.getPointRadius('select')
     dataConfig && setPointSelection({
-      renderer, pointColor, pointStrokeColor, dataConfiguration: dataConfig, pointRadius, selectedPointRadius
+      renderer, pointColor, pointStrokeColor, pointShape, dataConfiguration: dataConfig, pointRadius,
+      selectedPointRadius
     })
   }, [dataConfig, graphModel, renderer])
 

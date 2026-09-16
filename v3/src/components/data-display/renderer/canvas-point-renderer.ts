@@ -10,6 +10,7 @@
  * Canvas 2D contexts are virtually unlimited.
  */
 
+import { kDefaultPointShape, PointShape } from "../../../utilities/point-shape-utils"
 import { CaseDataWithSubPlot } from "../d3-types"
 import { PointDisplayType, transitionDuration } from "../data-display-types"
 import { coalesceBars, IBarPiece, pointStateToBarPiece } from "./bar-coalescing"
@@ -19,6 +20,7 @@ import {
   getRendererForEvent,
   PointRendererBase
 } from "./point-renderer-base"
+import { pointShapeGeometry } from "./point-shapes"
 import { PointsState } from "./points-state"
 import {
   IBackgroundEventDistributionOptions,
@@ -46,6 +48,21 @@ interface ISubPlotClipRect {
 /**
  * Canvas 2D point renderer implementing the PointRendererBase interface.
  */
+/*
+ * Traces a point's outline onto the context, centered on the current origin. Leaves the path open
+ * for the caller to fill and stroke, so the two share one path rather than tracing it twice.
+ */
+function tracePointShape(ctx: CanvasRenderingContext2D, shape: PointShape, radius: number) {
+  const geometry = pointShapeGeometry(shape, radius)
+  ctx.beginPath()
+  if (geometry.kind === "circle") {
+    ctx.arc(0, 0, geometry.radius, 0, Math.PI * 2)
+    return
+  }
+  geometry.points.forEach(({ x, y }, i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)))
+  ctx.closePath()
+}
+
 export class CanvasPointRenderer extends PointRendererBase {
   // Canvas elements
   private _canvas: HTMLCanvasElement | null = null
@@ -568,9 +585,7 @@ export class CanvasPointRenderer extends PointRendererBase {
         this.ctx.strokeRect(rectX, rectY, width, height)
       }
     } else {
-      // Draw circle (point)
-      this.ctx.beginPath()
-      this.ctx.arc(0, 0, radius, 0, Math.PI * 2)
+      tracePointShape(this.ctx, style.shape ?? kDefaultPointShape, radius)
       this.ctx.fillStyle = fill
       this.ctx.fill()
 
@@ -578,6 +593,9 @@ export class CanvasPointRenderer extends PointRendererBase {
         this.ctx.strokeStyle = effectiveStroke
         this.ctx.lineWidth = strokeWidth / effectiveScale // Compensate for scale
         this.ctx.globalAlpha = strokeOpacity ?? 0.4
+        // Rounds the joins, without which the star's 36-degree points and the X's corners grow
+        // spikes at small radii under the default miter.
+        this.ctx.lineJoin = "round"
         this.ctx.stroke()
       }
     }

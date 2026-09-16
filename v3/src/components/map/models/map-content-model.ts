@@ -13,6 +13,7 @@ import { getFormulaManager } from "../../../models/tiles/tile-environment"
 import { getCollectionAttrs } from "../../../models/data/data-set-utils"
 import { typeV3Id } from "../../../utilities/codap-utils"
 import {GraphPlace} from "../../axis-graph-shared"
+import {IDisplayItemDescriptionModel} from "../../data-display/models/display-item-description-model"
 import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
 import { IDataDisplayLayerModel } from "../../data-display/models/data-display-layer-model"
@@ -169,6 +170,17 @@ export const MapContentModel = DataDisplayContentModel
         }
       })
       return dataConfigurations
+    },
+    /*
+     * A map draws each layer from that layer's own description, so a caller asking about a
+     * particular configuration gets its layer's rather than the map's. The map's own is the answer
+     * only when no layer claims the configuration.
+     */
+    displayItemDescriptionFor(dataConfig?: IDataConfigurationModel): IDisplayItemDescriptionModel {
+      const layer = dataConfig
+        ? self.layers.find(l => isMapLayerModel(l) && l.dataConfiguration === dataConfig)
+        : undefined
+      return (isMapLayerModel(layer) ? layer.displayItemDescription : undefined) ?? self.pointDescription
     }
   }))
   .actions(self => ({
@@ -195,15 +207,27 @@ export const MapContentModel = DataDisplayContentModel
       const legendDataset = getDataSetFromId(self, datasetID)
       const legendCollectionIndex = getCollectionIndex(legendDataset!, attributeID)
       if (!legendDataset || legendCollectionIndex < 0) return
+      /*
+       * Every visible layer on this dataset is a candidate, including one whose GIS attribute is
+       * more childmost than the legend -- an assignment that layer cannot honor. It takes the
+       * attribute anyway and says so, the way a graph does: the legend explains that the attribute
+       * cannot distinguish the points, and the points draw in the missing-value color. Declining
+       * would not spare the user the state, since moving a position attribute to a parent
+       * collection reaches it after the assignment is made.
+       *
+       * A layer that can honor the attribute is preferred over one that cannot, and among equals
+       * the one whose collection is closest to the legend's wins. A layer that cannot honor it is
+       * the fallback rather than the answer.
+       */
+      const canHonor = (layer: IDataDisplayLayerModel) =>
+        getGisCollectionIndex(layer as IMapLayerModel) >= legendCollectionIndex
       const candidateLayers = self.layers.slice()
           .filter(layer => layerIsMapLayerAndIsVisible(layer) && layer.data?.id === datasetID)
-          .filter(layer => {
-            const gisAttrCollectionIndex = getGisCollectionIndex(layer as IMapLayerModel)
-            return gisAttrCollectionIndex >= legendCollectionIndex
-      }).sort((layerA, layerB) => {
+          .sort((layerA, layerB) => {
+        if (canHonor(layerA) !== canHonor(layerB)) return canHonor(layerA) ? -1 : 1
         const aIndex = getGisCollectionIndex(layerA as IMapLayerModel),
           bIndex = getGisCollectionIndex(layerB as IMapLayerModel)
-        return aIndex - bIndex
+        return Math.abs(aIndex - legendCollectionIndex) - Math.abs(bIndex - legendCollectionIndex)
       })
       if (candidateLayers.length > 0) {
         candidateLayers[0].dataConfiguration.setAttribute('legend', {attributeID, type})
@@ -509,7 +533,9 @@ export const MapContentModel = DataDisplayContentModel
     placeCanAcceptAttributeIDDrop(place: GraphPlace, dataset: IDataSet, attributeID: string | undefined) {
       if (dataset && attributeID) {
         const foundLayer = self.layers.find(layer => layer.data === dataset)
-        return !!foundLayer && foundLayer.dataConfiguration.attributeID('legend') !== attributeID
+        // Compared against the assigned attribute rather than attributeID, which reads "" for one
+        // the layer cannot honor -- so the map would offer to accept the attribute it already holds.
+        return !!foundLayer && foundLayer.dataConfiguration.assignedLegendAttributeID !== attributeID
       }
       return false
     },

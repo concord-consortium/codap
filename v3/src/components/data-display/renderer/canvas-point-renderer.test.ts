@@ -47,6 +47,9 @@ describe("CanvasPointRenderer", () => {
       setTransform: jest.fn(),
       beginPath: jest.fn(),
       arc: jest.fn(),
+      moveTo: jest.fn(),
+      lineTo: jest.fn(),
+      closePath: jest.fn(),
       fill: jest.fn(),
       stroke: jest.fn(),
       fillRect: jest.fn(),
@@ -690,6 +693,48 @@ describe("CanvasPointRenderer", () => {
 
       expect(mockContext.arc).toHaveBeenCalled()
       expect(mockContext.fill).toHaveBeenCalled()
+    })
+
+    it("traces a polygon rather than an arc for a non-circle shape", () => {
+      /*
+       * The geometry module is unit-tested on its own, but nothing else proves it is wired into
+       * the draw path: delete the shape branch from the renderer and every geometry test still
+       * passes while the plot silently draws circles.
+       */
+      const caseData = createCaseData(0, "case1")
+      renderer.matchPointsToData("dataset1", [caseData], "points", { ...defaultStyle, shape: "square" })
+      const point = renderer.getPointForCaseData(caseData)!
+      renderer.setPointPosition(point, 100, 100)
+
+      renderer.startRendering()
+      flushRAF()
+
+      expect(mockContext.moveTo).toHaveBeenCalled()
+      expect(mockContext.lineTo).toHaveBeenCalled()
+      expect(mockContext.closePath).toHaveBeenCalled()
+      expect(mockContext.fill).toHaveBeenCalled()
+      // a square is not drawn with an arc
+      expect(mockContext.arc).not.toHaveBeenCalled()
+    })
+
+    it("traces one line per vertex of the shape it is given", () => {
+      // distinguishes the shapes from each other, not merely polygon from circle: a square has
+      // four vertices and a triangle three, so a hard-coded outline would fail one of these
+      const cases = [{ shape: "square" as const, vertices: 4 }, { shape: "triangle" as const, vertices: 3 }]
+      cases.forEach(({ shape, vertices }) => {
+        jest.clearAllMocks()
+        const caseData = createCaseData(0, `case-${shape}`)
+        renderer.matchPointsToData("dataset1", [caseData], "points", { ...defaultStyle, shape })
+        const point = renderer.getPointForCaseData(caseData)!
+        renderer.setPointPosition(point, 100, 100)
+
+        renderer.startRendering()
+        flushRAF()
+
+        // moveTo for the first vertex, lineTo for each of the rest
+        expect(mockContext.moveTo).toHaveBeenCalledTimes(1)
+        expect(mockContext.lineTo).toHaveBeenCalledTimes(vertices - 1)
+      })
     })
 
     it("draws rectangles for bars display type", () => {

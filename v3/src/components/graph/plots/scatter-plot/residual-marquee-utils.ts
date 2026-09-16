@@ -9,7 +9,7 @@ export interface IResidualPosition {
 
 // Screen position of each residual point, in the graph-SVG coordinate frame: x from the shared
 // getXCoord, y on the lower axis (plotHeight is the top of the residual region). Mirrors the cx/cy
-// used to draw the residual circles, so the hit-test index and the drawn points agree by construction.
+// used to draw the residual points, so the hit-test index and the drawn points agree by construction.
 export function buildResidualPositions(
   residuals: IResidualPoint[], getXCoord: (caseID: string) => number,
   plotHeight: number, lowerScale: (residual: number) => number

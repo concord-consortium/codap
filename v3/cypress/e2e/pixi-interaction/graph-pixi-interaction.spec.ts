@@ -448,14 +448,14 @@ context.skip("Graph UI with Pixi interaction", () => {
       // Click the "water" legend category
       cy.get('g.legend-key').contains('text', 'water').click()
 
-      // Verify that the corresponding rect has the selected class
+      // Verify that the corresponding key has the selected class
       cy.get('g.legend-key').contains('text', 'water')
         .parent()
-        .find('rect')
+        .find('.legend-key-shape')
         .should('have.class', 'legend-rect-selected')
 
-      // Optionally, verify only one legend rect is selected
-      cy.get('rect.legend-rect-selected').should('have.length', 1)
+      // Optionally, verify only one legend key is selected
+      cy.get('.legend-key-shape.legend-rect-selected').should('have.length', 1)
 
       gch.getGraphTileId().then((tileId) => {
         gch.validateGraphPointCount(tileId, 27) // 27 points in graph

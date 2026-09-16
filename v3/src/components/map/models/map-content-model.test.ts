@@ -279,6 +279,154 @@ describe("MapContentModel", () => {
     })
   })
 
+  describe("displayItemDescriptionFor", () => {
+    /*
+     * A map draws each layer from that layer's own description. Anything that has to agree with what
+     * is rendered -- a legend key showing the shape its points are drawn with -- gets the wrong
+     * answer from the map's own description, which nothing on the map is drawn from.
+     */
+    const addPointDataSet = async (name: string) => {
+      const dataSet = DataSet.create({ name })
+      dataSet.addAttribute({ id: `lat-${name}`, name: "Latitude" })
+      dataSet.addAttribute({ id: `long-${name}`, name: "Longitude" })
+      const sharedDataSet = SharedDataSet.create()
+      sharedDataSet.setDataSet(dataSet)
+      const metadata = DataSetMetadata.create({ data: dataSet.id })
+      sharedModelManager.addSharedModel(sharedDataSet)
+      sharedModelManager.addSharedModel(metadata)
+      await new Promise(resolve => setTimeout(resolve, 0))
+      return dataSet
+    }
+
+    it("returns the layer's own description, not the map's", async () => {
+      await addPointDataSet("points")
+      const layer = mapContent.layers[0]
+      if (!isMapPointLayerModel(layer)) throw new Error("expected a point layer")
+
+      layer.displayItemDescription.setPointShape("star")
+
+      expect(mapContent.displayItemDescriptionFor(layer.dataConfiguration).pointShape).toBe("star")
+      // the map's own description is untouched, which is why reading it directly was wrong
+      expect(mapContent.pointDescription.pointShape).toBe("circle")
+    })
+
+    it("keeps two layers apart", async () => {
+      await addPointDataSet("first")
+      await addPointDataSet("second")
+      expect(mapContent.layers.length).toBe(2)
+      const [one, two] = mapContent.layers
+      if (!isMapPointLayerModel(one) || !isMapPointLayerModel(two)) throw new Error("expected point layers")
+
+      one.displayItemDescription.setPointShape("triangle")
+      two.displayItemDescription.setPointShape("diamond")
+
+      expect(mapContent.displayItemDescriptionFor(one.dataConfiguration).pointShape).toBe("triangle")
+      expect(mapContent.displayItemDescriptionFor(two.dataConfiguration).pointShape).toBe("diamond")
+    })
+
+    it("falls back to the map's own description for an unknown configuration", () => {
+      mapContent.pointDescription.setPointShape("plus")
+      expect(mapContent.displayItemDescriptionFor(undefined).pointShape).toBe("plus")
+    })
+  })
+
+  describe("setLegendAttribute", () => {
+    it("takes an attribute more childmost than the layer's position attributes", async () => {
+      /*
+       * The layer cannot color by it -- each point stands for several of its values -- but it takes
+       * it and says so, as a graph does. Discarding it here would be silent, and would not spare
+       * the user the state anyway: moving lat to a parent collection reaches it after the fact.
+       */
+      const dataSet = DataSet.create({ name: "points" })
+      dataSet.addAttribute({ id: "lat", name: "Latitude" })
+      dataSet.addAttribute({ id: "long", name: "Longitude" })
+      dataSet.addAttribute({ id: "leg", name: "Habitat" })
+      const sharedDataSet = SharedDataSet.create()
+      sharedDataSet.setDataSet(dataSet)
+      sharedModelManager.addSharedModel(sharedDataSet)
+      sharedModelManager.addSharedModel(DataSetMetadata.create({ data: dataSet.id }))
+      await new Promise(resolve => setTimeout(resolve, 0))
+
+      // lat and long move to a parent collection, leaving the legend attribute childmost
+      dataSet.moveAttributeToNewCollection("lat")
+      dataSet.moveAttribute("long", { collection: dataSet.collections[0].id })
+
+      mapContent.setLegendAttribute(dataSet.id, "leg")
+
+      const layer = mapContent.layers[0]
+      expect(layer.dataConfiguration.assignedLegendAttributeID).toBe("leg")
+      expect(layer.dataConfiguration.legendAttributeIsInoperable).toBe(true)
+    })
+
+    it("prefers a layer that can honor the attribute over one that cannot", async () => {
+      /*
+       * Closeness alone is not enough: the layer nearest the legend's collection can be one that
+       * cannot honor it. Each moveAttributeToNewCollection appends a collection, so moving in this
+       * order builds [f0][boundary][legend][f3][lat, long] -- the boundary one collection above the
+       * legend and unable to honor it, lat two below and able to.
+       */
+      const dataSet = DataSet.create({ name: "both" })
+      ;["f0", "bnd", "leg", "f3", "lat", "long"].forEach(id => {
+        dataSet.addAttribute({ id, name: id, userType: id === "bnd" ? "boundary" : undefined })
+      })
+      const sharedDataSet = SharedDataSet.create()
+      sharedDataSet.setDataSet(dataSet)
+      sharedModelManager.addSharedModel(sharedDataSet)
+      sharedModelManager.addSharedModel(DataSetMetadata.create({ data: dataSet.id }))
+      await new Promise(resolve => setTimeout(resolve, 0))
+
+      ;["f0", "bnd", "leg", "f3"].forEach(id => dataSet.moveAttributeToNewCollection(id))
+      const indexOf = (id: string) =>
+        dataSet.collections.findIndex(col => !!col.getAttribute(id))
+      expect(indexOf("bnd")).toBe(1)
+      expect(indexOf("leg")).toBe(2)
+      expect(indexOf("lat")).toBe(4)
+
+      mapContent.setLegendAttribute(dataSet.id, "leg")
+
+      // the polygon layer is nearer the legend, but cannot honor it
+      const pointLayer = mapContent.layers.find(l => isMapPointLayerModel(l))
+      const polygonLayer = mapContent.layers.find(l => isMapPolygonLayerModel(l))
+      expect(polygonLayer?.dataConfiguration.assignedLegendAttributeID).toBe("")
+      expect(pointLayer?.dataConfiguration.assignedLegendAttributeID).toBe("leg")
+    })
+  })
+
+  describe("drawsShapedItemsFor", () => {
+    it("says a point layer draws shaped items", async () => {
+      const dataSet = DataSet.create({ name: "points" })
+      dataSet.addAttribute({ id: "lat", name: "Latitude" })
+      dataSet.addAttribute({ id: "long", name: "Longitude" })
+      const sharedDataSet = SharedDataSet.create()
+      sharedDataSet.setDataSet(dataSet)
+      sharedModelManager.addSharedModel(sharedDataSet)
+      sharedModelManager.addSharedModel(DataSetMetadata.create({ data: dataSet.id }))
+      await new Promise(resolve => setTimeout(resolve, 0))
+
+      const layer = mapContent.layers[0]
+      expect(mapContent.drawsShapedItemsFor(layer.dataConfiguration)).toBe(true)
+    })
+
+    it("says a polygon layer does not, since a boundary has no point to shape", async () => {
+      /*
+       * Without this the legend would resolve a category's assigned shape for a polygon layer --
+       * and the shape lives on the CategorySet, which is shared across tiles, so a star chosen in
+       * a graph would reach a map's boundary legend. The inspector already refuses the case.
+       */
+      const dataSet = DataSet.create({ name: "boundaries" })
+      dataSet.addAttribute({ id: "boundary", name: "Boundary", userType: "boundary" })
+      const sharedDataSet = SharedDataSet.create()
+      sharedDataSet.setDataSet(dataSet)
+      sharedModelManager.addSharedModel(sharedDataSet)
+      sharedModelManager.addSharedModel(DataSetMetadata.create({ data: dataSet.id }))
+      await new Promise(resolve => setTimeout(resolve, 0))
+
+      const layer = mapContent.layers.find(l => isMapPolygonLayerModel(l))
+      if (!layer) throw new Error("expected a polygon layer")
+      expect(mapContent.drawsShapedItemsFor(layer.dataConfiguration)).toBe(false)
+    })
+  })
+
   describe("titleCollection (CODAP-1249)", () => {
     // Each map layer's palette label should reflect the *collection* holding the
     // layer's spatial attributes (matching v2 behavior), not the dataset name.
