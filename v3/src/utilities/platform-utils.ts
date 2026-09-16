@@ -28,8 +28,10 @@ export function isCommandKeyDown(event: IModifierKeys) {
  * ctrl counts only off the Mac, where it is not the secondary-click gesture. alt is excluded
  * because it is already spoken for: option-click zooms the plot background and rescales axes.
  *
- * Every caller routes through here so that supporting context menus, or deciding ctrl should toggle
- * on the Mac after all, is a single edit.
+ * New callers should route through here rather than reading modifier flags directly, so that
+ * supporting context menus, or deciding ctrl should toggle on the Mac after all, is a single edit.
+ * Several selection handlers in the graph, map, and case table still read the flags themselves and
+ * have yet to be migrated.
  */
 export function hasSelectionModifier(event: IModifierKeys) {
   return !!event.shiftKey || isCommandKeyDown(event)
@@ -38,8 +40,9 @@ export function hasSelectionModifier(event: IModifierKeys) {
 /*
  * Whether a click should leave an existing selection alone rather than clearing it. Deliberately
  * more permissive than hasSelectionModifier: acting on a selection should be precise, but
- * destroying one should not happen while the user holds any modifier at all -- including ctrl on a
- * Mac, where the click is opening a context menu rather than asking us to clear.
+ * destroying one should not happen while the user holds shift, cmd, or ctrl -- including ctrl on a
+ * Mac, where the click is opening a context menu rather than asking us to clear. alt is excluded
+ * here too, since it means option-click zoom rather than anything about selection.
  */
 export function preservesSelection(event: IModifierKeys) {
   return !!event.shiftKey || !!event.metaKey || !!event.ctrlKey
