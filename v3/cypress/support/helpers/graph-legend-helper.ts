@@ -55,8 +55,15 @@ export const GraphLegendHelper = {
       cy.get("body").click(x, y)
     })
   },
+  /*
+   * Clears the selection by clicking empty plot background. The click has to land on the renderer's
+   * canvas: useRendererPointerDown only deselects when event.target is the canvas itself, and the
+   * canvas is layered over the SVG plot background, so a real pointer never reaches the rect
+   * underneath. Clicking that rect instead -- which needs `force` precisely because the canvas
+   * covers it -- simulates a click no user can perform, and silently does nothing.
+   */
   unselectLegendCategory() {
-        gle.getGraphTile().find(".plot-cell-background").eq(0).click({force:true})
+    gle.getGraphTile().find("canvas").first().click("topLeft")
   },
   // A circle is the only key drawn as arcs, so the arc command tells the two apart without pinning
   // down the exact path data.

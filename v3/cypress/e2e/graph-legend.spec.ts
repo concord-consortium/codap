@@ -526,7 +526,7 @@ context("Test drawing legend on existing legend", () => {
 
   })
 })
-context("Test selecting and selecting categories in legend", () => {
+context("Test selecting and unselecting categories in legend", () => {
   beforeEach(function () {
     const queryParams = "?sample=mammals&dashboard&mouseSensor&suppressUnsavedWarning"
     const url = `${Cypress.config("index")}${queryParams}`
@@ -549,10 +549,8 @@ context("Test selecting and selecting categories in legend", () => {
     glh.selectCategoryColorForCategoricalLegend(arrayOfValues[7].values[2])
     glh.verifyCategoricalLegendKeySelected(arrayOfValues[7].values[2])
 
-    // For some reason clicking on the background to unselect the legend
-    // is not working
-    // glh.unselectLegendCategory()
-    // glh.verifyNoLegendCategorySelectedForCategoricalLegend()
+    glh.unselectLegendCategory()
+    glh.verifyNoLegendCategorySelectedForCategoricalLegend()
     // glh.openLegendMenu()
     // glh.removeAttributeFromLegend(arrayOfAttributes[7])
     // ah.openAxisAttributeMenu("bottom")
@@ -566,10 +564,8 @@ context("Test selecting and selecting categories in legend", () => {
     glh.selectNumericLegendCategory(1)
     glh.verifyNumericLegendKeySelected()
 
-    // For some reason clicking on the background to unselect the legend
-    // is not working
-    // glh.unselectLegendCategory()
-    // glh.verifyNoLegendCategorySelectedForNumericLegend()
+    glh.unselectLegendCategory()
+    glh.verifyNoLegendCategorySelectedForNumericLegend()
 
     // glh.openLegendMenu()
     // glh.removeAttributeFromLegend(arrayOfAttributes[3])
