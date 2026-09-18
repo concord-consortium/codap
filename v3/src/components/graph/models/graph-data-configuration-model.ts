@@ -14,7 +14,6 @@ import {
 import {
   AttributeDescription, DataConfigurationModel, IAttributeDescriptionSnapshot, IDataConfigurationModel
 } from "../../data-display/models/data-configuration-model"
-import {updateCellKey} from "../adornments/utilities/adornment-utils"
 import {cellKeyToString} from "../utilities/cell-key-utils"
 import { CellIndexer } from "./cell-indexer"
 
@@ -471,40 +470,13 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       return maxInBin
     },
     cellKey(index: number) {
-      const { xAttrId, xCats, yAttrId, yCats, topAttrId, topCats, rightAttrId, rightCats } = self.getCategoriesOptions()
-      const rightCatCount = rightCats.length || 1
-      const yCatCount = yCats.length || 1
-      const xCatCount = xCats.length || 1
-      let cellKey: Record<string, string> = {}
-
-      // Determine which categories are associated with the cell's axes using the provided index value and
-      // the attributes and categories present in the graph.
-      const topIndex = Math.floor(index / (rightCatCount * yCatCount * xCatCount))
-      const topCat = topCats[topIndex]
-      cellKey = updateCellKey(cellKey, topAttrId, topCat)
-      const rightIndex = Math.floor(index / (yCatCount * xCatCount)) % rightCatCount
-      const rightCat = rightCats[rightIndex]
-      cellKey = updateCellKey(cellKey, rightAttrId, rightCat)
-      const yIndex = Math.floor(index / xCatCount) % yCatCount
-      const yCat = yCats[yIndex]
-      cellKey = updateCellKey(cellKey, yAttrId, yCat)
-      const xCat = xCats[index % xCatCount]
-      cellKey = updateCellKey(cellKey, xAttrId, xCat)
-
-      return cellKey
+      return self.cellIndexer().cellKeyForIndex(index)
     },
     getAllCellKeys() {
-      const { xCats, yCats, topCats, rightCats } = self.getCategoriesOptions()
-      const topCatCount = topCats.length || 1
-      const rightCatCount = rightCats.length || 1
-      const xCatCount = xCats.length || 1
-      const yCatCount = yCats.length || 1
-      const columnCount = topCatCount * xCatCount
-      const rowCount = rightCatCount * yCatCount
-      const totalCount = rowCount * columnCount
+      const indexer = self.cellIndexer()
       const cellKeys: Record<string, string>[] = []
-      for (let i = 0; i < totalCount; ++i) {
-        cellKeys.push(this.cellKey(i))
+      for (let i = 0; i < indexer.cellCount; ++i) {
+        cellKeys.push(indexer.cellKeyForIndex(i))
       }
       return cellKeys
     },
@@ -755,8 +727,11 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     get caseDataWithSubPlot() {
       const allCaseData: CaseDataWithSubPlot[] = self.joinedCaseDataArrays
       const caseIDToSubPlot: Record<string, number> = {}
-      self.getAllCellKeys().forEach((cellKey, cellIndex) => {
-        self.subPlotCases(cellKey).forEach(caseID => {
+      // Seed only from the buckets, which contain plotted cases. A case that is filtered out or
+      // hidden is present in joinedCaseDataArrays but belongs to no cell, and must keep an
+      // undefined subPlotNum so it is not drawn.
+      self.casesByCellIndex().forEach((caseIds, cellIndex) => {
+        caseIds.forEach(caseID => {
           caseIDToSubPlot[caseID] = cellIndex
         })
       })

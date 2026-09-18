@@ -668,6 +668,10 @@ describe("DataConfigurationModel", () => {
     expect(noCategoricalCellKeys.length).toEqual(1)
     expect(noCategoricalCellKeys[0]).toEqual({})
 
+    // cellIndexer caches its result until invalidated; each mockData swap below simulates a
+    // fresh category configuration, so the cache must be cleared to pick it up.
+    config.cellIndexer.invalidateAll()
+
     // For a graph with one categorical attribute
     mockData = {
       id: {
@@ -692,6 +696,8 @@ describe("DataConfigurationModel", () => {
     expect(oneCategoricalCellKeys.length).toEqual(2)
     expect(oneCategoricalCellKeys[0]).toEqual({"def456": "small"})
     expect(oneCategoricalCellKeys[1]).toEqual({"def456": "large"})
+
+    config.cellIndexer.invalidateAll()
 
     // For a graph with multiple categorical attributes
     mockData = {
@@ -865,6 +871,63 @@ describe("DataConfigurationModel", () => {
           expect([...config.subPlotCases(cellKey)].sort())
             .toEqual([...referenceSubPlotCases(config, cellKey)].sort())
         }
+      })
+    })
+  })
+
+  describe("caseDataWithSubPlot", () => {
+    beforeEach(() => {
+      addSwapFixture(tree)
+    })
+
+    it("leaves unplotted cases without a subPlotNum", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "lowId" })
+
+      // Under the current filterCase semantics, allPlottedCases and joinedCaseDataArrays always
+      // agree, so there is no case naturally missing from every bucket to observe here. Simulate
+      // one directly (as would happen for a case that is filtered out or hidden after bucketing)
+      // by removing a case from the buckets that caseDataWithSubPlot consumes, and confirm it
+      // reads bucket membership rather than deriving it independently from joinedCaseDataArrays.
+      const excludedCaseID = config.joinedCaseDataArrays[0].caseID
+      const bucketsWithoutExcluded = config.casesByCellIndex()
+        .map(bucket => bucket.filter(caseID => caseID !== excludedCaseID))
+      jest.spyOn(config, "casesByCellIndex").mockReturnValue(bucketsWithoutExcluded)
+
+      const caseData = config.caseDataWithSubPlot
+      const excluded = caseData.find(cd => cd.caseID === excludedCaseID)
+
+      expect(excluded).toBeDefined()
+      expect(excluded?.subPlotNum).toBeUndefined()
+      jest.restoreAllMocks()
+    })
+
+    it("reflects a new cell layout after the caches are invalidated", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "hiId" })
+      const before = config.caseDataWithSubPlot.map(cd => cd.subPlotNum)
+
+      // Changing only the categories limit re-shapes the cell grid without touching
+      // joinedCaseDataArrays, so this isolates cache invalidation reaching the computed.
+      // It fails if cellIndexer/casesByCellIndex are cached non-observably.
+      config.setNumberOfCategoriesLimitForRole("x", 3)
+      const after = config.caseDataWithSubPlot.map(cd => cd.subPlotNum)
+
+      expect(after).not.toEqual(before)
+      expect(Math.max(...after.filter((n): n is number => n != null))).toBeLessThan(3)
+    })
+
+    it("assigns each plotted case the index of the bucket containing it", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "lowId" })
+
+      const buckets = config.casesByCellIndex()
+      const byCaseId = new Map(config.caseDataWithSubPlot.map(cd => [cd.caseID, cd.subPlotNum]))
+      buckets.forEach((ids, cellIndex) => {
+        ids.forEach(id => expect(byCaseId.get(id)).toBe(cellIndex))
       })
     })
   })
