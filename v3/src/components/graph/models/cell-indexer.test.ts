@@ -80,4 +80,29 @@ describe("CellIndexer", () => {
     const indexer = new CellIndexer(makeOptions({ xAttrId: "xId", xCats: ["a", "b"] }))
     expect(indexer.indexForCellKey({ xId: "nope" })).toBe(-1)
   })
+
+  it("encodes cell keys with the documented decomposition (hand-verified against legacy method)", () => {
+    // Configuration with distinct category counts to catch swapped radices:
+    // xCount=2, yCount=3, rightCount=1, topCount=2; cellCount=12
+    // Decomposition: topIndex=floor(i/6), rightIndex=floor(i/6)%1=0,
+    //               yIndex=floor(i/2)%3, xIndex=i%2
+    const indexer = new CellIndexer(makeOptions({
+      xAttrId: "xId", xCats: ["a", "b"],
+      yAttrId: "yId", yCats: ["p", "q", "r"],
+      topAttrId: "tId", topCats: ["s", "t"]
+    }))
+    expect(indexer.cellCount).toBe(12)
+    // Index 0: x rolls at 1, y rolls at 2, top rolls at 6
+    expect(indexer.cellKeyForIndex(0)).toEqual({ tId: "s", yId: "p", xId: "a" })
+    // Index 1: x advances (x cycles every 1 step)
+    expect(indexer.cellKeyForIndex(1)).toEqual({ tId: "s", yId: "p", xId: "b" })
+    // Index 2: x wraps, y advances (y cycles every 2 steps)
+    expect(indexer.cellKeyForIndex(2)).toEqual({ tId: "s", yId: "q", xId: "a" })
+    // Index 4: y wraps (yIndex: floor(4/2)%3 = 2%3 = 2)
+    expect(indexer.cellKeyForIndex(4)).toEqual({ tId: "s", yId: "r", xId: "a" })
+    // Index 6: top advances (top cycles every 6 steps)
+    expect(indexer.cellKeyForIndex(6)).toEqual({ tId: "t", yId: "p", xId: "a" })
+    // Index 11: last cell
+    expect(indexer.cellKeyForIndex(11)).toEqual({ tId: "t", yId: "r", xId: "b" })
+  })
 })
