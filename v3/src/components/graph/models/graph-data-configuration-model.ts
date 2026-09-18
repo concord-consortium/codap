@@ -576,13 +576,17 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     subPlotCases: cachedFnWithArgsFactory({
       key: (cellKey: Record<string, string>) => cellKeyToString(cellKey),
       calculate: (cellKey: Record<string, string>) => {
-        // A cellKey with no entries at all is a wildcard for "every plotted case," independent of
-        // however many real cells the current split attributes create. Real callers only ever pass
-        // an empty cellKey when there are no split attributes at all (in which case this is also
-        // the answer the indexer would give), so this only special-cases the literal {} probe.
-        if (Object.keys(cellKey).length === 0) return self.allPlottedCases()
         const cellIndex = self.cellIndexer().indexForCellKey(cellKey)
-        return cellIndex >= 0 ? self.casesByCellIndex()[cellIndex] : []
+        if (cellIndex >= 0) return self.casesByCellIndex()[cellIndex]
+        // Keys the cell grid never generates reach this fallback: the empty wildcard key, a
+        // partial key naming only some of the categorical roles, or a key built from a raw case
+        // value for a role whose overflow the grid folds into kOther. Each is answered by the
+        // subset match against raw case values these callers have always gotten. A key that
+        // carries kOther itself comes from the grid, so it takes the O(1) branch above.
+        return self.allPlottedCases().filter(caseId => {
+          const itemData = self.dataset?.getFirstItemForCase(caseId, { numeric: false })
+          return self.isCaseInSubPlot(cellKey, itemData || { __id__: caseId })
+        })
       },
       name: "subPlotCases"
     }),
@@ -700,31 +704,40 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       return self.showMeasuresForSelection ? caseIds.filter(caseId => self.dataset?.isCaseSelected(caseId)) : caseIds
     }
   }))
-  .actions(self => {
-    const baseSetNumberOfCategoriesLimitForRole = self.setNumberOfCategoriesLimitForRole
-    return {
-      setNumberOfCategoriesLimitForRole(role: AttrRole, limit: number) {
-        // Compare the normalized limits, not the raw ones. The raw limit is derived from the axis
-        // length, so it changes every ~12px during a resize even when it is far larger than the
-        // number of categories and therefore cannot change any result. Invalidating on the raw
-        // value blows the subPlotCases cache (O(cells x cases) to rebuild) on every step of a
-        // resize drag. The raw limit is still what gets stored.
-        const prevLimit = self.numberOfCategoriesLimitByRole.get(role)
-        if (self.effectiveCategoriesLimitForRole(role, prevLimit) !==
-            self.effectiveCategoriesLimitForRole(role, limit)) {
-          // cellIndexer and casesByCellIndex must be invalidated together: caseDataWithSubPlot
-          // reads only the buckets, so it no longer transitively observes getCategoriesOptions().
-          self.cellIndexer.invalidateAll()
-          self.casesByCellIndex.invalidateAll()
-          self.subPlotCases.invalidateAll()
-          self.cellMap.invalidateAll()
-          self.categoryArrayForAttrRole.invalidate(role)
-          self.categoryArrayForAttrRole.invalidate(role, [])
-        }
-        baseSetNumberOfCategoriesLimitForRole.call(self, role, limit)
+  .actions(self => ({
+    // The cell-grid caches are a chain — casesByCellIndex is built from cellIndexer, subPlotCases
+    // is read out of casesByCellIndex — and caseDataWithSubPlot reads only the buckets, so it no
+    // longer transitively observes getCategoriesOptions(). Invalidating any one of them on its own
+    // leaves the others answering from a stale grid, so they are always invalidated together here.
+    invalidateCellGrid() {
+      self.cellIndexer.invalidateAll()
+      self.casesByCellIndex.invalidateAll()
+      self.subPlotCases.invalidateAll()
+    }
+  }))
+  .actions(self => ({
+    setNumberOfCategoriesLimitForRole(role: AttrRole, limit: number) {
+      // Compare the normalized limits, not the raw ones. The raw limit is derived from the axis
+      // length, so it changes every ~12px during a resize even when it is far larger than the
+      // number of categories and therefore cannot change any result. Invalidating on the raw
+      // value blows the subPlotCases cache (O(cells x cases) to rebuild) and recomputes the
+      // category arrays on every step of a resize drag.
+      const prevLimit = self.numberOfCategoriesLimitByRole.get(role)
+      const effectiveLimitChanged = self.effectiveCategoriesLimitForRole(role, prevLimit) !==
+                                    self.effectiveCategoriesLimitForRole(role, limit)
+      // The raw limit is stored either way: a higher-cardinality attribute assigned to the role
+      // afterwards must still be clamped by a limit that changes nothing for the current one.
+      // Storing it directly rather than through the base action keeps a no-op change from
+      // invalidating categoryArrayForAttrRole, which is the recompute the comparison exists to avoid.
+      self.storeNumberOfCategoriesLimitForRole(role, limit)
+      if (effectiveLimitChanged) {
+        self.invalidateCellGrid()
+        self.cellMap.invalidateAll()
+        self.categoryArrayForAttrRole.invalidate(role)
+        self.categoryArrayForAttrRole.invalidate(role, [])
       }
     }
-  })
+  }))
   .views(self => ({
     get caseDataWithSubPlot() {
       const allCaseData: CaseDataWithSubPlot[] = self.joinedCaseDataArrays
@@ -902,12 +915,8 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       self.removeYAttributeAtIndex(index)
     },
     clearGraphSpecificCasesCache() {
-      // cellIndexer and casesByCellIndex must be invalidated together: caseDataWithSubPlot
-      // reads only the buckets, so it no longer transitively observes getCategoriesOptions().
-      self.cellIndexer.invalidateAll()
-      self.casesByCellIndex.invalidateAll()
+      self.invalidateCellGrid()
       self.allPlottedCases.invalidate()
-      self.subPlotCases.invalidateAll()
       self.rowCases.invalidateAll()
       self.columnCases.invalidateAll()
       self.cellCases.invalidateAll()

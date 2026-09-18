@@ -1,4 +1,5 @@
 import { kOther } from "../../data-display/data-display-types"
+import { kImpossible } from "../utilities/cell-key-utils"
 import { CellIndexer, ICellIndexerOptions } from "./cell-indexer"
 
 const makeOptions = (overrides: Partial<ICellIndexerOptions> = {}): ICellIndexerOptions => ({
@@ -104,6 +105,53 @@ describe("CellIndexer", () => {
     expect(indexer.cellKeyForIndex(6)).toEqual({ tId: "t", yId: "p", xId: "a" })
     // Index 11: last cell
     expect(indexer.cellKeyForIndex(11)).toEqual({ tId: "t", yId: "r", xId: "b" })
+  })
+
+  it("cellKeyForIndex names the same slot tuple indexForSlots encoded, right role included", () => {
+    // The two decompositions are written independently, and the index round-trip test cannot tell
+    // them apart: any bijection survives it. Cross-checking them against hand-built cell keys over
+    // every slot tuple pins each factor, including the rightIndex extraction, which every other
+    // cellKeyForIndex test leaves at a single (degenerate) right slot.
+    const xCats = ["x0", "x1"]           // xCount = 2
+    const yCats = ["y0", "y1", "y2"]     // yCount = 3
+    const rightCats = ["r0", "r1"]       // rightCount = 2
+    const topCats = ["t0", "t1"]         // topCount = 2
+    const indexer = new CellIndexer(makeOptions({
+      xAttrId: "xId", xCats,
+      yAttrId: "yId", yCats,
+      rightAttrId: "rId", rightCats,
+      topAttrId: "tId", topCats
+    }))
+    expect(indexer.cellCount).toBe(24)
+    for (let top = 0; top < topCats.length; top++) {
+      for (let right = 0; right < rightCats.length; right++) {
+        for (let y = 0; y < yCats.length; y++) {
+          for (let x = 0; x < xCats.length; x++) {
+            const index = indexer.indexForSlots({ top, right, y, x })
+            expect(indexer.cellKeyForIndex(index)).toEqual({
+              tId: topCats[top], rId: rightCats[right], yId: yCats[y], xId: xCats[x]
+            })
+          }
+        }
+      }
+    }
+  })
+
+  it("parks a duplicated attribute's conflicting value under __IMPOSSIBLE__, first index winning", () => {
+    // topSplit, y and x all carry the same attribute. updateCellKey refuses to overwrite the value
+    // already stored under that attribute id and writes the conflicting one to __IMPOSSIBLE__
+    // instead, so distinct slot tuples can produce the same cell key. indexForCellKey resolves such
+    // a key to the lowest index that produced it, collapsing them the way subPlotCases always has.
+    const indexer = new CellIndexer(makeOptions({
+      xAttrId: "dupId", xCats: ["a", "b"],
+      yAttrId: "dupId", yCats: ["a", "b"],
+      topAttrId: "dupId", topCats: ["a", "b"]
+    }))
+    expect(indexer.cellCount).toBe(8)
+    // index 1 is (top a, y a, x b) and index 2 is (top a, y b, x a); both reduce to this key
+    expect(indexer.cellKeyForIndex(1)).toEqual({ dupId: "a", [kImpossible]: "b" })
+    expect(indexer.cellKeyForIndex(2)).toEqual({ dupId: "a", [kImpossible]: "b" })
+    expect(indexer.indexForCellKey({ dupId: "a", [kImpossible]: "b" })).toBe(1)
   })
 
   it("strides the top slot by the full rightCount*yCount*xCount, not by yCount*xCount alone", () => {

@@ -119,6 +119,22 @@ describe("DataConfigurationModel", () => {
       cellMapSpy.mockRestore()
     })
 
+    it("does not invalidate the category arrays for limits that cannot change the result", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "nId" })
+      expect(config.categoryArrayForAttrRole("x").length).toBeGreaterThan(0)  // prime the cache
+
+      const categorySpy = jest.spyOn(config.categoryArrayForAttrRole, "invalidate")
+
+      // every limit in this sweep is far larger than the handful of categories, so none of them
+      // can affect the category array, and recomputing it is O(cases)
+      sweepAxisLengths(config, 300, 600)
+
+      expect(categorySpy).not.toHaveBeenCalled()
+      categorySpy.mockRestore()
+    })
+
     it("invalidates when the effective limit actually changes", () => {
       const config = tree.config
       config.setDataset(tree.data, tree.metadata)
@@ -875,6 +891,39 @@ describe("DataConfigurationModel", () => {
     })
   })
 
+  describe("subPlotCases with a cell key the grid does not generate", () => {
+    beforeEach(() => {
+      addSwapFixture(tree)
+    })
+
+    it("matches a raw category value that clamping folded into kOther", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "hiId" })
+      config.setNumberOfCategoriesLimitForRole("x", 3)
+
+      // hiId has 50 distinct values, so all but a couple are clamped away; the grid's cell keys
+      // name only the surviving categories plus kOther. Callers such as the bar tooltip and the
+      // dot line plot still build their keys from the raw case value, which names no cell.
+      const xCats = config.categoryArrayForAttrRole("x", [])
+      expect(xCats).toContain(kOther)
+      const clampedValue = "v40"
+      expect(xCats).not.toContain(clampedValue)
+      expect(config.cellIndexer().indexForCellKey({ hiId: clampedValue })).toBe(-1)
+
+      expect(config.subPlotCases({ hiId: clampedValue })).toEqual(caseIdsFromItemIds(["s40"]))
+    })
+
+    it("treats an empty cell key as every plotted case even when the grid has many cells", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "lowId" })
+      expect(config.cellIndexer().cellCount).toBeGreaterThan(1)
+
+      expect([...config.subPlotCases({})].sort()).toEqual([...config.allPlottedCases()].sort())
+    })
+  })
+
   describe("caseDataWithSubPlot", () => {
     beforeEach(() => {
       addSwapFixture(tree)
@@ -895,12 +944,15 @@ describe("DataConfigurationModel", () => {
         .map(bucket => bucket.filter(caseID => caseID !== excludedCaseID))
       jest.spyOn(config, "casesByCellIndex").mockReturnValue(bucketsWithoutExcluded)
 
-      const caseData = config.caseDataWithSubPlot
-      const excluded = caseData.find(cd => cd.caseID === excludedCaseID)
+      try {
+        const caseData = config.caseDataWithSubPlot
+        const excluded = caseData.find(cd => cd.caseID === excludedCaseID)
 
-      expect(excluded).toBeDefined()
-      expect(excluded?.subPlotNum).toBeUndefined()
-      jest.restoreAllMocks()
+        expect(excluded).toBeDefined()
+        expect(excluded?.subPlotNum).toBeUndefined()
+      } finally {
+        jest.restoreAllMocks()
+      }
     })
 
     it("reflects a new cell layout after the caches are invalidated", () => {
@@ -1010,7 +1062,8 @@ describe("DataConfigurationModel", () => {
       // every plotted case lands in a cell, and no case lands in a bucket whose x OR topSplit
       // category disagrees with the case's own clamped value for that role. Both attributes are
       // assigned here (lowId for x, hiId for topSplit), so updateCellKey sets both keys on every
-      // cell key it builds; neither comparison below is vacuous.
+      // cell key it builds. Only the hiId comparison discriminates: x is clamped to a single
+      // category, so its cell key value and every case's clamped x value are both kOther.
       const indexer = config.cellIndexer()
       config.casesByCellIndex().forEach((caseIds, cellIndex) => {
         const cellKey = indexer.cellKeyForIndex(cellIndex)

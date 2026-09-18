@@ -1198,8 +1198,14 @@ export const DataConfigurationModel = types
       const categorySet = self.categorySetForAttrRole('legend')
       categorySet?.setShapeForCategory(cat, shape)
     },
-    setNumberOfCategoriesLimitForRole(role: AttrRole, limit: number | undefined) {
+    // Stores the limit without invalidating anything derived from it. Callers that can tell the
+    // new limit cannot change any result (the graph, which compares effective limits) store it
+    // this way so a no-op change doesn't force an O(cases) category recompute.
+    storeNumberOfCategoriesLimitForRole(role: AttrRole, limit: number | undefined) {
       self.numberOfCategoriesLimitByRole.set(role, limit != null && limit > 0 ? limit : undefined)
+    },
+    setNumberOfCategoriesLimitForRole(role: AttrRole, limit: number | undefined) {
+      this.storeNumberOfCategoriesLimitForRole(role, limit)
       self.categoryArrayForAttrRole.invalidate(role)
     },
   }))
