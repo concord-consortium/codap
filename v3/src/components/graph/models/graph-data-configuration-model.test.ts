@@ -1007,14 +1007,18 @@ describe("DataConfigurationModel", () => {
       expect(xCats[xCats.length - 1]).toBe(kOther)
       expect(topCats[topCats.length - 1]).toBe(kOther)
 
-      // every plotted case lands in a cell, and no case lands in a bucket whose x category
-      // disagrees with the case's own clamped x value
+      // every plotted case lands in a cell, and no case lands in a bucket whose x OR topSplit
+      // category disagrees with the case's own clamped value for that role. Both attributes are
+      // assigned here (lowId for x, hiId for topSplit), so updateCellKey sets both keys on every
+      // cell key it builds; neither comparison below is vacuous.
       const indexer = config.cellIndexer()
       config.casesByCellIndex().forEach((caseIds, cellIndex) => {
         const cellKey = indexer.cellKeyForIndex(cellIndex)
         caseIds.forEach(caseId => {
           const xValue = config.categoricalValueForCaseInRole(caseId, "x")
+          const topValue = config.categoricalValueForCaseInRole(caseId, "topSplit")
           expect(cellKey.lowId == null || cellKey.lowId === xValue).toBe(true)
+          expect(cellKey.hiId == null || cellKey.hiId === topValue).toBe(true)
         })
       })
     })
