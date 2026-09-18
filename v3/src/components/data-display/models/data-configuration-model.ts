@@ -29,7 +29,7 @@ import {GraphPlace} from "../../axis-graph-shared"
 import { getScaleThresholds } from "../components/legend/choropleth-legend/choropleth-legend"
 import {CaseData} from "../d3-types"
 import {
-  AttrRole, GraphAttrRole, TipAttrRoles, graphPlaceToAttrRole, kOther, kMain, GraphSplitAttrRoles
+  AttrRole, GraphAttrRole, TipAttrRoles, graphPlaceToAttrRole, kOther, kMain
 } from "../data-display-types"
 import { dataDisplayGetNumericValue } from "../data-display-value-utils"
 
@@ -201,11 +201,6 @@ export const DataConfigurationModel = types
       const attrID = this.attributeID(role)
       const attr = attrID ? self.dataset?.attrFromID(attrID) : undefined
       return attr?.type
-    },
-    roleForAttributeWithCategoryLimit(attrID: string) {
-      return GraphSplitAttrRoles.find(role => {
-        return self.numberOfCategoriesLimitByRole.get(role) !== undefined
-      })
     },
     get places() {
       const places = new Set<string>(Object.keys(this.attributeDescriptions))

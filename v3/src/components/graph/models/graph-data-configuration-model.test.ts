@@ -911,12 +911,52 @@ describe("DataConfigurationModel", () => {
 
       // Changing only the categories limit re-shapes the cell grid without touching
       // joinedCaseDataArrays, so this isolates cache invalidation reaching the computed.
-      // It fails if cellIndexer/casesByCellIndex are cached non-observably.
+      // A plain, unobserved read like this one always re-derives caseDataWithSubPlot from
+      // scratch regardless of how cellIndexer/casesByCellIndex cache internally (MobX does not
+      // memoize a computed with no active observer), so this only pins that the manual
+      // invalidate() calls reach the underlying caches, not that they are MobX-observable.
+      // The "an active reaction observes the new layout" test below pins the latter.
       config.setNumberOfCategoriesLimitForRole("x", 3)
       const after = config.caseDataWithSubPlot.map(cd => cd.subPlotNum)
 
       expect(after).not.toEqual(before)
       expect(Math.max(...after.filter((n): n is number => n != null))).toBeLessThan(3)
+    })
+
+    it("re-fires an active reaction observing casesByCellIndex after the caches are invalidated", () => {
+      // caseDataWithSubPlot itself cannot be used to observe this: it mutates and returns the same
+      // array reference as joinedCaseDataArrays (only the subPlotNum fields on its objects change),
+      // so MobX's reference-equality check on a computed's return value never sees it as "changed"
+      // for a reaction/observer, independent of anything under test here. casesByCellIndex builds a
+      // fresh array on every recalculation, so it is what actually isolates cache observability.
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "hiId" })
+
+      const seen: number[][] = []
+      const disposer = reaction(
+        () => config.casesByCellIndex().map(bucket => bucket.length),
+        (bucketSizes) => seen.push(bucketSizes),
+        { name: "GraphDataConfigurationTest casesByCellIndex reaction", fireImmediately: true }
+      )
+      try {
+        expect(seen.length).toBe(1)
+        const before = seen[0]
+
+        // Changing only the categories limit re-shapes the cell grid without touching
+        // joinedCaseDataArrays, so this isolates cache invalidation reaching a live observer.
+        // Unlike a plain, unobserved read, an active reaction only re-fires when MobX can see that
+        // one of the observables it read on its last run has changed, so this catches a cache that
+        // recomputes correctly on direct access but never tells an observer it went stale.
+        config.setNumberOfCategoriesLimitForRole("x", 3)
+
+        expect(seen.length).toBe(2)
+        const after = seen[1]
+        expect(after).not.toEqual(before)
+        expect(after.length).toBe(3)
+      } finally {
+        disposer()
+      }
     })
 
     it("assigns each plotted case the index of the bucket containing it", () => {
@@ -944,6 +984,39 @@ describe("DataConfigurationModel", () => {
       expect(caseData.length).toBeGreaterThan(0)
       expect(subPlotCasesSpy).not.toHaveBeenCalled()
       subPlotCasesSpy.mockRestore()
+    })
+  })
+
+  describe("kOther assignment with two clamped roles", () => {
+    beforeEach(() => {
+      addSwapFixture(tree)
+    })
+
+    it("assigns each role's overflow to that role's own kOther slot", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "lowId" })
+      config.setAttribute("topSplit", { attributeID: "hiId" })
+
+      // clamp both roles at once
+      config.setNumberOfCategoriesLimitForRole("x", 1)
+      config.setNumberOfCategoriesLimitForRole("topSplit", 2)
+
+      const xCats = config.categoryArrayForAttrRole("x", [])
+      const topCats = config.categoryArrayForAttrRole("topSplit", [])
+      expect(xCats[xCats.length - 1]).toBe(kOther)
+      expect(topCats[topCats.length - 1]).toBe(kOther)
+
+      // every plotted case lands in a cell, and no case lands in a bucket whose x category
+      // disagrees with the case's own clamped x value
+      const indexer = config.cellIndexer()
+      config.casesByCellIndex().forEach((caseIds, cellIndex) => {
+        const cellKey = indexer.cellKeyForIndex(cellIndex)
+        caseIds.forEach(caseId => {
+          const xValue = config.categoricalValueForCaseInRole(caseId, "x")
+          expect(cellKey.lowId == null || cellKey.lowId === xValue).toBe(true)
+        })
+      })
     })
   })
 })
