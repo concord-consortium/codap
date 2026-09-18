@@ -703,19 +703,20 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     const baseSetNumberOfCategoriesLimitForRole = self.setNumberOfCategoriesLimitForRole
     return {
       setNumberOfCategoriesLimitForRole(role: AttrRole, limit: number) {
-        // Compare the normalized limit, not the raw one. The raw limit is derived from the axis
+        // Compare the normalized limits, not the raw ones. The raw limit is derived from the axis
         // length, so it changes every ~12px during a resize even when it is far larger than the
         // number of categories and therefore cannot change any result. Invalidating on the raw
         // value blows the subPlotCases cache (O(cells x cases) to rebuild) on every step of a
-        // resize drag, which is what makes split/categorical graphs crawl while being resized.
-        const effectiveLimit = self.effectiveCategoriesLimitForRole(role, limit)
-        if (self.numberOfCategoriesLimitByRole.get(role) !== effectiveLimit) {
+        // resize drag. The raw limit is still what gets stored.
+        const prevLimit = self.numberOfCategoriesLimitByRole.get(role)
+        if (self.effectiveCategoriesLimitForRole(role, prevLimit) !==
+            self.effectiveCategoriesLimitForRole(role, limit)) {
           self.subPlotCases.invalidateAll()
           self.cellMap.invalidateAll()
-          baseSetNumberOfCategoriesLimitForRole.call(self, role, limit)
           self.categoryArrayForAttrRole.invalidate(role)
           self.categoryArrayForAttrRole.invalidate(role, [])
         }
+        baseSetNumberOfCategoriesLimitForRole.call(self, role, limit)
       }
     }
   })

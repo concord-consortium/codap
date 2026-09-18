@@ -447,17 +447,17 @@ export const DataConfigurationModel = types
   }))
   .views(self => ({
     /**
-     * Normalizes a categories limit so that limits which cannot affect the result all collapse to
-     * the same value (undefined).
+     * Normalizes a categories limit so that limits which cannot affect the result all compare
+     * equal (as undefined).
      *
      * The limit only changes what categoryArrayForAttrRole returns when there are MORE categories
-     * than the limit — that is the only case where the kOther clamp below applies. Axis code
-     * recomputes the limit from the axis length on every layout change
-     * (floor(axisLength / kDefaultFontHeight)), so during a component resize it ticks over roughly
-     * every 12 pixels. Each distinct value invalidates the subPlotCases cache, and recomputing that
-     * is O(cells x cases) — which is why resizing a graph with categorical axes gets slower with
-     * each added dimension. Collapsing every "long enough to show them all" limit to undefined
-     * keeps those no-op changes from invalidating anything.
+     * than the limit — that is the only case where the kOther clamp applies. Axis code recomputes
+     * the limit from the axis length on every layout change, so during a component resize it ticks
+     * over roughly every 12 pixels. Comparing normalized values keeps those no-op changes from
+     * invalidating caches whose rebuild is O(cells x cases).
+     *
+     * This is used only for comparison; the raw limit is what gets stored, so the clamp stays
+     * correct even when this is evaluated against a role whose attribute is about to change.
      */
     effectiveCategoriesLimitForRole(role: AttrRole, limit: number | undefined) {
       if (limit == null || limit <= 0) return undefined
@@ -1204,8 +1204,7 @@ export const DataConfigurationModel = types
       categorySet?.setShapeForCategory(cat, shape)
     },
     setNumberOfCategoriesLimitForRole(role: AttrRole, limit: number | undefined) {
-      limit = self.effectiveCategoriesLimitForRole(role, limit)
-      self.numberOfCategoriesLimitByRole.set(role, limit)
+      self.numberOfCategoriesLimitByRole.set(role, limit != null && limit > 0 ? limit : undefined)
       self.categoryArrayForAttrRole.invalidate(role)
     },
   }))
