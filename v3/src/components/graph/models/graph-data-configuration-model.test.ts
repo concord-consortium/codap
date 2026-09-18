@@ -15,6 +15,19 @@ const TreeModel = types.model("Tree", {
 
 let tree: Instance<typeof TreeModel>
 
+// Adds two extra attributes and 50 extra cases used by tests that need enough categories to
+// exercise clamping/bucketing. Kept out of the shared beforeEach so the rest of this file's tests
+// still see exactly the 3-case dataset from the outer beforeEach.
+function addSwapFixture(aTree: Instance<typeof TreeModel>) {
+  aTree.data.addAttribute({ id: "lowId", name: "low" })
+  aTree.data.addAttribute({ id: "hiId", name: "hi" })
+  const swapRows: any[] = []
+  for (let i = 0; i < 50; i++) {
+    swapRows.push({ __id__: `s${i}`, low: i % 2 === 0 ? "A" : "B", hi: `v${i}` })
+  }
+  aTree.data.addCases(toCanonical(aTree.data, swapRows))
+}
+
 describe("DataConfigurationModel", () => {
   beforeEach(() => {
     tree = TreeModel.create({
@@ -76,15 +89,7 @@ describe("DataConfigurationModel", () => {
 
   describe("categories limit normalization (resize performance)", () => {
     beforeEach(() => {
-      // extra attributes/cases for the attribute-swap test below, kept out of the shared
-      // beforeEach so the rest of this file's tests still see exactly the 3-case dataset
-      tree.data.addAttribute({ id: "lowId", name: "low" })
-      tree.data.addAttribute({ id: "hiId", name: "hi" })
-      const swapRows: any[] = []
-      for (let i = 0; i < 50; i++) {
-        swapRows.push({ __id__: `s${i}`, low: i % 2 === 0 ? "A" : "B", hi: `v${i}` })
-      }
-      tree.data.addCases(toCanonical(tree.data, swapRows))
+      addSwapFixture(tree)
     })
 
     const sweepAxisLengths = (config: typeof tree.config, from: number, to: number) => {
@@ -723,6 +728,145 @@ describe("DataConfigurationModel", () => {
         }
       }
     }
+  })
+
+  describe("cell bucketing", () => {
+    beforeEach(() => {
+      addSwapFixture(tree)
+    })
+
+    it("puts each plotted case in exactly one cell, and subPlotCases reads the buckets", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "lowId" })
+
+      const buckets = config.casesByCellIndex()
+      const total = buckets.reduce((sum, ids) => sum + ids.length, 0)
+      expect(total).toBe(config.allPlottedCases().length)
+
+      const seen = new Set<string>()
+      buckets.forEach(ids => ids.forEach(id => {
+        expect(seen.has(id)).toBe(false)
+        seen.add(id)
+      }))
+
+      const indexer = config.cellIndexer()
+      for (let i = 0; i < indexer.cellCount; i++) {
+        expect(config.subPlotCases(indexer.cellKeyForIndex(i))).toEqual(buckets[i])
+      }
+    })
+
+    it("buckets cases with a numeric x role instead of dropping them from every cell", () => {
+      // A numeric x/y role gets the single placeholder category getCategoriesOptions builds the
+      // indexer with; a case's real (non-categorical) x value must still resolve to that one
+      // degenerate slot rather than being looked up against the placeholder and missed.
+      const config = tree.config
+      tree.data.addAttribute({ id: "catId", name: "cat" })
+      tree.data.setCaseValues([
+        { __id__: "c1", catId: "P" },
+        { __id__: "c2", catId: "Q" }
+      ])
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "xId" })          // numeric: c1 x=1, c2 x=2
+      config.setAttribute("topSplit", { attributeID: "catId" }) // categorical: c1 cat=P, c2 cat=Q
+
+      const [c1Id, c2Id] = caseIdsFromItemIds(["c1", "c2"]) as string[]
+      expect(config.allPlottedCases()).toEqual([c1Id, c2Id])
+
+      const c1Cell = config.cellIndexForCase(c1Id)
+      const c2Cell = config.cellIndexForCase(c2Id)
+      expect(c1Cell).toBeGreaterThanOrEqual(0)
+      expect(c2Cell).toBeGreaterThanOrEqual(0)
+
+      const buckets = config.casesByCellIndex()
+      expect(buckets[c1Cell]).toContain(c1Id)
+      expect(buckets[c2Cell]).toContain(c2Id)
+      expect(buckets.reduce((sum, ids) => sum + ids.length, 0)).toBe(2)
+    })
+
+    it("does not read the dataset once per cell", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "lowId" })
+      const getStrValueSpy = jest.spyOn(tree.data, "getStrValue")
+
+      config.casesByCellIndex()
+      const fewCells = getStrValueSpy.mock.calls.length
+
+      getStrValueSpy.mockClear()
+      config.setAttribute("topSplit", { attributeID: "hiId" })
+      config.casesByCellIndex()
+      const manyCells = getStrValueSpy.mock.calls.length
+
+      // reads scale with cases and roles, NOT with the number of cells
+      expect(manyCells).toBeLessThan(fewCells * 4)
+      getStrValueSpy.mockRestore()
+    })
+  })
+
+  describe("equivalence with the previous subplot membership logic", () => {
+    beforeEach(() => {
+      addSwapFixture(tree)
+    })
+
+    // The pre-change subPlotCases body, kept verbatim as a reference implementation. It filters
+    // all plotted cases per cell, which is the O(cells x cases) behavior being replaced.
+    const referenceSubPlotCases = (config: typeof tree.config, cellKey: Record<string, string>) => {
+      const copyOfCellKey: Record<string, string> = { ...cellKey }
+      const attributeIDsWithValueOther: string[] = []
+      Object.keys(copyOfCellKey).forEach(attrID => {
+        if (copyOfCellKey[attrID] === kOther) attributeIDsWithValueOther.push(attrID)
+      })
+      attributeIDsWithValueOther.forEach(attrID => delete copyOfCellKey[attrID])
+      let targetCases = config.allPlottedCases().filter((caseId: string) => {
+        const itemData = tree.data.getFirstItemForCase(caseId, { numeric: false })
+        const caseData = itemData || { __id__: caseId }
+        return config.isCaseInSubPlot(copyOfCellKey, caseData)
+      })
+      // The reference implementation resolved an ambiguous kOther by asking which role held a
+      // limit, ignoring the attribute id it was given. Reproduced here only so the harness can
+      // show where the new behavior deliberately differs.
+      attributeIDsWithValueOther.forEach(() => {
+        const role = (["x", "y", "topSplit", "rightSplit"] as const)
+          .find(r => config.numberOfCategoriesLimitByRole.get(r) !== undefined)
+        if (role) {
+          targetCases = targetCases.filter((caseId: string) =>
+            config.categoricalValueForCaseInRole(caseId, role) === kOther)
+        }
+      })
+      return targetCases
+    }
+
+    const configure = (xAttr?: string, yAttr?: string, topAttr?: string, limit?: number) => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      if (xAttr) config.setAttribute("x", { attributeID: xAttr })
+      if (yAttr) config.setAttribute("y", { attributeID: yAttr })
+      if (topAttr) config.setAttribute("topSplit", { attributeID: topAttr })
+      if (limit != null) config.setNumberOfCategoriesLimitForRole("x", limit)
+      return config
+    }
+
+    const cases: Array<[string, string?, string?, string?, number?]> = [
+      ["x only", "lowId"],
+      ["x and y", "lowId", "nId"],
+      ["x and topSplit", "lowId", undefined, "nId"],
+      ["x clamped", "hiId", undefined, undefined, 3],
+      ["x clamped with y", "hiId", "lowId", undefined, 5],
+      ["no attributes"]
+    ]
+
+    cases.forEach(([name, xAttr, yAttr, topAttr, limit]) => {
+      it(`matches the reference implementation: ${name}`, () => {
+        const config = configure(xAttr, yAttr, topAttr, limit)
+        const indexer = config.cellIndexer()
+        for (let i = 0; i < indexer.cellCount; i++) {
+          const cellKey = indexer.cellKeyForIndex(i)
+          expect([...config.subPlotCases(cellKey)].sort())
+            .toEqual([...referenceSubPlotCases(config, cellKey)].sort())
+        }
+      })
+    })
   })
 })
 
