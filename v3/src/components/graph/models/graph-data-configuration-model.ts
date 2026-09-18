@@ -712,6 +712,8 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         const prevLimit = self.numberOfCategoriesLimitByRole.get(role)
         if (self.effectiveCategoriesLimitForRole(role, prevLimit) !==
             self.effectiveCategoriesLimitForRole(role, limit)) {
+          // cellIndexer and casesByCellIndex must be invalidated together: caseDataWithSubPlot
+          // reads only the buckets, so it no longer transitively observes getCategoriesOptions().
           self.cellIndexer.invalidateAll()
           self.casesByCellIndex.invalidateAll()
           self.subPlotCases.invalidateAll()
@@ -727,9 +729,8 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     get caseDataWithSubPlot() {
       const allCaseData: CaseDataWithSubPlot[] = self.joinedCaseDataArrays
       const caseIDToSubPlot: Record<string, number> = {}
-      // Seed only from the buckets, which contain plotted cases. A case that is filtered out or
-      // hidden is present in joinedCaseDataArrays but belongs to no cell, and must keep an
-      // undefined subPlotNum so it is not drawn.
+      // Seed only from the buckets. A case the indexer could not slot (cellIndexForCase < 0)
+      // belongs to no bucket, and must keep an undefined subPlotNum so it is not drawn.
       self.casesByCellIndex().forEach((caseIds, cellIndex) => {
         caseIds.forEach(caseID => {
           caseIDToSubPlot[caseID] = cellIndex
@@ -901,6 +902,8 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       self.removeYAttributeAtIndex(index)
     },
     clearGraphSpecificCasesCache() {
+      // cellIndexer and casesByCellIndex must be invalidated together: caseDataWithSubPlot
+      // reads only the buckets, so it no longer transitively observes getCategoriesOptions().
       self.cellIndexer.invalidateAll()
       self.casesByCellIndex.invalidateAll()
       self.allPlottedCases.invalidate()

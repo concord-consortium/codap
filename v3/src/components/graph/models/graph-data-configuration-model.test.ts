@@ -880,7 +880,7 @@ describe("DataConfigurationModel", () => {
       addSwapFixture(tree)
     })
 
-    it("leaves unplotted cases without a subPlotNum", () => {
+    it("derives subPlotNum from bucket membership, not from joinedCaseDataArrays", () => {
       const config = tree.config
       config.setDataset(tree.data, tree.metadata)
       config.setAttribute("x", { attributeID: "lowId" })
@@ -929,6 +929,21 @@ describe("DataConfigurationModel", () => {
       buckets.forEach((ids, cellIndex) => {
         ids.forEach(id => expect(byCaseId.get(id)).toBe(cellIndex))
       })
+    })
+
+    it("reads the buckets directly instead of calling subPlotCases per cell", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "hiId" })
+      // Clamp to several cells so the old per-cell loop (getAllCellKeys + subPlotCases per key)
+      // would have called subPlotCases more than once.
+      config.setNumberOfCategoriesLimitForRole("x", 5)
+
+      const subPlotCasesSpy = jest.spyOn(config, "subPlotCases")
+      const caseData = config.caseDataWithSubPlot
+      expect(caseData.length).toBeGreaterThan(0)
+      expect(subPlotCasesSpy).not.toHaveBeenCalled()
+      subPlotCasesSpy.mockRestore()
     })
   })
 })
