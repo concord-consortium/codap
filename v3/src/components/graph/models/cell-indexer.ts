@@ -45,6 +45,7 @@ export class CellIndexer {
   private readonly rightCount: number
   private readonly topCount: number
   private readonly indexOfCellKeyString: Map<string, number>
+  private readonly canonicalIndex: number[]
 
   readonly cellCount: number
 
@@ -65,12 +66,23 @@ export class CellIndexer {
     // The reverse direction is a lookup rather than arithmetic inversion, because updateCellKey
     // writes an __IMPOSSIBLE__ sentinel when one attribute occupies two roles, which cannot be
     // inverted. Building the map from cellKeyForIndex keeps both directions consistent by
-    // construction, and collapses colliding keys exactly as the subPlotCases cache already does.
+    // construction.
+    //
+    // Distinct indices can serialize to the same key, and then only one of them is reachable
+    // through a key. canonicalIndex maps every index onto that reachable one, so indexForSlots
+    // never returns a cell that indexForCellKey cannot find: a case is bucketed into the same cell
+    // a lookup of its cell key resolves to. Without it, a case could be drawn in one cell while
+    // that cell's counts and adornments read another's.
     this.indexOfCellKeyString = new Map<string, number>()
+    this.canonicalIndex = new Array<number>(this.cellCount)
     for (let i = 0; i < this.cellCount; i++) {
       const keyString = cellKeyToString(this.cellKeyForIndex(i))
-      if (!this.indexOfCellKeyString.has(keyString)) {
+      const existing = this.indexOfCellKeyString.get(keyString)
+      if (existing == null) {
         this.indexOfCellKeyString.set(keyString, i)
+        this.canonicalIndex[i] = i
+      } else {
+        this.canonicalIndex[i] = existing
       }
     }
   }
@@ -90,10 +102,11 @@ export class CellIndexer {
   indexForSlots(slots: { top: number, right: number, y: number, x: number }): number {
     const { top, right, y, x } = slots
     if (top < 0 || right < 0 || y < 0 || x < 0) return -1
-    return top * (this.rightCount * this.yCount * this.xCount) +
-           right * (this.yCount * this.xCount) +
-           y * this.xCount +
-           x
+    const index = top * (this.rightCount * this.yCount * this.xCount) +
+                  right * (this.yCount * this.xCount) +
+                  y * this.xCount +
+                  x
+    return this.canonicalIndex[index]
   }
 
   cellKeyForIndex(index: number): Record<string, string> {

@@ -581,8 +581,12 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         // Keys the cell grid never generates reach this fallback: the empty wildcard key, a
         // partial key naming only some of the categorical roles, or a key built from a raw case
         // value for a role whose overflow the grid folds into kOther. Each is answered by the
-        // subset match against raw case values these callers have always gotten. A key that
-        // carries kOther itself comes from the grid, so it takes the O(1) branch above.
+        // subset match against raw case values these callers have always gotten.
+        //
+        // One shape this does not serve: a partial key carrying kOther. The match is against raw
+        // values, so the sentinel matches nothing and the result is empty rather than the role's
+        // overflow cases. No caller builds one -- the grid's own keys are complete, and every
+        // other producer reads raw values -- so this is a limit of the fallback, not a live gap.
         return self.allPlottedCases().filter(caseId => {
           const itemData = self.dataset?.getFirstItemForCase(caseId, { numeric: false })
           return self.isCaseInSubPlot(cellKey, itemData || { __id__: caseId })
