@@ -3,7 +3,7 @@ import {applyPatch, Instance, types} from "mobx-state-tree"
 import { DataSet, toCanonical } from "../../../models/data/data-set"
 import {DataSetMetadata} from "../../../models/shared/data-set-metadata"
 import { missingColor } from "../../../utilities/color-utils"
-import { kMain } from "../../data-display/data-display-types"
+import { kMain, kOther } from "../../data-display/data-display-types"
 import { matchCirclesToData } from "../../data-display/data-display-utils"
 import {GraphDataConfigurationModel, isGraphDataConfigurationModel} from "./graph-data-configuration-model"
 
@@ -14,6 +14,19 @@ const TreeModel = types.model("Tree", {
 })
 
 let tree: Instance<typeof TreeModel>
+
+// Adds two extra attributes and 50 extra cases used by tests that need enough categories to
+// exercise clamping/bucketing. Kept out of the shared beforeEach so the rest of this file's tests
+// still see exactly the 3-case dataset from the outer beforeEach.
+function addSwapFixture(aTree: Instance<typeof TreeModel>) {
+  aTree.data.addAttribute({ id: "lowId", name: "low" })
+  aTree.data.addAttribute({ id: "hiId", name: "hi" })
+  const swapRows: any[] = []
+  for (let i = 0; i < 50; i++) {
+    swapRows.push({ __id__: `s${i}`, low: i % 2 === 0 ? "A" : "B", hi: `v${i}` })
+  }
+  aTree.data.addCases(toCanonical(aTree.data, swapRows))
+}
 
 describe("DataConfigurationModel", () => {
   beforeEach(() => {
@@ -72,6 +85,95 @@ describe("DataConfigurationModel", () => {
       {plotNum: 0, caseID: caseIdFromItemId("c2")},
       {plotNum: 0, caseID: caseIdFromItemId("c3")}
     ])
+  })
+
+  describe("categories limit normalization (resize performance)", () => {
+    beforeEach(() => {
+      addSwapFixture(tree)
+    })
+
+    const sweepAxisLengths = (config: typeof tree.config, from: number, to: number) => {
+      const kFontHeight = 12
+      for (let axisLength = from; axisLength <= to; axisLength += kFontHeight) {
+        config.setNumberOfCategoriesLimitForRole("x", Math.floor(axisLength / kFontHeight))
+      }
+    }
+
+    it("does not invalidate subplot caches for limits that cannot change the result", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "nId" })
+      const primeCaches = config.caseDataWithSubPlot  // prime the caches
+      expect(primeCaches.length).toBeGreaterThan(0)
+
+      const subPlotSpy = jest.spyOn(config.subPlotCases, "invalidateAll")
+      const cellMapSpy = jest.spyOn(config.cellMap, "invalidateAll")
+
+      // every limit in this sweep is far larger than the handful of categories, so none of them
+      // can affect the plotted result
+      sweepAxisLengths(config, 300, 600)
+
+      expect(subPlotSpy).not.toHaveBeenCalled()
+      expect(cellMapSpy).not.toHaveBeenCalled()
+      subPlotSpy.mockRestore()
+      cellMapSpy.mockRestore()
+    })
+
+    it("does not invalidate the category arrays for limits that cannot change the result", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "nId" })
+      expect(config.categoryArrayForAttrRole("x").length).toBeGreaterThan(0)  // prime the cache
+
+      const categorySpy = jest.spyOn(config.categoryArrayForAttrRole, "invalidate")
+
+      // every limit in this sweep is far larger than the handful of categories, so none of them
+      // can affect the category array, and recomputing it is O(cases)
+      sweepAxisLengths(config, 300, 600)
+
+      expect(categorySpy).not.toHaveBeenCalled()
+      categorySpy.mockRestore()
+    })
+
+    it("invalidates when the effective limit actually changes", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "nId" })
+      config.setNumberOfCategoriesLimitForRole("x", 10)  // above the category count: a no-op
+
+      const subPlotSpy = jest.spyOn(config.subPlotCases, "invalidateAll")
+      config.setNumberOfCategoriesLimitForRole("x", 1)   // below it: a real clamp
+      expect(subPlotSpy).toHaveBeenCalled()
+      subPlotSpy.mockRestore()
+    })
+
+    it("keeps the clamp when a higher-cardinality attribute replaces a lower-cardinality one", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "lowId" })
+      // the axis code sets the limit BEFORE the new attribute is assigned
+      config.setNumberOfCategoriesLimitForRole("x", 10)
+      config.setAttribute("x", { attributeID: "hiId" })
+
+      // the stored limit must still be the raw 10, so the 50-category attribute is clamped
+      expect(config.numberOfCategoriesLimitByRole.get("x")).toBe(10)
+      expect(config.categoryArrayForAttrRole("x").length).toBe(10)
+    })
+
+    it("still applies a limit smaller than the number of categories", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "nId" })
+
+      const allCategories = config.categoryArrayForAttrRole("x")
+      expect(allCategories.length).toBeGreaterThan(1)
+
+      config.setNumberOfCategoriesLimitForRole("x", 1)
+      expect(config.categoryArrayForAttrRole("x")).toEqual([kOther])
+
+      config.setNumberOfCategoriesLimitForRole("x", allCategories.length)
+      expect(config.categoryArrayForAttrRole("x")).toEqual(allCategories)
+    })
   })
 
   it("behaves as expected with dot chart on x axis", () => {
@@ -582,6 +684,10 @@ describe("DataConfigurationModel", () => {
     expect(noCategoricalCellKeys.length).toEqual(1)
     expect(noCategoricalCellKeys[0]).toEqual({})
 
+    // cellIndexer caches its result until invalidated; each mockData swap below simulates a
+    // fresh category configuration, so the cache must be cleared to pick it up.
+    config.cellIndexer.invalidateAll()
+
     // For a graph with one categorical attribute
     mockData = {
       id: {
@@ -606,6 +712,8 @@ describe("DataConfigurationModel", () => {
     expect(oneCategoricalCellKeys.length).toEqual(2)
     expect(oneCategoricalCellKeys[0]).toEqual({"def456": "small"})
     expect(oneCategoricalCellKeys[1]).toEqual({"def456": "large"})
+
+    config.cellIndexer.invalidateAll()
 
     // For a graph with multiple categorical attributes
     mockData = {
@@ -642,6 +750,331 @@ describe("DataConfigurationModel", () => {
         }
       }
     }
+  })
+
+  describe("cell bucketing", () => {
+    beforeEach(() => {
+      addSwapFixture(tree)
+    })
+
+    it("puts each plotted case in exactly one cell, and subPlotCases reads the buckets", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "lowId" })
+
+      const buckets = config.casesByCellIndex()
+      const total = buckets.reduce((sum, ids) => sum + ids.length, 0)
+      expect(total).toBe(config.allPlottedCases().length)
+
+      const seen = new Set<string>()
+      buckets.forEach(ids => ids.forEach(id => {
+        expect(seen.has(id)).toBe(false)
+        seen.add(id)
+      }))
+
+      const indexer = config.cellIndexer()
+      for (let i = 0; i < indexer.cellCount; i++) {
+        expect(config.subPlotCases(indexer.cellKeyForIndex(i))).toEqual(buckets[i])
+      }
+    })
+
+    it("buckets cases with a numeric x role instead of dropping them from every cell", () => {
+      // A numeric x/y role gets the single placeholder category getCategoriesOptions builds the
+      // indexer with; a case's real (non-categorical) x value must still resolve to that one
+      // degenerate slot rather than being looked up against the placeholder and missed.
+      const config = tree.config
+      tree.data.addAttribute({ id: "catId", name: "cat" })
+      tree.data.setCaseValues([
+        { __id__: "c1", catId: "P" },
+        { __id__: "c2", catId: "Q" }
+      ])
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "xId" })          // numeric: c1 x=1, c2 x=2
+      config.setAttribute("topSplit", { attributeID: "catId" }) // categorical: c1 cat=P, c2 cat=Q
+
+      const [c1Id, c2Id] = caseIdsFromItemIds(["c1", "c2"]) as string[]
+      expect(config.allPlottedCases()).toEqual([c1Id, c2Id])
+
+      const c1Cell = config.cellIndexForCase(c1Id)
+      const c2Cell = config.cellIndexForCase(c2Id)
+      expect(c1Cell).toBeGreaterThanOrEqual(0)
+      expect(c2Cell).toBeGreaterThanOrEqual(0)
+
+      const buckets = config.casesByCellIndex()
+      expect(buckets[c1Cell]).toContain(c1Id)
+      expect(buckets[c2Cell]).toContain(c2Id)
+      expect(buckets.reduce((sum, ids) => sum + ids.length, 0)).toBe(2)
+    })
+
+    it("does not read the dataset once per cell", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "lowId" })
+      const getStrValueSpy = jest.spyOn(tree.data, "getStrValue")
+
+      config.casesByCellIndex()
+      const fewCells = getStrValueSpy.mock.calls.length
+
+      getStrValueSpy.mockClear()
+      config.setAttribute("topSplit", { attributeID: "hiId" })
+      config.casesByCellIndex()
+      const manyCells = getStrValueSpy.mock.calls.length
+
+      // reads scale with cases and roles, NOT with the number of cells
+      expect(manyCells).toBeLessThan(fewCells * 4)
+      getStrValueSpy.mockRestore()
+    })
+  })
+
+  describe("equivalence with the previous subplot membership logic", () => {
+    beforeEach(() => {
+      addSwapFixture(tree)
+    })
+
+    // The pre-change subPlotCases body, kept verbatim as a reference implementation. It filters
+    // all plotted cases per cell, which is the O(cells x cases) behavior being replaced.
+    const referenceSubPlotCases = (config: typeof tree.config, cellKey: Record<string, string>) => {
+      const copyOfCellKey: Record<string, string> = { ...cellKey }
+      const attributeIDsWithValueOther: string[] = []
+      Object.keys(copyOfCellKey).forEach(attrID => {
+        if (copyOfCellKey[attrID] === kOther) attributeIDsWithValueOther.push(attrID)
+      })
+      attributeIDsWithValueOther.forEach(attrID => delete copyOfCellKey[attrID])
+      let targetCases = config.allPlottedCases().filter((caseId: string) => {
+        const itemData = tree.data.getFirstItemForCase(caseId, { numeric: false })
+        const caseData = itemData || { __id__: caseId }
+        return config.isCaseInSubPlot(copyOfCellKey, caseData)
+      })
+      // The reference implementation resolved an ambiguous kOther by asking which role held a
+      // limit, ignoring the attribute id it was given. Reproduced here only so the harness can
+      // show where the new behavior deliberately differs.
+      attributeIDsWithValueOther.forEach(() => {
+        const role = (["x", "y", "topSplit", "rightSplit"] as const)
+          .find(r => config.numberOfCategoriesLimitByRole.get(r) !== undefined)
+        if (role) {
+          targetCases = targetCases.filter((caseId: string) =>
+            config.categoricalValueForCaseInRole(caseId, role) === kOther)
+        }
+      })
+      return targetCases
+    }
+
+    const configure = (xAttr?: string, yAttr?: string, topAttr?: string, limit?: number) => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      if (xAttr) config.setAttribute("x", { attributeID: xAttr })
+      if (yAttr) config.setAttribute("y", { attributeID: yAttr })
+      if (topAttr) config.setAttribute("topSplit", { attributeID: topAttr })
+      if (limit != null) config.setNumberOfCategoriesLimitForRole("x", limit)
+      return config
+    }
+
+    const cases: Array<[string, string?, string?, string?, number?]> = [
+      ["x only", "lowId"],
+      ["x and y", "lowId", "nId"],
+      ["x and topSplit", "lowId", undefined, "nId"],
+      ["x clamped", "hiId", undefined, undefined, 3],
+      ["x clamped with y", "hiId", "lowId", undefined, 5],
+      ["no attributes"]
+    ]
+
+    cases.forEach(([name, xAttr, yAttr, topAttr, limit]) => {
+      it(`matches the reference implementation: ${name}`, () => {
+        const config = configure(xAttr, yAttr, topAttr, limit)
+        const indexer = config.cellIndexer()
+        for (let i = 0; i < indexer.cellCount; i++) {
+          const cellKey = indexer.cellKeyForIndex(i)
+          expect([...config.subPlotCases(cellKey)].sort())
+            .toEqual([...referenceSubPlotCases(config, cellKey)].sort())
+        }
+      })
+    })
+  })
+
+  describe("subPlotCases with a cell key the grid does not generate", () => {
+    beforeEach(() => {
+      addSwapFixture(tree)
+    })
+
+    it("matches a raw category value that clamping folded into kOther", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "hiId" })
+      config.setNumberOfCategoriesLimitForRole("x", 3)
+
+      // hiId has 50 distinct values, so all but a couple are clamped away; the grid's cell keys
+      // name only the surviving categories plus kOther. Callers such as the bar tooltip and the
+      // dot line plot still build their keys from the raw case value, which names no cell.
+      const xCats = config.categoryArrayForAttrRole("x", [])
+      expect(xCats).toContain(kOther)
+      const clampedValue = "v40"
+      expect(xCats).not.toContain(clampedValue)
+      expect(config.cellIndexer().indexForCellKey({ hiId: clampedValue })).toBe(-1)
+
+      expect(config.subPlotCases({ hiId: clampedValue })).toEqual(caseIdsFromItemIds(["s40"]))
+    })
+
+    it("treats an empty cell key as every plotted case even when the grid has many cells", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "lowId" })
+      expect(config.cellIndexer().cellCount).toBeGreaterThan(1)
+
+      expect([...config.subPlotCases({})].sort()).toEqual([...config.allPlottedCases()].sort())
+    })
+  })
+
+  describe("caseDataWithSubPlot", () => {
+    beforeEach(() => {
+      addSwapFixture(tree)
+    })
+
+    it("derives subPlotNum from bucket membership, not from joinedCaseDataArrays", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "lowId" })
+
+      // Under the current filterCase semantics, allPlottedCases and joinedCaseDataArrays always
+      // agree, so there is no case naturally missing from every bucket to observe here. Simulate
+      // one directly (as would happen for a case that is filtered out or hidden after bucketing)
+      // by removing a case from the buckets that caseDataWithSubPlot consumes, and confirm it
+      // reads bucket membership rather than deriving it independently from joinedCaseDataArrays.
+      const excludedCaseID = config.joinedCaseDataArrays[0].caseID
+      const bucketsWithoutExcluded = config.casesByCellIndex()
+        .map(bucket => bucket.filter(caseID => caseID !== excludedCaseID))
+      jest.spyOn(config, "casesByCellIndex").mockReturnValue(bucketsWithoutExcluded)
+
+      try {
+        const caseData = config.caseDataWithSubPlot
+        const excluded = caseData.find(cd => cd.caseID === excludedCaseID)
+
+        expect(excluded).toBeDefined()
+        expect(excluded?.subPlotNum).toBeUndefined()
+      } finally {
+        jest.restoreAllMocks()
+      }
+    })
+
+    it("reflects a new cell layout after the caches are invalidated", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "hiId" })
+      const before = config.caseDataWithSubPlot.map(cd => cd.subPlotNum)
+
+      // Changing only the categories limit re-shapes the cell grid without touching
+      // joinedCaseDataArrays, so this isolates cache invalidation reaching the computed.
+      // A plain, unobserved read like this one always re-derives caseDataWithSubPlot from
+      // scratch regardless of how cellIndexer/casesByCellIndex cache internally (MobX does not
+      // memoize a computed with no active observer), so this only pins that the manual
+      // invalidate() calls reach the underlying caches, not that they are MobX-observable.
+      // The "an active reaction observes the new layout" test below pins the latter.
+      config.setNumberOfCategoriesLimitForRole("x", 3)
+      const after = config.caseDataWithSubPlot.map(cd => cd.subPlotNum)
+
+      expect(after).not.toEqual(before)
+      expect(Math.max(...after.filter((n): n is number => n != null))).toBeLessThan(3)
+    })
+
+    it("re-fires an active reaction observing casesByCellIndex after the caches are invalidated", () => {
+      // caseDataWithSubPlot itself cannot be used to observe this: it mutates and returns the same
+      // array reference as joinedCaseDataArrays (only the subPlotNum fields on its objects change),
+      // so MobX's reference-equality check on a computed's return value never sees it as "changed"
+      // for a reaction/observer, independent of anything under test here. casesByCellIndex builds a
+      // fresh array on every recalculation, so it is what actually isolates cache observability.
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "hiId" })
+
+      const seen: number[][] = []
+      const disposer = reaction(
+        () => config.casesByCellIndex().map(bucket => bucket.length),
+        (bucketSizes) => seen.push(bucketSizes),
+        { name: "GraphDataConfigurationTest casesByCellIndex reaction", fireImmediately: true }
+      )
+      try {
+        expect(seen.length).toBe(1)
+        const before = seen[0]
+
+        // Changing only the categories limit re-shapes the cell grid without touching
+        // joinedCaseDataArrays, so this isolates cache invalidation reaching a live observer.
+        // Unlike a plain, unobserved read, an active reaction only re-fires when MobX can see that
+        // one of the observables it read on its last run has changed, so this catches a cache that
+        // recomputes correctly on direct access but never tells an observer it went stale.
+        config.setNumberOfCategoriesLimitForRole("x", 3)
+
+        expect(seen.length).toBe(2)
+        const after = seen[1]
+        expect(after).not.toEqual(before)
+        expect(after.length).toBe(3)
+      } finally {
+        disposer()
+      }
+    })
+
+    it("assigns each plotted case the index of the bucket containing it", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "lowId" })
+
+      const buckets = config.casesByCellIndex()
+      const byCaseId = new Map(config.caseDataWithSubPlot.map(cd => [cd.caseID, cd.subPlotNum]))
+      buckets.forEach((ids, cellIndex) => {
+        ids.forEach(id => expect(byCaseId.get(id)).toBe(cellIndex))
+      })
+    })
+
+    it("reads the buckets directly instead of calling subPlotCases per cell", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "hiId" })
+      // Clamp to several cells so the old per-cell loop (getAllCellKeys + subPlotCases per key)
+      // would have called subPlotCases more than once.
+      config.setNumberOfCategoriesLimitForRole("x", 5)
+
+      const subPlotCasesSpy = jest.spyOn(config, "subPlotCases")
+      const caseData = config.caseDataWithSubPlot
+      expect(caseData.length).toBeGreaterThan(0)
+      expect(subPlotCasesSpy).not.toHaveBeenCalled()
+      subPlotCasesSpy.mockRestore()
+    })
+  })
+
+  describe("kOther assignment with two clamped roles", () => {
+    beforeEach(() => {
+      addSwapFixture(tree)
+    })
+
+    it("assigns each role's overflow to that role's own kOther slot", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "lowId" })
+      config.setAttribute("topSplit", { attributeID: "hiId" })
+
+      // clamp both roles at once
+      config.setNumberOfCategoriesLimitForRole("x", 1)
+      config.setNumberOfCategoriesLimitForRole("topSplit", 2)
+
+      const xCats = config.categoryArrayForAttrRole("x", [])
+      const topCats = config.categoryArrayForAttrRole("topSplit", [])
+      expect(xCats[xCats.length - 1]).toBe(kOther)
+      expect(topCats[topCats.length - 1]).toBe(kOther)
+
+      // every plotted case lands in a cell, and no case lands in a bucket whose x OR topSplit
+      // category disagrees with the case's own clamped value for that role. Both attributes are
+      // assigned here (lowId for x, hiId for topSplit), so updateCellKey sets both keys on every
+      // cell key it builds. Only the hiId comparison discriminates: x is clamped to a single
+      // category, so its cell key value and every case's clamped x value are both kOther.
+      const indexer = config.cellIndexer()
+      config.casesByCellIndex().forEach((caseIds, cellIndex) => {
+        const cellKey = indexer.cellKeyForIndex(cellIndex)
+        caseIds.forEach(caseId => {
+          const xValue = config.categoricalValueForCaseInRole(caseId, "x")
+          const topValue = config.categoricalValueForCaseInRole(caseId, "topSplit")
+          expect(cellKey.lowId == null || cellKey.lowId === xValue).toBe(true)
+          expect(cellKey.hiId == null || cellKey.hiId === topValue).toBe(true)
+        })
+      })
+    })
   })
 })
 

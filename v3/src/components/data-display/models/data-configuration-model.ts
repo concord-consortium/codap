@@ -29,7 +29,7 @@ import {GraphPlace} from "../../axis-graph-shared"
 import { getScaleThresholds } from "../components/legend/choropleth-legend/choropleth-legend"
 import {CaseData} from "../d3-types"
 import {
-  AttrRole, GraphAttrRole, TipAttrRoles, graphPlaceToAttrRole, kOther, kMain, GraphSplitAttrRoles
+  AttrRole, GraphAttrRole, TipAttrRoles, graphPlaceToAttrRole, kOther, kMain
 } from "../data-display-types"
 import { dataDisplayGetNumericValue } from "../data-display-value-utils"
 
@@ -201,11 +201,6 @@ export const DataConfigurationModel = types
       const attrID = this.attributeID(role)
       const attr = attrID ? self.dataset?.attrFromID(attrID) : undefined
       return attr?.type
-    },
-    roleForAttributeWithCategoryLimit(attrID: string) {
-      return GraphSplitAttrRoles.find(role => {
-        return self.numberOfCategoriesLimitByRole.get(role) !== undefined
-      })
     },
     get places() {
       const places = new Set<string>(Object.keys(this.attributeDescriptions))
@@ -446,6 +441,25 @@ export const DataConfigurationModel = types
     }
   }))
   .views(self => ({
+    /**
+     * Normalizes a categories limit so that limits which cannot affect the result all compare
+     * equal (as undefined).
+     *
+     * The limit only changes what categoryArrayForAttrRole returns when there are MORE categories
+     * than the limit — that is the only case where the kOther clamp applies. Axis code recomputes
+     * the limit from the axis length on every layout change, so during a component resize it ticks
+     * over roughly every 12 pixels. Comparing normalized values keeps those no-op changes from
+     * invalidating caches whose rebuild is O(cells x cases).
+     *
+     * This is used only for comparison; the raw limit is what gets stored, so the clamp stays
+     * correct even when this is evaluated against a role whose attribute is about to change.
+     */
+    effectiveCategoriesLimitForRole(role: AttrRole, limit: number | undefined) {
+      if (limit == null || limit <= 0) return undefined
+      const categoryCount = self.categorySetForAttrRole(role)?.values.length
+      if (categoryCount != null && limit >= categoryCount) return undefined
+      return limit
+    },
     /**
      * @param role
      * @param emptyCategoryArray
@@ -1184,11 +1198,14 @@ export const DataConfigurationModel = types
       const categorySet = self.categorySetForAttrRole('legend')
       categorySet?.setShapeForCategory(cat, shape)
     },
+    // Stores the limit without invalidating anything derived from it. Callers that can tell the
+    // new limit cannot change any result (the graph, which compares effective limits) store it
+    // this way so a no-op change doesn't force an O(cases) category recompute.
+    storeNumberOfCategoriesLimitForRole(role: AttrRole, limit: number | undefined) {
+      self.numberOfCategoriesLimitByRole.set(role, limit != null && limit > 0 ? limit : undefined)
+    },
     setNumberOfCategoriesLimitForRole(role: AttrRole, limit: number | undefined) {
-      if (limit !== undefined && limit <= 0) {
-        limit = undefined
-      }
-      self.numberOfCategoriesLimitByRole.set(role, limit)
+      this.storeNumberOfCategoriesLimitForRole(role, limit)
       self.categoryArrayForAttrRole.invalidate(role)
     },
   }))
