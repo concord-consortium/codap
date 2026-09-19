@@ -617,9 +617,6 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         return subPlotKey
       }
     },
-    numCasesInSubPlotGivenCategories(extraPrimaryCategory: string, extraSecondaryCategory: string) {
-      return this.subPlotCases(this.subPlotKeyFromExtraCategories(extraPrimaryCategory, extraSecondaryCategory)).length
-    },
     numPrimaryCategoryCases(caseID: string) {
       // Determine the sub-plot to which this case belongs and return the number of cases within that sub-plot
       // that belong to the case's primary category
