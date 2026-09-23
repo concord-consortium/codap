@@ -752,6 +752,37 @@ describe("DataConfigurationModel", () => {
     }
   })
 
+  describe("categories limit vs hidden cases", () => {
+    beforeEach(() => addSwapFixture(tree))
+
+    it("normalizes a limit that is a no-op against the VISIBLE categories, not the full set", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "hiId" })
+
+      // hide everything except five distinct hi values, so the rendered category count (5) is far
+      // below the attribute's full category set (50)
+      const keep = ["v0", "v1", "v2", "v3", "v4"]
+      const toHide = config.allPlottedCases()
+        .filter(id => !keep.includes(tree.data.getStrValue(id, "hiId") ?? ""))
+      config.setHiddenCases(toHide)
+
+      expect(config.unclampedCategoryCountForAttrRole("x")).toBe(keep.length)
+
+      // a limit of 10 clamps nothing: 10 >= 5 rendered categories. It is however below the full
+      // set of 50, which is what the comparison used to be based on.
+      const subPlotSpy = jest.spyOn(config.subPlotCases, "invalidateAll")
+      try {
+        config.setNumberOfCategoriesLimitForRole("x", 10)
+        expect(config.effectiveCategoriesLimitForRole("x", 10)).toBeUndefined()
+        expect(subPlotSpy).not.toHaveBeenCalled()
+      }
+      finally {
+        subPlotSpy.mockRestore()
+      }
+    })
+  })
+
   describe("cell bucketing", () => {
     beforeEach(() => {
       addSwapFixture(tree)

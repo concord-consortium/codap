@@ -442,11 +442,37 @@ export const DataConfigurationModel = types
   }))
   .views(self => ({
     /**
+     * How many categories the role would render with no limit applied: the category set
+     * intersected with the values of the visible cases. This is the count the clamp in
+     * categoryArrayForAttrRole actually compares against, so it is the right basis for deciding
+     * whether a limit can change anything. Returns 0 where the clamp never applies at all -- no
+     * visible values, or no category set -- so any positive limit is a no-op in those states.
+     *
+     * Deliberately independent of the limit, so changing the limit does not invalidate this.
+     */
+    unclampedCategoryCountForAttrRole: cachedFnWithArgsFactory<(role: AttrRole) => number>({
+      key: (role: AttrRole) => role,
+      calculate: (role: AttrRole) => {
+        const valuesSet = new Set(self.valuesForAttrRole(role))
+        if (valuesSet.size === 0) return 0
+        const allCategorySet = self.categorySetForAttrRole(role)
+        if (!allCategorySet) return 0
+        let count = 0
+        allCategorySet.values.forEach(category => {
+          if (valuesSet.has(category)) ++count
+        })
+        return count
+      },
+      name: "unclampedCategoryCountForAttrRole"
+    })
+  }))
+  .views(self => ({
+    /**
      * Normalizes a categories limit so that limits which cannot affect the result all compare
      * equal (as undefined).
      *
-     * The limit only changes what categoryArrayForAttrRole returns when there are MORE categories
-     * than the limit — that is the only case where the kOther clamp applies. Axis code recomputes
+     * The limit only changes what categoryArrayForAttrRole returns when MORE categories are
+     * rendered than the limit allows — that is the only case where the kOther clamp applies. Axis code recomputes
      * the limit from the axis length on every layout change, so during a component resize it ticks
      * over roughly every 12 pixels. Comparing normalized values keeps those no-op changes from
      * invalidating caches whose rebuild is O(cells x cases).
@@ -456,8 +482,7 @@ export const DataConfigurationModel = types
      */
     effectiveCategoriesLimitForRole(role: AttrRole, limit: number | undefined) {
       if (limit == null || limit <= 0) return undefined
-      const categoryCount = self.categorySetForAttrRole(role)?.values.length
-      if (categoryCount != null && limit >= categoryCount) return undefined
+      if (limit >= self.unclampedCategoryCountForAttrRole(role)) return undefined
       return limit
     },
     /**
@@ -1043,6 +1068,7 @@ export const DataConfigurationModel = types
       self.valuesForAttrRole.invalidateAll()
       self.numericValuesForAttribute.invalidateAll()
       self.categoryArrayForAttrRole.invalidateAll()
+      self.unclampedCategoryCountForAttrRole.invalidateAll()
       self.caseIdsForCategory.invalidateAll()
       self.allCasesForCategoryAreSelected.invalidateAll()
       self.getCaseDataArray.invalidateAll()
