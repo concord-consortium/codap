@@ -55,63 +55,58 @@ describe("CellIndexer", () => {
     }))
     expect(indexer.cellCount).toBe(8)
     for (let i = 0; i < indexer.cellCount; i++) {
-      expect(indexer.indexForCellKey(indexer.cellKeyForIndex(i))).toBe(i)
+      expect(indexer.indicesForCellKey(indexer.cellKeyForIndex(i))).toEqual([i])
     }
   })
 
-  it("round-trips across randomly generated configurations", () => {
+  it("round-trips every index across every configuration up to 4 x 4 x 3 x 3", () => {
     const cats = (n: number, prefix: string) =>
       Array.from({ length: n }, (_, i) => `${prefix}${i}`)
-    for (let trial = 0; trial < 50; trial++) {
-      const nx = 1 + Math.floor(Math.random() * 4)
-      const ny = 1 + Math.floor(Math.random() * 4)
-      const nt = 1 + Math.floor(Math.random() * 3)
-      const indexer = new CellIndexer(makeOptions({
-        xAttrId: "xId", xCats: cats(nx, "x"),
-        yAttrId: "yId", yCats: cats(ny, "y"),
-        topAttrId: "tId", topCats: cats(nt, "t")
-      }))
-      for (let i = 0; i < indexer.cellCount; i++) {
-        expect(indexer.indexForCellKey(indexer.cellKeyForIndex(i))).toBe(i)
+    for (let nx = 1; nx <= 4; nx++) {
+      for (let ny = 1; ny <= 4; ny++) {
+        for (let nt = 1; nt <= 3; nt++) {
+          for (let nr = 1; nr <= 3; nr++) {
+            const indexer = new CellIndexer(makeOptions({
+              xAttrId: "xId", xCats: cats(nx, "x"),
+              yAttrId: "yId", yCats: cats(ny, "y"),
+              topAttrId: "tId", topCats: cats(nt, "t"),
+              rightAttrId: "rId", rightCats: cats(nr, "r")
+            }))
+            for (let i = 0; i < indexer.cellCount; i++) {
+              expect(indexer.indicesForCellKey(indexer.cellKeyForIndex(i))).toEqual([i])
+            }
+          }
+        }
       }
     }
   })
 
-  it("returns -1 for a cell key it does not know", () => {
+  it("returns no indices for a cell key it does not know", () => {
     const indexer = new CellIndexer(makeOptions({ xAttrId: "xId", xCats: ["a", "b"] }))
-    expect(indexer.indexForCellKey({ xId: "nope" })).toBe(-1)
+    expect(indexer.indicesForCellKey({ xId: "nope" })).toEqual([])
   })
 
-  it("encodes cell keys with the documented decomposition (hand-verified against legacy method)", () => {
-    // Configuration with distinct category counts to catch swapped radices:
-    // xCount=2, yCount=3, rightCount=1, topCount=2; cellCount=12
-    // Decomposition: topIndex=floor(i/6), rightIndex=floor(i/6)%1=0,
-    //               yIndex=floor(i/2)%3, xIndex=i%2
+  it("encodes cell keys as top, right, y, x from most to least significant", () => {
+    // xCount=2 and yCount=3 differ, so swapped x/y radices would change the keys.
+    // topIndex=floor(i/6), yIndex=floor(i/2)%3, xIndex=i%2; cellCount=12
     const indexer = new CellIndexer(makeOptions({
       xAttrId: "xId", xCats: ["a", "b"],
       yAttrId: "yId", yCats: ["p", "q", "r"],
       topAttrId: "tId", topCats: ["s", "t"]
     }))
     expect(indexer.cellCount).toBe(12)
-    // Index 0: x rolls at 1, y rolls at 2, top rolls at 6
+    // x advances every step, y every 2 steps, top every 6
     expect(indexer.cellKeyForIndex(0)).toEqual({ tId: "s", yId: "p", xId: "a" })
-    // Index 1: x advances (x cycles every 1 step)
     expect(indexer.cellKeyForIndex(1)).toEqual({ tId: "s", yId: "p", xId: "b" })
-    // Index 2: x wraps, y advances (y cycles every 2 steps)
     expect(indexer.cellKeyForIndex(2)).toEqual({ tId: "s", yId: "q", xId: "a" })
-    // Index 4: y wraps (yIndex: floor(4/2)%3 = 2%3 = 2)
     expect(indexer.cellKeyForIndex(4)).toEqual({ tId: "s", yId: "r", xId: "a" })
-    // Index 6: top advances (top cycles every 6 steps)
     expect(indexer.cellKeyForIndex(6)).toEqual({ tId: "t", yId: "p", xId: "a" })
-    // Index 11: last cell
     expect(indexer.cellKeyForIndex(11)).toEqual({ tId: "t", yId: "r", xId: "b" })
   })
 
   it("cellKeyForIndex names the same slot tuple indexForSlots encoded, right role included", () => {
-    // The two decompositions are written independently, and the index round-trip test cannot tell
-    // them apart: any bijection survives it. Cross-checking them against hand-built cell keys over
-    // every slot tuple pins each factor, including the rightIndex extraction, which every other
-    // cellKeyForIndex test leaves at a single (degenerate) right slot.
+    // The two decompositions are written independently, and a round-trip test can't tell them
+    // apart: any bijection survives it. Cross-checking against hand-built cell keys pins each factor.
     const xCats = ["x0", "x1"]           // xCount = 2
     const yCats = ["y0", "y1", "y2"]     // yCount = 3
     const rightCats = ["r0", "r1"]       // rightCount = 2
@@ -137,64 +132,59 @@ describe("CellIndexer", () => {
     }
   })
 
-  it("parks a duplicated attribute's conflicting value under __IMPOSSIBLE__, first index winning", () => {
-    // topSplit, y and x all carry the same attribute. updateCellKey refuses to overwrite the value
-    // already stored under that attribute id and writes the conflicting one to __IMPOSSIBLE__
-    // instead, so distinct slot tuples can produce the same cell key. indexForCellKey resolves such
-    // a key to the lowest index that produced it, collapsing them the way subPlotCases always has.
+  it("maps a key shared by several slot tuples to every index that produced it", () => {
+    // topSplit, y and x all carry the same attribute. updateCellKey keeps the first value stored
+    // under that attribute id and writes a conflicting one to __IMPOSSIBLE__, so distinct slot
+    // tuples can produce the same cell key.
     const indexer = new CellIndexer(makeOptions({
       xAttrId: "dupId", xCats: ["a", "b"],
       yAttrId: "dupId", yCats: ["a", "b"],
       topAttrId: "dupId", topCats: ["a", "b"]
     }))
     expect(indexer.cellCount).toBe(8)
-    // index 1 is (top a, y a, x b) and index 2 is (top a, y b, x a); both reduce to this key
+    // (top a, y a, x b), (top a, y b, x a) and (top a, y b, x b) all reduce to this key
     expect(indexer.cellKeyForIndex(1)).toEqual({ dupId: "a", [kImpossible]: "b" })
     expect(indexer.cellKeyForIndex(2)).toEqual({ dupId: "a", [kImpossible]: "b" })
-    expect(indexer.indexForCellKey({ dupId: "a", [kImpossible]: "b" })).toBe(1)
-
-    // and the collapse runs in both directions: the slot tuple for index 2 buckets into 1, so a
-    // case is never placed in a cell that a lookup of that cell's key cannot find
-    expect(indexer.indexForSlots({ top: 0, right: 0, y: 1, x: 0 })).toBe(1)
+    expect(indexer.indicesForCellKey({ dupId: "a", [kImpossible]: "b" })).toEqual([1, 2, 3])
+    // each slot tuple keeps its own index
+    expect(indexer.indexForSlots({ top: 0, right: 0, y: 1, x: 0 })).toBe(2)
   })
 
-  it("never returns a slot index that indexForCellKey cannot resolve back", () => {
-    // A populated cell whose key another index claims first would otherwise be drawn in one cell
-    // while that cell's counts and adornments read another's. Three roles on one attribute with
-    // differing limits is the configuration that produces such a cell: the clamped arrays differ
-    // per role, so real values land on slot tuples whose keys collide.
-    const other = kOther
+  it("places a value in the cell matching each role's own slot, even when its key is shared", () => {
+    // Three roles on one attribute with differing limits: the clamped arrays differ per role, so
+    // a real value lands on a slot tuple whose key an impossible tuple shares.
     const indexer = new CellIndexer(makeOptions({
-      topAttrId: "dupId", topCats: [other],                 // limit 1
-      rightAttrId: "dupId", rightCats: ["a", other],        // limit 2
-      xAttrId: "dupId", xCats: ["a", "b", other]            // limit 3
+      topAttrId: "dupId", topCats: [kOther],                // limit 1
+      rightAttrId: "dupId", rightCats: ["a", kOther],       // limit 2
+      xAttrId: "dupId", xCats: ["a", "b", kOther]           // limit 3
     }))
-    // every reachable slot tuple must round-trip through its own cell key
-    for (let top = 0; top < 1; top++) {
-      for (let right = 0; right < 2; right++) {
-        for (let x = 0; x < 3; x++) {
-          const index = indexer.indexForSlots({ top, right, y: 0, x })
-          expect(indexer.indexForCellKey(indexer.cellKeyForIndex(index))).toBe(index)
-        }
-      }
+    // "b" is right's overflow and x's second category: index = right 1 * 3 + x 1 = 4
+    const slots = {
+      top: indexer.slotFor("topSplit", "b"), right: indexer.slotFor("rightSplit", "b"),
+      y: 0, x: indexer.slotFor("x", "b")
     }
-    // the specific collision: value "b" slots to (top other, right other, x b), whose key is also
-    // produced by an earlier index -- both must resolve to the same cell
-    const bIndex = indexer.indexForSlots({
-      top: indexer.slotFor("topSplit", "b"),
-      right: indexer.slotFor("rightSplit", "b"),
-      y: 0,
-      x: indexer.slotFor("x", "b")
-    })
-    expect(indexer.indexForCellKey(indexer.cellKeyForIndex(bIndex))).toBe(bIndex)
+    expect(slots).toEqual({ top: 0, right: 1, y: 0, x: 1 })
+    const bIndex = indexer.indexForSlots(slots)
+    expect(bIndex).toBe(4)
+    // (right a, x b) can hold no value, but serializes to the same key
+    expect(indexer.cellKeyForIndex(1)).toEqual(indexer.cellKeyForIndex(4))
+    expect(indexer.indicesForCellKey(indexer.cellKeyForIndex(bIndex))).toEqual([1, 4])
+    // and every index is found by its own key
+    for (let i = 0; i < indexer.cellCount; i++) {
+      expect(indexer.indicesForCellKey(indexer.cellKeyForIndex(i))).toContain(i)
+    }
+  })
+
+  it("gives the overflow the last kOther slot when a real category is spelled like kOther", () => {
+    // the clamp appends the overflow slot last
+    const indexer = new CellIndexer(makeOptions({ xAttrId: "xId", xCats: [kOther, "b", kOther] }))
+    expect(indexer.slotFor("x", kOther)).toBe(0)
+    expect(indexer.slotFor("x", "zzz")).toBe(2)
   })
 
   it("strides the top slot by the full rightCount*yCount*xCount, not by yCount*xCount alone", () => {
-    // cellKeyForIndex has its own (separate, unmutated-by-this-test) copy of this same
-    // decomposition, so a rightCount>1 case there would not exercise indexForSlots's arithmetic.
-    // This test calls indexForSlots directly. It needs rightCount > 1 AND top >= 1 in the same
-    // case: when top is 0, or rightCount is 1, "rightCount*yCount*xCount" and "yCount*xCount"
-    // agree, so neither alone would catch a top stride that drops the rightCount factor.
+    // Needs rightCount > 1 and top >= 1 together: otherwise "rightCount*yCount*xCount" and
+    // "yCount*xCount" agree, and a top stride missing the rightCount factor would go unnoticed.
     const indexer = new CellIndexer(makeOptions({
       xAttrId: "xId", xCats: ["x0", "x1"],          // xCount = 2
       yAttrId: "yId", yCats: ["y0", "y1", "y2"],     // yCount = 3
@@ -202,9 +192,7 @@ describe("CellIndexer", () => {
       topAttrId: "tId", topCats: ["t0", "t1"]        // topCount = 2
     }))
     expect(indexer.cellCount).toBe(24)
-    // Hand-derived from the documented decomposition (not generated by calling the indexer):
-    //   index = top*(rightCount*yCount*xCount) + right*(yCount*xCount) + y*xCount + x
-    //         = top*12 + right*6 + y*2 + x
+    // hand-derived: index = top*12 + right*6 + y*2 + x
     expect(indexer.indexForSlots({ top: 0, right: 0, y: 0, x: 0 })).toBe(0)
     expect(indexer.indexForSlots({ top: 0, right: 1, y: 0, x: 0 })).toBe(6)
     expect(indexer.indexForSlots({ top: 1, right: 0, y: 0, x: 0 })).toBe(12)

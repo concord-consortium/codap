@@ -1,8 +1,6 @@
-import { kOther } from "../../data-display/data-display-types"
+import { GraphSplitAttrRole, kOther } from "../../data-display/data-display-types"
 import { updateCellKey } from "../adornments/utilities/adornment-utils"
 import { cellKeyToString } from "../utilities/cell-key-utils"
-
-export type CellRole = "x" | "y" | "topSplit" | "rightSplit"
 
 export interface ICellIndexerOptions {
   xAttrId: string
@@ -27,7 +25,9 @@ function makeRoleInfo(attrId: string, cats: readonly string[]): IRoleInfo {
   cats.forEach((cat, index) => {
     if (!slotOf.has(cat)) slotOf.set(cat, index)
   })
-  return { attrId, cats, slotOf, otherSlot: slotOf.get(kOther) ?? -1 }
+  // The clamp appends the overflow slot last, so a real category that happens to be spelled like
+  // kOther doesn't capture the overflow.
+  return { attrId, cats, slotOf, otherSlot: cats.lastIndexOf(kOther) }
 }
 
 /**
@@ -39,13 +39,12 @@ function makeRoleInfo(attrId: string, cats: readonly string[]): IRoleInfo {
  * it has no snapshot, patch or undo/redo surface.
  */
 export class CellIndexer {
-  private readonly roles: Record<CellRole, IRoleInfo>
+  private readonly roles: Record<GraphSplitAttrRole, IRoleInfo>
   private readonly xCount: number
   private readonly yCount: number
   private readonly rightCount: number
   private readonly topCount: number
-  private readonly indexOfCellKeyString: Map<string, number>
-  private readonly canonicalIndex: number[]
+  private readonly indicesOfCellKeyString: Map<string, number[]>
 
   readonly cellCount: number
 
@@ -56,7 +55,7 @@ export class CellIndexer {
       topSplit: makeRoleInfo(options.topAttrId, options.topCats),
       rightSplit: makeRoleInfo(options.rightAttrId, options.rightCats)
     }
-    // A role with no categories still occupies one (degenerate) slot, matching getAllCellKeys().
+    // A role with no categories still occupies one (degenerate) slot.
     this.xCount = options.xCats.length || 1
     this.yCount = options.yCats.length || 1
     this.rightCount = options.rightCats.length || 1
@@ -64,26 +63,15 @@ export class CellIndexer {
     this.cellCount = this.topCount * this.rightCount * this.yCount * this.xCount
 
     // The reverse direction is a lookup rather than arithmetic inversion, because updateCellKey
-    // writes an __IMPOSSIBLE__ sentinel when one attribute occupies two roles, which cannot be
-    // inverted. Building the map from cellKeyForIndex keeps both directions consistent by
-    // construction.
-    //
-    // Distinct indices can serialize to the same key, and then only one of them is reachable
-    // through a key. canonicalIndex maps every index onto that reachable one, so indexForSlots
-    // never returns a cell that indexForCellKey cannot find: a case is bucketed into the same cell
-    // a lookup of its cell key resolves to. Without it, a case could be drawn in one cell while
-    // that cell's counts and adornments read another's.
-    this.indexOfCellKeyString = new Map<string, number>()
-    this.canonicalIndex = new Array<number>(this.cellCount)
+    // writes an __IMPOSSIBLE__ sentinel when one attribute occupies several roles, and keeps only
+    // the last conflicting value there. Distinct indices can then serialize to the same key, so a
+    // key maps to every index that produced it.
+    this.indicesOfCellKeyString = new Map<string, number[]>()
     for (let i = 0; i < this.cellCount; i++) {
       const keyString = cellKeyToString(this.cellKeyForIndex(i))
-      const existing = this.indexOfCellKeyString.get(keyString)
-      if (existing == null) {
-        this.indexOfCellKeyString.set(keyString, i)
-        this.canonicalIndex[i] = i
-      } else {
-        this.canonicalIndex[i] = existing
-      }
+      const indices = this.indicesOfCellKeyString.get(keyString)
+      if (indices) indices.push(i)
+      else this.indicesOfCellKeyString.set(keyString, [i])
     }
   }
 
@@ -92,21 +80,20 @@ export class CellIndexer {
    * categoricalValueForCaseInRole: a value outside the (already clamped) category array falls into
    * the role's own kOther slot, so there is never any question which role an overflow belongs to.
    */
-  slotFor(role: CellRole, strValue: string | undefined): number {
+  slotFor(role: GraphSplitAttrRole, strValue: string | undefined): number {
     const info = this.roles[role]
     if (!info.attrId) return 0
-    if (strValue && info.slotOf.has(strValue)) return info.slotOf.get(strValue) ?? -1
-    return info.otherSlot
+    const slot = strValue ? info.slotOf.get(strValue) : undefined
+    return slot ?? info.otherSlot
   }
 
   indexForSlots(slots: { top: number, right: number, y: number, x: number }): number {
     const { top, right, y, x } = slots
     if (top < 0 || right < 0 || y < 0 || x < 0) return -1
-    const index = top * (this.rightCount * this.yCount * this.xCount) +
-                  right * (this.yCount * this.xCount) +
-                  y * this.xCount +
-                  x
-    return this.canonicalIndex[index]
+    return top * (this.rightCount * this.yCount * this.xCount) +
+           right * (this.yCount * this.xCount) +
+           y * this.xCount +
+           x
   }
 
   cellKeyForIndex(index: number): Record<string, string> {
@@ -121,7 +108,11 @@ export class CellIndexer {
     return cellKey
   }
 
-  indexForCellKey(cellKey: Record<string, string>): number {
-    return this.indexOfCellKeyString.get(cellKeyToString(cellKey)) ?? -1
+  /**
+   * Every index whose cell key is this one, in ascending order; empty for a key the grid does not
+   * generate. More than one only when an attribute occupies several roles (see the constructor).
+   */
+  indicesForCellKey(cellKey: Record<string, string>): readonly number[] {
+    return this.indicesOfCellKeyString.get(cellKeyToString(cellKey)) ?? []
   }
 }

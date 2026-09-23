@@ -445,8 +445,8 @@ export const DataConfigurationModel = types
      * How many categories the role would render with no limit applied: the category set
      * intersected with the values of the visible cases. This is the count the clamp in
      * categoryArrayForAttrRole actually compares against, so it is the right basis for deciding
-     * whether a limit can change anything. Returns 0 where the clamp never applies at all -- no
-     * visible values, or no category set -- so any positive limit is a no-op in those states.
+     * whether a limit can change anything. Returns 0 where the clamp never applies at all (no
+     * visible values, or no category set), so any positive limit is a no-op in those states.
      *
      * Deliberately independent of the limit, so changing the limit does not invalidate this.
      */
@@ -469,19 +469,16 @@ export const DataConfigurationModel = types
   .views(self => ({
     /**
      * Normalizes a categories limit so that limits which cannot affect the result all compare
-     * equal (as undefined).
+     * equal (as undefined). A limit only matters when more categories are rendered than it allows.
+     * Axis code derives the limit from the axis length, so it changes roughly every 12 pixels of
+     * a component resize; comparing normalized values keeps those no-op changes from rebuilding
+     * the cell grid.
      *
-     * The limit only changes what categoryArrayForAttrRole returns when MORE categories are
-     * rendered than the limit allows — that is the only case where the kOther clamp applies. Axis code recomputes
-     * the limit from the axis length on every layout change, so during a component resize it ticks
-     * over roughly every 12 pixels. Comparing normalized values keeps those no-op changes from
-     * invalidating caches whose rebuild is O(cells x cases).
-     *
-     * This is used only for comparison; the raw limit is what gets stored, so the clamp stays
-     * correct even when this is evaluated against a role whose attribute is about to change.
+     * This is used only for comparison. The raw limit is what gets stored, so the clamp stays
+     * correct when a higher-cardinality attribute is later assigned to the role.
      */
     effectiveCategoriesLimitForRole(role: AttrRole, limit: number | undefined) {
-      if (limit == null || limit <= 0) return undefined
+      if (limit == null || !(limit > 0)) return undefined
       if (limit >= self.unclampedCategoryCountForAttrRole(role)) return undefined
       return limit
     },
@@ -1224,9 +1221,8 @@ export const DataConfigurationModel = types
       const categorySet = self.categorySetForAttrRole('legend')
       categorySet?.setShapeForCategory(cat, shape)
     },
-    // Stores the limit without invalidating anything derived from it. Callers that can tell the
-    // new limit cannot change any result (the graph, which compares effective limits) store it
-    // this way so a no-op change doesn't force an O(cases) category recompute.
+    // Stores the limit without invalidating anything derived from it, for a caller that has already
+    // decided whether the change affects any result (see effectiveCategoriesLimitForRole).
     storeNumberOfCategoriesLimitForRole(role: AttrRole, limit: number | undefined) {
       self.numberOfCategoriesLimitByRole.set(role, limit != null && limit > 0 ? limit : undefined)
     },

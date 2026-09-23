@@ -85,15 +85,23 @@ const keyString = cellKeyToString(cellKey)  // Returns "__EMPTY__"
 
 ### `kImpossible` (`"__IMPOSSIBLE__"`)
 
-When the **same attribute** appears on multiple axes with **different values**, the cell key is marked as impossible (no case can exist there):
+When the **same attribute** appears on several axes, a cell key can hold only one value under that attribute's ID. `updateCellKey` keeps the first value and writes any conflicting one under `__IMPOSSIBLE__`:
 
 ```typescript
-// Same attribute on X and Y with different values - impossible!
+// Same attribute on X and Y with different values
 const cellKey = {
   "ATTR-123": "plant",
   "__IMPOSSIBLE__": "meat"  // Conflict marker
 }
 ```
+
+With two roles on one attribute, such a cell can hold no case. With three or more, and with `kOther` in play, a key keeps only the last conflicting value, so distinct cells can share a key and some of those cells do hold cases. See "How Cases Are Assigned to Cells" below.
+
+## How Cases Are Assigned to Cells
+
+`CellIndexer` (`cell-indexer.ts`) owns the grid encoding. A cell index decomposes as `top, right, y, x` from most to least significant, and `cellKeyForIndex(index)` builds that cell's key. Each case is bucketed once, by its own value in each role (a value outside a role's clamped categories goes to that role's `kOther` slot), in `casesByCellIndex()`. A case's `subPlotNum` is its bucket index.
+
+`subPlotCases(cellKey)` resolves a key the grid generates straight to its bucket. When several cells share the key (see `kImpossible`), it returns all of their cases. A key the grid does not generate, such as a partial key or one built from a raw case value, falls back to matching every plotted case against the key.
 
 ## Key Functions and Where to Find Them
 
@@ -102,7 +110,7 @@ const cellKey = {
 **`graph-data-configuration-model.ts`:**
 
 ```typescript
-// Get a cell key by index (0 to totalCells-1)
+// Get a cell key by index (0 to cellCount-1); delegates to CellIndexer
 cellKey(index: number): Record<string, string>
 
 // Get all cell keys for the current graph configuration

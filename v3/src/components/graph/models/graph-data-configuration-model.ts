@@ -9,7 +9,8 @@ import {GraphPlace} from "../../axis-graph-shared"
 import {AxisPlace} from "../../axis/axis-types"
 import { CaseData, CaseDataWithSubPlot } from "../../data-display/d3-types"
 import {
-  AttrRole, GraphAttrRole, graphPlaceToAttrRole, ICaseSubsetDescription, kMain, kOther, PrimaryAttrRoles
+  AttrRole, GraphAttrRole, graphPlaceToAttrRole, GraphSplitAttrRoles, ICaseSubsetDescription, kMain, kOther,
+  PrimaryAttrRoles
 } from "../../data-display/data-display-types"
 import {
   AttributeDescription, DataConfigurationModel, IAttributeDescriptionSnapshot, IDataConfigurationModel
@@ -363,11 +364,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
   .views(self => ({
     cellIndexer: cachedFnWithArgsFactory<() => CellIndexer>({
       key: () => "cellIndexer",
-      calculate: () => {
-        const { xAttrId, xCats, yAttrId, yCats, topAttrId, topCats, rightAttrId, rightCats } =
-          self.getCategoriesOptions()
-        return new CellIndexer({ xAttrId, xCats, yAttrId, yCats, topAttrId, topCats, rightAttrId, rightCats })
-      },
+      calculate: () => new CellIndexer(self.getCategoriesOptions()),
       name: "cellIndexer"
     })
   }))
@@ -510,36 +507,41 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     })
   }))
   .views(self => ({
-    cellIndexForCase(caseId: string) {
+    /**
+     * Returns a function mapping a case to its cell index, with the per-role lookups done once.
+     *
+     * A role only splits into per-category cells when getCategoriesOptions gave it real categories.
+     * x and y get the single placeholder category [""] whenever their attribute isn't categorical
+     * (e.g. a numeric axis), so every case belongs to that one degenerate slot rather than being
+     * looked up by its (non-categorical) data value.
+     */
+    cellIndexResolver() {
       const indexer = self.cellIndexer()
-      // A role only splits into per-category cells when getCategoriesOptions gave it real
-      // categories. x and y get the single placeholder category [""] whenever their attribute
-      // isn't categorical (e.g. a numeric axis), so every case belongs to that one degenerate
-      // slot rather than being looked up by its (non-categorical) data value.
-      const roleSplitsByCategory = (role: "x" | "y" | "topSplit" | "rightSplit") =>
-        role === "topSplit" || role === "rightSplit" || self.attributeType(role) === "categorical"
-      const slotForRole = (role: "x" | "y" | "topSplit" | "rightSplit") => {
-        if (!roleSplitsByCategory(role)) return 0
-        const attrId = self.attributeID(role)
-        const strValue = attrId ? self.dataset?.getStrValue(caseId, attrId) : undefined
-        return indexer.slotFor(role, strValue)
-      }
-      return indexer.indexForSlots({
-        top: slotForRole("topSplit"),
-        right: slotForRole("rightSplit"),
-        y: slotForRole("y"),
-        x: slotForRole("x")
+      const [x, y, top, right] = GraphSplitAttrRoles.map(role => {
+        const splits = role === "topSplit" || role === "rightSplit" || self.attributeType(role) === "categorical"
+        const attrId = splits ? self.attributeID(role) : undefined
+        return (caseId: string) => {
+          if (!splits) return 0
+          return indexer.slotFor(role, attrId ? self.dataset?.getStrValue(caseId, attrId) : undefined)
+        }
       })
+      return (caseId: string) =>
+        indexer.indexForSlots({ top: top(caseId), right: right(caseId), y: y(caseId), x: x(caseId) })
+    }
+  }))
+  .views(self => ({
+    cellIndexForCase(caseId: string) {
+      return self.cellIndexResolver()(caseId)
     }
   }))
   .views(self => ({
     casesByCellIndex: cachedFnWithArgsFactory<() => string[][]>({
       key: () => "casesByCellIndex",
       calculate: () => {
-        const indexer = self.cellIndexer()
-        const buckets: string[][] = Array.from({ length: indexer.cellCount }, () => [])
+        const buckets: string[][] = Array.from({ length: self.cellIndexer().cellCount }, () => [])
+        const cellIndexForCase = self.cellIndexResolver()
         self.allPlottedCases().forEach(caseId => {
-          const cellIndex = self.cellIndexForCase(caseId)
+          const cellIndex = cellIndexForCase(caseId)
           if (cellIndex >= 0) buckets[cellIndex].push(caseId)
         })
         return buckets
@@ -576,17 +578,16 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     subPlotCases: cachedFnWithArgsFactory({
       key: (cellKey: Record<string, string>) => cellKeyToString(cellKey),
       calculate: (cellKey: Record<string, string>) => {
-        const cellIndex = self.cellIndexer().indexForCellKey(cellKey)
-        if (cellIndex >= 0) return self.casesByCellIndex()[cellIndex]
-        // Keys the cell grid never generates reach this fallback: the empty wildcard key, a
-        // partial key naming only some of the categorical roles, or a key built from a raw case
-        // value for a role whose overflow the grid folds into kOther. Each is answered by the
-        // subset match against raw case values these callers have always gotten.
-        //
-        // One shape this does not serve: a partial key carrying kOther. The match is against raw
-        // values, so the sentinel matches nothing and the result is empty rather than the role's
-        // overflow cases. No caller builds one -- the grid's own keys are complete, and every
-        // other producer reads raw values -- so this is a limit of the fallback, not a live gap.
+        const cellIndices = self.cellIndexer().indicesForCellKey(cellKey)
+        if (cellIndices.length === 1) return self.casesByCellIndex()[cellIndices[0]]
+        // A key shared by several cells (see CellIndexer) answers for all of them, so each case is
+        // found by its own cell's key.
+        if (cellIndices.length > 1) return cellIndices.flatMap(index => self.casesByCellIndex()[index])
+        // Keys the cell grid doesn't generate are answered by a subset match against raw case
+        // values: a partial key naming only some of the categorical roles, or a key built from a
+        // raw case value for a role whose overflow the grid folds into kOther. The match can't
+        // resolve a kOther entry, so a partial key carrying one yields no cases; no caller builds
+        // one.
         return self.allPlottedCases().filter(caseId => {
           const itemData = self.dataset?.getFirstItemForCase(caseId, { numeric: false })
           return self.isCaseInSubPlot(cellKey, itemData || { __id__: caseId })
@@ -594,18 +595,6 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       },
       name: "subPlotCases"
     }),
-    subPlotKeyFromExtraCategories(extraPrimaryCategory: string, extraSecondaryCategory: string) {
-      const primaryAttrRole = self.primaryRole ?? "x"
-      const primaryIsBottom = primaryAttrRole === "x"
-      const extraPrimaryRole = primaryIsBottom ? "topSplit" : "rightSplit"
-      const extraPrimaryAttrID = self.attributeID(extraPrimaryRole) ?? ""
-      const extraSecondaryRole = primaryIsBottom ? "rightSplit" : "topSplit"
-      const extraSecondaryAttrID = self.attributeID(extraSecondaryRole) ?? ""
-      const key: Record<string, string> = {}
-      extraSecondaryAttrID && (key[extraSecondaryAttrID] = extraSecondaryCategory)
-      extraPrimaryAttrID && (key[extraPrimaryAttrID] = extraPrimaryCategory)
-      return key
-    },
     graphCellKeyFromCaseID(caseID: string) {
       const subPlotKey = this.subPlotKey(caseID)
       const primaryAttributeID = self.primaryAttributeID
@@ -706,10 +695,9 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     }
   }))
   .actions(self => ({
-    // The cell-grid caches are a chain — casesByCellIndex is built from cellIndexer, subPlotCases
-    // is read out of casesByCellIndex — and caseDataWithSubPlot reads only the buckets, so it no
-    // longer transitively observes getCategoriesOptions(). Invalidating any one of them on its own
-    // leaves the others answering from a stale grid, so they are always invalidated together here.
+    // The cell-grid caches are a chain: casesByCellIndex is built from cellIndexer, and subPlotCases
+    // is read out of casesByCellIndex. Invalidating one without the others leaves them answering
+    // from a stale grid, so they are invalidated together here.
     invalidateCellGrid() {
       self.cellIndexer.invalidateAll()
       self.casesByCellIndex.invalidateAll()
@@ -718,18 +706,12 @@ export const GraphDataConfigurationModel = DataConfigurationModel
   }))
   .actions(self => ({
     setNumberOfCategoriesLimitForRole(role: AttrRole, limit: number) {
-      // Compare the normalized limits, not the raw ones. The raw limit is derived from the axis
-      // length, so it changes every ~12px during a resize even when it is far larger than the
-      // number of categories and therefore cannot change any result. Invalidating on the raw
-      // value blows the subPlotCases cache (O(cells x cases) to rebuild) and recomputes the
-      // category arrays on every step of a resize drag.
+      // Compare effective limits, not raw ones (see effectiveCategoriesLimitForRole), so a
+      // resize drag doesn't rebuild the cell grid and category arrays on every step.
       const prevLimit = self.numberOfCategoriesLimitByRole.get(role)
       const effectiveLimitChanged = self.effectiveCategoriesLimitForRole(role, prevLimit) !==
                                     self.effectiveCategoriesLimitForRole(role, limit)
-      // The raw limit is stored either way: a higher-cardinality attribute assigned to the role
-      // afterwards must still be clamped by a limit that changes nothing for the current one.
-      // Storing it directly rather than through the base action keeps a no-op change from
-      // invalidating categoryArrayForAttrRole, which is the recompute the comparison exists to avoid.
+      // The raw limit is stored either way, and without the base action's invalidation.
       self.storeNumberOfCategoriesLimitForRole(role, limit)
       if (effectiveLimitChanged) {
         self.invalidateCellGrid()
