@@ -1,6 +1,8 @@
 # V2 ↔ V3 Plugin-Visible Event Compatibility Audit
 
 **Date:** 2026-05-08
+**Last verified:** 2026-09-23 against `main` @ `ec4aa83f4` (CODAP-1545). Findings below carry a
+status marker; see the legend under "Status" for what each means.
 **Scope:** Catalog every V2 user-analytics log and Data-Interactive notification, find each V3 counterpart, and flag every place where V3 either renames, drops, or reshapes information that V2 emitted. V3 may freely *add* fields; it must not silently *rename* or *remove* them. Adding/removing entire events is also flagged because plugins (Story Builder, etc.) listen for V2 events.
 
 This was triggered by PR #2566 (CODAP-1306), which fixed one such drift: V3 was emitting a `notify`/`edit text`/`{}` envelope where V2 emits `commitEdit`/`{title,text}`. The audit looks for siblings.
@@ -10,15 +12,67 @@ This was triggered by PR #2566 (CODAP-1306), which fixed one such drift: V3 was 
 
 ---
 
+## Status
+
+Every finding in §3 and §4 carries one of these markers, applied during the 2026-09-23
+re-verification (CODAP-1545):
+
+| Marker | Meaning |
+|---|---|
+| **[RESOLVED]** | V3 now matches V2 (or the divergence was deliberately closed). The resolving story/PR is named. |
+| **[OPEN]** | Still divergent on `main` @ `ec4aa83f4`. The covering story is named, or the row is marked *no story*. |
+| **[VERIFIED OK]** | A spot-check the original audit asked for, since carried out and found compatible. No action. |
+| **[CHANGED]** | V3 moved since 2026-05-08, but not to V2's form — the original row no longer describes the code. Re-triage needed. |
+
+Stories filed from this audit on 2026-05-22: CODAP-1351 (graph), CODAP-1352 (map), CODAP-1353
+(case table / calculator / slider / framing) — **all shipped**. CODAP-1354 (document undo/redo),
+CODAP-1355 (log-token renames), CODAP-1356 (item-level `dataContextChangeNotice`) — **still To Do**.
+
+---
+
 ## TL;DR
 
-- The `commitEdit` text-tile bug PR #2566 fixed is **still on `main`**; the fix is on the `CODAP-1306-story-builder-moment-description` branch only. Confirmed.
-- One **envelope-shape mismatch** found beyond `commitEdit`: V2's `titleChange` puts `type` at the outer envelope level (peer of `action`/`resource`); V3 puts it inside `values`. (See §3.1.)
-- Many **operation-name renames** in V3 — e.g. `lockBackgroundImage`/`unlockBackgroundImage` → `background locked to axes`; `switch bar and dot` → `toggle between bars and dots`; `toggle connecting line` → `toggle show connecting lines`; `toggle show squares` → `toggle showSquares`; `toggle lock intercept` → `toggle intercept locked`; etc.
-- Many **V2 notifications V3 doesn't emit** — calculator `calculate`, slider `change slider value` (component-resource variant), most map operations (`change point color`, `change point size`, `change base map`, `change grid size`, `change map coordinates`, `toggle stroke same as fill`), case-table operations (`open case table`, `edit formula`, `resize column`, `resize columns`, `expand/collapse all`, `change column width`), graph `add axis attribute`/`add 2nd axis attribute`/`drag movable point`/`drag movable line`/`reposition equation`/`drag bin boundary`, plot toggles (`toggle plotted value`, `toggle plotted Count/Percent`, `toggle movable point`, `toggle movable line`, `toggle LSRL`, `toggle plot function`, `add movable value`, `remove movable value`, `<iToggleLogString>` mean/median/etc., `setNumStdErrs`, `toggle show outliers`, `<show/hide> measure labels`), `toggle <iCapability>`, dataset `join`, `change background color` notification, `toggle background transparency` notification, `hide`/`show` singleton component, default `undo`/`redo` on `resource:'document'`.
-- **Log event-string renames** that break V2 plugins matching by `formatStr`: `editValue` → `editCellValue`, `Fit Column Width` → `Fit column width`, `sort cases` → `Sort cases`, `resizeColumns` → `Resize all columns`, `insert N cases in table` → `Create N cases in table`, `addAxisAttribute` → `Attribute assigned`, `attributeRemoved` → `Attribute removed`, `dragEnd` → `Axis domain change`, `lockIntercept` → `Lock/Unlock line intercept`, `toggleConnectingLine` → `Show/Hide connecting lines`, `toggleShowSquares` → `Show/Hide squares of residuals`, `togglePlotted<What>` → `Show/Hide count|percent`, `Moved movable point` → `Move point`, `Moved movable value` → `Moved value`, `dragMovableValue` → `Moved value from`, `Disable<Cap>`/`Enable<Cap>` → `Disable Cap`/`Enable Cap` (with spaces), `change <key> from <a> to <b>` → `Changed <key> from <a> to <b>`, `Hide attribute "%@"` → `Hide attribute %@` (no quotes), `Edit attribute "%@"` → `Edit attribute: %@`, plus dozens more.
-- **V3-only logs that V2 doesn't emit** (informational): `Edited text component: <text>` (V2 explicitly disabled this in build 0601), `Calculation error`, `WebView initialized`, `Add Plugin`, `Restore set aside cases`, `Recover formula for attribute`, `Clear formula for attribute`. These add information and are fine; noted only because the V3 log has full text content embedded in the event-name string for `Edited text component`, which is a privacy/sizing concern.
-- A few **V2 bugs** (e.g. `case_table_controller.js:1135` `%` typo, `data_layer_model.js:650` graph "Hide unselected" emits without count due to evaluation ordering, `data_display_controller.js:445` missing space in `Changed<end> attribute color`, `graph_map_common/data_display_controller.js:941` `type: ctor.toString()`) — V3 should NOT replicate these; flagged for awareness so V3 isn't inadvertently "fixed" to match V2 quirks.
+**Updated 2026-09-23 (CODAP-1545).** Most of what this audit originally found has since been
+fixed. What follows is the current state; the original 2026-05-08 findings are preserved in the
+per-event tables with status markers.
+
+- **`commitEdit` — RESOLVED.** CODAP-1306 / PR #2566 landed. V3 emits `commitEdit` with
+  `{title, text}`, matching V2, and additionally keeps `edit text` on every content-changing
+  edit (`src/components/text/text-notifications.ts`).
+- **`titleChange` envelope — RESOLVED**, but not as this audit recommended. The audit proposed
+  lifting `type` out of `values`. V3 instead emits it at **both** levels and adds a `diType`
+  field carrying the DI type name (`src/models/tiles/tile-notifications.ts:40-49`), so V2
+  plugins reading `message.type` and V3-aware plugins reading `values.diType` both work. (§3.1)
+- **Operation-name renames — 8 of 9 RESOLVED** by CODAP-1351/1352/1353: V3 now emits V2's
+  strings for `backgroundImage`, `lockBackgroundImage`/`unlockBackgroundImage`, `switch bar and
+  dot`, `toggle connecting line`, `toggle lock intercept`, `toggle show squares`, and
+  `<show/hide> measure labels`. **Still open:** `toggle show as <PlotType>` — V2 emits
+  PascalCase (`DotPlot`/`BinnedPlot`/`LinePlot`), V3 emits camelCase over a different value set
+  (`dotPlot`/`binnedDotPlot`/`histogram`/`linePlot`/`scatterPlot`). **No story covers this.** (§3.2)
+- **Missing notifications — nearly all RESOLVED.** Calculator `calculate`, case-card `change
+  column width`, case-table `open case table`/`edit formula`/`resize column`/`resize
+  columns`/`expand/collapse all`, slider `change slider value`, the full graph adornment and
+  plot-toggle family, all the map operations, `join`, `hide`/`show` singleton, and `toggle table
+  to card`/`toggle card to table` all now emit. **Still open:** default `undo`/`redo` on
+  `resource:'document'` (CODAP-1354) and the item-level `dataContextChangeNotice` operations
+  `createItems`/`updateItems`/`deleteItems`/`moveCollection`/`resetCollections`/
+  `notifyAttributeChange`/`deleteDataContext` (CODAP-1356). (§3.3)
+- **Log event-string renames — largely still OPEN** (CODAP-1355 has not started), with two
+  exceptions worth noting:
+  - **`editValue` — RESOLVED.** This was the audit's hardest-hit P3 item. V3 now emits V2's
+    exact format, `editValue: { collection: %@, case: %@, attribute: '%@', old: '%@', new: '%@' }`
+    (`cell-text-editor.tsx:53`). `editCellValue` survives only as an internal pending-log key and
+    in undo/redo string keys — it is no longer an emitted token.
+  - **`Edited text component` — RESOLVED.** The full text content is no longer embedded in the
+    event name, closing the privacy/sizing concern (`text-tile.tsx:154`).
+- **V2 bugs — confirmed NOT replicated.** V3's graph/plot notification code carries explicit
+  comments naming each V2 bug site and why it is not copied
+  (`src/components/graph/graph-notifications.ts:97-98, :151-155`). (§3.5)
+- **One V3 behavior change to re-triage:** graph `Hide unselected cases` now emits the
+  substituted form `Hide %@ unselected cases` with the count
+  (`hide-show-menu-list.tsx:58`). The original audit recorded V3 as matching V2's actual
+  (evaluation-order-bugged) unsubstituted emission. V3 is now *better* than V2 but no longer
+  byte-identical to it, and graph/map are now symmetric. (§4.1, §4.4)
 
 The full per-event tables are in §3 (notifications) and §4 (logs). See §5 for prioritized recommendations.
 
@@ -50,38 +104,46 @@ The full per-event tables are in §3 (notifications) and §4 (logs). See §5 for
 - Cross-checking against the actual list of V2 plugin listeners (Story Builder source, etc.) is **out of scope** — this audit looks at *emission*, not *consumption*. A rename only matters if some plugin actually filters on the renamed value. Triage with the plugin team to decide which gaps need fixing.
 - Some V2 events come from runtime variables (e.g. `'toggle '+iCapability`); we list the patterns and known concrete values in the catalog sections.
 - The V3 audit excludes test files (`*.test.ts`/`.test.tsx`).
+- The 2026-09-23 re-verification (CODAP-1545) located each §3 operation string as a live
+  notification emission in `v3/src`, and reconciled §4 against the generated log-events
+  dictionary (`.claude/skills/generate-log-events-csv/`) rather than by hand. It did not re-derive
+  the V2 side; V2 citations are as recorded in 2026-05-08 unless a row says otherwise.
 
 ---
 
 ## 2. Cross-Reference Summary
 
+Counts as originally measured (2026-05-08) alongside the state after re-verification
+(2026-09-23). The notification picture changed substantially; the log picture did not, because
+CODAP-1355 has not started.
+
 ### Notifications
 
-| Bucket | Count |
-|---|---|
-| V2 emits, V3 emits compatibly | ~28 |
-| V2 emits, V3 emits with **operation-name rename** | 9 |
-| V2 emits, V3 emits with **envelope-shape mismatch** | 1 (`titleChange`) |
-| V2 emits, V3 emits with **resource mismatch** (slider routes through `global[<name>]` only) | 1 (`change slider value`) |
-| V2 emits, V3 does NOT emit | ~40 (see §3.3) |
-| V3 emits, no V2 equivalent (additions) | ~10 (e.g. `change bar chart from <a> to <b>`, drag-and-drop attribute notifications) |
-| V2 emits with envelope/payload bugs (do NOT replicate) | 4 |
+| Bucket | 2026-05-08 | 2026-09-23 |
+|---|---|---|
+| V2 emits, V3 emits compatibly | ~28 | ~68 |
+| V2 emits, V3 emits with **operation-name rename** | 9 | 1 (`toggle show as <PlotType>`) |
+| V2 emits, V3 emits with **envelope-shape mismatch** | 1 (`titleChange`) | 0 |
+| V2 emits, V3 emits with **resource mismatch** (slider routed through `global[<name>]` only) | 1 (`change slider value`) | 0 |
+| V2 emits, V3 does NOT emit | ~40 (see §3.3) | ~8 — default `undo`/`redo` on `document` (CODAP-1354) + the 7 item-level `dataContextChangeNotice` ops (CODAP-1356) |
+| V3 emits, no V2 equivalent (additions) | ~10 | ~15 (now also the legend-range/bin and point-shape notifications) |
+| V2 emits with envelope/payload bugs (do NOT replicate) | 4 | 4 — confirmed not replicated (§3.5) |
 
 ### Logs
 
-| Bucket | Count |
-|---|---|
-| V2 emits, V3 emits compatibly (event token + payload preserved) | ~15 |
-| V2 emits, V3 emits with **event-token rename** | ~30 |
-| V2 emits, V3 emits with **payload-shape change** (different keys, different braces) | ~12 |
-| V2 emits, V3 does NOT emit | ~25 |
-| V3 emits, no V2 equivalent (additions) | ~30 |
+| Bucket | 2026-05-08 | 2026-09-23 |
+|---|---|---|
+| V2 emits, V3 emits compatibly (event token + payload preserved) | ~15 | ~17 (`editValue`, `Edited text component` joined) |
+| V2 emits, V3 emits with **event-token rename** | ~30 | ~28 — unchanged apart from those two; CODAP-1355 |
+| V2 emits, V3 emits with **payload-shape change** (different keys, different braces) | ~12 | ~11 |
+| V2 emits, V3 does NOT emit | ~25 | ~25 |
+| V3 emits, no V2 equivalent (additions) | ~30 | ~38 (143 events in code vs 135 in the dictionary) |
 
 ---
 
 ## 3. Notification Findings
 
-### 3.1 Envelope-shape mismatch — `titleChange`
+### 3.1 Envelope-shape mismatch — `titleChange` — **[RESOLVED]** (CODAP-1353, `a5f076bbc`)
 
 **V2** — `apps/dg/views/component_view.js:280-289` (verified):
 
@@ -94,129 +156,106 @@ executeNotification: {
 }
 ```
 
-**V3** — `v3/src/models/tiles/tile-notifications.ts:6-16` (verified):
+**V3 as of 2026-05-08** — `v3/src/models/tiles/tile-notifications.ts:6-16`:
 
 ```ts
 // resource: `component[${toV2Id(tile.id)}]`           ✓ matches V2
 // values: { operation, id, type, from, to }           ✗ type INSIDE values, not outer
 ```
 
-V2 plugins reading `message.type` will see `undefined` from V3.
+V2 plugins reading `message.type` saw `undefined`.
 
-**Fix sketch:** for the `titleChange` operation only, the V3 wrapper would need to lift `type` to the outer envelope (peer of `action`, `resource`). All other operations are correct as-is. This is the only V2 emission site we found that puts `type` outside `values`.
+**V3 as of 2026-09-23** — `v3/src/models/tiles/tile-notifications.ts:40-49`:
 
-### 3.2 Operation-name renames
+```ts
+values.operation = operation
+values.id = toV2Id(tile.id)
+values.type = v2Type          // V2's SC class name for operational ops
+values.diType = diType        // additive: the DI type name, always present
+// ...
+if (isTitleChange) (result.message as any).type = v2SCType   // ← also at the outer level
+```
 
-V3 emits the right resource and includes the V2 fields, but the operation string itself differs.
+**Resolved differently than this audit proposed.** The audit recommended *moving* `type` to the
+outer level. V3 instead emits it in **both** places and adds `diType`, so V2 plugins reading
+`message.type` work, plugins reading `values.type` keep working, and V3-aware plugins can read
+the unambiguous `values.diType` without knowing V2's two naming conventions. The code documents
+the reasoning inline (`tile-notifications.ts:14-20`).
 
-| V2 operation | V3 operation | V3 file:line |
+### 3.2 Operation-name renames — **8 of 9 [RESOLVED]**, 1 **[OPEN]**
+
+V3 emitted the right resource and the V2 fields, but the operation string itself differed.
+CODAP-1351/1352/1353 renamed V3's strings to V2's in every case but one.
+
+| V2 operation | V3 operation (2026-05-08) | Status (2026-09-23) | V3 file:line |
+|---|---|---|---|
+| `backgroundImage` (used for **add** at graph_controller.js:361 AND **remove** at :410) | `added background image` (add) / `removed background image` (remove) | **[RESOLVED]** CODAP-1351 — V3 now emits `backgroundImage` | `v3/src/components/graph/components/camera-menu-list.tsx` |
+| `lockBackgroundImage` / `unlockBackgroundImage` | `background locked to axes` (with `to: "locked"`/`"unlocked"`) | **[RESOLVED]** CODAP-1351 | `v3/src/components/graph/components/camera-menu-list.tsx` |
+| `switch bar and dot` | `toggle between bars and dots` | **[RESOLVED]** CODAP-1351 — V3 emits `switch bar and dot` for the dot/bar fuse and `toggle between histogram and dots` for the binned case | `…/display-config-palette.tsx:224` |
+| `toggle connecting line` | `toggle show connecting lines` | **[RESOLVED]** CODAP-1351 | `…/adornments-store-utils.ts:134` |
+| `toggle lock intercept` | `toggle intercept locked` | **[RESOLVED]** CODAP-1351 | `…/adornments-store-utils.ts:163` |
+| `toggle show squares` | `toggle showSquares` | **[RESOLVED]** CODAP-1351 | `…/adornments-store-utils.ts:195` |
+| `<show/hide> measure labels` (V2) | `toggle showing labels` | **[RESOLVED]** CODAP-1351 — V3 emits `show measure labels` / `hide measure labels` | `…/adornments-store-utils.ts:102` |
+| `toggle show as <DotPlot/BinnedPlot/LinePlot>` (PascalCase, `graph_model.js:1262-1291` `logLabel`) | `toggle show as <dotPlot/binnedDotPlot/histogram/linePlot/scatterPlot>` (camelCase, different value set) | **[OPEN] — no story.** Unchanged; the operation is templated on V3's `plotType`. Decide whether to map V3 plot types to V2's `logLabel` values or document the change. | `…/display-config-palette.tsx:134` |
+| `edit text` | should be `commitEdit` per V2 (`apps/dg/components/text/text_controller.js:199`) | **[RESOLVED]** CODAP-1306 / PR #2566 — V3 emits `commitEdit` with `{title, text}`, and additionally keeps `edit text` on every content-changing edit | `v3/src/components/text/text-notifications.ts:5-16` |
+
+As of 2026-09-23 only the `toggle show as` value-set mismatch remains, and it has no story behind it.
+
+### 3.3 V2 emits, V3 does not — by area — **nearly all [RESOLVED]**
+
+These were V2 notifications with no V3 equivalent. CODAP-1351 (graph), CODAP-1352 (map) and
+CODAP-1353 (case table / calculator / slider / framing / data context) backfilled almost all of
+them. Verified 2026-09-23 by locating each operation string as a live `updateTileNotification`
+emission in `v3/src`.
+
+**[RESOLVED] — V3 now emits these**
+
+| Area | Operations | V3 site |
 |---|---|---|
-| `backgroundImage` (used for **add** at graph_controller.js:361 AND **remove** at :410) | `added background image` (add) / `removed background image` (remove) | `v3/src/components/graph/components/camera-menu-list.tsx:36, :64` |
-| `lockBackgroundImage` / `unlockBackgroundImage` | `background locked to axes` (with `to: "locked"`/`"unlocked"`) | `v3/src/components/graph/components/camera-menu-list.tsx:81` |
-| `switch bar and dot` | `toggle between bars and dots` | `v3/src/components/graph/components/inspector-panel/display-config-palette.tsx:227` |
-| `toggle connecting line` | `toggle show connecting lines` | `v3/src/components/graph/adornments/store/adornments-store-utils.ts:129` |
-| `toggle lock intercept` | `toggle intercept locked` | `…/adornments-store-utils.ts:158` |
-| `toggle show squares` | `toggle showSquares` | `…/adornments-store-utils.ts:190` |
-| `<show/hide> measure labels` (V2) | `toggle showing labels` | `…/adornments-store-utils.ts:97` |
-| `toggle show as <DotPlot/BinnedPlot/LinePlot>` (PascalCase) | `toggle show as <dotPlot/binnedDotPlot/linePlot/histogram>` (camelCase, different value set) | `v3/src/components/graph/components/inspector-panel/display-config-palette.tsx:134` |
-| `edit text` (CODAP-1306, current `main`) | should be `commitEdit` per V2 (`apps/dg/components/text/text_controller.js:199`) | `v3/src/components/text/text-tile.tsx:145` (PR #2566 fixes) |
+| Calculator | `calculate` | `src/components/calculator/calculator-notifications.ts:10` |
+| Case Card | `change column width` | `src/components/case-card/case-card-notifications.ts:11` |
+| Case Table | `open case table`, `edit formula`, `resize column`, `resize columns`, `expand/collapse all` | `src/components/case-table/case-table-notifications.ts`; `src/components/common/edit-formula-notifications.ts:8` |
+| Graph adornments / axes | `drag movable point`, `drag movable line`, `reposition equation`, `edit plot formula`, `swap categories` | `src/components/graph/graph-notifications.ts` |
+| Graph controller | `add axis attribute`, `add 2nd axis attribute`, `change background color`, `toggle background transparency` | `src/components/graph/graph-notifications.ts:35` ff. |
+| Graph plots | `toggle <iCapability>` (`toggle NumberToggle`, `toggle MeasuresForSelection`), `toggle between histogram and dots`, `drag bin boundary`, `toggle plotted value`, `toggle plotted <Count/Percent>`, `toggle movable point`, `toggle movable line`, `toggle LSRL`, `toggle plot function` | `src/components/graph/graph-notifications.ts`; per-adornment registration files |
+| Graph univariate adornments | `add movable value`, `remove movable value`, `<iToggleLogString>` family, `setNumStdErrs`, `toggle show outliers` | `src/components/graph/graph-notifications.ts:151` ff. |
+| Graph + Map common | `showAllCases`, `displayOnlySelected` | `src/components/graph/graph-notifications.ts:120, :128` |
+| Map | `change point color`, `change <name>` (dynamic), `change attribute color`, `change point size`, `toggle stroke same as fill`, `change base map`, `change grid size`, `change map coordinates`, map-specific `hide selected cases` / `hide unselected cases` / `show all cases` | `src/components/map/map-notifications.ts`; `src/components/data-display/data-display-notifications.ts` |
+| Slider | `change slider value` (component resource) | `src/components/slider/slider-notifications.ts:17` |
+| Text | `commitEdit` | `src/components/text/text-notifications.ts:5` |
+| Component framing | `hide` / `show` (singleton toggle), `toggle table to card` / `toggle card to table` | `src/components/case-tile-common/case-tile-notifications.ts:11-12` |
+| Data context | `join` | `src/components/case-table/case-table-notifications.ts:58` — and V3 deliberately does **not** replicate V2's `type: DG.CaseTable` class-object bug (§3.5) |
 
-`commitEdit` is the known one. The rest are equally likely to break plugins matching by exact operation string.
+**[OPEN] — still not emitted**
 
-### 3.3 V2 emits, V3 does not — by area
+- **Default `undo` / `redo` on resource `document`** — `apps/dg/controllers/undo_history.js:159-165,
+  204-210`. V3 still emits only `undoChangeNotice` (`src/models/document/create-document-model.ts:87,
+  :94`; `src/data-interactive/handlers/undo-change-notice-handler.ts:30`). Plugins listening for
+  `resource:'document'`, `operation:'undo'`/`'redo'` receive nothing. **Covered by CODAP-1354.**
+- **Item-level `dataContextChangeNotice` operations** — V2 emits `createItems`, `updateItems`,
+  `deleteItems`, `moveCollection`, `resetCollections`, `notifyAttributeChange` and
+  `deleteDataContext`; none of these strings appears in `v3/src` (verified 2026-09-23). V3
+  collapses the item-level variants into the `*Cases` operations. V3 does cover the common ops
+  (`createCases`, `updateCases`, `deleteCases`, `selectCases`, `moveCases`, `dependentCases`,
+  the `*Collection` and `*Attributes` families, `updateDataContext`). **Covered by CODAP-1356.**
 
-These are V2 notifications that send to plugins where V3 currently has no equivalent emission. Each is a possible Story Builder / V2-plugin breakage.
+### 3.4 Payload-field issues — 2 **[VERIFIED OK]**, 1 **[OPEN]**
 
-**Calculator**
-- `calculate` (resource `component`) — `apps/dg/components/calculator/calculator.js:94, :156` (clearValue + evaluate). V3 logs `Calculator value cleared`/`Calculation done` but does not emit a notification.
+| Operation | Issue | Status (2026-09-23) | V3 location |
+|---|---|---|---|
+| `attributeChange` / `legendAttributeChange` | V2 always includes `axisOrientation`; V3 only includes it when `place` is not plot/legend | **[OPEN] — no story.** Unchanged: `if (placeHasOrientation) values.axisOrientation = axisOrientation`. Decide whether to always include it or document the conditional. | `v3/src/components/graph/models/graph-notification-utils.ts:32-47` |
+| dataContextChangeNotice `createCases` payload | V2 `result` has `caseIDs`, `itemIDs`, `caseID`, `itemID` per case-handler. V3 has all four. | **[VERIFIED OK]** | `v3/src/models/data/data-set-notifications.ts:93` |
+| dataContextChangeNotice `selectCases` `result.cases` | V2 supplies full case objects with `parent`, `context`, `collection.parent`, `values`. Verify V3's case-object shape includes them. | **[VERIFIED OK]** — `convertCaseToV2FullCase` builds `context`, `parent`, `collection` (with `collection.parent`) and `values`. V3 additionally omits `cases` when empty (V2 expects `undefined`, not `[]`) and adds `removedCases` on extend. | `v3/src/data-interactive/data-interactive-type-utils.ts:41-69`, via `data-set-notifications.ts:158-198` |
 
-**Case Card**
-- `change column width` (resource `component`) — `apps/dg/components/case_card/case_card_view.js:119`. V3 logs but does not notify.
+The two spot-checks this section asked for have now been carried out and both pass. The
+`axisOrientation` conditional is the only payload-shape divergence still outstanding.
 
-**Case Table**
-- `open case table` — `apps/dg/controllers/document_controller.js:1069`.
-- `edit formula` (component) — `apps/dg/components/case_table/case_table_controller.js:799`. V3 emits `change formula` only on bar chart (`bar-chart.tsx:218`), not on attribute formula edits.
-- `resize column` — `case_table_controller.js:906` and `case_table_view.js:1926`.
-- `resize columns` — `case_table_controller.js:1136`.
-- `expand/collapse all` — `case_table_view.js:2172`.
+### 3.5 V2 bugs — V3 should NOT replicate — **[VERIFIED OK]**
 
-**Graph adornments / axes**
-- `drag movable point` — `apps/dg/components/graph/adornments/movable_point_adornment.js:128`.
-- `drag movable line` (op string used for movable-VALUE drag) — `movable_value_adornment.js:166`.
-- `reposition equation` — `plotted_average_adornment.js:529`, `twoD_line_adornment.js:285`.
-- `edit plot formula` — `plotted_formula_edit_context.js:102`.
-- `swap categories` — `cell_axis_view.js:198`.
-
-**Graph controller**
-- `add axis attribute` — `graph_controller.js:619`.
-- `add 2nd axis attribute` — `graph_controller.js:688`.
-- `change background color` (notification) — `graph_controller.js:772`. V3 logs but does not notify.
-- `toggle background transparency` (notification) — `graph_controller.js:837`. V3 logs but does not notify.
-
-**Graph plots**
-- `toggle <iCapability>` (e.g. `toggle NumberToggle`, `toggle MeasuresForSelection`) — `graph_model.js:511`.
-- `toggle between histogram and dots` — `binned_plot_model.js:506`.
-- `drag bin boundary` — `binned_plot_view.js:210`, `histogram_view.js:261`.
-- `toggle plotted value` — `plot_model.js:421`.
-- `toggle plotted <iWhat>` (Count/Percent) — `plot_model.js:465`.
-- `toggle movable point` — `scatter_plot_model.js:232`.
-- `toggle movable line` — `scatter_plot_model.js:277`.
-- `toggle LSRL` — `scatter_plot_model.js:336`.
-- `toggle plot function` — `scatter_plot_model.js:461`.
-
-**Graph univariate adornments**
-- `toggle movable value` — `univariate_adornment_base_model.js:107`.
-- `add movable value` — `:195`.
-- `remove movable value` — `:272`.
-- `<iToggleLogString>` (e.g. `togglePlottedMean`, `togglePlottedMedian`, `togglePlottedBoxPlot`) — `:321`.
-- `setNumStdErrs` — `:357`.
-- `toggle show outliers` — `:462`. (V2 also emits this — buggy — for ICI at `:511`; V3 should NOT replicate the bug.)
-
-**Graph + Map common**
-- `showAllCases` — `data_layer_model.js:680`. V3 emits the log but not the notification.
-- `displayOnlySelected` — `data_layer_model.js:705`.
-
-**Map** (V3 map is incomplete; many V2 notifications missing)
-- `change point color` (categorical) — `map_controller.js:294`.
-- `change <name>` (dynamic, e.g. `change changePointColor`/`changeStrokeColor`) — `map_controller.js:333`.
-- `change attribute color` — `map_controller.js:370`.
-- `change point size` — `map_controller.js:492`.
-- `toggle stroke same as fill` — `map_controller.js:640, :862` (duplicate paths).
-- `hide selected cases`, `hide unselected cases`, `show all cases` (map-specific op strings; V3 uses the shared graph_map_common ones) — `map_model.js:534, :562, :598`. May be intentional unification but V2 plugins listening for the map-specific strings won't match.
-- `change base map` — `map_view.js:207`.
-- `change grid size` — `map_view.js:247`.
-- `change map coordinates` — `map_view.js:570` (pan/zoom).
-
-**Slider**
-- `change slider value` (resource `component`) — `slider_controller.js:225` and `slider_view.js:326`. V3 routes slider value changes through `global[<name>]` (`v3/src/components/slider/slider-utils.ts:6`) only. V2 plugins listening for the component-resource notification get nothing. (Plugins listening on `global[<name>]` should still work since V2 also emits that.)
-
-**Text**
-- `commitEdit` — `text_controller.js:199`. V3 main: still `edit text` with `{}`. Fixed on `CODAP-1306-story-builder-moment-description` branch / PR #2566.
-
-**Document/undo**
-- Default `undo` / `redo` on resource `document` (auto-attached to commands lacking explicit `undoNotification`/`redoNotification`) — `apps/dg/controllers/undo_history.js:159-165, 204-210`. Plugins listening for `resource:'document'`, `operation:'undo'`/`'redo'` will not receive these in V3 (which only emits `undoAction`/`redoAction` on `undoChangeNotice`).
-
-**Component framing**
-- `hide` / `show` (singleton component toggle, e.g. calculator) — `document_controller.js:1644-1666`. Resource is `component`, operation is `'hide'` or `'show'`, with `type` = component name. V3 doesn't emit.
-- `toggle table to card` / `toggle card to table` — `titlebar_button_view.js:316, :373`. V3 logs `Toggle component: %@` but doesn't emit a notification.
-
-**Data context**
-- `join` — `data_context_utilities.js:924`. (V2 has a known bug: `type: DG.CaseTable` is the class object, not a string. V3 should NOT replicate.)
-
-**dataContextChangeNotice operation list**
-V3 covers the common ops (`createCases`, `updateCases`, `deleteCases`, `selectCases`, `moveCases`, `dependentCases`, `createCollection`/`updateCollection`/`deleteCollection`, `createAttributes`/`updateAttributes`/`deleteAttributes`/`moveAttribute`/`hideAttributes`/`unhideAttributes`/`showAttributes`, `updateDataContext`). V2 also emits: `createItems` / `updateItems` / `deleteItems` (V3 collapses to `*Cases`), `moveCollection`, `resetCollections`, `notifyAttributeChange`, `deleteDataContext`. Spot-check whether V2 plugins listen for the item-level variants; if so, V3 needs to either also emit `createItems` (etc.) or document the behavioral change.
-
-### 3.4 Payload-field issues
-
-| Operation | Issue | V3 location |
-|---|---|---|
-| `attributeChange` / `legendAttributeChange` | V2 always includes `axisOrientation`; V3 only includes it when `place` is not plot/legend | `v3/src/components/graph/models/graph-notification-utils.ts:26` |
-| dataContextChangeNotice `createCases` payload | V2 `result` has `caseIDs`, `itemIDs`, `caseID`, `itemID` per case-handler. V3 has all four. ✓ | `v3/src/models/data/data-set-notifications.ts:93` |
-| dataContextChangeNotice `selectCases` `result.cases` | V2 supplies full case objects with `parent`, `context`, `collection.parent`, `values`. V3 catalog claims `cases?` is conditional on diff state and `removedCases` is added. Verify the case-object shape inside includes V2's `parent`/`context`/`collection`/`values` keys. | `v3/src/models/data/data-set-notifications.ts:158` |
-
-These are spot-checks — V3 has the right structure but the agents didn't enumerate every nested field. Worth a careful pass before declaring victory.
-
-### 3.5 V2 bugs — V3 should NOT replicate
+Confirmed 2026-09-23: V3 does not replicate any of these, and the graph notification code now
+carries inline comments naming each V2 site and why it is not copied
+(`src/components/graph/graph-notifications.ts:97-98, :151-155`). The `join` type-object bug is
+likewise avoided (CODAP-1353, `82cd17c65`).
 
 | V2 site | Bug |
 |---|---|
@@ -228,6 +267,18 @@ These are spot-checks — V3 has the right structure but the agents didn't enume
 ---
 
 ## 4. Log Findings
+
+**Verification method (2026-09-23):** §4 was reconciled against the generated log-events
+dictionary rather than by hand. `.claude/skills/generate-log-events-csv/` holds a deterministic
+AST extractor over `v3/src`; its output was diffed against the V3 column below. CODAP-1355 covers
+the §4.2 renames and has not started, so most rows here remain open as originally written — the
+value of this pass is the verified current surface, plus the three rows that *did* move.
+
+**Dictionary drift noted:** the committed `codap-v3-log-events.csv` is itself behind the code —
+143 events in `v3/src` vs 135 in the CSV, 8 NEW and 0 REMOVED (the new ones come from the
+residual-plot and legend/point-shape work). Regenerating it is the `generate-log-events-csv`
+skill's own job, not this story's, but it should be done: the 8 new rows need Descriptions
+authored.
 
 ### 4.1 Compatible (event token + payload preserved)
 
@@ -241,7 +292,7 @@ These match well enough that V2 plugins matching `formatStr` on the leading word
 | `Show all cases` | `data_layer_model.js:688` (graph) + `map_model.js:597` (map) → `v3/src/components/graph/.../hide-show-menu-list.tsx:75` + `v3/src/components/map/.../hide-show-menu-list.tsx:74` |
 | `Display only selected cases` | `data_layer_model.js:713` → `…/hide-show-menu-list.tsx:64` (graph) |
 | `Hide %@ selected cases` | `data_layer_model.js:618` + `map_model.js:533` → `hide-show-menu-list.tsx:36` (graph) + `:52` (map) |
-| `Hide unselected cases` (graph) | `data_layer_model.js:650` → `hide-show-menu-list.tsx:53` (graph) — **NB**: V2 emits the un-substituted form due to evaluation order; V3 matches V2's actual emission, not the V2 author's intent. |
+| `Hide %@ unselected cases` (graph) | `data_layer_model.js:650` → `hide-show-menu-list.tsx:58` (graph) — **[CHANGED]** As of 2026-09-23 V3 emits the *substituted* form with the count, so it no longer mirrors V2's evaluation-order bug and graph now matches map. V3 is better than V2 here but no longer byte-identical; a V2 plugin matching the literal `Hide unselected cases` will miss it. **No story** — decide whether that is acceptable. |
 | `Hide %@ unselected cases` (map) | `map_model.js:561` → `map/.../hide-show-menu-list.tsx:63` |
 | `Map base layer changed: %@` | `map_view.js:202` → `map-base-layer-control.tsx:45` |
 | `Made plot background <transparent/opaque>` | `graph_controller.js:836` → `point-format-palette.tsx:28` |
@@ -254,16 +305,20 @@ These match well enough that V2 plugins matching `formatStr` on the leading word
 | `dragMovableLine: '%@'` | `movable_line_adornment.js:79` → `movable-line-adornment-component.tsx:229, :325` |
 | `laraData` | `main.js:312` → `cfm-log-utils.ts:7` |
 
-### 4.2 Event-token renames (V2 plugins matching by `formatStr` will miss these)
+### 4.2 Event-token renames (V2 plugins matching by `formatStr` will miss these) — **mostly [OPEN]**, covered by CODAP-1355
+
+Verified 2026-09-23 against the extracted event list: 20 of the 23 checkable V3 tokens below are
+still emitted exactly as recorded, so those rows stand as written. The exceptions are the first
+two rows.
 
 | V2 token / format | V3 token / format | V3 site |
 |---|---|---|
-| `editValue: { collection: %@, case: %@, attribute: '%@', old: '%@', new: '%@' }` | `editCellValue: %@` (with stringified `{attrId, caseId, from, to}`) | `cell-text-editor.tsx:53`, `case-tile-utils.ts:189` |
+| `editValue: { collection: %@, case: %@, attribute: '%@', old: '%@', new: '%@' }` | ~~`editCellValue: %@` (with stringified `{attrId, caseId, from, to}`)~~ — **[RESOLVED]** V3 now emits V2's exact format. `editCellValue` remains only as an internal `setPendingLogMessage` key and in undo/redo string keys; it is no longer an emitted token. This was the audit's hardest-hit P3 item. | `cell-text-editor.tsx:53`, `color-cell-text-editor.tsx:94` |
 | `Fit Column Width: {collection: %@, attribute: %@}` | `Fit column width: %@` (collection lowercased) | `attribute-menu-list.tsx:93` |
 | `sort cases by attribute: %@ ("%@")` (lowercase 's') | `Sort cases by attribute: %@` (capital 'S', no `(name)`) | `data-set-undo.ts:414` |
 | `resizeColumns: { dataContext: % }` (V2 has typo) | `Resize all columns` | `case-tile-inspector.tsx:49` |
 | `insert %@ cases in table` (lowercase 'i') | `Create %@ cases in table` (different verb) | `use-rows.ts:310` |
-| `Expand/Collapse all` | `Expand all` / `Collapse all` (split into two) | `collection-table-spacer.tsx:159` |
+| `Expand/Collapse all` | `Expand all` / `Collapse all` — **[OPEN]** CODAP-1355. Still split into two, emitted via the template `%@ all` with `state` = `Expand`/`Collapse` | `collection-table-spacer.tsx:175` |
 | `addAxisAttribute: { attribute: %@ }` | `Attribute assigned: %@` | `graph.tsx:274` |
 | `attributeRemoved: { attribute: %@, axis: %@ }` | `Attribute removed: %@` | `graph.tsx:276, :301` |
 | `dragStart: { lower: %@, upper: %@ }` | (no V3 equivalent for axis-drag start) | — |
@@ -343,7 +398,7 @@ These are fine — V3 adds info — but listing here so the audit is complete.
 
 | V3 event | Notes |
 |---|---|
-| `Edited text component: <text>` | V2 explicitly disabled this in build 0601 (per code comment in `text_controller.js:158`). V3 logs the **full text content** in the event-name string. Privacy + size concern: long-form text appears in `event` server-side. Worth changing to put text in `args` only and use a fixed `event` like `editTextComponent`. |
+| `Edited text component` | **[RESOLVED]** V2 explicitly disabled this in build 0601 (per code comment in `text_controller.js:158`). V3 no longer embeds the text content in the event name (`text-tile.tsx:154`), closing the privacy/sizing concern. |
 | `Calculation error: %@ = %@` | V2 doesn't log calc errors. |
 | `Calculation done: %@ = %@` is shared. | |
 | `WebView initialized` | New. |
@@ -351,82 +406,75 @@ These are fine — V3 adds info — but listing here so the audit is complete.
 | `Show web view: %@`, `Show guide page: %@`, `Show %@`, `Imported data set: %@`, `Delete dataset: %@`, `Change web view URL: %@` | New events for V3-specific UI. |
 | `Restore set aside cases`, `Recover formula for attribute %@`, `Clear formula for attribute %@`, `Change row height`, `Change case card column width …` | New events. |
 | `attributeCreate: %@` (vs `Create attribute: %@`) | Two events for the same logical action — one from inspector ruler menu, one from table header (see §4.4). |
-| `update checkbox case: <id> state: <attr> to <checked|unchecked>` | New; entire payload is in event-name string (similar concern as `Edited text component`). |
+| `update checkbox case: <id> state: <attr> to <checked\|unchecked>` | New; entire payload is in event-name string (similar concern as `Edited text component`). |
 | `Map base layer visibility changed: %@`, `Map layer changed: %@ %@`, `mapAction: showGrid`/`hideGrid`/`showPoints`/`hidePoints`/`showConnectingLines`/`hideConnectingLines`/`showPins`/`hidePins` | New map events (V2 has overlapping but not identical event set). |
 | `Toggle parent group visibility`, `Hide all cases from parent toggles`, `Show all cases from parent toggles`, `Disable only showing last parent toggle`/`Enable …` | New phrasing for V2's `Show parent`/`Hide all`/`Show all`. |
 
 ### 4.4 V3 internal inconsistencies (worth fixing regardless of V2)
 
-These are duplicates / asymmetries within V3 that the V2 review surfaced:
+These are duplicates / asymmetries within V3 that the V2 review surfaced. **No story covers this
+section** — it was P4 in §5 and nothing was filed from it. Four of the ten have since resolved
+incidentally; the rest are unchanged.
 
 | Issue | Where | What |
 |---|---|---|
-| Two events for one user action: create attribute | `collection-table.tsx:247` (`Create attribute: %@`) vs `ruler-menu-list.tsx:44` (`attributeCreate: %@`) | Pick one. |
-| `Hide unselected cases` differs between graph and map | graph: no count (`hide-show-menu-list.tsx:53`) vs map: with count (`map/.../hide-show-menu-list.tsx:63`) | V2 also had this asymmetry, but for a *different* reason (V2's graph variant is a bug — `data_layer_model.js:650`). V3 has unintentionally preserved the V2 bug rather than fixing it. |
+| Two events for one user action: create attribute | `collection-table.tsx:252` | **[RESOLVED]** Only `attributeCreate: %@` remains; `Create attribute: %@` is no longer emitted. |
+| `Hide unselected cases` differs between graph and map | graph: `hide-show-menu-list.tsx:58` | **[RESOLVED]** Graph now emits `Hide %@ unselected cases` with the count, matching map. V3 no longer preserves V2's evaluation-order bug — but see §4.1: that also means V3 no longer matches V2's literal emission. |
 | `Title changed to: %@` emitted from both generic and case-tile title bars | `component-title-bar.tsx:71` and `case-tile-title-bar.tsx:129` | Same event for different actions (component title vs DataSet title). V2 distinguishes (case-tile-card title is a dataset rename). |
-| `Close component: %@` payload differs | `container.tsx:46` (`{tileType}`) vs `case-tile-title-bar.tsx:141` (`{type: toggleSuffix}`) | Same event, different keys. |
+| `Close component: %@` payload differs | `container.tsx:46` (`{tileType}`) vs `case-tile-title-bar.tsx:144` (`{type: toggleSuffix}`) | **[OPEN]** Unchanged. Same event, different keys. |
 | Adornment-checkbox arg key differs | generic `adornment-checkbox.tsx:36` (`{type}`) vs box-plot `box-plot-adornment-registration.tsx:42` (`{adornmentType}`) | Same event format `Added %@`/`Removed %@`, different parameter keys. |
-| `Changed %@ from %@ to %@` collides across binWidth, binAlignment, breakdownType | `display-config-palette.tsx:180-182, :207-209, :237-239` | Three different actions, one event-name format. V2 had distinct events. |
-| `toggleShowAs: %@` collides | `display-config-palette.tsx:133` (plot type) and `:226` (BarChart/DotChart toggle) | Two distinct user actions, same event format. |
+| `Changed %@ from %@ to %@` collides across binWidth, binAlignment, breakdownType | `display-config-palette.tsx` | **[RESOLVED]** The colliding format is no longer emitted anywhere in `v3/src`. |
+| `toggleShowAs: %@` collides | `display-config-palette.tsx:133` (plot type) and `:226` (BarChart/DotChart toggle) | **[OPEN]** Unchanged. Two distinct user actions, same event format. |
 | `parentCaseId` leaked into event-name string | `collection-table-spacer.tsx:175` | Use stable event name + put id in args. |
 | `marqueeSelection: <count>` has count baked into event | `background.tsx:166` | V2 also did this, but the agent flagged: log-server analytics bucket on event name. |
-| `editCellValue: <whole stringified payload>` | `cell-text-editor.tsx:53` | Same — full payload in event name. Better to keep event = `editCellValue` and put payload in args. |
+| `editCellValue: <whole stringified payload>` | `cell-text-editor.tsx:53` | **[RESOLVED]** V3 now emits V2's structured `editValue: { … }` format instead (§4.2). |
 | `Show all cases` passes `args: { category: "data" }` | `hide-show-menu-list.tsx:75` | Looks like the dev meant to pass `category` as the third arg of `logMessageWithReplacement`; instead it ends up in `parameters`. |
 
 ---
 
 ## 5. Recommendations / Priority
 
-Triage with the plugin team — many of these only matter if a plugin actually filters on the affected name. Suggested order:
+**Rewritten 2026-09-23 (CODAP-1545).** The original P0-P5 list has been superseded: P0, most of
+P1 and nearly all of P2 shipped in CODAP-1351/1352/1353, and CODAP-1306 closed the `commitEdit`
+item. What remains:
 
-### P0 — Known active breakage
-1. Land PR #2566 (`commitEdit` fix) into `main`. Already underway.
-2. Fix `titleChange` envelope: lift `type` from `values` to outer level (peer of `action`/`resource`) to match V2 (`tile-notifications.ts:7-15`).
+### Covered by an existing story
 
-### P1 — Operation-name renames in notifications
-Most likely to break Story Builder / V2 plugins listening on specific operation strings. For each, decide: rename V3 to match V2, or document the change.
-- `added background image` / `removed background image` → `backgroundImage` (V2)
-- `background locked to axes` → `lockBackgroundImage` / `unlockBackgroundImage`
-- `toggle between bars and dots` → `switch bar and dot`
-- `toggle show connecting lines` → `toggle connecting line`
-- `toggle intercept locked` → `toggle lock intercept`
-- `toggle showSquares` → `toggle show squares`
-- `toggle showing labels` → `<show/hide> measure labels`
-- `toggle show as <camelCase>` → `toggle show as <PascalCase>`
+| Story | Covers | Status |
+|---|---|---|
+| **CODAP-1354** | Default `undo` / `redo` on `resource:'document'` (§3.3) | To Do |
+| **CODAP-1355** | Log event-token renames (§4.2) — ~20 rows still divergent, `editValue` no longer among them | To Do |
+| **CODAP-1356** | Item-level `dataContextChangeNotice` operations: `createItems`, `updateItems`, `deleteItems`, `moveCollection`, `resetCollections`, `notifyAttributeChange`, `deleteDataContext` (§3.3) | To Do |
 
-### P2 — Missing notifications for areas with active V2 plugins
-Highest-value if Story Builder uses any of these:
-- Slider: emit `change slider value` on `component` resource (in addition to the global value change V3 already emits).
-- Calculator: emit `calculate` on `component`.
-- Case table: emit `open case table`, `edit formula`, `resize column`, `resize columns`, `expand/collapse all`.
-- Graph adornments: emit `add movable value` / `remove movable value`, `<togglePlottedMean>` family, `setNumStdErrs`, `<show/hide> measure labels`, `toggle plotted value`, `toggle plotted Count/Percent`, `toggle movable point`, `toggle movable line`, `toggle LSRL`, `toggle plot function`, `drag movable point`, `drag movable line` (value), `reposition equation`, `edit plot formula`, `drag bin boundary`, `swap categories`, `change background color` (notification, in addition to log), `toggle background transparency` (notification).
-- Document/undo: emit default `undo` / `redo` on `resource:'document'` for commands without explicit `undoNotification`/`redoNotification`.
+### Open with no story — needs triage
 
-### P3 — Log event-token renames
-Decide policy. Easiest path: keep V3's improved wording but add a V2-compatibility alias log on the same paths. Hardest hits:
-- `editValue` → `editCellValue` (Story Builder is highly likely to filter cell edits).
-- `addAxisAttribute` → `Attribute assigned`.
-- `attributeRemoved` → `Attribute removed`.
-- `dragEnd` (axis) → `Axis domain change`.
-- `togglePlotted<X>: hide/show` → `Show/Hide <x>`.
-- `toggleConnectingLine`/`toggleShowSquares`/`lockIntercept`/`toggleLSRL` etc.
-- `Edit attribute "X"`, `Hide attribute "X"`, `Delete attribute "X"` → no quotes (and `Edit` adds colon).
-- `move attribute` (with name) → `Moved attribute` (with attrId — note the **id leak**, V3 should switch to attribute name).
-- All the `Create <X> component` literals → `Create component: <X>`.
+These survived the backfill and nothing tracks them. Each needs a decision: match V2, or accept
+and document the divergence.
 
-### P4 — Internal V3 cleanups (independent of V2)
-- Reconcile `attributeCreate: %@` vs `Create attribute: %@`.
-- Reconcile `Close component:` payload key (`tileType` vs `type`).
-- Reconcile adornment-checkbox arg key (`type` vs `adornmentType`).
-- Disambiguate `Changed %@ from %@ to %@` (binWidth / binAlignment / breakdownType).
-- Disambiguate `toggleShowAs: %@` (plot-type vs bar/dot fuse).
-- Move full text content out of `Edited text component:` event name into args.
-- Move stringified payload out of `editCellValue:` event name into args.
-- Fix `hide-show-menu-list.tsx:75` `Show all cases` `args` — the `{ category: "data" }` was probably intended as the third helper argument.
-- Decide on graph/map symmetry for `Hide unselected cases` — V3 currently preserves V2's evaluation-order bug.
+1. **`toggle show as <PlotType>` value set** (§3.2). V2 emits PascalCase `DotPlot`/`BinnedPlot`/
+   `LinePlot`; V3 emits camelCase over a wider set including `histogram` and `scatterPlot`. A V2
+   plugin matching the operation string will never match V3's.
+2. **`axisOrientation` conditional** (§3.4). V2 always includes it in `attributeChange` /
+   `legendAttributeChange`; V3 omits it for plot and legend places.
+3. **Graph `Hide unselected cases` no longer matches V2's literal emission** (§4.1, §4.4). V3
+   now substitutes the count, which is the *correct* behavior and makes graph symmetric with
+   map — but V2's actual (bugged) emission is the un-substituted string, so a V2 plugin matching
+   it will miss. This is the one place where fixing a V2 bug created a new compatibility gap;
+   worth an explicit decision rather than leaving it implicit.
+4. **§4.4 internal inconsistencies** — the six rows still marked [OPEN]. Independent of V2;
+   no story was ever filed from the original P4.
 
-### P5 — V2 bugs to NOT replicate
-If the team chooses to backfill missing operations, **don't** copy these V2 mistakes:
+### Housekeeping
+
+- **Regenerate `codap-v3-log-events.csv`.** The committed dictionary is behind the code (143
+  events vs 135; 8 NEW, 0 REMOVED). The 8 new rows need Descriptions authored. This belongs to
+  the `generate-log-events-csv` skill, not to a compatibility story.
+
+### Preserved for reference: V2 bugs to NOT replicate
+
+If further backfill happens, **don't** copy these V2 mistakes (all confirmed not replicated as of
+2026-09-23, see §3.5):
+
 - `data_display_controller.js:941` `type: ctor.toString()`.
 - `data_context_utilities.js:924` `type: DG.CaseTable` (class object).
 - `univariate_adornment_base_model.js:511` `'toggle show outliers'` for ICI.
@@ -463,6 +511,20 @@ undo (default), undoAction
 ```
 
 ### 6.2 V3 notification operations (deduped)
+
+> **Snapshot of 2026-05-08 — partly superseded.** CODAP-1351/1352/1353 renamed several of these
+> to their V2 equivalents and added roughly forty more. The renames below are the ones that
+> matter when reading this list:
+> `added background image`/`removed background image` → `backgroundImage`;
+> `background locked to axes` → `lockBackgroundImage`/`unlockBackgroundImage`;
+> `toggle between bars and dots` → `switch bar and dot` (plus a new `toggle between histogram and dots`);
+> `toggle show connecting lines` → `toggle connecting line`;
+> `toggle intercept locked` → `toggle lock intercept`;
+> `toggle showSquares` → `toggle show squares`;
+> `toggle showing labels` → `show measure labels`/`hide measure labels`;
+> `edit text` → still emitted, but `commitEdit` is now emitted alongside it.
+> `toggle show as <plotType>` is unchanged and remains the one open rename (§3.2).
+> To regenerate the current list, see §6.3.
 
 ```
 added background image, attributeChange, background locked to axes, change axis bounds,
