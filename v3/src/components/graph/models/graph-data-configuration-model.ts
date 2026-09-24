@@ -530,11 +530,6 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     }
   }))
   .views(self => ({
-    cellIndexForCase(caseId: string) {
-      return self.cellIndexResolver()(caseId)
-    }
-  }))
-  .views(self => ({
     casesByCellIndex: cachedFnWithArgsFactory<() => string[][]>({
       key: () => "casesByCellIndex",
       calculate: () => {
@@ -705,7 +700,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     }
   }))
   .actions(self => ({
-    setNumberOfCategoriesLimitForRole(role: AttrRole, limit: number) {
+    setNumberOfCategoriesLimitForRole(role: AttrRole, limit: number | undefined) {
       // Compare effective limits, not raw ones (see effectiveCategoriesLimitForRole), so a
       // resize drag doesn't rebuild the cell grid and category arrays on every step.
       const prevLimit = self.numberOfCategoriesLimitByRole.get(role)
@@ -725,7 +720,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     get caseDataWithSubPlot() {
       const allCaseData: CaseDataWithSubPlot[] = self.joinedCaseDataArrays
       const caseIDToSubPlot: Record<string, number> = {}
-      // Seed only from the buckets. A case the indexer could not slot (cellIndexForCase < 0)
+      // Seed only from the buckets. A case the indexer could not slot (a cell index < 0)
       // belongs to no bucket, and must keep an undefined subPlotNum so it is not drawn.
       self.casesByCellIndex().forEach((caseIds, cellIndex) => {
         caseIds.forEach(caseID => {

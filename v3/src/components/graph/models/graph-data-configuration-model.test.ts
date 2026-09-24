@@ -177,6 +177,25 @@ describe("DataConfigurationModel", () => {
       expect(config.effectiveCategoriesLimitForRole("x", undefined)).toBeUndefined()
     })
 
+    it("clamps the category array without shortening the unclamped categories it is built from", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "hiId" })
+      const present = config.presentCategoriesForAttrRole("x")
+      expect(present.length).toBe(50)
+
+      config.setNumberOfCategoriesLimitForRole("x", 10)
+      expect(config.categoryArrayForAttrRole("x").length).toBe(10)
+      expect(config.presentCategoriesForAttrRole("x")).toBe(present)
+      expect(present.length).toBe(50)
+      expect(present).not.toContain(kOther)
+      expect(config.unclampedCategoryCountForAttrRole("x")).toBe(50)
+
+      // clearing the limit restores every category
+      config.setNumberOfCategoriesLimitForRole("x", undefined)
+      expect(config.categoryArrayForAttrRole("x")).toEqual(present)
+    })
+
     it("still applies a limit smaller than the number of categories", () => {
       const config = tree.config
       config.setDataset(tree.data, tree.metadata)
@@ -859,8 +878,9 @@ describe("DataConfigurationModel", () => {
       const [c1Id, c2Id] = caseIdsFromItemIds(["c1", "c2"]) as string[]
       expect(config.allPlottedCases()).toEqual([c1Id, c2Id])
 
-      const c1Cell = config.cellIndexForCase(c1Id)
-      const c2Cell = config.cellIndexForCase(c2Id)
+      const cellIndexForCase = config.cellIndexResolver()
+      const c1Cell = cellIndexForCase(c1Id)
+      const c2Cell = cellIndexForCase(c2Id)
       expect(c1Cell).toBeGreaterThanOrEqual(0)
       expect(c2Cell).toBeGreaterThanOrEqual(0)
 

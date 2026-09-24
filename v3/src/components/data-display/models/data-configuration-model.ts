@@ -442,29 +442,38 @@ export const DataConfigurationModel = types
   }))
   .views(self => ({
     /**
-     * How many categories the role would render with no limit applied: the category set
-     * intersected with the values of the visible cases. This is the count the clamp in
-     * categoryArrayForAttrRole actually compares against, so it is the right basis for deciding
-     * whether a limit can change anything. Returns 0 where the clamp never applies at all (no
-     * visible values, or no category set), so any positive limit is a no-op in those states.
+     * The categories the role would render with no limit applied: the category set, in its
+     * canonical order, intersected with the values of the visible cases. Empty where the clamp
+     * never applies at all (no visible values, or no category set). Callers must not mutate the
+     * result, since it is cached.
      *
      * Deliberately independent of the limit, so changing the limit does not invalidate this.
      */
-    unclampedCategoryCountForAttrRole: cachedFnWithArgsFactory<(role: AttrRole) => number>({
+    presentCategoriesForAttrRole: cachedFnWithArgsFactory<(role: AttrRole) => readonly string[]>({
       key: (role: AttrRole) => role,
       calculate: (role: AttrRole) => {
         const valuesSet = new Set(self.valuesForAttrRole(role))
-        if (valuesSet.size === 0) return 0
         const allCategorySet = self.categorySetForAttrRole(role)
-        if (!allCategorySet) return 0
-        let count = 0
+        if (valuesSet.size === 0 || !allCategorySet) return []
+        const result: string[] = []
         allCategorySet.values.forEach(category => {
-          if (valuesSet.has(category)) ++count
+          if (valuesSet.has(category)) result.push(category)
         })
-        return count
+        return result
       },
-      name: "unclampedCategoryCountForAttrRole"
+      name: "presentCategoriesForAttrRole"
     })
+  }))
+  .views(self => ({
+    /**
+     * How many categories the role would render with no limit applied. This is the count the
+     * clamp in categoryArrayForAttrRole actually compares against, so it is the right basis for
+     * deciding whether a limit can change anything. It is 0 where the clamp never applies, so any
+     * positive limit is a no-op in those states.
+     */
+    unclampedCategoryCountForAttrRole(role: AttrRole) {
+      return self.presentCategoriesForAttrRole(role).length
+    }
   }))
   .views(self => ({
     /**
@@ -493,20 +502,14 @@ export const DataConfigurationModel = types
           categoryLimitForRole = self.numberOfCategoriesLimitByRole.get(role)
         if (valuesSet.size === 0) return emptyCategoryArray
 
-        let resultArray: string[] = []
-        // category set maintains the canonical order of categories
-        const allCategorySet = self.categorySetForAttrRole(role)
+        let resultArray: string[]
         // if we don't have a category set just return the values
-        if (!allCategorySet && valuesSet.size > 0) {
+        if (!self.categorySetForAttrRole(role)) {
           resultArray = Array.from(valuesSet)
         }
         else {
-          // return the categories in canonical order
-          allCategorySet?.values.forEach(category => {
-            if (valuesSet.has(category)) {
-              resultArray.push(category)
-            }
-          })
+          // copied, because the clamp below truncates it in place
+          resultArray = self.presentCategoriesForAttrRole(role).slice()
           if (categoryLimitForRole && resultArray.length > categoryLimitForRole) {
             resultArray.length = categoryLimitForRole
             resultArray[categoryLimitForRole - 1] = kOther
@@ -1065,7 +1068,7 @@ export const DataConfigurationModel = types
       self.valuesForAttrRole.invalidateAll()
       self.numericValuesForAttribute.invalidateAll()
       self.categoryArrayForAttrRole.invalidateAll()
-      self.unclampedCategoryCountForAttrRole.invalidateAll()
+      self.presentCategoriesForAttrRole.invalidateAll()
       self.caseIdsForCategory.invalidateAll()
       self.allCasesForCategoryAreSelected.invalidateAll()
       self.getCaseDataArray.invalidateAll()
