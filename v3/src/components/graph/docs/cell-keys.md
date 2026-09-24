@@ -95,7 +95,7 @@ const cellKey = {
 }
 ```
 
-With two roles on one attribute, such a cell can hold no case. With three or more, and with `kOther` in play, a key keeps only the last conflicting value, so distinct cells can share a key and some of those cells do hold cases. See "How Cases Are Assigned to Cells" below.
+Without clamping, a cell whose key has a conflict holds no case. When a role folds values into `kOther`, a conflict cell can hold cases: a value that is a real category in one role and overflow in another lands in a cell whose key conflicts. With three or more roles on one attribute, the key keeps only the last conflicting value, so distinct cells can share a key. See "How Cases Are Assigned to Cells" below.
 
 ## How Cases Are Assigned to Cells
 
