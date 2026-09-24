@@ -331,6 +331,23 @@ the row as intentionally not fixed because "V2 itself emits `axisOrientation: un
 legend" — V2 emits the string `'none'`. Neither premise had been checked against V2 source, and
 the operation-name swap was invisible under both. Filed as **CODAP-1546**.
 
+**Adjacent, and checked: `yPlus` / `rightNumeric` do *not* diverge.** V3 short-circuits these two
+places to `add axis attribute` / `add 2nd axis attribute` (`graph.tsx:269-270`) before the routing
+above, while still computing `axisOrientation` into their values, so they looked like candidates
+for the same problem. They are not. V2 emits both operations with a bare
+`{operation, type}` payload and nothing else — `multiTargetDidAcceptDrop`
+(`graph_controller.js:619-625`) and `y2AxisDidAcceptDrop` (`:688-694`). The latter computes
+`iY2Axis.get('orientation')` inside `execute()` for the model change, but never puts it in the
+notification, so **V2 never exposes `'vertical2'` to a plugin**. V3 sends V2's two fields plus
+`attributeId`/`attributeName`/`plotType`/`primaryAxis`/`axisOrientation`, which §1.3 permits
+("V3 may add fields; renaming is breaking"). The operation names match V2's two paths. Out of
+scope for CODAP-1546.
+
+*Minor, V3-only:* V3 reports `axisOrientation: "vertical"` for `rightNumeric`
+(`graph-notification-utils.ts:15`), where V2's model calls that axis `'vertical2'`. No V2 plugin
+can see this, since V2 omits the field here; it affects only the accuracy of V3's own added field
+for a V3-aware consumer.
+
 ### 3.5 V2 bugs — V3 should NOT replicate — **[VERIFIED OK]**
 
 Confirmed 2026-09-23: V3 replicates none of these. The graph notification code carries inline
