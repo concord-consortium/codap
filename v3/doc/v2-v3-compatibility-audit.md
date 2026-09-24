@@ -1,7 +1,7 @@
 # V2 ↔ V3 Plugin-Visible Event Compatibility Audit
 
 **Date:** 2026-05-08
-**Last verified:** 2026-09-24 against `main` @ `ec4aa83f4` (CODAP-1545). Findings below carry a
+**Last verified:** 2026-09-24 against `main` @ `ec4aa83f4` (CODAP-1545, second review pass). Findings below carry a
 status marker; see the legend under "Status" for what each means.
 **Scope:** Catalog every V2 user-analytics log and Data-Interactive notification, find each V3 counterpart, and flag every place where V3 either renames, drops, or reshapes information that V2 emitted. V3 may freely *add* fields; it must not silently *rename* or *remove* them. Adding/removing entire events is also flagged because plugins (Story Builder, etc.) listen for V2 events.
 
@@ -30,8 +30,9 @@ been re-checked.
 
 **`CODAP-1310` / PR #2592 (merged 2026-05-24) is the main resolving work.** That story
 both produced this audit (`51cbbda75`) and then fixed most of what it found — 14 fixes across
-notifications and log events. Its Jira scope comment is the authoritative record of what it
-changed, what it deliberately left alone, and which audit claims its V2 re-checks disproved.
+notifications and log events. Its Jira scope comment is the fullest record of what it changed,
+what it deliberately left alone, and which audit claims its V2 re-checks disproved — but it is not
+infallible: its `axisOrientation` rationale is wrong (§3.4), and a correction has been added there.
 
 | Story | Role | Status |
 |---|---|---|
@@ -48,10 +49,20 @@ FU-1 through FU-6 were filed *from* CODAP-1310 on 2026-05-22, not from this audi
 
 ### A caution about this document
 
-This audit has twice asserted V2 behavior that V2 source does not support — in the original
-2026-05-08 text, and again in the first pass of the 2026-09-23 refresh, which re-derived the V3
-side but not the V2 side and so carried the original errors forward. Every V2 claim corrected
-since is cited to a V2 `file:line` below. **Do not treat an uncited V2 claim here as verified.**
+Three times now, this document has asserted V2 behavior that V2 source does not support:
+
+1. The original 2026-05-08 text (e.g. the `Hide unselected cases` "evaluation-order bug", the
+   `toggle show as` camelCase claim, `axisOrientation` "always included").
+2. The first pass of the 2026-09-23 refresh, which re-derived the V3 side but not the V2 side and
+   so carried those forward.
+3. The second pass, which replaced one wrong `axisOrientation` premise with another taken from
+   CODAP-1310's Jira scope comment (§3.4).
+
+Each time the cause was the same: **a claim about V2 was taken from a secondary source — this
+audit, or a note about it — instead of from V2 source.** Every V2 claim corrected since is cited
+to a V2 `file:line`. **Do not treat an uncited V2 claim here as verified**, including the ones in
+CODAP-1310's scope comment.
+
 CODAP-1310's governing principle still applies: V2 compatibility is the primary goal, and "no
 surveyed consumer" must not be read as "no consumer".
 
@@ -61,10 +72,11 @@ surveyed consumer" must not be read as "no consumer".
 fixed, and several findings turned out never to have been real. Detail lives in the per-finding
 rows of §3 and §4; this summary does not repeat it.
 
-- **Notifications (§3): effectively closed.** The `titleChange` envelope, all nine operation
-  renames and the whole missing-notification backfill are resolved. Two gaps remain, both with
-  stories: default `undo`/`redo` on the `document` resource (**CODAP-1354**) and the item-level
-  `dataContextChangeNotice` operations (**CODAP-1356**).
+- **Notifications (§3): nearly closed.** The `titleChange` envelope, the eight real operation
+  renames and the whole missing-notification backfill are resolved. Three gaps remain, each with
+  a story: default `undo`/`redo` on the `document` resource (**CODAP-1354**), the item-level
+  `dataContextChangeNotice` operations (**CODAP-1356**), and the `attributeChange` /
+  `legendAttributeChange` routing (**CODAP-1546**, §3.4).
 - **Logs (§4): mostly still open**, covered by **CODAP-1355**, which has not started.
   `editValue`, `attributeCreate`, the title-change log, the lowercase `change … from … to …`
   log and the graph hide-unselected count are already fixed (all CODAP-1310).
@@ -73,14 +85,15 @@ rows of §3 and §4; this summary does not repeat it.
   count — there is no evaluation-order bug), and on `attributeCreate` (V2 emits it too). Two
   §4.4 "hygiene" rows are the same story: V3's `%@ case %@` and `marqueeSelection: %@` match V2
   exactly, so "fixing" them would *create* divergence.
-- **Nothing is left without a story.** The earlier refresh claimed three untracked divergences;
-  all three dissolved on inspection. `axisOrientation` is a deliberate CODAP-1310 decision, not
-  a gap — V2 itself emits `axisOrientation: undefined` for a legend, so no correct consumer is
-  affected (§3.4).
+- **Nothing is left without a story**, but not because everything dissolved. Of the three
+  untracked divergences an earlier refresh claimed, two were errors (§3.2, §4.1). The third —
+  `attributeChange` / `legendAttributeChange` — is real, and bigger than first recorded: the two
+  operation names are **swapped** for legend-menu changes and plot-area drops. Now filed as
+  **CODAP-1546** (§3.4).
 - **V2 bugs are not replicated** (§3.5), confirmed in code.
 
-Remaining work is exactly CODAP-1354, CODAP-1355, CODAP-1356, plus four §4.4 V3-internal
-collisions that have no story and are independent of V2.
+Remaining work is CODAP-1354, CODAP-1355, CODAP-1356 and CODAP-1546, plus four §4.4
+V3-internal collisions that have no story and are independent of V2.
 
 ---
 
@@ -131,10 +144,10 @@ exhaustive count, in either pass. The exact figures are the ones without a `~`.
 | Bucket | 2026-05-08 | 2026-09-24 |
 |---|---|---|
 | V2 emits, V3 emits compatibly | ~28 | ~68 |
-| V2 emits, V3 emits with **operation-name rename** | 9 | 0 — 8 renamed to V2's strings; the 9th (`toggle show as`) was never divergent |
+| V2 emits, V3 emits with **operation-name rename** | 9 | 2 — the 8 renames are resolved and the 9th (`toggle show as`) was never divergent, but `attributeChange` and `legendAttributeChange` are swapped in two paths (CODAP-1546, §3.4) |
 | V2 emits, V3 emits with **envelope-shape mismatch** | 1 (`titleChange`) | 0 |
 | V2 emits, V3 emits with **resource mismatch** (slider routed through `global[<name>]` only) | 1 (`change slider value`) | 0 |
-| V2 emits, V3 does NOT emit | ~40 (see §3.3) | 8 — `undo` and `redo` on `document` (CODAP-1354, 2) + the 6 item-level `dataContextChangeNotice` ops (CODAP-1356) |
+| V2 emits, V3 does NOT emit | ~40 (see §3.3) | 2 — `undo` and `redo` on `document` (CODAP-1354). The item-level ops (CODAP-1356) are counted separately: most are handled by V2's `performChange` but never reach a plugin (§3.3). |
 | V3 emits, no V2 equivalent (additions) | ~10 | ~15 (now also the legend-range/bin and point-shape notifications) |
 | V2 emits with envelope/payload bugs (do NOT replicate) | 4 | 5 — confirmed not replicated; a fifth (`case_table_controller.js:1135`) was folded in from the old §5 (§3.5) |
 
@@ -195,11 +208,12 @@ The envelope fix itself is CODAP-1310 (`6ee29b8de`, "add type to outer envelope 
 notification"). CODAP-1353 (`a5f076bbc`) later changed which value that field carries and added
 `diType`.
 
-### 3.2 Operation-name renames — 8 **[RESOLVED]**, 1 **[NOT A DIVERGENCE]** — nothing outstanding
+### 3.2 Operation-name renames — 8 **[RESOLVED]**, 1 **[NOT A DIVERGENCE]**
 
-V3 emitted the right resource and the V2 fields, but eight operation strings differed. CODAP-1310
-(`7a1b143fb`, `13a06d038`, `c46d14e9f`) renamed them to V2's; CODAP-1306 (#2566) fixed the ninth.
-The `toggle show as` row was never a divergence at all.
+V3 emitted the right resource and the V2 fields, but eight of these nine operation strings
+differed. CODAP-1310 (`7a1b143fb`, `13a06d038`, `c46d14e9f`) renamed seven of them to V2's;
+CODAP-1306 (#2566) fixed the eighth, `commitEdit`. The ninth, `toggle show as`, was never a
+divergence at all.
 
 | V2 operation | V3 operation (2026-05-08) | Status | V3 file:line |
 |---|---|---|---|
@@ -210,7 +224,7 @@ The `toggle show as` row was never a divergence at all.
 | `toggle lock intercept` | `toggle intercept locked` | **[RESOLVED]** CODAP-1310 `c46d14e9f` | `…/adornments-store-utils.ts:163` |
 | `toggle show squares` | `toggle showSquares` | **[RESOLVED]** CODAP-1310 `c46d14e9f` | `…/adornments-store-utils.ts:195` |
 | `<show/hide> measure labels` | `toggle showing labels` | **[RESOLVED]** CODAP-1310 `c46d14e9f` — V3 emits `show measure labels` / `hide measure labels` | `…/adornments-store-utils.ts:102` |
-| `toggle show as <DotPlot/BinnedPlot/LinePlot>` (`graph_model.js:1262-1291`, `logLabel`) | *claimed* camelCase over a different value set | **[NOT A DIVERGENCE]** — the 2026-05-08 finding was wrong. V3 derives the PascalCase strings `"BinnedPlot"`/`"LinePlot"`/`"DotPlot"` in a **local const** (`display-config-palette.tsx:109-110`) and emits `` `toggle show as ${plotType}` `` (`:134`), the only emission site. The camelCase values in the original finding are the `PlotType` **model enum** (`graphing-types.ts:40-52`), which this notification never uses. CODAP-1310 recorded the same correction and deliberately made no change. | `…/display-config-palette.tsx:109-134` |
+| `toggle show as <DotPlot/BinnedPlot/LinePlot>` (`graph_model.js:1262-1291`, `logLabel`) | *claimed* camelCase over a different value set | **[NOT A DIVERGENCE]** — the 2026-05-08 finding was wrong. V3 derives the PascalCase strings `"BinnedPlot"`/`"LinePlot"`/`"DotPlot"` in a **local const** (`display-config-palette.tsx:109-110`) and emits `` `toggle show as ${plotType}` `` (`:134`), the only emission site. The camelCase values in the original finding come from `PlotTypes`, the `as const` array of model plot types (`graphing-types.ts:40-52`, with `type PlotType` at `:53`) — not an enum, and not used by this notification. CODAP-1310 recorded the same correction and deliberately made no change. | `…/display-config-palette.tsx:109-134` |
 | `commitEdit` (`text_controller.js:199`) | `edit text` with `{}` | **[RESOLVED]** CODAP-1306 / #2566 — V3 emits `commitEdit` with `{title, text}`, and additionally keeps `edit text` on every content-changing edit | `components/text/text-notifications.ts:5-16` |
 
 ### 3.3 V2 emits, V3 does not — by area — **nearly all [RESOLVED]**
@@ -246,30 +260,76 @@ emission in `v3/src`.
   204-210`. V3 still emits only `undoChangeNotice` (`src/models/document/create-document-model.ts:87,
   :94`; `src/data-interactive/handlers/undo-change-notice-handler.ts:30`). Plugins listening for
   `resource:'document'`, `operation:'undo'`/`'redo'` receive nothing. **Covered by CODAP-1354.**
-- **Item-level `dataContextChangeNotice` operations** — V2's `performChange` handles
-  `createItems`, `updateItems`, `moveItems`, `deleteItems`, `resetCollections` and
-  `deleteDataContext` (`apps/dg/controllers/data_context.js`); none of these strings appears in
-  `v3/src` (verified 2026-09-23). V3 collapses the item-level variants into the `*Cases`
+- **Item-level `dataContextChangeNotice` operations** — none of these strings appears in
+  `v3/src` (verified 2026-09-23); V3 collapses the item-level variants into the `*Cases`
   operations. V3 does cover the common ops (`createCases`, `updateCases`, `deleteCases`,
   `selectCases`, `moveCases`, `dependentCases`, the `*Collection` and `*Attributes` families,
-  `updateDataContext`). **Covered by CODAP-1356.**
+  `updateDataContext`). **Covered by CODAP-1356 — but that story's scope needs narrowing first.**
+
+  **"Handled by `performChange`" is not the same as "sent to a plugin."** V2 forwards a change
+  only when `iChange.result.success` is truthy
+  (`apps/dg/components/data_interactive/notification_manager.js:156`). Several item-level handlers
+  never set it, so V2 plugins never receive those operations either — and V3 owes them nothing.
+
+  | V2 operation | Handled by `performChange` | Actually reaches a plugin? |
+  |---|---|---|
+  | `createItems` | yes | not verified |
+  | `updateItems` | yes | not verified |
+  | `moveItems` | yes (`doMoveItems`, `data_context.js:888`) | **no** — returns nothing, so no `success` |
+  | `deleteItems` | yes (`doDeleteItems`, `:919`) | **no** — returns `{deletedCaseIDs, deletedItemIDs}` with no `success`. But it internally calls `applyChange({operation: 'deleteCases', …})` (`:927`), so a plugin deleting items receives a **`deleteCases`** notice — which V3 also emits. |
+  | `resetCollections` | yes (`doResetCollections`, `:2109`) | **no** — returns nothing |
+  | `deleteDataContext` | yes (`:564`) | not verified |
+
+  So the real gap is smaller than six operations, and for `deleteItems` it may be nil. CODAP-1356
+  should start by establishing which of these a V2 plugin can actually observe.
 
   *Correction (2026-09-24):* earlier versions of this row listed `moveCollection` and
   `notifyAttributeChange`. Neither string exists anywhere in V2 (`git grep` on `master`: 0 hits),
-  and `moveItems` — which does exist — was missing. Since this row defines CODAP-1356's scope,
-  use the corrected list above.
+  and `moveItems` — which does exist — was missing.
 
-### 3.4 Payload-field issues — 2 **[VERIFIED OK]**, 1 **[RESOLVED]** — nothing outstanding
+### 3.4 Payload-field issues — 2 **[VERIFIED OK]**, 1 **[OPEN]**
 
-| Operation | Issue | Status (2026-09-23) | V3 location |
+| Operation | Issue | Status | V3 location |
 |---|---|---|---|
-| `attributeChange` / `legendAttributeChange` | V2 always includes the `axisOrientation` **key**; V3 only includes it when `place` is not plot/legend | **[RESOLVED — deliberate, no change needed]** CODAP-1310 considered and rejected this (former Task 5). V2 derives `tAxisOrientation = iMenu.selectedAxis` (`data_display_controller.js:846`), which is `undefined` for a legend, so V2 emits `axisOrientation: undefined` there. A correct consumer reads `values.axisOrientation` and gets `undefined` whether the key is present or absent, so no valid V2-plugin pattern is affected. | `v3/src/components/graph/models/graph-notification-utils.ts:32-47` |
+| `attributeChange` / `legendAttributeChange` | V3 picks between the two operations differently from V2, and reports different `axisOrientation` values for the top and right axes | **[OPEN] — CODAP-1546.** Larger than the 2026-05-08 finding, whose premise was also wrong: see the table below. | `graph.tsx:271`; `graph-notification-utils.ts:9-17` |
 | dataContextChangeNotice `createCases` payload | V2 `result` has `caseIDs`, `itemIDs`, `caseID`, `itemID` per case-handler. V3 has all four. | **[VERIFIED OK]** | `v3/src/models/data/data-set-notifications.ts:93` |
 | dataContextChangeNotice `selectCases` `result.cases` | V2 supplies full case objects with `parent`, `context`, `collection.parent`, `values`. Verify V3's case-object shape includes them. | **[VERIFIED OK]** — `convertCaseToV2FullCase` builds `context`, `parent`, `collection` (with `collection.parent`) and `values`. V3 additionally omits `cases` when empty (V2 expects `undefined`, not `[]`) and adds `removedCases` on extend. | `v3/src/data-interactive/data-interactive-type-utils.ts:41-69`, via `data-set-notifications.ts:158-198` |
 
-All three rows are now settled: the two spot-checks this section asked for were carried out and
-both pass, and the `axisOrientation` conditional is a deliberate CODAP-1310 decision rather than
-an outstanding divergence. **No payload-shape divergence remains.**
+#### `attributeChange` / `legendAttributeChange` — the finding in full
+
+**The operation names are swapped in two user actions.** A V2 plugin listening for
+`attributeChange` never sees a V3 legend-menu change; one listening for `legendAttributeChange`
+never sees a V3 plot-area drop. That is the same class of break as the §3.2 renames. The
+orientation-value differences matter only to plugins that branch on the value.
+
+| User action | V2 | V3 | |
+|---|---|---|---|
+| Drop on bottom/left axis | `attributeChange`, `'horizontal'`/`'vertical'` | same | ✓ |
+| Drop on **top** axis | `attributeChange`, `'top'` | `attributeChange`, `'horizontal'` | ✗ |
+| Drop on **right** (categorical) axis | `attributeChange`, `'right'` | `attributeChange`, `'vertical'` | ✗ |
+| **Legend attribute-menu** change/remove | `attributeChange`, `axisOrientation: 'none'` | `legendAttributeChange`, no key | ✗ |
+| Drop on legend | `legendAttributeChange`, no key | same | ✓ |
+| Drop on **plot area** | `legendAttributeChange`, no key | `attributeChange`, no key | ✗ |
+
+V2 sources: axis drops emit `attributeChange` with `axisOrientation: iAxis.get('orientation')`
+(`graph_controller.js:553`); axis views carry `kHorizontal`/`kVertical`/`kVertical2`/`kTop`/`kRight`
+(`graph_view.js:346-356`) and `EOrientation` defines `kTop: 'top'`, `kRight: 'right'`,
+`kNone: 'none'` (`graph_types.js:41-48`). Plot **and** legend drops share one handler,
+`plotOrLegendViewDidAcceptDrop` (`graph_map_common/data_display_controller.js:928`), always
+emitting `legendAttributeChange` with no `axisOrientation`. The attribute menu emits
+`attributeChange` with `axisOrientation: iMenu.selectedAxis` (`data_display_controller.js:846,
+:852-866`), where `selectedAxis = iAxisView.get('orientation')` (`:753`, assigned `:802`); for a
+legend that view is `DG.LegendView`, orientation `kNone` (`graph_map_common/legend/legend_view.js:51`).
+
+V3 sources: `graph.tsx:271` routes solely on `place === "legend"`;
+`graph-notification-utils.ts:9-17` maps `"top" → "horizontal"` and `"rightCat" → "vertical"` and
+omits the key for `plot` and `legend`.
+
+**Two wrong premises preceded this.** The 2026-05-08 audit said "V2 always includes
+`axisOrientation`" — it does not; the plot/legend drop path sends no key. CODAP-1310 then recorded
+the row as intentionally not fixed because "V2 itself emits `axisOrientation: undefined` for a
+legend" — V2 emits the string `'none'`. Neither premise had been checked against V2 source, and
+the operation-name swap was invisible under both. Filed as **CODAP-1546**.
 
 ### 3.5 V2 bugs — V3 should NOT replicate — **[VERIFIED OK]**
 
@@ -317,7 +377,7 @@ These match well enough that V2 plugins matching `formatStr` on the leading word
 | `Show all cases` | `data_layer_model.js:688` (graph) + `map_model.js:597` (map) → `v3/src/components/graph/.../hide-show-menu-list.tsx:75` + `v3/src/components/map/.../hide-show-menu-list.tsx:74` |
 | `Display only selected cases` | `data_layer_model.js:713` → `…/hide-show-menu-list.tsx:64` (graph) |
 | `Hide %@ selected cases` | `data_layer_model.js:618` + `map_model.js:533` → `hide-show-menu-list.tsx:36` (graph) + `:52` (map) |
-| `Hide %@ unselected cases` (graph) | `data_layer_model.js:663` → `hide-show-menu-list.tsx:58` (graph) — **[RESOLVED]** CODAP-1310 `f2a9bf67b` added the count **to match V2**. *There is no evaluation-order bug:* V2's `execute()` overwrites `this.log` with `"Hide %@ unselected cases".fmt(tUnselected.length)` (`data_layer_model.js:663`), and `UndoHistory.execute` runs the command (`undo_history.js:72`) before `_logAction` reads `command.log` (`:113`). The static `log: "Hide unselected cases"` is only a placeholder. V2 and V3 both emit the with-count form, and graph matches map. This is the canonical entry for this finding. |
+| `Hide %@ unselected cases` (graph) | `data_layer_model.js:663` → `hide-show-menu-list.tsx:58` (graph) — **[RESOLVED]** CODAP-1310 `f2a9bf67b` added the count **to match V2**. *There is no evaluation-order bug:* V2's `execute()` overwrites `this.log` with `"Hide %@ unselected cases".fmt(tUnselected.length)` (`data_layer_model.js:663`), and `UndoHistory.execute` runs the command (`undo_history.js:73`) before `_logAction` reads `command.log` (`:113`). The static `log: "Hide unselected cases"` is only a placeholder. V2 and V3 both emit the with-count form, and graph matches map. This is the canonical entry for this finding. |
 | `Hide %@ unselected cases` (map) | `map_model.js:561` → `map/.../hide-show-menu-list.tsx:63` |
 | `Map base layer changed: %@` | `map_view.js:202` → `map-base-layer-control.tsx:45` |
 | `Made plot background <transparent/opaque>` | `graph_controller.js:836` → `point-format-palette.tsx:28` |
@@ -441,7 +501,7 @@ These are fine — V3 adds info — but listing here so the audit is complete.
 | `Add Plugin: %@` | New. |
 | `Show web view: %@`, `Show guide page: %@`, `Show %@`, `Imported data set: %@`, `Delete dataset: %@`, `Change web view URL: %@` | New events for V3-specific UI. |
 | `Restore set aside cases`, `Recover formula for attribute %@`, `Clear formula for attribute %@`, `Change row height`, `Change case card column width …` | New events. |
-| `attributeCreate: %@` | **[NOT A DIVERGENCE]** — this row was wrong. V2 emits `attributeCreate` too (`case_table_controller.js:816, :843`; `analytics.js:32`), so it is not a V3-only event. CODAP-1310 `fcf5ab350` standardized both V3 sites on V2's token and dropped `Create attribute: %@`. See §4.4. |
+| `attributeCreate: %@` | **[NOT A DIVERGENCE]** — this row was wrong. V2 emits `attributeCreate` too, from `case_table_controller.js:816` and `data_context_utilities.js:859-860`, so it is not a V3-only event. (`case_table_controller.js:843` assigns an unused local in `undo()`, and `analytics.js:32` is a `case` label — neither emits.) CODAP-1310 `fcf5ab350` standardized both V3 sites on V2's token and dropped `Create attribute: %@`. See §4.4. |
 | `update checkbox case: <id> state: <attr> to <checked\|unchecked>` | New; entire payload is in event-name string (similar concern as `Edited text component`). |
 | `Map base layer visibility changed: %@`, `Map layer changed: %@ %@`, `mapAction: showGrid`/`hideGrid`/`showPoints`/`hidePoints`/`showConnectingLines`/`hideConnectingLines`/`showPins`/`hidePins` | New map events (V2 has overlapping but not identical event set). |
 | `Toggle parent group visibility`, `Hide all cases from parent toggles`, `Show all cases from parent toggles`, `Disable only showing last parent toggle`/`Enable …` | New phrasing for V2's `Show parent`/`Hide all`/`Show all`. |
@@ -455,25 +515,25 @@ open**; all are V3-internal collisions, independent of V2 compatibility.
 
 | Issue | Where | What |
 |---|---|---|
-| Two events for one user action: create attribute | `collection-table.tsx:252` | **[RESOLVED]** Only `attributeCreate: %@` remains; `Create attribute: %@` is no longer emitted. |
+| Two events for one user action: create attribute | `collection-table.tsx:252` | **[RESOLVED]** CODAP-1310 `fcf5ab350` standardized both sites on V2's `attributeCreate` token; `Create attribute: %@` is no longer emitted (§4.3). |
 | `Hide unselected cases` differs between graph and map | graph: `hide-show-menu-list.tsx:58` | **[RESOLVED]** CODAP-1310 `f2a9bf67b` — graph now emits the with-count form, matching both map and V2. There was no evaluation-order bug; see §4.1 for the canonical entry. |
 | `Change title '%@' to '%@'` emitted from both generic and case-tile title bars | `component-title-bar.tsx:71` and `case-tile-title-bar.tsx:132` | **[OPEN]** The recorded token `Title changed to: %@` no longer exists — CODAP-1310 `a9860c955` changed both sites to V2's `Change title '%@' to '%@'`. The original row also assumed V2 distinguishes a dataset rename; it does not. The two V3 sites still emit the same event for different actions, so the collision stands. |
 | `Close component: %@` payload differs | `container.tsx:46`, `case-tile-title-bar.tsx:144` | **[RESOLVED]** CODAP-1310 `105c9bd64` — both sites now pass `{tileType}`. |
-| Adornment-checkbox arg key differs | generic `adornment-checkbox.tsx:36` (`{type}`) vs box-plot `box-plot-adornment-registration.tsx:42` (`{adornmentType}`) | **[OPEN]** Same event format `Added %@`/`Removed %@`, different parameter keys. |
+| Adornment-checkbox arg key differs | generic `adornment-checkbox.tsx:43, :53` (`{type}`) vs box-plot `box-plot-adornment-registration.tsx:52, :61` (`{adornmentType}`) | **[OPEN]** Same event format `Added %@`/`Removed %@`, different parameter keys. |
 | `change %@ from %@ to %@` collides across binWidth, binAlignment, breakdownType | `display-config-palette.tsx:181, :208, :244` | **[OPEN] — no story.** CODAP-1310 `6bd5ca5b9` renamed V3's `Changed …` to V2's lowercase `change %@ from %@ to %@` and unified the arg keys, so the **V2 mismatch is resolved**. The V3-internal collision remains: three distinct actions still share one event format, as they do in V2. |
-| `toggleShowAs: %@` collides | `display-config-palette.tsx:133` (plot type) and `:226` (BarChart/DotChart toggle) | **[OPEN]** Unchanged. Two distinct user actions, same event format. |
+| `toggleShowAs: %@` collides | `display-config-palette.tsx:133` (plot type) and `:232` (BarChart/DotChart toggle) | **[OPEN]** Unchanged. Two distinct user actions, same event format. |
 | `parentCaseId` in the event-name string | `collection-table-spacer.tsx:191` | **[NOT A DIVERGENCE]** V3 emits `%@ case %@`, exactly matching V2 (`relation_divider_view.js:358`). CODAP-1310 declined this cleanup (former Task 19) because it would have diverged from V2. |
 | `marqueeSelection: <count>` has count baked into event | `background.tsx:168` | **[NOT A DIVERGENCE]** V3 emits `marqueeSelection: %@`, matching V2 (`plot_background_view.js:248`). CODAP-1310 declined this cleanup (former Task 20) for the same reason. |
-| `editCellValue: <whole stringified payload>` | `cell-text-editor.tsx:53` | **[RESOLVED]** V3 now emits V2's structured `editValue: { … }` format instead (§4.2). |
+| `editCellValue: <whole stringified payload>` | `cell-text-editor.tsx:53` | **[RESOLVED]** CODAP-1310 `4f6f8a764` — V3 now emits V2's structured `editValue: { … }` format instead (§4.2). |
 | `Show all cases` passes `args: { category: "data" }` | `hide-show-menu-list.tsx:77` | **[RESOLVED]** CODAP-1310 `3946d3d10` — now `{message: "Show all cases", args: {}, category: "data"}`. |
 
 ---
 
 ## 5. Recommendations / Priority
 
-**Rewritten 2026-09-24 (CODAP-1545).** The original P0-P5 list is superseded: CODAP-1310 fixed P0,
-most of P1 and the P4 items worth fixing, and CODAP-1351/1352/1353 cleared nearly all of P2. This
-section names what is left and points at the canonical row for each; it does not restate findings.
+**Rewritten 2026-09-24 (CODAP-1545).** The original priority list is superseded — see "Who fixed
+what" in the Status section for which story closed what. This section names only what is left, and
+points at the canonical row for each rather than restating findings.
 
 ### Covered by an existing story
 
@@ -481,7 +541,8 @@ section names what is left and points at the canonical row for each; it does not
 |---|---|---|
 | **CODAP-1354** | Default `undo` / `redo` on `resource:'document'` (§3.3) | To Do |
 | **CODAP-1355** | Log event-token renames (§4.2), incl. the adornment-log family and the `toggleShowAs` log value | To Do |
-| **CODAP-1356** | Item-level `dataContextChangeNotice` operations — `createItems`, `updateItems`, `moveItems`, `deleteItems`, `resetCollections`, `deleteDataContext` (§3.3) | To Do |
+| **CODAP-1356** | Item-level `dataContextChangeNotice` operations (§3.3) — scope needs narrowing, see that row | To Do |
+| **CODAP-1546** | `attributeChange` / `legendAttributeChange` routing and `axisOrientation` values (§3.4) | To Do |
 
 ### Open with no story
 
@@ -499,8 +560,9 @@ note CODAP-1310's principle: never "improve" a V3 event into divergence from V2.
 3 exist in V2 as well, so changing the event strings would break V2 compatibility; only the
 arg-key and payload shapes are safe to touch.
 
-**There are no outstanding V2-compatibility divergences without a story.** An earlier draft of this
-refresh claimed three; all three were errors (§3.2, §3.4, §4.1).
+**No outstanding V2-compatibility divergence lacks a story.** An earlier draft of this refresh
+claimed three untracked ones: two were errors (§3.2, §4.1) and the third is real and now tracked
+as CODAP-1546 (§3.4).
 
 ### Housekeeping
 
@@ -543,8 +605,9 @@ undo (default), undoAction
 
 ### 6.2 V3 notification operations (deduped)
 
-> **Snapshot of 2026-05-08 — partly superseded.** CODAP-1351/1352/1353 renamed several of these
-> to their V2 equivalents and added roughly forty more. The renames below are the ones that
+> **Snapshot of 2026-05-08 — partly superseded.** CODAP-1310 renamed several of these to their
+> V2 equivalents (`7a1b143fb`, `13a06d038`, `c46d14e9f`), and CODAP-1351/1352/1353 added roughly
+> forty more. The renames below are the ones that
 > matter when reading this list:
 > `added background image`/`removed background image` → `backgroundImage`;
 > `background locked to axes` → `lockBackgroundImage`/`unlockBackgroundImage`;
@@ -588,6 +651,6 @@ For logs:
 
 PR #2566 (CODAP-1306), merged:
 - V2 site: `apps/dg/components/text/text_controller.js:199` — `commitEditing()` emits `{operation:'commitEdit', type, id, title, text:JSON.stringify(theText||"")}`.
-- V3 fix: `v3/src/components/text/text-notifications.ts:5-11` — `commitEditNotification` emits `updateTileNotification("commitEdit", { title: tile.title, text: JSON.stringify(textModel.value) }, tile)`. V3 emits this **in addition to** `edit text` (`text-notifications.ts:13-16`, fired on every content-changing edit at `text-tile.tsx:158`), not instead of it.
+- V3 fix: `v3/src/components/text/text-notifications.ts:5-11` — `commitEditNotification` emits `updateTileNotification("commitEdit", { title: tile.title, text: JSON.stringify(textModel.value) }, tile)`. V3 emits this **in addition to** `edit text` (`text-notifications.ts:13-16`, fired on every content-changing edit at `text-tile.tsx:135`; the `commitEdit` notify is at `:158`), not instead of it.
 
 The same reasoning applies to every entry in §3.2 / §3.3 / §4.2.
