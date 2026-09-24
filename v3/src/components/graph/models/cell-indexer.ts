@@ -44,7 +44,7 @@ export class CellIndexer {
   private readonly yCount: number
   private readonly rightCount: number
   private readonly topCount: number
-  private readonly indicesOfCellKeyString: Map<string, number[]>
+  private indicesOfCellKeyString: Map<string, number[]> | undefined
 
   readonly cellCount: number
 
@@ -61,18 +61,6 @@ export class CellIndexer {
     this.rightCount = options.rightCats.length || 1
     this.topCount = options.topCats.length || 1
     this.cellCount = this.topCount * this.rightCount * this.yCount * this.xCount
-
-    // The reverse direction is a lookup rather than arithmetic inversion, because updateCellKey
-    // writes an __IMPOSSIBLE__ sentinel when one attribute occupies several roles, and keeps only
-    // the last conflicting value there. Distinct indices can then serialize to the same key, so a
-    // key maps to every index that produced it.
-    this.indicesOfCellKeyString = new Map<string, number[]>()
-    for (let i = 0; i < this.cellCount; i++) {
-      const keyString = cellKeyToString(this.cellKeyForIndex(i))
-      const indices = this.indicesOfCellKeyString.get(keyString)
-      if (indices) indices.push(i)
-      else this.indicesOfCellKeyString.set(keyString, [i])
-    }
   }
 
   /**
@@ -110,9 +98,23 @@ export class CellIndexer {
 
   /**
    * Every index whose cell key is this one, in ascending order; empty for a key the grid does not
-   * generate. More than one only when an attribute occupies several roles (see the constructor).
+   * generate. More than one only when an attribute occupies several roles.
+   *
+   * This is a lookup rather than arithmetic inversion, because updateCellKey writes an
+   * __IMPOSSIBLE__ sentinel when one attribute occupies several roles, and keeps only the last
+   * conflicting value there. Distinct indices can then serialize to the same key. The lookup is
+   * built on first use, since many renders never resolve a cell key.
    */
   indicesForCellKey(cellKey: Record<string, string>): readonly number[] {
+    if (!this.indicesOfCellKeyString) {
+      this.indicesOfCellKeyString = new Map<string, number[]>()
+      for (let i = 0; i < this.cellCount; i++) {
+        const keyString = cellKeyToString(this.cellKeyForIndex(i))
+        const indices = this.indicesOfCellKeyString.get(keyString)
+        if (indices) indices.push(i)
+        else this.indicesOfCellKeyString.set(keyString, [i])
+      }
+    }
     return this.indicesOfCellKeyString.get(cellKeyToString(cellKey)) ?? []
   }
 }

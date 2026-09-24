@@ -59,6 +59,21 @@ describe("CellIndexer", () => {
     }
   })
 
+  it("builds the key lookup only when a cell key is first resolved", () => {
+    const keySpy = jest.spyOn(CellIndexer.prototype, "cellKeyForIndex")
+    const indexer = new CellIndexer(makeOptions({
+      xAttrId: "xId", xCats: ["a", "b"],
+      yAttrId: "yId", yCats: ["p", "q"]
+    }))
+    expect(keySpy).not.toHaveBeenCalled()
+    expect(indexer.indicesForCellKey({ xId: "b", yId: "q" })).toEqual([3])
+    expect(keySpy).toHaveBeenCalledTimes(indexer.cellCount)
+    // later lookups reuse it
+    expect(indexer.indicesForCellKey({ xId: "a", yId: "p" })).toEqual([0])
+    expect(keySpy).toHaveBeenCalledTimes(indexer.cellCount)
+    keySpy.mockRestore()
+  })
+
   it("round-trips every index across every configuration up to 4 x 4 x 3 x 3", () => {
     const cats = (n: number, prefix: string) =>
       Array.from({ length: n }, (_, i) => `${prefix}${i}`)
