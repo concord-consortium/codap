@@ -87,7 +87,8 @@ Receive:
 **Display it in the plugin.**
 
 ```js
-codapInterface.sendRequest({
+// sendRequest stands for however your plugin sends requests — see Request shape in the index.
+sendRequest({
   action: 'get',
   resource: 'dataDisplay[Height by Weight]'
 }, function (result) {
