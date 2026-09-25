@@ -91,7 +91,8 @@ falls back to hiding, so it works everywhere.
 The seven read-only types **cannot be turned on through the API** — `create` and `update` both
 return `The <type> adornment does not currently support <action> requests.` A plugin can read
 them once the user has enabled them in the graph's inspector, and can hide them with `delete`,
-but cannot display them in the first place.
+but cannot display them in the first place. This is a gap rather than a deliberate limitation,
+tracked as **CODAP-1551**; this table and paragraph change when it is closed.
 
 ## Values
 
