@@ -36,6 +36,14 @@ function useAnimationFrame(callback: () => void, interval: number | null) {
   }, [interval])
 }
 
+// The value resetSlider tests against the end of the value domain when playback starts, to restart from the
+// other end if the slider is already there. A variable slider includes its multiples increment. A range slider
+// tests where it is now: its next step may land exactly on the end (a collapsed range's last data value), and
+// that end still has to be shown before playback wraps.
+export function playbackStartTestValue(sliderModel: ISliderModel, sign: 1 | -1) {
+  return sliderModel.isRangeSlider ? sliderModel.value : sliderModel.value + sign * (sliderModel.increment ?? 0)
+}
+
 interface IUseSliderAnimationProps {
   sliderModel?: ISliderModel
   running: boolean
@@ -61,7 +69,7 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
     if (!sliderModel || !isAlive(sliderModel)) return 0
     const [axisMin, axisMax] = getAxisDomain()
     const sign = animationDirection === "lowToHigh" ? 1 : -1
-    const testValue = val ?? sliderModel.nextAnimationValue(sign, 0)
+    const testValue = val ?? playbackStartTestValue(sliderModel, sign)
     // During animation, resetSlider runs both at the top level and nested inside the value-change
     // applyModelChange (validateValue calls it at a loop boundary), so suppress the child-action
     // warning; the change is non-undoable either way.
