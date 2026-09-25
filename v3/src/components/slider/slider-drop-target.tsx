@@ -10,13 +10,14 @@ import { isSliderModel } from "./slider-model"
 
 import "../data-display/components/droppable-svg.scss"
 
-// Makes the element given `setNodeRef` accept numeric/date attribute drops that can configure the slider.
-// That element should contain the slider's painted content, since drop collision detection prefers the
-// droppable that contains the element under the pointer. The droppable is disabled for any other drag,
-// so those drops pass through rather than selecting the slider.
+// Accepts numeric/date attribute drops that can configure the slider. `setOverlayRef` goes on an element
+// containing the slider's painted content: drop collision detection finds the tile under the pointer by
+// that element, then applies the slider's registered detection to the attribute droppable, which is the
+// highlight. The attribute droppable is disabled for any other drag, so such drops do nothing.
 export function useSliderAttributeDrop(instanceId: string, tile?: ITileModel) {
   const slider = tile && isSliderModel(tile.content) ? tile.content : undefined
   const dropId = `${instanceId}-slider-attribute-drop`
+  const { setNodeRef: setOverlayRef } = useDroppable({ id: `${instanceId}-component-drop-overlay` })
   const { active } = useDndContext()
   const { dataSet, attributeId } = getDragAttributeInfo(active) || {}
   // evaluated once per drag rather than on every render while dragging
@@ -39,21 +40,23 @@ export function useSliderAttributeDrop(instanceId: string, tile?: ITileModel) {
     : "V3.Slider.dropHint.visibility"
   const hintText = attrName ? t(hintKey, { vars: [attrName] }) : undefined
 
-  return { setNodeRef, isAllowed, isOver: isAllowed && isOver, hintText }
+  return { setOverlayRef, setNodeRef, isAllowed, isOver: isAllowed && isOver, hintText }
 }
 
 interface IProps {
+  setNodeRef: (elt: HTMLElement | null) => void
   isAllowed: boolean
   isOver: boolean
   hintText?: string
 }
 
-// Highlights the slider while an allowed attribute is dragged over it. The overlay has no pointer
-// events, so it never interferes with the thumb or axis.
-export function SliderDropHighlight({ isAllowed, isOver, hintText }: IProps) {
+// The attribute droppable, which covers the slider and highlights it while an allowed attribute is dragged
+// over it. It has no pointer events, so it never interferes with the thumb or axis.
+export function SliderDropHighlight({ setNodeRef, isAllowed, isOver, hintText }: IProps) {
+  const classes = clsx("droppable-svg", "slider-attribute-drop", { active: isAllowed, over: isOver })
   return (
     <>
-      <div className={clsx("droppable-svg", "slider-attribute-drop", { active: isAllowed, over: isOver })}/>
+      <div ref={setNodeRef} className={classes}/>
       <DropHint hintText={hintText} isVisible={isOver} />
     </>
   )

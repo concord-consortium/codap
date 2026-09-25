@@ -8,6 +8,7 @@ import { useResizeDetector } from "react-resize-detector"
 import PlayIcon from "../../assets/icons/icon-play.svg"
 import PauseIcon from "../../assets/icons/icon-pause.svg"
 import { InstanceIdContext, useNextInstanceId } from "../../hooks/use-instance-id-context"
+import { registerTileCollisionDetection } from "../../lib/dnd-kit/dnd-detect-collision"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { unitsStringToMilliseconds } from "../../utilities/date-utils"
 import { isAliveSafe } from "../../utilities/mst-utils"
@@ -19,6 +20,7 @@ import { AxisLayoutContext } from "../axis/models/axis-layout-context"
 import { isDateAxisModel } from "../axis/models/numeric-axis-models"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { EditableSliderValue } from "./editable-slider-value"
+import { kSliderIdBase, sliderCollisionDetection } from "./slider-drag-drop"
 import { SliderDropHighlight, useSliderAttributeDrop } from "./slider-drop-target"
 import { SliderAxisLayout } from "./slider-layout"
 import { isSliderModel } from "./slider-model"
@@ -31,16 +33,18 @@ import "./slider.scss"
 
 const kAxisMargin = 30
 
+registerTileCollisionDetection(kSliderIdBase, sliderCollisionDetection)
+
 export const SliderComponent = observer(function SliderComponent({ tile } : ITileBaseProps) {
   const sliderModel = isAliveSafe(tile?.content) && isSliderModel(tile?.content) ? tile?.content : undefined
   const instanceId = useNextInstanceId("slider")
   const layout = useMemo(() => new SliderAxisLayout(), [])
   const {width, height, ref: sliderRef} = useResizeDetector()
-  const { setNodeRef: setDropRef, ...dropHighlight } = useSliderAttributeDrop(instanceId, tile)
+  const { setOverlayRef, ...dropHighlight } = useSliderAttributeDrop(instanceId, tile)
   const setWrapperRef = useCallback((elt: HTMLDivElement | null) => {
     sliderRef(elt)
-    setDropRef(elt)
-  }, [setDropRef, sliderRef])
+    setOverlayRef(elt)
+  }, [setOverlayRef, sliderRef])
   const [running, setRunning] = useState(false)
   const [statusMessage, setStatusMessage] = useState("")
   const statusTimeoutRef = useRef<number>()
