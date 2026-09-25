@@ -3,11 +3,12 @@ import { observer } from "mobx-react-lite"
 import { PointerEvent, RefObject, SyntheticEvent, useRef } from "react"
 import { mergeProps, useFocusRing, useSliderThumb } from "react-aria"
 import type { SliderState } from "@react-stately/slider"
-import { logMessageWithReplacement } from "../../lib/log-message"
 import { isAliveSafe } from "../../utilities/mst-utils"
 import { t } from "../../utilities/translation/translate"
 import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
+import { ITileModel } from "../../models/tiles/tile-model"
 import { ISliderModel } from "./slider-model"
+import { rangeChangeOptions } from "./slider-range-change"
 import { valueChangeNotification } from "./slider-utils"
 import { useSliderAnimation } from "./use-slider-animation"
 
@@ -52,6 +53,7 @@ const RangeHandle = function RangeHandle({ index, label, left, state, trackRef }
 
 interface IProps {
   sliderModel: ISliderModel
+  tile?: ITileModel
   running: boolean
   setRunning: (running: boolean) => void
   state: SliderState
@@ -63,7 +65,7 @@ interface IProps {
 const kHandleWidth = 12
 
 export const SliderRangeThumb = observer(function SliderRangeThumb({
-  sliderModel: _sliderModel, running, setRunning, state, trackRef
+  sliderModel: _sliderModel, tile, running, setRunning, state, trackRef
 }: IProps) {
   const sliderModel = isAliveSafe(_sliderModel) ? _sliderModel : undefined
   const layout = useAxisLayoutContext()
@@ -117,13 +119,7 @@ export const SliderRangeThumb = observer(function SliderRangeThumb({
     if (!drag?.moved) return
     // commit where the last move left the range
     const low = sliderModel.rangeLow
-    sliderModel.applyModelChange(() => sliderModel.moveRange(low), {
-      notify: () => valueChangeNotification(sliderModel.value, sliderModel.name),
-      undoStringKey: "V3.Undo.slider.changeRange",
-      redoStringKey: "V3.Redo.slider.changeRange",
-      log: logMessageWithReplacement("sliderRangeChange: { name: %@ = [%@, %@] }",
-            { name: sliderModel.name, low: sliderModel.rangeLow, high: sliderModel.rangeHigh }, "slider")
-    })
+    sliderModel.applyModelChange(() => sliderModel.moveRange(low), rangeChangeOptions(sliderModel, tile))
   }
 
   return (

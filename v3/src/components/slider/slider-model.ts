@@ -123,8 +123,10 @@ export const SliderModel = TileContentModel
       const [min, max] = self.axis.domain
       return self.isRangeSlider ? [min, Math.max(min, max - self.width)] : self.axis.domain
     },
+    // the nearest data value within the axis, or the value itself if the axis contains none
     snapToData(value: number) {
-      const values = self.snapValues
+      const [axisMin, axisMax] = self.axis.domain
+      const values = self.snapValues.filter(v => v >= axisMin && v <= axisMax)
       if (!values.length) return value
       // binary search for the nearest value
       let lo = 0

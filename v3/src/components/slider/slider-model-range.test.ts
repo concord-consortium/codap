@@ -140,3 +140,22 @@ describe("SliderModel playback bounds", () => {
     expect(aboveMax).toHaveBeenCalled()
   })
 })
+
+describe("SliderModel snapping within the axis", () => {
+  it("snaps only to data values inside the axis", async () => {
+    const { slider } = await setupRangeSlider()
+    slider.setAxisMin(2.5)
+    slider.setAxisMax(4.5)
+    // the nearest data value to 2.5 overall is 2 (a tie with 3), but 2 is outside the axis
+    slider.setRange(2.5, 2.5)
+    expect([slider.rangeLow, slider.rangeHigh]).toEqual([3, 3])
+  })
+
+  it("keeps the clamped value when no data value lies inside the axis", async () => {
+    const { slider } = await setupRangeSlider()
+    slider.setAxisMin(2.2)
+    slider.setAxisMax(2.8)
+    slider.setRange(2.5, 2.5)
+    expect([slider.rangeLow, slider.rangeHigh]).toEqual([2.5, 2.5])
+  })
+})

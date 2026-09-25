@@ -24,6 +24,7 @@ import { SliderDropHighlight, useSliderAttributeDrop } from "./slider-drop-targe
 import { SliderAxisLayout } from "./slider-layout"
 import { isSliderModel } from "./slider-model"
 import { changeSliderValueNotification } from "./slider-notifications"
+import { rangeChangeOptions } from "./slider-range-change"
 import { SliderRangeThumb } from "./slider-range-thumb"
 import { SliderRangeValues } from "./slider-range-values"
 import { CodapSliderThumb } from "./slider-thumb"
@@ -99,16 +100,8 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   const handleChangeEnd = useCallback((values: number[]) => {
     if (!sliderModel) return
     if (sliderModel.isRangeSlider) {
-      sliderModel.applyModelChange(
-        () => sliderModel.setRange(...rangeForHandles(values)),
-        {
-          notify: () => changeSliderValueNotification(tile, values[0]),
-          undoStringKey: "V3.Undo.slider.changeRange",
-          redoStringKey: "V3.Redo.slider.changeRange",
-          log: logMessageWithReplacement("sliderRangeChange: { name: %@ = [%@, %@] }",
-                { name: sliderModel.name, low: values[0], high: values[1] }, "slider")
-        }
-      )
+      sliderModel.applyModelChange(() => sliderModel.setRange(...rangeForHandles(values)),
+                                   rangeChangeOptions(sliderModel, tile))
       return
     }
     sliderModel.applyModelChange(
@@ -243,7 +236,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
             <div {...trackProps} style={{ ...trackProps.style, position: "absolute" }}
                  ref={trackRef} className="slider">
               {sliderModel.isRangeSlider
-                ? <SliderRangeThumb sliderModel={sliderModel} running={running} setRunning={setRunning}
+                ? <SliderRangeThumb sliderModel={sliderModel} tile={tile} running={running} setRunning={setRunning}
                                     state={state} trackRef={trackRef}
                   />
                 : <CodapSliderThumb sliderModel={sliderModel} running={running} setRunning={setRunning}
