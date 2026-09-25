@@ -25,6 +25,15 @@ describe("SliderModel.configureFromAttribute", () => {
     expect(slider.dataSet).toBe(dataSet)
   })
 
+  it("sets the value to the low end of the range despite an existing multiple restriction", async () => {
+    const { dataSet, slider } = await setupSliderAndData()
+    slider.setMultipleOf(2)
+    slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+    expect(slider.rangeLow).toBe(1)
+    expect(slider.value).toBe(1)
+    expect(slider.multipleOf).toBe(2)
+  })
+
   it("keeps a selection slider a selection slider", async () => {
     const { dataSet, slider } = await setupSliderAndData()
     slider.setSliderType("selection")

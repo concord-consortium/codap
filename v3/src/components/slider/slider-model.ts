@@ -317,8 +317,8 @@ export const SliderModel = TileContentModel
       self.setAxisMax(max)
       self.rangeLow = min
       self.rangeHigh = min + (max - min) * kDefaultRangeFraction
-      // the global value tracks the low end of the range
-      self.setValue(min)
+      // the global value tracks the low end of the range, which a multiple restriction mustn't snap away from
+      self.globalValue.setValue(min)
     }
   }))
   // performs the specified action so that response actions are included and undo/redo strings assigned

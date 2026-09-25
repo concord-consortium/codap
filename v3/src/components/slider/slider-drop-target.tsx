@@ -1,5 +1,6 @@
 import { useDndContext, useDroppable } from "@dnd-kit/core"
 import { clsx } from "clsx"
+import { useMemo } from "react"
 import { getDragAttributeInfo, useDropHandler } from "../../hooks/use-drag-drop"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { t } from "../../utilities/translation/translate"
@@ -18,7 +19,11 @@ export function useSliderAttributeDrop(instanceId: string, tile?: ITileModel) {
   const dropId = `${instanceId}-slider-attribute-drop`
   const { active } = useDndContext()
   const { dataSet, attributeId } = getDragAttributeInfo(active) || {}
-  const isAllowed = !!slider && isSliderAttributeDropAllowed(slider, dataSet, attributeId)
+  // evaluated once per drag rather than on every render while dragging
+  const isAllowed = useMemo(
+    () => !!slider && isSliderAttributeDropAllowed(slider, dataSet, attributeId),
+    [slider, dataSet, attributeId]
+  )
   const { isOver, setNodeRef } = useDroppable({ id: dropId, disabled: !isAllowed })
 
   useDropHandler(dropId, dropped => {

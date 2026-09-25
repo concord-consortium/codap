@@ -26,6 +26,13 @@ describe("isSliderAttributeDropAllowed", () => {
     expect(isSliderAttributeDropAllowed(slider, undefined, "x")).toBe(false)
   })
 
+  it("rejects a numeric attribute with no values, since it can't configure the slider", async () => {
+    featureFlagManager.setServerConfig({ visibilitySlider: "on" })
+    const { dataSet, slider } = await setupSliderAndData()
+    const empty = dataSet.addAttribute({ name: "empty", userType: "numeric" })
+    expect(isSliderAttributeDropAllowed(slider, dataSet, empty.id)).toBe(false)
+  })
+
   it("gates a drop onto a selection slider on selectionSlider", async () => {
     featureFlagManager.setServerConfig({ visibilitySlider: "on" })
     const { dataSet, slider } = await setupSliderAndData()

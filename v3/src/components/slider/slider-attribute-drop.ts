@@ -4,13 +4,13 @@ import { isFeatureEnabled } from "../../models/feature-flags/feature-flag-manage
 import { ITileModel } from "../../models/tiles/tile-model"
 import { ISliderModel, isSliderModel } from "./slider-model"
 
-// Whether an attribute drag onto the slider should be accepted. Flag-gated by the type the drop yields:
-// a selection slider stays one, anything else becomes a visibility slider.
+// Whether an attribute drag onto the slider should be accepted: only a numeric/date attribute with values
+// can configure it. Flag-gated by the type the drop yields: a selection slider stays one, anything else
+// becomes a visibility slider. Scans the attribute's values, so callers rendering during a drag memoize it.
 export function isSliderAttributeDropAllowed(slider: ISliderModel, dataSet?: IDataSet, attrId?: string) {
   const flag = slider.sliderType === "selection" ? "selectionSlider" : "visibilitySlider"
   if (!isFeatureEnabled(flag) || !dataSet || !attrId) return false
-  const attrType = dataSet.getAttribute(attrId)?.type
-  return attrType === "numeric" || attrType === "date"
+  return !!slider.configurationExtent(dataSet, attrId)
 }
 
 // Configures the slider from the attribute and retitles its tile, as a single undoable change.
