@@ -98,8 +98,8 @@ which remains accurate for them.
 
 | Resource | Documented in |
 |---|---|
-| `adornment` | wiki |
-| `adornmentList` | wiki |
+| **[`adornment`](resources/adornment.md)** | **this repo** |
+| **[`adornmentList`](resources/adornment.md)** | **this repo** |
 | `allCases` | wiki |
 | `attribute` | wiki |
 | `attributeList` | wiki |
@@ -120,11 +120,11 @@ which remains accurate for them.
 | `dataContextFromURL` | wiki |
 | `dataContextList` | wiki |
 | **[`dataDisplay`](resources/data-display.md)** | **this repo** |
-| `document` | wiki |
+| **[`document`](resources/document.md)** | **this repo** |
 | `formulaEngine` | wiki |
 | `global` | wiki |
 | `globalList` | wiki |
-| `interactiveApi` | wiki |
+| **[`interactiveApi`](resources/interactive-api.md)** | **this repo** |
 | `interactiveFrame` | wiki |
 | `item` | wiki |
 | `itemByCaseID` | wiki |
@@ -134,7 +134,7 @@ which remains accurate for them.
 | `logMessage` | wiki |
 | `logMessageMonitor` | wiki |
 | `selectionList` | wiki |
-| `tourElements` | wiki |
+| **[`tourElements`](resources/tour-elements.md)** | **this repo** |
 | `undoChangeNotice` | wiki |
 
 ---

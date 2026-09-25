@@ -84,7 +84,8 @@ Receive:
 **Display it in the plugin.**
 
 ```js
-codapInterface.sendRequest({
+// sendRequest stands for however your plugin sends requests — see Request shape in the index.
+sendRequest({
   action: 'get',
   resource: 'dataDisplay[Height by Weight]'
 }, function (result) {
@@ -116,5 +117,5 @@ fresh `dataDisplay` when you need a current image.
 > `{"success": undefined, "values": {"error": {"success": false, "values": {"error": "DataDisplay not found"}}}}`.
 > This looks unintended — every other handler returns `errorResult()` directly — but it is what
 > v3 does today, so test for `result.success` being truthy rather than comparing it to `false`,
-> and do not assume `values.error` is a string. Documented here as observed behavior; not yet
-> filed as a bug.
+> and do not assume `values.error` is a string. Tracked as **CODAP-1550**; this note comes out
+> when that is fixed.
