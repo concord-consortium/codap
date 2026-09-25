@@ -22,8 +22,9 @@ context("Slider configured from an attribute", () => {
     cy.dragAttributeToTarget("table", "Sleep", "slider")
     // the Mammals dataset's (only) collection is "Cases"
     c.getComponentTitle("slider").should("have.text", "Cases")
-    // the value moves to the low end of the range, which starts at Sleep's minimum
-    slider.getVariableValue().should("eq", "2")
+    // the range starts at Sleep's minimum, and a range slider shows its range in place of the variable's value
+    slider.getSliderTile().find('[data-testid="slider-range-values"] .range-text')
+      .invoke("text").should("match", /^2 - /)
   })
 
   it("ignores the drop when the flag is off", () => {

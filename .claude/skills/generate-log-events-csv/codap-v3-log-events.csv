@@ -124,6 +124,7 @@ sliderDateMultipleOfUnit: %@,"{name, dateMultipleOfUnit}",,"{ name: string, date
 sliderEdit: { expression: %@ = %@ },"name, value",,"{ name: string, value: number }",User types a new value into the slider's editable value field.
 sliderMaxPerSecond: %@,"{name, maxPerSecond}",,"{ name: string, maxPerSecond: number }",User changes the slider animation speed in frames per second.
 sliderMultiplesOf: %@,"{name, restrictMultiplesOf}",,"{ name: string, restrictMultiplesOf: number }",User sets the value that the slider is restricted to multiples of.
+"sliderRangeChange: { name: %@ = [%@, %@] }","name, low, high",,"{ name: string, low: number, high: number }","User finishes resizing or moving a visibility or selection slider's range thumb, by dragging an edge or the middle or with the keyboard."
 sliderRepetitionMode: %@,"{name, mode}",,"{ name: string, mode: string }",User changes the slider animation repetition mode.
 sliderScaleType: %@,"{name, scaleType}",,"{ name: string, scaleType: string }",User changes the slider's scale type between numeric and date.
 sliderThumbDrag: { name: %@ = value: %@ },"name, value",,"{ name: string, value: number }",User drags the slider thumb to change the slider value.

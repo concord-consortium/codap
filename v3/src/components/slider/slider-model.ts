@@ -1,4 +1,4 @@
-import { reaction } from "mobx"
+import { comparer, reaction } from "mobx"
 import { addDisposer, Instance, SnapshotIn, types} from "mobx-state-tree"
 import { IDataSet } from "../../models/data/data-set"
 import { GlobalValue } from "../../models/global/global-value"
@@ -17,7 +17,7 @@ import { IBaseNumericAxisModel } from "../axis/models/base-numeric-axis-model"
 import {
   DateAxisModel, isAnyNumericAxisModel, isDateAxisModel, NumericAxisModel
 } from "../axis/models/numeric-axis-models"
-import { dataDisplayGetNumericExtent } from "../data-display/data-display-value-utils"
+import { dataDisplayGetNumericExtent, dataDisplayGetNumericValue } from "../data-display/data-display-value-utils"
 import { kSliderTileType } from "./slider-defs"
 import {
   AnimationDirection, AnimationDirections, AnimationMode, AnimationModes, FixValueFn, ISliderScaleType,
@@ -44,13 +44,13 @@ export const SliderModel = TileContentModel
     // the bound attribute; plain ids like DataConfigurationModel, not MST references
     dataSetId: types.maybe(types.string),
     attributeId: types.maybe(types.string),
-    // range thumb bounds, in axis units (epoch seconds for dates)
-    rangeLow: types.maybe(types.number),
-    rangeHigh: types.maybe(types.number)
+    // width of the range thumb, in axis units (epoch seconds for dates); the global value is its low end
+    rangeWidth: types.maybe(types.number)
   })
   .volatile(() => ({
     axisHelper: undefined as Maybe<AxisHelper>,
-    _isAxisAnimating: false
+    _isAxisAnimating: false,
+    dynamicRangeWidth: undefined as number | undefined
    }))
   .views(self => ({
     get name() {
@@ -88,10 +88,64 @@ export const SliderModel = TileContentModel
     },
     get dataSet(): IDataSet | undefined {
       return self.dataSetId ? getDataSetFromId(self, self.dataSetId) : undefined
+    },
+    get attribute() {
+      return self.attributeId ? this.dataSet?.getAttribute(self.attributeId) : undefined
+    },
+    get isRangeSlider() {
+      return self.sliderType !== "variable"
+    },
+    get width() {
+      return self.dynamicRangeWidth ?? self.rangeWidth ?? 0
+    },
+    // sorted distinct values of the bound attribute over the visible cases, for zero-width snapping
+    get snapValues(): number[] {
+      const dataSet = this.dataSet
+      const attrId = self.attributeId
+      if (!dataSet || !attrId) return []
+      const values = new Set<number>()
+      dataSet.itemIds.forEach(itemId => {
+        const value = dataDisplayGetNumericValue(dataSet, itemId, attrId)
+        if (value != null && isFinite(value)) values.add(value)
+      })
+      return Array.from(values).sort((a, b) => a - b)
+    }
+  }))
+  .views(self => ({
+    get rangeLow() {
+      return self.value
+    },
+    get rangeHigh() {
+      return self.value + self.width
+    },
+    // the interval the value may occupy: for a range slider, the low end, which leaves room for the width
+    get valueDomain(): readonly [number, number] {
+      const [min, max] = self.axis.domain
+      return self.isRangeSlider ? [min, Math.max(min, max - self.width)] : self.axis.domain
+    },
+    snapToData(value: number) {
+      const values = self.snapValues
+      if (!values.length) return value
+      // binary search for the nearest value
+      let lo = 0
+      let hi = values.length - 1
+      while (lo < hi) {
+        const mid = Math.floor((lo + hi) / 2)
+        if (values[mid] < value) lo = mid + 1
+        else hi = mid
+      }
+      const above = values[lo]
+      const below = lo > 0 ? values[lo - 1] : above
+      return value - below <= above - value ? below : above
     }
   }))
   .views(self => ({
     constrainValue(value: number) {
+      if (self.isRangeSlider) {
+        const [min, max] = self.valueDomain
+        const clamped = Math.min(max, Math.max(min, value))
+        return self.width === 0 ? self.snapToData(clamped) : clamped
+      }
       // keep value in bounds of axis min and max when thumbnail is dragged
       const keepValueInBounds = (num: number) => {
         if (num < self.axis.min) return self.axis.min
@@ -106,9 +160,23 @@ export const SliderModel = TileContentModel
       }
       return keepValueInBounds(value)
     },
+    // the value one playback step further; a zero-width range steps through the data's distinct values
+    nextAnimationValue(sign: 1 | -1, fallbackIncrement: number) {
+      const values = self.snapValues
+      if (self.isRangeSlider && self.width === 0 && values.length) {
+        const next = sign > 0
+          ? values.find(v => v > self.value)
+          : [...values].reverse().find(v => v < self.value)
+        const [min, max] = self.valueDomain
+        return next ?? (sign > 0 ? max + 1 : min - 1)
+      }
+      return self.value + sign * (self.increment ?? fallbackIncrement)
+    },
+    // bounded by the value domain, so a range slider's playback wraps or stops when its high end reaches the axis
     validateValue(value: number, belowMin: FixValueFn, aboveMax: FixValueFn) {
-      if (value < self.axis.min) return belowMin(value)
-      if (value > self.axis.max) return aboveMax(value)
+      const [min, max] = self.valueDomain
+      if (value < min) return belowMin(value)
+      if (value > max) return aboveMax(value)
       return value
     },
     hasBinnedNumericAxis(axisModel: IAxisModel) {
@@ -156,7 +224,51 @@ export const SliderModel = TileContentModel
     setValidatedValue(value: number) {
       self.globalValue.setValue(self.constrainValue(value))
     },
+    setRangeWidth(width: number) {
+      self.rangeWidth = width
+      self.dynamicRangeWidth = undefined
+    }
   }))
+  .actions(self => {
+    // clamps [low, high] to the axis with low <= high, snapping a zero-width range to the data
+    function normalizeRange(low: number, high: number): [number, number] {
+      const [min, max] = self.axis.domain
+      let lo = Math.min(max, Math.max(min, Math.min(low, high)))
+      let hi = Math.min(max, Math.max(min, Math.max(low, high)))
+      if (hi === lo) {
+        lo = hi = self.snapToData(lo)
+      }
+      return [lo, hi]
+    }
+    // clamps low into the domain that leaves room for the current width
+    function normalizeMove(low: number) {
+      const [min, max] = self.valueDomain
+      const clamped = Math.min(max, Math.max(min, low))
+      return self.width === 0 ? self.snapToData(clamped) : clamped
+    }
+    return {
+      setDynamicRange(low: number, high: number) {
+        const [lo, hi] = normalizeRange(low, high)
+        self.dynamicRangeWidth = hi - lo
+        self.globalValue.setDynamicValue(lo)
+      },
+      setRange(low: number, high: number) {
+        const [lo, hi] = normalizeRange(low, high)
+        self.rangeWidth = hi - lo
+        self.dynamicRangeWidth = undefined
+        self.globalValue.setValue(lo)
+      },
+      moveDynamicRange(low: number) {
+        self.globalValue.setDynamicValue(normalizeMove(low))
+      },
+      moveRange(low: number) {
+        const lo = normalizeMove(low)
+        self.rangeWidth = self.width
+        self.dynamicRangeWidth = undefined
+        self.globalValue.setValue(lo)
+      }
+    }
+  })
   .actions(self => ({
     setDynamicValueIfDynamic(value: number) {
       // update dynamically if either the slider or the axis is updating dynamically
@@ -177,14 +289,20 @@ export const SliderModel = TileContentModel
   .actions(self => ({
     afterCreate() {
       addDisposer(self, reaction(
-        () => self.axis.domain,
-        ([axisMin, axisMax]) => {
+        () => self.valueDomain,
+        () => {
           // skip constraining value during axis animation (value is intentionally outside bounds)
           if (self._isAxisAnimating) return
-          // keep the thumbnail within axis bounds when axis bounds are changed
-          if (self.value < axisMin) self.setDynamicValueIfDynamic(axisMin)
-          if (self.value > axisMax) self.setDynamicValueIfDynamic(axisMax)
-        }, { name: "SliderModel [axis.domain]" }
+          const [axisMin, axisMax] = self.axis.domain
+          // a range wider than the axis shrinks to fit it
+          if (self.isRangeSlider && self.width > axisMax - axisMin) {
+            self.setRangeWidth(axisMax - axisMin)
+          }
+          const [min, max] = self.valueDomain
+          // keep the thumb within axis bounds when axis bounds are changed
+          if (self.value < min) self.setDynamicValueIfDynamic(min)
+          if (self.value > max) self.setDynamicValueIfDynamic(max)
+        }, { name: "SliderModel [valueDomain]", equals: comparer.structural }
       ))
     },
     afterAttachToDocument() {
@@ -315,8 +433,8 @@ export const SliderModel = TileContentModel
       self.setScaleType(dataSet.getAttribute(attrId)?.type === "date" ? "date" : "numeric")
       self.setAxisMin(min)
       self.setAxisMax(max)
-      self.rangeLow = min
-      self.rangeHigh = min + (max - min) * kDefaultRangeFraction
+      self.rangeWidth = (max - min) * kDefaultRangeFraction
+      self.dynamicRangeWidth = undefined
       // the global value tracks the low end of the range, which a multiple restriction mustn't snap away from
       self.globalValue.setValue(min)
     }

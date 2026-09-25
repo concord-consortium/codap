@@ -52,16 +52,16 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
   const axisLayout = useAxisLayoutContext()
   const multiScale = axisLayout.getAxisMultiScale("bottom")
 
+  // the interval the value may occupy, which for a range slider leaves room for the range's width
   const getAxisDomain = useCallback(function getAxisDomain(): readonly [number, number] {
-    const { axis: { domain } } = sliderModel || { axis: { domain: [0, 10] } }
-    return domain
+    return sliderModel?.valueDomain ?? [0, 10]
   }, [sliderModel])
 
   const resetSlider = useCallback((val?: number) => {
     if (!sliderModel || !isAlive(sliderModel)) return 0
     const [axisMin, axisMax] = getAxisDomain()
     const sign = animationDirection === "lowToHigh" ? 1 : -1
-    const testValue = val ?? sliderModel.value + sign * (sliderModel.increment ?? 0)
+    const testValue = val ?? sliderModel.nextAnimationValue(sign, 0)
     // During animation, resetSlider runs both at the top level and nested inside the value-change
     // applyModelChange (validateValue calls it at a loop boundary), so suppress the child-action
     // warning; the change is non-undoable either way.
@@ -107,10 +107,9 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
 
   useAnimationFrame(() => {
     if (running && sliderModel) {
-      const increment = sliderModel.increment ? sliderModel.increment
-        : multiScale?.resolution ? multiScale.resolution : 1
+      const fallbackIncrement = multiScale?.resolution ? multiScale.resolution : 1
       const incrementModifier = direction === 'highToLow' || prevDirectionRef.current === 'highToLow' ? -1 : 1
-      const newValue = sliderModel.value + increment * incrementModifier
+      const newValue = sliderModel.nextAnimationValue(incrementModifier, fallbackIncrement)
 
       switch (direction) {
         case "lowToHigh":
