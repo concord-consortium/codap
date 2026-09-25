@@ -9,6 +9,11 @@ $date-slider-component-height: 110px;
   }
 }
 
+// covers the whole slider so an attribute can be dropped anywhere on it
+.slider-wrapper .slider-attribute-drop {
+  inset: 0;
+}
+
 .slider-wrapper {
   position: relative;
   overflow: clip;
