@@ -2,10 +2,50 @@
 
 $slider-component-height: 98px;
 $date-slider-component-height: 110px;
+$slider-attribute-label-height: 16px;
+// the label's height plus a little space below it
+$slider-attribute-label-space: $slider-attribute-label-height + 4px;
 
 .codap-component.codap-slider.minimized {
   .slider-wrapper {
     height: 0
+  }
+}
+
+// occupies the same in-flow box as the variable thumb (.slider-thumb-icon), above the axis
+.slider-range-thumb {
+  position: relative;
+  bottom: 12px;
+  height: 12px;
+  // above the axis wrapper, whose end markers would otherwise cover a handle sitting at the axis min or max
+  z-index: 1;
+  pointer-events: none;
+
+  // matches the handles' blocks: the top 5/9 of the 12px icon
+  .slider-range-body {
+    position: absolute;
+    top: 0;
+    height: 7px;
+    box-sizing: border-box;
+    border: 1px solid #8a8a8a;
+    background: repeating-linear-gradient(90deg, #c4c4c4 0 2px, #ececec 2px 4px);
+    cursor: grab;
+    pointer-events: auto;
+
+    &:active { cursor: grabbing; }
+  }
+
+  .slider-range-handle {
+    position: absolute;
+    top: 0;
+    width: 12px;
+    height: 12px;
+    cursor: ew-resize;
+    pointer-events: auto;
+
+    svg { display: block; }
+
+    &.focus-visible { outline: 2px solid vars.$focus-outline-color; outline-offset: 1px; }
   }
 }
 
@@ -21,6 +61,15 @@ $date-slider-component-height: 110px;
   transition: vars.$minimize-transition;
   background: #fff;
   border-radius: vars.$border-radius-bottom-corners;
+
+  // room for the bound attribute's name below a range slider's axis
+  &.hasAttributeLabel {
+    height: calc($slider-component-height + $slider-attribute-label-space - vars.$title-bar-height);
+  }
+
+  &.twoLevel.hasAttributeLabel {
+    height: calc($date-slider-component-height + $slider-attribute-label-space - vars.$title-bar-height);
+  }
 
   &.twoLevel {
     height: calc($date-slider-component-height - vars.$title-bar-height);
@@ -50,6 +99,19 @@ $date-slider-component-height: 110px;
       &.focus-visible {
         @include vars.focus-outline($offset: 2px);
       }
+    }
+
+    // lifted with the axis above it (see .slider-axis-wrapper)
+    .slider-attribute-label {
+      position: relative;
+      bottom: 12px;
+      height: $slider-attribute-label-height;
+      line-height: $slider-attribute-label-height;
+      font-size: 12px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .slider-axis-wrapper {

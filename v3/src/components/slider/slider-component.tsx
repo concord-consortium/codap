@@ -3,14 +3,13 @@ import { observer } from "mobx-react-lite"
 import { CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Input as RAInput, TextField } from "react-aria-components"
 import { useSlider } from "react-aria"
-import { useSliderState } from "@react-stately/slider"
+import { SliderState, useSliderState } from "@react-stately/slider"
 import { useResizeDetector } from "react-resize-detector"
 import PlayIcon from "../../assets/icons/icon-play.svg"
 import PauseIcon from "../../assets/icons/icon-pause.svg"
 import { InstanceIdContext, useNextInstanceId } from "../../hooks/use-instance-id-context"
 import { registerTileCollisionDetection } from "../../lib/dnd-kit/dnd-detect-collision"
 import { logMessageWithReplacement } from "../../lib/log-message"
-import { unitsStringToMilliseconds } from "../../utilities/date-utils"
 import { isAliveSafe } from "../../utilities/mst-utils"
 import { t } from "../../utilities/translation/translate"
 import { getNumberOfLevelsForDateAxis } from "../axis/axis-utils"
@@ -25,9 +24,12 @@ import { SliderDropHighlight, useSliderAttributeDrop } from "./slider-drop-targe
 import { SliderAxisLayout } from "./slider-layout"
 import { isSliderModel } from "./slider-model"
 import { changeSliderValueNotification } from "./slider-notifications"
+import { rangeChangeOptions } from "./slider-range-change"
+import { SliderRangeThumb } from "./slider-range-thumb"
+import { SliderRangeValues } from "./slider-range-values"
 import { CodapSliderThumb } from "./slider-thumb"
 import { kSliderClass } from "./slider-types"
-import { valueChangeNotification } from "./slider-utils"
+import { rangeFromHandles, sliderStep, valueChangeNotification } from "./slider-utils"
 
 import "./slider.scss"
 
@@ -70,22 +72,38 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   }, [width, height, layout])
 
   // Step size: use multipleOf when set; otherwise axis resolution for numeric, or unit offset for date
-  const step = sliderModel?.scaleType === "date"
-    ? (sliderModel.multipleOf ?? 1) * unitsStringToMilliseconds(sliderModel.dateMultipleOfUnit) / 1000
-    : (sliderModel?.multipleOf ?? multiScale?.resolution ?? 1)
+  const step = sliderModel ? sliderStep(sliderModel, multiScale?.resolution) : 1
 
   const [minValue, maxValue] = sliderModel?.axis?.domain ?? [0, 1]
 
+  // The React Aria state, and the handle a range change is moving: recorded during onChange, since React Stately
+  // clears its dragging flag before calling onChangeEnd. Keyboard changes mark their handle as dragging, too.
+  const stateRef = useRef<SliderState | null>(null)
+  const activeHandleRef = useRef<number | undefined>(undefined)
+  const rangeForHandles = useCallback((values: number[]) => {
+    if (!sliderModel) return values as [number, number]
+    return rangeFromHandles(values, [sliderModel.rangeLow, sliderModel.rangeHigh], activeHandleRef.current, step)
+  }, [sliderModel, step])
+
   const handleChange = useCallback((values: number[]) => {
     if (!sliderModel) return
+    const ariaState = stateRef.current
+    activeHandleRef.current = [0, 1].find(index => ariaState?.isThumbDragging(index)) ?? ariaState?.focusedThumb
     sliderModel.applyModelChange(
-      () => sliderModel.setDynamicValue(values[0]),
+      () => sliderModel.isRangeSlider
+        ? sliderModel.setDynamicRange(...rangeForHandles(values))
+        : sliderModel.setDynamicValue(values[0]),
       { noDirty: true, notify: () => valueChangeNotification(sliderModel.value, sliderModel.name) }
     )
-  }, [sliderModel])
+  }, [rangeForHandles, sliderModel])
 
   const handleChangeEnd = useCallback((values: number[]) => {
     if (!sliderModel) return
+    if (sliderModel.isRangeSlider) {
+      sliderModel.applyModelChange(() => sliderModel.setRange(...rangeForHandles(values)),
+                                   rangeChangeOptions(sliderModel, tile))
+      return
+    }
     sliderModel.applyModelChange(
       () => sliderModel.setValue(values[0]),
       {
@@ -100,13 +118,13 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
               { name: sliderModel.name, value: values[0] }, "slider")
       }
     )
-  }, [sliderModel, tile])
+  }, [rangeForHandles, sliderModel, tile])
 
   const numberFormatter = useMemo(() => new Intl.NumberFormat(), [])
 
   // React Aria slider state (controlled by sliderModel.value)
   const state = useSliderState({
-    value: [sliderModel?.value ?? 0],
+    value: sliderModel?.isRangeSlider ? [sliderModel.rangeLow, sliderModel.rangeHigh] : [sliderModel?.value ?? 0],
     minValue,
     maxValue,
     step,
@@ -114,6 +132,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
     onChangeEnd: handleChangeEnd,
     numberFormatter
   })
+  stateRef.current = state
 
   const { groupProps, trackProps } = useSlider(
     { "aria-label": sliderModel?.name ?? "", minValue, maxValue, step },
@@ -139,6 +158,10 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   }, [sliderModel?.name])
 
   if (!sliderModel) return null
+
+  // a range slider labels its axis with the bound attribute, e.g. "Height (meters)"
+  const attribute = sliderModel.isRangeSlider ? sliderModel.attribute : undefined
+  const attributeLabel = attribute ? `${attribute.name}${attribute.units ? ` (${attribute.units})` : ""}` : ""
 
   const axisStyle: CSSProperties = {
     width: width ? width - kAxisMargin : width,
@@ -181,7 +204,8 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
     <InstanceIdContext.Provider value={instanceId}>
       <AxisProviderContext.Provider value={sliderModel}>
         <AxisLayoutContext.Provider value={layout}>
-          <div {...groupProps} className={clsx(kSliderClass, {twoLevel: sliderModel.axisRequiresTwoLevels()})}
+          <div {...groupProps} className={clsx(kSliderClass, {twoLevel: sliderModel.axisRequiresTwoLevels(),
+                                                               hasAttributeLabel: !!attributeLabel})}
                ref={setWrapperRef} data-testid="slider-attribute-drop">
             <div className="slider-control">
               <button
@@ -193,23 +217,31 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
                 {running ? <PauseIcon/> : <PlayIcon/>}
               </button>
               <div className="slider-inputs">
-                <TextField value={nameInput} onChange={setNameInput}
-                           aria-label={t("DG.SliderView.sliderName")} className="name-input"
-                           data-testid="slider-variable-name">
-                  <RAInput className="name-text-input text-input" data-testid="slider-variable-name-text-input"
-                           size={Math.max(nameInput.length, 3)} onBlur={commitSliderName}
-                           onKeyDown={handleSliderNameKeyDown} />
-                </TextField>
-                <span className="equals-sign">&nbsp;=&nbsp;</span>
-                <EditableSliderValue sliderModel={sliderModel} multiScale={multiScale}
-                                     onStatusMessage={showStatusMessage}/>
+                {sliderModel.isRangeSlider
+                  ? <SliderRangeValues sliderModel={sliderModel} multiScale={multiScale}/>
+                  : <>
+                    <TextField value={nameInput} onChange={setNameInput}
+                               aria-label={t("DG.SliderView.sliderName")} className="name-input"
+                               data-testid="slider-variable-name">
+                      <RAInput className="name-text-input text-input" data-testid="slider-variable-name-text-input"
+                               size={Math.max(nameInput.length, 3)} onBlur={commitSliderName}
+                               onKeyDown={handleSliderNameKeyDown} />
+                    </TextField>
+                    <span className="equals-sign">&nbsp;=&nbsp;</span>
+                    <EditableSliderValue sliderModel={sliderModel} multiScale={multiScale}
+                                         onStatusMessage={showStatusMessage}/>
+                    </>}
               </div>
             </div>
             <div {...trackProps} style={{ ...trackProps.style, position: "absolute" }}
                  ref={trackRef} className="slider">
-              <CodapSliderThumb sliderModel={sliderModel} running={running} setRunning={setRunning}
-                                state={state} trackRef={trackRef}
-              />
+              {sliderModel.isRangeSlider
+                ? <SliderRangeThumb sliderModel={sliderModel} tile={tile} running={running} setRunning={setRunning}
+                                    state={state} trackRef={trackRef}
+                  />
+                : <CodapSliderThumb sliderModel={sliderModel} running={running} setRunning={setRunning}
+                                    state={state} trackRef={trackRef}
+                  />}
               {/* Stop pointer events from bubbling to React Aria's track handler so that
                   D3's axis drag behavior (pan/zoom) receives them instead (CODAP-1206). */}
               <div className={axisClasses()} style={axisStyle}
@@ -222,6 +254,10 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
                 </svg>
                 <div className="axis-end max"/>
               </div>
+              {attributeLabel &&
+                <div className="slider-attribute-label" style={axisStyle} data-testid="slider-attribute-label">
+                  {attributeLabel}
+                </div>}
             </div>
             <div aria-live="polite" className="codap-visually-hidden" role="status">
               {statusMessage}
