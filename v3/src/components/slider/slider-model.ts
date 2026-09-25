@@ -1,8 +1,11 @@
 import { reaction } from "mobx"
 import { addDisposer, Instance, SnapshotIn, types} from "mobx-state-tree"
+import { IDataSet } from "../../models/data/data-set"
 import { GlobalValue } from "../../models/global/global-value"
 import { getGlobalValueManager } from "../../models/global/global-value-manager"
 import { applyModelChange } from "../../models/history/apply-model-change"
+import { getAllTileDataSets } from "../../models/shared/shared-data-tile-utils"
+import { getDataSetFromId, getSharedDataSetFromDataSetId } from "../../models/shared/shared-data-utils"
 import { ISharedModel } from "../../models/shared/shared-model"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
@@ -14,11 +17,13 @@ import { IBaseNumericAxisModel } from "../axis/models/base-numeric-axis-model"
 import {
   DateAxisModel, isAnyNumericAxisModel, isDateAxisModel, NumericAxisModel
 } from "../axis/models/numeric-axis-models"
+import { dataDisplayGetNumericExtent } from "../data-display/data-display-value-utils"
 import { kSliderTileType } from "./slider-defs"
 import {
   AnimationDirection, AnimationDirections, AnimationMode, AnimationModes, FixValueFn, ISliderScaleType,
   kDefaultAnimationDirection, kDefaultAnimationMode, kDefaultAnimationRate, kDefaultDateMultipleOfUnit,
-  kDefaultSliderAxisMax, kDefaultSliderAxisMin, kDefaultSliderScaleType, SliderScaleTypes
+  kDefaultRangeFraction, kDefaultSliderAxisMax, kDefaultSliderAxisMin, kDefaultSliderScaleType, kDefaultSliderType,
+  SliderScaleTypes, SliderType, SliderTypes
 } from "./slider-types"
 
 export const SliderModel = TileContentModel
@@ -34,7 +39,14 @@ export const SliderModel = TileContentModel
     _animationRate: types.maybe(types.number),  // frames per second
     scaleType: types.optional(types.enumeration([...SliderScaleTypes]), kDefaultSliderScaleType),
     axis: types.optional(types.union(NumericAxisModel, DateAxisModel),
-      () => NumericAxisModel.create({ place: 'bottom', min: kDefaultSliderAxisMin, max: kDefaultSliderAxisMax }))
+      () => NumericAxisModel.create({ place: 'bottom', min: kDefaultSliderAxisMin, max: kDefaultSliderAxisMax })),
+    sliderType: types.optional(types.enumeration([...SliderTypes]), kDefaultSliderType),
+    // the bound attribute; plain ids like DataConfigurationModel, not MST references
+    dataSetId: types.maybe(types.string),
+    attributeId: types.maybe(types.string),
+    // range thumb bounds, in axis units (epoch seconds for dates)
+    rangeLow: types.maybe(types.number),
+    rangeHigh: types.maybe(types.number)
   })
   .volatile(() => ({
     axisHelper: undefined as Maybe<AxisHelper>,
@@ -73,6 +85,9 @@ export const SliderModel = TileContentModel
     },
     get globalValueManager() {
       return getGlobalValueManager(getSharedModelManager(self))
+    },
+    get dataSet(): IDataSet | undefined {
+      return self.dataSetId ? getDataSetFromId(self, self.dataSetId) : undefined
     }
   }))
   .views(self => ({
@@ -117,6 +132,18 @@ export const SliderModel = TileContentModel
     },
     getAxisHelper(place: AxisPlace, subAxisIndex: number) {
       return self.axisHelper
+    },
+    // axis bounds for configuring from the attribute, or undefined if it can't configure a slider
+    configurationExtent(dataSet: IDataSet, attrId: string): Maybe<[number, number]> {
+      const attrType = dataSet.getAttribute(attrId)?.type
+      if (attrType !== "numeric" && attrType !== "date") return
+      const extent = dataDisplayGetNumericExtent(dataSet, attrId)
+      if (!extent) return
+      const [min, max] = extent
+      if (min < max) return extent
+      // a single value still needs an axis with width
+      const pad = attrType === "date" ? unitsStringToMilliseconds("day") / 2000 : 0.5
+      return [min - pad, max + pad]
     }
   }))
   .actions(self => ({
@@ -175,6 +202,21 @@ export const SliderModel = TileContentModel
             globalValueManager && sharedModelManager.addTileSharedModel(self, globalValueManager)
           }
         }, { name: "SliderModel [sharedModelManager]", fireImmediately: true }
+      ))
+      // link the tile to the bound dataset (and only that one) so it takes part in shared-model updates
+      addDisposer(self, reaction(
+        () => {
+          const sharedModelManager = getSharedModelManager(self)
+          return { sharedModelManager, isReady: sharedModelManager?.isReady, dataSetId: self.dataSetId }
+        },
+        ({ sharedModelManager, isReady, dataSetId }) => {
+          if (!sharedModelManager || !isReady) return
+          getAllTileDataSets(self).forEach(linked => {
+            if (linked.dataSet.id !== dataSetId) sharedModelManager.removeTileSharedModel(self, linked)
+          })
+          const sharedDataSet = dataSetId ? getSharedDataSetFromDataSetId(self, dataSetId) : undefined
+          sharedDataSet && sharedModelManager.addTileSharedModel(self, sharedDataSet)
+        }, { name: "SliderModel [dataSetId]", fireImmediately: true }
       ))
     },
     destroyGlobalValue() {
@@ -258,6 +300,26 @@ export const SliderModel = TileContentModel
         }
       }
     },
+  }))
+  .actions(self => ({
+    setSliderType(sliderType: SliderType) {
+      self.sliderType = sliderType
+    },
+    configureFromAttribute(dataSet: IDataSet, attrId: string) {
+      const extent = self.configurationExtent(dataSet, attrId)
+      if (!extent) return
+      const [min, max] = extent
+      if (self.sliderType !== "selection") self.sliderType = "visibility"
+      self.dataSetId = dataSet.id
+      self.attributeId = attrId
+      self.setScaleType(dataSet.getAttribute(attrId)?.type === "date" ? "date" : "numeric")
+      self.setAxisMin(min)
+      self.setAxisMax(max)
+      self.rangeLow = min
+      self.rangeHigh = min + (max - min) * kDefaultRangeFraction
+      // the global value tracks the low end of the range
+      self.setValue(min)
+    }
   }))
   // performs the specified action so that response actions are included and undo/redo strings assigned
   .actions(applyModelChange)

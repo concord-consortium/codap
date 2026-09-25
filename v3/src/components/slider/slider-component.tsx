@@ -19,6 +19,7 @@ import { AxisLayoutContext } from "../axis/models/axis-layout-context"
 import { isDateAxisModel } from "../axis/models/numeric-axis-models"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { EditableSliderValue } from "./editable-slider-value"
+import { SliderDropHighlight, useSliderAttributeDrop } from "./slider-drop-target"
 import { SliderAxisLayout } from "./slider-layout"
 import { isSliderModel } from "./slider-model"
 import { changeSliderValueNotification } from "./slider-notifications"
@@ -35,6 +36,11 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   const instanceId = useNextInstanceId("slider")
   const layout = useMemo(() => new SliderAxisLayout(), [])
   const {width, height, ref: sliderRef} = useResizeDetector()
+  const { setNodeRef: setDropRef, ...dropHighlight } = useSliderAttributeDrop(instanceId, tile)
+  const setWrapperRef = useCallback((elt: HTMLDivElement | null) => {
+    sliderRef(elt)
+    setDropRef(elt)
+  }, [setDropRef, sliderRef])
   const [running, setRunning] = useState(false)
   const [statusMessage, setStatusMessage] = useState("")
   const statusTimeoutRef = useRef<number>()
@@ -172,7 +178,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
       <AxisProviderContext.Provider value={sliderModel}>
         <AxisLayoutContext.Provider value={layout}>
           <div {...groupProps} className={clsx(kSliderClass, {twoLevel: sliderModel.axisRequiresTwoLevels()})}
-               ref={sliderRef}>
+               ref={setWrapperRef} data-testid="slider-attribute-drop">
             <div className="slider-control">
               <button
                 aria-label={running ? t("DG.SliderView.pauseButton") : t("DG.SliderView.playButton")}
@@ -216,6 +222,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
             <div aria-live="polite" className="codap-visually-hidden" role="status">
               {statusMessage}
             </div>
+            <SliderDropHighlight {...dropHighlight}/>
           </div>
         </AxisLayoutContext.Provider>
       </AxisProviderContext.Provider>
