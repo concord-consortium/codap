@@ -29,7 +29,7 @@ import {GraphPlace} from "../../axis-graph-shared"
 import { getScaleThresholds } from "../components/legend/choropleth-legend/choropleth-legend"
 import {CaseData} from "../d3-types"
 import {
-  AttrRole, GraphAttrRole, TipAttrRoles, graphPlaceToAttrRole, kOther, kMain, GraphSplitAttrRoles
+  AttrRole, GraphAttrRole, TipAttrRoles, graphPlaceToAttrRole, kOther, kMain
 } from "../data-display-types"
 import { dataDisplayGetNumericValue } from "../data-display-value-utils"
 
@@ -201,11 +201,6 @@ export const DataConfigurationModel = types
       const attrID = this.attributeID(role)
       const attr = attrID ? self.dataset?.attrFromID(attrID) : undefined
       return attr?.type
-    },
-    roleForAttributeWithCategoryLimit(attrID: string) {
-      return GraphSplitAttrRoles.find(role => {
-        return self.numberOfCategoriesLimitByRole.get(role) !== undefined
-      })
     },
     get places() {
       const places = new Set<string>(Object.keys(this.attributeDescriptions))
@@ -447,6 +442,56 @@ export const DataConfigurationModel = types
   }))
   .views(self => ({
     /**
+     * The categories the role would render with no limit applied: the category set, in its
+     * canonical order, intersected with the values of the visible cases. Empty where the clamp
+     * never applies at all (no visible values, or no category set). Callers must not mutate the
+     * result, since it is cached.
+     *
+     * Deliberately independent of the limit, so changing the limit does not invalidate this.
+     */
+    presentCategoriesForAttrRole: cachedFnWithArgsFactory<(role: AttrRole) => readonly string[]>({
+      key: (role: AttrRole) => role,
+      calculate: (role: AttrRole) => {
+        const valuesSet = new Set(self.valuesForAttrRole(role))
+        const allCategorySet = self.categorySetForAttrRole(role)
+        if (valuesSet.size === 0 || !allCategorySet) return []
+        const result: string[] = []
+        allCategorySet.values.forEach(category => {
+          if (valuesSet.has(category)) result.push(category)
+        })
+        return result
+      },
+      name: "presentCategoriesForAttrRole"
+    })
+  }))
+  .views(self => ({
+    /**
+     * How many categories the role would render with no limit applied. This is the count the
+     * clamp in categoryArrayForAttrRole actually compares against, so it is the right basis for
+     * deciding whether a limit can change anything. It is 0 where the clamp never applies, so any
+     * positive limit is a no-op in those states.
+     */
+    unclampedCategoryCountForAttrRole(role: AttrRole) {
+      return self.presentCategoriesForAttrRole(role).length
+    }
+  }))
+  .views(self => ({
+    /**
+     * Normalizes a categories limit so that limits which cannot affect the result all compare
+     * equal (as undefined). A limit only matters when more categories are rendered than it allows.
+     * Axis code derives the limit from the axis length, so it changes roughly every 12 pixels of
+     * a component resize; comparing normalized values keeps those no-op changes from rebuilding
+     * the cell grid.
+     *
+     * This is used only for comparison. The raw limit is what gets stored, so the clamp stays
+     * correct when a higher-cardinality attribute is later assigned to the role.
+     */
+    effectiveCategoriesLimitForRole(role: AttrRole, limit: number | undefined) {
+      if (limit == null || !(limit > 0)) return undefined
+      if (limit >= self.unclampedCategoryCountForAttrRole(role)) return undefined
+      return limit
+    },
+    /**
      * @param role
      * @param emptyCategoryArray
      */
@@ -457,20 +502,14 @@ export const DataConfigurationModel = types
           categoryLimitForRole = self.numberOfCategoriesLimitByRole.get(role)
         if (valuesSet.size === 0) return emptyCategoryArray
 
-        let resultArray: string[] = []
-        // category set maintains the canonical order of categories
-        const allCategorySet = self.categorySetForAttrRole(role)
+        let resultArray: string[]
         // if we don't have a category set just return the values
-        if (!allCategorySet && valuesSet.size > 0) {
+        if (!self.categorySetForAttrRole(role)) {
           resultArray = Array.from(valuesSet)
         }
         else {
-          // return the categories in canonical order
-          allCategorySet?.values.forEach(category => {
-            if (valuesSet.has(category)) {
-              resultArray.push(category)
-            }
-          })
+          // copied, because the clamp below truncates it in place
+          resultArray = self.presentCategoriesForAttrRole(role).slice()
           if (categoryLimitForRole && resultArray.length > categoryLimitForRole) {
             resultArray.length = categoryLimitForRole
             resultArray[categoryLimitForRole - 1] = kOther
@@ -1029,6 +1068,7 @@ export const DataConfigurationModel = types
       self.valuesForAttrRole.invalidateAll()
       self.numericValuesForAttribute.invalidateAll()
       self.categoryArrayForAttrRole.invalidateAll()
+      self.presentCategoriesForAttrRole.invalidateAll()
       self.caseIdsForCategory.invalidateAll()
       self.allCasesForCategoryAreSelected.invalidateAll()
       self.getCaseDataArray.invalidateAll()
@@ -1184,11 +1224,13 @@ export const DataConfigurationModel = types
       const categorySet = self.categorySetForAttrRole('legend')
       categorySet?.setShapeForCategory(cat, shape)
     },
+    // Stores the limit without invalidating anything derived from it, for a caller that has already
+    // decided whether the change affects any result (see effectiveCategoriesLimitForRole).
+    storeNumberOfCategoriesLimitForRole(role: AttrRole, limit: number | undefined) {
+      self.numberOfCategoriesLimitByRole.set(role, limit != null && limit > 0 ? limit : undefined)
+    },
     setNumberOfCategoriesLimitForRole(role: AttrRole, limit: number | undefined) {
-      if (limit !== undefined && limit <= 0) {
-        limit = undefined
-      }
-      self.numberOfCategoriesLimitByRole.set(role, limit)
+      this.storeNumberOfCategoriesLimitForRole(role, limit)
       self.categoryArrayForAttrRole.invalidate(role)
     },
   }))
