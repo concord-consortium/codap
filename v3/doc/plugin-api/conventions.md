@@ -124,6 +124,12 @@ The exception is genuinely shared narrative — request coalescing, undo/redo, e
 - Show the response too when its shape is not obvious.
 - Type and default information belongs in the **Values** property table, not in a comment inside
   an example.
+- **JavaScript examples must not assume a helper library.** This reference documents the API, not
+  any particular client. Write `sendRequest(...)` with a comment saying it stands for however the
+  plugin sends requests, and show receiving notifications through a `requestHandler(command,
+  callback)` — the iframe-phone shape CODAP actually delivers to. Do not write
+  `codapInterface.sendRequest`: that is a separate helper this reference does not document, and
+  an example that assumes it is wrong for anyone not using it.
 
 ---
 
@@ -143,7 +149,8 @@ The exception is genuinely shared narrative — request coalescing, undo/redo, e
   `interactiveFrame` → `resources/interactive-frame.md`.
 - A resource and its list variant share one page, named for the primary resource: `adornment`
   and `adornmentList` are both documented in `resources/adornment.md`. Give the list variant its
-  own section, and list it in the index table pointing at that page.
+  own section, and list it in the index table pointing at that page. On a shared page the
+  **Supported actions** table gains a column per resource rather than a single Supported column.
 
 ---
 
