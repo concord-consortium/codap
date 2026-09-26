@@ -1,5 +1,5 @@
 import { comparer, reaction } from "mobx"
-import { addDisposer, Instance, SnapshotIn, types} from "mobx-state-tree"
+import { addDisposer, Instance, isAlive, SnapshotIn, types} from "mobx-state-tree"
 import { IDataSet } from "../../models/data/data-set"
 import { GlobalValue } from "../../models/global/global-value"
 import { getGlobalValueManager } from "../../models/global/global-value-manager"
@@ -8,6 +8,7 @@ import { getAllTileDataSets } from "../../models/shared/shared-data-tile-utils"
 import { getDataSetFromId, getSharedDataSetFromDataSetId } from "../../models/shared/shared-data-utils"
 import { ISharedModel } from "../../models/shared/shared-model"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
+import { getTileModel } from "../../models/tiles/tile-model"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { DateUnit, dateUnits, determineLevels, unitsStringToMilliseconds } from "../../utilities/date-utils"
 import { AxisPlace } from "../axis/axis-types"
@@ -25,6 +26,14 @@ import {
   kDefaultRangeFraction, kDefaultSliderAxisMax, kDefaultSliderAxisMin, kDefaultSliderScaleType, kDefaultSliderType,
   SliderScaleTypes, SliderType, SliderTypes
 } from "./slider-types"
+
+function areSetsEqual<T>(a: ReadonlySet<T>, b: ReadonlySet<T>) {
+  if (a.size !== b.size) return false
+  for (const item of a) {
+    if (!b.has(item)) return false
+  }
+  return true
+}
 
 export const SliderModel = TileContentModel
   .named("SliderModel")
@@ -92,20 +101,28 @@ export const SliderModel = TileContentModel
     get attribute() {
       return self.attributeId ? this.dataSet?.getAttribute(self.attributeId) : undefined
     },
+    // The bound attribute's numeric values (epoch seconds for dates) for the cases that aren't set aside or
+    // filtered out by the filter formula. Cases hidden by sliders are included, so that the slider's own
+    // hiding doesn't narrow what it hides, snaps to, or plays through.
+    get attributeValues(): Array<{ itemId: string, value?: number | null }> {
+      const dataSet = this.dataSet
+      const attr = this.attribute
+      if (!dataSet || !attr) return []
+      // attribute values live in a volatile array; changeCount is what signals that they changed
+      void attr.changeCount
+      return dataSet.itemIdsIgnoringSliderFilters.map(itemId =>
+        ({ itemId, value: dataDisplayGetNumericValue(dataSet, itemId, attr.id) }))
+    },
     get isRangeSlider() {
       return self.sliderType !== "variable"
     },
     get width() {
       return self.dynamicRangeWidth ?? self.rangeWidth ?? 0
     },
-    // sorted distinct values of the bound attribute over the visible cases, for zero-width snapping
+    // sorted distinct values of the bound attribute (see attributeValues), for zero-width snapping
     get snapValues(): number[] {
-      const dataSet = this.dataSet
-      const attrId = self.attributeId
-      if (!dataSet || !attrId) return []
       const values = new Set<number>()
-      dataSet.itemIds.forEach(itemId => {
-        const value = dataDisplayGetNumericValue(dataSet, itemId, attrId)
+      this.attributeValues.forEach(({ value }) => {
         if (value != null && isFinite(value)) values.add(value)
       })
       return Array.from(values).sort((a, b) => a - b)
@@ -142,6 +159,21 @@ export const SliderModel = TileContentModel
     }
   }))
   .views(self => ({
+    // The cases a visibility slider hides: those whose value is missing or outside the inclusive range.
+    // The tolerance keeps a case at either end when floating point leaves the bound a hair inside it.
+    get sliderHiddenItemIds(): ReadonlySet<string> {
+      const low = self.rangeLow
+      const high = self.rangeHigh
+      const lowTolerance = 8 * Number.EPSILON * Math.max(1, Math.abs(low))
+      const highTolerance = 8 * Number.EPSILON * Math.max(1, Math.abs(high))
+      const hidden = new Set<string>()
+      self.attributeValues.forEach(({ itemId, value }) => {
+        if (value == null || !isFinite(value) || value < low - lowTolerance || value > high + highTolerance) {
+          hidden.add(itemId)
+        }
+      })
+      return hidden
+    },
     constrainValue(value: number) {
       if (self.isRangeSlider) {
         const [min, max] = self.valueDomain
@@ -205,9 +237,14 @@ export const SliderModel = TileContentModel
     },
     // axis bounds for configuring from the attribute, or undefined if it can't configure a slider
     configurationExtent(dataSet: IDataSet, attrId: string): Maybe<[number, number]> {
-      const attrType = dataSet.getAttribute(attrId)?.type
+      const attribute = dataSet.getAttribute(attrId)
+      const attrType = attribute?.type
       if (attrType !== "numeric" && attrType !== "date") return
-      const extent = dataDisplayGetNumericExtent(dataSet, attrId)
+      // A formula attribute's values can depend on which cases are visible (caseIndex, aggregates, prev/next)
+      // and aren't computed for hidden cases, so a range slider can't judge cases by them yet.
+      if (attribute?.hasFormula) return
+      // over the cases the slider's own hiding excludes too, so re-binding sees the attribute's full extent
+      const extent = dataDisplayGetNumericExtent(dataSet, attrId, dataSet.itemIdsIgnoringSliderFilters)
       if (!extent) return
       const [min, max] = extent
       if (min < max) return extent
@@ -338,6 +375,41 @@ export const SliderModel = TileContentModel
           sharedDataSet && sharedModelManager.addTileSharedModel(self, sharedDataSet)
         }, { name: "SliderModel [dataSetId]", fireImmediately: true }
       ))
+      // A bound visibility slider hides the cases outside its range; anything else clears its filter. The
+      // filter is volatile, so it's recomputed rather than saved, and it never becomes a history entry.
+      let filteredDataSet: IDataSet | undefined
+      const sliderTileId = getTileModel(self)?.id
+      const clearFilter = () => {
+        if (sliderTileId && filteredDataSet && isAlive(filteredDataSet)) {
+          filteredDataSet.clearSliderFilter(sliderTileId)
+        }
+        filteredDataSet = undefined
+      }
+      addDisposer(self, reaction(
+        () => {
+          const dataSet = self.dataSet
+          // not while the attribute has a formula (see configurationExtent), e.g. one added after binding
+          const applies = self.sliderType === "visibility" && !!dataSet && !!self.attribute &&
+                          !self.attribute.hasFormula
+          const hidden = applies ? self.sliderHiddenItemIds : undefined
+          return { dataSet, hidden }
+        },
+        ({ dataSet, hidden }) => {
+          if (filteredDataSet !== dataSet) clearFilter()
+          if (sliderTileId && dataSet && hidden) {
+            // skip a change that hides the same cases, which would regroup the whole dataset for nothing
+            const current = dataSet.sliderFilteredOutItemIds.get(sliderTileId)
+            if (!current || !areSetsEqual(current, hidden)) {
+              dataSet.setSliderFilter(sliderTileId, hidden)
+            }
+            filteredDataSet = dataSet
+          }
+          else {
+            clearFilter()
+          }
+        }, { name: "SliderModel [visibility filter]", fireImmediately: true }
+      ))
+      addDisposer(self, clearFilter)
     },
     destroyGlobalValue() {
       // the underlying global value should be removed when the slider model is destroyed

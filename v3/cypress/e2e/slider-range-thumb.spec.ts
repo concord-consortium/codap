@@ -1,3 +1,4 @@
+import { ComponentElements as c } from "../support/elements/component-elements"
 import { SliderTileElements as slider } from "../support/elements/slider-tile"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 
@@ -120,5 +121,18 @@ context("Slider range thumb", () => {
     })
     toolbar.getUndoTool().click()
     slider.getRangeLowInput().should("have.value", "2")
+  })
+
+  it("hides the cases outside the range in the table, and restores them when the slider is closed", () => {
+    setupRangeSlider()
+    // Sleep's range starts at [2, 3.8]: only the mammals that sleep 2 to 3.8 hours remain, and the
+    // collection title counts the rest as hidden, e.g. "Cases (4 cases, 23 hidden)"
+    cy.get(".codap-case-table .collection-title-preview").invoke("text").should(text => {
+      const [, shown, hidden] = text.match(/\((\d+) cases?, (\d+) hidden\)/) ?? []
+      expect(Number(shown)).to.be.greaterThan(0)
+      expect(Number(shown) + Number(hidden)).to.equal(27)
+    })
+    c.closeComponent("slider")
+    cy.get(".codap-case-table").contains("(27 cases)")
   })
 })
