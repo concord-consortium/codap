@@ -33,6 +33,15 @@ describe("isSliderAttributeDropAllowed", () => {
     expect(isSliderAttributeDropAllowed(slider, dataSet, empty.id)).toBe(false)
   })
 
+  it("rejects an attribute that has a formula", async () => {
+    featureFlagManager.setServerConfig({ visibilitySlider: "on" })
+    const { dataSet, slider } = await setupSliderAndData()
+    const idx = dataSet.addAttribute({ name: "idx", formula: { display: "caseIndex" } })
+    // give it values (formulas aren't evaluated in this setup), so only the formula can reject it
+    dataSet.setCaseValues(dataSet.itemIds.map((__id__, i) => ({ __id__, [idx.id]: i + 1 })))
+    expect(isSliderAttributeDropAllowed(slider, dataSet, idx.id)).toBe(false)
+  })
+
   it("gates a drop onto a selection slider on selectionSlider", async () => {
     featureFlagManager.setServerConfig({ visibilitySlider: "on" })
     const { dataSet, slider } = await setupSliderAndData()
