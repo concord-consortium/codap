@@ -1151,6 +1151,12 @@ export const DataConfigurationModel = types
         }
         this.invalidateCases()
       }
+      // A visibility slider changes the hidden cases on every drag and playback step, so points/bars
+      // update instantly rather than restarting a transition each step (they'd fade out and back in).
+      // The dataset invalidates its own cases for these, which we observe reactively.
+      if (["setSliderFilter", "clearSliderFilter"].includes(actionCall.name)) {
+        self.suppressAnimation = true
+      }
       // forward all actions from dataset except "setCaseValues" which requires intervention
       if (actionCall.name === "setCaseValues") return
       self.handlers.forEach(handler => handler(actionCall))
