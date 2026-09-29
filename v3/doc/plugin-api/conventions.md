@@ -8,8 +8,8 @@ These conventions exist to satisfy three constraints at once:
 1. **One page is one complete answer.** Someone arriving to use `adornment` should not have to
    read three other pages first.
 2. **Parts of each page are generated.** A resource's supported actions, selector patterns and
-   property table are derived from `v3/src/data-interactive/`, so they must sit in blocks a tool
-   can rewrite without touching hand-written prose.
+   property table are derived from `src/data-interactive/`, so they must sit in blocks a tool can
+   rewrite without touching hand-written prose.
 3. **The pages are read by models as well as people.** Exact names, complete examples and
    explicit tables serve both.
 
@@ -18,7 +18,7 @@ These conventions exist to satisfy three constraints at once:
 ## Folder layout
 
 ```
-v3/doc/plugin-api/
+doc/plugin-api/            (currently under v3/, moving with it)
   README.md           index: terminology, request envelope, selector rules, resource table
   conventions.md      this page
   resources/          one page per resource                          (filling in: Phases 2-3)
@@ -33,8 +33,10 @@ than per-resource pages, because plugin authors arrive at it asking "what does C
 rather than "what does this resource send?".
 
 Whole-folder rule: everything here is **external-facing** reference for plugin authors. The rest
-of `v3/doc/` is internal design documentation for CODAP developers. Keep the two separate — the
-audiences and the tolerance for implementation detail differ.
+of the enclosing `doc/` folder is internal design documentation for CODAP developers. Keep the two
+separate — the audiences and the tolerance for implementation detail differ. In particular, do not
+cite internal issue-tracker ids on these pages: a plugin author cannot open them. Say "a known
+limitation" and describe it.
 
 ---
 
@@ -92,8 +94,12 @@ Rules:
 
 - **Never hand-edit inside the markers.** Fix the extractor or the code instead; a hand edit will
   be silently overwritten.
-- **Never put prose inside the markers.** Explanation goes immediately before or after the block,
-  where it survives regeneration.
+- **Never put prose inside the markers** — and read this strictly. A generated block holds only
+  what the extractor can derive from source: names, types, action support, selector patterns,
+  error strings and their conditions. Anything requiring judgement — why a property is useful,
+  what a value is good for, how two failure causes differ — goes immediately before or after the
+  block. If it is inside the markers and not derivable, the generator will silently delete it.
+  When in doubt, ask whether a script reading `src/data-interactive/` could produce the cell.
 - Current block names: `actions`, `selectors`, `values`, `errors`.
 - A page written before the generator exists still uses the markers, with the content written by
   hand. That is the point — the generator takes over later with no restructuring.
@@ -105,9 +111,9 @@ Rules:
 Each resource page **restates** the selector patterns that apply to it and the default
 data-context rule, rather than linking back to a shared page.
 
-This is deliberate and it is not an accident of drafting. A reader who arrives at one page has a
-complete answer, and a retrieved fragment carries the rules needed to use what it describes. The
-cost is duplication that the generator maintains anyway.
+This is deliberate. A reader who arrives at one page has a complete answer, and a retrieved
+fragment carries the rules needed to use what it describes. The cost is duplication that the
+generator maintains anyway.
 
 The exception is genuinely shared narrative — request coalescing, undo/redo, embedded-server mode
 — which lives in its own chapter and is linked, not restated.

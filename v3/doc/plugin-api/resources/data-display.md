@@ -52,10 +52,14 @@ apply to it. Naming a `dataContext` in the selector has no effect.
 The result carries one property:
 
 <!-- BEGIN GENERATED: values -->
-| Property | Type | Notes |
-|---|---|---|
-| `exportDataUri` | String | A PNG image encoded as a `data:` URI, produced by `canvas.toDataURL("image/png")`. Suitable for an `<img src>` or for decoding to binary. |
+| Property | Type |
+|---|---|
+| `exportDataUri` | String |
 <!-- END GENERATED: values -->
+
+`exportDataUri` is a PNG encoded as a `data:` URI, produced by `canvas.toDataURL("image/png")`.
+It can be assigned straight to an `<img src>`, or decoded to binary if the plugin needs the
+bytes.
 
 ## Examples
 
@@ -94,6 +98,16 @@ codapInterface.sendRequest({
 })
 ```
 
+## Known limitations
+
+**The image may not match the graph on screen.** `dataDisplay` renders through the same snapshot
+path as the graph's own PNG export. Several adornments draw their text — equations, plotted
+values, counts — as HTML, which cannot go into a PNG directly, so the export re-creates it as SVG
+text through a converter that supports only a subset of the original styling. The text is
+present, but it may not be styled as it appears on screen. This is a known limitation and is
+expected to improve; a plugin embedding the image in a report should not assume pixel fidelity
+for adornment labels.
+
 ## Notifications
 
 This resource emits none. CODAP does not notify plugins when a display re-renders; request a
@@ -102,19 +116,21 @@ fresh `dataDisplay` when you need a current image.
 ## Errors
 
 <!-- BEGIN GENERATED: errors -->
-| Error | Condition |
-|---|---|
-| `Component not found` | The selector matched no component in the document. |
-| `DataDisplay not found` | The component exists but no image could be produced — either its type has no data display handler registered (any component other than a graph), or rendering failed. |
+| Error |
+|---|
+| `Component not found` |
+| `DataDisplay not found` |
 <!-- END GENERATED: errors -->
 
-> **Note on the failure response shape.** For `Component not found`, the response is the usual
-> `{success: false, values: {error: "Component not found"}}`. The `DataDisplay not found` path
-> differs: `data-display-handler.ts:29` assigns the whole error *result object* to `values.error`
-> rather than the error string, and when no handler is registered for the component's type
-> `success` is `undefined` rather than `false`. So the response is shaped
-> `{"success": undefined, "values": {"error": {"success": false, "values": {"error": "DataDisplay not found"}}}}`.
-> This looks unintended — every other handler returns `errorResult()` directly — but it is what
-> v3 does today, so test for `result.success` being truthy rather than comparing it to `false`,
-> and do not assume `values.error` is a string. Documented here as observed behavior; not yet
-> filed as a bug.
+`Component not found` means the selector matched nothing in the document.
+
+`DataDisplay not found` has two causes worth distinguishing: the component's type has no data
+display handler registered — which is every component other than a graph — or the graph handler
+ran and could not produce an image.
+
+> **Known bug in the failure response — do not code against it.** `Component not found` returns
+> the normal shape, `{success: false, values: {error: "Component not found"}}`. The
+> `DataDisplay not found` path currently does not: `values.error` holds a nested result object
+> instead of the error string, and `success` can be `undefined` rather than `false`. **This will
+> be corrected to the normal shape.** Write `if (!result.success)` — a truthiness test that keeps
+> working either way — and read the message from `values.error` only once this note is gone.

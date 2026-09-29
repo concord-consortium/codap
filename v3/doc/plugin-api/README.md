@@ -13,7 +13,7 @@ page rather than a section of a 4,000-line document. Until that finishes:
 
 - The [resource table](#resources) below says where each resource is documented.
 - Pages here are current for v3. The wiki remains accurate for everything not yet moved,
-  including the corrections made in CODAP-1536.
+  including the round of corrections already made to it.
 - When migration completes, the wiki page will be frozen as the **CODAP v2** reference.
 
 ---
@@ -27,8 +27,8 @@ The wiki page used these interchangeably. This reference does not — use the ca
 | **plugin** | data interactive, DI, interactive | The iframe'd application talking to CODAP. "Data interactive" is the older term and survives in API names like `interactiveFrame`. |
 | **data context** | data set, dataContext | The container for a set of related cases. `dataContext` is the API spelling; "data set" is the UI term for the same thing. |
 | **collection** | — | A level in a data context's hierarchy. A data context has one or more. |
-| **attribute** | column, field | A typed property of a case. |
-| **case** | row | A grouping of items at one collection level. Cases live on collections, not on the data context. |
+| **attribute** | column, field | A property of a case. May carry an explicit `type`; if it does not, CODAP infers one — numeric, date, color, boundary or categorical — from the attribute's current values, and the inferred type can change as those values change. |
+| **case** | row | A grouping of items at one collection level. Each case is *in* exactly one collection. |
 | **item** | — | A flat row of values, and the source of truth — cases are constructed by grouping items. A case in the child-most collection corresponds one-to-one with an item, **but the two still have different ids**, so `caseByID` and `itemByID` are not interchangeable. See [`../hierarchical-data.md`](../hierarchical-data.md). |
 | **component** | tile | A thing in the CODAP workspace — a graph, table, map, slider, or a plugin itself. |
 | **resource** | — | The thing a request addresses, named by the `resource` field. |
@@ -57,9 +57,21 @@ Every request a plugin sends has the same envelope:
 }
 ```
 
-**IDs are numbers.** Everywhere this API accepts or returns an `id`, the value is a number. CODAP
-v3 uses prefixed strings internally (`ATTR...`, `DATA...`), but those never cross the API
-boundary. A request built with a v3 internal string id will not resolve.
+**Treat ids as opaque, and pass back exactly what CODAP gave you.**
+
+Most ids in this API are numbers — attributes, cases, collections, components, items. CODAP v3
+uses prefixed strings internally (`ATTR...`, `DATA...`) and converts them at the boundary, so
+constructing a request from a v3 internal string id will not resolve.
+
+Some resources are exceptions and return their internal string id directly:
+
+| Resource | Id it returns |
+|---|---|
+| `adornment`, `adornmentList` | The adornment's `ADRN...` string. The selector matches on it, so round-tripping works. |
+| `logMessageMonitor` | `clientId` is the requesting plugin's frame id, a v3 tile id string. |
+
+This is why "pass back what you were given" is the reliable rule: it holds for both cases,
+whereas "ids are numbers" does not. Do not parse an id, construct one, or assume its type.
 
 ---
 
@@ -146,7 +158,8 @@ coalescing, undo/redo, locale — live in **[`guides/`](guides/README.md)**, whi
 internal design documents to consult until those chapters are written.
 
 The catalog of notifications CODAP sends to plugins will live in `notifications.md`, arriving
-with Phase 4 (CODAP-1539). Until then it is the "CODAP-Initiated Actions" half of the
+with Phase 4 of the [plan](../plugin-api-doc-update-plan.md). Until then it is the
+"CODAP-Initiated Actions" half of the
 [wiki page](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-Plugin-API).
 
 ---
