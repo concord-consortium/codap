@@ -22,18 +22,19 @@ one that was shown and then hidden succeeds and reports `isVisible: false`.
 | Action | adornment | adornmentList |
 |---|---|---|
 | `get` | ✓ | ✓ |
-| `create` | ✓ (some types) | — |
-| `update` | ✓ (some types) | — |
-| `delete` | ✓ (all types) | — |
+| `create` | ✓ | — |
+| `update` | ✓ | — |
+| `delete` | ✓ | — |
 | `notify` | — | — |
 | `register` | — | — |
 | `unregister` | — | — |
 <!-- END GENERATED: actions -->
 
-**`create` and `update` are supported for only some adornment types**, which is the single most
-common surprise with this resource. See [Adornment types](#adornment-types) for the per-type
-table. `delete` works for every type: when a type has no delete handler CODAP falls back to
-hiding the adornment, which is why it never removes it from the store.
+**`create` and `update` work for only some adornment types** — a common surprise with this
+resource, since the table above says only that the resource accepts those actions. See
+[Adornment types](#adornment-types) for what each type supports. `delete` works for every type:
+when a type has no delete handler CODAP falls back to hiding the adornment, which is why it
+never removes it from the store.
 
 ## Resource selector patterns
 
@@ -51,8 +52,10 @@ adornment's `type` string or its `id`.
 For `create`, `update` and `delete` the type goes in `values.type` rather than in the selector,
 because those requests carry a values object anyway.
 
+<!-- BEGIN GENERATED: scope -->
 This resource is **not** scoped to a data context, so the default-data-context rule does not
 apply. Naming a `dataContext` in the selector has no effect.
+<!-- END GENERATED: scope -->
 
 ### Type names and aliases
 
@@ -68,7 +71,7 @@ everywhere a type is:
 Fifteen types register a handler. `create` and `update` need a type-specific handler; `delete`
 falls back to hiding, so it works everywhere.
 
-<!-- BEGIN GENERATED: values -->
+<!-- BEGIN GENERATED: adornment-types -->
 | Type | get | create | update | delete |
 |---|---|---|---|---|
 | `Count` (alias `Percent`) | ✓ | ✓ | ✓ | ✓ |
@@ -86,7 +89,7 @@ falls back to hiding, so it works everywhere.
 | `Normal Curve` | ✓ | — | — | hides |
 | `Plotted Function` | ✓ | — | — | hides |
 | `Standard Error` | ✓ | — | — | hides |
-<!-- END GENERATED: values -->
+<!-- END GENERATED: adornment-types -->
 
 The seven read-only types **cannot be turned on through the API** — `create` and `update` both
 return `The <type> adornment does not currently support <action> requests.` A plugin can read
@@ -94,23 +97,43 @@ them once the user has enabled them in the graph's inspector, and can hide them 
 but cannot display them in the first place. This is a known gap rather than a deliberate
 limitation; the table above changes when it is closed.
 
+"hides" in the table means `delete` succeeds by hiding rather than removing. It does **not** mean
+`delete` always succeeds: deleting a type the graph has never shown returns `Adornment not
+found.`, because there is nothing in the store to hide.
+
 ## Values
 
 ### get
 
 Returns the adornment's identity plus type-specific measure data:
 
-| Property | Type | Notes |
-|---|---|---|
-| `id` | String | The adornment's id. |
-| `type` | String | The canonical type string, not the alias you asked with. |
-| `isVisible` | Boolean | `false` for an adornment that was shown and later hidden. |
-| `data` | Array | Type-specific. One entry per graph cell — a graph split by categorical attributes has one per subplot, each carrying a `categories` object identifying it. |
+<!-- BEGIN GENERATED: values -->
+| Property | Type |
+|---|---|
+| `id` | String |
+| `type` | String |
+| `isVisible` | Boolean |
+| `data` | Array |
+<!-- END GENERATED: values -->
 
-What `data` contains depends on the type. A `Box Plot` entry carries `median`, `lowerQuartile`,
-`upperQuartile`, `interquartileRange`, `lower` and `upper`; a `Mean` entry carries the mean
-value. Read the type's handler under
-`src/components/graph/adornments/` for the exact shape — these are not yet catalogued here.
+`id` is the adornment's identifier — note that this is a **string**, one of the exceptions to the
+usual numeric ids described in [the index](../README.md#request-shape). `type` is the canonical
+type string, not whichever alias you asked with. `isVisible` is `false` for an adornment that was
+shown and later hidden.
+
+`data` holds one entry per graph cell: a graph split by categorical attributes has one entry per
+subplot, each carrying a `categories` object identifying which. **Most types share one shape** —
+every type built on the univariate-measure base (`Mean`, `Median`, `Standard Deviation`) returns:
+
+```json
+{ "data": [{ "mean": 12.5 }] }
+```
+
+where the key is the measure's own name. `Box Plot` is the main exception: each entry carries
+`median`, `lowerQuartile`, `upperQuartile`, `interquartileRange`, `lower` and `upper`, and the
+result also carries top-level `showICI` and `showOutliers` alongside `data`. For other types,
+read the handler under `src/components/graph/adornments/` — the full per-type catalogue is not
+yet here.
 
 ### create, update, delete
 
@@ -147,8 +170,12 @@ page does not yet cover.
 ```
 
 Note that `Count` and `Percent` are reported as separate entries sharing one `id`, each with its
-own visibility, and that the list is **filtered by the graph's current plot type** — an adornment
-in the store that the current plot cannot display is omitted.
+own visibility.
+
+The list is **filtered by the graph's current plot type** — an adornment in the store that the
+current plot cannot display is omitted. `Count` and `Percent` are the exception: they bypass that
+check and are always listed when a Count adornment exists, whether or not the current plot type
+can display them.
 
 **Read a specific adornment.**
 
@@ -194,14 +221,27 @@ the
 ## Errors
 
 <!-- BEGIN GENERATED: errors -->
+| Error |
+|---|
+| `Unsupported component type <type>` |
+| `Adornment not found.` |
+| `Adornment list not found.` |
+| `Unsupported adornment type` |
+| `The <type> adornment does not currently support <action> requests.` |
+| `Not a(n) <type> adornment.` |
+| `Adornment not supported by plot type.` |
+| `The current plot type does not support Percent.` |
+| `A values object is required for this request.` |
+<!-- END GENERATED: errors -->
+
 | Error | Condition |
 |---|---|
-| `Unsupported component type %@` | The selector named a component that is not a graph. |
-| `Adornment not found.` | `get` or `update` for a type the graph has never displayed, or an id that matches nothing. |
+| `Unsupported component type <type>` | The selector named a component that is not a graph. |
+| `Adornment not found.` | `get`, `update` or `delete` for a type the graph has never displayed, or an id that matches nothing. |
 | `Adornment list not found.` | `adornmentList` on a component whose adornment list could not be resolved. |
 | `Unsupported adornment type` | The adornment exists but has no registered handler. |
-| `The %@1 adornment does not currently support %@2 requests.` | `create` or `update` for one of the read-only types above. |
-| `Not a(n) %@1 adornment.` | Internal type mismatch between the resolved adornment and its handler. |
+| `The <type> adornment does not currently support <action> requests.` | `create` or `update` for one of the read-only types above. |
+| `Not a(n) <type> adornment.` | Internal type mismatch between the resolved adornment and its handler. |
 | `Adornment not supported by plot type.` | The adornment cannot be displayed by the graph's current plot type. |
+| `The current plot type does not support Percent.` | `create` with `type: "Percent"` on a plot that cannot show percentages. |
 | `A values object is required for this request.` | `create`, `update` or `delete` sent without `values`, or without `values.type`. |
-<!-- END GENERATED: errors -->

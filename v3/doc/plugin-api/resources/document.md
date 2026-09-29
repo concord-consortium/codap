@@ -8,8 +8,7 @@ component and global value in one payload. Used by plugins that save, restore or
 documents rather than individual pieces of them.
 
 **Neither action returns the document in its response.** Both reply `{"success": true}`
-immediately and do their work afterwards, delivering results as notifications. This is the most
-important thing to know about this resource, and the rest of this page is mostly about it.
+immediately and do their work afterwards, delivering results as notifications.
 
 ## Supported actions
 
@@ -33,8 +32,12 @@ important thing to know about this resource, and the rest of this page is mostly
 | `document` | get, update |
 <!-- END GENERATED: selectors -->
 
-No bracketed selector — there is one document. This resource is **not** scoped to a data context,
-so the default-data-context rule does not apply.
+No bracketed selector — there is one document.
+
+<!-- BEGIN GENERATED: scope -->
+This resource is **not** scoped to a data context, so the default-data-context rule does not
+apply.
+<!-- END GENERATED: scope -->
 
 ## get — subscribing to document state
 
@@ -81,14 +84,19 @@ The work is bracketed by two notifications on the `documentChangeNotice` resourc
 { "action": "notify", "resource": "documentChangeNotice", "values": { "operation": "updateDocumentEnded" } }
 ```
 
-These go **only to the plugin that issued the update**, not to other plugins and not to an
-embedded-mode parent. Treat them as your own progress signal: the document is not replaced when
-the `success` response arrives, only when `updateDocumentEnded` does.
+These go **only to the plugin that issued the update** when a plugin made the request. Treat them
+as your own progress signal: the document is not replaced when the `success` response arrives,
+only when `updateDocumentEnded` does.
 
-Replacing the document destroys and rebuilds the component and data-context models. CODAP matches
-incoming models to existing ones by the ids inside them — data set ids and tile ids — so that
-applying a snapshot updates existing instances rather than creating duplicates. A plugin holding
-ids from before the update should re-read them afterwards rather than assume they survived.
+**Your own state is not restored from the document you send.** Before applying the incoming
+snapshot, CODAP replaces the incoming state of every plugin with `subscribeToDocuments: true`
+with that plugin's *current* state. This is deliberate — it stops a plugin that saved a document
+from overwriting itself when it restores one — but it means the copy of your state inside the
+document you pass to `update` is ignored. Restore your own state yourself.
+
+Replacing the document destroys and rebuilds models, and not everything is preserved across the
+change. **A plugin holding ids from before an update should re-read them afterwards rather than
+assume they survived.**
 
 ## Values
 
@@ -155,8 +163,11 @@ sendRequest({ action: 'update', resource: 'document', values: savedState })
 | Resource | Operation | When |
 |---|---|---|
 | `document` | `newDocumentState` | After `get document`, to every plugin with `subscribeToDocuments: true`. Carries the document in `values.state`. |
-| `documentChangeNotice` | `updateDocumentBegun` | Before an `update document` begins. Sent only to the requesting plugin. |
-| `documentChangeNotice` | `updateDocumentEnded` | After it completes. Sent only to the requesting plugin. |
+| `documentChangeNotice` | `updateDocumentBegun` | Before an `update document` begins. When a plugin made the request, sent only to that plugin. |
+| `documentChangeNotice` | `updateDocumentEnded` | After it completes. Same targeting. |
+
+Targeting differs in embedded-server mode, where CODAP itself runs in a host page; that will be
+covered in the embedded-mode guide.
 
 CODAP v3 does **not** currently emit default `undo`/`redo` notifications on this resource, which
 CODAP v2 did. That is a known gap.
@@ -164,6 +175,13 @@ CODAP v2 did. That is a known gap.
 ## Errors
 
 This handler returns no error results of its own — both actions return `{"success": true}`
-unconditionally, before their work is attempted. A malformed document passed to `update` will
-fail during the asynchronous import, after you have already received a success response, and the
-failure is reported to the console rather than to the plugin.
+unconditionally, before their work is attempted. A malformed document passed to `update`
+therefore fails *after* you have received a success response, during the asynchronous import.
+
+`updateDocumentEnded` is the signal that an update finished, and it is sent whether the import
+succeeded or failed, so a plugin can wait on it rather than on a timeout.
+
+> **Known bug.** That is the intended behavior and what this page documents, but today an import
+> that throws does not send `updateDocumentEnded` at all — the failure is reported to the console
+> and the plugin is left waiting. This will be corrected. Until it is, a plugin restoring
+> documents it did not create may want a guard, but do not build a permanent timeout around it.

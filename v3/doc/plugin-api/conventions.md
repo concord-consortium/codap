@@ -67,6 +67,14 @@ predictable structure is most of what makes a reference usable.
 Sections may be omitted only when they genuinely do not apply — a read-only resource has no
 `create` values, for instance. Do not omit a section merely because it is brief.
 
+**Extra sections are allowed**, and several resources need them: a long-form explanation of one
+action (`## get — subscribing to document state`), a catalogue the standard sections cannot hold
+(`## Adornment types`), a caveat that is not an error (`## Known limitations`), or pointers
+(`## See also`). Place them so the required order still reads top to bottom: sections expanding
+on an action go after **Resource selector patterns** and before **Values**; `## Known
+limitations` goes after **Examples**; `## See also` goes last. Keep the required headings
+present and in order around them.
+
 ### Provenance header
 
 Every page opens with one, directly under the title:
@@ -104,7 +112,7 @@ Rules:
   the *condition* that produces an error, how two failure causes differ — goes immediately before
   or after the block. If it is inside the markers and not derivable, the generator will silently delete it.
   When in doubt, ask whether a script reading `src/data-interactive/` could produce the cell.
-- Current block names: `actions`, `selectors`, `values`, `errors`.
+- Current block names: `actions`, `selectors`, `scope`, `values`, `errors`.
 - A page written before the generator exists still uses the markers, with the content written by
   hand. That is the point — the generator takes over later with no restructuring.
 
@@ -116,8 +124,11 @@ Each resource page **restates** the selector patterns that apply to it and the d
 data-context rule, rather than linking back to a shared page.
 
 This is deliberate. A reader who arrives at one page has a complete answer, and a retrieved
-fragment carries the rules needed to use what it describes. The cost is duplication that the
-generator maintains anyway.
+fragment carries the rules needed to use what it describes.
+
+The duplication is owned by the generator, not by authors: the restated data-context rule lives
+in a `scope` generated block, so 38 copies stay consistent because one tool writes them all.
+Do not hand-edit it, and do not replace it with a link.
 
 The exception is genuinely shared narrative — request coalescing, undo/redo, embedded-server mode
 — which lives in its own chapter and is linked, not restated.
@@ -126,6 +137,10 @@ The exception is genuinely shared narrative — request coalescing, undo/redo, e
 
 ## Examples must be real
 
+- **Error strings are shown as a plugin receives them**, with `<type>`-style placeholders — not
+  CODAP's internal `%@` / `%@1` i18n notation, which means nothing to a plugin author. Note for
+  Phase 6: an extractor reading `en-US.json5` gets the `%@` form, so the generator needs a
+  substitution step to satisfy this rule.
 - Every ` ```json ` block must parse as JSON. No comments, no `/* {String} ... */` annotations, no
   ellipses. The old wiki page's object-shape blocks were none of these things, and plugin authors
   copied the annotations into real requests.

@@ -102,10 +102,11 @@ context explicitly.
 
 ## Resources
 
-All 38 resources CODAP v3 registers, alphabetically. Pages marked *this repo* are current
-for v3; the rest are still on the
+All 38 resources CODAP v3 registers, alphabetically. Pages marked *this repo* are current for
+v3. Most of the rest are on the
 [wiki page](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-Plugin-API),
-which remains accurate for them.
+which remains accurate for them; a few are marked *not yet documented*, meaning they appear
+neither here nor there.
 
 | Resource | Documented in |
 |---|---|
@@ -145,7 +146,7 @@ which remains accurate for them.
 | `logMessage` | wiki |
 | `logMessageMonitor` | wiki |
 | `selectionList` | wiki |
-| **[`tourElements`](resources/tour-elements.md)** | **this repo** |
+| `tourElements` | not yet documented |
 | `undoChangeNotice` | wiki |
 
 ---

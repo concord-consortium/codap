@@ -29,8 +29,10 @@ rather than with CODAP.
 | `unregister` | — |
 <!-- END GENERATED: actions -->
 
-`get` is **asynchronous** — CODAP waits on the platform's `initInteractive` message before
-replying, so the response can arrive noticeably later than for other resources.
+`get` is **asynchronous**, and there is no timeout: CODAP waits on the host platform's
+`initInteractive` message before replying. If the host never sends one, **the request never
+resolves and your callback is never called.** Impose your own timeout rather than assuming a
+reply will arrive.
 
 ## Resource selector patterns
 
@@ -40,8 +42,10 @@ replying, so the response can arrive noticeably later than for other resources.
 | `interactiveApi` | get |
 <!-- END GENERATED: selectors -->
 
+<!-- BEGIN GENERATED: scope -->
 This resource is **not** scoped to a data context, so the default-data-context rule does not
 apply.
+<!-- END GENERATED: scope -->
 
 ## Values
 
