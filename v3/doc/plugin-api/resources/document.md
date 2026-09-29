@@ -159,7 +159,7 @@ sendRequest({ action: 'update', resource: 'document', values: savedState })
 | `documentChangeNotice` | `updateDocumentEnded` | After it completes. Sent only to the requesting plugin. |
 
 CODAP v3 does **not** currently emit default `undo`/`redo` notifications on this resource, which
-CODAP v2 did. That gap is tracked as CODAP-1354.
+CODAP v2 did. That is a known gap.
 
 ## Errors
 
