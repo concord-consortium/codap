@@ -2,7 +2,7 @@ import { reaction } from "mobx"
 import {applyPatch, Instance, types} from "mobx-state-tree"
 import { DataSet, toCanonical } from "../../../models/data/data-set"
 import {DataSetMetadata} from "../../../models/shared/data-set-metadata"
-import { missingColor } from "../../../utilities/color-utils"
+import { defaultSelectedColor, defaultSelectedStroke, missingColor } from "../../../utilities/color-utils"
 import { kMain, kOther } from "../../data-display/data-display-types"
 import { matchCirclesToData } from "../../data-display/data-display-utils"
 import {GraphDataConfigurationModel, isGraphDataConfigurationModel} from "./graph-data-configuration-model"
@@ -536,6 +536,41 @@ describe("DataConfigurationModel", () => {
     expect(startAnimation).not.toHaveBeenCalled()
     expect(stopAnimation).toHaveBeenCalledTimes(1)
     expect(config.suppressAnimation).toBe(false)
+  })
+
+  it("matchCirclesToData gives the renderer each case's plot, legend and selection style", () => {
+    const config = tree.config
+    config.setDataset(tree.data, tree.metadata)
+    const renderer = { matchPointsToData: jest.fn() } as any
+    const props = {
+      dataConfiguration: config, renderer, pointRadius: 5, selectedPointRadius: 7, pointColor: "#default",
+      pointStrokeColor: "#000", getPointColorAtIndex: (index: number) => `#plot${index}`,
+      startAnimation: jest.fn(), stopAnimation: jest.fn(), instanceId: "test"
+    }
+    const caseID = caseIdFromItemId("c1")!
+    const caseData = { plotNum: 0, caseID, subPlotNum: 0 }
+    const getCasePointStyle = () => {
+      matchCirclesToData(props)
+      return renderer.matchPointsToData.mock.lastCall[4]
+    }
+
+    expect(getCasePointStyle()(caseData)).toMatchObject({ fill: "#default", radius: 5, stroke: "#000" })
+    expect(getCasePointStyle()({ ...caseData, plotNum: 1 }).fill).toBe("#plot1")
+
+    tree.data.setSelectedCases([caseID])
+    expect(getCasePointStyle()(caseData))
+      .toMatchObject({ fill: defaultSelectedColor, radius: 7, stroke: "#000" })
+
+    config.setAttribute("legend", { attributeID: "xId" })
+    const legendStyle = getCasePointStyle()(caseData)
+    // a legend colors a selected point by its case and marks the selection with its stroke
+    expect(legendStyle).toMatchObject({
+      fill: config.getLegendColorForCase(caseID), shape: config.getLegendShapeForCase(caseID),
+      radius: 7, stroke: defaultSelectedStroke
+    })
+    tree.data.setSelectedCases([])
+    expect(getCasePointStyle()(caseData))
+      .toMatchObject({ fill: config.getLegendColorForCase(caseID), radius: 5, stroke: "#000" })
   })
 
   it("only allows x and y as primary place", () => {

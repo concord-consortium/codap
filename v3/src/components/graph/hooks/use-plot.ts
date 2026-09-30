@@ -145,6 +145,8 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       matchCirclesToData({
         dataConfiguration,
         pointRadius: graphModel.getPointRadius(),
+        selectedPointRadius: graphModel.getPointRadius('select'),
+        getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex,
         pointColor: graphModel.pointDescription.pointColor,
         pointShape: graphModel.pointDescription.pointShape,
         pointDisplayType: graphModel.plot.displayType,

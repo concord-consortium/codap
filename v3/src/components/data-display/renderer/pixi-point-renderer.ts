@@ -18,6 +18,7 @@ import {
   pointShapeSymmetricExtent
 } from "./point-shapes"
 import {
+  GetCasePointStyle,
   IBackgroundEventDistributionOptions,
   IPoint,
   IPointMetadata,
@@ -439,7 +440,8 @@ export class PixiPointRenderer extends PointRendererBase {
     datasetID: string,
     caseData: CaseDataWithSubPlot[],
     displayType: PointDisplayType,
-    style: IPointStyle
+    style: IPointStyle,
+    getCasePointStyle?: GetCasePointStyle
   ): void {
     if (this.isDisposed) {
       console.warn("PixiPointRenderer.doMatchPointsToData: called after dispose, ignoring")
@@ -478,7 +480,7 @@ export class PixiPointRenderer extends PointRendererBase {
     }
 
     // Sync state with case data
-    const { added, removed } = this.state.syncWithCaseData(caseData, style)
+    const { added, removed } = this.state.syncWithCaseData(caseData, style, getCasePointStyle)
 
     // Remove sprites for removed points
     removed.forEach(pointId => {
@@ -519,28 +521,33 @@ export class PixiPointRenderer extends PointRendererBase {
     this._anchor = displayType === "points" ? circleAnchor :
                    displayType === "bars" ? hBarAnchor : circleAnchor
 
-    const texture = this.getPointTexture(style)
-
     // Create sprites for added points (skip any already created by syncFromState above)
     added.forEach(pointId => {
       if (!this.sprites.has(pointId)) {
-        const sprite = this.getNewSprite(pointId, texture, style)
+        const pointStyle = this.state.getPoint(pointId)?.style ?? style
+        const sprite = this.getNewSprite(pointId, this.getPointTexture(pointStyle), pointStyle)
         this.pointsContainer.addChild(sprite)
         this.sprites.set(pointId, sprite)
       }
     })
 
-    // Update existing sprites
-    this.sprites.forEach((sprite, pointId) => {
-      if (!added.includes(pointId)) {
-        if (sprite.texture !== texture) {
-          sprite.texture = texture
+    // With a per-case style, existing sprites keep their textures, which already show their case styles
+    // (see GetCasePointStyle); the refresh that follows a match restyles them. Restyling them here too
+    // would repeat the refresh's per-case work, which with tens of thousands of points slows every match.
+    if (!getCasePointStyle) {
+      const texture = this.getPointTexture(style)
+      const addedIds = new Set(added)
+      this.sprites.forEach((sprite, pointId) => {
+        if (!addedIds.has(pointId)) {
+          if (sprite.texture !== texture) {
+            sprite.texture = texture
+          }
+          // against the uniform style, which is the one that drew the texture just assigned -- a
+          // point's own stored style can still be the one it had under the previous display type
+          this.syncHitArea(sprite, style)
         }
-        // against the uniform style, which is the one that drew the texture just assigned -- a
-        // point's own stored style can still be the one it had under the previous display type
-        this.syncHitArea(sprite, style)
-      }
-    })
+      })
+    }
 
     // Apply masks
     this.applyMasks(caseData)
@@ -555,6 +562,7 @@ export class PixiPointRenderer extends PointRendererBase {
     const sprite = this.sprites.get(pointId)
     if (sprite) {
       this.setPointXyProperty("position", sprite, x, y)
+      sprite.visible = true
     }
   }
 
@@ -668,6 +676,7 @@ export class PixiPointRenderer extends PointRendererBase {
   ): void {
     const sprite = this.sprites.get(pointId)
     if (!sprite) return
+    sprite.visible = true
 
     if (this.displayTypeTransitionState.isActive) {
       this.transitionPointDisplayType(pointId, sprite, style, x, y)
@@ -834,6 +843,8 @@ export class PixiPointRenderer extends PointRendererBase {
 
   private getNewSprite(pointId: string, texture: PIXI.Texture, style: IPointStyle): PIXI.Sprite {
     const sprite = new PIXI.Sprite(texture)
+    // hidden until its point has a position (see IPointState.isPositioned)
+    sprite.visible = !!this.state.getPoint(pointId)?.isPositioned
     sprite.anchor.copyFrom(this._anchor)
     sprite.zIndex = DEFAULT_Z_INDEX
     this.syncHitArea(sprite, style)
