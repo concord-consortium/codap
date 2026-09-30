@@ -256,15 +256,34 @@ if (!check) {
 }
 
 // --- drift ------------------------------------------------------------------------------------
-for (const r of inventory.resources) if (!pageFor.has(r.name)) report.new.push(r.name)
+// Resources known to be undocumented while the migration is in progress. Without this baseline
+// the check would be red from the day it lands until Phase 3 finishes, and a permanently red
+// advisory check is worse than none — it trains people to ignore it. A resource that appears
+// here has been *decided about*; one that appears in NEW has not.
+const baselinePath = join(docsDir, "undocumented-baseline.txt")
+const baseline = new Set(
+  existsSync(baselinePath)
+    ? readFileSync(baselinePath, "utf8").split("\n").map(l => l.replace(/#.*/, "").trim()).filter(Boolean)
+    : []
+)
+const baselined = []
+for (const r of inventory.resources) {
+  if (pageFor.has(r.name)) continue
+  if (baseline.has(r.name)) baselined.push(r.name)
+  else report.new.push(r.name)
+}
 for (const [name] of pageFor) if (!inventory.resources.some(r => r.name === name)) report.removed.push(name)
+const staleBaseline = [...baseline].filter(n => pageFor.has(n) || !inventory.resources.some(r => r.name === n))
 
 const line = (label, arr) => console.error(`${label}: ${arr.length}${arr.length ? "\n  " + arr.join("\n  ") : ""}`)
 console.error(`Inventory: ${inventory.counts.resources} resources, verified against ${inventory.verifiedAgainst}`)
 console.error(`Documented: ${pageFor.size} resources across ${pages.length} pages`)
 line("CHANGED (blocks rewritten)", report.changed)
-line("NEW (in code, undocumented)", report.new)
+line("NEW (in code, undocumented, NOT baselined)", report.new)
+console.error(`Known undocumented (baselined): ${baselined.length}`)
+if (staleBaseline.length) line("STALE baseline entries (now documented or gone — remove them)", staleBaseline)
 line("REMOVED (documented, not in code)", report.removed)
 if (report.skipped.length) line("Hand-maintained (left alone)", report.skipped)
 
-if (check && (report.changed.length || report.new.length || report.removed.length)) process.exit(2)
+if (check && (report.changed.length || report.new.length || report.removed.length ||
+              staleBaseline.length)) process.exit(2)
