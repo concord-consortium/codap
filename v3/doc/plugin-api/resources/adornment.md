@@ -132,7 +132,7 @@ every type built on the univariate-measure base (`Mean`, `Median`, `Standard Dev
 where the key is the measure's own name. `Box Plot` is the main exception: each entry carries
 `median`, `lowerQuartile`, `upperQuartile`, `interquartileRange`, `lower` and `upper`, and the
 result also carries top-level `showICI` and `showOutliers` alongside `data`. For other types,
-read the handler under `src/components/graph/adornments/` — the full per-type catalogue is not
+read the handler under `src/components/graph/adornments/` — the full per-type catalog is not
 yet here.
 
 ### create, update, delete

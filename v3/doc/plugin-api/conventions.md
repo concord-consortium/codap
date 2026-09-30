@@ -68,7 +68,7 @@ Sections may be omitted only when they genuinely do not apply — a read-only re
 `create` values, for instance. Do not omit a section merely because it is brief.
 
 **Extra sections are allowed**, and several resources need them: a long-form explanation of one
-action (`## get — subscribing to document state`), a catalogue the standard sections cannot hold
+action (`## get — subscribing to document state`), a catalog the standard sections cannot hold
 (`## Adornment types`), a caveat that is not an error (`## Known limitations`), or pointers
 (`## See also`). Place them so the required order still reads top to bottom: sections expanding
 on an action go after **Resource selector patterns** and before **Values**; `## Known
