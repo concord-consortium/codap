@@ -47,6 +47,13 @@ $slider-attribute-label-space: $slider-attribute-label-height + 4px;
 
     &.focus-visible { outline: 2px solid vars.$focus-outline-color; outline-offset: 1px; }
   }
+
+  // a collapsed range's halves move it, like the body (shift-dragging a half widens it)
+  &.collapsed .slider-range-handle {
+    cursor: grab;
+
+    &:active { cursor: grabbing; }
+  }
 }
 
 // covers the whole slider so an attribute can be dropped anywhere on it
