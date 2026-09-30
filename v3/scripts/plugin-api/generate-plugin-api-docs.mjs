@@ -57,6 +57,8 @@ const tick = b => (b ? "✓" : "—")
 // A page declares the resources it covers in its `actions` block header, which names one
 // column per resource. That keeps the mapping in the page rather than in a side table.
 const pages = readdirSync(resourcesDir).filter(f => f.endsWith(".md")).sort()
+// Pages outside resources/ that also carry generated blocks.
+const extraPages = ["quick-reference.md"].filter(f => existsSync(join(docsDir, f)))
 const pageFor = new Map()   // resource name -> page filename
 for (const page of pages) {
   const text = readFileSync(join(resourcesDir, page), "utf8")
@@ -128,12 +130,63 @@ function renderValues(sourceName) {
   return ["| Property | Type | |", "|---|---|---|", ...rows].join("\n")
 }
 
+// --- the three compact tables from plan §4.2 -------------------------------------------------
+function renderResourceActions() {
+  const head = `| Resource | ${ACTIONS.map(a => `\`${a}\``).join(" | ")} |`
+  const rule = `|---|${ACTIONS.map(() => "---").join("|")}|`
+  const rows = inventory.resources.map(r =>
+    `| \`${r.name}\` | ${ACTIONS.map(a => tick(r.actions?.includes(a))).join(" | ")} |`)
+  return [head, rule, ...rows].join("\n")
+}
+
+function renderSelectorGrammar() {
+  const keys = inventory.selectorKeys.map(k => `\`${k}\``).join(", ")
+  const exempt = inventory.defaultContextExemptions.map(k => `\`${k}\``).join(", ")
+  return [
+    "A resource selector is a dot-separated chain of segments. Each segment is a key, optionally",
+    "followed by a name or id in square brackets:",
+    "",
+    "```",
+    "selector  := segment ( \".\" segment )*",
+    "segment   := key ( \"[\" nameOrId \"]\" )?",
+    "nameOrId  := a name, a title, or a numeric id — or #default for a data context",
+    "```",
+    "",
+    `**Valid keys** (${inventory.selectorKeys.length}): ${keys}.`,
+    "",
+    "A key not in that list does not parse, and the request fails rather than being ignored.",
+    "",
+    "**Data-context defaulting.** When a selector omits `dataContext`, CODAP supplies `#default`,",
+    "which resolves to the first data context in the document. That does not apply to these",
+    `resource types: ${exempt}. Nor does it apply when creating a data context, since there is`,
+    "nothing to default to yet."
+  ].join("\n")
+}
+
+// CODAP's i18n notation (%@, %@1) means nothing to a plugin author, and the conventions forbid
+// it on these pages. Substitute a neutral placeholder: the generator cannot know that %@1 is a
+// type and %@2 an action — a resource page that knows may name them meaningfully in its own
+// hand-written errors table.
+const plainPlaceholders = msg => msg
+  .replace(/%@(\d+)/g, "<value$1>")
+  .replace(/%\{(\w+)\}/g, "<$1>")
+  .replace(/%@/g, "<value>")
+
+function renderErrorCatalog() {
+  const rows = [...inventory.errors]
+    .sort((a, b) => a.message.localeCompare(b.message))
+    .map(e => `| \`${plainPlaceholders(e.message).replace(/\|/g, "\\|")}\` | ` +
+              `${e.exportedAs ? `\`${e.exportedAs}\`` : "—"} |`)
+  return ["| Error | Prebuilt result |", "|---|---|", ...rows].join("\n")
+}
+
 // --- rewrite ---------------------------------------------------------------------------------
-const BLOCK = /<!-- BEGIN GENERATED: ([\w-]+)((?:\s+\w+=\S+)*) -->\n([\s\S]*?)\n<!-- END GENERATED: \1 -->/g
+// The body may be empty — a new page can declare a block and let the generator fill it.
+const BLOCK = /<!-- BEGIN GENERATED: ([\w-]+)((?:\s+\w+=\S+)*) -->\n?([\s\S]*?)\n?<!-- END GENERATED: \1 -->/g
 const report = { new: [], removed: [], changed: [], skipped: [] }
 
-for (const page of pages) {
-  const path = join(resourcesDir, page)
+for (const page of [...pages, ...extraPages]) {
+  const path = pages.includes(page) ? join(resourcesDir, page) : join(docsDir, page)
   const before = readFileSync(path, "utf8")
   const covered = [...pageFor].filter(([, p]) => p === page).map(([n]) => n)
 
@@ -143,6 +196,9 @@ for (const page of pages) {
     if (name === "actions") rendered = renderActions(covered)
     else if (name === "scope") rendered = renderScope(covered)
     else if (name === "adornment-types") rendered = renderAdornmentTypes()
+    else if (name === "resource-actions") rendered = renderResourceActions()
+    else if (name === "selector-grammar") rendered = renderSelectorGrammar()
+    else if (name === "error-catalog") rendered = renderErrorCatalog()
     else if (name.startsWith("values") && attrs.source) rendered = renderValues(attrs.source)
 
     if (rendered == null) {
@@ -154,6 +210,49 @@ for (const page of pages) {
   })
 
   if (after !== before && !check) writeFileSync(path, after)
+}
+
+// --- JSON Schema for the request/response envelope --------------------------------------------
+// Validates the envelope and the action vocabulary, and carries the resource -> supported
+// actions map so a tool can check an action against its resource. It deliberately does not try
+// to validate `values`: those shapes vary per resource and per action, and a schema that
+// guessed them would reject valid requests.
+function buildSchema() {
+  const byResource = {}
+  for (const r of inventory.resources) byResource[r.name] = r.actions ?? []
+  return {
+    $schema: "https://json-schema.org/draft/2020-12/schema",
+    $id: "https://codap.concord.org/schemas/plugin-api-request.schema.json",
+    title: "CODAP Data Interactive request",
+    description:
+      "Generated from v3/src by v3/scripts/plugin-api. Validates the request envelope a plugin " +
+      "sends to CODAP. `values` is intentionally unconstrained — its shape depends on the " +
+      "resource and action, and is documented per resource in v3/doc/plugin-api/resources/.",
+    type: "object",
+    required: ["action", "resource"],
+    additionalProperties: false,
+    properties: {
+      action: { enum: ACTIONS, description: "The verb. Not every resource supports every action." },
+      resource: {
+        type: "string",
+        minLength: 1,
+        pattern: "^[A-Za-z#][A-Za-z0-9_#]*(\\[[^\\]]*\\])?(\\.[A-Za-z][A-Za-z0-9_]*(\\[[^\\]]*\\])?)*$",
+        description: "A dot-separated selector chain; see doc/plugin-api/quick-reference.md."
+      },
+      values: { description: "Payload for create, update and notify. Shape varies by resource." }
+    },
+    $defs: {
+      supportedActions: {
+        description: "resource name -> the actions its handler implements.",
+        const: byResource
+      },
+      selectorKeys: { description: "Keys a selector segment may use.", const: inventory.selectorKeys }
+    }
+  }
+}
+if (!check) {
+  writeFileSync(join(docsDir, "plugin-api-request.schema.json"),
+                JSON.stringify(buildSchema(), null, 2) + "\n")
 }
 
 // --- drift ------------------------------------------------------------------------------------
