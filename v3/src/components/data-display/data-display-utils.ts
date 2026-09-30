@@ -17,7 +17,7 @@ import {
 import {IDataConfigurationModel } from "./models/data-configuration-model"
 import { IDisplayItemDescriptionModel } from "./models/display-item-description-model"
 import {CaseDataWithSubPlot} from "./d3-types"
-import { getRendererForEvent, IPoint, IPointStyle, PointRendererBase } from "./renderer"
+import { getRendererForEvent, GetCasePointStyle, IPoint, IPointStyle, PointRendererBase } from "./renderer"
 
 export const maxWidthOfStringsD3 = (strings: Iterable<string>) => {
   let maxWidth = 0
@@ -126,13 +126,26 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
     startAnimation()
   }
 
+  // Points are matched with their legend color and shape, so new ones (e.g. cases a visibility slider just
+  // showed) appear correctly styled and a renderer that redraws existing ones (Pixi) keeps their colors.
+  // Otherwise they'd show the display's defaults until the next point refresh, which is debounced and can be
+  // postponed for as long as the cases keep changing (e.g. throughout a slider drag). Whether a legend is in
+  // effect is decided as in setPointSelection, so the two agree.
+  const hasLegendInEffect = !!dataConfiguration.attributeID("legend") || dataConfiguration.legendAttributeIsInoperable
+  const getCasePointStyle: GetCasePointStyle = ({ caseID }) => hasLegendInEffect
+    ? {
+        fill: dataConfiguration.getLegendColorForCase(caseID),
+        shape: dataConfiguration.getLegendShapeForCase(caseID, pointShape)
+      }
+    : {}
+
   renderer?.matchPointsToData(dataConfiguration.dataset?.id ?? '', allCaseData, pointDisplayType, {
     radius: pointRadius,
     fill: pointColor,
     shape: pointShape,
     stroke: pointStrokeColor,
     strokeWidth: defaultStrokeWidth
-  })
+  }, getCasePointStyle)
 
   dataConfiguration.setPointsNeedUpdating(false)
 }

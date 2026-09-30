@@ -400,6 +400,29 @@ describe("DataConfigurationModel", () => {
     expect(config.suppressAnimation).toBe(false)
   })
 
+  it("matchCirclesToData creates new points in their legend color", () => {
+    // A slider showing cases during a drag creates their points; they must appear in their legend color
+    // rather than the default color the later (debounced) refresh would replace.
+    const config = tree.config
+    config.setDataset(tree.data, tree.metadata)
+    const renderer = { matchPointsToData: jest.fn() } as any
+    const props = {
+      dataConfiguration: config, renderer, pointRadius: 5, pointColor: "#default", pointStrokeColor: "#000",
+      startAnimation: jest.fn(), stopAnimation: jest.fn(), instanceId: "test"
+    }
+    const caseData = { plotNum: 0, caseID: caseIdFromItemId("c1")!, subPlotNum: 0 }
+
+    // without a legend, new points keep the default style
+    matchCirclesToData(props)
+    const noLegendStyle = renderer.matchPointsToData.mock.lastCall[4]?.(caseData)
+    expect(noLegendStyle?.fill).toBeUndefined()
+
+    config.setAttribute("legend", { attributeID: "xId" })
+    matchCirclesToData(props)
+    const getCasePointStyle = renderer.matchPointsToData.mock.lastCall[4]
+    expect(getCasePointStyle(caseData).fill).toBe(config.getLegendColorForCase(caseData.caseID))
+  })
+
   it("only allows x and y as primary place", () => {
     const config = tree.config
     config.setDataset(tree.data, tree.metadata)

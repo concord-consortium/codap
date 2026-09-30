@@ -23,6 +23,7 @@ import {
 import { pointShapeGeometry } from "./point-shapes"
 import { PointsState } from "./points-state"
 import {
+  GetCasePointStyle,
   IBackgroundEventDistributionOptions,
   IPoint,
   IPointMetadata,
@@ -271,7 +272,8 @@ export class CanvasPointRenderer extends PointRendererBase {
     _datasetID: string,
     caseData: CaseDataWithSubPlot[],
     displayType: PointDisplayType,
-    style: IPointStyle
+    style: IPointStyle,
+    getCasePointStyle?: GetCasePointStyle
   ): void {
     if (this.isDisposed) return
 
@@ -286,7 +288,8 @@ export class CanvasPointRenderer extends PointRendererBase {
     }
 
     // Sync state with case data and clean up hover animations for removed points
-    const { removed } = this.state.syncWithCaseData(caseData, style)
+    // canvas draws each point from its stored style, so new points' own styles need no further handling
+    const { removed } = this.state.syncWithCaseData(caseData, style, getCasePointStyle)
     removed.forEach(pointId => this.hoverAnimations.delete(pointId))
 
     this.needsRedraw = true
@@ -604,7 +607,8 @@ export class CanvasPointRenderer extends PointRendererBase {
 
   private getSortedPointsForRendering(): IPointState[] {
     const points: IPointState[] = []
-    this.state.forEach(point => points.push(point))
+    // a point without a position yet isn't drawn or hit-tested (see IPointState.isPositioned)
+    this.state.forEach(point => { if (point.isPositioned) points.push(point) })
 
     // Sort: non-raised first, then raised (so raised are drawn on top)
     return points.sort((a, b) => {

@@ -18,6 +18,7 @@ import {
   pointShapeSymmetricExtent
 } from "./point-shapes"
 import {
+  GetCasePointStyle,
   IBackgroundEventDistributionOptions,
   IPoint,
   IPointMetadata,
@@ -439,7 +440,8 @@ export class PixiPointRenderer extends PointRendererBase {
     datasetID: string,
     caseData: CaseDataWithSubPlot[],
     displayType: PointDisplayType,
-    style: IPointStyle
+    style: IPointStyle,
+    getCasePointStyle?: GetCasePointStyle
   ): void {
     if (this.isDisposed) {
       console.warn("PixiPointRenderer.doMatchPointsToData: called after dispose, ignoring")
@@ -478,7 +480,7 @@ export class PixiPointRenderer extends PointRendererBase {
     }
 
     // Sync state with case data
-    const { added, removed } = this.state.syncWithCaseData(caseData, style)
+    const { added, removed } = this.state.syncWithCaseData(caseData, style, getCasePointStyle)
 
     // Remove sprites for removed points
     removed.forEach(pointId => {
@@ -524,21 +526,29 @@ export class PixiPointRenderer extends PointRendererBase {
     // Create sprites for added points (skip any already created by syncFromState above)
     added.forEach(pointId => {
       if (!this.sprites.has(pointId)) {
-        const sprite = this.getNewSprite(pointId, texture, style)
+        // a point with its case's own style (see getCasePointStyle) needs the texture for that style
+        const pointStyle = getCasePointStyle ? this.state.getPoint(pointId)?.style ?? style : style
+        const sprite = this.getNewSprite(pointId, pointStyle === style ? texture : this.getPointTexture(pointStyle),
+                                         pointStyle)
         this.pointsContainer.addChild(sprite)
         this.sprites.set(pointId, sprite)
       }
     })
 
-    // Update existing sprites
+    // Update existing sprites: the uniform style, with the parts that come from each point's case (e.g. its
+    // legend color) laid over it, so a match doesn't repaint every point in the uniform style until the next
+    // style refresh
     this.sprites.forEach((sprite, pointId) => {
       if (!added.includes(pointId)) {
-        if (sprite.texture !== texture) {
-          sprite.texture = texture
+        const point = getCasePointStyle ? this.state.getPoint(pointId) : undefined
+        const pointStyle = point ? { ...style, ...getCasePointStyle!(point) } : style
+        const pointTexture = pointStyle === style ? texture : this.getPointTexture(pointStyle)
+        if (sprite.texture !== pointTexture) {
+          sprite.texture = pointTexture
         }
-        // against the uniform style, which is the one that drew the texture just assigned -- a
-        // point's own stored style can still be the one it had under the previous display type
-        this.syncHitArea(sprite, style)
+        // against the style that drew the texture just assigned -- a point's own stored style can still
+        // be the one it had under the previous display type
+        this.syncHitArea(sprite, pointStyle)
       }
     })
 
@@ -555,6 +565,7 @@ export class PixiPointRenderer extends PointRendererBase {
     const sprite = this.sprites.get(pointId)
     if (sprite) {
       this.setPointXyProperty("position", sprite, x, y)
+      sprite.visible = true
     }
   }
 
@@ -668,6 +679,7 @@ export class PixiPointRenderer extends PointRendererBase {
   ): void {
     const sprite = this.sprites.get(pointId)
     if (!sprite) return
+    sprite.visible = true
 
     if (this.displayTypeTransitionState.isActive) {
       this.transitionPointDisplayType(pointId, sprite, style, x, y)
@@ -834,6 +846,8 @@ export class PixiPointRenderer extends PointRendererBase {
 
   private getNewSprite(pointId: string, texture: PIXI.Texture, style: IPointStyle): PIXI.Sprite {
     const sprite = new PIXI.Sprite(texture)
+    // hidden until its point has a position (see IPointState.isPositioned); shown when it's positioned
+    sprite.visible = !!this.state.getPoint(pointId)?.isPositioned
     sprite.anchor.copyFrom(this._anchor)
     sprite.zIndex = DEFAULT_Z_INDEX
     this.syncHitArea(sprite, style)

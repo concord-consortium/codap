@@ -2,6 +2,7 @@ import { CaseData, CaseDataWithSubPlot } from "../d3-types"
 import { PointDisplayType } from "../data-display-types"
 import { PointsState } from "./points-state"
 import {
+  GetCasePointStyle,
   IBackgroundEventDistributionOptions,
   IPoint,
   IPointMetadata,
@@ -120,7 +121,8 @@ export abstract class PointRendererBase {
     datasetID: string,
     caseData: CaseDataWithSubPlot[],
     displayType: PointDisplayType,
-    style: IPointStyle
+    style: IPointStyle,
+    getCasePointStyle?: GetCasePointStyle
   ): void
 
   /**
@@ -337,19 +339,22 @@ export abstract class PointRendererBase {
   }
 
   /**
-   * Sync points with case data array
+   * Sync points with case data array. Points are drawn with `style`, overridden by `getCasePointStyle` if
+   * given (e.g. their legend color and shape), so a match never paints a point in the uniform style until
+   * the next style refresh restyles it.
    */
   matchPointsToData(
     datasetID: string,
     caseData: CaseDataWithSubPlot[],
     displayType: PointDisplayType,
-    style: IPointStyle
+    style: IPointStyle,
+    getCasePointStyle?: GetCasePointStyle
   ): void {
     if (this._isDisposed) return
     this.state.setDatasetID(datasetID)
     // Subclass doMatchPointsToData may need to read _displayType to detect a change
     // (e.g., PixiPointRenderer's display type transition), so defer the assignment.
-    this.doMatchPointsToData(datasetID, caseData, displayType, style)
+    this.doMatchPointsToData(datasetID, caseData, displayType, style, getCasePointStyle)
     this._displayType = displayType
     // The bar-only state is set imperatively by the bar-chart/histogram plot components and is
     // never otherwise reset; clear it whenever we leave bars mode so a reused renderer can't carry

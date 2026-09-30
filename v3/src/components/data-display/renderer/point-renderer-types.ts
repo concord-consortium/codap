@@ -25,6 +25,12 @@ export interface IPointStyle {
 }
 
 /**
+ * The parts of a point's style that come from its case (e.g. its legend color and shape), overriding the
+ * uniform style a match applies
+ */
+export type GetCasePointStyle = (caseData: CaseDataWithSubPlot) => Partial<IPointStyle>
+
+/**
  * Metadata associated with each point
  */
 export interface IPointMetadata extends CaseData {
@@ -92,6 +98,9 @@ export interface IPointState {
   style: IPointStyle
   isRaised: boolean
   isVisible: boolean
+  // false until the point's position is first set; renderers don't draw a point without one, which would
+  // otherwise appear at (0, 0) until the next position refresh places it
+  isPositioned: boolean
 }
 
 /**

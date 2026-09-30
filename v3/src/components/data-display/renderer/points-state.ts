@@ -1,5 +1,5 @@
 import { CaseData, CaseDataWithSubPlot } from "../d3-types"
-import { IPointMetadata, IPointState, IPointStyle } from "./point-renderer-types"
+import { GetCasePointStyle, IPointMetadata, IPointState, IPointStyle } from "./point-renderer-types"
 
 /**
  * Generates a unique key for a case data object
@@ -61,7 +61,8 @@ export class PointsState {
       scale: 1,
       style: { ...style },
       isRaised: false,
-      isVisible: true
+      isVisible: true,
+      isPositioned: false
     }
 
     this.points.set(id, pointState)
@@ -119,6 +120,7 @@ export class PointsState {
     if (point) {
       point.x = x
       point.y = y
+      point.isPositioned = true
     }
   }
 
@@ -250,9 +252,13 @@ export class PointsState {
    * Sync points with case data array - adds new points, removes missing ones
    * Returns the IDs of newly added points
    */
+  // getCasePointStyle, if given, overrides parts of the default style for each point added (e.g. its
+  // legend color), so a new point appears correctly styled before the next style refresh. Existing points
+  // keep their stored styles.
   syncWithCaseData(
     caseDataArray: CaseDataWithSubPlot[],
-    defaultStyle: IPointStyle
+    defaultStyle: IPointStyle,
+    getCasePointStyle?: GetCasePointStyle
   ): { added: string[], removed: string[] } {
     const added: string[] = []
     const removed: string[] = []
@@ -266,7 +272,8 @@ export class PointsState {
       presentKeys.add(key)
 
       if (!this.caseDataToPointId.has(key)) {
-        const id = this.addPoint(caseData, defaultStyle)
+        const style = getCasePointStyle ? { ...defaultStyle, ...getCasePointStyle(caseData) } : defaultStyle
+        const id = this.addPoint(caseData, style)
         added.push(id)
       } else {
         // Update subPlotNum if it changed

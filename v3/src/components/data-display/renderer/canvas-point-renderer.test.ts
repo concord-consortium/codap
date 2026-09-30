@@ -681,6 +681,20 @@ describe("CanvasPointRenderer", () => {
       expect(mockContext.clearRect).toHaveBeenCalled()
     })
 
+    it("doesn't draw a new point until it has a position", () => {
+      // otherwise it's drawn at (0, 0) until the (debounced) position refresh places it
+      const caseData = createCaseData(0, "case1")
+      renderer.matchPointsToData("dataset1", [caseData], "points", defaultStyle)
+      renderer.startRendering()
+      flushRAF()
+      expect(mockContext.arc).not.toHaveBeenCalled()
+
+      renderer.setPointPosition(renderer.getPointForCaseData(caseData)!, 100, 100)
+      renderer.startRendering()
+      flushRAF()
+      expect(mockContext.arc).toHaveBeenCalled()
+    })
+
     it("draws circles for points display type", () => {
       const caseData = createCaseData(0, "case1")
       renderer.matchPointsToData("dataset1", [caseData], "points", defaultStyle)
