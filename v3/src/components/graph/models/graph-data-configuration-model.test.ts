@@ -425,10 +425,14 @@ describe("DataConfigurationModel", () => {
 
     config.setAttribute("legend", { attributeID: "xId" })
     const legendStyle = getCasePointStyle()(caseData)
-    expect(legendStyle.fill).not.toBe(defaultSelectedColor)
-    expect(legendStyle).toMatchObject({ radius: 7, stroke: defaultSelectedStroke })
+    // a legend colors a selected point by its case and marks the selection with its stroke
+    expect(legendStyle).toMatchObject({
+      fill: config.getLegendColorForCase(caseID), shape: config.getLegendShapeForCase(caseID),
+      radius: 7, stroke: defaultSelectedStroke
+    })
     tree.data.setSelectedCases([])
-    expect(getCasePointStyle()(caseData)).toMatchObject({ fill: legendStyle.fill, radius: 5, stroke: "#000" })
+    expect(getCasePointStyle()(caseData))
+      .toMatchObject({ fill: config.getLegendColorForCase(caseID), radius: 5, stroke: "#000" })
   })
 
   it("only allows x and y as primary place", () => {

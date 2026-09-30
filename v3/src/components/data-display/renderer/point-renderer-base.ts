@@ -339,8 +339,9 @@ export abstract class PointRendererBase {
   }
 
   /**
-   * Sync points with case data array. Points are drawn with `style`, overridden by `getCasePointStyle` if
-   * given (see GetCasePointStyle).
+   * Sync points with case data array. New points are drawn with `style`, overridden by `getCasePointStyle`
+   * if given (see GetCasePointStyle); existing points keep their styles, except that without it Pixi
+   * restyles them in `style`.
    */
   matchPointsToData(
     datasetID: string,

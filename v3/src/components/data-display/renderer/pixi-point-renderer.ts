@@ -521,8 +521,6 @@ export class PixiPointRenderer extends PointRendererBase {
     this._anchor = displayType === "points" ? circleAnchor :
                    displayType === "bars" ? hBarAnchor : circleAnchor
 
-    const texture = this.getPointTexture(style)
-
     // Create sprites for added points (skip any already created by syncFromState above)
     added.forEach(pointId => {
       if (!this.sprites.has(pointId)) {
@@ -533,21 +531,23 @@ export class PixiPointRenderer extends PointRendererBase {
       }
     })
 
-    // Update existing sprites: the uniform style with each point's case style (see GetCasePointStyle) laid
-    // over it
-    this.sprites.forEach((sprite, pointId) => {
-      if (!added.includes(pointId)) {
-        const point = getCasePointStyle ? this.state.getPoint(pointId) : undefined
-        const pointStyle = point ? { ...style, ...getCasePointStyle!(point) } : style
-        const pointTexture = pointStyle === style ? texture : this.getPointTexture(pointStyle)
-        if (sprite.texture !== pointTexture) {
-          sprite.texture = pointTexture
+    // With a per-case style, existing sprites keep their textures, which already show their case styles
+    // (see GetCasePointStyle); the refresh that follows a match restyles them. Restyling them here too
+    // would repeat the refresh's per-case work, which with tens of thousands of points slows every match.
+    if (!getCasePointStyle) {
+      const texture = this.getPointTexture(style)
+      const addedIds = new Set(added)
+      this.sprites.forEach((sprite, pointId) => {
+        if (!addedIds.has(pointId)) {
+          if (sprite.texture !== texture) {
+            sprite.texture = texture
+          }
+          // against the uniform style, which is the one that drew the texture just assigned -- a
+          // point's own stored style can still be the one it had under the previous display type
+          this.syncHitArea(sprite, style)
         }
-        // against the style that drew the texture just assigned -- a point's own stored style can still
-        // be the one it had under the previous display type
-        this.syncHitArea(sprite, pointStyle)
-      }
-    })
+      })
+    }
 
     // Apply masks
     this.applyMasks(caseData)

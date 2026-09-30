@@ -114,8 +114,8 @@ type ICasePointStyleProps = Pick<ISetPointSelection, "dataConfiguration" | "poin
 
 /**
  * Returns a function giving a case's point style: its legend color and shape, its plot's color, and its
- * selection styling. Points are matched with it as well as restyled with it, so a matched point is drawn
- * as the next restyle would draw it.
+ * selection styling. Points are matched with it as well as restyled with it, so a point a match adds is
+ * drawn as the next restyle would draw it.
  */
 function casePointStyleGetter(props: ICasePointStyleProps) {
   const { dataConfiguration, pointRadius, selectedPointRadius, pointColor, pointStrokeColor, pointShape,
@@ -173,15 +173,14 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
     startAnimation()
   }
 
-  // Points are matched with their per-case style, so new ones appear correctly styled and a renderer that
-  // redraws existing ones (Pixi) keeps their styles. Otherwise they'd show the uniform style until the next
-  // point refresh, which is debounced and can be postponed for as long as the cases keep changing.
+  // Points are matched with their per-case style, so new ones appear correctly styled, and existing ones
+  // keep theirs. Otherwise new points would show the uniform style until the next point refresh, which is
+  // debounced and can be postponed for as long as the cases keep changing.
   const casePointStyle = casePointStyleGetter({
     dataConfiguration, pointRadius, selectedPointRadius, pointColor, pointStrokeColor, pointShape,
     getPointColorAtIndex
   })
   const getCasePointStyle: GetCasePointStyle = ({ caseID, plotNum }) => casePointStyle(caseID, plotNum)
-
   renderer?.matchPointsToData(dataConfiguration.dataset?.id ?? '', allCaseData, pointDisplayType, {
     radius: pointRadius,
     fill: pointColor,

@@ -55,4 +55,17 @@ describe("usePointRenderer", () => {
     // and it never asked for a WebGL context it would only give back
     expect(webGLContextManager.requestContext).not.toHaveBeenCalled()
   })
+
+  it("gets a WebGL context once canvas is no longer forced", async () => {
+    const { result, rerender } = renderHook(({ priority }) => usePointRenderer({ id: "graph-1", priority }),
+      { initialProps: { priority: 10 } })
+    await waitFor(() => expect(result.current.renderer.capability).toBe("canvas"))
+
+    // the hook isn't an observer, so rerender to pick up the setting
+    act(() => persistentState.setDisableGraphicsAcceleration(false))
+    rerender({ priority: 10 })
+
+    await waitFor(() => expect(result.current.renderer.capability).toBe("webgl"))
+    expect(webGLContextManager.requestContext).toHaveBeenCalled()
+  })
 })

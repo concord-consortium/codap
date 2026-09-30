@@ -136,6 +136,7 @@ describe("PixiPointRenderer", () => {
       pixiRenderer.matchPointsToData("dataset1", [createCaseData(0, "case1")], "points", defaultStyle)
       const point = pixiRenderer.getPointForCaseData(createCaseData(0, "case1"))!
       const sprite = (pixiRenderer as any).sprites.get(point.id)
+      expect(sprite.visible).toBe(false)
 
       pixiRenderer.setPositionOrTransition(point, {}, 100, 100)
       expect(sprite.visible).toBe(true)
@@ -166,6 +167,35 @@ describe("PixiPointRenderer", () => {
 
       const sprite = (pixiRenderer as any).sprites.get(pointId)
       expect(sprite.texture).toBe((pixiRenderer as any).getPointTexture({ ...defaultStyle, fill: "#0000ff" }))
+    })
+
+    it("leaves an existing point's sprite as its last restyle drew it when points are matched again", async () => {
+      const pixiRenderer = new PixiPointRenderer(new PointsState())
+      await pixiRenderer.init()
+      pixiRenderer.matchPointsToData("dataset1", [createCaseData(0, "case1")], "points", defaultStyle, blue)
+      const point = pixiRenderer.getPointForCaseData(createCaseData(0, "case1"))!
+      // the refresh restyles it, e.g. for a new legend bin
+      pixiRenderer.setPointStyle(point, { fill: "#ff0000" })
+
+      pixiRenderer.matchPointsToData("dataset1", [createCaseData(0, "case1"), createCaseData(0, "case2")],
+        "points", defaultStyle, blue)
+
+      const sprite = (pixiRenderer as any).sprites.get(point.id)
+      expect(sprite.texture).toBe((pixiRenderer as any).getPointTexture({ ...defaultStyle, fill: "#ff0000" }))
+    })
+
+    it("restyles existing sprites in the uniform style when no case style is given", async () => {
+      const pixiRenderer = new PixiPointRenderer(new PointsState())
+      await pixiRenderer.init()
+      pixiRenderer.matchPointsToData("dataset1", [createCaseData(0, "case1")], "points", defaultStyle, blue)
+      const pointId = (pixiRenderer as any).state.getPointIdForCaseData(createCaseData(0, "case1"))
+
+      const green = { ...defaultStyle, fill: "#00ff00" }
+      pixiRenderer.matchPointsToData("dataset1", [createCaseData(0, "case1"), createCaseData(0, "case2")],
+        "points", green)
+
+      const sprite = (pixiRenderer as any).sprites.get(pointId)
+      expect(sprite.texture).toBe((pixiRenderer as any).getPointTexture(green))
     })
   })
 
@@ -319,14 +349,16 @@ describe("PixiPointRenderer", () => {
         expect(sprite.hitArea.contains(0, -10)).toBe(true)
       })
 
-      it("re-tests existing sprites against their case's shape", async () => {
+      it("keeps an existing sprite's hit area with its texture when points are matched again", async () => {
         const { pixiRenderer, sprite } = await setUp({ ...defaultStyle, shape: "circle", radius: 8 })
-        expect(sprite.hitArea.contains(0, -10)).toBe(false)
+        const { texture } = sprite
 
+        // the texture isn't redrawn as a star until the next restyle, so neither is the hit area
         pixiRenderer.matchPointsToData("dataset1", [createCaseData(0, "case1")], "points",
           { ...defaultStyle, shape: "circle", radius: 8 }, () => ({ shape: "star" }))
 
-        expect(sprite.hitArea.contains(0, -10)).toBe(true)
+        expect(sprite.texture).toBe(texture)
+        expect(sprite.hitArea.contains(0, -10)).toBe(false)
       })
 
       it("follows the shape when the style changes", async () => {
