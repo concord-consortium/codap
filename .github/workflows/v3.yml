@@ -40,6 +40,29 @@ jobs:
         with:
           path: v3/.cache/eslint/
           key: ${{steps.restore-eslint-cache.outputs.cache-primary-key}}
+  plugin-api-docs:
+    name: Plugin API Docs
+    runs-on: ubuntu-latest
+    # Advisory: this reports drift between the Data Interactive code and its reference
+    # documentation. It must not block a PR — adding a handler and documenting it are
+    # allowed to land separately — but it should be loud when they diverge.
+    continue-on-error: true
+    steps:
+      - uses: snow-actions/sparse-checkout@v1.2.0
+        with:
+          patterns: v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: v3/package-lock.json
+      - name: Install Dependencies
+        working-directory: v3
+        run: npm ci
+      - name: Check the reference against the code
+        working-directory: v3
+        run: npm run plugin-api:check
+
   build:
     name: Build
     runs-on: ubuntu-latest
