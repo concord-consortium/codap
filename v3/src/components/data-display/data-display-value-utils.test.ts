@@ -17,6 +17,14 @@ describe("dataDisplayGetNumericExtent", () => {
     expect(dataDisplayGetNumericExtent(dataset, a3.id)).toEqual([2, 6])
   })
 
+  it("leaves out the cases that are set aside", () => {
+    const { dataset, a3 } = setupTestDataset()
+    // a3's values are 1..6; set aside the case with the smallest
+    const smallest = dataset.itemIds.find(itemId => dataset.getNumeric(itemId, a3.id) === 1)!
+    dataset.hideCasesOrItems([smallest])
+    expect(dataDisplayGetNumericExtent(dataset, a3.id)).toEqual([2, 6])
+  })
+
   it("returns undefined when there are no values or no dataset", () => {
     const { dataset } = setupTestDataset()
     const empty = dataset.addAttribute({ name: "empty", userType: "numeric" })

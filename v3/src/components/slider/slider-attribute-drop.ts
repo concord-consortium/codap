@@ -14,7 +14,7 @@ export function isSliderAttributeDropAllowed(slider: ISliderModel, dataSet?: IDa
 }
 
 // Configures the slider from the attribute and retitles its tile, as a single undoable change.
-// Lives on the tile because the title belongs to the tile, not the slider content.
+// Takes the tile because the title belongs to the tile, not the slider content.
 export function configureSliderFromAttribute(tile: ITileModel, dataSet: IDataSet, attrId: string) {
   const slider = tile.content
   if (!isSliderModel(slider) || !slider.configurationExtent(dataSet, attrId)) return false

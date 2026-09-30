@@ -20,10 +20,14 @@ export function useSliderAttributeDrop(instanceId: string, tile?: ITileModel) {
   const { setNodeRef: setOverlayRef } = useDroppable({ id: `${instanceId}-component-drop-overlay` })
   const { active } = useDndContext()
   const { dataSet, attributeId } = getDragAttributeInfo(active) || {}
-  // evaluated once per drag rather than on every render while dragging
+  // evaluated once per drag rather than on every render while dragging. A feature flag can't change mid-drag,
+  // and the drop handler checks again when the drop occurs.
+  const sliderType = slider?.sliderType
   const isAllowed = useMemo(
     () => !!slider && isSliderAttributeDropAllowed(slider, dataSet, attributeId),
-    [slider, dataSet, attributeId]
+    // sliderType is read by isSliderAttributeDropAllowed
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [slider, sliderType, dataSet, attributeId]
   )
   const { isOver, setNodeRef } = useDroppable({ id: dropId, disabled: !isAllowed })
 

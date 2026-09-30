@@ -182,7 +182,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
       <AxisProviderContext.Provider value={sliderModel}>
         <AxisLayoutContext.Provider value={layout}>
           <div {...groupProps} className={clsx(kSliderClass, {twoLevel: sliderModel.axisRequiresTwoLevels()})}
-               ref={setWrapperRef} data-testid="slider-attribute-drop">
+               ref={setWrapperRef} data-testid="slider-drop-overlay">
             <div className="slider-control">
               <button
                 aria-label={running ? t("DG.SliderView.pauseButton") : t("DG.SliderView.playButton")}
