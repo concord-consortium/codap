@@ -16,8 +16,8 @@ immediately and do their work afterwards, delivering results as notifications.
 | Action | Supported |
 |---|---|
 | `get` | ✓ |
-| `update` | ✓ |
 | `create` | — |
+| `update` | ✓ |
 | `delete` | — |
 | `notify` | — |
 | `register` | — |
