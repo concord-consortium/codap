@@ -45,7 +45,9 @@ const srcDir = join(v3Dir, "src")
 const require = createRequire(join(v3Dir, "package.json"))
 const ts = require("typescript")
 
-const ACTIONS = ["get", "create", "update", "delete", "notify", "register", "unregister"]
+// The action vocabulary comes from DIBaseHandler, not a hardcoded list: an eighth action must
+// not be silently dropped by the very tool meant to catch that drift. Filled in after parsing.
+let ACTIONS = []
 
 function walk(dir, out = []) {
   for (const name of readdirSync(dir)) {
@@ -73,6 +75,30 @@ function eachNode(sf, visit) {
   const walkNode = node => { visit(node); ts.forEachChild(node, walkNode) }
   walkNode(sf)
 }
+
+// An anti-drift tool must not publish confident emptiness. Anything the generator relies on is
+// required: if a shape heuristic stops matching because the source was reformatted or renamed,
+// fail here rather than emit "Valid keys (0)" or rewrite every scope block from an empty list.
+function required(value, what) {
+  const empty = value == null || (Array.isArray(value) && value.length === 0) ||
+                (value instanceof Map && value.size === 0)
+  if (empty) {
+    console.error(`extract-plugin-api: could not extract ${what}. The source shape this relies on ` +
+                  `has probably changed; fix the extractor rather than publishing an empty result.`)
+    process.exit(3)
+  }
+  return value
+}
+
+// --- pass 0: the action vocabulary, from DIBaseHandler ------------------------------------
+for (const [, sf] of sources) {
+  eachNode(sf, node => {
+    if (ts.isInterfaceDeclaration(node) && node.name.text === "DIBaseHandler") {
+      ACTIONS = node.members.filter(m => m.name && ts.isIdentifier(m.name)).map(m => m.name.text)
+    }
+  })
+}
+required(ACTIONS, "the action vocabulary (interface DIBaseHandler)")
 
 // --- pass 1: every `const X = "literal"`, so we can resolve kV2GraphType -> "graph" -------
 const stringConsts = new Map()
@@ -136,9 +162,18 @@ for (const [, sf] of sources) {
     let literal
     if (!ts.isBlock(node.body) && ts.isObjectLiteralExpression(node.body)) literal = node.body
     else if (ts.isBlock(node.body)) {
+      // Only return statements belonging to *this* function. Recursing would let an inner
+      // callback's object literal be recorded as the factory's handler.
+      const enclosingFn = n => {
+        for (let p = n.parent; p; p = p.parent) {
+          if (ts.isFunctionDeclaration(p) || ts.isArrowFunction(p) || ts.isFunctionExpression(p) ||
+              ts.isMethodDeclaration(p)) return p
+        }
+      }
       eachNode(node.body, n => {
-        if (!literal && ts.isReturnStatement(n) && n.expression &&
-            ts.isObjectLiteralExpression(n.expression)) literal = n.expression
+        if (literal || !ts.isReturnStatement(n) || !n.expression) return
+        if (!ts.isObjectLiteralExpression(n.expression)) return
+        if (enclosingFn(n) === node) literal = n.expression
       })
     }
     if (!literal) return
@@ -162,16 +197,67 @@ function actionsOf(identName) {
   return { actions: null, note: `built by ${entry.factory}()` }
 }
 
+// Does this handler read a data context? Its own file may never mention one and still require
+// it: case-by-id-handler.ts delegates to handler-functions.ts, whose exported functions begin
+// `const { dataContext } = resources`. So follow only the functions this file actually calls,
+// and test those function bodies — following every import instead would mark adornment as
+// data-context scoped merely because a module it imports mentions the word.
+function bodiesOfCalledImports(sf) {
+  const called = new Set()
+  eachNode(sf, n => {
+    if (ts.isCallExpression(n) && ts.isIdentifier(n.expression)) called.add(n.expression.text)
+  })
+  const bodies = []
+  for (const stmt of sf.statements) {
+    if (!ts.isImportDeclaration(stmt) || !ts.isStringLiteralLike(stmt.moduleSpecifier)) continue
+    const spec = stmt.moduleSpecifier.text
+    if (!spec.startsWith(".")) continue
+    const names = stmt.importClause?.namedBindings
+    if (!names || !ts.isNamedImports(names)) continue
+    const wanted = names.elements.map(e => e.name.text).filter(n => called.has(n))
+    if (!wanted.length) continue
+    const base = join(dirname(sf.fileName), spec)
+    const target = [`${base}.ts`, `${base}.tsx`, join(base, "index.ts")].find(f => sources.has(f))
+    if (!target) continue
+    const tsf = sources.get(target)
+    eachNode(tsf, n => {
+      const name = ts.isFunctionDeclaration(n) && n.name ? n.name.text
+        : (ts.isVariableDeclaration(n) && ts.isIdentifier(n.name) && n.initializer &&
+           (ts.isArrowFunction(n.initializer) || ts.isFunctionExpression(n.initializer))) ? n.name.text
+        : undefined
+      if (name && wanted.includes(name)) bodies.push(n.getText(tsf))
+    })
+  }
+  return bodies
+}
+
+const dcCache = new Map()
+function referencesDataContext(sf) {
+  if (dcCache.has(sf.fileName)) return dcCache.get(sf.fileName)
+  const own = /\bdataContext\b/.test(sf.getFullText())
+  const viaCalls = !own && bodiesOfCalledImports(sf).some(b => /\bdataContext\b/.test(b))
+  const result = own || viaCalls
+  dcCache.set(sf.fileName, result)
+  return result
+}
+
 // --- pass 3: registrations ----------------------------------------------------------------
 const resources = []
 const componentTypes = []
 const adornmentTypes = []
 
-for (const [, sf] of sources) {
-  // A file gated behind a URL parameter registers only in that mode; note it rather than
-  // pretending the registration is unconditional (e.g. the errorTester component).
-  const gated = /\burlParams\.(\w+)/.exec(sf.getFullText())?.[1]
+// Is this call inside `if (urlParams.x)`? Checked per registration: one file registers four
+// component types, and a stray urlParams reference must not mark them all conditional.
+function gatedBy(node) {
+  for (let p = node.parent; p; p = p.parent) {
+    if (ts.isIfStatement(p)) {
+      const m = /\burlParams\.(\w+)/.exec(p.expression.getText())
+      if (m) return `urlParams.${m[1]}`
+    }
+  }
+}
 
+for (const [, sf] of sources) {
   eachNode(sf, node => {
     if (!ts.isCallExpression(node) || !ts.isIdentifier(node.expression)) return
     const fn = node.expression.text
@@ -185,7 +271,10 @@ for (const [, sf] of sources) {
       // Whether the handler actually reads a data context. The parser's #default exemption list
       // says only whether one gets *resolved*; several resources have one resolved and ignore it
       // (adornment, for instance), so a page that reports scope from the list alone misleads.
-      const usesDataContext = /\bdataContext\b/.test(sf.getFullText())
+      // Whether the handler actually reads a data context. A whole-file grep is not enough:
+      // case-by-id-handler.ts never mentions dataContext but delegates to handler-functions.ts,
+      // which requires one. Follow local imports one level before concluding it does not.
+      const usesDataContext = referencesDataContext(sf)
       resources.push({ name, actions, ...(note && { note }), ...(via && { via }), handler: handlerName,
                        usesDataContext, source: siteOf(sf, node) })
     }
@@ -193,7 +282,8 @@ for (const [, sf] of sources) {
     if (fn === "registerComponentHandler") {
       const diType = asString(a0)
       if (!diType) return
-      componentTypes.push({ diType, ...(gated && { gatedBy: `urlParams.${gated}` }), source: siteOf(sf, node) })
+      const gate = gatedBy(node)
+      componentTypes.push({ diType, ...(gate && { gatedBy: gate }), source: siteOf(sf, node) })
     }
 
     if (fn === "registerAdornmentHandler") {
@@ -260,7 +350,29 @@ if (diResults) {
     if (err) err.exportedAs = node.name.text
   })
 }
-errors.sort((a, b) => a.key.localeCompare(b.key))
+// Not every error goes through i18n. A handful are returned as raw string literals — the
+// catalog would be quietly incomplete without them, and "every error string" would be false.
+for (const [, sf] of sources) {
+  if (!/\/data-interactive\//.test(rel(sf.fileName))) continue
+  eachNode(sf, node => {
+    if (!ts.isPropertyAssignment(node)) return
+    const key = node.name && (ts.isIdentifier(node.name) || ts.isStringLiteralLike(node.name)) ? node.name.text : ""
+    if (key !== "error" || !ts.isStringLiteralLike(node.initializer)) return
+    addLiteralError(node.initializer.text, siteOf(sf, node))
+  })
+  // ...and errorResult("literal"), which is a call argument rather than a property.
+  eachNode(sf, node => {
+    if (!ts.isCallExpression(node) || !ts.isIdentifier(node.expression)) return
+    if (node.expression.text !== "errorResult") return
+    const arg = node.arguments[0]
+    if (arg && ts.isStringLiteralLike(arg)) addLiteralError(arg.text, siteOf(sf, node))
+  })
+}
+function addLiteralError(message, source) {
+  if (message.length < 8 || errors.some(e => e.message === message)) return
+  errors.push({ key: null, message, literal: true, source })
+}
+errors.sort((a, b) => (a.key ?? a.message).localeCompare(b.key ?? b.message))
 
 // --- pass 6: value/result type shapes -----------------------------------------------------
 // The interfaces a plugin actually sends and receives. Members carry their declared type text
@@ -274,7 +386,10 @@ for (const [file, sf] of sources) {
       .filter(m => ts.isPropertySignature(m) && m.name && (ts.isIdentifier(m.name) || ts.isStringLiteralLike(m.name)))
       .map(m => ({
         name: m.name.text,
-        type: m.type ? m.type.getText(sf).replace(/\s+/g, " ") : "unknown",
+        // Collapse to one line, but keep member separators: a newline-separated inline object
+        // type would otherwise print as `{ left: number top: number }`, which is not valid TS.
+        type: m.type ? m.type.getText(sf).replace(/,?\s*\n\s*/g, "; ").replace(/\s+/g, " ")
+                            .replace(/;\s*}/g, " }").replace(/{\s*;\s*/g, "{ ").trim() : "unknown",
         optional: !!m.questionToken
       }))
     if (members.length) valueTypes[node.name.text] = { members, source: siteOf(sf, node) }

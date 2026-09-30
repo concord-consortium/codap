@@ -58,8 +58,11 @@ Everything else it leaves alone and reports. That is deliberate: resources do no
 interfaces by name, so a block the tool cannot fill completely is better hand-written than
 half-generated. The lint checks those instead.
 
-Never hand-edit inside the markers — the next run overwrites it. See
-`v3/doc/plugin-api/conventions.md` for the full rules.
+A marker declares a block machine-owned even before the tool can fill it. Content hand-written
+inside one is provisional: it stands until the generator learns that block, then is replaced
+without warning. Never hand-edit a block the generator already writes — run
+`npm run plugin-api:generate` and read the "Hand-maintained (left alone)" list to see which is
+which. See `v3/doc/plugin-api/conventions.md` for the full rules.
 
 ## The undocumented baseline
 

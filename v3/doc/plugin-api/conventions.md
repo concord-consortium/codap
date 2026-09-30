@@ -104,8 +104,13 @@ disturbing anything a person wrote:
 
 Rules:
 
-- **Never hand-edit inside the markers.** Fix the extractor or the code instead; a hand edit will
-  be silently overwritten.
+- **A marker declares the block machine-owned, whether or not the tool can fill it yet.** The
+  generator writes the blocks it can produce completely and leaves the rest alone, reporting them
+  as hand-maintained. So content you write inside markers is *provisional*: it survives until the
+  generator learns that block, and is then replaced without warning. Run
+  `npm run plugin-api:generate` to see which blocks are written and which are still yours.
+- **Never hand-edit a block the generator writes.** Fix the extractor or the code instead; the
+  next run silently discards the edit.
 - **Never put prose inside the markers** — and read this strictly. A generated block holds only
   what the extractor can derive from source: names, types, action support, selector patterns and
   error strings. Anything requiring judgment — why a property is useful, what a value is good for,

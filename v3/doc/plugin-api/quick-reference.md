@@ -75,17 +75,24 @@ followed by a name or id in square brackets:
 ```
 selector  := segment ( "." segment )*
 segment   := key ( "[" nameOrId "]" )?
+key       := one or more word characters
 nameOrId  := a name, a title, or a numeric id — or #default for a data context
 ```
 
-**Valid keys** (24): `attribute`, `attributeLocation`, `attributes`, `case`, `caseByID`, `caseByIndex`, `caseFormulaSearch`, `caseSearch`, `collection`, `component`, `configuration`, `dataContext`, `dataContextList`, `dataDisplay`, `global`, `interactiveApi`, `interactiveFrame`, `item`, `itemByCaseID`, `itemByID`, `itemSearch`, `logMessage`, `tourElements`, `type`.
+**Any word is accepted as a key at parse time.** CODAP does not validate keys against a list
+while parsing, so a misspelled selector does not fail there — it fails later, when no handler
+matches, with `unknown request: <value>`. Do not read a successful parse as a valid selector.
 
-A key not in that list does not parse, and the request fails rather than being ignored.
+**Keys that name a resource** (38): `adornment`, `adornmentList`, `allCases`, `attribute`, `attributeList`, `attributeLocation`, `case`, `caseByID`, `caseByIndex`, `caseCount`, `caseFormulaSearch`, `caseSearch`, `collection`, `collectionList`, `component`, `componentList`, `configuration`, `configurationList`, `dataContext`, `dataContextFromURL`, `dataContextList`, `dataDisplay`, `document`, `formulaEngine`, `global`, `globalList`, `interactiveApi`, `interactiveFrame`, `item`, `itemByCaseID`, `itemByID`, `itemCount`, `itemSearch`, `logMessage`, `logMessageMonitor`, `selectionList`, `tourElements`, `undoChangeNotice`.
+
+Earlier segments narrow the target — `dataContext[Mammals].collection[Cases].attributeList`
+reads the attributes of one collection of one data context.
 
 **Data-context defaulting.** When a selector omits `dataContext`, CODAP supplies `#default`,
 which resolves to the first data context in the document. That does not apply to these
 resource types: `component`, `componentList`, `dataContextList`, `dataDisplay`, `document`, `formulaEngine`, `global`, `globalList`, `interactiveApi`, `interactiveFrame`, `logMessage`, `logMessageMonitor`, `undoChangeNotice`, `undoableActionPerformed`. Nor does it apply when creating a data context, since there is
-nothing to default to yet.
+nothing to default to yet. Note that some resources have a data context resolved and ignore
+it; each resource's page says which.
 <!-- END GENERATED: selector-grammar -->
 
 ---
@@ -116,6 +123,7 @@ the string is what reaches your plugin.
 | `Cannot assign <value1> to <value2>` | — |
 | `Cannot create multiple sliders for <value>` | — |
 | `Case not found` | `caseNotFoundResult` |
+| `clientId and filter values are required` | — |
 | `Collection not found` | `collectionNotFoundResult` |
 | `Component does not support rescale` | — |
 | `Component not found` | `componentNotFoundResult` |
@@ -124,11 +132,14 @@ the string is what reaches your plugin.
 | `DataContext not found` | `dataContextNotFoundResult` |
 | `DataDisplay not found` | `dataDisplayNotFoundResult` |
 | `DataSetMetadata not found for <value>` | — |
+| `Document content not found` | — |
 | `error creating global value` | — |
 | `Failed to download and import CSV: <url>` | — |
 | `Global not found: <value>` | — |
 | `global values must be numbers` | — |
 | `globals must have unique names` | — |
+| `id or clientId required` | — |
+| `Interactive frame content not found` | — |
 | `Interactive Frame not found` | `noInteractiveFrameResult` |
 | `Internal error prevented color map access` | `noColorMapAccessResult` |
 | `Invalid bar chart scale: <value>` | — |
@@ -139,6 +150,7 @@ the string is what reaches your plugin.
 | `No action to process.` | — |
 | `Not a(n) <value1> adornment.` | — |
 | `Not found` | — |
+| `not implemented (yet)` | — |
 | `The <value1> adornment does not currently support <value2> requests.` | — |
 | `The current plot type does not support Percent.` | — |
 | `Unable to parse query.` | `couldNotParseQueryResult` |
@@ -147,6 +159,7 @@ the string is what reaches your plugin.
 | `Unsupported adornment type` | `adornmentNotSupportedResult` |
 | `Unsupported animationDirection <value>` | — |
 | `Unsupported animationMode <value>` | — |
+| `Unsupported component type` | — |
 | `Unsupported component type <value>` | — |
 | `Unsupported dateUnit <value>` | — |
 | `Unsupported scaleType <value>` | — |
