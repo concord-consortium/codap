@@ -48,31 +48,53 @@ describe("configureSliderFromAttribute", () => {
   it("sets the title to the childmost collection and undoes as one step", async () => {
     const { dataSet, tile, slider } = await setupSliderAndData()
     const manager = appState.document.treeManagerAPI as Instance<typeof TreeManager>
+    const settle = () => when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
     appState.document.treeMonitor!.enableMonitoring()
-    await when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
-    const titleBefore = tile.title
+    try {
+      await settle()
+      const before = {
+        title: tile.title, domain: [...slider.axis.domain], value: slider.value,
+        range: [slider.rangeLow, slider.rangeHigh]
+      }
 
-    expect(configureSliderFromAttribute(tile, dataSet, dataSet.attrFromName("a3")!.id)).toBe(true)
-    await when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
-    expect(slider.sliderType).toBe("visibility")
-    expect(tile.title).toBe(dataSet.childCollection.title)
-    expect(getTileDataSet(slider)).toBe(dataSet)
+      expect(configureSliderFromAttribute(tile, dataSet, dataSet.attrFromName("a3")!.id)).toBe(true)
+      await settle()
+      expect(slider.sliderType).toBe("visibility")
+      expect(tile.title).toBe(dataSet.childCollection.title)
+      expect(getTileDataSet(slider)).toBe(dataSet)
 
-    appState.document.undoLastAction()
-    await when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
-    expect(slider.sliderType).toBe("variable")
-    expect(slider.dataSetId).toBeUndefined()
-    expect(slider.axis.domain).toEqual([-0.5, 11.5])
-    expect(tile.title).toBe(titleBefore)
-    expect(getTileDataSet(slider)).toBeUndefined()
-    appState.document.treeMonitor!.disableMonitoring()
+      appState.document.undoLastAction()
+      await settle()
+      expect(slider.sliderType).toBe("variable")
+      expect(slider.dataSetId).toBeUndefined()
+      expect(slider.axis.domain).toEqual(before.domain)
+      expect(slider.value).toBe(before.value)
+      expect([slider.rangeLow, slider.rangeHigh]).toEqual(before.range)
+      expect(tile.title).toBe(before.title)
+      expect(getTileDataSet(slider)).toBeUndefined()
+    }
+    finally {
+      appState.document.treeMonitor!.disableMonitoring()
+    }
   })
 
   it("records nothing for an attribute with no values", async () => {
     const { dataSet, tile } = await setupSliderAndData()
     const empty = dataSet.addAttribute({ name: "empty", userType: "numeric" })
-    const canUndoBefore = appState.document.canUndo
-    expect(configureSliderFromAttribute(tile, dataSet, empty.id)).toBe(false)
-    expect(appState.document.canUndo).toBe(canUndoBefore)
+    const manager = appState.document.treeManagerAPI as Instance<typeof TreeManager>
+    // history entries complete asynchronously, so let the setup's settle before counting them
+    const settle = () => when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
+    appState.document.treeMonitor!.enableMonitoring()
+    try {
+      await settle()
+      const undoLevels = manager.undoStore.undoLevels
+
+      expect(configureSliderFromAttribute(tile, dataSet, empty.id)).toBe(false)
+      await settle()
+      expect(manager.undoStore.undoLevels).toBe(undoLevels)
+    }
+    finally {
+      appState.document.treeMonitor!.disableMonitoring()
+    }
   })
 })

@@ -303,6 +303,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
         dataConfiguration,
         renderer,
         pointRadius: mapLayerModel.getPointRadius(),
+        selectedPointRadius: mapLayerModel.getPointRadius('select'),
         instanceId: dataConfiguration.id,
         pointColor: pointDescription.pointColor,
         pointShape: pointDescription.pointShape,

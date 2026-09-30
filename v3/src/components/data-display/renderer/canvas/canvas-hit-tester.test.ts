@@ -26,6 +26,7 @@ describe("CanvasHitTester", () => {
     style: defaultStyle,
     isRaised: false,
     isVisible: true,
+    isPositioned: true,
     ...overrides
   })
 

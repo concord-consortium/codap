@@ -22,7 +22,8 @@ export function dataDisplayGetNumericValue(dataset: Maybe<IDataSet>, caseID: str
   }
 }
 
-// the [min, max] of the attribute's numeric values (epoch seconds for dates) over the visible items
+// the [min, max] of the attribute's numeric values (epoch seconds for dates) over the items that aren't set
+// aside or filtered out
 export function dataDisplayGetNumericExtent(dataSet: Maybe<IDataSet>, attrID: string): Maybe<[number, number]> {
   if (!dataSet) return
   let min = Infinity

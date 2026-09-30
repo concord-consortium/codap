@@ -3,6 +3,7 @@ import { CaseDataWithSubPlot } from "../d3-types"
 import { PointRendererBase } from "./point-renderer-base"
 import { PointsState } from "./points-state"
 import {
+  GetCasePointStyle,
   IBackgroundEventDistributionOptions,
   IPointRendererOptions,
   IPointStyle,
@@ -63,11 +64,12 @@ export class NullPointRenderer extends PointRendererBase {
     _datasetID: string,
     caseData: CaseDataWithSubPlot[],
     _displayType: PointDisplayType,
-    style: IPointStyle
+    style: IPointStyle,
+    getCasePointStyle?: GetCasePointStyle
   ): void {
     // Sync state - the base class will call this, and we track the data
     // but don't create any visual representation
-    this.state.syncWithCaseData(caseData, style)
+    this.state.syncWithCaseData(caseData, style, getCasePointStyle)
   }
 
   protected doSetPointPosition(_pointId: string, _x: number, _y: number): void {

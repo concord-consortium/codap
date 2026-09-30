@@ -41,7 +41,7 @@ export const SliderModel = TileContentModel
     axis: types.optional(types.union(NumericAxisModel, DateAxisModel),
       () => NumericAxisModel.create({ place: 'bottom', min: kDefaultSliderAxisMin, max: kDefaultSliderAxisMax })),
     sliderType: types.optional(types.enumeration([...SliderTypes]), kDefaultSliderType),
-    // the bound attribute; plain ids like DataConfigurationModel, not MST references
+    // the bound attribute, stored as plain ids rather than MST references
     dataSetId: types.maybe(types.string),
     attributeId: types.maybe(types.string),
     // width of the range thumb, in axis units (epoch seconds for dates); the global value is its low end
@@ -212,7 +212,8 @@ export const SliderModel = TileContentModel
       const [min, max] = extent
       if (min < max) return extent
       // a single value still needs an axis with width
-      const pad = attrType === "date" ? unitsStringToMilliseconds("day") / 2000 : 0.5
+      // half a day (in seconds) for dates
+      const pad = attrType === "date" ? unitsStringToMilliseconds("day") / 1000 / 2 : 0.5
       return [min - pad, max + pad]
     }
   }))
