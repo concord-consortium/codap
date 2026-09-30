@@ -53,8 +53,9 @@ For `create`, `update` and `delete` the type goes in `values.type` rather than i
 because those requests carry a values object anyway.
 
 <!-- BEGIN GENERATED: scope -->
-This resource is **not** scoped to a data context, so the default-data-context rule does not
-apply. Naming a `dataContext` in the selector has no effect.
+This resource does not use a data context. CODAP still resolves one — defaulting to
+`#default` when the selector omits it — but this resource ignores it, so naming a
+`dataContext` has no effect.
 <!-- END GENERATED: scope -->
 
 ### Type names and aliases
@@ -74,21 +75,21 @@ falls back to hiding, so it works everywhere.
 <!-- BEGIN GENERATED: adornment-types -->
 | Type | get | create | update | delete |
 |---|---|---|---|---|
+| `Box Plot` (alias `BoxPlot`) | ✓ | — | — | hides |
 | `Count` (alias `Percent`) | ✓ | ✓ | ✓ | ✓ |
-| `Movable Value` | ✓ | ✓ | ✓ | ✓ |
-| `Plotted Value` | ✓ | ✓ | ✓ | ✓ |
 | `LSRL` | ✓ | ✓ | ✓ | hides |
-| `Region of Interest` | ✓ | ✓ | ✓ | hides |
 | `Mean` | ✓ | ✓ | ✓ | hides |
+| `Mean Absolute Deviation` (alias `MeanAbsoluteDeviation`) | ✓ | — | — | hides |
 | `Median` | ✓ | ✓ | ✓ | hides |
-| `Standard Deviation` | ✓ | ✓ | ✓ | hides |
-| `Box Plot` | ✓ | — | — | hides |
-| `Mean Absolute Deviation` | ✓ | — | — | hides |
-| `Movable Line` | ✓ | — | — | hides |
-| `Movable Point` | ✓ | — | — | hides |
-| `Normal Curve` | ✓ | — | — | hides |
-| `Plotted Function` | ✓ | — | — | hides |
-| `Standard Error` | ✓ | — | — | hides |
+| `Movable Line` (alias `MovableLine`) | ✓ | — | — | hides |
+| `Movable Point` (alias `MovablePoint`) | ✓ | — | — | hides |
+| `Movable Value` (alias `MovableValue`) | ✓ | ✓ | ✓ | ✓ |
+| `Normal Curve` (alias `NormalCurve`) | ✓ | — | — | hides |
+| `Plotted Function` (alias `PlottedFunction`) | ✓ | — | — | hides |
+| `Plotted Value` (alias `PlottedValue`) | ✓ | ✓ | ✓ | ✓ |
+| `Region of Interest` (alias `RegionofInterest`) | ✓ | ✓ | ✓ | hides |
+| `Standard Deviation` (alias `StandardDeviation`) | ✓ | ✓ | ✓ | hides |
+| `Standard Error` (alias `StandardError`) | ✓ | — | — | hides |
 <!-- END GENERATED: adornment-types -->
 
 The seven read-only types **cannot be turned on through the API** — `create` and `update` both

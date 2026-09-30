@@ -182,8 +182,12 @@ for (const [, sf] of sources) {
       if (!name) return
       const handlerName = a1 && ts.isIdentifier(a1) ? a1.text : undefined
       const { actions, note, via } = handlerName ? actionsOf(handlerName) : { actions: null, note: "inline handler" }
+      // Whether the handler actually reads a data context. The parser's #default exemption list
+      // says only whether one gets *resolved*; several resources have one resolved and ignore it
+      // (adornment, for instance), so a page that reports scope from the list alone misleads.
+      const usesDataContext = /\bdataContext\b/.test(sf.getFullText())
       resources.push({ name, actions, ...(note && { note }), ...(via && { via }), handler: handlerName,
-                       source: siteOf(sf, node) })
+                       usesDataContext, source: siteOf(sf, node) })
     }
 
     if (fn === "registerComponentHandler") {
