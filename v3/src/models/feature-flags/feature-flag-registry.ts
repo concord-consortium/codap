@@ -61,6 +61,18 @@ export const kFeatureFlags = {
     owner: "ESTEEM",
     added: "2026-07-22",
     expires: "2027-07-31"
+  },
+  selectionSlider: {
+    description: "Selection slider type (selects cases within a range of an attribute)",
+    owner: "MappingTime",
+    added: "2026-09-24",
+    expires: "2027-09-30"
+  },
+  visibilitySlider: {
+    description: "Visibility slider type (hides cases outside a range of an attribute)",
+    owner: "MappingTime",
+    added: "2026-09-24",
+    expires: "2027-09-30"
   }
 } as const satisfies Record<string, IFeatureFlagInfo>
 

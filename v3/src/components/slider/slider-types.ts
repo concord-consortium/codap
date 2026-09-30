@@ -38,4 +38,11 @@ export function isSliderScaleType(value: any): value is ISliderScaleType {
   return SliderScaleTypes.includes(value)
 }
 
+export const SliderTypes = ["variable", "visibility", "selection"] as const
+export type SliderType = typeof SliderTypes[number]
+export const kDefaultSliderType: SliderType = "variable"
+
+// initial width of a range slider's thumb, as a fraction of the axis range
+export const kDefaultRangeFraction = 0.1
+
 export type FixValueFn = (value: number) => number

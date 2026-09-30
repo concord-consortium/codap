@@ -119,6 +119,7 @@ Show web view: %@,url,,{ url: string },"A web page tile is shown or created, suc
 sliderAnimationDirection: %@,"{name, direction}",,"{ name: string, direction: string }",User changes the slider animation direction.
 sliderChangeMaximum: %@,"{name, max}",,"{ name: string, max: number }",User changes the maximum value of the slider's axis.
 sliderChangeMinimum: %@,"{name, min}",,"{ name: string, min: number }",User changes the minimum value of the slider's axis.
+sliderConfigureFromAttribute: { attribute: %@ },attribute,,{ attribute: string },"User drops a numeric or date attribute on a slider, configuring it as a visibility (or selection) slider for that attribute."
 sliderDateMultipleOfUnit: %@,"{name, dateMultipleOfUnit}",,"{ name: string, dateMultipleOfUnit: string }",User changes the date unit used for the slider's multiples restriction.
 sliderEdit: { expression: %@ = %@ },"name, value",,"{ name: string, value: number }",User types a new value into the slider's editable value field.
 sliderMaxPerSecond: %@,"{name, maxPerSecond}",,"{ name: string, maxPerSecond: number }",User changes the slider animation speed in frames per second.

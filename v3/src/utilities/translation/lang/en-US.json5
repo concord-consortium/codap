@@ -1537,6 +1537,10 @@
     "V3.Redo.slider.changeMinimum": "Redo change of slider minimum",
     "V3.Undo.slider.changeMaximum": "Undo change of slider maximum",
     "V3.Redo.slider.changeMaximum": "Redo change of slider maximum",
+    "V3.Slider.dropHint.visibility": "Show only cases in a range of %@",
+    "V3.Slider.dropHint.selection": "Select cases in a range of %@",
+    "V3.Undo.slider.configureFromAttribute": "Undo configuring slider from attribute",
+    "V3.Redo.slider.configureFromAttribute": "Redo configuring slider from attribute",
 
     // Date unit labels with CLDR plural categories (one/other) via Intl.PluralRules.
     "V3.dateUnit.year.one": "year",
