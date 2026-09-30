@@ -1,0 +1,228 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://codap.concord.org/schemas/plugin-api-request.schema.json",
+  "title": "CODAP Data Interactive request",
+  "description": "Generated from v3/src by v3/scripts/plugin-api. Validates the request envelope a plugin sends to CODAP. `values` is intentionally unconstrained — its shape depends on the resource and action, and is documented per resource in v3/doc/plugin-api/resources/.",
+  "type": "object",
+  "required": [
+    "action",
+    "resource"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "enum": [
+        "get",
+        "create",
+        "update",
+        "delete",
+        "notify",
+        "register",
+        "unregister"
+      ],
+      "description": "The verb. Not every resource supports every action."
+    },
+    "resource": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z#][A-Za-z0-9_#]*(\\[[^\\]]*\\])?(\\.[A-Za-z][A-Za-z0-9_]*(\\[[^\\]]*\\])?)*$",
+      "description": "A dot-separated selector chain; see doc/plugin-api/quick-reference.md."
+    },
+    "values": {
+      "description": "Payload for create, update and notify. Shape varies by resource."
+    }
+  },
+  "$defs": {
+    "supportedActions": {
+      "description": "resource name -> the actions its handler implements.",
+      "const": {
+        "adornment": [
+          "get",
+          "create",
+          "update",
+          "delete"
+        ],
+        "adornmentList": [
+          "get"
+        ],
+        "allCases": [
+          "get",
+          "delete"
+        ],
+        "attribute": [
+          "get",
+          "create",
+          "update",
+          "delete",
+          "notify"
+        ],
+        "attributeList": [
+          "get"
+        ],
+        "attributeLocation": [
+          "update"
+        ],
+        "case": [
+          "create",
+          "update"
+        ],
+        "caseByID": [
+          "get",
+          "update",
+          "delete"
+        ],
+        "caseByIndex": [
+          "get",
+          "update",
+          "delete"
+        ],
+        "caseCount": [
+          "get"
+        ],
+        "caseFormulaSearch": [
+          "get"
+        ],
+        "caseSearch": [
+          "get"
+        ],
+        "collection": [
+          "get",
+          "create",
+          "update",
+          "delete"
+        ],
+        "collectionList": [
+          "get"
+        ],
+        "component": [
+          "get",
+          "create",
+          "update",
+          "delete",
+          "notify"
+        ],
+        "componentList": [
+          "get"
+        ],
+        "configuration": [
+          "get",
+          "update"
+        ],
+        "configurationList": [
+          "get"
+        ],
+        "dataContext": [
+          "get",
+          "create",
+          "update",
+          "delete",
+          "notify"
+        ],
+        "dataContextFromURL": [
+          "create"
+        ],
+        "dataContextList": [
+          "get"
+        ],
+        "dataDisplay": [
+          "get"
+        ],
+        "document": [
+          "get",
+          "update"
+        ],
+        "formulaEngine": [
+          "get",
+          "notify"
+        ],
+        "global": [
+          "get",
+          "create",
+          "update"
+        ],
+        "globalList": [
+          "get"
+        ],
+        "interactiveApi": [
+          "get"
+        ],
+        "interactiveFrame": [
+          "get",
+          "update",
+          "notify"
+        ],
+        "item": [
+          "get",
+          "create",
+          "update",
+          "delete"
+        ],
+        "itemByCaseID": [
+          "get",
+          "update",
+          "delete"
+        ],
+        "itemByID": [
+          "get",
+          "update",
+          "delete"
+        ],
+        "itemCount": [
+          "get"
+        ],
+        "itemSearch": [
+          "get",
+          "delete",
+          "notify"
+        ],
+        "logMessage": [
+          "notify"
+        ],
+        "logMessageMonitor": [
+          "register",
+          "unregister"
+        ],
+        "selectionList": [
+          "get",
+          "create",
+          "update"
+        ],
+        "tourElements": [
+          "get"
+        ],
+        "undoChangeNotice": [
+          "notify"
+        ]
+      }
+    },
+    "selectorKeys": {
+      "description": "Keys a selector segment may use.",
+      "const": [
+        "attribute",
+        "attributeLocation",
+        "attributes",
+        "case",
+        "caseByID",
+        "caseByIndex",
+        "caseFormulaSearch",
+        "caseSearch",
+        "collection",
+        "component",
+        "configuration",
+        "dataContext",
+        "dataContextList",
+        "dataDisplay",
+        "global",
+        "interactiveApi",
+        "interactiveFrame",
+        "item",
+        "itemByCaseID",
+        "itemByID",
+        "itemSearch",
+        "logMessage",
+        "tourElements",
+        "type"
+      ]
+    }
+  }
+}
