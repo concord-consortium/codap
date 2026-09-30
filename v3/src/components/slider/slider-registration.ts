@@ -5,7 +5,7 @@ import { getGlobalValueManager } from "../../models/global/global-value-manager"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { ITileLikeModel, registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
-import { toV2Id, toV3GlobalId, toV3Id } from "../../utilities/codap-utils"
+import { toV2Id, toV3AttrId, toV3DataSetId, toV3GlobalId, toV3Id } from "../../utilities/codap-utils"
 import { DateUnit, unitsStringToMilliseconds } from "../../utilities/date-utils"
 import { isFiniteNumber } from "../../utilities/math-utils"
 import { isAliveSafe } from "../../utilities/mst-utils"
@@ -23,7 +23,7 @@ import { ISliderSnapshot, SliderModel, isSliderModel } from "./slider-model"
 import { SliderTitleBar } from "./slider-title-bar"
 import {
   AnimationDirection, AnimationDirections, AnimationMode, AnimationModes,
-  kDefaultAnimationDirection, kDefaultAnimationMode, kDefaultSliderAxisMax, kDefaultSliderAxisMin
+  kDefaultAnimationDirection, kDefaultAnimationMode, kDefaultSliderAxisMax, kDefaultSliderAxisMin, SliderTypes
 } from "./slider-types"
 import { kDefaultSliderName, kDefaultSliderValue } from "./slider-utils"
 
@@ -99,8 +99,18 @@ registerV2TileExporter(kSliderTileType, ({ tile }) => {
   const restrictToMultiplesOf = scaleType === "date" && multipleOf != null
                                   ? multipleOf * unitsStringToMilliseconds(dateMultipleOfUnit) / 1000
                                   : multipleOf
-  // v3 extensions: ignored by v2, but allows full round-trip for v3 save/restore
-  const v3: ICodapV2SliderStorage["v3"] = { scaleType, multipleOf, dateMultipleOfUnit }
+  // v3 extensions: ignored by v2, but allows full round-trip for v3 save/restore. V2 has no range sliders,
+  // so a range slider is a variable slider at its low end there, with its type, binding and width here.
+  const { sliderType, dataSetId, attributeId, rangeWidth } = sliderModel
+  const rangeStorage: Partial<NonNullable<ICodapV2SliderStorage["v3"]>> = sliderModel.isRangeSlider
+    ? {
+        sliderType,
+        dataContext: dataSetId ? toV2Id(dataSetId) : undefined,
+        attribute: attributeId ? toV2Id(attributeId) : undefined,
+        rangeWidth: rangeWidth ?? 0
+      }
+    : {}
+  const v3: ICodapV2SliderStorage["v3"] = { scaleType, multipleOf, dateMultipleOfUnit, ...rangeStorage }
 
   const componentStorage: SetOptional<ICodapV2SliderStorage, keyof ICodapV2BaseComponentStorage> = {
     _links_: { model: guidLink("DG.GlobalValue", toV2Id(globalValue.id)) },
@@ -152,6 +162,17 @@ registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, getGlobalVal
   const axisMin = lowerBound ?? kDefaultSliderAxisMin
   const axisMax = upperBound ?? kDefaultSliderAxisMax
 
+  // a range slider exported from v3 (see the exporter)
+  const sliderType = SliderTypes.find(type => type !== "variable" && type === v3?.sliderType)
+  const rangeContent: Partial<ISliderSnapshot> = sliderType
+    ? {
+        sliderType,
+        dataSetId: v3?.dataContext != null ? toV3DataSetId(v3.dataContext) : undefined,
+        attributeId: v3?.attribute != null ? toV3AttrId(v3.attribute) : undefined,
+        rangeWidth: v3?.rangeWidth ?? 0
+      }
+    : {}
+
   // create slider model
   const content: ISliderSnapshot = {
     type: kSliderTileType,
@@ -162,7 +183,8 @@ registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, getGlobalVal
     animationMode: getAnimationModeStr(animationMode),
     _animationRate: maxPerSecond ?? undefined,
     scaleType,
-    axis: { type: axisType, place: "bottom", min: axisMin, max: axisMax }
+    axis: { type: axisType, place: "bottom", min: axisMin, max: axisMax },
+    ...rangeContent
   }
   const sliderTileSnap: ITileModelSnapshotIn = {
     id: toV3Id(kSliderIdPrefix, componentGuid), name, _title: title, userSetTitle, content, cannotClose
