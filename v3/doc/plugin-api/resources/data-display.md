@@ -41,8 +41,10 @@ callback rather than assuming immediate delivery.
 three resolve. The id is the number CODAP reports for the component, not a v3 internal string
 id.
 
+<!-- BEGIN GENERATED: scope -->
 This resource is **not** scoped to a data context, so the default-data-context rule does not
-apply to it. Naming a `dataContext` in the selector has no effect.
+apply. Naming a `dataContext` in the selector has no effect.
+<!-- END GENERATED: scope -->
 
 ## Values
 
@@ -87,7 +89,9 @@ Receive:
 **Display it in the plugin.**
 
 ```js
-codapInterface.sendRequest({
+// sendRequest stands for however your plugin sends requests — see "Sending requests and
+// receiving notifications" in the index.
+sendRequest({
   action: 'get',
   resource: 'dataDisplay[Height by Weight]'
 }, function (result) {

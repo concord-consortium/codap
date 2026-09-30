@@ -57,6 +57,42 @@ Every request a plugin sends has the same envelope:
 }
 ```
 
+### Sending requests and receiving notifications
+
+CODAP and a plugin talk over [iframe-phone](https://github.com/concord-consortium/iframe-phone).
+A plugin sets up an endpoint, passing a handler CODAP calls when it has something to say:
+
+```js
+const phone = new iframePhone.IframePhoneRpcEndpoint(
+  requestHandler, "data-interactive", window.parent)
+```
+
+Two directions, and they are not symmetrical:
+
+- **Plugin → CODAP.** Send a request envelope and get one response. Throughout this reference
+  that is written `sendRequest(request, callback)`; it stands for however your plugin sends —
+  `phone.call(...)` directly, or a helper library's wrapper. This reference documents the
+  messages, not any particular client.
+- **CODAP → plugin.** CODAP calls your `requestHandler(command, callback)` with a `notify`
+  message. This is how notifications arrive — a case was selected, a document was delivered, a
+  component's title changed. Inspect `command.resource` and `command.values.operation` to decide
+  what it is, and call `callback` when you are done:
+
+```js
+function requestHandler (command, callback) {
+  if (command.resource === "documentChangeNotice") {
+    // command.values.operation is "updateDocumentBegun" or "updateDocumentEnded"
+  }
+  callback({ success: true })
+}
+```
+
+Some resources deliver their real payload through this channel rather than in a response — see
+[`document`](resources/document.md), whose `get` replies `{"success": true}` and sends the
+document afterwards as a notification.
+
+---
+
 **Treat ids as opaque, and pass back exactly what CODAP gave you.**
 
 Most ids in this API are numbers — attributes, cases, collections, components, items. CODAP v3
@@ -102,15 +138,16 @@ context explicitly.
 
 ## Resources
 
-All 38 resources CODAP v3 registers, alphabetically. Pages marked *this repo* are current
-for v3; the rest are still on the
+All 38 resources CODAP v3 registers, alphabetically. Pages marked *this repo* are current for
+v3. Most of the rest are on the
 [wiki page](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-Plugin-API),
-which remains accurate for them.
+which remains accurate for them; a few are marked *not yet documented*, meaning they appear
+neither here nor there.
 
 | Resource | Documented in |
 |---|---|
-| `adornment` | wiki |
-| `adornmentList` | wiki |
+| **[`adornment`](resources/adornment.md)** | **this repo** |
+| **[`adornmentList`](resources/adornment.md)** | **this repo** |
 | `allCases` | wiki |
 | `attribute` | wiki |
 | `attributeList` | wiki |
@@ -131,11 +168,11 @@ which remains accurate for them.
 | `dataContextFromURL` | wiki |
 | `dataContextList` | wiki |
 | **[`dataDisplay`](resources/data-display.md)** | **this repo** |
-| `document` | wiki |
+| **[`document`](resources/document.md)** | **this repo** |
 | `formulaEngine` | wiki |
 | `global` | wiki |
 | `globalList` | wiki |
-| `interactiveApi` | wiki |
+| **[`interactiveApi`](resources/interactive-api.md)** | **this repo** |
 | `interactiveFrame` | wiki |
 | `item` | wiki |
 | `itemByCaseID` | wiki |
@@ -145,7 +182,7 @@ which remains accurate for them.
 | `logMessage` | wiki |
 | `logMessageMonitor` | wiki |
 | `selectionList` | wiki |
-| `tourElements` | wiki |
+| `tourElements` | not yet documented |
 | `undoChangeNotice` | wiki |
 
 ---
