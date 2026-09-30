@@ -591,6 +591,43 @@ describe("CanvasPointRenderer", () => {
       expect(canvas.width).toBe(100 * dpr)
       expect(canvas.height).toBe(100 * dpr)
     })
+
+    it("doesn't reset the canvas when its size is unchanged", () => {
+      // Setting a canvas's width or height clears it, even to its current value. Plots resize the renderer
+      // with unchanged dimensions to update their cell masks, e.g. on every step of a visibility slider,
+      // and the canvas would otherwise stay blank until the next frame redraws it.
+      renderer.resize(100, 100, 1, 1, 1, 1)
+      const canvas = renderer.canvas!
+      const widthSetter = jest.fn()
+      const heightSetter = jest.fn()
+      Object.defineProperty(canvas, "width", { get: () => 100 * (window.devicePixelRatio || 1), set: widthSetter })
+      Object.defineProperty(canvas, "height", { get: () => 100 * (window.devicePixelRatio || 1), set: heightSetter })
+
+      renderer.resize(100, 100, 2, 1, 1, 1)
+      expect(widthSetter).not.toHaveBeenCalled()
+      expect(heightSetter).not.toHaveBeenCalled()
+
+      renderer.resize(200, 100, 1, 1, 1, 1)
+      expect(widthSetter).toHaveBeenCalledWith(200 * (window.devicePixelRatio || 1))
+    })
+
+    it("doesn't reset the canvas when its unchanged size scales to a fractional number of pixels", () => {
+      // a canvas stores its size as whole pixels, e.g. 195 * 1.5 = 292.5 is stored as 292
+      const originalRatio = window.devicePixelRatio
+      Object.defineProperty(window, "devicePixelRatio", { value: 1.5, configurable: true })
+      try {
+        renderer.resize(538, 195, 1, 1, 1, 1)
+        const canvas = renderer.canvas!
+        expect(canvas.height).toBe(292)
+        const heightSetter = jest.fn()
+        Object.defineProperty(canvas, "height", { get: () => 292, set: heightSetter })
+
+        renderer.resize(538, 195, 1, 1, 1, 1)
+        expect(heightSetter).not.toHaveBeenCalled()
+      } finally {
+        Object.defineProperty(window, "devicePixelRatio", { value: originalRatio, configurable: true })
+      }
+    })
   })
 
   describe("removeMasks", () => {

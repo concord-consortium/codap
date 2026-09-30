@@ -239,11 +239,18 @@ export class CanvasPointRenderer extends PointRendererBase {
 
     // Resize canvas with device pixel ratio for sharp rendering
     const dpr = window.devicePixelRatio || 1
-    this._canvas.width = width * dpr
-    this._canvas.height = height * dpr
+    // Setting a canvas's size clears it (even to its current size), leaving it blank until the next frame
+    // redraws it, and plots resize with unchanged dimensions whenever their cell masks are updated.
+    // A canvas stores its size as whole pixels, truncating whatever it's assigned
+    const canvasWidth = Math.floor(width * dpr)
+    const canvasHeight = Math.floor(height * dpr)
+    if (this._canvas.width !== canvasWidth || this._canvas.height !== canvasHeight) {
+      this._canvas.width = canvasWidth
+      this._canvas.height = canvasHeight
+      this.ctx.scale(dpr, dpr)
+    }
     this._canvas.style.width = `${width}px`
     this._canvas.style.height = `${height}px`
-    this.ctx.scale(dpr, dpr)
 
     // Calculate subplot clip rectangles
     this.subPlotClipRects = []
