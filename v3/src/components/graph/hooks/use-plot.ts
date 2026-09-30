@@ -10,7 +10,7 @@ import {mstAutorun} from "../../../utilities/mst-autorun"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {IAxisModel} from "../../axis/models/axis-model"
-import {GraphAttrRoles} from "../../data-display/data-display-types"
+import {GraphAttrRoles, GraphSplitAttrRoles} from "../../data-display/data-display-types"
 import {matchCirclesToData} from "../../data-display/data-display-utils"
 import { PointEventHandler, PointRendererBase } from "../../data-display/renderer"
 import { setupAxes, syncModelWithAttributeConfiguration } from "../models/graph-model-utils"
@@ -229,17 +229,23 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   // Observe numberOfCategoriesLimitByRole directly rather than the rendered category arrays — those
   // also change on reorder/hide-show, which respondToCategorySetChanges and respondToCasesChange
   // already handle (with animation). Firing here on those would race the animation-driven mask
-  // reapply and clip sprites mid-flight. The limit map is only mutated by setupCategories /
-  // setNumberOfCategoriesLimit (both axis-length-driven), so this fires exclusively when a resize
-  // crosses a category-fitting threshold — the gap the existing reactions don't cover.
+  // reapply and clip sprites mid-flight. The raw limit changes every ~12px of a resize, so the
+  // effect only acts when the change moves an effective limit (see effectiveCategoriesLimitForRole);
+  // mask sizes follow the plot size separately, in Graph.
   useEffect(function respondToCellLayoutChanges() {
+    const rawLimits = () => {
+      const limits = dataConfiguration.numberOfCategoriesLimitByRole
+      return GraphSplitAttrRoles.map(role => limits.get(role))
+    }
+    let prevLimits = rawLimits()
     return mstReaction(
-      () => {
-        const limits = dataConfiguration.numberOfCategoriesLimitByRole
-        return [limits.get("x"), limits.get("y"), limits.get("topSplit"), limits.get("rightSplit")]
-      },
-      () => {
-        if (!renderer) return
+      rawLimits,
+      limits => {
+        const effectiveLimitChanged = GraphSplitAttrRoles.some((role, i) =>
+          dataConfiguration.effectiveCategoriesLimitForRole(role, limits[i]) !==
+          dataConfiguration.effectiveCategoriesLimitForRole(role, prevLimits[i]))
+        prevLimits = limits
+        if (!effectiveLimitChanged || !renderer) return
         // Remove stale masks before resizing so old cell-mask graphics from a prior layout
         // don't linger across rapid resize sequences (mirrors respondToCategorySetChanges).
         renderer.removeMasks()
