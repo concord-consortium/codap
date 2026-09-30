@@ -17,12 +17,13 @@ const valueOf = ($input: JQuery<HTMLElement>) => Number($input.val())
 
 // Drags from the element's center by dx with the button held. cypress-real-events' realMouseMove sends its
 // move with no buttons pressed, which releases pointer capture, so dispatch the pointer events directly.
-function dragBy($el: JQuery<HTMLElement>, dx: number) {
+function dragBy($el: JQuery<HTMLElement>, dx: number, { shiftKey = false } = {}) {
   const rect = $el[0].getBoundingClientRect()
   const x = rect.left + rect.width / 2
   const y = rect.top + rect.height / 2
   const pointer = {
-    eventConstructor: "PointerEvent", pointerId: 1, pointerType: "mouse", isPrimary: true, button: 0, force: true
+    eventConstructor: "PointerEvent", pointerId: 1, pointerType: "mouse", isPrimary: true, button: 0, force: true,
+    shiftKey
   }
   cy.wrap($el).trigger("pointerdown", { ...pointer, buttons: 1, clientX: x, clientY: y })
   for (let step = 1; step <= 4; ++step) {
@@ -134,5 +135,55 @@ context("Slider range thumb", () => {
     })
     c.closeComponent("slider")
     cy.get(".codap-case-table").contains("(27 cases)")
+  })
+
+  describe("a collapsed range", () => {
+    const rangeText = () => slider.getSliderTile().find('[data-testid="slider-range-values"] .range-text')
+    // collapses the range by dragging its low edge onto the high one, and yields the collapsed value
+    function collapseRange() {
+      setupRangeSlider()
+      slider.getRangeLowInput().parent().then($handle => dragBy($handle, 200))
+      return rangeText().should($text => expect($text.text()).not.to.contain("-"))
+        .then($text => Number($text.text()))
+    }
+    // a collapsed value is one of the data's; every Sleep value in the Mammals sample is a multiple of 0.1
+    const expectCollapsedOnData = ($text: JQuery<HTMLElement>) => {
+      expect($text.text()).not.to.contain("-")
+      const value = Number($text.text())
+      expect(Math.round(value * 10) / 10).to.be.closeTo(value, 1e-9)
+      return value
+    }
+
+    it("moves as one thumb when either half is dragged, snapping to the data", () => {
+      collapseRange().then(collapsed => {
+        // the high half dragged left, which would otherwise try to push it past the low half
+        slider.getRangeHighInput().parent().then($handle => dragBy($handle, -80))
+        rangeText().should($text => expect(expectCollapsedOnData($text)).to.be.lessThan(collapsed))
+      })
+      rangeText().then($text => Number($text.text())).then(moved => {
+        slider.getRangeLowInput().parent().then($handle => dragBy($handle, 80))
+        rangeText().should($text => expect(expectCollapsedOnData($text)).to.be.greaterThan(moved))
+      })
+    })
+
+    it("undoes a move in one step", () => {
+      collapseRange().then(collapsed => {
+        slider.getRangeHighInput().parent().then($handle => dragBy($handle, 80))
+        rangeText().should($text => expect(expectCollapsedOnData($text)).to.be.greaterThan(collapsed))
+        toolbar.getUndoTool().click()
+        rangeText().should($text => expect(Number($text.text())).to.equal(collapsed))
+      })
+    })
+
+    it("widens from the dragged edge when a half is shift-dragged", () => {
+      collapseRange().then(collapsed => {
+        slider.getRangeLowInput().parent().then($handle => dragBy($handle, -80, { shiftKey: true }))
+        rangeText().should($text => {
+          const [low, high] = $text.text().split("-").map(Number)
+          expect(low).to.be.lessThan(collapsed)
+          expect(high).to.equal(collapsed)
+        })
+      })
+    })
   })
 })

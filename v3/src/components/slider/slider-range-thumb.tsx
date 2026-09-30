@@ -1,6 +1,6 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import { PointerEvent, RefObject, SyntheticEvent, useRef } from "react"
+import { MouseEvent, PointerEvent, RefObject, SyntheticEvent, useRef } from "react"
 import { mergeProps, useFocusRing, useSliderThumb } from "react-aria"
 import type { SliderState } from "@react-stately/slider"
 import { isAliveSafe } from "../../utilities/mst-utils"
@@ -12,10 +12,20 @@ import { rangeChangeOptions } from "./slider-range-change"
 import { valueChangeNotification } from "./slider-utils"
 import { useSliderAnimation } from "./use-slider-animation"
 
+// the pointer handlers that drag the whole range (see SliderRangeThumb)
+interface IMoveHandlers {
+  onPointerDown: (e: PointerEvent<HTMLDivElement>) => void
+  onPointerMove: (e: PointerEvent<HTMLDivElement>) => void
+  onPointerUp: () => void
+  stopTrackPress: (e: SyntheticEvent) => void
+}
+
 interface IHandleProps {
   index: 0 | 1
   label: string
   left: number
+  // while the range is collapsed, dragging either half moves the whole thumb; shift-dragging widens it
+  moveHandlers?: IMoveHandlers
   state: SliderState
   trackRef: RefObject<HTMLDivElement | null>
 }
@@ -35,16 +45,33 @@ const RangeHandleIcon = ({ index }: { index: 0 | 1 }) => (
 )
 
 // one edge of the range; React Aria provides dragging, role="slider", and arrow/Home/End keys
-const RangeHandle = function RangeHandle({ index, label, left, state, trackRef }: IHandleProps) {
+const RangeHandle = function RangeHandle({ index, label, left, moveHandlers, state, trackRef }: IHandleProps) {
   const inputRef = useRef<HTMLInputElement | null>(null)
   const { thumbProps, inputProps, isDragging } = useSliderThumb({ index, trackRef, inputRef, "aria-label": label },
     state)
   const { isFocusVisible, focusProps } = useFocusRing()
+  // A press that moves the thumb must not reach React Aria, whose own drag would move just this edge, nor its
+  // track (see stopTrackPress). A touch can't be shift-pressed, so a collapsed thumb always moves by touch.
+  const moveProps = moveHandlers && {
+    onPointerDown: (e: PointerEvent<HTMLDivElement>) => {
+      if (e.shiftKey) thumbProps.onPointerDown?.(e)
+      else moveHandlers.onPointerDown(e)
+    },
+    onMouseDown: (e: MouseEvent<HTMLDivElement>) => {
+      if (e.shiftKey) thumbProps.onMouseDown?.(e)
+      else moveHandlers.stopTrackPress(e)
+    },
+    onTouchStart: moveHandlers.stopTrackPress,
+    onPointerMove: moveHandlers.onPointerMove,
+    onPointerUp: moveHandlers.onPointerUp,
+    onPointerCancel: moveHandlers.onPointerUp,
+    onLostPointerCapture: moveHandlers.onPointerUp
+  }
   return (
     <div className={clsx("slider-range-handle", index === 0 ? "low" : "high",
                          { dragging: isDragging, "focus-visible": isFocusVisible })}
          data-testid={index === 0 ? "slider-range-low" : "slider-range-high"}
-         {...thumbProps} style={{ ...thumbProps.style, left, transform: "none" }}>
+         {...thumbProps} {...moveProps} style={{ ...thumbProps.style, left, transform: "none" }}>
       <RangeHandleIcon index={index} />
       <input {...mergeProps(inputProps, focusProps)} ref={inputRef} className="codap-visually-hidden" />
     </div>
@@ -121,9 +148,15 @@ export const SliderRangeThumb = observer(function SliderRangeThumb({
     const low = sliderModel.rangeLow
     sliderModel.applyModelChange(() => sliderModel.moveRange(low), rangeChangeOptions(sliderModel, tile))
   }
+  // a collapsed range has no body to grab, so its halves move it (and the move snaps to the data)
+  const collapsedMoveHandlers: IMoveHandlers | undefined = sliderModel.width === 0
+    ? { onPointerDown: handleBodyPointerDown, onPointerMove: handleBodyPointerMove,
+        onPointerUp: handleBodyPointerUp, stopTrackPress }
+    : undefined
 
   return (
-    <div className="slider-range-thumb" data-testid="slider-range-thumb">
+    <div className={clsx("slider-range-thumb", { collapsed: !!collapsedMoveHandlers })}
+         data-testid="slider-range-thumb">
       <div className="slider-range-body" data-testid="slider-range-body"
            style={{ left: lowX, width: Math.max(0, highX - lowX) }}
            onPointerDown={handleBodyPointerDown} onMouseDown={stopTrackPress} onTouchStart={stopTrackPress}
@@ -131,9 +164,9 @@ export const SliderRangeThumb = observer(function SliderRangeThumb({
            onPointerUp={handleBodyPointerUp} onPointerCancel={handleBodyPointerUp}
            onLostPointerCapture={handleBodyPointerUp} />
       <RangeHandle index={0} label={t("V3.Slider.rangeLow")} left={lowX - kHandleWidth}
-                   state={state} trackRef={trackRef} />
+                   moveHandlers={collapsedMoveHandlers} state={state} trackRef={trackRef} />
       <RangeHandle index={1} label={t("V3.Slider.rangeHigh")} left={highX}
-                   state={state} trackRef={trackRef} />
+                   moveHandlers={collapsedMoveHandlers} state={state} trackRef={trackRef} />
     </div>
   )
 })
