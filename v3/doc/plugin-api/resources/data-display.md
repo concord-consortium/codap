@@ -89,7 +89,8 @@ Receive:
 **Display it in the plugin.**
 
 ```js
-// sendRequest stands for however your plugin sends requests — see Request shape in the index.
+// sendRequest stands for however your plugin sends requests — see "Sending requests and
+// receiving notifications" in the index.
 sendRequest({
   action: 'get',
   resource: 'dataDisplay[Height by Weight]'

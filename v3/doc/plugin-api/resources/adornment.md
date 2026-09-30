@@ -122,26 +122,41 @@ type string, not whichever alias you asked with. `isVisible` is `false` for an a
 shown and later hidden.
 
 `data` holds one entry per graph cell: a graph split by categorical attributes has one entry per
-subplot, each carrying a `categories` object identifying which. **Most types share one shape** —
-every type built on the univariate-measure base (`Mean`, `Median`, `Standard Deviation`) returns:
+subplot, each carrying a `categories` object identifying which. What each entry contains depends
+on the type — **do not assume the key matches the adornment name.** Three worth knowing:
+
+`Mean` and `Median` key the entry by the measure's own name:
 
 ```json
 { "data": [{ "mean": 12.5 }] }
 ```
 
-where the key is the measure's own name. `Box Plot` is the main exception: each entry carries
-`median`, `lowerQuartile`, `upperQuartile`, `interquartileRange`, `lower` and `upper`, and the
-result also carries top-level `showICI` and `showOutliers` alongside `data`. For other types,
-read the handler under `src/components/graph/adornments/` — the full per-type catalog is not
-yet here.
+`Standard Deviation` does **not** use a `standardDeviation` key. It reports the mean plus the
+±1 SD range:
+
+```json
+{ "data": [{ "mean": 10, "min": 0, "max": 20 }] }
+```
+
+`Box Plot` carries the five-number summary — `median`, `lowerQuartile`, `upperQuartile`,
+`interquartileRange`, `lower` and `upper` — and the result also carries top-level `showICI` and
+`showOutliers` alongside `data`.
+
+For other types, read the handler under `src/components/graph/adornments/` — the full per-type
+catalog is not yet here.
 
 ### create, update, delete
 
 All three take a `values` object containing at least `type`:
 
-| Property | Type | Notes |
+<!-- BEGIN GENERATED: values-write -->
+| Property | Type | Required |
 |---|---|---|
-| `type` | String | **Required.** The adornment type or an alias. Omitting it returns `A values object is required for this request.` |
+| `type` | String | yes |
+<!-- END GENERATED: values-write -->
+
+`type` is the adornment type or an alias. Omitting it — or sending no `values` at all — returns
+`A values object is required for this request.`
 
 Individual types accept further properties — a `Movable Value` takes a value to place, a
 `Plotted Value` takes an expression. Those are documented with the types themselves, which this

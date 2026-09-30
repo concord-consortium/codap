@@ -57,6 +57,42 @@ Every request a plugin sends has the same envelope:
 }
 ```
 
+### Sending requests and receiving notifications
+
+CODAP and a plugin talk over [iframe-phone](https://github.com/concord-consortium/iframe-phone).
+A plugin sets up an endpoint, passing a handler CODAP calls when it has something to say:
+
+```js
+const phone = new iframePhone.IframePhoneRpcEndpoint(
+  requestHandler, "data-interactive", window.parent)
+```
+
+Two directions, and they are not symmetrical:
+
+- **Plugin → CODAP.** Send a request envelope and get one response. Throughout this reference
+  that is written `sendRequest(request, callback)`; it stands for however your plugin sends —
+  `phone.call(...)` directly, or a helper library's wrapper. This reference documents the
+  messages, not any particular client.
+- **CODAP → plugin.** CODAP calls your `requestHandler(command, callback)` with a `notify`
+  message. This is how notifications arrive — a case was selected, a document was delivered, a
+  component's title changed. Inspect `command.resource` and `command.values.operation` to decide
+  what it is, and call `callback` when you are done:
+
+```js
+function requestHandler (command, callback) {
+  if (command.resource === "documentChangeNotice") {
+    // command.values.operation is "updateDocumentBegun" or "updateDocumentEnded"
+  }
+  callback({ success: true })
+}
+```
+
+Some resources deliver their real payload through this channel rather than in a response — see
+[`document`](resources/document.md), whose `get` replies `{"success": true}` and sends the
+document afterwards as a notification.
+
+---
+
 **Treat ids as opaque, and pass back exactly what CODAP gave you.**
 
 Most ids in this API are numbers — attributes, cases, collections, components, items. CODAP v3

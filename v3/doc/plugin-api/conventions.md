@@ -113,6 +113,10 @@ Rules:
   or after the block. If it is inside the markers and not derivable, the generator will silently delete it.
   When in doubt, ask whether a script reading `src/data-interactive/` could produce the cell.
 - Current block names: `actions`, `selectors`, `scope`, `values`, `errors`.
+- A page may carry **more than one property table** when the shape differs by action — the result
+  of a `get` versus the values `create`/`update` accept. Mark both, with distinct names: `values`
+  for the result shape and `values-write` for accepted input. Block names must be unique within a
+  page, since the generator targets them by name.
 - A page written before the generator exists still uses the markers, with the content written by
   hand. That is the point — the generator takes over later with no restructuring.
 

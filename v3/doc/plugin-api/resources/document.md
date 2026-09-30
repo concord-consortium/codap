@@ -36,7 +36,7 @@ No bracketed selector — there is one document.
 
 <!-- BEGIN GENERATED: scope -->
 This resource is **not** scoped to a data context, so the default-data-context rule does not
-apply.
+apply. Naming a `dataContext` in the selector has no effect.
 <!-- END GENERATED: scope -->
 
 ## get — subscribing to document state
@@ -135,7 +135,8 @@ The response is `{"success": true}`. The document follows as a `newDocumentState
 
 ```js
 // sendRequest stands for however your plugin sends requests, and requestHandler is the
-// handler you passed to iframePhone — see Request shape in the index.
+// handler you passed to iframePhone — see "Sending requests and receiving notifications"
+// in the index.
 
 // 1. opt in once, at startup
 sendRequest({

@@ -44,7 +44,7 @@ reply will arrive.
 
 <!-- BEGIN GENERATED: scope -->
 This resource is **not** scoped to a data context, so the default-data-context rule does not
-apply.
+apply. Naming a `dataContext` in the selector has no effect.
 <!-- END GENERATED: scope -->
 
 ## Values
@@ -53,12 +53,16 @@ apply.
 values rather than as an error:
 
 <!-- BEGIN GENERATED: values -->
-| Property | Type | Notes |
-|---|---|---|
-| `available` | Boolean | Whether the interactive API is available in this session. |
-| `initInteractive` | Object | Present only when `available` is `true`. The host platform's `initInteractive` message, passed through unchanged. |
-| `notAvailableReason` | String | Present only when `available` is `false`. Explains which condition failed. |
+| Property | Type |
+|---|---|
+| `available` | Boolean |
+| `initInteractive` | Object |
+| `notAvailableReason` | String |
 <!-- END GENERATED: values -->
+
+`available` says whether the interactive API is available in this session. When it is `true`,
+`initInteractive` carries the host platform's message, passed through unchanged. When it is
+`false`, `notAvailableReason` explains which condition failed.
 
 `available` is `false` in two distinct situations, distinguished by `notAvailableReason`:
 
@@ -108,7 +112,8 @@ Not available:
 **Branch correctly in a plugin.**
 
 ```js
-// sendRequest stands for however your plugin sends requests — see Request shape in the index.
+// sendRequest stands for however your plugin sends requests — see "Sending requests and
+// receiving notifications" in the index.
 sendRequest({ action: 'get', resource: 'interactiveApi' }, function (result) {
   // success is true either way — check `available`
   if (result.success && result.values.available) {
