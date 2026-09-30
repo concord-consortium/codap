@@ -3,36 +3,50 @@
   "$id": "https://codap.concord.org/schemas/plugin-api-request.schema.json",
   "title": "CODAP Data Interactive request",
   "description": "Generated from v3/src by v3/scripts/plugin-api. Validates the request envelope a plugin sends to CODAP. `values` is intentionally unconstrained — its shape depends on the resource and action, and is documented per resource in v3/doc/plugin-api/resources/.",
-  "type": "object",
-  "required": [
-    "action",
-    "resource"
-  ],
-  "additionalProperties": false,
-  "properties": {
-    "action": {
-      "enum": [
-        "get",
-        "create",
-        "update",
-        "delete",
-        "notify",
-        "register",
-        "unregister"
-      ],
-      "description": "The verb. Not every resource supports every action."
+  "oneOf": [
+    {
+      "$ref": "#/$defs/action"
     },
-    "resource": {
-      "type": "string",
-      "minLength": 1,
-      "pattern": "^[A-Za-z#][A-Za-z0-9_#]*(\\[[^\\]]*\\])?(\\.[A-Za-z][A-Za-z0-9_]*(\\[[^\\]]*\\])?)*$",
-      "description": "A dot-separated selector chain; see doc/plugin-api/quick-reference.md."
-    },
-    "values": {
-      "description": "Payload for create, update and notify. Shape varies by resource."
+    {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/action"
+      },
+      "minItems": 1
     }
-  },
+  ],
   "$defs": {
+    "action": {
+      "type": "object",
+      "required": [
+        "action",
+        "resource"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "enum": [
+            "get",
+            "create",
+            "update",
+            "delete",
+            "notify",
+            "register",
+            "unregister"
+          ],
+          "description": "The verb. Not every resource supports every action."
+        },
+        "resource": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[A-Za-z#][A-Za-z0-9_#]*(\\[[^\\]]*\\])?(\\.[A-Za-z][A-Za-z0-9_]*(\\[[^\\]]*\\])?)*$",
+          "description": "A dot-separated selector chain; see doc/plugin-api/quick-reference.md."
+        },
+        "values": {
+          "description": "Payload for create, update and notify. Shape varies by resource."
+        }
+      }
+    },
     "supportedActions": {
       "description": "resource name -> the actions its handler implements.",
       "const": {

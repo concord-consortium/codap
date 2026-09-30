@@ -83,13 +83,16 @@ for (const [key, page] of [...pageFor]) {
 function renderActions(resourceNames) {
   const found = resourceNames.map(n => inventory.resources.find(r => r.name === n)).filter(Boolean)
   if (!found.length) return null
+  // The extractor records actions: null when it cannot resolve a handler. That is "unknown",
+  // not "unsupported" — rendering it as — would publish a false negative.
+  const cell = (r, a) => (r.actions == null ? "?" : tick(r.actions.includes(a)))
   if (found.length === 1) {
     return ["| Action | Supported |", "|---|---|",
-      ...ACTIONS.map(a => `| \`${a}\` | ${tick(found[0].actions?.includes(a))} |`)].join("\n")
+      ...ACTIONS.map(a => `| \`${a}\` | ${cell(found[0], a)} |`)].join("\n")
   }
   const head = `| Action | ${found.map(r => r.name).join(" | ")} |`
   const rule = `|---|${found.map(() => "---").join("|")}|`
-  const rows = ACTIONS.map(a => `| \`${a}\` | ${found.map(r => tick(r.actions?.includes(a))).join(" | ")} |`)
+  const rows = ACTIONS.map(a => `| \`${a}\` | ${found.map(r => cell(r, a)).join(" | ")} |`)
   return [head, rule, ...rows].join("\n")
 }
 
@@ -98,6 +101,9 @@ function renderActions(resourceNames) {
 // resource can have one resolved and ignore it, so reporting from the list alone is misleading.
 function renderScope(resourceNames) {
   const found = resourceNames.map(n => inventory.resources.find(r => r.name === n)).filter(Boolean)
+  // Refuse rather than guess: if a resource was renamed in code, or a page covers several and we
+  // resolved only some, an assertion here would be fabricated. Leave the block for a human.
+  if (!resourceNames.length || found.length !== resourceNames.length) return null
   const exempt = resourceNames.every(n => inventory.defaultContextExemptions.includes(n))
   const uses = found.some(r => r.usesDataContext)
   if (exempt) {
@@ -116,7 +122,8 @@ function renderScope(resourceNames) {
 function renderAdornmentTypes() {
   const rows = inventory.adornmentTypes.map(a => {
     const label = a.aliases.length ? `\`${a.type}\` (alias ${a.aliases.map(x => `\`${x}\``).join(", ")})` : `\`${a.type}\``
-    const has = x => a.actions?.includes(x)
+    if (a.actions == null) return `| ${label} | ? | ? | ? | ? |`   // unresolved handler
+    const has = x => a.actions.includes(x)
     return `| ${label} | ${tick(has("get"))} | ${tick(has("create"))} | ${tick(has("update"))} | ` +
            `${has("delete") ? "✓" : "hides"} |`
   })
@@ -126,7 +133,9 @@ function renderAdornmentTypes() {
 function renderValues(sourceName) {
   const iface = inventory.valueTypes[sourceName]
   if (!iface) return null
-  const rows = iface.members.map(m => `| \`${m.name}\` | ${m.type} | ${m.optional ? "optional" : "required"} |`)
+  const esc = t => t.replace(/\|/g, "\\|")   // 25 member types are unions; an unescaped pipe splits the row
+  const rows = iface.members.map(m =>
+    `| \`${m.name}\` | ${esc(m.type)} | ${m.optional ? "optional" : "required"} |`)
   return ["| Property | Type | |", "|---|---|---|", ...rows].join("\n")
 }
 
@@ -140,7 +149,7 @@ function renderResourceActions() {
 }
 
 function renderSelectorGrammar() {
-  const keys = inventory.selectorKeys.map(k => `\`${k}\``).join(", ")
+  const resourceNames = inventory.resources.map(r => `\`${r.name}\``).join(", ")
   const exempt = inventory.defaultContextExemptions.map(k => `\`${k}\``).join(", ")
   return [
     "A resource selector is a dot-separated chain of segments. Each segment is a key, optionally",
@@ -149,17 +158,24 @@ function renderSelectorGrammar() {
     "```",
     "selector  := segment ( \".\" segment )*",
     "segment   := key ( \"[\" nameOrId \"]\" )?",
+    "key       := one or more word characters",
     "nameOrId  := a name, a title, or a numeric id — or #default for a data context",
     "```",
     "",
-    `**Valid keys** (${inventory.selectorKeys.length}): ${keys}.`,
+    "**Any word is accepted as a key at parse time.** CODAP does not validate keys against a list",
+    "while parsing, so a misspelled selector does not fail there — it fails later, when no handler",
+    "matches, with `unknown request: <value>`. Do not read a successful parse as a valid selector.",
     "",
-    "A key not in that list does not parse, and the request fails rather than being ignored.",
+    `**Keys that name a resource** (${inventory.resources.length}): ${resourceNames}.`,
+    "",
+    "Earlier segments narrow the target — `dataContext[Mammals].collection[Cases].attributeList`",
+    "reads the attributes of one collection of one data context.",
     "",
     "**Data-context defaulting.** When a selector omits `dataContext`, CODAP supplies `#default`,",
     "which resolves to the first data context in the document. That does not apply to these",
     `resource types: ${exempt}. Nor does it apply when creating a data context, since there is`,
-    "nothing to default to yet."
+    "nothing to default to yet. Note that some resources have a data context resolved and ignore",
+    "it; each resource's page says which."
   ].join("\n")
 }
 
@@ -228,10 +244,14 @@ function buildSchema() {
       "Generated from v3/src by v3/scripts/plugin-api. Validates the request envelope a plugin " +
       "sends to CODAP. `values` is intentionally unconstrained — its shape depends on the " +
       "resource and action, and is documented per resource in v3/doc/plugin-api/resources/.",
-    type: "object",
-    required: ["action", "resource"],
-    additionalProperties: false,
-    properties: {
+    // A request is one action or a batch of them: DIRequest = DIAction | DIAction[].
+    oneOf: [{ $ref: "#/$defs/action" }, { type: "array", items: { $ref: "#/$defs/action" }, minItems: 1 }],
+    $defs: {
+      action: {
+  type: "object",
+  required: ["action", "resource"],
+  additionalProperties: false,
+  properties: {
       action: { enum: ACTIONS, description: "The verb. Not every resource supports every action." },
       resource: {
         type: "string",
@@ -239,9 +259,9 @@ function buildSchema() {
         pattern: "^[A-Za-z#][A-Za-z0-9_#]*(\\[[^\\]]*\\])?(\\.[A-Za-z][A-Za-z0-9_]*(\\[[^\\]]*\\])?)*$",
         description: "A dot-separated selector chain; see doc/plugin-api/quick-reference.md."
       },
-      values: { description: "Payload for create, update and notify. Shape varies by resource." }
-    },
-    $defs: {
+    values: { description: "Payload for create, update and notify. Shape varies by resource." }
+  }
+      },
       supportedActions: {
         description: "resource name -> the actions its handler implements.",
         const: byResource
@@ -250,9 +270,23 @@ function buildSchema() {
     }
   }
 }
-if (!check) {
-  writeFileSync(join(docsDir, "plugin-api-request.schema.json"),
-                JSON.stringify(buildSchema(), null, 2) + "\n")
+// Both committed artifacts are written here, and compared in --check mode — otherwise they can
+// drift from the code indefinitely with CI green.
+const artifacts = [
+  [join(docsDir, "plugin-api-request.schema.json"), JSON.stringify(buildSchema(), null, 2) + "\n"],
+  // The inventory's verifiedAgainst records when it was regenerated, so compare everything else.
+  [inventoryPath, JSON.stringify(inventory, null, 2) + "\n"]
+]
+const stripVolatile = t => t.replace(/"verifiedAgainst":\s*"[^"]*"/, '"verifiedAgainst":""')
+for (const [file, content] of artifacts) {
+  if (check) {
+    const current = existsSync(file) ? readFileSync(file, "utf8") : ""
+    if (stripVolatile(current) !== stripVolatile(content)) {
+      report.changed.push(`${relative(docsDir, file)} is stale — run npm run plugin-api:generate`)
+    }
+  } else {
+    writeFileSync(file, content)
+  }
 }
 
 // --- drift ------------------------------------------------------------------------------------
