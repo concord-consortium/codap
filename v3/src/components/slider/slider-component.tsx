@@ -80,6 +80,9 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   // clears its dragging flag before calling onChangeEnd. Keyboard changes mark their handle as dragging, too.
   const stateRef = useRef<SliderState | null>(null)
   const activeHandleRef = useRef<number | undefined>(undefined)
+  // whether the range changed during the current press: React Stately calls onChangeEnd on every release, even
+  // of a handle that didn't move, with values rounded to its step
+  const rangeChangedRef = useRef(false)
   const rangeForHandles = useCallback((values: number[]) => {
     if (!sliderModel) return values as [number, number]
     return rangeFromHandles(values, [sliderModel.rangeLow, sliderModel.rangeHigh], activeHandleRef.current, step)
@@ -89,6 +92,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
     if (!sliderModel) return
     const ariaState = stateRef.current
     activeHandleRef.current = [0, 1].find(index => ariaState?.isThumbDragging(index)) ?? ariaState?.focusedThumb
+    rangeChangedRef.current = true
     sliderModel.applyModelChange(
       () => sliderModel.isRangeSlider
         ? sliderModel.setDynamicRange(...rangeForHandles(values))
@@ -100,8 +104,13 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   const handleChangeEnd = useCallback((values: number[]) => {
     if (!sliderModel) return
     if (sliderModel.isRangeSlider) {
-      sliderModel.applyModelChange(() => sliderModel.setRange(...rangeForHandles(values)),
-                                   rangeChangeOptions(sliderModel, tile))
+      // a press that changed nothing shouldn't round the range to the step or create an undo entry
+      if (rangeChangedRef.current) {
+        sliderModel.applyModelChange(() => sliderModel.setRange(...rangeForHandles(values)),
+                                     rangeChangeOptions(sliderModel, tile))
+      }
+      rangeChangedRef.current = false
+      activeHandleRef.current = undefined
       return
     }
     sliderModel.applyModelChange(

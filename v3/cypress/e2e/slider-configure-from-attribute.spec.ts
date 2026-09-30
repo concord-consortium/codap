@@ -4,11 +4,12 @@ import { SliderTileElements as slider } from "../support/elements/slider-tile"
 // the Mammals dashboard already contains a variable slider ("v1"), which these tests drop onto
 const baseParams = "?sample=mammals&dashboard&mouseSensor&suppressUnsavedWarning"
 
-// opens the Mammals dashboard and waits for the table and the slider to render
+// opens the Mammals dashboard and waits for the table and the slider to render, and for the slider's value
+// to settle: it reads 0 briefly before the document's 0.5 is applied
 function visitMammals(extraParams = "") {
   cy.visit(`${Cypress.config("index")}${baseParams}${extraParams}`)
   cy.get('.codap-case-table [data-testid="codap-attribute-button Sleep"]').should("be.visible")
-  slider.getSliderTile().should("be.visible")
+  slider.getVariableValue().should("eq", "0.5")
 }
 
 function expectSliderUnchangedByDrop(attribute: string) {

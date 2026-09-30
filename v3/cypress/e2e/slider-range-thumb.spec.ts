@@ -6,7 +6,9 @@ const params = "?sample=mammals&dashboard&mouseSensor&suppressUnsavedWarning&fea
 // Sleep ranges over [2, 20] in the Mammals sample, so the configured range starts at [2, 3.8]
 function setupRangeSlider() {
   cy.visit(`${Cypress.config("index")}${params}`)
-  cy.wait(2500)
+  // the slider's value reads 0 briefly before the document's 0.5 is applied
+  cy.get('.codap-case-table [data-testid="codap-attribute-button Sleep"]').should("be.visible")
+  slider.getVariableValue().should("eq", "0.5")
   cy.dragAttributeToTarget("table", "Sleep", "slider")
   slider.getRangeLowInput().should("have.value", "2")
 }
@@ -121,6 +123,22 @@ context("Slider range thumb", () => {
     })
     toolbar.getUndoTool().click()
     slider.getRangeLowInput().should("have.value", "2")
+  })
+
+  it("changes nothing when a handle is pressed and released without moving", () => {
+    setupRangeSlider()
+    slider.getRangeHighInput().parent().then($handle => {
+      const rect = $handle[0].getBoundingClientRect()
+      const pointer = { eventConstructor: "PointerEvent", pointerId: 1, pointerType: "mouse", isPrimary: true,
+                        button: 0, force: true,
+                        clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 }
+      cy.wrap($handle).trigger("pointerdown", { ...pointer, buttons: 1 })
+      cy.wrap($handle).trigger("pointerup", { ...pointer, buttons: 0 })
+    })
+    // one undo reverts the attribute drop itself, so the press added no change of its own
+    toolbar.getUndoTool().click()
+    slider.getSliderTile().find('[data-testid="slider-range-values"]').should("not.exist")
+    slider.getSliderTile().find('[data-testid="slider-variable-name"]').should("exist")
   })
 
   describe("a collapsed range", () => {

@@ -95,8 +95,11 @@ export const SliderModel = TileContentModel
     get isRangeSlider() {
       return self.sliderType !== "variable"
     },
+    // A range no wider than the axis. The saved width isn't narrowed to fit the axis, so zooming the axis in
+    // and back out (or undoing the zoom) leaves the range as it was, and an axis change adds no change of its own.
     get width() {
-      return self.dynamicRangeWidth ?? self.rangeWidth ?? 0
+      const [axisMin, axisMax] = self.axis.domain
+      return Math.min(self.dynamicRangeWidth ?? self.rangeWidth ?? 0, Math.max(0, axisMax - axisMin))
     },
     // sorted distinct values of the bound attribute over the visible cases, for zero-width snapping
     get snapValues(): number[] {
@@ -172,7 +175,9 @@ export const SliderModel = TileContentModel
         const [min, max] = self.valueDomain
         return next ?? (sign > 0 ? max + 1 : min - 1)
       }
-      return self.value + sign * (self.increment ?? fallbackIncrement)
+      // range bounds ignore the multiple restriction (see sliderStep), in playback as in a drag
+      const increment = self.isRangeSlider ? undefined : self.increment
+      return self.value + sign * (increment ?? fallbackIncrement)
     },
     // bounded by the value domain, so a range slider's playback wraps or stops when its high end reaches the axis
     validateValue(value: number, belowMin: FixValueFn, aboveMax: FixValueFn) {
@@ -296,11 +301,7 @@ export const SliderModel = TileContentModel
         () => {
           // skip constraining value during axis animation (value is intentionally outside bounds)
           if (self._isAxisAnimating) return
-          const [axisMin, axisMax] = self.axis.domain
-          // a range wider than the axis shrinks to fit it
-          if (self.isRangeSlider && self.width > axisMax - axisMin) {
-            self.setRangeWidth(axisMax - axisMin)
-          }
+          // (a range wider than the axis fits it by way of the width view)
           const [min, max] = self.valueDomain
           // keep the thumb within axis bounds when axis bounds are changed
           if (self.value < min) self.setDynamicValueIfDynamic(min)
