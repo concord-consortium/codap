@@ -17,7 +17,7 @@ import {
 import {IDataConfigurationModel } from "./models/data-configuration-model"
 import { IDisplayItemDescriptionModel } from "./models/display-item-description-model"
 import {CaseDataWithSubPlot} from "./d3-types"
-import { getRendererForEvent, IPoint, IPointStyle, PointRendererBase } from "./renderer"
+import { getRendererForEvent, GetCasePointStyle, IPoint, IPointStyle, PointRendererBase } from "./renderer"
 
 export const maxWidthOfStringsD3 = (strings: Iterable<string>) => {
   let maxWidth = 0
@@ -100,15 +100,62 @@ export interface IMatchCirclesProps {
   pointShape?: PointShape
   pointDisplayType?: PointDisplayType
   pointStrokeColor: string
+  // the radius of a selected point; defaults to pointRadius
+  selectedPointRadius?: number
+  getPointColorAtIndex?: (index: number) => string
   startAnimation: () => void
   stopAnimation: () => void
   instanceId: string | undefined
   renderer: PointRendererBase
 }
 
+type ICasePointStyleProps = Pick<ISetPointSelection, "dataConfiguration" | "pointRadius" | "selectedPointRadius" |
+  "pointColor" | "pointStrokeColor" | "pointShape" | "getPointColorAtIndex">
+
+/**
+ * Returns a function giving a case's point style: its legend color and shape, its plot's color, and its
+ * selection styling. Points are matched with it as well as restyled with it, so a point a match adds is
+ * drawn as the next restyle would draw it.
+ */
+function casePointStyleGetter(props: ICasePointStyleProps) {
+  const { dataConfiguration, pointRadius, selectedPointRadius, pointColor, pointStrokeColor, pointShape,
+          getPointColorAtIndex } = props
+  const dataset = dataConfiguration.dataset
+  /*
+   * A legend the display cannot honor counts as having one here. Its ID reads "" on a map, because
+   * the base configuration filters an unusable assignment out, so testing the ID alone would send
+   * map points down the no-legend path and paint them the display's color -- while the map's own
+   * refresh painted them the missing-value color, and the legend said the attribute cannot
+   * distinguish them. The two paths have to agree.
+   */
+  const hasLegendInEffect = !!dataConfiguration.attributeID('legend') || dataConfiguration.legendAttributeIsInoperable
+
+  return (caseID: string, plotNum: number): Partial<IPointStyle> => {
+    const isSelected = !!dataset?.isCaseSelected(caseID)
+    // Determine fill color based on legend or plotNum; no-legend selected points override to blue below
+    let fill: string
+    if (hasLegendInEffect) {
+      fill = dataConfiguration.getLegendColorForCase(caseID)
+    } else {
+      fill = plotNum && getPointColorAtIndex ? getPointColorAtIndex(plotNum) : pointColor
+    }
+    // When there's no legend, use blue fill for selection instead of a colored stroke
+    const useSelectionFill = isSelected && !hasLegendInEffect
+    return {
+      shape: dataConfiguration.getLegendShapeForCase(caseID, pointShape),
+      fill: useSelectionFill ? defaultSelectedColor : fill,
+      radius: isSelected ? selectedPointRadius : pointRadius,
+      stroke: isSelected && !useSelectionFill ? defaultSelectedStroke : pointStrokeColor,
+      strokeWidth: isSelected && !useSelectionFill ? defaultSelectedStrokeWidth : defaultStrokeWidth,
+      strokeOpacity: isSelected && !useSelectionFill ? defaultSelectedStrokeOpacity : defaultStrokeOpacity
+    }
+  }
+}
+
 export function matchCirclesToData(props: IMatchCirclesProps) {
   const { dataConfiguration, renderer, startAnimation, stopAnimation, pointRadius, pointColor, pointStrokeColor,
-          pointShape = kDefaultPointShape, pointDisplayType = "points" } = props
+          pointShape = kDefaultPointShape, pointDisplayType = "points", selectedPointRadius = pointRadius,
+          getPointColorAtIndex } = props
   // TODO: eliminate dependence on GraphDataConfigurationModel
   const allCaseData: CaseDataWithSubPlot[] = isGraphDataConfigurationModel(dataConfiguration)
     ? dataConfiguration.caseDataWithSubPlot
@@ -126,13 +173,21 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
     startAnimation()
   }
 
+  // Points are matched with their per-case style, so new ones appear correctly styled, and existing ones
+  // keep theirs. Otherwise new points would show the uniform style until the next point refresh, which is
+  // debounced and can be postponed for as long as the cases keep changing.
+  const casePointStyle = casePointStyleGetter({
+    dataConfiguration, pointRadius, selectedPointRadius, pointColor, pointStrokeColor, pointShape,
+    getPointColorAtIndex
+  })
+  const getCasePointStyle: GetCasePointStyle = ({ caseID, plotNum }) => casePointStyle(caseID, plotNum)
   renderer?.matchPointsToData(dataConfiguration.dataset?.id ?? '', allCaseData, pointDisplayType, {
     radius: pointRadius,
     fill: pointColor,
     shape: pointShape,
     stroke: pointStrokeColor,
     strokeWidth: defaultStrokeWidth
-  })
+  }, getCasePointStyle)
 
   dataConfiguration.setPointsNeedUpdating(false)
 }
@@ -148,43 +203,16 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
 export function setPointSelection(
   props: ISetPointSelection, caseIdsToUpdate?: Iterable<string>, numberOfPlots = 1
 ) {
-  const { renderer, dataConfiguration, pointRadius, selectedPointRadius,
-    pointColor, pointStrokeColor, pointShape, getPointColorAtIndex } = props
-  const dataset = dataConfiguration.dataset
-  const legendID = dataConfiguration.attributeID('legend')
-  /*
-   * A legend the display cannot honor counts as having one here. Its ID reads "" on a map, because
-   * the base configuration filters an unusable assignment out, so testing the ID alone would send
-   * map points down the no-legend path and paint them the display's color -- while the map's own
-   * refresh painted them the missing-value color, and the legend said the attribute cannot
-   * distinguish them. The two paths have to agree.
-   */
-  const hasLegendInEffect = !!legendID || dataConfiguration.legendAttributeIsInoperable
+  const { renderer, dataConfiguration } = props
   if (!renderer) {
     return
   }
+  const dataset = dataConfiguration.dataset
+  const casePointStyle = casePointStyleGetter(props)
 
   const stylePoint = (point: IPoint, caseID: string, plotNum: number) => {
-    const isSelected = !!dataset?.isCaseSelected(caseID)
-    // Determine fill color based on legend or plotNum; no-legend selected points override to blue below
-    let fill: string
-    if (hasLegendInEffect) {
-      fill = dataConfiguration?.getLegendColorForCase(caseID)
-    } else {
-      fill = plotNum && getPointColorAtIndex ? getPointColorAtIndex(plotNum) : pointColor
-    }
-    // When there's no legend, use blue fill for selection instead of a colored stroke
-    const useSelectionFill = isSelected && !hasLegendInEffect
-    const style: Partial<IPointStyle> = {
-      shape: dataConfiguration.getLegendShapeForCase(caseID, pointShape),
-      fill: useSelectionFill ? defaultSelectedColor : fill,
-      radius: isSelected ? selectedPointRadius : pointRadius,
-      stroke: isSelected && !useSelectionFill ? defaultSelectedStroke : pointStrokeColor,
-      strokeWidth: isSelected && !useSelectionFill ? defaultSelectedStrokeWidth : defaultStrokeWidth,
-      strokeOpacity: isSelected && !useSelectionFill ? defaultSelectedStrokeOpacity : defaultStrokeOpacity
-    }
-    renderer.setPointStyle(point, style)
-    renderer.setPointRaised(point, isSelected)
+    renderer.setPointStyle(point, casePointStyle(caseID, plotNum))
+    renderer.setPointRaised(point, !!dataset?.isCaseSelected(caseID))
   }
 
   if (caseIdsToUpdate) {

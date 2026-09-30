@@ -13,6 +13,9 @@ function container(id: string, node: HTMLElement): DroppableContainer {
 }
 
 describe("slider drop collision detection", () => {
+  const originalElementFromPoint = document.elementFromPoint
+  afterEach(() => { document.elementFromPoint = originalElementFromPoint })
+
   it("routes a drop to a slider painted over a raised tile's droppable rects", () => {
     // the case table registers its own handler; stand in for it so its droppables are reachable
     registerTileCollisionDetection("case-table")
