@@ -89,10 +89,9 @@ This is equivalent to naming `dataContext[#default]`. Two things to know:
 - Defaulting does **not** apply to these, which are not scoped to a data context:
   `component`, `componentList`, `dataContextList`, `dataDisplay`, `document`, `formulaEngine`,
   `global`, `globalList`, `interactiveApi`, `interactiveFrame`, `logMessage`,
-  `logMessageMonitor`, `undoableActionPerformed`, `undoChangeNotice`
-  (`resource-parser.ts:98-101`). Note `undoableActionPerformed` is an *operation* of the
-  `undoChangeNotice` resource rather than a resource of its own; it appears in the parser's
-  exemption list all the same.
+  `logMessageMonitor`, `undoableActionPerformed`, `undoChangeNotice`. Note that
+  `undoableActionPerformed` is an *operation* of the `undoChangeNotice` resource rather than a
+  resource of its own; it appears in CODAP's exemption list all the same.
 - It does not apply when you are **creating** a data context (`create dataContext` or
   `create dataContextFromURL`) — there is nothing to default to yet.
 

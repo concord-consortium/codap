@@ -36,7 +36,9 @@ Whole-folder rule: everything here is **external-facing** reference for plugin a
 of the enclosing `doc/` folder is internal design documentation for CODAP developers. Keep the two
 separate — the audiences and the tolerance for implementation detail differ. In particular, do not
 cite internal issue-tracker ids on these pages: a plugin author cannot open them. Say "a known
-limitation" and describe it.
+limitation" and describe it. For the same reason, do not cite source `file:line` locations — they
+rot on the next edit, and a statement of behavior should stand on its own. The provenance header
+records which commit the page was verified against; that is the audit trail.
 
 ---
 
@@ -56,8 +58,10 @@ predictable structure is most of what makes a reference usable.
 ## Resource selector patterns
 ## Values
 ## Examples
+## Known limitations      (optional)
 ## Notifications
 ## Errors
+## See also               (optional)
 ```
 
 Sections may be omitted only when they genuinely do not apply — a read-only resource has no
@@ -95,10 +99,10 @@ Rules:
 - **Never hand-edit inside the markers.** Fix the extractor or the code instead; a hand edit will
   be silently overwritten.
 - **Never put prose inside the markers** — and read this strictly. A generated block holds only
-  what the extractor can derive from source: names, types, action support, selector patterns,
-  error strings and their conditions. Anything requiring judgement — why a property is useful,
-  what a value is good for, how two failure causes differ — goes immediately before or after the
-  block. If it is inside the markers and not derivable, the generator will silently delete it.
+  what the extractor can derive from source: names, types, action support, selector patterns and
+  error strings. Anything requiring judgment — why a property is useful, what a value is good for,
+  the *condition* that produces an error, how two failure causes differ — goes immediately before
+  or after the block. If it is inside the markers and not derivable, the generator will silently delete it.
   When in doubt, ask whether a script reading `src/data-interactive/` could produce the cell.
 - Current block names: `actions`, `selectors`, `values`, `errors`.
 - A page written before the generator exists still uses the markers, with the content written by

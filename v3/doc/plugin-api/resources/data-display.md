@@ -8,8 +8,7 @@ export, embed or transmit a picture of what the user is currently looking at —
 include a graph in a report the plugin generates.
 
 **Only graphs are supported today.** Although CODAP maps also render to an image internally, no
-map handler is registered for this resource (`graph-registration.ts:121` is the only
-`registerDataDisplayHandler` call site), so requesting a map returns the failure response
+map handler is registered for this resource, so requesting a map returns the failure response
 described under [Errors](#errors).
 
 This request is **asynchronous** — CODAP re-renders the display before replying, so the response
@@ -39,8 +38,8 @@ callback rather than assuming immediate delivery.
 <!-- END GENERATED: selectors -->
 
 `<component>` identifies the graph by its **title**, its **name**, or its **numeric id** — all
-three resolve (`resource-parser-utils.ts:110`). The id is the number CODAP reports for the
-component, not a v3 internal string id.
+three resolve. The id is the number CODAP reports for the component, not a v3 internal string
+id.
 
 This resource is **not** scoped to a data context, so the default-data-context rule does not
 apply to it. Naming a `dataContext` in the selector has no effect.
@@ -133,4 +132,5 @@ ran and could not produce an image.
 > `DataDisplay not found` path currently does not: `values.error` holds a nested result object
 > instead of the error string, and `success` can be `undefined` rather than `false`. **This will
 > be corrected to the normal shape.** Write `if (!result.success)` — a truthiness test that keeps
-> working either way — and read the message from `values.error` only once this note is gone.
+> working either way — and check `typeof result.values?.error === "string"` before using it as a
+> message, which is correct both before and after the fix.
