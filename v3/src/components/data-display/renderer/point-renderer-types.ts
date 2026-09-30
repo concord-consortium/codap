@@ -25,8 +25,9 @@ export interface IPointStyle {
 }
 
 /**
- * The parts of a point's style that come from its case (e.g. its legend color and shape), overriding the
- * uniform style a match applies
+ * The parts of a point's style that come from its case (e.g. its legend color, shape and selection),
+ * overriding the uniform style a match applies, so a matched point is drawn as the next style refresh
+ * would draw it rather than in the uniform style until then
  */
 export type GetCasePointStyle = (caseData: CaseDataWithSubPlot) => Partial<IPointStyle>
 

@@ -236,8 +236,8 @@ export function usePointRenderer(options: IUsePointRendererOptions): IUsePointRe
     if (isVisible) {
       // Not while canvas is forced: the forced-type effect below would only give the context back, and
       // the toggling of hasWebGLContext rebuilds the renderer. This effect reruns whenever the priority
-      // changes -- for a graph, its number of plotted cases, which a visibility slider changes on every
-      // step. (The forced-type effect requests a context itself once canvas is no longer forced.)
+      // changes, and a graph's priority follows the number of cases it shows. (When canvas stops being
+      // forced, this effect and the forced-type effect both request a context, which is harmless.)
       if (effectiveForcedType === "canvas") return
       // Try to get a context when becoming visible
       const granted = webGLContextManager.requestContext(contextConsumer)

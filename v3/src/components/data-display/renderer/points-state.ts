@@ -252,9 +252,8 @@ export class PointsState {
    * Sync points with case data array - adds new points, removes missing ones
    * Returns the IDs of newly added points
    */
-  // getCasePointStyle, if given, overrides parts of the default style for each point added (e.g. its
-  // legend color), so a new point appears correctly styled before the next style refresh. Existing points
-  // keep their stored styles.
+  // getCasePointStyle, if given, overrides parts of the uniform style for each point added (see
+  // GetCasePointStyle). Existing points keep their stored styles.
   syncWithCaseData(
     caseDataArray: CaseDataWithSubPlot[],
     defaultStyle: IPointStyle,

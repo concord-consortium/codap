@@ -526,18 +526,15 @@ export class PixiPointRenderer extends PointRendererBase {
     // Create sprites for added points (skip any already created by syncFromState above)
     added.forEach(pointId => {
       if (!this.sprites.has(pointId)) {
-        // a point with its case's own style (see getCasePointStyle) needs the texture for that style
-        const pointStyle = getCasePointStyle ? this.state.getPoint(pointId)?.style ?? style : style
-        const sprite = this.getNewSprite(pointId, pointStyle === style ? texture : this.getPointTexture(pointStyle),
-                                         pointStyle)
+        const pointStyle = this.state.getPoint(pointId)?.style ?? style
+        const sprite = this.getNewSprite(pointId, this.getPointTexture(pointStyle), pointStyle)
         this.pointsContainer.addChild(sprite)
         this.sprites.set(pointId, sprite)
       }
     })
 
-    // Update existing sprites: the uniform style, with the parts that come from each point's case (e.g. its
-    // legend color) laid over it, so a match doesn't repaint every point in the uniform style until the next
-    // style refresh
+    // Update existing sprites: the uniform style with each point's case style (see GetCasePointStyle) laid
+    // over it
     this.sprites.forEach((sprite, pointId) => {
       if (!added.includes(pointId)) {
         const point = getCasePointStyle ? this.state.getPoint(pointId) : undefined
@@ -846,7 +843,7 @@ export class PixiPointRenderer extends PointRendererBase {
 
   private getNewSprite(pointId: string, texture: PIXI.Texture, style: IPointStyle): PIXI.Sprite {
     const sprite = new PIXI.Sprite(texture)
-    // hidden until its point has a position (see IPointState.isPositioned); shown when it's positioned
+    // hidden until its point has a position (see IPointState.isPositioned)
     sprite.visible = !!this.state.getPoint(pointId)?.isPositioned
     sprite.anchor.copyFrom(this._anchor)
     sprite.zIndex = DEFAULT_Z_INDEX

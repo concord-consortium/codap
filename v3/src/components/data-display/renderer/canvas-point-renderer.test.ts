@@ -593,9 +593,6 @@ describe("CanvasPointRenderer", () => {
     })
 
     it("doesn't reset the canvas when its size is unchanged", () => {
-      // Setting a canvas's width or height clears it, even to its current value. Plots resize the renderer
-      // with unchanged dimensions to update their cell masks, e.g. on every step of a visibility slider,
-      // and the canvas would otherwise stay blank until the next frame redraws it.
       renderer.resize(100, 100, 1, 1, 1, 1)
       const canvas = renderer.canvas!
       const widthSetter = jest.fn()
@@ -612,7 +609,7 @@ describe("CanvasPointRenderer", () => {
     })
 
     it("doesn't reset the canvas when its unchanged size scales to a fractional number of pixels", () => {
-      // a canvas stores its size as whole pixels, e.g. 195 * 1.5 = 292.5 is stored as 292
+      // 195 * 1.5 = 292.5 is stored as 292
       const originalRatio = window.devicePixelRatio
       Object.defineProperty(window, "devicePixelRatio", { value: 1.5, configurable: true })
       try {
@@ -719,7 +716,6 @@ describe("CanvasPointRenderer", () => {
     })
 
     it("doesn't draw a new point until it has a position", () => {
-      // otherwise it's drawn at (0, 0) until the (debounced) position refresh places it
       const caseData = createCaseData(0, "case1")
       renderer.matchPointsToData("dataset1", [caseData], "points", defaultStyle)
       renderer.startRendering()
@@ -730,6 +726,27 @@ describe("CanvasPointRenderer", () => {
       renderer.startRendering()
       flushRAF()
       expect(mockContext.arc).toHaveBeenCalled()
+    })
+
+    it("doesn't hit-test a new point until it has a position", () => {
+      const caseData = createCaseData(0, "case1")
+      renderer.matchPointsToData("dataset1", [caseData], "points", defaultStyle)
+      renderer.startRendering()
+      flushRAF()
+      const hitTester = (renderer as any).hitTester
+      expect(hitTester.hitTest(0, 0)).toBeFalsy()
+
+      renderer.setPointPosition(renderer.getPointForCaseData(caseData)!, 100, 100)
+      renderer.startRendering()
+      flushRAF()
+      expect(hitTester.hitTest(100, 100)).toBeTruthy()
+    })
+
+    it("creates a new point in its case's style", () => {
+      const caseData = createCaseData(0, "case1")
+      renderer.matchPointsToData("dataset1", [caseData], "points", defaultStyle, () => ({ fill: "#0000ff" }))
+      const pointId = (renderer as any).state.getPointIdForCaseData(caseData)
+      expect((renderer as any).state.getPoint(pointId).style.fill).toBe("#0000ff")
     })
 
     it("draws circles for points display type", () => {

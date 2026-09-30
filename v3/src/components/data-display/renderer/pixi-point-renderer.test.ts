@@ -119,7 +119,6 @@ describe("PixiPointRenderer", () => {
 
   describe("new points", () => {
     it("hides a new point's sprite until it has a position", async () => {
-      // otherwise it's drawn at (0, 0) until the (debounced) position refresh places it
       const pixiRenderer = new PixiPointRenderer(new PointsState())
       await pixiRenderer.init()
       pixiRenderer.matchPointsToData("dataset1", [createCaseData(0, "case1")], "points", defaultStyle)
@@ -144,8 +143,6 @@ describe("PixiPointRenderer", () => {
   })
 
   describe("per-case point styles", () => {
-    // e.g. legend colors: a match must neither create a point in the default color nor repaint an
-    // existing one in it, or points flash the default color until the next style refresh
     const blue = (caseData: CaseDataWithSubPlot) => caseData.caseID === "case1" ? { fill: "#0000ff" } : {}
 
     it("creates an added point's sprite in its case's style", async () => {
@@ -163,7 +160,7 @@ describe("PixiPointRenderer", () => {
       pixiRenderer.matchPointsToData("dataset1", [createCaseData(0, "case1")], "points", defaultStyle, blue)
       const pointId = (pixiRenderer as any).state.getPointIdForCaseData(createCaseData(0, "case1"))
 
-      // another case arrives (e.g. a slider shows it); case1's sprite must stay blue
+      // another case arrives; case1's sprite must stay blue
       pixiRenderer.matchPointsToData("dataset1", [createCaseData(0, "case1"), createCaseData(0, "case2")],
         "points", defaultStyle, blue)
 
@@ -318,6 +315,16 @@ describe("PixiPointRenderer", () => {
 
         pixiRenderer.matchPointsToData("dataset1", [createCaseData(0, "case1")], "points",
           { ...defaultStyle, shape: "star", radius: 8 })
+
+        expect(sprite.hitArea.contains(0, -10)).toBe(true)
+      })
+
+      it("re-tests existing sprites against their case's shape", async () => {
+        const { pixiRenderer, sprite } = await setUp({ ...defaultStyle, shape: "circle", radius: 8 })
+        expect(sprite.hitArea.contains(0, -10)).toBe(false)
+
+        pixiRenderer.matchPointsToData("dataset1", [createCaseData(0, "case1")], "points",
+          { ...defaultStyle, shape: "circle", radius: 8 }, () => ({ shape: "star" }))
 
         expect(sprite.hitArea.contains(0, -10)).toBe(true)
       })

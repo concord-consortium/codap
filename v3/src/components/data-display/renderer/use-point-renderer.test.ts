@@ -39,8 +39,7 @@ describe("usePointRenderer", () => {
   })
 
   it("keeps its canvas renderer when only the priority changes while canvas is forced", async () => {
-    // A graph's priority is its number of plotted cases, which a visibility slider changes on every step.
-    // Rebuilding the renderer each time restarts point creation (and its animation) on every step.
+    // rebuilding the renderer would recreate every point, replaying its appearance animation
     const { result, rerender } = renderHook(({ priority }) => usePointRenderer({ id: "graph-1", priority }),
       { initialProps: { priority: 10 } })
     await waitFor(() => expect(result.current.renderer.capability).toBe("canvas"))

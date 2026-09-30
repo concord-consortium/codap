@@ -340,8 +340,7 @@ export abstract class PointRendererBase {
 
   /**
    * Sync points with case data array. Points are drawn with `style`, overridden by `getCasePointStyle` if
-   * given (e.g. their legend color and shape), so a match never paints a point in the uniform style until
-   * the next style refresh restyles it.
+   * given (see GetCasePointStyle).
    */
   matchPointsToData(
     datasetID: string,
