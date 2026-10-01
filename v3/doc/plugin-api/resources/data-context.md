@@ -47,8 +47,10 @@ data context exists, so `create` takes the bare `dataContext` selector.
 
 ### What `get` returns
 
-`get` returns the whole data set in CODAP v2 document form — every collection, attribute and
-case in one payload. The response can be large.
+`get` returns the data set's **structure** in CODAP v2 document form — its collections and their
+attributes. It does **not** return cases: the conversion runs with case export switched off, so
+there is no `cases` key in the response regardless of how much data the set holds. Read cases
+through `allCases`, `caseSearch` or the `item` resources instead.
 
 <!-- BEGIN GENERATED: values -->
 | Property | Always present | Notes |
@@ -59,12 +61,12 @@ case in one payload. The response can be large.
 | `id` | yes | |
 | `name` | yes | |
 | `title` | yes | |
-| `collections` | yes | each with its attributes and cases |
+| `collections` | yes | each with its attributes — **not** its cases |
 | `flexibleGroupingChangeFlag` | yes | |
 | `preventReorg` | yes | |
 | `setAsideItems` | yes | the items currently set aside, with their values |
 | `contextStorage` | yes | carries `_links_.selectedCases` |
-| `description`, `source`, `importDate` | no | from the data set's metadata, when set |
+| `metadata` | no | `{description, source, importDate}` — present only when the data set carries metadata, and then all three together |
 <!-- END GENERATED: values -->
 
 ### What `create` accepts
@@ -74,7 +76,7 @@ case in one payload. The response can be large.
 <!-- BEGIN GENERATED: values-write -->
 | Property | Type | | Notes |
 |---|---|---|---|
-| `name` | string | optional | defaults to a generated name such as `Data Set 1` |
+| `name` | string | optional | defaults to a generated name such as `Data_Set_1` — note the underscores |
 | `title` | string | optional | |
 | `description` | string | optional | used when `metadata.description` is absent |
 | `metadata` | object | optional | `importDate`, `source` and `description` are read |
@@ -168,8 +170,16 @@ to `update` does nothing and still reports success.
 `restoreSetAsides` is matched case-insensitively, so `restoresetasides` also works. There is no
 reason for the difference — do not rely on either being lenient.
 
-**`get` has no partial form.** There is no way to ask for a data context's structure without its
-cases. For large data sets, read `collectionList` and `attributeList` instead.
+**`get` never returns cases.** The response carries structure only — collections and attributes.
+A plugin that reads a data context expecting its data will find no `cases` key anywhere in the
+payload. This is the opposite of what the response's v2 document shape suggests, since a v2
+document stores cases inside its collections. Use `allCases`, `caseSearch`, `caseByID` or the
+`item` resources to read data.
+
+**Metadata comes back nested, under a different shape than you send it.** `create` accepts
+`description` at the top level as a fallback for `metadata.description`, but `get` returns only
+`metadata`, and only when the data set has metadata at all. A plugin reading `values.description`
+gets `undefined` every time.
 
 ## Notifications
 

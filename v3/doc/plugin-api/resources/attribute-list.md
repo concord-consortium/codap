@@ -35,9 +35,11 @@ formula, or display settings, `get` that [`attribute`](attribute.md).
 [Known limitations](#known-limitations) — omitting it does not report an error.
 
 <!-- BEGIN GENERATED: scope -->
-This resource does not use a data context. CODAP still resolves one — defaulting to
-`#default` when the selector omits it — but this resource ignores it, so naming a
-`dataContext` has no effect.
+This resource's handler does not read a data context itself. CODAP still resolves one —
+defaulting to `#default` when the selector omits it — and uses it to resolve any
+`collection` or `attribute` segment earlier in the selector. Naming a different
+`dataContext` therefore changes what this resource returns only when the selector
+contains such a segment.
 <!-- END GENERATED: scope -->
 
 ## Values
@@ -89,8 +91,8 @@ collection yields the empty list above.
 
 ## Notifications
 
-This resource sends none. Creating, updating or deleting an attribute produces notifications on
-[`attribute`](attribute.md).
+This resource sends none. Creating or updating an attribute produces notifications on
+[`attribute`](attribute.md); deleting one does not.
 
 ## Errors
 

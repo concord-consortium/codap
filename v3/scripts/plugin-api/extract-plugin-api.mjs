@@ -406,13 +406,37 @@ errors.sort((a, b) => cmp(a.key ?? a.message, b.key ?? b.message))
 // a member redeclared locally wins. `Partial<X>` contributes X's members as optional, which
 // is what Partial means. A base the walker cannot find is reported in `unresolvedBases`
 // rather than silently dropped.
+// Remove // and /* */ comments from a type's source text without touching quoted spans.
+function stripComments(text) {
+  let out = ""
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i]
+    if (c === '"' || c === "'" || c === "`") {
+      const quote = c
+      out += c
+      for (i++; i < text.length; i++) {
+        out += text[i]
+        if (text[i] === "\\") { out += text[++i] ?? ""; continue }
+        if (text[i] === quote) break
+      }
+      continue
+    }
+    if (c === "/" && text[i + 1] === "/") { while (i < text.length && text[i] !== "\n") i++; out += "\n"; continue }
+    if (c === "/" && text[i + 1] === "*") { i += 2; while (i < text.length && !(text[i] === "*" && text[i + 1] === "/")) i++; i++; continue }
+    out += c
+  }
+  return out
+}
+
 const memberOf = (sf, m) => ({
   name: m.name.text,
   // Collapse to one line, but keep member separators: a newline-separated inline object
   // type would otherwise print as `{ left: number top: number }`, which is not valid TS.
   // Strip comments before collapsing: an inline object type documented with `//` notes would
   // otherwise fold its prose into the type text and print as something that is not valid TS.
-  type: m.type ? m.type.getText(sf).replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "")
+  // Quoted spans are skipped, so a string-literal type like `"https://example.org"` is not
+  // truncated at its own slashes.
+  type: m.type ? stripComments(m.type.getText(sf))
                       .replace(/,?\s*\n\s*/g, "; ").replace(/\s+/g, " ")
                       .replace(/;\s*}/g, " }").replace(/{\s*;\s*/g, "{ ")
                       .replace(/{\s*;+\s*/g, "{ ").replace(/;\s*;+/g, ";").trim() : "unknown",

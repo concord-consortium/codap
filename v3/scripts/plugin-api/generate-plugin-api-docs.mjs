@@ -130,9 +130,16 @@ function renderScope(resourceNames) {
            "apply. Naming a `dataContext` in the selector has no effect."
   }
   if (!uses) {
-    return "This resource does not use a data context. CODAP still resolves one — defaulting to\n" +
-           "`#default` when the selector omits it — but this resource ignores it, so naming a\n" +
-           "`dataContext` has no effect."
+    // Do not conclude "naming a dataContext has no effect" from the handler alone. The parser
+    // resolves `collection` and `attribute` segments *within* the resolved data context, so for
+    // attributeList the context fully determines the result even though its handler never reads
+    // one. State the mechanism, which is true for both shapes, instead of a conclusion that is
+    // true only when the selector has no segment resolved inside the context.
+    return "This resource's handler does not read a data context itself. CODAP still resolves one —\n" +
+           "defaulting to `#default` when the selector omits it — and uses it to resolve any\n" +
+           "`collection` or `attribute` segment earlier in the selector. Naming a different\n" +
+           "`dataContext` therefore changes what this resource returns only when the selector\n" +
+           "contains such a segment."
   }
   return "This resource is scoped to a data context. Omitting one selects `#default`, the first data\n" +
          "context in the document — see [the index](../README.md#the-default-data-context)."
@@ -395,6 +402,18 @@ const staleBaseline = [...baseline].filter(n => pageFor.has(n) || !inventory.res
 
 const line = (label, arr) => console.error(`${label}: ${arr.length}${arr.length ? "\n  " + arr.join("\n  ") : ""}`)
 console.error(`Inventory: ${inventory.counts.resources} resources, verified against ${inventory.verifiedAgainst}`)
+
+// An interface whose base could not be found silently loses every inherited row, so say so.
+// Nothing triggers this today; an `extends Omit<X, "y">` or a base declared outside src/ would.
+{
+  const unresolved = Object.entries(inventory.valueTypes)
+    .filter(([, v]) => v.unresolvedBases?.length)
+    .map(([n, v]) => `${n} -> ${v.unresolvedBases.join(", ")}`)
+  if (unresolved.length) {
+    console.error(`UNRESOLVED BASES (inherited properties are missing from these tables): ${unresolved.length}`)
+    for (const u of unresolved) console.error(`  ${u}`)
+  }
+}
 console.error(`Documented: ${pageFor.size} resources across ${pages.length} pages`)
 line("CHANGED (blocks rewritten)", report.changed)
 line("NEW (in code, undocumented, NOT baselined)", report.new)

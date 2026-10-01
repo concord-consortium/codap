@@ -5,7 +5,8 @@
 
 A component is a tile in the CODAP workspace — a graph, a case table, a map, a slider, a web
 view. Plugins use this resource to put components on screen, move and resize them, read how a
-user has configured one, and take them away again.
+user has configured one, and close them again. Closing is not always deletion — see
+[Known limitations](#known-limitations).
 
 Every component shares a common set of properties. Each **component type** adds its own on top,
 and those type-specific properties are where most of the detail lives.
@@ -42,9 +43,9 @@ apply. Naming a `dataContext` in the selector has no effect.
 
 ## Component types
 
-Twelve types are registered. Eleven are available to any plugin; `ErrorTester` exists for
-CODAP's own development and only registers when the `errorTester` URL parameter is present, so
-treat it as unavailable.
+Eleven types are registered in a normal CODAP build. A twelfth, `ErrorTester`, exists for
+CODAP's own development and is registered only when CODAP is loaded with the `errorTester` URL
+parameter — without it, nothing registers the type at all.
 
 | `type` | What it is |
 |---|---|
@@ -59,14 +60,19 @@ treat it as unavailable.
 | `slider` | A slider |
 | `text` | A text box |
 | `webView` | A plain web view |
-| `ErrorTester` | CODAP development only — gated behind a URL parameter |
+| `ErrorTester` | CODAP development only — not registered unless the `errorTester` URL parameter is set |
 
 **The guide type is `guideView`, not `guide`.** Sending `"type": "guide"` returns
 `Unsupported component type <value>`.
 
 `game`, `guideView`, `imageComponentView` and `webView` are four names for one implementation:
-all four are web views, and all four accept and return the same `URL` property. They differ in
-the `type` CODAP reports back and in how the component presents itself.
+all four are web views, and all four accept and return the same `URL` property.
+
+**A component you create as one of these is reported back as `webView`.** CODAP derives the type
+it reports from the web view's internal subtype, and `create` never sets one. So creating a
+component with `"type": "guideView"` succeeds, but every later `get` and `componentList` reports
+it as `webView`. The distinction survives only for components CODAP itself made, such as a guide
+loaded from a document.
 
 ## Values
 
@@ -343,6 +349,10 @@ A map's `geoRaster` is an object of its own:
 | `items` | V2GuidePage[] | optional | `V2Guide` |
 <!-- END GENERATED: values-guide -->
 
+These properties are returned only for a web view CODAP itself built as a guide. A component a
+plugin created with `"type": "guideView"` has no guide subtype, so `get` reports it as `webView`
+and returns neither `currentItemIndex` nor `items`.
+
 A guide's `items` are pages:
 
 <!-- BEGIN GENERATED: values-guide-page source=V2GuidePage -->
@@ -424,18 +434,31 @@ registers it as `guideView`. A plugin carrying the V2 spelling gets
 properties described above, and `update` does not accept all of them back. Reading a graph and
 posting the result to `update` unchanged is not a supported round trip.
 
-**`ErrorTester` is registered but not usable.** It appears in the registry alongside the real
-types, and will be listed by tools that enumerate them, but it is only registered when CODAP is
-loaded with the `errorTester` URL parameter.
+**An unrecognized or missing `request` succeeds silently.** `notify` requires a `values` object,
+but once it has one it recognizes only `select` and `autoScale` and returns success for anything
+else. A misspelled request is indistinguishable from one that worked.
+
+**`delete` hides some components instead of removing them.** Singleton components and those that
+hide on close — the case table, case card, calculator and guide views — are marked hidden rather
+than deleted. They stay in the document, keep their ids, and continue to appear in
+`componentList` with `hidden: true`. Every other type is genuinely deleted.
+
+**`ErrorTester` is not available unless CODAP is started for it.** Both its tile type and its
+component handler are registered inside a check on the `errorTester` URL parameter, so in a
+normal build `create` with that type returns `Unsupported component type <value>`.
 
 ## Notifications
 
-A plugin sends `notify` to act on a component. `request` is required:
+A plugin sends `notify` to act on a component. `values` is required; `request` names the
+operation:
 
 | `request` | Effect |
 |---|---|
 | `select` | Brings the component to the front and selects it |
 | `autoScale` | Rescales a graph or map; resizes columns on a case table |
+
+Any other `request`, or none at all, returns `{"success": true}` without doing anything — see
+[Known limitations](#known-limitations).
 
 CODAP also broadcasts notifications to listening plugins when a component is created, updated or
 deleted. The plugin that made the change does not receive an echo of its own request.

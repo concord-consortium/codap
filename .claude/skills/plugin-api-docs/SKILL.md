@@ -99,7 +99,7 @@ If one of those is wrong in the docs, a human wrote it and a human fixes it.
   the inherited members optional) and the alias forms `type X = Y` / `type X = Partial<Y>`.
   Members carry `inherited` naming the interface they came from. This matters more than it
   sounds: every component type extends `V2Component`, and `DIAttribute` declares 2 members and
-  inherits 20. A base the walker cannot find is listed in `unresolvedBases` rather than dropped.
+  inherits 22. A base the walker cannot find is listed in `unresolvedBases` rather than dropped.
   Unions and MST `Partial<SnapshotIn<typeof Model>>` aliases denote no single member list and
   are skipped, not approximated.
 - The lint counts a resource as documented only if it is a page's title or the **final** segment

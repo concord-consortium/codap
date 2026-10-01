@@ -4,7 +4,7 @@
 > · Parts of this page are generated — see [conventions](../conventions.md).
 
 Lists every component in the document. Plugins use it to discover what is on screen — to find a
-graph by name before updating it, or to check whether the component they created still exists.
+graph by name before updating it, or to see what the user has open.
 
 The list is a summary. To read a component's own properties, `get` that component.
 
@@ -49,8 +49,12 @@ An array, one entry per component:
 | `type` | string | optional |
 <!-- END GENERATED: values -->
 
-`type` is the component's type name, the same vocabulary [`component`](component.md) uses.
-`hidden` is `true` for a component the user has hidden rather than closed.
+`type` is the component's type name, the same vocabulary [`component`](component.md) uses — so a
+plugin appears as `game`, and a web view created through the API as `webView`.
+
+`hidden` is `true` for a component that is in the document but not on screen. That includes
+components the user closed, since closing a case table, case card, calculator or guide hides it
+rather than deleting it.
 
 ## Examples
 
@@ -76,8 +80,11 @@ A response:
 own `componentList` with type `game`. Filter by `id` against your own
 [`interactiveFrame`](interactive-frame.md) if you need to exclude yourself.
 
-**Hidden components are listed.** They are reported with `hidden: true` rather than omitted, so
-a plugin counting what the user can see must filter them out.
+**A deleted component may still be listed.** Case tables, case cards, calculators and guide
+views are hidden rather than deleted when closed — by the user or by `delete component` — and
+they remain here with `hidden: true`. This list therefore cannot answer "does the component I
+created still exist": for those types the answer is always yes. Filter on `hidden` to find what
+the user can actually see.
 
 **Neither `name` nor `title` is guaranteed.** `name` is omitted when a component has none, and
 `title` is omitted when the tile has no title of its own. Match on `id` rather than on either.
