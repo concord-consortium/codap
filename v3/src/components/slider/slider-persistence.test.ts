@@ -6,7 +6,7 @@ import { kSharedDataSetType, SharedDataSet } from "../../models/shared/shared-da
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { setupTestDataset } from "../../test/dataset-test-utils"
 import { convertToDate } from "../../utilities/date-utils"
-import { ICodapV2DocumentJson } from "../../v2/codap-v2-types"
+import { ICodapV2DocumentJson, ICodapV2SliderStorage } from "../../v2/codap-v2-types"
 import { ISliderModel, isSliderModel } from "./slider-model"
 import { addDataSetCopy, setupSliderAndData } from "./slider-test-utils"
 
@@ -158,3 +158,34 @@ describe("slider persistence: V3 → V2 → V3", () => {
     expect(other.itemIds).toHaveLength(6)
   })
 })
+
+describe("slider persistence: importing a damaged V2 range slider", () => {
+  // exports a visibility slider over a3 (axis [1, 6], range [2, 4]) to V2, edits its v3 block, and loads the result
+  async function importEdited(edit: (v3: NonNullable<ICodapV2SliderStorage["v3"]>) => void) {
+    const { dataSet, slider } = await setupSliderAndData()
+    slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+    slider.setRange(2, 4)
+    const { v2Json, storage } = await exportedSliderStorage()
+    edit(storage.v3!)
+    await appState.setDocument(v2Json)
+    return findSlider()
+  }
+
+  it("imports an unknown slider type as a variable slider", async () => {
+    const slider = await importEdited(v3 => { (v3 as any).sliderType = "mystery" })
+    expect(slider.sliderType).toBe("variable")
+    expect(findDataSet("a3").itemIds).toHaveLength(6)
+  })
+
+  it.each([
+    ["negative", -1, 0],
+    ["non-numeric", NaN, 0],
+    ["missing", undefined, 0],
+    ["wider than the axis", 100, 5]
+  ])("imports a %s width as one that fits the axis", async (_label, rangeWidth, expected) => {
+    const slider = await importEdited(v3 => { v3.rangeWidth = rangeWidth })
+    expect(slider.rangeWidth).toBe(expected)
+    expect(slider.rangeHigh).toBeGreaterThanOrEqual(slider.rangeLow)
+  })
+})
+

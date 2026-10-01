@@ -16,8 +16,8 @@ context("Visibility slider with its feature flag off", () => {
   beforeEach(() => {
     // forced off, whatever the server's feature-flag config says
     cy.visit(`${Cypress.config("index")}?mouseSensor&suppressUnsavedWarning&features=-visibilitySlider`)
-    cy.wait(3000)
-    // dropped on the startup dialog that a visit without a document shows
+    // dropped on the startup dialog that a visit without a document shows, once it's up
+    cy.contains("button", "Create New Document").should("be.visible")
     cfm.openLocalDocWithUserEntry("cypress/fixtures/visibility-slider.codap3")
   })
 

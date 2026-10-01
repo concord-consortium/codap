@@ -104,7 +104,7 @@ registerV2TileExporter(kSliderTileType, ({ tile }) => {
   const { sliderType, dataSetId, attributeId, rangeWidth } = sliderModel
   const rangeStorage: Partial<NonNullable<ICodapV2SliderStorage["v3"]>> = sliderModel.isRangeSlider
     ? {
-        sliderType,
+        sliderType: sliderType !== "variable" ? sliderType : undefined,
         dataContext: dataSetId ? toV2Id(dataSetId) : undefined,
         attribute: attributeId ? toV2Id(attributeId) : undefined,
         rangeWidth: rangeWidth ?? 0
@@ -162,14 +162,17 @@ registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, getGlobalVal
   const axisMin = lowerBound ?? kDefaultSliderAxisMin
   const axisMax = upperBound ?? kDefaultSliderAxisMax
 
-  // a range slider exported from v3 (see the exporter)
+  // a range slider exported from v3 (see the exporter), with a width that fits the axis even in an edited file
   const sliderType = SliderTypes.find(type => type !== "variable" && type === v3?.sliderType)
+  const rangeWidth = isFiniteNumber(v3?.rangeWidth)
+    ? Math.min(Math.max(0, v3.rangeWidth), Math.max(0, axisMax - axisMin))
+    : 0
   const rangeContent: Partial<ISliderSnapshot> = sliderType
     ? {
         sliderType,
         dataSetId: v3?.dataContext != null ? toV3DataSetId(v3.dataContext) : undefined,
         attributeId: v3?.attribute != null ? toV3AttrId(v3.attribute) : undefined,
-        rangeWidth: v3?.rangeWidth ?? 0
+        rangeWidth
       }
     : {}
 

@@ -224,17 +224,16 @@ describe("visibility slider and aggregate formulas", () => {
 })
 
 describe("visibility slider undo and redo", () => {
-  // monitors the document's history, so that changes made as the UI makes them can be undone and redone
+  // undo and redo that wait for history entries, which complete asynchronously (setDocument has already
+  // turned on the history monitoring)
   async function withHistory() {
     const manager = appState.document.treeManagerAPI as Instance<typeof TreeManager>
     const settle = () => when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
-    appState.document.treeMonitor!.enableMonitoring()
     await settle()
     return {
       settle,
       undo: async () => { appState.document.undoLastAction(); await settle() },
-      redo: async () => { appState.document.redoLastAction(); await settle() },
-      done: () => appState.document.treeMonitor!.disableMonitoring()
+      redo: async () => { appState.document.redoLastAction(); await settle() }
     }
   }
 
@@ -250,7 +249,6 @@ describe("visibility slider undo and redo", () => {
     await history.redo()
     expect(setup.slider.sliderType).toBe("visibility")
     expect(a3Values(setup)).toEqual([1])
-    history.done()
   })
 
   it("undoes and redoes a range change, with its hiding", async () => {
@@ -263,7 +261,6 @@ describe("visibility slider undo and redo", () => {
     expect(a3Values(setup)).toEqual([1])
     await history.redo()
     expect(a3Values(setup)).toEqual([2, 3, 4])
-    history.done()
   })
 
   it("undoes and redoes a type change, with its hiding", async () => {
@@ -277,6 +274,5 @@ describe("visibility slider undo and redo", () => {
     expect(a3Values(setup)).toEqual([1])
     await history.redo()
     expect(setup.dataSet.itemIds).toHaveLength(6)
-    history.done()
   })
 })
