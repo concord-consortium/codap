@@ -143,8 +143,25 @@ if (scopeBlocks.size > 3) {
 const documented = new Set()
 for (const file of files.filter(f => relative(docsDir, f).startsWith("resources/"))) {
   const raw = readFileSync(file, "utf8")
+  // A page DOCUMENTS a resource when it is the page's subject or carries one of its selectors
+  // — not merely when the name is mentioned. The old test (any backticked occurrence anywhere)
+  // counted `dataContext` as documented because a scope block says "Naming a `dataContext` in
+  // the selector has no effect", which hid a genuinely missing page. Selector blocks are the
+  // right signal: a page covering a second resource, as adornment.md does for `adornmentList`,
+  // always lists that resource's selectors.
+  const selectorText = [...raw.matchAll(
+    /<!-- BEGIN GENERATED: selectors -->\n?([\s\S]*?)\n?<!-- END GENERATED: selectors -->/g
+  )].map(m => m[1]).join("\n")
+  // Match the selector's FINAL segment only. `component[<component>].adornmentList` documents
+  // `adornmentList`; the leading `component[...]` is a path to it, not a claim to document the
+  // `component` resource, and treating it as one hid that `component` has no page.
+  const subjects = new Set()
+  for (const m of selectorText.matchAll(/`([^`\n]+)`/g)) {
+    const last = m[1].split(".").pop()
+    if (last) subjects.add(last.replace(/\[.*$/, "").trim())
+  }
   for (const r of inventory.resources) {
-    if (new RegExp(`\`${r.name}\``).test(raw) || raw.startsWith(`# ${r.name}`)) documented.add(r.name)
+    if (subjects.has(r.name) || raw.startsWith(`# ${r.name}\n`)) documented.add(r.name)
   }
 }
 const undocumented = inventory.resources.filter(r => !documented.has(r.name)).map(r => r.name)
