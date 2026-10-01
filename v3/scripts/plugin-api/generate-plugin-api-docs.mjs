@@ -153,10 +153,18 @@ function renderAdornmentTypes() {
 function renderValues(sourceName) {
   const iface = inventory.valueTypes[sourceName]
   if (!iface) return null
-  const esc = t => t.replace(/\|/g, "\\|")   // many member types are unions; a bare pipe splits the row
+  const esc = t => t.replace(/\|/g, "\|")   // many member types are unions; a bare pipe splits the row
+  // Naming the interface each member came from lets a reader see where a property originates —
+  // the V2 component shape, the V2 attribute shape, or the DI layer itself. The column appears
+  // only when something is actually inherited, so flat interfaces keep a three-column table.
+  const inherits = iface.members.some(m => m.inherited)
+  const from = m => m.inherited ?? sourceName
   const rows = iface.members.map(m =>
-    `| \`${m.name}\` | ${esc(m.type)} | ${m.optional ? "optional" : "required"} |`)
-  return ["| Property | Type | |", "|---|---|---|", ...rows].join("\n")
+    `| \`${m.name}\` | ${esc(m.type)} | ${m.optional ? "optional" : "required"} |` +
+    (inherits ? ` \`${from(m)}\` |` : ""))
+  const head = inherits ? "| Property | Type | | Declared in |" : "| Property | Type | |"
+  const rule = inherits ? "|---|---|---|---|" : "|---|---|---|"
+  return [head, rule, ...rows].join("\n")
 }
 
 // --- the quick-reference tables -------------------------------------------------
