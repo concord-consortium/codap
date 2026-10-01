@@ -1541,6 +1541,12 @@
     "V3.Slider.dropHint.selection": "Select cases in a range of %@",
     "V3.Undo.slider.configureFromAttribute": "Undo configuring slider from attribute",
     "V3.Redo.slider.configureFromAttribute": "Redo configuring slider from attribute",
+    "V3.Slider.rangeLow": "Range start",
+    "V3.Slider.rangeHigh": "Range end",
+    "V3.Slider.visibleValues": "visible value(s)",
+    "V3.Slider.selectedValues": "selected value(s)",
+    "V3.Undo.slider.changeRange": "Undo slider range change",
+    "V3.Redo.slider.changeRange": "Redo slider range change",
 
     // Date unit labels with CLDR plural categories (one/other) via Intl.PluralRules.
     "V3.dateUnit.year.one": "year",

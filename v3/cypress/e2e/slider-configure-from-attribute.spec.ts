@@ -4,11 +4,12 @@ import { SliderTileElements as slider } from "../support/elements/slider-tile"
 // the Mammals dashboard already contains a variable slider ("v1"), which these tests drop onto
 const baseParams = "?sample=mammals&dashboard&mouseSensor&suppressUnsavedWarning"
 
-// opens the Mammals dashboard and waits for the table and the slider to render
+// opens the Mammals dashboard and waits for the table and the slider to render, and for the slider's value
+// to settle: it reads 0 briefly before the document's 0.5 is applied
 function visitMammals(extraParams = "") {
   cy.visit(`${Cypress.config("index")}${baseParams}${extraParams}`)
   cy.get('.codap-case-table [data-testid="codap-attribute-button Sleep"]').should("be.visible")
-  slider.getSliderTile().should("be.visible")
+  slider.getVariableValue().should("eq", "0.5")
 }
 
 function expectSliderUnchangedByDrop(attribute: string) {
@@ -38,8 +39,9 @@ context("Slider configured from an attribute", () => {
     cy.dragAttributeToTarget("table", "Sleep", "slider")
     // the Mammals dataset's (only) collection is "Cases"
     c.getComponentTitle("slider").should("have.text", "Cases")
-    // the value moves to the low end of the range, which starts at Sleep's minimum
-    slider.getVariableValue().should("eq", "2")
+    // the range starts at Sleep's minimum, and a range slider shows its range in place of the variable's value
+    slider.getSliderTile().find('[data-testid="slider-range-values"] .range-text')
+      .invoke("text").should("match", /^2 - /)
   })
 
   // No drop onto the slider can succeed with the flag off, so there's no follow-up drop here to show that the
