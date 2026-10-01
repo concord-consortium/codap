@@ -7,6 +7,8 @@ import { AttributeFormulaAdapter } from "../../models/formula/attribute-formula-
 import { FormulaManager } from "../../models/formula/formula-manager"
 import { TreeManager } from "../../models/history/tree-manager"
 import { getFormulaManager } from "../../models/tiles/tile-environment"
+import { configureSliderFromAttribute } from "./slider-attribute-drop"
+import { rangeChangeOptions } from "./slider-range-change"
 import { addDataSetCopy, setupSliderAndData } from "./slider-test-utils"
 
 // the standard test dataset's a3 values are 1..6, so configuring from a3 gives axis [1, 6] and range [1, 1.5]
@@ -218,5 +220,59 @@ describe("visibility slider and aggregate formulas", () => {
     slider.setSliderType("variable")
     await eventually(() => meanOf() === 3.5)
     expect(meanOf()).toBe(3.5)
+  })
+})
+
+describe("visibility slider undo and redo", () => {
+  // undo and redo that wait for history entries, which complete asynchronously (setDocument has already
+  // turned on the history monitoring)
+  async function withHistory() {
+    const manager = appState.document.treeManagerAPI as Instance<typeof TreeManager>
+    const settle = () => when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
+    await settle()
+    return {
+      settle,
+      undo: async () => { appState.document.undoLastAction(); await settle() },
+      redo: async () => { appState.document.redoLastAction(); await settle() }
+    }
+  }
+
+  it("undoes and redoes binding an attribute, with its hiding", async () => {
+    const setup = await setupSliderAndData()
+    const history = await withHistory()
+    configureSliderFromAttribute(setup.tile, setup.dataSet, setup.dataSet.attrFromName("a3")!.id)
+    await history.settle()
+    expect(a3Values(setup)).toEqual([1])
+    await history.undo()
+    expect(setup.slider.sliderType).toBe("variable")
+    expect(setup.dataSet.itemIds).toHaveLength(6)
+    await history.redo()
+    expect(setup.slider.sliderType).toBe("visibility")
+    expect(a3Values(setup)).toEqual([1])
+  })
+
+  it("undoes and redoes a range change, with its hiding", async () => {
+    const setup = await setupVisibilitySlider()
+    const history = await withHistory()
+    setup.slider.applyModelChange(() => setup.slider.setRange(2, 4), rangeChangeOptions(setup.slider, setup.tile))
+    await history.settle()
+    expect(a3Values(setup)).toEqual([2, 3, 4])
+    await history.undo()
+    expect(a3Values(setup)).toEqual([1])
+    await history.redo()
+    expect(a3Values(setup)).toEqual([2, 3, 4])
+  })
+
+  it("undoes and redoes a type change, with its hiding", async () => {
+    const setup = await setupVisibilitySlider()
+    const history = await withHistory()
+    setup.slider.applyModelChange(() => setup.slider.setSliderType("variable"),
+                                  { undoStringKey: "DG.Undo.slider.change", redoStringKey: "DG.Redo.slider.change" })
+    await history.settle()
+    expect(setup.dataSet.itemIds).toHaveLength(6)
+    await history.undo()
+    expect(a3Values(setup)).toEqual([1])
+    await history.redo()
+    expect(setup.dataSet.itemIds).toHaveLength(6)
   })
 })

@@ -56,6 +56,11 @@ export interface ICodapV2SliderStorage extends ICodapV2BaseComponentStorage {
     scaleType: "numeric" | "date",
     multipleOf?: number
     dateMultipleOfUnit?: string
+    // range sliders only; v2 sees a variable slider whose value is the range's low end
+    sliderType?: "visibility" | "selection"
+    dataContext?: number  // v2 id of the bound dataset
+    attribute?: number    // v2 id of the bound attribute
+    rangeWidth?: number   // in axis units (epoch seconds for dates)
   }
 }
 
