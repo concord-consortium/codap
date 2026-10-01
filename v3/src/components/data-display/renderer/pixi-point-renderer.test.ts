@@ -19,8 +19,15 @@ jest.mock("pixi.js", () => {
     destroy() { this.children = [] }
   }
   class MockSprite {
+    // keeps the texture it's constructed with, as a real sprite does
+    constructor(texture?: any) { this.texture = texture ?? null }
+    visible = true
     hitArea: any = null
-    anchor = { x: 0, y: 0, copyFrom(p: any) { this.x = p.x; this.y = p.y } }
+    anchor = {
+      x: 0, y: 0,
+      copyFrom(p: any) { this.x = p.x; this.y = p.y },
+      set(x: number, y: number) { this.x = x; this.y = y }
+    }
     position = { x: 0, y: 0, set(x: number, y: number) { this.x = x; this.y = y } }
     scale = { x: 1, y: 1, set(x: number, y: number) { this.x = x; this.y = y } }
     zIndex = 0
@@ -108,6 +115,88 @@ describe("PixiPointRenderer", () => {
     plotNum,
     caseID,
     subPlotNum
+  })
+
+  describe("new points", () => {
+    it("hides a new point's sprite until it has a position", async () => {
+      const pixiRenderer = new PixiPointRenderer(new PointsState())
+      await pixiRenderer.init()
+      pixiRenderer.matchPointsToData("dataset1", [createCaseData(0, "case1")], "points", defaultStyle)
+      const point = pixiRenderer.getPointForCaseData(createCaseData(0, "case1"))!
+      const sprite = (pixiRenderer as any).sprites.get(point.id)
+      expect(sprite.visible).toBe(false)
+
+      pixiRenderer.setPointPosition(point, 100, 100)
+      expect(sprite.visible).toBe(true)
+    })
+
+    it("shows a new point's sprite when it's placed by a transition", async () => {
+      const pixiRenderer = new PixiPointRenderer(new PointsState())
+      await pixiRenderer.init()
+      pixiRenderer.matchPointsToData("dataset1", [createCaseData(0, "case1")], "points", defaultStyle)
+      const point = pixiRenderer.getPointForCaseData(createCaseData(0, "case1"))!
+      const sprite = (pixiRenderer as any).sprites.get(point.id)
+      expect(sprite.visible).toBe(false)
+
+      pixiRenderer.setPositionOrTransition(point, {}, 100, 100)
+      expect(sprite.visible).toBe(true)
+    })
+  })
+
+  describe("per-case point styles", () => {
+    const blue = (caseData: CaseDataWithSubPlot) => caseData.caseID === "case1" ? { fill: "#0000ff" } : {}
+
+    it("creates an added point's sprite in its case's style", async () => {
+      const pixiRenderer = new PixiPointRenderer(new PointsState())
+      await pixiRenderer.init()
+      pixiRenderer.matchPointsToData("dataset1", [createCaseData(0, "case1")], "points", defaultStyle, blue)
+      const sprite = (pixiRenderer as any).sprites.values().next().value
+
+      expect(sprite.texture).toBe((pixiRenderer as any).getPointTexture({ ...defaultStyle, fill: "#0000ff" }))
+    })
+
+    it("keeps an existing point's case style when points are matched again", async () => {
+      const pixiRenderer = new PixiPointRenderer(new PointsState())
+      await pixiRenderer.init()
+      pixiRenderer.matchPointsToData("dataset1", [createCaseData(0, "case1")], "points", defaultStyle, blue)
+      const pointId = (pixiRenderer as any).state.getPointIdForCaseData(createCaseData(0, "case1"))
+
+      // another case arrives; case1's sprite must stay blue
+      pixiRenderer.matchPointsToData("dataset1", [createCaseData(0, "case1"), createCaseData(0, "case2")],
+        "points", defaultStyle, blue)
+
+      const sprite = (pixiRenderer as any).sprites.get(pointId)
+      expect(sprite.texture).toBe((pixiRenderer as any).getPointTexture({ ...defaultStyle, fill: "#0000ff" }))
+    })
+
+    it("leaves an existing point's sprite as its last restyle drew it when points are matched again", async () => {
+      const pixiRenderer = new PixiPointRenderer(new PointsState())
+      await pixiRenderer.init()
+      pixiRenderer.matchPointsToData("dataset1", [createCaseData(0, "case1")], "points", defaultStyle, blue)
+      const point = pixiRenderer.getPointForCaseData(createCaseData(0, "case1"))!
+      // the refresh restyles it, e.g. for a new legend bin
+      pixiRenderer.setPointStyle(point, { fill: "#ff0000" })
+
+      pixiRenderer.matchPointsToData("dataset1", [createCaseData(0, "case1"), createCaseData(0, "case2")],
+        "points", defaultStyle, blue)
+
+      const sprite = (pixiRenderer as any).sprites.get(point.id)
+      expect(sprite.texture).toBe((pixiRenderer as any).getPointTexture({ ...defaultStyle, fill: "#ff0000" }))
+    })
+
+    it("restyles existing sprites in the uniform style when no case style is given", async () => {
+      const pixiRenderer = new PixiPointRenderer(new PointsState())
+      await pixiRenderer.init()
+      pixiRenderer.matchPointsToData("dataset1", [createCaseData(0, "case1")], "points", defaultStyle, blue)
+      const pointId = (pixiRenderer as any).state.getPointIdForCaseData(createCaseData(0, "case1"))
+
+      const green = { ...defaultStyle, fill: "#00ff00" }
+      pixiRenderer.matchPointsToData("dataset1", [createCaseData(0, "case1"), createCaseData(0, "case2")],
+        "points", green)
+
+      const sprite = (pixiRenderer as any).sprites.get(pointId)
+      expect(sprite.texture).toBe((pixiRenderer as any).getPointTexture(green))
+    })
   })
 
   describe("point shapes", () => {
@@ -258,6 +347,18 @@ describe("PixiPointRenderer", () => {
           { ...defaultStyle, shape: "star", radius: 8 })
 
         expect(sprite.hitArea.contains(0, -10)).toBe(true)
+      })
+
+      it("keeps an existing sprite's hit area with its texture when points are matched again", async () => {
+        const { pixiRenderer, sprite } = await setUp({ ...defaultStyle, shape: "circle", radius: 8 })
+        const { texture } = sprite
+
+        // the texture isn't redrawn as a star until the next restyle, so neither is the hit area
+        pixiRenderer.matchPointsToData("dataset1", [createCaseData(0, "case1")], "points",
+          { ...defaultStyle, shape: "circle", radius: 8 }, () => ({ shape: "star" }))
+
+        expect(sprite.texture).toBe(texture)
+        expect(sprite.hitArea.contains(0, -10)).toBe(false)
       })
 
       it("follows the shape when the style changes", async () => {

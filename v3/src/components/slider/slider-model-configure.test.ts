@@ -1,9 +1,9 @@
 import { getSnapshot } from "mobx-state-tree"
 import { DataSet } from "../../models/data/data-set"
 import { gDataBroker } from "../../models/data/data-broker"
-import { getTileDataSet } from "../../models/shared/shared-data-tile-utils"
+import { getAllTileDataSets, getTileDataSet } from "../../models/shared/shared-data-tile-utils"
 import { setupTestDataset } from "../../test/dataset-test-utils"
-import { convertToDate, unitsStringToMilliseconds } from "../../utilities/date-utils"
+import { convertToDate } from "../../utilities/date-utils"
 import { addDataSetCopy, setupSliderAndData } from "./slider-test-utils"
 
 describe("SliderModel.configureFromAttribute", () => {
@@ -82,8 +82,8 @@ describe("SliderModel.configureFromAttribute", () => {
     const dates = addDataSetCopy(content, source)
     slider.configureFromAttribute(dates, dates.attrFromName("when")!.id)
     const day = convertToDate("2020-01-01")!.valueOf() / 1000
-    const halfDay = unitsStringToMilliseconds("day") / 2000
-    expect(slider.axis.domain).toEqual([day - halfDay, day + halfDay])
+    // half a day, in seconds
+    expect(slider.axis.domain).toEqual([day - 43200, day + 43200])
   })
 
   it("links the tile to the bound dataset and relinks when rebound", async () => {
@@ -95,6 +95,8 @@ describe("SliderModel.configureFromAttribute", () => {
     const other = addDataSetCopy(content, otherSource)
     slider.configureFromAttribute(other, other.attrFromName("a4")!.id)
     expect(getTileDataSet(slider)).toBe(other)
+    // and only that one
+    expect(getAllTileDataSets(slider)).toHaveLength(1)
   })
 
   it("reports no dataset once the bound dataset is removed", async () => {

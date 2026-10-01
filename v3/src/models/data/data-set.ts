@@ -797,6 +797,11 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
           Array.from(self.childCollection.caseGroupMap.values()).forEach(caseGroup => {
             self.itemIdChildCaseMap.set(caseGroup.childItemIds[0] ?? caseGroup.hiddenChildItemIds[0], caseGroup)
           })
+          // A hidden item (set aside, filtered out by the filter formula, or hidden by a visibility slider) can't be
+          // selected, so it's deselected along with the items that no longer exist.
+          self.selection.forEach(itemId => {
+            if (self.itemInfoMap.get(itemId)?.isHidden) itemsToValidate.add(itemId)
+          })
           // Defer selection cleanup — flushed by setValidCases() in its runInAction
           if (itemsToValidate.size) {
             self.deferSelectionDelete(itemsToValidate)

@@ -7,7 +7,9 @@ const params = "?sample=mammals&dashboard&mouseSensor&suppressUnsavedWarning&fea
 // Sleep ranges over [2, 20] in the Mammals sample, so the configured range starts at [2, 3.8]
 function setupRangeSlider() {
   cy.visit(`${Cypress.config("index")}${params}`)
-  cy.wait(2500)
+  // the slider's value reads 0 briefly before the document's 0.5 is applied
+  cy.get('.codap-case-table [data-testid="codap-attribute-button Sleep"]').should("be.visible")
+  slider.getVariableValue().should("eq", "0.5")
   cy.dragAttributeToTarget("table", "Sleep", "slider")
   slider.getRangeLowInput().should("have.value", "2")
 }
@@ -135,6 +137,42 @@ context("Slider range thumb", () => {
     })
     c.closeComponent("slider")
     cy.get(".codap-case-table").contains("(27 cases)")
+  })
+
+  it("changes which cases the table shows as the range is dragged, and undoes in one step", () => {
+    setupRangeSlider()
+    const counts = () => cy.get(".codap-case-table .collection-title-preview").invoke("text").then(text => {
+      const [, shown, hidden] = text.match(/\((\d+) cases?, (\d+) hidden\)/) ?? []
+      return { shown: Number(shown), hidden: Number(hidden) }
+    })
+    // Sleep's range starts at [2, 3.8]
+    counts().then(before => {
+      expect(before.shown + before.hidden).to.equal(27)
+      slider.getRangeBody().then($body => dragBy($body, 200))
+      cy.get(".codap-case-table .collection-title-preview").should($title => {
+        expect($title.text()).not.to.contain(`(${before.shown} case`)
+      })
+      counts().then(after => expect(after.shown + after.hidden).to.equal(27))
+      toolbar.getUndoTool().click()
+      cy.get(".codap-case-table .collection-title-preview")
+        .should("contain.text", `(${before.shown} case${before.shown === 1 ? "" : "s"}, ${before.hidden} hidden)`)
+    })
+  })
+
+  it("changes nothing when a handle is pressed and released without moving", () => {
+    setupRangeSlider()
+    slider.getRangeHighInput().parent().then($handle => {
+      const rect = $handle[0].getBoundingClientRect()
+      const pointer = { eventConstructor: "PointerEvent", pointerId: 1, pointerType: "mouse", isPrimary: true,
+                        button: 0, force: true,
+                        clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 }
+      cy.wrap($handle).trigger("pointerdown", { ...pointer, buttons: 1 })
+      cy.wrap($handle).trigger("pointerup", { ...pointer, buttons: 0 })
+    })
+    // one undo reverts the attribute drop itself, so the press added no change of its own
+    toolbar.getUndoTool().click()
+    slider.getSliderTile().find('[data-testid="slider-range-values"]').should("not.exist")
+    slider.getSliderTile().find('[data-testid="slider-variable-name"]').should("exist")
   })
 
   describe("a collapsed range", () => {

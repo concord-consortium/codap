@@ -12,6 +12,7 @@ describe("DataSet slider filters", () => {
     dataset.clearSliderFilter("s1")
     expect(dataset.itemIds).toHaveLength(6)
     expect(dataset.isItemFilteredOut(i0)).toBe(false)
+    expect(dataset.isCaseOrItemHidden(i0)).toBe(false)
   })
 
   it("composes filters from several sliders, each clearing only its own", () => {
@@ -22,7 +23,11 @@ describe("DataSet slider filters", () => {
     expect(dataset.itemIds).toHaveLength(3)
     dataset.clearSliderFilter("s1")
     expect(dataset.itemIds).toHaveLength(4)
+    // only s1 hid i0, while s2 still hides i1
+    expect(dataset.itemIds).toContain(i0)
     expect(dataset.isItemFilteredOut(i1)).toBe(true)
+    dataset.clearSliderFilter("s2")
+    expect(dataset.itemIds).toHaveLength(6)
   })
 
   it("leaves set-aside state alone in both directions", () => {
@@ -34,26 +39,32 @@ describe("DataSet slider filters", () => {
     // restoring set-aside cases doesn't reveal what the slider hides
     restoreSetAsideCases(dataset, undefined, false)
     expect(dataset.isItemSetAside(i0)).toBe(false)
+    expect(dataset.itemIds).toContain(i0)
     expect(dataset.isItemFilteredOut(i1)).toBe(true)
     // and clearing the slider filter doesn't touch set-asides
     dataset.hideCasesOrItems([i0])
     dataset.clearSliderFilter("s1")
-    expect(dataset.isItemSetAside(i0)).toBe(true)
+    expect(dataset.setAsideItemIds).toEqual([i0])
+    expect(dataset.itemIds).toContain(i1)
   })
 
-  it("lists item ids ignoring slider filters but not set-asides", () => {
+  it("lists item ids ignoring slider filters but not set-asides or the filter formula", () => {
     const { dataset } = setupTestDataset()
-    const [i0, i1] = dataset.itemIds
+    const [i0, i1, i2] = dataset.itemIds
     dataset.hideCasesOrItems([i0])
     dataset.setSliderFilter("s1", new Set([i1]))
-    expect(dataset.itemIdsIgnoringSliderFilters).toHaveLength(5)
+    dataset.updateFilterFormulaResults([{ itemId: i2, result: false }], {})
+    expect(dataset.itemIdsIgnoringSliderFilters).toHaveLength(4)
     expect(dataset.itemIdsIgnoringSliderFilters).toContain(i1)
     expect(dataset.itemIdsIgnoringSliderFilters).not.toContain(i0)
+    expect(dataset.itemIdsIgnoringSliderFilters).not.toContain(i2)
   })
 
   it("excludes slider-filtered items from new items appended to the cache", () => {
     const { dataset } = setupTestDataset()
     dataset.setSliderFilter("s1", new Set(["NEW"]))
+    // reading the item ids makes their cache valid, so adding a case takes the append path
+    expect(dataset.itemIds).toHaveLength(6)
     dataset.addCases([{ __id__: "NEW", a3: 7 }], { canonicalize: true })
     dataset.validateCases()
     expect(dataset.itemIds).not.toContain("NEW")
@@ -69,14 +80,70 @@ describe("DataSet slider filters", () => {
   it("sets aside a case's hidden children along with its visible ones", () => {
     const { dataset, c1 } = setupTestDataset()
     // a1 is "a" for items 0, 2, 4; the slider hides item 0
-    const [i0, , i2] = dataset.itemIds
+    const [i0, , i2, , i4] = dataset.itemIds
     dataset.setSliderFilter("s1", new Set([i0]))
     dataset.validateCases()
     const parentA = c1.caseIds.find(caseId => dataset.caseInfoMap.get(caseId)?.childItemIds.includes(i2))!
     dataset.hideCasesOrItems([parentA])
+    expect(dataset.setAsideItemIds).toEqual(expect.arrayContaining([i0, i2, i4]))
     // widening the slider must not bring item 0 back under its set-aside parent
     dataset.clearSliderFilter("s1")
     expect(dataset.isItemSetAside(i0)).toBe(true)
     expect(dataset.itemIds).not.toContain(i0)
+  })
+
+  it("restores a set-aside case's hidden children with it", () => {
+    const { dataset, c1 } = setupTestDataset()
+    // a1 is "a" for items 0, 2, 4; the slider hides item 0
+    const [i0, , i2, , i4] = dataset.itemIds
+    dataset.setSliderFilter("s1", new Set([i0]))
+    dataset.validateCases()
+    const parentA = c1.caseIds.find(caseId => dataset.caseInfoMap.get(caseId)?.childItemIds.includes(i2))!
+    dataset.hideCasesOrItems([parentA])
+    expect(dataset.setAsideItemIds).toEqual(expect.arrayContaining([i0, i2, i4]))
+    // regrouped, as the display does before the user can ask to restore the case
+    dataset.validateCases()
+    dataset.showHiddenCasesAndItems([parentA])
+    expect(dataset.setAsideItemIds).toEqual([])
+  })
+
+  it("sets aside a case's children hidden by the filter formula, too", () => {
+    const { dataset, c1 } = setupTestDataset()
+    // a1 is "a" for items 0, 2, 4; the filter formula hides item 0
+    const [i0, , i2, , i4] = dataset.itemIds
+    dataset.updateFilterFormulaResults([{ itemId: i0, result: false }], {})
+    dataset.validateCases()
+    const parentA = c1.caseIds.find(caseId => dataset.caseInfoMap.get(caseId)?.childItemIds.includes(i2))!
+    dataset.hideCasesOrItems([parentA])
+    expect(dataset.setAsideItemIds).toEqual(expect.arrayContaining([i0, i2, i4]))
+  })
+})
+
+describe("DataSet selection of hidden items", () => {
+  it("deselects the items a slider hides, and leaves them deselected when shown again", () => {
+    const { dataset } = setupTestDataset()
+    const [i0, i1] = dataset.itemIds
+    dataset.setSelectedCases([i0, i1])
+    dataset.setSliderFilter("s1", new Set([i0]))
+    // regrouped, as the display does when the cases change
+    dataset.validateCases()
+    expect(dataset.itemIds).not.toContain(i0)
+    expect(dataset.isCaseSelected(i0)).toBe(false)
+    expect(dataset.isCaseSelected(i1)).toBe(true)
+    dataset.clearSliderFilter("s1")
+    dataset.validateCases()
+    expect(dataset.itemIds).toContain(i0)
+    expect(dataset.isCaseSelected(i0)).toBe(false)
+  })
+
+  it("deselects the items the filter formula hides", () => {
+    const { dataset } = setupTestDataset()
+    const [i0, i1] = dataset.itemIds
+    dataset.setSelectedCases([i0, i1])
+    dataset.updateFilterFormulaResults([{ itemId: i0, result: false }], {})
+    dataset.validateCases()
+    expect(dataset.itemIds).not.toContain(i0)
+    expect(dataset.isCaseSelected(i0)).toBe(false)
+    expect(dataset.isCaseSelected(i1)).toBe(true)
   })
 })

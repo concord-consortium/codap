@@ -75,6 +75,47 @@ describe("SliderModel range", () => {
     expect([slider.rangeLow, slider.rangeHigh]).toEqual([4, 4.5])
   })
 
+  it("narrows the range only while the axis is narrower than it", async () => {
+    // configured from a3: range width 0.5 on axis [1, 6]
+    const { slider } = await setupRangeSlider()
+    // zooming the axis during a drag
+    slider.axis.setDynamicDomain(1, 1.2)
+    expect(slider.width).toBeCloseTo(0.2)
+    slider.axis.setDynamicDomain(1, 6)
+    slider.setAxisMax(6)
+    expect(slider.width).toBeCloseTo(0.5)
+    expect(slider.rangeWidth).toBeCloseTo(0.5)
+  })
+
+  it("records no change of its own when an axis drag narrows the range", async () => {
+    const { slider } = await setupRangeSlider()
+    const manager = appState.document.treeManagerAPI as Instance<typeof TreeManager>
+    const settle = () => when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
+    appState.document.treeMonitor!.enableMonitoring()
+    try {
+      await settle()
+      const undoLevels = manager.undoStore.undoLevels
+      // as an axis drag does: dynamic steps, then the change is committed when the drag ends
+      slider.axis.setDynamicDomain(1, 3)
+      slider.axis.setDynamicDomain(1, 1.2)
+      await settle()
+      slider.axis.applyModelChange(() => slider.axis.setDomain(...slider.axis.domain), {
+        undoStringKey: "DG.Undo.axisDilate", redoStringKey: "DG.Redo.axisDilate"
+      })
+      await settle()
+      expect(slider.width).toBeCloseTo(0.2)
+      expect(manager.undoStore.undoLevels).toBe(undoLevels + 1)
+
+      appState.document.undoLastAction()
+      await settle()
+      expect(slider.axis.domain).toEqual([1, 6])
+      expect(slider.width).toBeCloseTo(0.5)
+    }
+    finally {
+      appState.document.treeMonitor!.disableMonitoring()
+    }
+  })
+
   it("ignores the multiple restriction for range bounds", async () => {
     const { slider } = await setupRangeSlider()
     slider.setMultipleOf(2)
@@ -82,12 +123,15 @@ describe("SliderModel range", () => {
     expect([slider.rangeLow, slider.rangeHigh]).toEqual([1.5, 3.5])
   })
 
-  it("undoes a committed range change in one step", async () => {
+  it("undoes a drag's dynamic steps and committed range change in one step", async () => {
     const { slider } = await setupRangeSlider()
     const manager = appState.document.treeManagerAPI as Instance<typeof TreeManager>
     appState.document.treeMonitor!.enableMonitoring()
     await when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
 
+    // as a drag does: dynamic steps, then the range is committed when the drag ends
+    slider.setDynamicRange(1.5, 3)
+    slider.setDynamicRange(2, 4)
     slider.applyModelChange(() => slider.setRange(2, 4), {
       undoStringKey: "V3.Undo.slider.changeRange", redoStringKey: "V3.Redo.slider.changeRange"
     })
@@ -122,10 +166,18 @@ describe("SliderModel playback steps", () => {
     expect(slider.nextAnimationValue(1, 0.1)).toBeGreaterThan(slider.valueDomain[1])
   })
 
-  it("steps other sliders by the increment", async () => {
+  it("steps a range with width by the fallback step, ignoring the multiple restriction as a drag does", async () => {
     const { slider } = await setupRangeSlider()
+    slider.setMultipleOf(2)
     slider.setRange(2, 3)
     expect(slider.nextAnimationValue(1, 0.25)).toBeCloseTo(2.25)
+  })
+
+  it("steps a variable slider by its multiple restriction", async () => {
+    const { slider } = await setupSliderAndData()
+    slider.setMultipleOf(2)
+    slider.setValue(2)
+    expect(slider.nextAnimationValue(1, 0.25)).toBe(4)
   })
 })
 

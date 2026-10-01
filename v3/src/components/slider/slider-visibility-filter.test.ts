@@ -60,11 +60,64 @@ describe("visibility slider filter", () => {
     expect(setup.dataSet.itemIds).toHaveLength(6)
   })
 
-  it("restores the cases when the slider tile is deleted", async () => {
+  it("restores the cases when the slider tile is deleted, and hides them again when that's undone", async () => {
+    const setup = await setupVisibilitySlider()
+    const manager = appState.document.treeManagerAPI as Instance<typeof TreeManager>
+    const settle = () => when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
+    appState.document.treeMonitor!.enableMonitoring()
+    try {
+      await settle()
+      expect(setup.dataSet.itemIds).toHaveLength(1)
+      setup.content.applyModelChange(() => setup.content.deleteTile(setup.tile.id), {
+        undoStringKey: "DG.Undo.component.close", redoStringKey: "DG.Redo.component.close"
+      })
+      await settle()
+      expect(setup.dataSet.itemIds).toHaveLength(6)
+      appState.document.undoLastAction()
+      await settle()
+      expect(a3Values(setup)).toEqual([1])
+    }
+    finally {
+      appState.document.treeMonitor!.disableMonitoring()
+    }
+  })
+
+  it("hides nothing once its bound attribute is deleted", async () => {
     const setup = await setupVisibilitySlider()
     expect(setup.dataSet.itemIds).toHaveLength(1)
-    setup.content.deleteTile(setup.tile.id)
+    setup.dataSet.removeAttribute(setup.dataSet.attrFromName("a3")!.id)
+    expect(setup.slider.attribute).toBeUndefined()
     expect(setup.dataSet.itemIds).toHaveLength(6)
+  })
+
+  it("deselects the cases it hides", async () => {
+    const setup = await setupSliderAndData()
+    setup.dataSet.selectAll()
+    setup.slider.configureFromAttribute(setup.dataSet, setup.dataSet.attrFromName("a3")!.id)
+    setup.dataSet.validateCases()
+    // only the case in the range [1, 1.5] is still selected
+    expect(setup.dataSet.selection.size).toBe(1)
+    expect(a3Values(setup)).toEqual([1])
+    expect(setup.dataSet.isCaseSelected(setup.dataSet.itemIds[0])).toBe(true)
+  })
+
+  it("never becomes a history entry itself", async () => {
+    const setup = await setupVisibilitySlider()
+    const manager = appState.document.treeManagerAPI as Instance<typeof TreeManager>
+    const settle = () => when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
+    appState.document.treeMonitor!.enableMonitoring()
+    try {
+      await settle()
+      const undoLevels = manager.undoStore.undoLevels
+      // a drag's dynamic steps change the hiding without any undoable change
+      setup.slider.setDynamicRange(2, 4)
+      await settle()
+      expect(a3Values(setup)).toEqual([2, 3, 4])
+      expect(manager.undoStore.undoLevels).toBe(undoLevels)
+    }
+    finally {
+      appState.document.treeMonitor!.disableMonitoring()
+    }
   })
 
   it("never touches the user's set-aside cases", async () => {

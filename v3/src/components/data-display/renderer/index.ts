@@ -1,11 +1,12 @@
 // Types
 export type {
+  GetCasePointStyle,
+  IBackgroundEventDistributionOptions,
   IPoint,
   IPointMetadata,
   IPointRendererOptions,
   IPointState,
   IPointStyle,
-  IBackgroundEventDistributionOptions,
   ITransitionOptions,
   PointEventHandler,
   RendererCapability

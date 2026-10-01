@@ -22,8 +22,8 @@ export function dataDisplayGetNumericValue(dataset: Maybe<IDataSet>, caseID: str
   }
 }
 
-// the [min, max] of the attribute's numeric values (epoch seconds for dates) over the given items
-// (by default, the visible items)
+// the [min, max] of the attribute's numeric values (epoch seconds for dates) over the given items (by default,
+// the items that aren't set aside or filtered out)
 export function dataDisplayGetNumericExtent(
   dataSet: Maybe<IDataSet>, attrID: string, itemIds: readonly string[] = dataSet?.itemIds ?? []
 ): Maybe<[number, number]> {
