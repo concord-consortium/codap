@@ -3,7 +3,6 @@
 # no longer needed. Maintained by hand.
 
 allCases
-attributeList
 attributeLocation
 case
 caseByID
@@ -13,8 +12,6 @@ caseFormulaSearch
 caseSearch
 collection
 collectionList
-component
-componentList
 configuration
 configurationList
 dataContextFromURL
@@ -22,7 +19,6 @@ dataContextList
 formulaEngine
 global
 globalList
-interactiveFrame
 item
 itemByCaseID
 itemByID
@@ -30,6 +26,5 @@ itemCount
 itemSearch
 logMessage
 logMessageMonitor
-selectionList
 tourElements
 undoChangeNotice
