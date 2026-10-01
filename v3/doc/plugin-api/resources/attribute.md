@@ -52,7 +52,7 @@ context in the document — see [the index](../README.md#the-default-data-contex
 
 ## Values
 
-The read and write shapes are **not the same**, and three of the properties invert. See
+The read and write shapes are **not the same**, and three properties invert between them. See
 [Known limitations](#known-limitations) before relying on a round trip.
 
 ### What `get` returns
@@ -118,8 +118,9 @@ interface these types come from makes all of its members optional, so the table 
 TypeScript declares. At runtime `create` rejects any attribute object without a `name`. The
 other properties genuinely are optional, for both actions.
 
-`defaultMin` and `defaultMax` are accepted here as two separate properties, though `get` returns
-them only when a default range exists.
+`defaultMin` and `defaultMax` appear in the table because the interface declares them, but no
+write path reads them. A plugin cannot set an attribute's default range; it can only read one
+that a v2 document brought in.
 
 `create` and `update` both reply with `{"attrs": [ ... ]}` — an array of the attribute objects in
 the read shape above, even when you created or updated exactly one.
@@ -170,11 +171,22 @@ Start a drag from inside a plugin, so the user can drop an attribute onto a grap
 
 ## Known limitations
 
-**The protection properties invert between writing and reading.** You write `deleteProtected` and
-`renameProtected`; you read back `deleteable` and `renameable`, whose values are the logical
-opposite. Setting `deleteProtected: true` and then reading the attribute returns
-`deleteable: false`. There is no `deleteProtected` in a `get` response, and no `deleteable` in
-the values `create` accepts.
+**Three properties invert between writing and reading.** `get` reports `deleteable`, `renameable`
+and `editable`; `update` accepts those spellings *and* `deleteProtected` and `renameProtected`,
+which mean the opposite. Setting `deleteProtected: true` and reading the attribute back returns
+`deleteable: false`. There is no `deleteProtected` or `renameProtected` in a `get` response.
+
+**`editable` does not behave like the other two.** `deleteable` and `renameable` are inverted on
+the way in, so writing `deleteable: false` protects the attribute, as you would expect. `editable`
+is not inverted: writing `editable: true` marks the attribute edit-*protected*, and a following
+`get` returns `editable: false`. To make an attribute editable, send `editable: false`. This is
+inconsistent with the two properties handled immediately beside it in the same function and looks
+like a defect rather than a decision; it is recorded here because it is what CODAP does today.
+
+**`create` ignores all four protection properties on a new attribute.** They are applied by the
+update path only. Creating an attribute with `deleteProtected: true` silently leaves it
+unprotected — unless the name already exists, in which case `create` takes the update path and
+they do apply. Set them with a separate `update` after creating.
 
 **`create` on an existing name updates instead of creating.** If the collection already has an
 attribute with the name you supply, CODAP updates that attribute and returns it, rather than

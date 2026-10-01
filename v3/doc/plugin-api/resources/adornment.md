@@ -53,9 +53,11 @@ For `create`, `update` and `delete` the type goes in `values.type` rather than i
 because those requests carry a values object anyway.
 
 <!-- BEGIN GENERATED: scope -->
-This resource does not use a data context. CODAP still resolves one — defaulting to
-`#default` when the selector omits it — but this resource ignores it, so naming a
-`dataContext` has no effect.
+This resource's handler does not read a data context itself. CODAP still resolves one —
+defaulting to `#default` when the selector omits it — and uses it to resolve any
+`collection` or `attribute` segment earlier in the selector. Naming a different
+`dataContext` therefore changes what this resource returns only when the selector
+contains such a segment.
 <!-- END GENERATED: scope -->
 
 ### Type names and aliases
