@@ -507,6 +507,22 @@ describe("DataConfigurationModel", () => {
     expect(config.suppressAnimation).toBe(true)
   })
 
+  it("suppresses animation when a visibility slider hides or shows cases", () => {
+    // A slider updates the hidden cases on every drag and playback step, so points must snap rather than
+    // restart a transition each step (they'd otherwise fade out and back in).
+    const config = tree.config
+    config.setDataset(tree.data, tree.metadata)
+    config.setAttribute("x", { attributeID: "xId" })
+    expect(config.suppressAnimation).toBe(false)
+
+    tree.data.setSliderFilter("SLIDER_TILE", new Set([tree.data.itemIds[0]]))
+    expect(config.suppressAnimation).toBe(true)
+
+    config.setSuppressAnimation(false)
+    tree.data.clearSliderFilter("SLIDER_TILE")
+    expect(config.suppressAnimation).toBe(true)
+  })
+
   it("matchCirclesToData stops in-flight animation (not just skips starting) when suppressed", () => {
     // When cases stream in, an animation timer armed earlier (e.g. during initial plot setup) can
     // still be running. Merely skipping startAnimation isn't enough — the points would keep getting
