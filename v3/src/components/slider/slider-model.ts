@@ -96,7 +96,8 @@ export const SliderModel = TileContentModel
       return self.sliderType !== "variable"
     },
     // A range no wider than the axis. The saved width isn't narrowed to fit the axis, so zooming the axis in
-    // and back out (or undoing the zoom) leaves the range as it was, and an axis change adds no change of its own.
+    // and back out (or undoing the zoom) leaves the width as it was, and an axis change adds no change of its
+    // own. (The low end is limited the same way; see rangeLow.)
     get width() {
       const [axisMin, axisMax] = self.axis.domain
       return Math.min(self.dynamicRangeWidth ?? self.rangeWidth ?? 0, Math.max(0, axisMax - axisMin))
@@ -115,11 +116,16 @@ export const SliderModel = TileContentModel
     }
   }))
   .views(self => ({
+    // A range slider's low end, kept within the axis with room for the width. Like the width, it's limited when
+    // read rather than moved while the axis changes dynamically, so zooming the axis in and back out leaves the
+    // range where it was; the limited position is saved when the axis change is (see the valueDomain reaction).
     get rangeLow() {
-      return self.value
+      if (!self.isRangeSlider) return self.value
+      const [min, max] = this.valueDomain
+      return Math.min(max, Math.max(min, self.value))
     },
     get rangeHigh() {
-      return self.value + self.width
+      return this.rangeLow + self.width
     },
     // the interval the value may occupy: for a range slider, the low end, which leaves room for the width
     get valueDomain(): readonly [number, number] {
@@ -271,7 +277,8 @@ export const SliderModel = TileContentModel
       },
       moveRange(low: number) {
         const lo = normalizeMove(low)
-        self.rangeWidth = self.width
+        // the unlimited width, so a move while the axis is zoomed in doesn't save the narrower width
+        self.rangeWidth = self.dynamicRangeWidth ?? self.rangeWidth
         self.dynamicRangeWidth = undefined
         self.globalValue.setValue(lo)
       }
@@ -297,11 +304,14 @@ export const SliderModel = TileContentModel
   .actions(self => ({
     afterCreate() {
       addDisposer(self, reaction(
-        () => self.valueDomain,
-        () => {
+        // the axis's dynamic state too, so committing a change that ends where the drag left the axis still fires
+        () => ({ domain: self.valueDomain, isDynamic: self.axis.isUpdatingDynamically }),
+        ({ isDynamic }) => {
           // skip constraining value during axis animation (value is intentionally outside bounds)
           if (self._isAxisAnimating) return
-          // (a range wider than the axis fits it by way of the width view)
+          // A range slider's position (and width) are limited when read during a dynamic axis change, and the
+          // limited position is saved only when the change is, within its undo entry.
+          if (self.isRangeSlider && isDynamic) return
           const [min, max] = self.valueDomain
           // keep the thumb within axis bounds when axis bounds are changed
           if (self.value < min) self.setDynamicValueIfDynamic(min)

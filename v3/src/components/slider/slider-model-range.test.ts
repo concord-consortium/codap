@@ -116,6 +116,52 @@ describe("SliderModel range", () => {
     }
   })
 
+  it("keeps the range where it was when the axis is zoomed in and back out", async () => {
+    const { slider } = await setupRangeSlider()
+    slider.setRange(3, 4)
+    // a zoom that leaves no room for the range at its low end
+    slider.axis.setDynamicDomain(1, 2)
+    expect([slider.rangeLow, slider.rangeHigh]).toEqual([1, 2])
+    slider.axis.setDynamicDomain(1, 6)
+    slider.axis.setDomain(1, 6)
+    expect([slider.rangeLow, slider.rangeHigh]).toEqual([3, 4])
+    expect(slider.value).toBe(3)
+    expect(slider.globalValue.dynamicValue).toBeUndefined()
+  })
+
+  it("saves where the range fits when an axis drag ends zoomed in, as part of the axis change", async () => {
+    const { slider } = await setupRangeSlider()
+    slider.setRange(3, 4)
+    const manager = appState.document.treeManagerAPI as Instance<typeof TreeManager>
+    const settle = () => when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
+    await settle()
+    const undoLevels = manager.undoStore.undoLevels
+    // the low end is still inside the zoomed axis, but must move to leave room for the width
+    slider.axis.setDynamicDomain(1, 3.5)
+    await settle()
+    slider.axis.applyModelChange(() => slider.axis.setDomain(...slider.axis.domain), {
+      undoStringKey: "DG.Undo.axisDilate", redoStringKey: "DG.Redo.axisDilate"
+    })
+    await settle()
+    expect([slider.rangeLow, slider.rangeHigh]).toEqual([2.5, 3.5])
+    expect(slider.globalValue.value).toBe(2.5)
+    expect(slider.globalValue.dynamicValue).toBeUndefined()
+    expect(manager.undoStore.undoLevels).toBe(undoLevels + 1)
+
+    appState.document.undoLastAction()
+    await settle()
+    expect(slider.axis.domain).toEqual([1, 6])
+    expect([slider.rangeLow, slider.rangeHigh]).toEqual([3, 4])
+  })
+
+  it("keeps the saved width when the range is moved while the axis is zoomed in", async () => {
+    const { slider } = await setupRangeSlider()
+    slider.setRange(1, 4)
+    slider.axis.setDynamicDomain(1, 2)
+    slider.moveRange(1)
+    expect(slider.rangeWidth).toBe(3)
+  })
+
   it("ignores the multiple restriction for range bounds", async () => {
     const { slider } = await setupRangeSlider()
     slider.setMultipleOf(2)
