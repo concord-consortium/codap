@@ -146,9 +146,18 @@ function renderValues(sourceName) {
   const iface = inventory.valueTypes[sourceName]
   if (!iface) return null
   const esc = t => t.replace(/\|/g, "\\|")   // 25 member types are unions; an unescaped pipe splits the row
+  // Most of these interfaces inherit the bulk of their members — DIAttribute declares 2 and
+  // inherits 22 — and which is which is exactly what a plugin author needs to see: the inherited
+  // ones are the V2 vocabulary, the declared ones are what v3 added. The column appears only
+  // when something is actually inherited, so flat interfaces keep a three-column table.
+  const inherits = iface.members.some(m => m.inherited)
+  const from = m => m.inherited ?? sourceName
   const rows = iface.members.map(m =>
-    `| \`${m.name}\` | ${esc(m.type)} | ${m.optional ? "optional" : "required"} |`)
-  return ["| Property | Type | |", "|---|---|---|", ...rows].join("\n")
+    `| \`${m.name}\` | ${esc(m.type)} | ${m.optional ? "optional" : "required"} |` +
+    (inherits ? ` \`${from(m)}\` |` : ""))
+  const head = inherits ? "| Property | Type | | Declared in |" : "| Property | Type | |"
+  const rule = inherits ? "|---|---|---|---|" : "|---|---|---|"
+  return [head, rule, ...rows].join("\n")
 }
 
 // --- the three compact tables from the quick-reference tables -------------------------------------------------
