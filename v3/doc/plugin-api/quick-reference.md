@@ -1,7 +1,7 @@
 # Quick reference
 
-> **Applies to:** CODAP v3 · Everything on this page is generated from `v3/src/` — see
-> [conventions](conventions.md). Do not edit it by hand.
+> **Applies to:** CODAP v3 · The tables on this page are generated from `v3/src/` — see
+> [conventions](conventions.md). Edit only outside the generated blocks.
 
 Three tables that answer the questions people get wrong most often: whether a resource supports
 the action you are about to send, what a selector may contain, and what an error string means.
@@ -80,8 +80,17 @@ nameOrId  := a name, a title, or a numeric id — or #default for a data context
 ```
 
 **Any word is accepted as a key at parse time.** CODAP does not validate keys against a list
-while parsing, so a misspelled selector does not fail there — it fails later, when no handler
-matches, with `unknown request: <value>`. Do not read a successful parse as a valid selector.
+while parsing, so a misspelled selector never fails there. What happens next depends on which
+segment was wrong:
+
+- A misspelled **final** segment decides the handler, so there is none, and the request fails
+  with `Unsupported action: <action>/<key>`.
+- A misspelled **earlier** segment is simply unread. The parser keeps it under a key nothing
+  looks at, and resolution falls back to searching the whole data context — so
+  `dataContext[M].colection[C].attribute[Age]` succeeds, silently ignoring the collection you
+  asked for.
+
+Do not read a successful parse, or even a successful request, as a valid selector.
 
 **Keys that name a resource** (38): `adornment`, `adornmentList`, `allCases`, `attribute`, `attributeList`, `attributeLocation`, `case`, `caseByID`, `caseByIndex`, `caseCount`, `caseFormulaSearch`, `caseSearch`, `collection`, `collectionList`, `component`, `componentList`, `configuration`, `configurationList`, `dataContext`, `dataContextFromURL`, `dataContextList`, `dataDisplay`, `document`, `formulaEngine`, `global`, `globalList`, `interactiveApi`, `interactiveFrame`, `item`, `itemByCaseID`, `itemByID`, `itemCount`, `itemSearch`, `logMessage`, `logMessageMonitor`, `selectionList`, `tourElements`, `undoChangeNotice`.
 
@@ -99,7 +108,8 @@ it; each resource's page says which.
 
 ## Error catalog
 
-Every error string the Data Interactive API can return, alphabetically. A `<value>` is filled in
+Every error string the Data Interactive API returns through its message catalog, alphabetically.
+A few errors are still hard-coded English literals in the handlers and are not listed here. A `<value>` is filled in
 at runtime with the offending name, type or action; an individual resource's page may name those
 placeholders more specifically where it knows what they hold.
 

@@ -1,6 +1,6 @@
 # Resources with no page yet. Remove a line when its page lands; the drift check
 # reports any resource that is undocumented and NOT listed here, and any line here that is
-# no longer needed. Generated once at the start of Phase 6; maintained by hand thereafter.
+# no longer needed. Maintained by hand.
 
 allCases
 attribute

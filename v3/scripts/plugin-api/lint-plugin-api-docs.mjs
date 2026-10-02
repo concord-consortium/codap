@@ -10,15 +10,15 @@
 //   links         every relative link resolves
 //   tables        every markdown table row has its header's column count
 //   markers       BEGIN/END GENERATED markers pair up, and names are unique within a page
-//   scope-drift   the scope block is identical across pages that report the same scope
-//   errors        every error string quoted in a page exists in the code
+//   scope-drift   pages report no more scope variants than there are scope cases
+//   errors        a quoted phrase that reads like an error message exists in the code
 //   citations     no source file:line citations (external pages; conventions.md is exempt)
 //   issue-ids     no internal issue-tracker ids
 //   placeholders  no CODAP-internal %@ i18n notation
 //   sections      each resource page has the required sections and a provenance header
-//   coverage      every resource in the code has a page, or is knowingly undocumented
+//   coverage      which resources in the code have no page (reported; --strict to fail)
 //
-// Undocumented resources are expected while the migration is in progress, so coverage is
+// Undocumented resources are expected while resources still lack pages, so coverage is
 // reported but only fails with --strict.
 //
 // Usage: node lint-plugin-api-docs.mjs [--strict]
@@ -27,16 +27,15 @@
 import { readFileSync, readdirSync, existsSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import { dirname, join, relative, normalize } from "node:path"
-import { execFileSync } from "node:child_process"
+import { markerProblems } from "./markers.mjs"
+import { readInventory } from "./inventory.mjs"
 
 const here = dirname(fileURLToPath(import.meta.url))
 const v3Dir = join(here, "..", "..")
 const docsDir = join(v3Dir, "doc", "plugin-api")
 const strict = process.argv.includes("--strict")
 
-const inventory = JSON.parse(
-  execFileSync("node", [join(here, "extract-plugin-api.mjs")], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 })
-)
+const inventory = readInventory()
 
 const problems = []
 const fail = (file, msg) => problems.push(`${file}: ${msg}`)
@@ -82,15 +81,17 @@ for (const file of files) {
     if (!lines[i].trim().startsWith("|") || !/^\s*\|[\s:|-]+\|\s*$/.test(lines[i + 1] ?? "")) continue
     const want = cols(lines[i])
     for (let j = i + 2; j < lines.length && lines[j].trim().startsWith("|"); j++) {
-      if (cols(lines[j]) !== want) fail(name, `line ${j + 1}: table row has ${cols(lines[j]) - 1} cells, header has ${want - 1}`)
+      if (cols(lines[j]) !== want) {
+        fail(name, `line ${j + 1}: table row has ${cols(lines[j]) - 1} cells, header has ${want - 1}`)
+      }
     }
   }
 
-  // markers
-  const begins = [...raw.matchAll(/<!-- BEGIN GENERATED: ([\w-]+)/g)].map(m => m[1])
-  const ends = [...raw.matchAll(/<!-- END GENERATED: ([\w-]+)/g)].map(m => m[1])
-  if (begins.join() !== ends.join()) fail(name, `generated markers do not pair: [${begins}] vs [${ends}]`)
-  if (new Set(begins).size !== begins.length) fail(name, `duplicate generated block names: [${begins}]`)
+  // markers — the same ordered walk the generator runs before it rewrites anything, so the lint
+  // and the generator cannot disagree about whether a page is safe. Comparing the BEGIN and END
+  // name lists, as this used to, ignores order: an END before its BEGIN, a nested pair, or a
+  // malformed marker all passed.
+  for (const problem of markerProblems(raw)) fail(name, problem)
 
   // scope drift
   const scope = /<!-- BEGIN GENERATED: scope -->\n([\s\S]*?)\n<!-- END GENERATED: scope -->/.exec(raw)
@@ -101,15 +102,15 @@ for (const file of files) {
 
   // error strings quoted in prose must exist in the code
   if (!isConventions) {
-    // Any backticked phrase that reads like an error message. Not anchored on trailing
-    // punctuation: several real error strings have none ("Component not found"), and requiring
-    // it silently skipped them.
+    // Any backticked phrase that reads like an error message: starts with a capital and contains
+    // one of a few error-ish keywords. That is deliberately narrow — it cannot check strings like
+    // `unknown request: <value>` — so it catches invented errors, not every mismatch.
     for (const m of raw.matchAll(/`([A-Z][^`\n]{6,120})`/g)) {
       const quoted = m[1]
       if (knownErrors.has(quoted)) continue
       // tolerate the generator's neutral placeholders and page-specific named ones
-      const normalised = quoted.replace(/<[\w\d]+>/g, "%@")
-      const matches = [...knownErrors].some(e => e.replace(/%@\d?/g, "%@") === normalised)
+      const normalized = quoted.replace(/<[\w\d]+>/g, "%@")
+      const matches = [...knownErrors].some(e => e.replace(/%@\d?/g, "%@") === normalized)
       if (!matches && /not found|not supported|required|Unsupported|Unable|Cannot|Invalid/i.test(quoted)) {
         fail(name, `quoted error string not found in code: "${quoted}"`)
       }
@@ -118,7 +119,9 @@ for (const file of files) {
 
   // external-page hygiene
   if (!isConventions) {
-    for (const m of outsideFences.matchAll(/`[\w-]+\.(?:ts|tsx):\d+/g)) fail(name, `source citation on an external page: ${m[0]}\``)
+    for (const m of outsideFences.matchAll(/`[\w-]+\.(?:ts|tsx):\d+/g)) {
+      fail(name, `source citation on an external page: ${m[0]}\``)
+    }
     for (const m of raw.matchAll(/\bCODAP-\d{3,}\b/g)) fail(name, `internal issue id on an external page: ${m[0]}`)
     for (const m of outsideFences.matchAll(/%@\d?/g)) fail(name, `CODAP-internal placeholder notation: ${m[0]}`)
   }
