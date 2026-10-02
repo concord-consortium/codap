@@ -1,6 +1,6 @@
 # document
 
-> **Applies to:** CODAP v3 · **Verified:** 2026-09-25 against `main` @ `ae2105cf4`
+> **Applies to:** CODAP v3 · **Verified:** 2026-10-02
 > · Parts of this page are generated — see [conventions](../conventions.md).
 
 Reads or replaces the entire CODAP document as **CODAP v2 document JSON** — every data context,

@@ -89,8 +89,8 @@ for (const file of files) {
   }
 
   // markers — the same ordered walk the generator runs before it rewrites anything, so the lint
-  // and the generator cannot disagree about whether a page is safe. See markers.mjs for what
-  // counts as malformed and why it matters.
+  // and the generator cannot disagree about whether a page is safe: unmatched, crossed, nested,
+  // duplicated and malformed markers are all rejected here and there by the same code.
   for (const problem of markerProblems(raw)) fail(name, problem)
 
   // scope drift

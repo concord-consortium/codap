@@ -1,6 +1,6 @@
 # interactiveFrame
 
-> **Applies to:** CODAP v3 · **Verified:** 2026-10-01 against `main` @ `a1ebcea11`
+> **Applies to:** CODAP v3 · **Verified:** 2026-10-02
 > · Parts of this page are generated — see [conventions](../conventions.md).
 
 The interactive frame is the plugin's own component — the tile the plugin is running inside.
@@ -8,8 +8,8 @@ A plugin uses this resource to learn about its environment (which CODAP version,
 how big its frame is), to save state into the CODAP document, and to set the permissions that
 govern what a user may do to the data while the plugin is running.
 
-Every plugin reads this resource at startup. It is the one resource whose selector names no
-target: a plugin can only ever address its own frame.
+Every plugin reads this resource at startup. Its selector names no target — a plugin can only
+ever address its own frame, never another plugin's.
 
 ## Supported actions
 
@@ -104,8 +104,10 @@ honours fourteen; `codapVersion`, `externalUndoAvailable`, `standaloneUndoModeAv
 `savedState` is readable here but not writable: `update` ignores a `state` property entirely.
 A plugin does not push its state to CODAP. Instead CODAP asks for it — it sends the plugin a
 `get` request for `interactiveState`, and stores whatever the plugin replies with. To be
-restorable, a plugin must answer that request; `get interactiveFrame` then reports the stored
-answer as `savedState`.
+restorable, a plugin must answer that request.
+
+CODAP asks only when it is preparing to save the document, so `savedState` reflects the state at
+the last save, not the plugin's current state.
 
 ### `lang` and `locale` are not the same thing
 
@@ -159,9 +161,9 @@ Tell CODAP the plugin is working, then that it has finished:
 ## Known limitations
 
 **An unrecognized `notify` request succeeds silently.** CODAP replies `{"success": true}` to any
-`request` it does not handle, deliberately, so that a plugin written for a newer CODAP does not
-break on an older one. The cost is that a misspelled request is indistinguishable from one that
-worked. There is no way to ask which requests this CODAP supports.
+`request` it does not handle, matching V2's behaviour. The cost is that a misspelled request is
+indistinguishable from one that worked, and there is no way to ask which requests this CODAP
+supports.
 
 **`cannotClose` cannot be turned back off.** `update` applies it only when the value is truthy,
 unlike the other booleans on this resource, which apply whenever they are present. Sending
@@ -178,31 +180,34 @@ state reaches the document is by answering CODAP's `get interactiveState` reques
 
 ## Notifications
 
-A plugin sends `notify` to act on its own frame. `request` is required:
+A plugin sends `notify` to act on its own frame. `values` is required; `request` names the
+operation. A missing `request` returns `{"success": true}` without doing anything, like an
+unrecognized one.
 
 | `request` | Effect |
 |---|---|
 | `indicateBusy` | Shows CODAP's busy indicator. `cursorMode: true` makes it a busy cursor |
 | `indicateIdle` | Clears the busy indicator |
-| `highlight` | Highlights an element of the CODAP UI |
-| `clearHighlight` | Removes the highlight |
-| `startTour` | Starts a guided tour |
-| `endTour` | Ends a tour, by `tourId` |
-| `tourNext` | Advances to the next step |
-| `tourPrevious` | Returns to the previous step |
-| `tourMoveTo` | Jumps to `stepIndex` |
-| `tourRefresh` | Re-renders the current step |
+
+CODAP also accepts a set of requests for highlighting UI elements and running guided tours.
+They are **not documented here yet** because the implementation behind them is being replaced,
+and their values will change.
 
 ## Errors
 
 <!-- BEGIN GENERATED: errors -->
-| Error | When |
+| Error |
+|---|
+| `Interactive Frame not found` |
+| `A values object is required for this request.` |
+<!-- END GENERATED: errors -->
+
+| Error | Condition |
 |---|---|
 | `Interactive Frame not found` | the request did not come from a plugin frame |
 | `A values object is required for this request.` | `notify` sent with no `values` |
-<!-- END GENERATED: errors -->
 
 ## See also
 
 - [`component`](component.md) for the common properties every tile has
-- [The resource index](../README.md) for the request envelope and the `#default` rule
+- [The resource index](../README.md) for the request envelope and the full resource list

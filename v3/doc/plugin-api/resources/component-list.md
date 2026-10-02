@@ -1,6 +1,6 @@
 # componentList
 
-> **Applies to:** CODAP v3 · **Verified:** 2026-10-01 against `main` @ `a1ebcea11`
+> **Applies to:** CODAP v3 · **Verified:** 2026-10-02
 > · Parts of this page are generated — see [conventions](../conventions.md).
 
 Lists every component in the document. Plugins use it to discover what is on screen — to find a
@@ -91,16 +91,19 @@ the user can actually see.
 
 ## Notifications
 
-This resource sends none. Creating or deleting a component produces a notification on
-[`component`](component.md).
+This resource sends none. Creating, updating, deleting, hiding, showing or renaming a component
+produces a notification on [`component`](component.md).
 
 ## Errors
 
 <!-- BEGIN GENERATED: errors -->
-This resource reports no errors of its own. A `get` on an empty document returns an empty array.
+| Error |
+|---|
 <!-- END GENERATED: errors -->
+
+This resource reports no errors of its own. A `get` on an empty document returns an empty array.
 
 ## See also
 
 - [`component`](component.md) for reading and changing an individual component
-- [The resource index](../README.md) for the request envelope and the `#default` rule
+- [The resource index](../README.md) for the request envelope and the full resource list

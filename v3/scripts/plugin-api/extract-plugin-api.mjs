@@ -400,12 +400,12 @@ errors.sort((a, b) => cmp(a.key ?? a.message, b.key ?? b.message))
 // and optionality; anything richer (defaults, semantics) is judgment and stays hand-written.
 //
 // Interfaces are resolved through their `extends` clauses. Every component type extends
-// V2Component and DIAttribute extends Partial<ICodapV2Attribute>, so a declaration's own
-// members are a small fraction of what a plugin actually sends — DIAttribute declares 2 and
-// inherits 20. Inherited members are merged in and tagged with the interface they came from;
-// a member redeclared locally wins. `Partial<X>` contributes X's members as optional, which
-// is what Partial means. A base the walker cannot find is reported in `unresolvedBases`
-// rather than silently dropped.
+// V2Component, and DIAttribute extends Partial<ICodapV2Attribute>, so a declaration's own
+// members are often a small fraction of what a plugin actually sends. Inherited members are
+// merged in and tagged with the interface they came from; a member redeclared locally wins.
+// `Partial<X>` contributes X's members as optional. A base the walker cannot find is reported
+// in `unresolvedBases` rather than silently dropped.
+
 // Remove // and /* */ comments from a type's source text without touching quoted spans.
 function stripComments(text) {
   let out = ""
@@ -430,12 +430,9 @@ function stripComments(text) {
 
 const memberOf = (sf, m) => ({
   name: m.name.text,
-  // Collapse to one line, but keep member separators: a newline-separated inline object
-  // type would otherwise print as `{ left: number top: number }`, which is not valid TS.
-  // Strip comments before collapsing: an inline object type documented with `//` notes would
-  // otherwise fold its prose into the type text and print as something that is not valid TS.
-  // Quoted spans are skipped, so a string-literal type like `"https://example.org"` is not
-  // truncated at its own slashes.
+  // Render a multi-line type on one line without making it invalid TypeScript: drop any `//`
+  // notes it carries, then collapse whitespace while keeping the `;` between members. Quoted
+  // spans survive comment stripping, so `"https://example.org"` is not cut at its own slashes.
   type: m.type ? stripComments(m.type.getText(sf))
                       .replace(/,?\s*\n\s*/g, "; ").replace(/\s+/g, " ")
                       .replace(/;\s*}/g, " }").replace(/{\s*;\s*/g, "{ ")
@@ -479,7 +476,7 @@ for (const [file, sf] of sources) {
 }
 
 // A few shapes a plugin sends are declared as aliases rather than interfaces — notably
-// `DIDataContext = Partial<ICodapV2DataContext>`, which `dataContext` pages need. Only the two
+// `DIDataContext = Partial<ICodapV2DataContext>`, the base of DIUpdateDataContext. Only the two
 // forms that denote a single object shape are followed: `type X = Y` and `type X = Partial<Y>`,
 // where Y is a plain named type. Unions (`DIAdornmentValues`), records and MST
 // `Partial<SnapshotIn<typeof Model>>` do not denote one fixed member list, so they are skipped

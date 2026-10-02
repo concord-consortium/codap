@@ -1,6 +1,6 @@
 # interactiveApi
 
-> **Applies to:** CODAP v3 · **Verified:** 2026-09-25 against `main` @ `ae2105cf4`
+> **Applies to:** CODAP v3 · **Verified:** 2026-10-02
 > · Parts of this page are generated — see [conventions](../conventions.md).
 
 Reports whether CODAP is itself running as an *interactive* inside a host learning platform —

@@ -80,12 +80,19 @@ present and in order around them.
 Every page opens with one, directly under the title:
 
 ```markdown
-> **Applies to:** CODAP v3 · **Verified:** 2026-09-25 against `main` @ `ae2105cf4`
+> **Applies to:** CODAP v3 · **Verified:** 2026-09-25
 > · Parts of this page are generated — see [conventions](../conventions.md).
 ```
 
 A reader — human or model — can then qualify what they are reading instead of assuming it is
-current. Update the date and commit when you re-verify the page, not when you merely edit prose.
+current. Update the date and the reference when you re-verify the page, not when you merely edit
+prose.
+
+**A date, not a commit.** Pages are written on a branch and squash-merged, so a commit recorded
+here never appears on `main` and sends a reader looking for something that does not exist. A
+branch name cannot be used either — ours carry issue ids, which this folder does not publish.
+The date tells a reader how current the page is, which is what the header is for; `git log` on
+the page gives the exact commits.
 
 ---
 
