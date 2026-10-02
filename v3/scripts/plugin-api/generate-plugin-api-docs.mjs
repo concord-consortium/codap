@@ -39,6 +39,7 @@
 import { readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import { markerProblems } from "./markers.mjs"
+import { buildPageFor, listPages } from "./coverage.mjs"
 import { readInventory } from "./inventory.mjs"
 import { dirname, join, relative } from "node:path"
 
@@ -75,28 +76,10 @@ const cmp = (a, b) => (a < b ? -1 : a > b ? 1 : 0)
 // --- which page documents which resource ---------------------------------------------------
 // A page declares the resources it covers in its `actions` block header, which names one
 // column per resource. That keeps the mapping in the page rather than in a side table.
-const pages = readdirSync(resourcesDir).filter(f => f.endsWith(".md")).sort()
+const pages = listPages(resourcesDir)
 // Pages outside resources/ that also carry generated blocks.
 const extraPages = ["quick-reference.md"].filter(f => existsSync(join(docsDir, f)))
-const pageFor = new Map()   // resource name -> page filename
-for (const page of pages) {
-  const text = readFileSync(join(resourcesDir, page), "utf8")
-  const header = /<!-- BEGIN GENERATED: actions -->\n\|([^\n]*)\|/.exec(text)
-  const cols = header ? header[1].split("|").map(s => s.trim()).filter(Boolean) : []
-  // First column is "Action"; the rest name resources, or say "Supported" for a single one.
-  const named = cols.slice(1).filter(c => c !== "Supported")
-  const covered = named.length ? named : [page.replace(/\.md$/, "")]
-  for (const c of covered) pageFor.set(c.replace(/`/g, ""), page)
-}
-// Single-resource pages name the resource by filename in kebab-case; map it back.
-const kebabToName = new Map(inventory.resources.map(r =>
-  [r.name.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase(), r.name]))
-for (const [key, page] of [...pageFor]) {
-  if (!inventory.resources.some(r => r.name === key) && kebabToName.has(key)) {
-    pageFor.delete(key)
-    pageFor.set(kebabToName.get(key), page)
-  }
-}
+const pageFor = buildPageFor(resourcesDir, inventory.resources)
 
 // --- block renderers ------------------------------------------------------------------------
 function renderActions(resourceNames) {
@@ -160,7 +143,11 @@ function renderAdornmentTypes() {
 function renderValues(sourceName) {
   const iface = inventory.valueTypes[sourceName]
   if (!iface) return null
-  const esc = t => t.replace(/\|/g, "\|")   // many member types are unions; a bare pipe splits the row
+  // Backtick the type rather than escaping only the pipe. A bare `Partial<Foo>` renders as
+  // "Partial" on GitHub — the angle brackets parse as an HTML tag and the argument vanishes.
+  // Today's types survive by luck (`Record<string, X>` keeps its comma), so this is latent, not
+  // visible. Backticks also escape the pipe inside a union, so one treatment covers both.
+  const esc = t => "`" + t.replace(/\|/g, "\|") + "`"
   // Naming the interface each member came from lets a reader see where a property originates —
   // the V2 component shape, the V2 attribute shape, or the DI layer itself. The column appears
   // only when something is actually inherited, so flat interfaces keep a three-column table.
@@ -403,15 +390,27 @@ const staleBaseline = [...baseline].filter(n => pageFor.has(n) || !inventory.res
 const line = (label, arr) => console.error(`${label}: ${arr.length}${arr.length ? "\n  " + arr.join("\n  ") : ""}`)
 console.error(`Inventory: ${inventory.counts.resources} resources, verified against ${inventory.verifiedAgainst}`)
 
-// An interface whose base could not be found silently loses every inherited row, so say so.
-// Nothing triggers this today; an `extends Omit<X, "y">` or a base declared outside src/ would.
+// Two ways a declared shape can come out wrong, both reported rather than left silent.
+//
+// A type that still produced members but could not find a base is missing that base's rows —
+// nothing in the DI type files triggers this today, but an `extends Omit<X, "y">` would.
+//
+// A type that produced NO members is absent from valueTypes altogether. Four are today, and
+// they are legitimate: MST `SnapshotIn<typeof Model>` snapshots and alias-of-alias chains denote
+// no fixed member list. They are listed so the absence is visible rather than inferred — and a
+// `values source=` block naming one of them is already a hard failure, so this stays advisory.
 {
-  const unresolved = Object.entries(inventory.valueTypes)
+  const partial = Object.entries(inventory.valueTypes)
     .filter(([, v]) => v.unresolvedBases?.length)
     .map(([n, v]) => `${n} -> ${v.unresolvedBases.join(", ")}`)
-  if (unresolved.length) {
-    console.error(`UNRESOLVED BASES (inherited properties are missing from these tables): ${unresolved.length}`)
-    for (const u of unresolved) console.error(`  ${u}`)
+  if (partial.length) {
+    console.error(`UNRESOLVED BASES (inherited properties missing from these tables): ${partial.length}`)
+    for (const u of partial) console.error(`  ${u}`)
+  }
+  const none = Object.entries(inventory.unextractable ?? {})
+  if (none.length) {
+    console.error(`NOT EXTRACTABLE (declared shapes with no member list; not usable as source=): ${none.length}`)
+    for (const [n, v] of none) console.error(`  ${n}${v.extends ? ` extends ${v.extends.join(", ")}` : ""}`)
   }
 }
 console.error(`Documented: ${pageFor.size} resources across ${pages.length} pages`)

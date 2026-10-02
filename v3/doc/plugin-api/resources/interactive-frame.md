@@ -46,27 +46,27 @@ apply. Naming a `dataContext` in the selector has no effect.
 <!-- BEGIN GENERATED: values source=DIInteractiveFrame -->
 | Property | Type | |
 |---|---|---|
-| `allowEmptyAttributeDeletion` | boolean | optional |
-| `blockAPIRequestsWhileEditing` | boolean | optional |
-| `cannotClose` | boolean | optional |
-| `codapVersion` | string | optional |
-| `dimensions` | { height?: number; width?: number } | optional |
-| `externalUndoAvailable` | boolean | optional |
-| `id` | string \| number | optional |
-| `name` | string | optional |
-| `preventAttributeDeletion` | boolean | optional |
-| `preventBringToFront` | boolean | optional |
-| `preventDataContextReorg` | boolean | optional |
-| `preventTopLevelReorg` | boolean | optional |
-| `respectEditableItemAttribute` | boolean | optional |
-| `savedState` | unknown | optional |
-| `standaloneUndoModeAvailable` | boolean | optional |
-| `subscribeToDocuments` | boolean | optional |
-| `title` | string | optional |
-| `version` | string | optional |
-| `lang` | string | optional |
-| `locale` | string | optional |
-| `handlesLocaleChange` | boolean | optional |
+| `allowEmptyAttributeDeletion` | `boolean` | optional |
+| `blockAPIRequestsWhileEditing` | `boolean` | optional |
+| `cannotClose` | `boolean` | optional |
+| `codapVersion` | `string` | optional |
+| `dimensions` | `{ height?: number; width?: number }` | optional |
+| `externalUndoAvailable` | `boolean` | optional |
+| `id` | `string \| number` | optional |
+| `name` | `string` | optional |
+| `preventAttributeDeletion` | `boolean` | optional |
+| `preventBringToFront` | `boolean` | optional |
+| `preventDataContextReorg` | `boolean` | optional |
+| `preventTopLevelReorg` | `boolean` | optional |
+| `respectEditableItemAttribute` | `boolean` | optional |
+| `savedState` | `unknown` | optional |
+| `standaloneUndoModeAvailable` | `boolean` | optional |
+| `subscribeToDocuments` | `boolean` | optional |
+| `title` | `string` | optional |
+| `version` | `string` | optional |
+| `lang` | `string` | optional |
+| `locale` | `string` | optional |
+| `handlesLocaleChange` | `boolean` | optional |
 <!-- END GENERATED: values -->
 
 ### Which properties each action uses

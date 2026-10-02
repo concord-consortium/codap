@@ -81,15 +81,15 @@ loaded from a document.
 <!-- BEGIN GENERATED: values source=V2Component -->
 | Property | Type | |
 |---|---|---|
-| `cannotClose` | boolean | optional |
-| `dimensions` | { width: number; height: number } | optional |
-| `id` | number | optional |
-| `isResizable` | boolean \| { width: boolean, height: boolean } | optional |
-| `isVisible` | boolean | optional |
-| `name` | string | optional |
-| `position` | string \| { left: number; top: number } | optional |
-| `title` | string | optional |
-| `type` | string | required |
+| `cannotClose` | `boolean` | optional |
+| `dimensions` | `{ width: number; height: number }` | optional |
+| `id` | `number` | optional |
+| `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional |
+| `isVisible` | `boolean` | optional |
+| `name` | `string` | optional |
+| `position` | `string \| { left: number; top: number }` | optional |
+| `title` | `string` | optional |
+| `type` | `string` | required |
 <!-- END GENERATED: values -->
 
 `type` is required when creating. On `create`, `title` falls back to `name` when only `name` is
@@ -103,61 +103,61 @@ renamed a component.
 <!-- BEGIN GENERATED: values-graph source=V2Graph -->
 | Property | Type | | Declared in |
 |---|---|---|---|
-| `cannotClose` | boolean | optional | `V2Component` |
-| `dimensions` | { width: number; height: number } | optional | `V2Component` |
-| `id` | number | optional | `V2Component` |
-| `isResizable` | boolean \| { width: boolean, height: boolean } | optional | `V2Component` |
-| `isVisible` | boolean | optional | `V2Component` |
-| `name` | string | optional | `V2Component` |
-| `position` | string \| { left: number; top: number } | optional | `V2Component` |
-| `title` | string | optional | `V2Component` |
-| `type` | "graph" | required | `V2Graph` |
-| `backgroundColor` | string | optional | `V2Graph` |
-| `barChartFormula` | string | optional | `V2Graph` |
-| `barChartScale` | string | optional | `V2Graph` |
-| `captionAttributeID` | number \| null | optional | `V2Graph` |
-| `captionAttributeName` | string \| null | optional | `V2Graph` |
-| `dataContext` | string | optional | `V2Graph` |
-| `displayOnlySelectedCases` | boolean | optional | `V2Graph` |
-| `enableNumberToggle` | boolean | optional | `V2Graph` |
-| `filterFormula` | string | optional | `V2Graph` |
-| `hiddenCases` | number[] | optional | `V2Graph` |
-| `legendAttributeID` | number \| null | optional | `V2Graph` |
-| `legendAttributeName` | string \| null | optional | `V2Graph` |
-| `numberToggleLastMode` | boolean | optional | `V2Graph` |
-| `plotType` | string | optional | `V2Graph` |
-| `pointColor` | string | optional | `V2Graph` |
-| `pointSize` | number | optional | `V2Graph` |
-| `pointsAreFusedIntoBars` | boolean | optional | `V2Graph` |
-| `primaryAxis` | string | optional | `V2Graph` |
-| `rightNumericAttributeID` | number \| null | optional | `V2Graph` |
-| `rightNumericAttributeName` | string \| null | optional | `V2Graph` |
-| `rightSplitAttributeID` | number \| null | optional | `V2Graph` |
-| `rightSplitAttributeName` | string \| null | optional | `V2Graph` |
-| `showConnectingLines` | boolean | optional | `V2Graph` |
-| `showMeasuresForSelection` | boolean | optional | `V2Graph` |
-| `strokeColor` | string | optional | `V2Graph` |
-| `strokeSameAsFill` | boolean | optional | `V2Graph` |
-| `topSplitAttributeID` | number \| null | optional | `V2Graph` |
-| `topSplitAttributeName` | string \| null | optional | `V2Graph` |
-| `transparent` | boolean | optional | `V2Graph` |
-| `xAttributeID` | number \| null | optional | `V2Graph` |
-| `xAttributeName` | string \| null | optional | `V2Graph` |
-| `xAttributeType` | string | optional | `V2Graph` |
-| `xLowerBound` | number | optional | `V2Graph` |
-| `xUpperBound` | number | optional | `V2Graph` |
-| `yAttributeID` | number \| null | optional | `V2Graph` |
-| `yAttributeIDs` | number[] | optional | `V2Graph` |
-| `yAttributeName` | string \| null | optional | `V2Graph` |
-| `yAttributeNames` | string[] | optional | `V2Graph` |
-| `yAttributeType` | string | optional | `V2Graph` |
-| `yLowerBound` | number | optional | `V2Graph` |
-| `yUpperBound` | number | optional | `V2Graph` |
-| `y2AttributeID` | number \| null | optional | `V2Graph` |
-| `y2AttributeName` | string \| null | optional | `V2Graph` |
-| `y2AttributeType` | string | optional | `V2Graph` |
-| `y2LowerBound` | number | optional | `V2Graph` |
-| `y2UpperBound` | number | optional | `V2Graph` |
+| `cannotClose` | `boolean` | optional | `V2Component` |
+| `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
+| `id` | `number` | optional | `V2Component` |
+| `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
+| `isVisible` | `boolean` | optional | `V2Component` |
+| `name` | `string` | optional | `V2Component` |
+| `position` | `string \| { left: number; top: number }` | optional | `V2Component` |
+| `title` | `string` | optional | `V2Component` |
+| `type` | `"graph"` | required | `V2Graph` |
+| `backgroundColor` | `string` | optional | `V2Graph` |
+| `barChartFormula` | `string` | optional | `V2Graph` |
+| `barChartScale` | `string` | optional | `V2Graph` |
+| `captionAttributeID` | `number \| null` | optional | `V2Graph` |
+| `captionAttributeName` | `string \| null` | optional | `V2Graph` |
+| `dataContext` | `string` | optional | `V2Graph` |
+| `displayOnlySelectedCases` | `boolean` | optional | `V2Graph` |
+| `enableNumberToggle` | `boolean` | optional | `V2Graph` |
+| `filterFormula` | `string` | optional | `V2Graph` |
+| `hiddenCases` | `number[]` | optional | `V2Graph` |
+| `legendAttributeID` | `number \| null` | optional | `V2Graph` |
+| `legendAttributeName` | `string \| null` | optional | `V2Graph` |
+| `numberToggleLastMode` | `boolean` | optional | `V2Graph` |
+| `plotType` | `string` | optional | `V2Graph` |
+| `pointColor` | `string` | optional | `V2Graph` |
+| `pointSize` | `number` | optional | `V2Graph` |
+| `pointsAreFusedIntoBars` | `boolean` | optional | `V2Graph` |
+| `primaryAxis` | `string` | optional | `V2Graph` |
+| `rightNumericAttributeID` | `number \| null` | optional | `V2Graph` |
+| `rightNumericAttributeName` | `string \| null` | optional | `V2Graph` |
+| `rightSplitAttributeID` | `number \| null` | optional | `V2Graph` |
+| `rightSplitAttributeName` | `string \| null` | optional | `V2Graph` |
+| `showConnectingLines` | `boolean` | optional | `V2Graph` |
+| `showMeasuresForSelection` | `boolean` | optional | `V2Graph` |
+| `strokeColor` | `string` | optional | `V2Graph` |
+| `strokeSameAsFill` | `boolean` | optional | `V2Graph` |
+| `topSplitAttributeID` | `number \| null` | optional | `V2Graph` |
+| `topSplitAttributeName` | `string \| null` | optional | `V2Graph` |
+| `transparent` | `boolean` | optional | `V2Graph` |
+| `xAttributeID` | `number \| null` | optional | `V2Graph` |
+| `xAttributeName` | `string \| null` | optional | `V2Graph` |
+| `xAttributeType` | `string` | optional | `V2Graph` |
+| `xLowerBound` | `number` | optional | `V2Graph` |
+| `xUpperBound` | `number` | optional | `V2Graph` |
+| `yAttributeID` | `number \| null` | optional | `V2Graph` |
+| `yAttributeIDs` | `number[]` | optional | `V2Graph` |
+| `yAttributeName` | `string \| null` | optional | `V2Graph` |
+| `yAttributeNames` | `string[]` | optional | `V2Graph` |
+| `yAttributeType` | `string` | optional | `V2Graph` |
+| `yLowerBound` | `number` | optional | `V2Graph` |
+| `yUpperBound` | `number` | optional | `V2Graph` |
+| `y2AttributeID` | `number \| null` | optional | `V2Graph` |
+| `y2AttributeName` | `string \| null` | optional | `V2Graph` |
+| `y2AttributeType` | `string` | optional | `V2Graph` |
+| `y2LowerBound` | `number` | optional | `V2Graph` |
+| `y2UpperBound` | `number` | optional | `V2Graph` |
 <!-- END GENERATED: values-graph -->
 
 A `get` on a graph also returns **plot-specific properties** that are not in the table above,
@@ -174,25 +174,25 @@ because they are assembled from the current plot rather than declared:
 <!-- BEGIN GENERATED: values-slider source=V2Slider -->
 | Property | Type | | Declared in |
 |---|---|---|---|
-| `cannotClose` | boolean | optional | `V2Component` |
-| `dimensions` | { width: number; height: number } | optional | `V2Component` |
-| `id` | number | optional | `V2Component` |
-| `isResizable` | boolean \| { width: boolean, height: boolean } | optional | `V2Component` |
-| `isVisible` | boolean | optional | `V2Component` |
-| `name` | string | optional | `V2Component` |
-| `position` | string \| { left: number; top: number } | optional | `V2Component` |
-| `title` | string | optional | `V2Component` |
-| `type` | "slider" | required | `V2Slider` |
-| `animationDirection` | number | optional | `V2Slider` |
-| `animationMode` | number | optional | `V2Slider` |
-| `animationRate` | number | optional | `V2Slider` |
-| `globalValueName` | string | optional | `V2Slider` |
-| `multipleOf` | number | optional | `V2Slider` |
-| `dateMultipleOfUnit` | string | optional | `V2Slider` |
-| `scaleType` | string | optional | `V2Slider` |
-| `upperBound` | number | optional | `V2Slider` |
-| `lowerBound` | number | optional | `V2Slider` |
-| `value` | number | optional | `V2Slider` |
+| `cannotClose` | `boolean` | optional | `V2Component` |
+| `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
+| `id` | `number` | optional | `V2Component` |
+| `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
+| `isVisible` | `boolean` | optional | `V2Component` |
+| `name` | `string` | optional | `V2Component` |
+| `position` | `string \| { left: number; top: number }` | optional | `V2Component` |
+| `title` | `string` | optional | `V2Component` |
+| `type` | `"slider"` | required | `V2Slider` |
+| `animationDirection` | `number` | optional | `V2Slider` |
+| `animationMode` | `number` | optional | `V2Slider` |
+| `animationRate` | `number` | optional | `V2Slider` |
+| `globalValueName` | `string` | optional | `V2Slider` |
+| `multipleOf` | `number` | optional | `V2Slider` |
+| `dateMultipleOfUnit` | `string` | optional | `V2Slider` |
+| `scaleType` | `string` | optional | `V2Slider` |
+| `upperBound` | `number` | optional | `V2Slider` |
+| `lowerBound` | `number` | optional | `V2Slider` |
+| `value` | `number` | optional | `V2Slider` |
 <!-- END GENERATED: values-slider -->
 
 ### map
@@ -200,20 +200,20 @@ because they are assembled from the current plot rather than declared:
 <!-- BEGIN GENERATED: values-map source=V2Map -->
 | Property | Type | | Declared in |
 |---|---|---|---|
-| `cannotClose` | boolean | optional | `V2Component` |
-| `dimensions` | { width: number; height: number } | optional | `V2Component` |
-| `id` | number | optional | `V2Component` |
-| `isResizable` | boolean \| { width: boolean, height: boolean } | optional | `V2Component` |
-| `isVisible` | boolean | optional | `V2Component` |
-| `name` | string | optional | `V2Component` |
-| `position` | string \| { left: number; top: number } | optional | `V2Component` |
-| `title` | string | optional | `V2Component` |
-| `type` | "map" | required | `V2Map` |
-| `center` | [number, number] | optional | `V2Map` |
-| `dataContext` | string | optional | `V2Map` |
-| `legendAttributeName` | string | optional | `V2Map` |
-| `zoom` | number | optional | `V2Map` |
-| `geoRaster` | V2MapGeoRaster | optional | `V2Map` |
+| `cannotClose` | `boolean` | optional | `V2Component` |
+| `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
+| `id` | `number` | optional | `V2Component` |
+| `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
+| `isVisible` | `boolean` | optional | `V2Component` |
+| `name` | `string` | optional | `V2Component` |
+| `position` | `string \| { left: number; top: number }` | optional | `V2Component` |
+| `title` | `string` | optional | `V2Component` |
+| `type` | `"map"` | required | `V2Map` |
+| `center` | `[number, number]` | optional | `V2Map` |
+| `dataContext` | `string` | optional | `V2Map` |
+| `legendAttributeName` | `string` | optional | `V2Map` |
+| `zoom` | `number` | optional | `V2Map` |
+| `geoRaster` | `V2MapGeoRaster` | optional | `V2Map` |
 <!-- END GENERATED: values-map -->
 
 A map's `geoRaster` is an object of its own:
@@ -221,9 +221,9 @@ A map's `geoRaster` is an object of its own:
 <!-- BEGIN GENERATED: values-geo-raster source=V2MapGeoRaster -->
 | Property | Type | |
 |---|---|---|
-| `type` | string | required |
-| `url` | string | required |
-| `opacity` | number | optional |
+| `type` | `string` | required |
+| `url` | `string` | required |
+| `opacity` | `number` | optional |
 <!-- END GENERATED: values-geo-raster -->
 
 ### caseTable
@@ -231,18 +231,18 @@ A map's `geoRaster` is an object of its own:
 <!-- BEGIN GENERATED: values-case-table source=V2CaseTable -->
 | Property | Type | | Declared in |
 |---|---|---|---|
-| `cannotClose` | boolean | optional | `V2Component` |
-| `dimensions` | { width: number; height: number } | optional | `V2Component` |
-| `id` | number | optional | `V2Component` |
-| `isResizable` | boolean \| { width: boolean, height: boolean } | optional | `V2Component` |
-| `isVisible` | boolean | optional | `V2Component` |
-| `name` | string | optional | `V2Component` |
-| `position` | string \| { left: number; top: number } | optional | `V2Component` |
-| `title` | string | optional | `V2Component` |
-| `type` | "caseTable" | required | `V2CaseTable` |
-| `dataContext` | string | optional | `V2CaseTable` |
-| `horizontalScrollOffset` | number | optional | `V2CaseTable` |
-| `isIndexHidden` | boolean | optional | `V2CaseTable` |
+| `cannotClose` | `boolean` | optional | `V2Component` |
+| `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
+| `id` | `number` | optional | `V2Component` |
+| `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
+| `isVisible` | `boolean` | optional | `V2Component` |
+| `name` | `string` | optional | `V2Component` |
+| `position` | `string \| { left: number; top: number }` | optional | `V2Component` |
+| `title` | `string` | optional | `V2Component` |
+| `type` | `"caseTable"` | required | `V2CaseTable` |
+| `dataContext` | `string` | optional | `V2CaseTable` |
+| `horizontalScrollOffset` | `number` | optional | `V2CaseTable` |
+| `isIndexHidden` | `boolean` | optional | `V2CaseTable` |
 <!-- END GENERATED: values-case-table -->
 
 ### caseCard
@@ -250,16 +250,16 @@ A map's `geoRaster` is an object of its own:
 <!-- BEGIN GENERATED: values-case-card source=V2CaseCard -->
 | Property | Type | | Declared in |
 |---|---|---|---|
-| `cannotClose` | boolean | optional | `V2Component` |
-| `dimensions` | { width: number; height: number } | optional | `V2Component` |
-| `id` | number | optional | `V2Component` |
-| `isResizable` | boolean \| { width: boolean, height: boolean } | optional | `V2Component` |
-| `isVisible` | boolean | optional | `V2Component` |
-| `name` | string | optional | `V2Component` |
-| `position` | string \| { left: number; top: number } | optional | `V2Component` |
-| `title` | string | optional | `V2Component` |
-| `type` | "caseCard" | required | `V2CaseCard` |
-| `dataContext` | string | optional | `V2CaseCard` |
+| `cannotClose` | `boolean` | optional | `V2Component` |
+| `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
+| `id` | `number` | optional | `V2Component` |
+| `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
+| `isVisible` | `boolean` | optional | `V2Component` |
+| `name` | `string` | optional | `V2Component` |
+| `position` | `string \| { left: number; top: number }` | optional | `V2Component` |
+| `title` | `string` | optional | `V2Component` |
+| `type` | `"caseCard"` | required | `V2CaseCard` |
+| `dataContext` | `string` | optional | `V2CaseCard` |
 <!-- END GENERATED: values-case-card -->
 
 ### calculator
@@ -267,15 +267,15 @@ A map's `geoRaster` is an object of its own:
 <!-- BEGIN GENERATED: values-calculator source=V2Calculator -->
 | Property | Type | | Declared in |
 |---|---|---|---|
-| `cannotClose` | boolean | optional | `V2Component` |
-| `dimensions` | { width: number; height: number } | optional | `V2Component` |
-| `id` | number | optional | `V2Component` |
-| `isResizable` | boolean \| { width: boolean, height: boolean } | optional | `V2Component` |
-| `isVisible` | boolean | optional | `V2Component` |
-| `name` | string | optional | `V2Component` |
-| `position` | string \| { left: number; top: number } | optional | `V2Component` |
-| `title` | string | optional | `V2Component` |
-| `type` | "calculator" | required | `V2Calculator` |
+| `cannotClose` | `boolean` | optional | `V2Component` |
+| `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
+| `id` | `number` | optional | `V2Component` |
+| `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
+| `isVisible` | `boolean` | optional | `V2Component` |
+| `name` | `string` | optional | `V2Component` |
+| `position` | `string \| { left: number; top: number }` | optional | `V2Component` |
+| `title` | `string` | optional | `V2Component` |
+| `type` | `"calculator"` | required | `V2Calculator` |
 <!-- END GENERATED: values-calculator -->
 
 ### text
@@ -283,16 +283,16 @@ A map's `geoRaster` is an object of its own:
 <!-- BEGIN GENERATED: values-text source=V2Text -->
 | Property | Type | | Declared in |
 |---|---|---|---|
-| `cannotClose` | boolean | optional | `V2Component` |
-| `dimensions` | { width: number; height: number } | optional | `V2Component` |
-| `id` | number | optional | `V2Component` |
-| `isResizable` | boolean \| { width: boolean, height: boolean } | optional | `V2Component` |
-| `isVisible` | boolean | optional | `V2Component` |
-| `name` | string | optional | `V2Component` |
-| `position` | string \| { left: number; top: number } | optional | `V2Component` |
-| `title` | string | optional | `V2Component` |
-| `type` | "text" | required | `V2Text` |
-| `text` | string \| SlateExchangeValue | optional | `V2Text` |
+| `cannotClose` | `boolean` | optional | `V2Component` |
+| `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
+| `id` | `number` | optional | `V2Component` |
+| `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
+| `isVisible` | `boolean` | optional | `V2Component` |
+| `name` | `string` | optional | `V2Component` |
+| `position` | `string \| { left: number; top: number }` | optional | `V2Component` |
+| `title` | `string` | optional | `V2Component` |
+| `type` | `"text"` | required | `V2Text` |
+| `text` | `string \| SlateExchangeValue` | optional | `V2Text` |
 <!-- END GENERATED: values-text -->
 
 ### webView and imageComponentView
@@ -300,16 +300,16 @@ A map's `geoRaster` is an object of its own:
 <!-- BEGIN GENERATED: values-web-view source=V2WebView -->
 | Property | Type | | Declared in |
 |---|---|---|---|
-| `cannotClose` | boolean | optional | `V2Component` |
-| `dimensions` | { width: number; height: number } | optional | `V2Component` |
-| `id` | number | optional | `V2Component` |
-| `isResizable` | boolean \| { width: boolean, height: boolean } | optional | `V2Component` |
-| `isVisible` | boolean | optional | `V2Component` |
-| `name` | string | optional | `V2Component` |
-| `position` | string \| { left: number; top: number } | optional | `V2Component` |
-| `title` | string | optional | `V2Component` |
-| `type` | "webView" | required | `V2WebView` |
-| `URL` | string | optional | `V2WebView` |
+| `cannotClose` | `boolean` | optional | `V2Component` |
+| `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
+| `id` | `number` | optional | `V2Component` |
+| `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
+| `isVisible` | `boolean` | optional | `V2Component` |
+| `name` | `string` | optional | `V2Component` |
+| `position` | `string \| { left: number; top: number }` | optional | `V2Component` |
+| `title` | `string` | optional | `V2Component` |
+| `type` | `"webView"` | required | `V2WebView` |
+| `URL` | `string` | optional | `V2WebView` |
 <!-- END GENERATED: values-web-view -->
 
 ### game
@@ -317,18 +317,18 @@ A map's `geoRaster` is an object of its own:
 <!-- BEGIN GENERATED: values-game source=V2Game -->
 | Property | Type | | Declared in |
 |---|---|---|---|
-| `cannotClose` | boolean | optional | `V2Component` |
-| `dimensions` | { width: number; height: number } | optional | `V2Component` |
-| `id` | number | optional | `V2Component` |
-| `isResizable` | boolean \| { width: boolean, height: boolean } | optional | `V2Component` |
-| `isVisible` | boolean | optional | `V2Component` |
-| `name` | string | optional | `V2Component` |
-| `position` | string \| { left: number; top: number } | optional | `V2Component` |
-| `title` | string | optional | `V2Component` |
-| `type` | "game" | required | `V2Game` |
-| `URL` | string | optional | `V2Game` |
-| `currentGameUrl` | string | optional | `V2Game` |
-| `currentGameName` | string | optional | `V2Game` |
+| `cannotClose` | `boolean` | optional | `V2Component` |
+| `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
+| `id` | `number` | optional | `V2Component` |
+| `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
+| `isVisible` | `boolean` | optional | `V2Component` |
+| `name` | `string` | optional | `V2Component` |
+| `position` | `string \| { left: number; top: number }` | optional | `V2Component` |
+| `title` | `string` | optional | `V2Component` |
+| `type` | `"game"` | required | `V2Game` |
+| `URL` | `string` | optional | `V2Game` |
+| `currentGameUrl` | `string` | optional | `V2Game` |
+| `currentGameName` | `string` | optional | `V2Game` |
 <!-- END GENERATED: values-game -->
 
 ### guideView
@@ -336,17 +336,17 @@ A map's `geoRaster` is an object of its own:
 <!-- BEGIN GENERATED: values-guide source=V2Guide -->
 | Property | Type | | Declared in |
 |---|---|---|---|
-| `cannotClose` | boolean | optional | `V2Component` |
-| `dimensions` | { width: number; height: number } | optional | `V2Component` |
-| `id` | number | optional | `V2Component` |
-| `isResizable` | boolean \| { width: boolean, height: boolean } | optional | `V2Component` |
-| `isVisible` | boolean | optional | `V2Guide` |
-| `name` | string | optional | `V2Component` |
-| `position` | string \| { left: number; top: number } | optional | `V2Component` |
-| `title` | string | optional | `V2Component` |
-| `type` | "guideView" | required | `V2Guide` |
-| `currentItemIndex` | number | optional | `V2Guide` |
-| `items` | V2GuidePage[] | optional | `V2Guide` |
+| `cannotClose` | `boolean` | optional | `V2Component` |
+| `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
+| `id` | `number` | optional | `V2Component` |
+| `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
+| `isVisible` | `boolean` | optional | `V2Guide` |
+| `name` | `string` | optional | `V2Component` |
+| `position` | `string \| { left: number; top: number }` | optional | `V2Component` |
+| `title` | `string` | optional | `V2Component` |
+| `type` | `"guideView"` | required | `V2Guide` |
+| `currentItemIndex` | `number` | optional | `V2Guide` |
+| `items` | `V2GuidePage[]` | optional | `V2Guide` |
 <!-- END GENERATED: values-guide -->
 
 These properties are returned only for a web view CODAP itself built as a guide. A component a
@@ -358,8 +358,8 @@ A guide's `items` are pages:
 <!-- BEGIN GENERATED: values-guide-page source=V2GuidePage -->
 | Property | Type | |
 |---|---|---|
-| `itemTitle` | string | required |
-| `url` | string | required |
+| `itemTitle` | `string` | required |
+| `url` | `string` | required |
 <!-- END GENERATED: values-guide-page -->
 
 ## Examples

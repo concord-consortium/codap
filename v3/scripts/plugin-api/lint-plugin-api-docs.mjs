@@ -28,6 +28,7 @@ import { readFileSync, readdirSync, existsSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import { dirname, join, relative, normalize } from "node:path"
 import { markerProblems } from "./markers.mjs"
+import { buildPageFor } from "./coverage.mjs"
 import { readInventory } from "./inventory.mjs"
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -139,31 +140,11 @@ if (scopeBlocks.size > 3) {
   problems.push(`scope blocks: ${scopeBlocks.size} distinct variants; expected at most 3 (one per scope case)`)
 }
 
-// coverage
-const documented = new Set()
-for (const file of files.filter(f => relative(docsDir, f).startsWith("resources/"))) {
-  const raw = readFileSync(file, "utf8")
-  // A page DOCUMENTS a resource when it is the page's subject or carries one of its selectors
-  // — not merely when the name is mentioned. The old test (any backticked occurrence anywhere)
-  // counted `dataContext` as documented because a scope block says "Naming a `dataContext` in
-  // the selector has no effect", which hid a genuinely missing page. Selector blocks are the
-  // right signal: a page covering a second resource, as adornment.md does for `adornmentList`,
-  // always lists that resource's selectors.
-  const selectorText = [...raw.matchAll(
-    /<!-- BEGIN GENERATED: selectors -->\n?([\s\S]*?)\n?<!-- END GENERATED: selectors -->/g
-  )].map(m => m[1]).join("\n")
-  // Match the selector's FINAL segment only. `component[<component>].adornmentList` documents
-  // `adornmentList`; the leading `component[...]` is a path to it, not a claim to document the
-  // `component` resource, and treating it as one hid that `component` has no page.
-  const subjects = new Set()
-  for (const m of selectorText.matchAll(/`([^`\n]+)`/g)) {
-    const last = m[1].split(".").pop()
-    if (last) subjects.add(last.replace(/\[.*$/, "").trim())
-  }
-  for (const r of inventory.resources) {
-    if (subjects.has(r.name) || raw.startsWith(`# ${r.name}\n`)) documented.add(r.name)
-  }
-}
+// coverage — the same mapping the generator uses, so the two cannot disagree about which
+// resources have a page. This used to be a third, independent definition: first any backticked
+// mention, then the final segment of a selector block. Both drifted from the generator's count.
+const pageFor = buildPageFor(join(docsDir, "resources"), inventory.resources)
+const documented = new Set(pageFor.keys())
 const undocumented = inventory.resources.filter(r => !documented.has(r.name)).map(r => r.name)
 
 console.error(`Linted ${files.length} pages against ${inventory.counts.resources} resources ` +

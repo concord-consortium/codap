@@ -87,30 +87,30 @@ The read and write shapes are **not the same**, and three properties invert betw
 <!-- BEGIN GENERATED: values-write source=DIAttribute -->
 | Property | Type | | Declared in |
 |---|---|---|---|
-| `guid` | number | optional | `ICodapV2Attribute` |
-| `id` | number | optional | `ICodapV2Attribute` |
-| `name` | string | optional | `ICodapV2Attribute` |
-| `type` | string \| null | optional | `ICodapV2Attribute` |
-| `title` | string | optional | `ICodapV2Attribute` |
-| `cid` | string | optional | `ICodapV2Attribute` |
-| `defaultMin` | number | optional | `ICodapV2Attribute` |
-| `defaultMax` | number | optional | `ICodapV2Attribute` |
-| `description` | string \| null | optional | `ICodapV2Attribute` |
-| `_categoryMap` | ICodapV2CategoryMap | optional | `ICodapV2Attribute` |
-| `colormap` | CodapV2ColorMap | optional | `ICodapV2Attribute` |
-| `blockDisplayOfEmptyCategories` | boolean | optional | `ICodapV2Attribute` |
-| `editable` | boolean \| unknown | optional | `ICodapV2Attribute` |
-| `hidden` | boolean | optional | `ICodapV2Attribute` |
-| `renameable` | boolean | optional | `ICodapV2Attribute` |
-| `deleteable` | boolean | optional | `ICodapV2Attribute` |
-| `formula` | string | optional | `ICodapV2Attribute` |
-| `deletedFormula` | string | optional | `ICodapV2Attribute` |
-| `precision` | number \| string \| null | optional | `ICodapV2Attribute` |
-| `unit` | string \| null | optional | `ICodapV2Attribute` |
-| `decimals` | string | optional | `ICodapV2Attribute` |
-| `v3` | { categoryShapes?: Record<string, string> } | optional | `ICodapV2Attribute` |
-| `deleteProtected` | boolean | optional | `DIAttribute` |
-| `renameProtected` | boolean | optional | `DIAttribute` |
+| `guid` | `number` | optional | `ICodapV2Attribute` |
+| `id` | `number` | optional | `ICodapV2Attribute` |
+| `name` | `string` | optional | `ICodapV2Attribute` |
+| `type` | `string \| null` | optional | `ICodapV2Attribute` |
+| `title` | `string` | optional | `ICodapV2Attribute` |
+| `cid` | `string` | optional | `ICodapV2Attribute` |
+| `defaultMin` | `number` | optional | `ICodapV2Attribute` |
+| `defaultMax` | `number` | optional | `ICodapV2Attribute` |
+| `description` | `string \| null` | optional | `ICodapV2Attribute` |
+| `_categoryMap` | `ICodapV2CategoryMap` | optional | `ICodapV2Attribute` |
+| `colormap` | `CodapV2ColorMap` | optional | `ICodapV2Attribute` |
+| `blockDisplayOfEmptyCategories` | `boolean` | optional | `ICodapV2Attribute` |
+| `editable` | `boolean \| unknown` | optional | `ICodapV2Attribute` |
+| `hidden` | `boolean` | optional | `ICodapV2Attribute` |
+| `renameable` | `boolean` | optional | `ICodapV2Attribute` |
+| `deleteable` | `boolean` | optional | `ICodapV2Attribute` |
+| `formula` | `string` | optional | `ICodapV2Attribute` |
+| `deletedFormula` | `string` | optional | `ICodapV2Attribute` |
+| `precision` | `number \| string \| null` | optional | `ICodapV2Attribute` |
+| `unit` | `string \| null` | optional | `ICodapV2Attribute` |
+| `decimals` | `string` | optional | `ICodapV2Attribute` |
+| `v3` | `{ categoryShapes?: Record<string, string> }` | optional | `ICodapV2Attribute` |
+| `deleteProtected` | `boolean` | optional | `DIAttribute` |
+| `renameProtected` | `boolean` | optional | `DIAttribute` |
 <!-- END GENERATED: values-write -->
 
 **Every property above is listed as optional, and for `create` that is misleading.** The
