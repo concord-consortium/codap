@@ -73,8 +73,8 @@ The second is a **selection expression**, which selects by formula instead of by
 <!-- BEGIN GENERATED: values-write source=DISelectionExpression -->
 | Property | Type | |
 |---|---|---|
-| `collection` | string | optional |
-| `expression` | string | required |
+| `collection` | `string` | optional |
+| `expression` | `string` | required |
 <!-- END GENERATED: values-write -->
 
 `collection` defaults to the childmost collection of the data context.

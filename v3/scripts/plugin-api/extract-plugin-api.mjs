@@ -515,14 +515,26 @@ function resolveMembers(name, seen = new Set()) {
 }
 
 const valueTypes = {}
+const unextractable = {}
 for (const [name, iface] of allInterfaces) {
   if (!iface.fromDIType) continue
   const members = resolveMembers(name)
-  if (!members.length) continue
+  const unresolved = iface.bases.filter(b => !allInterfaces.has(b.name)).map(b => b.name)
+  if (!members.length) {
+    // A declared shape that yields no members is not nothing — it is a shape this extractor
+    // cannot read, and dropping it silently is how a `source=` block would later point at a type
+    // the tool claims not to know. Record it with what defeated the walk. Several are legitimate:
+    // MST `SnapshotIn<typeof Model>` and alias-of-alias chains denote no fixed member list.
+    unextractable[name] = {
+      source: iface.source,
+      ...(iface.bases.length && { extends: iface.bases.map(b => b.partial ? `Partial<${b.name}>` : b.name) }),
+      ...(unresolved.length && { unresolvedBases: unresolved })
+    }
+    continue
+  }
   valueTypes[name] = { members, source: iface.source }
   if (iface.bases.length) {
     valueTypes[name].extends = iface.bases.map(b => b.partial ? `Partial<${b.name}>` : b.name)
-    const unresolved = iface.bases.filter(b => !allInterfaces.has(b.name)).map(b => b.name)
     if (unresolved.length) valueTypes[name].unresolvedBases = unresolved
   }
 }
@@ -551,7 +563,9 @@ const inventory = {
   selectorKeys,
   defaultContextExemptions,
   errors,
-  valueTypes
+  valueTypes,
+  // Shapes declared in the DI type files that this extractor could not reduce to a member list.
+  unextractable
 }
 
 // Everything the generator renders from. An empty list here would rewrite real documentation

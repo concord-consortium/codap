@@ -42,11 +42,11 @@ An array, one entry per component:
 <!-- BEGIN GENERATED: values source=DIComponentInfo -->
 | Property | Type | |
 |---|---|---|
-| `hidden` | boolean | optional |
-| `id` | number | optional |
-| `name` | string | optional |
-| `title` | string | optional |
-| `type` | string | optional |
+| `hidden` | `boolean` | optional |
+| `id` | `number` | optional |
+| `name` | `string` | optional |
+| `title` | `string` | optional |
+| `type` | `string` | optional |
 <!-- END GENERATED: values -->
 
 `type` is the component's type name, the same vocabulary [`component`](component.md) uses — so a
