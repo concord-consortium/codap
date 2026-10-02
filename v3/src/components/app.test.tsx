@@ -1,11 +1,16 @@
 import { CloudFileManager, CloudFileManagerClientEvent } from "@concord-consortium/cloud-file-manager"
-import { act, render, screen } from "@testing-library/react"
+import { act, render, screen, waitFor } from "@testing-library/react"
 import { ReactNode } from "react"
 import { Root } from "react-dom/client"
+import * as gaStatus from "../lib/ga-status"
+import { Logger } from "../lib/logger"
+import { appState } from "../models/app-state"
 import { uiState } from "../models/ui-state"
 import { prf } from "../utilities/profiler"
 import { setUrlParams } from "../utilities/url-params"
 import { App } from "./app"
+import { kWebViewTileType } from "./web-view/web-view-defs"
+import { isWebViewModel } from "./web-view/web-view-model"
 
 let cfm: CloudFileManager | undefined
 let spySetMenuBarInfo: jest.SpyInstance | undefined
@@ -49,6 +54,14 @@ jest.mock("../lib/cfm/cfm-utils", () => {
 // and it's also tested by the cypress tests.
 jest.mock("./tool-shelf/tool-shelf", () => ({
   ToolShelf: () => null
+}))
+
+// Mock the `ComponentResizeBorder` because floating-ui's animation-frame polling generates warnings
+// when a tile is rendered:
+//  Warning: An update to ComponentResizeBorder inside a test was not wrapped in act(...).
+// The resize borders aren't relevant to these tests.
+jest.mock("./component-resize-border", () => ({
+  ComponentResizeBorder: () => null
 }))
 
 // Mock the `UserEntryModal` to avoid Chakra Modal/focus-lock act() warnings. The overlay
@@ -123,5 +136,42 @@ describe("App user entry modal visibility", () => {
       uiState.setHideUserEntryModal()
     })
     expect(screen.queryByTestId("mock-user-entry-modal")).not.toBeInTheDocument()
+  })
+})
+
+describe("App initialization with a `di` URL", () => {
+  const kPluginUrl = "https://example.com/plugin.html"
+  let pluginTileId: Maybe<string>
+
+  afterEach(() => {
+    // deleting the tile dirties the document, which updates the CFM's UI
+    act(() => {
+      if (pluginTileId) appState.document.content?.deleteTile(pluginTileId)
+    })
+    pluginTileId = undefined
+    setUrlParams("")
+    Logger.resetForTesting()
+    jest.restoreAllMocks()
+    spySetMenuBarInfo = undefined
+    cfm = undefined
+  })
+
+  it("completes initialization when the document already shows the requested plugin", async () => {
+    // the document already contains the plugin that the `di` URL parameter asks for
+    const tile = appState.document.content?.createTile?.(kWebViewTileType)
+    pluginTileId = tile?.id
+    if (isWebViewModel(tile?.content)) {
+      tile.content.setUrl(kPluginUrl)
+      tile.content.setSubType("plugin")
+    }
+    const logGAStatusSpy = jest.spyOn(gaStatus, "logGAStatus").mockResolvedValue()
+
+    setUrlParams(`?di=${kPluginUrl}`)
+    render(<App/>)
+
+    await waitFor(() => expect(Logger.isInitialized).toBe(true))
+    expect(logGAStatusSpy).toHaveBeenCalledTimes(1)
+    // no duplicate plugin was created
+    expect(appState.document.content?.getTilesOfType(kWebViewTileType)).toHaveLength(1)
   })
 })
