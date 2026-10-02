@@ -156,6 +156,10 @@ describe("App initialization with a `di` URL", () => {
     cfm = undefined
   })
 
+  beforeEach(() => {
+    Logger.resetForTesting()
+  })
+
   it("completes initialization when the document already shows the requested plugin", async () => {
     // the document already contains the plugin that the `di` URL parameter asks for
     const tile = appState.document.content?.createTile?.(kWebViewTileType)
@@ -169,8 +173,9 @@ describe("App initialization with a `di` URL", () => {
     setUrlParams(`?di=${kPluginUrl}`)
     render(<App/>)
 
-    await waitFor(() => expect(Logger.isInitialized).toBe(true))
-    expect(logGAStatusSpy).toHaveBeenCalledTimes(1)
+    // logGAStatus() is called after the Logger is initialized, at the end of initialize()
+    await waitFor(() => expect(logGAStatusSpy).toHaveBeenCalledTimes(1))
+    expect(Logger.isInitialized).toBe(true)
     // no duplicate plugin was created
     expect(appState.document.content?.getTilesOfType(kWebViewTileType)).toHaveLength(1)
   })
