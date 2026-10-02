@@ -237,14 +237,15 @@ path and they do apply. This is a known bug. Until it is fixed, set them with an
 creating. `editable` is the exception: it is deliberately not applied on `create`, because a
 newly created attribute is always editable.
 
-**`create` on an existing name updates instead of creating.** If the collection already has an
-attribute with the name you supply, CODAP updates that attribute and returns it, rather than
-creating a second column or reporting a conflict. A plugin that expects `create` to fail on a
-duplicate name will instead silently overwrite the original's properties.
+**`create` on an existing name updates that attribute.** This is deliberate and matches V2:
+`create` guarantees an attribute with the name you gave, creating one if needed and updating it
+otherwise. There is no duplicate-name error. A plugin that may run twice should expect its second
+`create` to overwrite the first's properties rather than fail.
 
-**`update` with an array returns `Attribute not found`.** The update action accepts only a single
-attribute object. Passing an array produces that error even when the selector resolves perfectly
-well, which makes it read like a selector problem rather than a values problem.
+**`update` rejects an array, with a misleading message.** The action takes one attribute object;
+an array returns `Attribute not found` even though the attribute resolved, which reads like a
+selector fault. Rejecting the array is an improvement on V2, which treated it as a single object
+and wrote junk keys onto the attribute; only the message is wrong.
 
 **`dragMove` and `dragEnd` require a requesting plugin frame.** Both are dispatched relative to
 the plugin's own iframe, so a request that arrives without one falls through to

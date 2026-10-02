@@ -458,8 +458,8 @@ Bring a component to the front, then rescale it:
 
 ## Known limitations
 
-**`autoScale` works on three types only.** Graphs and maps rescale; a case table resizes its
-columns instead. Every other component type returns `Component does not support rescale`.
+**`autoScale` applies to three types.** Graphs and maps rescale; a case table resizes its
+columns instead. Every other type returns `Component does not support rescale`. This matches V2.
 
 **Creating a web view does not set its type.** `create` with `guideView`, `game` or
 `imageComponentView` makes a plain web view: CODAP decides the type it reports from an internal

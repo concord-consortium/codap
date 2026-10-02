@@ -187,11 +187,10 @@ Set two cases aside, then restore everything that is set aside:
 
 ## Known limitations
 
-**`create` on an existing name returns the existing data context.** If a data set with the name
-you supply is already in the document, CODAP replies `success: true` with that data set's
-`name`, `id` and `title`, having created nothing. The response is indistinguishable from a real
-creation, so a plugin that may run twice should check the returned `id` rather than assume the
-context is new and empty.
+**`create` on an existing name returns the existing data context.** This is deliberate and
+matches V2. CODAP replies `success: true` with that data set's `name`, `id` and `title`, having
+created nothing, and the response is indistinguishable from a real creation — so a plugin that
+may run twice should check the returned `id` rather than assume the context is new and empty.
 
 **Three `update` properties are accepted and ignored.** `preventReorg`, the top-level
 `description`, and everything in `metadata` except `description` — `source` and `importDate` are
@@ -218,11 +217,6 @@ payload. This is the opposite of what the response's v2 document shape suggests,
 document stores cases inside its collections, but it is deliberate and matches V2, which also
 omitted cases from this response. Use `allCases`, `caseSearch`, `caseByID` or the `item`
 resources to read data.
-
-**Metadata comes back nested, under a different shape than you send it.** `create` accepts
-`description` at the top level as a fallback for `metadata.description`, but `get` returns only
-`metadata`, and only when the data set has metadata at all. A plugin reading `values.description`
-gets `undefined` every time.
 
 ## Notifications
 
