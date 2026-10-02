@@ -140,9 +140,9 @@ function renderValues(sourceName) {
   // Today's types survive by luck (`Record<string, X>` keeps its comma), so this is latent, not
   // visible. Backticks also escape the pipe inside a union, so one treatment covers both.
   const esc = t => "`" + t.replace(/\|/g, "\\|") + "`"
-  // Most of these interfaces inherit the bulk of their members — DIAttribute declares 2 and
-  // inherits 22 — and which is which is exactly what a plugin author needs to see: the inherited
-  // ones are the V2 vocabulary, the declared ones are what v3 added. The column appears only
+  // 17 of these interfaces inherit members, several of them most of what they have. Naming the
+  // interface each member came from lets a reader see where a property originates — the V2
+  // component shape, the V2 attribute shape, or the DI layer itself. The column appears only
   // when something is actually inherited, so flat interfaces keep a three-column table.
   const inherits = iface.members.some(m => m.inherited)
   const from = m => m.inherited ?? sourceName

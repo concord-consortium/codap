@@ -1,6 +1,6 @@
 # component
 
-> **Applies to:** CODAP v3 · **Verified:** 2026-10-01 against `main` @ `a1ebcea11`
+> **Applies to:** CODAP v3 · **Verified:** 2026-10-02
 > · Parts of this page are generated — see [conventions](../conventions.md).
 
 A component is a tile in the CODAP workspace — a graph, a case table, a map, a slider, a web
@@ -43,9 +43,7 @@ apply. Naming a `dataContext` in the selector has no effect.
 
 ## Component types
 
-Eleven types are registered in a normal CODAP build. A twelfth, `ErrorTester`, exists for
-CODAP's own development and is registered only when CODAP is loaded with the `errorTester` URL
-parameter — without it, nothing registers the type at all.
+Eleven component types are available to plugins.
 
 | `type` | What it is |
 |---|---|
@@ -60,19 +58,13 @@ parameter — without it, nothing registers the type at all.
 | `slider` | A slider |
 | `text` | A text box |
 | `webView` | A plain web view |
-| `ErrorTester` | CODAP development only — not registered unless the `errorTester` URL parameter is set |
 
-**The guide type is `guideView`, not `guide`.** Sending `"type": "guide"` returns
-`Unsupported component type <value>`.
+`game`, `guideView`, `imageComponentView` and `webView` are all web views, and all four accept
+and return a `URL`. They differ in how the component presents itself and in the `type` CODAP
+reports back: a `guideView` is a multi-page guide with `items`, a `game` hosts a plugin.
 
-`game`, `guideView`, `imageComponentView` and `webView` are four names for one implementation:
-all four are web views, and all four accept and return the same `URL` property.
-
-**A component you create as one of these is reported back as `webView`.** CODAP derives the type
-it reports from the web view's internal subtype, and `create` never sets one. So creating a
-component with `"type": "guideView"` succeeds, but every later `get` and `componentList` reports
-it as `webView`. The distinction survives only for components CODAP itself made, such as a guide
-loaded from a document.
+A component created as one of these should report its own type, and a `guideView` should be a
+working guide. Neither holds today — see [Known limitations](#known-limitations).
 
 ## Values
 
@@ -93,10 +85,21 @@ loaded from a document.
 <!-- END GENERATED: values -->
 
 `type` is required when creating. On `create`, `title` falls back to `name` when only `name` is
-given. `position` accepts either an object with `left` and `top` or a string.
+given.
 
-`update` additionally accepts `currentGameName` as an alias for `name`, which is how V2 plugins
-renamed a component.
+Three of these behave differently from the table:
+
+- **`isVisible` is never returned by `get`**, and `create` ignores it — a component created with
+  `isVisible: false` is visible. Only `update` honours it. To read whether a component is on
+  screen, use [`componentList`](component-list.md), whose `hidden` is the inverse.
+- **`position` accepts a string or an object on `create`, but only an object on `update`.** A
+  string position sent to `update` is dropped silently.
+- **`title: ""` does not clear a title on `update`.** An empty string is treated as "no value
+  given" and the existing title is kept.
+
+`update` additionally accepts `currentGameName` as an alias for `name`, for V2 compatibility.
+Neither it nor `currentGameUrl` is ever returned by `get`, and `currentGameUrl` works on `update`
+only — a `create` carrying it, and no `URL`, makes a blank web view.
 
 ### graph
 
@@ -160,16 +163,36 @@ renamed a component.
 | `y2UpperBound` | `number` | optional | `V2Graph` |
 <!-- END GENERATED: values-graph -->
 
-A `get` on a graph also returns **plot-specific properties** that are not in the table above,
-because they are assembled from the current plot rather than declared:
+Three of the properties above are assembled from the current plot rather than read from the
+graph, so whether `get` returns them depends on the plot:
 
-| Property | When it appears |
+| Property | When `get` returns it |
 |---|---|
 | `pointsAreFusedIntoBars` | always |
 | `barChartScale` | only when the graph is a bar chart |
 | `barChartFormula` | only when the graph is a bar chart *and* a formula is set |
 
+`update` accepts all three.
+
+**`plotType` and `primaryAxis` are read-only.** `get` returns both; neither can be set on
+`create` or `update`. `primaryAxis` follows from which attributes are on which axes, so it is
+read-only by design. `plotType` is a known gap — a user can change the plot type from the UI and
+a plugin cannot. Every other property `get` returns can be sent back to `update`.
+
+**`showConnectingLines` is ignored on `create`.** Set it with a following `update`.
+
+**Attributes are applied on `create` only when `dataContext` names the data set exactly.** The
+match is on name, not on id or title, and there is no defaulting — a `create` that gives the
+context by id, by title, or not at all produces a graph with no attributes assigned, and reports
+success.
+
 ### slider
+
+A slider is backed by a global value. `globalValueName` must name one that already exists, and a
+global can have only one slider. Omitting it creates a slider with a new default global.
+
+`animationDirection` and `animationMode` are numeric indexes, not names. `value` is honoured on
+`update` only.
 
 <!-- BEGIN GENERATED: values-slider source=V2Slider -->
 | Property | Type | | Declared in |
@@ -216,6 +239,11 @@ because they are assembled from the current plot rather than declared:
 | `geoRaster` | `V2MapGeoRaster` | optional | `V2Map` |
 <!-- END GENERATED: values-map -->
 
+**A map's `get` returns only `dataContext`.** `center`, `zoom`, `legendAttributeName` and
+`geoRaster` can be set but not read back; a plugin that reads a map's position in order to
+restore it later gets nothing. `geoRaster` is also ignored on `create` — set it with a following
+`update`. That `get` returns all four is the intended behaviour and a known bug today.
+
 A map's `geoRaster` is an object of its own:
 
 <!-- BEGIN GENERATED: values-geo-raster source=V2MapGeoRaster -->
@@ -227,6 +255,10 @@ A map's `geoRaster` is an object of its own:
 <!-- END GENERATED: values-geo-raster -->
 
 ### caseTable
+
+`dataContext` is **required** for `create`, despite being optional in the table below, and must
+name a data context that exists. For `caseTable` only, CODAP also accepts the data context's name
+in `name` — a V2 compatibility shim that does not apply to `caseCard`.
 
 <!-- BEGIN GENERATED: values-case-table source=V2CaseTable -->
 | Property | Type | | Declared in |
@@ -246,6 +278,9 @@ A map's `geoRaster` is an object of its own:
 <!-- END GENERATED: values-case-table -->
 
 ### caseCard
+
+`dataContext` is **required** for `create`, as for `caseTable`, and must name a data context that
+exists.
 
 <!-- BEGIN GENERATED: values-case-card source=V2CaseCard -->
 | Property | Type | | Declared in |
@@ -426,9 +461,18 @@ Bring a component to the front, then rescale it:
 **`autoScale` works on three types only.** Graphs and maps rescale; a case table resizes its
 columns instead. Every other component type returns `Component does not support rescale`.
 
-**The type name `guide` does not work.** V2 documented the guide component as `guide`; v3
-registers it as `guideView`. A plugin carrying the V2 spelling gets
-`Unsupported component type <value>`.
+**Creating a web view does not set its type.** `create` with `guideView`, `game` or
+`imageComponentView` makes a plain web view: CODAP decides the type it reports from an internal
+subtype that `create` never sets. The consequences are specific:
+
+- A `guideView` is not a guide. `items` and `currentItemIndex` are ignored on `create`, `update`
+  cannot add them afterwards, and `delete` removes the component instead of hiding it.
+- A `game` reports as `webView` until the plugin it hosts completes its handshake with CODAP,
+  and as `game` from then on.
+- `get` and `componentList` report `webView` for all three until that happens.
+
+This is a known bug. The intended behaviour is the one described under
+[Component types](#component-types).
 
 **A graph's `get` and `update` do not cover the same properties.** `get` reports the plot-specific
 properties described above, and `update` does not accept all of them back. Reading a graph and
@@ -443,9 +487,18 @@ hide on close — the case table, case card, calculator and guide views — are 
 than deleted. They stay in the document, keep their ids, and continue to appear in
 `componentList` with `hidden: true`. Every other type is genuinely deleted.
 
-**`ErrorTester` is not available unless CODAP is started for it.** Both its tile type and its
-component handler are registered inside a check on the `errorTester` URL parameter, so in a
-normal build `create` with that type returns `Unsupported component type <value>`.
+**`create` does not always create.** Three types reuse a component that already exists:
+
+- **`caseTable` and `caseCard`.** If one of that type already exists for the data context, CODAP
+  re-shows it and ignores every other value you sent — title, dimensions, position,
+  `isIndexHidden`, `horizontalScrollOffset`. If the *other* type exists for that context, CODAP
+  hides it and shows the requested one instead. This is deliberate, and matches V2: there is one
+  table and one card per data context.
+- **`calculator`.** There is one calculator, and `create` toggles its visibility rather than
+  showing it. Creating a calculator when one is already on screen **hides** it, and still
+  returns `success: true` with the existing component's id. Dimensions and position are ignored.
+  This is a known bug, inherited from V2; `create` should show a hidden calculator and leave a
+  visible one alone.
 
 ## Notifications
 
@@ -460,24 +513,66 @@ operation:
 Any other `request`, or none at all, returns `{"success": true}` without doing anything — see
 [Known limitations](#known-limitations).
 
-CODAP also broadcasts notifications to listening plugins when a component is created, updated or
-deleted. The plugin that made the change does not receive an echo of its own request.
+### What CODAP sends
+
+CODAP notifies listening plugins when a component changes. The payload carries `operation`, the
+component's `id`, its V2 `type` and its `diType`; `delete` adds `name` and `title`, and `update`
+echoes the values from the request.
+
+| `operation` | Sent when |
+|---|---|
+| `create` | A component is created, by a plugin or by the user |
+| `update` | A component's properties change |
+| `delete` | A component is removed — **also sent when the component is only hidden** |
+| `titleChange` | The user renames a component |
+| `hide`, `show` | The user hides or reveals a component |
+
+Two exclusions are worth knowing. A plugin does not receive the `create`, `update` or `delete`
+notification for a change it made itself. And an `update` to the plugin's **own** component
+notifies nobody at all, not just the sender.
 
 ## Errors
 
 <!-- BEGIN GENERATED: errors -->
-| Error | When |
+| Error |
+|---|
+| `Component not found` |
+| `A values object is required for this request.` |
+| `Unsupported component type <value>` |
+| `Unsupported component type` |
+| `Could not create component` |
+| `Component does not support rescale` |
+| `<action> <type>: dataContext required` |
+| `DataSetMetadata not found for <value>` |
+| `Cannot assign <value1> to <value2>` |
+| `Current plot type does not support fusing points into bars` |
+| `Invalid bar chart scale: <value>` |
+| `Global not found: <value>` |
+| `Cannot create multiple sliders for <value>` |
+| `Unsupported scaleType <value>`, `Unsupported dateUnit <value>` |
+| `Unsupported animationDirection <value>`, `Unsupported animationMode <value>` |
+<!-- END GENERATED: errors -->
+
+| Error | Condition |
 |---|---|
 | `Component not found` | the selector does not resolve to a component |
 | `A values object is required for this request.` | `create`, `update` or `notify` sent with no `values` |
-| `Unsupported component type <value>` | `create` was given a `type` with no registered handler |
+| `Unsupported component type <value>` | `create` was given a `type` with no registered handler. `update` with a non-object `values` also produces it, naming CODAP's internal type; a `create` with no `type` at all produces it with an empty name |
 | `Unsupported component type` | `get` found a component whose type has no handler |
 | `Could not create component` | the type was valid but the component could not be made |
 | `Component does not support rescale` | `autoScale` on a type other than graph, map or case table |
-<!-- END GENERATED: errors -->
+| `<action> <type>: dataContext required` | `create` of a `caseTable` or `caseCard` without a resolvable `dataContext` |
+| `DataSetMetadata not found for <value>` | the data context resolved but carries no metadata |
+| `Cannot assign <value1> to <value2>` | a graph `create` or `update` assigned an attribute to a role that cannot take it |
+| `Current plot type does not support fusing points into bars` | `pointsAreFusedIntoBars` on a plot that cannot show bars |
+| `Invalid bar chart scale: <value>` | `barChartScale` with a value that is not a breakdown type |
+| `Global not found: <value>` | a slider named a `globalValueName` that does not exist |
+| `Cannot create multiple sliders for <value>` | a second slider for a global that already has one |
+| `Unsupported scaleType <value>`, `Unsupported dateUnit <value>` | a slider `scaleType` or `dateMultipleOfUnit` CODAP does not recognize |
+| `Unsupported animationDirection <value>`, `Unsupported animationMode <value>` | a slider animation index out of range |
 
 ## See also
 
 - [`dataContext`](data-context.md) for the data a graph, table or map displays
 - [`adornment`](adornment.md) for the measures a graph can show
-- [The resource index](../README.md) for the request envelope and the `#default` rule
+- [The resource index](../README.md) for the request envelope and the full resource list

@@ -1,6 +1,6 @@
 # attribute
 
-> **Applies to:** CODAP v3 · **Verified:** 2026-10-01 against `main` @ `a1ebcea11`
+> **Applies to:** CODAP v3 · **Verified:** 2026-10-02
 > · Parts of this page are generated — see [conventions](../conventions.md).
 
 An attribute is one column of a data set — a name, a type, an optional formula, and the display
@@ -59,7 +59,34 @@ The read and write shapes are **not the same**, and three properties invert betw
 
 `get` returns the attribute object directly as `values` — not wrapped in anything.
 
+"Always present" below means the key is always there. Its value may still be `undefined`: replies
+reach a plugin by structured clone rather than JSON, so a key with no value survives the trip.
+`formula`, `deletedFormula`, `description`, `unit`, `type` and `precision` are all commonly
+`undefined`.
+
 <!-- BEGIN GENERATED: values -->
+| Property |
+|---|
+| `name` |
+| `type` |
+| `title` |
+| `cid` |
+| `description` |
+| `editable` |
+| `hidden` |
+| `renameable` |
+| `deleteable` |
+| `formula` |
+| `deletedFormula` |
+| `guid` |
+| `id` |
+| `precision` |
+| `unit` |
+| `defaultMin`, `defaultMax` |
+| `_categoryMap` |
+| `v3.categoryShapes` |
+<!-- END GENERATED: values -->
+
 | Property | Always present | Notes |
 |---|---|---|
 | `name` | yes | |
@@ -80,7 +107,6 @@ The read and write shapes are **not the same**, and three properties invert betw
 | `defaultMin`, `defaultMax` | no | only when a default range is set |
 | `_categoryMap` | no | only when the attribute has a category set |
 | `v3.categoryShapes` | no | only when some category carries a point shape |
-<!-- END GENERATED: values -->
 
 ### What `create` and `update` accept
 
@@ -118,12 +144,32 @@ interface these types come from makes all of its members optional, so the table 
 TypeScript declares. At runtime `create` rejects any attribute object without a `name`. The
 other properties genuinely are optional, for both actions.
 
-`defaultMin` and `defaultMax` appear in the table because the interface declares them, but no
-write path reads them. A plugin cannot set an attribute's default range; it can only read one
-that a v2 document brought in.
+**The table above is the shape the API permits, not the set of properties that do something.**
+It is generated from the TypeScript interface, which describes what CODAP accepts without
+complaint. These are accepted and have no effect:
+
+| Property | On |
+|---|---|
+| `defaultMin`, `defaultMax` | both — the default range is read-only to plugins |
+| `_categoryMap`, `v3.categoryShapes` | both — only `colormap` sets category colors |
+| `blockDisplayOfEmptyCategories`, `deletedFormula`, `decimals` | both |
+| `guid` | `create` |
+| `id`, `guid` | `update` |
+
+`_categoryMap` and `v3.categoryShapes` are the trap, because `get` returns both: reading an
+attribute, changing its category colors and sending it back is the natural thing to try, and it
+silently does nothing.
 
 `create` and `update` both reply with `{"attrs": [ ... ]}` — an array of the attribute objects in
 the read shape above, even when you created or updated exactly one.
+
+**`type` is accepted differently by the two actions.** `create` understands the V2 spellings —
+`"nominal"` for categorical, `"number"` for numeric, `"none"` — and passes anything else through
+unchecked. `update` accepts only v3 type names and silently ignores the V2 spellings and `null`,
+so a type set on `create` cannot be cleared back to inferred by `update`.
+
+**Date precisions are dropped on write.** `get` can return a precision such as `"month"`, but
+neither `create` nor `update` applies one.
 
 ## Examples
 
@@ -171,22 +217,25 @@ Start a drag from inside a plugin, so the user can drop an attribute onto a grap
 
 ## Known limitations
 
-**Three properties invert between writing and reading.** `get` reports `deleteable`, `renameable`
-and `editable`; `update` accepts those spellings *and* `deleteProtected` and `renameProtected`,
-which mean the opposite. Setting `deleteProtected: true` and reading the attribute back returns
-`deleteable: false`. There is no `deleteProtected` or `renameProtected` in a `get` response.
+**The protection properties come in two spellings that mean opposite things.** `get` reports
+`deleteable`, `renameable` and `editable` — whether the attribute *can* be deleted, renamed or
+edited. `update` accepts those, and also `deleteProtected` and `renameProtected`, which are their
+negations. Setting `deleteProtected: true` is the same as setting `deleteable: false`, and a
+following `get` returns `deleteable: false`. There is no `deleteProtected` or `renameProtected` in
+a `get` response.
 
-**`editable` does not behave like the other two.** `deleteable` and `renameable` are inverted on
-the way in, so writing `deleteable: false` protects the attribute, as you would expect. `editable`
-is not inverted: writing `editable: true` marks the attribute edit-*protected*, and a following
-`get` returns `editable: false`. To make an attribute editable, send `editable: false`. This is
-inconsistent with the two properties handled immediately beside it in the same function and looks
-like a defect rather than a decision; it is recorded here because it is what CODAP does today.
+**`editable` currently does the opposite of what it says.** Sending `editable: true` should leave
+the attribute editable, and today it makes the attribute read-only; a following `get` returns
+`editable: false`. This is a known bug — the value is not negated on the way in, unlike the two
+properties handled beside it. Write what you mean; the behaviour will be corrected, and a plugin
+written against the inverted behaviour will break when it is.
 
-**`create` ignores all four protection properties on a new attribute.** They are applied by the
-update path only. Creating an attribute with `deleteProtected: true` silently leaves it
-unprotected — unless the name already exists, in which case `create` takes the update path and
-they do apply. Set them with a separate `update` after creating.
+**`create` does not apply the protection properties to a new attribute.** `deleteable`,
+`renameable`, `deleteProtected`, `renameProtected` and `_categoryMap` are honoured by `update`
+and dropped by `create` — unless the name already exists, in which case `create` takes the update
+path and they do apply. This is a known bug. Until it is fixed, set them with an `update` after
+creating. `editable` is the exception: it is deliberately not applied on `create`, because a
+newly created attribute is always editable.
 
 **`create` on an existing name updates instead of creating.** If the collection already has an
 attribute with the name you supply, CODAP updates that attribute and returns it, rather than
@@ -203,8 +252,9 @@ the plugin's own iframe, so a request that arrives without one falls through to
 
 ## Notifications
 
-`create` and `update` cause CODAP to broadcast attribute notifications to listening plugins; the
-acting plugin does not need to subscribe to see its own changes reflected in the response.
+`create` and `update` cause CODAP to broadcast attribute notifications to listening plugins,
+including the plugin that made the change — unlike component changes, which exclude the
+requester. **`delete` sends no notification at all.**
 
 This resource's `notify` action is the reverse direction — the plugin telling CODAP to do
 something. It requires a `request` naming the operation:
@@ -221,15 +271,24 @@ Any other `request` value returns an error.
 ## Errors
 
 <!-- BEGIN GENERATED: errors -->
-| Error | When |
+| Error |
+|---|
+| `DataContext not found` |
+| `Collection not found` |
+| `Attribute not found` |
+| `<action> <resource>: <field> required` |
+| `Internal error prevented color map access` |
+| `unknown request: <value>` |
+<!-- END GENERATED: errors -->
+
+| Error | Condition |
 |---|---|
-| `DataContext not found` | the selector's data context does not resolve |
+| `DataContext not found` | `create` or `notify` when the selector's data context does not resolve. `get`, `update` and `delete` report `Attribute not found` instead |
 | `Collection not found` | `create` without a resolvable `collection` segment |
-| `Attribute not found` | the attribute does not resolve — or `update` was given an array |
+| `Attribute not found` | the attribute does not resolve, the data context did not resolve on `get`/`update`/`delete`, or `update` was given an array |
 | `<action> <resource>: <field> required` | a required field is missing. `create` produces it as "Create attribute: name required"; `notify` as "Notify attribute: request required" |
 | `Internal error prevented color map access` | a `create` supplied `colormap` but the data set has no metadata |
 | `unknown request: <value>` | a `notify` `request` CODAP does not recognize |
-<!-- END GENERATED: errors -->
 
 ## See also
 

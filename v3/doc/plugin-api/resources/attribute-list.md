@@ -1,6 +1,6 @@
 # attributeList
 
-> **Applies to:** CODAP v3 · **Verified:** 2026-10-01 against `main` @ `a1ebcea11`
+> **Applies to:** CODAP v3 · **Verified:** 2026-10-02
 > · Parts of this page are generated — see [conventions](../conventions.md).
 
 Lists the attributes of one collection. Plugins use it to discover a data set's columns before
@@ -47,12 +47,18 @@ contains such a segment.
 An array, one entry per attribute, in the collection's own order:
 
 <!-- BEGIN GENERATED: values -->
+| Property |
+|---|
+| `name` |
+| `id` |
+| `title` |
+<!-- END GENERATED: values -->
+
 | Property | Notes |
 |---|---|
 | `name` | the attribute's name |
 | `id` | the attribute's id |
 | `title` | the attribute's title |
-<!-- END GENERATED: values -->
 
 Nothing else is returned — not `type`, not `formula`, not `hidden`.
 
@@ -85,9 +91,8 @@ replies `{"success": true, "values": []}`. A data context with fifty attributes 
 the response is indistinguishable from a collection that genuinely has none. There is no selector
 that lists every attribute of a data context — read `collectionList` and ask for each.
 
-**`Collection not found` means something else here.** The error appears only when the selector
-resolves to no attribute list at all, not when the named collection is missing — a missing
-collection yields the empty list above.
+**There is no error for a bad collection.** Naming a collection that does not exist gives the
+same empty list and the same `success: true` as omitting the collection entirely.
 
 ## Notifications
 
@@ -97,10 +102,13 @@ This resource sends none. Creating or updating an attribute produces notificatio
 ## Errors
 
 <!-- BEGIN GENERATED: errors -->
-| Error | When |
-|---|---|
-| `Collection not found` | the selector resolved to no attribute list |
+| Error |
+|---|
 <!-- END GENERATED: errors -->
+
+This resource returns no errors. A selector that resolves to no collection — because the
+collection segment is missing, or names one that does not exist — yields an empty list with
+`success: true`.
 
 ## See also
 

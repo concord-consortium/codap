@@ -89,9 +89,8 @@ for (const file of files) {
   }
 
   // markers — the same ordered walk the generator runs before it rewrites anything, so the lint
-  // and the generator cannot disagree about whether a page is safe. Comparing the BEGIN and END
-  // name lists, as this used to, ignores order: an END before its BEGIN, a nested pair, or a
-  // malformed marker all passed.
+  // and the generator cannot disagree about whether a page is safe: unmatched, crossed, nested,
+  // duplicated and malformed markers are all rejected here and there by the same code.
   for (const problem of markerProblems(raw)) fail(name, problem)
 
   // scope drift

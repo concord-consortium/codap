@@ -1,6 +1,6 @@
 # selectionList
 
-> **Applies to:** CODAP v3 · **Verified:** 2026-10-01 against `main` @ `a1ebcea11`
+> **Applies to:** CODAP v3 · **Verified:** 2026-10-02
 > · Parts of this page are generated — see [conventions](../conventions.md).
 
 The selection list is the set of cases a user has selected in a data context. Plugins read it to
@@ -36,8 +36,12 @@ selection by sending `create` with an empty array.
 | `dataContext[<context>].collection[<collection>].selectionList` | get |
 <!-- END GENERATED: selectors -->
 
-On `get`, naming a collection restricts the result to cases in that collection. Omitting it
-returns the selected cases of every collection.
+On `get`, naming a collection restricts the result to cases in that collection; omitting it
+returns the selected cases at every level. A collection name that does not resolve is not an
+error — `get` quietly returns the selection for every collection, as if you had omitted it.
+
+`create` and `update` accept the collection form of the selector and ignore the collection: a
+write always applies to the whole data context.
 
 <!-- BEGIN GENERATED: scope -->
 This resource is scoped to a data context. Omitting one selects `#default`, the first data
@@ -51,12 +55,18 @@ context in the document — see [the index](../README.md#the-default-data-contex
 An array, one entry per selected case:
 
 <!-- BEGIN GENERATED: values -->
+| Property |
+|---|
+| `caseID` |
+| `collectionID` |
+| `collectionName` |
+<!-- END GENERATED: values -->
+
 | Property | Notes |
 |---|---|
 | `caseID` | the selected case's id |
 | `collectionID` | the id of the collection it belongs to |
 | `collectionName` | that collection's name |
-<!-- END GENERATED: values -->
 
 ### What `create` and `update` accept
 
@@ -80,6 +90,9 @@ The second is a **selection expression**, which selects by formula instead of by
 `collection` defaults to the childmost collection of the data context.
 
 ## Examples
+
+**Selecting a parent case selects its whole group.** A case id that names a parent expands to
+every item beneath it, so selecting three parent cases can select many more cases than three.
 
 Replace the selection with three cases:
 
@@ -125,11 +138,14 @@ Clear the selection:
 
 **Ids that do not resolve are dropped silently.** Each value is tried as a case id and then as an
 item id; a value that matches neither is discarded and the request still reports success. Sending
-ten ids of which three are stale selects seven cases and tells you nothing went wrong. Compare
-the length of a following `get` against what you sent if that matters.
+ten ids of which three are stale selects seven and tells you nothing went wrong. There is no way
+to find out which were dropped: a following `get` will not match what you sent, because parent
+cases expand to their children and the result spans every collection.
 
-**A collection in the selector does not narrow a write.** `create` and `update` apply to the
-whole data context even when the selector names a collection. Only `get` honours it.
+**A failed formula is reported with the engine's own message.** A selection expression that
+does not parse returns `Unable to parse query.`; one that parses but fails to evaluate returns
+whatever the formula engine reported, or `Unknown formula evaluation error` if it reported
+nothing.
 
 **An array containing an object is rejected whole.** If any entry is an object rather than a
 number or string, the entire request fails with `<action> selectionList requires a list of case
@@ -144,12 +160,18 @@ change reflected back.
 ## Errors
 
 <!-- BEGIN GENERATED: errors -->
-| Error | When |
+| Error |
+|---|
+| `DataContext not found` |
+| `<value1> selectionList requires a list of case IDs.` |
+| `Collection not found` |
+<!-- END GENERATED: errors -->
+
+| Error | Condition |
 |---|---|
 | `DataContext not found` | the selector's data context does not resolve |
 | `<value1> selectionList requires a list of case IDs.` | the values were neither an array of ids nor a selection expression, or an entry was an object |
 | `Collection not found` | a selection expression named a collection that does not resolve |
-<!-- END GENERATED: errors -->
 
 ## See also
 
