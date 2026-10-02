@@ -107,17 +107,21 @@ Rules:
 - **A marker declares the block machine-owned, whether or not the tool can fill it yet.** The
   generator writes the blocks it can produce completely and leaves the rest alone, reporting them
   as hand-maintained. So content you write inside markers is *provisional*: it survives until the
-  generator learns that block, and is then replaced without warning. Run
+  generator learns that block, and is then replaced — reported as CHANGED, and failing
+  `--check`, so the replacement is never silent. Run
   `npm run plugin-api:generate` to see which blocks are written and which are still yours.
 - **Never hand-edit a block the generator writes.** Fix the extractor or the code instead; the
-  next run silently discards the edit.
+  next run discards the edit and reports the block as CHANGED.
 - **Never put prose inside the markers** — and read this strictly. A generated block holds only
   what the extractor can derive from source: names, types, action support, selector patterns and
   error strings. Anything requiring judgment — why a property is useful, what a value is good for,
   the *condition* that produces an error, how two failure causes differ — goes immediately before
-  or after the block. If it is inside the markers and not derivable, the generator will silently delete it.
+  or after the block. If it is inside the markers and not derivable, the generator deletes it and
+  reports the block as CHANGED — recoverable from git, but gone from the page.
   When in doubt, ask whether a script reading `src/data-interactive/` could produce the cell.
-- Current block names: `actions`, `selectors`, `scope`, `values`, `errors`.
+- Current block names: `actions`, `selectors`, `scope`, `values`, `values-write`, `errors`, and
+  on the quick reference `adornment-types`, `resource-actions`, `selector-grammar`,
+  `error-catalog`.
 - A page may carry **more than one property table** when the shape differs by action — the result
   of a `get` versus the values `create`/`update` accept. Mark both, with distinct names: `values`
   for the result shape and `values-write` for accepted input. Block names must be unique within a
@@ -147,9 +151,9 @@ The exception is genuinely shared narrative — request coalescing, undo/redo, e
 ## Examples must be real
 
 - **Error strings are shown as a plugin receives them**, with `<type>`-style placeholders — not
-  CODAP's internal `%@` / `%@1` i18n notation, which means nothing to a plugin author. Note for
-  Phase 6: an extractor reading `en-US.json5` gets the `%@` form, so the generator needs a
-  substitution step to satisfy this rule.
+  CODAP's internal `%@` / `%@1` i18n notation, which means nothing to a plugin author. The
+  extractor reads `en-US.json5`, which uses the `%@` form, and the generator substitutes neutral
+  placeholders on the way out.
 - Every ` ```json ` block must parse as JSON. No comments, no `/* {String} ... */` annotations, no
   ellipses. The old wiki page's object-shape blocks were none of these things, and plugin authors
   copied the annotations into real requests.

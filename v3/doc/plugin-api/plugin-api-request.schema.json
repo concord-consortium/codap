@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://codap.concord.org/schemas/plugin-api-request.schema.json",
   "title": "CODAP Data Interactive request",
-  "description": "Generated from v3/src by v3/scripts/plugin-api. Validates the request envelope a plugin sends to CODAP. `values` is intentionally unconstrained — its shape depends on the resource and action, and is documented per resource in v3/doc/plugin-api/resources/.",
+  "description": "Generated from v3/src by v3/scripts/plugin-api. Validates the request envelope a plugin sends to CODAP. `values` is not yet validated: its shape varies by resource and action, and the mapping from those to a value interface is not yet extracted. It is documented per resource in v3/doc/plugin-api/resources/.",
   "oneOf": [
     {
       "$ref": "#/$defs/action"
@@ -39,7 +39,7 @@
         "resource": {
           "type": "string",
           "minLength": 1,
-          "pattern": "^[A-Za-z#][A-Za-z0-9_#]*(\\[[^\\]]*\\])?(\\.[A-Za-z][A-Za-z0-9_]*(\\[[^\\]]*\\])?)*$",
+          "pattern": "^[A-Za-z#][A-Za-z0-9_#]*(\\[[^\\]]+\\])?(\\.[A-Za-z][A-Za-z0-9_]*(\\[[^\\]]+\\])?)*$",
           "description": "A dot-separated selector chain; see doc/plugin-api/quick-reference.md."
         },
         "values": {
@@ -48,7 +48,7 @@
       }
     },
     "supportedActions": {
-      "description": "resource name -> the actions its handler implements.",
+      "description": "resource name -> the actions its handler implements. Data for tools; not referenced by the validation above. Resources whose handler could not be resolved are omitted rather than listed as supporting nothing.",
       "const": {
         "adornment": [
           "get",
@@ -209,8 +209,8 @@
         ]
       }
     },
-    "selectorKeys": {
-      "description": "Keys a selector segment may use.",
+    "selectorSelectorFields": {
+      "description": "Members of the internal DIResourceSelector type. Data for tools; NOT the set of valid selector keys — see the resource table in doc/plugin-api/quick-reference.md.",
       "const": [
         "attribute",
         "attributeLocation",

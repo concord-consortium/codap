@@ -34,8 +34,9 @@
 //
 import { readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs"
 import { fileURLToPath } from "node:url"
+import { markerProblems } from "./markers.mjs"
+import { readInventory } from "./inventory.mjs"
 import { dirname, join, relative } from "node:path"
-import { execFileSync } from "node:child_process"
 
 const here = dirname(fileURLToPath(import.meta.url))
 const v3Dir = join(here, "..", "..")
@@ -46,11 +47,21 @@ const inventoryPath = join(docsDir, "plugin-api.json")
 const check = process.argv.includes("--check")
 
 // Re-extract so the inventory is never stale relative to the code we are checking against.
-const inventory = JSON.parse(
-  execFileSync("node", [join(here, "extract-plugin-api.mjs")], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 })
-)
+function required(value, what) {
+  if (value == null || (Array.isArray(value) && value.length === 0)) {
+    console.error(`generate-plugin-api-docs: the inventory has no ${what}. Re-run the extractor; ` +
+                  `rendering from an empty list would rewrite real documentation into emptiness.`)
+    process.exit(3)
+  }
+  return value
+}
 
-const ACTIONS = ["get", "create", "update", "delete", "notify", "register", "unregister"]
+const inventory = readInventory()
+
+// From the inventory, which reads it from DIBaseHandler. A second hard-coded list here would
+// silently drop an eighth action from every table and from the schema enum — exactly what the
+// extractor refuses to do.
+const ACTIONS = required(inventory.actions, "inventory.actions")
 const tick = b => (b ? "✓" : "—")
 
 // --- which page documents which resource ---------------------------------------------------
@@ -121,7 +132,8 @@ function renderScope(resourceNames) {
 
 function renderAdornmentTypes() {
   const rows = inventory.adornmentTypes.map(a => {
-    const label = a.aliases.length ? `\`${a.type}\` (alias ${a.aliases.map(x => `\`${x}\``).join(", ")})` : `\`${a.type}\``
+    const aliases = a.aliases.map(x => `\`${x}\``).join(", ")
+    const label = a.aliases.length ? `\`${a.type}\` (alias ${aliases})` : `\`${a.type}\``
     if (a.actions == null) return `| ${label} | ? | ? | ? | ? |`   // unresolved handler
     const has = x => a.actions.includes(x)
     return `| ${label} | ${tick(has("get"))} | ${tick(has("create"))} | ${tick(has("update"))} | ` +
@@ -139,12 +151,15 @@ function renderValues(sourceName) {
   return ["| Property | Type | |", "|---|---|---|", ...rows].join("\n")
 }
 
-// --- the three compact tables from plan §4.2 -------------------------------------------------
+// --- the three compact tables from the quick-reference tables -------------------------------------------------
 function renderResourceActions() {
   const head = `| Resource | ${ACTIONS.map(a => `\`${a}\``).join(" | ")} |`
   const rule = `|---|${ACTIONS.map(() => "---").join("|")}|`
+  // `actions: null` means the handler could not be resolved, not that it supports nothing.
+  // Rendering "—" there would publish "this action is unsupported" as a fact we do not have,
+  // which is the same distinction renderActions already makes with "?".
   const rows = inventory.resources.map(r =>
-    `| \`${r.name}\` | ${ACTIONS.map(a => tick(r.actions?.includes(a))).join(" | ")} |`)
+    `| \`${r.name}\` | ${ACTIONS.map(a => (r.actions == null ? "?" : tick(r.actions.includes(a)))).join(" | ")} |`)
   return [head, rule, ...rows].join("\n")
 }
 
@@ -163,8 +178,17 @@ function renderSelectorGrammar() {
     "```",
     "",
     "**Any word is accepted as a key at parse time.** CODAP does not validate keys against a list",
-    "while parsing, so a misspelled selector does not fail there — it fails later, when no handler",
-    "matches, with `unknown request: <value>`. Do not read a successful parse as a valid selector.",
+    "while parsing, so a misspelled selector never fails there. What happens next depends on which",
+    "segment was wrong:",
+    "",
+    "- A misspelled **final** segment decides the handler, so there is none, and the request fails",
+    "  with `Unsupported action: <action>/<key>`.",
+    "- A misspelled **earlier** segment is simply unread. The parser keeps it under a key nothing",
+    "  looks at, and resolution falls back to searching the whole data context — so",
+    "  `dataContext[M].colection[C].attribute[Age]` succeeds, silently ignoring the collection you",
+    "  asked for.",
+    "",
+    "Do not read a successful parse, or even a successful request, as a valid selector.",
     "",
     `**Keys that name a resource** (${inventory.resources.length}): ${resourceNames}.`,
     "",
@@ -199,11 +223,21 @@ function renderErrorCatalog() {
 // --- rewrite ---------------------------------------------------------------------------------
 // The body may be empty — a new page can declare a block and let the generator fill it.
 const BLOCK = /<!-- BEGIN GENERATED: ([\w-]+)((?:\s+\w+=\S+)*) -->\n?([\s\S]*?)\n?<!-- END GENERATED: \1 -->/g
-const report = { new: [], removed: [], changed: [], skipped: [] }
+const report = { new: [], removed: [], changed: [], skipped: [], markers: [], badSource: [] }
 
 for (const page of [...pages, ...extraPages]) {
   const path = pages.includes(page) ? join(resourcesDir, page) : join(docsDir, page)
   const before = readFileSync(path, "utf8")
+
+  // Never rewrite a page whose markers are not provably well formed. BLOCK's lazy backreference
+  // would otherwise span past a typo'd END to the next same-named one and delete the prose
+  // between. Report and skip the page instead; the lint reports the same problems.
+  const badMarkers = markerProblems(before)
+  if (badMarkers.length) {
+    for (const problem of badMarkers) report.markers.push(`${page}: ${problem}`)
+    continue
+  }
+
   const covered = [...pageFor].filter(([, p]) => p === page).map(([n]) => n)
 
   const after = before.replace(BLOCK, (whole, name, attrText, body) => {
@@ -218,7 +252,13 @@ for (const page of [...pages, ...extraPages]) {
     else if (name.startsWith("values") && attrs.source) rendered = renderValues(attrs.source)
 
     if (rendered == null) {
-      report.skipped.push(`${page}: ${name}${attrs.source ? ` (source=${attrs.source} not found)` : ""}`)
+      // A block that *declares* a source is a claim: that interface exists and the tool fills
+      // this table from it. If it does not resolve, the claim is false — a renamed or deleted
+      // interface leaving a frozen table behind — so that is a failure, not hand-maintenance.
+      if (attrs.source) {
+        report.badSource.push(`${page}: ${name} declares source=${attrs.source}, not in the inventory`)
+      }
+      else report.skipped.push(`${page}: ${name}`)
       return whole
     }
     if (rendered !== body) report.changed.push(`${page}: ${name}`)
@@ -228,22 +268,26 @@ for (const page of [...pages, ...extraPages]) {
   if (after !== before && !check) writeFileSync(path, after)
 }
 
-// --- JSON Schema for the request/response envelope --------------------------------------------
+// --- JSON Schema for the request envelope --------------------------------------------
 // Validates the envelope and the action vocabulary, and carries the resource -> supported
 // actions map so a tool can check an action against its resource. It deliberately does not try
 // to validate `values`: those shapes vary per resource and per action, and a schema that
 // guessed them would reject valid requests.
 function buildSchema() {
+  // Only resources whose handler resolved. An unresolved one listed as [] would tell a tool that
+  // every action is unsupported, which is a claim the extractor explicitly declined to make.
   const byResource = {}
-  for (const r of inventory.resources) byResource[r.name] = r.actions ?? []
+  for (const r of inventory.resources) if (r.actions != null) byResource[r.name] = r.actions
+  const unresolved = inventory.resources.filter(r => r.actions == null).map(r => r.name)
   return {
     $schema: "https://json-schema.org/draft/2020-12/schema",
     $id: "https://codap.concord.org/schemas/plugin-api-request.schema.json",
     title: "CODAP Data Interactive request",
     description:
       "Generated from v3/src by v3/scripts/plugin-api. Validates the request envelope a plugin " +
-      "sends to CODAP. `values` is intentionally unconstrained — its shape depends on the " +
-      "resource and action, and is documented per resource in v3/doc/plugin-api/resources/.",
+      "sends to CODAP. `values` is not yet validated: its shape varies by resource and action, " +
+      "and the mapping from those to a value interface is not yet extracted. It is documented " +
+      "per resource in v3/doc/plugin-api/resources/.",
     // A request is one action or a batch of them: DIRequest = DIAction | DIAction[].
     oneOf: [{ $ref: "#/$defs/action" }, { type: "array", items: { $ref: "#/$defs/action" }, minItems: 1 }],
     $defs: {
@@ -256,17 +300,27 @@ function buildSchema() {
       resource: {
         type: "string",
         minLength: 1,
-        pattern: "^[A-Za-z#][A-Za-z0-9_#]*(\\[[^\\]]*\\])?(\\.[A-Za-z][A-Za-z0-9_]*(\\[[^\\]]*\\])?)*$",
+        pattern: "^[A-Za-z#][A-Za-z0-9_#]*(\\[[^\\]]+\\])?(\\.[A-Za-z][A-Za-z0-9_]*(\\[[^\\]]+\\])?)*$",
         description: "A dot-separated selector chain; see doc/plugin-api/quick-reference.md."
       },
     values: { description: "Payload for create, update and notify. Shape varies by resource." }
   }
       },
       supportedActions: {
-        description: "resource name -> the actions its handler implements.",
+        description: "resource name -> the actions its handler implements. Data for tools; not " +
+          "referenced by the validation above. Resources whose handler could not be resolved are " +
+          "omitted rather than listed as supporting nothing" +
+          (unresolved.length ? `: ${unresolved.join(", ")}.` : "."),
         const: byResource
       },
-      selectorKeys: { description: "Keys a selector segment may use.", const: inventory.selectorKeys }
+      // These are the members of DIResourceSelector, which is not the same set as the resource
+      // keys a selector may use: it includes `type`, which the parser sets itself, and omits the
+      // list-style resources. Named accordingly so no one validates against it.
+      selectorSelectorFields: {
+        description: "Members of the internal DIResourceSelector type. Data for tools; NOT the " +
+          "set of valid selector keys — see the resource table in doc/plugin-api/quick-reference.md.",
+        const: inventory.selectorKeys
+      }
     }
   }
 }
@@ -277,7 +331,13 @@ const artifacts = [
   // The inventory's verifiedAgainst records when it was regenerated, so compare everything else.
   [inventoryPath, JSON.stringify(inventory, null, 2) + "\n"]
 ]
-const stripVolatile = t => t.replace(/"verifiedAgainst":\s*"[^"]*"/, '"verifiedAgainst":""')
+// `source` fields carry file:line, so any edit anywhere above a registration shifts them and the
+// byte comparison reports the artifact stale — a red advisory check caused by a blank line in an
+// unrelated handler. The line numbers are useful to a human reading the inventory and useless to
+// the comparison, so normalize them out of it along with verifiedAgainst.
+const stripVolatile = t => t
+  .replace(/"verifiedAgainst":\s*"[^"]*"/, '"verifiedAgainst":""')
+  .replace(/("source":\s*"[^"]*?):\d+"/g, '$1"')
 for (const [file, content] of artifacts) {
   if (check) {
     const current = existsSync(file) ? readFileSync(file, "utf8") : ""
@@ -285,13 +345,16 @@ for (const [file, content] of artifacts) {
       report.changed.push(`${relative(docsDir, file)} is stale — run npm run plugin-api:generate`)
     }
   } else {
-    writeFileSync(file, content)
+    // Writing unconditionally churns verifiedAgainst on every run, so a regenerate that changed
+    // nothing still shows up as a modified file in git.
+    const current = existsSync(file) ? readFileSync(file, "utf8") : ""
+    if (stripVolatile(current) !== stripVolatile(content)) writeFileSync(file, content)
   }
 }
 
 // --- drift ------------------------------------------------------------------------------------
-// Resources known to be undocumented while the migration is in progress. Without this baseline
-// the check would be red from the day it lands until Phase 3 finishes, and a permanently red
+// Resources known to be undocumented while resources still lack pages. Without this baseline
+// the check would be red from the day it lands until every resource has a page, and a permanently red
 // advisory check is worse than none — it trains people to ignore it. A resource that appears
 // here has been *decided about*; one that appears in NEW has not.
 const baselinePath = join(docsDir, "undocumented-baseline.txt")
@@ -318,6 +381,11 @@ console.error(`Known undocumented (baselined): ${baselined.length}`)
 if (staleBaseline.length) line("STALE baseline entries (now documented or gone — remove them)", staleBaseline)
 line("REMOVED (documented, not in code)", report.removed)
 if (report.skipped.length) line("Hand-maintained (left alone)", report.skipped)
+if (report.markers.length) line("MARKER PROBLEMS (page not rewritten)", report.markers)
+if (report.badSource.length) line("UNRESOLVED source= (block left frozen)", report.badSource)
 
+// Marker problems fail in both modes: in --check they are a defect, and in write mode they mean
+// a page was deliberately skipped, so exiting 0 would report success for work not done.
+if (report.markers.length || report.badSource.length) process.exit(2)
 if (check && (report.changed.length || report.new.length || report.removed.length ||
               staleBaseline.length)) process.exit(2)

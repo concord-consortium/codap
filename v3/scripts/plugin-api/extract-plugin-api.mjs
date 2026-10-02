@@ -14,7 +14,7 @@
 //   - errors           V3.DI.Error.* strings from en-US.json5, cross-referenced with the
 //                      prebuilt results exported by handlers/di-results.ts
 //   - selectorKeys     the members of DIResourceSelector
-//   - defaultContext   the resource types exempt from #default data-context defaulting
+//   - defaultContextExemptions  the resource types exempt from #default data-context defaulting
 //   - valueTypes       exported interfaces in the data-interactive-*-types.ts files
 //
 // What it does NOT capture, by design. These require judgment and stay hand-written in the
@@ -76,12 +76,18 @@ function eachNode(sf, visit) {
   walkNode(sf)
 }
 
+// Order by code unit, not by locale. `localeCompare` with no locale follows the host's, so the
+// same source sorts differently under e.g. LC_ALL=tr_TR and `--check` then reports the committed
+// artifact stale forever on that machine.
+const cmp = (a, b) => (a < b ? -1 : a > b ? 1 : 0)
+
 // An anti-drift tool must not publish confident emptiness. Anything the generator relies on is
 // required: if a shape heuristic stops matching because the source was reformatted or renamed,
 // fail here rather than emit "Valid keys (0)" or rewrite every scope block from an empty list.
 function required(value, what) {
   const empty = value == null || (Array.isArray(value) && value.length === 0) ||
-                (value instanceof Map && value.size === 0)
+                (value instanceof Map && value.size === 0) ||
+                (value.constructor === Object && Object.keys(value).length === 0)
   if (empty) {
     console.error(`extract-plugin-api: could not extract ${what}. The source shape this relies on ` +
                   `has probably changed; fix the extractor rather than publishing an empty result.`)
@@ -145,7 +151,7 @@ for (const [, sf] of sources) {
 
 // --- pass 2b: factories that return a handler ----------------------------------------------
 // Several adornments share a handler built by a factory — univariateMeasureAdornmentBaseHandler
-// is the notable one, and it is the shape Phase 3 will meet again. Index the properties of the
+// is the notable one, and it is a shape that recurs wherever a factory builds handlers. Index the properties of the
 // object literal such a factory returns so those handlers resolve like any other.
 const factoryProps = new Map()  // function name -> Set of property names
 for (const [, sf] of sources) {
@@ -257,6 +263,16 @@ function gatedBy(node) {
   }
 }
 
+// A registration call whose name is not a literal never enters the inventory, so it can never be
+// reported as NEW — the single case this tool exists to catch. Fail loudly instead of returning.
+function registrationName(value, fn, sf, node) {
+  if (value) return value
+  console.error(`extract-plugin-api: ${fn} at ${siteOf(sf, node)} does not name its resource with ` +
+                `a string literal, so it cannot be inventoried. Teach the extractor to resolve it ` +
+                `rather than letting a registered handler go unnoticed.`)
+  process.exit(3)
+}
+
 for (const [, sf] of sources) {
   eachNode(sf, node => {
     if (!ts.isCallExpression(node) || !ts.isIdentifier(node.expression)) return
@@ -264,8 +280,7 @@ for (const [, sf] of sources) {
     const [a0, a1, a2] = node.arguments
 
     if (fn === "registerDIHandler") {
-      const name = asString(a0)
-      if (!name) return
+      const name = registrationName(asString(a0), fn, sf, node)
       const handlerName = a1 && ts.isIdentifier(a1) ? a1.text : undefined
       const { actions, note, via } = handlerName ? actionsOf(handlerName) : { actions: null, note: "inline handler" }
       // Whether the handler actually reads a data context. The parser's #default exemption list
@@ -280,15 +295,13 @@ for (const [, sf] of sources) {
     }
 
     if (fn === "registerComponentHandler") {
-      const diType = asString(a0)
-      if (!diType) return
+      const diType = registrationName(asString(a0), fn, sf, node)
       const gate = gatedBy(node)
       componentTypes.push({ diType, ...(gate && { gatedBy: gate }), source: siteOf(sf, node) })
     }
 
     if (fn === "registerAdornmentHandler") {
-      const type = asString(a0)
-      if (!type) return
+      const type = registrationName(asString(a0), fn, sf, node)
       const handlerName = a1 && ts.isIdentifier(a1) ? a1.text : undefined
       const { actions, note, via } = handlerName ? actionsOf(handlerName) : { actions: null, note: "inline handler" }
       const aliases = []
@@ -372,7 +385,7 @@ function addLiteralError(message, source) {
   if (message.length < 8 || errors.some(e => e.message === message)) return
   errors.push({ key: null, message, literal: true, source })
 }
-errors.sort((a, b) => (a.key ?? a.message).localeCompare(b.key ?? b.message))
+errors.sort((a, b) => cmp(a.key ?? a.message, b.key ?? b.message))
 
 // --- pass 6: value/result type shapes -----------------------------------------------------
 // The interfaces a plugin actually sends and receives. Members carry their declared type text
@@ -404,20 +417,33 @@ try {
 const inventory = {
   $comment: "Generated by v3/scripts/plugin-api/extract-plugin-api.mjs. Do not edit by hand.",
   verifiedAgainst: commit,
+  // The generator renders every action table and the schema enum from this, so an eighth action
+  // added to DIBaseHandler reaches the docs instead of being silently dropped by a second list.
+  actions: ACTIONS,
   counts: {
     resources: resources.length,
     componentTypes: componentTypes.length,
     adornmentTypes: adornmentTypes.length,
     errors: errors.length
   },
-  resources: resources.sort((a, b) => a.name.localeCompare(b.name)),
-  componentTypes: componentTypes.sort((a, b) => a.diType.localeCompare(b.diType)),
-  adornmentTypes: adornmentTypes.sort((a, b) => a.type.localeCompare(b.type)),
+  resources: resources.sort((a, b) => cmp(a.name, b.name)),
+  componentTypes: componentTypes.sort((a, b) => cmp(a.diType, b.diType)),
+  adornmentTypes: adornmentTypes.sort((a, b) => cmp(a.type, b.type)),
   selectorKeys,
   defaultContextExemptions,
   errors,
   valueTypes
 }
+
+// Everything the generator renders from. An empty list here would rewrite real documentation
+// into confident wrongness — an empty scope block, a selector grammar with no keys — so refuse.
+required(resources, "the registered resources (registerDIHandler calls)")
+required(componentTypes, "the component types (registerComponentHandler calls)")
+required(adornmentTypes, "the adornment types (registerAdornmentHandler calls)")
+required(selectorKeys, "the selector keys (interface DIResourceSelector)")
+required(defaultContextExemptions, "the #default exemption list (resource-parser.ts)")
+required(errors, "the error catalog (V3.DI.Error keys and literals)")
+required(valueTypes, "the value interfaces (data-interactive-*types.ts)")
 
 const pretty = process.argv.includes("--pretty")
 process.stdout.write(JSON.stringify(inventory, null, pretty ? 2 : 0) + "\n")

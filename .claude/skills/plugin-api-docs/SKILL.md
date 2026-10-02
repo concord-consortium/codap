@@ -16,10 +16,16 @@ content, and a checker.
 
 | npm script | What it does |
 |---|---|
-| `npm run plugin-api:extract` | Re-extracts the inventory to `doc/plugin-api/plugin-api.json` |
+| `npm run plugin-api:extract` | Prints the inventory as JSON to stdout (the generator is what writes the file) |
 | `npm run plugin-api:generate` | Rewrites generated blocks in the docs, writes the request schema, reports drift |
 | `npm run plugin-api:lint` | Checks the docs against the code and the conventions |
 | `npm run plugin-api:check` | Both of the above in report-only mode — what CI runs |
+
+`markers.mjs` and `inventory.mjs` are shared helpers, not entry points: the first defines a
+well-formed generated-block marker, the second is the one way both scripts run the extractor.
+The generator consults `markers.mjs` *before* rewriting a page and skips any page whose markers
+it cannot prove safe, because a mis-paired marker makes the block regex span past it and delete
+the prose in between.
 
 Run them from `v3/`.
 
@@ -59,8 +65,8 @@ interfaces by name, so a block the tool cannot fill completely is better hand-wr
 half-generated. The lint checks those instead.
 
 A marker declares a block machine-owned even before the tool can fill it. Content hand-written
-inside one is provisional: it stands until the generator learns that block, then is replaced
-without warning. Never hand-edit a block the generator already writes — run
+inside one is provisional: it stands until the generator learns that block, then is replaced —
+reported as CHANGED, and as a `--check` failure, not silently. Never hand-edit a block the generator already writes — run
 `npm run plugin-api:generate` and read the "Hand-maintained (left alone)" list to see which is
 which. See `v3/doc/plugin-api/conventions.md` for the full rules.
 
@@ -68,7 +74,7 @@ which. See `v3/doc/plugin-api/conventions.md` for the full rules.
 
 `doc/plugin-api/undocumented-baseline.txt` lists resources with no page yet. The drift check
 reports a resource only if it is undocumented *and* absent from the baseline, so the check is
-meaningful during the migration instead of permanently red.
+meaningful while resources still lack pages instead of permanently red.
 
 When a page lands, delete its line. The check reports stale entries, so the file cannot quietly
 rot.
