@@ -85,14 +85,16 @@ A response:
 
 ## Known limitations
 
-**Omitting the collection returns an empty list, not an error.** CODAP builds the attribute list
-from the collection named in the selector. With no collection, it builds it from nothing and
-replies `{"success": true, "values": []}`. A data context with fifty attributes reports zero, and
-the response is indistinguishable from a collection that genuinely has none. There is no selector
-that lists every attribute of a data context — read `collectionList` and ask for each.
+**A selector with no resolvable collection returns an empty list instead of an error.** CODAP
+builds the attribute list from the collection the selector names. With no collection — omitted,
+or naming one that does not exist — it builds the list from nothing and replies
+`{"success": true, "values": []}`. A data context with fifty attributes reports zero, and the
+response is indistinguishable from a collection that genuinely has none.
 
-**There is no error for a bad collection.** Naming a collection that does not exist gives the
-same empty list and the same `success: true` as omitting the collection entirely.
+This is a known bug: V2 returned `Collection not found` here, which is the intended behaviour.
+
+There is no selector that lists every attribute of a data context — read `collectionList` and ask
+for each collection in turn.
 
 ## Notifications
 
@@ -104,11 +106,15 @@ This resource sends none. Creating or updating an attribute produces notificatio
 <!-- BEGIN GENERATED: errors -->
 | Error |
 |---|
+| `Collection not found` |
 <!-- END GENERATED: errors -->
 
-This resource returns no errors. A selector that resolves to no collection — because the
-collection segment is missing, or names one that does not exist — yields an empty list with
-`success: true`.
+| Error | Condition |
+|---|---|
+| `Collection not found` | The selector names no collection, or names one that does not exist |
+
+**CODAP does not return this error today** — it returns an empty list with `success: true`
+instead. See [Known limitations](#known-limitations).
 
 ## See also
 

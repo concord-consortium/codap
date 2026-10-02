@@ -138,9 +138,14 @@ Clear the selection:
 
 **Ids that do not resolve are dropped silently.** Each value is tried as a case id and then as an
 item id; a value that matches neither is discarded and the request still reports success. Sending
-ten ids of which three are stale selects seven and tells you nothing went wrong. There is no way
-to find out which were dropped: a following `get` will not match what you sent, because parent
-cases expand to their children and the result spans every collection.
+ten ids of which three are stale selects seven and tells you nothing went wrong. This matches V2.
+There is also no way to find out which were dropped: a following `get` will not match what you
+sent, because parent cases expand to their children and the result spans every collection.
+
+**A collection in the selector does not narrow a write.** `create` and `update` apply to the
+whole data context even when the selector names a collection. V2 resolved the ids within the
+named collection, so ids outside it were ignored; v3 resolves them against the whole context.
+This is a known bug.
 
 **A failed formula is reported with the engine's own message.** A selection expression that
 does not parse returns `Unable to parse query.`; one that parses but fails to evaluate returns
