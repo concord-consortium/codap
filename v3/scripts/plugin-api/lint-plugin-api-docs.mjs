@@ -28,6 +28,7 @@ import { readFileSync, readdirSync, existsSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import { dirname, join, relative, normalize } from "node:path"
 import { markerProblems } from "./markers.mjs"
+import { buildPageFor } from "./coverage.mjs"
 import { readInventory } from "./inventory.mjs"
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -88,9 +89,8 @@ for (const file of files) {
   }
 
   // markers — the same ordered walk the generator runs before it rewrites anything, so the lint
-  // and the generator cannot disagree about whether a page is safe. Comparing the BEGIN and END
-  // name lists, as this used to, ignores order: an END before its BEGIN, a nested pair, or a
-  // malformed marker all passed.
+  // and the generator cannot disagree about whether a page is safe: unmatched, crossed, nested,
+  // duplicated and malformed markers are all rejected here and there by the same code.
   for (const problem of markerProblems(raw)) fail(name, problem)
 
   // scope drift
@@ -139,14 +139,11 @@ if (scopeBlocks.size > 3) {
   problems.push(`scope blocks: ${scopeBlocks.size} distinct variants; expected at most 3 (one per scope case)`)
 }
 
-// coverage
-const documented = new Set()
-for (const file of files.filter(f => relative(docsDir, f).startsWith("resources/"))) {
-  const raw = readFileSync(file, "utf8")
-  for (const r of inventory.resources) {
-    if (new RegExp(`\`${r.name}\``).test(raw) || raw.startsWith(`# ${r.name}`)) documented.add(r.name)
-  }
-}
+// coverage — the same mapping the generator uses, so the two cannot disagree about which
+// resources have a page. This used to be a third, independent definition: first any backticked
+// mention, then the final segment of a selector block. Both drifted from the generator's count.
+const pageFor = buildPageFor(join(docsDir, "resources"), inventory.resources)
+const documented = new Set(pageFor.keys())
 const undocumented = inventory.resources.filter(r => !documented.has(r.name)).map(r => r.name)
 
 console.error(`Linted ${files.length} pages against ${inventory.counts.resources} resources ` +
