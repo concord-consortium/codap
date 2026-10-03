@@ -17,8 +17,10 @@ function setupRangeSlider() {
 // the handles are native range inputs, so their value is the handle's value
 const valueOf = ($input: JQuery<HTMLElement>) => Number($input.val())
 
-// Drags from the element's center by dx with the button held. cypress-real-events' realMouseMove sends its
-// move with no buttons pressed, which releases pointer capture, so dispatch the pointer events directly.
+// Drags from the element's center by dx with the button held. cypress-real-events' realMouseMove sends its move
+// with no buttons pressed (buttons === 0), which the range body's own move handler treats as the end of its drag,
+// so dispatch the pointer events directly. (Handle drags, which React Aria tracks without checking the buttons,
+// can use real mouse events; see the tests that do.)
 function dragBy($el: JQuery<HTMLElement>, dx: number, { shiftKey = false } = {}) {
   const rect = $el[0].getBoundingClientRect()
   const x = rect.left + rect.width / 2
@@ -39,6 +41,8 @@ context("Slider range thumb", () => {
     setupRangeSlider()
     slider.getRangeLowInput().should("exist")
     slider.getRangeHighInput().should("exist")
+    // the collapsed thumb's hint is only for a collapsed thumb
+    slider.getRangeLowInput().parent().should("not.have.attr", "title")
     // the input shows React Aria's value, rounded to its step (about one pixel of data)
     slider.getRangeHighInput().should($high => expect(valueOf($high)).to.be.closeTo(3.8, 0.1))
   })
@@ -93,6 +97,11 @@ context("Slider range thumb", () => {
       expect(low).to.be.greaterThan(2)
       expect(Math.round(low * 10) / 10).to.be.closeTo(low, 1e-9)
     })
+    // and its halves say how to use it
+    slider.getSliderTile().find('[data-testid="slider-range-low"]')
+      .should("have.attr", "title", "Drag to move; Shift-drag to widen")
+    slider.getSliderTile().find('[data-testid="slider-range-high"]')
+      .should("have.attr", "title", "Drag to move; Shift-drag to widen")
   })
 
   it("ignores a right-button press on the middle, and moves without a button held", () => {
@@ -173,6 +182,41 @@ context("Slider range thumb", () => {
     toolbar.getUndoTool().click()
     slider.getSliderTile().find('[data-testid="slider-range-values"]').should("not.exist")
     slider.getSliderTile().find('[data-testid="slider-variable-name"]').should("exist")
+  })
+
+  it("collapses when one edge is dragged to within a couple of pixels of the other", () => {
+    setupRangeSlider()
+    slider.getSliderTile().then($tile => {
+      const lowRect = $tile.find('[data-testid="slider-range-low"]')[0].getBoundingClientRect()
+      const highRect = $tile.find('[data-testid="slider-range-high"]')[0].getBoundingClientRect()
+      // the halves would touch where the high handle's left edge meets the low handle's right edge; stop 2px
+      // short, with real mouse events, which land on React Aria's step grid as a user's drag does (React Aria
+      // tracks a handle drag without checking the buttons, so realMouseMove's buttons === 0 doesn't end it)
+      const dx = lowRect.right - highRect.left + 2
+      slider.getRangeHighInput().parent().realMouseDown({ position: "center" })
+        .realMouseMove(highRect.width / 2 + dx, highRect.height / 2, { position: "topLeft" })
+        .realMouseUp({ position: "center" })
+    })
+    slider.getSliderTile().find('[data-testid="slider-range-thumb"]').should("have.class", "collapsed")
+    slider.getSliderTile().find('[data-testid="slider-range-values"] .range-text')
+      .should($text => expect($text.text()).not.to.contain("-"))
+  })
+
+  it("changes nothing when a handle is pressed in place after the slider was dragged as a variable slider", () => {
+    cy.visit(`${Cypress.config("index")}${params}`)
+    cy.get('.codap-case-table [data-testid="codap-attribute-button Sleep"]').should("be.visible")
+    slider.getVariableValue().should("eq", "0.5")
+    // a press on the variable slider's thumb, with real mouse events as a user makes them
+    slider.getSliderThumbIcon().realMouseDown({ position: "center" }).realMouseMove(30, 0, { position: "center" })
+      .realMouseUp({ position: "center" })
+    slider.getVariableValue().should("not.eq", "0.5")
+    cy.dragAttributeToTarget("table", "Sleep", "slider")
+    slider.getRangeLowInput().should("have.value", "2")
+    // then a press on a range handle that doesn't move it
+    slider.getRangeHighInput().parent().realMouseDown({ position: "center" }).realMouseUp({ position: "center" })
+    // one undo reverts the attribute drop itself, so the press added no change of its own
+    toolbar.getUndoTool().click()
+    slider.getSliderTile().find('[data-testid="slider-range-values"]').should("not.exist")
   })
 
   describe("a collapsed range", () => {

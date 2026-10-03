@@ -3,6 +3,7 @@ import { Instance } from "mobx-state-tree"
 import { appState } from "../../models/app-state"
 import { TreeManager } from "../../models/history/tree-manager"
 import { setupSliderAndData } from "./slider-test-utils"
+import { rangeFromHandles } from "./slider-utils"
 
 // the standard test dataset's a3 values are 1..6, so configuring from a3 gives axis [1, 6] and range [1, 1.5]
 async function setupRangeSlider() {
@@ -198,6 +199,34 @@ describe("SliderModel range", () => {
     slider.setMultipleOf(2)
     slider.setValue(2.5)
     expect(slider.value).toBe(2)
+  })
+})
+
+describe("SliderModel range collapsed by a handle drag", () => {
+  // as the component does: each move combines the reported handles with the range when the press began, and
+  // the release commits the same way
+  async function dragHighHandle(start: [number, number], moves: number[]) {
+    const setup = await setupRangeSlider()
+    const { slider } = setup
+    slider.setRange(...start)
+    const step = 0.05
+    const rangeFor = (high: number) =>
+      rangeFromHandles([slider.rangeLow, high], [slider.rangeLow, slider.rangeHigh], 1, step, start)
+    moves.forEach(high => slider.setDynamicRange(...rangeFor(high)))
+    slider.setRange(...rangeFor(moves[moves.length - 1]))
+    return setup
+  }
+
+  it("stays collapsed when the snap to the data moves it away from where the drag left it", async () => {
+    // a3's values are 1..6, so a collapse at 4.4 snaps to 4, which is more than 3 steps away
+    const { slider } = await dragHighHandle([4.4, 5.5], [5, 4.6, 4.5])
+    expect(slider.width).toBe(0)
+    expect(slider.rangeLow).toBe(4)
+  })
+
+  it("returns the low end to where the user left it when the drag goes back out", async () => {
+    const { slider } = await dragHighHandle([4.4, 5.5], [4.5, 5])
+    expect([slider.rangeLow, slider.rangeHigh]).toEqual([4.4, 5])
   })
 })
 
