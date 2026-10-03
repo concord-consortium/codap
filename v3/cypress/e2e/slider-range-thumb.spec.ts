@@ -17,8 +17,10 @@ function setupRangeSlider() {
 // the handles are native range inputs, so their value is the handle's value
 const valueOf = ($input: JQuery<HTMLElement>) => Number($input.val())
 
-// Drags from the element's center by dx with the button held. cypress-real-events' realMouseMove sends its
-// move with no buttons pressed, which releases pointer capture, so dispatch the pointer events directly.
+// Drags from the element's center by dx with the button held. cypress-real-events' realMouseMove sends its move
+// with no buttons pressed (buttons === 0), which the range body's own move handler treats as the end of its drag,
+// so dispatch the pointer events directly. (Handle drags, which React Aria tracks without checking the buttons,
+// can use real mouse events; see the tests that do.)
 function dragBy($el: JQuery<HTMLElement>, dx: number, { shiftKey = false } = {}) {
   const rect = $el[0].getBoundingClientRect()
   const x = rect.left + rect.width / 2
@@ -188,7 +190,8 @@ context("Slider range thumb", () => {
       const lowRect = $tile.find('[data-testid="slider-range-low"]')[0].getBoundingClientRect()
       const highRect = $tile.find('[data-testid="slider-range-high"]')[0].getBoundingClientRect()
       // the halves would touch where the high handle's left edge meets the low handle's right edge; stop 2px
-      // short, with real mouse events, which land on React Aria's step grid as a user's drag does
+      // short, with real mouse events, which land on React Aria's step grid as a user's drag does (React Aria
+      // tracks a handle drag without checking the buttons, so realMouseMove's buttons === 0 doesn't end it)
       const dx = lowRect.right - highRect.left + 2
       slider.getRangeHighInput().parent().realMouseDown({ position: "center" })
         .realMouseMove(highRect.width / 2 + dx, highRect.height / 2, { position: "topLeft" })

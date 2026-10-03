@@ -9,7 +9,7 @@ describe("rangeFromHandles", () => {
     expect(rangeFromHandles([3.1, 5.05], [4, 5], 0, step)).toEqual([3.1, 5])
   })
 
-  it("collapses onto the stationary end when the moving handle closes within 1.5 steps", () => {
+  it("collapses onto the stationary end when the moving handle closes within 3 steps", () => {
     expect(rangeFromHandles([4.95, 5], [4, 5], 0, step)).toEqual([5, 5])
     expect(rangeFromHandles([4, 4.07], [4, 5], 1, step)).toEqual([4, 4])
   })
@@ -25,6 +25,13 @@ describe("rangeFromHandles", () => {
     // 2.8 steps from the other end collapses; 4 steps doesn't
     expect(rangeFromHandles([4, 4.14], [4, 4.5], 1, step, [4, 5])).toEqual([4, 4])
     expect(rangeFromHandles([4, 4.2], [4, 4.5], 1, step, [4, 5])).toEqual([4, 4.2])
+  })
+
+  it("keeps the stationary end where the press began, even after the model snapped a collapse to the data", () => {
+    // the drag collapsed [4, 5] onto 4, which the model snapped to a data value of 3; the handle reports 4.1
+    expect(rangeFromHandles([3, 4.1], [3, 3], 1, step, [4, 5])).toEqual([4, 4])
+    // dragging back out in the same press returns the low end to where the user left it
+    expect(rangeFromHandles([3, 4.5], [3, 3], 1, step, [4, 5])).toEqual([4, 4.5])
   })
 
   it("widens a collapsed range when a press moves a handle away from it", () => {
