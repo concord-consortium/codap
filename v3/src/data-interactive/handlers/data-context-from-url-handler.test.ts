@@ -4,6 +4,7 @@ import { gDataBroker } from "../../models/data/data-broker"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { CsvParseResult, downloadCsvFile } from "../../utilities/csv-import"
 import { diDataContextFromURLHandler, getFilenameFromUrl } from "./data-context-from-url-handler"
+import "../../components/case-table/case-table-registration"
 
 jest.mock("../../utilities/csv-import", () => {
   const originalModule = jest.requireActual("../../utilities/csv-import")
@@ -77,7 +78,7 @@ describe("DataInteractive DataContextHandler", () => {
       })
     })
 
-    it("imports the dataset without creating a default (case table) tile", async () => {
+    it("opens a case table for the imported dataset by default", async () => {
       gDataBroker.setSharedModelManager(getSharedModelManager(appState.document)!)
       const content = appState.document.content!
       const importSpy = jest.spyOn(content, "importDataSet")
@@ -92,10 +93,31 @@ describe("DataInteractive DataContextHandler", () => {
       })
 
       const tablesBefore = content.getTilesOfType(kCaseTableTileType).length
-      const result = await handler.create!({}, {URL: "https://example.com/mammals.csv"})
+      const result = await handler.create!({}, {URL: "https://example.com/nhanes.csv"})
+      expect(result.success).toBe(true)
+      expect(importSpy).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ createDefaultTile: true }))
+      expect(content.getTilesOfType(kCaseTableTileType).length).toBe(tablesBefore + 1)
+      importSpy.mockRestore()
+    })
+
+    it("imports the dataset without a case table when showCaseTable is false", async () => {
+      gDataBroker.setSharedModelManager(getSharedModelManager(appState.document)!)
+      const content = appState.document.content!
+      const importSpy = jest.spyOn(content, "importDataSet")
+
+      mockedDownloadCsvFile.mockImplementation((url, onComplete, onError) => {
+        const parseResult: CsvParseResult = {
+            data: [{col1: "value1"}],
+            errors: [],
+            meta: { delimiter: "", linebreak: "", aborted: false, truncated: false, cursor: 0 }
+        }
+        onComplete(parseResult, "")
+      })
+
+      const tablesBefore = content.getTilesOfType(kCaseTableTileType).length
+      const result = await handler.create!({}, {URL: "https://example.com/mammals.csv", showCaseTable: false})
       expect(result.success).toBe(true)
       expect(importSpy).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ createDefaultTile: false }))
-      // The import should not add a case table tile.
       expect(content.getTilesOfType(kCaseTableTileType).length).toBe(tablesBefore)
       importSpy.mockRestore()
     })
