@@ -19,6 +19,19 @@ describe("rangeFromHandles", () => {
     expect(rangeFromHandles([4, 4.05], [4, 4], 1, step)).toEqual([4, 4.05])
   })
 
+  it("collapses within 3 steps, judged against the range when the press began", () => {
+    // e.g. the release reports a handle a step away from the collapsed range the drag produced
+    expect(rangeFromHandles([4, 4.05], [4, 4], 1, step, [4, 5])).toEqual([4, 4])
+    // 2.8 steps from the other end collapses; 4 steps doesn't
+    expect(rangeFromHandles([4, 4.14], [4, 4.5], 1, step, [4, 5])).toEqual([4, 4])
+    expect(rangeFromHandles([4, 4.2], [4, 4.5], 1, step, [4, 5])).toEqual([4, 4.2])
+  })
+
+  it("widens a collapsed range when a press moves a handle away from it", () => {
+    // e.g. ArrowRight on the high handle of a zero-width range: the press began collapsed
+    expect(rangeFromHandles([4, 4.05], [4, 4], 1, step, [4, 4])).toEqual([4, 4.05])
+  })
+
   it("uses both reported values when no handle is known to be moving", () => {
     expect(rangeFromHandles([2, 3], [4, 5], undefined, step)).toEqual([2, 3])
   })

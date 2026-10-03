@@ -39,6 +39,8 @@ context("Slider range thumb", () => {
     setupRangeSlider()
     slider.getRangeLowInput().should("exist")
     slider.getRangeHighInput().should("exist")
+    // the collapsed thumb's hint is only for a collapsed thumb
+    slider.getRangeLowInput().parent().should("not.have.attr", "title")
     // the input shows React Aria's value, rounded to its step (about one pixel of data)
     slider.getRangeHighInput().should($high => expect(valueOf($high)).to.be.closeTo(3.8, 0.1))
   })
@@ -93,6 +95,11 @@ context("Slider range thumb", () => {
       expect(low).to.be.greaterThan(2)
       expect(Math.round(low * 10) / 10).to.be.closeTo(low, 1e-9)
     })
+    // and its halves say how to use it
+    slider.getSliderTile().find('[data-testid="slider-range-low"]')
+      .should("have.attr", "title", "Drag to move; Shift-drag to widen")
+    slider.getSliderTile().find('[data-testid="slider-range-high"]')
+      .should("have.attr", "title", "Drag to move; Shift-drag to widen")
   })
 
   it("ignores a right-button press on the middle, and moves without a button held", () => {

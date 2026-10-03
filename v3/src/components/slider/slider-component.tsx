@@ -83,15 +83,19 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   // whether the range changed during the current press: React Stately calls onChangeEnd on every release, even
   // of a handle that didn't move, with values rounded to its step
   const rangeChangedRef = useRef(false)
+  // the range when the current press began, against which rangeFromHandles judges whether a handle is closing
+  const pressStartRangeRef = useRef<[number, number] | undefined>(undefined)
   const rangeForHandles = useCallback((values: number[]) => {
     if (!sliderModel) return values as [number, number]
-    return rangeFromHandles(values, [sliderModel.rangeLow, sliderModel.rangeHigh], activeHandleRef.current, step)
+    const current: [number, number] = [sliderModel.rangeLow, sliderModel.rangeHigh]
+    return rangeFromHandles(values, current, activeHandleRef.current, step, pressStartRangeRef.current ?? current)
   }, [sliderModel, step])
 
   const handleChange = useCallback((values: number[]) => {
     if (!sliderModel) return
     const ariaState = stateRef.current
     activeHandleRef.current = [0, 1].find(index => ariaState?.isThumbDragging(index)) ?? ariaState?.focusedThumb
+    if (!rangeChangedRef.current) pressStartRangeRef.current = [sliderModel.rangeLow, sliderModel.rangeHigh]
     rangeChangedRef.current = true
     sliderModel.applyModelChange(
       () => sliderModel.isRangeSlider
@@ -110,6 +114,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
                                      rangeChangeOptions(sliderModel, tile))
       }
       rangeChangedRef.current = false
+      pressStartRangeRef.current = undefined
       activeHandleRef.current = undefined
       return
     }

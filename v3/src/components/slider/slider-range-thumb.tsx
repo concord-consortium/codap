@@ -71,6 +71,8 @@ const RangeHandle = function RangeHandle({ index, label, left, moveHandlers, sta
     <div className={clsx("slider-range-handle", index === 0 ? "low" : "high",
                          { dragging: isDragging, "focus-visible": isFocusVisible })}
          data-testid={index === 0 ? "slider-range-low" : "slider-range-high"}
+         // a collapsed thumb's halves don't resize it as they appear to, so say what they do
+         title={moveHandlers ? t("V3.Slider.collapsedThumbHint") : undefined}
          {...thumbProps} {...moveProps} style={{ ...thumbProps.style, left, transform: "none" }}>
       <RangeHandleIcon index={index} />
       <input {...mergeProps(inputProps, focusProps)} ref={inputRef} className="codap-visually-hidden" />
