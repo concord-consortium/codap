@@ -68,6 +68,7 @@ Enable Number Toggle,,,,User turns on the parent-case number toggle from the gra
 Enable only showing last parent toggle,,,,"User checks the ""last"" checkbox in the parent-toggles bar to show only the last parent case."
 Expanded component,,,,User expands (restores) a minimized component from its title bar.
 Fit column width: %@,"{ collection, attribute }",,"{ collection: string, attribute: string }",User chooses the resize/fit-width menu item on an attribute column so it widens to fit its content.
+GA status,,,"{ status: ""loaded""|""blocked""|""timeout"", waitMs: number }","Once per page load, shortly after CODAP starts: whether the Google Analytics script loaded or was blocked. waitMs is the time from the start of the check (not page load) until the result. Sent only to the log server, not to Google Analytics."
 Hide %@,adornmentType,,{ adornmentType: string },User unchecks the count or percent checkbox to hide counts or percentages on the graph.
 Hide %@ selected cases,length / numSelected,,{ numSelected: number },User hides the selected cases in the graph.
 Hide %@ unselected cases,numUnselected,,{ numUnselected: number },User hides all cases that are not currently selected on the map.

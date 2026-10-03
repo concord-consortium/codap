@@ -28,7 +28,7 @@ Player forwarding, and the Data Interactive log monitor API for plugins.
            ├─→ sendToLoggingService()                → matching plugins
            │     POST logger.concordqa.org/logs
            │
-           ├─→ sendToAnalyticsService()
+           ├─→ sendToAnalyticsService()  [skipped if excludeAnalytics]
            │     window.gtag("event", ...)
            │
            └─→ logListeners.forEach(listener)
@@ -80,7 +80,8 @@ applyModelChange(() => { /* model mutation */ }, {
 
 The history service extracts the `log` option and routes it to `Logger.log()`.
 
-`Logger.formatAndSend()` delivers each log message to three destinations:
+`Logger.formatAndSend()` delivers each log message to three destinations (GA is skipped
+for events logged with the `excludeAnalytics` option):
 
 1. **Log server** — POST to `logger.concordqa.org/logs` (domain-gated to
    `*.concord.org` hosts, with a `DEBUG_LOGGER` localStorage override)
@@ -100,6 +101,26 @@ Key features:
   anonymous session tracking.
 - **`resetForTesting()`**: Static method that clears the singleton, pending
   messages, and pending listeners for test isolation.
+- **`excludeAnalytics` option**: `Logger.log(event, args, category, { excludeAnalytics: true })`
+  sends the event to the log server and log listeners but not to GA. The option is kept
+  for events queued before initialization. It is used by the `GA status` event below.
+
+### GA Status Event
+
+**File:** `src/lib/ga-status.ts`
+
+To measure how often GA is blocked (e.g. by school content filters), `logGAStatus()` runs
+once per page load, after `Logger.initializeLogger()`, and logs one `GA status` event with
+`{ status, waitMs }`:
+
+| `status` | Meaning |
+|----------|---------|
+| `loaded` | The real gtag.js ran: it called back from `gtag("get", <id>, "client_id", callback)`. The placeholder `gtag()` in `index.html` only queues calls, so its existence proves nothing. |
+| `blocked` | The GA script tag's `onerror` handler set `window.codapGAScriptError` (e.g. a DNS block, or an error status such as a 403 block page). |
+| `timeout` | Neither happened within 10 seconds (e.g. a filter served its own page with a 200 status, or a very slow network). |
+
+`waitMs` is the time from the start of the check, not from page load. The event uses
+`excludeAnalytics`, because it is useless in GA: when GA is blocked, the event can't reach it.
 
 ### Layer 2: CFM Integration (LARA/Activity Player Forwarding)
 
@@ -134,7 +155,7 @@ Each channel has a single responsibility:
 |---------|---------|
 | `cfmClient.log()` (via listener) | Forward all logs to LARA/AP (via PR #419) |
 | `logLaraData` provider callback | Extract `run_remote_endpoint` from LARA data |
-| `Logger` → log server + GA | Direct logging to Concord servers (unchanged) |
+| `Logger` → log server + GA | Direct logging to Concord servers; GA is skipped for `excludeAnalytics` events |
 | `appOptions.log` | No-op (loop prevention) |
 | CFM `"log"` event listener | Commented out (not needed) |
 
@@ -267,6 +288,8 @@ using a Logger listener that calls `cfmClient.log()`.
 |------|------|
 | `src/lib/logger.ts` | Core Logger singleton — log server, GA, listener dispatch |
 | `src/lib/logger.test.ts` | Logger unit tests |
+| `src/lib/ga-status.ts` | Logs whether GA loaded or was blocked (`GA status` event) |
+| `src/lib/ga-status.test.ts` | GA status unit tests |
 | `src/lib/cfm/cfm-log-utils.ts` | `handleLogLaraData` helper |
 | `src/lib/cfm/cfm-log-utils.test.ts` | CFM log utility tests |
 | `src/lib/cfm/use-cloud-file-manager.ts` | CFM configuration — `logLaraData` callback, LARA forwarding listener |
