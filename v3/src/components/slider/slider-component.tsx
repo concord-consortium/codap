@@ -107,17 +107,23 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
 
   const handleChangeEnd = useCallback((values: number[]) => {
     if (!sliderModel) return
+    // the press is over, whatever the slider's type, so the next one (perhaps after the slider becomes a range
+    // slider) starts afresh
+    const endPress = () => {
+      rangeChangedRef.current = false
+      pressStartRangeRef.current = undefined
+      activeHandleRef.current = undefined
+    }
     if (sliderModel.isRangeSlider) {
       // a press that changed nothing shouldn't round the range to the step or create an undo entry
       if (rangeChangedRef.current) {
         sliderModel.applyModelChange(() => sliderModel.setRange(...rangeForHandles(values)),
                                      rangeChangeOptions(sliderModel, tile))
       }
-      rangeChangedRef.current = false
-      pressStartRangeRef.current = undefined
-      activeHandleRef.current = undefined
+      endPress()
       return
     }
+    endPress()
     sliderModel.applyModelChange(
       () => sliderModel.setValue(values[0]),
       {

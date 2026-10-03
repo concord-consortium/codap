@@ -182,6 +182,40 @@ context("Slider range thumb", () => {
     slider.getSliderTile().find('[data-testid="slider-variable-name"]').should("exist")
   })
 
+  it("collapses when one edge is dragged to within a couple of pixels of the other", () => {
+    setupRangeSlider()
+    slider.getSliderTile().then($tile => {
+      const lowRect = $tile.find('[data-testid="slider-range-low"]')[0].getBoundingClientRect()
+      const highRect = $tile.find('[data-testid="slider-range-high"]')[0].getBoundingClientRect()
+      // the halves would touch where the high handle's left edge meets the low handle's right edge; stop 2px
+      // short, with real mouse events, which land on React Aria's step grid as a user's drag does
+      const dx = lowRect.right - highRect.left + 2
+      slider.getRangeHighInput().parent().realMouseDown({ position: "center" })
+        .realMouseMove(highRect.width / 2 + dx, highRect.height / 2, { position: "topLeft" })
+        .realMouseUp({ position: "center" })
+    })
+    slider.getSliderTile().find('[data-testid="slider-range-thumb"]').should("have.class", "collapsed")
+    slider.getSliderTile().find('[data-testid="slider-range-values"] .range-text')
+      .should($text => expect($text.text()).not.to.contain("-"))
+  })
+
+  it("changes nothing when a handle is pressed in place after the slider was dragged as a variable slider", () => {
+    cy.visit(`${Cypress.config("index")}${params}`)
+    cy.get('.codap-case-table [data-testid="codap-attribute-button Sleep"]').should("be.visible")
+    slider.getVariableValue().should("eq", "0.5")
+    // a press on the variable slider's thumb, with real mouse events as a user makes them
+    slider.getSliderThumbIcon().realMouseDown({ position: "center" }).realMouseMove(30, 0, { position: "center" })
+      .realMouseUp({ position: "center" })
+    slider.getVariableValue().should("not.eq", "0.5")
+    cy.dragAttributeToTarget("table", "Sleep", "slider")
+    slider.getRangeLowInput().should("have.value", "2")
+    // then a press on a range handle that doesn't move it
+    slider.getRangeHighInput().parent().realMouseDown({ position: "center" }).realMouseUp({ position: "center" })
+    // one undo reverts the attribute drop itself, so the press added no change of its own
+    toolbar.getUndoTool().click()
+    slider.getSliderTile().find('[data-testid="slider-range-values"]').should("not.exist")
+  })
+
   describe("a collapsed range", () => {
     const rangeText = () => slider.getSliderTile().find('[data-testid="slider-range-values"] .range-text')
     // collapses the range by dragging its low edge onto the high one, and yields the collapsed value
