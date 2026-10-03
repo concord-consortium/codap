@@ -173,7 +173,7 @@ describe("App initialization with a `di` URL", () => {
     setUrlParams(`?di=${kPluginUrl}`)
     render(<App/>)
 
-    // logGAStatus() is called after the Logger is initialized, at the end of initialize()
+    // logGAStatus() is called after the Logger is initialized
     await waitFor(() => expect(logGAStatusSpy).toHaveBeenCalledTimes(1))
     expect(Logger.isInitialized).toBe(true)
     // no duplicate plugin was created

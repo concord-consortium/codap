@@ -233,7 +233,7 @@ describe("Logger", () => {
     let gtag: jest.Mock
 
     beforeEach(() => {
-      // enable sending so that the real (mocked) gtag would be called
+      // enable sending so that the Logger calls the window's gtag (mocked below)
       Logger.isLoggingEnabled = true
       gtag = jest.fn()
       // the Logger checks `gtag instanceof Function`, which a jest mock fails in this environment

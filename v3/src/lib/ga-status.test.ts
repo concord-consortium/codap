@@ -53,6 +53,12 @@ describe("ga-status", () => {
       await expect(checkGAStatus()).resolves.toBeUndefined()
     })
 
+    it("resolves to undefined when the measurement ID is configured but `gtag` isn't defined", async () => {
+      setUpGA()
+      delete (window as any).gtag
+      await expect(checkGAStatus()).resolves.toBeUndefined()
+    })
+
     it("asks gtag for the client ID", () => {
       setUpGA()
       checkGAStatus()
@@ -65,6 +71,8 @@ describe("ga-status", () => {
       jest.advanceTimersByTime(1000)
       gaCallback?.()
       await expect(promise).resolves.toEqual({ status: "loaded", waitMs: 1000 })
+      // the polling interval and the timeout are cleared
+      expect(jest.getTimerCount()).toBe(0)
     })
 
     it("reports `blocked` when the GA script fails to load", async () => {
@@ -74,12 +82,14 @@ describe("ga-status", () => {
       // detected at the first poll
       jest.advanceTimersByTime(250)
       await expect(promise).resolves.toEqual({ status: "blocked", waitMs: 250 })
+      expect(jest.getTimerCount()).toBe(0)
     })
 
     it("reports `blocked` immediately when the script already failed", async () => {
       setUpGA()
       ;(window as any).codapGAScriptError = true
       await expect(checkGAStatus()).resolves.toEqual({ status: "blocked", waitMs: 0 })
+      expect(jest.getTimerCount()).toBe(0)
     })
 
     it("reports `timeout` when neither signal arrives in time", async () => {
@@ -87,12 +97,15 @@ describe("ga-status", () => {
       const promise = checkGAStatus(5000)
       jest.advanceTimersByTime(5000)
       await expect(promise).resolves.toEqual({ status: "timeout", waitMs: 5000 })
+      expect(jest.getTimerCount()).toBe(0)
     })
 
-    it("reports only the first result", async () => {
+    it("stops checking after the first result", async () => {
       setUpGA()
       const promise = checkGAStatus(5000)
       gaCallback?.()
+      // no polling or timeout remains to report a second result
+      expect(jest.getTimerCount()).toBe(0)
       ;(window as any).codapGAScriptError = true
       jest.advanceTimersByTime(5000)
       await expect(promise).resolves.toEqual({ status: "loaded", waitMs: 0 })

@@ -7,6 +7,7 @@ export type GAStatus = "loaded" | "blocked" | "timeout"
 
 export interface IGAStatusResult {
   status: GAStatus
+  // time from the start of the check (not from page load) until the result was known
   waitMs: number
 }
 
@@ -14,6 +15,7 @@ const kDefaultTimeoutMs = 10000
 const kPollIntervalMs = 250
 
 interface IGAWindow {
+  // set by the `onerror` handler of the gtag.js script tag in index.html; keep the names in sync
   codapGAScriptError?: boolean
   dataLayer?: ArrayLike<unknown>[]
   gtag?: (...args: unknown[]) => void
@@ -63,11 +65,11 @@ export function checkGAStatus(timeoutMs = kDefaultTimeoutMs): Promise<Maybe<IGAS
 let hasLoggedGAStatus = false
 
 // Logs the GA status once per page load.
-export async function logGAStatus(timeoutMs?: number) {
+export async function logGAStatus() {
   if (hasLoggedGAStatus) return
   hasLoggedGAStatus = true
 
-  const result = await checkGAStatus(timeoutMs)
+  const result = await checkGAStatus()
   if (result) {
     Logger.log("GA status", { status: result.status, waitMs: result.waitMs }, "session",
       { excludeAnalytics: true })
