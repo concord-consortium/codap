@@ -77,8 +77,14 @@
           payload: {
             // builds that only report errors because of the `rollbar` url parameter are "development"
             environment: isDefaultEnabled ? environment : "development",
+            // shown with each occurrence in Rollbar, since the code version is a git commit SHA
+            codap: {
+              version: "<%= codapVersion %>",
+              buildNumber: "<%= codapBuildNumber %>"
+            },
             client: {
               javascript: {
+                // git commit SHA, which Rollbar uses to link stack traces to the code in GitHub
                 code_version: "<%= rollbarCodeVersion %>",
                 // Rollbar downloads the source maps, which are deployed next to the bundle
                 source_map_enabled: true

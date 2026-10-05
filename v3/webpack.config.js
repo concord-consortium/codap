@@ -1,5 +1,6 @@
 'use strict'
 
+const { execSync } = require('child_process')
 const fs = require('fs')
 const os = require('os')
 const path = require('path')
@@ -50,9 +51,24 @@ const DEPLOY_PATH = process.env.DEPLOY_PATH
 const ROLLBAR_SNIPPET_PATH = path.join(__dirname, 'node_modules/rollbar/dist/rollbar.snippet.js')
 const { version } = require('./package.json')
 const { buildNumber } = require('./build_number.json')
+
+// Rollbar uses the code version to link stack traces to the matching commit in GitHub, so it
+// should be the git commit SHA. GITHUB_SHA is set in CI; since the v3 workflow only runs on
+// `push`, it is the pushed commit (not a pull request merge commit).
+function gitCommitSha() {
+  if (process.env.GITHUB_SHA) return process.env.GITHUB_SHA
+  try {
+    return execSync('git rev-parse HEAD', { cwd: __dirname, encoding: 'utf8', stdio: 'pipe' }).trim()
+  } catch {
+    return 'unknown'
+  }
+}
+
 const indexHtmlTemplateParameters = {
   rollbarSnippet: fs.readFileSync(ROLLBAR_SNIPPET_PATH, { encoding: 'utf8' }).trim(),
-  rollbarCodeVersion: `${version}-${buildNumber}`
+  rollbarCodeVersion: gitCommitSha(),
+  codapVersion: version,
+  codapBuildNumber: buildNumber
 }
 
 const CACHE_DIRECTORY = '.cache'
