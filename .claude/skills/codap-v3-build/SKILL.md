@@ -38,6 +38,33 @@ When invoked, introduce the skill:
 
 Wait for user confirmation before starting Phase 1.
 
+## Approval Gates
+
+Every action below changes shared state that other people see or depend on. For each one:
+
+1. **Show** exactly what will happen: the full command, the Jira issues and fields, or the full
+   message text.
+2. **Wait** for the user's approval.
+3. **Do it**, then **read the result back** (the run's outcome, the stored Jira value, the posted
+   message) and report it.
+
+An approval covers only the actions it names. Approving the staging deploy does not approve the
+Slack post that follows it, and "go ahead with everything" early in the session does not lift
+later gates.
+
+| Action | Where | Read back with |
+|--------|-------|----------------|
+| POEditor push | Phase 3, step 2b | the script's output |
+| `git push` of a release branch, `gh pr create` | Phase 4; Fix, Step 4 | `gh pr view --json url,labels` |
+| Tag push or deletion | Phase 5; Fix, Step 5 | `git ls-remote --tags origin {version}` |
+| Workflow dispatch (staging, production, beta) | Phase 6; Fix, Step 6 | [Dispatch, watch, verify](#dispatch-watch-verify) |
+| `gh release create` | Phase 6 | `gh release view {version} --json url,isDraft,isPrerelease` |
+| Jira edits (Fix Versions, version rename) | Phase 2, step 9; Fix, Step 6 | re-fetch the changed fields |
+| Slack posts outside the developer's self-DM | Phase 6; Fix, Step 6 | the posted message's `ts` (Slack's message ID) |
+
+**Not gated:** reads, builds, local commits, and previews posted to the developer's own Slack
+self-DM ([Slack Posts](#slack-posts)).
+
 ## Phase 1: Prepare the Release
 
 **Goal:** Create Jira release version and gather context.
@@ -275,6 +302,8 @@ Wait for user confirmation before starting Phase 1.
 
 9. **Update Jira Fix Versions** for all stories where user approved the update (during step 5).
 
+    This is a gated action: list the story IDs and the version first, and wait for approval.
+
     **IMPORTANT - Context Management:** Jira MCP responses can be verbose and consume significant context. Delegate this bulk operation to a subagent:
 
     > Use the Task tool to update Fix Versions for all approved stories. Provide the subagent with:
@@ -284,6 +313,26 @@ Wait for user confirmation before starting Phase 1.
     > The subagent should report back ONLY:
     > - Success/failure count (e.g., "Updated 8/10 stories successfully")
     > - IDs of any stories that failed (e.g., "Failed: CODAP-123, CODAP-456")
+
+10. **Check the fix version from the Jira side.** Steps 1–9 match only from PR to story, so a
+    story that carries the fix version but has no merged PR in the release range goes unnoticed.
+    Have a subagent run this JQL and report key, summary, issue type, status, assignee, and
+    Project Team Approver for each result:
+
+    ```
+    project = CODAP AND fixVersion = "{version}" ORDER BY key
+    ```
+
+    Compare the results with the stories matched in step 3 and show the user:
+    - **Stories on the version with no merged PR in the range.** Ask whether each belongs in
+      this release (e.g. a story with no code, or a PR merged before the previous tag), or
+      whether its Fix Version should be removed. Removing it is a gated Jira edit.
+    - **Stories that are not Done**, grouped by status. These are expected at this point (most
+      stories sit in "In Project Team Review" until after the release), so this is
+      informational. They are checked again before the version is marked released (Phase 6).
+
+    JQL can query this reliably now that step 9 has assigned the version to issues; the caveat
+    in Phase 1, step 9 applies only to a version with no issues yet.
 
 ## Phase 3: Update Version Files
 
@@ -490,6 +539,9 @@ branch must be created before any commits (translations, version files, etc.).
 
    **Note:** Only commit the version files (package.json, package-lock.json, versions.md, CHANGELOG.md). Do not commit the `dist/` build output.
 
+   The push and the PR creation (step 6) are gated. Show the branch, the PR title, and the
+   full PR body, and get one approval covering both.
+
 6. **Create PR with labels:**
    ```bash
    gh pr create \
@@ -554,146 +606,170 @@ build number" commit that follows the merge must have landed on `main` (see step
    > deleting the tag and its S3 deploy. Every correct release tag (3.0.0 through
    > 3.0.3) points at an "Increment the build number" commit — use that as your check.
 
-3. **Create and push annotated tag:**
+3. **Create the annotated tag, confirm its target, then push it.** Create it locally and
+   check that it is on the increment commit:
    ```bash
    git tag -a {version} -m "Version {version}"
-   git push origin {version}
-   ```
-
-   Confirm the tag landed on the increment commit before moving on:
-   ```bash
    git log -1 --format='%h %s' {version}
    # expected: <sha> Increment the build number
+   ```
+
+   The push is gated. Show the tag, its commit, and the command, then:
+   ```bash
+   git push origin {version}
+   git ls-remote --tags origin {version}
    ```
 
    The tag push triggers a CI build that deploys to S3. The GitHub release is
    **not** created until after the production deploy (Phase 6).
 
-4. **Inform user and wait for S3 deploy:**
-   > **Tag pushed.** (The GitHub release will be created later, after the production deploy, so external users don't see a release for a version that isn't live yet.)
-   >
-   > Watch GitHub Actions: https://github.com/concord-consortium/codap/actions
-   >
-   > The tag push triggers a CI build that deploys to S3. **Do not trigger the staging workflow until this deploy completes.** Once the S3 deploy is done, the version will be available at:
-   > https://codap3.concord.org/version/{version}/
-   >
-   > Let me know when the deploy is complete and you're ready to proceed with staging, or run `/codap-v3-build deploy {version}` to continue.
+4. **Watch the tag's CI run until the S3 deploy finishes.** The tag push starts the
+   "Continuous Integration (CODAP v3)" workflow (`v3.yml`), whose `S3 Deploy` job publishes
+   `version/{version}/`. Find the run for the tag's commit; it can take a few seconds to
+   appear, so retry if the list is empty:
+   ```bash
+   gh run list --workflow v3.yml --branch {version} \
+     --json databaseId,headSha,status,createdAt
+   git rev-list -n1 {version}   # the run's headSha must match this
+   gh run watch <id> --exit-status
+   ```
 
-   **IMPORTANT:** Do NOT automatically trigger the staging workflow here. The staging workflow copies the build from S3, so it will fail if the tag's CI deploy hasn't finished yet. Wait for the user to confirm the deploy is complete.
+   Then confirm the version folder is served:
+   ```bash
+   curl -s -o /dev/null -w '%{http_code}\n' https://codap3.concord.org/version/{version}/
+   # expected: 200
+   ```
+
+   **Do not trigger the staging workflow until the run has succeeded and the folder returns
+   200.** The staging workflow copies `version/{version}/index-top.html`, so it fails if the
+   S3 deploy hasn't finished. If the run fails, stop and show the user the failed job
+   (`gh run view <id> --log-failed`).
+
+5. **Inform user:**
+   > **Tag pushed and deployed to S3:** https://codap3.concord.org/version/{version}/
+   > (The GitHub release will be created later, after the production deploy, so external users don't see a release for a version that isn't live yet.)
+   >
+   > Ready to deploy to staging? (Or run `/codap-v3-build deploy {version}` later.)
 
 ## Phase 6: Deploy
 
-**Goal:** Stage, test, deploy to production and beta, publish the GitHub release, finalize Jira.
+**Goal:** Stage, test, deploy to production and beta, publish the GitHub release, finalize Jira,
+and announce.
 
 ### Steps
 
-1. **Trigger staging workflow:**
-   ```bash
-   gh workflow run release-v3-staging.yml -f version={version}
-   ```
+1. **Deploy to staging** (gated) — [dispatch, watch, and verify](#dispatch-watch-verify)
+   `release-v3-staging.yml`. Expect `version/{version}/` on both `/index-staging.html` and
+   `/staging`.
 
-   > **Staging workflow triggered.**
-   >
-   > Watch: https://github.com/concord-consortium/codap/actions/workflows/release-v3-staging.yml
-   >
-   > Test at: https://codap3.concord.org/index-staging.html
+   > **Staging deployed and verified.** Test at: https://codap3.concord.org/index-staging.html
 
-2. **Post release announcement to Slack:**
+2. **Post the release announcement to `#codap-v3`** (gated), following
+   [Slack Posts](#slack-posts): preview in the self-DM, get approval, post, and record the
+   message's `ts` for step 9.
 
-   Post to the `#codap-v3` channel in the Concord Consortium workspace (`concord-consortium.slack.com`).
-
-   **CRITICAL — every item MUST start with `- ` (hyphen + space).** Slack's
-   markdown renderer collapses consecutive non-list lines into a single
-   paragraph (joining `**CODAP-XXX:**` prefixes mid-sentence). Bullet lists
-   are rendered as discrete items, so the `- ` prefix is non-negotiable —
-   even when a section has only one item. Do NOT skip it because it "looks
-   redundant" with one item; the next release may add more, and the format
-   must be uniform.
-
-   **If Slack MCP server is available:**
-   - Ask user for permission to post
-   - Post the announcement using `mcp__slack__conversations_add_message`
-   - Use `content_type: text/markdown` and `channel_id: #codap-v3`
-
-   **If Slack MCP server is NOT available:**
-   - Show the user a draft of the announcement
-   - Instruct them to paste it into Slack manually
-
-   **Announcement format (standard markdown — same syntax as CHANGELOG):**
+   **Announcement format** (standard markdown, same items, titles, and order as CHANGELOG.md):
 
    ```markdown
    CODAP {version} is available for testing at https://codap3.concord.org/staging.
 
    ### ✨ Features & Improvements:
-   - **CODAP-XXX:** Feature title here
-   - **CODAP-YYY:** Another feature
+   - **[CODAP-XXX](https://concord-consortium.atlassian.net/browse/CODAP-XXX):** Feature title here
+   - **[CODAP-YYY](https://concord-consortium.atlassian.net/browse/CODAP-YYY):** Another feature
 
    ### 🐞 Bug Fixes:
-   - **CODAP-AAA:** Bug fix title
-   - **CODAP-BBB:** Another fix
+   - **[CODAP-AAA](https://concord-consortium.atlassian.net/browse/CODAP-AAA):** Bug fix title
 
    ### 🛠️ Under the Hood:
-   - **CODAP-ZZZ:** Internal change
+   - **[CODAP-ZZZ](https://concord-consortium.atlassian.net/browse/CODAP-ZZZ):** Internal change
 
    The [beta](https://codap3.concord.org/beta) and [production](https://codap3.concord.org/) URLs will be updated once the staging build passes QA.
    ```
 
    **Rules:**
-   - Use the version number from this release (e.g., `3.0.5`)
-   - Include only the sections that have items (Features, Bug Fixes, Under the Hood)
-   - Use the same titles and order as in CHANGELOG.md (including emoji prefixes in section headers)
-   - Each item on its own line, prefixed with `- **CODAP-XXX:**` — every section, every item, no exceptions
-   - End with the beta/production follow-up message (links should render in Slack)
+   - Include only the sections that have items.
+   - **Every item starts with `- `**, even when a section has only one item. Slack collapses
+     consecutive non-list lines into one paragraph. The self-DM preview shows whether this
+     went wrong.
+   - **Every Jira key is a link**, never a bare `CODAP-XXX`. A bare key makes the Jira bot post a
+     preview card for each item in the channel.
+   - Items without a Jira key keep their plain `**Title**` form.
 
-   **Self-check before posting** — count `\n- ` in your message body. The
-   count must equal the total number of items across all sections. If it
-   doesn't, you forgot the `- ` prefix on at least one item; fix it before
-   calling the tool. Show the exact text you will post to the user for
-   approval before calling `mcp__slack__conversations_add_message`.
+3. **Wait for external QA** (may take 1+ days).
 
-3. **Wait for external QA** (may take 1+ days)
+   > **Let me know when staging QA is complete** and we can proceed with the production deployment.
 
-   > **Let me know when staging QA is complete** and we can proceed with production deployment.
-   >
-   > If you'd prefer to complete deployment separately, see manual instructions below.
+   If QA finds a show-stopper, switch to [Staging QA Failure](#staging-qa-failure--revised-release).
 
-4. **After QA approval:** deploy to production and beta, **then publish the GitHub
-   release** (now that the build is live in production), and finalize Jira. See the
-   Manual Completion Instructions below for the exact commands, and run them in that
-   order — the GitHub release should not be published until the production deploy
-   has succeeded.
+4. **Deploy to production** (gated) — dispatch, watch, and verify `release-v3-production.yml`.
+   Expect `version/{version}/` on `/`.
+
+5. **Deploy to beta** (gated) — dispatch, watch, and verify `release-v3-beta.yml`. Expect
+   `version/{version}/` on `/beta`.
+
+6. **Publish the GitHub release** (gated). Do this only after step 4 has verified that production
+   serves `{version}`, so external users never see a published release for a version that isn't
+   live yet (staging QA can take 1+ days). Write the Phase 2 release notes to a file in the
+   scratchpad and pass it with `--notes-file`:
+   ```bash
+   gh release create {version} --title "Version {version}" --notes-file <scratchpad>/notes.md
+   gh release view {version} --json url,isDraft,isPrerelease
+   gh release list --limit 1    # {version} should be marked Latest
+   ```
+
+7. **Check unresolved issues on the fix version.** Have a subagent run:
+   ```
+   project = CODAP AND fixVersion = "{version}" AND statusCategory != Done ORDER BY key
+   ```
+   and report key, summary, status, assignee, and Project Team Approver. Show the list grouped
+   by status. Stories in "In Project Team Review" are normal at this point; anything earlier
+   (In Progress, In Code Review, Ready for Merge) suggests the story isn't actually in the build.
+   Ask the user whether to nudge the owners (a Slack message to anyone else is gated), to move a
+   story's Fix Version (a gated Jira edit), or to release as is.
+
+8. **Mark the Jira version released.** The Atlassian MCP tools have no version-management tool,
+   so the user does this in the Jira UI: CODAPv3 → Releases → `{version}` → **Release**, with the
+   release date agreed in Phase 1. Wait for the user to confirm.
+
+9. **Announce that production is live** (gated) as a reply in the announcement's thread
+   (`thread_ts` = the `ts` recorded in step 2), following [Slack Posts](#slack-posts):
+
+   ```markdown
+   CODAP {version} is now live on [production](https://codap3.concord.org/) and [beta](https://codap3.concord.org/beta). [Release notes](<GitHub release URL from step 6>)
+   ```
+
+   If the session was resumed and the `ts` is no longer known, find the announcement with
+   `mcp__slack__conversations_history` on `#codap-v3` (text starting `CODAP {version} is
+   available for testing`) and confirm with the user that it's the right message.
+
+10. **Go through the [Done when](#done-when) checklist** before calling the release finished.
+
+### Done when
+
+Check every item and report each one's status. The release is not finished until all of them are
+true:
+
+- [ ] `/` and `/beta` serve `version/{version}/` (re-run the curl checks)
+- [ ] The GitHub release `{version}` is published, not a draft or pre-release, and marked Latest
+- [ ] The Jira version `{version}` is marked Released
+- [ ] Unresolved issues on the version were reviewed with the user (step 7)
+- [ ] The staging announcement is in `#codap-v3` and the production-live reply is in its thread
 
 ### Manual Completion Instructions
 
-If you prefer to complete deployment outside of Claude Code:
+If you prefer to complete deployment outside of Claude Code, run these in order. The GitHub
+release must not be published until the production deploy has succeeded.
 
-**Deploy to production:**
 ```bash
 gh workflow run release-v3-production.yml -f version={version}
-```
-Or use GitHub UI: https://github.com/concord-consortium/codap/actions/workflows/release-v3-production.yml
-
-**Deploy to beta:**
-```bash
 gh workflow run release-v3-beta.yml -f version={version}
+gh release create {version} --title "Version {version}" --notes "{release_notes_from_phase_2}"
 ```
-Or use GitHub UI: https://github.com/concord-consortium/codap/actions/workflows/release-v3-beta.yml
 
-**Publish the GitHub release** (only after the production deploy has succeeded):
-```bash
-gh release create {version} \
-  --title "Version {version}" \
-  --notes "{release_notes_from_phase_2}"
-```
-Creating the GitHub release now — rather than at tag time (Phase 5) — ensures
-external users only see a published release once the version is actually available
-in production.
-
-**Finalize Jira release:**
-1. Go to CODAPv3 project in Jira
-2. Open "Manage Releases" tab
-3. Find release `{version}`
-4. Mark as `Released`
+The workflows can also be run from the GitHub UI:
+[production](https://github.com/concord-consortium/codap/actions/workflows/release-v3-production.yml),
+[beta](https://github.com/concord-consortium/codap/actions/workflows/release-v3-beta.yml).
+Then mark the Jira version released (CODAPv3 → Releases → `{version}` → Release).
 
 ### Resume Later
 
@@ -701,6 +777,10 @@ To complete deployment in Claude Code after QA:
 ```
 /codap-v3-build deploy {version}
 ```
+
+On resume, establish where things stand before acting: which pages serve `{version}` (the curl
+checks), whether `gh release view {version}` finds a release, and whether the `#codap-v3`
+announcement exists. Then continue from the first step that isn't done.
 
 ## Staging QA Failure — Revised Release
 
@@ -906,7 +986,8 @@ build number" commit that follows the merge must have landed on `main`.
    `Release {new-version}` merge commit itself. If `HEAD` is still the release merge,
    wait, `git pull` again, and re-check until the increment commit appears.
 
-2. **Delete the old tag:**
+2. **Delete the old tag** (gated; get one approval covering this deletion and the push in
+   step 3, and show both tags and the commit the new one will point at):
    ```bash
    git push origin --delete {old-version}
    git tag -d {old-version}
@@ -923,9 +1004,10 @@ build number" commit that follows the merge must have landed on `main`.
 3. **Create the new tag:**
    ```bash
    git tag -a {new-version} -m "Version {new-version}"
-   git push origin {new-version}
    git log -1 --format='%h %s' {new-version}
    # expected: <sha> Increment the build number
+   git push origin {new-version}
+   git ls-remote --tags origin {new-version}
    ```
 
    As in Phase 5, do **not** create the GitHub release here. The tag push triggers
@@ -950,50 +1032,43 @@ build number" commit that follows the merge must have landed on `main`.
    git push origin --delete release-{version} 2>/dev/null; git branch -d release-{version} 2>/dev/null || true
    ```
 
-5. **Inform user and wait for S3 deploy:**
-   > **Old tag cleaned up. New tag created.** (The GitHub release will be created later, after the revised build reaches production.)
-   >
-   > Watch GitHub Actions: https://github.com/concord-consortium/codap/actions
-   >
-   > The tag push triggers a CI build that deploys to S3. **Do not trigger the staging workflow until this deploy completes.** Once the S3 deploy is done, the version will be available at:
-   > https://codap3.concord.org/version/{new-version}/
-   >
-   > Let me know when the deploy is complete and we can proceed with Jira updates and staging.
-
-   **IMPORTANT:** Do NOT automatically trigger the staging workflow here. The staging workflow copies the build from S3, so it will fail if the tag's CI deploy hasn't finished yet. Wait for the user to confirm the deploy is complete.
+5. **Watch the tag's CI run until the S3 deploy finishes**, exactly as in Phase 5, step 4,
+   with `{new-version}`. Do not trigger the staging workflow until the run has succeeded and
+   `https://codap3.concord.org/version/{new-version}/` returns 200.
 
 ### Step 6: Update Jira and Re-deploy
 
-1. **Update Jira release version:**
-   - Rename the Jira release from `{old-version}` to `{new-version}`
-   - Update the release date if it changed
-   - If new stories were added to release notes (Step 2), update their Fix Versions
+1. **Update Jira:**
+   - **Pre-release phase only:** the Jira release must be renamed from `{old-version}` to
+     `{new-version}`. The Atlassian MCP tools can't edit versions, so ask the user to do it in
+     the Jira UI (CODAPv3 → Releases).
+   - If the release date changed, ask the user to update it in the same place.
+   - If new stories were added to release notes (Step 2), update their Fix Versions. This is a
+     gated Jira edit; delegate it to a subagent (same pattern as Phase 2, step 9).
 
-   **Context management:** Delegate Jira updates to a subagent (same pattern as Phase 2, step 9).
+2. **Re-deploy to staging** (gated) — [dispatch, watch, and verify](#dispatch-watch-verify)
+   `release-v3-staging.yml` with `{new-version}`.
 
-2. **Re-deploy to staging:**
-   ```bash
-   gh workflow run release-v3-staging.yml -f version={new-version}
-   ```
-
-3. **Post updated Slack announcement** (same format as Phase 6, step 2 — every item must use the `- **CODAP-XXX:**` bullet prefix). Note this is a revised build:
+3. **Post the updated announcement** (gated) as a new top-level message in `#codap-v3`, following
+   [Slack Posts](#slack-posts). Use the same format and rules as Phase 6, step 2 (linked Jira
+   keys, `- ` on every item), with a line noting the revised build. Record the new message's
+   `ts`; the production-live reply (Phase 6, step 9) goes in *this* message's thread.
 
    ```markdown
    CODAP {new-version} is available for testing at https://codap3.concord.org/staging.
    (Revised build — replaces {old-version} which had a staging QA issue.)
 
    ### ✨ Features & Improvements:
-   - **CODAP-XXX:** Feature title here
+   - **[CODAP-XXX](https://concord-consortium.atlassian.net/browse/CODAP-XXX):** Feature title here
 
    ### 🐞 Bug Fixes:
-   - **CODAP-AAA:** Bug fix title
-   - **CODAP-BBB:** Another fix
-
-   ### 🛠️ Under the Hood:
-   - **CODAP-ZZZ:** Internal change
+   - **[CODAP-AAA](https://concord-consortium.atlassian.net/browse/CODAP-AAA):** Bug fix title
 
    The [beta](https://codap3.concord.org/beta) and [production](https://codap3.concord.org/) URLs will be updated once the staging build passes QA.
    ```
+
+   In the production phase `{new-version}` and `{old-version}` are the same string, so say
+   "revised build of {version}" instead.
 
 4. **Inform user:**
    > **Revised release {new-version} deployed to staging.**
@@ -1001,6 +1076,63 @@ build number" commit that follows the merge must have landed on `main`.
    > Test at: https://codap3.concord.org/index-staging.html
    >
    > When staging QA passes, run `/codap-v3-build deploy {new-version}` to continue with production deployment.
+
+## Dispatch, Watch, Verify
+
+Use this for every staging, production, and beta deploy. The dispatch itself is gated.
+
+`gh workflow run` returns before the new run exists, so `gh run list --limit 1` can return the
+*previous* run and report a false success. Pick the run created after the dispatch instead:
+
+```bash
+date -u +%Y-%m-%dT%H:%M:%SZ          # note this as <dispatched>
+gh workflow run <workflow>.yml -f version={version}
+gh run list --workflow <workflow>.yml --event workflow_dispatch \
+  --json databaseId,createdAt \
+  --jq '.[] | select(.createdAt >= "<dispatched>") | .databaseId'
+```
+
+If no id appears yet, re-run the `gh run list` with the same `<dispatched>` value. If more than
+one appears, stop and ask. Then:
+
+```bash
+gh run watch <id> --exit-status
+```
+
+A non-zero exit means the deploy failed: stop and show the user `gh run view <id> --log-failed`.
+
+**Verify what is served.** A successful run is not proof the page changed. Check the page
+references the new version folder:
+
+```bash
+for p in index-staging.html staging "" beta; do
+  printf '%-20s ' "/$p"
+  curl -s "https://codap3.concord.org/$p" | grep -oE 'version/[^/"]+/' | sort -u | tr '\n' ' '
+  echo
+done
+```
+
+Each workflow updates only its own pages (staging: `/index-staging.html` and `/staging`;
+production: `/`; beta: `/beta`), so only those are expected to change. The pages are served with
+`cache-control: no-cache`, so the new version shows as soon as the run finishes.
+
+## Slack Posts
+
+Every message to `#codap-v3` (or anyone other than the developer) goes through these steps:
+
+1. **Find the developer's self-DM.** Call `mcp__slack__channels_me` with `channel_types: "im"`;
+   the self-DM is the row named after the developer's own handle ("DM with <developer's name>").
+2. **Post the exact message to the self-DM** with `mcp__slack__conversations_add_message`
+   (`content_type: text/markdown`). This isn't gated. The preview renders exactly as the channel
+   will, which shows collapsed bullets, broken links, or stray formatting before anyone else
+   sees them.
+3. **Ask the user to check the preview** and approve posting it to the channel. Claude can't edit
+   or delete a message once it's posted, so any fix happens here.
+4. **Post the same text to the channel** (`channel_id: #codap-v3`, plus `thread_ts` for a thread
+   reply). Record the returned `ts` and report it.
+
+If the Slack MCP server isn't available, show the user the draft and ask them to paste it into
+Slack themselves.
 
 ## File Locations
 
