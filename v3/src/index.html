@@ -19,6 +19,79 @@
       Create or add to a web project, and save. This will generate the link to use here.
     -->
     <link href="https://use.typekit.net/ckm7htd.css" rel="stylesheet" >
+    <!-- Rollbar error reporting - must come before other scripts so it can catch their errors -->
+    <!-- This script uses ES5 syntax so it runs on older browsers -->
+    <script>
+      (function() {
+        var host = window.location.hostname;
+        var path = window.location.pathname;
+        // codap3.concord.org, or codap.concord.org (where v3 is served under /app/)
+        var isCodapHost = /^codap3?\.concord\.org$/i.test(host);
+        var branchMatch = /\/branch\/([^/]+)\//.exec(path);
+        var isVersionBuild = /\/version\/[^/]+\//.test(path);
+        var environment;
+        if (branchMatch) {
+          // only report errors from the main branch, not from feature branches
+          environment = branchMatch[1] === "main" ? "main" : undefined;
+        } else if (isVersionBuild) {
+          environment = undefined;
+        } else if (/\/(staging|index-staging\.html)$/.test(path)) {
+          environment = "staging";
+        } else if (/\/beta$/.test(path)) {
+          environment = "beta";
+        } else if (/\/ai4vs$/.test(path)) {
+          environment = "ai4vs";
+        } else {
+          environment = "production";
+        }
+        var isDefaultEnabled = isCodapHost && !!environment;
+
+        // The `rollbar` url parameter overrides the default, e.g. to test Rollbar on a branch build.
+        // It uses the same rules as `booleanParam()` in src/utilities/url-params.ts: "false", "no",
+        // and "0" turn Rollbar off, anything else (including no value) turns it on, last one wins.
+        var rollbarParam;
+        var searchParts = window.location.search.replace(/^\?/, "").split("&");
+        for (var i = 0; i < searchParts.length; ++i) {
+          var pair = searchParts[i].split("=");
+          if (pair[0] === "rollbar") {
+            var value = (pair[1] || "").toLowerCase();
+            rollbarParam = value !== "false" && value !== "no" && value !== "0";
+          }
+        }
+        var enabled = rollbarParam === undefined ? isDefaultEnabled : rollbarParam;
+
+        window._rollbarConfig = {
+          accessToken: "4b433e7498ee477c8019022050e3cf4b",
+          enabled: enabled,
+          captureUncaught: true,
+          captureUnhandledRejections: true,
+          // CODAP is used by students; don't record IP addresses or the values typed into inputs
+          captureIp: "anonymize",
+          scrubTelemetryInputs: true,
+          checkIgnore: function(isUncaught, args) {
+            var msg = args && args[0];
+            var text = msg instanceof Error ? msg.message : msg;
+            // benign browser warning (the browser defers notifications to the next frame)
+            return typeof text === "string" && text.indexOf("ResizeObserver loop") !== -1;
+          },
+          payload: {
+            // builds that only report errors because of the `rollbar` url parameter are "development"
+            environment: isDefaultEnabled ? environment : "development",
+            client: {
+              javascript: {
+                code_version: "<%= rollbarCodeVersion %>"
+              }
+            }
+          }
+        };
+      })();
+
+      // Rollbar Snippet
+      if (window._rollbarConfig.enabled) {
+        <%= rollbarSnippet %>
+      }
+      // End Rollbar Snippet
+    </script>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <!-- `codapGAScriptError` is read by src/lib/ga-status.ts; keep the names in sync -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZYRHG9RN3K"
