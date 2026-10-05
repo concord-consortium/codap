@@ -7,6 +7,7 @@ import { IDocumentModelSnapshot } from "../../models/document/document"
 import { IDocumentMetadata } from "../../models/document/document-metadata"
 import { IFreeTileInRowOptions } from "../../models/document/free-tile-row"
 import { safeJsonParse } from "../../utilities/js-utils"
+import { privateValue } from "../../utilities/private-value"
 import { isGoogleSheetsUrl, safeParseUrl } from "../../utilities/urls"
 import { ICodapV2Case, isV2InternalContext } from "../../v2/codap-v2-data-context-types"
 import { ICodapV2DocumentJson, isCodapV2Document, kV2AppName } from "../../v2/codap-v2-types"
@@ -215,8 +216,9 @@ function validateV2Document(_content: unknown): Maybe<ICodapV2DocumentJson> {
   // We grandfather these documents in by requiring that the metadata fields exist and are empty.
   // We log when these files are encountered, however, in hopes that they eventually get fixed.
   if ((content.appName === "") && (content.appVersion === "") && (content.appBuildNum === "")) {
-    console.warn(`File '${content.name}' bypassed validation with empty metadata.` +
-                " This file should be re-saved with valid metadata.")
+    // The file name is wrapped because console messages are sent to Rollbar and it may identify a student
+    console.warn("File bypassed validation with empty metadata. This file should be re-saved with valid metadata.",
+                "File:", privateValue(content.name))
     return content
   }
 
