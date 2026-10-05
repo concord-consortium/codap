@@ -49,7 +49,7 @@ const DEPLOY_PATH = process.env.DEPLOY_PATH
 // before the main bundle runs. The package's `exports` field doesn't expose the snippet, so it is
 // read by path rather than with `require.resolve()`.
 const ROLLBAR_SNIPPET_PATH = path.join(__dirname, 'node_modules/rollbar/dist/rollbar.snippet.js')
-const { version } = require('./package.json')
+const { name: packageName, version } = require('./package.json')
 const { buildNumber } = require('./build_number.json')
 
 // Rollbar uses the code version to link stack traces to the matching commit in GitHub, so it
@@ -67,6 +67,9 @@ function gitCommitSha() {
 const indexHtmlTemplateParameters = {
   rollbarSnippet: fs.readFileSync(ROLLBAR_SNIPPET_PATH, { encoding: 'utf8' }).trim(),
   rollbarCodeVersion: gitCommitSha(),
+  // Source map file names start with `webpack://[namespace]/./`, where the namespace defaults to
+  // the package name. Rollbar strips this prefix to link stack trace files to GitHub.
+  rollbarServerRoot: `webpack://${packageName}/./`,
   codapVersion: version,
   codapBuildNumber: buildNumber
 }

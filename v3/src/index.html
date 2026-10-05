@@ -82,6 +82,10 @@
               version: "<%= codapVersion %>",
               buildNumber: "<%= codapBuildNumber %>"
             },
+            // lets Rollbar link stack trace files (once source-mapped) to GitHub
+            server: {
+              root: "<%= rollbarServerRoot %>"
+            },
             client: {
               javascript: {
                 // git commit SHA, which Rollbar uses to link stack traces to the code in GitHub
