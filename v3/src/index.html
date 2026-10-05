@@ -79,7 +79,9 @@
             environment: isDefaultEnabled ? environment : "development",
             client: {
               javascript: {
-                code_version: "<%= rollbarCodeVersion %>"
+                code_version: "<%= rollbarCodeVersion %>",
+                // Rollbar downloads the source maps, which are deployed next to the bundle
+                source_map_enabled: true
               }
             }
           }
