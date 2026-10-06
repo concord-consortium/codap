@@ -49,7 +49,7 @@ const DEPLOY_PATH = process.env.DEPLOY_PATH
 // before the main bundle runs. The package's `exports` field doesn't expose the snippet, so it is
 // read by path rather than with `require.resolve()`.
 const ROLLBAR_SNIPPET_PATH = path.join(__dirname, 'node_modules/rollbar/dist/rollbar.snippet.js')
-const { version } = require('./package.json')
+const { name: packageName, version } = require('./package.json')
 const { buildNumber } = require('./build_number.json')
 
 // Rollbar uses the code version to link stack traces to the matching commit in GitHub, so it
@@ -67,9 +67,9 @@ function gitCommitSha() {
 const indexHtmlTemplateParameters = {
   rollbarSnippet: fs.readFileSync(ROLLBAR_SNIPPET_PATH, { encoding: 'utf8' }).trim(),
   rollbarCodeVersion: gitCommitSha(),
-  // Production source map file names start with `webpack:///./` (see `devtoolModuleFilenameTemplate`
-  // below). Rollbar strips this prefix to link stack trace files to GitHub.
-  rollbarServerRoot: 'webpack:///./',
+  // Source map file names start with `webpack://[namespace]/./`, where the namespace defaults to
+  // the package name. Rollbar strips this prefix to link stack trace files to GitHub.
+  rollbarServerRoot: `webpack://${packageName}/./`,
   codapVersion: version,
   codapBuildNumber: buildNumber
 }
@@ -152,9 +152,6 @@ module.exports = (env, argv) => {
     output: {
       path: path.resolve(__dirname, 'dist'),
       filename: 'assets/index.[contenthash].js',
-      // Name the files in production source maps `webpack:///./src/...` (without webpack's default
-      // `[namespace]`), which is the format in Rollbar's docs, so Rollbar can link stack traces to GitHub.
-      ...(devMode ? {} : { devtoolModuleFilenameTemplate: 'webpack:///[resource-path]' }),
     },
     snapshot: {
       // When computing the cache, use the hash if the timestamp is different
