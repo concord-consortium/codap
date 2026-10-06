@@ -54,7 +54,13 @@
         for (var i = 0; i < searchParts.length; ++i) {
           var pair = searchParts[i].split("=");
           if (pair[0] === "rollbar") {
-            var value = (pair[1] || "").toLowerCase();
+            var value = pair.slice(1).join("=");
+            try {
+              value = decodeURIComponent(value);
+            } catch (e) {
+              // Keep malformed values unchanged; they remain truthy unless they match a false token.
+            }
+            value = value.toLowerCase();
             rollbarParam = value !== "false" && value !== "no" && value !== "0";
           }
         }
