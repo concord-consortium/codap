@@ -55,8 +55,9 @@ later gates.
 | Action | Where | Read back with |
 |--------|-------|----------------|
 | POEditor push | Phase 3, step 2b | the script's output |
+| POEditor translation fixes | Phase 3, step 2d | the API response, then the re-pulled file |
 | `git push` of a release branch, `gh pr create` | Phase 4; Fix, Step 4 | `gh pr view --json url,labels` |
-| Tag push or deletion | Phase 5; Fix, Step 5 | `git ls-remote --tags origin {version}` |
+| Tag push or deletion | Phase 5; Fix, Step 5 | `git ls-remote --tags origin '{version}^{}'` |
 | Workflow dispatch (staging, production, beta) | Phase 6; Fix, Step 6 | [Dispatch, watch, verify](#dispatch-watch-verify) |
 | `gh release create` | Phase 6 | `gh release view {version} --json url,isDraft,isPrerelease` |
 | Jira edits (Fix Versions, version rename) | Phase 2, step 9; Fix, Step 6 | re-fetch the changed fields |
@@ -137,7 +138,9 @@ self-DM ([Slack Posts](#slack-posts)).
 
    **Which component to bump** is a judgment call about the release's contents, not a
    mechanical rule — propose one and confirm it with the user along with the rest of the
-   Jira release details (step 8).
+   Jira release details (step 8). Count only what users can see: work behind a feature flag,
+   logging, and docs don't make a release minor, and by convention neither does a new
+   translation or language.
 
 7. **Get previous release date from Jira** (for start date default)
 
@@ -177,6 +180,27 @@ self-DM ([Slack Posts](#slack-posts)).
    The date only has to be correct before the release is marked `Released` in Phase 6, so
    this need not block the rest of the workflow.
 
+10. **Put the release tracking issue in the current sprint.** Jira automation creates a
+    `Release {version}` issue (type Release) along with the version, and it lands in the
+    backlog. Once the user confirms the version exists, have a subagent find it and the active
+    sprint:
+
+    ```
+    project = CODAP AND issuetype = Release AND fixVersion = "{version}"   -- with customfield_10020
+    project = CODAP AND sprint in openSprints()     -- customfield_10020, maxResults 50
+    ```
+
+    If the tracking issue's `customfield_10020` already holds the active sprint, report that and
+    skip the edit (the user may have moved it already). Sprint IDs are not sequential, so read the
+    active sprint's `id`, `name`, and `endDate` from `customfield_10020` rather than guessing; scan
+    all results, since an issue can carry several sprints. If more than one sprint is active, or
+    the active sprint ends before the release date, ask which sprint to use.
+
+    Setting the sprint is a gated Jira edit: show the issue key, its summary, and the sprint
+    name and ID, then set `customfield_10020` to the sprint's ID (a plain integer, not an
+    object) with `editJiraIssue`, and re-fetch the field to confirm it. If no tracking issue
+    exists, say so; don't create one.
+
 ## Phase 2: Prepare Release Notes
 
 **Goal:** Generate CHANGELOG entry with user-selected titles.
@@ -214,48 +238,66 @@ self-DM ([Slack Posts](#slack-posts)).
    - Do NOT skip showing title options
    - ALWAYS go through items ONE BY ONE, presenting all title options for each
 
-   **IMPORTANT - PRESENTATION ORDER:**
-   Present the title options table as markdown output FIRST, then use AskUserQuestion. This prevents the question UI from covering the options.
+   **IMPORTANT - PUT THE TABLE IN THE QUESTION:** Text written in the same turn as an
+   `AskUserQuestion` call is not shown to the user, so a table output just before the question
+   is invisible and the user has nothing to decide from. Put each item's table in the `preview`
+   of **every** option of the Section question (previews render as monospace markdown beside the
+   options), and put the candidate titles in the option `description`s of the Title question.
 
-   First, output this markdown:
+   The preview for each item:
    ```
-   ### Item 1/8: CODAP-1027 (Story)
+   Item 1/8: CODAP-1027 (Story) — Jira: Done
 
-   | Source | Title |
-   |--------|-------|
-   | **AI suggestion** | {ai_title} |
-   | **Jira** | {jira_summary} |
-   | **PR** | {pr_title} |
+   | Source        | Title       |
+   |---------------|-------------|
+   | AI suggestion | {ai_title}  |
+   | Jira          | {jira_summary} |
+   | PR            | {pr_title}  |
+
+   PR #NNNN. {one or two lines of context: what the user would see, whether it is
+   flag-gated, anything that bears on the section choice}
    ```
 
    **Note:** Strip Jira IDs from PR titles before presenting (e.g., "CODAP-138: Fix point color" → "Fix point color")
 
-   **Jira status notice (if not Done):**
-   If the story's Jira status is anything other than "Done" (e.g., "In Project Team Review", "In Code Review"), append the status to the item header line with a warning indicator:
-   ```
-   ### Item 1/8: CODAP-1027 (Story) — Jira status: In Project Team Review ⚠️
-   ```
-   Do NOT add the status suffix for stories that are "Done". The user can choose to exclude the story via the Section question.
+   **Jira status notice (if not Done):** append the status to the preview's first line with a
+   warning indicator, e.g. `Item 1/8: CODAP-1027 (Story) — Jira: In Project Team Review ⚠️`. The
+   user can choose to exclude the story via the Section question.
 
-   Then ask questions using AskUserQuestion (Section and Title are TWO SEPARATE CALLS so Title is skipped if Exclude):
+   Ask using AskUserQuestion (Section and Title are TWO SEPARATE CALLS so Title is skipped if Exclude):
 
    **Section question:**
-   - Question: "Which section for this item?"
-   - Options: Features / Bug Fixes / Under the Hood / Exclude
-   - Add "(Recommended)" to Features for Stories, Bug Fixes for Bugs
+   - Question: "Item N/M: CODAP-XXXX ({type}) — which section?"
+   - Options: Features / Bug Fixes / Under the Hood / Exclude, with the recommended one first
+   - Recommend from **what users will see**, not from the issue type alone. Read the PR body
+     when the type and the change disagree:
+     - Work behind a feature flag → **Exclude**. But check each PR: a story in a flag-gated epic
+       can still ship an ungated, visible change (in 3.1.1, a Format palette redesign and a
+       legend-behavior fix both came from the flag-gated point-shapes epic).
+     - A story that fixes broken behavior → **Bug Fixes**.
+     - A fix to something no released version has shipped → **Exclude**; users never saw the bug
+       (e.g. corrections to a language first released in the same version).
+     - Docs, plans, logging, and CI/deploy infrastructure → **Exclude**.
+     - Otherwise: Features for Stories, Bug Fixes for Bugs.
    - If user types in "Other", interpret as an instruction (e.g., "go back to previous item") and handle accordingly
 
    **If Section is NOT Exclude - ask Title question:**
-   - Question: "Which title? (See table above, or type your preferred title in 'Other')"
-   - Options: AI suggestion / Jira / PR (no "Custom" - user types preferred title in built-in "Other")
+   - Question: "CODAP-XXXX — which title? (or type your own in 'Other')"
+   - Options: AI suggestion / Jira / PR, each with its full title as the option `description`
+     (no "Custom" - user types preferred title in built-in "Other")
+   - If the chosen section changes the framing (e.g. a Story moved to Bug Fixes), reword the AI
+     suggestion to match and say so in the question
    - If user types in "Other", use their text as the title
-   - **Title option order must ALWAYS be:** AI suggestion, Jira, PR (both in table and in question options)
+   - **Title option order must ALWAYS be:** AI suggestion, Jira, PR (both in the preview and in question options)
    - Stories included in release notes will have their Fix Version updated automatically (tracked for step 9)
 
    **If Section IS Exclude - ask Fix Version question:**
-   - Question: "Should this story's Fix Version be set to this release?"
-   - Options: Yes / No
-   - Default recommendation: **Yes (Recommended)** - infrastructure improvements may not be user-facing but should still be tracked in Jira
+   - Question: "Should CODAP-XXXX's Fix Version be set to this release?"
+   - Options: Yes / No, with the recommended one first
+   - Recommend **Yes** when the story's work is complete in this release, even if it isn't
+     user-facing (flag-gated work, docs, infrastructure) — it should still be tracked in Jira.
+   - Recommend **No** when the story is still In Progress or is an epic with open stories: more
+     work will follow, so it isn't "fixed" in this version.
    - If **Yes**: Add to Fix Version update list (step 9) even though excluded from release notes
    - If **No**: Do not update Fix Version (e.g., if the story was fixed in a prior release, or the PR isn't part of this release)
 
@@ -293,10 +335,15 @@ self-DM ([Slack Posts](#slack-posts)).
 
 8. **Present generated markdown for approval:**
 
-   Show the complete CHANGELOG entry, then ask:
-   - **Approve** - Release notes are ready, proceed to Phase 3
-   - **Edit an item** - Go back and change a specific item's section or title
-   - **Reorder items** - Change the order within sections
+   Show the complete CHANGELOG entry as a markdown code block and **end the turn with a plain
+   question** — do not use AskUserQuestion here. The entry is too long for an option preview,
+   and text in the same turn as a question isn't shown, so the user would be asked to approve
+   notes they can't see. Ask whether to approve, edit an item (section or title), or reorder.
+   The user often reviews the whole entry for consistency at this point (e.g. capitalization,
+   or similar items landing in different sections), so expect edits.
+
+   In the same message, list the issues step 9 will set the Fix Version on, so a single reply
+   can approve both the notes and that gated Jira edit.
 
    Note: Mention that Asset Sizes will be added in Phase 4 after the build.
 
@@ -326,10 +373,18 @@ self-DM ([Slack Posts](#slack-posts)).
     Compare the results with the stories matched in step 3 and show the user:
     - **Stories on the version with no merged PR in the range.** Ask whether each belongs in
       this release (e.g. a story with no code, or a PR merged before the previous tag), or
-      whether its Fix Version should be removed. Removing it is a gated Jira edit.
+      whether its Fix Version should be removed. Removing it is a gated Jira edit. The
+      `Release {version}` issue (type Release) that Jira automation creates with the version is
+      expected here and needs no action.
     - **Stories that are not Done**, grouped by status. These are expected at this point (most
       stories sit in "In Project Team Review" until after the release), so this is
       informational. They are checked again before the version is marked released (Phase 6).
+    - **Stories whose PR is merged but whose status is earlier than In Project Team Review**
+      (e.g. still "Ready for Merge"). Point these out. Before moving one to In Project Team
+      Review (a gated Jira edit), check that it has testing instructions the Project Team
+      Approver can follow, and offer to draft them from the PR if not.
+
+    This check and the read-back of step 9 are the same query, so one subagent can do both.
 
     JQL can query this reliably now that step 9 has assigned the version to issues; the caveat
     in Phase 1, step 9 applies only to a version with no issues yet.
@@ -456,7 +511,33 @@ branch must be created before any commits (translations, version files, etc.).
    cd /path/to/codap   # repository root, NOT v3/
    git status -- v3/src/utilities/translation/lang/
    ```
-   Report results to the user. If there are changes:
+   Report results to the user. Every language normally gains the new English keys from 2b
+   (untranslated keys arrive with the English text). **Also review changes to existing
+   translations** — values translators edited in POEditor since the last release. These go
+   straight into the release, and nothing else checks them. List them, filtering out the new
+   keys:
+   ```bash
+   git diff -U0 -- v3/src/utilities/translation/lang/ | grep -E '^(\+\+\+|[-+] )' \
+     | grep -vE '<new-key-pattern>'   # e.g. 'pointShape|section\.graph|...' from 2a's NEW KEYS
+   ```
+   A changed line can also be just a trailing comma, where a new key was appended after what
+   used to be the last entry; ignore those. Show the user each changed value, old → new, and
+   flag anything that looks wrong: typos, broken placeholders (`%@`), lost punctuation. In the
+   3.1.1 release, two French typos arrived this way.
+
+   **If a translation needs fixing,** fix it in POEditor, not in the local file (the next pull
+   would overwrite a local fix), then re-run 2c. Fixing it is a gated action. Write the
+   corrections to a JSON file and call the POEditor API; `~/.porc` defines `API_TOKEN`:
+   ```bash
+   # fixes.json: [{"term":"<key>","context":"","translation":{"content":"<corrected text>"}}]
+   source ~/.porc
+   curl -s -X POST https://api.poeditor.com/v2/translations/update \
+     -d api_token="$API_TOKEN" -d id=125447 -d language=<lang> --data-urlencode data@fixes.json
+   # expect: "translations":{"parsed":N,"updated":N}
+   ```
+   After re-running 2c, grep the language file to confirm the corrected values arrived.
+
+   Then commit:
    ```bash
    git add v3/src/utilities/translation/lang/
    git commit -m "Update translations from POEditor"
@@ -558,6 +639,20 @@ branch must be created before any commits (translations, version files, etc.).
    >
    > After CI passes and PR is reviewed/merged, run `/codap-v3-build tag` to continue.
 
+8. **If CI fails or stalls, check for a GitHub outage before suspecting the release.** During
+   the 3.1.1 release, a GitHub Actions incident made jobs wait for runners that never came: they
+   ran **no steps** and were cancelled **exactly 15 minutes** after being queued, while jobs that
+   did get runners passed slowly. That pattern means the infrastructure, not the code:
+   ```bash
+   gh run view <id> --json jobs \
+     --jq '.jobs[] | "\(.name)\t\(.conclusion)\t\(.startedAt) -> \(.completedAt)\t\(.steps|length) steps"'
+   curl -s https://www.githubstatus.com/api/v2/incidents/unresolved.json \
+     | python3 -c "import json,sys; [print(i['name'], i['status'], i['created_at']) for i in json.load(sys.stdin)['incidents']]"
+   ```
+   If an Actions incident is open, poll the status API in the background (e.g. every 3 minutes)
+   until it clears, then re-run the affected runs (`gh run rerun <id>`, or `--failed` for only
+   the cancelled jobs) and watch them with `gh run watch <id> --exit-status`.
+
 ## Phase 5: Tag
 
 **Goal:** After PR merge, create the git tag that triggers the S3 build.
@@ -617,7 +712,8 @@ build number" commit that follows the merge must have landed on `main` (see step
    The push is gated. Show the tag, its commit, and the command, then:
    ```bash
    git push origin {version}
-   git ls-remote --tags origin {version}
+   git ls-remote --tags origin '{version}^{}'   # the commit it points at; must match
+   git rev-list -n1 {version}
    ```
 
    The tag push triggers a CI build that deploys to S3. The GitHub release is
@@ -1007,7 +1103,7 @@ build number" commit that follows the merge must have landed on `main`.
    git log -1 --format='%h %s' {new-version}
    # expected: <sha> Increment the build number
    git push origin {new-version}
-   git ls-remote --tags origin {new-version}
+   git ls-remote --tags origin '{new-version}^{}'   # must match git rev-list -n1 {new-version}
    ```
 
    As in Phase 5, do **not** create the GitHub release here. The tag push triggers
@@ -1129,7 +1225,9 @@ Every message to `#codap-v3` (or anyone other than the developer) goes through t
 3. **Ask the user to check the preview** and approve posting it to the channel. Claude can't edit
    or delete a message once it's posted, so any fix happens here.
 4. **Post the same text to the channel** (`channel_id: #codap-v3`, plus `thread_ts` for a thread
-   reply). Record the returned `ts` and report it.
+   reply). The result names the channel's ID (`C…`) and the message's `ts`; record and report
+   both. A release spans days and often sessions, so also save them where a later session will
+   find them (e.g. Claude's memory for this project), for the production-live thread reply.
 
 If the Slack MCP server isn't available, show the user the draft and ask them to paste it into
 Slack themselves.
