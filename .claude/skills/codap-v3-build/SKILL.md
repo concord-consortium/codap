@@ -762,7 +762,7 @@ and announce.
 
 2. **Post the release announcement to `#codap-v3`** (gated), following
    [Slack Posts](#slack-posts): preview in the self-DM, get approval, post, and record the
-   message's `ts` for step 9.
+   message's `ts` for step 7.
 
    **Announcement format** (standard markdown, same items, titles, and order as CHANGELOG.md):
 
@@ -813,30 +813,34 @@ and announce.
    gh release list --limit 1    # {version} should be marked Latest
    ```
 
-7. **Check unresolved issues on the fix version.** Have a subagent run:
+7. **Announce that production is live** (gated) as a reply in the announcement's thread
+   (`thread_ts` = the `ts` recorded in step 2), following [Slack Posts](#slack-posts):
+
+   ```markdown
+   CODAP {version} is now live on [production](https://codap3.concord.org/) and [beta](https://codap3.concord.org/beta). [GitHub release notes](<GitHub release URL from step 6>)
+   ```
+
+   Say "GitHub release notes", not "Release notes": there is a separate, user-facing release
+   notes document, and the two shouldn't be confused.
+
+   If the session was resumed and the `ts` is no longer known, find the announcement with
+   `mcp__slack__conversations_history` on `#codap-v3` (text starting `CODAP {version} is
+   available for testing`) and confirm with the user that it's the right message.
+
+8. **Check unresolved issues on the fix version.** Have a subagent run:
    ```
    project = CODAP AND fixVersion = "{version}" AND statusCategory != Done ORDER BY key
    ```
    and report key, summary, status, assignee, and Project Team Approver. Show the list grouped
    by status. Stories in "In Project Team Review" are normal at this point; anything earlier
    (In Progress, In Code Review, Ready for Merge) suggests the story isn't actually in the build.
-   Ask the user whether to nudge the owners (a Slack message to anyone else is gated), to move a
+   The `Release {version}` tracking issue appears here too, with "Automation for Jira" as its
+   Project Team Approver; that is expected. Ask the user whether to nudge the owners (a Slack message to anyone else is gated), to move a
    story's Fix Version (a gated Jira edit), or to release as is.
 
-8. **Mark the Jira version released.** The Atlassian MCP tools have no version-management tool,
+9. **Mark the Jira version released.** The Atlassian MCP tools have no version-management tool,
    so the user does this in the Jira UI: CODAPv3 → Releases → `{version}` → **Release**, with the
    release date agreed in Phase 1. Wait for the user to confirm.
-
-9. **Announce that production is live** (gated) as a reply in the announcement's thread
-   (`thread_ts` = the `ts` recorded in step 2), following [Slack Posts](#slack-posts):
-
-   ```markdown
-   CODAP {version} is now live on [production](https://codap3.concord.org/) and [beta](https://codap3.concord.org/beta). [Release notes](<GitHub release URL from step 6>)
-   ```
-
-   If the session was resumed and the `ts` is no longer known, find the announcement with
-   `mcp__slack__conversations_history` on `#codap-v3` (text starting `CODAP {version} is
-   available for testing`) and confirm with the user that it's the right message.
 
 10. **Go through the [Done when](#done-when) checklist** before calling the release finished.
 
@@ -848,7 +852,7 @@ true:
 - [ ] `/` and `/beta` serve `version/{version}/` (re-run the curl checks)
 - [ ] The GitHub release `{version}` is published, not a draft or pre-release, and marked Latest
 - [ ] The Jira version `{version}` is marked Released
-- [ ] Unresolved issues on the version were reviewed with the user (step 7)
+- [ ] Unresolved issues on the version were reviewed with the user (step 8)
 - [ ] The staging announcement is in `#codap-v3` and the production-live reply is in its thread
 
 ### Manual Completion Instructions
@@ -1148,7 +1152,7 @@ build number" commit that follows the merge must have landed on `main`.
 3. **Post the updated announcement** (gated) as a new top-level message in `#codap-v3`, following
    [Slack Posts](#slack-posts). Use the same format and rules as Phase 6, step 2 (linked Jira
    keys, `- ` on every item), with a line noting the revised build. Record the new message's
-   `ts`; the production-live reply (Phase 6, step 9) goes in *this* message's thread.
+   `ts`; the production-live reply (Phase 6, step 7) goes in *this* message's thread.
 
    ```markdown
    CODAP {new-version} is available for testing at https://codap3.concord.org/staging.
