@@ -49,13 +49,13 @@
               version: "<%= codapVersion %>",
               buildNumber: "<%= codapBuildNumber %>"
             },
-            // lets Rollbar link stack trace files (once source-mapped) to GitHub
+            // for GitHub links; see webpack.config.js
             server: {
               root: "<%= rollbarServerRoot %>"
             },
             client: {
               javascript: {
-                // git commit SHA, which Rollbar uses to link stack traces to the code in GitHub
+                // git commit SHA, for GitHub links; see webpack.config.js
                 code_version: "<%= rollbarCodeVersion %>",
                 // Rollbar downloads the source maps, which are deployed next to the bundle
                 source_map_enabled: true

@@ -54,9 +54,13 @@ const ROLLBAR_SETTINGS_PATH = path.join(__dirname, 'src/lib/rollbar/rollbar-sett
 const { name: packageName, version } = require('./package.json')
 const { buildNumber } = require('./build_number.json')
 
-// Rollbar uses the code version to link stack traces to the matching commit in GitHub, so it
-// should be the git commit SHA. GITHUB_SHA is set in CI; since the v3 workflow only runs on
-// `push`, it is the pushed commit (not a pull request merge commit).
+// Rollbar links (source-mapped) stack trace files to GitHub. For this it needs two values:
+// - the code version (`rollbarCodeVersion`), which must be the git commit SHA, to pick the commit
+// - `server.root` (`rollbarServerRoot`), the prefix of the file names in the source maps, which it
+//   strips to get the path in the repo (the Rollbar project's Project Root setting adds `v3/`)
+
+// GITHUB_SHA is set in CI; since the v3 workflow only runs on `push`, it is the pushed commit
+// (not a pull request merge commit).
 function gitCommitSha() {
   if (process.env.GITHUB_SHA) return process.env.GITHUB_SHA
   try {
@@ -70,8 +74,7 @@ const indexHtmlTemplateParameters = {
   rollbarSnippet: fs.readFileSync(ROLLBAR_SNIPPET_PATH, { encoding: 'utf8' }).trim(),
   rollbarSettingsScript: fs.readFileSync(ROLLBAR_SETTINGS_PATH, { encoding: 'utf8' }).trim(),
   rollbarCodeVersion: gitCommitSha(),
-  // Source map file names start with `webpack://[namespace]/./`, where the namespace defaults to
-  // the package name. Rollbar strips this prefix to link stack trace files to GitHub.
+  // source map file names start with `webpack://[namespace]/./`; the namespace defaults to the package name
   rollbarServerRoot: `webpack://${packageName}/./`,
   codapVersion: version,
   codapBuildNumber: buildNumber
