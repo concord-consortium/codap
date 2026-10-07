@@ -226,8 +226,9 @@ export interface UrlParams {
   release?: string | null
   /*
    * Turns Rollbar error reporting on or off, overriding the default for the current url
-   * (e.g. to test Rollbar on a branch build). Read by src/lib/rollbar/rollbar-settings.js,
-   * not via `urlParams`, because Rollbar starts before the main bundle runs.
+   * (e.g. to test Rollbar on a branch build). Only honored on concord.org hosts and localhost.
+   * Read by src/lib/rollbar/rollbar-settings.js, not via `urlParams`, because Rollbar starts
+   * before the main bundle runs.
    * value: boolean-like string (same rules as booleanParam)
    */
   rollbar?: string | null

@@ -80,8 +80,24 @@ describe("getRollbarSettings", () => {
       expect(settingsFor(`${codap3}/branch/x/${search}`)).toEqual({ enabled, environment: "development" })
     })
 
-    it("turns reporting on for localhost, in the development environment", () => {
-      expect(settingsFor("http://localhost:8080/?rollbar=yes")).toEqual({ enabled: true, environment: "development" })
+    it.each([
+      "http://localhost:8080/?rollbar=yes",
+      "http://127.0.0.1:8080/?rollbar=yes",
+      "https://codap2to3.concord.org/app/branch/x/?rollbar=yes",
+      "https://concord.org/?rollbar=yes"
+    ])("turns reporting on for %s, in the development environment", url => {
+      expect(settingsFor(url)).toEqual({ enabled: true, environment: "development" })
+    })
+
+    it.each([
+      "https://example.com/?rollbar=yes",
+      "https://example.github.io/codap/?rollbar=yes",
+      // only concord.org itself and its subdomains are trusted
+      "https://notconcord.org/?rollbar=yes",
+      "https://concord.org.example.com/?rollbar=yes",
+      "http://localhost.example.com/?rollbar=yes"
+    ])("ignores the parameter on other hosts, like %s", url => {
+      expect(settingsFor(url)).toEqual({ enabled: false, environment: "development" })
     })
   })
 })

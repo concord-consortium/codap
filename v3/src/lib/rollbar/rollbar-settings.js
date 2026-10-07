@@ -10,6 +10,9 @@ function getRollbarSettings(location) {
   // codap.concord.org serves v3 under /app/; codap3.concord.org serves it at the root
   var path = location.pathname.replace(/^\/app(?=\/|$)/, "")
   var isCodapHost = /^codap3?\.concord\.org$/i.test(host)
+  // the `rollbar` url parameter is only honored on Concord hosts and localhost, so that other copies
+  // of CODAP (e.g. forks) can't send errors to Concord's Rollbar project
+  var isTrustedHost = /(^|\.)concord\.org$/i.test(host) || host === "localhost" || host === "127.0.0.1"
   var branchMatch = /^\/branch\/([^/]+)\//.exec(path)
   // release workflows copy a build to /<name> (and staging also to /index-<name>.html)
   var namedMatch = /^\/([a-z0-9-]+)$/i.exec(path) || /^\/index-([a-z0-9-]+)\.html$/i.exec(path)
@@ -29,7 +32,7 @@ function getRollbarSettings(location) {
   // It uses the same rules as `booleanParam()` in src/utilities/url-params.ts: "false", "no",
   // and "0" turn Rollbar off, anything else (including no value) turns it on, last one wins.
   var rollbarParam
-  var searchParts = location.search.replace(/^\?/, "").split("&")
+  var searchParts = isTrustedHost ? location.search.replace(/^\?/, "").split("&") : []
   for (var i = 0; i < searchParts.length; ++i) {
     var pair = searchParts[i].split("=")
     if (pair[0] === "rollbar") {
