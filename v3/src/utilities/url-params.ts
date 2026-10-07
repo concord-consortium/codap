@@ -225,6 +225,14 @@ export interface UrlParams {
    */
   release?: string | null
   /*
+   * Turns Rollbar error reporting on or off, overriding the default for the current url
+   * (e.g. to test Rollbar on a branch build). Only honored on concord.org hosts and localhost.
+   * Read by src/lib/rollbar/rollbar-settings.js, not via `urlParams`, because Rollbar starts
+   * before the main bundle runs.
+   * value: boolean-like string (same rules as booleanParam)
+   */
+  rollbar?: string | null
+  /*
    * [V2] Provides anonymous read-write session tracking. When present, used as
    * the session identifier for log messages instead of a generated ID.
    * value: session key string

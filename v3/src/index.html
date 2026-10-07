@@ -19,6 +19,58 @@
       Create or add to a web project, and save. This will generate the link to use here.
     -->
     <link href="https://use.typekit.net/ckm7htd.css" rel="stylesheet" >
+    <!-- Rollbar error reporting - must come before other scripts so it can catch their errors -->
+    <!-- This script uses ES5 syntax so it runs on older browsers -->
+    <script>
+      (function() {
+        // defines getRollbarSettings() (src/lib/rollbar/rollbar-settings.js)
+        <%= rollbarSettingsScript %>
+
+        var settings = getRollbarSettings(window.location);
+
+        window._rollbarConfig = {
+          accessToken: "4b433e7498ee477c8019022050e3cf4b",
+          enabled: settings.enabled,
+          captureUncaught: true,
+          captureUnhandledRejections: true,
+          // CODAP is used by students; don't record IP addresses or the values typed into inputs
+          captureIp: "anonymize",
+          scrubTelemetryInputs: true,
+          checkIgnore: function(isUncaught, args) {
+            var msg = args && args[0];
+            var text = msg instanceof Error ? msg.message : msg;
+            // benign browser warning (the browser defers notifications to the next frame)
+            return typeof text === "string" && text.indexOf("ResizeObserver loop") !== -1;
+          },
+          payload: {
+            environment: settings.environment,
+            // shown with each occurrence in Rollbar, since the code version is a git commit SHA
+            codap: {
+              version: "<%= codapVersion %>",
+              buildNumber: "<%= codapBuildNumber %>"
+            },
+            // for GitHub links; see webpack.config.js
+            server: {
+              root: "<%= rollbarServerRoot %>"
+            },
+            client: {
+              javascript: {
+                // git commit SHA, for GitHub links; see webpack.config.js
+                code_version: "<%= rollbarCodeVersion %>",
+                // Rollbar downloads the source maps, which are deployed next to the bundle
+                source_map_enabled: true
+              }
+            }
+          }
+        };
+      })();
+
+      // Rollbar Snippet
+      if (window._rollbarConfig.enabled) {
+        <%= rollbarSnippet %>
+      }
+      // End Rollbar Snippet
+    </script>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <!-- `codapGAScriptError` is read by src/lib/ga-status.ts; keep the names in sync -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZYRHG9RN3K"
