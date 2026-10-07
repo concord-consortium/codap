@@ -24,25 +24,21 @@
     <script>
       (function() {
         var host = window.location.hostname;
-        var path = window.location.pathname;
-        // codap3.concord.org, or codap.concord.org (where v3 is served under /app/)
+        // codap.concord.org serves v3 under /app/; codap3.concord.org serves it at the root
+        var path = window.location.pathname.replace(/^\/app(?=\/|$)/, "");
         var isCodapHost = /^codap3?\.concord\.org$/i.test(host);
-        var branchMatch = /\/branch\/([^/]+)\//.exec(path);
-        var isVersionBuild = /\/version\/[^/]+\//.test(path);
+        var branchMatch = /^\/branch\/([^/]+)\//.exec(path);
+        // release workflows copy a build to /<name> (and staging also to /index-<name>.html)
+        var namedMatch = /^\/([a-z0-9-]+)$/i.exec(path) || /^\/index-([a-z0-9-]+)\.html$/i.exec(path);
+        // other paths (e.g. /version/<tag>/ builds) don't report errors
         var environment;
-        if (branchMatch) {
+        if (path === "" || path === "/" || path === "/index.html") {
+          environment = "production";
+        } else if (branchMatch) {
           // only report errors from the main branch, not from feature branches
           environment = branchMatch[1] === "main" ? "main" : undefined;
-        } else if (isVersionBuild) {
-          environment = undefined;
-        } else if (/\/(staging|index-staging\.html)$/.test(path)) {
-          environment = "staging";
-        } else if (/\/beta$/.test(path)) {
-          environment = "beta";
-        } else if (/\/ai4vs$/.test(path)) {
-          environment = "ai4vs";
-        } else {
-          environment = "production";
+        } else if (namedMatch) {
+          environment = namedMatch[1].toLowerCase();
         }
         var isDefaultEnabled = isCodapHost && !!environment;
 
