@@ -21,9 +21,9 @@ These conventions exist to satisfy three constraints at once:
 doc/plugin-api/            (currently under v3/, moving with it)
   README.md           index: terminology, request envelope, selector rules, resource table
   conventions.md      this page
-  resources/          one page per resource                          (filling in: Phases 2-3)
-  guides/             narrative chapters spanning resources          (filling in: Phase 5)
-  notifications.md    catalog of notifications CODAP sends           (not yet created: Phase 4)
+  resources/          one page per resource
+  guides/             narrative chapters spanning resources
+  notifications.md    catalog of notifications CODAP sends           (not yet created)
 ```
 
 `resources/` holds reference pages, one per resource, following the layout below. `guides/`
@@ -91,8 +91,8 @@ current. Update the date and commit when you re-verify the page, not when you me
 
 ## Generated blocks
 
-Mechanical content lives between markers so the Phase 6 generator can replace it without
-disturbing anything a person wrote:
+Mechanical content lives between markers so the generator can replace it without disturbing
+anything a person wrote:
 
 ```markdown
 <!-- BEGIN GENERATED: actions -->
@@ -128,6 +128,10 @@ Rules:
   page, since the generator targets them by name.
 - A page written before the generator exists still uses the markers, with the content written by
   hand. That is the point — the generator takes over later with no restructuring.
+- **A marker shown as an example is still a marker.** The tools scan the raw file, so a marker
+  inside a code fence counts as a real one — the example above works only because it is a
+  well-formed pair. Never illustrate a *malformed* marker: the lint would report it, and on a
+  resource page the generator would refuse to rewrite the whole page.
 
 ---
 

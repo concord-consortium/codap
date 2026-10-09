@@ -80,15 +80,21 @@ nameOrId  := a name, a title, or a numeric id — or #default for a data context
 ```
 
 **Any word is accepted as a key at parse time.** CODAP does not validate keys against a list
-while parsing, so a misspelled selector never fails there. What happens next depends on which
-segment was wrong:
+while parsing, so a misspelled selector never fails there.
 
-- A misspelled **final** segment decides the handler, so there is none, and the request fails
-  with `Unsupported action: <action>/<key>`.
-- A misspelled **earlier** segment is simply unread. The parser keeps it under a key nothing
-  looks at, and resolution falls back to searching the whole data context — so
-  `dataContext[M].colection[C].attribute[Age]` succeeds, silently ignoring the collection you
-  asked for.
+A misspelled **final** segment decides which handler runs, so there is none, and the request
+fails with `Unsupported action: <action>/<key>`.
+
+A misspelled **earlier** segment is simply unread: the parser stores it under a key nothing
+looks at, and resolution proceeds as though you had not written that segment at all. What
+that costs depends on which segment it was.
+
+- **A misspelled `dataContext`** is the dangerous one. With no data context named, CODAP
+  supplies `#default`, so the request runs against the first data context in the document and
+  reports success — against data you did not ask for.
+- **A misspelled `collection`** leaves the resource to resolve without one. For `attribute`
+  the search widens to the whole data context and usually finds the attribute anyway;
+  `attributeList` returns an empty list; the case resources report not found.
 
 Do not read a successful parse, or even a successful request, as a valid selector.
 
@@ -108,8 +114,10 @@ it; each resource's page says which.
 
 ## Error catalog
 
-Every error string the Data Interactive API returns through its message catalog, alphabetically.
-A few errors are still hard-coded English literals in the handlers and are not listed here. A `<value>` is filled in
+Every error string this reference can extract from CODAP's source, alphabetically: the entries in
+its message catalog, plus six that are hard-coded English literals in the handlers. Errors that a
+handler builds from a template at the point it raises them are **not** here, so this table is
+nearly complete rather than complete. A `<value>` is filled in
 at runtime with the offending name, type or action; an individual resource's page may name those
 placeholders more specifically where it knows what they hold.
 
@@ -133,7 +141,6 @@ the string is what reaches your plugin.
 | `Cannot assign <value1> to <value2>` | — |
 | `Cannot create multiple sliders for <value>` | — |
 | `Case not found` | `caseNotFoundResult` |
-| `clientId and filter values are required` | — |
 | `Collection not found` | `collectionNotFoundResult` |
 | `Component does not support rescale` | — |
 | `Component not found` | `componentNotFoundResult` |
@@ -143,34 +150,35 @@ the string is what reaches your plugin.
 | `DataDisplay not found` | `dataDisplayNotFoundResult` |
 | `DataSetMetadata not found for <value>` | — |
 | `Document content not found` | — |
-| `error creating global value` | — |
 | `Failed to download and import CSV: <url>` | — |
 | `Global not found: <value>` | — |
-| `global values must be numbers` | — |
-| `globals must have unique names` | — |
-| `id or clientId required` | — |
-| `Interactive frame content not found` | — |
 | `Interactive Frame not found` | `noInteractiveFrameResult` |
+| `Interactive frame content not found` | — |
 | `Internal error prevented color map access` | `noColorMapAccessResult` |
 | `Invalid bar chart scale: <value>` | — |
 | `Invalid record for evaluation` | — |
 | `Invalid values provided for update.` | `invalidValuesProvidedResult` |
 | `Item not found` | `itemNotFoundResult` |
-| `missing global or value` | — |
 | `No action to process.` | — |
 | `Not a(n) <value1> adornment.` | — |
 | `Not found` | — |
-| `not implemented (yet)` | — |
 | `The <value1> adornment does not currently support <value2> requests.` | — |
 | `The current plot type does not support Percent.` | — |
 | `Unable to parse query.` | `couldNotParseQueryResult` |
-| `unknown request: <value>` | — |
 | `Unsupported action: <value>/<value>` | — |
 | `Unsupported adornment type` | `adornmentNotSupportedResult` |
 | `Unsupported animationDirection <value>` | — |
 | `Unsupported animationMode <value>` | — |
-| `Unsupported component type` | — |
+| `Unsupported component type` | `diComponentHandler` |
 | `Unsupported component type <value>` | — |
 | `Unsupported dateUnit <value>` | — |
 | `Unsupported scaleType <value>` | — |
+| `clientId and filter values are required` | `diLogMessageMonitorHandler` |
+| `error creating global value` | — |
+| `global values must be numbers` | — |
+| `globals must have unique names` | — |
+| `id or clientId required` | `diLogMessageMonitorHandler` |
+| `missing global or value` | — |
+| `not implemented (yet)` | `diNotImplementedYetResult` |
+| `unknown request: <value>` | — |
 <!-- END GENERATED: error-catalog -->

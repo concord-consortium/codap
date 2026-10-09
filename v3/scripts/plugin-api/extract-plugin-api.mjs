@@ -283,12 +283,6 @@ for (const [, sf] of sources) {
       const name = registrationName(asString(a0), fn, sf, node)
       const handlerName = a1 && ts.isIdentifier(a1) ? a1.text : undefined
       const { actions, note, via } = handlerName ? actionsOf(handlerName) : { actions: null, note: "inline handler" }
-      // Whether the handler actually reads a data context. The parser's #default exemption list
-      // says only whether one gets *resolved*; several resources have one resolved and ignore it
-      // (adornment, for instance), so a page that reports scope from the list alone misleads.
-      // Whether the handler actually reads a data context. A whole-file grep is not enough:
-      // case-by-id-handler.ts never mentions dataContext but delegates to handler-functions.ts,
-      // which requires one. Follow local imports one level before concluding it does not.
       const usesDataContext = referencesDataContext(sf)
       resources.push({ name, actions, ...(note && { note }), ...(via && { via }), handler: handlerName,
                        usesDataContext, source: siteOf(sf, node) })
@@ -371,7 +365,7 @@ for (const [, sf] of sources) {
     if (!ts.isPropertyAssignment(node)) return
     const key = node.name && (ts.isIdentifier(node.name) || ts.isStringLiteralLike(node.name)) ? node.name.text : ""
     if (key !== "error" || !ts.isStringLiteralLike(node.initializer)) return
-    addLiteralError(node.initializer.text, siteOf(sf, node))
+    addLiteralError(node.initializer.text, siteOf(sf, node), exportedConstAround(node))
   })
   // ...and errorResult("literal"), which is a call argument rather than a property.
   eachNode(sf, node => {
@@ -381,9 +375,23 @@ for (const [, sf] of sources) {
     if (arg && ts.isStringLiteralLike(arg)) addLiteralError(arg.text, siteOf(sf, node))
   })
 }
-function addLiteralError(message, source) {
+// A literal error can still be a prebuilt result — `diNotImplementedYetResult` is one, declared
+// outside di-results.ts and so missed by the keyed scan above. Walk out to the enclosing
+// `export const NAME = {...}` so the catalog names it like any other prebuilt result.
+function exportedConstAround(node) {
+  for (let n = node.parent; n; n = n.parent) {
+    if (ts.isVariableDeclaration(n) && ts.isIdentifier(n.name)) {
+      const stmt = n.parent?.parent
+      const exported = stmt && ts.isVariableStatement(stmt) &&
+        stmt.modifiers?.some(m => m.kind === ts.SyntaxKind.ExportKeyword)
+      return exported ? n.name.text : undefined
+    }
+  }
+}
+
+function addLiteralError(message, source, exportedAs) {
   if (message.length < 8 || errors.some(e => e.message === message)) return
-  errors.push({ key: null, message, literal: true, source })
+  errors.push({ key: null, message, literal: true, ...(exportedAs && { exportedAs }), source })
 }
 errors.sort((a, b) => cmp(a.key ?? a.message, b.key ?? b.message))
 

@@ -209,7 +209,7 @@
         ]
       }
     },
-    "selectorSelectorFields": {
+    "resourceSelectorMembers": {
       "description": "Members of the internal DIResourceSelector type. Data for tools; NOT the set of valid selector keys — see the resource table in doc/plugin-api/quick-reference.md.",
       "const": [
         "attribute",

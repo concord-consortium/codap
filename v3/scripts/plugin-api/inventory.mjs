@@ -1,8 +1,7 @@
 //
-// markers.mjs already holds the marker grammar; this holds the one way both scripts run the
-// extractor. `execFileSync` throws on a non-zero exit, which printed the extractor's own message
-// a second time under a stack trace and then exited 1 instead of its exit code. The extractor has
-// already said what is wrong, so pass its status through and say nothing more.
+// The one way both scripts run the extractor. It has already reported whatever is wrong, so
+// pass its exit status through and add nothing: `execFileSync` throws on a non-zero exit, and an
+// unhandled throw would bury that message under a stack trace.
 //
 import { execFileSync } from "node:child_process"
 import { dirname, join } from "node:path"

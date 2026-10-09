@@ -88,9 +88,8 @@ for (const file of files) {
   }
 
   // markers — the same ordered walk the generator runs before it rewrites anything, so the lint
-  // and the generator cannot disagree about whether a page is safe. Comparing the BEGIN and END
-  // name lists, as this used to, ignores order: an END before its BEGIN, a nested pair, or a
-  // malformed marker all passed.
+  // and the generator cannot disagree about whether a page is safe. See markers.mjs for what
+  // counts as malformed and why it matters.
   for (const problem of markerProblems(raw)) fail(name, problem)
 
   // scope drift
@@ -134,7 +133,8 @@ for (const file of files) {
   }
 }
 
-// scope blocks must be identical wherever they say the same thing
+// There is one scope paragraph per scope case, so more variants than cases means a page has
+// drifted from what the generator writes.
 if (scopeBlocks.size > 3) {
   problems.push(`scope blocks: ${scopeBlocks.size} distinct variants; expected at most 3 (one per scope case)`)
 }

@@ -24,8 +24,7 @@ content, and a checker.
 `markers.mjs` and `inventory.mjs` are shared helpers, not entry points: the first defines a
 well-formed generated-block marker, the second is the one way both scripts run the extractor.
 The generator consults `markers.mjs` *before* rewriting a page and skips any page whose markers
-it cannot prove safe, because a mis-paired marker makes the block regex span past it and delete
-the prose in between.
+it cannot prove safe; that file explains what a rewrite would otherwise destroy.
 
 Run them from `v3/`.
 

@@ -18,7 +18,7 @@
 //   adornment-types  written. Derived from the adornment registrations.
 //   values           written ONLY when the block declares its source interface, as
 //                    `<!-- BEGIN GENERATED: values source=DIAttribute -->`. Resources do not
-//                    map to interfaces by name — only 2 of 7 sampled resources matched a
+//                    map to interfaces by name — few resources match a
 //                    DI<Name> convention — so the author states the mapping and the tool
 //                    fills the table.
 //   anything else    left alone and reported. A block this tool cannot produce completely is
@@ -30,7 +30,11 @@
 //   CHANGED  a page whose actions block disagreed with the code (rewritten)
 //
 // Usage: node generate-plugin-api-docs.mjs [--check]
-//   --check  report only; write nothing. Exits 2 if anything is NEW, REMOVED or CHANGED.
+//   --check  report only; write nothing.
+//
+// Exits 2 for NEW, REMOVED or CHANGED under --check, and in either mode for a stale baseline
+// entry, a page whose markers are not well formed, or a block declaring a source= the inventory
+// does not have. Exits 3 if the extractor could not produce an inventory.
 //
 import { readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs"
 import { fileURLToPath } from "node:url"
@@ -42,7 +46,7 @@ const here = dirname(fileURLToPath(import.meta.url))
 const v3Dir = join(here, "..", "..")
 const docsDir = join(v3Dir, "doc", "plugin-api")
 const resourcesDir = join(docsDir, "resources")
-const inventoryPath = join(docsDir, "plugin-api.json")
+const inventoryPath = join(docsDir, "plugin-api-inventory.json")
 
 const check = process.argv.includes("--check")
 
@@ -63,6 +67,10 @@ const inventory = readInventory()
 // extractor refuses to do.
 const ACTIONS = required(inventory.actions, "inventory.actions")
 const tick = b => (b ? "✓" : "—")
+
+// Order by code unit, never by locale: `localeCompare` follows the host's, so the same inventory
+// renders a different catalog under e.g. LC_ALL=tr_TR and `--check` is then red forever there.
+const cmp = (a, b) => (a < b ? -1 : a > b ? 1 : 0)
 
 // --- which page documents which resource ---------------------------------------------------
 // A page declares the resources it covers in its `actions` block header, which names one
@@ -145,13 +153,13 @@ function renderAdornmentTypes() {
 function renderValues(sourceName) {
   const iface = inventory.valueTypes[sourceName]
   if (!iface) return null
-  const esc = t => t.replace(/\|/g, "\\|")   // 25 member types are unions; an unescaped pipe splits the row
+  const esc = t => t.replace(/\|/g, "\\|")   // many member types are unions; a bare pipe splits the row
   const rows = iface.members.map(m =>
     `| \`${m.name}\` | ${esc(m.type)} | ${m.optional ? "optional" : "required"} |`)
   return ["| Property | Type | |", "|---|---|---|", ...rows].join("\n")
 }
 
-// --- the three compact tables from the quick-reference tables -------------------------------------------------
+// --- the quick-reference tables -------------------------------------------------
 function renderResourceActions() {
   const head = `| Resource | ${ACTIONS.map(a => `\`${a}\``).join(" | ")} |`
   const rule = `|---|${ACTIONS.map(() => "---").join("|")}|`
@@ -178,15 +186,21 @@ function renderSelectorGrammar() {
     "```",
     "",
     "**Any word is accepted as a key at parse time.** CODAP does not validate keys against a list",
-    "while parsing, so a misspelled selector never fails there. What happens next depends on which",
-    "segment was wrong:",
+    "while parsing, so a misspelled selector never fails there.",
     "",
-    "- A misspelled **final** segment decides the handler, so there is none, and the request fails",
-    "  with `Unsupported action: <action>/<key>`.",
-    "- A misspelled **earlier** segment is simply unread. The parser keeps it under a key nothing",
-    "  looks at, and resolution falls back to searching the whole data context — so",
-    "  `dataContext[M].colection[C].attribute[Age]` succeeds, silently ignoring the collection you",
-    "  asked for.",
+    "A misspelled **final** segment decides which handler runs, so there is none, and the request",
+    "fails with `Unsupported action: <action>/<key>`.",
+    "",
+    "A misspelled **earlier** segment is simply unread: the parser stores it under a key nothing",
+    "looks at, and resolution proceeds as though you had not written that segment at all. What",
+    "that costs depends on which segment it was.",
+    "",
+    "- **A misspelled `dataContext`** is the dangerous one. With no data context named, CODAP",
+    "  supplies `#default`, so the request runs against the first data context in the document and",
+    "  reports success — against data you did not ask for.",
+    "- **A misspelled `collection`** leaves the resource to resolve without one. For `attribute`",
+    "  the search widens to the whole data context and usually finds the attribute anyway;",
+    "  `attributeList` returns an empty list; the case resources report not found.",
     "",
     "Do not read a successful parse, or even a successful request, as a valid selector.",
     "",
@@ -214,7 +228,7 @@ const plainPlaceholders = msg => msg
 
 function renderErrorCatalog() {
   const rows = [...inventory.errors]
-    .sort((a, b) => a.message.localeCompare(b.message))
+    .sort((a, b) => cmp(a.message, b.message))
     .map(e => `| \`${plainPlaceholders(e.message).replace(/\|/g, "\\|")}\` | ` +
               `${e.exportedAs ? `\`${e.exportedAs}\`` : "—"} |`)
   return ["| Error | Prebuilt result |", "|---|---|", ...rows].join("\n")
@@ -229,9 +243,8 @@ for (const page of [...pages, ...extraPages]) {
   const path = pages.includes(page) ? join(resourcesDir, page) : join(docsDir, page)
   const before = readFileSync(path, "utf8")
 
-  // Never rewrite a page whose markers are not provably well formed. BLOCK's lazy backreference
-  // would otherwise span past a typo'd END to the next same-named one and delete the prose
-  // between. Report and skip the page instead; the lint reports the same problems.
+  // Never rewrite a page whose markers are not provably well formed — see markers.mjs for what
+  // a rewrite would otherwise destroy. Report and skip the page; the lint reports the same.
   const badMarkers = markerProblems(before)
   if (badMarkers.length) {
     for (const problem of badMarkers) report.markers.push(`${page}: ${problem}`)
@@ -316,7 +329,7 @@ function buildSchema() {
       // These are the members of DIResourceSelector, which is not the same set as the resource
       // keys a selector may use: it includes `type`, which the parser sets itself, and omits the
       // list-style resources. Named accordingly so no one validates against it.
-      selectorSelectorFields: {
+      resourceSelectorMembers: {
         description: "Members of the internal DIResourceSelector type. Data for tools; NOT the " +
           "set of valid selector keys — see the resource table in doc/plugin-api/quick-reference.md.",
         const: inventory.selectorKeys
