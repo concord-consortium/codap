@@ -72,10 +72,10 @@ apply. Naming a `dataContext` in the selector has no effect.
 ### Which properties each action uses
 
 Not every property above travels in both directions. `get` returns nineteen of them; `update`
-honours fourteen; `codapVersion`, `externalUndoAvailable`, `standaloneUndoModeAvailable`, `lang`,
+honors fourteen; `codapVersion`, `externalUndoAvailable`, `standaloneUndoModeAvailable`, `lang`,
 `locale` and `savedState` are reported by CODAP and cannot be set.
 
-| Property | `get` returns | `update` honours |
+| Property | `get` returns | `update` honors |
 |---|---|---|
 | `allowEmptyAttributeDeletion` | yes | yes |
 | `blockAPIRequestsWhileEditing` | yes | yes |
@@ -99,7 +99,7 @@ honours fourteen; `codapVersion`, `externalUndoAvailable`, `standaloneUndoModeAv
 | `cannotClose` | no | yes |
 | `handlesLocaleChange` | no | yes |
 
-### Saving state is the other way round
+### Saving state is the other way around
 
 `savedState` is readable here but not writable: `update` ignores a `state` property entirely.
 A plugin does not push its state to CODAP. Instead CODAP asks for it — it sends the plugin a
@@ -112,7 +112,7 @@ the last save, not the plugin's current state.
 ### `lang` and `locale` are not the same thing
 
 `locale` is the full locale CODAP is running in, such as `pt-BR`. `lang` is only its two-letter
-base language, `pt`, and exists because V2 plugins expect that shape. A plugin that needs to
+base language, `pt`, and exists because v2 plugins expect that shape. A plugin that needs to
 distinguish Brazilian from European Portuguese must read `locale`; a plugin that reads `lang`
 will see the same value for both.
 
@@ -161,13 +161,14 @@ Tell CODAP the plugin is working, then that it has finished:
 ## Known limitations
 
 **An unrecognized `notify` request succeeds silently.** CODAP replies `{"success": true}` to any
-`request` it does not handle, matching V2's behaviour. The cost is that a misspelled request is
+`request` it does not handle, matching v2's behavior. The cost is that a misspelled request is
 indistinguishable from one that worked, and there is no way to ask which requests this CODAP
 supports.
 
-**`cannotClose` cannot be turned back off.** `update` applies it only when the value is truthy,
-unlike the other booleans on this resource, which apply whenever they are present. Sending
-`cannotClose: false` leaves the frame closeable or not exactly as it already was.
+**`cannotClose: false` does not take effect.** Sending it should make a protected frame closeable
+again, as it did in v2. CODAP applies this property only when the value is truthy, unlike the
+other booleans on this resource, so `false` leaves the frame exactly as it was. This is a known
+bug; `true` works.
 
 **`name` and `title` are ignored once the user has renamed the tile.** Both are applied only
 while the title is still CODAP's own. A plugin that renames itself in response to its own state
@@ -177,6 +178,14 @@ will stop being able to after any manual rename, and gets no error.
 state reaches the document is by answering CODAP's `get interactiveState` request.
 
 **`update` with an array does nothing and reports success.**
+
+**`update` with no `values` at all returns a generic error.** Every property is optional, but the
+object is not; omitting it produces `An error occurred while processing the request.` rather than
+a message naming the problem.
+
+**Three v2 notify requests are not implemented.** `dirty`, `image` and `openGuideConfiguration`
+were handled in v2 and are not yet in v3. Like any unrecognized request they return success
+without acting.
 
 ## Notifications
 

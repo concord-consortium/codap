@@ -34,7 +34,12 @@ and those type-specific properties are where most of the detail lives.
 | `component` | create |
 <!-- END GENERATED: selectors -->
 
-`<name-or-id>` accepts a component's name, its title, or its numeric id.
+`<name-or-id>` accepts a component's name, its title, or its numeric id. CODAP returns the first
+component that matches any of the three, so duplicate titles resolve silently to whichever comes
+first, and a component *titled* `5` can shadow the component whose id is 5. Match on id where it
+matters.
+
+`get` does not always return `title`: a component with no title of its own omits the key.
 
 <!-- BEGIN GENERATED: scope -->
 This resource is **not** scoped to a data context, so the default-data-context rule does not
@@ -70,6 +75,11 @@ working guide. Neither holds today — see [Known limitations](#known-limitation
 
 ### Properties every component has
 
+Properties are grouped by the interface that declares them. Names beginning `v2` or `ICodapV2`
+are CODAP v2's own vocabulary, carried forward so v2 plugins keep working; the rest were added in
+v3.
+
+
 <!-- BEGIN GENERATED: values source=V2Component -->
 | Property | Type | |
 |---|---|---|
@@ -90,14 +100,14 @@ given.
 Three of these behave differently from the table:
 
 - **`isVisible` is never returned by `get`**, and `create` ignores it — a component created with
-  `isVisible: false` is visible. Only `update` honours it. To read whether a component is on
+  `isVisible: false` is visible. Only `update` honors it. To read whether a component is on
   screen, use [`componentList`](component-list.md), whose `hidden` is the inverse.
 - **`position` accepts a string or an object on `create`, but only an object on `update`.** A
   string position sent to `update` is dropped silently.
 - **`title: ""` does not clear a title on `update`.** An empty string is treated as "no value
   given" and the existing title is kept.
 
-`update` additionally accepts `currentGameName` as an alias for `name`, for V2 compatibility.
+`update` additionally accepts `currentGameName` as an alias for `name`, for v2 compatibility.
 Neither it nor `currentGameUrl` is ever returned by `get`, and `currentGameUrl` works on `update`
 only — a `create` carrying it, and no `URL`, makes a blank web view.
 
@@ -189,9 +199,16 @@ success.
 ### slider
 
 A slider is backed by a global value. `globalValueName` must name one that already exists, and a
-global can have only one slider. Omitting it creates a slider with a new default global.
+global can have only one slider.
 
-`animationDirection` and `animationMode` are numeric indexes, not names. `value` is honoured on
+**Omitting `globalValueName` on `create` discards everything else you sent.** CODAP makes a
+default slider and ignores `lowerBound`, `upperBound`, `multipleOf`, `scaleType` and the
+animation settings, reporting success. Always name a global when creating a slider with
+properties, or set them with a following `update`.
+
+`lowerBound` and `upperBound` apply only when **both** are given; one alone is ignored.
+
+`animationDirection` and `animationMode` are numeric indexes, not names. `value` is honored on
 `update` only.
 
 <!-- BEGIN GENERATED: values-slider source=V2Slider -->
@@ -242,7 +259,7 @@ global can have only one slider. Omitting it creates a slider with a new default
 **A map's `get` returns only `dataContext`.** `center`, `zoom`, `legendAttributeName` and
 `geoRaster` can be set but not read back; a plugin that reads a map's position in order to
 restore it later gets nothing. `geoRaster` is also ignored on `create` — set it with a following
-`update`. That `get` returns all four is the intended behaviour and a known bug today.
+`update`. That `get` returns all four is the intended behavior and a known bug today.
 
 A map's `geoRaster` is an object of its own:
 
@@ -258,7 +275,7 @@ A map's `geoRaster` is an object of its own:
 
 `dataContext` is **required** for `create`, despite being optional in the table below, and must
 name a data context that exists. For `caseTable` only, CODAP also accepts the data context's name
-in `name` — a V2 compatibility shim that does not apply to `caseCard`.
+in `name` — a v2 compatibility shim that does not apply to `caseCard`.
 
 <!-- BEGIN GENERATED: values-case-table source=V2CaseTable -->
 | Property | Type | | Declared in |
@@ -384,9 +401,8 @@ exists.
 | `items` | `V2GuidePage[]` | optional | `V2Guide` |
 <!-- END GENERATED: values-guide -->
 
-These properties are returned only for a web view CODAP itself built as a guide. A component a
-plugin created with `"type": "guideView"` has no guide subtype, so `get` reports it as `webView`
-and returns neither `currentItemIndex` nor `items`.
+These properties are returned only for a web view CODAP itself built as a guide — not for one a
+plugin created, for the reason given under [Known limitations](#known-limitations).
 
 A guide's `items` are pages:
 
@@ -459,7 +475,7 @@ Bring a component to the front, then rescale it:
 ## Known limitations
 
 **`autoScale` applies to three types.** Graphs and maps rescale; a case table resizes its
-columns instead. Every other type returns `Component does not support rescale`. This matches V2.
+columns instead. Every other type returns `Component does not support rescale`. This matches v2.
 
 **Creating a web view does not set its type.** `create` with `guideView`, `game` or
 `imageComponentView` makes a plain web view: CODAP decides the type it reports from an internal
@@ -471,12 +487,8 @@ subtype that `create` never sets. The consequences are specific:
   and as `game` from then on.
 - `get` and `componentList` report `webView` for all three until that happens.
 
-This is a known bug. The intended behaviour is the one described under
+This is a known bug. The intended behavior is the one described under
 [Component types](#component-types).
-
-**A graph's `get` and `update` do not cover the same properties.** `get` reports the plot-specific
-properties described above, and `update` does not accept all of them back. Reading a graph and
-posting the result to `update` unchanged is not a supported round trip.
 
 **An unrecognized or missing `request` succeeds silently.** `notify` requires a `values` object,
 but once it has one it recognizes only `select` and `autoScale` and returns success for anything
@@ -487,18 +499,26 @@ hide on close — the case table, case card, calculator and guide views — are 
 than deleted. They stay in the document, keep their ids, and continue to appear in
 `componentList` with `hidden: true`. Every other type is genuinely deleted.
 
+**The `image` component type is not accepted.** v2 took `"type": "image"` for an image component;
+v3 registers only `imageComponentView` and returns `Unsupported component type <value>` for
+`image`. A v2 plugin carrying that spelling breaks. This is a known bug — unlike `guide`, this
+spelling really worked in v2.
+
+**`update` with `title: ""` does not clear a title.** An empty string is read as "no value given".
+v2 wrote it. This is a known bug.
+
 **`create` does not always create.** Three types reuse a component that already exists:
 
 - **`caseTable` and `caseCard`.** If one of that type already exists for the data context, CODAP
-  re-shows it and ignores every other value you sent — title, dimensions, position,
+  re-shows that tile and ignores every other value you sent — title, dimensions, position,
   `isIndexHidden`, `horizontalScrollOffset`. If the *other* type exists for that context, CODAP
-  hides it and shows the requested one instead. This is deliberate, and matches V2: there is one
-  table and one card per data context.
+  hides it and creates the requested one, applying the title and dimensions. This is deliberate,
+  and matches v2: there is one table and one card per data context.
 - **`calculator`.** There is one calculator, and `create` toggles its visibility rather than
   showing it. Creating a calculator when one is already on screen **hides** it, and still
-  returns `success: true` with the existing component's id. Dimensions and position are ignored.
-  This is a known bug, inherited from V2; `create` should show a hidden calculator and leave a
-  visible one alone.
+  returns `success: true` with the existing component's id. `title` is applied to the existing
+  tile; dimensions and position are ignored. This is a known bug, inherited from v2; `create`
+  should show a hidden calculator and leave a visible one alone.
 
 ## Notifications
 
@@ -516,16 +536,16 @@ Any other `request`, or none at all, returns `{"success": true}` without doing a
 ### What CODAP sends
 
 CODAP notifies listening plugins when a component changes. The payload carries `operation`, the
-component's `id`, its V2 `type` and its `diType`; `delete` adds `name` and `title`, and `update`
+component's `id`, its v2 `type` and its `diType`; `delete` adds `name` and `title`, and `update`
 echoes the values from the request.
 
 | `operation` | Sent when |
 |---|---|
 | `create` | A component is created, by a plugin or by the user |
 | `update` | A component's properties change |
-| `delete` | A component is removed — **also sent when the component is only hidden** |
+| `delete` | A component is removed — **also sent when the component is only hidden**. A `create` that hides a visible calculator still sends `create` |
 | `titleChange` | The user renames a component |
-| `hide`, `show` | The user hides or reveals a component |
+| `hide`, `show` | A singleton component is hidden or revealed. Closing a case table sends `delete`, not `hide` |
 
 Two exclusions are worth knowing. A plugin does not receive the `create`, `update` or `delete`
 notification for a change it made itself. And an `update` to the plugin's **own** component

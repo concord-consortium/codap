@@ -16,12 +16,15 @@ export function markerProblems(raw) {
   // is malformed enough to not look like a marker — no colon, say — would otherwise be invisible
   // to this check and to the generator alike, which is the most dangerous shape of all: the block
   // is silently never written and nothing reports it. Recognize loosely, then require exactness.
-  const markers = [...raw.matchAll(/<!--[^>]*\bGENERATED\b[^>]*-->/g)]
+  // Case-insensitive, and tolerant of a truncated keyword: `begin generated`, `BEGIN GENERATE:`
+  // and `GENERATD` must all be recognised as attempted markers, or they are invisible to both
+  // tools and the block is silently never written — the failure this walk exists to prevent.
+  const markers = [...raw.matchAll(/<!--[^>]*\bGENERAT\w*\b[^>]*-->/gi)]
   const open = []
   const seen = new Set()
   for (const m of markers) {
     const text = m[0]
-    const kind = /\bBEGIN\b/.test(text) ? "BEGIN" : /\bEND\b/.test(text) ? "END" : null
+    const kind = /\bBEGIN\b/i.test(text) ? "BEGIN" : /\bEND\b/i.test(text) ? "END" : null
     if (!kind) { problems.push(`generated marker names neither BEGIN nor END: ${text}`); continue }
     const isBegin = kind === "BEGIN"
     const shape = isBegin

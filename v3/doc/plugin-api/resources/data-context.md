@@ -77,8 +77,8 @@ through `allCases`, `caseSearch` or the `item` resources instead.
 | `guid` | yes | same value as `id` |
 | `id` | yes | |
 | `name` | yes | |
-| `title` | yes | |
-| `collections` | yes | each with its attributes — **not** its cases |
+| `title` | yes | the key is always present; its value may be `undefined` |
+| `collections` | yes | each with its attributes — **not** its cases (see above) |
 | `flexibleGroupingChangeFlag` | yes | |
 | `preventReorg` | yes | |
 | `setAsideItems` | yes | the items currently set aside, with their values |
@@ -126,15 +126,16 @@ to it.
 | Property | Effect |
 |---|---|
 | `title` | Sets the title. Present-but-`undefined` clears it; omitting the key leaves it alone |
-| `metadata` | Merges into the context's metadata |
-| `description` | A deprecated V2 alias for `metadata.description` |
+| `metadata` | Merges into the context's metadata. **Only `description` is applied today** |
+| `description` | A deprecated v2 alias for `metadata.description`. **Not applied today** |
 | `managingController` | Names the tile that owns this context, by name or id |
-| `preventReorg` | Protects the context's attribute configuration |
+| `preventReorg` | Protects the context's attribute configuration. **Not applied today** |
 | `sort` | `{attr, isDescending}` — sorts the items by one attribute. `attr` is required |
 | `rerandomize` | When truthy, rerandomizes every random attribute in the context |
 
-Three of these do not work yet — see [Known limitations](#known-limitations). Properties not
-listed, such as `collections` and `setAsideItems`, are ignored: use the resources that own them.
+The three marked rows are known bugs — v2 honored all of them; see
+[Known limitations](#known-limitations). Properties not listed, such as `collections` and
+`setAsideItems`, are ignored: use the resources that own them.
 
 ## Examples
 
@@ -188,7 +189,7 @@ Set two cases aside, then restore everything that is set aside:
 ## Known limitations
 
 **`create` on an existing name returns the existing data context.** This is deliberate and
-matches V2. CODAP replies `success: true` with that data set's `name`, `id` and `title`, having
+matches v2. CODAP replies `success: true` with that data set's `name`, `id` and `title`, having
 created nothing, and the response is indistinguishable from a real creation — so a plugin that
 may run twice should check the returned `id` rather than assume the context is new and empty.
 
@@ -200,8 +201,8 @@ dropped. All three are known bugs; the contract is the table above.
 `importDate` only, so any other key you set is lost, and the top-level `description` is never
 returned. This too is a known bug: metadata should come back as it went in.
 
-**`restoreSetasides` is accepted as a deprecated spelling.** V2 spelled the request with a
-lowercase "a", and CODAP still accepts it so V2 plugins keep working. New plugins should send
+**`restoreSetasides` is accepted as a deprecated spelling.** v2 spelled the request with a
+lowercase "a", and CODAP still accepts it so v2 plugins keep working. New plugins should send
 `restoreSetAsides`.
 
 **`update` is not atomic.** `title`, `metadata` and `managingController` are applied first. If
@@ -214,7 +215,7 @@ exist removes the context's managing controller and reports success.
 **`get` never returns cases.** The response carries structure only — collections and attributes.
 A plugin that reads a data context expecting its data will find no `cases` key anywhere in the
 payload. This is the opposite of what the response's v2 document shape suggests, since a v2
-document stores cases inside its collections, but it is deliberate and matches V2, which also
+document stores cases inside its collections, but it is deliberate and matches v2, which also
 omitted cases from this response. Use `allCases`, `caseSearch`, `caseByID` or the `item`
 resources to read data.
 
@@ -227,7 +228,7 @@ A plugin sends `notify` to ask CODAP to set cases aside or restore them. `reques
 | `setAside` | `replace` | Replaces the set-aside cases with `caseIDs` |
 | `setAside` | `restore` | Restores the cases in `caseIDs`; with no `caseIDs`, restores all |
 | `setAside` | anything else, or omitted | Adds the cases in `caseIDs` to those set aside |
-| `restoreSetAsides` | — | Restores every set-aside case |
+| `restoreSetAsides` | — | Restores every set-aside case. `restoreSetasides` is accepted as a deprecated v2 spelling |
 
 `caseIDs` is required for `setAside` unless `operation` is `restore`. An empty array is not the
 same as omitting it: `restore` with `caseIDs: []` restores nothing, and `replace` with `caseIDs:

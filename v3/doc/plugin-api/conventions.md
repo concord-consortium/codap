@@ -38,7 +38,7 @@ separate — the audiences and the tolerance for implementation detail differ. I
 cite internal issue-tracker ids on these pages: a plugin author cannot open them. Say "a known
 limitation" and describe it. For the same reason, do not cite source `file:line` locations — they
 rot on the next edit, and a statement of behavior should stand on its own. The provenance header
-records which commit the page was verified against; that is the audit trail.
+records when the page was last checked against the code; `git log` on the page is the audit trail.
 
 ---
 
@@ -85,8 +85,9 @@ Every page opens with one, directly under the title:
 ```
 
 A reader — human or model — can then qualify what they are reading instead of assuming it is
-current. Update the date and the reference when you re-verify the page, not when you merely edit
-prose.
+current. **Update the date only when you have actually re-checked the page against the code** —
+not when you edit its prose, and never as part of a sweep across pages you did not read. The date
+is a claim that someone verified this page that day.
 
 **A date, not a commit.** Pages are written on a branch and squash-merged, so a commit recorded
 here never appears on `main` and sends a reader looking for something that does not exist. A

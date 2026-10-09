@@ -445,6 +445,10 @@ const isDITypeFile = f => /data-interactive\/data-interactive[\w-]*types\.ts$/.t
 // Every interface in src/, so bases declared outside the DI type files still resolve.
 // First declaration of a name wins; a DI-type-file declaration always wins over a non-DI one,
 // so an unrelated same-named interface elsewhere in src/ cannot shadow the one we document.
+// Shapes declared in the DI type files that cannot be reduced to a member list. Populated by
+// both the alias pass below and the resolution pass further down.
+const unextractable = {}
+
 const allInterfaces = new Map()
 for (const [file, sf] of sources) {
   eachNode(sf, node => {
@@ -491,7 +495,13 @@ for (const [file, sf] of sources) {
     const partial = /^Partial\s*<\s*([A-Za-z_$][\w$]*)\s*>$/.exec(text)
     const direct = /^([A-Za-z_$][\w$]*)$/.exec(text)
     const base = partial?.[1] ?? direct?.[1]
-    if (!base) return
+    if (!base) {
+      // A union, a Record, a function type, an MST SnapshotIn — none denotes one fixed member
+      // list, so there is nothing to extract. Record it anyway: absent from both lists, its
+      // absence could only be noticed by someone who went looking for it.
+      unextractable[name] = { source: siteOf(sf, node), aliasOf: text.replace(/\s+/g, " ").slice(0, 120) }
+      return
+    }
     allInterfaces.set(name, {
       members: [],
       bases: [{ name: base, partial: !!partial }],
@@ -520,7 +530,6 @@ function resolveMembers(name, seen = new Set()) {
 }
 
 const valueTypes = {}
-const unextractable = {}
 for (const [name, iface] of allInterfaces) {
   if (!iface.fromDIType) continue
   const members = resolveMembers(name)

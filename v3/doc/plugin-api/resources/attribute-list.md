@@ -91,7 +91,7 @@ or naming one that does not exist — it builds the list from nothing and replie
 `{"success": true, "values": []}`. A data context with fifty attributes reports zero, and the
 response is indistinguishable from a collection that genuinely has none.
 
-This is a known bug: V2 returned `Collection not found` here, which is the intended behaviour.
+This is a known bug: v2 returned `Collection not found` here, which is the intended behavior.
 
 There is no selector that lists every attribute of a data context — read `collectionList` and ask
 for each collection in turn.

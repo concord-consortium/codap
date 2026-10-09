@@ -1,6 +1,6 @@
 # adornment
 
-> **Applies to:** CODAP v3 · **Verified:** 2026-10-02
+> **Applies to:** CODAP v3 · **Verified:** 2026-09-25
 > · Parts of this page are generated — see [conventions](../conventions.md).
 
 Adornments are the measures and overlays a graph can display on top of its points — a mean line,
@@ -231,7 +231,7 @@ succeeds rather than reporting it missing.
 
 Toggling an adornment emits a component notification whose operation is specific to the
 adornment — `togglePlottedMean`, `toggle connecting line`, `add movable value` and so on. These
-match the V2 operation strings, including V2's inconsistent casing. The catalog of
+match the v2 operation strings, including v2's inconsistent casing. The catalog of
 CODAP-initiated notifications is not yet migrated; see the "CODAP-Initiated Actions" section of
 the
 [wiki page](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-Plugin-API).

@@ -141,8 +141,7 @@ if (scopeBlocks.size > 3) {
 }
 
 // coverage — the same mapping the generator uses, so the two cannot disagree about which
-// resources have a page. This used to be a third, independent definition: first any backticked
-// mention, then the final segment of a selector block. Both drifted from the generator's count.
+// resources have a page. See coverage.mjs for how a page declares what it documents.
 const pageFor = buildPageFor(join(docsDir, "resources"), inventory.resources)
 const documented = new Set(pageFor.keys())
 const undocumented = inventory.resources.filter(r => !documented.has(r.name)).map(r => r.name)

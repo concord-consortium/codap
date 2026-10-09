@@ -52,7 +52,8 @@ context in the document — see [the index](../README.md#the-default-data-contex
 
 ## Values
 
-The read and write shapes are **not the same**, and three properties invert between them. See
+The read and write shapes are **not the same**: `get` reports whether an attribute *can* be
+deleted or renamed, while `update` also accepts the negated spellings. See
 [Known limitations](#known-limitations) before relying on a round trip.
 
 ### What `get` returns
@@ -110,6 +111,11 @@ reach a plugin by structured clone rather than JSON, so a key with no value surv
 
 ### What `create` and `update` accept
 
+Properties are grouped by the interface that declares them. Names beginning `v2` or `ICodapV2`
+are CODAP v2's own vocabulary, carried forward so v2 plugins keep working; the rest were added in
+v3.
+
+
 <!-- BEGIN GENERATED: values-write source=DIAttribute -->
 | Property | Type | | Declared in |
 |---|---|---|---|
@@ -144,28 +150,30 @@ interface these types come from makes all of its members optional, so the table 
 TypeScript declares. At runtime `create` rejects any attribute object without a `name`. The
 other properties genuinely are optional, for both actions.
 
-**The table above is the shape the API permits, not the set of properties that do something.**
-It is generated from the TypeScript interface, which describes what CODAP accepts without
-complaint. These are accepted and have no effect:
+**The table above is the shape the API permits, not the set of properties that take effect.** It
+is generated from the TypeScript interface, which describes what CODAP accepts without complaint.
+These are accepted and currently do nothing:
 
-| Property | On |
-|---|---|
-| `defaultMin`, `defaultMax` | both — the default range is read-only to plugins |
-| `_categoryMap`, `v3.categoryShapes` | both — only `colormap` sets category colors |
-| `blockDisplayOfEmptyCategories`, `deletedFormula`, `decimals` | both |
-| `guid` | `create` |
-| `id`, `guid` | `update` |
+| Property | On | Status |
+|---|---|---|
+| `defaultMin`, `defaultMax` | both | v2 honored these and its axes read them — a known bug |
+| `_categoryMap` | both | v2 honored it on create and update — a known bug |
+| `blockDisplayOfEmptyCategories` | both | v2 read it when deciding which categories to show — a known bug |
+| `deletedFormula` | both | v2 stored and archived it — a known bug |
+| `v3.categoryShapes`, `decimals` | both | no v3 write path; no v2 counterpart |
+| `guid` | `create` | the new attribute's id comes from `id` or `cid` |
+| `id`, `guid` | `update` | the attribute is identified by the selector |
 
 `_categoryMap` and `v3.categoryShapes` are the trap, because `get` returns both: reading an
 attribute, changing its category colors and sending it back is the natural thing to try, and it
-silently does nothing.
+silently does nothing. Use `colormap`.
 
 `create` and `update` both reply with `{"attrs": [ ... ]}` — an array of the attribute objects in
 the read shape above, even when you created or updated exactly one.
 
-**`type` is accepted differently by the two actions.** `create` understands the V2 spellings —
+**`type` is accepted differently by the two actions.** `create` understands the v2 spellings —
 `"nominal"` for categorical, `"number"` for numeric, `"none"` — and passes anything else through
-unchecked. `update` accepts only v3 type names and silently ignores the V2 spellings and `null`,
+unchecked. `update` accepts only v3 type names and silently ignores the v2 spellings and `null`,
 so a type set on `create` cannot be cleared back to inferred by `update`.
 
 **Date precisions are dropped on write.** `get` can return a precision such as `"month"`, but
@@ -227,24 +235,27 @@ a `get` response.
 **`editable` currently does the opposite of what it says.** Sending `editable: true` should leave
 the attribute editable, and today it makes the attribute read-only; a following `get` returns
 `editable: false`. This is a known bug — the value is not negated on the way in, unlike the two
-properties handled beside it. Write what you mean; the behaviour will be corrected, and a plugin
-written against the inverted behaviour will break when it is.
+properties handled beside it. Write what you mean; the behavior will be corrected, and a plugin
+written against the inverted behavior will break when it is.
 
 **`create` does not apply the protection properties to a new attribute.** `deleteable`,
-`renameable`, `deleteProtected`, `renameProtected` and `_categoryMap` are honoured by `update`
-and dropped by `create` — unless the name already exists, in which case `create` takes the update
-path and they do apply. This is a known bug. Until it is fixed, set them with an `update` after
-creating. `editable` is the exception: it is deliberately not applied on `create`, because a
-newly created attribute is always editable.
+`renameable`, `deleteProtected` and `renameProtected` are honored by `update` and dropped by
+`create` — unless the name already exists, in which case `create` takes the update path and they
+do apply. This is a known bug. Until it is fixed, set them with an `update` after creating.
 
-**`create` on an existing name updates that attribute.** This is deliberate and matches V2:
+**`_categoryMap` has no write path at all.** Neither action applies it, so there is no workaround:
+`update` reports success and changes nothing. Set category colors with `colormap` instead. v2
+honored `_categoryMap` on both actions, so this is a known bug rather than a design choice.
+
+**`create` on an existing name updates that attribute.** This is deliberate and matches v2:
 `create` guarantees an attribute with the name you gave, creating one if needed and updating it
 otherwise. There is no duplicate-name error. A plugin that may run twice should expect its second
-`create` to overwrite the first's properties rather than fail.
+`create` to overwrite the first's properties rather than fail — and note that this path runs the
+full update, so `editable` is applied here even though a genuine `create` ignores it.
 
 **`update` rejects an array, with a misleading message.** The action takes one attribute object;
 an array returns `Attribute not found` even though the attribute resolved, which reads like a
-selector fault. Rejecting the array is an improvement on V2, which treated it as a single object
+selector fault. Rejecting the array is an improvement on v2, which treated it as a single object
 and wrote junk keys onto the attribute; only the message is wrong.
 
 **`dragMove` and `dragEnd` require a requesting plugin frame.** Both are dispatched relative to

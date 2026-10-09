@@ -148,10 +148,10 @@ function renderValues(sourceName) {
   // Today's types survive by luck (`Record<string, X>` keeps its comma), so this is latent, not
   // visible. Backticks also escape the pipe inside a union, so one treatment covers both.
   const esc = t => "`" + t.replace(/\|/g, "\\|") + "`"
-  // 17 of these interfaces inherit members, several of them most of what they have. Naming the
-  // interface each member came from lets a reader see where a property originates — the V2
-  // component shape, the V2 attribute shape, or the DI layer itself. The column appears only
-  // when something is actually inherited, so flat interfaces keep a three-column table.
+  // Many of these interfaces inherit most of what they have. Naming the interface each member
+  // came from lets a reader see where a property originates — the v2 component shape, the v2
+  // attribute shape, or the DI layer itself. The column appears only when something is actually
+  // inherited, so flat interfaces keep a three-column table.
   const inherits = iface.members.some(m => m.inherited)
   const from = m => m.inherited ?? sourceName
   const rows = iface.members.map(m =>
@@ -396,10 +396,11 @@ console.error(`Inventory: ${inventory.counts.resources} resources, verified agai
 // A type that still produced members but could not find a base is missing that base's rows —
 // nothing in the DI type files triggers this today, but an `extends Omit<X, "y">` would.
 //
-// A type that produced NO members is absent from valueTypes altogether. Four are today, and
+// A type that produced NO members is absent from valueTypes altogether. Several are, and
 // they are legitimate: MST `SnapshotIn<typeof Model>` snapshots and alias-of-alias chains denote
-// no fixed member list. They are listed so the absence is visible rather than inferred — and a
-// `values source=` block naming one of them is already a hard failure, so this stays advisory.
+// no fixed member list, and neither do unions, Records or function types. They are listed so the
+// absence is visible rather than inferred — and a `values source=` block naming one of them is
+// already a hard failure, so this stays advisory.
 {
   const partial = Object.entries(inventory.valueTypes)
     .filter(([, v]) => v.unresolvedBases?.length)

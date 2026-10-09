@@ -41,7 +41,8 @@ returns the selected cases at every level. A collection name that does not resol
 error — `get` quietly returns the selection for every collection, as if you had omitted it.
 
 `create` and `update` accept the collection form of the selector and ignore the collection: a
-write always applies to the whole data context.
+write applies to the whole data context. v2 narrowed writes to the named collection, so this is a
+known bug — see [Known limitations](#known-limitations).
 
 <!-- BEGIN GENERATED: scope -->
 This resource is scoped to a data context. Omitting one selects `#default`, the first data
@@ -76,7 +77,7 @@ Two different shapes. The first is an array of case ids:
 [ 12, 15, 22 ]
 ```
 
-Item ids are also accepted — each value is tried as a case id first, then as an item id.
+Item ids are also accepted: each value is tried as a case id first, then as an item id.
 
 The second is a **selection expression**, which selects by formula instead of by id:
 
@@ -136,14 +137,17 @@ Clear the selection:
 
 ## Known limitations
 
-**Ids that do not resolve are dropped silently.** Each value is tried as a case id and then as an
-item id; a value that matches neither is discarded and the request still reports success. Sending
-ten ids of which three are stale selects seven and tells you nothing went wrong. This matches V2.
+**Ids that do not resolve are dropped silently.** A value matching neither a case nor an item is
+discarded and the request still reports success. Sending
+ten ids of which three are stale selects seven and tells you nothing went wrong. This matches v2.
 There is also no way to find out which were dropped: a following `get` will not match what you
 sent, because parent cases expand to their children and the result spans every collection.
 
+**`update` with an empty array does nothing.** In v2 it cleared the selection; in v3 it is a
+no-op. To deselect everything, send `create` with `[]`. This is a known bug.
+
 **A collection in the selector does not narrow a write.** `create` and `update` apply to the
-whole data context even when the selector names a collection. V2 resolved the ids within the
+whole data context even when the selector names a collection. v2 resolved the ids within the
 named collection, so ids outside it were ignored; v3 resolves them against the whole context.
 This is a known bug.
 

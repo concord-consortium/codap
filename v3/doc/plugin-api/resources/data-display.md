@@ -1,6 +1,6 @@
 # dataDisplay
 
-> **Applies to:** CODAP v3 · **Verified:** 2026-10-02
+> **Applies to:** CODAP v3 · **Verified:** 2026-09-25
 > · Parts of this page are generated — see [conventions](../conventions.md).
 
 Retrieves a rendered image of a data display component as a PNG data URI. A plugin uses this to

@@ -102,10 +102,9 @@ If one of those is wrong in the docs, a human wrote it and a human fixes it.
   inherits 22. A base the walker cannot find is listed in `unresolvedBases` rather than dropped.
   Unions and MST `Partial<SnapshotIn<typeof Model>>` aliases denote no single member list and
   are skipped, not approximated.
-- The lint counts a resource as documented only if it is a page's title or the **final** segment
-  of one of that page's selector patterns. A mere mention does not count, and neither does a
-  leading path segment — `component[<component>].adornmentList` documents `adornmentList`, not
-  `component`.
+- "Documented" has one definition, in `coverage.mjs`, used by both the generator and the lint: a
+  page's generated `actions` header names every resource that page covers, falling back to the
+  filename for a single-resource page. A mention in prose never counts.
 - `scope` derives from two signals: whether the parser exempts the resource from `#default`
   defaulting, and whether the handler actually reads a data context. The exemption list alone is
   misleading — `adornment` has a context resolved and ignores it.

@@ -2,9 +2,7 @@
 // coverage.mjs
 //
 // The one definition of "which page documents which resource", shared by the generator and the
-// lint. They used to decide this separately — the lint by scanning prose, then by scanning
-// selector blocks — and drifted apart, so a resource could be undocumented by one count and
-// documented by the other. The mapping lives in each page's generated `actions` block, whose
+// lint so they cannot disagree. The mapping lives in each page's generated `actions` block, whose
 // header names every resource that page covers, so the page itself is the source of truth.
 //
 import { readdirSync, readFileSync } from "node:fs"
