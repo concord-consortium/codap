@@ -12,12 +12,21 @@
 // prose in between with a rendered table. Returns a list of problems; empty means safe to write.
 export function markerProblems(raw) {
   const problems = []
-  const markers = [...raw.matchAll(/<!--\s*(BEGIN|END)\s+GENERATED:[^>]*-->/g)]
+  // Match on the word GENERATED inside an HTML comment, NOT on the exact syntax. A marker that
+  // is malformed enough to not look like a marker — no colon, say — would otherwise be invisible
+  // to this check and to the generator alike, which is the most dangerous shape of all: the block
+  // is silently never written and nothing reports it. Recognize loosely, then require exactness.
+  // Case-insensitive, and tolerant of a truncated keyword: `begin generated`, `BEGIN GENERATE:`
+  // and `GENERATD` must all be recognised as attempted markers, or they are invisible to both
+  // tools and the block is silently never written — the failure this walk exists to prevent.
+  const markers = [...raw.matchAll(/<!--[^>]*\bGENERAT\w*\b[^>]*-->/gi)]
   const open = []
   const seen = new Set()
   for (const m of markers) {
     const text = m[0]
-    const isBegin = m[1] === "BEGIN"
+    const kind = /\bBEGIN\b/i.test(text) ? "BEGIN" : /\bEND\b/i.test(text) ? "END" : null
+    if (!kind) { problems.push(`generated marker names neither BEGIN nor END: ${text}`); continue }
+    const isBegin = kind === "BEGIN"
     const shape = isBegin
       ? /^<!-- BEGIN GENERATED: ([\w-]+)((?:\s+\w+=\S+)*) -->$/.exec(text)
       : /^<!-- END GENERATED: ([\w-]+) -->$/.exec(text)

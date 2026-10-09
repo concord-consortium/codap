@@ -1,6 +1,6 @@
 # adornment
 
-> **Applies to:** CODAP v3 · **Verified:** 2026-09-25 against `main` @ `ae2105cf4`
+> **Applies to:** CODAP v3 · **Verified:** 2026-09-25
 > · Parts of this page are generated — see [conventions](../conventions.md).
 
 Adornments are the measures and overlays a graph can display on top of its points — a mean line,
@@ -53,9 +53,11 @@ For `create`, `update` and `delete` the type goes in `values.type` rather than i
 because those requests carry a values object anyway.
 
 <!-- BEGIN GENERATED: scope -->
-This resource does not use a data context. CODAP still resolves one — defaulting to
-`#default` when the selector omits it — but this resource ignores it, so naming a
-`dataContext` has no effect.
+This resource's handler does not read a data context itself. CODAP still resolves one —
+defaulting to `#default` when the selector omits it — and uses it to resolve any
+`collection` or `attribute` segment earlier in the selector. Naming a different
+`dataContext` therefore changes what this resource returns only when the selector
+contains such a segment.
 <!-- END GENERATED: scope -->
 
 ### Type names and aliases
@@ -229,7 +231,7 @@ succeeds rather than reporting it missing.
 
 Toggling an adornment emits a component notification whose operation is specific to the
 adornment — `togglePlottedMean`, `toggle connecting line`, `add movable value` and so on. These
-match the V2 operation strings, including V2's inconsistent casing. The catalog of
+match the v2 operation strings, including v2's inconsistent casing. The catalog of
 CODAP-initiated notifications is not yet migrated; see the "CODAP-Initiated Actions" section of
 the
 [wiki page](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-Plugin-API).

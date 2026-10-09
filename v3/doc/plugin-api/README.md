@@ -59,6 +59,12 @@ Every request a plugin sends has the same envelope:
 
 ### Sending requests and receiving notifications
 
+**Whether you hear your own change.** A notification about a *component* — created, updated,
+deleted — excludes the plugin that made it, so a plugin does not echo its own component work back
+to itself. A notification about *data* — attributes, cases, the selection — goes to every
+listener including the one that made the change.
+
+
 CODAP and a plugin talk over [iframe-phone](https://github.com/concord-consortium/iframe-phone).
 A plugin sets up an endpoint, passing a handler CODAP calls when it has something to say:
 
@@ -149,8 +155,8 @@ neither here nor there.
 | **[`adornment`](resources/adornment.md)** | **this repo** |
 | **[`adornmentList`](resources/adornment.md)** | **this repo** |
 | `allCases` | wiki |
-| `attribute` | wiki |
-| `attributeList` | wiki |
+| **[`attribute`](resources/attribute.md)** | **this repo** |
+| **[`attributeList`](resources/attribute-list.md)** | **this repo** |
 | `attributeLocation` | wiki |
 | `case` | wiki |
 | `caseByID` | wiki |
@@ -160,11 +166,11 @@ neither here nor there.
 | `caseSearch` | wiki |
 | `collection` | wiki |
 | `collectionList` | wiki |
-| `component` | wiki |
-| `componentList` | wiki |
+| **[`component`](resources/component.md)** | **this repo** |
+| **[`componentList`](resources/component-list.md)** | **this repo** |
 | `configuration` | wiki |
 | `configurationList` | wiki |
-| `dataContext` | wiki |
+| **[`dataContext`](resources/data-context.md)** | **this repo** |
 | `dataContextFromURL` | wiki |
 | `dataContextList` | wiki |
 | **[`dataDisplay`](resources/data-display.md)** | **this repo** |
@@ -173,7 +179,7 @@ neither here nor there.
 | `global` | wiki |
 | `globalList` | wiki |
 | **[`interactiveApi`](resources/interactive-api.md)** | **this repo** |
-| `interactiveFrame` | wiki |
+| **[`interactiveFrame`](resources/interactive-frame.md)** | **this repo** |
 | `item` | wiki |
 | `itemByCaseID` | wiki |
 | `itemByID` | wiki |
@@ -181,7 +187,7 @@ neither here nor there.
 | `itemSearch` | wiki |
 | `logMessage` | wiki |
 | `logMessageMonitor` | wiki |
-| `selectionList` | wiki |
+| **[`selectionList`](resources/selection-list.md)** | **this repo** |
 | `tourElements` | not yet documented |
 | `undoChangeNotice` | wiki |
 

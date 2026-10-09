@@ -95,6 +95,16 @@ If one of those is wrong in the docs, a human wrote it and a human fixes it.
   handler from `univariateMeasureAdornmentBaseHandler`. Anything deeper is reported as unresolved
   rather than guessed; if you see `built by …()` in the inventory, the actions are unknown, not
   absent.
+- Value interfaces are resolved through `extends`, including `extends Partial<X>` (which makes
+  the inherited members optional) and the alias forms `type X = Y` / `type X = Partial<Y>`.
+  Members carry `inherited` naming the interface they came from. This matters more than it
+  sounds: every component type extends `V2Component`, and `DIAttribute` declares 2 members and
+  inherits 22. A base the walker cannot find is listed in `unresolvedBases` rather than dropped.
+  Unions and MST `Partial<SnapshotIn<typeof Model>>` aliases denote no single member list and
+  are skipped, not approximated.
+- "Documented" has one definition, in `coverage.mjs`, used by both the generator and the lint: a
+  page's generated `actions` header names every resource that page covers, falling back to the
+  filename for a single-resource page. A mention in prose never counts.
 - `scope` derives from two signals: whether the parser exempts the resource from `#default`
   defaulting, and whether the handler actually reads a data context. The exemption list alone is
   misleading — `adornment` has a context resolved and ignores it.

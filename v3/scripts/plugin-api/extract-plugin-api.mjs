@@ -398,24 +398,161 @@ errors.sort((a, b) => cmp(a.key ?? a.message, b.key ?? b.message))
 // --- pass 6: value/result type shapes -----------------------------------------------------
 // The interfaces a plugin actually sends and receives. Members carry their declared type text
 // and optionality; anything richer (defaults, semantics) is judgment and stays hand-written.
-const valueTypes = {}
+//
+// Interfaces are resolved through their `extends` clauses. Every component type extends
+// V2Component, and DIAttribute extends Partial<ICodapV2Attribute>, so a declaration's own
+// members are often a small fraction of what a plugin actually sends. Inherited members are
+// merged in and tagged with the interface they came from; a member redeclared locally wins.
+// `Partial<X>` contributes X's members as optional. A base the walker cannot find is reported
+// in `unresolvedBases` rather than silently dropped.
+
+// Remove // and /* */ comments from a type's source text without touching quoted spans.
+function stripComments(text) {
+  let out = ""
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i]
+    if (c === '"' || c === "'" || c === "`") {
+      const quote = c
+      out += c
+      for (i++; i < text.length; i++) {
+        out += text[i]
+        if (text[i] === "\\") { out += text[++i] ?? ""; continue }
+        if (text[i] === quote) break
+      }
+      continue
+    }
+    if (c === "/" && text[i + 1] === "/") { while (i < text.length && text[i] !== "\n") i++; out += "\n"; continue }
+    if (c === "/" && text[i + 1] === "*") { i += 2; while (i < text.length && !(text[i] === "*" && text[i + 1] === "/")) i++; i++; continue }
+    out += c
+  }
+  return out
+}
+
+const memberOf = (sf, m) => ({
+  name: m.name.text,
+  // Render a multi-line type on one line without making it invalid TypeScript: drop any `//`
+  // notes it carries, then collapse whitespace while keeping the `;` between members. Quoted
+  // spans survive comment stripping, so `"https://example.org"` is not cut at its own slashes.
+  type: m.type ? stripComments(m.type.getText(sf))
+                      .replace(/,?\s*\n\s*/g, "; ").replace(/\s+/g, " ")
+                      .replace(/;\s*}/g, " }").replace(/{\s*;\s*/g, "{ ")
+                      .replace(/{\s*;+\s*/g, "{ ").replace(/;\s*;+/g, ";").trim() : "unknown",
+  optional: !!m.questionToken
+})
+
+const isDITypeFile = f => /data-interactive\/data-interactive[\w-]*types\.ts$/.test(rel(f))
+
+// Every interface in src/, so bases declared outside the DI type files still resolve.
+// First declaration of a name wins; a DI-type-file declaration always wins over a non-DI one,
+// so an unrelated same-named interface elsewhere in src/ cannot shadow the one we document.
+// Shapes declared in the DI type files that cannot be reduced to a member list. Populated by
+// both the alias pass below and the resolution pass further down.
+const unextractable = {}
+
+const allInterfaces = new Map()
 for (const [file, sf] of sources) {
-  if (!/data-interactive\/data-interactive[\w-]*types\.ts$/.test(rel(file))) continue
   eachNode(sf, node => {
     if (!ts.isInterfaceDeclaration(node)) return
-    const members = node.members
-      .filter(m => ts.isPropertySignature(m) && m.name && (ts.isIdentifier(m.name) || ts.isStringLiteralLike(m.name)))
-      .map(m => ({
-        name: m.name.text,
-        // Collapse to one line, but keep member separators: a newline-separated inline object
-        // type would otherwise print as `{ left: number top: number }`, which is not valid TS.
-        type: m.type ? m.type.getText(sf).replace(/,?\s*\n\s*/g, "; ").replace(/\s+/g, " ")
-                            .replace(/;\s*}/g, " }").replace(/{\s*;\s*/g, "{ ").trim() : "unknown",
-        optional: !!m.questionToken
-      }))
-    if (members.length) valueTypes[node.name.text] = { members, source: siteOf(sf, node) }
+    const name = node.name.text
+    const fromDIType = isDITypeFile(file)
+    const existing = allInterfaces.get(name)
+    if (existing && (existing.fromDIType || !fromDIType)) return
+    const bases = []
+    for (const h of node.heritageClauses ?? []) {
+      if (h.token !== ts.SyntaxKind.ExtendsKeyword) continue
+      for (const t of h.types) {
+        const text = t.getText(sf).trim()
+        const partial = /^Partial\s*<([\s\S]+)>$/.exec(text)
+        const inner = (partial ? partial[1] : text).replace(/<[\s\S]*$/, "").trim()
+        if (inner) bases.push({ name: inner, partial: !!partial })
+      }
+    }
+    allInterfaces.set(name, {
+      members: node.members
+        .filter(m => ts.isPropertySignature(m) && m.name &&
+                     (ts.isIdentifier(m.name) || ts.isStringLiteralLike(m.name)))
+        .map(m => memberOf(sf, m)),
+      bases,
+      source: siteOf(sf, node),
+      fromDIType
+    })
   })
 }
+
+// A few shapes a plugin sends are declared as aliases rather than interfaces — notably
+// `DIDataContext = Partial<ICodapV2DataContext>`, the base of DIUpdateDataContext. Only the two
+// forms that denote a single object shape are followed: `type X = Y` and `type X = Partial<Y>`,
+// where Y is a plain named type. Unions (`DIAdornmentValues`), records and MST
+// `Partial<SnapshotIn<typeof Model>>` do not denote one fixed member list, so they are skipped
+// rather than approximated — their shapes stay hand-written, as the skill documents.
+for (const [file, sf] of sources) {
+  if (!isDITypeFile(file)) continue
+  eachNode(sf, node => {
+    if (!ts.isTypeAliasDeclaration(node)) return
+    const name = node.name.text
+    if (allInterfaces.has(name)) return
+    const text = node.type.getText(sf).trim()
+    const partial = /^Partial\s*<\s*([A-Za-z_$][\w$]*)\s*>$/.exec(text)
+    const direct = /^([A-Za-z_$][\w$]*)$/.exec(text)
+    const base = partial?.[1] ?? direct?.[1]
+    if (!base) {
+      // A union, a Record, a function type, an MST SnapshotIn — none denotes one fixed member
+      // list, so there is nothing to extract. Record it anyway: absent from both lists, its
+      // absence could only be noticed by someone who went looking for it.
+      unextractable[name] = { source: siteOf(sf, node), aliasOf: text.replace(/\s+/g, " ").slice(0, 120) }
+      return
+    }
+    allInterfaces.set(name, {
+      members: [],
+      bases: [{ name: base, partial: !!partial }],
+      source: siteOf(sf, node),
+      fromDIType: true
+    })
+  })
+}
+
+// Bases first, then own members, so a locally redeclared member overrides the inherited one.
+// `seen` guards against a cycle in the heritage graph rather than trusting there isn't one.
+function resolveMembers(name, seen = new Set()) {
+  const iface = allInterfaces.get(name)
+  if (!iface || seen.has(name)) return []
+  seen.add(name)
+  const out = []
+  for (const b of iface.bases) {
+    for (const m of resolveMembers(b.name, seen)) {
+      out.push({ ...m, inherited: m.inherited ?? b.name, optional: b.partial || m.optional })
+    }
+  }
+  for (const m of iface.members) out.push({ ...m })
+  const byName = new Map()
+  for (const m of out) byName.set(m.name, m)
+  return [...byName.values()]
+}
+
+const valueTypes = {}
+for (const [name, iface] of allInterfaces) {
+  if (!iface.fromDIType) continue
+  const members = resolveMembers(name)
+  const unresolved = iface.bases.filter(b => !allInterfaces.has(b.name)).map(b => b.name)
+  if (!members.length) {
+    // A declared shape that yields no members is not nothing — it is a shape this extractor
+    // cannot read, and dropping it silently is how a `source=` block would later point at a type
+    // the tool claims not to know. Record it with what defeated the walk. Several are legitimate:
+    // MST `SnapshotIn<typeof Model>` and alias-of-alias chains denote no fixed member list.
+    unextractable[name] = {
+      source: iface.source,
+      ...(iface.bases.length && { extends: iface.bases.map(b => b.partial ? `Partial<${b.name}>` : b.name) }),
+      ...(unresolved.length && { unresolvedBases: unresolved })
+    }
+    continue
+  }
+  valueTypes[name] = { members, source: iface.source }
+  if (iface.bases.length) {
+    valueTypes[name].extends = iface.bases.map(b => b.partial ? `Partial<${b.name}>` : b.name)
+    if (unresolved.length) valueTypes[name].unresolvedBases = unresolved
+  }
+}
+
 // --- provenance ---------------------------------------------------------------------------
 let commit
 try {
@@ -440,7 +577,9 @@ const inventory = {
   selectorKeys,
   defaultContextExemptions,
   errors,
-  valueTypes
+  valueTypes,
+  // Shapes declared in the DI type files that this extractor could not reduce to a member list.
+  unextractable
 }
 
 // Everything the generator renders from. An empty list here would rewrite real documentation
