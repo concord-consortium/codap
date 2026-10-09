@@ -23,7 +23,7 @@ doc/plugin-api/            (currently under v3/, moving with it)
   conventions.md      this page
   resources/          one page per resource
   guides/             narrative chapters spanning resources
-  notifications.md    catalog of notifications CODAP sends           (not yet created)
+  notifications.md    catalog of notifications CODAP sends
 ```
 
 `resources/` holds reference pages, one per resource, following the layout below. `guides/`

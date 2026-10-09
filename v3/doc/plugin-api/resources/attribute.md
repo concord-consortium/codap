@@ -268,6 +268,11 @@ the plugin's own iframe, so a request that arrives without one falls through to
 including the plugin that made the change — unlike component changes, which exclude the
 requester. **`delete` sends no notification at all.**
 
+The operations are `createAttributes`, `updateAttributes`, `deleteAttributes` and
+`moveAttribute`, all on `dataContextChangeNotice[<context>]`. See
+[the notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext) for
+what each carries.
+
 This resource's `notify` action is the reverse direction — the plugin telling CODAP to do
 something. It requires a `request` naming the operation:
 

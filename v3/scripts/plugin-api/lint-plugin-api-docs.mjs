@@ -140,6 +140,73 @@ if (scopeBlocks.size > 3) {
   problems.push(`scope blocks: ${scopeBlocks.size} distinct variants; expected at most 3 (one per scope case)`)
 }
 
+// notifications — every operation CODAP can send must appear on the notifications page. The
+// generated blocks list them; the prose beside those blocks says when each fires and what it
+// carries, and nothing checks that prose. Without this, a notification added in code lands in
+// the generated table with no explanation and nobody notices.
+{
+  const page = join(docsDir, "notifications.md")
+  if (existsSync(page)) {
+    const raw = readFileSync(page, "utf8")
+    // Outside the generated blocks: that is where the explanation has to be.
+    const prose = raw.replace(
+      /<!-- BEGIN GENERATED: [\w-]+(?:\s+\w+=\S+)* -->[\s\S]*?<!-- END GENERATED: [\w-]+ -->/g, "")
+    const missing = (inventory.notifications ?? [])
+      .map(n => n.operation)
+      // A null operation means the extractor could not resolve it — the page documents those by
+      // resource instead, so there is no name to look for.
+      .filter(op => op != null)
+      .filter((op, i, all) => all.indexOf(op) === i)
+      .filter(op => !prose.includes(`\`${op}\``))
+    for (const op of missing) {
+      fail("notifications.md", `operation \`${op}\` is in the code but not explained outside the generated blocks`)
+    }
+  }
+}
+
+// notification sections — an operation's prose section must agree with the part of the UI the
+// generated "Raised by" column names. Writing a map operation into the Graph section has
+// happened twice: once as the showAllCases / show all cases swap, and once with five
+// data-display operations filed under Graph. Both times the generated column beside the prose
+// already said otherwise, and nothing compared them.
+{
+  const page = join(docsDir, "notifications.md")
+  if (existsSync(page)) {
+    const raw = readFileSync(page, "utf8")
+    // Which heading a section's rows belong under, mapped to the areas the generator reports.
+    const sectionAreas = {
+      "Graph": ["graph"],
+      "Map": ["map"],
+      "Data display": ["data display"],
+      "Lifecycle": ["lifecycle", "container", "other"],
+      "Case table and case card": ["case table", "case card"],
+      "Text, calculator, formula": ["text", "calculator", "formula"]
+    }
+    const generated = new Map()
+    const block = /<!-- BEGIN GENERATED: notifications-component -->([\s\S]*?)<!-- END GENERATED/.exec(raw)
+    for (const line of block ? block[1].split("\n") : []) {
+      const cells = line.trim().replace(/^\||\|$/g, "").split("|").map(c => c.trim())
+      if (cells.length === 3 && cells[0].startsWith("`")) generated.set(cells[0].replace(/`/g, ""), cells[1])
+    }
+    let section = null
+    for (const line of raw.split("\n")) {
+      if (line.startsWith("### ")) { section = line.slice(4).trim(); continue }
+      const st = line.trim()
+      if (!section || !st.startsWith("|") || !st.endsWith("|")) continue
+      const cells = st.replace(/^\||\|$/g, "").split("|").map(c => c.trim())
+      if (cells.length !== 2) continue
+      const allowed = sectionAreas[section]
+      if (!allowed) continue
+      for (const m of cells[0].matchAll(/`([^`]+)`/g)) {
+        const area = generated.get(m[1])
+        if (area && !allowed.includes(area)) {
+          fail("notifications.md", `\`${m[1]}\` is documented under "${section}" but is raised by ${area}`)
+        }
+      }
+    }
+  }
+}
+
 // coverage — the same mapping the generator uses, so the two cannot disagree about which
 // resources have a page. See coverage.mjs for how a page declares what it documents.
 const pageFor = buildPageFor(join(docsDir, "resources"), inventory.resources)

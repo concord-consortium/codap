@@ -539,6 +539,10 @@ CODAP notifies listening plugins when a component changes. The payload carries `
 component's `id`, its v2 `type` and its `diType`; `delete` adds `name` and `title`, and `update`
 echoes the values from the request.
 
+Over eighty component operations exist, most of them raised by the user working in an inspector
+panel. [The notification catalog](../notifications.md#component-changes--component) lists them
+all, grouped by component type.
+
 | `operation` | Sent when |
 |---|---|
 | `create` | A component is created, by a plugin or by the user |

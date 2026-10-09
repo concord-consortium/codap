@@ -99,7 +99,8 @@ for each collection in turn.
 ## Notifications
 
 This resource sends none. Creating or updating an attribute produces notifications on
-[`attribute`](attribute.md); deleting one does not.
+[`attribute`](attribute.md); deleting one does not. See
+[the notification catalog](../notifications.md) for everything CODAP sends.
 
 ## Errors
 
