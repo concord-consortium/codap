@@ -553,6 +553,326 @@ for (const [name, iface] of allInterfaces) {
   }
 }
 
+
+// --- pass 7: the notifications CODAP sends ------------------------------------------------
+// Every notification is built by a helper whose first argument is the operation name, as a
+// string literal: `updateTileNotification("change point size", ...)`. Three base helpers decide
+// the resource — `tileNotification` emits on `component`, `dataSetNotification` on
+// `dataContextChangeNotice[<context>]` (or `documentChangeNotice` when no data set is given),
+// and `dragNotification` on `dragDrop[attribute]`. Everything else delegates to one of those,
+// so following the delegation chain gives each operation its resource family.
+//
+// Operation names are V2's, warts included: `change changePointColor` really is doubled, and
+// `showAllCases` and `show all cases` really do coexist. The extractor reports them verbatim —
+// correcting them here would publish names that do not match what a plugin receives.
+// The operation is usually a string literal, but not always, and a catalog that silently drops
+// the exceptions is worse than no catalog. Two forms occur and both resolve syntactically:
+//   place === "legend" ? "legendAttributeChange" : "attributeChange"   — a ternary of literals
+//   componentShowHideNotification(tile, op)  where  op: "show" | "hide"  — a union-typed parameter
+// Anything else is reported through `unresolvedNotifications` rather than passed over.
+function literalsOf(node) {
+  if (!node) return []
+  if (ts.isStringLiteralLike(node)) return [node.text]
+  if (ts.isConditionalExpression(node)) {
+    return [...literalsOf(node.whenTrue), ...literalsOf(node.whenFalse)]
+  }
+  if (ts.isParenthesizedExpression(node)) return literalsOf(node.expression)
+  return []
+}
+
+// A union type written as "show" | "hide" yields both members.
+function literalsOfType(typeNode) {
+  if (!typeNode) return []
+  if (ts.isLiteralTypeNode(typeNode) && ts.isStringLiteralLike(typeNode.literal)) {
+    return [typeNode.literal.text]
+  }
+  if (ts.isUnionTypeNode(typeNode)) return typeNode.types.flatMap(literalsOfType)
+  return []
+}
+
+const unresolvedNotifications = []
+
+function operationNames(arg, callNode) {
+  const direct = literalsOf(arg)
+  if (direct.length) return direct
+  if (ts.isIdentifier(arg)) {
+    // Walk out to the enclosing function and look for the binding, as a parameter with a
+    // literal-union type or a local const assigned a ternary of literals.
+    for (let n = callNode.parent; n; n = n.parent) {
+      const params = n.parameters
+      if (params) {
+        const match = params.find(pm => ts.isIdentifier(pm.name) && pm.name.text === arg.text)
+        if (match) {
+          const fromType = literalsOfType(match.type)
+          if (fromType.length) return fromType
+          // `operation: string = "hideAttributes"` — the default is the operation unless a
+          // caller overrides it, so take both.
+          const fromDefault = literalsOf(match.initializer)
+          if (fromDefault.length) return fromDefault
+        }
+      }
+      // Only declarations in this scope's own statement list. Walking the whole subtree would
+      // adopt a same-named const from an unrelated nested function and publish its operation.
+      const body = n.body && n.body.statements ? n.body.statements : (n.statements ?? null)
+      if (body) {
+        for (const stmt of body) {
+          if (!ts.isVariableStatement(stmt)) continue
+          for (const decl of stmt.declarationList.declarations) {
+            if (ts.isIdentifier(decl.name) && decl.name.text === arg.text && decl.initializer) {
+              const lits = literalsOf(decl.initializer)
+              if (lits.length) return lits
+            }
+          }
+        }
+      }
+      // A local wrapper such as `notifyDocumentChange(operation: string)` forwards its argument
+      // into the notification. The literals are at its call sites, not at the notification, so
+      // collect them from the enclosing file.
+      const fnName = n.name && ts.isIdentifier(n.name) ? n.name.text
+        : (ts.isVariableDeclaration(n.parent ?? {}) && n.parent.name && ts.isIdentifier(n.parent.name))
+          ? n.parent.name.text : null
+      const isParam = n.parameters?.some(pm => ts.isIdentifier(pm.name) && pm.name.text === arg.text)
+      if (fnName && isParam) {
+        const fromCallers = []
+        eachNode(callNode.getSourceFile(), inner => {
+          if (ts.isCallExpression(inner) && ts.isIdentifier(inner.expression) &&
+              inner.expression.text === fnName) {
+            const idx = n.parameters.findIndex(pm => ts.isIdentifier(pm.name) && pm.name.text === arg.text)
+            fromCallers.push(...literalsOf(inner.arguments[idx]))
+          }
+        })
+        if (fromCallers.length) return [...new Set(fromCallers)]
+      }
+      if (ts.isSourceFile(n)) break
+    }
+  }
+  unresolvedNotifications.push(siteOf(callNode.getSourceFile(), callNode))
+  return []
+}
+
+// What a notification carries, read from the call site rather than described by hand. For the
+// component family the values object is written inline — `{ to }`, `{ from, to }`,
+// `{ numberHidden }` — so its keys are exactly what the plugin receives. A spread or a forwarded
+// identifier cannot be read this way and is reported as unknown rather than guessed at.
+function valueKeysOf(node, argIndex) {
+  const arg = node.arguments[argIndex]
+  if (!arg) return { keys: [] }
+  if (!ts.isObjectLiteralExpression(arg)) return { keys: null }
+  const keys = []
+  let opaque = false
+  for (const pr of arg.properties) {
+    if (ts.isSpreadAssignment(pr)) { opaque = true; continue }
+    if ((ts.isPropertyAssignment(pr) || ts.isShorthandPropertyAssignment(pr)) &&
+        pr.name && ts.isIdentifier(pr.name)) {
+      keys.push(pr.name.text)
+    }
+  }
+  return { keys, ...(opaque && { partial: true }) }
+}
+
+const kBaseNotifiers = {
+  tileNotification: "component",
+  dataSetNotification: "dataContextChangeNotice",
+  dragNotification: "dragDrop"
+}
+
+// name -> the notification helper it calls, so a builder two steps from a base still resolves.
+const notifierDelegates = new Map()
+for (const [, sf] of sources) {
+  eachNode(sf, node => {
+    const fnName = ts.isFunctionDeclaration(node) && node.name ? node.name.text
+      : (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) &&
+         node.initializer && (ts.isArrowFunction(node.initializer) || ts.isFunctionExpression(node.initializer)))
+        ? node.name.text : null
+    if (!fnName || !/Notification$/.test(fnName)) return
+    eachNode(node, inner => {
+      if (ts.isCallExpression(inner) && ts.isIdentifier(inner.expression) &&
+          /Notification$/.test(inner.expression.text) && inner.expression.text !== fnName) {
+        if (!notifierDelegates.has(fnName)) notifierDelegates.set(fnName, inner.expression.text)
+      }
+    })
+  })
+}
+
+function notifierFamily(helper, seen = new Set()) {
+  if (kBaseNotifiers[helper]) return kBaseNotifiers[helper]
+  if (seen.has(helper)) return null
+  seen.add(helper)
+  const next = notifierDelegates.get(helper)
+  return next ? notifierFamily(next, seen) : null
+}
+
+// Not every `*Notification(...)` call takes an operation first. `createAttributesNotification`
+// takes the attributes; `attributeNotification` takes the operation. Treating the first argument
+// of a builder as an operation produced a long list of bogus "unresolved" sites and would
+// eventually invent an operation name from whatever a builder happens to take.
+//
+// A function takes an operation first if it is a base notifier, or if it forwards its own first
+// parameter into the first slot of something that does.
+const operationTakers = new Set(Object.keys(kBaseNotifiers))
+for (let changed = true; changed;) {
+  changed = false
+  for (const [, sf] of sources) {
+    eachNode(sf, node => {
+      const fnName = ts.isFunctionDeclaration(node) && node.name ? node.name.text
+        : (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.initializer &&
+           (ts.isArrowFunction(node.initializer) || ts.isFunctionExpression(node.initializer)))
+          ? node.name.text : null
+      if (!fnName || operationTakers.has(fnName)) return
+      const fn = ts.isFunctionDeclaration(node) ? node : node.initializer
+      const first = fn.parameters?.[0]
+      if (!first || !ts.isIdentifier(first.name)) return
+      eachNode(node, inner => {
+        if (operationTakers.has(fnName)) return
+        if (ts.isCallExpression(inner) && ts.isIdentifier(inner.expression) &&
+            operationTakers.has(inner.expression.text) &&
+            inner.arguments[0] && ts.isIdentifier(inner.arguments[0]) &&
+            inner.arguments[0].text === first.name.text) {
+          operationTakers.add(fnName)
+          // Record where it forwards to, so its resource family resolves even when the
+          // function is not itself named *Notification — an onPointerEnter handler, say.
+          if (!notifierDelegates.has(fnName)) notifierDelegates.set(fnName, inner.expression.text)
+          changed = true
+        }
+      })
+    })
+  }
+}
+
+const notifications = []
+for (const [, sf] of sources) {
+  if (/\.test\.tsx?$/.test(rel(sf.fileName))) continue
+  eachNode(sf, node => {
+    if (!ts.isCallExpression(node) || !ts.isIdentifier(node.expression)) return
+    const helper = node.expression.text
+    if (!operationTakers.has(helper)) return
+    const a0 = node.arguments[0]
+    if (!a0) return
+    // Inside a helper, `updateTileNotification(updateType, ...)` forwards the helper's own
+    // parameter. That is not an unresolved operation — the names are at the helper's call
+    // sites, which this same scan visits. Skip it rather than reporting a phantom.
+    if (ts.isIdentifier(a0)) {
+      let forwarding = false
+      for (let n = node.parent; n && !forwarding; n = n.parent) {
+        const first = n.parameters?.[0]
+        if (first && ts.isIdentifier(first.name)) {
+          forwarding = first.name.text === a0.text && !first.initializer
+          break
+        }
+        if (ts.isSourceFile(n)) break
+      }
+      if (forwarding) return
+    }
+    // `dataSetNotification` chooses its resource at runtime: a data set gives
+    // `dataContextChangeNotice[<name>]`, no data set gives `documentChangeNotice`. Two callers
+    // pass none, so filing every one of them under dataContextChangeNotice would be wrong.
+    let resource = notifierFamily(helper)
+    if (helper === "dataSetNotification") {
+      const dataSetArg = node.arguments[2]
+      const noDataSet = !dataSetArg ||
+        (ts.isIdentifier(dataSetArg) && dataSetArg.text === "undefined")
+      if (noDataSet) resource = "documentChangeNotice"
+    }
+    const valuesArgIndex = helper === "dataSetNotification" || helper === "attributeNotification" ? -1 : 1
+    const values = valuesArgIndex >= 0 ? valueKeysOf(node, valuesArgIndex) : { keys: null }
+    for (const operation of operationNames(a0, node)) {
+      notifications.push({
+        operation, via: helper, resource, source: siteOf(sf, node),
+        ...(values.keys && { valueKeys: values.keys }),
+        ...(values.partial && { valueKeysPartial: true })
+      })
+    }
+  })
+}
+// Not every notification goes through a helper. Several are built inline as
+// `{ action: "notify", resource: "...", values: { operation: "..." } }` and handed to
+// broadcastMessage — undoChangeNotice, logMessageNotice, the locale change on `global`. A
+// catalog built only from the helpers would claim to be complete while missing whole families.
+for (const [, sf] of sources) {
+  if (/\.test\.tsx?$/.test(rel(sf.fileName))) continue
+  eachNode(sf, node => {
+    if (!ts.isObjectLiteralExpression(node)) return
+    const prop = name => node.properties.find(pr =>
+      ts.isPropertyAssignment(pr) && pr.name && ts.isIdentifier(pr.name) && pr.name.text === name)
+    const action = prop("action")
+    if (!action || !ts.isStringLiteralLike(action.initializer) || action.initializer.text !== "notify") return
+    const resourceProp = prop("resource")
+    if (!resourceProp) return
+    // `resource: "undoChangeNotice"` or a template whose literal head names the family.
+    const resourceText = ts.isStringLiteralLike(resourceProp.initializer)
+      ? resourceProp.initializer.text
+      : ts.isTemplateExpression(resourceProp.initializer)
+        ? resourceProp.initializer.head.text
+        : null
+    if (!resourceText) return
+    const family = resourceText.replace(/\[.*$/, "")
+    const valuesProp = prop("values")
+    let operations = []
+    if (valuesProp && ts.isObjectLiteralExpression(valuesProp.initializer)) {
+      // `values: { operation }` shorthand is as common here as `values: { operation: "x" }`,
+      // and reading only the longhand form silently loses the shorthand ones.
+      const opProp = valuesProp.initializer.properties.find(pr =>
+        (ts.isPropertyAssignment(pr) || ts.isShorthandPropertyAssignment(pr)) &&
+        pr.name && ts.isIdentifier(pr.name) && pr.name.text === "operation")
+      // Same resolution as the helper path: a literal, a ternary of literals, or an identifier
+      // bound to a literal-union parameter — `operation: "undoAction" | "redoAction"` resolves.
+      if (opProp) {
+        operations = operationNames(
+          ts.isShorthandPropertyAssignment(opProp) ? opProp.name : opProp.initializer, node)
+      }
+    }
+    if (!operations.length) {
+      // The operation is computed or forwarded wholesale. Record the family so the page can
+      // say so, rather than dropping the notification entirely.
+      notifications.push({ operation: null, via: "inline", resource: family, source: siteOf(sf, node) })
+      return
+    }
+    for (const operation of operations) {
+      notifications.push({ operation, via: "inline", resource: family, source: siteOf(sf, node) })
+    }
+  })
+}
+
+// Adornment toggles name their operation in the adornment's registration rather than at the
+// notification, as `notificationOperation: "togglePlottedMean"`, and a shared checkbox component
+// forwards whichever one applies. Reading the registrations is the only way to see them.
+for (const [, sf] of sources) {
+  if (/\.test\.tsx?$/.test(rel(sf.fileName))) continue
+  eachNode(sf, node => {
+    if (!ts.isPropertyAssignment(node) || !node.name || !ts.isIdentifier(node.name)) return
+    if (node.name.text !== "notificationOperation") return
+    if (!ts.isStringLiteralLike(node.initializer)) return
+    notifications.push({
+      operation: node.initializer.text, via: "adornment registration",
+      resource: "component", source: siteOf(sf, node)
+    })
+  })
+}
+
+// One operation can be emitted from several places; keep one entry per operation+resource and
+// record how many sites raise it, so the catalog is a list of operations rather than call sites.
+const byOp = new Map()
+for (const n of notifications) {
+  const key = `${n.operation ?? "(computed)"}\u0000${n.resource}`
+  const found = byOp.get(key)
+  if (found) {
+    found.sites.push(n.source)
+    if (n.valueKeys) found.valueKeys = [...new Set([...(found.valueKeys ?? []), ...n.valueKeys])]
+    if (n.valueKeysPartial) found.valueKeysPartial = true
+    continue
+  }
+  byOp.set(key, { operation: n.operation, resource: n.resource, via: n.via, sites: [n.source],
+                  ...(n.valueKeys && { valueKeys: [...n.valueKeys] }),
+                  ...(n.valueKeysPartial && { valueKeysPartial: true }) })
+}
+const notificationCatalog = [...byOp.values()]
+  .map(n => ({ operation: n.operation, resource: n.resource, via: n.via,
+               ...(n.valueKeys && { valueKeys: [...n.valueKeys].sort(cmp) }),
+               ...(n.valueKeysPartial && { valueKeysPartial: true }),
+               source: n.sites[0], ...(n.sites.length > 1 && { alsoRaisedAt: n.sites.length - 1 }) }))
+  .sort((a, b) => cmp(a.operation ?? "~", b.operation ?? "~") || cmp(a.resource ?? "", b.resource ?? ""))
+required(notificationCatalog, "the notifications CODAP sends (helpers taking a literal operation)")
+
 // --- provenance ---------------------------------------------------------------------------
 let commit
 try {
@@ -578,6 +898,9 @@ const inventory = {
   defaultContextExemptions,
   errors,
   valueTypes,
+  notifications: notificationCatalog,
+  // Notification sites whose operation could not be resolved to a name.
+  unresolvedNotifications: [...new Set(unresolvedNotifications)].sort(cmp),
   // Shapes declared in the DI type files that this extractor could not reduce to a member list.
   unextractable
 }

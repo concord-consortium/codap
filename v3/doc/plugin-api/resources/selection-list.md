@@ -162,9 +162,13 @@ IDs.` — no part of the selection is applied.
 
 ## Notifications
 
-Changing the selection causes CODAP to notify plugins that are listening to the data context.
-A plugin that both writes the selection and listens for selection changes will see its own
-change reflected back.
+Changing the selection causes CODAP to notify plugins that are listening to the data context,
+with the `selectCases` operation on `dataContextChangeNotice[<context>]`. A plugin that both
+writes the selection and listens for selection changes will see its own change reflected back,
+because data notifications do not exclude the requester.
+
+Selecting a parent case notifies for its whole group. See
+[the notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext).
 
 ## Errors
 

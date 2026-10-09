@@ -64,6 +64,8 @@ deleted — excludes the plugin that made it, so a plugin does not echo its own 
 to itself. A notification about *data* — attributes, cases, the selection — goes to every
 listener including the one that made the change.
 
+[The notification catalog](notifications.md) lists them, grouped by what changed.
+
 
 CODAP and a plugin talk over [iframe-phone](https://github.com/concord-consortium/iframe-phone).
 A plugin sets up an endpoint, passing a handler CODAP calls when it has something to say:
