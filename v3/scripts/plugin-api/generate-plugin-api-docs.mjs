@@ -240,13 +240,11 @@ function renderErrorCatalog() {
 
 // --- the notification catalog ------------------------------------------------------------
 // One block per resource family. These carry only what the extractor derives: the operation
-// name and, for component notifications, which part of the UI raises it. When each one fires
-// and what its values hold is judgment, and lives in the hand-written tables beside them.
+// name, the keys `values` carries, and, for component notifications, the area of CODAP that
+// raises it. When each one fires is judgment, and lives in the hand-written tables beside them.
 //
-// Operation names are reproduced exactly as a plugin receives them. Several are inconsistent —
-// `change changePointColor` is doubled, `showAllCases` and `show all cases` both exist — and
-// that inconsistency is deliberate v2 compatibility, so normalizing it here would publish names
-// that do not match reality.
+// Operation names are reproduced exactly as a plugin receives them; see "Operation names are
+// v2's" on the notifications page for why the untidy ones stay.
 function notificationArea(source) {
   const m = /src\/(?:components|models|lib)\/([^/]+)\//.exec(source)
   if (!m) return "other"
@@ -255,16 +253,28 @@ function notificationArea(source) {
            "dnd-kit": "drag" }[m[1]] ?? m[1]
 }
 
-// The families that carry a single notification each. Rendering them from "everything not
-// already shown" means a new family added in code lands on the page rather than vanishing.
+// The families that get a section of their own. Everything else lands in one table, so a new
+// family added in code reaches the page rather than vanishing.
 const kNamedNotificationFamilies =
   new Set(["component", "dataContextChangeNotice", "dragDrop", "undoChangeNotice", "document"])
+
+// "—" means no values beyond the operation; unreadable keys say so rather than guess.
+function notificationValues(n) {
+  if (!n.valueKeys) return "_not readable from the code_"
+  if (!n.valueKeys.length) return "—"
+  return n.valueKeys.map(k => `\`${k}\``).join(", ") + (n.valueKeysPartial ? ", …" : "")
+}
+
+function notificationOperation(n) {
+  if (n.operation) return `\`${n.operation}\``
+  return n.noOperation ? "_none_" : "_computed at the call site_"
+}
 
 function renderNotificationsOther() {
   const rows = (inventory.notifications ?? []).filter(n => !kNamedNotificationFamilies.has(n.resource))
   if (!rows.length) return null
-  return ["| Resource | Operation |", "|---|---|",
-    ...rows.map(n => `| \`${n.resource}\` | ${n.operation ? `\`${n.operation}\`` : "_computed at the call site_"} |`)
+  return ["| Resource | Operation | `values` carries |", "|---|---|---|",
+    ...rows.map(n => `| \`${n.resource}\` | ${notificationOperation(n)} | ${notificationValues(n)} |`)
   ].join("\n")
 }
 
@@ -272,20 +282,14 @@ function renderNotifications(family) {
   const rows = (inventory.notifications ?? []).filter(n => n.resource === family)
   if (!rows.length) return null
   const withArea = family === "component"
-  // The payload keys are read from the call site, so this column is derived rather than
-  // described. An empty object means the notification carries no values of its own beyond the
-  // envelope; a blank cell means the call does not write them inline and the tool cannot say.
-  const values = n => {
-    if (!n.valueKeys) return "_not readable from the call site_"
-    if (!n.valueKeys.length) return "—"
-    return n.valueKeys.map(k => `\`${k}\``).join(", ") + (n.valueKeysPartial ? ", …" : "")
-  }
-  const head = withArea ? "| Operation | Raised by | `values` carries |" : "| Operation | `values` carries |"
+  // Every component notification also carries `id`, `type` and `diType`; the column lists what
+  // each one adds, and the page says so above it.
+  const head = withArea ? "| Operation | Raised by | `values` also carries |" : "| Operation | `values` carries |"
   const rule = withArea ? "|---|---|---|" : "|---|---|"
   const body = rows
     .map(n => withArea
-      ? `| \`${n.operation}\` | ${notificationArea(n.source)} | ${values(n)} |`
-      : `| \`${n.operation}\` | ${values(n)} |`)
+      ? `| ${notificationOperation(n)} | ${notificationArea(n.source)} | ${notificationValues(n)} |`
+      : `| ${notificationOperation(n)} | ${notificationValues(n)} |`)
   return [head, rule, ...body].join("\n")
 }
 

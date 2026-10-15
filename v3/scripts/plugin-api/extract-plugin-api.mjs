@@ -562,13 +562,12 @@ for (const [name, iface] of allInterfaces) {
 // and `dragNotification` on `dragDrop[attribute]`. Everything else delegates to one of those,
 // so following the delegation chain gives each operation its resource family.
 //
-// Operation names are V2's, warts included: `change changePointColor` really is doubled, and
-// `showAllCases` and `show all cases` really do coexist. The extractor reports them verbatim —
-// correcting them here would publish names that do not match what a plugin receives.
-// The operation is usually a string literal, but not always, and a catalog that silently drops
-// the exceptions is worse than no catalog. Two forms occur and both resolve syntactically:
-//   place === "legend" ? "legendAttributeChange" : "attributeChange"   — a ternary of literals
-//   componentShowHideNotification(tile, op)  where  op: "show" | "hide"  — a union-typed parameter
+// Operation names are reported verbatim, v2's untidy ones included (see notifications.md).
+// The operation is usually a string literal. Otherwise it resolves syntactically from:
+//   a ternary of literals          place === "legend" ? "legendAttributeChange" : "attributeChange"
+//   a literal-union parameter      op: "show" | "hide"
+//   a defaulted parameter          operation = "hideAttributes", plus what callers pass
+//   a local const or wrapper       the literals at the wrapper's call sites
 // Anything else is reported through `unresolvedNotifications` rather than passed over.
 function literalsOf(node) {
   if (!node) return []
@@ -592,9 +591,57 @@ function literalsOfType(typeNode) {
 
 const unresolvedNotifications = []
 
+// `function f(...)` or `const f = (...) => ...` — the name a caller would use.
+function functionNameOf(n) {
+  if (n.name && ts.isIdentifier(n.name)) return n.name.text
+  if (n.parent && ts.isVariableDeclaration(n.parent) && ts.isIdentifier(n.parent.name)) return n.parent.name.text
+  return null
+}
+
+// The string literals callers pass in one argument slot of `fnName`. Names are not unique across
+// the code base, so a call counts only in the defining file or in a file that imports the name.
+// A caller that passes something other than a literal is reported as unresolved; one that passes
+// nothing is skipped, since the parameter's default then applies.
+function callerLiterals(fnName, idx, definingFile) {
+  const found = []
+  for (const [, sf] of sources) {
+    if (/\.test\.tsx?$/.test(rel(sf.fileName))) continue
+    // The name this file calls it by: its own, or the local name of a named import.
+    let localName = sf === definingFile ? fnName : null
+    for (const st of sf.statements) {
+      const bindings = ts.isImportDeclaration(st) && st.importClause?.namedBindings
+      if (!bindings || !ts.isNamedImports(bindings)) continue
+      for (const el of bindings.elements) {
+        if ((el.propertyName ?? el.name).text === fnName) localName = el.name.text
+      }
+    }
+    if (!localName) continue
+    eachNode(sf, inner => {
+      if (ts.isCallExpression(inner) && ts.isIdentifier(inner.expression) && inner.expression.text === localName) {
+        const arg = inner.arguments[idx]
+        if (isAbsent(arg)) return
+        const lits = literalsOf(arg)
+        if (!lits.length || hasOpaqueBranch(arg)) unresolvedNotifications.push(siteOf(sf, inner))
+        found.push(...lits)
+      }
+    })
+  }
+  return [...new Set(found)]
+}
+
+// True when some branch of a ternary is not a literal, so `literalsOf` returned only part of it.
+function hasOpaqueBranch(node) {
+  if (ts.isParenthesizedExpression(node)) return hasOpaqueBranch(node.expression)
+  if (ts.isConditionalExpression(node)) return hasOpaqueBranch(node.whenTrue) || hasOpaqueBranch(node.whenFalse)
+  return !ts.isStringLiteralLike(node)
+}
+
 function operationNames(arg, callNode) {
   const direct = literalsOf(arg)
-  if (direct.length) return direct
+  if (direct.length) {
+    if (hasOpaqueBranch(arg)) unresolvedNotifications.push(siteOf(callNode.getSourceFile(), callNode))
+    return direct
+  }
   if (ts.isIdentifier(arg)) {
     // Walk out to the enclosing function and look for the binding, as a parameter with a
     // literal-union type or a local const assigned a ternary of literals.
@@ -608,7 +655,11 @@ function operationNames(arg, callNode) {
           // `operation: string = "hideAttributes"` — the default is the operation unless a
           // caller overrides it, so take both.
           const fromDefault = literalsOf(match.initializer)
-          if (fromDefault.length) return fromDefault
+          if (fromDefault.length) {
+            const fnName = functionNameOf(n)
+            const fromCallers = fnName ? callerLiterals(fnName, params.indexOf(match), callNode.getSourceFile()) : []
+            return [...new Set([...fromDefault, ...fromCallers])]
+          }
         }
       }
       // Only declarations in this scope's own statement list. Walking the whole subtree would
@@ -628,20 +679,11 @@ function operationNames(arg, callNode) {
       // A local wrapper such as `notifyDocumentChange(operation: string)` forwards its argument
       // into the notification. The literals are at its call sites, not at the notification, so
       // collect them from the enclosing file.
-      const fnName = n.name && ts.isIdentifier(n.name) ? n.name.text
-        : (ts.isVariableDeclaration(n.parent ?? {}) && n.parent.name && ts.isIdentifier(n.parent.name))
-          ? n.parent.name.text : null
-      const isParam = n.parameters?.some(pm => ts.isIdentifier(pm.name) && pm.name.text === arg.text)
-      if (fnName && isParam) {
-        const fromCallers = []
-        eachNode(callNode.getSourceFile(), inner => {
-          if (ts.isCallExpression(inner) && ts.isIdentifier(inner.expression) &&
-              inner.expression.text === fnName) {
-            const idx = n.parameters.findIndex(pm => ts.isIdentifier(pm.name) && pm.name.text === arg.text)
-            fromCallers.push(...literalsOf(inner.arguments[idx]))
-          }
-        })
-        if (fromCallers.length) return [...new Set(fromCallers)]
+      const fnName = functionNameOf(n)
+      const idx = n.parameters?.findIndex(pm => ts.isIdentifier(pm.name) && pm.name.text === arg.text) ?? -1
+      if (fnName && idx >= 0) {
+        const fromCallers = callerLiterals(fnName, idx, callNode.getSourceFile())
+        if (fromCallers.length) return fromCallers
       }
       if (ts.isSourceFile(n)) break
     }
@@ -650,24 +692,131 @@ function operationNames(arg, callNode) {
   return []
 }
 
-// What a notification carries, read from the call site rather than described by hand. For the
-// component family the values object is written inline — `{ to }`, `{ from, to }`,
-// `{ numberHidden }` — so its keys are exactly what the plugin receives. A spread or a forwarded
-// identifier cannot be read this way and is reported as unknown rather than guessed at.
-function valueKeysOf(node, argIndex) {
-  const arg = node.arguments[argIndex]
-  if (!arg) return { keys: [] }
-  if (!ts.isObjectLiteralExpression(arg)) return { keys: null }
+// What a notification carries, read from the code rather than described by hand. Each base
+// notifier assembles `values` its own way, described by a spec:
+//   fixed       keys it always writes
+//   keyedSlots  keys it writes from an argument, present when that argument is passed
+//   spreadSlot  an argument whose own keys are spread into `values`
+// A wrapper's spec is derived from the call it makes, so `updateAxisNotification(op, domain,
+// tile)` is known to carry `newBounds` although its callers never write that key. Anything that
+// cannot be read — a forwarded identifier, a computed object — is reported as unknown, never
+// guessed at.
+const kBaseValueSpecs = {
+  tileNotification: { fixed: [], spreadSlot: 1 },
+  dragNotification: { fixed: ["attribute", "collection", "context", "text"], spreadSlot: 4 },
+  dataSetNotification: { fixed: [], keyedSlots: { result: 1 }, spreadSlot: 4 }
+}
+
+const isAbsent = arg => !arg || (ts.isIdentifier(arg) && arg.text === "undefined")
+
+// The keys of an object literal. A spread, computed name or method is something this cannot
+// name, so it marks the result partial rather than vanishing.
+function objectKeys(obj) {
   const keys = []
-  let opaque = false
-  for (const pr of arg.properties) {
-    if (ts.isSpreadAssignment(pr)) { opaque = true; continue }
-    if ((ts.isPropertyAssignment(pr) || ts.isShorthandPropertyAssignment(pr)) &&
-        pr.name && ts.isIdentifier(pr.name)) {
+  let partial = false
+  for (const pr of obj.properties) {
+    if ((ts.isPropertyAssignment(pr) || ts.isShorthandPropertyAssignment(pr)) && pr.name &&
+        (ts.isIdentifier(pr.name) || ts.isStringLiteralLike(pr.name))) {
       keys.push(pr.name.text)
+    } else partial = true
+  }
+  return { keys, partial }
+}
+
+// The initializer of a local `const name = ...` in a scope enclosing `at`. Only each scope's own
+// statement list is searched, so a same-named const in an unrelated nested function is not used.
+// A `let` or `var` can be reassigned, so its initializer proves nothing and is not used.
+function localConstInit(name, at) {
+  for (let n = at.parent; n; n = n.parent) {
+    const body = n.body && n.body.statements ? n.body.statements : (n.statements ?? null)
+    for (const stmt of body ?? []) {
+      if (!ts.isVariableStatement(stmt) || !(stmt.declarationList.flags & ts.NodeFlags.Const)) continue
+      for (const decl of stmt.declarationList.declarations) {
+        if (ts.isIdentifier(decl.name) && decl.name.text === name && decl.initializer) return decl.initializer
+      }
+    }
+    if (ts.isSourceFile(n)) break
+  }
+  return null
+}
+
+// The keys of an object literal, or of a local `const` bound to one. A const that is filled in
+// afterwards — `const values = {}; if (w != null) values.width = w` — gains the assigned keys too.
+function objectKeysFor(arg, at) {
+  while (arg && ts.isParenthesizedExpression(arg)) arg = arg.expression
+  if (!arg) return null
+  if (ts.isObjectLiteralExpression(arg)) return objectKeys(arg)
+  if (!ts.isIdentifier(arg)) return null
+  const init = localConstInit(arg.text, at)
+  if (!init || !ts.isObjectLiteralExpression(init)) return null
+  const read = objectKeys(init)
+  let scope = init
+  while (scope && !ts.isFunctionLike(scope) && !ts.isSourceFile(scope)) scope = scope.parent
+  // Only this function's own statements: a nested function may have its own `values`. Any other
+  // use of the name — `values[k] = v`, `Object.assign(values, ...)`, passing it to a helper — could
+  // add keys this cannot name, so it marks the result partial.
+  const visit = n => {
+    if (n !== scope && ts.isFunctionLike(n)) return
+    if (ts.isIdentifier(n) && n.text === arg.text && n.parent !== init.parent &&
+        !(ts.isPropertyAccessExpression(n.parent) && n.parent.name === n)) {
+      const p = n.parent
+      const assigned = ts.isPropertyAccessExpression(p) && p.expression === n &&
+        ts.isBinaryExpression(p.parent) && p.parent.left === p &&
+        p.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken
+      if (assigned) read.keys.push(p.name.text)
+      else if (!(ts.isPropertyAccessExpression(p) && p.expression === n) && p !== at &&
+               !(ts.isShorthandPropertyAssignment(p) || ts.isPropertyAssignment(p))) {
+        if (!at.arguments?.includes(n)) read.partial = true
+      }
+    }
+    ts.forEachChild(n, visit)
+  }
+  visit(scope)
+  return { keys: [...new Set(read.keys)], partial: read.partial }
+}
+
+// The keys a call with this spec puts in `values`, or null when they cannot be read.
+function valuesAt(spec, call) {
+  if (!spec || spec.opaque) return { keys: null }
+  const keys = [...spec.fixed]
+  let partial = !!spec.partial
+  for (const [key, i] of Object.entries(spec.keyedSlots ?? {})) {
+    if (!isAbsent(call.arguments[i])) keys.push(key)
+  }
+  if (spec.spreadSlot != null && !isAbsent(call.arguments[spec.spreadSlot])) {
+    const read = objectKeysFor(call.arguments[spec.spreadSlot], call)
+    if (!read) return { keys: null }
+    keys.push(...read.keys)
+    if (read.partial) partial = true
+  }
+  return { keys: [...new Set(keys)], ...(partial && { partial: true }) }
+}
+
+// A wrapper's spec, from the one call it makes into a helper with a known spec.
+function deriveValueSpec(fn, call, inner) {
+  const params = fn.parameters.map(pm => ts.isIdentifier(pm.name) ? pm.name.text : null)
+  const paramIndex = arg => arg && ts.isIdentifier(arg) ? params.indexOf(arg.text) : -1
+  const out = { fixed: [...inner.fixed], keyedSlots: {}, partial: !!inner.partial, opaque: !!inner.opaque }
+  for (const [key, i] of Object.entries(inner.keyedSlots ?? {})) {
+    const arg = call.arguments[i]
+    if (isAbsent(arg)) continue
+    const pi = paramIndex(arg)
+    if (pi >= 0) out.keyedSlots[key] = pi
+    else out.fixed.push(key)
+  }
+  if (inner.spreadSlot != null) {
+    const arg = call.arguments[inner.spreadSlot]
+    if (!isAbsent(arg)) {
+      const pi = paramIndex(arg)
+      const read = pi < 0 && objectKeysFor(arg, call)
+      if (pi >= 0) out.spreadSlot = pi
+      else if (read) {
+        out.fixed.push(...read.keys)
+        if (read.partial) out.partial = true
+      } else out.opaque = true
     }
   }
-  return { keys, ...(opaque && { partial: true }) }
+  return out
 }
 
 const kBaseNotifiers = {
@@ -703,13 +852,14 @@ function notifierFamily(helper, seen = new Set()) {
 }
 
 // Not every `*Notification(...)` call takes an operation first. `createAttributesNotification`
-// takes the attributes; `attributeNotification` takes the operation. Treating the first argument
-// of a builder as an operation produced a long list of bogus "unresolved" sites and would
-// eventually invent an operation name from whatever a builder happens to take.
+// takes the attributes; `attributeNotification` takes the operation. Reading a builder's first
+// argument as an operation would invent names from whatever the builder happens to take.
 //
 // A function takes an operation first if it is a base notifier, or if it forwards its own first
 // parameter into the first slot of something that does.
 const operationTakers = new Set(Object.keys(kBaseNotifiers))
+// taker -> { fn, call }: the call through which it forwards, from which its value spec derives.
+const takerForwards = new Map()
 for (let changed = true; changed;) {
   changed = false
   for (const [, sf] of sources) {
@@ -729,6 +879,7 @@ for (let changed = true; changed;) {
             inner.arguments[0] && ts.isIdentifier(inner.arguments[0]) &&
             inner.arguments[0].text === first.name.text) {
           operationTakers.add(fnName)
+          takerForwards.set(fnName, { fn, call: inner })
           // Record where it forwards to, so its resource family resolves even when the
           // function is not itself named *Notification — an onPointerEnter handler, say.
           if (!notifierDelegates.has(fnName)) notifierDelegates.set(fnName, inner.expression.text)
@@ -738,6 +889,50 @@ for (let changed = true; changed;) {
     })
   }
 }
+
+// Two branches of one wrapper can forward with different values. Their keys are combined, and
+// marked partial where they differ, since any one notification carries only one branch's keys.
+function mergeValueSpecs(a, b) {
+  if (!a || !b || a.opaque || b.opaque || a.spreadSlot !== b.spreadSlot) return { fixed: [], opaque: true }
+  const same = (x, y) => JSON.stringify([...x].sort()) === JSON.stringify([...y].sort())
+  const aKeyed = Object.entries(a.keyedSlots ?? {}).map(e => e.join(":"))
+  const bKeyed = Object.entries(b.keyedSlots ?? {}).map(e => e.join(":"))
+  return {
+    fixed: [...new Set([...a.fixed, ...b.fixed])],
+    keyedSlots: { ...a.keyedSlots, ...b.keyedSlots },
+    ...(a.spreadSlot != null && { spreadSlot: a.spreadSlot }),
+    partial: a.partial || b.partial || !same(a.fixed, b.fixed) || !same(aKeyed, bKeyed)
+  }
+}
+
+const valueSpecs = new Map(Object.entries(kBaseValueSpecs))
+function valueSpecOf(helper, seen = new Set()) {
+  if (valueSpecs.has(helper)) return valueSpecs.get(helper)
+  const fwd = takerForwards.get(helper)
+  if (!fwd || seen.has(helper)) return null
+  seen.add(helper)
+  const first = fwd.fn.parameters[0].name.text
+  let spec
+  eachNode(fwd.fn, inner => {
+    if (!ts.isCallExpression(inner) || !ts.isIdentifier(inner.expression) ||
+        !operationTakers.has(inner.expression.text) || !inner.arguments[0] ||
+        !ts.isIdentifier(inner.arguments[0]) || inner.arguments[0].text !== first) return
+    const innerSpec = valueSpecOf(inner.expression.text, seen)
+    const derived = innerSpec ? deriveValueSpec(fwd.fn, inner, innerSpec) : { fixed: [], opaque: true }
+    spec = spec ? mergeValueSpecs(spec, derived) : derived
+  })
+  valueSpecs.set(helper, spec ?? null)
+  return spec ?? null
+}
+
+// Adornment checkboxes send `componentContentInfo.notificationOperation` — the operation lives in
+// each adornment's registration (read below), the values at this one shared call site.
+function forwardsRegisteredOperation(arg, at) {
+  if (!ts.isIdentifier(arg)) return false
+  const init = localConstInit(arg.text, at)
+  return !!init && ts.isPropertyAccessExpression(init) && init.name.text === "notificationOperation"
+}
+let registrationValues = { keys: null }
 
 const notifications = []
 for (const [, sf] of sources) {
@@ -762,6 +957,10 @@ for (const [, sf] of sources) {
         if (ts.isSourceFile(n)) break
       }
       if (forwarding) return
+      if (forwardsRegisteredOperation(a0, node)) {
+        registrationValues = valuesAt(valueSpecOf(helper), node)
+        return
+      }
     }
     // `dataSetNotification` chooses its resource at runtime: a data set gives
     // `dataContextChangeNotice[<name>]`, no data set gives `documentChangeNotice`. Two callers
@@ -773,8 +972,7 @@ for (const [, sf] of sources) {
         (ts.isIdentifier(dataSetArg) && dataSetArg.text === "undefined")
       if (noDataSet) resource = "documentChangeNotice"
     }
-    const valuesArgIndex = helper === "dataSetNotification" || helper === "attributeNotification" ? -1 : 1
-    const values = valuesArgIndex >= 0 ? valueKeysOf(node, valuesArgIndex) : { keys: null }
+    const values = valuesAt(valueSpecOf(helper), node)
     for (const operation of operationNames(a0, node)) {
       notifications.push({
         operation, via: helper, resource, source: siteOf(sf, node),
@@ -786,50 +984,70 @@ for (const [, sf] of sources) {
 }
 // Not every notification goes through a helper. Several are built inline as
 // `{ action: "notify", resource: "...", values: { operation: "..." } }` and handed to
-// broadcastMessage — undoChangeNotice, logMessageNotice, the locale change on `global`. A
-// catalog built only from the helpers would claim to be complete while missing whole families.
+// broadcastMessage — undoChangeNotice, logMessageNotice, the locale change on `global`. Any of
+// the three may be shorthand for a local const, as in the slider's
+// `const action = "notify"; ... { action, resource, values }`.
 for (const [, sf] of sources) {
   if (/\.test\.tsx?$/.test(rel(sf.fileName))) continue
   eachNode(sf, node => {
     if (!ts.isObjectLiteralExpression(node)) return
-    const prop = name => node.properties.find(pr =>
-      ts.isPropertyAssignment(pr) && pr.name && ts.isIdentifier(pr.name) && pr.name.text === name)
+    // A helper such as `dragNotification` builds its message inline; the helper scan has
+    // already read it, per operation, at each call site.
+    for (let n = node.parent; n && !ts.isSourceFile(n); n = n.parent) {
+      if (ts.isFunctionLike(n) && operationTakers.has(functionNameOf(n))) return
+    }
+    // The expression a property is set to, with `{ values }` shorthand read as the identifier.
+    const rawProp = name => {
+      const pr = node.properties.find(p =>
+        (ts.isPropertyAssignment(p) || ts.isShorthandPropertyAssignment(p)) &&
+        p.name && ts.isIdentifier(p.name) && p.name.text === name)
+      if (!pr) return null
+      return ts.isShorthandPropertyAssignment(pr) ? pr.name : pr.initializer
+    }
+    const prop = name => {
+      const init = rawProp(name)
+      return init && ts.isIdentifier(init) ? (localConstInit(init.text, node) ?? init) : init
+    }
     const action = prop("action")
-    if (!action || !ts.isStringLiteralLike(action.initializer) || action.initializer.text !== "notify") return
-    const resourceProp = prop("resource")
-    if (!resourceProp) return
+    if (!action || !ts.isStringLiteralLike(action) || action.text !== "notify") return
+    const resource = prop("resource")
+    if (!resource) return
     // `resource: "undoChangeNotice"` or a template whose literal head names the family.
-    const resourceText = ts.isStringLiteralLike(resourceProp.initializer)
-      ? resourceProp.initializer.text
-      : ts.isTemplateExpression(resourceProp.initializer)
-        ? resourceProp.initializer.head.text
+    const resourceText = ts.isStringLiteralLike(resource) ? resource.text
+      : ts.isTemplateExpression(resource) ? resource.head.text
         : null
     if (!resourceText) return
     const family = resourceText.replace(/\[.*$/, "")
-    const valuesProp = prop("values")
-    let operations = []
-    if (valuesProp && ts.isObjectLiteralExpression(valuesProp.initializer)) {
-      // `values: { operation }` shorthand is as common here as `values: { operation: "x" }`,
-      // and reading only the longhand form silently loses the shorthand ones.
-      const opProp = valuesProp.initializer.properties.find(pr =>
-        (ts.isPropertyAssignment(pr) || ts.isShorthandPropertyAssignment(pr)) &&
-        pr.name && ts.isIdentifier(pr.name) && pr.name.text === "operation")
-      // Same resolution as the helper path: a literal, a ternary of literals, or an identifier
-      // bound to a literal-union parameter — `operation: "undoAction" | "redoAction"` resolves.
-      if (opProp) {
-        operations = operationNames(
-          ts.isShorthandPropertyAssignment(opProp) ? opProp.name : opProp.initializer, node)
-      }
-    }
-    if (!operations.length) {
-      // The operation is computed or forwarded wholesale. Record the family so the page can
-      // say so, rather than dropping the notification entirely.
-      notifications.push({ operation: null, via: "inline", resource: family, source: siteOf(sf, node) })
+    const site = { via: "inline", resource: family, source: siteOf(sf, node) }
+    const values = prop("values")
+    const read = values && ts.isObjectLiteralExpression(values) ? objectKeysFor(rawProp("values"), node) : null
+    if (!read) {
+      // Forwarded wholesale. Record the family so the page can say so, rather than dropping it.
+      notifications.push({ operation: null, ...site })
       return
     }
-    for (const operation of operations) {
-      notifications.push({ operation, via: "inline", resource: family, source: siteOf(sf, node) })
+    const valueFields = {
+      valueKeys: read.keys.filter(k => k !== "operation"),
+      ...(read.partial && { valueKeysPartial: true })
     }
+    // `values: { operation }` shorthand is as common as `values: { operation: "x" }`.
+    const opProp = values.properties.find(pr =>
+      (ts.isPropertyAssignment(pr) || ts.isShorthandPropertyAssignment(pr)) &&
+      pr.name && ts.isIdentifier(pr.name) && pr.name.text === "operation")
+    if (!opProp) {
+      // The slider's `global[<name>]` and `logMessageNotice` carry no operation at all.
+      notifications.push({ operation: null, noOperation: true, ...site, ...valueFields })
+      return
+    }
+    // Same resolution as the helper path: a literal, a ternary of literals, or an identifier
+    // bound to a literal-union parameter — `operation: "undoAction" | "redoAction"` resolves.
+    const operations = operationNames(
+      ts.isShorthandPropertyAssignment(opProp) ? opProp.name : opProp.initializer, node)
+    if (!operations.length) {
+      notifications.push({ operation: null, ...site, ...valueFields })
+      return
+    }
+    for (const operation of operations) notifications.push({ operation, ...site, ...valueFields })
   })
 }
 
@@ -844,29 +1062,37 @@ for (const [, sf] of sources) {
     if (!ts.isStringLiteralLike(node.initializer)) return
     notifications.push({
       operation: node.initializer.text, via: "adornment registration",
-      resource: "component", source: siteOf(sf, node)
+      resource: "component", source: siteOf(sf, node),
+      ...(registrationValues.keys && { valueKeys: registrationValues.keys }),
+      ...(registrationValues.partial && { valueKeysPartial: true })
     })
   })
 }
 
 // One operation can be emitted from several places; keep one entry per operation+resource and
 // record how many sites raise it, so the catalog is a list of operations rather than call sites.
+// Keys from several sites are unioned. A site whose keys cannot be read makes the union partial,
+// since it may carry something the others do not.
 const byOp = new Map()
 for (const n of notifications) {
-  const key = `${n.operation ?? "(computed)"}\u0000${n.resource}`
+  const opKey = n.operation ?? (n.noOperation ? "(none)" : "(computed)")
+  const key = `${opKey}\u0000${n.resource}`
   const found = byOp.get(key)
   if (found) {
     found.sites.push(n.source)
+    if (!n.valueKeys !== !found.valueKeys) found.valueKeysPartial = true
     if (n.valueKeys) found.valueKeys = [...new Set([...(found.valueKeys ?? []), ...n.valueKeys])]
     if (n.valueKeysPartial) found.valueKeysPartial = true
     continue
   }
   byOp.set(key, { operation: n.operation, resource: n.resource, via: n.via, sites: [n.source],
+                  ...(n.noOperation && { noOperation: true }),
                   ...(n.valueKeys && { valueKeys: [...n.valueKeys] }),
                   ...(n.valueKeysPartial && { valueKeysPartial: true }) })
 }
 const notificationCatalog = [...byOp.values()]
-  .map(n => ({ operation: n.operation, resource: n.resource, via: n.via,
+  .map(n => ({ operation: n.operation, ...(n.noOperation && { noOperation: true }),
+               resource: n.resource, via: n.via,
                ...(n.valueKeys && { valueKeys: [...n.valueKeys].sort(cmp) }),
                ...(n.valueKeysPartial && { valueKeysPartial: true }),
                source: n.sites[0], ...(n.sites.length > 1 && { alsoRaisedAt: n.sites.length - 1 }) }))
