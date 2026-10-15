@@ -98,8 +98,9 @@ for each collection in turn.
 
 ## Notifications
 
-This resource sends none. Creating or updating an attribute produces notifications on
-[`attribute`](attribute.md); deleting one does not. See
+This resource sends none. Creating or updating an attribute through [`attribute`](attribute.md)
+is reported on `dataContextChangeNotice[<context>]`. Deleting one should be too, but currently is
+not; see [`attribute`](attribute.md#known-limitations). See
 [the notification catalog](../notifications.md) for everything CODAP sends.
 
 ## Errors

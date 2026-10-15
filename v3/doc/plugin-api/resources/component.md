@@ -541,7 +541,7 @@ echoes the values from the request.
 
 Over eighty component operations exist, most of them raised by the user working in an inspector
 panel. [The notification catalog](../notifications.md#component-changes--component) lists them
-all, grouped by component type.
+all, grouped by the area of CODAP that raises them.
 
 | `operation` | Sent when |
 |---|---|

@@ -204,6 +204,19 @@ The exception is genuinely shared narrative — request coalescing, undo/redo, e
 
 ---
 
+## Deprecated names
+
+CODAP does not rename a resource, action, value key or notification operation silently, even
+an untidy one inherited from v2. A cleanup adds the consistent name alongside the old one. CODAP
+then accepts both, or sends both, for a transition period, and the reference documents the old
+name as deprecated. The old name is removed only in a later, announced API version.
+
+On a page, a deprecated name keeps its own row or mention, marked **deprecated**, with the name
+that replaces it. `restoreSetasides` on [`dataContext`](resources/data-context.md) is the
+pattern: "accepted as a deprecated v2 spelling".
+
+---
+
 ## Terminology
 
 Use the canonical term from the table on [the index](README.md#terminology), not the synonym that
