@@ -7,6 +7,7 @@
 //
 // Checks:
 //   json          every ```json block parses
+//   responses     on a resource page, every `get` example is followed by its response
 //   links         every relative link resolves
 //   tables        every markdown table row has its header's column count
 //   markers       BEGIN/END GENERATED markers pair up, and names are unique within a page
@@ -68,6 +69,20 @@ for (const file of files) {
   // json
   for (const [i, body] of [...raw.matchAll(/```json\n([\s\S]*?)```/g)].entries()) {
     try { JSON.parse(body[1]) } catch (e) { fail(name, `json block ${i + 1} does not parse: ${e.message}`) }
+  }
+
+  // responses — a `get` example shows what comes back, as the next json block. Only resource
+  // pages: the index shows request shapes on their own before it introduces responses.
+  if (isResourcePage) {
+    const parsed = [...raw.matchAll(/```json\n([\s\S]*?)```/g)].map(m => {
+      try { return JSON.parse(m[1]) } catch { return null }
+    })
+    for (const [i, request] of parsed.entries()) {
+      if (request?.action !== "get") continue
+      if (typeof parsed[i + 1]?.success !== "boolean") {
+        fail(name, `get example for ${request.resource} is not followed by its response`)
+      }
+    }
   }
 
   // links

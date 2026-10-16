@@ -57,6 +57,47 @@ Every request a plugin sends has the same envelope:
 }
 ```
 
+A request may also be an array of envelopes. CODAP processes them in order and replies with an
+array of responses, one per request.
+
+### Response shape
+
+Every request gets one response. On success, `success` is `true` and `values` holds what the
+action returns — here, the reply to the `attributeList` request above:
+
+```json
+{
+  "success": true,
+  "values": [
+    { "name": "Species", "id": 31, "title": "Species" },
+    { "name": "Mass", "id": 32, "title": "Mass" }
+  ]
+}
+```
+
+What `values` holds depends on the resource and the action; each resource page shows it. Some
+actions return no `values` at all, only `{ "success": true }`.
+
+On failure, `success` is `false` and `values.error` holds a message:
+
+```json
+{
+  "success": false,
+  "values": { "error": "DataContext not found" }
+}
+```
+
+Test `success` before reading `values`: a failed request carries no data, only the error. Each
+resource page lists the messages it can return, and when, in its **Errors** table. A few can come
+from any request:
+
+| Error | Condition |
+|---|---|
+| `Unsupported action: <action>/<resource>` | the resource does not exist, or does not support the action |
+| `No action to process.` | the request was empty |
+| `Action handler returned undefined.` | the handler produced no response — a defect in CODAP |
+| `An error occurred while processing the request.` | the handler failed unexpectedly — a defect in CODAP |
+
 ### Sending requests and receiving notifications
 
 [The notification catalog](notifications.md) lists them, grouped by what changed, and

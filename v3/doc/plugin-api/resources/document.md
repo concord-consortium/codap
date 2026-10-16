@@ -129,7 +129,13 @@ Takes no `values`.
 }
 ```
 
-The response is `{"success": true}`. The document follows as a `newDocumentState` notification.
+The response carries no document:
+
+```json
+{ "success": true }
+```
+
+The document follows as a `newDocumentState` notification.
 
 **Round-trip a document.**
 

@@ -124,6 +124,32 @@ Read the frame at startup:
 { "action": "get", "resource": "interactiveFrame" }
 ```
 
+```json
+{
+  "success": true,
+  "values": {
+    "allowEmptyAttributeDeletion": true,
+    "blockAPIRequestsWhileEditing": false,
+    "codapVersion": "3.1.1",
+    "dimensions": { "width": 600, "height": 400 },
+    "externalUndoAvailable": true,
+    "id": 7,
+    "name": "Sampler",
+    "preventAttributeDeletion": false,
+    "preventBringToFront": false,
+    "preventDataContextReorg": false,
+    "preventTopLevelReorg": false,
+    "respectEditableItemAttribute": false,
+    "standaloneUndoModeAvailable": false,
+    "subscribeToDocuments": false,
+    "title": "Sampler",
+    "version": "",
+    "lang": "en",
+    "locale": "en-US"
+  }
+}
+```
+
 Set the frame's size and the permissions a plugin needs:
 
 ```json
@@ -206,13 +232,6 @@ For notifications CODAP sends *to* a plugin, see
 [the notification catalog](../notifications.md).
 
 ## Errors
-
-<!-- BEGIN GENERATED: errors -->
-| Error |
-|---|
-| `Interactive Frame not found` |
-| `A values object is required for this request.` |
-<!-- END GENERATED: errors -->
 
 | Error | Condition |
 |---|---|
