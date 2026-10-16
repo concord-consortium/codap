@@ -5,6 +5,11 @@
 Narrative chapters covering plugin-facing behavior that spans resources, rather than belonging to
 any one of them. For per-resource reference, see [the index](../README.md).
 
+## Chapters
+
+- **[Undo and redo](undo-and-redo.md)** — how a plugin puts its own actions on CODAP's undo
+  history, answers undo and redo, and drives them from buttons of its own.
+
 ## Planned chapters
 
 These arrive with Phase 5 of the [plan](../../plugin-api-doc-update-plan.md):
@@ -13,7 +18,6 @@ These arrive with Phase 5 of the [plan](../../plugin-api-doc-update-plan.md):
   rather than the plugin running inside CODAP.
 - **Request processing and coalescing** — how consecutive single-item `create` requests are
   batched, and what that means for response timing when streaming data in.
-- **Undo and redo** — how plugin-initiated changes participate in CODAP's undo stack.
 - **Locale and internationalization** — `lang` versus `locale`, and handling locale changes.
 
 ## Interim sources
@@ -26,7 +30,6 @@ occasional references to internals that are not part of the API:
 |---|---|
 | Embedding CODAP / embedded-server mode | [`../../embedding-codap.md`](../../embedding-codap.md) |
 | Request processing and coalescing | [`../../plugin-request-processing.md`](../../plugin-request-processing.md) |
-| Undo and redo | [`../../plugin-undo-redo.md`](../../plugin-undo-redo.md) and [`../../plugin-undo-redo-architecture.md`](../../plugin-undo-redo-architecture.md) |
 | Tour API | [`../../plugin-tour-api.md`](../../plugin-tour-api.md) |
 | Locale switching | [`../../plugin-locale-switching-design.md`](../../plugin-locale-switching-design.md) |
 
