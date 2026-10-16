@@ -1056,6 +1056,111 @@ describe("DataConfigurationModel", () => {
     })
   })
 
+  describe("percent denominators (cellCases / rowCases / columnCases) with a kOther cell", () => {
+    beforeEach(() => {
+      addSwapFixture(tree)
+    })
+
+    const sorted = (caseIds: readonly string[]) => [...caseIds].sort()
+    // The plotted cases whose value for attrId was clamped into kOther, optionally narrowed to one
+    // value of a second attribute.
+    const overflowCases = (attrId: string, other?: { attrId: string, value: string }) => {
+      const config = tree.config
+      const cats = config.categoryArrayForAttrRole(
+        config.attributeID("x") === attrId ? "x" : config.attributeID("y") === attrId ? "y" : "topSplit", [])
+      return config.allPlottedCases().filter(caseId => {
+        if (cats.includes(config.dataset!.getStrValue(caseId, attrId) ?? "")) return false
+        return !other || config.dataset!.getStrValue(caseId, other.attrId) === other.value
+      })
+    }
+
+    it("finds the overflow cases for kOther on y (Row %)", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("y", { attributeID: "hiId" })
+      config.setAttribute("x", { attributeID: "lowId" })
+      config.setNumberOfCategoriesLimitForRole("y", 10)
+      expect(config.categoryArrayForAttrRole("y", [])).toContain(kOther)
+
+      const expected = overflowCases("hiId")
+      expect(expected.length).toBeGreaterThan(0)
+      // the row spans every x category, so its denominator is every overflow case
+      expect(sorted(config.rowCases({ hiId: kOther, lowId: "A" }))).toEqual(sorted(expected))
+      // and the count/percent numerator for that cell is a subset of it
+      const numerator = config.subPlotCases({ hiId: kOther, lowId: "A" })
+      expect(numerator.length).toBeGreaterThan(0)
+      expect(numerator.every(caseId => expected.includes(caseId))).toBe(true)
+    })
+
+    it("finds the overflow cases for kOther on x (Column %)", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "hiId" })
+      config.setAttribute("y", { attributeID: "lowId" })
+      config.setNumberOfCategoriesLimitForRole("x", 10)
+
+      const expected = overflowCases("hiId")
+      expect(expected.length).toBeGreaterThan(0)
+      expect(sorted(config.columnCases({ hiId: kOther, lowId: "B" }))).toEqual(sorted(expected))
+    })
+
+    it("finds the overflow cases for kOther on a top split (any percent type)", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("topSplit", { attributeID: "hiId" })
+      config.setAttribute("x", { attributeID: "lowId" })
+      config.setNumberOfCategoriesLimitForRole("topSplit", 10)
+      expect(config.categoryArrayForAttrRole("topSplit", [])).toContain(kOther)
+
+      const expected = overflowCases("hiId")
+      expect(expected.length).toBeGreaterThan(0)
+      const key = { hiId: kOther, lowId: "A" }
+      expect(sorted(config.cellCases(key))).toEqual(sorted(expected))
+      expect(sorted(config.rowCases(key))).toEqual(sorted(expected))
+      expect(sorted(config.columnCases(key))).toEqual(sorted(overflowCases("hiId", { attrId: "lowId", value: "A" })))
+    })
+
+    it("recomputes the kOther denominators when the category limit tightens (graph shortened)", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("y", { attributeID: "hiId" })
+      config.setAttribute("x", { attributeID: "lowId" })
+      const key = { hiId: kOther, lowId: "A" }
+
+      // The kOther cell keeps the same key at every limit, so a cached denominator from a looser
+      // limit would be reused while the numerator grows, pushing the percent past 100%.
+      for (const limit of [20, 12, 8, 4, 2]) {
+        config.setNumberOfCategoriesLimitForRole("y", limit)
+        const expected = overflowCases("hiId")
+        const rowCases = config.rowCases(key)
+        expect(sorted(rowCases)).toEqual(sorted(expected))
+        expect(sorted(config.cellCases(key))).toEqual(sorted(config.allPlottedCases()))
+        // the column spans every y category, overflow included
+        const columnA = config.allPlottedCases().filter(caseId => config.dataset!.getStrValue(caseId, "lowId") === "A")
+        expect(sorted(config.columnCases(key))).toEqual(sorted(columnA))
+        expect(config.subPlotCases(key).length).toBeLessThanOrEqual(rowCases.length)
+      }
+    })
+
+    it("matches a raw-value comparison for every cell when nothing is clamped", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("y", { attributeID: "hiId" })
+      config.setAttribute("x", { attributeID: "lowId" })
+      config.setAttribute("rightSplit", { attributeID: "nId" })
+
+      const valueOf = (caseId: string, attrId: string) => config.dataset!.getStrValue(caseId, attrId)
+      const matching = (cellKey: Record<string, string>, attrIds: string[]) =>
+        config.allPlottedCases().filter(caseId => attrIds.every(id => valueOf(caseId, id) === cellKey[id]))
+
+      config.getAllCellKeys().forEach(cellKey => {
+        expect(sorted(config.cellCases(cellKey))).toEqual(sorted(matching(cellKey, ["nId"])))
+        expect(sorted(config.rowCases(cellKey))).toEqual(sorted(matching(cellKey, ["hiId", "nId"])))
+        expect(sorted(config.columnCases(cellKey))).toEqual(sorted(matching(cellKey, ["lowId", "nId"])))
+      })
+    })
+  })
+
   describe("caseDataWithSubPlot", () => {
     beforeEach(() => {
       addSwapFixture(tree)

@@ -9,8 +9,8 @@ import {GraphPlace} from "../../axis-graph-shared"
 import {AxisPlace} from "../../axis/axis-types"
 import { CaseData, CaseDataWithSubPlot } from "../../data-display/d3-types"
 import {
-  AttrRole, GraphAttrRole, graphPlaceToAttrRole, GraphSplitAttrRoles, ICaseSubsetDescription, kMain, kOther,
-  PrimaryAttrRoles
+  AttrRole, GraphAttrRole, graphPlaceToAttrRole, GraphSplitAttrRole, GraphSplitAttrRoles, ICaseSubsetDescription,
+  kMain, kOther, PrimaryAttrRoles
 } from "../../data-display/data-display-types"
 import {
   AttributeDescription, DataConfigurationModel, IAttributeDescriptionSnapshot, IDataConfigurationModel
@@ -545,6 +545,28 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     })
   }))
   .views(self => ({
+    /**
+     * The plotted cases in every cell that agrees with cellKey in each of the given roles; the other
+     * roles may hold any category. Reading the cell grid's buckets, rather than comparing cellKey's
+     * values against raw case values, lets a kOther value find the overflow cases it stands for,
+     * and visits only the matching cells. A role with an attribute cellKey doesn't name matches no
+     * case, as a raw comparison against a missing value would.
+     */
+    casesInCellsMatchingRoles(cellKey: Record<string, string>, roles: GraphSplitAttrRole[]) {
+      const indexer = self.cellIndexer()
+      const slots: Partial<Record<GraphSplitAttrRole, number>> = {}
+      for (const role of roles) {
+        const attrId = self.attributeID(role)
+        if (!attrId) continue
+        const value = cellKey[attrId]
+        if (value === undefined) return []
+        slots[role] = indexer.slotFor(role, value)
+      }
+      const buckets = self.casesByCellIndex()
+      return indexer.indicesMatchingSlots(slots).flatMap(index => buckets[index])
+    }
+  }))
+  .views(self => ({
     maxPercentAllCells(extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole) {
       if (self.attributeID('legend')) return 100  // because we divide the full bar into categories
       // Compute percent relative to total plotted cases (not per-subplot) to match V2 behavior.
@@ -617,71 +639,27 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     cellCases: cachedFnWithArgsFactory({
       key: (cellKey: Record<string, string>) => cellKeyToString(cellKey),
       calculate: (cellKey: Record<string, string>) => {
-        const rightAttrID = self.attributeID("rightSplit")
-        const rightValue = rightAttrID ? cellKey[rightAttrID] : ""
-        const topAttrID = self.attributeID("topSplit")
-        const topAttrType = self.attributeType("topSplit")
-        const topValue = topAttrID ? cellKey[topAttrID] : ""
-
-        return self.allPlottedCases().filter(caseId => {
-          const caseData = self.dataset?.getFirstItemForCase(caseId, { numeric: false })
-          if (!caseData) return false
-          const isRightMatch = !rightAttrID || rightValue === caseData[rightAttrID]
-          const isTopMatch = !topAttrID || topAttrType !== "categorical" ||
-            (topAttrType === "categorical" && topValue === caseData[topAttrID])
-
-          return isRightMatch && isTopMatch
-        })
+        const roles: GraphSplitAttrRole[] = ["rightSplit"]
+        if (self.attributeType("topSplit") === "categorical") roles.push("topSplit")
+        return self.casesInCellsMatchingRoles(cellKey, roles)
       },
       name: "cellCases"
     }),
     rowCases: cachedFnWithArgsFactory({
       key: (cellKey: Record<string, string>) => cellKeyToString(cellKey),
       calculate: (cellKey: Record<string, string>) => {
-        const leftAttrID = self.attributeID("y")
-        const leftAttrType = self.attributeType("y")
-        const leftValue = leftAttrID ? cellKey[leftAttrID] : ""
-        const rightAttrID = self.attributeID("rightSplit")
-        const rightValue = rightAttrID ? cellKey[rightAttrID] : ""
-        const topAttrID = self.attributeID("topSplit")
-        const topValue = topAttrID ? cellKey[topAttrID] : ""
-
-        return self.allPlottedCases().filter(caseId => {
-          const caseData = self.dataset?.getFirstItemForCase(caseId, { numeric: false })
-          if (!caseData) return false
-
-          const isLeftMatch = !leftAttrID || leftAttrType !== "categorical" ||
-            (leftAttrType === "categorical" && leftValue === caseData[leftAttrID])
-          const isRightMatch = !rightAttrID || rightValue === caseData[rightAttrID]
-          const isTopMatch = !topAttrID || topValue === caseData[topAttrID]
-
-          return isLeftMatch && isRightMatch && isTopMatch
-        })
+        const roles: GraphSplitAttrRole[] = ["rightSplit", "topSplit"]
+        if (self.attributeType("y") === "categorical") roles.push("y")
+        return self.casesInCellsMatchingRoles(cellKey, roles)
       },
       name: "rowCases"
     }),
     columnCases: cachedFnWithArgsFactory({
       key: (cellKey: Record<string, string>) => cellKeyToString(cellKey),
       calculate: (cellKey: Record<string, string>) => {
-        const bottomAttrID = self.attributeID("x")
-        const bottomAttrType = self.attributeType("x")
-        const bottomValue = bottomAttrID ? cellKey[bottomAttrID] : ""
-        const topAttrID = self.attributeID("topSplit")
-        const topValue = topAttrID ? cellKey[topAttrID] : ""
-        const rightAttrID = self.attributeID("rightSplit")
-        const rightValue = rightAttrID ? cellKey[rightAttrID] : ""
-
-        return self.allPlottedCases().filter(caseId => {
-          const caseData = self.dataset?.getFirstItemForCase(caseId, { numeric: false })
-          if (!caseData) return false
-
-          const isBottomMatch = !bottomAttrID || bottomAttrType !== "categorical" ||
-            (bottomAttrType === "categorical" && bottomValue === caseData[bottomAttrID])
-          const isTopMatch = !topAttrID || topValue === caseData[topAttrID]
-          const isRightMatch = !rightAttrID || rightValue === caseData[rightAttrID]
-
-          return isBottomMatch && isTopMatch && isRightMatch
-        })
+        const roles: GraphSplitAttrRole[] = ["rightSplit", "topSplit"]
+        if (self.attributeType("x") === "categorical") roles.push("x")
+        return self.casesInCellsMatchingRoles(cellKey, roles)
       },
       name: "columnCases"
     }),
@@ -691,12 +669,17 @@ export const GraphDataConfigurationModel = DataConfigurationModel
   }))
   .actions(self => ({
     // The cell-grid caches are a chain: casesByCellIndex is built from cellIndexer, and subPlotCases
-    // is read out of casesByCellIndex. Invalidating one without the others leaves them answering
-    // from a stale grid, so they are invalidated together here.
+    // and the percent denominators (cellCases, rowCases, columnCases) are read out of
+    // casesByCellIndex. Invalidating one without the others leaves them answering from a stale
+    // grid, so they are invalidated together here. A kOther cell keeps its key as the clamp changes,
+    // so a stale denominator would otherwise be reused while the numerator grows.
     invalidateCellGrid() {
       self.cellIndexer.invalidateAll()
       self.casesByCellIndex.invalidateAll()
       self.subPlotCases.invalidateAll()
+      self.cellCases.invalidateAll()
+      self.rowCases.invalidateAll()
+      self.columnCases.invalidateAll()
     }
   }))
   .actions(self => ({
@@ -895,9 +878,6 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     clearGraphSpecificCasesCache() {
       self.invalidateCellGrid()
       self.allPlottedCases.invalidate()
-      self.rowCases.invalidateAll()
-      self.columnCases.invalidateAll()
-      self.cellCases.invalidateAll()
       self.cellMap.invalidateAll()
     },
     handleDataSetChange(data?: IDataSet) {

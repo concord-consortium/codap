@@ -214,4 +214,30 @@ describe("CellIndexer", () => {
     expect(indexer.indexForSlots({ top: 1, right: 1, y: 0, x: 0 })).toBe(18)
     expect(indexer.indexForSlots({ top: 1, right: 1, y: 2, x: 1 })).toBe(23)
   })
+
+  describe("indicesMatchingSlots", () => {
+    const indexer = new CellIndexer(makeOptions({
+      xAttrId: "xId", xCats: ["x0", "x1"],
+      yAttrId: "yId", yCats: ["y0", "y1", kOther],
+      rightAttrId: "rId", rightCats: ["r0", "r1"],
+      topAttrId: "tId", topCats: ["t0", "t1"]
+    }))
+
+    it("returns every index when no role is constrained", () => {
+      expect(indexer.indicesMatchingSlots({})).toEqual(Array.from({ length: indexer.cellCount }, (_, i) => i))
+    })
+
+    // hand-derived: index = top*12 + right*6 + y*2 + x
+    it("varies only the unconstrained roles", () => {
+      // a row: one cell per x category
+      expect(indexer.indicesMatchingSlots({ y: 2, rightSplit: 1, topSplit: 0 })).toEqual([10, 11])
+      // a column: one cell per y category
+      expect(indexer.indicesMatchingSlots({ x: 1, rightSplit: 0, topSplit: 1 })).toEqual([13, 15, 17])
+    })
+
+    it("matches nothing for a negative or out-of-range slot", () => {
+      expect(indexer.indicesMatchingSlots({ y: -1 })).toEqual([])
+      expect(indexer.indicesMatchingSlots({ x: 2 })).toEqual([])
+    })
+  })
 })

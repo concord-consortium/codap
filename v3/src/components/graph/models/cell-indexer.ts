@@ -84,6 +84,28 @@ export class CellIndexer {
            x
   }
 
+  /**
+   * Every index whose slot in each given role equals the given slot, in ascending order. A role
+   * left out of `slots` may hold any slot, so this gathers a row, column or other slice of the
+   * grid while visiting only the cells in it. A negative or out-of-range slot matches nothing.
+   */
+  indicesMatchingSlots(slots: Partial<Record<GraphSplitAttrRole, number>>): number[] {
+    const range = (slot: number | undefined, count: number) =>
+      slot === undefined ? Array.from({ length: count }, (_, i) => i)
+        : slot >= 0 && slot < count ? [slot] : []
+    const indices: number[] = []
+    for (const top of range(slots.topSplit, this.topCount)) {
+      for (const right of range(slots.rightSplit, this.rightCount)) {
+        for (const y of range(slots.y, this.yCount)) {
+          for (const x of range(slots.x, this.xCount)) {
+            indices.push(this.indexForSlots({ top, right, y, x }))
+          }
+        }
+      }
+    }
+    return indices
+  }
+
   cellKeyForIndex(index: number): Record<string, string> {
     let cellKey: Record<string, string> = {}
     const topIndex = Math.floor(index / (this.rightCount * this.yCount * this.xCount))
