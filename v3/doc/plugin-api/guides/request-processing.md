@@ -121,7 +121,8 @@ a known bug. Until it is fixed, check whether the reply is an array before readi
 
 **Data notifications are not combined as v2 combined them.** v2 sent one data-change notification
 per request, whose `values` was an array of every change the request made. v3 sends one
-notification per change, with `values` a single object. This is a known bug.
+notification per change, with `values` a single object. This is a known bug; see
+[the notification catalog](../notifications.md#known-limitations).
 
 **`blockAPIRequestsWhileEditing` holds back every plugin.** Only the plugin that manages the data
 context needs to wait while its data is being edited, but requests from all plugins wait.
@@ -131,4 +132,6 @@ context needs to wait while its data is being edited, but requests from all plug
 - [The resource index](../README.md) for the request and response shapes
 - [`interactiveFrame`](../resources/interactive-frame.md) for `blockAPIRequestsWhileEditing`
 - [`dataContext`](../resources/data-context.md) for `managingController`
+- [The notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext)
+  for `createCases` and the other data notifications
 - [Undo and redo](undo-and-redo.md): requests your plugin makes are not on CODAP's undo history

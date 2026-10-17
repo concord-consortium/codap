@@ -16,8 +16,7 @@
 //   citations     no source file:line citations (external pages; conventions.md is exempt)
 //   issue-ids     no internal issue-tracker ids
 //   placeholders  no CODAP-internal %@ i18n notation
-//   notifications every operation CODAP sends has a hand-written row in its family's section
-//   notification sections  each component operation's row sits under the area that raises it
+//   notifications every operation listed in the catalog has a "Fires when" description
 //   sections      each resource page has the required sections and a provenance header
 //   coverage      which resources in the code have no page (reported; --strict to fail)
 //
@@ -157,112 +156,16 @@ if (scopeBlocks.size > 3) {
   problems.push(`scope blocks: ${scopeBlocks.size} distinct variants; expected at most 3 (one per scope case)`)
 }
 
-// notifications — every operation CODAP can send is explained in a hand-written row of its own
-// family's section: its name in the first cell of a table row outside the generated blocks, under
-// the `## ` heading for its resource. A mention anywhere else — another row's description, another
-// family's section — does not count. Each family with operations must also have its generated
-// block, so a deleted block is caught rather than leaving its family unchecked.
-const kNotificationSections = {
-  dataContextChangeNotice: { heading: "Data changes", block: "notifications-data" },
-  component: { heading: "Component changes", block: "notifications-component" },
-  dragDrop: { heading: "Attribute drag", block: "notifications-drag" },
-  undoChangeNotice: { heading: "Undo and redo", block: "notifications-undo" },
-  document: { heading: "Document state", block: "notifications-document" }
-}
-const kOtherNotifications = { heading: "Everything else", block: "notifications-other" }
-
-// Hand-written table rows of notifications.md, each with the `## ` and `### ` headings above it.
-function notificationRows(raw) {
-  const prose = raw.replace(
-    /<!-- BEGIN GENERATED: [\w-]+(?:\s+\w+=\S+)* -->[\s\S]*?<!-- END GENERATED: [\w-]+ -->/g, "")
-  const rows = []
-  let section = null
-  let subsection = null
-  let fenced = false
-  for (const line of prose.split("\n")) {
-    if (line.trimStart().startsWith("```")) { fenced = !fenced; continue }
-    if (fenced) continue
-    if (line.startsWith("## ")) { section = line.slice(3).trim(); subsection = null; continue }
-    if (line.startsWith("### ")) { subsection = line.slice(4).trim(); continue }
-    const st = line.trim()
-    if (!section || !st.startsWith("|") || !st.endsWith("|") || /^\|[-|\s]+\|$/.test(st)) continue
-    const cells = st.replace(/^\||\|$/g, "").split("|").map(c => c.trim())
-    rows.push({ section, subsection, cells })
-  }
-  return rows
-}
-
+// notifications — the generator lists every operation the code sends in a table of its family or
+// area, and fails if one fits no table. What it cannot write is when each fires, so it marks a
+// new operation's row as undescribed, and that fails here until someone writes the description.
 {
   const page = join(docsDir, "notifications.md")
   if (existsSync(page)) {
-    const raw = readFileSync(page, "utf8")
-    const rows = notificationRows(raw)
-    const families = new Set((inventory.notifications ?? []).map(n => n.resource))
-    for (const family of families) {
-      const { block } = kNotificationSections[family] ?? kOtherNotifications
-      if (!new RegExp(`<!-- BEGIN GENERATED: ${block}(?:\\s+\\w+=\\S+)* -->`).test(raw)) {
-        fail("notifications.md", `no ${block} block, so the \`${family}\` notifications are not listed`)
-      }
-    }
-    const seen = new Set()
-    for (const n of inventory.notifications ?? []) {
-      // A null operation is computed or absent; the page documents those by resource instead.
-      if (n.operation == null) continue
-      const key = `${n.operation}\u0000${n.resource}`
-      if (seen.has(key)) continue
-      seen.add(key)
-      const { heading } = kNotificationSections[n.resource] ?? kOtherNotifications
-      // The other-families table names the resource first and the operation second.
-      const nameCells = heading === kOtherNotifications.heading ? [0, 1] : [0]
-      const explained = rows.some(r => r.section.startsWith(heading) &&
-        nameCells.some(i => (r.cells[i] ?? "").includes(`\`${n.operation}\``)))
-      if (!explained) {
-        fail("notifications.md",
-             `operation \`${n.operation}\` (${n.resource}) has no hand-written row under "${heading}"`)
-      }
-    }
-  }
-}
-
-// notification sections — under "Component changes", each `### ` section covers named areas of
-// CODAP, and an operation's row must sit in the section matching the "Raised by" area the
-// generator reports. A section with no entry here fails rather than going unchecked.
-{
-  const page = join(docsDir, "notifications.md")
-  if (existsSync(page)) {
-    const raw = readFileSync(page, "utf8")
-    const sectionAreas = {
-      "Lifecycle": ["lifecycle", "container", "other"],
-      "Graph": ["graph"],
-      "Axis": ["axis"],
-      "Slider": ["slider"],
-      "Map": ["map"],
-      "Case table and case card": ["case table", "case card"],
-      "Text, calculator, formula": ["text", "calculator", "formula"],
-      "Data display": ["data display"]
-    }
-    const generated = new Map()
-    const block =
-      /<!-- BEGIN GENERATED: notifications-component(?:\s+\w+=\S+)* -->([\s\S]*?)<!-- END GENERATED/.exec(raw)
-    if (!block) fail("notifications.md", "no notifications-component block to check sections against")
-    for (const line of block ? block[1].split("\n") : []) {
-      const cells = line.trim().replace(/^\||\|$/g, "").split("|").map(c => c.trim())
-      if (cells.length === 3 && cells[0].startsWith("`")) generated.set(cells[0].replace(/`/g, ""), cells[1])
-    }
-    const unknown = new Set()
-    for (const { section, subsection, cells } of notificationRows(raw)) {
-      if (!section.startsWith("Component changes") || !subsection) continue
-      const allowed = sectionAreas[subsection]
-      if (!allowed) { unknown.add(subsection); continue }
-      for (const m of (cells[0] ?? "").matchAll(/`([^`]+)`/g)) {
-        const area = generated.get(m[1])
-        if (area && !allowed.includes(area)) {
-          fail("notifications.md", `\`${m[1]}\` is documented under "${subsection}" but is raised by ${area}`)
-        }
-      }
-    }
-    for (const sub of unknown) {
-      fail("notifications.md", `section "${sub}" has no area mapping in the lint, so its rows are unchecked`)
+    for (const line of readFileSync(page, "utf8").split("\n")) {
+      if (!line.startsWith("|") || !line.includes("_not yet described_")) continue
+      const operation = line.replace(/^\|/, "").split("|").map(c => c.trim()).find(c => c.startsWith("`"))
+      fail("notifications.md", `${operation ?? line} has no "Fires when" description`)
     }
   }
 }

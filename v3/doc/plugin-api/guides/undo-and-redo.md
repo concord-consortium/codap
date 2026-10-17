@@ -8,8 +8,8 @@ so that the user's undo reverses them in turn, and it can drive undo and redo fr
 own.
 
 This chapter covers both. It draws on three reference pages: the `undoChangeNotice` resource your
-plugin sends to, the notifications CODAP sends back, and the two undo properties on
-[`interactiveFrame`](../resources/interactive-frame.md).
+plugin sends to, [the notifications CODAP sends back](../notifications.md#undo-and-redo--undochangenotice),
+and the two undo properties on [`interactiveFrame`](../resources/interactive-frame.md).
 
 ## What the history holds
 
@@ -212,3 +212,5 @@ CODAP's undo reverses a request it made.
 - [`interactiveFrame`](../resources/interactive-frame.md) for `externalUndoAvailable` and
   `standaloneUndoModeAvailable`
 - [The resource index](../README.md) for the request envelope and how notifications arrive
+- [The notification catalog](../notifications.md#undo-and-redo--undochangenotice) for
+  `undoChangeNotice` and every other notification CODAP sends

@@ -127,9 +127,19 @@ Rules:
   or after the block. If it is inside the markers and not derivable, the generator deletes it and
   reports the block as CHANGED — recoverable from git, but gone from the page.
   When in doubt, ask whether a script reading `src/data-interactive/` could produce the cell.
+- **The notification tables are the one exception.** Each table in `notifications.md` is a
+  generated block with one column a person writes: "Fires when". The generator decides which
+  operations are listed and what `values` carries, reads "Fires when" back out of the table, and
+  carries it forward by operation name. Edit that column in place. A row may name several
+  operations that share a description. An operation new in the code gets a row marked
+  `_not yet described_`, which the lint fails until it is described; a row whose operations are
+  all gone is dropped. The `component` notifications get one block per section of the page,
+  and an area of CODAP that no block claims fails the generator.
 - Current block names: `actions`, `selectors`, `scope`, `values`, `values-write`, and
   on the quick reference `adornment-types`, `resource-actions`, `selector-grammar`,
-  `error-catalog`.
+  `error-catalog`. On `notifications.md`: `notifications-data`, `notifications-drag`,
+  `notifications-undo`, `notifications-document`, `notifications-other`, and
+  `notifications-component-<section>`.
 - A page may carry **more than one property table** when the shape differs by action — the result
   of a `get` versus the values `create`/`update` accept. Mark both, with distinct names: `values`
   for the result shape and `values-write` for accepted input. Block names must be unique within a
