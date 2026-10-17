@@ -206,10 +206,13 @@ The exception is genuinely shared narrative — request coalescing, undo/redo, e
 
 ## Deprecated names
 
-CODAP does not rename a resource, action, value key or notification operation silently, even
-an untidy one inherited from v2. A cleanup adds the consistent name alongside the old one. CODAP
-then accepts both, or sends both, for a transition period, and the reference documents the old
-name as deprecated. The old name is removed only in a later, announced API version.
+This is the policy from now on: CODAP does not rename a resource, action, value key or
+notification operation silently, even an untidy one inherited from v2. A cleanup adds the
+consistent name alongside the old one. CODAP then accepts both, or sends both, for a transition
+period, and the reference documents the old name as deprecated. The old name is removed only in
+a later, announced API version. Some earlier renames were made silently, such as the log event
+names listed under the notification catalog's
+[Known limitations](notifications.md#known-limitations).
 
 On a page, a deprecated name keeps its own row or mention, marked **deprecated**, with the name
 that replaces it. `restoreSetasides` on [`dataContext`](resources/data-context.md) is the

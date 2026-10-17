@@ -198,10 +198,7 @@ Narrative chapters covering behavior that spans resources — embedded-server mo
 coalescing, undo/redo, locale — live in **[`guides/`](guides/README.md)**, which also lists the
 internal design documents to consult until those chapters are written.
 
-The catalog of notifications CODAP sends to plugins will live in `notifications.md`, arriving
-with Phase 4 of the [plan](../plugin-api-doc-update-plan.md). Until then it is the
-"CODAP-Initiated Actions" half of the
-[wiki page](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-Plugin-API).
+The notifications CODAP sends to plugins are cataloged in **[`notifications.md`](notifications.md)**.
 
 ---
 

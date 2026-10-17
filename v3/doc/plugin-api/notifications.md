@@ -71,9 +71,9 @@ then name the change in `values.operation`:
 }
 ```
 
-**Data changes carry a list.** On `dataContextChangeNotice[<context>]`, `values` is an array of
-changes, each with its own `operation` and `result`, because several changes can be reported in
-one notification:
+**Data changes carry a list.** On `dataContextChangeNotice[<context>]`, `values` is meant to be an
+array of changes, each with its own `operation` and `result`, because several changes can be
+reported in one notification. This is the form v2 sends:
 
 ```json
 {
@@ -88,9 +88,21 @@ one notification:
 }
 ```
 
-v3 currently sends a single change object instead of the array; see
-[Known limitations](#known-limitations). The example in [Receiving them](#receiving-them) handles
-both.
+**v3 currently sends a single change object instead of the array:**
+
+```json
+{
+  "action": "notify",
+  "resource": "dataContextChangeNotice[Mammals]",
+  "values": {
+    "operation": "createCases",
+    "result": { "success": true, "caseIDs": [17], "itemIDs": [9], "caseID": 17, "itemID": 9 }
+  }
+}
+```
+
+See [Known limitations](#known-limitations). The example in [Receiving them](#receiving-them)
+handles both.
 
 **Some notifications have no `operation`.** A `logMessageNotice` carries the log event itself, and
 the slider notice on `global[<name>]` carries only the new value:
@@ -169,7 +181,7 @@ These operations are part of the contract, but CODAP does not send them yet; see
 |---|---|
 | `createItems` | items are created through an item resource. Follows the `createCases` for the same change |
 | `updateItems` | items are updated through an item resource. Accompanies the `updateCases` for the same change |
-| `resetCollections` | moving an attribute is undone, and the collections are rebuilt |
+| `resetCollections` | moving an attribute to another collection is undone, and the collections are rebuilt. Undoing a move within a collection sends `moveAttribute` instead |
 
 ## Component changes — `component`
 
@@ -282,7 +294,7 @@ for it.
 | Operation | Fires when |
 |---|---|
 | `create` | a component is created. The calculator usually sends `show` instead; see below |
-| `delete` | a component is closed or deleted. **Also sent when a component is only hidden**, as the guide is when it is closed. Closing a case table or case card from its title bar sends nothing |
+| `delete` | a component is closed or deleted. **Also sent when a component is only hidden**, as the guide is when it is closed, and when a case table is closed from its title bar; reopening the table sends `create`. Closing a case card sends nothing |
 | `titleChange` | a component is renamed. Sent on `component[<id>]` rather than `component` |
 | `hide`, `show` | the calculator is closed, or toggled from the tool shelf |
 | `move`, `resize` | a component is moved or resized |
@@ -314,7 +326,7 @@ The largest group.
 | `show measure labels`, `hide measure labels` | measure labels are shown or hidden |
 | `toggle show as <plot type>` | the plot is switched between dots, a bar for each point, and bins. The name ends with `DotPlot`, `LinePlot` or `BinnedPlot`, so match on the prefix |
 | `toggle between histogram and dots`, `switch bar and dot` | the plot type is switched |
-| `change bar chart from <old> to <new>` | a bar chart switches between counts and percents. `<old>` and `<new>` are `count` or `percent` |
+| `change bar chart from <old> to <new>` | a bar chart switches to counts or percents. `<new>` is `count` or `percent`; `<old>` can also be `formula` |
 | `change formula` | a bar chart's formula is applied in its formula editor |
 | `edit plot formula` | a plotted value or plotted function formula is edited |
 | `toggle MeasuresForSelection`, `toggle NumberToggle` | the measures-for-selection or number-toggle settings change |
@@ -346,10 +358,11 @@ The largest group.
 |---|---|
 | `change base map` | the base map changes |
 | `change grid size` | the user releases the grid-size slider. It does not fire during the drag |
-| `change map coordinates` | the map settles after a pan, a zoom, or a rescale to fit its data |
+| `change map coordinates` | the map settles after the user pans or zooms it, or rescales it from the inspector |
 | `hide selected cases`, `hide unselected cases`, `show all cases` | case visibility changes on a map |
 
-Changing a map's legend attribute sends no notification.
+Changing a map's legend attribute should send `legendAttributeChange`, as it does on a graph. v3
+does not send it yet; see [Known limitations](#known-limitations).
 
 ### Case table and case card
 
@@ -445,8 +458,7 @@ it wants the user to be able to undo, it sends:
 ```
 
 CODAP adds an entry to its undo history. When the user undoes or redoes that entry, CODAP sends
-`undoAction` or `redoAction` to your plugin alone, and your plugin reverses or reapplies the change
-itself. A plugin that never reports an action never receives either.
+`undoAction` or `redoAction`, and your plugin reverses or reapplies the change itself.
 
 ## Document state — `document`
 
@@ -463,6 +475,14 @@ itself. A plugin that never reports an action never receives either.
 This one is opt-in: only plugins whose `subscribeToDocuments` is `true` receive it, and every
 such plugin receives it — including ones that did not ask. See
 [`document`](resources/document.md).
+
+These operations are part of the contract, but CODAP does not send them yet; see
+[Known limitations](#known-limitations):
+
+| Operation | Should fire when |
+|---|---|
+| `undo` | the user undoes anything. Sent to every plugin |
+| `redo` | the user redoes anything. Sent to every plugin |
 
 ## Everything else
 
@@ -486,7 +506,7 @@ Four more resources, each with a few notifications.
 | `documentChangeNotice` | `dataContextCountChanged` | a data context is created or deleted anywhere in the document |
 | `documentChangeNotice` | `dataContextDeleted` | a data context is deleted. `deletedContext` is its name |
 | `documentChangeNotice` | `updateDocumentBegun`, `updateDocumentEnded` | your plugin replaced the document with `update document`; the two bracket the replacement. Sent only to the plugin that asked |
-| `global[<name>]` | none | a slider's value changes, including while its thumb is dragged and while it animates. `<name>` is the slider's global value name, and `globalValue` is the new value. This is how a plugin follows a slider continuously |
+| `global[<name>]` | none | a global value changes: a slider is dragged or animates, or a plugin sets the value with `update` on `global`. `<name>` is the slider's global value name, and `globalValue` is the new value. This is how a plugin follows a slider continuously. v3 does not yet send it when a plugin sets the value; see [Known limitations](#known-limitations) |
 | `global` | `localeChanged` | CODAP's locale changed. Carries `lang`, the two-letter base language, and `locale`, the full one. By default CODAP reloads a plugin when the locale changes; a plugin receives this instead only if it sets `handlesLocaleChange: true` on [`interactiveFrame`](resources/interactive-frame.md), on every load |
 | `logMessageNotice` | none | a user-analytics log event matched a monitor your plugin registered. Carries `message`, `formatStr` and `logMonitor`, and sometimes `topic` and `replaceArgs` |
 | `interactiveFrame` | computed | guided-tour and highlight messages — `tourUpdate` and `highlightUpdate`. Not documented further yet, because the implementation behind them is being replaced |
@@ -508,12 +528,16 @@ name alongside the old one and go through [deprecation](conventions.md#deprecate
 
 ## Known limitations
 
-**A plugin receives notifications about its own data changes.** v2 did not send a plugin the data
-notifications for changes it requested itself. v3 sends every data notification — attributes,
-cases, collections, the selection — to every plugin, including the one that made the change. A
-plugin that refetches or writes back whenever its data changes now reacts to its own changes, and
-can loop. This is a known bug; the intended behavior is that, as with component notifications,
-the requesting plugin is skipped.
+**A plugin receives notifications about its own data changes.** v3 sends every data notification —
+attributes, cases, collections, the selection — to every plugin, including the one that made the
+change. A plugin that refetches or writes back whenever its data changes reacts to its own
+changes, and can loop. This is a known bug; the intended behavior is that the requesting plugin is
+skipped, as it already is for v3's component notifications.
+
+v2 is only a partial precedent. It skipped the requesting plugin for data changes that recorded
+which plugin asked for them, but several did not: `update` on `attribute`, the `createCases` sent
+when items are created, `moveCases`, and `dependentCases` all went to the requester too. v2 sent
+component notifications to every plugin, the requester included.
 
 **Data changes arrive one at a time, not as a list.** v2 collected the changes made together and
 sent one `dataContextChangeNotice[<context>]` whose `values` is an array of
@@ -526,7 +550,7 @@ behavior is v2's array. Until it is fixed, accept both, as the example in
 other plugins about them. v2 did, for every one of them:
 
 - `update` and `delete` on `caseByID`, `caseByIndex`, `itemByID` and `itemByCaseID`
-- `update` on `item` with a single item, and `delete` on `item` with one item or a list
+- `update` on `item` with a single item
 - `delete` on `itemSearch`. v2 reported item deletes as `deleteCases`
 - `notify` on `itemSearch`, which moves items. v2 reported the move as `moveCases`
 - `delete` on `attribute`
@@ -536,21 +560,42 @@ other plugins about them. v2 did, for every one of them:
 This is a known bug; the intended behavior is that each sends the same notification as the
 equivalent change made in CODAP's own interface.
 
-**Formula recalculation sends no `dependentCases`.** v2 sent `dependentCases` whenever a change
-caused formula values to recalculate. v3 sends it only when random values are rerandomized or a
-join adds values, so a plugin that relies on it to see recalculated values misses them. This is
-a known bug; the intended behavior is v2's.
+**Formula recalculation rarely sends `dependentCases`.** v2 sent `dependentCases` for formula
+attributes whose values had to be recalculated:
+
+- after `updateCases`, for formulas that use the changed cases' values directly and for formulas
+  that aggregate over them
+- after cases were created or deleted, for aggregating formulas only
+- for every dependent formula when a global value changed, a formula was edited, or random values
+  were rerandomized
+
+v3 sends it only when random values are rerandomized or a join adds values, so a plugin that relies
+on it to see recalculated values misses them. This is a known bug; the intended behavior is v2's.
 
 **Item-level changes are reported only as case changes.** When items were created or updated
 through an item resource, v2 sent `createItems` or `updateItems` in addition to the case
 operation. v3 sends only `createCases` or `updateCases`, so a plugin filtering on the item
-operations receives nothing. v2 also sent `resetCollections` when moving an attribute was undone,
+operations receives nothing. v2 also sent `resetCollections` when moving an attribute to another collection was undone,
 which v3 does not send. This is a known bug; the intended behavior is that v3 sends these as v2
 did. Deleting and moving items belong to the previous entry: v2 reported them as `deleteCases`
 and `moveCases`, not as item operations.
 
-**A plugin moving the map sends no `change map coordinates`.** When a plugin sets a map's center
-or zoom with `update component`, v3 does not notify other plugins; v2 did. This is a known bug.
+**Some map moves send no `change map coordinates`.** v3 does not notify plugins when a plugin sets
+a map's center or zoom with `update component`, when a plugin rescales it with `notify component`
+and `request: "autoScale"`, or when the map rescales itself because its layers changed. v2 sent it
+when a plugin set the center or zoom. This is a known bug.
+
+**Closing a case table sends no notification.** v2 sent `delete` on `component` when the user
+closed a case table from its title bar, and `create` when it was reopened, as the
+[Lifecycle](#lifecycle) table describes. v3 sends neither. This is a known bug.
+
+**Changing a map's legend attribute sends no notification.** v2 sent `legendAttributeChange` for
+maps as for graphs. v3 sends nothing. This is a known bug.
+
+**A plugin setting a global value sends no notification.** v2 sent `global[<name>]` whenever a
+global value changed, whoever changed it. v3 sends it only when a slider changes the value, so a
+plugin following a slider that another plugin drives through `update` on `global` hears nothing.
+This is a known bug.
 
 **Undo and redo are not announced on `document`.** v2 sent a default notification to every plugin
 when the user undid or redid anything — `resource: "document"`, `operation: "undo"` or `"redo"` —
