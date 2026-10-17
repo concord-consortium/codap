@@ -99,6 +99,13 @@ honors fourteen; `codapVersion`, `externalUndoAvailable`, `standaloneUndoModeAva
 | `cannotClose` | no | yes |
 | `handlesLocaleChange` | no | yes |
 
+### Holding requests while the user edits
+
+`blockAPIRequestsWhileEditing` makes CODAP hold back plugin requests while the user edits a case
+table cell in a data context this plugin manages, and process them when the edit ends. It
+defaults to `false`. See [How CODAP processes requests](../guides/request-processing.md#requests-while-the-user-is-editing)
+for when it applies and what it holds back.
+
 ### Saving state is the other way around
 
 `savedState` is readable here but not writable: `update` ignores a `state` property entirely.

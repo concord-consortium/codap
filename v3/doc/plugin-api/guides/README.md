@@ -9,6 +9,8 @@ any one of them. For per-resource reference, see [the index](../README.md).
 
 - **[Undo and redo](undo-and-redo.md)** — how a plugin puts its own actions on CODAP's undo
   history, answers undo and redo, and drives them from buttons of its own.
+- **[How CODAP processes requests](request-processing.md)** — order and responses, array
+  requests, sending many cases, and holding requests while the user edits.
 
 ## Planned chapters
 
@@ -16,8 +18,6 @@ These arrive with Phase 5 of the [plan](../../plugin-api-doc-update-plan.md):
 
 - **Embedded server mode** — CODAP running inside *your* page and exposing the same API to it,
   rather than the plugin running inside CODAP.
-- **Request processing and coalescing** — how consecutive single-item `create` requests are
-  batched, and what that means for response timing when streaming data in.
 - **Locale and internationalization** — `lang` versus `locale`, and handling locale changes.
 
 ## Interim sources
@@ -29,7 +29,6 @@ occasional references to internals that are not part of the API:
 | Topic | Document |
 |---|---|
 | Embedding CODAP / embedded-server mode | [`../../embedding-codap.md`](../../embedding-codap.md) |
-| Request processing and coalescing | [`../../plugin-request-processing.md`](../../plugin-request-processing.md) |
 | Tour API | [`../../plugin-tour-api.md`](../../plugin-tour-api.md) |
 | Locale switching | [`../../plugin-locale-switching-design.md`](../../plugin-locale-switching-design.md) |
 
