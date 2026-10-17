@@ -78,7 +78,7 @@ const cmp = (a, b) => (a < b ? -1 : a > b ? 1 : 0)
 // column per resource. That keeps the mapping in the page rather than in a side table.
 const pages = listPages(resourcesDir)
 // Pages outside resources/ that also carry generated blocks.
-const extraPages = ["quick-reference.md"].filter(f => existsSync(join(docsDir, f)))
+const extraPages = ["quick-reference.md", "notifications.md"].filter(f => existsSync(join(docsDir, f)))
 const pageFor = buildPageFor(resourcesDir, inventory.resources)
 
 // --- block renderers ------------------------------------------------------------------------
@@ -237,6 +237,62 @@ function renderErrorCatalog() {
   return ["| Error | Prebuilt result |", "|---|---|", ...rows].join("\n")
 }
 
+
+// --- the notification catalog ------------------------------------------------------------
+// One block per resource family. These carry only what the extractor derives: the operation
+// name, the keys `values` carries, and, for component notifications, the area of CODAP that
+// raises it. When each one fires is judgment, and lives in the hand-written tables beside them.
+//
+// Operation names are reproduced exactly as a plugin receives them; see "Operation names are
+// v2's" on the notifications page for why the untidy ones stay.
+function notificationArea(source) {
+  const m = /src\/(?:components|models|lib)\/([^/]+)\//.exec(source)
+  if (!m) return "other"
+  return { tiles: "lifecycle", "case-tile-common": "case table", "data-display": "data display",
+           "case-table": "case table", "case-card": "case card", common: "formula",
+           "dnd-kit": "drag" }[m[1]] ?? m[1]
+}
+
+// The families that get a section of their own. Everything else lands in one table, so a new
+// family added in code reaches the page rather than vanishing.
+const kNamedNotificationFamilies =
+  new Set(["component", "dataContextChangeNotice", "dragDrop", "undoChangeNotice", "document"])
+
+// "—" means no values beyond the operation; unreadable keys say so rather than guess.
+function notificationValues(n) {
+  if (!n.valueKeys) return "_not readable from the code_"
+  if (!n.valueKeys.length) return "—"
+  return n.valueKeys.map(k => `\`${k}\``).join(", ") + (n.valueKeysPartial ? ", …" : "")
+}
+
+function notificationOperation(n) {
+  if (n.operation) return `\`${n.operation}\``
+  return n.noOperation ? "_none_" : "_computed at the call site_"
+}
+
+function renderNotificationsOther() {
+  const rows = (inventory.notifications ?? []).filter(n => !kNamedNotificationFamilies.has(n.resource))
+  if (!rows.length) return null
+  return ["| Resource | Operation | `values` carries |", "|---|---|---|",
+    ...rows.map(n => `| \`${n.resource}\` | ${notificationOperation(n)} | ${notificationValues(n)} |`)
+  ].join("\n")
+}
+
+function renderNotifications(family) {
+  const rows = (inventory.notifications ?? []).filter(n => n.resource === family)
+  if (!rows.length) return null
+  const withArea = family === "component"
+  // Every component notification also carries `id`, `type` and `diType`; the column lists what
+  // each one adds, and the page says so above it.
+  const head = withArea ? "| Operation | Raised by | `values` also carries |" : "| Operation | `values` carries |"
+  const rule = withArea ? "|---|---|---|" : "|---|---|"
+  const body = rows
+    .map(n => withArea
+      ? `| ${notificationOperation(n)} | ${notificationArea(n.source)} | ${notificationValues(n)} |`
+      : `| ${notificationOperation(n)} | ${notificationValues(n)} |`)
+  return [head, rule, ...body].join("\n")
+}
+
 // --- rewrite ---------------------------------------------------------------------------------
 // The body may be empty — a new page can declare a block and let the generator fill it.
 const BLOCK = /<!-- BEGIN GENERATED: ([\w-]+)((?:\s+\w+=\S+)*) -->\n?([\s\S]*?)\n?<!-- END GENERATED: \1 -->/g
@@ -265,6 +321,12 @@ for (const page of [...pages, ...extraPages]) {
     else if (name === "resource-actions") rendered = renderResourceActions()
     else if (name === "selector-grammar") rendered = renderSelectorGrammar()
     else if (name === "error-catalog") rendered = renderErrorCatalog()
+    else if (name === "notifications-data") rendered = renderNotifications("dataContextChangeNotice")
+    else if (name === "notifications-component") rendered = renderNotifications("component")
+    else if (name === "notifications-drag") rendered = renderNotifications("dragDrop")
+    else if (name === "notifications-undo") rendered = renderNotifications("undoChangeNotice")
+    else if (name === "notifications-document") rendered = renderNotifications("document")
+    else if (name === "notifications-other") rendered = renderNotificationsOther()
     else if (name.startsWith("values") && attrs.source) rendered = renderValues(attrs.source)
 
     if (rendered == null) {

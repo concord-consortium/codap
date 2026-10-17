@@ -59,10 +59,9 @@ Every request a plugin sends has the same envelope:
 
 ### Sending requests and receiving notifications
 
-**Whether you hear your own change.** A notification about a *component* — created, updated,
-deleted — excludes the plugin that made it, so a plugin does not echo its own component work back
-to itself. A notification about *data* — attributes, cases, the selection — goes to every
-listener including the one that made the change.
+[The notification catalog](notifications.md) lists them, grouped by what changed, and
+[says which plugins receive each one](notifications.md#receiving-them), including whether you
+hear about your own changes.
 
 
 CODAP and a plugin talk over [iframe-phone](https://github.com/concord-consortium/iframe-phone).
@@ -199,10 +198,7 @@ Narrative chapters covering behavior that spans resources — embedded-server mo
 coalescing, undo/redo, locale — live in **[`guides/`](guides/README.md)**, which also lists the
 internal design documents to consult until those chapters are written.
 
-The catalog of notifications CODAP sends to plugins will live in `notifications.md`, arriving
-with Phase 4 of the [plan](../plugin-api-doc-update-plan.md). Until then it is the
-"CODAP-Initiated Actions" half of the
-[wiki page](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-Plugin-API).
+The notifications CODAP sends to plugins are cataloged in **[`notifications.md`](notifications.md)**.
 
 ---
 

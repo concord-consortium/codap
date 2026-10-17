@@ -202,6 +202,9 @@ CODAP also accepts a set of requests for highlighting UI elements and running gu
 They are **not documented here yet** because the implementation behind them is being replaced,
 and their values will change.
 
+For notifications CODAP sends *to* a plugin, see
+[the notification catalog](../notifications.md).
+
 ## Errors
 
 <!-- BEGIN GENERATED: errors -->
