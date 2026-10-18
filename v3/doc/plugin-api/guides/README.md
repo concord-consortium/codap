@@ -1,6 +1,6 @@
 # Guides
 
-> **Applies to:** CODAP v3 · **Verified:** 2026-09-25 against `main` @ `ae2105cf4`
+> **Applies to:** CODAP v3 · **Verified:** 2026-10-18
 
 Narrative chapters covering plugin-facing behavior that spans resources, rather than belonging to
 any one of them. For per-resource reference, see [the index](../README.md).

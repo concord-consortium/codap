@@ -58,11 +58,13 @@ Every request a plugin sends has the same envelope:
 ```
 
 A request may also be an array of envelopes. CODAP processes them in order and replies with an
-array of responses, one per request.
+array of responses, one per envelope, except in one known case; see
+[How CODAP processes requests](guides/request-processing.md#known-limitations).
 
 ### Response shape
 
-Every request gets one response. On success, `success` is `true` and `values` holds what the
+Every request gets one response, unless your plugin is closed or reloaded before CODAP reaches
+it. On success, `success` is `true` and `values` holds what the
 action returns — here, the reply to the `attributeList` request above:
 
 ```json

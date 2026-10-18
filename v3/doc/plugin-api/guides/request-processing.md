@@ -17,9 +17,11 @@ Each plugin has its own queue. CODAP makes no promise about the order of request
 different plugins.
 
 CODAP itself never times a request out. The time limit a plugin sees comes from the library it
-sends with: iframe-phone gives up after about two seconds and reports a timeout, though CODAP is
-still working through the queue and its reply may arrive later. Keep that in mind when you send
-many requests at once: the last of them can wait behind all the others.
+sends with: iframe-phone gives up after two seconds and calls your callback with no reply and an
+error, though CODAP is still working through the queue. When CODAP's reply does arrive, iframe-phone
+calls the same callback again, this time with the reply, so a callback must cope with being called
+twice. Keep that in mind when you send many requests at once: the last of them can wait behind all
+the others.
 
 Requests still waiting when your plugin is closed or reloaded get no response.
 
@@ -68,20 +70,26 @@ Each request that adds cases makes every graph and table showing the data redraw
 grows with the size of the data set. Thousands of single-item requests sent at once therefore
 slow CODAP down and, without help, would run past the two-second limit.
 
-CODAP helps when a plugin streams one case per request anyway. When several single `create`
-requests for the same `dataContext[...].item` resource are waiting next to each other in the
-queue, CODAP applies them together as one change. A plugin sees three effects:
+CODAP helps when a plugin streams one case per request anyway. When several `create` requests
+on `item` with exactly the same resource are waiting next to each other in the queue, CODAP
+applies them together as one change. Each request can carry one item or many. The resources must
+match character for character: `dataContext[Mammals].item` and `dataContext[mammals].item` are
+not combined. A plugin sees three effects:
 
 - **Each request still gets its own response**, with the same `itemIDs` and `caseIDs` it would
   have had alone.
 - **Responses arrive in clumps**, all of a batch's together.
+- **A failure fails the whole batch.** If applying the batch fails, every request in it gets
+  `An error occurred while processing the request.`, and some of the batch's cases may already
+  have been added.
 - **Notifications are combined.** A batch sends one `createCases` notification per collection
   for all its requests, before any of their responses. Do not count `createCases` notifications
   to count requests or cases; read the case ids they carry.
 
 Only consecutive item creates with the same resource are combined. Anything else between them —
 a `get`, a selection change, a create on another data context — ends the run, so the order of
-your requests is always kept. Creates on `case` and array requests are never combined.
+your requests is always kept. Creates on `case`, and requests sent as an array of envelopes, are
+never combined.
 
 ## Requests while the user is editing
 
@@ -108,7 +116,10 @@ editor closes. It applies only to case table cells, not to the case card or to a
 **The hold applies to every plugin, not only yours.** While it lasts, requests from all plugins
 wait, including `get`s. A plugin that polls sees its responses arrive late while the user types.
 
-The setting defaults to `false`, is saved with the document, and is new in v3.
+The setting defaults to `false` and is new in v3. It is saved with the document, but the
+`managingController` it depends on is not: after the document is reopened, nothing is held until
+your plugin names itself with `managingController` again. Send both every time your plugin
+loads.
 
 ## Known limitations
 

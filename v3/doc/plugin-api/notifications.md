@@ -7,9 +7,9 @@ A notification is a message CODAP sends your plugin without being asked, because
 changed: a user dragged an attribute onto a graph, deleted a case, renamed a component. This page
 catalogs them.
 
-The operation names, the keys each notification's `values` carries, and the area of CODAP that
-raises each component notification are generated from CODAP's source. When each one fires is
-written by hand beside them. Where the keys cannot be read from the code, the table says so
+The tables are generated from CODAP's source: which operations exist, which section each
+belongs in, and the keys each one's `values` carries. Only the "Fires when" column is written by
+hand. Where the keys cannot be read from the code, the table says so
 rather than guessing. Two operation names are assembled when they are sent, so the generated
 tables cannot list them: `toggle show as <plot type>` and `change bar chart from <old> to <new>`,
 both described under [Graph](#graph).
@@ -48,8 +48,6 @@ every connected plugin. The exceptions:
 - **Sent to one plugin only.**
   - `undoAction` and `redoAction` go only to the plugin that reported the undoable action. See
     [Undo and redo](#undo-and-redo--undochangenotice).
-  - `updateDocumentBegun` and `updateDocumentEnded` go only to the plugin that requested the
-    document replacement.
   - A `logMessageNotice` goes only to the plugin that registered the matching monitor.
   - `drag`, `dragenter`, `dragleave` and `drop` go only to the plugin under the pointer. See
     [Attribute drag](#attribute-drag--dragdropattribute).
@@ -331,8 +329,8 @@ Sent while a user drags an attribute, so a plugin can offer a drop target or rea
 |---|---|---|
 | `undoAction` | the user undoes an action your plugin reported as undoable | — |
 | `redoAction` | the user redoes an action your plugin reported as undoable | — |
-| `clearUndo` | the undo history becomes empty, so there is nothing left to undo. Sent to every plugin | `canRedo`, `canUndo` |
-| `clearRedo` | the redo history becomes empty. Sent to every plugin | `canRedo`, `canUndo` |
+| `clearUndo` | the undo history is emptied, for example by a change that cannot be undone. Sent to every plugin. v3 sends it at different moments; see [Known limitations](#known-limitations) | `canRedo`, `canUndo` |
+| `clearRedo` | an action is added to the history, which empties the redo history. Sent to every plugin. v3 sends it at different moments; see [Known limitations](#known-limitations) | `canRedo`, `canUndo` |
 <!-- END GENERATED: notifications-undo -->
 
 **`undoAction` and `redoAction` answer your own reports.** CODAP cannot undo a change inside your
@@ -375,7 +373,7 @@ Four more resources, each with a few notifications.
 |---|---|---|---|
 | `documentChangeNotice` | `dataContextCountChanged` | a data context is created or deleted anywhere in the document | — |
 | `documentChangeNotice` | `dataContextDeleted` | a data context is deleted. `deletedContext` is its name | `deletedContext` |
-| `documentChangeNotice` | `updateDocumentBegun`, `updateDocumentEnded` | your plugin replaced the document with `update document`; the two bracket the replacement. Sent only to the plugin that asked | — |
+| `documentChangeNotice` | `updateDocumentBegun`, `updateDocumentEnded` | a plugin, or the host page CODAP is embedded in, replaced the document with `update document`; the two bracket the replacement. Sent to every plugin. v3 sends them only to the plugin that asked; see [Known limitations](#known-limitations) | — |
 | `global[<name>]` | none | a global value changes: a slider is dragged or animates, or a plugin sets the value with `update` on `global`. `<name>` is the slider's global value name, and `globalValue` is the new value. This is how a plugin follows a slider continuously. v3 does not yet send it when a plugin sets the value; see [Known limitations](#known-limitations) | `globalValue` |
 | `global` | `localeChanged` | CODAP's locale changed. Carries `lang`, the two-letter base language, and `locale`, the full one. By default CODAP reloads a plugin when the locale changes; a plugin receives this instead only if it sets `handlesLocaleChange: true` on [`interactiveFrame`](resources/interactive-frame.md), on every load. See [Language and locale](guides/locale.md) | `lang`, `locale` |
 | `logMessageNotice` | none | a user-analytics log event matched a monitor your plugin registered. Carries `message`, `formatStr` and `logMonitor`, and sometimes `topic` and `replaceArgs` | `formatStr`, `logMonitor`, `message`, … |
@@ -469,10 +467,21 @@ plugin following a slider that another plugin drives through `update` on `global
 This is a known bug.
 
 **Undo and redo are not announced on `document`.** v2 sent a default notification to every plugin
-when the user undid or redid anything — `resource: "document"`, `operation: "undo"` or `"redo"` —
+when the user undid or redid an action that sent no notification of its own — `resource: "document"`, `operation: "undo"` or `"redo"` —
 so a plugin could watch one resource and know the user had undone something. v3 does not send it,
 so a v2 plugin listening on `document` hears nothing. This is a known bug; the intended behavior is
 that v3 sends v2's notification as well as its own.
+
+**`clearUndo` and `clearRedo` are sent at different moments from v2.** v3 sends them only when
+`canUndo` or `canRedo` changes from `true` to `false`, including when the user undoes or redoes
+the last entry. It sends nothing when an action is added to an empty redo history, so a plugin
+does not hear that undo has become possible. This is a known bug; see
+[Undo and redo](guides/undo-and-redo.md#known-limitations).
+
+**`updateDocumentBegun` and `updateDocumentEnded` go only to the plugin that asked.** v2 sent
+both to every plugin whoever replaced the document, so each could tell that the document was
+being replaced. v3 does that only when the host page CODAP is
+[embedded in](guides/embedded-server.md) makes the request. This is a known bug.
 
 **Log event names do not match v2's.** About 27 event tokens were renamed in v3, and about 11
 payloads reshaped — `addAxisAttribute`, `attributeRemoved`, `dragEnd`, the `toggle*` family and

@@ -10,8 +10,9 @@ when the user switches.
 
 CODAP starts in the language named by its own `lang` URL parameter, if CODAP has strings for it,
 and otherwise in the first of the browser's preferred languages that it has, falling back to US
-English. Where it has strings only for the base language, it uses that: asked for `pt-PT`, it
-runs in `pt`. The user can change the language later from CODAP's language menu.
+English. Where it has no strings for the exact locale, it falls back to the base language: asked
+for `pt-PT` (European Portuguese), it runs in `pt` (Portuguese), using its Brazilian Portuguese
+strings. The user can change the language later from CODAP's language menu.
 
 Your plugin is told the language two ways, and both carry the same two values.
 
@@ -43,9 +44,13 @@ everything it returns.
 
 ## `lang` and `locale`
 
-`locale` is the full locale CODAP is running in: `pt-BR`, `zh-TW`, `zh-Hans`. `lang` is only its
-base language: `pt`, `zh`. `lang` keeps that short form because plugins written for v2 expect
-it, and some fail when given a region they have no strings for.
+`locale` is the locale CODAP is running in, usually a full one such as `pt-BR` (Brazilian
+Portuguese), `zh-TW` (Chinese as written in Taiwan, in Traditional characters) or `zh-Hans`
+(Chinese in Simplified characters). It can be a bare base language when CODAP fell back to one at
+startup, as with `pt` above; once the user picks a language from the menu, it is always full.
+`lang` is only the base language: `pt` (Portuguese), `zh` (Chinese). `lang` keeps that short form
+because plugins written for v2 expect it, and some fail when given a region they have no strings
+for.
 
 Read `locale` if your plugin has strings for regional variants, such as both Traditional and
 Simplified Chinese. Read `lang` if it has one set of strings per language. Either way, fall back
@@ -119,8 +124,9 @@ Three things to know before you rely on it:
 
 v2 had no way to switch language in place. Choosing a language reloaded all of CODAP, and every
 plugin with it, with the new `lang` in each plugin's URL. So a plugin written for v2 behaves the
-same in v3: it is reloaded and reads `lang` at startup. `locale`, `handlesLocaleChange` and
-`localeChanged` are new in v3.
+same in v3: it is reloaded and reads `lang` at startup. Everything else in this chapter is new in
+v3: the `locale` URL parameter, the `lang` and `locale` values from `interactiveFrame`,
+`handlesLocaleChange` and `localeChanged`.
 
 ## See also
 

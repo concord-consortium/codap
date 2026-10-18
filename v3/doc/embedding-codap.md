@@ -111,9 +111,9 @@ When `embeddedMode=yes`:
 | Undo/redo left of window buttons | Undo/redo buttons are positioned to the left of the minimize/close buttons to avoid overlap |
 | Transparent background | The background is transparent, allowing parent page content to show through |
 | Text selectable | Text selection is enabled in the background area |
-| iframe-phone enabled | Communication with parent window via iframe-phone is initialized |
-| `codap-present` message | CODAP sends a `codap-present` message to the parent when ready |
-| Notification broadcasts | CODAP broadcasts data change notifications to the parent |
+| iframe-phone enabled | Communication with parent window via iframe-phone is initialized (also with `embeddedServer=yes` alone) |
+| `codap-present` message | CODAP sends a `codap-present` message to the parent once the channel is open, before any document loads (also with `embeddedServer=yes` alone) |
+| Notification broadcasts | CODAP broadcasts data change notifications to the parent after its first request (also with `embeddedServer=yes` alone) |
 
 ### Comparison Table
 
@@ -128,7 +128,7 @@ When `embeddedMode=yes`:
 | **Close/minimize** | ✓ | ✗ | **✓** |
 | Undo/redo in title bar | ✗ | ✓ | ✓ |
 | Transparent background | ✗ | ✗ | ✓ |
-| iframe-phone server | ✗ | ✗ | ✓ |
+| iframe-phone server | ✗ (✓ with `embeddedServer=yes`) | ✗ | ✓ |
 
 ## iframe-phone Communication
 
@@ -295,7 +295,7 @@ The status section shows two indicators:
 
 | Indicator | Description |
 |-----------|-------------|
-| **codap-present** | Turns green when CODAP sends the `codap-present` message indicating it's ready |
+| **codap-present** | Turns green when CODAP sends the `codap-present` message indicating the channel is open |
 | **Phone in use** | Turns green after you send a command, indicating the communication channel is active |
 
 Wait for the "codap-present" indicator to turn green before sending commands.

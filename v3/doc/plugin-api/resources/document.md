@@ -170,11 +170,15 @@ sendRequest({ action: 'update', resource: 'document', values: savedState })
 | Resource | Operation | When |
 |---|---|---|
 | `document` | `newDocumentState` | After `get document`, to every plugin with `subscribeToDocuments: true`. Carries the document in `values.state`. |
-| `documentChangeNotice` | `updateDocumentBegun` | Before an `update document` begins. When a plugin made the request, sent only to that plugin. |
-| `documentChangeNotice` | `updateDocumentEnded` | After it completes. Same targeting. |
+| `documentChangeNotice` | `updateDocumentBegun` | Before an `update document` begins. Sent to every plugin. |
+| `documentChangeNotice` | `updateDocumentEnded` | After it completes. Sent to every plugin. |
 
-When CODAP is embedded in a host page and the host page makes the request, they go to every
-plugin and to the host page; see [Embedding CODAP in your page](../guides/embedded-server.md).
+**When a plugin sends `update document`, other plugins are not told.** v2 sent
+`updateDocumentBegun` and `updateDocumentEnded` to every plugin whoever made the request, so each
+plugin could tell that the document was being replaced. v3 sends them only to the requesting
+plugin. It sends them to every plugin only when CODAP is embedded in a host page and the host page
+makes the request; see [Embedding CODAP in your page](../guides/embedded-server.md). This is a
+known bug.
 
 CODAP v3 does **not** currently emit default `undo`/`redo` notifications on this resource, which
 CODAP v2 did. That is a known gap.
