@@ -173,8 +173,8 @@ sendRequest({ action: 'update', resource: 'document', values: savedState })
 | `documentChangeNotice` | `updateDocumentBegun` | Before an `update document` begins. When a plugin made the request, sent only to that plugin. |
 | `documentChangeNotice` | `updateDocumentEnded` | After it completes. Same targeting. |
 
-Targeting differs in embedded-server mode, where CODAP itself runs in a host page; that will be
-covered in the embedded-mode guide.
+When CODAP is embedded in a host page and the host page makes the request, they go to every
+plugin and to the host page; see [Embedding CODAP in your page](../guides/embedded-server.md).
 
 CODAP v3 does **not** currently emit default `undo`/`redo` notifications on this resource, which
 CODAP v2 did. That is a known gap.

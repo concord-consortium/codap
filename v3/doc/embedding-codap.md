@@ -29,7 +29,7 @@ Both modes hide UI chrome (menu bar, tool shelf, etc.), but they differ in how t
 Enables minimal chrome mode for simple embedding scenarios where parent-child communication is not needed.
 
 ```
-https://codap.concord.org/releases/latest/?componentMode=yes
+https://codap.concord.org/app/?componentMode=yes
 ```
 
 ### `embeddedMode`
@@ -43,7 +43,7 @@ https://codap.concord.org/releases/latest/?componentMode=yes
 Enables full embedded mode for running CODAP inside another application (e.g., SageModeler). Hides UI chrome like component mode, but **keeps components fully interactive** (moveable, resizable, etc.). Also enables iframe-phone communication with the parent window and transparent background styling.
 
 ```
-https://codap.concord.org/releases/latest/?embeddedMode=yes
+https://codap.concord.org/app/?embeddedMode=yes
 ```
 
 ### `embeddedServer`
@@ -59,7 +59,7 @@ Enables iframe-phone communication with the parent window **without** hiding UI 
 **Note:** When `embeddedMode=yes`, the `embeddedServer` parameter is ignored because embedded mode automatically enables the server.
 
 ```
-https://codap.concord.org/releases/latest/?embeddedServer=yes
+https://codap.concord.org/app/?embeddedServer=yes
 ```
 
 ### Related Parameters
@@ -141,27 +141,32 @@ When running in embedded mode (or with `embeddedServer=yes`), CODAP establishes 
 The parent page should set up an iframe-phone endpoint:
 
 ```html
-<iframe id="codap" src="https://codap.concord.org/releases/latest/?embeddedMode=yes"></iframe>
-<script src="https://unpkg.com/iframe-phone@1.3.1/dist/iframe-phone.js"></script>
+<iframe id="codap" src="https://codap.concord.org/app/?embeddedMode=yes"></iframe>
+<script src="https://unpkg.com/iframe-phone@1.4.0/dist/iframe-phone.js"></script>
 <script>
   const codapFrame = document.getElementById('codap');
+  // iframe-phone drops every message whose origin doesn't match this exactly,
+  // so pass the origin, not the full URL.
+  const codapOrigin = new URL(codapFrame.src).origin;
   const phone = new iframePhone.IframePhoneRpcEndpoint(
     function(command, callback) {
-      // Handle notifications from CODAP
-      console.log('Received from CODAP:', command);
+      if (command.message === 'codap-present') {
+        // CODAP sends this once it is listening; its document may not have loaded yet
+        console.log('CODAP is ready');
+      } else {
+        // Handle notifications from CODAP
+        console.log('Received from CODAP:', command);
+      }
       callback({ success: true });
     },
     'data-interactive',
-    codapFrame.contentWindow,
-    codapFrame.src
+    codapFrame,
+    codapOrigin
   );
-
-  // Wait for CODAP to be ready
-  phone.call({ message: 'codap-present' }, function(reply) {
-    console.log('CODAP is ready');
-  });
 </script>
 ```
+
+CODAP sends `codap-present` to the parent; the parent does not send it. CODAP sends it at startup, before it loads a document from its URL, so it means the channel is open, not that the document is ready.
 
 ### Sending Commands
 
@@ -221,22 +226,22 @@ When `isPhoneInUse` is true (after the parent has sent at least one command), CO
 
 ### Simple embedding with minimal chrome
 ```
-https://codap.concord.org/releases/latest/?componentMode=yes
+https://codap.concord.org/app/?componentMode=yes
 ```
 
 ### Full embedded mode with a plugin
 ```
-https://codap.concord.org/releases/latest/?embeddedMode=yes&di=https://example.com/plugin.html
+https://codap.concord.org/app/?embeddedMode=yes&di=https://example.com/plugin.html
 ```
 
 ### Embedded mode with hidden undo/redo
 ```
-https://codap.concord.org/releases/latest/?embeddedMode=yes&hideUndoRedoInComponent=yes
+https://codap.concord.org/app/?embeddedMode=yes&hideUndoRedoInComponent=yes
 ```
 
 ### Server mode only (full UI with parent communication)
 ```
-https://codap.concord.org/releases/latest/?embeddedServer=yes
+https://codap.concord.org/app/?embeddedServer=yes
 ```
 
 ## Implementation Details
