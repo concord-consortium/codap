@@ -123,6 +123,10 @@ base language, `pt`, and exists because v2 plugins expect that shape. A plugin t
 distinguish Brazilian from European Portuguese must read `locale`; a plugin that reads `lang`
 will see the same value for both.
 
+By default CODAP reloads a plugin when the user switches language. A plugin that sets
+`handlesLocaleChange` receives a `localeChanged` notification instead. Setting it has side
+effects, such as reloading the plugin once; see [Language and locale](../guides/locale.md).
+
 ## Examples
 
 Read the frame at startup:

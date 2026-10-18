@@ -11,6 +11,8 @@ any one of them. For per-resource reference, see [the index](../README.md).
   history, answers undo and redo, and drives them from buttons of its own.
 - **[How CODAP processes requests](request-processing.md)** — order and responses, array
   requests, sending many cases, and holding requests while the user edits.
+- **[Language and locale](locale.md)** — how a plugin learns CODAP's language, and what happens
+  when the user switches it.
 
 ## Planned chapters
 
@@ -18,7 +20,6 @@ These arrive with Phase 5 of the [plan](../../plugin-api-doc-update-plan.md):
 
 - **Embedded server mode** — CODAP running inside *your* page and exposing the same API to it,
   rather than the plugin running inside CODAP.
-- **Locale and internationalization** — `lang` versus `locale`, and handling locale changes.
 
 ## Interim sources
 
@@ -30,7 +31,6 @@ occasional references to internals that are not part of the API:
 |---|---|
 | Embedding CODAP / embedded-server mode | [`../../embedding-codap.md`](../../embedding-codap.md) |
 | Tour API | [`../../plugin-tour-api.md`](../../plugin-tour-api.md) |
-| Locale switching | [`../../plugin-locale-switching-design.md`](../../plugin-locale-switching-design.md) |
 
 Treat them as background, not as API contract: where one of these documents and a resource page
 disagree, the resource page is authoritative, and where neither is verified against the code, the
