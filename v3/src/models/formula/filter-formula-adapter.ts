@@ -7,6 +7,7 @@ import { registerFormulaAdapter } from "./formula-adapter-registry"
 import { type IFormulaContext, type IFormulaExtraMetadata } from "./formula-manager-types"
 import { FormulaManagerAdapter, type IFormulaAdapterApi } from "./formula-manager-adapter"
 import { FormulaMathJsScope } from "./formula-mathjs-scope"
+import { toBoolean } from "./functions/function-utils"
 import { math } from "./functions/math"
 import { formulaError } from "./utils/misc"
 
@@ -108,7 +109,7 @@ export class FilterFormulaAdapter extends FormulaManagerAdapter {
         formulaScope.savePreviousResult(formulaValue)
         return {
           itemId: c,
-          result: !!formulaValue // only boolean values are supported
+          result: toBoolean(formulaValue) ?? false
         }
       })
     } catch (e: any) {
