@@ -3,8 +3,36 @@
 > **Applies to:** CODAP v3 · **Verified:** 2026-09-25 against `main` @ `ae2105cf4`
 > · Parts of this reference are generated — see [conventions](conventions.md).
 
-Reference for developers writing CODAP plugins. A plugin runs in an iframe inside CODAP and talks
-to it by sending request messages and receiving responses and notifications.
+This reference is for developers writing CODAP plugins. It describes the API through which a
+plugin interacts with the CODAP document it runs in, and sends data for other CODAP components
+to present.
+
+## About plugins
+
+A plugin is a kind of component that can be placed in a CODAP document. Its usual role is to
+provide CODAP with data for analysis. For example, the Data Games plugins send CODAP the data
+generated while a student plays a simple video game. By analyzing that data, students can learn
+how to improve their play. The
+[InquirySpace project](https://concord.org/our-work/research-projects/inquiryspace/) created
+plugins for investigating the physical world with sensors and simulations: a student performs an
+experiment and then sends the data it produced to CODAP for immediate analysis.
+
+Plugins are loosely coupled to CODAP. A plugin need not be served from the same web server as
+the CODAP it runs in. It runs in an iframe and communicates with CODAP through `postMessage`.
+
+## About iframe-phone
+
+The API uses [iframe-phone](https://github.com/concord-consortium/iframe-phone) to carry messages
+between a plugin and CODAP. iframe-phone wraps the `postMessage` API: it simplifies setting up the
+connection and provides a simple remote procedure call (RPC) interface.
+
+CODAP defines the structure of the requests and responses that pass through the connection. In
+most cases the plugin sends a request and passes a callback to receive the response. Some
+messages start from CODAP's side, such as notifications; the mechanics are the same in either
+direction. See [Sending requests and receiving notifications](#sending-requests-and-receiving-notifications)
+for how a plugin connects.
+
+## Status of this reference
 
 **This reference is being migrated.** It is moving out of the
 [wiki page](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-Plugin-API)
