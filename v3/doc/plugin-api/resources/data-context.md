@@ -240,6 +240,10 @@ Creating or deleting a data context also notifies plugins that the number of dat
 changed, and `delete` additionally sends `dataContextDeleted` carrying `deletedContext`. A
 `create` that returned an existing context sends nothing.
 
+Changes to the data itself — cases, attributes, collections — arrive on
+`dataContextChangeNotice[<context>]`. See
+[the notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext).
+
 ## Errors
 
 <!-- BEGIN GENERATED: errors -->

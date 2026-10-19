@@ -94,7 +94,8 @@ those types the answer is always yes. Filter on `hidden` to find what the user c
 ## Notifications
 
 This resource sends none. Creating, updating, deleting, hiding, showing or renaming a component
-produces a notification on [`component`](component.md).
+produces a notification on [`component`](component.md), and every component operation is listed
+in [the notification catalog](../notifications.md#component-changes--component).
 
 ## Errors
 
