@@ -76,6 +76,8 @@ apply. With the no-cache upload, no invalidation is needed.
    `--content-type application/json`.
 4. Verify with `curl -s -D -` on the live URL: check for `Cache-Control: no-cache, no-store, must-revalidate`,
    and that the body has the new `id`.
+5. Add a row to the banner history table in `s3://codap-resources/notifications/README.md`,
+   and upload it with the same no-cache flags.
 
 ## Common Commands
 
