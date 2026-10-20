@@ -26,6 +26,8 @@ $tour-ring-color: vars.$teal-dark;
   padding: 16px 32px 16px 16px;
   transition: transform 200ms ease-out, opacity 150ms ease-out;
   cursor: grab;
+  // Lets a touch drag move the popover instead of being taken over (and cancelled) as a scroll.
+  touch-action: none;
 
   // The root is tabindex="-1" — the only path to focus is our programmatic pull-out
   // from a plugin iframe (so document-level keydown listeners can fire). It is never a
@@ -89,8 +91,9 @@ $tour-ring-color: vars.$teal-dark;
     cursor: default;
   }
 
+  // Outside the button: the default inset ring is nearly invisible against the teal fill.
   &:focus-visible {
-    @include vars.focus-outline;
+    @include vars.focus-outline($offset: 2px, $radius: vars.$border-radius-four-corners);
   }
 }
 

@@ -34,6 +34,8 @@ export function useKeyboardControl({
     if (!enabled) return
     const handler = (e: KeyboardEvent) => {
       if (e.defaultPrevented) return
+      // Modified keys belong to the browser or the focused widget (e.g. Alt+ArrowLeft is Back).
+      if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return
       const t = e.target as HTMLElement | null
       const insidePopover = popoverEl && t && popoverEl.contains(t)
       if (!insidePopover) {

@@ -14,6 +14,7 @@ function makePopoverEl(rect = { left: 100, top: 100, width: 200, height: 100 }):
 function pointerDownEvent(clientX = 150, clientY = 130): React.PointerEvent {
   return {
     button: 0,
+    pointerId: 7,
     clientX, clientY,
     target: document.body,
     preventDefault: jest.fn(),
@@ -152,5 +153,16 @@ describe("usePopoverDrag", () => {
 
     rerender({ key: "step-2" })
     expect(result.current.position).toBeNull()
+  })
+
+  // Without capture, releasing the pointer over a plugin iframe never delivers pointerup to the
+  // document, and the popover keeps following the pointer.
+  it("captures the pointer on the popover for the duration of the drag", () => {
+    const popoverEl = makePopoverEl()
+    const setPointerCapture = jest.fn()
+    popoverEl.setPointerCapture = setPointerCapture
+    const { result } = renderHook(() => usePopoverDrag("step-key", popoverEl))
+    act(() => { result.current.onPointerDown(pointerDownEvent(150, 130)) })
+    expect(setPointerCapture).toHaveBeenCalledWith(7)
   })
 })

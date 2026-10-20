@@ -147,4 +147,21 @@ describe("useKeyboardControl", () => {
     dispatch("ArrowRight")
     expect(onNext).not.toHaveBeenCalled()
   })
+
+  // e.g. Alt+ArrowLeft is browser Back; Shift+Arrow extends a selection
+  it.each([
+    ["altKey"], ["ctrlKey"], ["metaKey"], ["shiftKey"]
+  ])("ignores keys pressed with %s and leaves them to the browser", modifier => {
+    renderHook(() => useKeyboardControl({
+      enabled: true, allowClose: true, popoverEl: null, onNext, onPrev, onClose
+    }))
+    for (const key of ["ArrowLeft", "ArrowRight", "Escape"]) {
+      const e = new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true, [modifier]: true })
+      document.body.dispatchEvent(e)
+      expect(e.defaultPrevented).toBe(false)
+    }
+    expect(onPrev).not.toHaveBeenCalled()
+    expect(onNext).not.toHaveBeenCalled()
+    expect(onClose).not.toHaveBeenCalled()
+  })
 })

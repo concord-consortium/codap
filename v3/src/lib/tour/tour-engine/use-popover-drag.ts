@@ -64,6 +64,9 @@ export function usePopoverDrag(
       detach()
     }
     cleanupRef.current = detach
+    // Keep receiving the pointer's events while it passes over a plugin iframe, which would
+    // otherwise swallow them (including pointerup). Captured events still bubble to document.
+    popoverEl.setPointerCapture?.(e.pointerId)
     document.addEventListener("pointermove", onMove)
     document.addEventListener("pointerup", onUp)
     document.addEventListener("pointercancel", onUp)
