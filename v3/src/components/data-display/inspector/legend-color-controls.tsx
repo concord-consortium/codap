@@ -227,11 +227,13 @@ export const LegendColorControls = observer(function LegendColorControls(
             <label className="form-label color-picker">{t("DG.Inspector.legendColor")}</label>
             <PointColorSetting
               propertyLabel={t("DG.Inspector.legendColorLow")}
+              testIdSuffix="legend-low"
               onColorChange={(color) => handleLowAttributeColorChange(color)}
               swatchBackgroundColor={colorRange?.low ?? kDefaultLowAttributeColor}
             />
             <PointColorSetting
               propertyLabel={t("DG.Inspector.legendColorHigh")}
+              testIdSuffix="legend-high"
               onColorChange={(color) => handleHighAttributeColorChange(color)}
               swatchBackgroundColor={colorRange?.high ?? kDefaultHighAttributeColor}
             />
@@ -263,7 +265,7 @@ export const LegendColorControls = observer(function LegendColorControls(
                           color={displayItemDescription.pointColor}
                           onShapeChange={handlePointShapeChange}/>
       </If>
-      <PointColorSetting propertyLabel={t("DG.Inspector.color")}
+      <PointColorSetting propertyLabel={t("DG.Inspector.color")} testIdSuffix="point"
                         onColorChange={(color) => handlePointColorChange(color)}
                         swatchBackgroundColor={displayItemDescription.pointColor}/>
     </div>
@@ -302,7 +304,7 @@ const CategoricalColorControls = observer(function CategoricalColorControls(
               onShapeChange={(shape) => onCatPointShapeChange(shape, category)}/>
           </If>
           <PointColorSetting key={category} propertyLabel={category}
-            attrIndex={attrIndex}
+            testIdSuffix={attrIndex}
             closeTrigger={scrollVersion}
             onColorChange={(color) => onCatPointColorChange(color, category)}
             swatchBackgroundColor={dataConfiguration.getLegendColorForCategory(category)}/>

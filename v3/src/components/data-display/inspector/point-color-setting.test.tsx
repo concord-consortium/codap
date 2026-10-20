@@ -21,7 +21,8 @@ describe("PointColorSetting", () => {
   const defaultProps = {
     onColorChange: jest.fn(),
     propertyLabel: "Fill Color",
-    swatchBackgroundColor: "#FF0000"
+    swatchBackgroundColor: "#FF0000",
+    testIdSuffix: "fill"
   }
 
   beforeEach(() => {
@@ -144,5 +145,10 @@ describe("PointColorSetting", () => {
 
     await user.click(button)
     expect(button).toHaveAttribute("aria-expanded", "false")
+  })
+
+  it("gives the swatch button a testid from testIdSuffix", () => {
+    render(<PointColorSetting {...defaultProps} testIdSuffix="stroke" />)
+    expect(screen.getByTestId("color-swatch-button-stroke")).toBeInTheDocument()
   })
 })

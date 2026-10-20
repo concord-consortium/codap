@@ -151,7 +151,7 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
           aria-disabled={displayItemDescription.pointStrokeSameAsFill || undefined}>
           <div className="palette-row color-picker-row">
             <label className="form-label color-picker">{t("DG.Inspector.stroke")}</label>
-            <PointColorSetting propertyLabel={t("DG.Inspector.stroke")}
+            <PointColorSetting propertyLabel={t("DG.Inspector.stroke")} testIdSuffix="stroke"
                               disabled={displayItemDescription.pointStrokeSameAsFill}
                               onColorChange={(color) => handlePointStrokeColorChange(color)}
                               swatchBackgroundColor={displayItemDescription.pointStrokeColor}/>

@@ -125,7 +125,7 @@ reference. The tour-key registry is in
 | Axis / legend | `axis-legend-attribute-button-{place}`, `axis-attr-menu-{placeTestId}`, `axis-attr-submenu-{placeTestId}-{collectionIndex}`, `legend-key-{index}`, `axis-drag-rect-{placeTestId}-{zone}`. `place` is the camelCase graph place (`rightCat`, `rightNumeric`, `yPlus`); `placeTestId` is its kebab-case form (`right-cat`, `right-numeric`, `y-plus`). |
 | Inspector | `inspector-palette-{tile-type}`, `inspector-popover-{name}`, `inspector-menu-{name}` |
 | Tool-shelf | `tool-shelf-table-menu-list`, `tool-shelf-tiles-menu-list`, `tool-shelf-plugins-menu-list`, `tool-shelf-guide-menu-list` |
-| Attribute header | `attribute-header-menu-{attrIndex}`, `codap-attribute-button-{attrIndex}` |
+| Attribute header | `attribute-header-menu-{attrIndex}`, `codap-attribute-button-{attrIndex}`. `attrIndex` restarts in each collection; scope it with `collection-table-{collectionIndex}` (case table) or `case-card-attrs-wrapper-{collectionIndex}` (case card). |
 | Inline edit | `title-text-input`, `column-name-input`, `cfm-menu-bar-filename-input` |
 | CFM dialogs | `cfm-dialog-shell`, `cfm-dialog-share`, `cfm-dialog-share-{enable,update,preview,stop,copy,close}-button`, `cfm-dialog-rename`, `cfm-dialog-alert`, `cfm-dialog-confirm-*` |
 | Row index | `index-menu-list` |

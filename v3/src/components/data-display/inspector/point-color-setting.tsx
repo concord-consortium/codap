@@ -7,16 +7,17 @@ import { useColorPickerPopoverOffset } from "../../common/use-color-picker-popov
 import { t } from "../../../utilities/translation/translate"
 
 interface ColorPickerIProps {
-  attrIndex?: number
   closeTrigger?: number
   disabled?: boolean
   onColorChange: (color: string) => void
   propertyLabel: string
   swatchBackgroundColor: string
+  // distinguishes this swatch's testids, e.g. "stroke" or a category index
+  testIdSuffix: string | number
 }
 
-export const PointColorSetting = observer(function PointColorSetting({ attrIndex, closeTrigger, disabled,
-  onColorChange, propertyLabel, swatchBackgroundColor }: ColorPickerIProps) {
+export const PointColorSetting = observer(function PointColorSetting({ closeTrigger, disabled,
+  onColorChange, propertyLabel, swatchBackgroundColor, testIdSuffix }: ColorPickerIProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [inputValue, setInputValue] = useState(swatchBackgroundColor)
   const { popoverRef, popoverOffset, handleExpandedChange, resetPopoverOffset } = useColorPickerPopoverOffset()
@@ -60,8 +61,8 @@ export const PointColorSetting = observer(function PointColorSetting({ attrIndex
     handleOpenChange(false)
   }, [handleOpenChange, onColorChange])
 
-  const pointSettingTestId = attrIndex != null ? `point-color-setting-${attrIndex}` : undefined
-  const swatchButtonTestId = attrIndex != null ? `color-swatch-button-${attrIndex}` : undefined
+  const pointSettingTestId = `point-color-setting-${testIdSuffix}`
+  const swatchButtonTestId = `color-swatch-button-${testIdSuffix}`
 
   return (
     <DialogTrigger isOpen={isOpen} onOpenChange={handleOpenChange}>

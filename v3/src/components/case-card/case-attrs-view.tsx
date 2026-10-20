@@ -25,6 +25,7 @@ const kTableMarginOffset = 10
 interface ICaseAttrsViewProps {
   caseItem?: IGroupedCase
   collection?: ICollectionModel
+  collectionIndex: number
   onResizeColumn?: (collectionId: string, widthPct: number, isComplete?: boolean) => void
 }
 
@@ -68,7 +69,7 @@ function getNextAttrId(attrs: readonly IAttribute[], currentAttrId: string): May
 }
 
 export const CaseAttrsView = observer(function CaseAttrsView(
-  { caseItem, collection, onResizeColumn }: ICaseAttrsViewProps
+  { caseItem, collection, collectionIndex, onResizeColumn }: ICaseAttrsViewProps
 ) {
   const cardModel = useCaseCardModel()
   const isCollectionSummarized = !!collection?.cases && collection.cases.length > 0 &&
@@ -131,7 +132,7 @@ export const CaseAttrsView = observer(function CaseAttrsView(
   const colWidthStyle = `${(columnWidthPct * 100).toFixed(1)}%`
 
   return (
-    <div className="case-card-attrs-wrapper" ref={resizeRef}>
+    <div className="case-card-attrs-wrapper" ref={resizeRef} data-testid={`case-card-attrs-wrapper-${collectionIndex}`}>
       <table className={tableClassName} data-testid="case-card-attrs">
         <colgroup>
           <col style={{ width: colWidthStyle }} />
