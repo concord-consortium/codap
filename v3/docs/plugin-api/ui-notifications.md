@@ -1,7 +1,7 @@
 # UI Notifications (`uiNotificationMonitor`) — Plugin API
 
 Opt-in API that delivers notifications to plugins when UI elements in CODAP
-appear, disappear, or are activated (clicked, or Enter/Space activated). Designed
+appear, disappear, or are clicked (by pointer or by keyboard). Designed
 for the tutorial-plugin use case: a plugin highlights a control, listens for the
 matching notice, then advances.
 
@@ -72,8 +72,11 @@ All delivered as `notify uiNotificationNotice`.
 - **`appear` / `disappear`** — element became visible / was removed. Emitted
   for menu/palette/dialog markers, `role="menuitem"` additions, and
   `aria-expanded` flips on menu triggers.
-- **`click`** — pointer click or keyboard activation. `via: "pointer" | "keyboard"`
-  distinguishes the two. When `via === "keyboard"`, also carries `key: "Enter" | " "`.
+- **`click`** — a DOM `click` event, from a pointer or from keyboard activation.
+  `via: "keyboard"` when the event's `detail` is 0, which is how the browser marks
+  a click synthesized from Enter/Space; `via: "pointer"` otherwise. A programmatic
+  `element.click()` also has `detail` 0 and reports as `"keyboard"`. Keyboard
+  activation of React Aria controls produces no DOM click, so it is not reported.
 - **`dblclick`** — pointer-only. Keyboard users get a single `click` with
   `via: "keyboard"`; there is no keyboard-synthesized `dblclick`. Tutorials that
   advance on `dblclick` should also accept `click` with `via: "keyboard"`.
@@ -97,7 +100,7 @@ Top-level:
   region?:   "header" | "workspace" | "overlay"   // absent on rateLimited
   target?:   { tourKey?, testId?, componentId?, label?, tag?, disabled?, interactionKind? }
   monitor:   { id: number, clientId?: string }
-  // Per-event-type extras: via, key, dragId, setting, value, previousValue, dialogTarget, control, change
+  // Per-event-type extras: via, dragId, setting, value, previousValue, dialogTarget, control, change
 }
 ```
 
@@ -173,6 +176,7 @@ toward a single shared per-monitor counter.
 - **`dblclick` + keyboard parity.** No keyboard-synthesized `dblclick`. See
   Event types.
 - **Focus is not activation.** Arrow keys within an open menu do not fire
-  notices. Tutorial plugins advance on Enter/Space activation, not focus.
+  notices, and neither does typing. Tutorial plugins advance on activation
+  (a `click`), not focus.
 - **Non-consumption.** The observer never calls `preventDefault` or
   `stopPropagation` — CODAP's own handling is unaffected by monitor activity.

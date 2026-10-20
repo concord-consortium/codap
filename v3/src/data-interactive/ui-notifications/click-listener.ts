@@ -12,12 +12,6 @@ interface RecentClickState {
 }
 
 let recentClick: RecentClickState | undefined
-// Per-install generation counter for keyboard→click dedup.
-// Each install() increments the generation; entries stamped with a stale
-// generation are ignored so a pending suppression from a previous install
-// can never leak into a later re-subscribe.
-let suppressGeneration = 0
-const suppressMap = new WeakMap<Element, number>()
 
 export function getRecentClick(): RecentClickState | undefined {
   return recentClick
@@ -43,15 +37,14 @@ export interface ClickListenerInstalled {
 }
 
 export function installClickListener(manager: UiNotificationMonitorManager): ClickListenerInstalled {
-  const generation = ++suppressGeneration
+  // Only real click events are reported, so the browser and the component libraries decide what
+  // counts as activation. A click synthesized from Enter/Space (by the browser, or by a library
+  // calling element.click()) has detail 0. React Aria's usePress dispatches no click for keyboard
+  // activation, so those activations are not reported.
   const onClick = (e: Event) => {
     try {
       const t = e.target as Element | null
       if (!t) return
-      if (suppressMap.get(t) === generation) {
-        suppressMap.delete(t)
-        return
-      }
       const cls = classifyNode(t, { recentClick: getRecentClick() })
       updateRecentClick(cls.region, cls.componentId ?? tileIdOf(t))
       const target = buildClickTarget(t)
@@ -60,7 +53,7 @@ export function installClickListener(manager: UiNotificationMonitorManager): Cli
         eventType: "click",
         region: cls.region,
         target,
-        via: "pointer",
+        via: (e as MouseEvent).detail === 0 ? "keyboard" : "pointer",
         monitor: { id: -1 }
       }
       manager.deliver(notice)
@@ -89,44 +82,13 @@ export function installClickListener(manager: UiNotificationMonitorManager): Cli
     }
   }
 
-  const onKeyDown = (e: Event) => {
-    try {
-      const ke = e as KeyboardEvent
-      if (ke.key !== "Enter" && ke.key !== " ") return
-      const t = e.target as Element | null
-      if (!t) return
-      const cls = classifyNode(t, { recentClick: getRecentClick() })
-      updateRecentClick(cls.region, cls.componentId ?? tileIdOf(t))
-      const target = buildClickTarget(t)
-      if (cls.componentId && !target.componentId) target.componentId = cls.componentId
-      const notice: UiClickNotice = {
-        eventType: "click",
-        region: cls.region,
-        target,
-        via: "keyboard",
-        key: ke.key,
-        monitor: { id: -1 }
-      }
-      manager.deliver(notice)
-      // Mark element so the synthesized click doesn't re-emit
-      suppressMap.set(t, generation)
-    } catch (err) {
-      console.error("[ui-notifications] keydown handler error", err)
-    }
-  }
-
   document.addEventListener("click", onClick, true)
   document.addEventListener("dblclick", onDblClick, true)
-  document.addEventListener("keydown", onKeyDown, true)
 
   return {
     uninstall() {
       document.removeEventListener("click", onClick, true)
       document.removeEventListener("dblclick", onDblClick, true)
-      document.removeEventListener("keydown", onKeyDown, true)
-      // Bump the generation so any still-pending entries in suppressMap are
-      // considered stale — a re-subscribe starts with a clean slate.
-      suppressGeneration++
       recentClick = undefined
     }
   }
@@ -135,5 +97,4 @@ export function installClickListener(manager: UiNotificationMonitorManager): Cli
 /** Test helper to reset internal state between tests */
 export function _resetClickListenerState() {
   recentClick = undefined
-  suppressGeneration++
 }

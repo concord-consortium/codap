@@ -1,4 +1,7 @@
-/** Resolve a click/dblclick target's label per the spec's 4-step fallback:
+// A label names a control. Without a cap, a click on a container would send its whole subtree's text.
+export const kMaxLabelLength = 100
+
+/** Resolve a click/dblclick target's label per the spec's 4-step fallback, truncated to kMaxLabelLength:
  * 1) aria-label (if non-empty)
  * 2) aria-labelledby target textContent (if non-empty) — per ARIA, this is a
  *    space-separated list of ids whose textContents are concatenated with a
@@ -7,6 +10,13 @@
  * 4) otherwise undefined (omitted)
  */
 export function resolveLabel(el: Element | null): string | undefined {
+  const label = resolveFullLabel(el)
+  return label != null && label.length > kMaxLabelLength
+    ? `${label.slice(0, kMaxLabelLength - 1)}…`
+    : label
+}
+
+function resolveFullLabel(el: Element | null): string | undefined {
   if (!el) return undefined
   const ariaLabel = el.getAttribute?.("aria-label")
   if (ariaLabel && ariaLabel.length > 0) return ariaLabel

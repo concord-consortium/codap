@@ -62,7 +62,6 @@ export interface UiClickNotice extends UiNoticeBase {
   region: UiRegion
   target: UiTarget
   via?: "keyboard" | "pointer"
-  key?: string
 }
 
 export interface UiDragNotice extends UiNoticeBase {

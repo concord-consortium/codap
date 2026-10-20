@@ -38,7 +38,7 @@ describe("click-listener", () => {
     document.body.innerHTML = `
       <div class="menu-bar"><button data-testid="x" role="button">OK</button></div>`
     const el = document.querySelector("button")!
-    el.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+    el.dispatchEvent(new MouseEvent("click", { bubbles: true, detail: 1 }))
 
     const click = delivered.find(d => d.eventType === "click") as UiClickNotice | undefined
     expect(click?.eventType).toBe("click")
@@ -47,7 +47,21 @@ describe("click-listener", () => {
     expect(click?.via).toBe("pointer")
   })
 
-  it("emits click via:'keyboard' + key on Enter keydown and suppresses subsequent click", () => {
+  it("emits click with via:'keyboard' for a click with detail 0", () => {
+    const { manager, delivered } = makeManagerWithCapture()
+    manager.register("plugin-A", { eventTypes: ["click"] })
+    installed = installClickListener(manager)
+
+    document.body.innerHTML = `<div class="menu-bar"><button data-testid="x">OK</button></div>`
+    // the browser (or a library calling element.click()) dispatches a keyboard activation with detail 0
+    document.querySelector("button")!.dispatchEvent(new MouseEvent("click", { bubbles: true, detail: 0 }))
+
+    const clicks = delivered.filter(d => d.eventType === "click") as UiClickNotice[]
+    expect(clicks).toHaveLength(1)
+    expect(clicks[0].via).toBe("keyboard")
+  })
+
+  it("emits a single notice when a keydown is followed by its synthesized click", () => {
     const { manager, delivered } = makeManagerWithCapture()
     manager.register("plugin-A", { eventTypes: ["click"] })
     installed = installClickListener(manager)
@@ -55,46 +69,26 @@ describe("click-listener", () => {
     document.body.innerHTML = `<div class="menu-bar"><button data-testid="x">OK</button></div>`
     const el = document.querySelector("button")!
     el.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }))
-    // Simulate the browser-synthesized click
-    el.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+    el.dispatchEvent(new MouseEvent("click", { bubbles: true, detail: 0 }))
 
-    const clicks = delivered.filter(d => d.eventType === "click") as UiClickNotice[]
-    expect(clicks).toHaveLength(1)
-    expect(clicks[0].via).toBe("keyboard")
-    expect(clicks[0].key).toBe("Enter")
+    expect(delivered.filter(d => d.eventType === "click")).toHaveLength(1)
   })
 
-  it("emits click via:'keyboard' with key:' ' for Space", () => {
+  it.each([
+    ["a button", `<button data-testid="x">OK</button>`, "Enter"],
+    ["a text input", `<input data-testid="x" type="text">`, " "],
+    ["a textarea", `<textarea data-testid="x"></textarea>`, "Enter"],
+    ["a contenteditable element", `<div data-testid="x" contenteditable="true">Some text</div>`, " "]
+  ])("emits nothing for a keydown alone on %s", (_desc, html, key) => {
     const { manager, delivered } = makeManagerWithCapture()
     manager.register("plugin-A", { eventTypes: ["click"] })
     installed = installClickListener(manager)
 
-    document.body.innerHTML = `<div class="menu-bar"><button data-testid="x">OK</button></div>`
-    const el = document.querySelector("button")!
-    el.dispatchEvent(new KeyboardEvent("keydown", { key: " ", bubbles: true }))
-    const clicks = delivered.filter(d => d.eventType === "click") as UiClickNotice[]
-    expect(clicks).toHaveLength(1)
-    expect(clicks[0].key).toBe(" ")
-  })
+    document.body.innerHTML = `<div class="menu-bar">${html}</div>`
+    document.querySelector('[data-testid="x"]')!
+      .dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }))
 
-  it("suppress flag is per-element (keyboard on A doesn't suppress pointer click on B)", () => {
-    const { manager, delivered } = makeManagerWithCapture()
-    manager.register("plugin-A", { eventTypes: ["click"] })
-    installed = installClickListener(manager)
-
-    document.body.innerHTML = `
-      <div class="menu-bar">
-        <button data-testid="a">A</button>
-        <button data-testid="b">B</button>
-      </div>`
-    const a = document.querySelector('[data-testid="a"]') as HTMLElement
-    const b = document.querySelector('[data-testid="b"]') as HTMLElement
-
-    a.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }))
-    b.dispatchEvent(new MouseEvent("click", { bubbles: true }))
-    a.dispatchEvent(new MouseEvent("click", { bubbles: true })) // should be suppressed
-
-    expect(delivered.filter(d => d.eventType === "click")).toHaveLength(2)
+    expect(delivered.filter(d => d.eventType === "click")).toHaveLength(0)
   })
 
   it("populates target.label via aria-label", () => {
@@ -166,29 +160,6 @@ describe("click-listener", () => {
 
     const click = delivered.find(d => d.eventType === "click")
     expect(click?.target?.interactionKind).toBe("axis-drag-rect")
-  })
-
-  it("uninstall invalidates a pending keyboard suppression so a later install's click fires", () => {
-    // Keydown on install A adds a suppress entry for the element. If that entry
-    // leaked into install B, B would incorrectly suppress the first real click.
-    const { manager: managerA, delivered: deliveredA } = makeManagerWithCapture()
-    managerA.register("plugin-A", { eventTypes: ["click"] })
-    installed = installClickListener(managerA)
-
-    document.body.innerHTML = `<div class="menu-bar"><button data-testid="x">OK</button></div>`
-    const el = document.querySelector("button")!
-    el.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }))
-    // Unsubscribe before the synthesized click arrives
-    installed.uninstall()
-    installed = undefined
-    expect(deliveredA.filter(d => d.eventType === "click")).toHaveLength(1)
-
-    // Fresh re-subscribe: the stale suppress entry must NOT suppress this click
-    const { manager: managerB, delivered: deliveredB } = makeManagerWithCapture()
-    managerB.register("plugin-B", { eventTypes: ["click"] })
-    installed = installClickListener(managerB)
-    el.dispatchEvent(new MouseEvent("click", { bubbles: true }))
-    expect(deliveredB.filter(d => d.eventType === "click")).toHaveLength(1)
   })
 
   it("dblclick fires independent of click", () => {

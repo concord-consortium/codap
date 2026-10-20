@@ -1,4 +1,4 @@
-import { resolveLabel } from "./label-resolution"
+import { kMaxLabelLength, resolveLabel } from "./label-resolution"
 
 describe("resolveLabel", () => {
   beforeEach(() => { document.body.innerHTML = "" })
@@ -55,5 +55,19 @@ describe("resolveLabel", () => {
   it("returns undefined when empty", () => {
     const el = document.createElement("button")
     expect(resolveLabel(el)).toBeUndefined()
+  })
+
+  it("truncates a long own-text label", () => {
+    const el = document.createElement("div")
+    el.textContent = "word ".repeat(200)
+    const label = resolveLabel(el)!
+    expect(label.length).toBeLessThanOrEqual(kMaxLabelLength)
+    expect(label.endsWith("…")).toBe(true)
+  })
+
+  it("truncates a long aria-label", () => {
+    const el = document.createElement("button")
+    el.setAttribute("aria-label", "x".repeat(500))
+    expect(resolveLabel(el)!.length).toBeLessThanOrEqual(kMaxLabelLength)
   })
 })
