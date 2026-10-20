@@ -2,6 +2,7 @@ import { act, renderHook } from "@testing-library/react"
 import iframePhone from "iframe-phone"
 import { DIComponentInfo } from "../../data-interactive/data-interactive-types"
 import { diComponentHandler } from "../../data-interactive/handlers/component-handler"
+import { uiNotificationMonitorManager } from "../../data-interactive/ui-notifications/ui-notification-monitor-manager"
 import { appState } from "../../models/app-state"
 import { toV3Id } from "../../utilities/codap-utils"
 import { extractOrigin, useDataInteractiveController } from "./use-data-interactive-controller"
@@ -93,5 +94,21 @@ describe("useDataInteractiveController", () => {
 
     rerender()
     expect(ParentEndpoint.mock.calls.length).toBeGreaterThan(connectionsAfterMount)
+  })
+
+  it("removes the plugin's UI-notification monitors when the plugin disconnects", () => {
+    const documentContent = appState.document.content!
+    const result = diComponentHandler.create!({}, { type: "webView", URL: "https://example.com/plugin.html" })
+    const id = (result.values as DIComponentInfo).id!
+    const tile = documentContent.tileMap.get(toV3Id(kWebViewIdPrefix, id))!
+    uiNotificationMonitorManager.register(tile.id, { eventTypes: ["click"] })
+    uiNotificationMonitorManager.register("some-other-tile", { eventTypes: ["click"] })
+
+    const iframeRef = { current: document.createElement("iframe") }
+    const { unmount } = renderHook(() => useDataInteractiveController(iframeRef, tile))
+    unmount()
+
+    expect(uiNotificationMonitorManager.snapshot().map(m => m.ownerTileId)).toEqual(["some-other-tile"])
+    uiNotificationMonitorManager.unregisterAll()
   })
 })

@@ -241,6 +241,41 @@ describe("UiNotificationMonitorManager", () => {
     })
   })
 
+  describe("unregisterOwner", () => {
+    it("removes only the owner's monitors and cancels their timers", () => {
+      const { manager } = makeManager()
+      const cancels: number[] = []
+      manager.setCancelPendingTimers(id => cancels.push(id))
+      const a1 = manager.register("A", { eventTypes: ["click"] }) as { ok: true; id: number }
+      const a2 = manager.register("A", { eventTypes: ["appear"] }) as { ok: true; id: number }
+      const b1 = manager.register("B", { eventTypes: ["click"] }) as { ok: true; id: number }
+      manager.unregisterOwner("A")
+      expect(manager.snapshot().map(m => m.id)).toEqual([b1.id])
+      expect(cancels.sort()).toEqual([a1.id, a2.id].sort())
+    })
+
+    it("fires subscriber-count 0 when the last owner's monitors are removed", () => {
+      const { manager } = makeManager()
+      const counts: number[] = []
+      manager.onSubscriberCountChange(c => counts.push(c))
+      manager.register("A", { eventTypes: ["click"] })
+      manager.register("A", { eventTypes: ["appear"] })
+      manager.unregisterOwner("A")
+      expect(manager.size).toBe(0)
+      expect(counts).toEqual([1, 0])
+    })
+
+    it("is a no-op for an owner with no monitors", () => {
+      const { manager } = makeManager()
+      const counts: number[] = []
+      manager.onSubscriberCountChange(c => counts.push(c))
+      manager.register("A", { eventTypes: ["click"] })
+      manager.unregisterOwner("B")
+      expect(manager.size).toBe(1)
+      expect(counts).toEqual([1])
+    })
+  })
+
   describe("onSubscriberCountChange unsubscribe", () => {
     it("returned disposer removes the listener", () => {
       const { manager } = makeManager()

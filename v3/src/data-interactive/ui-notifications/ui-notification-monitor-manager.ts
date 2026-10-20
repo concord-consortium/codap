@@ -108,6 +108,13 @@ export class UiNotificationMonitorManager {
     return { ok: true, id: monitor.id, clientId: monitor.clientId }
   }
 
+  /** Remove every monitor registered by a plugin, e.g. when its tile closes or its iframe reloads. */
+  unregisterOwner(ownerTileId: string) {
+    for (const monitor of Array.from(this.monitors.values())) {
+      if (monitor.ownerTileId === ownerTileId) this.unregister(monitor.id)
+    }
+  }
+
   unregisterAll() {
     const hadSubscribers = this.monitors.size > 0
     for (const id of Array.from(this.monitors.keys())) this.cancelTimers?.(id)

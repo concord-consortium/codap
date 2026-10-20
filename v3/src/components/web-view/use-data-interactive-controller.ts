@@ -3,6 +3,7 @@ import { reaction } from "mobx"
 import React, { useEffect, useState } from "react"
 import { setupRequestQueueProcessor } from "../../data-interactive/data-interactive-request-processor"
 import { DIRequest, DIRequestCallback } from "../../data-interactive/data-interactive-types"
+import { uiNotificationMonitorManager } from "../../data-interactive/ui-notifications/ui-notification-monitor-manager"
 import { useCfmContext } from "../../hooks/use-cfm-context"
 import { DEBUG_PLUGINS, debugLog } from "../../lib/debug"
 import { tourManager } from "../../lib/tour/tour-manager"
@@ -99,7 +100,10 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
       })
 
       return () => {
-        if (tile) tourManager.cleanupForTile(tile)
+        if (tile) {
+          tourManager.cleanupForTile(tile)
+          uiNotificationMonitorManager.unregisterOwner(tile.id)
+        }
         disposer()
         rpcEndpoint.disconnect()
         phone.disconnect()
