@@ -178,6 +178,40 @@ describe("dom-observer", () => {
     expect(delivered.some(d => d.eventType === "disappear" && d.target?.testId === "nested-marker")).toBe(true)
   })
 
+  // Removal must find the same markers as insertion, so every appear has a matching disappear.
+  it("emits disappear for a role-only menu, as it does appear", async () => {
+    const { manager, delivered } = makeManagerWithCapture()
+    manager.register("plugin-A", { eventTypes: ["appear", "disappear"] })
+    installed = installDomObserver(manager)
+
+    const menu = document.createElement("div")
+    menu.setAttribute("role", "menu")
+    menu.setAttribute("data-testid", "role-only-menu")
+    document.body.appendChild(menu)
+    await awaitMutations()
+    menu.remove()
+    await awaitMutations()
+
+    const forMenu = delivered.filter(d => "target" in d && d.target?.testId === "role-only-menu")
+    expect(forMenu.map(d => d.eventType)).toEqual(["appear", "disappear"])
+  })
+
+  it("emits no disappear for markers inside a removed tile, as it emits no appear for them", async () => {
+    const { manager, delivered } = makeManagerWithCapture()
+    manager.register("plugin-A", { eventTypes: ["appear", "disappear"] })
+    installed = installDomObserver(manager)
+
+    const tile = document.createElement("div")
+    tile.className = "free-tile-component"
+    tile.innerHTML = `<div class="chakra-menu__menu-list" data-testid="tile-internal-menu"></div>`
+    document.body.appendChild(tile)
+    await awaitMutations()
+    tile.remove()
+    await awaitMutations()
+
+    expect(delivered.filter(d => "target" in d && d.target?.testId === "tile-internal-menu")).toHaveLength(0)
+  })
+
   it("ignores removed non-element (text) nodes", async () => {
     const { manager, delivered } = makeManagerWithCapture()
     manager.register("plugin-A", { eventTypes: ["disappear"] })

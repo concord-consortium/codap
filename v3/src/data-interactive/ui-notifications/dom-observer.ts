@@ -1,7 +1,7 @@
 import { onDialogAppear, onDialogDisappear } from "./dialog-change-observer"
 import { getRecentClick } from "./click-listener"
 import {
-  buildTarget, classifyNode, findMarkers, isHiddenSubtree, kCfmDialogSelector, kMarkerSelector
+  buildTarget, classifyNode, findMarkers, isHiddenSubtree, kCfmDialogSelector
 } from "./classify-node"
 import { UiNotificationMonitorManager } from "./ui-notification-monitor-manager"
 import { UiNotice, UiTarget } from "./ui-notification-types"
@@ -120,13 +120,9 @@ export function installDomObserver(manager: UiNotificationMonitorManager): DomOb
   }
 
   function processRemoved(root: Element) {
-    // Can't check isHiddenSubtree on removed nodes reliably; skip the check
-    const markers: Element[] = []
-    try {
-      if (root.matches?.(kMarkerSelector)) markers.push(root)
-      const descendants = root.querySelectorAll?.(kMarkerSelector)
-      if (descendants) for (const d of Array.from(descendants)) markers.push(d)
-    } catch { /* ignore */ }
+    // Same marker search as processAdded, so every appear has a matching disappear.
+    // (Can't check isHiddenSubtree on removed nodes reliably; skip the check.)
+    const markers = findMarkers(root, true)
     for (const el of markers) {
       if (shouldSuppressEmit("disappear", el)) continue
       appearanceCount++
