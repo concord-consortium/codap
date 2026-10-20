@@ -27,7 +27,6 @@ export const OutlineRing = observer(function OutlineRing({ target, state }: Outl
     // We use autoUpdate purely for its scroll/resize/layout-change subscription;
     // its positioning output is ignored — `measure` reads target.getBoundingClientRect()
     // directly. document.body is passed as the (unused) floating element.
-    // See CODAP-1231 spec § "OutlineRing positioning — not useFloating".
     const cleanup = autoUpdate(target, document.body, measure)
     return cleanup
   }, [target, refreshTick])

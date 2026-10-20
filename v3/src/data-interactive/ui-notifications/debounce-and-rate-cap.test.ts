@@ -45,7 +45,7 @@ describe("createDeliveryPipeline", () => {
     p.enqueue(m, appear("foo"))
     expect(delivered).toHaveLength(1) // leading
     jest.advanceTimersByTime(DEFAULT_DEBOUNCE_MS + 1)
-    expect(delivered).toHaveLength(1) // no trailing because no additional
+    expect(delivered).toHaveLength(1) // no trailing: nothing else arrived in the window
   })
 
   it("delivers a multi-mutation burst as leading + trailing (exactly 2)", () => {

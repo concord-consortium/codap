@@ -1,18 +1,11 @@
 /**
- * Regression-parity suite for CODAP-1232 (uiNotificationMonitor). Re-runs a curated
- * set of canonical UI scenarios with a broad monitor subscribed and asserts:
- *   - CODAP's own event handling is unaffected (non-consumption)
- *   - Time-to-open a representative menu stays within 5% of baseline
- *
- * Canonical scenarios (per spec § Self-Review Round 2):
+ * Regression-parity suite for uiNotificationMonitor. Runs UI scenarios with a broad
+ * monitor subscribed:
  *   1. File menu open/close
- *   2. Tables tool-shelf menu open
- *   3. Chakra modal open/close
- *   4. Axis attribute menu open (workspace)
- *   5. Inspector palette open/close
- *   6. Drag attribute to graph axis (dragStart/dragEnd)
- *   7. Tile minimize/restore
- *   8. Tile close
+ *   2. Time-to-open the Tables tool-shelf menu stays within 5% of baseline
+ * TODO: Chakra modal, axis attribute menu, inspector palette, attribute drag,
+ * tile minimize/restore and tile close, plus an assertion that CODAP's own event
+ * handling is unaffected.
  *
  * INTENTIONALLY `describe.skip(...)` — the "time-to-open within 5% of baseline"
  * assertion is inherently sensitive to CI VM jitter and produced too much noise
@@ -38,7 +31,7 @@ describe.skip("uiNotificationMonitor — regression parity", () => {
     visitWithPlugin()
   })
 
-  it("File menu open/close: DOM signature unchanged with broad monitor", () => {
+  it("File menu open/close with broad monitor", () => {
     withBroadMonitor(() => {
       cy.get('.menu-bar-left .file-menu-button').click()
       cy.get('.menu-list-container').should("be.visible")

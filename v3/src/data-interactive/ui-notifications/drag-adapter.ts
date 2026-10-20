@@ -11,12 +11,7 @@ function targetFromDndEntity(entity: { data?: { current?: unknown }; id: string 
 }
 
 function findNodeForEntity(entity: { id: string | number }): Element | null {
-  // Look up by data-dnd-id (our convention) or by id lookup
-  const id = String(entity.id)
-  const byId = document.getElementById?.(id)
-  if (byId) return byId
-  const byAttr = document.querySelector?.(`[data-dnd-id="${CSS.escape(id)}"]`)
-  return (byAttr) ?? null
+  return document.getElementById?.(String(entity.id)) ?? null
 }
 
 export function buildDragStartNotice(event: DragStartEvent): UiDragNotice {

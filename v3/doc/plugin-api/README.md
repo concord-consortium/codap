@@ -188,6 +188,7 @@ neither here nor there.
 | `logMessageMonitor` | wiki |
 | **[`selectionList`](resources/selection-list.md)** | **this repo** |
 | `tourElements` | not yet documented |
+| `uiNotificationMonitor` | [interim guide](../plugin-ui-notifications.md) |
 | `undoChangeNotice` | wiki |
 
 ---

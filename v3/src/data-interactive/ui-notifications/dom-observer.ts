@@ -71,8 +71,7 @@ export function installDomObserver(manager: UiNotificationMonitorManager): DomOb
           if (r.attributeName === "aria-expanded") {
             handleAriaExpanded(r.target as Element)
           }
-          // aria-hidden, aria-disabled, disabled, style — observed for fast-path / filtering,
-          // no independent appear/disappear emission
+          // other observed attributes (aria-hidden, aria-disabled, disabled, style) emit nothing
           continue
         }
         if (r.type === "childList") {

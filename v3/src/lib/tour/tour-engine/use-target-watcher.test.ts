@@ -29,7 +29,7 @@ describe("useTargetWatcher", () => {
   })
 
   it("detects ancestor detach (target's parent removed)", async () => {
-    // Locks in the Decision in CODAP-1231-replace-driverjs.md: observe document.body
+    // Observe document.body
     // rather than target.parentElement, because parent removal leaves
     // target.parentElement unchanged but target.isConnected flips to false.
     const parent = document.createElement("div")

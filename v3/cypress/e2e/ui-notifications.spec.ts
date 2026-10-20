@@ -1,5 +1,5 @@
 /**
- * End-to-end tests for the uiNotificationMonitor API (CODAP-1232). Doubles as the
+ * End-to-end tests for the uiNotificationMonitor API. Doubles as the
  * canonical plugin-developer example for this API.
  *
  * The test fixture at cypress/fixtures/ui-notification-test-plugin.html runs
@@ -8,6 +8,7 @@
  *   - updateMonitor(id, filter)
  *   - unsubscribeMonitor(id)
  *   - getDeliveredNotices()
+ *   - resetDeliveredNotices()
  *
  * INTENTIONALLY `describe.skip(...)` — these scenarios require the plugin
  * fixture to finish loading inside an iframe-phone handshake before each test,
@@ -67,7 +68,7 @@ describe.skip("uiNotificationMonitor — end-to-end", () => {
     })
   })
 
-  it("right-click and scroll produce zero notices", () => {
+  it("right-click produces no click notice", () => {
     subscribe({
       eventTypes: ["appear", "disappear", "click", "dblclick", "dragStart", "dragEnd"]
     })

@@ -128,7 +128,7 @@ export function classifyNode(
   const tile = el.closest?.(TILE_ANCESTOR_SELECTOR)
   if (tile) return { region: "workspace", componentId: tile.id || undefined }
 
-  // Rule 2: inside .menu-bar / .tool-shelf → header
+  // Rule 2: inside a header ancestor (menu bar / tool shelf) → header
   if (el.closest?.(HEADER_ANCESTOR_SELECTOR)) return { region: "header" }
 
   // Rule 3: aria-labelledby trigger lookup

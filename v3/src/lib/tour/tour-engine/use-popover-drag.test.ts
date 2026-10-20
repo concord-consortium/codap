@@ -116,18 +116,26 @@ describe("usePopoverDrag", () => {
     const popoverEl = makePopoverEl()
     const { result } = renderHook(() => usePopoverDrag("step-key", popoverEl))
 
-    // First gesture — never receives pointerup (e.g. browser swallowed it)
-    act(() => { result.current.onPointerDown(pointerDownEvent(150, 130)) })
-    // Second gesture starts before the first one closed out
-    act(() => { result.current.onPointerDown(pointerDownEvent(300, 200)) })
+    const addSpy = jest.spyOn(document, "addEventListener")
+    const removeSpy = jest.spyOn(document, "removeEventListener")
+    try {
+      // First gesture — never receives pointerup (e.g. browser swallowed it)
+      act(() => { result.current.onPointerDown(pointerDownEvent(150, 130)) })
+      const firstMove = addSpy.mock.calls.find(([type]) => type === "pointermove")?.[1]
+      // Second gesture starts before the first one closed out
+      act(() => { result.current.onPointerDown(pointerDownEvent(300, 200)) })
 
-    // A single pointermove should now drive only the second gesture's handler.
-    // Spy on setPosition indirectly: assert position reflects the second gesture's grab offsets.
-    // First gesture grabbed at (150,130) on a popover at (100,100) → grab offset (50,30).
-    // Second gesture grabbed at (300,200) on the same popover → grab offset (200,100).
-    // A move to (310,210) should yield position (310-200, 210-100) = (110, 110), NOT (260, 180).
-    act(() => { document.dispatchEvent(new MouseEvent("pointermove", { clientX: 310, clientY: 210 })) })
-    expect(result.current.position).toEqual({ x: 110, y: 110 })
+      expect(firstMove).toBeDefined()
+      expect(removeSpy).toHaveBeenCalledWith("pointermove", firstMove)
+
+      // The second gesture's grab offset is (200,100): it grabbed at (300,200) on a popover at
+      // (100,100). A move to (310,210) therefore puts the popover at (110,110).
+      act(() => { document.dispatchEvent(new MouseEvent("pointermove", { clientX: 310, clientY: 210 })) })
+      expect(result.current.position).toEqual({ x: 110, y: 110 })
+    } finally {
+      addSpy.mockRestore()
+      removeSpy.mockRestore()
+    }
   })
 
   it("resets position when resetKey changes (e.g. step transition)", () => {

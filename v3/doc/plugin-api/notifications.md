@@ -126,7 +126,7 @@ So branch on `resource` first, and only then on `values.operation`.
 | `dragDrop[attribute]` | the user is dragging an attribute |
 | `undoChangeNotice` | something was undone or redone, or the undo history was cleared |
 | `document` | document state, for plugins that asked for it |
-| `documentChangeNotice`, `global`, `logMessageNotice`, `interactiveFrame` | a few notifications each — see [Everything else](#everything-else) |
+| `documentChangeNotice`, `global`, `logMessageNotice`, `interactiveFrame`, `uiNotificationNotice` | a few notifications each — see [Everything else](#everything-else) |
 
 ## Data changes — `dataContextChangeNotice[<context>]`
 
@@ -510,7 +510,7 @@ Four more resources, each with a few notifications.
 | `global[<name>]` | none | a global value changes: a slider is dragged or animates, or a plugin sets the value with `update` on `global`. `<name>` is the slider's global value name, and `globalValue` is the new value. This is how a plugin follows a slider continuously. v3 does not yet send it when a plugin sets the value; see [Known limitations](#known-limitations) |
 | `global` | `localeChanged` | CODAP's locale changed. Carries `lang`, the two-letter base language, and `locale`, the full one. By default CODAP reloads a plugin when the locale changes; a plugin receives this instead only if it sets `handlesLocaleChange: true` on [`interactiveFrame`](resources/interactive-frame.md), on every load |
 | `logMessageNotice` | none | a user-analytics log event matched a monitor your plugin registered. Carries `message`, `formatStr` and `logMonitor`, and sometimes `topic` and `replaceArgs` |
-| `interactiveFrame` | computed | guided-tour and highlight messages — `tourUpdate` and `highlightUpdate`. Not documented further yet, because the implementation behind them is being replaced |
+| `interactiveFrame` | computed | guided-tour and highlight messages — `tourUpdate` and `highlightUpdate`. See the [Tour API](../plugin-tour-api.md) |
 
 `dataContextCountChanged` and `dataContextDeleted` arrive here rather than on a named context
 because there may be no context left to name.

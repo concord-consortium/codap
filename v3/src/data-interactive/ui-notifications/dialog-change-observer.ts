@@ -101,9 +101,6 @@ export function onDialogAppear(el: Element, appearTarget: UiTarget | undefined) 
             monitor: { id: -1 }
           }
           managerRef?.deliver(notice)
-        } else if (r.type === "childList") {
-          // Handled via attribute observer; plus we also want to catch input value commits
-          continue
         }
       } catch (e) {
         console.error("[ui-notifications] dialog-change observer error", e)

@@ -342,12 +342,7 @@ describe("TourManager", () => {
     })
 
     it("silently skips when component resolves to a tile model not rendered in the DOM", () => {
-      // Regression: the case-table create flow used to fire `createTileNotification` with the
-      // id of an orphan tile (created via createDefaultTileOfType but never inserted into a row).
-      // Plugins reflecting that id back via { component: <id> } would resolve a tile model from
-      // the tileMap but document.getElementById would return null because no row contained it.
-      // Tour-manager must handle the model-found-but-DOM-absent case as a clean no-op so a
-      // future regression of the same shape doesn't crash or fire stray notifications.
+      // A tile model that is found but not rendered (e.g. an orphan tile) must be a clean no-op.
       mockFindTileFromNameOrId.mockReturnValue({ id: "TABL_ORPHAN" })
       jest.spyOn(document, "getElementById").mockReturnValue(null)
 

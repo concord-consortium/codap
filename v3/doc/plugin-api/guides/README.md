@@ -28,6 +28,7 @@ occasional references to internals that are not part of the API:
 | Request processing and coalescing | [`../../plugin-request-processing.md`](../../plugin-request-processing.md) |
 | Undo and redo | [`../../plugin-undo-redo.md`](../../plugin-undo-redo.md) and [`../../plugin-undo-redo-architecture.md`](../../plugin-undo-redo-architecture.md) |
 | Tour API | [`../../plugin-tour-api.md`](../../plugin-tour-api.md) |
+| UI notifications (`uiNotificationMonitor`) | [`../../plugin-ui-notifications.md`](../../plugin-ui-notifications.md) |
 | Locale switching | [`../../plugin-locale-switching-design.md`](../../plugin-locale-switching-design.md) |
 
 Treat them as background, not as API contract: where one of these documents and a resource page

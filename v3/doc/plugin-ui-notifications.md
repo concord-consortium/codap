@@ -5,9 +5,7 @@ appear, disappear, or are clicked (by pointer or by keyboard). Designed
 for the tutorial-plugin use case: a plugin highlights a control, listens for the
 matching notice, then advances.
 
-Canonical end-to-end example: [`cypress/e2e/ui-notifications.spec.ts`](../../cypress/e2e/ui-notifications.spec.ts).
-
-Jira: [CODAP-1232](https://concord-consortium.atlassian.net/browse/CODAP-1232).
+End-to-end example: [`cypress/e2e/ui-notifications.spec.ts`](../cypress/e2e/ui-notifications.spec.ts). The spec is currently skipped in CI.
 
 ## API shape
 
@@ -104,7 +102,8 @@ Top-level:
 }
 ```
 
-- `target.componentId` always present for `region: "workspace"`; absent for
+- `target.componentId` is the v3 tile id (the tile's DOM `id`), not the numeric v2 id
+  that `component` notifications carry. Always present for `region: "workspace"`; absent for
   `header`; present for `overlay` only when the recent-click heuristic upgraded
   the region. Treat as optional.
 - `target.label` (click / dblclick only): aria-label → aria-labelledby text →
@@ -116,21 +115,21 @@ Top-level:
 
 ## Target catalog
 
-A non-exhaustive reference to the testid families CODAP-1232 filters can
-reference. Full inventory lives in CODAP-1236's R4 tables and the tour
-registry at [`src/lib/tour/tour-elements.ts`](../../src/lib/tour/tour-elements.ts).
+A non-exhaustive reference to the testid families that monitor filters can
+reference. The tour-key registry is in
+[`src/lib/tour/tour-elements.ts`](../src/lib/tour/tour-elements.ts).
 
 | Family | Example patterns |
 |---|---|
 | Tile roots | `codap-graph`, `codap-case-table`, `codap-map`, `codap-case-card`, `codap-slider`, `codap-text`, `codap-calculator`, `codap-web-view` — use `target.componentId` for tile-instance identity, not tile-root testids. |
-| Axis / legend | `axis-legend-attribute-button-{placeTestId}`, `axis-attr-menu-{placeTestId}`, `axis-attr-submenu-{placeTestId}-{collectionIndex}`, `legend-key-{index}`, `axis-drag-rect-{placeTestId}-{zone}`. `placeTestId` is kebab-case — `rightCat` → `right-cat`, `rightNumeric` → `right-numeric`, `yPlus` → `y-plus`. |
+| Axis / legend | `axis-legend-attribute-button-{place}`, `axis-attr-menu-{placeTestId}`, `axis-attr-submenu-{placeTestId}-{collectionIndex}`, `legend-key-{index}`, `axis-drag-rect-{placeTestId}-{zone}`. `place` is the camelCase graph place (`rightCat`, `rightNumeric`, `yPlus`); `placeTestId` is its kebab-case form (`right-cat`, `right-numeric`, `y-plus`). |
 | Inspector | `inspector-palette-{tile-type}`, `inspector-popover-{name}`, `inspector-menu-{name}` |
 | Tool-shelf | `tool-shelf-table-menu-list`, `tool-shelf-tiles-menu-list`, `tool-shelf-plugins-menu-list`, `tool-shelf-guide-menu-list` |
 | Attribute header | `attribute-header-menu-{attrIndex}`, `codap-attribute-button-{attrIndex}` |
 | Inline edit | `title-text-input`, `column-name-input`, `cfm-menu-bar-filename-input` |
 | CFM dialogs | `cfm-dialog-shell`, `cfm-dialog-share`, `cfm-dialog-share-{enable,update,preview,stop,copy,close}-button`, `cfm-dialog-rename`, `cfm-dialog-alert`, `cfm-dialog-confirm-*` |
 | Row index | `index-menu-list` |
-| Tour registry keys | dot-notation (`menuBar.fileMenu`, `toolShelf.tableButton`, etc.) |
+| Tour registry keys | dot-notation (`menuBar.fileMenu`, `toolShelf.table`, etc.) |
 
 ## Layout / settings values
 
@@ -140,18 +139,18 @@ registry at [`src/lib/tour/tour-elements.ts`](../../src/lib/tour/tour-elements.t
 | `tileMinimized`   | `boolean` | prior value | `workspace` | One per transition |
 | `tileSize`        | `{ width, height }` | prior size | `workspace` | Debounced — ≤2 per drag (leading + trailing) |
 | `tilePosition`    | `{ x, y }` | prior position | `workspace` | Debounced — ≤2 per drag |
-| `tileAdded`       | `{ componentId, type? }` | `null` | `workspace` | Fires when a tile enters the doc. Pre-existing tiles at first-subscriber attach are NOT reported. Overlaps with `componentChangeNotice` — see below. |
-| `tileRemoved`     | `null` | `{ componentId, type? }` | `workspace` | Fires when a tile leaves the doc. Overlaps with `componentChangeNotice`. |
+| `tileAdded`       | `{ componentId, type? }` | `null` | `workspace` | Fires when a tile enters the doc. Pre-existing tiles at first-subscriber attach are NOT reported. Overlaps with `component` notifications — see below. |
+| `tileRemoved`     | `null` | `{ componentId, type? }` | `workspace` | Fires when a tile leaves the doc. Overlaps with `component` notifications. |
 
-### `tileAdded` / `tileRemoved` overlap with `componentChangeNotice`
+### `tileAdded` / `tileRemoved` overlap with `component` notifications
 
-CODAP already emits `componentChangeNotice` (via the existing
-`documentChangeNotice` stream) when tiles are created, closed, or changed.
+CODAP already sends [`component` notifications](plugin-api/notifications.md#component-changes--component)
+(`operation: "create"` / `"delete"`) when tiles are created, closed, or changed.
 `tileAdded` / `tileRemoved` in `uiNotificationMonitor` are a convenience for
 tutorial plugins that are already subscribed here and want all UI-relevant
 signals on one channel. **Plugins subscribed to both streams will see each
 tile-create / tile-close twice.** If you only care about tile lifecycle,
-prefer `componentChangeNotice`; if you already have a broad
+prefer `component` notifications; if you already have a broad
 `uiNotificationMonitor`, use `tileAdded` / `tileRemoved`.
 
 ## Rate cap

@@ -77,7 +77,7 @@ Highlight a single element with an optional popover.
 }
 ```
 
-All fields except `request` and at least one targeting property (`tourKey`, `testId`, `selector`, or `component`) are optional. When using `tourKey`, the registry provides default `title` and `description` which can be overridden via `popover`.
+All fields except `request` and at least one targeting property (`tourKey`, `testId`, `selector`, or `component`) are optional. When using `tourKey`, the registry provides default `title` and `description` which can be overridden via `popover`. `title` and `description` are plain text: any markup is displayed as written, not interpreted.
 
 Additional options: `component`.
 
@@ -206,7 +206,7 @@ Notifications are delivered to the plugin's iframe-phone channel automatically �
 | Type | When |
 |------|------|
 | `highlighted` | Highlight is shown |
-| `highlightCleared` | User dismisses (Escape, close button) or replaced by another tour/highlight |
+| `highlightCleared` | User dismisses (Escape, close button, Done), the target is removed from the page, or replaced by another tour/highlight |
 
 Programmatic `clearHighlight` does **not** generate a notification (the plugin already knows).
 
@@ -232,7 +232,7 @@ Programmatic `clearHighlight` does **not** generate a notification (the plugin a
 | `stepStarted` | Step begins transitioning | Includes `stepIndex`, `totalSteps`, `visibleSteps`, `id`, targeting property |
 | `stepEnded` | User moves past a step | Same fields as `stepStarted` |
 | `completed` | Tour reaches the end | Includes `tourId`, `totalSteps`, `visibleSteps` |
-| `cancelled` | User dismisses or tour is replaced | Includes `stepIndex` and step fields. **`stepEnded` is NOT sent** for the interrupted step. |
+| `cancelled` | User dismisses, the current step's target is removed from the page, or tour is replaced | Includes `stepIndex` and step fields. **`stepEnded` is NOT sent** for the interrupted step. |
 
 `stepIndex` and `totalSteps` always refer to the **original** step array (pre-filtering). `visibleSteps` is the filtered count — the number of steps the user actually sees.
 
@@ -534,7 +534,7 @@ The following `tourKey` values are available in the registry. Use `get tourEleme
 
 ### Tutorial Plugins and Click-Through
 
-The tour system no longer imposes an overlay over the workspace. Click-through and subelement interaction (menus, dialogs, the highlighted element itself) are the default behavior. Tutorial plugins that need students to interact with CODAP between steps can use either single highlights cleared between steps, or a multi-step tour — students can interact with any part of the UI while the popover is visible.
+Tours and highlights don't place an overlay over the workspace. Click-through and subelement interaction (menus, dialogs, the highlighted element itself) are the default behavior. Tutorial plugins that need students to interact with CODAP between steps can use either single highlights cleared between steps, or a multi-step tour — students can interact with any part of the UI while the popover is visible.
 
 ### Cleanup
 

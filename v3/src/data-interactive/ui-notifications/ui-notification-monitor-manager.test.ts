@@ -194,7 +194,7 @@ describe("UiNotificationMonitorManager", () => {
       errorSpy.mockRestore()
     })
 
-    it("deliver skips monitors removed mid-iteration", () => {
+    it("deliver skips unregistered monitors", () => {
       const { manager, deliveries } = makeManager()
       manager.register("A", { eventTypes: ["click"] })
       const rb = manager.register("B", { eventTypes: ["click"] }) as { ok: true; id: number }

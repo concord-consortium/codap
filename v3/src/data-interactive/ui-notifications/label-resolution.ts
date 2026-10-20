@@ -1,7 +1,7 @@
 // A label names a control. Without a cap, a click on a container would send its whole subtree's text.
 export const kMaxLabelLength = 100
 
-/** Resolve a click/dblclick target's label per the spec's 4-step fallback, truncated to kMaxLabelLength:
+/** Resolve a click/dblclick target's label, truncated to kMaxLabelLength:
  * 1) aria-label (if non-empty)
  * 2) aria-labelledby target textContent (if non-empty) — per ARIA, this is a
  *    space-separated list of ids whose textContents are concatenated with a

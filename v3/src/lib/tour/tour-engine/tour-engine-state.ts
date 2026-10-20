@@ -8,7 +8,7 @@ export interface EngineLiveState {
   currentStep: EngineStep | null
   options: EngineOptions
   callbacks: EngineCallbacks
-  /** Bumped by `refresh()` to force observers to re-run useFloating's `update()`. */
+  /** Bumped by `refresh()` so the popover and outline ring re-measure. */
   refreshTick: number
   /** Captured on first step entry; used as a focus fallback during teardown. */
   preFocusAnchor: HTMLElement | null

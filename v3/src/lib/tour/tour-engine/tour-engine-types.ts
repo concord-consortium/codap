@@ -28,9 +28,9 @@ export interface EngineOptions {
 export interface EngineLifecycleState { activeIndex: number }
 
 export interface EngineCallbacks {
-  /** Called after the popover is positioned for a step. For highlights, called once. */
+  /** Called when a step becomes active, before its popover renders. For highlights, called once. */
   onHighlightStarted?: (el: HTMLElement, step: EngineStep, ctx: { state: EngineLifecycleState }) => void
-  /** Called when the current step is being torn down (transitioning to next, or tour ending). */
+  /** Called when leaving a step: any navigation, or the tour ending. */
   onDeselected?: () => void
   /** Called when the engine has reached the end of a tour (not cancellation). */
   onDestroyed?: () => void
