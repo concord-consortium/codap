@@ -70,14 +70,29 @@ apply. With the no-cache upload, no invalidation is needed.
 1. Give the new content a **new `id`**. "Don't show again" is remembered per `id` in
    localStorage (`announcement-banner-dismissed-<id>`), so reusing an `id` hides the new
    banner from everyone who dismissed the old one.
-2. Back up the live file first, e.g. `aws s3 cp s3://codap-resources/notifications/v3-announcement-banner.json s3://codap-resources/notifications/<old-id>.json ...`
-   with the no-cache flags. Restoring it is then a single copy.
+2. Back up the live file first, under a name that identifies the old banner:
+
+   ```bash
+   aws s3 cp s3://codap-resources/notifications/v3-announcement-banner.json \
+     s3://codap-resources/notifications/<old-banner-name>.json \
+     --acl public-read --cache-control "no-cache, no-store, must-revalidate" \
+     --metadata-directive REPLACE --content-type application/json
+   ```
+
+   Restoring it is then a single copy.
 3. Upload with the no-cache command under [Copy a single file](#copy-a-single-file), adding
    `--content-type application/json`.
 4. Verify with `curl -s -D -` on the live URL: check for `Cache-Control: no-cache, no-store, must-revalidate`,
    and that the body has the new `id`.
-5. Add a row to the banner history table in `s3://codap-resources/notifications/README.md`,
-   and upload it with the same no-cache flags.
+5. Add a row to the banner history table in the bucket README:
+
+   ```bash
+   aws s3 cp s3://codap-resources/notifications/README.md ./README.md
+   # add the new banner's row to "Banner history (V3)"
+   aws s3 cp ./README.md s3://codap-resources/notifications/README.md \
+     --acl public-read --cache-control "no-cache, no-store, must-revalidate" \
+     --content-type "text/markdown; charset=utf-8"
+   ```
 
 ## Common Commands
 
