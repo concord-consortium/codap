@@ -1,20 +1,31 @@
 import { ITileModel } from "../../models/tiles/tile-model"
 
-// --- driver.js mock ---
+// --- tour-engine mock ---
 const mockDrive = jest.fn()
 const mockHighlight = jest.fn()
 const mockDestroy = jest.fn()
+const mockMoveNext = jest.fn()
+const mockMovePrevious = jest.fn()
+const mockMoveTo = jest.fn()
+const mockRefresh = jest.fn()
 let capturedConfig: any = {}
 
-const mockDriver = jest.fn((config: any) => {
+const mockEngine = jest.fn((config: any) => {
   capturedConfig = config
-  return { drive: mockDrive, highlight: mockHighlight, destroy: mockDestroy }
+  return {
+    drive: mockDrive,
+    highlight: mockHighlight,
+    destroy: mockDestroy,
+    moveNext: mockMoveNext,
+    movePrevious: mockMovePrevious,
+    moveTo: mockMoveTo,
+    refresh: mockRefresh,
+  }
 })
 
-jest.mock("driver.js", () => ({
-  driver: (config: unknown) => mockDriver(config)
+jest.mock("./tour-engine", () => ({
+  createTourEngine: (config: unknown) => mockEngine(config)
 }))
-jest.mock("driver.js/dist/driver.css", () => ({}))
 jest.mock("./tour-styles.scss", () => ({}))
 
 // --- Mock resolveElement ---
@@ -69,10 +80,14 @@ describe("TourManager", () => {
   beforeEach(() => {
     // Clean up any active tour
     tourManager.cancelActive()
-    mockDriver.mockClear()
+    mockEngine.mockClear()
     mockDrive.mockClear()
     mockHighlight.mockClear()
     mockDestroy.mockClear()
+    mockMoveNext.mockClear()
+    mockMovePrevious.mockClear()
+    mockMoveTo.mockClear()
+    mockRefresh.mockClear()
     mockBroadcastMessage.mockClear()
     mockResolveElement.mockClear()
     mockFindTileFromNameOrId.mockClear()
@@ -101,7 +116,7 @@ describe("TourManager", () => {
       const result = tourManager.highlight(tile, { tourKey: "toolShelf.graph", id: "step1" })
 
       expect(result.success).toBe(true)
-      expect(mockDriver).toHaveBeenCalledTimes(1)
+      expect(mockEngine).toHaveBeenCalledTimes(1)
       expect(mockHighlight).toHaveBeenCalledTimes(1)
       expect(tourManager.isActive).toBe(true)
       expect(tourManager.activeType).toBe("highlight")
@@ -215,12 +230,32 @@ describe("TourManager", () => {
       tourManager.highlight(tile, { tourKey: "toolShelf.graph", id: "h1" })
       mockBroadcastMessage.mockClear()
 
-      // Simulate user dismissal via onDeselected
-      capturedConfig.onDeselected()
+      // Simulate user dismissal via onCancelRequested (close button / Escape / target removal)
+      capturedConfig.onCancelRequested()
 
       expect(lastNotification().operation).toBe("highlightUpdate")
       expect(lastNotification().type).toBe("highlightCleared")
       expect(lastNotification().id).toBe("h1")
+      expect(tourManager.isActive).toBe(false)
+    })
+
+    it("sends highlightCleared when user clicks Done (natural completion)", () => {
+      mockResolveElement.mockReturnValue({
+        selector: '[data-testid="something"]',
+        title: "T", description: "D"
+      })
+
+      const tile = makeTile()
+      tourManager.highlight(tile, { tourKey: "toolShelf.graph", id: "h2" })
+      mockBroadcastMessage.mockClear()
+
+      // Simulate user clicking Done on a single-step highlight: engine takes the
+      // natural-completion branch and fires onDestroyed (no onCancelRequested).
+      capturedConfig.onDestroyed()
+
+      expect(lastNotification().operation).toBe("highlightUpdate")
+      expect(lastNotification().type).toBe("highlightCleared")
+      expect(lastNotification().id).toBe("h2")
       expect(tourManager.isActive).toBe(false)
     })
 
@@ -261,6 +296,42 @@ describe("TourManager", () => {
       expect(highlightArg.element).toBe(mockComponentEl)
     })
 
+    it("echoes component in the highlighted notification when only component is provided", () => {
+      const mockComponentEl = document.createElement("div")
+      mockFindTileFromNameOrId.mockReturnValue({ id: "TILE789" })
+      jest.spyOn(document, "getElementById").mockImplementation((id: string) =>
+        id === "TILE789" ? mockComponentEl as unknown as HTMLElement : null
+      )
+
+      const tile = makeTile()
+      tourManager.highlight(tile, { component: "myGraph", id: "h1" })
+
+      const n = lastNotification()
+      expect(n.type).toBe("highlighted")
+      expect(n.component).toBe("myGraph")
+      expect(n.id).toBe("h1")
+    })
+
+    it("echoes component alongside tourKey in the highlighted notification", () => {
+      mockResolveElement.mockReturnValue({
+        selector: '[data-testid="something"]', title: "T", description: "D"
+      })
+      const mockComponentEl = document.createElement("div")
+      mockComponentEl.querySelector = jest.fn().mockReturnValue(document.createElement("div"))
+      mockFindTileFromNameOrId.mockReturnValue({ id: "TILEABC" })
+      jest.spyOn(document, "getElementById").mockImplementation((id: string) =>
+        id === "TILEABC" ? mockComponentEl as unknown as HTMLElement : null
+      )
+
+      const tile = makeTile()
+      tourManager.highlight(tile, { tourKey: "toolShelf.graph", component: "myGraph", id: "h2" })
+
+      const n = lastNotification()
+      expect(n.tourKey).toBe("toolShelf.graph")
+      expect(n.component).toBe("myGraph")
+      expect(n.id).toBe("h2")
+    })
+
     it("silently skips when only component is provided but not found", () => {
       mockFindTileFromNameOrId.mockReturnValue(undefined)
 
@@ -268,6 +339,24 @@ describe("TourManager", () => {
       tourManager.highlight(tile, { component: "nonexistent" })
 
       expect(mockHighlight).not.toHaveBeenCalled()
+    })
+
+    it("silently skips when component resolves to a tile model not rendered in the DOM", () => {
+      // Regression: the case-table create flow used to fire `createTileNotification` with the
+      // id of an orphan tile (created via createDefaultTileOfType but never inserted into a row).
+      // Plugins reflecting that id back via { component: <id> } would resolve a tile model from
+      // the tileMap but document.getElementById would return null because no row contained it.
+      // Tour-manager must handle the model-found-but-DOM-absent case as a clean no-op so a
+      // future regression of the same shape doesn't crash or fire stray notifications.
+      mockFindTileFromNameOrId.mockReturnValue({ id: "TABL_ORPHAN" })
+      jest.spyOn(document, "getElementById").mockReturnValue(null)
+
+      const tile = makeTile()
+      tourManager.highlight(tile, { component: "orphan-id" })
+
+      expect(mockHighlight).not.toHaveBeenCalled()
+      expect(tourManager.isActive).toBe(false)
+      expect(mockBroadcastMessage).not.toHaveBeenCalled()
     })
   })
 
@@ -470,17 +559,44 @@ describe("TourManager", () => {
       expect(lastNotification().selector).toBeUndefined()
     })
 
-    it("passes tour-level options to driver", () => {
+    it("echoes component alongside tourKey in stepStarted/stepEnded notifications", () => {
+      mockResolveElement.mockReturnValue({
+        selector: '[data-testid="something"]', title: "T", description: "D"
+      })
+      const mockComponentEl = document.createElement("div")
+      mockComponentEl.querySelector = jest.fn().mockReturnValue(document.createElement("div"))
+      mockFindTileFromNameOrId.mockReturnValue({ id: "TILECMP" })
+      jest.spyOn(document, "getElementById").mockImplementation((id: string) =>
+        id === "TILECMP" ? mockComponentEl as unknown as HTMLElement : null
+      )
+
+      const tile = makeTile()
+      tourManager.startTour(tile, {
+        steps: [{ tourKey: "toolShelf.graph", component: "myGraph", id: "s1" }]
+      })
+      mockBroadcastMessage.mockClear()
+
+      capturedConfig.onHighlightStarted(null, null, { state: { activeIndex: 0 } })
+      const started = lastNotification()
+      expect(started.type).toBe("stepStarted")
+      expect(started.tourKey).toBe("toolShelf.graph")
+      expect(started.component).toBe("myGraph")
+
+      capturedConfig.onDeselected()
+      const ended = lastNotification()
+      expect(ended.type).toBe("stepEnded")
+      expect(ended.component).toBe("myGraph")
+    })
+
+    it("passes tour-level options to engine", () => {
       const tile = makeTile()
       tourManager.startTour(tile, {
         steps: [{ selector: ".s" }],
-        overlayOpacity: 0.5,
         showProgress: false,
         allowKeyboardControl: false,
         allowClose: false
       })
 
-      expect(capturedConfig.overlayOpacity).toBe(0.5)
       expect(capturedConfig.showProgress).toBe(false)
       expect(capturedConfig.allowKeyboardControl).toBe(false)
       expect(capturedConfig.allowClose).toBe(false)
@@ -574,27 +690,71 @@ describe("TourManager", () => {
       expect(result.success).toBe(true)
       expect(tourManager.isActive).toBe(true)
     })
+
+    it("user dismissal via onCancelRequested emits exactly one cancelled, no stepEnded", () => {
+      const tile = makeTile()
+      tourManager.startTour(tile, { steps: [{ selector: ".step1", id: "s1" }] })
+      capturedConfig.onHighlightStarted(null, null, { state: { activeIndex: 0 } })
+      mockBroadcastMessage.mockClear()
+
+      // Simulate the engine signalling the manager (close button / Escape / target removed)
+      capturedConfig.onCancelRequested()
+
+      const notifications = allNotifications()
+      expect(notifications).toHaveLength(1)
+      expect(notifications[0].type).toBe("cancelled")
+      expect(notifications.find((n: any) => n.type === "stepEnded")).toBeUndefined()
+    })
+
+    it("Escape/close-button cancellation routes through onCancelRequested, not onDestroyed", () => {
+      const tile = makeTile()
+      tourManager.startTour(tile, { steps: [{ selector: ".step1", id: "s1" }] })
+      capturedConfig.onHighlightStarted(null, null, { state: { activeIndex: 0 } })
+      mockBroadcastMessage.mockClear()
+
+      capturedConfig.onCancelRequested()
+
+      // Cancellation emits "cancelled", not "completed"
+      const types = allNotifications().map((n: any) => n.type)
+      expect(types).toContain("cancelled")
+      expect(types).not.toContain("completed")
+    })
+
+    it("progress templating uses filtered counts; notification stepIndex remains pre-filter", () => {
+      jest.spyOn(document, "querySelector").mockImplementation((sel: string) => {
+        if (sel === ".missing1" || sel === ".missing2") return null
+        return document.createElement("div")
+      })
+
+      const tile = makeTile()
+      tourManager.startTour(tile, {
+        steps: [
+          { selector: ".step0" },
+          { selector: ".missing1" },
+          { selector: ".step2" },
+          { selector: ".missing2" },
+          { selector: ".step4" },
+        ]
+      })
+      mockBroadcastMessage.mockClear()
+
+      // First visible step
+      capturedConfig.onHighlightStarted(null, null, { state: { activeIndex: 0 } })
+      const n0 = lastNotification()
+      expect(n0.stepIndex).toBe(0)
+      expect(n0.visibleSteps).toBe(3)
+      expect(n0.totalSteps).toBe(5)
+
+      // Second visible step (filtered idx 1) → original idx 2
+      capturedConfig.onHighlightStarted(null, null, { state: { activeIndex: 1 } })
+      const n1 = lastNotification()
+      expect(n1.stepIndex).toBe(2)
+      expect(n1.visibleSteps).toBe(3)
+    })
   })
 
   describe("tourNext / tourPrevious / tourMoveTo", () => {
-    let mockMoveNext: jest.Mock
-    let mockMovePrevious: jest.Mock
-    let mockMoveTo: jest.Mock
-
-    beforeEach(() => {
-      mockMoveNext = jest.fn()
-      mockMovePrevious = jest.fn()
-      mockMoveTo = jest.fn()
-      mockDriver.mockImplementation((config: any) => {
-        capturedConfig = config
-        return {
-          drive: mockDrive, highlight: mockHighlight, destroy: mockDestroy,
-          moveNext: mockMoveNext, movePrevious: mockMovePrevious, moveTo: mockMoveTo
-        }
-      })
-    })
-
-    it("tourNext calls moveNext on the driver instance", () => {
+    it("tourNext calls moveNext on the engine instance", () => {
       const tile = makeTile()
       tourManager.startTour(tile, { steps: [{ selector: ".s1" }, { selector: ".s2" }] })
 
@@ -622,7 +782,7 @@ describe("TourManager", () => {
       expect(mockMoveNext).not.toHaveBeenCalled()
     })
 
-    it("tourPrevious calls movePrevious on the driver instance", () => {
+    it("tourPrevious calls movePrevious on the engine instance", () => {
       const tile = makeTile()
       tourManager.startTour(tile, { steps: [{ selector: ".s1" }, { selector: ".s2" }] })
 
@@ -732,20 +892,7 @@ describe("TourManager", () => {
   })
 
   describe("tourRefresh", () => {
-    const mockRefresh = jest.fn()
-
-    beforeEach(() => {
-      mockDriver.mockImplementation((config: any) => {
-        capturedConfig = config
-        return {
-          drive: mockDrive, highlight: mockHighlight, destroy: mockDestroy,
-          moveNext: jest.fn(), movePrevious: jest.fn(), moveTo: jest.fn(),
-          refresh: mockRefresh
-        }
-      })
-    })
-
-    it("calls refresh on the driver instance for an active tour", () => {
+    it("calls refresh on the engine instance for an active tour", () => {
       const tile = makeTile()
       tourManager.startTour(tile, { steps: [{ selector: ".s1" }] })
 
@@ -754,7 +901,7 @@ describe("TourManager", () => {
       expect(mockRefresh).toHaveBeenCalledTimes(1)
     })
 
-    it("calls refresh on the driver instance for an active highlight", () => {
+    it("calls refresh on the engine instance for an active highlight", () => {
       mockResolveElement.mockReturnValue({
         selector: '[data-testid="something"]', title: "T", description: "D"
       })
@@ -788,7 +935,7 @@ describe("TourManager", () => {
   })
 
   describe("config passthrough", () => {
-    it("passes presentation and label options to driver", () => {
+    it("passes presentation and label options to engine", () => {
       const tile = makeTile()
       tourManager.startTour(tile, {
         steps: [{ selector: ".s" }],
@@ -916,6 +1063,43 @@ describe("TourManager", () => {
       })
 
       expect(mockDrive).not.toHaveBeenCalled()
+    })
+
+    it("clears active state on natural completion (Done on last step)", () => {
+      tourManager.runInternalTour({
+        steps: [{ element: "body", popover: { description: "Step" } }]
+      })
+      expect(tourManager.isActive).toBe(true)
+
+      // Simulate the engine's natural-completion branch firing onDestroyed.
+      capturedConfig.onDestroyed()
+
+      expect(tourManager.isActive).toBe(false)
+    })
+
+    it("applies defaultTourOptions when config.options does not override them", () => {
+      tourManager.runInternalTour({
+        steps: [{ element: "body", popover: { description: "Step" } }]
+      })
+
+      // From defaultTourOptions: showProgress=true, doneBtnText="Got it!",
+      // allowClose=true, allowKeyboardControl=true.
+      expect(capturedConfig.showProgress).toBe(true)
+      expect(capturedConfig.doneBtnText).toBe("Got it!")
+      expect(capturedConfig.allowClose).toBe(true)
+      expect(capturedConfig.allowKeyboardControl).toBe(true)
+    })
+
+    it("config.options overrides defaultTourOptions", () => {
+      tourManager.runInternalTour({
+        options: { doneBtnText: "Finish", showProgress: false },
+        steps: [{ element: "body", popover: { description: "Step" } }]
+      })
+
+      expect(capturedConfig.doneBtnText).toBe("Finish")
+      expect(capturedConfig.showProgress).toBe(false)
+      // Other defaults still apply
+      expect(capturedConfig.allowClose).toBe(true)
     })
   })
 

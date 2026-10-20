@@ -1,6 +1,5 @@
-// tour-manager imports driver.js; mock it so we can import tour-sanitize
-jest.mock("driver.js", () => ({ driver: jest.fn() }))
-jest.mock("driver.js/dist/driver.css", () => ({}))
+// tour-manager imports the tour-engine and styles; mock them to avoid loading the real engine
+jest.mock("./tour-engine", () => ({ createTourEngine: jest.fn() }))
 jest.mock("./tour-styles.scss", () => ({}))
 
 import { sanitizeHighlightValues, sanitizeTourValues, pickString, pickNumber } from "./tour-sanitize"
@@ -37,8 +36,6 @@ describe("sanitizeHighlightValues", () => {
       selector: ".foo",
       component: "myGraph",
       id: "step1",
-      overlayColor: "red",
-      overlayOpacity: 0.5,
       unknownField: "should be dropped"
     })
     expect(result.tourKey).toBe("toolShelf.graph")
@@ -46,9 +43,9 @@ describe("sanitizeHighlightValues", () => {
     expect(result.selector).toBe(".foo")
     expect(result.component).toBe("myGraph")
     expect(result.id).toBe("step1")
-    expect(result.overlayColor).toBe("red")
-    expect(result.overlayOpacity).toBe(0.5)
     expect((result as any).unknownField).toBeUndefined()
+    expect((result as any).overlayColor).toBeUndefined()
+    expect((result as any).overlayOpacity).toBeUndefined()
   })
 
   it("strips HTML from popover title and description", () => {
@@ -79,12 +76,10 @@ describe("sanitizeHighlightValues", () => {
   it("drops non-string/non-number fields", () => {
     const result = sanitizeHighlightValues({
       tourKey: 123,
-      overlayOpacity: "not a number",
-      overlayColor: 42,
+      testId: 42,
     })
     expect(result.tourKey).toBeUndefined()
-    expect(result.overlayOpacity).toBeUndefined()
-    expect(result.overlayColor).toBeUndefined()
+    expect(result.testId).toBeUndefined()
   })
 
   it("returns empty object for empty input", () => {
@@ -100,7 +95,6 @@ describe("sanitizeTourValues", () => {
         { selector: ".step1", id: "s1" },
         { tourKey: "toolShelf.graph" }
       ],
-      overlayOpacity: 0.5,
       showProgress: true,
       allowClose: false,
       nextBtnText: "Next",
@@ -110,11 +104,11 @@ describe("sanitizeTourValues", () => {
     expect(result.steps[0].selector).toBe(".step1")
     expect(result.steps[0].id).toBe("s1")
     expect(result.steps[1].tourKey).toBe("toolShelf.graph")
-    expect(result.overlayOpacity).toBe(0.5)
     expect(result.showProgress).toBe(true)
     expect(result.allowClose).toBe(false)
     expect(result.nextBtnText).toBe("Next")
     expect(result.doneBtnText).toBe("Done!")
+    expect((result as any).overlayOpacity).toBeUndefined()
   })
 
   it("filters out invalid steps", () => {
@@ -165,13 +159,13 @@ describe("sanitizeTourValues", () => {
     expect(result.steps[0].popover?.description).toBe("Desc")
   })
 
-  it("passes through per-step driver.js overrides", () => {
+  it("drops removed driver.js per-step fields", () => {
     const result = sanitizeTourValues({
       steps: [{ selector: ".s", disableActiveInteraction: true, stagePadding: 10, stageRadius: 5 }]
     })
-    expect(result.steps[0].disableActiveInteraction).toBe(true)
-    expect(result.steps[0].stagePadding).toBe(10)
-    expect(result.steps[0].stageRadius).toBe(5)
+    expect((result.steps[0] as any).disableActiveInteraction).toBeUndefined()
+    expect((result.steps[0] as any).stagePadding).toBeUndefined()
+    expect((result.steps[0] as any).stageRadius).toBeUndefined()
   })
 
   it("drops unknown tour-level options", () => {

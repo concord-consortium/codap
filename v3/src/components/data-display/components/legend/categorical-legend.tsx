@@ -113,7 +113,10 @@ export const CategoricalLegend =
           enter => {
             const group = enter.append('g')
               .attr('class', 'legend-key')
-              .attr('data-testid', 'legend-key')
+              .attr('data-testid', (_d, i) => `legend-key-${i}`)
+              .attr('role', 'img')
+              .attr('aria-label',
+                d => (d.category == null || d.category === '' ? null : String(d.category)))
               .on('click', handleLegendKeyClick)
               .call(dragBehavior)
             // An invisible full-box target under the key. A path takes pointer events on its ink

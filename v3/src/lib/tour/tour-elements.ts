@@ -91,7 +91,7 @@ export const tourElements = {
       ].join(" ")
     },
     calculator: {
-      selector: '[data-testid="tool-shelf-button-calc"]',
+      selector: '[data-testid="tool-shelf-button-calculator"]',
       title: "Calculator",
       description: "Click Calc to open or close the calculator for quick computations."
     },
@@ -104,7 +104,7 @@ export const tourElements = {
       ].join(" ")
     },
     webPage: {
-      selector: '[data-testid="tool-shelf-button-web page"]',
+      selector: '[data-testid="tool-shelf-button-web-view"]',
       title: "Web Page",
       description: "Click Web Page to embed a live website directly in your CODAP document."
     },

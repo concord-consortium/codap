@@ -9,7 +9,7 @@ export const GraphLegendElements = {
     return this.getLegend().find("[data-testid=attribute-label]")
   },
   getCategoricalLegendCategories() {
-    return this.getLegend().find("[data-testid=legend-key]")
+    return this.getLegend().find('[data-testid^="legend-key-"]')
   },
   getCategoricalLegendCategory(name: string) {
     return this.getCategoricalLegendCategories().contains(name)
@@ -22,6 +22,6 @@ export const GraphLegendElements = {
   },
   getAttributeFromLegendMenu() {
     // The menu items are rendered in a Portal at the body level, so we need to find the MenuList by data-testid
-    return cy.get('[data-testid="axis-legend-attribute-menu-list-legend"]')
+    return cy.get('[data-testid="axis-attr-menu-legend"]')
   }
 }

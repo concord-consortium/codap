@@ -235,6 +235,18 @@ Set `debug` key in localStorage with space-separated flags:
 - Models: `model-name.ts`, `model-name.test.ts`
 - Test files alongside source files with `.test.ts` suffix
 
+## Testing & testid Conventions
+
+- **Required coverage.** Every user-visible interactive or semantic UI element carries a `data-testid`: native `<button>`, `<input>`, `<select>`, `<textarea>`, Chakra `<MenuList>` / `<MenuItem>` / `<MenuButton>` / `<ModalContent>`, React-Aria `<Button>` / `<MenuItem>` / `<Tab>` / `<TabPanel>` / `<Dialog>` / `<Popover>`, clickable anchors, dialog/panel wrappers, and MenuItem-classed divs.
+- **Shape.** Lowercase kebab-case. Locale-independent — derive from action/role identifiers, never translated text. The ESLint rule `codap/require-testid` enforces presence on the listed elements and kebab-case on statically-resolvable values.
+- **Extend existing prefixes — don't fork them.** When an element joins a family with an existing prefix (same modal, same toolbar, same menu list), its testid should extend that prefix rather than introduce a parallel one. Only introduce a new prefix when a new family begins. The ESLint rule can't enforce this; it's a reviewer / contributor check.
+- **Tile-root prefix.** Tile root elements use `codap-{tile-type}` (e.g. `codap-graph`, `codap-case-table`). Inner testids do NOT contain the tile instance id. Plugins resolve tile identity via the CODAP-1232 `componentId` payload; tests select tile roots directly via `[data-testid="codap-{tile-type}"]`. The `codap-` prefix is also used on many non-tile element families (menu bar, modal headers, attribute buttons, inspector palette), so prefix-match selectors like `[data-testid^="codap-"]` are NOT reliable tile-root anchors.
+- **Index conventions.** Indexed testids (`{attrIndex}`, `{collectionIndex}`, `{index}`) are zero-based, in render order within the visible collection, and exclude hidden/set-aside items. Fixed semantic indices (e.g. axis drag rects `{zoneIndex}` with 0/1/2 for lower/mid/upper) follow their fixed role rather than render order.
+- **Accessible name.** Elements with indexed testids should have an accessible name source — visible text content, `aria-label`, or `aria-labelledby`. SVG swatches and icon-only controls that have no natural text source add `aria-label`. Don't add `aria-label` where visible text already serves.
+- **`data-role` for non-ARIA classification.** D3/SVG elements that CODAP-1232 needs to classify but lack a natural ARIA role (e.g. axis drag rects) carry `data-role="{kind}"` instead of a misleading ARIA `role`. Use ARIA `role` where it's genuinely semantic (e.g. `role="img"` on legend swatches).
+- **Chakra `<Menu>` and `<Modal>` themselves render no DOM.** Setting `data-testid` on them is a no-op — put it on `<MenuList>` / `<ModalContent>` etc.
+- **`IMenuItem.dataTestId`.** Menu items defined via an `IMenuItem` config object carry a required `dataTestId: string` field, distinct from `itemKey` (the i18n translation key). `dataTestId` is the stable kebab-case action identifier.
+
 ## ESLint
 
 - No semicolons (enforced by `@stylistic/semi`)

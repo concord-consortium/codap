@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>UI Notification Test Plugin</title>
+<script src="https://unpkg.com/iframe-phone/dist/iframe-phone.js"></script>
+</head>
+<body>
+<h3>UI Notification Test Plugin</h3>
+<p id="status">initializing...</p>
+<pre id="log"></pre>
+<script>
+(function () {
+  var delivered = []
+  var monitorCounter = 0
+  var phone = new iframePhone.IframePhoneRpcEndpoint(
+    function (message, callback) {
+      // Receive messages from CODAP
+      try {
+        if (message && message.action === "notify" && message.resource === "uiNotificationNotice") {
+          delivered.push(message.values)
+          var log = document.getElementById("log")
+          log.textContent = JSON.stringify(delivered.slice(-10), null, 2)
+        }
+      } catch (e) { /* ignore */ }
+      callback && callback({ success: true })
+    },
+    "data-interactive",
+    window.parent
+  )
+
+  // Handshake: identify this plugin to CODAP
+  phone.call({
+    action: "update",
+    resource: "interactiveFrame",
+    values: {
+      name: "ui-notification-test-plugin",
+      title: "UI Notification Test Plugin"
+    }
+  })
+
+  document.getElementById("status").textContent = "ready"
+
+  function call(req) {
+    return new Promise(function (resolve) {
+      phone.call(req, function (reply) { resolve(reply) })
+    })
+  }
+
+  window.subscribeMonitor = function (filter) {
+    return call({
+      action: "notify",
+      resource: "uiNotificationMonitor",
+      values: filter || {}
+    })
+  }
+
+  window.updateMonitor = function (id, filter) {
+    return call({
+      action: "update",
+      resource: "uiNotificationMonitor[" + id + "]",
+      values: filter || {}
+    })
+  }
+
+  window.unsubscribeMonitor = function (id) {
+    return call({
+      action: "delete",
+      resource: "uiNotificationMonitor[" + id + "]"
+    })
+  }
+
+  window.getDeliveredNotices = function () {
+    return delivered.slice()
+  }
+
+  window.resetDeliveredNotices = function () {
+    delivered.length = 0
+  }
+
+  window.getDeliveredCount = function () { return delivered.length }
+})()
+</script>
+</body>
+</html>

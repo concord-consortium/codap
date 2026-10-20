@@ -1,22 +1,28 @@
-import { DriveStep, Config as DriverConfig } from "driver.js"
+import { EngineOptions, EngineStepPopover } from "./tour-engine/tour-engine-types"
 
-export interface ITourStep extends DriveStep {
+export interface ITourStep {
+  /**
+   * Config-layer element reference. Strings are CSS selectors resolved to
+   * HTMLElement by runInternalTour() before the step is handed to the engine.
+   * The engine's EngineStep.element is always HTMLElement; the engine never
+   * resolves selectors.
+   */
+  element: string | HTMLElement
+  popover?: EngineStepPopover
   /** Optional flag to skip this step without removing it from the configuration */
   skip?: boolean
 }
 
 export interface ITourConfig {
-  /** driver.js configuration options */
-  options?: Omit<DriverConfig, "steps">
+  /** Tour engine options */
+  options?: EngineOptions
   /** Ordered list of tour steps */
   steps: ITourStep[]
 }
 
-export const defaultTourOptions: ITourConfig["options"] = {
+export const defaultTourOptions: EngineOptions = {
   showProgress: true,
   doneBtnText: "Got it!",
   allowClose: true,
   allowKeyboardControl: true,
-  overlayClickBehavior: "close",
-  popoverClass: "codap-tour-popover",
 }

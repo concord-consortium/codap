@@ -42,9 +42,6 @@ function sanitizeStepInput(raw: unknown): TourStepInput | null {
     ...(v.selector != null && { selector: pickString(v.selector) }),
     ...(v.component != null && { component: pickString(v.component) }),
     ...(v.id != null && { id: pickString(v.id) }),
-    ...(v.disableActiveInteraction != null && { disableActiveInteraction: pickBoolean(v.disableActiveInteraction) }),
-    ...(v.stagePadding != null && { stagePadding: pickNumber(v.stagePadding) }),
-    ...(v.stageRadius != null && { stageRadius: pickNumber(v.stageRadius) }),
     ...(popoverRaw && {
       popover: {
         title: stripHtml(popoverRaw.title),
@@ -57,32 +54,22 @@ function sanitizeStepInput(raw: unknown): TourStepInput | null {
 }
 
 export function sanitizeHighlightValues(raw: Record<string, unknown>): HighlightRequestValues {
-  const step = sanitizeStepInput(raw) ?? {}
-  return {
-    ...step,
-    ...(raw.overlayColor != null && { overlayColor: pickString(raw.overlayColor) }),
-    ...(raw.overlayOpacity != null && { overlayOpacity: pickNumber(raw.overlayOpacity) }),
-  }
+  return sanitizeStepInput(raw) ?? {}
 }
 
-const buttonNames = ["next", "previous", "close"] as const
+const showButtonNames = ["next", "previous", "close"] as const
+const disableButtonNames = ["next", "previous"] as const
 
 export function sanitizeTourValues(raw: Record<string, unknown>): TourRequestValues {
   const rawSteps = Array.isArray(raw.steps) ? raw.steps : []
   const steps = rawSteps.map(sanitizeStepInput).filter((s): s is TourStepInput => s != null)
   return {
     steps,
-    ...(raw.overlayColor != null && { overlayColor: pickString(raw.overlayColor) }),
-    ...(raw.overlayOpacity != null && { overlayOpacity: pickNumber(raw.overlayOpacity) }),
-    ...(raw.stagePadding != null && { stagePadding: pickNumber(raw.stagePadding) }),
-    ...(raw.stageRadius != null && { stageRadius: pickNumber(raw.stageRadius) }),
-    ...(raw.showButtons != null && { showButtons: pickStringArray(raw.showButtons, buttonNames) }),
-    ...(raw.disableButtons != null && { disableButtons: pickStringArray(raw.disableButtons, buttonNames) }),
+    ...(raw.showButtons != null && { showButtons: pickStringArray(raw.showButtons, showButtonNames) }),
+    ...(raw.disableButtons != null && { disableButtons: pickStringArray(raw.disableButtons, disableButtonNames) }),
     ...(raw.showProgress != null && { showProgress: pickBoolean(raw.showProgress) }),
     ...(raw.allowKeyboardControl != null && { allowKeyboardControl: pickBoolean(raw.allowKeyboardControl) }),
     ...(raw.allowClose != null && { allowClose: pickBoolean(raw.allowClose) }),
-    ...(raw.disableActiveInteraction != null &&
-      { disableActiveInteraction: pickBoolean(raw.disableActiveInteraction) }),
     ...(raw.animate != null && { animate: pickBoolean(raw.animate) }),
     ...(raw.smoothScroll != null && { smoothScroll: pickBoolean(raw.smoothScroll) }),
     ...(raw.popoverOffset != null && { popoverOffset: pickNumber(raw.popoverOffset) }),

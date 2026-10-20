@@ -7,6 +7,7 @@ import { useColorPickerPopoverOffset } from "../../common/use-color-picker-popov
 import { t } from "../../../utilities/translation/translate"
 
 interface ColorPickerIProps {
+  attrIndex?: number
   closeTrigger?: number
   disabled?: boolean
   onColorChange: (color: string) => void
@@ -14,8 +15,8 @@ interface ColorPickerIProps {
   swatchBackgroundColor: string
 }
 
-export const PointColorSetting = observer(function PointColorSetting({ closeTrigger, disabled, onColorChange,
-  propertyLabel, swatchBackgroundColor }: ColorPickerIProps) {
+export const PointColorSetting = observer(function PointColorSetting({ attrIndex, closeTrigger, disabled,
+  onColorChange, propertyLabel, swatchBackgroundColor }: ColorPickerIProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [inputValue, setInputValue] = useState(swatchBackgroundColor)
   const { popoverRef, popoverOffset, handleExpandedChange, resetPopoverOffset } = useColorPickerPopoverOffset()
@@ -59,10 +60,14 @@ export const PointColorSetting = observer(function PointColorSetting({ closeTrig
     handleOpenChange(false)
   }, [handleOpenChange, onColorChange])
 
+  const pointSettingTestId = attrIndex != null ? `point-color-setting-${attrIndex}` : undefined
+  const swatchButtonTestId = attrIndex != null ? `color-swatch-button-${attrIndex}` : undefined
+
   return (
     <DialogTrigger isOpen={isOpen} onOpenChange={handleOpenChange}>
       <Button className={clsx("color-picker-thumb", { open: isOpen })}
         isDisabled={disabled}
+        data-testid={swatchButtonTestId}
         aria-label={`${propertyLabel}: ${swatchBackgroundColor}`}
         excludeFromTabOrder={disabled}>
         <div className="color-picker-thumb-swatch"
@@ -71,6 +76,7 @@ export const PointColorSetting = observer(function PointColorSetting({ closeTrig
       <Popover
         ref={popoverRef}
         className={({defaultClassName}) => `${defaultClassName} color-picker-popover`}
+        data-testid={pointSettingTestId}
         shouldFlip={false}
         offset={popoverOffset}
         aria-label={t("V3.Inspector.colorPicker.dialogLabel")}

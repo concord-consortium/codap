@@ -291,7 +291,7 @@ const CategoricalColorControls = observer(function CategoricalColorControls(
 
   return (
     <div className="cat-color-setting" onScroll={handleScroll}>
-      {categories?.map(category => (
+      {categories?.map((category, attrIndex) => (
         <div key={category} className="palette-row color-picker-row cat-color-picker">
           <label className="form-label color-picker">{category}</label>
           <If condition={showShape}>
@@ -302,6 +302,7 @@ const CategoricalColorControls = observer(function CategoricalColorControls(
               onShapeChange={(shape) => onCatPointShapeChange(shape, category)}/>
           </If>
           <PointColorSetting key={category} propertyLabel={category}
+            attrIndex={attrIndex}
             closeTrigger={scrollVersion}
             onColorChange={(color) => onCatPointColorChange(color, category)}
             swatchBackgroundColor={dataConfiguration.getLegendColorForCategory(category)}/>
@@ -353,11 +354,11 @@ export const LegendBinsSelect = observer(function LegendBinsSelect(
         onChange={handleAttributeBinningTypeChange}
         data-testid="legend-bins-type-select"
       >
-        <Button>
+        <Button data-testid="legend-bins-type-button">
           <SelectValue />
           <span aria-hidden="true" className="select-arrow">▾</span>
         </Button>
-        <Popover>
+        <Popover data-testid="legend-bins-type-popover">
           <ListBox>
             {binningTypes.map(_binningType =>
               <ListBoxItem key={_binningType} id={_binningType}>
