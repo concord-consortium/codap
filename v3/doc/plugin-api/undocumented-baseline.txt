@@ -27,4 +27,5 @@ itemSearch
 logMessage
 logMessageMonitor
 tourElements
+uiNotificationMonitor
 undoChangeNotice

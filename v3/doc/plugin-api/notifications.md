@@ -499,6 +499,7 @@ Four more resources, each with a few notifications.
 | `global` | _none_ | `globalValue` |
 | `interactiveFrame` | _computed at the call site_ | _not readable from the code_ |
 | `logMessageNotice` | _none_ | `formatStr`, `logMonitor`, `message`, … |
+| `uiNotificationNotice` | _none_ | `monitor`, … |
 <!-- END GENERATED: notifications-other -->
 
 | Resource | Operation | Fires when |
