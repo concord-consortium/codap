@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react"
+import { act, fireEvent, render, screen } from "@testing-library/react"
 import { Popover } from "./popover"
 import { EngineLiveState } from "./tour-engine-state"
 import * as scrollIntoViewModule from "./scroll-into-view"
@@ -48,6 +48,22 @@ describe("Popover component", () => {
     const live = screen.getByTestId("codap-tour-popover-live-region")
     expect(live.getAttribute("aria-live")).toBe("polite")
     expect(live.getAttribute("aria-atomic")).toBe("true")
+  })
+
+  // Screen readers ignore a live region that is already filled when it appears, so the
+  // first step would never be announced.
+  it("mounts the live region empty and fills it with the step text afterwards", () => {
+    jest.useFakeTimers()
+    try {
+      const state = makeState()
+      render(<Popover state={state} />)
+      const live = screen.getByTestId("codap-tour-popover-live-region")
+      expect(live).toHaveTextContent(/^$/)
+      act(() => { jest.runAllTimers() })
+      expect(live).toHaveTextContent("Title Body")
+    } finally {
+      jest.useRealTimers()
+    }
   })
 
   it("close button has aria-label='Close'", () => {
@@ -121,6 +137,21 @@ describe("Popover component", () => {
     render(<Popover state={state} />)
     fireEvent.click(screen.getByTestId("codap-tour-popover-next-btn"))
     expect(state.moveNext).toHaveBeenCalled()
+  })
+
+  it("moves focus to Next when Previous returns to the first step, where Previous is hidden", () => {
+    const state = makeState()
+    const steps = [state.steps[0], { ...state.steps[0] }]
+    const onSecond = { ...state, steps, activeIndex: 1, currentStep: steps[1] }
+    const { rerender } = render(<Popover state={onSecond} />)
+    const prev = screen.getByTestId("codap-tour-popover-prev-btn")
+    prev.focus()
+    fireEvent.click(prev)
+    expect(onSecond.movePrevious).toHaveBeenCalled()
+
+    rerender(<Popover state={{ ...onSecond, activeIndex: 0, currentStep: steps[0] }} />)
+    expect(screen.queryByTestId("codap-tour-popover-prev-btn")).toBeNull()
+    expect(screen.getByTestId("codap-tour-popover-next-btn")).toHaveFocus()
   })
 
   it("clicking the close button calls state.cancel()", () => {

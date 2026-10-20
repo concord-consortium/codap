@@ -87,14 +87,11 @@ const PopoverContent = observer(function PopoverContent({ state, step }: Popover
     setPopoverEl(el)
   }, [refs])
 
-  // Spec: focus does not move to the popover on step start. Exception: when focus is in
-  // an iframe (typical when a plugin starts the tour), keydown events never bubble to the
-  // parent document, so arrow/Escape would be dead. Pull focus out of the iframe in that
-  // case only — leave focus alone in every other case.
-  // Note: this pull works as a unit with `tabIndex={-1}` on the popover root below and
-  // the `.codap-tour-popover:focus { outline: none }` rule in tour-styles.scss. Touch any
-  // one of the three and the others need to be revisited. See CODAP-1231 spec
-  // § "Post-review observations".
+  // Focus does not move to the popover on step start, except when focus is in an iframe
+  // (typical when a plugin starts the tour): keydown events never bubble out of an iframe,
+  // so arrow/Escape would be dead. This works as a unit with `tabIndex={-1}` on the popover
+  // root below and the `.codap-tour-popover:focus { outline: none }` rule in tour-styles.scss;
+  // change one and the others need revisiting.
   useEffect(() => {
     if (popoverEl && document.activeElement?.tagName === "IFRAME") popoverEl.focus()
   }, [popoverEl])
@@ -116,6 +113,28 @@ const PopoverContent = observer(function PopoverContent({ state, step }: Popover
     onPrev: () => state.movePrevious(),
     onClose: () => state.cancel(),
   })
+
+  // Previous is hidden on the first step, so going back to it would drop focus to <body>.
+  const nextBtnRef = useRef<HTMLButtonElement>(null)
+  const refocusAfterPrevious = useRef(false)
+  const handlePrevious = () => {
+    refocusAfterPrevious.current = true
+    state.movePrevious()
+  }
+  useEffect(() => {
+    if (!refocusAfterPrevious.current) return
+    refocusAfterPrevious.current = false
+    if (!popoverEl?.contains(document.activeElement)) (nextBtnRef.current ?? popoverEl)?.focus()
+  }, [state.activeIndex, popoverEl])
+
+  // Screen readers ignore a live region that is already filled when it appears, so the
+  // region mounts empty and receives the step text once it is in the accessibility tree.
+  const announcement = [step.popover?.title, step.popover?.description].filter(Boolean).join(" ")
+  const [liveText, setLiveText] = useState("")
+  useEffect(() => {
+    const timer = window.setTimeout(() => setLiveText(announcement), 100)
+    return () => window.clearTimeout(timer)
+  }, [announcement])
 
   const isFirst = state.activeIndex === 0
   const isLast = state.activeIndex === state.steps.length - 1
@@ -142,29 +161,31 @@ const PopoverContent = observer(function PopoverContent({ state, step }: Popover
         data-testid="codap-tour-popover"
         onPointerDown={onPointerDown}
       >
-        <div aria-live="polite" aria-atomic="true" data-testid="codap-tour-popover-live-region">
-          {step.popover?.title && (
-            <div className="codap-tour-popover-title" data-testid="codap-tour-popover-title">
-              {step.popover.title}
-            </div>
-          )}
-          {step.popover?.description && (
-            <div
-              className="codap-tour-popover-description"
-              data-testid="codap-tour-popover-description"
-            >
-              {step.popover.description}
-            </div>
-          )}
-          {opts.showProgress && state.kind === "tour" && (
-            <div
-              className="codap-tour-popover-progress-text"
-              data-testid="codap-tour-popover-progress-text"
-            >
-              {renderProgressText(opts.progressText, state.activeIndex + 1, state.steps.length)}
-            </div>
-          )}
+        <div className="codap-visually-hidden" aria-live="polite" aria-atomic="true"
+            data-testid="codap-tour-popover-live-region">
+          {liveText}
         </div>
+        {step.popover?.title && (
+          <div className="codap-tour-popover-title" data-testid="codap-tour-popover-title">
+            {step.popover.title}
+          </div>
+        )}
+        {step.popover?.description && (
+          <div
+            className="codap-tour-popover-description"
+            data-testid="codap-tour-popover-description"
+          >
+            {step.popover.description}
+          </div>
+        )}
+        {opts.showProgress && state.kind === "tour" && (
+          <div
+            className="codap-tour-popover-progress-text"
+            data-testid="codap-tour-popover-progress-text"
+          >
+            {renderProgressText(opts.progressText, state.activeIndex + 1, state.steps.length)}
+          </div>
+        )}
         <div className="codap-tour-popover-buttons">
           {showButtons.includes("previous") && !isFirst && (
             <button
@@ -172,13 +193,14 @@ const PopoverContent = observer(function PopoverContent({ state, step }: Popover
               className="codap-tour-popover-prev-btn"
               data-testid="codap-tour-popover-prev-btn"
               disabled={disabled.has("previous")}
-              onClick={() => state.movePrevious()}
+              onClick={handlePrevious}
             >
               {opts.prevBtnText ?? "Previous"}
             </button>
           )}
           {showButtons.includes("next") && (
             <button
+              ref={nextBtnRef}
               type="button"
               className="codap-tour-popover-next-btn"
               data-testid="codap-tour-popover-next-btn"

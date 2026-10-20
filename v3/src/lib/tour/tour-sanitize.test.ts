@@ -48,15 +48,17 @@ describe("sanitizeHighlightValues", () => {
     expect((result as any).overlayOpacity).toBeUndefined()
   })
 
-  it("strips HTML from popover title and description", () => {
+  // Popover text is rendered as React text, so it is plain text: markup is shown as-is, never
+  // interpreted, and characters like < and > survive.
+  it("keeps popover title and description text unchanged", () => {
     const result = sanitizeHighlightValues({
       popover: {
-        title: "<b>Bold</b> title",
+        title: "x < 5 and y > 3",
         description: "Click <script>alert('xss')</script>here"
       }
     })
-    expect(result.popover?.title).toBe("Bold title")
-    expect(result.popover?.description).toBe("Click alert('xss')here")
+    expect(result.popover?.title).toBe("x < 5 and y > 3")
+    expect(result.popover?.description).toBe("Click <script>alert('xss')</script>here")
   })
 
   it("validates popover side and align values", () => {
@@ -151,15 +153,15 @@ describe("sanitizeTourValues", () => {
     expect(result.disableButtons).toEqual([])
   })
 
-  it("strips HTML from step popover text", () => {
+  it("keeps step popover text unchanged", () => {
     const result = sanitizeTourValues({
-      steps: [{ popover: { title: "<em>Hi</em>", description: "<img src=x>Desc" } }]
+      steps: [{ popover: { title: "if x<y and y>z", description: "<img src=x>Desc" } }]
     })
-    expect(result.steps[0].popover?.title).toBe("Hi")
-    expect(result.steps[0].popover?.description).toBe("Desc")
+    expect(result.steps[0].popover?.title).toBe("if x<y and y>z")
+    expect(result.steps[0].popover?.description).toBe("<img src=x>Desc")
   })
 
-  it("drops removed driver.js per-step fields", () => {
+  it("drops unsupported per-step fields", () => {
     const result = sanitizeTourValues({
       steps: [{ selector: ".s", disableActiveInteraction: true, stagePadding: 10, stageRadius: 5 }]
     })

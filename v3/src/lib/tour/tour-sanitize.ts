@@ -19,12 +19,6 @@ function pickStringArray<T extends string>(val: unknown, allowed: readonly T[]):
   return filtered
 }
 
-function stripHtml(val: unknown): string | undefined {
-  const str = pickString(val)
-  if (str == null) return undefined
-  return str.replace(/<[^>]*>/g, "")
-}
-
 const validSides = ["top", "right", "bottom", "left"]
 const validAligns = ["start", "center", "end"]
 
@@ -44,8 +38,8 @@ function sanitizeStepInput(raw: unknown): TourStepInput | null {
     ...(v.id != null && { id: pickString(v.id) }),
     ...(popoverRaw && {
       popover: {
-        title: stripHtml(popoverRaw.title),
-        description: stripHtml(popoverRaw.description),
+        title: pickString(popoverRaw.title),
+        description: pickString(popoverRaw.description),
         ...(side && validSides.includes(side) && { side }),
         ...(align && validAligns.includes(align) && { align }),
       }
