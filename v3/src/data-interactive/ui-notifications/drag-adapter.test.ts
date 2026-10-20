@@ -43,4 +43,25 @@ describe("drag-adapter", () => {
     expect(n.eventType).toBe("dragEnd")
     expect(n.cancelled).toBe(true)
   })
+
+  // dnd-kit ids (e.g. "case-table-1-ATTR8") are not DOM ids, so the dragged element comes from the
+  // event that started the drag.
+  it("describes the element that started the drag, not the dnd-kit id", () => {
+    document.body.innerHTML = `
+      <div class="free-tile-component" id="TABL1">
+        <button data-testid="codap-attribute-button-0"><span class="label">Height</span></button>
+      </div>`
+    const grabbed = document.querySelector(".label")!
+    const activatorEvent = { target: grabbed } as unknown as Event
+
+    const s = buildDragStartNotice({ ...start("case-table-1-ATTR8"), activatorEvent })
+    expect(s.target.testId).toBe("codap-attribute-button-0")
+    expect(s.target.componentId).toBe("TABL1")
+    expect(s.region).toBe("workspace")
+    expect(s.dragId.source).toBe("case-table-1-ATTR8")
+
+    const e = buildDragEndNotice({ ...end("case-table-1-ATTR8", "drop"), activatorEvent })
+    expect(e.target.testId).toBe("codap-attribute-button-0")
+    expect(e.region).toBe("workspace")
+  })
 })

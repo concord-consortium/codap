@@ -3,22 +3,23 @@ import { buildTarget, classifyNode } from "./classify-node"
 import { getRecentClick } from "./click-listener"
 import { UiDragNotice, UiTarget } from "./ui-notification-types"
 
-function targetFromDndEntity(entity: { data?: { current?: unknown }; id: string | number } | null): UiTarget {
-  if (!entity) return {}
-  const node = findNodeForEntity(entity)
-  if (node) return buildTarget(node)
-  return { testId: String(entity.id) }
+// dnd-kit ids (e.g. "case-table-1-ATTR8") are not DOM ids, so the dragged element is the target of
+// the pointer or keyboard event that started the drag.
+function findDraggedNode(event: { activatorEvent?: Event | null }): Element | null {
+  const target = event.activatorEvent?.target
+  return target instanceof Element ? target : null
 }
 
-function findNodeForEntity(entity: { id: string | number }): Element | null {
-  return document.getElementById?.(String(entity.id)) ?? null
+function targetFromDraggedNode(node: Element | null, sourceId: string): UiTarget {
+  return node ? buildTarget(node) : { testId: sourceId }
 }
 
 export function buildDragStartNotice(event: DragStartEvent): UiDragNotice {
   const source = event.active
-  const srcTarget = targetFromDndEntity(source)
   const sourceId = String(source.id)
-  const cls = classifyElement(findNodeForEntity(source))
+  const node = findDraggedNode(event)
+  const srcTarget = targetFromDraggedNode(node, sourceId)
+  const cls = classifyElement(node)
   return {
     eventType: "dragStart",
     region: cls.region,
@@ -39,8 +40,9 @@ export function buildDragEndNotice(
   const over = event.over
   const sourceId = String(source.id)
   const overId = over?.id != null ? String(over.id) : undefined
-  const srcTarget = targetFromDndEntity(source)
-  const cls = classifyElement(findNodeForEntity(source))
+  const node = findDraggedNode(event)
+  const srcTarget = targetFromDraggedNode(node, sourceId)
+  const cls = classifyElement(node)
   const isCancelled = cancelled || !over
   return {
     eventType: "dragEnd",

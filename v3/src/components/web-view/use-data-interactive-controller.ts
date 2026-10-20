@@ -73,6 +73,12 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
       const originUrl = extractOrigin(url) ?? ""
       const phone = new iframePhone.ParentEndpoint(iframeRef.current, originUrl,
         () => {
+          // Called on every handshake, including when the plugin reloads its own page at the same url,
+          // which doesn't re-run this effect. A new page starts clean: drop what the previous page left.
+          if (tile) {
+            tourManager.cleanupForTile(tile)
+            uiNotificationMonitorManager.unregisterOwner(tile.id)
+          }
           webViewModel?.setPluginIsCommunicating()
           debugLog(DEBUG_PLUGINS, "connection with iframe established")
         })

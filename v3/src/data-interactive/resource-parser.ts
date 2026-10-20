@@ -125,6 +125,10 @@ export function resolveResources(
     result.component = findTileFromNameOrId(dataDisplay)
   }
 
+  if (resourceSelector.uiNotificationMonitor) {
+    result.uiNotificationMonitor = resourceSelector.uiNotificationMonitor
+  }
+
   if (resourceSelector.global) {
     const globalManager = document.content?.getFirstSharedModelByType(GlobalValueManager)
     result.global = globalManager?.getValueByName(resourceSelector.global) ||

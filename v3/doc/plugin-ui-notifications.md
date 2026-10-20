@@ -78,7 +78,8 @@ All delivered as `notify uiNotificationNotice`.
 - **`dblclick`** — pointer-only. Keyboard users get a single `click` with
   `via: "keyboard"`; there is no keyboard-synthesized `dblclick`. Tutorials that
   advance on `dblclick` should also accept `click` with `via: "keyboard"`.
-- **`dragStart` / `dragEnd`** — dnd-kit drag operations. Carry `dragId.source`
+- **`dragStart` / `dragEnd`** — dnd-kit drag operations. `target` describes the
+  element the drag started from (e.g. an attribute button). Carry `dragId.source`
   (always) and `dragId.over` (on `dragEnd` when dropped on a valid target).
   `cancelled: true` fires on escape-cancel or drop-outside-valid-zone.
 - **`layoutChange`** — layout reconfiguration. See Settings/layout table below.

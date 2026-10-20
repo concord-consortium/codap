@@ -43,6 +43,12 @@ describe("DataInteractive ResourceParser", () => {
     expect(resolve("component[unknown]").component).toBeUndefined()
   })
 
+  // Plugins address their monitors as uiNotificationMonitor[<id>] for update and delete.
+  it("passes the uiNotificationMonitor selector through", () => {
+    expect(resolveResources("uiNotificationMonitor[3]", "delete", tile, cfm).uiNotificationMonitor).toBe("3")
+    expect(resolveResources("uiNotificationMonitor[3]", "update", tile, cfm).uiNotificationMonitor).toBe("3")
+  })
+
   it("finds globals", () => {
     const globalManager = getGlobalValueManager(getSharedModelManager(appState.document))
     const globalSnapshot = { name: "global1", value: 0 }
