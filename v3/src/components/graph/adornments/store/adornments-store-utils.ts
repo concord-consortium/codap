@@ -222,6 +222,7 @@ export function getAdornmentsMenuItemsFromTheStore(theStore: IAdornmentsBaseStor
     const residualPlotApplicable = residualPlotIsApplicable(theStore, dataConfig)
     addItemIfCondition(true, {
       checked: theStore.showResidualPlot,
+      dataTestId: "residual-plot",
       disabled: !residualPlotApplicable,
       title: "V3.Inspector.graphResidualPlot",
       type: "control",

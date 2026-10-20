@@ -21,9 +21,9 @@ function findNodeForEntity(entity: { id: string | number }): Element | null {
 
 export function buildDragStartNotice(event: DragStartEvent): UiDragNotice {
   const source = event.active
-  const srcTarget = targetFromDndEntity(source as unknown as { id: string | number })
+  const srcTarget = targetFromDndEntity(source)
   const sourceId = String(source.id)
-  const cls = classifyElement(findNodeForEntity(source as unknown as { id: string | number }))
+  const cls = classifyElement(findNodeForEntity(source))
   return {
     eventType: "dragStart",
     region: cls.region,
@@ -44,8 +44,8 @@ export function buildDragEndNotice(
   const over = event.over
   const sourceId = String(source.id)
   const overId = over?.id != null ? String(over.id) : undefined
-  const srcTarget = targetFromDndEntity(source as unknown as { id: string | number })
-  const cls = classifyElement(findNodeForEntity(source as unknown as { id: string | number }))
+  const srcTarget = targetFromDndEntity(source)
+  const cls = classifyElement(findNodeForEntity(source))
   const isCancelled = cancelled || !over
   return {
     eventType: "dragEnd",
@@ -61,7 +61,7 @@ export function buildDragEndNotice(
 }
 
 export function buildDragCancelNotice(event: DragCancelEvent): UiDragNotice {
-  return buildDragEndNotice(event as DragEndEvent, true)
+  return buildDragEndNotice(event, true)
 }
 
 function classifyElement(el: Element | null) {

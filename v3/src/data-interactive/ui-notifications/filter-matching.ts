@@ -18,7 +18,7 @@ export function validateFilter(filter: unknown): FilterValidationResult {
       if ((et as string) === "rateLimited") {
         return { ok: false, error: "rateLimited is not subscribable; it is delivered automatically" }
       }
-      if (!kValidEventTypes.has(et as string)) return { ok: false, error: `unknown event type: ${et}` }
+      if (!kValidEventTypes.has(et)) return { ok: false, error: `unknown event type: ${et}` }
     }
   }
   if (f.targets !== undefined) {

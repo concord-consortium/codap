@@ -570,12 +570,12 @@ context("Graph UI", () => {
       cy.get("[data-testid=export-png-image]").should("be.visible")
       cy.get("[data-testid=export-png-image]").click()
       cy.get("[data-testid=export-png-image]").should("not.exist")
-      cy.get("[data-testid=modal-dialog]").should("be.visible")
-      cy.get("[data-testid=modal-dialog-title]").should("have.text", "Export File As ...")
-      cy.get("[data-testid=modal-dialog-workspace]").find("li").contains("Local File").click()
-      cy.get("[data-testid=modal-dialog-workspace]").find(".buttons a[download]").contains("Download")
+      cy.get("[data-testid=cfm-dialog-shell]").should("be.visible")
+      cy.get("[data-testid=cfm-dialog-title]").should("have.text", "Export File As ...")
+      cy.get("[data-testid=cfm-dialog-workspace]").find("li").contains("Local File").click()
+      cy.get("[data-testid=cfm-dialog-workspace]").find(".buttons a[download]").contains("Download")
         .should("be.visible").click()
-      cy.get("[data-testid=modal-dialog]").should("not.exist")
+      cy.get("[data-testid=cfm-dialog-shell]").should("not.exist")
 
       cy.task("fileExists", `${downloadsFolder}/${fileName}`).then((exists) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-expressions

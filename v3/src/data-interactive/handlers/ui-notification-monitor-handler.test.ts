@@ -20,14 +20,14 @@ describe("DataInteractive UiNotificationMonitorHandler", () => {
   })
 
   it("notify with malformed filter returns error", () => {
-    const result = handler.notify?.({ interactiveFrame: fakeFrame as any }, { eventTypes: [] } as any)
+    const result = handler.notify?.({ interactiveFrame: fakeFrame as any }, { eventTypes: [] })
     expect(result?.success).toBe(false)
   })
 
   it("notify returns id and echoed clientId", () => {
     const r = handler.notify?.(
       { interactiveFrame: fakeFrame as any },
-      { eventTypes: ["click"], clientId: "my-client" } as any
+      { eventTypes: ["click"], clientId: "my-client" }
     )
     expect(r?.success).toBe(true)
     const values = r?.values as { id: number; clientId?: string }
@@ -38,7 +38,7 @@ describe("DataInteractive UiNotificationMonitorHandler", () => {
   it("update with unknown id returns error", () => {
     const r = handler.update?.(
       { interactiveFrame: fakeFrame as any, uiNotificationMonitor: "9999" },
-      { eventTypes: ["click"] } as any
+      { eventTypes: ["click"] }
     )
     expect(r?.success).toBe(false)
   })
@@ -46,12 +46,12 @@ describe("DataInteractive UiNotificationMonitorHandler", () => {
   it("update with existing id swaps filter", () => {
     const created = handler.notify?.(
       { interactiveFrame: fakeFrame as any },
-      { eventTypes: ["click"] } as any
+      { eventTypes: ["click"] }
     )
     const id = (created?.values as { id: number }).id
     const r = handler.update?.(
       { interactiveFrame: fakeFrame as any, uiNotificationMonitor: String(id) },
-      { eventTypes: ["appear"] } as any
+      { eventTypes: ["appear"] }
     )
     expect(r?.success).toBe(true)
   })
@@ -66,7 +66,7 @@ describe("DataInteractive UiNotificationMonitorHandler", () => {
   it("delete with existing id succeeds", () => {
     const created = handler.notify?.(
       { interactiveFrame: fakeFrame as any },
-      { eventTypes: ["click"] } as any
+      { eventTypes: ["click"] }
     )
     const id = (created?.values as { id: number }).id
     const r = handler.delete?.(
@@ -78,13 +78,13 @@ describe("DataInteractive UiNotificationMonitorHandler", () => {
   it("update of another plugin's monitor returns not-found error", () => {
     const created = handler.notify?.(
       { interactiveFrame: fakeFrame as any },
-      { eventTypes: ["click"] } as any
+      { eventTypes: ["click"] }
     )
     const id = (created?.values as { id: number }).id
     const otherFrame = { id: "WEBV-2" }
     const r = handler.update?.(
       { interactiveFrame: otherFrame as any, uiNotificationMonitor: String(id) },
-      { eventTypes: ["appear"] } as any
+      { eventTypes: ["appear"] }
     )
     expect(r?.success).toBe(false)
     // Original monitor must still be present and unchanged
@@ -97,7 +97,7 @@ describe("DataInteractive UiNotificationMonitorHandler", () => {
   it("delete of another plugin's monitor returns not-found error", () => {
     const created = handler.notify?.(
       { interactiveFrame: fakeFrame as any },
-      { eventTypes: ["click"] } as any
+      { eventTypes: ["click"] }
     )
     const id = (created?.values as { id: number }).id
     const otherFrame = { id: "WEBV-2" }

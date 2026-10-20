@@ -49,7 +49,7 @@ describe("layout-change-reactions", () => {
 
     const { manager, delivered } = makeManagerWithCapture()
     manager.register("plugin-A", { eventTypes: ["layoutChange"] })
-    const installed = installLayoutChangeReactions(manager, { getDocument: getDocument as never })
+    const installed = installLayoutChangeReactions(manager, { getDocument })
 
     row.setTileMinimized("TILE-A", true)
     const mini = findLayoutChange(delivered, "tileMinimized")
@@ -69,7 +69,7 @@ describe("layout-change-reactions", () => {
 
     const { manager, delivered } = makeManagerWithCapture()
     manager.register("plugin-A", { eventTypes: ["layoutChange"] })
-    const installed = installLayoutChangeReactions(manager, { getDocument: getDocument as never })
+    const installed = installLayoutChangeReactions(manager, { getDocument })
 
     row.setTileDimensions("TILE-B", { width: 200, height: 150 })
     const size = findLayoutChange(delivered, "tileSize")
@@ -86,7 +86,7 @@ describe("layout-change-reactions", () => {
 
     const { manager, delivered } = makeManagerWithCapture()
     manager.register("plugin-A", { eventTypes: ["layoutChange"] })
-    const installed = installLayoutChangeReactions(manager, { getDocument: getDocument as never })
+    const installed = installLayoutChangeReactions(manager, { getDocument })
 
     row.setTilePosition("TILE-C", { x: 50, y: 75 })
     const pos = findLayoutChange(delivered, "tilePosition")
@@ -106,7 +106,7 @@ describe("layout-change-reactions", () => {
 
     const { manager, delivered } = makeManagerWithCapture()
     manager.register("plugin-A", { eventTypes: ["layoutChange"] })
-    const installed = installLayoutChangeReactions(manager, { getDocument: getDocument as never })
+    const installed = installLayoutChangeReactions(manager, { getDocument })
 
     row.insertTile("TILE-D", { x: 0, y: 0 })
     const added = findLayoutChange(delivered, "tileAdded")
@@ -131,7 +131,7 @@ describe("layout-change-reactions", () => {
 
     const { manager, delivered } = makeManagerWithCapture()
     manager.register("plugin-A", { eventTypes: ["layoutChange"] })
-    const installed = installLayoutChangeReactions(manager, { getDocument: getDocument as never })
+    const installed = installLayoutChangeReactions(manager, { getDocument })
 
     row.removeTile("TILE-E")
     const removed = findLayoutChange(delivered, "tileRemoved")
@@ -153,7 +153,7 @@ describe("layout-change-reactions", () => {
 
     const { manager, delivered } = makeManagerWithCapture()
     manager.register("plugin-A", { eventTypes: ["layoutChange"] })
-    const installed = installLayoutChangeReactions(manager, { getDocument: getDocument as never })
+    const installed = installLayoutChangeReactions(manager, { getDocument })
 
     expect(findLayoutChange(delivered, "tileAdded")).toBeUndefined()
     installed.uninstall()

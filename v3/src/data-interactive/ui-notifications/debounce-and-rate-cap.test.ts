@@ -18,7 +18,7 @@ function appear(testId = "x"): UiNotice {
     region: "header",
     target: { testId },
     monitor: { id: 0 }
-  } as UiNotice
+  }
 }
 
 function click(testId = "x"): UiNotice {
@@ -27,7 +27,7 @@ function click(testId = "x"): UiNotice {
     region: "header",
     target: { testId },
     monitor: { id: 0 }
-  } as UiNotice
+  }
 }
 
 describe("createDeliveryPipeline", () => {
@@ -134,24 +134,24 @@ describe("createDeliveryPipeline", () => {
     it("keys click/dblclick/dragStart/dragEnd by testId, falling back to tourKey then empty", () => {
       expect(targetKeyFor({
         eventType: "click", region: "header", target: { testId: "btn" }, monitor: { id: 0 }
-      } as UiNotice)).toBe("btn")
+      })).toBe("btn")
       expect(targetKeyFor({
         eventType: "dblclick", region: "header", target: { testId: "btn2" }, monitor: { id: 0 }
-      } as UiNotice)).toBe("btn2")
+      })).toBe("btn2")
       expect(targetKeyFor({
         eventType: "dragStart", region: "workspace", target: { tourKey: "tour-1" },
         dragId: { source: "s" }, monitor: { id: 0 }
-      } as UiNotice)).toBe("tour-1")
+      })).toBe("tour-1")
       expect(targetKeyFor({
         eventType: "dragEnd", region: "workspace", target: {},
         dragId: { source: "s" }, monitor: { id: 0 }
-      } as UiNotice)).toBe("")
+      })).toBe("")
     })
 
     it("keys rateLimited and unknown event types as empty string", () => {
       expect(targetKeyFor({
         eventType: "rateLimited", monitor: { id: 0 }, droppedCount: 1, windowMs: 1000
-      } as UiNotice)).toBe("")
+      })).toBe("")
       // default branch: unknown / unhandled event type
       expect(targetKeyFor({ eventType: "whatever" as any, monitor: { id: 0 } } as UiNotice)).toBe("")
     })

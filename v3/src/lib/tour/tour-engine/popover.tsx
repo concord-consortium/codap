@@ -19,9 +19,9 @@ interface PopoverProps { state: EngineLiveState }
 function resolvePlacement(side: EngineStepPopover["side"], align: EngineStepPopover["align"]): Placement {
   const s = side ?? "right"
   if (align && align !== "center") {
-    return `${s}-${align}` as Placement
+    return `${s}-${align}`
   }
-  return s as Placement
+  return s
 }
 
 export const Popover = observer(function Popover({ state }: PopoverProps) {

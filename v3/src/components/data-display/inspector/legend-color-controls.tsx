@@ -426,8 +426,12 @@ export const LegendBinCountInput = observer(function LegendBinCountInput(
       <Label className="form-label legend-bin-count-label">{t("V3.Inspector.graph.legendBinCount")}</Label>
       <Group className="legend-bin-count-group">
         <Input className="form-input" data-testid="legend-bin-count-input" />
-        <Button slot="decrement" className="legend-bin-count-stepper">−</Button>
-        <Button slot="increment" className="legend-bin-count-stepper">+</Button>
+        <Button slot="decrement" className="legend-bin-count-stepper" data-testid="legend-bin-count-decrement">
+          −
+        </Button>
+        <Button slot="increment" className="legend-bin-count-stepper" data-testid="legend-bin-count-increment">
+          +
+        </Button>
       </Group>
     </NumberField>
   )

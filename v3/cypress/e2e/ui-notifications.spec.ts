@@ -25,7 +25,7 @@ function waitForPluginReady() {
 }
 
 function pluginWindow(): Cypress.Chainable<any> {
-  return cy.get("iframe").its("0.contentWindow") as unknown as Cypress.Chainable<any>
+  return cy.get("iframe").its("0.contentWindow")
 }
 
 function subscribe(filter: unknown) {

@@ -227,7 +227,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
           computed from its whole subtree — so the close button sits outside it, or the dialog
           announces as "Edit Formula Close".
         */}
-        <div className="formula-modal-header-wrapper">
+        <div className="formula-modal-header-wrapper" data-testid="formula-modal-header-wrapper">
           <ModalHeader className="formula-modal-header" data-testid="formula-modal-header">
             <h2 className="formula-modal-title">{modalTitle}</h2>
           </ModalHeader>

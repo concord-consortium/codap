@@ -300,7 +300,7 @@ describe("TourManager", () => {
       const mockComponentEl = document.createElement("div")
       mockFindTileFromNameOrId.mockReturnValue({ id: "TILE789" })
       jest.spyOn(document, "getElementById").mockImplementation((id: string) =>
-        id === "TILE789" ? mockComponentEl as unknown as HTMLElement : null
+        id === "TILE789" ? mockComponentEl : null
       )
 
       const tile = makeTile()
@@ -320,7 +320,7 @@ describe("TourManager", () => {
       mockComponentEl.querySelector = jest.fn().mockReturnValue(document.createElement("div"))
       mockFindTileFromNameOrId.mockReturnValue({ id: "TILEABC" })
       jest.spyOn(document, "getElementById").mockImplementation((id: string) =>
-        id === "TILEABC" ? mockComponentEl as unknown as HTMLElement : null
+        id === "TILEABC" ? mockComponentEl : null
       )
 
       const tile = makeTile()
@@ -567,7 +567,7 @@ describe("TourManager", () => {
       mockComponentEl.querySelector = jest.fn().mockReturnValue(document.createElement("div"))
       mockFindTileFromNameOrId.mockReturnValue({ id: "TILECMP" })
       jest.spyOn(document, "getElementById").mockImplementation((id: string) =>
-        id === "TILECMP" ? mockComponentEl as unknown as HTMLElement : null
+        id === "TILECMP" ? mockComponentEl : null
       )
 
       const tile = makeTile()

@@ -27,7 +27,7 @@ function emitAppearOrDisappear(
       ...(cls.componentId ? { componentId: cls.componentId } : target.componentId ? {} : {})
     },
     monitor: { id: -1 }
-  } as UiNotice
+  }
   manager.deliver(notice)
   // Dialog-change hook
   try {

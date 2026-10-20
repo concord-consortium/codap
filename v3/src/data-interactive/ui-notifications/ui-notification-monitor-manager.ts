@@ -161,7 +161,7 @@ export class UiNotificationMonitorManager {
         id: monitor.id,
         ...(monitor.clientId != null ? { clientId: monitor.clientId } : {})
       }
-    } as UiNotice
+    }
     const payload = buildNoticePayload(noticeWithMonitor)
     doc.content.broadcastMessage(payload, () => null, monitor.ownerTileId)
   }

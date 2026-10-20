@@ -10,7 +10,7 @@ describe("validateFilter", () => {
 
   it("rejects non-object filter", () => {
     expect(validateFilter(null).ok).toBe(false)
-    expect(validateFilter(42 as unknown).ok).toBe(false)
+    expect(validateFilter(42).ok).toBe(false)
   })
 
   it("rejects empty eventTypes array", () => {
@@ -182,7 +182,7 @@ describe("matchesMonitor", () => {
 
     const m2 = monitor({ eventTypes: ["dialogChange"], targets: ["cfm-dialog-share-copy-button"] })
     expect(matchesMonitor(m2, dc)).toBe(false)
-    const dc2: UiNotice = { ...dc, control: { testId: "cfm-dialog-share-copy-button" } } as UiNotice
+    const dc2: UiNotice = { ...dc, control: { testId: "cfm-dialog-share-copy-button" } }
     expect(matchesMonitor(m2, dc2)).toBe(true)
   })
 })

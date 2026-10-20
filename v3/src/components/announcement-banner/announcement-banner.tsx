@@ -60,7 +60,8 @@ export function AnnouncementBanner() {
         {parseMessageWithLinks(message).map((segment, i) =>
           segment.url
             ? (
-              <a key={i} href={segment.url} target="_blank" rel="noopener noreferrer">
+              <a key={i} href={segment.url} target="_blank" rel="noopener noreferrer"
+                data-testid={`announcement-banner-link-${i}`}>
                 {segment.text}
               </a>
             )

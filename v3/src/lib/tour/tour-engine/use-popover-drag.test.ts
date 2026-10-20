@@ -7,7 +7,7 @@ function makePopoverEl(rect = { left: 100, top: 100, width: 200, height: 100 }):
   jest.spyOn(el, "getBoundingClientRect").mockReturnValue({
     ...rect, right: rect.left + rect.width, bottom: rect.top + rect.height,
     x: rect.left, y: rect.top, toJSON: () => ({})
-  } as DOMRect)
+  })
   return el
 }
 

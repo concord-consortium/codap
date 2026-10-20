@@ -65,7 +65,7 @@ export function installLayoutChangeReactions(
   manager: UiNotificationMonitorManager,
   options: { getDocument?: GetDocument } = {}
 ): LayoutChangeInstalled {
-  const getDocument: GetDocument = options.getDocument ?? (() => appState.document as any)
+  const getDocument: GetDocument = options.getDocument ?? (() => appState.document)
   const disposers: IReactionDisposer[] = []
   const perLayoutDisposers = new WeakMap<IFreeTileLayout, IReactionDisposer[]>()
   const trackedLayouts = new Set<IFreeTileLayout>()
