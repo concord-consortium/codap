@@ -97,7 +97,7 @@ export function onDialogAppear(el: Element, appearTarget: UiTarget | undefined) 
               ...(controlTestId ? { testId: controlTestId } : {}),
               ...(tag ? { tag } : {})
             },
-            change: { kind: "label", before: "", after: text },
+            change: { kind: "label", before: r.oldValue ?? "", after: text },
             monitor: { id: -1 }
           }
           managerRef?.deliver(notice)

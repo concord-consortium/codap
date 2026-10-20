@@ -1572,6 +1572,15 @@
     "V3.Undo.webView.changeUrl": "Undo changing web page url",
     "V3.Redo.webView.changeUrl": "Redo changing web page url",
 
+    // V3 tour and highlight strings that are not present in V2 and will eventually require translation.
+    "V3.Tour.stepRegion": "Tour step",
+    "V3.Tour.previous": "Previous",
+    "V3.Tour.next": "Next",
+    "V3.Tour.done": "Done",
+    "V3.Tour.gotIt": "Got it!",
+    "V3.Tour.close": "Close tour",
+    "V3.Tour.progress": "%{current} of %{total}",
+
     // Miscellaneous V3 strings that are not present in V2 and will eventually require translation.
     "V3.Undo.tile.show": "Undo showing tile",
     "V3.Redo.tile.show": "Redo showing tile",

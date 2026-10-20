@@ -154,8 +154,11 @@ export type TourElementKey = {
 }[keyof typeof tourElements]
 
 /** Resolve a dotted key to its element metadata */
-export function resolveElement(key: TourElementKey): ITourElement {
-  const parts = key.split(".") as [keyof typeof tourElements, string]
-  const [ns, name] = parts
-  return (tourElements[ns] as Record<string, ITourElement>)[name]
+// Keys come from plugins, so only the registry's own entries resolve; anything else is undefined.
+export function resolveElement(key: TourElementKey): ITourElement | undefined {
+  const [ns, name] = key.split(".")
+  const hasOwn = (obj: object, prop: string) => Object.prototype.hasOwnProperty.call(obj, prop)
+  if (!hasOwn(tourElements, ns)) return undefined
+  const namespace = tourElements[ns as keyof typeof tourElements] as Record<string, ITourElement>
+  return hasOwn(namespace, name) ? namespace[name] : undefined
 }

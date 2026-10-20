@@ -1077,10 +1077,8 @@ describe("TourManager", () => {
         steps: [{ element: "body", popover: { description: "Step" } }]
       })
 
-      // From defaultTourOptions: showProgress=true, doneBtnText="Got it!",
-      // allowClose=true, allowKeyboardControl=true.
+      // From defaultTourOptions: showProgress=true, allowClose=true, allowKeyboardControl=true.
       expect(capturedConfig.showProgress).toBe(true)
-      expect(capturedConfig.doneBtnText).toBe("Got it!")
       expect(capturedConfig.allowClose).toBe(true)
       expect(capturedConfig.allowKeyboardControl).toBe(true)
     })

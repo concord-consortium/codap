@@ -22,7 +22,6 @@ export interface ITourConfig {
 
 export const defaultTourOptions: EngineOptions = {
   showProgress: true,
-  doneBtnText: "Got it!",
   allowClose: true,
   allowKeyboardControl: true,
 }

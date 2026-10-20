@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react"
 import { Popover } from "./popover"
 import { EngineLiveState } from "./tour-engine-state"
 import * as scrollIntoViewModule from "./scroll-into-view"
+import * as translateModule from "../../../utilities/translation/translate"
 
 jest.mock("../tour-styles.scss", () => ({}))
 
@@ -66,11 +67,11 @@ describe("Popover component", () => {
     }
   })
 
-  it("close button has aria-label='Close'", () => {
+  it("close button has aria-label='Close tour'", () => {
     const state = makeState()
     render(<Popover state={state} />)
     const close = screen.getByTestId("codap-tour-popover-close-btn")
-    expect(close.getAttribute("aria-label")).toBe("Close")
+    expect(close.getAttribute("aria-label")).toBe("Close tour")
   })
 
   it("renders progress text in tour mode when showProgress is true", () => {
@@ -200,5 +201,44 @@ describe("Popover component", () => {
     const popover = screen.getByTestId("codap-tour-popover")
     expect(popover).toHaveFocus()
     document.body.removeChild(iframe)
+  })
+
+  describe("localized labels", () => {
+    beforeEach(() => {
+      jest.spyOn(translateModule, "t").mockImplementation((key: string) => `[${key}]`)
+    })
+    afterEach(() => { jest.restoreAllMocks() })
+
+    function makeTwoStepState(activeIndex: number, kind: "tour" | "highlight" = "tour") {
+      const state = makeState({ kind })
+      const steps = [state.steps[0], { ...state.steps[0] }]
+      return { ...state, steps, activeIndex, currentStep: steps[activeIndex] }
+    }
+
+    it("takes the region name, button labels and progress text from translation keys", () => {
+      render(<Popover state={makeTwoStepState(1)} />)
+      expect(screen.getByRole("region", { name: "[V3.Tour.stepRegion]" })).toBeInTheDocument()
+      expect(screen.getByTestId("codap-tour-popover-prev-btn")).toHaveTextContent("[V3.Tour.previous]")
+      expect(screen.getByTestId("codap-tour-popover-next-btn")).toHaveTextContent("[V3.Tour.gotIt]")
+      expect(screen.getByTestId("codap-tour-popover-close-btn").getAttribute("aria-label"))
+        .toBe("[V3.Tour.close]")
+      expect(screen.getByTestId("codap-tour-popover-progress-text")).toHaveTextContent("[V3.Tour.progress]")
+    })
+
+    it("labels Next from a translation key before the last step", () => {
+      render(<Popover state={makeTwoStepState(0)} />)
+      expect(screen.getByTestId("codap-tour-popover-next-btn")).toHaveTextContent("[V3.Tour.next]")
+    })
+
+    it("labels a highlight's button Done", () => {
+      render(<Popover state={makeState({ kind: "highlight" })} />)
+      expect(screen.getByTestId("codap-tour-popover-next-btn")).toHaveTextContent("[V3.Tour.done]")
+    })
+
+    it("prefers plugin-supplied labels", () => {
+      const state = makeTwoStepState(1)
+      render(<Popover state={{ ...state, options: { ...state.options, doneBtnText: "Finish" } }} />)
+      expect(screen.getByTestId("codap-tour-popover-next-btn")).toHaveTextContent("Finish")
+    })
   })
 })

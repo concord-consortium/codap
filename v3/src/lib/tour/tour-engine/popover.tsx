@@ -12,6 +12,7 @@ import { useKeyboardControl } from "./use-keyboard-control"
 import { usePopoverDrag } from "./use-popover-drag"
 import { useReducedMotion } from "./use-reduced-motion"
 import { useTargetWatcher } from "./use-target-watcher"
+import { t } from "../../../utilities/translation/translate"
 import CloseIcon from "../../../assets/icons/close-tile-icon.svg"
 
 interface PopoverProps { state: EngineLiveState }
@@ -155,7 +156,7 @@ const PopoverContent = observer(function PopoverContent({ state, step }: Popover
         ref={setFloating}
         style={floatingStyles}
         role="region"
-        aria-label="Tour step"
+        aria-label={t("V3.Tour.stepRegion")}
         tabIndex={-1}
         className={popoverClass}
         data-testid="codap-tour-popover"
@@ -195,7 +196,7 @@ const PopoverContent = observer(function PopoverContent({ state, step }: Popover
               disabled={disabled.has("previous")}
               onClick={handlePrevious}
             >
-              {opts.prevBtnText ?? "Previous"}
+              {opts.prevBtnText ?? t("V3.Tour.previous")}
             </button>
           )}
           {showButtons.includes("next") && (
@@ -207,14 +208,16 @@ const PopoverContent = observer(function PopoverContent({ state, step }: Popover
               disabled={disabled.has("next")}
               onClick={() => state.moveNext()}
             >
-              {isLast ? (opts.doneBtnText ?? "Done") : (opts.nextBtnText ?? "Next")}
+              {isLast
+                ? (opts.doneBtnText ?? t(state.kind === "tour" ? "V3.Tour.gotIt" : "V3.Tour.done"))
+                : (opts.nextBtnText ?? t("V3.Tour.next"))}
             </button>
           )}
         </div>
         {showButtons.includes("close") && (opts.allowClose ?? true) && (
           <button
             type="button"
-            aria-label="Close"
+            aria-label={t("V3.Tour.close")}
             className="codap-tour-popover-close-btn"
             data-testid="codap-tour-popover-close-btn"
             onClick={() => state.cancel()}

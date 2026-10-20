@@ -121,10 +121,10 @@ Start a multi-step guided tour. Returns a `tourId` for tracking.
 | `animate` | boolean | Animate step transitions (default: true) |
 | `smoothScroll` | boolean | Smooth scroll to elements (default: false) |
 | `popoverOffset` | number | Distance between popover and element (px) |
-| `progressText` | string | Progress format, e.g., `"{{current}} of {{total}}"` |
-| `nextBtnText` | string | Next button label (for i18n) |
-| `prevBtnText` | string | Previous button label (for i18n) |
-| `doneBtnText` | string | Done button label (for i18n) |
+| `progressText` | string | Progress format, e.g., `"{{current}} of {{total}}"`. Defaults to CODAP's localized "1 of 5" form |
+| `nextBtnText` | string | Next button label. Defaults to CODAP's localized "Next" |
+| `prevBtnText` | string | Previous button label. Defaults to CODAP's localized "Previous" |
+| `doneBtnText` | string | Last-step button label. Defaults to CODAP's localized "Got it!" for tours and "Done" for highlights |
 
 ### endTour
 

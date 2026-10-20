@@ -159,6 +159,7 @@ describe("dialog-change-observer", () => {
     if (!dc) return
     const change = dc.change as { kind: "label"; before: string; after: string }
     expect(change.kind).toBe("label")
+    expect(change.before).toBe("Old")
     expect(change.after).toBe("New")
     // characterData bubbles to the nearest [data-testid] ancestor control
     expect(dc.control.testId).toBe("cfm-btn-l")
