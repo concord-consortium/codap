@@ -62,7 +62,9 @@ A search expression is either `*`, which matches every case, or a single compari
 - **An empty right side matches empty values.** `Habitat==` finds the cases with no `Habitat`,
   and also those whose `Habitat` is `0`.
 
-There is no `and` or `or`, and no way to compare against a value that contains `=`, `!`, `<`,
+Only the first comparison is read. Anything after it is not rejected but becomes part of the
+value, so `Mass>100 and Diet==meat` compares `Mass` with the text `100 and Diet` and matches
+nothing. There is no `and` or `or`, and no way to compare against a value that contains `=`, `!`, `<`,
 `>` or `]`. Use [`caseFormulaSearch`](case-formula-search.md) for those.
 
 Comparison is evaluated for each case using that case's values. `<`, `<=`, `>` and `>=` compare
@@ -168,7 +170,7 @@ This resource sends none. Changes to a data set's cases are reported on
 |---|---|
 | `DataContext not found` | The selector names a data context that does not exist |
 | `Collection not found` | The selector names no collection, or names one that does not exist |
-| `Unable to parse query.` | The search expression is missing or empty, is not a single comparison, or names no attribute of the collection being searched |
+| `Unable to parse query.` | The search expression is missing or empty, contains no comparison, or names no attribute of the collection being searched |
 
 v2 reported an invalid expression with `success: false` and no error message. v3 adds the
 message. v2 also reported a data context that does not exist as `Collection not found`.

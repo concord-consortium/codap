@@ -250,11 +250,11 @@ neither here nor there.
 | `globalList` | wiki |
 | **[`interactiveApi`](resources/interactive-api.md)** | **this repo** |
 | **[`interactiveFrame`](resources/interactive-frame.md)** | **this repo** |
-| `item` | wiki |
-| `itemByCaseID` | wiki |
-| `itemByID` | wiki |
-| `itemCount` | wiki |
-| `itemSearch` | wiki |
+| **[`item`](resources/item.md)** | **this repo** |
+| **[`itemByCaseID`](resources/item-by-case-id.md)** | **this repo** |
+| **[`itemByID`](resources/item-by-id.md)** | **this repo** |
+| **[`itemCount`](resources/item-count.md)** | **this repo** |
+| **[`itemSearch`](resources/item-search.md)** | **this repo** |
 | `logMessage` | wiki |
 | `logMessageMonitor` | wiki |
 | **[`selectionList`](resources/selection-list.md)** | **this repo** |
