@@ -74,6 +74,7 @@ export function FormatTextColorButton({ editor }: IProps) {
       </InspectorButton>
       <Popover ref={popoverRef} shouldFlip={false} crossOffset={popoverOffset} triggerRef={triggerRef}
         className={({defaultClassName}) => `${defaultClassName} color-picker-popover`}
+        data-testid="text-color-picker-popover"
         isOpen={isOpen} onOpenChange={handleOpenChange} placement="end"
         aria-label={t("V3.Inspector.colorPicker.dialogLabel")}>
         <ColorPickerPalette swatchBackgroundColor={textColor} onColorChange={handleSetColor}

@@ -58,6 +58,7 @@ that was never shown returns an error. The resource's own page carries those con
 | `logMessageMonitor` | — | — | — | — | — | ✓ | ✓ |
 | `selectionList` | ✓ | ✓ | ✓ | — | — | — | — |
 | `tourElements` | ✓ | — | — | — | — | — | — |
+| `uiNotificationMonitor` | — | — | ✓ | ✓ | ✓ | — | — |
 | `undoChangeNotice` | — | — | — | — | ✓ | — | — |
 <!-- END GENERATED: resource-actions -->
 
@@ -98,14 +99,14 @@ that costs depends on which segment it was.
 
 Do not read a successful parse, or even a successful request, as a valid selector.
 
-**Keys that name a resource** (38): `adornment`, `adornmentList`, `allCases`, `attribute`, `attributeList`, `attributeLocation`, `case`, `caseByID`, `caseByIndex`, `caseCount`, `caseFormulaSearch`, `caseSearch`, `collection`, `collectionList`, `component`, `componentList`, `configuration`, `configurationList`, `dataContext`, `dataContextFromURL`, `dataContextList`, `dataDisplay`, `document`, `formulaEngine`, `global`, `globalList`, `interactiveApi`, `interactiveFrame`, `item`, `itemByCaseID`, `itemByID`, `itemCount`, `itemSearch`, `logMessage`, `logMessageMonitor`, `selectionList`, `tourElements`, `undoChangeNotice`.
+**Keys that name a resource** (39): `adornment`, `adornmentList`, `allCases`, `attribute`, `attributeList`, `attributeLocation`, `case`, `caseByID`, `caseByIndex`, `caseCount`, `caseFormulaSearch`, `caseSearch`, `collection`, `collectionList`, `component`, `componentList`, `configuration`, `configurationList`, `dataContext`, `dataContextFromURL`, `dataContextList`, `dataDisplay`, `document`, `formulaEngine`, `global`, `globalList`, `interactiveApi`, `interactiveFrame`, `item`, `itemByCaseID`, `itemByID`, `itemCount`, `itemSearch`, `logMessage`, `logMessageMonitor`, `selectionList`, `tourElements`, `uiNotificationMonitor`, `undoChangeNotice`.
 
 Earlier segments narrow the target — `dataContext[Mammals].collection[Cases].attributeList`
 reads the attributes of one collection of one data context.
 
 **Data-context defaulting.** When a selector omits `dataContext`, CODAP supplies `#default`,
 which resolves to the first data context in the document. That does not apply to these
-resource types: `component`, `componentList`, `dataContextList`, `dataDisplay`, `document`, `formulaEngine`, `global`, `globalList`, `interactiveApi`, `interactiveFrame`, `logMessage`, `logMessageMonitor`, `undoChangeNotice`, `undoableActionPerformed`. Nor does it apply when creating a data context, since there is
+resource types: `component`, `componentList`, `dataContextList`, `dataDisplay`, `document`, `formulaEngine`, `global`, `globalList`, `interactiveApi`, `interactiveFrame`, `logMessage`, `logMessageMonitor`, `uiNotificationMonitor`, `undoChangeNotice`, `undoableActionPerformed`. Nor does it apply when creating a data context, since there is
 nothing to default to yet. Note that some resources have a data context resolved and ignore
 it; each resource's page says which.
 <!-- END GENERATED: selector-grammar -->
@@ -175,10 +176,21 @@ the string is what reaches your plugin.
 | `Unsupported scaleType <value>` | — |
 | `clientId and filter values are required` | `diLogMessageMonitorHandler` |
 | `error creating global value` | — |
+| `eventTypes entries must be strings` | — |
+| `eventTypes must be an array` | — |
+| `eventTypes must not be empty` | — |
+| `filter must be an object` | — |
 | `global values must be numbers` | — |
 | `globals must have unique names` | — |
 | `id or clientId required` | `diLogMessageMonitorHandler` |
 | `missing global or value` | — |
+| `monitor id required` | — |
 | `not implemented (yet)` | `diNotImplementedYetResult` |
+| `ownerTileId required` | — |
+| `rateLimited is not subscribable; it is delivered automatically` | — |
+| `targets entries must be strings` | — |
+| `targets entries must not be empty` | — |
+| `targets must be an array` | — |
+| `targets must not be empty` | — |
 | `unknown request: <value>` | — |
 <!-- END GENERATED: error-catalog -->

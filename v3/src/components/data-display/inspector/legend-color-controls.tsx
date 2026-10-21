@@ -227,11 +227,13 @@ export const LegendColorControls = observer(function LegendColorControls(
             <label className="form-label color-picker">{t("DG.Inspector.legendColor")}</label>
             <PointColorSetting
               propertyLabel={t("DG.Inspector.legendColorLow")}
+              testIdSuffix="legend-low"
               onColorChange={(color) => handleLowAttributeColorChange(color)}
               swatchBackgroundColor={colorRange?.low ?? kDefaultLowAttributeColor}
             />
             <PointColorSetting
               propertyLabel={t("DG.Inspector.legendColorHigh")}
+              testIdSuffix="legend-high"
               onColorChange={(color) => handleHighAttributeColorChange(color)}
               swatchBackgroundColor={colorRange?.high ?? kDefaultHighAttributeColor}
             />
@@ -263,7 +265,7 @@ export const LegendColorControls = observer(function LegendColorControls(
                           color={displayItemDescription.pointColor}
                           onShapeChange={handlePointShapeChange}/>
       </If>
-      <PointColorSetting propertyLabel={t("DG.Inspector.color")}
+      <PointColorSetting propertyLabel={t("DG.Inspector.color")} testIdSuffix="point"
                         onColorChange={(color) => handlePointColorChange(color)}
                         swatchBackgroundColor={displayItemDescription.pointColor}/>
     </div>
@@ -291,7 +293,7 @@ const CategoricalColorControls = observer(function CategoricalColorControls(
 
   return (
     <div className="cat-color-setting" onScroll={handleScroll}>
-      {categories?.map(category => (
+      {categories?.map((category, attrIndex) => (
         <div key={category} className="palette-row color-picker-row cat-color-picker">
           <label className="form-label color-picker">{category}</label>
           <If condition={showShape}>
@@ -302,6 +304,7 @@ const CategoricalColorControls = observer(function CategoricalColorControls(
               onShapeChange={(shape) => onCatPointShapeChange(shape, category)}/>
           </If>
           <PointColorSetting key={category} propertyLabel={category}
+            testIdSuffix={attrIndex}
             closeTrigger={scrollVersion}
             onColorChange={(color) => onCatPointColorChange(color, category)}
             swatchBackgroundColor={dataConfiguration.getLegendColorForCategory(category)}/>
@@ -353,11 +356,11 @@ export const LegendBinsSelect = observer(function LegendBinsSelect(
         onChange={handleAttributeBinningTypeChange}
         data-testid="legend-bins-type-select"
       >
-        <Button>
+        <Button data-testid="legend-bins-type-button">
           <SelectValue />
           <span aria-hidden="true" className="select-arrow">▾</span>
         </Button>
-        <Popover>
+        <Popover data-testid="legend-bins-type-popover">
           <ListBox>
             {binningTypes.map(_binningType =>
               <ListBoxItem key={_binningType} id={_binningType}>
@@ -425,8 +428,12 @@ export const LegendBinCountInput = observer(function LegendBinCountInput(
       <Label className="form-label legend-bin-count-label">{t("V3.Inspector.graph.legendBinCount")}</Label>
       <Group className="legend-bin-count-group">
         <Input className="form-input" data-testid="legend-bin-count-input" />
-        <Button slot="decrement" className="legend-bin-count-stepper">−</Button>
-        <Button slot="increment" className="legend-bin-count-stepper">+</Button>
+        <Button slot="decrement" className="legend-bin-count-stepper" data-testid="legend-bin-count-decrement">
+          −
+        </Button>
+        <Button slot="increment" className="legend-bin-count-stepper" data-testid="legend-bin-count-increment">
+          +
+        </Button>
       </Group>
     </NumberField>
   )

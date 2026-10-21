@@ -42,7 +42,7 @@ export const ErrorTesterComponent = ({ tile }: ITileBaseProps) => {
   }
 
   return (
-    <div className="error-tester" onClick={handleClick}>
+    <div className="error-tester" data-testid="error-tester" onClick={handleClick}>
       Error Tester Component. Click me to throw an error.
     </div>
   )

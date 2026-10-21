@@ -78,6 +78,27 @@ describe("Case Table", () => {
     expect(screen.getByTestId("case-table")).toBeInTheDocument()
   })
 
+  // Attribute-button testids are indexed within a collection, so in a hierarchical table each
+  // collection needs its own testid to tell, e.g., the parent's first attribute from the child's.
+  it("gives each collection in a hierarchical table an indexed testid", () => {
+    const data = DataSet.create()
+    const aAttr = data.addAttribute({ name: "a"})
+    data.addAttribute({ name: "b" })
+    data.addCases(toCanonical(data, [{ a: 1, b: 2 }, { a: 3, b: 4 }]))
+    data.moveAttributeToNewCollection(aAttr.id)
+    broker.addDataSet(data)
+    render(
+      <TileSelectionContext.Provider value={tileSelection}>
+        <DndContext>
+          <DataSetContext.Provider value={data}>
+            <CaseTableComponent tile={tile}/>
+          </DataSetContext.Provider>
+        </DndContext>
+      </TileSelectionContext.Provider>)
+    expect(screen.getByTestId("collection-table-0")).toHaveClass(`collection-${data.collections[0].id}`)
+    expect(screen.getByTestId("collection-table-1")).toHaveClass(`collection-${data.collections[1].id}`)
+  })
+
   // recent changes, e.g. debouncing some callbacks, prevent this test from succeeding
   it.skip("selects rows when index cell is clicked", async () => {
     const user = userEvent.setup()

@@ -72,11 +72,13 @@ export const RulerMenuList = observer(function RulerMenuList() {
     ...addAttributeMenuItems,
     {
       itemKey: "DG.Inspector.randomizeAllAttributes",
+      dataTestId: "ruler-menu-randomize-all-attributes",
       isEnabled: () => !!data?.attributes.some(attr => attr.formula?.isRandomFunctionPresent),
       handleClick: () => rerandomizeAllAttributes(data)
     },
     {
       itemKey: "DG.Inspector.exportCaseData",
+      dataTestId: "ruler-menu-export-case-data",
       handleClick: () => {
         if (data) {
           if (data.collections.length > 1) {
@@ -89,6 +91,7 @@ export const RulerMenuList = observer(function RulerMenuList() {
     },
     {
       itemKey: "DG.Inspector.copyCaseDataToClipboard",
+      dataTestId: "ruler-menu-copy-case-data-to-clipboard",
       handleClick: () => {
         if (data) {
           if (data.collections.length > 1) {
@@ -101,6 +104,7 @@ export const RulerMenuList = observer(function RulerMenuList() {
     },
     {
       itemKey: "DG.Inspector.getCaseDataFromClipboard",
+      dataTestId: "ruler-menu-get-case-data-from-clipboard",
       handleClick: () => {
         if (data) initiateImportFromClipboard(data)
       }

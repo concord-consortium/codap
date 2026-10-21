@@ -199,8 +199,7 @@ unrecognized one.
 | `indicateIdle` | Clears the busy indicator |
 
 CODAP also accepts a set of requests for highlighting UI elements and running guided tours.
-They are **not documented here yet** because the implementation behind them is being replaced,
-and their values will change.
+They are documented in the [Tour API](../../plugin-tour-api.md).
 
 For notifications CODAP sends *to* a plugin, see
 [the notification catalog](../notifications.md).

@@ -61,10 +61,12 @@ export const WebViewUrlModal = ({
   const buttons = [{
     label: t("DG.AttrFormView.cancelBtnTitle"),
     tooltip: t("DG.AttrFormView.cancelBtnTooltip"),
+    testId: "web-view-url-cancel-button",
     onClick: closeModal
   }, {
     label: t("V3.WebView.Modal.okBtnTitle"),
     tooltip: t("DG.DocumentController.enterViewWebPageOKTip"),
+    testId: "web-view-url-ok-button",
     onClick: applyValue,
     default: true,
     disabled: !trimmedValue || !isUrlSafe
@@ -72,6 +74,7 @@ export const WebViewUrlModal = ({
 
   return (
     <CodapModal
+      data-testid="web-view-url-modal"
       closeOnOverlayClick={false}
       isOpen={isOpen}
       modalHeight={"120px"}
@@ -85,7 +88,7 @@ export const WebViewUrlModal = ({
         fontSize="md"
         h="30"
       >
-        <div className="codap-modal-icon-container">
+        <div className="codap-modal-icon-container" aria-hidden="true">
           <MediaToolIcon className="codap-modal-icon"/>
         </div>
         <div className="codap-header-title"/>
@@ -116,7 +119,7 @@ export const WebViewUrlModal = ({
             <Tooltip key={idx} label={b.tooltip} h="20px" fontSize="12px" color="white" openDelay={1000}
               placement="bottom" bottom="15px" left="15px" data-testid="modal-tooltip">
               <Button size="xs" variant={b.default ? "v3Default" : "v3"} ml="5" onClick={b.onClick}
-                data-testid={`${b.label}-button`} isDisabled={b.disabled ?? false}>
+                data-testid={b.testId} isDisabled={b.disabled ?? false}>
                 {b.label}
               </Button>
             </Tooltip>

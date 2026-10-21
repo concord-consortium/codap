@@ -12,10 +12,12 @@ interface ColorPickerIProps {
   onColorChange: (color: string) => void
   propertyLabel: string
   swatchBackgroundColor: string
+  // distinguishes this swatch's testids, e.g. "stroke" or a category index
+  testIdSuffix: string | number
 }
 
-export const PointColorSetting = observer(function PointColorSetting({ closeTrigger, disabled, onColorChange,
-  propertyLabel, swatchBackgroundColor }: ColorPickerIProps) {
+export const PointColorSetting = observer(function PointColorSetting({ closeTrigger, disabled,
+  onColorChange, propertyLabel, swatchBackgroundColor, testIdSuffix }: ColorPickerIProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [inputValue, setInputValue] = useState(swatchBackgroundColor)
   const { popoverRef, popoverOffset, handleExpandedChange, resetPopoverOffset } = useColorPickerPopoverOffset()
@@ -59,10 +61,14 @@ export const PointColorSetting = observer(function PointColorSetting({ closeTrig
     handleOpenChange(false)
   }, [handleOpenChange, onColorChange])
 
+  const pointSettingTestId = `point-color-setting-${testIdSuffix}`
+  const swatchButtonTestId = `color-swatch-button-${testIdSuffix}`
+
   return (
     <DialogTrigger isOpen={isOpen} onOpenChange={handleOpenChange}>
       <Button className={clsx("color-picker-thumb", { open: isOpen })}
         isDisabled={disabled}
+        data-testid={swatchButtonTestId}
         aria-label={`${propertyLabel}: ${swatchBackgroundColor}`}
         excludeFromTabOrder={disabled}>
         <div className="color-picker-thumb-swatch"
@@ -71,6 +77,7 @@ export const PointColorSetting = observer(function PointColorSetting({ closeTrig
       <Popover
         ref={popoverRef}
         className={({defaultClassName}) => `${defaultClassName} color-picker-popover`}
+        data-testid={pointSettingTestId}
         shouldFlip={false}
         offset={popoverOffset}
         aria-label={t("V3.Inspector.colorPicker.dialogLabel")}

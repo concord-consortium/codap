@@ -61,7 +61,7 @@ export const CardTileElements = {
     return this.getInspectorPanel().find('[data-testid="delete-cases-button"]')
   },
   getTrashMenu() {
-    return cy.get('[data-testid="trash-menu-list"]')
+    return cy.get('[data-testid="inspector-menu-trash"]')
   },
   getSelectAllCasesButton() {
     return cy.get('[data-testid="trash-menu-select-all-cases"]')
@@ -79,7 +79,7 @@ export const CardTileElements = {
     return this.getInspectorPanel().find('[data-testid="hide-show-button"]')
   },
   getHideShowMenu() {
-    return cy.get('[data-testid="hide-show-menu-list"]')
+    return cy.get('[data-testid="inspector-menu-hide-show"]')
   },
   getSetAsideSelectedCasesButton() {
     return cy.get('[data-testid="hide-show-menu-set-aside-selected-cases"]')
@@ -100,7 +100,7 @@ export const CardTileElements = {
     return this.getInspectorPanel().find('[data-testid="ruler-button"]')
   },
   getRulerMenu() {
-    return cy.get('[data-testid="ruler-menu-list"]')
+    return cy.get('[data-testid="inspector-menu-ruler"]')
   },
   getRulerAddAttributeButton() {
     return cy.get('[data-testid="ruler-menu-new-attribute"]')

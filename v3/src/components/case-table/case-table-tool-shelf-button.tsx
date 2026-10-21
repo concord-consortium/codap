@@ -148,7 +148,7 @@ const CaseTableToolShelfMenuList = observer(
           <TableIcon className="menu-icon case-table-icon"/>
           {`${t("DG.AppController.caseTableMenu.clipboardDataset")}`}
         </MenuItem>
-        {datasets.map((dataset) => {
+        {datasets.map((dataset, datasetIndex) => {
           // case table title reflects DataSet title
           const tileTitle = dataset.dataSet.displayTitle
           // See openTableOrCardForDatasetWithNotifications: opening an existing dataset's table
@@ -157,7 +157,9 @@ const CaseTableToolShelfMenuList = observer(
           const handleOpenTableForDataset = () => openTableOrCardForDatasetWithNotifications(dataset)
           return (
             <MenuItem key={`${dataset.dataSet.id}`} className="tool-shelf-menu-item table-menu-item"
-              onClick={handleOpenTableForDataset} data-testid={`tool-shelf-table-${tileTitle}`}>
+              onClick={handleOpenTableForDataset}
+              aria-label={tileTitle}
+              data-testid={`tool-shelf-table-${datasetIndex}`}>
               <TableIcon className="menu-icon case-table-icon"/>
               {tileTitle}
               <span className="menu-list-button tool-shelf-menu-trash" role="button" tabIndex={0}
@@ -243,11 +245,13 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
 
   const buttons = [{label: t("DG.TableController.deleteDataSet.cancelButtonTitle"),
                     className: "cancel",
+                    testId: "delete-data-set-cancel-button",
                     onClick: handleCancel
                    },
                    {
                     label: t("DG.TableController.deleteDataSet.okButtonTitle"),
                     className: "delete",
+                    testId: "delete-data-set-delete-button",
                     onClick: handleDeleteDataSet
                    }]
 
@@ -256,7 +260,7 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
       data-testid="delete-data-set-modal">
       <ModalBody className="delete-data-set-modal-body">
         <AlertIcon />
-        <div className="delete-data-set-modal-text">
+        <div className="delete-data-set-modal-text" data-testid="delete-data-set-modal-text">
           <p className="warning">
             {t("DG.TableController.deleteDataSet.confirmMessage", { vars: [data?.name || ""] })}
           </p>
@@ -271,7 +275,7 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
               color="white" openDelay={1000} placement="bottom" bottom="15px" left="15px"
               data-testid="modal-tooltip">
               <Button key={key} className={`delete-data-set-button-${b.className}`} size="xs" variant="ghost" ml="5"
-                  onClick={b.onClick} data-testid={`delete-data-set-button-${b.className}`}>
+                  onClick={b.onClick} data-testid={b.testId}>
                 {b.label}
               </Button>
             </Tooltip>

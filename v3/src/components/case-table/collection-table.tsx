@@ -472,7 +472,8 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const gridAriaLabel = t("V3.CaseTable.gridAriaLabel", { vars: [collection?.name ?? ""] })
   const gridInstructionsId = `sr-grid-instructions-${collectionId}`
   return (
-    <div className={clsx("collection-table", `collection-${collectionId}`, { "no-attributes": columns.length === 0 })}>
+    <div className={clsx("collection-table", `collection-${collectionId}`, { "no-attributes": columns.length === 0 })}
+        data-testid={`collection-table-${collectionIndex}`}>
       <CollectionTableSpacer gridElt={gridRef.current?.element}
         onWhiteSpaceClick={onWhiteSpaceClick} onDrop={handleNewCollectionDrop} />
       <div className="collection-table-and-title" ref={setNodeRef} onClick={handleClick}

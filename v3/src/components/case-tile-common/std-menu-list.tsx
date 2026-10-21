@@ -11,7 +11,7 @@ export interface IMenuItem {
   // defaults to true if not implemented
   isEnabled?: (item: IMenuItem) => boolean
   handleClick?: (item: IMenuItem) => void
-  dataTestId?: string
+  dataTestId: string
 }
 
 interface IProps {

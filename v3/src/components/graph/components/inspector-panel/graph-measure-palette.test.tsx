@@ -124,8 +124,8 @@ describe("GraphMeasurePalette", () => {
 
       expect(screen.getByRole("checkbox", { name: "DG.Inspector.graphCount" })).toBeInTheDocument()
       expect(screen.getByRole("checkbox", { name: "DG.Inspector.showLabels" })).toBeInTheDocument()
-      expect(screen.getByTestId("adornment-checkbox-dg.inspector.graphcount")).toBeInTheDocument()
-      expect(screen.getByTestId("adornment-checkbox-dg.inspector.showlabels")).toBeInTheDocument()
+      expect(screen.getByTestId("adornment-checkbox-graph-count")).toBeInTheDocument()
+      expect(screen.getByTestId("adornment-checkbox-show-labels")).toBeInTheDocument()
     })
 
     it("renders Controls components for adornment menu items", () => {
@@ -149,7 +149,7 @@ describe("GraphMeasurePalette", () => {
 
       render(<GraphMeasurePalette tile={tile} setShowPalette={mockSetShowPalette} />)
 
-      await user.click(screen.getByTestId("adornment-checkbox-dg.inspector.graphcount"))
+      await user.click(screen.getByTestId("adornment-checkbox-graph-count"))
       expect(clickHandler).toHaveBeenCalledWith(true)
     })
 
@@ -161,7 +161,7 @@ describe("GraphMeasurePalette", () => {
 
       render(<GraphMeasurePalette tile={tile} setShowPalette={mockSetShowPalette} />)
 
-      const checkbox = screen.getByTestId("adornment-checkbox-dg.inspector.graphcount")
+      const checkbox = screen.getByTestId("adornment-checkbox-graph-count")
       expect(checkbox).toHaveAttribute("data-selected", "true")
     })
 
@@ -173,7 +173,7 @@ describe("GraphMeasurePalette", () => {
 
       render(<GraphMeasurePalette tile={tile} setShowPalette={mockSetShowPalette} />)
 
-      const checkbox = screen.getByTestId("adornment-checkbox-dg.inspector.graphsquares")
+      const checkbox = screen.getByTestId("adornment-checkbox-graph-squares")
       expect(checkbox).toHaveAttribute("data-disabled", "true")
     })
   })
@@ -289,7 +289,7 @@ describe("GraphMeasurePalette", () => {
       render(<GraphMeasurePalette tile={tile} setShowPalette={mockSetShowPalette} />)
 
       // Top-level checkbox
-      expect(screen.getByTestId("adornment-checkbox-dg.inspector.graphcount")).toBeInTheDocument()
+      expect(screen.getByTestId("adornment-checkbox-graph-count")).toBeInTheDocument()
       // Group header
       expect(screen.getByText("DG.Inspector.graphMeasuresOfCenter")).toBeInTheDocument()
       // Group item (expanded)

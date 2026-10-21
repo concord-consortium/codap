@@ -26,6 +26,6 @@ export const GraphTileElements = {
     return c.getInspectorPanel().find("[data-testid=graph-camera-button]")
   },
   getInspectorPalette() {
-    return c.getInspectorPanel().find("[data-testid=codap-inspector-palette]")
+    return c.getInspectorPanel().find("[data-testid=inspector-palette-graph]")
   }
 }
