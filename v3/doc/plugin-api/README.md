@@ -34,15 +34,11 @@ for how a plugin connects.
 
 ## Status of this reference
 
-**This reference is being migrated.** It is moving out of the
-[wiki page](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-Plugin-API)
-and into this folder, one resource at a time, so that each resource is a complete self-contained
-page rather than a section of a 4,000-line document. Until that finishes:
-
-- The [resource table](#resources) below says where each resource is documented.
-- Pages here are current for v3. The wiki remains accurate for everything not yet moved,
-  including the round of corrections already made to it.
-- When migration completes, the wiki page will be frozen as the **CODAP v2** reference.
+**This reference replaces the
+[wiki page](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-Plugin-API).**
+Every resource now has a complete, self-contained page in this folder, except `tourElements`,
+which is not yet documented anywhere. The wiki page will be frozen as the **CODAP v2**
+reference.
 
 ---
 
@@ -228,10 +224,7 @@ more than one data context. Name the context explicitly.
 ## Resources
 
 All 38 resources CODAP v3 registers, alphabetically. Pages marked *this repo* are current for
-v3. Most of the rest are on the
-[wiki page](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-Plugin-API),
-which remains accurate for them; a few are marked *not yet documented*, meaning they appear
-neither here nor there.
+v3. `tourElements` is not yet documented.
 
 | Resource | Documented in |
 |---|---|
@@ -251,8 +244,8 @@ neither here nor there.
 | **[`collectionList`](resources/collection.md)** | **this repo** |
 | **[`component`](resources/component.md)** | **this repo** |
 | **[`componentList`](resources/component-list.md)** | **this repo** |
-| `configuration` | wiki |
-| `configurationList` | wiki |
+| **[`configuration`](resources/configuration.md)** | **this repo** |
+| **[`configurationList`](resources/configuration.md)** | **this repo** |
 | **[`dataContext`](resources/data-context.md)** | **this repo** |
 | **[`dataContextFromURL`](resources/data-context-from-url.md)** | **this repo** |
 | **[`dataContextList`](resources/data-context-list.md)** | **this repo** |
@@ -268,19 +261,18 @@ neither here nor there.
 | **[`itemByID`](resources/item-by-id.md)** | **this repo** |
 | **[`itemCount`](resources/item-count.md)** | **this repo** |
 | **[`itemSearch`](resources/item-search.md)** | **this repo** |
-| `logMessage` | wiki |
-| `logMessageMonitor` | wiki |
+| **[`logMessage`](resources/log-message.md)** | **this repo** |
+| **[`logMessageMonitor`](resources/log-message-monitor.md)** | **this repo** |
 | **[`selectionList`](resources/selection-list.md)** | **this repo** |
 | `tourElements` | not yet documented |
-| `undoChangeNotice` | wiki |
+| **[`undoChangeNotice`](resources/undo-change-notice.md)** | **this repo** |
 
 ---
 
 ## Guides
 
 Narrative chapters covering behavior that spans resources — embedded-server mode, request
-coalescing, undo/redo, locale — live in **[`guides/`](guides/README.md)**, which also lists the
-internal design documents to consult until those chapters are written.
+coalescing, undo/redo, locale — live in **[`guides/`](guides/README.md)**.
 
 The notifications CODAP sends to plugins are cataloged in **[`notifications.md`](notifications.md)**.
 

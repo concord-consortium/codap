@@ -2,9 +2,4 @@
 # reports any resource that is undocumented and NOT listed here, and any line here that is
 # no longer needed. Maintained by hand.
 
-configuration
-configurationList
-logMessage
-logMessageMonitor
 tourElements
-undoChangeNotice

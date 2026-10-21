@@ -44,7 +44,7 @@ every connected plugin. The exceptions:
 - **Opt-in.** `newDocumentState` on `document` requires `subscribeToDocuments`; see
   [`document`](resources/document.md). `localeChanged` requires `handlesLocaleChange`; see
   [Everything else](#everything-else). A `logMessageNotice` requires registering a
-  `logMessageMonitor`, a resource this reference does not yet document.
+  monitor; see [`logMessageMonitor`](resources/log-message-monitor.md).
 - **Sent to one plugin only.**
   - `undoAction` and `redoAction` go only to the plugin that reported the undoable action. See
     [Undo and redo](#undo-and-redo--undochangenotice).
