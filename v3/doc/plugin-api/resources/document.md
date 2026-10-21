@@ -84,9 +84,10 @@ The work is bracketed by two notifications on the `documentChangeNotice` resourc
 { "action": "notify", "resource": "documentChangeNotice", "values": { "operation": "updateDocumentEnded" } }
 ```
 
-These go **only to the plugin that issued the update** when a plugin made the request. Treat them
-as your own progress signal: the document is not replaced when the `success` response arrives,
-only when `updateDocumentEnded` does.
+These go to every plugin, so each one can tell that the document is being replaced. The plugin
+that issued the update can treat them as its progress signal: the document is not replaced when
+the `success` response arrives, only when `updateDocumentEnded` does. Today a plugin's update
+sends them only to that plugin; see [Notifications](#notifications).
 
 **Your own state is not restored from the document you send.** Before applying the incoming
 snapshot, CODAP replaces the incoming state of every plugin with `subscribeToDocuments: true`

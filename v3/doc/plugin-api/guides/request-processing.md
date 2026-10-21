@@ -45,7 +45,8 @@ of responses, one per envelope:
 ```
 
 A failure does not stop the rest: each envelope succeeds or fails on its own, and the ones before
-a failure are not undone.
+a failure are not undone. One kind of failure currently breaks this; see
+[Known limitations](#known-limitations).
 
 An array request is a convenience, not a transaction. It saves round trips, but each envelope is
 still a separate change.

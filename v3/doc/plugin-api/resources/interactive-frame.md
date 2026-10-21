@@ -120,8 +120,8 @@ the last save, not the plugin's current state.
 
 ### `lang` and `locale` are not the same thing
 
-`locale` is the full locale CODAP is running in, such as `pt-BR`. `lang` is only its two-letter
-base language, `pt`, and exists because v2 plugins expect that shape. A plugin that needs to
+`locale` is the locale CODAP is running in, such as `es` or `pt-BR`. `lang` is only its
+two-letter base language, `pt`, and exists because v2 plugins expect that shape. A plugin that needs to
 distinguish Brazilian from European Portuguese must read `locale`; a plugin that reads `lang`
 will see the same value for both.
 

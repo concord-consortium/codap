@@ -44,11 +44,12 @@ everything it returns.
 
 ## `lang` and `locale`
 
-`locale` is the locale CODAP is running in, usually a full one such as `pt-BR` (Brazilian
-Portuguese), `zh-TW` (Chinese as written in Taiwan, in Traditional characters) or `zh-Hans`
-(Chinese in Simplified characters). It can be a bare base language when CODAP fell back to one at
-startup, as with `pt` above; once the user picks a language from the menu, it is always full.
-`lang` is only the base language: `pt` (Portuguese), `zh` (Chinese). `lang` keeps that short form
+`locale` is the locale CODAP is running in. For most languages that is the bare language, such
+as `es` (Spanish) or `de` (German), because CODAP has one set of strings for each. A few carry a
+region or script: `en-US` (US English), `pt-BR` (Brazilian Portuguese), `zh-TW` (Chinese as
+written in Taiwan, in Traditional characters) and `zh-Hans` (Chinese in Simplified characters).
+When CODAP falls back to a base language at startup, `locale` is that base language too, as with
+`pt` above. `lang` is only the base language: `pt` (Portuguese), `zh` (Chinese). `lang` keeps that short form
 because plugins written for v2 expect it, and some fail when given a region they have no strings
 for.
 

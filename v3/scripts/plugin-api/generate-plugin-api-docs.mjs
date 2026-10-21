@@ -278,7 +278,10 @@ const kComponentBlocks = {
 }
 const kNamedNotificationFamilies = new Set(["component", ...Object.values(kFamilyBlocks)])
 const kUndescribed = "_not yet described_"
+const emptyNotificationBlock = Symbol("empty notification block")
 const notificationKey = n => `${n.resource}\u0000${n.operation ?? ""}`
+// Tracked by entry, not by key: the same operation sent from an area no block claims must still
+// be reported, even though another area's table lists that operation.
 const placedNotifications = new Set()
 
 // "—" means no values beyond the operation; unreadable keys say so rather than guess.
@@ -309,7 +312,9 @@ function tableRows(body) {
 
 // `entries` are the notifications this table lists; `body` is the table as it stands.
 function renderNotificationTable(entries, body, { withResource = false, valuesHead = "`values` carries" } = {}) {
-  if (!entries.length) return null
+  // A block whose last notification is gone would otherwise keep listing it; the page needs
+  // editing, so that is reported rather than left as hand-maintained.
+  if (!entries.length) return emptyNotificationBlock
   const byKey = new Map(entries.map(n => [notificationKey(n), n]))
   const placed = new Set()
   const rows = []
@@ -337,7 +342,7 @@ function renderNotificationTable(entries, body, { withResource = false, valuesHe
     if (placed.has(k)) continue
     rows.push({ resource: `\`${n.resource}\``, operation: notificationOperation(n), fires: kUndescribed, members: [n] })
   }
-  entries.forEach(n => placedNotifications.add(notificationKey(n)))
+  entries.forEach(n => placedNotifications.add(n))
 
   // A row naming several operations shows one values cell when they agree, and each one's otherwise.
   const values = r => {
@@ -377,7 +382,7 @@ const isNotificationBlock = name =>
 // --- rewrite ---------------------------------------------------------------------------------
 // The body may be empty — a new page can declare a block and let the generator fill it.
 const BLOCK = /<!-- BEGIN GENERATED: ([\w-]+)((?:\s+\w+=\S+)*) -->\n?([\s\S]*?)\n?<!-- END GENERATED: \1 -->/g
-const report = { new: [], removed: [], changed: [], skipped: [], markers: [], badSource: [] }
+const report = { new: [], removed: [], changed: [], skipped: [], markers: [], badSource: [], emptyBlocks: [] }
 
 for (const page of [...pages, ...extraPages]) {
   const path = pages.includes(page) ? join(resourcesDir, page) : join(docsDir, page)
@@ -405,6 +410,10 @@ for (const page of [...pages, ...extraPages]) {
     else if (isNotificationBlock(name)) rendered = renderNotifications(name, body)
     else if (name.startsWith("values") && attrs.source) rendered = renderValues(attrs.source)
 
+    if (rendered === emptyNotificationBlock) {
+      report.emptyBlocks.push(`${page}: ${name}`)
+      return whole
+    }
     if (rendered == null) {
       // A block that *declares* a source is a claim: that interface exists and the tool fills
       // this table from it. If it does not resolve, the claim is false — a renamed or deleted
@@ -425,7 +434,7 @@ for (const page of [...pages, ...extraPages]) {
 // Every notification the code sends must land in some table: a family or area with no block on
 // the page would otherwise vanish from the catalog with every check green.
 const unplaced = (inventory.notifications ?? [])
-  .filter(n => !placedNotifications.has(notificationKey(n)))
+  .filter(n => !placedNotifications.has(n))
   .map(n => `${n.resource} ${n.operation ?? "(no operation)"}` +
             (n.resource === "component" ? ` — area "${notificationArea(n.source)}" has no block` : ""))
 
@@ -570,9 +579,13 @@ if (report.skipped.length) line("Hand-maintained (left alone)", report.skipped)
 if (report.markers.length) line("MARKER PROBLEMS (page not rewritten)", report.markers)
 if (report.badSource.length) line("UNRESOLVED source= (block left frozen)", report.badSource)
 if (unplaced.length) line("NOTIFICATIONS IN NO TABLE (add a block for them)", unplaced)
+if (report.emptyBlocks.length) {
+  line("NOTIFICATION BLOCKS WITH NOTHING LEFT (left as is; remove the section)", report.emptyBlocks)
+}
 
 // Marker problems fail in both modes: in --check they are a defect, and in write mode they mean
 // a page was deliberately skipped, so exiting 0 would report success for work not done.
-if (report.markers.length || report.badSource.length || unplaced.length) process.exit(2)
+if (report.markers.length || report.badSource.length || unplaced.length ||
+    report.emptyBlocks.length) process.exit(2)
 if (check && (report.changed.length || report.new.length || report.removed.length ||
               staleBaseline.length)) process.exit(2)

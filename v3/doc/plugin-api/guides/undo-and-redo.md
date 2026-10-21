@@ -46,7 +46,8 @@ When your plugin does something the user should be able to undo, it tells CODAP:
 }
 ```
 
-CODAP adds an entry to its history and replies with the state of the history afterwards.
+CODAP adds an entry to its history and replies with the state of the history afterwards. Today
+the reply can describe the history before the entry; see [Known limitations](#known-limitations).
 `logMessage` is optional; it describes the action in CODAP's log.
 
 CODAP does not know what the action was. When the user undoes that entry, CODAP sends your plugin
@@ -161,7 +162,8 @@ in both modes.
 
 ## Keeping your buttons in step
 
-Every reply to `undoChangeNotice` carries `canUndo` and `canRedo`. Between your own requests, the
+CODAP's replies to `undoableActionPerformed`, `undoButtonPress` and `redoButtonPress` carry
+`canUndo` and `canRedo`. Between your own requests, the
 history changes when the user acts in CODAP, so CODAP also tells every plugin when it changes:
 
 | Operation | Sent when |
