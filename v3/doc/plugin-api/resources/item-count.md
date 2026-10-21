@@ -36,8 +36,8 @@ the cases of another collection, such as the groups in a parent collection, use
 There is no `collection` segment: items belong to the data context, not to one collection.
 
 <!-- BEGIN GENERATED: scope -->
-This resource is scoped to a data context. Omitting one selects `#default`, the first data
-context in the document — see [the index](../README.md#the-default-data-context).
+This resource is scoped to a data context. Omitting one selects `#default`, your plugin's
+own data context — see [the index](../README.md#the-default-data-context).
 <!-- END GENERATED: scope -->
 
 ## Values

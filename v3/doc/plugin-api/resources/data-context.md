@@ -33,11 +33,12 @@ collections, cases and items do not yet.
 | `dataContext` | create |
 <!-- END GENERATED: selectors -->
 
-`<context>` accepts a data context's name, its title, or its numeric id.
+`<context>` accepts a data context's name, its title, or its numeric id. Accepting a title is new
+in v3; v2 accepted a name or id only.
 
 <!-- BEGIN GENERATED: scope -->
-This resource is scoped to a data context. Omitting one selects `#default`, the first data
-context in the document — see [the index](../README.md#the-default-data-context).
+This resource is scoped to a data context. Omitting one selects `#default`, your plugin's
+own data context — see [the index](../README.md#the-default-data-context).
 <!-- END GENERATED: scope -->
 
 Creating is the exception to the defaulting rule: there is nothing to default to before the
@@ -159,6 +160,10 @@ Set two cases aside, then restore everything that is set aside:
 ```
 
 ## Known limitations
+
+**`title` is `undefined` when the data context has no title of its own.** v2 reported the title
+CODAP shows for it instead: its collections' names joined with `/`, or failing that its name.
+This is a known bug.
 
 **`create` on an existing name returns the existing data context.** This is deliberate and
 matches v2. CODAP replies `success: true` with that data set's `name`, `id` and `title`, having

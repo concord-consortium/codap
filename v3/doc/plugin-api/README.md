@@ -190,25 +190,38 @@ whereas "ids are numbers" does not. Do not parse an id, construct one, or assume
 ## The default data context
 
 Most resource selectors may omit the data context, in which case CODAP supplies `#default`, which
-resolves to **the first data context in the document**:
+resolves to **your plugin's own data context**:
 
 ```json
 { "action": "get", "resource": "collection[Cases].attributeList" }
 ```
 
-This is equivalent to naming `dataContext[#default]`. Two things to know:
+This is equivalent to naming `dataContext[#default]`. Your plugin's own data context is the one
+it created most recently with `create dataContext` without naming a data context in the selector.
+When a document is saved, CODAP records that link, and restores it when the document is opened
+again. A plugin that has no data context of its own gets a not-found error for a request that
+relies on the default.
+
+> **Known limitation.** v3 does not yet follow this rule. It resolves `#default` to the first
+> data context in the document, whichever plugin created it. In a document with one data context
+> the result is the same; in a document with several, a plugin relying on the default can read or
+> change another plugin's data. This is a known bug.
+
+Two more things to know:
 
 - Defaulting does **not** apply to these, which are not scoped to a data context:
   `component`, `componentList`, `dataContextList`, `dataDisplay`, `document`, `formulaEngine`,
   `global`, `globalList`, `interactiveApi`, `interactiveFrame`, `logMessage`,
   `logMessageMonitor`, `undoableActionPerformed`, `undoChangeNotice`. Note that
   `undoableActionPerformed` is an *operation* of the `undoChangeNotice` resource rather than a
-  resource of its own; it appears in CODAP's exemption list all the same.
+  resource of its own; it appears in CODAP's exemption list all the same. v2's list differed
+  slightly: it also exempted `configuration` and `configurationList`, and did not have
+  `dataDisplay` or `interactiveApi`.
 - It does not apply when you are **creating** a data context (`create dataContext` or
   `create dataContextFromURL`) — there is nothing to default to yet.
 
-In a document with more than one data context, relying on the default is fragile. Name the
-context explicitly.
+Until the known limitation above is fixed, relying on the default is fragile in a document with
+more than one data context. Name the context explicitly.
 
 ---
 
@@ -227,22 +240,22 @@ neither here nor there.
 | **[`allCases`](resources/all-cases.md)** | **this repo** |
 | **[`attribute`](resources/attribute.md)** | **this repo** |
 | **[`attributeList`](resources/attribute-list.md)** | **this repo** |
-| `attributeLocation` | wiki |
+| **[`attributeLocation`](resources/attribute-location.md)** | **this repo** |
 | **[`case`](resources/case.md)** | **this repo** |
 | **[`caseByID`](resources/case-by-id.md)** | **this repo** |
 | **[`caseByIndex`](resources/case-by-index.md)** | **this repo** |
 | **[`caseCount`](resources/case-count.md)** | **this repo** |
 | **[`caseFormulaSearch`](resources/case-formula-search.md)** | **this repo** |
 | **[`caseSearch`](resources/case-search.md)** | **this repo** |
-| `collection` | wiki |
-| `collectionList` | wiki |
+| **[`collection`](resources/collection.md)** | **this repo** |
+| **[`collectionList`](resources/collection.md)** | **this repo** |
 | **[`component`](resources/component.md)** | **this repo** |
 | **[`componentList`](resources/component-list.md)** | **this repo** |
 | `configuration` | wiki |
 | `configurationList` | wiki |
 | **[`dataContext`](resources/data-context.md)** | **this repo** |
-| `dataContextFromURL` | wiki |
-| `dataContextList` | wiki |
+| **[`dataContextFromURL`](resources/data-context-from-url.md)** | **this repo** |
+| **[`dataContextList`](resources/data-context-list.md)** | **this repo** |
 | **[`dataDisplay`](resources/data-display.md)** | **this repo** |
 | **[`document`](resources/document.md)** | **this repo** |
 | `formulaEngine` | wiki |

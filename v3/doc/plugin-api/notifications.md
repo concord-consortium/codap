@@ -405,7 +405,8 @@ skipped, as it already is for v3's component notifications.
 
 v2 is only a partial precedent. It skipped the requesting plugin for data changes that recorded
 which plugin asked for them, but several did not: `update` on `attribute`, the `createCases` sent
-when items are created, `moveCases`, and `dependentCases` all went to the requester too. v2 sent
+when items are created, `moveCases`, `moveAttribute`, and `dependentCases` all went to the
+requester too. v2 sent
 component notifications to every plugin, the requester included.
 
 **Data changes arrive one at a time, not as a list.** v2 collected the changes made together and

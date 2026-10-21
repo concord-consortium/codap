@@ -2,13 +2,8 @@
 # reports any resource that is undocumented and NOT listed here, and any line here that is
 # no longer needed. Maintained by hand.
 
-attributeLocation
-collection
-collectionList
 configuration
 configurationList
-dataContextFromURL
-dataContextList
 formulaEngine
 global
 globalList

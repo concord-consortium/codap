@@ -124,8 +124,8 @@ function renderScope(resourceNames) {
            "`dataContext` therefore changes what this resource returns only when the selector\n" +
            "contains such a segment."
   }
-  return "This resource is scoped to a data context. Omitting one selects `#default`, the first data\n" +
-         "context in the document — see [the index](../README.md#the-default-data-context)."
+  return "This resource is scoped to a data context. Omitting one selects `#default`, your plugin's\n" +
+         "own data context — see [the index](../README.md#the-default-data-context)."
 }
 
 function renderAdornmentTypes() {
@@ -199,8 +199,8 @@ function renderSelectorGrammar() {
     "that costs depends on which segment it was.",
     "",
     "- **A misspelled `dataContext`** is the dangerous one. With no data context named, CODAP",
-    "  supplies `#default`, so the request runs against the first data context in the document and",
-    "  reports success — against data you did not ask for.",
+    "  supplies `#default`, so the request runs against the default data context and reports",
+    "  success — against data you did not ask for.",
     "- **A misspelled `collection`** leaves the resource to resolve without one. For `attribute`",
     "  the search widens to the whole data context and usually finds the attribute anyway;",
     "  `attributeList` returns an empty list; the case resources report not found.",
@@ -213,7 +213,8 @@ function renderSelectorGrammar() {
     "reads the attributes of one collection of one data context.",
     "",
     "**Data-context defaulting.** When a selector omits `dataContext`, CODAP supplies `#default`,",
-    "which resolves to the first data context in the document. That does not apply to these",
+    "which resolves to the plugin's own data context (today, in v3, the first data context in the",
+    "document; see the index). That does not apply to these",
     `resource types: ${exempt}. Nor does it apply when creating a data context, since there is`,
     "nothing to default to yet. Note that some resources have a data context resolved and ignore",
     "it; each resource's page says which."

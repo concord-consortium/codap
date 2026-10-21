@@ -35,8 +35,8 @@ one comparison. `caseSearch` remains for plugins that already use it.
 The `collection` segment is required. `<collection>` accepts the collection's name or its id.
 
 <!-- BEGIN GENERATED: scope -->
-This resource is scoped to a data context. Omitting one selects `#default`, the first data
-context in the document — see [the index](../README.md#the-default-data-context).
+This resource is scoped to a data context. Omitting one selects `#default`, your plugin's
+own data context — see [the index](../README.md#the-default-data-context).
 <!-- END GENERATED: scope -->
 
 ## Search expressions
