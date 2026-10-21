@@ -73,7 +73,7 @@ jobs:
         with:
           path: v3/.cache/webpack/
           key: webpack-dev-build-${{ hashFiles('v3/webpack.config.js') }}
-      - uses: cypress-io/github-action@v6
+      - uses: cypress-io/github-action@v7
         with:
           working-directory: v3
           start: npm start
