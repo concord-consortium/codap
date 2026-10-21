@@ -83,7 +83,7 @@ reach a plugin by structured clone rather than JSON, so a key with no value surv
 | `precision` | yes | |
 | `unit` | yes | |
 | `defaultMin`, `defaultMax` | no | only when a default range is set |
-| `_categoryMap` | no | only when the attribute has a category set |
+| `_categoryMap` | in v3, yes | v3 returns it for every attribute, with `__order` listing the attribute's categories. v2 returned it only once something in CODAP had used the attribute's categories, such as a graph legend, so do not depend on it being there |
 | `v3.categoryShapes` | no | only when some category carries a point shape |
 
 ### What `create` and `update` accept
