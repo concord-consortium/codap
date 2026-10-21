@@ -546,24 +546,39 @@ export const GraphDataConfigurationModel = DataConfigurationModel
   }))
   .views(self => ({
     /**
-     * The plotted cases in every cell that agrees with cellKey in each of the given roles; the other
-     * roles may hold any category. Reading the cell grid's buckets, rather than comparing cellKey's
-     * values against raw case values, lets a kOther value find the overflow cases it stands for,
-     * and visits only the matching cells. A role with an attribute cellKey doesn't name matches no
-     * case, as a raw comparison against a missing value would.
+     * The plotted cases in every cell that shares cellKey's slot in each of the given roles; the
+     * other roles may hold any slot. The cases come from the cell grid's buckets, so a kOther cell
+     * gathers the overflow cases it stands for, and only the matching cells are visited.
+     *
+     * A key the grid generates is resolved to its cells first and the slots read from those, since
+     * its values can't always be mapped back to slots: an attribute in several roles keeps only one
+     * role's value, and a real category spelled like kOther shares the overflow cell's key. A key
+     * the grid doesn't generate falls back to mapping its values to slots, and matches no case if it
+     * lacks a value for one of the roles' attributes.
      */
     casesInCellsMatchingRoles(cellKey: Record<string, string>, roles: GraphSplitAttrRole[]) {
       const indexer = self.cellIndexer()
-      const slots: Partial<Record<GraphSplitAttrRole, number>> = {}
-      for (const role of roles) {
-        const attrId = self.attributeID(role)
-        if (!attrId) continue
-        const value = cellKey[attrId]
-        if (value === undefined) return []
-        slots[role] = indexer.slotFor(role, value)
+      const pick = (slotOf: (role: GraphSplitAttrRole) => number) => {
+        const slots: Partial<Record<GraphSplitAttrRole, number>> = {}
+        roles.forEach(role => { slots[role] = slotOf(role) })
+        return slots
       }
+      let sliceSlots: Partial<Record<GraphSplitAttrRole, number>>[]
+      const cellIndices = indexer.indicesForCellKey(cellKey)
+      if (cellIndices.length) {
+        sliceSlots = cellIndices.map(index => {
+          const cellSlots = indexer.slotsForIndex(index)
+          return pick(role => cellSlots[role])
+        })
+      } else {
+        const attrIds = roles.map(role => self.attributeID(role))
+        if (attrIds.some(attrId => attrId && cellKey[attrId] === undefined)) return []
+        sliceSlots = [pick(role => indexer.slotFor(role, cellKey[self.attributeID(role)]))]
+      }
+      // Cells that share a key can share a row or column too, so dedupe before reading buckets.
+      const indices = new Set(sliceSlots.flatMap(slots => indexer.indicesMatchingSlots(slots)))
       const buckets = self.casesByCellIndex()
-      return indexer.indicesMatchingSlots(slots).flatMap(index => buckets[index])
+      return Array.from(indices).sort((a, b) => a - b).flatMap(index => buckets[index])
     }
   }))
   .views(self => ({

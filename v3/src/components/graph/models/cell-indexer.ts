@@ -106,15 +106,23 @@ export class CellIndexer {
     return indices
   }
 
+  /** The slot each role occupies in the cell at this index; the inverse of indexForSlots. */
+  slotsForIndex(index: number): Record<GraphSplitAttrRole, number> {
+    return {
+      topSplit: Math.floor(index / (this.rightCount * this.yCount * this.xCount)),
+      rightSplit: Math.floor(index / (this.yCount * this.xCount)) % this.rightCount,
+      y: Math.floor(index / this.xCount) % this.yCount,
+      x: index % this.xCount
+    }
+  }
+
   cellKeyForIndex(index: number): Record<string, string> {
+    const slots = this.slotsForIndex(index)
     let cellKey: Record<string, string> = {}
-    const topIndex = Math.floor(index / (this.rightCount * this.yCount * this.xCount))
-    cellKey = updateCellKey(cellKey, this.roles.topSplit.attrId, this.roles.topSplit.cats[topIndex])
-    const rightIndex = Math.floor(index / (this.yCount * this.xCount)) % this.rightCount
-    cellKey = updateCellKey(cellKey, this.roles.rightSplit.attrId, this.roles.rightSplit.cats[rightIndex])
-    const yIndex = Math.floor(index / this.xCount) % this.yCount
-    cellKey = updateCellKey(cellKey, this.roles.y.attrId, this.roles.y.cats[yIndex])
-    cellKey = updateCellKey(cellKey, this.roles.x.attrId, this.roles.x.cats[index % this.xCount])
+    for (const role of ["topSplit", "rightSplit", "y", "x"] as const) {
+      const { attrId, cats } = this.roles[role]
+      cellKey = updateCellKey(cellKey, attrId, cats[slots[role]])
+    }
     return cellKey
   }
 
