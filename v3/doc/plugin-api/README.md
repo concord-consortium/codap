@@ -224,16 +224,16 @@ neither here nor there.
 |---|---|
 | **[`adornment`](resources/adornment.md)** | **this repo** |
 | **[`adornmentList`](resources/adornment.md)** | **this repo** |
-| `allCases` | wiki |
+| **[`allCases`](resources/all-cases.md)** | **this repo** |
 | **[`attribute`](resources/attribute.md)** | **this repo** |
 | **[`attributeList`](resources/attribute-list.md)** | **this repo** |
 | `attributeLocation` | wiki |
-| `case` | wiki |
-| `caseByID` | wiki |
-| `caseByIndex` | wiki |
-| `caseCount` | wiki |
-| `caseFormulaSearch` | wiki |
-| `caseSearch` | wiki |
+| **[`case`](resources/case.md)** | **this repo** |
+| **[`caseByID`](resources/case-by-id.md)** | **this repo** |
+| **[`caseByIndex`](resources/case-by-index.md)** | **this repo** |
+| **[`caseCount`](resources/case-count.md)** | **this repo** |
+| **[`caseFormulaSearch`](resources/case-formula-search.md)** | **this repo** |
+| **[`caseSearch`](resources/case-search.md)** | **this repo** |
 | `collection` | wiki |
 | `collectionList` | wiki |
 | **[`component`](resources/component.md)** | **this repo** |
