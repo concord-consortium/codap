@@ -4,9 +4,6 @@
 
 configuration
 configurationList
-formulaEngine
-global
-globalList
 logMessage
 logMessageMonitor
 tourElements

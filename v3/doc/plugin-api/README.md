@@ -258,9 +258,9 @@ neither here nor there.
 | **[`dataContextList`](resources/data-context-list.md)** | **this repo** |
 | **[`dataDisplay`](resources/data-display.md)** | **this repo** |
 | **[`document`](resources/document.md)** | **this repo** |
-| `formulaEngine` | wiki |
-| `global` | wiki |
-| `globalList` | wiki |
+| **[`formulaEngine`](resources/formula-engine.md)** | **this repo** |
+| **[`global`](resources/global.md)** | **this repo** |
+| **[`globalList`](resources/global.md)** | **this repo** |
 | **[`interactiveApi`](resources/interactive-api.md)** | **this repo** |
 | **[`interactiveFrame`](resources/interactive-frame.md)** | **this repo** |
 | **[`item`](resources/item.md)** | **this repo** |
