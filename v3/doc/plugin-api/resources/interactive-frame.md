@@ -1,6 +1,6 @@
 # interactiveFrame
 
-> **Applies to:** CODAP v3 · **Verified:** 2026-10-02
+> **Applies to:** CODAP v3 · **Verified:** 2026-10-22
 > · Parts of this page are generated — see [conventions](../conventions.md).
 
 The interactive frame is the plugin's own component — the tile the plugin is running inside.
@@ -99,6 +99,14 @@ honors fourteen; `codapVersion`, `externalUndoAvailable`, `standaloneUndoModeAva
 | `cannotClose` | no | yes |
 | `handlesLocaleChange` | no | yes |
 
+### Holding requests while the user edits
+
+`blockAPIRequestsWhileEditing` makes CODAP hold back plugin requests while the user edits a case
+table cell in a data context this plugin manages, and process them when the edit ends. It
+defaults to `false`. See
+[How CODAP processes requests](../guides/request-processing.md#requests-while-the-user-is-editing)
+for when it applies, what it holds back, and why to send it on every load.
+
 ### Saving state is the other way around
 
 `savedState` is readable here but not writable: `update` ignores a `state` property entirely.
@@ -111,10 +119,14 @@ the last save, not the plugin's current state.
 
 ### `lang` and `locale` are not the same thing
 
-`locale` is the full locale CODAP is running in, such as `pt-BR`. `lang` is only its two-letter
-base language, `pt`, and exists because v2 plugins expect that shape. A plugin that needs to
+`locale` is the locale CODAP is running in, such as `es` or `pt-BR`. `lang` is only its
+two-letter base language, `pt`, and exists because v2 plugins expect that shape. A plugin that needs to
 distinguish Brazilian from European Portuguese must read `locale`; a plugin that reads `lang`
 will see the same value for both.
+
+By default CODAP reloads a plugin when the user switches language. A plugin that sets
+`handlesLocaleChange` receives a `localeChanged` notification instead. Setting it has side
+effects, such as reloading the plugin once; see [Language and locale](../guides/locale.md).
 
 ## Examples
 
@@ -122,6 +134,32 @@ Read the frame at startup:
 
 ```json
 { "action": "get", "resource": "interactiveFrame" }
+```
+
+```json
+{
+  "success": true,
+  "values": {
+    "allowEmptyAttributeDeletion": true,
+    "blockAPIRequestsWhileEditing": false,
+    "codapVersion": "3.x.y",
+    "dimensions": { "width": 600, "height": 400 },
+    "externalUndoAvailable": true,
+    "id": 7,
+    "name": "Sampler",
+    "preventAttributeDeletion": false,
+    "preventBringToFront": false,
+    "preventDataContextReorg": false,
+    "preventTopLevelReorg": false,
+    "respectEditableItemAttribute": false,
+    "standaloneUndoModeAvailable": false,
+    "subscribeToDocuments": false,
+    "title": "Sampler",
+    "version": "",
+    "lang": "en",
+    "locale": "en-US"
+  }
+}
 ```
 
 Set the frame's size and the permissions a plugin needs:
@@ -206,13 +244,6 @@ For notifications CODAP sends *to* a plugin, see
 [the notification catalog](../notifications.md).
 
 ## Errors
-
-<!-- BEGIN GENERATED: errors -->
-| Error |
-|---|
-| `Interactive Frame not found` |
-| `A values object is required for this request.` |
-<!-- END GENERATED: errors -->
 
 | Error | Condition |
 |---|---|

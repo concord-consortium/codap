@@ -127,13 +127,29 @@ Rules:
   or after the block. If it is inside the markers and not derivable, the generator deletes it and
   reports the block as CHANGED — recoverable from git, but gone from the page.
   When in doubt, ask whether a script reading `src/data-interactive/` could produce the cell.
-- Current block names: `actions`, `selectors`, `scope`, `values`, `values-write`, `errors`, and
+- **The notification tables are the one exception.** Each table in `notifications.md` is a
+  generated block with one column a person writes: "Fires when". The generator decides which
+  operations are listed and what `values` carries, reads "Fires when" back out of the table, and
+  carries it forward by operation name. Edit that column in place. A row may name several
+  operations that share a description. An operation new in the code gets a row marked
+  `_not yet described_`, which the lint fails until it is described; a row whose operations are
+  all gone is dropped. The `component` notifications get one block per section of the page,
+  and an area of CODAP that no block claims fails the generator.
+- Current block names: `actions`, `selectors`, `scope`, `values`, `values-write`, and
   on the quick reference `adornment-types`, `resource-actions`, `selector-grammar`,
-  `error-catalog`.
+  `error-catalog`. On `notifications.md`: `notifications-data`, `notifications-drag`,
+  `notifications-undo`, `notifications-document`, `notifications-other`, and
+  `notifications-component-<section>`.
 - A page may carry **more than one property table** when the shape differs by action — the result
   of a `get` versus the values `create`/`update` accept. Mark both, with distinct names: `values`
   for the result shape and `values-write` for accepted input. Block names must be unique within a
   page, since the generator targets them by name.
+- **One table per list.** Do not follow a block with a second table that repeats its rows only to
+  add a column the generator cannot fill. When properties need notes and the block has no
+  `source=`, write one unmarked table with a Notes column instead. Errors are always one unmarked
+  `| Error | Condition |` table: nothing maps errors to resources, so there is nothing for a
+  generated block to hold. The lint still checks that every quoted error string exists in the
+  code.
 - A page written before the generator exists still uses the markers, with the content written by
   hand. That is the point — the generator takes over later with no restructuring.
 - **A marker shown as an example is still a marker.** The tools scan the raw file, so a marker
@@ -171,7 +187,8 @@ The exception is genuinely shared narrative — request coalescing, undo/redo, e
   copied the annotations into real requests.
 - Every request example must be one that would actually succeed if sent, against a document whose
   setup the surrounding prose describes.
-- Show the response too when its shape is not obvious.
+- Every `get` example shows its response, as a second ` ```json ` block. Other actions show one
+  when the response carries data a plugin will use, such as the id of something it created.
 - Type and default information belongs in the **Values** property table, not in a comment inside
   an example.
 - **JavaScript examples must not assume a helper library.** This reference documents the API, not

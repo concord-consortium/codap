@@ -52,24 +52,6 @@ attributes. It does **not** return cases: the conversion runs with case export s
 there is no `cases` key in the response regardless of how much data the set holds. Read cases
 through `allCases`, `caseSearch` or the `item` resources instead.
 
-<!-- BEGIN GENERATED: values -->
-| Property |
-|---|
-| `type` |
-| `document` |
-| `guid` |
-| `id` |
-| `name` |
-| `title` |
-| `collections` |
-| `flexibleGroupingChangeFlag` |
-| `preventReorg` |
-| `setAsideItems` |
-| `contextStorage` |
-| `metadata` |
-| `v3.filterFormula` |
-<!-- END GENERATED: values -->
-
 | Property | Always present | Notes |
 |---|---|---|
 | `type` | yes | `"DG.DataContext"` or `"DG.GameContext"`. Which one you get follows from whether a collection carries defaults, not from who owns the context, so do not branch on it |
@@ -89,16 +71,6 @@ through `allCases`, `caseSearch` or the `item` resources instead.
 ### What `create` accepts
 
 `create` reads only these five properties. Anything else you send is ignored.
-
-<!-- BEGIN GENERATED: values-write -->
-| Property |
-|---|
-| `name` |
-| `title` |
-| `description` |
-| `metadata` |
-| `collections` |
-<!-- END GENERATED: values-write -->
 
 | Property | Type | | Notes |
 |---|---|---|---|
@@ -245,16 +217,6 @@ Changes to the data itself — cases, attributes, collections — arrive on
 [the notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext).
 
 ## Errors
-
-<!-- BEGIN GENERATED: errors -->
-| Error |
-|---|
-| `DataContext not found` |
-| `Attribute not found` |
-| `<action> <resource>: <field> required` |
-| `unknown request: <value>` |
-| `An error occurred while processing the request.` |
-<!-- END GENERATED: errors -->
 
 | Error | Condition |
 |---|---|

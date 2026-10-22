@@ -239,9 +239,9 @@ function renderErrorCatalog() {
 
 
 // --- the notification catalog ------------------------------------------------------------
-// One block per resource family. These carry only what the extractor derives: the operation
-// name, the keys `values` carries, and, for component notifications, the area of CODAP that
-// raises it. When each one fires is judgment, and lives in the hand-written tables beside them.
+// One table per resource family, and for `component` one per area of CODAP that raises it. What
+// the generator owns and what a person writes is described under "The notification tables are
+// the one exception" in doc/plugin-api/conventions.md.
 //
 // Operation names are reproduced exactly as a plugin receives them; see "Operation names are
 // v2's" on the notifications page for why the untidy ones stay.
@@ -253,10 +253,33 @@ function notificationArea(source) {
            "dnd-kit": "drag" }[m[1]] ?? m[1]
 }
 
-// The families that get a section of their own. Everything else lands in one table, so a new
-// family added in code reaches the page rather than vanishing.
-const kNamedNotificationFamilies =
-  new Set(["component", "dataContextChangeNotice", "dragDrop", "undoChangeNotice", "document"])
+// The families that get a section of their own, by block name. Everything else lands in one
+// table, so a new family added in code reaches the page rather than vanishing.
+const kFamilyBlocks = {
+  "notifications-data": "dataContextChangeNotice",
+  "notifications-drag": "dragDrop",
+  "notifications-undo": "undoChangeNotice",
+  "notifications-document": "document"
+}
+// Component notifications, one block per section of the page, each holding the areas it names.
+// An area no block claims is reported rather than dropped.
+const kComponentBlocks = {
+  "notifications-component-lifecycle": ["lifecycle", "container", "other"],
+  "notifications-component-graph": ["graph"],
+  "notifications-component-axis": ["axis"],
+  "notifications-component-slider": ["slider"],
+  "notifications-component-map": ["map"],
+  "notifications-component-case-table": ["case table", "case card"],
+  "notifications-component-text": ["text", "calculator", "formula"],
+  "notifications-component-data-display": ["data display"]
+}
+const kNamedNotificationFamilies = new Set(["component", ...Object.values(kFamilyBlocks)])
+const kUndescribed = "_not yet described_"
+const emptyNotificationBlock = Symbol("empty notification block")
+const notificationKey = n => `${n.resource}\u0000${n.operation ?? ""}`
+// Tracked by entry, not by key: the same operation sent from an area no block claims must still
+// be reported, even though another area's table lists that operation.
+const placedNotifications = new Set()
 
 // "—" means no values beyond the operation; unreadable keys say so rather than guess.
 function notificationValues(n) {
@@ -270,33 +293,93 @@ function notificationOperation(n) {
   return n.noOperation ? "_none_" : "_computed at the call site_"
 }
 
-function renderNotificationsOther() {
-  const rows = (inventory.notifications ?? []).filter(n => !kNamedNotificationFamilies.has(n.resource))
-  if (!rows.length) return null
-  return ["| Resource | Operation | `values` carries |", "|---|---|---|",
-    ...rows.map(n => `| \`${n.resource}\` | ${notificationOperation(n)} | ${notificationValues(n)} |`)
-  ].join("\n")
+// The rows of an existing table: the cells under Resource, Operation and Fires when.
+function tableRows(body) {
+  const split = l => l.trim().replace(/^\||\|$/g, "").split(/(?<!\\)\|/).map(c => c.trim())
+  const lines = body.split("\n").filter(l => l.trim().startsWith("|"))
+  if (lines.length < 2) return []
+  const head = split(lines[0])
+  const at = name => head.indexOf(name)
+  return lines.slice(2).map(split).map(c => ({
+    resource: at("Resource") >= 0 ? c[at("Resource")] : null,
+    operation: c[at("Operation")] ?? "",
+    fires: at("Fires when") >= 0 && c[at("Fires when")] ? c[at("Fires when")] : kUndescribed
+  }))
 }
 
-function renderNotifications(family) {
-  const rows = (inventory.notifications ?? []).filter(n => n.resource === family)
-  if (!rows.length) return null
-  const withArea = family === "component"
-  // Every component notification also carries `id`, `type` and `diType`; the column lists what
-  // each one adds, and the page says so above it.
-  const head = withArea ? "| Operation | Raised by | `values` also carries |" : "| Operation | `values` carries |"
-  const rule = withArea ? "|---|---|---|" : "|---|---|"
-  const body = rows
-    .map(n => withArea
-      ? `| ${notificationOperation(n)} | ${notificationArea(n.source)} | ${notificationValues(n)} |`
-      : `| ${notificationOperation(n)} | ${notificationValues(n)} |`)
-  return [head, rule, ...body].join("\n")
+// `entries` are the notifications this table lists; `body` is the table as it stands.
+function renderNotificationTable(entries, body, { withResource = false, valuesHead = "`values` carries" } = {}) {
+  // A block whose last notification is gone would otherwise keep listing it; the page needs
+  // editing, so that is reported rather than left as hand-maintained.
+  if (!entries.length) return emptyNotificationBlock
+  const byKey = new Map(entries.map(n => [notificationKey(n), n]))
+  const placed = new Set()
+  const rows = []
+  for (const old of tableRows(body)) {
+    // `global[<name>]` is listed by its resource, `global`.
+    const resource = withResource ? (/`([^`[]+)/.exec(old.resource ?? "")?.[1] ?? "") : entries[0].resource
+    const names = [...old.operation.matchAll(/`([^`]+)`/g)].map(m => m[1])
+    const keys = (names.length ? names : [""]).map(op => `${resource}\u0000${op}`)
+    const live = keys.filter(k => byKey.has(k) && !placed.has(k))
+    // A name with a <placeholder> stands for a site the extractor reports as unresolved, so it has
+    // no entry to match and is kept as written.
+    const templated = names.length > 0 && names.every(op => op.includes("<"))
+    if (!live.length && !templated) continue
+    live.forEach(k => placed.add(k))
+    const members = live.map(k => byKey.get(k))
+    rows.push({
+      resource: old.resource,
+      operation: live.length === keys.length || templated ? old.operation
+        : members.map(notificationOperation).join(", "),
+      fires: old.fires,
+      members
+    })
+  }
+  for (const [k, n] of byKey) {
+    if (placed.has(k)) continue
+    rows.push({ resource: `\`${n.resource}\``, operation: notificationOperation(n), fires: kUndescribed, members: [n] })
+  }
+  entries.forEach(n => placedNotifications.add(n))
+
+  // A row naming several operations shows one values cell when they agree, and each one's otherwise.
+  const values = r => {
+    if (!r.members.length) return "_not readable from the code_"
+    const cells = r.members.map(notificationValues)
+    return cells.every(c => c === cells[0]) ? cells[0]
+      : r.members.map((n, i) => `${notificationOperation(n)}: ${cells[i]}`).join("; ")
+  }
+  // A values column that is the same on every row says so once, below the table.
+  const cells = rows.map(values)
+  const shared = rows.length > 1 && cells.every(c => c === cells[0]) && cells[0].startsWith("`") ? cells[0] : null
+  const head = ["Operation", "Fires when", ...(shared ? [] : [valuesHead])]
+  if (withResource) head.unshift("Resource")
+  const line = (r, i) => `| ${[...(withResource ? [r.resource] : []), r.operation, r.fires,
+                               ...(shared ? [] : [cells[i]])].join(" | ")} |`
+  return [`| ${head.join(" | ")} |`, `|${head.map(() => "---").join("|")}|`, ...rows.map(line),
+    ...(shared ? ["", `Every one carries ${shared} in \`values\`.`] : [])].join("\n")
 }
+
+function renderNotifications(block, body) {
+  const all = inventory.notifications ?? []
+  if (block === "notifications-other") {
+    return renderNotificationTable(all.filter(n => !kNamedNotificationFamilies.has(n.resource)), body,
+                                   { withResource: true })
+  }
+  if (kFamilyBlocks[block]) return renderNotificationTable(all.filter(n => n.resource === kFamilyBlocks[block]), body)
+  // Every component notification also carries `id`, `type` and `diType`; the column lists what
+  // each one adds, and the page says so above the tables.
+  const areas = kComponentBlocks[block]
+  return renderNotificationTable(
+    all.filter(n => n.resource === "component" && areas.includes(notificationArea(n.source))), body,
+    { valuesHead: "`values` also carries" })
+}
+const isNotificationBlock = name =>
+  name === "notifications-other" || name in kFamilyBlocks || name in kComponentBlocks
 
 // --- rewrite ---------------------------------------------------------------------------------
 // The body may be empty — a new page can declare a block and let the generator fill it.
 const BLOCK = /<!-- BEGIN GENERATED: ([\w-]+)((?:\s+\w+=\S+)*) -->\n?([\s\S]*?)\n?<!-- END GENERATED: \1 -->/g
-const report = { new: [], removed: [], changed: [], skipped: [], markers: [], badSource: [] }
+const report = { new: [], removed: [], changed: [], skipped: [], markers: [], badSource: [], emptyBlocks: [] }
 
 for (const page of [...pages, ...extraPages]) {
   const path = pages.includes(page) ? join(resourcesDir, page) : join(docsDir, page)
@@ -321,14 +404,13 @@ for (const page of [...pages, ...extraPages]) {
     else if (name === "resource-actions") rendered = renderResourceActions()
     else if (name === "selector-grammar") rendered = renderSelectorGrammar()
     else if (name === "error-catalog") rendered = renderErrorCatalog()
-    else if (name === "notifications-data") rendered = renderNotifications("dataContextChangeNotice")
-    else if (name === "notifications-component") rendered = renderNotifications("component")
-    else if (name === "notifications-drag") rendered = renderNotifications("dragDrop")
-    else if (name === "notifications-undo") rendered = renderNotifications("undoChangeNotice")
-    else if (name === "notifications-document") rendered = renderNotifications("document")
-    else if (name === "notifications-other") rendered = renderNotificationsOther()
+    else if (isNotificationBlock(name)) rendered = renderNotifications(name, body)
     else if (name.startsWith("values") && attrs.source) rendered = renderValues(attrs.source)
 
+    if (rendered === emptyNotificationBlock) {
+      report.emptyBlocks.push(`${page}: ${name}`)
+      return whole
+    }
     if (rendered == null) {
       // A block that *declares* a source is a claim: that interface exists and the tool fills
       // this table from it. If it does not resolve, the claim is false — a renamed or deleted
@@ -345,6 +427,13 @@ for (const page of [...pages, ...extraPages]) {
 
   if (after !== before && !check) writeFileSync(path, after)
 }
+
+// Every notification the code sends must land in some table: a family or area with no block on
+// the page would otherwise vanish from the catalog with every check green.
+const unplaced = (inventory.notifications ?? [])
+  .filter(n => !placedNotifications.has(n))
+  .map(n => `${n.resource} ${n.operation ?? "(no operation)"}` +
+            (n.resource === "component" ? ` — area "${notificationArea(n.source)}" has no block` : ""))
 
 // --- JSON Schema for the request envelope --------------------------------------------
 // Validates the envelope and the action vocabulary, and carries the resource -> supported
@@ -486,9 +575,14 @@ line("REMOVED (documented, not in code)", report.removed)
 if (report.skipped.length) line("Hand-maintained (left alone)", report.skipped)
 if (report.markers.length) line("MARKER PROBLEMS (page not rewritten)", report.markers)
 if (report.badSource.length) line("UNRESOLVED source= (block left frozen)", report.badSource)
+if (unplaced.length) line("NOTIFICATIONS IN NO TABLE (add a block for them)", unplaced)
+if (report.emptyBlocks.length) {
+  line("NOTIFICATION BLOCKS WITH NOTHING LEFT (left as is; remove the section)", report.emptyBlocks)
+}
 
 // Marker problems fail in both modes: in --check they are a defect, and in write mode they mean
 // a page was deliberately skipped, so exiting 0 would report success for work not done.
-if (report.markers.length || report.badSource.length) process.exit(2)
+if (report.markers.length || report.badSource.length || unplaced.length ||
+    report.emptyBlocks.length) process.exit(2)
 if (check && (report.changed.length || report.new.length || report.removed.length ||
               staleBaseline.length)) process.exit(2)

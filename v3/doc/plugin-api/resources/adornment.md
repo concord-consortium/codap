@@ -167,12 +167,15 @@ page does not yet cover.
 
 ## Examples
 
+These examples use a dot plot named `Heights`, showing one numeric attribute. `Mean` can be
+shown only on a dot plot, so on a scatter plot the same requests fail.
+
 **List the adornments on a graph.**
 
 ```json
 {
   "action": "get",
-  "resource": "component[Height by Weight].adornmentList"
+  "resource": "component[Heights].adornmentList"
 }
 ```
 
@@ -200,7 +203,19 @@ can display them.
 ```json
 {
   "action": "get",
-  "resource": "component[Height by Weight].adornment[Mean]"
+  "resource": "component[Heights].adornment[Mean]"
+}
+```
+
+```json
+{
+  "success": true,
+  "values": {
+    "id": "ADRN456",
+    "type": "Mean",
+    "isVisible": true,
+    "data": [ { "mean": 0.645 } ]
+  }
 }
 ```
 
@@ -209,7 +224,7 @@ can display them.
 ```json
 {
   "action": "create",
-  "resource": "component[Height by Weight].adornment",
+  "resource": "component[Heights].adornment",
   "values": { "type": "Mean" }
 }
 ```
@@ -219,7 +234,7 @@ can display them.
 ```json
 {
   "action": "delete",
-  "resource": "component[Height by Weight].adornment",
+  "resource": "component[Heights].adornment",
   "values": { "type": "Mean" }
 }
 ```
@@ -237,20 +252,6 @@ the
 [wiki page](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-Plugin-API).
 
 ## Errors
-
-<!-- BEGIN GENERATED: errors -->
-| Error |
-|---|
-| `Unsupported component type <type>` |
-| `Adornment not found.` |
-| `Adornment list not found.` |
-| `Unsupported adornment type` |
-| `The <type> adornment does not currently support <action> requests.` |
-| `Not a(n) <type> adornment.` |
-| `Adornment not supported by plot type.` |
-| `The current plot type does not support Percent.` |
-| `A values object is required for this request.` |
-<!-- END GENERATED: errors -->
 
 | Error | Condition |
 |---|---|

@@ -1,15 +1,15 @@
 # Notifications
 
-> **Applies to:** CODAP v3 · **Verified:** 2026-10-14
+> **Applies to:** CODAP v3 · **Verified:** 2026-10-22
 > · Parts of this page are generated — see [conventions](conventions.md).
 
 A notification is a message CODAP sends your plugin without being asked, because something
 changed: a user dragged an attribute onto a graph, deleted a case, renamed a component. This page
 catalogs them.
 
-The operation names, the keys each notification's `values` carries, and the area of CODAP that
-raises each component notification are generated from CODAP's source. When each one fires is
-written by hand beside them. Where the keys cannot be read from the code, the table says so
+The tables are generated from CODAP's source: which operations exist, which section each
+belongs in, and the keys each one's `values` carries. Only the "Fires when" column is written by
+hand. Where the keys cannot be read from the code, the table says so
 rather than guessing. Two operation names are assembled when they are sent, so the generated
 tables cannot list them: `toggle show as <plot type>` and `change bar chart from <old> to <new>`,
 both described under [Graph](#graph).
@@ -48,8 +48,6 @@ every connected plugin. The exceptions:
 - **Sent to one plugin only.**
   - `undoAction` and `redoAction` go only to the plugin that reported the undoable action. See
     [Undo and redo](#undo-and-redo--undochangenotice).
-  - `updateDocumentBegun` and `updateDocumentEnded` go only to the plugin that requested the
-    document replacement.
   - A `logMessageNotice` goes only to the plugin that registered the matching monitor.
   - `drag`, `dragenter`, `dragleave` and `drop` go only to the plugin under the pointer. See
     [Attribute drag](#attribute-drag--dragdropattribute).
@@ -134,27 +132,6 @@ Sent when the data in a context changes. The bracketed name is the data context'
 plugin watching one data set can filter on it.
 
 <!-- BEGIN GENERATED: notifications-data -->
-| Operation | `values` carries |
-|---|---|
-| `createAttributes` | `result` |
-| `createCases` | `result` |
-| `createCollection` | `result` |
-| `deleteAttributes` | `result` |
-| `deleteCases` | `result` |
-| `deleteCollection` | `result` |
-| `dependentCases` | `result` |
-| `hideAttributes` | `result` |
-| `moveAttribute` | `result` |
-| `moveCases` | `result` |
-| `selectCases` | `result` |
-| `showAttributes` | `result` |
-| `unhideAttributes` | `result` |
-| `updateAttributes` | `result` |
-| `updateCases` | `result` |
-| `updateCollection` | `result` |
-| `updateDataContext` | `result` |
-<!-- END GENERATED: notifications-data -->
-
 | Operation | Fires when |
 |---|---|
 | `createAttributes` | attributes are added |
@@ -174,6 +151,9 @@ plugin watching one data set can filter on it.
 | `deleteCollection` | a collection is removed |
 | `updateDataContext` | the context's own properties change, such as its title |
 
+Every one carries `result` in `values`.
+<!-- END GENERATED: notifications-data -->
+
 These operations are part of the contract, but CODAP does not send them yet; see
 [Known limitations](#known-limitations):
 
@@ -187,103 +167,7 @@ These operations are part of the contract, but CODAP does not send them yet; see
 
 Sent when a component is created, removed, or reconfigured. A plugin that wants to mirror what the
 user is doing to a graph listens here. Every one carries the component's `id`, its v2 `type`, and
-`diType`; the table lists what each adds to those.
-
-<!-- BEGIN GENERATED: notifications-component -->
-| Operation | Raised by | `values` also carries |
-|---|---|---|
-| `add 2nd axis attribute` | graph | _not readable from the code_ |
-| `add axis attribute` | graph | _not readable from the code_ |
-| `add movable value` | graph | — |
-| `attributeChange` | graph | _not readable from the code_ |
-| `backgroundImage` | graph | `to` |
-| `calculate` | calculator | — |
-| `change attribute color` | data display | `color`, `end` |
-| `change axis bounds` | axis | `newBounds` |
-| `change background color` | graph | `to` |
-| `change base map` | map | `to` |
-| `change bin parameter` | graph | — |
-| `change changePointColor` | data display | `color` |
-| `change changeStrokeColor` | data display | `color` |
-| `change column width` | case card | — |
-| `change formula` | graph | — |
-| `change grid size` | map | `from`, `to` |
-| `change legend bin count` | data display | `binCount` |
-| `change legend bins type` | data display | `binningType` |
-| `change legend range` | data display | `max`, `min` |
-| `change map coordinates` | map | `center`, `zoom` |
-| `change point color` | data display | `category`, `color` |
-| `change point shape` | data display | `category`, `shape` |
-| `change point size` | data display | `to` |
-| `change slider value` | slider | _not readable from the code_ |
-| `commitEdit` | text | `text`, `title` |
-| `create` | lifecycle | — |
-| `delete` | lifecycle | `name`, `title` |
-| `displayOnlySelected` | graph | — |
-| `drag bin boundary` | graph | `alignment`, `width` |
-| `drag movable line` | graph | — |
-| `drag movable point` | graph | — |
-| `drag movable value` | graph | — |
-| `edit formula` | formula | — |
-| `edit plot formula` | graph | `adornment`, `from`, `to` |
-| `edit text` | text | — |
-| `expand/collapse all` | case table | _not readable from the code_ |
-| `hide` | lifecycle | — |
-| `hide measure labels` | graph | `isChecked` |
-| `hide selected cases` | map | `numberHidden` |
-| `hide unselected cases` | map | `numberHidden` |
-| `hideSelected` | graph | `numberHidden` |
-| `hideUnselected` | graph | `numberHidden` |
-| `join` | case table | — |
-| `legendAttributeChange` | graph | _not readable from the code_ |
-| `lockBackgroundImage` | graph | — |
-| `move` | container | — |
-| `open case table` | case table | — |
-| `remove movable value` | graph | — |
-| `reposition equation` | graph | `adornment` |
-| `rescaleGraph` | graph | — |
-| `resize` | container | — |
-| `resize column` | case table | — |
-| `resize columns` | case table | — |
-| `setNumStdErrs` | graph | `to` |
-| `show` | lifecycle | — |
-| `show all cases` | map | — |
-| `show measure labels` | graph | `isChecked` |
-| `showAllCases` | graph | — |
-| `swap categories` | data display | `place` |
-| `switch bar and dot` | graph | `to` |
-| `titleChange` | other | `from`, `to` |
-| `toggle LSRL` | graph | `isChecked` |
-| `toggle MeasuresForSelection` | graph | `to` |
-| `toggle NumberToggle` | graph | `to` |
-| `toggle background transparency` | graph | `to` |
-| `toggle between histogram and dots` | graph | `to` |
-| `toggle card to table` | case table | — |
-| `toggle connecting line` | graph | `isChecked` |
-| `toggle lock intercept` | graph | `isChecked` |
-| `toggle minimize component` | container | — |
-| `toggle movable line` | graph | `isChecked` |
-| `toggle movable point` | graph | `isChecked` |
-| `toggle plot function` | graph | `isChecked` |
-| `toggle plotted Count` | graph | `isChecked` |
-| `toggle plotted Percent` | graph | `isChecked` |
-| `toggle plotted value` | graph | `isChecked` |
-| `toggle show ICI` | graph | `isChecked` |
-| `toggle show outliers` | graph | `isChecked` |
-| `toggle show residual plot` | graph | `isChecked` |
-| `toggle show squares` | graph | `isChecked` |
-| `toggle stroke same as fill` | data display | `isChecked` |
-| `toggle table to card` | case table | — |
-| `togglePlottedBoxPlot` | graph | `isChecked` |
-| `togglePlottedMad` | graph | `isChecked` |
-| `togglePlottedMean` | graph | `isChecked` |
-| `togglePlottedMedian` | graph | `isChecked` |
-| `togglePlottedNormal` | graph | `isChecked` |
-| `togglePlottedStDev` | graph | `isChecked` |
-| `togglePlottedStErr` | graph | `isChecked` |
-| `unlockBackgroundImage` | graph | — |
-| `update` | other | _not readable from the code_ |
-<!-- END GENERATED: notifications-component -->
+`diType`; each table below lists what each operation adds to those.
 
 `diType` uses the same type vocabulary as [`component`](resources/component.md). Most
 notifications also carry the resulting value, so a plugin can see the new state without asking
@@ -291,117 +175,133 @@ for it.
 
 ### Lifecycle
 
-| Operation | Fires when |
-|---|---|
-| `create` | a component is created. The calculator usually sends `show` instead; see below |
-| `delete` | a component is closed or deleted. **Also sent when a component is only hidden**, as the guide is when it is closed, and when a case table is closed from its title bar; reopening the table sends `create`. Closing a case card sends nothing |
-| `titleChange` | a component is renamed. Sent on `component[<id>]` rather than `component` |
-| `hide`, `show` | the calculator is closed, or toggled from the tool shelf |
-| `move`, `resize` | a component is moved or resized |
-| `update` | a component's properties are changed through the API. Echoes the values from the request |
-| `toggle minimize component` | a component is minimized or restored |
+<!-- BEGIN GENERATED: notifications-component-lifecycle -->
+| Operation | Fires when | `values` also carries |
+|---|---|---|
+| `create` | a component is created. The calculator usually sends `show` instead; see below | — |
+| `delete` | a component is closed or deleted. **Also sent when a component is only hidden**, as the guide is when it is closed. v2 also sent it when a case table was closed from its title bar, and `create` when that close was undone; v3 sends neither, see [Known limitations](#known-limitations). Closing a case card sends nothing | `name`, `title` |
+| `titleChange` | a component is renamed. Sent on `component[<id>]` rather than `component` | `from`, `to` |
+| `hide`, `show` | the calculator is closed, or toggled from the tool shelf | — |
+| `move`, `resize` | a component is moved or resized | — |
+| `update` | a component's properties are changed through the API. Echoes the values from the request | _not readable from the code_ |
+| `toggle minimize component` | a component is minimized or restored | — |
+<!-- END GENERATED: notifications-component-lifecycle -->
 
 ### Graph
 
 The largest group.
 
-| Operation | Fires when |
-|---|---|
-| `add axis attribute` | an attribute is dropped on the y-axis "+" target |
-| `add 2nd axis attribute` | an attribute is dropped on the right-hand numeric axis. Also sent when that attribute is removed |
-| `attributeChange` | an attribute is placed on, replaced on, or removed from an axis or the plot, by dropping it or from an axis label's menu |
-| `legendAttributeChange` | the legend attribute is set or replaced, by dropping it or from the legend's menu. Removing it sends nothing |
-| `change background color`, `toggle background transparency` | the plot background changes |
-| `add movable value`, `remove movable value`, `drag movable value` | movable values are added, removed or dragged |
-| `drag movable point` | the user finishes dragging the movable point |
-| `drag movable line` | the user finishes dragging the movable line. v2 sent nothing here, so this is new in v3 |
-| `toggle connecting line`, `toggle show squares`, `toggle show residual plot`, `toggle lock intercept` | adornments are toggled |
-| `toggle show outliers` | the box plot's "Show Outliers" option is toggled |
-| `setNumStdErrs` | the number of standard errors shown changes |
-| `toggle show ICI` | the box plot's informal confidence interval is toggled. New in v3 — v2 sent `toggle show outliers` for this, which was a v2 bug |
-| `togglePlottedMean`, `togglePlottedMedian`, `togglePlottedStDev`, `togglePlottedStErr`, `togglePlottedMad`, `togglePlottedNormal` | a univariate measure adornment is switched on or off |
-| `toggle movable line`, `toggle movable point`, `toggle plot function`, `toggle plotted value` | the matching adornment is switched on or off |
-| `toggle plotted Count`, `toggle plotted Percent` | the count or percent adornment is toggled |
-| `togglePlottedBoxPlot`, `toggle LSRL` | the box plot or least-squares line is toggled |
-| `show measure labels`, `hide measure labels` | measure labels are shown or hidden |
-| `toggle show as <plot type>` | the plot is switched between dots, a bar for each point, and bins. The name ends with `DotPlot`, `LinePlot` or `BinnedPlot`, so match on the prefix |
-| `toggle between histogram and dots`, `switch bar and dot` | the plot type is switched |
-| `change bar chart from <old> to <new>` | a bar chart switches to counts or percents. `<new>` is `count` or `percent`; `<old>` can also be `formula` |
-| `change formula` | a bar chart's formula is applied in its formula editor |
-| `edit plot formula` | a plotted value or plotted function formula is edited |
-| `toggle MeasuresForSelection`, `toggle NumberToggle` | the measures-for-selection or number-toggle settings change |
-| `displayOnlySelected` | the graph is set to display only the selected cases |
-| `hideSelected`, `hideUnselected` | the selected or unselected cases are hidden from the graph |
-| `showAllCases` | hidden cases are shown again |
-| `reposition equation` | an adornment's equation is moved |
-| `rescaleGraph` | the graph is rescaled to fit its data |
-| `change bin parameter` | a histogram's bin width or alignment changes |
-| `drag bin boundary` | the user drags a bin boundary on a binned plot or histogram |
-| `backgroundImage` | a background image is added to or removed from the plot. `to` is `"added"` or `"removed"` |
-| `lockBackgroundImage`, `unlockBackgroundImage` | the background image is locked to the axes, or released |
+<!-- BEGIN GENERATED: notifications-component-graph -->
+| Operation | Fires when | `values` also carries |
+|---|---|---|
+| `add axis attribute` | an attribute is dropped on the y-axis "+" target | _not readable from the code_ |
+| `add 2nd axis attribute` | an attribute is dropped on the right-hand numeric axis. Also sent when that attribute is removed | _not readable from the code_ |
+| `attributeChange` | an attribute is placed on, replaced on, or removed from an axis or the plot, by dropping it or from an axis label's menu | _not readable from the code_ |
+| `legendAttributeChange` | the legend attribute is set or replaced, by dropping it or from the legend's menu. Removing it sends nothing | _not readable from the code_ |
+| `change background color`, `toggle background transparency` | the plot background changes | `to` |
+| `add movable value`, `remove movable value`, `drag movable value` | movable values are added, removed or dragged | — |
+| `drag movable point` | the user finishes dragging the movable point | — |
+| `drag movable line` | the user finishes dragging the movable line. New in v3; v2 sent nothing here | — |
+| `toggle connecting line`, `toggle show squares`, `toggle show residual plot`, `toggle lock intercept` | adornments are toggled | `isChecked` |
+| `toggle show outliers` | the box plot's "Show Outliers" option is toggled | `isChecked` |
+| `setNumStdErrs` | the number of standard errors shown changes | `to` |
+| `toggle show ICI` | the box plot's informal confidence interval is toggled. New in v3; v2 sent `toggle show outliers` here, which was a v2 bug | `isChecked` |
+| `togglePlottedMean`, `togglePlottedMedian`, `togglePlottedStDev`, `togglePlottedStErr`, `togglePlottedMad`, `togglePlottedNormal` | a univariate measure adornment is switched on or off | `isChecked` |
+| `toggle movable line`, `toggle movable point`, `toggle plot function`, `toggle plotted value` | the matching adornment is switched on or off | `isChecked` |
+| `toggle plotted Count`, `toggle plotted Percent` | the count or percent adornment is toggled | `isChecked` |
+| `togglePlottedBoxPlot`, `toggle LSRL` | the box plot or least-squares line is toggled | `isChecked` |
+| `show measure labels`, `hide measure labels` | measure labels are shown or hidden | `isChecked` |
+| `toggle show as <plot type>` | the plot is switched between dots, a bar for each point, and bins. The name ends with `DotPlot`, `LinePlot` or `BinnedPlot`, so match on the prefix | _not readable from the code_ |
+| `toggle between histogram and dots`, `switch bar and dot` | the plot type is switched | `to` |
+| `change bar chart from <old> to <new>` | a bar chart switches to counts or percents. `<new>` is `count` or `percent`; `<old>` can also be `formula` | _not readable from the code_ |
+| `change formula` | a bar chart's formula is applied in its formula editor | — |
+| `edit plot formula` | a plotted value or plotted function formula is edited | `adornment`, `from`, `to` |
+| `toggle MeasuresForSelection`, `toggle NumberToggle` | the measures-for-selection or number-toggle settings change | `to` |
+| `displayOnlySelected` | the graph is set to display only the selected cases | — |
+| `hideSelected`, `hideUnselected` | the selected or unselected cases are hidden from the graph | `numberHidden` |
+| `showAllCases` | hidden cases are shown again | — |
+| `reposition equation` | an adornment's equation is moved | `adornment` |
+| `rescaleGraph` | the graph is rescaled to fit its data | — |
+| `change bin parameter` | a histogram's bin width or alignment changes | — |
+| `drag bin boundary` | the user drags a bin boundary on a binned plot or histogram | `alignment`, `width` |
+| `backgroundImage` | a background image is added to or removed from the plot. `to` is `"added"` or `"removed"` | `to` |
+| `lockBackgroundImage`, `unlockBackgroundImage` | the background image is locked to the axes, or released | — |
+<!-- END GENERATED: notifications-component-graph -->
 
 ### Axis
 
-| Operation | Fires when |
-|---|---|
-| `change axis bounds` | the user finishes dragging or stretching a numeric axis, or option-clicks to zoom. Option-clicking the plot zooms both numeric axes and sends one notification for each. Rescaling the graph sends `rescaleGraph` instead |
+<!-- BEGIN GENERATED: notifications-component-axis -->
+| Operation | Fires when | `values` also carries |
+|---|---|---|
+| `change axis bounds` | the user finishes dragging or stretching a numeric axis, or option-clicks to zoom. Option-clicking the plot zooms both numeric axes and sends one notification for each. Rescaling the graph sends `rescaleGraph` instead | `newBounds` |
+<!-- END GENERATED: notifications-component-axis -->
 
 ### Slider
 
-| Operation | Fires when |
-|---|---|
-| `change slider value` | the user finishes changing a slider's value: releasing the thumb, entering a value, or using the arrow keys. While the thumb is being dragged, and while the slider animates, only the value notice on `global[<name>]` is sent; see [Everything else](#everything-else) |
+<!-- BEGIN GENERATED: notifications-component-slider -->
+| Operation | Fires when | `values` also carries |
+|---|---|---|
+| `change slider value` | the user finishes changing a slider's value: releasing the thumb, entering a value, or using the arrow keys. While the thumb is being dragged, and while the slider animates, only the value notice on `global[<name>]` is sent; see [Everything else](#everything-else) | _not readable from the code_ |
+<!-- END GENERATED: notifications-component-slider -->
 
 ### Map
 
-| Operation | Fires when |
-|---|---|
-| `change base map` | the base map changes |
-| `change grid size` | the user releases the grid-size slider. It does not fire during the drag |
-| `change map coordinates` | the map settles after the user pans or zooms it, or rescales it from the inspector |
-| `hide selected cases`, `hide unselected cases`, `show all cases` | case visibility changes on a map |
+<!-- BEGIN GENERATED: notifications-component-map -->
+| Operation | Fires when | `values` also carries |
+|---|---|---|
+| `change base map` | the base map changes | `to` |
+| `change grid size` | the user releases the grid-size slider. It does not fire during the drag | `from`, `to` |
+| `change map coordinates` | the map settles after the user pans or zooms it, or rescales it from the inspector | `center`, `zoom` |
+| `hide selected cases`, `hide unselected cases`, `show all cases` | case visibility changes on a map | `hide selected cases`: `numberHidden`; `hide unselected cases`: `numberHidden`; `show all cases`: — |
+<!-- END GENERATED: notifications-component-map -->
 
 Changing a map's legend attribute should send `legendAttributeChange`, as it does on a graph. v3
 does not send it yet; see [Known limitations](#known-limitations).
 
 ### Case table and case card
 
-| Operation | Fires when |
-|---|---|
-| `open case table` | a case table is opened, or shown again, for a data context |
-| `expand/collapse all` | every group is expanded or collapsed. `to` is `"expanded"` or `"collapsed"` |
-| `resize column` | one column's width changes: dragged, or fitted to its contents |
-| `resize columns` | every column is fitted to its contents |
-| `change column width` | a case card column is resized |
-| `join` | an attribute from another data set is dropped on a case table's attribute header to join the data. The data context also reports `createAttributes` and `dependentCases` |
-| `toggle card to table`, `toggle table to card` | a data context's case card is switched to a case table, or the reverse |
+<!-- BEGIN GENERATED: notifications-component-case-table -->
+| Operation | Fires when | `values` also carries |
+|---|---|---|
+| `open case table` | a case table is opened, or shown again, for a data context | — |
+| `expand/collapse all` | every group is expanded or collapsed. `to` is `"expanded"` or `"collapsed"` | _not readable from the code_ |
+| `resize column` | one column's width changes: dragged, or fitted to its contents | — |
+| `resize columns` | every column is fitted to its contents | — |
+| `change column width` | a case card column is resized | — |
+| `join` | an attribute from another data set is dropped on a case table's attribute header to join the data. The data context also reports `createAttributes` and `dependentCases` | — |
+| `toggle card to table`, `toggle table to card` | a data context's case card is switched to a case table, or the reverse | — |
+<!-- END GENERATED: notifications-component-case-table -->
 
 ### Text, calculator, formula
 
-| Operation | Fires when |
-|---|---|
-| `edit text` | **every** content-changing edit in a text component, so a plugin can follow a live edit. Selection-only changes are filtered out |
-| `commitEdit` | editing ends and the text actually changed; a change of style alone sends nothing. `text` is the rich-text value serialized as a JSON string, not plain text. Also carries the component's `title` |
-| `calculate` | the calculator evaluates, **and** when it is cleared |
-| `edit formula` | an attribute's formula is applied in its formula editor. Carried by the data context's case table, open or closed, so it is not sent when the data context has never had one |
+<!-- BEGIN GENERATED: notifications-component-text -->
+| Operation | Fires when | `values` also carries |
+|---|---|---|
+| `edit text` | **every** content-changing edit in a text component, so a plugin can follow a live edit. Selection-only changes are filtered out | — |
+| `commitEdit` | editing ends and the text actually changed; a change of style alone sends nothing. `text` is the rich-text value serialized as a JSON string, not plain text. Also carries the component's `title` | `text`, `title` |
+| `calculate` | the calculator evaluates, **and** when it is cleared | — |
+| `edit formula` | an attribute's formula is applied in its formula editor. Carried by the data context's case table, open or closed, so it is not sent when the data context has never had one | — |
+<!-- END GENERATED: notifications-component-text -->
 
 ### Data display
 
 Shared by graphs and maps.
 
-| Operation | Fires when |
-|---|---|
-| `change changePointColor` | the user picks the single color for all points. This control appears only when no categorical or numeric legend colors the points. Each pick sends one, and cancelling the picker sends one more restoring the original color |
-| `change point color` | the user picks the color for one category of a categorical legend |
-| `change attribute color` | the user picks the color for the low or high end of a numeric legend. `end` is `"low"` or `"high"` |
-| `change changeStrokeColor` | the user picks a stroke color. Not available while the stroke follows the fill |
-| `toggle stroke same as fill` | the stroke-follows-fill setting is toggled |
-| `change point size` | the user finishes changing the point size: releasing the slider, or using the arrow keys |
-| `change point shape` | the user picks a point shape. No v2 counterpart |
-| `change legend bin count` | the number of bins for a numeric legend changes. Carries the clamped count |
-| `change legend bins type` | a numeric legend switches between linear and quantile binning |
-| `change legend range` | a numeric legend's min or max is edited |
-| `swap categories` | the user finishes dragging a category label to reorder it |
+<!-- BEGIN GENERATED: notifications-component-data-display -->
+| Operation | Fires when | `values` also carries |
+|---|---|---|
+| `change changePointColor` | the user picks the single color for all points. This control appears only when no categorical or numeric legend colors the points. Each pick sends one, and cancelling the picker sends one more restoring the original color | `color` |
+| `change point color` | the user picks the color for one category of a categorical legend | `category`, `color` |
+| `change attribute color` | the user picks the color for the low or high end of a numeric legend. `end` is `"low"` or `"high"` | `color`, `end` |
+| `change changeStrokeColor` | the user picks a stroke color. Not available while the stroke follows the fill | `color` |
+| `toggle stroke same as fill` | the stroke-follows-fill setting is toggled | `isChecked` |
+| `change point size` | the user finishes changing the point size: releasing the slider, or using the arrow keys | `to` |
+| `change point shape` | the user picks a point shape. New in v3 | `category`, `shape` |
+| `change legend bin count` | the number of bins for a numeric legend changes. Carries the clamped count | `binCount` |
+| `change legend bins type` | a numeric legend switches between linear and quantile binning | `binningType` |
+| `change legend range` | a numeric legend's min or max is edited | `max`, `min` |
+| `swap categories` | the user finishes dragging a category label to reorder it | `place` |
+<!-- END GENERATED: notifications-component-data-display -->
 
 A legend whose attribute holds colors uses those colors directly, so it has no color control and
 sends none of the color notifications.
@@ -411,43 +311,27 @@ sends none of the color notifications.
 Sent while a user drags an attribute, so a plugin can offer a drop target or react to one.
 
 <!-- BEGIN GENERATED: notifications-drag -->
-| Operation | `values` carries |
-|---|---|
-| `drag` | `attribute`, `collection`, `context`, `position`, `text` |
-| `dragend` | `attribute`, `collection`, `context`, `text` |
-| `dragenter` | `attribute`, `collection`, `context`, `text` |
-| `dragleave` | `attribute`, `collection`, `context`, `text` |
-| `dragstart` | `attribute`, `collection`, `context`, `text` |
-| `drop` | `attribute`, `collection`, `context`, `position`, `text` |
+| Operation | Fires when | `values` carries |
+|---|---|---|
+| `dragstart` | an attribute drag begins. Sent to every plugin | `attribute`, `collection`, `context`, `text` |
+| `dragend` | the drag ends, dropped or not. Sent to every plugin | `attribute`, `collection`, `context`, `text` |
+| `dragenter`, `dragleave` | the pointer enters or leaves your plugin during the drag | `attribute`, `collection`, `context`, `text` |
+| `drag` | the pointer moves over your plugin during the drag | `attribute`, `collection`, `context`, `position`, `text` |
+| `drop` | the attribute is dropped on your plugin | `attribute`, `collection`, `context`, `position`, `text` |
 <!-- END GENERATED: notifications-drag -->
-
-| Operation | Fires when |
-|---|---|
-| `dragstart` | an attribute drag begins. Sent to every plugin |
-| `dragend` | the drag ends, dropped or not. Sent to every plugin |
-| `dragenter`, `dragleave` | the pointer enters or leaves your plugin during the drag |
-| `drag` | the pointer moves over your plugin during the drag |
-| `drop` | the attribute is dropped on your plugin |
 
 `drag` and `drop` carry `position`, measured from the top-left corner of your plugin.
 
 ## Undo and redo — `undoChangeNotice`
 
 <!-- BEGIN GENERATED: notifications-undo -->
-| Operation | `values` carries |
-|---|---|
-| `clearRedo` | `canRedo`, `canUndo` |
-| `clearUndo` | `canRedo`, `canUndo` |
-| `redoAction` | — |
-| `undoAction` | — |
+| Operation | Fires when | `values` carries |
+|---|---|---|
+| `undoAction` | the user undoes an action your plugin reported as undoable | — |
+| `redoAction` | the user redoes an action your plugin reported as undoable | — |
+| `clearUndo` | the undo history is emptied, for example by a change that cannot be undone. Sent to every plugin. v3 sends it at different moments; see [Known limitations](#known-limitations) | `canRedo`, `canUndo` |
+| `clearRedo` | an action is added to the history, which empties the redo history. Sent to every plugin. v3 sends it at different moments; see [Known limitations](#known-limitations) | `canRedo`, `canUndo` |
 <!-- END GENERATED: notifications-undo -->
-
-| Operation | Fires when |
-|---|---|
-| `undoAction` | the user undoes an action your plugin reported as undoable |
-| `redoAction` | the user redoes an action your plugin reported as undoable |
-| `clearUndo` | the undo history becomes empty, so there is nothing left to undo. Sent to every plugin |
-| `clearRedo` | the redo history becomes empty. Sent to every plugin |
 
 **`undoAction` and `redoAction` answer your own reports.** CODAP cannot undo a change inside your
 plugin, so it does not tell you about undo in general. Instead, when your plugin makes a change
@@ -463,14 +347,10 @@ CODAP adds an entry to its undo history. When the user undoes or redoes that ent
 ## Document state — `document`
 
 <!-- BEGIN GENERATED: notifications-document -->
-| Operation | `values` carries |
-|---|---|
-| `newDocumentState` | `state` |
+| Operation | Fires when | `values` carries |
+|---|---|---|
+| `newDocumentState` | CODAP has assembled the document, in reply to a `get document` | `state` |
 <!-- END GENERATED: notifications-document -->
-
-| Operation | Fires when |
-|---|---|
-| `newDocumentState` | CODAP has assembled the document, in reply to a `get document` |
 
 This one is opt-in: only plugins whose `subscribeToDocuments` is `true` receive it, and every
 such plugin receives it — including ones that did not ask. See
@@ -489,27 +369,16 @@ These operations are part of the contract, but CODAP does not send them yet; see
 Four more resources, each with a few notifications.
 
 <!-- BEGIN GENERATED: notifications-other -->
-| Resource | Operation | `values` carries |
-|---|---|---|
-| `documentChangeNotice` | `dataContextCountChanged` | — |
-| `documentChangeNotice` | `dataContextDeleted` | `deletedContext` |
-| `global` | `localeChanged` | `lang`, `locale` |
-| `documentChangeNotice` | `updateDocumentBegun` | — |
-| `documentChangeNotice` | `updateDocumentEnded` | — |
-| `global` | _none_ | `globalValue` |
-| `interactiveFrame` | _computed at the call site_ | _not readable from the code_ |
-| `logMessageNotice` | _none_ | `formatStr`, `logMonitor`, `message`, … |
+| Resource | Operation | Fires when | `values` carries |
+|---|---|---|---|
+| `documentChangeNotice` | `dataContextCountChanged` | a data context is created or deleted anywhere in the document | — |
+| `documentChangeNotice` | `dataContextDeleted` | a data context is deleted. `deletedContext` is its name | `deletedContext` |
+| `documentChangeNotice` | `updateDocumentBegun`, `updateDocumentEnded` | a plugin, or the host page CODAP is embedded in, replaced the document with `update document`; the two bracket the replacement. Sent to every plugin. v3 sends them only to the plugin that asked; see [Known limitations](#known-limitations) | — |
+| `global[<name>]` | none | a global value changes: a slider is dragged or animates, or a plugin sets the value with `update` on `global`. `<name>` is the slider's global value name, and `globalValue` is the new value. This is how a plugin follows a slider continuously. v3 does not yet send it when a plugin sets the value; see [Known limitations](#known-limitations) | `globalValue` |
+| `global` | `localeChanged` | CODAP's locale changed. Carries `lang`, the two-letter base language, and `locale`, the locale itself, such as `pt-BR`. Sent only to plugins that set `handlesLocaleChange`; see [Language and locale](guides/locale.md) | `lang`, `locale` |
+| `logMessageNotice` | none | a user-analytics log event matched a monitor your plugin registered. Carries `message`, `formatStr` and `logMonitor`, and sometimes `topic` and `replaceArgs` | `formatStr`, `logMonitor`, `message`, … |
+| `interactiveFrame` | computed | guided-tour and highlight messages — `tourUpdate` and `highlightUpdate`. Not documented further yet, because the implementation behind them is being replaced | _not readable from the code_ |
 <!-- END GENERATED: notifications-other -->
-
-| Resource | Operation | Fires when |
-|---|---|---|
-| `documentChangeNotice` | `dataContextCountChanged` | a data context is created or deleted anywhere in the document |
-| `documentChangeNotice` | `dataContextDeleted` | a data context is deleted. `deletedContext` is its name |
-| `documentChangeNotice` | `updateDocumentBegun`, `updateDocumentEnded` | your plugin replaced the document with `update document`; the two bracket the replacement. Sent only to the plugin that asked |
-| `global[<name>]` | none | a global value changes: a slider is dragged or animates, or a plugin sets the value with `update` on `global`. `<name>` is the slider's global value name, and `globalValue` is the new value. This is how a plugin follows a slider continuously. v3 does not yet send it when a plugin sets the value; see [Known limitations](#known-limitations) |
-| `global` | `localeChanged` | CODAP's locale changed. Carries `lang`, the two-letter base language, and `locale`, the full one. By default CODAP reloads a plugin when the locale changes; a plugin receives this instead only if it sets `handlesLocaleChange: true` on [`interactiveFrame`](resources/interactive-frame.md), on every load |
-| `logMessageNotice` | none | a user-analytics log event matched a monitor your plugin registered. Carries `message`, `formatStr` and `logMonitor`, and sometimes `topic` and `replaceArgs` |
-| `interactiveFrame` | computed | guided-tour and highlight messages — `tourUpdate` and `highlightUpdate`. Not documented further yet, because the implementation behind them is being replaced |
 
 `dataContextCountChanged` and `dataContextDeleted` arrive here rather than on a named context
 because there may be no context left to name.
@@ -586,8 +455,8 @@ and `request: "autoScale"`, or when the map rescales itself because its layers c
 when a plugin set the center or zoom. This is a known bug.
 
 **Closing a case table sends no notification.** v2 sent `delete` on `component` when the user
-closed a case table from its title bar, and `create` when it was reopened, as the
-[Lifecycle](#lifecycle) table describes. v3 sends neither. This is a known bug.
+closed a case table from its title bar, and `create` when that close was undone. v3 sends
+neither. This is a known bug.
 
 **Changing a map's legend attribute sends no notification.** v2 sent `legendAttributeChange` for
 maps as for graphs. v3 sends nothing. This is a known bug.
@@ -597,11 +466,19 @@ global value changed, whoever changed it. v3 sends it only when a slider changes
 plugin following a slider that another plugin drives through `update` on `global` hears nothing.
 This is a known bug.
 
-**Undo and redo are not announced on `document`.** v2 sent a default notification to every plugin
-when the user undid or redid anything — `resource: "document"`, `operation: "undo"` or `"redo"` —
-so a plugin could watch one resource and know the user had undone something. v3 does not send it,
-so a v2 plugin listening on `document` hears nothing. This is a known bug; the intended behavior is
-that v3 sends v2's notification as well as its own.
+**Undo and redo are not announced on `document`.** v3 does not send v2's `undo` and `redo`
+notifications on `document`. This is a known bug; see
+[Undo and redo](guides/undo-and-redo.md#known-limitations).
+
+**`clearUndo` and `clearRedo` are sent at different moments from v2.** In particular, v3 sends
+nothing when an action is added to an empty redo history, so a plugin does not hear that undo
+has become possible. This is a known bug; see
+[Undo and redo](guides/undo-and-redo.md#known-limitations).
+
+**`updateDocumentBegun` and `updateDocumentEnded` go only to the plugin that asked.** v2 sent
+both to every plugin whoever replaced the document, so each could tell that the document was
+being replaced. v3 does that only when the host page CODAP is
+[embedded in](guides/embedded-server.md) makes the request. This is a known bug.
 
 **Log event names do not match v2's.** About 27 event tokens were renamed in v3, and about 11
 payloads reshaped — `addAxisAttribute`, `attributeRemoved`, `dragEnd`, the `toggle*` family and
