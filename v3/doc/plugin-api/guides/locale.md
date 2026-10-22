@@ -1,10 +1,10 @@
 # Language and locale
 
-> **Applies to:** CODAP v3 · **Verified:** 2026-10-17
+> **Applies to:** CODAP v3 · **Verified:** 2026-10-22
 
-CODAP runs in one of several languages, and the user can switch between them while working. This
-chapter covers how your plugin learns which language CODAP is in, and what happens to your plugin
-when the user switches.
+CODAP runs in one of multiple languages, and the user can switch between them while working.
+This chapter covers how your plugin learns which language CODAP is in, and what happens to your
+plugin when the user switches.
 
 ## Which language CODAP is in
 
@@ -49,9 +49,9 @@ as `es` (Spanish) or `de` (German), because CODAP has one set of strings for eac
 region or script: `en-US` (US English), `pt-BR` (Brazilian Portuguese), `zh-TW` (Chinese as
 written in Taiwan, in Traditional characters) and `zh-Hans` (Chinese in Simplified characters).
 When CODAP falls back to a base language at startup, `locale` is that base language too, as with
-`pt` above. `lang` is only the base language: `pt` (Portuguese), `zh` (Chinese). `lang` keeps that short form
-because plugins written for v2 expect it, and some fail when given a region they have no strings
-for.
+`pt` above. `lang` is only the base language: `pt` (Portuguese), `zh` (Chinese). `lang` keeps
+that short form because plugins written for v2 expect it, and some fail when given a region they
+have no strings for.
 
 Read `locale` if your plugin has strings for regional variants, such as both Traditional and
 Simplified Chinese. Read `lang` if it has one set of strings per language. Either way, fall back
@@ -64,6 +64,9 @@ URL again with the new `lang` and `locale`, so a plugin that reads them at start
 more. The reload loses whatever state your plugin had not saved; see
 [`interactiveFrame`](../resources/interactive-frame.md) for how a plugin saves its state with the
 document.
+
+CODAP adds `lang` and `locale` to your plugin's URL from its first load. Today that holds only
+for some ways of opening a plugin; see [Known limitations](#known-limitations).
 
 ### Switching without a reload
 
@@ -115,11 +118,9 @@ Three things to know before you rely on it:
   loading the URL without them reloads your plugin. The reloaded plugin starts without `lang` or
   `locale` in its URL, so read them from `interactiveFrame` instead. Set `handlesLocaleChange`
   as early as you can, before your plugin does work it would lose.
-- **The setting is not saved with the document.** Set it every time your plugin loads. When the
-  document is opened again, your plugin starts with the setting off, so the first request turns
-  it on and reloads your plugin once more.
-- **Only plugins that ask receive `localeChanged`.** Each one gets its own notification. Every
-  other plugin is reloaded.
+- **The setting is not saved with the document.** Set it every time your plugin loads; see
+  [Known limitations](#known-limitations).
+- **Only plugins that ask receive `localeChanged`.** Each one gets its own notification.
 
 ## Compared with v2
 
@@ -128,6 +129,21 @@ plugin with it, with the new `lang` in each plugin's URL. So a plugin written fo
 same in v3: it is reloaded and reads `lang` at startup. Everything else in this chapter is new in
 v3: the `locale` URL parameter, the `lang` and `locale` values from `interactiveFrame`,
 `handlesLocaleChange` and `localeChanged`.
+
+## Known limitations
+
+**Some plugins load once without `lang` and `locale`, then again with them.** A plugin opened
+from the Plugins menu, or saved in a document, has them from its first load. One opened another
+way — with `create` on `component`, by dropping its URL on CODAP, or with the `di` URL
+parameter — first loads without them, and CODAP loads it again with them once it connects
+through iframe-phone, losing whatever state it had. v2 added `lang` from the first load. This is
+a known bug.
+
+**A plugin that handles locale changes loads twice whenever its document is opened.** Because
+`handlesLocaleChange` is not saved with the document, the plugin first loads with `lang` and
+`locale` in its URL. Its request to set `handlesLocaleChange` then removes them, which loads the
+plugin again. This is a known bug; the intended behavior is that CODAP saves the setting, so the
+plugin loads once.
 
 ## See also
 

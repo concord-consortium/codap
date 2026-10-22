@@ -240,12 +240,9 @@ function renderErrorCatalog() {
 
 
 // --- the notification catalog ------------------------------------------------------------
-// One table per resource family, and for `component` one per area of CODAP that raises it. The
-// generator owns which operations are listed and the keys `values` carries. "Fires when" is
-// judgment, so it is the one column a person writes: the generator reads it back out of the
-// existing table and carries it forward by operation name. A row may name several operations
-// that share a description. An operation new in the code gets a row marked undescribed, which
-// the lint fails until someone writes it; a row whose operations are all gone is dropped.
+// One table per resource family, and for `component` one per area of CODAP that raises it. What
+// the generator owns and what a person writes is described under "The notification tables are
+// the one exception" in doc/plugin-api/conventions.md.
 //
 // Operation names are reproduced exactly as a plugin receives them; see "Operation names are
 // v2's" on the notifications page for why the untidy ones stay.

@@ -111,9 +111,11 @@ When `embeddedMode=yes`:
 | Undo/redo left of window buttons | Undo/redo buttons are positioned to the left of the minimize/close buttons to avoid overlap |
 | Transparent background | The background is transparent, allowing parent page content to show through |
 | Text selectable | Text selection is enabled in the background area |
-| iframe-phone enabled | Communication with parent window via iframe-phone is initialized (also with `embeddedServer=yes` alone) |
-| `codap-present` message | CODAP sends a `codap-present` message to the parent once the channel is open, before any document loads (also with `embeddedServer=yes` alone) |
-| Notification broadcasts | CODAP broadcasts data change notifications to the parent after its first request (also with `embeddedServer=yes` alone) |
+| iframe-phone enabled | Communication with parent window via iframe-phone is initialized |
+| `codap-present` message | CODAP sends a `codap-present` message to the parent once the channel is open, before any document loads |
+| Notification broadcasts | CODAP broadcasts data change notifications to the parent after its first request |
+
+The last three behaviors also occur with `embeddedServer=yes` alone.
 
 ### Comparison Table
 
@@ -134,7 +136,7 @@ When `embeddedMode=yes`:
 
 When running in embedded mode (or with `embeddedServer=yes`), CODAP establishes an iframe-phone RPC endpoint for communication with the parent window.
 
-**Note:** V3 currently only supports iframe-based communication where CODAP runs in an iframe and communicates with the parent window. V2 also supported same-context communication via a local `IFramePhoneEmulator`, which allowed JavaScript running in the same context as CODAP to use the Data Interactive API without iframes. This feature has not yet been ported to V3.
+**Note:** V3 currently only supports iframe-based communication where CODAP runs in an iframe and communicates with the parent window. V2 also supported same-context communication via a local `IFramePhoneEmulator`, which allowed JavaScript running in the same context as CODAP to use the Data Interactive API without iframes. V3 does not support it.
 
 ### Setup
 
@@ -166,7 +168,7 @@ The parent page should set up an iframe-phone endpoint:
 </script>
 ```
 
-CODAP sends `codap-present` to the parent; the parent does not send it. CODAP sends it at startup, before it loads a document from its URL, so it means the channel is open, not that the document is ready.
+CODAP sends `codap-present` to the parent; the parent does not send it. See [Embedding CODAP in your page](plugin-api/guides/embedded-server.md#connecting) for what it does and does not tell you.
 
 ### Sending Commands
 

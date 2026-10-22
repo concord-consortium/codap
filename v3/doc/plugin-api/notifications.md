@@ -1,6 +1,6 @@
 # Notifications
 
-> **Applies to:** CODAP v3 · **Verified:** 2026-10-14
+> **Applies to:** CODAP v3 · **Verified:** 2026-10-22
 > · Parts of this page are generated — see [conventions](conventions.md).
 
 A notification is a message CODAP sends your plugin without being asked, because something
@@ -179,7 +179,7 @@ for it.
 | Operation | Fires when | `values` also carries |
 |---|---|---|
 | `create` | a component is created. The calculator usually sends `show` instead; see below | — |
-| `delete` | a component is closed or deleted. **Also sent when a component is only hidden**, as the guide is when it is closed, and when a case table is closed from its title bar; reopening the table sends `create`. Closing a case card sends nothing | `name`, `title` |
+| `delete` | a component is closed or deleted. **Also sent when a component is only hidden**, as the guide is when it is closed. v2 also sent it when a case table was closed from its title bar, and `create` when that close was undone; v3 sends neither, see [Known limitations](#known-limitations). Closing a case card sends nothing | `name`, `title` |
 | `titleChange` | a component is renamed. Sent on `component[<id>]` rather than `component` | `from`, `to` |
 | `hide`, `show` | the calculator is closed, or toggled from the tool shelf | — |
 | `move`, `resize` | a component is moved or resized | — |
@@ -201,11 +201,11 @@ The largest group.
 | `change background color`, `toggle background transparency` | the plot background changes | `to` |
 | `add movable value`, `remove movable value`, `drag movable value` | movable values are added, removed or dragged | — |
 | `drag movable point` | the user finishes dragging the movable point | — |
-| `drag movable line` | the user finishes dragging the movable line. v2 sent nothing here, so this is new in v3 | — |
+| `drag movable line` | the user finishes dragging the movable line. New in v3; v2 sent nothing here | — |
 | `toggle connecting line`, `toggle show squares`, `toggle show residual plot`, `toggle lock intercept` | adornments are toggled | `isChecked` |
 | `toggle show outliers` | the box plot's "Show Outliers" option is toggled | `isChecked` |
 | `setNumStdErrs` | the number of standard errors shown changes | `to` |
-| `toggle show ICI` | the box plot's informal confidence interval is toggled. New in v3 — v2 sent `toggle show outliers` for this, which was a v2 bug | `isChecked` |
+| `toggle show ICI` | the box plot's informal confidence interval is toggled. New in v3; v2 sent `toggle show outliers` here, which was a v2 bug | `isChecked` |
 | `togglePlottedMean`, `togglePlottedMedian`, `togglePlottedStDev`, `togglePlottedStErr`, `togglePlottedMad`, `togglePlottedNormal` | a univariate measure adornment is switched on or off | `isChecked` |
 | `toggle movable line`, `toggle movable point`, `toggle plot function`, `toggle plotted value` | the matching adornment is switched on or off | `isChecked` |
 | `toggle plotted Count`, `toggle plotted Percent` | the count or percent adornment is toggled | `isChecked` |
@@ -296,7 +296,7 @@ Shared by graphs and maps.
 | `change changeStrokeColor` | the user picks a stroke color. Not available while the stroke follows the fill | `color` |
 | `toggle stroke same as fill` | the stroke-follows-fill setting is toggled | `isChecked` |
 | `change point size` | the user finishes changing the point size: releasing the slider, or using the arrow keys | `to` |
-| `change point shape` | the user picks a point shape. No v2 counterpart | `category`, `shape` |
+| `change point shape` | the user picks a point shape. New in v3 | `category`, `shape` |
 | `change legend bin count` | the number of bins for a numeric legend changes. Carries the clamped count | `binCount` |
 | `change legend bins type` | a numeric legend switches between linear and quantile binning | `binningType` |
 | `change legend range` | a numeric legend's min or max is edited | `max`, `min` |
@@ -375,7 +375,7 @@ Four more resources, each with a few notifications.
 | `documentChangeNotice` | `dataContextDeleted` | a data context is deleted. `deletedContext` is its name | `deletedContext` |
 | `documentChangeNotice` | `updateDocumentBegun`, `updateDocumentEnded` | a plugin, or the host page CODAP is embedded in, replaced the document with `update document`; the two bracket the replacement. Sent to every plugin. v3 sends them only to the plugin that asked; see [Known limitations](#known-limitations) | — |
 | `global[<name>]` | none | a global value changes: a slider is dragged or animates, or a plugin sets the value with `update` on `global`. `<name>` is the slider's global value name, and `globalValue` is the new value. This is how a plugin follows a slider continuously. v3 does not yet send it when a plugin sets the value; see [Known limitations](#known-limitations) | `globalValue` |
-| `global` | `localeChanged` | CODAP's locale changed. Carries `lang`, the two-letter base language, and `locale`, the locale itself, such as `pt-BR`. By default CODAP reloads a plugin when the locale changes; a plugin receives this instead only if it sets `handlesLocaleChange: true` on [`interactiveFrame`](resources/interactive-frame.md), on every load. See [Language and locale](guides/locale.md) | `lang`, `locale` |
+| `global` | `localeChanged` | CODAP's locale changed. Carries `lang`, the two-letter base language, and `locale`, the locale itself, such as `pt-BR`. Sent only to plugins that set `handlesLocaleChange`; see [Language and locale](guides/locale.md) | `lang`, `locale` |
 | `logMessageNotice` | none | a user-analytics log event matched a monitor your plugin registered. Carries `message`, `formatStr` and `logMonitor`, and sometimes `topic` and `replaceArgs` | `formatStr`, `logMonitor`, `message`, … |
 | `interactiveFrame` | computed | guided-tour and highlight messages — `tourUpdate` and `highlightUpdate`. Not documented further yet, because the implementation behind them is being replaced | _not readable from the code_ |
 <!-- END GENERATED: notifications-other -->
@@ -456,8 +456,8 @@ and `request: "autoScale"`, or when the map rescales itself because its layers c
 when a plugin set the center or zoom. This is a known bug.
 
 **Closing a case table sends no notification.** v2 sent `delete` on `component` when the user
-closed a case table from its title bar, and `create` when it was reopened, as the
-[Lifecycle](#lifecycle) table describes. v3 sends neither. This is a known bug.
+closed a case table from its title bar, and `create` when that close was undone. v3 sends
+neither. This is a known bug.
 
 **Changing a map's legend attribute sends no notification.** v2 sent `legendAttributeChange` for
 maps as for graphs. v3 sends nothing. This is a known bug.
@@ -467,16 +467,13 @@ global value changed, whoever changed it. v3 sends it only when a slider changes
 plugin following a slider that another plugin drives through `update` on `global` hears nothing.
 This is a known bug.
 
-**Undo and redo are not announced on `document`.** v2 sent a default notification to every plugin
-when the user undid or redid an action that sent no notification of its own — `resource: "document"`, `operation: "undo"` or `"redo"` —
-so a plugin could watch one resource and know the user had undone something. v3 does not send it,
-so a v2 plugin listening on `document` hears nothing. This is a known bug; the intended behavior is
-that v3 sends v2's notification as well as its own.
+**Undo and redo are not announced on `document`.** v3 does not send v2's `undo` and `redo`
+notifications on `document`. This is a known bug; see
+[Undo and redo](guides/undo-and-redo.md#known-limitations).
 
-**`clearUndo` and `clearRedo` are sent at different moments from v2.** v3 sends them only when
-`canUndo` or `canRedo` changes from `true` to `false`, including when the user undoes or redoes
-the last entry. It sends nothing when an action is added to an empty redo history, so a plugin
-does not hear that undo has become possible. This is a known bug; see
+**`clearUndo` and `clearRedo` are sent at different moments from v2.** In particular, v3 sends
+nothing when an action is added to an empty redo history, so a plugin does not hear that undo
+has become possible. This is a known bug; see
 [Undo and redo](guides/undo-and-redo.md#known-limitations).
 
 **`updateDocumentBegun` and `updateDocumentEnded` go only to the plugin that asked.** v2 sent

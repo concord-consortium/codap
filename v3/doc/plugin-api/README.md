@@ -1,6 +1,6 @@
 # CODAP Data Interactive Plugin API
 
-> **Applies to:** CODAP v3 · **Verified:** 2026-09-25 against `main` @ `ae2105cf4`
+> **Applies to:** CODAP v3 · **Verified:** 2026-10-22
 > · Parts of this reference are generated — see [conventions](conventions.md).
 
 This reference is for developers writing CODAP plugins. It describes the API through which a
@@ -31,6 +31,13 @@ most cases the plugin sends a request and passes a callback to receive the respo
 messages start from CODAP's side, such as notifications; the mechanics are the same in either
 direction. See [Sending requests and receiving notifications](#sending-requests-and-receiving-notifications)
 for how a plugin connects.
+
+Most plugins are better off with the
+[codap-plugin-api](https://github.com/concord-consortium/codap-plugin-api) library
+(`@concord-consortium/codap-plugin-api` on npm), which sets up the iframe-phone connection and
+wraps it in a `sendRequest` that returns a promise. From version 0.2.0 it also copes with
+iframe-phone's two-second timeout for you; see
+[How CODAP processes requests](guides/request-processing.md#order-and-responses).
 
 ## Status of this reference
 
@@ -102,9 +109,11 @@ action returns — here, the reply to the `attributeList` request above:
 ```
 
 What `values` holds depends on the resource and the action; each resource page shows it. Some
-actions return no `values` at all, only `{ "success": true }`.
+actions return no `values` at all, only `{ "success": true }`. Two put their results beside
+`values` rather than in it, at the top level of the response: `create` on `item` returns
+`itemIDs` and `caseIDs`, and `update` on `case` returns `caseIDs`.
 
-On failure, `success` is `false` and `values.error` holds a message:
+On failure, `success` is `false` and `values.error` usually holds a message:
 
 ```json
 {
@@ -113,9 +122,11 @@ On failure, `success` is `false` and `values.error` holds a message:
 }
 ```
 
-Test `success` before reading `values`: a failed request carries no data, only the error. Each
-resource page lists the messages it can return, and when, in its **Errors** table. A few can come
-from any request:
+Test `success` before reading `values`: a failed request carries no data, at most an error. And
+do not assume the error is there: a few failures reply with no `values` at all, such as `update`
+on `item` when no id matches, so read the message with a guard, for example
+`result.values?.error`. Each resource page lists the messages it can return, and when, in its
+**Errors** table. A few can come from any request:
 
 | Error | Condition |
 |---|---|
@@ -271,8 +282,9 @@ v3. `tourElements` is not yet documented.
 
 ## Guides
 
-Narrative chapters covering behavior that spans resources — embedded-server mode, request
-coalescing, undo/redo, locale — live in **[`guides/`](guides/README.md)**.
+Narrative chapters covering behavior that spans resources — how CODAP processes requests, undo
+and redo, language and locale, and embedding CODAP in a page — live in
+**[`guides/`](guides/README.md)**.
 
 The notifications CODAP sends to plugins are cataloged in **[`notifications.md`](notifications.md)**.
 
