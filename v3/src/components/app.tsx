@@ -23,6 +23,7 @@ import { useEmbeddedMode } from "../lib/embedded-mode/use-embedded-mode"
 import { IUseCloudFileManagerHookOptions, useCloudFileManager } from "../lib/cfm/use-cloud-file-manager"
 import { CodapDndContext } from "../lib/dnd-kit/codap-dnd-context"
 import { LogMonitorSidebar } from "./log-monitor-sidebar"
+import { logGAStatus } from "../lib/ga-status"
 import { Logger } from "../lib/logger"
 import { appState } from "../models/app-state"
 import { addDefaultComponents } from "../models/codap/add-default-content"
@@ -185,29 +186,26 @@ export const App = observer(function App() {
         // wait for CFM to complete its initialization
         await cfmReadyPromise
 
-        const webviewTiles = appState.document.content?.getTilesOfType(kWebViewTileType)
-        if (webviewTiles) {
-          const webviews = webviewTiles.map(wV => wV.content) as IWebViewModel[]
-          const plugins = webviews.filter(wV => wV.isPlugin)
-          // if any of the plugins are already showing the specified data interactive,
-          // don't create a new one
-          if (plugins.length > 0 && plugins.some(pI => pI.url === di)) {
-            return
-          }
-          //Do not show user entry modal
-        }
-        // setTimeout ensures that other components have been rendered,
-        // which is necessary to properly position the plugin.
-        setTimeout(() => {
-          appState.document.content?.applyModelChange(() => {
-            const plugin = appState.document.content?.createTile?.(kWebViewTileType)
-            if (isWebViewModel(plugin?.content)) plugin.content.setUrl(di)
+        const webviewTiles = appState.document.content?.getTilesOfType(kWebViewTileType) ?? []
+        const webviews = webviewTiles.map(wV => wV.content) as IWebViewModel[]
+        // if any of the plugins are already showing the specified data interactive,
+        // don't create a new one -- but continue with the rest of the initialization
+        const isDiAlreadyShown = webviews.some(wV => wV.isPlugin && wV.url === di)
+        if (!isDiAlreadyShown) {
+          // setTimeout ensures that other components have been rendered,
+          // which is necessary to properly position the plugin.
+          setTimeout(() => {
+            appState.document.content?.applyModelChange(() => {
+              const plugin = appState.document.content?.createTile?.(kWebViewTileType)
+              if (isWebViewModel(plugin?.content)) plugin.content.setUrl(di)
+            })
           })
-        })
+        }
       }
 
       appState.enableDocumentMonitoring()
       Logger.initializeLogger(appState.document)
+      logGAStatus()
 
       window.onbeforeunload = function() {
         if (!uiState.shouldSuppressUnsavedWarning && cfm.client.state.dirty) {

@@ -147,7 +147,7 @@ exhaustive count, in either pass. The exact figures are the ones without a `~`.
 | V2 emits, V3 emits with **operation-name rename** | 9 | 2 — the 8 renames are resolved and the 9th (`toggle show as`) was never divergent, but `attributeChange` and `legendAttributeChange` are swapped in two paths (CODAP-1546, §3.4) |
 | V2 emits, V3 emits with **envelope-shape mismatch** | 1 (`titleChange`) | 0 |
 | V2 emits, V3 emits with **resource mismatch** (slider routed through `global[<name>]` only) | 1 (`change slider value`) | 0 |
-| V2 emits, V3 does NOT emit | ~40 (see §3.3) | 2 — `undo` and `redo` on `document` (CODAP-1354). The item-level ops (CODAP-1356) are counted separately: most are handled by V2's `performChange` but never reach a plugin (§3.3). |
+| V2 emits, V3 does NOT emit | ~40 (see §3.3) | 2 — `undo` and `redo` on `document` (CODAP-1354). The item-level ops (CODAP-1356) are counted separately: three of the six reach V2 plugins under their own names, and item deletes and moves reach them as `deleteCases` and `moveCases` (§3.3). |
 | V3 emits, no V2 equivalent (additions) | ~10 | ~15 (now also the legend-range/bin and point-shape notifications) |
 | V2 emits with envelope/payload bugs (do NOT replicate) | 4 | 5 — confirmed not replicated; a fifth (`case_table_controller.js:1135`) was folded in from the old §5 (§3.5) |
 
@@ -269,19 +269,30 @@ emission in `v3/src`.
   **"Handled by `performChange`" is not the same as "sent to a plugin."** V2 forwards a change
   only when `iChange.result.success` is truthy
   (`apps/dg/components/data_interactive/notification_manager.js:156`). Several item-level handlers
-  never set it, so V2 plugins never receive those operations either — and V3 owes them nothing.
+  never set it, so V2 plugins never receive those operations under their own names, though some
+  send a different notice on the way (see the table).
 
   | V2 operation | Handled by `performChange` | Actually reaches a plugin? |
   |---|---|---|
-  | `createItems` | yes | not verified |
-  | `updateItems` | yes | not verified |
-  | `moveItems` | yes (`doMoveItems`, `data_context.js:888`) | **no** — returns nothing, so no `success` |
-  | `deleteItems` | yes (`doDeleteItems`, `:919`) | **no** — returns `{deletedCaseIDs, deletedItemIDs}` with no `success`. But it internally calls `applyChange({operation: 'deleteCases', …})` (`:927`), so a plugin deleting items receives a **`deleteCases`** notice — which V3 also emits. |
-  | `resetCollections` | yes (`doResetCollections`, `:2109`) | **no** — returns nothing |
-  | `deleteDataContext` | yes (`:564`) | not verified |
+  | `createItems` | yes (`doCreateItems`, `data_context.js:785`) | **yes** — returns `{success: true, caseIDs, itemIDs}` (`:794`). It follows the `createCases` notice that `addItems` sends (`:1698`, `:1707`). The requesting plugin is skipped for `createItems`, but that `createCases` carries no requester, so the requester receives it. |
+  | `updateItems` | yes (`doUpdateItem`, `:804`) | **yes** — the result has `success: true` (`:830`), and an `updateCases` notice goes with it (`:837`). `myCases` has one entry per item (`:825-828`), so that branch is always taken. |
+  | `moveItems` | yes (`doMoveItems`, `:888`) | **not as `moveItems`** — returns nothing, so no `success`. But when the order changes it calls `regenerateCollectionCases(null, 'moveCases')` (`:906`), which applies a complete `moveCases` change (`:1640-1648`) with no requester, so **every** plugin, the requester included, receives `moveCases`. V3's `notify itemSearch` sends nothing, so this is a regression. |
+  | `deleteItems` | yes (`doDeleteItems`, `:919`) | **not as `deleteItems`** — returns `{deletedCaseIDs, deletedItemIDs}` with no `success`. But it applies a complete `deleteCases` change carrying the requester (`:927-931`), so **other** plugins receive `deleteCases`; the plugin that deleted the items does not. V3 sends nothing for any item delete (`deleteItem` in `handler-functions.ts` passes no `notify`), so this is a regression. |
+  | `resetCollections` | yes (`doResetCollections`, `:2109`) | **yes, on undo of an attribute move** — `doResetCollections` returns nothing, but the undo of `moveAttribute` applies `{operation: 'resetCollections', isComplete: true}` (`:1909-1912`), and `isComplete` makes `performChange` return `success` (`:486`). A plugin's own `resetCollections` request (`game_phone_handler.js:795`) is not forwarded. |
+  | `deleteDataContext` | yes (`:564`) | **no** — `destroy()` returns nothing (`:348-359`). Plugins learn of the deletion from the separate `documentChangeNotice` `dataContextDeleted` (`document_controller.js:498-504`), which V3 also sends. |
 
-  So the real gap is smaller than six operations, and for `deleteItems` it may be nil. CODAP-1356
-  should start by establishing which of these a V2 plugin can actually observe.
+  `isComplete` is the key: `performChange` returns `{success: true}` for any change marked
+  complete (`data_context.js:486`), so a notice that a handler applies on its own behalf reaches
+  plugins even when the handler's own return value would not.
+
+  So the plugin-visible gap is `createItems`, `updateItems` and `resetCollections` (on undo), plus
+  `deleteCases` for item deletes and `moveCases` for item moves. CODAP-1356 should be narrowed to
+  the first three; the last two belong with CODAP-1585 (API paths that send no notice).
+
+  *Correction (2026-10-15):* earlier versions of this table said `moveItems` and
+  `resetCollections` never reach a plugin, that a plugin deleting items receives the `deleteCases`
+  notice, and left `createItems`, `updateItems` and `deleteDataContext` unverified. All were
+  rechecked against `master`.
 
   *Correction (2026-09-24):* earlier versions of this row listed `moveCollection` and
   `notifyAttributeChange`. Neither string exists anywhere in V2 (`git grep` on `master`: 0 hits),

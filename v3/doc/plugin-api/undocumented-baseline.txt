@@ -1,0 +1,30 @@
+# Resources with no page yet. Remove a line when its page lands; the drift check
+# reports any resource that is undocumented and NOT listed here, and any line here that is
+# no longer needed. Maintained by hand.
+
+allCases
+attributeLocation
+case
+caseByID
+caseByIndex
+caseCount
+caseFormulaSearch
+caseSearch
+collection
+collectionList
+configuration
+configurationList
+dataContextFromURL
+dataContextList
+formulaEngine
+global
+globalList
+item
+itemByCaseID
+itemByID
+itemCount
+itemSearch
+logMessage
+logMessageMonitor
+tourElements
+undoChangeNotice

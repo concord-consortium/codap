@@ -116,12 +116,12 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
         // acknowledge a successful open and return shared metadata
         event.callback(null, clonedCfmSharedMetadata)
       } catch (e) {
-        // Log the error to the console so we can debug the problem
-        // The error is sent in the cause so that Rollbar has a chance of fully recording
-        // the cause of this error
+        // Log the error to the console so we can debug the problem. The browser console shows
+        // the full error. Rollbar converts object arguments to JSON, so if `e` is an Error,
+        // Rollbar only records `{"cause":{}}` here (an Error's properties don't appear in JSON).
         console.error("Error opening the document.", {cause: e})
         // The message and stack of the error are logged in a group so it is easier
-        // to view them in the console.
+        // to view them in the console. Logging them as strings also lets Rollbar record them.
         if (isError(e)) {
           /* eslint-disable no-console */
           console.groupCollapsed("Details of document error")

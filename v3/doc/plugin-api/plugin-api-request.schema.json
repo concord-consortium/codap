@@ -1,0 +1,242 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://codap.concord.org/schemas/plugin-api-request.schema.json",
+  "title": "CODAP Data Interactive request",
+  "description": "Generated from v3/src by v3/scripts/plugin-api. Validates the request envelope a plugin sends to CODAP. `values` is not yet validated: its shape varies by resource and action, and the mapping from those to a value interface is not yet extracted. It is documented per resource in v3/doc/plugin-api/resources/.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/action"
+    },
+    {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/action"
+      },
+      "minItems": 1
+    }
+  ],
+  "$defs": {
+    "action": {
+      "type": "object",
+      "required": [
+        "action",
+        "resource"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "enum": [
+            "get",
+            "create",
+            "update",
+            "delete",
+            "notify",
+            "register",
+            "unregister"
+          ],
+          "description": "The verb. Not every resource supports every action."
+        },
+        "resource": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[A-Za-z#][A-Za-z0-9_#]*(\\[[^\\]]+\\])?(\\.[A-Za-z][A-Za-z0-9_]*(\\[[^\\]]+\\])?)*$",
+          "description": "A dot-separated selector chain; see doc/plugin-api/quick-reference.md."
+        },
+        "values": {
+          "description": "Payload for create, update and notify. Shape varies by resource."
+        }
+      }
+    },
+    "supportedActions": {
+      "description": "resource name -> the actions its handler implements. Data for tools; not referenced by the validation above. Resources whose handler could not be resolved are omitted rather than listed as supporting nothing.",
+      "const": {
+        "adornment": [
+          "get",
+          "create",
+          "update",
+          "delete"
+        ],
+        "adornmentList": [
+          "get"
+        ],
+        "allCases": [
+          "get",
+          "delete"
+        ],
+        "attribute": [
+          "get",
+          "create",
+          "update",
+          "delete",
+          "notify"
+        ],
+        "attributeList": [
+          "get"
+        ],
+        "attributeLocation": [
+          "update"
+        ],
+        "case": [
+          "create",
+          "update"
+        ],
+        "caseByID": [
+          "get",
+          "update",
+          "delete"
+        ],
+        "caseByIndex": [
+          "get",
+          "update",
+          "delete"
+        ],
+        "caseCount": [
+          "get"
+        ],
+        "caseFormulaSearch": [
+          "get"
+        ],
+        "caseSearch": [
+          "get"
+        ],
+        "collection": [
+          "get",
+          "create",
+          "update",
+          "delete"
+        ],
+        "collectionList": [
+          "get"
+        ],
+        "component": [
+          "get",
+          "create",
+          "update",
+          "delete",
+          "notify"
+        ],
+        "componentList": [
+          "get"
+        ],
+        "configuration": [
+          "get",
+          "update"
+        ],
+        "configurationList": [
+          "get"
+        ],
+        "dataContext": [
+          "get",
+          "create",
+          "update",
+          "delete",
+          "notify"
+        ],
+        "dataContextFromURL": [
+          "create"
+        ],
+        "dataContextList": [
+          "get"
+        ],
+        "dataDisplay": [
+          "get"
+        ],
+        "document": [
+          "get",
+          "update"
+        ],
+        "formulaEngine": [
+          "get",
+          "notify"
+        ],
+        "global": [
+          "get",
+          "create",
+          "update"
+        ],
+        "globalList": [
+          "get"
+        ],
+        "interactiveApi": [
+          "get"
+        ],
+        "interactiveFrame": [
+          "get",
+          "update",
+          "notify"
+        ],
+        "item": [
+          "get",
+          "create",
+          "update",
+          "delete"
+        ],
+        "itemByCaseID": [
+          "get",
+          "update",
+          "delete"
+        ],
+        "itemByID": [
+          "get",
+          "update",
+          "delete"
+        ],
+        "itemCount": [
+          "get"
+        ],
+        "itemSearch": [
+          "get",
+          "delete",
+          "notify"
+        ],
+        "logMessage": [
+          "notify"
+        ],
+        "logMessageMonitor": [
+          "register",
+          "unregister"
+        ],
+        "selectionList": [
+          "get",
+          "create",
+          "update"
+        ],
+        "tourElements": [
+          "get"
+        ],
+        "undoChangeNotice": [
+          "notify"
+        ]
+      }
+    },
+    "resourceSelectorMembers": {
+      "description": "Members of the internal DIResourceSelector type. Data for tools; NOT the set of valid selector keys — see the resource table in doc/plugin-api/quick-reference.md.",
+      "const": [
+        "attribute",
+        "attributeLocation",
+        "attributes",
+        "case",
+        "caseByID",
+        "caseByIndex",
+        "caseFormulaSearch",
+        "caseSearch",
+        "collection",
+        "component",
+        "configuration",
+        "dataContext",
+        "dataContextList",
+        "dataDisplay",
+        "global",
+        "interactiveApi",
+        "interactiveFrame",
+        "item",
+        "itemByCaseID",
+        "itemByID",
+        "itemSearch",
+        "logMessage",
+        "tourElements",
+        "type"
+      ]
+    }
+  }
+}
