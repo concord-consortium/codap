@@ -554,7 +554,9 @@ export const GraphDataConfigurationModel = DataConfigurationModel
      * its values can't always be mapped back to slots: an attribute in several roles keeps only one
      * role's value, and a real category spelled like kOther shares the overflow cell's key. A key
      * the grid doesn't generate falls back to mapping its values to slots, and matches no case if it
-     * lacks a value for one of the roles' attributes.
+     * lacks a value for one of the roles' attributes. For a key built from raw case values, that
+     * fallback puts an overflow value in its role's kOther row, whereas the subPlotCases fallback
+     * still compares raw values.
      */
     casesInCellsMatchingRoles(cellKey: Record<string, string>, roles: GraphSplitAttrRole[]) {
       const indexer = self.cellIndexer()
@@ -563,10 +565,15 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         roles.forEach(role => { slots[role] = slotOf(role) })
         return slots
       }
+      const buckets = self.casesByCellIndex()
       let sliceSlots: Partial<Record<GraphSplitAttrRole, number>>[]
       const cellIndices = indexer.indicesForCellKey(cellKey)
       if (cellIndices.length) {
-        sliceSlots = cellIndices.map(index => {
+        // A key can be shared with cells no case can occupy (one attribute in several roles with
+        // conflicting slots). Those are always empty, so only populated cells' slices are counted;
+        // if none is populated the numerator is 0 and any of them will do.
+        const populated = cellIndices.filter(index => buckets[index].length > 0)
+        sliceSlots = (populated.length ? populated : cellIndices).map(index => {
           const cellSlots = indexer.slotsForIndex(index)
           return pick(role => cellSlots[role])
         })
@@ -577,7 +584,6 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       }
       // Cells that share a key can share a row or column too, so dedupe before reading buckets.
       const indices = new Set(sliceSlots.flatMap(slots => indexer.indicesMatchingSlots(slots)))
-      const buckets = self.casesByCellIndex()
       return Array.from(indices).sort((a, b) => a - b).flatMap(index => buckets[index])
     }
   }))

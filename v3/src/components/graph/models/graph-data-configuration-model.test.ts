@@ -1213,6 +1213,67 @@ describe("DataConfigurationModel", () => {
       expectNumeratorsWithinDenominators()
     })
 
+    it("maps a raw value outside the categories in a key the grid doesn't generate to the kOther row", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("y", { attributeID: "hiId" })
+      config.setAttribute("x", { attributeID: "lowId" })
+      config.setNumberOfCategoriesLimitForRole("y", 10)
+      const clampedValue = "v40"
+      expect(config.categoryArrayForAttrRole("y", [])).not.toContain(clampedValue)
+      const key = { hiId: clampedValue, lowId: "A" }
+      expect(config.cellIndexer().indicesForCellKey(key)).toEqual([])
+
+      const expected = overflowCases("hiId")
+      expect(expected.length).toBeGreaterThan(1)
+      expect(sorted(config.rowCases(key))).toEqual(sorted(expected))
+    })
+
+    it("matches no case for a key the grid doesn't generate that lacks one of the roles' attributes", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("y", { attributeID: "hiId" })
+      config.setAttribute("x", { attributeID: "lowId" })
+      config.setNumberOfCategoriesLimitForRole("y", 10)
+
+      // rowCases compares y, which this key doesn't name
+      expect(config.rowCases({ lowId: "A" })).toEqual([])
+    })
+
+    it("ignores the empty impossible cells that share a key when an attribute occupies three roles", () => {
+      const config = tree.config
+      tree.data.addAttribute({ id: "dupId", name: "dup" })
+      setSwapValues("dupId", i => "abcd"[i % 4])
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("topSplit", { attributeID: "dupId" })
+      config.setAttribute("rightSplit", { attributeID: "dupId" })
+      config.setAttribute("x", { attributeID: "dupId" })
+      config.setNumberOfCategoriesLimitForRole("topSplit", 1)
+      config.setNumberOfCategoriesLimitForRole("rightSplit", 2)
+      config.setNumberOfCategoriesLimitForRole("x", 3)
+      expect(config.categoryArrayForAttrRole("rightSplit", [])).toEqual(["a", kOther])
+      expect(config.categoryArrayForAttrRole("x", [])).toEqual(["a", "b", kOther])
+
+      const casesWith = (values: string) =>
+        config.allPlottedCases().filter(caseId => values.includes(config.dataset!.getStrValue(caseId, "dupId")!))
+      // The populated "a" and "b" cells each share their key with empty cells no case can occupy
+      // (e.g. right = a with x = b), so only the populated cell's slices may be counted.
+      const aKey = { dupId: kOther, __IMPOSSIBLE__: "a" }
+      const bKey = { dupId: kOther, __IMPOSSIBLE__: "b" }
+      expect(config.cellIndexer().indicesForCellKey(aKey).length).toBeGreaterThan(1)
+      expect(config.cellIndexer().indicesForCellKey(bKey).length).toBeGreaterThan(1)
+
+      // "a" is the only value in right's "a" slot: 100%, not 25%
+      expect(sorted(config.cellCases(aKey))).toEqual(sorted(casesWith("a")))
+      expect(sorted(config.rowCases(aKey))).toEqual(sorted(casesWith("a")))
+      expect(sorted(config.columnCases(aKey))).toEqual(sorted(casesWith("a")))
+      // "b" shares right's kOther slot with c and d: 33%, not 25%
+      expect(sorted(config.cellCases(bKey))).toEqual(sorted(casesWith("bcd")))
+      expect(sorted(config.rowCases(bKey))).toEqual(sorted(casesWith("bcd")))
+      expect(sorted(config.columnCases(bKey))).toEqual(sorted(casesWith("b")))
+      expectNumeratorsWithinDenominators()
+    })
+
     it("keeps a real category spelled like kOther apart from the overflow", () => {
       const config = tree.config
       setSwapValues("hiId", i => i % 10 === 0 ? kOther : `v${i % 10}`)
