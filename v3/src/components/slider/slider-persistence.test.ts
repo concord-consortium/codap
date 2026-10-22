@@ -142,6 +142,18 @@ describe("slider persistence: V3 → V2 → V3", () => {
     expect(findDataSet("when").itemIds).toHaveLength(2)
   })
 
+  it("round-trips a range slider set up in the inspector with no attribute bound", async () => {
+    const { slider } = await setupSliderAndData()
+    slider.setSliderType("selection")
+    slider.setRange(2, 5)
+    await reloadDocument("v2")
+    const restored = findSlider()
+    expect(restored.sliderType).toBe("selection")
+    expect(restored.attributeId).toBeUndefined()
+    expect(restored.rangeLow).toBe(2)
+    expect(restored.rangeWidth).toBe(3)
+  })
+
   it("imports a range slider whose dataset was deleted as a slider that hides nothing", async () => {
     const { content, dataSet, slider } = await setupSliderAndData()
     // another dataset with the same attributes, which the slider mustn't start hiding

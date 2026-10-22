@@ -1,5 +1,7 @@
 import { debugLog, DEBUG_PLUGINS } from "../../lib/debug"
-import { DateUnit, unitsStringToMilliseconds } from "../../utilities/date-utils"
+import {
+  DateUnit, DurationUnit, durationUnits, durationUnitSeconds, unitsStringToMilliseconds
+} from "../../utilities/date-utils"
 
 export const kDefaultSliderName = "v1"
 export const kDefaultSliderValue = .5
@@ -52,4 +54,23 @@ export function sliderStep(slider: ISliderStepSource, resolution: number | undef
     return (slider.multipleOf ?? 1) * unitsStringToMilliseconds(slider.dateMultipleOfUnit ?? "day") / 1000
   }
   return (!slider.isRangeSlider && slider.multipleOf) || resolution || 1
+}
+
+// a date slider's range width is shown in any duration unit but millisecond
+export type SliderWidthUnit = Exclude<DurationUnit, "millisecond">
+const kSliderWidthUnits = durationUnits.filter((unit): unit is SliderWidthUnit => unit !== "millisecond")
+
+// The three consecutive units offered for a date range's width: the largest unit the span holds at least one of,
+// then the next two smaller. A span under a day offers hours, minutes and seconds, so there are always three.
+export function getSliderWidthUnitChoices(spanSeconds: number): SliderWidthUnit[] {
+  const lastStart = kSliderWidthUnits.length - 3
+  const index = kSliderWidthUnits.findIndex(unit => spanSeconds >= durationUnitSeconds(unit))
+  const start = index < 0 ? lastStart : Math.min(index, lastStart)
+  return kSliderWidthUnits.slice(start, start + 3)
+}
+
+// two significant digits, without rounding away integer digits (365, not 370)
+export function formatSliderWidth(width: number) {
+  const integerDigits = Math.abs(width) >= 1 ? Math.floor(Math.log10(Math.abs(width))) + 1 : 0
+  return String(Number(width.toPrecision(Math.max(2, integerDigits))))
 }

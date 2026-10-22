@@ -246,6 +246,13 @@ export const SliderModel = TileContentModel
     getAxisHelper(place: AxisPlace, subAxisIndex: number) {
       return self.axisHelper
     },
+    // the span that determines a date range width's units: the bound attribute's extent, else the axis's
+    get widthUnitSpan() {
+      const dataSet = self.dataSet
+      const extent = dataSet && self.attributeId ? this.configurationExtent(dataSet, self.attributeId) : undefined
+      const [min, max] = extent ?? self.axis.domain
+      return max - min
+    },
     // axis bounds for configuring from the attribute, or undefined if it can't configure a slider
     configurationExtent(dataSet: IDataSet, attrId: string): Maybe<[number, number]> {
       const attribute = dataSet.getAttribute(attrId)
@@ -508,6 +515,11 @@ export const SliderModel = TileContentModel
   .actions(self => ({
     setSliderType(sliderType: SliderType) {
       self.sliderType = sliderType
+      // a range slider needs a width; one it already has (e.g. from before a switch to variable) is kept
+      if (self.isRangeSlider && self.rangeWidth == null) {
+        const [min, max] = self.axis.domain
+        self.rangeWidth = (max - min) * kDefaultRangeFraction
+      }
     },
     configureFromAttribute(dataSet: IDataSet, attrId: string) {
       const extent = self.configurationExtent(dataSet, attrId)
