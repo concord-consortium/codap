@@ -85,7 +85,8 @@ for events logged with the `excludeAnalytics` option):
 
 1. **Log server** — POST to `logger.concordqa.org/logs` (domain-gated to
    `*.concord.org` hosts, with a `DEBUG_LOGGER` localStorage override)
-2. **Google Analytics** — `window.gtag("event", ...)` with filename and URL
+2. **Google Analytics** — `window.gtag("event", ...)` with only the banner id, filename and URL
+   args (`kGAEventArgNamesToLog` in `logger.ts`)
 3. **Log listeners** — registered callbacks for extensibility
 
 Key features:
@@ -248,7 +249,7 @@ The `logMessageNotice` payload delivered to matching plugins:
 | Application ID | `"CODAP"` | `"CODAPV3"` (temporary, see below) |
 | Session format | `YYMMDDHHMMSS-random` or `runKey` | `nanoid()` or `runKey` |
 | Log message format | Printf-style `%@` substitution | `ILogMessage { message, args, category }` |
-| Analytics | `ga('send', 'event', ...)` | `gtag('event', ...)` (limited to filename/URL) |
+| Analytics | `ga('send', 'event', ...)` | `gtag('event', ...)` (limited to banner id/filename/URL) |
 | Framework | SproutCore observer system | MobX-State-Tree + React |
 | LARA forwarding | Not present | Logger listener → `cfmClient.log()` → PR #419 → lara-interactive-api |
 | `appOptions.log` | Routes CFM events to `DG.logUser()` | No-op (loop prevention) |
