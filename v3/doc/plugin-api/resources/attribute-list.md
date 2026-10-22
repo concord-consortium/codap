@@ -46,14 +46,6 @@ contains such a segment.
 
 An array, one entry per attribute, in the collection's own order:
 
-<!-- BEGIN GENERATED: values -->
-| Property |
-|---|
-| `name` |
-| `id` |
-| `title` |
-<!-- END GENERATED: values -->
-
 | Property | Notes |
 |---|---|
 | `name` | the attribute's name |
@@ -104,12 +96,6 @@ not; see [`attribute`](attribute.md#known-limitations). See
 [the notification catalog](../notifications.md) for everything CODAP sends.
 
 ## Errors
-
-<!-- BEGIN GENERATED: errors -->
-| Error |
-|---|
-| `Collection not found` |
-<!-- END GENERATED: errors -->
 
 | Error | Condition |
 |---|---|
