@@ -1,4 +1,5 @@
 import React, { useEffect, useLayoutEffect, useState } from "react"
+import { Logger } from "../../lib/logger"
 import {
   BannerConfig, dismissBanner, fetchBannerConfig, isValidButtonUrl, parseMessageWithLinks
 } from "./announcement-banner-utils"
@@ -26,6 +27,14 @@ export function AnnouncementBanner() {
     return () => { cancelled = true }
   }, [])
 
+  // Log one impression per banner id per page load.
+  const shownBannerId = config?.id
+  useEffect(() => {
+    if (shownBannerId) {
+      Logger.log("Announcement banner shown", { bannerId: shownBannerId }, "banner")
+    }
+  }, [shownBannerId])
+
   const visible = !!config && !dismissed
   useLayoutEffect(() => {
     const root = document.documentElement
@@ -39,6 +48,10 @@ export function AnnouncementBanner() {
 
   const { message, id, buttonText = "Learn More", buttonUrl, buttonTarget = "_blank" } = config
   const showButton = isValidButtonUrl(buttonUrl)
+
+  const handleLinkClick = (url?: string) => {
+    Logger.log("Announcement banner link clicked", { bannerId: id, url }, "banner")
+  }
 
   const handleClose = () => {
     setDismissed(true)
@@ -60,7 +73,8 @@ export function AnnouncementBanner() {
         {parseMessageWithLinks(message).map((segment, i) =>
           segment.url
             ? (
-              <a key={i} href={segment.url} target="_blank" rel="noopener noreferrer">
+              <a key={i} href={segment.url} target="_blank" rel="noopener noreferrer"
+                onClick={() => handleLinkClick(segment.url)}>
                 {segment.text}
               </a>
             )
@@ -75,6 +89,7 @@ export function AnnouncementBanner() {
             target={buttonTarget}
             rel="noopener noreferrer"
             className="announcement-banner-button"
+            onClick={() => handleLinkClick(buttonUrl)}
             data-testid="announcement-banner-button"
           >
             {buttonText}

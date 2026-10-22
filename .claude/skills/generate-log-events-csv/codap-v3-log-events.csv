@@ -14,6 +14,8 @@ Add toggle component: %@,lifecycleName,,,Showed a singleton toggle component (e.
 Added %@,adornmentType / type,,{adornmentType: string},User adds the box plot adornment via its checkbox.
 added background image,,,,User adds a background image to the graph.
 Added movable value,,,,User clicks Add in the movable value adornment controls.
+Announcement banner link clicked,,,"{ bannerId: string, url: string }",A link in the announcement banner (its button or a link in its message) is clicked.
+Announcement banner shown,,,{ bannerId: string },"The announcement banner is shown, at most once per banner id per page load."
 Attribute assigned: %@,"{attribute, axis}",,"{attribute: string, axis: string}",User assigns an attribute to a graph axis by drag-and-drop.
 Attribute removed: %@,"{attribute, axis}",,"{attribute: string, axis: string}",User removes an attribute from a graph axis by drag-and-drop.
 attributeCreate: %@,"{ name, collection, formula }",,"{ name: string, collection: string, formula: string }",User adds a new attribute to a collection from the ruler (data set) menu.

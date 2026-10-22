@@ -69,7 +69,7 @@ interface IGAData {
 }
 
 // We limit the arguments that are logged to GA to avoid sending too much data.
-const kGAEventArgNamesToLog = ["filename", "url"]
+const kGAEventArgNamesToLog = ["bannerId", "filename", "url"]
 
 function extractGAEventArgs(args?: Record<string, unknown>): Maybe<GAEventArgs> {
   if (!args) return undefined
