@@ -1056,6 +1056,238 @@ describe("DataConfigurationModel", () => {
     })
   })
 
+  describe("percent denominators (cellCases / rowCases / columnCases)", () => {
+    beforeEach(() => {
+      addSwapFixture(tree)
+    })
+
+    const sorted = (caseIds: readonly string[]) => [...caseIds].sort()
+    const setSwapValues = (attrId: string, valueFor: (i: number) => string | number) => {
+      tree.data.setCaseValues(Array.from({ length: 50 }, (_, i) => ({ __id__: `s${i}`, [attrId]: valueFor(i) })))
+    }
+    // Every cell's count/percent numerator must lie within each of its denominators.
+    const expectNumeratorsWithinDenominators = () => {
+      const config = tree.config
+      config.getAllCellKeys().forEach(cellKey => {
+        const numerator = config.subPlotCases(cellKey)
+        for (const denominator of [config.cellCases(cellKey), config.rowCases(cellKey), config.columnCases(cellKey)]) {
+          expect(numerator.filter(caseId => !denominator.includes(caseId))).toEqual([])
+        }
+      })
+    }
+    // The plotted cases whose value for attrId was clamped into kOther, optionally narrowed to one
+    // value of a second attribute.
+    const overflowCases = (attrId: string, other?: { attrId: string, value: string }) => {
+      const config = tree.config
+      const cats = config.categoryArrayForAttrRole(
+        config.attributeID("x") === attrId ? "x" : config.attributeID("y") === attrId ? "y" : "topSplit", [])
+      return config.allPlottedCases().filter(caseId => {
+        if (cats.includes(config.dataset!.getStrValue(caseId, attrId) ?? "")) return false
+        return !other || config.dataset!.getStrValue(caseId, other.attrId) === other.value
+      })
+    }
+
+    it("finds the overflow cases for kOther on y (Row %)", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("y", { attributeID: "hiId" })
+      config.setAttribute("x", { attributeID: "lowId" })
+      config.setNumberOfCategoriesLimitForRole("y", 10)
+      expect(config.categoryArrayForAttrRole("y", [])).toContain(kOther)
+
+      const expected = overflowCases("hiId")
+      expect(expected.length).toBeGreaterThan(0)
+      // the row spans every x category, so its denominator is every overflow case
+      expect(sorted(config.rowCases({ hiId: kOther, lowId: "A" }))).toEqual(sorted(expected))
+      // and the count/percent numerator for that cell is a subset of it
+      const numerator = config.subPlotCases({ hiId: kOther, lowId: "A" })
+      expect(numerator.length).toBeGreaterThan(0)
+      expect(numerator.every(caseId => expected.includes(caseId))).toBe(true)
+    })
+
+    it("finds the overflow cases for kOther on x (Column %)", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "hiId" })
+      config.setAttribute("y", { attributeID: "lowId" })
+      config.setNumberOfCategoriesLimitForRole("x", 10)
+
+      const expected = overflowCases("hiId")
+      expect(expected.length).toBeGreaterThan(0)
+      expect(sorted(config.columnCases({ hiId: kOther, lowId: "B" }))).toEqual(sorted(expected))
+    })
+
+    it("finds the overflow cases for kOther on a top split (any percent type)", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("topSplit", { attributeID: "hiId" })
+      config.setAttribute("x", { attributeID: "lowId" })
+      config.setNumberOfCategoriesLimitForRole("topSplit", 10)
+      expect(config.categoryArrayForAttrRole("topSplit", [])).toContain(kOther)
+
+      const expected = overflowCases("hiId")
+      expect(expected.length).toBeGreaterThan(0)
+      const key = { hiId: kOther, lowId: "A" }
+      expect(sorted(config.cellCases(key))).toEqual(sorted(expected))
+      expect(sorted(config.rowCases(key))).toEqual(sorted(expected))
+      expect(sorted(config.columnCases(key))).toEqual(sorted(overflowCases("hiId", { attrId: "lowId", value: "A" })))
+    })
+
+    it("recomputes the kOther denominators when the category limit tightens (graph shortened)", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("y", { attributeID: "hiId" })
+      config.setAttribute("x", { attributeID: "lowId" })
+      const key = { hiId: kOther, lowId: "A" }
+
+      // a stale denominator from a looser limit would push the percent past 100%
+      for (const limit of [20, 12, 8, 4, 2]) {
+        config.setNumberOfCategoriesLimitForRole("y", limit)
+        const expected = overflowCases("hiId")
+        const rowCases = config.rowCases(key)
+        expect(sorted(rowCases)).toEqual(sorted(expected))
+        expect(sorted(config.cellCases(key))).toEqual(sorted(config.allPlottedCases()))
+        // the column spans every y category, overflow included
+        const columnA = config.allPlottedCases().filter(caseId => config.dataset!.getStrValue(caseId, "lowId") === "A")
+        expect(sorted(config.columnCases(key))).toEqual(sorted(columnA))
+        expect(config.subPlotCases(key).length).toBeLessThanOrEqual(rowCases.length)
+      }
+    })
+
+    it("matches a raw-value comparison for every cell when nothing is clamped", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("y", { attributeID: "hiId" })
+      config.setAttribute("x", { attributeID: "lowId" })
+      config.setAttribute("rightSplit", { attributeID: "nId" })
+      setSwapValues("nId", i => `n${i % 3}`)
+      expect(config.allPlottedCases()).toHaveLength(50)
+
+      const valueOf = (caseId: string, attrId: string) => config.dataset!.getStrValue(caseId, attrId)
+      const matching = (cellKey: Record<string, string>, attrIds: string[]) =>
+        config.allPlottedCases().filter(caseId => attrIds.every(id => valueOf(caseId, id) === cellKey[id]))
+
+      config.getAllCellKeys().forEach(cellKey => {
+        expect(sorted(config.cellCases(cellKey))).toEqual(sorted(matching(cellKey, ["nId"])))
+        expect(sorted(config.rowCases(cellKey))).toEqual(sorted(matching(cellKey, ["hiId", "nId"])))
+        expect(sorted(config.columnCases(cellKey))).toEqual(sorted(matching(cellKey, ["lowId", "nId"])))
+      })
+    })
+
+    it("ignores a non-categorical top split in cellCases", () => {
+      const config = tree.config
+      tree.data.addAttribute({ id: "numId", name: "num" })
+      setSwapValues("numId", i => i)
+      setSwapValues("nId", i => `n${i % 2}`)
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "lowId" })
+      config.setAttribute("rightSplit", { attributeID: "nId" })
+      config.setAttribute("topSplit", { attributeID: "numId" })
+      expect(config.attributeType("topSplit")).not.toBe("categorical")
+
+      const plotted = config.allPlottedCases()
+      expect(plotted.length).toBeGreaterThan(0)
+      config.getAllCellKeys().forEach(cellKey => {
+        const sameRight = plotted.filter(caseId => config.dataset!.getStrValue(caseId, "nId") === cellKey.nId)
+        expect(sorted(config.cellCases(cellKey))).toEqual(sorted(sameRight))
+      })
+    })
+
+    it("resolves the slots of an attribute that occupies two roles with different limits", () => {
+      const config = tree.config
+      tree.data.addAttribute({ id: "dupId", name: "dup" })
+      setSwapValues("dupId", i => "abcd"[i % 4])
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("topSplit", { attributeID: "dupId" })
+      config.setAttribute("y", { attributeID: "dupId" })
+      config.setAttribute("x", { attributeID: "lowId" })
+      config.setNumberOfCategoriesLimitForRole("topSplit", 1)
+      config.setNumberOfCategoriesLimitForRole("y", 3)
+      expect(config.categoryArrayForAttrRole("y", [])).toEqual(["a", "b", kOther])
+
+      // dupId holds the top split's kOther, so only the __IMPOSSIBLE__ entry tells this is y's "b" row
+      const key = { dupId: kOther, __IMPOSSIBLE__: "b", lowId: "A" }
+      const bCases = config.allPlottedCases().filter(caseId => config.dataset!.getStrValue(caseId, "dupId") === "b")
+      expect(bCases.length).toBeGreaterThan(0)
+      expect(sorted(config.rowCases(key))).toEqual(sorted(bCases))
+      expectNumeratorsWithinDenominators()
+    })
+
+    it("maps a raw value outside the categories in a key the grid doesn't generate to the kOther row", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("y", { attributeID: "hiId" })
+      config.setAttribute("x", { attributeID: "lowId" })
+      config.setNumberOfCategoriesLimitForRole("y", 10)
+      const clampedValue = "v40"
+      expect(config.categoryArrayForAttrRole("y", [])).not.toContain(clampedValue)
+      const key = { hiId: clampedValue, lowId: "A" }
+      expect(config.cellIndexer().indicesForCellKey(key)).toEqual([])
+
+      const expected = overflowCases("hiId")
+      expect(expected.length).toBeGreaterThan(1)
+      expect(sorted(config.rowCases(key))).toEqual(sorted(expected))
+    })
+
+    it("matches no case for a key the grid doesn't generate that lacks one of the roles' attributes", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("y", { attributeID: "hiId" })
+      config.setAttribute("x", { attributeID: "lowId" })
+      config.setNumberOfCategoriesLimitForRole("y", 10)
+
+      // rowCases compares y, which this key doesn't name
+      expect(config.rowCases({ lowId: "A" })).toEqual([])
+    })
+
+    it("ignores the empty impossible cells that share a key when an attribute occupies three roles", () => {
+      const config = tree.config
+      tree.data.addAttribute({ id: "dupId", name: "dup" })
+      setSwapValues("dupId", i => "abcd"[i % 4])
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("topSplit", { attributeID: "dupId" })
+      config.setAttribute("rightSplit", { attributeID: "dupId" })
+      config.setAttribute("x", { attributeID: "dupId" })
+      config.setNumberOfCategoriesLimitForRole("topSplit", 1)
+      config.setNumberOfCategoriesLimitForRole("rightSplit", 2)
+      config.setNumberOfCategoriesLimitForRole("x", 3)
+      expect(config.categoryArrayForAttrRole("rightSplit", [])).toEqual(["a", kOther])
+      expect(config.categoryArrayForAttrRole("x", [])).toEqual(["a", "b", kOther])
+
+      const casesWith = (values: string) =>
+        config.allPlottedCases().filter(caseId => values.includes(config.dataset!.getStrValue(caseId, "dupId")!))
+      // The populated "a" and "b" cells each share their key with empty cells no case can occupy
+      // (e.g. right = a with x = b), so only the populated cell's slices may be counted.
+      const aKey = { dupId: kOther, __IMPOSSIBLE__: "a" }
+      const bKey = { dupId: kOther, __IMPOSSIBLE__: "b" }
+      expect(config.cellIndexer().indicesForCellKey(aKey).length).toBeGreaterThan(1)
+      expect(config.cellIndexer().indicesForCellKey(bKey).length).toBeGreaterThan(1)
+
+      // "a" is the only value in right's "a" slot: 100%, not 25%
+      expect(sorted(config.cellCases(aKey))).toEqual(sorted(casesWith("a")))
+      expect(sorted(config.rowCases(aKey))).toEqual(sorted(casesWith("a")))
+      expect(sorted(config.columnCases(aKey))).toEqual(sorted(casesWith("a")))
+      // "b" shares right's kOther slot with c and d: 33%, not 25%
+      expect(sorted(config.cellCases(bKey))).toEqual(sorted(casesWith("bcd")))
+      expect(sorted(config.rowCases(bKey))).toEqual(sorted(casesWith("bcd")))
+      expect(sorted(config.columnCases(bKey))).toEqual(sorted(casesWith("b")))
+      expectNumeratorsWithinDenominators()
+    })
+
+    it("keeps a real category spelled like kOther apart from the overflow", () => {
+      const config = tree.config
+      setSwapValues("hiId", i => i % 10 === 0 ? kOther : `v${i % 10}`)
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("y", { attributeID: "hiId" })
+      config.setAttribute("x", { attributeID: "lowId" })
+      config.setNumberOfCategoriesLimitForRole("y", 4)
+      const yCats = config.categoryArrayForAttrRole("y", [])
+      expect(yCats.filter(cat => cat === kOther)).toHaveLength(2)
+
+      expectNumeratorsWithinDenominators()
+    })
+  })
+
   describe("caseDataWithSubPlot", () => {
     beforeEach(() => {
       addSwapFixture(tree)
