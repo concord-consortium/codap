@@ -7,11 +7,18 @@ import { getDisplayNameMap } from "./utils/name-mapping-utils"
 
 const AttrID = "AttrID"
 const AttrName = "foo"
+const BoolAttrID = "BoolAttrID"
+const BoolAttrName = "bar"
 
 const getTestEnv = (filterFormula: string) => {
   const dataSet = createDataSet({ name: "DataSet" })
   dataSet.addAttribute({ id: AttrID, name: AttrName })
-  dataSet.addCases([{ __id__: "1", AttrID: 1 }, { __id__: "2", AttrID: 2 }, { __id__: "3", AttrID: 3 }])
+  dataSet.addAttribute({ id: BoolAttrID, name: BoolAttrName })
+  dataSet.addCases([
+    { __id__: "1", AttrID: 1, BoolAttrID: "true" },
+    { __id__: "2", AttrID: 2, BoolAttrID: "false" },
+    { __id__: "3", AttrID: 3, BoolAttrID: "FALSE" }
+  ])
   dataSet.setFilterFormula(filterFormula)
   const formula = dataSet.filterFormula!
   const dataSets = new Map<string, IDataSet>([[dataSet.id, dataSet]])
@@ -47,6 +54,16 @@ describe("AttributeFormulaAdapter", () => {
   describe("computeFormula", () => {
     it("should return results for each provided case", () => {
       const { adapter, context, extraMetadata } = getTestEnv("foo < 2")
+      const results = adapter.computeFormula(context, extraMetadata, "ALL_CASES")
+      expect(results).toEqual([
+        { itemId: "1", result: true },
+        { itemId: "2", result: false },
+        { itemId: "3", result: false },
+      ])
+    })
+
+    it("should treat \"true\" and \"false\" string values as booleans", () => {
+      const { adapter, context, extraMetadata } = getTestEnv("bar")
       const results = adapter.computeFormula(context, extraMetadata, "ALL_CASES")
       expect(results).toEqual([
         { itemId: "1", result: true },
