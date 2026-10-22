@@ -110,8 +110,9 @@ action returns — here, the reply to the `attributeList` request above:
 
 What `values` holds depends on the resource and the action; each resource page shows it. Some
 actions return no `values` at all, only `{ "success": true }`. Two put their results beside
-`values` rather than in it, at the top level of the response: `create` on `item` returns
-`itemIDs` and `caseIDs`, and `update` on `case` returns `caseIDs`.
+`values` rather than in it, at the top level of the response: `create` on
+[`item`](resources/item.md) returns `itemIDs` and `caseIDs`, and `update` on
+[`case`](resources/case.md) returns `caseIDs`.
 
 On failure, `success` is `false` and `values.error` usually holds a message:
 
@@ -124,7 +125,7 @@ On failure, `success` is `false` and `values.error` usually holds a message:
 
 Test `success` before reading `values`: a failed request carries no data, at most an error. And
 do not assume the error is there: a few failures reply with no `values` at all, such as `update`
-on `item` when no id matches, so read the message with a guard, for example
+on [`item`](resources/item.md) when no id matches, so read the message with a guard, for example
 `result.values?.error`. Each resource page lists the messages it can return, and when, in its
 **Errors** table. A few can come from any request:
 
