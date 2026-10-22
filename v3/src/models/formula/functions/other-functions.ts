@@ -14,7 +14,6 @@ export const otherFunctions: Record<string, IFormulaMathjsFunction> = {
     numOfRequiredArguments: 3,
     evaluate: (...args: FValue[]) => {
       const [condition, trueValue, falseValue] = args
-      // NaN is treated as falsy (V2 parity), so a condition like `0/0 < 0` takes the false branch.
       const boolCondition = toBoolean(condition)
       if (boolCondition == null) return ""
       return boolCondition ? trueValue : falseValue

@@ -399,8 +399,8 @@
         ],
         "examples": [
           "boolean(age > 60) is true or false depending on the value of age",
-          "boolean(age) returns true for all values except 0",
-          "boolean(\"false\") returns true because a string value is neither false nor 0"
+          "boolean(age) returns false if age is 0 and true for other numbers",
+          "boolean(\"false\") returns false"
         ]
       },
       { "displayName": "isBoolean",

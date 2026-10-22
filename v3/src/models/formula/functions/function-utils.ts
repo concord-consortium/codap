@@ -13,11 +13,13 @@ export const UNDEF_RESULT = ""
 // evaluating to NaN excludes that case from aggregations.
 export const isValueTruthy = (value: any) => isValueNonEmpty(value) && value !== false && !Number.isNaN(value)
 
-// Converts a formula value to a boolean, as done by `boolean()`, `if()`, and filter formulas.
-// Booleans and the strings "true" and "false" (case-insensitive) map to their boolean values, so that
-// attributes containing "true"/"false" strings behave as expected. Objects (including dates) are true,
-// NaN is false (V2 parity: !!NaN === false), and other values are true if they're non-zero numbers.
-// Empty values return undefined so that callers can decide how to handle them.
+// Converts a formula value to a boolean for `boolean()`, `if()`, and filter formulas.
+// Empty values return undefined so each caller decides how to treat them.
+// Deliberate differences from V2, whose `boolean()` and `if()` disagree with each other:
+// - "true"/"false" match in any case (V2's `if()` matched only lowercase and uppercase)
+// - "0" is false, like the number 0 (V2's `if()` treated it as true)
+// - NaN is false, so `if(0/0 < 0, …)` takes the false branch (V2's `boolean()` treated it as true)
+// - strings that convert to 0, such as " " and "0.0", are false (V2 treated them as true)
 export const toBoolean = (value: any): boolean | undefined => {
   if (isValueEmpty(value)) return undefined
   if (Number.isNaN(value)) return false
