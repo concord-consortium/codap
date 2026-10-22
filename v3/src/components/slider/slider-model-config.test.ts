@@ -1,3 +1,6 @@
+import { autorun } from "mobx"
+import { getTitle } from "../../models/tiles/tile-content-info"
+import { configureSliderFromAttribute } from "./slider-attribute-drop"
 import { kDefaultRangeFraction } from "./slider-types"
 import { setupSliderAndData } from "./slider-test-utils"
 
@@ -13,40 +16,63 @@ describe("SliderModel.setSliderType", () => {
     expect(slider.rangeHigh - slider.rangeLow).toBeCloseTo((max - min) * kDefaultRangeFraction)
   })
 
-  it("keeps the width and binding through a round trip to variable", async () => {
-    const { dataSet, slider } = await setupSliderAndData()
-    const a3 = dataSet.attrFromName("a3")!
-    slider.configureFromAttribute(dataSet, a3.id)
-    slider.setRange(2, 4)
-
-    slider.setSliderType("variable")
-    slider.setSliderType("visibility")
-
-    expect(slider.rangeWidth).toBe(2)
-    expect(slider.attributeId).toBe(a3.id)
-    expect(slider.dataSetId).toBe(dataSet.id)
-  })
-
-  it("hides cases again when switched back to visibility", async () => {
+  it("clears the binding and width when switched to variable", async () => {
     const { dataSet, slider } = await setupSliderAndData()
     slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
     slider.setRange(2, 4)
-    const visibleCount = dataSet.itemIds.length
-    expect(visibleCount).toBeLessThan(6)
 
     slider.setSliderType("variable")
+
+    expect(slider.attributeId).toBeUndefined()
+    expect(slider.dataSetId).toBeUndefined()
+    expect(slider.rangeWidth).toBeUndefined()
     expect(dataSet.itemIds).toHaveLength(6)
-    slider.setSliderType("visibility")
-    expect(dataSet.itemIds).toHaveLength(visibleCount)
   })
 
-  it("keeps an explicit zero width", async () => {
-    const { slider } = await setupSliderAndData()
-    slider.setSliderType("visibility")
-    slider.setRangeWidth(0)
+  it("is unbound, with a default width, when switched back from variable", async () => {
+    const { dataSet, slider } = await setupSliderAndData()
+    slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+    slider.setRange(2, 4)
     slider.setSliderType("variable")
+
+    slider.setSliderType("visibility")
+
+    const [min, max] = slider.axis.domain
+    expect(slider.attribute).toBeUndefined()
+    expect(slider.rangeWidth).toBeCloseTo((max - min) * kDefaultRangeFraction)
+    expect(dataSet.itemIds).toHaveLength(6)
+  })
+
+  it("keeps the binding and width when switched between range types", async () => {
+    const { dataSet, slider } = await setupSliderAndData()
+    const a3 = dataSet.attrFromName("a3")!
+    slider.configureFromAttribute(dataSet, a3.id)
+    slider.setRangeWidth(0)
+
     slider.setSliderType("selection")
+
+    expect(slider.attributeId).toBe(a3.id)
     expect(slider.rangeWidth).toBe(0)
+  })
+
+  it("drops the title that came from the binding when switched to variable", async () => {
+    const { dataSet, tile, slider } = await setupSliderAndData()
+    configureSliderFromAttribute(tile, dataSet, dataSet.attrFromName("a3")!.id)
+    expect(getTitle(tile)).toBe(dataSet.childCollection.title)
+
+    slider.setSliderType("variable")
+
+    expect(getTitle(tile)).toBe(slider.name)
+  })
+
+  it("keeps a title the user set when switched to variable", async () => {
+    const { dataSet, tile, slider } = await setupSliderAndData()
+    configureSliderFromAttribute(tile, dataSet, dataSet.attrFromName("a3")!.id)
+    tile.setUserTitle("Heights")
+
+    slider.setSliderType("variable")
+
+    expect(getTitle(tile)).toBe("Heights")
   })
 })
 
@@ -63,5 +89,25 @@ describe("SliderModel.widthUnitSpan", () => {
     const { slider } = await setupSliderAndData()
     const [min, max] = slider.axis.domain
     expect(slider.widthUnitSpan).toBe(max - min)
+  })
+})
+
+describe("SliderModel.widthUnitSpan for a date attribute", () => {
+  it("follows edits to the attribute's values", async () => {
+    const { dataSet, slider } = await setupSliderAndData()
+    const when = dataSet.addAttribute({ name: "when", userType: "date" })
+    const day = 24 * 60 * 60
+    // captured before binding, after which the slider hides most of the cases
+    const itemIds = dataSet.itemIds.slice()
+    dataSet.setCaseValues(itemIds.map((__id__, i) => ({ __id__, [when.id]: `2026-01-0${i + 1}` })))
+    slider.configureFromAttribute(dataSet, when.id)
+    const spans: number[] = []
+    const dispose = autorun(() => spans.push(slider.widthUnitSpan))
+    expect(spans[spans.length - 1]).toBeCloseTo(5 * day)
+
+    dataSet.setCaseValues([{ __id__: itemIds[5], [when.id]: "2030-01-01" }])
+
+    expect(spans[spans.length - 1]).toBeGreaterThan(365 * day)
+    dispose()
   })
 })

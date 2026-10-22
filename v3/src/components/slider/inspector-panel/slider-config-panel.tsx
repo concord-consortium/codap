@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import {
   Button, ListBox, ListBoxItem, Popover, Select, SelectValue
 } from "react-aria-components"
@@ -45,12 +45,10 @@ export const SliderConfigPalette =
     const unit = chosenUnit && unitChoices.includes(chosenUnit) ? chosenUnit : unitChoices[0]
     const unitSeconds = isDate ? durationUnitSeconds(unit) : 1
     const displayWidth = sliderModel.width / unitSeconds
-    const formattedWidth = formatSliderWidth(displayWidth)
-    const [widthInput, setWidthInput] = useState(formattedWidth)
-
-    useEffect(() => {
-      setWidthInput(formattedWidth)
-    }, [formattedWidth])
+    // The field shows the user's edit until it's committed (on Enter, blur, or the palette's dismissal), and
+    // otherwise the width, rounded for display. Only an edit is committed, so the rounding never replaces the width.
+    const [editedWidth, setEditedWidth] = useState<string>()
+    const widthInput = editedWidth ?? formatSliderWidth(displayWidth)
 
     // a slider whose type's flag is off still shows that type, so the menu can describe it
     const typeChoices = SliderTypes.filter(type => type === sliderType || isSliderTypeAvailable(type))
@@ -68,11 +66,10 @@ export const SliderConfigPalette =
     }
 
     const handleAcceptWidth = () => {
-      const parsed = widthInput.trim() ? Number(widthInput) : NaN
-      if (!isFinite(parsed) || parsed < 0) {
-        setWidthInput(formattedWidth)
-        return
-      }
+      if (editedWidth == null) return
+      setEditedWidth(undefined)
+      const parsed = editedWidth.trim() ? Number(editedWidth) : NaN
+      if (!isFinite(parsed) || parsed < 0) return
       const rangeWidth = parsed * unitSeconds
       if (rangeWidth === sliderModel.rangeWidth) return
       sliderModel.applyModelChange(() => {
@@ -83,6 +80,11 @@ export const SliderConfigPalette =
         log: logStringifiedObjectMessage("sliderRangeWidth: %@", {name: sliderModel.name, rangeWidth})
       })
     }
+
+    // the palette can be dismissed (and the field removed) before the field's blur commits an edit
+    const acceptWidthRef = useRef(handleAcceptWidth)
+    acceptWidthRef.current = handleAcceptWidth
+    useEffect(() => () => acceptWidthRef.current(), [])
 
     const handleUnitChange = (key: React.Key | null) => {
       if (key != null) setChosenUnit(key as SliderWidthUnit)
@@ -131,7 +133,7 @@ export const SliderConfigPalette =
                   id="slider-range-width-input"
                   size={Math.max(1, widthInput.length)}
                   value={widthInput}
-                  onChange={e => setWidthInput(e.target.value)}
+                  onChange={e => setEditedWidth(e.target.value)}
                   onFocus={e => e.target.select()}
                   onBlur={handleAcceptWidth}
                   onKeyDown={e => { if (e.key === "Enter") handleAcceptWidth() }}

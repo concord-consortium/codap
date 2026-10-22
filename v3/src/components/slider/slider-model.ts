@@ -248,6 +248,8 @@ export const SliderModel = TileContentModel
     },
     // the span that determines a date range width's units: the bound attribute's extent, else the axis's
     get widthUnitSpan() {
+      // attribute values live in a volatile array; changeCount is what signals that they changed
+      void self.attribute?.changeCount
       const dataSet = self.dataSet
       const extent = dataSet && self.attributeId ? this.configurationExtent(dataSet, self.attributeId) : undefined
       const [min, max] = extent ?? self.axis.domain
@@ -514,8 +516,17 @@ export const SliderModel = TileContentModel
   }))
   .actions(self => ({
     setSliderType(sliderType: SliderType) {
+      // a variable slider has no binding or width, and loses the title a binding gave its tile
+      if (sliderType === "variable" && self.isRangeSlider) {
+        const tile = getTileModel(self)
+        if (self.attributeId && tile && !tile.userSetTitle) tile.setTitle(undefined)
+        self.dataSetId = undefined
+        self.attributeId = undefined
+        self.rangeWidth = undefined
+        self.dynamicRangeWidth = undefined
+      }
       self.sliderType = sliderType
-      // a range slider needs a width; one it already has (e.g. from before a switch to variable) is kept
+      // a range slider needs a width; one it already has (e.g. when switched between range types) is kept
       if (self.isRangeSlider && self.rangeWidth == null) {
         const [min, max] = self.axis.domain
         self.rangeWidth = (max - min) * kDefaultRangeFraction

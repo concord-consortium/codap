@@ -192,12 +192,22 @@ describe("slider persistence: importing a damaged V2 range slider", () => {
   it.each([
     ["negative", -1, 0],
     ["non-numeric", NaN, 0],
-    ["missing", undefined, 0],
-    ["wider than the axis", 100, 5]
-  ])("imports a %s width as one that fits the axis", async (_label, rangeWidth, expected) => {
+    ["missing", undefined, 0]
+  ])("imports a %s width as zero", async (_label, rangeWidth, expected) => {
     const slider = await importEdited(v3 => { v3.rangeWidth = rangeWidth })
     expect(slider.rangeWidth).toBe(expected)
     expect(slider.rangeHigh).toBeGreaterThanOrEqual(slider.rangeLow)
   })
 })
 
+describe("slider persistence: a width wider than the axis", () => {
+  it("is kept as typed through a V2 save and reload, and fits the axis only for display", async () => {
+    const { dataSet, slider } = await setupSliderAndData()
+    slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+    slider.setRangeWidth(500)
+    await reloadDocument("v2")
+    const restored = findSlider()
+    expect(restored.rangeWidth).toBe(500)
+    expect(restored.width).toBe(5)
+  })
+})

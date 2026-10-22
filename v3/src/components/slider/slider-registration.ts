@@ -162,11 +162,10 @@ registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, getGlobalVal
   const axisMin = lowerBound ?? kDefaultSliderAxisMin
   const axisMax = upperBound ?? kDefaultSliderAxisMax
 
-  // a range slider exported from v3 (see the exporter), with a width that fits the axis even in an edited file
+  // A range slider exported from v3 (see the exporter). Its width is kept as saved, even wider than the axis (the
+  // model limits it to the axis when read), but an edited file's negative or non-numeric width becomes zero.
   const sliderType = SliderTypes.find(type => type !== "variable" && type === v3?.sliderType)
-  const rangeWidth = isFiniteNumber(v3?.rangeWidth)
-    ? Math.min(Math.max(0, v3.rangeWidth), Math.max(0, axisMax - axisMin))
-    : 0
+  const rangeWidth = isFiniteNumber(v3?.rangeWidth) ? Math.max(0, v3.rangeWidth) : 0
   const rangeContent: Partial<ISliderSnapshot> = sliderType
     ? {
         sliderType,

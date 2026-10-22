@@ -63,6 +63,39 @@ describe("SliderConfigPalette", () => {
     expect(slider.rangeWidth).toBe(2.345)
   })
 
+  it("keeps the exact typed width when the field is left after Enter", async () => {
+    const { slider } = await setupSliderAndData()
+    act(() => slider.setSliderType("visibility"))
+    renderPalette(slider)
+    const input = screen.getByTestId("slider-range-width-input")
+    await userEvent.clear(input)
+    await userEvent.type(input, "2.345{Enter}")
+    expect(input).toHaveValue("2.3")
+    await userEvent.tab()
+    expect(slider.rangeWidth).toBe(2.345)
+  })
+
+  it("leaves the width alone when the field is entered and left without an edit", async () => {
+    const { slider } = await setupSliderAndData()
+    act(() => slider.setSliderType("visibility"))
+    act(() => slider.setRange(1, 4.14159))
+    renderPalette(slider)
+    await userEvent.click(screen.getByTestId("slider-range-width-input"))
+    await userEvent.tab()
+    expect(slider.rangeWidth).toBeCloseTo(3.14159, 10)
+  })
+
+  it("commits a pending edit when the palette is dismissed", async () => {
+    const { slider } = await setupSliderAndData()
+    act(() => slider.setSliderType("visibility"))
+    const { unmount } = renderPalette(slider)
+    const input = screen.getByTestId("slider-range-width-input")
+    await userEvent.clear(input)
+    await userEvent.type(input, "4")
+    unmount()
+    expect(slider.rangeWidth).toBe(4)
+  })
+
   it("stores a width wider than the axis as typed", async () => {
     const { slider } = await setupSliderAndData()
     act(() => slider.setSliderType("visibility"))
