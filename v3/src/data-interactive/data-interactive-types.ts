@@ -107,6 +107,8 @@ export interface DILogMessage {
 export interface DIUrl {
   URL: string
   title?: string
+  // defaults to true; pass false to import the data without opening a case table
+  showCaseTable?: boolean
 }
 export interface DIDataDisplay {
   exportDataUri?: string

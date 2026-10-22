@@ -1,6 +1,6 @@
 # document
 
-> **Applies to:** CODAP v3 · **Verified:** 2026-09-25 against `main` @ `ae2105cf4`
+> **Applies to:** CODAP v3 · **Verified:** 2026-10-22
 > · Parts of this page are generated — see [conventions](../conventions.md).
 
 Reads or replaces the entire CODAP document as **CODAP v2 document JSON** — every data context,
@@ -16,8 +16,8 @@ immediately and do their work afterwards, delivering results as notifications.
 | Action | Supported |
 |---|---|
 | `get` | ✓ |
-| `update` | ✓ |
 | `create` | — |
+| `update` | ✓ |
 | `delete` | — |
 | `notify` | — |
 | `register` | — |
@@ -84,9 +84,10 @@ The work is bracketed by two notifications on the `documentChangeNotice` resourc
 { "action": "notify", "resource": "documentChangeNotice", "values": { "operation": "updateDocumentEnded" } }
 ```
 
-These go **only to the plugin that issued the update** when a plugin made the request. Treat them
-as your own progress signal: the document is not replaced when the `success` response arrives,
-only when `updateDocumentEnded` does.
+These go to every plugin, so each one can tell that the document is being replaced. The plugin
+that issued the update can treat them as its progress signal: the document is not replaced when
+the `success` response arrives, only when `updateDocumentEnded` does. Today a plugin's update
+sends them only to that plugin; see [Notifications](#notifications).
 
 **Your own state is not restored from the document you send.** Before applying the incoming
 snapshot, CODAP replaces the incoming state of every plugin with `subscribeToDocuments: true`
@@ -129,7 +130,13 @@ Takes no `values`.
 }
 ```
 
-The response is `{"success": true}`. The document follows as a `newDocumentState` notification.
+The response carries no document:
+
+```json
+{ "success": true }
+```
+
+The document follows as a `newDocumentState` notification.
 
 **Round-trip a document.**
 
@@ -164,11 +171,12 @@ sendRequest({ action: 'update', resource: 'document', values: savedState })
 | Resource | Operation | When |
 |---|---|---|
 | `document` | `newDocumentState` | After `get document`, to every plugin with `subscribeToDocuments: true`. Carries the document in `values.state`. |
-| `documentChangeNotice` | `updateDocumentBegun` | Before an `update document` begins. When a plugin made the request, sent only to that plugin. |
-| `documentChangeNotice` | `updateDocumentEnded` | After it completes. Same targeting. |
+| `documentChangeNotice` | `updateDocumentBegun` | Before an `update document` begins. Sent to every plugin. |
+| `documentChangeNotice` | `updateDocumentEnded` | After it completes. Sent to every plugin. |
 
-Targeting differs in embedded-server mode, where CODAP itself runs in a host page; that will be
-covered in the embedded-mode guide.
+**When a plugin sends `update document`, only that plugin is told.** Other plugins, and the page
+CODAP is [embedded in](../guides/embedded-server.md), receive neither notice. This is a known
+bug; see [the catalog's known limitations](../notifications.md#known-limitations).
 
 CODAP v3 does **not** currently emit default `undo`/`redo` notifications on this resource, which
 CODAP v2 did. That is a known gap.
