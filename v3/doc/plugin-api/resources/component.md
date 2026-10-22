@@ -441,6 +441,45 @@ Read a graph back, to see how the user has reconfigured it:
 }
 ```
 
+```json
+{
+  "success": true,
+  "values": {
+    "dimensions": { "width": 400, "height": 300 },
+    "id": 12,
+    "name": "Height by Weight",
+    "position": { "left": 100, "top": 100 },
+    "title": "Height by Weight",
+    "type": "graph",
+    "backgroundColor": "#ffffff",
+    "dataContext": "Mammals",
+    "enableNumberToggle": false,
+    "filterFormula": "",
+    "hiddenCases": [],
+    "plotType": "scatterPlot",
+    "pointColor": "#e6805b",
+    "pointSize": 1,
+    "primaryAxis": "x",
+    "showConnectingLines": false,
+    "strokeColor": "#ffffff",
+    "strokeSameAsFill": false,
+    "transparent": false,
+    "xAttributeID": 34,
+    "xAttributeName": "Weight",
+    "xAttributeType": "numeric",
+    "xLowerBound": -10,
+    "xUpperBound": 210,
+    "yAttributeID": 33,
+    "yAttributeIDs": [ 33 ],
+    "yAttributeName": "Height",
+    "yAttributeNames": [ "Height" ],
+    "yLowerBound": -0.1,
+    "yUpperBound": 1.3,
+    "pointsAreFusedIntoBars": false
+  }
+}
+```
+
 Move and resize a component:
 
 ```json
@@ -556,26 +595,6 @@ notification for a change it made itself. And an `update` to the plugin's **own*
 notifies nobody at all, not just the sender.
 
 ## Errors
-
-<!-- BEGIN GENERATED: errors -->
-| Error |
-|---|
-| `Component not found` |
-| `A values object is required for this request.` |
-| `Unsupported component type <value>` |
-| `Unsupported component type` |
-| `Could not create component` |
-| `Component does not support rescale` |
-| `<action> <type>: dataContext required` |
-| `DataSetMetadata not found for <value>` |
-| `Cannot assign <value1> to <value2>` |
-| `Current plot type does not support fusing points into bars` |
-| `Invalid bar chart scale: <value>` |
-| `Global not found: <value>` |
-| `Cannot create multiple sliders for <value>` |
-| `Unsupported scaleType <value>`, `Unsupported dateUnit <value>` |
-| `Unsupported animationDirection <value>`, `Unsupported animationMode <value>` |
-<!-- END GENERATED: errors -->
 
 | Error | Condition |
 |---|---|

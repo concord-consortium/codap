@@ -118,18 +118,10 @@ fresh `dataDisplay` when you need a current image.
 
 ## Errors
 
-<!-- BEGIN GENERATED: errors -->
-| Error |
-|---|
-| `Component not found` |
-| `DataDisplay not found` |
-<!-- END GENERATED: errors -->
-
-`Component not found` means the selector matched nothing in the document.
-
-`DataDisplay not found` has two causes worth distinguishing: the component's type has no data
-display handler registered — which is every component other than a graph — or the graph handler
-ran and could not produce an image.
+| Error | Condition |
+|---|---|
+| `Component not found` | the selector matched nothing in the document |
+| `DataDisplay not found` | one of two causes: the component's type has no data display handler registered — which is every component other than a graph — or the graph handler ran and could not produce an image |
 
 > **Known bug in the failure response — do not code against it.** `Component not found` returns
 > the normal shape, `{success: false, values: {error: "Component not found"}}`. The

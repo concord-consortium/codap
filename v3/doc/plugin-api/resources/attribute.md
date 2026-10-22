@@ -65,29 +65,6 @@ reach a plugin by structured clone rather than JSON, so a key with no value surv
 `formula`, `deletedFormula`, `description`, `unit`, `type` and `precision` are all commonly
 `undefined`.
 
-<!-- BEGIN GENERATED: values -->
-| Property |
-|---|
-| `name` |
-| `type` |
-| `title` |
-| `cid` |
-| `description` |
-| `editable` |
-| `hidden` |
-| `renameable` |
-| `deleteable` |
-| `formula` |
-| `deletedFormula` |
-| `guid` |
-| `id` |
-| `precision` |
-| `unit` |
-| `defaultMin`, `defaultMax` |
-| `_categoryMap` |
-| `v3.categoryShapes` |
-<!-- END GENERATED: values -->
-
 | Property | Always present | Notes |
 |---|---|---|
 | `name` | yes | |
@@ -187,6 +164,35 @@ Read one attribute, letting CODAP find it by name across collections:
 {
   "action": "get",
   "resource": "dataContext[Mammals].attribute[Height]"
+}
+```
+
+```json
+{
+  "success": true,
+  "values": {
+    "name": "Height",
+    "type": "numeric",
+    "title": "Height",
+    "cid": "ATTR33",
+    "_categoryMap": {
+      "0.08": "#ff6800",
+      "0.5": "#803e75",
+      "0.8": "#a6bdd7",
+      "1.2": "#ffb300",
+      "__order": [ "0.08", "0.5", "0.8", "1.2" ],
+      "attribute-color": "#803e75",
+      "low-attribute-color": "#eee7ed",
+      "high-attribute-color": "#803e75"
+    },
+    "editable": true,
+    "hidden": false,
+    "renameable": true,
+    "deleteable": true,
+    "guid": 33,
+    "id": 33,
+    "precision": 2
+  }
 }
 ```
 
@@ -294,17 +300,6 @@ something. It requires a `request` naming the operation:
 Any other `request` value returns an error.
 
 ## Errors
-
-<!-- BEGIN GENERATED: errors -->
-| Error |
-|---|
-| `DataContext not found` |
-| `Collection not found` |
-| `Attribute not found` |
-| `<action> <resource>: <field> required` |
-| `Internal error prevented color map access` |
-| `unknown request: <value>` |
-<!-- END GENERATED: errors -->
 
 | Error | Condition |
 |---|---|
