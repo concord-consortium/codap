@@ -8,6 +8,7 @@ import { ITileEnvironment } from "./tile-environment"
 // avoids circular dependency on ITileModel
 export interface ITileLikeModel {
   title?: string
+  userSetTitle?: boolean
   content: ITileContentModel
 }
 

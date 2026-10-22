@@ -45,8 +45,12 @@ registerTileContentInfo({
     return sliderTileSnap
   },
   getTitle: (tile: ITileLikeModel) => {
-    const { title, content } = tile || {}
+    const { title, userSetTitle, content } = tile || {}
     const sliderModel = isAliveSafe(content) && isSliderModel(content) ? content : undefined
+    // a range slider with no attribute is titled by its type, unless the user has titled it
+    if (sliderModel?.isRangeSlider && !sliderModel.attribute && !userSetTitle) {
+      return t(`V3.Slider.title.${sliderModel.sliderType}`)
+    }
     const { name } = sliderModel || {}
     return title || name || t("DG.DocumentController.sliderTitle")
   }

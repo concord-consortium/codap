@@ -57,6 +57,34 @@ $slider-attribute-label-space: $slider-attribute-label-height + 4px;
 }
 
 // covers the whole slider so an attribute can be dropped anywhere on it
+// a range slider with no attribute shows only a prompt to choose one
+.slider-wrapper .slider-attribute-prompt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 14px;
+}
+
+.slider-wrapper .slider-attribute-prompt-button,
+.slider-wrapper .slider-attribute-label-button {
+  border-radius: 3px;
+  padding: 0 4px;
+
+  &:hover {
+    background-color: vars.$charcoal-light-5;
+  }
+
+  &:focus-visible {
+    @include vars.focus-outline;
+  }
+
+  .select-arrow {
+    color: vars.$palette-icon-color;
+    margin-left: 6px;
+  }
+}
+
 .slider-wrapper .slider-attribute-drop {
   inset: 0;
 }
@@ -119,6 +147,12 @@ $slider-attribute-label-space: $slider-attribute-label-height + 4px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+
+      .slider-attribute-label-button {
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
     }
 
     .slider-axis-wrapper {
