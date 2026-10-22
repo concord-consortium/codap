@@ -156,15 +156,16 @@ if (scopeBlocks.size > 3) {
   problems.push(`scope blocks: ${scopeBlocks.size} distinct variants; expected at most 3 (one per scope case)`)
 }
 
-// notifications — the generator lists every operation the code sends in a table of its family or
-// area, and fails if one fits no table. What it cannot write is when each fires, so it marks a
-// new operation's row as undescribed, and that fails here until someone writes the description.
+// notifications — fail every row the generator marked undescribed (see conventions.md), until
+// someone writes when it fires.
 {
   const page = join(docsDir, "notifications.md")
   if (existsSync(page)) {
     for (const line of readFileSync(page, "utf8").split("\n")) {
       if (!line.startsWith("|") || !line.includes("_not yet described_")) continue
-      const operation = line.replace(/^\|/, "").split("|").map(c => c.trim()).find(c => c.startsWith("`"))
+      // The operation is the cell just before "Fires when", whether or not a Resource cell leads
+      const cells = line.replace(/^\|/, "").split("|").map(c => c.trim())
+      const operation = cells[cells.findIndex(c => c.includes("_not yet described_")) - 1]
       fail("notifications.md", `${operation ?? line} has no "Fires when" description`)
     }
   }

@@ -1,6 +1,6 @@
 # Undo and redo
 
-> **Applies to:** CODAP v3 · **Verified:** 2026-10-16
+> **Applies to:** CODAP v3 · **Verified:** 2026-10-22
 
 CODAP keeps one undo history for the whole document. The user steps back through it with the
 undo and redo buttons. A plugin can take part in that history: it can put its own actions on it,
@@ -144,7 +144,8 @@ reason, `canUndo` and `canRedo` describe the whole history, not only your plugin
 This is mainly for a plugin that is the whole application, with CODAP behind it. The URL
 parameter `standalone` hides CODAP's toolbar, and with it CODAP's undo and redo buttons:
 
-- `?standalone=true` hides the toolbar and removes every plugin's title bar.
+- `?standalone=true` hides the toolbar and removes every plugin's title bar. See
+  [Known limitations](#known-limitations).
 - `?standalone=<plugin name>` hides the toolbar and removes the title bar of the plugin with that
   name or title, ignoring case, so it fills its space seamlessly.
 
@@ -156,15 +157,16 @@ Your plugin can tell which situation it is in from `interactiveFrame`:
 | `externalUndoAvailable` | `false` | `true` |
 
 When `standaloneUndoModeAvailable` is `true`, the user has no undo buttons except yours, so a
-plugin that reports undoable actions should show them. The keyboard shortcuts for undo and redo
-still work. The history and the messages are the same
-in both modes.
+plugin that reports undoable actions should show them. CODAP's keyboard shortcuts for undo and
+redo work only while focus is outside your plugin, which in standalone mode is rare. The history
+and the messages are the same in both modes.
 
 ## Keeping your buttons in step
 
 CODAP's replies to `undoableActionPerformed`, `undoButtonPress` and `redoButtonPress` carry
-`canUndo` and `canRedo`. Between your own requests, the
-history changes when the user acts in CODAP, so CODAP also tells every plugin when it changes:
+`canUndo` and `canRedo`. Between your own requests, the history changes when the user acts in
+CODAP, so CODAP also tells every plugin when it changes (but see
+[Known limitations](#known-limitations)):
 
 | Operation | Sent when |
 |---|---|
@@ -178,14 +180,19 @@ operation is called.
 
 **The reply to `undoableActionPerformed` describes the history before the action.** The entry
 joins the history just after CODAP replies, so `canUndo` can read `false` when it should be
-`true`, and `canRedo` can read `true` although the new entry empties the redo history. v2 replied with the state afterwards. This is a known bug. Until it is fixed, treat a
-successful `undoableActionPerformed` as making undo available.
+`true`, and `canRedo` can read `true` although the new entry empties the redo history. v2
+replied with the state afterwards. This is a known bug. Until it is fixed, treat a successful
+`undoableActionPerformed` as making undo available.
 
 **`clearUndo` and `clearRedo` are sent at different moments from v2.** v3 sends them only when
 `canUndo` or `canRedo` changes from `true` to `false`, including when the user undoes or redoes
 the last entry. It sends nothing when an action is added to an empty redo history, so a plugin
 does not hear that undo has become possible. This is a known bug; the intended behavior is v2's,
 described above.
+
+**`?standalone=true` also removes other title bars.** v3 removes the title bar of every web
+page shown in a component, guides included, not only plugins'. v2 removed only plugins' title
+bars. This is a known bug.
 
 **`logMessage` is not logged.** v2 recorded it in CODAP's log; v3 ignores it. This is a known
 bug.
@@ -202,8 +209,7 @@ uses an undo step.
 
 **Undo and redo are not announced on `document`.** v2 also sent every plugin a notification on
 `document`, with operation `undo` or `redo`, whenever the user undid or redid an action that had
-no notification of its own. v3 does
-not. This is a known bug.
+no notification of its own. v3 does not. This is a known bug.
 
 **Some other API requests add entries to the history.** Besides the exceptions listed under
 [What the history holds](#what-the-history-holds), these currently add entries too: `create`,

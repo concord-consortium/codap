@@ -1,6 +1,6 @@
 # document
 
-> **Applies to:** CODAP v3 · **Verified:** 2026-09-25
+> **Applies to:** CODAP v3 · **Verified:** 2026-10-22
 > · Parts of this page are generated — see [conventions](../conventions.md).
 
 Reads or replaces the entire CODAP document as **CODAP v2 document JSON** — every data context,
@@ -174,12 +174,9 @@ sendRequest({ action: 'update', resource: 'document', values: savedState })
 | `documentChangeNotice` | `updateDocumentBegun` | Before an `update document` begins. Sent to every plugin. |
 | `documentChangeNotice` | `updateDocumentEnded` | After it completes. Sent to every plugin. |
 
-**When a plugin sends `update document`, other plugins are not told.** v2 sent
-`updateDocumentBegun` and `updateDocumentEnded` to every plugin whoever made the request, so each
-plugin could tell that the document was being replaced. v3 sends them only to the requesting
-plugin. It sends them to every plugin only when CODAP is embedded in a host page and the host page
-makes the request; see [Embedding CODAP in your page](../guides/embedded-server.md). This is a
-known bug.
+**When a plugin sends `update document`, only that plugin is told.** Other plugins, and the page
+CODAP is [embedded in](../guides/embedded-server.md), receive neither notice. This is a known
+bug; see [the catalog's known limitations](../notifications.md#known-limitations).
 
 CODAP v3 does **not** currently emit default `undo`/`redo` notifications on this resource, which
 CODAP v2 did. That is a known gap.

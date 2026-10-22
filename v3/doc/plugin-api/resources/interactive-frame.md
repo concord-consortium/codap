@@ -1,6 +1,6 @@
 # interactiveFrame
 
-> **Applies to:** CODAP v3 · **Verified:** 2026-10-02
+> **Applies to:** CODAP v3 · **Verified:** 2026-10-22
 > · Parts of this page are generated — see [conventions](../conventions.md).
 
 The interactive frame is the plugin's own component — the tile the plugin is running inside.
@@ -103,10 +103,9 @@ honors fourteen; `codapVersion`, `externalUndoAvailable`, `standaloneUndoModeAva
 
 `blockAPIRequestsWhileEditing` makes CODAP hold back plugin requests while the user edits a case
 table cell in a data context this plugin manages, and process them when the edit ends. It
-defaults to `false`. It takes effect only while the plugin also manages the data context
-through `managingController`, which is not saved with the document, so send both on every load.
-See [How CODAP processes requests](../guides/request-processing.md#requests-while-the-user-is-editing)
-for when it applies and what it holds back.
+defaults to `false`. See
+[How CODAP processes requests](../guides/request-processing.md#requests-while-the-user-is-editing)
+for when it applies, what it holds back, and why to send it on every load.
 
 ### Saving state is the other way around
 
@@ -143,7 +142,7 @@ Read the frame at startup:
   "values": {
     "allowEmptyAttributeDeletion": true,
     "blockAPIRequestsWhileEditing": false,
-    "codapVersion": "3.1.1",
+    "codapVersion": "3.x.y",
     "dimensions": { "width": 600, "height": 400 },
     "externalUndoAvailable": true,
     "id": 7,

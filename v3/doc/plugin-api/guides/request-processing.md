@@ -1,6 +1,6 @@
 # How CODAP processes requests
 
-> **Applies to:** CODAP v3 · **Verified:** 2026-10-16
+> **Applies to:** CODAP v3 · **Verified:** 2026-10-22
 
 Most plugins can treat CODAP as answering each request in turn. This chapter is for the ones that
 cannot: plugins that send many requests quickly, stream data in, or need to know exactly when a
@@ -9,9 +9,15 @@ change has been applied.
 ## Order and responses
 
 **Requests from your plugin are processed one at a time, in the order you sent them, and each
-gets exactly one response.** No request overtakes an earlier one. A later request sees the
-effects of every earlier one, so you can send a `create` and then a `get` without waiting for the
-first response.
+gets exactly one response.** No request overtakes an earlier one, and nearly every request has
+finished its work before the next one starts, so you can send a `create` and then a `get` without
+waiting for the first response.
+
+The queue guarantees order, not completion. A few requests reply at once and finish their work
+afterwards: `update` on [`document`](../resources/document.md#update--replacing-the-document)
+replies `success` before the new document is in place, so a request sent after it, even in the
+same array, can still see the old document. Wait for the `updateDocumentEnded` notification before
+sending anything that depends on the replacement.
 
 Each plugin has its own queue. CODAP makes no promise about the order of requests from two
 different plugins.
@@ -22,6 +28,11 @@ error, though CODAP is still working through the queue. When CODAP's reply does 
 calls the same callback again, this time with the reply, so a callback must cope with being called
 twice. Keep that in mind when you send many requests at once: the last of them can wait behind all
 the others.
+
+The [codap-plugin-api](https://github.com/concord-consortium/codap-plugin-api) library handles this
+for you. From version 0.2.0 its `sendRequest` ignores iframe-phone's two-second limit and waits for
+CODAP's actual reply, settling once with it. It applies its own limit instead, 60 seconds by
+default, which `codapInterface.setRequestTimeout` changes.
 
 Requests still waiting when your plugin is closed or reloaded get no response.
 
@@ -79,7 +90,9 @@ not combined. A plugin sees three effects:
 
 - **Each request still gets its own response**, with the same `itemIDs` and `caseIDs` it would
   have had alone.
-- **Responses arrive in clumps**, all of a batch's together.
+- **Responses arrive in clumps**, all of a batch's together. A long run is applied in several
+  batches, not one; batches grow larger the longer the queue and the longer its requests have
+  waited.
 - **A failure fails the whole batch.** If applying the batch fails, every request in it gets
   `An error occurred while processing the request.`, and some of the batch's cases may already
   have been added.
@@ -115,7 +128,8 @@ The hold starts only once the user has actually changed the cell's value, and en
 editor closes. It applies only to case table cells, not to the case card or to attribute names.
 
 **The hold applies to every plugin, not only yours.** While it lasts, requests from all plugins
-wait, including `get`s. A plugin that polls sees its responses arrive late while the user types.
+wait, including `get`s, so a plugin that polls sees its responses arrive late while the user
+types. See [Known limitations](#known-limitations).
 
 The setting defaults to `false` and is new in v3. It is saved with the document, but the
 `managingController` it depends on is not: after the document is reopened, nothing is held until

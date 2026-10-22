@@ -1,6 +1,6 @@
 # Embedding CODAP in your page
 
-> **Applies to:** CODAP v3 · **Verified:** 2026-10-18
+> **Applies to:** CODAP v3 · **Verified:** 2026-10-22
 
 Everywhere else in this reference, your plugin runs inside CODAP. This chapter covers the reverse:
 CODAP runs inside *your* page, in an iframe, and your page talks to it through the same API.
@@ -23,6 +23,10 @@ Each also accepts `true` or `1`. With `embeddedMode`, `embeddedServer` is not ne
 
 The server starts only when CODAP is in an iframe. Opened in its own tab, CODAP starts no server,
 though `embeddedMode` still changes how it looks.
+
+**The embedded server requires an iframe.** CODAP answers requests only from the page that
+embeds it in an iframe, not from JavaScript running on CODAP's own page. v2 also offered the API
+to same-page scripts; v3 does not.
 
 ## Connecting
 
@@ -67,7 +71,7 @@ function requestHandler(command, callback) {
 
 **`codap-present` means CODAP is listening, not that its document has loaded.** CODAP sends it as
 it starts up, before it loads a document named in its URL or creates the data set for a `sample`
-parameter. A request sent straight away can find a document that is still empty.
+parameter. A request sent right away can find a document that is still empty.
 
 ## Sending requests
 
@@ -120,9 +124,6 @@ three. This is a known bug.
 
 **`logMessage` from the host page is not logged.** It reaches any registered log monitors but is
 not written to CODAP's log, as v2 wrote it. This is a known bug.
-
-**CODAP cannot be driven from the same page without an iframe.** v2 also offered the API to
-JavaScript running on CODAP's own page, with no iframe between them. v3 does not yet.
 
 ## See also
 
