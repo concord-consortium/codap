@@ -284,10 +284,6 @@ export const SliderModel = TileContentModel
     setValidatedValue(value: number) {
       self.globalValue.setValue(self.constrainValue(value))
     },
-    setRangeWidth(width: number) {
-      self.rangeWidth = width
-      self.dynamicRangeWidth = undefined
-    }
   }))
   .actions(self => {
     // clamps [low, high] to the axis with low <= high, snapping a zero-width range to the data
@@ -307,6 +303,15 @@ export const SliderModel = TileContentModel
       return self.width === 0 ? self.snapToData(clamped) : clamped
     }
     return {
+      // a range collapsed to zero width snaps to the data, as it does when one handle is dragged onto the other
+      setRangeWidth(width: number) {
+        if (width === 0) {
+          const [low] = normalizeRange(self.rangeLow, self.rangeLow)
+          self.globalValue.setValue(low)
+        }
+        self.rangeWidth = width
+        self.dynamicRangeWidth = undefined
+      },
       setDynamicRange(low: number, high: number) {
         const [lo, hi] = normalizeRange(low, high)
         self.dynamicRangeWidth = hi - lo

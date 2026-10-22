@@ -111,3 +111,29 @@ describe("SliderModel.widthUnitSpan for a date attribute", () => {
     dispose()
   })
 })
+
+describe("SliderModel.setRangeWidth", () => {
+  it("snaps a range collapsed to zero width to the nearest data value", async () => {
+    const { dataSet, slider } = await setupSliderAndData()
+    // a3's values are 1..6
+    slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+    slider.setRange(3.4, 4.4)
+
+    slider.setRangeWidth(0)
+
+    expect(slider.rangeLow).toBe(3)
+    expect(slider.rangeHigh).toBe(3)
+    expect(dataSet.itemIds).toHaveLength(1)
+  })
+
+  it("leaves the low end alone for a nonzero width", async () => {
+    const { dataSet, slider } = await setupSliderAndData()
+    slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+    slider.setRange(3.4, 4.4)
+
+    slider.setRangeWidth(0.5)
+
+    expect(slider.rangeLow).toBe(3.4)
+    expect(slider.rangeHigh).toBeCloseTo(3.9)
+  })
+})

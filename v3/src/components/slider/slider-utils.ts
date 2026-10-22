@@ -69,8 +69,8 @@ export function getSliderWidthUnitChoices(spanSeconds: number): SliderWidthUnit[
   return kSliderWidthUnits.slice(start, start + 3)
 }
 
-// two significant digits, without rounding away integer digits (365, not 370)
+// two significant digits, without rounding away integer digits (365, not 370), up to toPrecision's limit of 100
 export function formatSliderWidth(width: number) {
   const integerDigits = Math.abs(width) >= 1 ? Math.floor(Math.log10(Math.abs(width))) + 1 : 0
-  return String(Number(width.toPrecision(Math.max(2, integerDigits))))
+  return String(Number(width.toPrecision(Math.min(100, Math.max(2, integerDigits)))))
 }

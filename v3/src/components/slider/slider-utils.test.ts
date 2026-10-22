@@ -103,4 +103,9 @@ describe("formatSliderWidth", () => {
   it("shows zero as 0", () => {
     expect(formatSliderWidth(0)).toBe("0")
   })
+
+  it("handles widths with more than 100 integer digits", () => {
+    expect(formatSliderWidth(1e100)).toBe("1e+100")
+    expect(formatSliderWidth(1e150)).toBe("1e+150")
+  })
 })
