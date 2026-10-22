@@ -1,5 +1,26 @@
 # Changelog
 
+## Version 3.1.1 - October 6, 2026
+
+### ✨ Features & Improvements:
+- **CODAP-1484:** Add Slovenian language support
+- **CODAP-1485:** Improve performance when appending cases to hierarchical datasets
+- **CODAP-1506:** Redesign the graph Format palette
+- **CODAP-1507:** Legend keys match the point shape
+- **CODAP-1529:** Improve graph performance with multiple categorical attributes
+
+### 🐞 Bug Fixes:
+- **CODAP-1502:** Fix broken formatting in Japanese and French Sampler strings
+- **CODAP-1530:** Explain when a legend attribute can't color the plotted points
+- **CODAP-1558:** Fix point rendering artifacts in graphs and maps when cases are shown or hidden
+- **CODAP-1565:** Fix tutorial 2 opening without a case table
+
+### Asset Sizes
+|      File |          Size | % Change from Previous Release |
+|-----------|---------------|--------------------------------|
+|  main.css |  252271 bytes |                          1.40% |
+|  index.js | 7375355 bytes |                          1.89% |
+
 ## Version 3.1.0 - August 5, 2026
 
 ### ✨ Features & Improvements:

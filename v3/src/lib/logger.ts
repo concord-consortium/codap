@@ -43,6 +43,11 @@ export interface LogMessage {
   parameters?: Record<string, unknown>
 }
 
+export interface ILogOptions {
+  // don't send the event to Google Analytics (e.g. events about GA itself)
+  excludeAnalytics?: boolean
+}
+
 // List of log messages that were generated before a Logger is initialized
 // will be sent when possible.
 interface PendingMessage {
@@ -52,6 +57,7 @@ interface PendingMessage {
   category: AnalyticsCategory
   event_value?: string
   parameters?: Record<string, unknown>
+  options?: ILogOptions
 }
 
 type GAEventArgs = Record<string, Maybe<string | number | boolean>>
@@ -112,15 +118,16 @@ export class Logger {
     }
   }
 
-  public static log(event: string, args?: Record<string, unknown>, category: AnalyticsCategory = "general") {
+  public static log(event: string, args?: Record<string, unknown>, category: AnalyticsCategory = "general",
+                    options?: ILogOptions) {
     const time = Date.now() // eventually we will want server skew (or to add this via FB directly)
     if (this._instance) {
       const documentTitle = this._instance.document.title
-      this._instance.formatAndSend(time, event, documentTitle, category, args)
+      this._instance.formatAndSend(time, event, documentTitle, category, args, options)
     } else {
       debugLog(DEBUG_LOGGER, "Queueing log message for later delivery", event)
       const event_value = args ? JSON.stringify(args) : undefined
-      this.pendingMessages.push({ time, event, documentTitle: "", category, event_value, parameters: args })
+      this.pendingMessages.push({ time, event, documentTitle: "", category, event_value, parameters: args, options })
     }
   }
 
@@ -129,7 +136,7 @@ export class Logger {
     const documentTitle = this._instance.document.title
     for (const message of this.pendingMessages) {
       this._instance.formatAndSend(message.time, message.event, documentTitle || message.documentTitle,
-                                    message.category, message.parameters)
+                                    message.category, message.parameters, message.options)
     }
     this.pendingMessages = []
   }
@@ -193,13 +200,15 @@ export class Logger {
 
   private formatAndSend(
     time: number, event: string, documentTitle: string,
-    category: AnalyticsCategory = "general", args?: Record<string, unknown>,
+    category: AnalyticsCategory = "general", args?: Record<string, unknown>, options?: ILogOptions
   ) {
     const event_value = JSON.stringify(args)
     const logMessage = this.createLogMessage(time, event, documentTitle, event_value, args)
     debugLog(DEBUG_LOGGER, "logMessage:", logMessage)
     sendToLoggingService(logMessage)
-    sendToAnalyticsService(event, category, extractGAEventArgs(args))
+    if (!options?.excludeAnalytics) {
+      sendToAnalyticsService(event, category, extractGAEventArgs(args))
+    }
     this.logListeners.forEach(listener => {
       try {
         listener(logMessage)

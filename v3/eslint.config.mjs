@@ -6,6 +6,7 @@ import importX from "eslint-plugin-import-x"
 import jest from "eslint-plugin-jest"
 import json from "eslint-plugin-json"
 import mocha from "eslint-plugin-mocha"
+import * as espree from "espree"
 import react from "eslint-plugin-react"
 import reactHooks from "eslint-plugin-react-hooks"
 import testingLibrary from "eslint-plugin-testing-library"
@@ -223,6 +224,28 @@ export default [
       "mocha/no-setup-in-describe": "off",
       "mocha/no-skipped-tests": "off"
     },
+  },
+  {
+    // webpack.config.js inlines this file into src/index.html, where it runs before the main bundle
+    // (including in browsers that the bundle doesn't support), so it must use ES5 syntax only.
+    // ESLint's default parser with `ecmaVersion: 5` reports any later syntax as an error.
+    files: ["src/lib/rollbar/rollbar-settings.js"],
+    languageOptions: {
+      parser: espree,
+      ecmaVersion: 5,
+      sourceType: "script",
+      globals: {
+        // used to export the function for its tests
+        module: "readonly"
+      }
+    },
+    rules: {
+      // rules that need type information, which ESLint's default parser doesn't provide
+      ...tseslint.configs.disableTypeChecked.rules,
+      "no-var": "off",
+      "object-shorthand": "off",
+      "prefer-const": "off"
+    }
   },
   {
     // Lint configs in the base v3 directory

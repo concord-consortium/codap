@@ -1,6 +1,6 @@
 # adornment
 
-> **Applies to:** CODAP v3 · **Verified:** 2026-09-25 against `main` @ `ae2105cf4`
+> **Applies to:** CODAP v3 · **Verified:** 2026-09-25
 > · Parts of this page are generated — see [conventions](../conventions.md).
 
 Adornments are the measures and overlays a graph can display on top of its points — a mean line,
@@ -53,8 +53,11 @@ For `create`, `update` and `delete` the type goes in `values.type` rather than i
 because those requests carry a values object anyway.
 
 <!-- BEGIN GENERATED: scope -->
-This resource is **not** scoped to a data context, so the default-data-context rule does not
-apply. Naming a `dataContext` in the selector has no effect.
+This resource's handler does not read a data context itself. CODAP still resolves one —
+defaulting to `#default` when the selector omits it — and uses it to resolve any
+`collection` or `attribute` segment earlier in the selector. Naming a different
+`dataContext` therefore changes what this resource returns only when the selector
+contains such a segment.
 <!-- END GENERATED: scope -->
 
 ### Type names and aliases
@@ -74,21 +77,21 @@ falls back to hiding, so it works everywhere.
 <!-- BEGIN GENERATED: adornment-types -->
 | Type | get | create | update | delete |
 |---|---|---|---|---|
+| `Box Plot` (alias `BoxPlot`) | ✓ | — | — | hides |
 | `Count` (alias `Percent`) | ✓ | ✓ | ✓ | ✓ |
-| `Movable Value` | ✓ | ✓ | ✓ | ✓ |
-| `Plotted Value` | ✓ | ✓ | ✓ | ✓ |
 | `LSRL` | ✓ | ✓ | ✓ | hides |
-| `Region of Interest` | ✓ | ✓ | ✓ | hides |
 | `Mean` | ✓ | ✓ | ✓ | hides |
+| `Mean Absolute Deviation` (alias `MeanAbsoluteDeviation`) | ✓ | — | — | hides |
 | `Median` | ✓ | ✓ | ✓ | hides |
-| `Standard Deviation` | ✓ | ✓ | ✓ | hides |
-| `Box Plot` | ✓ | — | — | hides |
-| `Mean Absolute Deviation` | ✓ | — | — | hides |
-| `Movable Line` | ✓ | — | — | hides |
-| `Movable Point` | ✓ | — | — | hides |
-| `Normal Curve` | ✓ | — | — | hides |
-| `Plotted Function` | ✓ | — | — | hides |
-| `Standard Error` | ✓ | — | — | hides |
+| `Movable Line` (alias `MovableLine`) | ✓ | — | — | hides |
+| `Movable Point` (alias `MovablePoint`) | ✓ | — | — | hides |
+| `Movable Value` (alias `MovableValue`) | ✓ | ✓ | ✓ | ✓ |
+| `Normal Curve` (alias `NormalCurve`) | ✓ | — | — | hides |
+| `Plotted Function` (alias `PlottedFunction`) | ✓ | — | — | hides |
+| `Plotted Value` (alias `PlottedValue`) | ✓ | ✓ | ✓ | ✓ |
+| `Region of Interest` (alias `RegionofInterest`) | ✓ | ✓ | ✓ | hides |
+| `Standard Deviation` (alias `StandardDeviation`) | ✓ | ✓ | ✓ | hides |
+| `Standard Error` (alias `StandardError`) | ✓ | — | — | hides |
 <!-- END GENERATED: adornment-types -->
 
 The seven read-only types **cannot be turned on through the API** — `create` and `update` both
@@ -164,12 +167,15 @@ page does not yet cover.
 
 ## Examples
 
+These examples use a dot plot named `Heights`, showing one numeric attribute. `Mean` can be
+shown only on a dot plot, so on a scatter plot the same requests fail.
+
 **List the adornments on a graph.**
 
 ```json
 {
   "action": "get",
-  "resource": "component[Height by Weight].adornmentList"
+  "resource": "component[Heights].adornmentList"
 }
 ```
 
@@ -197,7 +203,19 @@ can display them.
 ```json
 {
   "action": "get",
-  "resource": "component[Height by Weight].adornment[Mean]"
+  "resource": "component[Heights].adornment[Mean]"
+}
+```
+
+```json
+{
+  "success": true,
+  "values": {
+    "id": "ADRN456",
+    "type": "Mean",
+    "isVisible": true,
+    "data": [ { "mean": 0.645 } ]
+  }
 }
 ```
 
@@ -206,7 +224,7 @@ can display them.
 ```json
 {
   "action": "create",
-  "resource": "component[Height by Weight].adornment",
+  "resource": "component[Heights].adornment",
   "values": { "type": "Mean" }
 }
 ```
@@ -216,7 +234,7 @@ can display them.
 ```json
 {
   "action": "delete",
-  "resource": "component[Height by Weight].adornment",
+  "resource": "component[Heights].adornment",
   "values": { "type": "Mean" }
 }
 ```
@@ -228,26 +246,12 @@ succeeds rather than reporting it missing.
 
 Toggling an adornment emits a component notification whose operation is specific to the
 adornment — `togglePlottedMean`, `toggle connecting line`, `add movable value` and so on. These
-match the V2 operation strings, including V2's inconsistent casing. The catalog of
+match the v2 operation strings, including v2's inconsistent casing. The catalog of
 CODAP-initiated notifications is not yet migrated; see the "CODAP-Initiated Actions" section of
 the
 [wiki page](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-Plugin-API).
 
 ## Errors
-
-<!-- BEGIN GENERATED: errors -->
-| Error |
-|---|
-| `Unsupported component type <type>` |
-| `Adornment not found.` |
-| `Adornment list not found.` |
-| `Unsupported adornment type` |
-| `The <type> adornment does not currently support <action> requests.` |
-| `Not a(n) <type> adornment.` |
-| `Adornment not supported by plot type.` |
-| `The current plot type does not support Percent.` |
-| `A values object is required for this request.` |
-<!-- END GENERATED: errors -->
 
 | Error | Condition |
 |---|---|

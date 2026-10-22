@@ -1,10 +1,45 @@
 # CODAP Data Interactive Plugin API
 
-> **Applies to:** CODAP v3 · **Verified:** 2026-09-25 against `main` @ `ae2105cf4`
+> **Applies to:** CODAP v3 · **Verified:** 2026-10-22
 > · Parts of this reference are generated — see [conventions](conventions.md).
 
-Reference for developers writing CODAP plugins. A plugin runs in an iframe inside CODAP and talks
-to it by sending request messages and receiving responses and notifications.
+This reference is for developers writing CODAP plugins. It describes the API through which a
+plugin interacts with the CODAP document it runs in, and sends data for other CODAP components
+to present.
+
+## About plugins
+
+A plugin is a kind of component that can be placed in a CODAP document. Its usual role is to
+provide CODAP with data for analysis. For example, the Data Games plugins send CODAP the data
+generated while a student plays a simple video game. By analyzing that data, students can learn
+how to improve their play. The
+[InquirySpace project](https://concord.org/our-work/research-projects/inquiryspace/) created
+plugins for investigating the physical world with sensors and simulations: a student performs an
+experiment and then sends the data it produced to CODAP for immediate analysis.
+
+Plugins are loosely coupled to CODAP. A plugin need not be served from the same web server as
+the CODAP it runs in. It runs in an iframe and communicates with CODAP through `postMessage`.
+
+## About iframe-phone
+
+The API uses [iframe-phone](https://github.com/concord-consortium/iframe-phone) to carry messages
+between a plugin and CODAP. iframe-phone wraps the `postMessage` API: it simplifies setting up the
+connection and provides a simple remote procedure call (RPC) interface.
+
+CODAP defines the structure of the requests and responses that pass through the connection. In
+most cases the plugin sends a request and passes a callback to receive the response. Some
+messages start from CODAP's side, such as notifications; the mechanics are the same in either
+direction. See [Sending requests and receiving notifications](#sending-requests-and-receiving-notifications)
+for how a plugin connects.
+
+Most plugins are better off with the
+[codap-plugin-api](https://github.com/concord-consortium/codap-plugin-api) library
+(`@concord-consortium/codap-plugin-api` on npm), which sets up the iframe-phone connection and
+wraps it in a `sendRequest` that returns a promise. From version 0.2.0 it also copes with
+iframe-phone's two-second timeout for you; see
+[How CODAP processes requests](guides/request-processing.md#order-and-responses).
+
+## Status of this reference
 
 **This reference is being migrated.** It is moving out of the
 [wiki page](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-Plugin-API)
@@ -57,7 +92,59 @@ Every request a plugin sends has the same envelope:
 }
 ```
 
+A request may also be an array of envelopes. CODAP processes them in order and replies with an
+array of responses, one per envelope, except in one known case; see
+[How CODAP processes requests](guides/request-processing.md#known-limitations).
+
+### Response shape
+
+Every request gets one response, unless your plugin is closed or reloaded before CODAP reaches
+it. On success, `success` is `true` and `values` holds what the
+action returns — here, the reply to the `attributeList` request above:
+
+```json
+{
+  "success": true,
+  "values": [
+    { "name": "Species", "id": 31, "title": "Species" },
+    { "name": "Mass", "id": 32, "title": "Mass" }
+  ]
+}
+```
+
+What `values` holds depends on the resource and the action; each resource page shows it. Some
+actions return no `values` at all, only `{ "success": true }`. Two put their results beside
+`values` rather than in it, at the top level of the response: `create` on `item` returns
+`itemIDs` and `caseIDs`, and `update` on `case` returns `caseIDs`.
+
+On failure, `success` is `false` and `values.error` usually holds a message:
+
+```json
+{
+  "success": false,
+  "values": { "error": "DataContext not found" }
+}
+```
+
+Test `success` before reading `values`: a failed request carries no data, at most an error. And
+do not assume the error is there: a few failures reply with no `values` at all, such as `update`
+on `item` when no id matches, so read the message with a guard, for example
+`result.values?.error`. Each resource page lists the messages it can return, and when, in its
+**Errors** table. A few can come from any request:
+
+| Error | Condition |
+|---|---|
+| `Unsupported action: <action>/<resource>` | the resource does not exist, or does not support the action |
+| `No action to process.` | the request was empty |
+| `Action handler returned undefined.` | the handler produced no response — a defect in CODAP |
+| `An error occurred while processing the request.` | the handler failed unexpectedly — a defect in CODAP |
+
 ### Sending requests and receiving notifications
+
+[The notification catalog](notifications.md) lists them, grouped by what changed, and
+[says which plugins receive each one](notifications.md#receiving-them), including whether you
+hear about your own changes.
+
 
 CODAP and a plugin talk over [iframe-phone](https://github.com/concord-consortium/iframe-phone).
 A plugin sets up an endpoint, passing a handler CODAP calls when it has something to say:
@@ -149,8 +236,8 @@ neither here nor there.
 | **[`adornment`](resources/adornment.md)** | **this repo** |
 | **[`adornmentList`](resources/adornment.md)** | **this repo** |
 | `allCases` | wiki |
-| `attribute` | wiki |
-| `attributeList` | wiki |
+| **[`attribute`](resources/attribute.md)** | **this repo** |
+| **[`attributeList`](resources/attribute-list.md)** | **this repo** |
 | `attributeLocation` | wiki |
 | `case` | wiki |
 | `caseByID` | wiki |
@@ -160,11 +247,11 @@ neither here nor there.
 | `caseSearch` | wiki |
 | `collection` | wiki |
 | `collectionList` | wiki |
-| `component` | wiki |
-| `componentList` | wiki |
+| **[`component`](resources/component.md)** | **this repo** |
+| **[`componentList`](resources/component-list.md)** | **this repo** |
 | `configuration` | wiki |
 | `configurationList` | wiki |
-| `dataContext` | wiki |
+| **[`dataContext`](resources/data-context.md)** | **this repo** |
 | `dataContextFromURL` | wiki |
 | `dataContextList` | wiki |
 | **[`dataDisplay`](resources/data-display.md)** | **this repo** |
@@ -173,7 +260,7 @@ neither here nor there.
 | `global` | wiki |
 | `globalList` | wiki |
 | **[`interactiveApi`](resources/interactive-api.md)** | **this repo** |
-| `interactiveFrame` | wiki |
+| **[`interactiveFrame`](resources/interactive-frame.md)** | **this repo** |
 | `item` | wiki |
 | `itemByCaseID` | wiki |
 | `itemByID` | wiki |
@@ -181,7 +268,7 @@ neither here nor there.
 | `itemSearch` | wiki |
 | `logMessage` | wiki |
 | `logMessageMonitor` | wiki |
-| `selectionList` | wiki |
+| **[`selectionList`](resources/selection-list.md)** | **this repo** |
 | `tourElements` | not yet documented |
 | `undoChangeNotice` | wiki |
 
@@ -189,14 +276,11 @@ neither here nor there.
 
 ## Guides
 
-Narrative chapters covering behavior that spans resources — embedded-server mode, request
-coalescing, undo/redo, locale — live in **[`guides/`](guides/README.md)**, which also lists the
-internal design documents to consult until those chapters are written.
+Narrative chapters covering behavior that spans resources — how CODAP processes requests, undo
+and redo, language and locale, and embedding CODAP in a page — live in
+**[`guides/`](guides/README.md)**.
 
-The catalog of notifications CODAP sends to plugins will live in `notifications.md`, arriving
-with Phase 4 of the [plan](../plugin-api-doc-update-plan.md). Until then it is the
-"CODAP-Initiated Actions" half of the
-[wiki page](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-Plugin-API).
+The notifications CODAP sends to plugins are cataloged in **[`notifications.md`](notifications.md)**.
 
 ---
 

@@ -84,7 +84,8 @@ describe("Logger", () => {
 
     Logger.log(event, args)
 
-    expect(formatAndSendSpy).toHaveBeenCalledWith(expect.any(Number), event, documentTitle, category, args)
+    expect(formatAndSendSpy).toHaveBeenCalledWith(expect.any(Number), event, documentTitle, category, args,
+      undefined)
 
     consoleGroupSpy.mockRestore()
     consoleDebugSpy.mockRestore()
@@ -224,6 +225,47 @@ describe("Logger", () => {
       const logMessage: LogMessage = listener.mock.calls[0][0]
       expect(logMessage.session).toBeDefined()
       expect(logMessage.session).not.toBe("")
+    })
+  })
+
+  describe("excludeAnalytics option", () => {
+    const originalIsLoggingEnabled = Logger.isLoggingEnabled
+    let gtag: jest.Mock
+
+    beforeEach(() => {
+      // enable sending so that the Logger calls the window's gtag (mocked below)
+      Logger.isLoggingEnabled = true
+      gtag = jest.fn()
+      // the Logger checks `gtag instanceof Function`, which a jest mock fails in this environment
+      ;(window as any).gtag = (...args: unknown[]) => gtag(...args)
+      mockXhr.post(/.*/, { status: 201 })
+    })
+    afterEach(() => {
+      Logger.isLoggingEnabled = originalIsLoggingEnabled
+      delete (window as any).gtag
+    })
+
+    it("sends events to Google Analytics by default", () => {
+      Logger.initializeLogger(mockDocument)
+      Logger.log("testEvent")
+      expect(gtag).toHaveBeenCalledTimes(1)
+    })
+
+    it("doesn't send excluded events to Google Analytics, but still sends them to listeners", () => {
+      Logger.initializeLogger(mockDocument)
+      const listener = jest.fn()
+      Logger.registerLogListener(listener)
+
+      Logger.log("testEvent", undefined, "general", { excludeAnalytics: true })
+
+      expect(gtag).not.toHaveBeenCalled()
+      expect(listener).toHaveBeenCalledTimes(1)
+    })
+
+    it("respects the option for events queued before initialization", () => {
+      Logger.log("testEvent", undefined, "general", { excludeAnalytics: true })
+      Logger.initializeLogger(mockDocument)
+      expect(gtag).not.toHaveBeenCalled()
     })
   })
 })
