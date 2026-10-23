@@ -186,6 +186,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   const attribute = sliderModel.isRangeSlider ? sliderModel.attribute : undefined
   const attributeLabel = attribute ? `${attribute.name}${attribute.units ? ` (${attribute.units})` : ""}` : ""
   const showPrompt = sliderModel.isRangeSlider && !attribute
+  const stopTrackPress = (e: React.SyntheticEvent) => e.stopPropagation()
 
   const axisStyle: CSSProperties = {
     width: width ? width - kAxisMargin : width,
@@ -266,7 +267,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
                 </div>
               </div>
               <div {...trackProps} style={{ ...trackProps.style, position: "absolute" }}
-                   ref={trackRef} className="slider">
+                   ref={trackRef} className="slider" data-testid="slider-track">
                 {sliderModel.isRangeSlider
                   ? <SliderRangeThumb sliderModel={sliderModel} tile={tile} running={running} setRunning={setRunning}
                                       state={state} trackRef={trackRef}
@@ -287,7 +288,9 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
                   <div className="axis-end max"/>
                 </div>
                 <If condition={!!attributeLabel}>
-                  <div className="slider-attribute-label" style={axisStyle} data-testid="slider-attribute-label">
+                  {/* keep presses on the label's menu from reaching the track, which would move a range handle */}
+                  <div className="slider-attribute-label" style={axisStyle} data-testid="slider-attribute-label"
+                       onPointerDown={stopTrackPress} onMouseDown={stopTrackPress} onTouchStart={stopTrackPress}>
                     <SliderAttributeMenu tile={tile} className="slider-attribute-label-button">
                       {attributeLabel}
                     </SliderAttributeMenu>

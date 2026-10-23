@@ -79,9 +79,12 @@ $slider-attribute-label-space: $slider-attribute-label-height + 4px;
     @include vars.focus-outline;
   }
 
-  .select-arrow {
-    color: vars.$palette-icon-color;
-    margin-left: 6px;
+  .slider-attribute-menu-arrow {
+    width: 18px;
+    height: 18px;
+    margin-left: 2px;
+    vertical-align: middle;
+    fill: vars.$palette-icon-color;
   }
 }
 
@@ -148,10 +151,19 @@ $slider-attribute-label-space: $slider-attribute-label-height + 4px;
       overflow: hidden;
       text-overflow: ellipsis;
 
+      // fits the label's height, which clips anything taller
       .slider-attribute-label-button {
+        display: inline-flex;
+        align-items: center;
+        height: 100%;
         max-width: 100%;
         overflow: hidden;
         text-overflow: ellipsis;
+
+        .slider-attribute-menu-arrow {
+          width: $slider-attribute-label-height;
+          height: $slider-attribute-label-height;
+        }
       }
     }
 
