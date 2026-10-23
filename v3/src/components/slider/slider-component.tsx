@@ -50,6 +50,8 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
     setOverlayRef(elt)
   }, [setOverlayRef, sliderRef])
   const [running, setRunning] = useState(false)
+  const [focusAttributeLabel, setFocusAttributeLabel] = useState(false)
+  const clearFocusAttributeLabel = useCallback(() => setFocusAttributeLabel(false), [])
   const [statusMessage, setStatusMessage] = useState("")
   const statusTimeoutRef = useRef<number>()
   const prevRunningRef = useRef(false)
@@ -234,7 +236,9 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
                ref={setWrapperRef} data-testid="slider-drop-overlay">
             <If condition={showPrompt}>
               <div className="slider-attribute-prompt" data-testid="slider-attribute-prompt">
-                <SliderAttributeMenu tile={tile} className="slider-attribute-prompt-button">
+                {/* choosing removes the prompt, so focus moves to the attribute label's menu that replaces it */}
+                <SliderAttributeMenu tile={tile} className="slider-attribute-prompt-button"
+                                     onSelect={() => setFocusAttributeLabel(true)}>
                   {t("V3.Slider.prompt")}
                 </SliderAttributeMenu>
               </div>
@@ -291,7 +295,8 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
                   {/* keep presses on the label's menu from reaching the track, which would move a range handle */}
                   <div className="slider-attribute-label" style={axisStyle} data-testid="slider-attribute-label"
                        onPointerDown={stopTrackPress} onMouseDown={stopTrackPress} onTouchStart={stopTrackPress}>
-                    <SliderAttributeMenu tile={tile} className="slider-attribute-label-button">
+                    <SliderAttributeMenu tile={tile} className="slider-attribute-label-button"
+                                         autoFocus={focusAttributeLabel} onAutoFocus={clearFocusAttributeLabel}>
                       {attributeLabel}
                     </SliderAttributeMenu>
                   </div>

@@ -1,6 +1,6 @@
 import { Menu, MenuButton, MenuList, Portal, useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
-import React, { useRef } from "react"
+import React, { useEffect, useRef } from "react"
 import { useDocumentContainerContext } from "../../hooks/use-document-container-context"
 import { useMenuHeightAdjustment } from "../../hooks/use-menu-height-adjustment"
 import { useMenuItemScrollIntoView } from "../../hooks/use-menu-item-scroll-into-view"
@@ -22,20 +22,34 @@ const kMaxMenuHeight = "50vh"
 interface IProps {
   tile?: ITileModel
   className?: string
+  // focuses the trigger when it mounts, e.g. when it replaces another trigger that had the focus
+  autoFocus?: boolean
+  onAutoFocus?: () => void
+  onSelect?: () => void
   children: React.ReactNode  // the trigger's content
 }
 // A menu of the attributes that can configure the slider (those a drop would accept), across all datasets.
 // Choosing one configures the slider from it, as a drop does.
-export const SliderAttributeMenu = observer(function SliderAttributeMenu({ tile, className, children }: IProps) {
+export const SliderAttributeMenu = observer(function SliderAttributeMenu({
+  tile, className, autoFocus, onAutoFocus, onSelect, children
+}: IProps) {
   const slider = isSliderModel(tile?.content) ? tile?.content : undefined
   const containerRef = useDocumentContainerContext()
   const menuListRef = useRef<HTMLDivElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
   const submenus = useAttributePickerSubmenus()
   const { handleOpenSubmenu, handleCloseSubmenu } = submenus
   const handleMenuItemFocus = useMenuItemScrollIntoView()
   const handleMenuKeyDown = useSubmenuOpenOnArrowRight("collection-id", handleOpenSubmenu)
   const { isOpen, onOpen, onClose } = useDisclosure()
   const adjustedMaxHeight = useMenuHeightAdjustment({ menuRef: menuListRef, containerRef, isOpen })
+
+  useEffect(() => {
+    if (autoFocus) {
+      buttonRef.current?.focus()
+      onAutoFocus?.()
+    }
+  }, [autoFocus, onAutoFocus])
 
   if (!tile || !slider) return null
 
@@ -46,6 +60,7 @@ export const SliderAttributeMenu = observer(function SliderAttributeMenu({ tile,
   const handleSelect = (dataSet: IDataSet, attrId: string) => {
     configureSliderFromAttribute(tile, dataSet, attrId)
     onClose()
+    onSelect?.()
   }
 
   return (
@@ -53,7 +68,7 @@ export const SliderAttributeMenu = observer(function SliderAttributeMenu({ tile,
           onOpen={() => { handleCloseSubmenu(); onOpen() }}
           onClose={() => { handleCloseSubmenu(); onClose() }}>
       {/* the visible text names the button; the arrow is an icon, so it adds nothing to the text or the name */}
-      <MenuButton className={className} title={t("V3.Slider.attributeMenu")}
+      <MenuButton ref={buttonRef} className={className} title={t("V3.Slider.attributeMenu")}
                   data-testid="slider-attribute-menu-button">
         {children}
         <DropdownArrow className="slider-attribute-menu-arrow" aria-hidden="true"/>
