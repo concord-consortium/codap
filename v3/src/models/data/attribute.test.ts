@@ -608,6 +608,18 @@ describe("Attribute", () => {
     expect(attr4.numPrecision).toBe(2)
   })
 
+  test("numeric attributes interpret an unambiguous comma as a decimal separator", () => {
+    const attr = Attribute.create({ name: "latitude" })
+    attr.addValues(["38,7223", "-9,1393", "1,234"])
+    // without a user type, comma values are not numeric
+    expect(attr.numValue(0)).toBeNaN()
+    attr.setUserType("numeric")
+    expect(attr.numValue(0)).toBe(38.7223)
+    expect(attr.numValue(1)).toBe(-9.1393)
+    // ambiguous values are still treated as thousands
+    expect(attr.numValue(2)).toBe(1234)
+  })
+
   test("effectivePrecision returns the right value for all types", () => {
     // Numeric with no stored precision returns default
     const numAttr = Attribute.create({ name: "num", userType: "numeric" })
