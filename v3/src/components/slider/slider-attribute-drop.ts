@@ -13,15 +13,14 @@ export function isSliderAttributeDropAllowed(slider: ISliderModel, dataSet?: IDa
   return !!slider.configurationExtent(dataSet, attrId)
 }
 
-// Configures the slider from the attribute and retitles its tile, as a single undoable change.
-// Takes the tile because the title belongs to the tile, not the slider content.
+// Configures the slider from the attribute as a single undoable change. The tile's title follows the binding
+// (see the slider's getTitle), so it isn't set here.
 export function configureSliderFromAttribute(tile: ITileModel, dataSet: IDataSet, attrId: string) {
   const slider = tile.content
   if (!isSliderModel(slider) || !slider.configurationExtent(dataSet, attrId)) return false
   const attrName = dataSet.getAttribute(attrId)?.name
   tile.applyModelChange(() => {
     slider.configureFromAttribute(dataSet, attrId)
-    tile.setTitle(dataSet.childCollection.title)
   }, {
     undoStringKey: "V3.Undo.slider.configureFromAttribute",
     redoStringKey: "V3.Redo.slider.configureFromAttribute",
