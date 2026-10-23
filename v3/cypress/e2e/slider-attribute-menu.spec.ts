@@ -1,0 +1,71 @@
+import { ComponentElements as c } from "../support/elements/component-elements"
+import { SliderTileElements as slider } from "../support/elements/slider-tile"
+
+// the Mammals dashboard already contains a variable slider ("v1")
+const params = "?sample=mammals&dashboard&mouseSensor&suppressUnsavedWarning&features=visibilitySlider"
+
+function visitMammals() {
+  cy.visit(`${Cypress.config("index")}${params}`)
+  cy.get('.codap-case-table [data-testid="codap-attribute-button Sleep"]').should("be.visible")
+  slider.getVariableValue().should("eq", "0.5")
+}
+
+// switches the slider to a Visibility slider in the inspector's Configuration palette, then closes the palette,
+// which can cover the slider
+function makeVisibilitySlider() {
+  c.selectTile("slider", 0)
+  c.getInspectorPanel().find("[data-testid=slider-config-button]").click()
+  cy.get("[data-testid=slider-type-button]").click()
+  cy.get("[data-testid=slider-type-visibility]").click()
+  c.getInspectorPanel().find("[data-testid=slider-config-button]").click()
+  cy.get("[data-testid=slider-type-button]").should("not.exist")
+}
+
+// The menu portals out of the tile, so it must be stacked above the tiles: the item must be what's painted at its
+// own center (an item hidden under a tile would still pass a forced click).
+function expectMenuItemOnTop(name: string) {
+  cy.get('[data-testid="slider-attribute-menu-list"] [role="menuitem"]').contains(name).then($item => {
+    const item = $item[0]
+    const rect = item.getBoundingClientRect()
+    const topElt = item.ownerDocument.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2)
+    expect(item.contains(topElt)).to.equal(true)
+  })
+}
+
+function chooseFromMenu(name: string) {
+  expectMenuItemOnTop(name)
+  cy.get('[data-testid="slider-attribute-menu-list"] [role="menuitem"]').contains(name).click()
+}
+
+context("Slider attribute menu", () => {
+  it("prompts an empty Visibility slider for an attribute and configures it from the menu", () => {
+    visitMammals()
+    makeVisibilitySlider()
+    c.getComponentTitle("slider").should("have.text", "Visibility Slider")
+    slider.getSliderTile().find("[data-testid=slider-attribute-prompt]")
+      .should("contain.text", "Drag an attribute or click here")
+    slider.getSliderTile().find("[data-testid=slider-axis]").should("not.exist")
+
+    slider.getSliderTile().find("[data-testid=slider-attribute-menu-button]").click()
+    // only numeric and date attributes are offered
+    cy.get('[data-testid="slider-attribute-menu-list"]').should("not.contain.text", "Diet")
+    chooseFromMenu("Sleep")
+
+    // the Mammals dataset's (only) collection is "Cases"
+    c.getComponentTitle("slider").should("have.text", "Cases")
+    slider.getSliderTile().find("[data-testid=slider-axis]").should("exist")
+    slider.getSliderTile().find("[data-testid=slider-attribute-label]").should("contain.text", "Sleep")
+  })
+
+  it("switches a configured slider's attribute from the menu under its axis", () => {
+    visitMammals()
+    cy.dragAttributeToTarget("table", "Sleep", "slider")
+    slider.getSliderTile().find("[data-testid=slider-attribute-label]").should("contain.text", "Sleep")
+
+    slider.getSliderTile().find("[data-testid=slider-attribute-label] [data-testid=slider-attribute-menu-button]")
+      .click()
+    chooseFromMenu("Mass")
+
+    slider.getSliderTile().find("[data-testid=slider-attribute-label]").should("contain.text", "Mass")
+  })
+})
