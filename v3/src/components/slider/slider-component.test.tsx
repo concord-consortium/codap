@@ -1,4 +1,5 @@
-import { act, fireEvent, render, screen } from "@testing-library/react"
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
+import { userEvent } from "@testing-library/user-event"
 import { DndContext } from "@dnd-kit/core"
 import { DocumentContainerContext } from "../../hooks/use-document-container-context"
 import { ITileSelection, TileSelectionContext } from "../../hooks/use-tile-selection-context"
@@ -91,6 +92,25 @@ describe("SliderComponent", () => {
     fireEvent.mouseDown(button, { button: 0, clientX: 1000 })
     fireEvent.mouseUp(button, { button: 0, clientX: 1000 })
     expect([slider.rangeLow, slider.rangeHigh]).toEqual([3, 4])
+  })
+
+  it("moves focus to the attribute label's menu once an attribute is chosen from the prompt", async () => {
+    const { tile, dataSet, slider } = await setupSliderAndData()
+    slider.setSliderType("visibility")
+    renderSlider(tile)
+    await userEvent.click(screen.getByTestId("slider-attribute-menu-button"))
+    // Chakra leaves the open menu hidden in jsdom, and hidden items have no accessible name
+    const items = await screen.findAllByRole("menuitem", { hidden: true })
+    await userEvent.click(items.find(item => item.textContent === "collection3")!)
+    const attrItems = await screen.findAllByRole("menuitem", { hidden: true })
+    await userEvent.click(attrItems.find(item => item.textContent === "a3")!)
+    expect(slider.attributeId).toBe(dataSet.attrFromName("a3")!.id)
+    // the prompt's button is gone, so this is the attribute label's
+    await waitFor(() => {
+      expect(screen.getByTestId("slider-attribute-menu-button")).toHaveFocus()
+    })
+    expect(screen.getByTestId("slider-attribute-label")).toContainElement(
+      screen.getByTestId("slider-attribute-menu-button"))
   })
 
   it("returns to the prompt when the bound attribute is deleted", async () => {
