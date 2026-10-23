@@ -12,10 +12,9 @@ import { axisPlaceToAttrRole, getAxisPlaceTraits, kOther } from "../../data-disp
 import { swapCategoriesNotification } from "../../data-display/data-display-notifications"
 import { useDataDisplayAnimation } from "../../data-display/hooks/use-data-display-animation"
 import { useDataDisplayModelContextMaybe } from "../../data-display/hooks/use-data-display-model"
-import { kDefaultFontHeight } from "../axis-constants"
 import { computeNiceNumericBounds, setNiceDomain } from "../axis-domain-utils"
 import { AxisPlace } from "../axis-types"
-import { DragInfo } from "../axis-utils"
+import { DragInfo, setNumberOfCategoriesLimit } from "../axis-utils"
 import { AxisHelper, EmptyAxisHelper, IAxisHelperArgs } from "../helper-models/axis-helper"
 import { CatObject, CategoricalAxisHelper } from "../helper-models/categorical-axis-helper"
 import { DateAxisHelper } from "../helper-models/date-axis-helper"
@@ -179,10 +178,8 @@ export const useSubAxis = ({
      * Make sure there is a group element for each category and that the text elements have drag behavior
      */
     setupCategories = useCallback(() => {
-      const subAxisElt = subAxisEltRef.current,
-        axisLength = layout.getAxisLength(axisPlace),
-        numCategoriesLimit = Math.floor(axisLength / kDefaultFontHeight)
-      dataConfig?.setNumberOfCategoriesLimitForRole(axisPlaceToAttrRole[axisPlace], numCategoriesLimit)
+      const subAxisElt = subAxisEltRef.current
+      dataConfig && setNumberOfCategoriesLimit(dataConfig, axisPlace, layout)
       const catArray = getCategoryArray()
       const categories = catArray,
         categoryData: CatObject[] = categories.map((cat, index) =>
@@ -469,7 +466,8 @@ export const useSubAxis = ({
     )
   }, [attrId, dataConfig, setupCategories, renderSubAxis])
 
-  // Render when axis length or number of sub-axes changes
+  // Render when axis length or number of sub-axes changes. A change in the number of sub-axes changes
+  // each sub-axis's length, and with it the categories limit, so categorical axes must be set up again.
   useEffect(() => {
     const disposer = reaction(
       () => {
@@ -477,11 +475,12 @@ export const useSubAxis = ({
           layout.getAxisMultiScale(axisPlace)?.repetitions]
       },
       () => {
+        isCategorical && setupCategories()
         renderSubAxis()
       }, {name: "useSubAxis [axisLength]", equals: comparer.structural}
     )
     return () => disposer()
-  }, [axisPlace, layout, renderSubAxis])
+  }, [axisPlace, layout, isCategorical, renderSubAxis, setupCategories])
 
   // update on multiScaleChangeCount change
   useEffect(() => {
