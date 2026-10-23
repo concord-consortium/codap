@@ -471,6 +471,19 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
     return () => disposer()
   }, [refreshHeatmap, refreshPoints, dataConfiguration])
 
+  // Changing the type of the lat/long attributes (e.g. categorical → numeric) changes their numeric
+  // values without changing the set of plotted cases, so the points must be repositioned explicitly.
+  useEffect(function setupResponseToLatLongTypeChange() {
+    return mstReaction(
+      () => [dataConfiguration?.attributeType('lat'), dataConfiguration?.attributeType('long')],
+      () => {
+        refreshPoints(false)
+        refreshHeatmap()
+      },
+      {name: "MapPointLayer.respondToLatLongTypeChange", equals: comparer.structural}, dataConfiguration
+    )
+  }, [refreshHeatmap, refreshPoints, dataConfiguration])
+
   useEffect(function setupResponseToChangeInCases() {
     return mstReaction(
       () => dataConfiguration?.caseDataHash,
