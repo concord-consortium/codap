@@ -1,5 +1,8 @@
+import { appState } from "../../models/app-state"
+import { serializeCodapV2Document } from "../../models/document/serialize-document"
 import { getTitle } from "../../models/tiles/tile-content-info"
 import { configureSliderFromAttribute } from "./slider-attribute-drop"
+import { isSliderModel } from "./slider-model"
 import { setupSliderAndData } from "./slider-test-utils"
 
 describe("slider title", () => {
@@ -38,4 +41,22 @@ describe("slider title", () => {
     slider.setSliderType("visibility")
     expect(getTitle(tile)).toBe("My range")
   })
+
+  it("shows a title a plugin set on an empty range slider", async () => {
+    const { tile, slider } = await setupSliderAndData()
+    slider.setSliderType("visibility")
+    // the plugin API sets a title without marking it as the user's
+    tile.setTitle("From a plugin")
+    expect(getTitle(tile)).toBe("From a plugin")
+  })
+
+  it("names the type of an empty range slider after a V2 save and reload", async () => {
+    const { slider } = await setupSliderAndData()
+    slider.setSliderType("selection")
+    await appState.setDocument(await serializeCodapV2Document(appState.document))
+    const restoredTile = Array.from(appState.document.content!.tileMap.values())
+      .find(aTile => isSliderModel(aTile.content))!
+    expect(getTitle(restoredTile)).toBe("Selection Slider")
+  })
 })
+
