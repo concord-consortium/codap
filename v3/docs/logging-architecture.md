@@ -28,7 +28,7 @@ Player forwarding, and the Data Interactive log monitor API for plugins.
            ├─→ sendToLoggingService()                → matching plugins
            │     POST logger.concordqa.org/logs
            │
-           ├─→ sendToAnalyticsService()  [skipped if excludeAnalytics]
+           ├─→ sendToAnalyticsService()  [skipped if excludeAnalytics; args omitted if excludeAnalyticsArgs]
            │     window.gtag("event", ...)
            │
            └─→ logListeners.forEach(listener)
@@ -108,6 +108,27 @@ Key features:
 - **`excludeAnalyticsArgs` option**: sends the event to GA without its args, while the log
   server and log listeners still get them. `Opened document` uses it because a user's
   document name or URL may identify a student.
+
+### Google Analytics
+
+CODAP v3 reports to the `CODAP - GA4` property (measurement ID `G-ZYRHG9RN3K`). The
+property also has a stream for the codap.concord.org WordPress site, so filter reports
+by stream when the distinction matters.
+
+GA4 only reports an event parameter once it is registered as an event-scoped custom
+dimension (Admin → Data display → Custom definitions), and only from the date it is
+registered. When adding an arg to `kGAEventArgNamesToLog`, register a dimension whose
+event parameter matches the arg name exactly. A property allows 50 such dimensions, and
+the WordPress site's MonsterInsights plugin already uses 27 of them, so prefer generic,
+reusable names (`url`, `filename`) over event-specific ones. Currently registered for
+CODAP: `bannerId`, `url`.
+
+Don't send args that may identify a user, such as document names or a user's document
+URL. Students as young as middle school use CODAP.
+
+`DEBUG_LOGGER` shows the payload passed to `gtag()`, before gtag serializes it, so it
+can't confirm what GA receives. To verify, check the `ep.*` parameters of the
+`/g/collect` request in the browser's network tab, or use GA's Realtime report or DebugView.
 
 ### GA Status Event
 
