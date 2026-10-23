@@ -1,6 +1,7 @@
 import { observer } from "mobx-react-lite"
 import { t } from "../../utilities/translation/translate"
 import { MultiScale } from "../axis/models/multi-scale"
+import { isDateAxisModel } from "../axis/models/numeric-axis-models"
 import { ISliderModel } from "./slider-model"
 
 interface IProps {
@@ -11,7 +12,10 @@ interface IProps {
 // A range slider's value row, e.g. "visible value(s) = 4.8 - 6.1", in place of the variable's name and value
 export const SliderRangeValues = observer(function SliderRangeValues({ sliderModel, multiScale }: IProps) {
   const isDate = sliderModel.scaleType === "date"
-  const format = (value: number) => multiScale?.formatValueForScale(value, isDate) ?? String(value)
+  // dates are shown to the precision a graph's date axis uses for its values, which follows the axis's span
+  const { axis } = sliderModel
+  const datePrecision = isDateAxisModel(axis) ? axis.precisionForDisplay : undefined
+  const format = (value: number) => multiScale?.formatValueForScale(value, isDate, datePrecision) ?? String(value)
   const low = format(sliderModel.rangeLow)
   const high = format(sliderModel.rangeHigh)
   // a collapsed range shows its one value; a narrow range whose ends format alike still shows both

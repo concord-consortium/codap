@@ -241,11 +241,36 @@ describe("SliderModel playback steps", () => {
     expect(slider.nextAnimationValue(1, 0.1)).toBeGreaterThan(slider.valueDomain[1])
   })
 
-  it("steps a range with width by the fallback step, ignoring the multiple restriction as a drag does", async () => {
+  it("steps a range with width by its multiple restriction, as a variable slider does", async () => {
     const { slider } = await setupRangeSlider()
     slider.setMultipleOf(2)
     slider.setRange(2, 3)
+    expect(slider.nextAnimationValue(1, 0.25)).toBe(4)
+    expect(slider.nextAnimationValue(-1, 0.25)).toBe(0)
+  })
+
+  it("steps a range with width by the fallback step when there's no multiple restriction", async () => {
+    const { slider } = await setupRangeSlider()
+    slider.setRange(2, 3)
     expect(slider.nextAnimationValue(1, 0.25)).toBeCloseTo(2.25)
+  })
+
+  it("steps a date range by its multiple restriction in its date unit", async () => {
+    const { slider } = await setupRangeSlider()
+    slider.setScaleType("date")
+    slider.setAxisMin(0)
+    slider.setAxisMax(30 * 24 * 60 * 60)
+    slider.setRange(0, 24 * 60 * 60)
+    slider.setMultipleOf(2)
+    slider.setDateMultipleOfUnit("day")
+    expect(slider.nextAnimationValue(1, 1)).toBe(2 * 24 * 60 * 60)
+  })
+
+  it("steps a zero-width range through the data values even with a multiple restriction", async () => {
+    const { slider } = await setupRangeSlider()
+    slider.setMultipleOf(2)
+    slider.setRange(3, 3)
+    expect(slider.nextAnimationValue(1, 0.1)).toBe(4)
   })
 
   it("steps a variable slider by its multiple restriction", async () => {
