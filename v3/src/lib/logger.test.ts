@@ -228,7 +228,7 @@ describe("Logger", () => {
     })
   })
 
-  describe("excludeAnalytics option", () => {
+  describe("Google Analytics", () => {
     const originalIsLoggingEnabled = Logger.isLoggingEnabled
     let gtag: jest.Mock
 
@@ -249,6 +249,36 @@ describe("Logger", () => {
       Logger.initializeLogger(mockDocument)
       Logger.log("testEvent")
       expect(gtag).toHaveBeenCalledTimes(1)
+    })
+
+    it("sends allowed args as top-level parameters and drops the rest", () => {
+      Logger.initializeLogger(mockDocument)
+      Logger.log("testEvent", { bannerId: "banner-1", url: "https://example.com", other: "x" }, "banner")
+      expect(gtag).toHaveBeenCalledWith("event", "testEvent", {
+        eventCategory: "banner",
+        eventAction: "testEvent",
+        eventLabel: "CODAPV3",
+        bannerId: "banner-1",
+        url: "https://example.com"
+      })
+    })
+
+    it("doesn't send document filenames", () => {
+      Logger.initializeLogger(mockDocument)
+      Logger.log("Opened document", { filename: "student doc.codap", url: "https://example.com" }, "document")
+      expect(gtag.mock.calls[0][2]).not.toHaveProperty("filename")
+    })
+
+    it("sends the event without its args when excludeAnalyticsArgs is set", () => {
+      Logger.initializeLogger(mockDocument)
+      const listener = jest.fn()
+      Logger.registerLogListener(listener)
+
+      Logger.log("testEvent", { url: "https://example.com" }, "document", { excludeAnalyticsArgs: true })
+
+      expect(gtag).toHaveBeenCalledWith("event", "testEvent",
+        { eventCategory: "document", eventAction: "testEvent", eventLabel: "CODAPV3" })
+      expect(listener.mock.calls[0][0].parameters).toEqual({ url: "https://example.com" })
     })
 
     it("doesn't send excluded events to Google Analytics, but still sends them to listeners", () => {

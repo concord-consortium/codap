@@ -46,6 +46,8 @@ export interface LogMessage {
 export interface ILogOptions {
   // don't send the event to Google Analytics (e.g. events about GA itself)
   excludeAnalytics?: boolean
+  // send the event to Google Analytics without its args (e.g. args that may identify a user)
+  excludeAnalyticsArgs?: boolean
 }
 
 // List of log messages that were generated before a Logger is initialized
@@ -61,15 +63,17 @@ interface PendingMessage {
 }
 
 type GAEventArgs = Record<string, Maybe<string | number | boolean>>
-interface IGAData {
+// GA4 only reports top-level event parameters (gtag stringifies nested objects),
+// so the allowed args are spread into the payload alongside the fixed fields.
+interface IGAData extends GAEventArgs {
   readonly eventCategory: AnalyticsCategory
   readonly eventAction: string
-  readonly eventArgs?: GAEventArgs
   readonly eventLabel: string
 }
 
 // We limit the arguments that are logged to GA to avoid sending too much data.
-const kGAEventArgNamesToLog = ["bannerId", "filename", "url"]
+// Don't add `filename`: document names can contain student names.
+const kGAEventArgNamesToLog = ["bannerId", "url"]
 
 function extractGAEventArgs(args?: Record<string, unknown>): Maybe<GAEventArgs> {
   if (!args) return undefined
@@ -207,7 +211,7 @@ export class Logger {
     debugLog(DEBUG_LOGGER, "logMessage:", logMessage)
     sendToLoggingService(logMessage)
     if (!options?.excludeAnalytics) {
-      sendToAnalyticsService(event, category, extractGAEventArgs(args))
+      sendToAnalyticsService(event, category, options?.excludeAnalyticsArgs ? undefined : extractGAEventArgs(args))
     }
     this.logListeners.forEach(listener => {
       try {
@@ -269,9 +273,9 @@ function sendToAnalyticsService(eventAction: string, eventCategory: AnalyticsCat
   const windowWithPossibleGa = (window as IAnalyticsService)
 
   const payload: IGAData = {
+    ...eventArgs,
     eventCategory,
     eventAction,
-    eventArgs,
     eventLabel: "CODAPV3"
   }
 

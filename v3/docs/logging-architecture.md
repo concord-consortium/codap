@@ -85,8 +85,8 @@ for events logged with the `excludeAnalytics` option):
 
 1. **Log server** — POST to `logger.concordqa.org/logs` (domain-gated to
    `*.concord.org` hosts, with a `DEBUG_LOGGER` localStorage override)
-2. **Google Analytics** — `window.gtag("event", ...)` with only the banner id, filename and URL
-   args (`kGAEventArgNamesToLog` in `logger.ts`)
+2. **Google Analytics** — `window.gtag("event", ...)` with a limited set of args
+   (`kGAEventArgNamesToLog` in `logger.ts`), sent as top-level event parameters
 3. **Log listeners** — registered callbacks for extensibility
 
 Key features:
@@ -105,6 +105,9 @@ Key features:
 - **`excludeAnalytics` option**: `Logger.log(event, args, category, { excludeAnalytics: true })`
   sends the event to the log server and log listeners but not to GA. The option is kept
   for events queued before initialization. It is used by the `GA status` event below.
+- **`excludeAnalyticsArgs` option**: sends the event to GA without its args, while the log
+  server and log listeners still get them. `Opened document` uses it because a user's
+  document name or URL may identify a student.
 
 ### GA Status Event
 
@@ -249,7 +252,7 @@ The `logMessageNotice` payload delivered to matching plugins:
 | Application ID | `"CODAP"` | `"CODAPV3"` (temporary, see below) |
 | Session format | `YYMMDDHHMMSS-random` or `runKey` | `nanoid()` or `runKey` |
 | Log message format | Printf-style `%@` substitution | `ILogMessage { message, args, category }` |
-| Analytics | `ga('send', 'event', ...)` | `gtag('event', ...)` (limited to banner id/filename/URL) |
+| Analytics | `ga('send', 'event', ...)` | `gtag('event', ...)` (limited args; see `kGAEventArgNamesToLog`) |
 | Framework | SproutCore observer system | MobX-State-Tree + React |
 | LARA forwarding | Not present | Logger listener → `cfmClient.log()` → PR #419 → lara-interactive-api |
 | `appOptions.log` | Routes CFM events to `DG.logUser()` | No-op (loop prevention) |
