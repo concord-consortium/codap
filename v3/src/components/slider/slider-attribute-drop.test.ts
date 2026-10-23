@@ -4,6 +4,7 @@ import { appState } from "../../models/app-state"
 import { featureFlagManager } from "../../models/feature-flags/feature-flag-manager"
 import { TreeManager } from "../../models/history/tree-manager"
 import { getTileDataSet } from "../../models/shared/shared-data-tile-utils"
+import { getTitle } from "../../models/tiles/tile-content-info"
 import { configureSliderFromAttribute, isSliderAttributeDropAllowed } from "./slider-attribute-drop"
 import { setupSliderAndData } from "./slider-test-utils"
 
@@ -62,14 +63,16 @@ describe("configureSliderFromAttribute", () => {
     try {
       await settle()
       const before = {
-        title: tile.title, domain: [...slider.axis.domain], value: slider.value,
+        title: getTitle(tile), domain: [...slider.axis.domain], value: slider.value,
         range: [slider.rangeLow, slider.rangeHigh]
       }
 
       expect(configureSliderFromAttribute(tile, dataSet, dataSet.attrFromName("a3")!.id)).toBe(true)
       await settle()
       expect(slider.sliderType).toBe("visibility")
-      expect(tile.title).toBe(dataSet.childCollection.title)
+      expect(getTitle(tile)).toBe(dataSet.childCollection.title)
+      // the title is derived from the binding, not stored
+      expect(tile._title).toBeUndefined()
       expect(getTileDataSet(slider)).toBe(dataSet)
 
       appState.document.undoLastAction()
@@ -79,7 +82,7 @@ describe("configureSliderFromAttribute", () => {
       expect(slider.axis.domain).toEqual(before.domain)
       expect(slider.value).toBe(before.value)
       expect([slider.rangeLow, slider.rangeHigh]).toEqual(before.range)
-      expect(tile.title).toBe(before.title)
+      expect(getTitle(tile)).toBe(before.title)
       expect(getTileDataSet(slider)).toBeUndefined()
     }
     finally {

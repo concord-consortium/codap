@@ -1,6 +1,9 @@
 import { autorun } from "mobx"
+import { appState } from "../../models/app-state"
+import { serializeCodapV2Document } from "../../models/document/serialize-document"
 import { getTitle } from "../../models/tiles/tile-content-info"
 import { configureSliderFromAttribute } from "./slider-attribute-drop"
+import { ISliderModel, isSliderModel } from "./slider-model"
 import { kDefaultRangeFraction } from "./slider-types"
 import { setupSliderAndData } from "./slider-test-utils"
 
@@ -63,6 +66,31 @@ describe("SliderModel.setSliderType", () => {
     slider.setSliderType("variable")
 
     expect(getTitle(tile)).toBe(slider.name)
+  })
+
+  it("keeps a title a plugin set when switched to variable", async () => {
+    const { dataSet, tile, slider } = await setupSliderAndData()
+    configureSliderFromAttribute(tile, dataSet, dataSet.attrFromName("a3")!.id)
+    // the plugin API sets a title without marking it as the user's
+    tile.setTitle("From a plugin")
+
+    slider.setSliderType("variable")
+
+    expect(getTitle(tile)).toBe("From a plugin")
+  })
+
+  it("drops the binding's title when switched to variable after a V2 save and reload", async () => {
+    const { dataSet, tile } = await setupSliderAndData()
+    configureSliderFromAttribute(tile, dataSet, dataSet.attrFromName("a3")!.id)
+    await appState.setDocument(await serializeCodapV2Document(appState.document))
+    const restoredTile = Array.from(appState.document.content!.tileMap.values())
+      .find(aTile => isSliderModel(aTile.content))!
+    const restored = restoredTile.content as ISliderModel
+    expect(getTitle(restoredTile)).toBe(restored.dataSet!.childCollection.title)
+
+    restored.setSliderType("variable")
+
+    expect(getTitle(restoredTile)).toBe(restored.name)
   })
 
   it("keeps a title the user set when switched to variable", async () => {

@@ -521,10 +521,8 @@ export const SliderModel = TileContentModel
   }))
   .actions(self => ({
     setSliderType(sliderType: SliderType) {
-      // a variable slider has no binding or width, and loses the title a binding gave its tile
+      // a variable slider has no binding or width
       if (sliderType === "variable" && self.isRangeSlider) {
-        const tile = getTileModel(self)
-        if (self.attributeId && tile && !tile.userSetTitle) tile.setTitle(undefined)
         self.dataSetId = undefined
         self.attributeId = undefined
         self.rangeWidth = undefined
