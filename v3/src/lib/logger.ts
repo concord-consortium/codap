@@ -46,8 +46,9 @@ export interface LogMessage {
 export interface ILogOptions {
   // don't send the event to Google Analytics (e.g. events about GA itself)
   excludeAnalytics?: boolean
-  // send the event to Google Analytics without its args (e.g. args that may identify a user)
-  excludeAnalyticsArgs?: boolean
+  // names of the args to send to Google Analytics; by default none are sent, because
+  // args such as user-entered URLs or document names can identify a student
+  analyticsArgs?: string[]
 }
 
 // List of log messages that were generated before a Logger is initialized
@@ -64,21 +65,17 @@ interface PendingMessage {
 
 type GAEventArgs = Record<string, Maybe<string | number | boolean>>
 // GA4 only reports top-level event parameters (gtag stringifies nested objects),
-// so the allowed args are spread into the payload alongside the fixed fields.
+// so the selected args are spread into the payload alongside the fixed fields.
 interface IGAData extends GAEventArgs {
   readonly eventCategory: AnalyticsCategory
   readonly eventAction: string
   readonly eventLabel: string
 }
 
-// We limit the arguments that are logged to GA to avoid sending too much data.
-// Don't add `filename`: document names can contain student names.
-const kGAEventArgNamesToLog = ["bannerId", "url"]
-
-function extractGAEventArgs(args?: Record<string, unknown>): Maybe<GAEventArgs> {
-  if (!args) return undefined
+function extractGAEventArgs(args?: Record<string, unknown>, argNames?: string[]): Maybe<GAEventArgs> {
+  if (!args || !argNames) return undefined
   const gaEventArgs: GAEventArgs = {}
-  for (const argName of kGAEventArgNamesToLog) {
+  for (const argName of argNames) {
     if (argName in args) {
       const value = args[argName]
       if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
@@ -211,7 +208,7 @@ export class Logger {
     debugLog(DEBUG_LOGGER, "logMessage:", logMessage)
     sendToLoggingService(logMessage)
     if (!options?.excludeAnalytics) {
-      sendToAnalyticsService(event, category, options?.excludeAnalyticsArgs ? undefined : extractGAEventArgs(args))
+      sendToAnalyticsService(event, category, extractGAEventArgs(args, options?.analyticsArgs))
     }
     this.logListeners.forEach(listener => {
       try {

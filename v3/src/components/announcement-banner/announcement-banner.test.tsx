@@ -250,7 +250,8 @@ describe("AnnouncementBanner", () => {
       render(<AnnouncementBanner />)
       await screen.findByTestId("announcement-banner")
       expect(logSpy).toHaveBeenCalledTimes(1)
-      expect(logSpy).toHaveBeenCalledWith("Announcement banner shown", { bannerId: validConfig.id }, "banner")
+      expect(logSpy).toHaveBeenCalledWith("Announcement banner shown", { bannerId: validConfig.id }, "banner",
+        { analyticsArgs: ["bannerId"] })
     })
 
     it("does not log an impression when the banner is not shown", async () => {
@@ -266,7 +267,8 @@ describe("AnnouncementBanner", () => {
       render(<AnnouncementBanner />)
       fireEvent.click(await screen.findByTestId("announcement-banner-button"))
       expect(logSpy).toHaveBeenLastCalledWith("Announcement banner link clicked",
-        { bannerId: validConfig.id, url: validConfig.buttonUrl }, "banner")
+        { bannerId: validConfig.id, url: validConfig.buttonUrl }, "banner",
+        { analyticsArgs: ["bannerId", "url"] })
     })
 
     it("logs a click on a link in the message with its url", async () => {
@@ -274,7 +276,8 @@ describe("AnnouncementBanner", () => {
       render(<AnnouncementBanner />)
       fireEvent.click(await screen.findByRole("link", { name: "our survey" }))
       expect(logSpy).toHaveBeenLastCalledWith("Announcement banner link clicked",
-        { bannerId: validConfig.id, url: "https://example.com/survey" }, "banner")
+        { bannerId: validConfig.id, url: "https://example.com/survey" }, "banner",
+        { analyticsArgs: ["bannerId", "url"] })
     })
 
     it.each(["announcement-banner-close", "announcement-banner-dont-show"])(

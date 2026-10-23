@@ -91,8 +91,7 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
           ...(hasFilename ? { filename: metadataObj.filename as string } : {}),
           ...(hasUrl ? { url: metadataObj.url as string } : {})
         }
-        // A user's document name or URL may identify a student, so GA gets only the event.
-        Logger.log("Opened document", logArgs, "document", { excludeAnalyticsArgs: true })
+        Logger.log("Opened document", logArgs, "document")
       }
 
       try {

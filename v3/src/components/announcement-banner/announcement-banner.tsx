@@ -31,7 +31,8 @@ export function AnnouncementBanner() {
   const shownBannerId = config?.id
   useEffect(() => {
     if (shownBannerId) {
-      Logger.log("Announcement banner shown", { bannerId: shownBannerId }, "banner")
+      Logger.log("Announcement banner shown", { bannerId: shownBannerId }, "banner",
+        { analyticsArgs: ["bannerId"] })
     }
   }, [shownBannerId])
 
@@ -50,7 +51,9 @@ export function AnnouncementBanner() {
   const showButton = isValidButtonUrl(buttonUrl)
 
   const handleLinkClick = (url?: string) => {
-    Logger.log("Announcement banner link clicked", { bannerId: id, url }, "banner")
+    // Banner URLs are authored in codap-resources, so they're safe to send to GA.
+    Logger.log("Announcement banner link clicked", { bannerId: id, url }, "banner",
+      { analyticsArgs: ["bannerId", "url"] })
   }
 
   const handleClose = () => {
