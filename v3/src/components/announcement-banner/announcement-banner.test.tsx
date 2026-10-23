@@ -277,12 +277,13 @@ describe("AnnouncementBanner", () => {
         { bannerId: validConfig.id, url: "https://example.com/survey" }, "banner")
     })
 
-    it("does not log clicks on the dismiss buttons", async () => {
-      mockFetchResolve(validConfig)
-      render(<AnnouncementBanner />)
-      fireEvent.click(await screen.findByTestId("announcement-banner-close"))
-      expect(logSpy).toHaveBeenCalledTimes(1)
-    })
+    it.each(["announcement-banner-close", "announcement-banner-dont-show"])(
+      "does not log a click on %s", async testId => {
+        mockFetchResolve(validConfig)
+        render(<AnnouncementBanner />)
+        fireEvent.click(await screen.findByTestId(testId))
+        expect(logSpy).toHaveBeenCalledTimes(1)
+      })
   })
 
   describe("accessibility", () => {
