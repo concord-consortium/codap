@@ -104,6 +104,24 @@ describe("SliderModel.setSliderType", () => {
   })
 })
 
+describe("SliderModel.setScaleType", () => {
+  it("gives an unbound range slider the default width for its new axis", async () => {
+    const { slider } = await setupSliderAndData()
+    slider.setSliderType("visibility")
+    slider.setScaleType("date")
+    const [min, max] = slider.axis.domain
+    expect(slider.rangeWidth).toBeCloseTo((max - min) / 10)
+    slider.setScaleType("numeric")
+    expect(slider.rangeWidth).toBeCloseTo(1.2)
+  })
+
+  it("leaves a variable slider without a width", async () => {
+    const { slider } = await setupSliderAndData()
+    slider.setScaleType("date")
+    expect(slider.rangeWidth).toBeUndefined()
+  })
+})
+
 describe("SliderModel.widthUnitSpan", () => {
   it("is the bound attribute's extent", async () => {
     const { dataSet, slider } = await setupSliderAndData()
