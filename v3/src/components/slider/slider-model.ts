@@ -495,6 +495,12 @@ export const SliderModel = TileContentModel
         }
         self.scaleType = scaleType
         self.axisHelper = undefined
+        // an unbound range's width is in the old scale's units, so it's reset to the default for the new axis
+        if (self.isRangeSlider && !self.attributeId) {
+          const [min, max] = self.axis.domain
+          self.rangeWidth = (max - min) * kDefaultRangeFraction
+          self.dynamicRangeWidth = undefined
+        }
       }
     },
     setAxisMin(n: number) {
