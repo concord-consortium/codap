@@ -9,7 +9,7 @@ import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { ISliderModel } from "./slider-model"
 import { rangeChangeOptions } from "./slider-range-change"
-import { valueChangeNotification } from "./slider-utils"
+import { formatSliderValue, valueChangeNotification } from "./slider-utils"
 import { useSliderAnimation } from "./use-slider-animation"
 
 // the pointer handlers that drag the whole range (see SliderRangeThumb)
@@ -23,6 +23,7 @@ interface IMoveHandlers {
 interface IHandleProps {
   index: 0 | 1
   label: string
+  valueText: string
   left: number
   // while the range is collapsed, dragging either half moves the whole thumb; shift-dragging widens it
   moveHandlers?: IMoveHandlers
@@ -45,7 +46,9 @@ const RangeHandleIcon = ({ index }: { index: 0 | 1 }) => (
 )
 
 // one edge of the range; React Aria provides dragging, role="slider", and arrow/Home/End keys
-const RangeHandle = function RangeHandle({ index, label, left, moveHandlers, state, trackRef }: IHandleProps) {
+const RangeHandle = function RangeHandle({
+  index, label, valueText, left, moveHandlers, state, trackRef
+}: IHandleProps) {
   const inputRef = useRef<HTMLInputElement | null>(null)
   const { thumbProps, inputProps, isDragging } = useSliderThumb({ index, trackRef, inputRef, "aria-label": label },
     state)
@@ -75,7 +78,9 @@ const RangeHandle = function RangeHandle({ index, label, left, moveHandlers, sta
          title={moveHandlers ? t("V3.Slider.collapsedThumbHint") : undefined}
          {...thumbProps} {...moveProps} style={{ ...thumbProps.style, left, transform: "none" }}>
       <RangeHandleIcon index={index} />
-      <input {...mergeProps(inputProps, focusProps)} ref={inputRef} className="codap-visually-hidden" />
+      {/* the handle's own name, without the group's (see sliderGroupLabel) */}
+      <input {...mergeProps(inputProps, focusProps)} ref={inputRef} className="codap-visually-hidden"
+             aria-valuetext={valueText} aria-labelledby={undefined} />
     </div>
   )
 }
@@ -107,6 +112,10 @@ export const SliderRangeThumb = observer(function SliderRangeThumb({
   sliderModel?.axis.domain // eslint-disable-line @typescript-eslint/no-unused-expressions
 
   if (!sliderModel || !scale) return null
+  const attrName = sliderModel.attribute?.name
+  const handleLabel = (key: string, keyWithAttr: string) => attrName ? t(keyWithAttr, { vars: [attrName] }) : t(key)
+  const valueText = (index: 0 | 1) =>
+    formatSliderValue(sliderModel, scale, index === 0 ? sliderModel.rangeLow : sliderModel.rangeHigh, true)
   const toScreen = (value: number) => scale.getScreenCoordinate({ cell: 0, data: value })
   const toData = (x: number) => scale.getDataCoordinate(x).data
   const lowX = toScreen(sliderModel.rangeLow)
@@ -165,9 +174,11 @@ export const SliderRangeThumb = observer(function SliderRangeThumb({
            onPointerMove={handleBodyPointerMove}
            onPointerUp={handleBodyPointerUp} onPointerCancel={handleBodyPointerUp}
            onLostPointerCapture={handleBodyPointerUp} />
-      <RangeHandle index={0} label={t("V3.Slider.rangeLow")} left={lowX - kHandleWidth}
+      <RangeHandle index={0} label={handleLabel("V3.Slider.rangeLow", "V3.Slider.rangeLowOf")} valueText={valueText(0)}
+                   left={lowX - kHandleWidth}
                    moveHandlers={collapsedMoveHandlers} state={state} trackRef={trackRef} />
-      <RangeHandle index={1} label={t("V3.Slider.rangeHigh")} left={highX}
+      <RangeHandle index={1} label={handleLabel("V3.Slider.rangeHigh", "V3.Slider.rangeHighOf")}
+                   valueText={valueText(1)} left={highX}
                    moveHandlers={collapsedMoveHandlers} state={state} trackRef={trackRef} />
     </div>
   )

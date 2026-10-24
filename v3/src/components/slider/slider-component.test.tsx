@@ -1,13 +1,17 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
 import { DndContext } from "@dnd-kit/core"
+import { when } from "mobx"
+import { Instance } from "mobx-state-tree"
 import { DocumentContainerContext } from "../../hooks/use-document-container-context"
 import { TileModelContext } from "../../hooks/use-tile-model-context"
 import { ITileSelection, TileSelectionContext } from "../../hooks/use-tile-selection-context"
+import { appState } from "../../models/app-state"
 import { featureFlagManager } from "../../models/feature-flags/feature-flag-manager"
+import { TreeManager } from "../../models/history/tree-manager"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { SliderComponent } from "./slider-component"
-import { setupSliderAndData } from "./slider-test-utils"
+import { addDates, setupSliderAndData } from "./slider-test-utils"
 
 const tileSelection: ITileSelection = {
   isTileSelected: () => false,
@@ -122,5 +126,158 @@ describe("SliderComponent", () => {
     renderSlider(tile)
     act(() => dataSet.removeAttribute(a3.id))
     expect(screen.getByTestId("slider-attribute-prompt")).toBeInTheDocument()
+  })
+})
+
+describe("SliderComponent for screen readers", () => {
+  beforeEach(() => {
+    featureFlagManager.setServerConfig({ visibilitySlider: "on", selectionSlider: "on" })
+  })
+
+  afterEach(() => {
+    act(() => featureFlagManager.setServerConfig({}))
+  })
+
+  // the range display's ends, e.g. ["4.8", "6.1"] from "visible value(s) = 4.8 - 6.1"
+  function shownRangeEnds() {
+    return screen.getByTestId("slider-range-values").textContent.split("=")[1].trim().split(" - ")
+  }
+
+  describe("value text", () => {
+    it("gives a range's handles their values as the range display shows them, with the attribute's units",
+        async () => {
+      const { tile, dataSet, slider } = await setupSliderAndData()
+      dataSet.attrFromName("a3")!.setUnits("cm")
+      slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+      renderSlider(tile)
+      const [low, high] = shownRangeEnds()
+      const [lowHandle, highHandle] = screen.getAllByRole("slider")
+      expect(lowHandle).toHaveAttribute("aria-valuetext", `${low} cm`)
+      expect(highHandle).toHaveAttribute("aria-valuetext", `${high} cm`)
+    })
+
+    it("gives a date range's handles dates, not epoch seconds", async () => {
+      const { content, tile, slider } = await setupSliderAndData()
+      const dates = addDates(content, ["2005-05-01", "2005-12-31"])
+      slider.configureFromAttribute(dates, dates.attrFromName("when")!.id)
+      renderSlider(tile)
+      const [low, high] = shownRangeEnds()
+      expect(low).toBe("5/1/2005")
+      const [lowHandle, highHandle] = screen.getAllByRole("slider")
+      expect(lowHandle).toHaveAttribute("aria-valuetext", low)
+      expect(highHandle).toHaveAttribute("aria-valuetext", high)
+    })
+
+    it("gives a variable slider's thumb its value as the slider shows it", async () => {
+      const { tile } = await setupSliderAndData()
+      renderSlider(tile)
+      const shown = screen.getByTestId<HTMLInputElement>("slider-variable-value-text-input").value
+      expect(screen.getByRole("slider")).toHaveAttribute("aria-valuetext", shown)
+    })
+
+    it("gives a date variable slider's thumb a date", async () => {
+      const { tile, slider } = await setupSliderAndData()
+      slider.setScaleType("date")
+      renderSlider(tile)
+      const shown = screen.getByTestId<HTMLInputElement>("slider-variable-value-text-input").value
+      expect(shown).toMatch(/\d+\/\d+\/\d{4}/)
+      expect(screen.getByRole("slider")).toHaveAttribute("aria-valuetext", shown)
+    })
+  })
+
+  describe("names", () => {
+    it("names a variable slider's thumb once, by its variable", async () => {
+      const { tile } = await setupSliderAndData()
+      renderSlider(tile)
+      expect(screen.getByRole("group")).toHaveAccessibleName("v1")
+      expect(screen.getByRole("slider")).toHaveAccessibleName("v1")
+    })
+
+    it("names a bound range slider by its type, attribute and range, and its handles by their bounds",
+        async () => {
+      const { tile, dataSet, slider } = await setupSliderAndData()
+      slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+      renderSlider(tile)
+      const [low, high] = shownRangeEnds()
+      expect(screen.getByRole("group")).toHaveAccessibleName(`Visibility slider, a3, showing ${low} to ${high}`)
+      const [lowHandle, highHandle] = screen.getAllByRole("slider")
+      expect(lowHandle).toHaveAccessibleName("Lower bound of a3")
+      expect(highHandle).toHaveAccessibleName("Upper bound of a3")
+    })
+
+    it("follows the range in the group's name", async () => {
+      const { tile, dataSet, slider } = await setupSliderAndData()
+      slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+      renderSlider(tile)
+      act(() => slider.setRange(3, 4))
+      const [low, high] = shownRangeEnds()
+      expect(screen.getByRole("group")).toHaveAccessibleName(`Visibility slider, a3, showing ${low} to ${high}`)
+    })
+
+    it("names an unbound range slider by its type", async () => {
+      const { tile, slider } = await setupSliderAndData()
+      slider.setSliderType("selection")
+      renderSlider(tile)
+      expect(screen.getByRole("group")).toHaveAccessibleName("Selection slider")
+    })
+  })
+
+  describe("announcements", () => {
+    // the slider's own live region (the page has others)
+    const status = () => within(screen.getByRole("group")).getByRole("status")
+
+    it("announces nothing when the slider appears", async () => {
+      const { tile, dataSet, slider } = await setupSliderAndData()
+      slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+      renderSlider(tile)
+      expect(status()).toHaveTextContent(/^$/)
+    })
+
+    it("announces a type change", async () => {
+      const { tile, slider } = await setupSliderAndData()
+      renderSlider(tile)
+      act(() => slider.setSliderType("visibility"))
+      expect(status()).toHaveTextContent("Slider changed to Visibility slider")
+    })
+
+    it("announces an attribute set on a range slider", async () => {
+      const { tile, dataSet, slider } = await setupSliderAndData()
+      slider.setSliderType("selection")
+      renderSlider(tile)
+      act(() => slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id))
+      expect(status()).toHaveTextContent("Attribute set to a3")
+      act(() => slider.configureFromAttribute(dataSet, dataSet.attrFromName("a4")!.id))
+      expect(status()).toHaveTextContent("Attribute set to a4")
+    })
+
+    it("announces the type with an attribute that changed it", async () => {
+      const { tile, dataSet, slider } = await setupSliderAndData()
+      renderSlider(tile)
+      act(() => slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id))
+      expect(status()).toHaveTextContent("Visibility slider, attribute set to a3")
+    })
+
+    it("announces a change made by undo", async () => {
+      const { tile, dataSet, slider } = await setupSliderAndData()
+      slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+      renderSlider(tile)
+      const manager = appState.document.treeManagerAPI as Instance<typeof TreeManager>
+      const settle = () => when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
+      appState.document.treeMonitor!.enableMonitoring()
+      try {
+        await settle()
+        act(() => slider.applyModelChange(() => slider.setSliderType("variable"), {
+          undoStringKey: "V3.Undo.slider.changeType", redoStringKey: "V3.Redo.slider.changeType"
+        }))
+        await settle()
+        expect(status()).toHaveTextContent("Slider changed to Variable slider")
+        act(() => appState.document.undoLastAction())
+        // the undo is applied asynchronously
+        await waitFor(() => expect(status()).toHaveTextContent("Visibility slider, attribute set to a3"))
+      }
+      finally {
+        appState.document.treeMonitor!.disableMonitoring()
+      }
+    })
   })
 })

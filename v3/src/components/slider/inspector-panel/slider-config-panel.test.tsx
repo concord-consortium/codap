@@ -245,15 +245,15 @@ describe("SliderConfigPalette", () => {
       expect(slider.rangeWidth).toBe(2 * week)
     })
 
-    it("names the unit menu by its unit and the width's label", async () => {
+    it("names the unit menu by its unit and its purpose", async () => {
       await setupDateSlider(2 * year, 0.5 * year)
-      expect(screen.getByTestId("slider-range-width-unit")).toHaveAccessibleName("years Width:")
+      expect(screen.getByTestId("slider-range-width-unit")).toHaveAccessibleName("years Width unit")
     })
 
     it("agrees the unit in number with the width as shown", async () => {
       await setupDateSlider(2 * day, 1.04 * day)
       expect(screen.getByTestId("slider-range-width-input")).toHaveValue("1")
-      expect(screen.getByTestId("slider-range-width-unit")).toHaveAccessibleName("day Width:")
+      expect(screen.getByTestId("slider-range-width-unit")).toHaveAccessibleName("day Width unit")
     })
 
     it("ignores a width too large to store once converted to seconds", async () => {
