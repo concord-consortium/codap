@@ -307,7 +307,7 @@ describe("SliderComponent for screen readers", () => {
       }
     })
 
-    it("announces an attribute removed by undo", async () => {
+    it("announces an attribute removed by undo and restored by redo", async () => {
       const { tile, dataSet, slider } = await setupSliderAndData()
       slider.setSliderType("selection")
       renderSlider(tile)
@@ -325,6 +325,8 @@ describe("SliderComponent for screen readers", () => {
         act(() => appState.document.undoLastAction())
         // the undo is applied asynchronously
         await waitFor(() => expect(status()).toHaveTextContent("Attribute removed"))
+        act(() => appState.document.redoLastAction())
+        await waitFor(() => expect(status()).toHaveTextContent("Attribute set to a3"))
       }
       finally {
         appState.document.treeMonitor!.disableMonitoring()
