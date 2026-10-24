@@ -175,22 +175,28 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   }, [running, showStatusMessage])
 
   // Announce a change to the slider's type or attribute, whether made here, by undo or redo, or by a plugin, but not
-  // the slider's state when it appears.
+  // the slider's state when it appears. The attribute's presence is tracked too, since deleting the bound attribute
+  // leaves its id in place.
   useEffect(() => {
     if (!sliderModel) return
     return reaction(
-      () => ({ sliderType: sliderModel.sliderType, attributeId: sliderModel.attributeId }),
+      () => ({
+        sliderType: sliderModel.sliderType, attributeId: sliderModel.attributeId, hasAttribute: !!sliderModel.attribute
+      }),
       (current, previous) => {
         const typeName = t(`V3.Slider.typeName.${current.sliderType}`)
         const typeChanged = current.sliderType !== previous.sliderType
         const attrName = sliderModel.attribute?.name
-        if (attrName && current.attributeId !== previous.attributeId) {
+        if (attrName && (current.attributeId !== previous.attributeId || !previous.hasAttribute)) {
           showStatusMessage(typeChanged
             ? t("V3.Slider.typeAndAttributeSet", { vars: [typeName, attrName] })
             : t("V3.Slider.attributeSet", { vars: [attrName] }))
         }
         else if (typeChanged) {
           showStatusMessage(t("V3.Slider.typeChanged", { vars: [typeName] }))
+        }
+        else if (previous.hasAttribute && !current.hasAttribute) {
+          showStatusMessage(t("V3.Slider.attributeRemoved"))
         }
       }, { equals: comparer.structural, name: "SliderComponent [announce type and attribute]" }
     )

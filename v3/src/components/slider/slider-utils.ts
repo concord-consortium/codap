@@ -36,7 +36,7 @@ export function sliderGroupLabel(slider: Maybe<ISliderModel>, multiScale: MultiS
   if (!attrName) return typeName
   const low = formatSliderValue(slider, multiScale, slider.rangeLow, true)
   const high = formatSliderValue(slider, multiScale, slider.rangeHigh, true)
-  return t("V3.Slider.rangeGroupLabel", { vars: [typeName, attrName, low, high] })
+  return t(`V3.Slider.rangeGroupLabel.${slider.sliderType}`, { vars: [typeName, attrName, low, high] })
 }
 
 // whether the type can be offered: variable always, the range types only while their flags are on

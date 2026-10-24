@@ -205,6 +205,25 @@ describe("SliderComponent for screen readers", () => {
       expect(highHandle).toHaveAccessibleName("Upper bound of a3")
     })
 
+    it("names a bound selection slider by what it selects", async () => {
+      const { tile, dataSet, slider } = await setupSliderAndData()
+      slider.setSliderType("selection")
+      slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+      renderSlider(tile)
+      const [low, high] = shownRangeEnds()
+      expect(screen.getByRole("group")).toHaveAccessibleName(`Selection slider, a3, selecting ${low} to ${high}`)
+    })
+
+    it("includes the attribute's units in the group's name", async () => {
+      const { tile, dataSet, slider } = await setupSliderAndData()
+      dataSet.attrFromName("a3")!.setUnits("cm")
+      slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+      renderSlider(tile)
+      const [low, high] = shownRangeEnds()
+      expect(screen.getByRole("group"))
+        .toHaveAccessibleName(`Visibility slider, a3, showing ${low} cm to ${high} cm`)
+    })
+
     it("follows the range in the group's name", async () => {
       const { tile, dataSet, slider } = await setupSliderAndData()
       slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
@@ -257,6 +276,14 @@ describe("SliderComponent for screen readers", () => {
       expect(status()).toHaveTextContent("Visibility slider, attribute set to a3")
     })
 
+    it("announces a bound attribute that's deleted", async () => {
+      const { tile, dataSet, slider } = await setupSliderAndData()
+      slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+      renderSlider(tile)
+      act(() => dataSet.removeAttribute(dataSet.attrFromName("a3")!.id))
+      expect(status()).toHaveTextContent("Attribute removed")
+    })
+
     it("announces a change made by undo", async () => {
       const { tile, dataSet, slider } = await setupSliderAndData()
       slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
@@ -274,6 +301,30 @@ describe("SliderComponent for screen readers", () => {
         act(() => appState.document.undoLastAction())
         // the undo is applied asynchronously
         await waitFor(() => expect(status()).toHaveTextContent("Visibility slider, attribute set to a3"))
+      }
+      finally {
+        appState.document.treeMonitor!.disableMonitoring()
+      }
+    })
+
+    it("announces an attribute removed by undo", async () => {
+      const { tile, dataSet, slider } = await setupSliderAndData()
+      slider.setSliderType("selection")
+      renderSlider(tile)
+      const manager = appState.document.treeManagerAPI as Instance<typeof TreeManager>
+      const settle = () => when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
+      appState.document.treeMonitor!.enableMonitoring()
+      try {
+        await settle()
+        const a3 = dataSet.attrFromName("a3")!.id
+        act(() => slider.applyModelChange(() => slider.configureFromAttribute(dataSet, a3), {
+          undoStringKey: "V3.Undo.slider.configureFromAttribute", redoStringKey: "V3.Redo.slider.configureFromAttribute"
+        }))
+        await settle()
+        expect(status()).toHaveTextContent("Attribute set to a3")
+        act(() => appState.document.undoLastAction())
+        // the undo is applied asynchronously
+        await waitFor(() => expect(status()).toHaveTextContent("Attribute removed"))
       }
       finally {
         appState.document.treeMonitor!.disableMonitoring()
