@@ -55,7 +55,7 @@ describe("isSliderAttributeDropAllowed", () => {
 })
 
 describe("configureSliderFromAttribute", () => {
-  it("sets the title to the childmost collection and undoes as one step", async () => {
+  it("titles the slider by the childmost collection without storing a title, and undoes as one step", async () => {
     const { dataSet, tile, slider } = await setupSliderAndData()
     const manager = appState.document.treeManagerAPI as Instance<typeof TreeManager>
     const settle = () => when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })

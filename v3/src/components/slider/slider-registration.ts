@@ -44,10 +44,11 @@ registerTileContentInfo({
     }
     return sliderTileSnap
   },
-  // A title set by the user, a plugin, or a document wins. Otherwise a range slider is titled by its bound
-  // attribute's childmost collection, or by its type when it has none, and a variable slider by its variable's name.
-  // These are derived rather than stored, so that they follow the binding, the type, and the variable. (The tile's
-  // name isn't used: a V2 document stores the variable's name there, which a later rename would leave behind.)
+  // A title set by the user, a plugin, or a document wins. Otherwise a range slider is titled by the childmost
+  // collection of its bound attribute's dataset, or by its type when it has none, and a variable slider by its
+  // variable's name. These are derived rather than stored, so that they follow the binding, the type, and the
+  // variable. (The tile's name isn't used: a V2 document stores the variable's name there, which a later rename
+  // would leave behind.)
   getTitle: (tile: ITileLikeModel) => {
     const { _title, content } = tile || {}
     if (_title) return _title
