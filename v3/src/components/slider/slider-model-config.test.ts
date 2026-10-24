@@ -1,4 +1,4 @@
-import { autorun } from "mobx"
+import { autorun, runInAction } from "mobx"
 import { appState } from "../../models/app-state"
 import { serializeCodapV2Document } from "../../models/document/serialize-document"
 import { getTitle } from "../../models/tiles/tile-content-info"
@@ -181,5 +181,23 @@ describe("SliderModel.setRangeWidth", () => {
 
     expect(slider.rangeLow).toBe(3.4)
     expect(slider.rangeHigh).toBeCloseTo(3.9)
+  })
+
+  it("moves the value with a low end that a wider range pushes back, within the same change", async () => {
+    const { dataSet, slider } = await setupSliderAndData()
+    slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+    slider.setAxisMin(1)
+    slider.setAxisMax(6)
+    slider.setRange(5, 6)
+
+    // notifications are sent within the change, before any reaction to it
+    let valueWithinChange: number | undefined
+    runInAction(() => {
+      slider.setRangeWidth(3)
+      valueWithinChange = slider.value
+    })
+
+    expect(slider.rangeLow).toBe(3)
+    expect(valueWithinChange).toBe(3)
   })
 })
