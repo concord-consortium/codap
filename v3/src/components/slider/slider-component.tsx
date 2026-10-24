@@ -1,4 +1,5 @@
 import { clsx } from "clsx"
+import { comparer, reaction } from "mobx"
 import { observer } from "mobx-react-lite"
 import { CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Input as RAInput, TextField } from "react-aria-components"
@@ -31,7 +32,7 @@ import { SliderRangeThumb } from "./slider-range-thumb"
 import { SliderRangeValues } from "./slider-range-values"
 import { CodapSliderThumb } from "./slider-thumb"
 import { kSliderClass } from "./slider-types"
-import { rangeFromHandles, sliderStep, valueChangeNotification } from "./slider-utils"
+import { rangeFromHandles, sliderGroupLabel, sliderStep, valueChangeNotification } from "./slider-utils"
 
 import "./slider.scss"
 
@@ -159,7 +160,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   stateRef.current = state
 
   const { groupProps, trackProps } = useSlider(
-    { "aria-label": sliderModel?.name ?? "", minValue, maxValue, step },
+    { "aria-label": sliderGroupLabel(sliderModel, multiScale), minValue, maxValue, step },
     state,
     trackRef
   )
@@ -172,6 +173,34 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
       prevRunningRef.current = running
     }
   }, [running, showStatusMessage])
+
+  // Announce a change to the slider's type or attribute, whether made here, by undo or redo, or by a plugin, but not
+  // the slider's state when it appears. The attribute's presence is tracked too, since deleting the bound attribute
+  // leaves its id in place.
+  useEffect(() => {
+    if (!sliderModel) return
+    return reaction(
+      () => ({
+        sliderType: sliderModel.sliderType, attributeId: sliderModel.attributeId, hasAttribute: !!sliderModel.attribute
+      }),
+      (current, previous) => {
+        const typeName = t(`V3.Slider.typeName.${current.sliderType}`)
+        const typeChanged = current.sliderType !== previous.sliderType
+        const attrName = sliderModel.attribute?.name
+        if (attrName && (current.attributeId !== previous.attributeId || !previous.hasAttribute)) {
+          showStatusMessage(typeChanged
+            ? t("V3.Slider.typeAndAttributeSet", { vars: [typeName, attrName] })
+            : t("V3.Slider.attributeSet", { vars: [attrName] }))
+        }
+        else if (typeChanged) {
+          showStatusMessage(t("V3.Slider.typeChanged", { vars: [typeName] }))
+        }
+        else if (previous.hasAttribute && !current.hasAttribute) {
+          showStatusMessage(t("V3.Slider.attributeRemoved"))
+        }
+      }, { equals: comparer.structural, name: "SliderComponent [announce type and attribute]" }
+    )
+  }, [sliderModel, showStatusMessage])
 
   const [nameInput, setNameInput] = useState(sliderModel?.name ?? "")
   const nameRevertingRef = useRef(false)

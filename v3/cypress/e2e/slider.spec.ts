@@ -605,3 +605,52 @@ context("Slider keyboard accessibility", () => {
     slider.closePalette()
   })
 })
+
+context("Slider Configuration palette by keyboard", () => {
+  beforeEach(function () {
+    cy.visit(`${Cypress.config("index")}?suppressUnsavedWarning&features=visibilitySlider`)
+    cy.get('[data-testid="Create New Document-button"]').click()
+    c.getIconFromToolShelf("slider").click()
+    slider.getSliderTile().should("be.visible")
+  })
+  it("sets the type, width and unit from the keyboard, and closes with Escape", () => {
+    c.selectTile("slider", 0)
+    // a date scale, so that the width has a unit menu
+    slider.getRulerIcon().click()
+    cy.get("[data-testid=slider-scale-type-button]").click()
+    cy.get("[data-testid=slider-scale-date]").click()
+    slider.closePalette()
+
+    const configButton = () => c.getInspectorPanel().find("[data-testid=slider-config-button]")
+    configButton().focus()
+    cy.realPress("Enter")
+    cy.get("[data-testid=slider-type-button]").focus()
+
+    cy.log("type menu: Enter opens it, arrows move, Enter chooses")
+    cy.realPress("Enter")
+    cy.realPress("ArrowDown")
+    cy.realPress("Enter")
+    cy.get("[data-testid=slider-type-button]").should("contain.text", "Visibility").and("be.focused")
+
+    cy.log("width field: Tab reaches it, and Enter commits a typed width")
+    cy.realPress("Tab")
+    cy.get("[data-testid=slider-range-width-input]").should("be.focused")
+    cy.realType("2")
+    cy.realPress("Enter")
+    cy.get("[data-testid=slider-range-width-input]").should("have.value", "2")
+
+    cy.log("unit menu: Tab reaches it, and a unit can be chosen")
+    cy.realPress("Tab")
+    cy.get("[data-testid=slider-range-width-unit]").should("be.focused").invoke("text").then(unit => {
+      cy.realPress("Enter")
+      cy.realPress("ArrowDown")
+      cy.realPress("Enter")
+      cy.get("[data-testid=slider-range-width-unit]").should("not.have.text", unit).and("be.focused")
+    })
+
+    cy.log("Escape closes the palette and returns focus to the Config button")
+    cy.realPress("Escape")
+    cy.get("[data-testid=codap-inspector-palette]").should("not.exist")
+    configButton().should("be.focused")
+  })
+})

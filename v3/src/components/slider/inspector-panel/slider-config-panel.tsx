@@ -148,7 +148,7 @@ export const SliderConfigPalette =
               </span>
               <If condition={isDate}>
                 <Select
-                  aria-labelledby="slider-range-width-label"
+                  aria-label={t("V3.Slider.rangeWidthUnit")}
                   className="slider-select-container slider-date-unit-select"
                   value={unit}
                   onChange={handleUnitChange}
