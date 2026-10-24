@@ -91,6 +91,24 @@ describe("AttributePickerMenuItems", () => {
     expect(screen.getAllByRole("menuitem").map(item => item.textContent)).toEqual(["a4"])
   })
 
+  it("leaves out collections, and the dividers of datasets, with nothing to offer", () => {
+    const { dataset: ds1 } = setupTestDataset({ datasetName: "one" })
+    const { dataset: ds2 } = setupTestDataset({ datasetName: "two" })
+    const allowed = [ds1.attrFromName("a1")!.id, ds1.attrFromName("a3")!.id]
+    render(<Harness entries={getAttributePickerEntries([ds1, ds2], () => undefined)}
+                    isAttributeAllowed={(_data, attrId) => allowed.includes(attrId)}/>)
+    expect(screen.getAllByRole("menuitem").map(item => item.textContent)).toEqual(["collection1", "collection3"])
+    expect(screen.queryByRole("separator")).toBeNull()
+  })
+
+  it("lists the attributes directly when only one collection has any to offer", () => {
+    const { dataset } = setupTestDataset()
+    const a4 = dataset.attrFromName("a4")!
+    render(<Harness entries={getAttributePickerEntries([dataset], () => undefined)}
+                    isAttributeAllowed={(_data, attrId) => attrId === a4.id}/>)
+    expect(screen.getAllByRole("menuitem").map(item => item.textContent)).toEqual(["a4"])
+  })
+
   it("says so when no attribute is available", () => {
     const { dataset } = setupTestDataset()
     render(<Harness entries={getAttributePickerEntries([dataset], () => undefined)}

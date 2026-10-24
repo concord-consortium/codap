@@ -1,5 +1,5 @@
 import {
-  convertToDate, createDate, durationUnits, durationUnitSeconds, getDateUnitLabel, unitsStringToMilliseconds
+  convertToDate, createDate, dateUnits, durationUnits, durationUnitSeconds, getDateUnitLabel, unitsStringToMilliseconds
 } from "./date-utils"
 
 describe('createDate', () => {
@@ -120,6 +120,7 @@ describe("getDateUnitLabel", () => {
 describe("duration units", () => {
   it("are the date units plus week, largest first", () => {
     expect(durationUnits).toEqual(["year", "month", "week", "day", "hour", "minute", "second", "millisecond"])
+    expect(durationUnits.filter(unit => unit !== "week")).toEqual(dateUnits)
   })
 
   it("convert to seconds with 7-day weeks, 30-day months and 365-day years", () => {

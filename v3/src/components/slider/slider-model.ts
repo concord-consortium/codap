@@ -248,8 +248,7 @@ export const SliderModel = TileContentModel
     },
     // the span that determines a date range width's units: the bound attribute's extent, else the axis's
     get widthUnitSpan() {
-      // attribute values live in a volatile array; changeCount is what signals that they changed
-      void self.attribute?.changeCount
+      void self.attribute?.changeCount // see attributeValues
       const dataSet = self.dataSet
       const extent = dataSet && self.attributeId ? this.configurationExtent(dataSet, self.attributeId) : undefined
       const [min, max] = extent ?? self.axis.domain
@@ -305,10 +304,7 @@ export const SliderModel = TileContentModel
     return {
       // a range collapsed to zero width snaps to the data, as it does when one handle is dragged onto the other
       setRangeWidth(width: number) {
-        if (width === 0) {
-          const [low] = normalizeRange(self.rangeLow, self.rangeLow)
-          self.globalValue.setValue(low)
-        }
+        if (width === 0) self.globalValue.setValue(self.snapToData(self.rangeLow))
         self.rangeWidth = width
         self.dynamicRangeWidth = undefined
       },

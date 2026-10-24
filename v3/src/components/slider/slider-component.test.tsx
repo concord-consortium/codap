@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
 import { DndContext } from "@dnd-kit/core"
 import { DocumentContainerContext } from "../../hooks/use-document-container-context"
+import { TileModelContext } from "../../hooks/use-tile-model-context"
 import { ITileSelection, TileSelectionContext } from "../../hooks/use-tile-selection-context"
 import { featureFlagManager } from "../../models/feature-flags/feature-flag-manager"
 import { ITileModel } from "../../models/tiles/tile-model"
@@ -20,7 +21,9 @@ function renderSlider(tile: ITileModel) {
     <DndContext>
       <TileSelectionContext.Provider value={tileSelection}>
         <DocumentContainerContext.Provider value={containerRef}>
-          <SliderComponent tile={tile}/>
+          <TileModelContext.Provider value={tile}>
+            <SliderComponent tile={tile}/>
+          </TileModelContext.Provider>
         </DocumentContainerContext.Provider>
       </TileSelectionContext.Provider>
     </DndContext>
@@ -63,13 +66,14 @@ describe("SliderComponent", () => {
     expect(screen.getByTestId("slider-attribute-menu-button")).toHaveTextContent("a3")
   })
 
-  it("labels the axis with exactly the attribute's name, which is also the menu button's accessible name",
+  it("labels the axis with the attribute's name and units, which are also the menu button's accessible name",
       async () => {
     const { tile, dataSet, slider } = await setupSliderAndData()
+    dataSet.attrFromName("a3")!.setUnits("cm")
     slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
     renderSlider(tile)
-    expect(screen.getByTestId("slider-attribute-label")).toHaveTextContent(/^a3$/)
-    expect(screen.getByRole("button", { name: "a3" })).toBe(screen.getByTestId("slider-attribute-menu-button"))
+    expect(screen.getByTestId("slider-attribute-label")).toHaveTextContent(/^a3 \(cm\)$/)
+    expect(screen.getByRole("button", { name: "a3 (cm)" })).toBe(screen.getByTestId("slider-attribute-menu-button"))
   })
 
   it("names the prompt's menu button with its visible text", async () => {
@@ -99,11 +103,9 @@ describe("SliderComponent", () => {
     slider.setSliderType("visibility")
     renderSlider(tile)
     await userEvent.click(screen.getByTestId("slider-attribute-menu-button"))
-    // Chakra leaves the open menu hidden in jsdom, and hidden items have no accessible name
+    // only collection3 has numeric attributes, so they're listed directly (hidden in jsdom; see the menu's tests)
     const items = await screen.findAllByRole("menuitem", { hidden: true })
-    await userEvent.click(items.find(item => item.textContent === "collection3")!)
-    const attrItems = await screen.findAllByRole("menuitem", { hidden: true })
-    await userEvent.click(attrItems.find(item => item.textContent === "a3")!)
+    await userEvent.click(items.find(item => item.textContent === "a3")!)
     expect(slider.attributeId).toBe(dataSet.attrFromName("a3")!.id)
     // the prompt's button is gone, so this is the attribute label's
     await waitFor(() => {

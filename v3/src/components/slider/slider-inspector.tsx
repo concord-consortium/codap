@@ -4,10 +4,11 @@ import { t } from "../../utilities/translation/translate"
 import { If } from "../common/if"
 import { InspectorButton, InspectorPanel } from "../inspector-panel"
 import { ITileInspectorPanelProps } from "../tiles/tile-base-props"
-import { isSliderTypeAvailable, SliderConfigPalette } from "./inspector-panel/slider-config-panel"
+import { SliderConfigPalette } from "./inspector-panel/slider-config-panel"
 import { SliderScalesPalette } from "./inspector-panel/slider-scales-panel"
 import { SliderSettingsPalette } from "./inspector-panel/slider-settings-panel"
 import { isSliderModel } from "./slider-model"
+import { isSliderTypeAvailable } from "./slider-utils"
 
 import ConfigurationIcon from "../../assets/icons/inspector-panel/configuration-icon.svg"
 import MeasureIcon from "../../assets/icons/inspector-panel/data-icon.svg"
@@ -36,8 +37,9 @@ export const SliderInspector = observer(function SliderInspector({ tile, show }:
     setShowPalette(showPalette === "measure" ? undefined : "measure")
   }
 
-  // offered only while a range type is available; a variable slider is all the menu could set otherwise
-  const showConfig = isSliderTypeAvailable("visibility") || isSliderTypeAvailable("selection")
+  // offered while a range type is available, or the slider already is one (so it can be switched back to Variable)
+  const showConfig = isSliderTypeAvailable("visibility") || isSliderTypeAvailable("selection") ||
+                     sliderModel.isRangeSlider
 
   const handleConfigButton = (e: { target: Element }) => {
     buttonRef.current = e.target.closest("button") ?? e.target
@@ -84,7 +86,7 @@ export const SliderInspector = observer(function SliderInspector({ tile, show }:
           aria-controls={kConfigPaletteId}
           aria-expanded={showPalette === "config"}
           isActive={showPalette === "config"}
-          label={t("V3.Slider.Inspector.Config")}
+          label={t("V3.graph.Inspector.Config")}
           onButtonClick={handleConfigButton}
           testId={"slider-config-button"}
           tooltip={t("V3.Inspector.sliderConfig.toolTip")}

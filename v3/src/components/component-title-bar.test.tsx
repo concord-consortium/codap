@@ -245,4 +245,19 @@ describe("ComponentTitleBar", () => {
     fireEvent.click(titleText)
     expect(screen.getByTestId("title-text-input")).toBeInTheDocument()
   })
+
+  it("doesn't store a derived title that is left unchanged", () => {
+    const tile = TileModel.create({ content: {} })
+    mockGetTitle.mockImplementation((aTile: ITileLikeModel) => aTile._title || "derived")
+
+    render(
+      <DndContext>
+        <ComponentTitleBar tile={tile} />
+      </DndContext>
+    )
+
+    fireEvent.click(screen.getByTestId("title-text"))
+    fireEvent.blur(screen.getByTestId("title-text-input"))
+    expect(tile._title).toBeUndefined()
+  })
 })

@@ -221,7 +221,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
                 {attribute?.name}
               </MenuButton>
               <Portal containerRef={containerRef}>
-                <MenuList ref={mainMenuListRef} className="axis-legend-menu attribute-picker-menu"
+                <MenuList ref={mainMenuListRef} className="attribute-picker-menu"
                           maxH={adjustedMainMenuHeight ?? maxMenuHeight} overflowY="auto"
                           onFocus={handleMenuItemFocus}
                           onKeyDown={handleMainMenuKeyDown}

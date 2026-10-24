@@ -16,6 +16,16 @@ describe("SliderInspector", () => {
     expect(screen.getByTestId("slider-values-button")).toBeInTheDocument()
   })
 
+  it("has a Config button for a range slider while neither range type is available, to switch it back", async () => {
+    const { tile, slider } = await setupSliderAndData()
+    act(() => slider.setSliderType("visibility"))
+    render(<SliderInspector tile={tile} show={true}/>)
+    await userEvent.click(screen.getByTestId("slider-config-button"))
+    await userEvent.click(screen.getByTestId("slider-type-button"))
+    const options = screen.getAllByRole("option").map(option => option.textContent)
+    expect(options).toEqual(["Variable", "Visibility"])
+  })
+
   it("puts the Config button first when a range type is available", async () => {
     featureFlagManager.setServerConfig({ selectionSlider: "on" })
     const { tile } = await setupSliderAndData()

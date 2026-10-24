@@ -5,27 +5,21 @@ import {
 } from "react-aria-components"
 import ConfigurationIcon from "../../../assets/icons/inspector-panel/configuration-icon.svg"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
-import { isFeatureEnabled } from "../../../models/feature-flags/feature-flag-manager"
+import { getTileModel } from "../../../models/tiles/tile-model"
 import { durationUnitSeconds, getDateUnitLabel } from "../../../utilities/date-utils"
 import { t } from "../../../utilities/translation/translate"
 import { If } from "../../common/if"
 import { InspectorPalette } from "../../inspector-panel"
 import { ISliderModel } from "../slider-model"
+import { rangeChangeOptions } from "../slider-range-change"
 import { SliderType, SliderTypes } from "../slider-types"
 import {
-  formatSliderWidth, getSliderWidthUnitChoices, SliderWidthUnit
+  formatSliderWidth, getSliderWidthUnitChoices, isSliderTypeAvailable, SliderWidthUnit
 } from "../slider-utils"
 
 import "./slider-settings-panel.scss"
 
-// whether the type can be offered: variable always, the range types only while their flags are on
-export function isSliderTypeAvailable(sliderType: SliderType) {
-  switch (sliderType) {
-    case "visibility": return isFeatureEnabled("visibilitySlider")
-    case "selection": return isFeatureEnabled("selectionSlider")
-    default: return true
-  }
-}
+const kMaxWidthInputSize = 12
 
 interface IProps {
   id?: string
@@ -49,6 +43,9 @@ export const SliderConfigPalette =
     // otherwise the width, rounded for display. Only an edit is committed, so the rounding never replaces the width.
     const [editedWidth, setEditedWidth] = useState<string>()
     const widthInput = editedWidth ?? formatSliderWidth(displayWidth)
+    // the unit agrees in number with the width as shown, so a width of 1.04 days reads "1 day"
+    const shownWidth = Number(widthInput)
+    const unitLabel = getDateUnitLabel(unit, isFinite(shownWidth) ? shownWidth : displayWidth)
 
     // a slider whose type's flag is off still shows that type, so the menu can describe it
     const typeChoices = SliderTypes.filter(type => type === sliderType || isSliderTypeAvailable(type))
@@ -69,14 +66,14 @@ export const SliderConfigPalette =
       if (editedWidth == null) return
       setEditedWidth(undefined)
       const parsed = editedWidth.trim() ? Number(editedWidth) : NaN
-      if (!isFinite(parsed) || parsed < 0) return
+      // checked after converting to seconds, which can overflow a finite entry
       const rangeWidth = parsed * unitSeconds
-      if (rangeWidth === sliderModel.rangeWidth) return
+      if (!isFinite(rangeWidth) || rangeWidth < 0 || rangeWidth === sliderModel.rangeWidth) return
       sliderModel.applyModelChange(() => {
         sliderModel.setRangeWidth(rangeWidth)
       }, {
-        undoStringKey: "V3.Undo.slider.changeRange",
-        redoStringKey: "V3.Redo.slider.changeRange",
+        // a width of zero snaps the range to the data, which can change the slider's value
+        ...rangeChangeOptions(sliderModel, getTileModel(sliderModel)),
         log: logStringifiedObjectMessage("sliderRangeWidth: %@", {name: sliderModel.name, rangeWidth})
       })
     }
@@ -86,6 +83,15 @@ export const SliderConfigPalette =
     acceptWidthRef.current = handleAcceptWidth
     useEffect(() => () => acceptWidthRef.current(), [])
 
+    const handleWidthKeyDown = (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") handleAcceptWidth()
+      // Escape also dismisses the palette, which must then discard the edit rather than commit it
+      if (e.key === "Escape") {
+        setEditedWidth(undefined)
+        acceptWidthRef.current = () => undefined
+      }
+    }
+
     const handleUnitChange = (key: React.Key | null) => {
       if (key != null) setChosenUnit(key as SliderWidthUnit)
     }
@@ -93,7 +99,7 @@ export const SliderConfigPalette =
     return (
       <InspectorPalette
         id={id}
-        title={t("V3.Inspector.sliderConfig")}
+        title={t("DG.Inspector.configuration")}
         Icon={<ConfigurationIcon/>}
         setShowPalette={setShowPalette}
         panelRect={panelRect}
@@ -131,12 +137,12 @@ export const SliderConfigPalette =
               <span className="slider-input multiples-input">
                 <input
                   id="slider-range-width-input"
-                  size={Math.max(1, widthInput.length)}
+                  size={Math.min(kMaxWidthInputSize, Math.max(1, widthInput.length))}
                   value={widthInput}
                   onChange={e => setEditedWidth(e.target.value)}
                   onFocus={e => e.target.select()}
                   onBlur={handleAcceptWidth}
-                  onKeyDown={e => { if (e.key === "Enter") handleAcceptWidth() }}
+                  onKeyDown={handleWidthKeyDown}
                   data-testid="slider-range-width-input"
                 />
               </span>
@@ -147,8 +153,9 @@ export const SliderConfigPalette =
                   value={unit}
                   onChange={handleUnitChange}
                 >
-                  <Button className="slider-select direction" data-testid="slider-range-width-unit">
-                    {getDateUnitLabel(unit, displayWidth)}
+                  <Button className="slider-select slider-date-unit" data-testid="slider-range-width-unit">
+                    {/* a SelectValue, so the unit is part of the button's accessible name */}
+                    <SelectValue>{unitLabel}</SelectValue>
                     <span aria-hidden="true" className="select-arrow">▾</span>
                   </Button>
                   <Popover offset={0}>

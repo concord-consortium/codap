@@ -5,6 +5,7 @@ import React, { useCallback, useRef, useState } from "react"
 import { useMenuHeightAdjustment } from "../../hooks/use-menu-height-adjustment"
 import { useMenuItemScrollIntoView } from "../../hooks/use-menu-item-scroll-into-view"
 import { useSubmenuCloseOnArrowLeft } from "../../hooks/use-submenu-keyboard-nav"
+import { IAttribute } from "../../models/data/attribute"
 import { ICollectionModel, isCollectionModel } from "../../models/data/collection"
 import { IDataSet } from "../../models/data/data-set"
 import { IDataSetMetadata } from "../../models/shared/data-set-metadata"
@@ -82,18 +83,38 @@ export function useAttributePickerSubmenus() {
 }
 export type AttributePickerSubmenus = ReturnType<typeof useAttributePickerSubmenus>
 
-// MenuItems for all attributes in a single collection
+// a collection with the attributes the menu offers from it
+interface IShownCollection extends IAttributePickerCollection {
+  attrs: IAttribute[]
+}
+type ShownEntry = IShownCollection | "divider"
+
+// The collections with attributes to offer (neither hidden nor filtered out), with a divider only between
+// datasets that both have some. The filter can scan an attribute's values, so it runs once per attribute here.
+function getShownEntries(entries: AttributePickerEntry[], isAttributeAllowed?: AttributePickerFilter) {
+  const shown: ShownEntry[] = []
+  entries.forEach(entry => {
+    if (entry === "divider") {
+      if (shown.length && shown[shown.length - 1] !== "divider") shown.push(entry)
+      return
+    }
+    const { collection, data, metadata } = entry
+    const attrs = collection.attributes.filter((attr): attr is IAttribute =>
+      !!attr && !metadata?.isHidden(attr.id) && (!isAttributeAllowed || isAttributeAllowed(data, attr.id)))
+    if (attrs.length) shown.push({ ...entry, attrs })
+  })
+  if (shown[shown.length - 1] === "divider") shown.pop()
+  return shown
+}
+
+// MenuItems for the attributes a collection offers
 interface IMenuItemsForCollectionProps {
-  collectionInfo: IAttributePickerCollection
-  isAttributeAllowed?: AttributePickerFilter
+  collectionInfo: IShownCollection
   onSelect: AttributePickerSelect
 }
-function MenuItemsForCollection({ collectionInfo, isAttributeAllowed, onSelect }: IMenuItemsForCollectionProps) {
-  const { collection, data, metadata } = collectionInfo
-  const attrs = collection.attributes.filter(attr => !!attr)
-  return attrs.filter(attr =>
-    !metadata?.isHidden(attr.id) && (!isAttributeAllowed || isAttributeAllowed(data, attr.id))
-  ).map((attr) => {
+function MenuItemsForCollection({ collectionInfo, onSelect }: IMenuItemsForCollectionProps) {
+  const { attrs, data } = collectionInfo
+  return attrs.map((attr) => {
     return (
       <MenuItem onClick={() => onSelect(data, attr.id)} key={attr.id}>
         {attr.name}
@@ -104,9 +125,8 @@ function MenuItemsForCollection({ collectionInfo, isAttributeAllowed, onSelect }
 
 // A MenuItem for a collection, which contains a submenu of the collection's attributes
 interface ICollectionMenuProps {
-  collectionInfo: IAttributePickerCollection
+  collectionInfo: IShownCollection
   containerRef: React.RefObject<HTMLElement | null>
-  isAttributeAllowed?: AttributePickerFilter
   isOpen: boolean
   maxMenuHeight: string
   onCancelPendingHover?: () => void
@@ -118,7 +138,7 @@ interface ICollectionMenuProps {
   submenuTestId?: string
 }
 const CollectionMenu = observer(function CollectionMenu({
-  collectionInfo, containerRef, isAttributeAllowed, isOpen, maxMenuHeight, onCancelPendingHover,
+  collectionInfo, containerRef, isOpen, maxMenuHeight, onCancelPendingHover,
   onCloseSubmenu, onOpenSubmenu, onPointerOver, onSelect, submenuClassName, submenuTestId
 }: ICollectionMenuProps) {
   const { collection } = collectionInfo
@@ -145,11 +165,7 @@ const CollectionMenu = observer(function CollectionMenu({
                     onKeyDown={handleSubmenuKeyDown}
                     onPointerEnter={handleSubmenuPointerEnter}
                     data-testid={submenuTestId}>
-            <MenuItemsForCollection
-              collectionInfo={collectionInfo}
-              isAttributeAllowed={isAttributeAllowed}
-              onSelect={onSelect}
-            />
+            <MenuItemsForCollection collectionInfo={collectionInfo} onSelect={onSelect}/>
           </MenuList>
         </Menu>
       </If>
@@ -173,7 +189,8 @@ const CollectionMenu = observer(function CollectionMenu({
 })
 
 // The attribute items of a menu: a single collection's attributes directly, or a submenu for each collection,
-// with dividers between datasets. The caller supplies the Menu and MenuList (and their keyboard handling).
+// with dividers between datasets. Collections with no attribute to offer are left out. The caller supplies the
+// Menu and MenuList (and their keyboard handling).
 interface IAttributePickerMenuItemsProps {
   containerRef: React.RefObject<HTMLElement | null>
   entries: AttributePickerEntry[]
@@ -190,31 +207,20 @@ export const AttributePickerMenuItems = observer(function AttributePickerMenuIte
   const { openCollectionId, cancelPendingHover, handleCollectionHover, handleOpenSubmenu, handleCloseSubmenu } =
     submenus
 
-  const hasAttributes = entries.some(entry => entry !== "divider" &&
-    entry.collection.attributes.some(attr =>
-      attr && !entry.metadata?.isHidden(attr.id) &&
-      (!isAttributeAllowed || isAttributeAllowed(entry.data, attr.id))
-    )
-  )
+  const shownEntries = getShownEntries(entries, isAttributeAllowed)
 
-  if (!hasAttributes) {
+  if (!shownEntries.length) {
     return (
       <MenuItem isDisabled isFocusable>{t("V3.DataDisplayMenu.noAttributesAvailable")}</MenuItem>
     )
   }
-  if (entries.length === 1 && entries[0] !== "divider") {
-    return (
-      <MenuItemsForCollection
-        collectionInfo={entries[0]}
-        isAttributeAllowed={isAttributeAllowed}
-        onSelect={onSelect}
-      />
-    )
+  if (shownEntries.length === 1 && shownEntries[0] !== "divider") {
+    return <MenuItemsForCollection collectionInfo={shownEntries[0]} onSelect={onSelect}/>
   }
   let dividerCount = 0
   return (
     <>
-      {entries.map(entry => {
+      {shownEntries.map(entry => {
         if (entry === "divider") {
           return <MenuDivider key={`divider-${dividerCount++}`} />
         }
@@ -223,7 +229,6 @@ export const AttributePickerMenuItems = observer(function AttributePickerMenuIte
           <CollectionMenu
             collectionInfo={entry}
             containerRef={containerRef}
-            isAttributeAllowed={isAttributeAllowed}
             isOpen={openCollectionId === collection.id}
             key={collection.id}
             maxMenuHeight={maxMenuHeight}

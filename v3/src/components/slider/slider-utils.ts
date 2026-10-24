@@ -1,10 +1,21 @@
 import { debugLog, DEBUG_PLUGINS } from "../../lib/debug"
+import { isFeatureEnabled } from "../../models/feature-flags/feature-flag-manager"
 import {
   DateUnit, DurationUnit, durationUnits, durationUnitSeconds, unitsStringToMilliseconds
 } from "../../utilities/date-utils"
+import { SliderType } from "./slider-types"
 
 export const kDefaultSliderName = "v1"
 export const kDefaultSliderValue = .5
+
+// whether the type can be offered: variable always, the range types only while their flags are on
+export function isSliderTypeAvailable(sliderType: SliderType) {
+  switch (sliderType) {
+    case "visibility": return isFeatureEnabled("visibilitySlider")
+    case "selection": return isFeatureEnabled("selectionSlider")
+    default: return true
+  }
+}
 
 export function valueChangeNotification(value: number, name?: string) {
   const action = "notify"
