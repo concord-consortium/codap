@@ -237,7 +237,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
             <If condition={showPrompt}>
               <div className="slider-attribute-prompt" data-testid="slider-attribute-prompt">
                 {/* choosing removes the prompt, so focus moves to the attribute label's menu that replaces it */}
-                <SliderAttributeMenu tile={tile} className="slider-attribute-prompt-button"
+                <SliderAttributeMenu className="slider-attribute-prompt-button"
                                      onSelect={() => setFocusAttributeLabel(true)}>
                   {t("V3.Slider.prompt")}
                 </SliderAttributeMenu>
@@ -295,7 +295,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
                   {/* keep presses on the label's menu from reaching the track, which would move a range handle */}
                   <div className="slider-attribute-label" style={axisStyle} data-testid="slider-attribute-label"
                        onPointerDown={stopTrackPress} onMouseDown={stopTrackPress} onTouchStart={stopTrackPress}>
-                    <SliderAttributeMenu tile={tile} className="slider-attribute-label-button"
+                    <SliderAttributeMenu className="slider-attribute-label-button"
                                          autoFocus={focusAttributeLabel} onAutoFocus={clearFocusAttributeLabel}>
                       {attributeLabel}
                     </SliderAttributeMenu>

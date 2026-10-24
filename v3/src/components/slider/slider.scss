@@ -56,8 +56,6 @@ $slider-attribute-label-space: $slider-attribute-label-height + 4px;
   }
 }
 
-// covers the whole slider so an attribute can be dropped anywhere on it
-// a range slider with no attribute shows only a prompt to choose one
 .slider-wrapper .slider-attribute-prompt {
   display: flex;
   align-items: center;
@@ -88,6 +86,7 @@ $slider-attribute-label-space: $slider-attribute-label-height + 4px;
   }
 }
 
+// covers the whole slider so an attribute can be dropped anywhere on it
 .slider-wrapper .slider-attribute-drop {
   inset: 0;
 }
@@ -158,9 +157,21 @@ $slider-attribute-label-space: $slider-attribute-label-height + 4px;
         height: 100%;
         max-width: 100%;
         overflow: hidden;
-        text-overflow: ellipsis;
+
+        // Chakra's span around the button's content; a long name is ellipsized, and the arrow stays visible
+        > span {
+          display: flex;
+          align-items: center;
+        }
+
+        .slider-attribute-menu-text {
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
 
         .slider-attribute-menu-arrow {
+          flex-shrink: 0;
           width: $slider-attribute-label-height;
           height: $slider-attribute-label-height;
         }

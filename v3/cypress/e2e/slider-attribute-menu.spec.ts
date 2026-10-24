@@ -50,7 +50,6 @@ context("Slider attribute menu", () => {
     // only numeric and date attributes are offered
     cy.get('[data-testid="slider-attribute-menu-list"]').should("not.contain.text", "Diet")
     chooseFromMenu("Sleep")
-    // the prompt is gone, so the focus moves to the attribute label's menu that replaces it
     cy.focused().should("have.attr", "data-testid", "slider-attribute-menu-button")
       .parents("[data-testid=slider-attribute-label]").should("exist")
 

@@ -5,9 +5,9 @@ import { useDocumentContainerContext } from "../../hooks/use-document-container-
 import { useMenuHeightAdjustment } from "../../hooks/use-menu-height-adjustment"
 import { useMenuItemScrollIntoView } from "../../hooks/use-menu-item-scroll-into-view"
 import { useSubmenuOpenOnArrowRight } from "../../hooks/use-submenu-keyboard-nav"
+import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { IDataSet } from "../../models/data/data-set"
 import { getDataSets } from "../../models/shared/shared-data-utils"
-import { ITileModel } from "../../models/tiles/tile-model"
 import { t } from "../../utilities/translation/translate"
 import {
   AttributePickerMenuItems, getAttributePickerEntries, useAttributePickerSubmenus
@@ -20,9 +20,8 @@ import DropdownArrow from "../../assets/icons/arrow.svg"
 const kMaxMenuHeight = "50vh"
 
 interface IProps {
-  tile?: ITileModel
   className?: string
-  // focuses the trigger when it mounts, e.g. when it replaces another trigger that had the focus
+  // focuses the trigger when it mounts
   autoFocus?: boolean
   onAutoFocus?: () => void
   onSelect?: () => void
@@ -31,8 +30,9 @@ interface IProps {
 // A menu of the attributes that can configure the slider (those a drop would accept), across all datasets.
 // Choosing one configures the slider from it, as a drop does.
 export const SliderAttributeMenu = observer(function SliderAttributeMenu({
-  tile, className, autoFocus, onAutoFocus, onSelect, children
+  className, autoFocus, onAutoFocus, onSelect, children
 }: IProps) {
+  const { tile } = useTileModelContext()
   const slider = isSliderModel(tile?.content) ? tile?.content : undefined
   const containerRef = useDocumentContainerContext()
   const menuListRef = useRef<HTMLDivElement>(null)
@@ -70,7 +70,7 @@ export const SliderAttributeMenu = observer(function SliderAttributeMenu({
       {/* the visible text names the button; the arrow is an icon, so it adds nothing to the text or the name */}
       <MenuButton ref={buttonRef} className={className} title={t("V3.Slider.attributeMenu")}
                   data-testid="slider-attribute-menu-button">
-        {children}
+        <span className="slider-attribute-menu-text">{children}</span>
         <DropdownArrow className="slider-attribute-menu-arrow" aria-hidden="true"/>
       </MenuButton>
       <Portal containerRef={containerRef}>
