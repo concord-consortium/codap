@@ -12,7 +12,7 @@ interface IProps {
 // A range slider's value row, e.g. "visible value(s) = 4.8 - 6.1", in place of the variable's name and value
 export const SliderRangeValues = observer(function SliderRangeValues({ sliderModel, multiScale }: IProps) {
   const isDate = sliderModel.scaleType === "date"
-  // dates are shown to the precision a graph's date axis uses for its values, which follows the axis's span
+  // dates are shown to the precision a graph's date axis uses for its values (see precisionForDisplay)
   const { axis } = sliderModel
   const datePrecision = isDateAxisModel(axis) ? axis.precisionForDisplay : undefined
   const format = (value: number) => multiScale?.formatValueForScale(value, isDate, datePrecision) ?? String(value)

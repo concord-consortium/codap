@@ -2,7 +2,7 @@ import { when } from "mobx"
 import { Instance } from "mobx-state-tree"
 import { appState } from "../../models/app-state"
 import { TreeManager } from "../../models/history/tree-manager"
-import { setupSliderAndData } from "./slider-test-utils"
+import { addDates, setupSliderAndData } from "./slider-test-utils"
 import { rangeFromHandles } from "./slider-utils"
 
 // the standard test dataset's a3 values are 1..6, so configuring from a3 gives axis [1, 6] and range [1, 1.5]
@@ -249,6 +249,14 @@ describe("SliderModel playback steps", () => {
     expect(slider.nextAnimationValue(-1, 0.25)).toBe(0)
   })
 
+  it("steps a range that starts between multiples onto them, as a variable slider does", async () => {
+    const { slider } = await setupRangeSlider()
+    slider.setMultipleOf(2)
+    slider.setRange(3.3, 4.3)
+    expect(slider.nextAnimationValue(1, 0.25)).toBe(6)
+    expect(slider.nextAnimationValue(-1, 0.25)).toBe(2)
+  })
+
   it("steps a range with width by the fallback step when there's no multiple restriction", async () => {
     const { slider } = await setupRangeSlider()
     slider.setRange(2, 3)
@@ -256,14 +264,17 @@ describe("SliderModel playback steps", () => {
   })
 
   it("steps a date range by its multiple restriction in its date unit", async () => {
-    const { slider } = await setupRangeSlider()
-    slider.setScaleType("date")
-    slider.setAxisMin(0)
-    slider.setAxisMax(30 * 24 * 60 * 60)
-    slider.setRange(0, 24 * 60 * 60)
+    const { content, slider } = await setupSliderAndData()
+    const dates = addDates(content, ["2026-01-01T00:00Z", "2026-03-01T00:00Z"])
+    slider.configureFromAttribute(dates, dates.attrFromName("when")!.id)
     slider.setMultipleOf(2)
     slider.setDateMultipleOfUnit("day")
-    expect(slider.nextAnimationValue(1, 1)).toBe(2 * 24 * 60 * 60)
+    const day = 24 * 60 * 60
+    const next = slider.nextAnimationValue(1, 1)
+    // onto a multiple of two days (counted from the epoch), as a variable slider's value is kept
+    expect(next % (2 * day)).toBe(0)
+    expect(next - slider.value).toBeGreaterThan(day)
+    expect(next - slider.value).toBeLessThanOrEqual(3 * day)
   })
 
   it("steps a zero-width range through the data values even with a multiple restriction", async () => {
