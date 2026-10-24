@@ -306,11 +306,12 @@ export const SliderModel = TileContentModel
       return self.width === 0 ? self.snapToData(clamped) : clamped
     }
     return {
-      // a range collapsed to zero width snaps to the data, as it does when one handle is dragged onto the other
+      // The low end moves, within the change, to keep the range on the axis, so notifications sent with it agree.
+      // A range collapsed to zero width snaps to the data, as it does when one handle is dragged onto the other.
       setRangeWidth(width: number) {
-        if (width === 0) self.globalValue.setValue(self.snapToData(self.rangeLow))
         self.rangeWidth = width
         self.dynamicRangeWidth = undefined
+        self.globalValue.setValue(width === 0 ? self.snapToData(self.rangeLow) : self.rangeLow)
       },
       setDynamicRange(low: number, high: number) {
         const [lo, hi] = normalizeRange(low, high)
