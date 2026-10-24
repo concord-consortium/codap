@@ -56,6 +56,36 @@ $slider-attribute-label-space: $slider-attribute-label-height + 4px;
   }
 }
 
+.slider-wrapper .slider-attribute-prompt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 14px;
+}
+
+.slider-wrapper .slider-attribute-prompt-button,
+.slider-wrapper .slider-attribute-label-button {
+  border-radius: 3px;
+  padding: 0 4px;
+
+  &:hover {
+    background-color: vars.$charcoal-light-5;
+  }
+
+  &:focus-visible {
+    @include vars.focus-outline;
+  }
+
+  .slider-attribute-menu-arrow {
+    width: 18px;
+    height: 18px;
+    margin-left: 2px;
+    vertical-align: middle;
+    fill: vars.$palette-icon-color;
+  }
+}
+
 // covers the whole slider so an attribute can be dropped anywhere on it
 .slider-wrapper .slider-attribute-drop {
   inset: 0;
@@ -119,6 +149,33 @@ $slider-attribute-label-space: $slider-attribute-label-height + 4px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+
+      // fits the label's height, which clips anything taller
+      .slider-attribute-label-button {
+        display: inline-flex;
+        align-items: center;
+        height: 100%;
+        max-width: 100%;
+        overflow: hidden;
+
+        // Chakra's span around the button's content; a long name is ellipsized, and the arrow stays visible
+        > span {
+          display: flex;
+          align-items: center;
+        }
+
+        .slider-attribute-menu-text {
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .slider-attribute-menu-arrow {
+          flex-shrink: 0;
+          width: $slider-attribute-label-height;
+          height: $slider-attribute-label-height;
+        }
+      }
     }
 
     .slider-axis-wrapper {

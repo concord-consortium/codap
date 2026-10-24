@@ -2,7 +2,7 @@ import { useDndContext } from "@dnd-kit/core"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { Menu, MenuItem, MenuList, MenuButton, MenuDivider, Portal } from "@chakra-ui/react"
-import React, { CSSProperties, useCallback, useEffect, useRef, useState } from "react"
+import React, { CSSProperties, useEffect, useRef, useState } from "react"
 import { useDocumentContainerContext } from "../../../hooks/use-document-container-context"
 import { useFreeTileLayoutContext } from "../../../hooks/use-free-tile-layout-context"
 import { IUseDraggableAttribute, useDraggableAttribute } from "../../../hooks/use-drag-drop"
@@ -10,121 +10,20 @@ import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import { useMenuHeightAdjustment } from "../../../hooks/use-menu-height-adjustment"
 import { useMenuItemScrollIntoView } from "../../../hooks/use-menu-item-scroll-into-view"
 import { useOutsidePointerDown } from "../../../hooks/use-outside-pointer-down"
-import { useSubmenuCloseOnArrowLeft, useSubmenuOpenOnArrowRight } from "../../../hooks/use-submenu-keyboard-nav"
+import { useSubmenuOpenOnArrowRight } from "../../../hooks/use-submenu-keyboard-nav"
 import { useOverlayBounds } from "../../../hooks/use-overlay-bounds"
 import { AttributeType } from "../../../models/data/attribute-types"
-import { ICollectionModel, isCollectionModel } from "../../../models/data/collection"
 import { IDataSet } from "../../../models/data/data-set"
-import { IDataSetMetadata } from "../../../models/shared/data-set-metadata"
-import { getDataSets, getMetadataFromDataSet } from "../../../models/shared/shared-data-utils"
+import { getDataSets } from "../../../models/shared/shared-data-utils"
 import { t } from "../../../utilities/translation/translate"
-import { If } from "../../common/if"
+import {
+  AttributePickerMenuItems, getAttributePickerEntries, useAttributePickerSubmenus
+} from "../../common/attribute-picker-menu-items"
 import { GraphPlace } from "../../axis-graph-shared"
 import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
 import { useDataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
 
-import RightArrow from "../../../assets/icons/arrow-right.svg"
-
 import "./axis-or-legend-attribute-menu.scss"
-
-interface ICollectionInfo {
-  collection: ICollectionModel
-  data: IDataSet
-  metadata?: IDataSetMetadata
-}
-
-// MenuItems for all attributes in a single collection
-interface IMenuItemsForCollectionProps {
-  collectionInfo: ICollectionInfo
-  isAttributeAllowed?: (place: GraphPlace, dataSet: IDataSet, attrId: string) => boolean
-  onChangeAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
-  place: GraphPlace
-}
-function MenuItemsForCollection(
-  { collectionInfo, isAttributeAllowed, onChangeAttribute, place }: IMenuItemsForCollectionProps
-) {
-  const { collection, data, metadata } = collectionInfo
-  const attrs = collection.attributes.filter(attr => !!attr)
-  return attrs.filter(attr =>
-    !metadata?.isHidden(attr.id) && (!isAttributeAllowed || isAttributeAllowed(place, data, attr.id))
-  ).map((attr) => {
-    return (
-      <MenuItem onClick={() => onChangeAttribute(place, data, attr.id)} key={attr.id}>
-        {attr.name}
-      </MenuItem>
-    )
-  })
-}
-
-// A MenuItem for a collection, which contains a submenu of the collection's attributes
-interface ICollectionMenuProps {
-  collectionInfo: ICollectionInfo
-  containerRef: React.RefObject<HTMLElement | null>
-  isAttributeAllowed?: (place: GraphPlace, dataSet: IDataSet, attrId: string) => boolean
-  isOpen: boolean
-  maxMenuHeight: string
-  onCancelPendingHover?: () => void
-  onChangeAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
-  onCloseSubmenu?: () => void
-  onOpenSubmenu?: () => void
-  onPointerOver?: React.PointerEventHandler<HTMLButtonElement>
-  place: GraphPlace
-}
-const CollectionMenu = observer(function CollectionMenu({
-  collectionInfo, containerRef, isAttributeAllowed, isOpen, maxMenuHeight, onCancelPendingHover,
-  onChangeAttribute, onCloseSubmenu, onOpenSubmenu, onPointerOver, place
-}: ICollectionMenuProps) {
-  const { collection } = collectionInfo
-  const submenuRef = useRef<HTMLDivElement>(null)
-  const collectionItemRef = useRef<HTMLDivElement>(null)
-  const adjustedMaxHeight = useMenuHeightAdjustment({ menuRef: submenuRef, containerRef, isOpen })
-  const handleMenuItemFocus = useMenuItemScrollIntoView()
-  const handleSubmenuKeyDown = useSubmenuCloseOnArrowLeft({
-    isOpen, submenuRef, triggerRef: collectionItemRef, onClose: onCloseSubmenu ?? (() => {})
-  })
-
-  const handleSubmenuPointerEnter = () => {
-    onCancelPendingHover?.()
-  }
-
-  return (
-    <>
-      <If condition={isOpen}>
-        <Menu isOpen={isOpen} placement="auto">
-          <MenuButton as="div" className="collection-menu-button" aria-hidden="true" tabIndex={-1} />
-          <MenuList ref={submenuRef} className="axis-legend-submenu"
-                    maxH={adjustedMaxHeight ?? maxMenuHeight} overflowY="auto"
-                    onFocus={handleMenuItemFocus}
-                    onKeyDown={handleSubmenuKeyDown}
-                    onPointerEnter={handleSubmenuPointerEnter}
-                    data-testid={`axis-legend-attribute-menu-list-${place}-${collection.id}`}>
-            <MenuItemsForCollection
-              collectionInfo={collectionInfo}
-              isAttributeAllowed={isAttributeAllowed}
-              onChangeAttribute={onChangeAttribute}
-              place={place}
-            />
-          </MenuList>
-        </Menu>
-      </If>
-      <MenuItem
-        ref={collectionItemRef}
-        as="div"
-        className="collection-menu-item"
-        closeOnSelect={false}
-        data-collection-id={collection.id}
-        key={collection.id}
-        onClick={onOpenSubmenu}
-        onPointerOver={onPointerOver}
-        aria-haspopup="menu"
-        aria-expanded={isOpen}
-      >
-        <span>{collection.name}</span>
-        <RightArrow className="collection-menu-arrow" aria-hidden="true" />
-      </MenuItem>
-    </>
-  )
-})
 
 const removeAttrItemLabelKeys: Record<string, string> = {
   "x": "DG.DataDisplayMenu.removeAttribute_x",
@@ -160,18 +59,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
     : undefined
   const dataSet = dataConfiguration?.dataset
   const dataSets = dataConfiguration ? getDataSets(dataConfiguration) : []
-  const allCollectionInfo: (ICollectionInfo|"divider")[] = []
-  dataSets.forEach((data, index) => {
-    const metadata = getMetadataFromDataSet(data)
-    data.collections.forEach(collection => {
-      if (isCollectionModel(collection)) {
-        allCollectionInfo.push({ collection, data, metadata })
-      }
-    })
-    if (index < dataSets.length - 1) {
-      allCollectionInfo.push("divider")
-    }
-  })
+  const pickerEntries = getAttributePickerEntries(dataSets)
   const role = graphPlaceToAttrRole[place]
   const attrId = attrIdOverride || dataConfiguration?.attributeID(role) || ''
   const instanceId = useInstanceIdContext()
@@ -189,50 +77,11 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const onCloseMenuRef = useRef<() => void>()
   const { active: dndActive } = useDndContext()
-  const [openCollectionId, setOpenCollectionId] = React.useState<string | null>(null)
-  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const submenus = useAttributePickerSubmenus()
+  const { openCollectionId, handleCollectionHover, handleOpenSubmenu, handleCloseSubmenu } = submenus
   const adjustedMainMenuHeight = useMenuHeightAdjustment({
     menuRef: mainMenuListRef, containerRef, isOpen: isMenuOpen
   })
-
-  // Delayed submenu switching to prevent accidental switches when moving to a submenu
-  // that appears above/below the trigger item
-  const handleCollectionHover = useCallback((collectionId: string | null) => {
-    // Clear any pending timer
-    if (hoverTimerRef.current) {
-      clearTimeout(hoverTimerRef.current)
-      hoverTimerRef.current = null
-    }
-
-    // If hovering over the already-open collection, no delay needed
-    if (collectionId === openCollectionId) return
-
-    // Add a short delay before switching submenus
-    hoverTimerRef.current = setTimeout(() => {
-      setOpenCollectionId(collectionId)
-      hoverTimerRef.current = null
-    }, 150)
-  }, [openCollectionId])
-
-  // Cancel any pending hover timer (called when mouse enters the open submenu)
-  const cancelPendingHover = useCallback(() => {
-    if (hoverTimerRef.current) {
-      clearTimeout(hoverTimerRef.current)
-      hoverTimerRef.current = null
-    }
-  }, [])
-
-  // Open a collection submenu immediately (for keyboard navigation)
-  const handleOpenSubmenu = useCallback((collectionId: string) => {
-    cancelPendingHover()
-    setOpenCollectionId(collectionId)
-  }, [cancelPendingHover])
-
-  // Close the current collection submenu (for keyboard navigation)
-  const handleCloseSubmenu = useCallback(() => {
-    cancelPendingHover()
-    setOpenCollectionId(null)
-  }, [cancelPendingHover])
 
   // Enable snapToCursor for vertical (Y) axis labels since the rotated label's bounding box
   // causes the drag overlay to appear far from the mouse position
@@ -244,14 +93,14 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   const { attributes, listeners, setNodeRef: setDragNodeRef } = useDraggableAttribute(draggableOptions)
 
   function handleOpenMenu() {
-    setOpenCollectionId(null)
+    handleCloseSubmenu()
     setIsMenuOpen(true)
   }
 
   // Chakra invokes this from its own event handlers (Escape, item selection, outside click),
   // so the menu state stays in sync without updating during the Menu's render.
   function resetMenuState() {
-    setOpenCollectionId(null)
+    handleCloseSubmenu()
     setIsMenuOpen(false)
   }
 
@@ -324,60 +173,13 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   const handleMenuItemFocus = useMenuItemScrollIntoView()
   const handleMainMenuKeyDown = useSubmenuOpenOnArrowRight("collection-id", handleOpenSubmenu)
 
-  const handleChangeAttribute = (_place: GraphPlace, data: IDataSet, _attrId: string) => {
-    onChangeAttribute(_place, data, _attrId)
+  const isAttributeAllowedHere = isAttributeAllowed
+    ? (data: IDataSet, anAttrId: string) => isAttributeAllowed(place, data, anAttrId)
+    : undefined
+
+  const handleSelectAttribute = (data: IDataSet, _attrId: string) => {
+    onChangeAttribute(place, data, _attrId)
     handleCloseMenu()
-  }
-
-  const collectionInfoEntries = allCollectionInfo.filter(info => info !== "divider")
-  const hasAttributes = collectionInfoEntries.some(({ collection, data, metadata }) =>
-    collection.attributes.some(attr =>
-      attr && !metadata?.isHidden(attr.id) &&
-      (!isAttributeAllowed || isAttributeAllowed(place, data, attr.id))
-    )
-  )
-
-  const renderMenuItems = () => {
-    if (!hasAttributes) {
-      return (
-        <MenuItem isDisabled isFocusable>{t("V3.DataDisplayMenu.noAttributesAvailable")}</MenuItem>
-      )
-    }
-    if (allCollectionInfo.length === 1 && allCollectionInfo[0] !== "divider") {
-      return (
-        <MenuItemsForCollection
-          collectionInfo={allCollectionInfo[0]}
-          isAttributeAllowed={isAttributeAllowed}
-          onChangeAttribute={handleChangeAttribute}
-          place={place}
-        />
-      )
-    } else {
-      let dividerCount = 0
-      return allCollectionInfo.map(collectionInfo => {
-        if (collectionInfo === "divider") {
-          return <MenuDivider key={`divider-${dividerCount++}`} />
-        } else {
-          const { collection } = collectionInfo
-          return (
-            <CollectionMenu
-              collectionInfo={collectionInfo}
-              containerRef={containerRef}
-              isAttributeAllowed={isAttributeAllowed}
-              isOpen={openCollectionId === collection.id}
-              key={collection.id}
-              maxMenuHeight={maxMenuHeight}
-              onCancelPendingHover={cancelPendingHover}
-              onChangeAttribute={handleChangeAttribute}
-              onCloseSubmenu={handleCloseSubmenu}
-              onOpenSubmenu={() => handleOpenSubmenu(collection.id)}
-              onPointerOver={() => handleCollectionHover(collection.id)}
-              place={place}
-            />
-          )
-        }
-      })
-    }
   }
 
   const handlePointerEnter = () => {
@@ -419,12 +221,21 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
                 {attribute?.name}
               </MenuButton>
               <Portal containerRef={containerRef}>
-                <MenuList ref={mainMenuListRef} className="axis-legend-menu"
+                <MenuList ref={mainMenuListRef} className="attribute-picker-menu"
                           maxH={adjustedMainMenuHeight ?? maxMenuHeight} overflowY="auto"
                           onFocus={handleMenuItemFocus}
                           onKeyDown={handleMainMenuKeyDown}
                           data-testid={`axis-legend-attribute-menu-list-${place}`}>
-                  {renderMenuItems()}
+                  <AttributePickerMenuItems
+                    containerRef={containerRef}
+                    entries={pickerEntries}
+                    isAttributeAllowed={isAttributeAllowedHere}
+                    maxMenuHeight={maxMenuHeight}
+                    onSelect={handleSelectAttribute}
+                    submenus={submenus}
+                    submenuClassName="axis-legend-submenu"
+                    submenuTestId={collectionId => `axis-legend-attribute-menu-list-${place}-${collectionId}`}
+                  />
                   { attribute &&
                     <>
                       <MenuDivider />
