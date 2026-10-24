@@ -246,6 +246,14 @@ export const SliderModel = TileContentModel
     getAxisHelper(place: AxisPlace, subAxisIndex: number) {
       return self.axisHelper
     },
+    // the span that determines a date range width's units: the bound attribute's extent, else the axis's
+    get widthUnitSpan() {
+      void self.attribute?.changeCount // see attributeValues
+      const dataSet = self.dataSet
+      const extent = dataSet && self.attributeId ? this.configurationExtent(dataSet, self.attributeId) : undefined
+      const [min, max] = extent ?? self.axis.domain
+      return max - min
+    },
     // axis bounds for configuring from the attribute, or undefined if it can't configure a slider
     configurationExtent(dataSet: IDataSet, attrId: string): Maybe<[number, number]> {
       const attribute = dataSet.getAttribute(attrId)
@@ -275,10 +283,6 @@ export const SliderModel = TileContentModel
     setValidatedValue(value: number) {
       self.globalValue.setValue(self.constrainValue(value))
     },
-    setRangeWidth(width: number) {
-      self.rangeWidth = width
-      self.dynamicRangeWidth = undefined
-    }
   }))
   .actions(self => {
     // clamps [low, high] to the axis with low <= high, snapping a zero-width range to the data
@@ -298,6 +302,13 @@ export const SliderModel = TileContentModel
       return self.width === 0 ? self.snapToData(clamped) : clamped
     }
     return {
+      // The low end moves, within the change, to keep the range on the axis, so notifications sent with it agree.
+      // A range collapsed to zero width snaps to the data, as it does when one handle is dragged onto the other.
+      setRangeWidth(width: number) {
+        self.rangeWidth = width
+        self.dynamicRangeWidth = undefined
+        self.globalValue.setValue(width === 0 ? self.snapToData(self.rangeLow) : self.rangeLow)
+      },
       setDynamicRange(low: number, high: number) {
         const [lo, hi] = normalizeRange(low, high)
         self.dynamicRangeWidth = hi - lo
@@ -481,6 +492,12 @@ export const SliderModel = TileContentModel
         }
         self.scaleType = scaleType
         self.axisHelper = undefined
+        // an unbound range's width is in the old scale's units, so it's reset to the default for the new axis
+        if (self.isRangeSlider && !self.attributeId) {
+          const [min, max] = self.axis.domain
+          self.rangeWidth = (max - min) * kDefaultRangeFraction
+          self.dynamicRangeWidth = undefined
+        }
       }
     },
     setAxisMin(n: number) {
@@ -507,7 +524,19 @@ export const SliderModel = TileContentModel
   }))
   .actions(self => ({
     setSliderType(sliderType: SliderType) {
+      // a variable slider has no binding or width
+      if (sliderType === "variable" && self.isRangeSlider) {
+        self.dataSetId = undefined
+        self.attributeId = undefined
+        self.rangeWidth = undefined
+        self.dynamicRangeWidth = undefined
+      }
       self.sliderType = sliderType
+      // a range slider needs a width; one it already has (e.g. when switched between range types) is kept
+      if (self.isRangeSlider && self.rangeWidth == null) {
+        const [min, max] = self.axis.domain
+        self.rangeWidth = (max - min) * kDefaultRangeFraction
+      }
     },
     configureFromAttribute(dataSet: IDataSet, attrId: string) {
       const extent = self.configurationExtent(dataSet, attrId)
