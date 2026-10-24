@@ -190,12 +190,12 @@ describe("slider persistence: importing a damaged V2 range slider", () => {
   })
 
   it.each([
-    ["negative", -1, 0],
-    ["non-numeric", NaN, 0],
-    ["missing", undefined, 0]
-  ])("imports a %s width as zero", async (_label, rangeWidth, expected) => {
+    ["negative", -1],
+    ["non-numeric", NaN],
+    ["missing", undefined]
+  ])("imports a %s width as zero", async (_label, rangeWidth) => {
     const slider = await importEdited(v3 => { v3.rangeWidth = rangeWidth })
-    expect(slider.rangeWidth).toBe(expected)
+    expect(slider.rangeWidth).toBe(0)
     expect(slider.rangeHigh).toBeGreaterThanOrEqual(slider.rangeLow)
   })
 })

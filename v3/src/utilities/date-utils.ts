@@ -34,7 +34,7 @@ export function isDatePrecision(value: any): value is DatePrecision {
 }
 
 /**
- * Returns a translated, pluralized date unit label (e.g. "year" vs "years").
+ * Returns a translated, pluralized duration unit label (e.g. "year" vs "years").
  * Uses Intl.PluralRules with CLDR categories (one/other) for proper i18n.
  * The `count` parameter determines the plural form; it defaults to 1 (singular).
  */

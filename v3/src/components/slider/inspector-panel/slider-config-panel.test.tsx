@@ -1,6 +1,11 @@
 import { act, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
+import { when } from "mobx"
+import { Instance } from "mobx-state-tree"
+import { appState } from "../../../models/app-state"
 import { featureFlagManager } from "../../../models/feature-flags/feature-flag-manager"
+import { TreeManager } from "../../../models/history/tree-manager"
+import { getTitle } from "../../../models/tiles/tile-content-info"
 import { ISliderModel } from "../slider-model"
 import { setupSliderAndData } from "../slider-test-utils"
 import { durationUnitSeconds } from "../../../utilities/date-utils"
@@ -10,6 +15,20 @@ const [year, week, day] = (["year", "week", "day"] as const).map(durationUnitSec
 
 function renderPalette(slider: ISliderModel) {
   return render(<SliderConfigPalette sliderModel={slider} setShowPalette={jest.fn()}/>)
+}
+
+// runs the test body with undo history recorded, passing a function that waits for pending entries to complete
+async function withHistory(body: (settle: () => Promise<void>) => Promise<void>) {
+  const manager = appState.document.treeManagerAPI as Instance<typeof TreeManager>
+  const settle = () => when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
+  appState.document.treeMonitor!.enableMonitoring()
+  try {
+    await settle()
+    await body(settle)
+  }
+  finally {
+    appState.document.treeMonitor!.disableMonitoring()
+  }
 }
 
 async function chooseOption(button: HTMLElement, optionName: string) {
@@ -41,6 +60,26 @@ describe("SliderConfigPalette", () => {
     await chooseOption(screen.getByTestId("slider-type-button"), "Visibility")
     expect(slider.sliderType).toBe("visibility")
     expect(screen.getByTestId("slider-type-button")).toHaveTextContent("Visibility")
+  })
+
+  it("undoes a switch to Variable, restoring the binding, width and title", async () => {
+    const { dataSet, tile, slider } = await setupSliderAndData()
+    act(() => {
+      slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+      slider.setRangeWidth(2)
+    })
+    renderPalette(slider)
+    await withHistory(async settle => {
+      await chooseOption(screen.getByTestId("slider-type-button"), "Variable")
+      await settle()
+      expect(slider.attributeId).toBeUndefined()
+      act(() => appState.document.undoLastAction())
+      await settle()
+      expect(slider.sliderType).toBe("visibility")
+      expect(slider.attributeId).toBe(dataSet.attrFromName("a3")!.id)
+      expect(slider.rangeWidth).toBe(2)
+      expect(getTitle(tile)).toBe(dataSet.childCollection.title)
+    })
   })
 
   it("shows the width only for a range type", async () => {
@@ -122,6 +161,41 @@ describe("SliderConfigPalette", () => {
     expect(input).toHaveValue("2")
   })
 
+  it("undoes a width edit", async () => {
+    const { slider } = await setupSliderAndData()
+    act(() => {
+      slider.setSliderType("visibility")
+      slider.setRangeWidth(2)
+    })
+    renderPalette(slider)
+    await withHistory(async settle => {
+      const input = screen.getByTestId("slider-range-width-input")
+      await userEvent.clear(input)
+      await userEvent.type(input, "5{Enter}")
+      await settle()
+      expect(slider.rangeWidth).toBe(5)
+      act(() => appState.document.undoLastAction())
+      await settle()
+      expect(slider.rangeWidth).toBe(2)
+    })
+  })
+
+  it("discards a pending edit when Escape dismisses the palette", async () => {
+    const { slider } = await setupSliderAndData()
+    act(() => {
+      slider.setSliderType("visibility")
+      slider.setRangeWidth(2)
+    })
+    const setShowPalette = jest.fn()
+    const { rerender } = render(<SliderConfigPalette sliderModel={slider} setShowPalette={setShowPalette}/>)
+    const input = screen.getByTestId("slider-range-width-input")
+    await userEvent.clear(input)
+    await userEvent.type(input, "7{Escape}")
+    expect(setShowPalette).toHaveBeenCalledWith(undefined)
+    rerender(<></>)
+    expect(slider.rangeWidth).toBe(2)
+  })
+
   it("follows a width changed elsewhere, such as by dragging the thumb", async () => {
     const { slider } = await setupSliderAndData()
     act(() => slider.setSliderType("visibility"))
@@ -168,6 +242,25 @@ describe("SliderConfigPalette", () => {
       const slider = await setupDateSlider(2 * year, 2 * week)
       await chooseOption(screen.getByTestId("slider-range-width-unit"), "weeks")
       expect(screen.getByTestId("slider-range-width-input")).toHaveValue("2")
+      expect(slider.rangeWidth).toBe(2 * week)
+    })
+
+    it("names the unit menu by its unit and the width's label", async () => {
+      await setupDateSlider(2 * year, 0.5 * year)
+      expect(screen.getByTestId("slider-range-width-unit")).toHaveAccessibleName("years Width:")
+    })
+
+    it("agrees the unit in number with the width as shown", async () => {
+      await setupDateSlider(2 * day, 1.04 * day)
+      expect(screen.getByTestId("slider-range-width-input")).toHaveValue("1")
+      expect(screen.getByTestId("slider-range-width-unit")).toHaveAccessibleName("day Width:")
+    })
+
+    it("ignores a width too large to store once converted to seconds", async () => {
+      const slider = await setupDateSlider(2 * year, 2 * week)
+      const input = screen.getByTestId("slider-range-width-input")
+      await userEvent.clear(input)
+      await userEvent.type(input, "1e303{Enter}")
       expect(slider.rangeWidth).toBe(2 * week)
     })
 
