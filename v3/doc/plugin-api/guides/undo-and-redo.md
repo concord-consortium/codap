@@ -16,13 +16,18 @@ and the two undo properties on [`interactiveFrame`](../resources/interactive-fra
 The history holds what the user does in CODAP's own interface: moving an attribute, changing a
 graph, editing a cell.
 
-**It does not hold the changes your plugin makes through the API.** Creating cases, updating
-attributes, creating or deleting components: none of these adds an entry. CODAP cannot undo them,
+**It does not hold most changes your plugin makes through the API.** Creating cases or updating
+attributes, for example, adds no entry. CODAP cannot undo them,
 and the user's own earlier actions stay undoable. A few requests are exceptions, because they
 match a single action in CODAP's interface and undo the same way it does:
 
 - `update` on `dataContext` with a `sort`
 - `notify` on a case table `component` with `autoScale`
+- `update` on `attributeLocation`, which moves an attribute as dragging its column does
+- `create` on `component`, which adds a component as the toolbar does
+- `delete` on `component`, which closes a component as its close button does
+
+v3 does not yet add entries for the last three; see [Known limitations](#known-limitations).
 
 If your plugin needs the user to be able to undo something it did through the API, it reports
 the action itself, as described next, and reverses the API changes itself when asked.
@@ -211,14 +216,18 @@ uses an undo step.
 `document`, with operation `undo` or `redo`, whenever the user undid or redid an action that had
 no notification of its own. v3 does not. This is a known bug.
 
+**A plugin's attribute moves, and the components it creates or closes, cannot be undone.** v2
+added `update` on `attributeLocation`, and `create` and `delete` on `component`, to the history,
+as it did the same changes made in CODAP's interface, so the user could undo them. v3 does not.
+This is a known bug.
+
 **Some other API requests add entries to the history.** Besides the exceptions listed under
 [What the history holds](#what-the-history-holds), these currently add entries too: `create`,
 `update` and `delete` on `adornment` (sometimes several entries for one request), `create` on
 `global`, `create` on `dataContextFromURL`, and `notify` on a graph `component` with
-`autoScale`. The intended behavior is that they do not. In v2,
-by contrast, creating and closing components and moving attributes through the API could be
-undone, and many data requests reset the user's history. A plugin should not depend on whether
-CODAP's undo reverses a request it made.
+`autoScale`. The intended behavior is that they do not. v2 also
+reset the user's history after many data requests. A plugin should not depend on whether CODAP's
+undo reverses a request it made.
 
 ## See also
 

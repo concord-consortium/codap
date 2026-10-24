@@ -46,8 +46,8 @@ wrote them, then again after canonicalization — so a name containing spaces or
 usually resolves even when the stored name differs in those characters.
 
 <!-- BEGIN GENERATED: scope -->
-This resource is scoped to a data context. Omitting one selects `#default`, the first data
-context in the document — see [the index](../README.md#the-default-data-context).
+This resource is scoped to a data context. Omitting one selects `#default`, your plugin's
+own data context — see [the index](../README.md#the-default-data-context).
 <!-- END GENERATED: scope -->
 
 ## Values
@@ -83,7 +83,7 @@ reach a plugin by structured clone rather than JSON, so a key with no value surv
 | `precision` | yes | |
 | `unit` | yes | |
 | `defaultMin`, `defaultMax` | no | only when a default range is set |
-| `_categoryMap` | no | only when the attribute has a category set |
+| `_categoryMap` | in v3, yes | v3 returns it for every attribute, with `__order` listing the attribute's categories. v2 returned it only once something in CODAP had used the attribute's categories, such as a graph legend, so do not depend on it being there |
 | `v3.categoryShapes` | no | only when some category carries a point shape |
 
 ### What `create` and `update` accept
