@@ -213,8 +213,12 @@ export const SliderModel = TileContentModel
         const [min, max] = self.valueDomain
         return next ?? (sign > 0 ? max + 1 : min - 1)
       }
-      // range bounds ignore the multiple restriction (see sliderStep), in playback as in a drag
-      const increment = self.isRangeSlider ? undefined : self.increment
+      // Otherwise playback steps by the multiple restriction, onto its multiples, for a range as for a variable slider
+      // (whose value constrainValue rounds), though a drag of a range's ends ignores it (see sliderStep).
+      const { increment } = self
+      if (self.isRangeSlider && increment) {
+        return Math.round((self.value + sign * increment) / increment) * increment
+      }
       return self.value + sign * (increment ?? fallbackIncrement)
     },
     // bounded by the value domain, so a range slider's playback wraps or stops when its high end reaches the axis

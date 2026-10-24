@@ -3,7 +3,7 @@ import { DIComponentInfo } from "../../data-interactive/data-interactive-types"
 import { diComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { Logger } from "../../lib/logger"
 import { appState } from "../../models/app-state"
-import { IDataSet } from "../../models/data/data-set"
+import { DataSet, IDataSet } from "../../models/data/data-set"
 import { IDocumentContentModel } from "../../models/document/document-content"
 import { setupTestDataset } from "../../test/dataset-test-utils"
 import { toV3Id } from "../../utilities/codap-utils"
@@ -17,6 +17,14 @@ export function addDataSetCopy(content: IDocumentContentModel, source: IDataSet)
   const snapshot = getSnapshot(source)
   source.completeSnapshot()
   return content.createDataSet(snapshot).sharedDataSet.dataSet
+}
+
+// adds a dataset of one date attribute, "when", holding the given dates
+export function addDates(content: IDocumentContentModel, dates: string[]): IDataSet {
+  const source = DataSet.create({ name: "dates", collections: [{ name: "Events" }] })
+  source.addAttribute({ name: "when", userType: "date" })
+  source.addCases(dates.map(when => ({ when })), { canonicalize: true })
+  return addDataSetCopy(content, source)
 }
 
 // a fresh document containing the standard test dataset ("data") and a default variable slider
