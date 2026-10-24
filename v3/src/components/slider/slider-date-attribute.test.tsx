@@ -29,6 +29,7 @@ describe("a range slider bound to a date attribute", () => {
 
   // a new range is a tenth of the axis wide, starting at the first date
   it.each([
+    ["minutes", "2026-01-01T00:00", "2026-01-01T00:05", ["1/1/2026, 12:00:00 AM", "1/1/2026, 12:00:30 AM"]],
     ["hours", "2026-01-01T00:00", "2026-01-01T05:00", ["1/1/2026, 12:00 AM", "1/1/2026, 12:30 AM"]],
     ["days", "2026-01-01", "2026-01-11", ["1/1/2026, 12 AM", "1/2/2026, 12 AM"]],
     ["months", "2005-05-01", "2005-12-31", ["5/1/2005", "5/25/2005"]],
