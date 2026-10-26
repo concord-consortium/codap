@@ -51,6 +51,12 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
     setOverlayRef(elt)
   }, [setOverlayRef, sliderRef])
   const [running, setRunning] = useState(false)
+  // The prompt replaces the thumb, which runs playback, so playback stops with it (and binding an attribute again
+  // doesn't restart it).
+  const isPrompting = !!sliderModel?.isRangeSlider && !sliderModel.attribute
+  useEffect(() => {
+    if (isPrompting) setRunning(false)
+  }, [isPrompting])
   const [focusAttributeLabel, setFocusAttributeLabel] = useState(false)
   const clearFocusAttributeLabel = useCallback(() => setFocusAttributeLabel(false), [])
   const [statusMessage, setStatusMessage] = useState("")

@@ -86,9 +86,34 @@ describe("SliderAttributeMenu", () => {
     expect(await menuItemTexts()).toEqual(["a3", "a4"])
   })
 
-  it("configures the slider from the chosen attribute", async () => {
-    const { tile, events, slider } = await setupSliderAndTwoDataSets()
+  it("has nothing to offer an empty range slider whose type's flag is off", async () => {
+    const { tile, slider } = await setupSliderAndTwoDataSets()
     slider.setSliderType("visibility")
+    act(() => featureFlagManager.setServerConfig({ selectionSlider: "on" }))
+    renderMenu(tile)
+    await openMenu()
+    expect(await menuItemTexts()).toEqual(["No attributes available"])
+  })
+
+  it("leaves the slider alone when its bound attribute is chosen again", async () => {
+    const { tile, events, slider } = await setupSliderAndTwoDataSets()
+    renderMenu(tile)
+    await openMenu()
+    await clickMenuItem("Events")
+    await clickMenuItem("when")
+    const range = [slider.rangeLow, slider.rangeHigh]
+    act(() => slider.setRange(range[0], (range[0] + range[1]) / 2))
+    const changed = [slider.rangeLow, slider.rangeHigh]
+    await openMenu()
+    await clickMenuItem("Events")
+    await clickMenuItem("when")
+    expect(slider.attributeId).toBe(events.attrFromName("when")!.id)
+    expect([slider.rangeLow, slider.rangeHigh]).toEqual(changed)
+  })
+
+  it("configures a variable slider from the chosen attribute, making it a visibility slider", async () => {
+    const { tile, events, slider } = await setupSliderAndTwoDataSets()
+    expect(slider.sliderType).toBe("variable")
     renderMenu(tile)
     await openMenu()
     await clickMenuItem("Events")
