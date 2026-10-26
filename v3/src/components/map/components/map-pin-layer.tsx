@@ -108,9 +108,10 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
   const { latId: pinLatId, longId: pinLongId } = mapLayerModel.pinAttributes || {}
   if (!pinLatId || !pinLongId) return
   const colorId = dataset.attributes.find(attr => attr.type === "color")?.id
+  // Hidden and filtered-out pins still hold their colors, so read every item, not just dataset.items.
   // Without a color attribute, pins are colored by position, so the next pin's color is positional too.
   const colorIndex = colorId
-    ? getNextPinColorIndex(dataset.items.map(({ __id__ }) => dataset.getStrValue(__id__, colorId)))
+    ? getNextPinColorIndex(dataset._itemIds.map(itemId => dataset.getStrValue(itemId, colorId)))
     : dataset.items.length % kPinColors.length
 
   const handleClick = (e: React.MouseEvent) => {
