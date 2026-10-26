@@ -17,10 +17,12 @@ import { Axis } from "../axis/components/axis"
 import { AxisProviderContext } from "../axis/hooks/use-axis-provider-context"
 import { AxisLayoutContext } from "../axis/models/axis-layout-context"
 import { isDateAxisModel } from "../axis/models/numeric-axis-models"
+import { If } from "../common/if"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { EditableSliderValue } from "./editable-slider-value"
 import { kSliderIdBase, sliderCollisionDetection } from "./slider-drag-drop"
 import { SliderDropHighlight, useSliderAttributeDrop } from "./slider-drop-target"
+import { SliderAttributeMenu } from "./slider-attribute-menu"
 import { SliderAxisLayout } from "./slider-layout"
 import { isSliderModel } from "./slider-model"
 import { changeSliderValueNotification } from "./slider-notifications"
@@ -48,6 +50,14 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
     setOverlayRef(elt)
   }, [setOverlayRef, sliderRef])
   const [running, setRunning] = useState(false)
+  // The prompt replaces the thumb, which runs playback, so playback stops with it (and binding an attribute again
+  // doesn't restart it).
+  const isPrompting = !!sliderModel?.isRangeSlider && !sliderModel.attribute
+  useEffect(() => {
+    if (isPrompting) setRunning(false)
+  }, [isPrompting])
+  const [focusAttributeLabel, setFocusAttributeLabel] = useState(false)
+  const clearFocusAttributeLabel = useCallback(() => setFocusAttributeLabel(false), [])
   const [statusMessage, setStatusMessage] = useState("")
   const statusTimeoutRef = useRef<number>()
   const prevRunningRef = useRef(false)
@@ -179,9 +189,12 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
 
   if (!sliderModel) return null
 
-  // a range slider labels its axis with the bound attribute, e.g. "Height (meters)"
+  // a range slider labels its axis with the bound attribute, e.g. "Height (meters)"; with no attribute bound, it
+  // shows only a prompt to choose one
   const attribute = sliderModel.isRangeSlider ? sliderModel.attribute : undefined
   const attributeLabel = attribute ? `${attribute.name}${attribute.units ? ` (${attribute.units})` : ""}` : ""
+  const showPrompt = sliderModel.isRangeSlider && !attribute
+  const stopTrackPress = (e: React.SyntheticEvent) => e.stopPropagation()
 
   const axisStyle: CSSProperties = {
     width: width ? width - kAxisMargin : width,
@@ -227,58 +240,75 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
           <div {...groupProps} className={clsx(kSliderClass, {twoLevel: sliderModel.axisRequiresTwoLevels(),
                                                               hasAttributeLabel: !!attributeLabel})}
                ref={setWrapperRef} data-testid="slider-drop-overlay">
-            <div className="slider-control">
-              <button
-                aria-label={running ? t("DG.SliderView.pauseButton") : t("DG.SliderView.playButton")}
-                className={`play-pause ${running ? "running" : "paused"}`}
-                data-testid="slider-play-pause"
-                onClick={toggleRunning}
-              >
-                {running ? <PauseIcon/> : <PlayIcon/>}
-              </button>
-              <div className="slider-inputs">
+            <If condition={showPrompt}>
+              <div className="slider-attribute-prompt" data-testid="slider-attribute-prompt">
+                {/* choosing removes the prompt, so focus moves to the attribute label's menu that replaces it */}
+                <SliderAttributeMenu className="slider-attribute-prompt-button"
+                                     onSelect={() => setFocusAttributeLabel(true)}>
+                  {t("V3.Slider.prompt")}
+                </SliderAttributeMenu>
+              </div>
+            </If>
+            <If condition={!showPrompt}>
+              <div className="slider-control">
+                <button
+                  aria-label={running ? t("DG.SliderView.pauseButton") : t("DG.SliderView.playButton")}
+                  className={`play-pause ${running ? "running" : "paused"}`}
+                  data-testid="slider-play-pause"
+                  onClick={toggleRunning}
+                >
+                  {running ? <PauseIcon/> : <PlayIcon/>}
+                </button>
+                <div className="slider-inputs">
+                  {sliderModel.isRangeSlider
+                    ? <SliderRangeValues sliderModel={sliderModel} multiScale={multiScale}/>
+                    : <>
+                      <TextField value={nameInput} onChange={setNameInput}
+                                 aria-label={t("DG.SliderView.sliderName")} className="name-input"
+                                 data-testid="slider-variable-name">
+                        <RAInput className="name-text-input text-input" data-testid="slider-variable-name-text-input"
+                                 size={Math.max(nameInput.length, 3)} onBlur={commitSliderName}
+                                 onKeyDown={handleSliderNameKeyDown} />
+                      </TextField>
+                      <span className="equals-sign">&nbsp;=&nbsp;</span>
+                      <EditableSliderValue sliderModel={sliderModel} multiScale={multiScale}
+                                           onStatusMessage={showStatusMessage}/>
+                      </>}
+                </div>
+              </div>
+              <div {...trackProps} style={{ ...trackProps.style, position: "absolute" }}
+                   ref={trackRef} className="slider" data-testid="slider-track">
                 {sliderModel.isRangeSlider
-                  ? <SliderRangeValues sliderModel={sliderModel} multiScale={multiScale}/>
-                  : <>
-                    <TextField value={nameInput} onChange={setNameInput}
-                               aria-label={t("DG.SliderView.sliderName")} className="name-input"
-                               data-testid="slider-variable-name">
-                      <RAInput className="name-text-input text-input" data-testid="slider-variable-name-text-input"
-                               size={Math.max(nameInput.length, 3)} onBlur={commitSliderName}
-                               onKeyDown={handleSliderNameKeyDown} />
-                    </TextField>
-                    <span className="equals-sign">&nbsp;=&nbsp;</span>
-                    <EditableSliderValue sliderModel={sliderModel} multiScale={multiScale}
-                                         onStatusMessage={showStatusMessage}/>
-                    </>}
+                  ? <SliderRangeThumb sliderModel={sliderModel} tile={tile} running={running} setRunning={setRunning}
+                                      state={state} trackRef={trackRef}
+                    />
+                  : <CodapSliderThumb sliderModel={sliderModel} running={running} setRunning={setRunning}
+                                      state={state} trackRef={trackRef}
+                    />}
+                {/* Stop pointer events from bubbling to React Aria's track handler so that
+                    D3's axis drag behavior (pan/zoom) receives them instead (CODAP-1206). */}
+                <div className={axisClasses()} style={axisStyle}
+                     onPointerDown={e => e.stopPropagation()}>
+                  <div className="axis-end min"/>
+                  <svg className="slider-axis" data-testid="slider-axis">
+                    <Axis
+                      axisPlace={"bottom"}
+                    />
+                  </svg>
+                  <div className="axis-end max"/>
+                </div>
+                <If condition={!!attributeLabel}>
+                  {/* keep presses on the label's menu from reaching the track, which would move a range handle */}
+                  <div className="slider-attribute-label" style={axisStyle} data-testid="slider-attribute-label"
+                       onPointerDown={stopTrackPress} onMouseDown={stopTrackPress} onTouchStart={stopTrackPress}>
+                    <SliderAttributeMenu className="slider-attribute-label-button"
+                                         autoFocus={focusAttributeLabel} onAutoFocus={clearFocusAttributeLabel}>
+                      {attributeLabel}
+                    </SliderAttributeMenu>
+                  </div>
+                </If>
               </div>
-            </div>
-            <div {...trackProps} style={{ ...trackProps.style, position: "absolute" }}
-                 ref={trackRef} className="slider">
-              {sliderModel.isRangeSlider
-                ? <SliderRangeThumb sliderModel={sliderModel} tile={tile} running={running} setRunning={setRunning}
-                                    state={state} trackRef={trackRef}
-                  />
-                : <CodapSliderThumb sliderModel={sliderModel} running={running} setRunning={setRunning}
-                                    state={state} trackRef={trackRef}
-                  />}
-              {/* Stop pointer events from bubbling to React Aria's track handler so that
-                  D3's axis drag behavior (pan/zoom) receives them instead (CODAP-1206). */}
-              <div className={axisClasses()} style={axisStyle}
-                   onPointerDown={e => e.stopPropagation()}>
-                <div className="axis-end min"/>
-                <svg className="slider-axis" data-testid="slider-axis">
-                  <Axis
-                    axisPlace={"bottom"}
-                  />
-                </svg>
-                <div className="axis-end max"/>
-              </div>
-              {attributeLabel &&
-                <div className="slider-attribute-label" style={axisStyle} data-testid="slider-attribute-label">
-                  {attributeLabel}
-                </div>}
-            </div>
+            </If>
             <div aria-live="polite" className="codap-visually-hidden" role="status">
               {statusMessage}
             </div>
