@@ -142,7 +142,7 @@ describe("slider persistence: V3 → V2 → V3", () => {
     expect(findDataSet("when").itemIds).toHaveLength(2)
   })
 
-  it("round-trips a range slider set up in the inspector with no attribute bound", async () => {
+  it("round-trips a range slider with no attribute bound", async () => {
     const { slider } = await setupSliderAndData()
     slider.setSliderType("selection")
     slider.setRange(2, 5)

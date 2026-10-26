@@ -33,7 +33,8 @@ export const SliderConfigPalette =
   observer(function SliderConfigPalette({id, sliderModel, panelRect, buttonRect, setShowPalette}: IProps) {
     const { sliderType, isRangeSlider } = sliderModel
     const isDate = sliderModel.scaleType === "date"
-    // The unit is derived from the span rather than saved; a choice of another lasts while the palette is open.
+    // The unit is derived from the span rather than saved; a choice of another lasts while the palette is open and
+    // the menu still offers it.
     const unitChoices = getSliderWidthUnitChoices(sliderModel.widthUnitSpan)
     const [chosenUnit, setChosenUnit] = useState<SliderWidthUnit>()
     const unit = chosenUnit && unitChoices.includes(chosenUnit) ? chosenUnit : unitChoices[0]
@@ -62,23 +63,26 @@ export const SliderConfigPalette =
       })
     }
 
-    const handleAcceptWidth = () => {
+    // commits a pending edit, in the given unit (by default the one shown)
+    const handleAcceptWidth = (editUnitSeconds = unitSeconds) => {
       if (editedWidth == null) return
       setEditedWidth(undefined)
       const parsed = editedWidth.trim() ? Number(editedWidth) : NaN
       // checked after converting to seconds, which can overflow a finite entry
-      const rangeWidth = parsed * unitSeconds
+      const rangeWidth = parsed * editUnitSeconds
       if (!isFinite(rangeWidth) || rangeWidth < 0 || rangeWidth === sliderModel.rangeWidth) return
       sliderModel.applyModelChange(() => {
         sliderModel.setRangeWidth(rangeWidth)
       }, {
-        // a width of zero snaps the range to the data, which can change the slider's value
+        // the slider's value can change: a width of zero snaps the range to the data, and a wider width can move the
+        // range to keep it on the axis
         ...rangeChangeOptions(sliderModel, getTileModel(sliderModel)),
         log: logStringifiedObjectMessage("sliderRangeWidth: %@", {name: sliderModel.name, rangeWidth})
       })
     }
 
-    // the palette can be dismissed (and the field removed) before the field's blur commits an edit
+    // Dismissing the palette removes the field without a blur (React sends none when it removes a focused element),
+    // so a pending edit is committed when the palette unmounts.
     const acceptWidthRef = useRef(handleAcceptWidth)
     acceptWidthRef.current = handleAcceptWidth
     useEffect(() => () => acceptWidthRef.current(), [])
@@ -92,8 +96,23 @@ export const SliderConfigPalette =
       }
     }
 
+    // A unit chosen while an edit is pending applies to the edit, so typing "2" and choosing days means 2 days. So the
+    // field and its unit menu act as one control: an edit stays pending while focus moves between them (including
+    // into the menu's popover), and is committed when focus leaves both.
     const handleUnitChange = (key: React.Key | null) => {
-      if (key != null) setChosenUnit(key as SliderWidthUnit)
+      if (key == null) return
+      const newUnit = key as SliderWidthUnit
+      setChosenUnit(newUnit)
+      handleAcceptWidth(durationUnitSeconds(newUnit))
+    }
+
+    const widthInputRef = useRef<HTMLInputElement>(null)
+    const unitButtonRef = useRef<HTMLButtonElement>(null)
+    const unitPopoverRef = useRef<HTMLElement>(null)
+    const isWithinWidthControl = (elt: Element | null) =>
+      !!elt && [widthInputRef, unitButtonRef, unitPopoverRef].some(ref => ref.current?.contains(elt))
+    const handleWidthControlBlur = (e: React.FocusEvent) => {
+      if (!isWithinWidthControl(e.relatedTarget)) handleAcceptWidth()
     }
 
     return (
@@ -141,7 +160,8 @@ export const SliderConfigPalette =
                   value={widthInput}
                   onChange={e => setEditedWidth(e.target.value)}
                   onFocus={e => e.target.select()}
-                  onBlur={handleAcceptWidth}
+                  ref={widthInputRef}
+                  onBlur={handleWidthControlBlur}
                   onKeyDown={handleWidthKeyDown}
                   data-testid="slider-range-width-input"
                 />
@@ -153,12 +173,13 @@ export const SliderConfigPalette =
                   value={unit}
                   onChange={handleUnitChange}
                 >
-                  <Button className="slider-select slider-date-unit" data-testid="slider-range-width-unit">
+                  <Button ref={unitButtonRef} className="slider-select slider-date-unit"
+                          onBlur={handleWidthControlBlur} data-testid="slider-range-width-unit">
                     {/* a SelectValue, so the unit is part of the button's accessible name */}
                     <SelectValue>{unitLabel}</SelectValue>
                     <span aria-hidden="true" className="select-arrow">▾</span>
                   </Button>
-                  <Popover offset={0}>
+                  <Popover ref={unitPopoverRef} offset={0}>
                     <ListBox>
                       {unitChoices.map(choice => (
                         <ListBoxItem key={choice} id={choice}>
