@@ -222,6 +222,12 @@ describe("SliderConfigPalette", () => {
     expect(screen.getByTestId("slider-range-width-units")).toHaveTextContent("cm")
   })
 
+  it("rounds all the corners of a numeric width's field, which no unit menu adjoins", async () => {
+    const { slider } = await setupBoundSlider()
+    renderPalette(slider)
+    expect(screen.getByTestId("slider-range-width-field")).not.toHaveClass("multiples-input")
+  })
+
   it("shows no units for an attribute without them", async () => {
     const { slider } = await setupBoundSlider()
     renderPalette(slider)
@@ -272,6 +278,11 @@ describe("SliderConfigPalette", () => {
       const { unmount } = renderPalette(slider)
       return { slider, dates, unmount }
     }
+
+    it("joins the width's field to its unit menu", async () => {
+      await setupDateSlider(2 * year, 0.5 * year)
+      expect(screen.getByTestId("slider-range-width-field")).toHaveClass("multiples-input")
+    })
 
     it("shows the width in the largest unit offered for the span", async () => {
       await setupDateSlider(2 * year, 0.5 * year)

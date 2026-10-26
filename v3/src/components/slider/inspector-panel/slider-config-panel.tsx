@@ -158,7 +158,9 @@ export const SliderConfigPalette =
               <label className="form-label" id="slider-range-width-label" htmlFor="slider-range-width-input">
                 {t("V3.Slider.rangeWidth")}
               </label>
-              <span className="slider-input multiples-input">
+              {/* a date width's field joins its unit menu, so only it has the square right corners for that */}
+              <span className={clsx("slider-input", { "multiples-input": isDate })}
+                    data-testid="slider-range-width-field">
                 <input
                   id="slider-range-width-input"
                   size={Math.min(kMaxWidthInputSize, Math.max(1, widthInput.length))}
