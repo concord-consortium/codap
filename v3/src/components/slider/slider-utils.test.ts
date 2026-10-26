@@ -85,7 +85,6 @@ describe("getSliderWidthUnitChoices", () => {
     expect(getSliderWidthUnitChoices(minute)).toEqual(["hour", "minute", "second"])
     expect(getSliderWidthUnitChoices(0)).toEqual(["hour", "minute", "second"])
   })
-
 })
 
 describe("formatSliderWidth", () => {
