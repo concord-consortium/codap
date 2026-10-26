@@ -20,6 +20,11 @@ export function isDateUnit(value: any): value is DateUnit {
   return typeof value === "string"  && (dateUnits as readonly string[]).includes(value)
 }
 
+// Units of a length of time, largest first. Unlike the date units, these include week, which is a duration but
+// not a precision a date can be shown to.
+export const durationUnits = ["year", "month", "week", "day", "hour", "minute", "second", "millisecond"] as const
+export type DurationUnit = typeof durationUnits[number]
+
 export const kDatePrecisionNone = ""
 export const datePrecisions = [kDatePrecisionNone, ...dateUnits] as const
 export type DatePrecision = typeof datePrecisions[number]
@@ -29,11 +34,11 @@ export function isDatePrecision(value: any): value is DatePrecision {
 }
 
 /**
- * Returns a translated, pluralized date unit label (e.g. "year" vs "years").
+ * Returns a translated, pluralized duration unit label (e.g. "year" vs "years").
  * Uses Intl.PluralRules with CLDR categories (one/other) for proper i18n.
  * The `count` parameter determines the plural form; it defaults to 1 (singular).
  */
-export function getDateUnitLabel(unit: DateUnit, count = 1) {
+export function getDateUnitLabel(unit: DurationUnit, count = 1) {
   const absCount = isFinite(count) ? Math.abs(count) : 1
   const category = new Intl.PluralRules(gLocale.current).select(absCount)
   // Normalize to "one"/"other" since we only define those two plural forms in translations
@@ -47,11 +52,12 @@ export const secondsConverter = {
   kMinute: 1000 * 60,
   kHour: ((1000) * 60) * 60,
   kDay: (((1000) * 60) * 60) * 24,
+  kWeek: ((((1000) * 60) * 60) * 24) * 7,
   kMonth: ((((1000) * 60) * 60) * 24) * 30,
   kYear: ((((1000) * 60) * 60) * 24) * 365
 }
 
-export const unitsStringToMilliseconds = (unitString: DateUnit) => {
+export const unitsStringToMilliseconds = (unitString: DurationUnit) => {
   switch (unitString.toLowerCase()) {
     case 'millisecond':
       return 1
@@ -63,6 +69,8 @@ export const unitsStringToMilliseconds = (unitString: DateUnit) => {
       return secondsConverter.kHour
     case 'day':
       return secondsConverter.kDay
+    case 'week':
+      return secondsConverter.kWeek
     case 'month':
       return secondsConverter.kMonth
     case 'year':
@@ -71,6 +79,10 @@ export const unitsStringToMilliseconds = (unitString: DateUnit) => {
       return 0
   }
 
+}
+
+export function durationUnitSeconds(unit: DurationUnit) {
+  return unitsStringToMilliseconds(unit) / 1000
 }
 
 export const shortMonthNames = [

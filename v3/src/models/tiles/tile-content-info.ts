@@ -7,7 +7,10 @@ import { ITileEnvironment } from "./tile-environment"
 
 // avoids circular dependency on ITileModel
 export interface ITileLikeModel {
+  // the title as displayed by default: the one set (_title), else the tile's name
   title?: string
+  // the title set by the user, a plugin, or a document, if any
+  _title?: string
   content: ITileContentModel
 }
 

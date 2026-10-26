@@ -142,6 +142,18 @@ describe("slider persistence: V3 → V2 → V3", () => {
     expect(findDataSet("when").itemIds).toHaveLength(2)
   })
 
+  it("round-trips a range slider with no attribute bound", async () => {
+    const { slider } = await setupSliderAndData()
+    slider.setSliderType("selection")
+    slider.setRange(2, 5)
+    await reloadDocument("v2")
+    const restored = findSlider()
+    expect(restored.sliderType).toBe("selection")
+    expect(restored.attributeId).toBeUndefined()
+    expect(restored.rangeLow).toBe(2)
+    expect(restored.rangeWidth).toBe(3)
+  })
+
   it("imports a range slider whose dataset was deleted as a slider that hides nothing", async () => {
     const { content, dataSet, slider } = await setupSliderAndData()
     // another dataset with the same attributes, which the slider mustn't start hiding
@@ -178,14 +190,24 @@ describe("slider persistence: importing a damaged V2 range slider", () => {
   })
 
   it.each([
-    ["negative", -1, 0],
-    ["non-numeric", NaN, 0],
-    ["missing", undefined, 0],
-    ["wider than the axis", 100, 5]
-  ])("imports a %s width as one that fits the axis", async (_label, rangeWidth, expected) => {
+    ["negative", -1],
+    ["non-numeric", NaN],
+    ["missing", undefined]
+  ])("imports a %s width as zero", async (_label, rangeWidth) => {
     const slider = await importEdited(v3 => { v3.rangeWidth = rangeWidth })
-    expect(slider.rangeWidth).toBe(expected)
+    expect(slider.rangeWidth).toBe(0)
     expect(slider.rangeHigh).toBeGreaterThanOrEqual(slider.rangeLow)
   })
 })
 
+describe("slider persistence: a width wider than the axis", () => {
+  it("is kept as typed through a V2 save and reload, and fits the axis only for display", async () => {
+    const { dataSet, slider } = await setupSliderAndData()
+    slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+    slider.setRangeWidth(500)
+    await reloadDocument("v2")
+    const restored = findSlider()
+    expect(restored.rangeWidth).toBe(500)
+    expect(restored.width).toBe(5)
+  })
+})
