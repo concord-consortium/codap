@@ -121,7 +121,8 @@ export const DateAxisModel = BaseNumericAxisModel
     type: axisModelType("date")
   })
   .views(self => ({
-    // a value is shown one level finer than the axis's tick labels, e.g. to the day on an axis labeled by month
+    // a value is shown one level finer than the axis's tick labels, e.g. to the day on an axis labeled by month, or
+    // to the second, like its ticks, on an axis spanning under three minutes
     get precisionForDisplay() {
       const levels = determineLevels(self.min * 1000, self.max * 1000)
       return mapLevelToPrecision(Math.max(EDateTimeLevel.eSecond, levels.innerLevel - 1))

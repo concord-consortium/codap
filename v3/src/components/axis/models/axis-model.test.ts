@@ -80,13 +80,16 @@ describe("NumericAxisModel", () => {
 describe("DateAxisModel", () => {
   const hour = 60 * 60, day = 24 * hour, year = 365 * day
   it.each([
+    // under three minutes, the ticks and the values are both in seconds
+    [60, "second"],
     [2 * hour, "second"],
     [2 * day, "minute"],
     [21 * day, "hour"],
     [240 * day, "day"],
+    [4 * year, "month"],
     [70 * year, "month"],
     [3000 * year, "month"]
-  ])("shows values over a span of %d seconds one level finer than its ticks, to the %s", (span, precision) => {
+  ])("shows values over a span of %d seconds to the %s", (span, precision) => {
     const start = Date.UTC(2000, 0, 1) / 1000
     const axis = DateAxisModel.create({ place: "bottom", min: start, max: start + span })
     expect(axis.precisionForDisplay).toBe(precision)
