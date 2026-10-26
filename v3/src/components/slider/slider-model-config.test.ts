@@ -23,6 +23,7 @@ describe("SliderModel.setSliderType", () => {
     const { dataSet, slider } = await setupSliderAndData()
     slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
     slider.setRange(2, 4)
+    expect(dataSet.itemIds.length).toBeLessThan(6)
 
     slider.setSliderType("variable")
 
@@ -109,10 +110,28 @@ describe("SliderModel.setScaleType", () => {
     const { slider } = await setupSliderAndData()
     slider.setSliderType("visibility")
     slider.setScaleType("date")
-    const [min, max] = slider.axis.domain
-    expect(slider.rangeWidth).toBeCloseTo((max - min) / 10)
+    const [dateMin, dateMax] = slider.axis.domain
+    expect(slider.rangeWidth).toBeCloseTo((dateMax - dateMin) * kDefaultRangeFraction)
     slider.setScaleType("numeric")
-    expect(slider.rangeWidth).toBeCloseTo(1.2)
+    const [min, max] = slider.axis.domain
+    expect(slider.rangeWidth).toBeCloseTo((max - min) * kDefaultRangeFraction)
+  })
+
+  it("starts an unbound range at the new axis's default value, as a variable slider does", async () => {
+    const { slider } = await setupSliderAndData()
+    slider.setSliderType("visibility")
+    slider.setScaleType("date")
+    slider.setScaleType("numeric")
+    expect(slider.rangeLow).toBe(0.5)
+    expect(slider.value).toBe(0.5)
+  })
+
+  it("keeps a bound range slider's width", async () => {
+    const { dataSet, slider } = await setupSliderAndData()
+    slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+    slider.setRangeWidth(2)
+    slider.setScaleType("date")
+    expect(slider.rangeWidth).toBe(2)
   })
 
   it("leaves a variable slider without a width", async () => {
@@ -136,10 +155,8 @@ describe("SliderModel.widthUnitSpan", () => {
     const [min, max] = slider.axis.domain
     expect(slider.widthUnitSpan).toBe(max - min)
   })
-})
 
-describe("SliderModel.widthUnitSpan for a date attribute", () => {
-  it("follows edits to the attribute's values", async () => {
+  it("follows edits to a date attribute's values", async () => {
     const { dataSet, slider } = await setupSliderAndData()
     const when = dataSet.addAttribute({ name: "when", userType: "date" })
     const day = 24 * 60 * 60

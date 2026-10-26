@@ -55,6 +55,14 @@ describe("isSliderAttributeDropAllowed", () => {
 })
 
 describe("configureSliderFromAttribute", () => {
+  it("titles the slider by the bound collection, following it when it's renamed", async () => {
+    const { dataSet, tile } = await setupSliderAndData()
+    configureSliderFromAttribute(tile, dataSet, dataSet.attrFromName("a3")!.id)
+    expect(getTitle(tile)).toBe(dataSet.childCollection.title)
+    dataSet.childCollection.setName("Measurements")
+    expect(getTitle(tile)).toBe("Measurements")
+  })
+
   it("titles the slider by the childmost collection without storing a title, and undoes as one step", async () => {
     const { dataSet, tile, slider } = await setupSliderAndData()
     const manager = appState.document.treeManagerAPI as Instance<typeof TreeManager>
