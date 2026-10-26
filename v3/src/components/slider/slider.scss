@@ -1,4 +1,5 @@
 @use "./../vars";
+@use "../common/attribute-label-states" as label;
 
 $slider-component-height: 98px;
 $date-slider-component-height: 110px;
@@ -64,25 +65,64 @@ $slider-attribute-label-space: $slider-attribute-label-height + 4px;
   font-size: 14px;
 }
 
+// The attribute menu's button looks and acts like a graph's axis label (see attribute-label-states.scss).
 .slider-wrapper .slider-attribute-prompt-button,
 .slider-wrapper .slider-attribute-label-button {
-  border-radius: 3px;
-  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  border-radius: label.$corner-radius;
+  padding: 0 0 0 4px;
 
-  &:hover {
-    background-color: vars.$charcoal-light-5;
+  // Chakra's span around the button's content: a flex row, so the caret (an svg, which Chakra's reset makes a block)
+  // stays on the text's line
+  > span {
+    display: flex;
+    align-items: center;
+  }
+
+  .slider-attribute-menu-arrow {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+
+    path {
+      @include label.caret-hidden;
+    }
+  }
+
+  &:hover, &:focus-visible {
+    background-color: label.$active-fill;
+    border-color: label.$active-border;
   }
 
   &:focus-visible {
     @include vars.focus-outline;
   }
 
-  .slider-attribute-menu-arrow {
-    width: 18px;
-    height: 18px;
-    margin-left: 2px;
-    vertical-align: middle;
-    fill: vars.$palette-icon-color;
+  &[aria-expanded="true"] {
+    background-color: label.$open-fill;
+    border-color: label.$active-border;
+
+    .slider-attribute-menu-arrow path {
+      @include label.caret-flipped;
+    }
+  }
+
+  // the caret shows while the slider's tile is selected, or the button is hovered, focused, or open
+  &:hover, &:focus-visible, &[aria-expanded="true"] {
+    .slider-attribute-menu-arrow path {
+      @include label.caret-shown;
+    }
+  }
+}
+
+.slider-wrapper.tile-selected {
+  .slider-attribute-prompt-button, .slider-attribute-label-button {
+    .slider-attribute-menu-arrow path {
+      @include label.caret-shown;
+    }
   }
 }
 
@@ -158,12 +198,7 @@ $slider-attribute-label-space: $slider-attribute-label-height + 4px;
         max-width: 100%;
         overflow: hidden;
 
-        // Chakra's span around the button's content; a long name is ellipsized, and the arrow stays visible
-        > span {
-          display: flex;
-          align-items: center;
-        }
-
+        // a long name is ellipsized, and the caret stays visible
         .slider-attribute-menu-text {
           min-width: 0;
           overflow: hidden;

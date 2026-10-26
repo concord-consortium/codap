@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
 import { DndContext } from "@dnd-kit/core"
 import { DocumentContainerContext } from "../../hooks/use-document-container-context"
@@ -15,11 +15,11 @@ const tileSelection: ITileSelection = {
   addFocusIgnoreFn: () => () => undefined
 }
 
-function renderSlider(tile: ITileModel) {
+function renderSlider(tile: ITileModel, isSelected = false) {
   const containerRef = { current: document.body }
   return render(
     <DndContext>
-      <TileSelectionContext.Provider value={tileSelection}>
+      <TileSelectionContext.Provider value={{ ...tileSelection, isTileSelected: () => isSelected }}>
         <DocumentContainerContext.Provider value={containerRef}>
           <TileModelContext.Provider value={tile}>
             <SliderComponent tile={tile}/>
@@ -128,6 +128,23 @@ describe("SliderComponent", () => {
     expect(screen.getByTestId("slider-attribute-prompt")).toBeInTheDocument()
     act(() => { slider.configureFromAttribute(dataSet, dataSet.attrFromName("a4")!.id) })
     expect(screen.getByTestId("slider-play-pause")).toHaveClass("paused")
+  })
+
+  it("marks itself selected while its tile is, which shows its menu's caret", async () => {
+    const { tile } = await setupSliderAndData()
+    const { unmount } = renderSlider(tile)
+    expect(screen.getByTestId("slider-drop-overlay")).not.toHaveClass("tile-selected")
+    unmount()
+    renderSlider(tile, true)
+    expect(screen.getByTestId("slider-drop-overlay")).toHaveClass("tile-selected")
+  })
+
+  it("draws its menu's caret as a graph's axis label does", async () => {
+    const { tile, slider } = await setupSliderAndData()
+    slider.setSliderType("visibility")
+    renderSlider(tile)
+    expect(within(screen.getByTestId("slider-attribute-menu-button")).getByTestId("attribute-label-caret"))
+      .toBeInTheDocument()
   })
 
   it("returns to the prompt when the bound attribute is deleted", async () => {

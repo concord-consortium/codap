@@ -8,6 +8,7 @@ import { useResizeDetector } from "react-resize-detector"
 import PlayIcon from "../../assets/icons/icon-play.svg"
 import PauseIcon from "../../assets/icons/icon-pause.svg"
 import { InstanceIdContext, useNextInstanceId } from "../../hooks/use-instance-id-context"
+import { useTileSelectionContext } from "../../hooks/use-tile-selection-context"
 import { registerTileCollisionDetection } from "../../lib/dnd-kit/dnd-detect-collision"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { isAliveSafe } from "../../utilities/mst-utils"
@@ -50,6 +51,8 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
     setOverlayRef(elt)
   }, [setOverlayRef, sliderRef])
   const [running, setRunning] = useState(false)
+  // as a graph's attribute labels do, the attribute menu shows its caret while the tile is selected
+  const { isTileSelected } = useTileSelectionContext()
   // The prompt replaces the thumb, which runs playback, so playback stops with it (and binding an attribute again
   // doesn't restart it).
   const isPrompting = !!sliderModel?.isRangeSlider && !sliderModel.attribute
@@ -238,7 +241,8 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
       <AxisProviderContext.Provider value={sliderModel}>
         <AxisLayoutContext.Provider value={layout}>
           <div {...groupProps} className={clsx(kSliderClass, {twoLevel: sliderModel.axisRequiresTwoLevels(),
-                                                              hasAttributeLabel: !!attributeLabel})}
+                                                              hasAttributeLabel: !!attributeLabel,
+                                                              "tile-selected": isTileSelected()})}
                ref={setWrapperRef} data-testid="slider-drop-overlay">
             <If condition={showPrompt}>
               <div className="slider-attribute-prompt" data-testid="slider-attribute-prompt">

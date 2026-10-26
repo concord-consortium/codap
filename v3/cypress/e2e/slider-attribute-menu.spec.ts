@@ -70,4 +70,30 @@ context("Slider attribute menu", () => {
 
     slider.getSliderTile().find("[data-testid=slider-attribute-label]").should("contain.text", "Mass")
   })
+
+  it("shows its menu's caret only while the slider is selected, as a graph's axis label does", () => {
+    visitMammals()
+    makeVisibilitySlider()
+    const caretFill = () => slider.getSliderTile()
+      .find("[data-testid=slider-attribute-menu-button] .attribute-label-arrow path")
+      .then($path => getComputedStyle($path[0]).fill)
+    // selecting the table deselects the slider
+    c.selectTile("table", 0)
+    caretFill().should("eq", "rgba(0, 0, 0, 0)")
+    c.selectTile("slider", 0)
+    caretFill().should("eq", "rgb(0, 108, 142)")
+  })
+
+  it("keeps the prompt's caret on the line of its text", () => {
+    visitMammals()
+    makeVisibilitySlider()
+    slider.getSliderTile().find("[data-testid=slider-attribute-menu-button]").then($button => {
+      const text = $button[0].querySelector(".slider-attribute-menu-text")!.getBoundingClientRect()
+      const caret = $button[0].querySelector(".attribute-label-arrow")!.getBoundingClientRect()
+      const caretMiddle = (caret.top + caret.bottom) / 2
+      expect(caretMiddle).to.be.within(text.top, text.bottom)
+      expect(caret.left).to.be.at.least(text.right - 1)
+    })
+  })
 })
+
