@@ -188,7 +188,7 @@ export const SliderConfigPalette =
                   <Button ref={unitButtonRef} className="slider-select slider-date-unit"
                           onBlur={handleWidthControlBlur} data-testid="slider-range-width-unit">
                     {/* a SelectValue, so the unit is part of the button's accessible name */}
-                    <SelectValue>{unitLabel}</SelectValue>
+                    <SelectValue>{isBound ? unitLabel : ""}</SelectValue>
                     <span aria-hidden="true" className="select-arrow">▾</span>
                   </Button>
                   <Popover ref={unitPopoverRef} offset={0}>

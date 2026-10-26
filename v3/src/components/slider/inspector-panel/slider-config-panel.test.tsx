@@ -257,7 +257,10 @@ describe("SliderConfigPalette", () => {
       slider.setSliderType("visibility")
     })
     renderPalette(slider)
-    expect(screen.getByTestId("slider-range-width-unit")).toBeDisabled()
+    const unitMenu = screen.getByTestId("slider-range-width-unit")
+    expect(unitMenu).toBeDisabled()
+    // empty, like the width (the button's text is just its arrow)
+    expect(unitMenu).toHaveTextContent(/^▾$/)
   })
 
   it("has no unit menu for a numeric slider", async () => {
