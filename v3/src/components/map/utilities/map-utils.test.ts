@@ -1,6 +1,8 @@
 import { latLngBounds } from "leaflet"
+import { kPinColors } from "../map-types"
 import {
-  computeBoundsFromCoordinates, getRationalLongitudeBounds, shiftLongitudeIntoView, wrapBoundsToCanonicalCenter
+  computeBoundsFromCoordinates, getNextPinColorIndex, getRationalLongitudeBounds, shiftLongitudeIntoView,
+  wrapBoundsToCanonicalCenter
 } from "./map-utils"
 
 describe("getRationalLongitudeBounds", () => {
@@ -234,5 +236,30 @@ describe("wrapBoundsToCanonicalCenter", () => {
     const bounds = latLngBounds([{lat: 0, lng: 190}, {lat: 10, lng: 210}])
     const result = wrapBoundsToCanonicalCenter(bounds)
     expect((result.getWest() + result.getEast()) / 2).toBeCloseTo(-160)
+  })
+})
+
+describe("getNextPinColorIndex", () => {
+  it("returns the first color when there are no pins", () => {
+    expect(getNextPinColorIndex([])).toBe(0)
+  })
+
+  it("returns the next color in sequence when pins were added in order", () => {
+    expect(getNextPinColorIndex([kPinColors[0], kPinColors[1]])).toBe(2)
+  })
+
+  it("reuses the color of a deleted pin rather than duplicating a remaining pin's color", () => {
+    // first (blue) pin deleted, second (orange) pin remains
+    expect(getNextPinColorIndex([kPinColors[1]])).toBe(0)
+    expect(getNextPinColorIndex([kPinColors[0], kPinColors[2]])).toBe(1)
+  })
+
+  it("compares colors case-insensitively and ignores missing values", () => {
+    expect(getNextPinColorIndex([kPinColors[0].toLowerCase(), undefined])).toBe(1)
+  })
+
+  it("cycles by pin count when every color is in use", () => {
+    expect(getNextPinColorIndex([...kPinColors])).toBe(0)
+    expect(getNextPinColorIndex([...kPinColors, kPinColors[0]])).toBe(1)
   })
 })
