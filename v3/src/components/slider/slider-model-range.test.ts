@@ -249,12 +249,31 @@ describe("SliderModel playback steps", () => {
     expect(slider.nextAnimationValue(-1, 0.25)).toBe(0)
   })
 
-  it("steps a range that starts between multiples onto them, as a variable slider does", async () => {
+  it("steps a range that starts between multiples onto the next multiple in the direction of play", async () => {
     const { slider } = await setupRangeSlider()
     slider.setMultipleOf(2)
     slider.setRange(3.3, 4.3)
-    expect(slider.nextAnimationValue(1, 0.25)).toBe(6)
+    expect(slider.nextAnimationValue(1, 0.25)).toBe(4)
     expect(slider.nextAnimationValue(-1, 0.25)).toBe(2)
+    slider.setRange(2.9, 3.9)
+    expect(slider.nextAnimationValue(-1, 0.25)).toBe(2)
+  })
+
+  it("steps a range on a multiple to the next one, despite floating point", async () => {
+    const { slider } = await setupRangeSlider()
+    slider.setMultipleOf(0.1)
+    // 2.3 / 0.1 is a hair under 23 in floating point
+    slider.setRange(2.3, 2.5)
+    expect(slider.nextAnimationValue(1, 0.25)).toBeCloseTo(2.4)
+    expect(slider.nextAnimationValue(-1, 0.25)).toBeCloseTo(2.2)
+  })
+
+  it("steps onto the first multiple after playback wraps to a start that isn't one", async () => {
+    const { slider } = await setupRangeSlider()
+    slider.setMultipleOf(2)
+    // the axis is [1, 6], so playback wraps to a low end of 1
+    slider.setRange(1, 2)
+    expect(slider.nextAnimationValue(1, 0.25)).toBe(2)
   })
 
   it("steps a range with width by the fallback step when there's no multiple restriction", async () => {
@@ -270,11 +289,15 @@ describe("SliderModel playback steps", () => {
     slider.setMultipleOf(2)
     slider.setDateMultipleOfUnit("day")
     const day = 24 * 60 * 60
+    // the first step goes onto the next multiple of two days (counted from the epoch), which can be less than two
+    // days away, depending on the time zone the dates are read in; a skipped multiple would be more
     const next = slider.nextAnimationValue(1, 1)
-    // onto a multiple of two days (counted from the epoch), as a variable slider's value is kept
     expect(next % (2 * day)).toBe(0)
-    expect(next - slider.value).toBeGreaterThan(day)
-    expect(next - slider.value).toBeLessThanOrEqual(3 * day)
+    expect(next - slider.value).toBeGreaterThan(0)
+    expect(next - slider.value).toBeLessThanOrEqual(2 * day)
+    // from a multiple, a step is exactly two days
+    slider.setRange(next, next + day)
+    expect(slider.nextAnimationValue(1, 1)).toBe(next + 2 * day)
   })
 
   it("steps a zero-width range through the data values even with a multiple restriction", async () => {

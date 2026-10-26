@@ -57,9 +57,9 @@ interface ISliderStepSource {
   multipleOf?: number
   dateMultipleOfUnit?: DateUnit
 }
-// The React Aria step. A variable slider steps by its multiples restriction (in its date unit for dates, where it
-// defaults to one day) or else the axis resolution. A range slider steps by the resolution: React Stately rounds
-// each handle to the step grid, which would move a range's exact ends.
+// The React Aria step. A variable numeric slider steps by its multiples restriction, or else the axis resolution; a
+// variable date slider steps by its multiple (1 if none) of its date unit (day if none). A range slider steps by the
+// resolution: React Stately rounds each handle to the step grid, which would move a range's exact ends.
 export function sliderStep(slider: ISliderStepSource, resolution: number | undefined) {
   if (!slider.isRangeSlider && slider.scaleType === "date") {
     return (slider.multipleOf ?? 1) * unitsStringToMilliseconds(slider.dateMultipleOfUnit ?? "day") / 1000
