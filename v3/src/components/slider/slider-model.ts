@@ -246,7 +246,8 @@ export const SliderModel = TileContentModel
     getAxisHelper(place: AxisPlace, subAxisIndex: number) {
       return self.axisHelper
     },
-    // the span that determines a date range width's units: the bound attribute's extent, else the axis's
+    // The span that determines a date range width's units: the bound attribute's extent (padded for a single value;
+    // see configurationExtent), else the axis's, which is also used for an attribute with a formula.
     get widthUnitSpan() {
       void self.attribute?.changeCount // see attributeValues
       const dataSet = self.dataSet
@@ -470,11 +471,12 @@ export const SliderModel = TileContentModel
     },
     setScaleType(scaleType: ISliderScaleType) {
       if (scaleType !== self.scaleType) {
+        let value: number
         switch (scaleType) {
           case "numeric":
             self.axis = NumericAxisModel.create({
                           place: 'bottom', min: kDefaultSliderAxisMin, max: kDefaultSliderAxisMax })
-            self.setValue(0.5)
+            value = 0.5
             break
           case "date": {
             const currentDate = new Date()
@@ -486,18 +488,20 @@ export const SliderModel = TileContentModel
               min: firstDayOfYear,
               max: lastDayOfYear
             })
-            self.setValue(currentDate.getTime() / 1000)
+            value = currentDate.getTime() / 1000
           }
             break
         }
         self.scaleType = scaleType
         self.axisHelper = undefined
-        // an unbound range's width is in the old scale's units, so it's reset to the default for the new axis
+        // An unbound range's width is in the old scale's units, so it's reset to the default for the new axis. That
+        // comes before the value is set, which the old width would otherwise limit to the start of the axis.
         if (self.isRangeSlider && !self.attributeId) {
           const [min, max] = self.axis.domain
           self.rangeWidth = (max - min) * kDefaultRangeFraction
           self.dynamicRangeWidth = undefined
         }
+        self.setValue(value)
       }
     },
     setAxisMin(n: number) {
