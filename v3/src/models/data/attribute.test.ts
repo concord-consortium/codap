@@ -616,7 +616,7 @@ describe("Attribute", () => {
     attr.setUserType("numeric")
     expect(attr.numValue(0)).toBe(38.7223)
     expect(attr.numValue(1)).toBe(-9.1393)
-    // ambiguous values are still treated as thousands
+    // ambiguous values are treated as thousands
     expect(attr.numValue(2)).toBe(1234)
   })
 
