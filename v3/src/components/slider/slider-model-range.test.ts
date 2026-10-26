@@ -2,7 +2,7 @@ import { when } from "mobx"
 import { Instance } from "mobx-state-tree"
 import { appState } from "../../models/app-state"
 import { TreeManager } from "../../models/history/tree-manager"
-import { setupSliderAndData } from "./slider-test-utils"
+import { addDates, setupSliderAndData } from "./slider-test-utils"
 import { rangeFromHandles } from "./slider-utils"
 
 // the standard test dataset's a3 values are 1..6, so configuring from a3 gives axis [1, 6] and range [1, 1.5]
@@ -241,11 +241,70 @@ describe("SliderModel playback steps", () => {
     expect(slider.nextAnimationValue(1, 0.1)).toBeGreaterThan(slider.valueDomain[1])
   })
 
-  it("steps a range with width by the fallback step, ignoring the multiple restriction as a drag does", async () => {
+  it("steps a range with width by its multiple restriction, as a variable slider does", async () => {
     const { slider } = await setupRangeSlider()
     slider.setMultipleOf(2)
     slider.setRange(2, 3)
+    expect(slider.nextAnimationValue(1, 0.25)).toBe(4)
+    expect(slider.nextAnimationValue(-1, 0.25)).toBe(0)
+  })
+
+  it("steps a range that starts between multiples onto the next multiple in the direction of play", async () => {
+    const { slider } = await setupRangeSlider()
+    slider.setMultipleOf(2)
+    slider.setRange(3.3, 4.3)
+    expect(slider.nextAnimationValue(1, 0.25)).toBe(4)
+    expect(slider.nextAnimationValue(-1, 0.25)).toBe(2)
+    slider.setRange(2.9, 3.9)
+    expect(slider.nextAnimationValue(-1, 0.25)).toBe(2)
+  })
+
+  it("steps a range on a multiple to the next one, despite floating point", async () => {
+    const { slider } = await setupRangeSlider()
+    slider.setMultipleOf(0.1)
+    // 2.3 / 0.1 is a hair under 23 in floating point
+    slider.setRange(2.3, 2.5)
+    expect(slider.nextAnimationValue(1, 0.25)).toBeCloseTo(2.4)
+    expect(slider.nextAnimationValue(-1, 0.25)).toBeCloseTo(2.2)
+  })
+
+  it("steps onto the first multiple after playback wraps to a start that isn't one", async () => {
+    const { slider } = await setupRangeSlider()
+    slider.setMultipleOf(2)
+    // the axis is [1, 6], so playback wraps to a low end of 1
+    slider.setRange(1, 2)
+    expect(slider.nextAnimationValue(1, 0.25)).toBe(2)
+  })
+
+  it("steps a range with width by the fallback step when there's no multiple restriction", async () => {
+    const { slider } = await setupRangeSlider()
+    slider.setRange(2, 3)
     expect(slider.nextAnimationValue(1, 0.25)).toBeCloseTo(2.25)
+  })
+
+  it("steps a date range by its multiple restriction in its date unit", async () => {
+    const { content, slider } = await setupSliderAndData()
+    const dates = addDates(content, ["2026-01-01T00:00Z", "2026-03-01T00:00Z"])
+    slider.configureFromAttribute(dates, dates.attrFromName("when")!.id)
+    slider.setMultipleOf(2)
+    slider.setDateMultipleOfUnit("day")
+    const day = 24 * 60 * 60
+    // the first step goes onto the next multiple of two days (counted from the epoch), which can be less than two
+    // days away, depending on the time zone the dates are read in; a skipped multiple would be more
+    const next = slider.nextAnimationValue(1, 1)
+    expect(next % (2 * day)).toBe(0)
+    expect(next - slider.value).toBeGreaterThan(0)
+    expect(next - slider.value).toBeLessThanOrEqual(2 * day)
+    // from a multiple, a step is exactly two days
+    slider.setRange(next, next + day)
+    expect(slider.nextAnimationValue(1, 1)).toBe(next + 2 * day)
+  })
+
+  it("steps a zero-width range through the data values even with a multiple restriction", async () => {
+    const { slider } = await setupRangeSlider()
+    slider.setMultipleOf(2)
+    slider.setRange(3, 3)
+    expect(slider.nextAnimationValue(1, 0.1)).toBe(4)
   })
 
   it("steps a variable slider by its multiple restriction", async () => {
