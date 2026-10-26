@@ -42,6 +42,8 @@ describe("SliderComponent", () => {
   it("shows the value and axis of a variable slider", async () => {
     const { tile } = await setupSliderAndData()
     renderSlider(tile)
+    // (its text depends on the axis's length, which jsdom doesn't lay out)
+    expect(screen.getByTestId("slider-variable-value-text-input")).toBeInTheDocument()
     expect(screen.getByTestId("slider-axis")).toBeInTheDocument()
     expect(screen.queryByTestId("slider-attribute-prompt")).toBeNull()
   })
@@ -60,6 +62,7 @@ describe("SliderComponent", () => {
     slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
     renderSlider(tile)
     expect(screen.queryByTestId("slider-attribute-prompt")).toBeNull()
+    expect(screen.getByTestId("slider-range-thumb")).toBeInTheDocument()
     expect(screen.getByTestId("slider-axis")).toBeInTheDocument()
     expect(screen.getByTestId("slider-attribute-label"))
       .toContainElement(screen.getByTestId("slider-attribute-menu-button"))
@@ -113,6 +116,18 @@ describe("SliderComponent", () => {
     })
     expect(screen.getByTestId("slider-attribute-label")).toContainElement(
       screen.getByTestId("slider-attribute-menu-button"))
+  })
+
+  it("stops playback when the prompt replaces the controls, so binding again doesn't restart it", async () => {
+    const { tile, dataSet, slider } = await setupSliderAndData()
+    slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+    renderSlider(tile)
+    fireEvent.click(screen.getByTestId("slider-play-pause"))
+    expect(screen.getByTestId("slider-play-pause")).toHaveClass("running")
+    act(() => dataSet.removeAttribute(dataSet.attrFromName("a3")!.id))
+    expect(screen.getByTestId("slider-attribute-prompt")).toBeInTheDocument()
+    act(() => { slider.configureFromAttribute(dataSet, dataSet.attrFromName("a4")!.id) })
+    expect(screen.getByTestId("slider-play-pause")).toHaveClass("paused")
   })
 
   it("returns to the prompt when the bound attribute is deleted", async () => {

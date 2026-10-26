@@ -49,7 +49,7 @@ export function useAttributePickerSubmenus() {
   const [openCollectionId, setOpenCollectionId] = useState<string | null>(null)
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Cancel any pending hover timer (called when mouse enters the open submenu)
+  // Cancel any pending hover timer: when the mouse enters the open submenu, and before any other change of submenu
   const cancelPendingHover = useCallback(() => {
     if (hoverTimerRef.current) {
       clearTimeout(hoverTimerRef.current)
@@ -73,7 +73,7 @@ export function useAttributePickerSubmenus() {
     setOpenCollectionId(collectionId)
   }, [cancelPendingHover])
 
-  // Close the current collection submenu (for keyboard navigation and when the menu closes)
+  // Close the current collection submenu (for keyboard navigation, and when the menu opens or closes)
   const handleCloseSubmenu = useCallback(() => {
     cancelPendingHover()
     setOpenCollectionId(null)
