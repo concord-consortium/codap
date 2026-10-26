@@ -8,7 +8,7 @@ import { featureFlagManager } from "../../../models/feature-flags/feature-flag-m
 import { TreeManager } from "../../../models/history/tree-manager"
 import { getTitle } from "../../../models/tiles/tile-content-info"
 import { ISliderModel } from "../slider-model"
-import { setupSliderAndData } from "../slider-test-utils"
+import { addDates, setupSliderAndData } from "../slider-test-utils"
 import { durationUnitSeconds } from "../../../utilities/date-utils"
 import { SliderConfigPalette } from "./slider-config-panel"
 
@@ -17,6 +17,23 @@ const [year, month, week, day] = (["year", "month", "week", "day"] as const).map
 function renderPalette(slider: ISliderModel) {
   return render(<SliderConfigPalette sliderModel={slider} setShowPalette={jest.fn()}/>)
 }
+
+// a visibility slider bound to the test dataset's a3, whose values are 1..6
+async function setupBoundSlider() {
+  const result = await setupSliderAndData()
+  const { dataSet, slider } = result
+  act(() => slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id))
+  return result
+}
+
+// a date as the date parser reads it, in local time, so the dates' span in seconds is exact
+function localDateString(ms: number) {
+  const date = new Date(ms)
+  const pad = (n: number) => String(n).padStart(2, "0")
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T` +
+    `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+}
+const kDateStart = new Date(2001, 0, 1).getTime()
 
 // runs the test body with undo history recorded, passing a function that waits for pending entries to complete
 async function withHistory(body: (settle: () => Promise<void>) => Promise<void>) {
@@ -94,8 +111,7 @@ describe("SliderConfigPalette", () => {
   })
 
   it("sets the width as typed on Enter, and keeps it exact when the field is then left", async () => {
-    const { slider } = await setupSliderAndData()
-    act(() => slider.setSliderType("visibility"))
+    const { slider } = await setupBoundSlider()
     renderPalette(slider)
     const input = screen.getByTestId("slider-range-width-input")
     await userEvent.clear(input)
@@ -107,11 +123,8 @@ describe("SliderConfigPalette", () => {
   })
 
   it("ignores an empty width", async () => {
-    const { slider } = await setupSliderAndData()
-    act(() => {
-      slider.setSliderType("visibility")
-      slider.setRangeWidth(2)
-    })
+    const { slider } = await setupBoundSlider()
+    act(() => slider.setRangeWidth(2))
     renderPalette(slider)
     const input = screen.getByTestId("slider-range-width-input")
     await userEvent.clear(input)
@@ -121,8 +134,7 @@ describe("SliderConfigPalette", () => {
   })
 
   it("leaves the width alone when the field is entered and left without an edit", async () => {
-    const { slider } = await setupSliderAndData()
-    act(() => slider.setSliderType("visibility"))
+    const { slider } = await setupBoundSlider()
     act(() => slider.setRange(1, 4.14159))
     renderPalette(slider)
     await userEvent.click(screen.getByTestId("slider-range-width-input"))
@@ -131,8 +143,7 @@ describe("SliderConfigPalette", () => {
   })
 
   it("commits a pending edit when the palette is dismissed", async () => {
-    const { slider } = await setupSliderAndData()
-    act(() => slider.setSliderType("visibility"))
+    const { slider } = await setupBoundSlider()
     const { unmount } = renderPalette(slider)
     const input = screen.getByTestId("slider-range-width-input")
     await userEvent.clear(input)
@@ -142,8 +153,7 @@ describe("SliderConfigPalette", () => {
   })
 
   it("stores a width wider than the axis as typed", async () => {
-    const { slider } = await setupSliderAndData()
-    act(() => slider.setSliderType("visibility"))
+    const { slider } = await setupBoundSlider()
     renderPalette(slider)
     const input = screen.getByTestId("slider-range-width-input")
     await userEvent.clear(input)
@@ -152,8 +162,7 @@ describe("SliderConfigPalette", () => {
   })
 
   it("ignores a negative or non-numeric width", async () => {
-    const { slider } = await setupSliderAndData()
-    act(() => slider.setSliderType("visibility"))
+    const { slider } = await setupBoundSlider()
     act(() => slider.setRangeWidth(2))
     renderPalette(slider)
     const input = screen.getByTestId("slider-range-width-input")
@@ -168,11 +177,8 @@ describe("SliderConfigPalette", () => {
   })
 
   it("undoes a width edit", async () => {
-    const { slider } = await setupSliderAndData()
-    act(() => {
-      slider.setSliderType("visibility")
-      slider.setRangeWidth(2)
-    })
+    const { slider } = await setupBoundSlider()
+    act(() => slider.setRangeWidth(2))
     renderPalette(slider)
     await withHistory(async settle => {
       const input = screen.getByTestId("slider-range-width-input")
@@ -187,11 +193,8 @@ describe("SliderConfigPalette", () => {
   })
 
   it("discards a pending edit when Escape dismisses the palette", async () => {
-    const { slider } = await setupSliderAndData()
-    act(() => {
-      slider.setSliderType("visibility")
-      slider.setRangeWidth(2)
-    })
+    const { slider } = await setupBoundSlider()
+    act(() => slider.setRangeWidth(2))
     // as the inspector does, the parent removes the palette when it asks to be closed, without rendering it again
     function Host() {
       const [isOpen, setIsOpen] = useState(true)
@@ -206,32 +209,68 @@ describe("SliderConfigPalette", () => {
   })
 
   it("follows a width changed elsewhere, such as by dragging the thumb", async () => {
-    const { slider } = await setupSliderAndData()
-    act(() => slider.setSliderType("visibility"))
+    const { slider } = await setupBoundSlider()
     renderPalette(slider)
     act(() => slider.setRange(1, 4.14159))
     expect(screen.getByTestId("slider-range-width-input")).toHaveValue("3.1")
   })
 
-  it("has no unit menu for a numeric slider", async () => {
-    const { slider } = await setupSliderAndData()
+  it("shows the bound attribute's units after the width", async () => {
+    const { dataSet, slider } = await setupBoundSlider()
+    act(() => dataSet.attrFromName("a3")!.setUnits("cm"))
+    renderPalette(slider)
+    expect(screen.getByTestId("slider-range-width-units")).toHaveTextContent("cm")
+  })
+
+  it("shows no units for an attribute without them", async () => {
+    const { slider } = await setupBoundSlider()
+    renderPalette(slider)
+    expect(screen.queryByTestId("slider-range-width-units")).toBeNull()
+  })
+
+  it("leaves the width empty and disabled until an attribute is bound", async () => {
+    const { dataSet, slider } = await setupSliderAndData()
     act(() => slider.setSliderType("visibility"))
+    renderPalette(slider)
+    const input = screen.getByTestId("slider-range-width-input")
+    const row = screen.getByTestId("slider-range-width-row")
+    expect(input).toBeDisabled()
+    expect(input).toHaveValue("")
+    // the row, label included, looks disabled too
+    expect(row).toHaveClass("disabled")
+    act(() => slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id))
+    expect(input).toBeEnabled()
+    expect(input).toHaveValue("0.5")
+    expect(row).not.toHaveClass("disabled")
+  })
+
+  it("disables a date slider's unit menu until an attribute is bound", async () => {
+    const { slider } = await setupSliderAndData()
+    act(() => {
+      slider.setScaleType("date")
+      slider.setSliderType("visibility")
+    })
+    renderPalette(slider)
+    expect(screen.getByTestId("slider-range-width-unit")).toBeDisabled()
+  })
+
+  it("has no unit menu for a numeric slider", async () => {
+    const { slider } = await setupBoundSlider()
     renderPalette(slider)
     expect(screen.queryByTestId("slider-range-width-unit")).toBeNull()
   })
 
   describe("for a date slider", () => {
+    // a visibility slider bound to dates spanning the given seconds, with the given width
     async function setupDateSlider(spanSeconds: number, widthSeconds: number) {
-      const { slider } = await setupSliderAndData()
+      const { content, slider } = await setupSliderAndData()
+      const dates = addDates(content, [localDateString(kDateStart), localDateString(kDateStart + spanSeconds * 1000)])
       act(() => {
-        slider.setScaleType("date")
-        slider.setAxisMin(0)
-        slider.setAxisMax(spanSeconds)
-        slider.setSliderType("visibility")
+        slider.configureFromAttribute(dates, dates.attrFromName("when")!.id)
         slider.setRangeWidth(widthSeconds)
       })
-      renderPalette(slider)
-      return slider
+      const { unmount } = renderPalette(slider)
+      return { slider, dates, unmount }
     }
 
     it("shows the width in the largest unit offered for the span", async () => {
@@ -249,7 +288,7 @@ describe("SliderConfigPalette", () => {
 
     it("applies a unit chosen while an edit is pending to the edit", async () => {
       // a span of months offers months, weeks, and days
-      const slider = await setupDateSlider(6 * month, 1.2 * month)
+      const { slider } = await setupDateSlider(6 * month, 1.2 * month)
       const input = screen.getByTestId("slider-range-width-input")
       await userEvent.clear(input)
       await userEvent.type(input, "2")
@@ -262,15 +301,7 @@ describe("SliderConfigPalette", () => {
     // jsdom drops the focus to the body instead.)
     it("keeps an edit pending when the unit menu closes without a choice, then commits it in the unit shown",
         async () => {
-      const { slider } = await setupSliderAndData()
-      act(() => {
-        slider.setScaleType("date")
-        slider.setAxisMin(0)
-        slider.setAxisMax(6 * month)
-        slider.setSliderType("visibility")
-        slider.setRangeWidth(1.2 * month)
-      })
-      const { unmount } = renderPalette(slider)
+      const { slider, unmount } = await setupDateSlider(6 * month, 1.2 * month)
       const input = screen.getByTestId("slider-range-width-input")
       await userEvent.clear(input)
       await userEvent.type(input, "2")
@@ -283,7 +314,7 @@ describe("SliderConfigPalette", () => {
     })
 
     it("applies a unit chosen from the keyboard after tabbing from the field to the edit", async () => {
-      const slider = await setupDateSlider(6 * month, 1.2 * month)
+      const { slider } = await setupDateSlider(6 * month, 1.2 * month)
       const input = screen.getByTestId("slider-range-width-input")
       await userEvent.clear(input)
       await userEvent.type(input, "3")
@@ -295,7 +326,7 @@ describe("SliderConfigPalette", () => {
     })
 
     it("rescales the shown width, not the stored one, when the unit changes", async () => {
-      const slider = await setupDateSlider(2 * year, 2 * week)
+      const { slider } = await setupDateSlider(2 * year, 2 * week)
       // two weeks, in years
       expect(screen.getByTestId("slider-range-width-input")).toHaveValue("0.038")
       await chooseOption(screen.getByTestId("slider-range-width-unit"), "weeks")
@@ -325,7 +356,7 @@ describe("SliderConfigPalette", () => {
     })
 
     it("ignores a width too large to store once converted to seconds", async () => {
-      const slider = await setupDateSlider(2 * year, 2 * week)
+      const { slider } = await setupDateSlider(2 * year, 2 * week)
       const input = screen.getByTestId("slider-range-width-input")
       await userEvent.clear(input)
       await userEvent.type(input, "1e303{Enter}")
@@ -333,7 +364,7 @@ describe("SliderConfigPalette", () => {
     })
 
     it("interprets a typed width in the chosen unit", async () => {
-      const slider = await setupDateSlider(2 * year, 2 * week)
+      const { slider } = await setupDateSlider(2 * year, 2 * week)
       await chooseOption(screen.getByTestId("slider-range-width-unit"), "weeks")
       const input = screen.getByTestId("slider-range-width-input")
       await userEvent.clear(input)
@@ -342,9 +373,12 @@ describe("SliderConfigPalette", () => {
     })
 
     it("falls back to the default unit when the chosen one is no longer offered", async () => {
-      const slider = await setupDateSlider(2 * year, 2 * week)
+      const { dates } = await setupDateSlider(2 * year, 2 * week)
       await chooseOption(screen.getByTestId("slider-range-width-unit"), "weeks")
-      act(() => slider.setAxisMax(3 * day))
+      const whenId = dates.attrFromName("when")!.id
+      const lastItemId = dates.itemIdsIgnoringSliderFilters[1]
+      // shrink the dates' span to three days
+      act(() => dates.setCaseValues([{ __id__: lastItemId, [whenId]: localDateString(kDateStart + 3 * day * 1000) }]))
       expect(screen.getByTestId("slider-range-width-unit")).toHaveTextContent("days")
     })
   })

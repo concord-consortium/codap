@@ -1,3 +1,4 @@
+import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, { useEffect, useRef, useState } from "react"
 import {
@@ -43,7 +44,11 @@ export const SliderConfigPalette =
     // The field shows the user's edit until it's committed (on Enter, blur, or the palette's dismissal), and
     // otherwise the width, rounded for display. Only an edit is committed, so the rounding never replaces the width.
     const [editedWidth, setEditedWidth] = useState<string>()
-    const widthInput = editedWidth ?? formatSliderWidth(displayWidth)
+    // With no attribute bound, a range slider shows no range, so its width is empty and can't be edited.
+    const isBound = !!sliderModel.attribute
+    const widthInput = !isBound ? "" : editedWidth ?? formatSliderWidth(displayWidth)
+    // a numeric width is in the bound attribute's units, if it has them (a date width has its unit menu)
+    const widthUnits = !isDate ? sliderModel.attribute?.units : undefined
     // the unit agrees in number with the width as shown, so a width of 1.04 days reads "1 day"
     const shownWidth = Number(widthInput)
     const unitLabel = getDateUnitLabel(unit, isFinite(shownWidth) ? shownWidth : displayWidth)
@@ -149,7 +154,7 @@ export const SliderConfigPalette =
             </Select>
           </div>
           <If condition={isRangeSlider}>
-            <div className="palette-row">
+            <div className={clsx("palette-row", { disabled: !isBound })} data-testid="slider-range-width-row">
               <label className="form-label" id="slider-range-width-label" htmlFor="slider-range-width-input">
                 {t("V3.Slider.rangeWidth")}
               </label>
@@ -163,15 +168,20 @@ export const SliderConfigPalette =
                   ref={widthInputRef}
                   onBlur={handleWidthControlBlur}
                   onKeyDown={handleWidthKeyDown}
+                  disabled={!isBound}
                   data-testid="slider-range-width-input"
                 />
               </span>
+              <If condition={!!widthUnits}>
+                <span className="form-label-suffix" data-testid="slider-range-width-units">{widthUnits}</span>
+              </If>
               <If condition={isDate}>
                 <Select
                   aria-labelledby="slider-range-width-label"
                   className="slider-select-container slider-date-unit-select"
                   value={unit}
                   onChange={handleUnitChange}
+                  isDisabled={!isBound}
                 >
                   <Button ref={unitButtonRef} className="slider-select slider-date-unit"
                           onBlur={handleWidthControlBlur} data-testid="slider-range-width-unit">
