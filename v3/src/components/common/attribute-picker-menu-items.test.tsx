@@ -82,15 +82,6 @@ describe("AttributePickerMenuItems", () => {
     expect(screen.getAllByRole("menuitem").map(item => item.textContent)).toEqual(["a4"])
   })
 
-  it("offers only the attributes the filter allows", () => {
-    const { dataset } = setupTestDataset()
-    const [, , c3] = dataset.collections
-    const a4 = dataset.attrFromName("a4")!
-    render(<Harness entries={[{ collection: c3, data: dataset }]}
-                    isAttributeAllowed={(_data, attrId) => attrId === a4.id}/>)
-    expect(screen.getAllByRole("menuitem").map(item => item.textContent)).toEqual(["a4"])
-  })
-
   it("leaves out collections, and the dividers of datasets, with nothing to offer", () => {
     const { dataset: ds1 } = setupTestDataset({ datasetName: "one" })
     const { dataset: ds2 } = setupTestDataset({ datasetName: "two" })
@@ -99,6 +90,27 @@ describe("AttributePickerMenuItems", () => {
                     isAttributeAllowed={(_data, attrId) => allowed.includes(attrId)}/>)
     expect(screen.getAllByRole("menuitem").map(item => item.textContent)).toEqual(["collection1", "collection3"])
     expect(screen.queryByRole("separator")).toBeNull()
+  })
+
+  it("doesn't start the menu with the divider of a dataset with nothing to offer", () => {
+    const { dataset: ds1 } = setupTestDataset({ datasetName: "one" })
+    const { dataset: ds2 } = setupTestDataset({ datasetName: "two" })
+    const allowed = [ds2.attrFromName("a1")!.id, ds2.attrFromName("a3")!.id]
+    render(<Harness entries={getAttributePickerEntries([ds1, ds2], () => undefined)}
+                    isAttributeAllowed={(_data, attrId) => allowed.includes(attrId)}/>)
+    expect(screen.getAllByRole("menuitem").map(item => item.textContent)).toEqual(["collection1", "collection3"])
+    expect(screen.queryByRole("separator")).toBeNull()
+  })
+
+  it("separates the datasets on either side of one with nothing to offer by a single divider", () => {
+    const { dataset: ds1 } = setupTestDataset({ datasetName: "one" })
+    const { dataset: ds2 } = setupTestDataset({ datasetName: "two" })
+    const { dataset: ds3 } = setupTestDataset({ datasetName: "three" })
+    const allowed = [ds1.attrFromName("a3")!.id, ds3.attrFromName("a1")!.id]
+    render(<Harness entries={getAttributePickerEntries([ds1, ds2, ds3], () => undefined)}
+                    isAttributeAllowed={(_data, attrId) => allowed.includes(attrId)}/>)
+    expect(screen.getAllByRole("menuitem").map(item => item.textContent)).toEqual(["collection3", "collection1"])
+    expect(screen.getAllByRole("separator")).toHaveLength(1)
   })
 
   it("lists the attributes directly when only one collection has any to offer", () => {

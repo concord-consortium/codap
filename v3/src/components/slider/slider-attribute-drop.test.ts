@@ -43,6 +43,15 @@ describe("isSliderAttributeDropAllowed", () => {
     expect(isSliderAttributeDropAllowed(slider, dataSet, idx.id)).toBe(false)
   })
 
+  it("rejects a drop of the attribute the slider is already bound to", async () => {
+    featureFlagManager.setServerConfig({ visibilitySlider: "on" })
+    const { dataSet, slider } = await setupSliderAndData()
+    const a3 = dataSet.attrFromName("a3")!
+    slider.configureFromAttribute(dataSet, a3.id)
+    expect(isSliderAttributeDropAllowed(slider, dataSet, a3.id)).toBe(false)
+    expect(isSliderAttributeDropAllowed(slider, dataSet, dataSet.attrFromName("a4")!.id)).toBe(true)
+  })
+
   it("gates a drop onto a selection slider on selectionSlider", async () => {
     featureFlagManager.setServerConfig({ visibilitySlider: "on" })
     const { dataSet, slider } = await setupSliderAndData()
@@ -112,6 +121,30 @@ describe("configureSliderFromAttribute", () => {
       expect(configureSliderFromAttribute(tile, dataSet, empty.id)).toBe(false)
       await settle()
       expect(manager.undoStore.undoLevels).toBe(undoLevels)
+    }
+    finally {
+      appState.document.treeMonitor!.disableMonitoring()
+    }
+  })
+
+  it("leaves a slider alone when given the attribute it's already bound to", async () => {
+    const { dataSet, tile, slider } = await setupSliderAndData()
+    const a3 = dataSet.attrFromName("a3")!
+    configureSliderFromAttribute(tile, dataSet, a3.id)
+    slider.setAxisMax(10)
+    slider.setRange(2, 4)
+    const manager = appState.document.treeManagerAPI as Instance<typeof TreeManager>
+    const settle = () => when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
+    appState.document.treeMonitor!.enableMonitoring()
+    try {
+      await settle()
+      const undoLevels = manager.undoStore.undoLevels
+
+      expect(configureSliderFromAttribute(tile, dataSet, a3.id)).toBe(false)
+      await settle()
+      expect(manager.undoStore.undoLevels).toBe(undoLevels)
+      expect(slider.axis.domain).toEqual([1, 10])
+      expect([slider.rangeLow, slider.rangeHigh]).toEqual([2, 4])
     }
     finally {
       appState.document.treeMonitor!.disableMonitoring()

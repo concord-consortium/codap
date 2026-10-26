@@ -12,7 +12,7 @@ import { t } from "../../utilities/translation/translate"
 import {
   AttributePickerMenuItems, getAttributePickerEntries, useAttributePickerSubmenus
 } from "../common/attribute-picker-menu-items"
-import { configureSliderFromAttribute, isSliderAttributeDropAllowed } from "./slider-attribute-drop"
+import { configureSliderFromAttribute, isSliderAttributeUsable } from "./slider-attribute-drop"
 import { isSliderModel } from "./slider-model"
 
 import DropdownArrow from "../../assets/icons/arrow.svg"
@@ -21,14 +21,14 @@ const kMaxMenuHeight = "50vh"
 
 interface IProps {
   className?: string
-  // focuses the trigger when it mounts
+  // focuses the trigger whenever it becomes true, e.g. when the trigger replaces another that had the focus
   autoFocus?: boolean
   onAutoFocus?: () => void
   onSelect?: () => void
   children: React.ReactNode  // the trigger's content
 }
-// A menu of the attributes that can configure the slider (those a drop would accept), across all datasets.
-// Choosing one configures the slider from it, as a drop does.
+// A menu of the attributes that can configure the slider, across all datasets. Choosing one configures the slider
+// from it, as a drop does; choosing the one it's already bound to does nothing.
 export const SliderAttributeMenu = observer(function SliderAttributeMenu({
   className, autoFocus, onAutoFocus, onSelect, children
 }: IProps) {
@@ -55,7 +55,7 @@ export const SliderAttributeMenu = observer(function SliderAttributeMenu({
 
   const entries = getAttributePickerEntries(getDataSets(slider))
   const isAttributeAllowed = (dataSet: IDataSet, attrId: string) =>
-    isSliderAttributeDropAllowed(slider, dataSet, attrId)
+    isSliderAttributeUsable(slider, dataSet, attrId)
   // an attribute chosen in a collection's submenu closes only the submenu, so the menu is closed here
   const handleSelect = (dataSet: IDataSet, attrId: string) => {
     configureSliderFromAttribute(tile, dataSet, attrId)
