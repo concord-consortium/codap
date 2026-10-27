@@ -109,6 +109,17 @@ export const getNextPinColorIndex = (usedColors: Array<string | undefined>) => {
 }
 
 /**
+ * Returns the kPinColors index for a new pin in a pin dataset. With a color attribute, the colors of all
+ * items count as used, including hidden and filtered-out ones, which keep their colors when shown again.
+ * Without one, pins are colored by position, so the next pin's color is positional too.
+ */
+export const getNextPinColorIndexForDataSet = (dataset: IDataSet, colorId?: string) => {
+  return colorId
+    ? getNextPinColorIndex(dataset._itemIds.map(itemId => dataset.getStrValue(itemId, colorId)))
+    : dataset.items.length % kPinColors.length
+}
+
+/**
  * Computes LatLngBounds from arrays of latitude and longitude values,
  * handling the international date line and longitude values outside [-180, 180].
  */
