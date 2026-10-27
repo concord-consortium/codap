@@ -231,7 +231,7 @@ see [the catalog's known limitations](../notifications.md#known-limitations).
 | Error | Condition |
 |---|---|
 | `DataContext not found` | The selector names a data context that does not exist |
-| `Unable to parse query.` | The search expression is missing or empty, contains no comparison, or names no attribute of the data context |
+| `Unable to parse query.` | The search expression is missing or empty, is neither `*` nor a comparison, or names no attribute of the data context |
 | `A values object is required for this request.` | `notify` with no `values` |
 | `<action> <resource>: <field> required` | `notify` whose `values` has no `itemOrder` |
 

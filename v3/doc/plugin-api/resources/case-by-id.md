@@ -56,7 +56,7 @@ own data context — see [the index](../README.md#the-default-data-context).
 | Property | Notes |
 |---|---|
 | `case.id` | the case's id |
-| `case.parent` | the parent case's id; `null` for a case in the top-level collection |
+| `case.parent` | the parent case's id; `null` for a case in the top-level collection. v3 currently differs; see [Known limitations](#known-limitations) |
 | `case.collection` | `{ "name", "id" }` of the collection the case belongs to |
 | `case.values` | one key per attribute of the case's collection, keyed by attribute name |
 | `case.children` | the ids of the case's child cases, in order; empty in the child-most collection |

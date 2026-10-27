@@ -73,7 +73,8 @@ change. A plugin holding case ids from before the move should read them again af
 **A collection left with no attributes is removed.** Moving a collection's only attribute out of
 it deletes that collection.
 
-**The destination must already exist.** `update` cannot create a collection. `"parent"` from the
+**The destination must already exist.** `update` cannot create a collection, and fails when
+`collection` names none; v3 currently does not, see [Known limitations](#known-limitations). `"parent"` from the
 top collection, which has no parent, fails with `Collection not found`.
 
 `"parent"` is new in v3; v2 read it as the name of a collection. Because v3 checks for `"parent"`

@@ -42,7 +42,8 @@ apply. Naming a `dataContext` in the selector has no effect.
 
 ### What `register` accepts
 
-At least one of the first five properties is required.
+At least one of the first five properties is required. v3 currently accepts a monitor with none;
+see [Known limitations](#known-limitations).
 
 | Property | Type | Notes |
 |---|---|---|
@@ -51,7 +52,7 @@ At least one of the first five properties is required.
 | `formatStr` | String | Matches an event whose `formatStr` is exactly this |
 | `formatPrefix` | String | Matches an event whose `formatStr` begins with this |
 | `message` | String | Matches an event whose message, with its placeholders filled in, is exactly this. `"*"` matches every event |
-| `clientId` | any | Optional. A value of your own that identifies the monitor, for `unregister` |
+| `clientId` | any | Optional. A value of your own that identifies the monitor, for `unregister`. v3 currently ignores it; see [Known limitations](#known-limitations) |
 
 **A monitor matches an event when any one of the properties it gives matches.** A monitor with
 both `topic` and `formatPrefix` matches an event with that topic, and also one whose `formatStr`
@@ -85,7 +86,9 @@ v3 currently replies differently; see [Known limitations](#known-limitations).
 | `id` | number | The id CODAP gave the monitor |
 | `clientId` | any | The `clientId` you gave when registering. Removes every monitor registered with it |
 
-Give one of them. `unregister` replies `{ "success": true }`.
+Give one of them. `unregister` replies `{ "success": true }`, even when nothing matched. v3
+currently replies `{ "success": false }` to an `id` that matches no monitor; see
+[Known limitations](#known-limitations).
 
 Monitors are not saved with the document. Register them again each time your plugin loads, and
 see [Known limitations](#known-limitations) for unregistering first.
@@ -211,7 +214,9 @@ a notification on `logMessageNotice`. It has no `operation`:
 | `logMonitor` | the monitor that matched, as `register` returned it |
 
 Each matching monitor gets its own notice, so a plugin with two matching monitors receives the
-event twice. v2 also added which of the monitor's properties had matched; v3 does not. See
+event twice. v2 also added which of the monitor's properties had matched; v3 does not. And v3's
+`logMonitor` holds only `id` and `clientId`, as its `register` reply does; see
+[Known limitations](#known-limitations) and
 [the notification catalog](../notifications.md#everything-else).
 
 ## Errors

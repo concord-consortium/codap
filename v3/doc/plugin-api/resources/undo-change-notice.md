@@ -49,7 +49,7 @@ apply. Naming a `dataContext` in the selector has no effect.
 | Property | Type | Notes |
 |---|---|---|
 | `operation` | String | required. One of the operations below |
-| `logMessage` | String | optional, with `undoableActionPerformed` only. Describes the action in CODAP's log |
+| `logMessage` | String | optional, with `undoableActionPerformed` only. Describes the action in CODAP's log. v3 currently ignores it; see [Known limitations](#known-limitations) |
 
 | Operation | What CODAP does |
 |---|---|
@@ -57,7 +57,8 @@ apply. Naming a `dataContext` in the selector has no effect.
 | `undoButtonPress` | Undoes the most recent entry in the history, whichever part of CODAP made it. With nothing to undo, does nothing and still succeeds |
 | `redoButtonPress` | Redoes the most recently undone entry, the same way |
 
-Each replies with the state of the history afterwards:
+Each replies with the state of the history afterwards. v3's reply to `undoableActionPerformed`
+can describe the history before the action; see [Known limitations](#known-limitations).
 
 | Property | Notes |
 |---|---|

@@ -61,8 +61,9 @@ The new case takes its parent's values for the attributes of the collections abo
 needs only this collection's attributes.
 
 `create` replies with the ids of the new cases, as an array of objects. Each carries `id`, the
-new case's id, and `itemID`, the id of the item behind it. The reply does not necessarily list
-the cases in the order you sent them.
+new case's id, and `itemID`, the id of the item behind it. v3 currently omits `itemID`; see
+[Known limitations](#known-limitations). The reply does not necessarily list the cases in the
+order you sent them.
 
 ### What `update` accepts
 

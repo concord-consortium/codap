@@ -92,7 +92,9 @@ bug.
 
 This resource sends none. When a data context is created or deleted, CODAP sends
 `dataContextCountChanged` on `documentChangeNotice`; see
-[the notification catalog](../notifications.md#everything-else).
+[the notification catalog](../notifications.md#everything-else). v3 does not yet send it for a
+data context imported with [`dataContextFromURL`](data-context-from-url.md#known-limitations), so
+read `dataContextList` again after such an import.
 
 ## Errors
 
