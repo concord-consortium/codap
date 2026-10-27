@@ -8,7 +8,7 @@
 // Checks:
 //   json          every ```json block parses
 //   responses     on a resource page, every `get` example is followed by its response
-//   links         every relative link resolves
+//   links         every relative link resolves, and so does its #anchor
 //   tables        every markdown table row has its header's column count
 //   markers       BEGIN/END GENERATED markers pair up, and names are unique within a page
 //   scope-drift   pages report no more scope variants than there are scope cases
@@ -17,7 +17,9 @@
 //   issue-ids     no internal issue-tracker ids
 //   placeholders  no CODAP-internal %@ i18n notation
 //   notifications every operation listed in the catalog has a "Fires when" description
-//   sections      each resource page has the required sections and a provenance header
+//   sections      each resource page has the required sections
+//   provenance    every page but conventions.md starts with a title and a provenance header
+//   llms          llms.txt links only pages that exist, and lists every resource and guide page
 //   coverage      which resources in the code have no page (reported; --strict to fail)
 //
 // Undocumented resources are expected while resources still lack pages, so coverage is
@@ -53,6 +55,25 @@ function allMarkdown(dir, out = []) {
 }
 
 const files = allMarkdown(docsDir).sort()
+
+// The anchors GitHub generates for a page's headings: lowercased, punctuation other than hyphens
+// dropped, spaces turned into hyphens, and repeats numbered -1, -2, ...
+const anchorCache = new Map()
+function anchorsOf(path) {
+  if (!anchorCache.has(path)) {
+    const seen = new Map()
+    const anchors = new Set()
+    const text = readFileSync(path, "utf8").replace(/```[\s\S]*?```/g, "")
+    for (const [, heading] of text.matchAll(/^#{1,6} +(.+?) *#*$/gm)) {
+      const base = heading.toLowerCase().replace(/[^\p{L}\p{N}_\- ]/gu, "").replace(/ /g, "-")
+      const n = seen.get(base) ?? 0
+      seen.set(base, n + 1)
+      anchors.add(n ? `${base}-${n}` : base)
+    }
+    anchorCache.set(path, anchors)
+  }
+  return anchorCache.get(path)
+}
 const REQUIRED_SECTIONS = ["## Supported actions", "## Resource selector patterns", "## Values",
                            "## Examples", "## Notifications", "## Errors"]
 const knownErrors = new Set(inventory.errors.map(e => e.message))
@@ -84,11 +105,15 @@ for (const file of files) {
     }
   }
 
-  // links
-  for (const m of outsideFences.matchAll(/\]\(([^)#][^)]*?)(?:#[^)]*)?\)/g)) {
-    const target = m[1]
-    if (/^https?:/.test(target)) continue
-    if (!existsSync(normalize(join(dirname(file), target)))) fail(name, `broken link: ${target}`)
+  // links and anchors
+  for (const m of outsideFences.matchAll(/\]\(([^)#]*?)(?:#([^)]*))?\)/g)) {
+    const [, target, anchor] = m
+    if (/^[a-z][a-z+.-]*:/i.test(target)) continue
+    const path = target ? normalize(join(dirname(file), target)) : file
+    if (!existsSync(path)) { fail(name, `broken link: ${target}`); continue }
+    if (anchor && path.endsWith(".md") && !anchorsOf(path).has(anchor)) {
+      fail(name, `broken anchor: ${target}#${anchor}`)
+    }
   }
 
   // tables
@@ -145,8 +170,33 @@ for (const file of files) {
   // resource page shape
   if (isResourcePage) {
     for (const s of REQUIRED_SECTIONS) if (!raw.includes(s)) fail(name, `missing required section: ${s}`)
+  }
+  if (!isConventions) {
     if (!/^> \*\*Applies to:\*\*/m.test(raw)) fail(name, "missing provenance header")
     if (!raw.startsWith("# ")) fail(name, "page does not start with a title")
+  }
+}
+
+// llms.txt links pages by their published URL. Each must exist, and every page under resources/
+// and guides/ must be listed, so a new page cannot be left out.
+const llmsPath = join(docsDir, "llms.txt")
+if (!existsSync(llmsPath)) fail("llms.txt", "missing")
+else {
+  const listed = new Set()
+  const prefix = "https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/"
+  for (const [, url] of readFileSync(llmsPath, "utf8").matchAll(/\]\((https:[^)]+)\)/g)) {
+    if (!url.startsWith(prefix)) {
+      if (/^https:\/\/raw\.githubusercontent\.com\//.test(url)) fail("llms.txt", `not under ${prefix}: ${url}`)
+      continue
+    }
+    const target = url.slice(prefix.length)
+    listed.add(target)
+    if (!existsSync(join(docsDir, target))) fail("llms.txt", `broken link: ${target}`)
+  }
+  for (const file of files) {
+    const name = relative(docsDir, file)
+    const mustList = name.startsWith("resources/") || (name.startsWith("guides/") && name !== "guides/README.md")
+    if (mustList && !listed.has(name)) fail("llms.txt", `does not list ${name}`)
   }
 }
 

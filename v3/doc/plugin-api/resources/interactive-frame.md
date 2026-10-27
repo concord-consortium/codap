@@ -5,8 +5,8 @@
 
 The interactive frame is the plugin's own component — the tile the plugin is running inside.
 A plugin uses this resource to learn about its environment (which CODAP version, which locale,
-how big its frame is), to save state into the CODAP document, and to set the permissions that
-govern what a user may do to the data while the plugin is running.
+how big its frame is), to read the state it saved with the document, and to set the permissions
+that govern what a user may do to the data while the plugin is running.
 
 Every plugin reads this resource at startup. Its selector names no target — a plugin can only
 ever address its own frame, never another plugin's.

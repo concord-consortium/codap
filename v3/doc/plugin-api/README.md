@@ -1,6 +1,6 @@
 # CODAP Data Interactive Plugin API
 
-> **Applies to:** CODAP v3 · **Verified:** 2026-10-22
+> **Applies to:** CODAP v3 · **Verified:** 2026-10-27
 > · Parts of this reference are generated — see [conventions](conventions.md).
 
 This reference is for developers writing CODAP plugins. It describes the API through which a
@@ -19,6 +19,11 @@ experiment and then sends the data it produced to CODAP for immediate analysis.
 
 Plugins are loosely coupled to CODAP. A plugin need not be served from the same web server as
 the CODAP it runs in. It runs in an iframe and communicates with CODAP through `postMessage`.
+
+For a small working plugin, see the
+[random numbers plugin](https://github.com/concord-consortium/codap-data-interactives/tree/master/NewRandomNumbers);
+the [plugin gallery](https://concord-consortium.github.io/codap-data-interactives/) shows others
+in action.
 
 ## About iframe-phone
 
@@ -44,8 +49,15 @@ iframe-phone's two-second timeout for you; see
 **This reference replaces the
 [wiki page](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-Plugin-API).**
 Every resource now has a complete, self-contained page in this folder, except `tourElements`,
-which is not yet documented anywhere. The wiki page will be frozen as the **CODAP v2**
-reference.
+which is not yet documented anywhere. The wiki page is frozen as the **CODAP v2** reference;
+[Where the wiki page's sections went](wiki-section-map.md) maps each of its sections to the page
+that now covers it.
+
+Two files are generated from CODAP's source rather than written by hand:
+[the quick reference](quick-reference.md), which tabulates every resource's actions, the selector
+grammar and the error messages, and
+[a JSON Schema for requests](plugin-api-request.schema.json). [`llms.txt`](llms.txt) lists the
+pages of this reference for tools and AI assistants.
 
 ---
 
@@ -64,6 +76,18 @@ The wiki page used these interchangeably. This reference does not — use the ca
 | **component** | tile | A thing in the CODAP workspace — a graph, table, map, slider, or a plugin itself. |
 | **resource** | — | The thing a request addresses, named by the `resource` field. |
 | **action** | verb | One of `get`, `create`, `update`, `delete`, `notify`, `register`, `unregister`. |
+
+**Names, titles and ids.** Most objects a plugin works with — data contexts, collections,
+attributes, components and global values — have a `name`, and many also have a `title`. The name
+is how a resource selector refers to the object, as in `dataContext[Mammals]`, so give each object
+a name that is unique within its data context or document. That includes attributes: formulas
+refer to them by bare name, so two attributes in different collections of one data context should
+not share a name. The title is what the user sees; where an object has none, CODAP shows a title
+derived from it, usually its name. CODAP also gives each object an [id](#ids), and some selectors
+accept either; each resource's "Resource selector patterns" section says which. The user can
+rename attributes and collections in the case table, and a slider's global value from the slider,
+which changes their names, so a plugin that has to follow one through the user's edits should
+hold on to its id.
 
 ---
 
@@ -177,6 +201,8 @@ document afterwards as a notification.
 
 ---
 
+## Ids
+
 **Treat ids as opaque, and pass back exactly what CODAP gave you.**
 
 Most ids in this API are numbers — attributes, cases, collections, components, items. CODAP v3
@@ -192,6 +218,21 @@ Some resources are exceptions and return their internal string id directly:
 
 This is why "pass back what you were given" is the reliable rule: it holds for both cases,
 whereas "ids are numbers" does not. Do not parse an id, construct one, or assume its type.
+
+---
+
+## Names that are not part of the API
+
+Some names appear in older revisions of the wiki page, in the legacy Game API documentation, or
+in code that AI assistants generate from them, but are **not part of the CODAP API**. CODAP
+rejects or ignores them.
+
+| Name you may have seen | What it is | Use instead |
+|---|---|---|
+| `pointsFusedIntoBars` (graph) | Never existed. It appeared on the wiki page from 2024 on, but no released CODAP has accepted it. | `pointsAreFusedIntoBars`, which v3 added; v2 has no API property for it |
+| `pointConfig` (graph) | Never existed, with the same origin. | `plotType`, which v3 added. It can be read but not set; see [`component`](resources/component.md#graph) |
+| `openCase`, `createCase`, `createCases`, and the other Game API verbs | Verbs of the legacy Game API, which v2 also supported. They are not part of this API. | `create` on [`item`](resources/item.md) |
+| `closeCase` | The same. There is no parent case to close: CODAP derives the hierarchy from item values. | `create` on [`item`](resources/item.md) |
 
 ---
 
@@ -235,49 +276,48 @@ more than one data context. Name the context explicitly.
 
 ## Resources
 
-All 38 resources CODAP v3 registers, alphabetically. Pages marked *this repo* are current for
-v3. `tourElements` is not yet documented.
+All 38 resources CODAP v3 registers, alphabetically. `tourElements` is not yet documented.
 
-| Resource | Documented in |
+| Resource | What it is for |
 |---|---|
-| **[`adornment`](resources/adornment.md)** | **this repo** |
-| **[`adornmentList`](resources/adornment.md)** | **this repo** |
-| **[`allCases`](resources/all-cases.md)** | **this repo** |
-| **[`attribute`](resources/attribute.md)** | **this repo** |
-| **[`attributeList`](resources/attribute-list.md)** | **this repo** |
-| **[`attributeLocation`](resources/attribute-location.md)** | **this repo** |
-| **[`case`](resources/case.md)** | **this repo** |
-| **[`caseByID`](resources/case-by-id.md)** | **this repo** |
-| **[`caseByIndex`](resources/case-by-index.md)** | **this repo** |
-| **[`caseCount`](resources/case-count.md)** | **this repo** |
-| **[`caseFormulaSearch`](resources/case-formula-search.md)** | **this repo** |
-| **[`caseSearch`](resources/case-search.md)** | **this repo** |
-| **[`collection`](resources/collection.md)** | **this repo** |
-| **[`collectionList`](resources/collection.md)** | **this repo** |
-| **[`component`](resources/component.md)** | **this repo** |
-| **[`componentList`](resources/component-list.md)** | **this repo** |
-| **[`configuration`](resources/configuration.md)** | **this repo** |
-| **[`configurationList`](resources/configuration.md)** | **this repo** |
-| **[`dataContext`](resources/data-context.md)** | **this repo** |
-| **[`dataContextFromURL`](resources/data-context-from-url.md)** | **this repo** |
-| **[`dataContextList`](resources/data-context-list.md)** | **this repo** |
-| **[`dataDisplay`](resources/data-display.md)** | **this repo** |
-| **[`document`](resources/document.md)** | **this repo** |
-| **[`formulaEngine`](resources/formula-engine.md)** | **this repo** |
-| **[`global`](resources/global.md)** | **this repo** |
-| **[`globalList`](resources/global.md)** | **this repo** |
-| **[`interactiveApi`](resources/interactive-api.md)** | **this repo** |
-| **[`interactiveFrame`](resources/interactive-frame.md)** | **this repo** |
-| **[`item`](resources/item.md)** | **this repo** |
-| **[`itemByCaseID`](resources/item-by-case-id.md)** | **this repo** |
-| **[`itemByID`](resources/item-by-id.md)** | **this repo** |
-| **[`itemCount`](resources/item-count.md)** | **this repo** |
-| **[`itemSearch`](resources/item-search.md)** | **this repo** |
-| **[`logMessage`](resources/log-message.md)** | **this repo** |
-| **[`logMessageMonitor`](resources/log-message-monitor.md)** | **this repo** |
-| **[`selectionList`](resources/selection-list.md)** | **this repo** |
-| `tourElements` | not yet documented |
-| **[`undoChangeNotice`](resources/undo-change-notice.md)** | **this repo** |
+| [`adornment`](resources/adornment.md) | A graph's measures and overlays: means, box plots, least-squares lines and the like |
+| [`adornmentList`](resources/adornment.md) | The adornments on one graph |
+| [`allCases`](resources/all-cases.md) | Every case in a collection, or delete every case in a data context |
+| [`attribute`](resources/attribute.md) | One attribute: its name, type, formula and display settings |
+| [`attributeList`](resources/attribute-list.md) | The attributes of one collection |
+| [`attributeLocation`](resources/attribute-location.md) | Move an attribute within its collection or into another one |
+| [`case`](resources/case.md) | Create cases, or update several at once |
+| [`caseByID`](resources/case-by-id.md) | One case, found by its id |
+| [`caseByIndex`](resources/case-by-index.md) | One case, found by its position in a collection |
+| [`caseCount`](resources/case-count.md) | How many cases a collection has |
+| [`caseFormulaSearch`](resources/case-formula-search.md) | The cases in a collection for which a formula is true |
+| [`caseSearch`](resources/case-search.md) | The cases in a collection that satisfy a simple comparison |
+| [`collection`](resources/collection.md) | One level of a data context's hierarchy |
+| [`collectionList`](resources/collection.md) | The collections of a data context |
+| [`component`](resources/component.md) | A tile in the workspace: graph, table, map, slider, text and the rest |
+| [`componentList`](resources/component-list.md) | Every component in the document |
+| [`configuration`](resources/configuration.md) | Settings that change how CODAP behaves for the document |
+| [`configurationList`](resources/configuration.md) | Every configuration setting |
+| [`dataContext`](resources/data-context.md) | One data set: its collections, attributes, cases and metadata |
+| [`dataContextFromURL`](resources/data-context-from-url.md) | Create a data context from a CSV file on the web |
+| [`dataContextList`](resources/data-context-list.md) | Every data context in the document |
+| [`dataDisplay`](resources/data-display.md) | A rendered image of a graph |
+| [`document`](resources/document.md) | Read or replace the whole document |
+| [`formulaEngine`](resources/formula-engine.md) | CODAP's formula functions, and evaluating formulas |
+| [`global`](resources/global.md) | A global value, such as a slider's |
+| [`globalList`](resources/global.md) | Every global value |
+| [`interactiveApi`](resources/interactive-api.md) | Whether CODAP is running inside a host learning platform |
+| [`interactiveFrame`](resources/interactive-frame.md) | The plugin's own tile: its title, size, saved state and behavior |
+| [`item`](resources/item.md) | Create, read, update and delete items |
+| [`itemByCaseID`](resources/item-by-case-id.md) | The item behind a case, found by the case's id |
+| [`itemByID`](resources/item-by-id.md) | One item, found by its id |
+| [`itemCount`](resources/item-count.md) | How many items a data context has |
+| [`itemSearch`](resources/item-search.md) | The items that satisfy a simple comparison |
+| [`logMessage`](resources/log-message.md) | Write an event to CODAP's log |
+| [`logMessageMonitor`](resources/log-message-monitor.md) | Be told about the events CODAP logs |
+| [`selectionList`](resources/selection-list.md) | The selected cases in a data context |
+| `tourElements` | Not yet documented |
+| [`undoChangeNotice`](resources/undo-change-notice.md) | Take part in CODAP's undo history |
 
 ---
 
