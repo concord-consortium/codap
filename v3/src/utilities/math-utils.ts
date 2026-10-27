@@ -227,6 +227,24 @@ export function checkNumber(value: any) : [false] | [true, number] {
   return isNaN(result) ? [false] : [true, result]
 }
 
+// A comma is treated as a decimal separator only when it can't be a thousands separator;
+// otherwise it is treated as a thousands separator.
+
+// A single comma followed by 1-2 or 4+ digits, e.g. "38,7223" → 38.7223, "-9,14" → -9.14, "0,5" → 0.5
+// Doesn't match "1,234" (could be thousands) or "1,234,567" (more than one comma)
+const kDecimalCommaPattern = /^\s*[-+]?\d+,(\d{1,2}|\d{4,})\s*$/
+
+// Periods grouping thousands followed by a decimal comma, e.g. "1.234,56" → 1234.56, "1.234.567,8" → 1234567.8
+// Doesn't match "1.5,2" (period group isn't three digits), "0.123,4" (a leading 0 isn't a thousands group)
+// or "1,234.56" (US style, handled by comma stripping below)
+const kPeriodGroupedDecimalCommaPattern = /^\s*[-+]?[1-9]\d{0,2}(\.\d{3})+,\d+\s*$/
+
+function normalizeDecimalComma(v: string) {
+  if (kDecimalCommaPattern.test(v)) return v.replace(",", ".")
+  if (kPeriodGroupedDecimalCommaPattern.test(v)) return v.replace(/\./g, "").replace(",", ".")
+  return v
+}
+
 export const extractNumeric = (v: any) => {
   if (!isValueNonEmpty(v)) {
     return null
@@ -239,6 +257,7 @@ export const extractNumeric = (v: any) => {
 
   // Based on the V2 implementation for backward compatibility.
   if (typeof v === 'string') {
+    v = normalizeDecimalComma(v)
     const noNumberPattern = /[^.\d-]+/gm
     const firstNumericPattern = /(^-?\.?[\d]+(?:\.?[\d]*)?)/gm
     const firstPass = v.replace(noNumberPattern, '')
