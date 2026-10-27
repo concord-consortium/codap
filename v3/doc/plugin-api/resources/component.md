@@ -513,6 +513,11 @@ Bring a component to the front, then rescale it:
 
 ## Known limitations
 
+**Creating or closing a component cannot be undone.** v2 added `create` and `delete` on
+`component` to CODAP's undo history, as it did the same changes made in CODAP's interface, so the
+user could undo them. v3 does not. This is a known bug; see
+[Undo and redo](../guides/undo-and-redo.md#known-limitations).
+
 **`autoScale` applies to three types.** Graphs and maps rescale; a case table resizes its
 columns instead. Every other type returns `Component does not support rescale`. This matches v2.
 

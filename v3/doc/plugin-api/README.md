@@ -41,15 +41,11 @@ iframe-phone's two-second timeout for you; see
 
 ## Status of this reference
 
-**This reference is being migrated.** It is moving out of the
-[wiki page](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-Plugin-API)
-and into this folder, one resource at a time, so that each resource is a complete self-contained
-page rather than a section of a 4,000-line document. Until that finishes:
-
-- The [resource table](#resources) below says where each resource is documented.
-- Pages here are current for v3. The wiki remains accurate for everything not yet moved,
-  including the round of corrections already made to it.
-- When migration completes, the wiki page will be frozen as the **CODAP v2** reference.
+**This reference replaces the
+[wiki page](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-Plugin-API).**
+Every resource now has a complete, self-contained page in this folder, except `tourElements`,
+which is not yet documented anywhere. The wiki page will be frozen as the **CODAP v2**
+reference.
 
 ---
 
@@ -114,8 +110,9 @@ action returns — here, the reply to the `attributeList` request above:
 
 What `values` holds depends on the resource and the action; each resource page shows it. Some
 actions return no `values` at all, only `{ "success": true }`. Two put their results beside
-`values` rather than in it, at the top level of the response: `create` on `item` returns
-`itemIDs` and `caseIDs`, and `update` on `case` returns `caseIDs`.
+`values` rather than in it, at the top level of the response: `create` on
+[`item`](resources/item.md) returns `itemIDs` and `caseIDs`, and `update` on
+[`case`](resources/case.md) returns `caseIDs`.
 
 On failure, `success` is `false` and `values.error` usually holds a message:
 
@@ -128,7 +125,7 @@ On failure, `success` is `false` and `values.error` usually holds a message:
 
 Test `success` before reading `values`: a failed request carries no data, at most an error. And
 do not assume the error is there: a few failures reply with no `values` at all, such as `update`
-on `item` when no id matches, so read the message with a guard, for example
+on [`item`](resources/item.md) when no id matches, so read the message with a guard, for example
 `result.values?.error`. Each resource page lists the messages it can return, and when, in its
 **Errors** table. A few can come from any request:
 
@@ -191,7 +188,7 @@ Some resources are exceptions and return their internal string id directly:
 | Resource | Id it returns |
 |---|---|
 | `adornment`, `adornmentList` | The adornment's `ADRN...` string. The selector matches on it, so round-tripping works. |
-| `logMessageMonitor` | `clientId` is the requesting plugin's frame id, a v3 tile id string. |
+| `logMessageMonitor` | `clientId` is intended to be the plugin's own value, as in v2. v3 currently reports the plugin's tile id string instead, a known bug; see [`logMessageMonitor`](resources/log-message-monitor.md#known-limitations). |
 
 This is why "pass back what you were given" is the reliable rule: it holds for both cases,
 whereas "ids are numbers" does not. Do not parse an id, construct one, or assume its type.
@@ -201,76 +198,86 @@ whereas "ids are numbers" does not. Do not parse an id, construct one, or assume
 ## The default data context
 
 Most resource selectors may omit the data context, in which case CODAP supplies `#default`, which
-resolves to **the first data context in the document**:
+resolves to **your plugin's own data context**:
 
 ```json
 { "action": "get", "resource": "collection[Cases].attributeList" }
 ```
 
-This is equivalent to naming `dataContext[#default]`. Two things to know:
+This is equivalent to naming `dataContext[#default]`. Your plugin's own data context is the one
+it created most recently with `create dataContext` without naming a data context in the selector.
+When a document is saved, CODAP records that link, and restores it when the document is opened
+again. A plugin that has no data context of its own gets a not-found error for a request that
+relies on the default.
+
+> **Known limitation.** v3 does not yet follow this rule. It resolves `#default` to the first
+> data context in the document, whichever plugin created it. In a document with one data context
+> the result is the same; in a document with several, a plugin relying on the default can read or
+> change another plugin's data. This is a known bug.
+
+Two more things to know:
 
 - Defaulting does **not** apply to these, which are not scoped to a data context:
   `component`, `componentList`, `dataContextList`, `dataDisplay`, `document`, `formulaEngine`,
   `global`, `globalList`, `interactiveApi`, `interactiveFrame`, `logMessage`,
   `logMessageMonitor`, `undoableActionPerformed`, `undoChangeNotice`. Note that
   `undoableActionPerformed` is an *operation* of the `undoChangeNotice` resource rather than a
-  resource of its own; it appears in CODAP's exemption list all the same.
+  resource of its own; it appears in CODAP's exemption list all the same. v2's list differed
+  slightly: it also exempted `configuration` and `configurationList`, and did not have
+  `dataDisplay` or `interactiveApi`.
 - It does not apply when you are **creating** a data context (`create dataContext` or
   `create dataContextFromURL`) — there is nothing to default to yet.
 
-In a document with more than one data context, relying on the default is fragile. Name the
-context explicitly.
+Until the known limitation above is fixed, relying on the default is fragile in a document with
+more than one data context. Name the context explicitly.
 
 ---
 
 ## Resources
 
 All 38 resources CODAP v3 registers, alphabetically. Pages marked *this repo* are current for
-v3. Most of the rest are on the
-[wiki page](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-Plugin-API),
-which remains accurate for them; a few are marked *not yet documented*, meaning they appear
-neither here nor there.
+v3. `tourElements` is not yet documented.
 
 | Resource | Documented in |
 |---|---|
 | **[`adornment`](resources/adornment.md)** | **this repo** |
 | **[`adornmentList`](resources/adornment.md)** | **this repo** |
-| `allCases` | wiki |
+| **[`allCases`](resources/all-cases.md)** | **this repo** |
 | **[`attribute`](resources/attribute.md)** | **this repo** |
 | **[`attributeList`](resources/attribute-list.md)** | **this repo** |
-| `attributeLocation` | wiki |
-| `case` | wiki |
-| `caseByID` | wiki |
-| `caseByIndex` | wiki |
-| `caseCount` | wiki |
-| `caseFormulaSearch` | wiki |
-| `caseSearch` | wiki |
-| `collection` | wiki |
-| `collectionList` | wiki |
+| **[`attributeLocation`](resources/attribute-location.md)** | **this repo** |
+| **[`case`](resources/case.md)** | **this repo** |
+| **[`caseByID`](resources/case-by-id.md)** | **this repo** |
+| **[`caseByIndex`](resources/case-by-index.md)** | **this repo** |
+| **[`caseCount`](resources/case-count.md)** | **this repo** |
+| **[`caseFormulaSearch`](resources/case-formula-search.md)** | **this repo** |
+| **[`caseSearch`](resources/case-search.md)** | **this repo** |
+| **[`collection`](resources/collection.md)** | **this repo** |
+| **[`collectionList`](resources/collection.md)** | **this repo** |
 | **[`component`](resources/component.md)** | **this repo** |
 | **[`componentList`](resources/component-list.md)** | **this repo** |
-| `configuration` | wiki |
-| `configurationList` | wiki |
+| **[`configuration`](resources/configuration.md)** | **this repo** |
+| **[`configurationList`](resources/configuration.md)** | **this repo** |
 | **[`dataContext`](resources/data-context.md)** | **this repo** |
-| `dataContextFromURL` | wiki |
-| `dataContextList` | wiki |
+| **[`dataContextFromURL`](resources/data-context-from-url.md)** | **this repo** |
+| **[`dataContextList`](resources/data-context-list.md)** | **this repo** |
 | **[`dataDisplay`](resources/data-display.md)** | **this repo** |
 | **[`document`](resources/document.md)** | **this repo** |
-| `formulaEngine` | wiki |
-| `global` | wiki |
-| `globalList` | wiki |
+| **[`formulaEngine`](resources/formula-engine.md)** | **this repo** |
+| **[`global`](resources/global.md)** | **this repo** |
+| **[`globalList`](resources/global.md)** | **this repo** |
 | **[`interactiveApi`](resources/interactive-api.md)** | **this repo** |
 | **[`interactiveFrame`](resources/interactive-frame.md)** | **this repo** |
-| `item` | wiki |
-| `itemByCaseID` | wiki |
-| `itemByID` | wiki |
-| `itemCount` | wiki |
-| `itemSearch` | wiki |
-| `logMessage` | wiki |
-| `logMessageMonitor` | wiki |
+| **[`item`](resources/item.md)** | **this repo** |
+| **[`itemByCaseID`](resources/item-by-case-id.md)** | **this repo** |
+| **[`itemByID`](resources/item-by-id.md)** | **this repo** |
+| **[`itemCount`](resources/item-count.md)** | **this repo** |
+| **[`itemSearch`](resources/item-search.md)** | **this repo** |
+| **[`logMessage`](resources/log-message.md)** | **this repo** |
+| **[`logMessageMonitor`](resources/log-message-monitor.md)** | **this repo** |
 | **[`selectionList`](resources/selection-list.md)** | **this repo** |
 | `tourElements` | not yet documented |
-| `undoChangeNotice` | wiki |
+| **[`undoChangeNotice`](resources/undo-change-notice.md)** | **this repo** |
 
 ---
 

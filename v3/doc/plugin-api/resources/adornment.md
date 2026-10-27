@@ -246,10 +246,8 @@ succeeds rather than reporting it missing.
 
 Toggling an adornment emits a component notification whose operation is specific to the
 adornment — `togglePlottedMean`, `toggle connecting line`, `add movable value` and so on. These
-match the v2 operation strings, including v2's inconsistent casing. The catalog of
-CODAP-initiated notifications is not yet migrated; see the "CODAP-Initiated Actions" section of
-the
-[wiki page](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-Plugin-API).
+match the v2 operation strings, including v2's inconsistent casing. See
+[the notification catalog](../notifications.md#component-changes--component) for the full list.
 
 ## Errors
 
