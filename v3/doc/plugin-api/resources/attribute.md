@@ -156,6 +156,29 @@ so a type set on `create` cannot be cleared back to inferred by `update`.
 **Date precisions are dropped on write.** `get` can return a precision such as `"month"`, but
 neither `create` nor `update` applies one.
 
+### Formulas in requests
+
+`formula` is a string holding a CODAP formula, written just as the user would type it in the
+formula editor. Inside that string:
+
+- Refer to an attribute by its bare name, whichever collection it is in: `mean(LifeSpan)`, not
+  `Diets.LifeSpan` and not `'LifeSpan'`. A name that contains anything other than letters, digits
+  and underscores, or starts with a digit, goes in backticks: ``mean(`Life Span`)``.
+- Put text values in quotes. Single quotes are easiest inside JSON: `Diet = 'meat'`, or with
+  escaped double quotes, `Diet = \"meat\"`. Numbers are not quoted: `LifeSpan > 30`, not
+  `LifeSpan > '30'`.
+
+```json
+{
+  "action": "create",
+  "resource": "dataContext[Mammals].collection[Diets].attribute",
+  "values": [
+    { "name": "MeanLifeSpan", "formula": "mean(LifeSpan)" },
+    { "name": "IsMeat", "formula": "Diet = 'meat'" }
+  ]
+}
+```
+
 ## Examples
 
 Read one attribute, letting CODAP find it by name across collections:

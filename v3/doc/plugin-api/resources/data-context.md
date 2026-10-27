@@ -7,8 +7,8 @@ A data context is one data set: its collections, its attributes, its cases, and 
 that describes where the data came from. Most plugins that bring data into CODAP start by
 creating one, and most plugins that read a document start by listing them.
 
-This page covers the data context as a whole. Its attributes have their own page; its
-collections, cases and items do not yet.
+This page covers the data context as a whole. Its [collections](collection.md),
+[attributes](attribute.md), [cases](case.md) and [items](item.md) have pages of their own.
 
 ## Supported actions
 

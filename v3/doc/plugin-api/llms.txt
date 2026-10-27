@@ -1,0 +1,64 @@
+# CODAP Data Interactive Plugin API
+
+> How a web page running in an iframe inside CODAP (Common Online Data Analysis Platform) — a
+> plugin — reads and changes CODAP's data, components and document, and receives notifications,
+> by sending JSON requests over iframe-phone. This describes CODAP v3; where v3 still differs
+> from the v2 contract, each page lists the difference under Known limitations.
+
+Start with the index for the request and response envelope, resource selectors and the default
+data context. Each resource page is self-contained.
+
+## Overview
+
+- [Index](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/README.md): what plugins are, terminology, request and response shape, ids, names that are not part of the API, the default data context, and the list of resources
+- [Notifications](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/notifications.md): every notification CODAP sends to plugins, and when
+- [Quick reference](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/quick-reference.md): generated tables of actions per resource, the selector grammar and the error messages
+- [Request JSON Schema](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/plugin-api-request.schema.json): a generated JSON Schema for request envelopes
+
+## Guides
+
+- [How CODAP processes requests](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/guides/request-processing.md)
+- [Undo and redo](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/guides/undo-and-redo.md)
+- [Language and locale](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/guides/locale.md)
+- [Embedding CODAP in your page](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/guides/embedded-server.md)
+
+## Resources
+
+- [adornment, adornmentList](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/adornment.md): A graph's measures and overlays: means, box plots, least-squares lines and the like
+- [allCases](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/all-cases.md): Every case in a collection, or delete every case in a data context
+- [attribute](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/attribute.md): One attribute: its name, type, formula and display settings
+- [attributeList](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/attribute-list.md): The attributes of one collection
+- [attributeLocation](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/attribute-location.md): Move an attribute within its collection or into another one
+- [case](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/case.md): Create cases, or update several at once
+- [caseByID](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/case-by-id.md): One case, found by its id
+- [caseByIndex](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/case-by-index.md): One case, found by its position in a collection
+- [caseCount](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/case-count.md): How many cases a collection has
+- [caseFormulaSearch](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/case-formula-search.md): The cases in a collection for which a formula is true
+- [caseSearch](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/case-search.md): The cases in a collection that satisfy a simple comparison
+- [collection, collectionList](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/collection.md): One level of a data context's hierarchy
+- [component](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/component.md): A tile in the workspace: graph, table, map, slider, text and the rest
+- [componentList](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/component-list.md): Every component in the document
+- [configuration, configurationList](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/configuration.md): Settings that change how CODAP behaves for the document
+- [dataContext](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/data-context.md): One data set: its collections, attributes, cases and metadata
+- [dataContextFromURL](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/data-context-from-url.md): Create a data context from a CSV file on the web
+- [dataContextList](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/data-context-list.md): Every data context in the document
+- [dataDisplay](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/data-display.md): A rendered image of a graph
+- [document](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/document.md): Read or replace the whole document
+- [formulaEngine](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/formula-engine.md): CODAP's formula functions, and evaluating formulas
+- [global, globalList](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/global.md): A global value, such as a slider's
+- [interactiveApi](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/interactive-api.md): Whether CODAP is running inside a host learning platform
+- [interactiveFrame](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/interactive-frame.md): The plugin's own tile: its title, size, saved state and behavior
+- [item](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/item.md): Create, read, update and delete items
+- [itemByCaseID](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/item-by-case-id.md): The item behind a case, found by the case's id
+- [itemByID](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/item-by-id.md): One item, found by its id
+- [itemCount](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/item-count.md): How many items a data context has
+- [itemSearch](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/item-search.md): The items that satisfy a simple comparison
+- [logMessage](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/log-message.md): Write an event to CODAP's log
+- [logMessageMonitor](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/log-message-monitor.md): Be told about the events CODAP logs
+- [selectionList](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/selection-list.md): The selected cases in a data context
+- [undoChangeNotice](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/resources/undo-change-notice.md): Take part in CODAP's undo history
+
+## Optional
+
+- [Where the wiki page's sections went](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/wiki-section-map.md): maps each section of the CODAP v2 wiki reference to the page that covers it now
+- [CODAP v2 reference (wiki)](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-Plugin-API): the frozen reference for CODAP v2
