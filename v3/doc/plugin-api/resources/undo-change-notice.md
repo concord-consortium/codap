@@ -80,8 +80,8 @@ CODAP sends `notify` on `undoChangeNotice` with one of these operations:
 
 `clearRedo` is intended when an action is added to the history, which empties the redo history,
 and `clearUndo` when the undo history is emptied. Set your buttons from `canUndo` and `canRedo`
-whatever the operation is called. In v3, `clearUndo` and `clearRedo` also reach the host page
-when CODAP is embedded in one; v2 sent them only to plugins. See
+whatever the operation is called. They are sent to plugins only. v3 currently also sends them to
+the host page when CODAP is embedded in one; see [Known limitations](#known-limitations). See
 [Keeping your buttons in step](../guides/undo-and-redo.md#keeping-your-buttons-in-step).
 
 ## Examples
@@ -133,7 +133,7 @@ function requestHandler(command, callback) {
 
 ## Known limitations
 
-Each of these is described in full in
+Each of these except the last two is described in full in
 [the guide's known limitations](../guides/undo-and-redo.md#known-limitations).
 
 - **The reply to `undoableActionPerformed` describes the history before the action**, so
@@ -145,11 +145,15 @@ Each of these is described in full in
 - **`logMessage` is not logged.**
 - **A failed `undoAction` or `redoAction` is not shown to the user**, and the history moves on as
   if the step had succeeded.
-- **Undoing an entry from a plugin that was closed without leaving an entry does nothing visible**,
-  but still uses an undo step.
+- **Undoing an entry from a closed plugin can do nothing visible.** When the plugin was closed by
+  another plugin's `delete` on `component`, which leaves no entry, undoing one of its entries
+  does nothing visible but still uses an undo step.
 - **The host page cannot use this resource.** When CODAP is embedded in a page, every operation
   from the host page fails with `Interactive Frame not found`; v2 accepted them. See
   [Embedding CODAP in your page](../guides/embedded-server.md#known-limitations).
+- **`clearUndo` and `clearRedo` also reach the host page.** When CODAP is embedded in a page, v3
+  sends them to the host page as well as to plugins. v2 sent them only to plugins. This is a
+  known bug. A host page should ignore them.
 
 ## Notifications
 

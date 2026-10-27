@@ -76,7 +76,7 @@ Each case is an object:
 | Property | Notes |
 |---|---|
 | `id` | the case's id |
-| `parent` | the id of its parent case; no value for a case in the top-level collection |
+| `parent` | the id of its parent case; `null` for a case in the top-level collection. v3 currently differs; see [Known limitations](#known-limitations) |
 | `collection` | `{ "name", "id" }` of the collection searched |
 | `values` | the case's values, keyed by attribute name — only the attributes of this collection, not its parents' |
 | `children` | the ids of its child cases; empty for a case in the last collection. New in v3 |
@@ -98,6 +98,7 @@ Each case is an object:
   "values": [
     {
       "id": 13,
+      "parent": null,
       "collection": { "name": "Mammals", "id": 3 },
       "values": {
         "Mammal": "African Elephant",
@@ -130,16 +131,17 @@ Each case is an object:
   "success": true,
   "values": [
     {
-      "id": 30,
+      "id": 17,
+      "parent": null,
       "collection": { "name": "Mammals", "id": 3 },
       "values": {
-        "Mammal": "Lion",
+        "Mammal": "Cheetah",
         "Order": "Carnivora",
-        "LifeSpan": 15,
-        "Height": 2.5,
-        "Mass": 250,
-        "Sleep": 20,
-        "Speed": 80,
+        "LifeSpan": 14,
+        "Height": 1.5,
+        "Mass": 50,
+        "Sleep": 12,
+        "Speed": 110,
         "Habitat": "land",
         "Diet": "meat"
       },
@@ -172,11 +174,16 @@ text is truthy, so the formula `Endangered` on its own matches that case as well
 holding `true`. v2 kept the boolean, so `Endangered` matched only the `true` cases, which is the
 intended behavior. This is a known bug. Comparing explicitly works in both: `Endangered=true`.
 
-**A formula engine error is not in `values.error`.** When evaluating the formula fails, the
-message is in a top-level `error` property, `{ "success": false, "error": "..." }`, instead of in
-`values.error` as every other error is, and as v2 reported it. A plugin that reads only
-`values.error` gets nothing. This is a known bug. Until it is fixed, read `values?.error ??
-error`.
+**A formula error is not in `values.error`.** When the formula is not a valid formula, or
+evaluating it fails, the message is in a top-level `error` property,
+`{ "success": false, "error": "..." }`, instead of in `values.error` as every other error is, and
+as v2 reported it. Only a missing or empty formula reports its error in `values.error`. A plugin
+that reads only `values.error` gets nothing. This is a known bug. Until it is fixed, read
+`values?.error ?? error`.
+
+**A top-level case's `parent` is `undefined`, not `null`.** v2 sent `null`. A plugin that tests
+`parent === null` treats every top-level case as a child; test for a missing parent instead, such
+as `parent == null`. This is a known bug.
 
 ## Notifications
 
@@ -188,7 +195,7 @@ This resource sends none. Changes to a data set's cases are reported on
 | Error | Condition |
 |---|---|
 | `Collection not found` | The selector names no collection, names one that does not exist, or names a data context that does not exist |
-| `Unable to parse query.` | The formula is missing, empty, or not a valid formula |
+| `Unable to parse query.` | The formula is missing, empty, or not a valid formula. For a formula that is not valid, v3 currently puts the message in a top-level `error`; see [Known limitations](#known-limitations) |
 
 **A formula that fails for any case fails the whole request.** If evaluating the formula throws
 an error for even one case, CODAP returns `success: false` with the formula engine's message,

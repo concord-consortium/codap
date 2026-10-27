@@ -426,6 +426,8 @@ other plugins about them. v2 did, for every one of them:
 - `delete` on `attribute`
 - `delete` on `allCases`
 - `update` and `delete` on `collection`
+- `create` on `dataContextFromURL`. v2 reported the new data context as
+  `dataContextCountChanged` on `documentChangeNotice`
 
 This is a known bug; the intended behavior is that each sends the same notification as the
 equivalent change made in CODAP's own interface.

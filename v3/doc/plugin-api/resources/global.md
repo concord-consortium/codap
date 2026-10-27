@@ -26,8 +26,9 @@ slider [`component`](component.md) that names the global value.
 | `unregister` | — | — |
 <!-- END GENERATED: actions -->
 
-There is no `delete`. A global value is removed only when the user deletes the slider that shows
-it.
+There is no `delete`. A global value is removed only when the slider that shows it is deleted,
+by the user or with `delete` on [`component`](component.md). A global value with no slider cannot
+be removed.
 
 ## Resource selector patterns
 
@@ -64,7 +65,9 @@ apply. Naming a `dataContext` in the selector has no effect.
 | `name` | String | optional. Without one, CODAP picks the first unused name of the form `v1`, `v2`, … |
 | `value` | number | optional; default `0.5` |
 
-`create` replies with the new global value, in the shape `get` returns.
+`create` replies with the new global value, in the shape `get` returns. With no `values` at all,
+v2 created a global value with the default name and value; v3 currently fails, see
+[Known limitations](#known-limitations).
 
 A name already used by another global value is refused with `globals must have unique names`.
 This is new in v3: v2 replied with success, but the new global value could not be found by its
@@ -184,6 +187,11 @@ false, `0`, `false` and empty text among them, with `missing global or value`, a
 value unchanged. v2 refused only a missing `value`, and set `0`. This is a known bug. Until it is
 fixed, send `"0"`, which is accepted and stored as `0`.
 
+**`create` with no `values` fails.** v3 replies with the generic error
+`An error occurred while processing the request.` and creates nothing. v2 created a global value
+named `v1` (or the next unused name) with the value `0.5`. This is a known bug. Until it is fixed,
+send `values: {}` to get the defaults.
+
 **`update` does not respect a slider's "multiple of" setting.** When a slider showing the global
 value restricts it to multiples of some number, v2 rounded a value a plugin set to the nearest
 multiple. v3 stores the value as sent. This is a known bug.
@@ -221,7 +229,7 @@ It is intended to be sent when a plugin sets the value too; see
 | Error | Condition |
 |---|---|
 | `Not found` | `get` names a global value that does not exist, or names none |
-| `missing global or value` | `update` names a global value that does not exist, or has no `value`, or a `value` such as `0`, `false` or empty text; see [Known limitations](#known-limitations) |
+| `missing global or value` | `update` names a global value that does not exist, or has no `value`, or a `value` such as `0`, `false` or empty text; see [Known limitations](#known-limitations). This assumes the request has `values`; without it v3 replies with the generic error |
 | `global values must be numbers` | `create` or `update` with a `value` that is not a number |
 | `globals must have unique names` | `create` with a name another global value already has |
 | `error creating global value` | `create` failed for any other reason |

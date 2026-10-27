@@ -114,7 +114,8 @@ depend on the order among the items it moves.
 With an array, the first matching item moves to the position given by the array's first number,
 the second matching item to the second number, and so on. A position counts the other items,
 starting at `0`. The moves happen one after another, so a later move can shift an item moved
-earlier. A matching item with no number in the array stays where it is.
+earlier. A matching item with no number in the array stays where it is. v3 currently counts only
+the items shown; see [Known limitations](#known-limitations).
 
 `notify` replies `{ "success": true }`, including when no item matched.
 
@@ -205,10 +206,16 @@ the `true` items and `==false` the `false` ones, which is the intended behavior.
 bug. Until it is fixed, use [`caseFormulaSearch`](case-formula-search.md) with `Endangered=true`
 on the data context's last collection.
 
-**Moving items with `"first"` or `"last"` corrupts the data when any item is set aside.** CODAP
-then moves the wrong items, and can delete one item while duplicating another. Moving with an
-array is not affected. This is a known bug. Until it is fixed, do not move items with `"first"`
-or `"last"` while any item in the data context is set aside.
+**Moving items with `"first"` or `"last"` corrupts the data when any item is hidden.** When any
+item in the data context is set aside or hidden by a filter formula, CODAP moves the wrong items,
+and can delete one item while duplicating another. Moving with an array is not affected. This is
+a known bug. Until it is fixed, do not move items with `"first"` or `"last"` while any item is set
+aside or the data context has a filter formula.
+
+**An `itemOrder` position counts only the items shown.** When `itemOrder` is an array, v3 counts
+positions among the items that are not set aside or hidden by a filter formula. v2 counted
+set-aside items too, so the same number can name a different place. This is a known bug. Until it
+is fixed, use array positions only when no item is set aside or hidden.
 
 **An `itemOrder` position of `0` is ignored.** When `itemOrder` is an array, a matching item
 whose position is `0` is not moved, and the reply is still `{ "success": true }`. v2 moved it to

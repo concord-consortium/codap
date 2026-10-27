@@ -58,6 +58,7 @@ A placeholder in `formatStr` takes one of two forms:
 ```
 
 CODAP fills in the placeholders and logs the result. A placeholder with no value is left empty.
+v3 currently differs when the two forms are mixed; see [Known limitations](#known-limitations).
 
 `notify` replies `{ "success": true }`.
 
@@ -109,6 +110,18 @@ rely on its log messages to trigger a save.
 `formatStr` such as `DG.Undo.interactiveUndoableAction` is logged as CODAP's text for that key.
 v2 logged it as written. Do not begin a `formatStr` with `DG.` or `V3.`.
 
+**Mixed placeholders take the wrong values.** v3 counts every placeholder when it picks the value
+for the next unnumbered one, numbered placeholders included. In this `formatStr`, the unnumbered
+placeholder takes the second value of `replaceArgs` rather than the first:
+
+```text
+%@1 then %@
+```
+
+v3 also replaces text of the form `%{name}` with nothing. v2 counted only the unnumbered
+placeholders and left `%{name}` as written. This is a known bug. Until it is fixed, do not mix
+numbered and unnumbered placeholders in one `formatStr`, and do not use `%{`.
+
 A log message sent by the page CODAP is embedded in is not logged; see
 [Embedding CODAP in your page](../guides/embedded-server.md#known-limitations).
 
@@ -129,7 +142,7 @@ v2 reported a missing `values` with a JavaScript error message.
 ## See also
 
 - [`logMessageMonitor`](log-message-monitor.md) to be told about log events
-- [`undoChangeNotice`](../guides/undo-and-redo.md), whose `logMessage` value v2 also wrote to
+- [`undoChangeNotice`](undo-change-notice.md), whose `logMessage` value v2 also wrote to
   CODAP's log
 - [The notification catalog](../notifications.md) for `logMessageNotice`
 - [The resource index](../README.md) for the request envelope

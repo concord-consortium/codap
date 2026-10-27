@@ -183,6 +183,10 @@ the format string with its placeholders, and the values in
 `replaceArgs`, so `formatStr` and `formatPrefix` matched every event of a kind. v3 reports the
 message with its values already filled in, and no `replaceArgs`. This is a known bug.
 
+**`replaceArgs` is missing from a notice for an event with no values.** v2 always sent
+`replaceArgs` as an array, empty when the event had no values. v3 leaves the property out. This
+is a known bug. Until it is fixed, read it as `replaceArgs ?? []`.
+
 A monitor cannot be registered by the page CODAP is embedded in; see
 [Embedding CODAP in your page](../guides/embedded-server.md#known-limitations).
 
@@ -210,7 +214,7 @@ a notification on `logMessageNotice`. It has no `operation`:
 | `message` | the logged message, with its placeholders filled in |
 | `formatStr` | the message as it was given, with its placeholders |
 | `topic` | the event's topic. Absent for an event with none |
-| `replaceArgs` | the values for the placeholders. Absent for an event with none |
+| `replaceArgs` | the values for the placeholders, as an array, which is empty for an event with none. v3 currently leaves it out for such an event; see [Known limitations](#known-limitations) |
 | `logMonitor` | the monitor that matched, as `register` returned it |
 
 Each matching monitor gets its own notice, so a plugin with two matching monitors receives the
@@ -227,7 +231,8 @@ event twice. v2 also added which of the monitor's properties had matched; v3 doe
 | `id or clientId required` | `unregister` with neither `id` nor `clientId` |
 
 v2 reported a `register` with none of the five properties with an error naming them, and an
-`unregister` with neither `id` nor `clientId` with an error saying both were missing.
+`unregister` with neither `id` nor `clientId` with an error saying that the monitor id or
+`clientId` was missing from `values`.
 
 ## See also
 

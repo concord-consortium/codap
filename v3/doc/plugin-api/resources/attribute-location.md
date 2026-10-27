@@ -11,7 +11,8 @@ its hierarchy — moving an attribute into a parent collection groups the cases 
 An attribute's location is its collection and its position among that collection's attributes,
 counted from `0` on the left. There is nothing to read: the resource supports only `update`. To
 read where an attribute is, `get` the [`attributeList`](attribute-list.md) of each collection, or
-the data context's [`collectionList`](collection.md#collectionlist).
+`get` a [`collection`](collection.md), whose `attrs` lists its attributes in order, or the whole
+[`dataContext`](data-context.md).
 
 ## Supported actions
 
@@ -73,9 +74,10 @@ change. A plugin holding case ids from before the move should read them again af
 **A collection left with no attributes is removed.** Moving a collection's only attribute out of
 it deletes that collection.
 
-**The destination must already exist.** `update` cannot create a collection, and fails when
-`collection` names none; v3 currently does not, see [Known limitations](#known-limitations). `"parent"` from the
-top collection, which has no parent, fails with `Collection not found`.
+**The destination must already exist.** `update` cannot create a collection, and is intended to
+fail when `collection` names none. v3 currently does not fail; see
+[Known limitations](#known-limitations). `"parent"` from the top collection, which has no parent,
+fails with `Collection not found`.
 
 `"parent"` is new in v3; v2 read it as the name of a collection. Because v3 checks for `"parent"`
 first, a collection actually named `parent` can be reached only by its id.
@@ -154,8 +156,10 @@ undo it. v3 does not. See [Undo and redo](../guides/undo-and-redo.md#known-limit
 
 A move sends `moveAttribute` on `dataContextChangeNotice[<context>]`, to every plugin listening
 to the data context, including the one that asked, as in v2. When the move leaves a collection
-with no attributes, `deleteCollection` is sent as well. A move that leaves the attribute where it
-was sends nothing in v3; v2 sent `moveAttribute` regardless. See
+with no attributes, `deleteCollection` is sent as well. In v3, a move to the attribute's own
+position plus one, or to position `0` when it is already first, sends nothing; other moves that
+leave the attribute where it was still send `moveAttribute`. v2 sent `moveAttribute` for every
+move. See
 [the notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext)
 for what each carries.
 
@@ -164,7 +168,7 @@ for what each carries.
 | Error | Condition |
 |---|---|
 | `DataContext not found` | the selector's data context does not resolve. v2 reported this as being unable to resolve the data context |
-| `Attribute not found` | the selector names no attribute in the data context. For a name, v2 replied `{ "success": false }` with no message; for an id, it reported the attribute could not be resolved |
+| `Attribute not found` | the selector names no attribute in the data context. v2 replied `{ "success": false }` with no message, whether by name or by id |
 | `Collection not found` | `collection` is `"parent"` and the attribute is in the top collection |
 
 ## See also

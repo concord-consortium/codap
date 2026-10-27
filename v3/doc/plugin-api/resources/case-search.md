@@ -62,10 +62,11 @@ A search expression is either `*`, which matches every case, or a single compari
 - **An empty right side matches empty values.** `Habitat==` finds the cases with no `Habitat`,
   and also those whose `Habitat` is `0`.
 
-Only the first comparison is read. Anything after it is not rejected but becomes part of the
-value, so `Mass>100 and Diet==meat` compares `Mass` with the text `100 and Diet` and matches
-nothing. There is no `and` or `or`, and no way to compare against a value that contains `=`, `!`, `<`,
-`>` or `]`. Use [`caseFormulaSearch`](case-formula-search.md) for those.
+Only the first comparison is read. Text after it is not rejected: the value is the text up to
+the next `=`, `!`, `<` or `>`, and the rest is ignored. So `Mass>100 and Diet==meat` compares
+`Mass` with the text `100 and Diet` and matches nothing. There is no `and` or `or`, and no way to
+compare against a value that contains `=`, `!`, `<`, `>` or `]`. Use
+[`caseFormulaSearch`](case-formula-search.md) for those.
 
 Comparison is evaluated for each case using that case's values. `<`, `<=`, `>` and `>=` compare
 numbers numerically, so `Mass>100` behaves as expected for a numeric attribute. An empty value
@@ -83,7 +84,7 @@ Each case is an object:
 | Property | Notes |
 |---|---|
 | `id` | the case's id |
-| `parent` | the id of its parent case; no value for a case in the top-level collection |
+| `parent` | the id of its parent case; `null` for a case in the top-level collection. v3 currently differs; see [Known limitations](#known-limitations) |
 | `collection` | `{ "name", "id" }` of the collection searched |
 | `values` | the case's values, keyed by attribute name — only the attributes of this collection, not its parents' |
 | `children` | the ids of its child cases; empty for a case in the last collection. New in v3 |
@@ -108,6 +109,7 @@ child collection named Mammals holds the other attributes.
   "values": [
     {
       "id": 5,
+      "parent": null,
       "collection": { "name": "Diets", "id": 3 },
       "values": { "Diet": "meat" },
       "children": [12, 17, 30]
@@ -121,7 +123,7 @@ child collection named Mammals holds the other attributes.
 ```json
 {
   "action": "get",
-  "resource": "dataContext[Mammals].collection[Mammals].caseSearch[Mass>=2000]"
+  "resource": "dataContext[Mammals].collection[Mammals].caseSearch[Mass>=5000]"
 }
 ```
 
@@ -147,8 +149,8 @@ child collection named Mammals holds the other attributes.
 }
 ```
 
-The `values` objects above are shortened; a real response carries every attribute of the
-collection.
+The `values` objects and `children` lists above are shortened; a real response carries every
+attribute of the collection and every child case.
 
 ## Known limitations
 
@@ -158,6 +160,10 @@ number or text, so a case created with `"Endangered": true` holds the text `true
 `Endangered==false` finds only the cases with no value. v2 kept the boolean, so `==true` found
 the `true` cases and `==false` the `false` ones, which is the intended behavior. This is a known bug. Until it is fixed, use
 [`caseFormulaSearch`](case-formula-search.md) with `Endangered=true`, which does match.
+
+**A top-level case's `parent` is `undefined`, not `null`.** v2 sent `null`. A plugin that tests
+`parent === null` treats every top-level case as a child; test for a missing parent instead, such
+as `parent == null`. This is a known bug.
 
 ## Notifications
 
@@ -173,7 +179,8 @@ This resource sends none. Changes to a data set's cases are reported on
 | `Unable to parse query.` | The search expression is missing or empty, contains no comparison, or names no attribute of the collection being searched |
 
 v2 reported an invalid expression with `success: false` and no error message. v3 adds the
-message. v2 also reported a data context that does not exist as `Collection not found`.
+message. v2 reported a data context that does not exist as being unable to resolve the data
+context.
 
 ## See also
 

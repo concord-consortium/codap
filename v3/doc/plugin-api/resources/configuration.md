@@ -54,12 +54,11 @@ effect on either. v2 did not resolve a data context for them at all.
 | Property | Notes |
 |---|---|
 | `name` | the setting's name |
-| `value` | `"yes"` when the setting is on, and empty text, `""`, when it is off |
+| `value` | the setting's value as it is stored. v3 currently reports only `"yes"` or `""`; see [Known limitations](#known-limitations) |
 
-v2 reported the value as it was stored instead: whatever a plugin last set, or failing that the
-value of the `gaussianFit` URL parameter (`null` if the parameter had no value), or `""` if
-neither was set. Only `"yes"` turned the setting on
-in either version, so compare `value` with `"yes"` rather than testing whether it is empty.
+The stored value is whatever a plugin last set, or failing that the value of the `gaussianFit` URL
+parameter (`null` if the parameter had no value), or `""` if neither was set. Only `"yes"` turns
+the setting on, so compare `value` with `"yes"` rather than testing whether it is empty.
 
 ### What `update` accepts
 
@@ -155,6 +154,11 @@ on whatever its value, even `gaussianFit=no`, and while it is present a plugin c
 setting off: `update` replies success, and `get` still reports `"yes"`. In v2 only
 `gaussianFit=yes` turned the setting on, and a non-empty value a plugin set took the place of
 the parameter's. This is a known bug.
+
+**`get` reports `"yes"` or empty text, not the stored value.** v3 reports `"yes"` when the
+setting is on and `""` when it is off, whatever value a plugin set or the URL parameter gave. v2
+reported the value as stored, so a plugin that set `"no"` read back `"no"`. This is a known bug.
+Comparing `value` with `"yes"` works in both.
 
 **Both resources fail when CODAP is embedded in a host page and the host page asks.** See
 [Embedding CODAP in your page](../guides/embedded-server.md#known-limitations).

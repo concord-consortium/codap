@@ -41,7 +41,8 @@ A plugin that must also run on v2 should delete items with `itemByID` or `itemSe
 <!-- END GENERATED: selectors -->
 
 Without an index, `update` and `delete` act on the items whose ids you list in `values`. With an
-index, they act on that one item.
+index, they act on that one item. (v3 currently also accepts case ids in `update`; see
+[Known limitations](#known-limitations).)
 
 `<index>` is the item's zero-based position in the data set, in the order the items were added
 or last sorted. It counts only the items currently in the data set: set-aside items and items
@@ -80,6 +81,9 @@ the plugin choose the item's id:
 | `values` | Object | The item object |
 | `id` | number or string | Optional. The id to give the new item. Without it, CODAP assigns one |
 
+In an unwrapped item, `id` is an ordinary attribute name like any other. v3 currently takes it
+as the item's id instead; see [Known limitations](#known-limitations).
+
 `create` replies with two arrays:
 
 | Property | Notes |
@@ -114,7 +118,8 @@ Without an index, `values` is an array, one object per item:
 
 An object whose `id` matches no item is skipped, and the rest are still updated. If none matches,
 the reply is `{ "success": false }`. (v2 failed the whole request at the first unknown id, after
-updating the items before it.)
+updating the items before it.) v3 currently tries each `id` as a case id first, so an id that
+matches a case is not skipped; see [Known limitations](#known-limitations).
 
 `update` replies with three arrays in `values`:
 
@@ -140,7 +145,8 @@ with the `id` of an item to delete:
 
 Deleting items removes them from the data set, and with them any case left with no items. Unlike
 setting cases aside, it cannot be undone by showing set-aside cases. `delete` replies with the
-ids of the items in `values`.
+item's id in `values`, or, without an index, with every id you sent, whether or not it matched an
+item.
 
 ## Examples
 
@@ -275,9 +281,23 @@ ignores one that differs. This is a known bug; the intended behavior is v2's.
 searches, as described on [`caseSearch`](case-search.md#known-limitations).
 
 **An `id` that is not a number is reported wrongly.** `create` stores an item under a text `id`
-such as `"s9"` as given, but `itemIDs` reports it as the digits it contains, `9`, or as `null`
+such as `"s9"` as given, but `itemIDs` reports it as the digits it contains, `9`, or as `NaN`
 when it has none, so the reply does not find the item. v2 reported the id as given. This is a
 known bug. Until it is fixed, give items numeric ids or let CODAP assign them.
+
+**An `id` in an unwrapped item becomes the item's id.** `create` takes an `id` key in a plain item
+object, such as `{ "id": 7, "Mammal": "Lion" }`, as the id of the new item rather than as a value
+of an attribute named `id`. v2 used `id` as the item's id only in the wrapped `{ id, values }`
+form; in a plain item object it was an ordinary attribute value, and v2 assigned the item a fresh
+id. So a data set with an attribute named `id`, especially one with repeated values, gets items
+that share ids, which later requests cannot tell apart. This is a known bug. Until it is fixed,
+wrap each item as `{ "values": { … } }`, or do not name an attribute `id`.
+
+**`update` without an index also accepts case ids.** v3 tries each `id` first as the id of a case.
+If it matches one, `update` changes that case, and for a parent case every item under it, and
+lists the id in `changedCases`. v2 accepted only item ids, and failed the request at an id that
+was not one. This is a known bug. Use the ids of items, from `itemSearch` or `itemByCaseID`, and
+use `caseByID` to change a case.
 
 **`delete` notifies no other plugin.** Other plugins are not told that the items, and the cases
 built from them, are gone. Deleting the same cases in a case table sends `deleteCases` on

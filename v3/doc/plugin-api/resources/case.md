@@ -75,7 +75,8 @@ order you sent them.
 A case object whose `id` matches no case is skipped, and the rest are still updated. `update`
 replies with `caseIDs`, the ids of the cases it found. A case is listed even when none of its
 values changed, or when its object has no `values`. If no case matched, the reply is
-`{ "success": false }`.
+`{ "success": false }`. v3 currently leaves out an object with no `values`, and accepts item ids
+as well as case ids; see [Known limitations](#known-limitations).
 
 If a name in `values` matches no attribute, the other values are still set, and the reply has
 `success: false` alongside `caseIDs`.
@@ -214,8 +215,13 @@ the collection's attribute order, on both actions. v3 does not: `create` makes a
 values, and `update` changes nothing. This is a known bug; until it is fixed, key `values` by
 attribute name.
 
-**A case object without `values` is skipped.** v2 created an empty case for it. v3 creates
-nothing for that object.
+**A case object without `values` is skipped.** In `create`, v2 created an empty case for it; v3
+creates nothing for that object. In `update`, v2 listed the case in `caseIDs`; v3 leaves it out,
+and replies `{ "success": false }` when no object has `values`. This is a known bug.
+
+**`update` also accepts item ids.** When an `id` matches no case, v3 tries it as the id of an
+item, changes that item, and lists the id in `caseIDs`. v2 skipped it. This is a known bug. Use
+the ids of cases, and use [`itemByID`](item-by-id.md) to change an item.
 
 **The requesting plugin hears its own change.** `create` and `update` send their notifications to
 the plugin that made the change as well as to the others. The intended behavior is that the

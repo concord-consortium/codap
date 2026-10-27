@@ -188,7 +188,7 @@ Some resources are exceptions and return their internal string id directly:
 | Resource | Id it returns |
 |---|---|
 | `adornment`, `adornmentList` | The adornment's `ADRN...` string. The selector matches on it, so round-tripping works. |
-| `logMessageMonitor` | `clientId` is the requesting plugin's frame id, a v3 tile id string. |
+| `logMessageMonitor` | `clientId` is intended to be the plugin's own value, as in v2. v3 currently reports the plugin's tile id string instead, a known bug; see [`logMessageMonitor`](resources/log-message-monitor.md#known-limitations). |
 
 This is why "pass back what you were given" is the reliable rule: it holds for both cases,
 whereas "ids are numbers" does not. Do not parse an id, construct one, or assume its type.

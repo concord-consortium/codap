@@ -57,7 +57,7 @@ function, and each function is an object:
 | `category` | the category name, the same as the key it is listed under |
 | `description` | what the function does |
 | `minArgs` | the fewest arguments it accepts |
-| `maxArgs` | the most arguments it accepts |
+| `maxArgs` | the most arguments it documents. Some functions, such as `concat`, accept more |
 | `args` | its arguments, in order, below |
 | `examples` | example formulas using it, each with its result, as text |
 
@@ -88,7 +88,7 @@ at run time rather than rely on a fixed list.
 CODAP evaluates `source` once for each record, using that record's values for the names in the
 formula. `pi`, `π` and `e` are also available. The response's `values` is an array with one
 result per record, in the same order. An empty `records` gives an empty array. Each result is
-whatever the formula produces: a number, text, a boolean or an empty value. `a > 1`, for
+whatever the formula produces: a number, text, a boolean, a date or an empty value. `a > 1`, for
 example, gives `true` or `false`.
 
 Only functions that work on a single set of values are available. Functions that summarize many

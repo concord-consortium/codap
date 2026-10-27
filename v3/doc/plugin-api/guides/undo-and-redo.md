@@ -7,9 +7,10 @@ undo and redo buttons. A plugin can take part in that history: it can put its ow
 so that the user's undo reverses them in turn, and it can drive undo and redo from buttons of its
 own.
 
-This chapter covers both. It draws on three reference pages: the `undoChangeNotice` resource your
-plugin sends to, [the notifications CODAP sends back](../notifications.md#undo-and-redo--undochangenotice),
-and the two undo properties on [`interactiveFrame`](../resources/interactive-frame.md).
+This chapter covers both. It draws on three reference pages: the
+[`undoChangeNotice`](../resources/undo-change-notice.md) resource your plugin sends to,
+[the notifications CODAP sends back](../notifications.md#undo-and-redo--undochangenotice), and
+the two undo properties on [`interactiveFrame`](../resources/interactive-frame.md).
 
 ## What the history holds
 
@@ -231,6 +232,7 @@ undo reverses a request it made.
 
 ## See also
 
+- [`undoChangeNotice`](../resources/undo-change-notice.md) for the resource your plugin sends to
 - [`interactiveFrame`](../resources/interactive-frame.md) for `externalUndoAvailable` and
   `standaloneUndoModeAvailable`
 - [The resource index](../README.md) for the request envelope and how notifications arrive

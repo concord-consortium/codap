@@ -69,12 +69,15 @@ not repeat its parent's; read the parent for those.
 | `values` | Object | required. The new values, keyed by attribute name. Attributes you leave out keep their values |
 
 The values are nested one level: the request's `values` holds an object whose own `values` key
-holds the attribute values. Names that match no attribute are ignored.
+holds the attribute values. A name that matches no attribute is tried again with leading and
+trailing spaces removed. If it still matches none, the other values are still set, and the reply
+is `{ "success": false }`. v3 currently differs on both points; see
+[Known limitations](#known-limitations).
 
 Updating a parent case changes that value for every item grouped under it, so the case keeps its
 children.
 
-`update` replies `{ "success": true }`.
+Otherwise `update` replies `{ "success": true }`.
 
 ### What `delete` returns
 
@@ -174,6 +177,14 @@ request as an unsupported action. This is a known bug.
 **A top-level case's `parent` is `undefined`, not `null`.** v2 sent `null`. A plugin that tests
 `parent === null` treats every top-level case as a child; test for a missing parent instead, such
 as `parent == null`. This is a known bug.
+
+**An unknown attribute name does not make `update` report failure.** v2 replied `success: false`
+when a name in `values` matched no attribute, and v3 replies `success: true`. Both still set the
+other values. This is a known bug; the intended behavior is v2's.
+
+**Attribute names must match exactly.** v2 tried a name in `values` again with leading and
+trailing spaces removed, so `"Age "` still matched `Age`. v3 matches the name exactly and ignores
+one that differs. This is a known bug; the intended behavior is v2's.
 
 **`update` and `delete` notify no other plugin.** v2 sent `updateCases` or `deleteCases` on
 `dataContextChangeNotice[<context>]` to the other plugins. v3 sends nothing, so other plugins do
