@@ -1,5 +1,23 @@
 # Changelog
 
+## Version 3.1.2 - October 24, 2026
+
+### ✨ Features & Improvements:
+- **CODAP-1578:** Add a survey banner for user feedback
+
+### 🐞 Bug Fixes:
+- **CODAP-1498:** Fix graph filter formulas that evaluate to "true" or "false"
+- **CODAP-1543:** Fix percent adornments showing 0% in "Other" cells
+
+### 🛠️ Under the Hood:
+- **CODAP-1556:** Report unexpected errors so we can find and fix bugs
+
+### Asset Sizes
+|      File |          Size | % Change from Previous Release |
+|-----------|---------------|--------------------------------|
+|  main.css |  252320 bytes |                          0.02% |
+|  index.js | 7387009 bytes |                          0.16% |
+
 ## Version 3.1.1 - October 6, 2026
 
 ### ✨ Features & Improvements:

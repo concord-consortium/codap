@@ -1,6 +1,6 @@
 import type { MathNode } from "mathjs"
 import { checkDate } from "../../../utilities/date-utils"
-import { isValueNonEmpty } from "../../../utilities/math-utils"
+import { isValueEmpty, isValueNonEmpty } from "../../../utilities/math-utils"
 import { FormulaMathJsScope } from "../formula-mathjs-scope"
 import { CurrentScope, MathJSPartitionedMap } from "../formula-types"
 export { isNumber, isValueNonEmpty } from "../../../utilities/math-utils"
@@ -12,6 +12,26 @@ export const UNDEF_RESULT = ""
 // NaN is treated as falsy (V2 parity: V2 uses !!x where !!NaN === false) so a filter expression
 // evaluating to NaN excludes that case from aggregations.
 export const isValueTruthy = (value: any) => isValueNonEmpty(value) && value !== false && !Number.isNaN(value)
+
+// Converts a formula value to a boolean for `boolean()`, `if()`, and filter formulas.
+// Empty values return undefined so each caller decides how to treat them.
+// Deliberate differences from V2, whose `boolean()` and `if()` disagree with each other:
+// - "true"/"false" match in any case (V2's `if()` matched only lowercase and uppercase)
+// - "0" is false, like the number 0 (V2's `if()` treated it as true)
+// - NaN is false, so `if(0/0 < 0, …)` takes the false branch (V2's `boolean()` treated it as true)
+// - strings that convert to 0, such as " " and "0.0", are false (V2 treated them as true)
+export const toBoolean = (value: any): boolean | undefined => {
+  if (isValueEmpty(value)) return undefined
+  if (Number.isNaN(value)) return false
+  if (value === true || value === false) return value
+  if (typeof value === "string") {
+    const lowerValue = value.toLowerCase()
+    if (lowerValue === "true") return true
+    if (lowerValue === "false") return false
+  }
+  if (typeof value === "object") return true
+  return Number(value) !== 0
+}
 
 export const
 equal = (a: any, b: any): boolean => {

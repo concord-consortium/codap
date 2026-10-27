@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
+import { Logger } from "../../lib/logger"
 import { AnnouncementBanner } from "./announcement-banner"
 import { dismissBanner } from "./announcement-banner-utils"
 
@@ -231,6 +232,61 @@ describe("AnnouncementBanner", () => {
       await waitForBannerOrNot()
       expect(document.documentElement.classList.contains("has-announcement-banner")).toBe(false)
     })
+  })
+
+  describe("analytics logging", () => {
+    let logSpy: jest.SpyInstance
+
+    beforeEach(() => {
+      logSpy = jest.spyOn(Logger, "log").mockImplementation(() => undefined)
+    })
+
+    afterEach(() => {
+      logSpy.mockRestore()
+    })
+
+    it("logs an impression once when the banner is shown", async () => {
+      mockFetchResolve(validConfig)
+      render(<AnnouncementBanner />)
+      await screen.findByTestId("announcement-banner")
+      expect(logSpy).toHaveBeenCalledTimes(1)
+      expect(logSpy).toHaveBeenCalledWith("Announcement banner shown", { bannerId: validConfig.id }, "banner",
+        { analyticsArgs: ["bannerId"] })
+    })
+
+    it("does not log an impression when the banner is not shown", async () => {
+      dismissBanner(validConfig.id)
+      mockFetchResolve(validConfig)
+      render(<AnnouncementBanner />)
+      await waitForBannerOrNot()
+      expect(logSpy).not.toHaveBeenCalled()
+    })
+
+    it("logs a click on the button with its url", async () => {
+      mockFetchResolve(validConfig)
+      render(<AnnouncementBanner />)
+      fireEvent.click(await screen.findByTestId("announcement-banner-button"))
+      expect(logSpy).toHaveBeenLastCalledWith("Announcement banner link clicked",
+        { bannerId: validConfig.id, url: validConfig.buttonUrl }, "banner",
+        { analyticsArgs: ["bannerId", "url"] })
+    })
+
+    it("logs a click on a link in the message with its url", async () => {
+      mockFetchResolve({ ...validConfig, message: "Take [our survey](https://example.com/survey)." })
+      render(<AnnouncementBanner />)
+      fireEvent.click(await screen.findByRole("link", { name: "our survey" }))
+      expect(logSpy).toHaveBeenLastCalledWith("Announcement banner link clicked",
+        { bannerId: validConfig.id, url: "https://example.com/survey" }, "banner",
+        { analyticsArgs: ["bannerId", "url"] })
+    })
+
+    it.each(["announcement-banner-close", "announcement-banner-dont-show"])(
+      "does not log a click on %s", async testId => {
+        mockFetchResolve(validConfig)
+        render(<AnnouncementBanner />)
+        fireEvent.click(await screen.findByTestId(testId))
+        expect(logSpy).toHaveBeenCalledTimes(1)
+      })
   })
 
   describe("accessibility", () => {

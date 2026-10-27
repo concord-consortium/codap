@@ -1,7 +1,7 @@
 import { parse } from "mathjs/number"
 import { FormulaMathJsScope } from "../formula-mathjs-scope"
 import { CurrentScope } from "../formula-types"
-import { isValueTruthy, equal, evaluateNode, isPartitionedMap, isMap, getRootScope } from "./function-utils"
+import { isValueTruthy, toBoolean, equal, evaluateNode, isPartitionedMap, isMap, getRootScope } from "./function-utils"
 
 describe("isValueTruthy", () => {
   it("should return true for truthy values", () => {
@@ -28,6 +28,41 @@ describe("isValueTruthy", () => {
     // Number.isNaN check so they remain truthy as non-empty values.
     expect(isValueTruthy("abc")).toBe(true)
     expect(isValueTruthy("NaN")).toBe(true)
+  })
+})
+
+describe("toBoolean", () => {
+  it("should return undefined for empty values", () => {
+    expect(toBoolean("")).toBeUndefined()
+    expect(toBoolean(null)).toBeUndefined()
+    expect(toBoolean(undefined)).toBeUndefined()
+  })
+
+  it("should return boolean values unchanged", () => {
+    expect(toBoolean(true)).toBe(true)
+    expect(toBoolean(false)).toBe(false)
+  })
+
+  it("should treat \"true\" and \"false\" strings as booleans, ignoring case", () => {
+    expect(toBoolean("true")).toBe(true)
+    expect(toBoolean("TRUE")).toBe(true)
+    expect(toBoolean("false")).toBe(false)
+    expect(toBoolean("False")).toBe(false)
+  })
+
+  it("should treat non-zero numbers as true and zero or NaN as false", () => {
+    expect(toBoolean(1)).toBe(true)
+    expect(toBoolean(-2.5)).toBe(true)
+    expect(toBoolean("3")).toBe(true)
+    expect(toBoolean(0)).toBe(false)
+    expect(toBoolean("0")).toBe(false)
+    expect(toBoolean(NaN)).toBe(false)
+  })
+
+  it("should treat objects and other strings as true", () => {
+    expect(toBoolean(new Date())).toBe(true)
+    expect(toBoolean({})).toBe(true)
+    expect(toBoolean("abc")).toBe(true)
   })
 })
 
