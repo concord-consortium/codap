@@ -61,6 +61,9 @@ context("Test graph axes with split, multi-y, bars, and overflow configurations"
     cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").eq(0).should("have.text", "Height")
     cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").eq(1).should("have.text", "Sleep")
     ah.verifyAxisTickLabel("left", "0", 0)
+    let splitTickCount = 0
+    cy.get("[data-testid=axis-left] .sub-axis-wrapper").first().find("g.tick > text")
+      .its("length").then(count => { splitTickCount = count })
     cy.get("[data-testid=graph]")
       .find("[data-testid=axis-bottom]")
       .find(".sub-axis-wrapper")
@@ -77,9 +80,11 @@ context("Test graph axes with split, multi-y, bars, and overflow configurations"
       .should("have.text", "Height")
     cy.get("[data-testid=graph]").find("[data-testid=attribute-label-multi-y]").should("have.length", 0)
     ah.verifyYAxisTickMarksDisplayed()
-    // Single y-attribute: the full-height left axis fits a finer tick interval than the
-    // split (two-y) cases above and below, so its first tick is "-0.5" rather than "0".
-    ah.verifyAxisTickLabel("left", "-0.5", 0)
+    // The full-height left axis should fit more ticks than either split axis. The precise
+    // first tick depends on the plot height and D3's chosen interval.
+    ah.verifyAxisTickLabel("left", "0", 0)
+    cy.get("[data-testid=axis-left] .sub-axis-wrapper").first().find("g.tick > text")
+      .its("length").should("be.greaterThan", splitTickCount)
 
     // Redo the last change (Sleep => left split)
     toolbar.getRedoTool().click()
