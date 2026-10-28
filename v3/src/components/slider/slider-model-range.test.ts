@@ -300,11 +300,29 @@ describe("SliderModel playback steps", () => {
     expect(slider.nextAnimationValue(1, 1)).toBe(next + 2 * day)
   })
 
-  it("steps a zero-width range through the data values even with a multiple restriction", async () => {
+  it("steps a zero-width range to the first data value at or past the next multiple", async () => {
+    const { slider } = await setupRangeSlider()
+    slider.setMultipleOf(2.5)
+    slider.setRange(3, 3)
+    // the next multiple is 5, so 4 is skipped
+    expect(slider.nextAnimationValue(1, 0.1)).toBe(5)
+    // the previous multiple is 2.5, so the step back is to 2
+    expect(slider.nextAnimationValue(-1, 0.1)).toBe(2)
+  })
+
+  it("steps a zero-width range on to the next data value when no data lies on the next multiple", async () => {
+    const { slider } = await setupRangeSlider()
+    slider.setMultipleOf(0.4)
+    slider.setRange(3, 3)
+    // the next multiple is 3.2, between the data values 3 and 4
+    expect(slider.nextAnimationValue(1, 0.1)).toBe(4)
+  })
+
+  it("steps a zero-width range with a multiple restriction past the domain after the last data value", async () => {
     const { slider } = await setupRangeSlider()
     slider.setMultipleOf(2)
-    slider.setRange(3, 3)
-    expect(slider.nextAnimationValue(1, 0.1)).toBe(4)
+    slider.setRange(6, 6)
+    expect(slider.nextAnimationValue(1, 0.1)).toBeGreaterThan(slider.valueDomain[1])
   })
 
   it("steps a variable slider by its multiple restriction", async () => {

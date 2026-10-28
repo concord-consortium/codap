@@ -207,26 +207,34 @@ export const SliderModel = TileContentModel
       }
       return keepValueInBounds(value)
     },
-    // the value one playback step further; a zero-width range steps through the data's distinct values
+    // the value one playback step further
     nextAnimationValue(sign: 1 | -1, fallbackIncrement: number) {
-      const values = self.snapValues
-      if (self.isRangeSlider && self.width === 0 && values.length) {
-        const next = sign > 0
-          ? values.find(v => v > self.value)
-          : [...values].reverse().find(v => v < self.value)
-        const [min, max] = self.valueDomain
-        return next ?? (sign > 0 ? max + 1 : min - 1)
-      }
-      // Otherwise playback steps by the multiple restriction, as for a variable slider, or else by the fallback step.
       // A range's low end needn't be on a multiple (a drag of its ends ignores the restriction; see sliderStep), so a
       // range steps to the next multiple in the direction of play, with a tolerance so floating point doesn't make it
       // step to the multiple it's already on.
       const { increment } = self
-      if (self.isRangeSlider && increment) {
+      const nextMultiple = () => {
+        if (!increment) return undefined
         const multiples = self.value / increment
         const kTolerance = 1e-9
         const next = sign > 0 ? Math.floor(multiples + kTolerance) + 1 : Math.ceil(multiples - kTolerance) - 1
         return next * increment
+      }
+      // A zero-width range shows only the cases at its value, so it steps through the data's distinct values: the
+      // first one at or past the next multiple, or else the next one.
+      const values = self.snapValues
+      if (self.isRangeSlider && self.width === 0 && values.length) {
+        const target = nextMultiple()
+        const next = sign > 0
+          ? values.find(v => target != null ? v >= target : v > self.value)
+          : [...values].reverse().find(v => target != null ? v <= target : v < self.value)
+        const [min, max] = self.valueDomain
+        return next ?? (sign > 0 ? max + 1 : min - 1)
+      }
+      // Otherwise playback steps by the multiple restriction, as for a variable slider, or else by the fallback step.
+      if (self.isRangeSlider) {
+        const next = nextMultiple()
+        if (next != null) return next
       }
       return self.value + sign * (increment ?? fallbackIncrement)
     },
