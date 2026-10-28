@@ -112,8 +112,8 @@ export const SliderRangeThumb = observer(function SliderRangeThumb({
   sliderModel?.axis.domain // eslint-disable-line @typescript-eslint/no-unused-expressions
 
   if (!sliderModel || !scale) return null
-  const attrName = sliderModel.attribute?.name
-  const handleLabel = (key: string, keyWithAttr: string) => attrName ? t(keyWithAttr, { vars: [attrName] }) : t(key)
+  // the handles show only while an attribute is bound
+  const handleLabel = (key: string) => t(key, { vars: [sliderModel.attribute?.name ?? ""] })
   const valueText = (index: 0 | 1) =>
     formatSliderValue(sliderModel, scale, index === 0 ? sliderModel.rangeLow : sliderModel.rangeHigh, true)
   const toScreen = (value: number) => scale.getScreenCoordinate({ cell: 0, data: value })
@@ -174,10 +174,10 @@ export const SliderRangeThumb = observer(function SliderRangeThumb({
            onPointerMove={handleBodyPointerMove}
            onPointerUp={handleBodyPointerUp} onPointerCancel={handleBodyPointerUp}
            onLostPointerCapture={handleBodyPointerUp} />
-      <RangeHandle index={0} label={handleLabel("V3.Slider.rangeLow", "V3.Slider.rangeLowOf")} valueText={valueText(0)}
+      <RangeHandle index={0} label={handleLabel("V3.Slider.rangeLowOf")} valueText={valueText(0)}
                    left={lowX - kHandleWidth}
                    moveHandlers={collapsedMoveHandlers} state={state} trackRef={trackRef} />
-      <RangeHandle index={1} label={handleLabel("V3.Slider.rangeHigh", "V3.Slider.rangeHighOf")}
+      <RangeHandle index={1} label={handleLabel("V3.Slider.rangeHighOf")}
                    valueText={valueText(1)} left={highX}
                    moveHandlers={collapsedMoveHandlers} state={state} trackRef={trackRef} />
     </div>

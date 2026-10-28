@@ -299,6 +299,32 @@ describe("SliderComponent for screen readers", () => {
       expect(status()).toHaveTextContent("Attribute removed")
     })
 
+    it("announces a bound attribute deleted during playback with the playback's stop", async () => {
+      const { tile, dataSet, slider } = await setupSliderAndData()
+      slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+      renderSlider(tile)
+      fireEvent.click(screen.getByTestId("slider-play-pause"))
+      act(() => dataSet.removeAttribute(dataSet.attrFromName("a3")!.id))
+      expect(status()).toHaveTextContent("Attribute removed. Slider animation stopped")
+    })
+
+    it("announces a change to a range type during playback with the playback's stop", async () => {
+      const { tile, slider } = await setupSliderAndData()
+      renderSlider(tile)
+      fireEvent.click(screen.getByTestId("slider-play-pause"))
+      act(() => slider.setSliderType("visibility"))
+      expect(status()).toHaveTextContent("Slider changed to Visibility slider. Slider animation stopped")
+    })
+
+    it("announces only the stop when playback is paused", async () => {
+      const { tile, dataSet, slider } = await setupSliderAndData()
+      slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+      renderSlider(tile)
+      fireEvent.click(screen.getByTestId("slider-play-pause"))
+      fireEvent.click(screen.getByTestId("slider-play-pause"))
+      expect(status()).toHaveTextContent(/^Slider animation stopped$/)
+    })
+
     it("announces a change made by undo", async () => {
       const { tile, dataSet, slider } = await setupSliderAndData()
       slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)

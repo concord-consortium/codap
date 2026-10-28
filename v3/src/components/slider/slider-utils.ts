@@ -13,7 +13,8 @@ export const kDefaultSliderName = "v1"
 export const kDefaultSliderValue = .5
 
 // A value as the slider shows it: a range's ends at its date axis's display precision, a variable's value in its
-// multiples' date unit. With units, a bound attribute's units follow it, as a screen reader should say it.
+// multiples' date unit if a multiple is set, else to the minute. With units, a bound attribute's units follow it, as
+// a screen reader should say it.
 export function formatSliderValue(slider: ISliderModel, multiScale: MultiScale | undefined, value: number,
                                   withUnits = false) {
   const isDate = slider.scaleType === "date"
