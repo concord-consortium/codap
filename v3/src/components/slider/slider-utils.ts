@@ -3,10 +3,42 @@ import { isFeatureEnabled } from "../../models/feature-flags/feature-flag-manage
 import {
   DateUnit, DurationUnit, durationUnits, durationUnitSeconds, unitsStringToMilliseconds
 } from "../../utilities/date-utils"
+import { t } from "../../utilities/translation/translate"
+import type { MultiScale } from "../axis/models/multi-scale"
+import { isDateAxisModel } from "../axis/models/numeric-axis-models"
+import type { ISliderModel } from "./slider-model"
 import { SliderType } from "./slider-types"
 
 export const kDefaultSliderName = "v1"
 export const kDefaultSliderValue = .5
+
+// A value as the slider shows it: a range's ends at its date axis's display precision, a variable's value in its
+// multiples' date unit if a multiple is set, else to the minute. With units, a bound attribute's units follow it, as
+// a screen reader should say it.
+export function formatSliderValue(slider: ISliderModel, multiScale: MultiScale | undefined, value: number,
+                                  withUnits = false) {
+  const isDate = slider.scaleType === "date"
+  const datePrecision = slider.isRangeSlider
+    ? (isDateAxisModel(slider.axis) ? slider.axis.precisionForDisplay : undefined)
+    : (slider.multipleOf !== undefined ? slider.dateMultipleOfUnit : undefined)
+  const text = multiScale?.formatValueForScale(value, isDate, datePrecision) ?? String(value)
+  const units = withUnits && slider.isRangeSlider ? slider.attribute?.units : undefined
+  return units ? `${text} ${units}` : text
+}
+
+// The slider's name for screen readers: a variable slider's variable, a range slider's type, and a bound range
+// slider's attribute and range, e.g. "Visibility slider, Height, showing 4.8 to 6.1". A thumb's name would include
+// this by default; the thumbs omit it, so that it's heard when focus enters the slider rather than with every step
+// (and a variable slider's thumb isn't named "v1 v1").
+export function sliderGroupLabel(slider: Maybe<ISliderModel>, multiScale: MultiScale | undefined) {
+  if (!slider?.isRangeSlider) return slider?.name ?? ""
+  const typeName = t(`V3.Slider.typeName.${slider.sliderType}`)
+  const attrName = slider.attribute?.name
+  if (!attrName) return typeName
+  const low = formatSliderValue(slider, multiScale, slider.rangeLow, true)
+  const high = formatSliderValue(slider, multiScale, slider.rangeHigh, true)
+  return t(`V3.Slider.rangeGroupLabel.${slider.sliderType}`, { vars: [typeName, attrName, low, high] })
+}
 
 // whether the type can be offered: variable always, the range types only while their flags are on
 export function isSliderTypeAvailable(sliderType: SliderType) {

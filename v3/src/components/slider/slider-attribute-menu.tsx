@@ -14,6 +14,7 @@ import {
   AttributePickerMenuItems, getAttributePickerEntries, useAttributePickerSubmenus
 } from "../common/attribute-picker-menu-items"
 import { configureSliderFromAttribute, isSliderAttributeUsable } from "./slider-attribute-drop"
+import { makeQuietSliderChange } from "./slider-quiet-change"
 import { isSliderModel } from "./slider-model"
 
 
@@ -58,7 +59,7 @@ export const SliderAttributeMenu = observer(function SliderAttributeMenu({
     isSliderAttributeUsable(slider, dataSet, attrId)
   // an attribute chosen in a collection's submenu closes only the submenu, so the menu is closed here
   const handleSelect = (dataSet: IDataSet, attrId: string) => {
-    configureSliderFromAttribute(tile, dataSet, attrId)
+    makeQuietSliderChange(slider, () => configureSliderFromAttribute(tile, dataSet, attrId))
     onClose()
     onSelect?.()
   }

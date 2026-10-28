@@ -9,7 +9,7 @@ import { t } from "../../utilities/translation/translate"
 import { MultiScale } from "../axis/models/multi-scale"
 import { ISliderModel } from "./slider-model"
 import { changeSliderValueNotification } from "./slider-notifications"
-import { valueChangeNotification } from "./slider-utils"
+import { formatSliderValue, valueChangeNotification } from "./slider-utils"
 import { useSliderAxisAnimation } from "./use-slider-axis-animation"
 
 import './slider.scss'
@@ -32,8 +32,7 @@ export const EditableSliderValue = observer(function EditableSliderValue({slider
       // trigger update on domain change
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const domain = sliderModel.domain
-      setCandidate(multiScale.formatValueForScale(sliderModel.value, sliderModel.scaleType === "date",
-                                    sliderModel.multipleOf !== undefined ? sliderModel.dateMultipleOfUnit : undefined))
+      setCandidate(formatSliderValue(sliderModel, multiScale, sliderModel.value))
     })
   }, [multiScale, sliderModel])
 
@@ -57,8 +56,7 @@ export const EditableSliderValue = observer(function EditableSliderValue({slider
   }
 
   const formatCurrentValue = () => {
-    return multiScale.formatValueForScale(sliderModel.value, sliderModel.scaleType === "date",
-      sliderModel.multipleOf !== undefined ? sliderModel.dateMultipleOfUnit : undefined)
+    return formatSliderValue(sliderModel, multiScale, sliderModel.value)
   }
 
   const handleSubmitValue = (e: React.FocusEvent<HTMLInputElement>) => {

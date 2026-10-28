@@ -47,6 +47,8 @@ jobs:
     # only run the regression tests if the PR is labeled.
     if: fromJSON(needs.prepare.outputs.run_regression)
     runs-on: ubuntu-latest
+    # a full run takes about 10 minutes; without a limit, a hung spec holds a runner for GitHub's 6-hour default
+    timeout-minutes: 30
     # Run in a container so every parallel runner has the exact same OS version,
     # browser version, and dependencies. This prevents Cypress Cloud from rejecting
     # parallel runs due to environment mismatches during GitHub runner image rollouts.

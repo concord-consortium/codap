@@ -605,3 +605,60 @@ context("Slider keyboard accessibility", () => {
     slider.closePalette()
   })
 })
+
+context("Slider Configuration palette by keyboard", () => {
+  beforeEach(function () {
+    // a small document with a date attribute, so that a Visibility slider bound to it has a width with a unit menu
+    cy.visit(`${Cypress.config("index")}?suppressUnsavedWarning&features=visibilitySlider`)
+    cy.contains("button", "Create New Document").should("be.visible")
+    cfm.openLocalDocWithUserEntry("cypress/fixtures/attribute-types.codap")
+    cy.get('.codap-case-table [data-testid="codap-attribute-button Date"]').should("be.visible")
+    c.getIconFromToolShelf("slider").click()
+    slider.getSliderTile().should("be.visible")
+  })
+  it("sets the type, width and unit from the keyboard, and closes with Escape", () => {
+    c.selectTile("slider", 0)
+    const configButton = () => c.getInspectorPanel().find("[data-testid=slider-config-button]")
+    configButton().focus()
+    cy.realPress("Enter")
+    cy.get("[data-testid=slider-type-button]").focus()
+
+    cy.log("type menu: Enter opens it, arrows move, Enter chooses")
+    cy.realPress("Enter")
+    cy.realPress("ArrowDown")
+    cy.realPress("Enter")
+    cy.get("[data-testid=slider-type-button]").should("contain.text", "Visibility").and("be.focused")
+
+    // a range slider's width can be edited once an attribute is bound, here from the slider's attribute menu
+    cy.realPress("Escape")
+    slider.getSliderTile().find("[data-testid=slider-attribute-menu-button]").click()
+    // the document has a single collection, so the menu lists its attributes directly
+    cy.get('[data-testid="slider-attribute-menu-list"] [role="menuitem"]').contains(/^Date$/).click()
+    slider.getSliderTile().find("[data-testid=slider-attribute-label]").should("contain.text", "Date")
+    c.selectTile("slider", 0)
+    configButton().focus()
+    cy.realPress("Enter")
+    cy.get("[data-testid=slider-type-button]").focus()
+
+    cy.log("width field: Tab reaches it, and Enter commits a typed width")
+    cy.realPress("Tab")
+    cy.get("[data-testid=slider-range-width-input]").should("be.focused")
+    cy.realType("2")
+    cy.realPress("Enter")
+    cy.get("[data-testid=slider-range-width-input]").should("have.value", "2")
+
+    cy.log("unit menu: Tab reaches it, and a unit can be chosen")
+    cy.realPress("Tab")
+    cy.get("[data-testid=slider-range-width-unit]").should("be.focused").invoke("text").then(unit => {
+      cy.realPress("Enter")
+      cy.realPress("ArrowDown")
+      cy.realPress("Enter")
+      cy.get("[data-testid=slider-range-width-unit]").should("not.have.text", unit).and("be.focused")
+    })
+
+    cy.log("Escape closes the palette and returns focus to the Config button")
+    cy.realPress("Escape")
+    cy.get("[data-testid=codap-inspector-palette]").should("not.exist")
+    configButton().should("be.focused")
+  })
+})

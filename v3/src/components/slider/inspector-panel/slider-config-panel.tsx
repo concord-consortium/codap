@@ -12,6 +12,7 @@ import { t } from "../../../utilities/translation/translate"
 import { If } from "../../common/if"
 import { InspectorPalette } from "../../inspector-panel"
 import { ISliderModel } from "../slider-model"
+import { makeQuietSliderChange } from "../slider-quiet-change"
 import { rangeChangeOptions } from "../slider-range-change"
 import { SliderType, SliderTypes } from "../slider-types"
 import {
@@ -59,13 +60,13 @@ export const SliderConfigPalette =
     const handleTypeChange = (key: React.Key | null) => {
       if (key == null) return
       const newType = key as SliderType
-      sliderModel.applyModelChange(() => {
+      makeQuietSliderChange(sliderModel, () => sliderModel.applyModelChange(() => {
         sliderModel.setSliderType(newType)
       }, {
         undoStringKey: "V3.Undo.slider.changeType",
         redoStringKey: "V3.Redo.slider.changeType",
         log: logStringifiedObjectMessage("sliderType: %@", {name: sliderModel.name, sliderType: newType})
-      })
+      }))
     }
 
     // commits a pending edit, in the given unit (by default the one shown)
@@ -184,7 +185,7 @@ export const SliderConfigPalette =
               </If>
               <If condition={isDate}>
                 <Select
-                  aria-labelledby="slider-range-width-label"
+                  aria-label={t("V3.Slider.rangeWidthUnit")}
                   className="slider-select-container slider-date-unit-select"
                   value={unit}
                   onChange={handleUnitChange}

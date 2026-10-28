@@ -7,6 +7,7 @@ import { isAliveSafe } from "../../utilities/mst-utils"
 import { t } from "../../utilities/translation/translate"
 import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
 import { ISliderModel } from "./slider-model"
+import { formatSliderValue } from "./slider-utils"
 import { ThumbIcon } from "./thumb-icon"
 import { useSliderAnimation } from "./use-slider-animation"
 
@@ -53,7 +54,10 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({
       style={{ ...thumbProps.style, left: thumbPos, position: "relative", transform: "none" }}
     >
       <ThumbIcon />
-      <input {...mergeProps(inputProps, focusProps)} ref={inputRef} className="codap-visually-hidden" />
+      {/* the value as the slider shows it, and the thumb's own name without the group's (see sliderGroupLabel) */}
+      <input {...mergeProps(inputProps, focusProps)} ref={inputRef} className="codap-visually-hidden"
+             aria-valuetext={sliderModel && formatSliderValue(sliderModel, scale, sliderModel.value)}
+             aria-labelledby={undefined} />
     </div>
   )
 })

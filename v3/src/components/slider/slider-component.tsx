@@ -1,4 +1,5 @@
 import { clsx } from "clsx"
+import { comparer, reaction } from "mobx"
 import { observer } from "mobx-react-lite"
 import { CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Input as RAInput, TextField } from "react-aria-components"
@@ -27,12 +28,13 @@ import { SliderAttributeMenu } from "./slider-attribute-menu"
 import { SliderAxisLayout } from "./slider-layout"
 import { isSliderModel } from "./slider-model"
 import { changeSliderValueNotification } from "./slider-notifications"
+import { isQuietSliderChange } from "./slider-quiet-change"
 import { rangeChangeOptions } from "./slider-range-change"
 import { SliderRangeThumb } from "./slider-range-thumb"
 import { SliderRangeValues } from "./slider-range-values"
 import { CodapSliderThumb } from "./slider-thumb"
 import { kSliderClass } from "./slider-types"
-import { rangeFromHandles, sliderStep, valueChangeNotification } from "./slider-utils"
+import { rangeFromHandles, sliderGroupLabel, sliderStep, valueChangeNotification } from "./slider-utils"
 
 import "./slider.scss"
 
@@ -63,6 +65,8 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   const clearFocusAttributeLabel = useCallback(() => setFocusAttributeLabel(false), [])
   const [statusMessage, setStatusMessage] = useState("")
   const statusTimeoutRef = useRef<number>()
+  // the message being announced, which a stop of playback caused by the same change adds to
+  const statusMessageRef = useRef("")
   const prevRunningRef = useRef(false)
   const multiScale = layout.getAxisMultiScale("bottom")
   const trackRef = useRef<HTMLDivElement | null>(null)
@@ -71,9 +75,13 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   // Cancels any pending clear from a previous message to avoid races.
   const showStatusMessage = useCallback((message: string) => {
     window.clearTimeout(statusTimeoutRef.current)
+    statusMessageRef.current = message
     setStatusMessage(message)
     if (message) {
-      statusTimeoutRef.current = window.setTimeout(() => setStatusMessage(""), 1000)
+      statusTimeoutRef.current = window.setTimeout(() => {
+        statusMessageRef.current = ""
+        setStatusMessage("")
+      }, 1000)
     }
   }, [])
 
@@ -168,7 +176,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   stateRef.current = state
 
   const { groupProps, trackProps } = useSlider(
-    { "aria-label": sliderModel?.name ?? "", minValue, maxValue, step },
+    { "aria-label": sliderGroupLabel(sliderModel, multiScale), minValue, maxValue, step },
     state,
     trackRef
   )
@@ -177,10 +185,42 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   useEffect(() => {
     if (prevRunningRef.current !== running) {
       const key = running ? "DG.SliderView.animationStarted" : "DG.SliderView.animationStopped"
-      showStatusMessage(t(key))
+      // A change that brings up the prompt stops playback after announcing itself, so the stop is added to that
+      // announcement rather than replacing it.
+      const cause = !running && isPrompting ? statusMessageRef.current : ""
+      showStatusMessage(cause ? t("V3.Slider.messageThenStopped", { vars: [cause, t(key)] }) : t(key))
       prevRunningRef.current = running
     }
-  }, [running, showStatusMessage])
+  }, [isPrompting, running, showStatusMessage])
+
+  // Announce a change to the slider's type or attribute, whether made by a drop, by undo or redo, or by a plugin, but
+  // not one chosen from a menu (see makeQuietSliderChange), or the slider's state when it appears. The attribute's
+  // presence is tracked too, since deleting the bound attribute leaves its id in place.
+  useEffect(() => {
+    if (!sliderModel) return
+    return reaction(
+      () => ({
+        sliderType: sliderModel.sliderType, attributeId: sliderModel.attributeId, hasAttribute: !!sliderModel.attribute
+      }),
+      (current, previous) => {
+        if (isQuietSliderChange(sliderModel)) return
+        const typeName = t(`V3.Slider.typeName.${current.sliderType}`)
+        const typeChanged = current.sliderType !== previous.sliderType
+        const attrName = sliderModel.attribute?.name
+        if (attrName && (current.attributeId !== previous.attributeId || !previous.hasAttribute)) {
+          showStatusMessage(typeChanged
+            ? t("V3.Slider.typeAndAttributeSet", { vars: [typeName, attrName] })
+            : t("V3.Slider.attributeSet", { vars: [attrName] }))
+        }
+        else if (typeChanged) {
+          showStatusMessage(t("V3.Slider.typeChanged", { vars: [typeName] }))
+        }
+        else if (previous.hasAttribute && !current.hasAttribute) {
+          showStatusMessage(t("V3.Slider.attributeRemoved"))
+        }
+      }, { equals: comparer.structural, name: "SliderComponent [announce type and attribute]" }
+    )
+  }, [sliderModel, showStatusMessage])
 
   const [nameInput, setNameInput] = useState(sliderModel?.name ?? "")
   const nameRevertingRef = useRef(false)
