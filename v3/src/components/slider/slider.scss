@@ -63,6 +63,12 @@ $slider-attribute-label-space: $slider-attribute-label-height + 4px;
   justify-content: center;
   height: 100%;
   font-size: 14px;
+
+  // the prompt wraps in a narrow slider rather than being cut off; its caret stays beside the text
+  .slider-attribute-prompt-button {
+    max-width: 100%;
+    text-align: center;
+  }
 }
 
 // The attribute menu's button looks and acts like a graph's axis label (see attribute-label-states.scss).
@@ -70,7 +76,6 @@ $slider-attribute-label-space: $slider-attribute-label-height + 4px;
 .slider-wrapper .slider-attribute-label-button {
   display: inline-flex;
   align-items: center;
-  white-space: nowrap;
   border: 1px solid transparent;
   border-radius: label.$corner-radius;
   padding: 0 0 0 4px;

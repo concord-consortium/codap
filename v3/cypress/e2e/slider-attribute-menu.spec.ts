@@ -74,14 +74,15 @@ context("Slider attribute menu", () => {
   it("shows its menu's caret only while the slider is selected, as a graph's axis label does", () => {
     visitMammals()
     makeVisibilitySlider()
-    const caretFill = () => slider.getSliderTile()
+    // the color is read within the assertion, so that it's retried until the class updates
+    const expectCaretFill = (fill: string) => slider.getSliderTile()
       .find("[data-testid=slider-attribute-menu-button] .attribute-label-arrow path")
-      .then($path => getComputedStyle($path[0]).fill)
+      .should($path => expect(getComputedStyle($path[0]).fill).to.eq(fill))
     // selecting the table deselects the slider
     c.selectTile("table", 0)
-    caretFill().should("eq", "rgba(0, 0, 0, 0)")
+    expectCaretFill("rgba(0, 0, 0, 0)")
     c.selectTile("slider", 0)
-    caretFill().should("eq", "rgb(0, 108, 142)")
+    expectCaretFill("rgb(0, 108, 142)")
   })
 
   it("keeps the prompt's caret on the line of its text", () => {
@@ -94,6 +95,14 @@ context("Slider attribute menu", () => {
       expect(caretMiddle).to.be.within(text.top, text.bottom)
       expect(caret.left).to.be.at.least(text.right - 1)
     })
+  })
+
+  it("lets the prompt wrap, so a narrow slider doesn't cut it off", () => {
+    visitMammals()
+    makeVisibilitySlider()
+    // (the attribute label under an axis doesn't wrap; it ellipsizes a long name instead)
+    slider.getSliderTile().find("[data-testid=slider-attribute-menu-button]")
+      .should($button => expect(getComputedStyle($button[0]).whiteSpace).not.to.eq("nowrap"))
   })
 })
 

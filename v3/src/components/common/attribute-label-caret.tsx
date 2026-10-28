@@ -1,7 +1,8 @@
 import { clsx } from "clsx"
 
 // The caret that marks an attribute label as opening a menu, shared by a graph's axis and legend labels (drawn in
-// SVG by axis-utils) and the slider's attribute button. Its states are styled by attribute-label-states.scss.
+// SVG by axis-utils) and the slider's attribute button. attribute-label-states.scss holds the values and mixins for
+// its states, which attribute-label.scss and slider.scss apply.
 export const kAttributeLabelCaretPath = "m12 15-5-5h10z"
 
 export function AttributeLabelCaret({ className }: { className?: string }) {

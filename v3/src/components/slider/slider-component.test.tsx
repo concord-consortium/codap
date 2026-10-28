@@ -139,7 +139,7 @@ describe("SliderComponent", () => {
     expect(screen.getByTestId("slider-drop-overlay")).toHaveClass("tile-selected")
   })
 
-  it("draws its menu's caret as a graph's axis label does", async () => {
+  it("uses the shared attribute-label caret", async () => {
     const { tile, slider } = await setupSliderAndData()
     slider.setSliderType("visibility")
     renderSlider(tile)
