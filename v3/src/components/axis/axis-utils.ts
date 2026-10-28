@@ -1,6 +1,7 @@
 import {BaseType, ScaleContinuousNumeric, ScaleLinear, Selection} from "d3"
 import { MutableRefObject } from "react"
 import { logMessageWithReplacement } from "../../lib/log-message"
+import { kAttributeLabelCaretPath } from "../common/attribute-label-caret"
 import { IDataConfigurationModel } from "../data-display/models/data-configuration-model"
 import { IDataDisplayContentModel } from "../data-display/models/data-display-content-model"
 import { axisPlaceToAttrRole, kDataDisplayFont, transitionDuration } from "../data-display/data-display-types"
@@ -409,7 +410,7 @@ export function renderLabelBackground<GElement extends BaseType>(
     .data([1])
     .join((enter: any) => {
       const arrow = enter.append('g').attr('class', 'attribute-label-arrow')
-      arrow.append('path').attr('d', 'm12 15-5-5h10z')
+      arrow.append('path').attr('d', kAttributeLabelCaretPath)
       return arrow
     })
     .attr('transform', arrowTransform)

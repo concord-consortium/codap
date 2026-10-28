@@ -9,13 +9,13 @@ import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { IDataSet } from "../../models/data/data-set"
 import { getDataSets } from "../../models/shared/shared-data-utils"
 import { t } from "../../utilities/translation/translate"
+import { AttributeLabelCaret } from "../common/attribute-label-caret"
 import {
   AttributePickerMenuItems, getAttributePickerEntries, useAttributePickerSubmenus
 } from "../common/attribute-picker-menu-items"
 import { configureSliderFromAttribute, isSliderAttributeUsable } from "./slider-attribute-drop"
 import { isSliderModel } from "./slider-model"
 
-import DropdownArrow from "../../assets/icons/arrow.svg"
 
 const kMaxMenuHeight = "50vh"
 
@@ -67,11 +67,11 @@ export const SliderAttributeMenu = observer(function SliderAttributeMenu({
     <Menu placement="bottom" isLazy isOpen={isOpen}
           onOpen={() => { handleCloseSubmenu(); onOpen() }}
           onClose={() => { handleCloseSubmenu(); onClose() }}>
-      {/* the visible text names the button; the arrow is an icon, so it adds nothing to the text or the name */}
+      {/* the visible text names the button; the caret is an icon, so it adds nothing to the text or the name */}
       <MenuButton ref={buttonRef} className={className} title={t("V3.Slider.attributeMenu")}
                   data-testid="slider-attribute-menu-button">
         <span className="slider-attribute-menu-text">{children}</span>
-        <DropdownArrow className="slider-attribute-menu-arrow" aria-hidden="true"/>
+        <AttributeLabelCaret className="slider-attribute-menu-arrow"/>
       </MenuButton>
       <Portal containerRef={containerRef}>
         <MenuList ref={menuListRef} className="attribute-picker-menu"

@@ -1,0 +1,27 @@
+@use "../vars";
+
+// The values and mixins for the look of an attribute label that opens a menu, which a graph's axis and legend labels
+// (SVG, in attribute-label.scss) and the slider's attribute button (HTML, in slider.scss) both apply: a caret (see
+// attribute-label-caret.tsx) shown only while the label is active (its tile selected, or the label hovered, focused,
+// or open), a background and border while hovered or focused, a darker background while its menu is open, and the
+// caret flipped while open.
+
+$caret-color: vars.$accent;
+$active-fill: vars.$accent-light-3;
+$active-border: vars.$accent;
+$open-fill: vars.$accent-light-2;
+$corner-radius: 4px;
+
+@mixin caret-hidden {
+  fill: transparent;
+}
+
+@mixin caret-shown {
+  fill: $caret-color;
+}
+
+@mixin caret-flipped {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scaleY(-1);
+}
