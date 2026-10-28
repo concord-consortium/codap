@@ -61,6 +61,8 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   const clearFocusAttributeLabel = useCallback(() => setFocusAttributeLabel(false), [])
   const [statusMessage, setStatusMessage] = useState("")
   const statusTimeoutRef = useRef<number>()
+  // the message being announced, which a stop of playback caused by the same change adds to
+  const statusMessageRef = useRef("")
   const prevRunningRef = useRef(false)
   const multiScale = layout.getAxisMultiScale("bottom")
   const trackRef = useRef<HTMLDivElement | null>(null)
@@ -69,9 +71,13 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   // Cancels any pending clear from a previous message to avoid races.
   const showStatusMessage = useCallback((message: string) => {
     window.clearTimeout(statusTimeoutRef.current)
+    statusMessageRef.current = message
     setStatusMessage(message)
     if (message) {
-      statusTimeoutRef.current = window.setTimeout(() => setStatusMessage(""), 1000)
+      statusTimeoutRef.current = window.setTimeout(() => {
+        statusMessageRef.current = ""
+        setStatusMessage("")
+      }, 1000)
     }
   }, [])
 
@@ -175,10 +181,13 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   useEffect(() => {
     if (prevRunningRef.current !== running) {
       const key = running ? "DG.SliderView.animationStarted" : "DG.SliderView.animationStopped"
-      showStatusMessage(t(key))
+      // A change that brings up the prompt stops playback after announcing itself, so the stop is added to that
+      // announcement rather than replacing it.
+      const cause = !running && isPrompting ? statusMessageRef.current : ""
+      showStatusMessage(cause ? t("V3.Slider.messageThenStopped", { vars: [cause, t(key)] }) : t(key))
       prevRunningRef.current = running
     }
-  }, [running, showStatusMessage])
+  }, [isPrompting, running, showStatusMessage])
 
   // Announce a change to the slider's type or attribute, whether made here, by undo or redo, or by a plugin, but not
   // the slider's state when it appears. The attribute's presence is tracked too, since deleting the bound attribute
