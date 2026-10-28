@@ -25,7 +25,8 @@ describe("Graph resize handle clearance", () => {
   }
 
   it("clears the numeric legend maximum and reserves space for a numeric x-axis", () => {
-    cy.dragAttributeToTarget("table", "LifeSpan", "bottom")
+    axis.openAxisAttributeMenu("bottom")
+    axis.selectMenuAttribute("LifeSpan", "bottom")
     axis.verifyAxisLabel("bottom", "LifeSpan")
     legend.dragAttributeToPlot("Speed")
     graph.getGraphTile().find(".component-title-bar").click()
@@ -39,6 +40,21 @@ describe("Graph resize handle clearance", () => {
     legend.openLegendMenu()
     legend.removeAttributeFromLegend("Speed")
     graph.getGraphTile().find("[data-testid=axis-bottom] .tick text").last().should("exist")
+      .then($tick => {
+        const tickBounds = $tick[0].getBoundingClientRect()
+        graph.getGraphTile().parent().find(".component-resize-handle").then($handle => {
+          const handleBounds = $handle[0].getBoundingClientRect()
+          const rightmostOverlap = Math.min(tickBounds.right, handleBounds.right) - handleBounds.left
+          const horizontalOverlap = Math.min(tickBounds.right, handleBounds.right) -
+            Math.max(tickBounds.left, handleBounds.left)
+          const paintedTop = handleBounds.bottom - rightmostOverlap
+          // A tick outside the handle horizontally is already clear. If it moves over the handle, it must
+          // remain above the painted triangle. The 2px allowance matches the legend text check.
+          const intersectsPaint = horizontalOverlap > 0 && tickBounds.top < handleBounds.bottom &&
+            tickBounds.bottom >= paintedTop + 2
+          expect(intersectsPaint, "x-axis maximum tick intersects resize graphic").to.equal(false)
+        })
+      })
     graph.getGraphTile().find(".graph-plot").then($plot => {
       const plotBottom = $plot[0].getBoundingClientRect().bottom
       graph.getGraphTile().find(".axis-wrapper.bottom .axis-background").then($axisBackground => {
