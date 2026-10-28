@@ -7,6 +7,7 @@ import ScaleIcon from "../../../assets/icons/inspector-panel/data-icon.svg"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import { convertToDate, createDateFromEpochSeconds, formatDateForInput } from "../../../utilities/date-utils"
 import { t } from "../../../utilities/translation/translate"
+import { If } from "../../common/if"
 import { InspectorPalette } from "../../inspector-panel"
 import { ISliderModel } from "../slider-model"
 import { ISliderScaleType, SliderScaleTypes } from "../slider-types"
@@ -102,6 +103,8 @@ export const SliderScalesPalette =
       if (scaleType === "numeric") e.target.select()
     }
 
+    const units = sliderModel.numericUnits
+
     const minimumInput = () => {
       const displayValue = minInputValue
       return <input
@@ -112,6 +115,8 @@ export const SliderScalesPalette =
               onChange={(e) => setEditedMin(e.target.value)}
               onFocus={handleSelectOnFocus}
               onBlur={handleAcceptMinValue} onKeyDown={handleMinimumKeyDown} data-testid="slider-minimum"
+              // the units, if any, read with the value
+              aria-describedby={units ? "slider-minimum-units" : undefined}
              />
     }
 
@@ -125,6 +130,8 @@ export const SliderScalesPalette =
               onChange={(e) => setEditedMax(e.target.value)}
               onFocus={handleSelectOnFocus}
               onBlur={handleAcceptMaxValue} onKeyDown={handleMaximumKeyDown} data-testid="slider-maximum"
+              // the units, if any, read with the value
+              aria-describedby={units ? "slider-maximum-units" : undefined}
              />
     }
 
@@ -165,10 +172,20 @@ export const SliderScalesPalette =
           <div className="palette-row">
             <label className="form-label" htmlFor="slider-minimum-input">{t("V3.Slider.minimum")}</label>
             {minimumInput()}
+            <If condition={!!units}>
+              <span id="slider-minimum-units" className="form-label-suffix" data-testid="slider-minimum-units">
+                {units}
+              </span>
+            </If>
           </div>
           <div className="palette-row">
             <label className="form-label" htmlFor="slider-maximum-input">{t("V3.Slider.maximum")}</label>
             {maximumInput()}
+            <If condition={!!units}>
+              <span id="slider-maximum-units" className="form-label-suffix" data-testid="slider-maximum-units">
+                {units}
+              </span>
+            </If>
           </div>
         </div>
       </InspectorPalette>

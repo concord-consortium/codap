@@ -101,6 +101,10 @@ export const SliderModel = TileContentModel
     get attribute() {
       return self.attributeId ? this.dataSet?.getAttribute(self.attributeId) : undefined
     },
+    // the units of a numeric axis's values, from the bound attribute (a date axis's units come from its unit menus)
+    get numericUnits() {
+      return self.scaleType === "numeric" ? this.attribute?.units || undefined : undefined
+    },
     // The bound attribute's numeric values (epoch seconds for dates) for the cases that aren't set aside or
     // filtered out by the filter formula. Cases hidden by sliders are included, so that the slider's own
     // hiding doesn't narrow what it hides, snaps to, or plays through.
