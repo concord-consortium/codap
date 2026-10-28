@@ -63,7 +63,10 @@ context("Test graph axes with split, multi-y, bars, and overflow configurations"
     ah.verifyAxisTickLabel("left", "0", 0)
     let splitTickCount = 0
     cy.get("[data-testid=axis-left] .sub-axis-wrapper").first().find("g.tick > text")
-      .its("length").then(count => { splitTickCount = count })
+      .its("length").then(count => {
+        expect(count).to.be.greaterThan(0)
+        splitTickCount = count
+      })
     cy.get("[data-testid=graph]")
       .find("[data-testid=axis-bottom]")
       .find(".sub-axis-wrapper")
@@ -84,7 +87,9 @@ context("Test graph axes with split, multi-y, bars, and overflow configurations"
     // first tick depends on the plot height and D3's chosen interval.
     ah.verifyAxisTickLabel("left", "0", 0)
     cy.get("[data-testid=axis-left] .sub-axis-wrapper").first().find("g.tick > text")
-      .its("length").should("be.greaterThan", splitTickCount)
+      .its("length").should(count => {
+        expect(count).to.be.greaterThan(splitTickCount)
+      })
 
     // Redo the last change (Sleep => left split)
     toolbar.getRedoTool().click()
