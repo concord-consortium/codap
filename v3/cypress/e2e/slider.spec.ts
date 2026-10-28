@@ -608,9 +608,11 @@ context("Slider keyboard accessibility", () => {
 
 context("Slider Configuration palette by keyboard", () => {
   beforeEach(function () {
-    // Four Seals has a date attribute, so that a Visibility slider bound to it has a width with a unit menu
-    cy.visit(`${Cypress.config("index")}?suppressUnsavedWarning&features=visibilitySlider#file=examples:Four%20Seals`)
-    cy.get('.codap-case-table [data-testid="codap-attribute-button date"]').should("be.visible")
+    // a small document with a date attribute, so that a Visibility slider bound to it has a width with a unit menu
+    cy.visit(`${Cypress.config("index")}?suppressUnsavedWarning&features=visibilitySlider`)
+    cy.contains("button", "Create New Document").should("be.visible")
+    cfm.openLocalDocWithUserEntry("cypress/fixtures/attribute-types.codap")
+    cy.get('.codap-case-table [data-testid="codap-attribute-button Date"]').should("be.visible")
     c.getIconFromToolShelf("slider").click()
     slider.getSliderTile().should("be.visible")
   })
@@ -630,9 +632,9 @@ context("Slider Configuration palette by keyboard", () => {
     // a range slider's width can be edited once an attribute is bound, here from the slider's attribute menu
     cy.realPress("Escape")
     slider.getSliderTile().find("[data-testid=slider-attribute-menu-button]").click()
-    // only Measurements has numeric or date attributes, so the menu lists them directly
-    cy.get('[data-testid="slider-attribute-menu-list"] [role="menuitem"]').contains(/^date$/).click()
-    slider.getSliderTile().find("[data-testid=slider-attribute-label]").should("contain.text", "date")
+    // the document has a single collection, so the menu lists its attributes directly
+    cy.get('[data-testid="slider-attribute-menu-list"] [role="menuitem"]').contains(/^Date$/).click()
+    slider.getSliderTile().find("[data-testid=slider-attribute-label]").should("contain.text", "Date")
     c.selectTile("slider", 0)
     configButton().focus()
     cy.realPress("Enter")
