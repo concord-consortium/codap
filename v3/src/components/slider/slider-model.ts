@@ -10,7 +10,9 @@ import { ISharedModel } from "../../models/shared/shared-model"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
 import { getTileModel } from "../../models/tiles/tile-model"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
-import { DateUnit, dateUnits, determineLevels, unitsStringToMilliseconds } from "../../utilities/date-utils"
+import {
+  DateUnit, dateUnits, determineLevels, offsetDateSeconds, unitsStringToMilliseconds
+} from "../../utilities/date-utils"
 import { AxisPlace } from "../axis/axis-types"
 import { AxisHelper } from "../axis/helper-models/axis-helper"
 import { IAxisModel } from "../axis/models/axis-model"
@@ -100,6 +102,10 @@ export const SliderModel = TileContentModel
     },
     get attribute() {
       return self.attributeId ? this.dataSet?.getAttribute(self.attributeId) : undefined
+    },
+    // the units of a numeric axis's values, from the bound attribute (a date axis's units come from its unit menus)
+    get numericUnits() {
+      return self.scaleType === "numeric" ? this.attribute?.units || undefined : undefined
     },
     // The bound attribute's numeric values (epoch seconds for dates) for the cases that aren't set aside or
     // filtered out by the filter formula. Cases hidden by sliders are included, so that the slider's own
@@ -203,24 +209,35 @@ export const SliderModel = TileContentModel
       }
       return keepValueInBounds(value)
     },
-    // the value one playback step further; a zero-width range steps through the data's distinct values
+    // the value one playback step further
     nextAnimationValue(sign: 1 | -1, fallbackIncrement: number) {
+      const { increment, multipleOf } = self
+      // Comparisons with multiples allow a tolerance, a fraction of the multiple, so floating point doesn't make a
+      // range step to the multiple it's already on, or past a data value a multiple away.
+      const kTolerance = 1e-9
+      // A zero-width range shows only the cases at its value, so it steps through the data's distinct values: the
+      // first one at least a multiple away, or else the next one. A date's multiple is offset in calendar months and
+      // years, so playback by months doesn't skip a short one.
       const values = self.snapValues
       if (self.isRangeSlider && self.width === 0 && values.length) {
-        const next = sign > 0
-          ? values.find(v => v > self.value)
-          : [...values].reverse().find(v => v < self.value)
+        const step = multipleOf && increment
+          ? {
+              target: self.scaleType === "date"
+                ? offsetDateSeconds(self.value, sign * multipleOf, self.dateMultipleOfUnit)
+                : self.value + sign * multipleOf,
+              tolerance: kTolerance * increment
+            }
+          : undefined
+        const isNext = (v: number) => step ? sign * (v - step.target) >= -step.tolerance : sign * (v - self.value) > 0
+        const next = sign > 0 ? values.find(isNext) : [...values].reverse().find(isNext)
         const [min, max] = self.valueDomain
         return next ?? (sign > 0 ? max + 1 : min - 1)
       }
       // Otherwise playback steps by the multiple restriction, as for a variable slider, or else by the fallback step.
       // A range's low end needn't be on a multiple (a drag of its ends ignores the restriction; see sliderStep), so a
-      // range steps to the next multiple in the direction of play, with a tolerance so floating point doesn't make it
-      // step to the multiple it's already on.
-      const { increment } = self
+      // range with width steps to the next multiple in the direction of play.
       if (self.isRangeSlider && increment) {
         const multiples = self.value / increment
-        const kTolerance = 1e-9
         const next = sign > 0 ? Math.floor(multiples + kTolerance) + 1 : Math.ceil(multiples - kTolerance) - 1
         return next * increment
       }

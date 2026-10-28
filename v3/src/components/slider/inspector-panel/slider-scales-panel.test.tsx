@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react"
+import { act, fireEvent, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { convertToDate } from "../../../utilities/date-utils"
 import { ISliderModel } from "../slider-model"
@@ -72,5 +72,27 @@ describe("SliderScalesPalette", () => {
     await userEvent.clear(input)
     await userEvent.type(input, "20{Enter}")
     expect(slider.axis.max).toBe(20)
+  })
+
+  it("shows a numeric attribute's units after the minimum and maximum", async () => {
+    const { dataSet, slider } = await setupSliderAndData()
+    act(() => {
+      slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+      dataSet.attrFromName("a3")!.setUnits("cm")
+    })
+    renderPalette(slider)
+    for (const bound of ["minimum", "maximum"]) {
+      expect(screen.getByTestId(`slider-${bound}-units`)).toHaveTextContent("cm")
+      // and a screen reader hears them with the value
+      expect(screen.getByTestId(`slider-${bound}`)).toHaveAccessibleDescription("cm")
+    }
+  })
+
+  it("shows no units for a date attribute", async () => {
+    const slider = await setupDateSlider()
+    act(() => slider.attribute!.setUnits("cm"))
+    renderPalette(slider)
+    expect(screen.queryByTestId("slider-minimum-units")).toBeNull()
+    expect(screen.queryByTestId("slider-maximum-units")).toBeNull()
   })
 })

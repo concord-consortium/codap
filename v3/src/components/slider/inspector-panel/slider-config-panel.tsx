@@ -48,8 +48,7 @@ export const SliderConfigPalette =
     // With no attribute bound, a range slider shows no range, so its width is empty and can't be edited.
     const isBound = !!sliderModel.attribute
     const widthInput = !isBound ? "" : editedWidth ?? formatSliderWidth(displayWidth)
-    // a numeric width is in the bound attribute's units, if it has them (a date width has its unit menu)
-    const widthUnits = !isDate ? sliderModel.attribute?.units : undefined
+    const widthUnits = sliderModel.numericUnits
     // the unit agrees in number with the width as shown, so a width of 1.04 days reads "1 day"
     const shownWidth = Number(widthInput)
     const unitLabel = getDateUnitLabel(unit, isFinite(shownWidth) ? shownWidth : displayWidth)
