@@ -608,19 +608,14 @@ context("Slider keyboard accessibility", () => {
 
 context("Slider Configuration palette by keyboard", () => {
   beforeEach(function () {
-    cy.visit(`${Cypress.config("index")}?suppressUnsavedWarning&features=visibilitySlider`)
-    cy.get('[data-testid="Create New Document-button"]').click()
+    // Four Seals has a date attribute, so that a Visibility slider bound to it has a width with a unit menu
+    cy.visit(`${Cypress.config("index")}?suppressUnsavedWarning&features=visibilitySlider#file=examples:Four%20Seals`)
+    cy.get('.codap-case-table [data-testid="codap-attribute-button date"]').should("be.visible")
     c.getIconFromToolShelf("slider").click()
     slider.getSliderTile().should("be.visible")
   })
   it("sets the type, width and unit from the keyboard, and closes with Escape", () => {
     c.selectTile("slider", 0)
-    // a date scale, so that the width has a unit menu
-    slider.getRulerIcon().click()
-    cy.get("[data-testid=slider-scale-type-button]").click()
-    cy.get("[data-testid=slider-scale-date]").click()
-    slider.closePalette()
-
     const configButton = () => c.getInspectorPanel().find("[data-testid=slider-config-button]")
     configButton().focus()
     cy.realPress("Enter")
@@ -631,6 +626,17 @@ context("Slider Configuration palette by keyboard", () => {
     cy.realPress("ArrowDown")
     cy.realPress("Enter")
     cy.get("[data-testid=slider-type-button]").should("contain.text", "Visibility").and("be.focused")
+
+    // a range slider's width can be edited once an attribute is bound, here from the slider's attribute menu
+    cy.realPress("Escape")
+    slider.getSliderTile().find("[data-testid=slider-attribute-menu-button]").click()
+    // only Measurements has numeric or date attributes, so the menu lists them directly
+    cy.get('[data-testid="slider-attribute-menu-list"] [role="menuitem"]').contains(/^date$/).click()
+    slider.getSliderTile().find("[data-testid=slider-attribute-label]").should("contain.text", "date")
+    c.selectTile("slider", 0)
+    configButton().focus()
+    cy.realPress("Enter")
+    cy.get("[data-testid=slider-type-button]").focus()
 
     cy.log("width field: Tab reaches it, and Enter commits a typed width")
     cy.realPress("Tab")
