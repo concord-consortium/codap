@@ -1,5 +1,6 @@
 import {
-  convertToDate, createDate, dateUnits, durationUnits, durationUnitSeconds, getDateUnitLabel, unitsStringToMilliseconds
+  convertToDate, createDate, dateUnits, durationUnits, durationUnitSeconds, getDateUnitLabel, offsetDateSeconds,
+  unitsStringToMilliseconds
 } from "./date-utils"
 
 describe('createDate', () => {
@@ -135,5 +136,29 @@ describe("duration units", () => {
   it("have translated labels, weeks included", () => {
     expect(getDateUnitLabel("week")).toBe("week")
     expect(getDateUnitLabel("week", 2)).toBe("weeks")
+  })
+})
+
+describe("offsetDateSeconds", () => {
+  // local dates, as the slider shows them
+  const seconds = (...args: [number, number, number]) => new Date(...args).getTime() / 1000
+  it("offsets by calendar months, so February isn't skipped", () => {
+    expect(offsetDateSeconds(seconds(2010, 1, 1), 1, "month")).toBe(seconds(2010, 2, 1))
+    expect(offsetDateSeconds(seconds(2010, 2, 1), -1, "month")).toBe(seconds(2010, 1, 1))
+  })
+
+  it("limits the day to the target month's length", () => {
+    expect(offsetDateSeconds(seconds(2010, 0, 31), 1, "month")).toBe(seconds(2010, 1, 28))
+    expect(offsetDateSeconds(seconds(2024, 0, 31), 1, "month")).toBe(seconds(2024, 1, 29))
+  })
+
+  it("offsets by calendar years", () => {
+    expect(offsetDateSeconds(seconds(2024, 1, 29), 1, "year")).toBe(seconds(2025, 1, 28))
+    expect(offsetDateSeconds(seconds(2010, 5, 15), -2, "year")).toBe(seconds(2008, 5, 15))
+  })
+
+  it("offsets by fixed lengths for other units", () => {
+    expect(offsetDateSeconds(1000, 2, "day")).toBe(1000 + 2 * 24 * 60 * 60)
+    expect(offsetDateSeconds(1000, -3, "hour")).toBe(1000 - 3 * 60 * 60)
   })
 })

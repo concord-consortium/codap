@@ -81,6 +81,23 @@ export const unitsStringToMilliseconds = (unitString: DurationUnit) => {
 
 }
 
+// A date, in seconds, offset by a number of date units. Whole months and years are calendar months and years in local
+// time, with the day limited to the target month's length (Jan 31 plus a month is Feb 28 or 29), so an offset by
+// months doesn't skip a short one; other units are fixed lengths.
+export function offsetDateSeconds(seconds: number, count: number, unit: DateUnit) {
+  const months = unit === "month" ? count : unit === "year" ? 12 * count : undefined
+  if (months == null || !Number.isInteger(months)) {
+    return seconds + count * unitsStringToMilliseconds(unit) / 1000
+  }
+  const date = new Date(seconds * 1000)
+  const day = date.getDate()
+  date.setDate(1)
+  date.setMonth(date.getMonth() + months)
+  const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
+  date.setDate(Math.min(day, daysInMonth))
+  return date.getTime() / 1000
+}
+
 export function durationUnitSeconds(unit: DurationUnit) {
   return unitsStringToMilliseconds(unit) / 1000
 }

@@ -10,7 +10,9 @@ import { ISharedModel } from "../../models/shared/shared-model"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
 import { getTileModel } from "../../models/tiles/tile-model"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
-import { DateUnit, dateUnits, determineLevels, unitsStringToMilliseconds } from "../../utilities/date-utils"
+import {
+  DateUnit, dateUnits, determineLevels, offsetDateSeconds, unitsStringToMilliseconds
+} from "../../utilities/date-utils"
 import { AxisPlace } from "../axis/axis-types"
 import { AxisHelper } from "../axis/helper-models/axis-helper"
 import { IAxisModel } from "../axis/models/axis-model"
@@ -209,34 +211,35 @@ export const SliderModel = TileContentModel
     },
     // the value one playback step further
     nextAnimationValue(sign: 1 | -1, fallbackIncrement: number) {
-      // A range's low end needn't be on a multiple (a drag of its ends ignores the restriction; see sliderStep), so a
-      // range steps to the next multiple in the direction of play. Comparisons with multiples allow a tolerance, a
-      // fraction of the multiple, so floating point doesn't make a range step to the multiple it's already on, or
-      // past a data value on the next one.
-      const { increment } = self
+      const { increment, multipleOf } = self
+      // Comparisons with multiples allow a tolerance, a fraction of the multiple, so floating point doesn't make a
+      // range step to the multiple it's already on, or past a data value a multiple away.
       const kTolerance = 1e-9
-      const nextMultiple = () => {
-        if (!increment) return undefined
-        const multiples = self.value / increment
-        const next = sign > 0 ? Math.floor(multiples + kTolerance) + 1 : Math.ceil(multiples - kTolerance) - 1
-        return next * increment
-      }
       // A zero-width range shows only the cases at its value, so it steps through the data's distinct values: the
-      // first one at or past the next multiple, or else the next one.
+      // first one at least a multiple away, or else the next one. A date's multiple is offset in calendar months and
+      // years, so playback by months doesn't skip a short one.
       const values = self.snapValues
       if (self.isRangeSlider && self.width === 0 && values.length) {
-        const target = nextMultiple()
-        const tolerance = kTolerance * (increment ?? 0)
-        const next = sign > 0
-          ? values.find(v => target != null ? v >= target - tolerance : v > self.value)
-          : [...values].reverse().find(v => target != null ? v <= target + tolerance : v < self.value)
+        const step = multipleOf && increment
+          ? {
+              target: self.scaleType === "date"
+                ? offsetDateSeconds(self.value, sign * multipleOf, self.dateMultipleOfUnit)
+                : self.value + sign * multipleOf,
+              tolerance: kTolerance * increment
+            }
+          : undefined
+        const isNext = (v: number) => step ? sign * (v - step.target) >= -step.tolerance : sign * (v - self.value) > 0
+        const next = sign > 0 ? values.find(isNext) : [...values].reverse().find(isNext)
         const [min, max] = self.valueDomain
         return next ?? (sign > 0 ? max + 1 : min - 1)
       }
       // Otherwise playback steps by the multiple restriction, as for a variable slider, or else by the fallback step.
-      if (self.isRangeSlider) {
-        const next = nextMultiple()
-        if (next != null) return next
+      // A range's low end needn't be on a multiple (a drag of its ends ignores the restriction; see sliderStep), so a
+      // range with width steps to the next multiple in the direction of play.
+      if (self.isRangeSlider && increment) {
+        const multiples = self.value / increment
+        const next = sign > 0 ? Math.floor(multiples + kTolerance) + 1 : Math.ceil(multiples - kTolerance) - 1
+        return next * increment
       }
       return self.value + sign * (increment ?? fallbackIncrement)
     },

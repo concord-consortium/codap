@@ -300,21 +300,20 @@ describe("SliderModel playback steps", () => {
     expect(slider.nextAnimationValue(1, 1)).toBe(next + 2 * day)
   })
 
-  it("steps a zero-width range to the first data value at or past the next multiple", async () => {
+  it("steps a zero-width range to the first data value at least one multiple away", async () => {
     const { slider } = await setupRangeSlider()
-    slider.setMultipleOf(2.5)
+    slider.setMultipleOf(1.5)
     slider.setRange(3, 3)
-    // the next multiple is 5, so 4 is skipped
+    // 4 is less than a multiple away, so it's skipped
     expect(slider.nextAnimationValue(1, 0.1)).toBe(5)
-    // the previous multiple is 2.5, so the step back is to 2
-    expect(slider.nextAnimationValue(-1, 0.1)).toBe(2)
+    expect(slider.nextAnimationValue(-1, 0.1)).toBe(1)
   })
 
-  it("steps a zero-width range on to the next data value when no data lies on the next multiple", async () => {
+  it("steps a zero-width range on to the next data value when none lies exactly a multiple away", async () => {
     const { slider } = await setupRangeSlider()
     slider.setMultipleOf(0.4)
     slider.setRange(3, 3)
-    // the next multiple is 3.2, between the data values 3 and 4
+    // a multiple away is 3.4, between the data values 3 and 4
     expect(slider.nextAnimationValue(1, 0.1)).toBe(4)
   })
 
@@ -327,12 +326,25 @@ describe("SliderModel playback steps", () => {
     slider.configureFromAttribute(dataSet, tenths.id)
     slider.setMultipleOf(0.1)
     slider.setRange(0.2, 0.2)
-    // 3 * 0.1 is a hair over 0.3 in floating point
+    // 0.2 + 0.1 is a hair over 0.3 in floating point
     expect(slider.nextAnimationValue(1, 0.01)).toBe(0.3)
     slider.setMultipleOf(0.3)
     slider.setRange(1.2, 1.2)
-    // 3 * 0.3 is a hair under 0.9
+    // 1.2 - 0.3 is a hair under 0.9
     expect(slider.nextAnimationValue(-1, 0.01)).toBe(0.9)
+  })
+
+  it("steps a zero-width date range by calendar months, so a short month isn't skipped", async () => {
+    const { content, slider } = await setupSliderAndData()
+    // the first of each month, in local time
+    const dates = addDates(content, ["2010-01-01T00:00", "2010-02-01T00:00", "2010-03-01T00:00", "2010-04-01T00:00"])
+    slider.configureFromAttribute(dates, dates.attrFromName("when")!.id)
+    slider.setMultipleOf(1)
+    slider.setDateMultipleOfUnit("month")
+    const feb = new Date(2010, 1, 1).getTime() / 1000
+    slider.setRange(feb, feb)
+    expect(slider.nextAnimationValue(1, 1)).toBe(new Date(2010, 2, 1).getTime() / 1000)
+    expect(slider.nextAnimationValue(-1, 1)).toBe(new Date(2010, 0, 1).getTime() / 1000)
   })
 
   it("steps a zero-width range with a multiple restriction past the domain after the last data value", async () => {
