@@ -511,6 +511,16 @@ Bring a component to the front, then rescale it:
 }
 ```
 
+Close a component. A case table, case card, calculator or guide is hidden rather than removed —
+see [Known limitations](#known-limitations):
+
+```json
+{
+  "action": "delete",
+  "resource": "component[Height by Weight]"
+}
+```
+
 ## Known limitations
 
 **Creating or closing a component cannot be undone.** v2 added `create` and `delete` on
