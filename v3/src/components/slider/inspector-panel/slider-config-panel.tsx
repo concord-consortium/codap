@@ -171,11 +171,16 @@ export const SliderConfigPalette =
                   onBlur={handleWidthControlBlur}
                   onKeyDown={handleWidthKeyDown}
                   disabled={!isBound}
+                  // the units, if any, read with the width
+                  aria-describedby={widthUnits ? "slider-range-width-units" : undefined}
                   data-testid="slider-range-width-input"
                 />
               </span>
               <If condition={!!widthUnits}>
-                <span className="form-label-suffix" data-testid="slider-range-width-units">{widthUnits}</span>
+                <span id="slider-range-width-units" className="form-label-suffix"
+                      data-testid="slider-range-width-units">
+                  {widthUnits}
+                </span>
               </If>
               <If condition={isDate}>
                 <Select

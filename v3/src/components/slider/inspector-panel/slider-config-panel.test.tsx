@@ -220,6 +220,8 @@ describe("SliderConfigPalette", () => {
     act(() => dataSet.attrFromName("a3")!.setUnits("cm"))
     renderPalette(slider)
     expect(screen.getByTestId("slider-range-width-units")).toHaveTextContent("cm")
+    // and a screen reader hears them with the width
+    expect(screen.getByTestId("slider-range-width-input")).toHaveAccessibleDescription("cm")
   })
 
   it("rounds all the corners of a numeric width's field, which no unit menu adjoins", async () => {

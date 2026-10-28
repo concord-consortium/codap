@@ -72,16 +72,6 @@
         @include vars.focus-outline($offset: 0px);
       }
 
-      // a range slider's width, with no attribute bound
-      &:has(input:disabled) {
-        opacity: 0.5;
-
-        &:hover {
-          background: none;
-          cursor: default;
-        }
-      }
-
       &.multiples-input {
         // Remove right border-radius so the input visually connects to the date unit dropdown
         border-top-right-radius: 0;
@@ -148,10 +138,15 @@
       margin-left: 8px;
     }
 
-    // a range slider's width row, with no attribute bound: its label and units look disabled with its field
+    // a range slider's width row, with no attribute bound: its label looks disabled with its field
     &.disabled {
-      .form-label, .form-label-suffix {
+      .form-label, .slider-input {
         opacity: 0.5;
+      }
+
+      .slider-input:hover {
+        background: none;
+        cursor: default;
       }
     }
   }
