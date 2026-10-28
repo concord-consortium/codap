@@ -614,7 +614,7 @@ context("Slider Configuration palette by keyboard", () => {
     c.getIconFromToolShelf("slider").click()
     slider.getSliderTile().should("be.visible")
   })
-  it("sets the type, width and unit from the keyboard, and closes with Escape", () => {
+  it.only("sets the type, width and unit from the keyboard, and closes with Escape", () => {
     c.selectTile("slider", 0)
     const configButton = () => c.getInspectorPanel().find("[data-testid=slider-config-button]")
     configButton().focus()

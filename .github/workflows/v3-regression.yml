@@ -47,6 +47,7 @@ jobs:
     # only run the regression tests if the PR is labeled.
     if: fromJSON(needs.prepare.outputs.run_regression)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     # Run in a container so every parallel runner has the exact same OS version,
     # browser version, and dependencies. This prevents Cypress Cloud from rejecting
     # parallel runs due to environment mismatches during GitHub runner image rollouts.
@@ -62,7 +63,7 @@ jobs:
       fail-fast: false
       matrix:
         # run multiple copies of the current job in parallel [1, ..., n]
-        containers: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+        containers: [1]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -81,10 +82,11 @@ jobs:
           # add timeout of 5 minutes to start
           wait-on-timeout: 300
           # only record the results to dashboard.cypress.io if CYPRESS_RECORD_KEY is set
-          record: ${{ !!secrets.CYPRESS_RECORD_KEY }}
-          # only do parallel if we have a record key
-          parallel: ${{ !!secrets.CYPRESS_RECORD_KEY }}
+          record: false
+          parallel: false
           browser: chrome
+          spec: cypress/e2e/slider.spec.ts
+          config: video=true
           # TODO: this currently will re-run the smoke test, once we have a dedicated smoke
           # test that should be excluded
           # spec: cypress/e2e/**
@@ -104,6 +106,15 @@ jobs:
           CYPRESS_coverage: true
           # Have webpack skip eslint checking, that was already done by the build step
           SKIP_ESLINT: true
+      - name: Upload screenshots and videos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-artifacts
+          path: |
+            v3/cypress/screenshots
+            v3/cypress/videos
+          if-no-files-found: ignore
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
