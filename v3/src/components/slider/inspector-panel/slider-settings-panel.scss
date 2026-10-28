@@ -108,6 +108,11 @@
           outline: 2px solid vars.$focus-outline-color;
         }
 
+        &[data-disabled] {
+          cursor: default;
+          opacity: 0.5;
+        }
+
         .select-arrow {
           color: vars.$palette-icon-color;
           margin-left: auto;
@@ -131,6 +136,18 @@
     }
     .form-label-suffix {
       margin-left: 8px;
+    }
+
+    // a range slider's width row, with no attribute bound: its label looks disabled with its field
+    &.disabled {
+      .form-label, .slider-input {
+        opacity: 0.5;
+      }
+
+      .slider-input:hover {
+        background: none;
+        cursor: default;
+      }
     }
   }
 }
