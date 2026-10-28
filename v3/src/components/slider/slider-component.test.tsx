@@ -10,6 +10,7 @@ import { appState } from "../../models/app-state"
 import { featureFlagManager } from "../../models/feature-flags/feature-flag-manager"
 import { TreeManager } from "../../models/history/tree-manager"
 import { ITileModel } from "../../models/tiles/tile-model"
+import { SliderConfigPalette } from "./inspector-panel/slider-config-panel"
 import { SliderComponent } from "./slider-component"
 import { addDates, setupSliderAndData } from "./slider-test-utils"
 
@@ -323,6 +324,40 @@ describe("SliderComponent for screen readers", () => {
       fireEvent.click(screen.getByTestId("slider-play-pause"))
       fireEvent.click(screen.getByTestId("slider-play-pause"))
       expect(status()).toHaveTextContent(/^Slider animation stopped$/)
+    })
+
+    // a menu announces its own choice, so the slider doesn't announce it too
+    it("announces nothing for an attribute chosen from the slider's menu", async () => {
+      const { tile, slider } = await setupSliderAndData()
+      slider.setSliderType("visibility")
+      renderSlider(tile)
+      await userEvent.click(screen.getByTestId("slider-attribute-menu-button"))
+      const items = await screen.findAllByRole("menuitem", { hidden: true })
+      await userEvent.click(items.find(item => item.textContent === "a3")!)
+      expect(slider.attribute?.name).toBe("a3")
+      expect(status()).toHaveTextContent(/^$/)
+    })
+
+    it("announces nothing for a type chosen from the Config palette's menu", async () => {
+      const { tile, slider } = await setupSliderAndData()
+      renderSlider(tile)
+      render(<SliderConfigPalette sliderModel={slider} setShowPalette={jest.fn()}/>)
+      await userEvent.click(screen.getByTestId("slider-type-button"))
+      await userEvent.click(screen.getByRole("option", { name: "Visibility" }))
+      expect(slider.sliderType).toBe("visibility")
+      // the palette has groups of its own
+      expect(within(screen.getByTestId("slider-drop-overlay")).getByRole("status")).toHaveTextContent(/^$/)
+    })
+
+    it("announces a change after one chosen from a menu", async () => {
+      const { tile, dataSet, slider } = await setupSliderAndData()
+      slider.setSliderType("visibility")
+      renderSlider(tile)
+      await userEvent.click(screen.getByTestId("slider-attribute-menu-button"))
+      const items = await screen.findAllByRole("menuitem", { hidden: true })
+      await userEvent.click(items.find(item => item.textContent === "a3")!)
+      act(() => slider.configureFromAttribute(dataSet, dataSet.attrFromName("a4")!.id))
+      expect(status()).toHaveTextContent("Attribute set to a4")
     })
 
     it("announces a change made by undo", async () => {
