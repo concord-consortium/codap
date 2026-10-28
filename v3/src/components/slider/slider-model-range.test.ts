@@ -318,6 +318,23 @@ describe("SliderModel playback steps", () => {
     expect(slider.nextAnimationValue(1, 0.1)).toBe(4)
   })
 
+  it("steps a zero-width range onto a data value at a decimal multiple, despite floating point", async () => {
+    const { dataSet, slider } = await setupSliderAndData()
+    const tenths = dataSet.addAttribute({ name: "tenths" })
+    // set before binding, after which the slider hides most of the cases
+    const values = [0.2, 0.3, 0.4, 0.9, 1.2, 1.5]
+    dataSet.setCaseValues(dataSet.itemIds.map((__id__, i) => ({ __id__, [tenths.id]: values[i] })))
+    slider.configureFromAttribute(dataSet, tenths.id)
+    slider.setMultipleOf(0.1)
+    slider.setRange(0.2, 0.2)
+    // 3 * 0.1 is a hair over 0.3 in floating point
+    expect(slider.nextAnimationValue(1, 0.01)).toBe(0.3)
+    slider.setMultipleOf(0.3)
+    slider.setRange(1.2, 1.2)
+    // 3 * 0.3 is a hair under 0.9
+    expect(slider.nextAnimationValue(-1, 0.01)).toBe(0.9)
+  })
+
   it("steps a zero-width range with a multiple restriction past the domain after the last data value", async () => {
     const { slider } = await setupRangeSlider()
     slider.setMultipleOf(2)

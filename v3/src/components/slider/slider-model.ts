@@ -210,13 +210,14 @@ export const SliderModel = TileContentModel
     // the value one playback step further
     nextAnimationValue(sign: 1 | -1, fallbackIncrement: number) {
       // A range's low end needn't be on a multiple (a drag of its ends ignores the restriction; see sliderStep), so a
-      // range steps to the next multiple in the direction of play, with a tolerance so floating point doesn't make it
-      // step to the multiple it's already on.
+      // range steps to the next multiple in the direction of play. Comparisons with multiples allow a tolerance, a
+      // fraction of the multiple, so floating point doesn't make a range step to the multiple it's already on, or
+      // past a data value on the next one.
       const { increment } = self
+      const kTolerance = 1e-9
       const nextMultiple = () => {
         if (!increment) return undefined
         const multiples = self.value / increment
-        const kTolerance = 1e-9
         const next = sign > 0 ? Math.floor(multiples + kTolerance) + 1 : Math.ceil(multiples - kTolerance) - 1
         return next * increment
       }
@@ -225,9 +226,10 @@ export const SliderModel = TileContentModel
       const values = self.snapValues
       if (self.isRangeSlider && self.width === 0 && values.length) {
         const target = nextMultiple()
+        const tolerance = kTolerance * (increment ?? 0)
         const next = sign > 0
-          ? values.find(v => target != null ? v >= target : v > self.value)
-          : [...values].reverse().find(v => target != null ? v <= target : v < self.value)
+          ? values.find(v => target != null ? v >= target - tolerance : v > self.value)
+          : [...values].reverse().find(v => target != null ? v <= target + tolerance : v < self.value)
         const [min, max] = self.valueDomain
         return next ?? (sign > 0 ? max + 1 : min - 1)
       }
