@@ -69,6 +69,8 @@
     "plugin-api:generate": "node scripts/plugin-api/generate-plugin-api-docs.mjs",
     "plugin-api:check": "node scripts/plugin-api/generate-plugin-api-docs.mjs --check; g=$?; node scripts/plugin-api/lint-plugin-api-docs.mjs; l=$?; exit $((g>l?g:l))",
     "plugin-api:lint": "node scripts/plugin-api/lint-plugin-api-docs.mjs",
+    "plugin-api:tester": "node scripts/plugin-api/generate-tester-templates.mjs --out ../../codap-data-interactives/DataInteractiveAPITester/resources/reference-templates.json",
+    "plugin-api:tester:check": "node scripts/plugin-api/generate-tester-templates.mjs --check --out ../../codap-data-interactives/DataInteractiveAPITester/resources/reference-templates.json",
     "lint:build": "eslint --cache --cache-strategy content --cache-location \".cache/eslint/build\" -c \"eslint.build.config.mjs\" \"./src/**/*.{js,jsx,mjs,ts,tsx}\" \"./cypress/**/*.{js,jsx,mjs,ts,tsx}\"",
     "lint:fix": "eslint --cache --fix \"./src/**/*.{js,jsx,ts,tsx}\" \"./cypress/**/*.{js,jsx,ts,tsx}\"",
     "lint:style": "eslint -c \".eslintrc.style.cjs\" \"./src/**/*.{js,jsx,ts,tsx}\" \"./cypress/**/*.{js,jsx,ts,tsx}\"",

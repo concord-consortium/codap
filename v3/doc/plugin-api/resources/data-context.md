@@ -131,6 +131,88 @@ Create a data context with one collection and two attributes:
 }
 ```
 
+Read it back, after one case has been added. The response describes the structure — collections
+and attributes — and has no cases:
+
+```json
+{
+  "action": "get",
+  "resource": "dataContext[Mammals]"
+}
+```
+
+```json
+{
+  "success": true,
+  "values": {
+    "type": "DG.DataContext",
+    "document": 1,
+    "guid": 41,
+    "id": 41,
+    "name": "Mammals",
+    "title": "Mammal measurements",
+    "collections": [
+      {
+        "attrs": [
+          {
+            "name": "Species",
+            "type": "categorical",
+            "title": "Species",
+            "cid": "ATTR43",
+            "_categoryMap": {
+              "lion": "#ff6800",
+              "__order": [ "lion" ],
+              "attribute-color": "#ff6800",
+              "low-attribute-color": "#f5e9e0",
+              "high-attribute-color": "#ff6800"
+            },
+            "editable": true,
+            "hidden": false,
+            "renameable": true,
+            "deleteable": true,
+            "guid": 43,
+            "id": 43
+          },
+          {
+            "name": "Mass",
+            "type": "numeric",
+            "title": "Mass",
+            "cid": "ATTR44",
+            "_categoryMap": {
+              "190": "#ff6800",
+              "__order": [ "190" ],
+              "attribute-color": "#803e75",
+              "low-attribute-color": "#eee7ed",
+              "high-attribute-color": "#803e75"
+            },
+            "editable": true,
+            "hidden": false,
+            "renameable": true,
+            "deleteable": true,
+            "guid": 44,
+            "id": 44,
+            "precision": 2
+          }
+        ],
+        "guid": 42,
+        "id": 42,
+        "name": "Cases",
+        "title": "Cases",
+        "type": "DG.Collection"
+      }
+    ],
+    "flexibleGroupingChangeFlag": false,
+    "preventReorg": false,
+    "setAsideItems": [],
+    "contextStorage": { "_links_": { "selectedCases": [] } }
+  }
+}
+```
+
+Keys whose value is `undefined`, such as each attribute's `formula` and the collection's `parent`,
+are left out above; a plugin receives them, as described under
+[What `get` returns](#what-get-returns).
+
 Sort a data context by one attribute, descending:
 
 ```json
@@ -156,6 +238,15 @@ Set two cases aside, then restore everything that is set aside:
   "action": "notify",
   "resource": "dataContext[Mammals]",
   "values": { "request": "restoreSetAsides" }
+}
+```
+
+Delete a data context, with all of its cases:
+
+```json
+{
+  "action": "delete",
+  "resource": "dataContext[Mammals]"
 }
 ```
 
