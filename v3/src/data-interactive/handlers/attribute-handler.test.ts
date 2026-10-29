@@ -4,6 +4,7 @@ import { DIResultAttributes } from "../data-interactive-data-set-types"
 import { DataSet } from "../../models/data/data-set"
 import { setupTestDataset } from "../../test/dataset-test-utils"
 import { AppHistoryService } from "../../models/history/app-history-service"
+import * as SharedDataUtils from "../../models/shared/shared-data-utils"
 
 describe("DataInteractive AttributeHandler", () => {
   const handler = diAttributeHandler
@@ -90,6 +91,23 @@ describe("DataInteractive AttributeHandler", () => {
     const values2 = result2?.values as DIResultAttributes
     const resultAttr2 = values2.attrs?.[0]
     expect(resultAttr2?.type).toBe(type)
+  })
+
+  it("update sets editable to the value it is given", () => {
+    const { dataset: dataContext, metadata, a1 } = setupTestDataset()
+    const spy = jest.spyOn(SharedDataUtils, "getMetadataFromDataSet").mockReturnValue(metadata)
+    const editableResult = (editable: boolean) => {
+      const result = handler.update?.({ attribute: a1, dataContext }, { editable })
+      expect(result?.success).toBe(true)
+      return (result?.values as DIResultAttributes).attrs?.[0]?.editable
+    }
+
+    expect(editableResult(false)).toBe(false)
+    expect(metadata.isEditProtected(a1.id)).toBe(true)
+
+    expect(editableResult(true)).toBe(true)
+    expect(metadata.isEditProtected(a1.id)).toBe(false)
+    spy.mockRestore()
   })
 
   it("update handles invalid precision values correctly", () => {
