@@ -65,4 +65,28 @@ describe("DataInteractive ItemSearchHandler", () => {
     expect(notify({ dataContext, itemSearch }, { itemOrder: [1] }).success).toBe(true)
     expect(dataContext.itemIds[1]).toBe(item.__id__)
   })
+
+  it("notify moves the matching items when an item is set aside", () => {
+    const { dataset: dataContext, a3 } = setupTestDataset()
+    const notify = handler.notify!
+    const a3Values = () => dataContext.items.map(({ __id__ }) => dataContext.getNumeric(__id__, a3.id))
+    dataContext.hideCasesOrItems([dataContext.itemIds[1]])
+    dataContext.validateCases()
+    expect(a3Values()).toEqual([1, 3, 4, 5, 6])
+
+    const fifth = dataContext.items[3]
+    expect(notify({ dataContext, itemSearch: [fifth] }, { itemOrder: "first" }).success).toBe(true)
+    expect(a3Values()).toEqual([5, 1, 3, 4, 6])
+
+    const sixth = dataContext.items[4]
+    expect(notify({ dataContext, itemSearch: [sixth] }, { itemOrder: "first" }).success).toBe(true)
+    expect(a3Values()).toEqual([6, 5, 1, 3, 4])
+
+    expect(notify({ dataContext, itemSearch: [fifth] }, { itemOrder: "last" }).success).toBe(true)
+    expect(a3Values()).toEqual([6, 1, 3, 4, 5])
+
+    dataContext.showHiddenCasesAndItems()
+    dataContext.validateCases()
+    expect(a3Values()).toEqual([6, 1, 2, 3, 4, 5])
+  })
 })
