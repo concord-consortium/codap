@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from "react"
 import { selectAllCases } from "../../../models/data/data-set-utils"
 import { useTileSelectionContext } from "../../../hooks/use-tile-selection-context"
+import { preservesSelection } from "../../../utilities/platform-utils"
 import { kDoubleClickDelay } from "../../constants"
 import { IMapContentModel } from "../models/map-content-model"
 
@@ -37,7 +38,7 @@ export function useMapClickDeselect(mapModel: IMapContentModel) {
   const handleMapClick = useCallback((event: MouseEvent) => {
     if (!wasTileSelectedRef.current) return
     if (mapModel._ignoreLeafletClicks) return
-    if (event.shiftKey || event.metaKey || event.ctrlKey) return
+    if (preservesSelection(event)) return
 
     // Delay deselection so double-clicks (which trigger zoom) don't
     // inadvertently clear the selection. The pending deselect is cancelled

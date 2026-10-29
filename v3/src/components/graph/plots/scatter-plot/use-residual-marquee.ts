@@ -4,6 +4,7 @@ import RTreeLib from "rtree"
 import { Logger } from "../../../../lib/logger"
 import { IDataSet } from "../../../../models/data/data-set"
 import { selectAllCases, selectAndDeselectCases } from "../../../../models/data/data-set-utils"
+import { preservesSelection } from "../../../../utilities/platform-utils"
 import { rTreeRect } from "../../../data-display/data-display-types"
 import { getCasesForDelta, rectNormalize } from "../../../data-display/data-display-utils"
 import { MarqueeState } from "../../../data-display/models/marquee-state"
@@ -120,7 +121,7 @@ export function useResidualMarquee(props: IUseResidualMarquee) {
       suppressClickRef.current = false
       return
     }
-    if (!event.shiftKey && !event.metaKey && !event.ctrlKey && dataset) {
+    if (!preservesSelection(event) && dataset) {
       selectAllCases(dataset, false)
     }
   }, [dataset])
