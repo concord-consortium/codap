@@ -1567,10 +1567,14 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       },
 
       moveItems(itemIds: string[], options?: IMoveItemsOptions) {
-        const indices = itemIds.map(itemId => self.getItemIndex(itemId)).filter(index => index != null)
-          .sort((a: number, b: number) => b - a) // Reverse order
-        const items = indices.map(index => {
-          const item = { index, item: self.items[index], values: [] as { strValue: string, numValue: number }[] }
+        // Item indices count set-aside and filtered-out items, so pair each index with its id
+        // rather than looking the item up in `self.items`, which leaves those items out
+        const itemIndices = itemIds.map(itemId => ({ itemId, index: self.getItemIndex(itemId) }))
+          .filter((info): info is { itemId: string, index: number } => info.index != null)
+          .sort((a, b) => b.index - a.index) // Reverse order
+        const indices = itemIndices.map(({ index }) => index)
+        const items = itemIndices.map(({ itemId, index }) => {
+          const item = { index, item: { __id__: itemId }, values: [] as { strValue: string, numValue: number }[] }
           self.attributes.forEach(attr => item.values.push({
             strValue: attr.strValues[index],
             numValue: attr.numValues[index]
