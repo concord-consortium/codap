@@ -688,10 +688,16 @@ test("moveItems moves the right items when some items are set aside", () => {
   expect(data.itemIds).toEqual(["f", "a", "d", "e", "c"])
   expect(letterValues()).toEqual(["f", "a", "d", "e", "c"])
 
+  // an id passed more than once moves only that item
+  data.moveItems(["d", "d"], { before: "f" })
+  data.validateCases()
+  expect(data.itemIds).toEqual(["d", "f", "a", "e", "c"])
+  expect(letterValues()).toEqual(["d", "f", "a", "e", "c"])
+
   data.showHiddenCasesAndItems()
   data.validateCases()
-  expect(data._itemIds).toEqual(["f", "a", "b", "d", "e", "c"])
-  expect(letterValues()).toEqual(["f", "a", "b", "d", "e", "c"])
+  expect(data._itemIds).toEqual(["d", "f", "a", "b", "e", "c"])
+  expect(letterValues()).toEqual(["d", "f", "a", "b", "e", "c"])
 })
 
 test("sortByAttribute with a flat DataSet", () => {
