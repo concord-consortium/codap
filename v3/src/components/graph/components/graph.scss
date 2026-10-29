@@ -7,6 +7,7 @@
 }
 
 .graph-plot {
+  background-color: vars.$background-fill;
   position: relative;
   width: 100%;
   height: calc(100% - vars.$title-bar-height);
