@@ -197,4 +197,29 @@ context("Test graph axes with split, multi-y, bars, and overflow configurations"
         })
       })
   })
+  it("keeps the OTHER category on each sub-axis when a categorical axis is split", () => {
+    // A fresh graph from the toolbar is short enough that the 27 mammals overflow into OTHER.
+    c.closeComponent("graph")
+    c.getIconFromToolShelf("graph").click()
+    cy.wait(500)
+
+    ah.openAxisAttributeMenu("left")
+    ah.selectMenuAttribute("Mammal", "left")
+    cy.wait(1000)
+    ah.verifyAxisTickLabels("left", ["OTHER"], true)
+
+    ae.getAxisTickLabels("left", true).its("length").then(unsplitCount => {
+      // Splitting the plot by Diet repeats the left axis once per diet, so each sub-axis is a
+      // fraction of the length and must show fewer categories, still ending with OTHER.
+      cy.dragAttributeToTarget("table", arrayOfAttributes[8], "right") // Diet => right split
+      cy.wait(1000)
+      cy.get("[data-testid=graph]").find("[data-testid=axis-left]").find(".sub-axis-wrapper")
+        .should("have.length", 3)
+        .each(wrapper => {
+          cy.wrap(wrapper).find("[data-testid=category-on-axis] [data-testid=category-label]")
+            .should("have.length.lessThan", unsplitCount)
+            .last().should("have.text", "OTHER")
+        })
+    })
+  })
 })
