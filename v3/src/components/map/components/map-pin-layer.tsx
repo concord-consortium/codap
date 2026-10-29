@@ -15,7 +15,7 @@ import PlacedLocationMarker from "../assets/placed-location-marker.svg"
 import { useMapModelContext } from "../hooks/use-map-model-context"
 import { kPinColors, kPinCursors } from "../map-types"
 import { IMapPinLayerModel } from "../models/map-pin-layer-model"
-import { shiftLongitudeIntoView } from "../utilities/map-utils"
+import { getNextPinColorIndexForDataSet, shiftLongitudeIntoView } from "../utilities/map-utils"
 import { PinControls } from "./pin-controls"
 
 import "./map-pin-layer.scss"
@@ -108,7 +108,7 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
   const { latId: pinLatId, longId: pinLongId } = mapLayerModel.pinAttributes || {}
   if (!pinLatId || !pinLongId) return
   const colorId = dataset.attributes.find(attr => attr.type === "color")?.id
-  const colorIndex = (dataset.items.length ?? 0) % kPinColors.length
+  const colorIndex = getNextPinColorIndexForDataSet(dataset, colorId)
 
   const handleClick = (e: React.MouseEvent) => {
     if (mapLayerModel.addMode) {
