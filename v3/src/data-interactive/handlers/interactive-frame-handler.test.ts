@@ -83,6 +83,8 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     expect(handler.update?.({ interactiveFrame: tile }, values).success).toBe(true)
     expect(webViewContent.allowEmptyAttributeDeletion).toBe(allowEmptyAttributeDeletion)
     expect(tile.cannotClose).toBe(cannotClose)
+    expect(handler.update?.({ interactiveFrame: tile }, { cannotClose: false }).success).toBe(true)
+    expect(tile.cannotClose).toBe(false)
     const newDimensions =
       appState.document.content?.getTileDimensions(tile.id) as unknown as { height: number, width: number }
     expect(newDimensions.height).toBe(10)

@@ -102,7 +102,7 @@ export const diInteractiveFrameHandler: DIHandler = {
       if (allowEmptyAttributeDeletion != null) {
         webViewContent?.setAllowEmptyAttributeDeletion(allowEmptyAttributeDeletion)
       }
-      if (cannotClose) interactiveFrame.setCannotClose(cannotClose)
+      if (cannotClose != null) interactiveFrame.setCannotClose(cannotClose)
       if (dimensions) {
         appState.document.content?.setTileDimensions(interactiveFrame.id, dimensions)
       }

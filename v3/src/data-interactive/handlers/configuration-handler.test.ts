@@ -132,17 +132,18 @@ describe("DataInteractive ConfigurationHandler", () => {
       expect(mockDocumentContent.setGaussianFitEnabled).toHaveBeenCalledWith(false)
     })
 
-    it("sets gaussianFitEnabled to false when value is undefined", () => {
+    it("returns an error and leaves gaussianFitEnabled alone when value is missing", () => {
       mockDocumentContent.gaussianFitEnabled = true
 
       const resources: DIResources = {
         interactiveFrame: {} as any,
         configuration: "gaussianFitEnabled"
       }
-      const values: DIUpdateConfigurationValue = { value: undefined }
-      const result = handler.update?.(resources, values)
-      expect(result).toEqual({ success: true })
-      expect(mockDocumentContent.setGaussianFitEnabled).toHaveBeenCalledWith(false)
+      for (const values of [{ value: undefined }, {}] as DIUpdateConfigurationValue[]) {
+        const result = handler.update?.(resources, values)
+        expect(result).toEqual({ success: false, values: { error: "Update configuration: value required" } })
+      }
+      expect(mockDocumentContent.setGaussianFitEnabled).not.toHaveBeenCalled()
     })
 
     it("returns success false when interactiveFrame is not provided", () => {

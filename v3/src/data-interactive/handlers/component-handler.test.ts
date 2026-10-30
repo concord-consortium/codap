@@ -154,6 +154,12 @@ describe("DataInteractive ComponentHandler", () => {
     expect(handler.update?.({ component: graphTile }, { name: "My Graph" }).success).toBe(true)
     expect(graphTile.name).toBe("My Graph")
 
+    // Test updating title; empty text clears it so the tile shows its default title
+    expect(handler.update?.({ component: graphTile }, { title: "My Title" }).success).toBe(true)
+    expect(graphTile.title).toBe("My Title")
+    expect(handler.update?.({ component: graphTile }, { title: "" }).success).toBe(true)
+    expect(graphTile.title).toBe("")
+
     // Test updating isResizable with boolean
     expect(graphTile._isResizable).toBeUndefined()
     expect(graphTile.isResizable).toEqual({ width: true, height: true })

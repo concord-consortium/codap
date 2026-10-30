@@ -145,10 +145,6 @@ sendRequest({
 
 ## Known limitations
 
-**`update` without a `value` turns the setting off.** CODAP replies `{ "success": true }` to an
-`update` whose `values` has no `value`, and turns the setting off. v2 refused it with an error
-and left the setting alone. This is a known bug; always send `value`.
-
 **The `gaussianFit` URL parameter cannot be overridden.** In v3 the parameter turns the setting
 on whatever its value, even `gaussianFit=no`, and while it is present a plugin cannot turn the
 setting off: `update` replies success, and `get` still reports `"yes"`. In v2 only
@@ -174,6 +170,7 @@ cannot be undone, also as in v2.
 |---|---|
 | `unknown configuration "<name>"` | `get` or `update` names a setting other than `gaussianFitEnabled`, or names none, in which case `<name>` is `undefined` |
 | `A values object is required for this request.` | `update` with no `values` |
+| `<action> <resource>: <field> required` | `update` whose `values` has no `value`, or a `null` one. The setting is left alone |
 | `Interactive Frame not found` | a request on `configuration` that did not come from a plugin; see [Known limitations](#known-limitations). The same request on `configurationList` fails with an internal error message instead |
 
 For an unknown name, v2's messages differed: `get` replied that the setting was not found, and

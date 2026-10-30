@@ -64,5 +64,8 @@ describe("DataInteractive ItemSearchHandler", () => {
 
     expect(notify({ dataContext, itemSearch }, { itemOrder: [1] }).success).toBe(true)
     expect(dataContext.itemIds[1]).toBe(item.__id__)
+
+    expect(notify({ dataContext, itemSearch }, { itemOrder: [0] }).success).toBe(true)
+    expect(dataContext.itemIds[0]).toBe(item.__id__)
   })
 })

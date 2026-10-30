@@ -97,15 +97,17 @@ v3.
 `type` is required when creating. On `create`, `title` falls back to `name` when only `name` is
 given.
 
-Three of these behave differently from the table:
+Two of these behave differently from the table:
 
 - **`isVisible` is never returned by `get`**, and `create` ignores it — a component created with
   `isVisible: false` is visible. Only `update` honors it. To read whether a component is on
   screen, use [`componentList`](component-list.md), whose `hidden` is the inverse.
 - **`position` accepts a string or an object on `create`, but only an object on `update`.** A
   string position sent to `update` is dropped silently.
-- **`title: ""` does not clear a title on `update`.** An empty string is treated as "no value
-  given" and the existing title is kept.
+
+`title: ""` on `update` clears the title, and the component shows its default title instead. A
+case table or case card shows its data context's title whatever its own title is, so for those
+the change has no visible effect.
 
 `update` additionally accepts `currentGameName` as an alias for `name`, for v2 compatibility.
 Neither it nor `currentGameUrl` is ever returned by `get`, and `currentGameUrl` works on `update`
@@ -547,9 +549,6 @@ than deleted. They stay in the document, keep their ids, and continue to appear 
 v3 registers only `imageComponentView` and returns `Unsupported component type <value>` for
 `image`. A v2 plugin carrying that spelling breaks. This is a known bug — unlike `guide`, this
 spelling really worked in v2.
-
-**`update` with `title: ""` does not clear a title.** An empty string is read as "no value given".
-v2 wrote it. This is a known bug.
 
 **`create` does not always create.** Three types reuse a component that already exists:
 

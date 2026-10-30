@@ -232,7 +232,7 @@ export const diComponentHandler: DIHandler = {
       if (isResizable != null) component.setIsResizable(isResizable)
       if (name != null) component.setName(name)
       else if (currentGameName != null) component.setName(currentGameName)
-      if (title) component.setTitle(title)
+      if (title != null) component.setTitle(title)
       // TODO Handle string positions?
       const _position = position && typeof position !== "string" ? position : undefined
       if (dimensions || _position || isVisible != null) {

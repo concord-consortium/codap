@@ -83,7 +83,7 @@ whatever it was given, so a plugin that must also run there should send numbers.
 
 | Property | Type | Notes |
 |---|---|---|
-| `value` | number | required. The new value, converted to a number as for `create`. But see [Known limitations](#known-limitations) for `0`, `false` and empty text |
+| `value` | number | required. The new value, converted to a number as for `create`. `0` is a value; only a missing or `null` `value` is refused. See [Known limitations](#known-limitations) for `false` and empty text |
 
 The name cannot be changed. `update` replies `{ "success": true }`. A slider showing the global
 value moves to the new value.
@@ -182,10 +182,9 @@ sendRequest({ action: "get", resource: "global[rate]" }, result => {
 
 ## Known limitations
 
-**`update` with a `value` of `0` fails.** CODAP refuses any `value` that JavaScript treats as
-false, `0`, `false` and empty text among them, with `missing global or value`, and leaves the
-value unchanged. v2 refused only a missing `value`, and set `0`. This is a known bug. Until it is
-fixed, send `"0"`, which is accepted and stored as `0`.
+**`update` turns `false` and empty text into `0`.** Like any other `value`, they are converted
+to a number, so `false` and `""` are stored as `0`, and `true` as `1`. v2 stored the value as
+given. This is a known bug; send numbers.
 
 **`create` with no `values` fails.** v3 replies with the generic error
 `An error occurred while processing the request.` and creates nothing. v2 created a global value
@@ -229,7 +228,7 @@ It is intended to be sent when a plugin sets the value too; see
 | Error | Condition |
 |---|---|
 | `Not found` | `get` names a global value that does not exist, or names none |
-| `missing global or value` | `update` names a global value that does not exist, or has no `value`, or a `value` such as `0`, `false` or empty text; see [Known limitations](#known-limitations). This assumes the request has `values`; without it v3 replies with the generic error |
+| `missing global or value` | `update` names a global value that does not exist, or has no `value`, or a `null` one. This assumes the request has `values`; without it v3 replies with the generic error |
 | `global values must be numbers` | `create` or `update` with a `value` that is not a number |
 | `globals must have unique names` | `create` with a name another global value already has |
 | `error creating global value` | `create` failed for any other reason |
