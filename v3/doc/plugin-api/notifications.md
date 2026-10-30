@@ -28,9 +28,7 @@ are done:
 ```js
 function requestHandler (command, callback) {
   if (command.action === "notify" && command.resource.startsWith("dataContextChangeNotice[")) {
-    // v2 sent an array of changes; v3 currently sends one object. Accept both.
-    const changes = Array.isArray(command.values) ? command.values : [command.values]
-    changes.forEach(change => {
+    command.values.forEach(change => {
       // change.operation is "createCases", "updateCases", ...
     })
   }
@@ -52,9 +50,14 @@ every connected plugin. The exceptions:
   - `drag`, `dragenter`, `dragleave` and `drop` go only to the plugin under the pointer. See
     [Attribute drag](#attribute-drag--dragdropattribute).
 
-**Your own changes.** A plugin is not sent notifications about changes it requested itself, so it
-never has to recognize and ignore its own work. Component notifications follow this rule. Data
-notifications currently do not: see [Known limitations](#known-limitations).
+**Your own changes.** A plugin is not sent component or `dataContextChangeNotice[<context>]`
+notifications about changes it requested itself, so it never has to recognize and ignore its own
+work. Changes the user makes are sent to every plugin.
+
+v2 followed this rule only for data changes that recorded which plugin asked for them. `update`
+on `attribute`, the `createCases` sent when items are created, `moveCases`, `moveAttribute`, and
+`dependentCases` all went to the requester too, and v2 sent component notifications to every
+plugin, the requester included.
 
 ## The envelope
 
@@ -69,9 +72,9 @@ then name the change in `values.operation`:
 }
 ```
 
-**Data changes carry a list.** On `dataContextChangeNotice[<context>]`, `values` is meant to be an
-array of changes, each with its own `operation` and `result`, because several changes can be
-reported in one notification. This is the form v2 sends:
+**Data changes carry a list.** On `dataContextChangeNotice[<context>]`, `values` is an array of
+changes, each with its own `operation` and `result`, because several changes can be reported in
+one notification:
 
 ```json
 {
@@ -86,21 +89,7 @@ reported in one notification. This is the form v2 sends:
 }
 ```
 
-**v3 currently sends a single change object instead of the array:**
-
-```json
-{
-  "action": "notify",
-  "resource": "dataContextChangeNotice[Mammals]",
-  "values": {
-    "operation": "createCases",
-    "result": { "success": true, "caseIDs": [17], "itemIDs": [9], "caseID": 17, "itemID": 9 }
-  }
-}
-```
-
-See [Known limitations](#known-limitations). The example in [Receiving them](#receiving-them)
-handles both.
+Each notification currently reports one change; see [Known limitations](#known-limitations).
 
 **Some notifications have no `operation`.** A `logMessageNotice` carries the log event itself, and
 the slider notice on `global[<name>]` carries only the new value:
@@ -397,24 +386,11 @@ name alongside the old one and go through [deprecation](conventions.md#deprecate
 
 ## Known limitations
 
-**A plugin receives notifications about its own data changes.** v3 sends every data notification —
-attributes, cases, collections, the selection — to every plugin, including the one that made the
-change. A plugin that refetches or writes back whenever its data changes reacts to its own
-changes, and can loop. This is a known bug; the intended behavior is that the requesting plugin is
-skipped, as it already is for v3's component notifications.
-
-v2 is only a partial precedent. It skipped the requesting plugin for data changes that recorded
-which plugin asked for them, but several did not: `update` on `attribute`, the `createCases` sent
-when items are created, `moveCases`, `moveAttribute`, and `dependentCases` all went to the
-requester too. v2 sent
-component notifications to every plugin, the requester included.
-
-**Data changes arrive one at a time, not as a list.** v2 collected the changes made together and
-sent one `dataContextChangeNotice[<context>]` whose `values` is an array of
-`{ operation, result }`. v3 sends one notification per change, with `values` as a single object.
-A plugin that iterates over `values` fails on v3's object. This is a known bug; the intended
-behavior is v2's array. Until it is fixed, accept both, as the example in
-[Receiving them](#receiving-them) does.
+**Data changes arrive one at a time.** v2 collected the changes made together and sent one
+`dataContextChangeNotice[<context>]` whose `values` array holds all of them. CODAP sends one
+notification per change, each with a `values` array of one. A plugin that iterates over `values`
+sees the same changes, but across several notifications rather than one. The intended behavior is
+v2's.
 
 **Some API changes send no notification.** These requests change data, but v3 does not notify
 other plugins about them. v2 did, for every one of them:

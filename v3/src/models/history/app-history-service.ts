@@ -4,6 +4,7 @@ import { IApplyModelChangeOptions, IHistoryService, IWithoutUndoOptions } from "
 import { ILogFunctionEnv } from "../../lib/log-message"
 import { DEBUG_UNDO } from "../../lib/debug"
 import { ICoreNotifyFunctionEnv } from "../../data-interactive/notification-core-types"
+import { getNotificationRequesterTileId } from "../../data-interactive/notification-requester"
 import { isChildOfUndoRedo, runningCalls } from "./tree-types"
 import { withoutUndo } from "./without-undo"
 
@@ -50,7 +51,10 @@ export class AppHistoryService implements IHistoryService {
           const __notification = typeof _notification === "function" ? _notification() : _notification
           if (__notification) {
             const { message, callback } = __notification
-            this.tileEnv.notify(message, callback ?? (() => null), notifyTileId, excludeTileId)
+            // as in V2, a plugin doesn't receive data context change notices for its own requests
+            const _excludeTileId = excludeTileId ??
+              (message.resource.startsWith("dataContextChangeNotice") ? getNotificationRequesterTileId() : undefined)
+            this.tileEnv.notify(message, callback ?? (() => null), notifyTileId, _excludeTileId)
           }
         }
       }

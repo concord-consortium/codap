@@ -223,11 +223,6 @@ and replies `{ "success": false }` when no object has `values`. This is a known 
 item, changes that item, and lists the id in `caseIDs`. v2 skipped it. This is a known bug. Use
 the ids of cases, and use [`itemByID`](item-by-id.md) to change an item.
 
-**The requesting plugin hears its own change.** `create` and `update` send their notifications to
-the plugin that made the change as well as to the others. The intended behavior is that the
-requesting plugin is skipped. This is a known bug; see
-[the catalog's known limitations](../notifications.md#known-limitations).
-
 ## Notifications
 
 `create` notifies the plugins listening to the data context with `createCases`, and `update` with
