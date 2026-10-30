@@ -7,8 +7,9 @@ Reads or replaces the entire CODAP document as **CODAP v2 document JSON** — ev
 component and global value in one payload. Used by plugins that save, restore or transform whole
 documents rather than individual pieces of them.
 
-**Neither action returns the document in its response.** Both reply `{"success": true}`
-immediately and do their work afterwards, delivering results as notifications.
+**Neither action returns the document in its response.** `get` replies `{"success": true}`
+immediately and delivers the document afterwards, as a notification. `update` replies once the
+document has been replaced, and announces the replacement with notifications.
 
 ## Supported actions
 
@@ -72,7 +73,8 @@ Then issue `get document` and handle `newDocumentState` in your notification han
 ## update — replacing the document
 
 `update document` takes a complete v2 document JSON in `values` and replaces the current document
-with it. It also returns `{"success": true}` immediately; the replacement happens asynchronously.
+with it. It replies once the document has been replaced: `{"success": true}`, or an error if the
+replacement failed.
 
 The work is bracketed by two notifications on the `documentChangeNotice` resource:
 
@@ -81,13 +83,17 @@ The work is bracketed by two notifications on the `documentChangeNotice` resourc
 ```
 
 ```json
-{ "action": "notify", "resource": "documentChangeNotice", "values": { "operation": "updateDocumentEnded" } }
+{ "action": "notify", "resource": "documentChangeNotice", "values": { "operation": "updateDocumentEnded", "success": true } }
 ```
 
-These go to every plugin, so each one can tell that the document is being replaced. The plugin
-that issued the update can treat them as its progress signal: the document is not replaced when
-the `success` response arrives, only when `updateDocumentEnded` does. Today a plugin's update
-sends them only to that plugin; see [Notifications](#notifications).
+`updateDocumentBegun` is sent before the reply. After a successful replacement,
+`updateDocumentEnded` follows about half a second after the reply, once the replaced document has
+settled; after a failure, it comes just before the error reply. Both go to every plugin, including the one that sent
+the update, and to the page CODAP is [embedded in](../guides/embedded-server.md), as in v2. So each
+one can tell that the document is being replaced, whoever replaced it.
+
+`updateDocumentEnded` is sent whether the replacement succeeded or failed, and its `success` says
+which. v2 sent no `success`, and sent no `updateDocumentEnded` at all when the replacement failed.
 
 **Your own state is not restored from the document you send.** Before applying the incoming
 snapshot, CODAP replaces the incoming state of every plugin with `subscribeToDocuments: true`
@@ -171,26 +177,18 @@ sendRequest({ action: 'update', resource: 'document', values: savedState })
 | Resource | Operation | When |
 |---|---|---|
 | `document` | `newDocumentState` | After `get document`, to every plugin with `subscribeToDocuments: true`. Carries the document in `values.state`. |
-| `documentChangeNotice` | `updateDocumentBegun` | Before an `update document` begins. Sent to every plugin. |
-| `documentChangeNotice` | `updateDocumentEnded` | After it completes. Sent to every plugin. |
-
-**When a plugin sends `update document`, only that plugin is told.** Other plugins, and the page
-CODAP is [embedded in](../guides/embedded-server.md), receive neither notice. This is a known
-bug; see [the catalog's known limitations](../notifications.md#known-limitations).
+| `documentChangeNotice` | `updateDocumentBegun` | Before an `update document` begins. Sent to every plugin and to the host page. |
+| `documentChangeNotice` | `updateDocumentEnded` | After it completes or fails. Carries `success`. Sent to every plugin and to the host page. |
 
 CODAP v3 does **not** currently emit default `undo`/`redo` notifications on this resource, which
 CODAP v2 did. That is a known gap.
 
 ## Errors
 
-This handler returns no error results of its own — both actions return `{"success": true}`
-unconditionally, before their work is attempted. A malformed document passed to `update`
-therefore fails *after* you have received a success response, during the asynchronous import.
+| Error | Condition |
+|---|---|
+| `A values object is required for this request.` | `update` without `values` |
+| `An error occurred while processing the request.` | `update` with a document that could not be read or applied. `updateDocumentEnded` with `success: false` comes just before this reply. A failure partway through applying the document can leave it partly replaced, so read it again before relying on it |
 
-`updateDocumentEnded` is the signal that an update finished, and it is sent whether the import
-succeeded or failed, so a plugin can wait on it rather than on a timeout.
-
-> **Known bug.** That is the intended behavior and what this page documents, but today an import
-> that throws does not send `updateDocumentEnded` at all — the failure is reported to the console
-> and the plugin is left waiting. This will be corrected. Until it is, a plugin restoring
-> documents it did not create may want a guard, but do not build a permanent timeout around it.
+`get` returns `{"success": true}` before the document is serialized; the document arrives in the
+`newDocumentState` notification. v2 replied to a failed `update` with the exception's own message.

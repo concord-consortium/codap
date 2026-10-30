@@ -374,7 +374,7 @@ Four more resources, each with a few notifications.
 |---|---|---|---|
 | `documentChangeNotice` | `dataContextCountChanged` | a data context is created or deleted anywhere in the document | — |
 | `documentChangeNotice` | `dataContextDeleted` | a data context is deleted. `deletedContext` is its name | `deletedContext` |
-| `documentChangeNotice` | `updateDocumentBegun`, `updateDocumentEnded` | a plugin, or the host page CODAP is embedded in, replaced the document with `update document`; the two bracket the replacement. Sent to every plugin. v3 sends them only to the plugin that asked; see [Known limitations](#known-limitations) | — |
+| `documentChangeNotice` | `updateDocumentBegun`, `updateDocumentEnded` | a plugin, or the host page CODAP is embedded in, replaced the document with `update document`; the two bracket the replacement. Sent to every plugin, the one that asked included, and to the host page. `updateDocumentEnded` carries `success`, and is also sent when the replacement fails, which v2 did not do | — |
 | `global[<name>]` | none | a global value changes: a slider is dragged or animates, or a plugin sets the value with `update` on `global`. `<name>` is the slider's global value name, and `globalValue` is the new value. This is how a plugin follows a slider continuously. Also sent when a change is undone or redone, and to every plugin, including the one that set the value | `globalValue` |
 | `global` | `localeChanged` | CODAP's locale changed. Carries `lang`, the two-letter base language, and `locale`, the locale itself, such as `pt-BR`. Sent only to plugins that set `handlesLocaleChange`; see [Language and locale](guides/locale.md) | `lang`, `locale` |
 | `logMessageNotice` | none | a user-analytics log event matched a monitor your plugin registered. Carries `message`, `formatStr` and `logMonitor`, and sometimes `topic` and `replaceArgs` | `formatStr`, `logMonitor`, `message`, … |
@@ -471,11 +471,6 @@ notifications on `document`. This is a known bug; see
 nothing when an action is added to an empty redo history, so a plugin does not hear that undo
 has become possible. This is a known bug; see
 [Undo and redo](guides/undo-and-redo.md#known-limitations).
-
-**`updateDocumentBegun` and `updateDocumentEnded` go only to the plugin that asked.** v2 sent
-both to every plugin whoever replaced the document, so each could tell that the document was
-being replaced. v3 does that only when the host page CODAP is
-[embedded in](guides/embedded-server.md) makes the request. This is a known bug.
 
 **Log event names do not match v2's.** About 27 event tokens were renamed in v3, and about 11
 payloads reshaped — `addAxisAttribute`, `attributeRemoved`, `dragEnd`, the `toggle*` family and
