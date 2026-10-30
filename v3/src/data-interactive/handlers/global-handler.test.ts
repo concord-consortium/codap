@@ -43,5 +43,10 @@ describe("DataInteractive GlobalHandler", () => {
 
     expect(handler.update?.(resources, { value: value2 }).success).toBe(true)
     expect(global1?.value).toBe(value2)
+
+    // 0 is a value; a missing or null value is rejected
+    expect(handler.update?.(resources, { value: 0 }).success).toBe(true)
+    expect(global1?.value).toBe(0)
+    expect(handler.update?.(resources, { value: null }).success).toBe(false)
   })
 })

@@ -217,11 +217,6 @@ positions among the items that are not set aside or hidden by a filter formula. 
 set-aside items too, so the same number can name a different place. This is a known bug. Until it
 is fixed, use array positions only when no item is set aside or hidden.
 
-**An `itemOrder` position of `0` is ignored.** When `itemOrder` is an array, a matching item
-whose position is `0` is not moved, and the reply is still `{ "success": true }`. v2 moved it to
-the start. This is a known bug. Until it is fixed, move a single item to the start with
-`"first"`.
-
 **Deleting and moving items send no notification.** v2 told the other plugins about a `delete`
 with `deleteCases` and about a `notify` with `moveCases`. v3 sends neither. This is a known bug;
 see [the catalog's known limitations](../notifications.md#known-limitations).

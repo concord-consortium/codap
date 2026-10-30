@@ -45,9 +45,9 @@ export const diItemSearchHandler: DIHandler = {
         // When itemOrder is an array, move each item to the specified index in order
         // Note that this means later items can impact the position of earlier items
         itemIds.forEach((id, index) => {
-          const itemIndex = itemOrder[index]
+          const itemIndex = itemOrder[index] != null ? Number(itemOrder[index]) : NaN
           const item = dataContext.getItem(id) as ICase
-          if (item && itemIndex && isFinite(itemIndex)) {
+          if (item && isFinite(itemIndex)) {
             dataContext.removeCases([id])
             const before = dataContext.itemIds[itemIndex]
             dataContext.addCases([item], { before })

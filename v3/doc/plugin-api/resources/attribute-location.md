@@ -59,7 +59,7 @@ own data context — see [the index](../README.md#the-default-data-context).
 | Property | Type | Notes |
 |---|---|---|
 | `collection` | String or number | The collection to move the attribute into, by name or by id. Omit it to move the attribute within its own collection. The text `"parent"` names the parent of the attribute's current collection |
-| `position` | number | The attribute's new position among the destination collection's attributes, counted from `0` on the left. Omit it to place the attribute on the right |
+| `position` | number | The attribute's new position among the destination collection's attributes, counted from `0` on the left. Omit it, or send `null`, to place the attribute on the right |
 
 **`position` counts the destination's attributes as they are before the move.** The attribute
 goes just before the attribute now at that position, or at the end. So moving the first of three
@@ -145,9 +145,6 @@ attribute into it. (`"parent"` from the top collection is reported, as described
 still finds the attribute and carries out the move. v2 failed with an error saying the collection
 could not be resolved. This is a known bug; the intended behavior is v2's. A segment naming a
 collection that does not exist was ignored in v2 too.
-
-**A `position` of `null` moves the attribute to the left.** v3 reads `null` as `0`. v2 treated it
-as missing and placed the attribute on the right. This is a known bug; omit `position` instead.
 
 **A plugin's move cannot be undone.** v2 added the move to CODAP's undo history, so the user could
 undo it. v3 does not. See [Undo and redo](../guides/undo-and-redo.md#known-limitations).

@@ -203,11 +203,6 @@ Tell CODAP the plugin is working, then that it has finished:
 indistinguishable from one that worked, and there is no way to ask which requests this CODAP
 supports.
 
-**`cannotClose: false` does not take effect.** Sending it should make a protected frame closeable
-again, as it did in v2. CODAP applies this property only when the value is truthy, unlike the
-other booleans on this resource, so `false` leaves the frame exactly as it was. This is a known
-bug; `true` works.
-
 **`name` and `title` are ignored once the user has renamed the tile.** Both are applied only
 while the title is still CODAP's own. A plugin that renames itself in response to its own state
 will stop being able to after any manual rename, and gets no error.
