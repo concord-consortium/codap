@@ -158,7 +158,11 @@ describe("DataInteractive ComponentHandler", () => {
     expect(handler.update?.({ component: graphTile }, { title: "My Title" }).success).toBe(true)
     expect(graphTile.title).toBe("My Title")
     expect(handler.update?.({ component: graphTile }, { title: "" }).success).toBe(true)
-    expect(graphTile.title).toBe("")
+    expect(graphTile._title).toBeUndefined()
+    expect(graphTile.title).toBe("My Graph")  // falls back to the name
+    // a title that isn't text is ignored rather than failing the request
+    expect(handler.update?.({ component: graphTile }, { title: 0 } as any).success).toBe(true)
+    expect(graphTile._title).toBeUndefined()
 
     // Test updating isResizable with boolean
     expect(graphTile._isResizable).toBeUndefined()
@@ -180,6 +184,7 @@ describe("DataInteractive ComponentHandler", () => {
     const getResult = handler.get?.({ component: graphTile })
     expect(getResult?.success).toBe(true)
     expect((getResult?.values as any)?.name).toBe("My Graph")
+    expect((getResult?.values as any)?.title).toBeUndefined()
     expect((getResult?.values as any)?.isResizable).toEqual({ width: true, height: false })
   })
 

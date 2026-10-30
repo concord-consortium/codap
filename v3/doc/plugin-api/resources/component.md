@@ -105,9 +105,9 @@ Two of these behave differently from the table:
 - **`position` accepts a string or an object on `create`, but only an object on `update`.** A
   string position sent to `update` is dropped silently.
 
-`title: ""` on `update` clears the title, and the component shows its default title instead. A
-case table or case card shows its data context's title whatever its own title is, so for those
-the change has no visible effect.
+`title: ""` on `update` clears the title. The component then shows its `name` if it has one, and
+otherwise its default title, and `get` returns no `title`. A case table or case card shows its data
+context's title whatever its own title is, so for those the change has no visible effect.
 
 `update` additionally accepts `currentGameName` as an alias for `name`, for v2 compatibility.
 Neither it nor `currentGameUrl` is ever returned by `get`, and `currentGameUrl` works on `update`

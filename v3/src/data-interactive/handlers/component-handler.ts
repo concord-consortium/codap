@@ -232,7 +232,8 @@ export const diComponentHandler: DIHandler = {
       if (isResizable != null) component.setIsResizable(isResizable)
       if (name != null) component.setName(name)
       else if (currentGameName != null) component.setName(currentGameName)
-      if (title != null) component.setTitle(title)
+      // An empty title clears it, so the tile falls back to its name or default title
+      if (typeof title === "string") component.setTitle(title || undefined)
       // TODO Handle string positions?
       const _position = position && typeof position !== "string" ? position : undefined
       if (dimensions || _position || isVisible != null) {

@@ -85,6 +85,10 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     expect(tile.cannotClose).toBe(cannotClose)
     expect(handler.update?.({ interactiveFrame: tile }, { cannotClose: false }).success).toBe(true)
     expect(tile.cannotClose).toBe(false)
+    expect(handler.update?.({ interactiveFrame: tile }, { cannotClose: 1 } as any).success).toBe(true)
+    expect(tile.cannotClose).toBe(true)
+    expect(handler.update?.({ interactiveFrame: tile }, { cannotClose: 0 } as any).success).toBe(true)
+    expect(tile.cannotClose).toBe(false)
     const newDimensions =
       appState.document.content?.getTileDimensions(tile.id) as unknown as { height: number, width: number }
     expect(newDimensions.height).toBe(10)
