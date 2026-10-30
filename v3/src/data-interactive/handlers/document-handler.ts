@@ -8,7 +8,9 @@ import {
 import { CodapV2Document } from "../../v2/codap-v2-document"
 import { ICodapV2DocumentJson } from "../../v2/codap-v2-types"
 import { registerDIHandler } from "../data-interactive-handler"
-import { DIHandler, DIResources, DIValues } from "../data-interactive-types"
+import { DIAsyncHandler, DIHandlerFnResult, DIValues } from "../data-interactive-types"
+import { errorResult, valuesRequiredResult } from "./di-results"
+import { t } from "../../utilities/translation/translate"
 import { importV2Document } from "../../v2/import-v2-document"
 import { isSharedDataSet, isSharedDataSetSnapshot } from "../../models/shared/shared-data-set"
 import { isDataSetMetadata, isDataSetMetadataSnapshot } from "../../models/shared/data-set-metadata"
@@ -190,22 +192,44 @@ function updateIncomingSnapshotIds(incomingSnapshot: ISerializedV3Document) {
   return JSON.parse(updatedSnapshotString) as ISerializedV3Document
 }
 
-async function asyncUpdate(resources: DIResources, values?: DIValues) {
-  const v2DocumentJson = values as ICodapV2DocumentJson
-  const v2Document = new CodapV2Document(v2DocumentJson)
+// As in V2 (document_helper.js:510-689), `update document` sends `updateDocumentBegun`, replaces the
+// document, replies, and sends `updateDocumentEnded` 500 ms later. Both notices go to every plugin,
+// the requester included, and to the host page CODAP is embedded in (V2 notification_manager.js:31-47).
+// Unlike V2, `updateDocumentEnded` is also sent when the update fails, and carries `success`, so a
+// plugin waiting for it can tell completion from failure.
+async function updateDocument(values?: DIValues): Promise<DIHandlerFnResult> {
+  if (!values) return valuesRequiredResult
   const { document } = appState
-  const tileMap = document.content?.tileMap
-  const interactiveFrameId = resources.interactiveFrame?.id || ''
 
-  const notifyDocumentChange = (operation: string) => {
-    document.content?.broadcastMessage({
-      action: 'notify',
-      resource: 'documentChangeNotice',
-      values: {operation}
-    }, () => {}, interactiveFrameId)
+  // a failure to notify must not stop the update, or the notice that ends it
+  const notifyDocumentChange = (operation: string, success?: boolean) => {
+    try {
+      document.content?.broadcastMessage({
+        action: 'notify',
+        resource: 'documentChangeNotice',
+        values: { operation, ...(success != null && { success }) }
+      }, () => {})
+    } catch (error) {
+      debugLog(DEBUG_PLUGINS, `documentChangeNotice ${operation} failed`, error)
+    }
   }
 
   notifyDocumentChange('updateDocumentBegun')
+  try {
+    await replaceDocument(values as ICodapV2DocumentJson)
+  } catch (error) {
+    debugLog(DEBUG_PLUGINS, "update document failed", error)
+    notifyDocumentChange('updateDocumentEnded', false)
+    return errorResult(t("V3.DI.Error.exceptionProcessingRequest"))
+  }
+  setTimeout(() => notifyDocumentChange('updateDocumentEnded', true), 500)
+  return { success: true }
+}
+
+async function replaceDocument(v2DocumentJson: ICodapV2DocumentJson) {
+  const v2Document = new CodapV2Document(v2DocumentJson)
+  const { document } = appState
+  const tileMap = document.content?.tileMap
 
   // Convert v2 Document to v3
   const v3Document = importV2Document(v2Document)
@@ -270,13 +294,10 @@ async function asyncUpdate(resources: DIResources, values?: DIValues) {
     applySnapshot(document, v3Snapshot)
     document.content?.afterApplySnapshot()
   })
-
-  await new Promise(resolve => setTimeout(resolve, 500))
-  notifyDocumentChange('updateDocumentEnded')
-
 }
 
-export const diDocumentHandler: DIHandler = {
+// `update` waits for the document to be replaced before replying, as in V2
+export const diDocumentHandler: DIAsyncHandler = {
   get() {
     // The following is asynchronous. The returned value is the JSON we send to the plugin.
     serializeCodapV2Document(appState.document).then((v2Document) => {
@@ -308,10 +329,8 @@ export const diDocumentHandler: DIHandler = {
       success: true,
     }
   },
-  update(resources: DIResources, values?: DIValues) {
-    asyncUpdate(resources, values)
-
-    return { success: true }
+  update(_resources, values?: DIValues) {
+    return updateDocument(values)
   }
 }
 
