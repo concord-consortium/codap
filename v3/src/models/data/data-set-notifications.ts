@@ -14,7 +14,8 @@ function dataSetNotification(
   const resource = dataSet ? `dataContextChangeNotice[${dataSet.name}]` : `documentChangeNotice`
   const values = { operation, result, ...extraValues }
 
-  return notification(resource, values, callback)
+  // as in V2, the values of a data context change notice are an array of { operation, result }
+  return notification(resource, dataSet ? [values] : values, callback)
 }
 
 export const dataContextCountChangedNotification = dataSetNotification("dataContextCountChanged")

@@ -304,8 +304,7 @@ built from them, are gone. Deleting the same cases in a case table sends `delete
 `dataContextChangeNotice[<context>]`. This is a known bug.
 
 **Other notifications differ from v2.** `update` with an index sends no notification, `create`
-and `update` do not send `createItems` or `updateItems`, and the requesting plugin hears its own
-`updateCases`. These are known bugs, described in
+and `update` do not send `createItems` or `updateItems`. These are known bugs, described in
 [the catalog's known limitations](../notifications.md#known-limitations).
 
 ## Notifications

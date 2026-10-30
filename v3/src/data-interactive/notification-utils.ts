@@ -8,6 +8,8 @@ export const makeCallback = (operation: string, other?: any) => {
 }
 
 export const notification = (resource: string, values: any, _callback?: (result: any) => void) => {
-  const callback = _callback ?? makeCallback(values.operation)
+  // data context change notices carry an array of { operation, result }
+  const operation = Array.isArray(values) ? values[0]?.operation : values.operation
+  const callback = _callback ?? makeCallback(operation)
   return { message: { action, resource, values }, callback }
 }

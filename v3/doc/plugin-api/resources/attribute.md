@@ -258,11 +258,6 @@ Start a drag from inside a plugin, so the user can drop an attribute onto a grap
 sent `deleteAttributes`, or `deleteCollection` when the attribute was the last in its collection.
 This is a known bug; the intended behavior is v2's.
 
-**The requesting plugin hears its own change.** `create` and `update` send their notifications to
-the plugin that made the change as well as to the others. The intended behavior is that the
-requesting plugin is skipped. This is a known bug; see
-[the catalog's known limitations](../notifications.md#known-limitations).
-
 **The protection properties come in two spellings that mean opposite things.** `get` reports
 `deleteable`, `renameable` and `editable` — whether the attribute *can* be deleted, renamed or
 edited. `update` accepts those, and also `deleteProtected` and `renameProtected`, which are their

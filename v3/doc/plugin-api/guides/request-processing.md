@@ -146,8 +146,8 @@ error in that envelope's place and went on with the rest, which is the intended 
 a known bug. Until it is fixed, check whether the reply is an array before reading it.
 
 **Data notifications are not combined as v2 combined them.** v2 sent one data-change notification
-per request, whose `values` was an array of every change the request made. v3 sends one
-notification per change, with `values` a single object. This is a known bug; see
+per request, whose `values` was an array of every change the request made. CODAP sends one
+notification per change, each with a `values` array of one. This is a known bug; see
 [the notification catalog](../notifications.md#known-limitations).
 
 **`blockAPIRequestsWhileEditing` holds back every plugin.** Only the plugin that manages the data

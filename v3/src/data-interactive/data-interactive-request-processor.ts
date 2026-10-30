@@ -12,6 +12,7 @@ import {
 } from "./data-interactive-types"
 import { createItemsInSegments } from "./handlers/item-handler"
 import { errorResult } from "./handlers/di-results"
+import { withNotificationRequester } from "./notification-requester"
 import { RequestWorkUnit, takeNextWorkUnit, workUnitSize } from "./request-coalescer"
 import { parseResourceSelector, resolveResources } from "./resource-parser"
 
@@ -48,7 +49,8 @@ export async function processAction(
   const func = getDIHandler(type)?.[a]
   if (!func) return errorResult(t("V3.DI.Error.unsupportedAction", { vars: [a, type] }))
 
-  const actionResult = await func(resources, action.values)
+  // notices broadcast while the handler runs aren't sent back to the requesting plugin
+  const actionResult = await withNotificationRequester(tile?.id, () => func(resources, action.values))
   return actionResult ?? errorResult(t("V3.DI.Error.undefinedResponse"))
 }
 
@@ -212,7 +214,8 @@ export function setupRequestQueueProcessor(
     onProcessingStart?.()
     let results: DIHandlerFnResult[] | undefined
     try {
-      results = createItemsInSegments(dataContext, segments)
+      results = withNotificationRequester(processOptions.tile?.id,
+        () => createItemsInSegments(dataContext, segments))
     } catch (error) {
       console.warn(`${name} exception in coalesced create`, error)
     }
