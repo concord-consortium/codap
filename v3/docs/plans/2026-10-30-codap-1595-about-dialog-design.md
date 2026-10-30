@@ -80,6 +80,9 @@ New files in `src/components/about-dialog/`:
 - `about-dialog.tsx` — the dialog
 - `about-dialog.scss` — body content layout only (see [Styling](#styling))
 - `about-dialog-constants.ts` — link URLs
+
+Shared component, in `src/components/common/` so it can be reused elsewhere:
+
 - `external-link.tsx` — external link component (see [External links](#external-links))
 
 The dialog is built on `CodapModal` with `isCentered` and `isDraggable={false}`, using Chakra
@@ -188,9 +191,35 @@ Used for: license paragraph 1, license paragraph 2, the copyright line, and the 
 
 ### External links
 
-`ExternalLink` renders `<a href target="_blank" rel="noopener noreferrer">`. Links that display ↗ mark the
-arrow `aria-hidden` and include visually hidden, translatable text "(opens in a new tab)". The
-`mailto:` link does not open a new tab.
+`ExternalLink` (`src/components/common/external-link.tsx`) is a general-purpose component, not specific
+to the About dialog:
+
+```tsx
+interface IProps extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, "target" | "rel"> {
+  href: string
+  showArrow?: boolean   // default false; renders a trailing ↗
+  children: React.ReactNode
+}
+```
+
+- Always renders `<a href target="_blank" rel="noopener noreferrer">`, passing through other anchor
+  props (`className`, `onClick`, `data-testid`, etc.).
+- Always includes visually hidden, translatable text "(opens in a new tab)"
+  (`V3.ExternalLink.opensInNewTab`), so every caller gets this for free.
+- With `showArrow`, the ↗ is `aria-hidden`.
+
+The `mailto:` link doesn't open a new tab, so it is a plain `<a href="mailto:…">`, not an `ExternalLink`.
+
+### Announcement banner
+
+`src/components/announcement-banner/announcement-banner.tsx` renders message link segments as hand-written
+`<a target="_blank" rel="noopener noreferrer" onClick={…}>`. Replace them with
+`<ExternalLink href={segment.url} onClick={…}>`, keeping the click logging. No arrow.
+
+The banner's "Learn More" button is unchanged: it is styled as a button and its `target` is configurable.
+
+The links' accessible names gain "(opens in a new tab)", so the existing test that finds the link with
+`{ name: "our site" }` must match the new name (e.g. a regex).
 
 ### View switching
 
@@ -208,6 +237,9 @@ focus to the "Open-source libraries & acknowledgements" button.
   - ×, Close, and Esc each call `onClose`
   - `role="dialog"`, `aria-modal`, and accessible name match the current view's title
   - Reopening the dialog shows the About view
+- `external-link.test.tsx`: `target`/`rel`, prop passthrough, visually hidden text, `showArrow`
+- `announcement-banner.test.tsx`: existing link test updated for the new accessible name; link clicks
+  are still logged
 - `translateToElements` tests: placeholder substitution, surrounding text preserved, missing placeholder
   doesn't throw
 - `CodapModal` tests: default behavior unchanged; `isDraggable={false}` omits drag positioning
