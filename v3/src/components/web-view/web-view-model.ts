@@ -117,6 +117,9 @@ export const WebViewModel = TileContentModel
     setDataInteractiveController(controller?: iframePhone.IframePhoneRpcEndpoint) {
       self.dataInteractiveController = controller
     },
+    setDataContextId(dataContextId?: string) {
+      self.dataContextId = dataContextId
+    },
     setSubType(subType?: WebViewSubType) {
       self.subType = subType
       if (subType) {

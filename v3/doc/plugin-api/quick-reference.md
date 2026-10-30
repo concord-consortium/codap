@@ -104,8 +104,7 @@ Earlier segments narrow the target — `dataContext[Mammals].collection[Cases].a
 reads the attributes of one collection of one data context.
 
 **Data-context defaulting.** When a selector omits `dataContext`, CODAP supplies `#default`,
-which resolves to the plugin's own data context (today, in v3, the first data context in the
-document; see the index). That does not apply to these
+which resolves to the plugin's own data context (see the index). That does not apply to these
 resource types: `component`, `componentList`, `dataContextList`, `dataDisplay`, `document`, `formulaEngine`, `global`, `globalList`, `interactiveApi`, `interactiveFrame`, `logMessage`, `logMessageMonitor`, `undoChangeNotice`, `undoableActionPerformed`. Nor does it apply when creating a data context, since there is
 nothing to default to yet. Note that some resources have a data context resolved and ignore
 it; each resource's page says which.

@@ -1,3 +1,4 @@
+import { isWebViewModel } from "../../components/web-view/web-view-model"
 import { appState } from "../../models/app-state"
 import { gDataBroker } from "../../models/data/data-broker"
 import { DataSet } from "../../models/data/data-set"
@@ -25,7 +26,7 @@ import { attributeNotFoundResult, dataContextNotFoundResult, errorResult, fieldR
 const requestRequiredResult = fieldRequiredResult("Notify", "dataContext", "request")
 
 export const diDataContextHandler: DIHandler = {
-  create(_resources: DIResources, _values?: DIValues) {
+  create(resources: DIResources, _values?: DIValues) {
     const values = _values as DIDataContext
     const { collections, description, metadata, name: _name, title } = values
     const name = _name || gDataBroker.newDataSetName
@@ -45,6 +46,11 @@ export const diDataContextHandler: DIHandler = {
       sharedMetadata.setImportDate(metadata?.importDate)
       sharedMetadata.setSource(metadata?.source)
       sharedMetadata.setDescription(metadata?.description ?? description)
+
+      // A bare `create dataContext` makes the new data context the plugin's default
+      const { interactiveFrame, isDefaultDataContext } = resources
+      const webView = isWebViewModel(interactiveFrame?.content) ? interactiveFrame.content : undefined
+      if (isDefaultDataContext) webView?.setDataContextId(dataSet.id)
 
       if (collections?.length) {
         // remove the default collection

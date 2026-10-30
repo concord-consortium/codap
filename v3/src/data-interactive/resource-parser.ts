@@ -4,6 +4,7 @@ import { IAdornmentModel } from "../components/graph/adornments/adornment-models
 import { isCountAdornment } from "../components/graph/adornments/count/count-adornment-model"
 import { kCountType, kPercentType } from "../components/graph/adornments/count/count-adornment-types"
 import { isGraphContentModel } from "../components/graph/models/graph-content-model"
+import { isWebViewModel } from "../components/web-view/web-view-model"
 import { appState } from "../models/app-state"
 import { IAttribute } from "../models/data/attribute"
 import { isCollectionModel } from "../models/data/collection"
@@ -82,7 +83,14 @@ export function resolveResources(
     }
     const dataSets = getSharedDataSets(document).map(sharedDataSet => sharedDataSet.dataSet)
     if (selector === '#default') {
-      return dataSets[0]
+      // A plugin's default data context is the one linked to it (by a bare `create dataContext`,
+      // or saved with the document), or else one named for the plugin. As in v2, there is no
+      // fallback to another data context.
+      const webView = isWebViewModel(interactiveFrame?.content) ? interactiveFrame.content : undefined
+      const linkedId = webView?.dataContextId
+      const linked = linkedId ? dataSets.find(dataSet => dataSet.id === linkedId) : undefined
+      const pluginName = interactiveFrame?.name
+      return linked ?? (pluginName ? dataSets.find(dataSet => dataSet.name === pluginName) : undefined)
     }
     return dataSets.find(dataSet => dataSet.matchTitleOrNameOrId(selector))
   }
