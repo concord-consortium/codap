@@ -179,7 +179,7 @@ for it.
 | Operation | Fires when | `values` also carries |
 |---|---|---|
 | `create` | a component is created. The calculator usually sends `show` instead; see below | — |
-| `delete` | a component is closed or deleted. **Also sent when a component is only hidden**, as the guide is when it is closed. v2 also sent it when a case table was closed from its title bar, and `create` when that close was undone; v3 sends neither, see [Known limitations](#known-limitations). Closing a case card sends nothing | `name`, `title` |
+| `delete` | a component is closed or deleted. **Also sent when a component is only hidden**, as the guide is when it is closed, and a case table is when it is closed from its title bar. For the case table, `type` is `DG.TableView`, as in v2. v2 also sent `create` when that close was undone; v3 does not, see [Known limitations](#known-limitations). Closing a case card sends nothing | `name`, `title` |
 | `titleChange` | a component is renamed. Sent on `component[<id>]` rather than `component` | `from`, `to` |
 | `hide`, `show` | the calculator is closed, or toggled from the tool shelf | — |
 | `move`, `resize` | a component is moved or resized | — |
@@ -197,7 +197,7 @@ The largest group.
 | `add axis attribute` | an attribute is dropped on the y-axis "+" target | _not readable from the code_ |
 | `add 2nd axis attribute` | an attribute is dropped on the right-hand numeric axis. Also sent when that attribute is removed | _not readable from the code_ |
 | `attributeChange` | an attribute is placed on, replaced on, or removed from an axis or the plot, by dropping it or from an axis label's menu | _not readable from the code_ |
-| `legendAttributeChange` | the legend attribute is set or replaced, by dropping it or from the legend's menu. Removing it sends nothing | _not readable from the code_ |
+| `legendAttributeChange` | the legend attribute is set or replaced, by dropping it or from the legend's menu. Removing it sends nothing | `attributeId`, `attributeName`, … |
 | `change background color`, `toggle background transparency` | the plot background changes | `to` |
 | `add movable value`, `remove movable value`, `drag movable value` | movable values are added, removed or dragged | — |
 | `drag movable point` | the user finishes dragging the movable point | — |
@@ -255,8 +255,9 @@ The largest group.
 | `hide selected cases`, `hide unselected cases`, `show all cases` | case visibility changes on a map | `hide selected cases`: `numberHidden`; `hide unselected cases`: `numberHidden`; `show all cases`: — |
 <!-- END GENERATED: notifications-component-map -->
 
-Changing a map's legend attribute should send `legendAttributeChange`, as it does on a graph. v3
-does not send it yet; see [Known limitations](#known-limitations).
+Dropping an attribute on a map or its legend sends `legendAttributeChange`, as on a graph (see
+[Graph](#graph)), with `type` `DG.MapModel`, as in v2. Changing or removing it from the legend's
+menu is handled as on a graph, which differs from v2; see [Known limitations](#known-limitations).
 
 ### Case table and case card
 
@@ -374,7 +375,7 @@ Four more resources, each with a few notifications.
 | `documentChangeNotice` | `dataContextCountChanged` | a data context is created or deleted anywhere in the document | — |
 | `documentChangeNotice` | `dataContextDeleted` | a data context is deleted. `deletedContext` is its name | `deletedContext` |
 | `documentChangeNotice` | `updateDocumentBegun`, `updateDocumentEnded` | a plugin, or the host page CODAP is embedded in, replaced the document with `update document`; the two bracket the replacement. Sent to every plugin. v3 sends them only to the plugin that asked; see [Known limitations](#known-limitations) | — |
-| `global[<name>]` | none | a global value changes: a slider is dragged or animates, or a plugin sets the value with `update` on `global`. `<name>` is the slider's global value name, and `globalValue` is the new value. This is how a plugin follows a slider continuously. v3 does not yet send it when a plugin sets the value; see [Known limitations](#known-limitations) | `globalValue` |
+| `global[<name>]` | none | a global value changes: a slider is dragged or animates, or a plugin sets the value with `update` on `global`. `<name>` is the slider's global value name, and `globalValue` is the new value. This is how a plugin follows a slider continuously. Also sent when a change is undone or redone, and to every plugin, including the one that set the value | `globalValue` |
 | `global` | `localeChanged` | CODAP's locale changed. Carries `lang`, the two-letter base language, and `locale`, the locale itself, such as `pt-BR`. Sent only to plugins that set `handlesLocaleChange`; see [Language and locale](guides/locale.md) | `lang`, `locale` |
 | `logMessageNotice` | none | a user-analytics log event matched a monitor your plugin registered. Carries `message`, `formatStr` and `logMonitor`, and sometimes `topic` and `replaceArgs` | `formatStr`, `logMonitor`, `message`, … |
 | `interactiveFrame` | computed | guided-tour and highlight messages — `tourUpdate` and `highlightUpdate`. Not documented further yet, because the implementation behind them is being replaced | _not readable from the code_ |
@@ -457,17 +458,10 @@ a map's center or zoom with `update component`, when a plugin rescales it with `
 and `request: "autoScale"`, or when the map rescales itself because its layers changed. v2 sent it
 when a plugin set the center or zoom. This is a known bug.
 
-**Closing a case table sends no notification.** v2 sent `delete` on `component` when the user
-closed a case table from its title bar, and `create` when that close was undone. v3 sends
-neither. This is a known bug.
-
-**Changing a map's legend attribute sends no notification.** v2 sent `legendAttributeChange` for
-maps as for graphs. v3 sends nothing. This is a known bug.
-
-**A plugin setting a global value sends no notification.** v2 sent `global[<name>]` whenever a
-global value changed, whoever changed it. v3 sends it only when a slider changes the value, so a
-plugin following a slider that another plugin drives through `update` on `global` hears nothing.
-This is a known bug.
+**Undo and redo send no component notifications.** v2 sent one for many component changes: undoing
+the creation of a component sent `delete`, undoing the calculator being shown or hidden sent the
+opposite, and undoing or redoing a case table close sent `create` or `delete`. v3 sends no
+component notification on undo or redo. This is a known bug.
 
 **Undo and redo are not announced on `document`.** v3 does not send v2's `undo` and `redo`
 notifications on `document`. This is a known bug; see
@@ -503,8 +497,9 @@ legend, both behave as v2 did. These cases do not:
 | Drops on the **right** categorical axis | `attributeChange`, `axisOrientation: "right"` | `axisOrientation: "vertical"` |
 
 So a v2 plugin watching `attributeChange` never sees a legend-menu change, and one watching
-`legendAttributeChange` never sees a plot-area drop. This is a known bug; match on both
-operations, and do not rely on `axisOrientation` distinguishing the top and right axes.
+`legendAttributeChange` never sees a plot-area drop. The two legend-menu rows apply to maps too:
+for a map, v2 also sent `attributeChange`, with `type` `DG.GraphView`. This is a known bug; match
+on both operations, and do not rely on `axisOrientation` distinguishing the top and right axes.
 
 ## See also
 

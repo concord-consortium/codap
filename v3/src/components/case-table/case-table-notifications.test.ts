@@ -1,6 +1,6 @@
 import {
-  expandCollapseAllNotification, joinNotification, openCaseTableNotification, resizeColumnNotification,
-  resizeColumnsNotification
+  closeCaseTableNotification, expandCollapseAllNotification, joinNotification, openCaseTableNotification,
+  resizeColumnNotification, resizeColumnsNotification
 } from "./case-table-notifications"
 
 const v2Id = 77501
@@ -10,6 +10,17 @@ const v2SCType = "DG.CaseTable"
 const diType = "caseTable"
 
 jest.mock("../../models/tiles/tile-notifications", () => ({
+  // lifecycle notifications carry the lifecycle name (`table`) in `values.type`
+  deleteTileNotification: jest.fn((tileModel: any) => {
+    if (!tileModel) return undefined
+    return {
+      message: {
+        action: "notify",
+        resource: "component",
+        values: { operation: "delete", name: "Mammals", title: "Mammals", id: v2Id, type: "table", diType }
+      }
+    }
+  }),
   updateTileNotification: jest.fn((updateType: string, values: any, tileModel: any) => {
     if (!tileModel) return undefined
     return {
@@ -143,5 +154,20 @@ describe("joinNotification", () => {
 
   it("returns undefined when no tile is provided", () => {
     expect(joinNotification(undefined)).toBeUndefined()
+  })
+})
+
+describe("closeCaseTableNotification", () => {
+  it("emits V2's close-box `delete`, with the component model type `DG.TableView`", () => {
+    const tile = { id: "TABLE1", content: { type: "CaseTable" } } as any
+    const notification = closeCaseTableNotification(tile)
+    expect(notification?.message.resource).toBe("component")
+    expect(notification?.message.values).toMatchObject(
+      { operation: "delete", type: "DG.TableView", id: v2Id, title: "Mammals" })
+  })
+
+  it("is a no-op for case cards and missing tiles", () => {
+    expect(closeCaseTableNotification({ id: "CARD1", content: { type: "CaseCard" } } as any)).toBeUndefined()
+    expect(closeCaseTableNotification(undefined)).toBeUndefined()
   })
 })

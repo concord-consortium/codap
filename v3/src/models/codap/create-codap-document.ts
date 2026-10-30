@@ -1,4 +1,4 @@
-import { getSnapshot } from "mobx-state-tree"
+import { addDisposer, getSnapshot } from "mobx-state-tree"
 import { SetOptional } from "type-fest"
 import build from "../../../build_number.json"
 import pkg from "../../../package.json"
@@ -10,6 +10,7 @@ import { FreeTileRow } from "../document/free-tile-row"
 import { MosaicTileRow } from "../document/mosaic-tile-row"
 import { GlobalValueManager } from "../global/global-value-manager"
 import "../global/global-value-manager-registration"
+import { observeGlobalValueChanges } from "../global/global-value-notifications"
 import { getFormulaManager } from "../tiles/tile-environment"
 import { FormulaManager } from "../formula/formula-manager"
 const { version } = pkg
@@ -47,6 +48,11 @@ export function createCodapDocument(snapshot?: ICodapDocumentModelSnapshot, opti
     // Add the global value manager to the formula manager
     const formulaManager = getFormulaManager(document) as Maybe<FormulaManager>
     formulaManager?.addGlobalValueManager(globalValueManager)
+    // notify plugins whenever a global value changes
+    addDisposer(document, observeGlobalValueChanges(
+      () => document.content?.getFirstSharedModelByType(GlobalValueManager),
+      (message, callback) => document.content?.broadcastMessage(message, callback)
+    ))
   }
   // create the default tile container ("row")
   if (document.content?.rowCount === 0) {

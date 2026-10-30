@@ -1,5 +1,5 @@
 import { ITileModel } from "../../models/tiles/tile-model"
-import { updateTileNotification } from "../../models/tiles/tile-notifications"
+import { deleteTileNotification, updateTileNotification } from "../../models/tiles/tile-notifications"
 import { kCaseTableTileType } from "./case-table-defs"
 
 // V2 emits { action:'notify', resource:'component', values:{ operation:'open case table',
@@ -56,4 +56,14 @@ export function expandCollapseAllNotification(tile?: ITileModel, to?: "expanded"
 export function joinNotification(destCaseTableTile?: ITileModel) {
   if (destCaseTableTile?.content.type !== kCaseTableTileType) return
   return updateTileNotification("join", {}, destCaseTableTile)
+}
+
+// V2's case table close box (case_table_controller.js:671-702) hides the table and sends `delete`
+// with the component model's type, 'DG.TableView', rather than the lifecycle name 'table'.
+// Closing a case card sends nothing, as in V2. No-ops for non-case-table tiles.
+export function closeCaseTableNotification(tile?: ITileModel) {
+  if (tile?.content.type !== kCaseTableTileType) return
+  const notification = deleteTileNotification(tile)
+  if (notification) notification.message.values.type = "DG.TableView"
+  return notification
 }
