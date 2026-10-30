@@ -255,8 +255,8 @@ This is equivalent to naming `dataContext[#default]`. Your plugin's own data con
 
 A plugin with neither gets a not-found error for a request that relies on the default, even in a
 document with only one data context. So does a plugin whose own data context has been deleted,
-unless another data context has its name. CODAP never falls back to some other data context, so
-a plugin can't read or change another plugin's data by accident.
+unless another data context has its name. CODAP never falls back to the first data context in
+the document.
 
 Two more things to know:
 
