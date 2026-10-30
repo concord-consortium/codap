@@ -10,7 +10,7 @@ import { kSliderTileType } from "./slider-defs"
 // all` and PR #2592's background-image notifications), so V3-aware plugins don't have to
 // make a separate API request just to read the resulting value. V2 plugins ignore the
 // extra field. V2 also emits the global `global[<name>]` notification from the model
-// observer; V3 already mirrors that via `valueChangeNotification` in slider-utils.ts.
+// observer; V3 mirrors that with its own observer in models/global/global-value-notifications.ts.
 // No-ops for non-slider tiles so it's safe to call from generic notify callbacks.
 export function changeSliderValueNotification(sliderTile?: ITileModel, value?: number) {
   if (sliderTile?.content.type !== kSliderTileType) return

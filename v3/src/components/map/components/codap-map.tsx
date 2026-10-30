@@ -13,6 +13,7 @@ import {MultiLegend} from "../../data-display/components/legend/multi-legend"
 import { PointRendererArray, RendererCapability } from "../../data-display/renderer"
 import { DEBUG_PIXI_POINTS } from "../../../lib/debug"
 import {logStringifiedObjectMessage} from "../../../lib/log-message"
+import { mapLegendAttributeChangeNotification } from "../map-notifications"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
 import {DroppableMapArea} from "./droppable-map-area"
 import {MapBackground} from "./map-background"
@@ -63,16 +64,17 @@ export const CodapMap = observer(function CodapMap({
   useMapClickDeselect(mapModel)
 
   const handleChangeLegendAttribute = useCallback((dataSet: IDataSet, attrId: string) => {
-    const attrType = dataSet.attrFromID(attrId)?.type
+    const attribute = dataSet.attrFromID(attrId)
     mapModel.applyModelChange(
-      () => mapModel.setLegendAttribute(dataSet.id, attrId, attrType),
+      () => mapModel.setLegendAttribute(dataSet.id, attrId, attribute?.type),
       {
+        notify: () => mapLegendAttributeChangeNotification(tile, attrId, attribute?.name),
         undoStringKey: "V3.Undo.mapLegendAttributeChange",
         redoStringKey: "V3.Redo.mapLegendAttributeChange",
-        log: logStringifiedObjectMessage("legendAttributeChange: %@", {to_attribute: dataSet.attrFromID(attrId)?.name})
+        log: logStringifiedObjectMessage("legendAttributeChange: %@", {to_attribute: attribute?.name})
       }
     )
-  }, [mapModel])
+  }, [mapModel, tile])
   const callHandleChangeAttribute = useCallback((_place: GraphPlace, dataSet: IDataSet, attrId: string) => {
     handleChangeLegendAttribute(dataSet, attrId)
   }, [handleChangeLegendAttribute])

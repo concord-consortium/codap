@@ -1,4 +1,6 @@
+import { appState } from "../../models/app-state"
 import { GlobalValue } from "../../models/global/global-value"
+import { processAction } from "../data-interactive-request-processor"
 import { DIGlobal, DIValues } from "../data-interactive-types"
 import { diGlobalHandler } from "./global-handler"
 
@@ -43,5 +45,15 @@ describe("DataInteractive GlobalHandler", () => {
 
     expect(handler.update?.(resources, { value: value2 }).success).toBe(true)
     expect(global1?.value).toBe(value2)
+  })
+
+  it("update notifies plugins with global[<name>], as v2's model observer did", async () => {
+    const broadcastSpy = jest.spyOn(appState.document.content!, "broadcastMessage")
+    expect((await processAction({ action: "update", resource: `global[${name1}]`, values: { value: 7 } })).success)
+      .toBe(true)
+    const globalNotices = broadcastSpy.mock.calls.map(([message]) => message)
+      .filter(message => message.resource === `global[${name1}]`)
+    expect(globalNotices).toEqual([{ action: "notify", resource: `global[${name1}]`, values: { globalValue: 7 } }])
+    broadcastSpy.mockRestore()
   })
 })

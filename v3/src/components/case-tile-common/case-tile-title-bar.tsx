@@ -11,6 +11,7 @@ import { preventDataContextReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
 import { kCaseCardTileType } from "../case-card/case-card-defs"
 import { kCaseTableTileType } from "../case-table/case-table-defs"
+import { closeCaseTableNotification } from "../case-table/case-table-notifications"
 import { ComponentTitleBar } from "../component-title-bar"
 import { ITileTitleBarProps } from "../tiles/tile-base-props"
 import { toggleCardTableNotification } from "./case-tile-notifications"
@@ -139,11 +140,12 @@ export const CaseTileTitleBar =
       documentContent?.applyModelChange(() => {
         documentContent?.toggleNonDestroyableTileVisibility(tile?.id)
       }, {
+        notify: () => closeCaseTableNotification(tile),
         undoStringKey: `V3.Undo.case${suffix}.hide`,
         redoStringKey: `V3.Redo.case${suffix}.hide`,
         log: logMessageWithReplacement("Close component: %@", {tileType: tile?.content.type}, "component")
       })
-    }, [documentContent, tile?.content.type, tile?.id, tileInfo])
+    }, [documentContent, tile, tileInfo])
 
     const { Icon, otherSuffix } = tileInfo
     const translationKey = `DG.DocumentController.toggleToCase${otherSuffix}`

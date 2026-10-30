@@ -4,7 +4,6 @@ import { prf } from "../../utilities/profiler"
 import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
 import { ISliderModel } from "./slider-model"
 import { FixValueFn, kAnimationDefaults } from "./slider-types"
-import { valueChangeNotification } from "./slider-utils"
 
 // Uses requestAnimationFrame instead of setInterval to ensure each animation tick
 // aligns with a browser paint cycle. When the tick work takes longer than the
@@ -68,15 +67,13 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
     if (animationDirection === "lowToHigh" && testValue >= axisMax) {
       sliderModel.applyModelChange(
         () => sliderModel.setValue(axisMin),
-        { noDirty: true, suppressWarning: true,
-          notify: () => valueChangeNotification(sliderModel.value, sliderModel.name) }
+        { noDirty: true, suppressWarning: true }
       )
     }
     if (animationDirection === "highToLow" && testValue <= axisMin) {
       sliderModel.applyModelChange(
         () => sliderModel.setValue(axisMax),
-        { noDirty: true, suppressWarning: true,
-          notify: () => valueChangeNotification(sliderModel.value, sliderModel.name) }
+        { noDirty: true, suppressWarning: true }
       )
     }
     return sliderModel.value
@@ -87,7 +84,7 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
       prf.measure("Slider.animationTick", () => {
         sliderModel.applyModelChange(
           () => sliderModel.setValidatedValue(sliderModel.validateValue(val, min, max)),
-          { noDirty: true, notify: () => valueChangeNotification(sliderModel.value, sliderModel.name) }
+          { noDirty: true }
         )
       })
     }

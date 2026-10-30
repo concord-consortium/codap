@@ -200,11 +200,6 @@ multiple. v3 stores the value as sent. This is a known bug.
 does not; see [Undo and redo](../guides/undo-and-redo.md#known-limitations). `update` adds no
 entry, as in v2.
 
-**Setting a value from a plugin sends no notification.** v2 sent `global[<name>]` to every
-plugin, the requesting one included, whenever a global value changed, including on undo and
-redo. v3 sends it only when the user changes the value with a slider. This is a known bug; see
-[the catalog's known limitations](../notifications.md#known-limitations).
-
 ## Notifications
 
 When a global value changes, CODAP sends a notification on `global[<name>]`, where `<name>` is
@@ -218,10 +213,11 @@ the global value's name, with the new value in `globalValue`:
 }
 ```
 
-It is sent while a slider is dragged or animates, and when the user types a value into a slider
-or changes it with the arrow keys, so a plugin can follow a slider continuously.
-It is intended to be sent when a plugin sets the value too; see
-[Known limitations](#known-limitations). `create` sends no notification. See
+It is sent whenever the value changes, and not when it is set to the value it already has: while a slider is dragged or animates, when the user types
+a value into a slider or changes it with the arrow keys, when a plugin sets it with `update`, and
+when a change is undone or redone. So a plugin can follow a slider continuously, whoever drives
+it. As in v2, it goes to every plugin, including the one that set the value. `create` sends no
+notification. See
 [the notification catalog](../notifications.md#everything-else).
 
 ## Errors
