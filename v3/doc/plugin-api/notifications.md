@@ -416,21 +416,9 @@ A plugin that iterates over `values` fails on v3's object. This is a known bug; 
 behavior is v2's array. Until it is fixed, accept both, as the example in
 [Receiving them](#receiving-them) does.
 
-**Some API changes send no notification.** These requests change data, but v3 does not notify
-other plugins about them. v2 did, for every one of them:
-
-- `update` and `delete` on `caseByID`, `caseByIndex`, `itemByID` and `itemByCaseID`
-- `update` on `item` with a single item
-- `delete` on `itemSearch`. v2 reported item deletes as `deleteCases`
-- `notify` on `itemSearch`, which moves items. v2 reported the move as `moveCases`
-- `delete` on `attribute`
-- `delete` on `allCases`
-- `update` and `delete` on `collection`
-- `create` on `dataContextFromURL`. v2 reported the new data context as
-  `dataContextCountChanged` on `documentChangeNotice`
-
-This is a known bug; the intended behavior is that each sends the same notification as the
-equivalent change made in CODAP's own interface.
+**`create` on `dataContextFromURL` sends no notification.** v2 reported the new data context as
+`dataContextCountChanged` on `documentChangeNotice`. CODAP sends nothing, so other plugins do not
+learn of the new data context. This is a known bug; the intended behavior is v2's.
 
 **Formula recalculation rarely sends `dependentCases`.** v2 sent `dependentCases` for formula
 attributes whose values had to be recalculated:

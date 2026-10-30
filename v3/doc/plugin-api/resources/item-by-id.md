@@ -150,18 +150,13 @@ is a known bug.
 **A boolean value is stored as text.** An item updated with `true` reads back as the text
 `"true"`. v2 kept the boolean. This is a known bug.
 
-**`update` and `delete` notify no other plugin.** v2 sent `updateCases` or `deleteCases` on
-`dataContextChangeNotice[<context>]` to the other plugins. v3 sends nothing, so other plugins do
-not learn of the change. This is a known bug; see
-[the notification catalog](../notifications.md#known-limitations).
-
 ## Notifications
 
 This resource takes no `notify` requests of its own.
 
-`update` and `delete` should notify other plugins on `dataContextChangeNotice[<context>]` with
-`updateCases` or `deleteCases`, as the same change made in a case table does. They do not yet;
-see [Known limitations](#known-limitations).
+`update` and `delete` notify other plugins on `dataContextChangeNotice[<context>]` with
+`updateCases` or `deleteCases` for the item's case in the last collection, as the same change made
+in a case table does.
 
 ## Errors
 

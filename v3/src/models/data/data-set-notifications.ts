@@ -54,7 +54,7 @@ export function deleteCollectionNotification(dataSet?: IDataSet) {
 }
 
 export function updateCollectionNotification(collection?: ICollectionModel, dataSet?: IDataSet) {
-  const result = { success: true, properties: { name: collection?.name } }
+  const result = { success: true, properties: { name: collection?.name, title: collection?.title } }
   return dataSetNotification("updateCollection", result, dataSet)
 }
 

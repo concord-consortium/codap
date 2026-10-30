@@ -222,15 +222,12 @@ whose position is `0` is not moved, and the reply is still `{ "success": true }`
 the start. This is a known bug. Until it is fixed, move a single item to the start with
 `"first"`.
 
-**Deleting and moving items send no notification.** v2 told the other plugins about a `delete`
-with `deleteCases` and about a `notify` with `moveCases`. v3 sends neither. This is a known bug;
-see [the catalog's known limitations](../notifications.md#known-limitations).
-
 ## Notifications
 
-`get` sends none. `delete` and `notify` are intended to send `deleteCases` and `moveCases` on
-`dataContextChangeNotice[<context>]` to the other plugins, but currently send nothing; see
-[Known limitations](#known-limitations) and
+`get` sends none. `delete` sends `deleteCases` and `notify` sends `moveCases` on
+`dataContextChangeNotice[<context>]` to the other plugins. `moveCases` is sent only when the order
+changes, and does not list the moved cases, as in v2; read the cases again if you need their new
+order. See
 [the notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext).
 
 ## Errors

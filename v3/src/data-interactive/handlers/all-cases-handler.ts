@@ -1,4 +1,6 @@
 import { IValueType } from "../../models/data/attribute-types"
+import { deleteCasesNotification } from "../../models/data/data-set-notifications"
+import { getGroupedCases } from "../../models/data/data-set-utils"
 import { maybeToV2Id, toV2Id } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources } from "../data-interactive-types"
@@ -9,9 +11,11 @@ export const diAllCasesHandler: DIHandler = {
     const { dataContext } = resources
     if (!dataContext) return dataContextNotFoundResult
 
+    const itemIds = dataContext.items.map(c => c.__id__)
     dataContext.applyModelChange(() => {
-      dataContext.removeCases(dataContext.items.map(c => c.__id__))
+      dataContext.removeCases(itemIds)
     }, {
+      notify: deleteCasesNotification(dataContext, getGroupedCases(dataContext, itemIds)),
       log: {message: "Delete all cases", args: {}, category: "data"}
     })
     return { success: true }
