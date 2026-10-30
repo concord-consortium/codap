@@ -6,7 +6,9 @@ import {axisGap, labelPaddingX, labelPaddingY} from "../../../axis/axis-types"
 import {GraphPlace} from "../../../axis-graph-shared"
 import {getStringBounds, renderLabelBackground} from "../../../axis/axis-utils"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
+import {useTileModelContext} from "../../../../hooks/use-tile-model-context"
 import {useTileSelectionContext} from "../../../../hooks/use-tile-selection-context"
+import {legendMenuAttributeChangeNotification} from "../../data-display-notifications"
 import {AttributeLabel} from "../attribute-label"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 
@@ -20,6 +22,7 @@ export const LegendAttributeLabel =
   function LegendAttributeLabel({ onChangeAttribute }: IAttributeLabelProps) {
     const dataConfiguration = useDataConfigurationContext(),
       {isTileSelected} = useTileSelectionContext(),
+      {tile} = useTileModelContext(),
       labelRef = useRef<SVGGElement>(null),
       className = 'attribute-label'
 
@@ -60,15 +63,18 @@ export const LegendAttributeLabel =
     }, [dataConfiguration, isTileSelected])
 
     const handleRemoveAttribute = useCallback(() => {
+      const attributeID = dataConfiguration?.assignedLegendAttributeID ?? ""
+      const attributeName = dataConfiguration?.dataset?.attrFromID(attributeID)?.name
       dataConfiguration?.applyModelChange(
         () => dataConfiguration.setAttribute('legend', {attributeID: ''}),
         {
+          notify: () => legendMenuAttributeChangeNotification(tile, attributeID, attributeName, true),
           undoStringKey: "V3.Undo.legendAttributeRemove",
           redoStringKey: "V3.Redo.legendAttributeRemove",
           log: "Remove legend attribute"
         }
       )
-    }, [dataConfiguration])
+    }, [dataConfiguration, tile])
 
     const handleTreatAttributeAs = useCallback((_place: GraphPlace, _attrId: string, treatAs: AttributeType) => {
       dataConfiguration?.applyModelChange(

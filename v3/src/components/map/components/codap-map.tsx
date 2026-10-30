@@ -13,6 +13,7 @@ import {MultiLegend} from "../../data-display/components/legend/multi-legend"
 import { PointRendererArray, RendererCapability } from "../../data-display/renderer"
 import { DEBUG_PIXI_POINTS } from "../../../lib/debug"
 import {logStringifiedObjectMessage} from "../../../lib/log-message"
+import { legendMenuAttributeChangeNotification } from "../../data-display/data-display-notifications"
 import { mapLegendAttributeChangeNotification } from "../map-notifications"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
 import {DroppableMapArea} from "./droppable-map-area"
@@ -63,12 +64,15 @@ export const CodapMap = observer(function CodapMap({
 
   useMapClickDeselect(mapModel)
 
-  const handleChangeLegendAttribute = useCallback((dataSet: IDataSet, attrId: string) => {
+  const handleChangeLegendAttribute = useCallback((dataSet: IDataSet, attrId: string, fromLegendMenu = false) => {
     const attribute = dataSet.attrFromID(attrId)
     mapModel.applyModelChange(
       () => mapModel.setLegendAttribute(dataSet.id, attrId, attribute?.type),
       {
-        notify: () => mapLegendAttributeChangeNotification(tile, attrId, attribute?.name),
+        // as in V2, a drop sends legendAttributeChange and a change from the legend's menu attributeChange
+        notify: () => fromLegendMenu
+                        ? legendMenuAttributeChangeNotification(tile, attrId, attribute?.name)
+                        : mapLegendAttributeChangeNotification(tile, attrId, attribute?.name),
         undoStringKey: "V3.Undo.mapLegendAttributeChange",
         redoStringKey: "V3.Redo.mapLegendAttributeChange",
         log: logStringifiedObjectMessage("legendAttributeChange: %@", {to_attribute: attribute?.name})
@@ -77,6 +81,9 @@ export const CodapMap = observer(function CodapMap({
   }, [mapModel, tile])
   const callHandleChangeAttribute = useCallback((_place: GraphPlace, dataSet: IDataSet, attrId: string) => {
     handleChangeLegendAttribute(dataSet, attrId)
+  }, [handleChangeLegendAttribute])
+  const handleChangeLegendFromMenu = useCallback((_place: GraphPlace, dataSet: IDataSet, attrId: string) => {
+    handleChangeLegendAttribute(dataSet, attrId, true)
   }, [handleChangeLegendAttribute])
 
   // Leaflet's invalidateSize() reads the current size of the map container <div> and then
@@ -157,6 +164,7 @@ export const CodapMap = observer(function CodapMap({
       <MultiLegend
         divElt={mapRef.current}
         onDropAttribute={callHandleChangeAttribute}
+        onChangeAttribute={handleChangeLegendFromMenu}
       />
       <MapMarqueeSelectButton mapRef={mapRef} mapModel={mapModel}/>
       {/* Renderer type indicator */}

@@ -41,7 +41,7 @@ import {useGraphContentModelContext} from "../hooks/use-graph-content-model-cont
 import {GraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {useGraphModel} from "../hooks/use-graph-model"
-import { add2ndAxisAttributeNotification, addAxisAttributeNotification } from "../graph-notifications"
+import { graphAttributeChangeNotification } from "../graph-notifications"
 import {GraphController} from "../models/graph-controller"
 import { attrChangeNotificationValues, IAttrChangeValues } from "../models/graph-notification-utils"
 import { BarChart } from "../plots/bar-chart/bar-chart"
@@ -253,7 +253,7 @@ export const Graph = observer(function Graph({
   }, [dataset, graphController, graphModel])
 
   const handleChangeAttribute = useCallback((place: GraphPlace, dataSet: IDataSet, attrId: string,
-           attrIdToRemove = "") => {
+           attrIdToRemove = "", fromMenu = false) => {
     const computedPlace = place === 'plot' && graphModel.dataConfiguration.noAttributesAssigned ? 'bottom' : place
     const attrRole = graphPlaceToAttrRole[computedPlace]
     const attribute = dataSet.getAttribute(attrId || attrIdToRemove)
@@ -261,24 +261,16 @@ export const Graph = observer(function Graph({
     const tile = getTileModel(graphModel)
     let notificationValues: IAttrChangeValues | undefined = undefined
 
-    // V2 routes drops on the y-axis multi-target (`yPlus`) and Y2 axis (`rightNumeric`) to
-    // op-specific notifications via `multiTargetDidAcceptDrop` / `y2AxisDidAcceptDrop`
-    // (graph_controller.js ~:619 / :688); other drops fall through to the generic
-    // `attributeChange` (or `legendAttributeChange` for legend drops).
-    const notify = () => {
-      if (place === "yPlus") return addAxisAttributeNotification(tile, notificationValues)
-      if (place === "rightNumeric") return add2ndAxisAttributeNotification(tile, notificationValues)
-      const notificationType = place === "legend" ? "legendAttributeChange" : "attributeChange"
-      return updateTileNotification(notificationType, notificationValues, tile)
-    }
+    const notify = () => graphAttributeChangeNotification(
+      tile, computedPlace, notificationValues, { attrId, attrName, fromMenu: fromMenu || !!attrIdToRemove })
 
     graphModel.applyModelChange(
       () => {
         // We need to call setNumberOfCategoriesLimit early to avoid potential performance bottlenecks
-        isCategoricalAttributeType(attribute?.type) && isAxisPlace(place) &&
-          setNumberOfCategoriesLimit(graphModel.dataConfiguration, place, layout)
+        isCategoricalAttributeType(attribute?.type) && isAxisPlace(computedPlace) &&
+          setNumberOfCategoriesLimit(graphModel.dataConfiguration, computedPlace, layout)
         graphModel.setAttributeID(attrRole, dataSet.id, attrId)
-        notificationValues = attrChangeNotificationValues(place, attrId, attrName, attrIdToRemove, tile)
+        notificationValues = attrChangeNotificationValues(computedPlace, attrId, attrName, attrIdToRemove, tile)
       },
       {
         notify,
@@ -290,6 +282,11 @@ export const Graph = observer(function Graph({
       }
     )
   }, [graphModel, layout])
+
+  // a change from an axis's or the legend's attribute menu, rather than a drop
+  const handleChangeAttributeFromMenu = useCallback((place: GraphPlace, dataSet: IDataSet, attrId: string) => {
+    handleChangeAttribute(place, dataSet, attrId, "", true)
+  }, [handleChangeAttribute])
 
   /**
    * Only in the case that place === 'y' and there is more than one attribute assigned to the y-axis
@@ -459,6 +456,7 @@ export const Graph = observer(function Graph({
       return <GraphAxis key={place}
                         place={place}
                         onDropAttribute={handleChangeAttribute}
+                        onChangeAttribute={handleChangeAttributeFromMenu}
                         onRemoveAttribute={handleRemoveAttribute}
                         onTreatAttributeAs={handleTreatAttrAs}
                         topInset={place === 'left' ? leftAxisTopInset : undefined}
@@ -562,6 +560,7 @@ export const Graph = observer(function Graph({
           <MultiLegend
             divElt={graphRef.current}
             onDropAttribute={handleChangeAttribute}
+            onChangeAttribute={handleChangeAttributeFromMenu}
           />
           <Adornments/>
           {renderDroppableAddAttributes()}

@@ -2,6 +2,7 @@ import {
   changeAttributeColorNotification, changeLegendBinCountNotification, changeLegendBinsTypeNotification,
   changeLegendRangeNotification, changePointColorAndAlphaNotification, changePointColorNotification,
   changePointShapeNotification, changePointSizeNotification, changeStrokeColorAndAlphaNotification,
+  legendMenuAttributeChangeNotification,
   swapCategoriesNotification,
   toggleStrokeSameAsFillNotification
 } from "./data-display-notifications"
@@ -252,5 +253,21 @@ describe("changeLegendBinsTypeNotification", () => {
 
   it("returns undefined when the tile is missing", () => {
     expect(changeLegendBinsTypeNotification(undefined, "quantile")).toBeUndefined()
+  })
+})
+
+describe("legendMenuAttributeChangeNotification", () => {
+  it("sends V2's attributeChange with axisOrientation 'none' and type 'DG.GraphView', for maps too", () => {
+    const map = { id: "MAP1", content: { type: "Map" } } as any
+    expect(legendMenuAttributeChangeNotification(map, "ATTR7", "Habitat")?.message.values).toEqual({
+      operation: "attributeChange", attributeId: 7, attributeName: "Habitat", axisOrientation: "none",
+      id: "MAP1", type: "DG.GraphView", diType: "map"
+    })
+  })
+
+  it("names a removal as V2's menu item does", () => {
+    const graph = { id: "GRAPH1", content: { type: "Graph" } } as any
+    expect(legendMenuAttributeChangeNotification(graph, "ATTR7", "Habitat", true)?.message.values)
+      .toMatchObject({ attributeName: "Remove Legend: Habitat", axisOrientation: "none" })
   })
 })
