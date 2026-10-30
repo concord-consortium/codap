@@ -1,3 +1,5 @@
+import { deleteCasesNotification, moveCasesNotification } from "../../models/data/data-set-notifications"
+import { getGroupedCases } from "../../models/data/data-set-utils"
 import { toV2Id } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
 import { getV2ItemResult } from "../data-interactive-type-utils"
@@ -16,6 +18,8 @@ export const diItemSearchHandler: DIHandler = {
     const itemIds = itemSearch.map(aCase => aCase.__id__)
     dataContext.applyModelChange(() => {
       dataContext.removeCases(itemIds)
+    }, {
+      notify: deleteCasesNotification(dataContext, getGroupedCases(dataContext, itemIds))
     })
 
     return { success: true, values: itemIds.map(itemId => toV2Id(itemId)) }
@@ -39,6 +43,7 @@ export const diItemSearchHandler: DIHandler = {
     const { itemOrder } = values as DIItemSearchNotify
     if (!itemOrder) return fieldRequiredResult("Notify", "itemSearch", "itemOrder")
 
+    const priorItemIds = Array.from(dataContext._itemIds)
     dataContext.applyModelChange(() => {
       const itemIds = itemSearch.map(({ __id__ }) => __id__)
       if (Array.isArray(itemOrder)) {
@@ -63,6 +68,13 @@ export const diItemSearchHandler: DIHandler = {
         dataContext.moveItems(itemIds, { before })
       }
       dataContext.validateCases()
+    }, {
+      // as in v2, moveCases is sent only when the order changed
+      notify: () => {
+        const itemIds = dataContext._itemIds
+        const moved = itemIds.length !== priorItemIds.length || itemIds.some((id, i) => id !== priorItemIds[i])
+        if (moved) return moveCasesNotification(dataContext)
+      }
     })
 
     return { success: true }

@@ -1,5 +1,7 @@
 import { ICollectionModel } from "../../models/data/collection"
-import { createCollectionNotification } from "../../models/data/data-set-notifications"
+import {
+  createCollectionNotification, deleteCollectionNotification, updateCollectionNotification
+} from "../../models/data/data-set-notifications"
 import { isNonEmptyCollectionLabels } from "../../models/shared/data-set-metadata"
 import { getMetadataFromDataSet } from "../../models/shared/shared-data-utils"
 import { toV2Id } from "../../utilities/codap-utils"
@@ -102,6 +104,8 @@ export const diCollectionHandler: DIHandler = {
 
     dataContext.applyModelChange(() => {
       dataContext.removeCollectionWithAttributes(collection)
+    }, {
+      notify: deleteCollectionNotification(dataContext)
     })
 
     return { success: true, values: { collections: [toV2Id(collectionId)] } }
@@ -127,12 +131,15 @@ export const diCollectionHandler: DIHandler = {
     if (values) {
       const { title, labels } = values as DIUpdateCollection
 
+      const hasUpdates = !!title || isNonEmptyCollectionLabels(labels)
       dataContext.applyModelChange(() => {
         const metadata = getMetadataFromDataSet(dataContext)
         if (title) collection.setTitle(title)
         if (isNonEmptyCollectionLabels(labels)) {
           metadata?.setCollectionLabels(collection.id, labels)
         }
+      }, {
+        notify: hasUpdates ? () => updateCollectionNotification(collection, dataContext) : undefined
       })
     }
 
