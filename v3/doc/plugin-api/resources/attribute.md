@@ -270,7 +270,7 @@ negations. Setting `deleteProtected: true` is the same as setting `deleteable: f
 following `get` returns `deleteable: false`. There is no `deleteProtected` or `renameProtected` in
 a `get` response.
 
-**`create` does not apply the protection properties to a new attribute.** `editable`, `deleteable`,
+**`create` does not apply the protection properties to a new attribute.** `deleteable`,
 `renameable`, `deleteProtected` and `renameProtected` are honored by `update` and dropped by
 `create` — unless the name already exists, in which case `create` takes the update path and they
 do apply. This is a known bug. Until it is fixed, set them with an `update` after creating.
