@@ -78,7 +78,7 @@ Defaults preserve current behavior, so existing modals are unaffected.
 New files in `src/components/about-dialog/`:
 
 - `about-dialog.tsx` — the dialog
-- `about-dialog.scss` — scoped styles
+- `about-dialog.scss` — body content layout only (see [Styling](#styling))
 - `about-dialog-constants.ts` — link URLs
 - `external-link.tsx` — external link component (see [External links](#external-links))
 
@@ -87,9 +87,21 @@ The dialog is built on `CodapModal` with `isCentered` and `isDraggable={false}`,
 
 The current view is local state, `"about" | "libraries"`, reset to `"about"` each time the dialog opens.
 
-**Styling** follows the mockups (white header with larger title, light footer band, teal primary button).
-This differs from the existing `CodapModal` header styling (30px grey bar, 12px title), so the About dialog
-uses its own scoped class rather than `codap-modal-header`.
+### Styling
+
+The dialog uses the existing `codap-modal-v3` styling with no customization, matching the text tile's
+Insert Link and Insert Image dialogs (`src/components/text/format-link-button.tsx`). The mockups define
+layout and content, not the modal's look; where they differ (white header, grey footer band, solid teal
+button), the `codap-modal-v3` look wins.
+
+- Imports `../codap-modal-v3.scss`
+- Header: `ModalHeader` with `className="codap-modal-header-v3"`, title in `codap-header-title-v3`,
+  `ModalCloseButton`
+- Footer buttons: Chakra `Button` with `size="xs"`; Close uses `variant="v3Default"`, Back uses
+  `variant="v3Clear"`
+- `about-dialog.scss` contains only the body layout the content needs (centering the logo block,
+  dividers, spacing, links row, acknowledgements button). It does not restyle the header, footer, or
+  modal chrome.
 
 ### About CODAP view
 
