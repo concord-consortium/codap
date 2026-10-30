@@ -40,4 +40,25 @@ describe("attrChangeNotificationValues", () => {
       primaryAxis: "x"
     })
   })
+
+  it("reports V2's orientation for the top and right axes, and none for the plot or legend", () => {
+    const orientation = (place: any) =>
+      attrChangeNotificationValues(place, mockAttrV3Id, mockAttrName, "", mockTile)?.axisOrientation
+    expect(orientation("top")).toBe("top")
+    expect(orientation("rightCat")).toBe("right")
+    expect(orientation("left")).toBe("vertical")
+    expect(orientation("rightNumeric")).toBe("vertical2")
+    expect(orientation("legend")).toBeUndefined()
+    expect(orientation("plot")).toBeUndefined()
+  })
+
+  it("names a removal as V2's menu item for that axis does", () => {
+    const removalName = (place: any) =>
+      attrChangeNotificationValues(place, mockAttrV3Id, mockAttrName, mockAttrIdToRemove, mockTile)?.attributeName
+    expect(removalName("left")).toBe(`Remove Y: ${mockAttrName}`)
+    expect(removalName("rightNumeric")).toBe(`Remove Y: ${mockAttrName}`)
+    expect(removalName("top")).toBe(`Remove Side-by-side Layout by ${mockAttrName}`)
+    expect(removalName("rightCat")).toBe(`Remove Vertical Layout by ${mockAttrName}`)
+    expect(removalName("legend")).toBe(`Remove Legend: ${mockAttrName}`)
+  })
 })

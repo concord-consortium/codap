@@ -2,7 +2,8 @@ import {
   add2ndAxisAttributeNotification, addAxisAttributeNotification, addMovableValueNotification,
   changeBackgroundColorNotification, displayOnlySelectedNotification, dragBinBoundaryNotification,
   dragMovableLineNotification, dragMovablePointNotification, dragMovableValueNotification,
-  editPlotFormulaNotification, removeMovableValueNotification, repositionEquationNotification,
+  editPlotFormulaNotification, graphAttributeChangeNotification, legendAttributeChangeNotification,
+  removeMovableValueNotification, repositionEquationNotification,
   setNumStdErrsNotification, showAllCasesNotification,
   toggleBackgroundTransparencyNotification, toggleMeasuresForSelectionNotification,
   toggleNumberToggleNotification, toggleShowICINotification, toggleShowOutliersNotification
@@ -365,5 +366,38 @@ describe("toggleBackgroundTransparencyNotification", () => {
 
   it("returns undefined when the graph tile is missing", () => {
     expect(toggleBackgroundTransparencyNotification(undefined, false)).toBeUndefined()
+  })
+})
+
+describe("graphAttributeChangeNotification", () => {
+  const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+  const values = { attributeId: 12, attributeName: "Height" }
+  const notice = (place: any, options: any = {}) =>
+    graphAttributeChangeNotification(tile, place, values, { attrId: "ATTR12", attrName: "Height", ...options })
+      ?.message.values
+
+  it("sends V2's operation for each way of changing a graph's attributes", () => {
+    // axis drops and axis-menu changes
+    expect(notice("bottom")).toMatchObject({ operation: "attributeChange", type: v2SCType })
+    // legend and plot-area drops, with the display model's type
+    expect(notice("legend")).toMatchObject({ operation: "legendAttributeChange", type: "DG.GraphModel" })
+    expect(notice("plot")).toMatchObject({ operation: "legendAttributeChange", type: "DG.GraphModel" })
+    // a change or removal from the legend's menu
+    expect(notice("legend", { fromMenu: true })).toEqual({
+      operation: "attributeChange", attributeId: 12, attributeName: "Height", axisOrientation: "none",
+      id: v2Id, type: "DG.GraphView", diType
+    })
+    // drops on the y-axis "+" target and the Y2 axis
+    expect(notice("yPlus")).toMatchObject({ operation: "add axis attribute" })
+    expect(notice("rightNumeric")).toMatchObject({ operation: "add 2nd axis attribute" })
+    // a change or removal from an axis's menu, the Y2 axis's included
+    expect(notice("rightNumeric", { fromMenu: true })).toMatchObject({ operation: "attributeChange" })
+    expect(notice("bottom", { fromMenu: true })).toMatchObject({ operation: "attributeChange" })
+  })
+
+  it("is a no-op for non-graph tiles", () => {
+    expect(graphAttributeChangeNotification({ content: { type: "Map" } } as any, "legend", values,
+      { attrId: "ATTR12" })).toBeUndefined()
+    expect(legendAttributeChangeNotification(undefined, values)).toBeUndefined()
   })
 })

@@ -1,5 +1,7 @@
 import { ITileModel } from "../../models/tiles/tile-model"
 import { updateTileNotification } from "../../models/tiles/tile-notifications"
+import { GraphPlace } from "../axis-graph-shared"
+import { legendMenuAttributeChangeNotification } from "../data-display/data-display-notifications"
 import { kGraphTileType } from "./graph-defs"
 import { IAttrChangeValues } from "./models/graph-notification-utils"
 
@@ -44,6 +46,20 @@ export function add2ndAxisAttributeNotification(
 ) {
   if (graphTile?.content.type !== kGraphTileType) return
   return updateTileNotification("add 2nd axis attribute", values ?? {}, graphTile)
+}
+
+// V2 emits `legendAttributeChange` from apps/dg/components/graph_map_common/data_display_controller.js
+// (plotOrLegendViewDidAcceptDrop :928-949), which handles drops on both the legend and the plot area.
+// Its `type` is the display model's class, `DG.GraphModel`, rather than the graph view's `DG.GraphView`.
+// V3 additionally carries the `IAttrChangeValues` fields (attributeId, plotType, primaryAxis).
+// No-ops for non-graph tiles.
+export function legendAttributeChangeNotification(
+  graphTile: ITileModel | undefined, values: IAttrChangeValues | undefined
+) {
+  if (graphTile?.content.type !== kGraphTileType) return
+  const notification = updateTileNotification("legendAttributeChange", values ?? {}, graphTile)
+  if (notification) notification.message.values.type = "DG.GraphModel"
+  return notification
 }
 
 // V2 emits `toggle NumberToggle` and `toggle MeasuresForSelection` from
@@ -191,4 +207,35 @@ export function dragBinBoundaryNotification(
 export function repositionEquationNotification(graphTile: ITileModel | undefined, adornment: string) {
   if (graphTile?.content.type !== kGraphTileType) return
   return updateTileNotification("reposition equation", { adornment }, graphTile)
+}
+
+interface IGraphAttributeChangeOptions {
+  attrId: string
+  attrName?: string
+  // the change or removal was made from an attribute menu rather than by a drop
+  fromMenu?: boolean
+}
+
+// Chooses the notification for an attribute placed on, replaced on or removed from a graph, as V2 does.
+// `place` is where the attribute ends up: a plot-area drop on an empty graph goes to the bottom axis,
+// as in V2 (graph_controller.js:743-747), and is reported as an axis change.
+// - Drops on the y-axis "+" target and the Y2 axis send their own operations (see above).
+// - A drop on the legend or the plot area sends `legendAttributeChange`.
+// - A change or removal from the legend's menu sends `attributeChange` with axisOrientation "none"
+//   (see legendMenuAttributeChangeNotification).
+// - Everything else -- an axis drop, or a change or removal from an axis's menu, the Y2 axis's included
+//   (data_display_controller.js:843-866) -- sends `attributeChange` with the axis's orientation.
+export function graphAttributeChangeNotification(
+  graphTile: ITileModel | undefined, place: GraphPlace, values: IAttrChangeValues | undefined,
+  { attrId, attrName, fromMenu }: IGraphAttributeChangeOptions
+) {
+  if (graphTile?.content.type !== kGraphTileType) return
+  const isLegend = place === "legend" || place === "plot"
+  if (fromMenu && isLegend) return legendMenuAttributeChangeNotification(graphTile, attrId, attrName)
+  if (!fromMenu) {
+    if (place === "yPlus") return addAxisAttributeNotification(graphTile, values)
+    if (place === "rightNumeric") return add2ndAxisAttributeNotification(graphTile, values)
+    if (isLegend) return legendAttributeChangeNotification(graphTile, values)
+  }
+  return updateTileNotification("attributeChange", values ?? {}, graphTile)
 }
