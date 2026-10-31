@@ -534,14 +534,30 @@ No tests in this task; Task 7's tests cover these.
 
 **Step 1: Add strings**
 
-At the end of `en-US.json5`, add a comma after `"V3.ExternalLink.opensInNewTab": "(opens in a new tab)"` and
+Reuse these existing strings rather than adding new ones:
+
+| Text | Existing key |
+|---|---|
+| About CODAP (dialog title) | `DG.AppController.showAboutTitle` (v2's About dialog title, already translated) |
+| Common Online Data Analysis Platform | `V3.app.fullName` |
+| About CODAP... (Help menu item, Task 9) | `DG.AppController.optionMenuItems.about` |
+
+Add generic Back and Close strings next to the existing `V3.general.yes` / `V3.general.no` (~line 1344),
+so other dialogs can reuse them:
+
+```json5
+    "V3.general.yes": "Yes",
+    "V3.general.no": "No",
+    "V3.general.back": "Back",
+    "V3.general.close": "Close",
+```
+
+Then add the dialog-specific strings. At the end of `en-US.json5`, add a comma after `"V3.ExternalLink.opensInNewTab": "(opens in a new tab)"` and
 append:
 
 ```json5
 
-    "V3.AboutDialog.title": "About CODAP",
     "V3.AboutDialog.logoAlt": "CODAP, a product of The Concord Consortium",
-    "V3.AboutDialog.subtitle": "Common Online Data Analysis Platform",
     "V3.AboutDialog.version": "Version %{version} · build %{build}",
     "V3.AboutDialog.copyright": "© 1996–%{year} The Concord Consortium, Inc.",
     "V3.AboutDialog.license.heading": "License & Terms of Use",
@@ -556,8 +572,6 @@ append:
     "V3.AboutDialog.links.licensingDetails": "Licensing details",
     "V3.AboutDialog.links.sourceCode": "Source on GitHub",
     "V3.AboutDialog.acknowledgementsButton": "Open-source libraries & acknowledgements",
-    "V3.AboutDialog.back": "Back",
-    "V3.AboutDialog.close": "Close",
     "V3.AboutDialog.libraries.title": "Open-source libraries",
     "V3.AboutDialog.libraries.intro": "CODAP is built with these open-source projects. Our thanks to their authors and maintainers.",
     "V3.AboutDialog.libraries.footer": "This list is generated at build time from CODAP’s dependencies. Full license texts: %{noticesLink}",
@@ -855,8 +869,8 @@ export function AboutDialog({ isOpen, onClose }: IProps) {
     setView(newView)
   }
 
-  const title = view === "about" ? t("V3.AboutDialog.title") : t("V3.AboutDialog.libraries.title")
-  const backButtonContent = <><span aria-hidden="true">‹ </span>{t("V3.AboutDialog.back")}</>
+  const title = view === "about" ? t("DG.AppController.showAboutTitle") : t("V3.AboutDialog.libraries.title")
+  const backButtonContent = <><span aria-hidden="true">‹ </span>{t("V3.general.back")}</>
 
   return (
     <CodapModal
@@ -898,7 +912,7 @@ export function AboutDialog({ isOpen, onClose }: IProps) {
           </Button>
         }
         <Button size="xs" variant="v3Default" ml="3" onClick={onClose} data-testid="about-dialog-close-button">
-          {t("V3.AboutDialog.close")}
+          {t("V3.general.close")}
         </Button>
       </ModalFooter>
     </CodapModal>
@@ -917,7 +931,7 @@ function AboutView({ acknowledgementsButtonRef, onShowLibraries }: IAboutViewPro
     <>
       <div className="about-dialog-identity">
         <img className="about-dialog-logo" src={AboutScreenLogo} alt={t("V3.AboutDialog.logoAlt")}/>
-        <div>{t("V3.AboutDialog.subtitle")}</div>
+        <div>{t("V3.app.fullName")}</div>
         <div>{t("V3.AboutDialog.version", { vars: { version, build: build.buildNumber } })}</div>
         <div>{t("V3.AboutDialog.copyright", { vars: { year } })}</div>
       </div>

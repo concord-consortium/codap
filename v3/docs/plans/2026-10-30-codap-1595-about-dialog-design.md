@@ -150,7 +150,13 @@ button), the `codap-modal-v3` look wins.
 
 ## Translation
 
-All new strings go in `src/utilities/translation/lang/en-US.json5` under `V3.AboutDialog.*`.
+New strings go in `src/utilities/translation/lang/en-US.json5`, mostly under `V3.AboutDialog.*`.
+
+Existing strings are reused where they exist: `DG.AppController.showAboutTitle` ("About CODAP", the dialog
+title), `V3.app.fullName` ("Common Online Data Analysis Platform"), and
+`DG.AppController.optionMenuItems.about` (the menu item). Generic `V3.general.back` ("Back") and
+`V3.general.close` ("Close") are added next to the existing `V3.general.yes` / `V3.general.no` so other
+dialogs can reuse them.
 
 ### Sentences with embedded links or bold text
 
