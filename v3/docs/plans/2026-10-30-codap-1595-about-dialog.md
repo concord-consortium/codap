@@ -108,36 +108,62 @@ git commit -m "CODAP-1595: add showAboutDialog flag to uiState"
 
 ### Task 2: `translateToElements()` helper
 
+`translateToElements()` goes in the existing `translate.ts`, next to `translate()`. That file is `.ts`, not
+`.tsx`, so the helper uses `createElement(Fragment, …)` rather than JSX, and its tests (in the existing
+`translate.test.ts`) use `createElement` too.
+
 **Files:**
-- Create: `v3/src/utilities/translation/translate-to-elements.tsx`
-- Test: `v3/src/utilities/translation/translate-to-elements.test.tsx`
+- Modify: `v3/src/utilities/translation/translate.ts`
+- Test: `v3/src/utilities/translation/translate.test.ts`
 
-**Step 1: Write the failing test**
+**Step 1: Write the failing tests**
 
-```tsx
-import { render, screen } from "@testing-library/react"
-import { translateToElements } from "./translate-to-elements"
+In `translate.test.ts`, add three entries to the existing `en-US.json5` mock:
 
+```ts
 jest.mock("./lang/en-US.json5", () => ({
+  HELLO: "Hello",
+  NAMED: "Replace %{foo} with %{bar}",
+  INDEXED: "Replace %@1 with %@2",
+  REVERSED: "Replace %@2 with %@1",
+  POSITIONED: "Replace %@ with %@",
+  EMPTY_NAMED: "Replace %{foo} with %{}",
   SENTENCE: "Read the %{link} before %{action}.",
   EDGES: "%{action}, then read the %{link}",
   PLAIN: "No placeholders here"
 }))
+```
 
-const link = <a href="https://example.com">guide</a>
-const action = <strong>starting</strong>
+Update the imports at the top of the file:
 
+```ts
+import { render, screen } from "@testing-library/react"
+import { createElement, ReactNode } from "react"
+import { t, translateToElements } from "./translate"
+```
+
+Add a new `describe` at the end of the file:
+
+```ts
 describe("translateToElements", () => {
+  const link = createElement("a", { href: "https://example.com" }, "guide")
+  const action = createElement("strong", null, "starting")
+
+  function renderParagraph(content: ReactNode[]) {
+    render(createElement("p", { "data-testid": "text" }, ...content))
+    return screen.getByTestId("text")
+  }
+
   it("replaces placeholders with elements and keeps the surrounding text", () => {
-    render(<p data-testid="text">{translateToElements("SENTENCE", { link, action })}</p>)
-    expect(screen.getByTestId("text")).toHaveTextContent("Read the guide before starting.")
+    const paragraph = renderParagraph(translateToElements("SENTENCE", { link, action }))
+    expect(paragraph).toHaveTextContent("Read the guide before starting.")
     expect(screen.getByRole("link", { name: "guide" })).toHaveAttribute("href", "https://example.com")
     expect(screen.getByText("starting", { selector: "strong" })).toBeInTheDocument()
   })
 
   it("handles placeholders at the start and end of the string", () => {
-    render(<p data-testid="text">{translateToElements("EDGES", { link, action })}</p>)
-    expect(screen.getByTestId("text")).toHaveTextContent("starting, then read the guide")
+    const paragraph = renderParagraph(translateToElements("EDGES", { link, action }))
+    expect(paragraph).toHaveTextContent("starting, then read the guide")
   })
 
   it("returns the plain string when there are no placeholders", () => {
@@ -145,26 +171,31 @@ describe("translateToElements", () => {
   })
 
   it("renders a placeholder with no matching element as empty and warns", () => {
-    const spy = jest.spyOn(console, "warn").mockImplementation(() => null)
-    render(<p data-testid="text">{translateToElements("SENTENCE", { link })}</p>)
-    expect(screen.getByTestId("text")).toHaveTextContent("Read the guide before .")
+    const spy = jest.spyOn(global.console, "warn").mockImplementation(() => null)
+    const paragraph = renderParagraph(translateToElements("SENTENCE", { link }))
+    expect(paragraph).toHaveTextContent("Read the guide before .")
     expect(spy).toHaveBeenCalledTimes(1)
     spy.mockRestore()
   })
 })
 ```
 
-**Step 2: Run test to verify it fails**
+**Step 2: Run tests to verify they fail**
 
-Run: `npm test -- translate-to-elements`
-Expected: FAIL (cannot find module `./translate-to-elements`)
+Run: `npm test -- src/utilities/translation/translate.test.ts`
+Expected: FAIL (`translateToElements` is not exported from `./translate`). The existing tests still pass.
 
 **Step 3: Implement**
 
-```tsx
-import React, { ReactNode } from "react"
-import { translate } from "./translate"
+In `translate.ts`, add the import at the top:
 
+```ts
+import { createElement, Fragment, ReactNode } from "react"
+```
+
+Add after `export const t = translate`:
+
+```ts
 const kPlaceholderRegExp = /%{\s*([^}\s]*)\s*}/g
 
 // Translates a string and replaces its %{name} placeholders with React elements, so a translated
@@ -179,7 +210,7 @@ export function translateToElements(key: string, elements: Record<string, ReactN
   for (const match of translation.matchAll(kPlaceholderRegExp)) {
     const [placeholder, name] = match
     if (match.index > textStart) result.push(translation.slice(textStart, match.index))
-    result.push(<React.Fragment key={result.length}>{elements[name]}</React.Fragment>)
+    result.push(createElement(Fragment, { key: result.length }, elements[name]))
     textStart = match.index + placeholder.length
   }
   if (textStart < translation.length) result.push(translation.slice(textStart))
@@ -189,16 +220,15 @@ export function translateToElements(key: string, elements: Record<string, ReactN
 
 If TypeScript reports `match.index` as possibly undefined, use `const index = match.index ?? 0`.
 
-**Step 4: Run test to verify it passes**
+**Step 4: Run tests to verify they pass**
 
-Run: `npm test -- translate-to-elements`
-Expected: PASS (4 tests)
+Run: `npm test -- src/utilities/translation/translate.test.ts`
+Expected: PASS (existing tests plus 4 new ones)
 
 **Step 5: Commit** (after user approves the message)
 
 ```bash
-git add v3/src/utilities/translation/translate-to-elements.tsx \
-  v3/src/utilities/translation/translate-to-elements.test.tsx
+git add v3/src/utilities/translation/translate.ts v3/src/utilities/translation/translate.test.ts
 git commit -m "CODAP-1595: add translateToElements helper for translated text with links"
 ```
 
@@ -775,8 +805,7 @@ import React, { useEffect, useRef, useState } from "react"
 import build from "../../../build_number.json"
 import pkg from "../../../package.json"
 import AboutScreenLogo from "../../assets/codap-about-screen.png"
-import { t } from "../../utilities/translation/translate"
-import { translateToElements } from "../../utilities/translation/translate-to-elements"
+import { t, translateToElements } from "../../utilities/translation/translate"
 import { displayVersion } from "../../utilities/version-utils"
 import { CodapModal } from "../codap-modal"
 import { ExternalLink } from "../common/external-link"

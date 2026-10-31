@@ -163,7 +163,8 @@ see whole sentences, can reorder placeholders, and never handle markup.
 "V3.AboutDialog.license.mitLicense": "MIT License",
 ```
 
-A new helper, `translateToElements(key, elements)`, in `src/utilities/translation/`, translates the key,
+A new helper, `translateToElements(key, elements)`, in `src/utilities/translation/translate.ts` alongside
+`translate()`, translates the key,
 splits the result on `%{name}` placeholders, and returns a `ReactNode[]` with each placeholder replaced by
 the matching element (keyed fragments). Text around placeholders is preserved. A placeholder with no
 matching element renders as empty and logs a warning, consistent with `translate()`.
