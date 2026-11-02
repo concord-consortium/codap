@@ -116,18 +116,20 @@ function AboutView({ acknowledgementsButtonRef, onShowLibraries }: IAboutViewPro
       <div className="about-dialog-identity">
         <img className="about-dialog-logo" src={AboutScreenLogo} alt={t("V3.AboutDialog.logoAlt")}/>
         <div>{t("V3.app.fullName")}</div>
-        <div>{t("V3.AboutDialog.version", { vars: { version, build: build.buildNumber } })}</div>
-        <div>{t("V3.AboutDialog.copyright", { vars: { year } })}</div>
+        <div className="about-dialog-version">
+          {t("V3.AboutDialog.version", { vars: { version, build: build.buildNumber } })}
+        </div>
+        <div className="about-dialog-copyright">{t("V3.AboutDialog.copyright", { vars: { year } })}</div>
       </div>
       <hr className="about-dialog-divider"/>
       <h3 className="about-dialog-heading">{t("V3.AboutDialog.license.heading")}</h3>
-      <p>
+      <p className="about-dialog-text">
         {translateToElements("V3.AboutDialog.license.p1", {
           freeOpenSource: <strong>{t("V3.AboutDialog.license.freeOpenSource")}</strong>,
           mitLicense: <ExternalLink href={kMitLicenseUrl}>{t("V3.AboutDialog.license.mitLicense")}</ExternalLink>
         })}
       </p>
-      <p>
+      <p className="about-dialog-text">
         {translateToElements("V3.AboutDialog.license.p2", {
           yourUse: <strong>{t("V3.AboutDialog.license.yourUse")}</strong>,
           termsOfUse: <ExternalLink href={kTermsOfUseUrl}>{t("V3.AboutDialog.license.termsOfUse")}</ExternalLink>,

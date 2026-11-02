@@ -2,8 +2,9 @@
 
 // Layout for the About dialog's body content. The modal itself uses the shared codap-modal-v3 styles.
 .about-dialog-body {
-  padding: 12px 8px;
+  color: vars.$charcoal-dark-2;
   font-size: 14px;
+  padding: 12px 8px;
   line-height: 1.5;
 
   // Chakra's CSS reset removes link color and underline
@@ -28,6 +29,18 @@
     width: 240px;
   }
 
+  .about-dialog-version {
+    background-color: #F2F5F7;
+    border: 1px solid #E2E6EA;
+    border-radius: 20px;
+    margin-top: 4px;
+    padding: 0 10px;
+  }
+
+  .about-dialog-copyright {
+    margin-top: 6px;
+  }
+
   .about-dialog-divider {
     margin: 12px 0;
   }
@@ -35,6 +48,10 @@
   .about-dialog-heading {
     font-weight: 600;
     margin-bottom: 4px;
+  }
+
+  .about-dialog-text {
+    font-size: 16px;
   }
 
   .about-dialog-links {
