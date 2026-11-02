@@ -2,8 +2,9 @@ import { act, render, renderHook, screen, waitFor } from "@testing-library/react
 import { CloudFileManager, CloudFileManagerClientEvent } from "@concord-consortium/cloud-file-manager"
 import { ReactNode } from "react"
 import { Root } from "react-dom/client"
+import { uiState } from "../../models/ui-state"
 import { LogMessage, Logger } from "../logger"
-import { useCloudFileManager } from "./use-cloud-file-manager"
+import { getMenuBar, useCloudFileManager } from "./use-cloud-file-manager"
 
 let spySetMenuBarInfo: jest.SpyInstance | undefined
 
@@ -107,5 +108,22 @@ describe("useCloudFileManager", () => {
       // eslint-disable-next-line testing-library/no-node-access
       expect(containerDiv.getElementsByClassName("menu-bar")[0]).toBeInTheDocument()
     })
+  })
+})
+
+describe("getMenuBar", () => {
+  afterEach(() => {
+    uiState.setShowAboutDialog(false)
+  })
+
+  it("ends the Help menu with a separator and an About CODAP item that opens the About dialog", () => {
+    const menuBar = getMenuBar({} as CloudFileManager)
+    const helpMenu = menuBar.otherMenus.find(menu => menu.className === "help-menu")!
+    const separator = helpMenu.menu.at(-2)
+    const aboutItem = helpMenu.menu.at(-1) as { name: string, action: () => void }
+    expect(separator).toEqual({ separator: true })
+    expect(aboutItem.name).toBe("About CODAP...")
+    aboutItem.action()
+    expect(uiState.showAboutDialog).toBe(true)
   })
 })
