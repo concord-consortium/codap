@@ -15,7 +15,13 @@ export interface IUndoManager {
   redoEntry : HistoryEntryType | undefined
   undo() : IUndoInformation
   redo() : IUndoInformation
+  setHistoryListener(listener?: UndoHistoryListener): void
 }
+
+// Called after the undo history changes: an undoable entry is added ("add"), or an entry is undone
+// or redone. Lets the app notify plugins of each change as it happens.
+export type UndoHistoryChange = "add" | "undo" | "redo"
+export type UndoHistoryListener = (change: UndoHistoryChange) => void
 
 // Information that is returned by undo and redo calls
 export interface IUndoInformation {
@@ -28,6 +34,9 @@ export const UndoStore = types
   history: types.array(types.reference(HistoryEntry)),
   undoIdx: 0
 })
+.volatile(() => ({
+  historyListener: undefined as UndoHistoryListener | undefined
+}))
 .views((self) => ({
   get undoLevels() {
     return self.undoIdx
@@ -139,6 +148,10 @@ export const UndoStore = types
   })
 
   return {
+    setHistoryListener(listener?: UndoHistoryListener) {
+      self.historyListener = listener
+    },
+
     addHistoryEntry(entry: Instance<typeof HistoryEntry>) {
       // Find if there is already an HistoryEntry with this
       // historyEntryId. This action is called each time a new
@@ -151,6 +164,7 @@ export const UndoStore = types
         console.log(`adding to undo history`, (entry as any).toJSON()/*.action*/)
       }
       const existingEntry = self.findHistoryEntry(entry.id)
+      const prevUndoIdx = self.undoIdx
       if (!existingEntry) {
         // This is a new user action, so if they had undone some amount already
         // we delete the part of the history that was past this undone point
@@ -167,6 +181,8 @@ export const UndoStore = types
       // are being added to an existing entry these are still user triggered
       // patches. So this needs to prevent the ability to redo.
       self.undoIdx = self.history.length
+      // a new entry, or more patches for an existing one that discard what could be redone
+      if (!existingEntry || self.undoIdx !== prevUndoIdx) self.historyListener?.("add")
     },
 
     // TODO: The MST undo manager that this code is based on, used atomic
@@ -205,6 +221,7 @@ export const UndoStore = types
       }
 
       self.undoIdx--
+      self.historyListener?.("undo")
       return {
         id: entryToUndo.id,
         action: entryToUndo.action
@@ -240,6 +257,7 @@ export const UndoStore = types
       }
 
       self.undoIdx++
+      self.historyListener?.("redo")
       return {
         id: entryToRedo.id,
         action: entryToRedo.action

@@ -1,3 +1,4 @@
+import { when } from "mobx"
 import { IAnyStateTreeNode } from "mobx-state-tree"
 import { isWebViewModel } from "../../components/web-view/web-view-model"
 import { appState } from "../../models/app-state"
@@ -6,7 +7,8 @@ import { ICustomPatch } from "../../models/history/tree-types"
 import { withCustomUndoRedo } from "../../models/history/with-custom-undo-redo"
 import { getDocumentContentFromNode } from "../../utilities/mst-document-utils"
 import { registerDIHandler } from "../data-interactive-handler"
-import { DIHandler, DIHandlerFnResult, DIResources, DIValues } from "../data-interactive-types"
+import { t } from "../../utilities/translation/translate"
+import { DIAsyncHandler, DIHandlerFnResult, DIResources, DIValues } from "../data-interactive-types"
 import { errorResult, noInteractiveFrameResult } from "./di-results"
 
 const kPluginUndoRedoPatchType = "PluginUndoRedo"
@@ -30,8 +32,13 @@ function sendUndoRedoMessage(tileId: string, operation: "undoAction" | "redoActi
     resource: "undoChangeNotice",
     values: { operation }
   }, (response: any) => {
-    if (response && !response.success) {
+    // as in V2, only an explicit `success: false` is a failure
+    if (response?.success === false) {
       console.warn(`Plugin ${tileId} failed to handle ${operation}:`, response)
+      // as in V2 (data_interactive_phone_handler.js:2308-2312), tell the user. V2 always used the undo
+      // message, even for a redo, and erased the undo history when the alert was dismissed.
+      appState.alert(t(operation === "undoAction" ? "DG.Undo.exceptionOccurred" : "DG.Redo.exceptionOccurred"),
+        undefined)
     }
   }, tileId)
 }
@@ -56,12 +63,25 @@ function undoRedoResult(): { canUndo: boolean, canRedo: boolean } {
   return { canUndo: document.canUndo, canRedo: document.canRedo }
 }
 
-export const diUndoChangeNoticeHandler: DIHandler = {
-  notify(resources: DIResources, values?: DIValues) {
+// A history entry joins the undo store asynchronously, once the change has been recorded; wait for a
+// new entry to reach the top of the undo store so the reply reports the history after the change, as
+// V2's did. If it hasn't arrived within a second, report the history as it stands.
+async function newUndoEntryRecorded(priorUndoEntryId?: string) {
+  const undoManager = appState.document.treeManagerAPI?.undoManager
+  if (!undoManager) return
+  try {
+    await when(() => !!undoManager.undoEntry && undoManager.undoEntry.id !== priorUndoEntryId, { timeout: 1000 })
+  } catch {
+    // timed out
+  }
+}
+
+export const diUndoChangeNoticeHandler: DIAsyncHandler = {
+  async notify(resources: DIResources, values?: DIValues) {
     const { interactiveFrame } = resources
     if (!interactiveFrame) return noInteractiveFrameResult
 
-    const vals = values as { operation?: string } | undefined
+    const vals = values as { operation?: string, logMessage?: string } | undefined
     const operation = vals?.operation
 
     switch (operation) {
@@ -75,6 +95,7 @@ export const diUndoChangeNoticeHandler: DIHandler = {
           return errorResult("Document content not found")
         }
         const tileId = interactiveFrame.id
+        const priorUndoEntryId = appState.document.treeManagerAPI?.undoManager.undoEntry?.id
         webViewContent.applyModelChange(() => {
           withCustomUndoRedo<IPluginUndoRedoPatch>({
             type: kPluginUndoRedoPatchType,
@@ -82,8 +103,11 @@ export const diUndoChangeNoticeHandler: DIHandler = {
           })
         }, {
           undoStringKey: "DG.Undo.interactiveUndoableAction",
-          redoStringKey: "DG.Redo.interactiveUndoableAction"
+          redoStringKey: "DG.Redo.interactiveUndoableAction",
+          // as in V2 (data_interactive_phone_handler.js:2320, :2338)
+          log: `Interactive action occurred: ${vals?.logMessage || "Unknown action"}`
         })
+        await newUndoEntryRecorded(priorUndoEntryId)
         return { success: true, values: undoRedoResult() } as DIHandlerFnResult
       }
       case "undoButtonPress": {
