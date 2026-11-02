@@ -1718,8 +1718,16 @@
     "V3.AboutDialog.links.licensingDetails": "Licensing details",
     "V3.AboutDialog.links.sourceCode": "Source on GitHub",
     "V3.AboutDialog.acknowledgementsButton": "Open-source libraries & acknowledgements",
+    "V3.AboutDialog.projectCount": "1 project",
+    "V3.AboutDialog.projectCountPlural": "%{count} projects",
     "V3.AboutDialog.libraries.title": "Open-source libraries",
     "V3.AboutDialog.libraries.intro": "CODAP is built with these open-source projects. Our thanks to their authors and maintainers.",
     "V3.AboutDialog.libraries.footer": "This list is generated at build time from CODAP’s dependencies. Full license texts: %{noticesLink}",
-    "V3.AboutDialog.libraries.noticesLink": "THIRD-PARTY-NOTICES"
+    "V3.AboutDialog.libraries.noticesLink": "THIRD-PARTY-NOTICES",
+    "V3.AboutDialog.libraries.searchLabel": "Search libraries…",
+    "V3.AboutDialog.libraries.resultCount": "1 library",
+    "V3.AboutDialog.libraries.resultCountPlural": "%{count} libraries",
+    "V3.AboutDialog.libraries.loading": "Loading libraries…",
+    "V3.AboutDialog.libraries.noMatches": "No libraries match “%{query}”.",
+    "V3.AboutDialog.libraries.loadError": "The library list couldn't be loaded."
 }
