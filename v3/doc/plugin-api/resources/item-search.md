@@ -206,12 +206,6 @@ the `true` items and `==false` the `false` ones, which is the intended behavior.
 bug. Until it is fixed, use [`caseFormulaSearch`](case-formula-search.md) with `Endangered=true`
 on the data context's last collection.
 
-**Moving items with `"first"` or `"last"` corrupts the data when any item is hidden.** When any
-item in the data context is set aside or hidden by a filter formula, CODAP moves the wrong items,
-and can delete one item while duplicating another. Moving with an array is not affected. This is
-a known bug. Until it is fixed, do not move items with `"first"` or `"last"` while any item is set
-aside or the data context has a filter formula.
-
 **An `itemOrder` position counts only the items shown.** When `itemOrder` is an array, v3 counts
 positions among the items that are not set aside or hidden by a filter formula. v2 counted
 set-aside items too, so the same number can name a different place. This is a known bug. Until it
