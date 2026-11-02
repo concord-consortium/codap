@@ -107,6 +107,10 @@ describe("DataInteractive AttributeHandler", () => {
 
     expect(editableResult(true)).toBe(true)
     expect(metadata.isEditProtected(a1.id)).toBe(false)
+
+    // an update that leaves out editable leaves it unchanged
+    expect(handler.update?.({ attribute: a1, dataContext }, { description: "no editable" })?.success).toBe(true)
+    expect(metadata.isEditProtected(a1.id)).toBe(false)
     spy.mockRestore()
   })
 
