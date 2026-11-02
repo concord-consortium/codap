@@ -1567,8 +1567,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       },
 
       moveItems(itemIds: string[], options?: IMoveItemsOptions) {
-        // Item indices count set-aside and filtered-out items, so pair each index with its id
-        // rather than looking the item up in `self.items`, which leaves those items out
+        // getItemIndex indexes _itemIds, which includes set-aside and filtered-out items
         const itemIndices = Array.from(new Set(itemIds))
           .map(itemId => ({ itemId, index: self.getItemIndex(itemId) }))
           .filter((info): info is { itemId: string, index: number } => info.index != null)
