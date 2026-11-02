@@ -11,6 +11,8 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const ESLintPlugin = require('eslint-webpack-plugin')
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
 const LicensePlugin = require('webpack-license-plugin')
+// keep these file names in sync with src/components/about-dialog/about-dialog-constants.ts
+const { ossLibrariesJson, thirdPartyNoticesMarkdown } = require('./scripts/oss-licenses')
 const ts = require('typescript')
 
 const TSCONFIG_PATH = path.resolve(__dirname, 'tsconfig.json')
@@ -113,6 +115,10 @@ module.exports = (env, argv) => {
     new CleanWebpackPlugin(),
     // Lists the third-party packages in the bundle, with their licenses, for the About dialog
     new LicensePlugin({
+      additionalFiles: {
+        'oss-libraries.json': ossLibrariesJson,
+        'THIRD-PARTY-NOTICES.md': thirdPartyNoticesMarkdown,
+      },
       includeNoticeText: true,
       // the Rollbar snippet is inlined into index.html by file path, so it isn't in the module graph
       includePackages: () => [path.join(__dirname, 'node_modules/rollbar')],
