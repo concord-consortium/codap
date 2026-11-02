@@ -1,0 +1,49 @@
+@use "../vars";
+
+// Layout for the About dialog's body content. The modal itself uses the shared codap-modal-v3 styles.
+.about-dialog-body {
+  padding: 12px 8px;
+  font-size: 14px;
+  line-height: 1.5;
+
+  // Chakra's CSS reset removes link color and underline
+  a {
+    color: vars.$accent;
+    text-decoration: underline;
+  }
+
+  p + p {
+    margin-top: 8px;
+  }
+
+  .about-dialog-identity {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-align: center;
+  }
+
+  .about-dialog-logo {
+    width: 240px;
+  }
+
+  .about-dialog-divider {
+    margin: 12px 0;
+  }
+
+  .about-dialog-heading {
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .about-dialog-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .about-dialog-libraries-footer {
+    margin-top: 12px;
+  }
+}
