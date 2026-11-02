@@ -1,5 +1,5 @@
 import {
-  createCasesNotification, deleteCasesNotification, updateCasesNotificationFromIds
+  createCasesNotification, deleteCasesNotification, updateCasesNotificationFromIds, updateItemsNotification
 } from "../../models/data/data-set-notifications"
 import { getGroupedCases } from "../../models/data/data-set-utils"
 import { ICase } from "../../models/data/data-set-types"
@@ -111,6 +111,8 @@ export function updateCaseBy(
       const notifications = []
       if (caseIds.length > 0) notifications.push(updateCasesNotificationFromIds(dataContext, caseIds))
       if (newCaseIds.length > 0) notifications.push(createCasesNotification(newCaseIds, dataContext))
+      // as in V2, an item update follows its case notices with `updateItems`
+      if (itemReturnStyle) notifications.push(updateItemsNotification(dataContext, [aCase.__id__]))
       return notifications
     }
   })
@@ -128,6 +130,11 @@ export function updateCasesBy(resources: DIResources, values?: DIValues, itemRet
   const cases = (Array.isArray(values) ? values : [values]) as DIFullCase[]
   const caseIDs: number[] = []
   const updatedCases: ICase[] = []
+  // the cases and items whose values change, for the notifications
+  const changedIds = new Set<string>()
+  const changedItemIds = new Set<string>()
+  dataContext.validateCases()
+  const priorCaseIds = new Set(dataContext.caseInfoMap.keys())
   dataContext.applyModelChange(() => {
     cases.forEach(aCase => {
       const { id } = aCase
@@ -140,14 +147,28 @@ export function updateCasesBy(resources: DIResources, values?: DIValues, itemRet
         caseIDs.push(id)
         const updatedAttributes = attrNamesToIds(aCase.values, dataContext)
         updatedCases.push({ ...updatedAttributes, __id__: v3Id })
+        if (Object.keys(updatedAttributes).length > 0) {
+          changedIds.add(v3Id)
+          // a case id (which `update item` also accepts) stands for every item under it
+          const itemIds = dcCase ? [...dcCase.childItemIds, ...dcCase.hiddenChildItemIds] : [v3Id]
+          itemIds.forEach(itemId => changedItemIds.add(itemId))
+        }
       }
     })
     dataContext.setCaseValues(updatedCases)
   }, {
+    // as the case table does, report the changed cases and any cases the change created by regrouping;
+    // as in V2, an item update follows its case notices with `updateItems`
     notify: () => {
-      if (caseIDs.length > 0) {
-        return updateCasesNotificationFromIds(dataContext, caseIDs.map(caseId => toV3CaseId(caseId)))
-      }
+      if (changedIds.size === 0) return
+      // an item is reported as the childmost case containing it
+      const caseIds = new Set(getGroupedCases(dataContext, Array.from(changedIds)).map(({ __id__ }) => __id__))
+      const newCaseIds = Array.from(dataContext.caseInfoMap.keys()).filter(caseId => !priorCaseIds.has(caseId))
+      const notifications = []
+      if (caseIds.size > 0) notifications.push(updateCasesNotificationFromIds(dataContext, Array.from(caseIds)))
+      if (newCaseIds.length > 0) notifications.push(createCasesNotification(newCaseIds, dataContext))
+      if (itemReturnStyle) notifications.push(updateItemsNotification(dataContext, Array.from(changedItemIds)))
+      return notifications
     }
   })
 

@@ -110,6 +110,18 @@ export function createCasesNotification(caseIDs: string[], data?: IDataSet) {
   return dataSetNotification("createCases", result, data)
 }
 
+// V2 sends `createItems` after the `createCases` notices for a plugin's `create item`
+// (data_context.js:785-795): `caseIDs` are the cases the items created, `itemIDs` the new items
+export function createItemsNotification(data: IDataSet, caseIDs: number[], itemIDs: number[]) {
+  return dataSetNotification("createItems", { success: true, caseIDs, itemIDs }, data)
+}
+
+// V2 sends `updateItems` after the `updateCases` for a plugin's item update (data_context.js:804-843),
+// carrying only `success`. V3 additionally carries the updated items' ids.
+export function updateItemsNotification(data: IDataSet, itemIds: string[]) {
+  return dataSetNotification("updateItems", { success: true, itemIDs: itemIds.map(id => toV2Id(id)) }, data)
+}
+
 export function moveCasesNotification(data: IDataSet, cases: ICase[] = []) {
   const result = {
     success: true,

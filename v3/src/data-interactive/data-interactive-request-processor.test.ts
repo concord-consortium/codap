@@ -66,6 +66,30 @@ describe("setupRequestQueueProcessor", () => {
     actionDisposer()
   })
 
+  it("sends each coalesced create request's createCases, then its createItems, as if processed one by one",
+    async () => {
+    const broadcastSpy = jest.spyOn(content!, "broadcastMessage")
+    queue.push({ request: createItemRequest({ a1: "a", a2: "x", a3: 17 }), callback: () => null })
+    queue.push({ request: createItemRequest({ a1: "b", a2: "y", a3: 18 }), callback: () => null })
+    queue.push({ request: createItemRequest({ a1: "a", a2: "z", a3: 19 }), callback: () => null })
+    await jest.runAllTimersAsync()
+
+    const changes = broadcastSpy.mock.calls
+      .map(([message]) => message)
+      .filter(message => message.resource === `dataContextChangeNotice[${datasetName}]`)
+      .flatMap(message => ([] as any[]).concat(message.values))
+    const operations = changes.map(({ operation }) => operation)
+    const createItems = changes.filter(({ operation }) => operation === "createItems")
+    expect(createItems).toHaveLength(3)
+    // each request's notices: one or more createCases (each request here creates cases), then createItems
+    const requestOperations = operations.join(",").split("createItems").slice(0, -1)
+    expect(requestOperations).toHaveLength(3)
+    requestOperations.forEach(ops => expect(ops).toMatch(/^,?(createCases,)+$/))
+    // as in V2, itemIDs lists, alongside each created case, the item it was built from
+    createItems.forEach(({ result }) => expect(result.itemIDs).toHaveLength(result.caseIDs.length))
+    broadcastSpy.mockRestore()
+  })
+
   it("processes one batch of at least 5 creates per drain tick", async () => {
     const { actionNames, actionDisposer } = trackTopLevelActions()
     const responses: DIRequestResponse[] = []

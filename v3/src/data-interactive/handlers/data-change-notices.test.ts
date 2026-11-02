@@ -62,26 +62,72 @@ describe("API data changes send dataContextChangeNotice", () => {
     async () => {
       // item 0 has a1 "a"; giving it a new a1 value creates a new parent case for it
       await request("update", `itemByID[${toV2Id(dataset.itemIds[0])}]`, { a1: "c" })
-      expect(operations()).toEqual(["updateCases", "createCases"])
+      expect(operations()).toEqual(["updateCases", "createCases", "updateItems"])
 
       broadcastSpy.mockClear()
       await request("update", `itemByID[${toV2Id(dataset.itemIds[0])}]`, { noSuchAttribute: 1 })
       expect(operations()).toEqual([])
     })
 
-  it("update itemByID, itemByCaseID and item[index] send updateCases for the item's case", async () => {
+  it("update itemByID, itemByCaseID and item[index] send updateCases for the item's case, then updateItems",
+    async () => {
+      const itemId = dataset.itemIds[2]
+      await request("update", `itemByID[${toV2Id(itemId)}]`, { a3: 10 })
+      expect(operations()).toEqual(["updateCases", "updateItems"])
+      expect(changes()[0].result.caseIDs).toEqual([toV2Id(dataset.getItemChildCaseId(itemId)!)])
+      expect(changes()[1].result).toEqual({ success: true, itemIDs: [toV2Id(itemId)] })
+
+      broadcastSpy.mockClear()
+      await request("update", `itemByCaseID[${toV2Id(childCase(3))}]`, { a3: 20 })
+      expect(operations()).toEqual(["updateCases", "updateItems"])
+
+      broadcastSpy.mockClear()
+      await request("update", "item[4]", { a3: 30 })
+      expect(operations()).toEqual(["updateCases", "updateItems"])
+    })
+
+  it("update item with a list reports the items' cases, then sends updateItems", async () => {
+    const itemIds = [dataset.itemIds[1], dataset.itemIds[3]]
+    await request("update", "item", itemIds.map((id, i) => ({ id: toV2Id(id), values: { a3: 100 + i } })))
+    expect(operations()).toEqual(["updateCases", "updateItems"])
+    expect(changes()[0].result.caseIDs).toEqual(itemIds.map(id => toV2Id(dataset.getItemChildCaseId(id)!)))
+    expect(changes()[1].result.itemIDs).toEqual(itemIds.map(id => toV2Id(id)))
+  })
+
+  it("updating cases, rather than items, sends no updateItems", async () => {
+    await request("update", "collection[collection3].case", [{ id: toV2Id(childCase(0)), values: { a3: 7 } }])
+    expect(operations()).toEqual(["updateCases"])
+  })
+
+  it("create item sends createCases for each collection, then createItems", async () => {
+    await request("create", "item", [{ a1: "new", a2: "w", a3: 50, a4: -50 }])
+    // a new parent, a new middle case and a new child case
+    expect(operations()).toEqual(["createCases", "createCases", "createCases", "createItems"])
+    const createItems = changes()[3].result
+    const newItemId = dataset.itemIds[dataset.itemIds.length - 1]
+    // as in V2, itemIDs lists, alongside each created case, the item it was built from
+    expect(createItems.caseIDs).toHaveLength(3)
+    expect(createItems.itemIDs).toEqual([toV2Id(newItemId), toV2Id(newItemId), toV2Id(newItemId)])
+    expect(createItems.success).toBe(true)
+  })
+
+  it("update item with a list sends createCases when it regroups, and nothing when no attribute matches",
+    async () => {
+      const itemId = dataset.itemIds[0]
+      await request("update", "item", [{ id: toV2Id(itemId), values: { a1: "c" } }])
+      expect(operations()).toEqual(["updateCases", "createCases", "updateItems"])
+
+      broadcastSpy.mockClear()
+      await request("update", "item", [{ id: toV2Id(itemId), values: { noSuchAttribute: 1 } }])
+      expect(operations()).toEqual([])
+    })
+
+  it("update item with a list names each changed item once", async () => {
     const itemId = dataset.itemIds[2]
-    await request("update", `itemByID[${toV2Id(itemId)}]`, { a3: 10 })
-    expect(operations()).toEqual(["updateCases"])
+    await request("update", "item",
+      [{ id: toV2Id(itemId), values: { a3: 1 } }, { id: toV2Id(itemId), values: { a3: 2 } }])
     expect(changes()[0].result.caseIDs).toEqual([toV2Id(dataset.getItemChildCaseId(itemId)!)])
-
-    broadcastSpy.mockClear()
-    await request("update", `itemByCaseID[${toV2Id(childCase(3))}]`, { a3: 20 })
-    expect(operations()).toEqual(["updateCases"])
-
-    broadcastSpy.mockClear()
-    await request("update", "item[4]", { a3: 30 })
-    expect(operations()).toEqual(["updateCases"])
+    expect(changes()[1].result.itemIDs).toEqual([toV2Id(itemId)])
   })
 
   it("delete caseByID and caseByIndex send deleteCases with the deleted case", async () => {
