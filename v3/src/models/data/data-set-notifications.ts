@@ -122,6 +122,13 @@ export function updateItemsNotification(data: IDataSet, itemIds: string[]) {
   return dataSetNotification("updateItems", { success: true, itemIDs: itemIds.map(id => toV2Id(id)) }, data)
 }
 
+// New in V3: `deleteItems` after the `deleteCases` for a plugin's item delete, with the deleted items'
+// ids. V2 had a deleteItems change but never forwarded it to plugins (data_context.js:919-947 returns
+// no `success`), so a plugin that tracks items had to map the deleted cases back to items.
+export function deleteItemsNotification(data: IDataSet, itemIds: string[]) {
+  return dataSetNotification("deleteItems", { success: true, itemIDs: itemIds.map(id => toV2Id(id)) }, data)
+}
+
 export function moveCasesNotification(data: IDataSet, cases: ICase[] = []) {
   const result = {
     success: true,

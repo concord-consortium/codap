@@ -1,7 +1,9 @@
 import {
-  createCasesNotification, deleteCasesNotification, updateCasesNotificationFromIds, updateItemsNotification
+  createCasesNotification, deleteCasesNotification, deleteItemsNotification, updateCasesNotificationFromIds,
+  updateItemsNotification
 } from "../../models/data/data-set-notifications"
 import { getGroupedCases } from "../../models/data/data-set-utils"
+import { IDataSet } from "../../models/data/data-set"
 import { ICase } from "../../models/data/data-set-types"
 import { toV2Id, toV3CaseId, toV3ItemId } from "../../utilities/codap-utils"
 import { DIResources, DISuccessResult, DIValues } from "../data-interactive-types"
@@ -29,6 +31,16 @@ export function deleteCaseBy(resources: DIResources, aCase?: ICase) {
   return { success: true as const, values: [toV2Id(aCase.__id__)] }
 }
 
+// The notifications for deleting items, built before they are removed: `deleteCases` for their cases,
+// then `deleteItems` for the items themselves (new in V3; V2 never forwarded deleteItems)
+export function deleteItemsNotifications(dataContext: IDataSet, itemIds: string[]) {
+  const existingItemIds = Array.from(new Set(itemIds)).filter(itemId => dataContext.itemInfoMap.has(itemId))
+  return [
+    deleteCasesNotification(dataContext, getGroupedCases(dataContext, existingItemIds)),
+    deleteItemsNotification(dataContext, existingItemIds)
+  ]
+}
+
 export function deleteItem(resources: DIResources, item?: ICase | string[]) {
   const { dataContext } = resources
   if (!dataContext) return dataContextNotFoundResult
@@ -38,7 +50,7 @@ export function deleteItem(resources: DIResources, item?: ICase | string[]) {
   dataContext.applyModelChange(() => {
     dataContext.removeCases(itemIds)
   }, {
-    notify: deleteCasesNotification(dataContext, getGroupedCases(dataContext, itemIds))
+    notify: deleteItemsNotifications(dataContext, itemIds)
   })
 
   return { success: true as const, values: itemIds.map(itemId => toV2Id(itemId)) }

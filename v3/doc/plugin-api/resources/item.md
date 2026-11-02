@@ -311,8 +311,8 @@ use `caseByID` to change a case.
 created, then `createItems`, with the ids of the cases the request created and, alongside each,
 the item it was built from. `update` sends `updateCases` for the items' cases in the last
 collection, `createCases` if the change regroups cases, then `updateItems`, with the items' ids.
-An update that names no known attribute sends nothing. `delete` sends `deleteCases`; as in v2,
-there is no `deleteItems`. Current deviations
+An update that names no known attribute sends nothing. `delete` sends `deleteCases`, then
+`deleteItems`, with the deleted items' ids; v2 sent no `deleteItems`. Current deviations
 are listed under [Known limitations](#known-limitations).
 See [the notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext)
 for what each carries.

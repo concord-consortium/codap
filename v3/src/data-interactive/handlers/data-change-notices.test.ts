@@ -143,25 +143,34 @@ describe("API data changes send dataContextChangeNotice", () => {
     expect(caseIDsOf(changes()[0])).toEqual([toV2Id(nextCaseId)])
   })
 
-  it("delete itemByID, itemByCaseID and item[index] send deleteCases", async () => {
+  it("delete itemByID, itemByCaseID and item[index] send deleteCases, then deleteItems", async () => {
     const caseId = childCase(0)
-    await request("delete", `itemByID[${toV2Id(dataset.itemIds[0])}]`)
-    expect(operations()).toEqual(["deleteCases"])
+    const itemId = dataset.itemIds[0]
+    await request("delete", `itemByID[${toV2Id(itemId)}]`)
+    expect(operations()).toEqual(["deleteCases", "deleteItems"])
     expect(caseIDsOf(changes()[0])).toEqual([toV2Id(caseId)])
+    expect(changes()[1].result).toEqual({ success: true, itemIDs: [toV2Id(itemId)] })
 
     broadcastSpy.mockClear()
     await request("delete", `itemByCaseID[${toV2Id(childCase(0))}]`)
-    expect(operations()).toEqual(["deleteCases"])
+    expect(operations()).toEqual(["deleteCases", "deleteItems"])
 
     broadcastSpy.mockClear()
     await request("delete", "item[0]")
-    expect(operations()).toEqual(["deleteCases"])
+    expect(operations()).toEqual(["deleteCases", "deleteItems"])
   })
 
-  it("delete itemSearch sends deleteCases for every matching item", async () => {
+  it("delete itemSearch sends deleteCases, then deleteItems, for every matching item", async () => {
+    const matchingItemIds = dataset.itemIds.filter(id => dataset.getStrValue(id, dataset.attrIDFromName("a1")!) === "a")
     await request("delete", "itemSearch[a1==a]")
-    expect(operations()).toEqual(["deleteCases"])
+    expect(operations()).toEqual(["deleteCases", "deleteItems"])
     expect(changes()[0].result.cases).toHaveLength(3)
+    expect(changes()[1].result.itemIDs).toEqual(matchingItemIds.map(id => toV2Id(id)))
+  })
+
+  it("deleting cases, rather than items, sends no deleteItems", async () => {
+    await request("delete", `collection[collection3].caseByID[${toV2Id(childCase(0))}]`)
+    expect(operations()).toEqual(["deleteCases"])
   })
 
   it("notify itemSearch with itemOrder sends moveCases when the order changes", async () => {
