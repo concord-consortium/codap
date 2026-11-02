@@ -58,7 +58,7 @@ export function AboutDialog({ isOpen, onClose }: IProps) {
   }
 
   const title = view === "about" ? t("DG.AppController.showAboutTitle") : t("V3.AboutDialog.libraries.title")
-  const backButtonContent = <><span aria-hidden="true">‹ </span>{t("V3.general.back")}</>
+  const backButtonContent = <><span aria-hidden="true" className="back-arrow">‹&nbsp;</span>{t("V3.general.back")}</>
 
   return (
     <CodapModal

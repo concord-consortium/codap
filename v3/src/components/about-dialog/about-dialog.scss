@@ -1,5 +1,9 @@
 @use "../vars";
 
+.back-arrow {
+  font-size: 14px;
+}
+
 // Layout for the About dialog's body content. The modal itself uses the shared codap-modal-v3 styles.
 .about-dialog-body {
   color: vars.$charcoal-dark-2;
@@ -10,7 +14,10 @@
   // Chakra's CSS reset removes link color and underline
   a {
     color: vars.$accent;
-    text-decoration: underline;
+
+    &:hover {
+      text-decoration: underline;
+    }
   }
 
   p + p {
