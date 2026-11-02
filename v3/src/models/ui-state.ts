@@ -35,6 +35,8 @@ export class UIState {
   private _hideSplashScreen = false
   @observable
   private _hideUserEntryModal = false
+  @observable
+  private _showAboutDialog = false
   // the focused tile is a singleton; in theory there can be multiple selected tiles
   @observable
   private focusTileId = ""
@@ -238,6 +240,15 @@ export class UIState {
   @action
   setHideUserEntryModal(hidden = true) {
     this._hideUserEntryModal = hidden
+  }
+
+  get showAboutDialog() {
+    return this._showAboutDialog
+  }
+
+  @action
+  setShowAboutDialog(show: boolean) {
+    this._showAboutDialog = show
   }
 
   get focusedTile() {

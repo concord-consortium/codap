@@ -474,4 +474,15 @@ describe("UIState", () => {
       expect(uiState.hideUserEntryModal).toBe(true)
     })
   })
+
+  describe("showAboutDialog", () => {
+    it("should be false by default and can be set", () => {
+      const uiState = new UIState()
+      expect(uiState.showAboutDialog).toBe(false)
+      uiState.setShowAboutDialog(true)
+      expect(uiState.showAboutDialog).toBe(true)
+      uiState.setShowAboutDialog(false)
+      expect(uiState.showAboutDialog).toBe(false)
+    })
+  })
 })
