@@ -23,7 +23,7 @@ and the user's own earlier actions stay undoable. A few requests are exceptions,
 match a single action in CODAP's interface and undo the same way it does:
 
 - `update` on `dataContext` with a `sort`
-- `notify` on a case table `component` with `autoScale`
+- `notify` on a case table or graph `component` with `autoScale`
 - `update` on `attributeLocation`, which moves an attribute as dragging its column does
 - `create` on `component`, which adds a component as the toolbar does
 - `delete` on `component`, which closes a component as its close button does
@@ -222,13 +222,8 @@ added `update` on `attributeLocation`, and `create` and `delete` on `component`,
 as it did the same changes made in CODAP's interface, so the user could undo them. v3 does not.
 This is a known bug.
 
-**Some other API requests add entries to the history.** Besides the exceptions listed under
-[What the history holds](#what-the-history-holds), these currently add entries too: `create`,
-`update` and `delete` on `adornment` (sometimes several entries for one request), `create` on
-`global`, `create` on `dataContextFromURL`, and `notify` on a graph `component` with
-`autoScale`. The intended behavior is that they do not. v2 also
-reset the user's history after many data requests. A plugin should not depend on whether CODAP's
-undo reverses a request it made.
+**v2 reset the user's history after many data requests.** CODAP keeps it. A plugin should not
+depend on whether CODAP's undo reverses a request it made.
 
 ## See also
 

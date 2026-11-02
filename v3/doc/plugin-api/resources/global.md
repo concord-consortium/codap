@@ -196,10 +196,6 @@ send `values: {}` to get the defaults.
 value restricts it to multiples of some number, v2 rounded a value a plugin set to the nearest
 multiple. v3 stores the value as sent. This is a known bug.
 
-**`create` adds an entry to the undo history.** v2 did not, and the intended behavior is that it
-does not; see [Undo and redo](../guides/undo-and-redo.md#known-limitations). `update` adds no
-entry, as in v2.
-
 **Setting a value from a plugin sends no notification.** v2 sent `global[<name>]` to every
 plugin, the requesting one included, whenever a global value changed, including on undo and
 redo. v3 sends it only when the user changes the value with a slider. This is a known bug; see

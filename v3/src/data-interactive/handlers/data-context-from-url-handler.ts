@@ -34,7 +34,10 @@ export const diDataContextFromURLHandler: DIAsyncHandler = {
             if (ds) {
               if (values.title && typeof values.title === "string") ds.setTitle(values.title)
               const createDefaultTile = values.showCaseTable !== false
-              appState.document.content?.importDataSet(ds, { createDefaultTile })
+              // like other plugin API changes, the import stays off the undo history, as in V2
+              appState.document.applyModelChange(() => {
+                appState.document.content?.importDataSet(ds, { createDefaultTile })
+              })
               resolve({
                 success: true,
                 values: basicDataSetInfo(ds)
