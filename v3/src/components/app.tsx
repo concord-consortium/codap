@@ -41,6 +41,7 @@ import { importSample, sampleData } from "../sample-data"
 import { t } from "../utilities/translation/translate"
 import { urlParams } from "../utilities/url-params"
 import { If } from "./common/if"
+import { AboutDialog } from "./about-dialog/about-dialog"
 import { AnnouncementBanner } from "./announcement-banner/announcement-banner"
 import { kCodapAppElementId, kUserEntryDropOverlay } from "./constants"
 import { Container } from "./container/container"
@@ -278,6 +279,7 @@ export const App = observer(function App() {
                 />
               </div>
             </If>
+            <AboutDialog isOpen={uiState.showAboutDialog} onClose={() => uiState.setShowAboutDialog(false)}/>
             <Progress />
             <LogMonitorSidebar />
           </ProgressContext.Provider>
