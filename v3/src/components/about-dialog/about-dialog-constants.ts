@@ -4,7 +4,6 @@ export const kLicensingUrl = "https://concord.org/licensing"
 export const kLicensingDetailsUrl = "https://concord.org/licensing/"
 export const kLicensingEmail = "licensing@concord.org"
 export const kSourceCodeUrl = "https://github.com/concord-consortium/codap"
-export const kThirdPartyNoticesUrl = "https://github.com/concord-consortium/codap/blob/main/THIRD-PARTY-NOTICES.md"
 
 // files the build emits next to index.html (see webpack.config.js); load them with getBuildAssetUrl()
 export const kOssLibrariesFile = "oss-libraries.json"

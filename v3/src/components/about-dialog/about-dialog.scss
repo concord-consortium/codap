@@ -60,6 +60,35 @@
     gap: 16px;
   }
 
+  .about-dialog-library-list {
+    border: 1px solid #E2E6EA;
+    border-radius: 6px;
+    margin-top: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .about-dialog-library {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+
+    & + .about-dialog-library {
+      border-top: 1px solid #E2E6EA;
+    }
+  }
+
+  .about-dialog-library-name {
+    flex: 1;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  .about-dialog-library-status {
+    padding: 12px;
+  }
+
   .about-dialog-libraries-footer {
     margin-top: 12px;
   }

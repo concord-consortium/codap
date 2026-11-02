@@ -1,16 +1,19 @@
-import { Button, ModalBody, ModalCloseButton, ModalFooter, ModalHeader } from "@chakra-ui/react"
-import React, { useEffect, useRef, useState } from "react"
+import { Badge, Button, Input, ModalBody, ModalCloseButton, ModalFooter, ModalHeader, VisuallyHidden }
+  from "@chakra-ui/react"
+import React, { useEffect, useMemo, useRef, useState } from "react"
 import build from "../../../build_number.json"
 import pkg from "../../../package.json"
 import AboutScreenLogo from "../../assets/codap-about-screen.png"
 import { t, translateToElements } from "../../utilities/translation/translate"
+import { getBuildAssetUrl } from "../../utilities/urls"
 import { displayVersion } from "../../utilities/version-utils"
 import { CodapModal } from "../codap-modal"
 import { ExternalLink } from "../common/external-link"
 import {
   kLicensingDetailsUrl, kLicensingEmail, kLicensingUrl, kMitLicenseUrl, kSourceCodeUrl, kTermsOfUseUrl,
-  kThirdPartyNoticesUrl
+  kThirdPartyNoticesFile
 } from "./about-dialog-constants"
+import { IOssLibrary, OssLibrariesState, useOssLibraries } from "./use-oss-libraries"
 
 import "../codap-modal-v3.scss"
 import "./about-dialog.scss"
@@ -30,6 +33,7 @@ export function AboutDialog({ isOpen, onClose }: IProps) {
   // so focus returns to the Help menu button instead.
   const helpMenuButtonRef = useRef<HTMLElement | null>(null)
   const focusAfterViewChange = useRef(false)
+  const librariesState = useOssLibraries(isOpen)
 
   // Set the view and find the help button when the modal opens.
   useEffect(() => {
@@ -82,9 +86,12 @@ export function AboutDialog({ isOpen, onClose }: IProps) {
       <ModalBody>
         <div className="about-dialog-body">
           {view === "about"
-            ? <AboutView acknowledgementsButtonRef={acknowledgementsButtonRef}
-                onShowLibraries={() => showView("libraries")}/>
-            : <LibrariesView/>
+            ? <AboutView
+                acknowledgementsButtonRef={acknowledgementsButtonRef}
+                librariesState={librariesState}
+                onShowLibraries={() => showView("libraries")}
+              />
+            : <LibrariesView librariesState={librariesState}/>
           }
         </div>
       </ModalBody>
@@ -103,12 +110,30 @@ export function AboutDialog({ isOpen, onClose }: IProps) {
   )
 }
 
+function projectCountText(count: number) {
+  return count === 1
+    ? t("V3.AboutDialog.projectCount")
+    : t("V3.AboutDialog.projectCountPlural", { vars: { count } })
+}
+
+function resultCountText(count: number) {
+  return count === 1
+    ? t("V3.AboutDialog.libraries.resultCount")
+    : t("V3.AboutDialog.libraries.resultCountPlural", { vars: { count } })
+}
+
+function matchesQuery(library: IOssLibrary, lowerCaseQuery: string) {
+  return library.name.toLowerCase().includes(lowerCaseQuery) ||
+    library.license.toLowerCase().includes(lowerCaseQuery)
+}
+
 interface IAboutViewProps {
   acknowledgementsButtonRef: React.RefObject<HTMLButtonElement>
+  librariesState: OssLibrariesState
   onShowLibraries: () => void
 }
 
-function AboutView({ acknowledgementsButtonRef, onShowLibraries }: IAboutViewProps) {
+function AboutView({ acknowledgementsButtonRef, librariesState, onShowLibraries }: IAboutViewProps) {
   const version = displayVersion(pkg.version)
   const year = new Date().getFullYear()
   return (
@@ -148,22 +173,71 @@ function AboutView({ acknowledgementsButtonRef, onShowLibraries }: IAboutViewPro
       </div>
       <Button ref={acknowledgementsButtonRef} variant="v3Clear" size="sm" width="100%" mt="3"
           justifyContent="space-between" onClick={onShowLibraries} data-testid="about-dialog-acknowledgements">
-        {t("V3.AboutDialog.acknowledgementsButton")}
-        <span aria-hidden="true">›</span>
+        {t("V3.AboutDialog.acknowledgementsButton")}{" "}
+        <span>
+          {librariesState.status === "loaded" && `${projectCountText(librariesState.libraries.length)} `}
+          <span aria-hidden="true">›</span>
+        </span>
       </Button>
     </>
   )
 }
 
-function LibrariesView() {
+interface ILibrariesViewProps {
+  librariesState: OssLibrariesState
+}
+
+function LibrariesView({ librariesState }: ILibrariesViewProps) {
+  const [query, setQuery] = useState("")
+  const lowerCaseQuery = query.trim().toLowerCase()
+  const matches = useMemo(() => {
+    if (librariesState.status !== "loaded") return []
+    return librariesState.libraries.filter(library => matchesQuery(library, lowerCaseQuery))
+  }, [librariesState, lowerCaseQuery])
+
+  function renderLibraries() {
+    if (librariesState.status === "loading") {
+      return <p className="about-dialog-library-status">{t("V3.AboutDialog.libraries.loading")}</p>
+    }
+    if (librariesState.status === "error") {
+      return <p className="about-dialog-library-status">{t("V3.AboutDialog.libraries.loadError")}</p>
+    }
+    if (matches.length === 0) {
+      return (
+        <p className="about-dialog-library-status">
+          {t("V3.AboutDialog.libraries.noMatches", { vars: { query: query.trim() } })}
+        </p>
+      )
+    }
+    return (
+      <ul>
+        {matches.map(({ name, version, license }) => (
+          <li key={`${name}@${version}`} className="about-dialog-library">
+            <span className="about-dialog-library-name">{name}</span>
+            <span>{version}</span>
+            <Badge>{license}</Badge>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+
+  const searchLabel = t("V3.AboutDialog.libraries.searchLabel")
   return (
     <>
       <p>{t("V3.AboutDialog.libraries.intro")}</p>
-      {/* The searchable library list will go here (follow-up task). */}
+      <Input size="sm" mt="3" value={query} onChange={e => setQuery(e.target.value)}
+        placeholder={searchLabel} aria-label={searchLabel} data-testid="about-dialog-library-search"/>
+      <div className="about-dialog-library-list">
+        {renderLibraries()}
+      </div>
+      <VisuallyHidden aria-live="polite">
+        {librariesState.status === "loaded" ? resultCountText(matches.length) : ""}
+      </VisuallyHidden>
       <p className="about-dialog-libraries-footer">
         {translateToElements("V3.AboutDialog.libraries.footer", {
           noticesLink:
-            <ExternalLink href={kThirdPartyNoticesUrl} showArrow={true}>
+            <ExternalLink href={getBuildAssetUrl(kThirdPartyNoticesFile)} showArrow={true}>
               {t("V3.AboutDialog.libraries.noticesLink")}
             </ExternalLink>
         })}
