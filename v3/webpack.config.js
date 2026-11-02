@@ -10,6 +10,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const ESLintPlugin = require('eslint-webpack-plugin')
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
+const LicensePlugin = require('webpack-license-plugin')
 const ts = require('typescript')
 
 const TSCONFIG_PATH = path.resolve(__dirname, 'tsconfig.json')
@@ -110,6 +111,18 @@ module.exports = (env, argv) => {
       inject: false,  // Don't inject the main CODAP bundle
     })] : []),
     new CleanWebpackPlugin(),
+    // Lists the third-party packages in the bundle, with their licenses, for the About dialog
+    new LicensePlugin({
+      includeNoticeText: true,
+      // the Rollbar snippet is inlined into index.html by file path, so it isn't in the module graph
+      includePackages: () => [path.join(__dirname, 'node_modules/rollbar')],
+      licenseOverrides: {
+        // no license field or file; the README includes the MIT license text
+        '@nedb/binary-search-tree@2.1.5': 'MIT',
+      },
+      // some packages don't ship a license file; use the standard text from spdx.org for those
+      replenishDefaultLicenseTexts: true,
+    }),
   ]
   if (devMode && !process.env.SKIP_ESLINT) {
     // `build` script runs eslint independently in production mode,
