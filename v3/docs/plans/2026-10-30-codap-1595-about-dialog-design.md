@@ -13,7 +13,7 @@ The dialog has two views:
 
 1. **About CODAP** — logo, version, copyright, license and terms copy, links.
 2. **Open-source libraries** — acknowledgements intro and a link to the full license texts. The library
-   list itself is deferred to a follow-up task (see [Out of scope](#out-of-scope)).
+   list is designed separately in [the open-source libraries design](2026-11-02-codap-1595-oss-libraries-design.md).
 
 ## Entry point and state
 
@@ -131,9 +131,9 @@ button), the `codap-modal-v3` look wins.
 - **Header:** "‹ Back" button (→ About view), title "Open-source libraries", × close button.
 - **Body:**
   - "CODAP is built with these open-source projects. Our thanks to their authors and maintainers."
-  - (Search bar and library list deferred.)
+  - (Search bar and library list: see the open-source libraries design.)
   - "This list is generated at build time from CODAP's dependencies. Full license texts:
-    THIRD-PARTY-NOTICES ↗" — included in full now so the follow-up only needs to add the list and file.
+    THIRD-PARTY-NOTICES ↗"
 - **Footer:** "‹ Back" button (→ About view), Close button.
 
 ### Links
@@ -146,7 +146,7 @@ button), the `codap-modal-v3` look wins.
 | licensing@concord.org | mailto:licensing@concord.org |
 | Licensing details | https://concord.org/licensing/ |
 | Source on GitHub | https://github.com/concord-consortium/codap |
-| THIRD-PARTY-NOTICES | https://github.com/concord-consortium/codap/blob/main/THIRD-PARTY-NOTICES.md |
+| THIRD-PARTY-NOTICES | `THIRD-PARTY-NOTICES.md` next to `index.html`, via `getBuildAssetUrl()` (see the open-source libraries design) |
 
 ## Translation
 
@@ -261,7 +261,6 @@ focus to the "Open-source libraries & acknowledgements" button.
 
 Follow-up tasks:
 
-- Open-source library list: search bar, list generated at build time from dependencies, "N projects"
-  count on the acknowledgements button, and `THIRD-PARTY-NOTICES.md`. Until that file exists, the
-  THIRD-PARTY-NOTICES link will 404.
+- The open-source library list and `THIRD-PARTY-NOTICES.md`: see
+  [the open-source libraries design](2026-11-02-codap-1595-oss-libraries-design.md).
 - "Terms of Use…" Help menu item and ↗ indicators on external Help menu items (shown in the menu mockup)
