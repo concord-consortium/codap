@@ -24,4 +24,18 @@ context("About CODAP dialog", () => {
     cy.get("[role=dialog]").should("not.exist")
     cfm.getHelpMenuButton().should("have.focus")
   })
+
+  it("lists the bundled open-source libraries and filters them", () => {
+    cfm.getHelpMenuButton().click()
+    cfm.getHelpMenu().contains(".menuItem", "About CODAP").click()
+
+    cy.get("[data-testid=about-dialog-acknowledgements]").should("contain.text", "projects").click()
+    cy.get(".about-dialog-library").should("have.length.greaterThan", 10)
+    cy.contains(".about-dialog-library-name", /^react$/).should("exist")
+
+    cy.get("[data-testid=about-dialog-library-search]").type("mobx")
+    cy.get(".about-dialog-library-name").each(name => {
+      expect(name.text().toLowerCase()).to.contain("mobx")
+    })
+  })
 })
