@@ -172,6 +172,21 @@ export function checkDate(value: any): [false] | [true, Date] {
 }
 
 /**
+ * Infers a date precision from an attribute's values, for use when no precision has been chosen.
+ * Currently only detects year-only values (integers in [0, 9999], matching `formatDate`'s year handling).
+ * Returns undefined if every value is empty or if the values aren't all years.
+ */
+export function inferDatePrecision(values: readonly string[]): DatePrecision | undefined {
+  const nonEmptyValues = values.filter(value => value.trim() !== "")
+  if (nonEmptyValues.length === 0) return undefined
+  const isYear = (value: string) => {
+    const num = Number(value)
+    return Number.isInteger(num) && num >= 0 && num <= 9999
+  }
+  return nonEmptyValues.every(isYear) ? "year" : undefined
+}
+
+/**
  * Default formatting for Date objects.
  * @param x
  * @param precision {number}

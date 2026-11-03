@@ -8,7 +8,7 @@ import { useDataSet } from "../../../hooks/use-data-set"
 import { logMessageWithReplacement } from "../../../lib/log-message"
 import { attributeTypes } from "../../../models/data/attribute-types"
 import { updateAttributesNotification } from "../../../models/data/data-set-notifications"
-import { DatePrecision, datePrecisions } from "../../../utilities/date-utils"
+import { DatePrecision, datePrecisions, inferDatePrecision, kDatePrecisionNone } from "../../../utilities/date-utils"
 import { uniqueName } from "../../../utilities/js-utils"
 import { t } from "../../../utilities/translation/translate"
 import { CodapModal } from "../../codap-modal"
@@ -82,6 +82,17 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
       })
     }
     closeModal()
+  }
+
+  const handleUserTypeChange = (newType: SelectableAttributeType) => {
+    setUserType(newType)
+    // when switching to date with no date precision chosen, infer one from the values;
+    // a numeric precision (e.g. decimal places from a numeric attribute) doesn't count as a date precision
+    const hasDatePrecision = typeof precision === "string" && precision !== kDatePrecisionNone
+    if (newType === "date" && attribute && !hasDatePrecision) {
+      const inferredPrecision = inferDatePrecision(attribute.strValues)
+      if (inferredPrecision) setPrecision(inferredPrecision)
+    }
   }
 
   const closeModal = () => {
@@ -205,7 +216,7 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
               </MenuButton>
               <MenuList>
                 <MenuOptionGroup type="radio" value={userType}
-                    onChange={(value) => setUserType(value as SelectableAttributeType)}>
+                    onChange={(value) => handleUserTypeChange(value as SelectableAttributeType)}>
                   {selectableAttributeTypes.map(aType => (
                     <MenuItemOption key={aType} value={aType} data-testid="attr-type-option">
                       {t(`DG.CaseTable.attribute.type.${aType}`)}
