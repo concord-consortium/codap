@@ -44,7 +44,7 @@ If stacking turns out not to work well, revisit later (e.g. show the entry modal
 
 Replace the boolean `showAboutDialog` with a view:
 
-- `aboutDialogView: "welcome" | "about" | undefined` (observable); the dialog is open when it's set
+- `initialAboutDialogView: "welcome" | "about" | undefined` (observable); the dialog is open when it's set
 - `openAboutDialog(view: "welcome" | "about")` (action)
 - `closeAboutDialog()` (action)
 
@@ -52,9 +52,15 @@ Callers:
 
 - Help menu item → `uiState.openAboutDialog("about")`
 - One-time startup effect in `App` → `uiState.openAboutDialog("welcome")` when `shouldShowWelcome()` is true
-- `App` renders
-  `<AboutDialog isOpen={!!uiState.aboutDialogView} initialView={uiState.aboutDialogView ?? "about"}
-  onClose={() => uiState.closeAboutDialog()}/>`
+- `App` renders:
+
+  ```tsx
+  <AboutDialog
+    isOpen={!!uiState.initialAboutDialogView}
+    initialView={uiState.initialAboutDialogView ?? "about"}
+    onClose={() => uiState.closeAboutDialog()}
+  />
+  ```
 
 ### `persistentState`
 
@@ -85,8 +91,6 @@ currently always resets to "about").
   - "About & licensing": `Button variant="v3Clear"`, switches to the About view. (The mockup shows a text
     link; the existing v3 button style is used instead, consistent with the rest of the dialog.)
   - "Get started": `Button variant="v3Default"`, closes the dialog.
-
-The note at the bottom of the mockup is not part of the design.
 
 ### Focus
 
@@ -119,7 +123,7 @@ New strings in `en-US.json5`:
 **Jest**
 
 - `ui-state.test.ts`: replace the `showAboutDialog` tests with `openAboutDialog` / `closeAboutDialog` /
-  `aboutDialogView`.
+  `initialAboutDialogView`.
 - `persistent-state.test.ts`: `setHideWelcome` sets the value and saves it.
 - `shouldShowWelcome()`: shows by default; skipped for `hideWelcome`, component mode, embedded mode,
   standalone mode, an interactive-API context, and `noEntryModal`; still shows with `url` or `sample`.
