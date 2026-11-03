@@ -42,6 +42,8 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
   // the precision in effect before "year" was inferred, so it can be restored if the user switches away from date;
   // null when nothing was inferred or the user has since chosen a date precision
   const preInferencePrecision = useRef<{ precision: typeof precision } | null>(null)
+  // true when the user's latest date precision click was blank, so later type changes don't infer over it
+  const hasChosenBlankDatePrecision = useRef(false)
 
   useEffect(() => {
     // reset the dialog contents from the attribute on each invocation
@@ -52,6 +54,7 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
     setUserType(attribute?.userType ?? "none")
     setEditable(!metadata?.isEditProtected(attributeId) ? "yes" : "no")
     preInferencePrecision.current = null
+    hasChosenBlankDatePrecision.current = false
   }, [attribute, attributeId, isOpen, metadata])
 
   const applyChanges = () => {
@@ -94,10 +97,13 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
       // when switching to date with no date precision chosen, use "year" if every value is a year;
       // a numeric precision (e.g. decimal places from a numeric attribute) doesn't count as a date precision
       const hasDatePrecision = typeof precision === "string" && precision !== kDatePrecisionNone
+      // a blank precision counts as chosen only if the user clicked it
+      const isDatePrecisionChosen = hasDatePrecision || hasChosenBlankDatePrecision.current
       // isInferredYearType reads numValues, which for a numeric attribute extract a leading number
       // (e.g. 2024 from "2024-05-01"), so also require that every value is a plain number
       const isEveryValuePlainNumber = attribute?.strValues.every(value => value === "" || isFinite(Number(value)))
-      if (!hasDatePrecision && isEveryValuePlainNumber && attribute?.isInferredYearType()) {
+      const isEveryValueAYear = isEveryValuePlainNumber && attribute?.isInferredYearType()
+      if (!isDatePrecisionChosen && isEveryValueAYear) {
         preInferencePrecision.current = { precision }
         setPrecision("year")
       }
@@ -109,8 +115,9 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
   }
 
   // any click counts as a choice, including re-clicking the inferred "year" (which doesn't fire onChange)
-  const handleDatePrecisionClick = () => {
+  const handleDatePrecisionClick = (clicked: DatePrecision) => {
     preInferencePrecision.current = null
+    hasChosenBlankDatePrecision.current = clicked === kDatePrecisionNone
   }
 
   const closeModal = () => {
@@ -161,7 +168,7 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
                 onChange={(value) => setPrecision(toDatePrecision(value as string))}>
               {datePrecisions.map(p => (
                 <MenuItemOption key={`precision-${p}`} value={p} data-testid={`attr-precision-option-${p}`}
-                    onClick={handleDatePrecisionClick}>
+                    onClick={() => handleDatePrecisionClick(p)}>
                   {p}
                 </MenuItemOption>
               ))}

@@ -789,6 +789,27 @@ context("edit attribute properties date precision", () => {
     table.getCancelButton().click({ force: true })
   })
 
+  it("leaves the precision blank when only some values are years", () => {
+    enterValues(["1990", "5", "2024", "2024"])
+    openEditDialog()
+    table.selectAttributeType("date")
+    precisionSelect().should("have.text", " ")
+    table.getCancelButton().click({ force: true })
+  })
+
+  it("keeps an explicitly chosen blank date precision after switching types", () => {
+    enterValues(years)
+    openEditDialog()
+    table.selectAttributeType("date")
+    precisionSelect().should("have.text", "year")
+    precisionSelect().click()
+    cy.get("[data-testid=attr-precision-option-]").click()
+    table.selectAttributeType("numeric")
+    table.selectAttributeType("date")
+    precisionSelect().should("have.text", " ")
+    table.getCancelButton().click({ force: true })
+  })
+
   it("doesn't infer year from full dates on a numeric attribute", () => {
     enterValues(["2024-05-01", "2023-11-15", "2022-01-31", "2021-07-04"])
     openEditDialog()
