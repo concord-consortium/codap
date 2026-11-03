@@ -2,6 +2,7 @@ import { action, makeObservable, observable } from "mobx"
 import { RefObject } from "react"
 import { scrollTileIntoView } from "../utilities/dom-utils"
 import { booleanParam, hasInteractiveApiContext, urlParams } from "../utilities/url-params"
+import { persistentState } from "./persistent-state"
 import { ITileModel } from "./tiles/tile-model"
 import { AboutDialogView, RulerState, RulerStateKey } from "./ui-state-types"
 
@@ -36,6 +37,7 @@ export class UIState {
   private _hideSplashScreen = false
   @observable
   private _hideUserEntryModal = false
+  private _suppressWelcome = false
   // the About dialog is open whenever this is set; it's the view the dialog opened on
   @observable
   private _initialAboutDialogView: Maybe<AboutDialogView>
@@ -107,6 +109,7 @@ export class UIState {
     // the modal on the CFM `willOpenFile` event.
     this._hideUserEntryModal = !!sample || booleanParam(dashboard) || !!di ||
       booleanParam(noEntryModal) || !!url || hasInteractiveApiContext()
+    this._suppressWelcome = booleanParam(noEntryModal) || hasInteractiveApiContext()
 
     // Initialize standalone mode
     this._standaloneMode = booleanParam(standalone)
@@ -240,6 +243,13 @@ export class UIState {
 
   get hideUserEntryModal() {
     return this._hideUserEntryModal || this.minimalChrome
+  }
+
+  // Whether the About dialog should open on its welcome view when CODAP loads. It still opens when a document
+  // opens automatically, but not in embedded contexts, when startup dialogs are suppressed, or when the user has
+  // asked not to see it again.
+  get shouldShowWelcome() {
+    return !persistentState.hideWelcome && !this.minimalChrome && !this.standaloneMode && !this._suppressWelcome
   }
 
   @action

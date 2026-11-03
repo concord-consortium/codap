@@ -1,3 +1,4 @@
+import { persistentState } from "./persistent-state"
 import { UIState } from "./ui-state"
 import { setUrlParams } from "../utilities/url-params"
 
@@ -497,5 +498,32 @@ describe("UIState", () => {
       uiState.openAboutDialog("welcome")
       expect(uiState.aboutDialogReturnFocusRef).toBeUndefined()
     })
+  })
+
+  describe("shouldShowWelcome", () => {
+    beforeEach(() => {
+      persistentState.setHideWelcome(false)
+    })
+
+    it("should be true by default", () => {
+      expect(new UIState().shouldShowWelcome).toBe(true)
+    })
+
+    it("should be false after \"Don't show this again\"", () => {
+      persistentState.setHideWelcome(true)
+      expect(new UIState().shouldShowWelcome).toBe(false)
+    })
+
+    it.each(["?componentMode=yes", "?embeddedMode=yes", "?standalone=true", "?interactiveApi", "?noEntryModal"])(
+      "should be false with %s", params => {
+        setUrlParams(params)
+        expect(new UIState().shouldShowWelcome).toBe(false)
+      })
+
+    it.each(["?url=https://example.com/shared.codap", "?sample=mammals"])(
+      "should be true when a document opens automatically (%s)", params => {
+        setUrlParams(params)
+        expect(new UIState().shouldShowWelcome).toBe(true)
+      })
   })
 })
