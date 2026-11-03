@@ -47,19 +47,25 @@ Replace the boolean `showAboutDialog` with a view. One type, `AboutDialogView`
 dialog opens on and for its current view:
 
 - `initialAboutDialogView: Maybe<AboutDialogView>` (observable); the dialog is open when it's set
-- `openAboutDialog(view: AboutDialogView)` (action)
-- `closeAboutDialog()` (action)
+- `aboutDialogReturnFocusRef: Maybe<RefObject<HTMLElement>>` (not observable, since MobX shouldn't wrap a DOM
+  element): the element to focus when the dialog closes
+- `openAboutDialog(view: AboutDialogView, returnFocusTo?: HTMLElement | null)` (action)
+- `closeAboutDialog()` (action), which also clears the return-focus ref so `uiState` doesn't hold on to a stale
+  element
 
 Callers:
 
-- Help menu item → `uiState.openAboutDialog("about")`
-- One-time startup effect in `App` → `uiState.openAboutDialog("welcome")` when `shouldShowWelcome()` is true
+- Help menu item → `uiState.openAboutDialog("about", <the Help menu button>)`. The menu item itself is gone once
+  the menu closes, so the code that knows it's the Help menu names the button to return to.
+- One-time startup effect in `App` → `uiState.openAboutDialog("welcome")` when `shouldShowWelcome()` is true.
+  No return-focus element.
 - `App` renders:
 
   ```tsx
   <AboutDialog
     isOpen={!!uiState.initialAboutDialogView}
     initialView={uiState.initialAboutDialogView ?? "about"}
+    returnFocusRef={uiState.aboutDialogReturnFocusRef}
     onClose={() => uiState.closeAboutDialog()}
   />
   ```
@@ -80,6 +86,11 @@ The checkbox calls `setHideWelcome()` whenever it changes, so the choice sticks 
 `AboutDialog` gains `initialView: AboutDialogView`. Each time it opens, it resets to `initialView` (it
 currently always resets to "about").
 
+### `returnFocusRef` prop
+
+`AboutDialog` gains an optional `returnFocusRef`, passed to `CodapModal` as `finalFocusRef`. It replaces the
+dialog's own lookup of the Help menu button, so the dialog no longer knows what opened it.
+
 ### Welcome view
 
 - **Header:** title "Welcome to CODAP", × close button. Same header structure as the other views: only the
@@ -98,12 +109,10 @@ currently always resets to "about").
 
 - Opening on the welcome view: initial focus on **Get started** (via `CodapModal`'s `initialRef`).
 - "About & licensing": focus moves to the header × button, the first control in the About view.
-- Closing:
-  - Opened on any other view, e.g. from the Help menu (`initialView="about"`): focus returns to the Help menu
-    button (unchanged).
-  - Opened at startup (`initialView="welcome"`): no `finalFocusRef`; Chakra returns focus to whatever had it
-    before, e.g. the entry modal underneath. Using the Help menu button here would pull focus out from under
-    the entry modal.
+- Closing: focus goes to whatever the opener passed to `openAboutDialog()`.
+  - From the Help menu: the Help menu button (unchanged behavior).
+  - At startup: nothing is passed, so Chakra returns focus to whatever had it before, e.g. the entry modal
+    underneath. Returning to the Help menu button here would pull focus out from under the entry modal.
 
 ### About view reached from the welcome view
 
@@ -126,15 +135,17 @@ New strings in `en-US.json5`:
 **Jest**
 
 - `ui-state.test.ts`: replace the `showAboutDialog` tests with `openAboutDialog` / `closeAboutDialog` /
-  `initialAboutDialogView`.
+  `initialAboutDialogView`, and check that the return-focus ref is set on open and cleared on close.
 - `persistent-state.test.ts`: `setHideWelcome` sets the value and saves it.
 - `shouldShowWelcome()`: shows by default; skipped for `hideWelcome`, component mode, embedded mode,
   standalone mode, an interactive-API context, and `noEntryModal`; still shows with `url` or `sample`.
 - `about-dialog.test.tsx` with `initialView="welcome"`: named "Welcome to CODAP"; logo and intro text shown;
   focus starts on Get started; Get started calls `onClose`; "About & licensing" shows the About view and
   focuses ×; the checkbox sets and clears `persistentState.hideWelcome`; reopening shows the welcome view.
-  Existing tests pass `initialView="about"`.
-- `use-cloud-file-manager.test.tsx`: the About item calls `openAboutDialog("about")`.
+  Existing tests pass `initialView="about"`. Focus returns to `returnFocusRef` when given, and otherwise to
+  whatever had focus before the dialog opened.
+- `use-cloud-file-manager.test.tsx`: the About item opens the About view with the Help menu button as the
+  return-focus element.
 
 **Cypress**
 

@@ -39,6 +39,11 @@ aren't covered by the welcome view.
 4. **One view type.** `AboutDialogView` (`"welcome" | "about" | "libraries"`) moves to
    `src/models/ui-state-types.ts`, so `uiState` doesn't import from a component. The dialog's current view and
    the view it opens on share this type, so the dialog could also be opened on the libraries view.
+5. **Where focus returns is decided by the opener.** `openAboutDialog(view, returnFocusTo?)` stores a ref to
+   the element to focus when the dialog closes. The Help menu passes its button; the startup effect passes
+   nothing, so Chakra's default restores whatever had focus before (e.g. the entry modal). The dialog no longer
+   knows about the Help menu. The ref isn't observable (MobX shouldn't wrap a DOM element) and is cleared on
+   close so `uiState` doesn't hold on to a stale element.
 
 ---
 
@@ -59,8 +64,8 @@ Replaces `showAboutDialog` and updates its three callers in the same commit, so 
 In `ui-state.test.ts`, replace the `describe("showAboutDialog", ...)` block with:
 
 ```ts
-  describe("initialAboutDialogView", () => {
-    it("should be undefined by default and follow open and close", () => {
+  describe("About dialog", () => {
+    it("should be closed by default and follow open and close", () => {
       const uiState = new UIState()
       expect(uiState.initialAboutDialogView).toBeUndefined()
       uiState.openAboutDialog("welcome")
@@ -70,12 +75,47 @@ In `ui-state.test.ts`, replace the `describe("showAboutDialog", ...)` block with
       uiState.closeAboutDialog()
       expect(uiState.initialAboutDialogView).toBeUndefined()
     })
+
+    it("should remember where to return focus until the dialog closes", () => {
+      const uiState = new UIState()
+      const opener = document.createElement("button")
+      uiState.openAboutDialog("about", opener)
+      expect(uiState.aboutDialogReturnFocusRef?.current).toBe(opener)
+      uiState.closeAboutDialog()
+      expect(uiState.aboutDialogReturnFocusRef).toBeUndefined()
+      uiState.openAboutDialog("welcome")
+      expect(uiState.aboutDialogReturnFocusRef).toBeUndefined()
+    })
   })
 ```
 
-In `use-cloud-file-manager.test.tsx`, in `describe("getMenuBar", ...)`:
-- `uiState.setShowAboutDialog(false)` → `uiState.closeAboutDialog()`
-- `expect(uiState.showAboutDialog).toBe(true)` → `expect(uiState.initialAboutDialogView).toBe("about")`
+In `use-cloud-file-manager.test.tsx`, replace the `describe("getMenuBar", ...)` block with:
+
+```tsx
+describe("getMenuBar", () => {
+  afterEach(() => {
+    uiState.closeAboutDialog()
+    document.body.innerHTML = ""
+  })
+
+  it("ends the Help menu with a separator and an About CODAP item that opens the About dialog", () => {
+    // the Help menu button that focus should return to when the dialog closes
+    document.body.innerHTML = `<div class="help-menu"><button class="menu-anchor">Help</button></div>`
+    const menuBar = getMenuBar({} as CloudFileManager)
+    const helpMenu = menuBar.otherMenus.find(menu => menu.className === "help-menu")!
+    const separator = helpMenu.menu.at(-2)
+    const aboutItem = helpMenu.menu.at(-1) as { name: string, action: () => void }
+    expect(separator).toEqual({ separator: true })
+    expect(aboutItem.name).toBe("About CODAP...")
+    aboutItem.action()
+    expect(uiState.initialAboutDialogView).toBe("about")
+    expect(uiState.aboutDialogReturnFocusRef?.current).toBe(screen.getByRole("button", { name: "Help" }))
+  })
+})
+```
+
+(`screen` is already imported in that file. If lint flags `document.body.innerHTML` under
+`testing-library/no-node-access`, render the markup with `render(<div className="help-menu">…</div>)` instead.)
 
 **Step 2: Run tests to verify they fail**
 
@@ -90,7 +130,8 @@ In `ui-state-types.ts`, add:
 export type AboutDialogView = "welcome" | "about" | "libraries"
 ```
 
-In `ui-state.ts`, add `AboutDialogView` to the `./ui-state-types` import, then replace
+In `ui-state.ts`, add `AboutDialogView` to the `./ui-state-types` import, add `import { RefObject } from "react"`,
+then replace
 
 ```ts
   @observable
@@ -103,6 +144,9 @@ with
   // the About dialog is open whenever this is set; it's the view the dialog opened on
   @observable
   private _initialAboutDialogView: Maybe<AboutDialogView>
+  // Where focus goes when the About dialog closes. When undefined, Chakra decides what should have focus.
+  // Not observable, since MobX shouldn't wrap a DOM element.
+  private _aboutDialogReturnFocusRef: Maybe<RefObject<HTMLElement>>
 ```
 
 and replace the `showAboutDialog` getter and `setShowAboutDialog` action with:
@@ -112,22 +156,31 @@ and replace the `showAboutDialog` getter and `setShowAboutDialog` action with:
     return this._initialAboutDialogView
   }
 
+  get aboutDialogReturnFocusRef() {
+    return this._aboutDialogReturnFocusRef
+  }
+
   @action
-  openAboutDialog(view: AboutDialogView) {
+  openAboutDialog(view: AboutDialogView, returnFocusTo?: HTMLElement | null) {
     this._initialAboutDialogView = view
+    this._aboutDialogReturnFocusRef = returnFocusTo ? { current: returnFocusTo } : undefined
   }
 
   @action
   closeAboutDialog() {
     this._initialAboutDialogView = undefined
+    this._aboutDialogReturnFocusRef = undefined
   }
 ```
 
 In `use-cloud-file-manager.ts`, the About item's action:
 
 ```ts
-            action: () => uiState.openAboutDialog("about")
+            // the menu item is gone once the menu closes, so return focus to the Help menu button
+            action: () => uiState.openAboutDialog("about", document.querySelector<HTMLElement>(".help-menu .menu-anchor"))
 ```
+
+(Wrap the line if it exceeds 120 characters.)
 
 In `app.tsx`, temporarily keep the dialog on the About view (Task 6 adds `initialView`):
 
@@ -359,8 +412,51 @@ In `about-dialog.test.tsx`:
   }
   ```
 
-- Add `initialView="about"` to the other `<AboutDialog .../>` elements: both `rerender` calls in "reopens to the
-  About view", and the one in the "returns focus to the Help menu button" harness.
+- Add `initialView="about"` to both `rerender` calls in "reopens to the About view".
+
+- The dialog no longer finds the Help menu button itself; the opener passes `returnFocusRef`. Replace the
+  "returns focus to the Help menu button" test with these two:
+
+  ```tsx
+    it("returns focus to returnFocusRef", async () => {
+      function Harness() {
+        const [isOpen, setIsOpen] = useState(true)
+        const openerRef = useRef<HTMLButtonElement>(null)
+        return (
+          <>
+            <button ref={openerRef}>Opener</button>
+            <AboutDialog isOpen={isOpen} initialView="about" returnFocusRef={openerRef}
+              onClose={() => setIsOpen(false)}/>
+          </>
+        )
+      }
+      const user = userEvent.setup()
+      render(<Harness/>)
+      await flushFetch()
+      await user.click(screen.getByTestId("about-dialog-close-button"))
+      await waitFor(() => expect(screen.getByRole("button", { name: "Opener" })).toHaveFocus())
+    })
+
+    it("without returnFocusRef, returns focus to what had it before opening", async () => {
+      function Harness() {
+        const [isOpen, setIsOpen] = useState(false)
+        return (
+          <>
+            <button onClick={() => setIsOpen(true)}>Open</button>
+            <AboutDialog isOpen={isOpen} initialView="welcome" onClose={() => setIsOpen(false)}/>
+          </>
+        )
+      }
+      const user = userEvent.setup()
+      render(<Harness/>)
+      await user.click(screen.getByRole("button", { name: "Open" }))
+      await flushFetch()
+      await user.click(screen.getByTestId("about-dialog-get-started"))
+      await waitFor(() => expect(screen.getByRole("button", { name: "Open" })).toHaveFocus())
+    })
+  ```
+
+  Add `useRef` to the `react` import.
 
 - Add a new `describe` inside `describe("AboutDialog", ...)`:
 
@@ -435,6 +531,7 @@ update the props:
 interface IProps {
   isOpen: boolean
   initialView: AboutDialogView
+  returnFocusRef?: RefObject<HTMLElement>
   onClose: () => void
 }
 ```
@@ -442,7 +539,7 @@ interface IProps {
 Replace the top of `AboutDialog`, through `showView`, with:
 
 ```tsx
-export function AboutDialog({ isOpen, initialView, onClose }: IProps) {
+export function AboutDialog({ isOpen, initialView, returnFocusRef, onClose }: IProps) {
   const [view, setView] = useState<AboutDialogView>(initialView)
 
   // Reset the view during render when the dialog opens, rather than in an effect, so the initial view is
@@ -457,18 +554,8 @@ export function AboutDialog({ isOpen, initialView, onClose }: IProps) {
   const headerBackButtonRef = useRef<HTMLButtonElement>(null)
   const acknowledgementsButtonRef = useRef<HTMLButtonElement>(null)
   const getStartedButtonRef = useRef<HTMLButtonElement>(null)
-  // The Help menu item that opens the dialog is gone once the menu closes,
-  // so focus returns to the Help menu button instead.
-  const helpMenuButtonRef = useRef<HTMLElement | null>(null)
   const pendingFocusRef = useRef<RefObject<HTMLElement>>()
   const librariesState = useOssLibraries(isOpen)
-
-  // Find the Help menu button when the dialog opens.
-  useEffect(() => {
-    if (isOpen) {
-      helpMenuButtonRef.current = document.querySelector<HTMLElement>(".help-menu .menu-anchor")
-    }
-  }, [isOpen])
 
   // Move focus to the element `showView()` asked for once the new view has rendered.
   useEffect(() => {
@@ -496,9 +583,7 @@ Update the existing `showView` calls:
 
 ```tsx
       initialRef={initialView === "welcome" ? getStartedButtonRef : undefined}
-      // At startup there's no opener to return to; Chakra's default restores whatever had focus before
-      // (e.g. the entry modal underneath).
-      finalFocusRef={initialView !== "welcome" ? helpMenuButtonRef : undefined}
+      finalFocusRef={returnFocusRef}
 ```
 
 Header: `{title}` → `{titles[view]}`, and give the close button the ref:
@@ -647,6 +732,7 @@ Replace the dialog element:
             <AboutDialog
               isOpen={!!uiState.initialAboutDialogView}
               initialView={uiState.initialAboutDialogView ?? "about"}
+              returnFocusRef={uiState.aboutDialogReturnFocusRef}
               onClose={() => uiState.closeAboutDialog()}
             />
 ```
