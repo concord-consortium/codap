@@ -6,8 +6,8 @@
 with "Don't show this again", "About & licensing", and "Get started".
 
 **Architecture:** `uiState.initialAboutDialogView` replaces `showAboutDialog`; the dialog is open whenever it's
-set, and starts on that view. A one-time effect in `App` opens the welcome view when `shouldShowWelcome()` allows
-it. "Don't show this again" is `persistentState.hideWelcome`. Cypress presets `hideWelcome` so existing specs
+set, and starts on that view. A one-time effect in `App` opens the welcome view when `uiState.shouldShowWelcome`
+allows it. "Don't show this again" is `persistentState.hideWelcome`. Cypress presets `hideWelcome` so existing specs
 aren't covered by the welcome view.
 
 **Tech Stack:** React 18, TypeScript, MobX, MobX-State-Tree, Chakra UI v2, Jest + React Testing Library, Cypress.
@@ -265,88 +265,97 @@ git commit -m "CODAP-1595: add hideWelcome to persistent state"
 
 ---
 
-### Task 3: `shouldShowWelcome()`
+### Task 3: `uiState.shouldShowWelcome`
 
 **Files:**
-- Create: `v3/src/components/about-dialog/should-show-welcome.ts`
-- Test: `v3/src/components/about-dialog/should-show-welcome.test.ts`
+- Modify: `v3/src/models/ui-state.ts`
+- Test: `v3/src/models/ui-state.test.ts`
 
 **Step 1: Write the failing tests**
 
+In `ui-state.test.ts`, add `import { persistentState } from "./persistent-state"`, and add inside
+`describe("UIState", ...)` (the outer `beforeEach` already resets the URL params):
+
 ```ts
-import { persistentState } from "../../models/persistent-state"
-import { UIState } from "../../models/ui-state"
-import { setUrlParams } from "../../utilities/url-params"
-import { shouldShowWelcome } from "./should-show-welcome"
-
-function checkWithParams(params: string) {
-  setUrlParams(params)
-  return shouldShowWelcome(new UIState())
-}
-
-describe("shouldShowWelcome", () => {
-  beforeEach(() => {
-    setUrlParams("")
-    persistentState.setHideWelcome(false)
-  })
-
-  afterAll(() => {
-    setUrlParams("")
-  })
-
-  it("shows by default", () => {
-    expect(checkWithParams("")).toBe(true)
-  })
-
-  it("doesn't show after \"Don't show this again\"", () => {
-    persistentState.setHideWelcome(true)
-    expect(checkWithParams("")).toBe(false)
-  })
-
-  it.each(["?componentMode=yes", "?embeddedMode=yes", "?standalone=true", "?interactiveApi", "?noEntryModal"])(
-    "doesn't show with %s", params => {
-      expect(checkWithParams(params)).toBe(false)
+  describe("shouldShowWelcome", () => {
+    beforeEach(() => {
+      persistentState.setHideWelcome(false)
     })
 
-  it.each(["?url=https://example.com/shared.codap", "?sample=mammals"])(
-    "still shows when a document opens automatically (%s)", params => {
-      expect(checkWithParams(params)).toBe(true)
+    it("should be true by default", () => {
+      expect(new UIState().shouldShowWelcome).toBe(true)
     })
-})
+
+    it("should be false after \"Don't show this again\"", () => {
+      persistentState.setHideWelcome(true)
+      expect(new UIState().shouldShowWelcome).toBe(false)
+    })
+
+    it.each(["?componentMode=yes", "?embeddedMode=yes", "?standalone=true", "?interactiveApi", "?noEntryModal"])(
+      "should be false with %s", params => {
+        setUrlParams(params)
+        expect(new UIState().shouldShowWelcome).toBe(false)
+      })
+
+    it.each(["?url=https://example.com/shared.codap", "?sample=mammals"])(
+      "should be true when a document opens automatically (%s)", params => {
+        setUrlParams(params)
+        expect(new UIState().shouldShowWelcome).toBe(true)
+      })
+  })
 ```
 
 **Step 2: Run tests to verify they fail**
 
-Run: `npm test -- should-show-welcome`
-Expected: FAIL (cannot find module `./should-show-welcome`)
+Run: `npm test -- src/models/ui-state.test.ts`
+Expected: FAIL (`shouldShowWelcome` is undefined)
 
 **Step 3: Implement**
 
-```ts
-import { persistentState } from "../../models/persistent-state"
-import { UIState, uiState } from "../../models/ui-state"
-import { booleanParam, hasInteractiveApiContext, urlParams } from "../../utilities/url-params"
+In `ui-state.ts`, add the import:
 
-// Whether the About dialog should open on its welcome view when CODAP loads. It still opens when a document
-// opens automatically, but not in embedded contexts, when startup dialogs are suppressed, or when the user has
-// asked not to see it again.
-export function shouldShowWelcome(ui: UIState = uiState) {
-  return !persistentState.hideWelcome && !ui.minimalChrome && !ui.standaloneMode &&
-    !hasInteractiveApiContext() && !booleanParam(urlParams.noEntryModal)
-}
+```ts
+import { persistentState } from "./persistent-state"
+```
+
+Add a field near `_hideUserEntryModal` (not observable; like the other URL-derived settings, it's set once in
+the constructor):
+
+```ts
+  // startup dialogs are suppressed by the URL (`noEntryModal`) or by the host (Activity Player / LARA)
+  private _suppressWelcome = false
+```
+
+In the constructor, after `this._hideUserEntryModal = …`:
+
+```ts
+    this._suppressWelcome = booleanParam(noEntryModal) || hasInteractiveApiContext()
+```
+
+Add the getter after `hideUserEntryModal`:
+
+```ts
+  // Whether the About dialog should open on its welcome view when CODAP loads. It still opens when a document
+  // opens automatically, but not in embedded contexts, when startup dialogs are suppressed, or when the user has
+  // asked not to see it again.
+  get shouldShowWelcome() {
+    return !persistentState.hideWelcome && !this.minimalChrome && !this.standaloneMode && !this._suppressWelcome
+  }
 ```
 
 **Step 4: Run tests to verify they pass**
 
-Run: `npm test -- should-show-welcome`
-Expected: PASS (9 tests)
+Run: `npm test -- src/models/ui-state.test.ts`
+Expected: PASS (existing tests plus 9 new ones)
+
+Run: `npm run build:tsc`
+Expected: no errors
 
 **Step 5: Commit** (after user approves the message)
 
 ```bash
-git add v3/src/components/about-dialog/should-show-welcome.ts \
-  v3/src/components/about-dialog/should-show-welcome.test.ts
-git commit -m "CODAP-1595: add shouldShowWelcome"
+git add v3/src/models/ui-state.ts v3/src/models/ui-state.test.ts
+git commit -m "CODAP-1595: add uiState.shouldShowWelcome"
 ```
 
 ---
@@ -693,7 +702,7 @@ Keep lines within 120 characters; wrap JSX props as needed.
 **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- about-dialog`
-Expected: PASS (all dialog, hook, and `should-show-welcome` tests), with no `act()` warnings.
+Expected: PASS (all dialog and hook tests), with no `act()` warnings.
 
 Run: `npm run build:tsc && npx eslint src/components/about-dialog/`
 Expected: `build:tsc` fails only in `app.tsx` (missing `initialView`); Task 6 fixes that. Lint is clean.
@@ -711,18 +720,12 @@ Don't commit yet: `app.tsx` doesn't build until Task 6. Commit Tasks 5 and 6 tog
 
 **Step 1: Implement**
 
-Import:
-
-```tsx
-import { shouldShowWelcome } from "./about-dialog/should-show-welcome"
-```
-
 Next to the other startup `useEffect`s (e.g. before the data broker effect ~line 151):
 
 ```tsx
   // open the About dialog's welcome view when CODAP loads
   useEffect(() => {
-    if (shouldShowWelcome()) uiState.openAboutDialog("welcome")
+    if (uiState.shouldShowWelcome) uiState.openAboutDialog("welcome")
   }, [])
 ```
 

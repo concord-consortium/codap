@@ -25,7 +25,8 @@ On app startup, the dialog opens on the welcome view unless any of these is true
 
 It **does** open when a document auto-opens (shared links, `url`, `sample`, `#file=`).
 
-The check is a small exported function, `shouldShowWelcome()`, so it can be tested without rendering `App`.
+The check is a getter, `uiState.shouldShowWelcome`, next to the other startup settings that `UIState` derives
+from the URL. That also makes it testable without rendering `App`.
 
 ### Relationship to the entry modal
 
@@ -57,8 +58,8 @@ Callers:
 
 - Help menu item → `uiState.openAboutDialog("about", <the Help menu button>)`. The menu item itself is gone once
   the menu closes, so the code that knows it's the Help menu names the button to return to.
-- One-time startup effect in `App` → `uiState.openAboutDialog("welcome")` when `shouldShowWelcome()` is true.
-  No return-focus element.
+- One-time startup effect in `App` → `uiState.openAboutDialog("welcome")` when `uiState.shouldShowWelcome` is
+  true. No return-focus element.
 - `App` renders:
 
   ```tsx
@@ -137,8 +138,9 @@ New strings in `en-US.json5`:
 - `ui-state.test.ts`: replace the `showAboutDialog` tests with `openAboutDialog` / `closeAboutDialog` /
   `initialAboutDialogView`, and check that the return-focus ref is set on open and cleared on close.
 - `persistent-state.test.ts`: `setHideWelcome` sets the value and saves it.
-- `shouldShowWelcome()`: shows by default; skipped for `hideWelcome`, component mode, embedded mode,
-  standalone mode, an interactive-API context, and `noEntryModal`; still shows with `url` or `sample`.
+- `uiState.shouldShowWelcome` (in `ui-state.test.ts`): true by default; false for `hideWelcome`, component
+  mode, embedded mode, standalone mode, an interactive-API context, and `noEntryModal`; still true with `url`
+  or `sample`.
 - `about-dialog.test.tsx` with `initialView="welcome"`: named "Welcome to CODAP"; logo and intro text shown;
   focus starts on Get started; Get started calls `onClose`; "About & licensing" shows the About view and
   focuses ×; the checkbox sets and clears `persistentState.hideWelcome`; reopening shows the welcome view.
