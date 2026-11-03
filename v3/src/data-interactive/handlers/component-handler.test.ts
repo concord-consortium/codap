@@ -154,15 +154,35 @@ describe("DataInteractive ComponentHandler", () => {
     expect(handler.update?.({ component: graphTile }, { name: "My Graph" }).success).toBe(true)
     expect(graphTile.name).toBe("My Graph")
 
-    // Test updating title; empty text clears it so the tile shows its default title
+    // Test updating title; empty text clears it so the tile falls back to its name
     expect(handler.update?.({ component: graphTile }, { title: "My Title" }).success).toBe(true)
+    expect(graphTile.title).toBe("My Title")
+    // an update without a title leaves it alone
+    expect(handler.update?.({ component: graphTile }, { name: "My Graph" }).success).toBe(true)
+    expect(graphTile.title).toBe("My Title")
+    // a number is used as the title, as in V2; other values are ignored
+    expect(handler.update?.({ component: graphTile }, { title: 0 } as any).success).toBe(true)
+    expect(graphTile.title).toBe("0")
+    expect(handler.update?.({ component: graphTile }, { title: "My Title" }).success).toBe(true)
+    expect(handler.update?.({ component: graphTile }, { title: true } as any).success).toBe(true)
     expect(graphTile.title).toBe("My Title")
     expect(handler.update?.({ component: graphTile }, { title: "" }).success).toBe(true)
     expect(graphTile._title).toBeUndefined()
     expect(graphTile.title).toBe("My Graph")  // falls back to the name
-    // a title that isn't text is ignored rather than failing the request
-    expect(handler.update?.({ component: graphTile }, { title: 0 } as any).success).toBe(true)
-    expect(graphTile._title).toBeUndefined()
+
+    // cannotClose is stored as a boolean, as V2 read it
+    expect(handler.update?.({ component: graphTile }, { cannotClose: 1 } as any).success).toBe(true)
+    expect(graphTile.cannotClose).toBe(true)
+    expect(handler.update?.({ component: graphTile }, { name: "My Graph" }).success).toBe(true)
+    expect(graphTile.cannotClose).toBe(true)
+    expect(handler.update?.({ component: graphTile }, { cannotClose: 0 } as any).success).toBe(true)
+    expect(graphTile.cannotClose).toBe(false)
+
+    // create also stores cannotClose as a boolean
+    const result = handler.create?.({}, { type: "graph", cannotClose: 1 })
+    expect(result?.success).toBe(true)
+    const newTile = documentContent.tileMap.get(toV3Id(kGraphIdPrefix, (result?.values as DIComponentInfo).id!))
+    expect(newTile?.cannotClose).toBe(true)
 
     // Test updating isResizable with boolean
     expect(graphTile._isResizable).toBeUndefined()

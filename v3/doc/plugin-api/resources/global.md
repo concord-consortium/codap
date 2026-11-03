@@ -83,7 +83,7 @@ whatever it was given, so a plugin that must also run there should send numbers.
 
 | Property | Type | Notes |
 |---|---|---|
-| `value` | number | required. The new value, converted to a number as for `create`. `0` is a value; only a missing or `null` `value` is refused. See [Known limitations](#known-limitations) for `false` and empty text |
+| `value` | number | required. The new value, converted to a number as for `create`, so `true`, `false` and empty text are stored as `1`, `0` and `0`. `0` is a value. A missing or `null` `value` is refused with `missing global or value` |
 
 The name cannot be changed. `update` replies `{ "success": true }`. A slider showing the global
 value moves to the new value.
@@ -181,10 +181,6 @@ sendRequest({ action: "get", resource: "global[rate]" }, result => {
 ```
 
 ## Known limitations
-
-**`update` turns `false` and empty text into `0`.** Like any other `value`, they are converted
-to a number, so `false` and `""` are stored as `0`, and `true` as `1`. v2 stored the value as
-given. This is a known bug; send numbers.
 
 **`create` with no `values` fails.** v3 replies with the generic error
 `An error occurred while processing the request.` and creates nothing. v2 created a global value

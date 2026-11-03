@@ -87,6 +87,9 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     expect(tile.cannotClose).toBe(false)
     expect(handler.update?.({ interactiveFrame: tile }, { cannotClose: 1 } as any).success).toBe(true)
     expect(tile.cannotClose).toBe(true)
+    // an update without cannotClose leaves it alone
+    expect(handler.update?.({ interactiveFrame: tile }, { version }).success).toBe(true)
+    expect(tile.cannotClose).toBe(true)
     expect(handler.update?.({ interactiveFrame: tile }, { cannotClose: 0 } as any).success).toBe(true)
     expect(tile.cannotClose).toBe(false)
     const newDimensions =
@@ -129,6 +132,10 @@ describe("DataInteractive InteractiveFrameHandler", () => {
 
     expect(result?.success).toBe(true)
     expect(tile.title).toBe("Plugin Title")
+
+    // a number is used as the title, as in V2
+    expect(handler.update?.({ interactiveFrame: tile }, { title: 42 } as any).success).toBe(true)
+    expect(tile.title).toBe("42")
   })
 
   it("update sets handlesLocaleChange", () => {

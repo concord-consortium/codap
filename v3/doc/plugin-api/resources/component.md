@@ -109,6 +109,9 @@ Two of these behave differently from the table:
 otherwise its default title, and `get` returns no `title`. A case table or case card shows its data
 context's title whatever its own title is, so for those the change has no visible effect.
 
+A number given as `title` is used as text, as in v2, so `title: 0` sets the title `0`.
+`cannotClose` may be any value; CODAP stores whether it is truthy, as v2 read it.
+
 `update` additionally accepts `currentGameName` as an alias for `name`, for v2 compatibility.
 Neither it nor `currentGameUrl` is ever returned by `get`, and `currentGameUrl` works on `update`
 only — a `create` carrying it, and no `URL`, makes a blank web view.

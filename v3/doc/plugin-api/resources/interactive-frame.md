@@ -99,6 +99,9 @@ honors fourteen; `codapVersion`, `externalUndoAvailable`, `standaloneUndoModeAva
 | `cannotClose` | no | yes |
 | `handlesLocaleChange` | no | yes |
 
+A number given as `name` or `title` is used as text, as in v2. `cannotClose` may be any value;
+CODAP stores whether it is truthy.
+
 ### Holding requests while the user edits
 
 `blockAPIRequestsWhileEditing` makes CODAP hold back plugin requests while the user edits a case

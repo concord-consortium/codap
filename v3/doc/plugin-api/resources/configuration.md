@@ -173,8 +173,8 @@ cannot be undone, also as in v2.
 | `<action> <resource>: <field> required` | `update` whose `values` has no `value`, or a `null` one. The setting is left alone |
 | `Interactive Frame not found` | a request on `configuration` that did not come from a plugin; see [Known limitations](#known-limitations). The same request on `configurationList` fails with an internal error message instead |
 
-For an unknown name, v2's messages differed: `get` replied that the setting was not found, and
-`update` that it was not found or the value was missing.
+v2's messages differed: for an unknown name, `get` replied that the setting was not found, and
+for an unknown name or a missing value, `update` replied `not found or missing value`.
 
 ## See also
 

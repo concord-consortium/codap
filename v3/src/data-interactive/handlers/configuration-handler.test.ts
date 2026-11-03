@@ -139,7 +139,7 @@ describe("DataInteractive ConfigurationHandler", () => {
         interactiveFrame: {} as any,
         configuration: "gaussianFitEnabled"
       }
-      for (const values of [{ value: undefined }, {}] as DIUpdateConfigurationValue[]) {
+      for (const values of [{ value: undefined }, { value: null }, {}] as DIUpdateConfigurationValue[]) {
         const result = handler.update?.(resources, values)
         expect(result).toEqual({ success: false, values: { error: "Update configuration: value required" } })
       }
