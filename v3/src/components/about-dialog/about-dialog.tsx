@@ -31,12 +31,15 @@ interface IProps {
 export function AboutDialog({ isOpen, initialView, returnFocusRef, onClose }: IProps) {
   const [view, setView] = useState<AboutDialogView>(initialView)
 
-  // Reset the view during render when the dialog opens, rather than in an effect, so the initial view is
-  // rendered before Chakra moves focus into the dialog.
+  // Reset the view and save the focus ref when the dialog opens.
   const [wasOpen, setWasOpen] = useState(isOpen)
+  const [openedReturnFocusRef, setOpenedReturnFocusRef] = useState(returnFocusRef)
   if (isOpen !== wasOpen) {
     setWasOpen(isOpen)
-    if (isOpen) setView(initialView)
+    if (isOpen) {
+      setView(initialView)
+      setOpenedReturnFocusRef(returnFocusRef)
+    }
   }
 
   const closeButtonRef = useRef<HTMLButtonElement>(null)
@@ -72,7 +75,7 @@ export function AboutDialog({ isOpen, initialView, returnFocusRef, onClose }: IP
       isDraggable={false}
       modalWidth="520px"
       initialRef={initialView === "welcome" ? getStartedButtonRef : undefined}
-      finalFocusRef={returnFocusRef}
+      finalFocusRef={openedReturnFocusRef}
       // CodapModal passes returnFocusOnClose through even when it's undefined, which overrides Chakra's default
       // of true. Without a returnFocusRef, focus should return to whatever had it before the dialog opened.
       returnFocusOnClose={true}

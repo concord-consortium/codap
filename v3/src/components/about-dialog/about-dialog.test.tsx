@@ -1,6 +1,6 @@
 import { act, render, screen, waitFor } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
-import { useRef, useState } from "react"
+import { RefObject, useRef, useState } from "react"
 import build from "../../../build_number.json"
 import pkg from "../../../package.json"
 import { persistentState } from "../../models/persistent-state"
@@ -163,6 +163,29 @@ describe("AboutDialog", () => {
       await flushFetch()
       await user.click(screen.getByTestId("about-dialog-close-button"))
       await waitFor(() => expect(screen.getByRole("button", { name: "Opener" })).toHaveFocus())
+    })
+
+    it("returns focus to returnFocusRef even if the opener clears it on close", async () => {
+      // like App, which passes uiState's ref, which closeAboutDialog() clears before the dialog finishes closing
+      // The button that opens the dialog differs from the return target, as with the Help menu's item and button.
+      function Harness() {
+        const returnTargetRef = useRef<HTMLButtonElement>(null)
+        const [returnFocusRef, setReturnFocusRef] = useState<RefObject<HTMLElement>>()
+        return (
+          <>
+            <button onClick={() => setReturnFocusRef(returnTargetRef)}>Open</button>
+            <button ref={returnTargetRef}>Return here</button>
+            <AboutDialog isOpen={!!returnFocusRef} initialView="about" returnFocusRef={returnFocusRef}
+              onClose={() => setReturnFocusRef(undefined)}/>
+          </>
+        )
+      }
+      const user = userEvent.setup()
+      render(<Harness/>)
+      await user.click(screen.getByRole("button", { name: "Open" }))
+      await flushFetch()
+      await user.click(screen.getByTestId("about-dialog-close-button"))
+      await waitFor(() => expect(screen.getByRole("button", { name: "Return here" })).toHaveFocus())
     })
 
     it("without returnFocusRef, returns focus to what had it before opening", async () => {

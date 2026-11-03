@@ -39,3 +39,34 @@ context("About CODAP dialog", () => {
     })
   })
 })
+
+context("About CODAP dialog welcome view", () => {
+  beforeEach(() => {
+    Cypress.env("showWelcome", true)
+  })
+
+  afterEach(() => {
+    Cypress.env("showWelcome", false)
+  })
+
+  it("opens on top of the entry modal and can be turned off", () => {
+    cy.visit("?suppressUnsavedWarning")
+    cy.contains("[role=dialog]", "Welcome to CODAP").should("be.visible")
+    cy.get("[data-testid=about-dialog-get-started]").should("have.focus")
+    // the entry modal is underneath; Cypress doesn't count a covered fixed-position element as visible
+    cy.get(".user-entry-modal-container").should("exist").and("not.be.visible")
+
+    cy.get("[data-testid=about-dialog-hide-welcome]").click()
+    cy.get("[data-testid=about-dialog-get-started]").click()
+    cy.contains("[role=dialog]", "Welcome to CODAP").should("not.exist")
+
+    // the entry modal underneath is uncovered and still works
+    cy.get(".user-entry-modal-container").should("be.visible")
+    cy.contains(".user-entry-modal-container button", "Create New Document").click()
+    cy.get(".user-entry-modal-container").should("not.exist")
+
+    cy.reload()
+    cy.get(".user-entry-modal-container").should("be.visible")
+    cy.contains("[role=dialog]", "Welcome to CODAP").should("not.exist")
+  })
+})
