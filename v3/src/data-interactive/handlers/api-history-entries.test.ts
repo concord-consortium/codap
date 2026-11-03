@@ -1,9 +1,16 @@
 import { when } from "mobx"
 import { getSnapshot, Instance } from "mobx-state-tree"
+import "../../components/calculator/calculator-registration"
+import "../../components/case-card/case-card-registration"
 import "../../components/case-table/case-table-registration"
 import "../../components/graph/graph-registration"
+import "../../components/slider/slider-registration"
+import "../../components/text/text-registration"
+import "../../components/web-view/web-view-registration"
 import { appState } from "../../models/app-state"
 import { gDataBroker } from "../../models/data/data-broker"
+import { IDataSet } from "../../models/data/data-set"
+import { getUndoStringKey } from "../../models/history/codap-undo-types"
 import { TreeManager } from "../../models/history/tree-manager"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { setupTestDataset } from "../../test/dataset-test-utils"
@@ -16,9 +23,11 @@ jest.mock("../../utilities/csv-import", () => {
 })
 const mockedDownloadCsvFile = downloadCsvFile as jest.MockedFunction<typeof downloadCsvFile>
 
-// Plugin API changes are meant to stay off the undo history, as in V2 (CODAP-1594 item 5)
+// Plugin API changes are meant to stay off the undo history, as in V2 (CODAP-1594 item 5), except those V2 made
+// undoable: sort, autoScale, moving an attribute, and creating and deleting components (CODAP-1617 #13-14)
 describe("plugin API requests that change the document", () => {
   const { document } = appState
+  let dataset: IDataSet
   let graph: string
   let scatterPlot: string
 
@@ -40,7 +49,7 @@ describe("plugin API requests that change the document", () => {
   beforeAll(async () => {
     const source = setupTestDataset().dataset
     source.prepareSnapshot()
-    const dataset = document.content!.createDataSet(getSnapshot(source)).sharedDataSet.dataSet
+    dataset = document.content!.createDataSet(getSnapshot(source)).sharedDataSet.dataSet
     document.treeMonitor!.enableMonitoring()
     const createGraph = async (values: any) => {
       const result = await processAction({ action: "create", resource: "component",
@@ -95,5 +104,79 @@ describe("plugin API requests that change the document", () => {
     const graphContent: any = tile?.content
     graphContent.applyModelChange(() => graphContent.getAxis("bottom")?.setDomain(-1000, 1000))
     expect(await undoEntriesAdded("notify", scatterPlot, { request: "autoScale" })).toBe(1)
+  })
+
+  const undoManager = () => document.treeManagerAPI!.undoManager
+  const tileId = (resource: string) => resource.replace(/^component\[|\]$/g, "")
+
+  async function undo() {
+    undoManager().undo()
+    await historySettled()
+  }
+
+  async function redo() {
+    undoManager().redo()
+    await historySettled()
+  }
+
+  it("update attributeLocation adds an undo entry, as in V2", async () => {
+    const collection = dataset.getCollectionForAttribute(dataset.attrIDFromName("a4")!)!
+    const attrNames = () => collection.attributes.map(attr => attr?.name)
+    const before = attrNames()
+    expect(await undoEntriesAdded("update", `dataContext[${dataset.name}].attributeLocation[a4]`,
+      { position: 0 })).toBe(1)
+    expect(getUndoStringKey(undoManager())).toBe("DG.Undo.dataContext.moveAttribute")
+    expect(attrNames()).not.toEqual(before)
+    await undo()
+    expect(attrNames()).toEqual(before)
+  })
+
+  it.each([
+    ["graph", "graphComponent.create"], ["text", "textComponent.create"], ["slider", "sliderComponent.create"],
+    ["calculator", "toggleComponent.add.calcView"], ["webView", "webView.show"], ["game", "game.add"],
+    ["imageComponentView", "imageComponent.show"]
+  ])("create component %s adds an undo entry, as in V2, and undo removes it", async (type, undoKey) => {
+    const tileCount = () => document.content!.tileMap.size
+    const countBefore = tileCount()
+    expect(await undoEntriesAdded("create", "component",
+      { type, dataContext: dataset.name, URL: "https://example.com" })).toBe(1)
+    expect(getUndoStringKey(undoManager())).toBe(`DG.Undo.${undoKey}`)
+    expect(tileCount()).toBe(countBefore + 1)
+    await undo()
+    expect(tileCount()).toBe(countBefore)
+    await redo()
+    expect(tileCount()).toBe(countBefore + 1)
+  })
+
+  it("create component calculator when one is showing hides it, labeled as a hide, as in V2", async () => {
+    const content = document.content!
+    const calculator = () => content.getTilesOfType("Calculator")[0]
+    if (!calculator() || content.isTileHidden(calculator().id)) {
+      await undoEntriesAdded("create", "component", { type: "calculator" })
+    }
+    expect(content.isTileHidden(calculator().id)).toBe(false)
+    expect(await undoEntriesAdded("create", "component", { type: "calculator" })).toBe(1)
+    expect(getUndoStringKey(undoManager())).toBe("DG.Undo.toggleComponent.delete.calcView")
+    expect(content.isTileHidden(calculator().id)).toBe(true)
+    await undo()
+    expect(content.isTileHidden(calculator().id)).toBe(false)
+  })
+
+  it.each(["caseTable", "caseCard", "guideView"])("create component %s adds no undo entry, as in V2", async type => {
+    expect(await undoEntriesAdded("create", "component",
+      { type, dataContext: dataset.name, URL: "https://example.com" })).toBe(0)
+  })
+
+  it("delete component adds an undo entry, as in V2, and undo restores it", async () => {
+    const id = tileId(graph)
+    expect(document.content!.getTile(id)).toBeDefined()
+    expect(await undoEntriesAdded("delete", graph)).toBe(1)
+    expect(getUndoStringKey(undoManager())).toBe("DG.Undo.component.close")
+    expect(document.content!.getTile(id)).toBeUndefined()
+    await undo()
+    expect(document.content!.getTile(id)).toBeDefined()
+    await redo()
+    expect(document.content!.getTile(id)).toBeUndefined()
+    await undo()
   })
 })

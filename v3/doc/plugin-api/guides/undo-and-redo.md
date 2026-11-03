@@ -25,10 +25,12 @@ match a single action in CODAP's interface and undo the same way it does:
 - `update` on `dataContext` with a `sort`
 - `notify` on a case table or graph `component` with `autoScale`
 - `update` on `attributeLocation`, which moves an attribute as dragging its column does
-- `create` on `component`, which adds a component as the toolbar does
+- `create` on `component`, which adds a component as the toolbar does. Creating a case table or
+  case card for a data context, or a `guideView`, adds no entry, as in v2. Creating a calculator
+  that is already showing hides it, and its entry undoes the hide, also as in v2
 - `delete` on `component`, which closes a component as its close button does
 
-v3 does not yet add entries for the last three; see [Known limitations](#known-limitations).
+Entries use v2's labels, so the user sees, for example, "Undo adding a graph".
 
 If your plugin needs the user to be able to undo something it did through the API, it reports
 the action itself, as described next, and reverses the API changes itself when asked.
@@ -216,11 +218,6 @@ uses an undo step.
 **Undo and redo are not announced on `document`.** v2 also sent every plugin a notification on
 `document`, with operation `undo` or `redo`, whenever the user undid or redid an action that had
 no notification of its own. v3 does not. This is a known bug.
-
-**A plugin's attribute moves, and the components it creates or closes, cannot be undone.** v2
-added `update` on `attributeLocation`, and `create` and `delete` on `component`, to the history,
-as it did the same changes made in CODAP's interface, so the user could undo them. v3 does not.
-This is a known bug.
 
 **v2 reset the user's history after many data requests.** CODAP keeps it. A plugin should not
 depend on whether CODAP's undo reverses a request it made.

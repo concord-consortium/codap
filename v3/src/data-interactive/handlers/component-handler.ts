@@ -55,6 +55,20 @@ export function registerComponentHandler(type: string, handler: DIComponentHandl
   diComponentHandlers.set(type, handler)
 }
 
+// Undo strings for a component a plugin creates, by the type it sends: as in V2, creating one is undoable, with
+// V2's strings. V2 added case tables and case cards for a data context, and its first guide, without an undoable
+// command, so those stay off the history. (A guide a plugin creates is a plain web view; see component.md.)
+const kCreateUndoStrings: Record<string, string> = {
+  calculator: "toggleComponent.add.calcView",
+  game: "game.add",
+  graph: "graphComponent.create",
+  imageComponentView: "imageComponent.show",
+  map: "map.create",
+  slider: "sliderComponent.create",
+  text: "textComponent.create",
+  webView: "webView.show"
+}
+
 export const diComponentHandler: DIHandler = {
   create(resources: DIResources, values?: DIValues) {
     if (!values) return valuesRequiredResult
@@ -78,6 +92,10 @@ export const diComponentHandler: DIHandler = {
       const x = isPositionObject ? position.left : undefined
       const y = isPositionObject ? position.top : undefined
       let tile: Maybe<ITileModel>
+      // The calculator is a singleton: creating one that is showing hides it, as in V2, which labeled that a hide
+      const singleton = document.content?.getTilesOfType(kComponentTypeV2ToV3Map[type])[0]
+      const hidesCalculator = type === "calculator" && !!singleton && !document.content?.isTileHidden(singleton.id)
+      const undoStrings = hidesCalculator ? "toggleComponent.delete.calcView" : kCreateUndoStrings[type]
       return document.applyModelChange(() => {
         const title = _title ?? name
         const newTileOptions = { cannotClose, content, ...dimensions, position, x, y, name, title, ..._options }
@@ -99,6 +117,10 @@ export const diComponentHandler: DIHandler = {
         // openCaseTableNotification no-ops for non-case-table tiles, so it's safe to call
         // unconditionally here (V2-plugin compat for the case-table create path, CODAP-1353).
         notify: [() => createTileNotification(tile), () => openCaseTableNotification(tile)],
+        ...(undoStrings && {
+          undoStringKey: `DG.Undo.${undoStrings}`,
+          redoStringKey: `DG.Redo.${undoStrings}`
+        }),
         // Don't echo the create back to the requesting plugin — Story Builder otherwise treats
         // notifications about its own DI-API actions as document edits and marks the current
         // moment as unsaved (CODAP-1307).
@@ -118,6 +140,9 @@ export const diComponentHandler: DIHandler = {
       document.content?.deleteOrHideTile(component.id)
     }, {
       notify: deleteTileNotification(component),
+      // as in V2, closing a component is undoable, as it is from its close box
+      undoStringKey: "DG.Undo.component.close",
+      redoStringKey: "DG.Redo.component.close",
       excludeTileId: resources.interactiveFrame?.id
     })
 
