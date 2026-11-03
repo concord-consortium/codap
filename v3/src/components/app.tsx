@@ -148,6 +148,11 @@ export const App = observer(function App() {
     onSetIsDragOver: setIsDragOver
   })
 
+  // open the About dialog's welcome view when CODAP loads
+  useEffect(() => {
+    if (uiState.shouldShowWelcome) uiState.openAboutDialog("welcome")
+  }, [])
+
   useEffect(() => {
     // connect the data broker to the shared model manager
     if (!gDataBroker.sharedModelManager) {
@@ -279,7 +284,12 @@ export const App = observer(function App() {
                 />
               </div>
             </If>
-            <AboutDialog isOpen={!!uiState.initialAboutDialogView} onClose={() => uiState.closeAboutDialog()}/>
+            <AboutDialog
+              isOpen={!!uiState.initialAboutDialogView}
+              initialView={uiState.initialAboutDialogView ?? "about"}
+              returnFocusRef={uiState.aboutDialogReturnFocusRef}
+              onClose={() => uiState.closeAboutDialog()}
+            />
             <Progress />
             <LogMonitorSidebar />
           </ProgressContext.Provider>

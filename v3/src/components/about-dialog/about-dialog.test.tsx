@@ -1,11 +1,21 @@
-import { act, render, screen, waitFor } from "@testing-library/react"
+import { act, render, screen, waitFor, within } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import build from "../../../build_number.json"
 import pkg from "../../../package.json"
+import { persistentState } from "../../models/persistent-state"
+import { AboutDialogView } from "../../models/ui-state-types"
 import { displayVersion } from "../../utilities/version-utils"
 import { AboutDialog } from "./about-dialog"
 import { IOssLibrary, resetOssLibrariesRequest } from "./use-oss-libraries"
+
+// Chakra's Checkbox tracks keyboard focus with @zag-js/focus-visible, which overwrites HTMLElement.prototype.focus
+// the first time a Checkbox mounts. user-event's setup() makes that property getter-only, so the assignment throws.
+// Focus-visible styling doesn't matter in these tests.
+jest.mock("@zag-js/focus-visible", () => ({
+  ...jest.requireActual("@zag-js/focus-visible"),
+  trackFocusVisible: () => () => undefined
+}))
 
 const kLibraries: IOssLibrary[] = [
   { name: "@chakra-ui/react", version: "2.8.2", license: "MIT" },
@@ -31,10 +41,10 @@ function getAcknowledgementsButton() {
   return screen.getByTestId("about-dialog-acknowledgements")
 }
 
-async function setup() {
+async function setup(initialView: AboutDialogView = "about") {
   const user = userEvent.setup()
   const onClose = jest.fn()
-  const view = render(<AboutDialog isOpen={true} onClose={onClose}/>)
+  const view = render(<AboutDialog isOpen={true} initialView={initialView} onClose={onClose}/>)
   await flushFetch()
   return { user, onClose, ...view }
 }
@@ -114,8 +124,8 @@ describe("AboutDialog", () => {
     it("reopens to the About view", async () => {
       const { user, onClose, rerender } = await setup()
       await user.click(getAcknowledgementsButton())
-      rerender(<AboutDialog isOpen={false} onClose={onClose}/>)
-      rerender(<AboutDialog isOpen={true} onClose={onClose}/>)
+      rerender(<AboutDialog isOpen={false} initialView="about" onClose={onClose}/>)
+      rerender(<AboutDialog isOpen={true} initialView="about" onClose={onClose}/>)
       expect(await screen.findByRole("dialog", { name: "About CODAP" })).toBeInTheDocument()
     })
   })
@@ -136,13 +146,15 @@ describe("AboutDialog", () => {
       expect(onClose).toHaveBeenCalled()
     })
 
-    it("returns focus to the Help menu button", async () => {
+    it("returns focus to returnFocusRef", async () => {
       function Harness() {
         const [isOpen, setIsOpen] = useState(true)
+        const openerRef = useRef<HTMLButtonElement>(null)
         return (
           <>
-            <div className="help-menu"><button className="menu-anchor">Help</button></div>
-            <AboutDialog isOpen={isOpen} onClose={() => setIsOpen(false)}/>
+            <button ref={openerRef}>Opener</button>
+            <AboutDialog isOpen={isOpen} initialView="about" returnFocusRef={openerRef}
+              onClose={() => setIsOpen(false)}/>
           </>
         )
       }
@@ -150,7 +162,74 @@ describe("AboutDialog", () => {
       render(<Harness/>)
       await flushFetch()
       await user.click(screen.getByTestId("about-dialog-close-button"))
-      await waitFor(() => expect(screen.getByRole("button", { name: "Help" })).toHaveFocus())
+      await waitFor(() => expect(screen.getByRole("button", { name: "Opener" })).toHaveFocus())
+    })
+
+    it("without returnFocusRef, returns focus to what had it before opening", async () => {
+      function Harness() {
+        const [isOpen, setIsOpen] = useState(false)
+        return (
+          <>
+            <button onClick={() => setIsOpen(true)}>Open</button>
+            <AboutDialog isOpen={isOpen} initialView="welcome" onClose={() => setIsOpen(false)}/>
+          </>
+        )
+      }
+      const user = userEvent.setup()
+      render(<Harness/>)
+      await user.click(screen.getByRole("button", { name: "Open" }))
+      await flushFetch()
+      await user.click(screen.getByTestId("about-dialog-get-started"))
+      await waitFor(() => expect(screen.getByRole("button", { name: "Open" })).toHaveFocus())
+    })
+  })
+
+  describe("welcome view", () => {
+    beforeEach(() => {
+      persistentState.setHideWelcome(false)
+    })
+
+    it("is named by its title and shows the logo and intro", async () => {
+      await setup("welcome")
+      expect(screen.getByRole("dialog", { name: "Welcome to CODAP" })).toBeInTheDocument()
+      expect(screen.getByRole("img", { name: "CODAP, a product of The Concord Consortium" })).toBeInTheDocument()
+      const intro = screen.getByText(/Explore, analyze, and visualize data right in your browser/)
+      expect(intro).toHaveTextContent("New here? Click Get started to open a sample document or create your own.")
+      // "Get started" in the text is bold and uses the button's string
+      expect(within(intro).getByText("Get started", { selector: "strong" })).toBeInTheDocument()
+    })
+
+    it("starts with focus on Get started, which closes the dialog", async () => {
+      const { user, onClose } = await setup("welcome")
+      const getStarted = screen.getByRole("button", { name: "Get started" })
+      await waitFor(() => expect(getStarted).toHaveFocus())
+      await user.click(getStarted)
+      expect(onClose).toHaveBeenCalled()
+    })
+
+    it("switches to the About view and focuses the close button", async () => {
+      const { user } = await setup("welcome")
+      await user.click(screen.getByRole("button", { name: "About & licensing" }))
+      expect(screen.getByRole("dialog", { name: "About CODAP" })).toBeInTheDocument()
+      expect(screen.getByTestId("modal-close-button")).toHaveFocus()
+    })
+
+    it("remembers \"Don't show this again\"", async () => {
+      const { user } = await setup("welcome")
+      const checkbox = screen.getByRole("checkbox", { name: "Don’t show this again" })
+      expect(checkbox).not.toBeChecked()
+      await user.click(checkbox)
+      expect(persistentState.hideWelcome).toBe(true)
+      await user.click(checkbox)
+      expect(persistentState.hideWelcome).toBe(false)
+    })
+
+    it("reopens to the welcome view", async () => {
+      const { user, onClose, rerender } = await setup("welcome")
+      await user.click(screen.getByRole("button", { name: "About & licensing" }))
+      rerender(<AboutDialog isOpen={false} initialView="welcome" onClose={onClose}/>)
+      rerender(<AboutDialog isOpen={true} initialView="welcome" onClose={onClose}/>)
+      expect(await screen.findByRole("dialog", { name: "Welcome to CODAP" })).toBeInTheDocument()
     })
   })
 

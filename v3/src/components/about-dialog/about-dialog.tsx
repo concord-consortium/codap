@@ -1,9 +1,12 @@
-import { Badge, Button, Input, ModalBody, ModalCloseButton, ModalFooter, ModalHeader, VisuallyHidden }
-  from "@chakra-ui/react"
-import React, { useEffect, useMemo, useRef, useState } from "react"
+import {
+  Badge, Button, Checkbox, Input, ModalBody, ModalCloseButton, ModalFooter, ModalHeader, VisuallyHidden
+} from "@chakra-ui/react"
+import React, { RefObject, useEffect, useMemo, useRef, useState } from "react"
 import build from "../../../build_number.json"
 import pkg from "../../../package.json"
 import AboutScreenLogo from "../../assets/codap-about-screen.png"
+import { persistentState } from "../../models/persistent-state"
+import { AboutDialogView } from "../../models/ui-state-types"
 import { t, translateToElements } from "../../utilities/translation/translate"
 import { getBuildAssetUrl } from "../../utilities/urls"
 import { displayVersion } from "../../utilities/version-utils"
@@ -18,46 +21,47 @@ import { IOssLibrary, OssLibrariesState, useOssLibraries } from "./use-oss-libra
 import "../codap-modal-v3.scss"
 import "./about-dialog.scss"
 
-type AboutDialogView = "about" | "libraries"
-
 interface IProps {
   isOpen: boolean
+  initialView: AboutDialogView
+  returnFocusRef?: RefObject<HTMLElement>
   onClose: () => void
 }
 
-export function AboutDialog({ isOpen, onClose }: IProps) {
-  const [view, setView] = useState<AboutDialogView>("about")
+export function AboutDialog({ isOpen, initialView, returnFocusRef, onClose }: IProps) {
+  const [view, setView] = useState<AboutDialogView>(initialView)
+
+  // Reset the view during render when the dialog opens, rather than in an effect, so the initial view is
+  // rendered before Chakra moves focus into the dialog.
+  const [wasOpen, setWasOpen] = useState(isOpen)
+  if (isOpen !== wasOpen) {
+    setWasOpen(isOpen)
+    if (isOpen) setView(initialView)
+  }
+
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
   const headerBackButtonRef = useRef<HTMLButtonElement>(null)
   const acknowledgementsButtonRef = useRef<HTMLButtonElement>(null)
-  // The Help menu item that opens the dialog is gone once the menu closes,
-  // so focus returns to the Help menu button instead.
-  const helpMenuButtonRef = useRef<HTMLElement | null>(null)
-  const focusAfterViewChange = useRef(false)
+  const getStartedButtonRef = useRef<HTMLButtonElement>(null)
+  const pendingFocusRef = useRef<RefObject<HTMLElement>>()
   const librariesState = useOssLibraries(isOpen)
 
-  // Set the view and find the help button when the modal opens.
+  // Move focus to the element `showView()` asked for once the new view has rendered.
   useEffect(() => {
-    if (isOpen) {
-      setView("about")
-      helpMenuButtonRef.current = document.querySelector<HTMLElement>(".help-menu .menu-anchor")
-    }
-  }, [isOpen])
-
-  // Update the focus when the view changes.
-  useEffect(() => {
-    if (focusAfterViewChange.current) {
-      focusAfterViewChange.current = false
-      const focusTarget = view === "libraries" ? headerBackButtonRef : acknowledgementsButtonRef
-      focusTarget.current?.focus()
-    }
+    pendingFocusRef.current?.current?.focus()
+    pendingFocusRef.current = undefined
   }, [view])
 
-  function showView(newView: AboutDialogView) {
-    focusAfterViewChange.current = true
+  function showView(newView: AboutDialogView, focusTarget: RefObject<HTMLElement>) {
+    pendingFocusRef.current = focusTarget
     setView(newView)
   }
 
-  const title = view === "about" ? t("DG.AppController.showAboutTitle") : t("V3.AboutDialog.libraries.title")
+  const titles: Record<AboutDialogView, string> = {
+    welcome: t("V3.AboutDialog.welcome.title"),
+    about: t("DG.AppController.showAboutTitle"),
+    libraries: t("V3.AboutDialog.libraries.title")
+  }
   const backButtonContent = <><span aria-hidden="true" className="back-arrow">‹&nbsp;</span>{t("V3.general.back")}</>
 
   return (
@@ -67,44 +71,64 @@ export function AboutDialog({ isOpen, onClose }: IProps) {
       isCentered={true}
       isDraggable={false}
       modalWidth="520px"
-      finalFocusRef={helpMenuButtonRef}
+      initialRef={initialView === "welcome" ? getStartedButtonRef : undefined}
+      finalFocusRef={returnFocusRef}
+      // CodapModal passes returnFocusOnClose through even when it's undefined, which overrides Chakra's default
+      // of true. Without a returnFocusRef, focus should return to whatever had it before the dialog opened.
+      returnFocusOnClose={true}
     >
       {/* The row uses the same classes as other v3 modal headers so it gets the same styling. */}
       <div className="chakra-modal__header codap-modal-header-v3">
         {view === "libraries" &&
-          <Button ref={headerBackButtonRef} size="xs" variant="v3Clear" ml="2" onClick={() => showView("about")}
-              data-testid="about-dialog-header-back">
+          <Button
+            ref={headerBackButtonRef}
+            size="xs"
+            variant="v3Clear"
+            ml="2"
+            onClick={() => showView("about", acknowledgementsButtonRef)}
+            data-testid="about-dialog-header-back"
+          >
             {backButtonContent}
           </Button>
         }
         {/* Chakra names the dialog with the full text of ModalHeader, so only the title goes in it. */}
         <ModalHeader as="h2" className="codap-header-title-v3" p={0} flex="1" boxShadow="none">
-          {title}
+          {titles[view]}
         </ModalHeader>
-        <ModalCloseButton data-testid="modal-close-button"/>
+        <ModalCloseButton ref={closeButtonRef} data-testid="modal-close-button"/>
       </div>
       <ModalBody>
         <div className="about-dialog-body">
-          {view === "about"
-            ? <AboutView
-                acknowledgementsButtonRef={acknowledgementsButtonRef}
-                librariesState={librariesState}
-                onShowLibraries={() => showView("libraries")}
-              />
-            : <LibrariesView librariesState={librariesState}/>
+          {view === "welcome" && <WelcomeView/>}
+          {view === "about" &&
+            <AboutView
+              acknowledgementsButtonRef={acknowledgementsButtonRef}
+              librariesState={librariesState}
+              onShowLibraries={() => showView("libraries", headerBackButtonRef)}
+            />
           }
+          {view === "libraries" && <LibrariesView librariesState={librariesState}/>}
         </div>
       </ModalBody>
       <ModalFooter>
-        {view === "libraries" &&
-          <Button size="xs" variant="v3Clear" ml="3" onClick={() => showView("about")}
-              data-testid="about-dialog-footer-back">
-            {backButtonContent}
-          </Button>
+        {view === "welcome"
+          ? <WelcomeFooter
+              getStartedButtonRef={getStartedButtonRef}
+              onShowAbout={() => showView("about", closeButtonRef)}
+              onClose={onClose}
+            />
+          : <>
+              {view === "libraries" &&
+                <Button size="xs" variant="v3Clear" ml="3" onClick={() => showView("about", acknowledgementsButtonRef)}
+                    data-testid="about-dialog-footer-back">
+                  {backButtonContent}
+                </Button>
+              }
+              <Button size="xs" variant="v3Default" ml="3" onClick={onClose} data-testid="about-dialog-close-button">
+                {t("V3.general.close")}
+              </Button>
+            </>
         }
-        <Button size="xs" variant="v3Default" ml="3" onClick={onClose} data-testid="about-dialog-close-button">
-          {t("V3.general.close")}
-        </Button>
       </ModalFooter>
     </CodapModal>
   )
@@ -127,6 +151,10 @@ function matchesQuery(library: IOssLibrary, lowerCaseQuery: string) {
     library.license.toLowerCase().includes(lowerCaseQuery)
 }
 
+function CodapLogo() {
+  return <img className="about-dialog-logo" src={AboutScreenLogo} alt={t("V3.AboutDialog.logoAlt")}/>
+}
+
 interface IAboutViewProps {
   acknowledgementsButtonRef: React.RefObject<HTMLButtonElement>
   librariesState: OssLibrariesState
@@ -139,7 +167,7 @@ function AboutView({ acknowledgementsButtonRef, librariesState, onShowLibraries 
   return (
     <>
       <div className="about-dialog-identity">
-        <img className="about-dialog-logo" src={AboutScreenLogo} alt={t("V3.AboutDialog.logoAlt")}/>
+        <CodapLogo/>
         <div>{t("V3.app.fullName")}</div>
         <div className="about-dialog-version">
           {t("V3.AboutDialog.version", { vars: { version, build: build.buildNumber } })}
@@ -178,6 +206,62 @@ function AboutView({ acknowledgementsButtonRef, librariesState, onShowLibraries 
           {librariesState.status === "loaded" && `${projectCountText(librariesState.libraries.length)} `}
           <span aria-hidden="true">›</span>
         </span>
+      </Button>
+    </>
+  )
+}
+
+function WelcomeView() {
+  return (
+    <div className="about-dialog-identity">
+      <CodapLogo/>
+      <p className="about-dialog-text">
+        {translateToElements("V3.AboutDialog.welcome.intro", {
+          getStarted: <strong>{t("V3.AboutDialog.welcome.getStarted")}</strong>
+        })}
+      </p>
+    </div>
+  )
+}
+
+interface IWelcomeFooterProps {
+  getStartedButtonRef: RefObject<HTMLButtonElement>
+  onShowAbout: () => void
+  onClose: () => void
+}
+
+function WelcomeFooter({ getStartedButtonRef, onShowAbout, onClose }: IWelcomeFooterProps) {
+  // The welcome view only opens automatically when hideWelcome is unset, so it always starts unchecked.
+  const [hideWelcome, setHideWelcome] = useState(false)
+
+  function handleHideWelcomeChange(hide: boolean) {
+    setHideWelcome(hide)
+    persistentState.setHideWelcome(hide)
+  }
+
+  return (
+    <>
+      <Checkbox
+        size="sm"
+        mr="auto"
+        isChecked={hideWelcome}
+        data-testid="about-dialog-hide-welcome"
+        onChange={e => handleHideWelcomeChange(e.target.checked)}
+      >
+        {t("V3.AboutDialog.welcome.dontShowAgain")}
+      </Checkbox>
+      <Button size="xs" variant="v3Clear" ml="3" onClick={onShowAbout} data-testid="about-dialog-show-about">
+        {t("V3.AboutDialog.welcome.aboutButton")}
+      </Button>
+      <Button
+        ref={getStartedButtonRef}
+        size="xs"
+        variant="v3Default"
+        ml="3"
+        onClick={onClose}
+        data-testid="about-dialog-get-started"
+      >
+        {t("V3.AboutDialog.welcome.getStarted")}
       </Button>
     </>
   )
