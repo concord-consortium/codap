@@ -42,10 +42,12 @@ If stacking turns out not to work well, revisit later (e.g. show the entry modal
 
 ### `uiState`
 
-Replace the boolean `showAboutDialog` with a view:
+Replace the boolean `showAboutDialog` with a view. One type, `AboutDialogView`
+(`"welcome" | "about" | "libraries"`), defined in `src/models/ui-state-types.ts`, is used both for the view the
+dialog opens on and for its current view:
 
-- `initialAboutDialogView: "welcome" | "about" | undefined` (observable); the dialog is open when it's set
-- `openAboutDialog(view: "welcome" | "about")` (action)
+- `initialAboutDialogView: Maybe<AboutDialogView>` (observable); the dialog is open when it's set
+- `openAboutDialog(view: AboutDialogView)` (action)
 - `closeAboutDialog()` (action)
 
 Callers:
@@ -75,7 +77,7 @@ The checkbox calls `setHideWelcome()` whenever it changes, so the choice sticks 
 
 ### `initialView` prop
 
-`AboutDialog` gains `initialView: "welcome" | "about"`. Each time it opens, it resets to `initialView` (it
+`AboutDialog` gains `initialView: AboutDialogView`. Each time it opens, it resets to `initialView` (it
 currently always resets to "about").
 
 ### Welcome view
@@ -97,7 +99,8 @@ currently always resets to "about").
 - Opening on the welcome view: initial focus on **Get started** (via `CodapModal`'s `initialRef`).
 - "About & licensing": focus moves to the header × button, the first control in the About view.
 - Closing:
-  - Opened from the Help menu (`initialView="about"`): focus returns to the Help menu button (unchanged).
+  - Opened on any other view, e.g. from the Help menu (`initialView="about"`): focus returns to the Help menu
+    button (unchanged).
   - Opened at startup (`initialView="welcome"`): no `finalFocusRef`; Chakra returns focus to whatever had it
     before, e.g. the entry modal underneath. Using the Help menu button here would pull focus out from under
     the entry modal.

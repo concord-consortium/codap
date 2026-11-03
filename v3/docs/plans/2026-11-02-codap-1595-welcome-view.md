@@ -36,8 +36,9 @@ aren't covered by the welcome view.
    acknowledgements button; welcome → About focuses ×), so `showView()` takes the element to focus.
 3. **Checkbox state** is local to the welcome view and written through to `persistentState` on change. The
    welcome view only opens automatically when `hideWelcome` is unset, so it always starts unchecked.
-4. **`AboutDialogInitialView`** (`"welcome" | "about"`) lives in `src/models/ui-state-types.ts`, so `uiState`
-   doesn't import from a component.
+4. **One view type.** `AboutDialogView` (`"welcome" | "about" | "libraries"`) moves to
+   `src/models/ui-state-types.ts`, so `uiState` doesn't import from a component. The dialog's current view and
+   the view it opens on share this type, so the dialog could also be opened on the libraries view.
 
 ---
 
@@ -86,10 +87,10 @@ Expected: FAIL (`openAboutDialog` / `closeAboutDialog` don't exist)
 In `ui-state-types.ts`, add:
 
 ```ts
-export type AboutDialogInitialView = "welcome" | "about"
+export type AboutDialogView = "welcome" | "about" | "libraries"
 ```
 
-In `ui-state.ts`, add `AboutDialogInitialView` to the `./ui-state-types` import, then replace
+In `ui-state.ts`, add `AboutDialogView` to the `./ui-state-types` import, then replace
 
 ```ts
   @observable
@@ -101,7 +102,7 @@ with
 ```ts
   // the About dialog is open whenever this is set; it's the view the dialog opened on
   @observable
-  private _initialAboutDialogView: Maybe<AboutDialogInitialView>
+  private _initialAboutDialogView: Maybe<AboutDialogView>
 ```
 
 and replace the `showAboutDialog` getter and `setShowAboutDialog` action with:
@@ -112,7 +113,7 @@ and replace the `showAboutDialog` getter and `setShowAboutDialog` action with:
   }
 
   @action
-  openAboutDialog(view: AboutDialogInitialView) {
+  openAboutDialog(view: AboutDialogView) {
     this._initialAboutDialogView = view
   }
 
@@ -343,13 +344,13 @@ In `about-dialog.test.tsx`:
 
   ```tsx
   import { persistentState } from "../../models/persistent-state"
-  import { AboutDialogInitialView } from "../../models/ui-state-types"
+  import { AboutDialogView } from "../../models/ui-state-types"
   ```
 
 - Give `setup()` an `initialView` parameter, defaulting to `"about"` so existing tests are unchanged:
 
   ```tsx
-  async function setup(initialView: AboutDialogInitialView = "about") {
+  async function setup(initialView: AboutDialogView = "about") {
     const user = userEvent.setup()
     const onClose = jest.fn()
     const view = render(<AboutDialog isOpen={true} initialView={initialView} onClose={onClose}/>)
@@ -424,17 +425,16 @@ Imports: add `Checkbox` to the Chakra import, `RefObject` to the React import, a
 
 ```tsx
 import { persistentState } from "../../models/persistent-state"
-import { AboutDialogInitialView } from "../../models/ui-state-types"
+import { AboutDialogView } from "../../models/ui-state-types"
 ```
 
-Types and props:
+Delete the file's local `type AboutDialogView = "about" | "libraries"` (it now comes from `ui-state-types`), and
+update the props:
 
 ```tsx
-type AboutDialogView = AboutDialogInitialView | "libraries"
-
 interface IProps {
   isOpen: boolean
-  initialView: AboutDialogInitialView
+  initialView: AboutDialogView
   onClose: () => void
 }
 ```
@@ -444,6 +444,7 @@ Replace the top of `AboutDialog`, through `showView`, with:
 ```tsx
 export function AboutDialog({ isOpen, initialView, onClose }: IProps) {
   const [view, setView] = useState<AboutDialogView>(initialView)
+
   // Reset the view during render when the dialog opens, rather than in an effect, so the initial view is
   // rendered before Chakra moves focus into the dialog.
   const [wasOpen, setWasOpen] = useState(isOpen)
@@ -451,6 +452,7 @@ export function AboutDialog({ isOpen, initialView, onClose }: IProps) {
     setWasOpen(isOpen)
     if (isOpen) setView(initialView)
   }
+
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const headerBackButtonRef = useRef<HTMLButtonElement>(null)
   const acknowledgementsButtonRef = useRef<HTMLButtonElement>(null)
@@ -496,7 +498,7 @@ Update the existing `showView` calls:
       initialRef={initialView === "welcome" ? getStartedButtonRef : undefined}
       // At startup there's no opener to return to; Chakra's default restores whatever had focus before
       // (e.g. the entry modal underneath).
-      finalFocusRef={initialView === "about" ? helpMenuButtonRef : undefined}
+      finalFocusRef={initialView !== "welcome" ? helpMenuButtonRef : undefined}
 ```
 
 Header: `{title}` → `{titles[view]}`, and give the close button the ref:
