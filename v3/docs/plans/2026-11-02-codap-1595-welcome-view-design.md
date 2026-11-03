@@ -21,9 +21,9 @@ On app startup, the dialog opens on the welcome view unless any of these is true
 | `uiState.minimalChrome` | Component or embedded mode |
 | `uiState.standaloneMode` | A plugin running alone, with no CODAP UI |
 | `hasInteractiveApiContext()` | Activity Player or another LARA host |
+| `noEntryModal` URL parameter | Used to suppress startup dialogs (e.g. by tests and embedders) |
 
-It **does** open when a document auto-opens (shared links, `url`, `sample`, `#file=`) and when
-`noEntryModal` is set.
+It **does** open when a document auto-opens (shared links, `url`, `sample`, `#file=`).
 
 The check is a small exported function, `shouldShowWelcome()`, so it can be tested without rendering `App`.
 
@@ -122,7 +122,7 @@ New strings in `en-US.json5`:
   `aboutDialogView`.
 - `persistent-state.test.ts`: `setHideWelcome` sets the value and saves it.
 - `shouldShowWelcome()`: shows by default; skipped for `hideWelcome`, component mode, embedded mode,
-  standalone mode, and an interactive-API context; still shows with `url`, `sample`, or `noEntryModal`.
+  standalone mode, an interactive-API context, and `noEntryModal`; still shows with `url` or `sample`.
 - `about-dialog.test.tsx` with `initialView="welcome"`: named "Welcome to CODAP"; logo and intro text shown;
   focus starts on Get started; Get started calls `onClose`; "About & licensing" shows the About view and
   focuses ×; the checkbox sets and clears `persistentState.hideWelcome`; reopening shows the welcome view.
