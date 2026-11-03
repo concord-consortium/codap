@@ -55,10 +55,11 @@ export const diItemSearchHandler: DIHandler = {
           }
         })
       } else {
-        // Otherwise, move all the items to the beginning or end
+        // Otherwise, move all the items to the beginning or end. "first" anchors on the first item
+        // not being moved among all items, set-aside and filtered-out ones included, as v2 does.
         const movingItemIds = new Set(itemIds)
         const before = itemOrder === "first"
-          ? dataContext.itemIds.find(id => !movingItemIds.has(id))
+          ? dataContext._itemIds.find(id => !movingItemIds.has(id))
           : undefined
         dataContext.moveItems(itemIds, { before })
       }

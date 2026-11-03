@@ -270,12 +270,6 @@ negations. Setting `deleteProtected: true` is the same as setting `deleteable: f
 following `get` returns `deleteable: false`. There is no `deleteProtected` or `renameProtected` in
 a `get` response.
 
-**`editable` currently does the opposite of what it says.** Sending `editable: true` should leave
-the attribute editable, and today it makes the attribute read-only; a following `get` returns
-`editable: false`. This is a known bug — the value is not negated on the way in, unlike the two
-properties handled beside it. Write what you mean; the behavior will be corrected, and a plugin
-written against the inverted behavior will break when it is.
-
 **`create` does not apply the protection properties to a new attribute.** `deleteable`,
 `renameable`, `deleteProtected` and `renameProtected` are honored by `update` and dropped by
 `create` — unless the name already exists, in which case `create` takes the update path and they
