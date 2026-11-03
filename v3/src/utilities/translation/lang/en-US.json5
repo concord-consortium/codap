@@ -1729,5 +1729,10 @@
     "V3.AboutDialog.libraries.resultCountPlural": "%{count} libraries",
     "V3.AboutDialog.libraries.loading": "Loading libraries…",
     "V3.AboutDialog.libraries.noMatches": "No libraries match “%{query}”.",
-    "V3.AboutDialog.libraries.loadError": "The library list couldn't be loaded."
+    "V3.AboutDialog.libraries.loadError": "The library list couldn't be loaded.",
+    "V3.AboutDialog.welcome.title": "Welcome to CODAP",
+    "V3.AboutDialog.welcome.intro": "Explore, analyze, and visualize data right in your browser. New here? Click %{getStarted} to open a sample document or create your own.",
+    "V3.AboutDialog.welcome.dontShowAgain": "Don’t show this again",
+    "V3.AboutDialog.welcome.aboutButton": "About & licensing",
+    "V3.AboutDialog.welcome.getStarted": "Get started"
 }
