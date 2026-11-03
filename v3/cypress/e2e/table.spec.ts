@@ -743,11 +743,28 @@ context("edit attribute properties date precision", () => {
     table.getCell(2, 2).should("have.text", "1990")
   })
 
+  it("keeps an explicitly chosen date precision when switching away from date", () => {
+    const years = ["1990", "2005", "2024", "2024"]
+    years.forEach((year, i) => table.typeInCell(2, i + 2, `{selectAll}${year}`))
+
+    table.openAttributeMenu("a")
+    table.selectMenuItemFromAttributeMenu("Edit Attribute Properties...")
+    table.selectAttributeType("numeric")
+    table.selectAttributePrecision("3")
+    table.selectAttributeType("date")
+    table.selectAttributePrecision("month")
+    table.selectAttributePrecision("year")
+    // the explicit "year" is kept rather than restoring the numeric precision 3
+    table.selectAttributeType("numeric")
+    cy.get("[data-testid=attr-precision-select]").should("have.text", "\u00A0")
+    table.getCancelButton().click({ force: true })
+  })
+
   it("leaves the precision blank when the values aren't all years", () => {
     table.openAttributeMenu("a")
     table.selectMenuItemFromAttributeMenu("Edit Attribute Properties...")
     table.selectAttributeType("date")
-    cy.get("[data-testid=attr-precision-select]").should("have.text", " ")
+    cy.get("[data-testid=attr-precision-select]").should("have.text", "\u00A0")
     table.getCancelButton().click({ force: true })
   })
 })

@@ -39,7 +39,8 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
   const [precision, setPrecision] = useState(attribute?.effectivePrecision)
   const [userType, setUserType] = useState<SelectableAttributeType>("none")
   const [editable, setEditable] = useState<YesNoValue>("yes")
-  // the precision in effect before "year" was inferred, so it can be restored if the user switches away from date
+  // the precision in effect before "year" was inferred, so it can be restored if the user switches away from date;
+  // null when nothing was inferred or the user has since chosen a date precision
   const preInferencePrecision = useRef<{ precision: typeof precision } | null>(null)
 
   useEffect(() => {
@@ -98,10 +99,16 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
         setPrecision("year")
       }
     } else if (preInferencePrecision.current) {
-      // switching away from date undoes the inference, unless the user has since chosen another precision
-      if (precision === "year") setPrecision(preInferencePrecision.current.precision)
+      // switching away from date undoes an inference the user hasn't overridden
+      setPrecision(preInferencePrecision.current.precision)
       preInferencePrecision.current = null
     }
+  }
+
+  const handleDatePrecisionChange = (newPrecision?: DatePrecision) => {
+    setPrecision(newPrecision)
+    // an explicit choice replaces the inferred precision, so it is kept if the user switches away from date
+    preInferencePrecision.current = null
   }
 
   const closeModal = () => {
@@ -149,7 +156,7 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
           </MenuButton>
           <MenuList>
             <MenuOptionGroup type="radio" value={toDatePrecisionStr(precision)}
-                onChange={(value) => setPrecision(toDatePrecision(value as string))}>
+                onChange={(value) => handleDatePrecisionChange(toDatePrecision(value as string))}>
               {datePrecisions.map(p => (
                 <MenuItemOption key={`precision-${p}`} value={p} data-testid={`attr-precision-option-${p}`}>
                   {p}
