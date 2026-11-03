@@ -209,12 +209,14 @@ export function fixMonth(m: string) {
   return (monthIx % 12) + 1
 }
 
-// Returns the offset from UTC in minutes of an explicit numeric offset (e.g. "-07:00", "+0530", "GMT-0700"),
-// or undefined if there isn't one. "Z", "GMT" and zone abbreviations (e.g. "PDT") are not converted.
+// Returns the offset from UTC in minutes of an explicit numeric offset (e.g. "-07:00", "+0530", "GMT-0700").
+// Returns undefined for "Z", "GMT", zone abbreviations (e.g. "PDT"), and malformed or out-of-range offsets
+// (e.g. "+05:3", "+99:00"), all of which are interpreted as local.
 export function parseTimeZoneOffset(timezone?: string) {
-  const match = timezone?.match(/^(?:GMT)?([+-])(\d\d):?(\d\d?)/i)
+  const match = timezone?.match(/^(?:GMT)?([+-])(\d\d):?(\d\d)(?!\d)/i)
   if (!match) return undefined
   const [, sign, hours, minutes] = match
+  if (Number(hours) > 14 || Number(minutes) > 59) return undefined
   return (sign === "-" ? -1 : 1) * (Number(hours) * 60 + Number(minutes))
 }
 
