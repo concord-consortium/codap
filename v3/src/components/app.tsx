@@ -279,7 +279,7 @@ export const App = observer(function App() {
                 />
               </div>
             </If>
-            <AboutDialog isOpen={uiState.showAboutDialog} onClose={() => uiState.setShowAboutDialog(false)}/>
+            <AboutDialog isOpen={!!uiState.initialAboutDialogView} onClose={() => uiState.closeAboutDialog()}/>
             <Progress />
             <LogMonitorSidebar />
           </ProgressContext.Provider>

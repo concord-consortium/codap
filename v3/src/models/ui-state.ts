@@ -1,8 +1,9 @@
 import { action, makeObservable, observable } from "mobx"
+import { RefObject } from "react"
 import { scrollTileIntoView } from "../utilities/dom-utils"
 import { booleanParam, hasInteractiveApiContext, urlParams } from "../utilities/url-params"
 import { ITileModel } from "./tiles/tile-model"
-import { RulerState, RulerStateKey } from "./ui-state-types"
+import { AboutDialogView, RulerState, RulerStateKey } from "./ui-state-types"
 
 /*
   UIState represents globally accessible user-interface state that is not undoable, is not
@@ -35,8 +36,12 @@ export class UIState {
   private _hideSplashScreen = false
   @observable
   private _hideUserEntryModal = false
+  // the About dialog is open whenever this is set; it's the view the dialog opened on
   @observable
-  private _showAboutDialog = false
+  private _initialAboutDialogView: Maybe<AboutDialogView>
+  // Where focus goes when the About dialog closes. When undefined, Chakra decides what should have focus.
+  // Not observable, since MobX shouldn't wrap a DOM element.
+  private _aboutDialogReturnFocusRef: Maybe<RefObject<HTMLElement>>
   // the focused tile is a singleton; in theory there can be multiple selected tiles
   @observable
   private focusTileId = ""
@@ -242,13 +247,24 @@ export class UIState {
     this._hideUserEntryModal = hidden
   }
 
-  get showAboutDialog() {
-    return this._showAboutDialog
+  get initialAboutDialogView() {
+    return this._initialAboutDialogView
+  }
+
+  get aboutDialogReturnFocusRef() {
+    return this._aboutDialogReturnFocusRef
   }
 
   @action
-  setShowAboutDialog(show: boolean) {
-    this._showAboutDialog = show
+  openAboutDialog(view: AboutDialogView, returnFocusTo?: HTMLElement | null) {
+    this._initialAboutDialogView = view
+    this._aboutDialogReturnFocusRef = returnFocusTo ? { current: returnFocusTo } : undefined
+  }
+
+  @action
+  closeAboutDialog() {
+    this._initialAboutDialogView = undefined
+    this._aboutDialogReturnFocusRef = undefined
   }
 
   get focusedTile() {

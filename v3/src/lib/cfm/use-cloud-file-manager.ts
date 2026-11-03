@@ -253,7 +253,10 @@ export function getMenuBar(cfm: CloudFileManager) {
           {
             icon: AboutIcon,
             name: t("DG.AppController.optionMenuItems.about"),
-            action: () => uiState.setShowAboutDialog(true)
+            action: () => {
+              // the menu item is gone once the menu closes, so return focus to the Help menu button
+              uiState.openAboutDialog("about", document.querySelector<HTMLElement>(".help-menu .menu-anchor"))
+            }
           }
         ]
       },

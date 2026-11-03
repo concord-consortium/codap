@@ -113,10 +113,12 @@ describe("useCloudFileManager", () => {
 
 describe("getMenuBar", () => {
   afterEach(() => {
-    uiState.setShowAboutDialog(false)
+    uiState.closeAboutDialog()
   })
 
   it("ends the Help menu with a separator and an About CODAP item that opens the About dialog", () => {
+    // the Help menu button that focus should return to when the dialog closes
+    render(<div className="help-menu"><button className="menu-anchor">Help</button></div>)
     const menuBar = getMenuBar({} as CloudFileManager)
     const helpMenu = menuBar.otherMenus.find(menu => menu.className === "help-menu")!
     const separator = helpMenu.menu.at(-2)
@@ -124,6 +126,7 @@ describe("getMenuBar", () => {
     expect(separator).toEqual({ separator: true })
     expect(aboutItem.name).toBe("About CODAP...")
     aboutItem.action()
-    expect(uiState.showAboutDialog).toBe(true)
+    expect(uiState.initialAboutDialogView).toBe("about")
+    expect(uiState.aboutDialogReturnFocusRef?.current).toBe(screen.getByRole("button", { name: "Help" }))
   })
 })

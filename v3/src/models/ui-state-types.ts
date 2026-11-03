@@ -2,3 +2,5 @@ export const RulerStateKeys = ["measuresOfCenter", "measuresOfSpread", "boxPlotA
 export type RulerStateKey = typeof RulerStateKeys[number]
 
 export type RulerState = Record<RulerStateKey, boolean>
+
+export type AboutDialogView = "welcome" | "about" | "libraries"

@@ -475,14 +475,27 @@ describe("UIState", () => {
     })
   })
 
-  describe("showAboutDialog", () => {
-    it("should be false by default and can be set", () => {
+  describe("About dialog", () => {
+    it("should be closed by default and follow open and close", () => {
       const uiState = new UIState()
-      expect(uiState.showAboutDialog).toBe(false)
-      uiState.setShowAboutDialog(true)
-      expect(uiState.showAboutDialog).toBe(true)
-      uiState.setShowAboutDialog(false)
-      expect(uiState.showAboutDialog).toBe(false)
+      expect(uiState.initialAboutDialogView).toBeUndefined()
+      uiState.openAboutDialog("welcome")
+      expect(uiState.initialAboutDialogView).toBe("welcome")
+      uiState.openAboutDialog("about")
+      expect(uiState.initialAboutDialogView).toBe("about")
+      uiState.closeAboutDialog()
+      expect(uiState.initialAboutDialogView).toBeUndefined()
+    })
+
+    it("should remember where to return focus until the dialog closes", () => {
+      const uiState = new UIState()
+      const opener = document.createElement("button")
+      uiState.openAboutDialog("about", opener)
+      expect(uiState.aboutDialogReturnFocusRef?.current).toBe(opener)
+      uiState.closeAboutDialog()
+      expect(uiState.aboutDialogReturnFocusRef).toBeUndefined()
+      uiState.openAboutDialog("welcome")
+      expect(uiState.aboutDialogReturnFocusRef).toBeUndefined()
     })
   })
 })
