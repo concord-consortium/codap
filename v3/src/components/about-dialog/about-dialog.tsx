@@ -1,6 +1,7 @@
 import {
   Badge, Button, Checkbox, Input, ModalBody, ModalCloseButton, ModalFooter, ModalHeader, VisuallyHidden
 } from "@chakra-ui/react"
+import { observer } from "mobx-react-lite"
 import React, { RefObject, useEffect, useMemo, useRef, useState } from "react"
 import build from "../../../build_number.json"
 import pkg from "../../../package.json"
@@ -31,7 +32,8 @@ interface IProps {
 export function AboutDialog({ isOpen, initialView, returnFocusRef, onClose }: IProps) {
   const [view, setView] = useState<AboutDialogView>(initialView)
 
-  // Reset the view and save the focus ref when the dialog opens.
+  // Reset the view and save the focus ref when the dialog opens, rather than in an effect,
+  // so the initial view is rendered before Chakra moves focus into the dialog.
   const [wasOpen, setWasOpen] = useState(isOpen)
   const [openedReturnFocusRef, setOpenedReturnFocusRef] = useState(returnFocusRef)
   if (isOpen !== wasOpen) {
@@ -229,12 +231,10 @@ interface IWelcomeFooterProps {
   onClose: () => void
 }
 
-function WelcomeFooter({ getStartedButtonRef, onShowAbout, onClose }: IWelcomeFooterProps) {
-  // The welcome view only opens automatically when hideWelcome is unset, so it always starts unchecked.
-  const [hideWelcome, setHideWelcome] = useState(false)
-
+const WelcomeFooter = observer(function WelcomeFooter({
+  getStartedButtonRef, onShowAbout, onClose
+}: IWelcomeFooterProps) {
   function handleHideWelcomeChange(hide: boolean) {
-    setHideWelcome(hide)
     persistentState.setHideWelcome(hide)
   }
 
@@ -243,7 +243,7 @@ function WelcomeFooter({ getStartedButtonRef, onShowAbout, onClose }: IWelcomeFo
       <Checkbox
         size="sm"
         mr="auto"
-        isChecked={hideWelcome}
+        isChecked={persistentState.hideWelcome}
         data-testid="about-dialog-hide-welcome"
         onChange={e => handleHideWelcomeChange(e.target.checked)}
       >
@@ -264,7 +264,7 @@ function WelcomeFooter({ getStartedButtonRef, onShowAbout, onClose }: IWelcomeFo
       </Button>
     </>
   )
-}
+})
 
 interface ILibrariesViewProps {
   librariesState: OssLibrariesState

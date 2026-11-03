@@ -8,8 +8,9 @@
 .about-dialog-body {
   color: vars.$charcoal-dark-2;
   font-size: 14px;
-  padding: 12px 8px;
   line-height: 1.5;
+  min-height: 180px;
+  padding: 12px 8px;
 
   // Chakra's CSS reset removes link color and underline
   a {
@@ -61,7 +62,7 @@
     font-size: 16px;
 
     &.about-dialog-gap {
-      margin-top: 12px;
+      margin-top: 20px;
     }
   }
 
