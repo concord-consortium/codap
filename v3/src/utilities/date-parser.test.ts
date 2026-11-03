@@ -165,6 +165,7 @@ describe('Date Parser tests - time zone offsets', () => {
     expect(parseDate('2026-02-01T09:00:00 EST')?.toISOString()).toBe(local9am)
     expect(parseDate('2026-02-01T09:00:00+05:3')?.toISOString()).toBe(local9am)
     expect(parseDate('2026-02-01T09:00:00+99:00')?.toISOString()).toBe(local9am)
+    expect(parseDate('2026-02-01T09:00:00+14:30')?.toISOString()).toBe(local9am)
   })
 
   test('strings in Date.toISOString() format are read as local time, because CODAP saves local dates that way', () => {
@@ -190,6 +191,9 @@ describe('parseTimeZoneOffset', () => {
     expect(parseTimeZoneOffset('+05:3')).toBeUndefined()
     expect(parseTimeZoneOffset('+053')).toBeUndefined()
     expect(parseTimeZoneOffset('+15:00')).toBeUndefined()
+    expect(parseTimeZoneOffset('+14:30')).toBeUndefined()
+    expect(parseTimeZoneOffset('-12:30')).toBeUndefined()
+    expect(parseTimeZoneOffset('-14:00')).toBeUndefined()
     expect(parseTimeZoneOffset('+05:60')).toBeUndefined()
   })
   test('accepts the full range of real-world offsets', () => {
