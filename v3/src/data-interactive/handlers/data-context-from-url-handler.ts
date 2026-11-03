@@ -1,4 +1,5 @@
 import { appState } from "../../models/app-state"
+import { dataContextCountChangedNotification } from "../../models/data/data-set-notifications"
 import { convertParsedCsvToDataSet, CsvParseResult, downloadCsvFile } from "../../utilities/csv-import"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
@@ -34,10 +35,11 @@ export const diDataContextFromURLHandler: DIAsyncHandler = {
             if (ds) {
               if (values.title && typeof values.title === "string") ds.setTitle(values.title)
               const createDefaultTile = values.showCaseTable !== false
-              // like other plugin API changes, the import stays off the undo history, as in V2
+              // like other plugin API changes, the import stays off the undo history, as in V2. As in V2,
+              // plugins are told the number of data contexts changed, as they are by create dataContext.
               appState.document.applyModelChange(() => {
                 appState.document.content?.importDataSet(ds, { createDefaultTile })
-              })
+              }, { notify: dataContextCountChangedNotification })
               resolve({
                 success: true,
                 values: basicDataSetInfo(ds)

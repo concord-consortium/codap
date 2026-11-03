@@ -67,9 +67,14 @@ describe("DataInteractive DataContextHandler", () => {
         onComplete(parseResult, "")
       })
 
+      const broadcastSpy = jest.spyOn(appState.document.content!, "broadcastMessage")
       expect(gDataBroker.length).toBe(0)
       const result = await handler.create!({}, {URL: "https://example.com/"})
       expect(gDataBroker.length).toBe(1)
+      // as in V2, plugins are told the number of data contexts changed
+      expect(broadcastSpy.mock.calls.some(([msg]) => msg?.resource === "documentChangeNotice" &&
+        msg?.values?.operation === "dataContextCountChanged")).toBe(true)
+      broadcastSpy.mockRestore()
       expect(mockedDownloadCsvFile).toHaveBeenCalled()
       expect(result.success).toBe(true)
       // There is also an id field, but that is harder to test.
