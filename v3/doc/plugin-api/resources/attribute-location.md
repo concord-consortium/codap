@@ -7,6 +7,8 @@ Moves an attribute: to a new position among the attributes of its own collection
 another collection of the same data context. It is the API equivalent of dragging an attribute's
 column header in a case table, and plugins use it to rearrange a data set's columns or to change
 its hierarchy — moving an attribute into a parent collection groups the cases by its values.
+Like the drag, the move goes on CODAP's undo history, so the user can undo it; see
+[Undo and redo](../guides/undo-and-redo.md#what-the-history-holds).
 
 An attribute's location is its collection and its position among that collection's attributes,
 counted from `0` on the left. There is nothing to read: the resource supports only `update`. To
@@ -148,9 +150,6 @@ collection that does not exist was ignored in v2 too.
 
 **A `position` of `null` moves the attribute to the left.** v3 reads `null` as `0`. v2 treated it
 as missing and placed the attribute on the right. This is a known bug; omit `position` instead.
-
-**A plugin's move cannot be undone.** v2 added the move to CODAP's undo history, so the user could
-undo it. v3 does not. See [Undo and redo](../guides/undo-and-redo.md#known-limitations).
 
 ## Notifications
 

@@ -6,7 +6,9 @@
 A component is a tile in the CODAP workspace — a graph, a case table, a map, a slider, a web
 view. Plugins use this resource to put components on screen, move and resize them, read how a
 user has configured one, and close them again. Closing is not always deletion — see
-[Known limitations](#known-limitations).
+[Known limitations](#known-limitations). Creating most components and closing one go on CODAP's
+undo history, as they do from CODAP's interface; see
+[Undo and redo](../guides/undo-and-redo.md#what-the-history-holds).
 
 Every component shares a common set of properties. Each **component type** adds its own on top,
 and those type-specific properties are where most of the detail lives.
@@ -512,11 +514,6 @@ Bring a component to the front, then rescale it:
 ```
 
 ## Known limitations
-
-**Creating or closing a component cannot be undone.** v2 added `create` and `delete` on
-`component` to CODAP's undo history, as it did the same changes made in CODAP's interface, so the
-user could undo them. v3 does not. This is a known bug; see
-[Undo and redo](../guides/undo-and-redo.md#known-limitations).
 
 **`autoScale` applies to three types.** Graphs and maps rescale; a case table resizes its
 columns instead. Every other type returns `Component does not support rescale`. This matches v2.
