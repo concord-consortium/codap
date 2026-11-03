@@ -372,7 +372,7 @@ line):
 
 ```json5
     "V3.AboutDialog.welcome.title": "Welcome to CODAP",
-    "V3.AboutDialog.welcome.intro": "Explore, analyze, and visualize data right in your browser. New here? Take the quick tour, or dive into a sample document.",
+    "V3.AboutDialog.welcome.intro": "Explore, analyze, and visualize data right in your browser. New here? Click %{getStarted} to open a sample document or create your own.",
     "V3.AboutDialog.welcome.dontShowAgain": "Don’t show this again",
     "V3.AboutDialog.welcome.aboutButton": "About & licensing",
     "V3.AboutDialog.welcome.getStarted": "Get started"
@@ -402,7 +402,7 @@ git commit -m "CODAP-1595: add About dialog welcome view strings"
 
 In `about-dialog.test.tsx`:
 
-- Add imports:
+- Add `within` to the `@testing-library/react` import, and add:
 
   ```tsx
   import { persistentState } from "../../models/persistent-state"
@@ -479,7 +479,10 @@ In `about-dialog.test.tsx`:
       await setup("welcome")
       expect(screen.getByRole("dialog", { name: "Welcome to CODAP" })).toBeInTheDocument()
       expect(screen.getByRole("img", { name: "CODAP, a product of The Concord Consortium" })).toBeInTheDocument()
-      expect(screen.getByText(/Explore, analyze, and visualize data right in your browser/)).toBeInTheDocument()
+      const intro = screen.getByText(/Explore, analyze, and visualize data right in your browser/)
+      expect(intro).toHaveTextContent("New here? Click Get started to open a sample document or create your own.")
+      // "Get started" in the text is bold and uses the button's string
+      expect(within(intro).getByText("Get started", { selector: "strong" })).toBeInTheDocument()
     })
 
     it("starts with focus on Get started, which closes the dialog", async () => {
@@ -659,7 +662,11 @@ function WelcomeView() {
   return (
     <div className="about-dialog-identity">
       <CodapLogo/>
-      <p className="about-dialog-text">{t("V3.AboutDialog.welcome.intro")}</p>
+      <p className="about-dialog-text">
+        {translateToElements("V3.AboutDialog.welcome.intro", {
+          getStarted: <strong>{t("V3.AboutDialog.welcome.getStarted")}</strong>
+        })}
+      </p>
     </div>
   )
 }
