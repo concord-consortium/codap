@@ -9,11 +9,13 @@
 Add an "About CODAP…" item at the bottom of the Help menu that opens a dialog showing CODAP's identity,
 version, copyright, and license/terms information, with a second view for open-source acknowledgements.
 
-The dialog has two views:
+The dialog has three views:
 
 1. **About CODAP** — logo, version, copyright, license and terms copy, links.
 2. **Open-source libraries** — acknowledgements intro and a link to the full license texts. The library
    list is designed separately in [the open-source libraries design](2026-11-02-codap-1595-oss-libraries-design.md).
+3. **Welcome** — opens automatically when CODAP loads; see
+   [the welcome view design](2026-11-02-codap-1595-welcome-view-design.md).
 
 ## Entry point and state
 
