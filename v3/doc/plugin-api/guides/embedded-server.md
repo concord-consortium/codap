@@ -85,7 +85,8 @@ See [How CODAP processes requests](request-processing.md) for the rest.
 What the host page cannot do is ask about itself. A plugin's requests can refer to the
 component it runs in; the host page has none. So `interactiveFrame` fails with
 `Interactive Frame not found` when the host page sends it. A few other resources fail from the
-host page too, though they should not; see [Known limitations](#known-limitations).
+host page too, though they should not, and the host page has no default data context; see
+[Known limitations](#known-limitations).
 
 ## Receiving notifications
 
@@ -111,6 +112,12 @@ When the host page sends `update document`, CODAP sends `updateDocumentBegun` an
 `updateDocumentEnded` to every plugin and to the host page.
 
 ## Known limitations
+
+**The host page has no default data context.** A request from the host page that does not name a
+data context fails with a not-found error, even right after the host page created one with
+`create dataContext`. v2 kept a default for the host page: the data context it created most
+recently without naming one in the selector. This is a known bug. Until it is fixed, name the
+data context in every request from the host page.
 
 **`undoChangeNotice` fails from the host page.** Every operation, including
 `undoButtonPress` and `redoButtonPress`, returns `Interactive Frame not found`. v2 accepted all
