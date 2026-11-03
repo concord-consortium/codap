@@ -248,10 +248,13 @@ resolves to **your plugin's own data context**:
 This is equivalent to naming `dataContext[#default]`. Your plugin's own data context is:
 
 1. The one it created most recently with `create dataContext` without naming a data context in
-   the selector. A `create` that finds a data context with the requested name already exists
-   returns that one and does not change your plugin's own. When a document is saved, CODAP
+   the selector. A `create` whose name is already taken returns the existing data context and
+   does not change your plugin's own. When a document is saved, CODAP
    records the link, and restores it when the document is opened again.
-2. Failing that, the first data context whose name is your plugin's name.
+2. Failing that, the first data context whose name is your plugin's component name: the `name`
+   that `get component` reports. That is the Plugins menu entry, the name given when the component
+   was created or updated, or else the file name in the plugin's URL. `update interactiveFrame`
+   changes the title, not this name.
 
 A plugin with neither gets a not-found error for a request that relies on the default, even in a
 document with only one data context. So does a plugin whose own data context has been deleted,
@@ -271,8 +274,7 @@ Two more things to know:
 - It does not apply when you are **creating** a data context (`create dataContext` or
   `create dataContextFromURL`) — there is nothing to default to yet.
 
-Until the known limitation above is fixed, relying on the default is fragile in a document with
-more than one data context. Name the context explicitly.
+Naming the data context explicitly avoids depending on which data context is your plugin's own.
 
 ---
 

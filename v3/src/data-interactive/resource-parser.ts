@@ -83,9 +83,7 @@ export function resolveResources(
     }
     const dataSets = getSharedDataSets(document).map(sharedDataSet => sharedDataSet.dataSet)
     if (selector === '#default') {
-      // A plugin's default data context is the one linked to it (by a bare `create dataContext`,
-      // or saved with the document), or else one named for the plugin. As in v2, there is no
-      // fallback to another data context.
+      // The plugin's linked data context, else one named for it; no other fallback (as in V2)
       const webView = isWebViewModel(interactiveFrame?.content) ? interactiveFrame.content : undefined
       const linkedId = webView?.dataContextId
       const linked = linkedId ? dataSets.find(dataSet => dataSet.id === linkedId) : undefined
