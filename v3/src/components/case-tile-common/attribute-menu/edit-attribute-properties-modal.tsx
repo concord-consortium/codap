@@ -94,20 +94,22 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
       // when switching to date with no date precision chosen, use "year" if every value is a year;
       // a numeric precision (e.g. decimal places from a numeric attribute) doesn't count as a date precision
       const hasDatePrecision = typeof precision === "string" && precision !== kDatePrecisionNone
-      if (!hasDatePrecision && attribute?.isInferredYearType()) {
+      // isInferredYearType reads numValues, which for a numeric attribute extract a leading number
+      // (e.g. 2024 from "2024-05-01"), so also require that every value is a plain number
+      const isEveryValuePlainNumber = attribute?.strValues.every(value => value === "" || isFinite(Number(value)))
+      if (!hasDatePrecision && isEveryValuePlainNumber && attribute?.isInferredYearType()) {
         preInferencePrecision.current = { precision }
         setPrecision("year")
       }
     } else if (preInferencePrecision.current) {
-      // switching away from date undoes an inference the user hasn't overridden
+      // switching away from date undoes an untouched inference
       setPrecision(preInferencePrecision.current.precision)
       preInferencePrecision.current = null
     }
   }
 
-  const handleDatePrecisionChange = (newPrecision?: DatePrecision) => {
-    setPrecision(newPrecision)
-    // an explicit choice replaces the inferred precision, so it is kept if the user switches away from date
+  // any click counts as a choice, including re-clicking the inferred "year" (which doesn't fire onChange)
+  const handleDatePrecisionClick = () => {
     preInferencePrecision.current = null
   }
 
@@ -156,9 +158,10 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
           </MenuButton>
           <MenuList>
             <MenuOptionGroup type="radio" value={toDatePrecisionStr(precision)}
-                onChange={(value) => handleDatePrecisionChange(toDatePrecision(value as string))}>
+                onChange={(value) => setPrecision(toDatePrecision(value as string))}>
               {datePrecisions.map(p => (
-                <MenuItemOption key={`precision-${p}`} value={p} data-testid={`attr-precision-option-${p}`}>
+                <MenuItemOption key={`precision-${p}`} value={p} data-testid={`attr-precision-option-${p}`}
+                    onClick={handleDatePrecisionClick}>
                   {p}
                 </MenuItemOption>
               ))}
