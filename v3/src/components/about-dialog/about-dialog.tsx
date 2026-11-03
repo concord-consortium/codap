@@ -215,11 +215,7 @@ function WelcomeView() {
   return (
     <div className="about-dialog-identity">
       <CodapLogo/>
-      <p className="about-dialog-text">
-        {translateToElements("V3.AboutDialog.welcome.intro", {
-          getStarted: <strong>{t("V3.AboutDialog.welcome.getStarted")}</strong>
-        })}
-      </p>
+      <p className="about-dialog-text about-dialog-gap">{t("V3.AboutDialog.welcome.intro")}</p>
     </div>
   )
 }

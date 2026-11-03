@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor, within } from "@testing-library/react"
+import { act, render, screen, waitFor } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
 import { useRef, useState } from "react"
 import build from "../../../build_number.json"
@@ -193,10 +193,7 @@ describe("AboutDialog", () => {
       await setup("welcome")
       expect(screen.getByRole("dialog", { name: "Welcome to CODAP" })).toBeInTheDocument()
       expect(screen.getByRole("img", { name: "CODAP, a product of The Concord Consortium" })).toBeInTheDocument()
-      const intro = screen.getByText(/Explore, analyze, and visualize data right in your browser/)
-      expect(intro).toHaveTextContent("New here? Click Get started to open a sample document or create your own.")
-      // "Get started" in the text is bold and uses the button's string
-      expect(within(intro).getByText("Get started", { selector: "strong" })).toBeInTheDocument()
+      expect(screen.getByText("Explore, analyze, and visualize data right in your browser.")).toBeInTheDocument()
     })
 
     it("starts with focus on Get started, which closes the dialog", async () => {

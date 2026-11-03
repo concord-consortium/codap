@@ -98,9 +98,7 @@ dialog's own lookup of the Help menu button, so the dialog no longer knows what 
   title is inside `ModalHeader`, so it names the dialog.
 - **Body:**
   - The same logo as the About view. Extract the `<img>` into a small shared component so the two can't drift.
-  - Intro text, centered: "Explore, analyze, and visualize data right in your browser. New here? Click
-    **Get started** to open a sample document or create your own." The bold "Get started" is the button's own
-    string, inserted with `translateToElements()`, so the text always names the button correctly.
+  - Intro text, centered: "Explore, analyze, and visualize data right in your browser."
 - **Footer:**
   - "Don't show this again": Chakra `Checkbox` (CODAP's existing checkbox theme), on the left.
   - "About & licensing": `Button variant="v3Clear"`, switches to the About view. (The mockup shows a text
@@ -126,9 +124,7 @@ none); × and Close close the dialog.
 New strings in `en-US.json5`:
 
 - `V3.AboutDialog.welcome.title`: "Welcome to CODAP"
-- `V3.AboutDialog.welcome.intro`: "Explore, analyze, and visualize data right in your browser. New here? Click
-  %{getStarted} to open a sample document or create your own." (`%{getStarted}` is replaced with
-  `V3.AboutDialog.welcome.getStarted` in bold.)
+- `V3.AboutDialog.welcome.intro`: "Explore, analyze, and visualize data right in your browser."
 - `V3.AboutDialog.welcome.dontShowAgain`: "Don’t show this again"
 - `V3.AboutDialog.welcome.aboutButton`: "About & licensing"
 - `V3.AboutDialog.welcome.getStarted`: "Get started"

@@ -59,6 +59,10 @@
 
   .about-dialog-text {
     font-size: 16px;
+
+    &.about-dialog-gap {
+      margin-top: 12px;
+    }
   }
 
   .about-dialog-links {
