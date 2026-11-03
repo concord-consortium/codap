@@ -3,12 +3,12 @@ import {
   ModalBody, ModalCloseButton, ModalFooter, ModalHeader, Radio, RadioGroup, Textarea, Tooltip
 } from "@chakra-ui/react"
 import { ChevronDownIcon } from "@chakra-ui/icons"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { useDataSet } from "../../../hooks/use-data-set"
 import { logMessageWithReplacement } from "../../../lib/log-message"
 import { attributeTypes } from "../../../models/data/attribute-types"
 import { updateAttributesNotification } from "../../../models/data/data-set-notifications"
-import { DatePrecision, datePrecisions, inferDatePrecision, kDatePrecisionNone } from "../../../utilities/date-utils"
+import { DatePrecision, datePrecisions, kDatePrecisionNone } from "../../../utilities/date-utils"
 import { uniqueName } from "../../../utilities/js-utils"
 import { t } from "../../../utilities/translation/translate"
 import { CodapModal } from "../../codap-modal"
@@ -39,6 +39,8 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
   const [precision, setPrecision] = useState(attribute?.effectivePrecision)
   const [userType, setUserType] = useState<SelectableAttributeType>("none")
   const [editable, setEditable] = useState<YesNoValue>("yes")
+  // the precision in effect before "year" was inferred, so it can be restored if the user switches away from date
+  const preInferencePrecision = useRef<{ precision: typeof precision } | null>(null)
 
   useEffect(() => {
     // reset the dialog contents from the attribute on each invocation
@@ -48,6 +50,7 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
     setPrecision(attribute?.effectivePrecision)
     setUserType(attribute?.userType ?? "none")
     setEditable(!metadata?.isEditProtected(attributeId) ? "yes" : "no")
+    preInferencePrecision.current = null
   }, [attribute, attributeId, isOpen, metadata])
 
   const applyChanges = () => {
@@ -86,12 +89,18 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
 
   const handleUserTypeChange = (newType: SelectableAttributeType) => {
     setUserType(newType)
-    // when switching to date with no date precision chosen, infer one from the values;
-    // a numeric precision (e.g. decimal places from a numeric attribute) doesn't count as a date precision
-    const hasDatePrecision = typeof precision === "string" && precision !== kDatePrecisionNone
-    if (newType === "date" && attribute && !hasDatePrecision) {
-      const inferredPrecision = inferDatePrecision(attribute.strValues)
-      if (inferredPrecision) setPrecision(inferredPrecision)
+    if (newType === "date") {
+      // when switching to date with no date precision chosen, use "year" if every value is a year;
+      // a numeric precision (e.g. decimal places from a numeric attribute) doesn't count as a date precision
+      const hasDatePrecision = typeof precision === "string" && precision !== kDatePrecisionNone
+      if (!hasDatePrecision && attribute?.isInferredYearType()) {
+        preInferencePrecision.current = { precision }
+        setPrecision("year")
+      }
+    } else if (preInferencePrecision.current) {
+      // switching away from date undoes the inference, unless the user has since chosen another precision
+      if (precision === "year") setPrecision(preInferencePrecision.current.precision)
+      preInferencePrecision.current = null
     }
   }
 

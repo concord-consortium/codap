@@ -716,3 +716,38 @@ context("case table ui", () => {
     })
   })
 })
+
+context("edit attribute properties date precision", () => {
+  beforeEach(() => {
+    cy.visit(`${Cypress.config("index")}?sample=four&suppressUnsavedWarning`)
+    cy.wait(1000)
+  })
+
+  it("infers year precision when a column of years is changed to date", () => {
+    const years = ["1990", "2005", "2024", "2024"]
+    years.forEach((year, i) => table.typeInCell(2, i + 2, `{selectAll}${year}`))
+
+    table.openAttributeMenu("a")
+    table.selectMenuItemFromAttributeMenu("Edit Attribute Properties...")
+    table.selectAttributeType("numeric")
+    table.selectAttributePrecision("3")
+    table.selectAttributeType("date")
+    cy.get("[data-testid=attr-precision-select]").should("have.text", "year")
+
+    cy.log("switching away from date restores the earlier precision")
+    table.selectAttributeType("numeric")
+    cy.get("[data-testid=attr-precision-select]").should("have.text", "3")
+
+    table.selectAttributeType("date")
+    table.getApplyButton().click({ force: true })
+    table.getCell(2, 2).should("have.text", "1990")
+  })
+
+  it("leaves the precision blank when the values aren't all years", () => {
+    table.openAttributeMenu("a")
+    table.selectMenuItemFromAttributeMenu("Edit Attribute Properties...")
+    table.selectAttributeType("date")
+    cy.get("[data-testid=attr-precision-select]").should("have.text", " ")
+    table.getCancelButton().click({ force: true })
+  })
+})

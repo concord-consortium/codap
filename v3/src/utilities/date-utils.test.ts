@@ -1,4 +1,4 @@
-import { convertToDate, createDate, getDateUnitLabel, inferDatePrecision } from "./date-utils"
+import { convertToDate, createDate, getDateUnitLabel } from "./date-utils"
 
 describe('createDate', () => {
   it('returns current date if no arguments are provided', () => {
@@ -112,26 +112,5 @@ describe("getDateUnitLabel", () => {
   it("defaults to singular for non-finite counts", () => {
     expect(getDateUnitLabel("year", NaN)).toBe("year")
     expect(getDateUnitLabel("year", Infinity)).toBe("year")
-  })
-})
-
-describe("inferDatePrecision", () => {
-  it("infers year precision when every non-empty value is a year", () => {
-    expect(inferDatePrecision(["1990", "2005", "2024"])).toBe("year")
-    expect(inferDatePrecision(["0", "9999"])).toBe("year")
-    expect(inferDatePrecision(["1990", "", " ", "2024"])).toBe("year")
-  })
-
-  it("returns undefined when any value is not a year", () => {
-    expect(inferDatePrecision(["1990", "2024-05-03"])).toBeUndefined()
-    expect(inferDatePrecision(["1990", "2024.5"])).toBeUndefined()
-    expect(inferDatePrecision(["1990", "10000"])).toBeUndefined()
-    expect(inferDatePrecision(["1990", "-1"])).toBeUndefined()
-    expect(inferDatePrecision(["1990", "abc"])).toBeUndefined()
-  })
-
-  it("returns undefined when there are no non-empty values", () => {
-    expect(inferDatePrecision([])).toBeUndefined()
-    expect(inferDatePrecision(["", " "])).toBeUndefined()
   })
 })
