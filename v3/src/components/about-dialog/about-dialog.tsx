@@ -71,6 +71,7 @@ export function AboutDialog({ isOpen, initialView, returnFocusRef, onClose }: IP
 
   return (
     <CodapModal
+      closeOnOverlayClick={false}
       isOpen={isOpen}
       onClose={onClose}
       isCentered={true}
