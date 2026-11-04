@@ -439,6 +439,14 @@ describe("DataSetMetadata", () => {
     expect(counter).toHaveBeenCalledTimes(1)
   })
 
+  it("doesn't create a category set when createIfMissing is false", () => {
+    expect(tree.metadata.getCategorySet("aId", false)).toBeUndefined()
+    expect(tree.metadata.provisionalCategories.size).toBe(0)
+    // an existing set is returned
+    const set1 = tree.metadata.getCategorySet("aId")
+    expect(tree.metadata.getCategorySet("aId", false)).toBe(set1)
+  })
+
   it("supports CategorySets", () => {
     expect(tree.metadata.attributes.size).toBe(0)
     expect(tree.metadata.attributes.get("aId")).toBeUndefined()

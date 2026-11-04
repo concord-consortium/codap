@@ -83,7 +83,7 @@ reach a plugin by structured clone rather than JSON, so a key with no value surv
 | `precision` | yes | |
 | `unit` | yes | |
 | `defaultMin`, `defaultMax` | no | only when a default range is set |
-| `_categoryMap` | in v3, yes | v3 returns it for every attribute, with `__order` listing the attribute's categories. v2 returned it only once something in CODAP had used the attribute's categories, such as a graph legend, so do not depend on it being there |
+| `_categoryMap` | no | only once something in CODAP has used the attribute's categories, such as a graph legend or the case table's category colors, as in v2. `__order` lists the categories in their current order |
 | `v3.categoryShapes` | no | only when some category carries a point shape |
 
 ### What `create` and `update` accept
@@ -141,7 +141,7 @@ These are accepted and currently do nothing:
 | `guid` | `create` | the new attribute's id comes from `id` or `cid` |
 | `id`, `guid` | `update` | the attribute is identified by the selector |
 
-`_categoryMap` and `v3.categoryShapes` are the trap, because `get` returns both: reading an
+`_categoryMap` and `v3.categoryShapes` are the trap, because `get` can return both: reading an
 attribute, changing its category colors and sending it back is the natural thing to try, and it
 silently does nothing. Use `colormap`.
 
@@ -198,16 +198,6 @@ Read one attribute, letting CODAP find it by name across collections:
     "type": "numeric",
     "title": "Height",
     "cid": "ATTR33",
-    "_categoryMap": {
-      "0.08": "#ff6800",
-      "0.5": "#803e75",
-      "0.8": "#a6bdd7",
-      "1.2": "#ffb300",
-      "__order": [ "0.08", "0.5", "0.8", "1.2" ],
-      "attribute-color": "#803e75",
-      "low-attribute-color": "#eee7ed",
-      "high-attribute-color": "#803e75"
-    },
     "editable": true,
     "hidden": false,
     "renameable": true,

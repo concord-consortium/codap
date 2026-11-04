@@ -617,7 +617,7 @@ export const DataSetMetadata = SharedModel
      */
     getCategorySet(attrId: string, createIfMissing = true): Maybe<ICategorySet> {
       let categorySet = self.attributes.get(attrId)?.categories ?? self.provisionalCategories.get(attrId)
-      if (!categorySet && self.data?.attrFromID(attrId)) {
+      if (!categorySet && createIfMissing && self.data?.attrFromID(attrId)) {
         categorySet = createProvisionalCategorySet(self.data, attrId)
 
         self.provisionalCategories.set(attrId, categorySet)
