@@ -1,5 +1,11 @@
 @use "../../../vars";
 
+@mixin top-divider {
+  margin: 10px;
+  border-top: 1px solid vars.$charcoal-light-2;
+  padding-top: 10px;
+}
+
 .map-values-controls {
   display: flex;
   flex-direction: column;
@@ -73,9 +79,7 @@
     }
 
     .map-layer-controls {
-      margin: 10px;
-      border-top: 1px solid vars.$charcoal-light-2;
-      padding-top: 10px;
+      @include top-divider;
 
       > .react-aria-Checkbox {
         font-weight: 500;
@@ -83,6 +87,11 @@
 
       .palette-row {
         font-weight: normal;
+      }
+
+      .map-hot-spot-controls {
+        @include top-divider;
+        font-weight: 500;
       }
     }
   }

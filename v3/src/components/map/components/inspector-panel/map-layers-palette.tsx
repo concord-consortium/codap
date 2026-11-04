@@ -1,16 +1,17 @@
-import {observer} from "mobx-react-lite"
+import { observer } from "mobx-react-lite"
 import LayersIcon from "../../../../assets/icons/inspector-panel/layers-icon.svg"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
-import {t} from "../../../../utilities/translation/translate"
-import {ITileModel} from "../../../../models/tiles/tile-model"
-import {DisplayItemFormatControl} from "../../../data-display/inspector/display-item-format-control"
-import {InspectorPalette} from "../../../inspector-panel"
-import {PaletteCheckbox} from "../../../palette-checkbox"
-import {isMapContentModel} from "../../models/map-content-model"
-import {IMapLayerModel, isMapLayerModel} from "../../models/map-layer-model"
+import { t } from "../../../../utilities/translation/translate"
+import { ITileModel } from "../../../../models/tiles/tile-model"
+import { DisplayItemFormatControl } from "../../../data-display/inspector/display-item-format-control"
+import { InspectorPalette } from "../../../inspector-panel"
+import { PaletteCheckbox } from "../../../palette-checkbox"
+import { isMapContentModel } from "../../models/map-content-model"
+import { IMapLayerModel, isMapLayerModel } from "../../models/map-layer-model"
 import { isMapPinLayerModel } from "../../models/map-pin-layer-model"
 import { isMapPointLayerModel } from "../../models/map-point-layer-model"
-import {MapBaseLayerControl} from "./map-base-layer-control"
+import { MapBaseLayerControl } from "./map-base-layer-control"
+import { MapHotSpotControl } from "./map-hot-spot-control"
 
 import "./map-inspector.scss"
 
@@ -34,12 +35,15 @@ export const MapLayersPalette = observer(function MapLayersPalette(
 
       const mapPointLayerModel = isMapPointLayerModel(layer) ? layer : undefined
       return (
-        <DisplayItemFormatControl
-          dataConfiguration={layer.dataConfiguration}
-          displayItemDescription={layer.displayItemDescription}
-          mapPointLayerModel={mapPointLayerModel}
-        >
-        </DisplayItemFormatControl>)
+        <>
+          <DisplayItemFormatControl
+            dataConfiguration={layer.dataConfiguration}
+            displayItemDescription={layer.displayItemDescription}
+            mapPointLayerModel={mapPointLayerModel}
+          >
+          </DisplayItemFormatControl>
+          <MapHotSpotControl mapPointLayerModel={mapPointLayerModel}/>
+        </>)
     }
 
     return mapModel.layers.map(layer => {
