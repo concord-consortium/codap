@@ -54,7 +54,9 @@ In the map layers palette (`map-layers-palette.tsx`), each point layer's block g
 new `MapHotSpotControl` after its `DisplayItemFormatControl`. When
 `isFeatureEnabled("mapHotSpot")`, it renders a divider (a `border-top` matching the
 existing between-layer separator) and a `PaletteCheckbox` labeled "Hot spot". When the
-flag is off it renders nothing.
+flag is off, or when it isn't given a point layer, it renders nothing. Its `pointLayer`
+prop is optional, so the palette renders it unconditionally and passes the layer only
+when it is a point layer.
 
 Toggling goes through `hotSpotModel.applyModelChange` with undo/redo strings
 (`V3.Undo.map.showHotSpot` / `hideHotSpot` and the `Redo` pair). The log message

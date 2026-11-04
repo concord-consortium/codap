@@ -187,6 +187,12 @@ describe("MapHotSpotControl", () => {
     expect(container.innerHTML).toBe("")
   })
 
+  it("renders nothing without a point layer, even when the flag is on", () => {
+    featureFlagManager.setServerConfig({ mapHotSpot: "on" })
+    const { container } = render(<MapHotSpotControl/>)
+    expect(container.innerHTML).toBe("")
+  })
+
   it("toggles the hot spot when the flag is on", async () => {
     featureFlagManager.setServerConfig({ mapHotSpot: "on" })
     const user = userEvent.setup()
@@ -218,11 +224,11 @@ import { PaletteCheckbox } from "../../../palette-checkbox"
 import { IMapPointLayerModel } from "../../models/map-point-layer-model"
 
 interface IProps {
-  pointLayer: IMapPointLayerModel
+  pointLayer?: IMapPointLayerModel
 }
 
 export const MapHotSpotControl = observer(function MapHotSpotControl({ pointLayer }: IProps) {
-  if (!isFeatureEnabled("mapHotSpot")) return null
+  if (!pointLayer || !isFeatureEnabled("mapHotSpot")) return null
 
   const { hotSpotModel } = pointLayer
 
@@ -255,7 +261,7 @@ export const MapHotSpotControl = observer(function MapHotSpotControl({ pointLaye
 **Step 4: Run the test to verify it passes**
 
 Run: `npm test -- map-hot-spot-control`
-Expected: PASS (2 tests). If the checkbox's accessible name doesn't match, check how `PaletteCheckbox` is queried in other tests and adjust the query, not the component.
+Expected: PASS (3 tests). If the checkbox's accessible name doesn't match, check how `PaletteCheckbox` is queried in other tests and adjust the query, not the component.
 
 **Step 5: Use it in the palette** (`map-layers-palette.tsx`)
 
@@ -277,7 +283,7 @@ In `renderOneFormatControl`, return a fragment so the hot spot control follows t
             mapPointLayerModel={mapPointLayerModel}
           >
           </DisplayItemFormatControl>
-          {mapPointLayerModel && <MapHotSpotControl pointLayer={mapPointLayerModel}/>}
+          <MapHotSpotControl pointLayer={mapPointLayerModel}/>
         </>)
 ```
 
