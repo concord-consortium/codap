@@ -42,7 +42,7 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
   // the precision in effect before "year" was inferred, so it can be restored if the user switches away from date;
   // null when nothing was inferred or the user has since chosen a date precision
   const preInferencePrecision = useRef<{ precision: typeof precision } | null>(null)
-  // true when the user's latest date precision click was blank, so later type changes don't infer over it
+  // true when the latest precision choice was a blank date precision, so later type changes don't infer over it
   const hasChosenBlankDatePrecision = useRef(false)
 
   useEffect(() => {
@@ -94,8 +94,7 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
   const handleUserTypeChange = (newType: SelectableAttributeType) => {
     setUserType(newType)
     if (newType === "date") {
-      // when switching to date with no date precision chosen, use "year" if every value is a year;
-      // a numeric precision (e.g. decimal places from a numeric attribute) doesn't count as a date precision
+      // a numeric precision (decimal places) doesn't count as a date precision
       const hasDatePrecision = typeof precision === "string" && precision !== kDatePrecisionNone
       // a blank precision counts as chosen only if the user clicked it
       const isDatePrecisionChosen = hasDatePrecision || hasChosenBlankDatePrecision.current
@@ -108,7 +107,6 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
         setPrecision("year")
       }
     } else if (preInferencePrecision.current) {
-      // switching away from date undoes an untouched inference
       setPrecision(preInferencePrecision.current.precision)
       preInferencePrecision.current = null
     }
@@ -187,7 +185,10 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
           </MenuButton>
           <MenuList>
             <MenuOptionGroup type="radio" value={value}
-                onChange={(val) => setPrecision(toNumPrecision(val as string))}>
+                onChange={(val) => {
+                  hasChosenBlankDatePrecision.current = false
+                  setPrecision(toNumPrecision(val as string))
+                }}>
               <MenuItemOption key="precision-none" value="" data-testid="attr-precision-option-none">
                 {"\u00A0"}
               </MenuItemOption>

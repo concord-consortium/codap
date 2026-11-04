@@ -807,6 +807,25 @@ context("edit attribute properties date precision", () => {
     table.selectAttributeType("numeric")
     table.selectAttributeType("date")
     precisionSelect().should("have.text", " ")
+    table.getApplyButton().click({ force: true })
+
+    cy.log("reopening the dialog shows the stored blank precision")
+    openEditDialog()
+    cy.get("[data-testid=attr-type-select]").should("have.text", "date")
+    precisionSelect().should("have.text", " ")
+    table.getCancelButton().click({ force: true })
+  })
+
+  it("infers year again after a blank date precision is replaced by a numeric precision", () => {
+    enterValues(years)
+    openEditDialog()
+    table.selectAttributeType("date")
+    precisionSelect().click()
+    cy.get("[data-testid=attr-precision-option-]").click()
+    table.selectAttributeType("numeric")
+    table.selectAttributePrecision("3")
+    table.selectAttributeType("date")
+    precisionSelect().should("have.text", "year")
     table.getCancelButton().click({ force: true })
   })
 
