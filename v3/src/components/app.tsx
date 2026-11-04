@@ -73,6 +73,11 @@ registerTileTypes([])
 export const App = observer(function App() {
   useKeyStates()
   useEmbeddedMode()
+
+  // Only show the entry modal after the welcome dialog has been closed (or never opened in the first place)
+  const [checkedWelcome, setCheckedWelcome] = useState(false)
+  const welcomeClosed = checkedWelcome && !uiState.initialAboutDialogView
+
   // default behavior is to show the user entry modal when CODAP is loaded
   // We close the modal if user imports, drags a document, opens a document
   // or plugin using url params
@@ -82,7 +87,7 @@ export const App = observer(function App() {
   // overrides it whenever a document is auto-opening at startup (e.g. a shared document
   // loaded via the CFM or the `url` param). Reading it here (App is an observer) keeps the
   // modal hidden reactively for the entire load, rather than only after `openedFile`.
-  const showUserEntry = !userDismissedEntry && !uiState.hideUserEntryModal
+  const showUserEntry = welcomeClosed && !userDismissedEntry && !uiState.hideUserEntryModal
   const [isDragOver, setIsDragOver] = useState(false)
   const userEntryOverlayRef = useRef<HTMLDivElement>(null)
   const cfmRef = useRef<CloudFileManager | null>(null)
@@ -151,6 +156,7 @@ export const App = observer(function App() {
   // open the About dialog's welcome view when CODAP loads
   useEffect(() => {
     if (uiState.shouldShowWelcome) uiState.openAboutDialog("welcome")
+    setCheckedWelcome(true)
   }, [])
 
   useEffect(() => {
