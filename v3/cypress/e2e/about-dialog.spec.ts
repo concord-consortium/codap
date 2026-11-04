@@ -29,9 +29,14 @@ context("About CODAP dialog", () => {
     cfm.getHelpMenuButton().click()
     cfm.getHelpMenu().contains(".menuItem", "About CODAP").click()
 
-    cy.get("[data-testid=about-dialog-acknowledgements]").should("contain.text", "projects").click()
-    cy.get(".about-dialog-library").should("have.length.greaterThan", 10)
+    // The list loads when the dialog opens, which can be slow in the coverage build used by the CI regression run.
+    cy.get("[data-testid=about-dialog-acknowledgements]").click()
+    cy.get(".about-dialog-library", { timeout: 30000 }).should("have.length.greaterThan", 10)
     cy.contains(".about-dialog-library-name", /^react$/).should("exist")
+
+    // once the list has loaded, the button back on the About view shows the number of projects
+    cy.get("[data-testid=about-dialog-footer-back]").click()
+    cy.get("[data-testid=about-dialog-acknowledgements]").should("contain.text", "projects").click()
 
     cy.get("[data-testid=about-dialog-library-search]").type("mobx")
     cy.get(".about-dialog-library-name").each(name => {
