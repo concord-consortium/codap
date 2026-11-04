@@ -6,6 +6,10 @@ $modal-width: 350px;
 .chakra-modal__content {
   font-family: Roboto, sans-serif;
 
+  button:focus-visible {
+      @include vars.button-focus-outline;
+  }
+
   .chakra-modal__header.codap-modal-header-v3 {
     padding: 0;
     display: flex;
