@@ -120,9 +120,11 @@ export const lookupFunctions = {
         throw new Error(t("DG.Formula.LookupAttrError.description", { vars: [ attrId, dataSet.title || "" ] }))
       }
       // lookupByIndex can be executed in aggregate context, so we need to handle array arguments.
+      // The index counts only the items shown: set-aside items are skipped, as in V2, and so are items a
+      // filter formula hides (V2 had no filter formula)
       const fn = (index: number) => {
-        const zeroBasedIndex = index - 1
-        return dataSet.getValueAtItemIndex(zeroBasedIndex, attrId) || UNDEF_RESULT
+        const itemId = dataSet.itemIds[index - 1]
+        return (itemId && dataSet.getValue(itemId, attrId)) || UNDEF_RESULT
       }
       if (Array.isArray(indexArg)) {
         return indexArg.map(fn)

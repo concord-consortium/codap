@@ -201,6 +201,21 @@ describe("observeLookupDependencies", () => {
     dataSet.addCases(newCases)
     expect(recalculateCallback).toHaveBeenCalledTimes(3)
   })
+
+  it("should call recalculateCallback with ALL_CASES when items are set aside or shown", () => {
+    // lookupByIndex counts the shown items, so its result changes with them
+    const dataSet = DataSet.create({ id: "ds1" })
+    dataSet.addCases([{ __id__: "case1" }, { __id__: "case2" }])
+    const formulaDependencies: ILookupDependency[] = [{ type: "lookup", dataSetId: "ds1", attrId: "attr1" }]
+    const recalculateCallback = jest.fn()
+    const dispose = observeLookupDependencies(formulaDependencies, new Map([["ds1", dataSet]]), recalculateCallback)
+
+    dataSet.hideCasesOrItems(["case1"])
+    expect(recalculateCallback).toHaveBeenNthCalledWith(1, "ALL_CASES")
+    dataSet.showHiddenCasesAndItems(["case1"])
+    expect(recalculateCallback).toHaveBeenNthCalledWith(2, "ALL_CASES")
+    dispose()
+  })
 })
 
 describe("observeGlobalValues", () => {
