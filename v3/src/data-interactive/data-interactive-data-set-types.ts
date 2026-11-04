@@ -17,11 +17,11 @@ export interface DIFullCase {
     parent?: {
       id?: number
       name?: string
-    }
+    } | null
   }
   id?: number
   itemId?: number
-  parent?: number
+  parent?: number | null
   values?: DICaseValues
 }
 export interface DIAllCases {
@@ -55,7 +55,7 @@ export interface DICase {
   collectionID?: number
   collectionName?: string
   caseID?: number
-  itemID?: number
+  itemID?: number | null
 }
 export type DICollection = Partial<ICodapV2Collection>
 export type DIDataContext = Partial<ICodapV2DataContext>
@@ -78,7 +78,7 @@ export interface DICreateCollection {
 }
 export interface DINewCase {
   id?: number
-  itemID?: number
+  itemID?: number | null
 }
 export interface DIUpdateCase {
   values: DICaseValues
@@ -103,7 +103,7 @@ export type DIResultAttributes = { attrs: ICodapV2Attribute[]}
 export interface DIGetCaseResult {
   case: {
     id?: number
-    parent?: number
+    parent?: number | null
     collection?: {
       id?: number
       name?: string
