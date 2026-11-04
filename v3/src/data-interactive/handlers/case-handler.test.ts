@@ -277,4 +277,59 @@ describe("DataInteractive CaseHandler", () => {
     expect(result5).toEqual({ success: true, caseIDs: [toV2Id(caseIdOf(1))] })
     expect(a2.value(4)).not.toBe("item")
   })
+
+  it("tries a name again with leading and trailing spaces removed, as in V2", () => {
+    const { dataset, c1, c2 } = setupTestDataset()
+    const collection = dataset.collections[2]
+    const a2 = dataset.getAttributeByName("a2")!
+    const a3 = dataset.getAttributeByName("a3")!
+    const parent = toV2Id(dataset.getCasesForCollection(c1.id)[0].__id__)
+    const result = handler.create?.({ dataContext: dataset, collection: c2 }, { parent, values: { " a2 ": "t" } })
+    const [newCase] = result?.values as DINewCase[]
+    expect(dataset.getStrValue(toV3CaseId(newCase.id!), a2.id)).toBe("t")
+
+    const caseId = dataset.getItemChildCaseId(dataset.itemIds[0])!
+    expect(handler.update?.({ dataContext: dataset, collection },
+      [{ id: toV2Id(caseId), values: { "a3 ": 40 } }] as DIValues)?.success).toBe(true)
+    expect(a3.value(0)).toBe(40)
+    // a name that matches no attribute even after trimming still makes the reply report failure
+    expect(handler.update?.({ dataContext: dataset, collection },
+      [{ id: toV2Id(caseId), values: { " zz ": 1 } }] as DIValues)?.success).toBe(false)
+  })
+
+  it("sets values given as an array in the order of the collection's attributes, as in V2", () => {
+    const { dataset, c2 } = setupTestDataset()
+    const collection = dataset.collections[2]
+    const [a3, a4] = collection.attributes
+    const parent = toV2Id(dataset.getCasesForCollection(c2.id)[0].__id__)
+    // extra values are ignored
+    const result = handler.create?.({ dataContext: dataset, collection }, { parent, values: [70, 80, 90] })
+    const [newCase] = result?.values as DINewCase[]
+    const newCaseId = toV3CaseId(newCase.id!)
+    expect(dataset.getValue(newCaseId, a3!.id)).toBe(70)
+    expect(dataset.getValue(newCaseId, a4!.id)).toBe(80)
+
+    // as in V2, an undefined or null value clears its attribute
+    expect(handler.update?.({ dataContext: dataset, collection },
+      [{ id: newCase.id, values: [undefined, 81] }] as any)?.success).toBe(true)
+    expect(dataset.getStrValue(newCaseId, a3!.id)).toBe("")
+    expect(dataset.getValue(newCaseId, a4!.id)).toBe(81)
+    expect(handler.update?.({ dataContext: dataset, collection },
+      [{ id: newCase.id, values: [71, null] }] as any)?.success).toBe(true)
+    expect(dataset.getValue(newCaseId, a3!.id)).toBe(71)
+    expect(dataset.getStrValue(newCaseId, a4!.id)).toBe("")
+  })
+
+  it("skips formula attributes in array values but keeps the positions", () => {
+    const { dataset, c2 } = setupTestDataset()
+    const collection = dataset.collections[2]
+    const [a3] = collection.attributes
+    const f = dataset.addAttribute({ name: "f", formula: { display: "1" } },
+      { collection: collection.id, before: a3!.id })
+    const parent = toV2Id(dataset.getCasesForCollection(c2.id)[0].__id__)
+    const result = handler.create?.({ dataContext: dataset, collection }, { parent, values: ["ignored", 70] })
+    const newCaseId = toV3CaseId((result?.values as DINewCase[])[0].id!)
+    expect(dataset.getStrValue(newCaseId, f.id)).toBe("")
+    expect(dataset.getValue(newCaseId, a3!.id)).toBe(70)
+  })
 })

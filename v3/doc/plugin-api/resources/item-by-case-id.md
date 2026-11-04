@@ -150,10 +150,6 @@ one, such as a parent case left with no items, v2 listed its id in `deletedCases
 replies with an empty `deletedCases`. This is a known bug. Until it is fixed, a plugin that
 tracks case ids should read them again after changing a parent collection's attribute.
 
-**Attribute names in `values` must match exactly.** v2 tried a name again with leading and
-trailing spaces removed, so `"Mass "` still matched `Mass`. v3 ignores a name that differs. This
-is a known bug.
-
 **A boolean value is stored as text.** An item updated with `true` reads back as the text
 `"true"`. v2 kept the boolean. This is a known bug.
 
