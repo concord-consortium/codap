@@ -74,7 +74,7 @@ not repeat its parent's; read the parent for those.
 The values are nested one level: the request's `values` holds an object whose own `values` key
 holds the attribute values. A name that matches no attribute is tried again with leading and
 trailing spaces removed. If it still matches none, the other values are still set, and the reply
-is `{ "success": false }`. v3 currently differs on both points; see
+is `{ "success": false }`. v3 currently doesn't retry the name without the spaces; see
 [Known limitations](#known-limitations).
 
 Updating a parent case changes that value for every item grouped under it, so the case keeps its
@@ -183,10 +183,6 @@ Delete a parent case, and with it every mammal grouped under it:
 **`notify` to move a case is not supported.** In v2, `notify` with `values.caseOrder` moved the
 case within its collection: `"first"`, `"last"`, or a numeric position. The selector had to name
 the collection. v3 rejects the request as an unsupported action. This is a known bug.
-
-**An unknown attribute name does not make `update` report failure.** v2 replied `success: false`
-when a name in `values` matched no attribute, and v3 replies `success: true`. Both still set the
-other values. This is a known bug; the intended behavior is v2's.
 
 **Attribute names must match exactly.** v2 tried a name in `values` again with leading and
 trailing spaces removed, so `"Age "` still matched `Age`. v3 matches the name exactly and ignores

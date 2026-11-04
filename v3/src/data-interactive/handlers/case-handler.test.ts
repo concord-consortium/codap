@@ -235,37 +235,46 @@ describe("DataInteractive CaseHandler", () => {
   it("update works as expected", () => {
     const { dataset } = setupTestDataset()
     const collection = dataset.collections[2]
+    // the cases of the last collection, one for each item
+    const caseIdOf = (index: number) => dataset.getItemChildCaseId(dataset.itemIds[index])!
+    const a2 = dataset.getAttributeByName("a2")!
+    const a3 = dataset.getAttributeByName("a3")!
 
     expect(handler.update?.({}).success).toBe(false)
     expect(handler.update?.({ dataContext: dataset, collection }, {}).success).toBe(false)
 
     // Update single case
-    const caseId0 = dataset.items[0].__id__
-    const result = handler.update?.({ dataContext: dataset, collection }, { id: toV2Id(caseId0), values: { a3: 10 } })
-    expect(result?.success).toBe(true)
-    expect(dataset.getAttributeByName("a3")?.value(0)).toBe(10)
-    expect((result as DISuccessResult).caseIDs?.includes(toV2Id(caseId0))).toBe(true)
+    const result = handler.update?.({ dataContext: dataset, collection },
+      { id: toV2Id(caseIdOf(0)), values: { a3: 10 } })
+    expect(result).toEqual({ success: true, caseIDs: [toV2Id(caseIdOf(0))] })
+    expect(a3.value(0)).toBe(10)
 
     // Update multiple cases
-    const caseId1 = dataset.items[1].__id__
-    const caseId2 = dataset.items[2].__id__
     const result2 = handler.update?.({ dataContext: dataset, collection }, [
-      { id: toV2Id(caseId1), values: { a2: "w" } },
-      { id: toV2Id(caseId2), values: { a1: "c", a2: "c", a3: "c" } }
+      { id: toV2Id(caseIdOf(1)), values: { a3: 20 } },
+      { id: toV2Id(caseIdOf(2)), values: { a3: 30 } }
     ] as DIValues)
-    expect(result2?.success).toBe(true)
-    expect(dataset.getAttributeByName("a2")?.value(1)).toBe("w")
-    const caseIDs = (result2 as DISuccessResult).caseIDs!
-    expect(caseIDs.includes(toV2Id(caseId1))).toBe(true)
-    const attrs = ["a1", "a2", "a3"]
-    attrs.forEach(attrName => expect(dataset.getAttributeByName(attrName)?.value(2)).toBe("c"))
-    expect(caseIDs.includes(toV2Id(caseId2))).toBe(true)
+    expect(result2).toEqual({ success: true, caseIDs: [toV2Id(caseIdOf(1)), toV2Id(caseIdOf(2))] })
+    expect(a3.value(1)).toBe(20)
+    expect(a3.value(2)).toBe(30)
 
     // as in V2, a case sent with no values is still listed
-    const caseId3 = dataset.items[3].__id__
     const result3 = handler.update?.({ dataContext: dataset, collection }, [
-      { id: toV2Id(caseId3) }, { id: toV2Id(caseId1), values: { a2: "v" } }
+      { id: toV2Id(caseIdOf(3)) }, { id: toV2Id(caseIdOf(1)), values: { a3: 21 } }
     ] as DIValues)
-    expect((result3 as DISuccessResult).caseIDs).toEqual([toV2Id(caseId3), toV2Id(caseId1)])
+    expect((result3 as DISuccessResult).caseIDs).toEqual([toV2Id(caseIdOf(3)), toV2Id(caseIdOf(1))])
+
+    // as in V2, a name that matches no attribute makes the reply report failure, but the other values are set
+    const result4 = handler.update?.({ dataContext: dataset, collection },
+      [{ id: toV2Id(caseIdOf(0)), values: { a3: 11, noSuchAttribute: 1 } }] as DIValues)
+    expect(result4).toEqual({ success: false, caseIDs: [toV2Id(caseIdOf(0))] })
+    expect(a3.value(0)).toBe(11)
+
+    // as in V2, only case ids are accepted: an item id that matches no case is skipped
+    const itemId = dataset.itemIds[4]
+    const result5 = handler.update?.({ dataContext: dataset, collection },
+      [{ id: toV2Id(itemId), values: { a2: "item" } }, { id: toV2Id(caseIdOf(1)), values: { a3: 22 } }] as DIValues)
+    expect(result5).toEqual({ success: true, caseIDs: [toV2Id(caseIdOf(1))] })
+    expect(a2.value(4)).not.toBe("item")
   })
 })

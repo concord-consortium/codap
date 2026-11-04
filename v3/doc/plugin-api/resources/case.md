@@ -81,8 +81,8 @@ necessarily list the cases in the order you sent them.
 A case object whose `id` matches no case is skipped, and the rest are still updated. `update`
 replies with `caseIDs`, the ids of the cases it found. A case is listed even when none of its
 values changed, or when its object has no `values`. If no case matched, the reply is
-`{ "success": false }`. v3 currently accepts item ids as well as case ids; see
-[Known limitations](#known-limitations).
+`{ "success": false }`. Only case ids are accepted: to change an item, use
+[`itemByID`](item-by-id.md).
 
 If a name in `values` matches no attribute, the other values are still set, and the reply has
 `success: false` alongside `caseIDs`.
@@ -187,10 +187,6 @@ their values, so a new case whose values in that collection match an existing ca
 parent, including two cases with no values, becomes part of that case rather than a separate one,
 and is missing from the reply. v2 kept them separate.
 
-**An unknown attribute name does not make `update` report failure.** v2 replied `success: false`
-when a name in `values` matched no attribute, and v3 replies `success: true`. Both still set the
-other values. This is a known bug; the intended behavior is v2's.
-
 **Attribute names must match exactly.** On both actions, v2 tried a name in `values` again with
 leading and trailing spaces removed, so `"Age "` still matched `Age`. v3 matches the name exactly
 and ignores one that differs. This is a known bug; the intended behavior is v2's.
@@ -204,10 +200,6 @@ plugin should not rely on it.
 the collection's attribute order, on both actions. v3 does not: `create` makes a case with no
 values, and `update` changes nothing. This is a known bug; until it is fixed, key `values` by
 attribute name.
-
-**`update` also accepts item ids.** When an `id` matches no case, v3 tries it as the id of an
-item, changes that item, and lists the id in `caseIDs`. v2 skipped it. This is a known bug. Use
-the ids of cases, and use [`itemByID`](item-by-id.md) to change an item.
 
 ## Notifications
 
