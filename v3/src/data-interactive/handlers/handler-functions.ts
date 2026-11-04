@@ -120,8 +120,9 @@ export function updateCaseBy(
       // an item is reported as the childmost case containing it
       const caseIds = getGroupedCases(dataContext, [aCase.__id__]).map(({ __id__ }) => __id__)
       const newCaseIds = Array.from(dataContext.caseInfoMap.keys()).filter(caseId => !priorCaseIds.has(caseId))
-      const notifications = []
-      if (caseIds.length > 0) notifications.push(updateCasesNotificationFromIds(dataContext, caseIds))
+      // updateCases goes out even when the case merged into an existing group and so is gone, as the case table
+      // sends it
+      const notifications = [updateCasesNotificationFromIds(dataContext, caseIds)]
       if (newCaseIds.length > 0) notifications.push(createCasesNotification(newCaseIds, dataContext))
       // as in V2, an item update follows its case notices with `updateItems`
       if (itemReturnStyle) notifications.push(updateItemsNotification(dataContext, [aCase.__id__]))

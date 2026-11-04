@@ -92,13 +92,14 @@ context("codap plugins", () => {
     table.getAttributeHeader().contains("Heartrate").should("not.exist")
     webView.clearAPITesterResponses()
 
-    cy.log("Finds the default dataset when no dataset is included")
+    cy.log("Finds no default dataset when the plugin has none")
+    // The tester didn't create Mammals and isn't named for it, so it has no default data context
     const cmd6 = `{
       "action": "get",
       "resource": "collection[Cases].attribute[Order]"
     }`
     webView.sendAPITesterCommand(cmd6)
-    webView.confirmAPITesterResponseContains(/"success":\s*true/)
+    webView.confirmAPITesterResponseContains(/"success":\s*false/)
     webView.clearAPITesterResponses()
 
     cy.log("Handle get dataContextList request")

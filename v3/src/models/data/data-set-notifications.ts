@@ -1,4 +1,6 @@
-import { makeCallback, notification } from "../../data-interactive/notification-utils"
+import {
+  dataContextChangeNoticeResource, makeCallback, notification
+} from "../../data-interactive/notification-utils"
 import { toV2Id } from "../../utilities/codap-utils"
 import { getMetadataFromDataSet } from "../shared/shared-data-utils"
 import { IAttribute } from "./attribute"
@@ -11,10 +13,11 @@ function dataSetNotification(
   operation: string, result?: any, dataSet?: IDataSet, callback?: (result: any) => void,
   extraValues?: Record<string, any>
 ) {
-  const resource = dataSet ? `dataContextChangeNotice[${dataSet.name}]` : `documentChangeNotice`
+  const resource = dataSet ? dataContextChangeNoticeResource(dataSet.name) : `documentChangeNotice`
   const values = { operation, result, ...extraValues }
 
-  return notification(resource, values, callback)
+  // as in V2, the values of a data context change notice are an array of { operation, result }
+  return notification(resource, dataSet ? [values] : values, callback ?? makeCallback(operation))
 }
 
 export const dataContextCountChangedNotification = dataSetNotification("dataContextCountChanged")

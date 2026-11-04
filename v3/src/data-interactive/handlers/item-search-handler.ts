@@ -50,9 +50,9 @@ export const diItemSearchHandler: DIHandler = {
         // When itemOrder is an array, move each item to the specified index in order
         // Note that this means later items can impact the position of earlier items
         itemIds.forEach((id, index) => {
-          const itemIndex = itemOrder[index]
+          const itemIndex = itemOrder[index] != null ? Number(itemOrder[index]) : NaN
           const item = dataContext.getItem(id) as ICase
-          if (item && itemIndex && isFinite(itemIndex)) {
+          if (item && isFinite(itemIndex)) {
             dataContext.removeCases([id])
             const before = dataContext.itemIds[itemIndex]
             dataContext.addCases([item], { before })
@@ -60,10 +60,11 @@ export const diItemSearchHandler: DIHandler = {
           }
         })
       } else {
-        // Otherwise, move all the items to the beginning or end
+        // Otherwise, move all the items to the beginning or end. "first" anchors on the first item
+        // not being moved among all items, set-aside and filtered-out ones included, as v2 does.
         const movingItemIds = new Set(itemIds)
         const before = itemOrder === "first"
-          ? dataContext.itemIds.find(id => !movingItemIds.has(id))
+          ? dataContext._itemIds.find(id => !movingItemIds.has(id))
           : undefined
         dataContext.moveItems(itemIds, { before })
       }

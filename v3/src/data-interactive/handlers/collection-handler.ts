@@ -131,15 +131,16 @@ export const diCollectionHandler: DIHandler = {
     if (values) {
       const { title, labels } = values as DIUpdateCollection
 
-      const hasUpdates = !!title || isNonEmptyCollectionLabels(labels)
+      const setsTitle = !!title
+      const setsLabels = isNonEmptyCollectionLabels(labels)
       dataContext.applyModelChange(() => {
         const metadata = getMetadataFromDataSet(dataContext)
-        if (title) collection.setTitle(title)
-        if (isNonEmptyCollectionLabels(labels)) {
+        if (setsTitle) collection.setTitle(title)
+        if (setsLabels) {
           metadata?.setCollectionLabels(collection.id, labels)
         }
       }, {
-        notify: hasUpdates ? () => updateCollectionNotification(collection, dataContext) : undefined
+        notify: setsTitle || setsLabels ? () => updateCollectionNotification(collection, dataContext) : undefined
       })
     }
 

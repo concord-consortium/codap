@@ -299,11 +299,6 @@ lists the id in `changedCases`. v2 accepted only item ids, and failed the reques
 was not one. This is a known bug. Use the ids of items, from `itemSearch` or `itemByCaseID`, and
 use `caseByID` to change a case.
 
-**The requesting plugin hears its own notifications.** It receives the `createCases`, `createItems`,
-`updateCases` and `updateItems` its own request caused. v2 skipped the requester for
-`createItems`, `updateCases` and `updateItems`. This is a known bug, described in
-[the catalog's known limitations](../notifications.md#known-limitations).
-
 ## Notifications
 
 `create` notifies the plugins listening to the data context with `createCases` on
@@ -311,9 +306,9 @@ use `caseByID` to change a case.
 created, then `createItems`, with the ids of the cases the request created and, alongside each,
 the item it was built from. `update` sends `updateCases` for the items' cases in the last
 collection, `createCases` if the change regroups cases, then `updateItems`, with the items' ids.
-An update that names no known attribute sends nothing. `delete` sends `deleteCases`, then
-`deleteItems`, with the deleted items' ids; v2 sent no `deleteItems`. Current deviations
-are listed under [Known limitations](#known-limitations).
+v2 sent no `createCases` for a regroup; its `updateCases` result listed the cases created and
+deleted instead. An update that names no known attribute sends nothing. `delete` sends
+`deleteCases`, then `deleteItems`, with the deleted items' ids; v2 sent no `deleteItems`.
 See [the notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext)
 for what each carries.
 
