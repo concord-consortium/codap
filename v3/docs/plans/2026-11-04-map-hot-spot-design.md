@@ -57,7 +57,10 @@ existing between-layer separator) and a `PaletteCheckbox` labeled "Hot spot". Wh
 flag is off it renders nothing.
 
 Toggling goes through `hotSpotModel.applyModelChange` with undo/redo strings
-(`V3.Undo.map.showHotSpot` / `hideHotSpot` and the `Redo` pair) and a log message.
+(`V3.Undo.map.showHotSpot` / `hideHotSpot` and the `Redo` pair). The log message
+follows the `map-measure-palette.tsx` pattern and adds the layer's dataset:
+`logStringifiedObjectMessage("mapAction: %@", {mapAction: "showHotSpot" | "hideHotSpot", dataset: <name>})`.
+The control takes the point layer (not just the hot spot model) so it can reach the dataset.
 The label string is `V3.Inspector.map.hotSpot`.
 
 There is one section per point layer, matching the per-layer model.

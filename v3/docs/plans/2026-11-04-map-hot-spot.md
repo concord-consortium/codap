@@ -169,7 +169,7 @@ Near the other `V3.Inspector.*` entries (for example after `V3.Inspector.graph.l
 import { act, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { featureFlagManager } from "../../../../models/feature-flags/feature-flag-manager"
-import { MapHotSpotModel } from "../../models/map-hot-spot-model"
+import { MapPointLayerModel } from "../../models/map-point-layer-model"
 import { MapHotSpotControl } from "./map-hot-spot-control"
 
 jest.mock("../../../../utilities/translation/translate", () => ({
@@ -183,20 +183,20 @@ describe("MapHotSpotControl", () => {
   })
 
   it("renders nothing when the mapHotSpot flag is off", () => {
-    const { container } = render(<MapHotSpotControl hotSpotModel={MapHotSpotModel.create()}/>)
+    const { container } = render(<MapHotSpotControl pointLayer={MapPointLayerModel.create()}/>)
     expect(container.innerHTML).toBe("")
   })
 
   it("toggles the hot spot when the flag is on", async () => {
     featureFlagManager.setServerConfig({ mapHotSpot: "on" })
     const user = userEvent.setup()
-    const hotSpotModel = MapHotSpotModel.create()
-    render(<MapHotSpotControl hotSpotModel={hotSpotModel}/>)
+    const pointLayer = MapPointLayerModel.create()
+    render(<MapHotSpotControl pointLayer={pointLayer}/>)
 
     const checkbox = screen.getByRole("checkbox", { name: "V3.Inspector.map.hotSpot" })
     expect(checkbox).not.toBeChecked()
     await user.click(checkbox)
-    expect(hotSpotModel.isVisible).toBe(true)
+    expect(pointLayer.hotSpotModel.isVisible).toBe(true)
     expect(checkbox).toBeChecked()
   })
 })
@@ -211,18 +211,20 @@ Expected: FAIL, cannot find module `./map-hot-spot-control`.
 
 ```tsx
 import { observer } from "mobx-react-lite"
-import { logMessageWithReplacement } from "../../../../lib/log-message"
+import { logStringifiedObjectMessage } from "../../../../lib/log-message"
 import { isFeatureEnabled } from "../../../../models/feature-flags/feature-flag-manager"
 import { t } from "../../../../utilities/translation/translate"
 import { PaletteCheckbox } from "../../../palette-checkbox"
-import { IMapHotSpotModel } from "../../models/map-hot-spot-model"
+import { IMapPointLayerModel } from "../../models/map-point-layer-model"
 
 interface IProps {
-  hotSpotModel: IMapHotSpotModel
+  pointLayer: IMapPointLayerModel
 }
 
-export const MapHotSpotControl = observer(function MapHotSpotControl({ hotSpotModel }: IProps) {
+export const MapHotSpotControl = observer(function MapHotSpotControl({ pointLayer }: IProps) {
   if (!isFeatureEnabled("mapHotSpot")) return null
+
+  const { hotSpotModel } = pointLayer
 
   const handleChange = (checked: boolean) => {
     const op = checked ? "show" : "hide"
@@ -231,7 +233,8 @@ export const MapHotSpotControl = observer(function MapHotSpotControl({ hotSpotMo
     }, {
       undoStringKey: `V3.Undo.map.${op}HotSpot`,
       redoStringKey: `V3.Redo.map.${op}HotSpot`,
-      log: logMessageWithReplacement("Map hot spot changed: %@", { op })
+      log: logStringifiedObjectMessage("mapAction: %@",
+        { mapAction: `${op}HotSpot`, dataset: pointLayer.dataConfiguration.dataset?.name })
     })
   }
 
@@ -274,7 +277,7 @@ In `renderOneFormatControl`, return a fragment so the hot spot control follows t
             mapPointLayerModel={mapPointLayerModel}
           >
           </DisplayItemFormatControl>
-          {mapPointLayerModel && <MapHotSpotControl hotSpotModel={mapPointLayerModel.hotSpotModel}/>}
+          {mapPointLayerModel && <MapHotSpotControl pointLayer={mapPointLayerModel}/>}
         </>)
 ```
 
