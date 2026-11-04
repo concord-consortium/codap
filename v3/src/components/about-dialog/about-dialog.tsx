@@ -191,7 +191,7 @@ function AboutView({ acknowledgementsButtonRef, librariesState, onShowLibraries 
       <p className="about-dialog-text">
         {translateToElements("V3.AboutDialog.license.p2", {
           yourUse: <strong>{t("V3.AboutDialog.license.yourUse")}</strong>,
-          termsOfUse: <ExternalLink href={kTermsOfUseUrl}>{t("V3.AboutDialog.license.termsOfUse")}</ExternalLink>,
+          termsOfUse: <ExternalLink href={kTermsOfUseUrl}>{t("V3.AboutDialog.termsOfUse")}</ExternalLink>,
           licensingPage:
             <ExternalLink href={kLicensingUrl}>{t("V3.AboutDialog.license.licensingPage")}</ExternalLink>,
           licensingEmail: <a href={`mailto:${kLicensingEmail}`}>{kLicensingEmail}</a>
@@ -199,7 +199,7 @@ function AboutView({ acknowledgementsButtonRef, librariesState, onShowLibraries 
       </p>
       <hr className="about-dialog-divider"/>
       <div className="about-dialog-links">
-        <ExternalLink href={kTermsOfUseUrl} showArrow={true}>{t("V3.AboutDialog.links.termsOfUse")}</ExternalLink>
+        <ExternalLink href={kTermsOfUseUrl} showArrow={true}>{t("V3.AboutDialog.termsOfUse")}</ExternalLink>
         <ExternalLink href={kLicensingDetailsUrl} showArrow={true}>
           {t("V3.AboutDialog.links.licensingDetails")}
         </ExternalLink>
@@ -209,7 +209,7 @@ function AboutView({ acknowledgementsButtonRef, librariesState, onShowLibraries 
           justifyContent="space-between" onClick={onShowLibraries} data-testid="about-dialog-acknowledgements">
         {t("V3.AboutDialog.acknowledgementsButton")}{" "}
         <span>
-          {librariesState.status === "loaded" && `${projectCountText(librariesState.libraries.length)} `}
+          {librariesState.libraries && `${projectCountText(librariesState.libraries.length)} `}
           <span aria-hidden="true">›</span>
         </span>
       </Button>
@@ -221,7 +221,7 @@ function WelcomeView() {
   return (
     <div className="about-dialog-identity">
       <CodapLogo/>
-      <p className="about-dialog-text about-dialog-gap">{t("V3.AboutDialog.welcome.intro")}</p>
+      <p className="about-dialog-text welcome-dialog-margin">{t("V3.AboutDialog.welcome.intro")}</p>
     </div>
   )
 }
@@ -235,10 +235,6 @@ interface IWelcomeFooterProps {
 const WelcomeFooter = observer(function WelcomeFooter({
   getStartedButtonRef, onShowAbout, onClose
 }: IWelcomeFooterProps) {
-  function handleHideWelcomeChange(hide: boolean) {
-    persistentState.setHideWelcome(hide)
-  }
-
   return (
     <>
       <Checkbox
@@ -246,7 +242,7 @@ const WelcomeFooter = observer(function WelcomeFooter({
         mr="auto"
         isChecked={persistentState.hideWelcome}
         data-testid="about-dialog-hide-welcome"
-        onChange={e => handleHideWelcomeChange(e.target.checked)}
+        onChange={e => persistentState.setHideWelcome(e.target.checked)}
       >
         {t("V3.AboutDialog.welcome.dontShowAgain")}
       </Checkbox>
@@ -275,8 +271,8 @@ function LibrariesView({ librariesState }: ILibrariesViewProps) {
   const [query, setQuery] = useState("")
   const lowerCaseQuery = query.trim().toLowerCase()
   const matches = useMemo(() => {
-    if (librariesState.status !== "loaded") return []
-    return librariesState.libraries.filter(library => matchesQuery(library, lowerCaseQuery))
+    const libraries = librariesState.libraries ?? []
+    return libraries.filter(library => matchesQuery(library, lowerCaseQuery))
   }, [librariesState, lowerCaseQuery])
 
   function renderLibraries() {
@@ -310,8 +306,15 @@ function LibrariesView({ librariesState }: ILibrariesViewProps) {
   return (
     <>
       <p>{t("V3.AboutDialog.libraries.intro")}</p>
-      <Input size="sm" mt="3" value={query} onChange={e => setQuery(e.target.value)}
-        placeholder={searchLabel} aria-label={searchLabel} data-testid="about-dialog-library-search"/>
+      <Input
+        size="sm"
+        mt="3"
+        value={query}
+        onChange={e => setQuery(e.target.value)}
+        placeholder={searchLabel}
+        aria-label={searchLabel}
+        data-testid="about-dialog-library-search"
+      />
       <div
         className="about-dialog-library-list"
         tabIndex={0}

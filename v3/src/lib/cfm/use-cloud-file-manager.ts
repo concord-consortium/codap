@@ -214,7 +214,6 @@ function getHelpUrl() {
   return translatedHelpURLs[gLocale.current] || helpURL
 }
 
-// exported for testing
 export function getMenuBar(cfm: CloudFileManager) {
   const isToolbarTop = persistentState.toolbarPosition === "Top"
   const isAccelOn = !persistentState.disableGraphicsAcceleration

@@ -74,7 +74,7 @@ describe("AboutDialog", () => {
     })
 
     it.each([
-      ["MIT License", "https://github.com/concord-consortium/codap/blob/main/LICENSE"],
+      ["MIT License", "https://github.com/concord-consortium/codap/blob/main/v3/LICENSE"],
       ["concord.org/licensing", "https://concord.org/licensing"],
       ["Licensing details", "https://concord.org/licensing/"],
       ["Source on GitHub", "https://github.com/concord-consortium/codap"]

@@ -8,8 +8,8 @@ export interface IOssLibrary {
   license: string
 }
 
-export type OssLibrariesState =
-  { status: "loading" } | { status: "loaded", libraries: IOssLibrary[] } | { status: "error" }
+type OssLibrariesStatus = "loading" | "loaded" | "error"
+export type OssLibrariesState = { status: OssLibrariesStatus, libraries?: IOssLibrary[] }
 
 // shared by every use of the hook, so the list is only fetched once per session
 let librariesRequest: Maybe<Promise<IOssLibrary[]>>

@@ -39,8 +39,8 @@ export class UIState {
   private _hideUserEntryModal = false
   private _suppressWelcome = false
   // the About dialog is open whenever this is set; it's the view the dialog opened on
-  @observable
   // Undefined is required so the field exists when makeObservable() runs in CI Cypress tests.
+  @observable
   private _initialAboutDialogView: Maybe<AboutDialogView> = undefined
   // Where focus goes when the About dialog closes. When undefined, Chakra decides what should have focus.
   // Not observable, since MobX shouldn't wrap a DOM element.
