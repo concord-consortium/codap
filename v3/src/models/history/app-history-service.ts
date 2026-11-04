@@ -5,6 +5,7 @@ import { ILogFunctionEnv } from "../../lib/log-message"
 import { DEBUG_UNDO } from "../../lib/debug"
 import { ICoreNotifyFunctionEnv } from "../../data-interactive/notification-core-types"
 import { getNotificationRequesterTileId } from "../../data-interactive/notification-requester"
+import { isDataContextChangeNotice } from "../../data-interactive/notification-utils"
 import { isChildOfUndoRedo, runningCalls } from "./tree-types"
 import { withoutUndo } from "./without-undo"
 
@@ -51,9 +52,10 @@ export class AppHistoryService implements IHistoryService {
           const __notification = typeof _notification === "function" ? _notification() : _notification
           if (__notification) {
             const { message, callback } = __notification
-            // as in V2, a plugin doesn't receive data context change notices for its own requests
+            // a plugin isn't sent the data context change notices broadcast while its own request is being
+            // handled (see notification-requester.ts)
             const _excludeTileId = excludeTileId ??
-              (message.resource.startsWith("dataContextChangeNotice") ? getNotificationRequesterTileId() : undefined)
+              (isDataContextChangeNotice(message.resource) ? getNotificationRequesterTileId() : undefined)
             this.tileEnv.notify(message, callback ?? (() => null), notifyTileId, _excludeTileId)
           }
         }

@@ -300,7 +300,7 @@ the plugin's own iframe, so a request that arrives without one falls through to
 `create`, `update` and `delete` notify the other plugins listening to the data context, with
 `createAttributes`, `updateAttributes` and `deleteAttributes` on
 `dataContextChangeNotice[<context>]`. Moving an attribute is done through
-`attributeLocation`, which sends `moveAttribute`. Two current deviations are listed under
+`attributeLocation`, which sends `moveAttribute`. One current deviation is listed under
 [Known limitations](#known-limitations). See
 [the notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext) for
 what each carries.

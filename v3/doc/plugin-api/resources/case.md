@@ -226,8 +226,7 @@ the ids of cases, and use [`itemByID`](item-by-id.md) to change an item.
 ## Notifications
 
 `create` notifies the plugins listening to the data context with `createCases`, and `update` with
-`updateCases`, both on `dataContextChangeNotice[<context>]`. One current deviation is listed under
-[Known limitations](#known-limitations). See
+`updateCases`, both on `dataContextChangeNotice[<context>]`. See
 [the notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext) for
 what each carries.
 

@@ -49,7 +49,6 @@ export async function processAction(
   const func = getDIHandler(type)?.[a]
   if (!func) return errorResult(t("V3.DI.Error.unsupportedAction", { vars: [a, type] }))
 
-  // notices broadcast while the handler runs aren't sent back to the requesting plugin
   const actionResult = await withNotificationRequester(tile?.id, () => func(resources, action.values))
   return actionResult ?? errorResult(t("V3.DI.Error.undefinedResponse"))
 }

@@ -22,8 +22,9 @@ for something. Those are documented on each resource's own page.
 A notification arrives through the same channel as a reply to your own request: CODAP calls the
 `requestHandler(command, callback)` your plugin passed to its iframe-phone endpoint (see
 [Sending requests and receiving notifications](README.md#sending-requests-and-receiving-notifications)).
-Branch on `command.resource`, then on `command.values.operation`, and call `callback` when you
-are done:
+Branch on `command.resource`, then on `command.values.operation`. For
+`dataContextChangeNotice[<context>]`, `values` is an array of changes, so iterate it and read each
+change's `operation`. Call `callback` when you are done:
 
 ```js
 function requestHandler (command, callback) {
@@ -102,7 +103,8 @@ the slider notice on `global[<name>]` carries only the new value:
 }
 ```
 
-So branch on `resource` first, and only then on `values.operation`.
+So branch on `resource` first, and only then on `values.operation`, or, for
+`dataContextChangeNotice[<context>]`, on the `operation` of each change in the `values` array.
 
 `resource` belongs to one of these families, each a section below:
 
@@ -140,7 +142,7 @@ plugin watching one data set can filter on it.
 | `deleteCollection` | a collection is removed |
 | `updateDataContext` | the context's own properties change, such as its title |
 
-Every one carries `result` in `values`.
+Every change in `values` carries `result`.
 <!-- END GENERATED: notifications-data -->
 
 These operations are part of the contract, but CODAP does not send them yet; see
@@ -389,8 +391,8 @@ name alongside the old one and go through [deprecation](conventions.md#deprecate
 **Data changes arrive one at a time.** v2 collected the changes made together and sent one
 `dataContextChangeNotice[<context>]` whose `values` array holds all of them. CODAP sends one
 notification per change, each with a `values` array of one. A plugin that iterates over `values`
-sees the same changes, but across several notifications rather than one. The intended behavior is
-v2's.
+sees the same changes, but across several notifications rather than one. This is a known bug; the
+intended behavior is v2's.
 
 **Some API changes send no notification.** These requests change data, but v3 does not notify
 other plugins about them. v2 did, for every one of them:

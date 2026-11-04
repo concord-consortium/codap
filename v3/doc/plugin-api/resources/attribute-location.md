@@ -154,9 +154,9 @@ undo it. v3 does not. See [Undo and redo](../guides/undo-and-redo.md#known-limit
 
 ## Notifications
 
-A move sends `moveAttribute` on `dataContextChangeNotice[<context>]`, to every plugin listening
-to the data context, including the one that asked, as in v2. When the move leaves a collection
-with no attributes, `deleteCollection` is sent as well. In v3, a move to the attribute's own
+A move sends `moveAttribute` on `dataContextChangeNotice[<context>]` to every other plugin
+listening to the data context. v2 also sent it to the plugin that asked. When the move leaves a
+collection with no attributes, `deleteCollection` is sent as well. In v3, a move to the attribute's own
 position plus one, or to position `0` when it is already first, sends nothing; other moves that
 leave the attribute where it was still send `moveAttribute`. v2 sent `moveAttribute` for every
 move. See
