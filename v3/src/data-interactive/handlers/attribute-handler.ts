@@ -3,7 +3,10 @@ import { kPluginAttributeDragId } from "../../components/drag-drop/drag-drop-con
 import { kWebViewBodyClass } from "../../components/web-view/web-view-defs"
 import { appState } from "../../models/app-state"
 import { IAttribute } from "../../models/data/attribute"
-import { createAttributesNotification, updateAttributesNotification } from "../../models/data/data-set-notifications"
+import {
+  createAttributesNotification, deleteCollectionNotification, removeAttributesNotification,
+  updateAttributesNotification
+} from "../../models/data/data-set-notifications"
 import { IFreeTileLayout, isFreeTileRow } from "../../models/document/free-tile-row"
 import { getMetadataFromDataSet } from "../../models/shared/shared-data-utils"
 import { uiState } from "../../models/ui-state"
@@ -67,8 +70,16 @@ export const diAttributeHandler: DIHandler = {
     if (!attribute) return attributeNotFoundResult
     if (!dataContext) return dataContextNotFoundResult
 
+    const attributeId = attribute.id
+    let removedCollectionId: string | undefined
     dataContext.applyModelChange(() => {
-      dataContext.removeAttribute(attribute.id)
+      removedCollectionId = dataContext.removeAttribute(attributeId)?.removedCollectionId
+    }, {
+      notify: () => {
+        const notifications = [removeAttributesNotification([attributeId], dataContext)]
+        if (removedCollectionId) notifications.unshift(deleteCollectionNotification(dataContext))
+        return notifications
+      }
     })
     return { success: true }
   },

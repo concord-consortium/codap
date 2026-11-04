@@ -394,21 +394,9 @@ notification per change, each with a `values` array of one. A plugin that iterat
 sees the same changes, but across several notifications rather than one. This is a known bug; the
 intended behavior is v2's.
 
-**Some API changes send no notification.** These requests change data, but v3 does not notify
-other plugins about them. v2 did, for every one of them:
-
-- `update` and `delete` on `caseByID`, `caseByIndex`, `itemByID` and `itemByCaseID`
-- `update` on `item` with a single item
-- `delete` on `itemSearch`. v2 reported item deletes as `deleteCases`
-- `notify` on `itemSearch`, which moves items. v2 reported the move as `moveCases`
-- `delete` on `attribute`
-- `delete` on `allCases`
-- `update` and `delete` on `collection`
-- `create` on `dataContextFromURL`. v2 reported the new data context as
-  `dataContextCountChanged` on `documentChangeNotice`
-
-This is a known bug; the intended behavior is that each sends the same notification as the
-equivalent change made in CODAP's own interface.
+**`create` on `dataContextFromURL` sends no notification.** v2 reported the new data context as
+`dataContextCountChanged` on `documentChangeNotice`. CODAP sends nothing, so other plugins do not
+learn of the new data context. This is a known bug; the intended behavior is v2's.
 
 **Formula recalculation rarely sends `dependentCases`.** v2 sent `dependentCases` for formula
 attributes whose values had to be recalculated:
@@ -427,8 +415,8 @@ through an item resource, v2 sent `createItems` or `updateItems` in addition to 
 operation. v3 sends only `createCases` or `updateCases`, so a plugin filtering on the item
 operations receives nothing. v2 also sent `resetCollections` when moving an attribute to another collection was undone,
 which v3 does not send. This is a known bug; the intended behavior is that v3 sends these as v2
-did. Deleting and moving items belong to the previous entry: v2 reported them as `deleteCases`
-and `moveCases`, not as item operations.
+did. Deleting and moving items are reported as `deleteCases` and `moveCases`, as in v2, not as
+item operations.
 
 **Some map moves send no `change map coordinates`.** v3 does not notify plugins when a plugin sets
 a map's center or zoom with `update component`, when a plugin rescales it with `notify component`
