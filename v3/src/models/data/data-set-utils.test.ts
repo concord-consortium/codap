@@ -196,7 +196,7 @@ describe("selectAndDeselectCases", () => {
     expect(data.isCaseSelected(c2)).toBe(true)
     expect(applyModelChangeSpy).not.toHaveBeenCalled()
     expect(notify).toHaveBeenCalledTimes(1)
-    expect(notify.mock.calls[0][0].values.operation).toBe("selectCases")
+    expect(notify.mock.calls[0][0].values[0].operation).toBe("selectCases")
   })
 
   it("deselects the remove delta and notifies", () => {

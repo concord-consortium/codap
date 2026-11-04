@@ -184,7 +184,8 @@ Two directions, and they are not symmetrical:
 - **CODAP → plugin.** CODAP calls your `requestHandler(command, callback)` with a `notify`
   message. This is how notifications arrive — a case was selected, a document was delivered, a
   component's title changed. Inspect `command.resource` and `command.values.operation` to decide
-  what it is, and call `callback` when you are done:
+  what it is (for `dataContextChangeNotice[<context>]`, `values` is an array of changes, each
+  with its own `operation`), and call `callback` when you are done:
 
 ```js
 function requestHandler (command, callback) {
