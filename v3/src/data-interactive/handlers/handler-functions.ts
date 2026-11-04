@@ -137,10 +137,13 @@ export function updateCasesBy(resources: DIResources, values?: DIValues, itemRet
       const dcCase = v3CaseId ? dataContext.caseInfoMap.get(v3CaseId) : undefined
       const dcItem = v3ItemId ? dataContext.getItem(v3ItemId) : undefined
       const v3Id = dcCase ? v3CaseId : v3ItemId
-      if (id && aCase.values && v3Id && (dcItem || dcCase)) {
+      // as in V2, update case lists every case it finds, even one sent with no values
+      if (id && v3Id && (dcItem || dcCase) && (aCase.values || !itemReturnStyle)) {
         caseIDs.push(id)
-        const updatedAttributes = attrNamesToIds(aCase.values, dataContext)
-        updatedCases.push({ ...updatedAttributes, __id__: v3Id })
+        if (aCase.values) {
+          const updatedAttributes = attrNamesToIds(aCase.values, dataContext)
+          updatedCases.push({ ...updatedAttributes, __id__: v3Id })
+        }
       }
     })
     dataContext.setCaseValues(updatedCases)

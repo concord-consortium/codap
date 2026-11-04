@@ -54,15 +54,22 @@ object on its own. v3 accepts one for `update` too, but v2 did not, so send an a
 
 | Property | Type | Notes |
 |---|---|---|
-| `values` | Object | The new case's values, keyed by the names of this collection's attributes. Attributes you leave out are empty. A name that matches none of them is ignored |
-| `parent` | number | The id of the parent case. Required when the collection has a parent collection, and the parent case must already exist. Omit it for a case in the top collection |
+| `values` | Object | The new case's values, keyed by the names of this collection's attributes. Attributes you leave out are empty, and a case object with no `values` creates an empty case. A name that matches none of them is ignored |
+| `parent` | number | The id of the parent case. Required when the collection has a parent collection, and the parent case must already exist in a collection above this one. A case in the top collection ignores it; v2 used it if it named a case, and otherwise failed |
 
 The new case takes its parent's values for the attributes of the collections above, so `values`
-needs only this collection's attributes.
+needs only this collection's attributes. A parent case created on its own starts with one empty
+case beneath it; the first child case you create under it fills that case rather than adding
+another, as in v2.
 
-`create` replies with the ids of the new cases, as an array of objects. Each carries `id`, the
-new case's id, and `itemID`, the id of the item behind it. The reply does not necessarily list
-the cases in the order you sent them.
+A case object whose `parent` is missing or names no case in a collection above is skipped, and
+the others are still created. If none can be created, the request fails with
+`Cannot create case with invalid or deleted parent`. (v2 also skipped such a case, but replied
+`success: true` even when it created nothing.)
+
+`create` replies with the ids of the new cases in this collection, as an array of objects. Each
+carries `id`, the new case's id, and `itemID`, the id of the item behind it. The reply does not
+necessarily list the cases in the order you sent them.
 
 ### What `update` accepts
 
@@ -74,8 +81,8 @@ the cases in the order you sent them.
 A case object whose `id` matches no case is skipped, and the rest are still updated. `update`
 replies with `caseIDs`, the ids of the cases it found. A case is listed even when none of its
 values changed, or when its object has no `values`. If no case matched, the reply is
-`{ "success": false }`. v3 currently leaves out an object with no `values`, and accepts item ids
-as well as case ids; see [Known limitations](#known-limitations).
+`{ "success": false }`. v3 currently accepts item ids as well as case ids; see
+[Known limitations](#known-limitations).
 
 If a name in `values` matches no attribute, the other values are still set, and the reply has
 `success: false` alongside `caseIDs`.
@@ -169,29 +176,16 @@ sendRequest({
 
 ## Known limitations
 
-**The `create` reply can leave out a case, and can overwrite one.** When CODAP creates a parent
-case, it also makes an empty case beneath it in each child collection. A child case you then
-create under that parent fills a case of that parent with no values in this collection, if there
-is one, instead of adding another, and that case is missing from the reply. This includes a real
-case whose values the user has cleared. The values you send for the collections above are also
-applied to the parent case, so they can change it. v2 listed every case it created and left the
-parent's values alone.
-This is a known bug. Until it is fixed, a plugin that creates a parent and then its children
-should read the children's ids back, for example with `caseSearch` or `allCases`.
+**A parent's only child case can be filled if it is empty.** CODAP can't always tell the empty
+case a new parent starts with from a real child case whose values were all cleared. If a parent's
+only child case has no values, and no request has filled it since the document was opened, the
+next child case you create under it fills that case instead of adding another. v2 added a new case
+under a parent that already had a child.
 
-**Both actions run without a collection.** v2 failed when the `collection` segment was missing:
-`create` with `Collection not found` and `update` with `{ "success": false }`. When the segment
-named a collection that does not exist, both failed with an error saying the collection could not
-be resolved. v3 carries out the request in either case. `create` adds the cases using the attribute
-names in `values`, and replies with every case the request created in every collection, so a
-misspelled collection name creates cases rather than failing. This is a known bug; the intended
-behavior is v2's.
-
-**A child case without a valid parent creates a new, empty parent case.** v2 created nothing for
-a case in a child collection whose `parent` was missing or did not exist, although it still
-replied `success: true`. v3 creates the case, under an existing parent case with no values if
-there is one, and otherwise under a new one. This is a known bug; the intended
-behavior is v2's.
+**A new case that matches an existing one joins it.** CODAP groups the cases of a collection by
+their values, so a new case whose values in that collection match an existing case under the same
+parent, including two cases with no values, becomes part of that case rather than a separate one,
+and is missing from the reply. v2 kept them separate.
 
 **An unknown attribute name does not make `update` report failure.** v2 replied `success: false`
 when a name in `values` matched no attribute, and v3 replies `success: true`. Both still set the
@@ -201,18 +195,15 @@ other values. This is a known bug; the intended behavior is v2's.
 leading and trailing spaces removed, so `"Age "` still matched `Age`. v3 matches the name exactly
 and ignores one that differs. This is a known bug; the intended behavior is v2's.
 
-**`create` also sets attributes of other collections.** v2 ignored names in `values` that were
-not attributes of the named collection. v3 sets any attribute in the data context. This differs
-from v2, and a plugin should not rely on it.
+**`create` also sets attributes of the collections below.** v2 ignored names in `values` that
+were not attributes of the named collection. v3 also sets the attributes of the collections below
+it. (Attributes of the collections above take the parent's values.) This differs from v2, and a
+plugin should not rely on it.
 
 **`values` given as an array is not applied.** v2 also accepted `values` as an array of values in
 the collection's attribute order, on both actions. v3 does not: `create` makes a case with no
 values, and `update` changes nothing. This is a known bug; until it is fixed, key `values` by
 attribute name.
-
-**A case object without `values` is skipped.** In `create`, v2 created an empty case for it; v3
-creates nothing for that object. In `update`, v2 listed the case in `caseIDs`; v3 leaves it out,
-and replies `{ "success": false }` when no object has `values`. This is a known bug.
 
 **`update` also accepts item ids.** When an `id` matches no case, v3 tries it as the id of an
 item, changes that item, and lists the id in `caseIDs`. v2 skipped it. This is a known bug. Use
@@ -230,7 +221,8 @@ what each carries.
 | Error | Condition |
 |---|---|
 | `DataContext not found` | the selector's data context does not resolve. v2 reported this as being unable to resolve the data context |
-| `Collection not found` | `create` without a `collection` segment. v3 does not yet report it; see [Known limitations](#known-limitations) |
+| `Collection not found` | the `collection` segment is missing or names no collection. For `update` without the segment, v2 replied `{ "success": false }` with no message, and for a collection that does not exist it reported being unable to resolve it |
+| `Cannot create case with invalid or deleted parent` | `create` in a collection below the top, when no case object has a `parent` that names a case in the parent collection |
 | `A values object is required for this request.` | `update` with no `values` |
 
 `update` replies `{ "success": false }`, with no error message, when no case in `values` matches

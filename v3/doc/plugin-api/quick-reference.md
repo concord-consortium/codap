@@ -139,6 +139,7 @@ the string is what reaches your plugin.
 | `An error occurred while processing the request.` | — |
 | `Attribute not found` | `attributeNotFoundResult` |
 | `Cannot assign <value1> to <value2>` | — |
+| `Cannot create case with invalid or deleted parent` | — |
 | `Cannot create multiple sliders for <value>` | — |
 | `Case not found` | `caseNotFoundResult` |
 | `Collection not found` | `collectionNotFoundResult` |
