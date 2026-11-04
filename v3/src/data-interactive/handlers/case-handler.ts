@@ -7,7 +7,7 @@ import { toV2Id, toV3CaseId } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources, DIValues } from "../data-interactive-types"
 import { DIFullCase } from "../data-interactive-data-set-types"
-import { attrNamesToIds } from "../data-interactive-utils"
+import { arrayValuesToIds, attrNamesToIds } from "../data-interactive-utils"
 import { t } from "../../utilities/translation/translate"
 import { updateCasesBy } from "./handler-functions"
 import {
@@ -63,8 +63,11 @@ export const diCaseHandler: DIHandler = {
     let skippedCount = 0
     dataContext.applyModelChange(() => {
       cases.forEach(aCase => {
-        // as in V2, a case with no values is created empty
-        const caseValues = aCase?.values ? attrNamesToIds(aCase.values, dataContext) : {}
+        // as in V2, a case with no values is created empty, and values given as an array are in the order of
+        // the collection's attributes
+        const rawValues: unknown = aCase?.values
+        const caseValues = Array.isArray(rawValues) ? arrayValuesToIds(rawValues, collection)
+          : aCase?.values ? attrNamesToIds(aCase.values, dataContext) : {}
         if (!parentCollection) {
           // a top-level case has no parent, so any parent given is ignored (V2 used it if it named a case,
           // and otherwise failed)

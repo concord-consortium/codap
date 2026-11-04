@@ -8,7 +8,7 @@ import { toV2Id, toV3CaseId, toV3ItemId } from "../../utilities/codap-utils"
 import { DIResources, DISuccessResult, DIValues } from "../data-interactive-types"
 import { DICaseValues, DIFullCase, DIUpdateCase, DIUpdateItemResult } from "../data-interactive-data-set-types"
 import { getV2ItemResult, getCaseRequestResultValues } from "../data-interactive-type-utils"
-import { attrNamesToIds } from "../data-interactive-utils"
+import { arrayValuesToIds, attrIDFromValuesName, attrNamesToIds } from "../data-interactive-utils"
 import {
   caseNotFoundResult, dataContextNotFoundResult, fieldRequiredResult, itemNotFoundResult, valuesRequiredResult
 } from "./di-results"
@@ -96,7 +96,11 @@ export function updateCaseBy(
     _values = updateCase.values
   }
 
-  const updatedAttributes = attrNamesToIds(_values, dataContext)
+  // as in V2, values given as an array are in the order of the collection's attributes
+  const arrayValues: unknown = _values
+  const isArray = Array.isArray(arrayValues) && !!resources.collection && !itemReturnStyle
+  const updatedAttributes = isArray ? arrayValuesToIds(arrayValues as unknown[], resources.collection!)
+    : attrNamesToIds(_values, dataContext)
   const hasUpdates = Object.keys(updatedAttributes).length > 0
   dataContext.validateCases()
   const priorCaseIds = new Set(dataContext.caseInfoMap.keys())
@@ -120,15 +124,15 @@ export function updateCaseBy(
   if (itemReturnStyle) return itemResult({ changedCases: [toV2Id(aCase.__id__)] })
 
   // as in V2, a name that matches no attribute makes the reply report failure, though the other values are set
-  return { success: !hasUnknownAttributeName(_values, dataContext) }
+  return { success: isArray || !hasUnknownAttributeName(_values, dataContext) }
 }
 
 function hasUnknownAttributeName(values: DICaseValues, dataContext: IDataSet) {
-  return Object.keys(values).some(name => !dataContext.attrIDFromName(name))
+  return Object.keys(values).some(name => !attrIDFromValuesName(dataContext, name))
 }
 
 export function updateCasesBy(resources: DIResources, values?: DIValues, itemReturnStyle?: boolean) {
-  const { dataContext } = resources
+  const { collection, dataContext } = resources
   if (!dataContext) return dataContextNotFoundResult
   if (!values) return valuesRequiredResult
 
@@ -148,7 +152,12 @@ export function updateCasesBy(resources: DIResources, values?: DIValues, itemRet
       // as in V2, update case lists every case it finds, even one sent with no values
       if (id && v3Id && (dcItem || dcCase) && (aCase.values || !itemReturnStyle)) {
         caseIDs.push(id)
-        if (aCase.values) {
+        const rawValues: unknown = aCase.values
+        if (Array.isArray(rawValues) && collection && !itemReturnStyle) {
+          // as in V2, values given as an array are in the order of the named collection's attributes
+          updatedCases.push({ ...arrayValuesToIds(rawValues, collection), __id__: v3Id })
+        }
+        else if (aCase.values) {
           const updatedAttributes = attrNamesToIds(aCase.values, dataContext)
           updatedCases.push({ ...updatedAttributes, __id__: v3Id })
           if (hasUnknownAttributeName(aCase.values, dataContext)) unknownAttributeName = true

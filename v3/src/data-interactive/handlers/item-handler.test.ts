@@ -46,6 +46,26 @@ describe("DataInteractive ItemHandler", () => {
     expect(a1.value(9)).toBe("g")
   })
 
+  it("create and update try a name again with leading and trailing spaces removed, as in V2", () => {
+    const { dataset, a3 } = setupTestDataset()
+    const resources = { dataContext: dataset }
+    const result = handler.create?.(resources, { a1: "d", " a2": "w", "a3 ": 7 }) as DISuccessResult
+    expect(result.success).toBe(true)
+    const itemId = dataset.itemIds[dataset.itemIds.length - 1]
+    expect(dataset.getStrValue(itemId, dataset.attrIDFromName("a2")!)).toBe("w")
+    expect(a3.value(dataset.getItemIndex(itemId)!)).toBe(7)
+
+    // update with a list
+    expect(handler.update?.(resources, [{ id: toV2Id(itemId), values: { "a3 ": 8 } }])?.success).toBe(true)
+    expect(a3.value(dataset.getItemIndex(itemId)!)).toBe(8)
+
+    // the wrapped shape is trimmed too, and when two names reach one attribute the later wins, as in V2
+    handler.create?.(resources, [{ id: 777, values: { "a3 ": 9 } }, { a1: "x", "a1 ": "y" }])
+    expect(a3.value(dataset.getItemIndex(dataset.itemIds[dataset.itemIds.length - 2])!)).toBe(9)
+    const lastId = dataset.itemIds[dataset.itemIds.length - 1]
+    expect(dataset.getStrValue(lastId, dataset.attrIDFromName("a1")!)).toBe("y")
+  })
+
   it("delete works", () => {
     const { dataset: dataContext } = setupTestDataset()
     const item = dataContext.getItemAtIndex(0)!

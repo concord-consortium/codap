@@ -4,6 +4,7 @@ import { toV2Id, toV3ItemId } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIHandlerFnResult, DIResources, DIValues } from "../data-interactive-types"
 import { DIItem, DIItemValues, DINewCase } from "../data-interactive-data-set-types"
+import { withAttrNamesTrimmed } from "../data-interactive-utils"
 import { deleteItem, getItem, updateCaseBy, updateCasesBy } from "./handler-functions"
 import { dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
 
@@ -27,10 +28,12 @@ export function createItemsInSegments(dataContext: IDataSet, segments: DIItemVal
     // against an array so a malformed request can't crash on the __id__ access below.
     segment.forEach(item => {
       const wrapped = item.values
-      const newItem: DIItem =
+      // as in V2, a name that matches no attribute is tried again with leading and trailing spaces removed
+      const newItem: DIItem = withAttrNamesTrimmed(
         wrapped != null && typeof wrapped === "object" && !Array.isArray(wrapped)
           ? wrapped as DIItem
-          : item
+          : item,
+        dataContext)
 
       // If an id is specified, we need to put it in the right format
       // The Collaborative plugin makes use of this feature
