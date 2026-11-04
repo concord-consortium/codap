@@ -300,8 +300,7 @@ was not one. This is a known bug. Use the ids of items, from `itemSearch` or `it
 use `caseByID` to change a case.
 
 **Other notifications differ from v2.** `create` and `update` do not send `createItems` or
-`updateItems`, and the requesting plugin hears its own `updateCases`. These are known bugs,
-described in
+`updateItems`. These are known bugs, described in
 [the catalog's known limitations](../notifications.md#known-limitations).
 
 ## Notifications

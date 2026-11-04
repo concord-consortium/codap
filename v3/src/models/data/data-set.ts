@@ -1567,19 +1567,21 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       },
 
       moveItems(itemIds: string[], options?: IMoveItemsOptions) {
-        const indices = itemIds.map(itemId => self.getItemIndex(itemId)).filter(index => index != null)
-          .sort((a: number, b: number) => b - a) // Reverse order
-        const items = indices.map(index => {
-          const item = { index, item: self.items[index], values: [] as { strValue: string, numValue: number }[] }
-          self.attributes.forEach(attr => item.values.push({
+        // getItemIndex indexes _itemIds, which includes set-aside and filtered-out items
+        const itemIndices = Array.from(new Set(itemIds))
+          .map(itemId => ({ itemId, index: self.getItemIndex(itemId) }))
+          .filter((info): info is { itemId: string, index: number } => info.index != null)
+          .sort((a, b) => b.index - a.index) // Reverse order
+        const items = itemIndices.map(({ itemId, index }) => ({
+          itemId,
+          values: self.attributes.map(attr => ({
             strValue: attr.strValues[index],
             numValue: attr.numValues[index]
           }))
-          return item
-        }).reverse() // Normal order
+        })).reverse() // Normal order
 
         // Remove from ordered arrays
-        indices.forEach(index => {
+        itemIndices.forEach(({ index }) => {
           self._itemIds.splice(index, 1)
           self.attributes.forEach(attr => attr.removeValues(index))
         })
@@ -1590,7 +1592,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
         const insertIndex = afterIndex ?? beforeIndex ?? self._itemIds.length
 
         // Add back to ordered arrays
-        self._itemIds.splice(insertIndex, 0, ...items.map(({ item }) => item.__id__))
+        self._itemIds.splice(insertIndex, 0, ...items.map(({ itemId }) => itemId))
         self.attributes.forEach((attr, index) => {
           attr.strValues.splice(insertIndex, 0, ...items.map(({ values }) => values[index].strValue))
           attr.numValues.splice(insertIndex, 0, ...items.map(({ values }) => values[index].numValue))

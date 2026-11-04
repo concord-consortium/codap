@@ -254,23 +254,12 @@ Start a drag from inside a plugin, so the user can drop an attribute onto a grap
 
 ## Known limitations
 
-**The requesting plugin hears its own change.** `create` and `update` send their notifications to
-the plugin that made the change as well as to the others. The intended behavior is that the
-requesting plugin is skipped. This is a known bug; see
-[the catalog's known limitations](../notifications.md#known-limitations).
-
 **The protection properties come in two spellings that mean opposite things.** `get` reports
 `deleteable`, `renameable` and `editable` — whether the attribute *can* be deleted, renamed or
 edited. `update` accepts those, and also `deleteProtected` and `renameProtected`, which are their
 negations. Setting `deleteProtected: true` is the same as setting `deleteable: false`, and a
 following `get` returns `deleteable: false`. There is no `deleteProtected` or `renameProtected` in
 a `get` response.
-
-**`editable` currently does the opposite of what it says.** Sending `editable: true` should leave
-the attribute editable, and today it makes the attribute read-only; a following `get` returns
-`editable: false`. This is a known bug — the value is not negated on the way in, unlike the two
-properties handled beside it. Write what you mean; the behavior will be corrected, and a plugin
-written against the inverted behavior will break when it is.
 
 **`create` does not apply the protection properties to a new attribute.** `deleteable`,
 `renameable`, `deleteProtected` and `renameProtected` are honored by `update` and dropped by
@@ -301,8 +290,8 @@ the plugin's own iframe, so a request that arrives without one falls through to
 `create`, `update` and `delete` notify the other plugins listening to the data context, with
 `createAttributes`, `updateAttributes` and `deleteAttributes` on
 `dataContextChangeNotice[<context>]`. When `delete` removes the last attribute of a collection,
-`deleteCollection` comes first, as in CODAP's interface; v2 sent `deleteCollection` alone. Moving an attribute is done through `attributeLocation`, which
-sends `moveAttribute`. See
+`deleteCollection` comes first, as in CODAP's interface; v2 sent `deleteCollection` alone. Moving
+an attribute is done through `attributeLocation`, which sends `moveAttribute`. See
 [the notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext) for
 what each carries.
 
