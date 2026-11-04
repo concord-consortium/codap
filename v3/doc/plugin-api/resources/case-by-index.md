@@ -191,7 +191,9 @@ one that differs. This is a known bug; the intended behavior is v2's.
 This resource takes no `notify` requests of its own.
 
 `update` and `delete` notify other plugins on `dataContextChangeNotice[<context>]` with
-`updateCases` or `deleteCases`, as the same change made in a case table does.
+`updateCases` or `deleteCases`, as the same change made in a case table does. An `update` that
+moves the case to a different parent case also sends `createCases` for the cases it creates; v2
+sent a second `updateCases` listing them instead.
 
 ## Errors
 

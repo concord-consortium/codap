@@ -437,8 +437,8 @@ through an item resource, v2 sent `createItems` or `updateItems` in addition to 
 operation. v3 sends only `createCases` or `updateCases`, so a plugin filtering on the item
 operations receives nothing. v2 also sent `resetCollections` when moving an attribute to another collection was undone,
 which v3 does not send. This is a known bug; the intended behavior is that v3 sends these as v2
-did. Deleting and moving items belong to the previous entry: v2 reported them as `deleteCases`
-and `moveCases`, not as item operations.
+did. Deleting and moving items are reported as `deleteCases` and `moveCases`, as in v2, not as
+item operations.
 
 **Some map moves send no `change map coordinates`.** v3 does not notify plugins when a plugin sets
 a map's center or zoom with `update component`, when a plugin rescales it with `notify component`

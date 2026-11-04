@@ -54,15 +54,48 @@ describe("API data changes send dataContextChangeNotice", () => {
     expect(changes()[0].result.caseIDs).toEqual([toV2Id(caseId)])
 
     broadcastSpy.mockClear()
+    const caseId1 = dataset.getCasesForCollection(dataset.collections[2].id)[1].__id__
     await request("update", "collection[collection3].caseByIndex[1]", { values: { a3: 20 } })
+    expect(changes()).toEqual([{
+      operation: "updateCases",
+      result: { success: true, caseIDs: [toV2Id(caseId1)], cases: [expect.objectContaining({ __id__: caseId1 })] }
+    }])
+  })
+
+  it("update sends updateCases when a parent case merges into an existing group, as the case table does",
+    async () => {
+      // collection1's "a" case takes the value of the existing "b" case, so it is gone after the change
+      const aCaseId = dataset.getCasesForCollection(dataset.collections[0].id)[0].__id__
+      await request("update", `collection[collection1].caseByID[${toV2Id(aCaseId)}]`, { values: { a1: "b" } })
+      expect(changes()).toEqual([{ operation: "updateCases", result: { success: true, caseIDs: [], cases: [] } }])
+    })
+
+  it("update compares against up-to-date grouping, so existing cases aren't reported as created", async () => {
+    // a change made without revalidating leaves the grouping stale when the request arrives
+    dataset.setCaseValues([{ __id__: dataset.itemIds[0], a1: "c" }])
+    await request("update", `itemByID[${toV2Id(dataset.itemIds[2])}]`, { a3: 10 })
     expect(operations()).toEqual(["updateCases"])
   })
 
   it("update also sends createCases when the change regroups the case, and nothing when no attribute matches",
     async () => {
       // item 0 has a1 "a"; giving it a new a1 value creates a new parent case for it
-      await request("update", `itemByID[${toV2Id(dataset.itemIds[0])}]`, { a1: "c" })
-      expect(operations()).toEqual(["updateCases", "createCases"])
+      const itemId = dataset.itemIds[0]
+      const caseId = childCase(0)
+      await request("update", `itemByID[${toV2Id(itemId)}]`, { a1: "c" })
+      expect(changes()).toEqual([
+        {
+          operation: "updateCases",
+          result: { success: true, caseIDs: [toV2Id(caseId)], cases: [expect.objectContaining({ __id__: caseId })] }
+        },
+        {
+          operation: "createCases",
+          result: expect.objectContaining({
+            success: true, caseIDs: expect.any(Array), itemIDs: [toV2Id(itemId), toV2Id(itemId)]
+          })
+        }
+      ])
+      expect(changes()[1].result.caseIDs).toHaveLength(2)
 
       broadcastSpy.mockClear()
       await request("update", `itemByID[${toV2Id(dataset.itemIds[0])}]`, { noSuchAttribute: 1 })
@@ -120,7 +153,7 @@ describe("API data changes send dataContextChangeNotice", () => {
 
   it("notify itemSearch with itemOrder sends moveCases when the order changes", async () => {
     await request("notify", "itemSearch[a3==6]", { itemOrder: "first" })
-    expect(operations()).toEqual(["moveCases"])
+    expect(changes()).toEqual([{ operation: "moveCases", result: { success: true, caseIDs: [] } }])
 
     // already first, so nothing moves
     broadcastSpy.mockClear()
@@ -147,13 +180,17 @@ describe("API data changes send dataContextChangeNotice", () => {
 
   it("delete collection sends deleteCollection", async () => {
     await request("delete", "collection[collection1]")
-    expect(operations()).toEqual(["deleteCollection"])
+    expect(changes()).toEqual([{ operation: "deleteCollection", result: { success: true } }])
   })
 
   it("update collection sends updateCollection when something changes", async () => {
     await request("update", "collection[collection1]", { title: "First" })
     expect(operations()).toEqual(["updateCollection"])
     expect(changes()[0].result.properties).toEqual({ name: "collection1", title: "First" })
+
+    broadcastSpy.mockClear()
+    await request("update", "collection[collection2]", { labels: { singleCase: "thing" } })
+    expect(operations()).toEqual(["updateCollection"])
 
     broadcastSpy.mockClear()
     await request("update", "collection[collection1]", {})

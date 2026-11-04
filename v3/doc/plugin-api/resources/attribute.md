@@ -301,7 +301,7 @@ the plugin's own iframe, so a request that arrives without one falls through to
 `create`, `update` and `delete` notify the other plugins listening to the data context, with
 `createAttributes`, `updateAttributes` and `deleteAttributes` on
 `dataContextChangeNotice[<context>]`. When `delete` removes the last attribute of a collection,
-`deleteCollection` comes first. Moving an attribute is done through `attributeLocation`, which
+`deleteCollection` comes first, as in CODAP's interface; v2 sent `deleteCollection` alone. Moving an attribute is done through `attributeLocation`, which
 sends `moveAttribute`. See
 [the notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext) for
 what each carries.

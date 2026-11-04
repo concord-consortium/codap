@@ -156,7 +156,9 @@ This resource takes no `notify` requests of its own.
 
 `update` and `delete` notify other plugins on `dataContextChangeNotice[<context>]` with
 `updateCases` or `deleteCases` for the item's case in the last collection, as the same change made
-in a case table does.
+in a case table does. An `update` that moves the item to a different parent case also sends
+`createCases` for the cases it creates; v2 sent only the `updateCases`, whose result also listed
+the cases created and deleted.
 
 ## Errors
 
