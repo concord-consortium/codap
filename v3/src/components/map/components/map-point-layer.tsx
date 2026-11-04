@@ -26,6 +26,7 @@ import {useMapClickWithDoubleClickZoom} from "../hooks/use-map-click-with-double
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {IMapPointLayerModel} from "../models/map-point-layer-model"
 import {shiftLongitudeIntoView} from "../utilities/map-utils"
+import {MapHotSpotLayer} from "./map-hot-spot-layer"
 import {MapPointGrid} from "./map-point-grid"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import { useConnectingLines } from "../../data-display/hooks/use-connecting-lines"
@@ -584,6 +585,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
       </svg>
       <div ref={pixiContainerRef} className="map-dot-area"/>
       <MapPointGrid mapLayerModel={mapLayerModel} />
+      <MapHotSpotLayer mapLayerModel={mapLayerModel} />
       {displayHeatmap && (
         <div className="heatmap-area">
           <canvas ref={heatmapCanvasRef} className="heatmap-canvas" />
