@@ -311,7 +311,12 @@ function LibrariesView({ librariesState }: ILibrariesViewProps) {
       <p>{t("V3.AboutDialog.libraries.intro")}</p>
       <Input size="sm" mt="3" value={query} onChange={e => setQuery(e.target.value)}
         placeholder={searchLabel} aria-label={searchLabel} data-testid="about-dialog-library-search"/>
-      <div className="about-dialog-library-list">
+      <div
+        className="about-dialog-library-list"
+        tabIndex={0}
+        role="region"
+        aria-label={t("V3.AboutDialog.libraries.title")}
+      >
         {renderLibraries()}
       </div>
       <VisuallyHidden aria-live="polite">
