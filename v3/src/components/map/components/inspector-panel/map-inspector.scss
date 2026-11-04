@@ -1,7 +1,6 @@
 @use "../../../vars";
 
 @mixin top-divider {
-  margin: 10px;
   border-top: 1px solid vars.$charcoal-light-2;
   padding-top: 10px;
 }
@@ -79,6 +78,7 @@
     }
 
     .map-layer-controls {
+      margin: 10px;
       @include top-divider;
 
       > .react-aria-Checkbox {
@@ -91,7 +91,10 @@
 
       .map-hot-spot-controls {
         @include top-divider;
-        font-weight: 500;
+
+        > .react-aria-Checkbox {
+          font-weight: 500;
+        }
       }
     }
   }

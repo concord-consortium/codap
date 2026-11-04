@@ -25,12 +25,13 @@ function getHotSpotPane(leafletMap: LeafletMap) {
 }
 
 interface IProps {
-  mapLayerModel: IMapPointLayerModel
+  mapPointLayerModel: IMapPointLayerModel
 }
 
-export const MapHotSpotLayer = observer(function MapHotSpotLayer({ mapLayerModel }: IProps) {
+export const MapHotSpotLayer = observer(function MapHotSpotLayer({ mapPointLayerModel }: IProps) {
   const leafletMap = useMap()
-  const show = isFeatureEnabled("mapHotSpot") && mapLayerModel.isVisible && mapLayerModel.hotSpotModel.isVisible
+  const { isVisible, hotSpotModel } = mapPointLayerModel
+  const show = isFeatureEnabled("mapHotSpot") && isVisible && hotSpotModel.isVisible
 
   useEffect(() => {
     if (!show) return

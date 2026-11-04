@@ -40,8 +40,7 @@ export const MapLayersPalette = observer(function MapLayersPalette(
             dataConfiguration={layer.dataConfiguration}
             displayItemDescription={layer.displayItemDescription}
             mapPointLayerModel={mapPointLayerModel}
-          >
-          </DisplayItemFormatControl>
+          />
           <MapHotSpotControl mapPointLayerModel={mapPointLayerModel}/>
         </>)
     }
