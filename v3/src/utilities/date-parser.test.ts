@@ -114,7 +114,8 @@ describe('Date Parser tests - V2 compatibility', () => {
   })
 })
 
-// These tests must pass in any time zone. Run them under several, e.g. `TZ=Asia/Kolkata npm test -- date-parser`.
+// These tests must pass in any time zone. CI also runs them in Asia/Kolkata (see .github/workflows/v3.yml);
+// to do the same locally, run `TZ=Asia/Kolkata npm test -- date-parser`.
 // (Assigning process.env.TZ from inside a Jest test has no effect, so the zone must be set when Jest starts.)
 describe('Date Parser tests - time zone offsets', () => {
   test('ISO date-times with an explicit offset produce the instant the offset specifies', () => {
@@ -143,7 +144,7 @@ describe('Date Parser tests - time zone offsets', () => {
   })
 
   test('date-times with different offsets compare by instant', () => {
-    // reading these offsets as local time would reverse both comparisons in America/New_York
+    // reading these offsets as local time would reverse both comparisons
     const t1 = parseDate('2026-02-01T07:18:00-07:00')!   // 14:18Z
     const t2 = parseDate('2026-02-01T08:00:00+00:00')!   // 08:00Z
     expect(t1.getTime()).toBeGreaterThan(t2.getTime())
