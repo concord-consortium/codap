@@ -14,7 +14,7 @@ import { kMapIdPrefix } from "../../components/map/map-defs"
 import { appState } from "../../models/app-state"
 import { getSharedDataSets } from "../../models/shared/shared-data-utils"
 import { uiState } from "../../models/ui-state"
-import { toV3Id } from "../../utilities/codap-utils"
+import { toV2Id, toV3Id } from "../../utilities/codap-utils"
 import { V2CaseCard, V2CaseTable } from "../data-interactive-component-types"
 import { DIComponentInfo } from "../data-interactive-types"
 import { diComponentHandler } from "./component-handler"
@@ -250,6 +250,23 @@ describe("DataInteractive ComponentHandler", () => {
       msg?.values?.id === newId
     )
     expect(createCall).toBeDefined()
+
+    broadcastSpy.mockRestore()
+  })
+
+  it("delete on a case table hides it and sends V2's `DG.TableView` delete with the dataset's title", () => {
+    const sharedDataSet = getSharedDataSets(documentContent)[0]
+    sharedDataSet.dataSet.setTitle("Mammal Data")
+    const tableTile = createOrShowTableOrCardForDataset(sharedDataSet, kCaseTableTileType)!
+    const broadcastSpy = jest.spyOn(documentContent, "broadcastMessage")
+
+    expect(handler.delete?.({ component: tableTile }).success).toBe(true)
+    expect(documentContent.isTileHidden(tableTile.id)).toBe(true)
+    const deleteCalls = broadcastSpy.mock.calls.filter(([msg]) => msg?.values?.operation === "delete")
+    expect(deleteCalls.map(([msg]) => msg.values)).toEqual([{
+      operation: "delete", type: "DG.TableView", diType: "caseTable", id: toV2Id(tableTile.id),
+      name: tableTile.name, title: "Mammal Data"
+    }])
 
     broadcastSpy.mockRestore()
   })

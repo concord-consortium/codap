@@ -1,6 +1,6 @@
 import { isCaseTableModel } from "../../components/case-table/case-table-model"
 import {
-  openCaseTableNotification, resizeColumnsNotification
+  closeCaseTableNotification, openCaseTableNotification, resizeColumnsNotification
 } from "../../components/case-table/case-table-notifications"
 import { resizeAllColumns } from "../../components/case-table/case-table-utils"
 import { isGraphContentModel } from "../../components/graph/models/graph-content-model"
@@ -117,7 +117,7 @@ export const diComponentHandler: DIHandler = {
     document.applyModelChange(() => {
       document.content?.deleteOrHideTile(component.id)
     }, {
-      notify: deleteTileNotification(component),
+      notify: closeCaseTableNotification(component) ?? deleteTileNotification(component),
       excludeTileId: resources.interactiveFrame?.id
     })
 

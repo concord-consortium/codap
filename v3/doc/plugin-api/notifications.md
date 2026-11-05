@@ -103,7 +103,7 @@ See [Known limitations](#known-limitations). The example in [Receiving them](#re
 handles both.
 
 **Some notifications have no `operation`.** A `logMessageNotice` carries the log event itself, and
-the slider notice on `global[<name>]` carries only the new value:
+the value notice on `global[<name>]` carries only the new value:
 
 ```json
 {
@@ -179,7 +179,7 @@ for it.
 | Operation | Fires when | `values` also carries |
 |---|---|---|
 | `create` | a component is created. The calculator usually sends `show` instead; see below | — |
-| `delete` | a component is closed or deleted. **Also sent when a component is only hidden**, as the guide is when it is closed, and a case table is when it is closed from its title bar. For the case table, `type` is `DG.TableView`, as in v2. v2 also sent `create` when that close was undone; v3 does not, see [Known limitations](#known-limitations). Closing a case card sends nothing | `name`, `title` |
+| `delete` | a component is closed or deleted. **Also sent when a component is only hidden**, as the guide is when it is closed, and a case table is when it is closed from its title bar or deleted with `delete` on `component` (in the mosaic layout, `delete` removes it). For the case table, `type` is `DG.TableView` and `title` is its data context's title, as in v2. v2 also sent `create` when that close was undone; v3 does not, see [Known limitations](#known-limitations). Closing a case card sends nothing | `name`, `title` |
 | `titleChange` | a component is renamed. Sent on `component[<id>]` rather than `component` | `from`, `to` |
 | `hide`, `show` | the calculator is closed, or toggled from the tool shelf | — |
 | `move`, `resize` | a component is moved or resized | — |
@@ -241,7 +241,7 @@ The largest group.
 <!-- BEGIN GENERATED: notifications-component-slider -->
 | Operation | Fires when | `values` also carries |
 |---|---|---|
-| `change slider value` | the user finishes changing a slider's value: releasing the thumb, entering a value, or using the arrow keys. While the thumb is being dragged, and while the slider animates, only the value notice on `global[<name>]` is sent; see [Everything else](#everything-else) | _not readable from the code_ |
+| `change slider value` | the user finishes changing a slider's value: releasing the thumb, entering a value, or using the arrow keys. While the thumb is being dragged, and while the slider animates, only the value notice on `global[<name>]` is sent; see [Everything else](#everything-else). For an entered value, the value notice follows this one; for the thumb and the arrow keys, it comes first | _not readable from the code_ |
 <!-- END GENERATED: notifications-component-slider -->
 
 ### Map
@@ -375,7 +375,7 @@ Four more resources, each with a few notifications.
 | `documentChangeNotice` | `dataContextCountChanged` | a data context is created or deleted anywhere in the document | — |
 | `documentChangeNotice` | `dataContextDeleted` | a data context is deleted. `deletedContext` is its name | `deletedContext` |
 | `documentChangeNotice` | `updateDocumentBegun`, `updateDocumentEnded` | a plugin, or the host page CODAP is embedded in, replaced the document with `update document`; the two bracket the replacement. Sent to every plugin. v3 sends them only to the plugin that asked; see [Known limitations](#known-limitations) | — |
-| `global[<name>]` | none | a global value changes: a slider is dragged or animates, or a plugin sets the value with `update` on `global`. `<name>` is the slider's global value name, and `globalValue` is the new value. This is how a plugin follows a slider continuously. Also sent when a change is undone or redone, and to every plugin, including the one that set the value | `globalValue` |
+| `global[<name>]` | none | a global value changes: a slider is dragged or animates, the user enters a slider value or uses the arrow keys, a plugin sets the value with `update` on `global`, or `update document` changes an existing global's value. `<name>` is the slider's global value name, and `globalValue` is the new value. This is how a plugin follows a slider continuously. Also sent when a change is undone or redone, and to every plugin, including the one that set the value | `globalValue` |
 | `global` | `localeChanged` | CODAP's locale changed. Carries `lang`, the two-letter base language, and `locale`, the locale itself, such as `pt-BR`. Sent only to plugins that set `handlesLocaleChange`; see [Language and locale](guides/locale.md) | `lang`, `locale` |
 | `logMessageNotice` | none | a user-analytics log event matched a monitor your plugin registered. Carries `message`, `formatStr` and `logMonitor`, and sometimes `topic` and `replaceArgs` | `formatStr`, `logMonitor`, `message`, … |
 | `interactiveFrame` | computed | guided-tour and highlight messages — `tourUpdate` and `highlightUpdate`. Not documented further yet, because the implementation behind them is being replaced | _not readable from the code_ |
@@ -462,6 +462,10 @@ when a plugin set the center or zoom. This is a known bug.
 the creation of a component sent `delete`, undoing the calculator being shown or hidden sent the
 opposite, and undoing or redoing a case table close sent `create` or `delete`. v3 sends no
 component notification on undo or redo. This is a known bug.
+
+**`delete` on `component` hides a case table rather than deleting it.** v2 deleted the table, as it
+did any component a plugin deleted (`close-component.js`), and undoing that brought it back. v3
+hides the table, as its close box does, except in the mosaic layout. The notice is the same.
 
 **Undo and redo are not announced on `document`.** v3 does not send v2's `undo` and `redo`
 notifications on `document`. This is a known bug; see

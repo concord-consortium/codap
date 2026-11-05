@@ -1,3 +1,4 @@
+import { getTitle } from "../../models/tiles/tile-content-info"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { deleteTileNotification, updateTileNotification } from "../../models/tiles/tile-notifications"
 import { kCaseTableTileType } from "./case-table-defs"
@@ -58,12 +59,15 @@ export function joinNotification(destCaseTableTile?: ITileModel) {
   return updateTileNotification("join", {}, destCaseTableTile)
 }
 
-// V2's case table close box (case_table_controller.js:671-702) hides the table and sends `delete`
-// with the component model's type, 'DG.TableView', rather than the lifecycle name 'table'.
-// Closing a case card sends nothing, as in V2. No-ops for non-case-table tiles.
+// V2 sends `delete` with the component model's type, 'DG.TableView', rather than the lifecycle name
+// 'table', and the data context's title, when a case table is closed (case_table_controller.js:687-696)
+// or deleted by a plugin (close-component.js:51-61). No-ops for non-case-table tiles.
 export function closeCaseTableNotification(tile?: ITileModel) {
   if (tile?.content.type !== kCaseTableTileType) return
   const notification = deleteTileNotification(tile)
-  if (notification) notification.message.values.type = "DG.TableView"
+  if (notification) {
+    notification.message.values.type = "DG.TableView"
+    notification.message.values.title = getTitle(tile)
+  }
   return notification
 }
