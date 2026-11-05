@@ -1,5 +1,4 @@
 import { DIAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
-import { isAdornmentValues } from "../../../../../data-interactive/data-interactive-adornment-types"
 import { adornmentNotFoundResult, adornmentNotSupportedByPlotTypeResult }
   from "../../../../../data-interactive/handlers/di-results"
 import { IGraphContentModel } from "../../../models/graph-content-model"
@@ -7,7 +6,9 @@ import { cellKeyToString } from "../../../utilities/cell-key-utils"
 import { getAdornmentContentInfo, isCompatibleWithPlotType } from "../../adornment-content-info"
 import { IAdornmentModel } from "../../adornment-models"
 import { IAdornmentsBaseStore } from "../../store/adornments-base-store"
-import { AdornmentData, adornmentMismatchResult, cellKeyToCategories } from "../../utilities/adornment-handler-utils"
+import {
+  AdornmentData, adornmentMismatchResult, cellKeyToCategories, formulaValue
+} from "../../utilities/adornment-handler-utils"
 import { isPlottedValueAdornment } from "./plotted-value-adornment-model"
 import { kPlottedValueType } from "./plotted-value-adornment-types"
 
@@ -17,6 +18,9 @@ export const plottedValueAdornmentHandler: DIAdornmentHandler = {
     if (!isCompatibleWithPlotType(kPlottedValueType, graphContent.plotType)) {
       return adornmentNotSupportedByPlotTypeResult
     }
+    // `formula` (the key `get` reports) or `expression`
+    const { formula, error } = formulaValue(valuesObject(values))
+    if (error) return error
 
     const adornmentsStore = graphContent.adornmentsStore as IAdornmentsBaseStore
     const dataConfig = graphContent.dataConfiguration
@@ -26,13 +30,7 @@ export const plottedValueAdornmentHandler: DIAdornmentHandler = {
     const componentContentInfo = getAdornmentContentInfo(kPlottedValueType)
     const adornment = existingAdornment ?? componentContentInfo.modelClass.create()
 
-    // Set the expression if provided in the values
-    if (isAdornmentValues(values) && "expression" in values && values.expression) {
-      const plottedValueAdornment = isPlottedValueAdornment(adornment) ? adornment : undefined
-      if (plottedValueAdornment) {
-        plottedValueAdornment.setExpression(values.expression as string)
-      }
-    }
+    if (formula != null && isPlottedValueAdornment(adornment)) adornment.setExpression(formula)
 
     if (!existingAdornment) {
       adornmentsStore.addAdornment(adornment, { dataConfig })
@@ -45,11 +43,11 @@ export const plottedValueAdornmentHandler: DIAdornmentHandler = {
       const plottedValueAdornment = isPlottedValueAdornment(adornment) ? adornment : undefined
       const plottedValue = plottedValueAdornment?.measures.get(cellKeyString)?.value ?? NaN
       const dataItem: AdornmentData = { plottedValue }
-    
+
       if (Object.keys(cellKey).length > 0) {
         dataItem.categories = cellKeyToCategories(cellKey, dataConfig)
       }
-    
+
       data.push(dataItem)
     }
 
@@ -70,11 +68,11 @@ export const plottedValueAdornmentHandler: DIAdornmentHandler = {
       const cellKeyString = cellKeyToString(cellKey)
       const plottedValue = adornment.measures.get(cellKeyString)?.value ?? NaN
       const dataItem: AdornmentData = { plottedValue }
-    
+
       if (Object.keys(cellKey).length > 0) {
         dataItem.categories = cellKeyToCategories(cellKey, dataConfig)
       }
-    
+
       data.push(dataItem)
     }
 
@@ -86,10 +84,12 @@ export const plottedValueAdornmentHandler: DIAdornmentHandler = {
     const adornmentsStore = graphContent.adornmentsStore as IAdornmentsBaseStore
     const existingAdornment = adornmentsStore.findAdornmentOfType(kPlottedValueType)
     if (!existingAdornment) return adornmentNotFoundResult
+    const settings = valuesObject(values)
+    const { formula, error } = formulaValue(settings)
+    if (error) return error
 
-    if (isAdornmentValues(values) && "isVisible" in values && values.isVisible != null) {
-      existingAdornment.setVisibility(values.isVisible)
-    }
+    if (typeof settings.isVisible === "boolean") existingAdornment.setVisibility(settings.isVisible)
+    if (formula != null && isPlottedValueAdornment(existingAdornment)) existingAdornment.setExpression(formula)
 
     return { success: true }
   },
@@ -103,4 +103,8 @@ export const plottedValueAdornmentHandler: DIAdornmentHandler = {
     adornmentsStore.hideAdornment(kPlottedValueType)
     return { success: true }
   }
+}
+
+function valuesObject(values: unknown) {
+  return values != null && typeof values === "object" ? values as Record<string, unknown> : {}
 }

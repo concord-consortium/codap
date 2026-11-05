@@ -95,7 +95,7 @@ describe("DataInteractive plottedValueAdornmentHandler", () => {
 
   describe("create", () => {
     it("creates a new plotted value adornment", () => {
-      const values = { isVisible: true, formula }
+      const values = { isVisible: true, formula: "2 * mean(a3)" }
       const result = handler.create?.({ graphContent: mockGraphContent, values })
       expect(result?.success).toBe(true)
       expect(mockGraphContent.adornmentsStore.addAdornment).toHaveBeenCalled()

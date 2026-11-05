@@ -45,3 +45,19 @@ export const normalizeCellKey = (requestCellKey: string, dataConfig: IDataConfig
 
   return cellKeyToString(normalizedCellKey)
 }
+
+// An error for the first of `keys` in `values` that is present but not a finite number
+export const numberValuesError = (values: Record<string, unknown>, keys: string[]) => {
+  const key = keys.find(_key => values[_key] != null && !Number.isFinite(values[_key]))
+  if (key) return errorResult(t("V3.DI.Error.adornmentValueNotNumber", { vars: [key] }))
+}
+
+// A plotted function's or plotted value's formula, sent as `formula` (the key `get` reports) or `expression`
+export const formulaValue = (values: Record<string, unknown>) => {
+  const key = values.formula != null ? "formula" : values.expression != null ? "expression" : undefined
+  if (!key) return {}
+  const formula = values[key]
+  return typeof formula === "string"
+    ? { formula }
+    : { error: errorResult(t("V3.DI.Error.adornmentValueNotString", { vars: [key] })) }
+}
