@@ -178,8 +178,10 @@ sendRequest({ action: 'update', resource: 'document', values: savedState })
 CODAP is [embedded in](../guides/embedded-server.md), receive neither notice. This is a known
 bug; see [the catalog's known limitations](../notifications.md#known-limitations).
 
-CODAP v3 does **not** currently emit default `undo`/`redo` notifications on this resource, which
-CODAP v2 did. That is a known gap.
+When the user, or a plugin, undoes or redoes anything, CODAP sends every plugin a notification on
+this resource with operation `undo` or `redo`, as v2 did, carrying `canUndo` and `canRedo` (which
+v2's did not). See
+[Undo and redo](../guides/undo-and-redo.md#keeping-your-buttons-in-step).
 
 ## Errors
 

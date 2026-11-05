@@ -16,20 +16,20 @@ async function waitForHistoryEntry() {
 describe("DataInteractive UndoChangeNoticeHandler", () => {
   const handler = diUndoChangeNoticeHandler
 
-  it("returns error when interactiveFrame is missing", () => {
-    const result = handler.notify?.({}, { operation: "undoableActionPerformed" })
+  it("returns error when interactiveFrame is missing", async () => {
+    const result = await handler.notify?.({}, { operation: "undoableActionPerformed" })
     expect(result?.success).toBe(false)
   })
 
-  it("returns error for unknown operation", () => {
+  it("returns error for unknown operation", async () => {
     const tile = appState.document.content!.createOrShowTile(kWebViewTileType)!
-    const result = handler.notify?.({ interactiveFrame: tile }, { operation: "bogus" })
+    const result = await handler.notify?.({ interactiveFrame: tile }, { operation: "bogus" })
     expect(result?.success).toBe(false)
   })
 
-  it("returns error when operation is missing", () => {
+  it("returns error when operation is missing", async () => {
     const tile = appState.document.content!.createOrShowTile(kWebViewTileType)!
-    const result = handler.notify?.({ interactiveFrame: tile }, {})
+    const result = await handler.notify?.({ interactiveFrame: tile }, {})
     expect(result?.success).toBe(false)
   })
 
@@ -46,54 +46,54 @@ describe("DataInteractive UndoChangeNoticeHandler", () => {
     })
 
     it("undoableActionPerformed creates an undo entry and returns success", async () => {
-      const result = handler.notify?.({ interactiveFrame: tile }, { operation: "undoableActionPerformed" })
+      const result = await handler.notify?.({ interactiveFrame: tile }, { operation: "undoableActionPerformed" })
       expect(result?.success).toBe(true)
       await waitForHistoryEntry()
       expect(appState.document.canUndo).toBe(true)
     })
 
     it("undoButtonPress returns success", async () => {
-      handler.notify?.({ interactiveFrame: tile }, { operation: "undoableActionPerformed" })
+      await handler.notify?.({ interactiveFrame: tile }, { operation: "undoableActionPerformed" })
       await waitForHistoryEntry()
 
-      const result = handler.notify?.({ interactiveFrame: tile }, { operation: "undoButtonPress" })
+      const result = await handler.notify?.({ interactiveFrame: tile }, { operation: "undoButtonPress" })
       expect(result?.success).toBe(true)
       await waitForHistoryEntry()
       expect(appState.document.canRedo).toBe(true)
     })
 
     it("redoButtonPress returns success", async () => {
-      handler.notify?.({ interactiveFrame: tile }, { operation: "undoableActionPerformed" })
+      await handler.notify?.({ interactiveFrame: tile }, { operation: "undoableActionPerformed" })
       await waitForHistoryEntry()
-      handler.notify?.({ interactiveFrame: tile }, { operation: "undoButtonPress" })
+      await handler.notify?.({ interactiveFrame: tile }, { operation: "undoButtonPress" })
       await waitForHistoryEntry()
 
-      const result = handler.notify?.({ interactiveFrame: tile }, { operation: "redoButtonPress" })
+      const result = await handler.notify?.({ interactiveFrame: tile }, { operation: "redoButtonPress" })
       expect(result?.success).toBe(true)
       await waitForHistoryEntry()
       expect(appState.document.canUndo).toBe(true)
     })
 
-    it("undoButtonPress succeeds when nothing to undo", () => {
-      const result = handler.notify?.({ interactiveFrame: tile }, { operation: "undoButtonPress" })
+    it("undoButtonPress succeeds when nothing to undo", async () => {
+      const result = await handler.notify?.({ interactiveFrame: tile }, { operation: "undoButtonPress" })
       expect(result?.success).toBe(true)
     })
 
-    it("redoButtonPress succeeds when nothing to redo", () => {
-      const result = handler.notify?.({ interactiveFrame: tile }, { operation: "redoButtonPress" })
+    it("redoButtonPress succeeds when nothing to redo", async () => {
+      const result = await handler.notify?.({ interactiveFrame: tile }, { operation: "redoButtonPress" })
       expect(result?.success).toBe(true)
     })
 
     it("undo then redo round-trips correctly", async () => {
-      handler.notify?.({ interactiveFrame: tile }, { operation: "undoableActionPerformed" })
+      await handler.notify?.({ interactiveFrame: tile }, { operation: "undoableActionPerformed" })
       await waitForHistoryEntry()
       expect(appState.document.canUndo).toBe(true)
 
-      handler.notify?.({ interactiveFrame: tile }, { operation: "undoButtonPress" })
+      await handler.notify?.({ interactiveFrame: tile }, { operation: "undoButtonPress" })
       await waitForHistoryEntry()
       expect(appState.document.canRedo).toBe(true)
 
-      handler.notify?.({ interactiveFrame: tile }, { operation: "redoButtonPress" })
+      await handler.notify?.({ interactiveFrame: tile }, { operation: "redoButtonPress" })
       await waitForHistoryEntry()
       expect(appState.document.canUndo).toBe(true)
     })
@@ -101,11 +101,11 @@ describe("DataInteractive UndoChangeNoticeHandler", () => {
     it("undo sends undoAction message to the originating plugin", async () => {
       const broadcastSpy = jest.spyOn(appState.document.content!, "broadcastMessage")
 
-      handler.notify?.({ interactiveFrame: tile }, { operation: "undoableActionPerformed" })
+      await handler.notify?.({ interactiveFrame: tile }, { operation: "undoableActionPerformed" })
       await waitForHistoryEntry()
 
       broadcastSpy.mockClear()
-      handler.notify?.({ interactiveFrame: tile }, { operation: "undoButtonPress" })
+      await handler.notify?.({ interactiveFrame: tile }, { operation: "undoButtonPress" })
       await waitForHistoryEntry()
 
       const undoCall = broadcastSpy.mock.calls.find(
@@ -121,13 +121,13 @@ describe("DataInteractive UndoChangeNoticeHandler", () => {
     it("redo sends redoAction message to the originating plugin", async () => {
       const broadcastSpy = jest.spyOn(appState.document.content!, "broadcastMessage")
 
-      handler.notify?.({ interactiveFrame: tile }, { operation: "undoableActionPerformed" })
+      await handler.notify?.({ interactiveFrame: tile }, { operation: "undoableActionPerformed" })
       await waitForHistoryEntry()
-      handler.notify?.({ interactiveFrame: tile }, { operation: "undoButtonPress" })
+      await handler.notify?.({ interactiveFrame: tile }, { operation: "undoButtonPress" })
       await waitForHistoryEntry()
 
       broadcastSpy.mockClear()
-      handler.notify?.({ interactiveFrame: tile }, { operation: "redoButtonPress" })
+      await handler.notify?.({ interactiveFrame: tile }, { operation: "redoButtonPress" })
       await waitForHistoryEntry()
 
       const redoCall = broadcastSpy.mock.calls.find(
@@ -139,68 +139,114 @@ describe("DataInteractive UndoChangeNoticeHandler", () => {
       broadcastSpy.mockRestore()
     })
 
-    it("proactive clearUndo notification is broadcast when undo stack is emptied", async () => {
-      const broadcastSpy = jest.spyOn(appState.document.content!, "broadcastMessage")
+  })
 
-      // Undo all existing entries to start with an empty undo stack
+  describe("v2's undo history notices", () => {
+    let tile: ITileModel
+    let broadcastSpy: jest.SpyInstance
+
+    beforeEach(() => {
+      tile = appState.document.content!.createOrShowTile(kWebViewTileType)!
+      appState.document.treeMonitor!.enableMonitoring()
+      broadcastSpy = jest.spyOn(appState.document.content!, "broadcastMessage")
+    })
+
+    afterEach(() => {
+      broadcastSpy.mockRestore()
+      appState.document.treeMonitor!.disableMonitoring()
+    })
+
+    const notices = (resource: string) => broadcastSpy.mock.calls
+      .map(([message, , targetTileId]) => ({ message, targetTileId }))
+      .filter(({ message }) => message.resource === resource)
+
+    it("replies to undoableActionPerformed with the history after the action", async () => {
       while (appState.document.canUndo) {
         appState.document.undoLastAction()
         await waitForHistoryEntry()
       }
-      expect(appState.document.canUndo).toBe(false)
-
-      // Create an entry, then undo it to empty the stack
-      handler.notify?.({ interactiveFrame: tile }, { operation: "undoableActionPerformed" })
-      await waitForHistoryEntry()
-      expect(appState.document.canUndo).toBe(true)
-
-      broadcastSpy.mockClear()
-      handler.notify?.({ interactiveFrame: tile }, { operation: "undoButtonPress" })
-      await waitForHistoryEntry()
-
-      // Wait for the MobX reaction to fire
-      await new Promise(resolve => setTimeout(resolve, 10))
-
-      const clearUndoCall = broadcastSpy.mock.calls.find(
-        ([msg]) => msg.resource === "undoChangeNotice" && msg.values?.operation === "clearUndo"
-      )
-      expect(clearUndoCall).toBeDefined()
-      const values = clearUndoCall?.[0].values
-      expect(values.canUndo).toBe(false)
-      // clearUndo is broadcast to all plugins (no targetTileId)
-      expect(clearUndoCall?.[2]).toBeUndefined()
-
-      broadcastSpy.mockRestore()
+      const result = await handler.notify?.({ interactiveFrame: tile }, { operation: "undoableActionPerformed" })
+      expect(result?.values).toEqual({ canUndo: true, canRedo: false })
     })
 
-    it("proactive clearRedo notification is broadcast when redo stack is emptied", async () => {
-      const broadcastSpy = jest.spyOn(appState.document.content!, "broadcastMessage")
+    it("sends clearRedo to every plugin for each undoable action, even with nothing to redo", async () => {
+      await handler.notify?.({ interactiveFrame: tile }, { operation: "undoableActionPerformed" })
+      await handler.notify?.({ interactiveFrame: tile }, { operation: "undoableActionPerformed" })
+      const clearRedo = notices("undoChangeNotice")
+        .filter(({ message }) => message.values.operation === "clearRedo")
+      expect(clearRedo).toHaveLength(2)
+      clearRedo.forEach(({ message, targetTileId }) => {
+        expect(message.values).toEqual({ operation: "clearRedo", canUndo: true, canRedo: false })
+        expect(targetTileId).toBeUndefined()
+      })
+    })
 
-      // Create entry, undo it, then redo to empty the redo stack
-      handler.notify?.({ interactiveFrame: tile }, { operation: "undoableActionPerformed" })
-      await waitForHistoryEntry()
-      handler.notify?.({ interactiveFrame: tile }, { operation: "undoButtonPress" })
-      await waitForHistoryEntry()
-      expect(appState.document.canRedo).toBe(true)
-
+    it("sends undo and redo on document, and no clear notices, when undoing and redoing", async () => {
+      while (appState.document.canUndo) {
+        appState.document.undoLastAction()
+        await waitForHistoryEntry()
+      }
+      await handler.notify?.({ interactiveFrame: tile }, { operation: "undoableActionPerformed" })
       broadcastSpy.mockClear()
-      handler.notify?.({ interactiveFrame: tile }, { operation: "redoButtonPress" })
+
+      await handler.notify?.({ interactiveFrame: tile }, { operation: "undoButtonPress" })
+      await waitForHistoryEntry()
+      await handler.notify?.({ interactiveFrame: tile }, { operation: "redoButtonPress" })
       await waitForHistoryEntry()
 
-      // Wait for the MobX reaction to fire
-      await new Promise(resolve => setTimeout(resolve, 10))
+      expect(notices("document").map(({ message, targetTileId }) => [message.values, targetTileId])).toEqual([
+        [{ operation: "undo", canUndo: false, canRedo: true }, undefined],
+        [{ operation: "redo", canUndo: true, canRedo: false }, undefined]
+      ])
+      const clearNotices = notices("undoChangeNotice")
+        .filter(({ message }) => ["clearUndo", "clearRedo"].includes(message.values.operation))
+      expect(clearNotices).toEqual([])
+    })
 
-      const clearRedoCall = broadcastSpy.mock.calls.find(
-        ([msg]) => msg.resource === "undoChangeNotice" && msg.values?.operation === "clearRedo"
-      )
-      expect(clearRedoCall).toBeDefined()
-      const values = clearRedoCall?.[0].values
-      expect(values.canUndo).toBe(true)
-      expect(values.canRedo).toBe(false)
-      // clearRedo is broadcast to all plugins (no targetTileId)
-      expect(clearRedoCall?.[2]).toBeUndefined()
+    it("logs the plugin's logMessage, as v2 did", async () => {
+      const { Logger } = await import("../../lib/logger")
+      const loggerSpy = jest.spyOn(Logger, "log").mockImplementation(() => null)
+      await handler.notify?.({ interactiveFrame: tile },
+        { operation: "undoableActionPerformed", logMessage: "moved the slider" })
+      await handler.notify?.({ interactiveFrame: tile }, { operation: "undoableActionPerformed", logMessage: "" })
+      const messages = loggerSpy.mock.calls.map(([message]) => message)
+      expect(messages).toContain("Interactive action occurred: moved the slider")
+      // an empty or missing logMessage is logged as "Unknown action", as in v2
+      expect(messages.filter(message => message === "Interactive action occurred: Unknown action")).toHaveLength(1)
+      loggerSpy.mockRestore()
+    })
 
-      broadcastSpy.mockRestore()
+    it("alerts the user when the plugin fails to undo or redo", async () => {
+      const alertSpy = jest.spyOn(appState, "alert").mockImplementation(() => null)
+      await handler.notify?.({ interactiveFrame: tile }, { operation: "undoableActionPerformed" })
+      broadcastSpy.mockImplementation((message: any, callback: (response: any) => void) => {
+        if (message.values?.operation === "undoAction" || message.values?.operation === "redoAction") {
+          callback({ success: false })
+        }
+      })
+      await jestSpyConsole("warn", async () => {
+        await handler.notify?.({ interactiveFrame: tile }, { operation: "undoButtonPress" })
+        await waitForHistoryEntry()
+        await handler.notify?.({ interactiveFrame: tile }, { operation: "redoButtonPress" })
+        await waitForHistoryEntry()
+      })
+      await waitForHistoryEntry()
+      expect(alertSpy.mock.calls.map(([message]) => message)).toEqual([
+        "An error occurred while trying to undo.", "An error occurred while trying to redo."
+      ])
+      alertSpy.mockRestore()
+    })
+
+    it("treats a reply without success: false as success, as v2 did", async () => {
+      const alertSpy = jest.spyOn(appState, "alert").mockImplementation(() => null)
+      await handler.notify?.({ interactiveFrame: tile }, { operation: "undoableActionPerformed" })
+      broadcastSpy.mockImplementation((message: any, callback: (response: any) => void) => {
+        if (message.values?.operation === "undoAction") callback({})
+      })
+      await handler.notify?.({ interactiveFrame: tile }, { operation: "undoButtonPress" })
+      await waitForHistoryEntry()
+      expect(alertSpy).not.toHaveBeenCalled()
+      alertSpy.mockRestore()
     })
   })
 })
