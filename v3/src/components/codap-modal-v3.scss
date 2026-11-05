@@ -3,11 +3,25 @@ $header-height: 34px;
 $modal-height: 350px;
 $modal-width: 350px;
 
+@mixin text-button {
+  border-color: vars.$accent;
+  font-size: 14px;
+  font-weight: 500;
+  height: auto;
+  padding: 5px 15px;
+}
+
 .chakra-modal__content {
   font-family: Roboto, sans-serif;
 
-  button:focus-visible {
+  button {
+    &:focus-visible {
       @include vars.button-focus-outline;
+    }
+
+    &.text-button {
+      @include text-button;
+    }
   }
 
   .chakra-modal__header.codap-modal-header-v3 {
@@ -57,6 +71,10 @@ $modal-width: 350px;
 
   .chakra-modal__footer {
     background-color: white;
+
+    button {
+      @include text-button;
+    }
   }
 
   .chakra-form__label {

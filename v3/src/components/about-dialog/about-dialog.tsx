@@ -87,6 +87,7 @@ export function AboutDialog({ isOpen, initialView, returnFocusRef, onClose }: IP
       <div className="chakra-modal__header codap-modal-header-v3">
         {view === "libraries" &&
           <Button
+            className="text-button"
             ref={headerBackButtonRef}
             size="xs"
             variant="v3Clear"
