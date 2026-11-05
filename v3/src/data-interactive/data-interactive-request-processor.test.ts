@@ -6,7 +6,7 @@ import { uiState } from "../models/ui-state"
 import { setupTestDataset } from "../test/dataset-test-utils"
 import { registerDIHandler } from "./data-interactive-handler"
 import * as itemHandler from "./handlers/item-handler"
-import { setupRequestQueueProcessor } from "./data-interactive-request-processor"
+import { processRequest, setupRequestQueueProcessor } from "./data-interactive-request-processor"
 import { DIRequest, DIRequestResponse, DISuccessResult } from "./data-interactive-types"
 
 describe("setupRequestQueueProcessor", () => {
@@ -27,8 +27,21 @@ describe("setupRequestQueueProcessor", () => {
 
   afterEach(() => {
     disposer?.()
+    // end any cell edit a test started, so its hold can't leak into later tests
+    uiState.setIsEditingCell(false)
     jest.useRealTimers()
   })
+
+  // a cell edit in a data set managed by the plugin in tile PLUGIN1, which holds that plugin's requests
+  const kPluginTile = { id: "PLUGIN1" } as any
+  function setupPluginQueue() {
+    disposer?.()
+    disposer = setupRequestQueueProcessor(queue, { tile: kPluginTile })
+  }
+  function startBlockingEdit() {
+    uiState.setIsEditingCell(true)
+    uiState.setIsEditingBlockingCell(kPluginTile.id)
+  }
 
   function createItemRequest(values: object, resource = `dataContext[${datasetName}].item`): DIRequest {
     return { action: "create", resource, values }
@@ -108,8 +121,8 @@ describe("setupRequestQueueProcessor", () => {
     const responses: DIRequestResponse[] = []
 
     // requests accumulate, unprocessed, while a blocking cell edit is in progress
-    uiState.setIsEditingCell(true)
-    uiState.setIsEditingBlockingCell()
+    setupPluginQueue()
+    startBlockingEdit()
     for (let i = 0; i < 50; ++i) {
       queue.push({ request: createItemRequest({ a1: "a", a2: "x", a3: 500 + i }), callback: r => responses.push(r) })
     }
@@ -248,8 +261,8 @@ describe("setupRequestQueueProcessor", () => {
     const { actionNames, actionDisposer } = trackTopLevelActions()
     const responses: DIRequestResponse[] = []
 
-    uiState.setIsEditingCell(true)
-    uiState.setIsEditingBlockingCell()
+    setupPluginQueue()
+    startBlockingEdit()
     queue.push({ request: createItemRequest({ a1: "a", a2: "x", a3: 12 }), callback: r => responses.push(r) })
     queue.push({ request: createItemRequest({ a1: "b", a2: "y", a3: 13 }), callback: r => responses.push(r) })
 
@@ -262,5 +275,64 @@ describe("setupRequestQueueProcessor", () => {
     expect(responses.length).toBe(2)
     expect(actionNames.filter(actionName => actionName === "applyModelChange").length).toBe(1)
     actionDisposer()
+  })
+
+  it("holds only the managing plugin's requests during a blocking cell edit", async () => {
+    // another plugin's queue and the embedded server's (no tile) keep draining
+    const otherQueue = new RequestQueue()
+    const otherDisposer = setupRequestQueueProcessor(otherQueue, { tile: { id: "OTHER" } as any })
+    const serverQueue = new RequestQueue()
+    const serverDisposer = setupRequestQueueProcessor(serverQueue)
+    setupPluginQueue()
+    startBlockingEdit()
+
+    const responses: string[] = []
+    const get = { action: "get", resource: `dataContext[${datasetName}]` } as DIRequest
+    queue.push({ request: get, callback: () => responses.push("managing") })
+    otherQueue.push({ request: get, callback: () => responses.push("other") })
+    serverQueue.push({ request: get, callback: () => responses.push("server") })
+    await jest.runAllTimersAsync()
+    expect(responses.sort()).toEqual(["other", "server"])
+
+    uiState.setIsEditingCell(false)
+    await jest.runAllTimersAsync()
+    expect(responses).toContain("managing")
+    otherDisposer()
+    serverDisposer()
+  })
+
+  it("doesn't let other queues' requests interrupt a cell edit that holds a plugin's requests", async () => {
+    // an interruption makes the edited table re-select its cell, committing the half-typed value
+    const otherQueue = new RequestQueue()
+    const otherDisposer = setupRequestQueueProcessor(otherQueue, { tile: { id: "OTHER" } as any })
+    setupPluginQueue()
+    startBlockingEdit()
+    const interruptionCount = uiState.interruptionCount
+
+    const responses: DIRequestResponse[] = []
+    otherQueue.push({ request: createItemRequest({ a1: "a", a2: "x", a3: 40 }), callback: r => responses.push(r) })
+    await jest.runAllTimersAsync()
+    expect(responses.length).toBe(1)
+    expect(uiState.interruptionCount).toBe(interruptionCount)
+    expect(uiState.wasEditingCellBeforeInterruption).toBe(false)
+    otherDisposer()
+  })
+})
+
+describe("processRequest", () => {
+  it("replies to an array request with an error in the place of an action that throws, and runs the rest", async () => {
+    registerDIHandler("arrayThrower", { get: () => { throw new Error("handler boom") } })
+    registerDIHandler("arrayCounter", { get: () => ({ success: true, values: { count: ++count } }) as DISuccessResult })
+    let count = 0
+    const result = await processRequest([
+      { action: "get", resource: "arrayCounter" },
+      { action: "get", resource: "arrayThrower" },
+      { action: "get", resource: "arrayCounter" }
+    ])
+    expect(result).toEqual([
+      { success: true, values: { count: 1 } },
+      { success: false, values: { error: "An error occurred while processing the request." } },
+      { success: true, values: { count: 2 } }
+    ])
   })
 })

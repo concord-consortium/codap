@@ -56,7 +56,7 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
         attribute: column.key, old: initialValueRef.current, new: valueRef.current }))
     if (blockAPIRequests && value !== initialValueRef.current) {
       // Only block API requests if the user has actually changed the value.
-      uiState.setIsEditingBlockingCell()
+      data && uiState.setIsEditingBlockingCell(data.managingControllerId)
     }
   }
 

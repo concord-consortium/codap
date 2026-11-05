@@ -97,7 +97,7 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
         attribute: column.key, old: initialInputValue.current, new: value }))
     if (blockAPIRequests && value !== initialInputValue.current) {
       // Only block API requests if the user has actually changed the value.
-      uiState.setIsEditingBlockingCell()
+      data && uiState.setIsEditingBlockingCell(data.managingControllerId)
     }
   }, [blockAPIRequests, column.key, data, onRowChange, row, setPendingLogMessage])
 

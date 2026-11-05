@@ -60,10 +60,10 @@ export class UIState {
   @observable
   private _isEditingCell = false
 
-  // True if the user is currently editing a table that blocks API requests,
-  // preventing the table from changing out from under the user.
+  // While the user edits a cell in a data set whose managing plugin sets blockAPIRequestsWhileEditing,
+  // the id of that plugin's tile, whose requests wait so the table doesn't change under the user.
   @observable
-  private _isEditingBlockingCell = false
+  private _editingBlockedPluginId: string | undefined = undefined
 
   // True if _isEditingCell was true before being interrupted (e.g. by API processing).
   @observable
@@ -252,8 +252,14 @@ export class UIState {
     return this._isEditingCell
   }
 
-  get isEditingBlockingCell() {
-    return this._isEditingBlockingCell
+  // whether a cell edit is holding some plugin's requests
+  get isEditingBlockingRequests() {
+    return !!this._editingBlockedPluginId
+  }
+
+  // whether the requests from the plugin in tile `tileId` wait for the cell edit to end
+  isEditingBlockingRequestsFrom(tileId?: string) {
+    return !!tileId && tileId === this._editingBlockedPluginId
   }
 
   get wasEditingCellBeforeInterruption() {
@@ -305,14 +311,14 @@ export class UIState {
   @action
   setIsEditingCell(isEditing: boolean) {
     if (!isEditing) {
-      this._isEditingBlockingCell = false
+      this._editingBlockedPluginId = undefined
     }
     this._isEditingCell = isEditing
   }
 
   @action
-  setIsEditingBlockingCell() {
-    this._isEditingBlockingCell = true
+  setIsEditingBlockingCell(pluginTileId: string) {
+    this._editingBlockedPluginId = pluginTileId
   }
 
   @action
