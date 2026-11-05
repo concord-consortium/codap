@@ -71,7 +71,7 @@ export function updateAttribute(attribute: IAttribute, value: DIAttribute, dataC
   }
   if (value?.description != null) attribute.setDescription(value.description)
   if (value?.editable != null) {
-    metadata?.setIsEditProtected(attribute.id, !!value.editable)
+    metadata?.setIsEditProtected(attribute.id, !value.editable)
   }
   if (value?.formula != null) attribute.setDisplayExpression(value.formula)
   if (value?.name != null) dataContext?.setAttributeName(attribute.id, value.name)

@@ -83,7 +83,7 @@ whatever it was given, so a plugin that must also run there should send numbers.
 
 | Property | Type | Notes |
 |---|---|---|
-| `value` | number | required. The new value, converted to a number as for `create`. But see [Known limitations](#known-limitations) for `0`, `false` and empty text |
+| `value` | number | required. The new value, converted to a number as for `create`, so `true`, `false` and empty text are stored as `1`, `0` and `0`. `0` is a value. A missing or `null` `value` is refused with `missing global or value` |
 
 The name cannot be changed. `update` replies `{ "success": true }`. A slider showing the global
 value moves to the new value.
@@ -182,11 +182,6 @@ sendRequest({ action: "get", resource: "global[rate]" }, result => {
 
 ## Known limitations
 
-**`update` with a `value` of `0` fails.** CODAP refuses any `value` that JavaScript treats as
-false, `0`, `false` and empty text among them, with `missing global or value`, and leaves the
-value unchanged. v2 refused only a missing `value`, and set `0`. This is a known bug. Until it is
-fixed, send `"0"`, which is accepted and stored as `0`.
-
 **`create` with no `values` fails.** v3 replies with the generic error
 `An error occurred while processing the request.` and creates nothing. v2 created a global value
 named `v1` (or the next unused name) with the value `0.5`. This is a known bug. Until it is fixed,
@@ -213,11 +208,14 @@ the global value's name, with the new value in `globalValue`:
 }
 ```
 
-It is sent whenever the value changes, and not when it is set to the value it already has: while a slider is dragged or animates, when the user types
-a value into a slider or changes it with the arrow keys, when a plugin sets it with `update`, and
-when a change is undone or redone. So a plugin can follow a slider continuously, whoever drives
-it. As in v2, it goes to every plugin, including the one that set the value. `create` sends no
-notification. See
+It is sent whenever the value changes, and not when it is set to the value it already has: while
+a slider is dragged or animates, when the user types a value into a slider or changes it with the
+arrow keys, when a plugin sets it with `update`, when a change is undone or redone, and when
+`update document` changes the value of a global the document already has. So a plugin can follow a
+slider continuously, whoever drives it. As in v2, it goes to every plugin, including the one that
+set the value. `create` sends no notification. When the user types a value into a slider, it
+follows the slider's `change slider value` notification on `component`; when the user drags the
+thumb or uses the arrow keys, it comes first. See
 [the notification catalog](../notifications.md#everything-else).
 
 ## Errors
@@ -225,7 +223,7 @@ notification. See
 | Error | Condition |
 |---|---|
 | `Not found` | `get` names a global value that does not exist, or names none |
-| `missing global or value` | `update` names a global value that does not exist, or has no `value`, or a `value` such as `0`, `false` or empty text; see [Known limitations](#known-limitations). This assumes the request has `values`; without it v3 replies with the generic error |
+| `missing global or value` | `update` names a global value that does not exist, or has no `value`, or a `null` one. This assumes the request has `values`; without it v3 replies with the generic error |
 | `global values must be numbers` | `create` or `update` with a `value` that is not a number |
 | `globals must have unique names` | `create` with a name another global value already has |
 | `error creating global value` | `create` failed for any other reason |

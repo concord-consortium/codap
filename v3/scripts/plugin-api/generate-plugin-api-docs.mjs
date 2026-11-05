@@ -213,8 +213,7 @@ function renderSelectorGrammar() {
     "reads the attributes of one collection of one data context.",
     "",
     "**Data-context defaulting.** When a selector omits `dataContext`, CODAP supplies `#default`,",
-    "which resolves to the plugin's own data context (today, in v3, the first data context in the",
-    "document; see the index). That does not apply to these",
+    "which resolves to the plugin's own data context (see the index). That does not apply to these",
     `resource types: ${exempt}. Nor does it apply when creating a data context, since there is`,
     "nothing to default to yet. Note that some resources have a data context resolved and ignore",
     "it; each resource's page says which."
@@ -356,8 +355,12 @@ function renderNotificationTable(entries, body, { withResource = false, valuesHe
   if (withResource) head.unshift("Resource")
   const line = (r, i) => `| ${[...(withResource ? [r.resource] : []), r.operation, r.fires,
                                ...(shared ? [] : [cells[i]])].join(" | ")} |`
+  // A data context change notice's values is an array of changes, each carrying the shared property.
+  const isDataChange = entries.length > 0 && entries.every(n => n.resource?.startsWith("dataContextChangeNotice"))
+  const sharedLine = isDataChange ? `Every change in \`values\` carries ${shared}.`
+    : `Every one carries ${shared} in \`values\`.`
   return [`| ${head.join(" | ")} |`, `|${head.map(() => "---").join("|")}|`, ...rows.map(line),
-    ...(shared ? ["", `Every one carries ${shared} in \`values\`.`] : [])].join("\n")
+    ...(shared ? ["", sharedLine] : [])].join("\n")
 }
 
 function renderNotifications(block, body) {

@@ -48,7 +48,6 @@ export function createCodapDocument(snapshot?: ICodapDocumentModelSnapshot, opti
     // Add the global value manager to the formula manager
     const formulaManager = getFormulaManager(document) as Maybe<FormulaManager>
     formulaManager?.addGlobalValueManager(globalValueManager)
-    // notify plugins whenever a global value changes
     addDisposer(document, observeGlobalValueChanges(
       () => document.content?.getFirstSharedModelByType(GlobalValueManager),
       (message, callback) => document.content?.broadcastMessage(message, callback)

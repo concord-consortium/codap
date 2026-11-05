@@ -99,6 +99,9 @@ honors fourteen; `codapVersion`, `externalUndoAvailable`, `standaloneUndoModeAva
 | `cannotClose` | no | yes |
 | `handlesLocaleChange` | no | yes |
 
+A number given as `name` or `title` is used as text, as in v2. `cannotClose` may be any value;
+CODAP stores whether it is truthy.
+
 ### Holding requests while the user edits
 
 `blockAPIRequestsWhileEditing` makes CODAP hold back plugin requests while the user edits a case
@@ -202,11 +205,6 @@ Tell CODAP the plugin is working, then that it has finished:
 `request` it does not handle, matching v2's behavior. The cost is that a misspelled request is
 indistinguishable from one that worked, and there is no way to ask which requests this CODAP
 supports.
-
-**`cannotClose: false` does not take effect.** Sending it should make a protected frame closeable
-again, as it did in v2. CODAP applies this property only when the value is truthy, unlike the
-other booleans on this resource, so `false` leaves the frame exactly as it was. This is a known
-bug; `true` works.
 
 **`name` and `title` are ignored once the user has renamed the tile.** Both are applied only
 while the title is still CODAP's own. A plugin that renames itself in response to its own state
