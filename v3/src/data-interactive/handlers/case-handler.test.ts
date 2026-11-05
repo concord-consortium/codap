@@ -15,7 +15,12 @@ describe("DataInteractive CaseHandler", () => {
       expect(newCase.id).toBeDefined()
       expect(oldCaseIds.has(newCase.id!)).toBe(false)
       expect(dataset.caseInfoMap.get(toV3CaseId(newCase.id!))).toBeDefined()
+      // as in V2, each case is reported with the id of a new item it contains
+      expect(newItemIds()).toContain(newCase.itemID)
     }
+    let itemIdsBefore = new Set<string>()
+    const newItemIds = () => dataset.itemIds.filter(id => !itemIdsBefore.has(id)).map(id => toV2Id(id))
+    const noteItems = () => { itemIdsBefore = new Set(dataset.itemIds) }
 
     expect(handler.create?.({}).success).toBe(false)
 
@@ -23,6 +28,7 @@ describe("DataInteractive CaseHandler", () => {
     expect(dataset.items.length).toBe(6)
     expect(dataset.getCasesForCollection(c2.id).length).toBe(4)
     const targetParentCase = dataset.getCasesForCollection(c2.id)[0]
+    noteItems()
     const result = handler.create?.({ dataContext: dataset }, [
       { values: { a1: "c", a2: "c", a3: 7 } },
       {
@@ -37,6 +43,7 @@ describe("DataInteractive CaseHandler", () => {
     newCases.forEach(confirmNewCase)
 
     // creating a single parent case
+    noteItems()
     const result2 = handler.create?.({ dataContext: dataset, collection: c1 }, {
       values: { a1: "d", a2: "d", a3: 8 }
     })
@@ -46,8 +53,12 @@ describe("DataInteractive CaseHandler", () => {
     expect(dataset.getCasesForCollection(c2.id).length).toBe(6)
     const newCases2 = result2?.values as DINewCase[]
     newCases2.forEach(confirmNewCase)
+    // the one new item is the item behind the new parent case
+    expect(newItemIds()).toHaveLength(1)
+    expect(newCases2.map(({ itemID }) => itemID)).toEqual(newItemIds())
 
     // Creating a single child case
+    noteItems()
     const result3 = handler.create?.({ dataContext: dataset },
       {
         parent: dataset.getCasesForCollection(c1.id)[0].__id__,

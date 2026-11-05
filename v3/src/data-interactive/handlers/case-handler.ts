@@ -83,7 +83,11 @@ export const diCaseHandler: DIHandler = {
       values: newCaseIds.filter(newCaseId => {
         // if a collection is specified, only return cases in that collection
         return !collectionId || dataContext.getCollection(collectionId)?.hasCase(newCaseId)
-      }).map(id => ({ id: toV2Id(id) }))
+      }).map(id => {
+        // as in V2, each case is reported with the id of an item it contains
+        const itemId = dataContext.caseInfoMap.get(id)?.childItemIds[0]
+        return { id: toV2Id(id), itemID: itemId ? toV2Id(itemId) : null }
+      })
     }
   },
   update(resources: DIResources, values?: DIValues) {

@@ -20,7 +20,9 @@ describe("DataInteractive AllCasesHandler", () => {
     }
     const getCase = (result: GetAllCasesResult, index: number) =>
       result.values.cases![index].case!
-    const checkCase = (c: any, attribute: string, value: number | string, children: number, parent?: number) => {
+    // as in V2, a top-level case's parent is null
+    const checkCase = (c: any, attribute: string, value: number | string, children: number,
+                       parent: number | null = null) => {
       expect(c.values[attribute]).toBe(value)
       expect(c.children.length).toBe(children)
       expect(c.parent).toBe(parent)
